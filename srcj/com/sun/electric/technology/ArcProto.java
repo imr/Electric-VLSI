@@ -1247,7 +1247,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
             arcLayer.dump(out);
     }
     
-    Xml.ArcProto makeXml(XMLRules factoryXmlRules) {
+    Xml.ArcProto makeXml() {
         Xml.ArcProto a = new Xml.ArcProto();
         a.name = getName();
         for (Map.Entry<String,ArcProto> e: tech.getOldArcNames().entrySet()) {

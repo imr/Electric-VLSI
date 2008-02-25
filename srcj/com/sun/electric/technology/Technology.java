@@ -1858,7 +1858,7 @@ public class Technology implements Comparable<Technology>, Serializable
         }
         for (Iterator<ArcProto> it = getArcs(); it.hasNext(); ) {
             ArcProto ap = it.next();
-            t.arcs.add(ap.makeXml(factoryXmlRules));
+            t.arcs.add(ap.makeXml());
         }
         for (Iterator<PrimitiveNode> it = getNodes(); it.hasNext(); ) {
             PrimitiveNode pnp = it.next();

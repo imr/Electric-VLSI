@@ -3,8 +3,9 @@
  * Electric(tm) VLSI Design System
  *
  * File: ESandBox.java
+ * Written by: Dmitry Nadezhin, Sun Microsystems.
  *
- * Copyright (c) 2007 Sun Microsystems and Static Free Software
+ * Copyright (c) 2008 Sun Microsystems and Static Free Software
  *
  * Electric(tm) is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -55,7 +56,7 @@ import java.net.URL;
  *
  * PrintOutput = LF | CR | PrintString
  * LF = '\n'
- * CR = '\n'
+ * CR = '\r'
  * PrintString = LengthByte Byte+   // contains (LengthByte - ' ' + 1) bytes
  *
  * The subclass should contain methods with signature "commandName(String args), which implement commands,
@@ -81,17 +82,17 @@ public abstract class ESandBox extends EClassLoader {
         @Override public void write(byte b[], int off, int len) { writeStdOut(b, off, len); }
     };
     static { System.setOut(new PrintStream(redirectedStdOut, false)); }
-    
+
     private static final RunnableTask task = new RunnableTask();
     private static ESandBox theSandBox;
     private static String command;
-    
+
     private static final Object lock = new Object();
     private static byte[] serializedResultOrException;
     private static boolean isException;
-    
+
     private final Constructor UniversalJob_constructor = getDeclaredConstructor(defineClass("com.sun.electric.tool.UniversalJob"), String.class, Runnable.class);
-    
+
     /*
      * Abstract constructor of a ESandBox.
      * It loads classes from specified URL.
@@ -103,9 +104,9 @@ public abstract class ESandBox extends EClassLoader {
     }
 
     public static void redirectStdOut(String args) {
-        System.setOut(new PrintStream(redirectedStdOut, false));        
+        System.setOut(new PrintStream(redirectedStdOut, false));
     }
-    
+
     /**
      * Command interpreter which executes commands from command stream.
      * Each command is placed at the beginning of command line. Its arguments are after one or more spaces.
@@ -155,7 +156,7 @@ public abstract class ESandBox extends EClassLoader {
         ServerManagerThread() {
             super("ServerManager");
         }
-        
+
         @Override
         public void run() {
             try {
@@ -183,11 +184,11 @@ public abstract class ESandBox extends EClassLoader {
             }
         }
     }
-    
+
     private Object createJob(String jobName) throws InstantiationException, IllegalAccessException, InvocationTargetException {
         return UniversalJob_constructor.newInstance(jobName, task);
     }
-    
+
     private static class RunnableTask implements Runnable, Serializable {
         public void run() {
             String cmd, args;
@@ -214,7 +215,7 @@ public abstract class ESandBox extends EClassLoader {
                 exception = new Exception("Error", e);
                 exception.fillInStackTrace();
             }
-            
+
             byte[] serialized = null;
             try {
                 ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
@@ -249,13 +250,13 @@ public abstract class ESandBox extends EClassLoader {
             }
         }
     }
-    
+
     private static final char MIN_LENGTH_CHAR = ' ';
     private static final char HEADER_CHAR = 0x7F;
     private static final int STRLEN_WIDTH = Integer.toString(Integer.MAX_VALUE).length();
     private static final int HEADER_LEN = 3 + STRLEN_WIDTH + 1;
     private static final int TRAILER_LEN = 3;
-    
+
     private static synchronized void writeStdOut(byte b[], int off, int len) {
         while (len > 0 && (b[off] == '\n' || b[off] == '\r')) {
             stdOut.write(b[off]);
@@ -270,7 +271,7 @@ public abstract class ESandBox extends EClassLoader {
             len -= l;
         }
     }
-    
+
     private static synchronized void writeStdOut(byte[] b, boolean isException) {
         stdOut.write(HEADER_CHAR);
         stdOut.write('\n');

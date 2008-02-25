@@ -44,7 +44,8 @@ public class FileType implements Serializable {
     private static final FileTypeGroup BUILTINSIMGRP = new FileTypeGroup("Built-In Simulation", User.getWorkingDirectory()); // Built-in simulation tools
     private static final FileTypeGroup VERILOGSIMGRP = new FileTypeGroup("Verilog Simulation", User.getWorkingDirectory()); // Verilog simulation tools
     private static final FileTypeGroup EXPORTIMPORTGRP = new FileTypeGroup("Export-Import", User.getWorkingDirectory()); // Export/Import formats
-    private static final Object[] fileTypeGroups = {DATABASEGRP, OTHERSIMGRP, SPICESIMGRP, BUILTINSIMGRP, VERILOGSIMGRP, EXPORTIMPORTGRP};
+    private static final FileTypeGroup JARGRP = new FileTypeGroup("Electric Build", User.getWorkingDirectory()); // Export/Import formats
+    private static final Object[] fileTypeGroups = {DATABASEGRP, OTHERSIMGRP, SPICESIMGRP, BUILTINSIMGRP, VERILOGSIMGRP, EXPORTIMPORTGRP, JARGRP};
 
     public static Object[] getFileTypeGroups() { return fileTypeGroups; }
 
@@ -103,6 +104,7 @@ public class FileType implements Serializable {
 	/** Describes IRSIM parameter decks. */	public static final FileType IRSIMPARAM   = makeFileType("IRSIM Parameters", new String[] {"prm"}, "IRSIM Parameter Deck (prm)", BUILTINSIMGRP);
 	/** Describes IRSIM vector decks. */	public static final FileType IRSIMVECTOR  = makeFileType("IRSIM Vectors", new String[] {"cmd"}, "IRSIM Vector Deck (cmd)", BUILTINSIMGRP);
 	/** Describes Java source. */			public static final FileType JAVA         = makeFileType("Java", new String[] {"java", "bsh"}, "Java Script File (java, bsh)");
+	/** Describes Jar file. */              public static final FileType JAR          = makeFileType("Jar", new String[] {"jar"}, "Java binary archive (jar)", JARGRP);
 	/** Describes JELIB files.*/			public static final FileType JELIB        = makeFileType("JELIB", new String[] {"jelib"}, "Library File (jelib)", DATABASEGRP);
     /** Describes J3D files.*/				public static final FileType J3D          = makeFileType("J3D", new String[] {"j3d"}, "Java3D Demo File (j3d}");
     /** Describes L files.*/				public static final FileType L            = makeFileType("L", new String[] {"L"}, "L File (L)", EXPORTIMPORTGRP);

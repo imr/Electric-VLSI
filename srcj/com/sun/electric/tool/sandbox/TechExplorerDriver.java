@@ -1,12 +1,27 @@
-/*
- * TechExplorerDriver.java
+/* -*- tab-width: 4 -*-
  *
- * Created on June 16, 2007, 3:54 PM
+ * Electric(tm) VLSI Design System
  *
- * To change this template, choose Tools | Template Manager
- * and open the template in the editor.
+ * File: TechExplorerDriver.java
+ * Written by: Dmitry Nadezhin, Sun Microsystems.
+ *
+ * Copyright (c) 2008 Sun Microsystems and Static Free Software
+ *
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
  */
-
 package com.sun.electric.tool.sandbox;
 
 import com.sun.electric.tool.user.ActivityLogger;
@@ -28,7 +43,7 @@ import java.io.PrintWriter;
 public class TechExplorerDriver {
     private final Process process;
     private final PrintWriter commandsWriter;
-    
+
     /** Creates a new instance of TechExplorerDriver */
     public TechExplorerDriver(ProcessBuilder processBuilder, final OutputStream redirect) throws IOException {
         process = processBuilder.start();
@@ -36,7 +51,7 @@ public class TechExplorerDriver {
         Thread stdErrReader = new Thread() {
             public void run() {
                 PrintWriter pw = redirect != null ? new PrintWriter(redirect) : null;
-                
+
                 // read from stream
                 BufferedReader reader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
                 String line = null;
@@ -56,31 +71,31 @@ public class TechExplorerDriver {
         stdErrReader.start();
         (new StdOutThread()).start();
     }
-    
+
     public void putCommand(String cmd) {
         commandsWriter.println(cmd);
         commandsWriter.flush();
     }
-    
+
     public void putCommand(String cmd, String args) {
         commandsWriter.println(cmd + " " + args);
         commandsWriter.flush();
     }
-    
+
     public void closeCommands() {
         commandsWriter.close();
     }
-    
+
     private static final char MIN_LENGTH_CHAR = ' ';
     private static final char HEADER_CHAR = 0x7F;
     private static final int STRLEN_WIDTH = Integer.toString(Integer.MAX_VALUE).length();
     private static final int HEADER_LEN = 3 + STRLEN_WIDTH + 1;
     private static final int TRAILER_LEN = 3;
-    
+
     private class StdOutThread extends Thread {
         private byte[] buf = new byte[128];
         private DataInputStream resultsStream = new DataInputStream(new BufferedInputStream(process.getInputStream()));
-        
+
         public void run() {
             try {
                 for (;;) {
@@ -134,12 +149,12 @@ public class TechExplorerDriver {
                 ActivityLogger.logException(e);
             }
         }
-        
+
         private void readBuf(int len) throws IOException {
             if (buf.length < len)
                 buf = new byte[Math.max(buf.length*2, len)];
             resultsStream.readFully(buf, 0, len);
-            
+
         }
     }
 }

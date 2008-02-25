@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07e: *******************************
 
+IMP: (2/25/08, DN) Add FileType.JAR with file type group "Electric Build".
+
 IMP: (2/24/08, DN) One more PrimitiveNode constructor with minSizeRule argument.
 
 BUG: (2/22/08, GVG) Incremental DRC finds errors when there are none (Bug #1584)

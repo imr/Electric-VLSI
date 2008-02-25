@@ -3,8 +3,9 @@
  * Electric(tm) VLSI Design System
  *
  * File: EClassLoader.java
+ * Written by: Dmitry Nadezhin, Sun Microsystems.
  *
- * Copyright (c) 2007 Sun Microsystems and Static Free Software
+ * Copyright (c) 2008 Sun Microsystems and Static Free Software
  *
  * Electric(tm) is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,11 +43,11 @@ import java.util.HashMap;
 import java.util.List;
 
 /**
- * A ClassLoader which loads "electric.jar" (possibly with old Electric version) and finds their
+ * A ClassLoader which loads "electric.jar" (possibly with old Electric version) and finds there
  * some important classes, consructors, fields and methods.
  */
 class EClassLoader extends URLClassLoader {
-    
+
     protected final Class<?> classMain                  = loadElectricClass("Main");
     protected final Class<?> classMainUserInterfaceDummy= loadElectricClass("Main$UserInterfaceDummy");
     protected final Class<?> classUndo                  = loadElectricClass("database.change.Undo");
@@ -99,7 +100,7 @@ class EClassLoader extends URLClassLoader {
     protected final Class<?> classERC                   = loadElectricClass("tool.erc.ERC");
     protected final Class<?> classUser                  = loadElectricClass("tool.user.User");
     protected final Class<?> classEditWindow            = loadElectricClass("tool.user.ui.EditWindow");
-    
+
     protected final Field Main_NOTHREADING              = getField(classMain, "NOTHREADING");
     protected final Field Cell_versionGroup             = getDeclaredField(classCell, "versionGroup");
     protected final Field Pref_allPrefs                 = getDeclaredField(classPref, "allPrefs");
@@ -129,10 +130,10 @@ class EClassLoader extends URLClassLoader {
     protected final Field JobMode_BATCH                 = getField(classJobMode, "BATCH");
     protected final Field JobMode_CLIENT                = getField(classJobMode, "CLIENT");
     protected final Field ERC_tool                      = getDeclaredField(classERC, "tool");
-    
+
     protected final Constructor MainUserInterfaceDummy_constructor = getDeclaredConstructor(classMainUserInterfaceDummy);
     protected final Constructor CellVersionGroup_constructor       = getDeclaredConstructor(classCellVersionGroup);
-    
+
     protected final Method Undo_changesQuiet = getMethod(classUndo, "changesQuiet", Boolean.TYPE);
     protected final Method EGraphics_getColor = getMethod(classEGraphics, "getColor");
     protected final Method EGraphics_getForeground = getMethod(classEGraphics, "getForeground");
@@ -166,6 +167,7 @@ class EClassLoader extends URLClassLoader {
     protected final Method Setting_getSettings = getMethod(classSetting, "getSettings");
     protected final Method Setting_getXmlPath = getMethod(classSetting, "getXmlPath");
     protected final Method Version_getVersion = getMethod(classVersion, "getVersion");
+    protected final Method NodeInst_getAngle = getMethod(classNodeInst, "getAngle");
     protected final Method NodeInst_getFunction = getMethod(classNodeInst, "getFunction");
     protected final Method NodeInst_getProto = getMethod(classNodeInst, "getProto");
     protected final Method NodeInst_newInstance1 = getMethod(classNodeInst, "newInstance", classNodeProto, Point2D.class, Double.TYPE, Double.TYPE, classCell);
@@ -184,6 +186,7 @@ class EClassLoader extends URLClassLoader {
     protected final Method ArcProto_getDefaultWidth = getMethod(classArcProto, "getDefaultWidth");
     protected final Method ArcProto_getDefaultLambdaFullWidth = getMethod(classArcProto, "getDefaultLambdaFullWidth");
     protected final Method ArcProto_getFunction = getMethod(classArcProto, "getFunction");
+    protected final Method ArcProto_getLambdaElibWidthOffset = getMethod(classArcProto, "getLambdaElibWidthOffset");
     protected final Method ArcProto_getLambdaWidthOffset = getMethod(classArcProto, "getLambdaWidthOffset");
     protected final Method ArcProto_getName = getMethod(classArcProto, "getName");
     protected final Method ArcProto_getWidthOffset = getMethod(classArcProto, "getWidthOffset");
@@ -263,7 +266,8 @@ class EClassLoader extends URLClassLoader {
     protected final Method Technology_getMinResistance = getMethod(classTechnology, "getMinResistance");
     protected final Method Technology_getMinCapacitance = getMethod(classTechnology, "getMinCapacitance");
     protected final Method Technology_getNodes = getMethod(classTechnology, "getNodes");
-    protected final Method Technology_getNodesGrouped = getMethod(classTechnology, "getNodesGrouped");
+    protected final Method Technology_getNodesGrouped1 = getMethod(classTechnology, "getNodesGrouped");
+    protected final Method Technology_getNodesGrouped2 = getMethod(classTechnology, "getNodesGrouped", classCell);
     protected final Method Technology_getNumMetals = getMethod(classTechnology, "getNumMetals");
     protected final Method Technology_getNumTransparentLayers = getMethod(classTechnology, "getNumTransparentLayers");
     protected final Method Technology_getOldArcNames = getMethod(classTechnology, "getOldArcNames");
@@ -285,6 +289,7 @@ class EClassLoader extends URLClassLoader {
     protected final Method Technology_getTechnologies = getMethod(classTechnology, "getTechnologies");
     protected final Method Technology_initAllTechnologies = getMethod(classTechnology, "initAllTechnologies");
     protected final Method Technology_isScaleRelevant = getMethod(classTechnology, "isScaleRelevant");
+    protected final Method TechnologyArcLayer_getGridExtend = getDeclaredMethod(classTechnologyArcLayer, "getGridExtend");
     protected final Method TechnologyArcLayer_getLambdaOffset = getDeclaredMethod(classTechnologyArcLayer, "getLambdaOffset");
     protected final Method TechnologyArcLayer_getLayer = getDeclaredMethod(classTechnologyArcLayer, "getLayer");
     protected final Method TechnologyArcLayer_getOffset = getDeclaredMethod(classTechnologyArcLayer, "getOffset");
@@ -314,18 +319,18 @@ class EClassLoader extends URLClassLoader {
     protected final Method Tool_initProjectSettings = getDeclaredMethod(classTool, "initProjectSettings");
     protected final Method ERC_getAntennaRatio = getMethod(classERC, "getAntennaRatio", classArcProto);
     protected final Method User_getUserTool = getMethod(classUser, "getUserTool");
-    
+
     protected final HashMap<Object,EGraphics.Outline> EGraphicsOutlines = new HashMap<Object,EGraphics.Outline>();
     protected final HashMap<Object,Poly.Type> PolyTypes = new HashMap<Object,Poly.Type>();
     protected final HashMap<Object,DRCTemplate.DRCRuleType> DRCTemplateDRCRuleTypes = new HashMap<Object,DRCTemplate.DRCRuleType>();
     protected final HashMap<Object,Layer.Function> LayerFunctions = new HashMap<Object,Layer.Function>();
     protected final HashMap<Object,ArcProto.Function> ArcProtoFunctions = new HashMap<Object,ArcProto.Function>();
     protected final HashMap<Object,PrimitiveNode.Function> PrimitiveNodeFunctions = new HashMap<Object,PrimitiveNode.Function>();
-    
+
     /** Creates a new instance of EClassLoader */
     public EClassLoader(URL electricJar) throws IOException, ClassNotFoundException, IllegalAccessException {
         super(new URL[] { checkConnection(electricJar) }, ClassLoader.getSystemClassLoader().getParent());
-        
+
         assert getClass().getClassLoader().getParent() == getParent();
         if (classEGraphicsOutline != null) {
             for (EGraphics.Outline o: EGraphics.Outline.class.getEnumConstants()) {
@@ -368,12 +373,12 @@ class EClassLoader extends URLClassLoader {
             assert old == null;
         }
     }
-    
+
     private static URL checkConnection(URL url) throws IOException {
         url.openStream().close();
         return url;
     }
-    
+
     @Override
     protected synchronized Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
         if (name.startsWith("com.sun.electric.tool.sandbox."))
@@ -388,7 +393,7 @@ class EClassLoader extends URLClassLoader {
 //            resolveClass(c);
 //        return c;
     }
-    
+
 //    @Override
 //    public URL getResource(String name) {
 //        if (!name.startsWith("com/sun/electric/") || name.startsWith("com/sun/electric/tool/sandbox/"))
@@ -402,7 +407,7 @@ class EClassLoader extends URLClassLoader {
 //            return super.getResources(name);
 //        return findResources(name);
 //    }
-    
+
     /*
      * Define class in this class loader from resource class loader found
      * in class loader's class loader.
@@ -421,7 +426,7 @@ class EClassLoader extends URLClassLoader {
             throw new ClassNotFoundException(name);
         }
     }
-    
+
     private Class<?> loadElectricClass(String ... className) {
         for (String s: className) {
             try {
@@ -433,7 +438,7 @@ class EClassLoader extends URLClassLoader {
         }
         return null;
     }
-    
+
     private Field getField(Class<?> c, String fieldName) {
         Field f = null;
         try {
@@ -445,7 +450,7 @@ class EClassLoader extends URLClassLoader {
         }
         return f;
     }
-    
+
     private Field getDeclaredField(Class<?> c, String fieldName) {
         Field f = null;
         try {
@@ -457,7 +462,7 @@ class EClassLoader extends URLClassLoader {
         }
         return f;
     }
-    
+
     private Method getMethod(Class<?> c, String methodName, Class<?>... parameterTypes) {
         Method m = null;
         try {
@@ -467,7 +472,7 @@ class EClassLoader extends URLClassLoader {
         }
         return m;
     }
-    
+
     private Method getDeclaredMethod(Class<?> c, String methodName, Class<?>... parameterTypes) {
         Method m = null;
         try {
@@ -479,7 +484,7 @@ class EClassLoader extends URLClassLoader {
         }
         return m;
     }
-    
+
     protected Constructor getDeclaredConstructor(Class<?> c, Class<?>... parameterTypes) {
         Constructor m = null;
         try {

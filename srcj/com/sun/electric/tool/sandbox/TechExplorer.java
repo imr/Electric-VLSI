@@ -3,8 +3,9 @@
  * Electric(tm) VLSI Design System
  *
  * File: TechExplorer.java
+ * Written by: Dmitry Nadezhin, Sun Microsystems.
  *
- * Copyright (c) 2007 Sun Microsystems and Static Free Software
+ * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
  * Electric(tm) is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,7 +27,6 @@ package com.sun.electric.tool.sandbox;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.text.Version;
 import com.sun.electric.technology.DRCTemplate;
 import com.sun.electric.technology.EdgeH;
 import com.sun.electric.technology.EdgeV;
@@ -39,7 +39,6 @@ import com.sun.electric.technology.Xml;
 import java.awt.Color;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.ByteArrayInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -78,19 +77,7 @@ public class TechExplorer extends ESandBox {
 
             InputStream commandStream = System.in;
             if (args.length >= 2) {
-                if (false) {
-                    commandStream = new BufferedInputStream(new FileInputStream(args[1]));
-                } else {
-                    String commands =
-                            "initTechnologies\n" +
-//                            "makeXml mocmos\n" +
-//                            "dumpPrefs " + args[1] + "\n" +
-                            "dumpAll " + args[1] + "\n" +
-                            "";
-                    byte[] buf = commands.getBytes();
-                    assert buf.length == commands.length();
-                    commandStream = new ByteArrayInputStream(buf);
-                }
+                commandStream = new BufferedInputStream(new FileInputStream(args[1]));
             }
             m.loop(commandStream);
         } catch (Exception e) {
@@ -115,6 +102,7 @@ public class TechExplorer extends ESandBox {
         for (Iterator<?> tit = (Iterator)Technology_getTechnologies.invoke(null); tit.hasNext(); ) {
             Object tech = tit.next();
             String techName = (String)Technology_getTechName.invoke(tech);
+            System.out.println("Technology " + techName);
             Xml.Technology t = makeXml(techName);
             t.writeXml(fileName.replaceAll("lst", techName + "\\.xml"));
         }
@@ -381,6 +369,8 @@ public class TechExplorer extends ESandBox {
             else if (ArcProto_getDefaultWidth != null)
                 defaultFullWidth = (Double)ArcProto_getDefaultWidth.invoke(ap);
             double widthOffset = 0;
+            if (ArcProto_getLambdaElibWidthOffset != null)
+                widthOffset = (Double)ArcProto_getLambdaElibWidthOffset.invoke(ap);
             if (ArcProto_getLambdaWidthOffset != null)
                 widthOffset = (Double)ArcProto_getLambdaWidthOffset.invoke(ap);
             else if (ArcProto_getWidthOffset != null)
@@ -391,12 +381,18 @@ public class TechExplorer extends ESandBox {
                 Xml.ArcLayer al = new Xml.ArcLayer();
                 al.layer = (String)Layer_getName.invoke(TechnologyArcLayer_getLayer.invoke(arcLayer));
                 al.style = PolyTypes.get(TechnologyArcLayer_getStyle.invoke(arcLayer));
-                double offset = 0;
-                if (TechnologyArcLayer_getLambdaOffset != null)
-                    offset = (Double)TechnologyArcLayer_getLambdaOffset.invoke(arcLayer);
-                else if (TechnologyArcLayer_getOffset != null)
-                    offset = (Double)TechnologyArcLayer_getOffset.invoke(arcLayer);
-                al.extend.value = round(0.5*(defaultFullWidth - offset));
+                double extend = 0;
+                if (TechnologyArcLayer_getGridExtend != null) {
+                    extend = DBMath.gridToLambda((Integer)TechnologyArcLayer_getGridExtend.invoke(arcLayer));
+                } else {
+                    double offset = 0;
+                    if (TechnologyArcLayer_getLambdaOffset != null)
+                        offset = (Double)TechnologyArcLayer_getLambdaOffset.invoke(arcLayer);
+                    else if (TechnologyArcLayer_getOffset != null)
+                        offset = (Double)TechnologyArcLayer_getOffset.invoke(arcLayer);
+                    extend = 0.5*(defaultFullWidth - offset);
+                }
+                al.extend.value = round(extend);
                 a.arcLayers.add(al);
             }
             t.arcs.add(a);
@@ -575,8 +571,12 @@ public class TechExplorer extends ESandBox {
         addSpiceHeader(t, 2, (String[])Technology_getSpiceHeaderLevel2.invoke(tech));
         addSpiceHeader(t, 3, (String[])Technology_getSpiceHeaderLevel3.invoke(tech));
 
-        if (Technology_getNodesGrouped != null) {
-            Object[][] origPalette = (Object[][])Technology_getNodesGrouped.invoke(tech);
+        if (Technology_getNodesGrouped1 != null || Technology_getNodesGrouped2 != null) {
+            Object[][] origPalette = null;
+            if (Technology_getNodesGrouped1 != null)
+                origPalette = (Object[][])Technology_getNodesGrouped1.invoke(tech);
+            else if (Technology_getNodesGrouped2 != null)
+                origPalette = (Object[][])Technology_getNodesGrouped2.invoke(tech, (Object)null);
             if (origPalette != null) {
                 int numRows = origPalette.length;
                 int numCols = origPalette[0].length;
@@ -592,8 +592,15 @@ public class TechExplorer extends ESandBox {
                         ArrayList<Object> newBox = new ArrayList<Object>();
                         if (origEntry instanceof List) {
                             List<?> list = (List<?>)origEntry;
-                            for (Object o: list)
-                                newBox.add(makeMenuEntry(t, o));
+                            for (Object o: list) {
+                                if (o instanceof List) {
+                                    List<?> list2 = (List<?>)o;
+                                    for (Object o2: list2)
+                                        newBox.add(makeMenuEntry(t, o2));
+                                } else {
+                                    newBox.add(makeMenuEntry(t, o));
+                                }
+                            }
                         } else if (origEntry != null) {
                             newBox.add(makeMenuEntry(t, origEntry));
                         }
@@ -736,14 +743,19 @@ public class TechExplorer extends ESandBox {
             Xml.MenuNodeInst n = new Xml.MenuNodeInst();
             n.protoName = (String)PrimitiveNode_getName.invoke(NodeInst_getProto.invoke(entry));
             n.function = PrimitiveNodeFunctions.get(NodeInst_getFunction.invoke(entry));
+            n.rotation = (Integer)NodeInst_getAngle.invoke(entry);
             for (Iterator<?> it = (Iterator)ElectricObject_getVariables.invoke(entry); it.hasNext(); ) {
                 Object var = it.next();
+                Object value = Variable_getObject.invoke(var);
+                if (!(value instanceof String)) continue;
                 n.text = (String)Variable_getObject.invoke(var);
                 Object td = Variable_getTextDescriptor.invoke(var);
                 n.fontSize = (Double)TextDescriptorSize_getSize.invoke(TextDescriptor_getSize.invoke(td));
             }
             return n;
         }
+        if (entry.getClass().getName().equals("javax.swing.JPopupMenu$Separator"))
+            return "SEPARATOR";
         assert entry instanceof String;
         return entry;
     }
