@@ -1081,7 +1081,17 @@ public class Technology implements Comparable<Technology>, Serializable
                 if (nl.inElectricalLayers)
                     electricalNodeLayers.add(nodeLayer);
             }
-            PrimitiveNode pnp = PrimitiveNode.newInstance(n.name, this, EPoint.fromGrid(-correction.getGridX(), -correction.getGridY()),
+            String minSizeRule = null;
+            if (n.nodeSizeRule != null) {
+                EPoint correction2 = EPoint.fromLambda(0.5*n.nodeSizeRule.width, 0.5*n.nodeSizeRule.height);
+                if (n.diskOffset.isEmpty())
+                    correction = correction2;
+                else if (!correction.equals(correction2))
+                    throw new IllegalArgumentException("Mismatch between nodeSizeRule and diskOffset");
+                minSizeRule = n.nodeSizeRule.rule;
+            }
+            EPoint negCorrection = EPoint.fromGrid(-correction.getGridX(), -correction.getGridY());
+            PrimitiveNode pnp = PrimitiveNode.newInstance(n.name, this, negCorrection, minSizeRule,
                     DBMath.round(n.defaultWidth.value + 2*correction.getLambdaX()), DBMath.round(n.defaultHeight.value + 2*correction.getLambdaY()), n.sizeOffset,
                     nodeLayers.toArray(new NodeLayer[nodeLayers.size()]));
             if (n.oldName != null)
@@ -1158,8 +1168,6 @@ public class Technology implements Comparable<Technology>, Serializable
                 assert layer.getPureLayerNode() == null;
                 layer.setPureLayerNode(pnp);
             }
-            if (n.nodeSizeRule != null)
-                pnp.setMinSize(n.nodeSizeRule.getWidth(), n.nodeSizeRule.getHeight(), n.nodeSizeRule.getRuleName());
             if (n.spiceTemplate != null)
             	pnp.setSpiceTemplate(n.spiceTemplate);
         }
@@ -2132,7 +2140,7 @@ public class Technology implements Comparable<Technology>, Serializable
 			if (layer != null)
 				layers.add(layer);
 		}
-		return layers;		
+		return layers;
 	}
 
 	/**
@@ -2871,7 +2879,7 @@ public class Technology implements Comparable<Technology>, Serializable
 		PrimitiveNode pn = (PrimitiveNode)ni.getProto();
 		return pn.getBaseRectangle();
     }
-    
+
 	private static final Technology.NodeLayer [] nullPrimLayers = new Technology.NodeLayer [0];
 
 	/**
@@ -5051,12 +5059,12 @@ public class Technology implements Comparable<Technology>, Serializable
 		}
 	}
 
-    protected void setDefNodeSize(PrimitiveNode nty, double wid, double hei)
-    {
-        double xindent = (nty.getDefWidth() - wid) / 2;
-		double yindent = (nty.getDefHeight() - hei) / 2;
-		nty.setSizeOffset(new SizeOffset(xindent, xindent, yindent, yindent));  // bug 1040
-    }
+//    protected void setDefNodeSize(PrimitiveNode nty, double wid, double hei)
+//    {
+//        double xindent = (nty.getDefWidth() - wid) / 2;
+//		double yindent = (nty.getDefHeight() - hei) / 2;
+//		nty.setSizeOffset(new SizeOffset(xindent, xindent, yindent, yindent));  // bug 1040
+//    }
 
 	/**
 	 * Method to set the surround distance of layer "layer" from the via in node "nodename" to "surround".
@@ -5321,43 +5329,43 @@ public class Technology implements Comparable<Technology>, Serializable
      */
     public boolean isValidVTPolyRule(DRCTemplate theRule) {return false;}
 
-    /**
-     * Utility function to copy NodeLayers from existing PrimitiveNodes into new ones.
-     * @param source
-     * @param destination
-     * @param identifier
-     */
-    public void copyPrimitives(PrimitiveNode[] source, PrimitiveNode[] destination, String identifier)
-    {
-        for (int i = 0; i < source.length; i++)
-        {
-            PrimitiveNode metal = source[i];
-            Technology.NodeLayer [] layers = metal.getLayers();
-            Technology.NodeLayer [] nodes = new Technology.NodeLayer [layers.length];
-            for (int j = 0; j < layers.length; j++)
-            {
-                Technology.NodeLayer node = layers[j];
-                nodes[j] = new Technology.NodeLayer(node);
-            }
-            destination[i] = PrimitiveNode.newInstance(identifier+"-"+metal.getName(), this,
-                    metal.getDefWidth(), metal.getDefHeight(), null, nodes);
-            PrimitivePort port = metal.getPrimitivePorts().next(); // only 1 port
-            ArcProto[] arcs = port.getConnections();
-            ArcProto[] newArcs = new ArcProto[arcs.length];
-            System.arraycopy(arcs, 0, newArcs, 0, arcs.length);
-            destination[i].addPrimitivePorts(new PrimitivePort []
-                {
-                    PrimitivePort.newInstance(this, destination[i], newArcs, port.getName(), port.getAngle(),
-                            port.getAngleRange(), port.getTopology(), port.getCharacteristic(),
-                            EdgeH.fromCenter(0), EdgeV.fromCenter(0), EdgeH.fromCenter(0), EdgeV.fromCenter(0))
-                });
-            destination[i].setFunction(metal.getFunction());
-            destination[i].setSpecialType(metal.getSpecialType());
-            destination[i].setDefSize(0, 0);   // so it won't resize against any User's default? tricky
-            PrimitiveNode.NodeSizeRule minRuleSize = source[i].getMinSizeRule();
-            destination[i].setMinSize(minRuleSize.getWidth(), minRuleSize.getHeight(), minRuleSize.getRuleName());
-        }
-    }
+//    /**
+//     * Utility function to copy NodeLayers from existing PrimitiveNodes into new ones.
+//     * @param source
+//     * @param destination
+//     * @param identifier
+//     */
+//    public void copyPrimitives(PrimitiveNode[] source, PrimitiveNode[] destination, String identifier)
+//    {
+//        for (int i = 0; i < source.length; i++)
+//        {
+//            PrimitiveNode metal = source[i];
+//            Technology.NodeLayer [] layers = metal.getLayers();
+//            Technology.NodeLayer [] nodes = new Technology.NodeLayer [layers.length];
+//            for (int j = 0; j < layers.length; j++)
+//            {
+//                Technology.NodeLayer node = layers[j];
+//                nodes[j] = new Technology.NodeLayer(node);
+//            }
+//            destination[i] = PrimitiveNode.newInstance(identifier+"-"+metal.getName(), this,
+//                    metal.getDefWidth(), metal.getDefHeight(), null, nodes);
+//            PrimitivePort port = metal.getPrimitivePorts().next(); // only 1 port
+//            ArcProto[] arcs = port.getConnections();
+//            ArcProto[] newArcs = new ArcProto[arcs.length];
+//            System.arraycopy(arcs, 0, newArcs, 0, arcs.length);
+//            destination[i].addPrimitivePorts(new PrimitivePort []
+//                {
+//                    PrimitivePort.newInstance(this, destination[i], newArcs, port.getName(), port.getAngle(),
+//                            port.getAngleRange(), port.getTopology(), port.getCharacteristic(),
+//                            EdgeH.fromCenter(0), EdgeV.fromCenter(0), EdgeH.fromCenter(0), EdgeV.fromCenter(0))
+//                });
+//            destination[i].setFunction(metal.getFunction());
+//            destination[i].setSpecialType(metal.getSpecialType());
+//            destination[i].setDefSize(0, 0);   // so it won't resize against any User's default? tricky
+//            PrimitiveNode.NodeSizeRule minRuleSize = source[i].getMinSizeRule();
+//            destination[i].setMinSize(minRuleSize.getWidth(), minRuleSize.getHeight(), minRuleSize.getRuleName());
+//        }
+//    }
 
     /**
 	 * Class to extend prefs so that changes to MOSIS CMOS options will update the display.

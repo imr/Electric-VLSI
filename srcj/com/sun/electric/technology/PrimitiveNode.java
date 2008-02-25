@@ -372,7 +372,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 		 * Describes a transmission line.
 		 */
 		TLINE("transmission-line", "transm");
-        
+
 		private final String name;
 		private final String shortName;
 		private final Name basename;
@@ -507,7 +507,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	/** set if not used (don't put in menu) */				private static final int NNOTUSED =          02000000;
 
 	// --------------------- private data -----------------------------------
-	
+
 	/** The Id of this PrimitiveNode. */			private final PrimitiveNodeId protoId;
 	/** This PrimitiveNode's Technology. */			private final Technology tech;
 	/** The function of this PrimitiveNode. */		private Function function;
@@ -538,8 +538,8 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	/**
 	 * The constructor is never called externally.  Use the factory "newInstance" instead.
 	 */
-	protected PrimitiveNode(String protoName, Technology tech, EPoint sizeCorrector, double defWidth, double defHeight,
-		SizeOffset offset, Technology.NodeLayer [] layers)
+	protected PrimitiveNode(String protoName, Technology tech, EPoint sizeCorrector, String minSizeRule,
+            double defWidth, double defHeight, SizeOffset offset, Technology.NodeLayer [] layers)
 	{
 		// things in the base class
 		if (!Technology.jelibSafeName(protoName))
@@ -554,6 +554,13 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 		this.userBits = 0;
 		specialType = NORMAL;
         this.sizeCorrector = sizeCorrector;
+
+        if (minSizeRule != null) {
+            if (minSizeRule.length() == 0)
+                minSizeRule = getName() + " Min. Size";
+            minNodeSize = new NodeSizeRule(minSizeRule);
+        }
+
 		setFactoryDefSize(defWidth, defHeight);
 		if (offset == null) offset = new SizeOffset(0,0,0,0);
 		this.offset = offset;
@@ -563,7 +570,6 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
         long hy = -sizeCorrector.getGridY() - offset.getHighYGridOffset();
         baseRectangle = ERectangle.fromGrid(lx, ly, hx - lx, hy - ly);
 		this.autoGrowth = null;
-		this.minNodeSize = null;
 		globalPrimNodeIndex = primNodeNumber++;
 
         int numMultiCuts = 0;
@@ -572,23 +578,23 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
                 numMultiCuts++;
         }
         this.numMultiCuts = numMultiCuts;
-        
+
 		// add to the nodes in this technology
 		tech.addNodeProto(this);
 	}
 
     protected Object writeReplace() { return new PrimitiveNodeKey(this); }
-    
+
     private static class PrimitiveNodeKey extends EObjectInputStream.Key<PrimitiveNode> {
         public PrimitiveNodeKey() {}
         private PrimitiveNodeKey(PrimitiveNode pn) { super(pn); }
-        
+
         @Override
         public void writeExternal(EObjectOutputStream out, PrimitiveNode pn) throws IOException {
             out.writeObject(pn.getTechnology());
             out.writeInt(pn.getId().chronIndex);
         }
-        
+
         @Override
         public PrimitiveNode readExternal(EObjectInputStream in) throws IOException, ClassNotFoundException {
             Technology tech = (Technology)in.readObject();
@@ -599,8 +605,28 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
             return pn;
         }
     }
-    
+
 	// ------------------------- public methods -------------------------------
+
+	/**
+	 * Method to create a new PrimitiveNode from the parameters.
+     * Size corrector of PrimitiveNode is determined from width and height.
+	 * @param protoName the name of the PrimitiveNode.
+	 * Primitive names may not contain unprintable characters, spaces, tabs, a colon (:), semicolon (;) or curly braces ({}).
+	 * @param tech the Technology of the PrimitiveNode.
+	 * @param width the width of the PrimitiveNode.
+	 * @param height the height of the PrimitiveNode.
+     * @param minSizeRule name of minimal size rule
+	 * @param offset the offset from the edges of the reported/selected part of the PrimitiveNode.
+	 * @param layers the Layers that comprise the PrimitiveNode.
+	 * @return the newly created PrimitiveNode.
+	 */
+	public static PrimitiveNode newInstance(String protoName, Technology tech, double width, double height, String minSizeRule,
+		SizeOffset offset, Technology.NodeLayer [] layers)
+	{
+        return newInstance(protoName, tech, EPoint.fromLambda(-0.5*width, -0.5*height), minSizeRule,
+                width, height, offset, layers);
+	}
 
 	/**
 	 * Method to create a new PrimitiveNode from the parameters.
@@ -617,7 +643,8 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	public static PrimitiveNode newInstance(String protoName, Technology tech, double width, double height,
 		SizeOffset offset, Technology.NodeLayer [] layers)
 	{
-        return newInstance(protoName, tech, EPoint.fromLambda(-0.5*width, -0.5*height), width, height, offset, layers);
+        return newInstance(protoName, tech, EPoint.fromLambda(-0.5*width, -0.5*height), null,
+                width, height, offset, layers);
 	}
 
 	/**
@@ -635,7 +662,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	public static PrimitiveNode newInstance0(String protoName, Technology tech, double width, double height,
 		SizeOffset offset, Technology.NodeLayer [] layers)
 	{
-        return newInstance(protoName, tech, EPoint.ORIGIN, width, height, offset, layers);
+        return newInstance(protoName, tech, EPoint.ORIGIN, null, width, height, offset, layers);
 	}
 
 	/**
@@ -650,8 +677,8 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	 * @param layers the Layers that comprise the PrimitiveNode.
 	 * @return the newly created PrimitiveNode.
 	 */
-	static PrimitiveNode newInstance(String protoName, Technology tech, EPoint sizeCorrector, double width, double height,
-		SizeOffset offset, Technology.NodeLayer [] layers)
+	static PrimitiveNode newInstance(String protoName, Technology tech, EPoint sizeCorrector, String minSizeRule,
+        double width, double height, SizeOffset offset, Technology.NodeLayer [] layers)
 	{
 		// check the arguments
 		if (tech.findNodeProto(protoName) != null)
@@ -665,7 +692,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 			return null;
 		}
 
-		PrimitiveNode pn = new PrimitiveNode(protoName, tech, sizeCorrector, width, height, offset, layers);
+		PrimitiveNode pn = new PrimitiveNode(protoName, tech, sizeCorrector, minSizeRule, width, height, offset, layers);
 		return pn;
 	}
 
@@ -675,7 +702,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
      * @return NodeProtoId of this NodeProto.
      */
     public PrimitiveNodeId getId() { return protoId; }
-    
+
 	/**
 	 * Method to return the name of this PrimitiveNode in the Technology.
 	 * @return the name of this PrimitiveNode.
@@ -771,35 +798,35 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 		return new NodeLayerIterator(layers);
 	}
 
-	/** 
+	/**
 	 * Iterator for Layers on this NodeProto
-	 */ 
-	private static class NodeLayerIterator implements Iterator<Layer> 
-	{ 
-		Technology.NodeLayer [] array; 
-		int pos; 
+	 */
+	private static class NodeLayerIterator implements Iterator<Layer>
+	{
+		Technology.NodeLayer [] array;
+		int pos;
 
-		public NodeLayerIterator(Technology.NodeLayer [] a) 
-		{ 
-			array = a; 
-			pos = 0; 
-		} 
+		public NodeLayerIterator(Technology.NodeLayer [] a)
+		{
+			array = a;
+			pos = 0;
+		}
 
-		public boolean hasNext() 
-		{ 
-			return pos < array.length; 
-		} 
+		public boolean hasNext()
+		{
+			return pos < array.length;
+		}
 
 		public Layer next() throws NoSuchElementException
-		{ 
-			if (pos >= array.length) 
-				throw new NoSuchElementException(); 
-			return array[pos++].getLayer(); 
-		} 
+		{
+			if (pos >= array.length)
+				throw new NoSuchElementException();
+			return array[pos++].getLayer();
+		}
 
-		public void remove() throws UnsupportedOperationException, IllegalStateException 
-		{ 
-			throw new UnsupportedOperationException(); 
+		public void remove() throws UnsupportedOperationException, IllegalStateException
+		{
+			throw new UnsupportedOperationException();
 		}
 	}
 
@@ -827,7 +854,11 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	 * The active must be split since each half corresponds to a different PrimitivePort on the PrimitiveNode.
 	 * @param electricalLayers the list of electrical Layers that comprise this PrimitiveNode.
 	 */
-	public void setElectricalLayers(Technology.NodeLayer [] electricalLayers) {	this.electricalLayers = electricalLayers; }
+	public void setElectricalLayers(Technology.NodeLayer [] electricalLayers) {
+        this.electricalLayers = electricalLayers;
+        if (false)
+            layers = electricalLayers;
+    }
 
 	/**
 	 * Method to find the NodeLayer on this PrimitiveNode with a given Layer.
@@ -857,7 +888,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
      * @return true if this PrimitiveNode has NodeLayer with MULTICUTBOX representation.
      */
     public boolean hasMultiCuts() { return numMultiCuts > 0; }
-    
+
     /**
      * Find a NodeLayer of this PrimitiveNode has NodeLayer with MULTICUTBOX representation.
      * If no such NodeLayer exists, returns null, if many - returns any of them..
@@ -870,13 +901,13 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
         }
         return null;
     }
-    
+
     /**
      * Tells whether this PrimitiveNode is multicut, i.e. it has exactly one NodeLayer with MULTICUTBOX representation,
      * @return true if this PrimitiveNode is multicut.
      */
     public boolean isMulticut() { return numMultiCuts == 1; }
-    
+
 	/**
 	 * Abstract method to return the default rotation for new instances of this PrimitiveNode.
 	 * @return the angle, in tenth-degrees to use when creating new NodeInsts of this PrimitiveNode.
@@ -944,16 +975,85 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	}
 
 	/**
-	 * Method to return the default width of this PrimitiveNode.
+	 * Method to return the default full width of this PrimitiveNode.
 	 * @return the default width of this PrimitiveNode.
 	 */
 	public double getDefWidth() { return 2*(getNodeProtoExtendXPref(0).getDouble() - sizeCorrector.getLambdaX()); }
 
 	/**
-	 * Method to return the default height of this PrimitiveNode.
+	 * Method to return the default full height of this PrimitiveNode.
 	 * @return the default height of this PrimitiveNode.
 	 */
 	public double getDefHeight() { return 2*(getNodeProtoExtendYPref(0).getDouble() - sizeCorrector.getLambdaY()); }
+
+	/**
+	 * Method to return the default base width of this PrimitiveNode in lambda units.
+	 * @return the default base width of this PrimitiveNode in lambda units.
+	 */
+	public double getDefaultLambdaBaseWidth() {
+        return DBMath.gridToLambda(getDefaultGridBaseWidth());
+    }
+
+	/**
+	 * Method to return the default base hwight of this PrimitiveNode in lambda units.
+	 * @return the default base height of this PrimitiveNode in lambda units.
+	 */
+	public double getDefaultLambdaBaseHeight() {
+        return DBMath.gridToLambda(getDefaultGridBaseHeight());
+    }
+
+
+	/**
+	 * Method to return the default base width of this PrimitiveNode in grid units.
+	 * @return the default base width of this PrimitiveNode in grid units.
+	 */
+	public long getDefaultGridBaseWidth() {
+        return baseRectangle.getGridWidth() + 2*getDefaultGridExtendX();
+    }
+
+	/**
+	 * Method to return the default base height of this PrimitiveNode in grid units.
+	 * @return the default base height of this PrimitiveNode in grid units.
+	 */
+	public long getDefaultGridBaseHeight() {
+        return baseRectangle.getGridHeight() + 2*getDefaultGridExtendY();
+    }
+
+	/**
+	 * Method to return the defaut extend of this PrimitiveNode over minimal width\
+     * in lambda units.
+	 * @return the defaut extend of this PrimitiveNode over minimal width in lambda units.
+	 */
+	public double getDefaultLambdaExtendX() {
+        return DBMath.gridToLambda(getDefaultGridExtendX());
+    }
+
+	/**
+	 * Method to return the defaut extend of this PrimitiveNode over minimal height\
+     * in lambda units.
+	 * @return the defaut extend of this PrimitiveNode overn ninimal height in lambda units.
+	 */
+	public double getDefaultLambdaExtendY() {
+        return DBMath.gridToLambda(getDefaultGridExtendY());
+    }
+
+	/**
+	 * Method to return the defaut extend of this PrimitiveNode over minimal width\
+     * in grid units.
+	 * @return the defaut extend of this PrimitiveNode over minimal width in grid units.
+	 */
+	public long getDefaultGridExtendX() {
+        return DBMath.lambdaToGrid(getNodeProtoExtendXPref(0).getDouble());
+    }
+
+	/**
+	 * Method to return the defaut extend of this PrimitiveNode over minimal height\
+     * in grid units.
+	 * @return the defaut extend of this PrimitiveNode overn ninimal height in grid units.
+	 */
+	public long getDefaultGridExtendY() {
+        return DBMath.lambdaToGrid(getNodeProtoExtendYPref(0).getDouble());
+    }
 
 	/**
 	 * Method to get the size offset of this PrimitiveNode.
@@ -972,9 +1072,9 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	 * @return the base ERectangle of this PrimitiveNode.
 	 */
     public ERectangle getBaseRectangle() { return baseRectangle; }
-    
+
     public EPoint getSizeCorrector() { return sizeCorrector; }
-    
+
 //	/**
 //	 * Method to return the minimum width of this PrimitiveNode.
 //	 * @return the minimum width of this PrimitiveNode.
@@ -1004,9 +1104,9 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
         // If no name is provided, it uses the PrimitiveNode name to compose the rule name.
         if (minSizeRule == null || minSizeRule.equals(""))
             minSizeRule = this.getName() + " Min. Size";
-        minNodeSize = new NodeSizeRule(minWidth, minHeight, minSizeRule);
+        minNodeSize = new NodeSizeRule(minSizeRule);
     }
-    
+
     public void setSizeCorrector(double refWidth, double refHeight) {
         sizeCorrector = EPoint.fromLambda(-0.5*refWidth, -0.5*refHeight);
         long lx = sizeCorrector.getGridX() + offset.getLowXGridOffset();
@@ -1093,7 +1193,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
             portsByChronIndex[newPortId.chronIndex] = thePort;
         }
 	}
-    
+
     void addPrimitivePort(PrimitivePort pp) {
         assert pp.getParent() == this;
         assert pp.getPortIndex() == primPorts.length;
@@ -1101,7 +1201,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
         System.arraycopy(primPorts, 0, newPrimPorts, 0, primPorts.length);
         newPrimPorts[pp.getPortIndex()] = pp;
         primPorts = newPrimPorts;
-        
+
         PrimitivePortId primitivePortId = pp.getId();
         if (primitivePortId.chronIndex >= portsByChronIndex.length) {
             PrimitivePort[] newPortsByChronIndex = new PrimitivePort[primitivePortId.chronIndex + 1];
@@ -1263,7 +1363,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	 * @return the special values stored on this PrimitiveNode.
 	 */
 	public double [] getSpecialValues() { return specialValues; }
-    
+
     public EPoint getMulticut2Size() {
         Technology.NodeLayer cutLayer = findMulticut();
         assert cutLayer.getLeftEdge().getMultiplier() == -0.5;
@@ -1274,7 +1374,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
         double y = cutLayer.getMulticutSizeY() + cutLayer.getMulticutSep2D() + cutLayer.getBottomEdge().getAdder() - cutLayer.getTopEdge().getAdder();
         return EPoint.fromLambda(x, y);
     }
-    
+
 	/**
 	 * Method to set the special values stored on this PrimitiveNode.
 	 * The special values are an array of values that describe unusual features of the PrimitiveNode.
@@ -1731,7 +1831,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
         "NEDGESELECT", "ARCSHRINK", "NINVISIBLE",
         "SKIPSIZEINPALETTE", "NNOTUSED", null
     };
-    
+
     void dump(PrintWriter out) {
         out.print("PrimitiveNode " + getName() + " " + getFunction());
         Technology.printlnBits(out, nodeBits, userBits);
@@ -1755,7 +1855,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
         double x = -0.5*(so.getLowXOffset() + so.getHighXOffset()) - sizeCorrector.getX();
         double y = -0.5*(so.getLowYOffset() + so.getHighYOffset()) - sizeCorrector.getY();
         out.println("\tdiskOffset2=" + x + "," + y);
-        
+
         out.println("\tlayers:");
         boolean isSerp = specialType == SERPTRANS;
         dumpNodeLayers(out, layers, isSerp);
@@ -1766,12 +1866,12 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
         for (PrimitivePort pp: primPorts)
             pp.dump(out);
     }
-    
+
     private void dumpNodeLayers(PrintWriter out, Technology.NodeLayer[] layers, boolean isSerp) {
         for (Technology.NodeLayer nl: layers)
             nl.dump(out, isSerp);
     }
-    
+
     Xml.PrimitiveNode makeXml() {
         Xml.PrimitiveNode n = new Xml.PrimitiveNode();
         n.name = getName();
@@ -1852,7 +1952,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
         }
         while (m < nodeLayers.size())
             n.nodeLayers.add(nodeLayers.get(m++).makeXml(isSerp, minFullSize, true, false));
-        
+
         for (Iterator<PrimitivePort> pit = getPrimitivePorts(); pit.hasNext(); ) {
             PrimitivePort pp = pit.next();
             n.ports.add(pp.makeXml(minFullSize));
@@ -1860,11 +1960,16 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
         n.specialType = getSpecialType();
         if (getSpecialValues() != null)
             n.specialValues = getSpecialValues().clone();
-        n.nodeSizeRule = getMinSizeRule();
+        if (nodeSizeRule != null) {
+            n.nodeSizeRule = new Xml.NodeSizeRule();
+            n.nodeSizeRule.width = nodeSizeRule.getWidth();
+            n.nodeSizeRule.height = nodeSizeRule.getHeight();
+            n.nodeSizeRule.rule = nodeSizeRule.getRuleName();
+        }
         n.spiceTemplate = getSpiceTemplate();
         return n;
     }
-    
+
 	/**
 	 * Method to get MinZ and MaxZ of the cell calculated based on nodes
 	 * @param array array[0] is minZ and array[1] is max
@@ -1891,20 +1996,17 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
     /**
      * Class to define a single rule on a node.
      */
-    public static class NodeSizeRule
+    public class NodeSizeRule
     {
-        private final double sizeX, sizeY;
         private final String rule;
 
-        public NodeSizeRule(double sizeX, double sizeY, String rule)
+        private NodeSizeRule(String rule)
         {
-            this.sizeX = DBMath.round(sizeX);
-            this.sizeY = DBMath.round(sizeY);
             this.rule = rule;
         }
 
         public String getRuleName() { return rule; }
-        public double getWidth() { return sizeX; }
-        public double getHeight() { return sizeY; }
+        public double getWidth() { return -2*sizeCorrector.getLambdaX(); }
+        public double getHeight() { return -2*sizeCorrector.getLambdaY(); }
     }
 }

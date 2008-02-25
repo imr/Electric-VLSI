@@ -64,7 +64,7 @@ import java.util.prefs.Preferences;
  * initializes technologies and it and executes different test commands.
  */
 public class TechExplorer extends ESandBox {
-    
+
     /**
      * @param args the command line arguments
      */
@@ -75,7 +75,7 @@ public class TechExplorer extends ESandBox {
             if (!electricJar.exists())
                 throw new FileNotFoundException(fileName);
             TechExplorer m = new TechExplorer(electricJar);
-            
+
             InputStream commandStream = System.in;
             if (args.length >= 2) {
                 if (false) {
@@ -97,11 +97,11 @@ public class TechExplorer extends ESandBox {
             e.printStackTrace();
         }
     }
-    
+
     private TechExplorer(File electricJar) throws IOException, ClassNotFoundException, MalformedURLException, IllegalAccessException {
         super(electricJar.toURI().toURL());
     }
-    
+
     public void initTechnologies(String args) throws IllegalAccessException, InvocationTargetException {
         if (Undo_changesQuiet != null)
             Undo_changesQuiet.invoke(null, Boolean.TRUE);
@@ -110,7 +110,7 @@ public class TechExplorer extends ESandBox {
 //            Tool_initAllTools.invoke(null);
         Technology_initAllTechnologies.invoke(null);
     }
-    
+
     public void dumpAll(String fileName) throws IllegalAccessException, InvocationTargetException {
         for (Iterator<?> tit = (Iterator)Technology_getTechnologies.invoke(null); tit.hasNext(); ) {
             Object tech = tit.next();
@@ -138,7 +138,7 @@ public class TechExplorer extends ESandBox {
 //            Object factoryValue = Pref_getFactoryValue.invoke(pref);
 //        }
     }
-    
+
     public void dumpPrefs(String fileName) throws IOException {
         PrintWriter out = new PrintWriter(fileName);
         DataOutputStream dout = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(fileName.replaceAll("\\.lst", "\\.bin"))));
@@ -146,7 +146,7 @@ public class TechExplorer extends ESandBox {
         out.close();
         dout.close();
     }
-                
+
     private void dumpPrefs(PrintWriter out, DataOutputStream dout) throws IOException {
         try {
             String version = (String)Version_getVersion.invoke(null).toString();
@@ -156,7 +156,7 @@ public class TechExplorer extends ESandBox {
                 String techName = (String)Technology_getTechName.invoke(tech);
                 assert techName.length() > 0;
                 out.println("Technology " + techName); dout.writeUTF(techName);
-                
+
                 for (Iterator<?> it = (Iterator)Technology_getLayers.invoke(tech); it.hasNext(); ) {
                     Object layer = it.next();
                     String layerName = (String)Layer_getName.invoke(layer);
@@ -221,7 +221,7 @@ public class TechExplorer extends ESandBox {
             e.printStackTrace();
         }
     }
-    
+
  //    private void dumpShape(Object tech, Object pn) throws IllegalAccessException, InvocationTargetException, InstantiationException {
 //        Object lib = Library_newInstance.invoke(null, "l", null);
 //        String cellName = "a;1{lay}";
@@ -260,12 +260,12 @@ public class TechExplorer extends ESandBox {
 //                System.out.print(" " + p.getX() + "," + p.getY());
 //            System.out.println();
 //        }
-//        
+//
 //    }
 
     public Xml.Technology makeXml(String techName) throws IllegalAccessException, InvocationTargetException {
         Object tech = Technology_findTechnology.invoke(null, techName);
-        
+
         Xml.Technology t = new Xml.Technology();
         t.techName = techName;
         t.className = tech.getClass().getName();
@@ -299,7 +299,7 @@ public class TechExplorer extends ESandBox {
             if (pseudoLayer != null) {
                 pseudoLayerName = (String)Layer_getName.invoke(pseudoLayer);
             }
-            
+
             int extraFun = (Integer)Layer_getFunctionExtras.invoke(layer);
             final int PSEUDO =       010000;
             if ((extraFun & PSEUDO) != 0 || Layer_isPseudoLayer != null && (Boolean)Layer_isPseudoLayer.invoke(layer)) continue;
@@ -350,12 +350,12 @@ public class TechExplorer extends ESandBox {
         if (Technology_getNumMetals != null)
             maxMetal = (Integer)Technology_getNumMetals.invoke(tech);
         t.minNumMetals = t.maxNumMetals = t.defaultNumMetals = maxMetal;
-        
+
         Map<String,?> oldArcNames = Technology_getOldArcNames != null ? (Map)Technology_getOldArcNames.invoke(tech) : Collections.emptyMap();
         for (Iterator<?> it = (Iterator)Technology_getArcs.invoke(tech); it.hasNext(); ) {
             Object ap = it.next();
             String arcName = (String)ArcProto_getName.invoke(ap);
-            
+
             Xml.ArcProto a = new Xml.ArcProto();
             a.name = arcName;
             for (Map.Entry<String,?> e: oldArcNames.entrySet()) {
@@ -401,7 +401,7 @@ public class TechExplorer extends ESandBox {
             }
             t.arcs.add(a);
         }
-        
+
         Map<String,?> oldNodeNames = Technology_getOldNodeNames != null ? (Map)Technology_getOldNodeNames.invoke(tech) : Collections.emptyMap();
         for (Iterator<?> it = (Iterator)Technology_getNodes.invoke(tech); it.hasNext(); ) {
             Object pn = it.next();
@@ -432,7 +432,7 @@ public class TechExplorer extends ESandBox {
                 layer.pureLayerNode = pln;
                 continue;
             }
-            
+
             Xml.PrimitiveNode n = new Xml.PrimitiveNode();
             n.name = nodeName;
             for (Map.Entry<String,?> e: oldNodeNames.entrySet()) {
@@ -461,7 +461,7 @@ public class TechExplorer extends ESandBox {
                 n.od25 = (Boolean)PrimitiveNode_isNodeBitOn.invoke(pn, PrimitiveNode_OD25BIT.get(null));
             if (PrimitiveNode_OD33BIT != null)
                 n.od33 = (Boolean)PrimitiveNode_isNodeBitOn.invoke(pn, PrimitiveNode_OD33BIT.get(null));
-            
+
             SizeOffset so = null;
             Object sizeOffset = PrimitiveNode_getProtoSizeOffset.invoke(pn);
             if (sizeOffset != null)
@@ -487,7 +487,10 @@ public class TechExplorer extends ESandBox {
             }
             EPoint minFullSize;
             if (minSizeRule != null) {
-                n.nodeSizeRule = new PrimitiveNode.NodeSizeRule(minWidth, minHeight, minSizeRule);
+                n.nodeSizeRule = new Xml.NodeSizeRule();
+                n.nodeSizeRule.width = minWidth;
+                n.nodeSizeRule.height = minHeight;
+                n.nodeSizeRule.rule = minSizeRule;
                 minFullSize = EPoint.fromLambda(0.5*minWidth, 0.5*minHeight);
             } else {
                 minFullSize = EPoint.fromLambda(0.5*defWidth, 0.5*defHeight);
@@ -505,7 +508,7 @@ public class TechExplorer extends ESandBox {
             n.defaultWidth.value = round(defWidth - 2*minFullSize.getLambdaX());
             n.defaultHeight.value = round(defHeight - 2*minFullSize.getLambdaY());
             n.sizeOffset = so;
-            
+
             List<?> nodeLayers = Arrays.asList(nodeLayersArray);
             Object[] electricalNodeLayersArray = (Object[])PrimitiveNode_getElectricalLayers.invoke(pn);
             List<?> electricalNodeLayers = nodeLayers;
@@ -525,7 +528,7 @@ public class TechExplorer extends ESandBox {
             }
             while (m < nodeLayers.size())
                 n.nodeLayers.add(makeNodeLayerDetails(nodeLayers.get(m++), isSerp, minFullSize, true, false));
-            
+
             for (Iterator<?> pit = (Iterator)PrimitiveNode_getPorts.invoke(pn); pit.hasNext(); ) {
                 Object pp = pit.next();
                 Xml.PrimitivePort ppd = new Xml.PrimitivePort();
@@ -539,7 +542,7 @@ public class TechExplorer extends ESandBox {
                     ppd.portRange = ((Integer)PrimitivePort_lowLevelGetUserbits.invoke(pp) & PORTARANGE) >> PORTARANGESH;
                 }
                 ppd.portTopology = (Integer)PrimitivePort_getTopology.invoke(pp);
-                
+
                 Object lx = PrimitivePort_getLeft.invoke(pp);
                 Object hx = PrimitivePort_getRight.invoke(pp);
                 Object ly = PrimitivePort_getBottom.invoke(pp);
@@ -567,11 +570,11 @@ public class TechExplorer extends ESandBox {
                 n.specialValues = specialValues.clone();
             t.nodes.add(n);
         }
-        
+
         addSpiceHeader(t, 1, (String[])Technology_getSpiceHeaderLevel1.invoke(tech));
         addSpiceHeader(t, 2, (String[])Technology_getSpiceHeaderLevel2.invoke(tech));
         addSpiceHeader(t, 3, (String[])Technology_getSpiceHeaderLevel3.invoke(tech));
-        
+
         if (Technology_getNodesGrouped != null) {
             Object[][] origPalette = (Object[][])Technology_getNodesGrouped.invoke(tech);
             if (origPalette != null) {
@@ -599,7 +602,7 @@ public class TechExplorer extends ESandBox {
                 }
             }
         }
-       
+
         if (Technology_getFoundries != null) {
             Object foundries = Technology_getFoundries.invoke(tech);
             Iterator<?> fit = foundries instanceof List ? ((List)foundries).iterator() : (Iterator)foundries;
@@ -616,7 +619,7 @@ public class TechExplorer extends ESandBox {
                         f.layerGds.put((String)Layer_getName.invoke(layer), gds);
                     }
                 }
-                
+
                 List<?> rules = (List)Foundry_getRules.invoke(foundry);
                 if (rules != null) {
                     for (Object rule: rules) {
@@ -655,10 +658,10 @@ public class TechExplorer extends ESandBox {
                 }
             }
         }
-        
+
         return t;
     }
-    
+
     private Xml.NodeLayer makeNodeLayerDetails(Object nodeLayer, boolean isSerp, EPoint correction, boolean inLayers, boolean inElectricalLayers)
     throws IllegalAccessException, InvocationTargetException {
         Xml.NodeLayer nld = new Xml.NodeLayer();
@@ -704,7 +707,7 @@ public class TechExplorer extends ESandBox {
         }
         return nld;
     }
-    
+
     private Technology.TechPoint correction(Object p, EPoint correction) throws IllegalAccessException, InvocationTargetException {
         Object oh = TechnologyTechPoint_getX.invoke(p);
         double mx = (Double)EdgeH_getMultiplier.invoke(oh);
@@ -714,7 +717,7 @@ public class TechExplorer extends ESandBox {
         EdgeV v = new EdgeV(my, (Double)EdgeV_getAdder.invoke(ov) + correction.getLambdaY()*my*2);
         return new Technology.TechPoint(h, v);
     }
-    
+
     private static void addSpiceHeader(Xml.Technology t, int level, String[] spiceLines) {
         if (spiceLines == null) return;
         Xml.SpiceHeader spiceHeader = new Xml.SpiceHeader();
@@ -723,7 +726,7 @@ public class TechExplorer extends ESandBox {
             spiceHeader.spiceLines.add(spiceLine);
         t.spiceHeaders.add(spiceHeader);
     }
-    
+
     private Object makeMenuEntry(Xml.Technology t, Object entry) throws IllegalAccessException, InvocationTargetException {
         if (classArcProto.isInstance(entry))
             return t.findArc((String)ArcProto_getName.invoke(entry));
@@ -744,7 +747,7 @@ public class TechExplorer extends ESandBox {
         assert entry instanceof String;
         return entry;
     }
-    
+
     private static double round(double v) {
         v = DBMath.round(v);
         return v;

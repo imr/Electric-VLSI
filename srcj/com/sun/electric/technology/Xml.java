@@ -202,7 +202,7 @@ public class Xml {
         public final List<PrimitivePort> ports = new ArrayList<PrimitivePort>();
         public int specialType;
         public double[] specialValues;
-        public com.sun.electric.technology.PrimitiveNode.NodeSizeRule nodeSizeRule;
+        public NodeSizeRule nodeSizeRule;
         public String spiceTemplate;
     }
 
@@ -220,6 +220,12 @@ public class Xml {
         public final List<TechPoint> techPoints = new ArrayList<TechPoint>();
         public double sizex, sizey, sep1d, sep2d;
         public double lWidth, rWidth, tExtent, bExtent;
+    }
+
+    public static class NodeSizeRule implements Serializable {
+        public double width;
+        public double height;
+        public String rule;
     }
 
     public static class PrimitivePort implements Serializable {
@@ -242,7 +248,7 @@ public class Xml {
     public static class MenuPalette implements Serializable {
         public int numColumns;
         public List<List<Object>> menuBoxes = new ArrayList<List<Object>>();
-        
+
         public String writeXml() {
             StringWriter sw = new StringWriter();
             PrintWriter out = new PrintWriter(sw);
@@ -396,7 +402,7 @@ public class Xml {
     }
 
     private static Schema schema = null;
-    
+
     private static synchronized void loadTechnologySchema() throws SAXException {
         if (schema != null) return;
         SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
@@ -1033,10 +1039,10 @@ public class Xml {
                     curSpecialValueIndex = 0;
                     break;
                 case minSizeRule:
-                    curNode.nodeSizeRule = new com.sun.electric.technology.PrimitiveNode.NodeSizeRule(
-                            Double.parseDouble(a("width")),
-                            Double.parseDouble(a("height")),
-                            a("rule"));
+                    curNode.nodeSizeRule = new NodeSizeRule();
+                    curNode.nodeSizeRule.width = Double.parseDouble(a("width"));
+                    curNode.nodeSizeRule.height = Double.parseDouble(a("height"));
+                    curNode.nodeSizeRule.rule = a("rule");
                     break;
                 case spiceTemplate:
                 	curNode.spiceTemplate = a("value");
@@ -1678,14 +1684,14 @@ public class Xml {
                     li.factor3D != com.sun.electric.technology.Layer.DEFAULT_FACTOR) {
                 b(XmlKeyword.display3D); a("thick", li.thick3D); a("height", li.height3D); a("mode", li.mode3D); a("factor", li.factor3D); el();
             }
-            
+
             if (li.cif != null && li.cif.length() > 0) {
                 b(XmlKeyword.cifLayer); a("cif", li.cif); el();
             }
             if (li.skill != null && li.skill.length() > 0) {
                 b(XmlKeyword.skillLayer); a("skill", li.skill); el();
             }
-            
+
             // write the SPICE information
             if (li.resistance != 0 || li.capacitance != 0 || li.edgeCapacitance != 0) {
                 b(XmlKeyword.parasitics); a("resistance", li.resistance); a("capacitance", li.capacitance); a("edgeCapacitance", li.edgeCapacitance); el();
@@ -1705,11 +1711,11 @@ public class Xml {
             el(XmlKeyword.layer);
             l();
         }
-        
+
         private void writeXml(Xml.ArcProto ai) {
             b(XmlKeyword.arcProto); a("name", ai.name); a("fun", ai.function.getConstantName()); cl();
             bcpel(XmlKeyword.oldName, ai.oldName);
-            
+
             if (ai.wipable)
                 bel(XmlKeyword.wipable);
             if (ai.curvable)
@@ -1727,7 +1733,7 @@ public class Xml {
                 bcpel(XmlKeyword.antennaRatio, ai.antennaRatio);
             if (ai.elibWidthOffset != 0)
                 bcpel(XmlKeyword.elibWidthOffset, ai.elibWidthOffset);
-            
+
             for (Xml.ArcLayer al: ai.arcLayers) {
                 String style = al.style == Poly.Type.FILLED ? "FILLED" : "CLOSED";
                 b(XmlKeyword.arcLayer); a("layer", al.layer); a("style", style);
@@ -1742,11 +1748,11 @@ public class Xml {
             }
             el(XmlKeyword.arcProto);
         }
-        
+
         private void writeXml(Xml.PrimitiveNode ni) {
             b(XmlKeyword.primitiveNode); a("name", ni.name); a("fun", ni.function.name()); cl();
             bcpel(XmlKeyword.oldName, ni.oldName);
-            
+
             if (ni.shrinkArcs)
                 bel(XmlKeyword.shrinkArcs);
             if (ni.square)
@@ -1775,24 +1781,24 @@ public class Xml {
                 bel(XmlKeyword.od25);
             if (ni.od33)
                 bel(XmlKeyword.od33);
-            
+
             for (Map.Entry<Integer,EPoint> e: ni.diskOffset.entrySet()) {
                 EPoint p = e.getValue();
                 b(XmlKeyword.diskOffset); a("untilVersion", e.getKey()); a("x", p.getLambdaX()); a("y", p.getLambdaY()); el();
             }
-            
+
             if (ni.defaultWidth.value != 0) {
                 bcl(XmlKeyword.defaultWidth);
                 bcpel(XmlKeyword.lambda, ni.defaultWidth.value);
                 el(XmlKeyword.defaultWidth);
             }
-            
+
             if (ni.defaultHeight.value != 0) {
                 bcl(XmlKeyword.defaultHeight);
                 bcpel(XmlKeyword.lambda, ni.defaultHeight.value);
                 el(XmlKeyword.defaultHeight);
             }
-            
+
             if (ni.sizeOffset != null) {
                 double lx = ni.sizeOffset.getLowXOffset();
                 double hx = ni.sizeOffset.getHighXOffset();
@@ -1800,7 +1806,7 @@ public class Xml {
                 double hy = ni.sizeOffset.getHighYOffset();
                 b(XmlKeyword.sizeOffset); a("lx", lx); a("hx", hx); a("ly", ly); a("hy", hy); el();
             }
-            
+
             for(int j=0; j<ni.nodeLayers.size(); j++) {
                 Xml.NodeLayer nl = ni.nodeLayers.get(j);
                 b(XmlKeyword.nodeLayer); a("layer", nl.layer); a("style", nl.style.name());
@@ -1845,11 +1851,11 @@ public class Xml {
                 b(XmlKeyword.primitivePort); a("name", pd.name); cl();
                 b(XmlKeyword.portAngle); a("primary", pd.portAngle); a("range", pd.portRange); el();
                 bcpel(XmlKeyword.portTopology, pd.portTopology);
-                
+
                 writeBox(XmlKeyword.box, pd.lx, pd.hx, pd.ly, pd.hy); cl();
                 b(XmlKeyword.lambdaBox); a("klx", pd.lx.value); a("khx", pd.hx.value); a("kly", pd.ly.value); a("khy", pd.hy.value); el();
                 el(XmlKeyword.box);
-                
+
                 for (String portArc: pd.portArcs)
                     bcpel(XmlKeyword.portArc, portArc);
                 el(XmlKeyword.primitivePort);
@@ -1867,17 +1873,17 @@ public class Xml {
                     break;
             }
             if (ni.nodeSizeRule != null) {
-                com.sun.electric.technology.PrimitiveNode.NodeSizeRule r = ni.nodeSizeRule;
-                b(XmlKeyword.minSizeRule); a("width", r.getWidth()); a("height", r.getHeight()); a("rule", r.getRuleName()); el();
+                NodeSizeRule r = ni.nodeSizeRule;
+                b(XmlKeyword.minSizeRule); a("width", r.width); a("height", r.height); a("rule", r.rule); el();
             }
             if (ni.spiceTemplate != null)
             {
             	b(XmlKeyword.spiceTemplate); a("value", ni.spiceTemplate); el();
             }
-            
+
             el(XmlKeyword.primitiveNode);
         }
-        
+
         private void writeBox(XmlKeyword keyword, Distance lx, Distance hx, Distance ly, Distance hy) {
             b(keyword);
             if (lx.k != -1) a("klx", lx.k);
@@ -1885,7 +1891,7 @@ public class Xml {
             if (ly.k != -1) a("kly", ly.k);
             if (hy.k != 1) a("khy", hy.k);
         }
-        
+
         private void writeSpiceHeaderXml(Xml.SpiceHeader spiceHeader) {
             b(XmlKeyword.spiceHeader); a("level", spiceHeader.level); cl();
             for (String line: spiceHeader.spiceLines) {
@@ -1894,7 +1900,7 @@ public class Xml {
             el(XmlKeyword.spiceHeader);
             l();
         }
-        
+
         public void writeMenuPaletteXml(Xml.MenuPalette menuPalette) {
             if (menuPalette == null) return;
             b(XmlKeyword.menuPalette); a("numColumns", menuPalette.numColumns); cl();
@@ -1907,7 +1913,7 @@ public class Xml {
             el(XmlKeyword.menuPalette);
             l();
         }
-        
+
         private void writeMenuBoxXml(List<Object> list) {
             b(XmlKeyword.menuBox);
             if (list.size() == 0) {
@@ -1941,7 +1947,7 @@ public class Xml {
             }
             el(XmlKeyword.menuBox);
         }
-        
+
         private void writeFoundryXml(Xml.Foundry foundry) {
             b(XmlKeyword.Foundry); a("name", foundry.name); cl();
             l();
@@ -1953,22 +1959,22 @@ public class Xml {
                 DRCTemplate.exportDRCRule(out, rule);
             el(XmlKeyword.Foundry);
         }
-        
+
         private void printDesignRule(String ruleName, String l1, String l2, String type, double value) {
             String layerNames = "{" + l1 + ", " + l2 + "}";
             b(XmlKeyword.LayersRule); a("ruleName", ruleName); a("layerNames", layerNames); a("type", type); a("when", "ALL"); a("value", value); el();
         }
-        
+
         private void header() {
             checkIndent();
             out.print("<?xml"); a("version", "1.0"); a("encoding", "UTF-8"); out.println("?>");
         }
-        
+
         private void comment(String s) {
             checkIndent();
             out.print("<!-- "); p(s); out.print(" -->"); l();
         }
-        
+
         /**
          * Print attribute.
          */
@@ -1979,20 +1985,20 @@ public class Xml {
             p(value.toString());
             out.print("\"");
         }
-        
+
         private void bcpel(XmlKeyword key, Object v) {
             if (v == null) return;
             b(key); c(); p(v.toString()); el(key);
         }
-        
+
         private void bcl(XmlKeyword key) {
             b(key); cl();
         }
-        
+
         private void bel(XmlKeyword key) {
             b(key); el();
         }
-        
+
         /**
          * Print text with replacement of special chars.
          */
@@ -2000,7 +2006,7 @@ public class Xml {
             checkIndent();
             p(s); l();
         }
-        
+
         /**
          * Print text with replacement of special chars.
          */
@@ -2029,7 +2035,7 @@ public class Xml {
                 }
             }
         }
-        
+
         /**
          * Print element name, and indent.
          */
@@ -2039,28 +2045,28 @@ public class Xml {
             out.print(key.name());
             indent += INDENT_WIDTH;
         }
-        
+
         private void cl() {
             assert indentEmitted;
             out.print('>');
             l();
         }
-        
+
         private void c() {
             assert indentEmitted;
             out.print('>');
         }
-        
+
         private void el() {
             e(); l();
         }
-        
+
         private void e() {
             assert indentEmitted;
             out.print("/>");
             indent -= INDENT_WIDTH;
         }
-        
+
         private void el(XmlKeyword key) {
             indent -= INDENT_WIDTH;
             checkIndent();
@@ -2069,14 +2075,14 @@ public class Xml {
             out.print(">");
             l();
         }
-        
+
         protected void checkIndent() {
             if (indentEmitted) return;
             for (int i = 0; i < indent; i++)
                 out.print(' ');
             indentEmitted = true;
         }
-        
+
         /**
          *  Print new line.
          */

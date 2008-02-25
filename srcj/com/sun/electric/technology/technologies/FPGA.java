@@ -285,7 +285,7 @@ public class FPGA extends Technology
 		protected FPGANode(String protoName, Technology tech, double defWidth, double defHeight,
 			SizeOffset offset, Technology.NodeLayer [] layers)
 		{
-			super(protoName, tech, EPoint.ORIGIN, defWidth, defHeight, offset, layers);
+			super(protoName, tech, EPoint.ORIGIN, null, defWidth, defHeight, offset, layers);
 		}
 
 		int numPorts()

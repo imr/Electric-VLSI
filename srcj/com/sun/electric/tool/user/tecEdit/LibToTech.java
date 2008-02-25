@@ -3519,7 +3519,10 @@ public class LibToTech
                 for (int i = 0; i < 6; i++)
                     pn.specialValues[i] = ni.specialValues[i];
             }
-            pn.nodeSizeRule = ni.nodeSizeRule;
+            pn.nodeSizeRule = new Xml.NodeSizeRule();
+            pn.nodeSizeRule.width = ni.nodeSizeRule.getWidth();
+            pn.nodeSizeRule.height = ni.nodeSizeRule.getHeight();
+            pn.nodeSizeRule.rule = ni.nodeSizeRule.getRuleName();
             t.nodes.add(pn);
 
         }

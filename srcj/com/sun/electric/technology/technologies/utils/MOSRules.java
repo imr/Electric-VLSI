@@ -219,11 +219,9 @@ public class MOSRules implements DRCRules {
 		{
 			PrimitiveNode np = it.next();
             PrimitiveNode.NodeSizeRule minSizeRule = np.getMinSizeRule();
-            if (minSizeRule == null)
-                minSizeRule = new PrimitiveNode.NodeSizeRule(0, 0, "");
-            minNodeSize[j*2] = minSizeRule.getWidth();  // autoboxing
-            minNodeSize[j*2+1] = minSizeRule.getHeight(); // autoboxing
-            minNodeSizeRules[j] = minSizeRule.getRuleName();
+            minNodeSize[j*2] = minSizeRule != null ? minSizeRule.getWidth() : 0;  // autoboxing
+            minNodeSize[j*2+1] = minSizeRule != null ? minSizeRule.getHeight() : 0; // autoboxing
+            minNodeSizeRules[j] = minSizeRule != null ? minSizeRule.getRuleName() : "";
             cutNodeSizeRules[j] = "";
             cutNodeSize[j] = new Double(MOSNORULE);
             cutNodeSurroundRules[j] = "";
@@ -284,34 +282,34 @@ public class MOSRules implements DRCRules {
         return false;
     }
 
-	/**
-	 * Method to create a set of Design Rules from some simple spacing arrays.
-	 * Used by simpler technologies that do not have full-sets of design rules.
-	 * @param tech the Technology to load.
-	 * @param conDist an upper-diagonal array of layer-to-layer distances (when connected).
-	 * @param unConDist an upper-diagonal array of layer-to-layer distances (when unconnected).
-	 * @return a set of design rules for the Technology.
-	 */
-	public static DRCRules makeSimpleRules(Technology tech, double [] conDist, double [] unConDist)
-	{
-		MOSRules rules = new MOSRules(tech);
-		if (conDist != null)
-		{
-			for(int i=0; i<conDist.length; i++)
-			{
-				rules.conList[i] = (conDist[i]);  // autoboxing
-			}
-		}
-		if (unConDist != null)
-		{
-			for(int i=0; i<unConDist.length; i++)
-			{
-				rules.unConList[i] = (unConDist[i]);   // autoboxing
-			}
-		}
-        rules.calculateNumberOfRules();
-        return rules;
-	}
+//	/**
+//	 * Method to create a set of Design Rules from some simple spacing arrays.
+//	 * Used by simpler technologies that do not have full-sets of design rules.
+//	 * @param tech the Technology to load.
+//	 * @param conDist an upper-diagonal array of layer-to-layer distances (when connected).
+//	 * @param unConDist an upper-diagonal array of layer-to-layer distances (when unconnected).
+//	 * @return a set of design rules for the Technology.
+//	 */
+//	public static DRCRules makeSimpleRules(Technology tech, double [] conDist, double [] unConDist)
+//	{
+//		MOSRules rules = new MOSRules(tech);
+//		if (conDist != null)
+//		{
+//			for(int i=0; i<conDist.length; i++)
+//			{
+//				rules.conList[i] = (conDist[i]);  // autoboxing
+//			}
+//		}
+//		if (unConDist != null)
+//		{
+//			for(int i=0; i<unConDist.length; i++)
+//			{
+//				rules.unConList[i] = (unConDist[i]);   // autoboxing
+//			}
+//		}
+//        rules.calculateNumberOfRules();
+//        return rules;
+//	}
 
     /**
 	 * Method to find the worst spacing distance in the design rules.
