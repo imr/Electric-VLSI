@@ -2,6 +2,7 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.07f: ******************************
 ************************* Version 8.07e: *******************************
 
 IMP: (2/25/08, DN) Add FileType.JAR with file type group "Electric Build".
