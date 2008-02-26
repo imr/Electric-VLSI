@@ -1841,7 +1841,7 @@ public class Spice extends Topology
         if (USE_JAVA_CODE) {
             CodeExpression ce = var.getCodeExpression();
             if (ce == null) return true;
-            if (ce.getHSpiceText() != null) return true;
+            if (ce.getHSpiceText(false) != null) return true;
             return false;
         } else {
             if (var.isJava()) return false;
@@ -1861,12 +1861,27 @@ public class Spice extends Topology
      * @return true if the variable should be netlisted as a spice parameter
      */
     private String evalParam(VarContext context, Nodable no, Variable instParam, boolean forceEval) {
+        return evalParam(context, no, instParam, forceEval, false);
+    }
+    
+    /**
+     * Returns text representation of instance parameter
+     * on specified Nodable in specified VarContext
+     * The text representation can be either spice parameter expression or
+     * a value evaluated in specified VarContext
+     * @param context specified VarContext
+     * @param no specified Nodable
+     * @param instParam instance parameter
+     * @param forceEval true to always evaluate param
+     * @return true if the variable should be netlisted as a spice parameter
+     */
+    private String evalParam(VarContext context, Nodable no, Variable instParam, boolean forceEval, boolean inPars) {
         assert USE_JAVA_CODE;
         Object obj = null;
         if (!forceEval) {
             CodeExpression ce = instParam.getCodeExpression();
             if (ce != null)
-                obj = ce.getHSpiceText();
+                obj = ce.getHSpiceText(inPars);
         }
         if (obj == null)
             obj = context.evalVar(instParam, no);
@@ -2109,7 +2124,7 @@ public class Spice extends Topology
                     if (prototype != null && prototype instanceof Cell)
                         parentVar = ((Cell)prototype).getVar(attrVar.getKey());
                     if (USE_JAVA_CODE) {
-                        pVal = evalParam(context, no, attrVar, forceEval);
+                        pVal = evalParam(context, no, attrVar, forceEval, true);
                         if (infstr.inQuotes()) pVal = trimSingleQuotes(pVal);
                     } else {
                         if (!useCDL && Simulation.isSpiceUseCellParameters() &&

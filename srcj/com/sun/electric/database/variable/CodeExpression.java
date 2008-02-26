@@ -59,6 +59,7 @@ public class CodeExpression implements Serializable {
     private final boolean dependsOnEverything;
     private final EvalSpice.ParseException parseException;
     private final String spiceText;
+    private final String spiceTextPar;
 
     private CodeExpression(String expr, TextDescriptor.Code code) {
         this.code = code;
@@ -90,12 +91,15 @@ public class CodeExpression implements Serializable {
         
         if (parseException != null) {
             dependsOnEverything = true;
-            spiceText = parseException.getMessage();
+            spiceTextPar = spiceText = parseException.getMessage();
         } else {
             dependsOnEverything = exprTree.dependsOnEverything();
             StringBuilder sb = new StringBuilder();
-            exprTree.appendText(sb, Expr.MIN_PRECEDENCE);
+            exprTree.appendText(sb);
             spiceText = new String(sb);
+            sb.setLength(0);
+            exprTree.appendText(sb, Expr.MIN_PRECEDENCE);
+            spiceTextPar = new String(sb);
         }
      }
     
@@ -142,7 +146,9 @@ public class CodeExpression implements Serializable {
     public Set<Variable.Key> dependsOn() { return depends; }
     public EvalSpice.ParseException getParseException() { return parseException; }
     public String getSpiceText() { return spiceText; }
-    public String getHSpiceText() { return dependsOnEverything ? null : spiceText; }
+    public String getHSpiceText(boolean inPar) {
+        return dependsOnEverything ? null : inPar ? spiceTextPar : spiceText;
+    }
     public String getVerilogText() { return spiceText; }
     public Object eval() {
         if (parseException != null)
