@@ -4271,6 +4271,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         int errorCount = 0;
         String addedParams = "";
         NodeInst exampleInst = null;
+        Cell exampleInstOwner = null;
         Iterator<Variable> it = getVariables();
         Iterator<Variable> oit = parameterOwner.getParameters();
         Variable attr = it.hasNext() ? it.next() : null;
@@ -4342,6 +4343,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
                         for (NodeInst ni: cell.nodes) {
                             if (ni.getProto() != this) continue;
                             exampleInst = ni;
+                            exampleInstOwner = cell;
                             break;
                         }
                     }
@@ -4363,6 +4365,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
                         //error = true;
                     }
                     newParam = param.withTextDescriptor(td);
+                    error = true;
                 } else {
                     error = true;
                 }
@@ -4380,13 +4383,16 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             if (cmp >= 0)
                 param = oit.hasNext() ? oit.next() : null;
         }
+/*
+        // redundant with above messages
         if (addedParams.length() > 0) {
             String msg = "Add parameters" + addedParams + " to " + this;
             if (exampleInst != null)
-                msg += " from example icon on " + exampleInst.getProto();
+                msg += " from example icon on " + exampleInstOwner;
             errorLogger.logWarning(msg, this, 3);
             errorCount++;
         }
+*/
         return errorCount;
     }
 
