@@ -75,68 +75,43 @@ public interface Nodable
      */
 	public Variable getVar(Variable.Key key);
 
-	/**
-	 * Method to return an iterator over all Variables on this Nodable.
-	 * @return an iterator over all Variables on this Nodable.
-	 */
-	public Iterator<Variable> getVariables();
+//	/**
+//	 * Method to return an iterator over all Variables on this Nodable.
+//	 * @return an iterator over all Variables on this Nodable.
+//	 */
+//	public Iterator<Variable> getVariables();
 
     /**
-     * Method to return the Variable on this ElectricObject with the given key
-     * that is a parameter.  If the variable is not found on this object, it
+     * Method to return the Parameter on this Nodable with the given key.
+     * If the parameter is not found on this Nodable, it
      * is also searched for on the default var owner.
-     * @param key the key of the variable
-     * @return the Variable with that key, that may exist either on this object
+     * @param key the key of the Parameter
+     * @return the Parameter with that key, that may exist either on this object
      * or the default owner.  Returns null if none found.
      */
     public Variable getParameter(Variable.Key key);
 
-//    /**
-//     * Method to return an Iterator over all Variables marked as parameters on this ElectricObject.
-//     * This may also include any parameters on the defaultVarOwner object that are not on this object.
-//     * @return an Iterator over all Variables on this ElectricObject.
-//     */
-//    public Iterator<Variable> getParameters();
+    /**
+     * Method to tell if the Variable.Key is a defined parameters of this Nodable.
+     * Parameters which are not defined on IconNodeInst take default values from Icon Cell.
+     * @param key the key of the parameter
+     * @return true if the key is a definded parameter of this Nodable
+     */
+    public boolean isDefinedParameter(Variable.Key key);
 
     /**
-     * Method to create a Variable on this ElectricObject with the specified values.
-     * @param name the name of the Variable.
-     * @param value the object to store in the Variable.
-     * @return the Variable that has been created.
+     * Method to return an Iterator over all Parameters on this Nodable.
+     * This may also include any parameters on the defaultVarOwner object that are not on this Nodable.
+     * @return an Iterator over all Parameters on this Nodable.
      */
-    public Variable newVar(String name, Object value);
+    public Iterator<Variable> getParameters();
 
     /**
-     * Method to create a Variable on this ElectricObject with the specified values.
-     * @param key the key of the Variable.
-     * @param value the object to store in the Variable.
-     * @return the Variable that has been created.
+     * Method to return an Iterator over defined Parameters on this Nodable.
+     * This doesn't include any parameters on the defaultVarOwner object that are not on this Nodable.
+     * @return an Iterator over defined Parameters on this Nodable.
      */
-    public Variable newVar(Variable.Key key, Object value);
-
-//    /**
-//     * Method to put an Object into an entry in an arrayed Variable on this ElectricObject.
-//     * @param key the key of the arrayed Variable.
-//     * @param value the object to store in an entry of the arrayed Variable.
-//     * @param index the location in the arrayed Variable to store the value.
-//     */
-//    public void setVar(Variable.Key key, Object value, int index);
-
-    /**
-     * Method to delete a Variable from this ElectricObject.
-     * @param key the key of the Variable to delete.
-     */
-    public void delVar(Variable.Key key);
-
-    /**
-     * This method can be overridden by extending objects.
-     * For objects (such as instances) that have instance variables that are
-     * inherited from some Object that has the default variables, this gets
-     * the object that has the default variables. From that object the
-     * default values of the variables can then be found.
-     * @return the object that holds the default variables and values.
-     */
-    public Cell getVarDefaultOwner();
+    public Iterator<Variable> getDefinedParameters();
 
 	/**
 	 * Returns a printable version of this Nodable.

@@ -991,10 +991,11 @@ public abstract class Topology extends Output
 		{
 			// if there are parameters, append them to this name
 			HashMap<Variable.Key,Variable> paramValues = new HashMap<Variable.Key,Variable>();
-			for(Iterator<Variable> it = no.getVariables(); it.hasNext(); )
+			for(Iterator<Variable> it = no.getDefinedParameters(); it.hasNext(); )
+//			for(Iterator<Variable> it = no.getVariables(); it.hasNext(); )
 			{
 				Variable var = it.next();
-				if (!no.getNodeInst().isParam(var.getKey())) continue;
+//				if (!no.getNodeInst().isParam(var.getKey())) continue;
 				paramValues.put(var.getKey(), var);
 			}
 			for(Variable.Key key : paramValues.keySet())

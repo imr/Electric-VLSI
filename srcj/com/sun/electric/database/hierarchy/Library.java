@@ -646,6 +646,16 @@ public class Library extends ElectricObject implements Comparable<Library>
         return newRefs;
     }
     
+    public static void repairAllLibraries() {
+        ErrorLogger errorLogger = ErrorLogger.newInstance("Repair Libraries"); 
+        for (Iterator<Library> it = Library.getLibraries(); it.hasNext(); ) {
+            Library l = it.next();
+            l.checkAndRepair(true, errorLogger);
+        }
+        System.out.println("Repair Libraries: " + errorLogger.getNumErrors() + " errors, " +
+                errorLogger.getNumWarnings() + " warnings");
+    }
+    
 	/**
 	 * Method to check and repair data structure errors in this Library.
 	 */

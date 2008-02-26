@@ -77,7 +77,7 @@ class NetSchem extends NetCell {
 			this.nodeInst = nodeInst;
 			this.arrayIndex = arrayIndex;
 		}
-	
+
 		/**
 		 * Method to return the prototype of this Nodable.
 		 * @return the prototype of this Nodable.
@@ -118,60 +118,43 @@ class NetSchem extends NetCell {
 		 */
 		public Variable getVar(Variable.Key key) { return nodeInst.getVar(key); }
 
+//		/**
+//		 * Method to return an iterator over all Variables on this Nodable.
+//		 * @return an iterator over all Variables on this Nodable.
+//		 */
+//		public Iterator<Variable> getVariables() { return nodeInst.getVariables(); }
+
         /**
-         * Method to return the Variable on this ElectricObject with the given key
-         * that is a parameter.  If the variable is not found on this object, it
+         * Method to return the Parameter on this Nodable with the given key.
+         * If the parameter is not found on this Nodable, it
          * is also searched for on the default var owner.
-         * @param key the key of the variable
-         * @return the Variable with that key, that may exist either on this object
+         * @param key the key of the parameter
+         * @return the Parameter with that key, that may exist either on this Nodable
          * or the default owner.  Returns null if none found.
          */
         public Variable getParameter(Variable.Key key) { return nodeInst.getParameter(key); }
 
         /**
-         * Method to create a Variable on this ElectricObject with the specified values.
-         * @param name the name of the Variable.
-         * @param value the object to store in the Variable.
-         * @return the Variable that has been created.
+         * Method to tell if the Variable.Key is a defined parameters of this Nodable.
+         * Parameters which are not defined on Nodable take default values from Icon Cell.
+         * @param key the key of the parameter
+         * @return true if the key is a definded parameter of this Nodable
          */
-        public Variable newVar(String name, Object value) { return nodeInst.newVar(name, value); }
+        public boolean isDefinedParameter(Variable.Key key) { return nodeInst.isDefinedParameter(key); }
 
         /**
-         * Method to create a Variable on this ElectricObject with the specified values.
-         * @param key the key of the Variable.
-         * @param value the object to store in the Variable.
-         * @return the Variable that has been created.
+         * Method to return an Iterator over all Parameters on this Nodable.
+         * This may also include any Parameters on the defaultVarOwner object that are not on this Nodable.
+         * @return an Iterator over all Parameters on this Nodable.
          */
-        public Variable newVar(Variable.Key key, Object value) { return nodeInst.newVar(key, value); }
+        public Iterator<Variable> getParameters() { return nodeInst.getParameters(); }
 
         /**
-         * Method to delete a Variable from this ElectricObject.
-         * @param key the key of the Variable to delete.
+         * Method to return an Iterator over defined Parameters on this Nodable.
+         * This doesn't include any Parameters on the defaultVarOwner object that are not on this Nodable.
+         * @return an Iterator over defined Parameters on this Nodable.
          */
-        public void delVar(Variable.Key key) { nodeInst.delVar(key); }
-
-        /**
-         * This method can be overridden by extending objects.
-         * For objects (such as instances) that have instance variables that are
-         * inherited from some Object that has the default variables, this gets
-         * the object that has the default variables. From that object the
-         * default values of the variables can then be found.
-         * @return the object that holds the default variables and values.
-         */
-        public Cell getVarDefaultOwner() { return nodeInst.getVarDefaultOwner(); }
-
-		/**
-		 * Method to return an iterator over all Variables on this Nodable.
-		 * @return an iterator over all Variables on this Nodable.
-		 */
-		public Iterator<Variable> getVariables() { return nodeInst.getVariables(); }
-
-//        /**
-//         * Method to return an Iterator over all Variables marked as parameters on this ElectricObject.
-//         * This may also include any parameters on the defaultVarOwner object that are not on this object.
-//         * @return an Iterator over all Variables on this ElectricObject.
-//         */
-//        public Iterator<Variable> getParameters() { return nodeInst.getParameters(); }
+        public Iterator<Variable> getDefinedParameters() { return nodeInst.getDefinedParameters(); }
 
 		/**
 		 * Returns a printable version of this Nodable.
@@ -303,7 +286,7 @@ class NetSchem extends NetCell {
 	 * Get a set of global signal in this Cell and its descendants.
 	 */
 	Global.Set getGlobals() { return globals; }
-	
+
 	/*
 	 * Get offset in networks map for given global signal.
 	 */
@@ -875,7 +858,7 @@ class NetSchem extends NetCell {
 				Netlist.connectMap(netMap, this.globals.indexOf(g), proxy.nodeOffset + i);
 			}
 		}
-        
+
         Netlist.closureMap(netMap);
         HashMap<String,Name> canonicToName = new HashMap<String,Name>();
         for (Map.Entry<Name,GenMath.MutableInteger> e: netNames.entrySet()) {
@@ -901,7 +884,7 @@ class NetSchem extends NetCell {
             }
         }
 	}
-    
+
     private void pushName(Name name) {
         for (Iterator<Export> it = cell.getExports(); it.hasNext(); ) {
             Export e = it.next();
@@ -1017,7 +1000,7 @@ class NetSchem extends NetCell {
 				int jP = eqP[i];
 				if (i != jP)
 					Netlist.connectMap(netMapP, io, proxy.nodeOffset + jP);
-                
+
 				int jA = eqA[i];
 				if (i != jA)
 					Netlist.connectMap(netMapA, io, proxy.nodeOffset + jA);
@@ -1049,7 +1032,7 @@ class NetSchem extends NetCell {
 			if (index < exportedNetNameCount) continue;
 			netlistN.addUserName(netlistN.getNetIndexByMap(netNamesOffset + index), name, false);
 		}
-		
+
 		// add temporary names to unnamed nets
 		for (int i = 0, numArcs = cell.getNumArcs(); i < numArcs; i++) {
 			ArcInst ai = cell.getArc(i);

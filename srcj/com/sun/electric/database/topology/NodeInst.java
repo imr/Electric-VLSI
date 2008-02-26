@@ -82,7 +82,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
-import java.util.TreeMap;
 
 /**
  * A NodeInst is an instance of a NodeProto (a PrimitiveNode or a Cell).
@@ -97,8 +96,6 @@ import java.util.TreeMap;
  */
 public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 {
-    /** true if instance parameters are virtual */              public static final boolean VIRTUAL_PARAMETERS = false;
-
 	/** key of text descriptor with prototype name. */          public static final Variable.Key NODE_PROTO = Variable.newKey("NODE_proto");
 	/** key of obsolete Variable holding instance name. */		public static final Variable.Key NODE_NAME = Variable.newKey("NODE_name");
 	/** key of Varible holding outline information. */			public static final Variable.Key TRACE = Variable.newKey("trace");
@@ -450,7 +447,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	}
 
     public static NodeInst lowLevelNewInstance(Cell parent, ImmutableNodeInst d) {
-        if (d.protoId instanceof CellId && ((CellId)d.protoId).cellName.isIcon())
+        if (d.protoId instanceof CellId && ((CellId)d.protoId).isIcon())
             return new IconNodeInst(d, parent);
         else
             return new NodeInst(d, parent);
@@ -1459,81 +1456,50 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         return ERectangle.fromGrid(lx + anchor.getGridX(), ly + anchor.getGridY(), hx - lx, hy - ly);
 	}
 
-    /**
-     * Method to return the Variable on this NodeInst with the given key
-     * that is a parameter.  If the variable is not found on this object, it
-     * is also searched for on the default var owner.
-     * @param key the key of the variable
-     * @return the Variable with that key, that may exist either on this NodeInst
-     * or the default owner.  Returns null if none found.
+   /**
+     * Method to return the Parameter on this NodeInst with the given key.
+     * Overridden in IconNodeInst.
+     * @param key the key of the Parameter
+     * @return null
      */
     public Variable getParameter(Variable.Key key) {
-        Variable var = getVar(key, null);
-        if (var != null && isParam(key)) return var;
-        // look on default var owner
-        Cell defOwner = getVarDefaultOwner();
-        if (defOwner == null) return null;
-        return defOwner.getParameter(key);
+        return null;
     }
 
     /**
-     * Method to return an Iterator over all Variables marked as parameters on this NodeInst.
-     * This may also include any parameters on the defaultVarOwner object that are not on this object.
-     * @return an Iterator over all Variables on this NodeInst.
+     * Method to tell if the Variable.Key is a defined parameters of this NodeInst.
+     * Overridden in IconNodeInst.
+     * @param key the key of the parameter
+     * @return false
+     */
+    public boolean isDefinedParameter(Variable.Key key) {
+        return false;
+    }
+
+    /**
+     * Method to return an Iterator over all Parameters on this NodeInst.
+     * Overridden in IconNodeInst
+     * @return an empty Iterator
      */
     public Iterator<Variable> getParameters() {
-        TreeMap<Variable.Key,Variable> keysToVars = new TreeMap<Variable.Key,Variable>();
-        // get all parameters on this object
-        for (Iterator<Variable> it = getVariables(); it.hasNext(); ) {
-            Variable v = it.next();
-            if (!isParam(v.getKey())) continue;
-            keysToVars.put(v.getKey(), v);
-        }
-        // look on default var owner
-        Cell defOwner = getVarDefaultOwner();
-        if (defOwner != null) {
-            for (Iterator<Variable> it = defOwner.getParameters(); it.hasNext(); ) {
-                Variable v = it.next();
-                if (keysToVars.get(v.getKey()) == null)
-                    keysToVars.put(v.getKey(), v);
-            }
-        }
-        return keysToVars.values().iterator();
-    }
-
-	/**
-	 * Method to return true if the Variable on this NodeInst with given key is a parameter.
-	 * Parameters are those Variables that have values on instances which are
-	 * passed down the hierarchy into the contents.
-     * @param varKey key to test
-	 * @return true if the Variable with given key is a parameter.
-	 */
-    public boolean isParam(Variable.Key varKey) {
-        Cell sch = getVarDefaultOwner();
-        return sch != null && sch.getParameter(varKey) != null;
+        return ArrayIterator.emptyIterator();
     }
 
     /**
-     * For instance variables of this NodeInst that are
-     * inherited from some Cell that has the default variables, this gets
-     * the Cell that has the default variables. From that Cell the
-     * default values of the variables can then be found.
-     * @return the Cell that holds the default variables and values.
+     * Method to return an Iterator over defined Parameters on this Nodable.
+     * Overridden in IconNodeInst
+     * @return an empty Iterator
      */
-    public Cell getVarDefaultOwner() {
-        if (getProto() instanceof Cell) {
-            Cell proto = (Cell)getProto();
-            if (proto.isIcon()) {
-                // schematic has default vars
-                Cell sch = proto.getCellGroup().getMainSchematics();
-                if (sch != null) {
-                    return sch;
-                }
-                return proto;
-            }
-            return proto;
-        }
-        return null;
+    public Iterator<Variable> getDefinedParameters() {
+        return ArrayIterator.emptyIterator();
+    }
+
+    /**
+     * Method to delete a defined Parameter from this NodeInst.
+     * Overridden in IconNodeInst
+     * @param key the key of the Variable to delete.
+     */
+    public void delParameter(Variable.Key key) {
     }
 
     /**

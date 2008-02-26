@@ -420,10 +420,11 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 			avp.code = var.isCode();
 			allAttributes.add(avp);
 		}
-		attributes.setEnabled(allAttributes.size() != 0);
-        attributesTable.setEnabled(allAttributes.size() != 0);
+        boolean hasAttributes = allAttributes.size() != 0 || ni.getParameters().hasNext();
+		attributes.setEnabled(hasAttributes);
+        attributesTable.setEnabled(hasAttributes);
         attributesTable.setElectricObject(ni);
-		if (attributes.isSelected() && allAttributes.size() == 0) ports.setSelected(true);
+		if (attributes.isSelected() && !hasAttributes) ports.setSelected(true);
 
 
 		Netlist nl = shownNode.getParent().acquireUserNetlist();

@@ -3239,8 +3239,8 @@ public class EditWindow extends JPanel
         }
 
 		// if getdrive is called
-//        for (Iterator<Variable> it = no.getDefinedParameters(); it.hasNext(); ) {
-        for (Iterator<Variable> it = no.getVariables(); it.hasNext(); ) {
+        for (Iterator<Variable> it = no.getDefinedParameters(); it.hasNext(); ) {
+//        for (Iterator<Variable> it = no.getVariables(); it.hasNext(); ) {
             Variable var = it.next();
             Object obj = var.getObject();
             if (obj instanceof CodeExpression) {

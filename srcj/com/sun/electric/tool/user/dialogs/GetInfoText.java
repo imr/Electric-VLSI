@@ -25,6 +25,7 @@ package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -729,7 +730,18 @@ public class GetInfoText extends EModelessDialog implements HighlightListener, D
         	} else if (key == ArcInst.ARC_NAME)
         	{
                 ((ArcInst)owner).setName(newText[0]);
-        	} else
+        	} else if (owner instanceof Cell && owner.isParam(key))
+        	{
+                Cell.CellGroup cellGroup = ((Cell)owner).getCellGroup();
+	            if (newText.length > 1)
+	            {
+	                cellGroup.updateParam((Variable.AttrKey)key, newText);
+	            } else
+	            {
+	                // change variable text
+	                cellGroup.updateParamText((Variable.AttrKey)key, newText[0]);
+	            }
+            } else
         	{
 	            if (newText.length > 1)
 	            {

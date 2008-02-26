@@ -1789,11 +1789,11 @@ public class Spice extends Topology
                 // if there are parameters, append them to this name
                 Set<Variable.Key> spiceParams = detectSpiceParams(cell);
                 List<Variable> paramValues = new ArrayList<Variable>();
-//                for(Iterator<Variable> it = no.getDefinedParameters(); it.hasNext(); )
-                for(Iterator<Variable> it = no.getVariables(); it.hasNext(); )
+                for(Iterator<Variable> it = no.getDefinedParameters(); it.hasNext(); )
+//                for(Iterator<Variable> it = no.getVariables(); it.hasNext(); )
                 {
                     Variable var = it.next();
-                    if (!no.getNodeInst().isParam(var.getKey())) continue;
+//                    if (!no.getNodeInst().isParam(var.getKey())) continue;
                     if (useCellParams && DETECT_SPICE_PARAMS && !spiceParams.contains(var.getKey())) continue;
                     if (USE_JAVA_CODE) {
                         if (useCellParams && !spiceParams.contains(null)) continue;

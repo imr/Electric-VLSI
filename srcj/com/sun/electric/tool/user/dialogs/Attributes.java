@@ -475,14 +475,8 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
         for(Iterator<Variable> it = selectedObject.getVariables(); it.hasNext(); )
         {
             Variable var = it.next();
-            String varName = var.getKey().getName();
-            if (showAttrsOnly) {
-                // if only showing Attributes, only add if it is an attribute
-                if (varName.startsWith("ATTR_")) {
-                    listModel.addElement(var.getKey());
-                }
-                continue;
-            }
+            // if only showing Attributes, only add if it is an attribute
+            if (showAttrsOnly && !var.isAttribute()) continue;
             listModel.addElement(var.getKey());
         }
     }
@@ -594,29 +588,29 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
         public boolean doIt() throws JobException
         {
             if (var == null) return false;
-            owner.delVar(var.getKey());
+            Variable.Key varKey = var.getKey();
+            if (owner instanceof Cell && owner.isParam(varKey)) {
+                ((Cell)owner).getCellGroup().delParam((Variable.AttrKey)varKey);
+            } else {
+                owner.delVar(varKey);
+            }
             return true;
         }
     }
 
     private static class CreateAttribute extends Job {
 
-        private String newName;
-        private Object newValue;
         private ElectricObject owner;
         private Variable newVar;
-        private TextDescriptor td;
         private transient Attributes dialog;
 
         private CreateAttribute(String newName, Object newValue, ElectricObject owner, Attributes dialog) {
             super("Create Attribute", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-            this.newName = newName;
-            this.newValue = newValue;
             this.owner = owner;
             this.dialog = dialog;
 
             // determine textdescriptor for the variable
-            td = null;
+            TextDescriptor td = null;
             if (owner instanceof Cell)
             {
             	td = TextDescriptor.getCellTextDescriptor().withParam(true).withInherit(true);
@@ -644,23 +638,27 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
             	Point2D offset = ((Cell)owner).newVarOffset();
             	td = td.withOff(offset.getX(), offset.getY());
             }
-            
+
             newValue = dialog.attrPanel.withPanelCode(newValue);
+
+            newVar = Variable.newInstance(Variable.newKey(newName), newValue, td);
 
             startJob();
         }
 
         public boolean doIt() throws JobException
         {
-            Variable.Key newKey = Variable.newKey(newName);
-
             // check if var of this name already exists on object
-            if (owner.getVar(newKey) != null)
-				throw new JobException("Can't create new attribute "+newName+", already exists");
+            if (owner.getVar(newVar.getKey()) != null)
+                throw new JobException("Can't create new attribute "+newVar+", already exists");
+            
+            if (owner instanceof Cell && newVar.getTextDescriptor().isParam()) {
+                ((Cell)owner).getCellGroup().addParam(newVar);
+            } else {
 
-            // create the attribute
-            newVar = owner.newVar(newKey, newValue, td);
-			fieldVariableChanged("newVar");
+                // create the attribute
+                owner.addVar(newVar);
+            }
             return true;
         }
 
@@ -688,11 +686,17 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
 
         public boolean doIt() throws JobException
         {
-            Variable var = owner.renameVar(varName, newVarName);
-            if (var == null)
-            {
-                System.out.println("Rename of variable failed");
-                return false;
+            Variable.Key varKey = Variable.newKey(varName);
+            if (owner instanceof Cell && owner.isParam(varKey)) {
+                Variable.AttrKey newParamKey = (Variable.AttrKey)Variable.newKey(newVarName);
+                ((Cell)owner).getCellGroup().renameParam((Variable.AttrKey)varKey, newParamKey);
+            } else {
+                Variable var = owner.renameVar(varName, newVarName);
+                if (var == null)
+                {
+                    System.out.println("Rename of variable failed");
+                    return false;
+                }
             }
             return true;
         }
@@ -725,9 +729,13 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
 
             // change the Value field if a new Variable is being created or if the value changed
             newValue = Variable.withCode(newValue, var.getCode());
-            var = owner.updateVar(varKey, newValue);
-            if (var == null)
-				throw new JobException("Error updating Attribute " + varKey);
+            if (owner instanceof Cell && owner.isParam(varKey)) {
+                ((Cell)owner).getCellGroup().updateParam((Variable.AttrKey)varKey, newValue);
+            } else {
+                var = owner.updateVar(varKey, newValue);
+                if (var == null)
+                    throw new JobException("Error updating Attribute " + varKey);
+            }
             return true;
         }
     }

@@ -3,6 +3,27 @@
 NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07f: ******************************
+
+
+IMP/MAN: (2/25/08, DN+JKG) Merge branches/params to the trunk:
+    CheckAndRepairJob ensures consistency between parameters on icon and schematic cells.
+    Icon/schematic cells in a group shares parameter names, default values, and units.
+    They may differ in text descriptor (except units, param flag, inherit flag).
+    CheckAndRepairJob constructs absent parameters on icon cell from name/value/unit on
+    main schematics and from text text descriptor on example instance of icon cell.
+    Attribute dialog also tries to maintain consistency between parameters on icons/schematics
+    in a cell group, though it is not database invariant yet.
+
+    Parameters are not allowed on cells other than icons/schematics.
+    Parameters on icon instances inherits patched text descriptor from
+    icon cell. Patching means: cleared params and inherit and interior flag.
+    Display flag of instance parameter is the negateion of the interior flag of 
+    icon Cell parameter.
+
+    Spice netlister automatically detects paramters necessary for Spice output.
+    It writes them and only them as subcircuit parameters into Spice decks. 
+    Both Spice and Java syntax are allowed for such parameters.
+
 ************************* Version 8.07e: *******************************
 
 IMP: (2/25/08, DN) Add FileType.JAR with file type group "Electric Build".

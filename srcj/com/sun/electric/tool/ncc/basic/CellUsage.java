@@ -146,7 +146,8 @@ class CellUsage extends HierarchyEnumerator.Visitor {
 		boolean attrLeGate = no.getVar(LENetlister.ATTR_LEGATE)!=null ||
 			                 no.getVar(LENetlister.ATTR_LEKEEPER)!=null;
 		boolean hasGetDrive = false;
-		for (Iterator<Variable> vIt=no.getVariables(); vIt.hasNext();) {
+		for (Iterator<Variable> vIt=no.getDefinedParameters(); vIt.hasNext();) {
+//		for (Iterator<Variable> vIt=no.getVariables(); vIt.hasNext();) {
 			Variable v = vIt.next();
 			if (v.getCode()==TextDescriptor.Code.JAVA) {
 				String expr = v.getObject().toString();
