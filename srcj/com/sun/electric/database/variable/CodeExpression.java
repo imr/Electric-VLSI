@@ -94,7 +94,7 @@ public class CodeExpression implements Serializable {
         } else {
             dependsOnEverything = exprTree.dependsOnEverything();
             StringBuilder sb = new StringBuilder();
-            exprTree.appendText(sb);
+            exprTree.appendText(sb, Expr.MIN_PRECEDENCE);
             spiceText = new String(sb);
         }
      }
@@ -689,7 +689,7 @@ public class CodeExpression implements Serializable {
                 expect(')');
                 return new BinaryFunExpr(fun, arg1, arg2);
             }
-            if (isJava && id.equals("P")) {
+            if (/*isJava &&*/ id.equals("P")) {
                 nextToken();
                 expect('(');
                 if (tokenizer.ttype != '"')
