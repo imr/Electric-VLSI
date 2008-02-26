@@ -209,15 +209,15 @@ public class Metal extends TechEditWizardPanel
 	    JLabel [] newSpacingLabel = new JLabel[numMetals];
 	    JTextField [] newSpacing = new JTextField[numMetals];
 	    JTextField [] newSpacingRule = new JTextField[numMetals];
-	    for(int i=0; i<numMetals-1; i++)
-	    {
-	    	newWidthLabel[i] = widthLabel[i];
-	    	newWidthRule[i] = widthRule[i];
-	    	newSpacingLabel[i] = spacingLabel[i];
-	    	newSpacing[i] = spacing[i];
-	    	newSpacingRule[i] = spacingRule[i];
-	    }
-	    widthLabel = newWidthLabel;
+
+        System.arraycopy(width, 0, newWidth, 0, numMetals-1);
+        System.arraycopy(widthLabel, 0, newWidthLabel, 0, numMetals-1);
+        System.arraycopy(widthRule, 0, newWidthRule, 0, numMetals-1);
+        System.arraycopy(spacingLabel, 0, newSpacingLabel, 0, numMetals-1);
+        System.arraycopy(spacing, 0, newSpacing, 0, numMetals-1);
+        System.arraycopy(spacingRule, 0, newSpacingRule, 0, numMetals-1);
+        
+        widthLabel = newWidthLabel;
 	    width = newWidth;
 	    widthRule = newWidthRule;
 	    spacingLabel = newSpacingLabel;
