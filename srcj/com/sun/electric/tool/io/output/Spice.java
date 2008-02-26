@@ -1794,7 +1794,7 @@ public class Spice extends Topology
                 {
                     Variable var = it.next();
 //                    if (!no.getNodeInst().isParam(var.getKey())) continue;
-                    if (useCellParams && DETECT_SPICE_PARAMS && !spiceParams.contains(var.getKey())) continue;
+                    if (DETECT_SPICE_PARAMS && !spiceParams.contains(var.getKey())) continue;
                     if (USE_JAVA_CODE) {
                         if (useCellParams && !spiceParams.contains(null)) continue;
                     } else {
