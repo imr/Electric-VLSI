@@ -4245,17 +4245,19 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
                 errorLogger.logWarning(mainSchemMsg, this, 1);
         }
 
-        Variable var = getVar(NccCellAnnotations.NCC_ANNOTATION_KEY);
-        if (var != null && var.isInherit()) {
-            // cleanup NCC cell annotations which were inheritable
-            String nccMsg = "Cleaned up NCC annotations in cell " + describe(false);
-            if (repair) {
-                addVar(var.withInherit(false).withParam(false).withInterior(true));
-                nccMsg += " (REPAIRED)";
+        for (Cell cell: cellGroup.cells) {
+            Variable var = cell.getVar(NccCellAnnotations.NCC_ANNOTATION_KEY);
+            if (var != null && var.isInherit()) {
+                // cleanup NCC cell annotations which were inheritable
+                String nccMsg = "Cleaned up NCC annotations in cell " + cell.describe(false);
+                if (repair) {
+                    cell.addVar(var.withInherit(false).withParam(false).withInterior(true));
+                    nccMsg += " (REPAIRED)";
+                }
+                System.out.println(nccMsg);
+                if (errorLogger != null)
+                    errorLogger.logWarning(nccMsg, cell, 1);
             }
-            System.out.println(nccMsg);
-            if (errorLogger != null)
-                errorLogger.logWarning(nccMsg, this, 1);
         }
 
         errorCount += checkAndRepairCellParameters(repair, errorLogger);
@@ -4271,7 +4273,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         int errorCount = 0;
         String addedParams = "";
         NodeInst exampleInst = null;
-        Cell exampleInstOwner = null;
         Iterator<Variable> it = getVariables();
         Iterator<Variable> oit = parameterOwner.getParameters();
         Variable attr = it.hasNext() ? it.next() : null;
@@ -4343,7 +4344,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
                         for (NodeInst ni: cell.nodes) {
                             if (ni.getProto() != this) continue;
                             exampleInst = ni;
-                            exampleInstOwner = cell;
                             break;
                         }
                     }
@@ -4388,7 +4388,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         if (addedParams.length() > 0) {
             String msg = "Add parameters" + addedParams + " to " + this;
             if (exampleInst != null)
-                msg += " from example icon on " + exampleInstOwner;
+                msg += " from example icon on " + exampleInst.getParent();
             errorLogger.logWarning(msg, this, 3);
             errorCount++;
         }
