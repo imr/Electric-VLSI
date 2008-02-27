@@ -98,14 +98,6 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
      */
     public static void showDialog()
     {
-        if (!Job.getDebug()) {
-            Cell cell = WindowFrame.needCurCell();
-            if (cell == null || !cell.isIcon()) {
-                System.out.println("Parameters are editable only on Icon View of Cell");
-                return;
-            }
-        }
-
         if (theDialog == null)
         {
         	JFrame jf = null;
