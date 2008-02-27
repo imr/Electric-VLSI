@@ -1654,12 +1654,19 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
         if (shownNode == null) return;
         if (!shownNode.isCellInstance()) return;
         Cell.CellGroup group = ((Cell)shownNode.getProto()).getCellGroup();
-        for (Iterator<Cell> it = group.getCells(); it.hasNext(); ) {
-            Cell c = it.next();
-            if (c.isIcon()) {
-                WindowFrame.createEditWindow(c);
-                Attributes.showDialog();                
+        Cell paramOwner = group.getMainSchematics();
+        if (paramOwner == null) {
+            for (Iterator<Cell> it = group.getCells(); it.hasNext(); ) {
+                Cell c = it.next();
+                if (c.isIcon()) {
+                    paramOwner = c;
+                    break;
+                }
             }
+        }
+        if (paramOwner != null) {
+            WindowFrame.createEditWindow(paramOwner);
+            Attributes.showDialog();
         }
     }//GEN-LAST:event_editParametersActionPerformed
 
