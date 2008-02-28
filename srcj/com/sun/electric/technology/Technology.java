@@ -1838,7 +1838,6 @@ public class Technology implements Comparable<Technology>, Serializable
             t.className = getClass().getName();
         t.shortTechName = getTechShortName();
         t.description = getTechDesc();
-        XMLRules factoryXmlRules = getFactoryDesignRules();
         int numMetals = ((Integer)getNumMetalsSetting().getFactoryValue()).intValue();
         t.minNumMetals = t.maxNumMetals = t.defaultNumMetals = numMetals;
         t.scaleValue = getScaleSetting().getDoubleFactoryValue();

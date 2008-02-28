@@ -26,10 +26,12 @@
 package com.sun.electric.tool.user.tecEditWizard;
 
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.*;
+import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.technology.Xml;
 
 import java.awt.Color;
 import java.io.BufferedWriter;
@@ -821,7 +823,8 @@ public class TechEditWizardData
 		if (fileName == null) return;
 		try
 		{
-			PrintWriter printWriter = new PrintWriter(new BufferedWriter(new FileWriter(fileName)));
+            dumpXMLFile(fileName + "new");
+            PrintWriter printWriter = new PrintWriter(new BufferedWriter(new FileWriter(fileName)));
 			dumpTechnology(printWriter);
 			printWriter.close();
 		} catch (IOException e)
@@ -831,7 +834,239 @@ public class TechEditWizardData
 		}
 	}
 
-	private void dumpTechnology(PrintWriter pw)
+    /**
+     * Method to create XML version of a Layer.
+     * @return
+     */
+    Xml.Layer makeXmlLayer(String name, com.sun.electric.technology.Layer.Function function, int extraf,
+                           EGraphics graph, char cifLetter, boolean pureLayerNode, double la)
+    {
+        Xml.Layer l = new Xml.Layer();
+        l.name = name;
+        l.function = function;
+        l.extraFunction = extraf;
+        l.desc = graph;
+        l.thick3D = 1;
+        l.height3D = 1;
+        l.mode3D = "NONE";
+        l.factor3D = 1;
+        l.cif = "C" + cifLetter;
+        l.skill = name;
+        l.resistance = 1;
+        l.capacitance = 0;
+        l.edgeCapacitance = 0;
+//            if (layer.getPseudoLayer() != null)
+//                l.pseudoLayer = layer.getPseudoLayer().getName();
+        if (pureLayerNode) {
+            l.pureLayerNode = new Xml.PureLayerNode();
+            l.pureLayerNode.name = name + "-Node";
+            l.pureLayerNode.style = Poly.Type.FILLED;
+            l.pureLayerNode.port = "Port_" + name;
+            l.pureLayerNode.size.value = la;
+//            for (ArcProto ap: pureLayerNode.getPort(0).getConnections()) {
+//                if (ap.getTechnology() != tech) continue;
+//                l.pureLayerNode.portArcs.add(ap.getName());
+//            }
+        }
+        return l;
+    }
+
+    private void dumpXMLFile(String fileName)
+    {
+        Xml.Technology t = new Xml.Technology();
+
+        t.techName = getTechName();
+        t.shortTechName = getTechName();
+        t.description = getTechDescription();
+        t.minNumMetals = t.maxNumMetals = t.defaultNumMetals = getNumMetalLayers();
+        t.scaleValue = getStepSize();
+//        t.scaleRelevant = isScaleRelevant();
+        t.defaultFoundry = "NONE";
+        t.minResistance = 1.0;
+        t.minCapacitance = 0.1;
+
+        // LAYER COLOURS
+		Color [] metal_colour = new Color[]
+		{
+			new Color(0,150,255),   // cyan/blue
+			new Color(148,0,211),   // purple
+			new Color(255,215,0),   // yellow
+			new Color(132,112,255), // mauve
+			new Color(255,160,122), // salmon
+			new Color(34,139,34),   // dull green
+			new Color(178,34,34),   // dull red
+			new Color(34,34,178),   // dull blue
+			new Color(153,153,153), // light gray
+			new Color(102,102,102)  // dark gray
+		};
+		Color poly_colour = new Color(255,155,192);   // pink
+		Color diff_colour = new Color(107,226,96);    // light green
+		Color via_colour = new Color(205,205,205);    // lighter gray
+		Color contact_colour = new Color(40,40,40);   // darker gray
+		Color nplus_colour = new Color(224,238,224);
+		Color pplus_colour = new Color(224,224,120);
+		Color nwell_colour = new Color(140,140,140);
+        // Five transparent colors: poly_colour, diff_colour, metal_colour[0->2]
+        Color[] colorMap = {poly_colour, diff_colour, metal_colour[0], metal_colour[1], metal_colour[2]};
+        for (int i = 0; i < colorMap.length; i++) {
+            Color transparentColor = colorMap[i];
+            t.transparentLayers.add(transparentColor);
+        }
+
+        // Layers
+        List<Xml.Layer> layers = new ArrayList<Xml.Layer>();
+
+        for (int i = 0; i < this.num_metal_layers; i++)
+        {
+            int metalNum = i + 1;
+            double la = metal_width[i].v / stepsize;
+            double opacity = (75 - metalNum * 5)/100.0;
+            int metLayHigh = i / 10;
+            int metLayDig = i % 10;
+            int r = metal_colour[metLayDig].getRed() * (10-metLayHigh) / 10;
+            int g = metal_colour[metLayDig].getGreen() * (10-metLayHigh) / 10;
+            int b = metal_colour[metLayDig].getBlue() * (10-metLayHigh) / 10;
+            int tcol = 0;
+            int[] pattern = null;
+
+            switch (metLayDig)
+            {
+                case 0: tcol = 3;   break;
+                case 1: tcol = 4;   break;
+                case 2: tcol = 5;   break;
+                case 3: pattern = new int[] {0xFFFF,   // XXXXXXXXXXXXXXXX
+                        0x0000,   //
+                        0xFFFF,   // XXXXXXXXXXXXXXXX
+                        0x0000,   //
+                        0xFFFF,   // XXXXXXXXXXXXXXXX
+                        0x0000,   //
+                        0xFFFF,   // XXXXXXXXXXXXXXXX
+                        0x0000,   //
+                        0xFFFF,   // XXXXXXXXXXXXXXXX
+                        0x0000,   //
+                        0xFFFF,   // XXXXXXXXXXXXXXXX
+                        0x0000,   //
+                        0xFFFF,   // XXXXXXXXXXXXXXXX
+                        0x0000,   //
+                        0xFFFF,   // XXXXXXXXXXXXXXXX
+                        0x0000}; break;
+                case 4: pattern = new int[] { 0x8888,   // X   X   X   X
+                        0x1111,   //    X   X   X   X
+                        0x2222,   //   X   X   X   X
+                        0x4444,   //  X   X   X   X
+                        0x8888,   // X   X   X   X
+                        0x1111,   //    X   X   X   X
+                        0x2222,   //   X   X   X   X
+                        0x4444,   //  X   X   X   X
+                        0x8888,   // X   X   X   X
+                        0x1111,   //    X   X   X   X
+                        0x2222,   //   X   X   X   X
+                        0x4444,   //  X   X   X   X
+                        0x8888,   // X   X   X   X
+                        0x1111,   //    X   X   X   X
+                        0x2222,   //   X   X   X   X
+                        0x4444};
+                    break;
+                case 5: pattern = new int[] { 0x1111,   //    X   X   X   X
+                        0xFFFF,   // XXXXXXXXXXXXXXXX
+                        0x1111,   //    X   X   X   X
+                        0x5555,   //  X X X X X X X X
+                        0x1111,   //    X   X   X   X
+                        0xFFFF,   // XXXXXXXXXXXXXXXX
+                        0x1111,   //    X   X   X   X
+                        0x5555,   //  X X X X X X X X
+                        0x1111,   //    X   X   X   X
+                        0xFFFF,   // XXXXXXXXXXXXXXXX
+                        0x1111,   //    X   X   X   X
+                        0x5555,   //  X X X X X X X X
+                        0x1111,   //    X   X   X   X
+                        0xFFFF,   // XXXXXXXXXXXXXXXX
+                        0x1111,   //    X   X   X   X
+                        0x5555};
+                    break;
+                case 6: pattern =  new int[] { 0x8888,   // X   X   X   X
+                        0x4444,   //  X   X   X   X
+                        0x2222,   //   X   X   X   X
+                        0x1111,   //    X   X   X   X
+                        0x8888,   // X   X   X   X
+                        0x4444,   //  X   X   X   X
+                        0x2222,   //   X   X   X   X
+                        0x1111,   //    X   X   X   X
+                        0x8888,   // X   X   X   X
+                        0x4444,   //  X   X   X   X
+                        0x2222,   //   X   X   X   X
+                        0x1111,   //    X   X   X   X
+                        0x8888,   // X   X   X   X
+                        0x4444,   //  X   X   X   X
+                        0x2222,   //   X   X   X   X
+                        0x1111};
+                    break;
+                case 7: pattern =  new int[] { 0x2222,   //   X   X   X   X
+                        0x0000,   //
+                        0x8888,   // X   X   X   X
+                        0x0000,   //
+                        0x2222,   //   X   X   X   X
+                        0x0000,   //
+                        0x8888,   // X   X   X   X
+                        0x0000,   //
+                        0x2222,   //   X   X   X   X
+                        0x0000,   //
+                        0x8888,   // X   X   X   X
+                        0x0000,   //
+                        0x2222,   //   X   X   X   X
+                        0x0000,   //
+                        0x8888,   // X   X   X   X
+                        0x0000};
+                    break;
+                case 8: pattern =  new int[] {0x0000,   //
+                        0x2222,   //   X   X   X   X
+                        0x0000,   //
+                        0x8888,   // X   X   X   X
+                        0x0000,   //
+                        0x2222,   //   X   X   X   X
+                        0x0000,   //
+                        0x8888,   // X   X   X   X
+                        0x0000,   //
+                        0x2222,   //   X   X   X   X
+                        0x0000,   //
+                        0x8888,   // X   X   X   X
+                        0x0000,   //
+                        0x2222,   //   X   X   X   X
+                        0x0000,   //
+                        0x8888};  // X   X   X   X
+                    break;
+                case 9: pattern = new int[] { 0x5555,   //  X X X X X X X X
+                        0x5555,   //  X X X X X X X X
+                        0x5555,   //  X X X X X X X X
+                        0x5555,   //  X X X X X X X X
+                        0x5555,   //  X X X X X X X X
+                        0x5555,   //  X X X X X X X X
+                        0x5555,   //  X X X X X X X X
+                        0x5555,   //  X X X X X X X X
+                        0x5555,   //  X X X X X X X X
+                        0x5555,   //  X X X X X X X X
+                        0x5555,   //  X X X X X X X X
+                        0x5555,   //  X X X X X X X X
+                        0x5555,   //  X X X X X X X X
+                        0x5555,   //  X X X X X X X X
+                        0x5555,   //  X X X X X X X X
+                        0x5555};
+                    break;
+            }
+            com.sun.electric.technology.Layer.Function fun = com.sun.electric.technology.Layer.Function.getMetal(metalNum);
+            EGraphics graph = new EGraphics(false, true, null, tcol, r, g, b, opacity, true, pattern);
+            layers.add(makeXmlLayer("Metal"+metalNum, fun, 0, graph, (char)('A' + metalNum), true, la));
+        }
+        for (Xml.Layer layer : layers)
+        {
+//            if (layer.isPseudoLayer()) continue;
+            t.layers.add(layer);
+        }
+        
+        t.writeXml(fileName);
+    }
+
+    private void dumpTechnology(PrintWriter pw)
 	{
 		// LAYER COLOURS
 		Color [] metal_colour = new Color[]
@@ -855,7 +1090,7 @@ public class TechEditWizardData
 		Color pplus_colour = new Color(224,224,120);
 		Color nwell_colour = new Color(140,140,140);
 
-		// write the header
+        // write the header
 		String foundry_name = "NONE";
 		pw.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
 		pw.println();
@@ -1057,7 +1292,8 @@ public class TechEditWizardData
 							"        <pattern>  X   X   X   X </pattern>\n" +
 							"        <pattern>                </pattern>\n" +
 							"        <pattern>X   X   X   X   </pattern>";
-					case 9:
+                        break;
+                    case 9:
 						pat="        <pattern>X X X X X X X X </pattern>\n" +
 							"        <pattern>X X X X X X X X </pattern>\n" +
 							"        <pattern>X X X X X X X X </pattern>\n" +

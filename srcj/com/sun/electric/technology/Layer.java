@@ -1379,7 +1379,11 @@ public class Layer
         if (getPseudoLayer() != null)
             out.println("\tpseudoLayer=" + getPseudoLayer().getName());
     }
-    
+
+    /**
+     * Method to create XML version of a Layer. 
+     * @return
+     */
     Xml.Layer makeXml() {
         Xml.Layer l = new Xml.Layer();
         l.name = getName();
