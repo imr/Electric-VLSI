@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07f: ******************************
 
+BUG: (2/29/08, SMR) EDIF input shorts crossed wires at an angle (Bug #1586).
+FIX: In EDIF.findEDIFPort(), ensure that angled wires are computed properly.
 
 IMP/MAN: (2/25/08, DN+JKG) Merge branches/params to the trunk:
     CheckAndRepairJob ensures consistency between parameters on icon and schematic cells.

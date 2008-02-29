@@ -1127,10 +1127,8 @@ public class EDIF extends Input
 	 * cell - cell to search
 	 * x, y  - the point to exam
 	 * ap    - the arc used to connect port (must match pp)
-	 * exactOnly - only return exact matches if true.  If false, also look "nearby" for ports if no
-	 *  exact matches found.
 	 */
-	private List<PortInst> findEDIFPort(Cell cell, double x, double y, ArcProto ap, boolean exactOnly)
+	private List<PortInst> findEDIFPort(Cell cell, double x, double y, ArcProto ap)
 	{
 		List<PortInst> ports = new ArrayList<PortInst>();
 		PortInst bestPi = null;
@@ -1166,19 +1164,12 @@ public class EDIF extends Input
 				// only accept valid wires
 				ArcInst oAi = (ArcInst)geom;
 				if (oAi.getProto().getTechnology() == Schematics.tech())
-					ai = oAi;
+				{
+					// make sure the point is really on the arc
+					if (GenMath.distToLine(oAi.getHeadLocation(), oAi.getTailLocation(), pt) == 0)
+						ai = oAi;
+				}
 			}
-		}
-
-		// special case: make it connect to anything that is near
-		if (ports.size() == 0 && bestPi != null && !exactOnly)
-		{
-			// create a new node in the proper position
-			PrimitiveNode np = ap.findPinProto();
-			NodeInst ni = placePin(np, x, y, np.getDefWidth(), np.getDefHeight(), Orientation.IDENT, cell);
-			PortInst head = ni.getOnlyPortInst();
-			ArcInst.makeInstance(ap, head, bestPi);
-			ports.add(head);
 		}
 
 		if (ports.size() == 0 && ai != null)
@@ -2599,7 +2590,7 @@ public class EDIF extends Input
 					if (fList.size() == 0)
 					{
 						// look for the first pin
-						fList = findEDIFPort(curCell, fX, fY, Schematics.tech().wire_arc, true);
+						fList = findEDIFPort(curCell, fX, fY, Schematics.tech().wire_arc);
 						if (fList.size() == 0)
 						{
 							// check for NodeEquivalences with translated ports
@@ -2615,7 +2606,7 @@ public class EDIF extends Input
 										ne.externalView, port, orientation);
 									if ((curPoint.getX() != fX) || (curPoint.getY() != fY))
 									{
-										fList = findEDIFPort(curCell, curPoint.getX(), curPoint.getY(), Schematics.tech().wire_arc, true);
+										fList = findEDIFPort(curCell, curPoint.getX(), curPoint.getY(), Schematics.tech().wire_arc);
 										if (fList.size() != 0)
 										{
 											// found exact match, move port
@@ -2636,7 +2627,7 @@ public class EDIF extends Input
 					}
 
 					// now the second ...
-					List<PortInst> tList = findEDIFPort(curCell, tX, tY, Schematics.tech().wire_arc, true);
+					List<PortInst> tList = findEDIFPort(curCell, tX, tY, Schematics.tech().wire_arc);
 					if (tList.size() == 0)
 					{
 						// check for NodeEquivalences with translated ports
@@ -2652,7 +2643,7 @@ public class EDIF extends Input
 									ne.externalView, port, orientation);
 								if (curPoint.getX() != tX || curPoint.getY() != tY)
 								{
-									tList = findEDIFPort(curCell, curPoint.getX(), curPoint.getY(), Schematics.tech().wire_arc, true);
+									tList = findEDIFPort(curCell, curPoint.getX(), curPoint.getY(), Schematics.tech().wire_arc);
 									if (tList.size() != 0)
 									{
 										// found exact match, move port
