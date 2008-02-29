@@ -32,6 +32,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.technology.Xml;
+import com.sun.electric.technology.Layer;
 
 import java.awt.Color;
 import java.io.BufferedWriter;
@@ -850,7 +851,7 @@ public class TechEditWizardData
         l.height3D = 1;
         l.mode3D = "NONE";
         l.factor3D = 1;
-        l.cif = "C" + cifLetter;
+        l.cif = "C" + cifLetter + cifLetter;
         l.skill = name;
         l.resistance = 1;
         l.capacitance = 0;
@@ -862,7 +863,8 @@ public class TechEditWizardData
             l.pureLayerNode.name = name + "-Node";
             l.pureLayerNode.style = Poly.Type.FILLED;
             l.pureLayerNode.port = "Port_" + name;
-            l.pureLayerNode.size.value = la;
+            l.pureLayerNode.size.value = DBMath.round(la);
+            l.pureLayerNode.portArcs.add(name);
 //            for (ArcProto ap: pureLayerNode.getPort(0).getConnections()) {
 //                if (ap.getTechnology() != tech) continue;
 //                l.pureLayerNode.portArcs.add(ap.getName());
@@ -880,6 +882,7 @@ public class TechEditWizardData
         t.description = getTechDescription();
         t.minNumMetals = t.maxNumMetals = t.defaultNumMetals = getNumMetalLayers();
         t.scaleValue = getStepSize();
+        t.scaleRelevant = true;
 //        t.scaleRelevant = isScaleRelevant();
         t.defaultFoundry = "NONE";
         t.minResistance = 1.0;
@@ -915,9 +918,13 @@ public class TechEditWizardData
 
         // Layers
         List<Xml.Layer> layers = new ArrayList<Xml.Layer>();
+        int[] nullPattern = new int[] {0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+            0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000};
+        int cifNumber = 0;
 
-        for (int i = 0; i < this.num_metal_layers; i++)
+        for (int i = 0; i < num_metal_layers; i++)
         {
+            // Adding the metal
             int metalNum = i + 1;
             double la = metal_width[i].v / stepsize;
             double opacity = (75 - metalNum * 5)/100.0;
@@ -1053,15 +1060,131 @@ public class TechEditWizardData
                         0x5555};
                     break;
             }
+            boolean onDisplay = true, onPrinter = true;
+
+            if (pattern == null)
+            {
+                pattern = nullPattern;
+                onDisplay = false; onPrinter = false;
+            }
             com.sun.electric.technology.Layer.Function fun = com.sun.electric.technology.Layer.Function.getMetal(metalNum);
-            EGraphics graph = new EGraphics(false, true, null, tcol, r, g, b, opacity, true, pattern);
-            layers.add(makeXmlLayer("Metal"+metalNum, fun, 0, graph, (char)('A' + metalNum), true, la));
+            EGraphics graph = new EGraphics(onDisplay, onPrinter, null, tcol, r, g, b, opacity, true, pattern);
+            layers.add(makeXmlLayer("Metal-"+metalNum, fun, 0, graph, (char)('A' + cifNumber++), true, la));
         }
+
+        for (int i = 0; i < num_metal_layers - 1; i++)
+        {
+            // Adding the metal
+            int metalNum = i + 1;
+            // adding the via
+            com.sun.electric.technology.Layer.Function fun = com.sun.electric.technology.Layer.Function.getContact(metalNum);
+            int r = via_colour.getRed();
+            int g = via_colour.getGreen();
+            int b = via_colour.getBlue();
+            double opacity = 0.7;
+            EGraphics graph = new EGraphics(false, false, null, 0, r, g, b, opacity, true, nullPattern);
+            double la = via_size[i].v / stepsize;
+            layers.add(makeXmlLayer("Via-"+metalNum, fun, Layer.Function.CONMETAL, graph, (char)('A' + cifNumber++),
+                false, la));
+        }
+
+        // Poly
+        EGraphics graph = new EGraphics(false, false, null, 1, 0, 0, 0, 1, true, nullPattern);
+        double la = poly_width.v / stepsize;;
+        layers.add(makeXmlLayer("Poly", com.sun.electric.technology.Layer.Function.POLY1, 0, graph,
+            (char)('A' + cifNumber++), true, la));
+        // PolyGate
+        layers.add(makeXmlLayer("PolyGate", com.sun.electric.technology.Layer.Function.GATE, 0, graph,
+            (char)('A' + cifNumber++), false, la));
+
+        // PolyCon and DiffCon
+        graph = new EGraphics(false, false, null, 0, contact_colour.getRed(), contact_colour.getGreen(),
+            contact_colour.getBlue(), 1, true, nullPattern);
+        la = contact_size.v / stepsize;
+        // PolyCon
+        layers.add(makeXmlLayer("PolyCon", com.sun.electric.technology.Layer.Function.CONTACT1,
+            Layer.Function.CONPOLY, graph, (char)('A' + cifNumber++), false, la));
+        // DiffCon
+        layers.add(makeXmlLayer("DiffCon", com.sun.electric.technology.Layer.Function.CONTACT1,
+            Layer.Function.CONDIFF, graph, (char)('A' + cifNumber++), false, la));
+        
+        // P-Diff and N-Diff
+        graph = new EGraphics(false, false, null, 2, 0, 0, 0, 1, true, nullPattern);
+        la = diff_width.v / stepsize;
+        // N-Diff
+        layers.add(makeXmlLayer("N-Diff", com.sun.electric.technology.Layer.Function.DIFFN, 0, graph,
+            (char)('A' + cifNumber++), true, la));
+        // P-Diff
+        layers.add(makeXmlLayer("P-Diff", com.sun.electric.technology.Layer.Function.DIFFP, 0, graph,
+            (char)('A' + cifNumber++), true, la));
+
+        // NPlus and PPlus
+        int [] pattern = new int[] { 0x1010,   //    X       X
+                        0x2020,   //   X       X
+                        0x4040,   //  X       X
+                        0x8080,   // X       X
+                        0x0101,   //        X       X
+                        0x0202,   //       X       X
+                        0x0404,   //      X       X
+                        0x0808,   //     X       X
+                        0x1010,   //    X       X
+                        0x2020,   //   X       X
+                        0x4040,   //  X       X
+                        0x8080,   // X       X
+                        0x0101,   //        X       X
+                        0x0202,   //       X       X
+                        0x0404,   //      X       X
+                        0x0808};
+        // NPlus
+        graph = new EGraphics(true, true, null, 0, nplus_colour.getRed(), nplus_colour.getGreen(),
+            nplus_colour.getBlue(), 1, true, pattern);
+        la = nplus_width.v / stepsize;
+        layers.add(makeXmlLayer("NPlus", com.sun.electric.technology.Layer.Function.IMPLANTN, 0, graph,
+            (char)('A' + cifNumber++), false, la));
+        // PPlus
+        graph = new EGraphics(true, true, null, 0, pplus_colour.getRed(), pplus_colour.getGreen(),
+            pplus_colour.getBlue(), 1, true, pattern);
+        la = pplus_width.v / stepsize;
+        layers.add(makeXmlLayer("PPlus", com.sun.electric.technology.Layer.Function.IMPLANTP, 0, graph,
+            (char)('A' + cifNumber++), false, la));
+
+//		layers.add("N-Well");
+        pattern = new int[] { 0x0202,   //       X       X
+                        0x0101,   //        X       X
+                        0x8080,   // X       X
+                        0x4040,   //  X       X
+                        0x2020,   //   X       X
+                        0x1010,   //    X       X
+                        0x0808,   //     X       X
+                        0x0404,   //      X       X
+                        0x0202,   //       X       X
+                        0x0101,   //        X       X
+                        0x8080,   // X       X
+                        0x4040,   //  X       X
+                        0x2020,   //   X       X
+                        0x1010,   //    X       X
+                        0x0808,   //     X       X
+                        0x0404};
+        graph = new EGraphics(true, true, null, 0, nwell_colour.getRed(), nwell_colour.getGreen(),
+            nwell_colour.getBlue(), 1, true, pattern);
+        la = nwell_width.v / stepsize;
+        layers.add(makeXmlLayer("N-Well", com.sun.electric.technology.Layer.Function.WELLN, 0, graph,
+            (char)('A' + cifNumber++), false, la));
+
+//		layers.add("DeviceMark");
+        graph = new EGraphics(true, true, null, 0, 255, 0, 0, 0.4, true, nullPattern);
+        la = nplus_width.v / stepsize;
+        // N-Diff
+        layers.add(makeXmlLayer("DeviceMark", com.sun.electric.technology.Layer.Function.CONTROL, 0, graph,
+            (char)('A' + cifNumber++), false, la));
+
         for (Xml.Layer layer : layers)
         {
 //            if (layer.isPseudoLayer()) continue;
             t.layers.add(layer);
         }
+
+        //write arcs
         
         t.writeXml(fileName);
     }
@@ -1510,14 +1633,14 @@ public class TechEditWizardData
 			pw.println("        <outlined>NOPAT</outlined>");
 			pw.println("        <opacity>" + opacity + "</opacity>");
 			pw.println("        <foreground>true</foreground>");
-			pw.println("        <display3D thick=\"1\" height=\"1\" mode=\"NONE\" factor=\"1\"/>");
+			pw.println("        <display3D thick=\"1.0\" height=\"1.0\" mode=\"NONE\" factor=\"1.0\"/>");
 			char cifLetter = (char)('A' + i);
 			pw.println("        <cifLayer cif=\"C" + cifLetter + cifLetter + "\"/>");
 			pw.println("        <skillLayer skill=\"" + l + "\"/>");
-			pw.println("        <parasitics resistance=\"1\" capacitance=\"0.0\" edgeCapacitance=\"0.0\"/>");
+			pw.println("        <parasitics resistance=\"1.0\" capacitance=\"0.0\" edgeCapacitance=\"0.0\"/>");
 			if (fun.startsWith("METAL") || fun.startsWith("POLY") || fun.startsWith("DIFF"))
 			{
-				pw.println("        <pureLayerNode name=\"" + l + "-Node\" port=\"Port_" + l + "\"> ");
+				pw.println("        <pureLayerNode name=\"" + l + "-Node\" port=\"Port_" + l + "\">");
 				pw.println("            <lambda>" + floaty(la) + "</lambda>");
 				pw.println("            <portArc>" + l + "</portArc>");
 				pw.println("        </pureLayerNode>");
