@@ -24,7 +24,6 @@
 package com.sun.electric.database.geometry;
 
 import com.sun.electric.database.ImmutableArcInst;
-import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.DisplayedText;
@@ -40,6 +39,7 @@ import com.sun.electric.tool.Job;
 
 import java.awt.Font;
 import java.awt.font.GlyphVector;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
@@ -128,6 +128,47 @@ public class Poly extends PolyBase {
 	 * @param dt the DisplayedText associated with this Poly.
 	 */
 	public void setDisplayedText(DisplayedText dt) { this.dt = dt; }
+
+	/**
+	 * Method to transformed the points in this Poly.
+	 * @param af transformation to apply.
+	 */
+	public void transform(AffineTransform af)
+	{
+		// Nothing to do
+		if (af.getType() == AffineTransform.TYPE_IDENTITY) return;
+
+		// special case for text
+		if (getStyle().isText())
+		{
+			// for quadrant rotations, rotate the text angle too
+			if ((af.getType() & AffineTransform.TYPE_QUADRANT_ROTATION) != 0)
+			{
+				double m00 = af.getScaleX();
+				double m01 = af.getShearX();
+				double m11 = af.getScaleY();
+				double m10 = af.getShearY();
+				if (m00 == 0 && m11 == 0)
+				{
+					// a 90/270 rotation
+					if (m01 > m10)
+					{
+						// 270-degree rotation
+				        int ang = descript.getRotation().getAngle();
+				        TextDescriptor.Rotation r = TextDescriptor.Rotation.getRotation((ang + 270) % 360);
+						descript = descript.withRotation(r);
+					} else
+					{
+						// 90-degree rotation
+				        int ang = descript.getRotation().getAngle();
+				        TextDescriptor.Rotation r = TextDescriptor.Rotation.getRotation((ang + 90) % 360);
+						descript = descript.withRotation(r);
+					}
+				}
+			}
+		}
+		super.transform(af);
+	}
 
     private static final int [] extendFactor = {0,
     11459, 5729, 3819, 2864, 2290, 1908, 1635, 1430, 1271, 1143,

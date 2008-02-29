@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07f: ******************************
 
+IMP: (2/29/08, SMR) Added text rotation for rotated parameters (Bug #1587).
+
 BUG: (2/29/08, SMR) EDIF input shorts crossed wires at an angle (Bug #1586).
 FIX: In EDIF.findEDIFPort(), ensure that angled wires are computed properly.
 
