@@ -683,6 +683,7 @@ public class TextUtils
 	 */
 	public static boolean isANumber(String pp)
 	{
+		if (pp == null) return false;
 		// ignore the minus sign
 		int i = 0;
 		int len = pp.length();
