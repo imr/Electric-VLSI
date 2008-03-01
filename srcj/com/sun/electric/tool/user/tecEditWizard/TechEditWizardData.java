@@ -33,6 +33,7 @@ import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.technology.Xml;
 import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.ArcProto;
 
 import java.awt.Color;
 import java.io.BufferedWriter;
@@ -836,10 +837,43 @@ public class TechEditWizardData
 	}
 
     /**
+     * Method to create XML version of a ArcProto
+     * @param name
+     * @param function
+     * @return
+     */
+    private Xml.ArcProto makeXmlArc(String name, com.sun.electric.technology.ArcProto.Function function,
+                                    double ant, List<Xml.Layer> layersList) {
+        Xml.ArcProto a = new Xml.ArcProto();
+        a.name = name;
+        a.function = function;
+        a.wipable = true;
+//        a.curvable = false;
+//        a.special = false;
+//        a.notUsed = false;
+//        a.skipSizeInPalette = false;
+
+//        a.elibWidthOffset = getLambdaElibWidthOffset();
+        a.extended = true;
+        a.fixedAngle = true;
+        a.angleIncrement = 90;
+        a.antennaRatio = DBMath.round(ant);
+
+        for (Xml.Layer l : layersList)
+        {
+            Xml.ArcLayer al = new Xml.ArcLayer();
+            al.layer = l.name;
+            al.style = Poly.Type.FILLED;
+            al.extend.value = DBMath.gridToLambda(l.pureLayerNode.size.value);
+        }
+        return a;
+    }
+
+    /**
      * Method to create XML version of a Layer.
      * @return
      */
-    Xml.Layer makeXmlLayer(String name, com.sun.electric.technology.Layer.Function function, int extraf,
+    private Xml.Layer makeXmlLayer(String name, com.sun.electric.technology.Layer.Function function, int extraf,
                            EGraphics graph, char cifLetter, boolean pureLayerNode, double la)
     {
         Xml.Layer l = new Xml.Layer();
@@ -1067,9 +1101,9 @@ public class TechEditWizardData
                 pattern = nullPattern;
                 onDisplay = false; onPrinter = false;
             }
-            com.sun.electric.technology.Layer.Function fun = com.sun.electric.technology.Layer.Function.getMetal(metalNum);
             EGraphics graph = new EGraphics(onDisplay, onPrinter, null, tcol, r, g, b, opacity, true, pattern);
-            layers.add(makeXmlLayer("Metal-"+metalNum, fun, 0, graph, (char)('A' + cifNumber++), true, la));
+            layers.add(makeXmlLayer("Metal-"+metalNum, Layer.Function.getMetal(metalNum), 0, graph,
+                (char)('A' + cifNumber++), true, la));
         }
 
         for (int i = 0; i < num_metal_layers - 1; i++)
@@ -1077,15 +1111,14 @@ public class TechEditWizardData
             // Adding the metal
             int metalNum = i + 1;
             // adding the via
-            com.sun.electric.technology.Layer.Function fun = com.sun.electric.technology.Layer.Function.getContact(metalNum);
             int r = via_colour.getRed();
             int g = via_colour.getGreen();
             int b = via_colour.getBlue();
             double opacity = 0.7;
             EGraphics graph = new EGraphics(false, false, null, 0, r, g, b, opacity, true, nullPattern);
             double la = via_size[i].v / stepsize;
-            layers.add(makeXmlLayer("Via-"+metalNum, fun, Layer.Function.CONMETAL, graph, (char)('A' + cifNumber++),
-                false, la));
+            layers.add(makeXmlLayer("Via-"+metalNum, Layer.Function.getContact(metalNum), Layer.Function.CONMETAL,
+                graph, (char)('A' + cifNumber++), false, la));
         }
 
         // Poly
@@ -1185,7 +1218,15 @@ public class TechEditWizardData
         }
 
         //write arcs
-        
+        for(int i=1; i<=num_metal_layers; i++)
+        {
+            int metalNum = i + 1;
+            double ant = (int)Math.round(metal_antenna_ratio[i-1]) | 200;
+            List<Xml.Layer> l = new ArrayList<Xml.Layer>(2);
+            ///here 
+//            makeXmlArc("Metal-"+metalNum, ArcProto.Function.getContact(metalNum), ant, l);
+//            t.arcs.add(
+        }
         t.writeXml(fileName);
     }
 
