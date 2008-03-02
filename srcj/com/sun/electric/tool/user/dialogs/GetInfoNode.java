@@ -45,7 +45,6 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveNodeSize;
-import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
@@ -1654,16 +1653,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
         if (shownNode == null) return;
         if (!shownNode.isCellInstance()) return;
         Cell.CellGroup group = ((Cell)shownNode.getProto()).getCellGroup();
-        Cell paramOwner = group.getMainSchematics();
-        if (paramOwner == null) {
-            for (Iterator<Cell> it = group.getCells(); it.hasNext(); ) {
-                Cell c = it.next();
-                if (c.isIcon()) {
-                    paramOwner = c;
-                    break;
-                }
-            }
-        }
+        Cell paramOwner = group.getParameterOwner();
         if (paramOwner != null) {
             WindowFrame.createEditWindow(paramOwner);
             Attributes.showDialog();

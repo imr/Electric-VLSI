@@ -237,7 +237,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
          * order in CellGroups without schematic Cells
 		 * @return parameter owner Cell in this CellGroup.
 		 */
-		private Cell getParameterOwner() {
+		public Cell getParameterOwner() {
             if (mainSchematic != null)
                 return mainSchematic;
             for (Cell cell: cells) {
