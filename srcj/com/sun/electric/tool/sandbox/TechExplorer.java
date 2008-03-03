@@ -27,16 +27,17 @@ package com.sun.electric.tool.sandbox;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.technology.DRCTemplate;
 import com.sun.electric.technology.EdgeH;
 import com.sun.electric.technology.EdgeV;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Xml;
 
 import java.awt.Color;
+import java.awt.geom.Rectangle2D;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataOutputStream;
@@ -89,13 +90,20 @@ public class TechExplorer extends ESandBox {
         super(electricJar.toURI().toURL());
     }
 
-    public void initTechnologies(String args) throws IllegalAccessException, InvocationTargetException {
+    public String[] initTechnologies(String args) throws IllegalAccessException, InvocationTargetException {
         if (Undo_changesQuiet != null)
             Undo_changesQuiet.invoke(null, Boolean.TRUE);
         if (Tool_initProjectSettings != null)
             Tool_initProjectSettings.invoke(User_getUserTool.invoke(null));
 //            Tool_initAllTools.invoke(null);
         Technology_initAllTechnologies.invoke(null);
+        List<String> technologies = new ArrayList<String>();
+        for (Iterator<?> tit = (Iterator)Technology_getTechnologies.invoke(null); tit.hasNext(); ) {
+            Object tech = tit.next();
+            String techName = (String)Technology_getTechName.invoke(tech);
+            technologies.add(techName);
+        }
+        return technologies.toArray(new String[technologies.size()]);
     }
 
     public void dumpAll(String fileName) throws IllegalAccessException, InvocationTargetException {
@@ -458,13 +466,6 @@ public class TechExplorer extends ESandBox {
             if (PrimitiveNode_OD33BIT != null)
                 n.od33 = (Boolean)PrimitiveNode_isNodeBitOn.invoke(pn, PrimitiveNode_OD33BIT.get(null));
 
-            SizeOffset so = null;
-            Object sizeOffset = PrimitiveNode_getProtoSizeOffset.invoke(pn);
-            if (sizeOffset != null)
-                so = new SizeOffset((Double)SizeOffset_getLowXOffset.invoke(sizeOffset), (Double)SizeOffset_getHighXOffset.invoke(sizeOffset),
-                        (Double)SizeOffset_getLowYOffset.invoke(sizeOffset), (Double)SizeOffset_getHighYOffset.invoke(sizeOffset));
-            if (so.getLowXOffset() == 0 && so.getLowYOffset() == 0 && so.getHighXOffset() == 0 && so.getHighYOffset() == 0)
-                so = null;
             double minWidth = 0, minHeight = 0;
             String minSizeRule = null;
             if (classPrimitiveNodeNodeSizeRule != null) {
@@ -492,18 +493,33 @@ public class TechExplorer extends ESandBox {
                 minFullSize = EPoint.fromLambda(0.5*defWidth, 0.5*defHeight);
             }
             n.spiceTemplate = null; // ??????????
-            if (so != null) {
-                EPoint p2 = EPoint.fromGrid(
-                        minFullSize.getGridX() - ((so.getLowXGridOffset() + so.getHighXGridOffset()) >> 1),
-                        minFullSize.getGridY() - ((so.getLowYGridOffset() + so.getHighYGridOffset()) >> 1));
-                n.diskOffset.put(Integer.valueOf(1), minFullSize);
-                n.diskOffset.put(Integer.valueOf(2), p2);
+            
+            ERectangle nodeBase;
+            if (PrimitiveNode_getBaseRectangle != null) {
+                Rectangle2D baseRectangle = (Rectangle2D)PrimitiveNode_getBaseRectangle.invoke(pn);
+                nodeBase = ERectangle.fromLambda(baseRectangle);
             } else {
-                n.diskOffset.put(Integer.valueOf(2), minFullSize);
+                double lx = -minFullSize.getLambdaX();
+                double hx = minFullSize.getLambdaX();
+                double ly = -minFullSize.getLambdaY();
+                double hy = minFullSize.getLambdaY();
+                Object sizeOffset = PrimitiveNode_getProtoSizeOffset.invoke(pn);
+                if (sizeOffset != null) {
+                    lx += (Double)SizeOffset_getLowXOffset.invoke(sizeOffset);
+                    hx -= (Double)SizeOffset_getHighXOffset.invoke(sizeOffset);
+                    ly += (Double)SizeOffset_getLowYOffset.invoke(sizeOffset);
+                    hy -= (Double)SizeOffset_getHighYOffset.invoke(sizeOffset);
+                }
+                nodeBase = ERectangle.fromLambda(lx, ly, hx - lx, hy - ly);
             }
+            n.nodeBase = nodeBase;
+            EPoint p2 = EPoint.fromGrid(nodeBase.getGridWidth() >> 1, nodeBase.getGridHeight() >> 1);
+            if (!p2.equals(minFullSize))
+                n.diskOffset.put(Integer.valueOf(1), minFullSize);
+            if (!p2.equals(EPoint.ORIGIN))
+                n.diskOffset.put(Integer.valueOf(2), p2);
             n.defaultWidth.value = round(defWidth - 2*minFullSize.getLambdaX());
             n.defaultHeight.value = round(defHeight - 2*minFullSize.getLambdaY());
-            n.sizeOffset = so;
 
             List<?> nodeLayers = Arrays.asList(nodeLayersArray);
             Object[] electricalNodeLayersArray = (Object[])PrimitiveNode_getElectricalLayers.invoke(pn);

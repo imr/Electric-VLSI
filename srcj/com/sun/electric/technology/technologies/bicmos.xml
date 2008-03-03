@@ -733,6 +733,7 @@
     <primitiveNode name="M1_Pin" fun="PIN">
         <shrinkArcs/>
         <diskOffset untilVersion="2" x="1.5" y="1.5"/>
+        <nodeBase lx="-1.5" hx="1.5" ly="-1.5" hy="1.5"/>
         <nodeLayer layer="M1" style="CROSSED">
             <box>
                 <lambdaBox klx="-1.5" khx="1.5" kly="-1.5" khy="1.5"/>
@@ -751,6 +752,7 @@
     <primitiveNode name="M2_Pin" fun="PIN">
         <shrinkArcs/>
         <diskOffset untilVersion="2" x="1.5" y="1.5"/>
+        <nodeBase lx="-1.5" hx="1.5" ly="-1.5" hy="1.5"/>
         <nodeLayer layer="M2" style="CROSSED">
             <box>
                 <lambdaBox klx="-1.5" khx="1.5" kly="-1.5" khy="1.5"/>
@@ -769,6 +771,7 @@
     <primitiveNode name="Poly1_Pin" fun="PIN">
         <shrinkArcs/>
         <diskOffset untilVersion="2" x="1.0" y="1.0"/>
+        <nodeBase lx="-1.0" hx="1.0" ly="-1.0" hy="1.0"/>
         <nodeLayer layer="Poly1" style="CROSSED">
             <box>
                 <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
@@ -787,6 +790,7 @@
     <primitiveNode name="Poly2_Pin" fun="PIN">
         <shrinkArcs/>
         <diskOffset untilVersion="2" x="1.0" y="1.0"/>
+        <nodeBase lx="-1.0" hx="1.0" ly="-1.0" hy="1.0"/>
         <nodeLayer layer="Poly2" style="CROSSED">
             <box>
                 <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
@@ -805,6 +809,7 @@
     <primitiveNode name="Active_Pin" fun="PIN">
         <shrinkArcs/>
         <diskOffset untilVersion="2" x="1.0" y="1.0"/>
+        <nodeBase lx="-1.0" hx="1.0" ly="-1.0" hy="1.0"/>
         <nodeLayer layer="Active" style="CROSSED">
             <box>
                 <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
@@ -826,7 +831,7 @@
         <shrinkArcs/>
         <diskOffset untilVersion="1" x="3.0" y="3.0"/>
         <diskOffset untilVersion="2" x="1.0" y="1.0"/>
-        <sizeOffset lx="2.0" hx="2.0" ly="2.0" hy="2.0"/>
+        <nodeBase lx="-1.0" hx="1.0" ly="-1.0" hy="1.0"/>
         <nodeLayer layer="Active" style="CLOSED">
             <box>
                 <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
@@ -850,7 +855,7 @@
         <shrinkArcs/>
         <diskOffset untilVersion="1" x="3.0" y="3.0"/>
         <diskOffset untilVersion="2" x="1.0" y="1.0"/>
-        <sizeOffset lx="2.0" hx="2.0" ly="2.0" hy="2.0"/>
+        <nodeBase lx="-1.0" hx="1.0" ly="-1.0" hy="1.0"/>
         <nodeLayer layer="Active" style="CLOSED">
             <box>
                 <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
@@ -872,6 +877,7 @@
 
     <primitiveNode name="M1_Poly1_Con" fun="CONTACT">
         <diskOffset untilVersion="2" x="3.0" y="3.0"/>
+        <nodeBase lx="-3.0" hx="3.0" ly="-3.0" hy="3.0"/>
         <nodeLayer layer="M1" style="FILLED">
             <box>
                 <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
@@ -901,7 +907,7 @@
     <primitiveNode name="M1_Poly2_Con" fun="CONTACT">
         <diskOffset untilVersion="1" x="3.0" y="3.0"/>
         <diskOffset untilVersion="2" x="2.0" y="2.0"/>
-        <sizeOffset lx="1.0" hx="1.0" ly="1.0" hy="1.0"/>
+        <nodeBase lx="-2.0" hx="2.0" ly="-2.0" hy="2.0"/>
         <nodeLayer layer="M1" style="FILLED">
             <box>
                 <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
@@ -931,7 +937,7 @@
     <primitiveNode name="M1_Pdiff_Con" fun="CONTACT">
         <diskOffset untilVersion="1" x="8.0" y="8.0"/>
         <diskOffset untilVersion="2" x="3.0" y="3.0"/>
-        <sizeOffset lx="5.0" hx="5.0" ly="5.0" hy="5.0"/>
+        <nodeBase lx="-3.0" hx="3.0" ly="-3.0" hy="3.0"/>
         <nodeLayer layer="M1" style="FILLED">
             <box>
                 <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
@@ -971,7 +977,7 @@
     <primitiveNode name="M1_Ndiff_Con" fun="CONTACT">
         <diskOffset untilVersion="1" x="5.0" y="5.0"/>
         <diskOffset untilVersion="2" x="3.0" y="3.0"/>
-        <sizeOffset lx="2.0" hx="2.0" ly="2.0" hy="2.0"/>
+        <nodeBase lx="-3.0" hx="3.0" ly="-3.0" hy="3.0"/>
         <nodeLayer layer="M1" style="FILLED">
             <box>
                 <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
@@ -1005,6 +1011,7 @@
 
     <primitiveNode name="M1_M2_Con" fun="CONTACT">
         <diskOffset untilVersion="2" x="2.0" y="2.0"/>
+        <nodeBase lx="-2.0" hx="2.0" ly="-2.0" hy="2.0"/>
         <nodeLayer layer="M1" style="FILLED">
             <box>
                 <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
@@ -1034,7 +1041,7 @@
     <primitiveNode name="PMOSFET" fun="TRAPMOS">
         <diskOffset untilVersion="1" x="6.0" y="8.0"/>
         <diskOffset untilVersion="2" x="1.0" y="1.0"/>
-        <sizeOffset lx="5.0" hx="5.0" ly="7.0" hy="7.0"/>
+        <nodeBase lx="-1.0" hx="1.0" ly="-1.0" hy="1.0"/>
         <nodeLayer layer="Poly1" style="FILLED">
             <serpbox lWidth="1.0" rWidth="1.0" tExtent="2.0" bExtent="2.0">
                 <lambdaBox klx="-3.0" khx="3.0" kly="-1.0" khy="1.0"/>
@@ -1110,7 +1117,7 @@
     <primitiveNode name="NMOSFET" fun="TRANMOS">
         <diskOffset untilVersion="1" x="3.0" y="5.0"/>
         <diskOffset untilVersion="2" x="1.0" y="1.0"/>
-        <sizeOffset lx="2.0" hx="2.0" ly="4.0" hy="4.0"/>
+        <nodeBase lx="-1.0" hx="1.0" ly="-1.0" hy="1.0"/>
         <nodeLayer layer="Poly1" style="FILLED">
             <serpbox lWidth="1.0" rWidth="1.0" tExtent="2.0" bExtent="2.0">
                 <lambdaBox klx="-3.0" khx="3.0" kly="-1.0" khy="1.0"/>
@@ -1181,7 +1188,7 @@
     <primitiveNode name="NPN1_transistor" fun="TRANPN">
         <diskOffset untilVersion="1" x="23.0" y="12.0"/>
         <diskOffset untilVersion="2" x="4.0" y="4.0"/>
-        <sizeOffset lx="22.0" hx="16.0" ly="8.0" hy="8.0"/>
+        <nodeBase lx="-1.0" hx="7.0" ly="-4.0" hy="4.0"/>
         <nodeLayer layer="M1" style="FILLED">
             <box>
                 <lambdaBox klx="12.0" khx="16.0" kly="-2.0" khy="2.0"/>
@@ -1308,6 +1315,7 @@
 
     <primitiveNode name="NPN2_Transistor" fun="TRANPN">
         <diskOffset untilVersion="2" x="23.0" y="18.0"/>
+        <nodeBase lx="-23.0" hx="23.0" ly="-18.0" hy="18.0"/>
         <nodeLayer layer="M1" style="FILLED">
             <box>
                 <lambdaBox klx="-10.0" khx="-6.0" kly="-8.0" khy="-4.0"/>
@@ -1547,7 +1555,7 @@
     <primitiveNode name="M1_N_Well_Con" fun="WELL">
         <diskOffset untilVersion="1" x="6.0" y="6.0"/>
         <diskOffset untilVersion="2" x="3.0" y="3.0"/>
-        <sizeOffset lx="3.0" hx="3.0" ly="3.0" hy="3.0"/>
+        <nodeBase lx="-3.0" hx="3.0" ly="-3.0" hy="3.0"/>
         <nodeLayer layer="M1" style="FILLED">
             <box>
                 <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
@@ -1586,6 +1594,7 @@
 
     <primitiveNode name="Poly1_Poly2_Cap" fun="CAPAC">
         <diskOffset untilVersion="2" x="6.0" y="6.0"/>
+        <nodeBase lx="-6.0" hx="6.0" ly="-6.0" hy="6.0"/>
         <nodeLayer layer="Poly1" style="FILLED">
             <box>
                 <lambdaBox klx="-6.0" khx="6.0" kly="-6.0" khy="6.0"/>
@@ -1610,7 +1619,7 @@
     <primitiveNode name="M1_Substrate_Con" fun="UNKNOWN">
         <diskOffset untilVersion="1" x="5.0" y="5.0"/>
         <diskOffset untilVersion="2" x="2.0" y="2.0"/>
-        <sizeOffset lx="3.0" hx="3.0" ly="3.0" hy="3.0"/>
+        <nodeBase lx="-2.0" hx="2.0" ly="-2.0" hy="2.0"/>
         <nodeLayer layer="M1" style="FILLED">
             <box>
                 <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
@@ -1644,7 +1653,7 @@
     <primitiveNode name="Ndiff_Node" fun="UNKNOWN">
         <diskOffset untilVersion="1" x="4.0" y="4.0"/>
         <diskOffset untilVersion="2" x="2.0" y="2.0"/>
-        <sizeOffset lx="2.0" hx="2.0" ly="2.0" hy="2.0"/>
+        <nodeBase lx="-2.0" hx="2.0" ly="-2.0" hy="2.0"/>
         <nodeLayer layer="Active" style="FILLED">
             <box>
                 <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
@@ -1670,7 +1679,7 @@
     <primitiveNode name="Pdiff_Node" fun="UNKNOWN">
         <diskOffset untilVersion="1" x="4.0" y="4.0"/>
         <diskOffset untilVersion="2" x="2.0" y="2.0"/>
-        <sizeOffset lx="2.0" hx="2.0" ly="2.0" hy="2.0"/>
+        <nodeBase lx="-2.0" hx="2.0" ly="-2.0" hy="2.0"/>
         <nodeLayer layer="Active" style="FILLED">
             <box>
                 <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>

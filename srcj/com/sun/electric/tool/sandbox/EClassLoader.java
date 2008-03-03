@@ -218,6 +218,7 @@ class EClassLoader extends URLClassLoader {
     protected final Method Layer_getTransparencyFactor = getMethod(classLayer, "getTransparencyFactor");
     protected final Method Layer_getTransparencyMode = getMethod(classLayer, "getTransparencyMode");
     protected final Method Layer_isPseudoLayer = getMethod(classLayer, "isPseudoLayer");
+    protected final Method PrimitiveNode_getBaseRectangle = getMethod(classPrimitiveNode, "getBaseRectangle");
     protected final Method PrimitiveNode_getDefWidth = getMethod(classPrimitiveNode, "getDefWidth");
     protected final Method PrimitiveNode_getDefHeight = getMethod(classPrimitiveNode, "getDefHeight");
     protected final Method PrimitiveNode_getElectricalLayers = getMethod(classPrimitiveNode, "getElectricalLayers");

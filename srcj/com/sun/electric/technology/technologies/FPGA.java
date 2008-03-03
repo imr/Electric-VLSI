@@ -28,6 +28,7 @@ package com.sun.electric.technology.technologies;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
@@ -61,7 +62,6 @@ import com.sun.electric.technology.Foundry;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
-import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
@@ -283,9 +283,9 @@ public class FPGA extends Technology
 		FPGAPip  [] pipList;
 
 		protected FPGANode(String protoName, Technology tech, double defWidth, double defHeight,
-			SizeOffset offset, Technology.NodeLayer [] layers)
+			Technology.NodeLayer [] layers)
 		{
-			super(protoName, tech, EPoint.ORIGIN, null, defWidth, defHeight, offset, layers);
+			super(protoName, tech, EPoint.ORIGIN, null, defWidth, defHeight, ERectangle.fromGrid(0, 0, 0, 0), layers);
 		}
 
 		int numPorts()
@@ -1300,7 +1300,7 @@ public class FPGA extends Technology
 		// make the primitive
 		double sizeX = TextUtils.atof(primSizeX);
 		double sizeY = TextUtils.atof(primSizeY);
-		FPGANode primNP = new FPGANode(primName, this, sizeX, sizeY, null,
+		FPGANode primNP = new FPGANode(primName, this, sizeX, sizeY,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(componentLayer, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, new Technology.TechPoint[] {

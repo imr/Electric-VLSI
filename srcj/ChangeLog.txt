@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07f: ******************************
 
+IMP: (3/3/08, DN) Element <primitiveNode> in Technology Xml contains element
+    <nodeBase> instead of former <sizeOffset> . Distances in <nodeBase> are from center.
+
+IMP/MAN: (3/3/08, DN) Added "Edit|Technology Specific|Write XML of Technology from Electric build"
+    command to convert technologies from old Electric builds. 
+
 BUG: (3/2/08, DN) NPE in Poly.transform after (Bug #1588)
 FIX: Check that "descript != null".
 

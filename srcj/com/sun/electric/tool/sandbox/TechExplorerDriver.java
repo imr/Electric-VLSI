@@ -25,8 +25,8 @@
 package com.sun.electric.tool.sandbox;
 
 import com.sun.electric.tool.user.ActivityLogger;
-import java.io.BufferedInputStream;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
@@ -37,13 +37,26 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 
 /**
- *
- * @author dn146861
+ * Class to launch a TechExplorer process and to communicate with it
  */
 public class TechExplorerDriver {
     private final Process process;
     private final PrintWriter commandsWriter;
 
+    /** Creates a new instance of TechExplorerDriver */
+    public TechExplorerDriver(String jarPath, final OutputStream redirect) throws IOException {
+        this(new ProcessBuilder("java",
+                "-cp",
+                System.getProperty("java.class.path", "."),
+                "-ss2m",
+                "-ea",
+                "-mx128m",
+                "com.sun.electric.tool.sandbox.TechExplorer",
+                jarPath),
+            redirect);
+        
+    }
+    
     /** Creates a new instance of TechExplorerDriver */
     public TechExplorerDriver(ProcessBuilder processBuilder, final OutputStream redirect) throws IOException {
         process = processBuilder.start();
@@ -80,6 +93,15 @@ public class TechExplorerDriver {
     public void putCommand(String cmd, String args) {
         commandsWriter.println(cmd + " " + args);
         commandsWriter.flush();
+    }
+    
+    protected void terminateOk(Object result) {
+        System.out.println("Result " + result);
+    }
+    
+    protected void terminateFail(Exception e) {
+        System.out.println("Exception " + e);
+        e.printStackTrace(System.out);
     }
 
     public void closeCommands() {
@@ -131,10 +153,9 @@ public class TechExplorerDriver {
                         if (resultsStream.read() != '!') throw new IOException();
                         if (resultsStream.read() != '\n') throw new IOException();
                         if (isException) {
-                            System.out.println("Exception " + result);
-                            ((Exception)result).printStackTrace(System.out);
+                            terminateFail((Exception)result);
                         } else {
-                            System.out.println("Result " + result);
+                            terminateOk(result);
                         }
                     } else if (c >= ' ' && c < HEADER_CHAR) {
                         int len = c - ' ' + 1;

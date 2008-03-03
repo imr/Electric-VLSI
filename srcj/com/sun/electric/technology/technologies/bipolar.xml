@@ -542,6 +542,7 @@
     <primitiveNode name="Metal1_Pin" fun="PIN">
         <shrinkArcs/>
         <diskOffset untilVersion="2" x="1.0" y="1.0"/>
+        <nodeBase lx="-1.0" hx="1.0" ly="-1.0" hy="1.0"/>
         <nodeLayer layer="Metal1" style="CROSSED">
             <box>
                 <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
@@ -560,6 +561,7 @@
     <primitiveNode name="Metal2_Pin" fun="PIN">
         <shrinkArcs/>
         <diskOffset untilVersion="2" x="1.0" y="1.0"/>
+        <nodeBase lx="-1.0" hx="1.0" ly="-1.0" hy="1.0"/>
         <nodeLayer layer="Metal2" style="CROSSED">
             <box>
                 <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
@@ -579,7 +581,7 @@
         <shrinkArcs/>
         <diskOffset untilVersion="1" x="2.0" y="2.0"/>
         <diskOffset untilVersion="2" x="1.0" y="1.0"/>
-        <sizeOffset lx="1.0" hx="1.0" ly="1.0" hy="1.0"/>
+        <nodeBase lx="-1.0" hx="1.0" ly="-1.0" hy="1.0"/>
         <nodeLayer layer="Poly_Definition" style="FILLED">
             <box>
                 <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
@@ -604,7 +606,7 @@
         <shrinkArcs/>
         <diskOffset untilVersion="1" x="2.0" y="2.0"/>
         <diskOffset untilVersion="2" x="1.0" y="1.0"/>
-        <sizeOffset lx="1.0" hx="1.0" ly="1.0" hy="1.0"/>
+        <nodeBase lx="-1.0" hx="1.0" ly="-1.0" hy="1.0"/>
         <nodeLayer layer="Poly_Definition" style="FILLED">
             <box>
                 <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
@@ -627,6 +629,7 @@
 
     <primitiveNode name="Via" fun="CONTACT">
         <diskOffset untilVersion="2" x="2.0" y="2.0"/>
+        <nodeBase lx="-2.0" hx="2.0" ly="-2.0" hy="2.0"/>
         <nodeLayer layer="Metal1" style="FILLED">
             <box>
                 <lambdaBox klx="-1.5" khx="1.5" kly="-1.5" khy="1.5"/>
@@ -656,7 +659,7 @@
     <primitiveNode name="M1_PP_Contact" fun="CONTACT">
         <diskOffset untilVersion="1" x="3.0" y="3.0"/>
         <diskOffset untilVersion="2" x="1.0" y="1.0"/>
-        <sizeOffset lx="2.0" hx="2.0" ly="2.0" hy="2.0"/>
+        <nodeBase lx="-1.0" hx="1.0" ly="-1.0" hy="1.0"/>
         <nodeLayer layer="Metal1" style="FILLED">
             <box>
                 <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
@@ -691,7 +694,7 @@
     <primitiveNode name="M1_NP_Contact" fun="CONTACT">
         <diskOffset untilVersion="1" x="3.0" y="3.0"/>
         <diskOffset untilVersion="2" x="1.0" y="1.0"/>
-        <sizeOffset lx="2.0" hx="2.0" ly="2.0" hy="2.0"/>
+        <nodeBase lx="-1.0" hx="1.0" ly="-1.0" hy="1.0"/>
         <nodeLayer layer="Poly_Definition" style="FILLED">
             <box>
                 <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
@@ -726,7 +729,7 @@
     <primitiveNode name="NPResistor" fun="RESIST">
         <diskOffset untilVersion="1" x="2.5" y="3.5"/>
         <diskOffset untilVersion="2" x="1.5" y="1.5"/>
-        <sizeOffset lx="1.0" hx="1.0" ly="2.0" hy="2.0"/>
+        <nodeBase lx="-1.5" hx="1.5" ly="-1.5" hy="1.5"/>
         <nodeLayer layer="Silicide_Exclusion" style="FILLED" portNum="-1">
             <box kly="0.0">
                 <lambdaBox klx="-2.5" khx="2.5" kly="0.0" khy="1.5"/>
@@ -778,7 +781,7 @@
     <primitiveNode name="NMResistor" fun="UNKNOWN">
         <diskOffset untilVersion="1" x="2.5" y="3.5"/>
         <diskOffset untilVersion="2" x="1.5" y="1.5"/>
-        <sizeOffset lx="1.0" hx="1.0" ly="2.0" hy="2.0"/>
+        <nodeBase lx="-1.5" hx="1.5" ly="-1.5" hy="1.5"/>
         <nodeLayer layer="Silicide_Exclusion" style="FILLED" portNum="-1">
             <box kly="0.0">
                 <lambdaBox klx="-2.5" khx="2.5" kly="0.0" khy="1.5"/>
@@ -840,7 +843,7 @@
     <primitiveNode name="npn111" fun="TRANPN">
         <diskOffset untilVersion="1" x="10.0" y="5.5"/>
         <diskOffset untilVersion="2" x="1.0" y="2.0"/>
-        <sizeOffset lx="10.0" hx="8.0" ly="3.5" hy="3.5"/>
+        <nodeBase lx="0.0" hx="2.0" ly="-2.0" hy="2.0"/>
         <nodeLayer layer="Poly_Definition" style="FILLED">
             <box khx="-1.0">
                 <lambdaBox klx="-7.0" khx="-2.0" kly="-2.5" khy="2.5"/>
@@ -935,7 +938,7 @@
     <primitiveNode name="PNJunction" fun="CONTACT">
         <diskOffset untilVersion="1" x="2.0" y="2.0"/>
         <diskOffset untilVersion="2" x="1.0" y="1.0"/>
-        <sizeOffset lx="1.0" hx="1.0" ly="1.0" hy="1.0"/>
+        <nodeBase lx="-1.0" hx="1.0" ly="-1.0" hy="1.0"/>
         <nodeLayer layer="Poly_Definition" style="FILLED">
             <box klx="0.0">
                 <lambdaBox klx="0.0" khx="1.0" kly="-1.0" khy="1.0"/>

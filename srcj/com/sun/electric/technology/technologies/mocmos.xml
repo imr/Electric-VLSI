@@ -1140,6 +1140,7 @@
     <primitiveNode name="Metal-1-Pin" fun="PIN">
         <shrinkArcs/>
         <diskOffset untilVersion="2" x="1.5" y="1.5"/>
+        <nodeBase lx="-1.5" hx="1.5" ly="-1.5" hy="1.5"/>
         <nodeLayer layer="Metal-1" style="CROSSED">
             <box>
                 <lambdaBox klx="-1.5" khx="1.5" kly="-1.5" khy="1.5"/>
@@ -1158,6 +1159,7 @@
     <primitiveNode name="Metal-2-Pin" fun="PIN">
         <shrinkArcs/>
         <diskOffset untilVersion="2" x="1.5" y="1.5"/>
+        <nodeBase lx="-1.5" hx="1.5" ly="-1.5" hy="1.5"/>
         <nodeLayer layer="Metal-2" style="CROSSED">
             <box>
                 <lambdaBox klx="-1.5" khx="1.5" kly="-1.5" khy="1.5"/>
@@ -1176,6 +1178,7 @@
     <primitiveNode name="Metal-3-Pin" fun="PIN">
         <shrinkArcs/>
         <diskOffset untilVersion="2" x="1.5" y="1.5"/>
+        <nodeBase lx="-1.5" hx="1.5" ly="-1.5" hy="1.5"/>
         <nodeLayer layer="Metal-3" style="CROSSED">
             <box>
                 <lambdaBox klx="-1.5" khx="1.5" kly="-1.5" khy="1.5"/>
@@ -1194,6 +1197,7 @@
     <primitiveNode name="Metal-4-Pin" fun="PIN">
         <shrinkArcs/>
         <diskOffset untilVersion="2" x="1.5" y="1.5"/>
+        <nodeBase lx="-1.5" hx="1.5" ly="-1.5" hy="1.5"/>
         <nodeLayer layer="Metal-4" style="CROSSED">
             <box>
                 <lambdaBox klx="-1.5" khx="1.5" kly="-1.5" khy="1.5"/>
@@ -1212,6 +1216,7 @@
     <primitiveNode name="Metal-5-Pin" fun="PIN">
         <shrinkArcs/>
         <diskOffset untilVersion="2" x="1.5" y="1.5"/>
+        <nodeBase lx="-1.5" hx="1.5" ly="-1.5" hy="1.5"/>
         <nodeLayer layer="Metal-5" style="CROSSED">
             <box>
                 <lambdaBox klx="-1.5" khx="1.5" kly="-1.5" khy="1.5"/>
@@ -1230,6 +1235,7 @@
     <primitiveNode name="Metal-6-Pin" fun="PIN">
         <shrinkArcs/>
         <diskOffset untilVersion="2" x="1.5" y="1.5"/>
+        <nodeBase lx="-1.5" hx="1.5" ly="-1.5" hy="1.5"/>
         <nodeLayer layer="Metal-6" style="CROSSED">
             <box>
                 <lambdaBox klx="-2.5" khx="2.5" kly="-2.5" khy="2.5"/>
@@ -1248,6 +1254,7 @@
     <primitiveNode name="Polysilicon-1-Pin" fun="PIN">
         <shrinkArcs/>
         <diskOffset untilVersion="2" x="1.0" y="1.0"/>
+        <nodeBase lx="-1.0" hx="1.0" ly="-1.0" hy="1.0"/>
         <nodeLayer layer="Polysilicon-1" style="CROSSED">
             <box>
                 <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
@@ -1266,6 +1273,7 @@
     <primitiveNode name="Polysilicon-2-Pin" fun="PIN">
         <shrinkArcs/>
         <diskOffset untilVersion="2" x="1.5" y="1.5"/>
+        <nodeBase lx="-1.5" hx="1.5" ly="-1.5" hy="1.5"/>
         <nodeLayer layer="Polysilicon-2" style="CROSSED">
             <box>
                 <lambdaBox klx="-3.5" khx="3.5" kly="-3.5" khy="3.5"/>
@@ -1285,7 +1293,7 @@
         <shrinkArcs/>
         <diskOffset untilVersion="1" x="7.5" y="7.5"/>
         <diskOffset untilVersion="2" x="1.5" y="1.5"/>
-        <sizeOffset lx="6.0" hx="6.0" ly="6.0" hy="6.0"/>
+        <nodeBase lx="-1.5" hx="1.5" ly="-1.5" hy="1.5"/>
         <nodeLayer layer="P-Active" style="CROSSED">
             <box>
                 <lambdaBox klx="-1.5" khx="1.5" kly="-1.5" khy="1.5"/>
@@ -1315,7 +1323,7 @@
         <shrinkArcs/>
         <diskOffset untilVersion="1" x="7.5" y="7.5"/>
         <diskOffset untilVersion="2" x="1.5" y="1.5"/>
-        <sizeOffset lx="6.0" hx="6.0" ly="6.0" hy="6.0"/>
+        <nodeBase lx="-1.5" hx="1.5" ly="-1.5" hy="1.5"/>
         <nodeLayer layer="N-Active" style="CROSSED">
             <box>
                 <lambdaBox klx="-1.5" khx="1.5" kly="-1.5" khy="1.5"/>
@@ -1345,6 +1353,7 @@
         <shrinkArcs/>
         <notUsed/>
         <diskOffset untilVersion="2" x="1.5" y="1.5"/>
+        <nodeBase lx="-1.5" hx="1.5" ly="-1.5" hy="1.5"/>
         <nodeLayer layer="P-Active" style="CROSSED">
             <box>
                 <lambdaBox klx="-1.5" khx="1.5" kly="-1.5" khy="1.5"/>
@@ -1370,7 +1379,7 @@
     <primitiveNode name="Metal-1-P-Active-Con" fun="CONTACT">
         <diskOffset untilVersion="1" x="8.5" y="8.5"/>
         <diskOffset untilVersion="2" x="2.5" y="2.5"/>
-        <sizeOffset lx="6.0" hx="6.0" ly="6.0" hy="6.0"/>
+        <nodeBase lx="-2.5" hx="2.5" ly="-2.5" hy="2.5"/>
         <nodeLayer layer="Metal-1" style="FILLED">
             <box>
                 <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
@@ -1411,7 +1420,7 @@
     <primitiveNode name="Metal-1-N-Active-Con" fun="CONTACT">
         <diskOffset untilVersion="1" x="8.5" y="8.5"/>
         <diskOffset untilVersion="2" x="2.5" y="2.5"/>
-        <sizeOffset lx="6.0" hx="6.0" ly="6.0" hy="6.0"/>
+        <nodeBase lx="-2.5" hx="2.5" ly="-2.5" hy="2.5"/>
         <nodeLayer layer="Metal-1" style="FILLED">
             <box>
                 <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
@@ -1451,6 +1460,7 @@
 
     <primitiveNode name="Metal-1-Polysilicon-1-Con" fun="CONTACT">
         <diskOffset untilVersion="2" x="2.5" y="2.5"/>
+        <nodeBase lx="-2.5" hx="2.5" ly="-2.5" hy="2.5"/>
         <nodeLayer layer="Metal-1" style="FILLED">
             <box>
                 <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
@@ -1480,6 +1490,7 @@
 
     <primitiveNode name="Metal-1-Polysilicon-2-Con" fun="CONTACT">
         <diskOffset untilVersion="2" x="5.0" y="5.0"/>
+        <nodeBase lx="-5.0" hx="5.0" ly="-5.0" hy="5.0"/>
         <nodeLayer layer="Metal-1" style="FILLED">
             <box>
                 <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
@@ -1509,6 +1520,7 @@
 
     <primitiveNode name="Metal-1-Polysilicon-1-2-Con" fun="CONTACT">
         <diskOffset untilVersion="2" x="7.5" y="7.5"/>
+        <nodeBase lx="-7.5" hx="7.5" ly="-7.5" hy="7.5"/>
         <nodeLayer layer="Metal-1" style="FILLED">
             <box>
                 <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
@@ -1545,7 +1557,7 @@
     <primitiveNode name="P-Transistor" fun="TRAPMOS">
         <diskOffset untilVersion="1" x="7.5" y="11.0"/>
         <diskOffset untilVersion="2" x="1.5" y="1.0"/>
-        <sizeOffset lx="6.0" hx="6.0" ly="10.0" hy="10.0"/>
+        <nodeBase lx="-1.5" hx="1.5" ly="-1.0" hy="1.0"/>
         <nodeLayer layer="P-Active" style="FILLED" portNum="1" electrical="true">
             <serpbox kly="1.0" lWidth="4.0" rWidth="0.0" tExtent="0.0" bExtent="0.0">
                 <lambdaBox klx="-1.5" khx="1.5" kly="1.0" khy="4.0"/>
@@ -1637,7 +1649,7 @@
     <primitiveNode name="N-Transistor" fun="TRANMOS">
         <diskOffset untilVersion="1" x="7.5" y="11.0"/>
         <diskOffset untilVersion="2" x="1.5" y="1.0"/>
-        <sizeOffset lx="6.0" hx="6.0" ly="10.0" hy="10.0"/>
+        <nodeBase lx="-1.5" hx="1.5" ly="-1.0" hy="1.0"/>
         <nodeLayer layer="N-Active" style="FILLED" portNum="1" electrical="true">
             <serpbox kly="1.0" lWidth="4.0" rWidth="0.0" tExtent="0.0" bExtent="0.0">
                 <lambdaBox klx="-1.5" khx="1.5" kly="1.0" khy="4.0"/>
@@ -1731,7 +1743,7 @@
         <od18/>
         <diskOffset untilVersion="1" x="7.5" y="11.0"/>
         <diskOffset untilVersion="2" x="1.5" y="1.0"/>
-        <sizeOffset lx="6.0" hx="6.0" ly="10.0" hy="10.0"/>
+        <nodeBase lx="-1.5" hx="1.5" ly="-1.0" hy="1.0"/>
         <nodeLayer layer="P-Active" style="FILLED" portNum="1" electrical="true">
             <serpbox kly="1.0" lWidth="4.0" rWidth="0.0" tExtent="0.0" bExtent="0.0">
                 <lambdaBox klx="-1.5" khx="1.5" kly="1.0" khy="4.0"/>
@@ -1830,7 +1842,7 @@
         <od18/>
         <diskOffset untilVersion="1" x="7.5" y="11.0"/>
         <diskOffset untilVersion="2" x="1.5" y="1.0"/>
-        <sizeOffset lx="6.0" hx="6.0" ly="10.0" hy="10.0"/>
+        <nodeBase lx="-1.5" hx="1.5" ly="-1.0" hy="1.0"/>
         <nodeLayer layer="N-Active" style="FILLED" portNum="1" electrical="true">
             <serpbox kly="1.0" lWidth="4.0" rWidth="0.0" tExtent="0.0" bExtent="0.0">
                 <lambdaBox klx="-1.5" khx="1.5" kly="1.0" khy="4.0"/>
@@ -1927,7 +1939,7 @@
     <primitiveNode name="P-Transistor-Scalable" fun="TRAPMOS">
         <diskOffset untilVersion="1" x="8.5" y="13.0"/>
         <diskOffset untilVersion="2" x="1.5" y="1.0"/>
-        <sizeOffset lx="7.0" hx="7.0" ly="12.0" hy="12.0"/>
+        <nodeBase lx="-1.5" hx="1.5" ly="-1.0" hy="1.0"/>
         <nodeLayer layer="P-Active" style="FILLED" portNum="1">
             <box kly="1.0">
                 <lambdaBox klx="-2.5" khx="2.5" kly="7.0" khy="2.0"/>
@@ -2018,7 +2030,7 @@
     <primitiveNode name="N-Transistor-Scalable" fun="TRANMOS">
         <diskOffset untilVersion="1" x="8.5" y="13.0"/>
         <diskOffset untilVersion="2" x="1.5" y="1.0"/>
-        <sizeOffset lx="7.0" hx="7.0" ly="12.0" hy="12.0"/>
+        <nodeBase lx="-1.5" hx="1.5" ly="-1.0" hy="1.0"/>
         <nodeLayer layer="N-Active" style="FILLED" portNum="1">
             <box kly="1.0">
                 <lambdaBox klx="-2.5" khx="2.5" kly="7.0" khy="2.0"/>
@@ -2111,7 +2123,7 @@
         <notUsed/>
         <diskOffset untilVersion="1" x="28.0" y="24.0"/>
         <diskOffset untilVersion="2" x="15.0" y="11.0"/>
-        <sizeOffset lx="13.0" hx="13.0" ly="13.0" hy="13.0"/>
+        <nodeBase lx="-15.0" hx="15.0" ly="-11.0" hy="11.0"/>
         <nodeLayer layer="Active-Cut" style="FILLED" portNum="2">
             <multicutbox klx="1.0" sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0">
                 <lambdaBox klx="22.0" khx="22.0" kly="-16.0" khy="16.0"/>
@@ -2272,7 +2284,7 @@
     <primitiveNode name="Metal-1-Metal-2-Con" fun="CONTACT">
         <diskOffset untilVersion="1" x="2.5" y="2.5"/>
         <diskOffset untilVersion="2" x="2.0" y="2.0"/>
-        <sizeOffset lx="0.5" hx="0.5" ly="0.5" hy="0.5"/>
+        <nodeBase lx="-2.0" hx="2.0" ly="-2.0" hy="2.0"/>
         <nodeLayer layer="Metal-1" style="FILLED">
             <box>
                 <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
@@ -2303,7 +2315,7 @@
     <primitiveNode name="Metal-2-Metal-3-Con" fun="CONTACT">
         <diskOffset untilVersion="1" x="3.0" y="3.0"/>
         <diskOffset untilVersion="2" x="2.0" y="2.0"/>
-        <sizeOffset lx="1.0" hx="1.0" ly="1.0" hy="1.0"/>
+        <nodeBase lx="-2.0" hx="2.0" ly="-2.0" hy="2.0"/>
         <nodeLayer layer="Metal-2" style="FILLED">
             <box>
                 <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
@@ -2334,7 +2346,7 @@
     <primitiveNode name="Metal-3-Metal-4-Con" fun="CONTACT">
         <diskOffset untilVersion="1" x="3.0" y="3.0"/>
         <diskOffset untilVersion="2" x="2.0" y="2.0"/>
-        <sizeOffset lx="1.0" hx="1.0" ly="1.0" hy="1.0"/>
+        <nodeBase lx="-2.0" hx="2.0" ly="-2.0" hy="2.0"/>
         <nodeLayer layer="Metal-3" style="FILLED">
             <box>
                 <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
@@ -2365,7 +2377,7 @@
     <primitiveNode name="Metal-4-Metal-5-Con" fun="CONTACT">
         <diskOffset untilVersion="1" x="3.5" y="3.5"/>
         <diskOffset untilVersion="2" x="2.0" y="2.0"/>
-        <sizeOffset lx="1.5" hx="1.5" ly="1.5" hy="1.5"/>
+        <nodeBase lx="-2.0" hx="2.0" ly="-2.0" hy="2.0"/>
         <nodeLayer layer="Metal-4" style="FILLED">
             <box>
                 <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
@@ -2396,7 +2408,7 @@
     <primitiveNode name="Metal-5-Metal-6-Con" fun="CONTACT">
         <diskOffset untilVersion="1" x="4.0" y="4.0"/>
         <diskOffset untilVersion="2" x="2.5" y="2.5"/>
-        <sizeOffset lx="1.5" hx="1.5" ly="1.5" hy="1.5"/>
+        <nodeBase lx="-2.5" hx="2.5" ly="-2.5" hy="2.5"/>
         <nodeLayer layer="Metal-5" style="FILLED">
             <box>
                 <lambdaBox klx="-2.5" khx="2.5" kly="-2.5" khy="2.5"/>
@@ -2428,7 +2440,7 @@
         <oldName>Metal-1-Well-Con</oldName>
         <diskOffset untilVersion="1" x="8.5" y="8.5"/>
         <diskOffset untilVersion="2" x="2.5" y="2.5"/>
-        <sizeOffset lx="6.0" hx="6.0" ly="6.0" hy="6.0"/>
+        <nodeBase lx="-2.5" hx="2.5" ly="-2.5" hy="2.5"/>
         <nodeLayer layer="Metal-1" style="FILLED">
             <box>
                 <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
@@ -2470,7 +2482,7 @@
         <oldName>Metal-1-Substrate-Con</oldName>
         <diskOffset untilVersion="1" x="8.5" y="8.5"/>
         <diskOffset untilVersion="2" x="2.5" y="2.5"/>
-        <sizeOffset lx="6.0" hx="6.0" ly="6.0" hy="6.0"/>
+        <nodeBase lx="-2.5" hx="2.5" ly="-2.5" hy="2.5"/>
         <nodeLayer layer="Metal-1" style="FILLED">
             <box>
                 <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>

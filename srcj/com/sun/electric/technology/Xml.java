@@ -25,6 +25,7 @@ package com.sun.electric.technology;
 
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.technology.Technology.TechPoint;
 import com.sun.electric.tool.Job;
@@ -197,7 +198,7 @@ public class Xml {
         public final TreeMap<Integer,EPoint> diskOffset = new TreeMap<Integer,EPoint>();
         public final Distance defaultWidth = new Distance();
         public final Distance defaultHeight = new Distance();
-        public SizeOffset sizeOffset;
+        public ERectangle nodeBase;
         public final List<NodeLayer> nodeLayers = new ArrayList<NodeLayer>();
         public final List<PrimitivePort> ports = new ArrayList<PrimitivePort>();
         public int specialType;
@@ -349,7 +350,7 @@ public class Xml {
         diskOffset,
         defaultWidth,
         defaultHeight,
-        sizeOffset,
+        nodeBase,
         nodeLayer,
         box,
         multicutbox,
@@ -935,12 +936,12 @@ public class Xml {
                 case defaultHeight:
                     curDistance = curNode.defaultHeight;
                     break;
-                case sizeOffset:
+                case nodeBase:
                     double lx = Double.parseDouble(a("lx"));
                     double hx = Double.parseDouble(a("hx"));
                     double ly = Double.parseDouble(a("ly"));
                     double hy = Double.parseDouble(a("hy"));
-                    curNode.sizeOffset = new SizeOffset(lx, hx, ly, hy);
+                    curNode.nodeBase = ERectangle.fromLambda(lx, ly, hx - lx, hy - ly);
                     break;
                 case nodeLayer:
                     curNodeLayer = new NodeLayer();
@@ -1331,7 +1332,7 @@ public class Xml {
 
                 case defaultWidth:
                 case defaultHeight:
-                case sizeOffset:
+                case nodeBase:
                 case box:
                 case points:
                 case multicutbox:
@@ -1799,12 +1800,12 @@ public class Xml {
                 el(XmlKeyword.defaultHeight);
             }
 
-            if (ni.sizeOffset != null) {
-                double lx = ni.sizeOffset.getLowXOffset();
-                double hx = ni.sizeOffset.getHighXOffset();
-                double ly = ni.sizeOffset.getLowYOffset();
-                double hy = ni.sizeOffset.getHighYOffset();
-                b(XmlKeyword.sizeOffset); a("lx", lx); a("hx", hx); a("ly", ly); a("hy", hy); el();
+            if (ni.nodeBase != null) {
+                double lx = ni.nodeBase.getLambdaMinX();
+                double hx = ni.nodeBase.getLambdaMaxX();
+                double ly = ni.nodeBase.getLambdaMinY();
+                double hy = ni.nodeBase.getLambdaMaxY();
+                b(XmlKeyword.nodeBase); a("lx", lx); a("hx", hx); a("ly", ly); a("hy", hy); el();
             }
 
             for(int j=0; j<ni.nodeLayers.size(); j++) {

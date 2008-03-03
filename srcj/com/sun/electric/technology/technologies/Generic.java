@@ -177,7 +177,7 @@ public class Generic extends Technology
 		universalPinNode.setCanBeZeroSize();
 
 		/** Invisible pin */
-		invisiblePinNode = PrimitiveNode.newInstance0("Invisible-Pin", this, 1.0, 1.0, null,
+		invisiblePinNode = PrimitiveNode.newInstance0("Invisible-Pin", this, 1.0, 1.0,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(invisible_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())

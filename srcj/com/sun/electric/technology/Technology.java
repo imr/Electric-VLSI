@@ -1090,9 +1090,18 @@ public class Technology implements Comparable<Technology>, Serializable
                     throw new IllegalArgumentException("Mismatch between nodeSizeRule and diskOffset");
                 minSizeRule = n.nodeSizeRule.rule;
             }
+            ERectangle baseRectangle = n.nodeBase;
+            if (baseRectangle == null) {
+                long lx = -correction.getGridX();
+                long hx = correction.getGridX();
+                long ly = -correction.getGridY();
+                long hy = correction.getGridY();
+                baseRectangle = ERectangle.fromGrid(lx, ly, hx - lx, hy - ly);
+            }
             EPoint negCorrection = EPoint.fromGrid(-correction.getGridX(), -correction.getGridY());
             PrimitiveNode pnp = PrimitiveNode.newInstance(n.name, this, negCorrection, minSizeRule,
-                    DBMath.round(n.defaultWidth.value + 2*correction.getLambdaX()), DBMath.round(n.defaultHeight.value + 2*correction.getLambdaY()), n.sizeOffset,
+                    DBMath.round(n.defaultWidth.value + 2*correction.getLambdaX()),
+                    DBMath.round(n.defaultHeight.value + 2*correction.getLambdaY()), baseRectangle,
                     nodeLayers.toArray(new NodeLayer[nodeLayers.size()]));
             if (n.oldName != null)
                 oldNodeNames.put(n.oldName, pnp);

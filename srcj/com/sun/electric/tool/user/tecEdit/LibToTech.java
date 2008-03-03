@@ -27,6 +27,7 @@ package com.sun.electric.tool.user.tecEdit;
 
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
@@ -36,7 +37,6 @@ import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.TextDescriptor;
@@ -3465,21 +3465,26 @@ public class LibToTech
             pn.od25 = ni.od25;
             pn.od33 = ni.od33;
             EPoint minFullSize = EPoint.fromLambda(0.5*ni.xSize, 0.5*ni.ySize);
-            SizeOffset so = ni.so;
-            if (so != null && so.getLowXOffset() == 0 && so.getHighXOffset() == 0 && so.getLowYOffset() == 0 && so.getHighYOffset() == 0)
-                so = null;
-            if (so != null) {
-                EPoint p2 = EPoint.fromGrid(
-                        minFullSize.getGridX() - ((so.getLowXGridOffset() + so.getHighXGridOffset()) >> 1),
-                        minFullSize.getGridY() - ((so.getLowYGridOffset() + so.getHighYGridOffset()) >> 1));
-                pn.diskOffset.put(Integer.valueOf(1), minFullSize);
-                pn.diskOffset.put(Integer.valueOf(2), p2);
-            } else {
-                pn.diskOffset.put(Integer.valueOf(2), minFullSize);
+            
+            double lx = -minFullSize.getLambdaX();
+            double hx = minFullSize.getLambdaX();
+            double ly = -minFullSize.getLambdaY();
+            double hy = minFullSize.getLambdaY();
+            if (ni.so != null) {
+                lx += ni.so.getLowXOffset();
+                hx -= ni.so.getHighXOffset();
+                ly += ni.so.getLowYOffset();
+                hy -= ni.so.getHighYOffset();
             }
+            pn.nodeBase = ERectangle.fromLambda(lx, ly, hx - lx, hy - ly);
+            EPoint p2 = EPoint.fromGrid(pn.nodeBase.getGridWidth() >> 1, pn.nodeBase.getGridHeight() >> 1);
+            if (!p2.equals(minFullSize))
+                pn.diskOffset.put(Integer.valueOf(1), minFullSize);
+            if (!p2.equals(EPoint.ORIGIN))
+                pn.diskOffset.put(Integer.valueOf(2), p2);
+            
 //	        pn.defaultWidth.value = DBMath.round(ni.xSize);
 //	        pn.defaultHeight.value = DBMath.round(ni.ySize);
-            pn.sizeOffset = so;
             pn.spiceTemplate = ni.spiceTemplate;
             for(int j=0; j<ni.nodeLayers.length; j++) {
                 NodeInfo.LayerDetails nl = ni.nodeLayers[j];

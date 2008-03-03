@@ -53,6 +53,8 @@ import com.sun.electric.tool.Client;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.sandbox.TechExplorerDriver;
+import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Clipboard;
@@ -312,6 +314,8 @@ public class EditMenu {
                         xmlTech.writeXml(fileName);
                     }
                 }},
+                new EMenuItem("Write XML of Technology from Electric build") { public void run() {
+                    writeXmlTechnologyFromElectricBuildCommand(); }},
                 SEPARATOR,
                 new EMenuItem("Rena_me Current Technology...") { public void run() {
                     CircuitChanges.renameCurrentTechnology(); }},
@@ -1754,6 +1758,62 @@ public class EditMenu {
                 sb.append(addThis);
             }
             System.out.println(sb.toString());
+        }
+    }
+
+    private static void writeXmlTechnologyFromElectricBuildCommand() {
+        String jarPath = OpenFile.chooseInputFile(FileType.JAR, "Electric build", false, null, false);
+        if (jarPath == null) return;
+        
+        try {
+            new TechExplorerDriver(jarPath, System.out) {
+                private int state = 0;
+                
+                @Override
+                protected void terminateOk(Object result) {
+                    switch (state) {
+                        case 0:
+                            putCommand("initTechnologies");
+                            state = 1;
+                            break;
+                        case 1:
+                            String[] techNames = (String[])result;
+                    		String chosen = (String)JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(),
+                                    "Technology to Write",
+                                    "Choose a technology to write",
+                                    JOptionPane.QUESTION_MESSAGE, null,
+                                    techNames, null);
+                            if (chosen != null)
+                                putCommand("makeXml", chosen);
+                            else
+                                closeCommands();
+                            state = 2;
+                            break;
+                        case 2:
+                            Xml.Technology xmlTech = (Xml.Technology)result;
+                            if (xmlTech != null) {
+                                String fileName = xmlTech.techName + ".xml";
+                                fileName = OpenFile.chooseOutputFile(FileType.XML, "Technology XML File", fileName);
+                                if (fileName != null)
+                                    xmlTech.writeXml(fileName);
+                            }
+                            closeCommands();
+                            break;
+                        default:
+                            super.terminateOk(result);
+                            closeCommands();
+                   }
+                }
+                
+                @Override
+                protected void terminateFail(Exception e) {
+                    super.terminateFail(e);
+                    closeCommands();
+                }
+            };
+        } catch (IOException e) {
+            ActivityLogger.logException(e);
+            e.printStackTrace();
         }
     }
 
