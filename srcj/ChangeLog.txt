@@ -4,6 +4,13 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07f: ******************************
 
+IMP/MAN: (3/3/08, SMR) Added "Toolbar" preferences (in Display section) for rearranging the toolbar.
+     Also moved the "Component menu" preferences to the Display section.
+
+IMP/MAN: (3/3/08, SMR) Added toolbar commands to pulldown menus:
+     "Cell / Cell Viewing History / Go Back a Cell" and
+     "Cell / Cell Viewing History / Go Forward a Cell" to move through the displayed cells in the window.
+
 IMP: (3/3/08, DN) Element <primitiveNode> in Technology Xml contains element
     <nodeBase> instead of former <sizeOffset> . Distances in <nodeBase> are from center.
 

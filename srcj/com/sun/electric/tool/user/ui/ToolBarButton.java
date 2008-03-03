@@ -26,21 +26,20 @@
 
 package com.sun.electric.tool.user.ui;
 
-//import com.sun.electric.tool.user.menus.MenuBar;
 import com.sun.electric.tool.user.ActivityLogger;
 
-import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
-import java.util.HashMap;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.accessibility.Accessible;
 import javax.accessibility.AccessibleContext;
 import javax.accessibility.AccessibleRole;
 import javax.swing.AbstractButton;
-import javax.swing.JToggleButton;
 import javax.swing.Icon;
+import javax.swing.JToggleButton;
 import javax.swing.UIManager;
 import javax.swing.plaf.ButtonUI;
 
@@ -216,7 +215,6 @@ public class ToolBarButton extends AbstractButton implements Accessible, ActionL
             ActivityLogger.logToolBarButtonActivated(b.getName());
         }
     }
-
 
     // ---------------------------------- UI ---------------------------------
     

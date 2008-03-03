@@ -120,7 +120,6 @@ public class PreferencesFrame extends EDialog
         TopLevel top = TopLevel.getCurrentJFrame();
         if (top != null && top.getEMenuBar() != null)
     		addTreeNode(new EditKeyBindings(top.getEMenuBar(), parent, true), generalSet);
-		addTreeNode(new ComponentMenuTab(parent, true), generalSet);
 		addTreeNode(new NewNodesTab(parent, true), generalSet);
 		addTreeNode(new NewArcsTab(parent, true), generalSet);
 		addTreeNode(new ProjectManagementTab(parent, true), generalSet);
@@ -142,7 +141,9 @@ public class PreferencesFrame extends EDialog
 		DefaultMutableTreeNode displaySet = new DefaultMutableTreeNode("Display ");
 		rootNode.add(displaySet);
 		addTreeNode(new DisplayControlTab(parent, true), displaySet);
+		addTreeNode(new ComponentMenuTab(parent, true), displaySet);
 		addTreeNode(new LayersTab(parent, true), displaySet);
+		addTreeNode(new ToolbarTab(parent, true, this), displaySet);
 		addTreeNode(new TextTab(parent, true), displaySet);
 		addTreeNode(new SmartTextTab(parent, true), displaySet);
 		addTreeNode(new GridAndAlignmentTab(parent, true), displaySet);
