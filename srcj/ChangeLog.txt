@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07f: ******************************
 
+BUG: (3/2/08, DN) NPE in Poly.transform after (Bug #1588)
+FIX: Check that "descript != null".
+
 BUG: (2/29/08, SMR) EDIF input crashes (Bug #1588).
 FIX: In TextUtils.isANumber(), ignore nulls.
 

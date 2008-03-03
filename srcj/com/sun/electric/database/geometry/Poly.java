@@ -139,7 +139,7 @@ public class Poly extends PolyBase {
 		if (af.getType() == AffineTransform.TYPE_IDENTITY) return;
 
 		// special case for text
-		if (getStyle().isText())
+		if (getStyle().isText() && descript != null)
 		{
 			// for quadrant rotations, rotate the text angle too
 			if ((af.getType() & AffineTransform.TYPE_QUADRANT_ROTATION) != 0)
