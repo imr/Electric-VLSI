@@ -445,6 +445,7 @@ public class Xml {
             String msg = "Error parsing Xml technology:\n" +
                     e.getMessage() + "\n" +
                     " Line " + e.getLineNumber() + " column " + e.getColumnNumber() + " of " + fileURL;
+            msg = msg.replaceAll("\"http://electric.sun.com/Technology\":", "");
             System.out.println(msg);
             Job.getUserInterface().showErrorMessage(msg, "Error parsing Xml technology");
         } catch (Exception e) {
