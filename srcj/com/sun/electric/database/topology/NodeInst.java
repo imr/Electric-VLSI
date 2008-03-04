@@ -1193,7 +1193,22 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
      * @return a  Poly object that describes the highlight of this NodeInst graphically.
      */
     public Poly getBaseShape() {
-        return getBaseShape(d.size);
+        return getBaseShape(d.anchor, d.size);
+    }
+
+    /**
+     * Returns the polygon that describe the base highlight of this NodeInst with modified size.
+     * @param baseWidth modified base width in lambda units
+     * @param baseHeight modified base height in lambda units
+     * @return a  Poly object that describes the highlight of this NodeInst graphically.
+     */
+    public Poly getBaseShape(EPoint anchor, double baseWidth, double baseHeight) {
+        EPoint newSize = EPoint.ORIGIN;
+        if (protoType instanceof PrimitiveNode) {
+            ERectangle base = getBaseRectangle();
+            newSize = EPoint.fromLambda(baseWidth - base.getWidth(), baseHeight - base.getHeight());
+        }
+        return getBaseShape(anchor, newSize);
     }
 
     /**
@@ -1201,7 +1216,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
      * @param size modified size
      * @return a  Poly object that describes the highlight of this NodeInst graphically.
      */
-    public Poly getBaseShape(EPoint size) {
+    private Poly getBaseShape(EPoint anchor, EPoint size) {
         double nodeLowX;
         double nodeHighX;
         double nodeLowY;
@@ -1227,11 +1242,11 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         else
             points = new Point2D[] { new Point2D.Double(nodeLowX, nodeLowY) };
         Poly poly = new Poly(points);
-        AffineTransform trans = getOrient().rotateAbout(getAnchorCenterX(), getAnchorCenterY(), 0, 0);
+        AffineTransform trans = getOrient().rotateAbout(anchor.getLambdaX(), anchor.getLambdaY(), 0, 0);
         poly.transform(trans);
         return poly;
     }
-    
+
     /**
 	 * Method to return the bounds of this NodeInst.
 	 * TODO: dangerous to give a pointer to our internal field; should make a copy of visBounds
@@ -1338,9 +1353,10 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 * @return the base ERectangle of this PrimitiveNode.
 	 */
     private ERectangle getBaseRectangle() {
-        return ((PrimitiveNode)protoType).getTechnology().getNodeInstBaseRectangle(this);
+        return ((PrimitiveNode)protoType).getBaseRectangle();
+//        return ((PrimitiveNode)protoType).getTechnology().getNodeInstBaseRectangle(this);
     }
-    
+
 //	/**
 //	 * Method to return a list of Polys that describes all text on this NodeInst.
 //	 * @param hardToSelect is true if considering hard-to-select text.

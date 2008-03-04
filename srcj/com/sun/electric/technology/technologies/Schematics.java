@@ -2031,19 +2031,19 @@ public class Schematics extends Technology
 			double width = ni.getD().size.getLambdaX() + 8;
 			double height = ni.getD().size.getLambdaY() + 6;
             double unitSize = Math.min(width/8, height/6);
-			return ERectangle.fromLambda(-0.5*width, 0.5*width - unitSize/2, -0.5*height, 0.5*height);
+			return ERectangle.fromLambda(-0.5*width, -0.5*height, width - unitSize/2, height);
 		} else if (np == orNode)
 		{
 			double width = ni.getD().size.getLambdaX() + 10;
 			double height = ni.getD().size.getLambdaY() + 6;
             double unitSize = Math.min(width/10, height/6);
-			return ERectangle.fromLambda(-0.5*width, 0.5*width - unitSize/2, -0.5*height, 0.5*height);
+			return ERectangle.fromLambda(-0.5*width, -0.5*height, width - unitSize/2, height);
 		} else if (np == xorNode)
 		{
 			double width = ni.getD().size.getLambdaX() + 10;
 			double height = ni.getD().size.getLambdaY() + 6;
             double unitSize = Math.min(width/10, height/6);
-			return ERectangle.fromLambda(-0.5*width, 0.5*width - unitSize/2, -0.5*height, 0.5*height);
+			return ERectangle.fromLambda(-0.5*width, -0.5*height, width - unitSize/2, height);
 		}
 		return super.getNodeInstBaseRectangle(ni);
     }

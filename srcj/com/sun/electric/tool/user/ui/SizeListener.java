@@ -420,7 +420,7 @@ public class SizeListener
 				NodeInst ni = (NodeInst)stretchGeom;
 				Point2D newCenter = new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY());
 				Point2D newSize = getNewNodeSize(evt, newCenter);
-                Poly stretchedPoly = ni.getBaseShape(EPoint.snap(newSize));
+                Poly stretchedPoly = ni.getBaseShape(EPoint.snap(newCenter), newSize.getX(), newSize.getY());
 //				SizeOffset so = ni.getSizeOffset();
 //				AffineTransform trans = ni.getOrient().rotateAbout(newCenter.getX(), newCenter.getY());
 //
@@ -472,17 +472,13 @@ public class SizeListener
 
 		// get information about the node being stretched
 		NodeInst ni = (NodeInst)stretchGeom;
-//		SizeOffset so = ni.getSizeOffset();
+        if (ni.getProto() instanceof Cell) return EPoint.ORIGIN;
 
 		// setup outline of node with standard offset
         Poly nodePoly = ni.getBaseShape();
-//		double nodeLowX = ni.getTrueCenterX() - ni.getXSize()/2 + so.getLowXOffset();
-//		double nodeHighX = ni.getTrueCenterX() + ni.getXSize()/2 - so.getHighXOffset();
-//		double nodeLowY = ni.getTrueCenterY() - ni.getYSize()/2 + so.getLowYOffset();
-//		double nodeHighY = ni.getTrueCenterY() + ni.getYSize()/2 - so.getHighYOffset();
-//		Poly nodePoly = new Poly((nodeLowX+nodeHighX)/2, (nodeLowY+nodeHighY)/2, nodeHighX-nodeLowX, nodeHighY-nodeLowY);
-//		AffineTransform trans = ni.rotateOutAboutTrueCenter();
-//		nodePoly.transform(trans);
+		AffineTransform transIn = ni.transformIn();
+		transIn.transform(pt, pt);
+        nodePoly.transform(transIn);
 
 		// determine the closest point on the outline
 		Point2D [] points = nodePoly.getPoints();
@@ -521,22 +517,13 @@ public class SizeListener
 			(evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0;
 
 		// determine the amount of growth of the node
-		AffineTransform transIn = ni.rotateIn();
-		double closestX = closest.getX();
-		double closestY = closest.getY();
-		double farthestX = farthestPoint.getX();
-		double farthestY = farthestPoint.getY();
-		transIn.transform(pt, pt);
-		transIn.transform(closest, closest);
-		transIn.transform(farthest, farthest);
-
 		double growthRatioX, growthRatioY;
 		if (centerBased)
 		{
-			double ptToCenterX = Math.abs(pt.getX() - ni.getTrueCenterX());
-			double closestToCenterX = Math.abs(closest.getX() - ni.getTrueCenterX());
-			double ptToCenterY = Math.abs(pt.getY() - ni.getTrueCenterY());
-			double closestToCenterY = Math.abs(closest.getY() - ni.getTrueCenterY());
+			double ptToCenterX = Math.abs(pt.getX());
+			double closestToCenterX = Math.abs(closest.getX());
+			double ptToCenterY = Math.abs(pt.getY());
+			double closestToCenterY = Math.abs(closest.getY());
 			growthRatioX = ptToCenterX / closestToCenterX;
 			growthRatioY = ptToCenterY / closestToCenterY;
 		} else
@@ -582,29 +569,37 @@ public class SizeListener
 		// compute the new node size
 		double newXSize = ni.getLambdaBaseXSize() * growthRatioX;
 		double newYSize = ni.getLambdaBaseYSize() * growthRatioY;
-//		double newXSize = (ni.getXSize() - so.getLowXOffset() - so.getHighXOffset()) * growthRatioX;
-//		double newYSize = (ni.getYSize() - so.getLowYOffset() - so.getHighYOffset()) * growthRatioY;
 		Point2D newSize = new Point2D.Double(newXSize, newYSize);
 
 		// grid align the new node size
-		EditWindow.gridAlign(newSize);
+		EditWindow.gridAlignSize(newSize);
 
 		// determine the new center point
 		if (!centerBased)
 		{
-			AffineTransform pureTrans = ni.pureRotateOut();
-			Point2D xformedSize = new Point2D.Double();
-			pureTrans.transform(newSize, xformedSize);
-			if (closestX > farthestX) closestX = farthestX + Math.abs(xformedSize.getX()); else
-				closestX = farthestX - Math.abs(xformedSize.getX());
-			if (closestY > farthestY) closestY = farthestY + Math.abs(xformedSize.getY()); else
-				closestY = farthestY - Math.abs(xformedSize.getY());
-			newCenter.setLocation((closestX + farthestX) / 2, (closestY + farthestY) / 2);
+            double closestX = closest.getX();
+            double closestY = closest.getY();
+            double farthestX = farthest.getX();
+            double farthestY = farthest.getY();
+            double newClosestX = farthestX + Math.abs(newSize.getX())*(closestX > farthestX ? 1 : -1);
+            double newClosestY = farthestY + Math.abs(newSize.getY())*(closestY > farthestY ? 1 : -1);
+            
+            // try to ensure smart grid aligning
+//            double TINY = 1e-6/DBMath.GRID;
+//            if (newClosestX > closestX)
+//                farthestX -= TINY;
+//            else if (newClosestX < closestX)
+//                farthestX += TINY;
+//            if (newClosestY > closestY)
+//                farthestY -= TINY;
+//            else if (newClosestY < closestY)
+//                farthestY += TINY;
+            
+			newCenter.setLocation((newClosestX - closestX) / 2, (newClosestY - closestY) / 2);
+            ni.transformOut().transform(newCenter, newCenter);
+//            EditWindow.gridAlign(newCenter);
 		}
 
-//		// adjust size offset to produce real size
-//		newSize.setLocation(Math.abs(newSize.getX() + so.getLowXOffset() + so.getHighXOffset()),
-//			Math.abs(newSize.getY() + so.getLowYOffset() + so.getHighYOffset()));
 		return newSize;
 	}
 
@@ -628,7 +623,7 @@ public class SizeListener
 		Point2D ptOnLine = DBMath.closestPointToLine(ai.getHeadLocation(), ai.getTailLocation(), pt);
 		double newLambdaBaseWidth = ptOnLine.distance(pt)*2;
 		Point2D newLambdaBaseSize = new Point2D.Double(newLambdaBaseWidth, newLambdaBaseWidth);
-		EditWindow.gridAlign(newLambdaBaseSize);
+		EditWindow.gridAlignSize(newLambdaBaseSize);
 		return newLambdaBaseSize.getX();
 	}
 

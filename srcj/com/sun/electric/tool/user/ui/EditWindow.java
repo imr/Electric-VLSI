@@ -3653,6 +3653,16 @@ public class EditWindow extends JPanel
 		DBMath.gridAlign(pt, User.getAlignmentToGrid());
 	}
 
+	/**
+	 * Method to snap a point to the nearest database-space grid unit.
+	 * @param pt the point to be snapped.
+	 */
+	public static void gridAlignSize(Point2D pt)
+	{
+		DBMath.gridAlign(pt, User.getAlignmentToGrid());
+//		DBMath.gridAlign(pt, User.getAlignmentToGrid()*2);
+	}
+
 	// ************************************* TEXT *************************************
 
 	/**
