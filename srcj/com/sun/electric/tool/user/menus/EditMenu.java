@@ -300,7 +300,7 @@ public class EditMenu {
                     describeTechnologyCommand(); }},
                 new EMenuItem("Do_cument Current Technology") { public void run() {
                     Manipulate.describeTechnology(Technology.getCurrent()); }},
-                new EMenuItem("Write XML of this Technology") { public void run()
+                new EMenuItem("Write XML of Current Technology...") { public void run()
                 {
                     Technology tech = Technology.getCurrent();
                     Xml.Technology xmlTech = tech.getXmlTech();
@@ -308,13 +308,13 @@ public class EditMenu {
                         xmlTech = tech.makeXml();
                     String fileName = tech.getTechName() + ".xml";
                     fileName = OpenFile.chooseOutputFile(FileType.XML, "Technology XML File", fileName);
-                    fileName = JOptionPane.showInputDialog("Technology XML File", fileName);
+//                    fileName = JOptionPane.showInputDialog("Technology XML File", fileName);
                     if (fileName != null) // didn't press cancel button
                     {
                         xmlTech.writeXml(fileName);
                     }
                 }},
-                new EMenuItem("Write XML of Technology from Electric build") { public void run() {
+                new EMenuItem("Write XML of Technology from Old Electric Build...") { public void run() {
                     writeXmlTechnologyFromElectricBuildCommand(); }},
                 SEPARATOR,
                 new EMenuItem("Rena_me Current Technology...") { public void run() {
