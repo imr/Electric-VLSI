@@ -345,6 +345,7 @@
         <arcLayer layer="Metal" style="FILLED">
             <lambda>1.5</lambda>
         </arcLayer>
+        <arcPin name="Metal-Pin" port="metal" elibSize="3.0"/>
     </arcProto>
 
     <arcProto name="Polysilicon" fun="POLY1">
@@ -356,6 +357,7 @@
         <arcLayer layer="Polysilicon" style="FILLED">
             <lambda>1.0</lambda>
         </arcLayer>
+        <arcPin name="Polysilicon-Pin" port="polysilicon" elibSize="2.0"/>
     </arcProto>
 
     <arcProto name="Diffusion-p" fun="DIFFP">
@@ -371,6 +373,7 @@
         <arcLayer layer="P-Plus" style="FILLED">
             <lambda>3.0</lambda>
         </arcLayer>
+        <arcPin name="Diffusion-P-Pin" port="diff-p" elibSize="6.0"/>
     </arcProto>
 
     <arcProto name="Diffusion-well" fun="DIFFN">
@@ -386,97 +389,10 @@
         <arcLayer layer="P-Well" style="FILLED">
             <lambda>4.0</lambda>
         </arcLayer>
+        <arcPin name="Diffusion-Well-Pin" port="diff-w" elibSize="8.0"/>
     </arcProto>
 
     <!-- ******************** NODES ******************** -->
-    <primitiveNode name="Metal-Pin" fun="PIN">
-        <shrinkArcs/>
-        <diskOffset untilVersion="2" x="1.5" y="1.5"/>
-        <nodeBase lx="-1.5" hx="1.5" ly="-1.5" hy="1.5"/>
-        <nodeLayer layer="Metal" style="CROSSED">
-            <box>
-                <lambdaBox klx="-1.5" khx="1.5" kly="-1.5" khy="1.5"/>
-            </box>
-        </nodeLayer>
-        <primitivePort name="metal">
-            <portAngle primary="0" range="180"/>
-            <portTopology>0</portTopology>
-            <box>
-                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
-            </box>
-            <portArc>Metal</portArc>
-        </primitivePort>
-    </primitiveNode>
-
-    <primitiveNode name="Polysilicon-Pin" fun="PIN">
-        <shrinkArcs/>
-        <diskOffset untilVersion="2" x="1.0" y="1.0"/>
-        <nodeBase lx="-1.0" hx="1.0" ly="-1.0" hy="1.0"/>
-        <nodeLayer layer="Polysilicon" style="CROSSED">
-            <box>
-                <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
-            </box>
-        </nodeLayer>
-        <primitivePort name="polysilicon">
-            <portAngle primary="0" range="180"/>
-            <portTopology>0</portTopology>
-            <box>
-                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
-            </box>
-            <portArc>Polysilicon</portArc>
-        </primitivePort>
-    </primitiveNode>
-
-    <primitiveNode name="Diffusion-P-Pin" fun="PIN">
-        <shrinkArcs/>
-        <diskOffset untilVersion="1" x="3.0" y="3.0"/>
-        <diskOffset untilVersion="2" x="1.0" y="1.0"/>
-        <nodeBase lx="-1.0" hx="1.0" ly="-1.0" hy="1.0"/>
-        <nodeLayer layer="Diffusion" style="CROSSED">
-            <box>
-                <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
-            </box>
-        </nodeLayer>
-        <nodeLayer layer="P-Plus" style="CROSSED">
-            <box>
-                <lambdaBox klx="-3.0" khx="3.0" kly="-3.0" khy="3.0"/>
-            </box>
-        </nodeLayer>
-        <primitivePort name="diff-p">
-            <portAngle primary="0" range="180"/>
-            <portTopology>0</portTopology>
-            <box>
-                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
-            </box>
-            <portArc>Diffusion-p</portArc>
-        </primitivePort>
-    </primitiveNode>
-
-    <primitiveNode name="Diffusion-Well-Pin" fun="PIN">
-        <shrinkArcs/>
-        <diskOffset untilVersion="1" x="4.0" y="4.0"/>
-        <diskOffset untilVersion="2" x="1.0" y="1.0"/>
-        <nodeBase lx="-1.0" hx="1.0" ly="-1.0" hy="1.0"/>
-        <nodeLayer layer="Diffusion" style="CROSSED">
-            <box>
-                <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
-            </box>
-        </nodeLayer>
-        <nodeLayer layer="P-Well" style="CROSSED">
-            <box>
-                <lambdaBox klx="-4.0" khx="4.0" kly="-4.0" khy="4.0"/>
-            </box>
-        </nodeLayer>
-        <primitivePort name="diff-w">
-            <portAngle primary="0" range="180"/>
-            <portTopology>0</portTopology>
-            <box>
-                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
-            </box>
-            <portArc>Diffusion-well</portArc>
-        </primitivePort>
-    </primitiveNode>
-
     <primitiveNode name="Metal-Polysilicon-Con" fun="CONTACT">
         <diskOffset untilVersion="2" x="2.0" y="2.0"/>
         <nodeBase lx="-2.0" hx="2.0" ly="-2.0" hy="2.0"/>
@@ -825,7 +741,7 @@
             <menuArc>Polysilicon</menuArc>
         </menuBox>
         <menuBox>
-            <menuNode>Polysilicon-Pin</menuNode>
+            <menuNodeInst protoName="Polysilicon-Pin" function="PIN"/>
         </menuBox>
         <menuBox>
             <menuNode>Metal-Polysilicon-Con</menuNode>
@@ -835,7 +751,7 @@
             <menuArc>Metal</menuArc>
         </menuBox>
         <menuBox>
-            <menuNode>Metal-Pin</menuNode>
+            <menuNodeInst protoName="Metal-Pin" function="PIN"/>
         </menuBox>
         <menuBox>
             <menuNode>Metal-Diff-SplitN-Cut</menuNode>
@@ -845,7 +761,7 @@
             <menuArc>Diffusion-p</menuArc>
         </menuBox>
         <menuBox>
-            <menuNode>Diffusion-P-Pin</menuNode>
+            <menuNodeInst protoName="Diffusion-P-Pin" function="PIN"/>
         </menuBox>
         <menuBox>
             <menuNode>Metal-Diff-P-Con</menuNode>
@@ -855,7 +771,7 @@
             <menuArc>Diffusion-well</menuArc>
         </menuBox>
         <menuBox>
-            <menuNode>Diffusion-Well-Pin</menuNode>
+            <menuNodeInst protoName="Diffusion-Well-Pin" function="PIN"/>
         </menuBox>
         <menuBox>
             <menuNode>Metal-Diff-Well-Con</menuNode>

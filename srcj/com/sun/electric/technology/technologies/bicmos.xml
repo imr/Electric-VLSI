@@ -650,6 +650,7 @@
         <arcLayer layer="M1" style="FILLED">
             <lambda>1.5</lambda>
         </arcLayer>
+        <arcPin name="M1_Pin" port="metal-1" elibSize="3.0"/>
     </arcProto>
 
     <arcProto name="Metal_2" fun="METAL2">
@@ -661,6 +662,7 @@
         <arcLayer layer="M2" style="FILLED">
             <lambda>1.5</lambda>
         </arcLayer>
+        <arcPin name="M2_Pin" port="metal-2" elibSize="3.0"/>
     </arcProto>
 
     <arcProto name="Polysilicon" fun="POLY1">
@@ -672,6 +674,7 @@
         <arcLayer layer="Poly1" style="FILLED">
             <lambda>1.0</lambda>
         </arcLayer>
+        <arcPin name="Poly1_Pin" port="polysilicon" elibSize="2.0"/>
     </arcProto>
 
     <arcProto name="Polysilicon_2" fun="POLY2">
@@ -683,17 +686,23 @@
         <arcLayer layer="Poly2" style="FILLED">
             <lambda>1.0</lambda>
         </arcLayer>
+        <arcPin name="Poly2_Pin" port="p2-pin" elibSize="2.0"/>
     </arcProto>
 
-    <arcProto name="Active" fun="DIFF">
+    <arcProto name="Ndiff" fun="DIFFN">
         <wipable/>
         <extended>true</extended>
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>200.0</antennaRatio>
+        <elibWidthOffset>4.0</elibWidthOffset>
         <arcLayer layer="Active" style="FILLED">
             <lambda>1.0</lambda>
         </arcLayer>
+        <arcLayer layer="N_Select" style="FILLED">
+            <lambda>3.0</lambda>
+        </arcLayer>
+        <arcPin name="Ndiff_Pin" port="Ndiff_Pin" elibSize="6.0"/>
     </arcProto>
 
     <arcProto name="Pdiff" fun="DIFFP">
@@ -712,25 +721,26 @@
         <arcLayer layer="N_Well" style="FILLED">
             <lambda>6.0</lambda>
         </arcLayer>
+        <arcPin name="Pdiff_Pin" port="Pdiff_Pin" elibSize="12.0"/>
     </arcProto>
 
-    <arcProto name="Ndiff" fun="DIFFN">
+    <arcProto name="Active" fun="DIFF">
         <wipable/>
         <extended>true</extended>
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>200.0</antennaRatio>
-        <elibWidthOffset>4.0</elibWidthOffset>
         <arcLayer layer="Active" style="FILLED">
             <lambda>1.0</lambda>
         </arcLayer>
-        <arcLayer layer="N_Select" style="FILLED">
-            <lambda>3.0</lambda>
-        </arcLayer>
+        <arcPin name="Active_Pin" port="active" elibSize="2.0">
+            <portArc>Pdiff</portArc>
+            <portArc>Ndiff</portArc>
+        </arcPin>
     </arcProto>
 
     <!-- ******************** NODES ******************** -->
-    <primitiveNode name="M1_Pin" fun="PIN">
+    <!--primitiveNode name="M1_Pin" fun="PIN">
         <shrinkArcs/>
         <diskOffset untilVersion="2" x="1.5" y="1.5"/>
         <nodeBase lx="-1.5" hx="1.5" ly="-1.5" hy="1.5"/>
@@ -806,6 +816,61 @@
         </primitivePort>
     </primitiveNode>
 
+    <primitiveNode name="Ndiff_Pin" fun="PIN">
+        <shrinkArcs/>
+        <diskOffset untilVersion="1" x="3.0" y="3.0"/>
+        <diskOffset untilVersion="2" x="1.0" y="1.0"/>
+        <nodeBase lx="-1.0" hx="1.0" ly="-1.0" hy="1.0"/>
+        <nodeLayer layer="Active" style="CROSSED">
+            <box>
+                <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
+            </box>
+        </nodeLayer>
+        <nodeLayer layer="N_Select" style="CROSSED">
+            <box>
+                <lambdaBox klx="-3.0" khx="3.0" kly="-3.0" khy="3.0"/>
+            </box>
+        </nodeLayer>
+        <primitivePort name="Ndiff_Pin">
+            <portAngle primary="0" range="180"/>
+            <portTopology>0</portTopology>
+            <box>
+                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
+            </box>
+            <portArc>Ndiff</portArc>
+        </primitivePort>
+    </primitiveNode>
+
+    <primitiveNode name="Pdiff_Pin" fun="PIN">
+        <shrinkArcs/>
+        <diskOffset untilVersion="1" x="3.0" y="3.0"/>
+        <diskOffset untilVersion="2" x="1.0" y="1.0"/>
+        <nodeBase lx="-1.0" hx="1.0" ly="-1.0" hy="1.0"/>
+        <nodeLayer layer="Active" style="CROSSED">
+            <box>
+                <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
+            </box>
+        </nodeLayer>
+        <nodeLayer layer="P_Select" style="CROSSED">
+            <box>
+                <lambdaBox klx="-3.0" khx="3.0" kly="-3.0" khy="3.0"/>
+            </box>
+        </nodeLayer>
+        <nodeLayer layer="N_Well" style="CROSSED">
+            <box>
+                <lambdaBox klx="-6.0" khx="6.0" kly="-6.0" khy="6.0"/>
+            </box>
+        </nodeLayer>
+        <primitivePort name="Pdiff_Pin">
+            <portAngle primary="0" range="180"/>
+            <portTopology>0</portTopology>
+            <box>
+                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
+            </box>
+            <portArc>Pdiff</portArc>
+        </primitivePort>
+    </primitiveNode>
+
     <primitiveNode name="Active_Pin" fun="PIN">
         <shrinkArcs/>
         <diskOffset untilVersion="2" x="1.0" y="1.0"/>
@@ -825,55 +890,7 @@
             <portArc>Pdiff</portArc>
             <portArc>Ndiff</portArc>
         </primitivePort>
-    </primitiveNode>
-
-    <primitiveNode name="Ndiff_Pin" fun="PIN">
-        <shrinkArcs/>
-        <diskOffset untilVersion="1" x="3.0" y="3.0"/>
-        <diskOffset untilVersion="2" x="1.0" y="1.0"/>
-        <nodeBase lx="-1.0" hx="1.0" ly="-1.0" hy="1.0"/>
-        <nodeLayer layer="Active" style="CLOSED">
-            <box>
-                <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
-            </box>
-        </nodeLayer>
-        <nodeLayer layer="N_Select" style="CROSSED">
-            <box>
-                <lambdaBox klx="-3.0" khx="3.0" kly="-3.0" khy="3.0"/>
-            </box>
-        </nodeLayer>
-        <primitivePort name="Ndiff_Pin">
-            <portAngle primary="0" range="180"/>
-            <portTopology>0</portTopology>
-            <box>
-                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
-            </box>
-        </primitivePort>
-    </primitiveNode>
-
-    <primitiveNode name="Pdiff_Pin" fun="PIN">
-        <shrinkArcs/>
-        <diskOffset untilVersion="1" x="3.0" y="3.0"/>
-        <diskOffset untilVersion="2" x="1.0" y="1.0"/>
-        <nodeBase lx="-1.0" hx="1.0" ly="-1.0" hy="1.0"/>
-        <nodeLayer layer="Active" style="CLOSED">
-            <box>
-                <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
-            </box>
-        </nodeLayer>
-        <nodeLayer layer="P_Select" style="CROSSED">
-            <box>
-                <lambdaBox klx="-3.0" khx="3.0" kly="-3.0" khy="3.0"/>
-            </box>
-        </nodeLayer>
-        <primitivePort name="Pdiff_Pin">
-            <portAngle primary="0" range="180"/>
-            <portTopology>0</portTopology>
-            <box>
-                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
-            </box>
-        </primitivePort>
-    </primitiveNode>
+    </primitiveNode-->
 
     <primitiveNode name="M1_Poly1_Con" fun="CONTACT">
         <diskOffset untilVersion="2" x="3.0" y="3.0"/>
@@ -1705,7 +1722,7 @@
             <menuArc>Polysilicon</menuArc>
         </menuBox>
         <menuBox>
-            <menuNode>Poly1_Pin</menuNode>
+            <menuNodeInst protoName="Poly1_Pin" function="PIN"/>
         </menuBox>
         <menuBox>
             <menuNode>M1_Poly1_Con</menuNode>
@@ -1715,7 +1732,7 @@
             <menuArc>Polysilicon_2</menuArc>
         </menuBox>
         <menuBox>
-            <menuNode>Poly2_Pin</menuNode>
+            <menuNodeInst protoName="Poly2_Pin" function="PIN"/>
         </menuBox>
         <menuBox>
             <menuNode>M1_Poly2_Con</menuNode>
@@ -1725,7 +1742,7 @@
             <menuArc>Metal_1</menuArc>
         </menuBox>
         <menuBox>
-            <menuNode>M1_Pin</menuNode>
+            <menuNodeInst protoName="M1_Pin" function="PIN"/>
         </menuBox>
         <menuBox/>
 
@@ -1733,7 +1750,7 @@
             <menuArc>Metal_2</menuArc>
         </menuBox>
         <menuBox>
-            <menuNode>M2_Pin</menuNode>
+            <menuNodeInst protoName="M2_Pin" function="PIN"/>
         </menuBox>
         <menuBox>
             <menuNode>M1_M2_Con</menuNode>
@@ -1743,7 +1760,7 @@
             <menuArc>Pdiff</menuArc>
         </menuBox>
         <menuBox>
-            <menuNode>Pdiff_Pin</menuNode>
+            <menuNodeInst protoName="Pdiff_Pin" function="PIN"/>
         </menuBox>
         <menuBox>
             <menuNode>M1_Pdiff_Con</menuNode>
@@ -1753,7 +1770,7 @@
             <menuArc>Ndiff</menuArc>
         </menuBox>
         <menuBox>
-            <menuNode>Ndiff_Pin</menuNode>
+            <menuNodeInst protoName="Ndiff_Pin" function="PIN"/>
         </menuBox>
         <menuBox>
             <menuNode>M1_Ndiff_Con</menuNode>
@@ -1763,7 +1780,7 @@
             <menuArc>Active</menuArc>
         </menuBox>
         <menuBox>
-            <menuNode>Active_Pin</menuNode>
+            <menuNodeInst protoName="Active_Pin" function="PIN"/>
         </menuBox>
         <menuBox>
             <menuNode>M1_N_Well_Con</menuNode>

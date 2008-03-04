@@ -120,10 +120,10 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
         private final boolean isMetal;
         private final boolean isPoly;
         private final boolean isDiffusion;
-        
+
         private static final Function[] metalLayers = initMetalLayers(Function.class.getEnumConstants());
         private static final Function[] polyLayers = initPolyLayers(Function.class.getEnumConstants());
-        
+
         private Function(String printName, int metalLevel, int polyLevel) {
             this.printName = printName;
             isMetal = metalLevel != 0;
@@ -131,7 +131,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
             isDiffusion = name().startsWith("DIFF");
             level = isMetal ? metalLevel : isPoly ? polyLevel : 0;
         }
-	       
+
 		/**
 		 * Returns a printable version of this ArcProto.
 		 * @return a printable version of this ArcProto.
@@ -186,7 +186,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
         {
             return metalLayers[level];
         }
-        
+
         /**
 		 * Method to tell whether this ArcProto.Function is metal.
 		 * @return true if this ArcProto.Function is metal.
@@ -204,7 +204,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 		 * @return true if this ArcProto.Function is diffusion.
 		 */
 		public boolean isDiffusion() { return isDiffusion; }
-        
+
         private static Function[] initMetalLayers(Function[] allFunctions) {
             int maxLevel = -1;
             for (Function fun: getFunctions()) {
@@ -219,7 +219,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
             }
             return layers;
         }
-        
+
         private static Function[] initPolyLayers(Function[] allFunctions) {
             int maxLevel = -1;
             for (Function fun: getFunctions()) {
@@ -235,7 +235,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
             return layers;
         }
 	}
-    
+
 
 	// ----------------------- private data -------------------------------
 
@@ -257,6 +257,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	/** Flags bits for this ArcProto. */						private int userBits;
 	/** The function of this ArcProto. */						final Function function;
 	/** Layers in this arc */                                   final Technology.ArcLayer [] layers;
+    /** Pin for this arc */                                     PrimitiveNode arcPin;
 	/** Index of this ArcProto. */                              final int primArcIndex;
 //	/** A temporary integer for this ArcProto. */				private int tempInt;
 
@@ -304,17 +305,17 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	}
 
     protected Object writeReplace() { return new ArcProtoKey(this); }
-    
+
     private static class ArcProtoKey extends EObjectInputStream.Key<ArcProto> {
         public ArcProtoKey() {}
         private ArcProtoKey(ArcProto ap) { super(ap); }
-        
+
         @Override
         public void writeExternal(EObjectOutputStream out, ArcProto ap) throws IOException {
             out.writeObject(ap.getTechnology());
             out.writeInt(ap.getId().chronIndex);
         }
-        
+
         @Override
         public ArcProto readExternal(EObjectInputStream in) throws IOException, ClassNotFoundException {
             Technology tech = (Technology)in.readObject();
@@ -325,7 +326,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
             return ap;
         }
     }
-    
+
 	// ------------------------ public methods -------------------------------
 
 	/**
@@ -391,12 +392,12 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
         lambdaBaseExtend = DBMath.gridToLambda(gridBaseExtend);
         computeLayerGridExtendRange();
     }
-    
+
 	/**
 	 * Method to return the default base width of this ArcProto in lambda units.
 	 * This is the reported/selected width, which means that it does not include the width offset.
 	 * For example, diffusion arcs are always accompanied by a surrounding well and select.
-	 * This call returns only the width of the diffusion. 
+	 * This call returns only the width of the diffusion.
 	 * @return the default base width of this ArcProto in lambda units.
 	 */
 	public double getDefaultLambdaBaseWidth() { return DBMath.gridToLambda(getDefaultGridBaseWidth()); }
@@ -405,7 +406,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 * Method to return the default base width of this ArcProto in grid units.
 	 * This is the reported/selected width, which means that it does not include the width offset.
 	 * For example, diffusion arcs are always accompanied by a surrounding well and select.
-	 * This call returns only the width of the diffusion. 
+	 * This call returns only the width of the diffusion.
 	 * @return the default base width of this ArcProto in grid units.
 	 */
     public long getDefaultGridBaseWidth() { return 2*(getDefaultGridExtendOverMin() + gridBaseExtend); }
@@ -430,7 +431,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 * Method to return the base width extend of this ArcProto in lambda units.
 	 * This is the reported/selected width.
 	 * For example, diffusion arcs are always accompanied by a surrounding well and select.
-	 * This call returns only the half width of the diffusion of minimal-width arc. 
+	 * This call returns only the half width of the diffusion of minimal-width arc.
 	 * @return the default base width extend of this ArcProto in lambda units.
 	 */
 	public double getLambdaBaseExtend() { return lambdaBaseExtend; }
@@ -439,7 +440,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 * Method to return the base width extend of this ArcProto in grid units.
 	 * This is the reported/selected width.
 	 * For example, diffusion arcs are always accompanied by a surrounding well and select.
-	 * This call returns only the half width of the diffusion of minimal-width arc. 
+	 * This call returns only the half width of the diffusion of minimal-width arc.
 	 * @return the default base width extend of this ArcProto in grid units.
 	 */
 	public int getGridBaseExtend() { return gridBaseExtend; }
@@ -458,13 +459,13 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 * @return the minimal layer extend of this ArcProto in grid units.
 	 */
     public int getMinLayerGridExtend() { return minLayerGridExtend; }
-    
+
 	/**
 	 * Method to return the maximal layer extend of this ArcProto in grid units.
 	 * @return the maximal layer extend of this ArcProto in grid units.
 	 */
     public int getMaxLayerGridExtend() { return maxLayerGridExtend; }
-    
+
     /*
 	private Pref getArcProtoAntennaPref()
 	{
@@ -668,7 +669,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 * Valid for menu display
 	 */
 	public boolean isSkipSizeInPalette() { return (userBits & SKIPSIZEINPALETTE) != 0; }
-    
+
     /**
 	 * Method to set this ArcProto so that instances of it can wipe nodes.
 	 * For display efficiency reasons, pins that have arcs connected to them should not bother being drawn.
@@ -889,37 +890,43 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 		}
 		return null;
 	}
-    
-    public PrimitiveNode makeWipablePin(String pinName, String portName) {
-        double sizeOffset = getLambdaElibWidthOffset();
-        double defSize = DBMath.round(2*getLambdaBaseExtend() + sizeOffset);
-        return makeWipablePin(pinName, portName, sizeOffset, defSize);
-    }
-    
-    public PrimitiveNode makeWipablePin(String pinName, String portName, double sizeOffset, double defSize, ArcProto ... extraArcs) {
+
+//    public PrimitiveNode makeWipablePin(String pinName, String portName) {
+//        double defSize = DBMath.round(2*getLambdaBaseExtend() + getLambdaElibWidthOffset());
+//        return makeWipablePin(pinName, portName, defSize);
+//    }
+
+    public PrimitiveNode makeWipablePin(String pinName, String portName, double defSize, ArcProto ... extraArcs) {
+        double sizeOffset = 0.5*getLambdaElibWidthOffset();
         double refSize = DBMath.round(defSize*0.5);
         Technology.NodeLayer[] nodeLayers = new Technology.NodeLayer[getNumArcLayers()];
         for (int i = 0; i < getNumArcLayers(); i++) {
-            nodeLayers[i] = new Technology.NodeLayer(getLayer(i).getPseudoLayer(), 0, Poly.Type.CROSSED,
-                    Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(refSize - getLayerLambdaExtend(i))); 
+            Layer layer = getLayer(i);
+            if (layer.getPseudoLayer() == null)
+                layer.makePseudo();
+            layer = layer.getPseudoLayer();
+            nodeLayers[i] = new Technology.NodeLayer(layer, 0, Poly.Type.CROSSED,
+                    Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(refSize - getLayerLambdaExtend(i)));
         }
         SizeOffset so = null;
         if (sizeOffset != 0)
             so = new SizeOffset(sizeOffset, sizeOffset, sizeOffset, sizeOffset);
-        PrimitiveNode pin = PrimitiveNode.newInstance(pinName, tech, 2*refSize, 2*refSize, so, nodeLayers);
+        arcPin = PrimitiveNode.newInstance(pinName, tech, 2*refSize, 2*refSize, so, nodeLayers);
         ArcProto[] connections = new ArcProto[1 + extraArcs.length];
         connections[0] = this;
         System.arraycopy(extraArcs, 0, connections, 1, extraArcs.length);
-        pin.addPrimitivePorts(new PrimitivePort [] {
-            PrimitivePort.newInstance(tech, pin, connections, portName,
+        arcPin.addPrimitivePorts(new PrimitivePort [] {
+            PrimitivePort.newInstance(tech, arcPin, connections, portName,
                     0,180, 0, PortCharacteristic.UNKNOWN,
                     EdgeH.fromLeft(0.5*defSize), EdgeV.fromBottom(0.5*defSize),
                     EdgeH.fromRight(0.5*defSize), EdgeV.fromTop(0.5*defSize))
         });
-        pin.setFunction(PrimitiveNode.Function.PIN);
-        pin.setArcsWipe();
-        pin.setArcsShrink();
-        return pin;
+        arcPin.setFunction(PrimitiveNode.Function.PIN);
+        arcPin.setArcsWipe();
+        arcPin.setArcsShrink();
+        if (isSkipSizeInPalette() || isSpecialArc())
+            arcPin.setSkipSizeInPalette();
+        return arcPin;
     }
 
 	/**
@@ -951,7 +958,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 * @return the number of layers that comprise this ArcProto.
 	 */
     public int getNumArcLayers() { return layers.length; }
-    
+
 	/**
 	 * Method to return layer that comprises by its index in all layers
      * @param arcLayerIndex layer index
@@ -965,21 +972,21 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
      * @return the extend of specified layer that comprise this ArcProto over base arc width in lambda units.
      */
     public double getLayerLambdaExtend(int arcLayerIndex) { return DBMath.gridToLambda(getLayerGridExtend(arcLayerIndex)); }
-    
+
     /**
      * Returns the extend of specified layer that comprise this ArcProto over base arc width in grid units.
      * @param arcLayerIndex layer index
      * @return the extend of specified layer that comprise this ArcProto over base arc width in grid units.
      */
     public int getLayerGridExtend(int arcLayerIndex) { return layers[arcLayerIndex].getGridExtend(); }
-    
+
     /**
      * Returns the Poly.Style of specified layer that comprise this ArcLayer.
      * @param arcLayerIndex layer index
      * @return the Poly.Style of specified layer that comprise this ArcLayer.
      */
     public Poly.Type getLayerStyle(int arcLayerIndex) { return layers[arcLayerIndex].getStyle(); }
-    
+
     /**
      * Returns the extend of specified layer that comprise this ArcProto over base arc width in lambda units.
      * @param layer specified Layer
@@ -987,7 +994,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
      * @throws IndexOutOfBoundsException when specified layer diesn't comprise this ArcProto
      */
     public double getLayerLambdaExtend(Layer layer) { return getLayerLambdaExtend(indexOf(layer)); }
-    
+
     /**
      * Returns the extend of specified layer that comprise this ArcProto over base arc width in grid units.
      * @param layer specified Layer
@@ -995,7 +1002,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
      * @throws IndexOutOfBoundsException when specified layer diesn't comprise this ArcProto
      */
     public long getLayerGridExtend(Layer layer) { return getLayerGridExtend(indexOf(layer)); }
-    
+
     /**
      * Returns the Poly.Style of specified layer that comprise this ArcLayer.
      * @param layer specified Layer
@@ -1003,7 +1010,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
      * @throws IndexOutOfBoundsException when specified layer diesn't comprise this ArcProto
      */
     public Poly.Type getLayerStyle(Layer layer) { return getLayerStyle(indexOf(layer)); }
-    
+
 	/**
 	 * Method to return specified layer that comprise this ArcProto.
      * @param i layer index
@@ -1026,35 +1033,35 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 		return new LayerIterator(layers);
 	}
 
-	/** 
+	/**
 	 * Iterator for Layers on this ArcProto
-	 */ 
-	private static class LayerIterator implements Iterator<Layer> 
-	{ 
-		Technology.ArcLayer [] array; 
-		int pos; 
+	 */
+	private static class LayerIterator implements Iterator<Layer>
+	{
+		Technology.ArcLayer [] array;
+		int pos;
 
-		public LayerIterator(Technology.ArcLayer [] a) 
-		{ 
-			array = a; 
-			pos = 0; 
-		} 
+		public LayerIterator(Technology.ArcLayer [] a)
+		{
+			array = a;
+			pos = 0;
+		}
 
-		public boolean hasNext() 
-		{ 
-			return pos < array.length; 
-		} 
+		public boolean hasNext()
+		{
+			return pos < array.length;
+		}
 
-		public Layer next() throws NoSuchElementException 
-		{ 
-			if (pos >= array.length) 
-				throw new NoSuchElementException(); 
-			return array[pos++].getLayer(); 
-		} 
+		public Layer next() throws NoSuchElementException
+		{
+			if (pos >= array.length)
+				throw new NoSuchElementException();
+			return array[pos++].getLayer();
+		}
 
-		public void remove() throws UnsupportedOperationException, IllegalStateException 
-		{ 
-			throw new UnsupportedOperationException(); 
+		public void remove() throws UnsupportedOperationException, IllegalStateException
+		{
+			throw new UnsupportedOperationException();
 		}
 	}
 
@@ -1073,7 +1080,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 //		}
 //		return null;
 //	}
-    
+
 	/**
 	 * Method to find an index of Layer in a list of Layers that comprise this ArcProto.
 	 * If this layer is not in the list, return -1
@@ -1087,7 +1094,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
         }
         return -1;
     }
-    
+
 	/**
 	 * Method to set the surround distance of layer "outerlayer" from layer "innerlayer"
 	 * in arc "aty" to "surround".
@@ -1106,7 +1113,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 
 		// find the outer layer
         int i = indexOf(outerLayer);
-        
+
 		if (i < 0)
 		{
             System.out.println("Internal error in " + tech.getTechDesc() + " surround computation. Arc layer '" +
@@ -1121,7 +1128,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 //        layers[i] = layers[i].withGridOffset(indent);
         computeLayerGridExtendRange();
 	}
-    
+
     void computeLayerGridExtendRange() {
         long min = Long.MAX_VALUE, max = Long.MIN_VALUE;
         for (int i = 0; i < layers.length; i++) {
@@ -1192,7 +1199,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
         }
         return polys;
     }
-    
+
 	/**
 	 * Method to describe this ArcProto as a string.
 	 * Prepends the Technology name if it is
@@ -1241,7 +1248,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
         out.println("\tisEdgeSelect=" + isEdgeSelect());
         out.println("\tisNotUsed=" + isNotUsed());
         out.println("\tisSkipSizeInPalette=" + isSkipSizeInPalette());
-        
+
         Technology.printlnPref(out, 1, defaultExtendPrefs.get(this));
         out.println("\tbaseExtend=" + getLambdaBaseExtend());
         out.println("\tdefaultLambdaBaseWidth=" + getDefaultLambdaBaseWidth());
@@ -1252,11 +1259,11 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
         Technology.printlnPref(out, 1, defaultFixedAnglePrefs.get(this));
         Technology.printlnPref(out, 1, defaultExtendedPrefs.get(this));
         Technology.printlnPref(out, 1, defaultDirectionalPrefs.get(this));
-        
+
         for (Technology.ArcLayer arcLayer: layers)
             arcLayer.dump(out);
     }
-    
+
     Xml.ArcProto makeXml() {
         Xml.ArcProto a = new Xml.ArcProto();
         a.name = getName();
@@ -1279,9 +1286,21 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
         a.antennaRatio = ERC.getERCTool().getAntennaRatio(this);
         for (Technology.ArcLayer arcLayer: layers)
             a.arcLayers.add(arcLayer.makeXml());
+        if (arcPin != null) {
+            a.arcPin = new Xml.ArcPin();
+            a.arcPin.name = arcPin.getName();
+            PrimitivePort port = arcPin.getPort(0);
+            a.arcPin.portName = port.getName();
+            a.arcPin.elibSize = -2*arcPin.getSizeCorrector().getX();
+            for (ArcProto cap: port.getConnections()) {
+                if (cap.getTechnology() == tech && cap != this)
+                    a.arcPin.portArcs.add(cap.getName());
+            }
+                
+        }
         return a;
     }
-    
+
     /**
      * Method to check invariants in this ArcProto.
      * @exception AssertionError if invariants are not valid

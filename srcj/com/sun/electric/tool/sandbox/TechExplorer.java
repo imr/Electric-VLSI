@@ -753,8 +753,17 @@ public class TechExplorer extends ESandBox {
     private Object makeMenuEntry(Xml.Technology t, Object entry) throws IllegalAccessException, InvocationTargetException {
         if (classArcProto.isInstance(entry))
             return t.findArc((String)ArcProto_getName.invoke(entry));
-        if (classPrimitiveNode.isInstance(entry))
-            return t.findNode((String)PrimitiveNode_getName.invoke(entry));
+        if (classPrimitiveNode.isInstance(entry)) {
+            PrimitiveNode.Function fun = PrimitiveNodeFunctions.get(NodeInst_getFunction.invoke(entry));
+            String name = (String)PrimitiveNode_getName.invoke(entry);
+            if (fun == PrimitiveNode.Function.PIN) {
+                Xml.MenuNodeInst n = new Xml.MenuNodeInst();
+                n.protoName = name;
+                n.function = PrimitiveNode.Function.PIN;
+                return n;
+            }
+            return t.findNode(name);
+        }
         if (classNodeInst.isInstance(entry)) {
             Xml.MenuNodeInst n = new Xml.MenuNodeInst();
             n.protoName = (String)PrimitiveNode_getName.invoke(NodeInst_getProto.invoke(entry));

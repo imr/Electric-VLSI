@@ -887,6 +887,7 @@
         <arcLayer layer="Metal-1" style="FILLED">
             <lambda>1.5</lambda>
         </arcLayer>
+        <arcPin name="Metal-1-Pin" port="metal-1" elibSize="3.0"/>
     </arcProto>
 
     <arcProto name="Metal-2" fun="METAL2">
@@ -898,6 +899,7 @@
         <arcLayer layer="Metal-2" style="FILLED">
             <lambda>1.5</lambda>
         </arcLayer>
+        <arcPin name="Metal-2-Pin" port="metal-2" elibSize="3.0"/>
     </arcProto>
 
     <arcProto name="Metal-3" fun="METAL3">
@@ -909,6 +911,7 @@
         <arcLayer layer="Metal-3" style="FILLED">
             <lambda>1.5</lambda>
         </arcLayer>
+        <arcPin name="Metal-3-Pin" port="metal-3" elibSize="3.0"/>
     </arcProto>
 
     <arcProto name="Metal-4" fun="METAL4">
@@ -920,6 +923,7 @@
         <arcLayer layer="Metal-4" style="FILLED">
             <lambda>1.5</lambda>
         </arcLayer>
+        <arcPin name="Metal-4-Pin" port="metal-4" elibSize="3.0"/>
     </arcProto>
 
     <arcProto name="Metal-5" fun="METAL5">
@@ -931,6 +935,7 @@
         <arcLayer layer="Metal-5" style="FILLED">
             <lambda>1.5</lambda>
         </arcLayer>
+        <arcPin name="Metal-5-Pin" port="metal-5" elibSize="3.0"/>
     </arcProto>
 
     <arcProto name="Metal-6" fun="METAL6">
@@ -942,6 +947,7 @@
         <arcLayer layer="Metal-6" style="FILLED">
             <lambda>1.5</lambda>
         </arcLayer>
+        <arcPin name="Metal-6-Pin" port="metal-6" elibSize="3.0"/>
     </arcProto>
 
     <arcProto name="Polysilicon-1" fun="POLY1">
@@ -953,6 +959,7 @@
         <arcLayer layer="Polysilicon-1" style="FILLED">
             <lambda>1.0</lambda>
         </arcLayer>
+        <arcPin name="Polysilicon-1-Pin" port="polysilicon-1" elibSize="2.0"/>
     </arcProto>
 
     <arcProto name="Polysilicon-2" fun="POLY2">
@@ -964,6 +971,7 @@
         <arcLayer layer="Polysilicon-2" style="FILLED">
             <lambda>1.5</lambda>
         </arcLayer>
+        <arcPin name="Polysilicon-2-Pin" port="polysilicon-2" elibSize="3.0"/>
     </arcProto>
 
     <arcProto name="P-Active" fun="DIFFP">
@@ -982,6 +990,7 @@
         <arcLayer layer="N-Well" style="FILLED">
             <lambda>7.5</lambda>
         </arcLayer>
+        <arcPin name="P-Active-Pin" port="p-active" elibSize="15.0"/>
     </arcProto>
 
     <arcProto name="N-Active" fun="DIFFN">
@@ -1000,6 +1009,7 @@
         <arcLayer layer="P-Well" style="FILLED">
             <lambda>7.5</lambda>
         </arcLayer>
+        <arcPin name="N-Active-Pin" port="n-active" elibSize="15.0"/>
     </arcProto>
 
     <arcProto name="Active" fun="DIFF">
@@ -1014,247 +1024,13 @@
         <arcLayer layer="P-Active" style="FILLED">
             <lambda>1.5</lambda>
         </arcLayer>
+        <arcPin name="Active-Pin" port="active" elibSize="3.0">
+            <portArc>P-Active</portArc>
+            <portArc>N-Active</portArc>
+        </arcPin>
     </arcProto>
 
     <!-- ******************** NODES ******************** -->
-    <primitiveNode name="Metal-1-Pin" fun="PIN">
-        <shrinkArcs/>
-        <diskOffset untilVersion="2" x="1.5" y="1.5"/>
-        <nodeBase lx="-1.5" hx="1.5" ly="-1.5" hy="1.5"/>
-        <nodeLayer layer="Metal-1" style="CROSSED">
-            <box>
-                <lambdaBox klx="-1.5" khx="1.5" kly="-1.5" khy="1.5"/>
-            </box>
-        </nodeLayer>
-        <primitivePort name="metal-1">
-            <portAngle primary="0" range="180"/>
-            <portTopology>0</portTopology>
-            <box>
-                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
-            </box>
-            <portArc>Metal-1</portArc>
-        </primitivePort>
-    </primitiveNode>
-
-    <primitiveNode name="Metal-2-Pin" fun="PIN">
-        <shrinkArcs/>
-        <diskOffset untilVersion="2" x="1.5" y="1.5"/>
-        <nodeBase lx="-1.5" hx="1.5" ly="-1.5" hy="1.5"/>
-        <nodeLayer layer="Metal-2" style="CROSSED">
-            <box>
-                <lambdaBox klx="-1.5" khx="1.5" kly="-1.5" khy="1.5"/>
-            </box>
-        </nodeLayer>
-        <primitivePort name="metal-2">
-            <portAngle primary="0" range="180"/>
-            <portTopology>0</portTopology>
-            <box>
-                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
-            </box>
-            <portArc>Metal-2</portArc>
-        </primitivePort>
-    </primitiveNode>
-
-    <primitiveNode name="Metal-3-Pin" fun="PIN">
-        <shrinkArcs/>
-        <diskOffset untilVersion="2" x="1.5" y="1.5"/>
-        <nodeBase lx="-1.5" hx="1.5" ly="-1.5" hy="1.5"/>
-        <nodeLayer layer="Metal-3" style="CROSSED">
-            <box>
-                <lambdaBox klx="-1.5" khx="1.5" kly="-1.5" khy="1.5"/>
-            </box>
-        </nodeLayer>
-        <primitivePort name="metal-3">
-            <portAngle primary="0" range="180"/>
-            <portTopology>0</portTopology>
-            <box>
-                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
-            </box>
-            <portArc>Metal-3</portArc>
-        </primitivePort>
-    </primitiveNode>
-
-    <primitiveNode name="Metal-4-Pin" fun="PIN">
-        <shrinkArcs/>
-        <diskOffset untilVersion="2" x="1.5" y="1.5"/>
-        <nodeBase lx="-1.5" hx="1.5" ly="-1.5" hy="1.5"/>
-        <nodeLayer layer="Metal-4" style="CROSSED">
-            <box>
-                <lambdaBox klx="-1.5" khx="1.5" kly="-1.5" khy="1.5"/>
-            </box>
-        </nodeLayer>
-        <primitivePort name="metal-4">
-            <portAngle primary="0" range="180"/>
-            <portTopology>0</portTopology>
-            <box>
-                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
-            </box>
-            <portArc>Metal-4</portArc>
-        </primitivePort>
-    </primitiveNode>
-
-    <primitiveNode name="Metal-5-Pin" fun="PIN">
-        <shrinkArcs/>
-        <diskOffset untilVersion="2" x="1.5" y="1.5"/>
-        <nodeBase lx="-1.5" hx="1.5" ly="-1.5" hy="1.5"/>
-        <nodeLayer layer="Metal-5" style="CROSSED">
-            <box>
-                <lambdaBox klx="-1.5" khx="1.5" kly="-1.5" khy="1.5"/>
-            </box>
-        </nodeLayer>
-        <primitivePort name="metal-5">
-            <portAngle primary="0" range="180"/>
-            <portTopology>0</portTopology>
-            <box>
-                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
-            </box>
-            <portArc>Metal-5</portArc>
-        </primitivePort>
-    </primitiveNode>
-
-    <primitiveNode name="Metal-6-Pin" fun="PIN">
-        <shrinkArcs/>
-        <diskOffset untilVersion="2" x="1.5" y="1.5"/>
-        <nodeBase lx="-1.5" hx="1.5" ly="-1.5" hy="1.5"/>
-        <nodeLayer layer="Metal-6" style="CROSSED">
-            <box>
-                <lambdaBox klx="-1.5" khx="1.5" kly="-1.5" khy="1.5"/>
-            </box>
-        </nodeLayer>
-        <primitivePort name="metal-6">
-            <portAngle primary="0" range="180"/>
-            <portTopology>0</portTopology>
-            <box>
-                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
-            </box>
-            <portArc>Metal-6</portArc>
-        </primitivePort>
-    </primitiveNode>
-
-    <primitiveNode name="Polysilicon-1-Pin" fun="PIN">
-        <shrinkArcs/>
-        <diskOffset untilVersion="2" x="1.0" y="1.0"/>
-        <nodeBase lx="-1.0" hx="1.0" ly="-1.0" hy="1.0"/>
-        <nodeLayer layer="Polysilicon-1" style="CROSSED">
-            <box>
-                <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
-            </box>
-        </nodeLayer>
-        <primitivePort name="polysilicon-1">
-            <portAngle primary="0" range="180"/>
-            <portTopology>0</portTopology>
-            <box>
-                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
-            </box>
-            <portArc>Polysilicon-1</portArc>
-        </primitivePort>
-    </primitiveNode>
-
-    <primitiveNode name="Polysilicon-2-Pin" fun="PIN">
-        <shrinkArcs/>
-        <diskOffset untilVersion="2" x="1.5" y="1.5"/>
-        <nodeBase lx="-1.5" hx="1.5" ly="-1.5" hy="1.5"/>
-        <nodeLayer layer="Polysilicon-2" style="CROSSED">
-            <box>
-                <lambdaBox klx="-1.5" khx="1.5" kly="-1.5" khy="1.5"/>
-            </box>
-        </nodeLayer>
-        <primitivePort name="polysilicon-2">
-            <portAngle primary="0" range="180"/>
-            <portTopology>0</portTopology>
-            <box>
-                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
-            </box>
-            <portArc>Polysilicon-2</portArc>
-        </primitivePort>
-    </primitiveNode>
-
-    <primitiveNode name="P-Active-Pin" fun="PIN">
-        <shrinkArcs/>
-        <diskOffset untilVersion="1" x="7.5" y="7.5"/>
-        <diskOffset untilVersion="2" x="1.5" y="1.5"/>
-        <nodeBase lx="-1.5" hx="1.5" ly="-1.5" hy="1.5"/>
-        <nodeLayer layer="P-Active" style="CROSSED">
-            <box>
-                <lambdaBox klx="-1.5" khx="1.5" kly="-1.5" khy="1.5"/>
-            </box>
-        </nodeLayer>
-        <nodeLayer layer="P-Select" style="CROSSED">
-            <box>
-                <lambdaBox klx="-3.5" khx="3.5" kly="-3.5" khy="3.5"/>
-            </box>
-        </nodeLayer>
-        <nodeLayer layer="N-Well" style="CROSSED">
-            <box>
-                <lambdaBox klx="-7.5" khx="7.5" kly="-7.5" khy="7.5"/>
-            </box>
-        </nodeLayer>
-        <primitivePort name="p-active">
-            <portAngle primary="0" range="180"/>
-            <portTopology>0</portTopology>
-            <box>
-                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
-            </box>
-            <portArc>P-Active</portArc>
-        </primitivePort>
-    </primitiveNode>
-
-    <primitiveNode name="N-Active-Pin" fun="PIN">
-        <shrinkArcs/>
-        <diskOffset untilVersion="1" x="7.5" y="7.5"/>
-        <diskOffset untilVersion="2" x="1.5" y="1.5"/>
-        <nodeBase lx="-1.5" hx="1.5" ly="-1.5" hy="1.5"/>
-        <nodeLayer layer="N-Active" style="CROSSED">
-            <box>
-                <lambdaBox klx="-1.5" khx="1.5" kly="-1.5" khy="1.5"/>
-            </box>
-        </nodeLayer>
-        <nodeLayer layer="N-Select" style="CROSSED">
-            <box>
-                <lambdaBox klx="-3.5" khx="3.5" kly="-3.5" khy="3.5"/>
-            </box>
-        </nodeLayer>
-        <nodeLayer layer="P-Well" style="CROSSED">
-            <box>
-                <lambdaBox klx="-7.5" khx="7.5" kly="-7.5" khy="7.5"/>
-            </box>
-        </nodeLayer>
-        <primitivePort name="n-active">
-            <portAngle primary="0" range="180"/>
-            <portTopology>0</portTopology>
-            <box>
-                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
-            </box>
-            <portArc>N-Active</portArc>
-        </primitivePort>
-    </primitiveNode>
-
-    <primitiveNode name="Active-Pin" fun="PIN">
-        <shrinkArcs/>
-        <diskOffset untilVersion="2" x="1.5" y="1.5"/>
-        <nodeBase lx="-1.5" hx="1.5" ly="-1.5" hy="1.5"/>
-        <nodeLayer layer="P-Active" style="CROSSED">
-            <box>
-                <lambdaBox klx="-1.5" khx="1.5" kly="-1.5" khy="1.5"/>
-            </box>
-        </nodeLayer>
-        <nodeLayer layer="N-Active" style="CROSSED">
-            <box>
-                <lambdaBox klx="-1.5" khx="1.5" kly="-1.5" khy="1.5"/>
-            </box>
-        </nodeLayer>
-        <primitivePort name="active">
-            <portAngle primary="0" range="180"/>
-            <portTopology>0</portTopology>
-            <box>
-                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
-            </box>
-            <portArc>Active</portArc>
-            <portArc>P-Active</portArc>
-            <portArc>N-Active</portArc>
-        </primitivePort>
-    </primitiveNode>
-
     <primitiveNode name="Metal-1-P-Active-Con" fun="CONTACT">
         <diskOffset untilVersion="1" x="8.5" y="8.5"/>
         <diskOffset untilVersion="2" x="2.5" y="2.5"/>
@@ -1852,7 +1628,7 @@
             <menuArc>Active</menuArc>
         </menuBox>
         <menuBox>
-            <menuNode>Active-Pin</menuNode>
+            <menuNodeInst protoName="Active-Pin" function="PIN"/>
         </menuBox>
         <menuBox>
             <menuNode>Metal-1-Well-Con</menuNode>
@@ -1862,7 +1638,7 @@
             <menuArc>P-Active</menuArc>
         </menuBox>
         <menuBox>
-            <menuNode>P-Active-Pin</menuNode>
+            <menuNodeInst protoName="P-Active-Pin" function="PIN"/>
         </menuBox>
         <menuBox>
             <menuNode>Metal-1-P-Active-Con</menuNode>
@@ -1872,7 +1648,7 @@
             <menuArc>N-Active</menuArc>
         </menuBox>
         <menuBox>
-            <menuNode>N-Active-Pin</menuNode>
+            <menuNodeInst protoName="N-Active-Pin" function="PIN"/>
         </menuBox>
         <menuBox>
             <menuNode>Metal-1-N-Active-Con</menuNode>
@@ -1882,7 +1658,7 @@
             <menuArc>Polysilicon-1</menuArc>
         </menuBox>
         <menuBox>
-            <menuNode>Polysilicon-1-Pin</menuNode>
+            <menuNodeInst protoName="Polysilicon-1-Pin" function="PIN"/>
         </menuBox>
         <menuBox>
             <menuNode>Metal-1-Polysilicon-1-Con</menuNode>
@@ -1892,7 +1668,7 @@
             <menuArc>Polysilicon-2</menuArc>
         </menuBox>
         <menuBox>
-            <menuNode>Polysilicon-2-Pin</menuNode>
+            <menuNodeInst protoName="Polysilicon-2-Pin" function="PIN"/>
         </menuBox>
         <menuBox>
             <menuNode>Metal-1-Polysilicon-2-Con</menuNode>
@@ -1902,7 +1678,7 @@
             <menuArc>Metal-1</menuArc>
         </menuBox>
         <menuBox>
-            <menuNode>Metal-1-Pin</menuNode>
+            <menuNodeInst protoName="Metal-1-Pin" function="PIN"/>
         </menuBox>
         <menuBox>
             <menuNode>Metal-1-Metal-2-Con</menuNode>
@@ -1912,7 +1688,7 @@
             <menuArc>Metal-2</menuArc>
         </menuBox>
         <menuBox>
-            <menuNode>Metal-2-Pin</menuNode>
+            <menuNodeInst protoName="Metal-2-Pin" function="PIN"/>
         </menuBox>
         <menuBox>
             <menuNode>Metal-2-Metal-3-Con</menuNode>
@@ -1922,7 +1698,7 @@
             <menuArc>Metal-3</menuArc>
         </menuBox>
         <menuBox>
-            <menuNode>Metal-3-Pin</menuNode>
+            <menuNodeInst protoName="Metal-3-Pin" function="PIN"/>
         </menuBox>
         <menuBox>
             <menuNode>Metal-3-Metal-4-Con</menuNode>
@@ -1932,7 +1708,7 @@
             <menuArc>Metal-4</menuArc>
         </menuBox>
         <menuBox>
-            <menuNode>Metal-4-Pin</menuNode>
+            <menuNodeInst protoName="Metal-4-Pin" function="PIN"/>
         </menuBox>
         <menuBox>
             <menuNode>Metal-4-Metal-5-Con</menuNode>
@@ -1942,7 +1718,7 @@
             <menuArc>Metal-5</menuArc>
         </menuBox>
         <menuBox>
-            <menuNode>Metal-5-Pin</menuNode>
+            <menuNodeInst protoName="Metal-5-Pin" function="PIN"/>
         </menuBox>
         <menuBox>
             <menuNode>Metal-5-Metal-6-Con</menuNode>
@@ -1952,7 +1728,7 @@
             <menuArc>Metal-6</menuArc>
         </menuBox>
         <menuBox>
-            <menuNode>Metal-6-Pin</menuNode>
+            <menuNodeInst protoName="Metal-6-Pin" function="PIN"/>
         </menuBox>
         <menuBox/>
 

@@ -84,6 +84,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -730,25 +731,24 @@ public class Technology implements Comparable<Technology>, Serializable
                 }
                 arcExtends.put(ap.getId(), Integer.valueOf(correction));
             }
-            if (xmlTech != null) {
-                for (Xml.PrimitiveNode xpn: xmlTech.nodes) {
-                    PrimitiveNode pn = nodes.get(xpn.name);
-                    EPoint correction = EPoint.ORIGIN;
-                    for (Map.Entry<Integer,EPoint> e: xpn.diskOffset.entrySet()) {
-                        if (techVersion < e.getKey().intValue()) {
-                            correction = e.getValue();
-                            break;
-                        }
-                    }
-//                    correction = EPoint.fromGrid(correction.getGridX() + pn.sizeCorrector.getGridX(), correction.getGridY() + pn.sizeCorrector.getGridY());
-                    nodeExtends.put(pn.getId(), correction);
-                }
-                for (Xml.Layer l: xmlTech.layers) {
-                    if (l.pureLayerNode == null) continue;
-                    PrimitiveNode pn = nodes.get(l.pureLayerNode.name);
-                    nodeExtends.put(pn.getId(), EPoint.ORIGIN);
-                }
-            } else {
+//            if (xmlTech != null) {
+//                for (Xml.PrimitiveNode xpn: xmlTech.nodes) {
+//                    PrimitiveNode pn = nodes.get(xpn.name);
+//                    EPoint correction = EPoint.ORIGIN;
+//                    for (Map.Entry<Integer,EPoint> e: xpn.diskOffset.entrySet()) {
+//                        if (techVersion < e.getKey().intValue()) {
+//                            correction = e.getValue();
+//                            break;
+//                        }
+//                    }
+//                    nodeExtends.put(pn.getId(), correction);
+//                }
+//                for (Xml.Layer l: xmlTech.layers) {
+//                    if (l.pureLayerNode == null) continue;
+//                    PrimitiveNode pn = nodes.get(l.pureLayerNode.name);
+//                    nodeExtends.put(pn.getId(), EPoint.ORIGIN);
+//                }
+//            } else {
                 for (PrimitiveNode pn: nodes.values()) {
                     EPoint correction = EPoint.ORIGIN;
                     switch (techVersion) {
@@ -764,7 +764,7 @@ public class Technology implements Comparable<Technology>, Serializable
                     }
                     nodeExtends.put(pn.getId(), correction);
                 }
-            }
+//            }
         }
 
         public boolean isIdentity() {
@@ -1038,6 +1038,8 @@ public class Technology implements Comparable<Technology>, Serializable
             ap.setFactoryFixedAngle(a.fixedAngle);
             ap.setFactoryAngleIncrement(a.angleIncrement);
             ERC.getERCTool().setAntennaRatio(ap, a.antennaRatio);
+            if (a.arcPin != null)
+                ap.makeWipablePin(a.arcPin.name, a.arcPin.portName, a.arcPin.elibSize, makeConnections(a.arcPin.portArcs, arcs));
         }
         setNoNegatedArcs();
         for (Xml.PrimitiveNode n: t.nodes) {
@@ -1101,8 +1103,8 @@ public class Technology implements Comparable<Technology>, Serializable
             EPoint negCorrection = EPoint.fromGrid(-correction.getGridX(), -correction.getGridY());
             PrimitiveNode pnp = PrimitiveNode.newInstance(n.name, this, negCorrection, minSizeRule,
                     DBMath.round(n.defaultWidth.value + 2*correction.getLambdaX()),
-                    DBMath.round(n.defaultHeight.value + 2*correction.getLambdaY()), baseRectangle,
-                    nodeLayers.toArray(new NodeLayer[nodeLayers.size()]));
+                    DBMath.round(n.defaultHeight.value + 2*correction.getLambdaY()),
+                    baseRectangle, nodeLayers.toArray(new NodeLayer[nodeLayers.size()]));
             if (n.oldName != null)
                 oldNodeNames.put(n.oldName, pnp);
             pnp.setFunction(n.function);
@@ -1144,16 +1146,9 @@ public class Technology implements Comparable<Technology>, Serializable
                 Xml.PrimitivePort p = n.ports.get(i);
 //                TechPoint p0 = makeTechPoint(p.p0, correction);
 //                TechPoint p1 = makeTechPoint(p.p1, correction);
-                ArcProto[] connections = new ArcProto[p.portArcs.size()];
-                for (int j = 0; j < connections.length; j++) {
-                    ArcProto ap = arcs.get(p.portArcs.get(j));
-                    if (ap == null)
-                        throw new NoSuchElementException(p.portArcs.get(j));
-                    connections[j] = ap;
-                }
                 if (p.lx.value > p.hx.value || p.lx.k > p.hx.k || p.ly.value > p.hy.value || p.ly.k > p.hy.k)
                     System.out.println("Strange polygon in " + getTechName() + ":" + n.name + ":" + p.name);
-                ports[i] = PrimitivePort.newInstance(this, pnp, connections, p.name, p.portAngle, p.portRange, p.portTopology,
+                ports[i] = PrimitivePort.newInstance(this, pnp, makeConnections(p.portArcs, arcs), p.name, p.portAngle, p.portRange, p.portTopology,
                         PortCharacteristic.UNKNOWN, makeEdgeH(p.lx, correction), makeEdgeV(p.ly, correction), makeEdgeH(p.hx, correction), makeEdgeV(p.hy, correction));
 //                        PortCharacteristic.UNKNOWN, p0.getX(), p0.getY(), p1.getX(), p1.getY());
             }
@@ -1183,14 +1178,8 @@ public class Technology implements Comparable<Technology>, Serializable
         for (Xml.Layer l: t.layers) {
             if (l.pureLayerNode == null) continue;
             Layer layer = layers.get(l.name);
-            ArcProto[] connections = new ArcProto[l.pureLayerNode.portArcs.size()];
-            for (int j = 0; j < connections.length; j++) {
-                ArcProto ap = arcs.get(l.pureLayerNode.portArcs.get(j));
-                if (ap == null)
-                    throw new NoSuchElementException(l.pureLayerNode.portArcs.get(j));
-                connections[j] = ap;
-            }
-            PrimitiveNode pn = layer.makePureLayerNode(l.pureLayerNode.name, l.pureLayerNode.size.value, l.pureLayerNode.style, l.pureLayerNode.port, connections);
+            PrimitiveNode pn = layer.makePureLayerNode(l.pureLayerNode.name, l.pureLayerNode.size.value, l.pureLayerNode.style,
+                    l.pureLayerNode.port, makeConnections(l.pureLayerNode.portArcs, arcs));
             if (l.pureLayerNode.oldName != null)
                 oldNodeNames.put(l.pureLayerNode.oldName, pn);
         }
@@ -1221,6 +1210,17 @@ public class Technology implements Comparable<Technology>, Serializable
         }
     }
 
+    private ArcProto[] makeConnections(List<String> portArcs, HashMap<String,ArcProto> arcs) {
+        ArcProto[] connections = new ArcProto[portArcs.size()];
+        for (int j = 0; j < connections.length; j++) {
+            ArcProto ap = arcs.get(portArcs.get(j));
+            if (ap == null)
+                throw new NoSuchElementException(portArcs.get(j));
+            connections[j] = ap;
+        }
+        return connections;
+    }
+    
     private TechPoint makeTechPoint(TechPoint p, EPoint correction) {
         EdgeH h = p.getX();
         EdgeV v = p.getY();
@@ -1274,7 +1274,9 @@ public class Technology implements Comparable<Technology>, Serializable
         if (menuItem instanceof Xml.MenuNodeInst) {
             Xml.MenuNodeInst n = (Xml.MenuNodeInst)menuItem;
             boolean hasText = (n.text != null);
-            return makeNodeInst(findNodeProto(n.protoName), n.function, n.rotation, hasText, n.text, n.fontSize);
+            PrimitiveNode pn = findNodeProto(n.protoName);
+            if (pn != null)
+                return makeNodeInst(pn, n.function, n.rotation, hasText, n.text, n.fontSize);
         }
         return menuItem.toString();
     }
@@ -1864,13 +1866,17 @@ public class Technology implements Comparable<Technology>, Serializable
             if (layer.isPseudoLayer()) continue;
             t.layers.add(layer.makeXml());
         }
+        HashSet<PrimitiveNode> arcPins = new HashSet<PrimitiveNode>();
         for (Iterator<ArcProto> it = getArcs(); it.hasNext(); ) {
             ArcProto ap = it.next();
             t.arcs.add(ap.makeXml());
+            if (ap.arcPin != null)
+                arcPins.add(ap.arcPin);
         }
         for (Iterator<PrimitiveNode> it = getNodes(); it.hasNext(); ) {
             PrimitiveNode pnp = it.next();
             if (pnp.getFunction() == PrimitiveNode.Function.NODE) continue;
+            if (arcPins.contains(pnp)) continue;
             t.nodes.add(pnp.makeXml());
         }
 
@@ -1931,8 +1937,16 @@ public class Technology implements Comparable<Technology>, Serializable
     private static Object makeMenuEntry(Xml.Technology t, Object entry) {
         if (entry instanceof ArcProto)
             return t.findArc(((ArcProto)entry).getName());
-        if (entry instanceof PrimitiveNode)
+        if (entry instanceof PrimitiveNode) {
+            PrimitiveNode pn = (PrimitiveNode)entry;
+            if (pn.getFunction() == PrimitiveNode.Function.PIN) {
+                Xml.MenuNodeInst n = new Xml.MenuNodeInst();
+                n.protoName = pn.getName();
+                n.function = PrimitiveNode.Function.PIN;
+                return n;
+            }
             return t.findNode(((PrimitiveNode)entry).getName());
+        }
         if (entry instanceof NodeInst) {
             NodeInst ni = (NodeInst)entry;
             Xml.MenuNodeInst n = new Xml.MenuNodeInst();
@@ -5276,6 +5290,14 @@ public class Technology implements Comparable<Technology>, Serializable
 		return newMatrix;
 	}
 
+    /**
+     * Method to create temporary nodes for the palette
+     * @param np prototype of the node to place in the palette.
+     */
+    public static NodeInst makeNodeInst(NodeProto np) {
+        return makeNodeInst(np, np.getFunction(), 0, false, null, 0);
+    }
+    
     /**
      * Method to create temporary nodes for the palette
      * @param np prototype of the node to place in the palette.

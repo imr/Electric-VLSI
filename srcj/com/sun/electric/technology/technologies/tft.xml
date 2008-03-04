@@ -366,6 +366,7 @@
         <arcLayer layer="Metal-1" style="FILLED">
             <lambda>1.0</lambda>
         </arcLayer>
+        <arcPin name="Metal-1-Pin" port="metal-1" elibSize="2.0"/>
     </arcProto>
 
     <arcProto name="Metal_2" fun="METAL2">
@@ -377,47 +378,10 @@
         <arcLayer layer="Metal-2" style="FILLED">
             <lambda>1.0</lambda>
         </arcLayer>
+        <arcPin name="Metal-2-Pin" port="metal-2" elibSize="2.0"/>
     </arcProto>
 
     <!-- ******************** NODES ******************** -->
-    <primitiveNode name="Metal-1-Pin" fun="PIN">
-        <shrinkArcs/>
-        <diskOffset untilVersion="2" x="1.5" y="1.5"/>
-        <nodeBase lx="-1.5" hx="1.5" ly="-1.5" hy="1.5"/>
-        <nodeLayer layer="Metal-1" style="CROSSED">
-            <box>
-                <lambdaBox klx="-1.5" khx="1.5" kly="-1.5" khy="1.5"/>
-            </box>
-        </nodeLayer>
-        <primitivePort name="metal-1">
-            <portAngle primary="0" range="180"/>
-            <portTopology>0</portTopology>
-            <box>
-                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
-            </box>
-            <portArc>Metal_1</portArc>
-        </primitivePort>
-    </primitiveNode>
-
-    <primitiveNode name="Metal-2-Pin" fun="PIN">
-        <shrinkArcs/>
-        <diskOffset untilVersion="2" x="1.5" y="1.5"/>
-        <nodeBase lx="-1.5" hx="1.5" ly="-1.5" hy="1.5"/>
-        <nodeLayer layer="Metal-2" style="CROSSED">
-            <box>
-                <lambdaBox klx="-1.5" khx="1.5" kly="-1.5" khy="1.5"/>
-            </box>
-        </nodeLayer>
-        <primitivePort name="metal-2">
-            <portAngle primary="0" range="180"/>
-            <portTopology>0</portTopology>
-            <box>
-                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
-            </box>
-            <portArc>Metal_2</portArc>
-        </primitivePort>
-    </primitiveNode>
-
     <primitiveNode name="Metal-1-Metal-2-Con" fun="CONTACT">
         <diskOffset untilVersion="2" x="2.5" y="2.5"/>
         <nodeBase lx="-2.5" hx="2.5" ly="-2.5" hy="2.5"/>
@@ -593,14 +557,14 @@
         </menuBox>
 
         <menuBox>
-            <menuNode>Metal-1-Pin</menuNode>
+            <menuNodeInst protoName="Metal-1-Pin" function="PIN"/>
         </menuBox>
         <menuBox>
             <menuNode>capacitor</menuNode>
         </menuBox>
 
         <menuBox>
-            <menuNode>Metal-2-Pin</menuNode>
+            <menuNodeInst protoName="Metal-2-Pin" function="PIN"/>
         </menuBox>
         <menuBox>
             <menuText>Cell</menuText>

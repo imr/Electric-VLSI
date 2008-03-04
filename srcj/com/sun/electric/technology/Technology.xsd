@@ -4,11 +4,11 @@
             targetNamespace="http://electric.sun.com/Technology"
             xmlns:tns="http://electric.sun.com/Technology"
             elementFormDefault="qualified">
-                
+
     <xsd:simpleType name="ColorComponent">
         <xsd:restriction base="xsd:unsignedByte"/>
     </xsd:simpleType>
-    
+
     <xsd:group name="Color">
         <xsd:sequence>
             <xsd:element name="r" type="tns:ColorComponent"></xsd:element>
@@ -16,7 +16,7 @@
             <xsd:element name="b" type="tns:ColorComponent"></xsd:element>
         </xsd:sequence>
     </xsd:group>
-    
+
     <xsd:group name="Distance">
         <xsd:sequence>
             <xsd:choice maxOccurs="unbounded" minOccurs="0">
@@ -24,7 +24,7 @@
             </xsd:choice>
         </xsd:sequence>
     </xsd:group>
-    
+
     <xsd:group name="MenuItem">
         <xsd:sequence>
             <xsd:choice>
@@ -54,28 +54,28 @@
             </xsd:choice>
         </xsd:sequence>
     </xsd:group>
-    
+
     <xsd:complexType name="ColorRGB">
         <xsd:attribute name="r" type="tns:ColorComponent" use="required"/>
         <xsd:attribute name="g" type="tns:ColorComponent" use="required"/>
         <xsd:attribute name="b" type="tns:ColorComponent" use="required"/>
     </xsd:complexType>
-    
+
     <xsd:simpleType name="ClassName">
         <xsd:restriction base="xsd:NCName"/>
     </xsd:simpleType>
-    
+
     <xsd:simpleType name="TechVersion">
         <xsd:restriction base="xsd:int"/>
     </xsd:simpleType>
-    
+
     <xsd:simpleType name="NumMetals">
         <xsd:restriction base="xsd:int">
             <xsd:minInclusive value="0"/>
             <xsd:maxInclusive value="12"/>
         </xsd:restriction>
     </xsd:simpleType>
-    
+
     <xsd:simpleType name="Foundry">
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value="NONE"/>
@@ -84,18 +84,18 @@
             <xsd:enumeration value="ST"/>
         </xsd:restriction>
     </xsd:simpleType>
-    
+
     <xsd:simpleType name="TransparentLayer">
         <xsd:restriction base="xsd:positiveInteger">
             <xsd:maxInclusive value="12"/>
             <xsd:whiteSpace value="collapse"/>
         </xsd:restriction>
     </xsd:simpleType>
-    
+
     <xsd:simpleType name="LayerName">
         <xsd:restriction base="xsd:NCName"/>
     </xsd:simpleType>
-    
+
     <xsd:simpleType name="LayerFun">
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value="UNKNOWN"/>
@@ -153,7 +153,7 @@
             <xsd:enumeration value="TILENOT"/>
         </xsd:restriction>
     </xsd:simpleType>
-    
+
     <xsd:simpleType name="LayerExtraFun">
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value="nonelectrical"/>
@@ -171,7 +171,7 @@
             <xsd:enumeration value="native"/>
         </xsd:restriction>
     </xsd:simpleType>
-    
+
     <xsd:simpleType name="LayerOutline">
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value="NOPAT"/>
@@ -191,18 +191,18 @@
             <xsd:enumeration value="PAT_DO2_T2"/>
         </xsd:restriction>
     </xsd:simpleType>
-    
+
     <xsd:simpleType name="Opacity">
         <xsd:restriction base="xsd:double">
             <xsd:minInclusive value="0"/>
             <xsd:maxInclusive value="1"/>
         </xsd:restriction>
     </xsd:simpleType>
-    
+
     <xsd:simpleType name="ArcProtoName">
         <xsd:restriction base="xsd:NCName"/>
     </xsd:simpleType>
-    
+
     <xsd:simpleType name="ArcProtoFun">
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value="UNKNOWN"/>
@@ -231,22 +231,22 @@
             <xsd:enumeration value="NONELEC"/>
         </xsd:restriction>
     </xsd:simpleType>
-    
+
     <xsd:simpleType name="ArcLayerStyle">
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value="FILLED"/>
             <xsd:enumeration value="CLOSED"/>
         </xsd:restriction>
     </xsd:simpleType>
-    
+
     <xsd:simpleType name="PrimitiveNodeName">
         <xsd:restriction base="xsd:NCName"/>
     </xsd:simpleType>
-    
+
     <xsd:simpleType name="CellName">
         <xsd:restriction base="xsd:Name"/>
     </xsd:simpleType>
-    
+
     <xsd:simpleType name="PrimitiveNodeFun">
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value="UNKNOWN"/>
@@ -320,7 +320,7 @@
             <xsd:enumeration value="TLINE"/>
         </xsd:restriction>
     </xsd:simpleType>
-    
+
     <xsd:simpleType name="NodeLayerStyle">
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value="FILLED"/>
@@ -328,11 +328,11 @@
             <xsd:enumeration value="CROSSED"/>
         </xsd:restriction>
     </xsd:simpleType>
-    
+
     <xsd:simpleType name="PrimitivePortName">
         <xsd:restriction base="xsd:NCName"/>
     </xsd:simpleType>
-    
+
     <xsd:simpleType name="SpiceLevel">
         <xsd:restriction base="xsd:int">
             <xsd:minInclusive value="1"/>
@@ -340,11 +340,11 @@
             <xsd:whiteSpace value="collapse"/>
         </xsd:restriction>
     </xsd:simpleType>
-    
+
     <xsd:simpleType name="RuleName">
         <xsd:restriction base="xsd:string"/>
     </xsd:simpleType>
-    
+
     <xsd:simpleType name="LayerRuleType">
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value="MINWID"/>
@@ -354,7 +354,7 @@
             <xsd:enumeration value="SURROUND"/>
         </xsd:restriction>
     </xsd:simpleType>
-    
+
     <xsd:simpleType name="LayersRuleType">
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value="CONSPA"/>
@@ -368,7 +368,7 @@
             <xsd:enumeration value="SURROUND"/>
         </xsd:restriction>
     </xsd:simpleType>
-    
+
     <xsd:simpleType name="NodeLayersRuleType">
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value="SURROUND"/>
@@ -382,14 +382,14 @@
             <xsd:enumeration value="SURROUND"/>
         </xsd:restriction>
     </xsd:simpleType>
-    
+
     <xsd:simpleType name="NodeRuleType">
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value="NODSIZ"/>
             <xsd:enumeration value="FORBIDDEN"/>
         </xsd:restriction>
     </xsd:simpleType>
-    
+
     <xsd:simpleType name="DesignRuleWhen">
         <xsd:restriction base="xsd:string"/>
     </xsd:simpleType>
@@ -404,7 +404,7 @@
         <xsd:attribute name="ym" type="xsd:double" use="required"/>
         <xsd:attribute name="ya" type="xsd:double" use="required"/>
     </xsd:complexType>
-    
+
     <xsd:element name="technology">
         <xsd:complexType>
             <xsd:sequence>
@@ -501,9 +501,9 @@
                                         <xsd:group ref="tns:Distance"/>
                                         <xsd:element name="portArc" type="tns:ArcProtoName" minOccurs="0" maxOccurs="unbounded"></xsd:element>
                                     </xsd:sequence>
-                                    <xsd:attribute name="name" type="tns:PrimitiveNodeName"/>
+                                    <xsd:attribute name="name" type="tns:PrimitiveNodeName" use="required"/>
                                     <xsd:attribute name="style" type="tns:NodeLayerStyle"/>
-                                    <xsd:attribute name="port" type="tns:PrimitivePortName"/>
+                                    <xsd:attribute name="port" type="tns:PrimitivePortName" use="required"/>
                                 </xsd:complexType>
                             </xsd:element>
                         </xsd:sequence>
@@ -531,6 +531,16 @@
                                     <xsd:group ref="tns:Distance"/>
                                     <xsd:attribute name="layer" type="tns:LayerName" use="required"/>
                                     <xsd:attribute name="style" type="tns:ArcLayerStyle" use="required"/>
+                                </xsd:complexType>
+                            </xsd:element>
+                            <xsd:element name="arcPin" minOccurs="0">
+                                <xsd:complexType>
+                                    <xsd:sequence>
+                                        <xsd:element name="portArc" type="tns:ArcProtoName" minOccurs="0" maxOccurs="unbounded"></xsd:element>
+                                    </xsd:sequence>
+                                    <xsd:attribute name="name" type="tns:PrimitiveNodeName" use="required"/>
+                                    <xsd:attribute name="port" type="tns:PrimitivePortName" use="required"/>
+                                    <xsd:attribute name="elibSize" type="xsd:double" use="required"/>
                                 </xsd:complexType>
                             </xsd:element>
                         </xsd:sequence>
@@ -599,7 +609,7 @@
                                                                 <xsd:attribute name="kly" type="xsd:double" use="required"/>
                                                                 <xsd:attribute name="khy" type="xsd:double" use="required"/>
                                                             </xsd:complexType>
-                                                        </xsd:element>    
+                                                        </xsd:element>
                                                     </xsd:sequence>
                                                     <xsd:attribute name="klx" type="xsd:double"/>
                                                     <xsd:attribute name="khx" type="xsd:double"/>
@@ -620,7 +630,7 @@
                                                                 <xsd:attribute name="kly" type="xsd:double" use="required"/>
                                                                 <xsd:attribute name="khy" type="xsd:double" use="required"/>
                                                             </xsd:complexType>
-                                                        </xsd:element>    
+                                                        </xsd:element>
                                                     </xsd:sequence>
                                                     <xsd:attribute name="klx" type="xsd:double"/>
                                                     <xsd:attribute name="khx" type="xsd:double"/>
@@ -642,7 +652,7 @@
                                                                 <xsd:attribute name="kly" type="xsd:double" use="required"/>
                                                                 <xsd:attribute name="khy" type="xsd:double" use="required"/>
                                                             </xsd:complexType>
-                                                        </xsd:element>    
+                                                        </xsd:element>
                                                     </xsd:sequence>
                                                     <xsd:attribute name="klx" type="xsd:double"/>
                                                     <xsd:attribute name="khx" type="xsd:double"/>
@@ -683,7 +693,7 @@
                                                             <xsd:attribute name="kly" type="xsd:double" use="required"/>
                                                             <xsd:attribute name="khy" type="xsd:double" use="required"/>
                                                         </xsd:complexType>
-                                                    </xsd:element>    
+                                                    </xsd:element>
                                                 </xsd:sequence>
                                                 <xsd:attribute name="klx" type="xsd:double"/>
                                                 <xsd:attribute name="khx" type="xsd:double"/>
@@ -817,12 +827,12 @@
             <xsd:attribute name="name" type="xsd:NCName" use="required"/>
             <xsd:attribute name="class" type="tns:ClassName"/>
         </xsd:complexType>
-        
+
         <xsd:key name="transparent">
             <xsd:selector xpath="./tns:transparentLayer"/>
             <xsd:field xpath="@transparent"/>
-        </xsd:key>   
-        
+        </xsd:key>
+
         <xsd:keyref name="transparentRef" refer="tns:transparent">
             <!-- every vehicle refers to its state -->
             <xsd:selector xpath=".//tns:transparentColor"/>

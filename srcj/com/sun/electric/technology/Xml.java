@@ -168,6 +168,14 @@ public class Xml {
         public double antennaRatio;
         public double elibWidthOffset;
         public final List<ArcLayer> arcLayers = new ArrayList<ArcLayer>();
+        public ArcPin arcPin;
+    }
+
+    public static class ArcPin implements Serializable {
+        public String name;
+        public String portName;
+        public double elibSize;
+        public final List<String> portArcs = new ArrayList<String>();
     }
 
     public static class ArcLayer implements Serializable {
@@ -330,6 +338,7 @@ public class Xml {
         elibWidthOffset(true),
 
         arcLayer,
+        arcPin,
 
         primitiveNode,
         //oldName(true),
@@ -887,6 +896,12 @@ public class Xml {
                     arcLay.style = Poly.Type.valueOf(a("style"));
                     curArc.arcLayers.add(arcLay);
                     break;
+                case arcPin:
+                    curArc.arcPin = new ArcPin();
+                    curArc.arcPin.name = a("name");
+                    curArc.arcPin.portName = a("port");
+                    curArc.arcPin.elibSize = Double.valueOf(a("elibSize"));
+                    break;
                 case primitiveNode:
                     curNode = new PrimitiveNode();
                     curNode.name = a("name");
@@ -1229,6 +1244,8 @@ public class Xml {
                     case portArc:
                         if (curLayer != null && curLayer.pureLayerNode != null)
                             curLayer.pureLayerNode.portArcs.add(text);
+                        if (curArc != null && curArc.arcPin != null)
+                            curArc.arcPin.portArcs.add(text);
                         if (curPort != null)
                             curPort.portArcs.add(text);
                         break;
@@ -1316,6 +1333,7 @@ public class Xml {
                 case notUsed:
                 case skipSizeInPalette:
                 case arcLayer:
+                case arcPin:
 
                 case shrinkArcs:
                 case square:
@@ -1746,6 +1764,17 @@ public class Xml {
                     cl();
                     bcpel(XmlKeyword.lambda, extend);
                     el(XmlKeyword.arcLayer);
+                }
+            }
+            if (ai.arcPin != null) {
+                b(XmlKeyword.arcPin); a("name", ai.arcPin.name); a("port", ai.arcPin.portName); a("elibSize", ai.arcPin.elibSize);
+                if (ai.arcPin.portArcs.isEmpty()) {
+                    el();
+                } else {
+                    cl();
+                    for (String portArc: ai.arcPin.portArcs)
+                        bcpel(XmlKeyword.portArc, portArc);
+                    el(XmlKeyword.arcPin);
                 }
             }
             el(XmlKeyword.arcProto);

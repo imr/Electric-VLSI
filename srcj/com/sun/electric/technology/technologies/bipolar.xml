@@ -497,6 +497,7 @@
         <arcLayer layer="Metal1" style="FILLED">
             <lambda>1.5</lambda>
         </arcLayer>
+        <arcPin name="Metal1_Pin" port="metal1" elibSize="2.0"/>
     </arcProto>
 
     <arcProto name="Metal_2" fun="METAL2">
@@ -508,6 +509,7 @@
         <arcLayer layer="Metal2" style="FILLED">
             <lambda>2.0</lambda>
         </arcLayer>
+        <arcPin name="Metal2_Pin" port="metal2" elibSize="2.0"/>
     </arcProto>
 
     <arcProto name="NPPoly" fun="POLY1">
@@ -522,6 +524,7 @@
         <arcLayer layer="NPImplant" style="FILLED">
             <lambda>2.0</lambda>
         </arcLayer>
+        <arcPin name="NPPoly_pin" port="p" elibSize="4.0"/>
     </arcProto>
 
     <arcProto name="PPPoly" fun="POLY2">
@@ -536,97 +539,10 @@
         <arcLayer layer="PPImplant" style="FILLED">
             <lambda>2.0</lambda>
         </arcLayer>
+        <arcPin name="PPPoly_pin" port="p" elibSize="4.0"/>
     </arcProto>
 
     <!-- ******************** NODES ******************** -->
-    <primitiveNode name="Metal1_Pin" fun="PIN">
-        <shrinkArcs/>
-        <diskOffset untilVersion="2" x="1.0" y="1.0"/>
-        <nodeBase lx="-1.0" hx="1.0" ly="-1.0" hy="1.0"/>
-        <nodeLayer layer="Metal1" style="CROSSED">
-            <box>
-                <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
-            </box>
-        </nodeLayer>
-        <primitivePort name="metal1">
-            <portAngle primary="0" range="180"/>
-            <portTopology>0</portTopology>
-            <box>
-                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
-            </box>
-            <portArc>Metal_1</portArc>
-        </primitivePort>
-    </primitiveNode>
-
-    <primitiveNode name="Metal2_Pin" fun="PIN">
-        <shrinkArcs/>
-        <diskOffset untilVersion="2" x="1.0" y="1.0"/>
-        <nodeBase lx="-1.0" hx="1.0" ly="-1.0" hy="1.0"/>
-        <nodeLayer layer="Metal2" style="CROSSED">
-            <box>
-                <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
-            </box>
-        </nodeLayer>
-        <primitivePort name="metal2">
-            <portAngle primary="0" range="180"/>
-            <portTopology>0</portTopology>
-            <box>
-                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
-            </box>
-            <portArc>Metal_2</portArc>
-        </primitivePort>
-    </primitiveNode>
-
-    <primitiveNode name="NPPoly_pin" fun="PIN">
-        <shrinkArcs/>
-        <diskOffset untilVersion="1" x="2.0" y="2.0"/>
-        <diskOffset untilVersion="2" x="1.0" y="1.0"/>
-        <nodeBase lx="-1.0" hx="1.0" ly="-1.0" hy="1.0"/>
-        <nodeLayer layer="Poly_Definition" style="FILLED">
-            <box>
-                <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
-            </box>
-        </nodeLayer>
-        <nodeLayer layer="NPImplant" style="FILLED">
-            <box>
-                <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
-            </box>
-        </nodeLayer>
-        <primitivePort name="p">
-            <portAngle primary="0" range="180"/>
-            <portTopology>0</portTopology>
-            <box>
-                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
-            </box>
-            <portArc>NPPoly</portArc>
-        </primitivePort>
-    </primitiveNode>
-
-    <primitiveNode name="PPPoly_pin" fun="PIN">
-        <shrinkArcs/>
-        <diskOffset untilVersion="1" x="2.0" y="2.0"/>
-        <diskOffset untilVersion="2" x="1.0" y="1.0"/>
-        <nodeBase lx="-1.0" hx="1.0" ly="-1.0" hy="1.0"/>
-        <nodeLayer layer="Poly_Definition" style="FILLED">
-            <box>
-                <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
-            </box>
-        </nodeLayer>
-        <nodeLayer layer="PPImplant" style="FILLED">
-            <box>
-                <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
-            </box>
-        </nodeLayer>
-        <primitivePort name="p">
-            <portAngle primary="0" range="180"/>
-            <portTopology>0</portTopology>
-            <box>
-                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
-            </box>
-            <portArc>PPPoly</portArc>
-        </primitivePort>
-    </primitiveNode>
-
     <primitiveNode name="Via" fun="CONTACT">
         <diskOffset untilVersion="2" x="2.0" y="2.0"/>
         <nodeBase lx="-2.0" hx="2.0" ly="-2.0" hy="2.0"/>
@@ -983,7 +899,7 @@
             <menuArc>Metal_1</menuArc>
         </menuBox>
         <menuBox>
-            <menuNode>Metal1_Pin</menuNode>
+            <menuNodeInst protoName="Metal1_Pin" function="PIN"/>
         </menuBox>
         <menuBox>
             <menuNode>npn111</menuNode>
@@ -993,7 +909,7 @@
             <menuArc>Metal_2</menuArc>
         </menuBox>
         <menuBox>
-            <menuNode>Metal2_Pin</menuNode>
+            <menuNodeInst protoName="Metal2_Pin" function="PIN"/>
         </menuBox>
         <menuBox>
             <menuNode>Via</menuNode>
@@ -1003,7 +919,7 @@
             <menuArc>PPPoly</menuArc>
         </menuBox>
         <menuBox>
-            <menuNode>PPPoly_pin</menuNode>
+            <menuNodeInst protoName="PPPoly_pin" function="PIN"/>
         </menuBox>
         <menuBox>
             <menuNode>M1_PP_Contact</menuNode>
@@ -1013,7 +929,7 @@
             <menuArc>NPPoly</menuArc>
         </menuBox>
         <menuBox>
-            <menuNode>NPPoly_pin</menuNode>
+            <menuNodeInst protoName="NPPoly_pin" function="PIN"/>
         </menuBox>
         <menuBox>
             <menuNode>M1_NP_Contact</menuNode>
