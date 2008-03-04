@@ -176,8 +176,18 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
         public static Function getPoly(int level) {
             return level < polyLayers.length ? polyLayers[level] : null;
         }
+
+        /**
+         * Method to find the Function that corresponds to a contact on a given arc.
+         * @param level the arc (starting at 1 for Contact-1).
+         * @return the Function that represents that Contact arc.
+         */
+        public static Function getContact(int level)
+        {
+            return metalLayers[level];
+        }
         
-		/**
+        /**
 		 * Method to tell whether this ArcProto.Function is metal.
 		 * @return true if this ArcProto.Function is metal.
 		 */
