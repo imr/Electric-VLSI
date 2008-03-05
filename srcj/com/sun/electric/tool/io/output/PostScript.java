@@ -42,7 +42,6 @@ import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
@@ -97,7 +96,6 @@ public class PostScript extends Output
 	/** the last color written out. */									private int lastColor;
 	/** the normal width of lines. */									private int lineWidth;
 	/** true to plot date information in the corner. */					private boolean plotDates;
-	/** the number of objects to export (for progress) */				private long numObjects;
 	/** matrix from database units to PS units. */						private AffineTransform matrix;
 	/** fake layer for drawing outlines and text. */					private static Layer blackLayer = Layer.newInstance("black",
 		new EGraphics(false, false, null, 0, 100,100,100,1.0,true, new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
@@ -114,6 +112,12 @@ public class PostScript extends Output
 		writeCellToFile(cell, filePath, override);
 	}
 
+	/**
+	 * Internal method for PostScript output.
+	 * @param cell the top-level cell to write.
+	 * @param filePath the disk file to create.
+	 * @param override a list of overriding polygons to write.
+	 */
 	private static boolean writeCellToFile(Cell cell, String filePath, List<PolyBase> override)
 	{
 		boolean error = false;
@@ -160,7 +164,9 @@ public class PostScript extends Output
 		return error;
 	}
 
-	/** Creates a new instance of PostScript */
+	/**
+	 * PostScript constructor.
+	 */
 	private PostScript(Cell cell, List<PolyBase> override)
 	{
 		this.cell = cell;
@@ -562,7 +568,7 @@ public class PostScript extends Output
 	/****************************** TRAVERSING THE HIERARCHY ******************************/
 
 	/**
-	 * Method to write a the entire cell.
+	 * Method to write the body of the PostScript.
 	 */
 	private void scanCircuit()
 	{
@@ -579,11 +585,9 @@ public class PostScript extends Output
 		}
 
 		// figure out the size of the job for progress display
-		numObjects = 0;
 		Job.getUserInterface().startProgressDialog("Writing PostScript", null);
 		Job.getUserInterface().setProgressNote("Counting PostScript objects...");
-		recurseCircuitLevel(cell, DBMath.MATID, true, false, 0);
-		long totalObjects = numObjects;
+		long totalObjects = recurseCircuitLevel(cell, DBMath.MATID, true, false, 0);
 
 		if (psUseColor)
 		{
@@ -594,11 +598,9 @@ public class PostScript extends Output
 				if (!layer.isVisible()) continue;
 				Job.getUserInterface().setProgressNote("Writing layer " + layer.getName() + " (" + totalObjects + " objects...");
 				currentLayer = layer.getIndex() + 1;
-				numObjects = 0;
 				recurseCircuitLevel(cell, DBMath.MATID, true, true, totalObjects);
 			}
 			currentLayer = 0;
-			numObjects = 0;
 			Job.getUserInterface().setProgressNote("Writing cell information (" + totalObjects + " objects...");
 			recurseCircuitLevel(cell, DBMath.MATID, true, true, totalObjects);
 		} else
@@ -606,7 +608,6 @@ public class PostScript extends Output
 			// gray-scale: just plot it once
 			currentLayer = -1;
 			Job.getUserInterface().setProgressNote("Found " + totalObjects + " PostScript objects...");
-			numObjects = 0;
 			recurseCircuitLevel(cell, DBMath.MATID, true, true, totalObjects);
 		}
 		Job.getUserInterface().stopProgressDialog();
@@ -617,23 +618,26 @@ public class PostScript extends Output
 	 * @param cell the Cell to write.
 	 * @param trans the transformation matrix from the Cell to the top level.
 	 * @param topLevel true if this is the top level.
-	 * @param real true to really write PostScript (false when counting objects for progress display).
+	 * @param real true to really write PostScript (false when counting layers).
 	 * @param progressTotal nonzero to display progress (in which case, this is the total).
+	 * @return the number of objects processed.
 	 */
-	private void recurseCircuitLevel(Cell cell, AffineTransform trans, boolean topLevel, boolean real, long progressTotal)
+	private int recurseCircuitLevel(Cell cell, AffineTransform trans, boolean topLevel, boolean real, long progressTotal)
 	{
+		int numObjects = 0;
 		if (override != null)
 		{
-			if (real)
+			for (PolyBase poly : override)
 			{
-				for (PolyBase poly : override)
-					psPoly(poly);
+				if (real) psPoly(poly);
+				numObjects++;
+				if (progressTotal != 0 && (numObjects%100) == 0)
+					Job.getUserInterface().setProgressValue(numObjects*100/progressTotal);
 			}
-			numObjects += override.size();
-			return;
+			return numObjects;
 		}
 
-		// write the cells
+		// write the nodes
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = it.next();
@@ -658,22 +662,13 @@ public class PostScript extends Output
 						polys[i].transform(subRot);
 						psPoly(polys[i]);
 					}
-					if (topLevel && User.isTextVisibilityOnNode())
-					{
-						Poly [] textPolys = ni.getDisplayableVariables(wnd);
-						for (int i=0; i<textPolys.length; i++)
-						{
-							textPolys[i].transform(subRot);
-							psPoly(textPolys[i]);
-						}
-					}
 				}
 				numObjects++;
 				if (progressTotal != 0 && (numObjects%100) == 0)
 					Job.getUserInterface().setProgressValue(numObjects*100/progressTotal);
 			} else
 			{
-				// a cell
+				// a cell instance
 				Cell subCell = (Cell)ni.getProto();
 				AffineTransform subTrans = ni.translateOut();
 				subTrans.preConcatenate(subRot);
@@ -707,16 +702,16 @@ public class PostScript extends Output
 					recurseCircuitLevel(subCell, subTrans, false, real, progressTotal);
 					if (topLevel && real) showCellPorts(ni, trans, Color.BLACK);
 				}
+			}
 
-				// draw any displayable variables on the instance
-				if (topLevel && real && User.isTextVisibilityOnNode())
+			// draw any displayable variables on the node
+			if (topLevel && real && User.isTextVisibilityOnNode())
+			{
+				Poly [] textPolys = ni.getDisplayableVariables(wnd);
+				for (int i=0; i<textPolys.length; i++)
 				{
-					Poly[] polys = ni.getDisplayableVariables(wnd);
-					for (int i=0; i<polys.length; i++)
-					{
-						polys[i].transform(subRot);
-						psPoly(polys[i]);
-					}
+					textPolys[i].transform(subRot);
+					psPoly(textPolys[i]);
 				}
 			}
 
@@ -773,42 +768,33 @@ public class PostScript extends Output
 			ArcInst ai = it.next();
 			if (real)
 			{
-				ArcProto ap = ai.getProto();
-				Technology tech = ap.getTechnology();
+				Technology tech = ai.getProto().getTechnology();
 				Poly[] polys = tech.getShapeOfArc(ai);
 				for (int i=0; i<polys.length; i++)
 				{
 					polys[i].transform(trans);
 					psPoly(polys[i]);
 				}
+
+				// draw any displayable variables on the arc
 				if (topLevel && User.isTextVisibilityOnArc())
 				{
 					Poly[] textPolys = ai.getDisplayableVariables(wnd);
 					for (int i=0; i<textPolys.length; i++)
 					{
-						polys[i].transform(trans);
-						psPoly(polys[i]);
-					}
-				}
-
-				// draw any displayable variables on the arc
-				if (topLevel && real && User.isTextVisibilityOnNode())
-				{
-					polys = ai.getDisplayableVariables(wnd);
-					for (int i=0; i<polys.length; i++)
-					{
-						polys[i].transform(trans);
-						psPoly(polys[i]);
+						textPolys[i].transform(trans);
+						psPoly(textPolys[i]);
 					}
 				}
 			}
+
 			numObjects++;
 			if (progressTotal != 0 && (numObjects%100) == 0)
 				Job.getUserInterface().setProgressValue(numObjects*100/progressTotal);
 		}
 
 		// show cell variables if at the top level
-		if (real && topLevel && User.isTextVisibilityOnCell())
+		if (topLevel && real && User.isTextVisibilityOnCell())
 		{
 			// show displayable variables on the instance
 			Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
@@ -816,6 +802,7 @@ public class PostScript extends Output
 			for (int i=0; i<polys.length; i++)
 				psPoly(polys[i]);
 		}
+		return numObjects;
 	}
 
 	private void showCellPorts(NodeInst ni, AffineTransform trans, Color col)
@@ -954,8 +941,12 @@ public class PostScript extends Output
 		return false;
 	}
 
-	/****************************** WRITE POLYGON ******************************/
+	/****************************** POSTSCRIPT OUTPUT METHODS ******************************/
 
+	/**
+	 * Method to set the PostScript color.
+	 * @param col the color to write.
+	 */
 	private void setColor(Color col)
 	{
 		if (psUseColor)
@@ -969,7 +960,8 @@ public class PostScript extends Output
 	}
 
 	/**
-	 * Method to plot the polygon "poly"
+	 * Method to plot a polygon.
+	 * @param poly the polygon to plot.
 	 */
 	private void psPoly(PolyBase poly)
 	{
@@ -979,9 +971,7 @@ public class PostScript extends Output
 		int index = 0;
 		Color col = Color.BLACK;
 		Technology tech = Technology.getCurrent();
-		if (layer == null)
-		{
-		} else
+		if (layer != null)
 		{
 			tech = layer.getTechnology();
 			index = layer.getIndex();
@@ -1112,10 +1102,10 @@ public class PostScript extends Output
 	}
 
 	/**
-	 * draw a cross.
-	 * @param x
-	 * @param y
-	 * @param bigCross
+	 * Method to draw a cross.
+	 * @param x X center of the cross.
+	 * @param y Y Center of the cross.
+	 * @param bigCross true for a big cross, false for a small one
 	 */
 	private void drawCross(double x, double y, boolean bigCross)
 	{
@@ -1126,7 +1116,8 @@ public class PostScript extends Output
 	}
 
 	/**
-	 * draw a dot
+	 * Method to draw a dot
+	 * @param pt the center of the dot.
 	 */
 	private void psDot(Point2D pt)
 	{
@@ -1136,7 +1127,10 @@ public class PostScript extends Output
 	}
 
 	/**
-	 * draw a line
+	 * Method to draw a line.
+	 * @param from the starting point of the line.
+	 * @param to the ending point of the line.
+	 * @param pattern the line texture (0 for solid, positive for dot/dash patterns).
 	 */
 	private void psLine(Point2D from, Point2D to, int pattern)
 	{
@@ -1172,7 +1166,10 @@ public class PostScript extends Output
 	}
 
 	/**
-	 * draw an arc of a circle
+	 * Method to draw an arc of a circle.
+	 * @param center the center of the arc's circle.
+	 * @param pt1 the starting point of the arc.
+	 * @param pt2 the ending point of the arc.
 	 */
 	private void psArc(Point2D center, Point2D pt1, Point2D pt2)
 	{
@@ -1187,7 +1184,9 @@ public class PostScript extends Output
 	}
 
 	/**
-	 * draw a circle (unfilled)
+	 * Method to draw an unfilled circle.
+	 * @param center the center of the circle.
+	 * @param pt a point on the circle.
 	 */
 	private void psCircle(Point2D center, Point2D pt)
 	{
@@ -1198,7 +1197,9 @@ public class PostScript extends Output
 	}
 
 	/**
-	 * draw a filled circle
+	 * Method to draw a filled circle.
+	 * @param center the center of the circle.
+	 * @param pt a point on the circle.
 	 */
 	private void psDisc(Point2D center, Point2D pt)
 	{
@@ -1209,7 +1210,8 @@ public class PostScript extends Output
 	}
 
 	/**
-	 * draw a polygon
+	 * Method to draw an irregular polygon.
+	 * @param poly the polygon to draw.
 	 */
 	private void psPolygon(PolyBase poly)
 	{
@@ -1282,7 +1284,8 @@ public class PostScript extends Output
 	}
 
 	/**
-	 * draw text
+	 * Method to draw text.
+	 * @param poly the text polygon to draw.
 	 */
 	private void psText(Poly poly)
 	{
@@ -1722,6 +1725,10 @@ public class PostScript extends Output
 		"} def"
 	};
 
+	/**
+	 * Method to write boilerplate for different types of PostScript objects.
+	 * @param which the desired object.
+	 */
 	private void putPSHeader(int which)
 	{
 		switch (which)
@@ -1759,6 +1766,11 @@ public class PostScript extends Output
 		}
 	}
 
+	/**
+	 * Method to write a pattern.
+	 * @param col the pattern to write.
+	 * @return the letter associated with the pattern.
+	 */
 	private char psPattern(EGraphics col)
 	{
 		// see if this graphics has been seen already
@@ -1822,11 +1834,10 @@ public class PostScript extends Output
 		return indexChar;
 	}
 
-
 	/**
-	 * Method to convert the coordinates (x,y) for display.  The coordinates for
-	 * printing are placed back into (x,y) and the PostScript coordinates are placed
-	 * in (psx,psy).
+	 * Method to convert coordinates for display.
+	 * @param pt the Electric coordinates.
+	 * @return the PostScript coordinates.
 	 */
 	private Point2D psXform(Point2D pt)
 	{
@@ -1835,6 +1846,10 @@ public class PostScript extends Output
 		return result;
 	}
 
+	/**
+	 * Method to write PostScript text.
+	 * @param str the text to write in PostScript format.
+	 */
 	public void writePSString(String str)
 	{
 		printWriter.print("(");

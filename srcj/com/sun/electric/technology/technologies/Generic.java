@@ -93,37 +93,37 @@ public class Generic extends Technology
 
 		/** Universal layer */
 		universalLay = Layer.newInstance(this, "Universal",
-			new EGraphics(false, true, null, 0, 0,0,0,1.0,true,
+			new EGraphics(false, false, null, 0, 0,0,0,1.0,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** Invisible layer */
 		Layer invisible_lay = Layer.newInstance(this, "Invisible",
-			new EGraphics(false, true, null, 0, 180,180,180,1.0,true,
+			new EGraphics(false, false, null, 0, 180,180,180,1.0,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** Unrouted layer */
 		Layer unrouted_lay = Layer.newInstance(this, "Unrouted",
-			new EGraphics(false, true, null, 0, 100,100,100,1.0,true,
+			new EGraphics(false, false, null, 0, 100,100,100,1.0,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** Glyph layer */
 		glyphLay = Layer.newInstance(this, "Glyph",
-			new EGraphics(false, true, null, 0, 0,0,0,1.0,true,
+			new EGraphics(false, false, null, 0, 0,0,0,1.0,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** DRC layer */
 		drcLay = Layer.newInstance(this, "DRC",
-			new EGraphics(false, true, null, 0, 255,190,6,1.0,true,
+			new EGraphics(false, false, null, 0, 255,190,6,1.0,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
         /** AFG layer */
 		afgLay = Layer.newInstance(this, "AFG",
-			new EGraphics(false, true, null, 0, 255,6,190,1.0,true,
+			new EGraphics(false, false, null, 0, 255,6,190,1.0,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** Simulation Probe layer */
 		Layer simprobe_lay = Layer.newInstance(this, "Sim-Probe",
-			new EGraphics(false, true, null, 0, 0,255,0,1.0,true,
+			new EGraphics(false, false, null, 0, 0,255,0,1.0,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		// The layer functions

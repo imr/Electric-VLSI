@@ -4,9 +4,13 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07f: ******************************
 
+BUG: (3/5/08, SMR) Generic technology objects are not written to PostScript.
+FIX: Set "patterned on printer" to false for all Generic layers.
+
 IMP: (3/5/08, DN) Fixes in "Write XML from Old Electric Build command".
 
-BUG: (3/4/08, DN) Parameter properitis dialog throws exception on schematic cells.
+BUG: (3/4/08, DN) Parameter properities dialog throws exception on schematic cells.
+
 FIX: In Attrubutes.loadAttributesInfo move error message and allow schematic cells.
 
 IMP: (3/4/08, DN) Element <arcPin> inside <arcProto> defines <acrPin> NodeLayers from ArcLayers.
