@@ -314,10 +314,11 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
 	        if (selectedCell != null)
 	        {
                 if (!Job.getDebug()) {
-                    if (!selectedCell.isIcon()) {
+                    if (!selectedCell.isIcon() && !selectedCell.isSchematic()) {
                         selectedCell = null;
+                    } else {
+                        mainLabel.setText("Parameters on "+selectedCell.getName()+":");
                     }
-                    mainLabel.setText("Parameters on "+selectedCell.getName()+":");
                 }
                 else if (curWnd.getHighlighter().getNumHighlights() == 1)
 	            {

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07f: ******************************
 
+BUG: (4/4/08, DN) Parameter properitis dialog throws exception on schematic cells.
+FIX: In Attrubutes.loadAttributesInfo move error message and allow schematic cells.
+
 IMP: (3/4/08, DN) Element <arcPin> inside <arcProto> defines <acrPin> NodeLayers from ArcLayers.
 
 BUG: (3/3/08, DN) SizeListener incorrectly determine new node size after SizeOffset changes.
