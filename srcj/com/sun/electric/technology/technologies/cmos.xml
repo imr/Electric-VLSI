@@ -394,7 +394,7 @@
 
     <!-- ******************** NODES ******************** -->
     <primitiveNode name="Metal-Polysilicon-Con" fun="CONTACT">
-        <diskOffset untilVersion="2" x="2.0" y="2.0"/>
+        <diskOffset x="2.0" y="2.0"/>
         <nodeBase lx="-2.0" hx="2.0" ly="-2.0" hy="2.0"/>
         <nodeLayer layer="Metal" style="FILLED">
             <box>
@@ -423,8 +423,7 @@
     </primitiveNode>
 
     <primitiveNode name="Metal-Diff-P-Con" fun="CONTACT">
-        <diskOffset untilVersion="1" x="4.0" y="4.0"/>
-        <diskOffset untilVersion="2" x="2.0" y="2.0"/>
+        <diskOffset x="4.0" y="4.0"/>
         <nodeBase lx="-2.0" hx="2.0" ly="-2.0" hy="2.0"/>
         <nodeLayer layer="Metal" style="FILLED">
             <box>
@@ -458,8 +457,7 @@
     </primitiveNode>
 
     <primitiveNode name="Metal-Diff-Well-Con" fun="CONTACT">
-        <diskOffset untilVersion="1" x="5.0" y="5.0"/>
-        <diskOffset untilVersion="2" x="2.0" y="2.0"/>
+        <diskOffset x="5.0" y="5.0"/>
         <nodeBase lx="-2.0" hx="2.0" ly="-2.0" hy="2.0"/>
         <nodeLayer layer="Metal" style="FILLED">
             <box>
@@ -493,8 +491,7 @@
     </primitiveNode>
 
     <primitiveNode name="Transistor" fun="TRAPMOS">
-        <diskOffset untilVersion="1" x="3.0" y="3.0"/>
-        <diskOffset untilVersion="2" x="1.0" y="1.0"/>
+        <diskOffset x="3.0" y="3.0"/>
         <nodeBase lx="-1.0" hx="1.0" ly="-1.0" hy="1.0"/>
         <nodeLayer layer="Polysilicon" style="FILLED">
             <serpbox lWidth="1.0" rWidth="1.0" tExtent="2.0" bExtent="2.0">
@@ -564,8 +561,7 @@
     </primitiveNode>
 
     <primitiveNode name="Transistor-Well" fun="TRANMOS">
-        <diskOffset untilVersion="1" x="4.0" y="4.0"/>
-        <diskOffset untilVersion="2" x="1.0" y="1.0"/>
+        <diskOffset x="4.0" y="4.0"/>
         <nodeBase lx="-1.0" hx="1.0" ly="-1.0" hy="1.0"/>
         <nodeLayer layer="Polysilicon" style="FILLED">
             <serpbox lWidth="1.0" rWidth="1.0" tExtent="2.0" bExtent="2.0">
@@ -635,8 +631,7 @@
     </primitiveNode>
 
     <primitiveNode name="Metal-Diff-Split-Cut" fun="WELL">
-        <diskOffset untilVersion="1" x="7.0" y="5.0"/>
-        <diskOffset untilVersion="2" x="4.0" y="2.0"/>
+        <diskOffset x="7.0" y="5.0"/>
         <nodeBase lx="-4.0" hx="4.0" ly="-2.0" hy="2.0"/>
         <nodeLayer layer="Metal" style="FILLED">
             <box>
@@ -688,8 +683,7 @@
     </primitiveNode>
 
     <primitiveNode name="Metal-Diff-SplitN-Cut" fun="SUBSTRATE">
-        <diskOffset untilVersion="1" x="5.0" y="4.0"/>
-        <diskOffset untilVersion="2" x="4.0" y="2.0"/>
+        <diskOffset x="5.0" y="4.0"/>
         <nodeBase lx="-3.0" hx="5.0" ly="-2.0" hy="2.0"/>
         <nodeLayer layer="Metal" style="FILLED">
             <box>

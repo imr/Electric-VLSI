@@ -481,7 +481,7 @@ public class Technology implements Comparable<Technology>, Serializable
 		 * Returns the <CODE>Layer</CODE> object associated with this NodeLayer.
 		 * @return the <CODE>Layer</CODE> object associated with this NodeLayer.
 		 */
-		public Layer getLayer() { return Layer.PSEUDO_HIDDEN ? layer.getNonPseudoLayer() : layer; }
+		public Layer getLayer() { return layer.getNonPseudoLayer(); }
 
 		/**
 		 * Tells whether this NodeLayer is associated with pseudo-layer.
@@ -731,40 +731,21 @@ public class Technology implements Comparable<Technology>, Serializable
                 }
                 arcExtends.put(ap.getId(), Integer.valueOf(correction));
             }
-//            if (xmlTech != null) {
-//                for (Xml.PrimitiveNode xpn: xmlTech.nodes) {
-//                    PrimitiveNode pn = nodes.get(xpn.name);
-//                    EPoint correction = EPoint.ORIGIN;
-//                    for (Map.Entry<Integer,EPoint> e: xpn.diskOffset.entrySet()) {
-//                        if (techVersion < e.getKey().intValue()) {
-//                            correction = e.getValue();
-//                            break;
-//                        }
-//                    }
-//                    nodeExtends.put(pn.getId(), correction);
+            for (PrimitiveNode pn: nodes.values()) {
+                EPoint correction = techVersion == 2 ? EPoint.ORIGIN : pn.getSizeCorrector(techVersion);
+//                switch (techVersion) {
+//                    case 0:
+//                        correction = EPoint.fromGrid(-pn.sizeCorrector.getGridX(), -pn.sizeCorrector.getGridY());
+//                        break;
+//                    case 1:
+//                        SizeOffset so = pn.getProtoSizeOffset();
+//                        double lambdaX = -0.5*(so.getLowXOffset() + so.getHighXOffset()) - pn.sizeCorrector.getLambdaX();
+//                        double lambdaY = -0.5*(so.getLowYOffset() + so.getHighYOffset()) - pn.sizeCorrector.getLambdaY();
+//                        correction = EPoint.fromLambda(lambdaX, lambdaY);
+//                        break;
 //                }
-//                for (Xml.Layer l: xmlTech.layers) {
-//                    if (l.pureLayerNode == null) continue;
-//                    PrimitiveNode pn = nodes.get(l.pureLayerNode.name);
-//                    nodeExtends.put(pn.getId(), EPoint.ORIGIN);
-//                }
-//            } else {
-                for (PrimitiveNode pn: nodes.values()) {
-                    EPoint correction = EPoint.ORIGIN;
-                    switch (techVersion) {
-                        case 0:
-                            correction = EPoint.fromGrid(-pn.sizeCorrector.getGridX(), -pn.sizeCorrector.getGridY());
-                            break;
-                        case 1:
-                            SizeOffset so = pn.getProtoSizeOffset();
-                            double lambdaX = -0.5*(so.getLowXOffset() + so.getHighXOffset()) - pn.sizeCorrector.getLambdaX();
-                            double lambdaY = -0.5*(so.getLowYOffset() + so.getHighYOffset()) - pn.sizeCorrector.getLambdaY();
-                            correction = EPoint.fromLambda(lambdaX, lambdaY);
-                            break;
-                    }
-                    nodeExtends.put(pn.getId(), correction);
-                }
-//            }
+                nodeExtends.put(pn.getId(), correction);
+            }
         }
 
         public boolean isIdentity() {
@@ -1044,8 +1025,8 @@ public class Technology implements Comparable<Technology>, Serializable
         setNoNegatedArcs();
         for (Xml.PrimitiveNode n: t.nodes) {
             EPoint correction = EPoint.ORIGIN;
-            if (!n.diskOffset.isEmpty())
-                correction = n.diskOffset.values().iterator().next();
+            if (n.diskOffset != null)
+                correction = n.diskOffset;
             boolean needElectricalLayers = false;
             ArrayList<NodeLayer> nodeLayers = new ArrayList<NodeLayer>();
             ArrayList<NodeLayer> electricalNodeLayers = new ArrayList<NodeLayer>();
@@ -1086,7 +1067,7 @@ public class Technology implements Comparable<Technology>, Serializable
             String minSizeRule = null;
             if (n.nodeSizeRule != null) {
                 EPoint correction2 = EPoint.fromLambda(0.5*n.nodeSizeRule.width, 0.5*n.nodeSizeRule.height);
-                if (n.diskOffset.isEmpty())
+                if (n.diskOffset == null)
                     correction = correction2;
                 else if (!correction.equals(correction2))
                     throw new IllegalArgumentException("Mismatch between nodeSizeRule and diskOffset");
@@ -1100,8 +1081,7 @@ public class Technology implements Comparable<Technology>, Serializable
                 long hy = correction.getGridY();
                 baseRectangle = ERectangle.fromGrid(lx, ly, hx - lx, hy - ly);
             }
-            EPoint negCorrection = EPoint.fromGrid(-correction.getGridX(), -correction.getGridY());
-            PrimitiveNode pnp = PrimitiveNode.newInstance(n.name, this, negCorrection, minSizeRule,
+            PrimitiveNode pnp = PrimitiveNode.newInstance(n.name, this, correction, minSizeRule,
                     DBMath.round(n.defaultWidth.value + 2*correction.getLambdaX()),
                     DBMath.round(n.defaultHeight.value + 2*correction.getLambdaY()),
                     baseRectangle, nodeLayers.toArray(new NodeLayer[nodeLayers.size()]));
@@ -1220,7 +1200,7 @@ public class Technology implements Comparable<Technology>, Serializable
         }
         return connections;
     }
-    
+
     private TechPoint makeTechPoint(TechPoint p, EPoint correction) {
         EdgeH h = p.getX();
         EdgeV v = p.getY();
@@ -3025,7 +3005,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	protected Poly [] computeShapeOfNode(NodeInst ni, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers, Layer layerOverride)
 	{
 		PrimitiveNode np = (PrimitiveNode)ni.getProto();
-        EPoint corrector = np.getSizeCorrector();
+        ERectangle fullRectangle = np.getFullRectangle();
 		int specialType = np.getSpecialType();
 		if (specialType != PrimitiveNode.SERPTRANS && np.isHoldsOutline())
 		{
@@ -3065,7 +3045,7 @@ public class Technology implements Comparable<Technology>, Serializable
 		{
             for (NodeLayer nodeLayer: primLayers) {
                 if (nodeLayer.representation == NodeLayer.MULTICUTBOX) {
-                    mcd = new MultiCutData(ni.getD().size, corrector, nodeLayer);
+                    mcd = new MultiCutData(ni.getD().size, fullRectangle, nodeLayer);
                     if (reasonable) numExtraLayers += (mcd.cutsReasonable - 1); else
                         numExtraLayers += (mcd.cutsTotal - 1);
                 }
@@ -3139,7 +3119,7 @@ public class Technology implements Comparable<Technology>, Serializable
 				}
 				polys[fillPoly] = new Poly(pointList);
 			} else if (representation == Technology.NodeLayer.MULTICUTBOX) {
-                mcd = new MultiCutData(ni.getD().size, corrector, primLayer);
+                mcd = new MultiCutData(ni.getD().size, fullRectangle, primLayer);
                 Poly.Type style = primLayer.getStyle();
                 PortProto port = null;
                 if (electrical) port = np.getPort(0);
@@ -3257,11 +3237,11 @@ public class Technology implements Comparable<Technology>, Serializable
 		/** cut position of last right-edge cut  (for interior-cut elimination) */	private double cutRightEdge;
 
 
-        private void calculateInternalData(EPoint size, EPoint corrector, NodeLayer cutLayer)
+        private void calculateInternalData(EPoint size, ERectangle fullRectangle, NodeLayer cutLayer)
         {
             assert cutLayer.representation == NodeLayer.MULTICUTBOX;
-            long gridWidth = size.getGridX() - 2*corrector.getGridX();
-            long gridHeight = size.getGridY() - 2*corrector.getGridY();
+            long gridWidth = size.getGridX() + fullRectangle.getGridWidth();
+            long gridHeight = size.getGridY() + fullRectangle.getGridHeight();
             TechPoint[] techPoints = cutLayer.points;
             long lx = techPoints[0].getX().getGridAdder() + (long)(gridWidth*techPoints[0].getX().getMultiplier());
             long hx = techPoints[1].getX().getGridAdder() + (long)(gridWidth*techPoints[1].getX().getMultiplier());
@@ -3329,9 +3309,9 @@ public class Technology implements Comparable<Technology>, Serializable
 		/**
 		 * Constructor to initialize for multiple cuts.
 		 */
-		private MultiCutData(EPoint size, EPoint corrector, NodeLayer cutLayer)
+		private MultiCutData(EPoint size, ERectangle fullRectangle, NodeLayer cutLayer)
 		{
-            calculateInternalData(size, corrector, cutLayer);
+            calculateInternalData(size, fullRectangle, cutLayer);
 		}
 
 		/**
@@ -3341,7 +3321,7 @@ public class Technology implements Comparable<Technology>, Serializable
 		public MultiCutData(ImmutableNodeInst niD, TechPool techPool)
 		{
             this(niD.size,
-                    techPool.getPrimitiveNode((PrimitiveNodeId)niD.protoId).getSizeCorrector(),
+                    techPool.getPrimitiveNode((PrimitiveNodeId)niD.protoId).getFullRectangle(),
                     techPool.getPrimitiveNode((PrimitiveNodeId)niD.protoId).findMulticut());
 		}
 
@@ -5297,7 +5277,7 @@ public class Technology implements Comparable<Technology>, Serializable
     public static NodeInst makeNodeInst(NodeProto np) {
         return makeNodeInst(np, np.getFunction(), 0, false, null, 0);
     }
-    
+
     /**
      * Method to create temporary nodes for the palette
      * @param np prototype of the node to place in the palette.

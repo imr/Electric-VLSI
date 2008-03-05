@@ -52,8 +52,6 @@ import java.util.Map;
  */
 public class Layer
 {
-    public static final boolean PSEUDO_HIDDEN = true; // True if pseudo-layers don't apper in Technology.getLayers() and don't have layer index.'
-    
     public static final double DEFAULT_THICKNESS = 0; // 3D default thickness
     public static final double DEFAULT_DISTANCE = 0; // 3D default distance
     public static final String DEFAULT_MODE = "NONE"; // 3D default transparency mode DEFAULT_FACTOR
@@ -616,13 +614,7 @@ public class Layer
     public Layer makePseudo() {
             assert pseudoLayer == null;
         String pseudoLayerName = "Pseudo-" + name;
-        if (PSEUDO_HIDDEN) {
-            pseudoLayer = new Layer(pseudoLayerName, tech, graphics);
-        } else {
-            EGraphics pseudoGraphics = new EGraphics(graphics);
-            assert pseudoGraphics.getLayer() == null;
-            pseudoLayer = newInstance(tech, pseudoLayerName, pseudoGraphics);
-        }
+        pseudoLayer = new Layer(pseudoLayerName, tech, graphics);
         pseudoLayer.setFunction(function, functionExtras, true);
         pseudoLayer.nonPseudoLayer = this;
         return pseudoLayer;

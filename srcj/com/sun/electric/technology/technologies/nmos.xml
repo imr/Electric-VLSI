@@ -468,7 +468,7 @@
 
     <!-- ******************** NODES ******************** -->
     <primitiveNode name="Metal-Polysilicon-Con" fun="CONTACT">
-        <diskOffset untilVersion="2" x="2.0" y="2.0"/>
+        <diskOffset x="2.0" y="2.0"/>
         <nodeBase lx="-2.0" hx="2.0" ly="-2.0" hy="2.0"/>
         <nodeLayer layer="Polysilicon" style="FILLED">
             <box>
@@ -497,7 +497,7 @@
     </primitiveNode>
 
     <primitiveNode name="Metal-Diffusion-Con" fun="CONTACT">
-        <diskOffset untilVersion="2" x="2.0" y="2.0"/>
+        <diskOffset x="2.0" y="2.0"/>
         <nodeBase lx="-2.0" hx="2.0" ly="-2.0" hy="2.0"/>
         <nodeLayer layer="Diffusion" style="FILLED">
             <box>
@@ -526,7 +526,7 @@
     </primitiveNode>
 
     <primitiveNode name="Butting-Con" fun="CONNECT">
-        <diskOffset untilVersion="2" x="3.0" y="2.0"/>
+        <diskOffset x="3.0" y="2.0"/>
         <nodeBase lx="-3.0" hx="3.0" ly="-2.0" hy="2.0"/>
         <nodeLayer layer="Diffusion" style="FILLED">
             <box khx="0.0">
@@ -569,7 +569,7 @@
     </primitiveNode>
 
     <primitiveNode name="Buried-Con-Cross" fun="CONNECT">
-        <diskOffset untilVersion="2" x="3.0" y="2.0"/>
+        <diskOffset x="3.0" y="2.0"/>
         <nodeBase lx="-3.0" hx="3.0" ly="-2.0" hy="2.0"/>
         <nodeLayer layer="Polysilicon" style="FILLED">
             <box>
@@ -621,8 +621,7 @@
     </primitiveNode>
 
     <primitiveNode name="Transistor" fun="TRANMOS">
-        <diskOffset untilVersion="1" x="3.0" y="3.0"/>
-        <diskOffset untilVersion="2" x="1.0" y="1.0"/>
+        <diskOffset x="3.0" y="3.0"/>
         <nodeBase lx="-1.0" hx="1.0" ly="-1.0" hy="1.0"/>
         <nodeLayer layer="Polysilicon" style="FILLED">
             <serpbox lWidth="1.0" rWidth="1.0" tExtent="2.0" bExtent="2.0">
@@ -687,8 +686,7 @@
     </primitiveNode>
 
     <primitiveNode name="Implant-Transistor" fun="TRADMOS">
-        <diskOffset untilVersion="1" x="3.0" y="3.0"/>
-        <diskOffset untilVersion="2" x="1.0" y="1.0"/>
+        <diskOffset x="3.0" y="3.0"/>
         <nodeBase lx="-1.0" hx="1.0" ly="-1.0" hy="1.0"/>
         <nodeLayer layer="Polysilicon" style="FILLED">
             <serpbox lWidth="1.0" rWidth="1.0" tExtent="2.0" bExtent="2.0">
@@ -758,7 +756,7 @@
     </primitiveNode>
 
     <primitiveNode name="Buried-Con-Cross-S" fun="CONNECT">
-        <diskOffset untilVersion="2" x="2.0" y="2.0"/>
+        <diskOffset x="2.0" y="2.0"/>
         <nodeBase lx="-2.0" hx="2.0" ly="-2.0" hy="2.0"/>
         <nodeLayer layer="Diffusion" style="FILLED">
             <box>
@@ -811,7 +809,7 @@
     </primitiveNode>
 
     <primitiveNode name="Buried-Con-Cross-T" fun="CONNECT">
-        <diskOffset untilVersion="2" x="2.5" y="2.0"/>
+        <diskOffset x="2.5" y="2.0"/>
         <nodeBase lx="-2.5" hx="2.5" ly="-2.0" hy="2.0"/>
         <nodeLayer layer="Diffusion" style="FILLED">
             <box>
@@ -855,7 +853,7 @@
     </primitiveNode>
 
     <primitiveNode name="Buried-Con-Polysurr" fun="CONNECT">
-        <diskOffset untilVersion="2" x="2.5" y="2.0"/>
+        <diskOffset x="2.5" y="2.0"/>
         <nodeBase lx="-2.5" hx="2.5" ly="-2.0" hy="2.0"/>
         <nodeLayer layer="Polysilicon" style="FILLED">
             <box>
@@ -907,7 +905,7 @@
     </primitiveNode>
 
     <primitiveNode name="Buried-Con-Diffsurr-I" fun="CONNECT">
-        <diskOffset untilVersion="2" x="2.5" y="2.0"/>
+        <diskOffset x="2.5" y="2.0"/>
         <nodeBase lx="-2.5" hx="2.5" ly="-2.0" hy="2.0"/>
         <nodeLayer layer="Polysilicon" style="FILLED">
             <box>
@@ -949,7 +947,7 @@
     </primitiveNode>
 
     <primitiveNode name="Buried-Con-Diffsurr-T" fun="CONNECT">
-        <diskOffset untilVersion="2" x="3.0" y="2.0"/>
+        <diskOffset x="3.0" y="2.0"/>
         <nodeBase lx="-3.0" hx="3.0" ly="-2.0" hy="2.0"/>
         <nodeLayer layer="Polysilicon" style="FILLED">
             <box>
@@ -999,7 +997,7 @@
     </primitiveNode>
 
     <primitiveNode name="Buried-Con-Diffsurr-L" fun="CONNECT">
-        <diskOffset untilVersion="2" x="2.5" y="2.0"/>
+        <diskOffset x="2.5" y="2.0"/>
         <nodeBase lx="-2.5" hx="2.5" ly="-2.0" hy="2.0"/>
         <nodeLayer layer="Buried-Contact" style="FILLED">
             <box>

@@ -1291,12 +1291,12 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
             a.arcPin.name = arcPin.getName();
             PrimitivePort port = arcPin.getPort(0);
             a.arcPin.portName = port.getName();
-            a.arcPin.elibSize = -2*arcPin.getSizeCorrector().getX();
+            a.arcPin.elibSize = 2*arcPin.getSizeCorrector(0).getX();
             for (ArcProto cap: port.getConnections()) {
                 if (cap.getTechnology() == tech && cap != this)
                     a.arcPin.portArcs.add(cap.getName());
             }
-                
+
         }
         return a;
     }

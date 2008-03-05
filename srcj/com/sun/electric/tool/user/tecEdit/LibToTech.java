@@ -3477,11 +3477,13 @@ public class LibToTech
                 hy -= ni.so.getHighYOffset();
             }
             pn.nodeBase = ERectangle.fromLambda(lx, ly, hx - lx, hy - ly);
-            EPoint p2 = EPoint.fromGrid(pn.nodeBase.getGridWidth() >> 1, pn.nodeBase.getGridHeight() >> 1);
-            if (!p2.equals(minFullSize))
-                pn.diskOffset.put(Integer.valueOf(1), minFullSize);
-            if (!p2.equals(EPoint.ORIGIN))
-                pn.diskOffset.put(Integer.valueOf(2), p2);
+            if (!minFullSize.equals(EPoint.ORIGIN))
+                pn.diskOffset = minFullSize;
+//            EPoint p2 = EPoint.fromGrid(pn.nodeBase.getGridWidth() >> 1, pn.nodeBase.getGridHeight() >> 1);
+//            if (!p2.equals(minFullSize))
+//                pn.diskOffset.put(Integer.valueOf(1), minFullSize);
+//            if (!p2.equals(EPoint.ORIGIN))
+//                pn.diskOffset.put(Integer.valueOf(2), p2);
             
 //	        pn.defaultWidth.value = DBMath.round(ni.xSize);
 //	        pn.defaultHeight.value = DBMath.round(ni.ySize);

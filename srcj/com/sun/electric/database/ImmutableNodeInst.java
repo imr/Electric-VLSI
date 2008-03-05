@@ -27,6 +27,7 @@ package com.sun.electric.database;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.id.IdReader;
 import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -840,9 +841,9 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 		// if zero size, set the bounds directly
 		PrimitiveNode pn = real.getTechPool().getPrimitiveNode((PrimitiveNodeId)protoId);
         assert pn == real.getProto();
-        EPoint corrector = pn.getSizeCorrector();
-        long gridWidth = size.getGridX() - 2*corrector.getGridX();
-        long gridHeight = size.getGridY() - 2*corrector.getGridY();
+        ERectangle full = pn.getFullRectangle();
+        long gridWidth = size.getGridX() + full.getGridWidth();
+        long gridHeight = size.getGridY() + full.getGridHeight();
 		if (gridWidth == 0 && gridHeight == 0)
 		{
 			dstBounds.setRect(anchor.getX(), anchor.getY(), 0, 0);

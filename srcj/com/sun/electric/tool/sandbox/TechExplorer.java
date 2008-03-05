@@ -54,6 +54,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -287,25 +288,16 @@ public class TechExplorer extends ESandBox {
         int maxMetal = 0;
         for (Iterator<?> it = (Iterator)Technology_getLayers.invoke(tech); it.hasNext(); ) {
             Object layer = it.next();
+            if (isPseudoLayer(layer)) continue;
             String layerName = (String)Layer_getName.invoke(layer);
-            Object pseudoLayer = null;
-            if (Layer_getPseudoLayer != null)
-                pseudoLayer = Layer_getPseudoLayer.invoke(layer);
-            String pseudoLayerName = "";
-            if (pseudoLayer != null) {
-                pseudoLayerName = (String)Layer_getName.invoke(pseudoLayer);
-            }
 
-            int extraFun = (Integer)Layer_getFunctionExtras.invoke(layer);
-            final int PSEUDO =       010000;
-            if ((extraFun & PSEUDO) != 0 || Layer_isPseudoLayer != null && (Boolean)Layer_isPseudoLayer.invoke(layer)) continue;
             Xml.Layer l = new Xml.Layer();
             l.name = layerName;
             Object fun = Layer_getFunction.invoke(layer);
             l.function = fun != null ? LayerFunctions.get(fun) : Layer.Function.UNKNOWN;
             if (l.function.isMetal())
                 maxMetal = Math.max(maxMetal, l.function.getLevel());
-            l.extraFunction = extraFun;
+            l.extraFunction = (Integer)Layer_getFunctionExtras.invoke(layer);
             Object desc = Layer_getGraphics.invoke(layer);
             boolean displayPatterned = (Boolean)EGraphics_isPatternedOnDisplay.invoke(desc);
             boolean printPatterned = (Boolean)EGraphics_isPatternedOnPrinter.invoke(desc);
@@ -347,6 +339,7 @@ public class TechExplorer extends ESandBox {
             maxMetal = (Integer)Technology_getNumMetals.invoke(tech);
         t.minNumMetals = t.maxNumMetals = t.defaultNumMetals = maxMetal;
 
+        HashSet<Object> arcPins = new HashSet<Object>();
         Map<String,?> oldArcNames = Technology_getOldArcNames != null ? (Map)Technology_getOldArcNames.invoke(tech) : Collections.emptyMap();
         for (Iterator<?> it = (Iterator)Technology_getArcs.invoke(tech); it.hasNext(); ) {
             Object ap = it.next();
@@ -404,11 +397,13 @@ public class TechExplorer extends ESandBox {
                 a.arcLayers.add(al);
             }
             t.arcs.add(a);
+            a.arcPin = makeWipablePin(tech, ap, arcPins);
         }
 
         Map<String,?> oldNodeNames = Technology_getOldNodeNames != null ? (Map)Technology_getOldNodeNames.invoke(tech) : Collections.emptyMap();
         for (Iterator<?> it = (Iterator)Technology_getNodes.invoke(tech); it.hasNext(); ) {
             Object pn = it.next();
+            if (arcPins.contains(pn)) continue;
             String nodeName = (String)PrimitiveNode_getName.invoke(pn);
             PrimitiveNode.Function fun = PrimitiveNodeFunctions.get(PrimitiveNode_getFunction.invoke(pn));
             Object[] nodeLayersArray = (Object[])PrimitiveNode_getLayers.invoke(pn);
@@ -426,12 +421,7 @@ public class TechExplorer extends ESandBox {
                 pln.port = (String)PrimitivePort_getName.invoke(port);
                 pln.style = PolyTypes.get(TechnologyNodeLayer_getStyle.invoke(nodeLayersArray[0]));
                 pln.size.value = round(defWidth);
-                Object[] connections = (Object[])PrimitivePort_getConnections.invoke(port);
-                for (Object ap: connections) {
-                    String arcName = (String)ArcProto_getName.invoke(ap);
-                    if (Technology_findArcProto.invoke(tech, arcName) != ap) continue;
-                    pln.portArcs.add(arcName);
-                }
+                makePortArcs(pln.portArcs, tech, port, null);
                 Xml.Layer layer = t.findLayer((String)Layer_getName.invoke(TechnologyNodeLayer_getLayer.invoke(nodeLayersArray[0])));
                 layer.pureLayerNode = pln;
                 continue;
@@ -493,7 +483,7 @@ public class TechExplorer extends ESandBox {
                 minFullSize = EPoint.fromLambda(0.5*defWidth, 0.5*defHeight);
             }
             n.spiceTemplate = null; // ??????????
-            
+
             ERectangle nodeBase;
             if (PrimitiveNode_getBaseRectangle != null) {
                 Rectangle2D baseRectangle = (Rectangle2D)PrimitiveNode_getBaseRectangle.invoke(pn);
@@ -513,11 +503,13 @@ public class TechExplorer extends ESandBox {
                 nodeBase = ERectangle.fromLambda(lx, ly, hx - lx, hy - ly);
             }
             n.nodeBase = nodeBase;
-            EPoint p2 = EPoint.fromGrid(nodeBase.getGridWidth() >> 1, nodeBase.getGridHeight() >> 1);
-            if (!p2.equals(minFullSize))
-                n.diskOffset.put(Integer.valueOf(1), minFullSize);
-            if (!p2.equals(EPoint.ORIGIN))
-                n.diskOffset.put(Integer.valueOf(2), p2);
+            if (!minFullSize.equals(EPoint.ORIGIN))
+                n.diskOffset = minFullSize;
+//            EPoint p2 = EPoint.fromGrid(nodeBase.getGridWidth() >> 1, nodeBase.getGridHeight() >> 1);
+//            if (!p2.equals(minFullSize))
+//                n.diskOffset.put(Integer.valueOf(1), minFullSize);
+//            if (!p2.equals(EPoint.ORIGIN))
+//                n.diskOffset.put(Integer.valueOf(2), p2);
             n.defaultWidth.value = round(defWidth - 2*minFullSize.getLambdaX());
             n.defaultHeight.value = round(defHeight - 2*minFullSize.getLambdaY());
 
@@ -568,12 +560,7 @@ public class TechExplorer extends ESandBox {
                 ppd.hy.k = (Double)EdgeV_getMultiplier.invoke(hy)*2;
                 ppd.hy.value = round((Double)EdgeV_getAdder.invoke(hy) + minFullSize.getLambdaY()*ppd.hy.k);
 
-                Object[] connections = (Object[])PrimitivePort_getConnections.invoke(pp);
-                for (Object ap: connections) {
-                    String arcName = (String)ArcProto_getName.invoke(ap);
-                    if (Technology_findArcProto.invoke(tech, arcName) != ap) continue;
-                    ppd.portArcs.add(arcName);
-                }
+                makePortArcs(ppd.portArcs, tech, pp, null);
                 n.ports.add(ppd);
             }
             n.specialType = (Integer)PrimitiveNode_getSpecialType.invoke(pn);
@@ -652,6 +639,15 @@ public class TechExplorer extends ESandBox {
                         final int ST = 020000;
                         final int MOSIS = 040000;
                         when = when & ~(TSMC|ST|MOSIS);
+                        if (classDRCTemplateDRCMode != null) {
+                            int newWhen = 0;
+                            for (Map.Entry<Object,DRCTemplate.DRCMode> e: DRCTemplateDRCModes.entrySet()) {
+                                int oldMode = (Integer)DRCTemplateDrcMode_mode.invoke(e.getKey());
+                                if ((when & oldMode) == oldMode)
+                                    newWhen |= e.getValue().mode();
+                            }
+                            when = newWhen;
+                        }
                         DRCTemplate.DRCRuleType type = DRCTemplateDRCRuleTypes.get(DRCTemplate_ruleType.get(rule));
                         if (type == null)
                             continue;
@@ -683,6 +679,56 @@ public class TechExplorer extends ESandBox {
         }
 
         return t;
+    }
+
+    private Xml.ArcPin makeWipablePin(Object tech, Object ap, HashSet<Object> arcPins) throws IllegalAccessException, InvocationTargetException {
+        for (Iterator<?> it = (Iterator)Technology_getNodes.invoke(tech); it.hasNext(); ) {
+            Object pn = it.next();
+            PrimitiveNode.Function fun = PrimitiveNodeFunctions.get(PrimitiveNode_getFunction.invoke(pn));
+            if (fun != PrimitiveNode.Function.PIN) continue;
+
+            // Single port
+            Iterator<?> ports = (Iterator)PrimitiveNode_getPorts.invoke(pn);
+            if (!ports.hasNext()) continue;
+            Object pp = ports.next();
+            if (ports.hasNext()) continue;
+            Object[] connections = (Object[])PrimitivePort_getConnections.invoke(pp);
+            if (connections.length == 0 || connections[0] != ap) continue;
+
+            // All layers are pseudo layers
+            Object[] nodeLayersArray = (Object[])PrimitiveNode_getLayers.invoke(pn);
+            boolean allPseudo = true;
+            for (Object nld: nodeLayersArray) {
+                boolean isPseudo;
+                if (TechnologyNodeLayer_isPseudoLayer != null)
+                    isPseudo = (Boolean)TechnologyNodeLayer_isPseudoLayer.invoke(nld);
+                else
+                    isPseudo = isPseudoLayer(TechnologyNodeLayer_getLayer.invoke(nld));
+                allPseudo = allPseudo && isPseudo;
+            }
+            if (!allPseudo) continue;
+
+            // Square geometry
+            Object lx = PrimitivePort_getLeft.invoke(pp);
+            Object hx = PrimitivePort_getRight.invoke(pp);
+            Object ly = PrimitivePort_getBottom.invoke(pp);
+            Object hy = PrimitivePort_getTop.invoke(pp);
+            if ((Double)EdgeH_getMultiplier.invoke(lx) != -0.5 || (Double)EdgeH_getMultiplier.invoke(hx) != 0.5) continue;
+            if ((Double)EdgeV_getMultiplier.invoke(ly) != -0.5 || (Double)EdgeV_getMultiplier.invoke(hy) != 0.5) continue;
+            double portOffset = round((Double)EdgeH_getAdder.invoke(lx));
+            if (round((Double)EdgeH_getAdder.invoke(hx)) != -portOffset) continue;
+            if (round((Double)EdgeV_getAdder.invoke(ly)) != portOffset) continue;
+            if (round((Double)EdgeV_getAdder.invoke(hy)) != -portOffset) continue;
+
+            Xml.ArcPin arcPin = new Xml.ArcPin();
+            arcPin.name = (String)PrimitiveNode_getName.invoke(pn);
+            arcPin.portName = (String)PrimitivePort_getName.invoke(pp);
+            arcPin.elibSize = 2*portOffset;
+            makePortArcs(arcPin.portArcs, tech, pp, ap);
+            arcPins.add(pn);
+            return arcPin;
+        }
+        return null;
     }
 
     private Xml.NodeLayer makeNodeLayerDetails(Object nodeLayer, boolean isSerp, EPoint correction, boolean inLayers, boolean inElectricalLayers)
@@ -754,7 +800,7 @@ public class TechExplorer extends ESandBox {
         if (classArcProto.isInstance(entry))
             return t.findArc((String)ArcProto_getName.invoke(entry));
         if (classPrimitiveNode.isInstance(entry)) {
-            PrimitiveNode.Function fun = PrimitiveNodeFunctions.get(NodeInst_getFunction.invoke(entry));
+            PrimitiveNode.Function fun = PrimitiveNodeFunctions.get(PrimitiveNode_getFunction.invoke(entry));
             String name = (String)PrimitiveNode_getName.invoke(entry);
             if (fun == PrimitiveNode.Function.PIN) {
                 Xml.MenuNodeInst n = new Xml.MenuNodeInst();
@@ -783,6 +829,22 @@ public class TechExplorer extends ESandBox {
             return "SEPARATOR";
         assert entry instanceof String;
         return entry;
+    }
+
+    private void makePortArcs(List<String> portArcs, Object tech, Object pp, Object excludeAp) throws IllegalAccessException, InvocationTargetException  {
+        Object[] connections = (Object[])PrimitivePort_getConnections.invoke(pp);
+        for (Object ap: connections) {
+            if (ap == null || ap == excludeAp) continue;
+            String arcName = (String)ArcProto_getName.invoke(ap);
+            if (Technology_findArcProto.invoke(tech, arcName) != ap) continue;
+            portArcs.add(arcName);
+        }
+    }
+
+    private boolean isPseudoLayer(Object layer) throws IllegalAccessException, InvocationTargetException {
+        int extraFun = (Integer)Layer_getFunctionExtras.invoke(layer);
+        final int PSEUDO =       010000;
+        return (extraFun & PSEUDO) != 0 || Layer_isPseudoLayer != null && (Boolean)Layer_isPseudoLayer.invoke(layer);
     }
 
     private static double round(double v) {

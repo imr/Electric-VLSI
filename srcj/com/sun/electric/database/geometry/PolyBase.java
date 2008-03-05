@@ -31,7 +31,6 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.tool.Job;
 
 import java.awt.Rectangle;
@@ -166,7 +165,7 @@ public class PolyBase implements Shape, PolyNodeMerge
 	 * Method to return the layer associated with this Poly.
 	 * @return the layer associated with this Poly.
 	 */
-	public Layer getLayer() { return Layer.PSEUDO_HIDDEN && layer != null ? layer.getNonPseudoLayer() : layer; }
+	public Layer getLayer() { return layer != null ? layer.getNonPseudoLayer() : layer; }
 
 	/**
 	 * Method to return the layer or pseudo-layer associated with this Poly.

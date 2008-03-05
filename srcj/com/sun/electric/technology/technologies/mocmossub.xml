@@ -1032,8 +1032,7 @@
 
     <!-- ******************** NODES ******************** -->
     <primitiveNode name="Metal-1-P-Active-Con" fun="CONTACT">
-        <diskOffset untilVersion="1" x="8.5" y="8.5"/>
-        <diskOffset untilVersion="2" x="2.5" y="2.5"/>
+        <diskOffset x="8.5" y="8.5"/>
         <nodeBase lx="-2.5" hx="2.5" ly="-2.5" hy="2.5"/>
         <nodeLayer layer="Metal-1" style="FILLED">
             <box>
@@ -1072,8 +1071,7 @@
     </primitiveNode>
 
     <primitiveNode name="Metal-1-N-Active-Con" fun="CONTACT">
-        <diskOffset untilVersion="1" x="8.5" y="8.5"/>
-        <diskOffset untilVersion="2" x="2.5" y="2.5"/>
+        <diskOffset x="8.5" y="8.5"/>
         <nodeBase lx="-2.5" hx="2.5" ly="-2.5" hy="2.5"/>
         <nodeLayer layer="Metal-1" style="FILLED">
             <box>
@@ -1112,7 +1110,7 @@
     </primitiveNode>
 
     <primitiveNode name="Metal-1-Polysilicon-1-Con" fun="CONTACT">
-        <diskOffset untilVersion="2" x="2.5" y="2.5"/>
+        <diskOffset x="2.5" y="2.5"/>
         <nodeBase lx="-2.5" hx="2.5" ly="-2.5" hy="2.5"/>
         <nodeLayer layer="Polysilicon-1" style="FILLED">
             <box>
@@ -1141,7 +1139,7 @@
     </primitiveNode>
 
     <primitiveNode name="Metal-1-Polysilicon-2-Con" fun="CONTACT">
-        <diskOffset untilVersion="2" x="2.0" y="2.0"/>
+        <diskOffset x="2.0" y="2.0"/>
         <nodeBase lx="-2.0" hx="2.0" ly="-2.0" hy="2.0"/>
         <nodeLayer layer="Metal-1" style="FILLED">
             <box>
@@ -1170,7 +1168,7 @@
     </primitiveNode>
 
     <primitiveNode name="Metal-1-Polysilicon-1-2-Con" fun="CONTACT">
-        <diskOffset untilVersion="2" x="3.5" y="3.5"/>
+        <diskOffset x="3.5" y="3.5"/>
         <nodeBase lx="-3.5" hx="3.5" ly="-3.5" hy="3.5"/>
         <nodeLayer layer="Polysilicon-1" style="FILLED">
             <box>
@@ -1200,8 +1198,7 @@
     </primitiveNode>
 
     <primitiveNode name="P-Transistor" fun="TRAPMOS">
-        <diskOffset untilVersion="1" x="7.5" y="10.0"/>
-        <diskOffset untilVersion="2" x="1.5" y="1.0"/>
+        <diskOffset x="7.5" y="10.0"/>
         <nodeBase lx="-1.5" hx="1.5" ly="-1.0" hy="1.0"/>
         <nodeLayer layer="Polysilicon-1" style="FILLED">
             <serpbox lWidth="1.0" rWidth="1.0" tExtent="2.5" bExtent="2.5">
@@ -1276,8 +1273,7 @@
     </primitiveNode>
 
     <primitiveNode name="N-Transistor" fun="TRANMOS">
-        <diskOffset untilVersion="1" x="7.5" y="10.0"/>
-        <diskOffset untilVersion="2" x="1.5" y="1.0"/>
+        <diskOffset x="7.5" y="10.0"/>
         <nodeBase lx="-1.5" hx="1.5" ly="-1.0" hy="1.0"/>
         <nodeLayer layer="Polysilicon-1" style="FILLED">
             <serpbox lWidth="1.0" rWidth="1.0" tExtent="2.5" bExtent="2.5">
@@ -1352,7 +1348,7 @@
     </primitiveNode>
 
     <primitiveNode name="Metal-1-Metal-2-Con" fun="CONTACT">
-        <diskOffset untilVersion="2" x="2.0" y="2.0"/>
+        <diskOffset x="2.0" y="2.0"/>
         <nodeBase lx="-2.0" hx="2.0" ly="-2.0" hy="2.0"/>
         <nodeLayer layer="Metal-1" style="FILLED">
             <box>
@@ -1381,7 +1377,7 @@
     </primitiveNode>
 
     <primitiveNode name="Metal-2-Metal-3-Con" fun="CONTACT">
-        <diskOffset untilVersion="2" x="2.0" y="2.0"/>
+        <diskOffset x="2.0" y="2.0"/>
         <nodeBase lx="-2.0" hx="2.0" ly="-2.0" hy="2.0"/>
         <nodeLayer layer="Metal-2" style="FILLED">
             <box>
@@ -1410,7 +1406,7 @@
     </primitiveNode>
 
     <primitiveNode name="Metal-3-Metal-4-Con" fun="CONTACT">
-        <diskOffset untilVersion="2" x="2.0" y="2.0"/>
+        <diskOffset x="2.0" y="2.0"/>
         <nodeBase lx="-2.0" hx="2.0" ly="-2.0" hy="2.0"/>
         <nodeLayer layer="Metal-3" style="FILLED">
             <box>
@@ -1439,7 +1435,7 @@
     </primitiveNode>
 
     <primitiveNode name="Metal-4-Metal-5-Con" fun="CONTACT">
-        <diskOffset untilVersion="2" x="2.0" y="2.0"/>
+        <diskOffset x="2.0" y="2.0"/>
         <nodeBase lx="-2.0" hx="2.0" ly="-2.0" hy="2.0"/>
         <nodeLayer layer="Metal-4" style="FILLED">
             <box>
@@ -1468,7 +1464,7 @@
     </primitiveNode>
 
     <primitiveNode name="Metal-5-Metal-6-Con" fun="CONTACT">
-        <diskOffset untilVersion="2" x="3.0" y="3.0"/>
+        <diskOffset x="3.0" y="3.0"/>
         <nodeBase lx="-3.0" hx="3.0" ly="-3.0" hy="3.0"/>
         <nodeLayer layer="Metal-6" style="FILLED">
             <box>
@@ -1497,8 +1493,7 @@
     </primitiveNode>
 
     <primitiveNode name="Metal-1-Well-Con" fun="WELL">
-        <diskOffset untilVersion="1" x="7.0" y="7.0"/>
-        <diskOffset untilVersion="2" x="3.0" y="3.0"/>
+        <diskOffset x="7.0" y="7.0"/>
         <nodeBase lx="-3.0" hx="3.0" ly="-3.0" hy="3.0"/>
         <nodeLayer layer="P-Active-Well" style="FILLED">
             <box>
@@ -1537,8 +1532,7 @@
     </primitiveNode>
 
     <primitiveNode name="Metal-1-Substrate-Con" fun="SUBSTRATE">
-        <diskOffset untilVersion="1" x="7.0" y="7.0"/>
-        <diskOffset untilVersion="2" x="3.0" y="3.0"/>
+        <diskOffset x="7.0" y="7.0"/>
         <nodeBase lx="-3.0" hx="3.0" ly="-3.0" hy="3.0"/>
         <nodeLayer layer="N-Active" style="FILLED">
             <box>

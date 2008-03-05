@@ -522,9 +522,10 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	/** special factors for unusual primitives */	private double[] specialValues;
     /** true if contains MULTICUTBOX layers */      private int numMultiCuts;
     /** minimum width and height rule */            private NodeSizeRule minNodeSize;
-    /** size corrector */                           EPoint sizeCorrector;
+    /** size corrector */                           private EPoint sizeCorrector2;
 	/** offset from database to user */				private SizeOffset offset;
     /** base (highlight) rectangle of standard node */private ERectangle baseRectangle;
+    /** full (true) rectangle of standard node */   private ERectangle fullRectangle;
 	/** amount to automatically grow to fit arcs */	private Dimension2D autoGrowth;
 	/** template for Spice decks (null if none) */	private String spiceTemplate;
 
@@ -553,7 +554,10 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 		this.electricalLayers = null;
 		this.userBits = 0;
 		specialType = NORMAL;
-        this.sizeCorrector = sizeCorrector;
+        this.sizeCorrector2 = sizeCorrector;
+        long sizeX = sizeCorrector2.getGridX();
+        long sizeY = sizeCorrector2.getGridY();
+        fullRectangle = ERectangle.fromGrid(-sizeX, -sizeY, 2*sizeX, 2*sizeY);
 
         if (minSizeRule != null) {
             if (minSizeRule.length() == 0)
@@ -563,10 +567,10 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 
 		setFactoryDefSize(defWidth, defHeight);
         this.baseRectangle = baseRectangle;
-        double lx = -sizeCorrector.getLambdaX() + baseRectangle.getLambdaMinX();
-        double hx = -sizeCorrector.getLambdaX() - baseRectangle.getLambdaMaxX();
-        double ly = -sizeCorrector.getLambdaY() + baseRectangle.getLambdaMinY();
-        double hy = -sizeCorrector.getLambdaY() - baseRectangle.getLambdaMaxY();
+        double lx = sizeCorrector.getLambdaX() + baseRectangle.getLambdaMinX();
+        double hx = sizeCorrector.getLambdaX() - baseRectangle.getLambdaMaxX();
+        double ly = sizeCorrector.getLambdaY() + baseRectangle.getLambdaMinY();
+        double hy = sizeCorrector.getLambdaY() - baseRectangle.getLambdaMaxY();
         offset = new SizeOffset(lx, hx, ly, hy);
 //		if (offset == null) offset = new SizeOffset(0,0,0,0);
 //		this.offset = offset;
@@ -630,12 +634,12 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	public static PrimitiveNode newInstance(String protoName, Technology tech, double width, double height, String minSizeRule,
 		SizeOffset offset, Technology.NodeLayer [] layers)
 	{
-        EPoint sizeCorrector = EPoint.fromLambda(-0.5*width, -0.5*height);
+        EPoint sizeCorrector = EPoint.fromLambda(0.5*width, 0.5*height);
 		if (offset == null) offset = new SizeOffset(0,0,0,0);
-        long lx = sizeCorrector.getGridX() + offset.getLowXGridOffset();
-        long hx = -sizeCorrector.getGridX() - offset.getHighXGridOffset();
-        long ly = sizeCorrector.getGridY() + offset.getLowYGridOffset();
-        long hy = -sizeCorrector.getGridY() - offset.getHighYGridOffset();
+        long lx = -sizeCorrector.getGridX() + offset.getLowXGridOffset();
+        long hx = sizeCorrector.getGridX() - offset.getHighXGridOffset();
+        long ly = -sizeCorrector.getGridY() + offset.getLowYGridOffset();
+        long hy = sizeCorrector.getGridY() - offset.getHighYGridOffset();
         ERectangle baseRectangle = ERectangle.fromGrid(lx, ly, hx - lx, hy - ly);
         return newInstance(protoName, tech, sizeCorrector, minSizeRule,
                 width, height, baseRectangle, layers);
@@ -970,8 +974,8 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	 */
 	protected void setFactoryDefSize(double defWidth, double defHeight)
 	{
-		getNodeProtoExtendXPref(DBMath.round(0.5*defWidth + sizeCorrector.getLambdaX()));
-		getNodeProtoExtendYPref(DBMath.round(0.5*defHeight + sizeCorrector.getLambdaY()));
+		getNodeProtoExtendXPref(DBMath.round(0.5*defWidth - sizeCorrector2.getLambdaX()));
+		getNodeProtoExtendYPref(DBMath.round(0.5*defHeight - sizeCorrector2.getLambdaY()));
 	}
 
 	/**
@@ -981,21 +985,21 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	 */
 	public void setDefSize(double defWidth, double defHeight)
 	{
-		getNodeProtoExtendXPref(0).setDouble(DBMath.round(0.5*defWidth + sizeCorrector.getLambdaX()));
-		getNodeProtoExtendYPref(0).setDouble(DBMath.round(0.5*defHeight + sizeCorrector.getLambdaY()));
+		getNodeProtoExtendXPref(0).setDouble(DBMath.round(0.5*defWidth - sizeCorrector2.getLambdaX()));
+		getNodeProtoExtendYPref(0).setDouble(DBMath.round(0.5*defHeight - sizeCorrector2.getLambdaY()));
 	}
 
 	/**
 	 * Method to return the default full width of this PrimitiveNode.
 	 * @return the default width of this PrimitiveNode.
 	 */
-	public double getDefWidth() { return 2*(getNodeProtoExtendXPref(0).getDouble() - sizeCorrector.getLambdaX()); }
+	public double getDefWidth() { return 2*(getNodeProtoExtendXPref(0).getDouble() + sizeCorrector2.getLambdaX()); }
 
 	/**
 	 * Method to return the default full height of this PrimitiveNode.
 	 * @return the default height of this PrimitiveNode.
 	 */
-	public double getDefHeight() { return 2*(getNodeProtoExtendYPref(0).getDouble() - sizeCorrector.getLambdaY()); }
+	public double getDefHeight() { return 2*(getNodeProtoExtendYPref(0).getDouble() + sizeCorrector2.getLambdaY()); }
 
 	/**
 	 * Method to return the default base width of this PrimitiveNode in lambda units.
@@ -1084,8 +1088,25 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	 */
     public ERectangle getBaseRectangle() { return baseRectangle; }
 
-    public EPoint getSizeCorrector() { return sizeCorrector; }
+	/**
+	 * Method to get the full (true) ERectangle of this PrimitiveNode.
+     * Base ERectangle is a highlight rectangle of standard-size NodeInst of
+     * this PrimtiveNode
+	 * To get the full (true) ERectangle  for a specific NodeInst, use Technology.getBaseRectangle(ni).
+	 * Use this method only to get the base ERectangle of a PrimitiveNode.
+	 * @return the base ERectangle of this PrimitiveNode.
+	 */
+    public ERectangle getFullRectangle() { return fullRectangle; }
 
+    EPoint getSizeCorrector(int version) {
+        if (version == 0)
+            return sizeCorrector2;
+        else if (version == 1)
+            return EPoint.fromGrid(baseRectangle.getGridWidth(), baseRectangle.getGridHeight());
+        else
+            throw new AssertionError();
+    }
+    
 //	/**
 //	 * Method to return the minimum width of this PrimitiveNode.
 //	 * @return the minimum width of this PrimitiveNode.
@@ -1119,11 +1140,14 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
     }
 
     public void setSizeCorrector(double refWidth, double refHeight) {
-        sizeCorrector = EPoint.fromLambda(-0.5*refWidth, -0.5*refHeight);
-        long lx = sizeCorrector.getGridX() + offset.getLowXGridOffset();
-        long hx = -sizeCorrector.getGridX() - offset.getHighXGridOffset();
-        long ly = sizeCorrector.getGridY() + offset.getLowYGridOffset();
-        long hy = -sizeCorrector.getGridY() - offset.getHighYGridOffset();
+        sizeCorrector2 = EPoint.fromLambda(0.5*refWidth, 0.5*refHeight);
+        long sizeX = sizeCorrector2.getGridX();
+        long sizeY = sizeCorrector2.getGridY();
+        fullRectangle = ERectangle.fromGrid(-sizeX, -sizeY, 2*sizeX, 2*sizeY);
+        long lx = -sizeCorrector2.getGridX() + offset.getLowXGridOffset();
+        long hx = sizeCorrector2.getGridX() - offset.getHighXGridOffset();
+        long ly = -sizeCorrector2.getGridY() + offset.getLowYGridOffset();
+        long hy = sizeCorrector2.getGridY() - offset.getHighYGridOffset();
         baseRectangle = ERectangle.fromGrid(lx, ly, hx - lx, hy - ly);
     }
 
@@ -1133,10 +1157,10 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	 */
 	public void setSizeOffset(SizeOffset offset) {
         this.offset = offset;
-        long lx = sizeCorrector.getGridX() + offset.getLowXGridOffset();
-        long hx = -sizeCorrector.getGridX() - offset.getHighXGridOffset();
-        long ly = sizeCorrector.getGridY() + offset.getLowYGridOffset();
-        long hy = -sizeCorrector.getGridY() - offset.getHighYGridOffset();
+        long lx = -sizeCorrector2.getGridX() + offset.getLowXGridOffset();
+        long hx = sizeCorrector2.getGridX() - offset.getHighXGridOffset();
+        long ly = -sizeCorrector2.getGridY() + offset.getLowYGridOffset();
+        long hy = sizeCorrector2.getGridY() - offset.getHighYGridOffset();
         baseRectangle = ERectangle.fromGrid(lx, ly, hx - lx, hy - ly);
     }
 
@@ -1854,17 +1878,17 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
         out.println();
         if (offset != null)
             out.println("\t" + offset);
-        out.println("\trefWidth=" + -sizeCorrector.getLambdaX() + " refHeight=" + -sizeCorrector.getLambdaY());
+        out.println("\trefWidth=" + sizeCorrector2.getLambdaX() + " refHeight=" + sizeCorrector2.getLambdaY());
         if (minNodeSize != null)
             out.println("\tminNodeSize w=" + minNodeSize.getWidth() + " h=" + minNodeSize.getHeight() + " rule=" + minNodeSize.getRuleName());
         if (autoGrowth != null)
             out.println("\tautoGrowth " + autoGrowth);
         Technology.printlnPref(out, 1, defaultExtendXPrefs.get(this));
         Technology.printlnPref(out, 1, defaultExtendYPrefs.get(this));
-        out.println("\tdiskOffset1=" + -sizeCorrector.getX() + "," + -sizeCorrector.getY());
+        out.println("\tdiskOffset1=" + sizeCorrector2.getX() + "," + sizeCorrector2.getY());
         SizeOffset so = getProtoSizeOffset();
-        double x = -0.5*(so.getLowXOffset() + so.getHighXOffset()) - sizeCorrector.getX();
-        double y = -0.5*(so.getLowYOffset() + so.getHighYOffset()) - sizeCorrector.getY();
+        double x = -0.5*(so.getLowXOffset() + so.getHighXOffset()) + sizeCorrector2.getX();
+        double y = -0.5*(so.getLowYOffset() + so.getHighYOffset()) + sizeCorrector2.getY();
         out.println("\tdiskOffset2=" + x + "," + y);
 
         out.println("\tlayers:");
@@ -1876,6 +1900,11 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
         }
         for (PrimitivePort pp: primPorts)
             pp.dump(out);
+    }
+    
+    private static double z(double v) {
+        return v;
+//        return v == 0 ? -0.0 : v;
     }
 
     private void dumpNodeLayers(PrintWriter out, Technology.NodeLayer[] layers, boolean isSerp) {
@@ -1924,15 +1953,17 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
         if (so.getLowXOffset() == 0 && so.getHighXOffset() == 0 && so.getLowYOffset() == 0 && so.getHighYOffset() == 0)
             so = null;
 //            EPoint minFullSize = EPoint.fromLambda(0.5*pnp.getDefWidth(), 0.5*pnp.getDefHeight());
-        if (so != null) {
-            EPoint p2 = EPoint.fromGrid(
-                    minFullSize.getGridX() - ((so.getLowXGridOffset() + so.getHighXGridOffset()) >> 1),
-                    minFullSize.getGridY() - ((so.getLowYGridOffset() + so.getHighYGridOffset()) >> 1));
-            n.diskOffset.put(Integer.valueOf(1), minFullSize);
-            n.diskOffset.put(Integer.valueOf(2), p2);
-        } else {
-            n.diskOffset.put(Integer.valueOf(2), minFullSize);
-        }
+        if (!minFullSize.equals(EPoint.ORIGIN))
+            n.diskOffset = minFullSize;
+//        if (so != null) {
+//            EPoint p2 = EPoint.fromGrid(
+//                    minFullSize.getGridX() - ((so.getLowXGridOffset() + so.getHighXGridOffset()) >> 1),
+//                    minFullSize.getGridY() - ((so.getLowYGridOffset() + so.getHighYGridOffset()) >> 1));
+//            n.diskOffset.put(Integer.valueOf(1), minFullSize);
+//            n.diskOffset.put(Integer.valueOf(2), p2);
+//        } else {
+//            n.diskOffset.put(Integer.valueOf(2), minFullSize);
+//        }
         n.defaultWidth.value = DBMath.round(getDefWidth() - 2*minFullSize.getLambdaX());
         n.defaultHeight.value = DBMath.round(getDefHeight() - 2*minFullSize.getLambdaY());
 //            if (so != null) {
@@ -2017,7 +2048,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
         }
 
         public String getRuleName() { return rule; }
-        public double getWidth() { return -2*sizeCorrector.getLambdaX(); }
-        public double getHeight() { return -2*sizeCorrector.getLambdaY(); }
+        public double getWidth() { return 2*sizeCorrector2.getLambdaX(); }
+        public double getHeight() { return 2*sizeCorrector2.getLambdaY(); }
     }
 }

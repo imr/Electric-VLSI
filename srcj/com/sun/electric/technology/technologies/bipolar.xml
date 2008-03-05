@@ -544,7 +544,7 @@
 
     <!-- ******************** NODES ******************** -->
     <primitiveNode name="Via" fun="CONTACT">
-        <diskOffset untilVersion="2" x="2.0" y="2.0"/>
+        <diskOffset x="2.0" y="2.0"/>
         <nodeBase lx="-2.0" hx="2.0" ly="-2.0" hy="2.0"/>
         <nodeLayer layer="Metal1" style="FILLED">
             <box>
@@ -573,8 +573,7 @@
     </primitiveNode>
 
     <primitiveNode name="M1_PP_Contact" fun="CONTACT">
-        <diskOffset untilVersion="1" x="3.0" y="3.0"/>
-        <diskOffset untilVersion="2" x="1.0" y="1.0"/>
+        <diskOffset x="3.0" y="3.0"/>
         <nodeBase lx="-1.0" hx="1.0" ly="-1.0" hy="1.0"/>
         <nodeLayer layer="Metal1" style="FILLED">
             <box>
@@ -608,8 +607,7 @@
     </primitiveNode>
 
     <primitiveNode name="M1_NP_Contact" fun="CONTACT">
-        <diskOffset untilVersion="1" x="3.0" y="3.0"/>
-        <diskOffset untilVersion="2" x="1.0" y="1.0"/>
+        <diskOffset x="3.0" y="3.0"/>
         <nodeBase lx="-1.0" hx="1.0" ly="-1.0" hy="1.0"/>
         <nodeLayer layer="Poly_Definition" style="FILLED">
             <box>
@@ -643,8 +641,7 @@
     </primitiveNode>
 
     <primitiveNode name="NPResistor" fun="RESIST">
-        <diskOffset untilVersion="1" x="2.5" y="3.5"/>
-        <diskOffset untilVersion="2" x="1.5" y="1.5"/>
+        <diskOffset x="2.5" y="3.5"/>
         <nodeBase lx="-1.5" hx="1.5" ly="-1.5" hy="1.5"/>
         <nodeLayer layer="Silicide_Exclusion" style="FILLED" portNum="-1">
             <box kly="0.0">
@@ -695,8 +692,7 @@
     </primitiveNode>
 
     <primitiveNode name="NMResistor" fun="UNKNOWN">
-        <diskOffset untilVersion="1" x="2.5" y="3.5"/>
-        <diskOffset untilVersion="2" x="1.5" y="1.5"/>
+        <diskOffset x="2.5" y="3.5"/>
         <nodeBase lx="-1.5" hx="1.5" ly="-1.5" hy="1.5"/>
         <nodeLayer layer="Silicide_Exclusion" style="FILLED" portNum="-1">
             <box kly="0.0">
@@ -757,8 +753,7 @@
     </primitiveNode>
 
     <primitiveNode name="npn111" fun="TRANPN">
-        <diskOffset untilVersion="1" x="10.0" y="5.5"/>
-        <diskOffset untilVersion="2" x="1.0" y="2.0"/>
+        <diskOffset x="10.0" y="5.5"/>
         <nodeBase lx="0.0" hx="2.0" ly="-2.0" hy="2.0"/>
         <nodeLayer layer="Poly_Definition" style="FILLED">
             <box khx="-1.0">
@@ -852,8 +847,7 @@
     </primitiveNode>
 
     <primitiveNode name="PNJunction" fun="CONTACT">
-        <diskOffset untilVersion="1" x="2.0" y="2.0"/>
-        <diskOffset untilVersion="2" x="1.0" y="1.0"/>
+        <diskOffset x="2.0" y="2.0"/>
         <nodeBase lx="-1.0" hx="1.0" ly="-1.0" hy="1.0"/>
         <nodeLayer layer="Poly_Definition" style="FILLED">
             <box klx="0.0">

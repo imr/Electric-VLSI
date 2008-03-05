@@ -274,12 +274,13 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	public static NodeInst makeDummyInstance(NodeProto np, EPoint center, double width, double height, Orientation orient)
 	{
         EPoint size = EPoint.fromLambda(width, height);
-        EPoint corrector = EPoint.ORIGIN;
         if (np instanceof PrimitiveNode) {
-            corrector = ((PrimitiveNode)np).getSizeCorrector();
-            if (!corrector.equals(EPoint.ORIGIN)) {
-                long gridX = size.getGridX() + 2*corrector.getGridX();
-                long gridY = size.getGridY() + 2*corrector.getGridY();
+            ERectangle full = ((PrimitiveNode)np).getFullRectangle();
+            long fullWidth = full.getGridWidth();
+            long fullHeight = full.getGridHeight();
+            if (fullWidth != 0 || fullHeight != 0) {
+                long gridX = size.getGridX() - fullWidth;
+                long gridY = size.getGridY() - fullHeight;
                 size = EPoint.fromGrid(gridX, gridY);
             }
         }
@@ -325,8 +326,14 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         }
         EPoint size = EPoint.ORIGIN;
         if (protoType instanceof PrimitiveNode) {
-            EPoint corrector = ((PrimitiveNode)protoType).getSizeCorrector();
-            size = EPoint.fromLambda(width + 2*corrector.getLambdaX(), height + 2*corrector.getLambdaY());
+            ERectangle full = ((PrimitiveNode)protoType).getFullRectangle();
+            long fullWidth = full.getGridWidth();
+            long fullHeight = full.getGridHeight();
+            if (fullWidth != 0 || fullHeight != 0) {
+                long gridX = size.getGridX() - fullWidth;
+                long gridY = size.getGridY() - fullHeight;
+                size = EPoint.fromGrid(gridX, gridY);
+            }
         }
         return newInstance(parent, protoType, name, null, center, size, orient, 0, techBits, null, null);
 	}
@@ -1098,8 +1105,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	public double getXSize() {
         if (protoType instanceof Cell)
             return protoType.getDefWidth();
-        EPoint corrector = ((PrimitiveNode)protoType).getSizeCorrector();
-        return DBMath.gridToLambda(d.size.getGridX() - 2*corrector.getGridX());
+        long fullWidth = ((PrimitiveNode)protoType).getFullRectangle().getGridWidth();
+        return DBMath.gridToLambda(d.size.getGridX() + fullWidth);
     }
 
 	/**
@@ -1127,8 +1134,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	public double getYSize() {
         if (protoType instanceof Cell)
             return protoType.getDefHeight();
-        EPoint corrector = ((PrimitiveNode)protoType).getSizeCorrector();
-        return DBMath.gridToLambda(d.size.getGridY() - 2*corrector.getGridY());
+        long fullHeight = ((PrimitiveNode)protoType).getFullRectangle().getGridHeight();
+        return DBMath.gridToLambda(d.size.getGridY() + fullHeight);
     }
 
 	/**
@@ -2744,9 +2751,9 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
                     else
                         Rectangle2D.union(poly.getBounds2D(), bounds, bounds);
                 }
-                EPoint corrector = pn.getSizeCorrector();
-                double lambdaX = bounds.getWidth() + 2*corrector.getLambdaX();
-                double lambdaY = bounds.getHeight() + 2*corrector.getLambdaY();
+                ERectangle full = pn.getFullRectangle();
+                double lambdaX = bounds.getWidth() - full.getLambdaWidth();
+                double lambdaY = bounds.getHeight() - full.getLambdaHeight();
                 lowLevelModify(d.withSize(EPoint.fromLambda(lambdaX, lambdaY)));
             }
         } else if (key == Artwork.ART_DEGREES) {
@@ -3251,9 +3258,9 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 			}
 			if (repair)
 			{
-                EPoint corrector = pn.getSizeCorrector();
-                double lambdaX = width + 2*corrector.getLambdaX();
-                double lambdaY = height + 2*corrector.getLambdaY();
+                ERectangle full = pn.getFullRectangle();
+                double lambdaX = width - full.getLambdaWidth();
+                double lambdaY = height - full.getLambdaHeight();
                 lowLevelModify(d.withSize(EPoint.fromLambda(lambdaX, lambdaY)));
 			}
 //			warningCount++;

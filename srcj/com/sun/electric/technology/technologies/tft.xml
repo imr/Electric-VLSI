@@ -383,7 +383,7 @@
 
     <!-- ******************** NODES ******************** -->
     <primitiveNode name="Metal-1-Metal-2-Con" fun="CONTACT">
-        <diskOffset untilVersion="2" x="2.5" y="2.5"/>
+        <diskOffset x="2.5" y="2.5"/>
         <nodeBase lx="-2.5" hx="2.5" ly="-2.5" hy="2.5"/>
         <nodeLayer layer="Metal-1" style="FILLED">
             <box>
@@ -412,8 +412,7 @@
     </primitiveNode>
 
     <primitiveNode name="capacitor" fun="CAPAC">
-        <diskOffset untilVersion="1" x="5.5" y="5.5"/>
-        <diskOffset untilVersion="2" x="2.5" y="2.5"/>
+        <diskOffset x="5.5" y="5.5"/>
         <nodeBase lx="-2.5" hx="2.5" ly="-2.5" hy="2.5"/>
         <nodeLayer layer="Metal-1" style="FILLED">
             <box>
@@ -478,8 +477,7 @@
     </primitiveNode>
 
     <primitiveNode name="P-Transistor" fun="TRAPMOS">
-        <diskOffset untilVersion="1" x="5.5" y="5.5"/>
-        <diskOffset untilVersion="2" x="2.5" y="0.5"/>
+        <diskOffset x="5.5" y="5.5"/>
         <nodeBase lx="-2.5" hx="2.5" ly="-0.5" hy="0.5"/>
         <nodeLayer layer="Metal-1" style="FILLED">
             <box>

@@ -203,7 +203,7 @@ public class Xml {
         public boolean od33;
 
         public com.sun.electric.technology.PrimitiveNode.Function function;
-        public final TreeMap<Integer,EPoint> diskOffset = new TreeMap<Integer,EPoint>();
+        public EPoint diskOffset;
         public final Distance defaultWidth = new Distance();
         public final Distance defaultHeight = new Distance();
         public ERectangle nodeBase;
@@ -944,7 +944,7 @@ public class Xml {
                     curNode.od33 = true;
                     break;
                 case diskOffset:
-                    curNode.diskOffset.put(Integer.parseInt(a("untilVersion")), EPoint.fromLambda(Double.parseDouble(a("x")), Double.parseDouble(a("y"))));
+                    curNode.diskOffset = EPoint.fromLambda(Double.parseDouble(a("x")), Double.parseDouble(a("y")));
                     break;
                 case defaultWidth:
                     curDistance = curNode.defaultWidth;
@@ -1813,9 +1813,8 @@ public class Xml {
             if (ni.od33)
                 bel(XmlKeyword.od33);
 
-            for (Map.Entry<Integer,EPoint> e: ni.diskOffset.entrySet()) {
-                EPoint p = e.getValue();
-                b(XmlKeyword.diskOffset); a("untilVersion", e.getKey()); a("x", p.getLambdaX()); a("y", p.getLambdaY()); el();
+            if (ni.diskOffset != null) {
+                b(XmlKeyword.diskOffset); a("x", ni.diskOffset.getLambdaX()); a("y", ni.diskOffset.getLambdaY()); el();
             }
 
             if (ni.defaultWidth.value != 0) {

@@ -76,6 +76,7 @@ class EClassLoader extends URLClassLoader {
     protected final Class<?> classArcProto              = loadElectricClass("technology.ArcProto", "database.prototype.ArcProto");
     protected final Class<?> classArcProtoFunction      = loadElectricClass("technology.ArcProto$Function", "database.prototype.ArcProto$Function");
     protected final Class<?> classDRCTemplate           = loadElectricClass("technology.DRCTemplate");
+    protected final Class<?> classDRCTemplateDRCMode    = loadElectricClass("technology.DRCTemplate$DRCMode");
     protected final Class<?> classDRCTemplateDRCRuleType= loadElectricClass("technology.DRCTemplate$DRCRuleType");
     protected final Class<?> classEdgeH                 = loadElectricClass("technology.EdgeH");
     protected final Class<?> classEdgeV                 = loadElectricClass("technology.EdgeV");
@@ -197,6 +198,7 @@ class EClassLoader extends URLClassLoader {
     protected final Method ArcProto_isSkipSizeInPalette = getMethod(classArcProto, "isSkipSizeInPalette");
     protected final Method ArcProto_isSpecialArc = getMethod(classArcProto, "isSpecialArc");
     protected final Method ArcProto_isWipable = getMethod(classArcProto, "isWipable");
+    protected final Method DRCTemplateDrcMode_mode = getMethod(classDRCTemplateDRCMode, "mode");
     protected final Method Foundry_getGDSLayers = getMethod(classFoundry, "getGDSLayers");
     protected final Method Foundry_getRules = getMethod(classFoundry, "getRules");
     protected final Method Layer_getCapacitance = getMethod(classLayer, "getCapacitance");
@@ -233,6 +235,7 @@ class EClassLoader extends URLClassLoader {
     protected final Method PrimitiveNode_getSpecialType = getMethod(classPrimitiveNode, "getSpecialType");
     protected final Method PrimitiveNode_getSpecialValues = getMethod(classPrimitiveNode, "getSpecialValues");
     protected final Method PrimitiveNode_isArcsShrink = getMethod(classPrimitiveNode, "isArcsShrink");
+    protected final Method PrimitiveNode_isArcsWipe = getMethod(classPrimitiveNode, "isArcsWipe");
     protected final Method PrimitiveNode_isCanBeZeroSize = getMethod(classPrimitiveNode, "isCanBeZeroSize");
     protected final Method PrimitiveNode_isEdgeSelect = getMethod(classPrimitiveNode, "isEdgeSelect");
     protected final Method PrimitiveNode_isLockedPrim = getMethod(classPrimitiveNode, "isLockedPrim");
@@ -308,6 +311,7 @@ class EClassLoader extends URLClassLoader {
     protected final Method TechnologyNodeLayer_getSerpentineLWidth = getMethod(classTechnologyNodeLayer, "getSerpentineLWidth");
     protected final Method TechnologyNodeLayer_getSerpentineRWidth = getMethod(classTechnologyNodeLayer, "getSerpentineRWidth");
     protected final Method TechnologyNodeLayer_getStyle = getMethod(classTechnologyNodeLayer, "getStyle");
+    protected final Method TechnologyNodeLayer_isPseudoLayer = getMethod(classTechnologyNodeLayer, "isPseudoLayer");
     protected final Method TechnologyTechPoint_getX = getMethod(classTechnologyTechPoint, "getX");
     protected final Method TechnologyTechPoint_getY = getMethod(classTechnologyTechPoint, "getY");
     protected final Method Job_initJobManager1 = getMethod(classJob, "initJobManager", Integer.TYPE, classJob, Object.class, String.class);
@@ -323,6 +327,7 @@ class EClassLoader extends URLClassLoader {
 
     protected final HashMap<Object,EGraphics.Outline> EGraphicsOutlines = new HashMap<Object,EGraphics.Outline>();
     protected final HashMap<Object,Poly.Type> PolyTypes = new HashMap<Object,Poly.Type>();
+    protected final HashMap<Object,DRCTemplate.DRCMode> DRCTemplateDRCModes = new HashMap<Object,DRCTemplate.DRCMode>();
     protected final HashMap<Object,DRCTemplate.DRCRuleType> DRCTemplateDRCRuleTypes = new HashMap<Object,DRCTemplate.DRCRuleType>();
     protected final HashMap<Object,Layer.Function> LayerFunctions = new HashMap<Object,Layer.Function>();
     protected final HashMap<Object,ArcProto.Function> ArcProtoFunctions = new HashMap<Object,ArcProto.Function>();
@@ -348,6 +353,12 @@ class EClassLoader extends URLClassLoader {
             assert old == null;
         }
         if (classDRCTemplate != null) {
+            for (DRCTemplate.DRCMode mode: DRCTemplate.DRCMode.class.getEnumConstants()) {
+                Field f = getField(classDRCTemplateDRCMode, mode.name());
+                if (f == null) continue;
+                DRCTemplate.DRCMode old = DRCTemplateDRCModes.put(f.get(null), mode);
+                assert old == null;
+            }
             for (DRCTemplate.DRCRuleType type: DRCTemplate.DRCRuleType.class.getEnumConstants()) {
                 Field f = getField(classDRCTemplateDRCRuleType, type.name());
                 if (f == null) continue;

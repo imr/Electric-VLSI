@@ -566,9 +566,8 @@
                             <xsd:element name="od18" minOccurs="0"/>
                             <xsd:element name="od25" minOccurs="0"/>
                             <xsd:element name="od33" minOccurs="0"/>
-                            <xsd:element name="diskOffset" minOccurs="0" maxOccurs="unbounded">
+                            <xsd:element name="diskOffset" minOccurs="0">
                                 <xsd:complexType>
-                                    <xsd:attribute name="untilVersion" type="tns:TechVersion" use="required"/>
                                     <xsd:attribute name="x" type="xsd:double" use="required"/>
                                     <xsd:attribute name="y" type="xsd:double" use="required"/>
                                 </xsd:complexType>
