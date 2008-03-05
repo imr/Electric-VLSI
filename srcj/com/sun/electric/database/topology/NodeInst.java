@@ -273,16 +273,12 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 */
 	public static NodeInst makeDummyInstance(NodeProto np, EPoint center, double width, double height, Orientation orient)
 	{
-        EPoint size = EPoint.fromLambda(width, height);
+        EPoint size = EPoint.ORIGIN;
         if (np instanceof PrimitiveNode) {
             ERectangle full = ((PrimitiveNode)np).getFullRectangle();
-            long fullWidth = full.getGridWidth();
-            long fullHeight = full.getGridHeight();
-            if (fullWidth != 0 || fullHeight != 0) {
-                long gridX = size.getGridX() - fullWidth;
-                long gridY = size.getGridY() - fullHeight;
-                size = EPoint.fromGrid(gridX, gridY);
-            }
+            long gridWidth = DBMath.lambdaToSizeGrid(width - full.getLambdaWidth());
+            long gridHeight = DBMath.lambdaToSizeGrid(height - full.getLambdaHeight());
+            size = EPoint.fromGrid(gridWidth, gridHeight);
         }
         ImmutableNodeInst d = ImmutableNodeInst.newInstance(0, np.getId(), Name.findName("node@0"), TextDescriptor.getNodeTextDescriptor(),
                 orient, center, size, 0,  0, TextDescriptor.getInstanceTextDescriptor());
@@ -327,13 +323,9 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         EPoint size = EPoint.ORIGIN;
         if (protoType instanceof PrimitiveNode) {
             ERectangle full = ((PrimitiveNode)protoType).getFullRectangle();
-            long fullWidth = full.getGridWidth();
-            long fullHeight = full.getGridHeight();
-            if (fullWidth != 0 || fullHeight != 0) {
-                long gridX = size.getGridX() - fullWidth;
-                long gridY = size.getGridY() - fullHeight;
-                size = EPoint.fromGrid(gridX, gridY);
-            }
+            long gridWidth = DBMath.lambdaToSizeGrid(width - full.getLambdaWidth());
+            long gridHeight = DBMath.lambdaToSizeGrid(height - full.getLambdaHeight());
+            size = EPoint.fromGrid(gridWidth, gridHeight);
         }
         return newInstance(parent, protoType, name, null, center, size, orient, 0, techBits, null, null);
 	}
