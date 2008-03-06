@@ -281,6 +281,8 @@ public class EDIF extends Input
 	/** list of offpage nodes in the cell */	private List<NodeInst> offpageNodes;
 	/** list of nodes that were equived */		private Map<String,EDIFEquiv.NodeEquivalence> mappedNodes;
 	/** mapping of named arcs in each cell */	private Map<Cell,Map<String,List<ArcInst>>> namedArcs = new HashMap<Cell,Map<String,List<ArcInst>>>();
+	/** export names needed on current net */	private Set<String> exportsOnNet;
+	/** arcs placed on current net */			private List<ArcInst> arcsOnNet;
 
 	// some standard artwork primitivies
 	private PortProto defaultPort;
@@ -570,7 +572,18 @@ public class EDIF extends Input
 			for(ArcInst ai : arcsToName.keySet())
 			{
 				String arcName = arcsToName.get(ai);
-				ai.setName(arcName);
+				if (ai.getName().equals(arcName)) continue;
+				if (ai.getNameKey().isTempname())
+				{
+					ai.setName(arcName);
+				} else
+				{
+					// two names on one arc: duplicate the arc
+System.out.println("CREATING SECOND " + ai.getProto().describe()+" NAMED "+arcName);
+					ArcInst.newInstanceBase(ai.getProto(), ai.getLambdaBaseWidth(),
+						ai.getHeadPortInst(), ai.getTailPortInst(), ai.getHeadLocation(), ai.getTailLocation(),
+						arcName, ai.getAngle(), ai.getD().flags);
+				}
 			}
 		}
 	}
@@ -2412,6 +2425,8 @@ public class EDIF extends Input
 				netReference = objectName;
 				netName = objectName;
 			}
+			exportsOnNet = new HashSet<String>();
+			arcsOnNet = new ArrayList<ArcInst>();
 		}
 
 		protected void pop()
@@ -2428,6 +2443,40 @@ public class EDIF extends Input
 			if (curGeometryType != GBUS) curGeometryType = GUNKNOWN;
 			freeSavedPointList();
 			netPortRefs.clear();
+
+			// make sure all exports are on some arc
+			for(String exportName : exportsOnNet)
+			{
+				ArcInst unNamedArc = null;
+				boolean nameFound = false;
+				for(ArcInst ai : arcsOnNet)
+				{
+					String arcName = ai.getName();
+					if (arcName.equals(exportName)) nameFound = true;
+					if (ai.getNameKey().isTempname()) unNamedArc = ai;
+				}
+				if (nameFound) continue;
+				if (unNamedArc != null)
+				{
+					unNamedArc.setName(exportName);
+				} else
+				{
+					// two names on one arc: duplicate the arc
+					if (arcsOnNet.size() > 0)
+					{
+						ArcInst ai = arcsOnNet.get(0);
+						ArcInst.newInstanceBase(ai.getProto(), ai.getLambdaBaseWidth(),
+							ai.getHeadPortInst(), ai.getTailPortInst(), ai.getHeadLocation(), ai.getTailLocation(),
+							exportName, ai.getAngle(), ai.getD().flags);
+					} else
+					{
+						System.out.println("ERROR: Unable to connect export " + exportName + " to circuitry in cell " +
+							curCell.describe(false));
+					}
+				}
+			}
+			exportsOnNet = null;
+			arcsOnNet = null;
 		}
 	}
 
@@ -2756,14 +2805,18 @@ public class EDIF extends Input
 							{
 								System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create path (arc)");
 								errorCount++;
-							} else if (curGeometryType == GNET && i == 0)
+							} else
 							{
-								if (netReference.length() > 0) ai.newVar("EDIF_name", netReference);
-								if (netName.length() > 0) putNameOnArcOnce(ai, convertParens(netName));
-							} else if (curGeometryType == GBUS && i == 0)
-							{
-								if (bundleReference.length() > 0) ai.newVar("EDIF_name", bundleReference);
-								if (bundleName.length() > 0) putNameOnArcOnce(ai, convertParens(bundleName));
+								if (arcsOnNet != null) arcsOnNet.add(ai);
+								if (curGeometryType == GNET && i == 0)
+								{
+									if (netReference.length() > 0) ai.newVar("EDIF_name", netReference);
+									if (netName.length() > 0) putNameOnArcOnce(ai, convertParens(netName));
+								} else if (curGeometryType == GBUS && i == 0)
+								{
+									if (bundleReference.length() > 0) ai.newVar("EDIF_name", bundleReference);
+									if (bundleName.length() > 0) putNameOnArcOnce(ai, convertParens(bundleName));
+								}
 							}
 						}
 						if (ai != null) curArc = ai;
@@ -3102,6 +3155,12 @@ public class EDIF extends Input
 				} else
 				{
 					// external port reference, look for a off-page reference in {sch} with this port name
+					if (exportsOnNet != null)
+					{
+						String alternateName = renamedObjects.get(portReference);
+						if (alternateName == null) alternateName = portReference;
+						exportsOnNet.add(alternateName);
+					}
 					if (activeView == VNETLIST)
 					{
 						Cell np = null;
@@ -3139,6 +3198,7 @@ public class EDIF extends Input
 								return;
 							}
 						}
+
 						fNi = ((Export)pp).getOriginalPort().getNodeInst();
 						fPp = ((Export)pp).getOriginalPort().getPortProto();
 						Poly portPoly = fNi.findPortInstFromProto(fPp).getPoly();

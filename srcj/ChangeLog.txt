@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07f: ******************************
 
+BUG: (3/6/08, SMR) EDIF input doesn't always get export connected to circuitry (Bug #1591).
+FIX: Create second arc if necessary so that it can be given the export name.
+
 IMP: (3/6/08, DN) ArcPin's geometry is inherited from the ArcProto (except elib sizes).
 
 BUG: (3/5/08, SMR) Generic technology objects are not written to PostScript.
