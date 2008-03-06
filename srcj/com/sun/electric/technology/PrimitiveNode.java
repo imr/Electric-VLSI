@@ -29,10 +29,12 @@ import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.ERectangle;
+import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.id.PortProtoId;
 import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.id.PrimitivePortId;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.Name;
@@ -573,13 +575,6 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
         double ly = sizeCorrector.getLambdaY() + baseRectangle.getLambdaMinY();
         double hy = sizeCorrector.getLambdaY() - baseRectangle.getLambdaMaxY();
         offset = new SizeOffset(lx, hx, ly, hy);
-//		if (offset == null) offset = new SizeOffset(0,0,0,0);
-//		this.offset = offset;
-//        long lx = sizeCorrector.getGridX() + offset.getLowXGridOffset();
-//        long hx = -sizeCorrector.getGridX() - offset.getHighXGridOffset();
-//        long ly = sizeCorrector.getGridY() + offset.getLowYGridOffset();
-//        long hy = -sizeCorrector.getGridY() - offset.getHighYGridOffset();
-//        baseRectangle = ERectangle.fromGrid(lx, ly, hx - lx, hy - ly);
 		this.autoGrowth = null;
 		globalPrimNodeIndex = primNodeNumber++;
 
@@ -711,6 +706,40 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 		PrimitiveNode pn = new PrimitiveNode(protoName, tech, sizeCorrector, minSizeRule, width, height, baseRectangle, layers);
 		return pn;
 	}
+
+    static PrimitiveNode makeArcPin(ArcProto ap, String pinName, String portName, double defSize, ArcProto ... extraArcs) {
+        double sizeOffset = 0.5*ap.getLambdaElibWidthOffset();
+        double refSize = DBMath.round(defSize*0.5);
+        Technology.NodeLayer[] nodeLayers = new Technology.NodeLayer[ap.getNumArcLayers()];
+        for (int i = 0; i < ap.getNumArcLayers(); i++) {
+            Layer layer = ap.getLayer(i);
+            if (layer.getPseudoLayer() == null)
+                layer.makePseudo();
+            layer = layer.getPseudoLayer();
+            nodeLayers[i] = new Technology.NodeLayer(layer, 0, Poly.Type.CROSSED,
+                    Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(refSize - ap.getLayerLambdaExtend(i)));
+        }
+        SizeOffset so = null;
+        if (sizeOffset != 0)
+            so = new SizeOffset(sizeOffset, sizeOffset, sizeOffset, sizeOffset);
+        Technology tech = ap.getTechnology();
+        PrimitiveNode arcPin = newInstance(pinName, tech, 2*refSize, 2*refSize, so, nodeLayers);
+        ArcProto[] connections = new ArcProto[1 + extraArcs.length];
+        connections[0] = ap;
+        System.arraycopy(extraArcs, 0, connections, 1, extraArcs.length);
+        arcPin.addPrimitivePorts(new PrimitivePort [] {
+            PrimitivePort.newInstance(tech, arcPin, connections, portName,
+                    0,180, 0, PortCharacteristic.UNKNOWN,
+                    EdgeH.fromLeft(0.5*defSize), EdgeV.fromBottom(0.5*defSize),
+                    EdgeH.fromRight(0.5*defSize), EdgeV.fromTop(0.5*defSize))
+        });
+        arcPin.setFunction(PrimitiveNode.Function.PIN);
+        arcPin.setArcsWipe();
+        arcPin.setArcsShrink();
+        if (ap.isSkipSizeInPalette() || ap.isSpecialArc())
+            arcPin.setSkipSizeInPalette();
+        return arcPin;
+    }
 
     /** Method to return NodeProtoId of this NodeProto.
      * NodeProtoId identifies NodeProto independently of threads.
@@ -1104,7 +1133,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
     public ERectangle getFullRectangle() { return fullRectangle; }
 
     EPoint getSizeCorrector(int version) { return sizeCorrectors[version]; }
-    
+
 	/**
 	 * Method to return the minimum size rule for this PrimitiveNode.
 	 * @return the minimum size rule for this PrimitiveNode.
@@ -1890,11 +1919,6 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
         }
         for (PrimitivePort pp: primPorts)
             pp.dump(out);
-    }
-    
-    private static double z(double v) {
-        return v;
-//        return v == 0 ? -0.0 : v;
     }
 
     private void dumpNodeLayers(PrintWriter out, Technology.NodeLayer[] layers, boolean isSerp) {

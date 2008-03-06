@@ -29,7 +29,6 @@ import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.id.ArcProtoId;
-import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.tool.erc.ERC;
 import com.sun.electric.tool.user.User;
@@ -897,36 +896,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 //    }
 
     public PrimitiveNode makeWipablePin(String pinName, String portName, double defSize, ArcProto ... extraArcs) {
-        double sizeOffset = 0.5*getLambdaElibWidthOffset();
-        double refSize = DBMath.round(defSize*0.5);
-        Technology.NodeLayer[] nodeLayers = new Technology.NodeLayer[getNumArcLayers()];
-        for (int i = 0; i < getNumArcLayers(); i++) {
-            Layer layer = getLayer(i);
-            if (layer.getPseudoLayer() == null)
-                layer.makePseudo();
-            layer = layer.getPseudoLayer();
-            nodeLayers[i] = new Technology.NodeLayer(layer, 0, Poly.Type.CROSSED,
-                    Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(refSize - getLayerLambdaExtend(i)));
-        }
-        SizeOffset so = null;
-        if (sizeOffset != 0)
-            so = new SizeOffset(sizeOffset, sizeOffset, sizeOffset, sizeOffset);
-        arcPin = PrimitiveNode.newInstance(pinName, tech, 2*refSize, 2*refSize, so, nodeLayers);
-        ArcProto[] connections = new ArcProto[1 + extraArcs.length];
-        connections[0] = this;
-        System.arraycopy(extraArcs, 0, connections, 1, extraArcs.length);
-        arcPin.addPrimitivePorts(new PrimitivePort [] {
-            PrimitivePort.newInstance(tech, arcPin, connections, portName,
-                    0,180, 0, PortCharacteristic.UNKNOWN,
-                    EdgeH.fromLeft(0.5*defSize), EdgeV.fromBottom(0.5*defSize),
-                    EdgeH.fromRight(0.5*defSize), EdgeV.fromTop(0.5*defSize))
-        });
-        arcPin.setFunction(PrimitiveNode.Function.PIN);
-        arcPin.setArcsWipe();
-        arcPin.setArcsShrink();
-        if (isSkipSizeInPalette() || isSpecialArc())
-            arcPin.setSkipSizeInPalette();
-        return arcPin;
+        return PrimitiveNode.makeArcPin(this, pinName, portName, defSize, extraArcs);
     }
 
 	/**
