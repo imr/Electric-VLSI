@@ -579,10 +579,11 @@ public class EDIF extends Input
 				} else
 				{
 					// two names on one arc: duplicate the arc
-System.out.println("CREATING SECOND " + ai.getProto().describe()+" NAMED "+arcName);
-					ArcInst.newInstanceBase(ai.getProto(), ai.getLambdaBaseWidth(),
+					ArcInst second = ArcInst.newInstanceBase(ai.getProto(), ai.getLambdaBaseWidth(),
 						ai.getHeadPortInst(), ai.getTailPortInst(), ai.getHeadLocation(), ai.getTailLocation(),
 						arcName, ai.getAngle(), ai.getD().flags);
+					TextDescriptor td = TextDescriptor.getArcTextDescriptor().withOff(0, -1);
+					second.setTextDescriptor(ArcInst.ARC_NAME, td);
 				}
 			}
 		}
@@ -2465,9 +2466,11 @@ System.out.println("CREATING SECOND " + ai.getProto().describe()+" NAMED "+arcNa
 					if (arcsOnNet.size() > 0)
 					{
 						ArcInst ai = arcsOnNet.get(0);
-						ArcInst.newInstanceBase(ai.getProto(), ai.getLambdaBaseWidth(),
+						ArcInst second = ArcInst.newInstanceBase(ai.getProto(), ai.getLambdaBaseWidth(),
 							ai.getHeadPortInst(), ai.getTailPortInst(), ai.getHeadLocation(), ai.getTailLocation(),
 							exportName, ai.getAngle(), ai.getD().flags);
+						TextDescriptor td = TextDescriptor.getArcTextDescriptor().withOff(0, -1);
+						second.setTextDescriptor(ArcInst.ARC_NAME, td);
 					} else
 					{
 						System.out.println("ERROR: Unable to connect export " + exportName + " to circuitry in cell " +
