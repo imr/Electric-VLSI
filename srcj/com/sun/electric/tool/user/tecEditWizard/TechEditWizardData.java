@@ -864,7 +864,7 @@ public class TechEditWizardData
             Xml.ArcLayer al = new Xml.ArcLayer();
             al.layer = l.name;
             al.style = Poly.Type.FILLED;
-            al.extend.value = DBMath.gridToLambda(l.pureLayerNode.size.value);
+            al.extend.assign(l.pureLayerNode.size);
         }
         return a;
     }
@@ -897,7 +897,7 @@ public class TechEditWizardData
             l.pureLayerNode.name = name + "-Node";
             l.pureLayerNode.style = Poly.Type.FILLED;
             l.pureLayerNode.port = "Port_" + name;
-            l.pureLayerNode.size.value = DBMath.round(la);
+            l.pureLayerNode.size.addLambda(DBMath.round(la));
             l.pureLayerNode.portArcs.add(name);
 //            for (ArcProto ap: pureLayerNode.getPort(0).getConnections()) {
 //                if (ap.getTechnology() != tech) continue;

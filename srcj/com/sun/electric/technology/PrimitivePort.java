@@ -462,13 +462,13 @@ public class PrimitivePort implements PortProto, Comparable<PrimitivePort>, Seri
         ppd.portTopology = getTopology();
 
         ppd.lx.k = getLeft().getMultiplier()*2;
-        ppd.lx.value = DBMath.round(getLeft().getAdder() + minFullSize.getLambdaX()*getLeft().getMultiplier()*2);
+        ppd.lx.addLambda(DBMath.round(getLeft().getAdder() + minFullSize.getLambdaX()*getLeft().getMultiplier()*2));
         ppd.hx.k = getRight().getMultiplier()*2;
-        ppd.hx.value = DBMath.round(getRight().getAdder() + minFullSize.getLambdaX()*getRight().getMultiplier()*2);
+        ppd.hx.addLambda(DBMath.round(getRight().getAdder() + minFullSize.getLambdaX()*getRight().getMultiplier()*2));
         ppd.ly.k = getBottom().getMultiplier()*2;
-        ppd.ly.value = DBMath.round(getBottom().getAdder() + minFullSize.getLambdaY()*getBottom().getMultiplier()*2);
+        ppd.ly.addLambda(DBMath.round(getBottom().getAdder() + minFullSize.getLambdaY()*getBottom().getMultiplier()*2));
         ppd.hy.k = getTop().getMultiplier()*2;
-        ppd.hy.value = DBMath.round(getTop().getAdder() + minFullSize.getLambdaY()*getTop().getMultiplier()*2);
+        ppd.hy.addLambda(DBMath.round(getTop().getAdder() + minFullSize.getLambdaY()*getTop().getMultiplier()*2));
 
         Technology tech = parent.getTechnology();
         for (ArcProto ap: getConnections()) {

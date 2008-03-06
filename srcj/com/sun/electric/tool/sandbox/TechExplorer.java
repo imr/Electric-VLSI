@@ -393,7 +393,7 @@ public class TechExplorer extends ESandBox {
                         offset = (Double)TechnologyArcLayer_getOffset.invoke(arcLayer);
                     extend = 0.5*(defaultFullWidth - offset);
                 }
-                al.extend.value = round(extend);
+                al.extend.addLambda(round(extend));
                 a.arcLayers.add(al);
             }
             t.arcs.add(a);
@@ -420,7 +420,7 @@ public class TechExplorer extends ESandBox {
                 Object port = ports.next();
                 pln.port = (String)PrimitivePort_getName.invoke(port);
                 pln.style = PolyTypes.get(TechnologyNodeLayer_getStyle.invoke(nodeLayersArray[0]));
-                pln.size.value = round(defWidth);
+                pln.size.addLambda(round(defWidth));
                 makePortArcs(pln.portArcs, tech, port, null);
                 Xml.Layer layer = t.findLayer((String)Layer_getName.invoke(TechnologyNodeLayer_getLayer.invoke(nodeLayersArray[0])));
                 layer.pureLayerNode = pln;
@@ -510,8 +510,8 @@ public class TechExplorer extends ESandBox {
 //                n.diskOffset.put(Integer.valueOf(1), minFullSize);
 //            if (!p2.equals(EPoint.ORIGIN))
 //                n.diskOffset.put(Integer.valueOf(2), p2);
-            n.defaultWidth.value = round(defWidth - 2*minFullSize.getLambdaX());
-            n.defaultHeight.value = round(defHeight - 2*minFullSize.getLambdaY());
+            n.defaultWidth.addLambda(round(defWidth - 2*minFullSize.getLambdaX()));
+            n.defaultHeight.addLambda(round(defHeight - 2*minFullSize.getLambdaY()));
 
             List<?> nodeLayers = Arrays.asList(nodeLayersArray);
             Object[] electricalNodeLayersArray = (Object[])PrimitiveNode_getElectricalLayers.invoke(pn);
@@ -552,13 +552,13 @@ public class TechExplorer extends ESandBox {
                 Object ly = PrimitivePort_getBottom.invoke(pp);
                 Object hy = PrimitivePort_getTop.invoke(pp);
                 ppd.lx.k = (Double)EdgeH_getMultiplier.invoke(lx)*2;
-                ppd.lx.value = round((Double)EdgeH_getAdder.invoke(lx) + minFullSize.getLambdaX()*ppd.lx.k);
+                ppd.lx.addLambda(round((Double)EdgeH_getAdder.invoke(lx) + minFullSize.getLambdaX()*ppd.lx.k));
                 ppd.hx.k = (Double)EdgeH_getMultiplier.invoke(hx)*2;
-                ppd.hx.value = round((Double)EdgeH_getAdder.invoke(hx) + minFullSize.getLambdaX()*ppd.hx.k);
+                ppd.hx.addLambda(round((Double)EdgeH_getAdder.invoke(hx) + minFullSize.getLambdaX()*ppd.hx.k));
                 ppd.ly.k = (Double)EdgeV_getMultiplier.invoke(ly)*2;
-                ppd.ly.value = round((Double)EdgeV_getAdder.invoke(ly) + minFullSize.getLambdaY()*ppd.ly.k);
+                ppd.ly.addLambda(round((Double)EdgeV_getAdder.invoke(ly) + minFullSize.getLambdaY()*ppd.ly.k));
                 ppd.hy.k = (Double)EdgeV_getMultiplier.invoke(hy)*2;
-                ppd.hy.value = round((Double)EdgeV_getAdder.invoke(hy) + minFullSize.getLambdaY()*ppd.hy.k);
+                ppd.hy.addLambda(round((Double)EdgeV_getAdder.invoke(hy) + minFullSize.getLambdaY()*ppd.hy.k));
 
                 makePortArcs(ppd.portArcs, tech, pp, null);
                 n.ports.add(ppd);
@@ -750,13 +750,13 @@ public class TechExplorer extends ESandBox {
                 Object ly = TechnologyTechPoint_getY.invoke(points[0]);
                 Object hy = TechnologyTechPoint_getY.invoke(points[1]);
                 nld.lx.k = (Double)EdgeH_getMultiplier.invoke(lx)*2;
-                nld.lx.value = round((Double)EdgeH_getAdder.invoke(lx) + correction.getLambdaX()*nld.lx.k);
+                nld.lx.addLambda(round((Double)EdgeH_getAdder.invoke(lx) + correction.getLambdaX()*nld.lx.k));
                 nld.hx.k = (Double)EdgeH_getMultiplier.invoke(hx)*2;
-                nld.hx.value = round((Double)EdgeH_getAdder.invoke(hx) + correction.getLambdaX()*nld.hx.k);
+                nld.hx.addLambda(round((Double)EdgeH_getAdder.invoke(hx) + correction.getLambdaX()*nld.hx.k));
                 nld.ly.k = (Double)EdgeV_getMultiplier.invoke(ly)*2;
-                nld.ly.value = round((Double)EdgeV_getAdder.invoke(ly) + correction.getLambdaY()*nld.ly.k);
+                nld.ly.addLambda(round((Double)EdgeV_getAdder.invoke(ly) + correction.getLambdaY()*nld.ly.k));
                 nld.hy.k = (Double)EdgeV_getMultiplier.invoke(hy)*2;
-                nld.hy.value = round((Double)EdgeV_getAdder.invoke(hy) + correction.getLambdaY()*nld.hy.k);
+                nld.hy.addLambda(round((Double)EdgeV_getAdder.invoke(hy) + correction.getLambdaY()*nld.hy.k));
             } else {
                 for (Object p: points)
                     nld.techPoints.add(correction(p, correction));

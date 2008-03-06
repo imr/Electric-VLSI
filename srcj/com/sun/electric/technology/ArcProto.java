@@ -896,7 +896,10 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 //    }
 
     public PrimitiveNode makeWipablePin(String pinName, String portName, double defSize, ArcProto ... extraArcs) {
-        return PrimitiveNode.makeArcPin(this, pinName, portName, defSize, extraArcs);
+        double elibSize0 = DBMath.round(defSize*0.5);
+        double elibSize1 = DBMath.round(elibSize0 - 0.5*getLambdaElibWidthOffset());
+        arcPin = PrimitiveNode.makeArcPin(this, pinName, portName, elibSize0, elibSize1, extraArcs);
+        return arcPin;
     }
 
 	/**
@@ -1112,6 +1115,8 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
         assert max < Integer.MAX_VALUE/8 && min <= max;
         minLayerGridExtend = (int)min;
         maxLayerGridExtend = (int)max;
+        if (arcPin != null)
+            arcPin.resizeArcPin();
     }
 
     /**

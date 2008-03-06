@@ -707,9 +707,9 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 		return pn;
 	}
 
-    static PrimitiveNode makeArcPin(ArcProto ap, String pinName, String portName, double defSize, ArcProto ... extraArcs) {
-        double sizeOffset = 0.5*ap.getLambdaElibWidthOffset();
-        double refSize = DBMath.round(defSize*0.5);
+    static PrimitiveNode makeArcPin(ArcProto ap, String pinName, String portName,
+            double elibSize0, double elibSize1, ArcProto ... extraArcs) {
+        Technology tech = ap.getTechnology();
         Technology.NodeLayer[] nodeLayers = new Technology.NodeLayer[ap.getNumArcLayers()];
         for (int i = 0; i < ap.getNumArcLayers(); i++) {
             Layer layer = ap.getLayer(i);
@@ -717,28 +717,57 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
                 layer.makePseudo();
             layer = layer.getPseudoLayer();
             nodeLayers[i] = new Technology.NodeLayer(layer, 0, Poly.Type.CROSSED,
-                    Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(refSize - ap.getLayerLambdaExtend(i)));
+                    Technology.NodeLayer.BOX, null);
         }
-        SizeOffset so = null;
-        if (sizeOffset != 0)
-            so = new SizeOffset(sizeOffset, sizeOffset, sizeOffset, sizeOffset);
-        Technology tech = ap.getTechnology();
-        PrimitiveNode arcPin = newInstance(pinName, tech, 2*refSize, 2*refSize, so, nodeLayers);
+
+        EPoint sizeCorrector = EPoint.fromLambda(elibSize0, elibSize0);
+        long baseExtend = DBMath.lambdaToGrid(elibSize1);
+        ERectangle baseRectangle = ERectangle.fromGrid(-baseExtend, -baseExtend, 2*baseExtend, 2*baseExtend);
+        PrimitiveNode arcPin = newInstance(pinName, tech, sizeCorrector, null,
+                2*sizeCorrector.getLambdaX(), 2*sizeCorrector.getLambdaY(), baseRectangle, nodeLayers);
+
         ArcProto[] connections = new ArcProto[1 + extraArcs.length];
         connections[0] = ap;
         System.arraycopy(extraArcs, 0, connections, 1, extraArcs.length);
         arcPin.addPrimitivePorts(new PrimitivePort [] {
             PrimitivePort.newInstance(tech, arcPin, connections, portName,
                     0,180, 0, PortCharacteristic.UNKNOWN,
-                    EdgeH.fromLeft(0.5*defSize), EdgeV.fromBottom(0.5*defSize),
-                    EdgeH.fromRight(0.5*defSize), EdgeV.fromTop(0.5*defSize))
+                    EdgeH.fromLeft(0), EdgeV.fromBottom(0), EdgeH.fromRight(0), EdgeV.fromTop(0))
         });
         arcPin.setFunction(PrimitiveNode.Function.PIN);
         arcPin.setArcsWipe();
         arcPin.setArcsShrink();
         if (ap.isSkipSizeInPalette() || ap.isSpecialArc())
             arcPin.setSkipSizeInPalette();
+        arcPin.resizeArcPin();
         return arcPin;
+    }
+
+    void resizeArcPin() {
+        assert function == PrimitiveNode.Function.PIN;
+        assert getNumPorts() == 1;
+        PrimitivePort port = getPort(0);
+        ArcProto ap = port.getConnections()[0];
+        if (ap.getFullName().equals("mocmos:Polysilicon-2"))
+            ap = ap;
+        long fullExtend = ap.getMaxLayerGridExtend();
+        fullRectangle = ERectangle.fromGrid(-fullExtend, -fullExtend, 2*fullExtend, 2*fullExtend);
+        long baseExtend = ap.getGridBaseExtend();
+        baseRectangle = ERectangle.fromGrid(-baseExtend, -baseExtend, 2*baseExtend, 2*baseExtend);
+        double sizeOffset = DBMath.gridToLambda(fullExtend - baseExtend);
+        offset = new SizeOffset(sizeOffset, sizeOffset, sizeOffset, sizeOffset);
+
+        assert ap.getNumArcLayers() == layers.length;
+        for (int arcLayerIndex = 0; arcLayerIndex < layers.length; arcLayerIndex++) {
+            Technology.NodeLayer nl = layers[arcLayerIndex];
+            double indent = DBMath.gridToLambda(fullExtend - ap.getLayerGridExtend(arcLayerIndex));
+            nl.setPoints(Technology.TechPoint.makeIndented(indent));
+        }
+
+        port.getLeft().setAdder(-fullRectangle.getLambdaMinX());
+        port.getRight().setAdder(-fullRectangle.getLambdaMaxX());
+        port.getBottom().setAdder(-fullRectangle.getLambdaMinY());
+        port.getTop().setAdder(-fullRectangle.getLambdaMaxY());
     }
 
     /** Method to return NodeProtoId of this NodeProto.
@@ -1032,7 +1061,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	 * @return the default height of this PrimitiveNode.
 	 */
 	public double getDefHeight() {
-        return DBMath.gridToLambda(fullRectangle.getGridHeight() + 2*getDefaultLambdaExtendY());
+        return DBMath.gridToLambda(fullRectangle.getGridHeight() + 2*getDefaultGridExtendY());
     }
 
 	/**
@@ -1895,7 +1924,8 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
         out.println();
         if (offset != null)
             out.println("\t" + offset);
-        out.println("\trefWidth=" + 0.5*fullRectangle.getLambdaWidth() + " refHeight=" + 0.5*fullRectangle.getLambdaHeight());
+        out.println("\tfullRectangle=" + fullRectangle);
+        out.println("\tbaseRectangle=" + baseRectangle);
         if (minNodeSize != null)
             out.println("\tminNodeSize w=" + minNodeSize.getWidth() + " h=" + minNodeSize.getHeight() + " rule=" + minNodeSize.getRuleName());
         if (autoGrowth != null)
@@ -1978,8 +2008,8 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 //        } else {
 //            n.diskOffset.put(Integer.valueOf(2), minFullSize);
 //        }
-        n.defaultWidth.value = DBMath.round(getDefWidth() - 2*minFullSize.getLambdaX());
-        n.defaultHeight.value = DBMath.round(getDefHeight() - 2*minFullSize.getLambdaY());
+        n.defaultWidth.addLambda(DBMath.round(getDefWidth() - 2*minFullSize.getLambdaX()));
+        n.defaultHeight.addLambda(DBMath.round(getDefHeight() - 2*minFullSize.getLambdaY()));
 //            if (so != null) {
 //                EPoint p1 = EPoint.fromLambda(0.5*(so.getLowXOffset() + so.getHighXOffset()), 0.5*(so.getLowYOffset() + so.getHighYOffset()));
 //                n.diskOffset.put(Integer.valueOf(1), p1);

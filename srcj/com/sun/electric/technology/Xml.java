@@ -47,7 +47,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 
 import javax.xml.XMLConstants;
 import javax.xml.parsers.SAXParser;
@@ -284,9 +283,89 @@ public class Xml {
 
     public static class Distance implements Serializable {
         public double k;
-        public double value;
+        public final List<DistanceTerm> terms = new ArrayList<DistanceTerm>();
+        
+        public void assign(Distance d) {
+            this.k = d.k;
+            for (DistanceTerm term: terms)
+                d.terms.add(term.clone());
+        }
+        
+        public Distance clone() {
+            Distance d = new Distance();
+            d.assign(this);
+            return d;
+        }
+        
+        public double getLambda(DistanceContext context) {
+            double value = 0;
+            for (DistanceTerm term: terms)
+                value += term.getLambda(context);
+            return value;
+        }
+        public void addLambda(double value) {
+            DistanceLambda term = new DistanceLambda();
+            term.value = value;
+            terms.add(term);
+        }
+        public void addMinWidth(String layerName, double k) {
+            DistanceMinWidth term = new DistanceMinWidth();
+            term.layerName = layerName;
+            terms.add(term);
+        }
+        public boolean isEmpty() { return terms.isEmpty(); }
     }
 
+    public static interface DistanceContext {
+        public double getMinWidth(String layerName);
+    }
+    
+    public static abstract class DistanceTerm implements Serializable, Cloneable {
+        @Override
+        public DistanceTerm clone() {
+            try {
+                return (DistanceTerm)super.clone();
+            } catch (CloneNotSupportedException e) {
+                throw new AssertionError();
+            }
+        }
+        abstract void writeXml(Writer writer);
+        abstract double getLambda(DistanceContext context);
+    }
+    
+    public static class DistanceLambda extends DistanceTerm {
+        double value;
+        
+        @Override
+        void writeXml(Writer writer) {
+            writer.bcpel(XmlKeyword.lambda, value);
+        }
+        
+        @Override
+        double getLambda(DistanceContext context) {
+            return value;
+        }
+    }
+    
+    public static class DistanceMinWidth extends DistanceTerm {
+        String layerName;
+        double k;
+        
+        @Override
+        void writeXml(Writer writer) {
+            writer.b(XmlKeyword.minWidth);
+            writer.a("layer", layerName);
+            if (k != 1)
+                writer.a("k", k);
+            writer.cl();
+        }
+        
+        @Override
+        double getLambda(DistanceContext context) {
+            return context.getMinWidth(layerName)*k;
+        }
+    }
+    
     public static class Foundry implements Serializable {
         public String name;
         public final Map<String,String> layerGds = new LinkedHashMap<String,String>();
@@ -388,6 +467,7 @@ public class Xml {
         menuNodeInst,
         menuNodeText,
         lambda(true),
+        minWidth,
         Foundry,
         layerGds,
         LayerRule,
@@ -1018,16 +1098,16 @@ public class Xml {
                     break;
                 case lambdaBox:
                     if (curNodeLayer != null) {
-                        curNodeLayer.lx.value = Double.parseDouble(a("klx"));
-                        curNodeLayer.hx.value = Double.parseDouble(a("khx"));
-                        curNodeLayer.ly.value = Double.parseDouble(a("kly"));
-                        curNodeLayer.hy.value = Double.parseDouble(a("khy"));
+                        curNodeLayer.lx.addLambda(Double.parseDouble(a("klx")));
+                        curNodeLayer.hx.addLambda(Double.parseDouble(a("khx")));
+                        curNodeLayer.ly.addLambda(Double.parseDouble(a("kly")));
+                        curNodeLayer.hy.addLambda(Double.parseDouble(a("khy")));
                     }
                     if (curPort != null) {
-                        curPort.lx.value = Double.parseDouble(a("klx"));
-                        curPort.hx.value = Double.parseDouble(a("khx"));
-                        curPort.ly.value = Double.parseDouble(a("kly"));
-                        curPort.hy.value = Double.parseDouble(a("khy"));
+                        curPort.lx.addLambda(Double.parseDouble(a("klx")));
+                        curPort.hx.addLambda(Double.parseDouble(a("khx")));
+                        curPort.ly.addLambda(Double.parseDouble(a("kly")));
+                        curPort.hy.addLambda(Double.parseDouble(a("khy")));
                     }
                     break;
                 case techPoint:
@@ -1094,6 +1174,10 @@ public class Xml {
                 case menuNodeText:
                     curMenuNodeInst.text = a("text");
                     curMenuNodeInst.fontSize = Double.parseDouble(a("size"));
+                    break;
+                case minWidth:
+                    String kStr = a_("k");
+                    curDistance.addMinWidth(a("layer"), kStr != null ? Double.valueOf(kStr) : 1);
                     break;
                 case Foundry:
                     curFoundry = new Foundry();
@@ -1262,7 +1346,7 @@ public class Xml {
                         curMenuBox.add(text);
                         break;
                     case lambda:
-                        curDistance.value += Double.parseDouble(text);
+                        curDistance.addLambda(Double.parseDouble(text));
                         break;
                     default:
                         assert false;
@@ -1367,6 +1451,7 @@ public class Xml {
                 case menuPalette:
                 case menuBox:
                 case menuNodeText:
+                case minWidth:
                 case Foundry:
                 case layerGds:
                 case LayerRule:
@@ -1723,7 +1808,7 @@ public class Xml {
                 String portName = li.pureLayerNode.port;
                 b(XmlKeyword.pureLayerNode); a("name", nodeName); a("style", styleStr); a("port", portName); cl();
                 bcpel(XmlKeyword.oldName, li.pureLayerNode.oldName);
-                bcpel(XmlKeyword.lambda, li.pureLayerNode.size.value);
+                writeDistance(li.pureLayerNode.size);
                 for (String portArc: li.pureLayerNode.portArcs)
                     bcpel(XmlKeyword.portArc, portArc);
                 el(XmlKeyword.pureLayerNode);
@@ -1757,12 +1842,11 @@ public class Xml {
             for (Xml.ArcLayer al: ai.arcLayers) {
                 String style = al.style == Poly.Type.FILLED ? "FILLED" : "CLOSED";
                 b(XmlKeyword.arcLayer); a("layer", al.layer); a("style", style);
-                double extend = al.extend.value;
-                if (extend == 0) {
+                if (al.extend.isEmpty()) {
                     el();
                 } else {
                     cl();
-                    bcpel(XmlKeyword.lambda, extend);
+                    writeDistance(al.extend);
                     el(XmlKeyword.arcLayer);
                 }
             }
@@ -1817,15 +1901,15 @@ public class Xml {
                 b(XmlKeyword.diskOffset); a("x", ni.diskOffset.getLambdaX()); a("y", ni.diskOffset.getLambdaY()); el();
             }
 
-            if (ni.defaultWidth.value != 0) {
+            if (!ni.defaultWidth.isEmpty()) {
                 bcl(XmlKeyword.defaultWidth);
-                bcpel(XmlKeyword.lambda, ni.defaultWidth.value);
+                writeDistance(ni.defaultWidth);
                 el(XmlKeyword.defaultWidth);
             }
 
-            if (ni.defaultHeight.value != 0) {
+            if (!ni.defaultHeight.isEmpty()) {
                 bcl(XmlKeyword.defaultHeight);
-                bcpel(XmlKeyword.lambda, ni.defaultHeight.value);
+                writeDistance(ni.defaultHeight);
                 el(XmlKeyword.defaultHeight);
             }
 
@@ -1849,11 +1933,11 @@ public class Xml {
                         if (ni.specialType == com.sun.electric.technology.PrimitiveNode.SERPTRANS) {
                             writeBox(XmlKeyword.serpbox, nl.lx, nl.hx, nl.ly, nl.hy);
                             a("lWidth", nl.lWidth); a("rWidth", nl.rWidth); a("tExtent", nl.tExtent); a("bExtent", nl.bExtent); cl();
-                            b(XmlKeyword.lambdaBox); a("klx", nl.lx.value); a("khx", nl.hx.value); a("kly", nl.ly.value); a("khy", nl.hy.value); el();
+                            writeLambdaBox(nl.lx, nl.hx, nl.ly, nl.hy);
                             el(XmlKeyword.serpbox);
                         } else {
                             writeBox(XmlKeyword.box, nl.lx, nl.hx, nl.ly, nl.hy); cl();
-                            b(XmlKeyword.lambdaBox); a("klx", nl.lx.value); a("khx", nl.hx.value); a("kly", nl.ly.value); a("khy", nl.hy.value); el();
+                            writeLambdaBox(nl.lx, nl.hx, nl.ly, nl.hy);
                             el(XmlKeyword.box);
                         }
                         break;
@@ -1863,7 +1947,7 @@ public class Xml {
                     case com.sun.electric.technology.Technology.NodeLayer.MULTICUTBOX:
                         writeBox(XmlKeyword.multicutbox, nl.lx, nl.hx, nl.ly, nl.hy);
                         a("sizex", nl.sizex); a("sizey", nl.sizey); a("sep1d", nl.sep1d);  a("sep2d", nl.sep2d); cl();
-                        b(XmlKeyword.lambdaBox); a("klx", nl.lx.value); a("khx", nl.hx.value); a("kly", nl.ly.value); a("khy", nl.hy.value); el();
+                        writeLambdaBox(nl.lx, nl.hx, nl.ly, nl.hy);
                         el(XmlKeyword.multicutbox);
                         break;
                 }
@@ -1883,7 +1967,7 @@ public class Xml {
                 bcpel(XmlKeyword.portTopology, pd.portTopology);
 
                 writeBox(XmlKeyword.box, pd.lx, pd.hx, pd.ly, pd.hy); cl();
-                b(XmlKeyword.lambdaBox); a("klx", pd.lx.value); a("khx", pd.hx.value); a("kly", pd.ly.value); a("khy", pd.hy.value); el();
+                writeLambdaBox(pd.lx, pd.hx, pd.ly, pd.hy);
                 el(XmlKeyword.box);
 
                 for (String portArc: pd.portArcs)
@@ -1914,12 +1998,26 @@ public class Xml {
             el(XmlKeyword.primitiveNode);
         }
 
+        private void writeDistance(Distance d) {
+            for (DistanceTerm term: d.terms)
+                term.writeXml(this);
+        }
+        
         private void writeBox(XmlKeyword keyword, Distance lx, Distance hx, Distance ly, Distance hy) {
             b(keyword);
             if (lx.k != -1) a("klx", lx.k);
             if (hx.k != 1) a("khx", hx.k);
             if (ly.k != -1) a("kly", ly.k);
             if (hy.k != 1) a("khy", hy.k);
+        }
+        
+        private void writeLambdaBox(Distance lx, Distance hx, Distance ly, Distance hy) {
+            double lxv = lx.getLambda(EMPTY_CONTEXT);
+            double hxv = hx.getLambda(EMPTY_CONTEXT);
+            double lyv = ly.getLambda(EMPTY_CONTEXT);
+            double hyv = hy.getLambda(EMPTY_CONTEXT);
+            if (lxv == 0 && hxv == 0 && lyv == 0 && hyv == 0) return;
+            b(XmlKeyword.lambdaBox); a("klx", lxv); a("khx", hxv); a("kly", lyv); a("khy", hyv); el();
         }
 
         private void writeSpiceHeaderXml(Xml.SpiceHeader spiceHeader) {
@@ -2121,6 +2219,12 @@ public class Xml {
             indentEmitted = false;
         }
     }
+    
+    public static DistanceContext EMPTY_CONTEXT = new DistanceContext() {
+        public double getMinWidth(String layerName) {
+            throw new UnsupportedOperationException();
+        }
+    };
 
     /**
      * Class to write the XML without multiple lines and indentation.

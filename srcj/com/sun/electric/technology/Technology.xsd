@@ -20,6 +20,12 @@
     <xsd:group name="Distance">
         <xsd:sequence>
             <xsd:choice maxOccurs="unbounded" minOccurs="0">
+                <xsd:element name="minWidth" minOccurs="0">
+                    <xsd:complexType>
+                        <xsd:attribute name="layer" type="tns:LayerName" use="required"/>
+                        <xsd:attribute name="k" type="xsd:double"/>
+                    </xsd:complexType>
+                </xsd:element>
                 <xsd:element name="lambda" type="xsd:double"></xsd:element>
             </xsd:choice>
         </xsd:sequence>

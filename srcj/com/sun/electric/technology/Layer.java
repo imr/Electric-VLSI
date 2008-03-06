@@ -1403,7 +1403,7 @@ public class Layer
             }
             l.pureLayerNode.style = pureLayerNode.getLayers()[0].getStyle();
             l.pureLayerNode.port = pureLayerNode.getPort(0).getName();
-            l.pureLayerNode.size.value = pureLayerNode.getDefWidth();
+            l.pureLayerNode.size.addLambda(pureLayerNode.getDefWidth());
             for (ArcProto ap: pureLayerNode.getPort(0).getConnections()) {
                 if (ap.getTechnology() != tech) continue;
                 l.pureLayerNode.portArcs.add(ap.getName());

@@ -3413,7 +3413,7 @@ public class LibToTech
                 layer.pureLayerNode.name = li.pureLayerNode.name;
                 layer.pureLayerNode.style = li.pureLayerNode.nodeLayers[0].style;
                 layer.pureLayerNode.port = li.pureLayerNode.nodePortDetails[0].name;
-                layer.pureLayerNode.size.value = DBMath.round(li.pureLayerNode.xSize);
+                layer.pureLayerNode.size.addLambda(DBMath.round(li.pureLayerNode.xSize));
                 for (ArcInfo a: li.pureLayerNode.nodePortDetails[0].connections)
                     layer.pureLayerNode.portArcs.add(a.name);
             }
@@ -3438,7 +3438,7 @@ public class LibToTech
                 Xml.ArcLayer l = new Xml.ArcLayer();
                 l.layer = al.layer.name;
                 l.style = al.style == Poly.Type.FILLED ? Poly.Type.FILLED : Poly.Type.CLOSED;
-                l.extend.value = DBMath.round(al.width/2);
+                l.extend.addLambda(DBMath.round(al.width/2));
                 ap.arcLayers.add(l);
             }
             t.arcs.add(ap);
@@ -3506,13 +3506,13 @@ public class LibToTech
                 EdgeV top = pd.values[1].getY();
 
                 pp.lx.k = left.getMultiplier()*2;
-                pp.lx.value = left.getAdder() + minFullSize.getLambdaX()*left.getMultiplier()*2;
+                pp.lx.addLambda(left.getAdder() + minFullSize.getLambdaX()*left.getMultiplier()*2);
                 pp.hx.k = right.getMultiplier()*2;
-                pp.hx.value = right.getAdder() + minFullSize.getLambdaX()*right.getMultiplier()*2;
+                pp.hx.addLambda(right.getAdder() + minFullSize.getLambdaX()*right.getMultiplier()*2);
                 pp.ly.k = bottom.getMultiplier()*2;
-                pp.ly.value = bottom.getAdder() + minFullSize.getLambdaY()*bottom.getMultiplier()*2;
+                pp.ly.addLambda(bottom.getAdder() + minFullSize.getLambdaY()*bottom.getMultiplier()*2);
                 pp.hy.k = top.getMultiplier()*2;
-                pp.hy.value = top.getAdder() + minFullSize.getLambdaY()*top.getMultiplier()*2;
+                pp.hy.addLambda(top.getAdder() + minFullSize.getLambdaY()*top.getMultiplier()*2);
 
 //	            pp.p0 = pd.values[0];
 //	            pp.p1 = pd.values[1];
@@ -3589,13 +3589,13 @@ public class LibToTech
         Technology.TechPoint[] points = nl.values;
         if (nld.representation == Technology.NodeLayer.BOX || nld.representation == Technology.NodeLayer.MULTICUTBOX) {
             nld.lx.k = points[0].getX().getMultiplier()*2;
-            nld.lx.value = DBMath.round(points[0].getX().getAdder() + correction.getLambdaX()*points[0].getX().getMultiplier()*2);
+            nld.lx.addLambda(DBMath.round(points[0].getX().getAdder() + correction.getLambdaX()*points[0].getX().getMultiplier()*2));
             nld.hx.k = points[1].getX().getMultiplier()*2;
-            nld.hx.value = DBMath.round(points[1].getX().getAdder() + correction.getLambdaX()*points[1].getX().getMultiplier()*2);
+            nld.hx.addLambda(DBMath.round(points[1].getX().getAdder() + correction.getLambdaX()*points[1].getX().getMultiplier()*2));
             nld.ly.k = points[0].getY().getMultiplier()*2;
-            nld.ly.value = DBMath.round(points[0].getY().getAdder() + correction.getLambdaY()*points[0].getY().getMultiplier()*2);
+            nld.ly.addLambda(DBMath.round(points[0].getY().getAdder() + correction.getLambdaY()*points[0].getY().getMultiplier()*2));
             nld.hy.k = points[1].getY().getMultiplier()*2;
-            nld.hy.value = DBMath.round(points[1].getY().getAdder() + correction.getLambdaY()*points[1].getY().getMultiplier()*2);
+            nld.hy.addLambda(DBMath.round(points[1].getY().getAdder() + correction.getLambdaY()*points[1].getY().getMultiplier()*2));
         } else {
             for (Technology.TechPoint p: points)
                 nld.techPoints.add(correction(p, correction));
