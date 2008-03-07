@@ -177,7 +177,24 @@ public class Verilog extends Topology
 		reservedWords.add("xor");
 	}
 
-	/** maximum size of output line */						private static final int MAXDECLARATIONWIDTH = 80;
+    private static class PortDirs {
+        private List<PortInst> inputs;
+        private List<PortInst> outputs;
+        private List<PortInst> bidirs;
+        private PortDirs() {
+            inputs = new ArrayList<PortInst>();
+            outputs = new ArrayList<PortInst>();
+            bidirs = new ArrayList<PortInst>();
+        }
+        public void add(PortInst pi) {
+            PortCharacteristic type = pi.getPortProto().getCharacteristic();
+            if (type == PortCharacteristic.IN && !inputs.contains(pi)) inputs.add(pi);
+            if (type == PortCharacteristic.OUT && !outputs.contains(pi)) outputs.add(pi);
+            if (type == PortCharacteristic.BIDIR && !bidirs.contains(pi)) bidirs.add(pi);
+        }
+    }
+
+    /** maximum size of output line */						private static final int MAXDECLARATIONWIDTH = 80;
 	/** name of inverters generated from negated wires */	private static final String IMPLICITINVERTERNODENAME = "Imp";
 	/** name of signals generated from negated wires */		private static final String IMPLICITINVERTERSIGNAME = "ImpInv";
 
@@ -588,6 +605,9 @@ public class Verilog extends Topology
         if (!first)
             printWriter.println("  /* automatically generated Verilog */");
 
+        // accumulate port connectivity information for port directional consistency check
+        HashMap<Network,List<Export>> instancePortsOnNet = new HashMap<Network,List<Export>>();
+
         // look at every node in this cell
         for(Iterator<Nodable> nIt = netList.getNodables(); nIt.hasNext(); )
         {
@@ -811,6 +831,7 @@ public class Verilog extends Topology
                             CellSignal cs = cni.getCellSignal(net);
                            	infstr.append(getSignalName(cs));
                             infstr.append(")");
+                            accumulatePortConnectivity(instancePortsOnNet, net, (Export)pp);
                         } else
                         {
                         	int [] indices = cas.getIndices();
@@ -822,6 +843,7 @@ public class Verilog extends Topology
 	                                CellSignal cInnerSig = cas.getSignal(i);
 	                                Network net = netList.getNetwork(no, cas.getExport(), cInnerSig.getExportIndex());
 	                                CellSignal outerSignal = cni.getCellSignal(net);
+                                    accumulatePortConnectivity(instancePortsOnNet, net, (Export)pp);
 
 	                                int ind = i;
                         			if (cas.isDescending()) ind = indices.length - i - 1;
@@ -840,6 +862,7 @@ public class Verilog extends Topology
 	                                CellSignal cInnerSig = cas.getSignal(j);
 	                                Network net = netList.getNetwork(no, cas.getExport(), cInnerSig.getExportIndex());
 	                                outerSignalList[j] = cni.getCellSignal(net);
+                                    accumulatePortConnectivity(instancePortsOnNet, net, (Export)pp);
 	                            }
 	                            writeBus(outerSignalList, total, cas.isDescending(),
 	                                cas.getName(), cni.getPowerNet(), cni.getGroundNet(), infstr);
@@ -954,6 +977,26 @@ public class Verilog extends Topology
             writeWidthLimited(infstr.toString());
         }
         printWriter.println("endmodule   /* " + cni.getParameterizedName() + " */");
+
+        // check export direction consistency (inconsistent directions can cause opens in some tools)
+        for (Iterator<Export> it = cell.getExports(); it.hasNext(); ) {
+            Export ex = it.next();
+            PortCharacteristic type = ex.getCharacteristic();
+            if (type == PortCharacteristic.BIDIR) continue; // whatever it is connect to is fine
+            for (int i=0; i<ex.getNameKey().busWidth(); i++) {
+                Network net = netList.getNetwork(ex, i);
+                List<Export> subports = instancePortsOnNet.get(net);
+                for (Export subex : subports) {
+                    PortCharacteristic subtype = subex.getCharacteristic();
+                    if (type != subtype) {
+                        System.out.println("Warning: Port Direction Inconsistency in cell "+cell.describe(false)+
+                                " between export "+ex.getNameKey().subname(i)+"["+type+"] and instance port "+
+                                subex.getParent().noLibDescribe()+" - "+subex.getName()+"["+subtype+"]");
+                    }
+                }
+            }
+        }
+
     }
 
     private String getSignalName(CellSignal cs)
@@ -1574,5 +1617,15 @@ public class Verilog extends Topology
         if (preferred != null) return preferred;
 
         return cell;
+    }
+
+    private static void accumulatePortConnectivity(HashMap<Network,List<Export>> instancePortsOnNet,
+                                                   Network net, Export ex) {
+        List<Export> list = instancePortsOnNet.get(net);
+        if (list == null) {
+            list = new ArrayList<Export>();
+            instancePortsOnNet.put(net, list);
+        }
+        if (!list.contains(ex)) list.add(ex);
     }
 }
