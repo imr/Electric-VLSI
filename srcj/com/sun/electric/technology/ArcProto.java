@@ -628,6 +628,8 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
         /* checkChanging();*/
         if (set) userBits |= ANOTUSED;
         else userBits &= ~ANOTUSED;
+        if (arcPin != null)
+            arcPin.setNotUsed(set);
     }
 
 	/**
@@ -899,6 +901,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
         double elibSize0 = DBMath.round(defSize*0.5);
         double elibSize1 = DBMath.round(elibSize0 - 0.5*getLambdaElibWidthOffset());
         arcPin = PrimitiveNode.makeArcPin(this, pinName, portName, elibSize0, elibSize1, extraArcs);
+        arcPin.setNotUsed(isNotUsed());
         return arcPin;
     }
 
