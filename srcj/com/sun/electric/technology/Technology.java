@@ -165,10 +165,27 @@ public class Technology implements Comparable<Technology>, Serializable
 		 * Constructs an <CODE>ArcLayer</CODE> with the specified description.
 		 * @param layer the Layer of this ArcLayer.
          * @param arcLayerWidth the width of this ArcLayer in standard ArcInst.
+         * @param xmlExtend Xml expression for extend of this ArcLayer depending on tech parameters
+		 * @param style the Poly.Style of this ArcLayer.
+		 */
+        public ArcLayer(Layer layer, double arcLayerWidth, Xml.Distance xmlExtend, Poly.Type style) {
+            this(layer, DBMath.lambdaToGrid(arcLayerWidth*0.5), style, xmlExtend);
+        }
+        
+		/**
+		 * Constructs an <CODE>ArcLayer</CODE> with the specified description.
+		 * @param layer the Layer of this ArcLayer.
+         * @param arcLayerWidth the width of this ArcLayer in standard ArcInst.
 		 * @param style the Poly.Style of this ArcLayer.
 		 */
         public ArcLayer(Layer layer, double arcLayerWidth, Poly.Type style) {
-            this(layer, DBMath.lambdaToGrid(arcLayerWidth*0.5), style, null);
+            this(layer, DBMath.lambdaToGrid(arcLayerWidth*0.5), style, makeXmlExtend(arcLayerWidth));
+        }
+        
+        private static Xml.Distance makeXmlExtend(double arcLayerWidth) {
+            Xml.Distance d = new Xml.Distance();
+            d.addLambda(DBMath.round(arcLayerWidth*0.5));
+            return d;
         }
 
         private ArcLayer(Layer layer, long gridExtend, Poly.Type style, Xml.Distance xmlExtend) {
@@ -203,7 +220,7 @@ public class Technology implements Comparable<Technology>, Serializable
          */
 		ArcLayer withGridExtend(long gridExtend) {
             if (this.gridExtend == gridExtend) return this;
-            return new ArcLayer(layer, gridExtend, style, null);
+            return new ArcLayer(layer, gridExtend, style, xmlExtend);
         }
 
 		/**
@@ -222,7 +239,7 @@ public class Technology implements Comparable<Technology>, Serializable
             Xml.ArcLayer al = new Xml.ArcLayer();
             al.layer = layer.getName();
             al.style = style;
-            al.extend.addLambda(DBMath.gridToLambda(gridExtend));
+            al.extend.assign(xmlExtend);
             return al;
         }
 	}
@@ -997,7 +1014,7 @@ public class Technology implements Comparable<Technology>, Serializable
             for (int i = 0; i < arcLayers.length; i++) {
                 Xml.ArcLayer al = a.arcLayers.get(i);
                 long gridLayerExtend = DBMath.lambdaToGrid(al.extend.getLambda(context));
-                arcLayers[i] = new ArcLayer(layers.get(al.layer), gridLayerExtend, al.style, null);
+                arcLayers[i] = new ArcLayer(layers.get(al.layer), gridLayerExtend, al.style, al.extend);
             }
             if (minGridExtend < 0 || minGridExtend != DBMath.lambdaToGrid(a.arcLayers.get(0).extend.getLambda(context)))
             	assert true;

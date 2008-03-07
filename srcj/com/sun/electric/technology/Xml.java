@@ -286,9 +286,9 @@ public class Xml {
         public final List<DistanceTerm> terms = new ArrayList<DistanceTerm>();
         
         public void assign(Distance d) {
-            this.k = d.k;
-            for (DistanceTerm term: terms)
-                d.terms.add(term.clone());
+            k = d.k;
+            for (DistanceTerm term: d.terms)
+                terms.add(term.clone());
         }
         
         public Distance clone() {
@@ -304,6 +304,7 @@ public class Xml {
             return value;
         }
         public void addLambda(double value) {
+            if (value == 0) return;
             DistanceLambda term = new DistanceLambda();
             term.value = value;
             terms.add(term);
@@ -311,6 +312,14 @@ public class Xml {
         public void addMinWidth(String layerName, double k) {
             DistanceMinWidth term = new DistanceMinWidth();
             term.layerName = layerName;
+            term.k = k;
+            terms.add(term);
+        }
+        public void addSurround(String outerLayerName, String innerLayerName, double k) {
+            DistanceSurround term = new DistanceSurround();
+            term.outerLayerName = outerLayerName;
+            term.innerLayerName = innerLayerName;
+            term.k = k;
             terms.add(term);
         }
         public boolean isEmpty() { return terms.isEmpty(); }
@@ -318,6 +327,7 @@ public class Xml {
 
     public static interface DistanceContext {
         public double getMinWidth(String layerName);
+        public double getSurround(String outerLayerName, String innerLayerName);
     }
     
     public static abstract class DistanceTerm implements Serializable, Cloneable {
@@ -357,12 +367,33 @@ public class Xml {
             writer.a("layer", layerName);
             if (k != 1)
                 writer.a("k", k);
-            writer.cl();
+            writer.el();
         }
         
         @Override
         double getLambda(DistanceContext context) {
             return context.getMinWidth(layerName)*k;
+        }
+    }
+    
+    public static class DistanceSurround extends DistanceTerm {
+        String outerLayerName;
+        String innerLayerName;
+        double k;
+        
+        @Override
+        void writeXml(Writer writer) {
+            writer.b(XmlKeyword.surround);
+            writer.a("outerLayer", outerLayerName);
+            writer.a("innerLayer", innerLayerName);
+            if (k != 1)
+                writer.a("k", k);
+            writer.el();
+        }
+        
+        @Override
+        double getLambda(DistanceContext context) {
+            return context.getSurround(outerLayerName, innerLayerName)*k;
         }
     }
     
@@ -468,6 +499,7 @@ public class Xml {
         menuNodeText,
         lambda(true),
         minWidth,
+        surround,
         Foundry,
         layerGds,
         LayerRule,
@@ -2016,7 +2048,7 @@ public class Xml {
             double hxv = hx.getLambda(EMPTY_CONTEXT);
             double lyv = ly.getLambda(EMPTY_CONTEXT);
             double hyv = hy.getLambda(EMPTY_CONTEXT);
-            if (lxv == 0 && hxv == 0 && lyv == 0 && hyv == 0) return;
+//            if (lxv == 0 && hxv == 0 && lyv == 0 && hyv == 0) return;
             b(XmlKeyword.lambdaBox); a("klx", lxv); a("khx", hxv); a("kly", lyv); a("khy", hyv); el();
         }
 
@@ -2222,6 +2254,9 @@ public class Xml {
     
     public static DistanceContext EMPTY_CONTEXT = new DistanceContext() {
         public double getMinWidth(String layerName) {
+            throw new UnsupportedOperationException();
+        }
+        public double getSurround(String outerLayerName, String innerLayerName) {
             throw new UnsupportedOperationException();
         }
     };

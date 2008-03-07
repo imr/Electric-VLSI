@@ -748,8 +748,6 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
         assert getNumPorts() == 1;
         PrimitivePort port = getPort(0);
         ArcProto ap = port.getConnections()[0];
-        if (ap.getFullName().equals("mocmos:Polysilicon-2"))
-            ap = ap;
         long fullExtend = ap.getMaxLayerGridExtend();
         fullRectangle = ERectangle.fromGrid(-fullExtend, -fullExtend, 2*fullExtend, 2*fullExtend);
         long baseExtend = ap.getGridBaseExtend();

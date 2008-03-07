@@ -26,6 +26,13 @@
                         <xsd:attribute name="k" type="xsd:double"/>
                     </xsd:complexType>
                 </xsd:element>
+                <xsd:element name="surround" minOccurs="0">
+                    <xsd:complexType>
+                        <xsd:attribute name="outerLayer" type="tns:LayerName" use="required"/>
+                        <xsd:attribute name="innerLayer" type="tns:LayerName" use="required"/>
+                        <xsd:attribute name="k" type="xsd:double"/>
+                    </xsd:complexType>
+                </xsd:element>
                 <xsd:element name="lambda" type="xsd:double"></xsd:element>
             </xsd:choice>
         </xsd:sequence>
