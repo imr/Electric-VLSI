@@ -20,7 +20,7 @@ FILES="$2"
 DMG="$VOL.dmg"
 echo "DMG " $DMG $FILES
 # create disk image and format, ejecting when done
-hdiutil create "$DMG" -srcfolder ${FILES} -ov
+hdiutil create "$DMG" -srcfolder ${FILES} -ov -fs HFS+
 #DISK=`hdiutil attach "$DMG" | sed -ne '/Apple_partition_scheme/s///p'`DISK="/dev/disk1"
 #echo "DISK " $DISK
 #hdiutil eject $DISK

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07f: ******************************
 
+BUG: (3/7/08, GVG) Disk image may be damaged on MacOSX (Bug #1592)
+FIX: Adding extra flag to mkdmg.sh
+ 
 BUG: (3/6/08, SMR) EDIF input doesn't always get export connected to circuitry (Bug #1591).
 FIX: Create second arc if necessary so that it can be given the export name.
 
