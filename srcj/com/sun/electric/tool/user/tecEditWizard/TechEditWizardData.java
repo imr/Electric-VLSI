@@ -843,6 +843,7 @@ public class TechEditWizardData
                                                double width, double height,
                                                double ppLeft, double ppBottom,
                                                SizeOffset so, List<Xml.NodeLayer> nodeLayers,
+                                               List<Xml.PrimitivePort> nodePorts,
                                                PrimitiveNode.NodeSizeRule nodeSizeRule)
     {
         Xml.PrimitiveNode n = new Xml.PrimitiveNode();
@@ -870,6 +871,8 @@ public class TechEditWizardData
 //            EPoint.fromLambda(0.5*nodeSizeRule.getWidth(), 0.5*nodeSizeRule.getHeight()) :
 //            EPoint.fromLambda(0.5*getDefWidth(), 0.5*getDefHeight());
          EPoint minFullSize = EPoint.fromLambda(0.5*width, 0.5*height);
+        EPoint topLeft = EPoint.fromLambda(ppLeft, ppBottom + height);
+        EPoint size =  EPoint.fromLambda(width, height);
 
         double getDefWidth = width, getDefHeight = height;
         if (function == PrimitiveNode.Function.PIN && isArcsShrink) {
@@ -894,9 +897,11 @@ public class TechEditWizardData
 //            n.diskOffset.put(Integer.valueOf(2), p2);
 //            n.diskOffset.put(Integer.valueOf(2), minFullSize);
 //        }
-        n.defaultWidth.addLambda(DBMath.round(getDefWidth)); // - 2*minFullSize.getLambdaX());
-        n.defaultHeight.addLambda(DBMath.round(getDefHeight)); // - 2*minFullSize.getLambdaY());
-//        n.nodeBase = baseRectangle;
+//        n.defaultWidth.addLambda(DBMath.round(getDefWidth)); // - 2*minFullSize.getLambdaX());
+//        n.defaultHeight.addLambda(DBMath.round(getDefHeight)); // - 2*minFullSize.getLambdaY());
+        ERectangle baseRectangle = ERectangle.fromGrid(topLeft.getGridX(), topLeft.getGridY(),
+            size.getGridX(), size.getGridY());
+        n.nodeBase = baseRectangle;
 
 //        List<Technology.NodeLayer> nodeLayers = Arrays.asList(getLayers());
 //        List<Technology.NodeLayer> electricalNodeLayers = nodeLayers;
@@ -933,6 +938,9 @@ public class TechEditWizardData
             n.nodeSizeRule.rule = nodeSizeRule.getRuleName();
         }
 //        n.spiceTemplate = "";//getSpiceTemplate();
+
+        // ports
+        n.ports.addAll(nodePorts);
 
         nodes.add(n);
 
@@ -1029,20 +1037,71 @@ public class TechEditWizardData
      * Method to create the XML version of NodeLayer
      * @param hla
      * @param lb
-     * @return
+     * @param multiCutBox
+     * @param sizex
+     * @param sizey
+     * @param sep1d
+     * @param sep2d @return
      */
-    private Xml.NodeLayer makeXmlNodeLayer(double hla, Xml.Layer lb)
+    private Xml.NodeLayer makeXmlNodeLayer(double hla, Xml.Layer lb, boolean multiCutBox,
+                                           double sizex, double sizey, double sep1d, double sep2d)
     {
         Xml.NodeLayer nl = new Xml.NodeLayer();
         nl.layer = lb.name;
         nl.style = Poly.Type.FILLED;
-//            nl.inElectricalLayers = true;
-        nl.representation = com.sun.electric.technology.Technology.NodeLayer.BOX;
+        nl.inElectricalLayers = true;
+        nl.representation = (multiCutBox) ? com.sun.electric.technology.Technology.NodeLayer.MULTICUTBOX : 
+            com.sun.electric.technology.Technology.NodeLayer.BOX;
         nl.lx.k = -1; nl.hx.k = 1; nl.ly.k = -1; nl.hy.k = 1;
         nl.lx.addLambda(-hla); nl.hx.addLambda(hla); nl.ly.addLambda(-hla); nl.hy.addLambda(hla);
+        if (multiCutBox)
+        {
+            nl.sizex = DBMath.round(sizex);
+            nl.sizey = DBMath.round(sizey);
+            nl.sep1d = DBMath.round(sep1d);
+            nl.sep2d = DBMath.round(sep2d);
+        }
         return nl;
     }
 
+    /**
+     * Method to create the XML versio nof PrimitivePort
+     * @param name
+     * @param portAngle
+     * @param portRange
+     * @param portTopology
+     * @param minFullSize
+     * @param leftRight
+     * @param bottomTop
+     * @param portArcs
+     * @return
+     */
+    private Xml.PrimitivePort makeXmlPrimitivePort(String name, int portAngle, int portRange, int portTopology,
+                                                   EPoint minFullSize, double leftRight, double bottomTop,
+                                                   List<String> portArcs)
+    {
+        Xml.PrimitivePort ppd = new Xml.PrimitivePort();
+        ppd.name = name;
+        ppd.portAngle = portAngle;
+        ppd.portRange = portRange;
+        ppd.portTopology = portTopology;
+
+        ppd.lx.k = -1; //getLeft().getMultiplier()*2;
+        ppd.lx.addLambda(DBMath.round(leftRight + minFullSize.getLambdaX()*ppd.lx.k));
+        ppd.hx.k = 1; //getRight().getMultiplier()*2;
+        ppd.hx.addLambda(DBMath.round(leftRight + minFullSize.getLambdaX()*ppd.hx.k));
+        ppd.ly.k = -1; // getBottom().getMultiplier()*2;
+        ppd.ly.addLambda(DBMath.round(bottomTop + minFullSize.getLambdaY()*ppd.ly.k));
+        ppd.hy.k = 1; // getTop().getMultiplier()*2;
+        ppd.hy.addLambda(DBMath.round(bottomTop + minFullSize.getLambdaY()*ppd.hy.k));
+
+        for (String s: portArcs)
+        {
+            ppd.portArcs.add(s);
+        }
+        return ppd;
+    }
+    
     private void dumpXMLFile(String fileName)
     {
         Xml.Technology t = new Xml.Technology();
@@ -1088,6 +1147,7 @@ public class TechEditWizardData
 
         // Layers
         List<Xml.Layer> metalLayers = new ArrayList<Xml.Layer>();
+        List<Xml.Layer> viaLayers = new ArrayList<Xml.Layer>();
         int[] nullPattern = new int[] {0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
             0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000};
         int cifNumber = 0;
@@ -1254,8 +1314,8 @@ public class TechEditWizardData
             double opacity = 0.7;
             EGraphics graph = new EGraphics(false, false, null, 0, r, g, b, opacity, true, nullPattern);
             double la = via_size[i].v / stepsize;
-            makeXmlLayer(t.layers, "Via-"+metalNum, Layer.Function.getContact(metalNum), Layer.Function.CONMETAL,
-                graph, (char)('A' + cifNumber++), false, la);
+            viaLayers.add(makeXmlLayer(t.layers, "Via-"+metalNum, Layer.Function.getContact(metalNum), Layer.Function.CONMETAL,
+                graph, (char)('A' + cifNumber++), false, la));
         }
 
         // Poly
@@ -1388,13 +1448,28 @@ public class TechEditWizardData
             nodesList.clear();
             double hla = DBMath.round(metal_width[i-1].v / (stepsize*2));
             Xml.Layer lb = metalLayers.get(i-1);
-            nodesList.add(makeXmlNodeLayer(hla, lb)); // bottom layer
+            nodesList.add(makeXmlNodeLayer(hla, lb, false, 0, 0, 0, 0)); // bottom layer
             hla = DBMath.round(metal_width[i].v / (stepsize*2));
             Xml.Layer lt = metalLayers.get(i);
-            nodesList.add(makeXmlNodeLayer(hla, lt)); // top layer
-            makeXmlPrimitive(t.nodes, lb.name + "-" + lt.name + "-Con", PrimitiveNode.Function.CONTACT, hla, hla, 0, 0,
+            nodesList.add(makeXmlNodeLayer(hla, lt, false, 0, 0, 0, 0)); // top layer
+            // via
+            Xml.Layer via = viaLayers.get(i-1);
+            double size = DBMath.round(via_size[i-1].v/stepsize);
+            double cs = DBMath.round(via_spacing[i-1].v/stepsize);
+            double cs2 = DBMath.round(via_array_spacing[i-1].v/stepsize);
+            nodesList.add(makeXmlNodeLayer(hla, via, true, size, size, cs, cs2)); // via
+            String name = lb.name + "-" + lt.name;
+            // port
+            List<Xml.PrimitivePort> nodePorts = new ArrayList<Xml.PrimitivePort>();
+            EPoint minFullSize = EPoint.fromLambda(0.5*hla, 0.5*hla);
+            List<String> portNames = new ArrayList<String>();
+            Xml.PrimitivePort pp = makeXmlPrimitivePort(name.toLowerCase(), 0, 180, 0,
+                minFullSize, 0, 0, null);
+            nodePorts.add(pp);
+
+            makeXmlPrimitive(t.nodes, name + "-Con", PrimitiveNode.Function.CONTACT, hla, hla, 0, 0,
                 new SizeOffset(hla, hla, hla, hla),
-                nodesList, null);
+                nodesList, nodePorts, null);
         }
         // write finally the file
         t.writeXml(fileName);
