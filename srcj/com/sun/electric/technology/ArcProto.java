@@ -381,16 +381,16 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
         return getArcProtoExtendPref().setDouble(DBMath.gridToLambda(gridExtendOverMin));
     }
 
-    public void setExtends(int gridBaseExtend) {
-        int delta = gridBaseExtend - this.gridBaseExtend;
-        this.gridBaseExtend += delta;
-        for (int i = 0; i < layers.length; i++) {
-            Technology.ArcLayer arcLayer = layers[i];
-            layers[i] = arcLayer.withGridExtend(arcLayer.getGridExtend() + delta);
-        }
-        lambdaBaseExtend = DBMath.gridToLambda(gridBaseExtend);
-        computeLayerGridExtendRange();
-    }
+//    public void setExtends(int gridBaseExtend) {
+//        int delta = gridBaseExtend - this.gridBaseExtend;
+//        this.gridBaseExtend += delta;
+//        for (int i = 0; i < layers.length; i++) {
+//            Technology.ArcLayer arcLayer = layers[i];
+//            layers[i] = arcLayer.withGridExtend(arcLayer.getGridExtend() + delta);
+//        }
+//        lambdaBaseExtend = DBMath.gridToLambda(gridBaseExtend);
+//        computeLayerGridExtendRange();
+//    }
 
 	/**
 	 * Method to return the default base width of this ArcProto in lambda units.
@@ -878,6 +878,9 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 */
 	public PrimitiveNode findPinProto()
 	{
+        if (arcPin != null)
+            return arcPin;
+        
 		// search for an appropriate pin
 		Iterator<PrimitiveNode> it = tech.getNodes();
 		while (it.hasNext())
@@ -1071,39 +1074,53 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
         return -1;
     }
 
-	/**
-	 * Method to set the surround distance of layer "outerlayer" from layer "innerlayer"
-	 * in arc "aty" to "surround".
-	 */
-	protected void setArcLayerSurroundLayer(Layer outerLayer, Layer innerLayer,
-	                                        double surround)
-	{
-		// find the inner layer
-		int inLayerIndex = indexOf(innerLayer);
-		if (inLayerIndex < 0)
-		{
-		    System.out.println("Internal error in " + tech.getTechDesc() + " surround computation. Arc layer '" +
-                    innerLayer.getName() + "' is not valid in '" + getName() + "'");
-			return;
-		}
-
-		// find the outer layer
-        int i = indexOf(outerLayer);
-
-		if (i < 0)
-		{
-            System.out.println("Internal error in " + tech.getTechDesc() + " surround computation. Arc layer '" +
-                    outerLayer.getName() + "' is not valid in '" + getName() + "'");
-			return;
-		}
-
-		// compute the indentation of the outer layer
-		long extent = layers[inLayerIndex].getGridExtend() + DBMath.lambdaToGrid(surround);
-        layers[i] = layers[i].withGridExtend(extent);
-//		long indent = layers[inLayerIndex].getGridOffset() - DBMath.lambdaToGrid(surround)*2;
-//        layers[i] = layers[i].withGridOffset(indent);
+    /**
+     * Resizes this ArcProto according to rules from the DistanceContext
+     * @param context context to find rules by name
+     */
+    void resize(Xml.DistanceContext context) {
+        for (Technology.ArcLayer al: layers)
+            al.resize(context, this);
+        gridBaseExtend = layers[0].getGridExtend();
+        lambdaBaseExtend = DBMath.gridToLambda(gridBaseExtend);
         computeLayerGridExtendRange();
-	}
+        if (arcPin != null)
+            arcPin.resizeArcPin();
+    }
+    
+//	/**
+//	 * Method to set the surround distance of layer "outerlayer" from layer "innerlayer"
+//	 * in arc "aty" to "surround".
+//	 */
+//	protected void setArcLayerSurroundLayer(Layer outerLayer, Layer innerLayer,
+//	                                        double surround)
+//	{
+//		// find the inner layer
+//		int inLayerIndex = indexOf(innerLayer);
+//		if (inLayerIndex < 0)
+//		{
+//		    System.out.println("Internal error in " + tech.getTechDesc() + " surround computation. Arc layer '" +
+//                    innerLayer.getName() + "' is not valid in '" + getName() + "'");
+//			return;
+//		}
+//
+//		// find the outer layer
+//        int i = indexOf(outerLayer);
+//
+//		if (i < 0)
+//		{
+//            System.out.println("Internal error in " + tech.getTechDesc() + " surround computation. Arc layer '" +
+//                    outerLayer.getName() + "' is not valid in '" + getName() + "'");
+//			return;
+//		}
+//
+//		// compute the indentation of the outer layer
+//		long extent = layers[inLayerIndex].getGridExtend() + DBMath.lambdaToGrid(surround);
+//        layers[i] = layers[i].withGridExtend(extent);
+////		long indent = layers[inLayerIndex].getGridOffset() - DBMath.lambdaToGrid(surround)*2;
+////        layers[i] = layers[i].withGridOffset(indent);
+//        computeLayerGridExtendRange();
+//	}
 
     void computeLayerGridExtendRange() {
         long min = Long.MAX_VALUE, max = Long.MIN_VALUE;
@@ -1291,5 +1308,6 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
         }
         assert lambdaElibWidthOffset >= 0;
         assert 0 <= gridBaseExtend && gridBaseExtend <= maxLayerGridExtend;
+        assert gridBaseExtend == getLayerGridExtend(0);
     }
 }

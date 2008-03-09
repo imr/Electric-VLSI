@@ -19,22 +19,15 @@
 
     <xsd:group name="Distance">
         <xsd:sequence>
-            <xsd:choice maxOccurs="unbounded" minOccurs="0">
-                <xsd:element name="minWidth" minOccurs="0">
-                    <xsd:complexType>
-                        <xsd:attribute name="layer" type="tns:LayerName" use="required"/>
-                        <xsd:attribute name="k" type="xsd:double"/>
-                    </xsd:complexType>
-                </xsd:element>
-                <xsd:element name="surround" minOccurs="0">
-                    <xsd:complexType>
-                        <xsd:attribute name="outerLayer" type="tns:LayerName" use="required"/>
-                        <xsd:attribute name="innerLayer" type="tns:LayerName" use="required"/>
-                        <xsd:attribute name="k" type="xsd:double"/>
-                    </xsd:complexType>
-                </xsd:element>
-                <xsd:element name="lambda" type="xsd:double"></xsd:element>
-            </xsd:choice>
+            <xsd:element name="rule" minOccurs="0" maxOccurs="unbounded">
+                <xsd:complexType>
+                    <xsd:attribute name="ruleName" type="tns:RuleName" use="required"/>
+                    <xsd:attribute name="k" type="xsd:double"/>
+                    <xsd:attribute name="metalsFrom" type="tns:NumMetals"/>
+                    <xsd:attribute name="metalsUpto" type="tns:NumMetals"/>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="lambda" type="xsd:double" minOccurs="0"></xsd:element>
         </xsd:sequence>
     </xsd:group>
 

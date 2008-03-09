@@ -1005,7 +1005,7 @@ public class XMLRules implements DRCRules, Serializable
         switch (theRule.ruleType)
         {
             case MINWID:
-                tech.setLayerMinWidth(theRule.name1, theRule.ruleName, distance);
+//                tech.setLayerMinWidth(theRule.name1, theRule.ruleName, distance);
             case MINWIDCOND:
                 addRule(index1, theRule);
                 break;
@@ -1048,7 +1048,7 @@ public class XMLRules implements DRCRules, Serializable
                 addRule(index, theRule);
                 break;
             case ASURROUND:
-                aty.setArcLayerSurroundLayer(lay1, lay2, distance);
+//                aty.setArcLayerSurroundLayer(lay1, lay2, distance);
                 break;
             default:
             {

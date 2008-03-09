@@ -283,11 +283,13 @@ public class Xml {
 
     public static class Distance implements Serializable {
         public double k;
-        public final List<DistanceTerm> terms = new ArrayList<DistanceTerm>();
+        public double lambdaValue;
+        public final List<DistanceRule> terms = new ArrayList<DistanceRule>();
         
         public void assign(Distance d) {
             k = d.k;
-            for (DistanceTerm term: d.terms)
+            lambdaValue = d.lambdaValue;
+            for (DistanceRule term: d.terms)
                 terms.add(term.clone());
         }
         
@@ -298,102 +300,83 @@ public class Xml {
         }
         
         public double getLambda(DistanceContext context) {
-            double value = 0;
-            for (DistanceTerm term: terms)
+            double value = lambdaValue;
+            for (DistanceRule term: terms)
                 value += term.getLambda(context);
             return value;
         }
+        private void writeXml(Writer writer) {
+            for (DistanceRule term: terms)
+                term.writeXml(writer);
+            if (lambdaValue != 0)
+                writer.bcpel(XmlKeyword.lambda, lambdaValue);
+        }
         public void addLambda(double value) {
-            if (value == 0) return;
-            DistanceLambda term = new DistanceLambda();
-            term.value = value;
-            terms.add(term);
+            lambdaValue += value;
         }
-        public void addMinWidth(String layerName, double k) {
-            DistanceMinWidth term = new DistanceMinWidth();
-            term.layerName = layerName;
+        public void addRule(String ruleName, double k) {
+            DistanceRule term = new DistanceRule();
+            term.ruleName = ruleName;
             term.k = k;
             terms.add(term);
         }
-        public void addSurround(String outerLayerName, String innerLayerName, double k) {
-            DistanceSurround term = new DistanceSurround();
-            term.outerLayerName = outerLayerName;
-            term.innerLayerName = innerLayerName;
+        public void addRuleMetalsFrom(String ruleName, double k, int metalsFrom) {
+            DistanceRule term = new DistanceRule();
+            term.ruleName = ruleName;
             term.k = k;
+            term.metalsFrom = metalsFrom;
             terms.add(term);
         }
-        public boolean isEmpty() { return terms.isEmpty(); }
+        public void addRuleMetalsUpto(String ruleName, double k, int metalsUpto) {
+            DistanceRule term = new DistanceRule();
+            term.ruleName = ruleName;
+            term.k = k;
+            term.metalsUpto = metalsUpto;
+            terms.add(term);
+        }
+        public void addRuleMetalsFromUpto(String ruleName, double k, int metalsFrom, int metalsUpto) {
+            DistanceRule term = new DistanceRule();
+            term.ruleName = ruleName;
+            term.k = k;
+            term.metalsFrom = metalsFrom;
+            term.metalsUpto = metalsUpto;
+            terms.add(term);
+        }
+        public boolean isEmpty() { return lambdaValue == 0 && terms.isEmpty(); }
     }
 
     public static interface DistanceContext {
-        public double getMinWidth(String layerName);
-        public double getSurround(String outerLayerName, String innerLayerName);
+        public double getRule(String ruleName, int metalsFrom, int metalsUpto);
     }
     
-    public static abstract class DistanceTerm implements Serializable, Cloneable {
-        @Override
-        public DistanceTerm clone() {
+    public static class DistanceRule implements Serializable, Cloneable {
+        String ruleName;
+        double k;
+        int metalsFrom = 0;
+        int metalsUpto = Integer.MAX_VALUE;
+        
+        public DistanceRule clone() {
             try {
-                return (DistanceTerm)super.clone();
+                return (DistanceRule)super.clone();
             } catch (CloneNotSupportedException e) {
                 throw new AssertionError();
             }
         }
-        abstract void writeXml(Writer writer);
-        abstract double getLambda(DistanceContext context);
-    }
-    
-    public static class DistanceLambda extends DistanceTerm {
-        double value;
         
-        @Override
-        void writeXml(Writer writer) {
-            writer.bcpel(XmlKeyword.lambda, value);
-        }
-        
-        @Override
-        double getLambda(DistanceContext context) {
-            return value;
-        }
-    }
-    
-    public static class DistanceMinWidth extends DistanceTerm {
-        String layerName;
-        double k;
-        
-        @Override
-        void writeXml(Writer writer) {
-            writer.b(XmlKeyword.minWidth);
-            writer.a("layer", layerName);
+        private void writeXml(Writer writer) {
+            writer.b(XmlKeyword.rule);
+            writer.a("ruleName", ruleName);
             if (k != 1)
                 writer.a("k", k);
+            if (metalsFrom != 0)
+                writer.a("metalsFrom", metalsFrom);
+            if (metalsUpto != Integer.MAX_VALUE)
+                writer.a("metalsUpto", metalsUpto);
             writer.el();
         }
         
-        @Override
-        double getLambda(DistanceContext context) {
-            return context.getMinWidth(layerName)*k;
-        }
-    }
-    
-    public static class DistanceSurround extends DistanceTerm {
-        String outerLayerName;
-        String innerLayerName;
-        double k;
-        
-        @Override
-        void writeXml(Writer writer) {
-            writer.b(XmlKeyword.surround);
-            writer.a("outerLayer", outerLayerName);
-            writer.a("innerLayer", innerLayerName);
-            if (k != 1)
-                writer.a("k", k);
-            writer.el();
-        }
-        
-        @Override
-        double getLambda(DistanceContext context) {
-            return context.getSurround(outerLayerName, innerLayerName)*k;
+        private double getLambda(DistanceContext context) {
+            return context.getRule(ruleName, metalsFrom, metalsUpto)*k;
         }
     }
     
@@ -498,8 +481,7 @@ public class Xml {
         menuNodeInst,
         menuNodeText,
         lambda(true),
-        minWidth,
-        surround,
+        rule,
         Foundry,
         layerGds,
         LayerRule,
@@ -1207,9 +1189,23 @@ public class Xml {
                     curMenuNodeInst.text = a("text");
                     curMenuNodeInst.fontSize = Double.parseDouble(a("size"));
                     break;
-                case minWidth:
+                case rule:
+                    String ruleName = a("ruleName");
                     String kStr = a_("k");
-                    curDistance.addMinWidth(a("layer"), kStr != null ? Double.valueOf(kStr) : 1);
+                    double k = kStr != null ? Double.valueOf(kStr) : 1;
+                    String metalsFrom = a_("metalsFrom");
+                    String metalsUpto = a_("metalsUpto");
+                    if (metalsFrom == null) {
+                        if (metalsUpto == null)
+                            curDistance.addRule(ruleName, k);
+                        else
+                            curDistance.addRuleMetalsUpto(ruleName, k, Integer.valueOf(metalsUpto));
+                    } else {
+                        if (metalsUpto == null)
+                            curDistance.addRuleMetalsFrom(ruleName, k, Integer.valueOf(metalsFrom));
+                        else
+                            curDistance.addRuleMetalsFromUpto(ruleName, k, Integer.valueOf(metalsFrom), Integer.valueOf(metalsUpto));
+                    }
                     break;
                 case Foundry:
                     curFoundry = new Foundry();
@@ -1483,7 +1479,7 @@ public class Xml {
                 case menuPalette:
                 case menuBox:
                 case menuNodeText:
-                case minWidth:
+                case rule:
                 case Foundry:
                 case layerGds:
                 case LayerRule:
@@ -2031,8 +2027,7 @@ public class Xml {
         }
 
         private void writeDistance(Distance d) {
-            for (DistanceTerm term: d.terms)
-                term.writeXml(this);
+            d.writeXml(this);
         }
         
         private void writeBox(XmlKeyword keyword, Distance lx, Distance hx, Distance ly, Distance hy) {
@@ -2253,10 +2248,7 @@ public class Xml {
     }
     
     public static DistanceContext EMPTY_CONTEXT = new DistanceContext() {
-        public double getMinWidth(String layerName) {
-            throw new UnsupportedOperationException();
-        }
-        public double getSurround(String outerLayerName, String innerLayerName) {
+        public double getRule(String ruleName, int metalsFrom, int metalsUpto) {
             throw new UnsupportedOperationException();
         }
     };

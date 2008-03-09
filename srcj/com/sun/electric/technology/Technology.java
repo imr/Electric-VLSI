@@ -157,21 +157,10 @@ public class Technology implements Comparable<Technology>, Serializable
 	protected static class ArcLayer
 	{
 		private final Layer layer;
-        private final int gridExtend;
 		private final Poly.Type style;
         private final Xml.Distance xmlExtend;
+        private int gridExtend;
 
-		/**
-		 * Constructs an <CODE>ArcLayer</CODE> with the specified description.
-		 * @param layer the Layer of this ArcLayer.
-         * @param arcLayerWidth the width of this ArcLayer in standard ArcInst.
-         * @param xmlExtend Xml expression for extend of this ArcLayer depending on tech parameters
-		 * @param style the Poly.Style of this ArcLayer.
-		 */
-        public ArcLayer(Layer layer, double arcLayerWidth, Xml.Distance xmlExtend, Poly.Type style) {
-            this(layer, DBMath.lambdaToGrid(arcLayerWidth*0.5), style, xmlExtend);
-        }
-        
 		/**
 		 * Constructs an <CODE>ArcLayer</CODE> with the specified description.
 		 * @param layer the Layer of this ArcLayer.
@@ -179,16 +168,49 @@ public class Technology implements Comparable<Technology>, Serializable
 		 * @param style the Poly.Style of this ArcLayer.
 		 */
         public ArcLayer(Layer layer, double arcLayerWidth, Poly.Type style) {
-            this(layer, DBMath.lambdaToGrid(arcLayerWidth*0.5), style, makeXmlExtend(arcLayerWidth));
+            this(layer, arcLayerWidth, style, arcLayerWidth*0.5);
         }
         
-        private static Xml.Distance makeXmlExtend(double arcLayerWidth) {
-            Xml.Distance d = new Xml.Distance();
-            d.addLambda(DBMath.round(arcLayerWidth*0.5));
-            return d;
+		/**
+		 * Constructs an <CODE>ArcLayer</CODE> with the specified description.
+		 * @param layer the Layer of this ArcLayer.
+         * @param arcLayerWidth the width of this ArcLayer in standard ArcInst.
+		 * @param style the Poly.Style of this ArcLayer.
+         * @param ruleNames rule names to make an expression for for extend of this ArcLayer
+		 */
+        public ArcLayer(Layer layer, double arcLayerWidth, Poly.Type style, String ... ruleNames) {
+            this(layer, arcLayerWidth, style, 0, ruleNames);
         }
-
-        private ArcLayer(Layer layer, long gridExtend, Poly.Type style, Xml.Distance xmlExtend) {
+        
+		/**
+		 * Constructs an <CODE>ArcLayer</CODE> with the specified description.
+		 * @param layer the Layer of this ArcLayer.
+         * @param arcLayerWidth the width of this ArcLayer in standard ArcInst.
+		 * @param style the Poly.Style of this ArcLayer.
+         * @param lambdaExtend lambda fraction of extend
+         * @param ruleNames rule names to make an expression for for extend of this ArcLayer
+		 */
+        public ArcLayer(Layer layer, double arcLayerWidth, Poly.Type style, double lambdaExtend, String ... ruleNames) {
+            this(layer, arcLayerWidth, style, new Xml.Distance());
+            if (ruleNames.length > 0)
+                xmlExtend.addRule(ruleNames[0], 0.5);
+            for (int i = 1; i < ruleNames.length; i++)
+                xmlExtend.addRule(ruleNames[i], 1);
+            xmlExtend.addLambda(DBMath.round(lambdaExtend));
+        }
+        
+		/**
+		 * Constructs an <CODE>ArcLayer</CODE> with the specified description.
+		 * @param layer the Layer of this ArcLayer.
+         * @param arcLayerWidth the width of this ArcLayer in standard ArcInst.
+         * @param xmlExtend Xml expression for extend of this ArcLayer depending on tech parameters
+		 * @param style the Poly.Style of this ArcLayer.
+		 */
+        public ArcLayer(Layer layer, double arcLayerWidth, Poly.Type style, Xml.Distance xmlExtend) {
+            this(layer, style, DBMath.lambdaToGrid(arcLayerWidth*0.5), xmlExtend);
+        }
+        
+        private ArcLayer(Layer layer, Poly.Type style,long gridExtend, Xml.Distance xmlExtend) {
             if (gridExtend < 0 || gridExtend >= Integer.MAX_VALUE/8)
                 throw new IllegalArgumentException("gridExtend=" + gridExtend);
             this.layer = layer;
@@ -220,7 +242,7 @@ public class Technology implements Comparable<Technology>, Serializable
          */
 		ArcLayer withGridExtend(long gridExtend) {
             if (this.gridExtend == gridExtend) return this;
-            return new ArcLayer(layer, gridExtend, style, xmlExtend);
+            return new ArcLayer(layer, style, gridExtend, xmlExtend);
         }
 
 		/**
@@ -241,6 +263,16 @@ public class Technology implements Comparable<Technology>, Serializable
             al.style = style;
             al.extend.assign(xmlExtend);
             return al;
+        }
+        
+        void resize(Xml.DistanceContext context, ArcProto ap) {
+            double lambdaExtend = xmlExtend.getLambda(context);
+            if (Double.isNaN(lambdaExtend) && !ap.isNotUsed())
+                System.out.println("Can't resize arc layer " + layer + " of " + ap.getFullName());
+            long gridExtend = DBMath.lambdaToGrid(lambdaExtend);
+            if (gridExtend < 0 || gridExtend >= Integer.MAX_VALUE/8)
+                throw new IllegalArgumentException("gridExtend=" + gridExtend);
+            this.gridExtend = (int)gridExtend; 
         }
 	}
 
@@ -843,6 +875,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	/** the saved transparent colors for this technology */	private Pref [] transparentColorPrefs;
 	/** the color map for this technology */				private Color [] colorMap;
 	/** list of layers in this technology */				private final List<Layer> layers = new ArrayList<Layer>();
+	/** map from layer names to layers in this technology */private final HashMap<String,Layer> layersByName = new HashMap<String,Layer>();
     /** True when layer allocation is finished. */          private boolean layersAllocationLocked;
 	/** list of primitive nodes in this technology */		private final LinkedHashMap<String,PrimitiveNode> nodes = new LinkedHashMap<String,PrimitiveNode>();
     /** array of nodes by nodeId.chronIndex */              private PrimitiveNode[] nodesByChronIndex = {};
@@ -1014,7 +1047,7 @@ public class Technology implements Comparable<Technology>, Serializable
             for (int i = 0; i < arcLayers.length; i++) {
                 Xml.ArcLayer al = a.arcLayers.get(i);
                 long gridLayerExtend = DBMath.lambdaToGrid(al.extend.getLambda(context));
-                arcLayers[i] = new ArcLayer(layers.get(al.layer), gridLayerExtend, al.style, al.extend);
+                arcLayers[i] = new ArcLayer(layers.get(al.layer),al.style, gridLayerExtend, al.extend);
             }
             if (minGridExtend < 0 || minGridExtend != DBMath.lambdaToGrid(a.arcLayers.get(0).extend.getLambda(context)))
             	assert true;
@@ -2013,14 +2046,16 @@ public class Technology implements Comparable<Technology>, Serializable
 	 */
 	public Layer findLayer(String layerName)
 	{
+        Layer layer = layersByName.get(layerName);
+        if (layer != null) return layer;
 		for(Iterator<Layer> it = getLayers(); it.hasNext(); )
 		{
-			Layer layer = it.next();
+			layer = it.next();
 			if (layer.getName().equalsIgnoreCase(layerName)) return layer;
 		}
 		for(Iterator<Layer> it = getLayers(); it.hasNext(); )
 		{
-			Layer layer = it.next().getPseudoLayer();
+			layer = it.next().getPseudoLayer();
             if (layer == null) continue;
 			if (layer.getName().equalsIgnoreCase(layerName)) return layer;
 		}
@@ -2095,6 +2130,7 @@ public class Technology implements Comparable<Technology>, Serializable
             throw new IllegalStateException("layers allocation is locked");
         layer.setIndex(layers.size());
         layers.add(layer);
+        layersByName.put(layer.getName(), layer);
 	}
 
 	/**
@@ -4738,18 +4774,46 @@ public class Technology implements Comparable<Technology>, Serializable
             }
         }
 
-        resizeArcPins();
+        resizeArcs(rules);
         
         if (xmlTech != null)
             resizeXml(rules);
         return rules;
     }
     
-    protected void resizeArcPins() {
-        for (ArcProto ap: arcs.values()) {
-            if (ap.arcPin != null)
-                ap.arcPin.resizeArcPin();
+    protected void resizeArcs(XMLRules rules) {
+        TechDistanceContext context = new TechDistanceContext(rules);
+        for (ArcProto ap: arcs.values())
+            ap.resize(context);
+        for (Layer layer: layers)
+            layer.resizePureLayerNode(context);
+    }
+    
+    private class TechDistanceContext implements Xml.DistanceContext {
+        private final String ruleSuffix = getRuleSuffix();
+        private final XMLRules rules;
+        private final int numMetals = getNumMetals();
+        
+        TechDistanceContext(XMLRules rules) {
+            this.rules = rules;
         }
+        
+        public double getRule(String ruleName, int metalsFrom, int metalsUpto) {
+            if (numMetals < metalsFrom || numMetals > metalsUpto) return 0;
+            ruleName = ruleName += ruleSuffix;
+            for (HashMap<XMLRules.XMLRule,XMLRules.XMLRule> map: rules.matrix) {
+                if (map == null) continue;
+                for (XMLRules.XMLRule rule: map.values()) {
+                    if (rule.ruleName.startsWith(ruleName))
+                        return rule.getValue(0);
+                }
+            }
+            return Double.NaN;
+        }
+    }
+                
+    protected String getRuleSuffix() {
+        return "";
     }
 
 	/**
@@ -5049,52 +5113,52 @@ public class Technology implements Comparable<Technology>, Serializable
 
 	///////////////////// Generic methods //////////////////////////////////////////////////////////////
 
-	/**
-	 * Method to change the design rules for layer "layername" layers so that
-	 * the layers are at least "width" wide.  Affects the default arc width
-	 * and the default pin size.
-	 */
-	protected void setLayerMinWidth(String layername, String rulename, double width)
-	{
-		// find the arc and set its default width
-		ArcProto ap = findArcProto(layername);
-		if (ap == null) return;
-
-		boolean hasChanged = false;
-
-        if (ap.getDefaultLambdaBaseWidth() != width)
-//        if (ap.getDefaultLambdaFullWidth() != width + ap.getLambdaWidthOffset())
-            hasChanged = true;
-
-		// find the arc's pin and set its size and port offset
-		PrimitiveNode np = ap.findPinProto();
-		if (np == null) return;
-		SizeOffset so = np.getProtoSizeOffset();
-		double newWidth = width + so.getLowXOffset() + so.getHighXOffset();
-		double newHeight = width + so.getLowYOffset() + so.getHighYOffset();
-
-        if (np.getDefHeight() != newHeight || np.getDefWidth() != newWidth)
-            hasChanged = true;
-
-		PrimitivePort pp = (PrimitivePort)np.getPorts().next();
-		EdgeH left = pp.getLeft();
-		EdgeH right = pp.getRight();
-		EdgeV bottom = pp.getBottom();
-		EdgeV top = pp.getTop();
-		double indent = newWidth / 2;
-
-        if (left.getAdder() != indent || right.getAdder() != -indent ||
-            top.getAdder() != -indent || bottom.getAdder() != indent)
-            hasChanged = true;
-		if (hasChanged)
-		{
-			// describe the error
-            String errorMessage = "User preference of " + width + " overwrites original layer minimum size in layer '"
-					+ layername + "', primitive '" + np.getName() + ":" + getTechShortName() + "' by rule " + rulename;
-			if (Job.LOCALDEBUGFLAG) System.out.println(errorMessage);
-		}
-	}
-
+//	/**
+//	 * Method to change the design rules for layer "layername" layers so that
+//	 * the layers are at least "width" wide.  Affects the default arc width
+//	 * and the default pin size.
+//	 */
+//	protected void setLayerMinWidth(String layername, String rulename, double width)
+//	{
+//		// find the arc and set its default width
+//		ArcProto ap = findArcProto(layername);
+//		if (ap == null) return;
+//
+//		boolean hasChanged = false;
+//
+//        if (ap.getDefaultLambdaBaseWidth() != width)
+////        if (ap.getDefaultLambdaFullWidth() != width + ap.getLambdaWidthOffset())
+//            hasChanged = true;
+//
+//		// find the arc's pin and set its size and port offset
+//		PrimitiveNode np = ap.findPinProto();
+//		if (np == null) return;
+//		SizeOffset so = np.getProtoSizeOffset();
+//		double newWidth = width + so.getLowXOffset() + so.getHighXOffset();
+//		double newHeight = width + so.getLowYOffset() + so.getHighYOffset();
+//
+//        if (np.getDefHeight() != newHeight || np.getDefWidth() != newWidth)
+//            hasChanged = true;
+//
+//		PrimitivePort pp = (PrimitivePort)np.getPorts().next();
+//		EdgeH left = pp.getLeft();
+//		EdgeH right = pp.getRight();
+//		EdgeV bottom = pp.getBottom();
+//		EdgeV top = pp.getTop();
+//		double indent = newWidth / 2;
+//
+//        if (left.getAdder() != indent || right.getAdder() != -indent ||
+//            top.getAdder() != -indent || bottom.getAdder() != indent)
+//            hasChanged = true;
+//		if (hasChanged)
+//		{
+//			// describe the error
+//            String errorMessage = "User preference of " + width + " overwrites original layer minimum size in layer '"
+//					+ layername + "', primitive '" + np.getName() + ":" + getTechShortName() + "' by rule " + rulename;
+//			if (Job.LOCALDEBUGFLAG) System.out.println(errorMessage);
+//		}
+//	}
+//
 //    protected void setDefNodeSize(PrimitiveNode nty, double wid, double hei)
 //    {
 //        double xindent = (nty.getDefWidth() - wid) / 2;

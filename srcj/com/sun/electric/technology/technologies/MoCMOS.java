@@ -26,7 +26,6 @@ package com.sun.electric.technology.technologies;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.Setting;
@@ -48,7 +47,6 @@ import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.XMLRules;
 import com.sun.electric.technology.Xml;
-import com.sun.electric.technology.technologies.utils.MOSRules;
 import com.sun.electric.tool.user.User;
 
 import java.awt.Color;
@@ -1280,7 +1278,7 @@ public class MoCMOS extends Technology
 
 		/** metal 1 arc */
 		metalArcs[0] = newArcProto("Metal-1", 0, 3.0, ArcProto.Function.METAL1,
-			new Technology.ArcLayer(metalLayers[0], 3, Poly.Type.FILLED)
+			new Technology.ArcLayer(metalLayers[0], 3, Poly.Type.FILLED, "7.1")
 		);
 		metalArcs[0].setFactoryFixedAngle(true);
 		metalArcs[0].setWipable();
@@ -1288,7 +1286,7 @@ public class MoCMOS extends Technology
 
 		/** metal 2 arc */
 		metalArcs[1] = newArcProto("Metal-2", 0, 3.0, ArcProto.Function.METAL2,
-			new Technology.ArcLayer(metalLayers[1], 3, Poly.Type.FILLED)
+			new Technology.ArcLayer(metalLayers[1], 3, Poly.Type.FILLED, "9.1")
 		);
 		metalArcs[1].setFactoryFixedAngle(true);
 		metalArcs[1].setWipable();
@@ -1296,7 +1294,7 @@ public class MoCMOS extends Technology
 
 		/** metal 3 arc */
 		metalArcs[2] = newArcProto("Metal-3", 0, 3.0, ArcProto.Function.METAL3,
-			new Technology.ArcLayer(metalLayers[2], 3, Poly.Type.FILLED)
+			new Technology.ArcLayer(metalLayers[2], 3, Poly.Type.FILLED, "15.1")
 		);
 		metalArcs[2].setFactoryFixedAngle(true);
 		metalArcs[2].setWipable();
@@ -1304,7 +1302,7 @@ public class MoCMOS extends Technology
 
 		/** metal 4 arc */
 		metalArcs[3] = newArcProto("Metal-4", 0, 3.0, ArcProto.Function.METAL4,
-			new Technology.ArcLayer(metalLayers[3], 3, Poly.Type.FILLED)
+			new Technology.ArcLayer(metalLayers[3], 3, Poly.Type.FILLED, "22.1")
 		);
 		metalArcs[3].setFactoryFixedAngle(true);
 		metalArcs[3].setWipable();
@@ -1312,7 +1310,7 @@ public class MoCMOS extends Technology
 
 		/** metal 5 arc */
 		metalArcs[4] = newArcProto("Metal-5", 0, 3.0, ArcProto.Function.METAL5,
-			new Technology.ArcLayer(metalLayers[4], 3, Poly.Type.FILLED)
+			new Technology.ArcLayer(metalLayers[4], 3, Poly.Type.FILLED, "26.1")
 		);
 		metalArcs[4].setFactoryFixedAngle(true);
 		metalArcs[4].setWipable();
@@ -1320,7 +1318,7 @@ public class MoCMOS extends Technology
 
 		/** metal 6 arc */
 		metalArcs[5] = newArcProto("Metal-6", 0, 5.0, ArcProto.Function.METAL6,
-			new Technology.ArcLayer(metalLayers[5], 5, Poly.Type.FILLED)
+			new Technology.ArcLayer(metalLayers[5], 5, Poly.Type.FILLED, "30.1")
 		);
 		metalArcs[5].setFactoryFixedAngle(true);
 		metalArcs[5].setWipable();
@@ -1328,7 +1326,7 @@ public class MoCMOS extends Technology
 
 		/** polysilicon 1 arc */
 		polyArcs[0] = newArcProto("Polysilicon-1", 0, 2.0, ArcProto.Function.POLY1,
-			new Technology.ArcLayer(poly1Layer, 2, Poly.Type.FILLED)
+			new Technology.ArcLayer(poly1Layer, 2, Poly.Type.FILLED, "3.1")
 		);
 		polyArcs[0].setFactoryFixedAngle(true);
 		polyArcs[0].setWipable();
@@ -1336,7 +1334,7 @@ public class MoCMOS extends Technology
 
 		/** polysilicon 2 arc */
 		polyArcs[1] = newArcProto("Polysilicon-2", 0, 7.0, ArcProto.Function.POLY2,
-			new Technology.ArcLayer(poly2_lay, 7, Poly.Type.FILLED)
+			new Technology.ArcLayer(poly2_lay, 7, Poly.Type.FILLED, "11.1")
 		);
 		polyArcs[1].setFactoryFixedAngle(true);
 		polyArcs[1].setWipable();
@@ -1345,9 +1343,9 @@ public class MoCMOS extends Technology
 
 		/** P-active arc */
 		activeArcs[P_TYPE] = newArcProto("P-Active", 12.0, 15.0, ArcProto.Function.DIFFP,
-			new Technology.ArcLayer(activeLayers[P_TYPE], 3, Poly.Type.FILLED),
-			new Technology.ArcLayer(wellLayers[N_TYPE], 15, Poly.Type.FILLED),
-			new Technology.ArcLayer(selectLayers[P_TYPE], 7, Poly.Type.FILLED)
+			new Technology.ArcLayer(activeLayers[P_TYPE], 3, Poly.Type.FILLED, "2.1"),
+			new Technology.ArcLayer(wellLayers[N_TYPE], 15, Poly.Type.FILLED, "2.1", "2.3"),
+			new Technology.ArcLayer(selectLayers[P_TYPE], 7, Poly.Type.FILLED, "2.1", "4.2")
 		);
 		activeArcs[P_TYPE].setFactoryFixedAngle(true);
 		activeArcs[P_TYPE].setWipable();
@@ -1355,9 +1353,9 @@ public class MoCMOS extends Technology
 
 		/** N-active arc */
 		activeArcs[N_TYPE] = newArcProto("N-Active", 12.0, 15.0, ArcProto.Function.DIFFN,
-			new Technology.ArcLayer(activeLayers[N_TYPE], 3, Poly.Type.FILLED),
-			new Technology.ArcLayer(wellLayers[P_TYPE], 15, Poly.Type.FILLED),
-			new Technology.ArcLayer(selectLayers[N_TYPE], 7, Poly.Type.FILLED)
+			new Technology.ArcLayer(activeLayers[N_TYPE], 3, Poly.Type.FILLED, "2.1"),
+			new Technology.ArcLayer(wellLayers[P_TYPE], 15, Poly.Type.FILLED, "2.1", "2.3"),
+			new Technology.ArcLayer(selectLayers[N_TYPE], 7, Poly.Type.FILLED, "2.1", "4.2")
 		);
 		activeArcs[N_TYPE].setFactoryFixedAngle(true);
 		activeArcs[N_TYPE].setWipable();
@@ -1365,8 +1363,8 @@ public class MoCMOS extends Technology
 
 		/** General active arc */
 		active_arc = newArcProto("Active", 0, 3.0, ArcProto.Function.DIFF,
-			new Technology.ArcLayer(activeLayers[P_TYPE], 3, Poly.Type.FILLED),
-			new Technology.ArcLayer(activeLayers[N_TYPE], 3, Poly.Type.FILLED)
+			new Technology.ArcLayer(activeLayers[P_TYPE], 3, Poly.Type.FILLED, "2.1"),
+			new Technology.ArcLayer(activeLayers[N_TYPE], 3, Poly.Type.FILLED, "2.1")
 		);
 		active_arc.setFactoryFixedAngle(true);
 		active_arc.setWipable();
@@ -2183,7 +2181,7 @@ public class MoCMOS extends Technology
 	{
         super.setState();
         setNotUsed(isSecondPolysilicon() ? 2 : 1);
-        findNodeProto("Active-Pin").setNotUsed(true);
+//        findNodeProto("Active-Pin").setNotUsed(true);
 		findArcProto("Active").setNotUsed(true);
         if (npnTransistorNode != null)
             npnTransistorNode.setNotUsed(!isAnalog());
@@ -2557,6 +2555,7 @@ public class MoCMOS extends Technology
                 rules.loadDRCRules(this, foundry, rule, pWellProcess);
 			}
 		}
+        resizeArcs(rules);
 
         // Resize primitives according to the foundry and existing rules.
         rules.resizeMetalContacts(metalContactNodes, numMetals);
@@ -2661,39 +2660,26 @@ public class MoCMOS extends Technology
                     lenValMax, lenValMax));
         }
 
-        // arcs
-        for (Iterator<ArcProto> it = getArcs(); it.hasNext(); ) {
-            ArcProto ap = it.next();
-            DRCTemplate wid = rules.getRule(ap.getLayer(0).getIndex(), DRCTemplate.DRCRuleType.MINWID); // size
-            if (wid == null) continue;
-            double width = DBMath.round(wid.getValue(0));
-            double half = DBMath.round(width/2);
-            int baseExtend = (int)DBMath.lambdaToGrid(width*0.5);
-            ap.setExtends(baseExtend);
-        }
-
-//        // poly arcs
-//        double width = DBMath.round(polyWid.getValue(0));
-//        double half = DBMath.round(width/2);
-//        polyArcs[0].setDefaultLambdaBaseWidth(width);
-////        polyArcs[0].setDefaultLambdaFullWidth(width);
-//        polyPinNodes[0].setDefSize(width, width);
-//        PrimitivePort polyPort = polyPinNodes[0].getPort(0);
-//        polyPort.getLeft().setAdder(half); polyPort.getBottom().setAdder(half);
-//        polyPort.getRight().setAdder(-half); polyPort.getTop().setAdder(-half);
-
-        // resizing all pure layer nodes
-//        for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
-//        {
-//            PrimitiveNode pnp = it.next();
-//            if (pnp.isNotUsed()) continue;
-//            if (pnp.getFunction() != PrimitiveNode.Function.NODE) continue;
-//            rules.getRule(pnp.getElectricalLayers()[0].getLayer().getIndex(), DRCTemplate.DRCRuleType.MINWID); // gate size
+//        // arcs
+//        for (Iterator<ArcProto> it = getArcs(); it.hasNext(); ) {
+//            ArcProto ap = it.next();
+//            DRCTemplate wid = rules.getRule(ap.getLayer(0).getIndex(), DRCTemplate.DRCRuleType.MINWID); // size
+//            if (wid == null) continue;
+//            double width = DBMath.round(wid.getValue(0));
+//            double half = DBMath.round(width/2);
+//            int baseExtend = (int)DBMath.lambdaToGrid(width*0.5);
+//            ap.setExtends(baseExtend);
 //        }
+
         // Information for palette
         buildTechPalette();
 
         return rules;
+    }
+
+    @Override
+    protected String getRuleSuffix() {
+        return " Mosis";
     }
 
     @Override

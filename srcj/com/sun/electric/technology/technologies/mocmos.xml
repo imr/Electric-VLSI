@@ -1004,7 +1004,7 @@
         <angleIncrement>90</angleIncrement>
         <antennaRatio>400.0</antennaRatio>
         <arcLayer layer="Metal-1" style="FILLED">
-            <lambda>1.5</lambda>
+            <rule ruleName="7.1" k="0.5"/>
         </arcLayer>
         <arcPin name="Metal-1-Pin" port="metal-1" elibSize="3.0"/>
     </arcProto>
@@ -1016,7 +1016,7 @@
         <angleIncrement>90</angleIncrement>
         <antennaRatio>400.0</antennaRatio>
         <arcLayer layer="Metal-2" style="FILLED">
-            <lambda>1.5</lambda>
+            <rule ruleName="9.1" k="0.5"/>
         </arcLayer>
         <arcPin name="Metal-2-Pin" port="metal-2" elibSize="3.0"/>
     </arcProto>
@@ -1028,7 +1028,7 @@
         <angleIncrement>90</angleIncrement>
         <antennaRatio>400.0</antennaRatio>
         <arcLayer layer="Metal-3" style="FILLED">
-            <lambda>1.5</lambda>
+            <rule ruleName="15.1" k="0.5"/>
         </arcLayer>
         <arcPin name="Metal-3-Pin" port="metal-3" elibSize="3.0"/>
     </arcProto>
@@ -1040,7 +1040,7 @@
         <angleIncrement>90</angleIncrement>
         <antennaRatio>400.0</antennaRatio>
         <arcLayer layer="Metal-4" style="FILLED">
-            <lambda>1.5</lambda>
+            <rule ruleName="22.1" k="0.5"/>
         </arcLayer>
         <arcPin name="Metal-4-Pin" port="metal-4" elibSize="3.0"/>
     </arcProto>
@@ -1052,7 +1052,7 @@
         <angleIncrement>90</angleIncrement>
         <antennaRatio>400.0</antennaRatio>
         <arcLayer layer="Metal-5" style="FILLED">
-            <lambda>1.5</lambda>
+            <rule ruleName="26.1" k="0.5"/>
         </arcLayer>
         <arcPin name="Metal-5-Pin" port="metal-5" elibSize="3.0"/>
     </arcProto>
@@ -1064,7 +1064,7 @@
         <angleIncrement>90</angleIncrement>
         <antennaRatio>400.0</antennaRatio>
         <arcLayer layer="Metal-6" style="FILLED">
-            <lambda>2.5</lambda>
+            <rule ruleName="30.1" k="0.5"/>
         </arcLayer>
         <arcPin name="Metal-6-Pin" port="metal-6" elibSize="3.0"/>
     </arcProto>
@@ -1076,7 +1076,7 @@
         <angleIncrement>90</angleIncrement>
         <antennaRatio>200.0</antennaRatio>
         <arcLayer layer="Polysilicon-1" style="FILLED">
-            <lambda>1.0</lambda>
+            <rule ruleName="3.1" k="0.5"/>
         </arcLayer>
         <arcPin name="Polysilicon-1-Pin" port="polysilicon-1" elibSize="2.0"/>
     </arcProto>
@@ -1088,7 +1088,7 @@
         <angleIncrement>90</angleIncrement>
         <antennaRatio>200.0</antennaRatio>
         <arcLayer layer="Polysilicon-2" style="FILLED">
-            <lambda>3.5</lambda>
+            <rule ruleName="11.1" k="0.5"/>
         </arcLayer>
         <arcPin name="Polysilicon-2-Pin" port="polysilicon-2" elibSize="3.0"/>
     </arcProto>
@@ -1101,13 +1101,15 @@
         <antennaRatio>200.0</antennaRatio>
         <elibWidthOffset>12.0</elibWidthOffset>
         <arcLayer layer="P-Active" style="FILLED">
-            <lambda>1.5</lambda>
+            <rule ruleName="2.1" k="0.5"/>
         </arcLayer>
         <arcLayer layer="N-Well" style="FILLED">
-            <lambda>7.5</lambda>
+            <rule ruleName="2.1" k="0.5"/>
+            <rule ruleName="2.3"/>
         </arcLayer>
         <arcLayer layer="P-Select" style="FILLED">
-            <lambda>3.5</lambda>
+            <rule ruleName="2.1" k="0.5"/>
+            <rule ruleName="4.2"/>
         </arcLayer>
         <arcPin name="P-Active-Pin" port="p-active" elibSize="15.0"/>
     </arcProto>
@@ -1120,13 +1122,15 @@
         <antennaRatio>200.0</antennaRatio>
         <elibWidthOffset>12.0</elibWidthOffset>
         <arcLayer layer="N-Active" style="FILLED">
-            <lambda>1.5</lambda>
+            <rule ruleName="2.1" k="0.5"/>
         </arcLayer>
         <arcLayer layer="P-Well" style="FILLED">
-            <lambda>7.5</lambda>
+            <rule ruleName="2.1" k="0.5"/>
+            <rule ruleName="2.3"/>
         </arcLayer>
         <arcLayer layer="N-Select" style="FILLED">
-            <lambda>3.5</lambda>
+            <rule ruleName="2.1" k="0.5"/>
+            <rule ruleName="4.2"/>
         </arcLayer>
         <arcPin name="N-Active-Pin" port="n-active" elibSize="15.0"/>
     </arcProto>
@@ -1139,10 +1143,10 @@
         <angleIncrement>90</angleIncrement>
         <antennaRatio>200.0</antennaRatio>
         <arcLayer layer="P-Active" style="FILLED">
-            <lambda>1.5</lambda>
+            <rule ruleName="2.1" k="0.5"/>
         </arcLayer>
         <arcLayer layer="N-Active" style="FILLED">
-            <lambda>1.5</lambda>
+            <rule ruleName="2.1" k="0.5"/>
         </arcLayer>
         <arcPin name="Active-Pin" port="active" elibSize="3.0">
             <portArc>P-Active</portArc>
