@@ -1080,18 +1080,16 @@ public class XMLRules implements DRCRules, Serializable
     private DRCTemplate resizeContact(PrimitiveNode contact, Technology.NodeLayer cutNode, Technology.NodeLayer cutSurNode,
                                       DRCTemplate cutSize, DRCTemplate cutSur, String contactName)
     {
-        int index = getRuleIndex(cutNode.getLayer().getIndex(), cutNode.getLayer().getIndex());
-        DRCTemplate spacing1D = getRule(index, DRCTemplate.DRCRuleType.UCONSPA);
-        assert(spacing1D != null);
-        DRCTemplate spacing2D = getRule(index, DRCTemplate.DRCRuleType.UCONSPA2D);
-        if (spacing2D == null) spacing2D = spacing1D;
-
         double cutX = cutSur.getValue(0), cutY = cutSur.getValue(1);
         if (cutY < 0) cutY = cutX; // takes only value
         double cutSizeValue = cutSize.getValue(0);
         double totalSurrX = cutSizeValue + cutX*2;
         double totalSurrY = cutSizeValue + cutY*2;
 
+        assert cutNode.sizeRule != null;
+        assert cutSizeValue == cutNode.getMulticutSizeX();
+        assert cutSizeValue == cutNode.getMulticutSizeY();
+        
         DRCTemplate minNode = getRule(contact.getPrimNodeIndexInTech(), DRCTemplate.DRCRuleType.NODSIZ);
         if (getRule(contact.getPrimNodeIndexInTech(), DRCTemplate.DRCRuleType.NODSIZ) == null) {
 //            contact.setDefSize(totalSurrX, totalSurrY);
@@ -1117,17 +1115,7 @@ public class XMLRules implements DRCRules, Serializable
 //            contact.setMinSize(totalSurrX, totalSurrY, "Minimum size");
 //        }
 
-        Technology.NodeLayer[] nodeLayers = contact.getLayers();
-        assert cutNode == nodeLayers[nodeLayers.length - 1];
-        cutNode = Technology.NodeLayer.makeMulticut(cutNode.getLayer(), cutNode.getPortNum(), cutNode.getStyle(),
-                Technology.TechPoint.makeIndented(minWidth/2, minHeight/2),
-                cutSizeValue, cutSizeValue,
-                spacing1D.getValue(0), spacing2D.getValue(0));
-        nodeLayers[nodeLayers.length - 1] = cutNode;
-//        cutNode.setPoints(Technology.TechPoint.makeIndented(cutX, cutY));
-//        contact.setSpecialValues(new double [] {cutSizeValue, cutSizeValue,
-//                                                cutX, cutY,
-//                                                spacing1D.getValue(0), spacing2D.getValue(0)});
+        cutNode.setPoints(Technology.TechPoint.makeIndented(minWidth/2, minHeight/2));
         return cutSur;
     }
 

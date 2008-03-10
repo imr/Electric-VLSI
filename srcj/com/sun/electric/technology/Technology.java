@@ -168,30 +168,29 @@ public class Technology implements Comparable<Technology>, Serializable
 		 * @param style the Poly.Style of this ArcLayer.
 		 */
         public ArcLayer(Layer layer, double arcLayerWidth, Poly.Type style) {
-            this(layer, arcLayerWidth, style, arcLayerWidth*0.5);
+            this(layer, style, arcLayerWidth*0.5);
+            gridExtend = (int)DBMath.lambdaToGrid(arcLayerWidth*0.5);
         }
         
 		/**
 		 * Constructs an <CODE>ArcLayer</CODE> with the specified description.
 		 * @param layer the Layer of this ArcLayer.
-         * @param arcLayerWidth the width of this ArcLayer in standard ArcInst.
 		 * @param style the Poly.Style of this ArcLayer.
          * @param ruleNames rule names to make an expression for for extend of this ArcLayer
 		 */
-        public ArcLayer(Layer layer, double arcLayerWidth, Poly.Type style, String ... ruleNames) {
-            this(layer, arcLayerWidth, style, 0, ruleNames);
+        public ArcLayer(Layer layer, Poly.Type style, String ... ruleNames) {
+            this(layer, style, 0, ruleNames);
         }
         
 		/**
 		 * Constructs an <CODE>ArcLayer</CODE> with the specified description.
 		 * @param layer the Layer of this ArcLayer.
-         * @param arcLayerWidth the width of this ArcLayer in standard ArcInst.
 		 * @param style the Poly.Style of this ArcLayer.
          * @param lambdaExtend lambda fraction of extend
          * @param ruleNames rule names to make an expression for for extend of this ArcLayer
 		 */
-        public ArcLayer(Layer layer, double arcLayerWidth, Poly.Type style, double lambdaExtend, String ... ruleNames) {
-            this(layer, arcLayerWidth, style, new Xml.Distance());
+        public ArcLayer(Layer layer, Poly.Type style, double lambdaExtend, String ... ruleNames) {
+            this(layer, style, new Xml.Distance());
             if (ruleNames.length > 0)
                 xmlExtend.addRule(ruleNames[0], 0.5);
             for (int i = 1; i < ruleNames.length; i++)
@@ -202,15 +201,14 @@ public class Technology implements Comparable<Technology>, Serializable
 		/**
 		 * Constructs an <CODE>ArcLayer</CODE> with the specified description.
 		 * @param layer the Layer of this ArcLayer.
-         * @param arcLayerWidth the width of this ArcLayer in standard ArcInst.
          * @param xmlExtend Xml expression for extend of this ArcLayer depending on tech parameters
 		 * @param style the Poly.Style of this ArcLayer.
 		 */
-        public ArcLayer(Layer layer, double arcLayerWidth, Poly.Type style, Xml.Distance xmlExtend) {
-            this(layer, style, DBMath.lambdaToGrid(arcLayerWidth*0.5), xmlExtend);
+        public ArcLayer(Layer layer, Poly.Type style, Xml.Distance xmlExtend) {
+            this(layer, style, 0, xmlExtend);
         }
         
-        private ArcLayer(Layer layer, Poly.Type style,long gridExtend, Xml.Distance xmlExtend) {
+        private ArcLayer(Layer layer, Poly.Type style, long gridExtend, Xml.Distance xmlExtend) {
             if (gridExtend < 0 || gridExtend >= Integer.MAX_VALUE/8)
                 throw new IllegalArgumentException("gridExtend=" + gridExtend);
             this.layer = layer;
@@ -415,6 +413,7 @@ public class Technology implements Comparable<Technology>, Serializable
 		private TextDescriptor descriptor;
 		private double lWidth, rWidth, extentT, extendB;
         private long cutGridSizeX, cutGridSizeY, cutGridSep1D, cutGridSep2D;
+        String sizeRule, cutSep1DRule, cutSep2DRule;
 
 		// the meaning of "representation"
 		/**
@@ -525,6 +524,19 @@ public class Technology implements Comparable<Technology>, Serializable
             nl.cutGridSizeY = DBMath.lambdaToGrid(cutSizeY);
             nl.cutGridSep1D = DBMath.lambdaToGrid(cutSep1D);
             nl.cutGridSep2D = DBMath.lambdaToGrid(cutSep2D);
+            return nl;
+        }
+
+        public static NodeLayer makeMulticut(Layer layer, int portNum, Poly.Type style, TechPoint[] techPoints,
+                String sizeRule, String cutSep1DRule, String cutSep2DRule) {
+			NodeLayer nl = new NodeLayer(layer, portNum, style, Technology.NodeLayer.MULTICUTBOX, techPoints);
+            nl.sizeRule = sizeRule;
+            nl.cutSep1DRule = cutSep1DRule;
+            nl.cutSep2DRule = cutSep2DRule;
+//            nl.cutGridSizeX = DBMath.lambdaToGrid(cutSizeX);
+//            nl.cutGridSizeY = DBMath.lambdaToGrid(cutSizeY);
+//            nl.cutGridSep1D = DBMath.lambdaToGrid(cutSep1D);
+//            nl.cutGridSep2D = DBMath.lambdaToGrid(cutSep2D);
             return nl;
         }
 
@@ -744,6 +756,7 @@ public class Technology implements Comparable<Technology>, Serializable
                 for (Technology.TechPoint p: points)
                     nld.techPoints.add(p.makeCorrection(correction));
             }
+            nld.sizeRule = sizeRule;
             nld.sizex = DBMath.round(getMulticutSizeX());
             nld.sizey = DBMath.round(getMulticutSizeY());
             nld.sep1d = DBMath.round(getMulticutSep1D());
@@ -755,6 +768,17 @@ public class Technology implements Comparable<Technology>, Serializable
                 nld.bExtent = DBMath.round(getSerpentineExtentB());
             }
             return nld;
+        }
+        
+        void resize(Xml.DistanceContext context) {
+            if (sizeRule != null) {
+                double lambdaSize = context.getRule(sizeRule);
+                cutGridSizeX = cutGridSizeY = (int)DBMath.lambdaToGrid(lambdaSize);
+                double lambdaCutSep1D = context.getRule(cutSep1DRule);
+                cutGridSep1D = (int)DBMath.lambdaToGrid(lambdaCutSep1D);
+                double lambdaCutSep2D = context.getRule(cutSep2DRule);
+                cutGridSep2D = (int)DBMath.lambdaToGrid(lambdaCutSep2D);
+            }
         }
 	}
 
@@ -4787,10 +4811,12 @@ public class Technology implements Comparable<Technology>, Serializable
             ap.resize(context);
         for (Layer layer: layers)
             layer.resizePureLayerNode(context);
+        for (PrimitiveNode pn: nodes.values())
+            pn.resize(context);
     }
     
     private class TechDistanceContext implements Xml.DistanceContext {
-        private final String ruleSuffix = getRuleSuffix();
+        private final Map<String,String> ruleAliases = getRuleAliases();
         private final XMLRules rules;
         private final int numMetals = getNumMetals();
         
@@ -4798,13 +4824,14 @@ public class Technology implements Comparable<Technology>, Serializable
             this.rules = rules;
         }
         
-        public double getRule(String ruleName, int metalsFrom, int metalsUpto) {
-            if (numMetals < metalsFrom || numMetals > metalsUpto) return 0;
-            ruleName = ruleName += ruleSuffix;
+        public double getRule(String ruleName) {
+            String alias = ruleAliases.get(ruleName);
+            if (alias != null)
+                ruleName = alias;
             for (HashMap<XMLRules.XMLRule,XMLRules.XMLRule> map: rules.matrix) {
                 if (map == null) continue;
                 for (XMLRules.XMLRule rule: map.values()) {
-                    if (rule.ruleName.startsWith(ruleName))
+                    if (rule.ruleName.startsWith(ruleName + " ") || rule.ruleName.equals(ruleName))
                         return rule.getValue(0);
                 }
             }
@@ -4815,6 +4842,10 @@ public class Technology implements Comparable<Technology>, Serializable
     protected String getRuleSuffix() {
         return "";
     }
+    
+    protected Map<String,String> getRuleAliases() {
+        return Collections.EMPTY_MAP;
+    } 
 
 	/**
 	 * Method to compare a Rules set with the "factory" set and construct an override string.

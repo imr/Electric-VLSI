@@ -1207,6 +1207,15 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
         baseRectangle = ERectangle.fromGrid(lx, ly, hx - lx, hy - ly);
         sizeCorrectors[1] = EPoint.fromGrid(baseRectangle.getGridWidth() >> 1, baseRectangle.getGridHeight() >> 1);
     }
+    
+    public void resize(Xml.DistanceContext context) {
+        for (Technology.NodeLayer nl: layers)
+            nl.resize(context);
+        if (electricalLayers != null) {
+            for (Technology.NodeLayer nl: electricalLayers)
+                nl.resize(context);
+        }
+    }
 
 	/**
 	 * Method to set the auto-growth factor on this PrimitiveNode.
@@ -1913,6 +1922,10 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 
     void dump(PrintWriter out) {
         out.print("PrimitiveNode " + getName() + " " + getFunction());
+        if (isNotUsed()) {
+            out.println(" NOTUSED");
+            return;
+        }
         Technology.printlnBits(out, nodeBits, userBits);
         out.print("\tspecialType=" + specialType + " numMultiCuts=" + numMultiCuts);
         if (specialValues != null) {

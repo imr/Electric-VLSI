@@ -680,286 +680,6 @@ public class MoCMOS extends Technology
 
         createExtraLayers();
 
-//		/** pseudo metal 1 */
-//		Layer pseudoMetal1_lay = Layer.newInstance(this, "Pseudo-Metal-1",
-//			new EGraphics(false, true, null, EGraphics.TRANSPARENT_1, 96,209,255, 1,true,
-//			new int[] { 0x2222,   //   X   X   X   X
-//						0x0000,   //
-//						0x8888,   // X   X   X   X
-//						0x0000,   //
-//						0x2222,   //   X   X   X   X
-//						0x0000,   //
-//						0x8888,   // X   X   X   X
-//						0x0000,   //
-//						0x2222,   //   X   X   X   X
-//						0x0000,   //
-//						0x8888,   // X   X   X   X
-//						0x0000,   //
-//						0x2222,   //   X   X   X   X
-//						0x0000,   //
-//						0x8888,   // X   X   X   X
-//						0x0000}));//
-//
-//		/** pseudo metal-2 */
-//		Layer pseudoMetal2_lay = Layer.newInstance(this, "Pseudo-Metal-2",
-//			new EGraphics(false, true, null, EGraphics.TRANSPARENT_4, 224,95,255, 1,true,
-//			new int[] { 0x1010,   //    X       X
-//						0x2020,   //   X       X
-//						0x4040,   //  X       X
-//						0x8080,   // X       X
-//						0x0101,   //        X       X
-//						0x0202,   //       X       X
-//						0x0404,   //      X       X
-//						0x0808,   //     X       X
-//						0x1010,   //    X       X
-//						0x2020,   //   X       X
-//						0x4040,   //  X       X
-//						0x8080,   // X       X
-//						0x0101,   //        X       X
-//						0x0202,   //       X       X
-//						0x0404,   //      X       X
-//						0x0808}));//     X       X
-//
-//		/** pseudo metal-3 */
-//		Layer pseudoMetal3_lay = Layer.newInstance(this, "Pseudo-Metal-3",
-//			new EGraphics(false, true, null, EGraphics.TRANSPARENT_5, 247,251,20, 1,true,
-//			new int[] { 0x1010,   //    X       X
-//						0x2020,   //   X       X
-//						0x4040,   //  X       X
-//						0x8080,   // X       X
-//						0x0101,   //        X       X
-//						0x0202,   //       X       X
-//						0x0404,   //      X       X
-//						0x0808,   //     X       X
-//						0x1010,   //    X       X
-//						0x2020,   //   X       X
-//						0x4040,   //  X       X
-//						0x8080,   // X       X
-//						0x0101,   //        X       X
-//						0x0202,   //       X       X
-//						0x0404,   //      X       X
-//						0x0808}));//     X       X
-//
-//		/** pseudo metal-4 */
-//		Layer pseudoMetal4_lay = Layer.newInstance(this, "Pseudo-Metal-4",
-//			new EGraphics(true, true, null, 0, 150,150,255, 1,true,
-//			new int[] { 0xFFFF,   // XXXXXXXXXXXXXXXX
-//						0x0000,   //
-//						0xFFFF,   // XXXXXXXXXXXXXXXX
-//						0x0000,   //
-//						0xFFFF,   // XXXXXXXXXXXXXXXX
-//						0x0000,   //
-//						0xFFFF,   // XXXXXXXXXXXXXXXX
-//						0x0000,   //
-//						0xFFFF,   // XXXXXXXXXXXXXXXX
-//						0x0000,   //
-//						0xFFFF,   // XXXXXXXXXXXXXXXX
-//						0x0000,   //
-//						0xFFFF,   // XXXXXXXXXXXXXXXX
-//						0x0000,   //
-//						0xFFFF,   // XXXXXXXXXXXXXXXX
-//						0x0000}));//
-//
-//		/** pseudo metal-5 */
-//		Layer pseudoMetal5_lay = Layer.newInstance(this, "Pseudo-Metal-5",
-//			new EGraphics(true, true, EGraphics.Outline.PAT_S, 0, 255,190,6, 1,true,
-//			new int[] { 0x8888,   // X   X   X   X
-//						0x1111,   //    X   X   X   X
-//						0x2222,   //   X   X   X   X
-//						0x4444,   //  X   X   X   X
-//						0x8888,   // X   X   X   X
-//						0x1111,   //    X   X   X   X
-//						0x2222,   //   X   X   X   X
-//						0x4444,   //  X   X   X   X
-//						0x8888,   // X   X   X   X
-//						0x1111,   //    X   X   X   X
-//						0x2222,   //   X   X   X   X
-//						0x4444,   //  X   X   X   X
-//						0x8888,   // X   X   X   X
-//						0x1111,   //    X   X   X   X
-//						0x2222,   //   X   X   X   X
-//						0x4444}));//  X   X   X   X
-//
-//		/** pseudo metal-6 */
-//		Layer pseudoMetal6_lay = Layer.newInstance(this, "Pseudo-Metal-6",
-//			new EGraphics(true, true, null, 0, 0,255,255, 1,true,
-//			new int[] { 0x8888,   // X   X   X   X
-//						0x4444,   //  X   X   X   X
-//						0x2222,   //   X   X   X   X
-//						0x1111,   //    X   X   X   X
-//						0x8888,   // X   X   X   X
-//						0x4444,   //  X   X   X   X
-//						0x2222,   //   X   X   X   X
-//						0x1111,   //    X   X   X   X
-//						0x8888,   // X   X   X   X
-//						0x4444,   //  X   X   X   X
-//						0x2222,   //   X   X   X   X
-//						0x1111,   //    X   X   X   X
-//						0x8888,   // X   X   X   X
-//						0x4444,   //  X   X   X   X
-//						0x2222,   //   X   X   X   X
-//						0x1111}));//    X   X   X   X
-//
-//		/** pseudo poly layer */
-//		Layer pseudoPoly1_lay = Layer.newInstance(this, "Pseudo-Polysilicon",
-//			new EGraphics(false, true, null, EGraphics.TRANSPARENT_2, 255,155,192, 1,true,
-//			new int[] { 0x1111,   //    X   X   X   X
-//						0xFFFF,   // XXXXXXXXXXXXXXXX
-//						0x1111,   //    X   X   X   X
-//						0x5555,   //  X X X X X X X X
-//						0x1111,   //    X   X   X   X
-//						0xFFFF,   // XXXXXXXXXXXXXXXX
-//						0x1111,   //    X   X   X   X
-//						0x5555,   //  X X X X X X X X
-//						0x1111,   //    X   X   X   X
-//						0xFFFF,   // XXXXXXXXXXXXXXXX
-//						0x1111,   //    X   X   X   X
-//						0x5555,   //  X X X X X X X X
-//						0x1111,   //    X   X   X   X
-//						0xFFFF,   // XXXXXXXXXXXXXXXX
-//						0x1111,   //    X   X   X   X
-//						0x5555}));//  X X X X X X X X
-//
-//		/** pseudo poly2 layer */
-//		Layer pseudoPoly2_lay = Layer.newInstance(this, "Pseudo-Electrode",
-//			new EGraphics(true, true, null, 0, 255,190,6, 1,true,
-//			new int[] { 0xAFAF,   // X X XXXXX X XXXX
-//						0x8888,   // X   X   X   X
-//						0xFAFA,   // XXXXX X XXXXX X
-//						0x8888,   // X   X   X   X
-//						0xAFAF,   // X X XXXXX X XXXX
-//						0x8888,   // X   X   X   X
-//						0xFAFA,   // XXXXX X XXXXX X
-//						0x8888,   // X   X   X   X
-//						0xAFAF,   // X X XXXXX X XXXX
-//						0x8888,   // X   X   X   X
-//						0xFAFA,   // XXXXX X XXXXX X
-//						0x8888,   // X   X   X   X
-//						0xAFAF,   // X X XXXXX X XXXX
-//						0x8888,   // X   X   X   X
-//						0xFAFA,   // XXXXX X XXXXX X
-//						0x8888}));// X   X   X   X
-//
-//		/** pseudo P active */
-//		pseudoActiveLayers[P_TYPE] = Layer.newInstance(this, "Pseudo-P-Active",
-//			new EGraphics(false, true, null, EGraphics.TRANSPARENT_3, 107,226, 96,/*107,204,0,*/ 1,true,
-//			new int[] { 0x0000,   //
-//						0x0303,   //       XX      XX
-//						0x4848,   //  X  X    X  X
-//						0x0303,   //       XX      XX
-//						0x0000,   //
-//						0x3030,   //   XX      XX
-//						0x8484,   // X    X  X    X
-//						0x3030,   //   XX      XX
-//						0x0000,   //
-//						0x0303,   //       XX      XX
-//						0x4848,   //  X  X    X  X
-//						0x0303,   //       XX      XX
-//						0x0000,   //
-//						0x3030,   //   XX      XX
-//						0x8484,   // X    X  X    X
-//						0x3030}));//   XX      XX
-//
-//		/** pseudo N active */
-//		pseudoActiveLayers[N_TYPE] = Layer.newInstance(this, "Pseudo-N-Active",
-//			new EGraphics(false, true, null, EGraphics.TRANSPARENT_3, 107,226, 96,/*107,204,0,*/ 1,true,
-//			new int[] { 0x0000,   //
-//						0x0303,   //       XX      XX
-//						0x4848,   //  X  X    X  X
-//						0x0303,   //       XX      XX
-//						0x0000,   //
-//						0x3030,   //   XX      XX
-//						0x8484,   // X    X  X    X
-//						0x3030,   //   XX      XX
-//						0x0000,   //
-//						0x0303,   //       XX      XX
-//						0x4848,   //  X  X    X  X
-//						0x0303,   //       XX      XX
-//						0x0000,   //
-//						0x3030,   //   XX      XX
-//						0x8484,   // X    X  X    X
-//						0x3030}));//   XX      XX
-//
-//		/** pseudo P Select */
-//		pseudoSelectLayers[P_TYPE] = Layer.newInstance(this, "Pseudo-P-Select",
-//			new EGraphics(true, true, null, 0, 255,255,0, 1,false,
-//			new int[] { 0x1010,   //    X       X
-//						0x2020,   //   X       X
-//						0x4040,   //  X       X
-//						0x8080,   // X       X
-//						0x0101,   //        X       X
-//						0x0202,   //       X       X
-//						0x0404,   //      X       X
-//						0x0808,   //     X       X
-//						0x1010,   //    X       X
-//						0x2020,   //   X       X
-//						0x4040,   //  X       X
-//						0x8080,   // X       X
-//						0x0101,   //        X       X
-//						0x0202,   //       X       X
-//						0x0404,   //      X       X
-//						0x0808}));//     X       X
-//
-//		/** pseudo N Select */
-//		pseudoSelectLayers[N_TYPE] = Layer.newInstance(this, "Pseudo-N-Select",
-//			new EGraphics(true, true, null, 0, 255,255,0, 1,false,
-//			new int[] { 0x0101,   //        X       X
-//						0x0000,   //
-//						0x1010,   //    X       X
-//						0x0000,   //
-//						0x0101,   //        X       X
-//						0x0000,   //
-//						0x1010,   //    X       X
-//						0x0000,   //
-//						0x0101,   //        X       X
-//						0x0000,   //
-//						0x1010,   //    X       X
-//						0x0000,   //
-//						0x0101,   //        X       X
-//						0x0000,   //
-//						0x1010,   //    X       X
-//						0x0000}));//
-//
-//		/** pseudo P Well */
-//		pseudoWellLayers[P_TYPE] = Layer.newInstance(this, "Pseudo-P-Well",
-//			new EGraphics(true, true, null, 0, 139,99,46, 1,false,
-//			new int[] { 0x0202,   //       X       X
-//						0x0101,   //        X       X
-//						0x8080,   // X       X
-//						0x4040,   //  X       X
-//						0x2020,   //   X       X
-//						0x1010,   //    X       X
-//						0x0808,   //     X       X
-//						0x0404,   //      X       X
-//						0x0202,   //       X       X
-//						0x0101,   //        X       X
-//						0x8080,   // X       X
-//						0x4040,   //  X       X
-//						0x2020,   //   X       X
-//						0x1010,   //    X       X
-//						0x0808,   //     X       X
-//						0x0404}));//      X       X
-//
-//		/** pseudo N Well */
-//		pseudoWellLayers[N_TYPE] = Layer.newInstance(this, "Pseudo-N-Well",
-//			new EGraphics(true, true, null, 0, 139,99,46, 1,false,
-//			new int[] { 0x0202,   //       X       X
-//						0x0000,   //
-//						0x2020,   //   X       X
-//						0x0000,   //
-//						0x0202,   //       X       X
-//						0x0000,   //
-//						0x2020,   //   X       X
-//						0x0000,   //
-//						0x0202,   //       X       X
-//						0x0000,   //
-//						0x2020,   //   X       X
-//						0x0000,   //
-//						0x0202,   //       X       X
-//						0x0000,   //
-//						0x2020,   //   X       X
-//						0x0000}));//
-
 		// The layer functions
 		metalLayers[0].setFunction(Layer.Function.METAL1);									// Metal-1
 		metalLayers[1].setFunction(Layer.Function.METAL2);									// Metal-2
@@ -1278,7 +998,7 @@ public class MoCMOS extends Technology
 
 		/** metal 1 arc */
 		metalArcs[0] = newArcProto("Metal-1", 0, 3.0, ArcProto.Function.METAL1,
-			new Technology.ArcLayer(metalLayers[0], 3, Poly.Type.FILLED, "7.1")
+			new Technology.ArcLayer(metalLayers[0], /*3,*/ Poly.Type.FILLED, "7.1")
 		);
 		metalArcs[0].setFactoryFixedAngle(true);
 		metalArcs[0].setWipable();
@@ -1286,7 +1006,7 @@ public class MoCMOS extends Technology
 
 		/** metal 2 arc */
 		metalArcs[1] = newArcProto("Metal-2", 0, 3.0, ArcProto.Function.METAL2,
-			new Technology.ArcLayer(metalLayers[1], 3, Poly.Type.FILLED, "9.1")
+			new Technology.ArcLayer(metalLayers[1], /*3,*/ Poly.Type.FILLED, "9.1")
 		);
 		metalArcs[1].setFactoryFixedAngle(true);
 		metalArcs[1].setWipable();
@@ -1294,7 +1014,7 @@ public class MoCMOS extends Technology
 
 		/** metal 3 arc */
 		metalArcs[2] = newArcProto("Metal-3", 0, 3.0, ArcProto.Function.METAL3,
-			new Technology.ArcLayer(metalLayers[2], 3, Poly.Type.FILLED, "15.1")
+			new Technology.ArcLayer(metalLayers[2], /*3,*/ Poly.Type.FILLED, "15.1")
 		);
 		metalArcs[2].setFactoryFixedAngle(true);
 		metalArcs[2].setWipable();
@@ -1302,7 +1022,7 @@ public class MoCMOS extends Technology
 
 		/** metal 4 arc */
 		metalArcs[3] = newArcProto("Metal-4", 0, 3.0, ArcProto.Function.METAL4,
-			new Technology.ArcLayer(metalLayers[3], 3, Poly.Type.FILLED, "22.1")
+			new Technology.ArcLayer(metalLayers[3], /*3,*/ Poly.Type.FILLED, "22.1")
 		);
 		metalArcs[3].setFactoryFixedAngle(true);
 		metalArcs[3].setWipable();
@@ -1310,7 +1030,7 @@ public class MoCMOS extends Technology
 
 		/** metal 5 arc */
 		metalArcs[4] = newArcProto("Metal-5", 0, 3.0, ArcProto.Function.METAL5,
-			new Technology.ArcLayer(metalLayers[4], 3, Poly.Type.FILLED, "26.1")
+			new Technology.ArcLayer(metalLayers[4], /*3,*/ Poly.Type.FILLED, "26.1")
 		);
 		metalArcs[4].setFactoryFixedAngle(true);
 		metalArcs[4].setWipable();
@@ -1318,7 +1038,7 @@ public class MoCMOS extends Technology
 
 		/** metal 6 arc */
 		metalArcs[5] = newArcProto("Metal-6", 0, 5.0, ArcProto.Function.METAL6,
-			new Technology.ArcLayer(metalLayers[5], 5, Poly.Type.FILLED, "30.1")
+			new Technology.ArcLayer(metalLayers[5], /*5,*/ Poly.Type.FILLED, "30.1")
 		);
 		metalArcs[5].setFactoryFixedAngle(true);
 		metalArcs[5].setWipable();
@@ -1326,7 +1046,7 @@ public class MoCMOS extends Technology
 
 		/** polysilicon 1 arc */
 		polyArcs[0] = newArcProto("Polysilicon-1", 0, 2.0, ArcProto.Function.POLY1,
-			new Technology.ArcLayer(poly1Layer, 2, Poly.Type.FILLED, "3.1")
+			new Technology.ArcLayer(poly1Layer, /*2,*/ Poly.Type.FILLED, "3.1")
 		);
 		polyArcs[0].setFactoryFixedAngle(true);
 		polyArcs[0].setWipable();
@@ -1334,7 +1054,7 @@ public class MoCMOS extends Technology
 
 		/** polysilicon 2 arc */
 		polyArcs[1] = newArcProto("Polysilicon-2", 0, 7.0, ArcProto.Function.POLY2,
-			new Technology.ArcLayer(poly2_lay, 7, Poly.Type.FILLED, "11.1")
+			new Technology.ArcLayer(poly2_lay, /*7,*/ Poly.Type.FILLED, "11.1")
 		);
 		polyArcs[1].setFactoryFixedAngle(true);
 		polyArcs[1].setWipable();
@@ -1343,9 +1063,9 @@ public class MoCMOS extends Technology
 
 		/** P-active arc */
 		activeArcs[P_TYPE] = newArcProto("P-Active", 12.0, 15.0, ArcProto.Function.DIFFP,
-			new Technology.ArcLayer(activeLayers[P_TYPE], 3, Poly.Type.FILLED, "2.1"),
-			new Technology.ArcLayer(wellLayers[N_TYPE], 15, Poly.Type.FILLED, "2.1", "2.3"),
-			new Technology.ArcLayer(selectLayers[P_TYPE], 7, Poly.Type.FILLED, "2.1", "4.2")
+			new Technology.ArcLayer(activeLayers[P_TYPE], /*3,*/ Poly.Type.FILLED, "2.1"),
+			new Technology.ArcLayer(wellLayers[N_TYPE], /*15,*/ Poly.Type.FILLED, "2.1", "2.3"),
+			new Technology.ArcLayer(selectLayers[P_TYPE], /*7,*/ Poly.Type.FILLED, "2.1", "4.2")
 		);
 		activeArcs[P_TYPE].setFactoryFixedAngle(true);
 		activeArcs[P_TYPE].setWipable();
@@ -1353,9 +1073,9 @@ public class MoCMOS extends Technology
 
 		/** N-active arc */
 		activeArcs[N_TYPE] = newArcProto("N-Active", 12.0, 15.0, ArcProto.Function.DIFFN,
-			new Technology.ArcLayer(activeLayers[N_TYPE], 3, Poly.Type.FILLED, "2.1"),
-			new Technology.ArcLayer(wellLayers[P_TYPE], 15, Poly.Type.FILLED, "2.1", "2.3"),
-			new Technology.ArcLayer(selectLayers[N_TYPE], 7, Poly.Type.FILLED, "2.1", "4.2")
+			new Technology.ArcLayer(activeLayers[N_TYPE], /*3,*/ Poly.Type.FILLED, "2.1"),
+			new Technology.ArcLayer(wellLayers[P_TYPE], /*15,*/ Poly.Type.FILLED, "2.1", "2.3"),
+			new Technology.ArcLayer(selectLayers[N_TYPE], /*7,*/ Poly.Type.FILLED, "2.1", "4.2")
 		);
 		activeArcs[N_TYPE].setFactoryFixedAngle(true);
 		activeArcs[N_TYPE].setWipable();
@@ -1363,8 +1083,8 @@ public class MoCMOS extends Technology
 
 		/** General active arc */
 		active_arc = newArcProto("Active", 0, 3.0, ArcProto.Function.DIFF,
-			new Technology.ArcLayer(activeLayers[P_TYPE], 3, Poly.Type.FILLED, "2.1"),
-			new Technology.ArcLayer(activeLayers[N_TYPE], 3, Poly.Type.FILLED, "2.1")
+			new Technology.ArcLayer(activeLayers[P_TYPE], /*3,*/ Poly.Type.FILLED, "2.1"),
+			new Technology.ArcLayer(activeLayers[N_TYPE], /*3,*/ Poly.Type.FILLED, "2.1")
 		);
 		active_arc.setFactoryFixedAngle(true);
 		active_arc.setWipable();
@@ -1392,7 +1112,12 @@ public class MoCMOS extends Technology
 				new Technology.NodeLayer(activeLayers[P_TYPE], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(6)),
 				new Technology.NodeLayer(wellLayers[N_TYPE], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX,Technology.TechPoint.makeFullBox()),
 				new Technology.NodeLayer(selectLayers[P_TYPE], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(4)),
-				Technology.NodeLayer.makeMulticut(activeCutLayer, 0, Poly.Type.FILLED, TechPoint.makeIndented(8.5), 2, 2, 3, 3)
+				Technology.NodeLayer.makeMulticut(activeCutLayer, 0, Poly.Type.FILLED, TechPoint.makeIndented(8.5),
+                        /*2, 2, 3, 3,*/ "6.1", "6.3","6.3"
+//				new Technology.NodeLayer(activeCutLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(7.5))
+        )
+//				new Technology.NodeLayer(activeCutLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(7.5))
+			
 //				new Technology.NodeLayer(activeCutLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(7.5))
 			});
 		metalActiveContactNodes[P_TYPE].addPrimitivePorts(new PrimitivePort []
@@ -1414,7 +1139,12 @@ public class MoCMOS extends Technology
 				new Technology.NodeLayer(activeLayers[N_TYPE], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(6)),
 				new Technology.NodeLayer(wellLayers[P_TYPE], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox()),
 				new Technology.NodeLayer(selectLayers[N_TYPE], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(4)),
-				Technology.NodeLayer.makeMulticut(activeCutLayer, 0, Poly.Type.FILLED, TechPoint.makeIndented(8.5), 2, 2, 3, 3)
+				Technology.NodeLayer.makeMulticut(activeCutLayer, 0, Poly.Type.FILLED, TechPoint.makeIndented(8.5),
+                        /*2, 2, 3, 3,*/ "6.1", "6.3","6.3"
+//				new Technology.NodeLayer(activeCutLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(7.5))
+        )
+//				new Technology.NodeLayer(activeCutLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(7.5))
+			
 //				new Technology.NodeLayer(activeCutLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(7.5))
 			});
 		metalActiveContactNodes[N_TYPE].addPrimitivePorts(new PrimitivePort []
@@ -1434,7 +1164,12 @@ public class MoCMOS extends Technology
 			{
 				new Technology.NodeLayer(metalLayers[0], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(0.5)),
 				new Technology.NodeLayer(poly1Layer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox()),
-				Technology.NodeLayer.makeMulticut(polyCutLayer, 0, Poly.Type.FILLED, TechPoint.makeIndented(2.5), 2, 2, 3, 3)
+				Technology.NodeLayer.makeMulticut(polyCutLayer, 0, Poly.Type.FILLED, TechPoint.makeIndented(2.5),
+                        /*2, 2, 3, 3,*/ "5.1", "5.3","5.3"
+//				new Technology.NodeLayer(polyCutLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1.5))
+        )
+//				new Technology.NodeLayer(polyCutLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1.5))
+			
 //				new Technology.NodeLayer(polyCutLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1.5))
 			});
 		metal1PolyContactNodes[0].addPrimitivePorts(new PrimitivePort []
@@ -1454,7 +1189,12 @@ public class MoCMOS extends Technology
 			{
 				new Technology.NodeLayer(metalLayers[0], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(3)),
 				new Technology.NodeLayer(poly2_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox()),
-				Technology.NodeLayer.makeMulticut(polyCutLayer, 0, Poly.Type.FILLED, TechPoint.makeIndented(5), 2, 2, 3, 3)
+				Technology.NodeLayer.makeMulticut(polyCutLayer, 0, Poly.Type.FILLED, TechPoint.makeIndented(5),
+                        /*2, 2, 3, 3,*/ "5.1", "5.3","5.3"
+//				new Technology.NodeLayer(polyCutLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(4))
+        )
+//				new Technology.NodeLayer(polyCutLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(4))
+			
 //				new Technology.NodeLayer(polyCutLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(4))
 			});
 		metal1PolyContactNodes[1].addPrimitivePorts(new PrimitivePort []
@@ -1476,7 +1216,12 @@ public class MoCMOS extends Technology
 				new Technology.NodeLayer(metalLayers[0], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(5.5)),
 				new Technology.NodeLayer(poly1Layer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(5)),
 				new Technology.NodeLayer(poly2_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox()),
-				Technology.NodeLayer.makeMulticut(polyCutLayer, 0, Poly.Type.FILLED, TechPoint.makeIndented(7.5), 2, 2, 3, 3)
+				Technology.NodeLayer.makeMulticut(polyCutLayer, 0, Poly.Type.FILLED, TechPoint.makeIndented(7.5),
+                        /*2, 2, 3, 3,*/ "5.1", "5.3","5.3"
+//				new Technology.NodeLayer(polyCutLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(6.5))
+        )
+//				new Technology.NodeLayer(polyCutLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(6.5))
+			
 //				new Technology.NodeLayer(polyCutLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(6.5))
 			});
 		metal1PolyContactNodes[2].addPrimitivePorts(new PrimitivePort []
@@ -1697,7 +1442,8 @@ public class MoCMOS extends Technology
                     // Right Collector Cuts
                     Technology.NodeLayer.makeMulticut(activeCutLayer, 2, Poly.Type.FILLED, new Technology.TechPoint [] {
                         new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromBottom(8)),
-                        new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromTop(8))}, 2, 2, 2, 2/*3, 3*/),
+                        new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromTop(8))},
+                        /*2, 2, 2, 2,*/ "6.1", "6.3","6.3"),
                     // Right Collector Metal
                     new Technology.NodeLayer(metalLayers[0], 2, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
                         new Technology.TechPoint(EdgeH.fromRight(9), EdgeV.fromBottom(3)),
@@ -1713,7 +1459,8 @@ public class MoCMOS extends Technology
                     // Left Collector Cuts
                     Technology.NodeLayer.makeMulticut(activeCutLayer, 2, Poly.Type.FILLED, new Technology.TechPoint [] {
                         new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromBottom(8)),
-                        new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromTop(8))}, 2, 2, 2, 2/*3, 3*/),
+                        new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromTop(8))},
+                        /*2, 2, 2, 2,*/ "6.1", "6.3","6.3"), // Right Collector Metal
                     // Left Collector Metal
                     new Technology.NodeLayer(metalLayers[0], 2, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
                         new Technology.TechPoint(EdgeH.fromLeft(3), EdgeV.fromBottom(3)),
@@ -1729,7 +1476,8 @@ public class MoCMOS extends Technology
                     // Bottom Collector Left Cuts
                     Technology.NodeLayer.makeMulticut(activeCutLayer, 2, Poly.Type.FILLED, new Technology.TechPoint [] {
                         new Technology.TechPoint(EdgeH.fromLeft(11), EdgeV.fromBottom(6)),
-                        new Technology.TechPoint(EdgeH.fromCenter(-13), EdgeV.fromBottom(6))}, 2, 2, 2, 2/*3, 3*/),
+                        new Technology.TechPoint(EdgeH.fromCenter(-13), EdgeV.fromBottom(6))},
+                        /*2, 2, 2, 2,*/ "6.1", "6.3","6.3"), // Left Collector Metal
                     // Bottom Collector Left Metal
                     new Technology.NodeLayer(metalLayers[0], 2, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
                         new Technology.TechPoint(EdgeH.fromLeft(9), EdgeV.fromBottom(3)),
@@ -1737,7 +1485,8 @@ public class MoCMOS extends Technology
                     // Bottom Collector Right Cuts
                     Technology.NodeLayer.makeMulticut(activeCutLayer, 2, Poly.Type.FILLED, new Technology.TechPoint [] {
                         new Technology.TechPoint(EdgeH.fromCenter(13), EdgeV.fromBottom(6)),
-                        new Technology.TechPoint(EdgeH.fromRight(11), EdgeV.fromBottom(6))}, 2, 2, 2, 2/*3, 3*/),
+                        new Technology.TechPoint(EdgeH.fromRight(11), EdgeV.fromBottom(6))},
+                        /*2, 2, 2, 2,*/ "6.1", "6.3","6.3"), // Bottom Collector Left Metal
                      // Bottom Collector Right Metal
                     new Technology.NodeLayer(metalLayers[0], 2, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
                         new Technology.TechPoint(EdgeH.fromCenter(10), EdgeV.fromBottom(3)),
@@ -1753,7 +1502,8 @@ public class MoCMOS extends Technology
                     // Top Collector Cuts
                     Technology.NodeLayer.makeMulticut(activeCutLayer, 2, Poly.Type.FILLED, new Technology.TechPoint [] {
                         new Technology.TechPoint(EdgeH.fromLeft(11), EdgeV.fromTop(6)),
-                        new Technology.TechPoint(EdgeH.fromRight(11), EdgeV.fromTop(6))}, 2, 2, 2, 2/*3, 3*/),
+                        new Technology.TechPoint(EdgeH.fromRight(11), EdgeV.fromTop(6))},
+                        /*2, 2, 2, 2,*/ "6.1", "6.3","6.3"), // Bottom Collector Right Metal
                      // Top Collector Metal
                     new Technology.NodeLayer(metalLayers[0], 2, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
                         new Technology.TechPoint(EdgeH.fromLeft(9), EdgeV.fromTop(9)),
@@ -1769,7 +1519,8 @@ public class MoCMOS extends Technology
                     // Emitter Cuts
                     Technology.NodeLayer.makeMulticut(activeCutLayer, 1, Poly.Type.FILLED, new Technology.TechPoint [] {
                         new Technology.TechPoint(EdgeH.fromLeft(22), EdgeV.fromBottom(24)),
-                        new Technology.TechPoint(EdgeH.fromCenter(-6), EdgeV.fromTop(24))}, 2, 2, 2, 2/*3, 3*/),
+                        new Technology.TechPoint(EdgeH.fromCenter(-6), EdgeV.fromTop(24))},
+                        /*2, 2, 2, 2,*/ "6.1", "6.3","6.3"),// Top Collector Metal
                     // Emitter Metal
                     new Technology.NodeLayer(metalLayers[0], 1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
                         new Technology.TechPoint(EdgeH.fromLeft(19), EdgeV.fromBottom(21)),
@@ -1781,7 +1532,8 @@ public class MoCMOS extends Technology
                     // Base Cuts
                     Technology.NodeLayer.makeMulticut(activeCutLayer, 0, Poly.Type.FILLED, new Technology.TechPoint [] {
                         new Technology.TechPoint(EdgeH.fromCenter(6), EdgeV.fromBottom(24)),
-                        new Technology.TechPoint(EdgeH.fromRight(22), EdgeV.fromTop(24))}, 2, 2, 2, 2/*3, 3*/),
+                        new Technology.TechPoint(EdgeH.fromRight(22), EdgeV.fromTop(24))},
+                        /*2, 2, 2, 2,*/ "6.1", "6.3","6.3"), // Emitter Metal
                     // Base Metal
                     new Technology.NodeLayer(metalLayers[0], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
                         new Technology.TechPoint(EdgeH.fromCenter(3), EdgeV.fromBottom(21)),
@@ -1794,6 +1546,7 @@ public class MoCMOS extends Technology
                     new Technology.NodeLayer(pBaseLayer, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(13)),
                     // N Well
                     new Technology.NodeLayer(wellLayers[N_TYPE], -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
+                
                 });
             npnTransistorNode.addPrimitivePorts(new PrimitivePort []
                 {
@@ -1817,7 +1570,8 @@ public class MoCMOS extends Technology
 			{
 				new Technology.NodeLayer(metalLayers[0], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(0.5)),
 				new Technology.NodeLayer(metalLayers[1], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(0.5)),
-				Technology.NodeLayer.makeMulticut(viaLayers[0], 0, Poly.Type.FILLED, TechPoint.makeIndented(2.5), 2, 2, 3, 3)
+				Technology.NodeLayer.makeMulticut(viaLayers[0], 0, Poly.Type.FILLED, TechPoint.makeIndented(2.5),
+                        /*2, 2, 3, 3,*/ "8.1", "8.2","8.2")
 //				new Technology.NodeLayer(viaLayers[0], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1.5))
 			});
 		metalContactNodes[0].addPrimitivePorts(new PrimitivePort []
@@ -1837,7 +1591,8 @@ public class MoCMOS extends Technology
 			{
 				new Technology.NodeLayer(metalLayers[1], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1)),
 				new Technology.NodeLayer(metalLayers[2], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1)),
-				Technology.NodeLayer.makeMulticut(viaLayers[1], 0, Poly.Type.FILLED, TechPoint.makeIndented(3), 2, 2, 3, 3)
+				Technology.NodeLayer.makeMulticut(viaLayers[1], 0, Poly.Type.FILLED, TechPoint.makeIndented(3),
+                        /*2, 2, 3, 3,*/ "14.1", "14.2","14.2")
 //				new Technology.NodeLayer(viaLayers[1], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(2))
 			});
 		metalContactNodes[1].addPrimitivePorts(new PrimitivePort []
@@ -1857,7 +1612,8 @@ public class MoCMOS extends Technology
 			{
 				new Technology.NodeLayer(metalLayers[2], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1)),
 				new Technology.NodeLayer(metalLayers[3], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox()),
-				Technology.NodeLayer.makeMulticut(viaLayers[2], 0, Poly.Type.FILLED, TechPoint.makeIndented(3), 2, 2, 3, 3)
+				Technology.NodeLayer.makeMulticut(viaLayers[2], 0, Poly.Type.FILLED, TechPoint.makeIndented(3),
+                        /*2, 2, 3, 3,*/ "21.1", "21.2","21.2")
 //				new Technology.NodeLayer(viaLayers[2], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(2))
 			});
 		metalContactNodes[2].addPrimitivePorts(new PrimitivePort []
@@ -1877,7 +1633,8 @@ public class MoCMOS extends Technology
 			{
 				new Technology.NodeLayer(metalLayers[3], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1.5)),
 				new Technology.NodeLayer(metalLayers[4], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1.5)),
-				Technology.NodeLayer.makeMulticut(viaLayers[3], 0, Poly.Type.FILLED, TechPoint.makeIndented(3.5), 2, 2, 3, 3)
+				Technology.NodeLayer.makeMulticut(viaLayers[3], 0, Poly.Type.FILLED, TechPoint.makeIndented(3.5),
+                        /*2, 2, 3, 3,*/ "25.1", "25.2","25.2")
 //				new Technology.NodeLayer(viaLayers[3], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(2.5))
 			});
 		metalContactNodes[3].addPrimitivePorts(new PrimitivePort []
@@ -1899,7 +1656,8 @@ public class MoCMOS extends Technology
 			{
 				new Technology.NodeLayer(metalLayers[4], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1.5)),
 				new Technology.NodeLayer(metalLayers[5], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1.5)),
-				Technology.NodeLayer.makeMulticut(viaLayers[4], 0, Poly.Type.FILLED, TechPoint.makeIndented(4), 3, 3, 4, 4)
+				Technology.NodeLayer.makeMulticut(viaLayers[4], 0, Poly.Type.FILLED, TechPoint.makeIndented(4),
+                        /*3, 3, 4, 4,*/ "29.1", "29.2","29.2")
 //				new Technology.NodeLayer(metalLayers[4], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1)),
 //				new Technology.NodeLayer(metalLayers[5], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1)),
 //				new Technology.NodeLayer(viaLayers[4], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(3))
@@ -1930,7 +1688,8 @@ public class MoCMOS extends Technology
                     new Technology.NodeLayer(active, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(6)),
                     new Technology.NodeLayer(wellLayers[i], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox()),
                     new Technology.NodeLayer(selectLayers[i], 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(4)),
-                    Technology.NodeLayer.makeMulticut(activeCutLayer, 0, Poly.Type.FILLED, TechPoint.makeIndented(8.5), 2, 2, 3, 3)
+                    Technology.NodeLayer.makeMulticut(activeCutLayer, 0, Poly.Type.FILLED, TechPoint.makeIndented(8.5),
+                            /*2, 2, 3, 3,*/ "6.1", "6.3","6.3")
 //                    new Technology.NodeLayer(activeCutLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(7.5))
                 });
             metalWellContactNodes[i].addPrimitivePorts(new PrimitivePort []
@@ -2675,11 +2434,6 @@ public class MoCMOS extends Technology
         buildTechPalette();
 
         return rules;
-    }
-
-    @Override
-    protected String getRuleSuffix() {
-        return " Mosis";
     }
 
     @Override

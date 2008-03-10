@@ -23,8 +23,6 @@
                 <xsd:complexType>
                     <xsd:attribute name="ruleName" type="tns:RuleName" use="required"/>
                     <xsd:attribute name="k" type="xsd:double"/>
-                    <xsd:attribute name="metalsFrom" type="tns:NumMetals"/>
-                    <xsd:attribute name="metalsUpto" type="tns:NumMetals"/>
                 </xsd:complexType>
             </xsd:element>
             <xsd:element name="lambda" type="xsd:double" minOccurs="0"></xsd:element>
@@ -645,6 +643,7 @@
                                                     <xsd:attribute name="sizey" type="xsd:double" use="required"/>
                                                     <xsd:attribute name="sep1d" type="xsd:double" use="required"/>
                                                     <xsd:attribute name="sep2d" type="xsd:double" use="required"/>
+                                                    <xsd:attribute name="sizeRule" type="tns:RuleName"/>
                                                 </xsd:complexType>
                                             </xsd:element>
                                             <xsd:element name="serpbox">

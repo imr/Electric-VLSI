@@ -227,6 +227,7 @@ public class Xml {
         public final Distance hy = new Distance();
         public final List<TechPoint> techPoints = new ArrayList<TechPoint>();
         public double sizex, sizey, sep1d, sep2d;
+        public String sizeRule;
         public double lWidth, rWidth, tExtent, bExtent;
     }
 
@@ -320,40 +321,16 @@ public class Xml {
             term.k = k;
             terms.add(term);
         }
-        public void addRuleMetalsFrom(String ruleName, double k, int metalsFrom) {
-            DistanceRule term = new DistanceRule();
-            term.ruleName = ruleName;
-            term.k = k;
-            term.metalsFrom = metalsFrom;
-            terms.add(term);
-        }
-        public void addRuleMetalsUpto(String ruleName, double k, int metalsUpto) {
-            DistanceRule term = new DistanceRule();
-            term.ruleName = ruleName;
-            term.k = k;
-            term.metalsUpto = metalsUpto;
-            terms.add(term);
-        }
-        public void addRuleMetalsFromUpto(String ruleName, double k, int metalsFrom, int metalsUpto) {
-            DistanceRule term = new DistanceRule();
-            term.ruleName = ruleName;
-            term.k = k;
-            term.metalsFrom = metalsFrom;
-            term.metalsUpto = metalsUpto;
-            terms.add(term);
-        }
         public boolean isEmpty() { return lambdaValue == 0 && terms.isEmpty(); }
     }
 
     public static interface DistanceContext {
-        public double getRule(String ruleName, int metalsFrom, int metalsUpto);
+        public double getRule(String ruleName);
     }
     
     public static class DistanceRule implements Serializable, Cloneable {
         String ruleName;
         double k;
-        int metalsFrom = 0;
-        int metalsUpto = Integer.MAX_VALUE;
         
         public DistanceRule clone() {
             try {
@@ -368,15 +345,11 @@ public class Xml {
             writer.a("ruleName", ruleName);
             if (k != 1)
                 writer.a("k", k);
-            if (metalsFrom != 0)
-                writer.a("metalsFrom", metalsFrom);
-            if (metalsUpto != Integer.MAX_VALUE)
-                writer.a("metalsUpto", metalsUpto);
             writer.el();
         }
         
         private double getLambda(DistanceContext context) {
-            return context.getRule(ruleName, metalsFrom, metalsUpto)*k;
+            return context.getRule(ruleName)*k;
         }
     }
     
@@ -1094,6 +1067,7 @@ public class Xml {
                     curNodeLayer.hx.k = da_("khx", 1);
                     curNodeLayer.ly.k = da_("kly", -1);
                     curNodeLayer.hy.k = da_("khy", 1);
+                    curNodeLayer.sizeRule = a_("sizeRule");
                     curNodeLayer.sizex = Double.parseDouble(a("sizex"));
                     curNodeLayer.sizey = Double.parseDouble(a("sizey"));
                     curNodeLayer.sep1d = Double.parseDouble(a("sep1d"));
@@ -1190,22 +1164,8 @@ public class Xml {
                     curMenuNodeInst.fontSize = Double.parseDouble(a("size"));
                     break;
                 case rule:
-                    String ruleName = a("ruleName");
                     String kStr = a_("k");
-                    double k = kStr != null ? Double.valueOf(kStr) : 1;
-                    String metalsFrom = a_("metalsFrom");
-                    String metalsUpto = a_("metalsUpto");
-                    if (metalsFrom == null) {
-                        if (metalsUpto == null)
-                            curDistance.addRule(ruleName, k);
-                        else
-                            curDistance.addRuleMetalsUpto(ruleName, k, Integer.valueOf(metalsUpto));
-                    } else {
-                        if (metalsUpto == null)
-                            curDistance.addRuleMetalsFrom(ruleName, k, Integer.valueOf(metalsFrom));
-                        else
-                            curDistance.addRuleMetalsFromUpto(ruleName, k, Integer.valueOf(metalsFrom), Integer.valueOf(metalsUpto));
-                    }
+                    curDistance.addRule(a("ruleName"), kStr != null ? Double.valueOf(kStr) : 1);
                     break;
                 case Foundry:
                     curFoundry = new Foundry();
@@ -1974,9 +1934,14 @@ public class Xml {
                         break;
                     case com.sun.electric.technology.Technology.NodeLayer.MULTICUTBOX:
                         writeBox(XmlKeyword.multicutbox, nl.lx, nl.hx, nl.ly, nl.hy);
-                        a("sizex", nl.sizex); a("sizey", nl.sizey); a("sep1d", nl.sep1d);  a("sep2d", nl.sep2d); cl();
-                        writeLambdaBox(nl.lx, nl.hx, nl.ly, nl.hy);
-                        el(XmlKeyword.multicutbox);
+                        a("sizeRule", nl.sizeRule); a("sizex", nl.sizex); a("sizey", nl.sizey); a("sep1d", nl.sep1d);  a("sep2d", nl.sep2d);
+                        if (nl.lx.isEmpty() && nl.hx.isEmpty() && nl.ly.isEmpty() && nl.hy.isEmpty()) {
+                            el();
+                        } else {
+                            cl();
+                            writeLambdaBox(nl.lx, nl.hx, nl.ly, nl.hy);
+                            el(XmlKeyword.multicutbox);
+                        }
                         break;
                 }
                 for (TechPoint tp: nl.techPoints) {
@@ -2248,7 +2213,7 @@ public class Xml {
     }
     
     public static DistanceContext EMPTY_CONTEXT = new DistanceContext() {
-        public double getRule(String ruleName, int metalsFrom, int metalsUpto) {
+        public double getRule(String ruleName) {
             throw new UnsupportedOperationException();
         }
     };
