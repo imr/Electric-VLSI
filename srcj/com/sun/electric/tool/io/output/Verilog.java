@@ -986,6 +986,7 @@ public class Verilog extends Topology
             for (int i=0; i<ex.getNameKey().busWidth(); i++) {
                 Network net = netList.getNetwork(ex, i);
                 List<Export> subports = instancePortsOnNet.get(net);
+                if (subports == null) continue;
                 for (Export subex : subports) {
                     PortCharacteristic subtype = subex.getCharacteristic();
                     if (type != subtype) {
