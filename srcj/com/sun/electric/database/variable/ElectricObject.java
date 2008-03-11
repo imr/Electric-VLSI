@@ -863,7 +863,7 @@ public abstract class ElectricObject implements Serializable
 	 * @param name the original name that is not unique.
 	 * @param cell the Cell in which this name resides.
 	 * @param cls the class of the object on which this name resides.
-	 * @param leaveIndexValues true to leave the index values untouches
+	 * @param leaveIndexValues true to leave the index values untouched
 	 * (i.e. "m[17]" will become "m_1[17]" instead of "m[18]").
 	 * @return a unique name for that class in that Cell.
 	 */

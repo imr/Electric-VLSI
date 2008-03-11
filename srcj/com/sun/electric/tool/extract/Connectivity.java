@@ -113,7 +113,6 @@ public class Connectivity
 	/** the layers to use for "active" geometry */				private Layer pActiveLayer, nActiveLayer;
 	/** associates arc prototypes with layers */				private Map<Layer,ArcProto> arcsForLayer;
 	/** map of extracted cells */								private Map<Cell,Cell> convertedCells;
-	/** map of export indices in each extracted cell */			private Map<Cell,GenMath.MutableInteger> exportNumbers;
 	/** map of cut layers to lists of polygons on that layer */	private Map<Layer,List<PolyBase>> allCutLayers;
 	/** set of pure-layer nodes that are not processed */		private Set<PrimitiveNode> ignoreNodes;
 	/** set of contacts that are not used for extraction */		private Set<PrimitiveNode> bogusContacts;
@@ -220,7 +219,6 @@ public class Connectivity
 	{
 		tech = cell.getTechnology();
 		convertedCells = new HashMap<Cell,Cell>();
-		exportNumbers = new HashMap<Cell,GenMath.MutableInteger>();
 		smallestPoly = (SCALEFACTOR * SCALEFACTOR) * Extract.getSmallestPolygonSize();
 		bogusContacts = new HashSet<PrimitiveNode>();
 
@@ -1264,14 +1262,25 @@ public class Connectivity
 			}
 			if (foundPi != null)
 			{
-				GenMath.MutableInteger exportNumber = exportNumbers.get(subCell);
-				if (exportNumber == null)
+				// already exported?
+				for(Iterator<Export> eIt = foundPi.getNodeInst().getExports(); eIt.hasNext(); )
 				{
-					exportNumber = new GenMath.MutableInteger(1);
-					exportNumbers.put(subCell, exportNumber);
+					Export e = eIt.next();
+					if (e.getOriginalPort() == foundPi)
+						return ni.findPortInstFromProto(e);
 				}
-				String exportName = "E" + exportNumber.intValue();
-				exportNumber.increment();
+
+				// figure out what export it is connected to
+				Netlist nl = subCell.acquireUserNetlist();
+				Network net = nl.getNetwork(foundPi);
+				String exportName = null;
+				for(Iterator<String> nIt = net.getExportedNames(); nIt.hasNext(); )
+				{
+					String eName = nIt.next();
+					if (exportName == null || exportName.length() < eName.length()) exportName = eName;
+				}
+				if (exportName == null) exportName = "E";
+				exportName = ElectricObject.uniqueObjectName(exportName, subCell, PortProto.class, true);
 				Export e = Export.newInstance(subCell, foundPi, exportName);
 				return ni.findPortInstFromProto(e);
 			}
