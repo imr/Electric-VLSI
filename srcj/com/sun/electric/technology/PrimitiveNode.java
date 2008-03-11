@@ -587,6 +587,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 
 		// add to the nodes in this technology
 		tech.addNodeProto(this);
+        check();
 	}
 
     protected Object writeReplace() { return new PrimitiveNodeKey(this); }
@@ -1179,6 +1180,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
         if (minSizeRule == null || minSizeRule.equals(""))
             minSizeRule = this.getName() + " Min. Size";
         minNodeSize = new NodeSizeRule(minSizeRule);
+        check();
     }
 
     public void setSizeCorrector(double refWidth, double refHeight) {
@@ -1192,6 +1194,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
         long hy = fullRectangle.getGridMaxY() - offset.getHighYGridOffset();
         baseRectangle = ERectangle.fromGrid(lx, ly, hx - lx, hy - ly);
         sizeCorrectors[1] = EPoint.fromGrid(baseRectangle.getGridWidth() >> 1, baseRectangle.getGridHeight() >> 1);
+        check();
     }
 
 	/**
@@ -1206,6 +1209,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
         long hy = fullRectangle.getGridMaxY() - offset.getHighYGridOffset();
         baseRectangle = ERectangle.fromGrid(lx, ly, hx - lx, hy - ly);
         sizeCorrectors[1] = EPoint.fromGrid(baseRectangle.getGridWidth() >> 1, baseRectangle.getGridHeight() >> 1);
+        check();
     }
     
     public void resize(Xml.DistanceContext context) {
@@ -2089,6 +2093,13 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	}
 
 	private void checkChanging() {}
+    
+    private void check() {
+        assert fullRectangle.getGridMinX() == baseRectangle.getGridMinX() - offset.getLowXGridOffset();
+        assert fullRectangle.getGridMaxX() == baseRectangle.getGridMaxX() + offset.getHighXGridOffset();
+        assert fullRectangle.getGridMinY() == baseRectangle.getGridMinY() - offset.getLowYGridOffset();
+        assert fullRectangle.getGridMaxY() == baseRectangle.getGridMaxY() + offset.getHighYGridOffset();
+    }
 
     /**
      * Class to define a single rule on a node.
