@@ -4,7 +4,7 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07f: ******************************
 
-BUG: (3/11/08, SMR) Node extraction creates too many exports, names them badly (Bug #1594).
+BUG: (3/11/08, SMR) Node extraction creates too many exports, names them badly (Bug #1593).
 FIX: Names are taken from other exports, only one created in a place.
 
 BUG: (3/11/08, DN) Wrong size of active arcs in TSMC foundry CMOS90.
