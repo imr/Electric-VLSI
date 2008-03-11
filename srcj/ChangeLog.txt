@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07f: ******************************
 
+BUG: (3/11/08, DN) Wrong size of active arcs in TSMC foundry CMOS90.
+FIX: In CMOS.getRuleAliases() add "OD2.EX.1" -> "OD2.EX.3".
+
 BUG: (3/7/08, GVG) Disk image may be damaged on MacOSX (Bug #1592)
 FIX: Adding extra flag to mkdmg.sh
  
