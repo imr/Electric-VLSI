@@ -4,6 +4,15 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07f: ******************************
 
+BUG: (3/12/08, DN) Multicut layers of primitive nodes
+    "tsmc180:Metal-1-Polysilicon-2-Con" and "tsmc180:Metal-1-Polysilicon-1-2-Con"
+    had sizex=2.0 and sizey=2.0 which is less than Poly-Cut MINWID = 2.2 .
+FIX: Use rule names: <multicutbox sizeRule="CO.W.1" sepRule="CO.S.1" sepRule2D="CO.S.2"/>
+
+IMP: (3/12/08, DN) <multicutbox> has attributes with rule names instead of numbers.
+
+IMP: (3/12/08, DN) Remove "> " from TSMC180 ruleNames: VIA5.S.1 and VIAx.E.2 .
+
 BUG: (3/11/08, SMR) Node extraction creates too many exports, names them badly (Bug #1593).
 FIX: Names are taken from other exports, only one created in a place.
 

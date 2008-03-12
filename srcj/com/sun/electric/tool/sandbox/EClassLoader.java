@@ -224,6 +224,7 @@ class EClassLoader extends URLClassLoader {
     protected final Method PrimitiveNode_getDefWidth = getMethod(classPrimitiveNode, "getDefWidth");
     protected final Method PrimitiveNode_getDefHeight = getMethod(classPrimitiveNode, "getDefHeight");
     protected final Method PrimitiveNode_getElectricalLayers = getMethod(classPrimitiveNode, "getElectricalLayers");
+    protected final Method PrimitiveNode_getFullRectangle = getMethod(classPrimitiveNode, "getFullRectangle");
     protected final Method PrimitiveNode_getFunction = getMethod(classPrimitiveNode, "getFunction");
     protected final Method PrimitiveNode_getLayers = getMethod(classPrimitiveNode, "getLayers");
     protected final Method PrimitiveNode_getMinHeight = getMethod(classPrimitiveNode, "getMinHeight");
@@ -232,6 +233,7 @@ class EClassLoader extends URLClassLoader {
     protected final Method PrimitiveNode_getName = getMethod(classPrimitiveNode, "getName");
     protected final Method PrimitiveNode_getPorts = getMethod(classPrimitiveNode, "getPorts");
     protected final Method PrimitiveNode_getProtoSizeOffset = getMethod(classPrimitiveNode, "getProtoSizeOffset");
+    protected final Method PrimitiveNode_getSizeCorrector = getDeclaredMethod(classPrimitiveNode, "getSizeCorrector", Integer.TYPE);
     protected final Method PrimitiveNode_getSpecialType = getMethod(classPrimitiveNode, "getSpecialType");
     protected final Method PrimitiveNode_getSpecialValues = getMethod(classPrimitiveNode, "getSpecialValues");
     protected final Method PrimitiveNode_isArcsShrink = getMethod(classPrimitiveNode, "isArcsShrink");

@@ -557,9 +557,7 @@
             </box>
         </nodeLayer>
         <nodeLayer layer="Via" style="FILLED">
-            <multicutbox sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0">
-                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
-            </multicutbox>
+            <multicutbox sizeRule="W_11" sepRule="U_11_11"/>
         </nodeLayer>
         <primitivePort name="via">
             <portAngle primary="0" range="180"/>
@@ -591,9 +589,7 @@
             </box>
         </nodeLayer>
         <nodeLayer layer="Contact" style="FILLED">
-            <multicutbox sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0">
-                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
-            </multicutbox>
+            <multicutbox sizeRule="W_10" sepRule="U_10_10"/>
         </nodeLayer>
         <primitivePort name="m">
             <portAngle primary="0" range="180"/>
@@ -625,9 +621,7 @@
             </box>
         </nodeLayer>
         <nodeLayer layer="Contact" style="FILLED">
-            <multicutbox sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0">
-                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
-            </multicutbox>
+            <multicutbox sizeRule="W_10" sepRule="U_10_10"/>
         </nodeLayer>
         <primitivePort name="m">
             <portAngle primary="0" range="180"/>
@@ -968,6 +962,8 @@
         <layerGds layer="Scratch_Protection" gds="10"/>
         <layerGds layer="Buried" gds="1"/>
 
+        <LayerRule ruleName="W_10" layerName="Contact" type="MINWID" when="ALL" value="2.0"/>
+        <LayerRule ruleName="W_11" layerName="Via" type="MINWID" when="ALL" value="2.0"/>
         <LayersRule ruleName="U_0_0" layerNames="{Metal1,Metal1}" type="UCONSPA" when="ALL" value="2.0"/>
         <LayersRule ruleName="U_1_1" layerNames="{Metal2,Metal2}" type="UCONSPA" when="ALL" value="2.0"/>
         <LayersRule ruleName="U_2_3" layerNames="{NPImplant,PPImplant}" type="UCONSPA" when="ALL" value="0.0"/>

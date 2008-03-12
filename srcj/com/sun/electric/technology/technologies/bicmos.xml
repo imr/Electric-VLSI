@@ -740,36 +740,6 @@
     </arcProto>
 
     <!-- ******************** NODES ******************** -->
-    <!--primitiveNode name="Pdiff_Pin" fun="PIN">
-        <shrinkArcs/>
-        <diskOffset untilVersion="1" x="3.0" y="3.0"/>
-        <diskOffset untilVersion="2" x="1.0" y="1.0"/>
-        <nodeBase lx="-1.0" hx="1.0" ly="-1.0" hy="1.0"/>
-        <nodeLayer layer="Active" style="CROSSED">
-            <box>
-                <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
-            </box>
-        </nodeLayer>
-        <nodeLayer layer="P_Select" style="CROSSED">
-            <box>
-                <lambdaBox klx="-3.0" khx="3.0" kly="-3.0" khy="3.0"/>
-            </box>
-        </nodeLayer>
-        <nodeLayer layer="N_Well" style="CROSSED">
-            <box>
-                <lambdaBox klx="-6.0" khx="6.0" kly="-6.0" khy="6.0"/>
-            </box>
-        </nodeLayer>
-        <primitivePort name="Pdiff_Pin">
-            <portAngle primary="0" range="180"/>
-            <portTopology>0</portTopology>
-            <box>
-                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
-            </box>
-            <portArc>Pdiff</portArc>
-        </primitivePort>
-    </primitiveNode-->
-
     <primitiveNode name="M1_Poly1_Con" fun="CONTACT">
         <diskOffset x="3.0" y="3.0"/>
         <nodeBase lx="-3.0" hx="3.0" ly="-3.0" hy="3.0"/>
@@ -784,9 +754,7 @@
             </box>
         </nodeLayer>
         <nodeLayer layer="Poly1_Cut" style="FILLED">
-            <multicutbox sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0">
-                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
-            </multicutbox>
+            <multicutbox sizeRule="W_13" sepRule="C_13_13"/>
         </nodeLayer>
         <primitivePort name="metal-1-polysilicon">
             <portAngle primary="0" range="180"/>
@@ -813,9 +781,7 @@
             </box>
         </nodeLayer>
         <nodeLayer layer="Poly2_Cut" style="FILLED">
-            <multicutbox sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0">
-                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
-            </multicutbox>
+            <multicutbox sizeRule="W_14" sepRule="C_14_14"/>
         </nodeLayer>
         <primitivePort name="M1P2">
             <portAngle primary="0" range="180"/>
@@ -842,9 +808,7 @@
             </box>
         </nodeLayer>
         <nodeLayer layer="Active_Cut" style="FILLED">
-            <multicutbox sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0">
-                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
-            </multicutbox>
+            <multicutbox sizeRule="W_7" sepRule="C_7_7"/>
         </nodeLayer>
         <nodeLayer layer="P_Select" style="CLOSED">
             <box>
@@ -881,9 +845,7 @@
             </box>
         </nodeLayer>
         <nodeLayer layer="Active_Cut" style="FILLED">
-            <multicutbox sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0">
-                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
-            </multicutbox>
+            <multicutbox sizeRule="W_7" sepRule="C_7_7"/>
         </nodeLayer>
         <nodeLayer layer="N_Select" style="FILLED">
             <box>
@@ -1450,9 +1412,7 @@
             </box>
         </nodeLayer>
         <nodeLayer layer="Active_Cut" style="FILLED">
-            <multicutbox sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0">
-                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
-            </multicutbox>
+            <multicutbox sizeRule="W_7" sepRule="C_7_7"/>
         </nodeLayer>
         <nodeLayer layer="N_Select" style="FILLED">
             <box>
@@ -1513,9 +1473,7 @@
             </box>
         </nodeLayer>
         <nodeLayer layer="Active_Cut" style="FILLED">
-            <multicutbox sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0">
-                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
-            </multicutbox>
+            <multicutbox sizeRule="W_7" sepRule="C_7_7"/>
         </nodeLayer>
         <nodeLayer layer="P_Select" style="FILLED">
             <box>
@@ -1706,6 +1664,9 @@
         <layerGds layer="Ohmic_Well" gds="3"/>
         <layerGds layer="Passivation" gds="13"/>
 
+        <LayerRule ruleName="W_7" layerName="Active_Cut" type="MINWID" when="ALL" value="2.0"/>
+        <LayerRule ruleName="W_13" layerName="Poly1_Cut" type="MINWID" when="ALL" value="2.0"/>
+        <LayerRule ruleName="W_14" layerName="Poly2_Cut" type="MINWID" when="ALL" value="2.0"/>
         <LayersRule ruleName="C_3_3" layerNames="{Via,Via}" type="CONSPA" when="ALL" value="2.0"/>
         <LayersRule ruleName="U_3_3" layerNames="{Via,Via}" type="UCONSPA" when="ALL" value="3.0"/>
         <LayersRule ruleName="U_3_6" layerNames="{Via,Transistor}" type="UCONSPA" when="ALL" value="2.0"/>
@@ -1724,5 +1685,6 @@
         <LayersRule ruleName="U_11_11" layerNames="{Poly2,Poly2}" type="UCONSPA" when="ALL" value="3.0"/>
         <LayersRule ruleName="U_12_12" layerNames="{Active,Active}" type="UCONSPA" when="ALL" value="3.0"/>
         <LayersRule ruleName="C_13_13" layerNames="{Poly1_Cut,Poly1_Cut}" type="CONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="C_14_14" layerNames="{Poly2_Cut,Poly2_Cut}" type="CONSPA" when="ALL" value="2.0"/>
     </Foundry>
 </technology>

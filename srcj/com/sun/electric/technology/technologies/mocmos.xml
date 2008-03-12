@@ -1179,9 +1179,7 @@
             </box>
         </nodeLayer>
         <nodeLayer layer="Active-Cut" style="FILLED">
-            <multicutbox sizex="2.0" sizey="2.0" sep1d="3.0" sep2d="3.0">
-                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
-            </multicutbox>
+            <multicutbox sizeRule="6.1" sepRule="6.3" sepRule2D="6.3"/>
         </nodeLayer>
         <primitivePort name="metal-1-p-act">
             <portAngle primary="0" range="180"/>
@@ -1219,9 +1217,7 @@
             </box>
         </nodeLayer>
         <nodeLayer layer="Active-Cut" style="FILLED">
-            <multicutbox sizex="2.0" sizey="2.0" sep1d="3.0" sep2d="3.0">
-                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
-            </multicutbox>
+            <multicutbox sizeRule="6.1" sepRule="6.3" sepRule2D="6.3"/>
         </nodeLayer>
         <primitivePort name="metal-1-n-act">
             <portAngle primary="0" range="180"/>
@@ -1249,9 +1245,7 @@
             </box>
         </nodeLayer>
         <nodeLayer layer="Poly-Cut" style="FILLED">
-            <multicutbox sizex="2.0" sizey="2.0" sep1d="3.0" sep2d="3.0">
-                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
-            </multicutbox>
+            <multicutbox sizeRule="5.1" sepRule="5.3" sepRule2D="5.3"/>
         </nodeLayer>
         <primitivePort name="metal-1-polysilicon-1">
             <portAngle primary="0" range="180"/>
@@ -1279,9 +1273,7 @@
             </box>
         </nodeLayer>
         <nodeLayer layer="Poly-Cut" style="FILLED">
-            <multicutbox sizex="2.0" sizey="2.0" sep1d="3.0" sep2d="3.0">
-                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
-            </multicutbox>
+            <multicutbox sizeRule="5.1" sepRule="5.3" sepRule2D="5.3"/>
         </nodeLayer>
         <primitivePort name="metal-1-polysilicon-2">
             <portAngle primary="0" range="180"/>
@@ -1314,9 +1306,7 @@
             </box>
         </nodeLayer>
         <nodeLayer layer="Poly-Cut" style="FILLED">
-            <multicutbox sizex="2.0" sizey="2.0" sep1d="3.0" sep2d="3.0">
-                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
-            </multicutbox>
+            <multicutbox sizeRule="5.1" sepRule="5.3" sepRule2D="5.3"/>
         </nodeLayer>
         <primitivePort name="metal-1-polysilicon-1-2">
             <portAngle primary="0" range="180"/>
@@ -1895,7 +1885,7 @@
         <diskOffset x="28.0" y="24.0"/>
         <nodeBase lx="-15.0" hx="15.0" ly="-11.0" hy="11.0"/>
         <nodeLayer layer="Active-Cut" style="FILLED" portNum="2">
-            <multicutbox klx="1.0" sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0">
+            <multicutbox klx="1.0" sizeRule="6.1" sepRule="6.3" sepRule2D="6.3">
                 <lambdaBox klx="22.0" khx="22.0" kly="-16.0" khy="16.0"/>
             </multicutbox>
         </nodeLayer>
@@ -1915,7 +1905,7 @@
             </box>
         </nodeLayer>
         <nodeLayer layer="Active-Cut" style="FILLED" portNum="2">
-            <multicutbox khx="-1.0" sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0">
+            <multicutbox khx="-1.0" sizeRule="6.1" sepRule="6.3" sepRule2D="6.3">
                 <lambdaBox klx="-22.0" khx="-22.0" kly="-16.0" khy="16.0"/>
             </multicutbox>
         </nodeLayer>
@@ -1935,7 +1925,7 @@
             </box>
         </nodeLayer>
         <nodeLayer layer="Active-Cut" style="FILLED" portNum="2">
-            <multicutbox khx="0.0" khy="-1.0" sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0">
+            <multicutbox khx="0.0" khy="-1.0" sizeRule="6.1" sepRule="6.3" sepRule2D="6.3">
                 <lambdaBox klx="-17.0" khx="-13.0" kly="-18.0" khy="-18.0"/>
             </multicutbox>
         </nodeLayer>
@@ -1945,7 +1935,7 @@
             </box>
         </nodeLayer>
         <nodeLayer layer="Active-Cut" style="FILLED" portNum="2">
-            <multicutbox klx="0.0" khy="-1.0" sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0">
+            <multicutbox klx="0.0" khy="-1.0" sizeRule="6.1" sepRule="6.3" sepRule2D="6.3">
                 <lambdaBox klx="13.0" khx="17.0" kly="-18.0" khy="-18.0"/>
             </multicutbox>
         </nodeLayer>
@@ -1965,7 +1955,7 @@
             </box>
         </nodeLayer>
         <nodeLayer layer="Active-Cut" style="FILLED" portNum="2">
-            <multicutbox kly="1.0" sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0">
+            <multicutbox kly="1.0" sizeRule="6.1" sepRule="6.3" sepRule2D="6.3">
                 <lambdaBox klx="-17.0" khx="17.0" kly="18.0" khy="18.0"/>
             </multicutbox>
         </nodeLayer>
@@ -1985,7 +1975,7 @@
             </box>
         </nodeLayer>
         <nodeLayer layer="Active-Cut" style="FILLED" portNum="1">
-            <multicutbox khx="0.0" sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0">
+            <multicutbox khx="0.0" sizeRule="6.1" sepRule="6.3" sepRule2D="6.3">
                 <lambdaBox klx="-6.0" khx="-6.0" kly="0.0" khy="0.0"/>
             </multicutbox>
         </nodeLayer>
@@ -2000,7 +1990,7 @@
             </box>
         </nodeLayer>
         <nodeLayer layer="Active-Cut" style="FILLED">
-            <multicutbox klx="0.0" sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0">
+            <multicutbox klx="0.0" sizeRule="6.1" sepRule="6.3" sepRule2D="6.3">
                 <lambdaBox klx="6.0" khx="6.0" kly="0.0" khy="0.0"/>
             </multicutbox>
         </nodeLayer>
@@ -2065,9 +2055,7 @@
             </box>
         </nodeLayer>
         <nodeLayer layer="Via1" style="FILLED">
-            <multicutbox sizex="2.0" sizey="2.0" sep1d="3.0" sep2d="3.0">
-                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
-            </multicutbox>
+            <multicutbox sizeRule="8.1" sepRule="8.2" sepRule2D="8.2"/>
         </nodeLayer>
         <primitivePort name="metal-1-metal-2">
             <portAngle primary="0" range="180"/>
@@ -2095,9 +2083,7 @@
             </box>
         </nodeLayer>
         <nodeLayer layer="Via2" style="FILLED">
-            <multicutbox sizex="2.0" sizey="2.0" sep1d="3.0" sep2d="3.0">
-                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
-            </multicutbox>
+            <multicutbox sizeRule="14.1" sepRule="14.2" sepRule2D="14.2"/>
         </nodeLayer>
         <primitivePort name="metal-2-metal-3">
             <portAngle primary="0" range="180"/>
@@ -2125,9 +2111,7 @@
             </box>
         </nodeLayer>
         <nodeLayer layer="Via3" style="FILLED">
-            <multicutbox sizex="2.0" sizey="2.0" sep1d="3.0" sep2d="3.0">
-                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
-            </multicutbox>
+            <multicutbox sizeRule="21.1" sepRule="21.2" sepRule2D="21.2"/>
         </nodeLayer>
         <primitivePort name="metal-3-metal-4">
             <portAngle primary="0" range="180"/>
@@ -2155,9 +2139,7 @@
             </box>
         </nodeLayer>
         <nodeLayer layer="Via4" style="FILLED">
-            <multicutbox sizex="2.0" sizey="2.0" sep1d="3.0" sep2d="3.0">
-                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
-            </multicutbox>
+            <multicutbox sizeRule="25.1" sepRule="25.2" sepRule2D="25.2"/>
         </nodeLayer>
         <primitivePort name="metal-4-metal-5">
             <portAngle primary="0" range="180"/>
@@ -2185,9 +2167,7 @@
             </box>
         </nodeLayer>
         <nodeLayer layer="Via5" style="FILLED">
-            <multicutbox sizex="3.0" sizey="3.0" sep1d="4.0" sep2d="4.0">
-                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
-            </multicutbox>
+            <multicutbox sizeRule="29.1" sepRule="29.2" sepRule2D="29.2"/>
         </nodeLayer>
         <primitivePort name="metal-5-metal-6">
             <portAngle primary="0" range="180"/>
@@ -2226,9 +2206,7 @@
             </box>
         </nodeLayer>
         <nodeLayer layer="Active-Cut" style="FILLED">
-            <multicutbox sizex="2.0" sizey="2.0" sep1d="3.0" sep2d="3.0">
-                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
-            </multicutbox>
+            <multicutbox sizeRule="6.1" sepRule="6.3" sepRule2D="6.3"/>
         </nodeLayer>
         <primitivePort name="metal-1-well">
             <portAngle primary="0" range="180"/>
@@ -2267,9 +2245,7 @@
             </box>
         </nodeLayer>
         <nodeLayer layer="Active-Cut" style="FILLED">
-            <multicutbox sizex="2.0" sizey="2.0" sep1d="3.0" sep2d="3.0">
-                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
-            </multicutbox>
+            <multicutbox sizeRule="6.1" sepRule="6.3" sepRule2D="6.3"/>
         </nodeLayer>
         <primitivePort name="metal-1-substrate">
             <portAngle primary="0" range="180"/>

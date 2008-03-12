@@ -481,9 +481,7 @@
             </box>
         </nodeLayer>
         <nodeLayer layer="Contact-Cut" style="CROSSED">
-            <multicutbox sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0">
-                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
-            </multicutbox>
+            <multicutbox sizeRule="W_4" sepRule="C_4_4"/>
         </nodeLayer>
         <primitivePort name="metal-poly">
             <portAngle primary="0" range="180"/>
@@ -510,9 +508,7 @@
             </box>
         </nodeLayer>
         <nodeLayer layer="Contact-Cut" style="CROSSED">
-            <multicutbox sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0">
-                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
-            </multicutbox>
+            <multicutbox sizeRule="W_4" sepRule="C_4_4"/>
         </nodeLayer>
         <primitivePort name="metal-diff">
             <portAngle primary="0" range="180"/>
@@ -1143,6 +1139,7 @@
     <Foundry name="NONE">
 
 
+        <LayerRule ruleName="W_4" layerName="Contact-Cut" type="MINWID" when="ALL" value="2.0"/>
         <LayersRule ruleName="U_0_0" layerNames="{Metal,Metal}" type="UCONSPA" when="ALL" value="3.0"/>
         <LayersRule ruleName="U_1_1" layerNames="{Polysilicon,Polysilicon}" type="UCONSPA" when="ALL" value="2.0"/>
         <LayersRule ruleName="C_1_2" layerNames="{Polysilicon,Diffusion}" type="CONSPA" when="ALL" value="0.0"/>
@@ -1153,6 +1150,7 @@
         <LayersRule ruleName="U_2_3" layerNames="{Diffusion,Implant}" type="UCONSPA" when="ALL" value="2.0"/>
         <LayersRule ruleName="U_2_5" layerNames="{Diffusion,Buried-Contact}" type="UCONSPA" when="ALL" value="2.0"/>
         <LayersRule ruleName="U_3_11" layerNames="{Implant,Transistor}" type="UCONSPA" when="ALL" value="2.0"/>
+        <LayersRule ruleName="C_4_4" layerNames="{Contact-Cut,Contact-Cut}" type="CONSPA" when="ALL" value="2.0"/>
         <LayersRule ruleName="U_4_11" layerNames="{Contact-Cut,Transistor}" type="UCONSPA" when="ALL" value="2.0"/>
     </Foundry>
 </technology>

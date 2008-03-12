@@ -26,6 +26,7 @@ package com.sun.electric.technology.technologies;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.Setting;
@@ -51,7 +52,6 @@ import com.sun.electric.tool.user.User;
 
 import java.awt.Color;
 import java.io.PrintWriter;
-import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -1938,7 +1938,7 @@ public class MoCMOS extends Technology
     @Override
 	public void setState()
 	{
-        super.setState();
+        EDatabase.theDatabase.checkChanging();
         setNotUsed(isSecondPolysilicon() ? 2 : 1);
 //        findNodeProto("Active-Pin").setNotUsed(true);
 		findArcProto("Active").setNotUsed(true);

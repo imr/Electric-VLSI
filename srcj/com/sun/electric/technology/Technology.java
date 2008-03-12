@@ -518,25 +518,11 @@ public class Technology implements Comparable<Technology>, Serializable
         }
 
         public static NodeLayer makeMulticut(Layer layer, int portNum, Poly.Type style, TechPoint[] techPoints,
-                double cutSizeX, double cutSizeY, double cutSep1D, double cutSep2D) {
-			NodeLayer nl = new NodeLayer(layer, portNum, style, Technology.NodeLayer.MULTICUTBOX, techPoints);
-            nl.cutGridSizeX = DBMath.lambdaToGrid(cutSizeX);
-            nl.cutGridSizeY = DBMath.lambdaToGrid(cutSizeY);
-            nl.cutGridSep1D = DBMath.lambdaToGrid(cutSep1D);
-            nl.cutGridSep2D = DBMath.lambdaToGrid(cutSep2D);
-            return nl;
-        }
-
-        public static NodeLayer makeMulticut(Layer layer, int portNum, Poly.Type style, TechPoint[] techPoints,
                 String sizeRule, String cutSep1DRule, String cutSep2DRule) {
 			NodeLayer nl = new NodeLayer(layer, portNum, style, Technology.NodeLayer.MULTICUTBOX, techPoints);
             nl.sizeRule = sizeRule;
             nl.cutSep1DRule = cutSep1DRule;
             nl.cutSep2DRule = cutSep2DRule;
-//            nl.cutGridSizeX = DBMath.lambdaToGrid(cutSizeX);
-//            nl.cutGridSizeY = DBMath.lambdaToGrid(cutSizeY);
-//            nl.cutGridSep1D = DBMath.lambdaToGrid(cutSep1D);
-//            nl.cutGridSep2D = DBMath.lambdaToGrid(cutSep2D);
             return nl;
         }
 
@@ -757,10 +743,8 @@ public class Technology implements Comparable<Technology>, Serializable
                     nld.techPoints.add(p.makeCorrection(correction));
             }
             nld.sizeRule = sizeRule;
-            nld.sizex = DBMath.round(getMulticutSizeX());
-            nld.sizey = DBMath.round(getMulticutSizeY());
-            nld.sep1d = DBMath.round(getMulticutSep1D());
-            nld.sep2d = DBMath.round(getMulticutSep2D());
+            nld.sepRule = cutSep1DRule;
+            nld.sepRule2D = cutSep2DRule;
             if (isSerp) {
                 nld.lWidth = DBMath.round(getSerpentineLWidth());
                 nld.rWidth = DBMath.round(getSerpentineRWidth());
@@ -776,8 +760,12 @@ public class Technology implements Comparable<Technology>, Serializable
                 cutGridSizeX = cutGridSizeY = (int)DBMath.lambdaToGrid(lambdaSize);
                 double lambdaCutSep1D = context.getRule(cutSep1DRule);
                 cutGridSep1D = (int)DBMath.lambdaToGrid(lambdaCutSep1D);
-                double lambdaCutSep2D = context.getRule(cutSep2DRule);
-                cutGridSep2D = (int)DBMath.lambdaToGrid(lambdaCutSep2D);
+                if (cutSep2DRule != null) {
+                    double lambdaCutSep2D = context.getRule(cutSep2DRule);
+                    cutGridSep2D = (int)DBMath.lambdaToGrid(lambdaCutSep2D);
+                } else {
+                    cutGridSep2D = cutGridSep1D;
+                }
             }
         }
 	}
@@ -1129,8 +1117,9 @@ public class Technology implements Comparable<Technology>, Serializable
                         layer.makePseudo();
                     layer = layer.getPseudoLayer();
                 }
-                if (nl.representation == NodeLayer.MULTICUTBOX)
-                    nodeLayer = NodeLayer.makeMulticut(layer, nl.portNum, nl.style, techPoints, nl.sizex, nl.sizey, nl.sep1d, nl.sep2d);
+                if (nl.representation == NodeLayer.MULTICUTBOX) {
+                    nodeLayer = NodeLayer.makeMulticut(layer, nl.portNum, nl.style, techPoints, nl.sizeRule, nl.sepRule, nl.sepRule2D);
+                }
                 else if (n.specialType == PrimitiveNode.SERPTRANS)
                     nodeLayer = new NodeLayer(layer, nl.portNum, nl.style, nl.representation, techPoints, nl.lWidth, nl.rWidth, nl.tExtent, nl.bExtent);
                 else
@@ -1629,6 +1618,8 @@ public class Technology implements Comparable<Technology>, Serializable
      */
 	public void setState() {
         EDatabase.theDatabase.checkChanging();
+        if (xmlTech != null)
+            cachedRules = getFactoryDesignRules();
     }
 
     protected void setNotUsed(int numPolys) {

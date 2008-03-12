@@ -639,11 +639,9 @@
                                                     <xsd:attribute name="khx" type="xsd:double"/>
                                                     <xsd:attribute name="kly" type="xsd:double"/>
                                                     <xsd:attribute name="khy" type="xsd:double"/>
-                                                    <xsd:attribute name="sizex" type="xsd:double" use="required"/>
-                                                    <xsd:attribute name="sizey" type="xsd:double" use="required"/>
-                                                    <xsd:attribute name="sep1d" type="xsd:double" use="required"/>
-                                                    <xsd:attribute name="sep2d" type="xsd:double" use="required"/>
-                                                    <xsd:attribute name="sizeRule" type="tns:RuleName"/>
+                                                    <xsd:attribute name="sizeRule" type="tns:RuleName" use="required"/>
+                                                    <xsd:attribute name="sepRule" type="tns:RuleName" use="required"/>
+                                                    <xsd:attribute name="sepRule2D" type="tns:RuleName"/>
                                                 </xsd:complexType>
                                             </xsd:element>
                                             <xsd:element name="serpbox">

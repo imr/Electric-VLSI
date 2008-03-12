@@ -227,7 +227,7 @@ public class Xml {
         public final Distance hy = new Distance();
         public final List<TechPoint> techPoints = new ArrayList<TechPoint>();
         public double sizex, sizey, sep1d, sep2d;
-        public String sizeRule;
+        public String sizeRule, sepRule, sepRule2D;
         public double lWidth, rWidth, tExtent, bExtent;
     }
 
@@ -1067,11 +1067,9 @@ public class Xml {
                     curNodeLayer.hx.k = da_("khx", 1);
                     curNodeLayer.ly.k = da_("kly", -1);
                     curNodeLayer.hy.k = da_("khy", 1);
-                    curNodeLayer.sizeRule = a_("sizeRule");
-                    curNodeLayer.sizex = Double.parseDouble(a("sizex"));
-                    curNodeLayer.sizey = Double.parseDouble(a("sizey"));
-                    curNodeLayer.sep1d = Double.parseDouble(a("sep1d"));
-                    curNodeLayer.sep2d = Double.parseDouble(a("sep2d"));
+                    curNodeLayer.sizeRule = a("sizeRule");
+                    curNodeLayer.sepRule = a("sepRule");
+                    curNodeLayer.sepRule2D = a_("sepRule2D");
                     break;
                 case serpbox:
                     curNodeLayer.representation = com.sun.electric.technology.Technology.NodeLayer.BOX;
@@ -1934,7 +1932,7 @@ public class Xml {
                         break;
                     case com.sun.electric.technology.Technology.NodeLayer.MULTICUTBOX:
                         writeBox(XmlKeyword.multicutbox, nl.lx, nl.hx, nl.ly, nl.hy);
-                        a("sizeRule", nl.sizeRule); a("sizex", nl.sizex); a("sizey", nl.sizey); a("sep1d", nl.sep1d);  a("sep2d", nl.sep2d);
+                        a("sizeRule", nl.sizeRule); a("sepRule", nl.sepRule); a("sepRule2D", nl.sepRule2D);
                         if (nl.lx.isEmpty() && nl.hx.isEmpty() && nl.ly.isEmpty() && nl.hy.isEmpty()) {
                             el();
                         } else {

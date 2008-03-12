@@ -37,6 +37,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Xml;
 
 import java.awt.Color;
+import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -285,6 +286,8 @@ public class TechExplorer extends ESandBox {
                 t.transparentLayers.add(transparentColor);
             }
         }
+        makeFoundries(t, tech);
+
         int maxMetal = 0;
         for (Iterator<?> it = (Iterator)Technology_getLayers.invoke(tech); it.hasNext(); ) {
             Object layer = it.next();
@@ -523,15 +526,15 @@ public class TechExplorer extends ESandBox {
             for (Object nld: electricalNodeLayers) {
                 int j = nodeLayers.indexOf(nld);
                 if (j < 0) {
-                    n.nodeLayers.add(makeNodeLayerDetails(nld, isSerp, minFullSize, false, true));
+                    n.nodeLayers.add(makeNodeLayerDetails(t, nld, isSerp, minFullSize, false, true));
                     continue;
                 }
                 while (m < j)
-                    n.nodeLayers.add(makeNodeLayerDetails(nodeLayers.get(m++), isSerp, minFullSize, true, false));
-                n.nodeLayers.add(makeNodeLayerDetails(nodeLayers.get(m++), isSerp, minFullSize, true, true));
+                    n.nodeLayers.add(makeNodeLayerDetails(t, nodeLayers.get(m++), isSerp, minFullSize, true, false));
+                n.nodeLayers.add(makeNodeLayerDetails(t, nodeLayers.get(m++), isSerp, minFullSize, true, true));
             }
             while (m < nodeLayers.size())
-                n.nodeLayers.add(makeNodeLayerDetails(nodeLayers.get(m++), isSerp, minFullSize, true, false));
+                n.nodeLayers.add(makeNodeLayerDetails(t, nodeLayers.get(m++), isSerp, minFullSize, true, false));
 
             for (Iterator<?> pit = (Iterator)PrimitiveNode_getPorts.invoke(pn); pit.hasNext(); ) {
                 Object pp = pit.next();
@@ -613,74 +616,77 @@ public class TechExplorer extends ESandBox {
             }
         }
 
-        if (Technology_getFoundries != null) {
-            Object foundries = Technology_getFoundries.invoke(tech);
-            Iterator<?> fit = foundries instanceof List ? ((List)foundries).iterator() : (Iterator)foundries;
-            for (; fit.hasNext(); ) {
-                Object foundry = fit.next();
-                Xml.Foundry f = new Xml.Foundry();
-                f.name = foundry.toString();
-                if (Foundry_getGDSLayers != null) {
-                    Map<?,String> gdsMap = (Map)Foundry_getGDSLayers.invoke(foundry);
-                    for (Map.Entry<?,String> e: gdsMap.entrySet()) {
-                        String gds = e.getValue();
-                        if (gds.length() == 0) continue;
-                        Object layer = e.getKey();
-                        f.layerGds.put((String)Layer_getName.invoke(layer), gds);
-                    }
-                }
-
-                List<?> rules = (List)Foundry_getRules.invoke(foundry);
-                if (rules != null) {
-                    for (Object rule: rules) {
-                        String ruleName = (String)DRCTemplate_ruleName.get(rule);
-                        int when = (Integer)DRCTemplate_when.get(rule);
-                        final int TSMC = 010000;
-                        final int ST = 020000;
-                        final int MOSIS = 040000;
-                        when = when & ~(TSMC|ST|MOSIS);
-                        if (classDRCTemplateDRCMode != null) {
-                            int newWhen = 0;
-                            for (Map.Entry<Object,DRCTemplate.DRCMode> e: DRCTemplateDRCModes.entrySet()) {
-                                int oldMode = (Integer)DRCTemplateDrcMode_mode.invoke(e.getKey());
-                                if ((when & oldMode) == oldMode)
-                                    newWhen |= e.getValue().mode();
-                            }
-                            when = newWhen;
-                        }
-                        DRCTemplate.DRCRuleType type = DRCTemplateDRCRuleTypes.get(DRCTemplate_ruleType.get(rule));
-                        if (type == null)
-                            continue;
-                        double maxWidth = (Double)DRCTemplate_maxWidth.get(rule);
-                        double minLength = (Double)DRCTemplate_minLength.get(rule);
-                        String name1 = (String)DRCTemplate_name1.get(rule);
-                        String name2 = (String)DRCTemplate_name2.get(rule);
-                        double[] values = null;
-                        if (DRCTemplate_values != null) {
-                            values = (double[])DRCTemplate_values.get(rule);
-                        } else if (DRCTemplate_value1 != null & DRCTemplate_value2 != null) {
-                            values = new double[2];
-                            values[0] = (Double)DRCTemplate_value1.get(rule);
-                            values[1] = (Double)DRCTemplate_value2.get(rule);
-                        }
-                        values = values.clone();
-                        String nodeName = (String)DRCTemplate_nodeName.get(rule);
-                        int multiCuts = (Integer)DRCTemplate_multiCuts.get(rule);
-                        DRCTemplate r = null;
-                        if (nodeName != null)
-                            r = new DRCTemplate(ruleName, when, type, name1, name2, values, nodeName, null);
-                        else
-                            r = new DRCTemplate(ruleName, when, type, maxWidth, minLength, name1, name2, values, multiCuts);
-                        f.rules.add(r);
-                    }
-                    t.foundries.add(f);
-                }
-            }
-        }
-
         return t;
     }
 
+    private void makeFoundries(Xml.Technology t, Object tech) throws IllegalAccessException, InvocationTargetException {
+        if (Technology_getFoundries == null) return;
+        
+        Object foundries = Technology_getFoundries.invoke(tech);
+        Iterator<?> fit = foundries instanceof List ? ((List)foundries).iterator() : (Iterator)foundries;
+        for (; fit.hasNext(); ) {
+            Object foundry = fit.next();
+            Xml.Foundry f = new Xml.Foundry();
+            f.name = foundry.toString();
+            if (Foundry_getGDSLayers != null) {
+                Map<?,String> gdsMap = (Map)Foundry_getGDSLayers.invoke(foundry);
+                for (Map.Entry<?,String> e: gdsMap.entrySet()) {
+                    String gds = e.getValue();
+                    if (gds.length() == 0) continue;
+                    Object layer = e.getKey();
+                    f.layerGds.put((String)Layer_getName.invoke(layer), gds);
+                }
+            }
+
+            List<?> rules = (List)Foundry_getRules.invoke(foundry);
+            if (rules != null) {
+                for (Object rule: rules) {
+                    String ruleName = (String)DRCTemplate_ruleName.get(rule);
+                    int when = (Integer)DRCTemplate_when.get(rule);
+                    final int TSMC = 010000;
+                    final int ST = 020000;
+                    final int MOSIS = 040000;
+                    when = when & ~(TSMC|ST|MOSIS);
+                    if (classDRCTemplateDRCMode != null) {
+                        int newWhen = 0;
+                        for (Map.Entry<Object,DRCTemplate.DRCMode> e: DRCTemplateDRCModes.entrySet()) {
+                            int oldMode = (Integer)DRCTemplateDrcMode_mode.invoke(e.getKey());
+                            if ((when & oldMode) == oldMode)
+                                newWhen |= e.getValue().mode();
+                        }
+                        when = newWhen;
+                    }
+                    DRCTemplate.DRCRuleType type = DRCTemplateDRCRuleTypes.get(DRCTemplate_ruleType.get(rule));
+                    if (type == null)
+                        continue;
+                    double maxWidth = (Double)DRCTemplate_maxWidth.get(rule);
+                    double minLength = (Double)DRCTemplate_minLength.get(rule);
+                    String name1 = (String)DRCTemplate_name1.get(rule);
+                    String name2 = (String)DRCTemplate_name2.get(rule);
+                    double[] values = null;
+                    if (DRCTemplate_values != null) {
+                        values = (double[])DRCTemplate_values.get(rule);
+                    } else if (DRCTemplate_value1 != null & DRCTemplate_value2 != null) {
+                        values = new double[2];
+                        values[0] = (Double)DRCTemplate_value1.get(rule);
+                        values[1] = (Double)DRCTemplate_value2.get(rule);
+                    }
+                    values = values.clone();
+                    String nodeName = (String)DRCTemplate_nodeName.get(rule);
+                    int multiCuts = (Integer)DRCTemplate_multiCuts.get(rule);
+                    DRCTemplate r = null;
+                    if (nodeName != null)
+                        r = new DRCTemplate(ruleName, when, type, name1, name2, values, nodeName, null);
+                    else
+                        r = new DRCTemplate(ruleName, when, type, maxWidth, minLength, name1, name2, values, multiCuts);
+                    f.rules.add(r);
+                }
+                t.foundries.add(f);
+            }
+        }
+        
+    }
+    
     private Xml.ArcPin makeWipablePin(Object tech, Object ap, HashSet<Object> arcPins) throws IllegalAccessException, InvocationTargetException {
         for (Iterator<?> it = (Iterator)Technology_getNodes.invoke(tech); it.hasNext(); ) {
             Object pn = it.next();
@@ -723,7 +729,13 @@ public class TechExplorer extends ESandBox {
             Xml.ArcPin arcPin = new Xml.ArcPin();
             arcPin.name = (String)PrimitiveNode_getName.invoke(pn);
             arcPin.portName = (String)PrimitivePort_getName.invoke(pp);
-            arcPin.elibSize = 2*portOffset;
+            double arcPinElibSize = 2*portOffset;
+            if (PrimitiveNode_getSizeCorrector != null && PrimitiveNode_getFullRectangle != null) {
+                Point2D sizeCorrector = (Point2D)PrimitiveNode_getSizeCorrector.invoke(pn, 0);
+                Rectangle2D fullRectangle = (Rectangle2D)PrimitiveNode_getFullRectangle.invoke(pn);
+                arcPinElibSize += 2*sizeCorrector.getX() - fullRectangle.getWidth();
+            }
+            arcPin.elibSize = DBMath.round(arcPinElibSize);
             makePortArcs(arcPin.portArcs, tech, pp, ap);
             arcPins.add(pn);
             return arcPin;
@@ -731,7 +743,7 @@ public class TechExplorer extends ESandBox {
         return null;
     }
 
-    private Xml.NodeLayer makeNodeLayerDetails(Object nodeLayer, boolean isSerp, EPoint correction, boolean inLayers, boolean inElectricalLayers)
+    private Xml.NodeLayer makeNodeLayerDetails(Xml.Technology t, Object nodeLayer, boolean isSerp, EPoint correction, boolean inLayers, boolean inElectricalLayers)
     throws IllegalAccessException, InvocationTargetException {
         Xml.NodeLayer nld = new Xml.NodeLayer();
         Object layer = TechnologyNodeLayer_getLayer.invoke(nodeLayer);
@@ -757,16 +769,33 @@ public class TechExplorer extends ESandBox {
                 nld.ly.addLambda(round((Double)EdgeV_getAdder.invoke(ly) + correction.getLambdaY()*nld.ly.k));
                 nld.hy.k = (Double)EdgeV_getMultiplier.invoke(hy)*2;
                 nld.hy.addLambda(round((Double)EdgeV_getAdder.invoke(hy) + correction.getLambdaY()*nld.hy.k));
+                if (nld.representation == Technology.NodeLayer.MULTICUTBOX) {
+                    DRCTemplate sizeRule = findLayerRule(t, nld.layer, DRCTemplate.DRCRuleType.MINWID);
+                    if (sizeRule == null) {
+                        double value = round((Double)TechnologyNodeLayer_getMulticutSizeX.invoke(nodeLayer));
+                        sizeRule = makeLayerRule(t, "W_" + nld.layer, nld.layer, DRCTemplate.DRCRuleType.MINWID, value);
+                    }
+                    nld.sizeRule = makeRuleName(sizeRule);
+                    
+                    DRCTemplate sepRule = findLayersRule(t, nld.layer, nld.layer, DRCTemplate.DRCRuleType.CONSPA);
+                    if (sepRule == null)
+                        sepRule = findLayersRule(t, nld.layer, nld.layer, DRCTemplate.DRCRuleType.SPACING);
+                    if (sepRule == null)
+                        sepRule = findLayersRule(t, nld.layer, nld.layer, DRCTemplate.DRCRuleType.UCONSPA);
+                    if (sepRule == null) {
+                        double value = round((Double)TechnologyNodeLayer_getMulticutSep2D.invoke(nodeLayer));
+                        sepRule = makeLayersRule(t, "C_" + nld.layer + "_" + nld.layer, nld.layer, nld.layer, DRCTemplate.DRCRuleType.CONSPA, value);
+                    }
+                    nld.sepRule = makeRuleName(sepRule);
+                    
+                    DRCTemplate sepRule2D = findLayersRule(t, nld.layer, nld.layer, DRCTemplate.DRCRuleType.UCONSPA2D);
+                    if (sepRule2D != null)
+                        nld.sepRule2D = makeRuleName(sepRule2D);
+                }
             } else {
                 for (Object p: points)
                     nld.techPoints.add(correction(p, correction));
             }
-        }
-        if (TechnologyNodeLayer_getMulticutSizeX != null) {
-            nld.sizex = round((Double)TechnologyNodeLayer_getMulticutSizeX.invoke(nodeLayer));
-            nld.sizey = round((Double)TechnologyNodeLayer_getMulticutSizeY.invoke(nodeLayer));
-            nld.sep1d = round((Double)TechnologyNodeLayer_getMulticutSep1D.invoke(nodeLayer));
-            nld.sep2d = round((Double)TechnologyNodeLayer_getMulticutSep2D.invoke(nodeLayer));
         }
         if (isSerp) {
             nld.lWidth = round((Double)TechnologyNodeLayer_getSerpentineLWidth.invoke(nodeLayer));
@@ -777,6 +806,52 @@ public class TechExplorer extends ESandBox {
         return nld;
     }
 
+    private DRCTemplate findLayersRule(Xml.Technology t, String layerName1, String layerName2, DRCTemplate.DRCRuleType ruleType) {
+        Xml.Foundry foundry = t.foundries.get(0);
+        for (DRCTemplate rule: foundry.rules) {
+            if (rule.ruleType == ruleType && rule.name1.equals(layerName1) && rule.name2.equals(layerName2))
+                return rule;
+        }
+        return null;
+    }
+    
+    private DRCTemplate findLayerRule(Xml.Technology t, String layerName, DRCTemplate.DRCRuleType ruleType) {
+        Xml.Foundry foundry = t.foundries.get(0);
+        for (DRCTemplate rule: foundry.rules) {
+            if (rule.ruleType == ruleType && rule.name1.equals(layerName))
+                return rule;
+        }
+        return null;
+    }
+    
+    private DRCTemplate makeLayersRule(Xml.Technology t, String ruleName, String layerName1, String layerName2, DRCTemplate.DRCRuleType ruleType, double value) {
+        DRCTemplate rule = null;
+        for (Xml.Foundry foundry: t.foundries) {
+            rule = new DRCTemplate(ruleName, DRCTemplate.DRCMode.ALL.mode(), ruleType,
+                    layerName1, layerName2, new double[] {value}, null, null);
+            foundry.rules.add(rule);
+        }
+        return rule;
+    }
+    
+    private DRCTemplate makeLayerRule(Xml.Technology t, String ruleName, String layerName, DRCTemplate.DRCRuleType ruleType, double value) {
+        DRCTemplate rule = null;
+        for (Xml.Foundry foundry: t.foundries) {
+            rule = new DRCTemplate(ruleName, DRCTemplate.DRCMode.ALL.mode(), ruleType,
+                    layerName, null, new double[] {value}, null, null);
+            foundry.rules.add(rule);
+        }
+        return rule;
+    }
+    
+    private String makeRuleName(DRCTemplate rule) {
+        String ruleName = rule.ruleName;
+        int spaceIndex = ruleName.indexOf(' ');
+        if (spaceIndex >= 0)
+            ruleName = ruleName.substring(0, spaceIndex);
+        return ruleName;
+    }
+    
     private Technology.TechPoint correction(Object p, EPoint correction) throws IllegalAccessException, InvocationTargetException {
         Object oh = TechnologyTechPoint_getX.invoke(p);
         double mx = (Double)EdgeH_getMultiplier.invoke(oh);
