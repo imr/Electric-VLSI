@@ -4822,6 +4822,9 @@ public class Technology implements Comparable<Technology>, Serializable
             for (HashMap<XMLRules.XMLRule,XMLRules.XMLRule> map: rules.matrix) {
                 if (map == null) continue;
                 for (XMLRules.XMLRule rule: map.values()) {
+                    if (rule.ruleType == DRCTemplate.DRCRuleType.NODSIZ) continue;
+                    if (rule.ruleType == DRCTemplate.DRCRuleType.MINWIDCOND) continue;
+                    
                     if (rule.ruleName.startsWith(ruleName + " ") || rule.ruleName.equals(ruleName))
                         return rule.getValue(0);
                 }
