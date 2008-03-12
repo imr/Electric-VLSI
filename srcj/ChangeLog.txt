@@ -15,8 +15,6 @@ FIX: Use rule names: <multicutbox sizeRule="CO.W.1" sepRule="CO.S.1" sepRule2D="
 
 IMP: (3/12/08, DN) <multicutbox> has attributes with rule names instead of numbers.
 
-IMP: (3/12/08, DN) Remove "> " from TSMC180 ruleNames: VIA5.S.1 and VIAx.E.2 .
-
 BUG: (3/11/08, SMR) Node extraction creates too many exports, names them badly (Bug #1593).
 FIX: Names are taken from other exports, only one created in a place.
 
