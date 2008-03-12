@@ -43,7 +43,9 @@ import java.io.PrintWriter;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Class to handle the "Technology Creation Wizard" dialog.
@@ -954,7 +956,7 @@ public class TechEditWizardData
      * @return
      */
     private Xml.ArcProto makeXmlArc(List<Xml.ArcProto> arcs, String name, com.sun.electric.technology.ArcProto.Function function,
-                                    double ant, int numValues, String[] layerNames, Xml.Distance[] values)
+                                    double ant, Xml.ArcLayer ... arcLayers)
     {
         Xml.ArcProto a = new Xml.ArcProto();
         a.name = name;
@@ -971,14 +973,8 @@ public class TechEditWizardData
         a.angleIncrement = 90;
         a.antennaRatio = DBMath.round(ant);
 
-        for (int i = 0; i < numValues; i++)
-        {
-            Xml.ArcLayer al = new Xml.ArcLayer();
-            al.layer = layerNames[i];
-            al.style = Poly.Type.FILLED;
-            al.extend.assign(values[i]);
+        for (Xml.ArcLayer al: arcLayers)
             a.arcLayers.add(al);
-        }
 
         // arc pins
         a.arcPin = new Xml.ArcPin();
@@ -998,9 +994,8 @@ public class TechEditWizardData
      * Method to create the XML version of a Layer.
      * @return
      */
-    private Xml.Layer makeXmlLayer(List<Xml.Layer> layers, String name, com.sun.electric.technology.Layer.Function function, int extraf,
-                                   EGraphics graph, char cifLetter, boolean pureLayerNode, double la)
-    {
+    private Xml.Layer makeXmlLayer(List<Xml.Layer> layers, Map<Xml.Layer,WizardField> layer_width, String name, Layer.Function function, int extraf,
+                                   EGraphics graph, char cifLetter, WizardField width, boolean pureLayerNode) {
         Xml.Layer l = new Xml.Layer();
         l.name = name;
         l.function = function;
@@ -1022,7 +1017,7 @@ public class TechEditWizardData
             l.pureLayerNode.name = name + "-Node";
             l.pureLayerNode.style = Poly.Type.FILLED;
             l.pureLayerNode.port = "Port_" + name;
-            l.pureLayerNode.size.addLambda(DBMath.round(la));
+            l.pureLayerNode.size.addRule(width.rule, 1);
             l.pureLayerNode.portArcs.add(name);
 //            for (ArcProto ap: pureLayerNode.getPort(0).getConnections()) {
 //                if (ap.getTechnology() != tech) continue;
@@ -1030,6 +1025,7 @@ public class TechEditWizardData
 //            }
         }
         layers.add(l);
+        layer_width.put(l, width);
         return l;
     }
 
@@ -1043,24 +1039,28 @@ public class TechEditWizardData
      * @param sep1d
      * @param sep2d @return
      */
-    private Xml.NodeLayer makeXmlNodeLayer(double hla, Xml.Layer lb, boolean multiCutBox,
-                                           double sizex, double sizey, double sep1d, double sep2d)
+    private Xml.NodeLayer makeXmlNodeLayer(double hla, Xml.Layer lb)
     {
         Xml.NodeLayer nl = new Xml.NodeLayer();
         nl.layer = lb.name;
         nl.style = Poly.Type.FILLED;
-        nl.inElectricalLayers = true;
-        nl.representation = (multiCutBox) ? com.sun.electric.technology.Technology.NodeLayer.MULTICUTBOX : 
-            com.sun.electric.technology.Technology.NodeLayer.BOX;
+        nl.inLayers = nl.inElectricalLayers = true;
+        nl.representation = Technology.NodeLayer.BOX;
         nl.lx.k = -1; nl.hx.k = 1; nl.ly.k = -1; nl.hy.k = 1;
         nl.lx.addLambda(-hla); nl.hx.addLambda(hla); nl.ly.addLambda(-hla); nl.hy.addLambda(hla);
-        if (multiCutBox)
-        {
-            nl.sizex = DBMath.round(sizex);
-            nl.sizey = DBMath.round(sizey);
-            nl.sep1d = DBMath.round(sep1d);
-            nl.sep2d = DBMath.round(sep2d);
-        }
+        return nl;
+    }
+    
+    private Xml.NodeLayer makeXmlMulticut(double hla, Xml.Layer lb, String sizeRule, String sepRule, String sepRule2D) {
+        Xml.NodeLayer nl = new Xml.NodeLayer();
+        nl.layer = lb.name;
+        nl.style = Poly.Type.FILLED;
+        nl.inLayers = nl.inElectricalLayers = true;
+        nl.representation = Technology.NodeLayer.MULTICUTBOX;
+        nl.lx.k = -1; nl.hx.k = 1; nl.ly.k = -1; nl.hy.k = 1;
+        nl.sizeRule = sizeRule;
+        nl.sepRule = sepRule;
+        nl.sepRule2D = sepRule2D;
         return nl;
     }
 
@@ -1095,9 +1095,11 @@ public class TechEditWizardData
         ppd.hy.k = 1; // getTop().getMultiplier()*2;
         ppd.hy.addLambda(DBMath.round(bottomTop + minFullSize.getLambdaY()*ppd.hy.k));
 
-        for (String s: portArcs)
-        {
-            ppd.portArcs.add(s);
+        if (portArcs != null) {
+            for (String s: portArcs)
+            {
+                ppd.portArcs.add(s);
+            }
         }
         return ppd;
     }
@@ -1148,6 +1150,7 @@ public class TechEditWizardData
         // Layers
         List<Xml.Layer> metalLayers = new ArrayList<Xml.Layer>();
         List<Xml.Layer> viaLayers = new ArrayList<Xml.Layer>();
+        Map<Xml.Layer,WizardField> layer_width = new LinkedHashMap<Xml.Layer,WizardField>();
         int[] nullPattern = new int[] {0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
             0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000};
         int cifNumber = 0;
@@ -1156,7 +1159,6 @@ public class TechEditWizardData
         {
             // Adding the metal
             int metalNum = i + 1;
-            double la = metal_width[i].v / stepsize;
             double opacity = (75 - metalNum * 5)/100.0;
             int metLayHigh = i / 10;
             int metLayDig = i % 10;
@@ -1298,8 +1300,8 @@ public class TechEditWizardData
                 onDisplay = false; onPrinter = false;
             }
             EGraphics graph = new EGraphics(onDisplay, onPrinter, null, tcol, r, g, b, opacity, true, pattern);
-            Xml.Layer layer = makeXmlLayer(t.layers, "Metal-"+metalNum, Layer.Function.getMetal(metalNum), 0, graph,
-                (char)('A' + cifNumber++), true, la);
+            Xml.Layer layer = makeXmlLayer(t.layers, layer_width, "Metal-"+metalNum, Layer.Function.getMetal(metalNum), 0, graph,
+                (char)('A' + cifNumber++), metal_width[i], true);
             metalLayers.add(layer);
         }
 
@@ -1313,40 +1315,36 @@ public class TechEditWizardData
             int b = via_colour.getBlue();
             double opacity = 0.7;
             EGraphics graph = new EGraphics(false, false, null, 0, r, g, b, opacity, true, nullPattern);
-            double la = via_size[i].v / stepsize;
-            viaLayers.add(makeXmlLayer(t.layers, "Via-"+metalNum, Layer.Function.getContact(metalNum), Layer.Function.CONMETAL,
-                graph, (char)('A' + cifNumber++), false, la));
+            viaLayers.add(makeXmlLayer(t.layers, layer_width, "Via-"+metalNum, Layer.Function.getContact(metalNum), Layer.Function.CONMETAL,
+                graph, (char)('A' + cifNumber++), via_size[i], false));
         }
 
         // Poly
         EGraphics graph = new EGraphics(false, false, null, 1, 0, 0, 0, 1, true, nullPattern);
-        double la = poly_width.v / stepsize;;
-        Xml.Layer polyLayer = makeXmlLayer(t.layers, "Poly", com.sun.electric.technology.Layer.Function.POLY1, 0, graph,
-            (char)('A' + cifNumber++), true, la);
+        Xml.Layer polyLayer = makeXmlLayer(t.layers, layer_width, "Poly", Layer.Function.POLY1, 0, graph,
+            (char)('A' + cifNumber++), poly_width, true);
         // PolyGate
-        makeXmlLayer(t.layers, "PolyGate", com.sun.electric.technology.Layer.Function.GATE, 0, graph,
-            (char)('A' + cifNumber++), false, la);
+        makeXmlLayer(t.layers, layer_width, "PolyGate", Layer.Function.GATE, 0, graph,
+            (char)('A' + cifNumber++), poly_width, false);
 
         // PolyCon and DiffCon
         graph = new EGraphics(false, false, null, 0, contact_colour.getRed(), contact_colour.getGreen(),
             contact_colour.getBlue(), 1, true, nullPattern);
-        la = contact_size.v / stepsize;
         // PolyCon
-        makeXmlLayer(t.layers, "PolyCon", com.sun.electric.technology.Layer.Function.CONTACT1,
-            Layer.Function.CONPOLY, graph, (char)('A' + cifNumber++), false, la);
+        makeXmlLayer(t.layers, layer_width, "PolyCon", Layer.Function.CONTACT1,
+            Layer.Function.CONPOLY, graph, (char)('A' + cifNumber++), contact_size, false);
         // DiffCon
-        makeXmlLayer(t.layers, "DiffCon", com.sun.electric.technology.Layer.Function.CONTACT1,
-            Layer.Function.CONDIFF, graph, (char)('A' + cifNumber++), false, la);
+        makeXmlLayer(t.layers, layer_width, "DiffCon", Layer.Function.CONTACT1,
+            Layer.Function.CONDIFF, graph, (char)('A' + cifNumber++), contact_size, false);
 
         // P-Diff and N-Diff
         graph = new EGraphics(false, false, null, 2, 0, 0, 0, 1, true, nullPattern);
-        la = diff_width.v / stepsize;
         // N-Diff
-        Xml.Layer diffNLayer = makeXmlLayer(t.layers, "N-Diff", com.sun.electric.technology.Layer.Function.DIFFN, 0, graph,
-            (char)('A' + cifNumber++), true, la);
+        Xml.Layer diffNLayer = makeXmlLayer(t.layers, layer_width, "N-Diff", Layer.Function.DIFFN, 0, graph,
+            (char)('A' + cifNumber++), diff_width, true);
         // P-Diff
-        Xml.Layer diffPLayer = makeXmlLayer(t.layers, "P-Diff", com.sun.electric.technology.Layer.Function.DIFFP, 0, graph,
-            (char)('A' + cifNumber++), true, la);
+        Xml.Layer diffPLayer = makeXmlLayer(t.layers, layer_width, "P-Diff", Layer.Function.DIFFP, 0, graph,
+            (char)('A' + cifNumber++), diff_width, true);
 
         // NPlus and PPlus
         int [] pattern = new int[] { 0x1010,   //    X       X
@@ -1368,15 +1366,13 @@ public class TechEditWizardData
         // NPlus
         graph = new EGraphics(true, true, null, 0, nplus_colour.getRed(), nplus_colour.getGreen(),
             nplus_colour.getBlue(), 1, true, pattern);
-        la = nplus_width.v / stepsize;
-        Xml.Layer nplusLayer = makeXmlLayer(t.layers, "NPlus", com.sun.electric.technology.Layer.Function.IMPLANTN, 0, graph,
-            (char)('A' + cifNumber++), false, la);
+        Xml.Layer nplusLayer = makeXmlLayer(t.layers, layer_width, "NPlus", com.sun.electric.technology.Layer.Function.IMPLANTN, 0, graph,
+            (char)('A' + cifNumber++), nplus_width, false);
         // PPlus
         graph = new EGraphics(true, true, null, 0, pplus_colour.getRed(), pplus_colour.getGreen(),
             pplus_colour.getBlue(), 1, true, pattern);
-        la = pplus_width.v / stepsize;
-        Xml.Layer pplusLayer = makeXmlLayer(t.layers, "PPlus", com.sun.electric.technology.Layer.Function.IMPLANTP, 0, graph,
-            (char)('A' + cifNumber++), false, la);
+        Xml.Layer pplusLayer = makeXmlLayer(t.layers, layer_width, "PPlus", Layer.Function.IMPLANTP, 0, graph,
+            (char)('A' + cifNumber++), pplus_width, false);
 
 //		layers.add("N-Well");
         pattern = new int[] { 0x0202,   //       X       X
@@ -1397,16 +1393,14 @@ public class TechEditWizardData
                         0x0404};
         graph = new EGraphics(true, true, null, 0, nwell_colour.getRed(), nwell_colour.getGreen(),
             nwell_colour.getBlue(), 1, true, pattern);
-        la = nwell_width.v / stepsize;
-        Xml.Layer nwellLayer = makeXmlLayer(t.layers, "N-Well", com.sun.electric.technology.Layer.Function.WELLN, 0, graph,
-            (char)('A' + cifNumber++), false, la);
+        Xml.Layer nwellLayer = makeXmlLayer(t.layers, layer_width, "N-Well", Layer.Function.WELLN, 0, graph,
+            (char)('A' + cifNumber++), nwell_width, false);
 
 //		layers.add("DeviceMark");
         graph = new EGraphics(true, true, null, 0, 255, 0, 0, 0.4, true, nullPattern);
-        la = nplus_width.v / stepsize;
         // N-Diff
-        makeXmlLayer(t.layers, "DeviceMark", com.sun.electric.technology.Layer.Function.CONTROL, 0, graph,
-            (char)('A' + cifNumber++), false, la);
+        makeXmlLayer(t.layers, layer_width, "DeviceMark", Layer.Function.CONTROL, 0, graph,
+            (char)('A' + cifNumber++), nplus_width, false);
 
         // write arcs
         // metal arcs
@@ -1416,30 +1410,23 @@ public class TechEditWizardData
         for(int i=1; i<=num_metal_layers; i++)
         {
             double ant = (int)Math.round(metal_antenna_ratio[i-1]) | 200;
-            Xml.Layer l = metalLayers.get(i-1);
-            layerNames[0] = l.name;
-            layerValues[0] = l.pureLayerNode.size;
             makeXmlArc(t.arcs, "Metal-"+i, ArcProto.Function.getContact(i), ant,
-                1, layerNames, layerValues);
+                makeXmlArcLayer(metalLayers.get(i-1), metal_width[i-1]));
         }
 
         // poly arc
         double ant = (int)Math.round(poly_antenna_ratio) | 200;
-        layerNames[0] = polyLayer.name;
-        layerValues[0] = polyLayer.pureLayerNode.size;
-        makeXmlArc(t.arcs, "Poly", ArcProto.Function.getPoly(1), ant, 1, layerNames, layerValues);
+        makeXmlArc(t.arcs, "Poly", ArcProto.Function.getPoly(1), ant,
+                makeXmlArcLayer(polyLayer, poly_width));
 
         // NDiff/PDiff
-        layerNames[0] = diffNLayer.name; layerValues[0] = diffNLayer.pureLayerNode.size;
-        Xml.Distance dist = new Xml.Distance(); dist.addLambda(DBMath.round((nplus_overhang_diff.v*2+diff_width.v)/stepsize));
-        layerNames[1] = nplusLayer.name; layerValues[1] = dist;
-        makeXmlArc(t.arcs, "N-Diff", ArcProto.Function.DIFFN, 0, 2, layerNames, layerValues);
-        layerNames[0] = diffPLayer.name; layerValues[0] = diffPLayer.pureLayerNode.size;
-        dist = new Xml.Distance(); dist.addLambda(DBMath.round((pplus_overhang_diff.v*2 + diff_width.v) / stepsize));
-        layerNames[1] = pplusLayer.name; layerValues[1] = dist;
-        dist = new Xml.Distance(); dist.addLambda(DBMath.round((nwell_overhang_diff.v*2 + diff_width.v) / stepsize));
-        layerNames[2] = nwellLayer.name; layerValues[2] = dist;
-        makeXmlArc(t.arcs, "P-Diff", ArcProto.Function.DIFFP, 0, 3, layerNames, layerValues);
+        makeXmlArc(t.arcs, "N-Diff", ArcProto.Function.DIFFN, 0,
+                makeXmlArcLayer(diffNLayer, diff_width),
+                makeXmlArcLayer(nplusLayer, diff_width, nplus_overhang_diff));
+        makeXmlArc(t.arcs, "P-Diff", ArcProto.Function.DIFFP, 0,
+                makeXmlArcLayer(diffPLayer, diff_width),
+                makeXmlArcLayer(pplusLayer, diff_width, pplus_overhang_diff),
+                makeXmlArcLayer(nwellLayer, diff_width, nwell_overhang_diff));
 
         // Pins
         List<Xml.NodeLayer> nodesList = new ArrayList<Xml.NodeLayer>();
@@ -1448,16 +1435,17 @@ public class TechEditWizardData
             nodesList.clear();
             double hla = DBMath.round(metal_width[i-1].v / (stepsize*2));
             Xml.Layer lb = metalLayers.get(i-1);
-            nodesList.add(makeXmlNodeLayer(hla, lb, false, 0, 0, 0, 0)); // bottom layer
+            nodesList.add(makeXmlNodeLayer(hla, lb)); // bottom layer
             hla = DBMath.round(metal_width[i].v / (stepsize*2));
             Xml.Layer lt = metalLayers.get(i);
-            nodesList.add(makeXmlNodeLayer(hla, lt, false, 0, 0, 0, 0)); // top layer
+            nodesList.add(makeXmlNodeLayer(hla, lt)); // top layer
             // via
             Xml.Layer via = viaLayers.get(i-1);
-            double size = DBMath.round(via_size[i-1].v/stepsize);
-            double cs = DBMath.round(via_spacing[i-1].v/stepsize);
-            double cs2 = DBMath.round(via_array_spacing[i-1].v/stepsize);
-            nodesList.add(makeXmlNodeLayer(hla, via, true, size, size, cs, cs2)); // via
+            nodesList.add(makeXmlMulticut(hla, via, via_size[i-1].rule, via_spacing[i-1].rule, via_array_spacing[i-1].rule)); // via
+//            double size = DBMath.round(via_size[i-1].v/stepsize);
+//            double cs = DBMath.round(via_spacing[i-1].v/stepsize);
+//            double cs2 = DBMath.round(via_array_spacing[i-1].v/stepsize);
+//            nodesList.add(makeXmlNodeLayer(hla, via, true, size, size, cs, cs2)); // via
             String name = lb.name + "-" + lt.name;
             // port
             List<Xml.PrimitivePort> nodePorts = new ArrayList<Xml.PrimitivePort>();
@@ -1471,8 +1459,72 @@ public class TechEditWizardData
                 new SizeOffset(hla, hla, hla, hla),
                 nodesList, nodePorts, null);
         }
+        
+        Xml.Foundry f = new Xml.Foundry();
+        f.name = Foundry.Type.NONE.name();
+        t.foundries.add(f);
+        
+        makeLayerRuleMinWid(t, diffPLayer, diff_width);
+        makeLayerRuleMinWid(t, diffNLayer, diff_width);
+        makeLayerRuleMinWid(t, pplusLayer, pplus_width);
+        makeLayersRuleSurround(t, pplusLayer, diffPLayer, pplus_overhang_diff);
+        makeLayerRuleMinWid(t, nplusLayer, nplus_width);
+        makeLayersRuleSurround(t, nplusLayer, diffNLayer, nplus_overhang_diff);
+        makeLayerRuleMinWid(t, nwellLayer, nwell_width);
+        makeLayersRuleSurround(t, nwellLayer, diffPLayer, nwell_overhang_diff);
+        makeLayerRuleMinWid(t, polyLayer, poly_width);
+        
+        for (int i = 0; i < num_metal_layers; i++) {
+            Xml.Layer met = metalLayers.get(i);
+            makeLayerRuleMinWid(t, met, metal_width[i]);
+            
+            if (i >= num_metal_layers - 1) continue;
+            Xml.Layer via = viaLayers.get(i);
+            makeLayerRuleMinWid(t, via, via_size[i]);
+            makeLayersRule(t, via, DRCTemplate.DRCRuleType.CONSPA, via_spacing[i]);
+            makeLayersRule(t, via, DRCTemplate.DRCRuleType.UCONSPA2D, via_array_spacing[i]);
+        }
+        
         // write finally the file
         t.writeXml(fileName);
+    }
+    
+    private Xml.ArcLayer makeXmlArcLayer(Xml.Layer layer, WizardField ... flds) {
+        Xml.ArcLayer al = new Xml.ArcLayer();
+        al.layer = layer.name;
+        al.style = Poly.Type.FILLED;
+        al.extend.assign(makeXmlDistance(flds));
+        return al;
+    }
+    
+    private Xml.Distance makeXmlDistance(WizardField ... flds) {
+        Xml.Distance dist = new Xml.Distance();
+        dist.addRule(flds[0].rule, 0.5);
+        for (int i = 1; i < flds.length; i++)
+            dist.addRule(flds[i].rule, 1);
+        return dist;
+    }
+    
+    private void makeLayerRuleMinWid(Xml.Technology t, Xml.Layer l, WizardField fld) {
+        for (Xml.Foundry f: t.foundries) {
+            f.rules.add(new DRCTemplate(fld.rule, DRCTemplate.DRCMode.ALL.mode(), DRCTemplate.DRCRuleType.MINWID,
+                l.name, null, new double[] {DBMath.round(fld.v/stepsize)}, null, null));
+        }
+    }
+    
+    private void makeLayersRule(Xml.Technology t, Xml.Layer l, DRCTemplate.DRCRuleType ruleType, WizardField fld) {
+        for (Xml.Foundry f: t.foundries) {
+            f.rules.add(new DRCTemplate(fld.rule, DRCTemplate.DRCMode.ALL.mode(), ruleType,
+                l.name, l.name, new double[] {DBMath.round(fld.v/stepsize)}, null, null));
+        }
+    }
+
+    private void makeLayersRuleSurround(Xml.Technology t, Xml.Layer l1, Xml.Layer l2, WizardField fld) {
+        double value = DBMath.round(fld.v/stepsize);
+        for (Xml.Foundry f: t.foundries) {
+            f.rules.add(new DRCTemplate(fld.rule, DRCTemplate.DRCMode.ALL.mode(), DRCTemplate.DRCRuleType.SURROUND,
+                l1.name, l2.name, new double[] {value, value}, null, null));
+        }
     }
 
     private void dumpTechnology(PrintWriter pw)
