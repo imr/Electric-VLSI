@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07f: ******************************
 
+BUG: (3/12/08, SMR) PostScript output ignores some text.
+FIX: In PostScript.recurseCircuitLevel(), draw text even at lower levels.
+
 BUG: (3/12/08, DN) Incorrect contact size of tsmc:Metal-5-Metal-6-Con because DRC deck
     has two rules with the same name "VIA5.W.1" but with different values.
 FIX: In Technology.TechDistanceContext.getRule() ignore NODSIZE and MINWIDCOND rules (Walkaround).

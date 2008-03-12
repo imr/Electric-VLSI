@@ -705,7 +705,7 @@ public class PostScript extends Output
 			}
 
 			// draw any displayable variables on the node
-			if (topLevel && real && User.isTextVisibilityOnNode())
+			if (/* topLevel && */ real && User.isTextVisibilityOnNode())
 			{
 				Poly [] textPolys = ni.getDisplayableVariables(wnd);
 				for (int i=0; i<textPolys.length; i++)
