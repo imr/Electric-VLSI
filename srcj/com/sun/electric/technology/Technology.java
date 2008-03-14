@@ -1035,7 +1035,6 @@ public class Technology implements Comparable<Technology>, Serializable
             layer.setFactory3DInfo(l.thick3D, l.height3D, l.mode3D, l.factor3D);
             layer.setFactoryParasitics(l.resistance, l.capacitance, l.edgeCapacitance);
         }
-        Xml.DistanceContext context = Xml.EMPTY_CONTEXT;
         HashMap<String,ArcProto> arcs = new HashMap<String,ArcProto>();
         for (Xml.ArcProto a: t.arcs) {
             if (findArcProto(a.name) != null) {
@@ -1043,27 +1042,26 @@ public class Technology implements Comparable<Technology>, Serializable
                 continue;
             }
             ArcLayer[] arcLayers = new ArcLayer[a.arcLayers.size()];
-            long minGridExtend = Long.MAX_VALUE;
-            long maxGridExtend = Long.MIN_VALUE;
+//            long minGridExtend = Long.MAX_VALUE;
+//            long maxGridExtend = Long.MIN_VALUE;
+//            for (int i = 0; i < arcLayers.length; i++) {
+//                Xml.ArcLayer al = a.arcLayers.get(i);
+//                long gridLayerExtend = DBMath.lambdaToGrid(al.extend.getLambda(context));
+//                minGridExtend = Math.min(minGridExtend, gridLayerExtend);
+//                maxGridExtend = Math.max(maxGridExtend, gridLayerExtend);
+//            }
+//            if (maxGridExtend < 0 || maxGridExtend > Integer.MAX_VALUE/8) {
+//                System.out.println("ArcProto " + getTechName() + ":" + a.name + " has invalid width offset " + DBMath.gridToLambda(2*maxGridExtend));
+//                continue;
+//            }
+//            long gridFullExtend = minGridExtend + DBMath.lambdaToGrid(a.elibWidthOffset*0.5);
             for (int i = 0; i < arcLayers.length; i++) {
                 Xml.ArcLayer al = a.arcLayers.get(i);
-                long gridLayerExtend = DBMath.lambdaToGrid(al.extend.getLambda(context));
-                minGridExtend = Math.min(minGridExtend, gridLayerExtend);
-                maxGridExtend = Math.max(maxGridExtend, gridLayerExtend);
+                arcLayers[i] = new ArcLayer(layers.get(al.layer),al.style, al.extend);
             }
-            if (maxGridExtend < 0 || maxGridExtend > Integer.MAX_VALUE/8) {
-                System.out.println("ArcProto " + getTechName() + ":" + a.name + " has invalid width offset " + DBMath.gridToLambda(2*maxGridExtend));
-                continue;
-            }
-            long gridFullExtend = minGridExtend + DBMath.lambdaToGrid(a.elibWidthOffset*0.5);
-            for (int i = 0; i < arcLayers.length; i++) {
-                Xml.ArcLayer al = a.arcLayers.get(i);
-                long gridLayerExtend = DBMath.lambdaToGrid(al.extend.getLambda(context));
-                arcLayers[i] = new ArcLayer(layers.get(al.layer),al.style, gridLayerExtend, al.extend);
-            }
-            if (minGridExtend < 0 || minGridExtend != DBMath.lambdaToGrid(a.arcLayers.get(0).extend.getLambda(context)))
-            	assert true;
-            ArcProto ap = new ArcProto(this, a.name, gridFullExtend, minGridExtend, a.function, arcLayers, arcs.size());
+//            if (minGridExtend < 0 || minGridExtend != DBMath.lambdaToGrid(a.arcLayers.get(0).extend.getLambda(context)))
+//            	assert true;
+            ArcProto ap = new ArcProto(this, a.name, DBMath.lambdaToGrid(a.elibWidthOffset*0.5), 0, a.function, arcLayers, arcs.size());
 //            ArcProto ap = new ArcProto(this, a.name, (int)maxGridExtend, (int)minGridExtend, defaultWidth, a.function, arcLayers, arcs.size());
             addArcProto(ap);
 
@@ -1088,6 +1086,7 @@ public class Technology implements Comparable<Technology>, Serializable
                 ap.makeWipablePin(a.arcPin.name, a.arcPin.portName, a.arcPin.elibSize, makeConnections(a.arcPin.portArcs, arcs));
         }
         setNoNegatedArcs();
+        Xml.DistanceContext context = Xml.EMPTY_CONTEXT;
         for (Xml.PrimitiveNode n: t.nodes) {
             EPoint correction = EPoint.ORIGIN;
             if (n.diskOffset != null)

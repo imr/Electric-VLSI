@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07f: ******************************
 
+BUG: (3/13/08, DN) UnsupportedOperationException while uploading XML tech (Bug #1606)
+FIX: In Technology.echnology(Generic,Xml.Technology) don't deparameterize arcs.
+
 BUG: (3/12/08, SMR) PostScript output ignores some text.
 FIX: In PostScript.recurseCircuitLevel(), draw text even at lower levels.
 
