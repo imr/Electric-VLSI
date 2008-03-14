@@ -8,13 +8,13 @@ BUG: (3/12/08, SMR) PostScript output ignores some text.
 FIX: In PostScript.recurseCircuitLevel(), draw text even at lower levels.
 
 BUG: (3/12/08, DN) Incorrect contact size of tsmc:Metal-5-Metal-6-Con because DRC deck
-    has two rules with the same name "VIA5.W.1" but with different values.
+    has two rules with the same name "A page 47" but with different values.
 FIX: In Technology.TechDistanceContext.getRule() ignore NODSIZE and MINWIDCOND rules (Walkaround).
 
 BUG: (3/12/08, DN) Multicut layers of primitive nodes
     "tsmc180:Metal-1-Polysilicon-2-Con" and "tsmc180:Metal-1-Polysilicon-1-2-Con"
-    had sizex=2.0 and sizey=2.0 which is less than Poly-Cut MINWID = 2.2 .
-FIX: Use rule names: <multicutbox sizeRule="CO.W.1" sepRule="CO.S.1" sepRule2D="CO.S.2"/>
+    had sizex=A and sizey=A which is less than Poly-Cut MINWID = B .
+FIX: Use rule names: <multicutbox sizeRule="A page 39" sepRule="B page 39" sepRule2D="B1 page 39"/>
 
 IMP: (3/12/08, DN) <multicutbox> has attributes with rule names instead of numbers.
 
@@ -22,7 +22,7 @@ BUG: (3/11/08, SMR) Node extraction creates too many exports, names them badly (
 FIX: Names are taken from other exports, only one created in a place.
 
 BUG: (3/11/08, DN) Wrong size of active arcs in TSMC foundry CMOS90.
-FIX: In CMOS.getRuleAliases() add "OD2.EX.1" -> "OD2.EX.3".
+FIX: In CMOS.getRuleAliases() add "H page 54" -> "J page 54".
 
 BUG: (3/7/08, GVG) Disk image may be damaged on MacOSX (Bug #1592)
 FIX: Adding extra flag to mkdmg.sh
@@ -1128,7 +1128,7 @@ BUG: (8/22/07, SMR) Two-key bindings still don't work right (Bug #980).
 FIX: In KeyBindingManager.validKeyEvent(), ignore KEY_TYPED events and
      use KeyChar only when SHIFT held down on non-alpha key.
 
-BUG: (8/21/07, GVG) Bogus errors reported for rule OD.S.1 (TSMC180) (Bug #1367)
+BUG: (8/21/07, GVG) Bogus errors reported for rule "C page 20" (TSMC180) (Bug #1367)
 FIX: correction in Technology.sameLayer to consider P-Active-Well == P-Active
 
 BUG: (8/21/07, SMR) Using ">" and "<" to scroll through errors is broken (Bug #1365)
@@ -1848,7 +1848,7 @@ FIX: In ELIB.readNodeProto restore "ignore the cell bounding box" code.
 BUG: (4/16/07, GVG) contact spacing incorrect for large contacts in tsmc180
      (Bug#1298)
 FIX: This bug was most probably introduced around 8.04x. From now, multi-cut
-     spacings in poly contacts (nxm) is dictated by CO.S.2.
+     spacings in poly contacts (nxm) is dictated by "B1 page 39".
 
 IMP: (4/13/07, GVG) Threading late/early modes in Oyster. More decent results for
      arrivals.
@@ -3208,7 +3208,7 @@ BUG: (6/17/06, GVG) NT_N clearance to OD not checked correctly (Bug# 1149)
 FIX: NT_N.C.1 added  into TSMC180.xml
 
 BUG: (6/17/06, GVG) Minimum NT_N spacing error missed (Bug# 1147)
-FIX: NT_N.S.1 added into TSMC180.xml
+FIX: "C page 19" added into TSMC180.xml
 
 IMP: (6/16/06, GVG) AFG working gap value in case of "only around" option.
 
@@ -7689,7 +7689,7 @@ FIX: return null in these cases
  
 IMP: (12/23/04, GVG): Fixing side effects in TechPalette after Bug#103
 
-IMP: (12/23/04, GVG): TSMC90: Adding rules OD2.W.1, OD2.S.1 and OD2.EX.3 even
+IMP: (12/23/04, GVG): TSMC90: Adding rules "A page 54", "B page 54" and "J page 54" even
      though they are met by construction (triggered by Bug #137)
 
 IMP: (12/23/04, GVG): 3D View: warning if scene graph will be big (Bug #28)
@@ -8380,7 +8380,7 @@ IMP: (11/3/04, GVG) Default technology in preferences. It will be used for setti
 
 BUG: (11/2/04, RK) Repair bugs from partial conversion of gate layout generators to tsmc90
 
-IMP; (11/2/04, GVG) CO.S.1, VIAx.S.1 and VIAn.S.1 rules for vias (meta1 and actives cuts)
+IMP; (11/2/04, GVG) "B page 74", "rule B page 78" and "B page 86" rules for vias (meta1 and actives cuts)
 
 ************************* Version 8.01ai: *********************************
 
