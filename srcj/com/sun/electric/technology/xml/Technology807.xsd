@@ -723,7 +723,7 @@
                         <xsd:attribute name="level" type="tns:SpiceLevel"/>
                     </xsd:complexType>
                 </xsd:element>
-                <xsd:element name="displayStyle">
+                <xsd:element name="displayStyle" maxOccurs="unbounded">
                     <xsd:complexType>
                         <xsd:sequence>
                             <xsd:element name="transparentLayer" minOccurs="0" maxOccurs="12">
