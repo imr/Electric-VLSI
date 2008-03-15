@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07f: ******************************
 
+IMP: (3/14/08, DN) Package com.sun.electric.technology.xml for major versions of the Technology Xml syntax.
+
 BUG: (3/13/08, DN) UnsupportedOperationException while uploading XML tech (Bug #1606)
 FIX: In Technology.echnology(Generic,Xml.Technology) don't deparameterize arcs.
 
