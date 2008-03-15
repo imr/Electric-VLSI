@@ -1,0 +1,54 @@
+This text is a draft suggests definition of the Technology Xml syntax for future Electric
+release version8-07 .
+
+The syntax is being protyped by
+com/sun/electric/technology/xml/Technology807.xsd - syntax of Xml language
+com/sun/electric/technology/xml/Xml807.xsd - reader/writer of Xml language
+com/sun/electric/technology/technologies/mocmos807.xml - an example in this syntax
+but currently they are not at final syntax.
+
+Technology description will be in symbolic form, where distances are expressed
+by Xml construct Distance.
+Distance is a linear expression which is a sum of terms.
+There is an arbitrary number of variable terms and an optional constant term.
+
+<xsd:group name="Distance">
+    <xsd:sequence>
+        <xsd:element name="rule" minOccurs="0" maxOccurs="unbounded">
+            <xsd:complexType>
+                <xsd:attribute name="ruleName" type="tns:RuleName" use="required"/>
+                <xsd:attribute name="layer" type="tns:LayerName">
+                <xsd:attribute name="layer2" type="tns:LayerName">
+                <xsd:attribute name="k" type="xsd:double"/>
+            </xsd:complexType>
+        </xsd:element>
+        <xsd:element name="lambda" type="xsd:double" minOccurs="0"></xsd:element>
+    </xsd:sequence>
+</xsd:group>
+
+The constanct term is a double in lambda units.
+The variable term is a name of variable and constant double multiplier "k".
+Name of variable is either simple name "ruleName" or
+"ruleName" indexed by one or two layers.
+
+The examples of terms are
+<rule ruleName="minwid" layer="P-Active" k="0.5"/>
+<rule ruleName="overhang" layer="P-Select" layer2="P-Active">
+<lambda>3.0</lambda>
+
+
+A construct to define values of rule indexed by layer is 
+<layerRule>. It has ruleName and a map from layers to Distance expressions.
+For example:
+<layerRule ruleName="minwid">
+  <layer name="Metal-1>  <rule ruleName="7.1"/></layer>
+  <layer name="Metal-2>  <rule ruleName="9.1"/></layer>
+</layerRule>
+
+There will be a section in <foundry> which defines foundry specific rules like this
+
+<Foundry name="SUBM">
+  <ruleDef ruleName="7.1" value="3.0"/>
+</Foundry>
+
+To be continued...

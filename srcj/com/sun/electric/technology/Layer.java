@@ -1408,8 +1408,10 @@ public class Layer
         l.desc = getGraphics();
         l.thick3D = getThickness();
         l.height3D = getDistance();
-        l.mode3D = getTransparencyMode();
-        l.factor3D = getTransparencyFactor();
+        if (!getTransparencyMode().equals(DEFAULT_MODE) || getTransparencyFactor() != DEFAULT_FACTOR) {
+            l.mode3D = getTransparencyMode();
+            l.factor3D = getTransparencyFactor();
+        }
         l.cif = (String)getCIFLayerSetting().getFactoryValue();
         l.skill = (String)getSkillLayerSetting().getFactoryValue();
         l.resistance = getResistanceSetting().getDoubleFactoryValue();
@@ -1443,15 +1445,12 @@ public class Layer
      * Method to create XML version 8.07 of a Layer.
      * @return
      */
-    Xml807.Layer makeXml807(Xml807.DisplayStyle displayStyle) {
-        Xml807.Layer l = new Xml807.Layer();
-        l.name = getName();
+    Xml807.Layer makeXml807(Xml807.Technology t,
+            Xml807.DisplayStyle displayStyle,
+            Map<Xml807.Layer,Xml807.Distance> thick3D, Map<Xml807.Layer,Xml807.Distance> height3D) {
+        Xml807.Layer l = t.newLayer(getName());
         l.function = getFunction();
         l.extraFunction = getFunctionExtras();
-        l.thick3D = getThickness();
-        l.height3D = getDistance();
-        l.mode3D = getTransparencyMode();
-        l.factor3D = getTransparencyFactor();
         l.cif = (String)getCIFLayerSetting().getFactoryValue();
         l.skill = (String)getSkillLayerSetting().getFactoryValue();
         l.resistance = getResistanceSetting().getDoubleFactoryValue();
@@ -1479,10 +1478,16 @@ public class Layer
             }
         }
         
-        Xml807.LayerDisplayStyle lds = new Xml807.LayerDisplayStyle();
-        lds.layerName = l.name;
+        Xml807.LayerDisplayStyle lds = displayStyle.newLayer(l);
         lds.desc = getGraphics();
-        displayStyle.layerStyles.add(lds);
+        if (!getTransparencyMode().equals(DEFAULT_MODE) || getTransparencyFactor() != DEFAULT_FACTOR) {
+            lds.mode3D = getTransparencyMode();
+            lds.factor3D = getTransparencyFactor();
+        }
+        
+        Xml807.Distance dist;
+        dist = new Xml807.Distance(); dist.addLambda(getThickness()); thick3D.put(l, dist);
+        dist = new Xml807.Distance(); dist.addLambda(getDistance()); height3D.put(l, dist);
         
         return l;
     }

@@ -2086,11 +2086,13 @@ public class Technology implements Comparable<Technology>, Serializable
             Color transparentColor = colorMap[1 << i];
             displayStyle.transparentLayers.add(transparentColor);
         }
+        Map<Xml807.Layer,Xml807.Distance> thick3d = t.newLayerRule("thick3d");
+        Map<Xml807.Layer,Xml807.Distance> height3d = t.newLayerRule("height3d");
 
         for (Iterator<Layer> it = getLayers(); it.hasNext(); ) {
             Layer layer = it.next();
             if (layer.isPseudoLayer()) continue;
-            t.layers.add(layer.makeXml807(displayStyle));
+            layer.makeXml807(t, displayStyle, thick3d, height3d);
         }
         HashSet<PrimitiveNode> arcPins = new HashSet<PrimitiveNode>();
         for (Iterator<ArcProto> it = getArcs(); it.hasNext(); ) {

@@ -29,6 +29,28 @@
         </xsd:sequence>
     </xsd:group>
 
+    <xsd:group name="LayerToDouble">
+        <xsd:sequence>
+            <xsd:element name="layer" minOccurs="0" maxOccurs="unbounded">
+                <xsd:complexType>
+                    <xsd:attribute name="name" type="tns:LayerName" use="required"/>
+                    <xsd:attribute name="value" type="xsd:double"/>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:group>
+
+    <xsd:group name="LayerToDistance">
+        <xsd:sequence>
+            <xsd:element name="layer" minOccurs="0" maxOccurs="unbounded">
+                <xsd:complexType>
+                   <xsd:group ref="tns:Distance"/>
+                   <xsd:attribute name="name" type="tns:LayerName" use="required"/>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:group>
+
     <xsd:group name="MenuItem">
         <xsd:sequence>
             <xsd:choice>
@@ -449,14 +471,6 @@
                 <xsd:element name="layer" maxOccurs="unbounded" minOccurs="0">
                     <xsd:complexType>
                         <xsd:sequence>
-                            <xsd:element name="display3D" minOccurs="0">
-                                <xsd:complexType>
-                                    <xsd:attribute name="thick" type="xsd:double" use="required"/>
-                                    <xsd:attribute name="height" type="xsd:double" use="required"/>
-                                    <xsd:attribute name="mode" type="xsd:string" use="required"/>
-                                    <xsd:attribute name="factor" type="xsd:double" use="required"/>
-                                </xsd:complexType>
-                            </xsd:element>
                             <xsd:element name="cifLayer" minOccurs="0">
                                 <xsd:complexType>
                                     <xsd:attribute name="cif" type="xsd:string" use="required"/>
@@ -757,6 +771,12 @@
                                         <xsd:element name="outlined" type="tns:LayerOutline"></xsd:element>
                                         <xsd:element name="opacity" type="tns:Opacity"></xsd:element>
                                         <xsd:element name="foreground" type="xsd:boolean"></xsd:element>
+                                        <xsd:element name="display3D" minOccurs="0">
+                                            <xsd:complexType>
+                                                <xsd:attribute name="mode" type="xsd:string" use="required"/>
+                                                <xsd:attribute name="factor" type="xsd:double" use="required"/>
+                                            </xsd:complexType>
+                                        </xsd:element>
                                     </xsd:sequence>
                                     <xsd:attribute name="name" type="tns:LayerName" use="required"/>
                                 </xsd:complexType>
@@ -771,7 +791,6 @@
                     </xsd:key>
 
                     <xsd:keyref name="transparentRef" refer="tns:transparent">
-                        <!-- every vehicle refers to its state -->
                         <xsd:selector xpath=".//tns:transparentColor"/>
                         <xsd:field xpath="@transparent"/>
                     </xsd:keyref>
@@ -788,6 +807,12 @@
                             </xsd:element>
                         </xsd:sequence>
                         <xsd:attribute name="numColumns" type="xsd:int"/>
+                    </xsd:complexType>
+                </xsd:element>
+                <xsd:element name="layerRule" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:complexType>
+                        <xsd:group ref="tns:LayerToDistance"/>
+                        <xsd:attribute name="ruleName" type="tns:RuleName" use="required"/>
                     </xsd:complexType>
                 </xsd:element>
                 <xsd:element name="Foundry" maxOccurs="unbounded">
@@ -858,5 +883,15 @@
             <xsd:attribute name="name" type="xsd:NCName" use="required"/>
             <xsd:attribute name="class" type="tns:ClassName"/>
         </xsd:complexType>
+        
+        <xsd:key name="layer">
+            <xsd:selector xpath="./tns:layer"/>
+            <xsd:field xpath="@name"/>
+        </xsd:key>
+
+        <xsd:keyref name="layerRef" refer="tns:layer">
+            <xsd:selector xpath=".//tns:layer"/>
+            <xsd:field xpath="@name"/>
+        </xsd:keyref>
     </xsd:element>
 </xsd:schema>

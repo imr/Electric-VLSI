@@ -46,6 +46,7 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -83,20 +84,37 @@ public class Xml807 {
         public String defaultFoundry;
         public double minResistance;
         public double minCapacitance;
-        public final List<Layer> layers = new ArrayList<Layer>();
+        private final LinkedHashMap<String,Layer> layers = new LinkedHashMap<String,Layer>();
         public final List<ArcProto> arcs = new ArrayList<ArcProto>();
         public final List<PrimitiveNode> nodes = new ArrayList<PrimitiveNode>();
         public final List<SpiceHeader> spiceHeaders = new ArrayList<SpiceHeader>();
         public final List<DisplayStyle> displayStyles = new ArrayList<DisplayStyle>();
         public MenuPalette menuPalette;
+        public final Map<String,Map<Layer,Distance>> layerRules = new LinkedHashMap<String,Map<Layer,Distance>>();
         public final List<Foundry> foundries = new ArrayList<Foundry>();
 
+        public Layer newLayer(String name) {
+            if (name == null)
+                throw new NullPointerException();
+            if (layers.containsKey(name))
+                throw new IllegalArgumentException("Duplicate Layer " + name);
+            Layer layer = new Layer(name);
+            layers.put(name, layer);
+            return layer;
+        }
+        
+        public Map<Layer,Distance> newLayerRule(String ruleName) {
+            if (ruleName == null)
+                throw new NullPointerException();
+            if (layerRules.containsKey(ruleName))
+                throw new IllegalArgumentException("Duplicate LayerRule " + ruleName);
+            Map<Layer,Distance> layerRule = new LinkedHashMap<Layer,Distance>();
+            layerRules.put(ruleName, layerRule);
+            return layerRule;
+        }
+        
         public Layer findLayer(String name) {
-            for (Layer layer: layers) {
-                if (layer.name.equals(name))
-                    return layer;
-            }
-            return null;
+            return layers.get(name);
         }
 
         public ArcProto findArc(String name) {
@@ -130,19 +148,19 @@ public class Xml807 {
     }
 
     public static class Layer implements Serializable {
-        public String name;
+        public final String name;
         public com.sun.electric.technology.Layer.Function function;
         public int extraFunction;
-        public double thick3D;
-        public double height3D;
-        public String mode3D;
-        public double factor3D;
         public String cif;
         public String skill;
         public double resistance;
         public double capacitance;
         public double edgeCapacitance;
         public PureLayerNode pureLayerNode;
+        
+        private Layer(String name) {
+            this.name = name;
+        }
     }
 
     public static class PureLayerNode implements Serializable {
@@ -260,12 +278,26 @@ public class Xml807 {
     public static class DisplayStyle implements Serializable {
         public String name;
         public final List<Color> transparentLayers = new ArrayList<Color>();
-        public final List<LayerDisplayStyle> layerStyles = new ArrayList<LayerDisplayStyle>();
+        private final LinkedHashMap<Layer,LayerDisplayStyle> layerStylesInternal = new LinkedHashMap<Layer,LayerDisplayStyle>();
+        public final Map<Layer,LayerDisplayStyle> layerStyles = Collections.unmodifiableMap(layerStylesInternal);
+        
+        public LayerDisplayStyle newLayer(Layer layer) {
+            LayerDisplayStyle lds = new LayerDisplayStyle(layer);
+            LayerDisplayStyle old = layerStylesInternal.put(layer, lds);
+            assert old == null;
+            return lds;
+        }
     }
     
     public static class LayerDisplayStyle implements Serializable {
-        public String layerName;
+        public final Layer layer;
         public EGraphics desc;
+        public String mode3D;
+        public double factor3D;
+        
+        private LayerDisplayStyle(Layer layer) {
+            this.layer = layer;
+        }
     }
     
     public static class MenuPalette implements Serializable {
@@ -327,11 +359,17 @@ public class Xml807 {
                 value += term.getLambda(context);
             return value;
         }
-        private void writeXml(Writer writer) {
-            for (DistanceRule term: terms)
+        private void writeXml(Writer writer, boolean multiLine) {
+            for (DistanceRule term: terms) {
                 term.writeXml(writer);
-            if (lambdaValue != 0)
-                writer.bcpel(XmlKeyword.lambda, lambdaValue);
+                if (multiLine)
+                    writer.l();
+            }
+            if (lambdaValue != 0) {
+                writer.bcpe(XmlKeyword.lambda, lambdaValue);
+                if (multiLine)
+                    writer.l();
+            }
         }
         public void addLambda(double value) {
             lambdaValue += value;
@@ -372,7 +410,7 @@ public class Xml807 {
             writer.a("ruleName", ruleName);
             if (k != 1)
                 writer.a("k", k);
-            writer.el();
+            writer.e();
         }
 
         private double getLambda(DistanceContext context) {
@@ -485,6 +523,8 @@ public class Xml807 {
         menuNodeText,
         lambda(true),
         rule,
+        
+        layerRule,
         Foundry,
         layerGds,
         LayerRule,
@@ -622,6 +662,7 @@ public class Xml807 {
         private double opacity;
         private boolean foreground;
         
+        private Map<Layer,Distance> curLayerRule;
         private Foundry curFoundry;
 
         private boolean acceptCharacters;
@@ -898,9 +939,7 @@ public class Xml807 {
                     break;
                 case layer:
                     if (curDisplayStyle != null) {
-                        curLayerDisplayStyle = new LayerDisplayStyle();
-                        curLayerDisplayStyle.layerName = a("name");
-                        curDisplayStyle.layerStyles.add(curLayerDisplayStyle);
+                        curLayerDisplayStyle = curDisplayStyle.newLayer(tech.findLayer(a("name")));
                         curTransparent = 0;
                         curR = curG = curB = 0;
                         patternedOnDisplay = false;
@@ -908,9 +947,13 @@ public class Xml807 {
                         Arrays.fill(pattern, 0);
                         curPatternIndex = 0;
 //                      EGraphics.Outline outline = null;
+                    } else if (curLayerRule != null) {
+                        curDistance = new Distance();
+                        Distance old = curLayerRule.put(tech.findLayer(a("name")), curDistance);
+                        if (old == null)
+                            throw new IllegalArgumentException("Duplicate layer " + a("name"));
                     } else {
-                        curLayer = new Layer();
-                        curLayer.name = a("name");
+                        curLayer = tech.newLayer(a("name"));
                         curLayer.function = com.sun.electric.technology.Layer.Function.valueOf(a("fun"));
                         String extraFunStr = a_("extraFun");
                         if (extraFunStr != null) {
@@ -926,12 +969,6 @@ public class Xml807 {
                                 curLayer.extraFunction = com.sun.electric.technology.Layer.Function.parseExtraName(extraFunStr);
                         }
                     }
-                    break;
-                case display3D:
-                    curLayer.thick3D = Double.parseDouble(a("thick"));
-                    curLayer.height3D = Double.parseDouble(a("height"));
-                    curLayer.mode3D = a("mode");
-                    curLayer.factor3D = Double.parseDouble(a("factor"));
                     break;
                 case cifLayer:
                     curLayer.cif = a("cif");
@@ -1184,6 +1221,10 @@ public class Xml807 {
                     curG = Integer.parseInt(a("g"));
                     curB = Integer.parseInt(a("b"));
                     break;
+                case display3D:
+                    curLayerDisplayStyle.mode3D = a("mode");
+                    curLayerDisplayStyle.factor3D = Double.parseDouble(a("factor"));
+                    break;
                     
                 case menuPalette:
                     tech.menuPalette = new MenuPalette();
@@ -1211,6 +1252,9 @@ public class Xml807 {
                 case rule:
                     String kStr = a_("k");
                     curDistance.addRule(a("ruleName"), kStr != null ? Double.valueOf(kStr) : 1);
+                    break;
+                case layerRule:
+                    curLayerRule = tech.newLayerRule(a("ruleName"));
                     break;
                 case Foundry:
                     curFoundry = new Foundry();
@@ -1398,9 +1442,9 @@ public class Xml807 {
                         curLayerDisplayStyle.desc = new EGraphics(patternedOnDisplay, patternedOnPrinter, outline, curTransparent,
                             curR, curG, curB, opacity, foreground, pattern.clone());
                         curLayerDisplayStyle = null;
+                    } else if (curLayerRule != null) {
+                        curDistance = null;
                     } else {
-                        assert tech.findLayer(curLayer.name) == null;
-                        tech.layers.add(curLayer);
                         curLayer = null;
                     }
                     break;
@@ -1440,15 +1484,16 @@ public class Xml807 {
 //                	curMenuBox.add(curMenuCell);
                     curMenuCell = null;
                     break;
+                    
+                case layerRule:
+                    curLayerRule = null;
+                    break;
 
                 case numMetals:
                 case scale:
                 case defaultFoundry:
                 case minResistance:
                 case minCapacitance:
-                case transparentColor:
-                case opaqueColor:
-                case display3D:
                 case cifLayer:
                 case skillLayer:
                 case parasitics:
@@ -1493,6 +1538,10 @@ public class Xml807 {
                 case spiceHeader:
                 case spiceLine:
                 case spiceTemplate:
+                    
+                case transparentColor:
+                case opaqueColor:
+                case display3D:
                     
                 case menuPalette:
                 case menuBox:
@@ -1748,7 +1797,7 @@ public class Xml807 {
             l();
 
             comment("**************************************** LAYERS ****************************************");
-            for (Layer li: t.layers) {
+            for (Layer li: t.layers.values()) {
                 writeXml(li);
             }
 
@@ -1772,6 +1821,9 @@ public class Xml807 {
 
             writeMenuPaletteXml(t.menuPalette);
 
+            for (Map.Entry<String,Map<Layer,Distance>> e: t.layerRules.entrySet())
+                writeLayerRuleXml(e.getKey(), e.getValue());
+            
             for (Foundry foundry: t.foundries)
                 writeFoundryXml(foundry);
 
@@ -1793,14 +1845,6 @@ public class Xml807 {
                 }
             }
             b(XmlKeyword.layer); a("name", li.name); a("fun", li.function.name()); a("extraFun", funString); cl();
-
-            // write the 3D information
-            if (li.thick3D != com.sun.electric.technology.Layer.DEFAULT_THICKNESS ||
-                    li.height3D != com.sun.electric.technology.Layer.DEFAULT_DISTANCE ||
-                    (li.mode3D != null && !li.mode3D.equals(com.sun.electric.technology.Layer.DEFAULT_MODE)) ||
-                    li.factor3D != com.sun.electric.technology.Layer.DEFAULT_FACTOR) {
-                b(XmlKeyword.display3D); a("thick", li.thick3D); a("height", li.height3D); a("mode", li.mode3D); a("factor", li.factor3D); el();
-            }
 
             if (li.cif != null && li.cif.length() > 0) {
                 b(XmlKeyword.cifLayer); a("cif", li.cif); el();
@@ -2016,7 +2060,7 @@ public class Xml807 {
         }
 
         private void writeDistance(Distance d) {
-            d.writeXml(this);
+            d.writeXml(this, true);
         }
 
         private void writeBox(XmlKeyword keyword, Distance lx, Distance hx, Distance ly, Distance hy) {
@@ -2061,8 +2105,8 @@ public class Xml807 {
                 l();
             }
             
-            for (LayerDisplayStyle l: displayStyle.layerStyles) {
-                b(XmlKeyword.layer); a("name", l.layerName); cl();
+            for (LayerDisplayStyle l: displayStyle.layerStyles.values()) {
+                b(XmlKeyword.layer); a("name", l.layer.name); cl();
                 EGraphics desc = l.desc;
                 if (desc.getTransparentLayer() > 0) {
                     b(XmlKeyword.transparentColor); a("transparent", desc.getTransparentLayer()); el();
@@ -2086,6 +2130,12 @@ public class Xml807 {
                     bcpel(XmlKeyword.outlined, desc.getOutlined().getConstName());
                 bcpel(XmlKeyword.opacity, desc.getOpacity());
                 bcpel(XmlKeyword.foreground, desc.getForeground());
+                
+                // write the 3D information
+                if (l.mode3D != null) {
+                    b(XmlKeyword.display3D); a("mode", l.mode3D); a("factor", l.factor3D); el();
+                }
+
                 el(XmlKeyword.layer);
             }
 
@@ -2139,6 +2189,24 @@ public class Xml807 {
             }
             el(XmlKeyword.menuBox);
         }
+        
+        private void writeLayerRuleXml(String ruleName, Map<Layer,Distance> sizes) {
+            if (sizes.isEmpty()) return;
+            b(XmlKeyword.layerRule); a("ruleName", ruleName); cl();
+            int maxNameLength = 0;
+            for (Layer l: sizes.keySet())
+                maxNameLength = Math.max(maxNameLength, l.name.length());
+            StringBuilder sb = new StringBuilder();
+            for (Map.Entry<Layer,Distance> e: sizes.entrySet()) {
+                String layerName = e.getKey().name;
+                Distance d = e.getValue();
+                b(XmlKeyword.layer); a("name", layerName); c();
+                s(maxNameLength - layerName.length());
+                d.writeXml(this, false);
+                el(XmlKeyword.layer);
+            }
+            el(XmlKeyword.layerRule);
+        }
 
         private void writeFoundryXml(Foundry foundry) {
             b(XmlKeyword.Foundry); a("name", foundry.name); cl();
@@ -2150,11 +2218,6 @@ public class Xml807 {
             for (DRCTemplate rule: foundry.rules)
                 DRCTemplate.exportDRCRule(out, rule);
             el(XmlKeyword.Foundry);
-        }
-
-        private void printDesignRule(String ruleName, String l1, String l2, String type, double value) {
-            String layerNames = "{" + l1 + ", " + l2 + "}";
-            b(XmlKeyword.LayersRule); a("ruleName", ruleName); a("layerNames", layerNames); a("type", type); a("when", "ALL"); a("value", value); el();
         }
 
         private void header() {
@@ -2176,6 +2239,11 @@ public class Xml807 {
             out.print(" " + name + "=\"");
             p(value.toString());
             out.print("\"");
+        }
+
+        private void bcpe(XmlKeyword key, Object v) {
+            if (v == null) return;
+            b(key); c(); p(v.toString()); e(key);
         }
 
         private void bcpel(XmlKeyword key, Object v) {
@@ -2253,26 +2321,33 @@ public class Xml807 {
             e(); l();
         }
 
+        private void el(XmlKeyword key) {
+            e(key); l();
+        }
+
         private void e() {
             assert indentEmitted;
             out.print("/>");
             indent -= INDENT_WIDTH;
         }
 
-        private void el(XmlKeyword key) {
+        private void e(XmlKeyword key) {
             indent -= INDENT_WIDTH;
             checkIndent();
             out.print("</");
             out.print(key.name());
             out.print(">");
-            l();
         }
 
         protected void checkIndent() {
             if (indentEmitted) return;
-            for (int i = 0; i < indent; i++)
-                out.print(' ');
+            s(indent);
             indentEmitted = true;
+        }
+        
+        protected void s(int numSpaces) {
+            for (int i = 0; i < numSpaces; i++)
+                out.print(' ');
         }
 
         /**

@@ -42,7 +42,6 @@
 
     <!-- **************************************** LAYERS **************************************** -->
     <layer name="Metal-1" fun="METAL1">
-        <display3D thick="2.65" height="16.5" mode="NONE" factor="0.2"/>
         <cifLayer cif="CMF"/>
         <skillLayer skill="metal1"/>
         <parasitics resistance="0.078" capacitance="0.1209" edgeCapacitance="0.1104"/>
@@ -53,7 +52,6 @@
     </layer>
 
     <layer name="Metal-2" fun="METAL2">
-        <display3D thick="2.65" height="22.15" mode="NONE" factor="0.2"/>
         <cifLayer cif="CMS"/>
         <skillLayer skill="metal2"/>
         <parasitics resistance="0.078" capacitance="0.0843" edgeCapacitance="0.0974"/>
@@ -64,7 +62,6 @@
     </layer>
 
     <layer name="Metal-3" fun="METAL3">
-        <display3D thick="2.65" height="27.8" mode="NONE" factor="0.2"/>
         <cifLayer cif="CMT"/>
         <skillLayer skill="metal3"/>
         <parasitics resistance="0.078" capacitance="0.0843" edgeCapacitance="0.0974"/>
@@ -75,7 +72,6 @@
     </layer>
 
     <layer name="Metal-4" fun="METAL4">
-        <display3D thick="2.65" height="33.45" mode="NONE" factor="0.2"/>
         <cifLayer cif="CMQ"/>
         <skillLayer skill="metal4"/>
         <parasitics resistance="0.078" capacitance="0.0843" edgeCapacitance="0.0974"/>
@@ -86,7 +82,6 @@
     </layer>
 
     <layer name="Metal-5" fun="METAL5">
-        <display3D thick="2.65" height="39.1" mode="NONE" factor="0.2"/>
         <cifLayer cif="CMP"/>
         <skillLayer skill="metal5"/>
         <parasitics resistance="0.078" capacitance="0.0843" edgeCapacitance="0.0974"/>
@@ -97,7 +92,6 @@
     </layer>
 
     <layer name="Metal-6" fun="METAL6">
-        <display3D thick="4.95" height="44.75" mode="NONE" factor="0.2"/>
         <cifLayer cif="CM6"/>
         <skillLayer skill="metal6"/>
         <parasitics resistance="0.036" capacitance="0.0423" edgeCapacitance="0.1273"/>
@@ -108,7 +102,6 @@
     </layer>
 
     <layer name="Polysilicon-1" fun="POLY1">
-        <display3D thick="1.0" height="14.75" mode="NONE" factor="0.2"/>
         <cifLayer cif="CPG"/>
         <skillLayer skill="poly"/>
         <parasitics resistance="6.2" capacitance="0.1467" edgeCapacitance="0.0608"/>
@@ -119,7 +112,6 @@
     </layer>
 
     <layer name="Polysilicon-2" fun="POLY2">
-        <display3D thick="1.0" height="15.85" mode="NONE" factor="0.2"/>
         <cifLayer cif="CEL"/>
         <parasitics resistance="50.0" capacitance="1.0" edgeCapacitance="0.0"/>
         <pureLayerNode name="Polysilicon-2-Node" port="polysilicon-2">
@@ -129,7 +121,6 @@
     </layer>
 
     <layer name="P-Active" fun="DIFFP">
-        <display3D thick="4.0" height="9.0" mode="NONE" factor="0.0"/>
         <cifLayer cif="CAA"/>
         <skillLayer skill="aa"/>
         <parasitics resistance="2.5" capacitance="0.9" edgeCapacitance="0.0"/>
@@ -142,7 +133,6 @@
     </layer>
 
     <layer name="N-Active" fun="DIFFN">
-        <display3D thick="4.0" height="9.0" mode="NONE" factor="0.0"/>
         <cifLayer cif="CAA"/>
         <skillLayer skill="aa"/>
         <parasitics resistance="3.0" capacitance="0.9" edgeCapacitance="0.0"/>
@@ -155,7 +145,6 @@
     </layer>
 
     <layer name="P-Select" fun="IMPLANTP">
-        <display3D thick="5.0" height="8.0" mode="SCREEN_DOOR" factor="0.4"/>
         <cifLayer cif="CSP"/>
         <skillLayer skill="pplus"/>
         <pureLayerNode name="P-Select-Node" port="select">
@@ -164,7 +153,6 @@
     </layer>
 
     <layer name="N-Select" fun="IMPLANTN">
-        <display3D thick="5.0" height="8.0" mode="SCREEN_DOOR" factor="0.4"/>
         <cifLayer cif="CSN"/>
         <skillLayer skill="nplus"/>
         <pureLayerNode name="N-Select-Node" port="select">
@@ -173,7 +161,6 @@
     </layer>
 
     <layer name="P-Well" fun="WELLP">
-        <display3D thick="13.0" height="0.0" mode="NICEST" factor="0.8"/>
         <cifLayer cif="CWP"/>
         <skillLayer skill="pwell"/>
         <pureLayerNode name="P-Well-Node" port="well">
@@ -183,7 +170,6 @@
     </layer>
 
     <layer name="N-Well" fun="WELLN">
-        <display3D thick="13.0" height="0.0" mode="NICEST" factor="0.8"/>
         <cifLayer cif="CWN"/>
         <skillLayer skill="nwell"/>
         <pureLayerNode name="N-Well-Node" port="well">
@@ -193,7 +179,6 @@
     </layer>
 
     <layer name="Poly-Cut" fun="CONTACT1" extraFun="connects-poly">
-        <display3D thick="0.75" height="15.75" mode="NONE" factor="0.2"/>
         <cifLayer cif="CCC"/>
         <skillLayer skill="pcont"/>
         <parasitics resistance="2.2" capacitance="0.0" edgeCapacitance="0.0"/>
@@ -203,7 +188,6 @@
     </layer>
 
     <layer name="Active-Cut" fun="CONTACT1" extraFun="connects-diff">
-        <display3D thick="3.5" height="13.0" mode="NONE" factor="0.2"/>
         <cifLayer cif="CCC"/>
         <skillLayer skill="acont"/>
         <parasitics resistance="2.5" capacitance="0.0" edgeCapacitance="0.0"/>
@@ -213,7 +197,6 @@
     </layer>
 
     <layer name="Via1" fun="CONTACT2" extraFun="connects-metal">
-        <display3D thick="3.0" height="19.15" mode="NONE" factor="0.2"/>
         <cifLayer cif="CVA"/>
         <skillLayer skill="via"/>
         <parasitics resistance="1.0" capacitance="0.0" edgeCapacitance="0.0"/>
@@ -223,7 +206,6 @@
     </layer>
 
     <layer name="Via2" fun="CONTACT3" extraFun="connects-metal">
-        <display3D thick="3.0" height="24.8" mode="NONE" factor="0.2"/>
         <cifLayer cif="CVS"/>
         <skillLayer skill="via2"/>
         <parasitics resistance="0.9" capacitance="0.0" edgeCapacitance="0.0"/>
@@ -233,7 +215,6 @@
     </layer>
 
     <layer name="Via3" fun="CONTACT4" extraFun="connects-metal">
-        <display3D thick="3.0" height="30.45" mode="NONE" factor="0.2"/>
         <cifLayer cif="CVT"/>
         <skillLayer skill="via3"/>
         <parasitics resistance="0.8" capacitance="0.0" edgeCapacitance="0.0"/>
@@ -243,7 +224,6 @@
     </layer>
 
     <layer name="Via4" fun="CONTACT5" extraFun="connects-metal">
-        <display3D thick="3.0" height="36.1" mode="NONE" factor="0.2"/>
         <cifLayer cif="CVQ"/>
         <skillLayer skill="via4"/>
         <parasitics resistance="0.8" capacitance="0.0" edgeCapacitance="0.0"/>
@@ -253,7 +233,6 @@
     </layer>
 
     <layer name="Via5" fun="CONTACT6" extraFun="connects-metal">
-        <display3D thick="3.0" height="41.75" mode="NONE" factor="0.2"/>
         <cifLayer cif="CV5"/>
         <skillLayer skill="via5"/>
         <parasitics resistance="0.8" capacitance="0.0" edgeCapacitance="0.0"/>
@@ -263,7 +242,6 @@
     </layer>
 
     <layer name="Passivation" fun="OVERGLASS">
-        <display3D thick="5.0" height="49.7" mode="NONE" factor="0.2"/>
         <cifLayer cif="COG"/>
         <skillLayer skill="glasscut"/>
         <pureLayerNode name="Passivation-Node" port="passivation">
@@ -272,7 +250,6 @@
     </layer>
 
     <layer name="Transistor-Poly" fun="GATE">
-        <display3D thick="1.0" height="13.0" mode="NONE" factor="0.2"/>
         <cifLayer cif="CPG"/>
         <skillLayer skill="poly"/>
         <parasitics resistance="2.5" capacitance="0.09" edgeCapacitance="0.0"/>
@@ -283,7 +260,6 @@
     </layer>
 
     <layer name="Poly-Cap" fun="CAP">
-        <display3D thick="1.0" height="14.75" mode="NONE" factor="0.2"/>
         <cifLayer cif="CPC"/>
         <pureLayerNode name="Poly-Cap-Node" port="poly-cap">
             <lambda>8.0</lambda>
@@ -291,7 +267,6 @@
     </layer>
 
     <layer name="P-Active-Well" fun="DIFFP">
-        <display3D thick="4.0" height="9.0" mode="NONE" factor="0.0"/>
         <cifLayer cif="CAA"/>
         <skillLayer skill="aa"/>
         <pureLayerNode name="P-Active-Well-Node" port="p-active-well">
@@ -300,7 +275,6 @@
     </layer>
 
     <layer name="Silicide-Block" fun="ART">
-        <display3D thick="0.0" height="0.0" mode="NONE" factor="0.2"/>
         <cifLayer cif="CSB"/>
         <pureLayerNode name="Silicide-Block-Node" port="silicide-block">
             <lambda>2.0</lambda>
@@ -309,7 +283,6 @@
     </layer>
 
     <layer name="Thick-Active" fun="DIFF" extraFun="thick">
-        <display3D thick="7.0" height="6.0" mode="NICEST" factor="0.6"/>
         <cifLayer cif="CTA"/>
         <pureLayerNode name="Thick-Active-Node" port="thick-active">
             <lambda>4.0</lambda>
@@ -317,7 +290,6 @@
     </layer>
 
     <layer name="Pad-Frame" fun="ART">
-        <display3D thick="0.0" height="54.7" mode="NONE" factor="0.2"/>
         <cifLayer cif="XP"/>
         <pureLayerNode name="Pad-Frame-Node" port="pad-frame">
             <lambda>8.0</lambda>
@@ -1681,6 +1653,7 @@
             <outlined>NOPAT</outlined>
             <opacity>0.8</opacity>
             <foreground>true</foreground>
+            <display3D mode="NONE" factor="0.2"/>
         </layer>
         <layer name="Metal-2">
             <transparentColor transparent="4"/>
@@ -1705,6 +1678,7 @@
             <outlined>NOPAT</outlined>
             <opacity>0.7</opacity>
             <foreground>true</foreground>
+            <display3D mode="NONE" factor="0.2"/>
         </layer>
         <layer name="Metal-3">
             <transparentColor transparent="5"/>
@@ -1729,6 +1703,7 @@
             <outlined>NOPAT</outlined>
             <opacity>0.6</opacity>
             <foreground>true</foreground>
+            <display3D mode="NONE" factor="0.2"/>
         </layer>
         <layer name="Metal-4">
             <opaqueColor r="150" g="150" b="255"/>
@@ -1753,6 +1728,7 @@
             <outlined>NOPAT</outlined>
             <opacity>0.5</opacity>
             <foreground>true</foreground>
+            <display3D mode="NONE" factor="0.2"/>
         </layer>
         <layer name="Metal-5">
             <opaqueColor r="255" g="190" b="6"/>
@@ -1777,6 +1753,7 @@
             <outlined>PAT_S</outlined>
             <opacity>0.4</opacity>
             <foreground>true</foreground>
+            <display3D mode="NONE" factor="0.2"/>
         </layer>
         <layer name="Metal-6">
             <opaqueColor r="0" g="255" b="255"/>
@@ -1801,6 +1778,7 @@
             <outlined>NOPAT</outlined>
             <opacity>0.3</opacity>
             <foreground>true</foreground>
+            <display3D mode="NONE" factor="0.2"/>
         </layer>
         <layer name="Polysilicon-1">
             <transparentColor transparent="2"/>
@@ -1825,6 +1803,7 @@
             <outlined>NOPAT</outlined>
             <opacity>1.0</opacity>
             <foreground>true</foreground>
+            <display3D mode="NONE" factor="0.2"/>
         </layer>
         <layer name="Polysilicon-2">
             <opaqueColor r="255" g="190" b="6"/>
@@ -1849,6 +1828,7 @@
             <outlined>NOPAT</outlined>
             <opacity>1.0</opacity>
             <foreground>true</foreground>
+            <display3D mode="NONE" factor="0.2"/>
         </layer>
         <layer name="P-Active">
             <transparentColor transparent="3"/>
@@ -1921,6 +1901,7 @@
             <outlined>NOPAT</outlined>
             <opacity>1.0</opacity>
             <foreground>false</foreground>
+            <display3D mode="SCREEN_DOOR" factor="0.4"/>
         </layer>
         <layer name="N-Select">
             <opaqueColor r="255" g="255" b="0"/>
@@ -1945,6 +1926,7 @@
             <outlined>NOPAT</outlined>
             <opacity>1.0</opacity>
             <foreground>false</foreground>
+            <display3D mode="SCREEN_DOOR" factor="0.4"/>
         </layer>
         <layer name="P-Well">
             <opaqueColor r="139" g="99" b="46"/>
@@ -1969,6 +1951,7 @@
             <outlined>NOPAT</outlined>
             <opacity>1.0</opacity>
             <foreground>false</foreground>
+            <display3D mode="NICEST" factor="0.8"/>
         </layer>
         <layer name="N-Well">
             <opaqueColor r="139" g="99" b="46"/>
@@ -1993,6 +1976,7 @@
             <outlined>NOPAT</outlined>
             <opacity>1.0</opacity>
             <foreground>false</foreground>
+            <display3D mode="NICEST" factor="0.8"/>
         </layer>
         <layer name="Poly-Cut">
             <opaqueColor r="100" g="100" b="100"/>
@@ -2017,6 +2001,7 @@
             <outlined>NOPAT</outlined>
             <opacity>1.0</opacity>
             <foreground>true</foreground>
+            <display3D mode="NONE" factor="0.2"/>
         </layer>
         <layer name="Active-Cut">
             <opaqueColor r="100" g="100" b="100"/>
@@ -2041,6 +2026,7 @@
             <outlined>NOPAT</outlined>
             <opacity>1.0</opacity>
             <foreground>true</foreground>
+            <display3D mode="NONE" factor="0.2"/>
         </layer>
         <layer name="Via1">
             <opaqueColor r="180" g="180" b="180"/>
@@ -2065,6 +2051,7 @@
             <outlined>NOPAT</outlined>
             <opacity>1.0</opacity>
             <foreground>true</foreground>
+            <display3D mode="NONE" factor="0.2"/>
         </layer>
         <layer name="Via2">
             <opaqueColor r="180" g="180" b="180"/>
@@ -2089,6 +2076,7 @@
             <outlined>NOPAT</outlined>
             <opacity>1.0</opacity>
             <foreground>true</foreground>
+            <display3D mode="NONE" factor="0.2"/>
         </layer>
         <layer name="Via3">
             <opaqueColor r="180" g="180" b="180"/>
@@ -2113,6 +2101,7 @@
             <outlined>NOPAT</outlined>
             <opacity>1.0</opacity>
             <foreground>true</foreground>
+            <display3D mode="NONE" factor="0.2"/>
         </layer>
         <layer name="Via4">
             <opaqueColor r="180" g="180" b="180"/>
@@ -2137,6 +2126,7 @@
             <outlined>NOPAT</outlined>
             <opacity>1.0</opacity>
             <foreground>true</foreground>
+            <display3D mode="NONE" factor="0.2"/>
         </layer>
         <layer name="Via5">
             <opaqueColor r="180" g="180" b="180"/>
@@ -2161,6 +2151,7 @@
             <outlined>NOPAT</outlined>
             <opacity>1.0</opacity>
             <foreground>true</foreground>
+            <display3D mode="NONE" factor="0.2"/>
         </layer>
         <layer name="Passivation">
             <opaqueColor r="100" g="100" b="100"/>
@@ -2185,6 +2176,7 @@
             <outlined>NOPAT</outlined>
             <opacity>1.0</opacity>
             <foreground>true</foreground>
+            <display3D mode="NONE" factor="0.2"/>
         </layer>
         <layer name="Transistor-Poly">
             <transparentColor transparent="2"/>
@@ -2209,6 +2201,7 @@
             <outlined>NOPAT</outlined>
             <opacity>1.0</opacity>
             <foreground>true</foreground>
+            <display3D mode="NONE" factor="0.2"/>
         </layer>
         <layer name="Poly-Cap">
             <opaqueColor r="0" g="0" b="0"/>
@@ -2233,6 +2226,7 @@
             <outlined>NOPAT</outlined>
             <opacity>1.0</opacity>
             <foreground>true</foreground>
+            <display3D mode="NONE" factor="0.2"/>
         </layer>
         <layer name="P-Active-Well">
             <transparentColor transparent="3"/>
@@ -2281,6 +2275,7 @@
             <outlined>NOPAT</outlined>
             <opacity>1.0</opacity>
             <foreground>true</foreground>
+            <display3D mode="NONE" factor="0.2"/>
         </layer>
         <layer name="Thick-Active">
             <opaqueColor r="0" g="0" b="0"/>
@@ -2305,6 +2300,7 @@
             <outlined>NOPAT</outlined>
             <opacity>1.0</opacity>
             <foreground>false</foreground>
+            <display3D mode="NICEST" factor="0.6"/>
         </layer>
         <layer name="Pad-Frame">
             <opaqueColor r="255" g="0" b="0"/>
@@ -2329,6 +2325,7 @@
             <outlined>NOPAT</outlined>
             <opacity>1.0</opacity>
             <foreground>false</foreground>
+            <display3D mode="NONE" factor="0.2"/>
         </layer>
         <layer name="P-Base">
             <opaqueColor r="107" g="226" b="96"/>
@@ -2509,6 +2506,68 @@
 
     </menuPalette>
 
+    <layerRule ruleName="thick3d">
+        <layer name="Metal-1">        <lambda>2.65</lambda></layer>
+        <layer name="Metal-2">        <lambda>2.65</lambda></layer>
+        <layer name="Metal-3">        <lambda>2.65</lambda></layer>
+        <layer name="Metal-4">        <lambda>2.65</lambda></layer>
+        <layer name="Metal-5">        <lambda>2.65</lambda></layer>
+        <layer name="Metal-6">        <lambda>4.95</lambda></layer>
+        <layer name="Polysilicon-1">  <lambda>1.0</lambda></layer>
+        <layer name="Polysilicon-2">  <lambda>1.0</lambda></layer>
+        <layer name="P-Active">       <lambda>4.0</lambda></layer>
+        <layer name="N-Active">       <lambda>4.0</lambda></layer>
+        <layer name="P-Select">       <lambda>5.0</lambda></layer>
+        <layer name="N-Select">       <lambda>5.0</lambda></layer>
+        <layer name="P-Well">         <lambda>13.0</lambda></layer>
+        <layer name="N-Well">         <lambda>13.0</lambda></layer>
+        <layer name="Poly-Cut">       <lambda>0.75</lambda></layer>
+        <layer name="Active-Cut">     <lambda>3.5</lambda></layer>
+        <layer name="Via1">           <lambda>3.0</lambda></layer>
+        <layer name="Via2">           <lambda>3.0</lambda></layer>
+        <layer name="Via3">           <lambda>3.0</lambda></layer>
+        <layer name="Via4">           <lambda>3.0</lambda></layer>
+        <layer name="Via5">           <lambda>3.0</lambda></layer>
+        <layer name="Passivation">    <lambda>5.0</lambda></layer>
+        <layer name="Transistor-Poly"><lambda>1.0</lambda></layer>
+        <layer name="Poly-Cap">       <lambda>1.0</lambda></layer>
+        <layer name="P-Active-Well">  <lambda>4.0</lambda></layer>
+        <layer name="Silicide-Block"> </layer>
+        <layer name="Thick-Active">   <lambda>7.0</lambda></layer>
+        <layer name="Pad-Frame">      </layer>
+        <layer name="P-Base">         </layer>
+    </layerRule>
+    <layerRule ruleName="height3d">
+        <layer name="Metal-1">        <lambda>16.5</lambda></layer>
+        <layer name="Metal-2">        <lambda>22.15</lambda></layer>
+        <layer name="Metal-3">        <lambda>27.8</lambda></layer>
+        <layer name="Metal-4">        <lambda>33.45</lambda></layer>
+        <layer name="Metal-5">        <lambda>39.1</lambda></layer>
+        <layer name="Metal-6">        <lambda>44.75</lambda></layer>
+        <layer name="Polysilicon-1">  <lambda>14.75</lambda></layer>
+        <layer name="Polysilicon-2">  <lambda>15.85</lambda></layer>
+        <layer name="P-Active">       <lambda>9.0</lambda></layer>
+        <layer name="N-Active">       <lambda>9.0</lambda></layer>
+        <layer name="P-Select">       <lambda>8.0</lambda></layer>
+        <layer name="N-Select">       <lambda>8.0</lambda></layer>
+        <layer name="P-Well">         </layer>
+        <layer name="N-Well">         </layer>
+        <layer name="Poly-Cut">       <lambda>15.75</lambda></layer>
+        <layer name="Active-Cut">     <lambda>13.0</lambda></layer>
+        <layer name="Via1">           <lambda>19.15</lambda></layer>
+        <layer name="Via2">           <lambda>24.8</lambda></layer>
+        <layer name="Via3">           <lambda>30.45</lambda></layer>
+        <layer name="Via4">           <lambda>36.1</lambda></layer>
+        <layer name="Via5">           <lambda>41.75</lambda></layer>
+        <layer name="Passivation">    <lambda>49.7</lambda></layer>
+        <layer name="Transistor-Poly"><lambda>13.0</lambda></layer>
+        <layer name="Poly-Cap">       <lambda>14.75</lambda></layer>
+        <layer name="P-Active-Well">  <lambda>9.0</lambda></layer>
+        <layer name="Silicide-Block"> </layer>
+        <layer name="Thick-Active">   <lambda>6.0</lambda></layer>
+        <layer name="Pad-Frame">      <lambda>54.7</lambda></layer>
+        <layer name="P-Base">         </layer>
+    </layerRule>
     <Foundry name="MOSIS">
 
         <layerGds layer="Metal-1" gds="49,80p,80t"/>
