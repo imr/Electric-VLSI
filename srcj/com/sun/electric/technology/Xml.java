@@ -286,20 +286,20 @@ public class Xml {
         public double k;
         public double lambdaValue;
         public final List<DistanceRule> terms = new ArrayList<DistanceRule>();
-        
+
         public void assign(Distance d) {
             k = d.k;
             lambdaValue = d.lambdaValue;
             for (DistanceRule term: d.terms)
                 terms.add(term.clone());
         }
-        
+
         public Distance clone() {
             Distance d = new Distance();
             d.assign(this);
             return d;
         }
-        
+
         public double getLambda(DistanceContext context) {
             double value = lambdaValue;
             for (DistanceRule term: terms)
@@ -327,11 +327,11 @@ public class Xml {
     public static interface DistanceContext {
         public double getRule(String ruleName);
     }
-    
+
     public static class DistanceRule implements Serializable, Cloneable {
-        String ruleName;
-        double k;
-        
+        public String ruleName;
+        public double k;
+
         public DistanceRule clone() {
             try {
                 return (DistanceRule)super.clone();
@@ -339,7 +339,7 @@ public class Xml {
                 throw new AssertionError();
             }
         }
-        
+
         private void writeXml(Writer writer) {
             writer.b(XmlKeyword.rule);
             writer.a("ruleName", ruleName);
@@ -347,12 +347,12 @@ public class Xml {
                 writer.a("k", k);
             writer.el();
         }
-        
+
         private double getLambda(DistanceContext context) {
             return context.getRule(ruleName)*k;
         }
     }
-    
+
     public static class Foundry implements Serializable {
         public String name;
         public final Map<String,String> layerGds = new LinkedHashMap<String,String>();
@@ -1992,7 +1992,7 @@ public class Xml {
         private void writeDistance(Distance d) {
             d.writeXml(this);
         }
-        
+
         private void writeBox(XmlKeyword keyword, Distance lx, Distance hx, Distance ly, Distance hy) {
             b(keyword);
             if (lx.k != -1) a("klx", lx.k);
@@ -2000,7 +2000,7 @@ public class Xml {
             if (ly.k != -1) a("kly", ly.k);
             if (hy.k != 1) a("khy", hy.k);
         }
-        
+
         private void writeLambdaBox(Distance lx, Distance hx, Distance ly, Distance hy) {
             double lxv = lx.getLambda(EMPTY_CONTEXT);
             double hxv = hx.getLambda(EMPTY_CONTEXT);
@@ -2209,7 +2209,7 @@ public class Xml {
             indentEmitted = false;
         }
     }
-    
+
     public static DistanceContext EMPTY_CONTEXT = new DistanceContext() {
         public double getRule(String ruleName) {
             throw new UnsupportedOperationException();

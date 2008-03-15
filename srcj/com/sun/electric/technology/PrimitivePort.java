@@ -36,6 +36,7 @@ import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.technologies.Generic;
 
+import com.sun.electric.technology.xml.Xml807;
 import java.awt.Color;
 import java.io.IOException;
 import java.io.InvalidObjectException;
@@ -103,17 +104,17 @@ public class PrimitivePort implements PortProto, Comparable<PrimitivePort>, Seri
 	}
 
     protected Object writeReplace() { return new PrimitivePortKey(this); }
-    
+
     private static class PrimitivePortKey extends EObjectInputStream.Key<PrimitivePort> {
         public PrimitivePortKey() {}
         private PrimitivePortKey(PrimitivePort pp) { super(pp); }
-        
+
         @Override
         public void writeExternal(EObjectOutputStream out, PrimitivePort pp) throws IOException {
             out.writeObject(pp.getParent());
             out.writeInt(pp.getId().chronIndex);
         }
-        
+
         @Override
         public PrimitivePort readExternal(EObjectInputStream in) throws IOException, ClassNotFoundException {
             PrimitiveNode pn = (PrimitiveNode)in.readObject();
@@ -124,7 +125,7 @@ public class PrimitivePort implements PortProto, Comparable<PrimitivePort>, Seri
             return pp;
         }
     }
-    
+
 	/**
 	 * Method to create a new PrimitivePort from the parameters.
 	 * @param tech the Technology in which this PrimitivePort is being created.
@@ -178,13 +179,13 @@ public class PrimitivePort implements PortProto, Comparable<PrimitivePort>, Seri
      * @return PortProtoId of this PrimtivePort.
      */
     public PrimitivePortId getId() { return portId; }
-    
+
     PrimitivePortId setEmptyId() {
         assert parent.getNumPorts() == 1;
         portId = parent.getId().newPortId("");
         return portId;
     }
-    
+
 	/**
 	 * Method to return the name key of this PrimitivePort.
 	 * @return the Name key of this PrimitivePort.
@@ -375,7 +376,7 @@ public class PrimitivePort implements PortProto, Comparable<PrimitivePort>, Seri
 	 * @param negatable true if this type of port can be negated.
 	 */
 	public void setNegatable(boolean negatable) { this.negatable = negatable; }
-	
+
 	/**
 	 * Method to return true if this PrimitivePort can connect to an arc of a given type.
 	 * @param arc the ArcProto to test for connectivity.
@@ -444,7 +445,7 @@ public class PrimitivePort implements PortProto, Comparable<PrimitivePort>, Seri
 	{
 		return "PrimitivePort " + getName();
 	}
-    
+
     void dump(PrintWriter out) {
             out.println("\tport " + getName() + " angle=" + getAngle() + " range=" + getAngleRange() + " topology=" + getTopology() + " " + getCharacteristic());
             out.println("\t\tlm=" + left.getMultiplier() + " la=" + left.getAdder() + " rm=" + right.getMultiplier() + " ra=" + right.getAdder() +
@@ -453,9 +454,33 @@ public class PrimitivePort implements PortProto, Comparable<PrimitivePort>, Seri
             for (ArcProto ap: portArcs)
                 out.println("\t\tportArc " + ap.getName());
     }
-    
+
     Xml.PrimitivePort makeXml(EPoint minFullSize) {
         Xml.PrimitivePort ppd = new Xml.PrimitivePort();
+        ppd.name = getName();
+        ppd.portAngle = getAngle();
+        ppd.portRange = getAngleRange();
+        ppd.portTopology = getTopology();
+
+        ppd.lx.k = getLeft().getMultiplier()*2;
+        ppd.lx.addLambda(DBMath.round(getLeft().getAdder() + minFullSize.getLambdaX()*getLeft().getMultiplier()*2));
+        ppd.hx.k = getRight().getMultiplier()*2;
+        ppd.hx.addLambda(DBMath.round(getRight().getAdder() + minFullSize.getLambdaX()*getRight().getMultiplier()*2));
+        ppd.ly.k = getBottom().getMultiplier()*2;
+        ppd.ly.addLambda(DBMath.round(getBottom().getAdder() + minFullSize.getLambdaY()*getBottom().getMultiplier()*2));
+        ppd.hy.k = getTop().getMultiplier()*2;
+        ppd.hy.addLambda(DBMath.round(getTop().getAdder() + minFullSize.getLambdaY()*getTop().getMultiplier()*2));
+
+        Technology tech = parent.getTechnology();
+        for (ArcProto ap: getConnections()) {
+            if (ap.getTechnology() != tech) continue;
+            ppd.portArcs.add(ap.getName());
+        }
+        return ppd;
+    }
+
+    Xml807.PrimitivePort makeXml807(EPoint minFullSize) {
+        Xml807.PrimitivePort ppd = new Xml807.PrimitivePort();
         ppd.name = getName();
         ppd.portAngle = getAngle();
         ppd.portRange = getAngleRange();

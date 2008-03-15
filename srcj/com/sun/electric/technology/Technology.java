@@ -63,6 +63,7 @@ import com.sun.electric.technology.technologies.FPGA;
 import com.sun.electric.technology.technologies.GEM;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.technology.xml.Xml807;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.erc.ERC;
 import com.sun.electric.tool.user.ActivityLogger;
@@ -257,6 +258,14 @@ public class Technology implements Comparable<Technology>, Serializable
 
         Xml.ArcLayer makeXml() {
             Xml.ArcLayer al = new Xml.ArcLayer();
+            al.layer = layer.getName();
+            al.style = style;
+            al.extend.assign(xmlExtend);
+            return al;
+        }
+        
+        Xml807.ArcLayer makeXml807() {
+            Xml807.ArcLayer al = new Xml807.ArcLayer();
             al.layer = layer.getName();
             al.style = style;
             al.extend.assign(xmlExtend);
@@ -722,6 +731,40 @@ public class Technology implements Comparable<Technology>, Serializable
 
         Xml.NodeLayer makeXml(boolean isSerp, EPoint correction, boolean inLayers, boolean inElectricalLayers) {
             Xml.NodeLayer nld = new Xml.NodeLayer();
+            nld.layer = getLayer().getNonPseudoLayer().getName();
+            nld.style = getStyle();
+            nld.portNum = getPortNum();
+            nld.inLayers = inLayers;
+            nld.inElectricalLayers = inElectricalLayers;
+            nld.representation = getRepresentation();
+            Technology.TechPoint[] points = getPoints();
+            if (nld.representation == Technology.NodeLayer.BOX || nld.representation == Technology.NodeLayer.MULTICUTBOX) {
+                nld.lx.k = points[0].getX().getMultiplier()*2;
+                nld.lx.addLambda(DBMath.round(points[0].getX().getAdder() + correction.getLambdaX()*points[0].getX().getMultiplier()*2));
+                nld.hx.k = points[1].getX().getMultiplier()*2;
+                nld.hx.addLambda(DBMath.round(points[1].getX().getAdder() + correction.getLambdaX()*points[1].getX().getMultiplier()*2));
+                nld.ly.k = points[0].getY().getMultiplier()*2;
+                nld.ly.addLambda(DBMath.round(points[0].getY().getAdder() + correction.getLambdaY()*points[0].getY().getMultiplier()*2));
+                nld.hy.k = points[1].getY().getMultiplier()*2;
+                nld.hy.addLambda(DBMath.round(points[1].getY().getAdder() + correction.getLambdaY()*points[1].getY().getMultiplier()*2));
+            } else {
+                for (Technology.TechPoint p: points)
+                    nld.techPoints.add(p.makeCorrection(correction));
+            }
+            nld.sizeRule = sizeRule;
+            nld.sepRule = cutSep1DRule;
+            nld.sepRule2D = cutSep2DRule;
+            if (isSerp) {
+                nld.lWidth = DBMath.round(getSerpentineLWidth());
+                nld.rWidth = DBMath.round(getSerpentineRWidth());
+                nld.tExtent = DBMath.round(getSerpentineExtentT());
+                nld.bExtent = DBMath.round(getSerpentineExtentB());
+            }
+            return nld;
+        }
+        
+        Xml807.NodeLayer makeXml807(boolean isSerp, EPoint correction, boolean inLayers, boolean inElectricalLayers) {
+            Xml807.NodeLayer nld = new Xml807.NodeLayer();
             nld.layer = getLayer().getNonPseudoLayer().getName();
             nld.style = getStyle();
             nld.portNum = getPortNum();
@@ -2017,9 +2060,135 @@ public class Technology implements Comparable<Technology>, Serializable
     }
 
 
-//	/** Cached rules for the technology. */		            protected DRCRules cachedRules = null;
-//    /** old-style DRC rules. */                             protected double[] conDist, unConDist;
-//    /** Xml representation of this Technology */            protected Xml.Technology xmlTech;
+    /**
+     * Create Xml structure of this Technology
+     */
+    public Xml807.Technology makeXml807() {
+        Xml807.Technology t = new Xml807.Technology();
+        t.techName = getTechName();
+        if (getClass() != Technology.class)
+            t.className = getClass().getName();
+        t.shortTechName = getTechShortName();
+        t.description = getTechDesc();
+        int numMetals = ((Integer)getNumMetalsSetting().getFactoryValue()).intValue();
+        t.minNumMetals = t.maxNumMetals = t.defaultNumMetals = numMetals;
+        t.scaleValue = getScaleSetting().getDoubleFactoryValue();
+        t.scaleRelevant = isScaleRelevant();
+        t.defaultFoundry = (String)getPrefFoundrySetting().getFactoryValue();
+        t.minResistance = getMinResistanceSetting().getDoubleFactoryValue();
+        t.minCapacitance = getMinCapacitanceSetting().getDoubleFactoryValue();
+        
+        Xml807.DisplayStyle displayStyle = new Xml807.DisplayStyle();
+        displayStyle.name = "Electric";
+        t.displayStyles.add(displayStyle);
+        Color[] colorMap = getFactoryColorMap();
+		for (int i = 0, numLayers = getNumTransparentLayers(); i < numLayers; i++) {
+            Color transparentColor = colorMap[1 << i];
+            displayStyle.transparentLayers.add(transparentColor);
+        }
+
+        for (Iterator<Layer> it = getLayers(); it.hasNext(); ) {
+            Layer layer = it.next();
+            if (layer.isPseudoLayer()) continue;
+            t.layers.add(layer.makeXml807(displayStyle));
+        }
+        HashSet<PrimitiveNode> arcPins = new HashSet<PrimitiveNode>();
+        for (Iterator<ArcProto> it = getArcs(); it.hasNext(); ) {
+            ArcProto ap = it.next();
+            t.arcs.add(ap.makeXml807());
+            if (ap.arcPin != null)
+                arcPins.add(ap.arcPin);
+        }
+        for (Iterator<PrimitiveNode> it = getNodes(); it.hasNext(); ) {
+            PrimitiveNode pnp = it.next();
+            if (pnp.getFunction() == PrimitiveNode.Function.NODE) continue;
+            if (arcPins.contains(pnp)) continue;
+            t.nodes.add(pnp.makeXml807());
+        }
+
+        addSpiceHeader(t, 1, getSpiceHeaderLevel1());
+        addSpiceHeader(t, 2, getSpiceHeaderLevel2());
+        addSpiceHeader(t, 3, getSpiceHeaderLevel3());
+        
+        Object[][] origPalette = getNodesGrouped(null);
+        int numRows = origPalette.length;
+        int numCols = origPalette[0].length;
+        for (Object[] row: origPalette) {
+            assert row.length == numCols;
+        }
+        t.menuPalette = new Xml807.MenuPalette();
+        t.menuPalette.numColumns = numCols;
+        for (int row = 0; row < numRows; row++) {
+            for (int col = 0; col < numCols; col++) {
+                Object origEntry = origPalette[row][col];
+                ArrayList<Object> newBox = new ArrayList<Object>();
+                if (origEntry instanceof List) {
+                    List<?> list = (List<?>)origEntry;
+                    for (Object o: list)
+                        newBox.add(makeMenuEntry(t, o));
+                } else if (origEntry != null) {
+                    newBox.add(makeMenuEntry(t, origEntry));
+                }
+                t.menuPalette.menuBoxes.add(newBox);
+            }
+        }
+
+        for (Iterator<Foundry> it = getFoundries(); it.hasNext(); ) {
+            Foundry foundry = it.next();
+            Xml807.Foundry f = new Xml807.Foundry();
+            f.name = foundry.toString();
+            Map<Layer,String> gdsMap = foundry.getGDSLayers();
+            for (Map.Entry<Layer,String> e: gdsMap.entrySet()) {
+                String gds = e.getValue();
+                if (gds.length() == 0) continue;
+                f.layerGds.put(e.getKey().getName(), gds);
+            }
+            List<DRCTemplate> rules = foundry.getRules();
+            if (rules != null)
+                f.rules.addAll(rules);
+            t.foundries.add(f);
+       }
+        return t;
+    }
+
+    private static void addSpiceHeader(Xml807.Technology t, int level, String[] spiceLines) {
+        if (spiceLines == null) return;
+        Xml807.SpiceHeader spiceHeader = new Xml807.SpiceHeader();
+        spiceHeader.level = level;
+        for (String spiceLine: spiceLines)
+            spiceHeader.spiceLines.add(spiceLine);
+        t.spiceHeaders.add(spiceHeader);
+    }
+
+    private static Object makeMenuEntry(Xml807.Technology t, Object entry) {
+        if (entry instanceof ArcProto)
+            return t.findArc(((ArcProto)entry).getName());
+        if (entry instanceof PrimitiveNode) {
+            PrimitiveNode pn = (PrimitiveNode)entry;
+            if (pn.getFunction() == PrimitiveNode.Function.PIN) {
+                Xml807.MenuNodeInst n = new Xml807.MenuNodeInst();
+                n.protoName = pn.getName();
+                n.function = PrimitiveNode.Function.PIN;
+                return n;
+            }
+            return t.findNode(((PrimitiveNode)entry).getName());
+        }
+        if (entry instanceof NodeInst) {
+            NodeInst ni = (NodeInst)entry;
+            Xml807.MenuNodeInst n = new Xml807.MenuNodeInst();
+            n.protoName = ni.getProto().getName();
+            n.function = ni.getFunction();
+            n.rotation = ni.getOrient().getAngle();
+            for (Iterator<Variable> it = ni.getVariables(); it.hasNext(); ) {
+                Variable var = it.next();
+                n.text = (String)var.getObject();
+                n.fontSize = var.getSize().getSize();
+            }
+            return n;
+        }
+        assert entry instanceof String;
+        return entry;
+    }
 
     /****************************** LAYERS ******************************/
 

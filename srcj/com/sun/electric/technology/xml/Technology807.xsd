@@ -345,6 +345,10 @@
         </xsd:restriction>
     </xsd:simpleType>
 
+    <xsd:simpleType name="DisplayStyleName">
+        <xsd:restriction base="xsd:NCName"/>
+    </xsd:simpleType>
+
     <xsd:simpleType name="RuleName">
         <xsd:restriction base="xsd:string"/>
     </xsd:simpleType>
@@ -442,37 +446,9 @@
                         <xsd:attribute name="value" type="xsd:double" use="required"/>
                     </xsd:complexType>
                 </xsd:element>
-                <xsd:element name="transparentLayer" minOccurs="0" maxOccurs="12">
-                    <xsd:complexType>
-                        <xsd:sequence>
-                            <xsd:group ref="tns:Color"/>
-                        </xsd:sequence>
-                        <xsd:attribute name="transparent" type="tns:TransparentLayer"/>
-                    </xsd:complexType>
-                </xsd:element>
                 <xsd:element name="layer" maxOccurs="unbounded" minOccurs="0">
                     <xsd:complexType>
                         <xsd:sequence>
-                            <xsd:choice>
-                                <xsd:element name="transparentColor">
-                                    <xsd:complexType>
-                                        <xsd:attribute name="transparent" type="tns:TransparentLayer"/>
-                                    </xsd:complexType>
-                                </xsd:element>
-                                <xsd:element name="opaqueColor" type="tns:ColorRGB"></xsd:element>
-                            </xsd:choice>
-                            <xsd:element name="patternedOnDisplay" type="xsd:boolean"></xsd:element>
-                            <xsd:element name="patternedOnPrinter" type="xsd:boolean"></xsd:element>
-                            <xsd:element name="pattern" minOccurs="16" maxOccurs="16">
-                                <xsd:simpleType>
-                                    <xsd:restriction base="xsd:string">
-                                        <xsd:pattern value="[X ]{16}"/>
-                                    </xsd:restriction>
-                                </xsd:simpleType>
-                            </xsd:element>
-                            <xsd:element name="outlined" type="tns:LayerOutline"></xsd:element>
-                            <xsd:element name="opacity" type="tns:Opacity"></xsd:element>
-                            <xsd:element name="foreground" type="xsd:boolean"></xsd:element>
                             <xsd:element name="display3D" minOccurs="0">
                                 <xsd:complexType>
                                     <xsd:attribute name="thick" type="xsd:double" use="required"/>
@@ -747,6 +723,59 @@
                         <xsd:attribute name="level" type="tns:SpiceLevel"/>
                     </xsd:complexType>
                 </xsd:element>
+                <xsd:element name="displayStyle">
+                    <xsd:complexType>
+                        <xsd:sequence>
+                            <xsd:element name="transparentLayer" minOccurs="0" maxOccurs="12">
+                                <xsd:complexType>
+                                    <xsd:sequence>
+                                        <xsd:group ref="tns:Color"/>
+                                    </xsd:sequence>
+                                    <xsd:attribute name="transparent" type="tns:TransparentLayer"/>
+                                </xsd:complexType>
+                            </xsd:element>
+                            <xsd:element name="layer" maxOccurs="unbounded" minOccurs="0">
+                                <xsd:complexType>
+                                    <xsd:sequence>
+                                        <xsd:choice>
+                                            <xsd:element name="transparentColor">
+                                                <xsd:complexType>
+                                                    <xsd:attribute name="transparent" type="tns:TransparentLayer"/>
+                                                </xsd:complexType>
+                                            </xsd:element>
+                                            <xsd:element name="opaqueColor" type="tns:ColorRGB"></xsd:element>
+                                        </xsd:choice>
+                                        <xsd:element name="patternedOnDisplay" type="xsd:boolean"></xsd:element>
+                                        <xsd:element name="patternedOnPrinter" type="xsd:boolean"></xsd:element>
+                                        <xsd:element name="pattern" minOccurs="16" maxOccurs="16">
+                                            <xsd:simpleType>
+                                                <xsd:restriction base="xsd:string">
+                                                    <xsd:pattern value="[X ]{16}"/>
+                                                </xsd:restriction>
+                                            </xsd:simpleType>
+                                        </xsd:element>
+                                        <xsd:element name="outlined" type="tns:LayerOutline"></xsd:element>
+                                        <xsd:element name="opacity" type="tns:Opacity"></xsd:element>
+                                        <xsd:element name="foreground" type="xsd:boolean"></xsd:element>
+                                    </xsd:sequence>
+                                    <xsd:attribute name="name" type="tns:LayerName" use="required"/>
+                                </xsd:complexType>
+                            </xsd:element>
+                        </xsd:sequence>
+                        <xsd:attribute name="name" type="tns:DisplayStyleName" use="required"/>
+                    </xsd:complexType>
+
+                    <xsd:key name="transparent">
+                        <xsd:selector xpath="./tns:transparentLayer"/>
+                        <xsd:field xpath="@transparent"/>
+                    </xsd:key>
+
+                    <xsd:keyref name="transparentRef" refer="tns:transparent">
+                        <!-- every vehicle refers to its state -->
+                        <xsd:selector xpath=".//tns:transparentColor"/>
+                        <xsd:field xpath="@transparent"/>
+                    </xsd:keyref>
+                </xsd:element>
                 <xsd:element name="menuPalette" minOccurs="0">
                     <xsd:complexType>
                         <xsd:sequence>
@@ -829,16 +858,5 @@
             <xsd:attribute name="name" type="xsd:NCName" use="required"/>
             <xsd:attribute name="class" type="tns:ClassName"/>
         </xsd:complexType>
-
-        <xsd:key name="transparent">
-            <xsd:selector xpath="./tns:transparentLayer"/>
-            <xsd:field xpath="@transparent"/>
-        </xsd:key>
-
-        <xsd:keyref name="transparentRef" refer="tns:transparent">
-            <!-- every vehicle refers to its state -->
-            <xsd:selector xpath=".//tns:transparentColor"/>
-            <xsd:field xpath="@transparent"/>
-        </xsd:keyref>
     </xsd:element>
 </xsd:schema>

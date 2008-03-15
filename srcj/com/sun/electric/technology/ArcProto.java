@@ -30,6 +30,7 @@ import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.id.ArcProtoId;
 import com.sun.electric.database.text.Pref;
+import com.sun.electric.technology.xml.Xml807;
 import com.sun.electric.tool.erc.ERC;
 import com.sun.electric.tool.user.User;
 
@@ -880,7 +881,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	{
         if (arcPin != null)
             return arcPin;
-        
+
 		// search for an appropriate pin
 		Iterator<PrimitiveNode> it = tech.getNodes();
 		while (it.hasNext())
@@ -1087,7 +1088,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
         if (arcPin != null)
             arcPin.resizeArcPin();
     }
-    
+
 //	/**
 //	 * Method to set the surround distance of layer "outerlayer" from layer "innerlayer"
 //	 * in arc "aty" to "surround".
@@ -1283,6 +1284,43 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
             a.arcLayers.add(arcLayer.makeXml());
         if (arcPin != null) {
             a.arcPin = new Xml.ArcPin();
+            a.arcPin.name = arcPin.getName();
+            PrimitivePort port = arcPin.getPort(0);
+            a.arcPin.portName = port.getName();
+            a.arcPin.elibSize = 2*arcPin.getSizeCorrector(0).getX();
+            for (ArcProto cap: port.getConnections()) {
+                if (cap.getTechnology() == tech && cap != this)
+                    a.arcPin.portArcs.add(cap.getName());
+            }
+
+        }
+        return a;
+    }
+
+    Xml807.ArcProto makeXml807() {
+        Xml807.ArcProto a = new Xml807.ArcProto();
+        a.name = getName();
+        for (Map.Entry<String,ArcProto> e: tech.getOldArcNames().entrySet()) {
+            if (e.getValue() != this) continue;
+            assert a.oldName == null;
+            a.oldName = e.getKey();
+        }
+        a.function = getFunction();
+        a.wipable = isWipable();
+        a.curvable = isCurvable();
+        a.special = isSpecialArc();
+        a.notUsed = isNotUsed();
+        a.skipSizeInPalette = isSkipSizeInPalette();
+
+        a.elibWidthOffset = getLambdaElibWidthOffset();
+        a.extended = isExtended();
+        a.fixedAngle = isFixedAngle();
+        a.angleIncrement = getAngleIncrement();
+        a.antennaRatio = ERC.getERCTool().getAntennaRatio(this);
+        for (Technology.ArcLayer arcLayer: layers)
+            a.arcLayers.add(arcLayer.makeXml807());
+        if (arcPin != null) {
+            a.arcPin = new Xml807.ArcPin();
             a.arcPin.name = arcPin.getName();
             PrimitivePort port = arcPin.getPort(0);
             a.arcPin.portName = port.getName();

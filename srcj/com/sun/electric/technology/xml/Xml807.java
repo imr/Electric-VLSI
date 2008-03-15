@@ -31,6 +31,7 @@ import com.sun.electric.technology.DRCTemplate;
 import com.sun.electric.technology.EdgeH;
 import com.sun.electric.technology.EdgeV;
 import com.sun.electric.technology.Technology.TechPoint;
+import com.sun.electric.technology.Xml;
 import com.sun.electric.tool.Job;
 
 import java.awt.Color;
@@ -82,11 +83,11 @@ public class Xml807 {
         public String defaultFoundry;
         public double minResistance;
         public double minCapacitance;
-        public final List<Color> transparentLayers = new ArrayList<Color>();
         public final List<Layer> layers = new ArrayList<Layer>();
         public final List<ArcProto> arcs = new ArrayList<ArcProto>();
         public final List<PrimitiveNode> nodes = new ArrayList<PrimitiveNode>();
         public final List<SpiceHeader> spiceHeaders = new ArrayList<SpiceHeader>();
+        public final List<DisplayStyle> displayStyles = new ArrayList<DisplayStyle>();
         public MenuPalette menuPalette;
         public final List<Foundry> foundries = new ArrayList<Foundry>();
 
@@ -132,7 +133,6 @@ public class Xml807 {
         public String name;
         public com.sun.electric.technology.Layer.Function function;
         public int extraFunction;
-        public EGraphics desc;
         public double thick3D;
         public double height3D;
         public String mode3D;
@@ -257,6 +257,17 @@ public class Xml807 {
         public final List<String> spiceLines = new ArrayList<String>();
     }
 
+    public static class DisplayStyle implements Serializable {
+        public String name;
+        public final List<Color> transparentLayers = new ArrayList<Color>();
+        public final List<LayerDisplayStyle> layerStyles = new ArrayList<LayerDisplayStyle>();
+    }
+    
+    public static class LayerDisplayStyle implements Serializable {
+        public String layerName;
+        public EGraphics desc;
+    }
+    
     public static class MenuPalette implements Serializable {
         public int numColumns;
         public List<List<Object>> menuBoxes = new ArrayList<List<Object>>();
@@ -297,6 +308,13 @@ public class Xml807 {
                 terms.add(term.clone());
         }
 
+        public void assign(Xml.Distance d) {
+            k = d.k;
+            lambdaValue = d.lambdaValue;
+            for (Xml.DistanceRule term: d.terms)
+                terms.add(new DistanceRule(term));
+        }
+
         public Distance clone() {
             Distance d = new Distance();
             d.assign(this);
@@ -319,10 +337,7 @@ public class Xml807 {
             lambdaValue += value;
         }
         public void addRule(String ruleName, double k) {
-            DistanceRule term = new DistanceRule();
-            term.ruleName = ruleName;
-            term.k = k;
-            terms.add(term);
+            terms.add(new DistanceRule(ruleName, k));
         }
         public boolean isEmpty() { return lambdaValue == 0 && terms.isEmpty(); }
     }
@@ -335,6 +350,15 @@ public class Xml807 {
         String ruleName;
         double k;
 
+        public DistanceRule(Xml.DistanceRule oldRule) {
+            this(oldRule.ruleName, oldRule.k);
+        }
+        
+        public DistanceRule(String ruleName, double k) {
+            this.ruleName = ruleName;
+            this.k = k;
+        }
+        
         public DistanceRule clone() {
             try {
                 return (DistanceRule)super.clone();
@@ -373,19 +397,7 @@ public class Xml807 {
         defaultFoundry,
         minResistance,
         minCapacitance,
-        transparentLayer,
-        r(true),
-        g(true),
-        b(true),
         layer,
-        transparentColor,
-        opaqueColor,
-        patternedOnDisplay(true),
-        patternedOnPrinter(true),
-        pattern(true),
-        outlined(true),
-        opacity(true),
-        foreground(true),
         display3D,
         cifLayer,
         skillLayer,
@@ -448,6 +460,21 @@ public class Xml807 {
         spiceTemplate,
         spiceHeader,
         spiceLine,
+        
+        displayStyle,
+        transparentLayer,
+        r(true),
+        g(true),
+        b(true),
+        transparentColor,
+        opaqueColor,
+        patternedOnDisplay(true),
+        patternedOnPrinter(true),
+        pattern(true),
+        outlined(true),
+        opacity(true),
+        foreground(true),
+        
         menuPalette,
         menuBox,
         menuArc(true),
@@ -486,13 +513,13 @@ public class Xml807 {
     private static synchronized void loadTechnologySchema() throws SAXException {
         if (schema != null) return;
         SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-        URL technologySchemaUrl = Technology.class.getResource("Technology.xsd");
+        URL technologySchemaUrl = Technology.class.getResource("xml/Technology807.xsd");
         if (technologySchemaUrl != null)
             schema = schemaFactory.newSchema(technologySchemaUrl);
         else
         {
-            System.err.println("Schema file Technology.xsd, working without XML schema");
-            System.out.println("Schema file Technology.xsd, working without XML schema");
+            System.err.println("Schema file Technology807.xsd, working without XML schema");
+            System.out.println("Schema file Technology807.xsd, working without XML schema");
         }
     }
 
@@ -569,18 +596,7 @@ public class Xml807 {
         private Locator locator;
 
         private Technology tech = new Technology();
-        private int curTransparent = 0;
-        private int curR;
-        private int curG;
-        private int curB;
         private Layer curLayer;
-        private boolean patternedOnDisplay;
-        private boolean patternedOnPrinter;
-        private final int[] pattern = new int[16];
-        private int curPatternIndex;
-        private EGraphics.Outline outline;
-        private double opacity;
-        private boolean foreground;
         private ArcProto curArc;
         private PrimitiveNode curNode;
         private NodeLayer curNodeLayer;
@@ -591,6 +607,21 @@ public class Xml807 {
         private MenuCell curMenuCell;
         private Distance curDistance;
         private SpiceHeader curSpiceHeader;
+        
+        private DisplayStyle curDisplayStyle;
+        private int curTransparent = 0;
+        private int curR;
+        private int curG;
+        private int curB;
+        private LayerDisplayStyle curLayerDisplayStyle;
+        private boolean patternedOnDisplay;
+        private boolean patternedOnPrinter;
+        private final int[] pattern = new int[16];
+        private int curPatternIndex;
+        private EGraphics.Outline outline;
+        private double opacity;
+        private boolean foreground;
+        
         private Foundry curFoundry;
 
         private boolean acceptCharacters;
@@ -865,48 +896,36 @@ public class Xml807 {
                 case minCapacitance:
                     tech.minCapacitance = Double.parseDouble(a("value"));
                     break;
-                case transparentLayer:
-                    curTransparent = Integer.parseInt(a("transparent"));
-                    curR = curG = curB = 0;
-                    break;
                 case layer:
-                    curLayer = new Layer();
-                    curLayer.name = a("name");
-                    curLayer.function = com.sun.electric.technology.Layer.Function.valueOf(a("fun"));
-                    String extraFunStr = a_("extraFun");
-                    if (extraFunStr != null) {
-                        if (extraFunStr.equals("depletion_heavy"))
-                            curLayer.extraFunction = com.sun.electric.technology.Layer.Function.DEPLETION|com.sun.electric.technology.Layer.Function.HEAVY;
-                        else if (extraFunStr.equals("depletion_light"))
-                            curLayer.extraFunction = com.sun.electric.technology.Layer.Function.DEPLETION|com.sun.electric.technology.Layer.Function.LIGHT;
-                        else if (extraFunStr.equals("enhancement_heavy"))
-                            curLayer.extraFunction = com.sun.electric.technology.Layer.Function.ENHANCEMENT|com.sun.electric.technology.Layer.Function.HEAVY;
-                        else if (extraFunStr.equals("enhancement_light"))
-                            curLayer.extraFunction = com.sun.electric.technology.Layer.Function.ENHANCEMENT|com.sun.electric.technology.Layer.Function.LIGHT;
-                        else
-                            curLayer.extraFunction = com.sun.electric.technology.Layer.Function.parseExtraName(extraFunStr);
+                    if (curDisplayStyle != null) {
+                        curLayerDisplayStyle = new LayerDisplayStyle();
+                        curLayerDisplayStyle.layerName = a("name");
+                        curDisplayStyle.layerStyles.add(curLayerDisplayStyle);
+                        curTransparent = 0;
+                        curR = curG = curB = 0;
+                        patternedOnDisplay = false;
+                        patternedOnPrinter = false;
+                        Arrays.fill(pattern, 0);
+                        curPatternIndex = 0;
+//                      EGraphics.Outline outline = null;
+                    } else {
+                        curLayer = new Layer();
+                        curLayer.name = a("name");
+                        curLayer.function = com.sun.electric.technology.Layer.Function.valueOf(a("fun"));
+                        String extraFunStr = a_("extraFun");
+                        if (extraFunStr != null) {
+                            if (extraFunStr.equals("depletion_heavy"))
+                                curLayer.extraFunction = com.sun.electric.technology.Layer.Function.DEPLETION|com.sun.electric.technology.Layer.Function.HEAVY;
+                            else if (extraFunStr.equals("depletion_light"))
+                                curLayer.extraFunction = com.sun.electric.technology.Layer.Function.DEPLETION|com.sun.electric.technology.Layer.Function.LIGHT;
+                            else if (extraFunStr.equals("enhancement_heavy"))
+                                curLayer.extraFunction = com.sun.electric.technology.Layer.Function.ENHANCEMENT|com.sun.electric.technology.Layer.Function.HEAVY;
+                            else if (extraFunStr.equals("enhancement_light"))
+                                curLayer.extraFunction = com.sun.electric.technology.Layer.Function.ENHANCEMENT|com.sun.electric.technology.Layer.Function.LIGHT;
+                            else
+                                curLayer.extraFunction = com.sun.electric.technology.Layer.Function.parseExtraName(extraFunStr);
+                        }
                     }
-                    curTransparent = 0;
-                    curR = curG = curB = 0;
-                    patternedOnDisplay = false;
-                    patternedOnPrinter = false;
-                    Arrays.fill(pattern, 0);
-                    curPatternIndex = 0;
-//                    EGraphics.Outline outline = null;
-                    break;
-                case transparentColor:
-                    curTransparent = Integer.parseInt(a("transparent"));
-                    if (curTransparent > 0) {
-                        Color color = tech.transparentLayers.get(curTransparent - 1);
-                        curR = color.getRed();
-                        curG = color.getGreen();
-                        curB = color.getBlue();
-                    }
-                    break;
-                case opaqueColor:
-                    curR = Integer.parseInt(a("r"));
-                    curG = Integer.parseInt(a("g"));
-                    curB = Integer.parseInt(a("b"));
                     break;
                 case display3D:
                     curLayer.thick3D = Double.parseDouble(a("thick"));
@@ -1141,6 +1160,31 @@ public class Xml807 {
                 case spiceLine:
                     curSpiceHeader.spiceLines.add(a("line"));
                     break;
+                    
+                case displayStyle:
+                    curDisplayStyle = new DisplayStyle();
+                    curDisplayStyle.name = a("name");
+                    tech.displayStyles.add(curDisplayStyle);
+                    break;
+                case transparentLayer:
+                    curTransparent = Integer.parseInt(a("transparent"));
+                    curR = curG = curB = 0;
+                    break;
+                case transparentColor:
+                    curTransparent = Integer.parseInt(a("transparent"));
+                    if (curTransparent > 0) {
+                        Color color = curDisplayStyle.transparentLayers.get(curTransparent - 1);
+                        curR = color.getRed();
+                        curG = color.getGreen();
+                        curB = color.getBlue();
+                    }
+                    break;
+                case opaqueColor:
+                    curR = Integer.parseInt(a("r"));
+                    curG = Integer.parseInt(a("g"));
+                    curB = Integer.parseInt(a("b"));
+                    break;
+                    
                 case menuPalette:
                     tech.menuPalette = new MenuPalette();
                     tech.menuPalette.numColumns = Integer.parseInt(a("numColumns"));
@@ -1252,39 +1296,6 @@ public class Xml807 {
                     case description:
                         tech.description = text;
                         break;
-                    case r:
-                        curR = Integer.parseInt(text);
-                        break;
-                    case g:
-                        curG = Integer.parseInt(text);
-                        break;
-                    case b:
-                        curB = Integer.parseInt(text);
-                        break;
-                    case patternedOnDisplay:
-                        patternedOnDisplay = Boolean.parseBoolean(text);
-                        break;
-                    case patternedOnPrinter:
-                        patternedOnPrinter = Boolean.parseBoolean(text);
-                        break;
-                    case pattern:
-                        int p = 0;
-                        assert text.length() == 16;
-                        for (int j = 0; j < text.length(); j++) {
-                            if (text.charAt(text.length() - j - 1) != ' ')
-                                p |= (1 << j);
-                        }
-                        pattern[curPatternIndex++] = p;
-                        break;
-                    case outlined:
-                        outline = EGraphics.Outline.valueOf(text);
-                        break;
-                    case opacity:
-                        opacity = Double.parseDouble(text);
-                        break;
-                    case foreground:
-                        foreground = Boolean.parseBoolean(text);
-                        break;
                     case oldName:
                         if (curLayer != null)
                             curLayer.pureLayerNode.oldName = text;
@@ -1325,6 +1336,41 @@ public class Xml807 {
                     case specialValue:
                         curNode.specialValues[curSpecialValueIndex++] = Double.parseDouble(text);
                         break;
+                        
+                    case r:
+                        curR = Integer.parseInt(text);
+                        break;
+                    case g:
+                        curG = Integer.parseInt(text);
+                        break;
+                    case b:
+                        curB = Integer.parseInt(text);
+                        break;
+                    case patternedOnDisplay:
+                        patternedOnDisplay = Boolean.parseBoolean(text);
+                        break;
+                    case patternedOnPrinter:
+                        patternedOnPrinter = Boolean.parseBoolean(text);
+                        break;
+                    case pattern:
+                        int p = 0;
+                        assert text.length() == 16;
+                        for (int j = 0; j < text.length(); j++) {
+                            if (text.charAt(text.length() - j - 1) != ' ')
+                                p |= (1 << j);
+                        }
+                        pattern[curPatternIndex++] = p;
+                        break;
+                    case outlined:
+                        outline = EGraphics.Outline.valueOf(text);
+                        break;
+                    case opacity:
+                        opacity = Double.parseDouble(text);
+                        break;
+                    case foreground:
+                        foreground = Boolean.parseBoolean(text);
+                        break;
+                        
                     case menuArc:
                         curMenuBox.add(tech.findArc(text));
                         break;
@@ -1346,19 +1392,17 @@ public class Xml807 {
             switch (key) {
                 case technology:
                     break;
-                case transparentLayer:
-                    while (curTransparent > tech.transparentLayers.size())
-                        tech.transparentLayers.add(null);
-                    Color oldColor = tech.transparentLayers.set(curTransparent - 1, new Color(curR, curG, curB));
-                    assert oldColor == null;
-                    break;
                 case layer:
-                    assert curPatternIndex == pattern.length;
-                    curLayer.desc = new EGraphics(patternedOnDisplay, patternedOnPrinter, outline, curTransparent,
+                    if (curDisplayStyle != null) {
+                        assert curPatternIndex == pattern.length;
+                        curLayerDisplayStyle.desc = new EGraphics(patternedOnDisplay, patternedOnPrinter, outline, curTransparent,
                             curR, curG, curB, opacity, foreground, pattern.clone());
-                    assert tech.findLayer(curLayer.name) == null;
-                    tech.layers.add(curLayer);
-                    curLayer = null;
+                        curLayerDisplayStyle = null;
+                    } else {
+                        assert tech.findLayer(curLayer.name) == null;
+                        tech.layers.add(curLayer);
+                        curLayer = null;
+                    }
                     break;
                 case arcProto:
                     tech.arcs.add(curArc);
@@ -1380,13 +1424,23 @@ public class Xml807 {
                 	curMenuBox.add(curMenuNodeInst);
                     curMenuNodeInst = null;
                     break;
+                    
+                case displayStyle:
+                    curDisplayStyle = null;
+                    break;
+                case transparentLayer:
+                    while (curTransparent > curDisplayStyle.transparentLayers.size())
+                        curDisplayStyle.transparentLayers.add(null);
+                    Color oldColor = curDisplayStyle.transparentLayers.set(curTransparent - 1, new Color(curR, curG, curB));
+                    assert oldColor == null;
+                    break;
+                    
                 case menuCell:
                 	curMenuBox.add("LOADCELL " + curMenuCell.cellName);
 //                	curMenuBox.add(curMenuCell);
                     curMenuCell = null;
                     break;
 
-                case spiceHeader:
                 case numMetals:
                 case scale:
                 case defaultFoundry:
@@ -1435,8 +1489,11 @@ public class Xml807 {
                 case polygonal:
                 case serpTrans:
                 case minSizeRule:
+                    
+                case spiceHeader:
                 case spiceLine:
                 case spiceTemplate:
+                    
                 case menuPalette:
                 case menuBox:
                 case menuNodeText:
@@ -1675,7 +1732,7 @@ public class Xml807 {
             b(XmlKeyword.technology); a("name", t.techName); a("class", t.className); l();
             a("xmlns", "http://electric.sun.com/Technology"); l();
             a("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance"); l();
-            a("xsi:schemaLocation", "http://electric.sun.com/Technology ../../technology/Technology.xsd"); cl();
+            a("xsi:schemaLocation", "http://electric.sun.com/Technology ../../technology/xml/Technology807.xsd"); cl();
             l();
 
             bcpel(XmlKeyword.shortName, t.shortTechName);
@@ -1689,19 +1746,6 @@ public class Xml807 {
 //        printlnAttribute("  gateInclusion", gi.includeGateInResistance);
 //        printlnAttribute("  groundNetInclusion", gi.includeGround);
             l();
-
-            if (t.transparentLayers.size() != 0) {
-                comment("Transparent layers");
-                for (int i = 0; i < t.transparentLayers.size(); i++) {
-                    Color color = t.transparentLayers.get(i);
-                    b(XmlKeyword.transparentLayer); a("transparent", i + 1); cl();
-                    bcpel(XmlKeyword.r, color.getRed());
-                    bcpel(XmlKeyword.g, color.getGreen());
-                    bcpel(XmlKeyword.b, color.getBlue());
-                    el(XmlKeyword.transparentLayer);
-                }
-                l();
-            }
 
             comment("**************************************** LAYERS ****************************************");
             for (Layer li: t.layers) {
@@ -1722,6 +1766,9 @@ public class Xml807 {
 
             for (SpiceHeader spiceHeader: t.spiceHeaders)
                 writeSpiceHeaderXml(spiceHeader);
+            
+            for (DisplayStyle displayStyle: t.displayStyles)
+                writeDisplayStyleXml(displayStyle);
 
             writeMenuPaletteXml(t.menuPalette);
 
@@ -1732,7 +1779,6 @@ public class Xml807 {
         }
 
         private void writeXml(Layer li) {
-            EGraphics desc = li.desc;
             String funString = null;
             int funExtra = li.extraFunction;
             if (funExtra != 0) {
@@ -1747,29 +1793,6 @@ public class Xml807 {
                 }
             }
             b(XmlKeyword.layer); a("name", li.name); a("fun", li.function.name()); a("extraFun", funString); cl();
-
-            if (desc.getTransparentLayer() > 0) {
-                b(XmlKeyword.transparentColor); a("transparent", desc.getTransparentLayer()); el();
-            } else {
-                Color color = desc.getColor();
-                b(XmlKeyword.opaqueColor); a("r", color.getRed()); a("g", color.getGreen()); a("b", color.getBlue()); el();
-            }
-
-            bcpel(XmlKeyword.patternedOnDisplay, desc.isPatternedOnDisplay());
-            bcpel(XmlKeyword.patternedOnPrinter, desc.isPatternedOnPrinter());
-
-            int [] pattern = desc.getPattern();
-            for(int j=0; j<16; j++) {
-                String p = "";
-                for(int k=0; k<16; k++)
-                    p += (pattern[j] & (1 << (15-k))) != 0 ? 'X' : ' ';
-                bcpel(XmlKeyword.pattern, p);
-            }
-
-            if (li.desc.getOutlined() != null)
-                bcpel(XmlKeyword.outlined, desc.getOutlined().getConstName());
-            bcpel(XmlKeyword.opacity, desc.getOpacity());
-            bcpel(XmlKeyword.foreground, desc.getForeground());
 
             // write the 3D information
             if (li.thick3D != com.sun.electric.technology.Layer.DEFAULT_THICKNESS ||
@@ -2019,6 +2042,54 @@ public class Xml807 {
                 b(XmlKeyword.spiceLine); a("line", line); el();
             }
             el(XmlKeyword.spiceHeader);
+            l();
+        }
+        
+        private void writeDisplayStyleXml(DisplayStyle displayStyle) {
+            b(XmlKeyword.displayStyle); a("name", displayStyle.name); cl();
+            
+            if (displayStyle.transparentLayers.size() != 0) {
+                comment("Transparent layers");
+                for (int i = 0; i < displayStyle.transparentLayers.size(); i++) {
+                    Color color = displayStyle.transparentLayers.get(i);
+                    b(XmlKeyword.transparentLayer); a("transparent", i + 1); cl();
+                    bcpel(XmlKeyword.r, color.getRed());
+                    bcpel(XmlKeyword.g, color.getGreen());
+                    bcpel(XmlKeyword.b, color.getBlue());
+                    el(XmlKeyword.transparentLayer);
+                }
+                l();
+            }
+            
+            for (LayerDisplayStyle l: displayStyle.layerStyles) {
+                b(XmlKeyword.layer); a("name", l.layerName); cl();
+                EGraphics desc = l.desc;
+                if (desc.getTransparentLayer() > 0) {
+                    b(XmlKeyword.transparentColor); a("transparent", desc.getTransparentLayer()); el();
+                } else {
+                    Color color = desc.getColor();
+                    b(XmlKeyword.opaqueColor); a("r", color.getRed()); a("g", color.getGreen()); a("b", color.getBlue()); el();
+                }
+
+                bcpel(XmlKeyword.patternedOnDisplay, desc.isPatternedOnDisplay());
+                bcpel(XmlKeyword.patternedOnPrinter, desc.isPatternedOnPrinter());
+
+                int [] pattern = desc.getPattern();
+                for(int j=0; j<16; j++) {
+                    String p = "";
+                    for(int k=0; k<16; k++)
+                        p += (pattern[j] & (1 << (15-k))) != 0 ? 'X' : ' ';
+                    bcpel(XmlKeyword.pattern, p);
+                }
+
+                if (desc.getOutlined() != null)
+                    bcpel(XmlKeyword.outlined, desc.getOutlined().getConstName());
+                bcpel(XmlKeyword.opacity, desc.getOpacity());
+                bcpel(XmlKeyword.foreground, desc.getForeground());
+                el(XmlKeyword.layer);
+            }
+
+            el(XmlKeyword.displayStyle);
             l();
         }
 

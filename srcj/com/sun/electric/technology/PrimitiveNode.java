@@ -41,6 +41,7 @@ import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.technology.xml.Xml807;
 import com.sun.electric.tool.user.User;
 
 import java.io.IOException;
@@ -1211,7 +1212,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
         sizeCorrectors[1] = EPoint.fromGrid(baseRectangle.getGridWidth() >> 1, baseRectangle.getGridHeight() >> 1);
         check();
     }
-    
+
     public void resize(Xml.DistanceContext context) {
         for (Technology.NodeLayer nl: layers)
             nl.resize(context);
@@ -2071,6 +2072,106 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
         return n;
     }
 
+    Xml807.PrimitiveNode makeXml807() {
+        Xml807.PrimitiveNode n = new Xml807.PrimitiveNode();
+        n.name = getName();
+        for (Map.Entry<String,PrimitiveNode> e: tech.getOldNodeNames().entrySet()) {
+            if (e.getValue() != this) continue;
+            assert n.oldName == null;
+            n.oldName = e.getKey();
+        }
+        n.function = getFunction();
+        n.shrinkArcs = isArcsShrink();
+        n.square = isSquare();
+        n.canBeZeroSize = isCanBeZeroSize();
+        n.wipes = isWipeOn1or2();
+        n.lockable = isLockedPrim();
+        n.edgeSelect = isEdgeSelect();
+        n.skipSizeInPalette = isSkipSizeInPalette();
+        n.notUsed = isNotUsed();
+        n.lowVt = isNodeBitOn(PrimitiveNode.LOWVTBIT);
+        n.highVt = isNodeBitOn(PrimitiveNode.HIGHVTBIT);
+        n.nativeBit  = isNodeBitOn(PrimitiveNode.NATIVEBIT);
+        n.od18 = isNodeBitOn(PrimitiveNode.OD18BIT);
+        n.od25 = isNodeBitOn(PrimitiveNode.OD25BIT);
+        n.od33 = isNodeBitOn(PrimitiveNode.OD33BIT);
+
+        PrimitiveNode.NodeSizeRule nodeSizeRule = getMinSizeRule();
+        EPoint minFullSize = nodeSizeRule != null ?
+            EPoint.fromLambda(0.5*nodeSizeRule.getWidth(), 0.5*nodeSizeRule.getHeight()) :
+            EPoint.fromLambda(0.5*getDefWidth(), 0.5*getDefHeight());
+        if (getFunction() == PrimitiveNode.Function.PIN && isArcsShrink()) {
+            assert getNumPorts() == 1;
+            assert nodeSizeRule == null;
+            PrimitivePort pp = getPort(0);
+            assert pp.getLeft().getMultiplier() == -0.5 && pp.getRight().getMultiplier() == 0.5 && pp.getBottom().getMultiplier() == -0.5 && pp.getTop().getMultiplier() == 0.5;
+            assert pp.getLeft().getAdder() == -pp.getRight().getAdder() && pp.getBottom().getAdder() == -pp.getTop().getAdder();
+            minFullSize = EPoint.fromLambda(pp.getLeft().getAdder(), pp.getBottom().getAdder());
+        }
+//            DRCTemplate nodeSize = xmlRules.getRule(pnp.getPrimNodeIndexInTech(), DRCTemplate.DRCRuleType.NODSIZ);
+        SizeOffset so = getProtoSizeOffset();
+        if (so.getLowXOffset() == 0 && so.getHighXOffset() == 0 && so.getLowYOffset() == 0 && so.getHighYOffset() == 0)
+            so = null;
+//            EPoint minFullSize = EPoint.fromLambda(0.5*pnp.getDefWidth(), 0.5*pnp.getDefHeight());
+        if (!minFullSize.equals(EPoint.ORIGIN))
+            n.diskOffset = minFullSize;
+//        if (so != null) {
+//            EPoint p2 = EPoint.fromGrid(
+//                    minFullSize.getGridX() - ((so.getLowXGridOffset() + so.getHighXGridOffset()) >> 1),
+//                    minFullSize.getGridY() - ((so.getLowYGridOffset() + so.getHighYGridOffset()) >> 1));
+//            n.diskOffset.put(Integer.valueOf(1), minFullSize);
+//            n.diskOffset.put(Integer.valueOf(2), p2);
+//        } else {
+//            n.diskOffset.put(Integer.valueOf(2), minFullSize);
+//        }
+        n.defaultWidth.addLambda(DBMath.round(getDefWidth() - 2*minFullSize.getLambdaX()));
+        n.defaultHeight.addLambda(DBMath.round(getDefHeight() - 2*minFullSize.getLambdaY()));
+//            if (so != null) {
+//                EPoint p1 = EPoint.fromLambda(0.5*(so.getLowXOffset() + so.getHighXOffset()), 0.5*(so.getLowYOffset() + so.getHighYOffset()));
+//                n.diskOffset.put(Integer.valueOf(1), p1);
+//                n.diskOffset.put(Integer.valueOf(2), EPoint.ORIGIN);
+//            } else {
+//            }
+//            n.defaultWidth.value = DBMath.round(pnp.getDefWidth());
+//            n.defaultHeight.value = DBMath.round(pnp.getDefHeight());
+        n.nodeBase = baseRectangle;
+
+        List<Technology.NodeLayer> nodeLayers = Arrays.asList(getLayers());
+        List<Technology.NodeLayer> electricalNodeLayers = nodeLayers;
+        if (getElectricalLayers() != null)
+            electricalNodeLayers = Arrays.asList(getElectricalLayers());
+        boolean isSerp = getSpecialType() == PrimitiveNode.SERPTRANS;
+        int m = 0;
+        for (Technology.NodeLayer nld: electricalNodeLayers) {
+            int j = nodeLayers.indexOf(nld);
+            if (j < 0) {
+                n.nodeLayers.add(nld.makeXml807(isSerp, minFullSize, false, true));
+                continue;
+            }
+            while (m < j)
+                n.nodeLayers.add(nodeLayers.get(m++).makeXml807(isSerp, minFullSize, true, false));
+            n.nodeLayers.add(nodeLayers.get(m++).makeXml807(isSerp, minFullSize, true, true));
+        }
+        while (m < nodeLayers.size())
+            n.nodeLayers.add(nodeLayers.get(m++).makeXml807(isSerp, minFullSize, true, false));
+
+        for (Iterator<PrimitivePort> pit = getPrimitivePorts(); pit.hasNext(); ) {
+            PrimitivePort pp = pit.next();
+            n.ports.add(pp.makeXml807(minFullSize));
+        }
+        n.specialType = getSpecialType();
+        if (getSpecialValues() != null)
+            n.specialValues = getSpecialValues().clone();
+        if (nodeSizeRule != null) {
+            n.nodeSizeRule = new Xml807.NodeSizeRule();
+            n.nodeSizeRule.width = nodeSizeRule.getWidth();
+            n.nodeSizeRule.height = nodeSizeRule.getHeight();
+            n.nodeSizeRule.rule = nodeSizeRule.getRuleName();
+        }
+        n.spiceTemplate = getSpiceTemplate();
+        return n;
+    }
+
 	/**
 	 * Method to get MinZ and MaxZ of the cell calculated based on nodes
 	 * @param array array[0] is minZ and array[1] is max
@@ -2093,7 +2194,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	}
 
 	private void checkChanging() {}
-    
+
     private void check() {
         assert fullRectangle.getGridMinX() == baseRectangle.getGridMinX() - offset.getLowXGridOffset();
         assert fullRectangle.getGridMaxX() == baseRectangle.getGridMaxX() + offset.getHighXGridOffset();

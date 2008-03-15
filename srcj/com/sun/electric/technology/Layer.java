@@ -29,6 +29,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Setting;
+import com.sun.electric.technology.xml.Xml807;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.projectSettings.ProjSettingsNode;
 import com.sun.electric.tool.Job;
@@ -765,7 +766,7 @@ public class Layer
         double lambdaSize = pureLayerNodeXmlSize.getLambda(context);
         pureLayerNode.setDefSize(lambdaSize, lambdaSize);
     }
-    
+
 	/**
 	 * Method to return the Pure Layer Node associated with this Layer.
 	 * @return the Pure Layer Node associated with this Layer.
@@ -1343,7 +1344,7 @@ public class Layer
             setFactorySkillLayer("");
         }
     }
-    
+
 	/**
 	 * Returns a printable version of this Layer.
 	 * @return a printable version of this Layer.
@@ -1352,7 +1353,7 @@ public class Layer
 	{
 		return "Layer " + name;
 	}
-    
+
     void dump(PrintWriter out) {
         final String[] layerBits = {
             null, null, null,
@@ -1396,7 +1397,7 @@ public class Layer
     }
 
     /**
-     * Method to create XML version of a Layer. 
+     * Method to create XML version of a Layer.
      * @return
      */
     Xml.Layer makeXml() {
@@ -1435,6 +1436,54 @@ public class Layer
                 l.pureLayerNode.portArcs.add(ap.getName());
             }
         }
+        return l;
+    }
+
+    /**
+     * Method to create XML version 8.07 of a Layer.
+     * @return
+     */
+    Xml807.Layer makeXml807(Xml807.DisplayStyle displayStyle) {
+        Xml807.Layer l = new Xml807.Layer();
+        l.name = getName();
+        l.function = getFunction();
+        l.extraFunction = getFunctionExtras();
+        l.thick3D = getThickness();
+        l.height3D = getDistance();
+        l.mode3D = getTransparencyMode();
+        l.factor3D = getTransparencyFactor();
+        l.cif = (String)getCIFLayerSetting().getFactoryValue();
+        l.skill = (String)getSkillLayerSetting().getFactoryValue();
+        l.resistance = getResistanceSetting().getDoubleFactoryValue();
+        l.capacitance = getCapacitanceSetting().getDoubleFactoryValue();
+        l.edgeCapacitance = getEdgeCapacitanceSetting().getDoubleFactoryValue();
+//            if (layer.getPseudoLayer() != null)
+//                l.pseudoLayer = layer.getPseudoLayer().getName();
+        if (pureLayerNode != null) {
+            l.pureLayerNode = new Xml807.PureLayerNode();
+            l.pureLayerNode.name = pureLayerNode.getName();
+            for (Map.Entry<String,PrimitiveNode> e: tech.getOldNodeNames().entrySet()) {
+                if (e.getValue() != pureLayerNode) continue;
+                assert l.pureLayerNode.oldName == null;
+                l.pureLayerNode.oldName = e.getKey();
+            }
+            l.pureLayerNode.style = pureLayerNode.getLayers()[0].getStyle();
+            l.pureLayerNode.port = pureLayerNode.getPort(0).getName();
+            if (pureLayerNodeXmlSize != null)
+                l.pureLayerNode.size.assign(pureLayerNodeXmlSize);
+            else
+                l.pureLayerNode.size.addLambda(pureLayerNode.getDefWidth());
+            for (ArcProto ap: pureLayerNode.getPort(0).getConnections()) {
+                if (ap.getTechnology() != tech) continue;
+                l.pureLayerNode.portArcs.add(ap.getName());
+            }
+        }
+        
+        Xml807.LayerDisplayStyle lds = new Xml807.LayerDisplayStyle();
+        lds.layerName = l.name;
+        lds.desc = getGraphics();
+        displayStyle.layerStyles.add(lds);
+        
         return l;
     }
 }
