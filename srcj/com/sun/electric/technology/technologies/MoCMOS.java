@@ -48,6 +48,7 @@ import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.XMLRules;
 import com.sun.electric.technology.Xml;
+import com.sun.electric.technology.xml.Xml807;
 import com.sun.electric.tool.user.User;
 
 import java.awt.Color;
@@ -1985,6 +1986,53 @@ public class MoCMOS extends Technology
         printlnSetting(out, getAnalogSetting());
     }
 
+    @Override
+    protected void makeRuleSets(Xml807.Technology t) {
+        Xml807.RuleSet common = t.newRuleSet("common");
+        Map<Xml807.Layer,Xml807.Distance> layerWidth = common.newLayerRule("width");
+        addRule(t, layerWidth, wellLayers[P_TYPE],   "1.1");
+        addRule(t, layerWidth, wellLayers[N_TYPE],   "1.1");
+        addRule(t, layerWidth, activeLayers[P_TYPE], "2.1");
+        addRule(t, layerWidth, activeLayers[N_TYPE], "2.1");
+        addRule(t, layerWidth, pActiveWellLayer,    "defaultWidth");
+        addRule(t, layerWidth, poly1Layer,           "3.1");
+        addRule(t, layerWidth, transistorPolyLayer,  "3.1");
+        addRule(t, layerWidth, selectLayers[P_TYPE], "4.4");
+        addRule(t, layerWidth, selectLayers[N_TYPE], "4.4");
+        addRule(t, layerWidth, polyCutLayer,         "5.1");
+        addRule(t, layerWidth, activeCutLayer,       "6.1");
+        addRule(t, layerWidth, metalLayers[0],       "7.1");
+        addRule(t, layerWidth, viaLayers[0],         "8.1");
+        addRule(t, layerWidth, metalLayers[1],       "9.1");
+        addRule(t, layerWidth, passivationLayer,    "defaultWidth");
+        addRule(t, layerWidth, poly2_lay,           "11.1");
+        addRule(t, layerWidth, viaLayers[1],        "14.1");
+        addRule(t, layerWidth, metalLayers[2],      "15.1");
+        addRule(t, layerWidth, pBaseLayer,          "16.1", "16.6", "16.5");
+        addRule(t, layerWidth, silicideBlockLayer,  "20.1");
+        addRule(t, layerWidth, viaLayers[2],        "21.1");
+        addRule(t, layerWidth, metalLayers[3],      "22.1");
+        addRule(t, layerWidth, polyCapLayer,        "23.1");
+        addRule(t, layerWidth, thickActiveLayer,    "24.1");
+        addRule(t, layerWidth, viaLayers[3],        "25.1");
+        addRule(t, layerWidth, metalLayers[4],      "26.1");
+        addRule(t, layerWidth, viaLayers[4],        "29.1");
+        addRule(t, layerWidth, metalLayers[5],      "30.1");
+        addRule(t, layerWidth, padFrameLayer,       "defaultWidth");
+        // defaultWidth = 8
+        
+        make3d(t, common);
+    }
+    
+    private void addRule(Xml807.Technology t, Map<Xml807.Layer,Xml807.Distance> layerRule, Layer layer, String ... mocmosRules) {
+        Xml807.Layer l = t.findLayer(layer.getName());
+        Xml807.Distance dist = new Xml807.Distance();
+        dist.addRule(mocmosRules[0], 1);
+        for (int i = 1; i < mocmosRules.length; i++)
+            dist.addRule(mocmosRules[i], 2);
+        layerRule.put(l, dist);
+    }
+    
 	/******************** SCALABLE TRANSISTOR DESCRIPTION ********************/
 
 	private static final int SCALABLE_ACTIVE_TOP = 0;

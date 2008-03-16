@@ -32,7 +32,7 @@ Name of variable is either simple name "ruleName" or
 "ruleName" indexed by one or two layers.
 
 The examples of terms are
-<rule ruleName="minwid" layer="P-Active" k="0.5"/>
+<rule ruleName="width" layer="P-Active" k="0.5"/>
 <rule ruleName="overhang" layer="P-Select" layer2="P-Active">
 <lambda>3.0</lambda>
 
@@ -40,7 +40,7 @@ The examples of terms are
 A construct to define values of rule indexed by layer is 
 <layerRule>. It has ruleName and a map from layers to Distance expressions.
 For example:
-<layerRule ruleName="minwid">
+<layerRule ruleName="width">
   <layer name="Metal-1>  <rule ruleName="7.1"/></layer>
   <layer name="Metal-2>  <rule ruleName="9.1"/></layer>
 </layerRule>
@@ -51,4 +51,9 @@ There will be a section in <foundry> which defines foundry specific rules like t
   <ruleDef ruleName="7.1" value="3.0"/>
 </Foundry>
 
-To be continued...
+---------------------------
+Some layer rules are used implicitly. They are:
+
+<rule name="width" layer="layerName"/>   used as default width of pure layer nodes
+<rule name="thick3d" layer="layerName"/>   used in Display3D and (possibly) in parasitics extraction
+<rule name="height3d" layer="layerName"/>   used in Display3D and (possibly) in parasitics extraction

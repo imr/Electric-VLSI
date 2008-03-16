@@ -46,7 +46,6 @@
         <skillLayer skill="metal1"/>
         <parasitics resistance="0.078" capacitance="0.1209" edgeCapacitance="0.1104"/>
         <pureLayerNode name="Metal-1-Node" port="metal-1">
-            <lambda>3.0</lambda>
             <portArc>Metal-1</portArc>
         </pureLayerNode>
     </layer>
@@ -56,7 +55,6 @@
         <skillLayer skill="metal2"/>
         <parasitics resistance="0.078" capacitance="0.0843" edgeCapacitance="0.0974"/>
         <pureLayerNode name="Metal-2-Node" port="metal-2">
-            <lambda>3.0</lambda>
             <portArc>Metal-2</portArc>
         </pureLayerNode>
     </layer>
@@ -66,7 +64,6 @@
         <skillLayer skill="metal3"/>
         <parasitics resistance="0.078" capacitance="0.0843" edgeCapacitance="0.0974"/>
         <pureLayerNode name="Metal-3-Node" port="metal-3">
-            <lambda>3.0</lambda>
             <portArc>Metal-3</portArc>
         </pureLayerNode>
     </layer>
@@ -76,7 +73,6 @@
         <skillLayer skill="metal4"/>
         <parasitics resistance="0.078" capacitance="0.0843" edgeCapacitance="0.0974"/>
         <pureLayerNode name="Metal-4-Node" port="metal-4">
-            <lambda>3.0</lambda>
             <portArc>Metal-4</portArc>
         </pureLayerNode>
     </layer>
@@ -86,7 +82,6 @@
         <skillLayer skill="metal5"/>
         <parasitics resistance="0.078" capacitance="0.0843" edgeCapacitance="0.0974"/>
         <pureLayerNode name="Metal-5-Node" port="metal-5">
-            <lambda>3.0</lambda>
             <portArc>Metal-5</portArc>
         </pureLayerNode>
     </layer>
@@ -96,7 +91,6 @@
         <skillLayer skill="metal6"/>
         <parasitics resistance="0.036" capacitance="0.0423" edgeCapacitance="0.1273"/>
         <pureLayerNode name="Metal-6-Node" port="metal-6">
-            <lambda>3.0</lambda>
             <portArc>Metal-6</portArc>
         </pureLayerNode>
     </layer>
@@ -106,7 +100,6 @@
         <skillLayer skill="poly"/>
         <parasitics resistance="6.2" capacitance="0.1467" edgeCapacitance="0.0608"/>
         <pureLayerNode name="Polysilicon-1-Node" port="polysilicon-1">
-            <lambda>2.0</lambda>
             <portArc>Polysilicon-1</portArc>
         </pureLayerNode>
     </layer>
@@ -115,7 +108,6 @@
         <cifLayer cif="CEL"/>
         <parasitics resistance="50.0" capacitance="1.0" edgeCapacitance="0.0"/>
         <pureLayerNode name="Polysilicon-2-Node" port="polysilicon-2">
-            <lambda>3.0</lambda>
             <portArc>Polysilicon-2</portArc>
         </pureLayerNode>
     </layer>
@@ -125,7 +117,6 @@
         <skillLayer skill="aa"/>
         <parasitics resistance="2.5" capacitance="0.9" edgeCapacitance="0.0"/>
         <pureLayerNode name="P-Active-Node" port="active">
-            <lambda>3.0</lambda>
             <portArc>Active</portArc>
             <portArc>P-Active</portArc>
             <portArc>N-Active</portArc>
@@ -137,7 +128,6 @@
         <skillLayer skill="aa"/>
         <parasitics resistance="3.0" capacitance="0.9" edgeCapacitance="0.0"/>
         <pureLayerNode name="N-Active-Node" port="active">
-            <lambda>3.0</lambda>
             <portArc>Active</portArc>
             <portArc>P-Active</portArc>
             <portArc>N-Active</portArc>
@@ -147,24 +137,19 @@
     <layer name="P-Select" fun="IMPLANTP">
         <cifLayer cif="CSP"/>
         <skillLayer skill="pplus"/>
-        <pureLayerNode name="P-Select-Node" port="select">
-            <lambda>4.0</lambda>
-        </pureLayerNode>
+        <pureLayerNode name="P-Select-Node" port="select"/>
     </layer>
 
     <layer name="N-Select" fun="IMPLANTN">
         <cifLayer cif="CSN"/>
         <skillLayer skill="nplus"/>
-        <pureLayerNode name="N-Select-Node" port="select">
-            <lambda>4.0</lambda>
-        </pureLayerNode>
+        <pureLayerNode name="N-Select-Node" port="select"/>
     </layer>
 
     <layer name="P-Well" fun="WELLP">
         <cifLayer cif="CWP"/>
         <skillLayer skill="pwell"/>
         <pureLayerNode name="P-Well-Node" port="well">
-            <lambda>12.0</lambda>
             <portArc>P-Active</portArc>
         </pureLayerNode>
     </layer>
@@ -173,7 +158,6 @@
         <cifLayer cif="CWN"/>
         <skillLayer skill="nwell"/>
         <pureLayerNode name="N-Well-Node" port="well">
-            <lambda>12.0</lambda>
             <portArc>P-Active</portArc>
         </pureLayerNode>
     </layer>
@@ -182,71 +166,55 @@
         <cifLayer cif="CCC"/>
         <skillLayer skill="pcont"/>
         <parasitics resistance="2.2" capacitance="0.0" edgeCapacitance="0.0"/>
-        <pureLayerNode name="Poly-Cut-Node" port="polycut">
-            <lambda>2.0</lambda>
-        </pureLayerNode>
+        <pureLayerNode name="Poly-Cut-Node" port="polycut"/>
     </layer>
 
     <layer name="Active-Cut" fun="CONTACT1" extraFun="connects-diff">
         <cifLayer cif="CCC"/>
         <skillLayer skill="acont"/>
         <parasitics resistance="2.5" capacitance="0.0" edgeCapacitance="0.0"/>
-        <pureLayerNode name="Active-Cut-Node" port="activecut">
-            <lambda>2.0</lambda>
-        </pureLayerNode>
+        <pureLayerNode name="Active-Cut-Node" port="activecut"/>
     </layer>
 
     <layer name="Via1" fun="CONTACT2" extraFun="connects-metal">
         <cifLayer cif="CVA"/>
         <skillLayer skill="via"/>
         <parasitics resistance="1.0" capacitance="0.0" edgeCapacitance="0.0"/>
-        <pureLayerNode name="Via-1-Node" port="via-1">
-            <lambda>2.0</lambda>
-        </pureLayerNode>
+        <pureLayerNode name="Via-1-Node" port="via-1"/>
     </layer>
 
     <layer name="Via2" fun="CONTACT3" extraFun="connects-metal">
         <cifLayer cif="CVS"/>
         <skillLayer skill="via2"/>
         <parasitics resistance="0.9" capacitance="0.0" edgeCapacitance="0.0"/>
-        <pureLayerNode name="Via-2-Node" port="via-2">
-            <lambda>2.0</lambda>
-        </pureLayerNode>
+        <pureLayerNode name="Via-2-Node" port="via-2"/>
     </layer>
 
     <layer name="Via3" fun="CONTACT4" extraFun="connects-metal">
         <cifLayer cif="CVT"/>
         <skillLayer skill="via3"/>
         <parasitics resistance="0.8" capacitance="0.0" edgeCapacitance="0.0"/>
-        <pureLayerNode name="Via-3-Node" port="via-3">
-            <lambda>2.0</lambda>
-        </pureLayerNode>
+        <pureLayerNode name="Via-3-Node" port="via-3"/>
     </layer>
 
     <layer name="Via4" fun="CONTACT5" extraFun="connects-metal">
         <cifLayer cif="CVQ"/>
         <skillLayer skill="via4"/>
         <parasitics resistance="0.8" capacitance="0.0" edgeCapacitance="0.0"/>
-        <pureLayerNode name="Via-4-Node" port="via-4">
-            <lambda>2.0</lambda>
-        </pureLayerNode>
+        <pureLayerNode name="Via-4-Node" port="via-4"/>
     </layer>
 
     <layer name="Via5" fun="CONTACT6" extraFun="connects-metal">
         <cifLayer cif="CV5"/>
         <skillLayer skill="via5"/>
         <parasitics resistance="0.8" capacitance="0.0" edgeCapacitance="0.0"/>
-        <pureLayerNode name="Via-5-Node" port="via-5">
-            <lambda>2.0</lambda>
-        </pureLayerNode>
+        <pureLayerNode name="Via-5-Node" port="via-5"/>
     </layer>
 
     <layer name="Passivation" fun="OVERGLASS">
         <cifLayer cif="COG"/>
         <skillLayer skill="glasscut"/>
-        <pureLayerNode name="Passivation-Node" port="passivation">
-            <lambda>8.0</lambda>
-        </pureLayerNode>
+        <pureLayerNode name="Passivation-Node" port="passivation"/>
     </layer>
 
     <layer name="Transistor-Poly" fun="GATE">
@@ -254,53 +222,41 @@
         <skillLayer skill="poly"/>
         <parasitics resistance="2.5" capacitance="0.09" edgeCapacitance="0.0"/>
         <pureLayerNode name="Transistor-Poly-Node" port="trans-poly-1">
-            <lambda>2.0</lambda>
             <portArc>Polysilicon-1</portArc>
         </pureLayerNode>
     </layer>
 
     <layer name="Poly-Cap" fun="CAP">
         <cifLayer cif="CPC"/>
-        <pureLayerNode name="Poly-Cap-Node" port="poly-cap">
-            <lambda>8.0</lambda>
-        </pureLayerNode>
+        <pureLayerNode name="Poly-Cap-Node" port="poly-cap"/>
     </layer>
 
     <layer name="P-Active-Well" fun="DIFFP">
         <cifLayer cif="CAA"/>
         <skillLayer skill="aa"/>
-        <pureLayerNode name="P-Active-Well-Node" port="p-active-well">
-            <lambda>8.0</lambda>
-        </pureLayerNode>
+        <pureLayerNode name="P-Active-Well-Node" port="p-active-well"/>
     </layer>
 
     <layer name="Silicide-Block" fun="ART">
         <cifLayer cif="CSB"/>
         <pureLayerNode name="Silicide-Block-Node" port="silicide-block">
-            <lambda>2.0</lambda>
             <portArc>Polysilicon-1</portArc>
         </pureLayerNode>
     </layer>
 
     <layer name="Thick-Active" fun="DIFF" extraFun="thick">
         <cifLayer cif="CTA"/>
-        <pureLayerNode name="Thick-Active-Node" port="thick-active">
-            <lambda>4.0</lambda>
-        </pureLayerNode>
+        <pureLayerNode name="Thick-Active-Node" port="thick-active"/>
     </layer>
 
     <layer name="Pad-Frame" fun="ART">
         <cifLayer cif="XP"/>
-        <pureLayerNode name="Pad-Frame-Node" port="pad-frame">
-            <lambda>8.0</lambda>
-        </pureLayerNode>
+        <pureLayerNode name="Pad-Frame-Node" port="pad-frame"/>
     </layer>
 
     <layer name="P-Base" fun="BASE">
         <cifLayer cif="CBA"/>
-        <pureLayerNode name="P-Base-Node" port="p-base">
-            <lambda>22.0</lambda>
-        </pureLayerNode>
+        <pureLayerNode name="P-Base-Node" port="p-base"/>
     </layer>
 
     <!-- ******************** ARCS ******************** -->
@@ -2506,68 +2462,102 @@
 
     </menuPalette>
 
-    <layerRule ruleName="thick3d">
-        <layer name="Metal-1">        <lambda>2.65</lambda></layer>
-        <layer name="Metal-2">        <lambda>2.65</lambda></layer>
-        <layer name="Metal-3">        <lambda>2.65</lambda></layer>
-        <layer name="Metal-4">        <lambda>2.65</lambda></layer>
-        <layer name="Metal-5">        <lambda>2.65</lambda></layer>
-        <layer name="Metal-6">        <lambda>4.95</lambda></layer>
-        <layer name="Polysilicon-1">  <lambda>1.0</lambda></layer>
-        <layer name="Polysilicon-2">  <lambda>1.0</lambda></layer>
-        <layer name="P-Active">       <lambda>4.0</lambda></layer>
-        <layer name="N-Active">       <lambda>4.0</lambda></layer>
-        <layer name="P-Select">       <lambda>5.0</lambda></layer>
-        <layer name="N-Select">       <lambda>5.0</lambda></layer>
-        <layer name="P-Well">         <lambda>13.0</lambda></layer>
-        <layer name="N-Well">         <lambda>13.0</lambda></layer>
-        <layer name="Poly-Cut">       <lambda>0.75</lambda></layer>
-        <layer name="Active-Cut">     <lambda>3.5</lambda></layer>
-        <layer name="Via1">           <lambda>3.0</lambda></layer>
-        <layer name="Via2">           <lambda>3.0</lambda></layer>
-        <layer name="Via3">           <lambda>3.0</lambda></layer>
-        <layer name="Via4">           <lambda>3.0</lambda></layer>
-        <layer name="Via5">           <lambda>3.0</lambda></layer>
-        <layer name="Passivation">    <lambda>5.0</lambda></layer>
-        <layer name="Transistor-Poly"><lambda>1.0</lambda></layer>
-        <layer name="Poly-Cap">       <lambda>1.0</lambda></layer>
-        <layer name="P-Active-Well">  <lambda>4.0</lambda></layer>
-        <layer name="Silicide-Block"> </layer>
-        <layer name="Thick-Active">   <lambda>7.0</lambda></layer>
-        <layer name="Pad-Frame">      </layer>
-        <layer name="P-Base">         </layer>
-    </layerRule>
-    <layerRule ruleName="height3d">
-        <layer name="Metal-1">        <lambda>16.5</lambda></layer>
-        <layer name="Metal-2">        <lambda>22.15</lambda></layer>
-        <layer name="Metal-3">        <lambda>27.8</lambda></layer>
-        <layer name="Metal-4">        <lambda>33.45</lambda></layer>
-        <layer name="Metal-5">        <lambda>39.1</lambda></layer>
-        <layer name="Metal-6">        <lambda>44.75</lambda></layer>
-        <layer name="Polysilicon-1">  <lambda>14.75</lambda></layer>
-        <layer name="Polysilicon-2">  <lambda>15.85</lambda></layer>
-        <layer name="P-Active">       <lambda>9.0</lambda></layer>
-        <layer name="N-Active">       <lambda>9.0</lambda></layer>
-        <layer name="P-Select">       <lambda>8.0</lambda></layer>
-        <layer name="N-Select">       <lambda>8.0</lambda></layer>
-        <layer name="P-Well">         </layer>
-        <layer name="N-Well">         </layer>
-        <layer name="Poly-Cut">       <lambda>15.75</lambda></layer>
-        <layer name="Active-Cut">     <lambda>13.0</lambda></layer>
-        <layer name="Via1">           <lambda>19.15</lambda></layer>
-        <layer name="Via2">           <lambda>24.8</lambda></layer>
-        <layer name="Via3">           <lambda>30.45</lambda></layer>
-        <layer name="Via4">           <lambda>36.1</lambda></layer>
-        <layer name="Via5">           <lambda>41.75</lambda></layer>
-        <layer name="Passivation">    <lambda>49.7</lambda></layer>
-        <layer name="Transistor-Poly"><lambda>13.0</lambda></layer>
-        <layer name="Poly-Cap">       <lambda>14.75</lambda></layer>
-        <layer name="P-Active-Well">  <lambda>9.0</lambda></layer>
-        <layer name="Silicide-Block"> </layer>
-        <layer name="Thick-Active">   <lambda>6.0</lambda></layer>
-        <layer name="Pad-Frame">      <lambda>54.7</lambda></layer>
-        <layer name="P-Base">         </layer>
-    </layerRule>
+    <ruleSet name="common">
+        <layerRule ruleName="width">
+            <layer name="P-Well">         <rule ruleName="1.1"/></layer>
+            <layer name="N-Well">         <rule ruleName="1.1"/></layer>
+            <layer name="P-Active">       <rule ruleName="2.1"/></layer>
+            <layer name="N-Active">       <rule ruleName="2.1"/></layer>
+            <layer name="P-Active-Well">  <rule ruleName="defaultWidth"/></layer>
+            <layer name="Polysilicon-1">  <rule ruleName="3.1"/></layer>
+            <layer name="Transistor-Poly"><rule ruleName="3.1"/></layer>
+            <layer name="P-Select">       <rule ruleName="4.4"/></layer>
+            <layer name="N-Select">       <rule ruleName="4.4"/></layer>
+            <layer name="Poly-Cut">       <rule ruleName="5.1"/></layer>
+            <layer name="Active-Cut">     <rule ruleName="6.1"/></layer>
+            <layer name="Metal-1">        <rule ruleName="7.1"/></layer>
+            <layer name="Via1">           <rule ruleName="8.1"/></layer>
+            <layer name="Metal-2">        <rule ruleName="9.1"/></layer>
+            <layer name="Passivation">    <rule ruleName="defaultWidth"/></layer>
+            <layer name="Polysilicon-2">  <rule ruleName="11.1"/></layer>
+            <layer name="Via2">           <rule ruleName="14.1"/></layer>
+            <layer name="Metal-3">        <rule ruleName="15.1"/></layer>
+            <layer name="P-Base">         <rule ruleName="16.1"/><rule ruleName="16.6" k="2.0"/><rule ruleName="16.5" k="2.0"/></layer>
+            <layer name="Silicide-Block"> <rule ruleName="20.1"/></layer>
+            <layer name="Via3">           <rule ruleName="21.1"/></layer>
+            <layer name="Metal-4">        <rule ruleName="22.1"/></layer>
+            <layer name="Poly-Cap">       <rule ruleName="23.1"/></layer>
+            <layer name="Thick-Active">   <rule ruleName="24.1"/></layer>
+            <layer name="Via4">           <rule ruleName="25.1"/></layer>
+            <layer name="Metal-5">        <rule ruleName="26.1"/></layer>
+            <layer name="Via5">           <rule ruleName="29.1"/></layer>
+            <layer name="Metal-6">        <rule ruleName="30.1"/></layer>
+            <layer name="Pad-Frame">      <rule ruleName="defaultWidth"/></layer>
+        </layerRule>
+        <layerRule ruleName="thick3d">
+            <layer name="Metal-1">        <lambda>2.65</lambda></layer>
+            <layer name="Metal-2">        <lambda>2.65</lambda></layer>
+            <layer name="Metal-3">        <lambda>2.65</lambda></layer>
+            <layer name="Metal-4">        <lambda>2.65</lambda></layer>
+            <layer name="Metal-5">        <lambda>2.65</lambda></layer>
+            <layer name="Metal-6">        <lambda>4.95</lambda></layer>
+            <layer name="Polysilicon-1">  <lambda>1.0</lambda></layer>
+            <layer name="Polysilicon-2">  <lambda>1.0</lambda></layer>
+            <layer name="P-Active">       <lambda>4.0</lambda></layer>
+            <layer name="N-Active">       <lambda>4.0</lambda></layer>
+            <layer name="P-Select">       <lambda>5.0</lambda></layer>
+            <layer name="N-Select">       <lambda>5.0</lambda></layer>
+            <layer name="P-Well">         <lambda>13.0</lambda></layer>
+            <layer name="N-Well">         <lambda>13.0</lambda></layer>
+            <layer name="Poly-Cut">       <lambda>0.75</lambda></layer>
+            <layer name="Active-Cut">     <lambda>3.5</lambda></layer>
+            <layer name="Via1">           <lambda>3.0</lambda></layer>
+            <layer name="Via2">           <lambda>3.0</lambda></layer>
+            <layer name="Via3">           <lambda>3.0</lambda></layer>
+            <layer name="Via4">           <lambda>3.0</lambda></layer>
+            <layer name="Via5">           <lambda>3.0</lambda></layer>
+            <layer name="Passivation">    <lambda>5.0</lambda></layer>
+            <layer name="Transistor-Poly"><lambda>1.0</lambda></layer>
+            <layer name="Poly-Cap">       <lambda>1.0</lambda></layer>
+            <layer name="P-Active-Well">  <lambda>4.0</lambda></layer>
+            <layer name="Silicide-Block"> </layer>
+            <layer name="Thick-Active">   <lambda>7.0</lambda></layer>
+            <layer name="Pad-Frame">      </layer>
+            <layer name="P-Base">         </layer>
+        </layerRule>
+        <layerRule ruleName="height3d">
+            <layer name="Metal-1">        <lambda>16.5</lambda></layer>
+            <layer name="Metal-2">        <lambda>22.15</lambda></layer>
+            <layer name="Metal-3">        <lambda>27.8</lambda></layer>
+            <layer name="Metal-4">        <lambda>33.45</lambda></layer>
+            <layer name="Metal-5">        <lambda>39.1</lambda></layer>
+            <layer name="Metal-6">        <lambda>44.75</lambda></layer>
+            <layer name="Polysilicon-1">  <lambda>14.75</lambda></layer>
+            <layer name="Polysilicon-2">  <lambda>15.85</lambda></layer>
+            <layer name="P-Active">       <lambda>9.0</lambda></layer>
+            <layer name="N-Active">       <lambda>9.0</lambda></layer>
+            <layer name="P-Select">       <lambda>8.0</lambda></layer>
+            <layer name="N-Select">       <lambda>8.0</lambda></layer>
+            <layer name="P-Well">         </layer>
+            <layer name="N-Well">         </layer>
+            <layer name="Poly-Cut">       <lambda>15.75</lambda></layer>
+            <layer name="Active-Cut">     <lambda>13.0</lambda></layer>
+            <layer name="Via1">           <lambda>19.15</lambda></layer>
+            <layer name="Via2">           <lambda>24.8</lambda></layer>
+            <layer name="Via3">           <lambda>30.45</lambda></layer>
+            <layer name="Via4">           <lambda>36.1</lambda></layer>
+            <layer name="Via5">           <lambda>41.75</lambda></layer>
+            <layer name="Passivation">    <lambda>49.7</lambda></layer>
+            <layer name="Transistor-Poly"><lambda>13.0</lambda></layer>
+            <layer name="Poly-Cap">       <lambda>14.75</lambda></layer>
+            <layer name="P-Active-Well">  <lambda>9.0</lambda></layer>
+            <layer name="Silicide-Block"> </layer>
+            <layer name="Thick-Active">   <lambda>6.0</lambda></layer>
+            <layer name="Pad-Frame">      <lambda>54.7</lambda></layer>
+            <layer name="P-Base">         </layer>
+        </layerRule>
+    </ruleSet>
+
     <Foundry name="MOSIS">
 
         <layerGds layer="Metal-1" gds="49,80p,80t"/>

@@ -2086,13 +2086,11 @@ public class Technology implements Comparable<Technology>, Serializable
             Color transparentColor = colorMap[1 << i];
             displayStyle.transparentLayers.add(transparentColor);
         }
-        Map<Xml807.Layer,Xml807.Distance> thick3d = t.newLayerRule("thick3d");
-        Map<Xml807.Layer,Xml807.Distance> height3d = t.newLayerRule("height3d");
 
         for (Iterator<Layer> it = getLayers(); it.hasNext(); ) {
             Layer layer = it.next();
-            if (layer.isPseudoLayer()) continue;
-            layer.makeXml807(t, displayStyle, thick3d, height3d);
+            assert !layer.isPseudoLayer();
+            layer.makeXml807(t, displayStyle);
         }
         HashSet<PrimitiveNode> arcPins = new HashSet<PrimitiveNode>();
         for (Iterator<ArcProto> it = getArcs(); it.hasNext(); ) {
@@ -2135,6 +2133,8 @@ public class Technology implements Comparable<Technology>, Serializable
             }
         }
 
+        makeRuleSets(t);
+        
         for (Iterator<Foundry> it = getFoundries(); it.hasNext(); ) {
             Foundry foundry = it.next();
             Xml807.Foundry f = new Xml807.Foundry();
@@ -2151,6 +2151,21 @@ public class Technology implements Comparable<Technology>, Serializable
             t.foundries.add(f);
        }
         return t;
+    }
+    
+    protected void makeRuleSets(Xml807.Technology t) {
+        Xml807.RuleSet common = t.newRuleSet("common");
+        make3d(t, common);
+    }
+    
+    protected void make3d(Xml807.Technology t, Xml807.RuleSet ruleSet) {
+        Map<Xml807.Layer,Xml807.Distance> thick3d = ruleSet.newLayerRule("thick3d");
+        Map<Xml807.Layer,Xml807.Distance> height3d = ruleSet.newLayerRule("height3d");
+        for (Iterator<Layer> it = getLayers(); it.hasNext(); ) {
+            Layer layer = it.next();
+            assert !layer.isPseudoLayer();
+            layer.makeXml807(t, thick3d, height3d);
+        }
     }
 
     private static void addSpiceHeader(Xml807.Technology t, int level, String[] spiceLines) {

@@ -90,7 +90,7 @@ public class Xml807 {
         public final List<SpiceHeader> spiceHeaders = new ArrayList<SpiceHeader>();
         public final List<DisplayStyle> displayStyles = new ArrayList<DisplayStyle>();
         public MenuPalette menuPalette;
-        public final Map<String,Map<Layer,Distance>> layerRules = new LinkedHashMap<String,Map<Layer,Distance>>();
+        public final LinkedHashMap<String,RuleSet> ruleSets = new LinkedHashMap<String,RuleSet>();
         public final List<Foundry> foundries = new ArrayList<Foundry>();
 
         public Layer newLayer(String name) {
@@ -103,14 +103,14 @@ public class Xml807 {
             return layer;
         }
         
-        public Map<Layer,Distance> newLayerRule(String ruleName) {
-            if (ruleName == null)
+        public RuleSet newRuleSet(String name) {
+            if (name == null)
                 throw new NullPointerException();
-            if (layerRules.containsKey(ruleName))
-                throw new IllegalArgumentException("Duplicate LayerRule " + ruleName);
-            Map<Layer,Distance> layerRule = new LinkedHashMap<Layer,Distance>();
-            layerRules.put(ruleName, layerRule);
-            return layerRule;
+            if (ruleSets.containsKey(name))
+                throw new IllegalArgumentException("Duplicate RuleSet " + name);
+            RuleSet ruleSet = new RuleSet(name);
+            ruleSets.put(name, ruleSet);
+            return ruleSet;
         }
         
         public Layer findLayer(String name) {
@@ -168,7 +168,6 @@ public class Xml807 {
         public String oldName;
         public Type style;
         public String port;
-        public final Distance size = new Distance();
         public final List<String> portArcs = new ArrayList<String>();
     }
 
@@ -375,7 +374,13 @@ public class Xml807 {
             lambdaValue += value;
         }
         public void addRule(String ruleName, double k) {
-            terms.add(new DistanceRule(ruleName, k));
+            addRule(ruleName, null, k);
+        }
+        public void addRule(String ruleName, Layer layer, double k) {
+            addRule(ruleName, layer, null, k);
+        }
+        public void addRule(String ruleName, Layer layer, Layer layer2, double k) {
+            terms.add(new DistanceRule(ruleName, layer, layer2, k));
         }
         public boolean isEmpty() { return lambdaValue == 0 && terms.isEmpty(); }
     }
@@ -385,15 +390,19 @@ public class Xml807 {
     }
 
     public static class DistanceRule implements Serializable, Cloneable {
-        String ruleName;
-        double k;
+        final String ruleName;
+        final Layer layer;
+        final Layer layer2;
+        final double k;
 
         public DistanceRule(Xml.DistanceRule oldRule) {
-            this(oldRule.ruleName, oldRule.k);
+            this(oldRule.ruleName, null, null, oldRule.k);
         }
         
-        public DistanceRule(String ruleName, double k) {
+        private DistanceRule(String ruleName, Layer layer, Layer layer2, double k) {
             this.ruleName = ruleName;
+            this.layer = layer;
+            this.layer2 = layer2;
             this.k = k;
         }
         
@@ -408,6 +417,11 @@ public class Xml807 {
         private void writeXml(Writer writer) {
             writer.b(XmlKeyword.rule);
             writer.a("ruleName", ruleName);
+            if (layer != null) {
+                writer.a("layer", layer.name);
+                if (layer2 != null)
+                    writer.a("layer2", layer2.name);
+            }
             if (k != 1)
                 writer.a("k", k);
             writer.e();
@@ -415,6 +429,25 @@ public class Xml807 {
 
         private double getLambda(DistanceContext context) {
             return context.getRule(ruleName)*k;
+        }
+    }
+    
+    public static class RuleSet implements Serializable {
+        public final String name;
+        public final Map<String,Map<Layer,Distance>> layerRules = new LinkedHashMap<String,Map<Layer,Distance>>();
+        
+        private RuleSet(String name) {
+            this.name = name;
+        }
+        
+        public Map<Layer,Distance> newLayerRule(String ruleName) {
+            if (ruleName == null)
+                throw new NullPointerException();
+            if (layerRules.containsKey(ruleName))
+                throw new IllegalArgumentException("Duplicate LayerRule " + ruleName);
+            Map<Layer,Distance> layerRule = new LinkedHashMap<Layer,Distance>();
+            layerRules.put(ruleName, layerRule);
+            return layerRule;
         }
     }
 
@@ -524,6 +557,7 @@ public class Xml807 {
         lambda(true),
         rule,
         
+        ruleSet,
         layerRule,
         Foundry,
         layerGds,
@@ -662,6 +696,7 @@ public class Xml807 {
         private double opacity;
         private boolean foreground;
         
+        private RuleSet curRuleSet;
         private Map<Layer,Distance> curLayerRule;
         private Foundry curFoundry;
 
@@ -987,7 +1022,6 @@ public class Xml807 {
                     String styleStr = a_("style");
                     curLayer.pureLayerNode.style = styleStr != null ? Type.valueOf(styleStr) : Type.FILLED;
                     curLayer.pureLayerNode.port = a("port");
-                    curDistance = curLayer.pureLayerNode.size;
                     break;
                 case arcProto:
                     curArc = new ArcProto();
@@ -1251,10 +1285,25 @@ public class Xml807 {
                     break;
                 case rule:
                     String kStr = a_("k");
-                    curDistance.addRule(a("ruleName"), kStr != null ? Double.valueOf(kStr) : 1);
+                    Layer layer = null;
+                    Layer layer2 = null;
+                    String layerStr = a_("layer");
+                    if (layerStr != null) {
+                        layer = tech.findLayer(layerStr);
+                        assert layer != null;
+                    }
+                    String layerStr2 = layerStr != null ? a_("layer2") : null;
+                    if (layerStr2 != null) {
+                        layer2 = tech.findLayer(layerStr2);
+                        assert layer2 != null;
+                    }
+                    curDistance.addRule(a("ruleName"), layer, layer2, kStr != null ? Double.valueOf(kStr) : 1);
+                    break;
+                case ruleSet:
+                    curRuleSet = tech.newRuleSet(a("ruleName"));
                     break;
                 case layerRule:
-                    curLayerRule = tech.newLayerRule(a("ruleName"));
+                    curLayerRule = curRuleSet.newLayerRule(a("ruleName"));
                     break;
                 case Foundry:
                     curFoundry = new Foundry();
@@ -1485,6 +1534,9 @@ public class Xml807 {
                     curMenuCell = null;
                     break;
                     
+                case ruleSet:
+                    curRuleSet = null;
+                    break;
                 case layerRule:
                     curLayerRule = null;
                     break;
@@ -1821,8 +1873,8 @@ public class Xml807 {
 
             writeMenuPaletteXml(t.menuPalette);
 
-            for (Map.Entry<String,Map<Layer,Distance>> e: t.layerRules.entrySet())
-                writeLayerRuleXml(e.getKey(), e.getValue());
+            for (RuleSet ruleSet: t.ruleSets.values())
+                writeXml(ruleSet);
             
             for (Foundry foundry: t.foundries)
                 writeFoundryXml(foundry);
@@ -1862,12 +1914,16 @@ public class Xml807 {
                 Type style = li.pureLayerNode.style;
                 String styleStr = style == Type.FILLED ? null : style.name();
                 String portName = li.pureLayerNode.port;
-                b(XmlKeyword.pureLayerNode); a("name", nodeName); a("style", styleStr); a("port", portName); cl();
-                bcpel(XmlKeyword.oldName, li.pureLayerNode.oldName);
-                writeDistance(li.pureLayerNode.size);
-                for (String portArc: li.pureLayerNode.portArcs)
-                    bcpel(XmlKeyword.portArc, portArc);
-                el(XmlKeyword.pureLayerNode);
+                b(XmlKeyword.pureLayerNode); a("name", nodeName); a("style", styleStr); a("port", portName);
+                if (li.pureLayerNode.oldName == null && li.pureLayerNode.portArcs.isEmpty()) {
+                    el();
+                } else {
+                    cl();
+                    bcpel(XmlKeyword.oldName, li.pureLayerNode.oldName);
+                    for (String portArc: li.pureLayerNode.portArcs)
+                        bcpel(XmlKeyword.portArc, portArc);
+                    el(XmlKeyword.pureLayerNode);
+                }
             }
             el(XmlKeyword.layer);
             l();
@@ -2190,13 +2246,20 @@ public class Xml807 {
             el(XmlKeyword.menuBox);
         }
         
+        private void writeXml(RuleSet ruleSet) {
+            b(XmlKeyword.ruleSet); a("name", ruleSet.name); cl();
+            for (Map.Entry<String,Map<Layer,Distance>> e: ruleSet.layerRules.entrySet())
+                writeLayerRuleXml(e.getKey(), e.getValue());
+            el(XmlKeyword.ruleSet);
+            l();
+        }
+        
         private void writeLayerRuleXml(String ruleName, Map<Layer,Distance> sizes) {
             if (sizes.isEmpty()) return;
             b(XmlKeyword.layerRule); a("ruleName", ruleName); cl();
             int maxNameLength = 0;
             for (Layer l: sizes.keySet())
                 maxNameLength = Math.max(maxNameLength, l.name.length());
-            StringBuilder sb = new StringBuilder();
             for (Map.Entry<Layer,Distance> e: sizes.entrySet()) {
                 String layerName = e.getKey().name;
                 Distance d = e.getValue();

@@ -1445,9 +1445,7 @@ public class Layer
      * Method to create XML version 8.07 of a Layer.
      * @return
      */
-    Xml807.Layer makeXml807(Xml807.Technology t,
-            Xml807.DisplayStyle displayStyle,
-            Map<Xml807.Layer,Xml807.Distance> thick3D, Map<Xml807.Layer,Xml807.Distance> height3D) {
+    Xml807.Layer makeXml807(Xml807.Technology t, Xml807.DisplayStyle displayStyle) {
         Xml807.Layer l = t.newLayer(getName());
         l.function = getFunction();
         l.extraFunction = getFunctionExtras();
@@ -1468,10 +1466,6 @@ public class Layer
             }
             l.pureLayerNode.style = pureLayerNode.getLayers()[0].getStyle();
             l.pureLayerNode.port = pureLayerNode.getPort(0).getName();
-            if (pureLayerNodeXmlSize != null)
-                l.pureLayerNode.size.assign(pureLayerNodeXmlSize);
-            else
-                l.pureLayerNode.size.addLambda(pureLayerNode.getDefWidth());
             for (ArcProto ap: pureLayerNode.getPort(0).getConnections()) {
                 if (ap.getTechnology() != tech) continue;
                 l.pureLayerNode.portArcs.add(ap.getName());
@@ -1485,10 +1479,14 @@ public class Layer
             lds.factor3D = getTransparencyFactor();
         }
         
+        return l;
+    }
+    
+    void makeXml807(Xml807.Technology t,
+            Map<Xml807.Layer,Xml807.Distance> thick3D, Map<Xml807.Layer,Xml807.Distance> height3D) {
+        Xml807.Layer l = t.findLayer(getName());
         Xml807.Distance dist;
         dist = new Xml807.Distance(); dist.addLambda(getThickness()); thick3D.put(l, dist);
         dist = new Xml807.Distance(); dist.addLambda(getDistance()); height3D.put(l, dist);
-        
-        return l;
     }
 }
