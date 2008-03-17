@@ -25,7 +25,6 @@ package com.sun.electric.technology;
 
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.technology.Technology.TechPoint;
 import com.sun.electric.tool.Job;
@@ -47,11 +46,11 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import javax.xml.XMLConstants;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
-
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import org.xml.sax.Attributes;
@@ -71,6 +70,7 @@ public class Xml {
         public String className;
         public String shortTechName;
         public String description;
+        public final List<Version> versions = new ArrayList<Version>();
         public int minNumMetals;
         public int maxNumMetals;
         public int defaultNumMetals;
@@ -125,6 +125,11 @@ public class Xml {
         }
     }
 
+    public static class Version implements Serializable {
+        public int techVersion;
+        public com.sun.electric.database.text.Version electricVersion;
+    }
+
     public static class Layer implements Serializable {
         public String name;
         public com.sun.electric.technology.Layer.Function function;
@@ -161,20 +166,13 @@ public class Xml {
         public boolean notUsed;
         public boolean skipSizeInPalette;
 
+        public final TreeMap<Integer,Double> diskOffset = new TreeMap<Integer,Double>();
+        public final Distance defaultWidth = new Distance();
         public boolean extended;
         public boolean fixedAngle;
         public int angleIncrement;
         public double antennaRatio;
-        public double elibWidthOffset;
         public final List<ArcLayer> arcLayers = new ArrayList<ArcLayer>();
-        public ArcPin arcPin;
-    }
-
-    public static class ArcPin implements Serializable {
-        public String name;
-        public String portName;
-        public double elibSize;
-        public final List<String> portArcs = new ArrayList<String>();
     }
 
     public static class ArcLayer implements Serializable {
@@ -202,10 +200,10 @@ public class Xml {
         public boolean od33;
 
         public com.sun.electric.technology.PrimitiveNode.Function function;
-        public EPoint diskOffset;
+        public final TreeMap<Integer,EPoint> diskOffset = new TreeMap<Integer,EPoint>();
         public final Distance defaultWidth = new Distance();
         public final Distance defaultHeight = new Distance();
-        public ERectangle nodeBase;
+        public SizeOffset sizeOffset;
         public final List<NodeLayer> nodeLayers = new ArrayList<NodeLayer>();
         public final List<PrimitivePort> ports = new ArrayList<PrimitivePort>();
         public int specialType;
@@ -227,7 +225,6 @@ public class Xml {
         public final Distance hy = new Distance();
         public final List<TechPoint> techPoints = new ArrayList<TechPoint>();
         public double sizex, sizey, sep1d, sep2d;
-        public String sizeRule, sepRule, sepRule2D;
         public double lWidth, rWidth, tExtent, bExtent;
     }
 
@@ -276,80 +273,12 @@ public class Xml {
         public int rotation;
     }
 
-    public static class MenuCell implements Serializable {
-        public String cellName;
-//        public String text;
-//        public double fontSize;
-    }
-
     public static class Distance implements Serializable {
         public double k;
-        public double lambdaValue;
-        public final List<DistanceRule> terms = new ArrayList<DistanceRule>();
+        public double value;
 
-        public void assign(Distance d) {
-            k = d.k;
-            lambdaValue = d.lambdaValue;
-            for (DistanceRule term: d.terms)
-                terms.add(term.clone());
-        }
-
-        public Distance clone() {
-            Distance d = new Distance();
-            d.assign(this);
-            return d;
-        }
-
-        public double getLambda(DistanceContext context) {
-            double value = lambdaValue;
-            for (DistanceRule term: terms)
-                value += term.getLambda(context);
-            return value;
-        }
-        private void writeXml(Writer writer) {
-            for (DistanceRule term: terms)
-                term.writeXml(writer);
-            if (lambdaValue != 0)
-                writer.bcpel(XmlKeyword.lambda, lambdaValue);
-        }
-        public void addLambda(double value) {
-            lambdaValue += value;
-        }
-        public void addRule(String ruleName, double k) {
-            DistanceRule term = new DistanceRule();
-            term.ruleName = ruleName;
-            term.k = k;
-            terms.add(term);
-        }
-        public boolean isEmpty() { return lambdaValue == 0 && terms.isEmpty(); }
-    }
-
-    public static interface DistanceContext {
-        public double getRule(String ruleName);
-    }
-
-    public static class DistanceRule implements Serializable, Cloneable {
-        public String ruleName;
-        public double k;
-
-        public DistanceRule clone() {
-            try {
-                return (DistanceRule)super.clone();
-            } catch (CloneNotSupportedException e) {
-                throw new AssertionError();
-            }
-        }
-
-        private void writeXml(Writer writer) {
-            writer.b(XmlKeyword.rule);
-            writer.a("ruleName", ruleName);
-            if (k != 1)
-                writer.a("k", k);
-            writer.el();
-        }
-
-        private double getLambda(DistanceContext context) {
-            return context.getRule(ruleName)*k;
+        public void addLambda(double lambdaValue) {
+            value += lambdaValue;
         }
     }
 
@@ -365,6 +294,7 @@ public class Xml {
         technology,
         shortName(true),
         description(true),
+        version,
         numMetals,
         scale,
         defaultFoundry,
@@ -401,10 +331,10 @@ public class Xml {
         fixedAngle(true),
         angleIncrement(true),
         antennaRatio(true),
-        elibWidthOffset(true),
 
+        diskOffset,
+        defaultWidth,
         arcLayer,
-        arcPin,
 
         primitiveNode,
         //oldName(true),
@@ -422,10 +352,9 @@ public class Xml {
         od18,
         od25,
         od33,
-        diskOffset,
-        defaultWidth,
+ //       defaultWidth,
         defaultHeight,
-        nodeBase,
+        sizeOffset,
         nodeLayer,
         box,
         multicutbox,
@@ -449,12 +378,10 @@ public class Xml {
         menuBox,
         menuArc(true),
         menuNode(true),
-        menuCell,
         menuText(true),
         menuNodeInst,
         menuNodeText,
         lambda(true),
-        rule,
         Foundry,
         layerGds,
         LayerRule,
@@ -585,7 +512,6 @@ public class Xml {
         private int curSpecialValueIndex;
         private ArrayList<Object> curMenuBox;
         private MenuNodeInst curMenuNodeInst;
-        private MenuCell curMenuCell;
         private Distance curDistance;
         private SpiceHeader curSpiceHeader;
         private Foundry curFoundry;
@@ -844,6 +770,12 @@ public class Xml {
                     tech.className = a_("class");
 //                    dump = true;
                     break;
+                case version:
+                    Version version = new Version();
+                    version.techVersion = Integer.parseInt(a("tech"));
+                    version.electricVersion = com.sun.electric.database.text.Version.parseVersion(a("electric"));
+                    tech.versions.add(version);
+                    break;
                 case numMetals:
                     tech.minNumMetals = Integer.parseInt(a("min"));
                     tech.maxNumMetals = Integer.parseInt(a("max"));
@@ -956,18 +888,24 @@ public class Xml {
                     if (curNode != null)
                         curNode.skipSizeInPalette = true;
                     break;
-                case arcLayer:
-                    ArcLayer arcLay = new ArcLayer();
-                    arcLay.layer = a("layer");
-                    curDistance = arcLay.extend;
-                    arcLay.style = Poly.Type.valueOf(a("style"));
-                    curArc.arcLayers.add(arcLay);
+                case diskOffset:
+                    if (curArc != null)
+                        curArc.diskOffset.put(Integer.parseInt(a("untilVersion")), Double.parseDouble(a("width")));
+                    if (curNode != null)
+                        curNode.diskOffset.put(Integer.parseInt(a("untilVersion")), EPoint.fromLambda(Double.parseDouble(a("x")), Double.parseDouble(a("y"))));
                     break;
-                case arcPin:
-                    curArc.arcPin = new ArcPin();
-                    curArc.arcPin.name = a("name");
-                    curArc.arcPin.portName = a("port");
-                    curArc.arcPin.elibSize = Double.valueOf(a("elibSize"));
+                case defaultWidth:
+                    if (curArc != null)
+                        curDistance = curArc.defaultWidth;
+                    if (curNode != null)
+                        curDistance = curNode.defaultWidth;
+                    break;
+                case arcLayer:
+                    ArcLayer arcLayer = new ArcLayer();
+                    arcLayer.layer = a("layer");
+                    curDistance = arcLayer.extend;
+                    arcLayer.style = Poly.Type.valueOf(a("style"));
+                    curArc.arcLayers.add(arcLayer);
                     break;
                 case primitiveNode:
                     curNode = new PrimitiveNode();
@@ -1010,21 +948,15 @@ public class Xml {
                 case od33:
                     curNode.od33 = true;
                     break;
-                case diskOffset:
-                    curNode.diskOffset = EPoint.fromLambda(Double.parseDouble(a("x")), Double.parseDouble(a("y")));
-                    break;
-                case defaultWidth:
-                    curDistance = curNode.defaultWidth;
-                    break;
                 case defaultHeight:
                     curDistance = curNode.defaultHeight;
                     break;
-                case nodeBase:
+                case sizeOffset:
                     double lx = Double.parseDouble(a("lx"));
                     double hx = Double.parseDouble(a("hx"));
                     double ly = Double.parseDouble(a("ly"));
                     double hy = Double.parseDouble(a("hy"));
-                    curNode.nodeBase = ERectangle.fromLambda(lx, ly, hx - lx, hy - ly);
+                    curNode.sizeOffset = new SizeOffset(lx, hx, ly, hy);
                     break;
                 case nodeLayer:
                     curNodeLayer = new NodeLayer();
@@ -1067,9 +999,10 @@ public class Xml {
                     curNodeLayer.hx.k = da_("khx", 1);
                     curNodeLayer.ly.k = da_("kly", -1);
                     curNodeLayer.hy.k = da_("khy", 1);
-                    curNodeLayer.sizeRule = a("sizeRule");
-                    curNodeLayer.sepRule = a("sepRule");
-                    curNodeLayer.sepRule2D = a_("sepRule2D");
+                    curNodeLayer.sizex = Double.parseDouble(a("sizex"));
+                    curNodeLayer.sizey = Double.parseDouble(a("sizey"));
+                    curNodeLayer.sep1d = Double.parseDouble(a("sep1d"));
+                    curNodeLayer.sep2d = Double.parseDouble(a("sep2d"));
                     break;
                 case serpbox:
                     curNodeLayer.representation = com.sun.electric.technology.Technology.NodeLayer.BOX;
@@ -1084,16 +1017,16 @@ public class Xml {
                     break;
                 case lambdaBox:
                     if (curNodeLayer != null) {
-                        curNodeLayer.lx.addLambda(Double.parseDouble(a("klx")));
-                        curNodeLayer.hx.addLambda(Double.parseDouble(a("khx")));
-                        curNodeLayer.ly.addLambda(Double.parseDouble(a("kly")));
-                        curNodeLayer.hy.addLambda(Double.parseDouble(a("khy")));
+                        curNodeLayer.lx.value = Double.parseDouble(a("klx"));
+                        curNodeLayer.hx.value = Double.parseDouble(a("khx"));
+                        curNodeLayer.ly.value = Double.parseDouble(a("kly"));
+                        curNodeLayer.hy.value = Double.parseDouble(a("khy"));
                     }
                     if (curPort != null) {
-                        curPort.lx.addLambda(Double.parseDouble(a("klx")));
-                        curPort.hx.addLambda(Double.parseDouble(a("khx")));
-                        curPort.ly.addLambda(Double.parseDouble(a("kly")));
-                        curPort.hy.addLambda(Double.parseDouble(a("khy")));
+                        curPort.lx.value = Double.parseDouble(a("klx"));
+                        curPort.hx.value = Double.parseDouble(a("khx"));
+                        curPort.ly.value = Double.parseDouble(a("kly"));
+                        curPort.hy.value = Double.parseDouble(a("khy"));
                     }
                     break;
                 case techPoint:
@@ -1146,10 +1079,6 @@ public class Xml {
                     curMenuBox = new ArrayList<Object>();
                     tech.menuPalette.menuBoxes.add(curMenuBox);
                     break;
-                case menuCell:
-                    curMenuCell = new MenuCell();
-                    curMenuCell.cellName = a("cellName");
-                    break;
                 case menuNodeInst:
                     curMenuNodeInst = new MenuNodeInst();
                     curMenuNodeInst.protoName = a("protoName");
@@ -1160,10 +1089,6 @@ public class Xml {
                 case menuNodeText:
                     curMenuNodeInst.text = a("text");
                     curMenuNodeInst.fontSize = Double.parseDouble(a("size"));
-                    break;
-                case rule:
-                    String kStr = a_("k");
-                    curDistance.addRule(a("ruleName"), kStr != null ? Double.valueOf(kStr) : 1);
                     break;
                 case Foundry:
                     curFoundry = new Foundry();
@@ -1305,17 +1230,12 @@ public class Xml {
                     case antennaRatio:
                         curArc.antennaRatio = Double.parseDouble(text);
                         break;
-                    case elibWidthOffset:
-                        curArc.elibWidthOffset = Double.parseDouble(text);
-                        break;
                     case portTopology:
                         curPort.portTopology = Integer.parseInt(text);
                         break;
                     case portArc:
                         if (curLayer != null && curLayer.pureLayerNode != null)
                             curLayer.pureLayerNode.portArcs.add(text);
-                        if (curArc != null && curArc.arcPin != null)
-                            curArc.arcPin.portArcs.add(text);
                         if (curPort != null)
                             curPort.portArcs.add(text);
                         break;
@@ -1377,12 +1297,8 @@ public class Xml {
                 	curMenuBox.add(curMenuNodeInst);
                     curMenuNodeInst = null;
                     break;
-                case menuCell:
-                	curMenuBox.add("LOADCELL " + curMenuCell.cellName);
-//                	curMenuBox.add(curMenuCell);
-                    curMenuCell = null;
-                    break;
 
+                case version:
                 case spiceHeader:
                 case numMetals:
                 case scale:
@@ -1402,8 +1318,9 @@ public class Xml {
                 case special:
                 case notUsed:
                 case skipSizeInPalette:
+                case diskOffset:
+                case defaultWidth:
                 case arcLayer:
-                case arcPin:
 
                 case shrinkArcs:
                 case square:
@@ -1417,11 +1334,9 @@ public class Xml {
                 case od18:
                 case od25:
                 case od33:
-                case diskOffset:
 
-                case defaultWidth:
                 case defaultHeight:
-                case nodeBase:
+                case sizeOffset:
                 case box:
                 case points:
                 case multicutbox:
@@ -1437,7 +1352,6 @@ public class Xml {
                 case menuPalette:
                 case menuBox:
                 case menuNodeText:
-                case rule:
                 case Foundry:
                 case layerGds:
                 case LayerRule:
@@ -1677,6 +1591,9 @@ public class Xml {
 
             bcpel(XmlKeyword.shortName, t.shortTechName);
             bcpel(XmlKeyword.description, t.description);
+            for (Version version: t.versions) {
+                b(XmlKeyword.version); a("tech", version.techVersion); a("electric", version.electricVersion); el();
+            }
             b(XmlKeyword.numMetals); a("min", t.minNumMetals); a("max", t.maxNumMetals); a("default", t.defaultNumMetals); el();
             b(XmlKeyword.scale); a("value", t.scaleValue); a("relevant", t.scaleRelevant); el();
             b(XmlKeyword.defaultFoundry); a("value", t.defaultFoundry); el();
@@ -1794,7 +1711,7 @@ public class Xml {
                 String portName = li.pureLayerNode.port;
                 b(XmlKeyword.pureLayerNode); a("name", nodeName); a("style", styleStr); a("port", portName); cl();
                 bcpel(XmlKeyword.oldName, li.pureLayerNode.oldName);
-                writeDistance(li.pureLayerNode.size);
+                bcpel(XmlKeyword.lambda, li.pureLayerNode.size.value);
                 for (String portArc: li.pureLayerNode.portArcs)
                     bcpel(XmlKeyword.portArc, portArc);
                 el(XmlKeyword.pureLayerNode);
@@ -1822,29 +1739,27 @@ public class Xml {
             bcpel(XmlKeyword.angleIncrement, ai.angleIncrement);
             if (ai.antennaRatio != 0)
                 bcpel(XmlKeyword.antennaRatio, ai.antennaRatio);
-            if (ai.elibWidthOffset != 0)
-                bcpel(XmlKeyword.elibWidthOffset, ai.elibWidthOffset);
+
+            for (Map.Entry<Integer,Double> e: ai.diskOffset.entrySet()) {
+                b(XmlKeyword.diskOffset); a("untilVersion", e.getKey()); a("width", e.getValue()); el();
+            }
+
+            if (ai.defaultWidth.value != 0) {
+                bcl(XmlKeyword.defaultWidth);
+                bcpel(XmlKeyword.lambda, ai.defaultWidth.value);
+                el(XmlKeyword.defaultWidth);
+            }
 
             for (Xml.ArcLayer al: ai.arcLayers) {
                 String style = al.style == Poly.Type.FILLED ? "FILLED" : "CLOSED";
                 b(XmlKeyword.arcLayer); a("layer", al.layer); a("style", style);
-                if (al.extend.isEmpty()) {
+                double extend = al.extend.value;
+                if (extend == 0) {
                     el();
                 } else {
                     cl();
-                    writeDistance(al.extend);
+                    bcpel(XmlKeyword.lambda, extend);
                     el(XmlKeyword.arcLayer);
-                }
-            }
-            if (ai.arcPin != null) {
-                b(XmlKeyword.arcPin); a("name", ai.arcPin.name); a("port", ai.arcPin.portName); a("elibSize", ai.arcPin.elibSize);
-                if (ai.arcPin.portArcs.isEmpty()) {
-                    el();
-                } else {
-                    cl();
-                    for (String portArc: ai.arcPin.portArcs)
-                        bcpel(XmlKeyword.portArc, portArc);
-                    el(XmlKeyword.arcPin);
                 }
             }
             el(XmlKeyword.arcProto);
@@ -1883,28 +1798,29 @@ public class Xml {
             if (ni.od33)
                 bel(XmlKeyword.od33);
 
-            if (ni.diskOffset != null) {
-                b(XmlKeyword.diskOffset); a("x", ni.diskOffset.getLambdaX()); a("y", ni.diskOffset.getLambdaY()); el();
+            for (Map.Entry<Integer,EPoint> e: ni.diskOffset.entrySet()) {
+                EPoint p = e.getValue();
+                b(XmlKeyword.diskOffset); a("untilVersion", e.getKey()); a("x", p.getLambdaX()); a("y", p.getLambdaY()); el();
             }
 
-            if (!ni.defaultWidth.isEmpty()) {
+            if (ni.defaultWidth.value != 0) {
                 bcl(XmlKeyword.defaultWidth);
-                writeDistance(ni.defaultWidth);
+                bcpel(XmlKeyword.lambda, ni.defaultWidth.value);
                 el(XmlKeyword.defaultWidth);
             }
 
-            if (!ni.defaultHeight.isEmpty()) {
+            if (ni.defaultHeight.value != 0) {
                 bcl(XmlKeyword.defaultHeight);
-                writeDistance(ni.defaultHeight);
+                bcpel(XmlKeyword.lambda, ni.defaultHeight.value);
                 el(XmlKeyword.defaultHeight);
             }
 
-            if (ni.nodeBase != null) {
-                double lx = ni.nodeBase.getLambdaMinX();
-                double hx = ni.nodeBase.getLambdaMaxX();
-                double ly = ni.nodeBase.getLambdaMinY();
-                double hy = ni.nodeBase.getLambdaMaxY();
-                b(XmlKeyword.nodeBase); a("lx", lx); a("hx", hx); a("ly", ly); a("hy", hy); el();
+            if (ni.sizeOffset != null) {
+                double lx = ni.sizeOffset.getLowXOffset();
+                double hx = ni.sizeOffset.getHighXOffset();
+                double ly = ni.sizeOffset.getLowYOffset();
+                double hy = ni.sizeOffset.getHighYOffset();
+                b(XmlKeyword.sizeOffset); a("lx", lx); a("hx", hx); a("ly", ly); a("hy", hy); el();
             }
 
             for(int j=0; j<ni.nodeLayers.size(); j++) {
@@ -1919,11 +1835,11 @@ public class Xml {
                         if (ni.specialType == com.sun.electric.technology.PrimitiveNode.SERPTRANS) {
                             writeBox(XmlKeyword.serpbox, nl.lx, nl.hx, nl.ly, nl.hy);
                             a("lWidth", nl.lWidth); a("rWidth", nl.rWidth); a("tExtent", nl.tExtent); a("bExtent", nl.bExtent); cl();
-                            writeLambdaBox(nl.lx, nl.hx, nl.ly, nl.hy);
+                            b(XmlKeyword.lambdaBox); a("klx", nl.lx.value); a("khx", nl.hx.value); a("kly", nl.ly.value); a("khy", nl.hy.value); el();
                             el(XmlKeyword.serpbox);
                         } else {
                             writeBox(XmlKeyword.box, nl.lx, nl.hx, nl.ly, nl.hy); cl();
-                            writeLambdaBox(nl.lx, nl.hx, nl.ly, nl.hy);
+                            b(XmlKeyword.lambdaBox); a("klx", nl.lx.value); a("khx", nl.hx.value); a("kly", nl.ly.value); a("khy", nl.hy.value); el();
                             el(XmlKeyword.box);
                         }
                         break;
@@ -1932,14 +1848,9 @@ public class Xml {
                         break;
                     case com.sun.electric.technology.Technology.NodeLayer.MULTICUTBOX:
                         writeBox(XmlKeyword.multicutbox, nl.lx, nl.hx, nl.ly, nl.hy);
-                        a("sizeRule", nl.sizeRule); a("sepRule", nl.sepRule); a("sepRule2D", nl.sepRule2D);
-                        if (nl.lx.isEmpty() && nl.hx.isEmpty() && nl.ly.isEmpty() && nl.hy.isEmpty()) {
-                            el();
-                        } else {
-                            cl();
-                            writeLambdaBox(nl.lx, nl.hx, nl.ly, nl.hy);
-                            el(XmlKeyword.multicutbox);
-                        }
+                        a("sizex", nl.sizex); a("sizey", nl.sizey); a("sep1d", nl.sep1d);  a("sep2d", nl.sep2d); cl();
+                        b(XmlKeyword.lambdaBox); a("klx", nl.lx.value); a("khx", nl.hx.value); a("kly", nl.ly.value); a("khy", nl.hy.value); el();
+                        el(XmlKeyword.multicutbox);
                         break;
                 }
                 for (TechPoint tp: nl.techPoints) {
@@ -1958,7 +1869,7 @@ public class Xml {
                 bcpel(XmlKeyword.portTopology, pd.portTopology);
 
                 writeBox(XmlKeyword.box, pd.lx, pd.hx, pd.ly, pd.hy); cl();
-                writeLambdaBox(pd.lx, pd.hx, pd.ly, pd.hy);
+                b(XmlKeyword.lambdaBox); a("klx", pd.lx.value); a("khx", pd.hx.value); a("kly", pd.ly.value); a("khy", pd.hy.value); el();
                 el(XmlKeyword.box);
 
                 for (String portArc: pd.portArcs)
@@ -1989,25 +1900,12 @@ public class Xml {
             el(XmlKeyword.primitiveNode);
         }
 
-        private void writeDistance(Distance d) {
-            d.writeXml(this);
-        }
-
         private void writeBox(XmlKeyword keyword, Distance lx, Distance hx, Distance ly, Distance hy) {
             b(keyword);
             if (lx.k != -1) a("klx", lx.k);
             if (hx.k != 1) a("khx", hx.k);
             if (ly.k != -1) a("kly", ly.k);
             if (hy.k != 1) a("khy", hy.k);
-        }
-
-        private void writeLambdaBox(Distance lx, Distance hx, Distance ly, Distance hy) {
-            double lxv = lx.getLambda(EMPTY_CONTEXT);
-            double hxv = hx.getLambda(EMPTY_CONTEXT);
-            double lyv = ly.getLambda(EMPTY_CONTEXT);
-            double hyv = hy.getLambda(EMPTY_CONTEXT);
-//            if (lxv == 0 && hxv == 0 && lyv == 0 && hyv == 0) return;
-            b(XmlKeyword.lambdaBox); a("klx", lxv); a("khx", hxv); a("kly", lyv); a("khy", hyv); el();
         }
 
         private void writeSpiceHeaderXml(Xml.SpiceHeader spiceHeader) {
@@ -2044,9 +1942,6 @@ public class Xml {
                     bcpel(XmlKeyword.menuArc, ((Xml.ArcProto)o).name);
                 } else if (o instanceof Xml.PrimitiveNode) {
                     bcpel(XmlKeyword.menuNode, ((Xml.PrimitiveNode)o).name);
-                } else if (o instanceof Xml.MenuCell) {
-                    Xml.MenuCell cell = (Xml.MenuCell)o;
-                    b(XmlKeyword.menuCell); a("cellName", cell.cellName); el();
                 } else if (o instanceof Xml.MenuNodeInst) {
                     Xml.MenuNodeInst ni = (Xml.MenuNodeInst)o;
                     b(XmlKeyword.menuNodeInst); a("protoName", ni.protoName); a("function", ni.function.name());
@@ -2209,12 +2104,6 @@ public class Xml {
             indentEmitted = false;
         }
     }
-
-    public static DistanceContext EMPTY_CONTEXT = new DistanceContext() {
-        public double getRule(String ruleName) {
-            throw new UnsupportedOperationException();
-        }
-    };
 
     /**
      * Class to write the XML without multiple lines and indentation.

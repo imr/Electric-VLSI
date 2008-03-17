@@ -547,7 +547,7 @@ public class Layer
 	/** true if this layer's visibity has been initialized */				private boolean visibilityInitialized;
 	/** true if dimmed (drawn darker) undimmed layers are highlighted */	private boolean dimmed;
 	/** the pure-layer node that contains just this layer */				private PrimitiveNode pureLayerNode;
-    /** the Xml expression for size pf pure-layer node */                   private Xml.Distance pureLayerNodeXmlSize;
+    /** the Xml expression for size pf pure-layer node */                   private Technology.Distance pureLayerNodeXmlSize;
 
 //	private static HashMap<String,Pref> gdsLayerPrefs = new HashMap<String,Pref>();
     private static final HashMap<Layer,Pref> layerVisibilityPrefs = new HashMap<Layer,Pref>();
@@ -728,7 +728,7 @@ public class Layer
 	 * @return the Pure Layer PrimitiveNode to use for this Layer.
 	 */
 	public PrimitiveNode makePureLayerNode(String nodeName, double size, Poly.Type style, String portName, ArcProto ... connections) {
-        Xml.Distance d = new Xml.Distance();
+        Technology.Distance d = new Technology.Distance();
         d.addLambda(size);
         return makePureLayerNode(nodeName, size, null, style, portName, connections);
     }
@@ -742,7 +742,7 @@ public class Layer
      * @param style the Poly.Type this PrimitiveNode will generate (polygon, cross, etc.).
 	 * @return the Pure Layer PrimitiveNode to use for this Layer.
 	 */
-	public PrimitiveNode makePureLayerNode(String nodeName, double size, Xml.Distance xmlSize, Poly.Type style, String portName, ArcProto ... connections) {
+	public PrimitiveNode makePureLayerNode(String nodeName, double size, Technology.Distance xmlSize, Poly.Type style, String portName, ArcProto ... connections) {
 		PrimitiveNode pln = PrimitiveNode.newInstance0(nodeName, tech, size, size,
 			new Technology.NodeLayer []
 			{
@@ -761,7 +761,7 @@ public class Layer
         return pln;
     }
 
-    void resizePureLayerNode(Xml.DistanceContext context) {
+    void resizePureLayerNode(Technology.DistanceContext context) {
         if (pureLayerNodeXmlSize == null) return;
         double lambdaSize = pureLayerNodeXmlSize.getLambda(context);
         pureLayerNode.setDefSize(lambdaSize, lambdaSize);
@@ -1429,9 +1429,9 @@ public class Layer
             }
             l.pureLayerNode.style = pureLayerNode.getLayers()[0].getStyle();
             l.pureLayerNode.port = pureLayerNode.getPort(0).getName();
-            if (pureLayerNodeXmlSize != null)
-                l.pureLayerNode.size.assign(pureLayerNodeXmlSize);
-            else
+//            if (pureLayerNodeXmlSize != null)
+//                l.pureLayerNode.size.assign(pureLayerNodeXmlSize);
+//            else
                 l.pureLayerNode.size.addLambda(pureLayerNode.getDefWidth());
             for (ArcProto ap: pureLayerNode.getPort(0).getConnections()) {
                 if (ap.getTechnology() != tech) continue;

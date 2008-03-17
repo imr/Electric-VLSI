@@ -31,7 +31,6 @@ import com.sun.electric.technology.DRCTemplate;
 import com.sun.electric.technology.EdgeH;
 import com.sun.electric.technology.EdgeV;
 import com.sun.electric.technology.Technology.TechPoint;
-import com.sun.electric.technology.Xml;
 import com.sun.electric.tool.Job;
 
 import java.awt.Color;
@@ -339,10 +338,10 @@ public class Xml807 {
                 terms.add(term.clone());
         }
 
-        public void assign(Xml.Distance d) {
+        public void assign(com.sun.electric.technology.Technology.Distance d) {
             k = d.k;
             lambdaValue = d.lambdaValue;
-            for (Xml.DistanceRule term: d.terms)
+            for (com.sun.electric.technology.Technology.DistanceRule term: d.terms)
                 terms.add(new DistanceRule(term));
         }
 
@@ -395,7 +394,7 @@ public class Xml807 {
         final Layer layer2;
         final double k;
 
-        public DistanceRule(Xml.DistanceRule oldRule) {
+        public DistanceRule(com.sun.electric.technology.Technology.DistanceRule oldRule) {
             this(oldRule.ruleName, null, null, oldRule.k);
         }
         

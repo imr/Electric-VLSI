@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07f: ******************************
 
+BUG: (3/17/08, DN) Numerous instabilities in XML .
+FIX: Revert to XML syntax as in Version8-06 .
+
 IMP: (3/14/08, DN) Package com.sun.electric.technology.xml for major versions of the Technology Xml syntax.
 
 BUG: (3/13/08, DN) UnsupportedOperationException while uploading XML tech (Bug #1606)

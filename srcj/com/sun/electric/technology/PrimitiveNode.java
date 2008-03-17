@@ -542,8 +542,8 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	/**
 	 * The constructor is never called externally.  Use the factory "newInstance" instead.
 	 */
-	protected PrimitiveNode(String protoName, Technology tech, EPoint sizeCorrector, String minSizeRule,
-            double defWidth, double defHeight, ERectangle baseRectangle, Technology.NodeLayer [] layers)
+	protected PrimitiveNode(String protoName, Technology tech, EPoint sizeCorrector1, EPoint sizeCorrector2, String minSizeRule,
+            double defWidth, double defHeight, ERectangle fullRectangle, ERectangle baseRectangle, Technology.NodeLayer [] layers)
 	{
 		// things in the base class
 		if (!Technology.jelibSafeName(protoName))
@@ -557,10 +557,10 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 		this.electricalLayers = null;
 		this.userBits = 0;
 		specialType = NORMAL;
-        sizeCorrectors[0] = sizeCorrector;
-        long sizeX = sizeCorrector.getGridX();
-        long sizeY = sizeCorrector.getGridY();
-        fullRectangle = ERectangle.fromGrid(-sizeX, -sizeY, 2*sizeX, 2*sizeY);
+        sizeCorrectors[0] = sizeCorrector1;
+        sizeCorrectors[1] = sizeCorrector2;
+        this.fullRectangle = fullRectangle;
+        this.baseRectangle = baseRectangle;
 
         if (minSizeRule != null) {
             if (minSizeRule.length() == 0)
@@ -569,12 +569,10 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
         }
 
 		setFactoryDefSize(defWidth, defHeight);
-        this.baseRectangle = baseRectangle;
-        sizeCorrectors[1] = EPoint.fromGrid(baseRectangle.getGridWidth() >> 1, baseRectangle.getGridHeight() >> 1);
-        double lx = sizeCorrector.getLambdaX() + baseRectangle.getLambdaMinX();
-        double hx = sizeCorrector.getLambdaX() - baseRectangle.getLambdaMaxX();
-        double ly = sizeCorrector.getLambdaY() + baseRectangle.getLambdaMinY();
-        double hy = sizeCorrector.getLambdaY() - baseRectangle.getLambdaMaxY();
+        double lx = baseRectangle.getLambdaMinX() - fullRectangle.getLambdaMinX();
+        double hx = fullRectangle.getLambdaMaxX() - baseRectangle.getLambdaMaxX();
+        double ly = baseRectangle.getLambdaMinY() - fullRectangle.getLambdaMinY();
+        double hy = fullRectangle.getLambdaMaxY() - baseRectangle.getLambdaMaxY();
         offset = new SizeOffset(lx, hx, ly, hy);
 		this.autoGrowth = null;
 		globalPrimNodeIndex = primNodeNumber++;
@@ -638,9 +636,12 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
         long hx = sizeCorrector.getGridX() - offset.getHighXGridOffset();
         long ly = -sizeCorrector.getGridY() + offset.getLowYGridOffset();
         long hy = sizeCorrector.getGridY() - offset.getHighYGridOffset();
+        ERectangle fullRectangle = ERectangle.fromGrid(-sizeCorrector.getGridX(), -sizeCorrector.getGridY(),
+                2*sizeCorrector.getGridX(), 2*sizeCorrector.getGridY());
         ERectangle baseRectangle = ERectangle.fromGrid(lx, ly, hx - lx, hy - ly);
-        return newInstance(protoName, tech, sizeCorrector, minSizeRule,
-                width, height, baseRectangle, layers);
+        EPoint sizeCorrector2 = EPoint.fromGrid(baseRectangle.getGridWidth() >> 1, baseRectangle.getGridHeight() >> 1);
+        return newInstance(protoName, tech, sizeCorrector, sizeCorrector2, minSizeRule,
+                width, height, fullRectangle, baseRectangle, layers);
 	}
 
 	/**
@@ -674,8 +675,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	 */
 	public static PrimitiveNode newInstance0(String protoName, Technology tech, double width, double height, Technology.NodeLayer [] layers)
 	{
-        ERectangle baseRectangle = ERectangle.fromGrid(0, 0, 0, 0);
-        return newInstance(protoName, tech, EPoint.ORIGIN, null, width, height, baseRectangle, layers);
+        return newInstance(protoName, tech, EPoint.ORIGIN, EPoint.ORIGIN, null, width, height, ERectangle.ORIGIN, ERectangle.ORIGIN, layers);
 	}
 
 	/**
@@ -690,8 +690,8 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	 * @param layers the Layers that comprise the PrimitiveNode.
 	 * @return the newly created PrimitiveNode.
 	 */
-	static PrimitiveNode newInstance(String protoName, Technology tech, EPoint sizeCorrector, String minSizeRule,
-        double width, double height, ERectangle baseRectangle, Technology.NodeLayer [] layers)
+	static PrimitiveNode newInstance(String protoName, Technology tech, EPoint sizeCorrector1, EPoint sizeCorrector2, String minSizeRule,
+        double width, double height, ERectangle fullRectangle, ERectangle baseRectangle, Technology.NodeLayer [] layers)
 	{
 		// check the arguments
 		if (tech.findNodeProto(protoName) != null)
@@ -705,7 +705,8 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 			return null;
 		}
 
-		PrimitiveNode pn = new PrimitiveNode(protoName, tech, sizeCorrector, minSizeRule, width, height, baseRectangle, layers);
+		PrimitiveNode pn = new PrimitiveNode(protoName, tech, sizeCorrector1, sizeCorrector2, minSizeRule, width, height,
+                fullRectangle, baseRectangle, layers);
 		return pn;
 	}
 
@@ -722,11 +723,10 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
                     Technology.NodeLayer.BOX, null);
         }
 
-        EPoint sizeCorrector = EPoint.fromLambda(elibSize0, elibSize0);
-        long baseExtend = DBMath.lambdaToGrid(elibSize1);
-        ERectangle baseRectangle = ERectangle.fromGrid(-baseExtend, -baseExtend, 2*baseExtend, 2*baseExtend);
-        PrimitiveNode arcPin = newInstance(pinName, tech, sizeCorrector, null,
-                2*sizeCorrector.getLambdaX(), 2*sizeCorrector.getLambdaY(), baseRectangle, nodeLayers);
+        EPoint sizeCorrector1 = EPoint.fromLambda(elibSize0, elibSize0);
+        EPoint sizeCorrector2 = EPoint.fromLambda(elibSize1, elibSize1);
+        PrimitiveNode arcPin = newInstance(pinName, tech, sizeCorrector1, sizeCorrector2, null,
+                0, 0, ERectangle.ORIGIN, ERectangle.ORIGIN, nodeLayers);
 
         ArcProto[] connections = new ArcProto[1 + extraArcs.length];
         connections[0] = ap;
@@ -1184,7 +1184,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
         check();
     }
 
-    public void setSizeCorrector(double refWidth, double refHeight) {
+    private void setSizeCorrector(double refWidth, double refHeight) {
         long extendX = DBMath.lambdaToGrid(0.5*refWidth);
         long extendY = DBMath.lambdaToGrid(0.5*refHeight);
         sizeCorrectors[0] = EPoint.fromGrid(extendX, extendY);
@@ -1213,7 +1213,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
         check();
     }
 
-    public void resize(Xml.DistanceContext context) {
+    public void resize(Technology.DistanceContext context) {
         for (Technology.NodeLayer nl: layers)
             nl.resize(context);
         if (electricalLayers != null) {
@@ -2002,7 +2002,6 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
             EPoint.fromLambda(0.5*getDefWidth(), 0.5*getDefHeight());
         if (getFunction() == PrimitiveNode.Function.PIN && isArcsShrink()) {
             assert getNumPorts() == 1;
-            assert nodeSizeRule == null;
             PrimitivePort pp = getPort(0);
             assert pp.getLeft().getMultiplier() == -0.5 && pp.getRight().getMultiplier() == 0.5 && pp.getBottom().getMultiplier() == -0.5 && pp.getTop().getMultiplier() == 0.5;
             assert pp.getLeft().getAdder() == -pp.getRight().getAdder() && pp.getBottom().getAdder() == -pp.getTop().getAdder();
@@ -2012,29 +2011,16 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
         SizeOffset so = getProtoSizeOffset();
         if (so.getLowXOffset() == 0 && so.getHighXOffset() == 0 && so.getLowYOffset() == 0 && so.getHighYOffset() == 0)
             so = null;
+        n.sizeOffset = so;
 //            EPoint minFullSize = EPoint.fromLambda(0.5*pnp.getDefWidth(), 0.5*pnp.getDefHeight());
-        if (!minFullSize.equals(EPoint.ORIGIN))
-            n.diskOffset = minFullSize;
-//        if (so != null) {
-//            EPoint p2 = EPoint.fromGrid(
-//                    minFullSize.getGridX() - ((so.getLowXGridOffset() + so.getHighXGridOffset()) >> 1),
-//                    minFullSize.getGridY() - ((so.getLowYGridOffset() + so.getHighYGridOffset()) >> 1));
-//            n.diskOffset.put(Integer.valueOf(1), minFullSize);
-//            n.diskOffset.put(Integer.valueOf(2), p2);
-//        } else {
-//            n.diskOffset.put(Integer.valueOf(2), minFullSize);
-//        }
+        EPoint p1 = getSizeCorrector(0);
+        EPoint p2 = getSizeCorrector(1);
+        if (!p1.equals(p2))
+            n.diskOffset.put(Integer.valueOf(1), p1);
+        if (!p2.equals(EPoint.ORIGIN))
+            n.diskOffset.put(Integer.valueOf(2), p2);
         n.defaultWidth.addLambda(DBMath.round(getDefWidth() - 2*minFullSize.getLambdaX()));
         n.defaultHeight.addLambda(DBMath.round(getDefHeight() - 2*minFullSize.getLambdaY()));
-//            if (so != null) {
-//                EPoint p1 = EPoint.fromLambda(0.5*(so.getLowXOffset() + so.getHighXOffset()), 0.5*(so.getLowYOffset() + so.getHighYOffset()));
-//                n.diskOffset.put(Integer.valueOf(1), p1);
-//                n.diskOffset.put(Integer.valueOf(2), EPoint.ORIGIN);
-//            } else {
-//            }
-//            n.defaultWidth.value = DBMath.round(pnp.getDefWidth());
-//            n.defaultHeight.value = DBMath.round(pnp.getDefHeight());
-        n.nodeBase = baseRectangle;
 
         List<Technology.NodeLayer> nodeLayers = Arrays.asList(getLayers());
         List<Technology.NodeLayer> electricalNodeLayers = nodeLayers;
@@ -2067,6 +2053,12 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
             n.nodeSizeRule.width = nodeSizeRule.getWidth();
             n.nodeSizeRule.height = nodeSizeRule.getHeight();
             n.nodeSizeRule.rule = nodeSizeRule.getRuleName();
+        } else if (p1.getX() != 0.5*fullRectangle.getWidth() || p1.getY() != 0.5*fullRectangle.getHeight()) {
+            n.nodeSizeRule = new Xml.NodeSizeRule();
+            n.nodeSizeRule.width = fullRectangle.getWidth();
+            n.nodeSizeRule.height = fullRectangle.getHeight();
+            n.nodeSizeRule.rule = "?";
+            
         }
         n.spiceTemplate = getSpiceTemplate();
         return n;
@@ -2102,7 +2094,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
             EPoint.fromLambda(0.5*getDefWidth(), 0.5*getDefHeight());
         if (getFunction() == PrimitiveNode.Function.PIN && isArcsShrink()) {
             assert getNumPorts() == 1;
-            assert nodeSizeRule == null;
+//            assert nodeSizeRule == null;
             PrimitivePort pp = getPort(0);
             assert pp.getLeft().getMultiplier() == -0.5 && pp.getRight().getMultiplier() == 0.5 && pp.getBottom().getMultiplier() == -0.5 && pp.getTop().getMultiplier() == 0.5;
             assert pp.getLeft().getAdder() == -pp.getRight().getAdder() && pp.getBottom().getAdder() == -pp.getTop().getAdder();

@@ -3433,7 +3433,7 @@ public class LibToTech
             ap.fixedAngle = ai.fixAng;
             ap.angleIncrement = ai.angInc;
             ap.antennaRatio = ai.antennaRatio;
-            ap.elibWidthOffset = DBMath.round(ai.widthOffset);
+//            ap.elibWidthOffset = DBMath.round(ai.widthOffset);
             for (ArcInfo.LayerDetails al: ai.arcDetails) {
                 Xml.ArcLayer l = new Xml.ArcLayer();
                 l.layer = al.layer.name;
@@ -3476,9 +3476,9 @@ public class LibToTech
                 ly += ni.so.getLowYOffset();
                 hy -= ni.so.getHighYOffset();
             }
-            pn.nodeBase = ERectangle.fromLambda(lx, ly, hx - lx, hy - ly);
+/*            pn.nodeBase = ERectangle.fromLambda(lx, ly, hx - lx, hy - ly);
             if (!minFullSize.equals(EPoint.ORIGIN))
-                pn.diskOffset = minFullSize;
+                pn.diskOffset = minFullSize;*/
 //            EPoint p2 = EPoint.fromGrid(pn.nodeBase.getGridWidth() >> 1, pn.nodeBase.getGridHeight() >> 1);
 //            if (!p2.equals(minFullSize))
 //                pn.diskOffset.put(Integer.valueOf(1), minFullSize);

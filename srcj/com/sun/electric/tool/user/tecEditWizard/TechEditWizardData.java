@@ -890,7 +890,7 @@ public class TechEditWizardData
         if (so.getLowXOffset() == 0 && so.getHighXOffset() == 0 && so.getLowYOffset() == 0 && so.getHighYOffset() == 0)
             so = null;
         if (!minFullSize.equals(EPoint.ORIGIN))
-            n.diskOffset = minFullSize;
+/*            n.diskOffset = minFullSize*/;
 //        if (so != null) {
 //            EPoint p2 = EPoint.fromGrid(
 //                    minFullSize.getGridX() - ((so.getLowXGridOffset() + so.getHighXGridOffset()) >> 1),
@@ -903,7 +903,7 @@ public class TechEditWizardData
 //        n.defaultHeight.addLambda(DBMath.round(getDefHeight)); // - 2*minFullSize.getLambdaY());
         ERectangle baseRectangle = ERectangle.fromGrid(topLeft.getGridX(), topLeft.getGridY(),
             size.getGridX(), size.getGridY());
-        n.nodeBase = baseRectangle;
+/*        n.nodeBase = baseRectangle;*/
 
 //        List<Technology.NodeLayer> nodeLayers = Arrays.asList(getLayers());
 //        List<Technology.NodeLayer> electricalNodeLayers = nodeLayers;
@@ -976,7 +976,7 @@ public class TechEditWizardData
         for (Xml.ArcLayer al: arcLayers)
             a.arcLayers.add(al);
 
-        // arc pins
+/*        // arc pins
         a.arcPin = new Xml.ArcPin();
         a.arcPin.name = name + "-Pin"; //arcPin.getName();
 //            PrimitivePort port = arcPin.getPort(0);
@@ -986,6 +986,7 @@ public class TechEditWizardData
 //                if (cap.getTechnology() == tech && cap != this)
 //                    a.arcPin.portArcs.add(cap.getName());
 //            }
+*/
         arcs.add(a);
         return a;
     }
@@ -1017,7 +1018,7 @@ public class TechEditWizardData
             l.pureLayerNode.name = name + "-Node";
             l.pureLayerNode.style = Poly.Type.FILLED;
             l.pureLayerNode.port = "Port_" + name;
-            l.pureLayerNode.size.addRule(width.rule, 1);
+/*            l.pureLayerNode.size.addRule(width.rule, 1);*/
             l.pureLayerNode.portArcs.add(name);
 //            for (ArcProto ap: pureLayerNode.getPort(0).getConnections()) {
 //                if (ap.getTechnology() != tech) continue;
@@ -1058,9 +1059,9 @@ public class TechEditWizardData
         nl.inLayers = nl.inElectricalLayers = true;
         nl.representation = Technology.NodeLayer.MULTICUTBOX;
         nl.lx.k = -1; nl.hx.k = 1; nl.ly.k = -1; nl.hy.k = 1;
-        nl.sizeRule = sizeRule;
+/*        nl.sizeRule = sizeRule;
         nl.sepRule = sepRule;
-        nl.sepRule2D = sepRule2D;
+        nl.sepRule2D = sepRule2D;*/
         return nl;
     }
 
@@ -1405,8 +1406,8 @@ public class TechEditWizardData
         // write arcs
         // metal arcs
         String[] layerNames = new String[5];
-        Xml.Distance[] layerValues = new Xml.Distance[5];
-        Xml.DistanceContext context = Xml.EMPTY_CONTEXT;
+        Technology.Distance[] layerValues = new Technology.Distance[5];
+        Technology.DistanceContext context = Technology.EMPTY_CONTEXT;
         for(int i=1; i<=num_metal_layers; i++)
         {
             double ant = (int)Math.round(metal_antenna_ratio[i-1]) | 200;
@@ -1493,12 +1494,12 @@ public class TechEditWizardData
         Xml.ArcLayer al = new Xml.ArcLayer();
         al.layer = layer.name;
         al.style = Poly.Type.FILLED;
-        al.extend.assign(makeXmlDistance(flds));
+/*        al.extend.assign(makeXmlDistance(flds));*/
         return al;
     }
     
-    private Xml.Distance makeXmlDistance(WizardField ... flds) {
-        Xml.Distance dist = new Xml.Distance();
+    private Technology.Distance makeXmlDistance(WizardField ... flds) {
+        Technology.Distance dist = new Technology.Distance();
         dist.addRule(flds[0].rule, 0.5);
         for (int i = 1; i < flds.length; i++)
             dist.addRule(flds[i].rule, 1);

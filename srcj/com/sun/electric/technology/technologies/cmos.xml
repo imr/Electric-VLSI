@@ -34,6 +34,8 @@
 
     <shortName>Generic CMOS</shortName>
     <description>CMOS (N-Well, Griswold rules)</description>
+    <version tech="1" electric="8.05g"/>
+    <version tech="2" electric="8.05o"/>
     <numMetals min="1" max="1" default="1"/>
     <scale value="2000.0" relevant="true"/>
     <defaultFoundry value="NONE"/>
@@ -342,10 +344,10 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>400.0</antennaRatio>
+        <diskOffset untilVersion="2" width="1.5"/>
         <arcLayer layer="Metal" style="FILLED">
             <lambda>1.5</lambda>
         </arcLayer>
-        <arcPin name="Metal-Pin" port="metal" elibSize="3.0"/>
     </arcProto>
 
     <arcProto name="Polysilicon" fun="POLY1">
@@ -354,10 +356,10 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>200.0</antennaRatio>
+        <diskOffset untilVersion="2" width="1.0"/>
         <arcLayer layer="Polysilicon" style="FILLED">
             <lambda>1.0</lambda>
         </arcLayer>
-        <arcPin name="Polysilicon-Pin" port="polysilicon" elibSize="2.0"/>
     </arcProto>
 
     <arcProto name="Diffusion-p" fun="DIFFP">
@@ -366,14 +368,14 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>200.0</antennaRatio>
-        <elibWidthOffset>4.0</elibWidthOffset>
+        <diskOffset untilVersion="1" width="3.0"/>
+        <diskOffset untilVersion="2" width="1.0"/>
         <arcLayer layer="Diffusion" style="FILLED">
             <lambda>1.0</lambda>
         </arcLayer>
         <arcLayer layer="P-Plus" style="FILLED">
             <lambda>3.0</lambda>
         </arcLayer>
-        <arcPin name="Diffusion-P-Pin" port="diff-p" elibSize="6.0"/>
     </arcProto>
 
     <arcProto name="Diffusion-well" fun="DIFFN">
@@ -382,20 +384,105 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>200.0</antennaRatio>
-        <elibWidthOffset>6.0</elibWidthOffset>
+        <diskOffset untilVersion="1" width="4.0"/>
+        <diskOffset untilVersion="2" width="1.0"/>
         <arcLayer layer="Diffusion" style="FILLED">
             <lambda>1.0</lambda>
         </arcLayer>
         <arcLayer layer="P-Well" style="FILLED">
             <lambda>4.0</lambda>
         </arcLayer>
-        <arcPin name="Diffusion-Well-Pin" port="diff-w" elibSize="8.0"/>
     </arcProto>
 
     <!-- ******************** NODES ******************** -->
+    <primitiveNode name="Metal-Pin" fun="PIN">
+        <shrinkArcs/>
+        <diskOffset untilVersion="2" x="1.5" y="1.5"/>
+        <nodeLayer layer="Metal" style="CROSSED">
+            <box>
+                <lambdaBox klx="-1.5" khx="1.5" kly="-1.5" khy="1.5"/>
+            </box>
+        </nodeLayer>
+        <primitivePort name="metal">
+            <portAngle primary="0" range="180"/>
+            <portTopology>0</portTopology>
+            <box>
+                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
+            </box>
+            <portArc>Metal</portArc>
+        </primitivePort>
+    </primitiveNode>
+
+    <primitiveNode name="Polysilicon-Pin" fun="PIN">
+        <shrinkArcs/>
+        <diskOffset untilVersion="2" x="1.0" y="1.0"/>
+        <nodeLayer layer="Polysilicon" style="CROSSED">
+            <box>
+                <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
+            </box>
+        </nodeLayer>
+        <primitivePort name="polysilicon">
+            <portAngle primary="0" range="180"/>
+            <portTopology>0</portTopology>
+            <box>
+                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
+            </box>
+            <portArc>Polysilicon</portArc>
+        </primitivePort>
+    </primitiveNode>
+
+    <primitiveNode name="Diffusion-P-Pin" fun="PIN">
+        <shrinkArcs/>
+        <diskOffset untilVersion="1" x="3.0" y="3.0"/>
+        <diskOffset untilVersion="2" x="1.0" y="1.0"/>
+        <sizeOffset lx="2.0" hx="2.0" ly="2.0" hy="2.0"/>
+        <nodeLayer layer="Diffusion" style="CROSSED">
+            <box>
+                <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
+            </box>
+        </nodeLayer>
+        <nodeLayer layer="P-Plus" style="CROSSED">
+            <box>
+                <lambdaBox klx="-3.0" khx="3.0" kly="-3.0" khy="3.0"/>
+            </box>
+        </nodeLayer>
+        <primitivePort name="diff-p">
+            <portAngle primary="0" range="180"/>
+            <portTopology>0</portTopology>
+            <box>
+                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
+            </box>
+            <portArc>Diffusion-p</portArc>
+        </primitivePort>
+    </primitiveNode>
+
+    <primitiveNode name="Diffusion-Well-Pin" fun="PIN">
+        <shrinkArcs/>
+        <diskOffset untilVersion="1" x="4.0" y="4.0"/>
+        <diskOffset untilVersion="2" x="1.0" y="1.0"/>
+        <sizeOffset lx="3.0" hx="3.0" ly="3.0" hy="3.0"/>
+        <nodeLayer layer="Diffusion" style="CROSSED">
+            <box>
+                <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
+            </box>
+        </nodeLayer>
+        <nodeLayer layer="P-Well" style="CROSSED">
+            <box>
+                <lambdaBox klx="-4.0" khx="4.0" kly="-4.0" khy="4.0"/>
+            </box>
+        </nodeLayer>
+        <primitivePort name="diff-w">
+            <portAngle primary="0" range="180"/>
+            <portTopology>0</portTopology>
+            <box>
+                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
+            </box>
+            <portArc>Diffusion-well</portArc>
+        </primitivePort>
+    </primitiveNode>
+
     <primitiveNode name="Metal-Polysilicon-Con" fun="CONTACT">
-        <diskOffset x="2.0" y="2.0"/>
-        <nodeBase lx="-2.0" hx="2.0" ly="-2.0" hy="2.0"/>
+        <diskOffset untilVersion="2" x="2.0" y="2.0"/>
         <nodeLayer layer="Metal" style="FILLED">
             <box>
                 <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
@@ -407,7 +494,9 @@
             </box>
         </nodeLayer>
         <nodeLayer layer="Contact-Cut" style="CLOSED">
-            <multicutbox sizeRule="W_4" sepRule="C_4_4"/>
+            <multicutbox sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0">
+                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
+            </multicutbox>
         </nodeLayer>
         <primitivePort name="metal-poly">
             <portAngle primary="0" range="180"/>
@@ -421,8 +510,9 @@
     </primitiveNode>
 
     <primitiveNode name="Metal-Diff-P-Con" fun="CONTACT">
-        <diskOffset x="4.0" y="4.0"/>
-        <nodeBase lx="-2.0" hx="2.0" ly="-2.0" hy="2.0"/>
+        <diskOffset untilVersion="1" x="4.0" y="4.0"/>
+        <diskOffset untilVersion="2" x="2.0" y="2.0"/>
+        <sizeOffset lx="2.0" hx="2.0" ly="2.0" hy="2.0"/>
         <nodeLayer layer="Metal" style="FILLED">
             <box>
                 <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
@@ -434,7 +524,9 @@
             </box>
         </nodeLayer>
         <nodeLayer layer="Contact-Cut" style="CLOSED">
-            <multicutbox sizeRule="W_4" sepRule="C_4_4"/>
+            <multicutbox sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0">
+                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
+            </multicutbox>
         </nodeLayer>
         <nodeLayer layer="P-Plus" style="FILLED">
             <box>
@@ -453,8 +545,9 @@
     </primitiveNode>
 
     <primitiveNode name="Metal-Diff-Well-Con" fun="CONTACT">
-        <diskOffset x="5.0" y="5.0"/>
-        <nodeBase lx="-2.0" hx="2.0" ly="-2.0" hy="2.0"/>
+        <diskOffset untilVersion="1" x="5.0" y="5.0"/>
+        <diskOffset untilVersion="2" x="2.0" y="2.0"/>
+        <sizeOffset lx="3.0" hx="3.0" ly="3.0" hy="3.0"/>
         <nodeLayer layer="Metal" style="FILLED">
             <box>
                 <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
@@ -466,7 +559,9 @@
             </box>
         </nodeLayer>
         <nodeLayer layer="Contact-Cut" style="CLOSED">
-            <multicutbox sizeRule="W_4" sepRule="C_4_4"/>
+            <multicutbox sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0">
+                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
+            </multicutbox>
         </nodeLayer>
         <nodeLayer layer="P-Well" style="FILLED">
             <box>
@@ -485,8 +580,9 @@
     </primitiveNode>
 
     <primitiveNode name="Transistor" fun="TRAPMOS">
-        <diskOffset x="3.0" y="3.0"/>
-        <nodeBase lx="-1.0" hx="1.0" ly="-1.0" hy="1.0"/>
+        <diskOffset untilVersion="1" x="3.0" y="3.0"/>
+        <diskOffset untilVersion="2" x="1.0" y="1.0"/>
+        <sizeOffset lx="2.0" hx="2.0" ly="2.0" hy="2.0"/>
         <nodeLayer layer="Polysilicon" style="FILLED">
             <serpbox lWidth="1.0" rWidth="1.0" tExtent="2.0" bExtent="2.0">
                 <lambdaBox klx="-3.0" khx="3.0" kly="-1.0" khy="1.0"/>
@@ -555,8 +651,9 @@
     </primitiveNode>
 
     <primitiveNode name="Transistor-Well" fun="TRANMOS">
-        <diskOffset x="4.0" y="4.0"/>
-        <nodeBase lx="-1.0" hx="1.0" ly="-1.0" hy="1.0"/>
+        <diskOffset untilVersion="1" x="4.0" y="4.0"/>
+        <diskOffset untilVersion="2" x="1.0" y="1.0"/>
+        <sizeOffset lx="3.0" hx="3.0" ly="3.0" hy="3.0"/>
         <nodeLayer layer="Polysilicon" style="FILLED">
             <serpbox lWidth="1.0" rWidth="1.0" tExtent="2.0" bExtent="2.0">
                 <lambdaBox klx="-3.0" khx="3.0" kly="-1.0" khy="1.0"/>
@@ -625,8 +722,9 @@
     </primitiveNode>
 
     <primitiveNode name="Metal-Diff-Split-Cut" fun="WELL">
-        <diskOffset x="7.0" y="5.0"/>
-        <nodeBase lx="-4.0" hx="4.0" ly="-2.0" hy="2.0"/>
+        <diskOffset untilVersion="1" x="7.0" y="5.0"/>
+        <diskOffset untilVersion="2" x="4.0" y="2.0"/>
+        <sizeOffset lx="3.0" hx="3.0" ly="3.0" hy="3.0"/>
         <nodeLayer layer="Metal" style="FILLED">
             <box>
                 <lambdaBox klx="-4.0" khx="4.0" kly="-2.0" khy="2.0"/>
@@ -677,8 +775,9 @@
     </primitiveNode>
 
     <primitiveNode name="Metal-Diff-SplitN-Cut" fun="SUBSTRATE">
-        <diskOffset x="5.0" y="4.0"/>
-        <nodeBase lx="-3.0" hx="5.0" ly="-2.0" hy="2.0"/>
+        <diskOffset untilVersion="1" x="5.0" y="4.0"/>
+        <diskOffset untilVersion="2" x="4.0" y="2.0"/>
+        <sizeOffset lx="2.0" hx="0.0" ly="2.0" hy="2.0"/>
         <nodeLayer layer="Metal" style="FILLED">
             <box>
                 <lambdaBox klx="-3.0" khx="5.0" kly="-2.0" khy="2.0"/>

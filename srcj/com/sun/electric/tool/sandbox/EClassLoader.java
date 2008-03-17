@@ -185,6 +185,7 @@ class EClassLoader extends URLClassLoader {
     protected final Method ArcProto_getAngleIncrement = getMethod(classArcProto, "getAngleIncrement");
     protected final Method ArcProto_getAntennaRatio = getMethod(classArcProto, "getAntennaRatio");
     protected final Method ArcProto_getDefaultWidth = getMethod(classArcProto, "getDefaultWidth");
+    protected final Method ArcProto_getDefaultLambdaBaseWidth = getMethod(classArcProto, "getDefaultLambdaBaseWidth");
     protected final Method ArcProto_getDefaultLambdaFullWidth = getMethod(classArcProto, "getDefaultLambdaFullWidth");
     protected final Method ArcProto_getFunction = getMethod(classArcProto, "getFunction");
     protected final Method ArcProto_getLambdaElibWidthOffset = getMethod(classArcProto, "getLambdaElibWidthOffset");
@@ -236,6 +237,7 @@ class EClassLoader extends URLClassLoader {
     protected final Method PrimitiveNode_getSizeCorrector = getDeclaredMethod(classPrimitiveNode, "getSizeCorrector", Integer.TYPE);
     protected final Method PrimitiveNode_getSpecialType = getMethod(classPrimitiveNode, "getSpecialType");
     protected final Method PrimitiveNode_getSpecialValues = getMethod(classPrimitiveNode, "getSpecialValues");
+    protected final Method PrimitiveNode_getSpiceTemplate = getMethod(classPrimitiveNode, "getSpiceTemplate");
     protected final Method PrimitiveNode_isArcsShrink = getMethod(classPrimitiveNode, "isArcsShrink");
     protected final Method PrimitiveNode_isArcsWipe = getMethod(classPrimitiveNode, "isArcsWipe");
     protected final Method PrimitiveNode_isCanBeZeroSize = getMethod(classPrimitiveNode, "isCanBeZeroSize");

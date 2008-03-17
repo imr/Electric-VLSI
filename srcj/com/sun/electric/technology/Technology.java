@@ -130,8 +130,10 @@ import javax.swing.SwingUtilities;
 public class Technology implements Comparable<Technology>, Serializable
 {
     private static final boolean LAZY_TECHNOLOGIES = false;
-    private static final Version DISK_VERSION_1 = Version.parseVersion("8.05g");
-    private static final Version DISK_VERSION_2 = Version.parseVersion("8.05o");
+    /** Jelib writes base sizes since this Electric Version */
+    public static final Version DISK_VERSION_1 = Version.parseVersion("8.05g");
+    /** Jelib writes oversize over standard primitive since this Electric Version */
+    public static final Version DISK_VERSION_2 = Version.parseVersion("8.05o");
 	public static final Technology[] NULL_ARRAY = {};
 	public static final ImmutableArrayList<Technology> EMPTY_LIST = new ImmutableArrayList<Technology>(NULL_ARRAY);
 
@@ -148,6 +150,69 @@ public class Technology implements Comparable<Technology>, Serializable
 	public static final String SPECIALMENUHIGH   = "High";
 	public static final String SPECIALMENUPORT   = "Port";
 
+    public static class Distance implements Serializable {
+        public double k;
+        public double lambdaValue;
+        public final List<DistanceRule> terms = new ArrayList<DistanceRule>();
+
+        public void assign(Distance d) {
+            k = d.k;
+            lambdaValue = d.lambdaValue;
+            for (DistanceRule term: d.terms)
+                terms.add(term.clone());
+        }
+
+        public Distance clone() {
+            Distance d = new Distance();
+            d.assign(this);
+            return d;
+        }
+
+        public double getLambda(DistanceContext context) {
+            double value = lambdaValue;
+            for (DistanceRule term: terms)
+                value += term.getLambda(context);
+            return value;
+        }
+        public void addLambda(double value) {
+            lambdaValue += value;
+        }
+        public void addRule(String ruleName, double k) {
+            DistanceRule term = new DistanceRule();
+            term.ruleName = ruleName;
+            term.k = k;
+            terms.add(term);
+        }
+        public boolean isEmpty() { return lambdaValue == 0 && terms.isEmpty(); }
+    }
+
+    public static interface DistanceContext {
+        public double getRule(String ruleName);
+    }
+
+    public static DistanceContext EMPTY_CONTEXT = new DistanceContext() {
+        public double getRule(String ruleName) {
+            throw new UnsupportedOperationException();
+        }
+    };
+
+    public static class DistanceRule implements Serializable, Cloneable {
+        public String ruleName;
+        public double k;
+
+        public DistanceRule clone() {
+            try {
+                return (DistanceRule)super.clone();
+            } catch (CloneNotSupportedException e) {
+                throw new AssertionError();
+            }
+        }
+
+        private double getLambda(DistanceContext context) {
+            return context.getRule(ruleName)*k;
+        }
+    }
+
    /**
 	 * Defines a single layer of a ArcProto.
 	 * A ArcProto has a list of these ArcLayer objects, one for
@@ -159,7 +224,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	{
 		private final Layer layer;
 		private final Poly.Type style;
-        private final Xml.Distance xmlExtend;
+        private final Distance xmlExtend;
         private int gridExtend;
 
 		/**
@@ -191,7 +256,7 @@ public class Technology implements Comparable<Technology>, Serializable
          * @param ruleNames rule names to make an expression for for extend of this ArcLayer
 		 */
         public ArcLayer(Layer layer, Poly.Type style, double lambdaExtend, String ... ruleNames) {
-            this(layer, style, new Xml.Distance());
+            this(layer, style, new Distance());
             if (ruleNames.length > 0)
                 xmlExtend.addRule(ruleNames[0], 0.5);
             for (int i = 1; i < ruleNames.length; i++)
@@ -205,11 +270,11 @@ public class Technology implements Comparable<Technology>, Serializable
          * @param xmlExtend Xml expression for extend of this ArcLayer depending on tech parameters
 		 * @param style the Poly.Style of this ArcLayer.
 		 */
-        public ArcLayer(Layer layer, Poly.Type style, Xml.Distance xmlExtend) {
+        public ArcLayer(Layer layer, Poly.Type style, Distance xmlExtend) {
             this(layer, style, 0, xmlExtend);
         }
         
-        private ArcLayer(Layer layer, Poly.Type style, long gridExtend, Xml.Distance xmlExtend) {
+        private ArcLayer(Layer layer, Poly.Type style, long gridExtend, Distance xmlExtend) {
             if (gridExtend < 0 || gridExtend >= Integer.MAX_VALUE/8)
                 throw new IllegalArgumentException("gridExtend=" + gridExtend);
             this.layer = layer;
@@ -260,7 +325,8 @@ public class Technology implements Comparable<Technology>, Serializable
             Xml.ArcLayer al = new Xml.ArcLayer();
             al.layer = layer.getName();
             al.style = style;
-            al.extend.assign(xmlExtend);
+            al.extend.addLambda(DBMath.gridToLambda(gridExtend));
+//            al.extend.assign(xmlExtend);
             return al;
         }
         
@@ -272,7 +338,7 @@ public class Technology implements Comparable<Technology>, Serializable
             return al;
         }
         
-        void resize(Xml.DistanceContext context, ArcProto ap) {
+        void resize(DistanceContext context, ArcProto ap) {
             double lambdaExtend = xmlExtend.getLambda(context);
             if (Double.isNaN(lambdaExtend) && !ap.isNotUsed())
                 System.out.println("Can't resize arc layer " + layer + " of " + ap.getFullName());
@@ -535,6 +601,16 @@ public class Technology implements Comparable<Technology>, Serializable
             return nl;
         }
 
+        public static NodeLayer makeMulticut(Layer layer, int portNum, Poly.Type style, TechPoint[] techPoints,
+                double sizeX, double sizeY, double sep1d, double sep2d) {
+			NodeLayer nl = new NodeLayer(layer, portNum, style, Technology.NodeLayer.MULTICUTBOX, techPoints);
+            nl.cutGridSizeX = DBMath.lambdaToGrid(sizeX);
+            nl.cutGridSizeY = DBMath.lambdaToGrid(sizeY);
+            nl.cutGridSep1D =  DBMath.lambdaToGrid(sep1d);
+            nl.cutGridSep2D =  DBMath.lambdaToGrid(sep2d);
+            return nl;
+        }
+
 		/**
 		 * Returns the <CODE>Layer</CODE> object associated with this NodeLayer.
 		 * @return the <CODE>Layer</CODE> object associated with this NodeLayer.
@@ -751,9 +827,15 @@ public class Technology implements Comparable<Technology>, Serializable
                 for (Technology.TechPoint p: points)
                     nld.techPoints.add(p.makeCorrection(correction));
             }
-            nld.sizeRule = sizeRule;
-            nld.sepRule = cutSep1DRule;
-            nld.sepRule2D = cutSep2DRule;
+            if (nld.representation == Technology.NodeLayer.MULTICUTBOX) {
+                nld.sizex = DBMath.round(getMulticutSizeX());
+                nld.sizey = DBMath.round(getMulticutSizeY());
+                nld.sep1d = DBMath.round(getMulticutSep1D()); 
+                nld.sep2d = DBMath.round(getMulticutSep2D()); 
+            }
+//            nld.sizeRule = sizeRule;
+//            nld.sepRule = cutSep1DRule;
+//            nld.sepRule2D = cutSep2DRule;
             if (isSerp) {
                 nld.lWidth = DBMath.round(getSerpentineLWidth());
                 nld.rWidth = DBMath.round(getSerpentineRWidth());
@@ -797,7 +879,7 @@ public class Technology implements Comparable<Technology>, Serializable
             return nld;
         }
         
-        void resize(Xml.DistanceContext context) {
+        void resize(DistanceContext context) {
             if (sizeRule != null) {
                 double lambdaSize = context.getRule(sizeRule);
                 cutGridSizeX = cutGridSizeY = (int)DBMath.lambdaToGrid(lambdaSize);
@@ -1100,11 +1182,18 @@ public class Technology implements Comparable<Technology>, Serializable
 //            long gridFullExtend = minGridExtend + DBMath.lambdaToGrid(a.elibWidthOffset*0.5);
             for (int i = 0; i < arcLayers.length; i++) {
                 Xml.ArcLayer al = a.arcLayers.get(i);
-                arcLayers[i] = new ArcLayer(layers.get(al.layer),al.style, al.extend);
+                Distance d = new Distance();
+                d.addLambda(al.extend.value);
+                arcLayers[i] = new ArcLayer(layers.get(al.layer),al.style, d);
             }
 //            if (minGridExtend < 0 || minGridExtend != DBMath.lambdaToGrid(a.arcLayers.get(0).extend.getLambda(context)))
 //            	assert true;
-            ArcProto ap = new ArcProto(this, a.name, DBMath.lambdaToGrid(a.elibWidthOffset*0.5), 0, a.function, arcLayers, arcs.size());
+            Double diskOffset1 = a.diskOffset.get(Integer.valueOf(1));
+            Double diskOffset2 = a.diskOffset.get(Integer.valueOf(2));
+            long halfElibWidthOffset = 0;
+            if (diskOffset1 != null && diskOffset2 != null)
+                halfElibWidthOffset = DBMath.lambdaToGrid(diskOffset1.doubleValue() - diskOffset2.doubleValue());
+            ArcProto ap = new ArcProto(this, a.name, halfElibWidthOffset, 0, a.function, arcLayers, arcs.size());
 //            ArcProto ap = new ArcProto(this, a.name, (int)maxGridExtend, (int)minGridExtend, defaultWidth, a.function, arcLayers, arcs.size());
             addArcProto(ap);
 
@@ -1125,15 +1214,24 @@ public class Technology implements Comparable<Technology>, Serializable
             ap.setFactoryFixedAngle(a.fixedAngle);
             ap.setFactoryAngleIncrement(a.angleIncrement);
             ERC.getERCTool().setAntennaRatio(ap, a.antennaRatio);
-            if (a.arcPin != null)
-                ap.makeWipablePin(a.arcPin.name, a.arcPin.portName, a.arcPin.elibSize, makeConnections(a.arcPin.portArcs, arcs));
+//            if (a.arcPin != null)
+//                ap.makeWipablePin(a.arcPin.name, a.arcPin.portName, a.arcPin.elibSize, makeConnections(a.arcPin.portArcs, arcs));
         }
         setNoNegatedArcs();
-        Xml.DistanceContext context = Xml.EMPTY_CONTEXT;
+        DistanceContext context = EMPTY_CONTEXT;
         for (Xml.PrimitiveNode n: t.nodes) {
-            EPoint correction = EPoint.ORIGIN;
-            if (n.diskOffset != null)
-                correction = n.diskOffset;
+            EPoint sizeCorrector1 = n.diskOffset.get(Integer.valueOf(1));
+            EPoint sizeCorrector2 = n.diskOffset.get(Integer.valueOf(2));
+            if (sizeCorrector2 == null)
+                sizeCorrector2 = EPoint.ORIGIN;
+            if (sizeCorrector1 == null)
+                sizeCorrector1 = sizeCorrector2;
+            EPoint fullSize = sizeCorrector1;
+            String minSizeRule = null;
+            if (n.nodeSizeRule != null) {
+                fullSize = EPoint.fromLambda(0.5*n.nodeSizeRule.width, 0.5*n.nodeSizeRule.height);
+                minSizeRule = n.nodeSizeRule.rule;
+            }
             boolean needElectricalLayers = false;
             ArrayList<NodeLayer> nodeLayers = new ArrayList<NodeLayer>();
             ArrayList<NodeLayer> electricalNodeLayers = new ArrayList<NodeLayer>();
@@ -1142,15 +1240,15 @@ public class Technology implements Comparable<Technology>, Serializable
                 TechPoint[] techPoints;
                 if (nl.representation == NodeLayer.BOX || nl.representation == NodeLayer.MULTICUTBOX) {
                     techPoints = new TechPoint[2];
-                    if (nl.lx.getLambda(context) > nl.hx.getLambda(context) || nl.lx.k > nl.hx.k ||
-                            nl.ly.getLambda(context) > nl.hy.getLambda(context) || nl.ly.k > nl.hy.k)
+                    if (nl.lx.value > nl.hx.value || nl.lx.k > nl.hx.k ||
+                            nl.ly.value > nl.hy.value || nl.ly.k > nl.hy.k)
                         System.out.println("Strange polygon in " + getTechName() + ":" + n.name);
-                    techPoints[0] = makeTechPoint(nl.lx, nl.ly, context, correction);
-                    techPoints[1] = makeTechPoint(nl.hx, nl.hy, context, correction);
+                    techPoints[0] = makeTechPoint(nl.lx, nl.ly, context, fullSize);
+                    techPoints[1] = makeTechPoint(nl.hx, nl.hy, context, fullSize);
                 } else {
                     techPoints = nl.techPoints.toArray(new TechPoint[nl.techPoints.size()]);
                     for (int j = 0; j < techPoints.length; j++)
-                        techPoints[j] = makeTechPoint(techPoints[j], correction);
+                        techPoints[j] = makeTechPoint(techPoints[j], fullSize);
                 }
                 NodeLayer nodeLayer;
                 Layer layer = layers.get(nl.layer);
@@ -1160,7 +1258,7 @@ public class Technology implements Comparable<Technology>, Serializable
                     layer = layer.getPseudoLayer();
                 }
                 if (nl.representation == NodeLayer.MULTICUTBOX) {
-                    nodeLayer = NodeLayer.makeMulticut(layer, nl.portNum, nl.style, techPoints, nl.sizeRule, nl.sepRule, nl.sepRule2D);
+                    nodeLayer = NodeLayer.makeMulticut(layer, nl.portNum, nl.style, techPoints, nl.sizex, nl.sizey, nl.sep1d, nl.sep2d);
                 }
                 else if (n.specialType == PrimitiveNode.SERPTRANS)
                     nodeLayer = new NodeLayer(layer, nl.portNum, nl.style, nl.representation, techPoints, nl.lWidth, nl.rWidth, nl.tExtent, nl.bExtent);
@@ -1173,27 +1271,22 @@ public class Technology implements Comparable<Technology>, Serializable
                 if (nl.inElectricalLayers)
                     electricalNodeLayers.add(nodeLayer);
             }
-            String minSizeRule = null;
-            if (n.nodeSizeRule != null) {
-                EPoint correction2 = EPoint.fromLambda(0.5*n.nodeSizeRule.width, 0.5*n.nodeSizeRule.height);
-                if (n.diskOffset == null)
-                    correction = correction2;
-                else if (!correction.equals(correction2))
-                    throw new IllegalArgumentException("Mismatch between nodeSizeRule and diskOffset");
-                minSizeRule = n.nodeSizeRule.rule;
+            long blx = -fullSize.getGridX();
+            long bhx = fullSize.getGridX();
+            long bly = -fullSize.getGridY();
+            long bhy = fullSize.getGridY();
+            ERectangle fullRectangle = ERectangle.fromGrid(blx, bly, bhx - blx, bhy - bly);
+            if (n.sizeOffset != null) {
+                blx += n.sizeOffset.getLowXGridOffset();
+                bhx -= n.sizeOffset.getHighXGridOffset();
+                bly += n.sizeOffset.getLowYGridOffset();
+                bhy -= n.sizeOffset.getHighYGridOffset();
             }
-            ERectangle baseRectangle = n.nodeBase;
-            if (baseRectangle == null) {
-                long lx = -correction.getGridX();
-                long hx = correction.getGridX();
-                long ly = -correction.getGridY();
-                long hy = correction.getGridY();
-                baseRectangle = ERectangle.fromGrid(lx, ly, hx - lx, hy - ly);
-            }
-            PrimitiveNode pnp = PrimitiveNode.newInstance(n.name, this, correction, minSizeRule,
-                    DBMath.round(n.defaultWidth.getLambda(context) + 2*correction.getLambdaX()),
-                    DBMath.round(n.defaultHeight.getLambda(context) + 2*correction.getLambdaY()),
-                    baseRectangle, nodeLayers.toArray(new NodeLayer[nodeLayers.size()]));
+            ERectangle baseRectangle = ERectangle.fromGrid(blx, bly, bhx - blx, bhy - bly);
+            PrimitiveNode pnp = PrimitiveNode.newInstance(n.name, this, sizeCorrector1, sizeCorrector2, minSizeRule,
+                    DBMath.round(n.defaultWidth.value + 2*fullSize.getLambdaX()),
+                    DBMath.round(n.defaultHeight.value + 2*fullSize.getLambdaY()),
+                    fullRectangle, baseRectangle, nodeLayers.toArray(new NodeLayer[nodeLayers.size()]));
             if (n.oldName != null)
                 oldNodeNames.put(n.oldName, pnp);
             pnp.setFunction(n.function);
@@ -1233,15 +1326,13 @@ public class Technology implements Comparable<Technology>, Serializable
             PrimitivePort[] ports = new PrimitivePort[n.ports.size()];
             for (int i = 0; i < ports.length; i++) {
                 Xml.PrimitivePort p = n.ports.get(i);
-//                TechPoint p0 = makeTechPoint(p.p0, correction);
-//                TechPoint p1 = makeTechPoint(p.p1, correction);
-                if (p.lx.getLambda(context) > p.hx.getLambda(context) || p.lx.k > p.hx.k ||
-                        p.ly.getLambda(context) > p.hy.getLambda(context) || p.ly.k > p.hy.k)
+                if (p.lx.value > p.hx.value || p.lx.k > p.hx.k ||
+                        p.ly.value > p.hy.value || p.ly.k > p.hy.k)
                     System.out.println("Strange polygon in " + getTechName() + ":" + n.name + ":" + p.name);
-                EdgeH lx = makeEdgeH(p.lx, context, correction);
-                EdgeH hx = makeEdgeH(p.hx, context, correction);
-                EdgeV ly = makeEdgeV(p.ly, context, correction);
-                EdgeV hy = makeEdgeV(p.hy, context, correction);
+                EdgeH lx = makeEdgeH(p.lx, context, fullSize);
+                EdgeH hx = makeEdgeH(p.hx, context, fullSize);
+                EdgeV ly = makeEdgeV(p.ly, context, fullSize);
+                EdgeV hy = makeEdgeV(p.hy, context, fullSize);
                 ports[i] = PrimitivePort.newInstance(this, pnp, makeConnections(p.portArcs, arcs), p.name,
                         p.portAngle, p.portRange, p.portTopology, PortCharacteristic.UNKNOWN, lx, ly, hx, hy);
             }
@@ -1271,7 +1362,7 @@ public class Technology implements Comparable<Technology>, Serializable
         for (Xml.Layer l: t.layers) {
             if (l.pureLayerNode == null) continue;
             Layer layer = layers.get(l.name);
-            PrimitiveNode pn = layer.makePureLayerNode(l.pureLayerNode.name, l.pureLayerNode.size.getLambda(context), l.pureLayerNode.style,
+            PrimitiveNode pn = layer.makePureLayerNode(l.pureLayerNode.name, l.pureLayerNode.size.value, l.pureLayerNode.style,
                     l.pureLayerNode.port, makeConnections(l.pureLayerNode.portArcs, arcs));
             if (l.pureLayerNode.oldName != null)
                 oldNodeNames.put(l.pureLayerNode.oldName, pn);
@@ -1322,16 +1413,16 @@ public class Technology implements Comparable<Technology>, Serializable
         return new TechPoint(h, v);
     }
 
-    private TechPoint makeTechPoint(Xml.Distance x, Xml.Distance y, Xml.DistanceContext context, EPoint correction) {
+    private TechPoint makeTechPoint(Xml.Distance x, Xml.Distance y, DistanceContext context, EPoint correction) {
         return new TechPoint(makeEdgeH(x, context, correction), makeEdgeV(y, context, correction));
     }
 
-    private EdgeH makeEdgeH(Xml.Distance x, Xml.DistanceContext context, EPoint correction) {
-        return new EdgeH(x.k*0.5, x.getLambda(context) - correction.getLambdaX()*x.k);
+    private EdgeH makeEdgeH(Xml.Distance x, DistanceContext context, EPoint correction) {
+        return new EdgeH(x.k*0.5, x.value - correction.getLambdaX()*x.k);
     }
 
-    private EdgeV makeEdgeV(Xml.Distance y, Xml.DistanceContext context, EPoint correction) {
-        return new EdgeV(y.k*0.5, y.getLambda(context) - correction.getLambdaY()*y.k);
+    private EdgeV makeEdgeV(Xml.Distance y, DistanceContext context, EPoint correction) {
+        return new EdgeV(y.k*0.5, y.value - correction.getLambdaY()*y.k);
     }
 
     private void convertMenuPalette(Xml.MenuPalette menuPalette) {
@@ -1942,6 +2033,17 @@ public class Technology implements Comparable<Technology>, Serializable
         t.techName = getTechName();
         if (getClass() != Technology.class)
             t.className = getClass().getName();
+        
+        Xml.Version version;
+        version = new Xml.Version();
+        version.techVersion = 1;
+        version.electricVersion = Technology.DISK_VERSION_1;
+        t.versions.add(version);
+        version = new Xml.Version();
+        version.techVersion = 2;
+        version.electricVersion = Technology.DISK_VERSION_2;
+        t.versions.add(version);
+        
         t.shortTechName = getTechShortName();
         t.description = getTechDesc();
         int numMetals = ((Integer)getNumMetalsSetting().getFactoryValue()).intValue();
@@ -1961,17 +2063,17 @@ public class Technology implements Comparable<Technology>, Serializable
             if (layer.isPseudoLayer()) continue;
             t.layers.add(layer.makeXml());
         }
-        HashSet<PrimitiveNode> arcPins = new HashSet<PrimitiveNode>();
+//        HashSet<PrimitiveNode> arcPins = new HashSet<PrimitiveNode>();
         for (Iterator<ArcProto> it = getArcs(); it.hasNext(); ) {
             ArcProto ap = it.next();
             t.arcs.add(ap.makeXml());
-            if (ap.arcPin != null)
-                arcPins.add(ap.arcPin);
+//            if (ap.arcPin != null)
+//                arcPins.add(ap.arcPin);
         }
         for (Iterator<PrimitiveNode> it = getNodes(); it.hasNext(); ) {
             PrimitiveNode pnp = it.next();
             if (pnp.getFunction() == PrimitiveNode.Function.NODE) continue;
-            if (arcPins.contains(pnp)) continue;
+//            if (arcPins.contains(pnp)) continue;
             t.nodes.add(pnp.makeXml());
         }
 
@@ -4991,7 +5093,7 @@ public class Technology implements Comparable<Technology>, Serializable
             pn.resize(context);
     }
     
-    private class TechDistanceContext implements Xml.DistanceContext {
+    private class TechDistanceContext implements DistanceContext {
         private final Map<String,String> ruleAliases = getRuleAliases();
         private final XMLRules rules;
         private final int numMetals = getNumMetals();

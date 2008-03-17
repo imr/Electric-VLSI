@@ -37,6 +37,7 @@ import java.io.Serializable;
  * This class is used in Electric database.
  */
 public class ERectangle extends Rectangle2D implements Serializable {
+    public static final ERectangle ORIGIN = new ERectangle(0, 0, 0, 0);
     public static final ERectangle[] NULL_ARRAY = {};
     public static final ImmutableArrayList<ERectangle> EMPTY_LIST = new ImmutableArrayList<ERectangle>(NULL_ARRAY);
     

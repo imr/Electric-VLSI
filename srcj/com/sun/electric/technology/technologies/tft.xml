@@ -34,6 +34,8 @@
 
     <shortName>tft</shortName>
     <description>Thin Film</description>
+    <version tech="1" electric="8.05g"/>
+    <version tech="2" electric="8.05o"/>
     <numMetals min="2" max="2" default="2"/>
     <scale value="5000.0" relevant="true"/>
     <defaultFoundry value="NONE"/>
@@ -363,10 +365,10 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>400.0</antennaRatio>
+        <diskOffset untilVersion="2" width="1.0"/>
         <arcLayer layer="Metal-1" style="FILLED">
             <lambda>1.0</lambda>
         </arcLayer>
-        <arcPin name="Metal-1-Pin" port="metal-1" elibSize="2.0"/>
     </arcProto>
 
     <arcProto name="Metal_2" fun="METAL2">
@@ -375,16 +377,51 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>400.0</antennaRatio>
+        <diskOffset untilVersion="2" width="1.0"/>
         <arcLayer layer="Metal-2" style="FILLED">
             <lambda>1.0</lambda>
         </arcLayer>
-        <arcPin name="Metal-2-Pin" port="metal-2" elibSize="2.0"/>
     </arcProto>
 
     <!-- ******************** NODES ******************** -->
+    <primitiveNode name="Metal-1-Pin" fun="PIN">
+        <shrinkArcs/>
+        <diskOffset untilVersion="2" x="1.0" y="1.0"/>
+        <nodeLayer layer="Metal-1" style="CROSSED">
+            <box>
+                <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
+            </box>
+        </nodeLayer>
+        <primitivePort name="metal-1">
+            <portAngle primary="0" range="180"/>
+            <portTopology>0</portTopology>
+            <box>
+                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
+            </box>
+            <portArc>Metal_1</portArc>
+        </primitivePort>
+    </primitiveNode>
+
+    <primitiveNode name="Metal-2-Pin" fun="PIN">
+        <shrinkArcs/>
+        <diskOffset untilVersion="2" x="1.0" y="1.0"/>
+        <nodeLayer layer="Metal-2" style="CROSSED">
+            <box>
+                <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
+            </box>
+        </nodeLayer>
+        <primitivePort name="metal-2">
+            <portAngle primary="0" range="180"/>
+            <portTopology>0</portTopology>
+            <box>
+                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
+            </box>
+            <portArc>Metal_2</portArc>
+        </primitivePort>
+    </primitiveNode>
+
     <primitiveNode name="Metal-1-Metal-2-Con" fun="CONTACT">
-        <diskOffset x="2.5" y="2.5"/>
-        <nodeBase lx="-2.5" hx="2.5" ly="-2.5" hy="2.5"/>
+        <diskOffset untilVersion="2" x="2.5" y="2.5"/>
         <nodeLayer layer="Metal-1" style="FILLED">
             <box>
                 <lambdaBox klx="-2.5" khx="2.5" kly="-2.5" khy="2.5"/>
@@ -412,8 +449,9 @@
     </primitiveNode>
 
     <primitiveNode name="capacitor" fun="CAPAC">
-        <diskOffset x="5.5" y="5.5"/>
-        <nodeBase lx="-2.5" hx="2.5" ly="-2.5" hy="2.5"/>
+        <diskOffset untilVersion="1" x="5.5" y="5.5"/>
+        <diskOffset untilVersion="2" x="2.5" y="2.5"/>
+        <sizeOffset lx="3.0" hx="3.0" ly="3.0" hy="3.0"/>
         <nodeLayer layer="Metal-1" style="FILLED">
             <box>
                 <lambdaBox klx="-5.5" khx="5.5" kly="-5.5" khy="5.5"/>
@@ -477,8 +515,9 @@
     </primitiveNode>
 
     <primitiveNode name="P-Transistor" fun="TRAPMOS">
-        <diskOffset x="5.5" y="5.5"/>
-        <nodeBase lx="-2.5" hx="2.5" ly="-0.5" hy="0.5"/>
+        <diskOffset untilVersion="1" x="5.5" y="5.5"/>
+        <diskOffset untilVersion="2" x="2.5" y="0.5"/>
+        <sizeOffset lx="3.0" hx="3.0" ly="5.0" hy="5.0"/>
         <nodeLayer layer="Metal-1" style="FILLED">
             <box>
                 <lambdaBox klx="-5.5" khx="5.5" kly="-5.5" khy="5.5"/>

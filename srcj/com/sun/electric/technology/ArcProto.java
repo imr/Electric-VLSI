@@ -1079,7 +1079,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
      * Resizes this ArcProto according to rules from the DistanceContext
      * @param context context to find rules by name
      */
-    void resize(Xml.DistanceContext context) {
+    void resize(Technology.DistanceContext context) {
         for (Technology.ArcLayer al: layers)
             al.resize(context, this);
         gridBaseExtend = layers[0].getGridExtend();
@@ -1275,25 +1275,30 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
         a.notUsed = isNotUsed();
         a.skipSizeInPalette = isSkipSizeInPalette();
 
-        a.elibWidthOffset = getLambdaElibWidthOffset();
+        double correction2 = DBMath.round(getLambdaBaseExtend());
+        double correction1 = DBMath.round(correction2 + 0.5*getLambdaElibWidthOffset());
+        if (correction1 != correction2)
+            a.diskOffset.put(Integer.valueOf(1), correction1);
+        if (correction2 != 0)
+            a.diskOffset.put(Integer.valueOf(2), correction2);
         a.extended = isExtended();
         a.fixedAngle = isFixedAngle();
         a.angleIncrement = getAngleIncrement();
         a.antennaRatio = ERC.getERCTool().getAntennaRatio(this);
         for (Technology.ArcLayer arcLayer: layers)
             a.arcLayers.add(arcLayer.makeXml());
-        if (arcPin != null) {
-            a.arcPin = new Xml.ArcPin();
-            a.arcPin.name = arcPin.getName();
-            PrimitivePort port = arcPin.getPort(0);
-            a.arcPin.portName = port.getName();
-            a.arcPin.elibSize = 2*arcPin.getSizeCorrector(0).getX();
-            for (ArcProto cap: port.getConnections()) {
-                if (cap.getTechnology() == tech && cap != this)
-                    a.arcPin.portArcs.add(cap.getName());
-            }
-
-        }
+//        if (arcPin != null) {
+//            a.arcPin = new Xml.ArcPin();
+//            a.arcPin.name = arcPin.getName();
+//            PrimitivePort port = arcPin.getPort(0);
+//            a.arcPin.portName = port.getName();
+//            a.arcPin.elibSize = 2*arcPin.getSizeCorrector(0).getX();
+//            for (ArcProto cap: port.getConnections()) {
+//                if (cap.getTechnology() == tech && cap != this)
+//                    a.arcPin.portArcs.add(cap.getName());
+//            }
+//
+//        }
         return a;
     }
 

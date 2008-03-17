@@ -433,10 +433,10 @@ public class ComponentMenu extends EDialog
 			String name = "Node entry: " + ni.protoName;
 			if (!fromPopup) selectedMenuName.setText(name);
 			showThisNode(true, ni, null);
-		} else if (item instanceof Xml.MenuCell)
-		{
-			Xml.MenuCell mc = (Xml.MenuCell)item;
-			if (!fromPopup) selectedMenuName.setText("Cell entry: " + mc.cellName);
+//		} else if (item instanceof MenuCell)
+//		{
+//			MenuCell mc = (MenuCell)item;
+//			if (!fromPopup) selectedMenuName.setText("Cell entry: " + mc.cellName);
 		} else if (item instanceof Xml.ArcProto)
 		{
 			Xml.ArcProto ap = (Xml.ArcProto)item;
@@ -459,7 +459,12 @@ public class ComponentMenu extends EDialog
 			}
 		} else if (item instanceof String)
 		{
-			if (!fromPopup) selectedMenuName.setText("Special entry: " + (String)item);
+            String s = (String)item;
+            if (s.startsWith("LOADCELL ")) {
+                if (!fromPopup) selectedMenuName.setText("Cell entry: " + s.substring(9));
+            } else {
+                if (!fromPopup) selectedMenuName.setText("Special entry: " + s);
+            }
 		} else
 		{
 			if (!fromPopup) selectedMenuName.setText("Empty entry");
@@ -669,9 +674,9 @@ public class ComponentMenu extends EDialog
 						"Cannot Add");
 					return false;
 				}
-			} else if (oldOne instanceof Xml.MenuCell)
+			} else if (oldOne instanceof String && ((String)oldOne).startsWith("LOADCELL "))
 			{
-				if (!(newOne instanceof Xml.MenuCell))
+				if (!(newOne instanceof String && ((String)newOne).startsWith("LOADCELL ")))
 				{
 					Job.getUserInterface().showErrorMessage("Existing Cell menu can only have other cells added to it",
 						"Cannot Add");
@@ -740,13 +745,13 @@ public class ComponentMenu extends EDialog
 						showString(g, "Node", lowX, highX, lowY, midY);
 						showString(g, getNodeName(ni), lowX, highX, midY, highY);
 						borderColor = Color.BLUE;
-					} else if (item instanceof Xml.MenuCell)
-					{
-						Xml.MenuCell cell = (Xml.MenuCell)item;
-						int midY = (lowY + highY) / 2;
-						showString(g, "Cell", lowX, highX, lowY, midY);
-						showString(g, cell.cellName, lowX, highX, midY, highY);
-						borderColor = Color.BLUE;
+//					} else if (item instanceof MenuCell)
+//					{
+//						MenuCell cell = (MenuCell)item;
+//						int midY = (lowY + highY) / 2;
+//						showString(g, "Cell", lowX, highX, lowY, midY);
+//						showString(g, cell.cellName, lowX, highX, midY, highY);
+//						borderColor = Color.BLUE;
 					} else if (item instanceof Xml.ArcProto)
 					{
 						Xml.ArcProto ap = (Xml.ArcProto)item;
@@ -765,7 +770,17 @@ public class ComponentMenu extends EDialog
 						showString(g, "POPUP", lowX, highX, lowY, highY);
 					} else if (item instanceof String)
 					{
-						showString(g, "\"" + (String)item + "\"", lowX, highX, lowY, highY);
+                        String s = (String)item;
+                        if (s.startsWith("LOADCELL ")) {
+                            String cellName = s.substring(9);
+                            int midY = (lowY + highY) / 2;
+                            showString(g, "Cell", lowX, highX, lowY, midY);
+                            showString(g, cellName, lowX, highX, midY, highY);
+                            borderColor = Color.BLUE;
+                            
+                        } else {
+                            showString(g, "\"" + (String)item + "\"", lowX, highX, lowY, highY);
+                        }
 					}
 					if (borderColor != null)
 					{
@@ -1312,9 +1327,10 @@ public class ComponentMenu extends EDialog
 			case 2: // add a cell
 				String cellName = (String)listCells.getSelectedValue();
 				String libName = (String)libraryName.getSelectedItem();
-				Xml.MenuCell mc = new Xml.MenuCell();
-				mc.cellName = libName + ":" + cellName;
-				addToMenu(mc);
+                addToMenu("LOADCELL " + libName + ":" + cellName);
+//				MenuCell mc = new MenuCell();
+//				mc.cellName = libName + ":" + cellName;
+//				addToMenu(mc);
 				break;
 			case 3:	// add a special text
 				String specialName = (String)listSpecials.getSelectedValue();

@@ -33,6 +33,8 @@
      xsi:schemaLocation="http://electric.sun.com/Technology ../../technology/Technology.xsd">
 
     <description>Bipolar/CMOS (from MOSIS, N-Well, SCE Rules)</description>
+    <version tech="1" electric="8.05g"/>
+    <version tech="2" electric="8.05o"/>
     <numMetals min="2" max="2" default="2"/>
     <scale value="1000.0" relevant="true"/>
     <defaultFoundry value="MOSIS"/>
@@ -647,10 +649,10 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>400.0</antennaRatio>
+        <diskOffset untilVersion="2" width="1.5"/>
         <arcLayer layer="M1" style="FILLED">
             <lambda>1.5</lambda>
         </arcLayer>
-        <arcPin name="M1_Pin" port="metal-1" elibSize="3.0"/>
     </arcProto>
 
     <arcProto name="Metal_2" fun="METAL2">
@@ -659,10 +661,10 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>400.0</antennaRatio>
+        <diskOffset untilVersion="2" width="1.5"/>
         <arcLayer layer="M2" style="FILLED">
             <lambda>1.5</lambda>
         </arcLayer>
-        <arcPin name="M2_Pin" port="metal-2" elibSize="3.0"/>
     </arcProto>
 
     <arcProto name="Polysilicon" fun="POLY1">
@@ -671,10 +673,10 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>200.0</antennaRatio>
+        <diskOffset untilVersion="2" width="1.0"/>
         <arcLayer layer="Poly1" style="FILLED">
             <lambda>1.0</lambda>
         </arcLayer>
-        <arcPin name="Poly1_Pin" port="polysilicon" elibSize="2.0"/>
     </arcProto>
 
     <arcProto name="Polysilicon_2" fun="POLY2">
@@ -683,10 +685,10 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>200.0</antennaRatio>
+        <diskOffset untilVersion="2" width="1.0"/>
         <arcLayer layer="Poly2" style="FILLED">
             <lambda>1.0</lambda>
         </arcLayer>
-        <arcPin name="Poly2_Pin" port="p2-pin" elibSize="2.0"/>
     </arcProto>
 
     <arcProto name="Ndiff" fun="DIFFN">
@@ -695,14 +697,14 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>200.0</antennaRatio>
-        <elibWidthOffset>4.0</elibWidthOffset>
+        <diskOffset untilVersion="1" width="3.0"/>
+        <diskOffset untilVersion="2" width="1.0"/>
         <arcLayer layer="Active" style="FILLED">
             <lambda>1.0</lambda>
         </arcLayer>
         <arcLayer layer="N_Select" style="FILLED">
             <lambda>3.0</lambda>
         </arcLayer>
-        <arcPin name="Ndiff_Pin" port="Ndiff_Pin" elibSize="6.0"/>
     </arcProto>
 
     <arcProto name="Pdiff" fun="DIFFP">
@@ -711,7 +713,8 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>200.0</antennaRatio>
-        <elibWidthOffset>10.0</elibWidthOffset>
+        <diskOffset untilVersion="1" width="6.0"/>
+        <diskOffset untilVersion="2" width="1.0"/>
         <arcLayer layer="Active" style="FILLED">
             <lambda>1.0</lambda>
         </arcLayer>
@@ -721,7 +724,6 @@
         <arcLayer layer="N_Well" style="FILLED">
             <lambda>6.0</lambda>
         </arcLayer>
-        <arcPin name="Pdiff_Pin" port="Pdiff_Pin" elibSize="12.0"/>
     </arcProto>
 
     <arcProto name="Active" fun="DIFF">
@@ -730,19 +732,162 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>200.0</antennaRatio>
+        <diskOffset untilVersion="2" width="1.0"/>
         <arcLayer layer="Active" style="FILLED">
             <lambda>1.0</lambda>
         </arcLayer>
-        <arcPin name="Active_Pin" port="active" elibSize="2.0">
-            <portArc>Pdiff</portArc>
-            <portArc>Ndiff</portArc>
-        </arcPin>
     </arcProto>
 
     <!-- ******************** NODES ******************** -->
+    <primitiveNode name="M1_Pin" fun="PIN">
+        <shrinkArcs/>
+        <diskOffset untilVersion="2" x="1.5" y="1.5"/>
+        <nodeLayer layer="M1" style="CROSSED">
+            <box>
+                <lambdaBox klx="-1.5" khx="1.5" kly="-1.5" khy="1.5"/>
+            </box>
+        </nodeLayer>
+        <primitivePort name="metal-1">
+            <portAngle primary="0" range="180"/>
+            <portTopology>0</portTopology>
+            <box>
+                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
+            </box>
+            <portArc>Metal_1</portArc>
+        </primitivePort>
+    </primitiveNode>
+
+    <primitiveNode name="M2_Pin" fun="PIN">
+        <shrinkArcs/>
+        <diskOffset untilVersion="2" x="1.5" y="1.5"/>
+        <nodeLayer layer="M2" style="CROSSED">
+            <box>
+                <lambdaBox klx="-1.5" khx="1.5" kly="-1.5" khy="1.5"/>
+            </box>
+        </nodeLayer>
+        <primitivePort name="metal-2">
+            <portAngle primary="0" range="180"/>
+            <portTopology>0</portTopology>
+            <box>
+                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
+            </box>
+            <portArc>Metal_2</portArc>
+        </primitivePort>
+    </primitiveNode>
+
+    <primitiveNode name="Poly1_Pin" fun="PIN">
+        <shrinkArcs/>
+        <diskOffset untilVersion="2" x="1.0" y="1.0"/>
+        <nodeLayer layer="Poly1" style="CROSSED">
+            <box>
+                <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
+            </box>
+        </nodeLayer>
+        <primitivePort name="polysilicon">
+            <portAngle primary="0" range="180"/>
+            <portTopology>0</portTopology>
+            <box>
+                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
+            </box>
+            <portArc>Polysilicon</portArc>
+        </primitivePort>
+    </primitiveNode>
+
+    <primitiveNode name="Poly2_Pin" fun="PIN">
+        <shrinkArcs/>
+        <diskOffset untilVersion="2" x="1.0" y="1.0"/>
+        <nodeLayer layer="Poly2" style="CROSSED">
+            <box>
+                <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
+            </box>
+        </nodeLayer>
+        <primitivePort name="p2-pin">
+            <portAngle primary="0" range="180"/>
+            <portTopology>0</portTopology>
+            <box>
+                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
+            </box>
+            <portArc>Polysilicon_2</portArc>
+        </primitivePort>
+    </primitiveNode>
+
+    <primitiveNode name="Ndiff_Pin" fun="PIN">
+        <shrinkArcs/>
+        <diskOffset untilVersion="1" x="3.0" y="3.0"/>
+        <diskOffset untilVersion="2" x="1.0" y="1.0"/>
+        <sizeOffset lx="2.0" hx="2.0" ly="2.0" hy="2.0"/>
+        <nodeLayer layer="Active" style="CROSSED">
+            <box>
+                <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
+            </box>
+        </nodeLayer>
+        <nodeLayer layer="N_Select" style="CROSSED">
+            <box>
+                <lambdaBox klx="-3.0" khx="3.0" kly="-3.0" khy="3.0"/>
+            </box>
+        </nodeLayer>
+        <primitivePort name="Ndiff_Pin">
+            <portAngle primary="0" range="180"/>
+            <portTopology>0</portTopology>
+            <box>
+                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
+            </box>
+            <portArc>Ndiff</portArc>
+        </primitivePort>
+    </primitiveNode>
+
+    <primitiveNode name="Pdiff_Pin" fun="PIN">
+        <shrinkArcs/>
+        <diskOffset untilVersion="1" x="6.0" y="6.0"/>
+        <diskOffset untilVersion="2" x="1.0" y="1.0"/>
+        <sizeOffset lx="5.0" hx="5.0" ly="5.0" hy="5.0"/>
+        <nodeLayer layer="Active" style="CROSSED">
+            <box>
+                <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
+            </box>
+        </nodeLayer>
+        <nodeLayer layer="P_Select" style="CROSSED">
+            <box>
+                <lambdaBox klx="-3.0" khx="3.0" kly="-3.0" khy="3.0"/>
+            </box>
+        </nodeLayer>
+        <nodeLayer layer="N_Well" style="CROSSED">
+            <box>
+                <lambdaBox klx="-6.0" khx="6.0" kly="-6.0" khy="6.0"/>
+            </box>
+        </nodeLayer>
+        <primitivePort name="Pdiff_Pin">
+            <portAngle primary="0" range="180"/>
+            <portTopology>0</portTopology>
+            <box>
+                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
+            </box>
+            <portArc>Pdiff</portArc>
+        </primitivePort>
+    </primitiveNode>
+
+    <primitiveNode name="Active_Pin" fun="PIN">
+        <shrinkArcs/>
+        <diskOffset untilVersion="2" x="1.0" y="1.0"/>
+        <nodeLayer layer="Active" style="CROSSED">
+            <box>
+                <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
+            </box>
+        </nodeLayer>
+        <primitivePort name="active">
+            <portAngle primary="0" range="180"/>
+            <portTopology>0</portTopology>
+            <box>
+                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
+            </box>
+            <portArc>Active</portArc>
+            <portArc>Pdiff</portArc>
+            <portArc>Ndiff</portArc>
+        </primitivePort>
+    </primitiveNode>
+
     <primitiveNode name="M1_Poly1_Con" fun="CONTACT">
-        <diskOffset x="3.0" y="3.0"/>
-        <nodeBase lx="-3.0" hx="3.0" ly="-3.0" hy="3.0"/>
+        <diskOffset untilVersion="2" x="3.0" y="3.0"/>
         <nodeLayer layer="M1" style="FILLED">
             <box>
                 <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
@@ -754,7 +899,9 @@
             </box>
         </nodeLayer>
         <nodeLayer layer="Poly1_Cut" style="FILLED">
-            <multicutbox sizeRule="W_13" sepRule="C_13_13"/>
+            <multicutbox sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0">
+                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
+            </multicutbox>
         </nodeLayer>
         <primitivePort name="metal-1-polysilicon">
             <portAngle primary="0" range="180"/>
@@ -768,8 +915,9 @@
     </primitiveNode>
 
     <primitiveNode name="M1_Poly2_Con" fun="CONTACT">
-        <diskOffset x="3.0" y="3.0"/>
-        <nodeBase lx="-2.0" hx="2.0" ly="-2.0" hy="2.0"/>
+        <diskOffset untilVersion="1" x="3.0" y="3.0"/>
+        <diskOffset untilVersion="2" x="2.0" y="2.0"/>
+        <sizeOffset lx="1.0" hx="1.0" ly="1.0" hy="1.0"/>
         <nodeLayer layer="M1" style="FILLED">
             <box>
                 <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
@@ -781,7 +929,9 @@
             </box>
         </nodeLayer>
         <nodeLayer layer="Poly2_Cut" style="FILLED">
-            <multicutbox sizeRule="W_14" sepRule="C_14_14"/>
+            <multicutbox sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0">
+                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
+            </multicutbox>
         </nodeLayer>
         <primitivePort name="M1P2">
             <portAngle primary="0" range="180"/>
@@ -795,8 +945,9 @@
     </primitiveNode>
 
     <primitiveNode name="M1_Pdiff_Con" fun="CONTACT">
-        <diskOffset x="8.0" y="8.0"/>
-        <nodeBase lx="-3.0" hx="3.0" ly="-3.0" hy="3.0"/>
+        <diskOffset untilVersion="1" x="8.0" y="8.0"/>
+        <diskOffset untilVersion="2" x="3.0" y="3.0"/>
+        <sizeOffset lx="5.0" hx="5.0" ly="5.0" hy="5.0"/>
         <nodeLayer layer="M1" style="FILLED">
             <box>
                 <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
@@ -808,7 +959,9 @@
             </box>
         </nodeLayer>
         <nodeLayer layer="Active_Cut" style="FILLED">
-            <multicutbox sizeRule="W_7" sepRule="C_7_7"/>
+            <multicutbox sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0">
+                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
+            </multicutbox>
         </nodeLayer>
         <nodeLayer layer="P_Select" style="CLOSED">
             <box>
@@ -832,8 +985,9 @@
     </primitiveNode>
 
     <primitiveNode name="M1_Ndiff_Con" fun="CONTACT">
-        <diskOffset x="5.0" y="5.0"/>
-        <nodeBase lx="-3.0" hx="3.0" ly="-3.0" hy="3.0"/>
+        <diskOffset untilVersion="1" x="5.0" y="5.0"/>
+        <diskOffset untilVersion="2" x="3.0" y="3.0"/>
+        <sizeOffset lx="2.0" hx="2.0" ly="2.0" hy="2.0"/>
         <nodeLayer layer="M1" style="FILLED">
             <box>
                 <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
@@ -845,7 +999,9 @@
             </box>
         </nodeLayer>
         <nodeLayer layer="Active_Cut" style="FILLED">
-            <multicutbox sizeRule="W_7" sepRule="C_7_7"/>
+            <multicutbox sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0">
+                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
+            </multicutbox>
         </nodeLayer>
         <nodeLayer layer="N_Select" style="FILLED">
             <box>
@@ -864,8 +1020,7 @@
     </primitiveNode>
 
     <primitiveNode name="M1_M2_Con" fun="CONTACT">
-        <diskOffset x="2.0" y="2.0"/>
-        <nodeBase lx="-2.0" hx="2.0" ly="-2.0" hy="2.0"/>
+        <diskOffset untilVersion="2" x="2.0" y="2.0"/>
         <nodeLayer layer="M1" style="FILLED">
             <box>
                 <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
@@ -893,8 +1048,9 @@
     </primitiveNode>
 
     <primitiveNode name="PMOSFET" fun="TRAPMOS">
-        <diskOffset x="6.0" y="8.0"/>
-        <nodeBase lx="-1.0" hx="1.0" ly="-1.0" hy="1.0"/>
+        <diskOffset untilVersion="1" x="6.0" y="8.0"/>
+        <diskOffset untilVersion="2" x="1.0" y="1.0"/>
+        <sizeOffset lx="5.0" hx="5.0" ly="7.0" hy="7.0"/>
         <nodeLayer layer="Poly1" style="FILLED">
             <serpbox lWidth="1.0" rWidth="1.0" tExtent="2.0" bExtent="2.0">
                 <lambdaBox klx="-3.0" khx="3.0" kly="-1.0" khy="1.0"/>
@@ -968,8 +1124,9 @@
     </primitiveNode>
 
     <primitiveNode name="NMOSFET" fun="TRANMOS">
-        <diskOffset x="3.0" y="5.0"/>
-        <nodeBase lx="-1.0" hx="1.0" ly="-1.0" hy="1.0"/>
+        <diskOffset untilVersion="1" x="3.0" y="5.0"/>
+        <diskOffset untilVersion="2" x="1.0" y="1.0"/>
+        <sizeOffset lx="2.0" hx="2.0" ly="4.0" hy="4.0"/>
         <nodeLayer layer="Poly1" style="FILLED">
             <serpbox lWidth="1.0" rWidth="1.0" tExtent="2.0" bExtent="2.0">
                 <lambdaBox klx="-3.0" khx="3.0" kly="-1.0" khy="1.0"/>
@@ -1038,8 +1195,9 @@
     </primitiveNode>
 
     <primitiveNode name="NPN1_transistor" fun="TRANPN">
-        <diskOffset x="23.0" y="12.0"/>
-        <nodeBase lx="-1.0" hx="7.0" ly="-4.0" hy="4.0"/>
+        <diskOffset untilVersion="1" x="23.0" y="12.0"/>
+        <diskOffset untilVersion="2" x="4.0" y="4.0"/>
+        <sizeOffset lx="22.0" hx="16.0" ly="8.0" hy="8.0"/>
         <nodeLayer layer="M1" style="FILLED">
             <box>
                 <lambdaBox klx="12.0" khx="16.0" kly="-2.0" khy="2.0"/>
@@ -1165,8 +1323,7 @@
     </primitiveNode>
 
     <primitiveNode name="NPN2_Transistor" fun="TRANPN">
-        <diskOffset x="23.0" y="18.0"/>
-        <nodeBase lx="-23.0" hx="23.0" ly="-18.0" hy="18.0"/>
+        <diskOffset untilVersion="2" x="23.0" y="18.0"/>
         <nodeLayer layer="M1" style="FILLED">
             <box>
                 <lambdaBox klx="-10.0" khx="-6.0" kly="-8.0" khy="-4.0"/>
@@ -1404,15 +1561,18 @@
     </primitiveNode>
 
     <primitiveNode name="M1_N_Well_Con" fun="WELL">
-        <diskOffset x="6.0" y="6.0"/>
-        <nodeBase lx="-3.0" hx="3.0" ly="-3.0" hy="3.0"/>
+        <diskOffset untilVersion="1" x="6.0" y="6.0"/>
+        <diskOffset untilVersion="2" x="3.0" y="3.0"/>
+        <sizeOffset lx="3.0" hx="3.0" ly="3.0" hy="3.0"/>
         <nodeLayer layer="M1" style="FILLED">
             <box>
                 <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
             </box>
         </nodeLayer>
         <nodeLayer layer="Active_Cut" style="FILLED">
-            <multicutbox sizeRule="W_7" sepRule="C_7_7"/>
+            <multicutbox sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0">
+                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
+            </multicutbox>
         </nodeLayer>
         <nodeLayer layer="N_Select" style="FILLED">
             <box>
@@ -1441,8 +1601,7 @@
     </primitiveNode>
 
     <primitiveNode name="Poly1_Poly2_Cap" fun="CAPAC">
-        <diskOffset x="6.0" y="6.0"/>
-        <nodeBase lx="-6.0" hx="6.0" ly="-6.0" hy="6.0"/>
+        <diskOffset untilVersion="2" x="6.0" y="6.0"/>
         <nodeLayer layer="Poly1" style="FILLED">
             <box>
                 <lambdaBox klx="-6.0" khx="6.0" kly="-6.0" khy="6.0"/>
@@ -1465,15 +1624,18 @@
     </primitiveNode>
 
     <primitiveNode name="M1_Substrate_Con" fun="UNKNOWN">
-        <diskOffset x="5.0" y="5.0"/>
-        <nodeBase lx="-2.0" hx="2.0" ly="-2.0" hy="2.0"/>
+        <diskOffset untilVersion="1" x="5.0" y="5.0"/>
+        <diskOffset untilVersion="2" x="2.0" y="2.0"/>
+        <sizeOffset lx="3.0" hx="3.0" ly="3.0" hy="3.0"/>
         <nodeLayer layer="M1" style="FILLED">
             <box>
                 <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
             </box>
         </nodeLayer>
         <nodeLayer layer="Active_Cut" style="FILLED">
-            <multicutbox sizeRule="W_7" sepRule="C_7_7"/>
+            <multicutbox sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0">
+                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
+            </multicutbox>
         </nodeLayer>
         <nodeLayer layer="P_Select" style="FILLED">
             <box>
@@ -1496,8 +1658,9 @@
     </primitiveNode>
 
     <primitiveNode name="Ndiff_Node" fun="UNKNOWN">
-        <diskOffset x="4.0" y="4.0"/>
-        <nodeBase lx="-2.0" hx="2.0" ly="-2.0" hy="2.0"/>
+        <diskOffset untilVersion="1" x="4.0" y="4.0"/>
+        <diskOffset untilVersion="2" x="2.0" y="2.0"/>
+        <sizeOffset lx="2.0" hx="2.0" ly="2.0" hy="2.0"/>
         <nodeLayer layer="Active" style="FILLED">
             <box>
                 <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
@@ -1521,8 +1684,9 @@
     </primitiveNode>
 
     <primitiveNode name="Pdiff_Node" fun="UNKNOWN">
-        <diskOffset x="4.0" y="4.0"/>
-        <nodeBase lx="-2.0" hx="2.0" ly="-2.0" hy="2.0"/>
+        <diskOffset untilVersion="1" x="4.0" y="4.0"/>
+        <diskOffset untilVersion="2" x="2.0" y="2.0"/>
+        <sizeOffset lx="2.0" hx="2.0" ly="2.0" hy="2.0"/>
         <nodeLayer layer="Active" style="FILLED">
             <box>
                 <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>

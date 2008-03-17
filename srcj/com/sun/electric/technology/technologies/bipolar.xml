@@ -33,6 +33,8 @@
      xsi:schemaLocation="http://electric.sun.com/Technology ../../technology/Technology.xsd">
 
     <description>Bipolar (self-aligned, single poly)</description>
+    <version tech="1" electric="8.05g"/>
+    <version tech="2" electric="8.05o"/>
     <numMetals min="2" max="2" default="2"/>
     <scale value="2000.0" relevant="true"/>
     <defaultFoundry value="MOSIS"/>
@@ -494,10 +496,10 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>400.0</antennaRatio>
+        <diskOffset untilVersion="2" width="1.5"/>
         <arcLayer layer="Metal1" style="FILLED">
             <lambda>1.5</lambda>
         </arcLayer>
-        <arcPin name="Metal1_Pin" port="metal1" elibSize="2.0"/>
     </arcProto>
 
     <arcProto name="Metal_2" fun="METAL2">
@@ -506,10 +508,10 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>400.0</antennaRatio>
+        <diskOffset untilVersion="2" width="2.0"/>
         <arcLayer layer="Metal2" style="FILLED">
             <lambda>2.0</lambda>
         </arcLayer>
-        <arcPin name="Metal2_Pin" port="metal2" elibSize="2.0"/>
     </arcProto>
 
     <arcProto name="NPPoly" fun="POLY1">
@@ -517,14 +519,14 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>200.0</antennaRatio>
-        <elibWidthOffset>2.0</elibWidthOffset>
+        <diskOffset untilVersion="1" width="2.0"/>
+        <diskOffset untilVersion="2" width="1.0"/>
         <arcLayer layer="Poly_Definition" style="FILLED">
             <lambda>1.0</lambda>
         </arcLayer>
         <arcLayer layer="NPImplant" style="FILLED">
             <lambda>2.0</lambda>
         </arcLayer>
-        <arcPin name="NPPoly_pin" port="p" elibSize="4.0"/>
     </arcProto>
 
     <arcProto name="PPPoly" fun="POLY2">
@@ -532,20 +534,107 @@
         <fixedAngle>true</fixedAngle>
         <angleIncrement>90</angleIncrement>
         <antennaRatio>200.0</antennaRatio>
-        <elibWidthOffset>2.0</elibWidthOffset>
+        <diskOffset untilVersion="1" width="2.0"/>
+        <diskOffset untilVersion="2" width="1.0"/>
         <arcLayer layer="Poly_Definition" style="FILLED">
             <lambda>1.0</lambda>
         </arcLayer>
         <arcLayer layer="PPImplant" style="FILLED">
             <lambda>2.0</lambda>
         </arcLayer>
-        <arcPin name="PPPoly_pin" port="p" elibSize="4.0"/>
     </arcProto>
 
     <!-- ******************** NODES ******************** -->
+    <primitiveNode name="Metal1_Pin" fun="PIN">
+        <shrinkArcs/>
+        <diskOffset untilVersion="2" x="1.0" y="1.0"/>
+        <nodeLayer layer="Metal1" style="CROSSED">
+            <box>
+                <lambdaBox klx="-1.5" khx="1.5" kly="-1.5" khy="1.5"/>
+            </box>
+        </nodeLayer>
+        <primitivePort name="metal1">
+            <portAngle primary="0" range="180"/>
+            <portTopology>0</portTopology>
+            <box>
+                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
+            </box>
+            <portArc>Metal_1</portArc>
+        </primitivePort>
+        <minSizeRule width="3.0" height="3.0" rule="W_0"/>
+    </primitiveNode>
+
+    <primitiveNode name="Metal2_Pin" fun="PIN">
+        <shrinkArcs/>
+        <diskOffset untilVersion="2" x="1.0" y="1.0"/>
+        <nodeLayer layer="Metal2" style="CROSSED">
+            <box>
+                <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
+            </box>
+        </nodeLayer>
+        <primitivePort name="metal2">
+            <portAngle primary="0" range="180"/>
+            <portTopology>0</portTopology>
+            <box>
+                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
+            </box>
+            <portArc>Metal_2</portArc>
+        </primitivePort>
+        <minSizeRule width="4.0" height="4.0" rule="W_1"/>
+    </primitiveNode>
+
+    <primitiveNode name="NPPoly_pin" fun="PIN">
+        <shrinkArcs/>
+        <diskOffset untilVersion="1" x="2.0" y="2.0"/>
+        <diskOffset untilVersion="2" x="1.0" y="1.0"/>
+        <sizeOffset lx="1.0" hx="1.0" ly="1.0" hy="1.0"/>
+        <nodeLayer layer="Poly_Definition" style="CROSSED">
+            <box>
+                <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
+            </box>
+        </nodeLayer>
+        <nodeLayer layer="NPImplant" style="CROSSED">
+            <box>
+                <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
+            </box>
+        </nodeLayer>
+        <primitivePort name="p">
+            <portAngle primary="0" range="180"/>
+            <portTopology>0</portTopology>
+            <box>
+                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
+            </box>
+            <portArc>NPPoly</portArc>
+        </primitivePort>
+    </primitiveNode>
+
+    <primitiveNode name="PPPoly_pin" fun="PIN">
+        <shrinkArcs/>
+        <diskOffset untilVersion="1" x="2.0" y="2.0"/>
+        <diskOffset untilVersion="2" x="1.0" y="1.0"/>
+        <sizeOffset lx="1.0" hx="1.0" ly="1.0" hy="1.0"/>
+        <nodeLayer layer="Poly_Definition" style="CROSSED">
+            <box>
+                <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
+            </box>
+        </nodeLayer>
+        <nodeLayer layer="PPImplant" style="CROSSED">
+            <box>
+                <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
+            </box>
+        </nodeLayer>
+        <primitivePort name="p">
+            <portAngle primary="0" range="180"/>
+            <portTopology>0</portTopology>
+            <box>
+                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
+            </box>
+            <portArc>PPPoly</portArc>
+        </primitivePort>
+    </primitiveNode>
+
     <primitiveNode name="Via" fun="CONTACT">
-        <diskOffset x="2.0" y="2.0"/>
-        <nodeBase lx="-2.0" hx="2.0" ly="-2.0" hy="2.0"/>
+        <diskOffset untilVersion="2" x="2.0" y="2.0"/>
         <nodeLayer layer="Metal1" style="FILLED">
             <box>
                 <lambdaBox klx="-1.5" khx="1.5" kly="-1.5" khy="1.5"/>
@@ -557,7 +646,9 @@
             </box>
         </nodeLayer>
         <nodeLayer layer="Via" style="FILLED">
-            <multicutbox sizeRule="W_11" sepRule="U_11_11"/>
+            <multicutbox sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0">
+                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
+            </multicutbox>
         </nodeLayer>
         <primitivePort name="via">
             <portAngle primary="0" range="180"/>
@@ -571,8 +662,9 @@
     </primitiveNode>
 
     <primitiveNode name="M1_PP_Contact" fun="CONTACT">
-        <diskOffset x="3.0" y="3.0"/>
-        <nodeBase lx="-1.0" hx="1.0" ly="-1.0" hy="1.0"/>
+        <diskOffset untilVersion="1" x="3.0" y="3.0"/>
+        <diskOffset untilVersion="2" x="1.0" y="1.0"/>
+        <sizeOffset lx="2.0" hx="2.0" ly="2.0" hy="2.0"/>
         <nodeLayer layer="Metal1" style="FILLED">
             <box>
                 <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
@@ -589,7 +681,9 @@
             </box>
         </nodeLayer>
         <nodeLayer layer="Contact" style="FILLED">
-            <multicutbox sizeRule="W_10" sepRule="U_10_10"/>
+            <multicutbox sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0">
+                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
+            </multicutbox>
         </nodeLayer>
         <primitivePort name="m">
             <portAngle primary="0" range="180"/>
@@ -603,8 +697,9 @@
     </primitiveNode>
 
     <primitiveNode name="M1_NP_Contact" fun="CONTACT">
-        <diskOffset x="3.0" y="3.0"/>
-        <nodeBase lx="-1.0" hx="1.0" ly="-1.0" hy="1.0"/>
+        <diskOffset untilVersion="1" x="3.0" y="3.0"/>
+        <diskOffset untilVersion="2" x="1.0" y="1.0"/>
+        <sizeOffset lx="2.0" hx="2.0" ly="2.0" hy="2.0"/>
         <nodeLayer layer="Poly_Definition" style="FILLED">
             <box>
                 <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
@@ -621,7 +716,9 @@
             </box>
         </nodeLayer>
         <nodeLayer layer="Contact" style="FILLED">
-            <multicutbox sizeRule="W_10" sepRule="U_10_10"/>
+            <multicutbox sizex="2.0" sizey="2.0" sep1d="2.0" sep2d="2.0">
+                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
+            </multicutbox>
         </nodeLayer>
         <primitivePort name="m">
             <portAngle primary="0" range="180"/>
@@ -635,8 +732,9 @@
     </primitiveNode>
 
     <primitiveNode name="NPResistor" fun="RESIST">
-        <diskOffset x="2.5" y="3.5"/>
-        <nodeBase lx="-1.5" hx="1.5" ly="-1.5" hy="1.5"/>
+        <diskOffset untilVersion="1" x="2.5" y="3.5"/>
+        <diskOffset untilVersion="2" x="1.5" y="1.5"/>
+        <sizeOffset lx="1.0" hx="1.0" ly="2.0" hy="2.0"/>
         <nodeLayer layer="Silicide_Exclusion" style="FILLED" portNum="-1">
             <box kly="0.0">
                 <lambdaBox klx="-2.5" khx="2.5" kly="0.0" khy="1.5"/>
@@ -686,8 +784,9 @@
     </primitiveNode>
 
     <primitiveNode name="NMResistor" fun="UNKNOWN">
-        <diskOffset x="2.5" y="3.5"/>
-        <nodeBase lx="-1.5" hx="1.5" ly="-1.5" hy="1.5"/>
+        <diskOffset untilVersion="1" x="2.5" y="3.5"/>
+        <diskOffset untilVersion="2" x="1.5" y="1.5"/>
+        <sizeOffset lx="1.0" hx="1.0" ly="2.0" hy="2.0"/>
         <nodeLayer layer="Silicide_Exclusion" style="FILLED" portNum="-1">
             <box kly="0.0">
                 <lambdaBox klx="-2.5" khx="2.5" kly="0.0" khy="1.5"/>
@@ -747,8 +846,9 @@
     </primitiveNode>
 
     <primitiveNode name="npn111" fun="TRANPN">
-        <diskOffset x="10.0" y="5.5"/>
-        <nodeBase lx="0.0" hx="2.0" ly="-2.0" hy="2.0"/>
+        <diskOffset untilVersion="1" x="10.0" y="5.5"/>
+        <diskOffset untilVersion="2" x="1.0" y="2.0"/>
+        <sizeOffset lx="10.0" hx="8.0" ly="3.5" hy="3.5"/>
         <nodeLayer layer="Poly_Definition" style="FILLED">
             <box khx="-1.0">
                 <lambdaBox klx="-7.0" khx="-2.0" kly="-2.5" khy="2.5"/>
@@ -841,8 +941,9 @@
     </primitiveNode>
 
     <primitiveNode name="PNJunction" fun="CONTACT">
-        <diskOffset x="2.0" y="2.0"/>
-        <nodeBase lx="-1.0" hx="1.0" ly="-1.0" hy="1.0"/>
+        <diskOffset untilVersion="1" x="2.0" y="2.0"/>
+        <diskOffset untilVersion="2" x="1.0" y="1.0"/>
+        <sizeOffset lx="1.0" hx="1.0" ly="1.0" hy="1.0"/>
         <nodeLayer layer="Poly_Definition" style="FILLED">
             <box klx="0.0">
                 <lambdaBox klx="0.0" khx="1.0" kly="-1.0" khy="1.0"/>
@@ -962,6 +1063,8 @@
         <layerGds layer="Scratch_Protection" gds="10"/>
         <layerGds layer="Buried" gds="1"/>
 
+        <LayerRule ruleName="W_0" layerName="Metal1" type="MINWID" when="ALL" value="3.0"/>
+        <LayerRule ruleName="W_1" layerName="Metal2" type="MINWID" when="ALL" value="4.0"/>
         <LayerRule ruleName="W_10" layerName="Contact" type="MINWID" when="ALL" value="2.0"/>
         <LayerRule ruleName="W_11" layerName="Via" type="MINWID" when="ALL" value="2.0"/>
         <LayersRule ruleName="U_0_0" layerNames="{Metal1,Metal1}" type="UCONSPA" when="ALL" value="2.0"/>
