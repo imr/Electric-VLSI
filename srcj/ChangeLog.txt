@@ -4,13 +4,16 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07f: ******************************
 
-BUG: (3/17/08, DN) Numerous instabilities in XML .
-FIX: Revert to XML syntax as in Version8-06 .
+BUG: (3/17/08, SMR) EDIF input doesn't handle "member" properly.
+FIX: Extract proper member entry.
+
+BUG: (3/17/08, DN) Numerous instabilities in XML.
+FIX: Revert to XML syntax as in Version8-06.
 
 IMP: (3/14/08, DN) Package com.sun.electric.technology.xml for major versions of the Technology Xml syntax.
 
 BUG: (3/13/08, DN) UnsupportedOperationException while uploading XML tech (Bug #1606)
-FIX: In Technology.echnology(Generic,Xml.Technology) don't deparameterize arcs.
+FIX: In Technology.technology(Generic,Xml.Technology) don't deparameterize arcs.
 
 BUG: (3/12/08, SMR) PostScript output ignores some text.
 FIX: In PostScript.recurseCircuitLevel(), draw text even at lower levels.

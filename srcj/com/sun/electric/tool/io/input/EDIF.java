@@ -518,7 +518,8 @@ public class EDIF extends Input
 				}
 			} else
 			{
-				if (TextUtils.isANumber(inputBuffer)) processInteger(TextUtils.atoi(inputBuffer));
+//				if (TextUtils.isANumber(inputBuffer)) processInteger(TextUtils.atoi(inputBuffer));
+				if (TextUtils.isANumber(p)) processInteger(TextUtils.atoi(p));
 			}
 		}
 		return getToken((char)0);
@@ -2333,11 +2334,107 @@ public class EDIF extends Input
 			if (memberXVal != -1)
 			{
 				// adjust the name of the current INSTANCE/NET/PORT(/VALUE)
-				String baseName = "[" + memberXVal + "]";
-				if (memberYVal != -1) baseName = "[" + memberXVal + "," + memberYVal + "]";
-				if (keyStack[keyStackDepth-1] == KINSTANCEREF) instanceReference = baseName; else
-					if (keyStack[keyStackDepth-1] == KPORTREF) portReference = baseName;
+				if (keyStack[keyStackDepth-1] == KINSTANCEREF)
+				{
+					instanceReference = getMemberName(instanceReference, memberXVal, memberYVal);
+				} else if (keyStack[keyStackDepth-1] == KPORTREF)
+				{
+					portReference = getMemberName(portReference, memberXVal, memberYVal);
+				}
 			}
+		}
+
+		/**
+		 * Method to convert a bus name to an individual member name.
+		 * @param name the bus name.
+		 * @param ind1 the index of the first entry.
+		 * @param ind2 the index of the second entry.
+		 * @return the specified member name.
+		 */
+		private String getMemberName(String name, int ind1, int ind2)
+		{
+			// get true name of array specification
+			String baseName = renamedObjects.get(name);
+			if (baseName == null) baseName = name;
+
+			// find first index entry
+			int openSq = baseName.indexOf('[');
+			if (openSq < 0) return baseName;
+			int closeSq = baseName.indexOf(']', openSq);
+			if (closeSq < 0) closeSq = baseName.length();
+			int comma = baseName.indexOf(',', openSq);
+			if (comma < 0) comma = baseName.length();
+			int endInd1 = Math.min(closeSq, comma);
+			if (endInd1 < 0) return baseName;
+			String index1 = baseName.substring(openSq+1, endInd1);
+			String index2 = null;
+			String restOfLine = baseName.substring(endInd1);
+
+			if (comma >= 0 && comma < baseName.length())
+			{
+				closeSq = baseName.indexOf(']', comma);
+				if (closeSq >= 0)
+				{
+					index2 = baseName.substring(comma+1, closeSq);
+					restOfLine = baseName.substring(closeSq);
+				}				
+			}
+
+			int [] indices = getIndices(index1);
+			if (ind1 >= 0 && ind1 < indices.length)
+				baseName = baseName.substring(0, openSq+1) + indices[ind1];
+			if (index2 != null)
+			{
+				int [] indices2 = getIndices(index2);
+				if (ind2 >= 0 && ind2 < indices2.length)
+					baseName += "," + indices2[ind2];
+			}
+			baseName += restOfLine;
+			return baseName;
+		}
+
+		/**
+		 * Method to examine an array specification and return all of the indices.
+		 * @param index the array specification, for example "1:5" or "4:2".
+		 * @return an array of indices, for example [1,2,3,4,5] or [4,3,2].
+		 */
+		private int [] getIndices(String index)
+		{
+			List<Integer> indices = new ArrayList<Integer>();
+			for(int pos=0; pos<index.length(); )
+			{
+				if (Character.isWhitespace(index.charAt(pos))) { pos++;   continue; }
+				if (Character.isDigit(index.charAt(pos)))
+				{
+					int val = TextUtils.atoi(index.substring(pos));
+					int valEnd = val;
+					while (pos < index.length() && Character.isDigit(index.charAt(pos))) pos++;
+					while (pos < index.length() && Character.isWhitespace(index.charAt(pos))) pos++;
+					if (pos < index.length() && index.charAt(pos) == ':')
+					{
+						pos++;
+						while (pos < index.length() && Character.isWhitespace(index.charAt(pos))) pos++;
+						if (Character.isDigit(index.charAt(pos)))
+						{
+							valEnd = TextUtils.atoi(index.substring(pos));
+							while (pos < index.length() && Character.isDigit(index.charAt(pos))) pos++;
+							while (pos < index.length() && Character.isWhitespace(index.charAt(pos))) pos++;
+						}
+					}
+					if (valEnd < val)
+					{
+						for(int i=val; i>=valEnd; i--) indices.add(new Integer(i));
+					} else
+					{
+						for(int i=val; i<=valEnd; i++) indices.add(new Integer(i));
+					}
+					continue;
+				}
+				break;
+			}
+			int [] retInd = new int[indices.size()];
+			for(int i=0; i<indices.size(); i++) retInd[i] = indices.get(i);
+			return retInd;
 		}
 	}
 
