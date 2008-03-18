@@ -1618,19 +1618,45 @@ public class Simulation extends Tool
 	 */
 	public static void setSpiceTrailerCardInfo(String spec) { cacheSpiceTrailerCardInfo.setString(spec); }
 
-	private static Pref cacheSpiceUseParasitics = Pref.makeBooleanPref("SpiceUseParasitics", tool.prefs, true);
-//    static { cacheSpiceUseParasitics.attachToObject(tool, "Tools/Spice tab", "Spice uses parasitics"); }
+    public enum SpiceParasitics
+    {
+        /** simple parasitics (source/drain area&perimeter) */		SIMPLE(0, "Simple (area/perimeter)"),
+        /** RC parasitics to substrate. */							RC_SIMPLE(1, "RC"),
+        /** RC parasitics to substrate or intervening layers. */	RC_INTERLAYER(2, "RC w/intervening layers");
+
+        private int code;
+        private String name;
+
+        private SpiceParasitics(int val, String name)
+        {
+            this.code = val;
+            this.name = name;
+        }
+        public int code() { return code; }
+        public String toString() { return name;}
+    }
+
+	private static Pref cacheSpiceParasiticsLevel = Pref.makeIntPref("SpiceParasiticsLevel", tool.prefs, SpiceParasitics.SIMPLE.code());
 	/**
-	 * Method to tell whether or not to use parasitics in Spice output.
-	 * The default is true.
-	 * @return true to use parasitics in Spice output.
+	 * Method to tell the level of parasitics being used by Spice output.
+	 * The default is PARASITICS_SIMPLE.
+	 * @return the level of parasitics being used by Spice output.
 	 */
-	public static boolean isSpiceUseParasitics() { return cacheSpiceUseParasitics.getBoolean(); }
+	public static SpiceParasitics getSpiceParasiticsLevel()
+	{
+		int curCode = cacheSpiceParasiticsLevel.getInt();
+        for (SpiceParasitics p : SpiceParasitics.values())
+        {
+            if (p.code() == curCode) return p;
+        }
+		return null;
+	}
+
 	/**
-	 * Method to set whether or not to use parasitics in Spice output.
-	 * @param p true to use parasitics in Spice output.
+	 * Method to set the level of parasitics to be used by Spice output.
+	 * @param p the level of parasitics to be used by Spice output.
 	 */
-	public static void setSpiceUseParasitics(boolean p) { cacheSpiceUseParasitics.setBoolean(p); }
+	public static void setSpiceParasiticsLevel(SpiceParasitics p) { cacheSpiceParasiticsLevel.setInt(p.code); }
 
     public static Pref cacheParasiticsUseVerboseNaming = Pref.makeBooleanPref("ParasiticsUseVerboseNaming", tool.prefs, true);
     public static boolean isParasiticsUseVerboseNaming() { return cacheParasiticsUseVerboseNaming.getBoolean(); }

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07f: ******************************
 
+IMP/MAN: (3/18/08, SMR) Fragmented Spice netlister into multiple modules in preparation for
+     additional Spice parasitics.  Added more parasitics options to Spice Preferences.
+
 IMP: (3/17/08, DN) FullSize of primitive node is calculated as MBB of its layers.
 
 BUG: (3/17/08, SMR) EDIF input doesn't handle "member" properly.
