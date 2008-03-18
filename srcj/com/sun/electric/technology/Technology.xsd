@@ -19,13 +19,9 @@
 
     <xsd:group name="Distance">
         <xsd:sequence>
-            <xsd:element name="rule" minOccurs="0" maxOccurs="unbounded">
-                <xsd:complexType>
-                    <xsd:attribute name="ruleName" type="tns:RuleName" use="required"/>
-                    <xsd:attribute name="k" type="xsd:double"/>
-                </xsd:complexType>
-            </xsd:element>
-            <xsd:element name="lambda" type="xsd:double" minOccurs="0"></xsd:element>
+            <xsd:choice maxOccurs="unbounded" minOccurs="0">
+                <xsd:element name="lambda" type="xsd:double"></xsd:element>
+            </xsd:choice>
         </xsd:sequence>
     </xsd:group>
 
@@ -50,11 +46,6 @@
                         <xsd:attribute name="rotation" type="xsd:integer"/>
                     </xsd:complexType>
                 </xsd:element>
-                <xsd:element name="menuCell">
-                    <xsd:complexType>
-                        <xsd:attribute name="cellName" type="tns:CellName" use="required"/>
-                    </xsd:complexType>
-                </xsd:element>
             </xsd:choice>
         </xsd:sequence>
     </xsd:group>
@@ -71,6 +62,10 @@
 
     <xsd:simpleType name="TechVersion">
         <xsd:restriction base="xsd:int"/>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="ElectricVersion">
+        <xsd:restriction base="xsd:string"/>
     </xsd:simpleType>
 
     <xsd:simpleType name="NumMetals">
@@ -247,10 +242,6 @@
         <xsd:restriction base="xsd:NCName"/>
     </xsd:simpleType>
 
-    <xsd:simpleType name="CellName">
-        <xsd:restriction base="xsd:Name"/>
-    </xsd:simpleType>
-
     <xsd:simpleType name="PrimitiveNodeFun">
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value="UNKNOWN"/>
@@ -414,6 +405,12 @@
             <xsd:sequence>
                 <xsd:element name="shortName" type="xsd:string" minOccurs="0"/>
                 <xsd:element name="description" type="xsd:string"/>
+                <xsd:element name="version" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:complexType>
+                        <xsd:attribute name="tech" type="tns:TechVersion" use="required"/>
+                        <xsd:attribute name="electric" type="tns:ElectricVersion" use="required"/>
+                    </xsd:complexType>
+                </xsd:element>
                 <xsd:element name="numMetals">
                     <xsd:complexType>
                         <xsd:attribute name="min" type="tns:NumMetals" use="required"/>
@@ -529,22 +526,24 @@
                             <xsd:element name="fixedAngle" type="xsd:boolean"/>
                             <xsd:element name="angleIncrement" type="xsd:integer"/>
                             <xsd:element name="antennaRatio" minOccurs="0" type="xsd:double"/>
-                            <xsd:element name="elibWidthOffset" minOccurs="0" type="xsd:double"/>
+                            <xsd:element name="diskOffset" minOccurs="0" maxOccurs="unbounded">
+                                <xsd:complexType>
+                                    <xsd:attribute name="untilVersion" type="tns:TechVersion" use="required"/>
+                                    <xsd:attribute name="width" type="xsd:double" use="required"/>
+                                </xsd:complexType>
+                            </xsd:element>
+                            <xsd:element name="defaultWidth" minOccurs="0">
+                                <xsd:complexType>
+                                    <xsd:sequence>
+                                        <xsd:group ref="tns:Distance"/>
+                                    </xsd:sequence>
+                                </xsd:complexType>
+                            </xsd:element>
                             <xsd:element name="arcLayer" maxOccurs="unbounded">
                                 <xsd:complexType>
                                     <xsd:group ref="tns:Distance"/>
                                     <xsd:attribute name="layer" type="tns:LayerName" use="required"/>
                                     <xsd:attribute name="style" type="tns:ArcLayerStyle" use="required"/>
-                                </xsd:complexType>
-                            </xsd:element>
-                            <xsd:element name="arcPin" minOccurs="0">
-                                <xsd:complexType>
-                                    <xsd:sequence>
-                                        <xsd:element name="portArc" type="tns:ArcProtoName" minOccurs="0" maxOccurs="unbounded"></xsd:element>
-                                    </xsd:sequence>
-                                    <xsd:attribute name="name" type="tns:PrimitiveNodeName" use="required"/>
-                                    <xsd:attribute name="port" type="tns:PrimitivePortName" use="required"/>
-                                    <xsd:attribute name="elibSize" type="xsd:double" use="required"/>
                                 </xsd:complexType>
                             </xsd:element>
                         </xsd:sequence>
@@ -570,8 +569,9 @@
                             <xsd:element name="od18" minOccurs="0"/>
                             <xsd:element name="od25" minOccurs="0"/>
                             <xsd:element name="od33" minOccurs="0"/>
-                            <xsd:element name="diskOffset" minOccurs="0">
+                            <xsd:element name="diskOffset" minOccurs="0" maxOccurs="unbounded">
                                 <xsd:complexType>
+                                    <xsd:attribute name="untilVersion" type="tns:TechVersion" use="required"/>
                                     <xsd:attribute name="x" type="xsd:double" use="required"/>
                                     <xsd:attribute name="y" type="xsd:double" use="required"/>
                                 </xsd:complexType>
@@ -590,7 +590,7 @@
                                     </xsd:sequence>
                                 </xsd:complexType>
                             </xsd:element>
-                            <xsd:element name="nodeBase" minOccurs="0">
+                            <xsd:element name="sizeOffset" minOccurs="0">
                                 <xsd:complexType>
                                     <xsd:attribute name="lx" type="xsd:double" use="required"/>
                                     <xsd:attribute name="hx" type="xsd:double" use="required"/>
@@ -639,9 +639,10 @@
                                                     <xsd:attribute name="khx" type="xsd:double"/>
                                                     <xsd:attribute name="kly" type="xsd:double"/>
                                                     <xsd:attribute name="khy" type="xsd:double"/>
-                                                    <xsd:attribute name="sizeRule" type="tns:RuleName" use="required"/>
-                                                    <xsd:attribute name="sepRule" type="tns:RuleName" use="required"/>
-                                                    <xsd:attribute name="sepRule2D" type="tns:RuleName"/>
+                                                    <xsd:attribute name="sizex" type="xsd:double" use="required"/>
+                                                    <xsd:attribute name="sizey" type="xsd:double" use="required"/>
+                                                    <xsd:attribute name="sep1d" type="xsd:double" use="required"/>
+                                                    <xsd:attribute name="sep2d" type="xsd:double" use="required"/>
                                                 </xsd:complexType>
                                             </xsd:element>
                                             <xsd:element name="serpbox">
