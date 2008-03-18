@@ -1997,16 +1997,16 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
         n.od33 = isNodeBitOn(PrimitiveNode.OD33BIT);
 
         PrimitiveNode.NodeSizeRule nodeSizeRule = getMinSizeRule();
-        EPoint minFullSize = nodeSizeRule != null ?
-            EPoint.fromLambda(0.5*nodeSizeRule.getWidth(), 0.5*nodeSizeRule.getHeight()) :
-            EPoint.fromLambda(0.5*getDefWidth(), 0.5*getDefHeight());
-        if (getFunction() == PrimitiveNode.Function.PIN && isArcsShrink()) {
-            assert getNumPorts() == 1;
-            PrimitivePort pp = getPort(0);
-            assert pp.getLeft().getMultiplier() == -0.5 && pp.getRight().getMultiplier() == 0.5 && pp.getBottom().getMultiplier() == -0.5 && pp.getTop().getMultiplier() == 0.5;
-            assert pp.getLeft().getAdder() == -pp.getRight().getAdder() && pp.getBottom().getAdder() == -pp.getTop().getAdder();
-            minFullSize = EPoint.fromLambda(pp.getLeft().getAdder(), pp.getBottom().getAdder());
-        }
+        EPoint minFullSize = EPoint.fromGrid(
+                (fullRectangle.getGridWidth() + 1 )/2,
+                (fullRectangle.getGridHeight() + 1 )/2);
+//        if (getFunction() == PrimitiveNode.Function.PIN && isArcsShrink()) {
+//            assert getNumPorts() == 1;
+//            PrimitivePort pp = getPort(0);
+//            assert pp.getLeft().getMultiplier() == -0.5 && pp.getRight().getMultiplier() == 0.5 && pp.getBottom().getMultiplier() == -0.5 && pp.getTop().getMultiplier() == 0.5;
+//            assert pp.getLeft().getAdder() == -pp.getRight().getAdder() && pp.getBottom().getAdder() == -pp.getTop().getAdder();
+//            minFullSize = EPoint.fromLambda(pp.getLeft().getAdder(), pp.getBottom().getAdder());
+//        }
 //            DRCTemplate nodeSize = xmlRules.getRule(pnp.getPrimNodeIndexInTech(), DRCTemplate.DRCRuleType.NODSIZ);
         SizeOffset so = getProtoSizeOffset();
         if (so.getLowXOffset() == 0 && so.getHighXOffset() == 0 && so.getLowYOffset() == 0 && so.getHighYOffset() == 0)
@@ -2053,12 +2053,6 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
             n.nodeSizeRule.width = nodeSizeRule.getWidth();
             n.nodeSizeRule.height = nodeSizeRule.getHeight();
             n.nodeSizeRule.rule = nodeSizeRule.getRuleName();
-        } else if (p1.getX() != 0.5*fullRectangle.getWidth() || p1.getY() != 0.5*fullRectangle.getHeight()) {
-            n.nodeSizeRule = new Xml.NodeSizeRule();
-            n.nodeSizeRule.width = fullRectangle.getWidth();
-            n.nodeSizeRule.height = fullRectangle.getHeight();
-            n.nodeSizeRule.rule = "?";
-            
         }
         n.spiceTemplate = getSpiceTemplate();
         return n;

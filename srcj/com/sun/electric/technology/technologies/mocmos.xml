@@ -1256,7 +1256,6 @@
             </box>
             <portArc>Metal-6</portArc>
         </primitivePort>
-        <minSizeRule width="5.0" height="5.0" rule="?"/>
     </primitiveNode>
 
     <primitiveNode name="Polysilicon-1-Pin" fun="PIN">
@@ -1293,7 +1292,6 @@
             </box>
             <portArc>Polysilicon-2</portArc>
         </primitivePort>
-        <minSizeRule width="7.0" height="7.0" rule="?"/>
     </primitiveNode>
 
     <primitiveNode name="P-Active-Pin" fun="PIN">

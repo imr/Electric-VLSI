@@ -561,7 +561,6 @@
             </box>
             <portArc>Metal_1</portArc>
         </primitivePort>
-        <minSizeRule width="3.0" height="3.0" rule="W_0"/>
     </primitiveNode>
 
     <primitiveNode name="Metal2_Pin" fun="PIN">
@@ -580,7 +579,6 @@
             </box>
             <portArc>Metal_2</portArc>
         </primitivePort>
-        <minSizeRule width="4.0" height="4.0" rule="W_1"/>
     </primitiveNode>
 
     <primitiveNode name="NPPoly_pin" fun="PIN">

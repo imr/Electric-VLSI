@@ -1406,9 +1406,10 @@ public class Layer
         l.function = getFunction();
         l.extraFunction = getFunctionExtras();
         l.desc = getGraphics();
-        l.thick3D = getThickness();
-        l.height3D = getDistance();
-        if (!getTransparencyMode().equals(DEFAULT_MODE) || getTransparencyFactor() != DEFAULT_FACTOR) {
+        if (getThickness() != DEFAULT_THICKNESS || getDistance() != DEFAULT_DISTANCE ||
+                !getTransparencyMode().equals(DEFAULT_MODE) || getTransparencyFactor() != DEFAULT_FACTOR) {
+            l.thick3D = getThickness();
+            l.height3D = getDistance();
             l.mode3D = getTransparencyMode();
             l.factor3D = getTransparencyFactor();
         }
@@ -1471,17 +1472,17 @@ public class Layer
                 l.pureLayerNode.portArcs.add(ap.getName());
             }
         }
-        
+
         Xml807.LayerDisplayStyle lds = displayStyle.newLayer(l);
         lds.desc = getGraphics();
         if (!getTransparencyMode().equals(DEFAULT_MODE) || getTransparencyFactor() != DEFAULT_FACTOR) {
             lds.mode3D = getTransparencyMode();
             lds.factor3D = getTransparencyFactor();
         }
-        
+
         return l;
     }
-    
+
     void makeXml807(Xml807.Technology t,
             Map<Xml807.Layer,Xml807.Distance> thick3D, Map<Xml807.Layer,Xml807.Distance> height3D) {
         Xml807.Layer l = t.findLayer(getName());
