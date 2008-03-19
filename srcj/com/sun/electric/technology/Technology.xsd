@@ -50,6 +50,12 @@
         </xsd:sequence>
     </xsd:group>
 
+   <xsd:simpleType name="PositiveDouble">
+        <xsd:restriction base="xsd:double">
+            <xsd:minExclusive value="0"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+ 
     <xsd:complexType name="ColorRGB">
         <xsd:attribute name="r" type="tns:ColorComponent" use="required"/>
         <xsd:attribute name="g" type="tns:ColorComponent" use="required"/>
@@ -474,8 +480,8 @@
                                 <xsd:complexType>
                                     <xsd:attribute name="thick" type="xsd:double" use="required"/>
                                     <xsd:attribute name="height" type="xsd:double" use="required"/>
-                                    <xsd:attribute name="mode" type="xsd:string" use="required"/>
-                                    <xsd:attribute name="factor" type="xsd:double" use="required"/>
+                                    <xsd:attribute name="mode" type="xsd:string"/>
+                                    <xsd:attribute name="factor" type="xsd:double"/>
                                 </xsd:complexType>
                             </xsd:element>
                             <xsd:element name="cifLayer" minOccurs="0">
@@ -639,10 +645,10 @@
                                                     <xsd:attribute name="khx" type="xsd:double"/>
                                                     <xsd:attribute name="kly" type="xsd:double"/>
                                                     <xsd:attribute name="khy" type="xsd:double"/>
-                                                    <xsd:attribute name="sizex" type="xsd:double" use="required"/>
-                                                    <xsd:attribute name="sizey" type="xsd:double" use="required"/>
-                                                    <xsd:attribute name="sep1d" type="xsd:double" use="required"/>
-                                                    <xsd:attribute name="sep2d" type="xsd:double" use="required"/>
+                                                    <xsd:attribute name="sizex" type="tns:PositiveDouble" use="required"/>
+                                                    <xsd:attribute name="sizey" type="tns:PositiveDouble" use="required"/>
+                                                    <xsd:attribute name="sep1d" type="tns:PositiveDouble" use="required"/>
+                                                    <xsd:attribute name="sep2d" type="tns:PositiveDouble" use="required"/>
                                                 </xsd:complexType>
                                             </xsd:element>
                                             <xsd:element name="serpbox">
@@ -778,7 +784,7 @@
                                         <xsd:attribute name="ruleName" type="tns:RuleName" use="required"/>
                                         <xsd:attribute name="layerName" type="tns:LayerName" use="required"/>
                                         <xsd:attribute name="type" type="tns:LayerRuleType" use="required"/>
-                                        <xsd:attribute name="when" type="tns:DesignRuleWhen" use="required"/>
+                                        <xsd:attribute name="when" type="tns:DesignRuleWhen"/>
                                         <xsd:attribute name="condition" type="tns:DesignRuleCondition"/>
                                         <xsd:attribute name="value" type="xsd:double" use="required"/>
                                     </xsd:complexType>
@@ -788,7 +794,7 @@
                                         <xsd:attribute name="ruleName" type="tns:RuleName" use="required"/>
                                         <xsd:attribute name="layerNames" type="xsd:string" use="required"/>
                                         <xsd:attribute name="type" type="tns:LayersRuleType" use="required"/>
-                                        <xsd:attribute name="when" type="tns:DesignRuleWhen" use="required"/>
+                                        <xsd:attribute name="when" type="tns:DesignRuleWhen"/>
                                         <xsd:attribute name="valueX" type="xsd:double"/>
                                         <xsd:attribute name="valueY" type="xsd:double"/>
                                         <xsd:attribute name="value" type="xsd:double"/>
@@ -804,7 +810,7 @@
                                         <xsd:attribute name="layerNames" type="xsd:string" use="required"/>
                                         <xsd:attribute name="nodeName" type="tns:PrimitiveNodeName" use="required"/>
                                         <xsd:attribute name="type" type="tns:NodeLayersRuleType" use="required"/>
-                                        <xsd:attribute name="when" type="tns:DesignRuleWhen" use="required"/>
+                                        <xsd:attribute name="when" type="tns:DesignRuleWhen"/>
                                         <xsd:attribute name="value" type="xsd:double"/>
                                         <xsd:attribute name="valueX" type="xsd:double"/>
                                         <xsd:attribute name="valueY" type="xsd:double"/>
@@ -814,7 +820,7 @@
                                     <xsd:complexType>
                                         <xsd:attribute name="ruleName" type="tns:RuleName" use="required"/>
                                         <xsd:attribute name="type" type="tns:NodeRuleType" use="required"/>
-                                        <xsd:attribute name="when" type="tns:DesignRuleWhen" use="required"/>
+                                        <xsd:attribute name="when" type="tns:DesignRuleWhen"/>
                                         <xsd:attribute name="value" type="xsd:double"/>
                                         <xsd:attribute name="valueX" type="xsd:double"/>
                                         <xsd:attribute name="valueY" type="xsd:double"/>

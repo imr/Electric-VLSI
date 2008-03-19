@@ -840,8 +840,9 @@ public class Xml {
                 case display3D:
                     curLayer.thick3D = Double.parseDouble(a("thick"));
                     curLayer.height3D = Double.parseDouble(a("height"));
-                    curLayer.mode3D = a("mode");
-                    curLayer.factor3D = Double.parseDouble(a("factor"));
+                    curLayer.mode3D = a_("mode");
+                    String factor3DStr = a_("factor");
+                    curLayer.factor3D = factor3DStr != null ? Double.parseDouble(factor3DStr) : 0;
                     break;
                 case cifLayer:
                     curLayer.cif = a("cif");
@@ -1686,8 +1687,12 @@ public class Xml {
             bcpel(XmlKeyword.foreground, desc.getForeground());
 
             // write the 3D information
-            if (li.mode3D != null) {
-                b(XmlKeyword.display3D); a("thick", li.thick3D); a("height", li.height3D); a("mode", li.mode3D); a("factor", li.factor3D); el();
+            if (li.thick3D != 0 || li.height3D != 0 || li.mode3D != null) {
+                b(XmlKeyword.display3D); a("thick", li.thick3D); a("height", li.height3D);
+                if (li.mode3D != null) {
+                    a("mode", li.mode3D); a("factor", li.factor3D);
+                }
+                el();
             }
 
             if (li.cif != null && li.cif.length() > 0) {
@@ -1968,11 +1973,6 @@ public class Xml {
             for (DRCTemplate rule: foundry.rules)
                 DRCTemplate.exportDRCRule(out, rule);
             el(XmlKeyword.Foundry);
-        }
-
-        private void printDesignRule(String ruleName, String l1, String l2, String type, double value) {
-            String layerNames = "{" + l1 + ", " + l2 + "}";
-            b(XmlKeyword.LayersRule); a("ruleName", ruleName); a("layerNames", layerNames); a("type", type); a("when", "ALL"); a("value", value); el();
         }
 
         private void header() {

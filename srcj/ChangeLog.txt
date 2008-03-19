@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07f: ******************************
 
+BUG: (3/18/08, DN) Xml technology file tolerates zero multicut size and spacing.
+FIX: In Technology.xsd use PositiveDouble type.
+
+BUG: (3/18/08, DN) Backward compatibility with XML Technologies (Bug #1611)
+FIX: In Technology.xsd make <display3d.mode> <display3d.factor> <*Rule.when> attributes optional.
+
 IMP/MAN: (3/18/08, SMR) Fragmented Spice netlister into multiple modules in preparation for
      additional Spice parasitics.  Added more parasitics options to Spice Preferences.
 
