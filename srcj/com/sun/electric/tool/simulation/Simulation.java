@@ -1620,9 +1620,9 @@ public class Simulation extends Tool
 
     public enum SpiceParasitics
     {
-        /** simple parasitics (source/drain area&perimeter) */		SIMPLE(0, "Simple (area/perimeter)"),
-        /** RC parasitics to substrate. */							RC_SIMPLE(1, "RC"),
-        /** RC parasitics to substrate or intervening layers. */	RC_INTERLAYER(2, "RC w/intervening layers");
+        /** simple parasitics (source/drain area&perimeter) */		SIMPLE(0, "Trans area/perim only (no RC)"),
+        /** RC parasitics to substrate. */							RC_CONSERVATIVE(1, "Conservative RC"),
+        /** RC parasitics to substrate or intervening layers. */	RC_PROXIMITY(2, "Proximity-based RC");
 
         private int code;
         private String name;

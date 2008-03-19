@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -46,7 +47,7 @@ import java.util.TreeSet;
  */
 class SpiceExemptedNets
 {
-	private HashMap<Cell,List<Net>> netsByCell;         // key: cell, value: List of ExemptedNets.Net objects
+	private Map<Cell,List<Net>> netsByCell;         // key: cell, value: List of ExemptedNets.Net objects
 	private Set<Integer> exemptedNetIDs;
 
 	private static class Net

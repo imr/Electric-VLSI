@@ -27,73 +27,89 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
+import com.sun.electric.tool.io.output.Topology.CellNetInfo;
 import com.sun.electric.tool.io.output.Topology.CellSignal;
 import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.user.User;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * This is the simple-RC parasitics extractor for the Spice netlist writer.
  */
 public class SpiceRCSimple
 {
-	/** List of segmented nets and parasitics */	private List<SpiceSegmentedNets> segmentedParasiticInfo;
-	/** current segmented nets and parasitics */	private SpiceSegmentedNets curSegmentedNets;
+    /** key of wire capacitance. */	private static final Variable.Key ATTR_C = Variable.newKey("ATTR_C");
+    /** key of wire resistance. */	private static final Variable.Key ATTR_R = Variable.newKey("ATTR_R");
+
+	/** List of segmented nets */	private List<SpiceSegmentedNets> segmentedParasiticInfo;
+	/** current segmented nets */	private SpiceSegmentedNets curSegmentedNets;
 
 	SpiceRCSimple()
 	{
 		segmentedParasiticInfo = new ArrayList<SpiceSegmentedNets>();
 	}
 
-	public void addSegmentedNets(SpiceSegmentedNets sn) { segmentedParasiticInfo.add(sn); }
-
-	public List<SpiceSegmentedNets> getSegmentedNets() { return segmentedParasiticInfo; }
-
-	public void setCurrentSegmentedNets(SpiceSegmentedNets sn) { curSegmentedNets = sn; }
-
-	public SpiceSegmentedNets getSegmentedNets(Cell cell)
+	/**
+	 * Method to initialize cell being analyzed for RC parasitics.
+	 * @param cell the Cell being analyzed.
+	 * @param cni hierarchical traversal information for the Cell, including netlists and other connectivity data.
+	 * @param layoutTechnology the Technology to use for the Cell (may be different
+	 * from the Cell's actual Technology if the Cell is a schematic...this is the
+	 * layout technology to use instead).
+	 * @param exemptedNets as set of networks that should be exempted from the analysis
+	 * @param info data from the hierarchy traverser that gives global network information.
+	 * @return a SpiceSegmentedNets object for the Cell.
+	 */
+	public SpiceSegmentedNets initializeSegments(Cell cell, CellNetInfo cni, Technology layoutTechnology,
+		SpiceExemptedNets exemptedNets, Topology.MyCellInfo info)
 	{
-		for (SpiceSegmentedNets seg : segmentedParasiticInfo)
-		{
-			if (seg.getCell() == cell) return seg;
-		}
-		return null;
-	}
+		// first create a set of segmentedNets for the Cell
+        boolean verboseSegmentNames = Simulation.isParasiticsUseVerboseNaming();
+        Simulation.SpiceParasitics spLevel = Simulation.getSpiceParasiticsLevel();
+        SpiceSegmentedNets segmentedNets = new SpiceSegmentedNets(cell, verboseSegmentNames, cni, spLevel);
+        segmentedParasiticInfo.add(segmentedNets);
+        curSegmentedNets = segmentedNets;
 
-	public void initializeSegments(Cell cell, Netlist netList, Technology layoutTechnology,
-		SpiceSegmentedNets segmentedNets, SpiceExemptedNets exemptedNets, Topology.MyCellInfo info)
-	{
+        // look at every arc in the Cell
+        Netlist netList = cni.getNetList();
 		double scale = layoutTechnology.getScale(); // scale to convert units to nanometers
-		//System.out.println("\n	 Finding parasitics for cell "+cell.describe(false));
-		HashMap<Network,Network> exemptedNetsFound = new HashMap<Network,Network>();
+		Map<Network,Network> exemptedNetsFound = new HashMap<Network,Network>();
 		for (Iterator<ArcInst> ait = cell.getArcs(); ait.hasNext(); )
 		{
 			ArcInst ai = ait.next();
 
-			double cap = 0;
-			double res = 0;
-
-			//System.out.println("--Processing arc "+ai.getName());
+			// see if the network is being extracted
 			boolean extractNet = true;
-
 			if (segmentedNets.isPowerGround(ai.getHeadPortInst()))
 				extractNet = false;
 			if (ai.getProto().getFunction() == ArcProto.Function.NONELEC)
 				extractNet = false;
 
 			Network net = netList.getNetwork(ai, 0);
+			double cap = 0;
+			double res = 0;
 			if (extractNet && Simulation.isParasiticsUseExemptedNetsFile())
 			{
 				// ignore nets in exempted nets file
@@ -128,69 +144,64 @@ public class SpiceRCSimple
 					}
 				}
 			}
-
-			if (extractNet)
+			if (!extractNet)
 			{
-				// figure out res and cap, see if we should ignore it
-				double length = ai.getLambdaLength() * scale / 1000;      // length in microns
-				double width = ai.getLambdaBaseWidth() * scale / 1000;        // width in microns
-//				double width = ai.getLambdaFullWidth() * scale / 1000;        // width in microns
-				double area = length * width;
-				double fringe = length*2;
-
-				Technology tech = ai.getProto().getTechnology();
-				Poly [] arcInstPolyList = tech.getShapeOfArc(ai);
-				int tot = arcInstPolyList.length;
-				for(int j=0; j<tot; j++)
-				{
-					Poly poly = arcInstPolyList[j];
-					if (poly.getStyle().isText()) continue;
-
-					if (poly.isPseudoLayer()) continue;
-					Layer layer = poly.getLayer();
-					if (layer.getTechnology() != layoutTechnology) continue;
-//					if (layer.isPseudoLayer()) continue;
-
-					if (!layer.isDiffusionLayer())
-					{
-						if (Simulation.isParasiticsExtractsC())
-						{
-							double areacap = area * layer.getCapacitance();
-							double fringecap = fringe * layer.getEdgeCapacitance();
-							cap = areacap + fringecap;
-						}
-						if (Simulation.isParasiticsExtractsR())
-						{
-							res = length/width * layer.getResistance();
-						}
-					}
-				}
-
-				int arcPImodels = SpiceSegmentedNets.getNumPISegments(res, layoutTechnology.getMaxSeriesResistance());
-
-				// add caps
-				segmentedNets.putSegment(ai.getHeadPortInst(), cap/(arcPImodels+1));
-				segmentedNets.putSegment(ai.getTailPortInst(), cap/(arcPImodels+1));
-
-				if (res <= cell.getTechnology().getMinResistance())
-				{
-					// short arc
-					segmentedNets.shortSegments(ai.getHeadPortInst(), ai.getTailPortInst());
-				} else
-				{
-					//System.out.println("Using resistance of "+res+" for arc "+ai.getName());
-					segmentedNets.addArcRes(ai, res);
-					if (arcPImodels > 1)
-						segmentedNets.addArcCap(ai, cap);       // need to store cap later to break it up
-				}
-				segmentedNets.addExtractedNet(net);
-			} else
-			{
-				//System.out.println("  not extracting arc "+ai.getName());
 				// don't need to short arcs on networks that aren't extracted, since it is
 				// guaranteed that both ends of the arc are named the same.
 				//segmentedNets.shortSegments(ai.getHeadPortInst(), ai.getTailPortInst());
+				continue;
 			}
+
+			// figure out res and cap, see if we should ignore it
+			double length = ai.getLambdaLength() * scale / 1000;      // length in microns
+			double width = ai.getLambdaBaseWidth() * scale / 1000;        // width in microns
+			double area = length * width;
+			double fringe = length*2;
+
+			Technology tech = ai.getProto().getTechnology();
+			Poly [] arcInstPolyList = tech.getShapeOfArc(ai);
+			int tot = arcInstPolyList.length;
+			for(int j=0; j<tot; j++)
+			{
+				Poly poly = arcInstPolyList[j];
+				if (poly.getStyle().isText()) continue;
+				if (poly.isPseudoLayer()) continue;
+				Layer layer = poly.getLayer();
+				if (layer.getTechnology() != layoutTechnology) continue;
+
+				if (!layer.isDiffusionLayer())
+				{
+					if (Simulation.isParasiticsExtractsC())
+					{
+						double areacap = area * layer.getCapacitance();
+						double fringecap = fringe * layer.getEdgeCapacitance();
+						cap = areacap + fringecap;
+					}
+					if (Simulation.isParasiticsExtractsR())
+					{
+						res = length/width * layer.getResistance();
+					}
+				}
+			}
+
+			int arcPImodels = SpiceSegmentedNets.getNumPISegments(res, layoutTechnology.getMaxSeriesResistance());
+
+			// add caps
+			segmentedNets.putSegment(ai.getHeadPortInst(), cap/(arcPImodels+1));
+			segmentedNets.putSegment(ai.getTailPortInst(), cap/(arcPImodels+1));
+
+			if (res <= cell.getTechnology().getMinResistance())
+			{
+				// short arc
+				segmentedNets.shortSegments(ai.getHeadPortInst(), ai.getTailPortInst());
+			} else
+			{
+				//System.out.println("Using resistance of "+res+" for arc "+ai.getName());
+				segmentedNets.addArcRes(ai, res);
+				if (arcPImodels > 1)
+					segmentedNets.addArcCap(ai, cap);       // need to store cap later to break it up
+			}
+			segmentedNets.addExtractedNet(net);
 		}
 
 		// Don't take into account gate resistance: so we need to short two PortInsts
@@ -202,25 +213,24 @@ public class SpiceRCSimple
 			{
 				if (((PrimitiveNode)ni.getProto()).getGroupFunction() == PrimitiveNode.Function.TRANS)
 				{
-					//System.out.println("--Processing gate "+ni.getName());
+					// System.out.println("--Processing gate "+ni.getName());
 					PortInst gate0 = ni.getTransistorGatePort();
 					PortInst gate1 = ni.getTransistorAltGatePort();
 					Network gateNet0 = netList.getNetwork(gate0);
 					if ((gate0 != gate1) && segmentedNets.isExtractedNet(gateNet0))
 					{
-						//System.out.println("Shorting gate "+ni.getName()+" ports "
-						//        +gate0.getPortProto().getName()+" and "
-						//        +gate1.getPortProto().getName());
+						//System.out.println("Shorting gate "+ni.getName()+" ports "+gate0.getPortProto().getName()+" and "+gate1.getPortProto().getName());
 						segmentedNets.shortSegments(gate0, gate1);
 					}
 				}
 				// merge wells
 			} else
 			{
-				//System.out.println("--Processing subcell "+ni.getName());
+				// System.out.println("--Processing subcell "+ni.getName());
 				// short together pins if shorted by subcell
 				Cell subCell = (Cell)ni.getProto();
 				SpiceSegmentedNets subNets = getSegmentedNets(subCell);
+
 				// list of lists of shorted exports
 				if (subNets != null)
 				{
@@ -229,6 +239,7 @@ public class SpiceRCSimple
 					{
 						List<String> exports = it.next();
 						PortInst pi1 = null;
+
 						// list of exports shorted together
 						for (String exportName : exports)
 						{
@@ -236,7 +247,8 @@ public class SpiceRCSimple
 							PortInst pi = ni.findPortInst(exportName);
 							if (pi1 == null)
 							{
-								pi1 = pi; continue;
+								pi1 = pi;
+								continue;
 							}
 							Network net = netList.getNetwork(pi);
 							if (segmentedNets.isExtractedNet(net))
@@ -245,14 +257,61 @@ public class SpiceRCSimple
 					}
 				}
 			}
-		} // for (cell.getNodes())
+		}
+		return segmentedNets;
 	}
 
-	public void getParasiticName(Nodable no, CellSignal subCS, StringBuffer infstr)
+	/**
+	 * Method to emit the proper subcircuit header for a signal.
+	 * @param cs the signal to emit
+	 * @param infstr the string buffer to fill with the emitted signal information.
+	 */
+	public void writeSubcircuitHeader(CellSignal cs, StringBuffer infstr)
+	{
+		Network net = cs.getNetwork();
+		Map<String,List<String>> shortedExportsMap = new HashMap<String,List<String>>();
+
+		// For a single logical network, we need to:
+		// 1) treat certain exports as separate so as not to short resistors on arcs between the exports
+		// 2) join certain exports that do not have resistors on arcs between them, and record this information
+		//   so that the next level up knows to short networks connection to those exports.
+		for (Iterator<Export> it = net.getExports(); it.hasNext(); )
+		{
+			Export e = it.next();
+			PortInst pi = e.getOriginalPort();
+			String name = curSegmentedNets.getNetName(pi);
+
+			// exports are shorted if their segmented net names are the same (case (2))
+			List<String> shortedExports = shortedExportsMap.get(name);
+			if (shortedExports == null)
+			{
+				shortedExports = new ArrayList<String>();
+				shortedExportsMap.put(name, shortedExports);
+
+				// this is the first occurance of this segmented network, use the name as the export (1)
+				infstr.append(" " + name);
+			}
+			shortedExports.add(e.getName());
+		}
+	
+		// record shorted exports
+		for (List<String> shortedExports : shortedExportsMap.values())
+		{
+			if (shortedExports.size() > 1)
+				curSegmentedNets.addShortedExports(shortedExports);
+		}
+	}
+
+	/**
+	 * Method to emit the name of a signal on an instance call (the "X" statement).
+	 * @param no the Nodable for the cell instance being examined.
+	 * @param subNet the Network in the cell attached to that Nodable.
+	 * @param subSegmentedNets the SpiceSegmentedNets object for the Nodable's Cell.
+	 * @param infstr the string buffer in which to emit the name(s).
+	 */
+	public void getParasiticName(Nodable no, Network subNet, SpiceSegmentedNets subSegmentedNets, StringBuffer infstr)
 	{
 		// connect to all exports (except power and ground of subcell net)
-		SpiceSegmentedNets subSegmentedNets = getSegmentedNets((Cell)no.getProto());
-		Network subNet = subCS.getNetwork();
 		List<String> exportNames = new ArrayList<String>();
 		for (Iterator<Export> it = subNet.getExports(); it.hasNext(); )
 		{
@@ -271,37 +330,135 @@ public class SpiceRCSimple
 		}
 	}
 
-	public void writeSubcircuitHeader(CellSignal cs, StringBuffer infstr)
+	/**
+	 * Method to find the SpiceSegmentedNets object that corresponds to a given Cell.
+	 * @param cell the Cell to find.
+	 * @return the SpiceSegmentedNets object associated with that cell (null if none found).
+	 */
+	public SpiceSegmentedNets getSegmentedNets(Cell cell)
 	{
-		Network net = cs.getNetwork();
-		HashMap<String,List<String>> shortedExportsMap = new HashMap<String,List<String>>();
-		// For a single logical network, we need to:
-		// 1) treat certain exports as separate so as not to short resistors on arcs between the exports
-		// 2) join certain exports that do not have resistors on arcs between them, and record this information
-		//   so that the next level up knows to short networks connection to those exports.
-		for (Iterator<Export> it = net.getExports(); it.hasNext(); )
-		{
-			Export e = it.next();
-			PortInst pi = e.getOriginalPort();
-			String name = curSegmentedNets.getNetName(pi);
-			// exports are shorted if their segmented net names are the same (case (2))
-			List<String> shortedExports = shortedExportsMap.get(name);
-			if (shortedExports == null)
-			{
-				shortedExports = new ArrayList<String>();
-				shortedExportsMap.put(name, shortedExports);
-				// this is the first occurance of this segmented network,
-				// use the name as the export (1)
-				infstr.append(" " + name);
-			}
-			shortedExports.add(e.getName());
-		}
-	
-		// record shorted exports
-		for (List<String> shortedExports : shortedExportsMap.values())
-		{
-			if (shortedExports.size() > 1)
-				curSegmentedNets.addShortedExports(shortedExports);
-		}
+		for (SpiceSegmentedNets seg : segmentedParasiticInfo)
+			if (seg.getCell() == cell) return seg;
+		return null;
 	}
+
+	/**
+	 * Method called at the end of netlist writing to deal with back-annotation.
+	 */
+	public void backAnnotate()
+	{
+    	Set<Cell>      cellsToClear = new HashSet<Cell>();
+    	List<PortInst> capsOnPorts  = new ArrayList<PortInst>();
+    	List<String>   valsOnPorts  = new ArrayList<String>();
+    	List<ArcInst>  resOnArcs    = new ArrayList<ArcInst>();
+    	List<Double>   valsOnArcs   = new ArrayList<Double>();
+        for (SpiceSegmentedNets segmentedNets : segmentedParasiticInfo)
+        {
+            Cell cell = segmentedNets.getCell();
+            if (cell.getView() != View.LAYOUT) continue;
+
+            // gather cells to clear capacitor values
+            cellsToClear.add(cell);
+
+            // gather capacitor updates
+            for (SpiceSegmentedNets.NetInfo info : segmentedNets.getUniqueSegments())
+            {
+                PortInst pi = info.getPortIterator().next();
+                if (info.getCap() > cell.getTechnology().getMinCapacitance())
+                {
+                	capsOnPorts.add(pi);
+                	valsOnPorts.add(TextUtils.formatDouble(info.getCap(), 2) + "fF");
+                }
+            }
+
+            // gather resistor updates
+            for (Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
+            {
+                ArcInst ai = it.next();
+                Double res = segmentedNets.getRes(ai);
+
+                resOnArcs.add(ai);
+                valsOnArcs.add(res);
+            }
+        }
+        new BackAnnotateJob(cellsToClear, capsOnPorts, valsOnPorts, resOnArcs, valsOnArcs);
+	}
+
+	/**
+	 * Class to run back-annotation in a Job.
+	 */
+	private static class BackAnnotateJob extends Job
+    {
+    	private Set<Cell> cellsToClear;
+    	private List<PortInst> capsOnPorts;
+    	private List<String> valsOnPorts;
+    	private List<ArcInst> resOnArcs;
+    	private List<Double> valsOnArcs;
+
+        private BackAnnotateJob(Set<Cell> cellsToClear, List<PortInst> capsOnPorts, List<String> valsOnPorts,
+        	List<ArcInst> resOnArcs, List<Double> valsOnArcs)
+    	{
+            super("Spice Layout Back Annotate", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.capsOnPorts = capsOnPorts;
+            this.valsOnPorts = valsOnPorts;
+            this.resOnArcs = resOnArcs;
+            this.valsOnArcs = valsOnArcs;
+            this.cellsToClear = cellsToClear;
+            startJob();
+        }
+
+        public boolean doIt() throws JobException
+        {
+            TextDescriptor ctd = TextDescriptor.getPortInstTextDescriptor().withDispPart(TextDescriptor.DispPos.NAMEVALUE);
+            TextDescriptor rtd = TextDescriptor.getArcTextDescriptor().withDispPart(TextDescriptor.DispPos.NAMEVALUE);
+            int capCount = 0;
+            int resCount = 0;
+
+            // clear caps on layout
+            for(Cell cell : cellsToClear)
+            {
+                // delete all C's already on layout
+                for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
+                {
+                    NodeInst ni = it.next();
+                    for (Iterator<PortInst> pit = ni.getPortInsts(); pit.hasNext(); )
+                    {
+                        PortInst pi = pit.next();
+                        Variable var = pi.getVar(ATTR_C);
+                        if (var != null) pi.delVar(var.getKey());
+                    }
+                }
+            }
+
+            // add new C's
+            for(int i=0; i<capsOnPorts.size(); i++)
+            {
+            	PortInst pi = capsOnPorts.get(i);
+            	String str = valsOnPorts.get(i);
+                pi.newVar(ATTR_C, str, ctd);
+                resCount++;
+            }
+
+            // add new R's
+            for(int i=0; i<resOnArcs.size(); i++)
+            {
+            	ArcInst ai = resOnArcs.get(i);
+            	Double res = valsOnArcs.get(i);
+
+                // delete R if no new one
+                Variable var = ai.getVar(ATTR_R);
+                if (res == null && var != null)
+                    ai.delVar(ATTR_R);
+
+                // change R if new one
+                if (res != null)
+                {
+                    ai.newVar(ATTR_R, res, rtd);
+                    resCount++;
+                }
+            }
+            System.out.println("Back-annotated "+resCount+" Resistors and "+capCount+" Capacitors");
+            return true;
+        }
+    }
 }

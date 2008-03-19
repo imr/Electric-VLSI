@@ -57,44 +57,6 @@ import java.util.TreeSet;
  */
 class SpiceSegmentedNets
 {
-	private static Comparator<PortInst> PORT_INST_COMPARATOR = new Comparator<PortInst>()
-	{
-		public int compare(PortInst p1, PortInst p2)
-		{
-			if (p1 == p2) return 0;
-			int cmp = p1.getNodeInst().compareTo(p2.getNodeInst());
-			if (cmp != 0) return cmp;
-			if (p1.getPortIndex() < p2.getPortIndex()) return -1;
-			return 1;
-		}
-	};
-
-	public static class NetInfo implements Comparable
-	{
-		private String netName = "unassigned";
-		private double cap = 0;
-		private TreeSet<PortInst> joinedPorts = new TreeSet<PortInst>(PORT_INST_COMPARATOR);     // list of portInsts on this new net
-
-		/**
-		 * Compares NetInfos by thier first PortInst.
-		 * @param obj the other NetInfo.
-		 * @return a comparison between the NetInfos.
-		 */
-		public int compareTo(Object obj)
-		{
-			NetInfo that = (NetInfo)obj;
-			if (this.joinedPorts.isEmpty()) return that.joinedPorts.isEmpty() ? 0 : -1;
-			if (that.joinedPorts.isEmpty()) return 1;
-			return PORT_INST_COMPARATOR.compare(this.joinedPorts.first(), that.joinedPorts.first());
-		}
-
-		public Iterator<PortInst> getPortIterator() { return joinedPorts.iterator(); }
-
-		public double getCap() { return cap; }
-
-		public String getName() { return netName; }
-	}
-
 	private Map<PortInst,NetInfo> segmentedNets;          // key: portinst, obj: PortInstInfo
 	private Map<ArcInst,Double> arcRes;                 // key: arcinst, obj: Double (arc resistance)
 	private boolean verboseNames = false;           // true to give renamed nets verbose names
@@ -315,4 +277,42 @@ class SpiceSegmentedNets
 	}
 
 	public Cell getCell() { return cell; }
+
+	private static Comparator<PortInst> PORT_INST_COMPARATOR = new Comparator<PortInst>()
+	{
+		public int compare(PortInst p1, PortInst p2)
+		{
+			if (p1 == p2) return 0;
+			int cmp = p1.getNodeInst().compareTo(p2.getNodeInst());
+			if (cmp != 0) return cmp;
+			if (p1.getPortIndex() < p2.getPortIndex()) return -1;
+			return 1;
+		}
+	};
+
+	public static class NetInfo implements Comparable
+	{
+		private String netName = "unassigned";
+		private double cap = 0;
+		private TreeSet<PortInst> joinedPorts = new TreeSet<PortInst>(PORT_INST_COMPARATOR);     // list of portInsts on this new net
+
+		/**
+		 * Compares NetInfos by thier first PortInst.
+		 * @param obj the other NetInfo.
+		 * @return a comparison between the NetInfos.
+		 */
+		public int compareTo(Object obj)
+		{
+			NetInfo that = (NetInfo)obj;
+			if (this.joinedPorts.isEmpty()) return that.joinedPorts.isEmpty() ? 0 : -1;
+			if (that.joinedPorts.isEmpty()) return 1;
+			return PORT_INST_COMPARATOR.compare(this.joinedPorts.first(), that.joinedPorts.first());
+		}
+
+		public Iterator<PortInst> getPortIterator() { return joinedPorts.iterator(); }
+
+		public double getCap() { return cap; }
+
+		public String getName() { return netName; }
+	}
 }

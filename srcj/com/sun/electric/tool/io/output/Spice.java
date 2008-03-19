@@ -57,8 +57,6 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.TransistorSize;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
-import com.sun.electric.tool.Job;
-import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.generator.sclibrary.SCLibraryGen;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.Simulate;
@@ -113,8 +111,6 @@ public class Spice extends Topology
 	/** key of Variable holding SPICE declaration. */			public static final Variable.Key SPICE_DECLARATION_KEY = Variable.newKey("SIM_spice_declaration");
 	/** key of Variable holding SPICE model. */					public static final Variable.Key SPICE_MODEL_KEY = Variable.newKey("SIM_spice_model");
 	/** key of Variable holding SPICE flat code. */				public static final Variable.Key SPICE_CODE_FLAT_KEY = Variable.newKey("SIM_spice_code_flat");
-    /** key of wire capacitance. */                             public static final Variable.Key ATTR_C = Variable.newKey("ATTR_C");
-    /** key of wire resistance. */                              public static final Variable.Key ATTR_R = Variable.newKey("ATTR_R");
     /** key of Variable holding generic CDL templates. */		public static final Variable.Key CDL_TEMPLATE_KEY = Variable.newKey("ATTR_CDL_template");
 	/** Prefix for spice extension. */                          public static final String SPICE_EXTENSION_PREFIX = "Extension ";
 	/** Prefix for spice null extension. */                     public static final String SPICE_NOEXTENSION_PREFIX = "N O N E ";
@@ -135,8 +131,8 @@ public class Spice extends Topology
 	/** Template Key for current spice engine */				private Variable.Key preferedEngineTemplateKey;
     /** Special case for HSpice for Assura */					private boolean assuraHSpice = false;
 	/** Spice type: 2, 3, H, P, etc */							private Simulation.SpiceEngine spiceEngine;
-	/** those cells that have overridden models */				private HashMap<Cell,String> modelOverrides = new HashMap<Cell,String>();
-    /** Parameters used for Spice */                            private HashMap<NodeProto,Set<Variable.Key>> allSpiceParams = new HashMap<NodeProto,Set<Variable.Key>>();
+	/** those cells that have overridden models */				private Map<Cell,String> modelOverrides = new HashMap<Cell,String>();
+    /** Parameters used for Spice */                            private Map<NodeProto,Set<Variable.Key>> allSpiceParams = new HashMap<NodeProto,Set<Variable.Key>>();
     /** for RC parasitics */                                    private SpiceRCSimple parasiticInfo;
     /** Networks exempted during parasitic ext */				private SpiceExemptedNets exemptedNets;
     /** Whether or not to write empty subckts  */				private boolean writeEmptySubckts = true;
@@ -148,15 +144,10 @@ public class Spice extends Topology
     /** uniqueID */                                             private int uniqueID;
     /** map of shortened instance names */                      private Map<String,Integer> uniqueNames;
 
-	private static class SpiceNet
-	{
-		/** network object associated with this */	Network   network;
-		/** merged geometry for this network */		PolyMerge merge;
-		/** area of diffusion */					double    diffArea;
-		/** perimeter of diffusion */				double    diffPerim;
-		/** amount of capacitance in non-diff */	float     nonDiffCapacitance;
-		/** number of transistors on the net */		int       transistorCount;
-	}
+	/**
+	 * Constructor for the Spice netlister.
+	 */
+	Spice() {}
 
 	/**
 	 * The main entry point for Spice deck writing.
@@ -265,39 +256,14 @@ public class Spice extends Topology
 
         if (Simulation.isParasiticsBackAnnotateLayout() && out.parasiticInfo != null)
         {
-            out.backAnnotateLayout();
+            out.parasiticInfo.backAnnotate();
         }
 	}
-
-    private static class SpiceFinishedListener implements Exec.FinishedListener
-    {
-        private Cell cell;
-        private FileType type;
-        private String file;
-
-        private SpiceFinishedListener(Cell cell, FileType type, String file) {
-            this.cell = cell;
-            this.type = type;
-            this.file = file;
-        }
-
-        public void processFinished(Exec.FinishedEvent e) {
-            URL fileURL = TextUtils.makeURLToFile(file);
-
-			// create a new waveform window
-            WaveformWindow ww = WaveformWindow.findWaveformWindow(cell);
-
-            Simulate.plotSimulationResults(type, cell, fileURL, ww);
-        }
-    }
 
 	/**
-	 * Creates a new instance of Spice
+	 * Method called once by the traversal mechanism.
+	 * Initializes Spice netlisting and writes headers.
 	 */
-	Spice()
-	{
-	}
-
 	protected void start()
 	{
 		// find the proper technology to use if this is schematics
@@ -381,6 +347,9 @@ public class Spice extends Topology
         }
 	}
 
+	/**
+	 * Method called once at the end of netlisting.
+	 */
 	protected void done()
 	{
 		if (!useCDL)
@@ -391,58 +360,16 @@ public class Spice extends Topology
 		}
 	}
 
-    /**
-     * To write M factor information into given string buffer
-     * @param no Nodable representing the node
-     * @param infstr Buffer where to write to
-     */
-    private void writeMFactor(VarContext context, Nodable no, StringBuffer infstr)
-    {
-        Variable mVar = no.getVar(Simulation.M_FACTOR_KEY);
-        if (mVar == null) return;
-        Object value = context.evalVar(mVar);
-
-        // check for M=@M, and warn user that this is a bad idea, and we will not write it out
-        if (mVar.getObject().toString().equals("@M") || (mVar.getObject().toString().equals("P(\"M\")")))
-        {
-            System.out.println("Warning: M=@M [eval=" + value + "] on " + no.getName() +
-            	" is a bad idea, not writing it out: " + context.push(no).getInstPath("."));
-            return;
-        }
-
-        infstr.append(" M=" + formatParam(value.toString(), TextDescriptor.Unit.NONE));
-    }
-
-    /** Called at the end of the enter cell phase of hierarchy enumeration */
-    protected void enterCell(HierarchyEnumerator.CellInfo info) {
-        if (exemptedNets != null)
-            exemptedNets.setExemptedNets(info);
-    }
-
-    private Variable getEngineTemplate(Cell cell)
-    {
-        Variable varTemplate = cell.getVar(preferedEngineTemplateKey);
-
-        // Any of the following spice templates, if missing, will default to the generic spice template
-        if (varTemplate == null)
-        {
-            if (preferedEngineTemplateKey == SPICE_2_TEMPLATE_KEY ||
-                preferedEngineTemplateKey == SPICE_3_TEMPLATE_KEY ||
-                preferedEngineTemplateKey == SPICE_H_TEMPLATE_KEY ||
-                preferedEngineTemplateKey == SPICE_P_TEMPLATE_KEY ||
-                preferedEngineTemplateKey == SPICE_GC_TEMPLATE_KEY ||
-                preferedEngineTemplateKey == SPICE_SM_TEMPLATE_KEY)
-                	varTemplate = cell.getVar(SPICE_TEMPLATE_KEY);
-        }
-        return varTemplate;
-    }
-
 	/**
-	 * Method to write cellGeom
+	 * Method called by traversal mechanism to write one level of hierarchy in the Spice netlist.
+	 * This could be the top level or a subcircuit.
+	 * The bulk of the Spice netlisting happens here.
 	 */
 	protected void writeCellTopology(Cell cell, CellNetInfo cni, VarContext context, Topology.MyCellInfo info)
 	{
-		if (cell == topCell) {
+		// if this is the top level cell, write globals
+		if (cell == topCell)
+		{
             Netlist netList = cni.getNetList();
             Global.Set globals = netList.getGlobals();
             int globalSize = globals.size();
@@ -464,53 +391,36 @@ public class Spice extends Topology
                     multiLinePrint(false, infstr.toString());
                 }
             }
+
+    		// make sure power and ground appear at the top level
+    		if (!Simulation.isSpiceForceGlobalPwrGnd())
+    		{
+    			if (cni.getPowerNet() == null)
+    				System.out.println("WARNING: cannot find power at top level of circuit");
+    			if (cni.getGroundNet() == null)
+    				System.out.println("WARNING: cannot find ground at top level of circuit");
+    		}
         }
 
-		// gather networks in the cell
+		// create electrical nets (SpiceNet) for every Network in the cell
 		Netlist netList = cni.getNetList();
-
-		// make sure power and ground appear at the top level
-		if (cell == topCell && !Simulation.isSpiceForceGlobalPwrGnd())
-		{
-			if (cni.getPowerNet() == null)
-				System.out.println("WARNING: cannot find power at top level of circuit");
-			if (cni.getGroundNet() == null)
-				System.out.println("WARNING: cannot find ground at top level of circuit");
-		}
-
-		// create list of electrical nets in this cell
-		HashMap<Network,SpiceNet> spiceNetMap = new HashMap<Network,SpiceNet>();
-
-        // create SpiceNet objects for all networks in the cell
+		Map<Network,SpiceNet> spiceNetMap = new HashMap<Network,SpiceNet>();
         for(Iterator<Network> it = netList.getNetworks(); it.hasNext(); )
         {
             Network net = it.next();
-            // create a "SpiceNet" for the network
-            SpiceNet spNet = new SpiceNet();
-            spNet.network = net;
-            spNet.transistorCount = 0;
-            spNet.diffArea = 0;
-            spNet.diffPerim = 0;
-            spNet.nonDiffCapacitance = 0;
-            spNet.merge = new PolyMerge();
+            SpiceNet spNet = new SpiceNet(net);
             spiceNetMap.put(net, spNet);
         }
 
-        // for non-simple parasitics, create an object to deal with them
+        // for non-simple parasitics, create a SpiceSegmentedNets object to deal with them
         Simulation.SpiceParasitics spLevel = Simulation.getSpiceParasiticsLevel();
         if (useCDL || cell.getView() != View.LAYOUT) spLevel = Simulation.SpiceParasitics.SIMPLE;
         SpiceSegmentedNets segmentedNets = null;
         if (spLevel != Simulation.SpiceParasitics.SIMPLE)
         {
-            // create list of segemented networks for parasitic extraction
-            boolean verboseSegmentedNames = Simulation.isParasiticsUseVerboseNaming();
-            segmentedNets = new SpiceSegmentedNets(cell, verboseSegmentedNames, cni, spLevel);
-
             // make the parasitics info object if it does not already exist
             if (parasiticInfo == null) parasiticInfo = new SpiceRCSimple();
-            parasiticInfo.addSegmentedNets(segmentedNets);
-            parasiticInfo.setCurrentSegmentedNets(segmentedNets);
-        	parasiticInfo.initializeSegments(cell, netList, layoutTechnology, segmentedNets, exemptedNets, info);
+            segmentedNets = parasiticInfo.initializeSegments(cell, cni, layoutTechnology, exemptedNets, info);
         }
 
 		// count the number of different transistor types
@@ -649,15 +559,7 @@ public class Spice extends Topology
                         continue;
                     infstr.append(" " + paramVar.getTrueName() + "=" + value);
 				}
-//				for(Iterator it = cell.getVariables(); it.hasNext(); )
-//				{
-//					Variable paramVar = it.next();
-//					if (!paramVar.isParam()) continue;
-//					infstr.append(" " + paramVar.getTrueName() + "=" + paramVar.getPureValue(-1));
-//				}
 			}
-            // Writing M factor
-            //writeMFactor(cell, infstr);
 			infstr.append("\n");
 			multiLinePrint(false, infstr.toString());
 
@@ -704,14 +606,8 @@ public class Spice extends Topology
 			{
 				Cell subCell = (Cell)niProto;
 
-				// look for a SPICE template on the prototype
-				Variable varTemplate = null;
-                varTemplate = getEngineTemplate(subCell);
-//			    varTemplate = subCell.getVar(preferedEngineTemplateKey);
-//				if (varTemplate == null)
-//					varTemplate = subCell.getVar(SPICE_TEMPLATE_KEY);
-
-				// handle templates
+				// get the SPICE template on the prototype (if any)
+				Variable varTemplate = getEngineTemplate(subCell);
 				if (varTemplate != null)
 				{
 					if (varTemplate.getObject() instanceof Object[])
@@ -743,10 +639,10 @@ public class Spice extends Topology
 				CellNetInfo subCni = getCellNetInfo(parameterizedName(no, context));
 				if (subCni == null) continue;
 
-                if (!writeEmptySubckts) {
+                if (!writeEmptySubckts)
+                {
                     // do not instantiate if empty
-                    if (cellIsEmpty((Cell)niProto))
-                        continue;
+                    if (cellIsEmpty((Cell)niProto)) continue;
                 }
 
 				String modelChar = "X";
@@ -764,15 +660,19 @@ public class Spice extends Topology
 
                     // This checks if we are netlisting a schematic top level with
                     // swapped-in layout subcells
-                    if (pp != null && cell.isSchematic() && (subCni.getCell().getView() == View.LAYOUT)) {
+                    if (pp != null && cell.isSchematic() && (subCni.getCell().getView() == View.LAYOUT))
+                    {
                         // find equivalent pp from layout to schematic
                         Network subNet = subCS.getNetwork();  // layout network name
                         boolean found = false;
-                        for (Iterator<Export> eIt = subCell.getExports(); eIt.hasNext(); ) {
+                        for (Iterator<Export> eIt = subCell.getExports(); eIt.hasNext(); )
+                        {
                             Export ex = eIt.next();
-                            for (int i=0; i<ex.getNameKey().busWidth(); i++) {
+                            for (int i=0; i<ex.getNameKey().busWidth(); i++)
+                            {
                                 String exName = ex.getNameKey().subname(i).toString();
-                                if (exName.equals(subNet.getName())) {
+                                if (exName.equals(subNet.getName()))
+                                {
                                     pp = ex;
                                     exportIndex = i;
                                     found = true;
@@ -781,7 +681,8 @@ public class Spice extends Topology
                             }
                             if (found) break;
                         }
-                        if (!found) {
+                        if (!found)
+                        {
                             if (pp.isGround() && pp.getName().startsWith("gnd")) {
                                 infstr.append(" gnd");
                             } else if (pp.isPower() && pp.getName().startsWith("vdd")) {
@@ -807,24 +708,25 @@ public class Spice extends Topology
 					CellSignal cs = cni.getCellSignal(net);
 
                     // special case for parasitic extraction
-                    if (parasiticInfo != null && !cs.isGlobal() && parasiticInfo.getSegmentedNets((Cell)no.getProto()) != null)
+					SpiceSegmentedNets subSN = null;
+                    if (parasiticInfo != null && !cs.isGlobal())
+                    	subSN = parasiticInfo.getSegmentedNets((Cell)no.getProto());
+                    if (subSN != null)
                     {
-                    	parasiticInfo.getParasiticName(no, subCS, infstr);
+                    	parasiticInfo.getParasiticName(no, subCS.getNetwork(), subSN, infstr);
                     } else
                     {
                         String name = cs.getName();
-                        if (parasiticInfo != null) {
+                        if (parasiticInfo != null)
+                        {
                             name = segmentedNets.getNetName(no.getNodeInst().findPortInstFromProto(pp));
                         }
                         infstr.append(" " + name);
                     }
 				}
 
-                if (useCDL) {
-				    infstr.append(" /" + subCni.getParameterizedName());
-                } else {
-                    infstr.append(" " + subCni.getParameterizedName());
-                }
+                if (useCDL) infstr.append(" /"); else infstr.append(" ");
+                infstr.append(subCni.getParameterizedName());
 
 				if (!useCDL && Simulation.isSpiceUseCellParameters())
 				{
@@ -837,14 +739,19 @@ public class Spice extends Topology
                         if (!USE_JAVA_CODE && !isNetlistableParam(paramVar)) continue;
                         Variable instVar = no.getVar(paramVar.getKey());
                         String paramStr = "??";
-						if (instVar != null) {
-                            if (USE_JAVA_CODE) {
+						if (instVar != null)
+						{
+                            if (USE_JAVA_CODE)
+                            {
                                 paramStr = evalParam(context, no, instVar, forceEval);
-                            } else {
+                            } else
+                            {
                                 Object obj = null;
-                                if (isNetlistableParam(instVar)) {
+                                if (isNetlistableParam(instVar))
+                                {
                                     obj = context.evalSpice(instVar, false);
-                                } else {
+                                } else
+                                {
                                     obj = context.evalVar(instVar, no);
                                 }
                                 if (obj != null)
@@ -853,17 +760,9 @@ public class Spice extends Topology
                         }
 						infstr.append(" " + paramVar.getTrueName() + "=" + paramStr);
 					}
-//					for(Iterator it = subCell.getVariables(); it.hasNext(); )
-//					{
-//						Variable paramVar = it.next();
-//						if (!paramVar.isParam()) continue;
-//						Variable instVar = no.getVar(paramVar.getKey());
-//						String paramStr = "??";
-//						if (instVar != null) paramStr = formatParam(trimSingleQuotes(String.valueOf(context.evalVar(instVar))));
-//						infstr.append(" " + paramVar.getTrueName() + "=" + paramStr);
-//					}
 				}
-                // Writing MFactor if available.
+
+				// Writing MFactor if available.
                 writeMFactor(context, no, infstr);
 
 				infstr.append("\n");
@@ -928,11 +827,6 @@ public class Spice extends Topology
                             partName = "XR";
                             double width = ni.getLambdaBaseYSize();
                             double length = ni.getLambdaBaseXSize();
-//                            double width = ni.getYSize();
-//                            double length = ni.getXSize();
-//                            SizeOffset offset = ni.getSizeOffset();
-//                            width = width - offset.getHighYOffset() - offset.getLowYOffset();
-//                            length = length - offset.getHighXOffset() - offset.getLowXOffset();
                             if (Simulation.isSpiceWriteTransSizeInLambda())
                             {
                                 extra = " L="+length+" W="+width;
@@ -962,11 +856,6 @@ public class Spice extends Topology
                             partName = "XR";
                             double width = ni.getLambdaBaseYSize();
                             double length = ni.getLambdaBaseXSize();
-//                            double width = ni.getYSize();
-//                            double length = ni.getXSize();
-//                            SizeOffset offset = ni.getSizeOffset();
-//                            width = width - offset.getHighYOffset() - offset.getLowYOffset();
-//                            length = length - offset.getHighXOffset() - offset.getLowXOffset();
                             if (Simulation.isSpiceWriteTransSizeInLambda())
                             {
                                 extra = " L="+length+" W="+width;
@@ -1159,7 +1048,6 @@ public class Spice extends Topology
             } else if (fun == PrimitiveNode.Function.TRANPN)			// NPN (Junction) transistor
 			{
 				modelChar = "Q";
-//				biasn = subnet != NOSPNET ? subnet : 0;
 				if (modelName == null) modelName = "NBJT";
 			} else if (fun == PrimitiveNode.Function.TRA4NPN)			// NPN (Junction) 4-port transistor
 			{
@@ -1168,7 +1056,6 @@ public class Spice extends Topology
 			} else if (fun == PrimitiveNode.Function.TRAPNP)			// PNP (Junction) transistor
 			{
 				modelChar = "Q";
-//				biasn = subnet != NOSPNET ? subnet : 0;
 				if (modelName == null) modelName = "PBJT";
 			} else if (fun == PrimitiveNode.Function.TRA4PNP)			// PNP (Junction) 4-port transistor
 			{
@@ -1207,7 +1094,6 @@ public class Spice extends Topology
 			} else if (fun == PrimitiveNode.Function.TRANS)				// special transistor
 			{
 				modelChar = "Q";
-//				biasn = subnet != NOSPNET ? subnet : 0;
 			}
 			if (ni.getName() != null) modelChar += getSafeNetName(ni.getName(), false);
 			StringBuffer infstr = new StringBuffer();
@@ -1352,7 +1238,8 @@ public class Spice extends Topology
 					}
 				}
 			}
-            // Writing MFactor if available.
+
+			// Writing MFactor if available.
             writeMFactor(context, ni, infstr);
 
 			infstr.append("\n");
@@ -1483,73 +1370,9 @@ public class Spice extends Topology
         }
 	}
 
-	private void emitEmbeddedSpice(Variable cardVar, VarContext context, SpiceSegmentedNets segNets, HierarchyEnumerator.CellInfo info, boolean flatNetNames, boolean forceEval)
-	{
-		Object obj = cardVar.getObject();
-		if (!(obj instanceof String) && !(obj instanceof String[])) return;
-		if (!cardVar.isDisplay()) return;
-		if (obj instanceof String)
-		{
-	        StringBuffer buf = replacePortsAndVars((String)obj, context.getNodable(), context.pop(), null, segNets, info, flatNetNames, forceEval);
-			buf.append('\n');
-			String msg = buf.toString();
-			boolean isComment = false;
-			if (msg.startsWith("*")) isComment = true;
-			multiLinePrint(isComment, msg);
-		} else
-		{
-			String [] strings = (String [])obj;
-			for(int i=0; i<strings.length; i++)
-			{
-	            StringBuffer buf = replacePortsAndVars(strings[i], context.getNodable(), context.pop(), null, segNets, info, flatNetNames, forceEval);
-				buf.append('\n');
-				String msg = buf.toString();
-				boolean isComment = false;
-				if (msg.startsWith("*")) isComment = true;
-				multiLinePrint(isComment, msg);
-	        }
-		}
-	}
+    /****************************** PARAMETERS ******************************/
 
-	/**
-     * Finds cells that must be uniquified during netlisting. These are
-     * cells that have parameters which are Java Code. Because the Java Code
-     * expression can return values that are different for different instances
-     * in the hierarchy, the hierarchy must be flattened above that instance.
-     * @param cell the cell hierarchy to check
-     * @return true if the cell has been marked to unquify (which is true if
-     * any cell below it has been marked).
-     */
-    private boolean markCellsToUniquify(Cell cell) {
-        //System.out.println("Checking Cell "+cell.describe());
-        if (uniquifyCells.containsKey(cell)) return uniquifyCells.get(cell) != null;
-        boolean mark = false;
-
-        for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
-            NodeInst ni = it.next();
-            if (ni.isIconOfParent()) continue;
-
-            Set<Variable.Key> varkeys = detectSpiceParams(ni.getProto());
-            // check vars on instance; only uniquify cells that contain instances with Java params
-            for (Variable.Key key : varkeys) {
-                Variable var = ni.getVar(key);
-                if (var != null && !isNetlistableParam(var)) mark = true;
-            }
-            if (!ni.isCellInstance()) continue;
-            Cell proto = ((Cell)ni.getProto()).contentsView();
-            if (proto == null) proto = (Cell)ni.getProto();
-            if (markCellsToUniquify(proto)) { mark = true; }
-        }
-        assert mark == (detectSpiceParams(cell) == UNIQUIFY_MARK);
-        if (mark)
-            uniquifyCells.put(cell, cell);
-        else
-            uniquifyCells.put(cell, null);
-        //System.out.println("---> "+cell.describe(false)+" is marked "+mark);
-        return mark;
-    }
-
-    /*
+    /**
      * Method to create a parameterized name for node instance "ni".
      * If the node is not parameterized, returns zero.
      * If it returns a name, that name must be deallocated when done.
@@ -1571,10 +1394,8 @@ public class Spice extends Topology
                 Set<Variable.Key> spiceParams = detectSpiceParams(cell);
                 List<Variable> paramValues = new ArrayList<Variable>();
                 for(Iterator<Variable> it = no.getDefinedParameters(); it.hasNext(); )
-//                for(Iterator<Variable> it = no.getVariables(); it.hasNext(); )
                 {
                     Variable var = it.next();
-//                    if (!no.getNodeInst().isParam(var.getKey())) continue;
                     if (DETECT_SPICE_PARAMS && !spiceParams.contains(var.getKey())) continue;
                     if (USE_JAVA_CODE) {
                         if (useCellParams && !spiceParams.contains(null)) continue;
@@ -1642,7 +1463,8 @@ public class Spice extends Topology
      * @param forceEval true to always evaluate param
      * @return true if the variable should be netlisted as a spice parameter
      */
-    private String evalParam(VarContext context, Nodable no, Variable instParam, boolean forceEval) {
+    private String evalParam(VarContext context, Nodable no, Variable instParam, boolean forceEval)
+    {
         return evalParam(context, no, instParam, forceEval, false);
     }
     
@@ -1673,7 +1495,8 @@ public class Spice extends Topology
         return formatParam(String.valueOf(obj), instParam.getUnit());
     }
 
-    private Set<Variable.Key> detectSpiceParams(NodeProto np) {
+    private Set<Variable.Key> detectSpiceParams(NodeProto np)
+    {
         Set<Variable.Key> params = allSpiceParams.get(np);
         if (params != null) return params;
         if (np instanceof PrimitiveNode) {
@@ -1723,12 +1546,20 @@ public class Spice extends Topology
         return params;
     }
     
+//  private static void printlnParams(String message, Set<Variable.Key> varKeys) {
+//      System.out.print(message);
+//      for (Variable.Key varKey: varKeys)
+//          System.out.print(" " + varKey);
+//      System.out.println();
+//  }
+    
     /**
      * Method to tell which Variables are important for primitive node in this netlister
      * @param pn primitive node to tell
      * @return a set of important variables or null if all variables may be important
      */
-    protected Set<Variable.Key> getImportantVars(PrimitiveNode pn) {
+    protected Set<Variable.Key> getImportantVars(PrimitiveNode pn)
+    {
         HashSet<Variable.Key> importantVars = new HashSet<Variable.Key>();
 
         // look for a SPICE template on the primitive
@@ -1771,7 +1602,62 @@ public class Spice extends Topology
         return importantVars;
     }
 
-    private Set<Variable.Key> getTemplateVars(Cell cell) {
+    /****************************** TEMPLATE WRITING ******************************/
+
+	private void emitEmbeddedSpice(Variable cardVar, VarContext context, SpiceSegmentedNets segNets, HierarchyEnumerator.CellInfo info, boolean flatNetNames, boolean forceEval)
+	{
+		Object obj = cardVar.getObject();
+		if (!(obj instanceof String) && !(obj instanceof String[])) return;
+		if (!cardVar.isDisplay()) return;
+		if (obj instanceof String)
+		{
+	        StringBuffer buf = replacePortsAndVars((String)obj, context.getNodable(), context.pop(), null, segNets, info, flatNetNames, forceEval);
+			buf.append('\n');
+			String msg = buf.toString();
+			boolean isComment = false;
+			if (msg.startsWith("*")) isComment = true;
+			multiLinePrint(isComment, msg);
+		} else
+		{
+			String [] strings = (String [])obj;
+			for(int i=0; i<strings.length; i++)
+			{
+	            StringBuffer buf = replacePortsAndVars(strings[i], context.getNodable(), context.pop(), null, segNets, info, flatNetNames, forceEval);
+				buf.append('\n');
+				String msg = buf.toString();
+				boolean isComment = false;
+				if (msg.startsWith("*")) isComment = true;
+				multiLinePrint(isComment, msg);
+	        }
+		}
+	}
+
+    /**
+     * Method to determine which Spice engine is being targeted and to get the proper
+     * template variable.
+     * @param cell the Cell being netlisted.
+     * @return a Variable on that Cell with the proper Spice template (null if none).
+     */
+    private Variable getEngineTemplate(Cell cell)
+    {
+        Variable varTemplate = cell.getVar(preferedEngineTemplateKey);
+
+        // Any of the following spice templates, if missing, will default to the generic spice template
+        if (varTemplate == null)
+        {
+            if (preferedEngineTemplateKey == SPICE_2_TEMPLATE_KEY ||
+                preferedEngineTemplateKey == SPICE_3_TEMPLATE_KEY ||
+                preferedEngineTemplateKey == SPICE_H_TEMPLATE_KEY ||
+                preferedEngineTemplateKey == SPICE_P_TEMPLATE_KEY ||
+                preferedEngineTemplateKey == SPICE_GC_TEMPLATE_KEY ||
+                preferedEngineTemplateKey == SPICE_SM_TEMPLATE_KEY)
+                	varTemplate = cell.getVar(SPICE_TEMPLATE_KEY);
+        }
+        return varTemplate;
+    }
+
+    private Set<Variable.Key> getTemplateVars(Cell cell)
+    {
         Variable varTemplate = getEngineTemplate(cell);
         if (varTemplate == null) return null;
         HashSet<Variable.Key> depends = new HashSet<Variable.Key>();
@@ -1779,35 +1665,21 @@ public class Spice extends Topology
         //depends.add(Simulation.M_FACTOR_KEY);
         return depends;
     }
-    
-//    private static void printlnParams(String message, Set<Variable.Key> varKeys) {
-//        System.out.print(message);
-//        for (Variable.Key varKey: varKeys)
-//            System.out.print(" " + varKey);
-//        System.out.println();
-//    }
-        
-    private static class StringBufferQuoteParity
+
+    private void findVarsInTemplate(Variable varTemplate, NodeProto cell, boolean isPortReplacement, Set<Variable.Key> vars)
     {
-    	private StringBuffer sb = new StringBuffer();
-    	private int quoteCount;
-
-    	void append(String str)
-    	{
-    		sb.append(str);
-    		for(int i=0; i<str.length(); i++)
-    			if (str.charAt(i) == '\'') quoteCount++;
-    	}
-
-    	void append(char c)
-    	{
-    		sb.append(c);
-    		if (c == '\'') quoteCount++;
-    	}
-
-    	boolean inQuotes() { return (quoteCount&1) != 0; }
-
-    	StringBuffer getStringBuffer() { return sb; }
+        if (varTemplate == null) return;
+        Object value = varTemplate.getObject();
+        if (value instanceof Object[])
+        {
+            for (Object o : ((Object[]) value))
+            {
+                findVarsInLine(o.toString(), cell, isPortReplacement, vars);
+            }
+        } else
+        {
+            findVarsInLine(value.toString(), cell, isPortReplacement, vars);
+        }
     }
 
     /**
@@ -2009,18 +1881,30 @@ public class Spice extends Topology
         }
         return infstr.getStringBuffer();
     }
+        
+    private static class StringBufferQuoteParity
+    {
+    	private StringBuffer sb = new StringBuffer();
+    	private int quoteCount;
 
-    private void findVarsInTemplate(Variable varTemplate, NodeProto cell, boolean isPortReplacement, Set<Variable.Key> vars) {
-        if (varTemplate == null) return;
-        Object value = varTemplate.getObject();
-        if (value instanceof Object[]) {
-            for (Object o : ((Object[]) value)) {
-                findVarsInLine(o.toString(), cell, isPortReplacement, vars);
-            }
-        } else {
-            findVarsInLine(value.toString(), cell, isPortReplacement, vars);
-        }
-}
+    	void append(String str)
+    	{
+    		sb.append(str);
+    		for(int i=0; i<str.length(); i++)
+    			if (str.charAt(i) == '\'') quoteCount++;
+    	}
+
+    	void append(char c)
+    	{
+    		sb.append(c);
+    		if (c == '\'') quoteCount++;
+    	}
+
+    	boolean inQuotes() { return (quoteCount&1) != 0; }
+
+    	StringBuffer getStringBuffer() { return sb; }
+    }
+
     /**
      * Find vars in 'line'.  Ports and Vars should be referenced via $(name)
      * @param line the string to search and replace within
@@ -2067,7 +1951,8 @@ public class Spice extends Topology
         }
     }
 
-    private Network findNet(Netlist netlist, String netName) {
+    private Network findNet(Netlist netlist, String netName)
+    {
         Network foundnet = null;
         for (Iterator<Network> it = netlist.getNetworks(); it.hasNext(); ) {
             Network net = it.next();
@@ -2085,7 +1970,8 @@ public class Spice extends Topology
      * @param net
      * @return global associated with this net, or null if not global
      */
-    private Global getGlobal(Network net) {
+    private Global getGlobal(Network net)
+    {
         Netlist netlist = net.getNetlist();
         for (int i=0; i<netlist.getGlobals().size(); i++) {
             Global g = netlist.getGlobals().get(i);
@@ -2093,152 +1979,6 @@ public class Spice extends Topology
                 return g;
         }
         return null;
-    }
-
-//    /**
-//     * Check if the global cell signal is exported as with a global name,
-//     * rather than just being a global tied to some other export.
-//     * I.e., returns true if global "gnd" has been exported using name "gnd".
-//     * @param cs
-//     * @return true if global signal exported with global name
-//     */
-//    private boolean isGlobalExport(CellSignal cs) {
-//        if (!cs.isGlobal() || !cs.isExported()) return false;
-//        for (Iterator<Export> it = cs.getNetwork().getExports(); it.hasNext(); ) {
-//            Export ex = it.next();
-//            for (int i=0; i<ex.getNameKey().busWidth(); i++) {
-//                String name = ex.getNameKey().subname(i).canonicString();
-//                if (cs.getName().equals(name)) {
-//                    return true;
-//                }
-//            }
-//        }
-//        return false;
-//    }
-
-    private boolean ignoreSubcktPort(CellSignal cs)
-    {
-		if (Simulation.isSpiceUseNodeNames() && spiceEngine != Simulation.SpiceEngine.SPICE_ENGINE_3)
-		{
-	        // ignore networks that aren't exported
-	        PortProto pp = cs.getExport();
-            if (pp == null) return true;
-		}
-        return false;
-    }
-
-    private void backAnnotateLayout()
-    {
-    	Set<Cell>      cellsToClear = new HashSet<Cell>();
-    	List<PortInst> capsOnPorts  = new ArrayList<PortInst>();
-    	List<String>   valsOnPorts  = new ArrayList<String>();
-    	List<ArcInst>  resOnArcs    = new ArrayList<ArcInst>();
-    	List<Double>   valsOnArcs   = new ArrayList<Double>();
-        for (SpiceSegmentedNets segmentedNets : parasiticInfo.getSegmentedNets())
-        {
-            Cell cell = segmentedNets.getCell();
-            if (cell.getView() != View.LAYOUT) continue;
-
-            // gather cells to clear capacitor values
-            cellsToClear.add(cell);
-
-            // gather capacitor updates
-            for (SpiceSegmentedNets.NetInfo info : segmentedNets.getUniqueSegments())
-            {
-                PortInst pi = info.getPortIterator().next();
-                if (info.getCap() > cell.getTechnology().getMinCapacitance())
-                {
-                	capsOnPorts.add(pi);
-                	valsOnPorts.add(TextUtils.formatDouble(info.getCap(), 2) + "fF");
-                }
-            }
-
-            // gather resistor updates
-            for (Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
-            {
-                ArcInst ai = it.next();
-                Double res = segmentedNets.getRes(ai);
-
-                resOnArcs.add(ai);
-                valsOnArcs.add(res);
-            }
-        }
-        new BackAnnotateJob(cellsToClear, capsOnPorts, valsOnPorts, resOnArcs, valsOnArcs);
-    }
-
-    private static class BackAnnotateJob extends Job
-    {
-    	private Set<Cell> cellsToClear;
-    	private List<PortInst> capsOnPorts;
-    	private List<String> valsOnPorts;
-    	private List<ArcInst> resOnArcs;
-    	private List<Double> valsOnArcs;
-
-        private BackAnnotateJob(Set<Cell> cellsToClear, List<PortInst> capsOnPorts, List<String> valsOnPorts,
-        	List<ArcInst> resOnArcs, List<Double> valsOnArcs)
-    	{
-            super("Spice Layout Back Annotate", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-            this.capsOnPorts = capsOnPorts;
-            this.valsOnPorts = valsOnPorts;
-            this.resOnArcs = resOnArcs;
-            this.valsOnArcs = valsOnArcs;
-            this.cellsToClear = cellsToClear;
-            startJob();
-        }
-
-        public boolean doIt() throws JobException
-        {
-            TextDescriptor ctd = TextDescriptor.getPortInstTextDescriptor().withDispPart(TextDescriptor.DispPos.NAMEVALUE);
-            TextDescriptor rtd = TextDescriptor.getArcTextDescriptor().withDispPart(TextDescriptor.DispPos.NAMEVALUE);
-            int capCount = 0;
-            int resCount = 0;
-
-            // clear caps on layout
-            for(Cell cell : cellsToClear)
-            {
-                // delete all C's already on layout
-                for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
-                {
-                    NodeInst ni = it.next();
-                    for (Iterator<PortInst> pit = ni.getPortInsts(); pit.hasNext(); )
-                    {
-                        PortInst pi = pit.next();
-                        Variable var = pi.getVar(ATTR_C);
-                        if (var != null) pi.delVar(var.getKey());
-                    }
-                }
-            }
-
-            // add new C's
-            for(int i=0; i<capsOnPorts.size(); i++)
-            {
-            	PortInst pi = capsOnPorts.get(i);
-            	String str = valsOnPorts.get(i);
-                pi.newVar(ATTR_C, str, ctd);
-                resCount++;
-            }
-
-            // add new R's
-            for(int i=0; i<resOnArcs.size(); i++)
-            {
-            	ArcInst ai = resOnArcs.get(i);
-            	Double res = valsOnArcs.get(i);
-
-                // delete R if no new one
-                Variable var = ai.getVar(ATTR_R);
-                if (res == null && var != null)
-                    ai.delVar(ATTR_R);
-
-                // change R if new one
-                if (res != null)
-                {
-                    ai.newVar(ATTR_R, res, rtd);
-                    resCount++;
-                }
-            }
-            System.out.println("Back-annotated "+resCount+" Resistors and "+capCount+" Capacitors");
-            return true;
-        }
     }
 
     /****************************** SUBCLASSED METHODS FOR THE TOPOLOGY ANALYZER ******************************/
@@ -2303,11 +2043,30 @@ public class Spice extends Topology
 	/** Abstract method to decide whether aggregate names (busses) can have gaps in their ranges. */
 	protected boolean isAggregateNameGapsSupported() { return false; }
 
-    /** Method to report that not to choose best export name among exports connected to signal. */
-    protected boolean isChooseBestExportName() { return false; }
-
 	/** Method to report whether input and output names are separated. */
 	protected boolean isSeparateInputAndOutput() { return false; }
+
+    /**
+	 * Method to adjust a network name to be safe for Spice output.
+	 * Spice has a list of legal punctuation characters that it allows.
+	 */
+	protected String getSafeNetName(String name, boolean bus)
+	{
+        return getSafeNetName(name, bus, legalSpiceChars, spiceEngine);
+    }
+
+    /**
+     * Method called during hierarchy traversal.
+     * Called at the end of the enter cell phase.
+     */
+    protected void enterCell(HierarchyEnumerator.CellInfo info)
+    {
+        if (exemptedNets != null)
+            exemptedNets.setExemptedNets(info);
+    }
+
+    /** Method to report that not to choose best export name among exports connected to signal. */
+    protected boolean isChooseBestExportName() { return false; }
 
     /** If the netlister has requirments not to netlist certain cells and their
      * subcells, override this method.
@@ -2414,72 +2173,6 @@ public class Spice extends Topology
         }
     }
 
-    /**
-	 * Method to adjust a network name to be safe for Spice output.
-	 * Spice has a list of legal punctuation characters that it allows.
-	 */
-	protected String getSafeNetName(String name, boolean bus)
-	{
-        return getSafeNetName(name, bus, legalSpiceChars, spiceEngine);
-    }
-
-    /**
-     * Method to adjust a network name to be safe for Spice output.
-     * Spice has a list of legal punctuation characters that it allows.
-     */
-    public static String getSafeNetName(String name)
-    {
-        String legalSpiceChars = SPICELEGALCHARS;
-        if (Simulation.getSpiceEngine() == Simulation.SpiceEngine.SPICE_ENGINE_P)
-            legalSpiceChars = PSPICELEGALCHARS;
-        return getSafeNetName(name, false, legalSpiceChars, Simulation.getSpiceEngine());
-    }
-
-    /**
-     * Method to adjust a network name to be safe for Spice output.
-     * Spice has a list of legal punctuation characters that it allows.
-     */
-    private static String getSafeNetName(String name, boolean bus, String legalSpiceChars, Simulation.SpiceEngine spiceEngine)
-    {
-        // simple names are trivially accepted as is
-		boolean allAlNum = true;
-		int len = name.length();
-		if (len <= 0) return name;
-		for(int i=0; i<len; i++)
-		{
-			boolean valid = TextUtils.isLetterOrDigit(name.charAt(i));
-			if (i == 0) valid = Character.isLetter(name.charAt(i));
-			if (!valid)
-			{
-				allAlNum = false;
-				break;
-			}
-		}
-		if (allAlNum) return name;
-
-		StringBuffer sb = new StringBuffer();
-		if (TextUtils.isDigit(name.charAt(0)) &&
-			spiceEngine != Simulation.SpiceEngine.SPICE_ENGINE_G &&
-			spiceEngine != Simulation.SpiceEngine.SPICE_ENGINE_P &&
-			spiceEngine != Simulation.SpiceEngine.SPICE_ENGINE_2) sb.append('_');
-		for(int t=0; t<name.length(); t++)
-		{
-			char chr = name.charAt(t);
-			boolean legalChar = TextUtils.isLetterOrDigit(chr);
-			if (!legalChar)
-			{
-				for(int j=0; j<legalSpiceChars.length(); j++)
-				{
-					char legalChr = legalSpiceChars.charAt(j);
-					if (chr == legalChr) { legalChar = true;   break; }
-				}
-			}
-			if (!legalChar) chr = '_';
-			sb.append(chr);
-		}
-		return sb.toString();
-	}
-
     /** Tell the Hierarchy enumerator how to short resistors */
     @Override
     protected Netlist.ShortResistors getShortResistors() {
@@ -2499,10 +2192,6 @@ public class Spice extends Topology
         return Netlist.ShortResistors.NO;
     }
 
-    private Netlist.ShortResistors getShortResistorsFlat() {
-        return Netlist.ShortResistors.ALL;
-    }
-
 	/**
 	 * Method to tell whether the topological analysis should mangle cell names that are parameterized.
 	 */
@@ -2518,7 +2207,34 @@ public class Spice extends Topology
         return (CellModelPrefs.spiceModelPrefs.isUseLayoutView(cell));
     }
 
+    private Netlist.ShortResistors getShortResistorsFlat() {
+        return Netlist.ShortResistors.ALL;
+    }
+
 	/******************** DECK GENERATION SUPPORT ********************/
+
+    /**
+     * Method to write M factor information into a given string buffer
+     * @param context the context of the nodable for finding M-factors farther up the hierarchy.
+     * @param no Nodable representing the node
+     * @param infstr Buffer where to write to
+     */
+    private void writeMFactor(VarContext context, Nodable no, StringBuffer infstr)
+    {
+        Variable mVar = no.getVar(Simulation.M_FACTOR_KEY);
+        if (mVar == null) return;
+        Object value = context.evalVar(mVar);
+
+        // check for M=@M, and warn user that this is a bad idea, and we will not write it out
+        if (mVar.getObject().toString().equals("@M") || (mVar.getObject().toString().equals("P(\"M\")")))
+        {
+            System.out.println("Warning: M=@M [eval=" + value + "] on " + no.getName() +
+            	" is a bad idea, not writing it out: " + context.push(no).getInstPath("."));
+            return;
+        }
+
+        infstr.append(" M=" + formatParam(value.toString(), TextDescriptor.Unit.NONE));
+    }
 
 	/**
 	 * write a header for "cell" to spice deck "sim_spice_file"
@@ -2712,48 +2428,7 @@ public class Spice extends Topology
 		multiLinePrint(false, partName + " " + name1 + " " + name0 + " " + sbExtra.toString() + "\n");
 	}
 
-    /**
-     * This adds formatting to a Spice parameter value.  It adds single quotes
-     * around the param string if they do not already exist.
-     * @param param the string param value (without the name= part).
-     * @return a param string with single quotes around it
-     */
-    private String formatParam(String param, TextDescriptor.Unit u)
-    {
-    	// first remove quotes
-        String value = trimSingleQuotes(param);
-
-        // see if the result evaluates to a number
-		if (TextUtils.isANumberPostFix(value)) return value;
-
-		// if purely numeric, try converting to proper units
-        try {
-            Double v = Double.valueOf(value);
-            if (u == TextDescriptor.Unit.DISTANCE)
-            	return TextUtils.formatDoublePostFix(v.doubleValue());
-            return value;
-        } catch (NumberFormatException e) {}
-
-        // not a number: if Spice engine cannot handle quotes, return stripped value
-		switch (spiceEngine)
-		{
-			case SPICE_ENGINE_2:
-			case SPICE_ENGINE_3:
-				return value;
-		}
-
-        // not a number but Spice likes quotes, enclose it
-        return "'" + value + "'";
-    }
-
-    private String trimSingleQuotes(String param) {
-        if (param.startsWith("'") && param.endsWith("'")) {
-            return param.substring(1, param.length()-1);
-        }
-        return param;
-    }
-
-	/******************** PARASITIC CALCULATIONS ********************/
+	/******************** SIMPLE PARASITIC CALCULATIONS (AREA/PERIM) ********************/
 
 	/**
 	 * Method to recursively determine the area of diffusion and capacitance
@@ -2762,7 +2437,7 @@ public class Spice extends Topology
 	 * layers will be added as well to the extra_area total.
 	 * Continue out of the ports on a complex cell
 	 */
-	private void addNodeInformation(Netlist netList, HashMap<Network,SpiceNet> spiceNets, NodeInst ni)
+	private void addNodeInformation(Netlist netList, Map<Network,SpiceNet> spiceNets, NodeInst ni)
 	{
 		// cells have no area or capacitance (for now)
 		if (ni.isCellInstance()) return;  // No area for complex nodes
@@ -2844,36 +2519,61 @@ public class Spice extends Topology
 		}
 	}
 
-	/******************** TEXT METHODS ********************/
-
-	/**
-	 * Method to insert an "include" of file "filename" into the stream "io".
-	 */
-	private void addIncludeFile(String fileName)
-	{
-        if (useCDL) {
-            multiLinePrint(false, ".include "+ fileName + "\n");
-            return;
-        }
-
-		if (spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_2 || spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_3 ||
-			spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_G || spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_S)
-		{
-			multiLinePrint(false, ".include " + fileName + "\n");
-		} else if (spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_H || spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_H_ASSURA ||
-                spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_H_CALIBRE)
-		{
-			multiLinePrint(false, ".include '" + fileName + "'\n");
-		} else if (spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_P)
-		{
-			multiLinePrint(false, ".INC " + fileName + "\n");
-		}
-	}
-
     /******************** SUPPORT ********************/
 
+    private boolean ignoreSubcktPort(CellSignal cs)
+    {
+		if (Simulation.isSpiceUseNodeNames() && spiceEngine != Simulation.SpiceEngine.SPICE_ENGINE_3)
+		{
+	        // ignore networks that aren't exported
+	        PortProto pp = cs.getExport();
+            if (pp == null) return true;
+		}
+        return false;
+    }
+
+	/**
+     * Finds cells that must be uniquified during netlisting. These are
+     * cells that have parameters which are Java Code. Because the Java Code
+     * expression can return values that are different for different instances
+     * in the hierarchy, the hierarchy must be flattened above that instance.
+     * @param cell the cell hierarchy to check
+     * @return true if the cell has been marked to unquify (which is true if
+     * any cell below it has been marked).
+     */
+    private boolean markCellsToUniquify(Cell cell)
+    {
+        //System.out.println("Checking Cell "+cell.describe());
+        if (uniquifyCells.containsKey(cell)) return uniquifyCells.get(cell) != null;
+        boolean mark = false;
+
+        for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
+            NodeInst ni = it.next();
+            if (ni.isIconOfParent()) continue;
+
+            Set<Variable.Key> varkeys = detectSpiceParams(ni.getProto());
+            // check vars on instance; only uniquify cells that contain instances with Java params
+            for (Variable.Key key : varkeys) {
+                Variable var = ni.getVar(key);
+                if (var != null && !isNetlistableParam(var)) mark = true;
+            }
+            if (!ni.isCellInstance()) continue;
+            Cell proto = ((Cell)ni.getProto()).contentsView();
+            if (proto == null) proto = (Cell)ni.getProto();
+            if (markCellsToUniquify(proto)) { mark = true; }
+        }
+        assert mark == (detectSpiceParams(cell) == UNIQUIFY_MARK);
+        if (mark)
+            uniquifyCells.put(cell, cell);
+        else
+            uniquifyCells.put(cell, null);
+        //System.out.println("---> "+cell.describe(false)+" is marked "+mark);
+        return mark;
+    }
+
     private static final boolean CELLISEMPTYDEBUG = false;
-    private HashMap<Cell,Boolean> checkedCells = new HashMap<Cell,Boolean>();
+    private Map<Cell,Boolean> checkedCells = new HashMap<Cell,Boolean>();
+
     private boolean cellIsEmpty(Cell cell)
     {
         Boolean b = checkedCells.get(cell);
@@ -2952,10 +2652,132 @@ public class Spice extends Topology
         }
         checkedCells.put(cell, new Boolean(empty));
         return empty;
-
     }
 
-	/******************** LOW-LEVEL OUTPUT METHODS ********************/
+	/******************** TEXT METHODS ********************/
+
+    /**
+     * Method to adjust a network name to be safe for Spice output.
+     * Spice has a list of legal punctuation characters that it allows.
+     */
+    public static String getSafeNetName(String name)
+    {
+        String legalSpiceChars = SPICELEGALCHARS;
+        if (Simulation.getSpiceEngine() == Simulation.SpiceEngine.SPICE_ENGINE_P)
+            legalSpiceChars = PSPICELEGALCHARS;
+        return getSafeNetName(name, false, legalSpiceChars, Simulation.getSpiceEngine());
+    }
+
+    /**
+     * Method to adjust a network name to be safe for Spice output.
+     * Spice has a list of legal punctuation characters that it allows.
+     */
+    private static String getSafeNetName(String name, boolean bus, String legalSpiceChars, Simulation.SpiceEngine spiceEngine)
+    {
+        // simple names are trivially accepted as is
+		boolean allAlNum = true;
+		int len = name.length();
+		if (len <= 0) return name;
+		for(int i=0; i<len; i++)
+		{
+			boolean valid = TextUtils.isLetterOrDigit(name.charAt(i));
+			if (i == 0) valid = Character.isLetter(name.charAt(i));
+			if (!valid)
+			{
+				allAlNum = false;
+				break;
+			}
+		}
+		if (allAlNum) return name;
+
+		StringBuffer sb = new StringBuffer();
+		if (TextUtils.isDigit(name.charAt(0)) &&
+			spiceEngine != Simulation.SpiceEngine.SPICE_ENGINE_G &&
+			spiceEngine != Simulation.SpiceEngine.SPICE_ENGINE_P &&
+			spiceEngine != Simulation.SpiceEngine.SPICE_ENGINE_2) sb.append('_');
+		for(int t=0; t<name.length(); t++)
+		{
+			char chr = name.charAt(t);
+			boolean legalChar = TextUtils.isLetterOrDigit(chr);
+			if (!legalChar)
+			{
+				for(int j=0; j<legalSpiceChars.length(); j++)
+				{
+					char legalChr = legalSpiceChars.charAt(j);
+					if (chr == legalChr) { legalChar = true;   break; }
+				}
+			}
+			if (!legalChar) chr = '_';
+			sb.append(chr);
+		}
+		return sb.toString();
+	}
+
+    /**
+     * This adds formatting to a Spice parameter value.  It adds single quotes
+     * around the param string if they do not already exist.
+     * @param param the string param value (without the name= part).
+     * @return a param string with single quotes around it
+     */
+    private String formatParam(String param, TextDescriptor.Unit u)
+    {
+    	// first remove quotes
+        String value = trimSingleQuotes(param);
+
+        // see if the result evaluates to a number
+		if (TextUtils.isANumberPostFix(value)) return value;
+
+		// if purely numeric, try converting to proper units
+        try {
+            Double v = Double.valueOf(value);
+            if (u == TextDescriptor.Unit.DISTANCE)
+            	return TextUtils.formatDoublePostFix(v.doubleValue());
+            return value;
+        } catch (NumberFormatException e) {}
+
+        // not a number: if Spice engine cannot handle quotes, return stripped value
+		switch (spiceEngine)
+		{
+			case SPICE_ENGINE_2:
+			case SPICE_ENGINE_3:
+				return value;
+		}
+
+        // not a number but Spice likes quotes, enclose it
+        return "'" + value + "'";
+    }
+
+    private String trimSingleQuotes(String param)
+    {
+        if (param.startsWith("'") && param.endsWith("'")) {
+            return param.substring(1, param.length()-1);
+        }
+        return param;
+    }
+
+	/**
+	 * Method to insert an "include" of file "filename" into the stream "io".
+	 */
+	private void addIncludeFile(String fileName)
+	{
+        if (useCDL) {
+            multiLinePrint(false, ".include "+ fileName + "\n");
+            return;
+        }
+
+		if (spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_2 || spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_3 ||
+			spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_G || spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_S)
+		{
+			multiLinePrint(false, ".include " + fileName + "\n");
+		} else if (spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_H || spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_H_ASSURA ||
+                spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_H_CALIBRE)
+		{
+			multiLinePrint(false, ".include '" + fileName + "'\n");
+		} else if (spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_P)
+		{
+			multiLinePrint(false, ".INC " + fileName + "\n");
+		}
+	}
 
 	/**
 	 * Method to report an error that is built in the infinite string.
@@ -3016,6 +2838,50 @@ public class Spice extends Topology
 			printWriter.print(partial);
 		}
 	}
+
+	/******************** SUPPORT CLASSES ********************/
+
+	private static class SpiceNet
+	{
+		/** network object associated with this */	Network   network;
+		/** merged geometry for this network */		PolyMerge merge;
+		/** area of diffusion */					double    diffArea;
+		/** perimeter of diffusion */				double    diffPerim;
+		/** amount of capacitance in non-diff */	float     nonDiffCapacitance;
+		/** number of transistors on the net */		int       transistorCount;
+
+		SpiceNet(Network net)
+		{
+            network = net;
+            transistorCount = 0;
+            diffArea = 0;
+            diffPerim = 0;
+            nonDiffCapacitance = 0;
+            merge = new PolyMerge();
+		}
+	}
+
+    private static class SpiceFinishedListener implements Exec.FinishedListener
+    {
+        private Cell cell;
+        private FileType type;
+        private String file;
+
+        private SpiceFinishedListener(Cell cell, FileType type, String file) {
+            this.cell = cell;
+            this.type = type;
+            this.file = file;
+        }
+
+        public void processFinished(Exec.FinishedEvent e) {
+            URL fileURL = TextUtils.makeURLToFile(file);
+
+			// create a new waveform window
+            WaveformWindow ww = WaveformWindow.findWaveformWindow(cell);
+
+            Simulate.plotSimulationResults(type, cell, fileURL, ww);
+        }
+    }
 
     public static class FlatSpiceCodeVisitor extends HierarchyEnumerator.Visitor {
 
