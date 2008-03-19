@@ -33,7 +33,6 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.CircuitChangeJobs;
@@ -57,7 +56,6 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 import java.util.EventListener;
 import java.util.List;
 
@@ -84,9 +82,9 @@ public class SizeListener
 	 */
 	public static void sizeObjects()
 	{
-        EditWindow wnd = EditWindow.needCurrent();
-        if (wnd == null) return;
-        Highlighter highlighter = wnd.getHighlighter();
+		EditWindow wnd = EditWindow.needCurrent();
+		if (wnd == null) return;
+		Highlighter highlighter = wnd.getHighlighter();
 
 		List<Geometric> geomList = highlighter.getHighlightedEObjs(true, true);
 		if (geomList == null) return;
@@ -148,9 +146,9 @@ public class SizeListener
 		{
 			super(parent, modal);
 
-            EditWindow wnd = EditWindow.needCurrent();
-            if (wnd == null) return;
-            Highlighter highlighter = wnd.getHighlighter();
+			EditWindow wnd = EditWindow.needCurrent();
+			if (wnd == null) return;
+			Highlighter highlighter = wnd.getHighlighter();
 
 			getContentPane().setLayout(new GridBagLayout());
 			String label = "Width:";
@@ -238,9 +236,6 @@ public class SizeListener
 					NodeInst ni = (NodeInst)geom;
 					xS = ni.getLambdaBaseXSize();
 					yS = ni.getLambdaBaseYSize();
-//					SizeOffset so = ni.getSizeOffset();				
-//					xS = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
-//					yS = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
 				} else if (geom instanceof ArcInst && !nodes)
 				{
 					ArcInst ai = (ArcInst)geom;
@@ -260,9 +255,9 @@ public class SizeListener
 		private void ok(java.awt.event.ActionEvent evt)
 		{
 			// resize the objects
-            EditWindow wnd = EditWindow.needCurrent();
-            if (wnd == null) return;
-            Highlighter highlighter = wnd.getHighlighter();
+			EditWindow wnd = EditWindow.needCurrent();
+			if (wnd == null) return;
+			Highlighter highlighter = wnd.getHighlighter();
 			List<Geometric> highlighted = highlighter.getHighlightedEObjs(true, true);
 			double xS = TextUtils.atof(xSize.getText());
 			double yS = 0;
@@ -311,18 +306,13 @@ public class SizeListener
 				if (geom instanceof NodeInst && nodes)
 				{
 					NodeInst ni = (NodeInst)geom;
-//					SizeOffset so = ni.getSizeOffset();				
 					double x = xS;
 					double y = yS;
-//					SizeOffset so = ni.getSizeOffset();				
-//					double x = xS + so.getLowXOffset() + so.getHighXOffset();
-//					double y = yS + so.getLowYOffset() + so.getHighYOffset();
 					if (!ni.isCellInstance() && ((PrimitiveNode)ni.getProto()).isSquare())
 					{
 						if (y > x) x = y; else y = x;
 					}
 					ni.resize(x - ni.getLambdaBaseXSize(), y - ni.getLambdaBaseYSize());
-//					ni.resize(x - ni.getXSize(), y - ni.getYSize());
 					didSomething = true;
 				} else if (geom instanceof ArcInst && !nodes)
 				{
@@ -362,7 +352,7 @@ public class SizeListener
 		// restore the listener to the former state
 		WindowFrame.setListener(oldListener);
 		TopLevel.setCurrentCursor(oldCursor);
-        EditWindow wnd = (EditWindow)evt.getSource();
+		EditWindow wnd = (EditWindow)evt.getSource();
 		showHighlight(null, wnd);
 
 		// handle scaling the selected objects
@@ -386,7 +376,7 @@ public class SizeListener
 		int chr = evt.getKeyCode();
 		EditWindow wnd = (EditWindow)evt.getSource();
 		Cell cell = wnd.getCell();
-        if (cell == null) return;
+		if (cell == null) return;
 
 		// ESCAPE for abort
 		if (chr == KeyEvent.VK_ESCAPE)
@@ -408,7 +398,7 @@ public class SizeListener
 
 	private void showHighlight(MouseEvent evt, EditWindow wnd)
 	{
-        Highlighter highlighter = wnd.getHighlighter();
+		Highlighter highlighter = wnd.getHighlighter();
 
 		highlighter.clear();
 		highlighter.addElectricObject(stretchGeom, stretchGeom.getParent());
@@ -420,17 +410,7 @@ public class SizeListener
 				NodeInst ni = (NodeInst)stretchGeom;
 				Point2D newCenter = new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY());
 				Point2D newSize = getNewNodeSize(evt, newCenter);
-                Poly stretchedPoly = ni.getBaseShape(EPoint.snap(newCenter), newSize.getX(), newSize.getY());
-//				SizeOffset so = ni.getSizeOffset();
-//				AffineTransform trans = ni.getOrient().rotateAbout(newCenter.getX(), newCenter.getY());
-//
-//				double stretchedLowX = newCenter.getX() - newSize.getX()/2 + so.getLowXOffset();
-//				double stretchedHighX = newCenter.getX() + newSize.getX()/2 - so.getHighXOffset();
-//				double stretchedLowY = newCenter.getY() - newSize.getY()/2 + so.getLowYOffset();
-//				double stretchedHighY = newCenter.getY() + newSize.getY()/2 - so.getHighYOffset();
-//				Poly stretchedPoly = new Poly((stretchedLowX+stretchedHighX)/2, (stretchedLowY+stretchedHighY)/2,
-//					stretchedHighX-stretchedLowX, stretchedHighY-stretchedLowY);
-//				stretchedPoly.transform(trans);
+				Poly stretchedPoly = ni.getBaseShape(EPoint.snap(newCenter), newSize.getX(), newSize.getY());
 				Point2D [] stretchedPoints = stretchedPoly.getPoints();
 				for(int i=0; i<stretchedPoints.length; i++)
 				{
@@ -444,7 +424,6 @@ public class SizeListener
 				long newGridWidth = DBMath.lambdaToSizeGrid(getNewArcSize(evt));
 				ArcInst ai = (ArcInst)stretchGeom;
 				Poly stretchedPoly = ai.makeLambdaPoly(newGridWidth, Poly.Type.CLOSED);
-//				Poly stretchedPoly = ai.makeLambdaPoly(newGridWidth - ai.getProto().getGridWidthOffset(), Poly.Type.CLOSED);
 				if (stretchedPoly == null) return;
 				Point2D [] stretchedPoints = stretchedPoly.getPoints();
 				for(int i=0; i<stretchedPoints.length; i++)
@@ -472,13 +451,13 @@ public class SizeListener
 
 		// get information about the node being stretched
 		NodeInst ni = (NodeInst)stretchGeom;
-        if (ni.getProto() instanceof Cell) return EPoint.ORIGIN;
+		if (ni.getProto() instanceof Cell) return EPoint.ORIGIN;
 
 		// setup outline of node with standard offset
-        Poly nodePoly = ni.getBaseShape();
+		Poly nodePoly = ni.getBaseShape();
 		AffineTransform transIn = ni.transformIn();
 		transIn.transform(pt, pt);
-        nodePoly.transform(transIn);
+		nodePoly.transform(transIn);
 
 		// determine the closest point on the outline
 		Point2D [] points = nodePoly.getPoints();
@@ -512,9 +491,18 @@ public class SizeListener
 		}
 		farthestPoint = new Point2D.Double(farthest.getX(), farthest.getY());
 
-		// if Shift is held, use center-based sizing
+		// if SHIFT and CONTROL is held, use center-based sizing
 		boolean centerBased = (evt.getModifiersEx()&MouseEvent.SHIFT_DOWN_MASK) != 0 &&
 			(evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0;
+
+		// if CONTROL is held, constrain to single-axis stretching
+		boolean singleAxis = (evt.getModifiersEx()&MouseEvent.SHIFT_DOWN_MASK) == 0 &&
+			(evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0;
+
+		// if SHIFT held (or if a square primitive) make growth the same in both axes
+		boolean square = !ni.isCellInstance() && ((PrimitiveNode)ni.getProto()).isSquare();
+		if ((evt.getModifiersEx()&MouseEvent.SHIFT_DOWN_MASK) != 0 &&
+			(evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) == 0) square = true;
 
 		// determine the amount of growth of the node
 		double growthRatioX, growthRatioY;
@@ -535,13 +523,9 @@ public class SizeListener
 			growthRatioX = ptToFarthestX / closestToFarthestX;
 			growthRatioY = ptToFarthestY / closestToFarthestY;
 		}
-
-		// see what keys are held
-		boolean square = !ni.isCellInstance() && ((PrimitiveNode)ni.getProto()).isSquare();
-		if ((evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0 &&
-			(evt.getModifiersEx()&MouseEvent.SHIFT_DOWN_MASK) == 0)
+		if (singleAxis)
 		{
-			// if Control is held, constrain to single-axis stretching
+			// constrain to single-axis stretching
 			double grx = Math.abs(growthRatioX);
 			if (grx < 1)
 			{
@@ -554,11 +538,6 @@ public class SizeListener
 			}
 			if (grx > gry) growthRatioY = 1; else
 				growthRatioX = 1;
-		} else if ((evt.getModifiersEx()&MouseEvent.SHIFT_DOWN_MASK) != 0 &&
-			(evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) == 0)
-		{
-			// if Shift is held, constrain proportions
-			square = true;
 		}
 		if (square)
 		{
@@ -577,27 +556,26 @@ public class SizeListener
 		// determine the new center point
 		if (!centerBased)
 		{
-            double closestX = closest.getX();
-            double closestY = closest.getY();
-            double farthestX = farthest.getX();
-            double farthestY = farthest.getY();
-            double newClosestX = farthestX + Math.abs(newSize.getX())*(closestX > farthestX ? 1 : -1);
-            double newClosestY = farthestY + Math.abs(newSize.getY())*(closestY > farthestY ? 1 : -1);
-            
-            // try to ensure smart grid aligning
-//            double TINY = 1e-6/DBMath.GRID;
-//            if (newClosestX > closestX)
-//                farthestX -= TINY;
-//            else if (newClosestX < closestX)
-//                farthestX += TINY;
-//            if (newClosestY > closestY)
-//                farthestY -= TINY;
-//            else if (newClosestY < closestY)
-//                farthestY += TINY;
-            
+			double closestX = closest.getX();
+			double closestY = closest.getY();
+			double farthestX = farthest.getX();
+			double farthestY = farthest.getY();
+			double newClosestX = farthestX + Math.abs(newSize.getX())*(closestX > farthestX ? 1 : -1);
+			double newClosestY = farthestY + Math.abs(newSize.getY())*(closestY > farthestY ? 1 : -1);
+
+			// try to ensure smart grid aligning
+//			double TINY = 1e-6/DBMath.GRID;
+//			if (newClosestX > closestX)
+//				farthestX -= TINY;
+//			else if (newClosestX < closestX)
+//				farthestX += TINY;
+//			if (newClosestY > closestY)
+//				farthestY -= TINY;
+//			else if (newClosestY < closestY)
+//				farthestY += TINY;
+
 			newCenter.setLocation((newClosestX - closestX) / 2, (newClosestY - closestY) / 2);
-            ni.transformOut().transform(newCenter, newCenter);
-//            EditWindow.gridAlign(newCenter);
+			ni.transformOut().transform(newCenter, newCenter);
 		}
 
 		return newSize;
@@ -653,8 +631,6 @@ public class SizeListener
 			{
 				double percX = newWidth / stretchNode.getLambdaBaseXSize();
 				double percY = newHeight / stretchNode.getLambdaBaseYSize();
-//				double percX = newWidth / stretchNode.getXSize();
-//				double percY = newHeight / stretchNode.getYSize();
 				AffineTransform trans = stretchNode.pureRotateOut();
 				Point2D [] newPoints = new Point2D[points.length];
 				for(int i=0; i<points.length; i++)
@@ -667,10 +643,8 @@ public class SizeListener
 				stretchNode.setTrace(newPoints);
 				return true;
 			}
-            double dWid = newWidth - stretchNode.getLambdaBaseXSize();
-            double dHei = newHeight - stretchNode.getLambdaBaseYSize();
-//            double dWid = newWidth - stretchNode.getXSize();
-//            double dHei = newHeight - stretchNode.getYSize();
+			double dWid = newWidth - stretchNode.getLambdaBaseXSize();
+			double dHei = newHeight - stretchNode.getLambdaBaseYSize();
 			stretchNode.modifyInstance(newCenter.getX() - stretchNode.getAnchorCenterX(),
 				newCenter.getY() - stretchNode.getAnchorCenterY(), dWid, dHei, Orientation.IDENT);
 			return true;
