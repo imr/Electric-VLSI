@@ -34,6 +34,7 @@ import com.sun.electric.database.geometry.GenMath.MutableInteger;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
@@ -1072,7 +1073,7 @@ public class EDIF extends Input
 		}
 	}
 
-	private void nameEDIFArc(ArcInst ai)
+	private void nameEDIFArc(ArcInst ai, boolean forceBus)
 	{
 		if (isArray)
 		{
@@ -1082,22 +1083,44 @@ public class EDIF extends Input
 				ai.newVar("EDIF_name", netReference);
 			}
 
-			// a typical foreign array bus will have some range value appended
-			// to the name. This will cause some odd names with duplicate values
 			StringBuffer aName = new StringBuffer();
-			for (int iX = 0; iX < arrayXVal; iX++)
+			if (netName.indexOf('[') >= 0)
 			{
-				for (int iY = 0; iY < arrayYVal; iY++)
+				// the name is already indexed: break it apart and reindex it
+				int xMost = arrayXVal, yMost = arrayYVal;
+				if (yMost > xMost) { xMost = arrayYVal; yMost = arrayXVal; }
+				for (int iX = 0; iX < xMost; iX++)
 				{
-					if (aName.length() > 0) aName.append(',');
-					if (arrayXVal > 1)
+					for (int iY = 0; iY < yMost; iY++)
 					{
-						if (arrayYVal > 1)
-							aName.append(netName + "[" + iX + "," + iY + "]");
-						else
-							aName.append(netName + "[" + iX + "]");
+						if (aName.length() > 0) aName.append(',');
+						aName.append(getMemberName(netName, iX, iY));
 					}
-					else aName.append(netName + "[" + iY + "]");
+				}
+			} else
+			{
+				if (forceBus)
+				{
+					// a typical foreign array bus will have some range value appended
+					// to the name. This will cause some odd names with duplicate values
+					for (int iX = 0; iX < arrayXVal; iX++)
+					{
+						for (int iY = 0; iY < arrayYVal; iY++)
+						{
+							if (aName.length() > 0) aName.append(',');
+							if (arrayXVal > 1)
+							{
+								if (arrayYVal > 1)
+									aName.append(netName + "[" + iX + "," + iY + "]");
+								else
+									aName.append(netName + "[" + iX + "]");
+							}
+							else aName.append(netName + "[" + iY + "]");
+						}
+					}
+				} else
+				{
+					aName.append(netName);
 				}
 			}
 			putNameOnArcOnce(ai, convertParens(aName.toString()));
@@ -1117,6 +1140,10 @@ public class EDIF extends Input
 
 	private void putNameOnArcOnce(ArcInst ai, String name)
 	{
+		if (name.endsWith("[1:9][8]"))
+		{
+			int w=6;
+		}
 		if (namedArcs != null)
 		{
 			Map<String,List<ArcInst>> cellArcNames = namedArcs.get(curCell);
@@ -1350,6 +1377,99 @@ public class EDIF extends Input
 			}
 		}
 		return busName;
+	}
+
+	/**
+	 * Method to convert a bus name to an individual member name.
+	 * @param name the bus name.
+	 * @param ind1 the index of the first entry.
+	 * @param ind2 the index of the second entry.
+	 * @return the specified member name.
+	 */
+	private String getMemberName(String name, int ind1, int ind2)
+	{
+		// get true name of array specification
+		String baseName = renamedObjects.get(name);
+		if (baseName == null) baseName = name;
+
+		// find first index entry
+		int openSq = baseName.indexOf('[');
+		if (openSq < 0) return baseName;
+		int closeSq = baseName.indexOf(']', openSq);
+		if (closeSq < 0) closeSq = baseName.length();
+		int comma = baseName.indexOf(',', openSq);
+		if (comma < 0) comma = baseName.length();
+		int endInd1 = Math.min(closeSq, comma);
+		if (endInd1 < 0) return baseName;
+		String index1 = baseName.substring(openSq+1, endInd1);
+		String index2 = null;
+		String restOfLine = baseName.substring(endInd1);
+
+		if (comma >= 0 && comma < baseName.length())
+		{
+			closeSq = baseName.indexOf(']', comma);
+			if (closeSq >= 0)
+			{
+				index2 = baseName.substring(comma+1, closeSq);
+				restOfLine = baseName.substring(closeSq);
+			}				
+		}
+
+		int [] indices = getIndices(index1);
+		if (ind1 >= 0 && ind1 < indices.length)
+			baseName = baseName.substring(0, openSq+1) + indices[ind1];
+		if (index2 != null)
+		{
+			int [] indices2 = getIndices(index2);
+			if (ind2 >= 0 && ind2 < indices2.length)
+				baseName += "," + indices2[ind2];
+		}
+		baseName += restOfLine;
+		return baseName;
+	}
+
+	/**
+	 * Method to examine an array specification and return all of the indices.
+	 * @param index the array specification, for example "1:5" or "4:2".
+	 * @return an array of indices, for example [1,2,3,4,5] or [4,3,2].
+	 */
+	private int [] getIndices(String index)
+	{
+		List<Integer> indices = new ArrayList<Integer>();
+		for(int pos=0; pos<index.length(); )
+		{
+			if (Character.isWhitespace(index.charAt(pos))) { pos++;   continue; }
+			if (Character.isDigit(index.charAt(pos)))
+			{
+				int val = TextUtils.atoi(index.substring(pos));
+				int valEnd = val;
+				while (pos < index.length() && Character.isDigit(index.charAt(pos))) pos++;
+				while (pos < index.length() && Character.isWhitespace(index.charAt(pos))) pos++;
+				if (pos < index.length() && index.charAt(pos) == ':')
+				{
+					pos++;
+					while (pos < index.length() && Character.isWhitespace(index.charAt(pos))) pos++;
+					if (Character.isDigit(index.charAt(pos)))
+					{
+						valEnd = TextUtils.atoi(index.substring(pos));
+						while (pos < index.length() && Character.isDigit(index.charAt(pos))) pos++;
+						while (pos < index.length() && Character.isWhitespace(index.charAt(pos))) pos++;
+					}
+				}
+				if (valEnd < val)
+				{
+					for(int i=val; i>=valEnd; i--) indices.add(new Integer(i));
+				} else
+				{
+					for(int i=val; i<=valEnd; i++) indices.add(new Integer(i));
+				}
+				continue;
+			}
+			break;
+		}
+		int [] retInd = new int[indices.size()];
+		for(int i=0; i<indices.size(); i++) retInd[i] = indices.get(i).intValue();
+		return retInd;
 	}
 
 	/**
@@ -2336,105 +2456,15 @@ public class EDIF extends Input
 				// adjust the name of the current INSTANCE/NET/PORT(/VALUE)
 				if (keyStack[keyStackDepth-1] == KINSTANCEREF)
 				{
+//					String baseName = "[" + memberXVal + "]";
+//					if (memberYVal != -1) baseName = "[" + memberXVal + "," + memberYVal + "]";
+//					instanceReference = baseName;
 					instanceReference = getMemberName(instanceReference, memberXVal, memberYVal);
 				} else if (keyStack[keyStackDepth-1] == KPORTREF)
 				{
 					portReference = getMemberName(portReference, memberXVal, memberYVal);
 				}
 			}
-		}
-
-		/**
-		 * Method to convert a bus name to an individual member name.
-		 * @param name the bus name.
-		 * @param ind1 the index of the first entry.
-		 * @param ind2 the index of the second entry.
-		 * @return the specified member name.
-		 */
-		private String getMemberName(String name, int ind1, int ind2)
-		{
-			// get true name of array specification
-			String baseName = renamedObjects.get(name);
-			if (baseName == null) baseName = name;
-
-			// find first index entry
-			int openSq = baseName.indexOf('[');
-			if (openSq < 0) return baseName;
-			int closeSq = baseName.indexOf(']', openSq);
-			if (closeSq < 0) closeSq = baseName.length();
-			int comma = baseName.indexOf(',', openSq);
-			if (comma < 0) comma = baseName.length();
-			int endInd1 = Math.min(closeSq, comma);
-			if (endInd1 < 0) return baseName;
-			String index1 = baseName.substring(openSq+1, endInd1);
-			String index2 = null;
-			String restOfLine = baseName.substring(endInd1);
-
-			if (comma >= 0 && comma < baseName.length())
-			{
-				closeSq = baseName.indexOf(']', comma);
-				if (closeSq >= 0)
-				{
-					index2 = baseName.substring(comma+1, closeSq);
-					restOfLine = baseName.substring(closeSq);
-				}				
-			}
-
-			int [] indices = getIndices(index1);
-			if (ind1 >= 0 && ind1 < indices.length)
-				baseName = baseName.substring(0, openSq+1) + indices[ind1];
-			if (index2 != null)
-			{
-				int [] indices2 = getIndices(index2);
-				if (ind2 >= 0 && ind2 < indices2.length)
-					baseName += "," + indices2[ind2];
-			}
-			baseName += restOfLine;
-			return baseName;
-		}
-
-		/**
-		 * Method to examine an array specification and return all of the indices.
-		 * @param index the array specification, for example "1:5" or "4:2".
-		 * @return an array of indices, for example [1,2,3,4,5] or [4,3,2].
-		 */
-		private int [] getIndices(String index)
-		{
-			List<Integer> indices = new ArrayList<Integer>();
-			for(int pos=0; pos<index.length(); )
-			{
-				if (Character.isWhitespace(index.charAt(pos))) { pos++;   continue; }
-				if (Character.isDigit(index.charAt(pos)))
-				{
-					int val = TextUtils.atoi(index.substring(pos));
-					int valEnd = val;
-					while (pos < index.length() && Character.isDigit(index.charAt(pos))) pos++;
-					while (pos < index.length() && Character.isWhitespace(index.charAt(pos))) pos++;
-					if (pos < index.length() && index.charAt(pos) == ':')
-					{
-						pos++;
-						while (pos < index.length() && Character.isWhitespace(index.charAt(pos))) pos++;
-						if (Character.isDigit(index.charAt(pos)))
-						{
-							valEnd = TextUtils.atoi(index.substring(pos));
-							while (pos < index.length() && Character.isDigit(index.charAt(pos))) pos++;
-							while (pos < index.length() && Character.isWhitespace(index.charAt(pos))) pos++;
-						}
-					}
-					if (valEnd < val)
-					{
-						for(int i=val; i>=valEnd; i--) indices.add(new Integer(i));
-					} else
-					{
-						for(int i=val; i<=valEnd; i++) indices.add(new Integer(i));
-					}
-					continue;
-				}
-				break;
-			}
-			int [] retInd = new int[indices.size()];
-			for(int i=0; i<indices.size(); i++) retInd[i] = indices.get(i);
-			return retInd;
 		}
 	}
 
@@ -3100,10 +3130,13 @@ public class EDIF extends Input
 				// For internal pins of an instance, determine the base port location and other pin assignments
 				ArcProto ap = Generic.tech().unrouted_arc;
 				NodeInst ni = null;
+				Nodable no = null;
 				PortProto pp = null;
 				if (instanceReference.length() > 0)
 				{
 					String nodeName = instanceReference;
+					String alternateInstName = renamedObjects.get(nodeName);
+					if (alternateInstName != null) nodeName = alternateInstName;
 
 					// locate the node and and port
 					if (activeView == VNETLIST)
@@ -3141,12 +3174,16 @@ public class EDIF extends Input
 						}
 						if (ni == null)
 						{
-							String alternateName = renamedObjects.get(nodeName);
-							for(Iterator<NodeInst> nIt = curCell.getNodes(); nIt.hasNext(); )
+							// might be an instance of an arrayed node
+							for(Iterator<Nodable> nIt = curCell.acquireUserNetlist().getNodables(); nIt.hasNext(); )
 							{
-								NodeInst oNi = nIt.next();
-								String name = oNi.getName();
-								if (name.equalsIgnoreCase(alternateName)) { ni = oNi;   break; }
+								Nodable oNo = nIt.next();
+								if (oNo.getName().equalsIgnoreCase(nodeName))
+								{
+									no = oNo;
+									ni = no.getNodeInst();
+									break;
+								}
 							}
 						}
 						if (ni == null)
@@ -3195,10 +3232,62 @@ public class EDIF extends Input
 						}
 					}
 
+					// special case when connecting an arrayed node to a bus
+					if (no != null && netName.indexOf('[') >= 0)
+					{
+						// run a zero-length bus to a bus pin, then a named arc to a second pin, use the second pin
+						PrimitiveNode busPin = Schematics.tech().busPinNode;
+						PortInst pi = ni.findPortInstFromProto(pp);
+						Poly poly = pi.getPoly();
+						NodeInst ni1 = placePin(busPin, poly.getCenterX()+1, poly.getCenterY(),
+							busPin.getDefaultLambdaBaseWidth(), busPin.getDefaultLambdaBaseHeight(), Orientation.IDENT, curCell);
+						if (ni1 == null)
+						{
+							System.out.println("error, line " + lineReader.getLineNumber() + ": could not create bus pin");
+							return;
+						}
+						PortInst busPinPort = ni1.getOnlyPortInst();
+						boolean found = false;
+						for(Iterator<ArcInst> aIt = curCell.getArcs(); aIt.hasNext(); )
+						{
+							ArcInst ai = aIt.next();
+							if ((ai.getHeadPortInst() == busPinPort && ai.getTailPortInst() == pi) ||
+								(ai.getTailPortInst() == busPinPort && ai.getHeadPortInst() == pi))
+							{
+								found = true;
+								break;
+							}
+						}
+						if (!found) ArcInst.makeInstance(Schematics.tech().bus_arc, busPinPort, pi);
+
+						// now the named wire arc
+						PrimitiveNode wirePin = Schematics.tech().wirePinNode;
+						NodeInst ni2 = NodeInst.makeInstance(wirePin, new Point2D.Double(poly.getCenterX()+1, poly.getCenterY()+1),
+							wirePin.getDefaultLambdaBaseWidth(), wirePin.getDefaultLambdaBaseHeight(), curCell, Orientation.IDENT, null, 0);
+						if (ni2 == null)
+						{
+							System.out.println("error, line " + lineReader.getLineNumber() + ": could not create wire pin");
+							return;
+						}
+						PortInst wirePinPort = ni2.getOnlyPortInst();
+						ArcInst wireArc = ArcInst.makeInstance(Schematics.tech().wire_arc, wirePinPort, busPinPort);
+						int indPos = instanceReference.lastIndexOf('[');
+						int namePos = netName.lastIndexOf('[');
+						if (indPos > 0 && namePos > 0)
+						{
+							String newName = netName.substring(0, namePos) + instanceReference.substring(indPos);
+							wireArc.setName(newName);
+						}
+
+						// remember the end of the named wire arc as the true location of this portRef
+						ni = ni2;
+						pp = wirePinPort.getPortProto();
+						ap = Schematics.tech().wire_arc;
+					}
+
 					// we have both, set global variable
 					curNode = ni;
 					curPort = pp;
-					Cell np = ni.getParent();
 					netPortRefs.add(ni.findPortInstFromProto(pp));
 
 					// create extensions for net labels on single pin nets (externals), and placeholder for auto-routing later
@@ -3226,7 +3315,7 @@ public class EDIF extends Input
 							NodeInst lNi = null;
 							if (isArray)
 							{
-								lNi = placePin(Schematics.tech().busPinNode, (lX+hX)/2, (lY+hY)/2, hX-lX, hY-lY, Orientation.IDENT, np);
+								lNi = placePin(Schematics.tech().busPinNode, (lX+hX)/2, (lY+hY)/2, hX-lX, hY-lY, Orientation.IDENT, curCell);
 								if (lNi == null)
 								{
 									System.out.println("error, line " + lineReader.getLineNumber() + ": could not create bus pin");
@@ -3234,7 +3323,7 @@ public class EDIF extends Input
 								}
 							} else
 							{
-								lNi = placePin(Schematics.tech().wirePinNode, (lX+hX)/2, (lY+hY)/2, hX-lX, hY-lY, Orientation.IDENT, np);
+								lNi = placePin(Schematics.tech().wirePinNode, (lX+hX)/2, (lY+hY)/2, hX-lX, hY-lY, Orientation.IDENT, curCell);
 								if (lNi == null)
 								{
 									System.out.println("error, line " + lineReader.getLineNumber() + ": could not create wire pin");
@@ -3249,7 +3338,7 @@ public class EDIF extends Input
 							if (curArc == null)
 								System.out.println("error, line " + lineReader.getLineNumber() + ": could not create auto-path");
 							else
-								nameEDIFArc(curArc);
+								nameEDIFArc(curArc, true);
 						}
 					}
 				} else
@@ -3380,8 +3469,8 @@ public class EDIF extends Input
 						}
 
 						// add the net name
-						if (curArc != null)
-							nameEDIFArc(curArc);
+						if (curArc != null && no == null)
+							nameEDIFArc(curArc, false);
 					}
 				}
 			}
