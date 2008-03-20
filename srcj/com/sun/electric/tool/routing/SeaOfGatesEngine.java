@@ -84,8 +84,9 @@ import java.util.concurrent.Semaphore;
  *   > Tries to cover multiple grid units in a single jump
  * > Routes power and ground first, then goes by length (shortest nets first)
  * > Prefers to run odd metal layers on horizontal, even layers on vertical
- * > Routes in both directions (from A to B and from B to A) and chooses the best (shortest)
- *   > Parallel option runs both directions at once and aborts the slower one
+ * > Routes in both directions (from A to B and from B to A) and chooses the one that completes first
+ *   > Serial method alternates advancing each wavefront, stopping when one completes
+ *   > Parallel option runs both wavefronts at once and aborts the slower one
  * > Users can request that some layers not be used, can request that some layers be favored
  * > Routes are made as wide as the widest arc already connected to any point
  *   > User preference can limit width
@@ -102,7 +103,6 @@ import java.util.concurrent.Semaphore;
  *     Sweeping cost parameters (with parallel processors) to find best, dynamically
  *     Forcing each processor to use a different grid track
  *     Characterizing routing task (which parallelism to use)
- *     Dima's idea: run from both ends at once and find meeting point in center
  */
 public class SeaOfGatesEngine
 {
@@ -113,12 +113,16 @@ public class SeaOfGatesEngine
 	/** Percent of min cell size that route must stay inside. */				private static final double PERCENTLIMIT = 7;
 	/** Number of steps per unit when searching. */								private static final double GRANULARITY = 1;
 	/** Size of steps when searching. */										private static final double GRAINSIZE = (1/GRANULARITY);
-	/** Cost of routing in wrong direction (alternating horizontal/vertical) */	private static final int COSTALTERNATINGMETAL = 4;
+	/** Cost of routing in wrong direction (alternating horizontal/vertical) */	private static final int COSTALTERNATINGMETAL = 20;
 	/** Cost of changing layers. */												private static final int COSTLAYERCHANGE = 8;
-	/** Cost of routing away from the target. */								private static final int COSTWRONGDIRECTION = 5;
+	/** Cost of routing away from the target. */								private static final int COSTWRONGDIRECTION = 15;
 	/** Cost of running on non-favored layer. */								private static final int COSTUNFAVORED = 10;
 	/** Cost of making a turn. */												private static final int COSTTURNING = 1;
 	/** Cost of having coordinates that are off-grid. */						private static final int COSTOFFGRID = 15;
+
+	private SearchVertex svAborted = new SearchVertex(0, 0, 0, 0, null, 0, null);
+	private SearchVertex svExhausted = new SearchVertex(0, 0, 0, 0, null, 0, null);
+	private SearchVertex svLimited = new SearchVertex(0, 0, 0, 0, null, 0, null);
 
 	/** Cell in which routing occurs. */										private Cell cell;
 	/** Technology to use for routing. */										private Technology tech;
@@ -152,55 +156,42 @@ public class SeaOfGatesEngine
 		int numRouted, numUnrouted;
 	}
 
-	/**
-	 * Class to hold a route that must be run.
-	 */
-	private class NeededRoute
+	private class Wavefront
 	{
-		String routeName;
-		PortInst from, to;
-		double fromX, fromY;
-		int fromZ;
-		double toX, toY;
-		int toZ;
-		int netID;
-		double minWidth;
-		int batchNumber;
-		int routeInBatch;
-		long timeTaken;
-		List<SearchVertex> vertices;
-		Rectangle2D routeBounds;
-		boolean abort;
-		/** destination coordinate for the current Dijkstra path. */		private double destX, destY;
-		/** destination layer for the current Dijkstra path. */				private int destZ;
-		/** intermediate seach vertices during Dijkstra search. */			private Map<Integer,Set<Integer>> [] searchVertexPlanes;
-		/** intermediate gridless seach vertices during Dijkstra search. */	private Map<Double,Set<Double>> [] searchVertexPlanesDBL;
+		/** The route that this is part of. */								private NeededRoute nr;
+		/** List of active search vertices while running wavefront. */		private TreeSet<SearchVertex> active;
+		/** Resulting list of vertices found for this wavefront. */			private List<SearchVertex> vertices;
+		/** Set true to abort this wavefront's search. */					private boolean abort;
+		/** The starting and ending ports of the wavefront. */				private PortInst from, to;
+		/** The starting X/Y coordinates of the wavefront. */				private double fromX, fromY;
+		/** The starting metal layer of the wavefront. */					private int fromZ;
+		/** The ending X/Y coordinates of the wavefront. */					private double toX, toY;
+		/** The ending metal layer of the wavefront. */						private int toZ;
+		/** debugging state */												private final boolean debug;
+		/** Search vertices found while propagating the wavefront. */		private Map<Integer,Set<Integer>> [] searchVertexPlanes;
+		/** Gridless search vertices found while propagating wavefront. */	private Map<Double,Set<Double>> [] searchVertexPlanesDBL;
 
-		NeededRoute(String routeName, PortInst from, double fromX, double fromY, int fromZ,
-			PortInst to, double toX, double toY, int toZ,
-			int netID, double minWidth, int batchNumber, int routeInBatch)
+		Wavefront(NeededRoute nr, PortInst from, double fromX, double fromY, int fromZ,
+			PortInst to, double toX, double toY, int toZ, boolean debug)
 		{
-			this.routeName = routeName;
-			this.from = from;
-			this.fromX = fromX;
-			this.fromY = fromY;
-			this.fromZ = fromZ;
-			this.to = to;
-			this.toX = toX;
-			this.toY = toY;
-			this.toZ = toZ;
-			this.netID = netID;
-			this.minWidth = minWidth;
-			this.batchNumber = batchNumber;
-			this.routeInBatch = routeInBatch;
+			this.nr = nr;
+			this.from = from;  this.fromX = fromX;  this.fromY = fromY;  this.fromZ = fromZ;
+			this.to = to;      this.toX = toX;      this.toY = toY;      this.toZ = toZ;
+			this.debug = debug;
+			active = new TreeSet<SearchVertex>();
 			vertices = null;
-			if (PERCENTLIMIT > 0)
-			{
-				double maxStrayFromRouteBounds = Math.min(cell.getBounds().getWidth(), cell.getBounds().getHeight()) * PERCENTLIMIT / 100;
-				routeBounds = new Rectangle2D.Double(
-					Math.min(fromX, toX)-maxStrayFromRouteBounds, Math.min(fromY, toY)-maxStrayFromRouteBounds,
-					Math.abs(fromX-toX)+maxStrayFromRouteBounds*2, Math.abs(fromY-toY)+maxStrayFromRouteBounds*2);
-			}
+			abort = false;
+			searchVertexPlanes = new Map[numMetalLayers];
+			searchVertexPlanesDBL = new Map[numMetalLayers];
+
+			if (debug) System.out.println("----------- SEARCHING FROM ("+TextUtils.formatDouble(fromX)+","+
+				TextUtils.formatDouble(fromY)+",M"+(fromZ+1)+") TO ("+TextUtils.formatDouble(toX)+","+
+				TextUtils.formatDouble(toY)+",M"+(toZ+1)+") -----------");
+
+			SearchVertex svStart = new SearchVertex(fromX, fromY, fromZ, 0, null, 0, this);
+			svStart.cost = 0;
+			setVertex(fromX, fromY, fromZ);
+			active.add(svStart);
 		}
 
 		/**
@@ -271,6 +262,81 @@ public class SeaOfGatesEngine
 				plane.put(iY, row);
 			}
 			row.add(new Integer((int)(x*GRANULARITY)));
+		}
+	}
+
+	/**
+	 * Class to hold a route that must be run.
+	 */
+	private class NeededRoute
+	{
+		String routeName;
+		int netID;
+		double minWidth;
+		int batchNumber;
+		int routeInBatch;
+		Rectangle2D routeBounds;
+		double minimumSearchBoundX;
+		double maximumSearchBoundX;
+		double minimumSearchBoundY;
+		double maximumSearchBoundY;
+		Rectangle2D jumpBound;
+		Wavefront dir1, dir2;
+		Wavefront winningWF;
+
+		NeededRoute(String routeName, PortInst from, double fromX, double fromY, int fromZ,
+			PortInst to, double toX, double toY, int toZ,
+			int netID, double minWidth, int batchNumber, int routeInBatch)
+		{
+			this.routeName = routeName;
+			this.netID = netID;
+			this.minWidth = minWidth;
+			this.batchNumber = batchNumber;
+			this.routeInBatch = routeInBatch;
+
+			Rectangle2D bounds = cell.getBounds();
+			minimumSearchBoundX = downToGrain(bounds.getMinX());
+			maximumSearchBoundX = upToGrain(bounds.getMaxX());
+			minimumSearchBoundY = downToGrain(bounds.getMinY());
+			maximumSearchBoundY = upToGrain(bounds.getMaxY());
+			if (PERCENTLIMIT > 0)
+			{
+				double maxStrayFromRouteBounds = Math.min(cell.getBounds().getWidth(), cell.getBounds().getHeight()) * PERCENTLIMIT / 100;
+				routeBounds = new Rectangle2D.Double(
+					Math.min(fromX, toX)-maxStrayFromRouteBounds, Math.min(fromY, toY)-maxStrayFromRouteBounds,
+					Math.abs(fromX-toX)+maxStrayFromRouteBounds*2, Math.abs(fromY-toY)+maxStrayFromRouteBounds*2);
+				minimumSearchBoundX = routeBounds.getMinX();
+				maximumSearchBoundX = routeBounds.getMaxX();
+				minimumSearchBoundY = routeBounds.getMinY();
+				maximumSearchBoundY = routeBounds.getMaxY();
+			}
+			jumpBound = new Rectangle2D.Double(Math.min(fromX, toX), Math.min(fromY, toY),
+				Math.abs(fromX-toX), Math.abs(fromY-toY));
+
+			// make two wavefronts going in both directions
+			dir1 = new Wavefront(this, from, fromX, fromY, fromZ, to, toX, toY, toZ, DEBUGSTEPS);
+			dir2 = new Wavefront(this, to, toX, toY, toZ, from, fromX, fromY, fromZ, false);
+		}
+
+		public void cleanSearchMemory()
+		{
+			dir1.searchVertexPlanes = null;
+			dir1.searchVertexPlanesDBL = null;
+			dir1.active = null;
+			if (dir1.vertices != null)
+			{
+				for(SearchVertex sv : dir1.vertices)
+					sv.clearCuts();
+			}
+
+			dir2.searchVertexPlanes = null;
+			dir2.searchVertexPlanesDBL = null;
+			dir2.active = null;
+			if (dir2.vertices != null)
+			{
+				for(SearchVertex sv : dir2.vertices)
+					sv.clearCuts();
+			}
 		}
 	}
 
@@ -549,7 +615,7 @@ public class SeaOfGatesEngine
 		for(int a=0; a<totalRoutes; a++)
 		{
 			NeededRoute nr = allRoutes.get(a);
-			if (nr.vertices != null)
+			if (nr.winningWF != null && nr.winningWF.vertices != null)
 			{
 				routeBatches[nr.batchNumber].numRouted++;
 				numRoutedSegments++;
@@ -588,7 +654,7 @@ public class SeaOfGatesEngine
 						{
 							if (nr.batchNumber != b) continue;
 							if (nr.routeInBatch-1 < headPort || nr.routeInBatch-1 >= tailPort) continue;
-							if (nr.vertices == null) allRouted = false;
+							if (nr.winningWF == null || nr.winningWF.vertices == null) allRouted = false;
 						}
 						if (allRouted) aiKill.kill();
 					}
@@ -637,7 +703,7 @@ public class SeaOfGatesEngine
 			findPath(nr);
 	
 			// if the routing was good, place the results
-			if (nr.vertices != null)
+			if (nr.winningWF != null && nr.winningWF.vertices != null)
 				createRoute(nr);
 		}
 	}
@@ -700,7 +766,7 @@ public class SeaOfGatesEngine
 			// all done, now handle the results
 			for(int i=0; i<threadAssign; i++)
 			{
-				if (routesToDo[i].vertices != null)
+				if (routesToDo[i].winningWF != null && routesToDo[i].winningWF.vertices != null)
 					createRoute(routesToDo[i]);
 			}
 			for(int i=threadAssign-1; i>=0; i--)
@@ -1180,42 +1246,43 @@ public class SeaOfGatesEngine
 	 */
 	private void createRoute(NeededRoute nr)
 	{
-		PortInst lastPort = nr.to;
-		PolyBase toPoly = nr.to.getPoly();
-		if (toPoly.getCenterX() != nr.toX || toPoly.getCenterY() != nr.toY)
+		Wavefront wf = nr.winningWF;
+		PortInst lastPort = wf.to;
+		PolyBase toPoly = wf.to.getPoly();
+		if (toPoly.getCenterX() != wf.toX || toPoly.getCenterY() != wf.toY)
 		{
 			// end of route is off-grid: adjust it
-			if (nr.vertices.size() >= 2)
+			if (wf.vertices.size() >= 2)
 			{
-				SearchVertex v1 = nr.vertices.get(0);
-				SearchVertex v2 = nr.vertices.get(1);
-				ArcProto type = metalArcs[nr.toZ];
+				SearchVertex v1 = wf.vertices.get(0);
+				SearchVertex v2 = wf.vertices.get(1);
+				ArcProto type = metalArcs[wf.toZ];
 				double width = Math.max(type.getDefaultLambdaBaseWidth(), nr.minWidth);
-				PrimitiveNode np = metalArcs[nr.toZ].findPinProto();
+				PrimitiveNode np = metalArcs[wf.toZ].findPinProto();
 				if (v1.getX() == v2.getX())
 				{
 					// first line is vertical: run a horizontal bit
 					NodeInst ni = makeNodeInst(np, new EPoint(v1.getX(), toPoly.getCenterY()),
 						np.getDefWidth(), np.getDefHeight(), Orientation.IDENT, cell, nr.netID);
-					makeArcInst(type, width, ni.getOnlyPortInst(), nr.to, nr.netID);
+					makeArcInst(type, width, ni.getOnlyPortInst(), wf.to, nr.netID);
 					lastPort = ni.getOnlyPortInst();
 				} else if (v1.getY() == v2.getY())
 				{
 					// first line is horizontal: run a vertical bit
 					NodeInst ni = makeNodeInst(np, new EPoint(toPoly.getCenterX(), v1.getY()),
 						np.getDefWidth(), np.getDefHeight(), Orientation.IDENT, cell, nr.netID);
-					makeArcInst(type, width, ni.getOnlyPortInst(), nr.to, nr.netID);
+					makeArcInst(type, width, ni.getOnlyPortInst(), wf.to, nr.netID);
 					lastPort = ni.getOnlyPortInst();
 				}
 			}
 		}
-		for(int i=0; i<nr.vertices.size(); i++)
+		for(int i=0; i<wf.vertices.size(); i++)
 		{
-			SearchVertex sv = nr.vertices.get(i);
+			SearchVertex sv = wf.vertices.get(i);
 			boolean madeContacts = false;
-			while (i < nr.vertices.size()-1)
+			while (i < wf.vertices.size()-1)
 			{
-				SearchVertex svNext = nr.vertices.get(i+1);
+				SearchVertex svNext = wf.vertices.get(i+1);
 				if (sv.getX() != svNext.getX() || sv.getY() != svNext.getY() || sv.getZ() == svNext.getZ()) break;
 				List<MetalVia> nps = metalVias[Math.min(sv.getZ(), svNext.getZ())].getVias();
 				int whichContact = sv.getContactNo();
@@ -1236,38 +1303,38 @@ public class SeaOfGatesEngine
 				sv = svNext;
 				i++;
 			}
-			if (madeContacts && i != nr.vertices.size()-1) continue;
+			if (madeContacts && i != wf.vertices.size()-1) continue;
 
 			PrimitiveNode np = metalArcs[sv.getZ()].findPinProto();
 			PortInst pi = null;
-			if (i == nr.vertices.size()-1)
+			if (i == wf.vertices.size()-1)
 			{
-				pi = nr.from;
-				PolyBase fromPoly = nr.from.getPoly();
+				pi = wf.from;
+				PolyBase fromPoly = wf.from.getPoly();
 				if (fromPoly.getCenterX() != sv.getX() || fromPoly.getCenterY() != sv.getY())
 				{
 					// end of route is off-grid: adjust it
-					if (nr.vertices.size() >= 2)
+					if (wf.vertices.size() >= 2)
 					{
-						SearchVertex v1 = nr.vertices.get(nr.vertices.size()-2);
-						SearchVertex v2 = nr.vertices.get(nr.vertices.size()-1);
-						ArcProto type = metalArcs[nr.fromZ];
+						SearchVertex v1 = wf.vertices.get(wf.vertices.size()-2);
+						SearchVertex v2 = wf.vertices.get(wf.vertices.size()-1);
+						ArcProto type = metalArcs[wf.fromZ];
 						double width = Math.max(type.getDefaultLambdaBaseWidth(), nr.minWidth);
 						if (v1.getX() == v2.getX())
 						{
 							// last line is vertical: run a horizontal bit
-							PrimitiveNode pNp = metalArcs[nr.fromZ].findPinProto();
+							PrimitiveNode pNp = metalArcs[wf.fromZ].findPinProto();
 							NodeInst ni = makeNodeInst(pNp, new EPoint(v1.getX(), fromPoly.getCenterY()),
 								np.getDefWidth(), np.getDefHeight(), Orientation.IDENT, cell, nr.netID);
-							makeArcInst(type, width, ni.getOnlyPortInst(), nr.from, nr.netID);
+							makeArcInst(type, width, ni.getOnlyPortInst(), wf.from, nr.netID);
 							pi = ni.getOnlyPortInst();
 						} else if (v1.getY() == v2.getY())
 						{
 							// last line is horizontal: run a vertical bit
-							PrimitiveNode pNp = metalArcs[nr.fromZ].findPinProto();
+							PrimitiveNode pNp = metalArcs[wf.fromZ].findPinProto();
 							NodeInst ni = makeNodeInst(pNp, new EPoint(fromPoly.getCenterX(), v1.getY()),
 								np.getDefWidth(), np.getDefHeight(), Orientation.IDENT, cell, nr.netID);
-							makeArcInst(type, width, ni.getOnlyPortInst(), nr.from, nr.netID);
+							makeArcInst(type, width, ni.getOnlyPortInst(), wf.from, nr.netID);
 							pi = ni.getOnlyPortInst();
 						}
 					}
@@ -1288,13 +1355,13 @@ public class SeaOfGatesEngine
 		}
 
 		// now see how far out of the bounding rectangle the route went
-		Rectangle2D routeBounds = new Rectangle2D.Double(Math.min(nr.fromX,nr.toX), Math.min(nr.fromY,nr.toY),
-			Math.abs(nr.fromX-nr.toX), Math.abs(nr.fromY-nr.toY));
-		double lowX=routeBounds.getMinX(), highX=routeBounds.getMaxX();
-		double lowY=routeBounds.getMinY(), highY=routeBounds.getMaxY();
-		for(int i=0; i<nr.vertices.size(); i++)
+		Rectangle2D routeBounds = new Rectangle2D.Double(Math.min(wf.fromX,wf.toX), Math.min(wf.fromY,wf.toY),
+			Math.abs(wf.fromX-wf.toX), Math.abs(wf.fromY-wf.toY));
+		double lowX = routeBounds.getMinX(), highX = routeBounds.getMaxX();
+		double lowY = routeBounds.getMinY(), highY = routeBounds.getMaxY();
+		for(int i=0; i<wf.vertices.size(); i++)
 		{
-			SearchVertex sv = nr.vertices.get(i);
+			SearchVertex sv = wf.vertices.get(i);
 			if (i == 0)
 			{
 				lowX = highX = sv.getX();
@@ -1387,28 +1454,6 @@ public class SeaOfGatesEngine
 		return ai;
 	}
 
-	private class DijkstraInThread extends Thread
-	{
-		private NeededRoute nr;
-		private NeededRoute otherNr;
-		private Semaphore whenDone;
-
-		public DijkstraInThread(String name, NeededRoute nr, NeededRoute otherNr, Semaphore whenDone)
-		{
-			super(name);
-			this.nr = nr;
-			this.otherNr = otherNr;
-			this.whenDone = whenDone;
-			start();
-		}
-
-		public void run()
-		{
-			nr.vertices = doDijkstra(nr.fromX, nr.fromY, nr.fromZ, nr.toX, nr.toY, nr.toZ, nr, otherNr);
-			whenDone.release();
-		}
-	}
-
 	/**
 	 * Method to find a path between two ports.
 	 * @param nr the NeededRoute object with all necessary information.
@@ -1417,72 +1462,57 @@ public class SeaOfGatesEngine
 	private void findPath(NeededRoute nr)
 	{
 		// special case when route is null length
-		List<SearchVertex> vertices, verticesRev;
-		if (DBMath.areEquals(nr.toX, nr.fromX) && DBMath.areEquals(nr.toY, nr.fromY) && nr.toZ == nr.fromZ)
+		Wavefront d1 = nr.dir1;
+		if (DBMath.areEquals(d1.toX, d1.fromX) && DBMath.areEquals(d1.toY, d1.fromY) && d1.toZ == d1.fromZ)
 		{
-			vertices = verticesRev = new ArrayList<SearchVertex>();
-			SearchVertex sv = new SearchVertex(nr.toX, nr.toY, nr.toZ, 0, null, 0, nr);
-			vertices.add(sv);
-			nr.vertices = vertices;
+			nr.winningWF = d1;
+			nr.winningWF.vertices = new ArrayList<SearchVertex>();
+			SearchVertex sv = new SearchVertex(d1.toX, d1.toY, d1.toZ, 0, null, 0, nr.winningWF);
+			nr.winningWF.vertices.add(sv);
+			nr.cleanSearchMemory();
 			return;
 		}
 
-		Map<Integer,Set<Integer>> [] saveD1Planes = null;
+		long startTime = System.currentTimeMillis();
 		if (parallelDij)
 		{
-			// duplicate this route but in the opposite direction
-			NeededRoute revNr = new NeededRoute(nr.routeName, nr.to, nr.toX, nr.toY, nr.toZ,
-				nr.from, nr.fromX, nr.fromY, nr.fromZ,
-				nr.netID, nr.minWidth, nr.batchNumber, nr.routeInBatch);
-
 			// create threads and start them running
 			Semaphore outSem = new Semaphore(0);
-			new DijkstraInThread("Route a->b", nr, revNr, outSem);
-			new DijkstraInThread("Route b->a", revNr, nr, outSem);
+			new DijkstraInThread("Route a->b", nr.dir1, nr.dir2, outSem);
+			new DijkstraInThread("Route b->a", nr.dir2, nr.dir1, outSem);
 
 			// wait for threads to complete and get results
 			outSem.acquireUninterruptibly(2);
-			vertices = nr.vertices;
-			verticesRev = revNr.vertices;
 		} else
 		{
-// this is for debugging only
-//if (nr.fromX > nr.toX)
-//{
-//	double s = nr.fromX;   nr.fromX = nr.toX;   nr.toX = s;
-//	s = nr.fromY;   nr.fromY = nr.toY;   nr.toY = s;
-//	int is = nr.fromZ;   nr.fromZ = nr.toZ;   nr.toZ = is;
-//}
-			// do the Dijkstra one way
-			vertices = doDijkstra(nr.fromX, nr.fromY, nr.fromZ, nr.toX, nr.toY, nr.toZ, nr, nr);
-			if (DEBUGFAILURE && firstFailure) saveD1Planes = nr.searchVertexPlanes;
-
-			// do the Dijkstra the other way
-//verticesRev = new ArrayList<SearchVertex>();
-			verticesRev = doDijkstra(nr.toX, nr.toY, nr.toZ, nr.fromX, nr.fromY, nr.fromZ, nr, nr);
+			// run both wavefronts in parallel (interleaving steps)
+			doTwoWayDijkstra(nr);
 		}
+		long timeTaken = System.currentTimeMillis() - startTime;
 
-		// see which result is better
-		double verLength = getVertexLength(vertices);
-		double verLengthRev = getVertexLength(verticesRev);
-		if (verLength == Double.MAX_VALUE && verLengthRev == Double.MAX_VALUE)
+		// analyze the winning wavefront
+		Wavefront wf = nr.winningWF;
+		double verLength = Double.MAX_VALUE;
+		if (wf != null) verLength = getVertexLength(wf.vertices);
+		if (verLength == Double.MAX_VALUE)
 		{
 			// failed to route
 			String errorMsg;
-			if (vertices == null && verticesRev == null)
+			if (wf == null) wf = nr.dir1;
+			if (wf.vertices == null)
 			{
 				errorMsg = "Search too complex (exceeds complexity limit of " +
 					Routing.getSeaOfGatesComplexityLimit() + " steps)";
 			} else
 			{
-				errorMsg = "Failed to route from port " + nr.from.getPortProto().getName() +
-					" of node " + nr.from.getNodeInst().describe(false) + " to port " + nr.to.getPortProto().getName() +
-					" of node " + nr.to.getNodeInst().describe(false);
+				errorMsg = "Failed to route from port " + wf.from.getPortProto().getName() +
+					" of node " + wf.from.getNodeInst().describe(false) + " to port " + wf.to.getPortProto().getName() +
+					" of node " + wf.to.getNodeInst().describe(false);
 			}
 			System.out.println("ERROR: " + errorMsg);
 			List<EPoint> lineList = new ArrayList<EPoint>();
-			lineList.add(new EPoint(nr.toX, nr.toY));
-			lineList.add(new EPoint(nr.fromX, nr.fromY));
+			lineList.add(new EPoint(wf.toX, wf.toY));
+			lineList.add(new EPoint(wf.fromX, wf.fromY));
 			errorLogger.logError(errorMsg, null, null, lineList, null, null, cell, 0);
 
 			if (DEBUGFAILURE && firstFailure)
@@ -1490,486 +1520,545 @@ public class SeaOfGatesEngine
 				firstFailure = false;
 				EditWindow_ wnd = Job.getUserInterface().getCurrentEditWindow_();
 				wnd.clearHighlighting();
-				showSearchVertices(saveD1Planes, true);
-				showSearchVertices(nr.searchVertexPlanes, false);
+				showSearchVertices(nr.dir1.searchVertexPlanes, false);
 				wnd.finishedHighlighting();
 			}
-			return;
 		}
-		if (verLength == Double.MAX_VALUE || (verLength > verLengthRev))
-		{
-			// reverse path is better
-			vertices = verticesRev;
-			PortInst pi = nr.to;   nr.to = nr.from;   nr.from = pi;
-			double s = nr.toX;   nr.toX = nr.fromX;   nr.fromX = s;
-			s = nr.toY;   nr.toY = nr.fromY;   nr.fromY = s;
-			int a = nr.toZ;   nr.toZ = nr.fromZ;   nr.fromZ = a;
-		}
-		nr.vertices = vertices;
+		nr.cleanSearchMemory();
 	}
 
-	/**
-	 * Method to run a Dijkstra search to find a route path.
-	 * @param fromX the X coordinate of the start of the search.
-	 * @param fromY the Y coordinate of the start of the search.
-	 * @param fromZ the Z coordinate (metal layer) of the start of the search.
-	 * @param toX the X coordinate of the end of the search.
-	 * @param toY the Y coordinate of the end of the search.
-	 * @param toZ the Z coordinate (metal layer) of the end of the search.
-	 * @param nr routing information for this Dijkstra search.
-	 * @param otherNr routing information for the Dijkstra search running in the opposite direction (may run in parallel).
-	 * @return a list of SearchVertex objects that define the path.
-	 * Returns null if the search is too complex.
-	 * Returns an empty list if no path can be found or if aborted.
-	 */
-	private List<SearchVertex> doDijkstra(double fromX, double fromY, int fromZ, double toX, double toY, int toZ,
-		NeededRoute nr, NeededRoute otherNr)
+	private void doTwoWayDijkstra(NeededRoute nr)
 	{
-		long startTime = System.currentTimeMillis();
-		nr.abort = false;
-		Rectangle2D bounds = cell.getBounds();
-		double lowX = downToGrain(bounds.getMinX());
-		double highX = upToGrain(bounds.getMaxX());
-		double lowY = downToGrain(bounds.getMinY());
-		double highY = upToGrain(bounds.getMaxY());
-		if (nr.routeBounds != null)
-		{
-			lowX = nr.routeBounds.getMinX();
-			highX = nr.routeBounds.getMaxX();
-			lowY = nr.routeBounds.getMinY();
-			highY = nr.routeBounds.getMaxY();
-		}
-		Rectangle2D jumpBound = new Rectangle2D.Double(Math.min(fromX, toX), Math.min(fromY, toY),
-			Math.abs(fromX-toX), Math.abs(fromY-toY));
-		nr.searchVertexPlanes = new Map[numMetalLayers];
-		nr.searchVertexPlanesDBL = new Map[numMetalLayers];
-		nr.destX = toX;   nr.destY = toY;   nr.destZ = toZ;
+		SearchVertex result = null;
 		int numSearchVertices = 0;
-
-		if (DEBUGSTEPS) System.out.println("----------- SEARCHING FROM ("+TextUtils.formatDouble(fromX)+","+
-			TextUtils.formatDouble(fromY)+","+fromZ+") TO ("+TextUtils.formatDouble(toX)+","+
-			TextUtils.formatDouble(toY)+","+toZ+") -----------");
-
-		SearchVertex svStart = new SearchVertex(fromX, fromY, fromZ, 0, null, 0, nr);
-		svStart.cost = 0;
-		nr.setVertex(fromX, fromY, fromZ);
-		TreeSet<SearchVertex> active = new TreeSet<SearchVertex>();
-		active.add(svStart);
-
-		SearchVertex thread = null;
-		while (active.size() > 0)
+		while (result == null)
 		{
-			if (nr.abort)
+			// stop if the search is too complex
+			numSearchVertices++;
+			if (numSearchVertices > Routing.getSeaOfGatesComplexityLimit()) return;
+
+			SearchVertex resultA = advanceWavefront(nr.dir1);
+			SearchVertex resultB = advanceWavefront(nr.dir2);
+			if (resultA != null || resultB != null)
 			{
-				nr.searchVertexPlanes = null;
-				nr.searchVertexPlanesDBL = null;
-				nr.timeTaken = System.currentTimeMillis() - startTime;
-				return null;
+				result = resultA;
+				nr.winningWF = nr.dir1;
+				if (result == null || result == svExhausted)
+				{
+					result = resultB;
+					nr.winningWF = nr.dir2;
+				}
 			}
+		}
+		if (result == svAborted || result == svExhausted)
+		{
+			nr.winningWF = null;
+			return;
+		}
 
-			// get the lowest cost point
-			SearchVertex svCurrent = active.first();
-			active.remove(svCurrent);
-			double curX = svCurrent.getX();
-			double curY = svCurrent.getY();
-			int curZ = svCurrent.getZ();
+//		dumpPlane(0);
+//		dumpPlane(1);
+//		dumpPlane(2);
+		List<SearchVertex> realVertices = getOptimizedList(result);
+		nr.winningWF.vertices = realVertices;
+	}
 
-			if (DEBUGSTEPS) System.out.print("AT ("+TextUtils.formatDouble(curX)+","+TextUtils.formatDouble(curY)+","
-				+curZ+")C="+svCurrent.cost+" WENT");
+	private class DijkstraInThread extends Thread
+	{
+		private Wavefront wf;
+		private Wavefront otherWf;
+		private Semaphore whenDone;
 
-			// look at all directions from this point
-			for(int i=0; i<6; i++)
+		public DijkstraInThread(String name, Wavefront wf, Wavefront otherWf, Semaphore whenDone)
+		{
+			super(name);
+			this.wf = wf;
+			this.otherWf = otherWf;
+			this.whenDone = whenDone;
+			start();
+		}
+
+		public void run()
+		{
+			SearchVertex result = null;
+			int numSearchVertices = 0;
+			while (result == null)
 			{
-				// compute a neighboring point
-				double dx = 0, dy = 0;
-				int dz = 0;
-				switch (i)
-				{
-					case 0:
-						dx = -GRAINSIZE;
-						if (FULLGRAIN)
-						{
-							double intermediate = upToGrainAlways(curX+dx);
-							if (intermediate != curX+dx) dx = intermediate - curX;
-						}
-						break;
-					case 1:
-						dx =  GRAINSIZE;
-						if (FULLGRAIN)
-						{
-							double intermediate = downToGrainAlways(curX+dx);
-							if (intermediate != curX+dx) dx = intermediate - curX;
-						}
-						break;
-					case 2:
-						dy = -GRAINSIZE;
-						if (FULLGRAIN)
-						{
-							double intermediate = upToGrainAlways(curY+dy);
-							if (intermediate != curY+dy) dy = intermediate - curY;
-						}
-						break;
-					case 3:
-						dy =  GRAINSIZE;
-						if (FULLGRAIN)
-						{
-							double intermediate = downToGrainAlways(curY+dy);
-							if (intermediate != curY+dy) dy = intermediate - curY;
-						}
-						break;
-					case 4: dz = -1;   break;
-					case 5: dz =  1;   break;
-				}
-
-				// extend the distance if heading toward the goal
-				boolean stuck = false;
-				if (dz == 0)
-				{
-					boolean goFarther = false;
-					if (dx != 0)
-					{
-						if ((toX-curX) * dx > 0) goFarther = true;
-					} else
-					{
-						if ((toY-curY) * dy > 0) goFarther = true;
-					}
-					if (goFarther)
-					{
-						double jumpSize = getJumpSize(curX, curY, curZ, dx, dy, toX, toY, jumpBound, nr.netID, nr.minWidth);
-						if (dx > 0)
-						{
-							if (jumpSize <= 0) stuck = true;
-							dx = jumpSize;
-						}
-						if (dx < 0)
-						{
-							if (jumpSize >= 0) stuck = true;
-							dx = jumpSize;
-						}
-						if (dy > 0)
-						{
-							if (jumpSize <= 0) stuck = true;
-							dy = jumpSize;
-						}
-						if (dy < 0)
-						{
-							if (jumpSize >= 0) stuck = true;
-							dy = jumpSize;
-						}
-					}
-				}
-				double nX = curX + dx;
-				double nY = curY + dy;
-				int nZ = curZ + dz;
-
-				if (DEBUGSTEPS)
-				{
-					switch (i)
-					{
-						case 0: System.out.print("  -X="+TextUtils.formatDouble(nX));   break;
-						case 1: System.out.print("  +X="+TextUtils.formatDouble(nX));   break;
-						case 2: System.out.print("  -Y="+TextUtils.formatDouble(nY));   break;
-						case 3: System.out.print("  +Y="+TextUtils.formatDouble(nY));   break;
-						case 4: System.out.print("  -Z");   break;
-						case 5: System.out.print("  +Z");   break;
-					}
-				}
-				if (stuck)
-				{
-					if (DEBUGSTEPS) System.out.print(":CannotMove");
-					continue;
-				}
-
-				if (nX < lowX)
-				{
-					nX = lowX;
-					dx = nX - curX;
-					if (dx == 0) { if (DEBUGSTEPS) System.out.print(":OutOfBounds");   continue; }
-				}
-				if (nX > highX)
-				{
-					nX = highX;
-					dx = nX - curX;
-					if (dx == 0) { if (DEBUGSTEPS) System.out.print(":OutOfBounds");   continue; }
-				}
-				if (nY < lowY)
-				{
-					nY = lowY;
-					dy = nY - curY;
-					if (dy == 0) { if (DEBUGSTEPS) System.out.print(":OutOfBounds");   continue; }
-				}
-				if (nY > highY)
-				{
-					nY = highY;
-					dy = nY - curY;
-					if (dy == 0) { if (DEBUGSTEPS) System.out.print(":OutOfBounds");   continue; }
-				}
-				if (nZ < 0 || nZ >= numMetalLayers) { if (DEBUGSTEPS) System.out.print(":OutOfBounds");   continue; }
-				if (preventArcs[nZ])  { if (DEBUGSTEPS) System.out.print(":IllegalArc");   continue; }
-
-				// see if the adjacent point has already been visited
-				if (nr.getVertex(nX, nY, nZ)) { if (DEBUGSTEPS) System.out.print(":AlreadyVisited");   continue; }
-
-				// see if the space is available
-				int whichContact = 0;
-				Point2D [] cuts = null;
-				if (dz == 0)
-				{
-					// running on one layer: check surround
-					double width = Math.max(metalArcs[nZ].getDefaultLambdaBaseWidth(), nr.minWidth);
-					double metalSpacing = width / 2;
-					boolean allClear = false;
-					for(;;)
-					{
-						SearchVertex prevPath = svCurrent;
-						double checkX = (curX+nX)/2, checkY = (curY+nY)/2;
-						double halfWid = metalSpacing + Math.abs(dx)/2;
-						double halfHei = metalSpacing + Math.abs(dy)/2;
-						while (prevPath != null && prevPath.last != null)
-						{
-							if (prevPath.zv != nZ || prevPath.last.zv != nZ) break;
-							if (prevPath.xv == prevPath.last.xv && dx == 0)
-							{
-								checkY = (prevPath.last.yv + nY) / 2;
-								halfHei = metalSpacing + Math.abs(prevPath.last.yv - nY)/2;
-								prevPath = prevPath.last;
-							} else if (prevPath.yv == prevPath.last.yv && dy == 0)
-							{
-								checkX = (prevPath.last.xv + nX) / 2;
-								halfWid = metalSpacing + Math.abs(prevPath.last.xv - nX)/2;
-								prevPath = prevPath.last;
-							} else break;
-						}
-						SOGBound sb = getMetalBlockageAndNotch(nr.netID, nZ, halfWid, halfHei,
-							checkX, checkY, prevPath, nr.minWidth);
-						if (sb == null) { allClear = true;   break; }
-
-						// see if it can be backed out slightly
-						if (i == 0)
-						{
-							// moved left too far...try a bit to the right
-							double newNX = downToGrainAlways(nX + GRAINSIZE);
-							if (newNX >= curX) break;
-							dx = newNX - curX;
-						} else if (i == 1)
-						{
-							// moved right too far...try a bit to the left
-							double newNX = upToGrainAlways(nX - GRAINSIZE);
-							if (newNX <= curX) break;
-							dx = newNX - curX;
-						} else if (i == 2)
-						{
-							// moved down too far...try a bit up
-							double newNY = downToGrainAlways(nY + GRAINSIZE);
-							if (newNY >= curY) break;
-							dy = newNY - curY;
-						} else if (i == 3)
-						{
-							// moved up too far...try a bit down
-							double newNY = upToGrainAlways(nY - GRAINSIZE);
-							if (newNY <= curY) break;
-							dy = newNY - curY;
-						}
-
-//						if (!getVertex(nX, nY, nZ)) setVertex(nX, nY, nZ);
-						nX = curX + dx;
-						nY = curY + dy;
-					}
-					if (!allClear)
-					{
-						if (DEBUGSTEPS)
-						{
-							double checkX = (curX+nX)/2, checkY = (curY+nY)/2;
-							double halfWid = metalSpacing + Math.abs(dx)/2;
-							double halfHei = metalSpacing + Math.abs(dy)/2;
-							double surround = worstMetalSurround[nZ];
-							SOGBound sb = getMetalBlockage(nr.netID, nZ, halfWid, halfHei, surround, checkX, checkY);
-							if (sb != null) System.out.print(":Blocked"); else
-								System.out.print(":BlockedNotch");
-						}
-						continue;
-					}
-				} else
-				{
-					int lowMetal = Math.min(curZ, nZ);
-					int highMetal = Math.max(curZ, nZ);
-					List<MetalVia> nps = metalVias[lowMetal].getVias();
-					whichContact = -1;
-					for(int contactNo = 0; contactNo < nps.size(); contactNo++)
-					{
-						MetalVia mv = nps.get(contactNo);
-						PrimitiveNode np = mv.via;
-						Orientation orient = Orientation.fromJava(mv.orientation*10, false, false);
-						SizeOffset so = np.getProtoSizeOffset();
-						double conWid = Math.max(np.getDefWidth()-so.getLowXOffset()-so.getHighXOffset(), nr.minWidth)+
-							so.getLowXOffset()+so.getHighXOffset();
-						double conHei = Math.max(np.getDefHeight()-so.getLowYOffset()-so.getHighYOffset(), nr.minWidth)+
-							so.getLowYOffset()+so.getHighYOffset();
-						NodeInst dummyNi = NodeInst.makeDummyInstance(np, new EPoint(nX, nY), conWid, conHei, orient);
-						Poly [] conPolys = tech.getShapeOfNode(dummyNi);
-						AffineTransform trans = null;
-						if (orient != Orientation.IDENT) trans = dummyNi.rotateOut();
-
-						// count the number of cuts and make an array for the data
-						int cutCount = 0;
-						for(int p=0; p<conPolys.length; p++)
-							if (conPolys[p].getLayer().getFunction().isContact()) cutCount++;
-						Point2D [] curCuts = new Point2D[cutCount];
-						cutCount = 0;
-						boolean failed = false;
-						for(int p=0; p<conPolys.length; p++)
-						{
-							Poly conPoly = conPolys[p];
-							if (trans != null) conPoly.transform(trans);
-							Layer conLayer = conPoly.getLayer();
-							Layer.Function lFun = conLayer.getFunction();
-							if (lFun.isMetal())
-							{
-								Rectangle2D conRect = conPoly.getBounds2D();
-								int metalNo = lFun.getLevel() - 1;
-								double halfWid = conRect.getWidth()/2;
-								double halfHei = conRect.getHeight()/2;
-								if (getMetalBlockageAndNotch(nr.netID, metalNo, halfWid, halfHei,
-									conRect.getCenterX(), conRect.getCenterY(), svCurrent, nr.minWidth) != null)
-								{
-									failed = true;
-									break;
-								}
-							} else if (lFun.isContact())
-							{
-								// make sure vias don't get too close
-								Rectangle2D conRect = conPoly.getBounds2D();
-								double conCX = conRect.getCenterX();
-								double conCY = conRect.getCenterY();
-								double surround = viaSurround[lowMetal];
-								if (getViaBlockage(nr.netID, conLayer, surround, surround, conCX, conCY) != null)
-								{
-									failed = true;
-									break;
-								}
-								curCuts[cutCount++] = new Point2D.Double(conCX, conCY);
-
-								// look at all previous cuts in this path
-								for(SearchVertex sv = svCurrent; sv != null; sv = sv.last)
-								{
-									SearchVertex lastSv = sv.last;
-									if (lastSv == null) break;
-									if (Math.min(sv.getZ(), lastSv.getZ()) == lowMetal &&
-										Math.max(sv.getZ(), lastSv.getZ()) == highMetal)
-									{
-										// make sure the cut isn't too close
-										Point2D [] svCuts;
-										if (sv.getCutLayer() == lowMetal) svCuts = sv.getCuts(); else
-											svCuts = lastSv.getCuts();
-										if (svCuts != null)
-										{
-											for(Point2D cutPt : svCuts)
-											{
-												if (Math.abs(cutPt.getX() - conCX) >= surround ||
-													Math.abs(cutPt.getY() - conCY) >= surround) continue;
-												failed = true;
-												break;
-											}
-										}
-										if (failed) break;
-									}
-								}
-								if (failed) break;
-							}
-						}
-						if (failed) continue;
-						whichContact = contactNo;
-						cuts = curCuts;
-						break;
-					}
-					if (whichContact < 0) { if (DEBUGSTEPS) System.out.print(":Blocked");   continue; }
-				}
-
-				// we have a candidate next-point
-				SearchVertex svNext = new SearchVertex(nX, nY, nZ, whichContact, cuts, Math.min(curZ, nZ), nr);
-				svNext.last = svCurrent;
-
-				// stop if we found the destination
-				if (nX == toX && nY == toY && nZ == toZ)
-				{
-					if (DEBUGSTEPS) System.out.print(":FoundDestination");
-					thread = svNext;
-					break;
-				}
-
 				// stop if the search is too complex
 				numSearchVertices++;
 				if (numSearchVertices > Routing.getSeaOfGatesComplexityLimit())
 				{
-					nr.searchVertexPlanes = null;
-					nr.searchVertexPlanesDBL = null;
-					nr.timeTaken = System.currentTimeMillis() - startTime;
-					return null;
-				}
-
-				// compute the cost
-				svNext.cost = svCurrent.cost;
-				if (dx != 0)
-				{
-					if (toX == curX) svNext.cost += COSTWRONGDIRECTION/2; else
-						if ((toX-curX) * dx < 0) svNext.cost += COSTWRONGDIRECTION;
-					if (COSTALTERNATINGMETAL != 0 && (nZ%2) == 0) svNext.cost += COSTALTERNATINGMETAL*Math.abs(dx);
-				}
-				if (dy != 0)
-				{
-					if (toY == curY) svNext.cost += COSTWRONGDIRECTION/2; else
-						if ((toY-curY) * dy < 0) svNext.cost += COSTWRONGDIRECTION;
-					if (COSTALTERNATINGMETAL != 0 && (nZ%2) != 0) svNext.cost += COSTALTERNATINGMETAL*Math.abs(dy);
-				}
-				if (dz != 0)
-				{
-					if (toZ == curZ) svNext.cost += COSTLAYERCHANGE; else
-						if ((toZ-curZ) * dz < 0) svNext.cost += COSTLAYERCHANGE * COSTWRONGDIRECTION;
+					result = svLimited;
 				} else
 				{
-					// not changing layers: compute penalty for unused tracks on either side of run
-					double jumpSize1 = Math.abs(getJumpSize(nX, nY, nZ, dx, dy, toX, toY, jumpBound, nr.netID, nr.minWidth));
-					double jumpSize2 = Math.abs(getJumpSize(curX, curY, curZ, -dx, -dy, toX, toY, jumpBound, nr.netID, nr.minWidth));
-					if (jumpSize1 > GRAINSIZE && jumpSize2 > GRAINSIZE)
-					{
-						svNext.cost += (jumpSize1 * jumpSize2) / 10;
-					}
-
-					// not changing layers: penalize if turning in X or Y
-					if (svCurrent.last != null)
-					{
-						boolean xTurn = svCurrent.getX() != svCurrent.last.getX();
-						boolean yTurn = svCurrent.getY() != svCurrent.last.getY();
-						if (xTurn != (dx != 0) || yTurn != (dy != 0)) svNext.cost += COSTTURNING;
-					}
+					result = advanceWavefront(wf);
 				}
-				if (!favorArcs[nZ]) svNext.cost += (COSTLAYERCHANGE*COSTUNFAVORED)*Math.abs(dz) + COSTUNFAVORED*Math.abs(dx + dy);
-				if (downToGrainAlways(nX) != nX && nX != toX) svNext.cost += COSTOFFGRID;
-				if (downToGrainAlways(nY) != nY && nY != toY) svNext.cost += COSTOFFGRID;
-
-				// add this vertex into the data structures
-				nr.setVertex(nX, nY, nZ);
-				active.add(svNext);
-				if (DEBUGSTEPS)
-					System.out.print("("+TextUtils.formatDouble(svNext.getX())+","+TextUtils.formatDouble(svNext.getY())+
-						","+svNext.getZ()+")C="+svNext.cost);
 			}
-			if (DEBUGSTEPS) System.out.println();
-			if (thread != null) break;
+			if (result != svAborted && result != svExhausted && result != svLimited)
+			{
+				wf.vertices = getOptimizedList(result);
+				wf.nr.winningWF = wf;
+				otherWf.abort = true;
+			}
+
+			whenDone.release();
+		}
+	}
+
+	private SearchVertex advanceWavefront(Wavefront wf)
+	{
+		if (wf.abort)
+		{
+			return svAborted;
 		}
 
-//		if (thread != null)
-//		{
-//			dumpPlane(0);
-//			dumpPlane(1);
-//			dumpPlane(2);
-//		}
-		List<SearchVertex> realVertices = getOptimizedList(thread);
-		nr.searchVertexPlanes = null;
-		nr.searchVertexPlanesDBL = null;
-		nr.timeTaken = System.currentTimeMillis() - startTime;
-		if (thread != null) otherNr.abort = true;
-		return realVertices;
+		// get the lowest cost point
+		if (wf.active.size() == 0) return svExhausted;
+		SearchVertex svCurrent = wf.active.first();
+		wf.active.remove(svCurrent);
+		double curX = svCurrent.getX();
+		double curY = svCurrent.getY();
+		int curZ = svCurrent.getZ();
+
+		if (wf.debug) System.out.print("AT ("+TextUtils.formatDouble(curX)+","+TextUtils.formatDouble(curY)+",M"
+			+(curZ+1)+")C="+svCurrent.cost+" WENT");
+
+		// look at all directions from this point
+		for(int i=0; i<6; i++)
+		{
+			// compute a neighboring point
+			double dx = 0, dy = 0;
+			int dz = 0;
+			switch (i)
+			{
+				case 0:
+					dx = -GRAINSIZE;
+					if (FULLGRAIN)
+					{
+						double intermediate = upToGrainAlways(curX+dx);
+						if (intermediate != curX+dx) dx = intermediate - curX;
+					}
+					break;
+				case 1:
+					dx =  GRAINSIZE;
+					if (FULLGRAIN)
+					{
+						double intermediate = downToGrainAlways(curX+dx);
+						if (intermediate != curX+dx) dx = intermediate - curX;
+					}
+					break;
+				case 2:
+					dy = -GRAINSIZE;
+					if (FULLGRAIN)
+					{
+						double intermediate = upToGrainAlways(curY+dy);
+						if (intermediate != curY+dy) dy = intermediate - curY;
+					}
+					break;
+				case 3:
+					dy =  GRAINSIZE;
+					if (FULLGRAIN)
+					{
+						double intermediate = downToGrainAlways(curY+dy);
+						if (intermediate != curY+dy) dy = intermediate - curY;
+					}
+					break;
+				case 4: dz = -1;   break;
+				case 5: dz =  1;   break;
+			}
+
+			// extend the distance if heading toward the goal
+			boolean stuck = false;
+			if (dz == 0)
+			{
+				boolean goFarther = false;
+				if (dx != 0)
+				{
+					if ((wf.toX-curX) * dx > 0) goFarther = true;
+				} else
+				{
+					if ((wf.toY-curY) * dy > 0) goFarther = true;
+				}
+				if (goFarther)
+				{
+					double jumpSize = getJumpSize(curX, curY, curZ, dx, dy, wf);
+					if (dx > 0)
+					{
+						if (jumpSize <= 0) stuck = true;
+						dx = jumpSize;
+					}
+					if (dx < 0)
+					{
+						if (jumpSize >= 0) stuck = true;
+						dx = jumpSize;
+					}
+					if (dy > 0)
+					{
+						if (jumpSize <= 0) stuck = true;
+						dy = jumpSize;
+					}
+					if (dy < 0)
+					{
+						if (jumpSize >= 0) stuck = true;
+						dy = jumpSize;
+					}
+				}
+			}
+			double nX = curX + dx;
+			double nY = curY + dy;
+			int nZ = curZ + dz;
+
+			if (wf.debug)
+			{
+				switch (i)
+				{
+					case 0: System.out.print("  X-"+TextUtils.formatDouble(Math.abs(dx)));   break;
+					case 1: System.out.print("  X+"+TextUtils.formatDouble(dx));   break;
+					case 2: System.out.print("  Y-"+TextUtils.formatDouble(Math.abs(dy)));   break;
+					case 3: System.out.print("  Y+"+TextUtils.formatDouble(dy));   break;
+					case 4: System.out.print("  -Z");   break;
+					case 5: System.out.print("  +Z");   break;
+				}
+			}
+			if (stuck)
+			{
+				if (wf.debug) System.out.print(":CannotMove");
+				continue;
+			}
+
+			if (nX < wf.nr.minimumSearchBoundX)
+			{
+				nX = wf.nr.minimumSearchBoundX;
+				dx = nX - curX;
+				if (dx == 0) { if (wf.debug) System.out.print(":OutOfBounds");   continue; }
+			}
+			if (nX > wf.nr.maximumSearchBoundX)
+			{
+				nX = wf.nr.maximumSearchBoundX;
+				dx = nX - curX;
+				if (dx == 0) { if (wf.debug) System.out.print(":OutOfBounds");   continue; }
+			}
+			if (nY < wf.nr.minimumSearchBoundY)
+			{
+				nY = wf.nr.minimumSearchBoundY;
+				dy = nY - curY;
+				if (dy == 0) { if (wf.debug) System.out.print(":OutOfBounds");   continue; }
+			}
+			if (nY > wf.nr.maximumSearchBoundY)
+			{
+				nY = wf.nr.maximumSearchBoundY;
+				dy = nY - curY;
+				if (dy == 0) { if (wf.debug) System.out.print(":OutOfBounds");   continue; }
+			}
+			if (nZ < 0 || nZ >= numMetalLayers) { if (wf.debug) System.out.print(":OutOfBounds");   continue; }
+			if (preventArcs[nZ])  { if (wf.debug) System.out.print(":IllegalArc");   continue; }
+
+			// see if the adjacent point has already been visited
+			if (wf.getVertex(nX, nY, nZ)) { if (wf.debug) System.out.print(":AlreadyVisited");   continue; }
+
+			// see if the space is available
+			int whichContact = 0;
+			Point2D [] cuts = null;
+			if (dz == 0)
+			{
+				// running on one layer: check surround
+				double width = Math.max(metalArcs[nZ].getDefaultLambdaBaseWidth(), wf.nr.minWidth);
+				double metalSpacing = width / 2;
+				boolean allClear = false;
+				for(;;)
+				{
+					SearchVertex prevPath = svCurrent;
+					double checkX = (curX+nX)/2, checkY = (curY+nY)/2;
+					double halfWid = metalSpacing + Math.abs(dx)/2;
+					double halfHei = metalSpacing + Math.abs(dy)/2;
+					while (prevPath != null && prevPath.last != null)
+					{
+						if (prevPath.zv != nZ || prevPath.last.zv != nZ) break;
+						if (prevPath.xv == prevPath.last.xv && dx == 0)
+						{
+							checkY = (prevPath.last.yv + nY) / 2;
+							halfHei = metalSpacing + Math.abs(prevPath.last.yv - nY)/2;
+							prevPath = prevPath.last;
+						} else if (prevPath.yv == prevPath.last.yv && dy == 0)
+						{
+							checkX = (prevPath.last.xv + nX) / 2;
+							halfWid = metalSpacing + Math.abs(prevPath.last.xv - nX)/2;
+							prevPath = prevPath.last;
+						} else break;
+					}
+					SOGBound sb = getMetalBlockageAndNotch(wf.nr.netID, nZ, halfWid, halfHei,
+						checkX, checkY, prevPath, wf.nr.minWidth);
+					if (sb == null) { allClear = true;   break; }
+
+					// see if it can be backed out slightly
+					if (i == 0)
+					{
+						// moved left too far...try a bit to the right
+						double newNX = downToGrainAlways(nX + GRAINSIZE);
+						if (newNX >= curX) break;
+						dx = newNX - curX;
+					} else if (i == 1)
+					{
+						// moved right too far...try a bit to the left
+						double newNX = upToGrainAlways(nX - GRAINSIZE);
+						if (newNX <= curX) break;
+						dx = newNX - curX;
+					} else if (i == 2)
+					{
+						// moved down too far...try a bit up
+						double newNY = downToGrainAlways(nY + GRAINSIZE);
+						if (newNY >= curY) break;
+						dy = newNY - curY;
+					} else if (i == 3)
+					{
+						// moved up too far...try a bit down
+						double newNY = upToGrainAlways(nY - GRAINSIZE);
+						if (newNY <= curY) break;
+						dy = newNY - curY;
+					}
+
+//					if (!getVertex(nX, nY, nZ)) setVertex(nX, nY, nZ);
+					nX = curX + dx;
+					nY = curY + dy;
+				}
+				if (!allClear)
+				{
+					if (wf.debug)
+					{
+						double checkX = (curX+nX)/2, checkY = (curY+nY)/2;
+						double halfWid = metalSpacing + Math.abs(dx)/2;
+						double halfHei = metalSpacing + Math.abs(dy)/2;
+						double surround = worstMetalSurround[nZ];
+						SOGBound sb = getMetalBlockage(wf.nr.netID, nZ, halfWid, halfHei, surround, checkX, checkY);
+						if (sb != null) System.out.print(":Blocked"); else
+							System.out.print(":BlockedNotch");
+					}
+					continue;
+				}
+			} else
+			{
+				int lowMetal = Math.min(curZ, nZ);
+				int highMetal = Math.max(curZ, nZ);
+				List<MetalVia> nps = metalVias[lowMetal].getVias();
+				whichContact = -1;
+				for(int contactNo = 0; contactNo < nps.size(); contactNo++)
+				{
+					MetalVia mv = nps.get(contactNo);
+					PrimitiveNode np = mv.via;
+					Orientation orient = Orientation.fromJava(mv.orientation*10, false, false);
+					SizeOffset so = np.getProtoSizeOffset();
+					double conWid = Math.max(np.getDefWidth()-so.getLowXOffset()-so.getHighXOffset(), wf.nr.minWidth)+
+						so.getLowXOffset()+so.getHighXOffset();
+					double conHei = Math.max(np.getDefHeight()-so.getLowYOffset()-so.getHighYOffset(), wf.nr.minWidth)+
+						so.getLowYOffset()+so.getHighYOffset();
+					NodeInst dummyNi = NodeInst.makeDummyInstance(np, new EPoint(nX, nY), conWid, conHei, orient);
+					Poly [] conPolys = tech.getShapeOfNode(dummyNi);
+					AffineTransform trans = null;
+					if (orient != Orientation.IDENT) trans = dummyNi.rotateOut();
+
+					// count the number of cuts and make an array for the data
+					int cutCount = 0;
+					for(int p=0; p<conPolys.length; p++)
+						if (conPolys[p].getLayer().getFunction().isContact()) cutCount++;
+					Point2D [] curCuts = new Point2D[cutCount];
+					cutCount = 0;
+					boolean failed = false;
+					for(int p=0; p<conPolys.length; p++)
+					{
+						Poly conPoly = conPolys[p];
+						if (trans != null) conPoly.transform(trans);
+						Layer conLayer = conPoly.getLayer();
+						Layer.Function lFun = conLayer.getFunction();
+						if (lFun.isMetal())
+						{
+							Rectangle2D conRect = conPoly.getBounds2D();
+							int metalNo = lFun.getLevel() - 1;
+							double halfWid = conRect.getWidth()/2;
+							double halfHei = conRect.getHeight()/2;
+							if (getMetalBlockageAndNotch(wf.nr.netID, metalNo, halfWid, halfHei,
+								conRect.getCenterX(), conRect.getCenterY(), svCurrent, wf.nr.minWidth) != null)
+							{
+								failed = true;
+								break;
+							}
+						} else if (lFun.isContact())
+						{
+							// make sure vias don't get too close
+							Rectangle2D conRect = conPoly.getBounds2D();
+							double conCX = conRect.getCenterX();
+							double conCY = conRect.getCenterY();
+							double surround = viaSurround[lowMetal];
+							if (getViaBlockage(wf.nr.netID, conLayer, surround, surround, conCX, conCY) != null)
+							{
+								failed = true;
+								break;
+							}
+							curCuts[cutCount++] = new Point2D.Double(conCX, conCY);
+
+							// look at all previous cuts in this path
+							for(SearchVertex sv = svCurrent; sv != null; sv = sv.last)
+							{
+								SearchVertex lastSv = sv.last;
+								if (lastSv == null) break;
+								if (Math.min(sv.getZ(), lastSv.getZ()) == lowMetal &&
+									Math.max(sv.getZ(), lastSv.getZ()) == highMetal)
+								{
+									// make sure the cut isn't too close
+									Point2D [] svCuts;
+									if (sv.getCutLayer() == lowMetal) svCuts = sv.getCuts(); else
+										svCuts = lastSv.getCuts();
+									if (svCuts != null)
+									{
+										for(Point2D cutPt : svCuts)
+										{
+											if (Math.abs(cutPt.getX() - conCX) >= surround ||
+												Math.abs(cutPt.getY() - conCY) >= surround) continue;
+											failed = true;
+											break;
+										}
+									}
+									if (failed) break;
+								}
+							}
+							if (failed) break;
+						}
+					}
+					if (failed) continue;
+					whichContact = contactNo;
+					cuts = curCuts;
+					break;
+				}
+				if (whichContact < 0) { if (wf.debug) System.out.print(":Blocked");   continue; }
+			}
+
+			// we have a candidate next-point
+			SearchVertex svNext = new SearchVertex(nX, nY, nZ, whichContact, cuts, Math.min(curZ, nZ), wf);
+			svNext.last = svCurrent;
+
+			// stop if we found the destination
+			if (nX == wf.toX && nY == wf.toY && nZ == wf.toZ)
+			{
+				if (wf.debug) System.out.print(":FoundDestination");
+				return svNext;
+			}
+			if (DBMath.areEquals(nX, wf.toX) && DBMath.areEquals(nY, wf.toY) && nZ == wf.toZ)
+			{
+				if (wf.debug) System.out.print(":FoundDestination");
+				return svNext;
+			}
+
+			// compute the cost
+			svNext.cost = svCurrent.cost;
+			if (dx != 0)
+			{
+				if (wf.toX == curX) svNext.cost += COSTWRONGDIRECTION/2; else
+					if ((wf.toX-curX) * dx < 0) svNext.cost += COSTWRONGDIRECTION;
+				if (COSTALTERNATINGMETAL != 0 && (nZ%2) == 0) svNext.cost += COSTALTERNATINGMETAL;
+			}
+			if (dy != 0)
+			{
+				if (wf.toY == curY) svNext.cost += COSTWRONGDIRECTION/2; else
+					if ((wf.toY-curY) * dy < 0) svNext.cost += COSTWRONGDIRECTION;
+				if (COSTALTERNATINGMETAL != 0 && (nZ%2) != 0) svNext.cost += COSTALTERNATINGMETAL;
+			}
+			if (dz != 0)
+			{
+				if (wf.toZ == curZ) svNext.cost += COSTLAYERCHANGE; else
+					if ((wf.toZ-curZ) * dz < 0) svNext.cost += COSTLAYERCHANGE * COSTWRONGDIRECTION;
+			} else
+			{
+				// not changing layers: compute penalty for unused tracks on either side of run
+				double jumpSize1 = Math.abs(getJumpSize(nX, nY, nZ, dx, dy, wf));
+				double jumpSize2 = Math.abs(getJumpSize(curX, curY, curZ, -dx, -dy, wf));
+				if (jumpSize1 > GRAINSIZE && jumpSize2 > GRAINSIZE)
+				{
+					svNext.cost += (jumpSize1 * jumpSize2) / 10;
+				}
+
+				// not changing layers: penalize if turning in X or Y
+				if (svCurrent.last != null)
+				{
+					boolean xTurn = svCurrent.getX() != svCurrent.last.getX();
+					boolean yTurn = svCurrent.getY() != svCurrent.last.getY();
+					if (xTurn != (dx != 0) || yTurn != (dy != 0)) svNext.cost += COSTTURNING;
+				}
+			}
+			if (!favorArcs[nZ]) svNext.cost += (COSTLAYERCHANGE*COSTUNFAVORED)*Math.abs(dz) + COSTUNFAVORED*Math.abs(dx + dy);
+			if (downToGrainAlways(nX) != nX && nX != wf.toX) svNext.cost += COSTOFFGRID;
+			if (downToGrainAlways(nY) != nY && nY != wf.toY) svNext.cost += COSTOFFGRID;
+
+			// add this vertex into the data structures
+			wf.setVertex(nX, nY, nZ);
+			wf.active.add(svNext);
+			if (wf.debug)
+				System.out.print("("+TextUtils.formatDouble(svNext.getX())+","+TextUtils.formatDouble(svNext.getY())+
+					",M"+(svNext.getZ()+1)+")C="+svNext.cost);
+
+			// add intermediate steps along the way if it was a jump
+			if (dz == 0)
+			{
+				if (Math.abs(dx) > 1)
+				{
+					double inc = dx < 0 ? 1 : -1;
+					double lessDX = dx + inc;
+					int cost = svNext.cost;
+					int countDown = 0;
+					for(;;)
+					{
+						double nowX = curX+lessDX;
+						cost++;
+						if (!wf.getVertex(nowX, nY, nZ))
+						{
+							SearchVertex svIntermediate = new SearchVertex(nowX, nY, nZ, whichContact, cuts, curZ, wf);
+							svIntermediate.last = svCurrent;
+							svIntermediate.cost = cost;
+							wf.setVertex(nowX, nY, nZ);
+							wf.active.add(svIntermediate);
+						}
+						lessDX += inc;
+						if (inc < 0)
+						{
+							if (lessDX < 1) break;
+						} else
+						{
+							if (lessDX > -1) break;
+						}
+						if (countDown++ >= 10) { countDown = 0;   inc += inc; }
+					}
+				}
+				if (Math.abs(dy) > 1)
+				{
+					double inc = dy < 0 ? 1 : -1;
+					double lessDY = dy + inc;
+					int cost = svNext.cost;
+					int countDown = 0;
+					for(;;)
+					{
+						double nowY = curY+lessDY;
+						cost++;
+						if (!wf.getVertex(nX, nowY, nZ))
+						{
+							SearchVertex svIntermediate = new SearchVertex(nX, nowY, nZ, whichContact, cuts, curZ, wf);
+							svIntermediate.last = svCurrent;
+							svIntermediate.cost = cost;
+							wf.setVertex(nX, nowY, nZ);
+							wf.active.add(svIntermediate);
+						}
+						lessDY += inc;
+						if (inc < 0)
+						{
+							if (lessDY < 1) break;
+						} else
+						{
+							if (lessDY > -1) break;
+						}
+						if (countDown++ >= 10) { countDown = 0;   inc += inc; }
+					}
+				}
+			}
+		}
+		if (wf.debug) System.out.println();
+		return null;
 	}
 
 	/**
@@ -2016,10 +2105,10 @@ public class SeaOfGatesEngine
 		return realVertices;
 	}
 
-	private double getJumpSize(double curX, double curY, int curZ, double dx, double dy, double toX, double toY,
-		Rectangle2D jumpBound, int netID, double minWidth)
+	private double getJumpSize(double curX, double curY, int curZ, double dx, double dy, Wavefront wf)
 	{
-		double width = Math.max(metalArcs[curZ].getDefaultLambdaBaseWidth(), minWidth);
+		Rectangle2D jumpBound = wf.nr.jumpBound;
+		double width = Math.max(metalArcs[curZ].getDefaultLambdaBaseWidth(), wf.nr.minWidth);
 		double metalToMetal = getSpacingRule(curZ, width, -1);
 		double metalSpacing = width / 2 + metalToMetal;
 		double lX = curX - metalSpacing, hX = curX + metalSpacing;
@@ -2037,7 +2126,7 @@ public class SeaOfGatesEngine
 			for(RTNode.Search sea = new RTNode.Search(searchArea, rtree, true); sea.hasNext(); )
 			{
 				SOGBound sBound = (SOGBound)sea.next();
-				if (Math.abs(sBound.getNetID()) == netID) continue;
+				if (Math.abs(sBound.getNetID()) == wf.nr.netID) continue;
 				Rectangle2D bound = sBound.getBounds();
 				if (bound.getMinX() >= hX || bound.getMaxX() <= lX ||
 					bound.getMinY() >= hY || bound.getMaxY() <= lY) continue;
@@ -2050,25 +2139,29 @@ public class SeaOfGatesEngine
 		if (dx > 0)
 		{
 			dx = downToGrain(hX-metalSpacing)-curX;
-			if (curX+dx != toX && FULLGRAIN) dx = downToGrainAlways(hX-metalSpacing)-curX;
+			if (curX+dx > wf.toX && curY == wf.toY && curZ == wf.toZ) dx = wf.toX-curX;
+			if (curX+dx != wf.toX && FULLGRAIN) dx = downToGrainAlways(hX-metalSpacing)-curX;
 			return dx;
 		}
 		if (dx < 0)
 		{
 			dx = upToGrain(lX+metalSpacing)-curX;
-			if (curX+dx != toX && FULLGRAIN) dx = upToGrainAlways(lX+metalSpacing)-curX;
+			if (curX+dx < wf.toX && curY == wf.toY && curZ == wf.toZ) dx = wf.toX-curX;
+			if (curX+dx != wf.toX && FULLGRAIN) dx = upToGrainAlways(lX+metalSpacing)-curX;
 			return dx;
 		}
 		if (dy > 0)
 		{
 			dy = downToGrain(hY-metalSpacing)-curY;
-			if (curY+dy != toY && FULLGRAIN) dy = downToGrainAlways(hY-metalSpacing)-curY;
+			if (curX == wf.toX && curY+dy > wf.toY && curZ == wf.toZ) dy = wf.toY-curY;
+			if (curY+dy != wf.toY && FULLGRAIN) dy = downToGrainAlways(hY-metalSpacing)-curY;
 			return dy;
 		}
 		if (dy < 0)
 		{
 			dy = upToGrain(lY+metalSpacing)-curY;
-			if (curY+dy != toY && FULLGRAIN) dy = upToGrainAlways(lY+metalSpacing)-curY;
+			if (curX == wf.toX && curY+dy < wf.toY && curZ == wf.toZ) dy = wf.toY-curY;
+			if (curY+dy != wf.toY && FULLGRAIN) dy = upToGrainAlways(lY+metalSpacing)-curY;
 			return dy;
 		}
 		return 0;
@@ -2803,7 +2896,7 @@ public class SeaOfGatesEngine
 		/** the layer of cuts in "cuts". */			private int cutLayer;
 		/** the cuts in the contact. */				private Point2D [] cuts;
 		/** the previous vertex in the search. */	private SearchVertex last;
-		/** the routing state. */					private NeededRoute nr;
+		/** the routing state. */					private Wavefront w;
 
 		/**
 		 * Method to create a new SearchVertex.
@@ -2815,14 +2908,14 @@ public class SeaOfGatesEngine
 		 * @param cl the layer of the cut (if switching layers).
 		 * @param nr the NeededRoute that this SearchVertex is part of.
 		 */
-		SearchVertex(double x, double y, int z, int whichContact, Point2D [] cuts, int cl, NeededRoute nr)
+		SearchVertex(double x, double y, int z, int whichContact, Point2D [] cuts, int cl, Wavefront w)
 		{
 			xv = x;
 			yv = y;
 			zv = (z<<8) + (whichContact & 0xFF);
 			this.cuts = cuts;
 			cutLayer = cl;
-			this.nr = nr;
+			this.w = w;
 		}
 
 		double getX() { return xv; }
@@ -2835,6 +2928,8 @@ public class SeaOfGatesEngine
 
 		Point2D [] getCuts() { return cuts; }
 
+		void clearCuts() { cuts = null; }
+
 		int getCutLayer() { return cutLayer; }
 
 		/**
@@ -2845,11 +2940,14 @@ public class SeaOfGatesEngine
 			SearchVertex sv = (SearchVertex)svo;
 			int diff = cost - sv.cost;
 			if (diff != 0) return diff;
-			double thisDist = Math.abs(xv-nr.destX) + Math.abs(yv-nr.destY) + Math.abs(zv-nr.destZ);
-			double otherDist = Math.abs(sv.xv-nr.destX) + Math.abs(sv.yv-nr.destY) + Math.abs(sv.zv-nr.destZ);
-			if (thisDist == otherDist) return 0;
-			if (thisDist > otherDist) return 1;
-			return -1;
+			if (w != null)
+			{
+				double thisDist = Math.abs(xv-w.toX) + Math.abs(yv-w.toY) + Math.abs(zv-w.toZ);
+				double otherDist = Math.abs(sv.xv-w.toX) + Math.abs(sv.yv-w.toY) + Math.abs(sv.zv-w.toZ);
+				if (thisDist < otherDist) return -1;
+				if (thisDist > otherDist) return 1;
+			}
+			return 0;
 		}
 	}
 

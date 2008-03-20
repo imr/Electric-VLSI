@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07g: ******************************
 
+BUG: (3/20/08, SMR) Sea-of-gates router is slow (Bug #1414).
+FIX: Much faster now.  Interleaves steps in the two directions.
+
 ************************* Version 8.07f: ******************************
 
 BUG: (3/19/08, SMR) Interactive sizing doesn't work right with SHIFT key held.
