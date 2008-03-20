@@ -1720,7 +1720,7 @@ public class Technology implements Comparable<Technology>, Serializable
             tsmc180 = findTechnology("tsmc180");
             if (tsmc180 == null)
             {
-                System.out.println("Error loading tsmc180");
+//                System.out.println("Error loading tsmc180");
                 tsmc180Cached = false;
             }
         }
@@ -1741,7 +1741,7 @@ public class Technology implements Comparable<Technology>, Serializable
             cmos90 = findTechnology("cmos90");
             if (cmos90 == null)
             {
-                System.out.println("Error loading cmos90");
+//                System.out.println("Error loading cmos90");
                 cmos90Cached = false;
             }
         }
