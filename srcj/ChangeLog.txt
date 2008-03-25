@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07g: ******************************
 
+BUG: (3/24/08, DN) Spurious error message when editing schematics (Bug #1613)
+FIX: In Foundry constructor mark Foundries with fileURL==null as loaded.
+
 BUG: (3/20/08, SMR) Sea-of-gates router is slow (Bug #1414).
 FIX: Much faster now.  Interleaves steps in the two directions.
 

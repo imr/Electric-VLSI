@@ -63,6 +63,8 @@ public class Foundry {
         this.tech = tech;
         this.type = mode;
         this.fileURL = fileURL;
+        if (fileURL == null)
+            rulesLoaded = true;
         setFactoryGDSLayers(gdsLayers);
     }
     Foundry(Technology tech, Type mode, List<DRCTemplate> rules, String[] gdsLayers) {
