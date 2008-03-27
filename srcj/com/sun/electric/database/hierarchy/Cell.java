@@ -65,6 +65,7 @@ import com.sun.electric.technology.AbstractShapeBuilder;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
@@ -1083,9 +1084,10 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
     public Topology getTopology() { return topology; }
 
     private CellBackup doBackup() {
+        TechPool techPool = database.getTechPool();
         if (backup == null) {
             getTechnology();
-            backup = new CellBackup(getD().withoutVariables(), database.getTechPool());
+            backup = new CellBackup(getD().withoutVariables(), techPool);
             assert !cellBackupFresh && !cellContentsFresh;
         }
         ImmutableNodeInst[] nodes = null;
@@ -1097,7 +1099,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             arcs = topology.backupArcs(backup.cellRevision.arcs);
             exports = backupExports();
         }
-        backup = backup.with(getD(), revisionDate, modified,
+        backup = backup.withTechPool(techPool).with(getD(), revisionDate, modified,
                 nodes, arcs, exports);
         cellBackupFresh = true;
         cellContentsFresh = true;

@@ -4,6 +4,15 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07g: ******************************
 
+BUG: (3/27/08, DN) TechEdit writes red component of first transparent color as 0.
+FIX: In tecEdit/GeneralInfo.getTransparenColors remove text before ':'.
+
+BUG: (3/27/08, DN) Crash when TechEdit writes Xml.
+FIX: In tecEdit/LibToTech check nodeSizeRule, spiceTemplate, sizeOffset.
+
+BUG: (3/27/08, DN) Crash in tecEditTests.
+FIX: In EDatabase and Cell correctly update techPool.
+
 BUG: (3/24/08, DN) Spurious error message when editing schematics (Bug #1613)
 FIX: In Foundry constructor mark Foundries with fileURL==null as loaded.
 

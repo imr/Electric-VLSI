@@ -342,6 +342,8 @@ public class TechExplorer extends ESandBox {
                 l.mode3D = (String)Layer_getTransparencyMode.invoke(layer);
             if (Layer_getTransparencyFactor != null)
                 l.factor3D = (Double)Layer_getTransparencyFactor.invoke(layer);
+            if (l.thick3D == 0 && l.height3D == 0 && l.mode3D.equals("NONE") && l.factor3D == 0)
+                l.mode3D = null;
             l.cif = (String)Layer_getCIFLayer.invoke(layer);
             l.skill = (String)Layer_getSkillLayer.invoke(layer);
             l.resistance = (Double)Layer_getResistance.invoke(layer);

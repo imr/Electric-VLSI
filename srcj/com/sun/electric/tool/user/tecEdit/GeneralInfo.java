@@ -116,8 +116,12 @@ public class GeneralInfo extends Info
 		int opt = Manipulate.getOptionOnNode(ni);
 		if (opt != TECHTRANSPCOLORS) return null;
 		Variable var = ni.getVar(TRANSLAYER_KEY);
+        String transparentColorsStr = (String)var.getObject();
+        int colon = transparentColorsStr.indexOf(':');
+        if (colon >= 0)
+            transparentColorsStr = transparentColorsStr.substring(colon + 1);
 		if (var == null) return null;
-		Color [] colors = TextUtils.getTransparentColors((String)var.getObject());
+		Color [] colors = TextUtils.getTransparentColors(transparentColorsStr);
 		return colors;
 	}
 

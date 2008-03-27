@@ -3466,16 +3466,17 @@ public class LibToTech
             pn.od33 = ni.od33;
             EPoint minFullSize = EPoint.fromLambda(0.5*ni.xSize, 0.5*ni.ySize);
             
-            double lx = -minFullSize.getLambdaX();
-            double hx = minFullSize.getLambdaX();
-            double ly = -minFullSize.getLambdaY();
-            double hy = minFullSize.getLambdaY();
-            if (ni.so != null) {
-                lx += ni.so.getLowXOffset();
-                hx -= ni.so.getHighXOffset();
-                ly += ni.so.getLowYOffset();
-                hy -= ni.so.getHighYOffset();
-            }
+            pn.sizeOffset = ni.so;
+//            double lx = -minFullSize.getLambdaX();
+//            double hx = minFullSize.getLambdaX();
+//            double ly = -minFullSize.getLambdaY();
+//            double hy = minFullSize.getLambdaY();
+//            if (ni.so != null) {
+//                lx += ni.so.getLowXOffset();
+//                hx -= ni.so.getHighXOffset();
+//                ly += ni.so.getLowYOffset();
+//                hy -= ni.so.getHighYOffset();
+//            }
 /*            pn.nodeBase = ERectangle.fromLambda(lx, ly, hx - lx, hy - ly);
             if (!minFullSize.equals(EPoint.ORIGIN))
                 pn.diskOffset = minFullSize;*/
@@ -3487,7 +3488,8 @@ public class LibToTech
             
 //	        pn.defaultWidth.value = DBMath.round(ni.xSize);
 //	        pn.defaultHeight.value = DBMath.round(ni.ySize);
-            pn.spiceTemplate = ni.spiceTemplate;
+            if (ni.spiceTemplate != null && !ni.spiceTemplate.equals(""))
+                pn.spiceTemplate = ni.spiceTemplate;
             for(int j=0; j<ni.nodeLayers.length; j++) {
                 NodeInfo.LayerDetails nl = ni.nodeLayers[j];
                 pn.nodeLayers.add(makeNodeLayerDetails(nl, ni.serp, minFullSize));
@@ -3526,10 +3528,12 @@ public class LibToTech
                 for (int i = 0; i < 6; i++)
                     pn.specialValues[i] = ni.specialValues[i];
             }
-            pn.nodeSizeRule = new Xml.NodeSizeRule();
-            pn.nodeSizeRule.width = ni.nodeSizeRule.getWidth();
-            pn.nodeSizeRule.height = ni.nodeSizeRule.getHeight();
-            pn.nodeSizeRule.rule = ni.nodeSizeRule.getRuleName();
+            if (ni.nodeSizeRule != null) {
+                pn.nodeSizeRule = new Xml.NodeSizeRule();
+                pn.nodeSizeRule.width = ni.nodeSizeRule.getWidth();
+                pn.nodeSizeRule.height = ni.nodeSizeRule.getHeight();
+                pn.nodeSizeRule.rule = ni.nodeSizeRule.getRuleName();
+            }
             t.nodes.add(pn);
 
         }

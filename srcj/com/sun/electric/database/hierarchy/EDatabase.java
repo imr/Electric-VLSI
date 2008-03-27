@@ -103,6 +103,7 @@ public class EDatabase {
     public void addTech(Technology tech) {
         assert getTech(tech.getId()) == null;
         techPool = techPool.withTech(tech);
+        snapshotFresh = false;
     }
 
     /** Returns TechPool of this database */
@@ -394,6 +395,8 @@ public class EDatabase {
         for (int cellIndex = 0; cellIndex < cellBackups.length; cellIndex++) {
             Cell cell = getCell(cellIndex);
 			if (cell != null) {
+                if (techPool != snapshot.techPool)
+                    cell.cellBackupFresh = false;
 				cellBackups[cellIndex] = cell.backup();
                 cell.getMemoization();
                 cellBounds[cellIndex] = cell.getBounds();
