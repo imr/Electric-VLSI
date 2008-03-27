@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07g: ******************************
 
+BUG: (3/27/08, SMR) Crash while reading HSpice MT0 file (Bug #1618).
+FIX: Accept files without indented continuation lines.
+
 BUG: (3/27/08, SMR) Reloading circuit in built-in simulators crashes.
 FIX: In DigitalSignal.finished(), do not finish busses if none exist.
 
