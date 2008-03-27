@@ -426,9 +426,13 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 		if (attributes.isSelected() && !hasAttributes) ports.setSelected(true);
 
 
-		Netlist nl = shownNode.getParent().acquireUserNetlist();
 		int busWidth = 1;
-		if (shownPort != null && shownPort instanceof Export) busWidth = nl.getBusWidth((Export)shownPort);
+		Netlist nl = shownNode.getParent().acquireUserNetlist();
+		if (nl != null)
+		{
+			if (shownPort != null && shownPort instanceof Export)
+				busWidth = nl.getBusWidth((Export)shownPort);
+		}
 		if (busWidth <= 1)
 		{
 			if (busMembers.isSelected()) ports.setSelected(true);
