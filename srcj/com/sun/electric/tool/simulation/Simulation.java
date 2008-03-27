@@ -517,7 +517,7 @@ public class Simulation extends Tool
 			if (wf.getContent() instanceof WaveformWindow)
 			{
 				WaveformWindow ww = (WaveformWindow)wf.getContent();
-				Engine e = ww.getSimEngine();
+				Engine e = ww.getSimData().getEngine();
 				if (e == null) continue;
 				if (wf == WindowFrame.getCurrentWindowFrame()) return e;
 				engine = e;

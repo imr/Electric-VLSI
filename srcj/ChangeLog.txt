@@ -4,7 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07g: ******************************
 
-BUG: (3/17/08, SMR) EDIF doesn't handle busses right.
+BUG: (3/27/08, SMR) Reloading circuit in built-in simulators crashes.
+FIX: In DigitalSignal.finished(), do not finish busses if none exist.
+
+BUG: (3/27/08, SMR) EDIF doesn't handle busses right.
 FIX: No longer short all signals on a bus.
 
 BUG: (3/27/08, DN) TechEdit writes red component of first transparent color as 0.

@@ -159,7 +159,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 	/** the window that this lives in */					private WindowFrame wf;
 	/** the cell being simulated */							private Stimuli sd;
-	/** the simulation engine that runs in this window. */	private Engine se;
 	/** the signal on all X axes (null for time) */			private Signal xAxisSignalAll;
 	/** the top-level panel of the waveform window. */		private JPanel overall;
 	/** the "lock X axis" button. */						private JButton xAxisLockButton;
@@ -271,7 +270,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 		// a drop target for the overall waveform window
 		new DropTarget(overall, DnDConstants.ACTION_LINK, waveformDropTarget, true);
-		
+
 		// the table that holds the waveform panels
 		if (USETABLES)
 		{
@@ -892,8 +891,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			panel.dispatchEvent(panelEvent);
 
 			// This is necessary so that when a button is pressed and released
-		    // it gets rendered properly.  Otherwise, the button may still appear
-		    // pressed down when it has been released.
+			// it gets rendered properly.  Otherwise, the button may still appear
+			// pressed down when it has been released.
 			table.repaint();
 		}
 	}
@@ -1058,7 +1057,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		}
 
 		overall.paint(g2d);
-//		if (mainHorizRulerPanel != null) 
+//		if (mainHorizRulerPanel != null)
 //			mainHorizRulerPanel.paint(g2d);
 		if (changedColors)
 		{
@@ -1168,12 +1167,18 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 */
 	public Cell getCell() { return sd.getCell(); }
 
+	/**
+	 * Method to return the stimulus information associated with this WaveformWindow.
+	 * @return the stimulus information associated with this WaveformWindow.
+	 */
+	public Stimuli getSimData() { return sd; }
+
 	public void bottomScrollChanged(int e) {}
 
 	public void rightScrollChanged(int e) {}
 
 	// ************************************* WINDOW CONTROL *************************************
-	
+
 	/**
 	 * Method to return the associated schematics or layout window for this WaveformWindow.
 	 * @return the other window that is cross-linked to this.
@@ -1240,10 +1245,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	public JPanel getSignalTracesPanel() { return right; }
 
 	public JTable getWaveformTable() { return table; }
-
-	public Engine getSimEngine() { return se; }
-
-	public void setSimEngine(Engine se) { this.se = se; }
 
 	// ************************************* CONTROL OF PANELS IN THE WINDOW *************************************
 
@@ -1434,7 +1435,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 	public void redrawAllPanels()
 	{
-		if (mainHorizRulerPanel != null) 
+		if (mainHorizRulerPanel != null)
 			mainHorizRulerPanel.repaint();
 		for(Panel wp : wavePanels)
 		{
@@ -1741,10 +1742,10 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		for(Iterator<Analysis> it = sd.getAnalyses(); it.hasNext(); )
 		{
 			Analysis an = it.next();
-            if (!(an instanceof AnalogAnalysis)) continue;
-            AnalogAnalysis aa = (AnalogAnalysis)an;
+			if (!(an instanceof AnalogAnalysis)) continue;
+			AnalogAnalysis aa = (AnalogAnalysis)an;
 			int maxNum = aa.getNumSweeps();
-            if (maxNum <= 1) continue;
+			if (maxNum <= 1) continue;
 			for (int i = 0; i < maxNum; i++)
 			{
 				Object obj = aa.getSweep(i);
@@ -2062,7 +2063,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	{
 		TreePath rootPath = new TreePath(ExplorerTreeModel.rootNode);
 		ArrayList<MutableTreeNode> nodes = new ArrayList<MutableTreeNode>();
-		
+
 		treePathFromAnalysis.clear();
 		for(Iterator<Analysis> it = sd.getAnalyses(); it.hasNext(); )
 		{
@@ -2347,7 +2348,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				Analysis an = aIt.next();
 				Signal sSig = an.findSignalForNetwork(netName);
 				if (sSig == null) continue;
-	
+
 				boolean found = true;
 				while (found)
 				{
@@ -2388,19 +2389,20 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 * or a String describing the context if net is null
 	 */
 	public static String getSpiceNetName(VarContext context, Network net)
-    {
-        return getSpiceNetName(context, net, false);
-    }
-    /**
-     * Get the spice net name associated with the network and the context.
-     * If the network is null, a String describing only the context is returned.
-     * @param context the context
-     * @param net the network, or null
-     * @param assuraRCXFormat return net assuming Assura RCX flat netlist format
-     * @return a String describing the unique, global spice name for the network,
-     * or a String describing the context if net is null
-     */
-    public static String getSpiceNetName(VarContext context, Network net, boolean assuraRCXFormat)
+	{
+		return getSpiceNetName(context, net, false);
+	}
+
+	/**
+	 * Get the spice net name associated with the network and the context.
+	 * If the network is null, a String describing only the context is returned.
+	 * @param context the context
+	 * @param net the network, or null
+	 * @param assuraRCXFormat return net assuming Assura RCX flat netlist format
+	 * @return a String describing the unique, global spice name for the network,
+	 * or a String describing the context if net is null
+	 */
+	public static String getSpiceNetName(VarContext context, Network net, boolean assuraRCXFormat)
 	{
 		boolean isGlobal = false;
 
@@ -2435,18 +2437,18 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 		// create net name
 		String contextStr = context.getInstPath(".");
-        if (assuraRCXFormat) {
-            contextStr = "x"+context.getInstPath("/x");
-        }
-        contextStr = TextUtils.canonicString(contextStr);
+		if (assuraRCXFormat) {
+			contextStr = "x"+context.getInstPath("/x");
+		}
+		contextStr = TextUtils.canonicString(contextStr);
 		if (net == null) return contextStr;
 		if (context == VarContext.globalContext || isGlobal)
 			return getSpiceNetName(net);
-        else if (assuraRCXFormat) return contextStr + "/" + getSpiceNetName(net);
-        else return contextStr + "." + getSpiceNetName(net);
+		else if (assuraRCXFormat) return contextStr + "/" + getSpiceNetName(net);
+		else return contextStr + "." + getSpiceNetName(net);
 	}
 
-    /**
+	/**
 	 * Get the Network in the childNodable's parent that corresponds to the Network
 	 * inside the childNodable.
 	 * @param childNetwork the network in the childNodable
@@ -2785,15 +2787,15 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			{
 				Analysis an = aIt.next();
 				Signal sSig = an.findSignalForNetworkQuickly(netName);
-                if (sSig == null)
-                {
-                    // when cross-probing extracted layout, hierarchy delimiter is '/' instead of '.'
-                    String temp = getSpiceNetName(context, net, true);
-                    sSig = an.findSignalForNetworkQuickly(temp);
-                }
+				if (sSig == null)
+				{
+					// when cross-probing extracted layout, hierarchy delimiter is '/' instead of '.'
+					String temp = getSpiceNetName(context, net, true);
+					sSig = an.findSignalForNetworkQuickly(temp);
+				}
 
-                if (sSig == null)
-                {
+				if (sSig == null)
+				{
 					// check for equivalent layout net name
 					// search up hierarchy for cell with NCC equiv info
 					Cell cell = net.getParent();
@@ -2845,24 +2847,24 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			{
 				Nodable no = it.next();
 				if (!(no.getProto() instanceof Cell)) continue;
-                Cell subCell = (Cell)no.getProto();
-                VarContext subContext = context.push(no);
-                found.addAll(findAllSignals(subCell, subContext, false, true));
-            }
-        }
-        if (sort) Collections.sort(found, new CompSignals());
-        return found;
-    }
+				Cell subCell = (Cell)no.getProto();
+				VarContext subContext = context.push(no);
+				found.addAll(findAllSignals(subCell, subContext, false, true));
+			}
+		}
+		if (sort) Collections.sort(found, new CompSignals());
+		return found;
+	}
 
-    private static class CompSignals implements Comparator<Signal>
-    {
-        public int compare(Signal s1, Signal s2)
-        {
-        	return TextUtils.STRING_NUMBER_ORDER.compare(s1.getFullName(), s2.getFullName());
-        }
-    }
+	private static class CompSignals implements Comparator<Signal>
+	{
+		public int compare(Signal s1, Signal s2)
+		{
+			return TextUtils.STRING_NUMBER_ORDER.compare(s1.getFullName(), s2.getFullName());
+		}
+	}
 
-    private static Network findNetwork(Netlist netlist, String name)
+	private static Network findNetwork(Netlist netlist, String name)
 	{
 		// Should really use extended code, found in "simspicerun.cpp:sim_spice_signalname()"
 		for(Iterator<Network> nIt = netlist.getNetworks(); nIt.hasNext(); )
@@ -2999,7 +3001,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 								break;
 							}
 						}
-						
+
 						// see if this name is really a current source
 						if (desired.startsWith("I(v"))
 						{
@@ -3225,8 +3227,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 */
 	public void setSimData(Stimuli sd)
 	{
-        if (this.sd != null)
-            this.sd.finished();
+		if (this.sd != null)
+			this.sd.finished();
 		this.sd = sd;
 
 		// reload the sweeps
@@ -3331,15 +3333,15 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				redoPanel = false;
 				for(WaveSignal ws : wp.getSignals())
 				{
-                    Signal s = ws.getSignal();
+					Signal s = ws.getSignal();
 					if (s == null ||
 						(s instanceof DigitalSignal &&
-                        ((DigitalSignal)s).getBussedSignals() != null &&
-                        ((DigitalSignal)s).getBussedSignals().size() == 0))
+						((DigitalSignal)s).getBussedSignals() != null &&
+						((DigitalSignal)s).getBussedSignals().size() == 0))
 					{
 						redoPanel = true;
-                        if (wp.getSignalButtons() != null)
-                            wp.removeSignal(ws.getButton());
+						if (wp.getSignalButtons() != null)
+							wp.removeSignal(ws.getButton());
 						break;
 					}
 				}
@@ -3361,30 +3363,26 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		if (oldXAxisSignalAllName != null && xAxisSignalAll == null)
 			System.out.println("Could not find main X axis signal " + oldXAxisSignalAllName + " in the new data");
 		wf.wantToRedoSignalTree();
-		System.out.println("Simulation data refreshed from disk");
+		if (sd.getEngine() != null)
+			System.out.println("Simulation data reloaded from circuit"); else
+				System.out.println("Simulation data reloaded from disk");
 	}
-
-	/**
-	 * Method to return the stimulus information associated with this WaveformWindow.
-	 * @return the stimulus information associated with this WaveformWindow.
-	 */
-	public Stimuli getSimData() { return sd; }
 
 	/**
 	 * Method to write the simulation data as a tab-separated file.
 	 */
 	public static void exportSimulationData()
 	{
-        WindowFrame current = WindowFrame.getCurrentWindowFrame();
-        WindowContent content = current.getContent();
-        if (!(content instanceof WaveformWindow))
-        {
-            System.out.println("Must select a Waveform window first");
-            return;
-        }
-        WaveformWindow ww = (WaveformWindow)content;
+		WindowFrame current = WindowFrame.getCurrentWindowFrame();
+		WindowContent content = current.getContent();
+		if (!(content instanceof WaveformWindow))
+		{
+			System.out.println("Must select a Waveform window first");
+			return;
+		}
+		WaveformWindow ww = (WaveformWindow)content;
 
-        String configurationFileName = OpenFile.chooseOutputFile(FileType.TEXT, "Waveform Export File", "wavedata.txt");
+		String configurationFileName = OpenFile.chooseOutputFile(FileType.TEXT, "Waveform Export File", "wavedata.txt");
 		if (configurationFileName == null) return;
 		try
 		{
@@ -3392,7 +3390,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 			List<Signal> dumpSignals = new ArrayList<Signal>();
 			List<Integer> dumpSweeps = new ArrayList<Integer>();
-            List<Waveform> dumpWaveforms = new ArrayList<Waveform>();
+			List<Waveform> dumpWaveforms = new ArrayList<Waveform>();
 			for(Panel wp : ww.wavePanels)
 			{
 				if (wp.isHidden()) continue;
@@ -3405,22 +3403,22 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					if (sig instanceof AnalogSignal)
 					{
 						AnalogSignal as = (AnalogSignal)sig;
-		                AnalogAnalysis an = as.getAnalysis();
-		                int numSweeps = as.getNumSweeps();
-		                if (numSweeps <= 1)
-		                {
-		                    addSignalSweep(sig, -1, dumpSignals, dumpSweeps, dumpWaveforms);
-		                } else
-		                {
-			                for (int s = 0; s < numSweeps; s++)
+						AnalogAnalysis an = as.getAnalysis();
+						int numSweeps = as.getNumSweeps();
+						if (numSweeps <= 1)
+						{
+							addSignalSweep(sig, -1, dumpSignals, dumpSweeps, dumpWaveforms);
+						} else
+						{
+							for (int s = 0; s < numSweeps; s++)
 							{
-			                    if (!ww.isSweepSignalIncluded(an, s)) continue;
-			                    addSignalSweep(sig, s, dumpSignals, dumpSweeps, dumpWaveforms);
+								if (!ww.isSweepSignalIncluded(an, s)) continue;
+								addSignalSweep(sig, s, dumpSignals, dumpSweeps, dumpWaveforms);
 							}
-		                }
+						}
 					} else
 					{
-	                    addSignalSweep(sig, -1, dumpSignals, dumpSweeps, dumpWaveforms);
+						addSignalSweep(sig, -1, dumpSignals, dumpSweeps, dumpWaveforms);
 					}
 				}
 			}
@@ -3457,7 +3455,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					Signal sig = dumpSignals.get(i-1);
 					if (sig instanceof AnalogSignal)
 					{
-                        Waveform waveform = dumpWaveforms.get(i - 1);
+						Waveform waveform = dumpWaveforms.get(i - 1);
 						if (j < waveform.getNumEvents())
 						{
 							waveform.getEvent(j, result);
@@ -3502,43 +3500,47 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		}
 		dumpSignals.add(sig);
 		dumpSweeps.add(new Integer(s));
-        Waveform waveform = null;
-        if (sig instanceof AnalogSignal)
-            waveform = ((AnalogSignal)sig).getWaveform(s == -1 ? 0 : s);
-        waveforms.add(waveform);
+		Waveform waveform = null;
+		if (sig instanceof AnalogSignal)
+			waveform = ((AnalogSignal)sig).getWaveform(s == -1 ? 0 : s);
+		waveforms.add(waveform);
 	}
 
 	/**
-     * Method to refresh simulation data by menu in ToolMenu. This would allow to attach a KeyBinding
-     */
-    public static void refreshSimulationData()
-    {
-        WindowFrame current = WindowFrame.getCurrentWindowFrame();
-        WindowContent content = current.getContent();
-        if (!(content instanceof WaveformWindow))
-        {
-            System.out.println("Nothing to refresh in non Waveform window");
-            return; // nothing to do
-        }
-        ((WaveformWindow)content).refreshData();
-    }
+	 * Method to refresh simulation data by menu in ToolMenu. This would allow to attach a KeyBinding
+	 */
+	public static void refreshSimulationData()
+	{
+		WindowFrame current = WindowFrame.getCurrentWindowFrame();
+		WindowContent content = current.getContent();
+		if (!(content instanceof WaveformWindow))
+		{
+			System.out.println("Nothing to refresh in non Waveform window");
+			return; // nothing to do
+		}
+		((WaveformWindow)content).refreshData();
+	}
 
 	/**
 	 * Method to refresh the simulation data from disk.
 	 */
 	private void refreshData()
 	{
-		if (se != null)
+//		// if there is no stimuli file, simulator is built-in: update it
+//		if (sd.getFileURL() == null)
+//		{
+//			sd.getEngine().update();
+//			return;
+//		}
+
+		// if there is a simulation engine (i.e. IRISM, ALS) ask simulator to reload circuit
+		if (sd.getEngine() != null)
 		{
-			se.refresh();
+			sd.getEngine().refresh();
 			return;
 		}
 
-		if (sd.getDataType() == null)
-		{
-			System.out.println("This simulation data did not come from disk...cannot refresh");
-			return;
-		}
+		// there is no simulation engine (i.e. external Spice, Verilog) reload external data
 		Simulate.plotSimulationResults(sd.getDataType(), sd.getCell(), sd.getFileURL(), this);
 	}
 
@@ -3689,7 +3691,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					if (sig == null) continue;
 					if (ww.isXAxisLocked()) ww.togglePanelXAxisLock();
 					curPanel.setXAxisSignal(sig);
-					continue;					
+					continue;
 				}
 				if (keywords[0].equals("signal"))
 				{
@@ -3911,8 +3913,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			{
 				if (ws.getSelectedControlPoints() != null)
 				{
-					if (se != null)
-						se.removeSelectedStimuli();
+					if (sd.getEngine() != null)
+						sd.getEngine().removeSelectedStimuli();
 				}
 			}
 			if (wp.getAnalysisType() != null) deleteSignalFromPanel(wp); else
@@ -3961,11 +3963,11 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				Analysis an = sd.findAnalysis(wp.getAnalysisType());
 				Rectangle2D anBounds = an.getBounds();
 				if (anBounds != null) // calling new Rectangle2D.Double() in case xBounds == null
-                    xBounds = new Rectangle2D.Double(anBounds.getMinX(), anBounds.getMinY(), anBounds.getWidth(), anBounds.getHeight());
+					xBounds = new Rectangle2D.Double(anBounds.getMinX(), anBounds.getMinY(), anBounds.getWidth(), anBounds.getHeight());
 				if (wp.getXAxisSignal() != null)
 				{
 					Rectangle2D sigBounds = wp.getXAxisSignal().getBounds();
-                    xBounds = new Rectangle2D.Double(sigBounds.getMinY(), sigBounds.getMinX(), sigBounds.getHeight(), sigBounds.getWidth());
+					xBounds = new Rectangle2D.Double(sigBounds.getMinY(), sigBounds.getMinX(), sigBounds.getHeight(), sigBounds.getWidth());
 				}
 			}
 
@@ -4218,7 +4220,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				{
 					Job.getUserInterface().showErrorMessage("Only one signal can be dragged to a ruler", "Too Much Selected");
 					dtde.dropComplete(false);
-					return;			
+					return;
 				}
 				HorizRuler hr = (HorizRuler)dt.getComponent();
 				Panel panel = hr.getPanel();
@@ -4407,7 +4409,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					if (panel.wrongPanelType(sSig))
 					{
 						dtde.dropComplete(true);
-						return;					
+						return;
 					}
 					oldColor = ws.getColor();
 					if (sigCopyPos < 0)
@@ -4449,7 +4451,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					if (panel.wrongPanelType(as))
 					{
 						dtde.dropComplete(true);
-						return;					
+						return;
 					}
 					WaveSignal.addSignalToPanel(sSig, panel, null);
 					panel.makeSelectedPanel();

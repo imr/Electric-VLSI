@@ -231,7 +231,6 @@ public class Analyzer extends Engine
             
             // make a waveform window
             analyzer.ww = sd.getWaveformWindow();
-            analyzer.ww.setSimEngine(analyzer);
             analyzer.ww.setDefaultHorizontalRange(0.0, DEFIRSIMTIMERANGE);
             analyzer.ww.setMainXPositionCursor(DEFIRSIMTIMERANGE/5.0*2.0);
             analyzer.ww.setExtensionXPositionCursor(DEFIRSIMTIMERANGE/5.0*3.0);

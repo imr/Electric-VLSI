@@ -43,29 +43,32 @@ public class DigitalSignal extends Signal
 	 * @param an the DigitalAnalysis object in which this signal will reside.
 	 */
 	public DigitalSignal(DigitalAnalysis an) {
-        this.an = an;
+		this.an = an;
 		an.addSignal(this);
-    }
+	}
 
-    @Override
-    public void finished()
-    {
-        super.finished();
-        for (Signal s : bussedSignals)
-            s.finished();
-        bussedSignals.clear();
+	@Override
+	public void finished()
+	{
+		super.finished();
+		if (bussedSignals != null)
+		{
+			for (Signal s : bussedSignals)
+				s.finished();
+			bussedSignals.clear();
+		}
 		busCount = 0;
-        time = null;
-        state = null;
-    }
+		time = null;
+		state = null;
+	}
 
 	/**
 	 * Method to return the DigitalAnalysis in which this signal resides.
 	 * @return the DigitalAnalysis in which this signal resides.
 	 */
-    @Override
+	@Override
 	public DigitalAnalysis getAnalysis() { return an; }
-    
+
 	/**
 	 * Method to request that this signal be a bus.
 	 * Builds the necessary data structures to hold bus information.
@@ -109,8 +112,8 @@ public class DigitalSignal extends Signal
 	 */
 	public boolean isInBus() { return busCount != 0; }
 
-    // time
-    
+	// time
+
 	/**
 	 * Method to build a time vector for this TimedSignal.
 	 * TimedSignals can have their own time information, or they can use a "common time" array
@@ -170,9 +173,9 @@ public class DigitalSignal extends Signal
 	 * @param t the new value of time at this event.
 	 */
 	public void setTime(int entry, double t) { bounds = null;   time[entry] = t; }
-    
-    // state values
-    
+
+	// state values
+
 	/**
 	 * Method to initialize this simulation signal with a specified number of events.
 	 * Allocates an array to hold those events.

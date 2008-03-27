@@ -814,7 +814,6 @@ public class ALS extends Engine
 		// make a waveform window
 		if (ww == null)
 			ww = an.getStimuli().getWaveformWindow();
-		ww.setSimEngine(this);
 
 		if (stimuliList != null) processStimuliList(stimuliList);
 
