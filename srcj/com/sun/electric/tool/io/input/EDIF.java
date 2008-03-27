@@ -204,6 +204,8 @@ public class EDIF extends Input
 	/** the cellRef addt'l rotation (in degrees) */ private int cellRefProtoRotation;
 	/** the cellRef offset when mapped */		private double cellRefOffsetX, cellRefOffsetY;
 	/** the current port proto */				private PortProto curPort;
+	/** the current portList */					private List<Network> curPortlist;
+	/** the last portList */					private List<Network> lastPortlist;
 
 	// general geometry information ...
 	/** the current geometry type */			private GeometryType curGeometryType;
@@ -1140,10 +1142,6 @@ public class EDIF extends Input
 
 	private void putNameOnArcOnce(ArcInst ai, String name)
 	{
-		if (name.endsWith("[1:9][8]"))
-		{
-			int w=6;
-		}
 		if (namedArcs != null)
 		{
 			Map<String,List<ArcInst>> cellArcNames = namedArcs.get(curCell);
@@ -1590,7 +1588,7 @@ public class EDIF extends Input
 	private EDIFKEY KINSTANCEREF = new KeyInstanceRef();
 	private EDIFKEY KINTEGER = new KeyInteger();
 	private EDIFKEY KINTERFACE = new KeyInterface();
-	private EDIFKEY KJOINED = new EDIFKEY("joined");
+	private EDIFKEY KJOINED = new KeyJoined();
 	private EDIFKEY KJUSTIFY = new KeyJustify();
 	private EDIFKEY KKEYWORDDISPLAY = new EDIFKEY("keywordDisplay");
 	private EDIFKEY KEDIFKEYLEVEL = new EDIFKEY("keywordLevel");
@@ -1620,7 +1618,7 @@ public class EDIF extends Input
 	private EDIFKEY KPORTBUNDLE = new EDIFKEY("portBundle");
 	private EDIFKEY KPORTIMPLEMENTATION = new KeyPortImplementation();
 	private EDIFKEY KPORTINSTANCE = new EDIFKEY("portInstance");
-	private EDIFKEY KPORTLIST = new EDIFKEY("portList");
+	private EDIFKEY KPORTLIST = new KeyPortList();
 	private EDIFKEY KPORTREF = new KeyPortRef();
 	private EDIFKEY KPROGRAM = new KeyProgram();
 	private EDIFKEY KPROPERTY = new KeyProperty();
@@ -2380,6 +2378,15 @@ public class EDIF extends Input
 		}
 	}
 
+	private class KeyJoined extends EDIFKEY
+	{
+		private KeyJoined() { super("joined"); }
+		protected void push()
+		{
+			lastPortlist = null;
+		}
+	}
+
 	private class KeyJustify extends EDIFKEY
 	{
 		private KeyJustify() { super("justify"); }
@@ -3106,6 +3113,45 @@ public class EDIF extends Input
 		}
 	}
 
+	private class KeyPortList extends EDIFKEY
+	{
+		private KeyPortList() { super("portList"); }
+		protected void push()
+		{
+			curPortlist = new ArrayList<Network>();
+		}
+
+		protected void pop()
+		{
+			if (keyStack[keyStackDepth-1] == KJOINED && curPortlist != null)
+			{
+				if (lastPortlist != null && curPortlist.size() > 0)
+				{
+					// connect two busses
+					if (lastPortlist.size() != curPortlist.size())
+					{
+						String errorMsg = "Error, line " + lineReader.getLineNumber() +
+							": net " + netName + " joins portlists with different length (" + lastPortlist.size() +
+							" and "+curPortlist.size() + ") in cell " + curCell.describe(false);
+						System.out.println(errorMsg);
+					} else
+					{
+						for(int i=0; i<lastPortlist.size(); i++)
+						{
+							Network net1 = lastPortlist.get(i);
+							Network net2 = curPortlist.get(i);
+							if (net1 != net2)
+							{
+System.out.println("NET "+net1.describe(false)+" AND NET "+net2.describe(false)+" NEED TO CONNECT IN CELL "+curCell.describe(false));
+							}
+						}
+					}
+				}
+				lastPortlist = curPortlist;
+			}
+		}
+	}
+
 	private class KeyPortRef extends EDIFKEY
 	{
 		private KeyPortRef() { super("portRef"); }
@@ -3122,49 +3168,33 @@ public class EDIF extends Input
 
 		protected void pop()
 		{
+			// must have gathered a port reference
+			if (portReference.length() <= 0) return;
+
 			// check for the last pin
 			NodeInst fNi = curNode;
 			PortProto fPp = curPort;
-			if (portReference.length() > 0)
-			{
-				// For internal pins of an instance, determine the base port location and other pin assignments
-				ArcProto ap = Generic.tech().unrouted_arc;
-				NodeInst ni = null;
-				Nodable no = null;
-				PortProto pp = null;
-				if (instanceReference.length() > 0)
-				{
-					String nodeName = instanceReference;
-					String alternateInstName = renamedObjects.get(nodeName);
-					if (alternateInstName != null) nodeName = alternateInstName;
 
-					// locate the node and and port
-					if (activeView == VNETLIST)
+			// For internal pins of an instance, determine the base port location and other pin assignments
+			ArcProto ap = Generic.tech().unrouted_arc;
+			NodeInst ni = null;
+			Nodable no = null;
+			PortProto pp = null;
+			if (instanceReference.length() > 0)
+			{
+				String nodeName = instanceReference;
+				String alternateInstName = renamedObjects.get(nodeName);
+				if (alternateInstName != null) nodeName = alternateInstName;
+
+				// locate the node and and port
+				if (activeView == VNETLIST)
+				{
+					// scan all pages for this nodeinst
+					for(Iterator<Cell> it = curLibrary.getCells(); it.hasNext(); )
 					{
-						// scan all pages for this nodeinst
-						for(Iterator<Cell> it = curLibrary.getCells(); it.hasNext(); )
-						{
-							Cell cell = it.next();
-							if (!cell.getName().equalsIgnoreCase(cellName)) continue;
-							for(Iterator<NodeInst> nIt = cell.getNodes(); nIt.hasNext(); )
-							{
-								NodeInst oNi = nIt.next();
-								Variable var = oNi.getVar("EDIF_name");
-								if (var != null && var.getPureValue(-1).equalsIgnoreCase(nodeName)) { ni = oNi;   break; }
-								String name = oNi.getName();
-								if (name.equalsIgnoreCase(nodeName)) { ni = oNi;   break; }
-							}
-							if (ni != null) break;
-						}
-						if (ni == null)
-						{
-							System.out.println("error, line " + lineReader.getLineNumber() + ": could not locate netlist node (" + nodeName + ")");
-							return;
-						}
-					} else
-					{
-						// net always references the current page
-						for(Iterator<NodeInst> nIt = curCell.getNodes(); nIt.hasNext(); )
+						Cell cell = it.next();
+						if (!cell.getName().equalsIgnoreCase(cellName)) continue;
+						for(Iterator<NodeInst> nIt = cell.getNodes(); nIt.hasNext(); )
 						{
 							NodeInst oNi = nIt.next();
 							Variable var = oNi.getVar("EDIF_name");
@@ -3172,282 +3202,321 @@ public class EDIF extends Input
 							String name = oNi.getName();
 							if (name.equalsIgnoreCase(nodeName)) { ni = oNi;   break; }
 						}
-						if (ni == null)
+						if (ni != null) break;
+					}
+					if (ni == null)
+					{
+						System.out.println("error, line " + lineReader.getLineNumber() + ": could not locate netlist node (" + nodeName + ")");
+						return;
+					}
+				} else
+				{
+					// net always references the current page
+					for(Iterator<NodeInst> nIt = curCell.getNodes(); nIt.hasNext(); )
+					{
+						NodeInst oNi = nIt.next();
+						Variable var = oNi.getVar("EDIF_name");
+						if (var != null && var.getPureValue(-1).equalsIgnoreCase(nodeName)) { ni = oNi;   break; }
+						String name = oNi.getName();
+						if (name.equalsIgnoreCase(nodeName)) { ni = oNi;   break; }
+					}
+					if (ni == null)
+					{
+						// might be an instance of an arrayed node
+						for(Iterator<Nodable> nIt = curCell.acquireUserNetlist().getNodables(); nIt.hasNext(); )
 						{
-							// might be an instance of an arrayed node
-							for(Iterator<Nodable> nIt = curCell.acquireUserNetlist().getNodables(); nIt.hasNext(); )
+							Nodable oNo = nIt.next();
+							if (oNo.getName().equalsIgnoreCase(nodeName))
 							{
-								Nodable oNo = nIt.next();
-								if (oNo.getName().equalsIgnoreCase(nodeName))
+								no = oNo;
+								ni = no.getNodeInst();
+								break;
+							}
+						}
+					}
+					if (ni == null)
+					{
+						System.out.println("error, line " + lineReader.getLineNumber() + ": could not locate schematic node '" +
+							nodeName + "' in " + curCell);
+						return;
+					}
+					if (!isArray) ap = Schematics.tech().wire_arc; else
+						ap = Schematics.tech().bus_arc;
+				}
+
+				// locate the port for this portref
+				pp = ni.getProto().findPortProto(portReference);
+				if (pp == null)
+				{
+					String alternateName = renamedObjects.get(portReference);
+					if (alternateName != null)
+					{
+						alternateName = convertParens(alternateName);
+						pp = ni.getProto().findPortProto(alternateName);
+					}
+					if (pp == null)
+					{
+						EDIFEquiv.NodeEquivalence ne = mappedNodes.get(nodeName);
+						if (ne != null)
+						{
+							for(EDIFEquiv.PortEquivalence pe : ne.portEquivs)
+							{
+								if (pe.getExtPort().name.equals(portReference))
 								{
-									no = oNo;
-									ni = no.getNodeInst();
+									pp = ni.getProto().findPortProto(pe.getElecPort().name);
 									break;
 								}
 							}
 						}
-						if (ni == null)
-						{
-							System.out.println("error, line " + lineReader.getLineNumber() + ": could not locate schematic node '" +
-								nodeName + "' in " + curCell);
-							return;
-						}
-						if (!isArray) ap = Schematics.tech().wire_arc; else
-							ap = Schematics.tech().bus_arc;
 					}
-
-					// locate the port for this portref
-					pp = ni.getProto().findPortProto(portReference);
 					if (pp == null)
 					{
-						String alternateName = renamedObjects.get(portReference);
-						if (alternateName != null)
-						{
-							alternateName = convertParens(alternateName);
-							pp = ni.getProto().findPortProto(alternateName);
-						}
-						if (pp == null)
-						{
-							EDIFEquiv.NodeEquivalence ne = mappedNodes.get(nodeName);
-							if (ne != null)
-							{
-								for(EDIFEquiv.PortEquivalence pe : ne.portEquivs)
-								{
-									if (pe.getExtPort().name.equals(portReference))
-									{
-										pp = ni.getProto().findPortProto(pe.getElecPort().name);
-										break;
-									}
-								}
-							}
-						}
-						if (pp == null)
-						{
-							String errorMsg = "error, line " + lineReader.getLineNumber() +
-								": could not locate port '" + portReference;
-							if (alternateName != null) errorMsg += "' or '" + alternateName;
-							errorMsg += "' on node '" + nodeName + "' in cell " + curCell.describe(false);
-							System.out.println(errorMsg);
-							return;
-						}
+						String errorMsg = "error, line " + lineReader.getLineNumber() +
+							": could not locate port '" + portReference;
+						if (alternateName != null) errorMsg += "' or '" + alternateName;
+						errorMsg += "' on node '" + nodeName + "' in cell " + curCell.describe(false);
+						System.out.println(errorMsg);
+						return;
 					}
+				}
 
-					// special case when connecting an arrayed node to a bus
-					if (no != null && netName.indexOf('[') >= 0)
-					{
-						// run a zero-length bus to a bus pin, then a named arc to a second pin, use the second pin
-						PrimitiveNode busPin = Schematics.tech().busPinNode;
-						PortInst pi = ni.findPortInstFromProto(pp);
-						Poly poly = pi.getPoly();
-						NodeInst ni1 = placePin(busPin, poly.getCenterX()+1, poly.getCenterY(),
-							busPin.getDefaultLambdaBaseWidth(), busPin.getDefaultLambdaBaseHeight(), Orientation.IDENT, curCell);
-						if (ni1 == null)
-						{
-							System.out.println("error, line " + lineReader.getLineNumber() + ": could not create bus pin");
-							return;
-						}
-						PortInst busPinPort = ni1.getOnlyPortInst();
-						boolean found = false;
-						for(Iterator<ArcInst> aIt = curCell.getArcs(); aIt.hasNext(); )
-						{
-							ArcInst ai = aIt.next();
-							if ((ai.getHeadPortInst() == busPinPort && ai.getTailPortInst() == pi) ||
-								(ai.getTailPortInst() == busPinPort && ai.getHeadPortInst() == pi))
-							{
-								found = true;
-								break;
-							}
-						}
-						if (!found) ArcInst.makeInstance(Schematics.tech().bus_arc, busPinPort, pi);
+//				// special case when connecting an arrayed node to a bus
+//				if (no != null && netName.indexOf('[') >= 0)
+//				{
+//					// run a zero-length bus to a bus pin, then a named arc to a second pin, use the second pin
+//					PrimitiveNode busPin = Schematics.tech().busPinNode;
+//					PortInst pi = ni.findPortInstFromProto(pp);
+//					Poly poly = pi.getPoly();
+//					NodeInst ni1 = placePin(busPin, poly.getCenterX()+1, poly.getCenterY(),
+//						busPin.getDefaultLambdaBaseWidth(), busPin.getDefaultLambdaBaseHeight(), Orientation.IDENT, curCell);
+//					if (ni1 == null)
+//					{
+//						System.out.println("error, line " + lineReader.getLineNumber() + ": could not create bus pin");
+//						return;
+//					}
+//					PortInst busPinPort = ni1.getOnlyPortInst();
+//					boolean found = false;
+//					for(Iterator<ArcInst> aIt = curCell.getArcs(); aIt.hasNext(); )
+//					{
+//						ArcInst ai = aIt.next();
+//						if ((ai.getHeadPortInst() == busPinPort && ai.getTailPortInst() == pi) ||
+//							(ai.getTailPortInst() == busPinPort && ai.getHeadPortInst() == pi))
+//						{
+//							found = true;
+//							break;
+//						}
+//					}
+//					if (!found) ArcInst.makeInstance(Schematics.tech().bus_arc, busPinPort, pi);
+//
+//					// now the named wire arc
+//					PrimitiveNode wirePin = Schematics.tech().wirePinNode;
+//					NodeInst ni2 = NodeInst.makeInstance(wirePin, new Point2D.Double(poly.getCenterX()+1, poly.getCenterY()+1),
+//						wirePin.getDefaultLambdaBaseWidth(), wirePin.getDefaultLambdaBaseHeight(), curCell, Orientation.IDENT, null, 0);
+//					if (ni2 == null)
+//					{
+//						System.out.println("error, line " + lineReader.getLineNumber() + ": could not create wire pin");
+//						return;
+//					}
+//					PortInst wirePinPort = ni2.getOnlyPortInst();
+//					ArcInst wireArc = ArcInst.makeInstance(Schematics.tech().wire_arc, wirePinPort, busPinPort);
+//					int indPos = instanceReference.lastIndexOf('[');
+//					int namePos = netName.lastIndexOf('[');
+//					if (indPos > 0 && namePos > 0)
+//					{
+//						String newName = netName.substring(0, namePos) + instanceReference.substring(indPos);
+//						wireArc.setName(newName);
+//					}
+//
+//					// remember the end of the named wire arc as the true location of this portRef
+//					ni = ni2;
+//					pp = wirePinPort.getPortProto();
+//					ap = Schematics.tech().wire_arc;
+//				}
 
-						// now the named wire arc
-						PrimitiveNode wirePin = Schematics.tech().wirePinNode;
-						NodeInst ni2 = NodeInst.makeInstance(wirePin, new Point2D.Double(poly.getCenterX()+1, poly.getCenterY()+1),
-							wirePin.getDefaultLambdaBaseWidth(), wirePin.getDefaultLambdaBaseHeight(), curCell, Orientation.IDENT, null, 0);
-						if (ni2 == null)
-						{
-							System.out.println("error, line " + lineReader.getLineNumber() + ": could not create wire pin");
-							return;
-						}
-						PortInst wirePinPort = ni2.getOnlyPortInst();
-						ArcInst wireArc = ArcInst.makeInstance(Schematics.tech().wire_arc, wirePinPort, busPinPort);
-						int indPos = instanceReference.lastIndexOf('[');
-						int namePos = netName.lastIndexOf('[');
-						if (indPos > 0 && namePos > 0)
-						{
-							String newName = netName.substring(0, namePos) + instanceReference.substring(indPos);
-							wireArc.setName(newName);
-						}
+				// we have both, set global variable
+				curNode = ni;
+				curPort = pp;
+				netPortRefs.add(ni.findPortInstFromProto(pp));
 
-						// remember the end of the named wire arc as the true location of this portRef
-						ni = ni2;
-						pp = wirePinPort.getPortProto();
-						ap = Schematics.tech().wire_arc;
-					}
-
-					// we have both, set global variable
-					curNode = ni;
-					curPort = pp;
-					netPortRefs.add(ni.findPortInstFromProto(pp));
-
-					// create extensions for net labels on single pin nets (externals), and placeholder for auto-routing later
-					if (activeView == VNETLIST)
-					{
-						// route all pins with an extension
-						if (ni != null)
-						{
-							Poly portPoly = ni.findPortInstFromProto(pp).getPoly();
-							double hX = portPoly.getCenterX();
-							double hY = portPoly.getCenterY();
-							double lX = hX;
-							double lY = hY;
-							if (pp.getCharacteristic() == PortCharacteristic.IN) lX = hX - (INCH/10); else
-								if (pp.getCharacteristic() == PortCharacteristic.BIDIR) lY = hY - (INCH/10); else
-									if (pp.getCharacteristic() == PortCharacteristic.OUT)
-									{
-										lX = hX;
-										hX = hX + (INCH/10);
-									}
-
-							// need to create a destination for the wire
-							ArcProto lAp = Schematics.tech().bus_arc;
-							PortProto lPp = defaultBusPort;
-							NodeInst lNi = null;
-							if (isArray)
-							{
-								lNi = placePin(Schematics.tech().busPinNode, (lX+hX)/2, (lY+hY)/2, hX-lX, hY-lY, Orientation.IDENT, curCell);
-								if (lNi == null)
-								{
-									System.out.println("error, line " + lineReader.getLineNumber() + ": could not create bus pin");
-									return;
-								}
-							} else
-							{
-								lNi = placePin(Schematics.tech().wirePinNode, (lX+hX)/2, (lY+hY)/2, hX-lX, hY-lY, Orientation.IDENT, curCell);
-								if (lNi == null)
-								{
-									System.out.println("error, line " + lineReader.getLineNumber() + ": could not create wire pin");
-									return;
-								}
-								lPp = defaultPort;
-								lAp = Schematics.tech().wire_arc;
-							}
-							PortInst head = lNi.findPortInstFromProto(lPp);
-							PortInst tail = ni.findPortInstFromProto(pp);
-							curArc = ArcInst.makeInstance(lAp, head, tail);
-							if (curArc == null)
-								System.out.println("error, line " + lineReader.getLineNumber() + ": could not create auto-path");
-							else
-								nameEDIFArc(curArc, true);
-						}
-					}
-				} else
+				// create extensions for net labels on single pin nets (externals), and placeholder for auto-routing later
+				if (activeView == VNETLIST)
 				{
-					// external port reference, look for a off-page reference in {sch} with this port name
-					if (exportsOnNet != null)
+					// route all pins with an extension
+					if (ni != null)
 					{
-						String alternateName = renamedObjects.get(portReference);
-						if (alternateName == null) alternateName = portReference;
-						exportsOnNet.add(alternateName);
-					}
-					if (activeView == VNETLIST)
-					{
-						Cell np = null;
-						for(Iterator<Cell> it = curLibrary.getCells(); it.hasNext(); )
-						{
-							Cell cell = it.next();
-							if (cell.getName().equalsIgnoreCase(cellName) && cell.isSchematic())
-							{
-								np = cell;
-								break;
-							}
-						}
-						if (np == null)
-						{
-							System.out.println("error, line " + lineReader.getLineNumber() + ": could not locate top level schematic");
-							return;
-						}
-
-						// now look for an instance with the correct port name
-						pp = np.findPortProto(portReference);
-						if (pp == null)
-						{
-							if (originalName.length() > 0)
-								pp = np.findPortProto(originalName);
-							if (pp == null)
-							{
-								String alternateName = renamedObjects.get(portReference);
-								if (alternateName != null)
-									pp = np.findPortProto(alternateName);
-							}
-							if (pp == null)
-							{
-								System.out.println("error, line " + lineReader.getLineNumber() + ": could not locate port '" +
-									portReference + "' on cell " + np.describe(false));
-								return;
-							}
-						}
-
-						fNi = ((Export)pp).getOriginalPort().getNodeInst();
-						fPp = ((Export)pp).getOriginalPort().getPortProto();
-						Poly portPoly = fNi.findPortInstFromProto(fPp).getPoly();
-						double lX = portPoly.getCenterX();
-						double lY = portPoly.getCenterY();
-
-						// determine x position by original placement
-						if (pp.getCharacteristic() == PortCharacteristic.IN) lX = 1*INCH; else
-							if (pp.getCharacteristic() == PortCharacteristic.BIDIR) lY = 4*INCH; else
-								if (pp.getCharacteristic() == PortCharacteristic.OUT) lX = 5*INCH;
+						Poly portPoly = ni.findPortInstFromProto(pp).getPoly();
+						double hX = portPoly.getCenterX();
+						double hY = portPoly.getCenterY();
+						double lX = hX;
+						double lY = hY;
+						if (pp.getCharacteristic() == PortCharacteristic.IN) lX = hX - (INCH/10); else
+							if (pp.getCharacteristic() == PortCharacteristic.BIDIR) lY = hY - (INCH/10); else
+								if (pp.getCharacteristic() == PortCharacteristic.OUT)
+								{
+									lX = hX;
+									hX = hX + (INCH/10);
+								}
 
 						// need to create a destination for the wire
+						ArcProto lAp = Schematics.tech().bus_arc;
+						PortProto lPp = defaultBusPort;
+						NodeInst lNi = null;
 						if (isArray)
 						{
-							ni = placePin(Schematics.tech().busPinNode, lX, lY,
-								Schematics.tech().busPinNode.getDefWidth(), Schematics.tech().busPinNode.getDefHeight(), Orientation.IDENT, np);
-							if (ni == null)
+							lNi = placePin(Schematics.tech().busPinNode, (lX+hX)/2, (lY+hY)/2, hX-lX, hY-lY, Orientation.IDENT, curCell);
+							if (lNi == null)
 							{
 								System.out.println("error, line " + lineReader.getLineNumber() + ": could not create bus pin");
 								return;
 							}
-							pp = defaultBusPort;
 						} else
 						{
-							ni = placePin(Schematics.tech().wirePinNode, lX, lY,
-								Schematics.tech().wirePinNode.getDefWidth(), Schematics.tech().wirePinNode.getDefHeight(), Orientation.IDENT, np);
-							if (ni == null)
+							lNi = placePin(Schematics.tech().wirePinNode, (lX+hX)/2, (lY+hY)/2, hX-lX, hY-lY, Orientation.IDENT, curCell);
+							if (lNi == null)
 							{
 								System.out.println("error, line " + lineReader.getLineNumber() + ": could not create wire pin");
 								return;
 							}
-							pp = defaultPort;
+							lPp = defaultPort;
+							lAp = Schematics.tech().wire_arc;
 						}
-						if (!isArray) ap = Schematics.tech().wire_arc; else
-							ap = Schematics.tech().bus_arc;
+						PortInst head = lNi.findPortInstFromProto(lPp);
+						PortInst tail = ni.findPortInstFromProto(pp);
+						curArc = ArcInst.makeInstance(lAp, head, tail);
+						if (curArc == null)
+							System.out.println("error, line " + lineReader.getLineNumber() + ": could not create auto-path");
+						else
+							nameEDIFArc(curArc, true);
 					}
 				}
-
-				// now connect if we have from node and port
-				if (fNi != null && fPp != null)
+			} else
+			{
+				// external port reference, look for a off-page reference in {sch} with this port name
+				if (exportsOnNet != null)
 				{
-					if (fNi.getParent() != ni.getParent())
+					String alternateName = renamedObjects.get(portReference);
+					if (alternateName == null) alternateName = portReference;
+					exportsOnNet.add(alternateName);
+				}
+				if (activeView == VNETLIST)
+				{
+					Cell np = null;
+					for(Iterator<Cell> it = curLibrary.getCells(); it.hasNext(); )
 					{
-						System.out.println("error, line " + lineReader.getLineNumber() + ": could not create path (arc) between " +
-							fNi.getParent() + " and " + ni.getParent());
+						Cell cell = it.next();
+						if (cell.getName().equalsIgnoreCase(cellName) && cell.isSchematic())
+						{
+							np = cell;
+							break;
+						}
+					}
+					if (np == null)
+					{
+						System.out.println("error, line " + lineReader.getLineNumber() + ": could not locate top level schematic");
+						return;
+					}
+
+					// now look for an instance with the correct port name
+					pp = np.findPortProto(portReference);
+					if (pp == null)
+					{
+						if (originalName.length() > 0)
+							pp = np.findPortProto(originalName);
+						if (pp == null)
+						{
+							String alternateName = renamedObjects.get(portReference);
+							if (alternateName != null)
+								pp = np.findPortProto(alternateName);
+						}
+						if (pp == null)
+						{
+							System.out.println("error, line " + lineReader.getLineNumber() + ": could not locate port '" +
+								portReference + "' on cell " + np.describe(false));
+							return;
+						}
+					}
+
+					fNi = ((Export)pp).getOriginalPort().getNodeInst();
+					fPp = ((Export)pp).getOriginalPort().getPortProto();
+					Poly portPoly = fNi.findPortInstFromProto(fPp).getPoly();
+					double lX = portPoly.getCenterX();
+					double lY = portPoly.getCenterY();
+
+					// determine x position by original placement
+					if (pp.getCharacteristic() == PortCharacteristic.IN) lX = 1*INCH; else
+						if (pp.getCharacteristic() == PortCharacteristic.BIDIR) lY = 4*INCH; else
+							if (pp.getCharacteristic() == PortCharacteristic.OUT) lX = 5*INCH;
+
+					// need to create a destination for the wire
+					if (isArray)
+					{
+						ni = placePin(Schematics.tech().busPinNode, lX, lY,
+							Schematics.tech().busPinNode.getDefWidth(), Schematics.tech().busPinNode.getDefHeight(), Orientation.IDENT, np);
+						if (ni == null)
+						{
+							System.out.println("error, line " + lineReader.getLineNumber() + ": could not create bus pin");
+							return;
+						}
+						pp = defaultBusPort;
 					} else
 					{
-						// locate the position of the new ports
-						Poly fPortPoly = fNi.findPortInstFromProto(fPp).getPoly();
-						double lX = fPortPoly.getCenterX();
-						double lY = fPortPoly.getCenterY();
-						Poly portPoly = ni.findPortInstFromProto(pp).getPoly();
-						double hX = portPoly.getCenterX();
-						double hY = portPoly.getCenterY();
+						ni = placePin(Schematics.tech().wirePinNode, lX, lY,
+							Schematics.tech().wirePinNode.getDefWidth(), Schematics.tech().wirePinNode.getDefHeight(), Orientation.IDENT, np);
+						if (ni == null)
+						{
+							System.out.println("error, line " + lineReader.getLineNumber() + ": could not create wire pin");
+							return;
+						}
+						pp = defaultPort;
+					}
+					if (!isArray) ap = Schematics.tech().wire_arc; else
+						ap = Schematics.tech().bus_arc;
+				}
+			}
 
-						// for nets with no physical representation ...
-						curArc = null;
-						PortInst head = fNi.findPortInstFromProto(fPp);
+//			// if inside a portList, add to the bus definition
+//			if (keyStack[keyStackDepth-1] == KPORTLIST && curPortlist != null)
+//			{
+//				// TODO finish
+//				Netlist nl = curCell.acquireUserNetlist();
+//				Network net;
+//				if (no != null)
+//				{
+//System.out.println("FOUND NODABLE "+no.getName()+" (PARENT="+no.getParent().describe(false)+"), PORT "+pp.getName()+
+//	"(PARENT="+pp.getParent().describe(false)+")");
+//					Export ppO = ((Export)pp).getEquivalentPort((Cell)no.getProto());
+//					net = nl.getNetwork(no, ppO, 0);
+//System.out.println("  WHICH IS NET "+net);
+//				} else
+//					net = nl.getNetwork(ni.findPortInstFromProto(pp));
+//				curPortlist.add(net);
+//				return;
+//			}
+
+			// now connect if we have from node and port
+			if (fNi != null && fPp != null)
+			{
+				if (fNi.getParent() != ni.getParent())
+				{
+					System.out.println("error, line " + lineReader.getLineNumber() + ": could not create path (arc) between " +
+						fNi.getParent() + " and " + ni.getParent());
+				} else
+				{
+					// locate the position of the new ports
+					Poly fPortPoly = fNi.findPortInstFromProto(fPp).getPoly();
+					double lX = fPortPoly.getCenterX();
+					double lY = fPortPoly.getCenterY();
+					Poly portPoly = ni.findPortInstFromProto(pp).getPoly();
+					double hX = portPoly.getCenterX();
+					double hY = portPoly.getCenterY();
+
+					// for nets with no physical representation ...
+					curArc = null;
+					PortInst head = fNi.findPortInstFromProto(fPp);
+					PortInst tail = ni.findPortInstFromProto(pp);
+					if (head != tail)
+					{
 						Point2D headPt = new Point2D.Double(lX, lY);
-						PortInst tail = ni.findPortInstFromProto(pp);
 						Point2D tailPt = new Point2D.Double(hX, hY);
 						double dist = 0;
 						if (lX != hX || lY != hY) dist = headPt.distance(tailPt);
