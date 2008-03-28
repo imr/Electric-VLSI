@@ -125,6 +125,8 @@ public class ManualViewer extends EModelessDialog
 		excludeMenu.add("Gilda");
 		excludeMenu.add("Dima");
 		excludeMenu.add("Kon");
+		excludeMenu.add("Frankie");
+		excludeMenu.add("Dinesh");
 	}
 
 	private static class PageInfo
