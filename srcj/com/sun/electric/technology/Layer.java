@@ -597,14 +597,14 @@ public class Layer
 
 	/**
 	 * Method to create a new layer with the given name and graphics.
-     * Layer is not attached to any technology.
+     * Layer is not attached to any technology but still has a technology pointer.
 	 * @param name the name of the layer.
 	 * @param graphics the appearance of the layer.
 	 * @return the Layer object.
 	 */
-	public static Layer newInstance(String name, EGraphics graphics)
+	public static Layer newInstanceFree(Technology tech, String name, EGraphics graphics)
 	{
-		Layer layer = new Layer(name, null, graphics);
+		Layer layer = new Layer(name, tech, graphics);
 		graphics.setLayer(layer);
 		return layer;
 	}

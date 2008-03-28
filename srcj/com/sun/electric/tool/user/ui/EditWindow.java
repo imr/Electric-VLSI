@@ -3800,6 +3800,7 @@ public class EditWindow extends JPanel
             }
             ColorSupported cs = ps.getAttribute(ColorSupported.class);
 			int printMode = 1;
+//			if (cs != ColorSupported.SUPPORTED) printMode = 0;
 			if (cs == null || cs.getValue() == 0) printMode = 2;
 			offscreen.setPrintingMode(printMode);
 			offscreen.setBackgroundColor(Color.WHITE);
@@ -3809,6 +3810,7 @@ public class EditWindow extends JPanel
 			// initialize drawing
             Rectangle2D cellBounds = ep.getRenderArea();
             if (cellBounds == null) cellBounds = getBoundsInWindow();
+            cellBounds.setRect(cellBounds.getMinX()-1, cellBounds.getMinY()-1, cellBounds.getWidth()+2, cellBounds.getHeight()+2);
     		double width = cellBounds.getWidth();
         	double height = cellBounds.getHeight();
             if (width == 0) width = 2;

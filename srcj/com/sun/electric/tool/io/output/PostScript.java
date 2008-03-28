@@ -97,7 +97,7 @@ public class PostScript extends Output
 	/** the normal width of lines. */									private int lineWidth;
 	/** true to plot date information in the corner. */					private boolean plotDates;
 	/** matrix from database units to PS units. */						private AffineTransform matrix;
-	/** fake layer for drawing outlines and text. */					private static Layer blackLayer = Layer.newInstance("black",
+	/** fake layer for drawing outlines and text. */					private static Layer blackLayer = Layer.newInstanceFree(null, "black",
 		new EGraphics(false, false, null, 0, 100,100,100,1.0,true, new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 	/**

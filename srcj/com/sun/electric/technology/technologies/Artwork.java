@@ -66,8 +66,6 @@ public class Artwork extends Technology
 	/** number of lines in an ellipse */			private static final int ELLIPSEPOINTS =        30;
 	/** granularity of a spline */					private static final int SPLINEGRAIN   =        20;
 
-    
-
 	/** Defines a Pin node. */						public final PrimitiveNode pinNode;
 	/** Defines a Box node. */						public final PrimitiveNode boxNode;
 	/** Defines a Crossed-Box node. */				public final PrimitiveNode crossedBoxNode;
@@ -492,7 +490,7 @@ public class Artwork extends Technology
 		return super.getNodesGrouped(curCell);
 	}
 
-    /**
+	/**
 	 * Method to construct a default group of elements for the palette.
 	 * @return the default set of objects to display in the component menu.
 	 */
@@ -649,26 +647,26 @@ public class Artwork extends Technology
 		getShapeOfArc(b, a, getProperLayer(a));
 	}
 
-    /**
-     * Tells if arc can be drawn by simplified algorithm
-     * Arcs with user-specified color or pattern are not easy
-     * @param a arc to test
-     * @param explain if true then print explanation why arc is not easy
-     * @return true if arc can be drawn by simplified algorithm
-     */
-    @Override
-    public boolean isEasyShape(ImmutableArcInst a, boolean explain) {
-        if (a.getVar(Artwork.ART_COLOR) != null) {
-            if (explain) System.out.println("ART_COLOR");
-            return false;
-        }
-        if (a.getVar(Artwork.ART_PATTERN) != null) {
-            if (explain) System.out.println("ART_PATTERN");
-            return false;
-        }
-        return super.isEasyShape(a, explain);
-    }
-    
+	/**
+	 * Tells if arc can be drawn by simplified algorithm
+	 * Arcs with user-specified color or pattern are not easy
+	 * @param a arc to test
+	 * @param explain if true then print explanation why arc is not easy
+	 * @return true if arc can be drawn by simplified algorithm
+	 */
+	@Override
+	public boolean isEasyShape(ImmutableArcInst a, boolean explain) {
+		if (a.getVar(Artwork.ART_COLOR) != null) {
+			if (explain) System.out.println("ART_COLOR");
+			return false;
+		}
+		if (a.getVar(Artwork.ART_PATTERN) != null) {
+			if (explain) System.out.println("ART_PATTERN");
+			return false;
+		}
+		return super.isEasyShape(a, explain);
+	}
+
 	/**
 	 * Method to return an array of Point2D that describe an ellipse.
 	 * @param center the center coordinate of the ellipse.
@@ -857,7 +855,7 @@ public class Artwork extends Technology
 	{
 		EGraphics graphics = makeGraphics(d);
 		if (graphics == null) return defaultLayer;
-		Layer thisLayer = Layer.newInstance("Graphics", graphics);
+		Layer thisLayer = Layer.newInstanceFree(this, "Graphics", graphics);
 		return thisLayer;
 	}
 

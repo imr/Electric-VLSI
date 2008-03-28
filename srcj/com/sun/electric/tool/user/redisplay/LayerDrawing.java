@@ -292,10 +292,10 @@ class LayerDrawing
 		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
 	private static final EGraphics instanceGraphics = new EGraphics(false, false, null, 0, 0,0,0, 1.0,true,
 		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
-    private static final Layer instanceLayer = Layer.newInstance("Instance", instanceGraphics);
+    private static final Layer instanceLayer = Layer.newInstanceFree(null, "Instance", instanceGraphics);
 	private static final EGraphics gridGraphics = new EGraphics(false, false, null, 0, 0,0,0, 1.0,true,
 		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
-    private static final Layer gridLayer = Layer.newInstance("Grid", gridGraphics);
+    private static final Layer gridLayer = Layer.newInstanceFree(null, "Grid", gridGraphics);
 	private static final EGraphics portGraphics = new EGraphics(false, false, null, 0, 255,0,0, 1.0,true,
 		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
 

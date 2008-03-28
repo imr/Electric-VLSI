@@ -248,6 +248,7 @@ public class XMLRules implements DRCRules, Serializable
     public DRCTemplate getMinValue(Layer layer, DRCTemplate.DRCRuleType type)
 	{
         int index = layer.getIndex();
+        if (index < 0) return null;
 		return (getRule(index, type));
 	}
 
@@ -517,7 +518,9 @@ public class XMLRules implements DRCRules, Serializable
     public List<DRCTemplate> getRules(Layer layer1, DRCTemplate.DRCRuleType type)
     {
         List<DRCTemplate> tempList = new ArrayList<DRCTemplate>();
-        HashMap<XMLRules.XMLRule, XMLRules.XMLRule> map = matrix[layer1.getIndex()];
+        int layerIndex = layer1.getIndex();
+        if (layerIndex < 0) return tempList;
+        HashMap<XMLRules.XMLRule, XMLRules.XMLRule> map = matrix[layerIndex];
         if (map == null) return tempList;
 
         for (XMLRule rule : map.values())
