@@ -804,10 +804,6 @@ public class DRC extends Listener
     public static List<DRCTemplate> getRules(Layer layer1, DRCTemplate.DRCRuleType type)
     {
         Technology tech = layer1.getTechnology();
-        if (tech == null)
-        {
-        	System.out.println("HAHA");
-        }
         DRCRules rules = getRules(tech);
 		if (rules == null)
             return null;
