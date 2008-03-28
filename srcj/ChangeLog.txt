@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07g: ******************************
 
+IMP/MAN: (3/28/08, SMR) Using "Down Hierarchy In Place" on schematic icons
+     lets you edit the icon (in place) instead of the schematic (Bug #1607).
+
 BUG: (3/27/08, SMR) Crash while reading HSpice MT0 file (Bug #1618).
 FIX: Accept files without indented continuation lines.
 

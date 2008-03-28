@@ -3123,6 +3123,9 @@ public class EditWindow extends JPanel
         if (this.cell == schCell) schCell = cell;
         if (schCell == null) schCell = cell;
 
+        // when editing in-place, always descend to the icon
+        if (inPlace) schCell = cell;
+
         // determine display factors for new cell
         double offX = offx;
         double offY = offy;
@@ -3134,7 +3137,7 @@ public class EditWindow extends JPanel
 
 		// handle in-place display
       	ArrayList<NodeInst> newInPlaceDescent = new ArrayList<NodeInst>();
-		if (inPlace && cell == schCell)
+		if (inPlace)
 		{
             newInPlaceDescent.addAll(inPlaceDescent);
 			newInPlaceDescent.add(ni);

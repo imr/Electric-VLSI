@@ -30,7 +30,6 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
@@ -449,7 +448,7 @@ public class CellMenu {
 		Cell cell = curEdit.getCell();
 		if (cell == null) return;
 		if (cell.getView() != View.LAYOUT) {
-			System.out.println("Current cell should be layout cell for down hier in place to object");
+			System.out.println("Current cell should be a layout cell for 'Down Hierarchy In Place To Object'");
 			return;
 		}
 
@@ -458,7 +457,6 @@ public class CellMenu {
 		Point2D mouseDB = curEdit.screenToDatabase((int)mouse.getX(), (int)mouse.getY());
 		EPoint point = new EPoint(mouseDB.getX(), mouseDB.getY());
 		GeometrySearch search = new GeometrySearch();
-//		long start = System.currentTimeMillis();
 		if (search.searchGeometries(cell, point, true))
 		{
 			VarContext context = search.getContext();
@@ -488,7 +486,6 @@ public class CellMenu {
 			// nothing found
 			System.out.println("No primitive node or arc found under mouse to descend to.");
 		}
-//		System.out.println("Search took "+ TextUtils.getElapsedTime(System.currentTimeMillis()-start));
 	}
 
 	/**
