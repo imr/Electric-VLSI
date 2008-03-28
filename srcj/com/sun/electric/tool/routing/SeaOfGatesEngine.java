@@ -136,7 +136,7 @@ public class SeaOfGatesEngine
 	/** favoritism for each metal layer. */										private boolean [] favorArcs;
 	/** avoidance for each metal layer. */										private boolean [] preventArcs;
 	/** vias to use to go up from each metal layer. */							private MetalVias [] metalVias;
-	/** minimum spacing between this metal and itself. */						private Map<Double,Double>[] layerSurround;
+	/** minimum spacing between this metal and itself. */						private Map<Double,Map<Double,Double>>[] layerSurround;
 	/** worst spacing rule for a given metal layer. */							private double [] worstMetalSurround;
 	/** minimum spacing between the centers of two vias. */						private double [] viaSurround;
 	/** the total length of wires routed */										private double totalWireLength;
@@ -932,7 +932,7 @@ public class SeaOfGatesEngine
 		worstMetalSurround = new double[numMetalLayers];
 		for(int i=0; i<numMetalLayers; i++)
 		{
-			layerSurround[i] = new HashMap<Double,Double>();
+			layerSurround[i] = new HashMap<Double,Map<Double,Double>>();
 			worstMetalSurround[i] = DRC.getMaxSurround(metalLayers[i], Double.MAX_VALUE);
 		}
 		viaSurround = new double[numMetalLayers-1];
@@ -986,11 +986,18 @@ public class SeaOfGatesEngine
 		if (width < 0) width = metalArcs[layer].getDefaultLambdaBaseWidth();
 		if (length < 0) length = 50;
 
-		// convert this to the next largest integer
+		// convert these to the next largest integers
 		Double wid = new Double(upToGrain(width));
+		Double len = new Double(upToGrain(length));
 
 		// see if the rule is cached
-		Double value = layerSurround[layer].get(wid);
+		Map<Double,Double> widMap = layerSurround[layer].get(wid);
+		if (widMap == null)
+		{
+			widMap = new HashMap<Double,Double>();
+			layerSurround[layer].put(wid, widMap);
+		}
+		Double value = widMap.get(len);
 		if (value == null)
 		{
 			// rule not cached: compute it
@@ -999,7 +1006,7 @@ public class SeaOfGatesEngine
 			double v = 0;
 			if (rule != null) v = rule.getValue(0);
 			value = new Double(v);
-			layerSurround[layer].put(wid, value);
+			widMap.put(len, value);
 		}
 		return value.doubleValue();
 	}
