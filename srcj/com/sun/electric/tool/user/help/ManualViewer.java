@@ -1119,6 +1119,9 @@ public class ManualViewer extends EModelessDialog
 				System.out.println("Error creating " + pageFileName);
 				break;
 			}
+			printWriter.println("<HTML><HEAD>");
+			printWriter.println("<TITLE>Electric VLSI Design System User's Manual</TITLE></HEAD>");
+			printWriter.println("<BODY BGCOLOR=\"#FFFFFF\">");	
 
 			int lastIndex = index - 1;
 			if (lastIndex < 0) lastIndex = pageSequence.size() - 1;
@@ -1196,6 +1199,8 @@ public class ManualViewer extends EModelessDialog
 				// write the line
 				printWriter.println(line);
 			}
+			printWriter.println("</BODY>");
+			printWriter.println("</HTML>");
 			printWriter.close();
 		}
 	}

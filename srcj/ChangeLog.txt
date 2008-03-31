@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07g: ******************************
 
+IMP/MAN: (3/31/08, SMR) Added command "Window / Messages Window / Tile with Edit Window"
+     to make the messages window tile with the edit window (Bug #1625).
+
 IMP/MAN: (3/28/08, SMR) Using "Down Hierarchy In Place" on schematic icons
      lets you edit the icon (in place) instead of the schematic (Bug #1607).
 

@@ -186,6 +186,28 @@ public class MessagesWindow
 	}
 
 	/**
+	 * Method to adjust the Messages Window so that it attaches to the current Edit Window.
+	 */
+	public void tileWithEdit()
+	{
+		// get the location of the edit window
+		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+		if (wf == null) return;
+		Rectangle eb;
+		if (TopLevel.isMDIMode()) eb = wf.getInternalFrame().getBounds(); else
+			eb = wf.getFrame().getBounds();
+
+		// get the location of the messages window
+		Rectangle mb = this.getMessagesLocation();
+
+		// adjust the messages window location and size
+		mb.x = eb.x;
+		mb.width = eb.width;
+		mb.y = eb.y + eb.height;
+		jf.setBounds(mb);
+	}
+
+	/**
 	 * Method to erase everything in the messages window.
 	 */
 	public void clear()

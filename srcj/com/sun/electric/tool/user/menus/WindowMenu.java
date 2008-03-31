@@ -211,8 +211,10 @@ public class WindowMenu {
                     WaveformWindow.exportSimulationData(); }}
                 ),
 
-		// mnemonic keys available: AB DE GHIJKLMNOPQR TUVWXYZ
+		// mnemonic keys available: AB DE GHIJKLMNOPQR  UVWXYZ
             new EMenu("_Messages Window",
+                new EMenuItem("_Tile with Edit Window") { public void run() {
+                	TopLevel.getMessagesWindow().tileWithEdit(); }},
                 new EMenuItem("_Save Messages...") { public void run() {
                     MessagesStream.getMessagesStream().save(); }},
                 new EMenuItem("_Clear") { public void run() {
