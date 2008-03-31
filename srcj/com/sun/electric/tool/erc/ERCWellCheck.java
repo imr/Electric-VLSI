@@ -23,7 +23,10 @@
  */
 package com.sun.electric.tool.erc;
 
-import com.sun.electric.database.geometry.*;
+import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.geometry.GeometryHandler;
+import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
@@ -37,14 +40,16 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.technology.*;
+import com.sun.electric.technology.DRCTemplate;
+import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.user.ErrorLogger;
 
 import java.awt.Shape;
-
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
@@ -107,20 +112,20 @@ public class ERCWellCheck
 		Cell curCell = ui.needCurrentCell();
 		if (curCell == null) return;
 
-        new WellCheckJob(curCell, newAlgorithm);
+		new WellCheckJob(curCell, newAlgorithm);
 	}
 
-    /**
-     * Method used by the regressions
-     * @param cell the Cell to well-check.
-     * @param newAlgorithm the geometry algorithm to use.
-     * @return the success of running well-check.
-     */
-    public static int checkERCWell(Cell cell, GeometryHandler.GHMode newAlgorithm)
-    {
-        ERCWellCheck check = new ERCWellCheck(cell, null, newAlgorithm);
-        return check.doIt();
-    }
+	/**
+	 * Method used by the regressions
+	 * @param cell the Cell to well-check.
+	 * @param newAlgorithm the geometry algorithm to use.
+	 * @return the success of running well-check.
+	 */
+	public static int checkERCWell(Cell cell, GeometryHandler.GHMode newAlgorithm)
+	{
+		ERCWellCheck check = new ERCWellCheck(cell, null, newAlgorithm);
+		return check.doIt();
+	}
 
 	private static class WellCheckJob extends Job
 	{
@@ -130,7 +135,7 @@ public class ERCWellCheck
 		private EPoint worstPWellCon, worstPWellEdge;
 		private EPoint worstNWellCon, worstNWellEdge;
 
-        private WellCheckJob(Cell cell, GeometryHandler.GHMode newAlgorithm)
+		private WellCheckJob(Cell cell, GeometryHandler.GHMode newAlgorithm)
 		{
 			super("ERC Well Check on " + cell, ERC.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
 			this.cell = cell;
@@ -170,8 +175,8 @@ public class ERCWellCheck
 			return result == 0;
 		}
 
-        public void terminateOK()
-        {
+		public void terminateOK()
+		{
 			// show the farthest distance from a well contact
 			UserInterface ui = Job.getUserInterface();
 			EditWindow_ wnd = ui.getCurrentEditWindow_();
@@ -190,23 +195,15 @@ public class ERCWellCheck
 				}
 				wnd.finishedHighlighting();
 			}
-        }
-    }
+		}
+	}
 
 	private int doIt()
 	{
 		long startTime = System.currentTimeMillis();
 		errorLogger = ErrorLogger.newInstance("ERC Well Check ");
-//        long initialMemory = 0;
 
 		System.out.println("Checking Wells and Substrates in '" + cell.libDescribe() + "' ...");
-		// announce start of analysis
-//		if (Job.getDebug())
-//		{
-//            initialMemory = Runtime.getRuntime().freeMemory();
-//			System.out.println("Free v/s Total Memory " +
-//					initialMemory + " / " + Runtime.getRuntime().totalMemory());
-//		}
 
 		// enumerate the hierarchy below here
 		Visitor wcVisitor = new Visitor(this);
@@ -217,13 +214,10 @@ public class ERCWellCheck
 
 		// make a list of well and substrate areas
 		int wellIndex = 0;
-        GeometryHandler topMerge = cellMerges.get(cell);
+		GeometryHandler topMerge = cellMerges.get(cell);
 
-        for (Layer layer : topMerge.getKeySet())
-//		for(Iterator<Layer> it = topMerge.getKeyIterator(); it.hasNext(); )
+		for (Layer layer : topMerge.getKeySet())
 		{
-//			Layer layer = it.next();
-
 			// Not sure if null goes here
 			Collection<PolyBase> set = topMerge.getObjects(layer, false, true);
 
@@ -238,15 +232,6 @@ public class ERCWellCheck
 				wellAreas.add(wa);
 			}
 		}
-
-//		if (Job.getDebug())
-//		{
-//			System.out.println("Found " + wellAreas.size() + " well/select areas and " + wellCons.size() +
-//					" contact regions (took " + TextUtils.getElapsedTime(System.currentTimeMillis() - startTime) + ")");
-//			System.out.println("Free v/s Total Memory Intermediate step: " +
-//					Runtime.getRuntime().freeMemory() + " / " + Runtime.getRuntime().totalMemory());
-//            System.out.println("Memory Intermediate consumption: " + (initialMemory - Runtime.getRuntime().freeMemory()));
-//		}
 
 		boolean foundPWell = false;
 		boolean foundNWell = false;
@@ -388,7 +373,6 @@ public class ERCWellCheck
 					if (wa.index <= oWa.index) continue;
 					Layer waLayer = wa.poly.getLayer();
 					if (waLayer != oWa.poly.getLayer()) continue;
-					//if (wa.layer != oWa.layer) continue;
 					boolean con = false;
 					if (wa.netNum == oWa.netNum && wa.netNum >= 0) con = true;
 					DRCTemplate rule = (con)?
@@ -398,16 +382,17 @@ public class ERCWellCheck
 					if (rule == null)
 					{
 						rule = DRC.getSpacingRule(waLayer, null, waLayer, null, con, -1, 0, 0);
-						if (rule == null)
-							System.out.println("Replace this");
-						if (con)
-							rulesCon.put(waLayer, rule);
-						else
-							rulesNonCon.put(waLayer, rule);
+						if (rule != null)
+						{
+							if (con)
+								rulesCon.put(waLayer, rule);
+							else
+								rulesNonCon.put(waLayer, rule);
+						}
 					}
-					//DRCTemplate rule = DRC.getSpacingRule(wa.layer, wa.layer, con, false, 0);
-                    double ruleValue = rule.getValue(0);
-                    if (rule == null || ruleValue < 0) continue;
+					double ruleValue = -1;
+					if (rule != null) ruleValue = rule.getValue(0);
+					if (ruleValue < 0) continue;
 					if (wa.poly.getBounds2D().getMinX() > oWa.poly.getBounds2D().getMaxX()+ruleValue ||
 						oWa.poly.getBounds2D().getMinX() > wa.poly.getBounds2D().getMaxX()+ruleValue ||
 						wa.poly.getBounds2D().getMinY() > oWa.poly.getBounds2D().getMaxY()+ruleValue ||
@@ -428,9 +413,6 @@ public class ERCWellCheck
 				}
 			}
 		}
-//		if (Job.getDebug())
-//			System.out.println("Free v/s Total Memory Intermediate step 2: " +
-//				Runtime.getRuntime().freeMemory() + " / " + Runtime.getRuntime().totalMemory());
 
 		// compute edge distance if requested
 		if (ERC.isFindWorstCaseWell())
@@ -518,11 +500,6 @@ public class ERCWellCheck
 			System.out.println("FOUND " + errorCount + " WELL ERRORS (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
 		}
 
-//		if (Job.getDebug())
-//		{
-//			System.out.println("Free v/s Total Memory Final Step: " +
-//				Runtime.getRuntime().freeMemory() + " / " + Runtime.getRuntime().totalMemory());
-//		}
 		wellAreas.clear();
 		wellCons.clear();
 		doneCells.clear();
@@ -532,46 +509,46 @@ public class ERCWellCheck
 	}
 
 	private static class Visitor extends HierarchyEnumerator.Visitor
-    {
+	{
 		ERCWellCheck check;
 
-        public Visitor(ERCWellCheck check)
-        {
-	        this.check = check;
-        }
+		public Visitor(ERCWellCheck check)
+		{
+			this.check = check;
+		}
 
-        public boolean enterCell(HierarchyEnumerator.CellInfo info)
-        {
-	        // Checking if job is scheduled for abort or already aborted
-	        if (check.job != null && check.job.checkAbort()) return (false);
+		public boolean enterCell(HierarchyEnumerator.CellInfo info)
+		{
+			// Checking if job is scheduled for abort or already aborted
+			if (check.job != null && check.job.checkAbort()) return (false);
 
 			// make an object for merging all of the wells in this cell
 			Cell cell = info.getCell();
-	        GeometryHandler thisMerge = check.cellMerges.get(cell);
+			GeometryHandler thisMerge = check.cellMerges.get(cell);
 
 			if (thisMerge == null)
 			{
-                thisMerge = GeometryHandler.createGeometryHandler(check.mode,
-                        ercLayersArray.length);
+				thisMerge = GeometryHandler.createGeometryHandler(check.mode,
+					ercLayersArray.length);
 				check.cellMerges.put(cell, thisMerge);
 			}
 
-            return true;
-        }
+			return true;
+		}
 
-        public void exitCell(HierarchyEnumerator.CellInfo info)
-        {
-	        // Checking if job is scheduled for abort or already aborted
-	        if (check.job != null && check.job.checkAbort()) return;
+		public void exitCell(HierarchyEnumerator.CellInfo info)
+		{
+			// Checking if job is scheduled for abort or already aborted
+			if (check.job != null && check.job.checkAbort()) return;
 
 			// make an object for merging all of the wells in this cell
 			Cell cell = info.getCell();
-	        GeometryHandler thisMerge = check.cellMerges.get(info.getCell());
+			GeometryHandler thisMerge = check.cellMerges.get(info.getCell());
 			if (thisMerge == null) throw new Error("wrong condition in ERCWellCheck.enterCell()");
-            boolean done = check.doneCells.get(cell) != null;
+			boolean done = check.doneCells.get(cell) != null;
 
-	        if (!done)
-	        {
+			if (!done)
+			{
 				for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 				{
 					ArcInst ai = it.next();
@@ -591,49 +568,48 @@ public class ERCWellCheck
 					}
 				}
 
-                thisMerge.postProcess(true);
+				thisMerge.postProcess(true);
 
-                // merge everything sub trees
-                for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
-                {
-                    NodeInst ni = it.next();
-                    if (!ni.isCellInstance()) continue;
-                    // get sub-merge information for the cell instance
-                    GeometryHandler subMerge = check.cellMerges.get(ni.getProto());
-                    if (subMerge != null)
-                    {
-                        AffineTransform tTrans = ni.translateOut(ni.rotateOut());
-                        thisMerge.addAll(subMerge, tTrans);
-                    }
-                }
-	        }
+				// merge everything sub trees
+				for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
+				{
+					NodeInst ni = it.next();
+					if (!ni.isCellInstance()) continue;
+					// get sub-merge information for the cell instance
+					GeometryHandler subMerge = check.cellMerges.get(ni.getProto());
+					if (subMerge != null)
+					{
+						AffineTransform tTrans = ni.translateOut(ni.rotateOut());
+						thisMerge.addAll(subMerge, tTrans);
+					}
+				}
+			}
 
-	        // To mark if cell is already done
+			// To mark if cell is already done
 			check.doneCells.put(cell, cell);
-       }
-        public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
-        {
-	        // Checking if job is scheduled for abort or already aborted
-	        //if (check.job!= null && check.job.checkForAbort()) return (false);
+		}
 
+		public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
+		{
 			NodeInst ni = no.getNodeInst();
-	        if (NodeInst.isSpecialNode(ni))
-		        return false; // Nothing to do, Dec 9;
+			if (NodeInst.isSpecialNode(ni))
+				return false; // Nothing to do, Dec 9;
 
 			// merge everything
-	        Cell cell = info.getCell();
-	        GeometryHandler thisMerge = check.cellMerges.get(cell);
-            AffineTransform trans = null;
-            PrimitiveNode.Function fun = ni.getFunction();
-	        boolean wellSubsContact = (fun == PrimitiveNode.Function.WELL || fun == PrimitiveNode.Function.SUBSTRATE);
+			Cell cell = info.getCell();
+			GeometryHandler thisMerge = check.cellMerges.get(cell);
+			AffineTransform trans = null;
+			PrimitiveNode.Function fun = ni.getFunction();
+			boolean wellSubsContact = (fun == PrimitiveNode.Function.WELL || fun == PrimitiveNode.Function.SUBSTRATE);
 
-	        // No done yet
-	        if (check.doneCells.get(cell) == null)
-	        {
+			// No done yet
+			if (check.doneCells.get(cell) == null)
+			{
 				if (!ni.isCellInstance())
 				{
 					PrimitiveNode pNp = (PrimitiveNode)ni.getProto();
 					Technology tech = pNp.getTechnology();
+
 					// Getting only ercLayers
 					Poly [] nodeInstPolyList = tech.getShapeOfNode(ni, true, true, ercLayers);
 					int tot = nodeInstPolyList.length;
@@ -642,23 +618,23 @@ public class ERCWellCheck
 					{
 						Poly poly = nodeInstPolyList[i];
 						Layer layer = poly.getLayer();
-						// Only interested in well/select regions
 
-                        if (trans == null) trans = ni.rotateOut();  // transformation only calculated when required.
+						// Only interested in well/select regions
+						if (trans == null) trans = ni.rotateOut();  // transformation only calculated when required.
 						poly.transform(trans);
 						Shape newElem = poly;
 
 						thisMerge.add(layer, newElem);
 					}
 				}
-	        }
+			}
 
 			// look for well and substrate contacts
 			if (wellSubsContact)
 			{
 				WellCon wc = new WellCon();
 				wc.ctr = ni.getTrueCenter();
-                if (trans == null) trans = ni.rotateOut();  // transformation only calculated when required.
+				if (trans == null) trans = ni.rotateOut();  // transformation only calculated when required.
 				trans.transform(wc.ctr, wc.ctr);
 				info.getTransformToRoot().transform(wc.ctr, wc.ctr);
 				wc.fun = fun;
@@ -670,6 +646,7 @@ public class ERCWellCheck
 				if (net != null)
 				{
 					boolean searchWell = (fun == PrimitiveNode.Function.WELL);
+
 					// PWell: must be on ground or  NWell: must be on power
 					Network parentNet = net;
 					HierarchyEnumerator.CellInfo cinfo = info;
@@ -689,13 +666,13 @@ public class ERCWellCheck
 				}
 				check.wellCons.add(wc);
 			}
-            return true;
-        }
-    }
+			return true;
+		}
+	}
 
-	/*
+	/**
 	 * Method to return nonzero if layer "layer" is a well/select layer.
-	 * Returns:
+	 * @return
 	 *   1: P-Well
 	 *   2: N-Well
 	 *   3: P-Select
@@ -707,10 +684,10 @@ public class ERCWellCheck
 	private static final int ERCNSelect = 4;
 	private static final int ERCPSEUDO = 0;
 
-    private static final Layer.Function[] ercLayersArray = {
-	    Layer.Function.WELLP, Layer.Function.WELL, Layer.Function.WELLN, Layer.Function.SUBSTRATE,
-	    Layer.Function.IMPLANTP, Layer.Function.IMPLANT, Layer.Function.IMPLANTN};
-    private static final Layer.Function.Set ercLayers = new Layer.Function.Set(ercLayersArray);
+	private static final Layer.Function[] ercLayersArray = {
+		Layer.Function.WELLP, Layer.Function.WELL, Layer.Function.WELLN, Layer.Function.SUBSTRATE,
+		Layer.Function.IMPLANTP, Layer.Function.IMPLANT, Layer.Function.IMPLANTN};
+	private static final Layer.Function.Set ercLayers = new Layer.Function.Set(ercLayersArray);
 
 	/**
 	 * Determine if layer is relevant for ERC process to
@@ -722,7 +699,7 @@ public class ERCWellCheck
 	{
 		int type = getWellLayerType(layer);
 		return (type == ERCPWell || type == ERCNWell ||
-		        type == ERCPSelect || type == ERCNSelect);
+				type == ERCPSelect || type == ERCNSelect);
 	}
 
 	private static int getWellLayerType(Layer layer)
@@ -737,7 +714,7 @@ public class ERCWellCheck
 			return ERCNSelect;
 		if (fun == Layer.Function.SUBSTRATE)
 		{
-//            int extra = layer.getFunctionExtras();
+//			int extra = layer.getFunctionExtras();
 //			if ((extra&Layer.Function.PTYPE) != 0) return ERCPSelect;
 			return ERCNSelect;
 		}
