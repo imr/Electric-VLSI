@@ -825,7 +825,7 @@ public class TechEditWizardData
 		if (fileName == null) return;
 		try
 		{
-//            dumpXMLFile(fileName + "new");
+            dumpXMLFile(fileName + "new");
             PrintWriter printWriter = new PrintWriter(new BufferedWriter(new FileWriter(fileName)));
 			dumpTechnology(printWriter);
 			printWriter.close();
@@ -1052,17 +1052,21 @@ public class TechEditWizardData
         return nl;
     }
     
-    private Xml.NodeLayer makeXmlMulticut(double hla, Xml.Layer lb, String sizeRule, String sepRule, String sepRule2D) {
+    private Xml.NodeLayer makeXmlMulticut(double hla, Xml.Layer lb, WizardField sizeRule, WizardField sepRule, WizardField sepRule2D) {
         Xml.NodeLayer nl = new Xml.NodeLayer();
         nl.layer = lb.name;
         nl.style = Poly.Type.FILLED;
         nl.inLayers = nl.inElectricalLayers = true;
         nl.representation = Technology.NodeLayer.MULTICUTBOX;
         nl.lx.k = -1; nl.hx.k = 1; nl.ly.k = -1; nl.hy.k = 1;
-/*        nl.sizeRule = sizeRule;
-        nl.sepRule = sepRule;
-        nl.sepRule2D = sepRule2D;*/
+
+//        nl.sizeRule = sizeRule;
+        nl.sizex = sizeRule.v;
+        nl.sizey = sizeRule.v;
+        nl.sep1d = sepRule.v;
+        nl.sep2d = sepRule2D.v;
         return nl;
+        
     }
 
     /**
@@ -1405,9 +1409,9 @@ public class TechEditWizardData
 
         // write arcs
         // metal arcs
-        String[] layerNames = new String[5];
-        Technology.Distance[] layerValues = new Technology.Distance[5];
-        Technology.DistanceContext context = Technology.EMPTY_CONTEXT;
+//        String[] layerNames = new String[5];
+//        Technology.Distance[] layerValues = new Technology.Distance[5];
+//        Technology.DistanceContext context = Technology.EMPTY_CONTEXT;
         for(int i=1; i<=num_metal_layers; i++)
         {
             double ant = (int)Math.round(metal_antenna_ratio[i-1]) | 200;
@@ -1442,7 +1446,7 @@ public class TechEditWizardData
             nodesList.add(makeXmlNodeLayer(hla, lt)); // top layer
             // via
             Xml.Layer via = viaLayers.get(i-1);
-            nodesList.add(makeXmlMulticut(hla, via, via_size[i-1].rule, via_spacing[i-1].rule, via_array_spacing[i-1].rule)); // via
+            nodesList.add(makeXmlMulticut(hla, via, via_size[i-1], via_spacing[i-1], via_array_spacing[i-1])); // via
 //            double size = DBMath.round(via_size[i-1].v/stepsize);
 //            double cs = DBMath.round(via_spacing[i-1].v/stepsize);
 //            double cs2 = DBMath.round(via_array_spacing[i-1].v/stepsize);
@@ -1451,7 +1455,7 @@ public class TechEditWizardData
             // port
             List<Xml.PrimitivePort> nodePorts = new ArrayList<Xml.PrimitivePort>();
             EPoint minFullSize = EPoint.fromLambda(0.5*hla, 0.5*hla);
-            List<String> portNames = new ArrayList<String>();
+//            List<String> portNames = new ArrayList<String>();
             Xml.PrimitivePort pp = makeXmlPrimitivePort(name.toLowerCase(), 0, 180, 0,
                 minFullSize, 0, 0, null);
             nodePorts.add(pp);

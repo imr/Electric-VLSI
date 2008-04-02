@@ -1098,8 +1098,8 @@ public class PixelDrawing
 			{
 				Rectangle2D curBounds = ai.getBounds();
 				Rectangle2D bounds = new Rectangle2D.Double(curBounds.getX(), curBounds.getY(), curBounds.getWidth(), curBounds.getHeight());
-				GenMath.transformRect(bounds, prevTrans);
-				if (!GenMath.rectsIntersect(bounds, drawLimitBounds)) continue;
+				DBMath.transformRect(bounds, prevTrans);
+				if (!DBMath.rectsIntersect(bounds, drawLimitBounds)) continue;
 			}
 			drawArc(ai, prevTrans, false);
 		}
@@ -1114,8 +1114,8 @@ public class PixelDrawing
 			{
 				Rectangle2D curBounds = ni.getBounds();
 				Rectangle2D bounds = new Rectangle2D.Double(curBounds.getX(), curBounds.getY(), curBounds.getWidth(), curBounds.getHeight());
-				GenMath.transformRect(bounds, prevTrans);
-				if (!GenMath.rectsIntersect(bounds, drawLimitBounds)) continue;
+				DBMath.transformRect(bounds, prevTrans);
+				if (!DBMath.rectsIntersect(bounds, drawLimitBounds)) continue;
 			}
 			drawNode(ni, orient, prevTrans, topCell, drawLimitBounds, fullInstantiate, false);
 		}
@@ -1359,7 +1359,7 @@ public class PixelDrawing
         Poly p = new Poly(dbBounds);
         p.transform(trans);
         dbBounds = p.getBounds2D();
-        if (drawBounds != null && !GenMath.rectsIntersect(drawBounds, dbBounds)) return;
+        if (drawBounds != null && !DBMath.rectsIntersect(drawBounds, dbBounds)) return;
 
 		// draw the arc
 		ArcProto ap = ai.getProto();
@@ -1599,8 +1599,8 @@ public class PixelDrawing
 			{
 				Rectangle2D curBounds = ni.getBounds();
 				Rectangle2D bounds = new Rectangle2D.Double(curBounds.getX(), curBounds.getY(), curBounds.getWidth(), curBounds.getHeight());
-				GenMath.transformRect(bounds, prevTrans);
-				if (!GenMath.rectsIntersect(bounds, drawLimitBounds)) return;
+				DBMath.transformRect(bounds, prevTrans);
+				if (!DBMath.rectsIntersect(bounds, drawLimitBounds)) return;
 			}
 
 			countNode(ni, drawLimitBounds, fullInstantiate, orient, prevTrans);

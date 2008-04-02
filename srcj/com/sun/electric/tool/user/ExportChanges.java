@@ -719,7 +719,7 @@ public final class ExportChanges
 				AffineTransform goIn = ni.translateIn(ni.rotateIn());
 				Rectangle2D boundsInside = new Rectangle2D.Double(bounds.getMinX(), bounds.getMinY(),
 					bounds.getWidth(), bounds.getHeight());
-				GenMath.transformRect(boundsInside, goIn);
+				DBMath.transformRect(boundsInside, goIn);
 				reExportInBounds((Cell)ni.getProto(), boundsInside, deep, includeWiredPorts, false);
 			}
 

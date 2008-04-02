@@ -913,7 +913,7 @@ class VectorDrawing
 		Rectangle2D cellBounds = subVC.vcg.bounds;
 		Rectangle2D ownBounds = new Rectangle2D.Double(cellBounds.getMinX(), cellBounds.getMinY(), cellBounds.getWidth(), cellBounds.getHeight());
 		AffineTransform trans = subVC.orient.rotateAbout(0, 0);
-		GenMath.transformRect(ownBounds, trans);
+		DBMath.transformRect(ownBounds, trans);
 		double greekScale = MAXGREEKSIZE / ownBounds.getHeight();
 		if (ownBounds.getWidth() > ownBounds.getHeight())
 			greekScale = MAXGREEKSIZE / ownBounds.getWidth();

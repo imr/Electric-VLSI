@@ -28,6 +28,7 @@ package com.sun.electric.tool.routing;
 
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
@@ -37,7 +38,6 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
-import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.RTBounds;
@@ -1544,7 +1544,7 @@ public class Maze
 				Rectangle2D arcBounds = ai.getBounds();
 				Rectangle2D bounds = new Rectangle2D.Double(arcBounds.getMinX(), arcBounds.getMinY(),
 					arcBounds.getWidth(), arcBounds.getHeight());
-				GenMath.transformRect(bounds, trans);
+				DBMath.transformRect(bounds, trans);
 				if (bounds.intersects(searchBounds))
 					drawArcInst(ai, trans, region);
 			}
@@ -1558,7 +1558,7 @@ public class Maze
 			Rectangle2D nodeBounds = ni.getBounds();
 			Rectangle2D bounds = new Rectangle2D.Double(nodeBounds.getMinX(), nodeBounds.getMinY(),
 				nodeBounds.getWidth(), nodeBounds.getHeight());
-			GenMath.transformRect(bounds, trans);
+			DBMath.transformRect(bounds, trans);
 			if (!bounds.intersects(searchBounds)) return false;
 
 			if (!ni.isCellInstance())

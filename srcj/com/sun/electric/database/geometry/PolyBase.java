@@ -992,7 +992,7 @@ public class PolyBase implements Shape, PolyNodeMerge
 				return bestDist;
 			} else
 			{
-				if (GenMath.rectsIntersect(otherBounds,polyBounds)) return Double.MIN_VALUE;
+				if (DBMath.rectsIntersect(otherBounds,polyBounds)) return Double.MIN_VALUE;
 //				if (otherBounds.intersects(polyBounds)) return Double.MIN_VALUE;
 				return otherPt.distance(polyCenter);
 			}
@@ -1016,7 +1016,7 @@ public class PolyBase implements Shape, PolyNodeMerge
 				return bestDist;
 			} else
 			{
-				if (GenMath.rectsIntersect(otherBounds,polyBounds)) return Double.MIN_VALUE;
+				if (DBMath.rectsIntersect(otherBounds,polyBounds)) return Double.MIN_VALUE;
 				return otherPt.distance(polyCenter);
 			}
 		}

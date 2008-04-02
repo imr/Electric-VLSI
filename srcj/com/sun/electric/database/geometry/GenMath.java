@@ -818,48 +818,6 @@ public class GenMath
     }
 
     /**
-     * Method to transform a Rectangle2D by a given transformation.
-     * @param bounds the Rectangle to transform.
-     * It is transformed "in place" (its coordinates are overwritten).
-     * @param xform the transformation matrix.
-     */
-    public static void transformRect(Rectangle2D bounds, AffineTransform xform)
-    {
-	    if (xform.getType() == AffineTransform.TYPE_IDENTITY)  // nothing to do
-	        return;
-        Point2D [] corners = Poly.makePoints(bounds.getMinX(), bounds.getMaxX(), bounds.getMinY(), bounds.getMaxY());
-        xform.transform(corners, 0, corners, 0, 4);
-        double lX = corners[0].getX();
-        double lY = corners[0].getY();
-        double hX = lX;
-        double hY = lY;
-        for(int i=1; i<4; i++)
-        {
-            if (corners[i].getX() < lX) lX = corners[i].getX();
-            if (corners[i].getX() > hX) hX = corners[i].getX();
-            if (corners[i].getY() < lY) lY = corners[i].getY();
-            if (corners[i].getY() > hY) hY = corners[i].getY();
-        }
-        bounds.setRect(lX, lY, hX-lX, hY-lY);
-    }
-
-    /**
-     * Method to tell whether two Rectangle2D objects intersect.
-     * If one of the rectangles has zero size, then standard "intersect()" fails.
-     * @param r1 the first rectangle.
-     * @param r2 the second rectangle.
-     * @return true if they overlap.
-     */
-    public static boolean rectsIntersect(Rectangle2D r1, Rectangle2D r2)
-	{
-		if (r2.getMaxX() < r1.getMinX()) return false;
-		if (r2.getMinX() > r1.getMaxX()) return false;
-		if (r2.getMaxY() < r1.getMinY()) return false;
-		if (r2.getMinY() > r1.getMaxY()) return false;
-		return true;
-	}
-
-    /**
      * Method to determine the intersection of two lines and return that point.
      * @param p1 a point on the first line.
      * @param ang1 the angle of the first line (in tenth degrees).

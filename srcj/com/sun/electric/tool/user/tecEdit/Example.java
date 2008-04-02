@@ -25,12 +25,11 @@
  */
 package com.sun.electric.tool.user.tecEdit;
 
-import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.RTBounds;
-import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.technologies.Generic;
 
 import java.awt.geom.Rectangle2D;
@@ -114,7 +113,7 @@ public class Example implements Serializable
 //						otherNi.getYSize() - oSo.getLowYOffset() - oSo.getHighYOffset());
 					oPoly.transform(otherNi.rotateOut());
 					Rectangle2D otherRect = oPoly.getBounds2D();
-					if (!GenMath.rectsIntersect(otherRect, soFar)) continue;
+					if (!DBMath.rectsIntersect(otherRect, soFar)) continue;
 
 					// make sure the node is valid
 					Object otherAssn = nodeExamples.get(otherNi);

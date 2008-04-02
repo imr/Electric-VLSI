@@ -28,7 +28,6 @@ import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -1439,7 +1438,7 @@ public class EditWindow extends JPanel
 		// do the redraw in a separate thread
         if (fullInstantiate) {
             fullInstantiateBounds = bounds.getBounds2D();
-            GenMath.transformRect(fullInstantiateBounds, outofCell);
+            DBMath.transformRect(fullInstantiateBounds, outofCell);
         }
         invokeRenderJob(this);
 

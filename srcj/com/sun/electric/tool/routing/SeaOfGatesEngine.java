@@ -2781,7 +2781,7 @@ public class SeaOfGatesEngine
 		} else if (fun.isContact())
 		{
 			Rectangle2D bounds = poly.getBounds2D();
-			GenMath.transformRect(bounds, trans);
+			DBMath.transformRect(bounds, trans);
 			addVia(new Point2D.Double(bounds.getCenterX(), bounds.getCenterY()), layer, netID);
 		}
 	}
