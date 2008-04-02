@@ -58,6 +58,9 @@ public class DBMath extends GenMath {
     /**
      * Method to tell whether a point is inside of a bounds, compensating
      * for possible database precision errors.
+     * The reason that this is necessary is that Rectangle2D.contains requires that
+     * the point be INSIDE of the bounds, whereas this method accepts a point that
+     * is ON the bounds.
      * @param pt the point in question
      * @param bounds the bounds being tested
      * @return true if the point is basically within the bounds, within some
