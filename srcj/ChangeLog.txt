@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07g: ******************************
 
+BUG: (4/2/08, SMR) Electric cannot re-run JVM when there are spaces in the Jar path (Bug #1624).
+FIX: In Launcher.invokeElectric(), wrap Jar file path in quotes if it has spaces.
+
 BUG: (4/2/08, SMR) Auto stitcher misses zero-size ports.
 FIX: Fixed quad-trees and updated Auto-stitcher.
 

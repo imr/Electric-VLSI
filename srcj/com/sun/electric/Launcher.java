@@ -110,7 +110,9 @@ public final class Launcher
         }
 
 		String command = program;
-		command += " -cp " + System.getProperty("java.class.path",".");
+		String jarPath = System.getProperty("java.class.path",".");
+		if (jarPath.indexOf(' ') >= 0) jarPath = "\"" + jarPath + "\"";
+		command += " -cp " + jarPath;
         command += " -ss2m";
 		if (enableAssertions)
 			command += " -ea"; // enable assertions
