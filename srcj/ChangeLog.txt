@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07h: ******************************
 
+IMP: Added Technology XML format to user's manual (section 8-10)
+
 ************************* Version 8.07g: ******************************
 
 BUG: (4/2/08, SMR) Electric cannot re-run JVM when there are spaces in the Jar path (Bug #1624).
