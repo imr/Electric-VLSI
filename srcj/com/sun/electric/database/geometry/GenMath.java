@@ -818,26 +818,6 @@ public class GenMath
     }
 
     /**
-     * Method to tell whether a point is inside of a bounds.
-     * <p>NOTE: If you are comparing Electric database units, DO NOT
-     * use this method. Use the corresponding method from DBMath.
-     * The reason that this is necessary is that Rectangle2D.contains requires that
-     * the point be INSIDE of the bounds, whereas this method accepts a point that
-     * is ON the bounds.
-     * @param pt the point in question.
-     * @param bounds the bounds being tested.
-     * @return true if the point is in the bounds.
-     */
-    public static boolean pointInRect(Point2D pt, Rectangle2D bounds)
-    {
-        if (pt.getX() < bounds.getMinX()) return false;
-        if (pt.getX() > bounds.getMaxX()) return false;
-        if (pt.getY() < bounds.getMinY()) return false;
-        if (pt.getY() > bounds.getMaxY()) return false;
-        return true;
-    }
-
-    /**
      * Method to transform a Rectangle2D by a given transformation.
      * @param bounds the Rectangle to transform.
      * It is transformed "in place" (its coordinates are overwritten).
