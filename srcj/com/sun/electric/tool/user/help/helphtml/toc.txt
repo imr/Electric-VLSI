@@ -195,6 +195,7 @@ Creating New Technologies
  Miscellaneous Information           =chap08-07
  How Technology Changes Affect Existing Libraries =chap08-08
  Examples of Use                     =chap08-09
+ Technology XML File Format          =chap08-10
 
 Tools
  Introduction to Tools               =chap09-01
