@@ -26,6 +26,7 @@ package com.sun.electric.database.geometry;
 import java.util.Set;
 import java.util.HashSet;
 import java.awt.geom.Rectangle2D;
+import java.awt.geom.Point2D;
 
 /**
  * User: Gilda
@@ -79,11 +80,22 @@ public class ObjectQTree {
     {
         private Object elem;
         private Rectangle2D rect;
+        private boolean isEmpty;
 
         ObjectNode(Object e, Rectangle2D r)
         {
             this.elem = e;
             this.rect = r;
+            this.isEmpty = r.isEmpty();
+        }
+
+        boolean intersectsWithBox(Rectangle2D box)
+        {
+            if (!isEmpty)
+                return box.intersects(rect);
+            // if empty. Along the perimeter of the bounding box is also valid
+
+            return DBMath.pointInRect(new Point2D.Double(rect.getMinX(), rect.getMinY()), box);
         }
         Rectangle2D getBounds() {return rect;}
     }
@@ -167,7 +179,9 @@ public class ObjectQTree {
                 {
                     for (ObjectNode node : nodes)
                     {
-                        if (searchBox.intersects(node.rect))
+                        // consider if node.rect is empty  -> it is a point (degenerated rectangle)
+                        if (node.intersectsWithBox(searchBox))
+//                        if (searchBox.intersects(node.rect))
                             list.add(node.elem);
                     }
                 }
@@ -182,7 +196,8 @@ public class ObjectQTree {
 		 */
 		protected boolean insert(ObjectNode obj)
 		{
-			if (!box.intersects(obj.getBounds()))
+            // if bb is not empty, we check intersection. If empty (point), we check if it is contained in box
+            if (!obj.intersectsWithBox(box))
 			{
 				// new element is outside of bounding box. Might need flag to avoid
 				// double checking if obj is coming from findAndRemove
@@ -201,7 +216,7 @@ public class ObjectQTree {
 			{
 				nodes = new HashSet<ObjectNode>();
 			}
-			boolean inserted = false;
+			boolean inserted; // = false;
 
 			if (nodes.size() < MAX_NUM_NODES)
 			{

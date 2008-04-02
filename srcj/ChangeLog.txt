@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07g: ******************************
 
+BUG: (4/1/08, GVG) Quad tree doesn't handle zero-sized objects (Bug #1626)
+FIX: ObjecQTree now can handles zero-sized objects. Basic test was added into Extraction regression.
+
 IMP/MAN: (3/31/08, SMR) Added command "Window / Messages Window / Tile with Edit Window"
      to make the messages window tile with the edit window (Bug #1625).
 
