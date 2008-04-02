@@ -26,7 +26,6 @@ package com.sun.electric.tool.extract;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.VarContext;
