@@ -359,7 +359,8 @@ public class CellLists extends EDialog
 		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology curtech = it.next();
-			for(Iterator<PrimitiveNode> nIt = curtech.getNodes(); nIt.hasNext(); )
+            int totalVal = 0;
+            for(Iterator<PrimitiveNode> nIt = curtech.getNodes(); nIt.hasNext(); )
 			{
 				PrimitiveNode np = nIt.next();
 				GenMath.MutableInteger count = nodeCount.get(np);
@@ -370,9 +371,12 @@ public class CellLists extends EDialog
 					printtech = curtech;
 				}
 				System.out.println(TextUtils.toBlankPaddedString(count.intValue(), 6) + " " + np.describe(true) + " nodes");
-			}
-		}
-		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
+                totalVal += count.intValue();
+            }
+            System.out.println(TextUtils.toBlankPaddedString(totalVal, 6) + " Total nodes for " + curtech.getTechName() + " technology");
+        }
+
+        for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 		{
 			Library lib = it.next();
 			Library printlib = null;
