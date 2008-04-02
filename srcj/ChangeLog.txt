@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07g: ******************************
 
+BUG: (4/2/08, SMR) Auto stitcher misses zero-size ports.
+FIX: Fixed quad-trees and updated Auto-stitcher.
+
 BUG: (4/1/08, GVG) Quad tree doesn't handle zero-sized objects (Bug #1626)
 FIX: ObjecQTree now can handles zero-sized objects. Basic test was added into Extraction regression.
 
