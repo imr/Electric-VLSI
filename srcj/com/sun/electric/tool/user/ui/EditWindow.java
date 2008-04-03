@@ -3812,7 +3812,7 @@ public class EditWindow extends JPanel
 			// initialize drawing
             Rectangle2D cellBounds = ep.getRenderArea();
             if (cellBounds == null) cellBounds = getBoundsInWindow();
-            cellBounds.setRect(cellBounds.getMinX()-1, cellBounds.getMinY()-1, cellBounds.getWidth()+2, cellBounds.getHeight()+2);
+            cellBounds = new Rectangle2D.Double(cellBounds.getMinX()-1, cellBounds.getMinY()-1, cellBounds.getWidth()+2, cellBounds.getHeight()+2);
     		double width = cellBounds.getWidth();
         	double height = cellBounds.getHeight();
             if (width == 0) width = 2;

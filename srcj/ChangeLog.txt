@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07h: ******************************
 
+BUG: (4/3/08, SMR) Printing crashes.
+FIX: In EditWindow.getPrintImage(), recreate Rectangle instead of setting fields.
+
 IMP: Added Technology XML format to user's manual (section 8-10)
 
 ************************* Version 8.07g: ******************************
