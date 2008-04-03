@@ -64,6 +64,8 @@ public class RoutingTab extends PreferencePanel
 	private ArcProto initRoutDefArc;
 	private JPanel sogArcList;
 	private Map<ArcProto,JCheckBox> sogFavorChecks, sogProhibitChecks;
+	private static boolean oneProcessorWarning = false;
+	private static boolean twoProcessorWarning = false;
 
 	/**
 	 * Method called at the start of the dialog.
@@ -105,16 +107,16 @@ public class RoutingTab extends PreferencePanel
 		sogRouteTechnology.setSelectedItem(Technology.getCurrent().getTechName());
 		sogMaxArcWidth.setText(TextUtils.formatDouble(Routing.getSeaOfGatesMaxWidth()));
 		sogComplexityLimit.setText(Integer.toString(Routing.getSeaOfGatesComplexityLimit()));
-		if (Job.getDebug())
+		sogParallel.setSelected(Routing.isSeaOfGatesUseParallelRoutes());
+		sogParallel.addActionListener(new ActionListener()
 		{
-			sogParallel.setSelected(Routing.isSeaOfGatesUseParallelRoutes());
-			sogParallelDij.setSelected(Routing.isSeaOfGatesUseParallelFromToRoutes());
-		} else
+			public void actionPerformed(ActionEvent evt) { sogParallelChanged(); }
+		});
+		sogParallelDij.setSelected(Routing.isSeaOfGatesUseParallelFromToRoutes());
+		sogParallelDij.addActionListener(new ActionListener()
 		{
-			// remove parallelization options from sea-of-gates router if not debugging
-			jPanel1.remove(sogParallel);
-			jPanel1.remove(sogParallelDij);
-		}
+			public void actionPerformed(ActionEvent evt) { sogParallelChanged(); }
+		});
 
 		routTechnology.setSelectedItem(Technology.getCurrent().getTechName());
 		routOverrideArc.addActionListener(new ActionListener()
@@ -179,6 +181,34 @@ public class RoutingTab extends PreferencePanel
 	}
 
 	/**
+	 * Method called when either of the parallel sea-of-gate checkboxes changes.
+	 * Checks this against the number of processors and warns if not possible.
+	 */
+	private void sogParallelChanged()
+	{
+		int numberOfProcessors = Runtime.getRuntime().availableProcessors();
+		boolean twoPerRoute = sogParallelDij.isSelected();
+		boolean parallelRouting = sogParallel.isSelected();
+		if ((twoPerRoute || parallelRouting) && numberOfProcessors == 1 && !oneProcessorWarning)
+		{
+			oneProcessorWarning = true;
+			Job.getUserInterface().showInformationMessage("This computer has only one processor and cannot do parallel routing.",
+				"Not Enough Processors");
+			return;
+		}
+		if ((twoPerRoute && parallelRouting) && numberOfProcessors == 2 && !twoProcessorWarning)
+		{
+			twoProcessorWarning = true;
+			Job.getUserInterface().showInformationMessage(
+				"This computer has only two processors and so it can do either\n"+
+				"   'two processors per route' or 'multiple routes in parallel' but not both.\n"+
+				"It is recommended that two-processor machines use 'two processors per route'.",
+				"Not Enough Processors");
+			return;
+		}
+	}
+
+	/**
 	 * Method called when the "Sea of gates" technology has changed.
 	 */
 	private void sogTechChanged()
@@ -200,6 +230,7 @@ public class RoutingTab extends PreferencePanel
 			gbc.gridx = 0;   gbc.gridy = i;
 			gbc.anchor = GridBagConstraints.WEST;
 			gbc.weightx = 1;
+			gbc.insets = new Insets(0, 2, 0, 2);
 			sogArcList.add(arcName, gbc);
 
 			JCheckBox favorArc = sogFavorChecks.get(ap);
@@ -410,7 +441,7 @@ public class RoutingTab extends PreferencePanel
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 4, 4);
         jPanel7.add(routMimicInteractive, gridBagConstraints);
 
         routMimicNumArcsMustMatch.setText("Number of existing arcs must match");
@@ -470,7 +501,7 @@ public class RoutingTab extends PreferencePanel
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 4, 4);
         jPanel7.add(routMimicKeepPins, gridBagConstraints);
 
         routMimicOnlyNewTopology.setText("Ignore if already connected elsewhere");
@@ -516,7 +547,7 @@ public class RoutingTab extends PreferencePanel
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 0, 4);
         jPanel8.add(routNoStitcher, gridBagConstraints);
 
         routStitcher.add(routAutoStitcher);
@@ -526,7 +557,7 @@ public class RoutingTab extends PreferencePanel
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
         jPanel8.add(routAutoStitcher, gridBagConstraints);
 
         routStitcher.add(routMimicStitcher);
@@ -536,7 +567,7 @@ public class RoutingTab extends PreferencePanel
         gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(1, 4, 4, 4);
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 4, 4);
         jPanel8.add(routMimicStitcher, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -560,7 +591,7 @@ public class RoutingTab extends PreferencePanel
         gridBagConstraints.gridy = 3;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
         jPanel8.add(routOverrideArc, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -578,7 +609,7 @@ public class RoutingTab extends PreferencePanel
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
         jPanel1.add(jLabel1, gridBagConstraints);
 
         sogRouteTechnology.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
@@ -586,12 +617,12 @@ public class RoutingTab extends PreferencePanel
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
         jPanel1.add(sogRouteTechnology, gridBagConstraints);
 
-        sogRouteArcOptions.setMinimumSize(new java.awt.Dimension(100, 100));
+        sogRouteArcOptions.setMinimumSize(new java.awt.Dimension(100, 75));
         sogRouteArcOptions.setOpaque(false);
-        sogRouteArcOptions.setPreferredSize(new java.awt.Dimension(100, 100));
+        sogRouteArcOptions.setPreferredSize(new java.awt.Dimension(100, 75));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
@@ -599,7 +630,7 @@ public class RoutingTab extends PreferencePanel
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(1, 4, 4, 4);
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
         jPanel1.add(sogRouteArcOptions, gridBagConstraints);
 
         jLabel2.setText("Maximum arc width:");
@@ -634,22 +665,24 @@ public class RoutingTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
         jPanel1.add(sogComplexityLimit, gridBagConstraints);
 
-        sogParallel.setText("Parallel Routing");
+        sogParallel.setText("Do multiple routes in parallel (if procs available)");
         sogParallel.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
         sogParallel.setMargin(new java.awt.Insets(0, 0, 0, 0));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 4, 4);
         jPanel1.add(sogParallel, gridBagConstraints);
 
-        sogParallelDij.setText("Parallel from/to analysis");
+        sogParallelDij.setText("Use two processors per route (if available)");
         sogParallelDij.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
         sogParallelDij.setMargin(new java.awt.Insets(0, 0, 0, 0));
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
         jPanel1.add(sogParallelDij, gridBagConstraints);

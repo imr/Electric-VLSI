@@ -187,7 +187,7 @@ public class AutoStitch
 	 * @param nodesToStitch a list of NodeInsts to stitch (null to use all in the cell).
 	 * @param arcsToStitch a list of ArcInsts to stitch (null to use all in the cell).
 	 * @param stayInside is the area in which to route (null to route arbitrarily).
-	 * @param limitBound if not null, only consider errors that occur in this area.
+	 * @param limitBound if not null, only consider connections that occur in this area.
 	 * @param forced true if the stitching was explicitly requested (and so results should be printed).
 	 * @param showProgress true to show progress.
 	 */
@@ -210,7 +210,7 @@ public class AutoStitch
 	 * @param nodesToStitch a list of NodeInsts to stitch (null to use all in the cell).
 	 * @param arcsToStitch a list of ArcInsts to stitch (null to use all in the cell).
 	 * @param stayInside is the area in which to route (null to route arbitrarily).
-	 * @param limitBound if not null, only consider errors that occur in this area.
+	 * @param limitBound if not null, only consider connections that occur in this area.
 	 * @param forced true if the stitching was explicitly requested (and so results should be printed).
 	 * @param showProgress true to show progress.
 	 */
@@ -574,7 +574,7 @@ public class AutoStitch
 	 * @param arcLayers a map from ArcProtos to Layers.
 	 * @param stayInside is the area in which to route (null to route arbitrarily).
 	 * @param top network information for the Cell with these objects.
-	 * @param limitBound if not null, only consider errors that occur in this area.
+	 * @param limitBound if not null, only consider connections that occur in this area.
 	 * @param preferredArc preferred ArcProto to use.
 	 */
 	private void checkStitching(Geometric geom, Map<NodeInst, Rectangle2D[]> nodeBounds,
@@ -610,17 +610,17 @@ public class AutoStitch
 					if (!arcTooWide(oAi)) continue;
 
 					// compare arc "geom" against arc "oAi"
-					compareTwoArcs((ArcInst)geom, oAi, stayInside, top, limitBound);
+					compareTwoArcs((ArcInst)geom, oAi, stayInside, top);
 					continue;
 				}
 
 				// compare node "ni" against arc "oAi"
 				if (ni.isCellInstance())
 				{
-					compareNodeInstWithArc(ni, oAi, stayInside, top, limitBound, nodePortBounds);
+					compareNodeInstWithArc(ni, oAi, stayInside, top, nodePortBounds);
 				} else
 				{
-					compareNodePrimWithArc(ni, oAi, stayInside, top, limitBound);
+					compareNodePrimWithArc(ni, oAi, stayInside, top);
 				}
 			} else
 			{
@@ -638,10 +638,10 @@ public class AutoStitch
 					// compare arc "geom" against node "oNi"
 					if (oNi.isCellInstance())
 					{
-						compareNodeInstWithArc(oNi, (ArcInst)geom, stayInside, top, limitBound, nodePortBounds);
+						compareNodeInstWithArc(oNi, (ArcInst)geom, stayInside, top, nodePortBounds);
 					} else
 					{
-						compareNodePrimWithArc(oNi, (ArcInst)geom, stayInside, top, limitBound);
+						compareNodePrimWithArc(oNi, (ArcInst)geom, stayInside, top);
 					}
 					continue;
 				}
@@ -661,7 +661,7 @@ public class AutoStitch
 	 * @param arcLayers a map from ArcProtos to Layers.
 	 * @param stayInside is the area in which to route (null to route arbitrarily).
 	 * @param top network information for the Cell with these nodes.
-	 * @param limitBound if not null, only consider errors that occur in this area.
+	 * @param limitBound if not null, only consider connections that occur in this area.
 	 * @param preferredArc preferred ArcProto to use.
 	 */
 	private void compareTwoNodes(NodeInst ni, NodeInst oNi,
@@ -1031,9 +1031,8 @@ public class AutoStitch
 	 * @param ai2 the second ArcInst to compare.
 	 * @param stayInside is the area in which to route (null to route arbitrarily).
 	 * @param top the Netlist information for the Cell with the arcs.
-	 * @param limitBound if not null, only consider errors that occur in this area.
 	 */
-	private void compareTwoArcs(ArcInst ai1, ArcInst ai2, PolyMerge stayInside, Topology top, Rectangle2D limitBound)
+	private void compareTwoArcs(ArcInst ai1, ArcInst ai2, PolyMerge stayInside, Topology top)
 	{
 		// if connected, stop now
 		if (ai1.getProto() != ai2.getProto()) return;
@@ -1073,7 +1072,7 @@ public class AutoStitch
 				double y = intersection.getCenterY();
 
 				// run the wire
-				connectObjects(ai1, net1, ai2, net2, ai1.getParent(), new Point2D.Double(x,y), stayInside, limitBound, top);
+				connectObjects(ai1, net1, ai2, net2, ai1.getParent(), new Point2D.Double(x,y), stayInside, top);
 				return;
 			}
 		}
@@ -1085,10 +1084,9 @@ public class AutoStitch
 	 * @param ai the ArcInst to compare.
 	 * @param stayInside is the area in which to route (null to route arbitrarily).
 	 * @param top the Netlist information for the Cell with the node and arc.
-	 * @param limitBound if not null, only consider errors that occur in this area.
 	 * @param nodePortBounds quad-tree bounds information for all nodes in the Cell.
 	 */
-	private void compareNodeInstWithArc(NodeInst ni, ArcInst ai, PolyMerge stayInside, Topology top, Rectangle2D limitBound,
+	private void compareNodeInstWithArc(NodeInst ni, ArcInst ai, PolyMerge stayInside, Topology top,
 		Map<NodeInst,ObjectQTree> nodePortBounds)
 	{
 		// sorry, this method demands the USEQTREE be set
@@ -1169,7 +1167,7 @@ public class AutoStitch
 					{
 						if (!arcPoly.contains(bend1)) bend1 = bend2;
 					}
-					connectObjects(ai, arcNet, pi, portNet, ai.getParent(), bend1, stayInside, limitBound, top);
+					connectObjects(ai, arcNet, pi, portNet, ai.getParent(), bend1, stayInside, top);
 					return;
 				}
 			}
@@ -1182,9 +1180,8 @@ public class AutoStitch
 	 * @param ai the ArcInst to compare.
 	 * @param stayInside is the area in which to route (null to route arbitrarily).
 	 * @param top the Netlist information for the Cell with the node and arc.
-	 * @param limitBound if not null, only consider errors that occur in this area.
 	 */
-	private void compareNodePrimWithArc(NodeInst ni, ArcInst ai, PolyMerge stayInside, Topology top, Rectangle2D limitBound)
+	private void compareNodePrimWithArc(NodeInst ni, ArcInst ai, PolyMerge stayInside, Topology top)
 	{
 		Network arcNet = top.getArcNetwork(ai);
 
@@ -1257,7 +1254,7 @@ public class AutoStitch
 				{
 					if (!arcPoly.contains(bend1)) bend1 = bend2;
 				}
-				connectObjects(ai, arcNet, pi, nodeNet, ai.getParent(), bend1, stayInside, limitBound, top);
+				connectObjects(ai, arcNet, pi, nodeNet, ai.getParent(), bend1, stayInside, top);
 				return;
 			}
 		}
@@ -1272,12 +1269,11 @@ public class AutoStitch
 	 * @param cell the Cell in which these objects reside.
 	 * @param ctr bend point suggestion when making "L" connection.
 	 * @param stayInside is the area in which to route (null to route arbitrarily).
-	 * @param limitBound if not null, only consider errors that occur in this area.
 	 * @param top the topology of the cell.
 	 * @return true if a connection is made.
 	 */
 	private boolean connectObjects(ElectricObject eobj1, Network net1, ElectricObject eobj2, Network net2,
-		Cell cell, Point2D ctr, PolyMerge stayInside, Rectangle2D limitBound, Topology top)
+		Cell cell, Point2D ctr, PolyMerge stayInside, Topology top)
 	{
 		// run the wire
 		NodeInst ni1 = null;
@@ -1325,7 +1321,7 @@ public class AutoStitch
 	 * @param nodePortBounds quad-tree bounds information for all nodes in the Cell.
 	 * @param arcLayers a map from ArcProtos to Layers.
 	 * @param stayInside is the area in which to route (null to route arbitrarily).
-	 * @param limitBound if not null, only consider errors that occur in this area.
+	 * @param limitBound if not null, only consider connections that occur in this area.
 	 * @return the number of connections made (0 if none).
 	 */
 	private boolean testPoly(NodeInst ni, PortProto pp, ArcProto ap, Poly poly, NodeInst oNi, Topology top,
@@ -1637,7 +1633,7 @@ public class AutoStitch
 	 * @param ap the type of arc to use when stitching the nodes.
 	 * @param stayInside is the area in which to route (null to route arbitrarily).
 	 * @param top the netlist for the Cell with the polygons.
-	 * @param limitBound if not null, only consider errors that occur in this area.
+	 * @param limitBound if not null, only consider connections that occur in this area.
 	 * @return true if the connection is made.
 	 */
 	private boolean comparePoly(NodeInst oNi, PortProto opp, Poly oPoly, Network oNet,
@@ -1708,7 +1704,7 @@ public class AutoStitch
 		// run the wire
 		PortInst pi = ni.findPortInstFromProto(pp);
 		PortInst opi = oNi.findPortInstFromProto(opp);
-		return connectObjects(pi, net, opi, oNet, ni.getParent(), new Point2D.Double(x,y), stayInside, limitBound, top);
+		return connectObjects(pi, net, opi, oNet, ni.getParent(), new Point2D.Double(x,y), stayInside, top);
 	}
 
 	/**

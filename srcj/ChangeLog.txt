@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07h: ******************************
 
+IMP/MAN: (4/3/08, SMR) Sea-of-Gates router now defaults to use parallel processing.
+
 ************************* Version 8.07g: ******************************
 
 BUG: (4/3/08, SMR) Sea-of-Gates router doesn't route every node on the network.

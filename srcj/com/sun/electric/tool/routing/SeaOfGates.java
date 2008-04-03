@@ -30,6 +30,7 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.UserInterface;
@@ -44,6 +45,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * Class to control sea-of-gates routing.
@@ -83,7 +85,7 @@ public class SeaOfGates
 		}
 
 		// only consider nets that have unrouted arcs on them
-		Set<Network> netsToRoute = new HashSet<Network>();
+		Set<Network> netsToRoute = new TreeSet<Network>(new TextUtils.NetworksByName());
 		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 		{
 			ArcInst ai = it.next();
@@ -100,43 +102,43 @@ public class SeaOfGates
 			return;
 		}
 
-        // Run seaOfGatesRoute on selected unrouted arcs
-        seaOfGatesRoute(netList, netsToRoute);
+		// Run seaOfGatesRoute on selected unrouted arcs
+		seaOfGatesRoute(netList, netsToRoute, true);
 	}
 
 	/**
 	 * Method to run Sea-of-Gates routing on specified cell
 	 */
-	public static void seaOfGatesRoute(Cell cell) {
-        Netlist netList = cell.getUserNetlist();
-        
-		Set<Network> netsToRoute = new HashSet<Network>();
+	public static void seaOfGatesRoute(Cell cell)
+	{
+		Netlist netList = cell.getUserNetlist();
+
+		Set<Network> netsToRoute = new TreeSet<Network>(new TextUtils.NetworksByName());
 		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 		{
 			ArcInst ai = it.next();
 			if (ai.getProto() != Generic.tech().unrouted_arc) continue;
 			netsToRoute.add(netList.getNetwork(ai, 0));
 		}
-        
-        // Run seaOfGatesRoute on unrouted arcs
-        seaOfGatesRoute(netList, netsToRoute);
-    }
-    
+
+		// Run seaOfGatesRoute on unrouted arcs
+		seaOfGatesRoute(netList, netsToRoute, false);
+	}
+
 	/**
 	 * Method to run Sea-of-Gates routing
 	 */
-	private static void seaOfGatesRoute(Netlist netList, Set<Network> netsToRoute)
+	private static void seaOfGatesRoute(Netlist netList, Set<Network> netsToRoute, boolean separateJob)
 	{
-		// get cell and network information
-		UserInterface ui = Job.getUserInterface();
-        Cell cell = netList.getCell();
+		// get cell from network information
+		Cell cell = netList.getCell();
 
 		// order the nets appropriately
 		List<NetsToRoute> orderedNetsToRoute = new ArrayList<NetsToRoute>();
 		for(Network net : netsToRoute)
 		{
-            if (net.getNetlist() != netList)
-                throw new IllegalArgumentException("netList");
+			if (net.getNetlist() != netList)
+				throw new IllegalArgumentException("netList");
 			boolean isPwrGnd = false;
 			for(Iterator<Export> it = net.getExports(); it.hasNext(); )
 			{
@@ -171,8 +173,15 @@ public class SeaOfGates
 			}
 		}
 
-		// do the routing in a separate job
-		new SeaOfGatesJob(cell, arcsToRoute);
+		if (separateJob)
+		{
+			// do the routing in a separate job
+			new SeaOfGatesJob(cell, arcsToRoute);
+		} else
+		{
+			SeaOfGatesEngine router = new SeaOfGatesEngine();
+			router.routeIt(null, cell, arcsToRoute);
+		}
 	}
 
 	/**
@@ -223,24 +232,24 @@ public class SeaOfGates
 	private static class SeaOfGatesJob extends Job
 	{
 		private Cell cell;
-        private int[] arcIdsToRoute;
+		private int[] arcIdsToRoute;
 
 		protected SeaOfGatesJob(Cell cell, List<ArcInst> arcsToRoute)
 		{
 			super("Sea-Of-Gates Route", Routing.getRoutingTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
-            arcIdsToRoute = new int[arcsToRoute.size()];
-            for (int i = 0; i < arcsToRoute.size(); i++)
-                arcIdsToRoute[i] = arcsToRoute.get(i).getD().arcId;
+			arcIdsToRoute = new int[arcsToRoute.size()];
+			for (int i = 0; i < arcsToRoute.size(); i++)
+				arcIdsToRoute[i] = arcsToRoute.get(i).getD().arcId;
 			startJob();
 		}
 
 		public boolean doIt() throws JobException
 		{
 			SeaOfGatesEngine router = new SeaOfGatesEngine();
-            List<ArcInst> arcsToRoute = new ArrayList<ArcInst>();
-            for (int arcId: arcIdsToRoute)
-                arcsToRoute.add(cell.getArcById(arcId));
+			List<ArcInst> arcsToRoute = new ArrayList<ArcInst>();
+			for (int arcId: arcIdsToRoute)
+				arcsToRoute.add(cell.getArcById(arcId));
 			router.routeIt(this, cell, arcsToRoute);
 			return true;
 		}

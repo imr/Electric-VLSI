@@ -603,7 +603,7 @@ public class SeaOfGatesEngine
 		}
 		if (numberOfThreads > 1)
 		{
-			doRoutingParallel(numberOfThreads, allRoutes, routeBatches, job);
+			doRoutingParallel(numberOfThreads, allRoutes, routeBatches);
 		} else
 		{
 			doRouting(allRoutes, routeBatches, job);
@@ -684,7 +684,7 @@ public class SeaOfGatesEngine
 		int totalRoutes = allRoutes.size();
 		for(int r=0; r<totalRoutes; r++)
 		{
-			if (job.checkAbort())
+			if (job != null && job.checkAbort())
 			{
 				System.out.println("Sea-of-gates routing aborted");
 				break;
@@ -708,7 +708,7 @@ public class SeaOfGatesEngine
 		}
 	}
 
-	private void doRoutingParallel(int numberOfThreads, List<NeededRoute> allRoutes, RouteBatches [] routeBatches, Job job)
+	private void doRoutingParallel(int numberOfThreads, List<NeededRoute> allRoutes, RouteBatches [] routeBatches)
 	{
 		// create threads and other threading data structures
 		RouteInThread[] threads = new RouteInThread[numberOfThreads];
