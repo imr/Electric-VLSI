@@ -48,6 +48,7 @@ import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
@@ -388,24 +389,6 @@ public class Routing extends Listener
 	}
 
 	/**
-	 * Method to tell whether two arcs duplicate each other.
-	 * @param a1 the first arc.
-	 * @param a2 the second arc.
-	 * @return true if the arcs duplicate each other.
-	 */
-	private static boolean sameArc(ArcInst a1, ArcInst a2)
-	{
-		if (a1.getLambdaBaseWidth() != a2.getLambdaBaseWidth()) return false;
-		EPoint h1 = a1.getHeadLocation();
-		EPoint t1 = a1.getTailLocation();
-		EPoint h2 = a2.getHeadLocation();
-		EPoint t2 = a2.getTailLocation();
-		if (h1.equals(h2) && t1.equals(t2)) return true;
-		if (h1.equals(t2) && t1.equals(h2)) return true;
-		return false;
-	}
-
-	/**
 	 * Method to find the endpoints of a network.
 	 * @param net the network to "unroute".
 	 * @param arcsToDelete a HashSet of arcs that should be deleted.
@@ -429,41 +412,55 @@ public class Routing extends Listener
 			if (mustBeUnrouted && ai.getProto() != Generic.tech().unrouted_arc) continue;
 			Network aNet = netList.getNetwork(ai, 0);
 			if (aNet != net) continue;
-
-			// make sure that this arc doesn't duplicate a previous one
-			boolean dup = false;
-			for(ArcInst oAi : arcsToDelete)
-			{
-				if (sameArc(oAi, ai)) { dup = true;   break; }
-			}
 			arcsToDelete.add(ai);
-			if (dup) continue;
 
 			// see if an end of the arc is a network "end"
 			for(int i=0; i<2; i++)
 			{
 				Connection thisCon = ai.getConnection(i);
-				NodeInst ni = thisCon.getPortInst().getNodeInst();
+				PortInst pi = thisCon.getPortInst();
+				NodeInst ni = pi.getNodeInst();
+
+				// see if this arc end is a "termination point" (on cell, exported, or not further connected)
 				boolean term = true;
-				for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext(); )
+				if (!ni.hasExports() && !ni.isCellInstance())
 				{
-					Connection con = cIt.next();
-					ArcInst conAi = con.getArc();
-					if (mustBeUnrouted && conAi.getProto() != Generic.tech().unrouted_arc) continue;
-					if (conAi != ai && netList.getNetwork(conAi, 0) == net) { term = false;   break; }
+					// see if this primitive connects to other unconnected nets
+					for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext(); )
+					{
+						Connection con = cIt.next();
+						ArcInst conAi = con.getArc();
+						if (mustBeUnrouted && conAi.getProto() != Generic.tech().unrouted_arc) continue;
+						if (conAi != ai && netList.getNetwork(conAi, 0) == net) { term = false;   break; }
+					}
 				}
-				if (ni.hasExports()) term = true;
-				if (ni.isCellInstance()) term = true;
+
+				// if a termination point, consider it for the list of net ends
 				if (term)
 				{
-					// valid network end: see if it is in the list
+					// see if it is already in the list, connection-wise
 					boolean found = false;
+					Netlist nl = null;
 					for(Connection lCon : endList)
 					{
-						if (thisCon.getArc() == lCon.getArc() && thisCon.getEndIndex() == lCon.getEndIndex())
+						PortInst otherPI = lCon.getPortInst();
+						NodeInst otherNI = otherPI.getNodeInst();
+						if (otherNI != ni) continue;
+						if (otherPI == pi) { found = true;   break; }
+
+						// connecting to another port on a node: ignore if they are connected internally
+						if (ni.isCellInstance())
 						{
-							found = true;
-							break;
+							if (nl == null) nl = ((Cell)ni.getProto()).acquireUserNetlist();
+							if (nl == null) continue;
+							Network subNet = nl.getNetwork((Export)pi.getPortProto(), 0);
+							Network otherSubNet = nl.getNetwork((Export)otherPI.getPortProto(), 0);
+							if (subNet == otherSubNet) { found = true;   break; }
+						} else
+						{
+							PrimitivePort subPP = (PrimitivePort)pi.getPortProto();
+							PrimitivePort otherSubPP = (PrimitivePort)otherPI.getPortProto();
+							if (subPP.getTopology() == otherSubPP.getTopology()) { found = true;   break; }
 						}
 					}
 					if (!found)
@@ -472,10 +469,8 @@ public class Routing extends Listener
 				{
 					// not a network end: mark the node for removal
 					boolean deleteNode = !mustBeUnrouted;
-					if (ni.getProto().getFunction() == PrimitiveNode.Function.PIN && !ni.hasExports())
-					{
+					if (ni.getProto().getFunction() == PrimitiveNode.Function.PIN)
 						deleteNode = true;
-					}
 					if (deleteNode) nodesToDelete.add(ni);
 				}
 			}

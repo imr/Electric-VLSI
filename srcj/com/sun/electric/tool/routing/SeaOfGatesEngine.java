@@ -1480,7 +1480,6 @@ public class SeaOfGatesEngine
 			return;
 		}
 
-		long startTime = System.currentTimeMillis();
 		if (parallelDij)
 		{
 			// create threads and start them running
@@ -1495,7 +1494,6 @@ public class SeaOfGatesEngine
 			// run both wavefronts in parallel (interleaving steps)
 			doTwoWayDijkstra(nr);
 		}
-		long timeTaken = System.currentTimeMillis() - startTime;
 
 		// analyze the winning wavefront
 		Wavefront wf = nr.winningWF;
