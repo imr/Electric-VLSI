@@ -27,6 +27,7 @@ import com.sun.electric.database.IdMapper;
 import com.sun.electric.database.LibraryBackup;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.constraint.Constraints;
+import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
@@ -708,7 +709,8 @@ public class Output
 	 */
 	public static Rectangle2D getAreaToPrint(Cell cell, boolean reduce, EditWindow_ wnd)
 	{
-		Rectangle2D bounds = cell.getBounds();
+		ERectangle cb = cell.getBounds();
+		Rectangle2D bounds = new Rectangle2D.Double(cb.getMinX(), cb.getMinY(), cb.getWidth(), cb.getHeight());
 		if (wnd != null) bounds = wnd.getBoundsInWindow();
 
 		// extend it and make it square
