@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07h: ******************************
 
+IMP: (4/4/08, GVG) Better error message for Bug #1627)
+
 IMP/MAN: (4/3/08, SMR) Sea-of-Gates router now defaults to use parallel processing.
 
 ************************* Version 8.07g: ******************************

@@ -222,7 +222,9 @@ public final class HierarchyEnumerator {
 		int busWidth = pp.getNameKey().busWidth();
 		int[] netIDs = new int[busWidth];
 		for (int j=0; j<busWidth; j++) {
-			int netIndex = netlist.getNetwork(no, pp, j).getNetIndex();
+            Network net = netlist.getNetwork(no, pp, j);
+            error (net==null, "no network for net");
+            int netIndex = net.getNetIndex();
 			int netID = netNdxToNetID[netIndex];
 			error(netID<0, "no netID for net");
 			netIDs[j] = netID;
