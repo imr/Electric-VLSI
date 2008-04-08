@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07h: ******************************
 
+BUG: (4/8/08, DN) Continuous NPE loop (Bug #1640)
+FIX: In Variable.makeStringVar consider for null entries in an array.
+
 BUG: (4/8/08, DN) All icons the same color (Bug #1637).
 FIX: In EGraphics.setLayer don't change preferences in case of "free" layer.
 

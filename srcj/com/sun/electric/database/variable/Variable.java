@@ -1028,7 +1028,8 @@ public class Variable implements Serializable
             buf.append("[");
             Object [] objects = (Object[])addr;
             for (int i=0; i<objects.length; i++) {
-                buf.append(makeStringVar(objects[i], units));
+                if (objects[i] != null)
+                    buf.append(makeStringVar(objects[i], units));
                 buf.append(", ");
             }
             buf.replace(buf.length()-2, buf.length(), "]");
