@@ -154,12 +154,13 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 	{
         if (protoName == null) return null;
 
-        Name protoNameKey = ImmutableExport.validExportName(protoName);
+        boolean busNamesAllowed = parent.busNamesAllowed();
+        Name protoNameKey = ImmutableExport.validExportName(protoName, busNamesAllowed);
         if (protoNameKey == null)
         {
         	// hack: try removing offending characters
         	protoName = protoName.replace(':', '_');
-            protoNameKey = ImmutableExport.validExportName(protoName);
+            protoNameKey = ImmutableExport.validExportName(protoName, busNamesAllowed);
             if (protoNameKey == null)
             {
 	            System.out.println("Bad export name " + protoName + " : " + Name.checkName(protoName));
@@ -291,7 +292,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 			return null;
 		}
 
-        if (ImmutableExport.validExportName(name) == null) {
+        if (ImmutableExport.validExportName(name, parent.busNamesAllowed()) == null) {
             errorMsg = parent + " has bad export name " + name + " ";
             String newName = repairExportName(parent, name);
             if (newName == null)
@@ -353,7 +354,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 	            newName = dupName;
 	        }
 		}
-        Name newNameKey = ImmutableExport.validExportName(newName);
+        Name newNameKey = ImmutableExport.validExportName(newName, cell.busNamesAllowed());
         if (newNameKey == null) {
             System.out.println("Bad export name " + newName + " : " + Name.checkName(newName));
             return;
@@ -753,13 +754,15 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 
     /**
      * Repairs export name  true if string is a valid Export name with cirtain width.
+     * @param parent parent Cell
      * @param name string to test.
-     * @param busWidth cirtain width.
      * @return true if string is a valid Export name with cirtain width.
      */
     private static String repairExportName(Cell parent, String name) {
         String newName = null;
         int oldBusWidth = Name.findName(name).busWidth();
+        if (!parent.busNamesAllowed())
+            oldBusWidth = 1;
         int openIndex = name.indexOf('[');
         if (openIndex >= 0) {
             int afterOpenIndex = openIndex + 1;
@@ -804,7 +807,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
      * @return true if string is a valid Export name with cirtain width.
      */
     private static boolean validExportName(String name, int busWidth) {
-        Name nameKey = ImmutableExport.validExportName(name);
+        Name nameKey = ImmutableExport.validExportName(name, true);
         return nameKey != null && nameKey.busWidth() == busWidth;
     }
 

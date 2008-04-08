@@ -3691,6 +3691,12 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	public boolean isSchematic() { return getId().isSchematic(); }
 
     /**
+     * Method to return true if bus names are allowed in this Cell
+     * @return true if bus names are allowed in this Cell
+     */
+    public boolean busNamesAllowed() { return isIcon() || isSchematic(); }
+    
+    /**
      * Method to return true if this Cell is a layout Cell.
      * @return true if this Cell is a layout Cell
      */

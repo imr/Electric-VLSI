@@ -331,12 +331,13 @@ public class ImmutableExport extends ImmutableElectricObject {
     /**
      * Returns name key of string if string is a valid Export name, null if not.
      * @param name string to test.
+     * @param busAllowed true of arrayed export name is allowed
      * @return name key or null.
      */
-    public static Name validExportName(String name) {
+    public static Name validExportName(String name, boolean busAllowed) {
         if (name == null) return null;
         Name nameKey = Name.findName(name);
-        return nameKey.isValid() && !nameKey.isTempname() && !nameKey.hasEmptySubnames() ? nameKey : null;
+        return nameKey.isValid() && !nameKey.isTempname() && !nameKey.hasEmptySubnames() && (busAllowed || !nameKey.isBus()) ? nameKey : null;
     }
     
     /**

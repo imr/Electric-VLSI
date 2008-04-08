@@ -141,6 +141,7 @@ public class CellRevision {
         }
 
         CellId cellId = d.cellId;
+        boolean busNamesAllowed = cellId.isIcon() || cellId.isSchematic();
         if (this.d != d) {
             if (d.techId == null)
                 throw new NullPointerException("tech");
@@ -185,6 +186,8 @@ public class CellRevision {
                 if (e.exportId.parentId != cellId)
                     throw new IllegalArgumentException("exportId");
                 String exportName = e.name.toString();
+                if (!busNamesAllowed && e.name.busWidth() != 1)
+                    throw new IllegalArgumentException("arrayedName " + e.name);
                 if (prevExportName != null && TextUtils.STRING_NUMBER_ORDER.compare(prevExportName, exportName) >= 0)
                     throw new IllegalArgumentException("exportName");
                 prevExportName = exportName;
@@ -407,6 +410,7 @@ public class CellRevision {
     public void check() {
         d.check();
         CellId cellId = d.cellId;
+        boolean busNamesAllowed = cellId.isIcon() || cellId.isSchematic();
         BitSet checkTechUsages = new BitSet();
         checkTechUsages.set(d.techId.techIndex);
         int[] checkCellUsages = getInstCounts();
@@ -483,6 +487,8 @@ public class CellRevision {
             e.check();
             assert e.exportId.parentId == cellId;
             assert exportIndex[e.exportId.chronIndex] == i;
+            if (!busNamesAllowed)
+                assert e.name.busWidth() == 1;
             if (i > 0)
                 assert(TextUtils.STRING_NUMBER_ORDER.compare(exports.get(i - 1).name.toString(), e.name.toString()) < 0) : i;
             checkPortInst(nodesById.get(e.originalNodeId), e.originalPortId);
@@ -508,7 +514,7 @@ public class CellRevision {
         if (deletedExports.isEmpty())
             assert deletedExports == EMPTY_BITSET;
         assert techUsages.equals(checkTechUsages);
-        
+
         if (d.cellId.isIcon())
             assert cellUsages.length == 0;
         for (int i = 0; i < cellUsages.length; i++) {
@@ -568,7 +574,7 @@ public class CellRevision {
             if (subCellRevision.definedExportsLength < usedExportsLength || subCellRevision.deletedExports.intersects(usedExports))
                 throw new IllegalArgumentException("exportUsages");
         }
-        
+
         private boolean isIcon() { return usedAttributes != null; }
 
         private void check(CellUsage u) {

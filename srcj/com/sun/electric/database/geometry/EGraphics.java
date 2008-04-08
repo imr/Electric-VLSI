@@ -300,7 +300,7 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 	{
 		this.layer = layer;
 		Technology tech = layer.getTechnology();
-		if (tech == null) return;
+		if (tech == null || layer.getIndex() < 0) return;
         String layerTechMsg = layer.getName() + "In" + tech.getTechName();
 
 		Pref usePatternDisplayPref = Pref.makeBooleanPref("UsePatternDisplayFor" + layerTechMsg,
