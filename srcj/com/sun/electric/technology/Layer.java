@@ -589,9 +589,9 @@ public class Layer
                 throw new IllegalArgumentException();
         }
 		Layer layer = new Layer(name, tech, graphics);
+		tech.addLayer(layer);          
         if (graphics.getLayer() == null)
             graphics.setLayer(layer);
-		tech.addLayer(layer);
 		return layer;
 	}
 

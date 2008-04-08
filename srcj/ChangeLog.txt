@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07h: ******************************
 
+BUG: (4/8/08, GVG) NPE in Database regression (Bug #1642)
+FIX: Calling graphics.setLayer() after the layer index is calculated.
+
 BUG: (4/8/08, SMR) Crossprobing not working right (Bug #1630).
 FIX: More specific use of context when crossprobing.
 
@@ -16,7 +19,7 @@ FIX: In EGraphics.setLayer don't change preferences in case of "free" layer.
 BUG: (4/8/08, DN) HierarchicalEnumerator/Netlist get confused with export names like X(A,B,C) (Bug #1627, #1631)
 FIX: Allow bussed names in icon and schematics Cells only.
 
-IMP: (4/4/08, GVG) Better error message for Bug #1627)
+IMP: (4/4/08, GVG) Better error message for Bug #1627.
 
 IMP/MAN: (4/3/08, SMR) Sea-of-Gates router now defaults to use parallel processing.
 
