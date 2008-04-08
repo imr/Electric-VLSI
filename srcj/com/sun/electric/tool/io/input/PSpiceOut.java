@@ -28,7 +28,6 @@ package com.sun.electric.tool.io.input;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.simulation.AnalogAnalysis;
-import com.sun.electric.tool.simulation.AnalogSignal;
 import com.sun.electric.tool.simulation.Stimuli;
 
 import java.io.IOException;
@@ -39,7 +38,7 @@ import java.util.List;
 /**
  * Class for reading and displaying waveforms from PSpice and Spice3 output.
  * These are contained in .txt files.
- * 
+ *
  * Here is an example file:
  *  Time                  I(Q2:e)               I(C1)                 IB(Q1)                IC(Q1)
  *  0.000000000000e+000  -1.326552010141e-003  0.000000000000e+000  7.693014595134e-006  1.152132987045e-003
@@ -47,8 +46,6 @@ import java.util.List;
  */
 public class PSpiceOut extends Simulate
 {
-//	private boolean eofReached;
-
 	PSpiceOut() {}
 
 	/**
@@ -78,7 +75,6 @@ public class PSpiceOut extends Simulate
 		throws IOException
 	{
 		boolean first = true;
-//		boolean knows = false;
 		Stimuli sd = new Stimuli();
 		AnalogAnalysis an = new AnalogAnalysis(sd, AnalogAnalysis.ANALYSIS_SIGNALS);
 		sd.setCell(cell);
@@ -126,15 +122,15 @@ public class PSpiceOut extends Simulate
 			int equalPos = line.indexOf("=");
 
 			if (equalPos >= 0)
-            {
-                if (line.length() > (equalPos+3))
-                    line = line.substring(equalPos+3);
-                else
-                {
-                    System.out.println("Missing value after '='.  This may not be a PSpice output file.");
-                    return null;
-                }
-            }
+			{
+				if (line.length() > (equalPos+3))
+					line = line.substring(equalPos+3);
+				else
+				{
+					System.out.println("Missing value after '='.  This may not be a PSpice output file.");
+					return null;
+				}
+			}
 
 			// read the data values
 			int ptr = 0;
@@ -151,18 +147,18 @@ public class PSpiceOut extends Simulate
 			if (position != numSignals)
 			{
 				System.out.println("Line of data has " + position + " values, but expect " + numSignals +
-                        ". Unable to recover from error.  This may not be a PSpice output file.");
-                return null;
+					". Unable to recover from error.  This may not be a PSpice output file.");
+				return null;
 			}
 		}
 
 		// convert lists to arrays
 		if (numSignals == 0)
 		{
-            System.out.println("No data found in the file.  This may not be a PSpice output file.");
+			System.out.println("No data found in the file.  This may not be a PSpice output file.");
 			return null;
 		}
-		int numEvents = values[0].size(); 
+		int numEvents = values[0].size();
 		an.buildCommonTime(numEvents);
 		for(int i=0; i<numEvents; i++)
 		{
@@ -170,10 +166,10 @@ public class PSpiceOut extends Simulate
 		}
 		for(int j=1; j<numSignals; j++)
 		{
-            double[] doubleValues = new double[numEvents];
+			double[] doubleValues = new double[numEvents];
 			for(int i=0; i<numEvents; i++)
 				doubleValues[i] = values[j].get(i).doubleValue();
-			an.addSignal(signalNames.get(j), doubleValues);
+			an.addSignal(signalNames.get(j), null, doubleValues);
 		}
 		return sd;
 	}

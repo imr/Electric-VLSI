@@ -1068,7 +1068,7 @@ public class Panel extends JPanel
         offscreenGraphics.setColor(new Color(User.getColor(User.ColorPrefType.WAVE_BACKGROUND)));
         offscreenGraphics.fillRect(0, 0, wid, hei);
 
-        drawPanelContents(wid, hei, (Graphics2D) offscreenGraphics, null, null);
+        drawPanelContents(wid, hei, offscreenGraphics, null, null);
         offscreenGraphics.dispose();
     }
 

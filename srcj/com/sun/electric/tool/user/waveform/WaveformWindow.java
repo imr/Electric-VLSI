@@ -2944,9 +2944,11 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					String want = ws.getSignal().getFullName();
 					Stack<Nodable> upNodables = new Stack<Nodable>();
 					Network net = null;
+					Cell subCell = cell;
+					VarContext subContext = context;
 					for (;;)
 					{
-						String contextStr = getSpiceNetName(context, null);
+						String contextStr = getSpiceNetName(subContext, null);
 						if (contextStr.length() > 0)
 						{
 							boolean matches = false;
@@ -2958,10 +2960,10 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 							}
 							if (!matches)
 							{
-								if (context == VarContext.globalContext) break;
-								cell = context.getNodable().getParent();
-								upNodables.push(context.getNodable());
-								context = context.pop();
+								if (subContext == VarContext.globalContext) break;
+								subCell = subContext.getNodable().getParent();
+								upNodables.push(subContext.getNodable());
+								subContext = subContext.pop();
 								continue;
 							}
 						}
@@ -2977,12 +2979,12 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 								if (net == null) break;
 							}
 							if (net != null)
-								hl.addNetwork(net, cell);
+								hl.addNetwork(net, subCell);
 							break;
 						}
 
 						// try the name without a redundant prefix
-						String cellName = cell.getName();
+						String cellName = subCell.getName();
 						if (desired.startsWith(cellName))
 						{
 							desired = desired.substring(cellName.length()+1);
@@ -2997,7 +2999,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 									if (net == null) break;
 								}
 								if (net != null)
-									hl.addNetwork(net, cell);
+									hl.addNetwork(net, subCell);
 								break;
 							}
 						}
@@ -3005,40 +3007,44 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 						// see if this name is really a current source
 						if (desired.startsWith("I(v"))
 						{
-							NodeInst ni = cell.findNode(desired.substring(3));
+							NodeInst ni = subCell.findNode(desired.substring(3));
 							if (ni != null)
-								hl.addElectricObject(ni, cell);
+								hl.addElectricObject(ni, subCell);
 						}
 
-						if (context == VarContext.globalContext) break;
+						if (subContext == VarContext.globalContext) break;
 
-						cell = context.getNodable().getParent();
-						upNodables.push(context.getNodable());
-						context = context.pop();
+						subCell = subContext.getNodable().getParent();
+						upNodables.push(subContext.getNodable());
+						subContext = subContext.pop();
 					}
 				}
 			}
 
 			// also highlight anything selected in the "SIGNALS" tree
+			String contextStr = context.getInstPath(".");
 			ExplorerTree sigTree = wf.getExplorerTab();
 			Object nodeInfo = sigTree.getCurrentlySelectedObject(0);
 			if (nodeInfo != null && nodeInfo instanceof Signal)
 			{
 				Signal sig = (Signal)nodeInfo;
-				String desired = sig.getSignalName();
-				Network net = findNetwork(netlist, desired);
-				if (net != null)
+				if (sig.getSignalContext() == null || sig.getSignalContext().equals(contextStr))
 				{
-					if (net.getParent() == cell)
-						hl.addNetwork(net, cell);
-				} else
-				{
-					// see if this name is really a current source
-					if (desired.startsWith("I(v"))
+					String desired = sig.getSignalName();
+					Network net = findNetwork(netlist, desired);
+					if (net != null)
 					{
-						NodeInst ni = cell.findNode(desired.substring(3));
-						if (ni != null)
-							hl.addElectricObject(ni, cell);
+						if (net.getParent() == cell)
+							hl.addNetwork(net, cell);
+					} else
+					{
+						// see if this name is really a current source
+						if (desired.startsWith("I(v"))
+						{
+							NodeInst ni = cell.findNode(desired.substring(3));
+							if (ni != null)
+								hl.addElectricObject(ni, cell);
+						}
 					}
 				}
 			}

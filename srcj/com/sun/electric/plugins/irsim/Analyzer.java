@@ -294,11 +294,10 @@ public class Analyzer extends Engine
 			int slashPos = n.nName.lastIndexOf('/');
 			if (slashPos >= 0)
 			{
-				sig.setSignalName(n.nName.substring(slashPos+1));
-				sig.setSignalContext(n.nName.substring(0, slashPos));
+				sig.setSignalName(n.nName.substring(slashPos+1), n.nName.substring(0, slashPos));
 			} else
 			{
-				sig.setSignalName(n.nName);
+				sig.setSignalName(n.nName, null);
 			}
 			nodeMap.put(sig, n);
 
@@ -730,7 +729,7 @@ public class Analyzer extends Engine
 					if (busSig == null)
 					{
 						busSig = new DigitalSignal(analysis);
-						busSig.setSignalName(targ[1]);
+						busSig.setSignalName(targ[1], null);
 						busSig.buildBussedSignalList();
 					}
 					List<DigitalSignal> sigs = new ArrayList<DigitalSignal>();

@@ -194,8 +194,7 @@ public class VerilogOut extends Simulate
 					numSignals++;
 
 					DigitalSignal sig = new DigitalSignal(an);
-					sig.setSignalName(signalName + index);
-					sig.setSignalContext(currentScope);
+					sig.setSignalName(signalName + index, currentScope);
 					dataMap.put(sig, new ArrayList<VerilogStimuli>());
 
 					if (index.length() > 0 && width == 1)
@@ -206,13 +205,12 @@ public class VerilogOut extends Simulate
 					if (width > 1)
 					{
 						// create fake signals for the individual entries
-						sig.setSignalName(signalName + "[0:" + (width-1) + "]");
+						sig.setSignalName(signalName + "[0:" + (width-1) + "]", null);
 						sig.buildBussedSignalList();
 						for(int i=0; i<width; i++)
 						{
 							DigitalSignal subSig = new DigitalSignal(an);
-							subSig.setSignalName(signalName + "[" + i + "]");
-							subSig.setSignalContext(currentScope);
+							subSig.setSignalName(signalName + "[" + i + "]", currentScope);
 							dataMap.put(subSig, new ArrayList<VerilogStimuli>());
 							sig.addToBussedSignalList(subSig);
 							addSignalToHashMap(subSig, symbol + "[" + i + "]", symbolTable);
@@ -335,7 +333,7 @@ public class VerilogOut extends Simulate
 			{
 				fullList = (List)entry;
 				entry = fullList.get(0);
-			} 
+			}
 			DigitalSignal sig = (DigitalSignal)entry;
 			List<VerilogStimuli> listForSig = dataMap.get(sig);
 			int numStimuli = listForSig.size();
@@ -359,7 +357,7 @@ public class VerilogOut extends Simulate
 			}
 		}
 
-		// remove singular top-level signal name
+		// remove singular top-level signal name (this code also occurs in HSpiceOut.readTRDCACFile)
 		String singularPrefix = null;
 		for(Signal sSig : an.getSignals())
 		{
@@ -370,7 +368,7 @@ public class VerilogOut extends Simulate
 			if (singularPrefix == null) singularPrefix = context; else
 			{
 				if (!singularPrefix.equals(context)) { singularPrefix = null;   break; }
-			} 
+			}
 		}
 		if (singularPrefix != null)
 		{
@@ -415,8 +413,7 @@ public class VerilogOut extends Simulate
 				if (last.equals(purename)) lastIndex = index; else
 				{
 					DigitalSignal arraySig = new DigitalSignal(an);
-					arraySig.setSignalName(last + "[" + firstIndex + ":" + lastIndex + "]");
-					arraySig.setSignalContext(scope);
+					arraySig.setSignalName(last + "[" + firstIndex + ":" + lastIndex + "]", scope);
 					arraySig.buildBussedSignalList();
 					int width = j - firstEntry;
 					for(int i=0; i<width; i++)
@@ -431,8 +428,7 @@ public class VerilogOut extends Simulate
 		if (last != null)
 		{
 			DigitalSignal arraySig = new DigitalSignal(an);
-			arraySig.setSignalName(last + "[" + firstIndex + ":" + lastIndex + "]");
-			arraySig.setSignalContext(scope);
+			arraySig.setSignalName(last + "[" + firstIndex + ":" + lastIndex + "]", scope);
 			arraySig.buildBussedSignalList();
 			int width = numSignalsInArray - firstEntry;
 			for(int i=0; i<width; i++)

@@ -112,29 +112,18 @@ public class AnalogAnalysis extends Analysis<AnalogSignal> {
 	 * @return the array of time entries for this signal.
 	 */
 	public double [] getCommonTimeArray() { return commonTime; }
-    
-	/**
-	 * Create new AnalogSignal with specified name.
-	 * @param signalName signal name
-     * @return new AnalogSignal of this AnalogAnalysis
-	 */
-	private AnalogSignal addSignal(String signalName)
-	{
-        AnalogSignal as = new AnalogSignal(this);
-        as.setSignalName(signalName);
-        return as;
-	}
 
 	/**
 	 * Create new AnalogSignal with specified name.
      * Signal obtains waveform constructed from common time and specified values.
-	 * @param signalName signal name
+	 * @param signalName signal name.
+	 * @param signalContext a common prefix for the signal name.
      * @param values specified values
      * @return new AnalogSignal of this AnalogAnalysis
 	 */
-	public AnalogSignal addSignal(String signalName, double[] values)
+	public AnalogSignal addSignal(String signalName, String signalContext, double[] values)
 	{
-        AnalogSignal as = addSignal(signalName);
+        AnalogSignal as = addEmptySignal(signalName, signalContext);
         Waveform[] waveforms = { new WaveformImpl(getCommonTimeArray(), values) };
         waveformCache.put(as, waveforms);
         return as;
@@ -143,14 +132,28 @@ public class AnalogAnalysis extends Analysis<AnalogSignal> {
 	/**
 	 * Create new AnalogSignal with specified name.
      * Signal obtains range constructed from common time range and specified value bounds.
-	 * @param signalName signal name
+	 * @param signalName signal name.
+	 * @param signalContext a common prefix for the signal name.
      * @param miValues specified values
      * @return new AnalogSignal of this AnalogAnalysis
 	 */
-	public AnalogSignal addSignal(String signalName, double minTime, double maxTime, double minValue, double maxValue)
+	public AnalogSignal addSignal(String signalName, String signalContext, double minTime, double maxTime, double minValue, double maxValue)
 	{
-        AnalogSignal as = addSignal(signalName);
+        AnalogSignal as = addEmptySignal(signalName, signalContext);
         as.bounds =  new Rectangle2D.Double(minTime, minValue, maxTime - minTime, maxValue - minValue);
+        return as;
+	}
+
+	/**
+	 * Create new AnalogSignal with specified name.
+	 * @param signalName signal name.
+	 * @param signalContext a common prefix for the signal name.
+     * @return new AnalogSignal of this AnalogAnalysis
+	 */
+	private AnalogSignal addEmptySignal(String signalName, String signalContext)
+	{
+        AnalogSignal as = new AnalogSignal(this);
+        as.setSignalName(signalName, signalContext);
         return as;
 	}
 

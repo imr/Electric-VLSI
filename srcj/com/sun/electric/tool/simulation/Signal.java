@@ -48,13 +48,17 @@ public abstract class Signal
 	public abstract Analysis getAnalysis();
 
 	/**
-	 * Method to set the name of this simulation signal.
+	 * Method to set the name and context of this simulation signal.
 	 * The name does not include any hierarchical path information: it is just a simple name.
+	 * The context is the hierarchical path to the signal, and it usually contains
+	 * instance names of cells farther up the hierarchy, all separated by dots.
 	 * @param signalName the name of this simulation signal.
+	 * @param signalContext the context of this simulation signal.
 	 */
-	public void setSignalName(String signalName)
+	public void setSignalName(String signalName, String signalContext)
 	{
 		this.signalName = signalName;
+		this.signalContext = signalContext;
 		getAnalysis().nameSignal(this, getFullName());
 	}
 

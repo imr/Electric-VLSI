@@ -983,8 +983,7 @@ public class ALS extends Engine
 			if (e.nodePtr.sig != null) continue;
 			DigitalSignal sig = new DigitalSignal(an);
 			e.nodePtr.sig = sig;
-			sig.setSignalContext(context);
-			sig.setSignalName((String)e.nodeName);
+			sig.setSignalName((String)e.nodeName, context);
 			sig.buildTime(2);
 			sig.buildState(2);
 			sig.setTime(0, 0);

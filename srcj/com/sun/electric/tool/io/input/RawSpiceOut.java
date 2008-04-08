@@ -28,7 +28,6 @@ package com.sun.electric.tool.io.input;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.simulation.AnalogAnalysis;
-import com.sun.electric.tool.simulation.AnalogSignal;
 import com.sun.electric.tool.simulation.Stimuli;
 
 import java.io.IOException;
@@ -77,8 +76,8 @@ public class RawSpiceOut extends Simulate
 		AnalogAnalysis an = null; // new AnalogAnalysis(sd, AnalogAnalysis.ANALYSIS_SIGNALS);
 		int numSignals = -1;
 		int eventCount = -1;
-        String[] signalNames = null;
-        double[][] values = null;
+		String[] signalNames = null;
+		double[][] values = null;
 		for(;;)
 		{
 			String line = getLineFromSimulator();
@@ -113,8 +112,8 @@ public class RawSpiceOut extends Simulate
 				{
 					numSignals = -1;
 					eventCount = -1;
-			        signalNames = null;
-			        values = null;
+					signalNames = null;
+					values = null;
 				}
 
 				// start reading a new analysis
@@ -155,8 +154,8 @@ public class RawSpiceOut extends Simulate
 					System.out.println("Missing variable count in file");
 					return null;
 				}
-                signalNames = new String[numSignals];
-                values = new double[numSignals][eventCount];
+				signalNames = new String[numSignals];
+				values = new double[numSignals][eventCount];
 				for(int i=0; i<=numSignals; i++)
 				{
 					if (postColon.length() > 0)
@@ -243,8 +242,8 @@ public class RawSpiceOut extends Simulate
 						}
 					}
 				}
-		        for (int i = 0; i < numSignals; i++)
-		            an.addSignal(signalNames[i], values[i]);
+				for (int i = 0; i < numSignals; i++)
+					an.addSignal(signalNames[i], null, values[i]);
 				continue;
 			}
 			if (preColon.equals("Binary"))
@@ -271,7 +270,7 @@ public class RawSpiceOut extends Simulate
 			}
 		}
 
-      	return sd;
+	  	return sd;
 	}
 
 }

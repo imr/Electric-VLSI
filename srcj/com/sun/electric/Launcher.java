@@ -110,9 +110,7 @@ public final class Launcher
         }
 
 		String command = program;
-		String jarPath = System.getProperty("java.class.path",".");
-		if (jarPath.indexOf(' ') >= 0) jarPath = "\"" + jarPath + "\"";
-		command += " -cp " + jarPath;
+		command += " -cp " + getJarLocation();
         command += " -ss2m";
 		if (enableAssertions)
 			command += " -ea"; // enable assertions
@@ -162,5 +160,17 @@ public final class Launcher
             System.exit(0);
         }
         Regression.runScript(script);
+    }
+
+    /**
+     * Method to return a String that gives the path to the Electric JAR file.
+     * If the path has spaces in it, it is quoted.
+     * @return the path to the Electric JAR file.
+     */
+    public static String getJarLocation()
+    {
+		String jarPath = System.getProperty("java.class.path", ".");
+		if (jarPath.indexOf(' ') >= 0) jarPath = "\"" + jarPath + "\"";
+		return jarPath;
     }
 }

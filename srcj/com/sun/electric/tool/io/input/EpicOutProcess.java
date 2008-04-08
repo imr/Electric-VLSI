@@ -73,7 +73,7 @@ public class EpicOutProcess extends Simulate implements Runnable
             (new Thread(this, "EpicReaderErrors")).start();
             sd = readEpicFile();
             sd.setCell(cell);
-                
+
         } catch (EOFException e) {
             eof = true;
         }
@@ -84,7 +84,7 @@ public class EpicOutProcess extends Simulate implements Runnable
                 exitCode = readerProcess.waitFor();
             } catch (InterruptedException e) {}
         }
-        
+
         if (eof || exitCode != 0) {
             String exitMsg = null;
             switch (exitCode) {
@@ -98,26 +98,26 @@ public class EpicOutProcess extends Simulate implements Runnable
                     exitMsg = "Out of memory";
                     break;
                 default:
-                    exitMsg = "Error"; 
+                    exitMsg = "Error";
             }
             Job.getUserInterface().showErrorMessage("EpicReaderProcess exited with code " + exitCode + " (" + exitMsg + ")", "EpicReaderProcess");
         }
-        
+
         // stop progress dialog
         stopProgressDialog();
-       
+
         // free memory
         strings = null;
         stdOut.close();
         stdOut = null;
         readerProcess = null;
-        
+
         // return the simulation data
         return sd;
     }
-    
+
 //    private static String VERSION_STRING = ";! output_format 5.3";
-    
+
 	private Stimuli readEpicFile()
 		throws IOException
 	{
@@ -143,13 +143,13 @@ public class EpicOutProcess extends Simulate implements Runnable
                     byte type = b == 'V' ? EpicAnalysis.VOLTAGE_TYPE: EpicAnalysis.CURRENT_TYPE;
                     contextBuilder.contexts.add(EpicAnalysis.getContext(type));
                     EpicAnalysis.EpicSignal s = new EpicAnalysis.EpicSignal(an, type, numSignals++);
-                    s.setSignalName(name);
+                    s.setSignalName(name, null);
                     break;
                 case 'D':
                     String down = readString();
                     if (DEBUG) printDebug(contextStackDepth, (char)b, down);
                     contextBuilder.strings.add(down);
-                    
+
                     if (contextStackDepth >= contextStack.size())
                         contextStack.add(new ContextBuilder());
                     contextBuilder = contextStack.get(contextStackDepth++);
@@ -161,7 +161,7 @@ public class EpicOutProcess extends Simulate implements Runnable
 
                     contextStackDepth--;
                     contextBuilder = contextStack.get(contextStackDepth - 1);
-                    
+
                     contextBuilder.contexts.add(newContext);
                     break;
                 default:
@@ -171,7 +171,7 @@ public class EpicOutProcess extends Simulate implements Runnable
         }
         assert contextStackDepth == 1;
         an.setRootContext(an.getContext(contextBuilder.strings, contextBuilder.contexts));
-       
+
         an.setTimeResolution(stdOut.readDouble());
         an.setVoltageResolution(stdOut.readDouble());
         an.setCurrentResolution(stdOut.readDouble());
@@ -194,7 +194,7 @@ public class EpicOutProcess extends Simulate implements Runnable
 
         return sd;
     }
-    
+
     private void printDebug(int level, char cmd, String arg) {
         StringBuilder sb = new StringBuilder();
         while (level-- > 0)
@@ -206,7 +206,7 @@ public class EpicOutProcess extends Simulate implements Runnable
         }
         System.out.println(sb);
     }
-    
+
     private String readString() throws IOException {
         int stringIndex = stdOut.readInt();
         if (stringIndex == -1) return null;
@@ -216,7 +216,7 @@ public class EpicOutProcess extends Simulate implements Runnable
         }
         return strings.get(stringIndex);
     }
-    
+
 	private Process invokeEpicReader(URL fileURL)
 	{
 		// see if the required amount of memory is already present
@@ -227,17 +227,15 @@ public class EpicOutProcess extends Simulate implements Runnable
         int maxMemWanted = Simulation.getSpiceEpicMemorySize();
 
         // get location of jar file
-//        String jarfile = "electric.jar";
         URL electric = Launcher.class.getResource("Main.class");
         if (electric.getProtocol().equals("jar")) {
             String file = electric.getFile();
             file = file.replaceAll("file:", "");
             file = file.replaceAll("!.*", "");
-//            jarfile = file;
         }
 
 		String command = program;
-		command += " -cp " + System.getProperty("java.class.path",".");
+		command += " -cp " + Launcher.getJarLocation();
         command += " -ss2m";
 		command += " -ea"; // enable assertions
 		command += " -mx" + maxMemWanted + "m com.sun.electric.tool.io.input.EpicReaderProcess";
@@ -253,7 +251,7 @@ public class EpicOutProcess extends Simulate implements Runnable
 		}
         return process;
 	}
-    
+
     /**
      * This methods implements Runnable interface for thread which polls stdErr of EpicReaderProcess
      * and redirects it to System.out and progress indicator.
@@ -282,14 +280,14 @@ public class EpicOutProcess extends Simulate implements Runnable
             ActivityLogger.logException(e);
         }
     }
-    
+
     /**
      * Class which is used to restore Contexts from flat list of Signals.
      */
     private static class ContextBuilder {
         ArrayList<String> strings = new ArrayList<String>();
         ArrayList<EpicAnalysis.Context> contexts = new ArrayList<EpicAnalysis.Context>();
-        
+
         void clear() { strings.clear(); contexts.clear(); }
     }
 }

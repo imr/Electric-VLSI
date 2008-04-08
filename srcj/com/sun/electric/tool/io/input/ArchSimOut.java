@@ -110,7 +110,7 @@ public class ArchSimOut extends Simulate
 
 			int numStimuli = values.size();
 			DigitalSignal sig = new DigitalSignal(an);
-			sig.setSignalName(signalName);
+			sig.setSignalName(signalName, null);
 			sig.buildTime(numStimuli);
 			sig.buildState(numStimuli);
 			int i = 0;

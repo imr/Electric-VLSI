@@ -28,7 +28,6 @@ package com.sun.electric.tool.io.input;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.simulation.AnalogAnalysis;
-import com.sun.electric.tool.simulation.AnalogSignal;
 import com.sun.electric.tool.simulation.Stimuli;
 
 import java.io.IOException;
@@ -70,10 +69,10 @@ public class SmartSpiceOut extends Simulate
 	{
 		boolean first = true;
 		int signalCount = -1;
-        String[] signalNames = null;
+		String[] signalNames = null;
 		int rowCount = -1;
 		AnalogAnalysis an = null;
-        double[][] values = null;
+		double[][] values = null;
 		for(;;)
 		{
 			String line = getLineFromBinary();
@@ -123,8 +122,8 @@ public class SmartSpiceOut extends Simulate
 				Stimuli sd = new Stimuli();
 				an = new AnalogAnalysis(sd, AnalogAnalysis.ANALYSIS_SIGNALS);
 				sd.setCell(cell);
-                signalNames = new String[signalCount];
-                values = new double[signalCount][rowCount];
+				signalNames = new String[signalCount];
+				values = new double[signalCount][rowCount];
 				for(int i=0; i<=signalCount; i++)
 				{
 					if (i != 0)
@@ -152,7 +151,7 @@ public class SmartSpiceOut extends Simulate
 							System.out.println("Warning: the first variable (the sweep variable) should be time, is '" + name + "'");
 					} else
 					{
-                        signalNames[i - 1] = name;
+						signalNames[i - 1] = name;
 					}
 				}
 				continue;
@@ -211,40 +210,38 @@ public class SmartSpiceOut extends Simulate
 				// read the data
 				for(int j=0; j<rowCount; j++)
 				{
-                    long lval = dataInputStream.readLong();
-                    lval = Long.reverseBytes(lval);
-                    double time = Double.longBitsToDouble(lval);
+					long lval = dataInputStream.readLong();
+					lval = Long.reverseBytes(lval);
+					double time = Double.longBitsToDouble(lval);
 					an.setCommonTime(j, time);
 					for(int i=0; i<signalCount; i++)
 					{
-                        double value = 0;
-                        if (true) {
-                            // swap bytes, for smartspice raw files generated on linux.
-                            // with ".options post" (the default) yields this binary format
-                            lval = dataInputStream.readLong();
-                            lval = Long.reverseBytes(lval);
-                            value = Double.longBitsToDouble(lval);
-                        } else {
-                            // do smartspice output files on other OS's have this byte order?
-                            value = dataInputStream.readDouble();
-                        }
+						double value = 0;
+						if (true) {
+							// swap bytes, for smartspice raw files generated on linux.
+							// with ".options post" (the default) yields this binary format
+							lval = dataInputStream.readLong();
+							lval = Long.reverseBytes(lval);
+							value = Double.longBitsToDouble(lval);
+						} else {
+							// do smartspice output files on other OS's have this byte order?
+							value = dataInputStream.readDouble();
+						}
 						values[i][j] = value;
-                        //System.out.println("Read["+i+"]\t"+value);
 					}
 				}
 			}
 		}
-        for (int i = 0; i < signalCount; i++) {
-            String name = signalNames[i];
-            int lastDotPos = name.lastIndexOf('.');
-            String context = null;
-            if (lastDotPos >= 0) {
-                context = name.substring(0, lastDotPos);
-                name = name.substring(lastDotPos + 1);
-            }
-            AnalogSignal as = an.addSignal(signalNames[i], values[i]);
-            as.setSignalContext(context);
-        }
+		for (int i = 0; i < signalCount; i++) {
+			String name = signalNames[i];
+			int lastDotPos = name.lastIndexOf('.');
+			String context = null;
+			if (lastDotPos >= 0) {
+				context = name.substring(0, lastDotPos);
+				name = name.substring(lastDotPos + 1);
+			}
+			an.addSignal(signalNames[i], context, values[i]);
+		}
 		return an.getStimuli();
 	}
 }

@@ -270,7 +270,7 @@ public class HSpiceOut extends Simulate
 
 			// special case with the "alter#" name...remove the "#"
 			if (mName.equals("alter#")) mName = "alter";
-			AnalogSignal as = an.addSignal(mName, values);
+			AnalogSignal as = an.addSignal(mName, null, values);
 			measData.add(as);
 		}
 
@@ -780,18 +780,36 @@ public class HSpiceOut extends Simulate
 					maxTime = time;
 			}
 		}
+
+		// preprocess signal names to remove constant prefix (this code also occurs in VerilogOut.readVerilogFile)
+		String constantPrefix = null;
+		boolean hasPrefix = true;
 		for(int k=0; k<numSignals; k++)
 		{
 			String name = signalNames[k];
+			int dotPos = name.indexOf('.');
+			if (dotPos < 0) continue;
+			String prefix = name.substring(0, dotPos);
+			if (constantPrefix == null) constantPrefix = prefix;
+			if (!constantPrefix.equals(prefix)) { hasPrefix = false;   break; }
+		}
+		if (hasPrefix) constantPrefix += "."; else
+			constantPrefix = null;
+
+		for(int k=0; k<numSignals; k++)
+		{
+			String name = signalNames[k];
+			if (constantPrefix != null &&
+				name.startsWith(constantPrefix))
+					name = name.substring(constantPrefix.length());
 			String context = null;
-			int lastDotPos = signalNames[k].lastIndexOf('.');
+			int lastDotPos = name.lastIndexOf('.');
 			if (lastDotPos >= 0)
 			{
 				context = name.substring(0, lastDotPos);
 				name = name.substring(lastDotPos+1);
 			}
-			AnalogSignal as = an.addSignal(name, minTime, maxTime, minValues[k], maxValues[k]);
-			as.setSignalContext(context);
+			an.addSignal(name, context, minTime, maxTime, minValues[k], maxValues[k]);
 		}
 		stopProgressDialog();
 		System.out.println("Done reading " + analysisType.toString() + " analysis");

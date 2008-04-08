@@ -80,17 +80,17 @@ public abstract class Analysis<S extends Signal>
 		sd.addAnalysis(this);
 	}
 
-    /**
-     * Free allocated resources before closing.
-     */
-    public void finished()
-    {
-        for (S s : signals)
-            s.finished();
-        signals.clear();
-        signalNames.clear();
-    }
-    
+	/**
+	 * Free allocated resources before closing.
+	 */
+	public void finished()
+	{
+		for (S s : signals)
+			s.finished();
+		signals.clear();
+		signalNames.clear();
+	}
+
 	/**
 	 * Method to return the Stimuli in which this Analysis resides.
 	 * @return the Stimuli in which this Analysis resides.
