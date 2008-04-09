@@ -76,35 +76,21 @@ If a node is not serpentine, turning the factor on has no effect.
 Finally, the node factors "Invisible with 1 or 2 arcs" and "Lockable" correctly affect all existing circuitry.
 <P>
 A more common modification of arcs and nodes is to change their graphical descriptions.
-A simple rule applies to all such changes: if you change the size of the bounding box,
-it causes possibly unwanted proportion changes in all existing circuitry.
-This is because the bounding box information is all that is stored in the library,
-and layer sizes are defined in terms of that box.
+A simple rule applies to all such changes: the size of existing nodes and arcs is the amount that their
+highlighted area is larger than the default highlighted area.
+Thus, an arc or node that is at its default size will be saved with a zero size increase.
+If you change the default size, it will make all default-sized nodes and arcs change as well.
+If the node is larger than the default size, it will grow accordingly.
 <P>
 <TABLE><TR><TD>
-For example, assume that there is an active arc defined with two layers:
-diffusion (2 wide) and well (8 wide).
-The arcs in the libraries are therefore recorded as being 8 wide (the largest size).
-The system knows that the diffusion is narrower than the overall arc by 3 on each side.
+For example, assume that an arc has a default size of 2, and there are two of these arcs,
+one that is 2 wide (an increase of 0 beyond the default)
+and one that is 3 wide (an increase of 1 beyond the default).
+If you redefine the technology such that these arcs are now 4 wide by default,
+then the 2-wide arc becomes 4 wide and the old 3-wide arc becomes 5 wide.
 </TD><TD><CENTER><IMG SRC="fig08-15.png" ALT="Figure 8.15"></CENTER></TD></TR></TABLE>
 <P>
-Now, if you change the well so that it is 10 wide,
-the system will define the diffusion to be narrower than the overall arc by 4 on each side,
-and for the existing 8-wide arcs,
-the diffusion will shrink to zero and disappear.
-These arcs must be resized individually, which can be tedious.
-<P>
-Here is an example of how node geometry changes can also make trouble.
-Assume that there is a transistor that has an active piece (2 wide)
-and a gate piece (2 wide).
-Each piece extends beyond the transistor area by 2,
-thus making the entire node 6x6 in size.
-The size of each cross piece will be defined to be 2 narrower than the bounding box on each side.
-If the pieces are changed so that they extend by only 1,
-then the definition of each strip will change to being 1 less than the box size on each side.
-All existing 6x6 transistors will suddenly have 4x4 gate areas where they used to be 2x2.
-<P>
-In both of these examples,
+Because of these changes,
 it may be preferable to keep the old technology and give the new technology a different name.
 Then the old libraries can be read into the old technology,
 and the <B>Make Alternate Layout View...</B> command (in menu <B>View</B>)

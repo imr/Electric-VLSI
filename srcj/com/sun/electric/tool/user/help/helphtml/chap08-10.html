@@ -144,6 +144,8 @@ Inside of the &lt;technology&gt; element are these subelements:
 	other layers without blending.  Because the system needs to store all combination of transparent
 	layers, it is not possible to make every layer transparent.  Instead, less-used layers should
 	be opaque and use a stipple-pattern so that they do not cover everything.
+        The exception is the <I>Layer-Display Algorithm</I> which does not use the transparent/opaque distinction
+        (see <A HREF="chap04-03.html#chap04-03">Section 4-3</A> for more on the display algorithms).
 	This element lists the number of transparent layers, and provides the color of each.  The system
 	automatically determines the blending colors where multiple transparent layers overlap.<BR>
 	Example:<BR>
@@ -527,6 +529,7 @@ Inside of the &lt;primitiveNode&gt; element are these subelements:
     and<BR>
     &nbsp;&nbsp;&nbsp;<I>[x = FullRectangle.maxX - sizeOffset.hx, y = FullRectangle.maxY - sizeOffset.hy]</I><BR>
     If the &lt;sizeOffset&gt; element is omitted then the BaseRectangle is the same as the FullRectangle.
+    For more on the FullRectangle, see the &lt;minSizeRule&gt; description below.
 </LI>
 <LI>
     <B>&lt;nodeLayer&gt;</B> a list of NodeLayers (described below).
