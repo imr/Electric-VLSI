@@ -60,6 +60,7 @@ import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.EventListener;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -686,6 +687,8 @@ public class ToolBar extends JToolBar
 	 */
 	public static CursorMode getCursorMode() { return curMode; }
 
+	private static EventListener lastListener = null;
+
 	private static void setCursorMode(CursorMode cm) {
 		switch (cm) {
 			case CLICKZOOMWIRE:
@@ -693,30 +696,58 @@ public class ToolBar extends JToolBar
 				WindowFrame.setListener(ClickZoomWireListener.theOne);
 				TopLevel.setCurrentCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 				curMode = CursorMode.CLICKZOOMWIRE;
+				lastListener = null;
 				break;
 			case PAN:
-				if (WindowFrame.getListener() == ZoomAndPanListener.theOne && curMode == CursorMode.PAN) {
+				if (WindowFrame.getListener() == ZoomAndPanListener.theOne && curMode == CursorMode.PAN)
+				{
+					// if there was a special mode, revert to it
+					if (lastListener != null && lastListener != ClickZoomWireListener.theOne &&
+						lastListener != OutlineListener.theOne && lastListener != MeasureListener.theOne)
+					{
+						WindowFrame.setListener(lastListener);
+						curMode = CursorMode.CLICKZOOMWIRE;
+						lastListener = null;
+						TopLevel.setCurrentCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+						return;
+					}
+						
 					// switch back to click zoom wire listener
 					setCursorMode(CursorMode.CLICKZOOMWIRE);
 					return;
 				}
+				lastListener = WindowFrame.getListener();
 				WindowFrame.setListener(ZoomAndPanListener.theOne);
 				//makeCursors();
 				TopLevel.setCurrentCursor(panCursor);
 				curMode = CursorMode.PAN;
 				break;
 			case ZOOM:
-				if (WindowFrame.getListener() == ZoomAndPanListener.theOne && curMode == CursorMode.ZOOM) {
+				if (WindowFrame.getListener() == ZoomAndPanListener.theOne && curMode == CursorMode.ZOOM)
+				{
+					// if there was a special mode, revert to it
+					if (lastListener != null && lastListener != ClickZoomWireListener.theOne &&
+						lastListener != OutlineListener.theOne && lastListener != MeasureListener.theOne)
+					{
+						WindowFrame.setListener(lastListener);
+						curMode = CursorMode.CLICKZOOMWIRE;
+						lastListener = null;
+						TopLevel.setCurrentCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+						return;
+					}
+
 					// switch back to click zoom wire listener
 					setCursorMode(CursorMode.CLICKZOOMWIRE);
 					return;
 				}
+				lastListener = WindowFrame.getListener();
 				checkLeavingOutlineMode();
 				WindowFrame.setListener(ZoomAndPanListener.theOne);
 				TopLevel.setCurrentCursor(zoomCursor);
 				curMode = CursorMode.ZOOM;
 				break;
 			case OUTLINE:
+				lastListener = null;
 				if (WindowFrame.getListener() == OutlineListener.theOne) {
 					// switch back to click zoom wire listener
 					setCursorMode(CursorMode.CLICKZOOMWIRE);
@@ -748,6 +779,7 @@ public class ToolBar extends JToolBar
 				curMode = CursorMode.OUTLINE;
 				break;
 			case MEASURE:
+				lastListener = null;
 				if (WindowFrame.getListener() == MeasureListener.theOne) {
 					// switch back to click zoom wire listener
 					setCursorMode(CursorMode.CLICKZOOMWIRE);
