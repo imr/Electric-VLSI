@@ -188,7 +188,7 @@ public class Output
         System.out.println(" Libraries saved");
         return error;
     }
-    
+
     /**
      * Method to write an entire Library in JELIB format.
      * This method doesn't modifiy library, so it can be run out of Job.
@@ -397,10 +397,11 @@ public class Output
             CVSLibrary.updateState(lib);
         }
 */
+        lib.clearChanged();
         Constraints.getCurrent().writeLibrary(lib);
 		return false;
 	}
-    
+
     /**
      * Method to write a Cell to a file with a particular format.
 	 * In addition to the specified Cell, these formats typically
@@ -410,7 +411,7 @@ public class Output
      * @param cell the Cell to be written.
      * @param context the VarContext of the Cell (its position in the hierarchy above it).
      * @param filePath the path to the disk file to be written.
-     * @param type the format of the output file. 
+     * @param type the format of the output file.
      * @param override a list of overriding polygons to write.
      * NOTE: Keep public for regressions
      */
@@ -555,8 +556,8 @@ public class Output
 		dataOutputStream = new DataOutputStream(bufStrm);
         return false;
     }
-    
-    /** 
+
+    /**
      * Closes the dataOutputStream.
      * @return true on error.
      */
@@ -572,7 +573,7 @@ public class Output
 		}
         return false;
     }
-    
+
     /**
      * Open the printWriter for writing text files
      * @return true on error.
@@ -591,7 +592,7 @@ public class Output
         return false;
     }
 
-	/** 
+	/**
      * Close the printWriter.
      * @return true on error.
      */
@@ -822,7 +823,7 @@ public class Output
             }
             return !error;
         }
-        
+
         public void terminateOK() {
             User.fixStaleCellReferences(idMapper);
         }

@@ -30,7 +30,6 @@ import com.sun.electric.database.ImmutableCell;
 import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.ImmutableLibrary;
 import com.sun.electric.database.ImmutableNodeInst;
-import com.sun.electric.database.LibraryBackup;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -69,16 +68,16 @@ public class Layout extends Constraints
 
 	static final boolean DEBUG = false;
 
-    static boolean doChangesQuietly;
-    static Snapshot oldSnapshot;
-    static long revisionDate;
-    static String userName;
-    static Set<Cell> goodSpacingDRCCells, goodAreaDRCCells;
-    static Variable goodSpacingDRCDate, goodSpacingDRCBit, goodAreaDRCDate;
+    private static boolean doChangesQuietly;
+    private static Snapshot oldSnapshot;
+    private static long revisionDate;
+    private static String userName;
+    private static Set<Cell> goodSpacingDRCCells, goodAreaDRCCells;
+    private static Variable goodSpacingDRCDate, goodSpacingDRCBit, goodAreaDRCDate;
 
     /** Shadow Cell info */
     private static final ArrayList<LayoutCell> cellInfos = new ArrayList<LayoutCell>();
-    /** Map which contains temporary rigidity of ArcInsts. */ 
+    /** Map which contains temporary rigidity of ArcInsts. */
     private static final HashMap<ArcInst,Boolean> tempRigid = new HashMap<ArcInst,Boolean>();
     /** Saved libraries */
     static final HashSet<LibId> librariesWritten = new HashSet<LibId>();
@@ -105,18 +104,18 @@ public class Layout extends Constraints
 	public static void changesQuiet(boolean quiet) {
         doChangesQuietly = true;
     }
-    
+
 	/**
 	 * Method to start a batch of changes.
      * @param initialSnapshot snapshot before job changes.
 	 */
+    @Override
 	public void startBatch(Snapshot initialSnapshot)
 	{
 		// force every cell to remember its current bounds
         doChangesQuietly = false;
         oldSnapshot = initialSnapshot;
         tempRigid.clear();
-        librariesWritten.clear();
         goodSpacingDRCCells = null;
         goodAreaDRCCells = null;
         makeLayoutCells();
@@ -125,6 +124,7 @@ public class Layout extends Constraints
 	/**
 	 * Method to do hierarchical update on any cells that changed
 	 */
+    @Override
 	public void endBatch(String userName)
 	{
         if (DEBUG) {
@@ -152,37 +152,36 @@ public class Layout extends Constraints
                 Library lib = it.next();
                 for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); ) {
                     Cell cell = cIt.next();
-                    if (!cell.isLinked()) continue;
+                    assert cell.isLinked();
                     LayoutCell cellInfo = getCellInfo(cell);
                     cellInfo.compute();
-                }
-            }
-            // Mark justSaved libraries as not chanted.
-            for (Iterator<Library> it = Library.getLibraries(); it.hasNext(); ) {
-                Library lib = it.next();
-                if (librariesWritten.contains(lib.getId()))
-                    lib.clearChanged();
-                else {
-                    LibraryBackup libBackup = oldSnapshot.getLib(lib.getId());
-                    if (lib.backup() != libBackup)
-                        lib.setChanged();
-                }
-            }
-            // Mark libraries with killed cells as changed
-            for (CellBackup cellBackup: oldSnapshot.cellBackups) {
-                if (cellBackup == null) continue;
-                CellId cellId = cellBackup.cellRevision.d.cellId;
-                if (EDatabase.serverDatabase().getCell(cellId) == null) {
-                    Library lib = EDatabase.serverDatabase().getLib(cellId.libId);
-                    if (lib != null)
-                        lib.setChanged();
                 }
             }
         }
 
         cellInfos.clear();
         tempRigid.clear();
-        librariesWritten.clear();
+
+        // Set revision dates to modified Cells, update DRC date, update bounds
+        for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); ) {
+            Library lib = it.next();
+            for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); ) {
+                Cell cell = cIt.next();
+                CellBackup newBackup = cell.backup();
+                CellBackup oldBackup = oldSnapshot.getCell(cell.getId());
+                if (newBackup.modified && newBackup != oldBackup)
+                    cell.lowLevelMadeRevision(Layout.revisionDate, Layout.userName);
+                if (goodSpacingDRCCells != null && goodSpacingDRCCells.contains(cell)) {
+                    cell.addVar(goodSpacingDRCDate);
+                    cell.addVar(goodSpacingDRCBit);
+                }
+                if (goodAreaDRCCells != null && goodAreaDRCCells.contains(cell)) {
+                    cell.addVar(goodAreaDRCDate);
+                }
+                cell.getBounds();
+            }
+        }
+
         EDatabase.serverDatabase().backup();
         goodSpacingDRCCells = null;
         goodAreaDRCCells = null;
@@ -194,6 +193,7 @@ public class Layout extends Constraints
 	 * @param ni the NodeInst that was changed.
 	 * @param oD the old contents of the NodeInst.
 	 */
+    @Override
 	public void modifyNodeInst(NodeInst ni, ImmutableNodeInst oD) {
         if (doChangesQuietly) return;
         getCellInfo(ni.getParent()).modifyNodeInst(ni, oD);
@@ -204,6 +204,7 @@ public class Layout extends Constraints
 	 * @param ai the ArcInst that changed.
      * @param oD the old contents of the ArcInst.
 	 */
+    @Override
 	public void modifyArcInst(ArcInst ai, ImmutableArcInst oD) {
         if (doChangesQuietly) return;
         getCellInfo(ai.getParent()).modifyArcInst(ai, oD);
@@ -214,18 +215,20 @@ public class Layout extends Constraints
 	 * @param pp the Export that moved.
 	 * @param oldD the old contents of the Export.
 	 */
+    @Override
 	public void modifyExport(Export pp, ImmutableExport oldD) {
         if (doChangesQuietly) return;
         PortInst oldPi = pp.getParent().getPortInst(oldD.originalNodeId, oldD.originalPortId);
         if (oldPi == pp.getOriginalPort()) return;
         getCellInfo(pp.getParent()).modifyExport(pp, oldPi);
     }
-    
+
 	/**
 	 * Method to handle a change to a Cell.
 	 * @param cell the Cell that was changed.
 	 * @param oD the old contents of the Cell.
 	 */
+    @Override
 	public void modifyCell(Cell cell, ImmutableCell oD) {}
 
 	/**
@@ -233,12 +236,14 @@ public class Layout extends Constraints
 	 * @param lib the Library that was changed.
 	 * @param oldD the old contents of the Library.
 	 */
+    @Override
 	public void modifyLibrary(Library lib, ImmutableLibrary oldD) {}
 
 	/**
 	 * Method to handle the creation of a new ElectricObject.
 	 * @param obj the ElectricObject that was just created.
 	 */
+    @Override
 	public void newObject(ElectricObject obj) {
         if (doChangesQuietly) return;
         Cell cell = obj.whichCell();
@@ -248,16 +253,11 @@ public class Layout extends Constraints
             getCellInfo(cell).newObject(obj);
 	}
 
-	/**
-	 * Method to announce that a Library is about to be written to disk.
-	 * @param lib the Library that will be saved.
-	 */
-	public void writeLibrary(Library lib) { librariesWritten.add(lib.getId()); }
-    
     /**
      * Method to announce than Ids were renamed.
      * @param idMapper mapper from old Ids to new Ids.
      */
+    @Override
     public void renameIds(IdMapper idMapper) {
         EDatabase database = EDatabase.serverDatabase();
         for (CellId cellId: idMapper.getNewCellIds())
@@ -265,7 +265,7 @@ public class Layout extends Constraints
 //        for (ExportId exportId: idMapper.getNewExportIds())
 //            newObject(exportId.inDatabase(database));
     }
-    
+
 	/**
 	 * Method to set temporary rigidity on an ArcInst.
 	 * @param ai the ArcInst to make temporarily rigid/not-rigid.
@@ -301,7 +301,7 @@ public class Layout extends Constraints
 	}
 
     /*
-     * Method to request to set 
+     * Method to request to set
      */
     public static void setGoodDRCCells(Set<Cell> goodDRCCells, Variable.Key key, int activeBits, boolean inMemory)
     {
@@ -318,7 +318,7 @@ public class Layout extends Constraints
             Layout.goodAreaDRCCells = goodDRCCells;
         }
     }
-    
+
     /**
      ** Returns rigidity of an ArcInst considering temporary rigidity.
      * @param ai ArcInst to test rigidity.
@@ -328,7 +328,7 @@ public class Layout extends Constraints
         Boolean override = tempRigid.get(ai);
         return override != null ? override.booleanValue() : ai.isRigid();
     }
-    
+
     private static void makeLayoutCells() {
         cellInfos.clear();
 		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
@@ -341,7 +341,7 @@ public class Layout extends Constraints
 			}
 		}
     }
-    
+
 	/******************** NODE MODIFICATION CODE *************************/
 
 	/**
@@ -391,7 +391,7 @@ public class Layout extends Constraints
 		// if the node has not been modified, just use the current transformation
         ImmutableNodeInst d = getOldD(ni);
         if (d == null) return null;
-        
+
 		// get the old values
         double cX = d.anchor.getX();
         double cY = d.anchor.getY();
@@ -414,20 +414,20 @@ public class Layout extends Constraints
     static PortInst getOldOriginalPort(Export e) {
         return getCellInfo(e.getParent()).getOldOriginalPort(e);
     }
-    
+
     static ImmutableNodeInst getOldD(NodeInst ni) {
         return getCellInfo(ni.getParent()).getOldD(ni);
     }
-    
+
     private static void newCellInfo(Cell cell, CellBackup oldBackup) {
         int cellIndex = cell.getCellIndex();
         while (cellInfos.size() <= cellIndex) cellInfos.add(null);
         assert cellInfos.get(cellIndex) == null;
         cellInfos.set(cellIndex, new LayoutCell(cell, oldBackup));
     }
-    
+
     static LayoutCell getCellInfo(Cell cell) {
         return cellInfos.get(cell.getCellIndex());
     }
-    
+
 }

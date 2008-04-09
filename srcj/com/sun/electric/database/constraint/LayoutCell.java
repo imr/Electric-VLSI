@@ -75,13 +75,13 @@ class LayoutCell {
 	 */
     private static final Integer AI_RIGID = new Integer(0);
     private static final Integer AI_FLEX = new Integer(1);
-    
+
     final Cell cell;
     private HashMap<Export,PortInst> oldExports;
     private HashMap<ArcInst,ImmutableArcInst> oldArcs;
     private LinkedHashMap<NodeInst,ImmutableNodeInst> oldNodes = new LinkedHashMap<NodeInst,ImmutableNodeInst>();
-    
-    
+
+
     /** True if this Cell needs to be computed. */
     private boolean modified;
     /** True if change of Exports of this Cell causes recomputation of upper Cells. */
@@ -97,12 +97,12 @@ class LayoutCell {
 //    private HashMap<Geometric,Integer> changeClock;
     /** Set of nodes already moved not to move twice. */
     private HashSet<NodeInst> movedNodes;
-    
+
     LayoutCell(Cell cell, CellBackup oldBackup) {
         this.cell = cell;
         this.oldBackup = oldBackup;
     }
-    
+
     /**
      * Recursively compute this cell and all its subcells in bottom-up order.
      */
@@ -122,38 +122,19 @@ class LayoutCell {
                 }
             }
         }
-        cell.getTechnology();
-        boolean justWritten = Layout.librariesWritten.contains(cell.getLibrary().getId());
-        if (!justWritten) {
-            CellBackup newBackup = cell.backup();
-            if (newBackup != oldBackup) {
-                cell.lowLevelMadeRevision(Layout.revisionDate, Layout.userName);
-                assert cell.isModified();
-                cell.getLibrary().setChanged();
-            }
-        }
-        if (Layout.goodSpacingDRCCells != null && Layout.goodSpacingDRCCells.contains(cell)) {
-            cell.addVar(Layout.goodSpacingDRCDate);
-            cell.addVar(Layout.goodSpacingDRCBit);
-        }
-        if (Layout.goodAreaDRCCells != null && Layout.goodAreaDRCCells.contains(cell)) {
-            cell.addVar(Layout.goodAreaDRCDate);
-        }
-        cell.getBounds();
-        
         // Release unnecessary memory
         oldArcs = null;
 //        changeClock = null;
         movedNodes = null;
     }
-    
+
     /**
      * Compute this Cell.
      **/
     private void doCompute() {
 //        changeClock = new HashMap<Geometric,Integer>();
         movedNodes = new HashSet<NodeInst>();
-        
+
         LinkedHashSet<NodeInst> modifiedInsts = new LinkedHashSet<NodeInst>();
         for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
             NodeInst ni = it.next();
@@ -196,7 +177,7 @@ class LayoutCell {
             }
         }
     }
-  
+
 	/**
 	 * Method to modify nodeinst "ni" by "deltalx" in low X, "deltaly" in low Y,
 	 * "deltahx" in high X, "deltahy" in high Y, and "dangle" tenth-degrees.
@@ -490,7 +471,7 @@ class LayoutCell {
 			// if nodeinst motion stays within port area, ignore the arcinst
 			if (ai.isSlidable() && ai.stillInPort(thisEndIndex, thisLocation, true))
 				continue;
-            
+
 			// create the two points that will be the new ends of this arc
 			Point2D [] newPts = new Point2D.Double[2];
             for (int i = 0; i < 2; i++) {
@@ -933,22 +914,22 @@ class LayoutCell {
 	{
         NodeInst ni = pi.getNodeInst();
         ImmutableNodeInst d = getOldD(ni);
-        
+
         // Identity transform for newly created nodes
         if (d == null)
             return new AffineTransform();
-        
+
         if (!ni.getOrient().equals(d.orient)) {
             Orientation dOrient = ni.getOrient().concatenate(d.orient.inverse());
             return dOrient.rotateAbout(ni.getAnchorCenterX(), ni.getAnchorCenterY(), -d.anchor.getX(), -d.anchor.getY());
         }
-        
+
         // nodeinst did not rotate or mirror: adjust for port motion or sizing
         PortProto pp = pi.getPortProto();
 		Poly oldPoly = Layout.oldPortPosition(pi);
         Poly curPoly = ni.getShapeOfPort(pp);
         if (oldPoly == null) oldPoly = curPoly;
-        
+
 		double scaleX = 1;
 		double scaleY = 1;
 		// Zero means flat port or artwork. Valid for new technology
@@ -969,12 +950,12 @@ class LayoutCell {
 //        else
 //            changeClock.remove(geom);
     }
-//    
+//
 //    private int getChangeClock(Geometric geom) {
 //        Integer i = changeClock.get(geom);
 //        return i != null ? i.intValue() : Integer.MIN_VALUE;
 //    }
-  
+
 	/**
 	 * Method to announce a change to a NodeInst.
 	 * @param ni the NodeInst that was changed.
@@ -985,7 +966,7 @@ class LayoutCell {
         if (!oldNodes.containsKey(ni))
             oldNodes.put(ni, oldD);
     }
-    
+
 	/**
 	 * Method to announce a change to an ArcInst.
 	 * @param ai the ArcInst that changed.
@@ -997,7 +978,7 @@ class LayoutCell {
         if (!oldArcs.containsKey(ai))
             oldArcs.put(ai, oldD);
     }
-    
+
 	/**
 	 * Method to announce a change to an Export.
 	 * @param pp the Export that moved.
@@ -1009,7 +990,7 @@ class LayoutCell {
         if (!oldExports.containsKey(pp))
             oldExports.put(pp, oldPi);
     }
-    
+
 	/**
 	 * Method to announce the creation of a new ElectricObject.
 	 * @param obj the ElectricObject that was just created.
@@ -1040,7 +1021,7 @@ class LayoutCell {
             return ni.getD();
         return oldNodes.get(ni);
     }
-    
+
     boolean arcMoved(ArcInst ai) {
         if (oldArcs == null || !oldArcs.containsKey(ai))
             return false;
@@ -1084,11 +1065,11 @@ class LayoutCell {
 //       }
 //       return nodeClusters;
 //    }
-//    
+//
 //class RigidCluster {
 //    boolean touched;
 //    boolean locked;
 //    HashSet/*<NodeInst>*/ nodes = new HashSet/*<NodeInst>*/();
-//    
+//
 //    void add(NodeInst ni) { nodes.add(ni); }
 //}

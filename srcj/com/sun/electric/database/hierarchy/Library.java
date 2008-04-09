@@ -319,6 +319,7 @@ public class Library extends ElectricObject implements Comparable<Library>
 			cells.put(cn, c);
             updateNewestVersions();
 		}
+        setChanged();
 	}
 
 	/**

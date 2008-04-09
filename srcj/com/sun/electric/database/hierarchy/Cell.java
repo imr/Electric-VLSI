@@ -459,7 +459,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
      * BOUNDS_CORRECT_GEOM - bounds are correct proveded that bounds of nodes and arcs are correct.
      * BOUNDS_RECOMPUTE - bounds need to be recomputed. */          private byte boundsDirty = BOUNDS_RECOMPUTE;
 	/** The date this ImmutableCell was last modified. */           private long revisionDate;
-    /** "Modified" flag of the Cell. */                             private boolean modified;
 	/** The temporary integer value. */								private int tempInt;
     /** Set if expanded status of subcell instances is modified. */ private boolean expandStatusModified;
     /** Last backup of this Cell */                                 CellBackup backup;
@@ -1099,10 +1098,12 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             arcs = topology.backupArcs(backup.cellRevision.arcs);
             exports = backupExports();
         }
-        backup = backup.withTechPool(techPool).with(getD(), revisionDate, modified,
+        backup = backup.withTechPool(techPool).with(getD(), revisionDate,
                 nodes, arcs, exports);
         cellBackupFresh = true;
         cellContentsFresh = true;
+        if (backup.modified)
+            lib.setChanged();
         return backup;
     }
 
@@ -1162,7 +1163,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         lib = database.getLib(newRevision.d.getLibId());
         tech = database.getTech(newRevision.d.techId);
         this.revisionDate = newRevision.revisionDate;
-        this.modified = newBackup.modified;
        // Update NodeInsts
         nodes.clear();
         essenBounds.clear();
@@ -3695,7 +3695,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
      * @return true if bus names are allowed in this Cell
      */
     public boolean busNamesAllowed() { return isIcon() || isSchematic(); }
-    
+
     /**
      * Method to return true if this Cell is a layout Cell.
      * @return true if this Cell is a layout Cell
@@ -3866,11 +3866,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * @param revisionDate the date of this Cell's last revision.
 	 */
 	public void lowLevelSetRevisionDate(Date revisionDate) {
-        checkChanging();
-        backup();
-        this.revisionDate = revisionDate.getTime();
-        unfreshBackup();
-        revisionDateFresh = true;
+        lowLevelSetRevisionDate(revisionDate.getTime());
     }
 
 	/**
@@ -3880,10 +3876,16 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 */
 	public void lowLevelMadeRevision(long revisionDate, String userName) {
         if (!revisionDateFresh)
-            this.revisionDate = revisionDate;
-        setModified();
-        unfreshBackup();
+            lowLevelSetRevisionDate(revisionDate);
 	}
+
+	private void lowLevelSetRevisionDate(long revisionDate) {
+        checkChanging();
+        backup();
+        this.revisionDate = revisionDate;
+        unfreshBackup();
+        revisionDateFresh = true;
+    }
 
 	/**
 	 * Method to check the current cell to be sure that no subcells have a more recent date.
@@ -4054,37 +4056,26 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 */
 	public boolean isInTechnologyLibrary() { return isFlag(TECEDITCELL); }
 
-    /**
-	 * Method to set if cell has been modified since last save to disk. No need to call checkChanging().
-     * -1 means no changes, 0 minor changes and 1 major changes
-	 */
-	private void setModified()
-    {
-        checkChanging();
-        if (!modified)
-            unfreshBackup();
-        modified = true;
-//        lib.setChanged();
-    }
-
 	/**
 	 * Method to clear this Cell modified bit since last save to disk. No need to call checkChanging().
      * This is done when the library contained this cell is saved to disk.
 	 */
 	void clearModified() {
-        checkChanging();
-        if (modified)
-            unfreshBackup();
-        modified = false;
+        if (isModified()) {
+            backup = backup().withoutModified();
+            database.unfreshSnapshot();
+        }
+        assert cellBackupFresh;
+        assert backup.cellRevision.revisionDate == revisionDate;
+        revisionDateFresh = true;
     }
 
 	/**
 	 * Method to tell if this Cell has been modified since last save to disk.
 	 * @return true if cell has been modified.
 	 */
-	public boolean isModified()
-    {
-        return modified;
+	public boolean isModified() {
+        return !cellBackupFresh || backup.modified;
     }
 
     public void setTopologyModified() {
@@ -4424,7 +4415,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         if (cellBackupFresh) {
             assert cellRevision.d == getD();
             assert cellRevision.revisionDate == revisionDate;
-            assert backup.modified == modified;
             assert cellContentsFresh;
         }
         if (cellContentsFresh) {

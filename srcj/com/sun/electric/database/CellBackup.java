@@ -58,14 +58,14 @@ public class CellBackup {
 
     static int cellBackupsCreated = 0;
     static int cellBackupsMemoized = 0;
-    /** Cell data. */                                               public final CellRevision cellRevision;           
+    /** Cell data. */                                               public final CellRevision cellRevision;
     /** Technologies mapping */                                     public final TechPool techPool;
     /** "Modified" flag of the Cell. */                             public final boolean modified;
 
     /** Memoized data for size computation (connectivity etc). */   private volatile Memoization m;
     /** Arc shrinkage data */                                       private AbstractShapeBuilder.Shrinkage shrinkage;
     /** Bounds of primitive arcs in this Cell. */                   private ERectangle primitiveBounds;
-    
+
     /** Creates a new instance of CellBackup */
     private CellBackup(CellRevision cellRevision, TechPool techPool, boolean modified) {
         this.cellRevision = cellRevision;
@@ -75,22 +75,21 @@ public class CellBackup {
 //        if (Job.getDebug())
 //            check();
     }
-    
+
     /** Creates a new instance of CellBackup */
     public CellBackup(ImmutableCell d, TechPool techPool) {
-        this(new CellRevision(d), techPool, false);
+        this(new CellRevision(d), techPool, true);
         if (d.cellId.idManager != techPool.idManager)
             throw new IllegalArgumentException();
         if (techPool.getTech(d.techId) == null)
             throw new IllegalArgumentException();
     }
-    
+
     /**
      * Creates a new instance of CellBackup which differs from this CellBackup.
      * Four array parameters are supplied. Each parameter may be null if its contents is the same as in this Snapshot.
      * @param d new persistent data of a cell.
      * @param revisionDate new revision date.
-     * @param modified new modified flag
      * @param nodesArray new array of nodes
      * @param arcsArray new array of arcs
      * @param exportsArray new array of exports
@@ -98,7 +97,7 @@ public class CellBackup {
      * @throws IllegalArgumentException on invariant violation.
      * @throws ArrayOutOfBoundsException on some invariant violations.
      */
-    public CellBackup with(ImmutableCell d, long revisionDate, boolean modified,
+    public CellBackup with(ImmutableCell d, long revisionDate,
             ImmutableNodeInst[] nodesArray, ImmutableArcInst[] arcsArray, ImmutableExport[] exportsArray) {
         CellRevision newRevision = cellRevision.with(d, revisionDate, nodesArray, arcsArray, exportsArray);
         if (newRevision == cellRevision) return this;
@@ -108,9 +107,18 @@ public class CellBackup {
                     throw new IllegalArgumentException("arc " + a.name + " is not compatible with TechPool");
             }
         }
-        return new CellBackup(newRevision, this.techPool, modified);
+        return new CellBackup(newRevision, this.techPool, true);
     }
-    
+
+    /**
+     * Creates a new instance of CellBackup with modified flag off.
+     * @return new snapshot which differs froms this Snapshot or this Snapshot.
+     */
+    public CellBackup withoutModified() {
+        if (!this.modified) return this;
+        return new CellBackup(this.cellRevision, this.techPool, false);
+    }
+
 	/**
 	 * Returns CellBackup which differs from this CellBackup by TechPool.
 	 * @param techPool technology map.
@@ -126,7 +134,7 @@ public class CellBackup {
         }
         return new CellBackup(this.cellRevision, techPool, this.modified);
     }
-    
+
 	/**
 	 * Returns CellBackup which differs from this CellBackup by renamed Ids.
 	 * @param idMapper a map from old Ids to new Ids.
@@ -137,7 +145,7 @@ public class CellBackup {
         if (newRevision == cellRevision) return this;
         return new CellBackup(newRevision, this.techPool, true);
     }
-    
+
     /**
      * Writes this CellBackup to IdWriter.
      * @param writer where to write.
@@ -146,7 +154,7 @@ public class CellBackup {
         cellRevision.write(writer);
         writer.writeBoolean(modified);
     }
-    
+
     /**
      * Reads CellBackup from SnapshotReader.
      * @param reader where to read.
@@ -172,11 +180,11 @@ public class CellBackup {
         for (ImmutableArcInst a: cellRevision.arcs) {
             if (a != null) a.check(techPool);
         }
-        
+
         if (m != null)
             m.check();
     }
-    
+
     @Override
     public String toString() { return cellRevision.toString(); }
 
@@ -189,7 +197,7 @@ public class CellBackup {
         if (m != null) return m;
         return this.m = new Memoization();
     }
-    
+
     /**
      * Returns data for arc shrinkage computation.
      * @return data for arc shrinkage computation.
@@ -199,7 +207,7 @@ public class CellBackup {
             shrinkage = new AbstractShapeBuilder.Shrinkage(this);
         return shrinkage;
     }
-    
+
     /**
      * Returns bounds of all primitive arcs in this Cell or null if there are not primitives.
      * @return bounds of all primitive arcs or null.
@@ -209,7 +217,7 @@ public class CellBackup {
         if (primitiveBounds != null) return primitiveBounds;
         return this.primitiveBounds = computePrimitiveBounds();
     }
-    
+
     public ERectangle computePrimitiveBounds() {
         ImmutableArrayList<ImmutableArcInst> arcs = cellRevision.arcs;
         if (arcs.isEmpty()) return null;
@@ -247,7 +255,7 @@ public class CellBackup {
         long longMaxY = Math.max(bounds.getGridMaxY(), intMaxY);
         return ERectangle.fromGrid(longMinX, longMinY, longMaxX - longMinX, longMaxY - longMinY);
     }
-    
+
     /**
      * Class which memoizes data for size computation (connectivity etc).
      */
@@ -261,7 +269,7 @@ public class CellBackup {
         private final ImmutableExport[] exportIndexByOriginalPort;
         private final BitSet wiped = new BitSet();
         private final BitSet hardArcs = new BitSet();
-        
+
         Memoization() {
 //            long startTime = System.currentTimeMillis();
             cellBackupsMemoized++;
@@ -295,7 +303,7 @@ public class CellBackup {
                 connections[connectionsByNodeId[a.tailNodeId]++] = i*2;
                 connections[connectionsByNodeId[a.headNodeId]++] = i*2 + 1;
             }
-            
+
             // Sort each bucket by portId.
             sum = 0;
             for (int nodeId = 0; nodeId < connectionsByNodeId.length; nodeId++) {
@@ -305,11 +313,11 @@ public class CellBackup {
                     sortConnections(connections, start, sum - 1);
             }
             this.connections = connections;
-            
+
             ImmutableExport[] exportIndexByOriginalPort = cellRevision.exports.toArray(new ImmutableExport[cellRevision.exports.size()]);
             Arrays.sort(exportIndexByOriginalPort, BY_ORIGINAL_PORT);
             this.exportIndexByOriginalPort = exportIndexByOriginalPort;
-            
+
             for (ImmutableArcInst a: arcs) {
                 ArcProto ap = techPool.getArcProto(a.protoId);
                 // wipe status
@@ -330,7 +338,7 @@ public class CellBackup {
 //            long stopTime = System.currentTimeMillis();
 //            System.out.println("Memoization " + cellRevision.d.cellId + " took " + (stopTime - startTime) + " msec");
         }
-        
+
        /**
          * Returns true of there are Exports on specified NodeInst.
          * @param originalNodeId nodeId of specified NodeInst.
@@ -342,7 +350,7 @@ public class CellBackup {
             ImmutableExport e = exportIndexByOriginalPort[startIndex];
             return e.originalNodeId == originalNodeId;
         }
-        
+
         /**
          * Method to return the number of Exports on specified NodeInst.
          * @param originalNodeId nodeId of specified NodeInst.
@@ -357,7 +365,7 @@ public class CellBackup {
             }
             return j - startIndex;
         }
-        
+
         /**
          * Method to return an Iterator over all ImmutableExports on specified NodeInst.
          * @param originalNodeId nodeId of specified NodeInst.
@@ -372,7 +380,7 @@ public class CellBackup {
             }
             return ArrayIterator.iterator(exportIndexByOriginalPort, startIndex, j);
         }
-        
+
         private int searchExportByOriginalPort(int originalNodeId, int originalChronIndex) {
             int low = 0;
             int high = exportIndexByOriginalPort.length-1;
@@ -382,7 +390,7 @@ public class CellBackup {
                 int cmp = e.originalNodeId - originalNodeId;
                 if (cmp == 0)
                     cmp = e.originalPortId.getChronIndex() >= originalChronIndex ? 1 : -1;
-                
+
                 if (cmp < 0)
                     low = mid + 1;
                 else
@@ -390,7 +398,7 @@ public class CellBackup {
             }
             return low;
         }
-        
+
         public int searchConnectionByPort(int nodeId, int chronIndex) {
             int low = 0;
             int high = connections.length-1;
@@ -405,7 +413,7 @@ public class CellBackup {
                     PortProtoId portId = end ? a.headPortId : a.tailPortId;
                     cmp = portId.getChronIndex() - chronIndex;
                 }
-                
+
                 if (cmp < 0)
                     low = mid + 1;
                 else
@@ -413,9 +421,9 @@ public class CellBackup {
             }
             return low;
         }
-        
+
         public ImmutableArrayList<ImmutableArcInst> getArcs() { return cellRevision.arcs; }
-        
+
         /**
          * Method to tell whether the specified ImmutableNodeInst is wiped.
          * Wiped ImmutableNodeInsts are erased.  Typically, pin ImmutableNodeInsts can be wiped.
@@ -428,11 +436,11 @@ public class CellBackup {
         public boolean isWiped(int nodeId) {
             return wiped.get(nodeId);
         }
-        
+
         public boolean isHardArc(int arcId) {
             return hardArcs.get(arcId);
         }
-        
+
         /**
          * Checks invariant of this CellBackup.
          * @throws AssertionError if invariant is broken.
@@ -450,7 +458,7 @@ public class CellBackup {
             for (int i = 1; i < connections.length; i++)
                 assert compareConnections(connections[i - 1], connections[i]) < 0;
         }
-        
+
         private void sortConnections(int[] connections, int l, int r) {
             ImmutableArrayList<ImmutableArcInst> arcs = cellRevision.arcs;
             while (l + 1 < r) {
@@ -458,7 +466,7 @@ public class CellBackup {
                 ImmutableArcInst ax = arcs.get(x >>> 1);
                 boolean endx = (x & 1) != 0;
                 PortProtoId portIdX = endx ? ax.headPortId : ax.tailPortId;
-                int chronIndexX = portIdX.getChronIndex(); 
+                int chronIndexX = portIdX.getChronIndex();
                 int i = l, j = r;
                 do {
                     // while (compareConnections(connections[i], x) < 0) i++;
@@ -471,7 +479,7 @@ public class CellBackup {
                         if (portId.getChronIndex() == chronIndexX && con >= x) break;
                         i++;
                     }
-                    
+
                     // while (compareConnections(x, connections[j]) < 0) j--;
                     for (;;) {
                         int con = connections[j];
@@ -482,7 +490,7 @@ public class CellBackup {
                         if (chronIndexX == portId.getChronIndex() && x >= con) break;
                         j--;
                     }
-                    
+
                     if (i <= j) {
                         int w = connections[i];
                         connections[i] = connections[j];
@@ -514,7 +522,7 @@ public class CellBackup {
                 }
             }
         }
-        
+
         private int compareConnections(int con1, int con2) {
             ImmutableArcInst a1 = cellRevision.arcs.get(con1 >>> 1);
             ImmutableArcInst a2 = cellRevision.arcs.get(con2 >>> 1);
@@ -531,7 +539,7 @@ public class CellBackup {
             return con1 - con2;
         }
     }
-    
+
     private static final Comparator<ImmutableExport> BY_ORIGINAL_PORT = new Comparator<ImmutableExport>() {
         public int compare(ImmutableExport e1, ImmutableExport e2) {
             int result = e1.originalNodeId - e2.originalNodeId;

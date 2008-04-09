@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07h: ******************************
 
+BUG: (4/8/08, DN) PadFrame generator doesn't mark generated cells as changed.
+FIX: In database.constraint.Layout mark revision dates even in "quiet" mode.
+
 BUG: (4/8/08, GVG) NPE in Database regression (Bug #1642)
 FIX: Calling graphics.setLayer() after the layer index is calculated.
 
