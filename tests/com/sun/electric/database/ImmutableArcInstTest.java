@@ -69,9 +69,9 @@ import org.junit.Test;
  * Unit test of ImmutableArcInst
  */
 public class ImmutableArcInstTest {
-    
+
     private static final long SHAPE_SCALE = 1L << 20;
-    
+
     private EDatabase database;
     private TechPool techPool;
     private Artwork artwork;
@@ -90,7 +90,7 @@ public class ImmutableArcInstTest {
     private ImmutableNodeInst n0, n1;
     private Name nameA0;
     private ImmutableArcInst a0;
-    
+
     @Before public void setUp() throws Exception {
         database = EDatabase.theDatabase;
         database.lock(true);
@@ -99,7 +99,7 @@ public class ImmutableArcInstTest {
             Tool.initAllTools();
             Technology.initAllTechnologies();
         }
-        
+
         techPool = database.getTechPool();
         artwork = techPool.getArtwork();
         tech = Technology.getMocmosTechnology();
@@ -148,14 +148,14 @@ public class ImmutableArcInstTest {
 //         */
 //        public void testIs() {
 //            System.out.println("is");
-//            
+//
 //            int userBits = 0;
 //            ImmutableArcInst.Flag instance = null;
-//            
+//
 //            boolean expResult = true;
 //            boolean result = instance.is(userBits);
 //            assertEquals(expResult, result);
-//            
+//
 //            // TODO review the generated test code and remove the default call to fail.
 //            fail("The test case is a prototype.");
 //        }
@@ -165,15 +165,15 @@ public class ImmutableArcInstTest {
 //         */
 //        public void testSet() {
 //            System.out.println("set");
-//            
+//
 //            int userBits = 0;
 //            boolean value = true;
 //            ImmutableArcInst.Flag instance = null;
-//            
+//
 //            int expResult = 0;
 //            int result = instance.set(userBits, value);
 //            assertEquals(expResult, result);
-//            
+//
 //            // TODO review the generated test code and remove the default call to fail.
 //            fail("The test case is a prototype.");
 //        }
@@ -270,7 +270,7 @@ public class ImmutableArcInstTest {
         System.out.println("isArrowedFail");
         a0.isArrowed(2);
     }
-    
+
     /**
      * Test of isTailArrowed method, of class com.sun.electric.database.ImmutableArcInst.
      */
@@ -311,7 +311,7 @@ public class ImmutableArcInstTest {
         System.out.println("isExtendedFail");
         a0.isExtended(-1);
     }
-    
+
     /**
      * Test of isTailExtended method, of class com.sun.electric.database.ImmutableArcInst.
      */
@@ -344,7 +344,7 @@ public class ImmutableArcInstTest {
         System.out.println("isNegatedFail");
         a0.isExtended(-2);
     }
-    
+
     /**
      * Test of isTailNegated method, of class com.sun.electric.database.ImmutableArcInst.
      */
@@ -364,7 +364,7 @@ public class ImmutableArcInstTest {
     private boolean isEasyShape(ImmutableArcInst a) {
         return techPool.getTech(a.protoId.techId).isEasyShape(a, false);
     }
-    
+
     /**
      * Test of isEasyShape method, of class com.sun.electric.database.ImmutableArcInst.
      */
@@ -378,32 +378,32 @@ public class ImmutableArcInstTest {
      */
     @Test public void testNewInstance() {
         System.out.println("newInstance");
-        
+
         TextDescriptor td = TextDescriptor.newTextDescriptor(new MutableTextDescriptor()).withCode(TextDescriptor.Code.JAVA).withParam(true);
         ImmutableArcInst a1 = ImmutableArcInst.newInstance(0, apId, nameA0, td, 0, ppId, n0.anchor, 1, ppId, n1.anchor, apExtend, 0, ImmutableArcInst.DEFAULT_FLAGS);
         a1.check();
         assertTrue(a1.nameDescriptor.isDisplay());
         assertFalse(a1.nameDescriptor.isCode());
         assertFalse(a1.nameDescriptor.isParam());
-        
+
         ImmutableArcInst a2 = ImmutableArcInst.newInstance(0, apId, nameA0, null, 0, ppId, n0.anchor, 0, ppId, n0.anchor, apExtend, -1, ImmutableArcInst.DEFAULT_FLAGS);
         a2.check();
         assertEquals(3599, a2.getAngle());
-        
+
         ImmutableArcInst a3 = ImmutableArcInst.newInstance(0, apId, nameA0, null, 1, ppId, n1.anchor, 0, ppId, n0.anchor, apExtend, 0, ImmutableArcInst.DEFAULT_FLAGS);
         a3.check();
         assertEquals(1800, a3.getAngle());
-        
+
         int flags = ImmutableArcInst.TAIL_NEGATED.set(ImmutableArcInst.DEFAULT_FLAGS, true);
         ImmutableArcInst a4 = ImmutableArcInst.newInstance(0, apId, nameA0, null, 0, ppId, n0.anchor, 1, ppId, n1.anchor, apExtend, 0, flags);
         a4.check();
         assertTrue(a4.isTailNegated());
         assertTrue(a4.is(ImmutableArcInst.TAIL_NEGATED));
-        
+
         ImmutableArcInst a5 = ImmutableArcInst.newInstance(0, apId, nameA0, null, 1, ppId, n1.anchor, 0, ppId, n0.anchor, -1, 0, ImmutableArcInst.DEFAULT_FLAGS);
         a5.check();
         assertEquals(1800, a5.getAngle());
-        
+
     }
 
     /**
@@ -413,7 +413,7 @@ public class ImmutableArcInstTest {
         System.out.println("newInstanceBadArcId");
         ImmutableArcInst.newInstance(-1, apId, nameA0, null, 0, ppId, n0.anchor, 1, ppId, n1.anchor, apExtend, 0, ImmutableArcInst.DEFAULT_FLAGS);
     }
-    
+
     /**
      * Test of newInstance method, of class com.sun.electric.database.ImmutableArcInst.
      */
@@ -421,7 +421,7 @@ public class ImmutableArcInstTest {
         System.out.println("newInstanceBadProto");
         ImmutableArcInst.newInstance(0, null, nameA0, null, 0, ppId, n0.anchor, 1, ppId, n1.anchor, apExtend, 0, ImmutableArcInst.DEFAULT_FLAGS);
     }
-    
+
     /**
      * Test of newInstance method, of class com.sun.electric.database.ImmutableArcInst.
      */
@@ -429,7 +429,7 @@ public class ImmutableArcInstTest {
         System.out.println("newInstanceBadName1");
         ImmutableArcInst.newInstance(0, apId, null, null, 0, ppId, n0.anchor, 1, ppId, n1.anchor, apExtend, 0, ImmutableArcInst.DEFAULT_FLAGS);
     }
-    
+
     /**
      * Test of newInstance method, of class com.sun.electric.database.ImmutableArcInst.
      */
@@ -437,7 +437,7 @@ public class ImmutableArcInstTest {
         System.out.println("newInstanceBadName2");
         ImmutableArcInst.newInstance(0, apId, Name.findName("a:"), null, 0, ppId, n0.anchor, 1, ppId, n1.anchor, apExtend, 0, ImmutableArcInst.DEFAULT_FLAGS);
     }
-    
+
     /**
      * Test of newInstance method, of class com.sun.electric.database.ImmutableArcInst.
      */
@@ -445,7 +445,7 @@ public class ImmutableArcInstTest {
         System.out.println("newInstanceBadName3");
         ImmutableArcInst.newInstance(0, apId, Name.findName("a,"), null, 0, ppId, n0.anchor, 1, ppId, n1.anchor, apExtend, 0, ImmutableArcInst.DEFAULT_FLAGS);
     }
-    
+
     /**
      * Test of newInstance method, of class com.sun.electric.database.ImmutableArcInst.
      */
@@ -453,7 +453,7 @@ public class ImmutableArcInstTest {
         System.out.println("newInstanceBadName4");
         ImmutableArcInst.newInstance(0, apId, Name.findName("Net@0"), null, 0, ppId, n0.anchor, 1, ppId, n1.anchor, apExtend, 0, ImmutableArcInst.DEFAULT_FLAGS);
     }
-    
+
     /**
      * Test of newInstance method, of class com.sun.electric.database.ImmutableArcInst.
      */
@@ -461,7 +461,7 @@ public class ImmutableArcInstTest {
         System.out.println("newInstanceBadName5");
         ImmutableArcInst.newInstance(0, apId, Name.findName("net@0[0:1]"), null, 0, ppId, n0.anchor, 1, ppId, n1.anchor, apExtend, 0, ImmutableArcInst.DEFAULT_FLAGS);
     }
-    
+
     /**
      * Test of newInstance method, of class com.sun.electric.database.ImmutableArcInst.
      */
@@ -469,7 +469,7 @@ public class ImmutableArcInstTest {
         System.out.println("newInstanceBadTailNodeId");
         ImmutableArcInst.newInstance(0, apId, nameA0, null, -1, ppId, n0.anchor, 1, ppId, n1.anchor, apExtend, 0, ImmutableArcInst.DEFAULT_FLAGS);
     }
-    
+
     /**
      * Test of newInstance method, of class com.sun.electric.database.ImmutableArcInst.
      */
@@ -477,7 +477,7 @@ public class ImmutableArcInstTest {
         System.out.println("newInstanceBadTailPortId");
         ImmutableArcInst.newInstance(0, apId, nameA0, null, 0, null, n0.anchor, 1, ppId, n1.anchor, apExtend, 0, ImmutableArcInst.DEFAULT_FLAGS);
     }
-    
+
     /**
      * Test of newInstance method, of class com.sun.electric.database.ImmutableArcInst.
      */
@@ -485,7 +485,7 @@ public class ImmutableArcInstTest {
         System.out.println("newInstanceBadTailLocation");
         ImmutableArcInst.newInstance(0, apId, nameA0, null, 0, ppId, null, 1, ppId, n1.anchor, apExtend, 0, ImmutableArcInst.DEFAULT_FLAGS);
     }
-    
+
     /**
      * Test of newInstance method, of class com.sun.electric.database.ImmutableArcInst.
      */
@@ -493,7 +493,7 @@ public class ImmutableArcInstTest {
         System.out.println("newInstanceBadHeadNodeId");
         ImmutableArcInst.newInstance(0, apId, nameA0, null, 0, ppId, n0.anchor, -1, ppId, n1.anchor, apExtend, 0, ImmutableArcInst.DEFAULT_FLAGS);
     }
-    
+
     /**
      * Test of newInstance method, of class com.sun.electric.database.ImmutableArcInst.
      */
@@ -501,7 +501,7 @@ public class ImmutableArcInstTest {
         System.out.println("newInstanceBadHeadPortId");
         ImmutableArcInst.newInstance(0, apId, nameA0, null, 0, ppId, n0.anchor, 1, null, n1.anchor, apExtend, 0, ImmutableArcInst.DEFAULT_FLAGS);
     }
-    
+
     /**
      * Test of newInstance method, of class com.sun.electric.database.ImmutableArcInst.
      */
@@ -509,7 +509,7 @@ public class ImmutableArcInstTest {
         System.out.println("newInstanceBadHeadLocation");
         ImmutableArcInst.newInstance(0, apId, nameA0, null, 0, ppId, n0.anchor, 1, ppId, null, apExtend, 0, ImmutableArcInst.DEFAULT_FLAGS);
     }
-    
+
     /**
      * Test of newInstance method, of class com.sun.electric.database.ImmutableArcInst.
      */
@@ -517,7 +517,7 @@ public class ImmutableArcInstTest {
         System.out.println("newInstanceBadExtend1");
         ImmutableArcInst.newInstance(0, apId, nameA0, null, 0, ppId, n0.anchor, 1, ppId, n1.anchor, DBMath.lambdaToGrid(3000000), 0, ImmutableArcInst.DEFAULT_FLAGS);
     }
-    
+
     /**
      * Test of newInstance method, of class com.sun.electric.database.ImmutableArcInst.
      */
@@ -525,16 +525,16 @@ public class ImmutableArcInstTest {
         System.out.println("newInstanceBadExtend2");
         ImmutableArcInst.newInstance(0, apId, nameA0, null, 0, ppId, n0.anchor, 1, ppId, n1.anchor, DBMath.lambdaToGrid(-3000000), 0, ImmutableArcInst.DEFAULT_FLAGS);
     }
-    
+
     /**
      * Test of withName method, of class com.sun.electric.database.ImmutableArcInst.
      */
     @Test public void testWithName() {
         System.out.println("withName");
-        
+
         assertSame(a0, a0.withName(a0.name));
         a0.check();
-        
+
         Name nameB = Name.findName("b");
         ImmutableArcInst ab = a0.withName(nameB);
         assertSame(nameA0, a0.name);
@@ -549,7 +549,7 @@ public class ImmutableArcInstTest {
         System.out.println("withNameBad1");
         a0.withName(null);
     }
-    
+
      /**
      * Test of withName method, of class com.sun.electric.database.ImmutableArcInst.
      */
@@ -557,7 +557,7 @@ public class ImmutableArcInstTest {
         System.out.println("withNameBad2");
         a0.withName(Name.findName("a:"));
     }
-    
+
     /**
      * Test of withName method, of class com.sun.electric.database.ImmutableArcInst.
      */
@@ -565,7 +565,7 @@ public class ImmutableArcInstTest {
         System.out.println("withNameBad3");
         a0.withName(Name.findName("a,"));
     }
-    
+
     /**
      * Test of withName method, of class com.sun.electric.database.ImmutableArcInst.
      */
@@ -573,7 +573,7 @@ public class ImmutableArcInstTest {
         System.out.println("withNameBad4");
         a0.withName(Name.findName("Net@0"));
     }
-    
+
     /**
      * Test of withName method, of class com.sun.electric.database.ImmutableArcInst.
      */
@@ -581,14 +581,14 @@ public class ImmutableArcInstTest {
         System.out.println("withNameBad5");
         a0.withName(Name.findName("net@0[0:1]"));
     }
-    
+
      /**
      * Test of withNameDescriptor method, of class com.sun.electric.database.ImmutableArcInst.
      */
     @Test public void testWithNameDescriptor() {
         System.out.println("withNameDescriptor");
         assertSame(a0, a0.withNameDescriptor(a0.nameDescriptor));
-        
+
         TextDescriptor td = TextDescriptor.newTextDescriptor(new MutableTextDescriptor()).withCode(TextDescriptor.Code.JAVA).withParam(true).withUnderline(true);
         ImmutableArcInst a1 = a0.withNameDescriptor(td);
         a1.check();
@@ -597,21 +597,21 @@ public class ImmutableArcInstTest {
         assertFalse(a1.nameDescriptor.isParam());
         assertTrue(a1.nameDescriptor.isUnderline());
     }
-        
+
     /**
      * Test of withLocations method, of class com.sun.electric.database.ImmutableArcInst.
      */
     @Test public void testWithLocations() {
         System.out.println("withLocations");
         assertSame(a0, a0.withLocations(a0.tailLocation, a0.headLocation));
-        
+
         ImmutableArcInst a1 = a0.withLocations(n1.anchor, n0.anchor);
         a1.check();
         assertSame(n1.anchor, a1.tailLocation);
         assertSame(n0.anchor, a1.headLocation);
         assertEquals(1800, a1.getAngle());
         assertTrue(isEasyShape(a1));
-        
+
         ImmutableArcInst a2 = a0.withLocations(n0.anchor, EPoint.fromGrid(1500*1000*1000, n1.anchor.getGridY()));
         a2.check();
         assertFalse(isEasyShape(a2));
@@ -631,12 +631,12 @@ public class ImmutableArcInstTest {
     @Test public void testWithExtendOverMin() {
         System.out.println("withGridExtendOverMin");
         assertSame(a0, a0.withGridExtendOverMin(a0.getGridExtendOverMin()));
-        
+
         long largeExtendOverMin = 130*1000*1000;
         ImmutableArcInst a1 = a0.withGridExtendOverMin(largeExtendOverMin);
         assertEquals(largeExtendOverMin, a1.getGridExtendOverMin());
         assertTrue(isEasyShape(a1));
-        
+
         long smallExtendOverMin = -1;
         ImmutableArcInst a2 = a0.withGridExtendOverMin(smallExtendOverMin);
         assertEquals(smallExtendOverMin, a2.getGridExtendOverMin());
@@ -650,7 +650,7 @@ public class ImmutableArcInstTest {
         System.out.println("withGridExtendOverMinBad1");
         a0.withGridExtendOverMin(DBMath.lambdaToGrid(3000000));
     }
-    
+
     /**
      * Test of withGridExtendOverMin method, of class com.sun.electric.database.ImmutableArcInst.
      */
@@ -658,19 +658,19 @@ public class ImmutableArcInstTest {
         System.out.println("withGridExtendOverMinBad2");
         a0.withGridExtendOverMin(DBMath.lambdaToGrid(-3000000));
     }
-    
+
      /**
      * Test of withAngle method, of class com.sun.electric.database.ImmutableArcInst.
      */
     @Test public void testWithAngle() {
         System.out.println("withAngle");
         assertSame(a0, a0.withAngle(900)); // If locations are different, angle is calcualted from them
-        
+
         ImmutableArcInst a1 = a0.withLocations(a0.tailLocation, a0.tailLocation).withAngle(900);
         a1.check();
         assertEquals(900, a1.getAngle());
         assertTrue(isEasyShape(a1));
-        
+
         ImmutableArcInst a2 = a1.withAngle(-1);
         a2.check();
         assertEquals(3599, a2.getAngle());
@@ -683,7 +683,7 @@ public class ImmutableArcInstTest {
     @Test public void testWithFlags() {
         System.out.println("withFlags");
         assertSame(a0, a0.withFlags(a0.flags));
-        
+
         assertSame(a0, a0.withFlags(a0.flags | (1 << 31)));
     }
 
@@ -694,7 +694,7 @@ public class ImmutableArcInstTest {
         System.out.println("withFlag");
         assertTrue(a0.withFlag(ImmutableArcInst.TAIL_NEGATED, true).is(ImmutableArcInst.TAIL_NEGATED)); // layout arc can't have negated end
         assertTrue(a0.withFlag(ImmutableArcInst.HEAD_NEGATED, true).is(ImmutableArcInst.HEAD_NEGATED)); // layout arc can't have negated end
-        
+
         ImmutableArcInst a1 = a0.withFlag(ImmutableArcInst.BODY_ARROWED, true);
         a1.check();
         assertTrue(a1.is(ImmutableArcInst.BODY_ARROWED));
@@ -713,7 +713,7 @@ public class ImmutableArcInstTest {
         assertEquals(1, a1.getNumVariables());
         assertSame(var, a1.getVar(0));
         assertTrue(isEasyShape(a1));
-    
+
         Variable var1 = var.withParam(true);
         ImmutableArcInst a2 = a0.withVariable(var1);
         a2.check();
@@ -721,14 +721,14 @@ public class ImmutableArcInstTest {
         assertSame(Artwork.ART_COLOR, a2.getVar(0).getKey());
         assertSame(var.getObject(), a2.getVar(0).getObject());
         assertFalse(a2.getVar(0).getTextDescriptor().isParam());
-        
+
         ImmutableArcInst a3 = ImmutableArcInst.newInstance(0, artwork.solidArc.getId(), nameA0, null,
                 0, artwork.pinNode.getPort(0).getId(), EPoint.ORIGIN,
                 0, artwork.pinNode.getPort(0).getId(), EPoint.ORIGIN,
                 0, 0, ImmutableArcInst.DEFAULT_FLAGS);
         a3.check();
         assertTrue(isEasyShape(a3));
-        
+
         ImmutableArcInst a4 = a3.withVariable(var);
         a4.check();
         assertFalse(isEasyShape(a4));
@@ -746,9 +746,9 @@ public class ImmutableArcInstTest {
                 0, 0, ImmutableArcInst.DEFAULT_FLAGS).withVariable(var);
         a1.check();
         assertFalse(isEasyShape(a1));
-        
+
         assertSame(a1, a1.withoutVariable(Artwork.ART_PATTERN));
-        
+
         ImmutableArcInst a2 = a1.withoutVariable(Artwork.ART_COLOR);
         assertEquals(0, a2.getNumVariables());
         assertTrue(isEasyShape(a2));
@@ -768,7 +768,7 @@ public class ImmutableArcInstTest {
      */
     @Test public void testReadWrite() {
         System.out.println("readReadWrite");
-        
+
         try {
             ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
             IdWriter writer = new IdWriter(idManager, new DataOutputStream(byteStream));
@@ -776,10 +776,10 @@ public class ImmutableArcInstTest {
             writer.flush();
             byte[] bytes = byteStream.toByteArray();
             byteStream.reset();
-            
+
             // First update of mirrorIdManager
             IdReader reader = new IdReader(new DataInputStream(new ByteArrayInputStream(bytes)), idManager);
-            
+
             // Check mirrorIdManager after first update
             ImmutableArcInst a1 = ImmutableArcInst.read(reader);
             a1.check();
@@ -800,7 +800,7 @@ public class ImmutableArcInstTest {
             fail(e.getMessage());
         }
     }
-    
+
     /**
      * Test of hashCodeExceptVariables method, of class com.sun.electric.database.ImmutableArcInst.
      */
@@ -828,14 +828,14 @@ public class ImmutableArcInstTest {
         System.out.println("makeGridPoly");
         ImmutableCell c = ImmutableCell.newInstance(cellId, 0).withTechId(techId);
         ImmutableNodeInst[] nodes = { n0, n1 };
-        CellBackup cellBackup0 = new CellBackup(c, techPool).with(c, 0, false, nodes, null, null);
+        CellBackup cellBackup0 = new CellBackup(c, techPool).with(c, 0, nodes, null, null);
         MyBuilder b = new MyBuilder();
         for (int angle = 0; angle < 3600; angle++) {
             EPoint p1 = EPoint.fromLambda(n0.anchor.getLambdaX() + 10*GenMath.cos(angle), n0.anchor.getLambdaY() + 10*GenMath.sin(angle));
             ImmutableArcInst a1 = ImmutableArcInst.newInstance(0, apId, nameA0, null, 0, ppId, n0.anchor, 1, ppId, p1, apExtend, 0, ImmutableArcInst.DEFAULT_FLAGS);
             assertEquals(angle, a1.getAngle());
             ImmutableArcInst[] arcs = { a1 };
-            CellBackup cellBackup = cellBackup0.with(c, 0, false, null, arcs, null);
+            CellBackup cellBackup = cellBackup0.with(c, 0, null, arcs, null);
             b.setTest(cellBackup, a1, 1000);
             b.makeGridPoly(a1, 1000, Poly.Type.FILLED, null);
         }
@@ -844,14 +844,14 @@ public class ImmutableArcInstTest {
     private static class MyBuilder extends AbstractShapeBuilder {
         ImmutableArcInst a;
         double w2;
-        
+
         void setTest(CellBackup cellBackup, ImmutableArcInst a, long width) {
             setup(cellBackup);
             this.a = a;
             w2 = width*0.5;
             pointCount = 0;
         }
-        
+
         @Override
         public void addDoublePoly(int numPoints, Poly.Type style, Layer layer) {
             assertEquals(4, pointCount);
@@ -867,26 +867,26 @@ public class ImmutableArcInstTest {
             assertEquals((double)a.headLocation.getGridX()*SHAPE_SCALE + w2x - w2y, doubleCoords[6]*SHAPE_SCALE);
             assertEquals((double)a.headLocation.getGridY()*SHAPE_SCALE + w2x + w2y, doubleCoords[7]*SHAPE_SCALE);
         }
-    
+
         @Override
         public void addIntLine(int[] coords, Poly.Type style, Layer layer) { throw new UnsupportedOperationException(); }
         @Override
         public void addIntBox(int[] coords, Layer layer) { throw new UnsupportedOperationException(); }
-        
+
     }
-    
+
 //    /**
 //     * Test of makeGridBoxInt method, of class com.sun.electric.database.ImmutableArcInst.
 //     */
 //    public void testMakeGridBoxInt() {
 //        System.out.println("makeGridBoxInt");
-//        
+//
 //        AbstractShapeBuilder b = null;
 //        long gridWidth = 0L;
 //        ImmutableArcInst instance = null;
-//        
+//
 //        instance.makeGridBoxInt(b, gridWidth);
-//        
+//
 //        // TODO review the generated test code and remove the default call to fail.
 //        fail("The test case is a prototype.");
 //    }
@@ -896,7 +896,7 @@ public class ImmutableArcInstTest {
 //     */
 //    @Test public void testRegisterShrinkage() {
 //        System.out.println("registerShrinkage");
-//        
+//
 //        int[] shrinkageState = new int[2];
 //        a0.registerShrinkage(shrinkageState);
 //        assertTrue(shrinkageState[a0.tailNodeId] != 0);
@@ -995,16 +995,16 @@ public class ImmutableArcInstTest {
      */
     public void testCurvedArcGridOutline() {
         System.out.println("curvedArcGridOutline");
-        
+
 //        Poly.Type style = null;
 //        long gridWidth = 0L;
 //        long gridRadius = 0L;
 //        ImmutableArcInst instance = null;
-//        
+//
 //        Poly expResult = null;
 //        Poly result = instance.curvedArcGridOutline(style, gridWidth, gridRadius);
 //        assertEquals(expResult, result);
-        
+
         // TODO review the generated test code and remove the default call to fail.
         fail("The test case is a prototype.");
     }
@@ -1014,11 +1014,11 @@ public class ImmutableArcInstTest {
      */
     public void testCheck() {
         System.out.println("check");
-        
+
         ImmutableArcInst instance = null;
-        
+
         instance.check();
-        
+
         // TODO review the generated test code and remove the default call to fail.
         fail("The test case is a prototype.");
     }
@@ -1037,13 +1037,13 @@ public class ImmutableArcInstTest {
         toElib(000040400002, ImmutableArcInst.FIXED_ANGLE);
         toElib(000000400000, ImmutableArcInst.SLIDABLE);
         toElib(020040400000, ImmutableArcInst.HARD_SELECT);
-        
+
         // NOEXTEND
         toElib(000040000000, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
         toElib(000040400000);
         toElib(000044400000, ImmutableArcInst.TAIL_EXTENDED);
         toElib(000050400000, ImmutableArcInst.HEAD_EXTENDED);
-        
+
         // ISDIRECTIONAL
         toElib(000052000000, ImmutableArcInst.BODY_ARROWED,                                                                ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
         toElib(000042000000, ImmutableArcInst.HEAD_ARROWED,                                                                ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
@@ -1053,7 +1053,7 @@ public class ImmutableArcInstTest {
         toElib(000062000000, ImmutableArcInst.BODY_ARROWED, ImmutableArcInst.TAIL_ARROWED, ImmutableArcInst.HEAD_ARROWED,  ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
         toElib(000062000000, ImmutableArcInst.TAIL_ARROWED, ImmutableArcInst.HEAD_ARROWED, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
     }
-    
+
     private void toElib(int elibFlags, ImmutableArcInst.Flag... flags) {
         int flagBits = 0;
         for (ImmutableArcInst.Flag f: flags)
@@ -1074,7 +1074,7 @@ public class ImmutableArcInstTest {
         fromElib(000040400002, ImmutableArcInst.FIXED_ANGLE);
         fromElib(000000400000, ImmutableArcInst.SLIDABLE);
         fromElib(020040400000, ImmutableArcInst.HARD_SELECT);
-        
+
         // REVERSEEND, NOTEND0, NOTEND1
         fromElib(000040000000, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
         fromElib(000044000000, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
@@ -1084,7 +1084,7 @@ public class ImmutableArcInstTest {
         fromElib(000064000000, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
         fromElib(000070000000, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
         fromElib(000074000000, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
-        
+
         // NOEXTEND
         fromElib(000040400000);
         fromElib(000044400000, ImmutableArcInst.TAIL_EXTENDED);
@@ -1094,7 +1094,7 @@ public class ImmutableArcInstTest {
         fromElib(000064400000, ImmutableArcInst.TAIL_EXTENDED);
         fromElib(000070400000, ImmutableArcInst.HEAD_EXTENDED);
         fromElib(000074400000, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
-        
+
         // ISHEADNEGATED
         fromElib(000040200000, ImmutableArcInst.HEAD_NEGATED, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
         fromElib(000044200000, ImmutableArcInst.HEAD_NEGATED, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
@@ -1104,7 +1104,7 @@ public class ImmutableArcInstTest {
         fromElib(000064200000, ImmutableArcInst.TAIL_NEGATED, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
         fromElib(000070200000, ImmutableArcInst.TAIL_NEGATED, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
         fromElib(000074200000, ImmutableArcInst.TAIL_NEGATED, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
-        
+
         // ISTAILNEGATED
         fromElib(000041000000, ImmutableArcInst.TAIL_NEGATED, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
         fromElib(000045000000, ImmutableArcInst.TAIL_NEGATED, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
@@ -1114,7 +1114,7 @@ public class ImmutableArcInstTest {
         fromElib(000065000000, ImmutableArcInst.HEAD_NEGATED, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
         fromElib(000071000000, ImmutableArcInst.HEAD_NEGATED, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
         fromElib(000075000000, ImmutableArcInst.HEAD_NEGATED, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
-        
+
         // ISHEADNEGATED | ISTAILNEGATED
         fromElib(000041200000, ImmutableArcInst.TAIL_NEGATED, ImmutableArcInst.HEAD_NEGATED, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
         fromElib(000045200000, ImmutableArcInst.TAIL_NEGATED, ImmutableArcInst.HEAD_NEGATED, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
@@ -1124,7 +1124,7 @@ public class ImmutableArcInstTest {
         fromElib(000065200000, ImmutableArcInst.TAIL_NEGATED, ImmutableArcInst.HEAD_NEGATED, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
         fromElib(000071200000, ImmutableArcInst.TAIL_NEGATED, ImmutableArcInst.HEAD_NEGATED, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
         fromElib(000075200000, ImmutableArcInst.TAIL_NEGATED, ImmutableArcInst.HEAD_NEGATED, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
-        
+
         // ISDIRECTIONAL
         fromElib(000042000000, ImmutableArcInst.BODY_ARROWED, ImmutableArcInst.HEAD_ARROWED, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
         fromElib(000046000000, ImmutableArcInst.BODY_ARROWED, ImmutableArcInst.HEAD_ARROWED, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
@@ -1135,7 +1135,7 @@ public class ImmutableArcInstTest {
         fromElib(000072000000, ImmutableArcInst.BODY_ARROWED, ImmutableArcInst.TAIL_ARROWED, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
         fromElib(000076000000, ImmutableArcInst.BODY_ARROWED,                                ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
     }
-    
+
     private void fromElib(int elibFlags, ImmutableArcInst.Flag... flags) {
         int flagBits = 0;
         for (ImmutableArcInst.Flag f: flags)
@@ -1155,5 +1155,5 @@ public class ImmutableArcInstTest {
         assertEquals(3590, ImmutableArcInst.angleFromElib(359 << 5));
         assertEquals(0, ImmutableArcInst.angleFromElib(360 << 5));
     }
-    
+
 }
