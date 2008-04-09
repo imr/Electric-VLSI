@@ -25,6 +25,7 @@
 package com.sun.electric.tool.user.menus;
 
 import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
+
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GeometryHandler;
 import com.sun.electric.database.geometry.Poly;
@@ -46,7 +47,13 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.*;
+import com.sun.electric.database.variable.DisplayedText;
+import com.sun.electric.database.variable.EditWindow_;
+import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.EvalJavaBsh;
+import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.technology.DRCTemplate;
 import com.sun.electric.technology.Foundry;
@@ -131,6 +138,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+
 import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 
@@ -1688,11 +1696,6 @@ public class ToolMenu {
 	{
 		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
-//		if (cell.getView() != View.SCHEMATIC)
-//		{
-//			System.out.println("Must be editing a Schematic cell before converting it to VHDL");
-//			return;
-//		}
 	    new DoSilCompActivity(cell, CONVERT_TO_VHDL | SHOW_CELL);
 	}
 
@@ -1900,7 +1903,7 @@ public class ToolMenu {
         HashMap<Cell,String> mangledNames = new HashMap<Cell,String>();
         com.sun.electric.tool.io.output.GDS.buildUniqueNames(cell, mangledNames);
         AssuraDrcErrors.importErrors(fileName, mangledNames, "DRC");
-    }    
+    }
 
     public static void importCalibreDrcErrors() {
         String fileName = OpenFile.chooseInputFile(FileType.DB, null);
@@ -1933,14 +1936,14 @@ public class ToolMenu {
                     "Import DRC Deck", (parser.isParseOK()) ? JOptionPane.WARNING_MESSAGE : JOptionPane.ERROR_MESSAGE);
 
         if (!parser.isParseOK())  return; // errors in the file
-        
+
         new ImportDRCDeckJob(parser.getRules(), tech);
 //        for (DRCTemplate.DRCXMLBucket bucket : parser.getRules())
 //        {
 //            boolean done = false;
 //
 //            // set the new rules under the foundry imported
-//            for (Iterator<Foundry> itF = tech.getFoundries(); itF.hasNext();)  
+//            for (Iterator<Foundry> itF = tech.getFoundries(); itF.hasNext();)
 //            {
 //                Foundry f = itF.next();
 //                if (f.getType().name().equalsIgnoreCase(bucket.foundry))
@@ -1980,7 +1983,7 @@ public class ToolMenu {
         public boolean doIt() {
             for (DRCTemplate.DRCXMLBucket bucket : rules) {
                 boolean done = false;
-                
+
                 // set the new rules under the foundry imported
                 for (Iterator<Foundry> itF = tech.getFoundries(); itF.hasNext();) {
                     Foundry f = itF.next();

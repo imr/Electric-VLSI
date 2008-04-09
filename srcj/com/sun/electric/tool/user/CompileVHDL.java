@@ -966,7 +966,7 @@ public class CompileVHDL
 
 	/**
 	 * Method to generate a QUISC (silicon compiler) netlist.
-     * @param destLib destination library.
+	 * @param destLib destination library.
 	 * @return a List of strings with the netlist.
 	 */
 	public List<String> getQUISCNetlist(Library destLib)
@@ -979,7 +979,7 @@ public class CompileVHDL
 
 	/**
 	 * Method to generate an ALS (simulation) netlist.
-     * @param destLib destination library.
+	 * @param destLib destination library.
 	 * @return a List of strings with the netlist.
 	 */
 	public List<String> getALSNetlist(Library destLib)
@@ -3892,7 +3892,7 @@ public class CompileVHDL
 			if (iPortNum != cPortNum)
 			{
 				reportErrorMsg(getNameToken((VName)inst.ports.pointer),
-					"Instance has different number of ports that component");
+					"Instance has different number of ports than component (instance has " + iPortNum + ", component has " + cPortNum + ")");
 				return null;
 			}
 		}
@@ -5296,8 +5296,8 @@ public class CompileVHDL
 	/**
 	 * Method to generate ALS target output for the created parse tree.
 	 * Assume parse tree is semantically correct.
-     * @param destLib destination library.
-     * @param behaveLib behaviour library.
+	 * @param destLib destination library.
+	 * @param behaveLib behaviour library.
 	 * @return a list of strings that has the netlist.
 	 */
 	private List<String> genALS(Library destLib, Library behaveLib)
@@ -5823,7 +5823,7 @@ public class CompileVHDL
 	/**
 	 * Method to generate QUISC target output for the created parse tree.
 	 * Assume parse tree is semantically correct.
-     * @param destLib destination library.
+	 * @param destLib destination library.
 	 * @return a list of strings that has the netlist.
 	 */
 	private List<String> genQuisc(Library destLib)

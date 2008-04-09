@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07h: ******************************
 
+BUG: (4/9/08, SMR) ALS simulator fails because VHDL conversion fails (Bug #1636).
+FIX: Fixed VHDL generation to handle ports better.
+
 BUG: (4/8/08, DN) PadFrame generator doesn't mark generated cells as changed.
 FIX: In database.constraint.Layout mark revision dates even in "quiet" mode.
 
