@@ -89,7 +89,6 @@ public class CellBackup {
      * Creates a new instance of CellBackup which differs from this CellBackup.
      * Four array parameters are supplied. Each parameter may be null if its contents is the same as in this Snapshot.
      * @param d new persistent data of a cell.
-     * @param revisionDate new revision date.
      * @param nodesArray new array of nodes
      * @param arcsArray new array of arcs
      * @param exportsArray new array of exports
@@ -97,9 +96,9 @@ public class CellBackup {
      * @throws IllegalArgumentException on invariant violation.
      * @throws ArrayOutOfBoundsException on some invariant violations.
      */
-    public CellBackup with(ImmutableCell d, long revisionDate,
+    public CellBackup with(ImmutableCell d,
             ImmutableNodeInst[] nodesArray, ImmutableArcInst[] arcsArray, ImmutableExport[] exportsArray) {
-        CellRevision newRevision = cellRevision.with(d, revisionDate, nodesArray, arcsArray, exportsArray);
+        CellRevision newRevision = cellRevision.with(d, nodesArray, arcsArray, exportsArray);
         if (newRevision == cellRevision) return this;
         if (arcsArray != null) {
             for (ImmutableArcInst a: arcsArray) {
@@ -107,6 +106,17 @@ public class CellBackup {
                     throw new IllegalArgumentException("arc " + a.name + " is not compatible with TechPool");
             }
         }
+        return new CellBackup(newRevision, this.techPool, true);
+    }
+
+    /**
+     * Creates a new instance of CellBackup which differs from this CellBackup by revision date.
+     * @param revisionDate new revision date.
+     * @return new CellBackup which differs from this CellBackup by revision date.
+     */
+    public CellBackup withRevisionDate(long revisionDate) {
+        CellRevision newRevision = cellRevision.withRevisionDate(revisionDate);
+        if (newRevision == cellRevision) return this;
         return new CellBackup(newRevision, this.techPool, true);
     }
 

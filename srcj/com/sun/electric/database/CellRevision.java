@@ -59,7 +59,6 @@ public class CellRevision {
     static final CellUsageInfo[] NULL_CELL_USAGE_INFO_ARRAY = {};
     static int cellRevisionsCreated = 0;
     /** Cell persistent data. */                                    public final ImmutableCell d;
-	/** The date this ImmutableCell was last modified. */           public final long revisionDate;
     /** An array of Exports on the Cell by chronological index. */  public final ImmutableArrayList<ImmutableExport> exports;
 	/** A list of NodeInsts in this Cell. */						public final ImmutableArrayList<ImmutableNodeInst> nodes;
     /** A list of ArcInsts in this Cell. */							public final ImmutableArrayList<ImmutableArcInst> arcs;
@@ -72,14 +71,13 @@ public class CellRevision {
     /** Bitmap of deleted exports. */                               final BitSet deletedExports;
 
     /** Creates a new instance of CellRevision */
-    private CellRevision(ImmutableCell d, long revisionDate,
+    private CellRevision(ImmutableCell d,
             ImmutableArrayList<ImmutableNodeInst> nodes,
             ImmutableArrayList<ImmutableArcInst> arcs,
             ImmutableArrayList<ImmutableExport> exports,
             BitSet techUsages,
             CellUsageInfo[] cellUsages, int[] exportIndex, BitSet definedExports, int definedExportsLength, BitSet deletedExports) {
         this.d = d;
-        this.revisionDate = revisionDate;
         this.nodes = nodes;
         this.arcs = arcs;
         this.exports = exports;
@@ -94,7 +92,7 @@ public class CellRevision {
 
     /** Creates a new instance of CellRevision */
     public CellRevision(ImmutableCell d) {
-        this(d, 0, ImmutableNodeInst.EMPTY_LIST, ImmutableArcInst.EMPTY_LIST, ImmutableExport.EMPTY_LIST,
+        this(d, ImmutableNodeInst.EMPTY_LIST, ImmutableArcInst.EMPTY_LIST, ImmutableExport.EMPTY_LIST,
                 makeTechUsages(d.techId), NULL_CELL_USAGE_INFO_ARRAY, NULL_INT_ARRAY, EMPTY_BITSET, 0, EMPTY_BITSET);
         if (d.techId == null)
             throw new NullPointerException("techId");
@@ -112,8 +110,8 @@ public class CellRevision {
      * @return new CellRevision which differs from this CellRevision by revision date.
      */
     public CellRevision withRevisionDate(long revisionDate) {
-        if (this.revisionDate == revisionDate) return this;
-        return new CellRevision(this.d, revisionDate, this.nodes, this.arcs, this.exports,
+        if (d.revisionDate == revisionDate) return this;
+        return new CellRevision(this.d.withRevisionDate(revisionDate), this.nodes, this.arcs, this.exports,
                 this.techUsages, this.cellUsages, this.exportIndex,
                 this.definedExports, this.definedExportsLength, this.deletedExports);
     }
@@ -122,7 +120,6 @@ public class CellRevision {
      * Creates a new instance of CellRevision which differs from this CellRevision.
      * Four array parameters are supplied. Each parameter may be null if its contents is the same as in this Snapshot.
      * @param d new persistent data of a cell.
-     * @param revisionDate new revision date.
      * @param nodesArray new array of nodes
      * @param arcsArray new array of arcs
      * @param exportsArray new array of exports
@@ -130,13 +127,12 @@ public class CellRevision {
      * @throws IllegalArgumentException on invariant violation.
      * @throws ArrayOutOfBoundsException on some invariant violations.
      */
-    public CellRevision with(ImmutableCell d, long revisionDate,
+    public CellRevision with(ImmutableCell d,
             ImmutableNodeInst[] nodesArray, ImmutableArcInst[] arcsArray, ImmutableExport[] exportsArray) {
         ImmutableArrayList<ImmutableNodeInst> nodes = copyArray(nodesArray, this.nodes);
         ImmutableArrayList<ImmutableArcInst> arcs = copyArray(arcsArray, this.arcs);
         ImmutableArrayList<ImmutableExport> exports = copyArray(exportsArray, this.exports);
-        if (this.d == d && this.revisionDate == revisionDate &&
-                this.nodes == nodes && this.arcs == arcs && this.exports == exports) {
+        if (this.d == d && this.nodes == nodes && this.arcs == arcs && this.exports == exports) {
             return this;
         }
 
@@ -223,8 +219,8 @@ public class CellRevision {
             }
         }
 
-        CellRevision revision = new CellRevision(d, revisionDate,
-                nodes, arcs, exports, techUsages, cellUsages, exportIndex, definedExports, definedExportsLength, deletedExports);
+        CellRevision revision = new CellRevision(d, nodes, arcs, exports,
+                techUsages, cellUsages, exportIndex, definedExports, definedExportsLength, deletedExports);
         return revision;
     }
 
@@ -280,7 +276,7 @@ public class CellRevision {
         }
 
         if (this.d == d && nodesArray == null && arcsArray == null && exportsArray == null) return this;
-        CellRevision newRevision = with(d, revisionDate, nodesArray, arcsArray, exportsArray);
+        CellRevision newRevision = with(d, nodesArray, arcsArray, exportsArray);
         newRevision.check();
         return newRevision;
     }
@@ -363,7 +359,6 @@ public class CellRevision {
      */
     void write(IdWriter writer) throws IOException {
         d.write(writer);
-        writer.writeLong(revisionDate);
         writer.writeInt(nodes.size());
         for (ImmutableNodeInst n: nodes)
             n.write(writer);
@@ -381,7 +376,6 @@ public class CellRevision {
      */
     static CellRevision read(IdReader reader) throws IOException {
         ImmutableCell d = ImmutableCell.read(reader);
-        long revisionDate = reader.readLong();
         CellRevision revision = new CellRevision(d.withoutVariables());
 
         int nodesLength = reader.readInt();
@@ -399,7 +393,7 @@ public class CellRevision {
         for (int i = 0; i < exportsLength; i++)
             exports[i] = ImmutableExport.read(reader);
 
-        revision = revision.with(d, revisionDate, nodes, arcs, exports);
+        revision = revision.with(d, nodes, arcs, exports);
         return revision;
     }
 

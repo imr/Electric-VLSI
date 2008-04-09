@@ -215,7 +215,7 @@ public class JELIB extends Output {
         }
         printWriter.print("|" + convertString(d.techId.techName));
         printWriter.print("|" + d.creationDate);
-        printWriter.print("|" + cellRevision.revisionDate);
+        printWriter.print("|" + d.revisionDate);
         StringBuilder cellBits = new StringBuilder();
         if ((d.flags & Cell.INCELLLIBRARY) != 0) cellBits.append("C");
         if ((d.flags & Cell.WANTNEXPAND) != 0 || d.cellId.isIcon()) cellBits.append("E");

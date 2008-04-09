@@ -828,14 +828,14 @@ public class ImmutableArcInstTest {
         System.out.println("makeGridPoly");
         ImmutableCell c = ImmutableCell.newInstance(cellId, 0).withTechId(techId);
         ImmutableNodeInst[] nodes = { n0, n1 };
-        CellBackup cellBackup0 = new CellBackup(c, techPool).with(c, 0, nodes, null, null);
+        CellBackup cellBackup0 = new CellBackup(c, techPool).with(c, nodes, null, null);
         MyBuilder b = new MyBuilder();
         for (int angle = 0; angle < 3600; angle++) {
             EPoint p1 = EPoint.fromLambda(n0.anchor.getLambdaX() + 10*GenMath.cos(angle), n0.anchor.getLambdaY() + 10*GenMath.sin(angle));
             ImmutableArcInst a1 = ImmutableArcInst.newInstance(0, apId, nameA0, null, 0, ppId, n0.anchor, 1, ppId, p1, apExtend, 0, ImmutableArcInst.DEFAULT_FLAGS);
             assertEquals(angle, a1.getAngle());
             ImmutableArcInst[] arcs = { a1 };
-            CellBackup cellBackup = cellBackup0.with(c, 0, null, arcs, null);
+            CellBackup cellBackup = cellBackup0.with(c, null, arcs, null);
             b.setTest(cellBackup, a1, 1000);
             b.makeGridPoly(a1, 1000, Poly.Type.FILLED, null);
         }

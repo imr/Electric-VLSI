@@ -258,7 +258,7 @@ public class TechPool extends AbstractMap<TechId, Technology> {
                 correctedArcs[arcIndex] = a;
             }
 
-            cellRevision = cellRevision.with(cellRevision.d, cellRevision.revisionDate, correctedNodes, correctedArcs, null);
+            cellRevision = cellRevision.with(cellRevision.d, correctedNodes, correctedArcs, null);
             cells.set(i, cellRevision);
         }
     }

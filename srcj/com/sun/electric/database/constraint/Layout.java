@@ -37,7 +37,6 @@ import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.id.CellId;
-import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -52,7 +51,6 @@ import com.sun.electric.technology.Technology;
 import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -79,8 +77,6 @@ public class Layout extends Constraints
     private static final ArrayList<LayoutCell> cellInfos = new ArrayList<LayoutCell>();
     /** Map which contains temporary rigidity of ArcInsts. */
     private static final HashMap<ArcInst,Boolean> tempRigid = new HashMap<ArcInst,Boolean>();
-    /** Saved libraries */
-    static final HashSet<LibId> librariesWritten = new HashSet<LibId>();
     /** key of Variable for last valid DRC date on a Cell. Only spacing rules */
     public static final Variable.Key DRC_LAST_GOOD_DATE_SPACING = Variable.newKey("DRC_last_good_drc_date");
     /** key of Variable for last valid DRC bit on a Cell. Only spacing rules */
@@ -167,10 +163,7 @@ public class Layout extends Constraints
             Library lib = it.next();
             for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); ) {
                 Cell cell = cIt.next();
-                CellBackup newBackup = cell.backup();
-                CellBackup oldBackup = oldSnapshot.getCell(cell.getId());
-                if (newBackup.modified && newBackup != oldBackup)
-                    cell.lowLevelMadeRevision(Layout.revisionDate, Layout.userName);
+                cell.lowLevelMadeRevision(revisionDate, userName, oldSnapshot.getCellRevision(cell.getId()));
                 if (goodSpacingDRCCells != null && goodSpacingDRCCells.contains(cell)) {
                     cell.addVar(goodSpacingDRCDate);
                     cell.addVar(goodSpacingDRCBit);
@@ -178,7 +171,6 @@ public class Layout extends Constraints
                 if (goodAreaDRCCells != null && goodAreaDRCCells.contains(cell)) {
                     cell.addVar(goodAreaDRCDate);
                 }
-                cell.getBounds();
             }
         }
 

@@ -458,13 +458,12 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
      * BOUNDS_CORRECT_SUB - bounds are correct provided that bounds of subcells are correct.
      * BOUNDS_CORRECT_GEOM - bounds are correct proveded that bounds of nodes and arcs are correct.
      * BOUNDS_RECOMPUTE - bounds need to be recomputed. */          private byte boundsDirty = BOUNDS_RECOMPUTE;
-	/** The date this ImmutableCell was last modified. */           private long revisionDate;
 	/** The temporary integer value. */								private int tempInt;
     /** Set if expanded status of subcell instances is modified. */ private boolean expandStatusModified;
     /** Last backup of this Cell */                                 CellBackup backup;
     /** True if cell together with contents matches cell backup. */ boolean cellBackupFresh;
     /** True if cell contents matches cell backup. */               private boolean cellContentsFresh;
-    /** True if cell revision date is just set by lowLevelSetRevsionDate*/private boolean revisionDateFresh;
+    /** True if cell revision date is just set by lowLevelSetRevisionDate*/private boolean revisionDateFresh;
 
 
 	// ------------------ protected and private methods -----------------------
@@ -1087,7 +1086,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         if (backup == null) {
             getTechnology();
             backup = new CellBackup(getD().withoutVariables(), techPool);
-            assert !cellBackupFresh && !cellContentsFresh;
+            assert !cellBackupFresh && !cellContentsFresh && !revisionDateFresh;
         }
         ImmutableNodeInst[] nodes = null;
         ImmutableArcInst[] arcs = null;
@@ -1098,8 +1097,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             arcs = topology.backupArcs(backup.cellRevision.arcs);
             exports = backupExports();
         }
-        backup = backup.withTechPool(techPool).with(getD(), revisionDate,
-                nodes, arcs, exports);
+        backup = backup.withTechPool(techPool).with(getD(), nodes, arcs, exports);
         cellBackupFresh = true;
         cellContentsFresh = true;
         if (backup.modified)
@@ -1162,7 +1160,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
      	this.d = newRevision.d;
         lib = database.getLib(newRevision.d.getLibId());
         tech = database.getTech(newRevision.d.techId);
-        this.revisionDate = newRevision.revisionDate;
        // Update NodeInsts
         nodes.clear();
         essenBounds.clear();
@@ -1253,6 +1250,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         backup = newBackup;
         cellBackupFresh = true;
         cellContentsFresh = true;
+        revisionDateFresh = true;
 
         getMemoization();
         boundsDirty = BOUNDS_RECOMPUTE;
@@ -3817,9 +3815,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
      */
 	public Netlist getNetlist() { return getNetlist(Netlist.ShortResistors.NO); }
 
-    @Deprecated
-	public Netlist getNetlist(boolean shortResistors) { return getNetlist(shortResistors ? Netlist.ShortResistors.PARASITIC : Netlist.ShortResistors.NO); }
-
 	/** Recompute the Netlist structure for this Cell.
      * @param shortResistors short resistors mode of Netlist.
 	 * @return the Netlist structure for this cell.
@@ -3858,7 +3853,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * Method to return the revision date of this Cell.
 	 * @return the revision date of this Cell.
 	 */
-	public Date getRevisionDate() { return new Date(revisionDate); }
+	public Date getRevisionDate() { return new Date(getD().revisionDate); }
 
 	/**
 	 * Method to set this Cell's last revision date.
@@ -3874,16 +3869,16 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
      * Change system is not informed about this.
 	 * This is a low-level method and should not be called unless you know what you are doing.
 	 */
-	public void lowLevelMadeRevision(long revisionDate, String userName) {
-        if (!revisionDateFresh)
-            lowLevelSetRevisionDate(revisionDate);
+	public void lowLevelMadeRevision(long revisionDate, String userName, CellRevision oldRevision) {
+        backup();
+        if (!isModified() || backup.cellRevision == oldRevision || revisionDateFresh)
+            return;
+        lowLevelSetRevisionDate(revisionDate);
 	}
 
 	private void lowLevelSetRevisionDate(long revisionDate) {
-        checkChanging();
-        backup();
-        this.revisionDate = revisionDate;
-        unfreshBackup();
+        backup = backup().withRevisionDate(revisionDate);
+        d = backup.cellRevision.d;
         revisionDateFresh = true;
     }
 
@@ -4066,7 +4061,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             database.unfreshSnapshot();
         }
         assert cellBackupFresh;
-        assert backup.cellRevision.revisionDate == revisionDate;
         revisionDateFresh = true;
     }
 
@@ -4414,7 +4408,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         CellRevision cellRevision = backup != null ? backup.cellRevision : null;
         if (cellBackupFresh) {
             assert cellRevision.d == getD();
-            assert cellRevision.revisionDate == revisionDate;
             assert cellContentsFresh;
         }
         if (cellContentsFresh) {

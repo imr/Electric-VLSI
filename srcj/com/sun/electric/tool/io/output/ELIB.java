@@ -774,7 +774,7 @@ public class ELIB extends Output
         writeInt("version: ", cellId.cellName.getVersion());
 
         writeInt("creationdate: ", (int)(cellRevision.d.creationDate/1000));
-        writeInt("revisiondate: ", (int)(cellRevision.revisionDate/1000));
+        writeInt("revisiondate: ", (int)(cellRevision.d.revisionDate/1000));
 
         // write the nodeproto bounding box
         ERectangle bounds = snapshot.getCellBounds(cellId);

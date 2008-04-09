@@ -66,11 +66,11 @@ import java.util.logging.Logger;
 public class EDatabase {
     private static final Logger logger = Logger.getLogger("com.sun.electric.database");
     private static final String CLASS_NAME = EDatabase.class.getName();
-    
+
     public static EDatabase theDatabase = new EDatabase(new IdManager());
     public static EDatabase serverDatabase() { return theDatabase; }
     public static EDatabase clientDatabase() { return theDatabase; }
-    
+
     /** IdManager which keeps Ids of objects in this database.*/private final IdManager idManager;
     /** list of linked technologies indexed by techId. */       private TechPool techPool;
 	/** list of linked libraries indexed by libId. */           private final ArrayList<Library> linkedLibs = new ArrayList<Library>();
@@ -79,13 +79,13 @@ public class EDatabase {
     /** Last snapshot */                                        private Snapshot snapshot;
     /** True if database matches snapshot. */                   private boolean snapshotFresh;
 	/** Flag set when database invariants failed. */            private boolean invariantsFailed;
-    
+
     /** Network manager for this database. */                   private final NetworkManager networkManager;
     /** Thread which locked database for writing. */            private volatile Thread writingThread;
     /** True if writing thread can changing. */                 private boolean canChanging;
     /** True if writing thread can undoing. */                  private boolean canUndoing;
     /** Tool which initiated changing. */                       private Tool changingTool;
-    
+
     /** Creates a new instance of EDatabase */
     public EDatabase(IdManager idManager) {
         this.idManager = idManager;
@@ -93,13 +93,13 @@ public class EDatabase {
         setSnapshot(getInitialSnapshot(), true);
         networkManager = new NetworkManager(this);
     }
-    
+
     public IdManager getIdManager() { return idManager; }
-    
+
     public Snapshot getInitialSnapshot() { return idManager.getInitialSnapshot(); }
-    
+
     public NetworkManager getNetworkManager() { return networkManager; }
-    
+
     public void addTech(Technology tech) {
         assert getTech(tech.getId()) == null;
         techPool = techPool.withTech(tech);
@@ -108,11 +108,11 @@ public class EDatabase {
 
     /** Returns TechPool of this database */
     public TechPool getTechPool() { return techPool; }
-    
+
     public Collection<Technology> getTechnologies() {
         return techPool.values();
     }
-    
+
     /**
      * Get Technology by TechId
      * TechId must belong to same IdManager as TechPool
@@ -121,18 +121,18 @@ public class EDatabase {
      * @throws IllegalArgumentException of TechId is not from this IdManager
      */
     public Technology getTech(TechId techId) { return techPool.getTech(techId); }
-    
+
     /** Return Artwork technology in this database */
     public Artwork getArtwork() { return techPool.getArtwork(); }
-    
+
     /** Return Generic technology in this database */
     public Generic getGeneric() { return techPool.getGeneric(); }
-    
+
     /** Return Schematic technology in this database */
     public Schematics getSchematics() { return techPool.getSchematics(); }
-    
+
     public Library getLib(LibId libId) { return getLib(libId.libIndex); }
-    
+
     void addLib(Library lib) {
         int libIndex = lib.getId().libIndex;
         while (libIndex >= linkedLibs.size()) linkedLibs.add(null);
@@ -140,36 +140,36 @@ public class EDatabase {
         assert oldLib == null;
 		libraries.put(lib.getName(), lib);
     }
-    
+
     void removeLib(LibId libId) {
         Library oldLib = linkedLibs.set(libId.libIndex, null);
         while (!linkedLibs.isEmpty() && linkedLibs.get(linkedLibs.size() - 1) == null)
             linkedLibs.remove(linkedLibs.size() - 1);
         libraries.remove(oldLib.getName());
     }
-    
+
     public Cell getCell(CellId cellId) { return getCell(cellId.cellIndex); }
-    
+
     void addCell(Cell cell) {
         int cellIndex = cell.getCellIndex();
         while (cellIndex >= linkedCells.size()) linkedCells.add(null);
         Cell oldCell = linkedCells.set(cellIndex, cell);
         assert oldCell == null;
     }
-    
+
     void removeCell(CellId cellId) {
         Cell oldCell = linkedCells.set(cellId.cellIndex, null);
         assert oldCell != null;
         while (!linkedCells.isEmpty() && linkedCells.get(linkedCells.size() - 1) == null)
             linkedCells.remove(linkedCells.size() - 1);
     }
-    
+
 //    Technology getTech(int techIndex) { return techIndex < linkedTechs.size() ? linkedTechs.get(techIndex) : null; }
-    
+
     Library getLib(int libIndex) { return libIndex < linkedLibs.size() ? linkedLibs.get(libIndex) : null; }
-    
-    Cell getCell(int cellIndex) { return cellIndex < linkedCells.size() ? linkedCells.get(cellIndex) : null; } 
-    
+
+    Cell getCell(int cellIndex) { return cellIndex < linkedCells.size() ? linkedCells.get(cellIndex) : null; }
+
     /**
      * Locks the database.
      * Lock may be either exclusive (for writing) or shared (for reading).
@@ -181,14 +181,14 @@ public class EDatabase {
             writingThread = Thread.currentThread();
         canChanging = canUndoing = false;
     }
-    
+
     /**
      * Unlocks the database.
      */
     public void unlock() {
         writingThread = null;
     }
-    
+
 	/**
 	 * Method to check whether changing of database is allowed by current thread.
 	 * @throws IllegalStateException if changes are not allowed.
@@ -210,11 +210,11 @@ public class EDatabase {
         logger.logp(Level.WARNING, CLASS_NAME, "checkUndoing", e.getMessage(), e);
         throw e;
 	}
-    
+
     public boolean canComputeBounds() { return Thread.currentThread() == writingThread && (canChanging || canUndoing); }
 
     public boolean canComputeNetlist() { return Thread.currentThread() == writingThread && (canChanging || canUndoing); }
-    
+
 	/**
 	 * Method to check whether examining of database is allowed.
 	 */
@@ -225,7 +225,7 @@ public class EDatabase {
         logger.logp(Level.FINE, CLASS_NAME, "checkExamine", e.getMessage(), e);
 //        throw e;
     }
-    
+
     /**
      * Low-level method to begin changes in database.
      * @param changingTool tool which initiated
@@ -236,7 +236,7 @@ public class EDatabase {
         canChanging = true;
         this.changingTool = changingTool;
     }
-    
+
     /**
      * Low-level method to permit changes in database.
      */
@@ -246,7 +246,7 @@ public class EDatabase {
         changingTool = null;
         canChanging = false;
     }
-    
+
     /**
      * Low-level method to permit undos in database.
      */
@@ -255,7 +255,7 @@ public class EDatabase {
             checkUndoing();
         canUndoing = b;
     }
-    
+
 	/**
 	 * Get list of cells contained in other libraries
 	 * that refer to cells contained in this library
@@ -319,7 +319,7 @@ public class EDatabase {
 	{
 		return libraries.size();
 	}
-    
+
 	/**
 	 * Method to return an iterator over all visible libraries.
 	 * @return an iterator over all visible libraries.
@@ -340,12 +340,12 @@ public class EDatabase {
         checkChanging();
         snapshotFresh = false;
     }
-    
+
     private synchronized void setSnapshot(Snapshot snapshot, boolean fresh) {
         this.snapshot = snapshot;
         this.snapshotFresh = fresh;
     }
-    
+
     /**
      * Low-level method to atomically get fresh snapshot.
      * @return fresh snapshot of the database, or null if nop fresh snapshot exists.
@@ -353,7 +353,7 @@ public class EDatabase {
     public synchronized Snapshot getFreshSnapshot() {
         return snapshotFresh ? snapshot : null;
     }
-    
+
     /**
      * Create Snapshot from the current state of Electric database.
      * @return snapshot of the current state of Electric database.
@@ -365,7 +365,7 @@ public class EDatabase {
             throw new IllegalStateException();
         return doBackup();
     }
-    
+
     /**
      * Create Snapshot from the current state of Electric database.
      * If there is no fresh snapshot for this database and thread is not enabled to calculate snspshot, returns the latest snapshot.
@@ -375,8 +375,8 @@ public class EDatabase {
         if (snapshotFresh || !canComputeBounds()) return snapshot;
         return doBackup();
     }
-        
-    private Snapshot doBackup() {    
+
+    private Snapshot doBackup() {
 //        long startTime = System.currentTimeMillis();
         LibraryBackup[] libBackups = new LibraryBackup[linkedLibs.size()];
         boolean libsChanged = libBackups.length != snapshot.libBackups.size();
@@ -384,10 +384,10 @@ public class EDatabase {
             Library lib = linkedLibs.get(libIndex);
             LibraryBackup libBackup = lib != null ? lib.backup() : null;
             libBackups[libIndex] = libBackup;
-            libsChanged = libsChanged || snapshot.libBackups.get(libIndex) != libBackup; 
+            libsChanged = libsChanged || snapshot.libBackups.get(libIndex) != libBackup;
         }
         if (!libsChanged) libBackups = null;
-        
+
         CellBackup[] cellBackups = new CellBackup[linkedCells.size()];
         ERectangle[] cellBounds = new ERectangle[cellBackups.length];
         boolean cellsChanged = cellBackups.length != snapshot.cellBackups.size();
@@ -407,7 +407,7 @@ public class EDatabase {
         }
         if (!cellsChanged) cellBackups = null;
         if (!cellBoundsChanged) cellBounds = null;
-        
+
         setSnapshot(snapshot.withTechPool(techPool).with(changingTool, cellBackups, cellBounds, libBackups), true);
 //        long endTime = System.currentTimeMillis();
 //        if (Job.getDebug()) System.out.println("backup took: " + (endTime - startTime) + " msec");
@@ -439,7 +439,7 @@ public class EDatabase {
             checkInvariants();
         }
     }
-    
+
     private void recoverRecursively(CellId cellId, BitSet recovered) {
         int cellIndex = cellId.cellIndex;
         if (recovered.get(cellIndex)) return;
@@ -500,7 +500,7 @@ public class EDatabase {
             if (snapshot.libBackups.size() > 0) // Bug in BitSet.set(int,int) on Sun JDK
                 cellNamesChangedInLibrary.set(0, snapshot.libBackups.size());
         }
-        
+
         BitSet updated = new BitSet();
         BitSet exportsModified = new BitSet();
         BitSet boundsModified = new BitSet();
@@ -523,7 +523,7 @@ public class EDatabase {
 //            checkFresh(snapshot);
         }
     }
-    
+
     private void undoRecursively(Snapshot oldSnapshot, CellId cellId, BitSet updated, BitSet exportsModified, BitSet boundsModified) {
         int cellIndex = cellId.cellIndex;
     	if (updated.get(cellIndex)) return;
@@ -571,7 +571,7 @@ public class EDatabase {
             }
                   /*
                 } else {
-                   
+
                 Library lib = linkedLibs.get(libIndex);
                 String libName = lib.getName();
                 if (!oldBackup.d.libName.equals(libName)) {
@@ -602,7 +602,7 @@ public class EDatabase {
             }
              */
     }
-    
+
     private void recycleCells() {
         ImmutableArrayList<CellBackup> cellBackups = snapshot.cellBackups;
         while (linkedCells.size() > cellBackups.size()) linkedCells.remove(linkedCells.size() - 1);
@@ -617,7 +617,7 @@ public class EDatabase {
             }
         }
     }
-    
+
     private void recoverCellGroups() {
         ArrayList<TreeSet<Cell>> groups = new ArrayList<TreeSet<Cell>>();
         for (int cellIndex = 0; cellIndex < snapshot.cellBackups.size(); cellIndex++) {
@@ -633,7 +633,7 @@ public class EDatabase {
         for (int i = 0; i < groups.size(); i++)
             new Cell.CellGroup(groups.get(i));
     }
-    
+
 	/**
 	 * Method to check invariants in all Libraries.
 	 * @return true if invariants are valid
@@ -675,7 +675,7 @@ public class EDatabase {
             assert linkedLibs.size() == snapshot.libBackups.size();
             assert linkedCells.size() == snapshot.cellBackups.size();
         }
-        
+
         for (int libIndex = 0; libIndex < linkedLibs.size(); libIndex++) {
             Library lib = linkedLibs.get(libIndex);
             if (lib == null) {
@@ -686,9 +686,9 @@ public class EDatabase {
             assert libraries.get(lib.getName()) == lib;
             lib.check();
             if (snapshotFresh)
-                assert lib.libBackupFresh && lib.backup == snapshot.libBackups.get(libIndex);
+                assert lib.backup == snapshot.libBackups.get(libIndex);
         }
-        
+
         for (int cellIndex = 0; cellIndex < linkedCells.size(); cellIndex++) {
             Cell cell = linkedCells.get(cellIndex);
             if (cell == null) {
@@ -706,18 +706,18 @@ public class EDatabase {
                 assert cell.getBounds() == snapshot.getCellBounds(cellId);
             }
         }
-        
+
         TreeSet<String> libNames = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
         for (Map.Entry<String,Library> e : libraries.entrySet()) {
             String libName = e.getKey();
             Library lib = e.getValue();
             assert libName == lib.getName();
             assert linkedLibs.get(lib.getId().libIndex) == lib;
-            
+
             assert !libNames.contains(libName) : "case insensitive " + libName;
             libNames.add(libName);
         }
-        
+
         if (snapshotFresh) {
             HashMap<Cell.CellGroup,Integer> groupNums = new HashMap<Cell.CellGroup,Integer>();
             for (int i = 0; i < snapshot.cellBackups.size(); i++) {
@@ -740,7 +740,7 @@ public class EDatabase {
             }
         }
     }
-    
+
     /**
      * Checks that Electric database has the expected state.
      * @param expectedSnapshot expected state.
