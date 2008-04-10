@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07h: ******************************
 
+BUG: (4/9/08, DN) RevisionDate of a Cell is not clear in Generation regressions.
+FIX: In Cell.lowLevelSetRevisionDate call "database.unfreshSnapshot()".
+     In AbsractTest.compareResults call "cell.getDatabase().backup()".
+
 IMP/MAN: (4/9/08, SMR) Typing "z" when in zoom mode or "p" when in pan mode now
      reverts to the last mode (not always click-zoom-wire) and can be used to
      return to paste dragging, interactive resizing, etc. (Bug #1628)

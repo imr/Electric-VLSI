@@ -3880,6 +3880,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         backup = backup().withRevisionDate(revisionDate);
         d = backup.cellRevision.d;
         revisionDateFresh = true;
+        database.unfreshSnapshot();
     }
 
 	/**
