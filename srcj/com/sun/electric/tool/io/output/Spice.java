@@ -755,7 +755,7 @@ public class Spice extends Topology
                                     obj = context.evalVar(instVar, no);
                                 }
                                 if (obj != null)
-                                    paramStr = formatParam(String.valueOf(obj), instVar.getUnit());
+                                    paramStr = formatParam(String.valueOf(obj), instVar.getUnit(), false);
                             }
                         }
 						infstr.append(" " + paramVar.getTrueName() + "=" + paramStr);
@@ -820,7 +820,7 @@ public class Spice extends Topology
                                 double pureValue = TextUtils.atof(extra);
                                 extra = TextUtils.formatDoublePostFix(pureValue); //displayedUnits(pureValue, TextDescriptor.Unit.RESISTANCE, TextUtils.UnitScale.NONE);
                             } else
-                                extra = formatParam(extra, resistVar.getUnit());
+                                extra = formatParam(extra, resistVar.getUnit(), false);
                         }
 					} else {
                         if (fun == PrimitiveNode.Function.PRESIST) {
@@ -832,8 +832,8 @@ public class Spice extends Topology
                                 extra = " L="+length+" W="+width;
                             } else
                             {
-                                extra = " L="+formatParam(length+"*LAMBDA", TextDescriptor.Unit.NONE)+
-                                	" W="+formatParam(width+"*LAMBDA", TextDescriptor.Unit.NONE);
+                                extra = " L="+formatParam(length+"*LAMBDA", TextDescriptor.Unit.NONE, false)+
+                                	" W="+formatParam(width+"*LAMBDA", TextDescriptor.Unit.NONE, false);
                             }
                             if (layoutTechnology == Technology.getCMOS90Technology() ||
                                (cell.getView() == View.LAYOUT && cell.getTechnology() == Technology.getCMOS90Technology())) {
@@ -861,8 +861,8 @@ public class Spice extends Topology
                                 extra = " L="+length+" W="+width;
                             } else
                             {
-                                extra = " L="+formatParam(length+"*LAMBDA", TextDescriptor.Unit.NONE)+
-                                	" W="+formatParam(width+"*LAMBDA", TextDescriptor.Unit.NONE);
+                                extra = " L="+formatParam(length+"*LAMBDA", TextDescriptor.Unit.NONE, false)+
+                                	" W="+formatParam(width+"*LAMBDA", TextDescriptor.Unit.NONE, false);
                             }
                             if (ni.getProto().getName().equals("N-Well-RPO-Resistor")) {
                                 extra = "rnwod "+extra;
@@ -897,7 +897,7 @@ public class Spice extends Topology
                                 double pureValue = TextUtils.atof(extra);
                                 extra = TextUtils.formatDoublePostFix(pureValue); // displayedUnits(pureValue, TextDescriptor.Unit.CAPACITANCE, TextUtils.UnitScale.NONE);
                             } else
-                                extra = formatParam(extra, capacVar.getUnit());
+                                extra = formatParam(extra, capacVar.getUnit(), false);
                         }
 					}
 					writeTwoPort(ni, "C", extra, cni, netList, context, segmentedNets);
@@ -925,7 +925,7 @@ public class Spice extends Topology
                                 double pureValue = TextUtils.atof(extra);
                                 extra = TextUtils.formatDoublePostFix(pureValue); // displayedUnits(pureValue, TextDescriptor.Unit.INDUCTANCE, TextUtils.UnitScale.NONE);
                             } else
-                                extra = formatParam(extra, inductVar.getUnit());
+                                extra = formatParam(extra, inductVar.getUnit(), false);
                         }
 					}
 					writeTwoPort(ni, "L", extra, cni, netList, context, segmentedNets);
@@ -1147,15 +1147,15 @@ public class Spice extends Topology
                         // schematic transistors may be text
                         if ((size.getDoubleLength() == 0) && (size.getLength() instanceof String)) {
                             if (lengthSubtraction != 0)
-                                infstr.append(" L="+formatParam((String)size.getLength(), TextDescriptor.Unit.DISTANCE) + " - "+ lengthSubtraction);
+                                infstr.append(" L="+formatParam((String)size.getLength(), TextDescriptor.Unit.DISTANCE, false) + " - "+ lengthSubtraction);
                             else
-                                infstr.append(" L="+formatParam((String)size.getLength(), TextDescriptor.Unit.DISTANCE));
+                                infstr.append(" L="+formatParam((String)size.getLength(), TextDescriptor.Unit.DISTANCE, false));
                         } else {
                             infstr.append(" L=" + TextUtils.formatDouble(l, 2));
                             if (!Simulation.isSpiceWriteTransSizeInLambda() && !st090laytrans) infstr.append("U");
                         }
                         if ((size.getDoubleWidth() == 0) && (size.getWidth() instanceof String)) {
-                            infstr.append(" W="+formatParam((String)size.getWidth(), TextDescriptor.Unit.DISTANCE));
+                            infstr.append(" W="+formatParam((String)size.getWidth(), TextDescriptor.Unit.DISTANCE, false));
                         } else {
                             infstr.append(" W=" + TextUtils.formatDouble(w, 2));
                             if (!Simulation.isSpiceWriteTransSizeInLambda() && !st090laytrans) infstr.append("U");
@@ -1173,12 +1173,12 @@ public class Spice extends Topology
                     double lengthSubtraction = layoutTechnology.getGateLengthSubtraction() / layoutTechnology.getScale() * 1000;
                     if ((size.getDoubleLength() == 0) && (size.getLength() instanceof String)) {
                         if (lengthSubtraction != 0)
-                            infstr.append(" L="+formatParam((String)size.getLength(), TextDescriptor.Unit.DISTANCE) + " - "+lengthSubtraction);
+                            infstr.append(" L="+formatParam((String)size.getLength(), TextDescriptor.Unit.DISTANCE, false) + " - "+lengthSubtraction);
                         else
-                            infstr.append(" L="+formatParam((String)size.getLength(), TextDescriptor.Unit.DISTANCE));
+                            infstr.append(" L="+formatParam((String)size.getLength(), TextDescriptor.Unit.DISTANCE, false));
                     }
                     if ((size.getDoubleWidth() == 0) && (size.getWidth() instanceof String))
-                        infstr.append(" W="+formatParam((String)size.getWidth(), TextDescriptor.Unit.DISTANCE));
+                        infstr.append(" W="+formatParam((String)size.getWidth(), TextDescriptor.Unit.DISTANCE, false));
                 }
             }
 
@@ -1465,7 +1465,7 @@ public class Spice extends Topology
      */
     private String evalParam(VarContext context, Nodable no, Variable instParam, boolean forceEval)
     {
-        return evalParam(context, no, instParam, forceEval, false);
+        return evalParam(context, no, instParam, forceEval, false, false);
     }
     
     /**
@@ -1477,9 +1477,10 @@ public class Spice extends Topology
      * @param no specified Nodable
      * @param instParam instance parameter
      * @param forceEval true to always evaluate param
+     * @param wrapped true if the string is already "wrapped" (with parenthesis) and does not need to have quotes around it.
      * @return true if the variable should be netlisted as a spice parameter
      */
-    private String evalParam(VarContext context, Nodable no, Variable instParam, boolean forceEval, boolean inPars) {
+    private String evalParam(VarContext context, Nodable no, Variable instParam, boolean forceEval, boolean inPars, boolean wrapped) {
         assert USE_JAVA_CODE;
         Object obj = null;
         if (!forceEval) {
@@ -1492,7 +1493,7 @@ public class Spice extends Topology
         
         if (obj instanceof Number)
             obj = TextUtils.formatDoublePostFix(((Number)obj).doubleValue());
-        return formatParam(String.valueOf(obj), instParam.getUnit());
+        return formatParam(String.valueOf(obj), instParam.getUnit(), wrapped);
     }
 
     private Set<Variable.Key> detectSpiceParams(NodeProto np)
@@ -1778,7 +1779,7 @@ public class Spice extends Topology
                     if (prototype != null && prototype instanceof Cell)
                         parentVar = ((Cell)prototype).getVar(attrVar.getKey());
                     if (USE_JAVA_CODE) {
-                        pVal = evalParam(context, no, attrVar, forceEval, true);
+                        pVal = evalParam(context, no, attrVar, forceEval, true, infstr.inParens());
                         if (infstr.inQuotes()) pVal = trimSingleQuotes(pVal);
                     } else {
                         if (!useCDL && Simulation.isSpiceUseCellParameters() &&
@@ -1791,7 +1792,7 @@ public class Spice extends Topology
                         }
 //                    if (attrVar.getCode() != TextDescriptor.Code.NONE)
                         if (infstr.inQuotes()) pVal = trimSingleQuotes(pVal); else
-                            pVal = formatParam(pVal, attrVar.getUnit());
+                            pVal = formatParam(pVal, attrVar.getUnit(), infstr.inParens());
                     }
                     infstr.append(pVal);
                 }
@@ -1886,21 +1887,31 @@ public class Spice extends Topology
     {
     	private StringBuffer sb = new StringBuffer();
     	private int quoteCount;
+    	private int parenDepth;
 
     	void append(String str)
     	{
     		sb.append(str);
     		for(int i=0; i<str.length(); i++)
-    			if (str.charAt(i) == '\'') quoteCount++;
+    		{
+    			char ch = str.charAt(i);
+    			if (ch == '\'') quoteCount++; else
+    			if (ch == '(') parenDepth++; else
+    			if (ch == ')') parenDepth--;
+    		}
     	}
 
     	void append(char c)
     	{
     		sb.append(c);
-    		if (c == '\'') quoteCount++;
+    		if (c == '\'') quoteCount++; else
+			if (c == '(') parenDepth++; else
+			if (c == ')') parenDepth--;
     	}
 
     	boolean inQuotes() { return (quoteCount&1) != 0; }
+
+    	boolean inParens() { return parenDepth > 0; }
 
     	StringBuffer getStringBuffer() { return sb; }
     }
@@ -2233,7 +2244,7 @@ public class Spice extends Topology
             return;
         }
 
-        infstr.append(" M=" + formatParam(value.toString(), TextDescriptor.Unit.NONE));
+        infstr.append(" M=" + formatParam(value.toString(), TextDescriptor.Unit.NONE, false));
     }
 
 	/**
@@ -2717,9 +2728,10 @@ public class Spice extends Topology
      * This adds formatting to a Spice parameter value.  It adds single quotes
      * around the param string if they do not already exist.
      * @param param the string param value (without the name= part).
+     * @param wrapped true if the string is already "wrapped" (with parenthesis) and does not need to have quotes around it.
      * @return a param string with single quotes around it
      */
-    private String formatParam(String param, TextDescriptor.Unit u)
+    private String formatParam(String param, TextDescriptor.Unit u, boolean wrapped)
     {
     	// first remove quotes
         String value = trimSingleQuotes(param);
@@ -2744,7 +2756,8 @@ public class Spice extends Topology
 		}
 
         // not a number but Spice likes quotes, enclose it
-        return "'" + value + "'";
+		if (!wrapped) value = "'" + value + "'";
+        return value;
     }
 
     private String trimSingleQuotes(String param)

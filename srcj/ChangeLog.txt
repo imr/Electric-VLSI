@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07h: ******************************
 
+BUG: (4/10/08, SMR) Spice output does unusual things with quoted text (Bug #1644).
+FIX: When parameter text is inside parenthesis, don't enforce quotes.
+
 BUG: (4/9/08, DN) RevisionDate of a Cell is not clear in Generation regressions.
 FIX: In Cell.lowLevelSetRevisionDate call "database.unfreshSnapshot()".
      In AbsractTest.compareResults call "cell.getDatabase().backup()".
