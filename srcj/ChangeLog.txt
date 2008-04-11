@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07h: ******************************
 
+BUG: (4/11/08, GVG) Sea of gates router (Bug #1414)
+FIX: Sea-of-Gates scrpts in the regressions were fixed. 
+
 BUG: (4/10/08, SMR) Spice output does unusual things with quoted text (Bug #1644).
 FIX: When parameter text is inside parenthesis, don't enforce quotes.
 
