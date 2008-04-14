@@ -81,6 +81,8 @@ public class Layout extends Constraints
     public static final Variable.Key DRC_LAST_GOOD_DATE_SPACING = Variable.newKey("DRC_last_good_drc_date");
     /** key of Variable for last valid DRC bit on a Cell. Only spacing rules */
     public static final Variable.Key DRC_LAST_GOOD_BIT_SPACING = Variable.newKey("DRC_last_good_drc_bit");
+    /** Default valud when no bit is found **/
+    public static final int DRC_LAST_GOOD_BIT_DEFAULT = -1;
     /** No need of bit for area since it is only 1 mode */
     public static final Variable.Key DRC_LAST_GOOD_DATE_AREA = Variable.newKey("DRC_last_good_drc_area_date");
 

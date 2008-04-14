@@ -1047,7 +1047,7 @@ public class DRC extends Listener
             boolean validVersion = true;
             Version version = cell.getLibrary().getVersion();
             if (version != null) validVersion = version.compareTo(Version.getVersion()) >=0;
-            data = new StoreDRCInfo(-1, -1);
+            data = new StoreDRCInfo(-1, Layout.DRC_LAST_GOOD_BIT_DEFAULT);
             storedDRCDate.put(cell, data);
             firstTime = true; // to load Variable date from disk in case of inMemory case.
             if (!validVersion)
@@ -1055,11 +1055,12 @@ public class DRC extends Listener
         }
         if (fromDisk || (!fromDisk && firstTime))
         {
-            int thisByte = 0;
             GenMath.MutableLong lastDRCDateInMilliseconds = new GenMath.MutableLong(0);
             // Nothing found
             if (!getDateStored(cell, dateKey, lastDRCDateInMilliseconds))
                 return null;
+
+            int thisByte = Layout.DRC_LAST_GOOD_BIT_DEFAULT;
             if (bitKey != null)
             {
                 Variable varBits = cell.getVar(bitKey, Integer.class);
@@ -1068,6 +1069,8 @@ public class DRC extends Listener
                     varBits = cell.getVar(bitKey, Byte.class);
                     if (varBits != null)
                         thisByte =((Byte)varBits.getObject()).byteValue();
+                    else
+                        System.out.println("No valid bit associated to DRC data was found as cell variable");
                 }
                 else
                     thisByte = ((Integer)varBits.getObject()).intValue();
@@ -1116,7 +1119,7 @@ public class DRC extends Listener
         int thisByte = data.bits;
         if (fromDisk && spacingCheck)
             assert(thisByte!=0);
-        if (activeBits != -1)
+        if (activeBits != Layout.DRC_LAST_GOOD_BIT_DEFAULT)
         {
 //            boolean area = (thisByte & DRC_BIT_AREA) == (activeBits & DRC_BIT_AREA);
             boolean extension = (thisByte & DRC_BIT_EXTENSION) == (activeBits & DRC_BIT_EXTENSION);
@@ -1124,6 +1127,7 @@ public class DRC extends Listener
             boolean sameManufacturer = (thisByte & DRC_BIT_TSMC_FOUNDRY) == (activeBits & DRC_BIT_TSMC_FOUNDRY) &&
                     (thisByte & DRC_BIT_ST_FOUNDRY) == (activeBits & DRC_BIT_ST_FOUNDRY) &&
                     (thisByte & DRC_BIT_MOSIS_FOUNDRY) == (activeBits & DRC_BIT_MOSIS_FOUNDRY);
+            assert(activeBits != 0);
             if (activeBits != 0 && (/*!area* || */ !extension || !sameManufacturer))
                 return null;
         }
@@ -1511,7 +1515,7 @@ public class DRC extends Listener
         Set<Cell> goodAreaDRCDate;
 		Set<Cell> cleanAreaDRCDate;
         HashMap<Geometric,List<Variable>> newVariables;
-        int activeBits;
+        int activeBits = Layout.DRC_LAST_GOOD_BIT_DEFAULT;
 
 		public DRCUpdate(int bits,
                          Set<Cell> goodSpacingDRCD, Set<Cell> cleanSpacingDRCD,
@@ -1574,7 +1578,7 @@ public class DRC extends Listener
                         StoreDRCInfo data = storedDRCDate.get(cell);
                         assert(data != null);
                         data.date = -1;
-                        data.bits = -1; // I can't put null because of the version
+                        data.bits = Layout.DRC_LAST_GOOD_BIT_DEFAULT; // I can't put null because of the version
                         if (!inMemory)
                             cleanDRCDateAndBits(cell, key);
                     }
@@ -1591,7 +1595,7 @@ public class DRC extends Listener
                 Layout.DRC_LAST_GOOD_DATE_SPACING, activeBits, inMemory);
 
             setInformation(storedAreaDRCDate, goodAreaDRCDate, cleanAreaDRCDate,
-                Layout.DRC_LAST_GOOD_DATE_AREA, -1, inMemory);
+                Layout.DRC_LAST_GOOD_DATE_AREA, Layout.DRC_LAST_GOOD_BIT_DEFAULT, inMemory);
 
             // Update variables in Schematics DRC
             if (newVariables != null)
