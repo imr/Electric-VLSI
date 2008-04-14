@@ -44,7 +44,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -193,6 +192,7 @@ public class HorizRuler extends JPanel implements MouseListener
 		// draw the ruler ticks
 		double displayedLow = drawHere.convertXScreenToData(drawHere.getVertAxisPos());
 		double displayedHigh = drawHere.convertXScreenToData(wid);
+		if (displayedLow > displayedHigh) { double s = displayedLow;   displayedLow = displayedHigh;   displayedHigh = s; }
 		StepSize ss = new StepSize(displayedHigh, displayedLow, 10);
 		if (ss.getSeparation() == 0.0) return;
 		double xValue = ss.getLowValue();
@@ -330,9 +330,8 @@ public class HorizRuler extends JPanel implements MouseListener
 	 */
 	private void restoreTime()
 	{
-		Rectangle2D dataBounds = waveWindow.getSimData().getBounds();
-		double lowXValue = dataBounds.getMinX();
-		double highXValue = dataBounds.getMaxX();
+		double leftEdge = waveWindow.getSimData().getLeftEdge();
+		double rightEdge = waveWindow.getSimData().getRightEdge();
 
 		boolean notWarned = true;
 		for(Iterator<Panel> it = waveWindow.getPanels(); it.hasNext(); )
@@ -358,7 +357,7 @@ public class HorizRuler extends JPanel implements MouseListener
 				wp.setAnalysisType(analysisType);
 			}
 			wp.setXAxisSignal(null);
-			wp.setXAxisRange(lowXValue, highXValue);
+			wp.setXAxisRange(leftEdge, rightEdge);
 			if (wp.getHorizRuler() != null) wp.getHorizRuler().repaint();
 			wp.repaintContents();
 		}

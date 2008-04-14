@@ -72,6 +72,7 @@ public abstract class Analysis<S extends Signal>
 	/** a list of all signals in this Analysis */				private List<S> signals = new ArrayList<S>();
 	/** a map of all signal names in this Analysis */			private HashMap<String,S> signalNames = new HashMap<String,S>();
 	/** the range of values in this Analysis */					private Rectangle2D bounds;
+	/** the left and right side of the Analysis */				private double leftEdge, rightEdge;
 
 	public Analysis(Stimuli sd, AnalysisType type)
 	{
@@ -156,13 +157,49 @@ public abstract class Analysis<S extends Signal>
 				if (bounds == null)
 				{
 					bounds = new Rectangle2D.Double(sigBounds.getMinX(), sigBounds.getMinY(), sigBounds.getWidth(), sigBounds.getHeight());
+					leftEdge = sig.getLeftEdge();
+					rightEdge = sig.getRightEdge();
 				} else
 				{
 					Rectangle2D.union(bounds, sigBounds, bounds);
+					if (leftEdge < rightEdge)
+					{
+						leftEdge = Math.min(leftEdge, sig.getLeftEdge());
+						rightEdge = Math.max(rightEdge, sig.getRightEdge());
+					} else
+					{
+						// backwards time values
+						leftEdge = Math.max(leftEdge, sig.getLeftEdge());
+						rightEdge = Math.min(rightEdge, sig.getRightEdge());
+					}
 				}
 			}
 		}
 		return bounds;
+	}
+
+	/**
+	 * Method to return the leftmost X coordinate of this Analysis.
+	 * This value may not be the same as the minimum-x of the bounds, because
+	 * the data may not be monotonically increasing (may run backwards, for example).
+	 * @return the leftmost X coordinate of this Analysis.
+	 */
+	public double getLeftEdge()
+	{
+		getBounds();
+		return leftEdge;
+	}
+
+	/**
+	 * Method to return the rightmost X coordinate of this Analysis.
+	 * This value may not be the same as the maximum-x of the bounds, because
+	 * the data may not be monotonically increasing (may run backwards, for example).
+	 * @return the rightmost X coordinate of this Analysis.
+	 */
+	public double getRightEdge()
+	{
+		getBounds();
+		return rightEdge;
 	}
 
 	public void setBoundsDirty() { bounds = null; }

@@ -53,7 +53,6 @@ import com.sun.electric.tool.simulation.AnalogAnalysis;
 import com.sun.electric.tool.simulation.AnalogSignal;
 import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.DigitalSignal;
-import com.sun.electric.tool.simulation.Engine;
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.Waveform;
@@ -1275,19 +1274,27 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 		// determine the X and Y ranges
 		Rectangle2D bounds = null;
+		double leftEdge, rightEdge;
 		Analysis an = sd.findAnalysis(analysisType);
-		if (an != null) bounds = an.getBounds(); else
+		if (an != null)
+		{
+			bounds = an.getBounds();
+			leftEdge = an.getLeftEdge();
+			rightEdge = an.getRightEdge();
+		} else
+		{
 			bounds = sd.getBounds();
+			leftEdge = sd.getLeftEdge();
+			rightEdge = sd.getRightEdge();
+		}
 		double lowValue = bounds.getMinY();
 		double highValue = bounds.getMaxY();
-		double lowXValue = bounds.getMinX();
-		double highXValue = bounds.getMaxX();
 		int vertAxisPos = -1;
 		if (xAxisLocked && wavePanels.size() > 0)
 		{
 			Panel aPanel = wavePanels.get(0);
-			lowXValue = aPanel.getMinXAxis();
-			highXValue = aPanel.getMaxXAxis();
+			leftEdge = aPanel.getMinXAxis();
+			rightEdge = aPanel.getMaxXAxis();
 			vertAxisPos = aPanel.getVertAxisPos();
 		}
 
@@ -1304,7 +1311,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		Panel panel = new Panel(this, sd.isAnalog(), analysisType);
 
 		// set the X and Y ranges
-		panel.setXAxisRange(lowXValue, highXValue);
+		panel.setXAxisRange(leftEdge, rightEdge);
 		if (analysisType != null)
 			panel.setYAxisRange(lowValue, highValue);
 		if (vertAxisPos > 0) panel.setVertAxisPos(vertAxisPos);
@@ -2299,8 +2306,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				}
 				if (!xAxisLocked)
 				{
-					Rectangle2D rangeBounds = sSig.getBounds();
-					wp.setXAxisRange(rangeBounds.getMinX(), rangeBounds.getMaxX());
+					wp.setXAxisRange(sSig.getLeftEdge(), sSig.getRightEdge());
 				}
 			} else
 			{
@@ -2576,7 +2582,13 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			}
 			if (xAxisLocked || wp == thePanel)
 			{
-				wp.setXAxisRange(lowHoriz, highHoriz);
+				if (wp.getMinXAxis() < wp.getMaxXAxis())
+				{
+					wp.setXAxisRange(Math.min(lowHoriz, highHoriz), Math.max(lowHoriz, highHoriz));
+				} else
+				{
+					wp.setXAxisRange(Math.max(lowHoriz, highHoriz), Math.min(lowHoriz, highHoriz));
+				}
 				changed = true;
 			}
 			if (changed) wp.repaintWithRulers();
@@ -2608,10 +2620,14 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					vertAxis = wp.getVertAxisPos();
 				} else
 				{
-					if (wp.getMinXAxis() < minXPosition)
+					if (minXPosition < maxXPosition)
 					{
-						minXPosition = wp.getMinXAxis();
-						maxXPosition = wp.getMaxXAxis();
+						minXPosition = Math.min(minXPosition, wp.getMinXAxis());
+						maxXPosition = Math.max(maxXPosition, wp.getMaxXAxis());
+					} else
+					{
+						minXPosition = Math.max(minXPosition, wp.getMinXAxis());
+						maxXPosition = Math.min(maxXPosition, wp.getMaxXAxis());
 					}
 					wp.setVertAxisPos(vertAxis);
 				}
@@ -3236,6 +3252,12 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		if (this.sd != null)
 			this.sd.finished();
 		this.sd = sd;
+// TODO is this useful for bug 1644?
+for(Iterator<Analysis> it = sd.getAnalyses(); it.hasNext(); )
+{
+	Analysis an = it.next();
+	an.setBoundsDirty();
+}
 
 		// reload the sweeps
 		resetSweeps();
@@ -3936,27 +3958,34 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	public void fillScreen()
 	{
 		// accumulate bounds for all displayed panels
-		Rectangle2D xBounds = null;
+		double leftEdge=0, rightEdge=0;
 		for(Panel wp : wavePanels)
 		{
 			if (wp.getXAxisSignal() != null) continue;
 			Analysis an = sd.findAnalysis(wp.getAnalysisType());
-			Rectangle2D bounds = an.getBounds();
-			if (bounds == null) continue;
-			if (xBounds == null)
+			if (leftEdge == rightEdge)
 			{
-				xBounds = new Rectangle2D.Double(bounds.getMinX(), bounds.getMinY(), bounds.getWidth(), bounds.getHeight());
+				leftEdge = an.getLeftEdge();
+				rightEdge = an.getRightEdge();
 			} else
 			{
-				Rectangle2D.union(xBounds, bounds, xBounds);
+				if (leftEdge < rightEdge)
+				{
+					leftEdge = Math.min(leftEdge, an.getLeftEdge());
+					rightEdge = Math.max(rightEdge, an.getRightEdge());
+				} else
+				{
+					leftEdge = Math.max(leftEdge, an.getLeftEdge());
+					rightEdge = Math.min(rightEdge, an.getRightEdge());
+				}
 			}
 		}
 
 		// if there is an overriding signal on the X axis, use its bounds
 		if (xAxisLocked && xAxisSignalAll != null)
 		{
-			Rectangle2D sigBounds = xAxisSignalAll.getBounds();
-			xBounds.setRect(sigBounds.getMinY(), sigBounds.getMinX(), sigBounds.getHeight(), sigBounds.getWidth());
+			leftEdge = xAxisSignalAll.getLeftEdge();
+			rightEdge = xAxisSignalAll.getRightEdge();
 		}
 
 		for(Panel wp : wavePanels)
@@ -3967,13 +3996,12 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 				// when time is not locked, compute bounds for this panel only
 				Analysis an = sd.findAnalysis(wp.getAnalysisType());
-				Rectangle2D anBounds = an.getBounds();
-				if (anBounds != null) // calling new Rectangle2D.Double() in case xBounds == null
-					xBounds = new Rectangle2D.Double(anBounds.getMinX(), anBounds.getMinY(), anBounds.getWidth(), anBounds.getHeight());
+				leftEdge = an.getLeftEdge();
+				rightEdge = an.getRightEdge();
 				if (wp.getXAxisSignal() != null)
 				{
-					Rectangle2D sigBounds = wp.getXAxisSignal().getBounds();
-					xBounds = new Rectangle2D.Double(sigBounds.getMinY(), sigBounds.getMinX(), sigBounds.getHeight(), sigBounds.getWidth());
+					leftEdge = wp.getXAxisSignal().getLeftEdge();
+					rightEdge = wp.getXAxisSignal().getRightEdge();
 				}
 			}
 
@@ -3997,11 +4025,11 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					yBounds = new Rectangle2D.Double(anBounds.getMinX(), anBounds.getMinY(), anBounds.getWidth(), anBounds.getHeight());
 			}
 			boolean repaint = false;
-			if (xBounds != null)
+			if (leftEdge != rightEdge)
 			{
-				if (wp.getMinXAxis() != xBounds.getMinX() || wp.getMaxXAxis() != xBounds.getMaxX())
+				if (wp.getMinXAxis() != leftEdge || wp.getMaxXAxis() != rightEdge)
 				{
-					wp.setXAxisRange(xBounds.getMinX(), xBounds.getMaxX());
+					wp.setXAxisRange(leftEdge, rightEdge);
 					repaint = true;
 				}
 			}
@@ -4082,7 +4110,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			if (!xAxisLocked && !wp.isSelected()) continue;
 			if (wp.getMinXAxis() != minXPosition || wp.getMaxXAxis() != maxXPosition)
 			{
-				wp.setXAxisRange(minXPosition, maxXPosition);
+				if (wp.getMinXAxis() > wp.getMaxXAxis()) wp.setXAxisRange(maxXPosition, minXPosition); else
+					wp.setXAxisRange(minXPosition, maxXPosition);
 				wp.repaintWithRulers();
 			}
 		}
@@ -4265,7 +4294,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				}
 				if (sSig != null)
 				{
-					Rectangle2D bounds = sSig.getBounds();
 					if (panel == null)
 					{
 						// dropped signal onto main time ruler: make sure it is the right type
@@ -4291,7 +4319,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 						for(Panel wp : ww.wavePanels)
 						{
 							wp.setAnalysisType(analysisType);
-							wp.setXAxisRange(bounds.getMinY(), bounds.getMaxY());
+							wp.setXAxisRange(sSig.getLeftEdge(), sSig.getRightEdge());
 						}
 						ww.redrawAllPanels();
 					} else
@@ -4308,7 +4336,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 							return;
 						}
 						panel.setXAxisSignal(sSig);
-						panel.setXAxisRange(bounds.getMinY(), bounds.getMaxY());
+						panel.setXAxisRange(sSig.getLeftEdge(), sSig.getRightEdge());
 						panel.repaintContents();
 					}
 					hr.repaint();

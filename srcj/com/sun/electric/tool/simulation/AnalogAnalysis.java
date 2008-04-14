@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.simulation;
 
-import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -35,26 +34,27 @@ public class AnalogAnalysis extends Analysis<AnalogSignal> {
 	/** all sweeps in this Analysis */							private List<Object> sweeps;
 	/** the common time array (if there is common time) */		private double [] commonTime;
 	/** the common time array (if there is common time) */		private HashMap<AnalogSignal,Waveform[]> waveformCache = new HashMap<AnalogSignal,Waveform[]>();
-    
-	public AnalogAnalysis(Stimuli sd, AnalysisType type) {
-        super(sd, type);
+
+	public AnalogAnalysis(Stimuli sd, AnalysisType type)
+	{
+		super(sd, type);
 		if (type != ANALYSIS_MEAS)
 			sweeps = new ArrayList<Object>();
-    }
-    
-    /**
-     * Free allocated resources before closing.
-     */
-    @Override
-    public void finished()
-    {
-        super.finished();
-        if (sweeps != null) sweeps.clear();
-    }
-    
-    @Override
+	}
+
+	/**
+	 * Free allocated resources before closing.
+	 */
+	@Override
+	public void finished()
+	{
+		super.finished();
+		if (sweeps != null) sweeps.clear();
+	}
+
+	@Override
 	public boolean isAnalog() { return true; }
-    
+
 	/**
 	 * Method to add information about another sweep in this simulation data.
 	 * @param obj sweep information (typically a Double).
@@ -72,16 +72,16 @@ public class AnalogAnalysis extends Analysis<AnalogSignal> {
 	 */
 	public int getNumSweeps() { return (sweeps != null) ? Math.max(sweeps.size(), 1) : 1; }
 
-    /**
-     * Method to return sweep object in a given position.
-     * @param i the position to get.
-     * @return the sweep object for that position.
-     */
-    public Object getSweep(int i)
-    {
-        if (sweeps == null || sweeps.size() == 0) return null;
-        return sweeps.get(i);
-    }
+	/**
+	 * Method to return sweep object in a given position.
+	 * @param i the position to get.
+	 * @return the sweep object for that position.
+	 */
+	public Object getSweep(int i)
+	{
+		if (sweeps == null || sweeps.size() == 0) return null;
+		return sweeps.get(i);
+	}
 
 	/**
 	 * Method to construct an array of time values that are common to all signals.
@@ -115,67 +115,69 @@ public class AnalogAnalysis extends Analysis<AnalogSignal> {
 
 	/**
 	 * Create new AnalogSignal with specified name.
-     * Signal obtains waveform constructed from common time and specified values.
+	 * Signal obtains waveform constructed from common time and specified values.
 	 * @param signalName signal name.
 	 * @param signalContext a common prefix for the signal name.
-     * @param values specified values
-     * @return new AnalogSignal of this AnalogAnalysis
+	 * @param values specified values
+	 * @return new AnalogSignal of this AnalogAnalysis
 	 */
 	public AnalogSignal addSignal(String signalName, String signalContext, double[] values)
 	{
-        AnalogSignal as = addEmptySignal(signalName, signalContext);
-        Waveform[] waveforms = { new WaveformImpl(getCommonTimeArray(), values) };
-        waveformCache.put(as, waveforms);
-        return as;
+		AnalogSignal as = addEmptySignal(signalName, signalContext);
+		Waveform[] waveforms = { new WaveformImpl(getCommonTimeArray(), values) };
+		waveformCache.put(as, waveforms);
+		return as;
 	}
 
 	/**
 	 * Create new AnalogSignal with specified name.
-     * Signal obtains range constructed from common time range and specified value bounds.
+	 * Signal obtains range constructed from common time range and specified value bounds.
 	 * @param signalName signal name.
 	 * @param signalContext a common prefix for the signal name.
-     * @param miValues specified values
-     * @return new AnalogSignal of this AnalogAnalysis
+	 * @param miValues specified values
+	 * @return new AnalogSignal of this AnalogAnalysis
 	 */
 	public AnalogSignal addSignal(String signalName, String signalContext, double minTime, double maxTime, double minValue, double maxValue)
 	{
-        AnalogSignal as = addEmptySignal(signalName, signalContext);
-        as.bounds =  new Rectangle2D.Double(minTime, minValue, maxTime - minTime, maxValue - minValue);
-        return as;
+		AnalogSignal as = addEmptySignal(signalName, signalContext);
+		return as;
 	}
 
 	/**
 	 * Create new AnalogSignal with specified name.
 	 * @param signalName signal name.
 	 * @param signalContext a common prefix for the signal name.
-     * @return new AnalogSignal of this AnalogAnalysis
+	 * @return new AnalogSignal of this AnalogAnalysis
 	 */
 	private AnalogSignal addEmptySignal(String signalName, String signalContext)
 	{
-        AnalogSignal as = new AnalogSignal(this);
-        as.setSignalName(signalName, signalContext);
-        return as;
+		AnalogSignal as = new AnalogSignal(this);
+		as.setSignalName(signalName, signalContext);
+		return as;
 	}
 
 	/**
 	 * Method to return the waveform of specified signal in specified sweep.
-     * @param signal specified signal
-     * @param sweep sweep index
-     * @return the waveform of this signal in specified sweep.
+	 * @param signal specified signal
+	 * @param sweep sweep index
+	 * @return the waveform of this signal in specified sweep.
 	 */
-    public Waveform getWaveform(AnalogSignal signal, int sweep) {
-        Waveform[] waveforms = waveformCache.get(signal);
-        if (waveforms == null) {
-            if (signal.getAnalysis() != this)
-                throw new IllegalArgumentException();
-            waveforms = loadWaveforms(signal);
-            assert waveforms.length == getNumSweeps();
-            waveformCache.put(signal, waveforms);
-        }
-        return waveforms[sweep];
-    }
-    
-    protected Waveform[] loadWaveforms(AnalogSignal signal) {
-        throw new UnsupportedOperationException();
-    }
+	public Waveform getWaveform(AnalogSignal signal, int sweep)
+	{
+		Waveform[] waveforms = waveformCache.get(signal);
+		if (waveforms == null)
+		{
+			if (signal.getAnalysis() != this)
+				throw new IllegalArgumentException();
+			waveforms = loadWaveforms(signal);
+			assert waveforms.length == getNumSweeps();
+			waveformCache.put(signal, waveforms);
+		}
+		return waveforms[sweep];
+	}
+
+	protected Waveform[] loadWaveforms(AnalogSignal signal)
+	{
+		throw new UnsupportedOperationException();
+	}
 }

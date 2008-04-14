@@ -35,11 +35,11 @@ public abstract class Signal
 	/** the name of this signal */									private String signalName;
 	/** the context of this signal (qualifications to name) */		private String signalContext;
 	/** the range of values in the X and Y axes */					protected Rectangle2D bounds;
+	/** the left and right X values */								protected double leftEdge, rightEdge;
 
-    public void finished()
-    {
-//        System.out.println("Signal finish");
-    }
+	public void finished()
+	{
+	}
 
 	/**
 	 * Method to return the Analysis in which this signal resides.
@@ -160,6 +160,32 @@ public abstract class Signal
 			calcBounds();
 		}
 		return bounds;
+	}
+
+	/**
+	 * Method to return the leftmost X coordinate of this simulation signal.
+	 * This value may not be the same as the minimum-x of the bounds, because
+	 * the data may not be monotonically increasing (may run backwards, for example).
+	 * @return the leftmost X coordinate of this simulation signal.
+	 */
+	public double getLeftEdge()
+	{
+		if (bounds == null)
+			calcBounds();
+		return leftEdge;
+	}
+
+	/**
+	 * Method to return the rightmost X coordinate of this simulation signal.
+	 * This value may not be the same as the maximum-x of the bounds, because
+	 * the data may not be monotonically increasing (may run backwards, for example).
+	 * @return the rightmost X coordinate of this simulation signal.
+	 */
+	public double getRightEdge()
+	{
+		if (bounds == null)
+			calcBounds();
+		return rightEdge;
 	}
 
 	protected void calcBounds() {}

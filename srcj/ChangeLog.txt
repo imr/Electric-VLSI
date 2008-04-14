@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07h: ******************************
 
+BUG: (4/14/08, SMR) Waveform window doesn't handle data with descending time values (Bug #1648).
+FIX: Must handle edges of waveform panel specially.
+
 BUG: (4/11/08, GVG) Sea of gates router (Bug #1414)
 FIX: Sea-of-Gates scrpts in the regressions were fixed. 
 

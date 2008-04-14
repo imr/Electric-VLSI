@@ -75,20 +75,20 @@ public class Stimuli
 		controlPointMap = new HashMap<Signal,Double[]>();
 	}
 
-    /**
-     * Free allocated resources before closing.
-     */
-    public void finished()
-    {
-        for (Analysis an: analysisList)
-            an.finished();
-        controlPointMap.clear();
-        for (Analysis an: analyses.values())
-            an.finished();
-        analyses.clear();
-    }
-    
-    public void addAnalysis(Analysis an)
+	/**
+	 * Free allocated resources before closing.
+	 */
+	public void finished()
+	{
+		for (Analysis an: analysisList)
+			an.finished();
+		controlPointMap.clear();
+		for (Analysis an: analyses.values())
+			an.finished();
+		analyses.clear();
+	}
+
+	public void addAnalysis(Analysis an)
 	{
 		analyses.put(an.getAnalysisType(), an);
 		analysisList.add(an);
@@ -140,7 +140,7 @@ public class Stimuli
 	public Engine getEngine() { return engine; }
 
 	public void setWaveformWindow(WaveformWindow ww) { this.ww = ww; }
-	
+
 	/**
 	 * Method to return the separator character for names in this simulation.
 	 * The separator character separates levels of hierarchy.  It is usually a "."
@@ -293,6 +293,68 @@ public class Stimuli
 	}
 
 	/**
+	 * Method to return the leftmost X coordinate of this Stimuli.
+	 * This value may not be the same as the minimum-x of the bounds, because
+	 * the data may not be monotonically increasing (may run backwards, for example).
+	 * @return the leftmost X coordinate of this Stimuli.
+	 */
+	public double getLeftEdge()
+	{
+		double leftEdge = 0, rightEdge = 0;
+		for(Analysis an : analysisList)
+		{
+			if (leftEdge == rightEdge)
+			{
+				leftEdge = an.getLeftEdge();
+				rightEdge = an.getRightEdge();
+			} else
+			{
+				if (leftEdge < rightEdge)
+				{
+					leftEdge = Math.min(leftEdge, an.getLeftEdge());
+					rightEdge = Math.max(rightEdge, an.getRightEdge());
+				} else
+				{
+					leftEdge = Math.max(leftEdge, an.getLeftEdge());
+					rightEdge = Math.min(rightEdge, an.getRightEdge());
+				}
+			}
+		}
+		return leftEdge;
+	}
+
+	/**
+	 * Method to return the rightmost X coordinate of this Stimuli.
+	 * This value may not be the same as the maximum-x of the bounds, because
+	 * the data may not be monotonically increasing (may run backwards, for example).
+	 * @return the rightmost X coordinate of this Stimuli.
+	 */
+	public double getRightEdge()
+	{
+		double leftEdge = 0, rightEdge = 0;
+		for(Analysis an : analysisList)
+		{
+			if (leftEdge == rightEdge)
+			{
+				leftEdge = an.getLeftEdge();
+				rightEdge = an.getRightEdge();
+			} else
+			{
+				if (leftEdge < rightEdge)
+				{
+					leftEdge = Math.min(leftEdge, an.getLeftEdge());
+					rightEdge = Math.max(rightEdge, an.getRightEdge());
+				} else
+				{
+					leftEdge = Math.max(leftEdge, an.getLeftEdge());
+					rightEdge = Math.min(rightEdge, an.getRightEdge());
+				}
+			}
+		}
+		return rightEdge;
+	}
+
+	/**
 	 * Method to tell whether this simulation data is analog or digital.
 	 * @return true if this simulation data is analog.
 	 */
@@ -300,7 +362,7 @@ public class Stimuli
 	{
 		for(Analysis an : analysisList)
 		{
-            if (an.isAnalog()) return true;
+			if (an.isAnalog()) return true;
 		}
 		return false;
 	}

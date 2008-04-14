@@ -31,16 +31,16 @@ import java.awt.geom.Rectangle2D;
 public class AnalogSignal extends Signal
 {
 	/** the Analysis object in which this DigitalSignal resides. */		private final AnalogAnalysis an;
-    /** index of this signal in its AnalogAnalysis */                   private final int index;
-    
+	/** index of this signal in its AnalogAnalysis */					private final int index;
+
 	/**
 	 * Constructor for an analog signal.
 	 * @param an the AnalogAnalysis object in which this signal will reside.
 	 */
 	protected AnalogSignal(AnalogAnalysis an)
 	{
-        this.an = an;
-        index = an.getSignals().size();
+		this.an = an;
+		index = an.getSignals().size();
 		an.addSignal(this);
 	}
 
@@ -48,24 +48,24 @@ public class AnalogSignal extends Signal
 	 * Method to return the AnalogAnalysis in which this signal resides.
 	 * @return the AnalogAnalysis in which this signal resides.
 	 */
-    @Override
+	@Override
 	public AnalogAnalysis getAnalysis() { return an; }
-    
+
 	/**
 	 * Method to return the index of this AnalogSignal in its AnalogAnalysis.
 	 * @return the index of this AnalogSignal in its AnalogAnalysis.
 	 */
 	public int getIndexInAnalysis() { return index; }
-    
+
 	/**
 	 * Method to return the waveform of this signal in specified sweep.
-     * @param sweep sweep index
-     * @return the waveform of this signal in specified sweep.
+	 * @param sweep sweep index
+	 * @return the waveform of this signal in specified sweep.
 	 */
-    public Waveform getWaveform(int sweep) {
-        return an.getWaveform(this, sweep);
-    }
-    
+	public Waveform getWaveform(int sweep) {
+		return an.getWaveform(this, sweep);
+	}
+
 	/**
 	 * Method to return the number of sweeps in this signal.
 	 * @return the number of sweeps in this signal.
@@ -78,20 +78,26 @@ public class AnalogSignal extends Signal
 
 	/**
 	 * Method to compute the low and high range of time and value on this signal.
-	 * The result is stored in the "bounds" field variable.
+	 * The result is stored in the "bounds", "leftEdge", and "rightEdge" field variables.
 	 */
 	protected void calcBounds()
 	{
 		// determine extent of the data
 		double lowTime=0, highTime=0, lowValue=0, highValue=0;
 		boolean first = true;
-        double[] result = new double[3];
-        for (int sweep = 0, numSweeps = getNumSweeps(); sweep < numSweeps; sweep++) {
-            Waveform waveform = getWaveform(sweep);
+		double[] result = new double[3];
+		for (int sweep = 0, numSweeps = getNumSweeps(); sweep < numSweeps; sweep++)
+		{
+			Waveform waveform = getWaveform(sweep);
 			for(int i=0, numEvents = waveform.getNumEvents(); i<numEvents; i++)
 			{
-                waveform.getEvent(i, result);
+				waveform.getEvent(i, result);
 				double time = result[0];
+				if (sweep == 0)
+				{
+					if (i == 0) leftEdge = time; else
+						if (i == numEvents-1) rightEdge = time;
+				}
 				double lowVal = result[1];
 				double highVal = result[2];
 				if (first)

@@ -226,7 +226,7 @@ public class DigitalSignal extends Signal
 
 	/**
 	 * Method to compute the low and high range of time value on this signal.
-	 * The result is stored in the "bounds" field variable.
+	 * The result is stored in the "bounds", "leftEdge", and "rightEdge" field variables.
 	 */
 	protected void calcBounds()
 	{
@@ -237,6 +237,8 @@ public class DigitalSignal extends Signal
 			for(int i=0; i<state.length; i++)
 			{
 				double time = getTime(i);
+				if (i == 0) leftEdge = time; else
+					if (i == state.length-1) rightEdge = time;
 				if (first)
 				{
 					first = false;
