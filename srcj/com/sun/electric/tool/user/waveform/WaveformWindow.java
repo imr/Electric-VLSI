@@ -1618,12 +1618,16 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		}
 
 		// resize the panels
+		int minHeight = MINDIGITALPANELSIZE;
+		if (sd.isAnalog()) minHeight = MINANALOGPANELSIZE;
 		if (USETABLES)
 		{
 			for(int i=0; i<table.getRowCount(); i++)
 			{
 				int rowHeight = table.getRowHeight(i);
-				table.setRowHeight(i, (int)(rowHeight*scale));
+				int newRowHeight = (int)(rowHeight*scale);
+				if (newRowHeight < minHeight) newRowHeight = minHeight;
+				table.setRowHeight(i, newRowHeight);
 			}
 		} else
 		{
@@ -1631,26 +1635,21 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			{
 				Dimension sz = wp.getSize();
 				sz.height = (int)(sz.height * scale);
+				if (sz.height < minHeight) sz.height = minHeight;
 				wp.setSize(sz.width, sz.height);
 				wp.setMinimumSize(sz);
 				wp.setPreferredSize(sz);
 
-//				if (wp.getSignalButtonsPane() != null)
-//				{
-//					sz = wp.getSignalButtonsPane().getSize();
-//					sz.height = (int)(sz.height * scale);
-//					wp.getSignalButtonsPane().setPreferredSize(sz);
-//					wp.getSignalButtonsPane().setSize(sz.width, sz.height);
-//				} else
-				{
-					sz = wp.getLeftHalf().getSize();
-					sz.height = (int)(sz.height * scale);
-					wp.getLeftHalf().setPreferredSize(sz);
-					wp.getLeftHalf().setMinimumSize(sz);
-					wp.getLeftHalf().setSize(sz.width, sz.height);
-				}
+				sz = wp.getLeftHalf().getSize();
+				sz.height = (int)(sz.height * scale);
+				if (sz.height < minHeight) sz.height = minHeight;
+				wp.getLeftHalf().setPreferredSize(sz);
+				wp.getLeftHalf().setMinimumSize(sz);
+				wp.getLeftHalf().setSize(sz.width, sz.height);
+
 				sz = wp.getRightHalf().getSize();
 				sz.height = (int)(sz.height * scale);
+				if (sz.height < minHeight) sz.height = minHeight;
 				wp.getRightHalf().setPreferredSize(sz);
 				wp.getRightHalf().setMinimumSize(sz);
 				wp.getRightHalf().setSize(sz.width, sz.height);

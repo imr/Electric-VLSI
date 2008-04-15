@@ -951,7 +951,8 @@ public class Panel extends JPanel
 		}
 
 		// linear axes
-		double value = analogLowValue - (y - sz.height + 1) * analogRange / (sz.height-1);
+		double value = 0;
+		if (sz.height > 1) value = analogLowValue - (y - sz.height + 1) * analogRange / (sz.height-1);
 		return value;
 	}
 
