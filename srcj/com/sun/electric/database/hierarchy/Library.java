@@ -101,7 +101,7 @@ public class Library extends ElectricObject implements Comparable<Library>
         if (database == null) throw new NullPointerException();
         this.database = database;
         this.d = d;
-        updateBackup(d, true, LibId.NULL_ARRAY);
+        backup = new LibraryBackup(d, true, LibId.NULL_ARRAY);
 		if (allPrefs == null) allPrefs = Preferences.userNodeForPackage(getClass());
         prefs = allPrefs.node(getName());
         prefs.put("LIB", getName());

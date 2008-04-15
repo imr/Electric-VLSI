@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07h: ******************************
 
+BUG: (4/15/08, DN) Cross-library copy problem (Bug #1649)
+FIX: In CellChangeJobs.copyRecursively check if the fromCell is already moved.
+
 BUG: (4/14/08, GVG) DRC crash when storing dates (Bug #1646)
 FIX: Code was made more robust to inconsistencies in the DRC variables stored.
 

@@ -1468,6 +1468,7 @@ public class CellChangeJobs
 				while (found)
 				{
 					found = false;
+                    assert fromCell.isLinked();
 					for(Iterator<Cell> it = fromCell.getCellGroup().getCells(); it.hasNext(); )
 					{
 						Cell np = it.next();
@@ -1488,6 +1489,8 @@ public class CellChangeJobs
 						found = true;
 						break;
 					}
+                    if (!fromCell.isLinked())
+                        return inDestLib(fromCell, existing);
 				}
 			}
 		} else
