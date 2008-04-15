@@ -2,6 +2,8 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.07i: ******************************
+
 ************************* Version 8.07h: ******************************
 
 BUG: (4/15/08, SMR) Editing a new cell when descended "in place" displays wrong (Bug #1650).
