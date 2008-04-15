@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07h: ******************************
 
+BUG: (4/15/08, SMR) Editing a new cell when descended "in place" displays wrong (Bug #1650).
+FIX: In EditWindow.setCell(), clear in-place descent history if no history is given.
+
 BUG: (4/15/08, DN) Cross-library copy problem (Bug #1649)
 FIX: In CellChangeJobs.copyRecursively check if the fromCell is already moved.
 

@@ -130,8 +130,8 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.print.attribute.standard.ColorSupported;
 import javax.print.PrintService;
+import javax.print.attribute.standard.ColorSupported;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -147,12 +147,12 @@ import javax.swing.tree.MutableTreeNode;
  */
 public class EditWindow extends JPanel
 	implements EditWindow_, WindowContent, MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, ActionListener,
-	    HighlightListener, DatabaseChangeListener
+		HighlightListener, DatabaseChangeListener
 {
 	/** the window scale */									private double scale;
-    /** the requested window scale */                       private double scaleRequested;
+	/** the requested window scale */						private double scaleRequested;
 	/** the window offset */								private double offx = 0, offy = 0;
-    /** the requested window offset */                      private double offxRequested, offyRequested;
+	/** the requested window offset */						private double offxRequested, offyRequested;
 	/** the size of the window (in pixels) */				private Dimension sz;
 	/** the display cache for this window */				private AbstractDrawing drawing;
 	/** the half-sizes of the window (in pixels) */			private int szHalfWidth, szHalfHeight;
@@ -164,13 +164,13 @@ public class EditWindow extends JPanel
 	/** transform from screen to cell (down-in-place only) */	private AffineTransform intoCell = new AffineTransform();
 	/** transform from cell to screen (down-in-place only) */	private AffineTransform outofCell = new AffineTransform();
 	/** path to cell being edited (down-in-place only) */	private List<NodeInst> inPlaceDescent = new ArrayList<NodeInst>();
-    
-    /** true if repaint was requested for this editwindow */volatile boolean repaintRequest;
-    /** full instantiate bounds for next drawing  */        private Rectangle2D fullInstantiateBounds;
 
-	/** Cell's VarContext */                                private VarContext cellVarContext;
-//    /** Stack of selected PortInsts */                      private PortInst[] selectedPorts;
-	/** the window frame containing this editwindow */      private WindowFrame wf;
+	/** true if repaint was requested for this editwindow */volatile boolean repaintRequest;
+	/** full instantiate bounds for next drawing  */		private Rectangle2D fullInstantiateBounds;
+
+	/** Cell's VarContext */								private VarContext cellVarContext;
+//	/** Stack of selected PortInsts */						private PortInst[] selectedPorts;
+	/** the window frame containing this editwindow */		private WindowFrame wf;
 	/** the overall panel with disp area and sliders */		private JPanel overall;
 
 	/** the bottom scrollbar on the edit window. */			private JScrollBar bottomScrollBar;
@@ -184,42 +184,42 @@ public class EditWindow extends JPanel
 	/** starting screen point for drags in this window */	private Point startDrag = new Point();
 	/** ending screen point for drags in this window */		private Point endDrag = new Point();
 
-	/** true if drawing popup cloud */                      private boolean showPopupCloud = false;
-//	/** Strings to write to popup cloud */                  private List<String> popupCloudText;
-//	/** lower left corner of popup cloud */                 private Point2D popupCloudPoint;
+	/** true if drawing popup cloud */						private boolean showPopupCloud = false;
+//	/** Strings to write to popup cloud */					private List<String> popupCloudText;
+//	/** lower left corner of popup cloud */					private Point2D popupCloudPoint;
 
-    /** Highlighter for this window */                      private Highlighter highlighter;
-    /** Mouse-over Highlighter for this window */           private Highlighter mouseOverHighlighter;
-    /** Ruler Highlighter for this window */                private Highlighter rulerHighlighter;
+	/** Highlighter for this window */						private Highlighter highlighter;
+	/** Mouse-over Highlighter for this window */			private Highlighter mouseOverHighlighter;
+	/** Ruler Highlighter for this window */				private Highlighter rulerHighlighter;
 
-    /** navigate through saved views */                     private EditWindowFocusBrowser viewBrowser;
+	/** navigate through saved views */						private EditWindowFocusBrowser viewBrowser;
 
-    /** synchronization lock */                             private static Object lock = new Object();
-	/** scheduled or running rendering job */               private static RenderJob runningNow = null;
-    /** Logger of this package. */                          private static Logger logger = Logger.getLogger("com.sun.electric.tool.user.ui");
-    /** Class name for logging. */                          private static String CLASS_NAME = EditWindow.class.getName();
+	/** synchronization lock */								private static Object lock = new Object();
+	/** scheduled or running rendering job */				private static RenderJob runningNow = null;
+	/** Logger of this package. */							private static Logger logger = Logger.getLogger("com.sun.electric.tool.user.ui");
+	/** Class name for logging. */							private static String CLASS_NAME = EditWindow.class.getName();
 
 	private static final int SCROLLBARRESOLUTION = 200;
 
-    /** for drawing selection boxes */	private static final BasicStroke selectionLine = new BasicStroke(
-        	1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[] {2}, 3);
-    /** for outlining down-hierarchy in-place bounds */	private static final BasicStroke inPlaceMarker = new BasicStroke(3);
+	/** for drawing selection boxes */	private static final BasicStroke selectionLine = new BasicStroke(
+		1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[] {2}, 3);
+	/** for outlining down-hierarchy in-place bounds */	private static final BasicStroke inPlaceMarker = new BasicStroke(3);
 
 	private static EditWindowDropTarget editWindowDropTarget = new EditWindowDropTarget();
 
 	// ************************************* CONSTRUCTION *************************************
 
-    // constructor
-    private EditWindow(Cell cell, WindowFrame wf, Dimension approxSZ)
+	// constructor
+	private EditWindow(Cell cell, WindowFrame wf, Dimension approxSZ)
 	{
-        this.cell = cell;
-        this.pageNumber = 0;
-        this.wf = wf;
-        setDrawingAlgorithm();
+		this.cell = cell;
+		this.pageNumber = 0;
+		this.wf = wf;
+		setDrawingAlgorithm();
 		this.gridXSpacing = User.getDefGridXSpacing();
 		this.gridYSpacing = User.getDefGridYSpacing();
 		inPlaceDisplay = false;
-        viewBrowser = new EditWindowFocusBrowser(this);
+		viewBrowser = new EditWindowFocusBrowser(this);
 
 		sz = approxSZ;
 		if (sz == null) sz = new Dimension(500, 500);
@@ -228,7 +228,7 @@ public class EditWindow extends JPanel
 		setSize(sz.width, sz.height);
 		setPreferredSize(sz);
 
-        scale = scaleRequested = 1;
+		scale = scaleRequested = 1;
 
 		// the total panel in the edit window
 		overall = new JPanel();
@@ -280,15 +280,15 @@ public class EditWindow extends JPanel
 		}
 	}
 
-    private void setDrawingAlgorithm() {
-        drawing = AbstractDrawing.createDrawing(this, drawing, cell);
-        LayerTab layerTab = getWindowFrame().getLayersTab();
-        if (layerTab != null)
-            layerTab.setDisplayAlgorithm(drawing.hasOpacity());
-    }
+	private void setDrawingAlgorithm() {
+		drawing = AbstractDrawing.createDrawing(this, drawing, cell);
+		LayerTab layerTab = getWindowFrame().getLayersTab();
+		if (layerTab != null)
+			layerTab.setDisplayAlgorithm(drawing.hasOpacity());
+	}
 
-    private void installHighlighters()
-    {
+	private void installHighlighters()
+	{
 		// see if this cell is displayed elsewhere
 		highlighter = mouseOverHighlighter = rulerHighlighter = null;
 		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
@@ -311,26 +311,26 @@ public class EditWindow extends JPanel
 		{
 			// not shown elsewhere: create highlighters
 			highlighter = new Highlighter(Highlighter.SELECT_HIGHLIGHTER, wf);
-	        mouseOverHighlighter = new Highlighter(Highlighter.MOUSEOVER_HIGHLIGHTER, wf);
+			mouseOverHighlighter = new Highlighter(Highlighter.MOUSEOVER_HIGHLIGHTER, wf);
 			rulerHighlighter = new Highlighter(Highlighter.RULER_HIGHLIGHTER, wf);
 		}
 
-        // add listeners --> BE SURE to remove listeners in finished()
+		// add listeners --> BE SURE to remove listeners in finished()
 		addKeyListener(this);
 		addMouseListener(this);
 		addMouseMotionListener(this);
 		addMouseWheelListener(this);
    }
 
-    private void uninstallHighlighters()
-    {
+	private void uninstallHighlighters()
+	{
 		removeKeyListener(this);
 		removeMouseListener(this);
 		removeMouseMotionListener(this);
 		removeMouseWheelListener(this);
 
-        // see if the highlighters are used elsewhere
-        boolean used = false;
+		// see if the highlighters are used elsewhere
+		boolean used = false;
 		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
 			WindowFrame oWf = it.next();
@@ -348,13 +348,13 @@ public class EditWindow extends JPanel
 
 		if (!used)
 		{
-	        highlighter.delete();
-	        mouseOverHighlighter.delete();
+			highlighter.delete();
+			mouseOverHighlighter.delete();
 			rulerHighlighter.delete();
 		}
-    }
+	}
 
-    /**
+	/**
 	 * Factory method to create a new EditWindow with a given cell, in a given WindowFrame.
 	 * @param cell the cell in this EditWindow.
 	 * @param wf the WindowFrame that this EditWindow lives in.
@@ -381,32 +381,32 @@ public class EditWindow extends JPanel
 		// extract library and cell from string
 		Cell cell = (Cell)Cell.findNodeProto(source.getText());
 		if (cell == null) return;
-        Cell currentCell = getCell();
+		Cell currentCell = getCell();
 		setCell(cell, VarContext.globalContext, null);
 
 		// Highlight an instance of cell we came from in current cell
-        highlighter.clear();
-        for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
-            NodeInst ni = it.next();
-            if (ni.isCellInstance()) {
-                Cell nodeCell = (Cell)ni.getProto();
-                if (nodeCell == currentCell) {
-                    highlighter.addElectricObject(ni, cell);
-                    break;
-                }
-                if (nodeCell.isIconOf(currentCell)) {
-                    highlighter.addElectricObject(ni, cell);
-                    break;
-                }
-            }
-        }
-        highlighter.finished();
+		highlighter.clear();
+		for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
+			NodeInst ni = it.next();
+			if (ni.isCellInstance()) {
+				Cell nodeCell = (Cell)ni.getProto();
+				if (nodeCell == currentCell) {
+					highlighter.addElectricObject(ni, cell);
+					break;
+				}
+				if (nodeCell.isIconOf(currentCell)) {
+					highlighter.addElectricObject(ni, cell);
+					break;
+				}
+			}
+		}
+		highlighter.finished();
 	}
 
 	// the MouseListener events
 	public void mousePressed(MouseEvent evt)
 	{
-        requestFocus();
+		requestFocus();
 		MessagesStream.userCommandIssued();
 		lastXPosition = evt.getX();   lastYPosition = evt.getY();
 		WindowFrame.curMouseListener.mousePressed(evt);
@@ -487,20 +487,20 @@ public class EditWindow extends JPanel
 //							break;
 //						}
 						//path = ni.describe() + path;
-                        path = ni.getParent().getName() + "[" + ni.getName() + "]" + (first? "" : " / ") + path;
-                        if (first) first = false;
+						path = ni.getParent().getName() + "[" + ni.getName() + "]" + (first? "" : " / ") + path;
+						if (first) first = false;
 						AffineTransform trans = ni.translateOut(ni.rotateOut());
 						trans.transform(ptPath, ptPath);
 						vc = vc.pop();
 					}
 					if (validPath)
 					{
-                        if (ni.getParent().isSchematic()) {
-                            path = "Location is " + ni.getParent() + " / " + path;
-                        } else {
-                            path = "Location in " + ni.getParent() + " / " + path + " is (" +
-                                TextUtils.formatDouble(ptPath.getX(), 2) + ", " + TextUtils.formatDouble(ptPath.getY(), 2) + ")";
-                        }
+						if (ni.getParent().isSchematic()) {
+							path = "Location is " + ni.getParent() + " / " + path;
+						} else {
+							path = "Location in " + ni.getParent() + " / " + path + " is (" +
+								TextUtils.formatDouble(ptPath.getX(), 2) + ", " + TextUtils.formatDouble(ptPath.getY(), 2) + ")";
+						}
 					} else path = null;
 				}
 				StatusBar.setHierarchicalCoordinates(path, wnd.wf);
@@ -524,16 +524,16 @@ public class EditWindow extends JPanel
 
 	public void keyTyped(KeyEvent evt) { WindowFrame.curKeyListener.keyTyped(evt); }
 
-    public void highlightChanged(Highlighter which) {
+	public void highlightChanged(Highlighter which) {
 		repaint();
-    }
+	}
 
-    /**
-     * Called when by a Highlighter when it loses focus. The argument
-     * is the Highlighter that has gained focus (may be null).
-     * @param highlighterGainedFocus the highlighter for the current window (may be null).
-     */
-    public void highlighterLostFocus(Highlighter highlighterGainedFocus) {}
+	/**
+	 * Called when by a Highlighter when it loses focus. The argument
+	 * is the Highlighter that has gained focus (may be null).
+	 * @param highlighterGainedFocus the highlighter for the current window (may be null).
+	 */
+	public void highlighterLostFocus(Highlighter highlighterGainedFocus) {}
 
 	public Point getLastMousePosition()
 	{
@@ -551,7 +551,7 @@ public class EditWindow extends JPanel
 	public void showDraggedBox(Object toDraw, int oldx, int oldy)
 	{
 		// undraw it
-        Highlighter highlighter = getHighlighter();
+		Highlighter highlighter = getHighlighter();
 		highlighter.clear();
 
 		// draw it
@@ -583,7 +583,7 @@ public class EditWindow extends JPanel
 			zoomWindowToFitCellInstance(np);
 
 			Poly poly = null;
-            Orientation orient = Orientation.fromJava(defAngle, defAngle >= 3600, false);
+			Orientation orient = Orientation.fromJava(defAngle, defAngle >= 3600, false);
 			if (np instanceof Cell)
 			{
 				Cell placeCell = (Cell)np;
@@ -800,7 +800,7 @@ public class EditWindow extends JPanel
 			EditWindow wnd = (EditWindow)dt.getComponent();
 			Point2D where = wnd.screenToDatabase(dtde.getLocation().x, dtde.getLocation().y);
 			EditWindow.gridAlign(where);
-            wnd.getHighlighter().clear();
+			wnd.getHighlighter().clear();
 
 			NodeInst ni = null;
 			NodeProto np = null;
@@ -815,33 +815,33 @@ public class EditWindow extends JPanel
 				ni = (NodeInst)obj;
 				np = ni.getProto();
 			} else if (obj instanceof Cell.CellGroup)
-            {
-                Cell.CellGroup gp = (Cell.CellGroup)obj;
-                View view = wnd.getCell().getView();
-                if (view == View.SCHEMATIC)
-                    view = View.ICON;
-                for (Iterator<Cell> itG = gp.getCells(); itG.hasNext();)
-                {
-                    Cell c = itG.next();
-                    if (c.getView() == view)
-                    {
-                        np = c; // found
-                        break;
-                    }
-                }
-                if (np == null)
-                    System.out.println("No " + view + " type found in the dragged group '" + gp.getName() + "'");
-            } else if (obj instanceof String)
-            {
-            	String str = (String)obj;
-            	if (str.startsWith("LOADCELL "))
-            	{
-            		String cellName = str.substring(9);
-            		np = Cell.findNodeProto(cellName);
-            	}
-            }
-            if (np != null) // doesn't make sense to call this job if nothing is selected
-                new PaletteFrame.PlaceNewNode("Create Node", np, ni, defAngle, where, wnd.getCell(), null, false);
+			{
+				Cell.CellGroup gp = (Cell.CellGroup)obj;
+				View view = wnd.getCell().getView();
+				if (view == View.SCHEMATIC)
+					view = View.ICON;
+				for (Iterator<Cell> itG = gp.getCells(); itG.hasNext();)
+				{
+					Cell c = itG.next();
+					if (c.getView() == view)
+					{
+						np = c; // found
+						break;
+					}
+				}
+				if (np == null)
+					System.out.println("No " + view + " type found in the dragged group '" + gp.getName() + "'");
+			} else if (obj instanceof String)
+			{
+				String str = (String)obj;
+				if (str.startsWith("LOADCELL "))
+				{
+					String cellName = str.substring(9);
+					np = Cell.findNodeProto(cellName);
+				}
+			}
+			if (np != null) // doesn't make sense to call this job if nothing is selected
+				new PaletteFrame.PlaceNewNode("Create Node", np, ni, defAngle, where, wnd.getCell(), null, false);
 		}
 	}
 
@@ -896,7 +896,6 @@ public class EditWindow extends JPanel
 	 */
 	public Cell getCell() { return cell; }
 
-
 	/**
 	 * Method to set the page number that is shown in this window.
 	 * Only applies to multi-page schematics.
@@ -949,11 +948,11 @@ public class EditWindow extends JPanel
 	 * @param da DisplayAttributes of EditWindow.
 	 */
 	private void setInPlaceEditNodePath(WindowFrame.DisplayAttributes da) {
-        inPlaceDescent = da.inPlaceDescent;
-        intoCell = da.getIntoCellTransform();
+		inPlaceDescent = da.inPlaceDescent;
+		intoCell = da.getIntoCellTransform();
 		outofCell = da.getOutofCellTransform();
 		inPlaceDisplay = !inPlaceDescent.isEmpty();
-    }
+	}
 
 	/**
 	 * Method to return the transformation matrix from the displayed top-level cell to the current cell.
@@ -972,22 +971,22 @@ public class EditWindow extends JPanel
 	public AffineTransform getInPlaceTransformOut() { return outofCell; }
 
 	/**
-     * Get the highlighter for this WindowContent
-     * @return the highlighter
-     */
-    public Highlighter getHighlighter() { return highlighter; }
+	 * Get the highlighter for this WindowContent
+	 * @return the highlighter
+	 */
+	public Highlighter getHighlighter() { return highlighter; }
 
-    /**
-     * Get the mouse over highlighter for this EditWindow
-     * @return the mouse over highlighter
-     */
-    public Highlighter getMouseOverHighlighter() { return mouseOverHighlighter; }
+	/**
+	 * Get the mouse over highlighter for this EditWindow
+	 * @return the mouse over highlighter
+	 */
+	public Highlighter getMouseOverHighlighter() { return mouseOverHighlighter; }
 
-    /**
-     * Get the ruler highlighter for this EditWindow (for measurement)
-     * @return the ruler highlighter
-     */
-    public Highlighter getRulerHighlighter() { return rulerHighlighter; }
+	/**
+	 * Get the ruler highlighter for this EditWindow (for measurement)
+	 * @return the ruler highlighter
+	 */
+	public Highlighter getRulerHighlighter() { return rulerHighlighter; }
 
 	/**
 	 * Method to return the WindowFrame in which this EditWindow resides.
@@ -1002,20 +1001,21 @@ public class EditWindow extends JPanel
 	{
 		// by default record history and fillscreen
 		// However, when navigating through history, don't want to record new history objects.
-        if (context == null) context = VarContext.globalContext;
-        boolean fillTheScreen = false;
+		if (context == null) context = VarContext.globalContext;
+		boolean fillTheScreen = false;
 		if (displayAttributes == null)
 		{
-			displayAttributes = new WindowFrame.DisplayAttributes(this);
+			displayAttributes = new WindowFrame.DisplayAttributes(getScale(), getOffset().getX(), getOffset().getY(),
+				new ArrayList<NodeInst>());
 			fillTheScreen = true;
 		}
 
 		// recalculate the screen size
-        sz = getSize();
-        szHalfWidth = sz.width / 2;
-        szHalfHeight = sz.height / 2;
+		sz = getSize();
+		szHalfWidth = sz.width / 2;
+		szHalfHeight = sz.height / 2;
 
-        showCell(cell, context, fillTheScreen, displayAttributes);
+		showCell(cell, context, fillTheScreen, displayAttributes);
 	}
 
 	/**
@@ -1035,15 +1035,15 @@ public class EditWindow extends JPanel
 		setInPlaceEditNodePath(displayAttributes);
 		this.pageNumber = 0;
 		cellVarContext = context;
-        if (cell != null) {
-            Library lib = cell.getLibrary();
-            Job.getUserInterface().setCurrentCell(lib, cell);
-        }
-        setDrawingAlgorithm();
+		if (cell != null) {
+			Library lib = cell.getLibrary();
+			Job.getUserInterface().setCurrentCell(lib, cell);
+		}
+		setDrawingAlgorithm();
 
-        // add new highlighters from the window
+		// add new highlighters from the window
 		installHighlighters();
-        viewBrowser.clear();
+		viewBrowser.clear();
 
 		setWindowTitle();
 		if (wf != null)
@@ -1100,7 +1100,7 @@ public class EditWindow extends JPanel
 
 	public List<MutableTreeNode> loadExplorerTrees()
 	{
-        return wf.loadDefaultExplorerTree();
+		return wf.loadDefaultExplorerTree();
 	}
 
 	/**
@@ -1109,12 +1109,12 @@ public class EditWindow extends JPanel
 	 */
 	public void finished()
 	{
-		//wf = null;                          // clear reference
-		//offscreen = null;                   // need to clear this ref, because it points to this
+		//wf = null;						// clear reference
+		//offscreen = null;					// need to clear this ref, because it points to this
 
 		// remove myself from listener list
 		uninstallHighlighters();
-        UserInterfaceMain.removeDatabaseChangeListener(this);
+		UserInterfaceMain.removeDatabaseChangeListener(this);
 		Highlighter.removeHighlightListener(this);
 	}
 
@@ -1132,7 +1132,7 @@ public class EditWindow extends JPanel
 	 */
 	private static class ScrollAdjustmentListener implements AdjustmentListener
 	{
-        /** A weak reference to the WindowFrame */
+		/** A weak reference to the WindowFrame */
 		EditWindow wnd;
 
 		ScrollAdjustmentListener(EditWindow wnd)
@@ -1184,90 +1184,90 @@ public class EditWindow extends JPanel
 //		if (wf == WindowFrame.getCurrentWindowFrame())
 //			requestFocusInWindow();
 
-        Graphics2D g = (Graphics2D)graphics;
-        if (cell == null) {
-            g.setColor(new Color(User.getColor(User.ColorPrefType.BACKGROUND)));
-            g.fillRect(0, 0, getWidth(), getHeight());
-            String msg = "No cell in this window";
-            Font f = new Font(User.getDefaultFont(), Font.BOLD, 18);
-            g.setFont(f);
-            g.setColor(new Color(User.getColor(User.ColorPrefType.TEXT)));
-            g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-            g.drawString(msg, (getWidth() - g.getFontMetrics(f).stringWidth(msg))/2, getHeight()/2);
-            return;
-        }
+		Graphics2D g = (Graphics2D)graphics;
+		if (cell == null) {
+			g.setColor(new Color(User.getColor(User.ColorPrefType.BACKGROUND)));
+			g.fillRect(0, 0, getWidth(), getHeight());
+			String msg = "No cell in this window";
+			Font f = new Font(User.getDefaultFont(), Font.BOLD, 18);
+			g.setFont(f);
+			g.setColor(new Color(User.getColor(User.ColorPrefType.TEXT)));
+			g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+			g.drawString(msg, (getWidth() - g.getFontMetrics(f).stringWidth(msg))/2, getHeight()/2);
+			return;
+		}
 
-        logger.entering(CLASS_NAME, "paintComponent", this);
+		logger.entering(CLASS_NAME, "paintComponent", this);
 
-        if (!drawing.paintComponent(g, getSize())) {
-            fullRepaint();
-            g.setColor(new Color(User.getColor(User.ColorPrefType.BACKGROUND)));
-            g.fillRect(0, 0, getWidth(), getHeight());
-            logger.exiting(CLASS_NAME, "paintComponent", "resize and repaint");
-            return;
-        }
-        logger.logp(Level.FINER, CLASS_NAME, "paintComponent", "offscreen is drawn");
-        sz = getSize();
-        szHalfWidth = sz.width / 2;
-        szHalfHeight = sz.height / 2;
-        scale = drawing.da.scale;
-        offx = drawing.da.offX;
-        offy = drawing.da.offY;
-        setScrollPosition();                        // redraw scroll bars
+		if (!drawing.paintComponent(g, getSize())) {
+			fullRepaint();
+			g.setColor(new Color(User.getColor(User.ColorPrefType.BACKGROUND)));
+			g.fillRect(0, 0, getWidth(), getHeight());
+			logger.exiting(CLASS_NAME, "paintComponent", "resize and repaint");
+			return;
+		}
+		logger.logp(Level.FINER, CLASS_NAME, "paintComponent", "offscreen is drawn");
+		sz = getSize();
+		szHalfWidth = sz.width / 2;
+		szHalfHeight = sz.height / 2;
+		scale = drawing.da.scale;
+		offx = drawing.da.offX;
+		offy = drawing.da.offY;
+		setScrollPosition();			// redraw scroll bars
 
-        // set the default text size (for highlighting, etc)
-        Font f = new Font(User.getDefaultFont(), Font.PLAIN, (int)(10*User.getGlobalTextScale()));
-        g.setFont(f);
+		// set the default text size (for highlighting, etc)
+		Font f = new Font(User.getDefaultFont(), Font.PLAIN, (int)(10*User.getGlobalTextScale()));
+		g.setFont(f);
 
-        // add in grid if requested
+		// add in grid if requested
 //		if (showGrid) drawGrid(g);
 
 		// add cross-probed level display
 		showCrossProbeLevels(g);
 
-        if (Job.getDebug()) {
-            // add in highlighting
-	        if (Job.acquireExamineLock(false)) {
-	            try {
-	                // add in the frame if present
-	                drawCellFrame(g);
+		if (Job.getDebug()) {
+			// add in highlighting
+			if (Job.acquireExamineLock(false)) {
+				try {
+					// add in the frame if present
+					drawCellFrame(g);
 
-	                //long start = System.currentTimeMillis();
-	                rulerHighlighter.showHighlights(this, g);
-	                mouseOverHighlighter.showHighlights(this, g);
-	                highlighter.showHighlights(this, g);
-	                //long end = System.currentTimeMillis();
-	                //System.out.println("drawing highlights took "+TextUtils.getElapsedTime(end-start));
-	                Job.releaseExamineLock();
-	            } catch (Error e) {
-	                Job.releaseExamineLock();
-	                throw e;
-	            }
-	        } else {
-	          	// repaint
+					//long start = System.currentTimeMillis();
+					rulerHighlighter.showHighlights(this, g);
+					mouseOverHighlighter.showHighlights(this, g);
+					highlighter.showHighlights(this, g);
+					//long end = System.currentTimeMillis();
+					//System.out.println("drawing highlights took "+TextUtils.getElapsedTime(end-start));
+					Job.releaseExamineLock();
+				} catch (Error e) {
+					Job.releaseExamineLock();
+					throw e;
+				}
+			} else {
+			  	// repaint
 /*
-	            TimerTask redrawTask = new TimerTask() {
-	                public void run() { repaint(); }
-	            };
-	            Timer timer = new Timer();
-	            timer.schedule(redrawTask, 1000);
+				TimerTask redrawTask = new TimerTask() {
+					public void run() { repaint(); }
+				};
+				Timer timer = new Timer();
+				timer.schedule(redrawTask, 1000);
 */
-	        }
-        } else {
-            // unsafe
-            try {
-                // add in the frame if present
-                drawCellFrame(g);
+			}
+		} else {
+			// unsafe
+			try {
+				// add in the frame if present
+				drawCellFrame(g);
 
-                //long start = System.currentTimeMillis();
-                rulerHighlighter.showHighlights(this, g);
-                mouseOverHighlighter.showHighlights(this, g);
-                highlighter.showHighlights(this, g);
-                //long end = System.currentTimeMillis();
-                //System.out.println("drawing highlights took "+TextUtils.getElapsedTime(end-start));
-            } catch (Exception e) {
-            }
-        }
+				//long start = System.currentTimeMillis();
+				rulerHighlighter.showHighlights(this, g);
+				mouseOverHighlighter.showHighlights(this, g);
+				highlighter.showHighlights(this, g);
+				//long end = System.currentTimeMillis();
+				//System.out.println("drawing highlights took "+TextUtils.getElapsedTime(end-start));
+			} catch (Exception e) {
+			}
+		}
 
 		// add in drag area
 		if (doingAreaDrag) showDragBox(g);
@@ -1304,7 +1304,7 @@ public class EditWindow extends JPanel
 			g.drawLine(i3.x, i3.y, i4.x, i4.y);
 			g.drawLine(i4.x, i4.y, i1.x, i1.y);
 		}
-        logger.logp(Level.FINER, CLASS_NAME, "paintComponent", "overlays are drawn");
+		logger.logp(Level.FINER, CLASS_NAME, "paintComponent", "overlays are drawn");
 
 		// draw any components that are on top (such as in-line text edits)
 //		for(GetInfoText.EditInPlaceListener tl : inPlaceTextObjects)
@@ -1314,9 +1314,9 @@ public class EditWindow extends JPanel
 //		super.paint(g);
 
 		// see if anything else is queued
-        if (scale != scaleRequested || offx != offxRequested || offy != offyRequested || !getSize().equals(sz))
-            fullRepaint();
-        logger.exiting(CLASS_NAME, "paintComponent");
+		if (scale != scaleRequested || offx != offxRequested || offy != offyRequested || !getSize().equals(sz))
+			fullRepaint();
+		logger.exiting(CLASS_NAME, "paintComponent");
 	}
 
 	/**
@@ -1375,7 +1375,7 @@ public class EditWindow extends JPanel
 			WindowContent content = wf.getContent();
 			if (!(content instanceof EditWindow)) continue;
 			EditWindow wnd = (EditWindow)content;
-            wnd.setDrawingAlgorithm();
+			wnd.setDrawingAlgorithm();
 			wnd.fullRepaint();
 		}
 	}
@@ -1414,9 +1414,9 @@ public class EditWindow extends JPanel
 	 * Method requests that this EditWindow be redrawn, including a rerendering of the contents.
 	 */
 	public void fullRepaint() {
-        repaintContents(null, false);
-    }
-    
+		repaintContents(null, false);
+	}
+
 	/**
 	 * Method requests that this EditWindow be redrawn, including a rerendering of the contents.
 	 * @param bounds the area to redraw (null to draw everything).
@@ -1427,133 +1427,132 @@ public class EditWindow extends JPanel
 		// start rendering thread
 		if (wf == null) return;
 //		if (drawing.offscreen == null) return;
-        if (cell == null) {
-            repaint();
-            return;
-        }
-        if (runningNow != null && repaintRequest && !fullInstantiate)
-            return;
+		if (cell == null) {
+			repaint();
+			return;
+		}
+		if (runningNow != null && repaintRequest && !fullInstantiate)
+			return;
 
-        logger.entering(CLASS_NAME, "repaintContents", bounds);
+		logger.entering(CLASS_NAME, "repaintContents", bounds);
 		// do the redraw in a separate thread
-        if (fullInstantiate) {
-            fullInstantiateBounds = bounds.getBounds2D();
-            DBMath.transformRect(fullInstantiateBounds, outofCell);
-        }
-        invokeRenderJob(this);
+		if (fullInstantiate) {
+			fullInstantiateBounds = bounds.getBounds2D();
+			DBMath.transformRect(fullInstantiateBounds, outofCell);
+		}
+		invokeRenderJob(this);
 
-        // do the redraw in the main thread
-//        setScrollPosition();                        // redraw scroll bars
-        logger.exiting(CLASS_NAME, "repaintContents");
+		// do the redraw in the main thread
+//		setScrollPosition();						// redraw scroll bars
+		logger.exiting(CLASS_NAME, "repaintContents");
 	}
-    
-    public static void invokeRenderJob() {
-        invokeRenderJob(null);
-    }
-    
-    private static void invokeRenderJob(EditWindow wnd) {
-        logger.entering(CLASS_NAME, "invokeRenderJob", wnd);
+
+	public static void invokeRenderJob() {
+		invokeRenderJob(null);
+	}
+
+	private static void invokeRenderJob(EditWindow wnd) {
+		logger.entering(CLASS_NAME, "invokeRenderJob", wnd);
 		synchronized(lock)
 		{
-            if (wnd != null) {
-                wnd.drawing.abortRendering();
-                wnd.repaintRequest = true;
-            }
-            if (runningNow != null) {
-                runningNow.hasTasks = true;
-                logger.exiting(CLASS_NAME, "invokeRenderJob running now");
-                return;
-            }
-            runningNow = new RenderJob();
+			if (wnd != null) {
+				wnd.drawing.abortRendering();
+				wnd.repaintRequest = true;
+			}
+			if (runningNow != null) {
+				runningNow.hasTasks = true;
+				logger.exiting(CLASS_NAME, "invokeRenderJob running now");
+				return;
+			}
+			runningNow = new RenderJob();
 		}
-        runningNow.startJob();
-        logger.exiting(CLASS_NAME, "invokeRenderJob starting job");
-        
-    }
+		runningNow.startJob();
+		logger.exiting(CLASS_NAME, "invokeRenderJob starting job");
+	}
 
-    private final static String RENDER_JOB_CLASS_NAME = CLASS_NAME + ".RenderJob";
-    /**
+	private final static String RENDER_JOB_CLASS_NAME = CLASS_NAME + ".RenderJob";
+	/**
 	 * This class queues requests to rerender a window.
 	 */
 	private static class RenderJob extends Job
 	{
-        private static Snapshot oldSnapshot = EDatabase.clientDatabase().getInitialSnapshot();
-        volatile boolean hasTasks;
+		private static Snapshot oldSnapshot = EDatabase.clientDatabase().getInitialSnapshot();
+		volatile boolean hasTasks;
 
 		protected RenderJob()
 		{
 			super("Display", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
 		}
 
-        public boolean doIt() throws JobException {
-            logger.entering(RENDER_JOB_CLASS_NAME, "doIt");
-            try {
-                for (;;) {
-                    hasTasks = false;
-                    Snapshot snapshot = EDatabase.clientDatabase().backup();
-                    if (snapshot != oldSnapshot) {
-                        endBatch(oldSnapshot, snapshot);
-                        oldSnapshot = snapshot;
-                    }
-                    EditWindow wnd = null;
-                    for (Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext();) {
-                        WindowFrame wf = it.next();
-                        WindowContent wc = wf.getContent();
-                        if (wc instanceof EditWindow && ((EditWindow) wc).repaintRequest) {
-                            wnd = (EditWindow) wc;
-                            break;
-                        }
-                    }
-                    if (wnd == null) {
-                        break;
-                    }
-                    wnd.repaintRequest = false;
-                    render(wnd);
-                }
-            } finally {
-                RenderJob j = null;
-                synchronized (lock) {
-                    if (hasTasks) {
-                        runningNow = j = new RenderJob();
-                    } else {
-                        runningNow = null;
-                    }
-                }
-                if (j != null) {
-                    assert j == runningNow;
-                    j.startJob();
-                }
-            }
+		public boolean doIt() throws JobException {
+			logger.entering(RENDER_JOB_CLASS_NAME, "doIt");
+			try {
+				for (;;) {
+					hasTasks = false;
+					Snapshot snapshot = EDatabase.clientDatabase().backup();
+					if (snapshot != oldSnapshot) {
+						endBatch(oldSnapshot, snapshot);
+						oldSnapshot = snapshot;
+					}
+					EditWindow wnd = null;
+					for (Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext();) {
+						WindowFrame wf = it.next();
+						WindowContent wc = wf.getContent();
+						if (wc instanceof EditWindow && ((EditWindow) wc).repaintRequest) {
+							wnd = (EditWindow) wc;
+							break;
+						}
+					}
+					if (wnd == null) {
+						break;
+					}
+					wnd.repaintRequest = false;
+					render(wnd);
+				}
+			} finally {
+				RenderJob j = null;
+				synchronized (lock) {
+					if (hasTasks) {
+						runningNow = j = new RenderJob();
+					} else {
+						runningNow = null;
+					}
+				}
+				if (j != null) {
+					assert j == runningNow;
+					j.startJob();
+				}
+			}
 
-            logger.exiting(RENDER_JOB_CLASS_NAME, "doIt");
-            return true;
-        }
+			logger.exiting(RENDER_JOB_CLASS_NAME, "doIt");
+			return true;
+		}
 
-        private void render(EditWindow wnd) throws JobException {
-            logger.entering(RENDER_JOB_CLASS_NAME, "render");
+		private void render(EditWindow wnd) throws JobException {
+			logger.entering(RENDER_JOB_CLASS_NAME, "render");
 
-            // do the hard work of re-rendering the image
-            Rectangle2D bounds = null;
-            boolean fullInstantiate = false;
-            if (wnd.fullInstantiateBounds != null) {
-                fullInstantiate = true;
-                bounds = wnd.fullInstantiateBounds;
-                wnd.fullInstantiateBounds = null;
-            } else if (bounds == null) {
-                // see if a real bounds is defined in the cell
-                bounds = User.getChangedInWindow(wnd);
-            }
-            if (bounds != null) {
-                User.clearChangedInWindow(wnd);
+			// do the hard work of re-rendering the image
+			Rectangle2D bounds = null;
+			boolean fullInstantiate = false;
+			if (wnd.fullInstantiateBounds != null) {
+				fullInstantiate = true;
+				bounds = wnd.fullInstantiateBounds;
+				wnd.fullInstantiateBounds = null;
+			} else if (bounds == null) {
+				// see if a real bounds is defined in the cell
+				bounds = User.getChangedInWindow(wnd);
+			}
+			if (bounds != null) {
+				User.clearChangedInWindow(wnd);
 //					wnd.highlighter.addArea(bounds, cell);
-            }
-            WindowFrame.DisplayAttributes da = new WindowFrame.DisplayAttributes(wnd.scaleRequested,
-                    wnd.offxRequested, wnd.offyRequested, wnd.inPlaceDescent);
-            wnd.drawing.render(wnd.getSize(), da, fullInstantiate, bounds);
-            wnd.repaint();
-            logger.exiting(RENDER_JOB_CLASS_NAME, "render");
-        }
-    }
+			}
+			WindowFrame.DisplayAttributes da = new WindowFrame.DisplayAttributes(wnd.scaleRequested,
+				wnd.offxRequested, wnd.offyRequested, wnd.inPlaceDescent);
+			wnd.drawing.render(wnd.getSize(), da, fullInstantiate, bounds);
+			wnd.repaint();
+			logger.exiting(RENDER_JOB_CLASS_NAME, "render");
+		}
+	}
 
 	/**
 	 * Method to automatically set the opacity of each layer in a Technology.
@@ -1563,105 +1562,105 @@ public class EditWindow extends JPanel
 	public static void setDefaultOpacity(Technology tech)
 	{
 		for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
-        {
+		{
 			Layer layer = it.next();
-        	Layer.Function fun = layer.getFunction();
-        	int extra = layer.getFunctionExtras();
-        	double opacity = 0.4;
-        	if (fun.isMetal())
-        	{
-        		opacity = 0.75 - fun.getLevel() * 0.05;
-        	} else if (fun.isContact())
-        	{
-        		if ((extra&Layer.Function.CONMETAL) != 0) opacity = 0.7; else
-        			opacity = 1;
-        	} else if (fun == Layer.Function.OVERGLASS)
-        	{
-        		opacity = 0.2;
-            } else if (fun == Layer.Function.POLY1 ||
-                       fun == Layer.Function.POLY2 ||
-                       fun == Layer.Function.POLY3 ||
-                       fun == Layer.Function.GATE ||
-                       fun == Layer.Function.DIFF ||
-                       fun == Layer.Function.DIFFP ||
-                       fun == Layer.Function.DIFFN ||
-                       fun == Layer.Function.WELL ||
-                       fun == Layer.Function.WELLP ||
-                       fun == Layer.Function.WELLN ||
-                       fun == Layer.Function.IMPLANT ||
-                       fun == Layer.Function.IMPLANTN ||
-                       fun == Layer.Function.IMPLANTP) {
-                // lowest level layers should all be opaque
-                opacity = 1.0;
-            } else if (fun == Layer.Function.ART) {
-                if (layer.getName().equals("Glyph"))
-                    opacity = 0;        // essential bounds
-            }
+			Layer.Function fun = layer.getFunction();
+			int extra = layer.getFunctionExtras();
+			double opacity = 0.4;
+			if (fun.isMetal())
+			{
+				opacity = 0.75 - fun.getLevel() * 0.05;
+			} else if (fun.isContact())
+			{
+				if ((extra&Layer.Function.CONMETAL) != 0) opacity = 0.7; else
+					opacity = 1;
+			} else if (fun == Layer.Function.OVERGLASS)
+			{
+				opacity = 0.2;
+			} else if (fun == Layer.Function.POLY1 ||
+					   fun == Layer.Function.POLY2 ||
+					   fun == Layer.Function.POLY3 ||
+					   fun == Layer.Function.GATE ||
+					   fun == Layer.Function.DIFF ||
+					   fun == Layer.Function.DIFFP ||
+					   fun == Layer.Function.DIFFN ||
+					   fun == Layer.Function.WELL ||
+					   fun == Layer.Function.WELLP ||
+					   fun == Layer.Function.WELLN ||
+					   fun == Layer.Function.IMPLANT ||
+					   fun == Layer.Function.IMPLANTN ||
+					   fun == Layer.Function.IMPLANTP) {
+				// lowest level layers should all be opaque
+				opacity = 1.0;
+			} else if (fun == Layer.Function.ART) {
+				if (layer.getName().equals("Glyph"))
+					opacity = 0;		// essential bounds
+			}
 //			if (!layer.isVisible()) opacity = 0;
 			layer.getGraphics().setOpacity(opacity);
-        }
+		}
 	}
 
 	/**
-     * Returns alpha blending order for this EditWindow.
-     * Alpha blending order specifies pixel color by such a way:
-     * Color col = backgroudColor;
-     * for (LayerColor layerColor: blendingOrder) {
-     *    if (This pixel covers a piece of layer layerColor.layer) {
-     *       alpha = layerColor.color.getAlpha();
-     *       col =  layerColor.color.getRGB()*alpha + col*(1 - alpha)
-     *    }
-     * }
-     * return col;
-     * @param layersAvailable layers available in this EditWindow
-     * @param showOpacity show opacity controls in LayerTab.
-     * @return alpha blending order.
-     */
-    public List<AbstractDrawing.LayerColor> getBlendingOrder(Set<Layer> layersAvailable, boolean patternedDisplay, boolean alphaBlendingOvercolor) {
-        ArrayList<AbstractDrawing.LayerColor> layerColors = new ArrayList<AbstractDrawing.LayerColor>();
-        ArrayList<Layer> sortedLayers = new ArrayList<Layer>(layersAvailable);
-        Collections.sort(sortedLayers, Technology.LAYERS_BY_HEIGHT_LIFT_CONTACTS);
-        float[] backgroundComps = (new Color(User.getColor(User.ColorPrefType.BACKGROUND))).getRGBColorComponents(null);
-        float bRed = backgroundComps[0];
-        float bGreen = backgroundComps[1];
-        float bBlue = backgroundComps[2];
-        for(Layer layer : sortedLayers) {
-            if (!layer.isVisible()) continue;
-            if (layer == Generic.tech().glyphLay && !patternedDisplay) continue;
-            Color color = new Color(layer.getGraphics().getRGB());
-            float[] compArray = color.getRGBComponents(null);
-            float red = compArray[0];
-            float green = compArray[1];
-            float blue = compArray[2];
-            float opacity = (float)layer.getGraphics().getOpacity();
-            if (opacity <= 0) continue;
-            float inverseAlpha = 1 - opacity;
-            if (alphaBlendingOvercolor) {
-                red -= bRed*inverseAlpha;
-                green -= bGreen*inverseAlpha;
-                blue -= bBlue*inverseAlpha;
-            } else {
-                red *= opacity;
-                green *= opacity;
-                blue *= opacity;
-            }
-            layerColors.add(new AbstractDrawing.LayerColor(layer, red, green, blue, inverseAlpha));
-        }
-        final LayerTab layerTab = getWindowFrame().getLayersTab();
-        final boolean showOpacity = !User.isLegacyComposite();
-        if (layerTab != null)
-            SwingUtilities.invokeLater(new Runnable() { public void run() { layerTab.setDisplayAlgorithm(showOpacity); }});
-            return layerColors;
-    }
-    
-    public void testJogl() {
-        drawing.testJogl();
-    }
-    
-    void opacityChanged() {
-        drawing.opacityChanged();
-    }
-    
+	 * Returns alpha blending order for this EditWindow.
+	 * Alpha blending order specifies pixel color by such a way:
+	 * Color col = backgroudColor;
+	 * for (LayerColor layerColor: blendingOrder) {
+	 *    if (This pixel covers a piece of layer layerColor.layer) {
+	 *       alpha = layerColor.color.getAlpha();
+	 *       col =  layerColor.color.getRGB()*alpha + col*(1 - alpha)
+	 *    }
+	 * }
+	 * return col;
+	 * @param layersAvailable layers available in this EditWindow
+	 * @param showOpacity show opacity controls in LayerTab.
+	 * @return alpha blending order.
+	 */
+	public List<AbstractDrawing.LayerColor> getBlendingOrder(Set<Layer> layersAvailable, boolean patternedDisplay, boolean alphaBlendingOvercolor) {
+		ArrayList<AbstractDrawing.LayerColor> layerColors = new ArrayList<AbstractDrawing.LayerColor>();
+		ArrayList<Layer> sortedLayers = new ArrayList<Layer>(layersAvailable);
+		Collections.sort(sortedLayers, Technology.LAYERS_BY_HEIGHT_LIFT_CONTACTS);
+		float[] backgroundComps = (new Color(User.getColor(User.ColorPrefType.BACKGROUND))).getRGBColorComponents(null);
+		float bRed = backgroundComps[0];
+		float bGreen = backgroundComps[1];
+		float bBlue = backgroundComps[2];
+		for(Layer layer : sortedLayers) {
+			if (!layer.isVisible()) continue;
+			if (layer == Generic.tech().glyphLay && !patternedDisplay) continue;
+			Color color = new Color(layer.getGraphics().getRGB());
+			float[] compArray = color.getRGBComponents(null);
+			float red = compArray[0];
+			float green = compArray[1];
+			float blue = compArray[2];
+			float opacity = (float)layer.getGraphics().getOpacity();
+			if (opacity <= 0) continue;
+			float inverseAlpha = 1 - opacity;
+			if (alphaBlendingOvercolor) {
+				red -= bRed*inverseAlpha;
+				green -= bGreen*inverseAlpha;
+				blue -= bBlue*inverseAlpha;
+			} else {
+				red *= opacity;
+				green *= opacity;
+				blue *= opacity;
+			}
+			layerColors.add(new AbstractDrawing.LayerColor(layer, red, green, blue, inverseAlpha));
+		}
+		final LayerTab layerTab = getWindowFrame().getLayersTab();
+		final boolean showOpacity = !User.isLegacyComposite();
+		if (layerTab != null)
+			SwingUtilities.invokeLater(new Runnable() { public void run() { layerTab.setDisplayAlgorithm(showOpacity); }});
+			return layerColors;
+	}
+
+	public void testJogl() {
+		drawing.testJogl();
+	}
+
+	void opacityChanged() {
+		drawing.opacityChanged();
+	}
+
 	// ************************************* SIMULATION CROSSPROBE LEVEL DISPLAY *************************************
 
 	private static class CrossProbe
@@ -2218,7 +2217,7 @@ public class EditWindow extends JPanel
 								newLines[i] = oldLines[i];
 						}
 						base.updateVar(sic.key, newLines);
-                    }
+					}
 				}
 			}
 
@@ -2291,18 +2290,18 @@ public class EditWindow extends JPanel
 				highBounds = wnd.getHighlightedArea();
 				for(Geometric g : highs) examineThis.add(g);
 
-		        Rectangle2D selection = wnd.getHighlightedArea();
-		        if (selection != null)
-		        {
-			        List<Highlight2> inArea = Highlighter.findAllInArea(wnd.getHighlighter(), cell, false, false,
-			        	false, false, true, true, selection, wnd);
-			        for(Highlight2 h : inArea)
-			        {
-			        	ElectricObject eo = h.getElectricObject();
-			        	if (eo instanceof PortInst) eo = ((PortInst)eo).getNodeInst();
-			        	if (eo instanceof Geometric) examineThis.add((Geometric)eo);
-			        }
-		        }
+				Rectangle2D selection = wnd.getHighlightedArea();
+				if (selection != null)
+				{
+					List<Highlight2> inArea = Highlighter.findAllInArea(wnd.getHighlighter(), cell, false, false,
+						false, false, true, true, selection, wnd);
+					for(Highlight2 h : inArea)
+					{
+						ElectricObject eo = h.getElectricObject();
+						if (eo instanceof PortInst) eo = ((PortInst)eo).getNodeInst();
+						if (eo instanceof Geometric) examineThis.add((Geometric)eo);
+					}
+				}
 			}
 
 			// initialize the search
@@ -2608,36 +2607,36 @@ public class EditWindow extends JPanel
 		System.out.println(foundHdr + foundStr + replaceHdr+replaceStr + "\n" + highlightHdr + highlightStr);
 	}
 
-    // ************************************* POPUP CLOUD *************************************
+	// ************************************* POPUP CLOUD *************************************
 
-    public boolean getShowPopupCloud() { return showPopupCloud; }
+	public boolean getShowPopupCloud() { return showPopupCloud; }
 
-    public void setShowPopupCloud(List<String> text, Point2D point)
-    {
-        showPopupCloud = true;
-//        popupCloudText = text;
-//        popupCloudPoint = point;
-    }
+	public void setShowPopupCloud(List<String> text, Point2D point)
+	{
+		showPopupCloud = true;
+//		popupCloudText = text;
+//		popupCloudPoint = point;
+	}
 
-    public void clearShowPopupCloud() { showPopupCloud = false; }
+	public void clearShowPopupCloud() { showPopupCloud = false; }
 
-    private void drawPopupCloud(Graphics2D g)
-    {
-        // JKG NOTE: disabled for now
-        // TODO: decide whether or not this is useful
-        /*
-        if (popupCloudText == null || popupCloudText.size() == 0) return;
-        // draw cloud
-        float yspacing = 5;
-        float x = (float)popupCloudPoint.getX() + 25;
-        float y = (float)popupCloudPoint.getY() + 10 + yspacing;
-        for (int i=0; i<popupCloudText.size(); i++) {
-            GlyphVector glyph = getFont().createGlyphVector(g.getFontRenderContext(), popupCloudText.get(i));
-            g.drawGlyphVector(glyph, x, y);
-            y += glyph.getVisualBounds().getHeight() + yspacing;
-        }
-        */
-    }
+	private void drawPopupCloud(Graphics2D g)
+	{
+		// JKG NOTE: disabled for now
+		// TODO: decide whether or not this is useful
+		/*
+		if (popupCloudText == null || popupCloudText.size() == 0) return;
+		// draw cloud
+		float yspacing = 5;
+		float x = (float)popupCloudPoint.getX() + 25;
+		float y = (float)popupCloudPoint.getY() + 10 + yspacing;
+		for (int i=0; i<popupCloudText.size(); i++) {
+			GlyphVector glyph = getFont().createGlyphVector(g.getFontRenderContext(), popupCloudText.get(i));
+			g.drawGlyphVector(glyph, x, y);
+			y += glyph.getVisualBounds().getHeight() + yspacing;
+		}
+		*/
+	}
 
 	// ************************************* WINDOW ZOOM AND PAN *************************************
 
@@ -2659,8 +2658,8 @@ public class EditWindow extends JPanel
 	 */
 	public void setScale(double scale)
 	{
-        if (scale <= 0)
-            throw new IllegalArgumentException("Negative window scale");
+		if (scale <= 0)
+			throw new IllegalArgumentException("Negative window scale");
 		scaleRequested = scale;
 		removeAllInPlaceTextObjects();
 	}
@@ -2685,7 +2684,7 @@ public class EditWindow extends JPanel
 	public void setOffset(Point2D off)
 	{
 		offxRequested = off.getX();
-        offyRequested = off.getY();
+		offyRequested = off.getY();
 		removeAllInPlaceTextObjects();
 	}
 
@@ -2700,158 +2699,158 @@ public class EditWindow extends JPanel
 		setScale(Math.min(scalex, scaley));
 		setOffset(new Point2D.Double(bounds.getCenterX(), bounds.getCenterY()));
 	}
-    
-    public Rectangle2D getDisplayedBounds()
-    {
-        double width = sz.width/scale;
-        double height = sz.height/scale;
-        return new Rectangle2D.Double(offx - width/2, offy - height/2, width, height);
-    }
 
-    private static final double scrollPagePercent = 0.2;
-    // ignore programmatic scroll changes. Only respond to user scroll changes
-    private boolean ignoreScrollChange = false;
-    private static final int scrollRangeMult = 100; // when zoomed in, this prevents rounding from causing problems
+	public Rectangle2D getDisplayedBounds()
+	{
+		double width = sz.width/scale;
+		double height = sz.height/scale;
+		return new Rectangle2D.Double(offx - width/2, offy - height/2, width, height);
+	}
 
-    /**
-     * New version of setScrollPosition.  Attempts to provides means of scrolling
-     * out of cell bounds.
-     */
-    public void setScrollPosition() {
-        if (!SwingUtilities.isEventDispatchThread()) {
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() { setScrollPositionUnsafe(); }
-            });
-        } else
-            setScrollPositionUnsafe();
-    }
+	private static final double scrollPagePercent = 0.2;
+	// ignore programmatic scroll changes. Only respond to user scroll changes
+	private boolean ignoreScrollChange = false;
+	private static final int scrollRangeMult = 100; // when zoomed in, this prevents rounding from causing problems
 
-    /**
-     * New version of setScrollPosition.  Attempts to provides means of scrolling
-     * out of cell bounds.  This is the Swing unsafe version
-     */
-    private void setScrollPositionUnsafe()
-    {
-        if (bottomScrollBar == null || rightScrollBar == null) return;
-        bottomScrollBar.setEnabled(cell != null);
-        rightScrollBar.setEnabled(cell != null);
+	/**
+	 * New version of setScrollPosition.  Attempts to provides means of scrolling
+	 * out of cell bounds.
+	 */
+	public void setScrollPosition() {
+		if (!SwingUtilities.isEventDispatchThread()) {
+			SwingUtilities.invokeLater(new Runnable() {
+				public void run() { setScrollPositionUnsafe(); }
+			});
+		} else
+			setScrollPositionUnsafe();
+	}
 
-        if (cell == null) return;
+	/**
+	 * New version of setScrollPosition.  Attempts to provides means of scrolling
+	 * out of cell bounds.  This is the Swing unsafe version
+	 */
+	private void setScrollPositionUnsafe()
+	{
+		if (bottomScrollBar == null || rightScrollBar == null) return;
+		bottomScrollBar.setEnabled(cell != null);
+		rightScrollBar.setEnabled(cell != null);
 
-        Rectangle2D cellBounds = getInPlaceEditTopCell().getBounds();
-        Rectangle2D viewBounds = displayableBounds();
+		if (cell == null) return;
 
-        // scroll bar is being repositioned: ignore the change events it generates
-        ignoreScrollChange = true;
+		Rectangle2D cellBounds = getInPlaceEditTopCell().getBounds();
+		Rectangle2D viewBounds = displayableBounds();
 
-        // adjust scroll bars to reflect new bounds (only if not being adjusted now)
-        // newValue, newThumbSize, newMin, newMax
-        /*
-        Rectangle2D overallBounds = cellBounds.createUnion(viewBounds);
-        if (!bottomScrollBar.getValueIsAdjusting()) {
-            bottomScrollBar.getModel().setRangeProperties(
-                    (int)((offx-0.5*viewBounds.getWidth())*scrollRangeMult),
-                    (int)(viewBounds.getWidth()*scrollRangeMult),
-                    (int)((overallBounds.getX() - scrollPagePercent*overallBounds.getWidth())*scrollRangeMult),
-                    (int)(((overallBounds.getX()+overallBounds.getWidth()) + scrollPagePercent*overallBounds.getWidth())*scrollRangeMult),
-                    false);
-            bottomScrollBar.setUnitIncrement((int)(0.05*viewBounds.getWidth()*scrollRangeMult));
-            bottomScrollBar.setBlockIncrement((int)(scrollPagePercent*viewBounds.getWidth()*scrollRangeMult));
-        }
-        //System.out.println("overallBounds="+overallBounds);
-        //System.out.println("cellBounds="+cellBounds);
-        //System.out.println("offy="+offy);
-        System.out.print(" value="+(int)((-offy-0.5*viewBounds.getHeight()))*scrollRangeMult);
-        //System.out.print(" extent="+(int)(cellBounds.getHeight()));
-        System.out.print(" min="+(int)((-((overallBounds.getY()+overallBounds.getHeight()) + scrollPagePercent*overallBounds.getHeight())))*scrollRangeMult);
-        System.out.println(" max="+((int)(-(overallBounds.getY() - scrollPagePercent*overallBounds.getHeight())))*scrollRangeMult);
-        if (!rightScrollBar.getValueIsAdjusting()) {
-            rightScrollBar.getModel().setRangeProperties(
-                    (int)((-offy-0.5*viewBounds.getHeight())*scrollRangeMult),
-                    (int)((viewBounds.getHeight())*scrollRangeMult),
-                    (int)((-((overallBounds.getY()+overallBounds.getHeight()) + scrollPagePercent*overallBounds.getHeight()))*scrollRangeMult),
-                    (int)((-(overallBounds.getY() - scrollPagePercent*overallBounds.getHeight()))*scrollRangeMult),
-                    false);
-            //System.out.println("model is "+rightScrollBar.getModel());
-            rightScrollBar.setUnitIncrement((int)(0.05*viewBounds.getHeight()*scrollRangeMult));
-            rightScrollBar.setBlockIncrement((int)(scrollPagePercent*viewBounds.getHeight()*scrollRangeMult));
-        }
-        */
-        double width = (viewBounds.getWidth() < cellBounds.getWidth()) ? viewBounds.getWidth() : cellBounds.getWidth();
-        double height = (viewBounds.getHeight() < cellBounds.getHeight()) ? viewBounds.getHeight() : cellBounds.getHeight();
+		// scroll bar is being repositioned: ignore the change events it generates
+		ignoreScrollChange = true;
+
+		// adjust scroll bars to reflect new bounds (only if not being adjusted now)
+		// newValue, newThumbSize, newMin, newMax
+		/*
+		Rectangle2D overallBounds = cellBounds.createUnion(viewBounds);
+		if (!bottomScrollBar.getValueIsAdjusting()) {
+			bottomScrollBar.getModel().setRangeProperties(
+					(int)((offx-0.5*viewBounds.getWidth())*scrollRangeMult),
+					(int)(viewBounds.getWidth()*scrollRangeMult),
+					(int)((overallBounds.getX() - scrollPagePercent*overallBounds.getWidth())*scrollRangeMult),
+					(int)(((overallBounds.getX()+overallBounds.getWidth()) + scrollPagePercent*overallBounds.getWidth())*scrollRangeMult),
+					false);
+			bottomScrollBar.setUnitIncrement((int)(0.05*viewBounds.getWidth()*scrollRangeMult));
+			bottomScrollBar.setBlockIncrement((int)(scrollPagePercent*viewBounds.getWidth()*scrollRangeMult));
+		}
+		//System.out.println("overallBounds="+overallBounds);
+		//System.out.println("cellBounds="+cellBounds);
+		//System.out.println("offy="+offy);
+		System.out.print(" value="+(int)((-offy-0.5*viewBounds.getHeight()))*scrollRangeMult);
+		//System.out.print(" extent="+(int)(cellBounds.getHeight()));
+		System.out.print(" min="+(int)((-((overallBounds.getY()+overallBounds.getHeight()) + scrollPagePercent*overallBounds.getHeight())))*scrollRangeMult);
+		System.out.println(" max="+((int)(-(overallBounds.getY() - scrollPagePercent*overallBounds.getHeight())))*scrollRangeMult);
+		if (!rightScrollBar.getValueIsAdjusting()) {
+			rightScrollBar.getModel().setRangeProperties(
+					(int)((-offy-0.5*viewBounds.getHeight())*scrollRangeMult),
+					(int)((viewBounds.getHeight())*scrollRangeMult),
+					(int)((-((overallBounds.getY()+overallBounds.getHeight()) + scrollPagePercent*overallBounds.getHeight()))*scrollRangeMult),
+					(int)((-(overallBounds.getY() - scrollPagePercent*overallBounds.getHeight()))*scrollRangeMult),
+					false);
+			//System.out.println("model is "+rightScrollBar.getModel());
+			rightScrollBar.setUnitIncrement((int)(0.05*viewBounds.getHeight()*scrollRangeMult));
+			rightScrollBar.setBlockIncrement((int)(scrollPagePercent*viewBounds.getHeight()*scrollRangeMult));
+		}
+		*/
+		double width = (viewBounds.getWidth() < cellBounds.getWidth()) ? viewBounds.getWidth() : cellBounds.getWidth();
+		double height = (viewBounds.getHeight() < cellBounds.getHeight()) ? viewBounds.getHeight() : cellBounds.getHeight();
 
 		Point2D dbPt = new Point2D.Double(offx, offy);
 //		if (inPlaceDisplay) intoCell.transform(dbPt, dbPt);
 		double oX = dbPt.getX();   double oY = dbPt.getY();
 
 		if (!bottomScrollBar.getValueIsAdjusting())
-        {
-    		int value = (int)((oX-0.5*width)*scrollRangeMult);
-    		int extent = (int)(width*scrollRangeMult);
-        	int min = (int)((cellBounds.getX() - scrollPagePercent*cellBounds.getWidth())*scrollRangeMult);
-        	int max = (int)(((cellBounds.getX()+cellBounds.getWidth()) + scrollPagePercent*cellBounds.getWidth())*scrollRangeMult);
-        	bottomScrollBar.getModel().setRangeProperties(value, extent, min, max, false);
-            bottomScrollBar.setUnitIncrement((int)(0.05*viewBounds.getWidth()*scrollRangeMult));
-            bottomScrollBar.setBlockIncrement((int)(scrollPagePercent*viewBounds.getWidth()*scrollRangeMult));
-        }
-        if (!rightScrollBar.getValueIsAdjusting())
-        {
-        	int value = (int)((-oY-0.5*height)*scrollRangeMult);
-        	int extent = (int)(height*scrollRangeMult);
-        	int min = (int)((-((cellBounds.getY()+cellBounds.getHeight()) + scrollPagePercent*cellBounds.getHeight()))*scrollRangeMult);
-        	int max = (int)((-(cellBounds.getY() - scrollPagePercent*cellBounds.getHeight()))*scrollRangeMult);
-            rightScrollBar.getModel().setRangeProperties(value, extent, min, max, false);
-            rightScrollBar.setUnitIncrement((int)(0.05*viewBounds.getHeight()*scrollRangeMult));
-            rightScrollBar.setBlockIncrement((int)(scrollPagePercent*viewBounds.getHeight()*scrollRangeMult));
-        }
+		{
+			int value = (int)((oX-0.5*width)*scrollRangeMult);
+			int extent = (int)(width*scrollRangeMult);
+			int min = (int)((cellBounds.getX() - scrollPagePercent*cellBounds.getWidth())*scrollRangeMult);
+			int max = (int)(((cellBounds.getX()+cellBounds.getWidth()) + scrollPagePercent*cellBounds.getWidth())*scrollRangeMult);
+			bottomScrollBar.getModel().setRangeProperties(value, extent, min, max, false);
+			bottomScrollBar.setUnitIncrement((int)(0.05*viewBounds.getWidth()*scrollRangeMult));
+			bottomScrollBar.setBlockIncrement((int)(scrollPagePercent*viewBounds.getWidth()*scrollRangeMult));
+		}
+		if (!rightScrollBar.getValueIsAdjusting())
+		{
+			int value = (int)((-oY-0.5*height)*scrollRangeMult);
+			int extent = (int)(height*scrollRangeMult);
+			int min = (int)((-((cellBounds.getY()+cellBounds.getHeight()) + scrollPagePercent*cellBounds.getHeight()))*scrollRangeMult);
+			int max = (int)((-(cellBounds.getY() - scrollPagePercent*cellBounds.getHeight()))*scrollRangeMult);
+			rightScrollBar.getModel().setRangeProperties(value, extent, min, max, false);
+			rightScrollBar.setUnitIncrement((int)(0.05*viewBounds.getHeight()*scrollRangeMult));
+			rightScrollBar.setBlockIncrement((int)(scrollPagePercent*viewBounds.getHeight()*scrollRangeMult));
+		}
 
-        ignoreScrollChange = false;
-    }
+		ignoreScrollChange = false;
+	}
 
-    public void bottomScrollChanged(int value)
-    {
-        if (cell == null) return;
-        if (ignoreScrollChange) return;
+	public void bottomScrollChanged(int value)
+	{
+		if (cell == null) return;
+		if (ignoreScrollChange) return;
 
 		Point2D dbPt = new Point2D.Double(offx, offy);
-        double oY = dbPt.getY();
+		double oY = dbPt.getY();
 
 		double val = (double)value/(double)scrollRangeMult;
-        Rectangle2D cellBounds = getInPlaceEditTopCell().getBounds();
-        Rectangle2D viewBounds = displayableBounds();
-        double width = (viewBounds.getWidth() < cellBounds.getWidth()) ? viewBounds.getWidth() : cellBounds.getWidth();
-        double newoffx = val+0.5*width;           // new offset
-        //double ignoreDelta = 0.03*viewBounds.getWidth();             // ignore delta
-        //double delta = newoffx - offx;
-        //if (Math.abs(delta) < Math.abs(ignoreDelta)) return;
-        Point2D offset = new Point2D.Double(newoffx, oY);
-        setOffset(offset);
+		Rectangle2D cellBounds = getInPlaceEditTopCell().getBounds();
+		Rectangle2D viewBounds = displayableBounds();
+		double width = (viewBounds.getWidth() < cellBounds.getWidth()) ? viewBounds.getWidth() : cellBounds.getWidth();
+		double newoffx = val+0.5*width;			// new offset
+		//double ignoreDelta = 0.03*viewBounds.getWidth();			// ignore delta
+		//double delta = newoffx - offx;
+		//if (Math.abs(delta) < Math.abs(ignoreDelta)) return;
+		Point2D offset = new Point2D.Double(newoffx, oY);
+		setOffset(offset);
 		getSavedFocusBrowser().updateCurrentFocus();
-        fullRepaint();
-    }
+		fullRepaint();
+	}
 
-    public void rightScrollChanged(int value)
-    {
-        if (cell == null) return;
-        if (ignoreScrollChange) return;
+	public void rightScrollChanged(int value)
+	{
+		if (cell == null) return;
+		if (ignoreScrollChange) return;
 
 		Point2D dbPt = new Point2D.Double(offx, offy);
 		double oX = dbPt.getX();
 
-        double val = (double)value/(double)scrollRangeMult;
-        Rectangle2D cellBounds = getInPlaceEditTopCell().getBounds();
-        Rectangle2D viewBounds = displayableBounds();
-        double height = (viewBounds.getHeight() < cellBounds.getHeight()) ? viewBounds.getHeight() : cellBounds.getHeight();
-        double newoffy = -(val+0.5*height);
-        // annoying cause +y is down in java
-        //double ignoreDelta = 0.03*viewBounds.getHeight();             // ignore delta
-        //double delta = newoffy - offy;
-        //if (Math.abs(delta) < Math.abs(ignoreDelta)) return;
-        Point2D offset = new Point2D.Double(oX, newoffy);
-        setOffset(offset);
+		double val = (double)value/(double)scrollRangeMult;
+		Rectangle2D cellBounds = getInPlaceEditTopCell().getBounds();
+		Rectangle2D viewBounds = displayableBounds();
+		double height = (viewBounds.getHeight() < cellBounds.getHeight()) ? viewBounds.getHeight() : cellBounds.getHeight();
+		double newoffy = -(val+0.5*height);
+		// annoying cause +y is down in java
+		//double ignoreDelta = 0.03*viewBounds.getHeight();			// ignore delta
+		//double delta = newoffy - offy;
+		//if (Math.abs(delta) < Math.abs(ignoreDelta)) return;
+		Point2D offset = new Point2D.Double(oX, newoffy);
+		setOffset(offset);
 		getSavedFocusBrowser().updateCurrentFocus();
-        fullRepaint();
-    }
+		fullRepaint();
+	}
 
 	/**
 	 * Method to focus the screen so that an area fills it.
@@ -2885,9 +2884,9 @@ public class EditWindow extends JPanel
 	 */
 	public Rectangle2D getBoundsInWindow()
 	{
-        Rectangle2D cellBounds = cell.getBounds();
-        Dimension d = new Dimension();
-        int frameFactor = Cell.FrameDescription.getCellFrameInfo(cell, d);
+		Rectangle2D cellBounds = cell.getBounds();
+		Dimension d = new Dimension();
+		int frameFactor = Cell.FrameDescription.getCellFrameInfo(cell, d);
         Rectangle2D frameBounds = new Rectangle2D.Double(-d.getWidth()/2, -d.getHeight()/2, d.getWidth(), d.getHeight());
         if (frameFactor == 0)
         {
