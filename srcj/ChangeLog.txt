@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07i: ******************************
 
+BUG: (4/15/08, GVG) NPE if File f is null due to permissions problem (Bug #1657)
+FIX: Detect the case.
+
 BUG: (4/15/08, SMR) Waveform windows can be made too short and cause errors (Bug #1651).
 FIX: In WaveformWindow.growPanels(), limit row height.
 

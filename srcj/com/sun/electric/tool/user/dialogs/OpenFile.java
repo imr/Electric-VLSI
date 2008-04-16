@@ -110,6 +110,7 @@ public class OpenFile
          */
         public boolean isTraversable(File f) {
             lastDELIBVisit = null;
+            if (f == null) return false;
             if (f.getName().toLowerCase().endsWith("."+FileType.DELIB.getExtensions()[0])) {
                 lastDELIBVisit = f; // has to remember this value otherwise BasicFileChooserUI:actionPerformed will
                 // not ready DELIB file just typed in the TextField because isDir=true and isDirSelEnabled=false
