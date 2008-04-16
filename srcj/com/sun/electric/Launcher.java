@@ -24,7 +24,6 @@
 package com.sun.electric;
 
 import com.sun.electric.tool.Regression;
-import com.sun.electric.tool.Client;
 import com.sun.electric.tool.user.User;
 
 import java.io.File;
