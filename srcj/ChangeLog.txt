@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07i: ******************************
 
+BUG: (4/16/08, SMR) Option reconciliation dialog may be too wide (Bug #1655).
+FIX: In OptionReconcile constructor, trim values to 30 characters.
+
 BUG: (4/16/08, SMR) Waveform window draws lines all the way to the right side of the
      screen, even when the data does not exist (Bug #1645).
 FIX: In Panel.processSignals(), do not extrapolate data.

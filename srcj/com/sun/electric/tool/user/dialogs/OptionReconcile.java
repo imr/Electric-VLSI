@@ -44,25 +44,24 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JSeparator;
 
-
 /**
  * Class to handle the "Project Setting Reconcile" dialog.
  */
 public class OptionReconcile extends EDialog
 {
-    private Map<Setting,Object> settingsThatChanged;
+	private Map<Setting,Object> settingsThatChanged;
 	private HashMap<JRadioButton,Setting> changedSettings = new HashMap<JRadioButton,Setting>();
-    private ArrayList<AbstractButton> currentSettings = new ArrayList<AbstractButton>();
-    private ReadLibrary job;
+	private ArrayList<AbstractButton> currentSettings = new ArrayList<AbstractButton>();
+	private ReadLibrary job;
 
 	/** Creates new form Project Settings Reconcile */
 	public OptionReconcile(Frame parent, Map<Setting,Object> settingsThatChanged, String libname, ReadLibrary job)
 	{
 		super(parent, true);
-        this.settingsThatChanged = settingsThatChanged;
-        this.job = job;
+		this.settingsThatChanged = settingsThatChanged;
+		this.job = job;
 		initComponents();
-        getRootPane().setDefaultButton(ok);
+		getRootPane().setDefaultButton(ok);
 
 		JPanel optionBox = new JPanel();
 		optionBox.setLayout(new GridBagLayout());
@@ -116,25 +115,26 @@ public class OptionReconcile extends EDialog
 		int rowNumber = 2;
 		for (Map.Entry<Setting,Object> e: settingsThatChanged.entrySet())
 		{
-            Setting setting = e.getKey();
+			Setting setting = e.getKey();
 			Object obj = e.getValue();
-            if (obj == null)
-                obj = setting.getFactoryValue();
+			if (obj == null)
+				obj = setting.getFactoryValue();
 			if (obj.equals(setting.getValue())) continue;
 
-            Object settingValue = setting.getValue();
+			Object settingValue = setting.getValue();
 			String oldValue = settingValue.toString();
-            String newValue = obj.toString();
-            String[] trueMeaning = setting.getTrueMeaning();
-            if (settingValue instanceof Boolean) {
-                oldValue = setting.getBoolean() ? "ON" : "OFF";
-                boolean b = obj instanceof Boolean ? ((Boolean)obj).booleanValue() : ((Integer)obj).intValue() != 0;
-                newValue = b ? "ON" : "OFF";
-            } else if (trueMeaning != null) {
-                oldValue = trueMeaning[setting.getInt()];
-                newValue = trueMeaning[((Integer)obj).intValue()];
-            }
-            
+			String newValue = obj.toString();
+			String[] trueMeaning = setting.getTrueMeaning();
+			if (settingValue instanceof Boolean) {
+				oldValue = setting.getBoolean() ? "ON" : "OFF";
+				boolean b = obj instanceof Boolean ? ((Boolean)obj).booleanValue() : ((Integer)obj).intValue() != 0;
+				newValue = b ? "ON" : "OFF";
+			} else if (trueMeaning != null) {
+				oldValue = trueMeaning[setting.getInt()];
+				if (oldValue.length() > 30) oldValue = oldValue.substring(0, 30) + "...";
+				newValue = trueMeaning[((Integer)obj).intValue()];
+			}
+
 /*
 			// the first column: the "Accept" checkbox
 			JCheckBox cb = new JCheckBox("Accept");
@@ -162,14 +162,14 @@ public class OptionReconcile extends EDialog
 			gbc.weightx = 0.2;   gbc.weighty = 0;
 			gbc.anchor = GridBagConstraints.WEST;
 			gbc.fill = GridBagConstraints.NONE;
-            JRadioButton curValue = new JRadioButton(oldValue, false);
-            currentSettings.add(curValue);
+			JRadioButton curValue = new JRadioButton(oldValue, false);
+			currentSettings.add(curValue);
 			optionBox.add(curValue, gbc);
 /*
-            curValue.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    updateButtonState();
-                }});
+			curValue.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					updateButtonState();
+				}});
 */
 
 			// the fourth column is the Libraries value
@@ -178,19 +178,19 @@ public class OptionReconcile extends EDialog
 			gbc.weightx = 0.2;   gbc.weighty = 0;
 			gbc.anchor = GridBagConstraints.WEST;
 			gbc.fill = GridBagConstraints.NONE;
-            JRadioButton libValue = new JRadioButton(newValue, true);
-            changedSettings.put(libValue, setting);
+			JRadioButton libValue = new JRadioButton(newValue, true);
+			changedSettings.put(libValue, setting);
 			optionBox.add(libValue, gbc);
 /*
-            libValue.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    updateButtonState();
-                }});
+			libValue.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					updateButtonState();
+				}});
 */
 
-            ButtonGroup group = new ButtonGroup();
-            group.add(curValue);
-            group.add(libValue);
+			ButtonGroup group = new ButtonGroup();
+			group.add(curValue);
+			group.add(libValue);
 
 			// the fifth column is the location of the option
 			gbc.gridx = 4;       gbc.gridy = rowNumber;
@@ -203,59 +203,59 @@ public class OptionReconcile extends EDialog
 			rowNumber++;
 		}
 
-        optionHeader.setText("Library \""+libname+"\" wants to use the following project settings which differ from the current project settings");        
-        pack();
+		optionHeader.setText("Library \""+libname+"\" wants to use the following project settings which differ from the current project settings");
+		pack();
 		finishInitialization();
 	}
 
-    public void termDialog() {
-        Map<Setting,Object> settingsToReconcile = new HashMap<Setting,Object>();
-        for(JRadioButton cb : changedSettings.keySet()) {
-            if (!cb.isSelected()) continue;
-            Setting setting = changedSettings.get(cb);
-            settingsToReconcile.put(setting, settingsThatChanged.get(setting));
-        }
-        new DoReconciliation(settingsToReconcile, job);
-    }
+	public void termDialog() {
+		Map<Setting,Object> settingsToReconcile = new HashMap<Setting,Object>();
+		for(JRadioButton cb : changedSettings.keySet()) {
+			if (!cb.isSelected()) continue;
+			Setting setting = changedSettings.get(cb);
+			settingsToReconcile.put(setting, settingsThatChanged.get(setting));
+		}
+		new DoReconciliation(settingsToReconcile, job);
+	}
 
 	/**
 	 * Class to apply changes to tool options in a new thread.
 	 */
 	private static class DoReconciliation extends Job
 	{
-        private Map<String,Object> settingsToSerialize = new HashMap<String,Object>();
-        private transient ReadLibrary job;
-        
-        private DoReconciliation(Map<Setting,Object> settingsToReconcile, ReadLibrary job) {
-            super("Reconcile Project Settings", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-            this.job = job;
-            for (Map.Entry<Setting,Object> e: settingsToReconcile.entrySet()) {
-                Setting setting = e.getKey();
-                Object newValue = e.getValue();
-                settingsToSerialize.put(setting.getXmlPath(), newValue);
-            }
-            startJob();
-        }
-        
-        @Override
+		private Map<String,Object> settingsToSerialize = new HashMap<String,Object>();
+		private transient ReadLibrary job;
+		
+		private DoReconciliation(Map<Setting,Object> settingsToReconcile, ReadLibrary job) {
+			super("Reconcile Project Settings", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.job = job;
+			for (Map.Entry<Setting,Object> e: settingsToReconcile.entrySet()) {
+				Setting setting = e.getKey();
+				Object newValue = e.getValue();
+				settingsToSerialize.put(setting.getXmlPath(), newValue);
+			}
+			startJob();
+		}
+		
+		@Override
 		public boolean doIt() throws JobException
 		{
-            Map<Setting,Object> settingsToReconcile = new HashMap<Setting,Object>();
-            for (Map.Entry<String,Object> e: settingsToSerialize.entrySet()) {
-                String xmlPath = e.getKey();
-                Object newValue = e.getValue();
-                Setting setting = Setting.getSetting(xmlPath);
-                if (setting == null) continue;
-                settingsToReconcile.put(setting, newValue);
-            }
-            Setting.finishSettingReconcilation(settingsToReconcile);
+			Map<Setting,Object> settingsToReconcile = new HashMap<Setting,Object>();
+			for (Map.Entry<String,Object> e: settingsToSerialize.entrySet()) {
+				String xmlPath = e.getKey();
+				Object newValue = e.getValue();
+				Setting setting = Setting.getSetting(xmlPath);
+				if (setting == null) continue;
+				settingsToReconcile.put(setting, newValue);
+			}
+			Setting.finishSettingReconcilation(settingsToReconcile);
 			return true;
 		}
 
-        @Override
-        public void terminateOK() {
-            job.startJob();
-        }
+		@Override
+		public void terminateOK() {
+			job.startJob();
+		}
 	}
  
 	/** This method is called from within the constructor to
@@ -360,21 +360,21 @@ public class OptionReconcile extends EDialog
     }// </editor-fold>//GEN-END:initComponents
 
     private void useLibraryOptionsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_useLibraryOptionsActionPerformed
-        // set all library options selected
-        for(JRadioButton b : changedSettings.keySet())
-        {
-            b.setSelected(true);
-        }
-        ok(null);
+		// set all library options selected
+		for(JRadioButton b : changedSettings.keySet())
+		{
+			b.setSelected(true);
+		}
+		ok(null);
     }//GEN-LAST:event_useLibraryOptionsActionPerformed
 
 	private void ignoreLibraryOptionsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_ignoreLibraryOptionsActionPerformed
 	{//GEN-HEADEREND:event_ignoreLibraryOptionsActionPerformed
 		// set all current options selected
-        for (AbstractButton b : currentSettings) {
-            b.setSelected(true);
-        }
-        ok(null);
+		for (AbstractButton b : currentSettings) {
+			b.setSelected(true);
+		}
+		ok(null);
 	}//GEN-LAST:event_ignoreLibraryOptionsActionPerformed
 
 	private void ok(java.awt.event.ActionEvent evt)//GEN-FIRST:event_ok
@@ -389,19 +389,6 @@ public class OptionReconcile extends EDialog
 		setVisible(false);
 		dispose();
 	}//GEN-LAST:event_closeDialog
-
-//    private void updateButtonState() {
-//        boolean ignoreAllLibOptionsEnabled = false;
-//        boolean useAllLibOptionsEnabled = false;
-//        for (AbstractButton b : currentSettings) {
-//            // if current setting selected, allow user to push "use all lib settings" button
-//            if (b.isSelected()) useAllLibOptionsEnabled = true;
-//            // if library setting selected, allow user to push "ignore all lib settings" button
-//            if (!b.isSelected()) ignoreAllLibOptionsEnabled = true;
-//        }
-//        useLibraryOptions.setEnabled(useAllLibOptionsEnabled);
-//        ignoreLibraryOptions.setEnabled(ignoreAllLibOptionsEnabled);
-//    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton ignoreLibraryOptions;
