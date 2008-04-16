@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07i: ******************************
 
+BUG: (4/16/08, SMR) Reinvoking Electric when there is insufficient memory ignores
+     the "user.home" parameter setting (Bug #1656).
+FIX: In Launcher.invokeElectric(), consult a list of parameters to copy (currently
+     just "user.home".
+
 BUG: (4/16/08, SMR) Sea-of-gates router gives "arc killed" error messages (Bug #1414).
 FIX: Check for deletion before deleting arcs.
 

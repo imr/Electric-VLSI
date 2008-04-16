@@ -84,6 +84,11 @@ public final class Launcher
 		}
 	}
 
+	private static final String[] propertiesToCopy =
+	{
+		"user.home"
+	};
+
 	private static void invokeElectric(String[] args, String program)
 	{
 		// see if the required amount of memory is already present
@@ -108,21 +113,32 @@ public final class Launcher
             file = file.replaceAll("!.*", "");
         }
 
+        // build the command line for reinvoking Electric
 		String command = program;
 		command += " -cp " + getJarLocation();
         command += " -ss2m";
 		if (enableAssertions)
 			command += " -ea"; // enable assertions
-		command += " -mx" + maxMemWanted + "m ";
+		command += " -mx" + maxMemWanted + "m";
         if (maxPermWanted > 0)
-            command += " -XX:MaxPermSize=" + maxPermWanted + "m ";
-        command += "com.sun.electric.Main";
+            command += " -XX:MaxPermSize=" + maxPermWanted + "m";
+        for(int i=0; i<propertiesToCopy.length; i++)
+        {
+	        String propValue = System.getProperty(propertiesToCopy[i]);
+	        if (propValue != null && propValue.length() > 0)
+	        {
+	        	if (propValue.indexOf(' ') >= 0) propValue = "\"" + propValue + "\"";
+	        	command += " -D" + propertiesToCopy[i] + "=" + propValue;
+	        }
+        }
+        command += " com.sun.electric.Main";
+        for (int i=0; i<args.length; i++) command += " " + args[i];
+
         if (maxMemWanted > maxMem)
-            System.out.println("Current Java memory limit of "+maxMem+"MEG is too small, rerunning Electric with a memory limit of "+maxMemWanted+"MEG");
+            System.out.println("Current Java memory limit of " + maxMem +
+            	"MEG is too small, rerunning Electric with a memory limit of " + maxMemWanted + "MEG");
         if (maxPermWanted > 0)
             System.out.println("Setting maximum permanent space (2nd GC) to " + maxPermWanted + "MEG");
-        for (int i=0; i<args.length; i++) command += " " + args[i];
-        //System.out.println("exec: "+command);
 		try
 		{
 			runtime.exec(command);
