@@ -3251,12 +3251,13 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		if (this.sd != null)
 			this.sd.finished();
 		this.sd = sd;
-// TODO is this useful for bug 1644?
-for(Iterator<Analysis> it = sd.getAnalyses(); it.hasNext(); )
-{
-	Analysis an = it.next();
-	an.setBoundsDirty();
-}
+
+		// reset all bounds calculations
+		for(Iterator<Analysis> it = sd.getAnalyses(); it.hasNext(); )
+		{
+			Analysis an = it.next();
+			an.setBoundsDirty();
+		}
 
 		// reload the sweeps
 		resetSweeps();

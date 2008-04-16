@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07i: ******************************
 
+BUG: (4/16/08, SMR) Waveform window draws lines all the way to the right side of the
+     screen, even when the data does not exist (Bug #1645).
+FIX: In Panel.processSignals(), do not extrapolate data.
+
 BUG: (4/16/08, SMR) Testing for file existence locks the file.
 FIX: In TextUtils.URLExists(), close the connection on the URLConnection.
 
