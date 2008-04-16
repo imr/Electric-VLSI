@@ -303,17 +303,19 @@ public class Input
 
 	protected void closeInput()
 	{
-		dataInputStream = null;
-		lineReader = null;
-		if (inputStream == null) return;
-		try
-		{
-			inputStream.close();
-		} catch (IOException e)
-		{
-			System.out.println("Error closing file");
-		}
-		inputStream = null;
+		try {
+			dataInputStream = null;
+			if (lineReader != null)
+			{
+				lineReader.close();
+				lineReader = null;
+			}
+			if (inputStream != null)
+			{
+				inputStream.close();
+				inputStream = null;
+			}
+		} catch (IOException e ) {}
 	}
 
 	/**

@@ -309,15 +309,15 @@ public class HSpiceOut extends Simulate
 	}
 
 	/**
-	 * Method to find the ".sw" file and read DC data.
-	 * @param sd the Stimuli to add this DC data to.
+	 * Method to find the ".tr" file and read transient data.
+	 * @param sd the Stimuli to add this transient data to.
 	 * @param fileURL the URL to the ".tr" file.
 	 * @throws IOException
 	 */
 	private void addTRData(Stimuli sd, List<PALine> paList, URL fileURL)
 		throws IOException
 	{
-		// find the associated ".sw" name file
+		// find the associated ".tr" name file
 		URL swURL = null;
 		try
 		{

@@ -55,98 +55,98 @@ import java.util.TimeZone;
  */
 public class TextUtils
 {
-    /**
-     * Determines if the specified character is a ISO-LATIN-1 digit
+	/**
+	 * Determines if the specified character is a ISO-LATIN-1 digit
 	 * (<code>'0'</code> through <code>'9'</code>).
-     * <p>
+	 * <p>
 	 * This can be method instead of Character, if we are not ready
 	 * to handle Arabi-Indic, Devanagaru and other digits.
 	 *
-     * @param   ch   the character to be tested.
-     * @return  <code>true</code> if the character is a ISO-LATIN-1 digit;
-     *          <code>false</code> otherwise.
-     * @see     java.lang.Character#isDigit(char)
-     */
-    public static boolean isDigit(char ch) {
-        return '0' <= ch && ch <= '9';
-    }
+	 * @param   ch   the character to be tested.
+	 * @return  <code>true</code> if the character is a ISO-LATIN-1 digit;
+	 *          <code>false</code> otherwise.
+	 * @see     java.lang.Character#isDigit(char)
+	 */
+	public static boolean isDigit(char ch) {
+		return '0' <= ch && ch <= '9';
+	}
 
-    /**
-     * Determines if the specified character is a letter or digit.
-     * <p>
-     * A character is considered to be a letter or digit if either
-     * <code>Character.isLetter(char ch)</code> or
-     * <code>TextUtils.isDigit(char ch)</code> returns
-     * <code>true</code> for the character.
-     *
-     * @param   ch   the character to be tested.
-     * @return  <code>true</code> if the character is a letter or digit;
-     *          <code>false</code> otherwise.
-     * @see     TextUtils#isDigit(char)
-     * @see     java.lang.Character#isJavaLetterOrDigit(char)
-     * @see     java.lang.Character#isLetter(char)
-     */
-    public static boolean isLetterOrDigit(char ch) {
-        return isDigit(ch) || Character.isLetter(ch);
-    }
+	/**
+	 * Determines if the specified character is a letter or digit.
+	 * <p>
+	 * A character is considered to be a letter or digit if either
+	 * <code>Character.isLetter(char ch)</code> or
+	 * <code>TextUtils.isDigit(char ch)</code> returns
+	 * <code>true</code> for the character.
+	 *
+	 * @param   ch   the character to be tested.
+	 * @return  <code>true</code> if the character is a letter or digit;
+	 *          <code>false</code> otherwise.
+	 * @see     TextUtils#isDigit(char)
+	 * @see     java.lang.Character#isJavaLetterOrDigit(char)
+	 * @see     java.lang.Character#isLetter(char)
+	 */
+	public static boolean isLetterOrDigit(char ch) {
+		return isDigit(ch) || Character.isLetter(ch);
+	}
 
-    /**
-     * Returns canonic char for ignore-case comparison .
-     * This is the same as Character.toLowerCase(Character.toUpperCase(ch)).
-     * @param ch given char.
-     * @return canonic char fo rthe given char.
-     */
-    public static char canonicChar(char ch)
-    {
-        if (ch <= 'Z') {
-            if (ch >= 'A')
-                ch += 'a' - 'A';
-        } else {
-            if (ch >= '\u0080')
-                ch = Character.toLowerCase(Character.toUpperCase(ch));
-        }
-        return ch;
-    }
-    
-    /**
-     * Returns canonic string for ignore-case comparision .
-     * FORALL String s1, s2: s1.equalsIgnoreCase(s2) == canonicString(s1).equals(canonicString(s2)
-     * FORALL String s: canonicString(canonicString(s)).equals(canonicString(s))
-     * @param s given String
-     * @return canonic String
-     * Simple "toLowerCase" is not sufficent.
-     * For example ("\u0131").equalsIgnoreCase("i") , but Character.toLowerCase('\u0131') == '\u0131' .
-     */
-    public static String canonicString(String s) {
-        int i = 0;
-        for (; i < s.length(); i++) {
-            char ch = s.charAt(i);
-            if (canonicChar(ch) != ch) break;
-        }
-        if (i == s.length()) return s;
-        
-        char[] chars = s.toCharArray();
-        for (; i < s.length(); i++)
-            chars[i] = canonicChar(chars[i]);
-        return new String(chars);
-    }
-   
-//    static {
-//        for (int i = Character.MIN_VALUE; i <= Character.MAX_VALUE; i++) {
-//            char ch = (char)i;
-//            char toLower = Character.toLowerCase(ch);
-//            char toUpper = Character.toUpperCase(ch);
-//            char canonic = canonicChar(toUpper);
-//            if (canonic != toLower) {
-//                System.out.println(ch + " " + Integer.toHexString(ch) +
-//                        " lower " + toLower + " " + Integer.toHexString(toLower) +
-//                        " upper " + toUpper + " " + Integer.toHexString(toUpper) +
-//                        " canonic " + canonic + " " + Integer.toHexString(canonic));
-//                assert Character.toLowerCase(Character.toUpperCase(canonic)) == canonic;
-//            }
-//        }
-//    }
-    
+	/**
+	 * Returns canonic char for ignore-case comparison .
+	 * This is the same as Character.toLowerCase(Character.toUpperCase(ch)).
+	 * @param ch given char.
+	 * @return canonic char fo rthe given char.
+	 */
+	public static char canonicChar(char ch)
+	{
+		if (ch <= 'Z') {
+			if (ch >= 'A')
+				ch += 'a' - 'A';
+		} else {
+			if (ch >= '\u0080')
+				ch = Character.toLowerCase(Character.toUpperCase(ch));
+		}
+		return ch;
+	}
+
+	/**
+	 * Returns canonic string for ignore-case comparision .
+	 * FORALL String s1, s2: s1.equalsIgnoreCase(s2) == canonicString(s1).equals(canonicString(s2)
+	 * FORALL String s: canonicString(canonicString(s)).equals(canonicString(s))
+	 * @param s given String
+	 * @return canonic String
+	 * Simple "toLowerCase" is not sufficent.
+	 * For example ("\u0131").equalsIgnoreCase("i") , but Character.toLowerCase('\u0131') == '\u0131' .
+	 */
+	public static String canonicString(String s) {
+		int i = 0;
+		for (; i < s.length(); i++) {
+			char ch = s.charAt(i);
+			if (canonicChar(ch) != ch) break;
+		}
+		if (i == s.length()) return s;
+
+		char[] chars = s.toCharArray();
+		for (; i < s.length(); i++)
+			chars[i] = canonicChar(chars[i]);
+		return new String(chars);
+	}
+
+//	static {
+//		for (int i = Character.MIN_VALUE; i <= Character.MAX_VALUE; i++) {
+//			char ch = (char)i;
+//			char toLower = Character.toLowerCase(ch);
+//			char toUpper = Character.toUpperCase(ch);
+//			char canonic = canonicChar(toUpper);
+//			if (canonic != toLower) {
+//				System.out.println(ch + " " + Integer.toHexString(ch) +
+//						" lower " + toLower + " " + Integer.toHexString(toLower) +
+//						" upper " + toUpper + " " + Integer.toHexString(toUpper) +
+//						" canonic " + canonic + " " + Integer.toHexString(canonic));
+//				assert Character.toLowerCase(Character.toUpperCase(canonic)) == canonic;
+//			}
+//		}
+//	}
+
 	/**
 	 * Method to determine if one string is a subset of another, but case-insensitive.
 	 * @param main the main string.
@@ -177,8 +177,8 @@ public class TextUtils
 	 * @param text the string with a number in it.
 	 * @return the numeric value.
 	 */
-    public static double atof(String text)
-    {
+	public static double atof(String text)
+	{
 		try
 		{
 			return Double.parseDouble(text);
@@ -186,26 +186,26 @@ public class TextUtils
 		{
 			return atof(text, null);
 		}
-    }
+	}
 
-    /**
-     * This is the same as TextUtils.atof, except upon failure to convert
-     * the passed text to a number, it returns the value in 'defaultVal'.
-     * If 'defaultVal' is null and the text cannot be converted to a number,
-     * the method returns 0.
-     * @param text the string to convert to a double
-     * @param defaultVal the value to return if the string cannot be converted to a double
-     * @return the numeric value
-     */
+	/**
+	 * This is the same as TextUtils.atof, except upon failure to convert
+	 * the passed text to a number, it returns the value in 'defaultVal'.
+	 * If 'defaultVal' is null and the text cannot be converted to a number,
+	 * the method returns 0.
+	 * @param text the string to convert to a double
+	 * @param defaultVal the value to return if the string cannot be converted to a double
+	 * @return the numeric value
+	 */
 	public static double atof(String text, Double defaultVal)
 	{
-        // remove commas that denote 1000's separators
-        text = text.replaceAll(",", "");
+		// remove commas that denote 1000's separators
+		text = text.replaceAll(",", "");
 
 		double v = 0;
 		try
 		{
-            Number n = parsePostFixNumber(text);
+			Number n = parsePostFixNumber(text);
 			v = n.doubleValue();
 		} catch (NumberFormatException ex)
 		{
@@ -235,9 +235,9 @@ public class TextUtils
 			}
 
 			if (end <= start) {
-                if (defaultVal != null) return defaultVal.doubleValue();
-                return 0;
-            }
+				if (defaultVal != null) return defaultVal.doubleValue();
+				return 0;
+			}
 			try
 			{
 				v = Double.parseDouble(text.substring(start, end-start));
@@ -391,67 +391,67 @@ public class TextUtils
 
 	/**
 	 * Method to convert a double to a string.
-     * Also scales number and appends appropriate postfix UnitScale string.
+	 * Also scales number and appends appropriate postfix UnitScale string.
 	 * @param v the double value to format.
 	 * @return the string representation of the number.
 	 */
 	public static String formatDoublePostFix(double v)
 	{
 		if (numberFormatPostFix == null) {
-            numberFormatPostFix = NumberFormat.getInstance(Locale.US);
-            try {
-                DecimalFormat d = (DecimalFormat)numberFormatPostFix;
-                d.setDecimalSeparatorAlwaysShown(false);
-                d.setGroupingSize(300);     // make it so comma (1000's separator) is never used
-            } catch (Exception e) {}
-        }
-        numberFormatPostFix.setMaximumFractionDigits(3);
-        int unitScaleIndex = 0;
-        if (v != 0) {
-            while ((Math.abs(v) >= 1000000) && (unitScaleIndex > UnitScale.UNIT_BASE)) {
-                v /= 1000;
-                unitScaleIndex--;
-            }
-            while ((Math.abs(v) < 0.1) && (unitScaleIndex < UnitScale.UNIT_END)) {
-                v *= 1000;
-                unitScaleIndex++;
-            }
+			numberFormatPostFix = NumberFormat.getInstance(Locale.US);
+			try {
+				DecimalFormat d = (DecimalFormat)numberFormatPostFix;
+				d.setDecimalSeparatorAlwaysShown(false);
+				d.setGroupingSize(300);	 // make it so comma (1000's separator) is never used
+			} catch (Exception e) {}
+		}
+		numberFormatPostFix.setMaximumFractionDigits(3);
+		int unitScaleIndex = 0;
+		if (v != 0) {
+			while ((Math.abs(v) >= 1000000) && (unitScaleIndex > UnitScale.UNIT_BASE)) {
+				v /= 1000;
+				unitScaleIndex--;
+			}
+			while ((Math.abs(v) < 0.1) && (unitScaleIndex < UnitScale.UNIT_END)) {
+				v *= 1000;
+				unitScaleIndex++;
+			}
 
-            // if number still out of range, adjust decimal formatting
-            if (Math.abs(v) < 0.1) {
-                int maxDecimals = 3;
-                double v2 = Math.abs(v);
-                while (v2 < 0.1) {
-                    maxDecimals++;
-                    v2 *= 10;
-                }
-                numberFormatPostFix.setMaximumFractionDigits(maxDecimals);
-            }
-        }
-        UnitScale u = UnitScale.findFromIndex(unitScaleIndex);
+			// if number still out of range, adjust decimal formatting
+			if (Math.abs(v) < 0.1) {
+				int maxDecimals = 3;
+				double v2 = Math.abs(v);
+				while (v2 < 0.1) {
+					maxDecimals++;
+					v2 *= 10;
+				}
+				numberFormatPostFix.setMaximumFractionDigits(maxDecimals);
+			}
+		}
+		UnitScale u = UnitScale.findFromIndex(unitScaleIndex);
 		String result = numberFormatPostFix.format(v);
 		return result + u.getPostFix();
 	}
 
-    private static NumberFormat numberFormatSpecific = null;
-
-    /**
-     * Method to convert a double to a string.
-     * If the double has no precision past the decimal, none will be shown.
-     * @param v the double value to format.
-     * @return the string representation of the number.
-     */
-    public static String formatDouble(double v)
-    {
-        return formatDouble(v, 3);
-    }
+	private static NumberFormat numberFormatSpecific = null;
 
 	/**
 	 * Method to convert a double to a string.
-     * It will show up to 'numFractions' digits past the decimal point if numFractions is greater
-     * than zero. If numFractions is 0, it will show infinite (as far as doubles go) precision.
-     * If the double has no precision past the decimal, none will be shown.
-     * This method is now thread safe.
+	 * If the double has no precision past the decimal, none will be shown.
+	 * @param v the double value to format.
+	 * @return the string representation of the number.
+	 */
+	public static String formatDouble(double v)
+	{
+		return formatDouble(v, 3);
+	}
+
+	/**
+	 * Method to convert a double to a string.
+	 * It will show up to 'numFractions' digits past the decimal point if numFractions is greater
+	 * than zero. If numFractions is 0, it will show infinite (as far as doubles go) precision.
+	 * If the double has no precision past the decimal, none will be shown.
+	 * This method is now thread safe.
 	 * @param v the double value to format.
 	 * @param numFractions the number of digits to the right of the decimal point.
 	 * @return the string representation of the number.
@@ -459,20 +459,20 @@ public class TextUtils
 	public static synchronized String formatDouble(double v, int numFractions)
 	{
 		if (numberFormatSpecific == null) {
-            numberFormatSpecific = NumberFormat.getInstance(Locale.US);
-            if (numberFormatSpecific != null) numberFormatSpecific.setGroupingUsed(false);
-            try {
-                DecimalFormat d = (DecimalFormat)numberFormatSpecific;
-//                DecimalFormat d = (DecimalFormat)numberFormatPostFix;
-                d.setDecimalSeparatorAlwaysShown(false);
-            } catch (Exception e) {}
+			numberFormatSpecific = NumberFormat.getInstance(Locale.US);
+			if (numberFormatSpecific != null) numberFormatSpecific.setGroupingUsed(false);
+			try {
+				DecimalFormat d = (DecimalFormat)numberFormatSpecific;
+//				DecimalFormat d = (DecimalFormat)numberFormatPostFix;
+				d.setDecimalSeparatorAlwaysShown(false);
+			} catch (Exception e) {}
 
-        }
-        if (numFractions == 0) {
-            numberFormatSpecific.setMaximumFractionDigits(340);
-        } else {
-            numberFormatSpecific.setMaximumFractionDigits(numFractions);
-        }
+		}
+		if (numFractions == 0) {
+			numberFormatSpecific.setMaximumFractionDigits(340);
+		} else {
+			numberFormatSpecific.setMaximumFractionDigits(numFractions);
+		}
 		return numberFormatSpecific.format(v);
 	}
 
@@ -536,7 +536,7 @@ public class TextUtils
 		ConversionRange(String p, int pow, double s) { postfix = p;   power = pow;   scale = s; }
 	}
 	private static ConversionRange [] allRanges = new ConversionRange[]
-    {
+	{
 		// Although the extremes (yocto and yotta) are defined in the literature,
 		// they aren't common in circuits (at this time) and so they are commented out.
 		// Add them and more as their use in circuitry becomes common.
@@ -557,7 +557,7 @@ public class TextUtils
 		new ConversionRange("E",  18, 1.0E-15),		// exa
 		new ConversionRange("Z",  21, 1.0E-18)		// zetta
 //		new ConversionRange("Y",  24, 1.0E-21)		// yotta
-    };
+	};
 	private static final double LOOKS_LIKE_ZERO = 1.0 / (allRanges[0].scale * 1.0E4);
 	private static final double SMALLEST_JUST_PRINT = 1.0 / (allRanges[0].scale * 1.0);
 	private static final double LARGEST_JUST_PRINT = 1.0 / allRanges[allRanges.length-1].scale * 1.0E4;
@@ -599,7 +599,7 @@ public class TextUtils
 					secType = allRanges[i].postfix + unitPostfix;
 				rangePos = i;
 				break;
-			}			
+			}
 		}
 
 		if (precpower >= allRanges[rangePos].power)
@@ -735,42 +735,42 @@ public class TextUtils
 		return false;
 	}
 
-    /**
-     * Method to determine whether or not a string is a postfix formatted
-     * number, such as 1.02f.
-     * @param pp the string to test.
-     * @return true if it is a postfix number.
-     */
-    public static boolean isANumberPostFix(String pp) {
-        // ignore the minus sign
-        int i = 0;
-        int len = pp.length();
-        if (i < len && (pp.charAt(i) == '+' || pp.charAt(i) == '-')) i++;
+	/**
+	 * Method to determine whether or not a string is a postfix formatted
+	 * number, such as 1.02f.
+	 * @param pp the string to test.
+	 * @return true if it is a postfix number.
+	 */
+	public static boolean isANumberPostFix(String pp) {
+		// ignore the minus sign
+		int i = 0;
+		int len = pp.length();
+		if (i < len && (pp.charAt(i) == '+' || pp.charAt(i) == '-')) i++;
 
-        boolean founddigits = false;
-        while (i < len && (TextUtils.isDigit(pp.charAt(i)) || pp.charAt(i) == '.'))
-        {
-            if (pp.charAt(i) != '.') founddigits = true;
-            i++;
-        }
+		boolean founddigits = false;
+		while (i < len && (TextUtils.isDigit(pp.charAt(i)) || pp.charAt(i) == '.'))
+		{
+			if (pp.charAt(i) != '.') founddigits = true;
+			i++;
+		}
 
-        if (!founddigits) return false;
-        if (i == len) return true;
+		if (!founddigits) return false;
+		if (i == len) return true;
 
-        // handle post fix character (spice format)
-        if (i+1 == len) {
-            char c = Character.toLowerCase(pp.charAt(i));
-            if (c == 'g' || c == 'k' || c == 'm' || c == 'u' ||
-                c == 'n' || c == 'p' || c == 'f') {
-                return true;
-            }
-        } else if (pp.substring(i).toLowerCase().equals("meg"))
-            return true;
+		// handle post fix character (spice format)
+		if (i+1 == len) {
+			char c = Character.toLowerCase(pp.charAt(i));
+			if (c == 'g' || c == 'k' || c == 'm' || c == 'u' ||
+				c == 'n' || c == 'p' || c == 'f') {
+				return true;
+			}
+		} else if (pp.substring(i).toLowerCase().equals("meg"))
+			return true;
 
-        return false;
-    }
+		return false;
+	}
 
-    /**
+	/**
 	 * Method to describe a time value as a String.
 	 * @param milliseconds the time span in milli-seconds.
 	 * @return a String describing the time span with the
@@ -833,7 +833,7 @@ public class TextUtils
 	/**
 	 * Method to break a line into keywords, separated by white space or comma
 	 * @param line the string to tokenize.
-     * @param delim the delimiters.
+	 * @param delim the delimiters.
 	 * @return an array of Strings for each keyword on the line.
 	 */
 	public static String [] parseString(String line, String delim)
@@ -854,16 +854,16 @@ public class TextUtils
 		private final String name;
 //		private final String description;
 		private final int index;
-        private final String postFix;
-        private final Number multiplier;
+		private final String postFix;
+		private final Number multiplier;
 
 		private UnitScale(String name, String description, int index, String postFix, Number multiplier)
 		{
 			this.name = name;
 //			this.description = description;
 			this.index = index;
-            this.postFix = postFix;
-            this.multiplier = multiplier;
+			this.postFix = postFix;
+			this.multiplier = multiplier;
 		}
 
 		/**
@@ -880,17 +880,17 @@ public class TextUtils
 		 */
 		public int getIndex() { return index; }
 
-        /**
-         * Get the string representing the postfix associated with this unit scale
-         * @return the post fix string
-         */
-        public String getPostFix() { return postFix; }
+		/**
+		 * Get the string representing the postfix associated with this unit scale
+		 * @return the post fix string
+		 */
+		public String getPostFix() { return postFix; }
 
-        /**
-         * Get the multiplier value associated with this unit scale.
-         * @return the multiplier. May be an Integer (values >= 1) or a Double (values <= 1)
-         */
-        public Number getMultiplier() { return multiplier; }
+		/**
+		 * Get the multiplier value associated with this unit scale.
+		 * @return the multiplier. May be an Integer (values >= 1) or a Double (values <= 1)
+		 */
+		public Number getMultiplier() { return multiplier; }
 
 		/**
 		 * Method to convert the index value to a UnitScale.
@@ -913,7 +913,7 @@ public class TextUtils
 		public String toString() { return name; }
 
 		/** The largest unit value. */					private static final int UNIT_BASE =  -3;
-        /** The smallest unit value. */                 private static final int UNIT_END = 5;
+		/** The smallest unit value. */					private static final int UNIT_END = 5;
 		/** Describes giga scale (1 billion). */		public static final UnitScale GIGA =  new UnitScale("Giga",  "giga:  x 1000000000", -3, "G", new Integer(1000000000));
 		/** Describes mega scale (1 million). */		public static final UnitScale MEGA =  new UnitScale("Mega",  "mega:  x 1000000",    -2, "meg", new Integer(1000000));
 		/** Describes kilo scale (1 thousand). */		public static final UnitScale KILO =  new UnitScale("Kilo",  "kilo:  x 1000",       -1, "k", new Integer(1000));
@@ -973,7 +973,7 @@ public class TextUtils
 	 */
 //	public static String displayedUnits(double value, TextDescriptor.Unit unitType, UnitScale unitScale)
 //	{
-//        String postFix = "";
+//		String postFix = "";
 //		if (unitScale == UnitScale.GIGA)
 //		{
 //			value /= 1000000000.0f;
@@ -1008,7 +1008,7 @@ public class TextUtils
 //			postFix = "f";
 //		}
 //		return value + postFix;
-////        return formatDoublePostFix(value);
+////		return formatDoublePostFix(value);
 //	}
 
 	/**
@@ -1040,102 +1040,102 @@ public class TextUtils
 //			return displayedUnits(value, units, User.getVoltageUnits());
 //		if (units == TextDescriptor.Unit.TIME)
 //			return displayedUnits(value, units, User.getTimeUnits());
-        return (formatDoublePostFix(value));
+		return (formatDoublePostFix(value));
 //		// shouldn't get here
 //		return "?";
 	}
 
-    /**
-     * Try to parse the user input String s into a Number. Conversion into the following formats
-     * is tried in order. If a conversion is successful, that object is returned.
-     * If no conversions are successful, this throws a NumberFormatException.
-     * This method removes any UnitScale postfix, and scales the number accordingly.
-     * No characters in the string are ignored - the string in its entirety (sans removed postfix) must be
-     * able to be parsed into the Number by the usual Integer.parseInt(), Double.parseDouble() methods.
-     * <P>Formats: Integer, Long, Double
-     * @param s the string to parse
-     * @return a Number that represents the string in its entirety
-     * @throws NumberFormatException if the String is not a parsable Number.
-     */
-    public static Number parsePostFixNumber(String s) throws NumberFormatException {
-        // remove character denoting multiplier at end, if any
+	/**
+	 * Try to parse the user input String s into a Number. Conversion into the following formats
+	 * is tried in order. If a conversion is successful, that object is returned.
+	 * If no conversions are successful, this throws a NumberFormatException.
+	 * This method removes any UnitScale postfix, and scales the number accordingly.
+	 * No characters in the string are ignored - the string in its entirety (sans removed postfix) must be
+	 * able to be parsed into the Number by the usual Integer.parseInt(), Double.parseDouble() methods.
+	 * <P>Formats: Integer, Long, Double
+	 * @param s the string to parse
+	 * @return a Number that represents the string in its entirety
+	 * @throws NumberFormatException if the String is not a parsable Number.
+	 */
+	public static Number parsePostFixNumber(String s) throws NumberFormatException {
+		// remove character denoting multiplier at end, if any
 
-        // remove commas that denote 1000's separators
-        s = s.replaceAll(",", "");
+		// remove commas that denote 1000's separators
+		s = s.replaceAll(",", "");
 
-        Number n = null;                                    // the number
-        Number m = null;                                    // the multiplier
+		Number n = null;									// the number
+		Number m = null;									// the multiplier
 
-        for (int i=0; i<UnitScale.allUnits.length; i++) {
-            UnitScale u = UnitScale.allUnits[i];
+		for (int i=0; i<UnitScale.allUnits.length; i++) {
+			UnitScale u = UnitScale.allUnits[i];
 
-            String postfix = u.getPostFix();
-            if (postfix.equals("")) continue;               // ignore the NONE suffix case
-            if (postfix.length() >= s.length()) continue;   // postfix is same length or longer than string
+			String postfix = u.getPostFix();
+			if (postfix.equals("")) continue;				// ignore the NONE suffix case
+			if (postfix.length() >= s.length()) continue;	// postfix is same length or longer than string
 
-            String sSuffix = s.substring(s.length()-postfix.length(), s.length());
+			String sSuffix = s.substring(s.length()-postfix.length(), s.length());
 
-            if (sSuffix.equalsIgnoreCase(postfix)) {
-                m = u.getMultiplier();
-                String sub = s.substring(0, s.length()-postfix.length());
-                // try to converst substring to a number
-                try {
-                    n = parseNumber(sub);
-                    break;
-                } catch (NumberFormatException e) {
-                    m = null;                           // try again
-                }
-            }
-        }
+			if (sSuffix.equalsIgnoreCase(postfix)) {
+				m = u.getMultiplier();
+				String sub = s.substring(0, s.length()-postfix.length());
+				// try to converst substring to a number
+				try {
+					n = parseNumber(sub);
+					break;
+				} catch (NumberFormatException e) {
+					m = null;							// try again
+				}
+			}
+		}
 
-        // if no valid postfix found, just parse number
-        if (n == null) n = parseNumber(s);
+		// if no valid postfix found, just parse number
+		if (n == null) n = parseNumber(s);
 
-        if (m != null) {
-            if ((m instanceof Integer) && (m.intValue() == 1)) return n;
+		if (m != null) {
+			if ((m instanceof Integer) && (m.intValue() == 1)) return n;
 
-            if ((n instanceof Integer) && (m instanceof Integer)) {
-                return new Integer(n.intValue() * m.intValue());
-            }
-            if ((n instanceof Long) && (m instanceof Integer)) {
-                return new Long(n.longValue() * m.longValue());
-            }
-            return new Double(n.doubleValue() * m.doubleValue());
-        }
-        return n;
-    }
+			if ((n instanceof Integer) && (m instanceof Integer)) {
+				return new Integer(n.intValue() * m.intValue());
+			}
+			if ((n instanceof Long) && (m instanceof Integer)) {
+				return new Long(n.longValue() * m.longValue());
+			}
+			return new Double(n.doubleValue() * m.doubleValue());
+		}
+		return n;
+	}
 
-    /**
-     * Try to parse the user input String s into a Number. Conversion into the following formats
-     * is tried in order. If a conversion is successful, that object is returned.
-     * If no conversions are successful, this throws a NumberFormatException.
-     * No characters in the string are ignored - the string in its entirety must be
-     * able to be parsed into the Number by the usual Integer.parseInt(), Double.parseDouble() methods.
-     * <P>Formats: Integer, Long, Double
-     * @param s the string to parse
-     * @return a Number that represents the string in its entirety
-     * @throws NumberFormatException if the String is not a parsable Number.
-     */
-    private static Number parseNumber(String s) throws NumberFormatException {
-        Number n = null;
-        try {
-            n = new Integer(s);
-        } catch (NumberFormatException e) {
-            // elib format does not know what a Long is
-            //try {
-            //    n = new Long(s);
-            //} catch (NumberFormatException ee) {
-                try {
-                    n = new Double(s);
-                } catch (NumberFormatException eee) {}
-            //}
-        }
-        if (n == null) {
-            NumberFormatException e = new NumberFormatException(s + "cannot be parsed into a Number");
-            throw e;
-        }
-        return n;
-    }
+	/**
+	 * Try to parse the user input String s into a Number. Conversion into the following formats
+	 * is tried in order. If a conversion is successful, that object is returned.
+	 * If no conversions are successful, this throws a NumberFormatException.
+	 * No characters in the string are ignored - the string in its entirety must be
+	 * able to be parsed into the Number by the usual Integer.parseInt(), Double.parseDouble() methods.
+	 * <P>Formats: Integer, Long, Double
+	 * @param s the string to parse
+	 * @return a Number that represents the string in its entirety
+	 * @throws NumberFormatException if the String is not a parsable Number.
+	 */
+	private static Number parseNumber(String s) throws NumberFormatException {
+		Number n = null;
+		try {
+			n = new Integer(s);
+		} catch (NumberFormatException e) {
+			// elib format does not know what a Long is
+			//try {
+			//	n = new Long(s);
+			//} catch (NumberFormatException ee) {
+				try {
+					n = new Double(s);
+				} catch (NumberFormatException eee) {}
+			//}
+		}
+		if (n == null) {
+			NumberFormatException e = new NumberFormatException(s + "cannot be parsed into a Number");
+			throw e;
+		}
+		return n;
+	}
 
 	/**
 	 * Method to print a very long string.
@@ -1166,7 +1166,7 @@ public class TextUtils
 //	 * Formal definition of order.
 //	 * Lets insert in string's character sequence number at start of digit sequences.
 //	 * Consider that numbers in the sequence are less than chars.
-//	 * 
+//	 *
 //	 * Examples below are in increasing order:
 //	 *   ""           { }
 //	 *   "0"          {  0, '0' }
@@ -1191,14 +1191,14 @@ public class TextUtils
 //	 *   "in10"       { 'i', 'n', 10, '1', '0' }
 //	 *   "in!"        { 'i', 'n', '!' }
 //	 *   "ina"        { 'i , 'n', 'a' }
-//	 *   
+//	 *
 //	 * @param name1 the first string.
 //	 * @param name2 the second string.
 //	 * @return 0 if they are equal, nonzero according to order.
 //	 */
 //	public static int nameSameNumeric(String name1, String name2) {
-//        return STRING_NUMBER_ORDER.compare(name1, name2);
-//    }
+//		return STRING_NUMBER_ORDER.compare(name1, name2);
+//	}
 //
 	/**
 	 * Method to convert a file path to a URL.
@@ -1227,48 +1227,48 @@ public class TextUtils
 		return null;
 	}
 
-    /**
-     * Get the file for the URL. The code
-     * <code>
-     * new File(url.getPath())
-     * </code>
-     * returns an illegal leading slash on windows,
-     * and has forward slashes instead of back slashes.
-     * This method generates the correct File using
-     * <code>
-     * new File(url.toURI())
-     * </code>
-     * <P>
-     * use <code>getPath()</code> on the returned File
-     * to get the correct String file path.
-     * <P>
-     * This should only be needed when running an external process under
-     * windows with command line arguments containing file paths. Otherwise,
-     * the Java IO code does the correct conversion.
-     *
-     * @param url the URL to convert to a File.
-     * @return the File.  Will return null if
-     * URL does not point to a file.
-     */
-    public static File getFile(URL url) {
-        try {
-            return new File(url.toURI());
-        } catch (java.net.URISyntaxException e) {
-            System.out.println("URL -> File conversion error: "+e.getMessage());
-            return new File(url.getPath());
-        } catch (java.lang.IllegalArgumentException e) {
-            System.out.println("URL -> File conversion error: "+e.getMessage());
-            return null;
-        }
-    }
+	/**
+	 * Get the file for the URL. The code
+	 * <code>
+	 * new File(url.getPath())
+	 * </code>
+	 * returns an illegal leading slash on windows,
+	 * and has forward slashes instead of back slashes.
+	 * This method generates the correct File using
+	 * <code>
+	 * new File(url.toURI())
+	 * </code>
+	 * <P>
+	 * use <code>getPath()</code> on the returned File
+	 * to get the correct String file path.
+	 * <P>
+	 * This should only be needed when running an external process under
+	 * windows with command line arguments containing file paths. Otherwise,
+	 * the Java IO code does the correct conversion.
+	 *
+	 * @param url the URL to convert to a File.
+	 * @return the File.  Will return null if
+	 * URL does not point to a file.
+	 */
+	public static File getFile(URL url) {
+		try {
+			return new File(url.toURI());
+		} catch (java.net.URISyntaxException e) {
+			System.out.println("URL -> File conversion error: "+e.getMessage());
+			return new File(url.getPath());
+		} catch (java.lang.IllegalArgumentException e) {
+			System.out.println("URL -> File conversion error: "+e.getMessage());
+			return null;
+		}
+	}
 
-    /**
-     * Method to convert a URL to a string.
-     * @param url the URL
-     * @return a String that is the path to that URL.
-     */
-    private static String URLtoString(URL url)
-    {
+	/**
+	 * Method to convert a URL to a string.
+	 * @param url the URL
+	 * @return a String that is the path to that URL.
+	 */
+	private static String URLtoString(URL url)
+	{
 		String filePath = url.getFile();
 
 		// use proper URI to ensure valid path name
@@ -1285,9 +1285,9 @@ public class TextUtils
 		} catch (UnsupportedEncodingException e) {}
 
 		return filePath;
-    }
+	}
 
-    /**
+	/**
 	 * Method to return the directory path part of a URL (excluding the file name).
 	 * For example, the URL "file:/users/strubin/gates.elib" has the directory part "/users/strubin/".
 	 * @param url the URL to the file.
@@ -1298,14 +1298,14 @@ public class TextUtils
 	{
 		if (url == null) return "";
 		String filePath = URLtoString(url);
-		
-        // special case of .delib files, which are directories, but we want them to appear as files
-        File file = new File(filePath);
-        if (file.getName().toLowerCase().endsWith(".delib")) {
-            filePath = file.getPath();
-        }
-        //if (filePath.toLowerCase().endsWith(".delib"+File.separator))
-        //    filePath = filePath.substring(0, filePath.length()-1);  // remove trailing '/'
+
+		// special case of .delib files, which are directories, but we want them to appear as files
+		File file = new File(filePath);
+		if (file.getName().toLowerCase().endsWith(".delib")) {
+			filePath = file.getPath();
+		}
+		//if (filePath.toLowerCase().endsWith(".delib"+File.separator))
+		//	filePath = filePath.substring(0, filePath.length()-1);  // remove trailing '/'
 		int backSlashPos = filePath.lastIndexOf('\\');
 		int colonPos = filePath.lastIndexOf(':');
 		int slashPos = filePath.lastIndexOf('/');
@@ -1323,9 +1323,9 @@ public class TextUtils
 	 * @return the pure file name.
 	 */
 	public static String getFileNameWithoutExtension(URL url) {
-        return getFileNameWithoutExtension(URLtoString(url));
-    }
-    
+		return getFileNameWithoutExtension(URLtoString(url));
+	}
+
 	/**
 	 * Method to return the pure file name of a file path.
 	 * The pure file name excludes the directory path and the extension.
@@ -1452,7 +1452,9 @@ public class TextUtils
 		{
 			URLConnection con = url.openConnection();
 			con.connect();
-			if (con.getContentLength() < 0) return false;
+			int conLength = con.getContentLength();
+			con.getInputStream().close();
+			if (conLength < 0) return false;
 		} catch (Exception e)
 		{
 			if (errorMsg != null)
@@ -1464,108 +1466,108 @@ public class TextUtils
 
 	/****************************** FOR SORTING OBJECTS ******************************/
 
-    /**
-     * A comparator object for sorting Strings that may have numbers in them.
-     * Created once because it is used often.
-     */
-    public static final Comparator<String> STRING_NUMBER_ORDER = new Comparator<String>() {
-        /**
-         * Method to compare two names and give a sort order.
-         * The comparison considers numbers in numeric order so that the
-         * string "in10" comes after the string "in9".
-         *
-         * Formal definition of order.
-         * Lets insert in string's character sequence number at start of digit sequences.
-         * Consider that numbers in the sequence are less than chars.
-         *
-         * Examples below are in increasing order:
-         *   ""           { }
-         *   "0"          {  0, '0' }
-         *   "9"          {  9, '9' }
-         *   "10"         { 10, '1', '0' }
-         *   "2147483648" { 2147483648, '2', '1', '4', '7', '4', '8', '3', '6', '4', '8' }
-         *   " "          { ' ' }
-         *   "-"          { '-' }
-         *   "-1"         { '-', 1, '1' }
-         *   "-2"         { '-', 2, '2' }
-         *   "a"          { 'a' }
-         *   "a0"         { 'a',  0, '0' }
-         *   "a0-0"       { 'a',  0, '0', '-', 0, '0' }
-         *   "a00"        { 'a',  0, '0', '0' }
-         *   "a0a"        { 'a',  0, '0', 'a' }
-         *   "a01"        { 'a',  1, '0', '1' }
-         *   "a1"         { 'a',  1, '1' }
-         *   "a[1]"       { 'a', '[', 1, '1', ']' }
-         *   "a[10]"      { 'a', '[', 10, '1', '0', ']' }
-         *   "in"         { 'i', 'n' }
-         *   "in1"        { 'i', 'n',  1, '1' }
-         *   "in1a"       { 'i', 'n',  1, '1', 'a' }
-         *   "in9"        { 'i', 'n',  9, '9' }
-         *   "in10"       { 'i', 'n', 10, '1', '0' }
-         *   "in!"        { 'i', 'n', '!' }
-         *   "ina"        { 'i , 'n', 'a' }
-         *
-         * @param o1 the first string.
-         * @param o2 the second string.
-         * @return 0 if they are equal, nonzero according to order.
-         */
-    	public int compare(String name1, String name2) { 
-            int len1 = name1.length();
-            int len2 = name2.length();
-            int extent = Math.min(len1, len2);
-            for(int pos = 0; pos < extent; pos++) {
-                char ch1 = name1.charAt(pos);
-                char ch2 = name2.charAt(pos);
-                if (ch1 != ch2) {
-                    int digit1 = digit(ch1);
-                    int digit2 = digit(ch2);
-                    if (digit1 >= 0 || digit2 >= 0) {
-                        int pos1 = pos + 1, pos2 = pos + 1; // Positions in string to compare
-                        
-                        // One char is digit, another is not. Is previous digit ?
-                        int digit = pos > 0 ? digit(name1.charAt(--pos)) : -1;
-                        if (digit < 0 && (digit1 < 0 || digit2 < 0)) {
-                            // Previos is not digit. Number is less than non-number.
-                            return digit2 - digit1;
-                        }
-                        // Are previus digits all zeros ?
-                        while (digit == 0)
-                            digit = pos > 0 ? digit(name1.charAt(--pos)) : -1;
-                        if (digit < 0) {
-                            // All previos digits are zeros. Skip zeros further.
-                            while (digit1 == 0)
-                                digit1 = pos1 < len1 ? digit(name1.charAt(pos1++)) : -1;
-                            while (digit2 == 0)
-                                digit2 = pos2 < len2 ? digit(name2.charAt(pos2++)) : -1;
-                        }
-                        
-                        // skip matching digits
-                        while (digit1 == digit2 && digit1 >= 0) {
-                            digit1 = pos1 < len1 ? digit(name1.charAt(pos1++)) : -1;
-                            digit2 = pos2 < len2 ? digit(name2.charAt(pos2++)) : -1;
-                        }
-                        
-                        boolean dig1 = digit1 >= 0;
-                        boolean dig2 = digit2 >= 0;
-                        for (int i = 0; dig1 && dig2; i++) {
-                            dig1 = pos1 + i < len1 && digit(name1.charAt(pos1 + i)) >= 0;
-                            dig2 = pos2 + i < len2 && digit(name2.charAt(pos2 + i)) >= 0;
-                        }
-                        if (dig1 != dig2) return dig1 ? 1 : -1;
-                        if (digit1 != digit2) return digit1 - digit2;
-                    }
-                    return ch1 - ch2;
-                }
-            }
-            return len1 - len2;
-        }
+	/**
+	 * A comparator object for sorting Strings that may have numbers in them.
+	 * Created once because it is used often.
+	 */
+	public static final Comparator<String> STRING_NUMBER_ORDER = new Comparator<String>() {
+		/**
+		 * Method to compare two names and give a sort order.
+		 * The comparison considers numbers in numeric order so that the
+		 * string "in10" comes after the string "in9".
+		 *
+		 * Formal definition of order.
+		 * Lets insert in string's character sequence number at start of digit sequences.
+		 * Consider that numbers in the sequence are less than chars.
+		 *
+		 * Examples below are in increasing order:
+		 *   ""           { }
+		 *   "0"          {  0, '0' }
+		 *   "9"          {  9, '9' }
+		 *   "10"         { 10, '1', '0' }
+		 *   "2147483648" { 2147483648, '2', '1', '4', '7', '4', '8', '3', '6', '4', '8' }
+		 *   " "          { ' ' }
+		 *   "-"          { '-' }
+		 *   "-1"         { '-', 1, '1' }
+		 *   "-2"         { '-', 2, '2' }
+		 *   "a"          { 'a' }
+		 *   "a0"         { 'a',  0, '0' }
+		 *   "a0-0"       { 'a',  0, '0', '-', 0, '0' }
+		 *   "a00"        { 'a',  0, '0', '0' }
+		 *   "a0a"        { 'a',  0, '0', 'a' }
+		 *   "a01"        { 'a',  1, '0', '1' }
+		 *   "a1"         { 'a',  1, '1' }
+		 *   "a[1]"       { 'a', '[', 1, '1', ']' }
+		 *   "a[10]"      { 'a', '[', 10, '1', '0', ']' }
+		 *   "in"         { 'i', 'n' }
+		 *   "in1"        { 'i', 'n',  1, '1' }
+		 *   "in1a"       { 'i', 'n',  1, '1', 'a' }
+		 *   "in9"        { 'i', 'n',  9, '9' }
+		 *   "in10"       { 'i', 'n', 10, '1', '0' }
+		 *   "in!"        { 'i', 'n', '!' }
+		 *   "ina"        { 'i , 'n', 'a' }
+		 *
+		 * @param o1 the first string.
+		 * @param o2 the second string.
+		 * @return 0 if they are equal, nonzero according to order.
+		 */
+		public int compare(String name1, String name2) {
+			int len1 = name1.length();
+			int len2 = name2.length();
+			int extent = Math.min(len1, len2);
+			for(int pos = 0; pos < extent; pos++) {
+				char ch1 = name1.charAt(pos);
+				char ch2 = name2.charAt(pos);
+				if (ch1 != ch2) {
+					int digit1 = digit(ch1);
+					int digit2 = digit(ch2);
+					if (digit1 >= 0 || digit2 >= 0) {
+						int pos1 = pos + 1, pos2 = pos + 1; // Positions in string to compare
+
+						// One char is digit, another is not. Is previous digit ?
+						int digit = pos > 0 ? digit(name1.charAt(--pos)) : -1;
+						if (digit < 0 && (digit1 < 0 || digit2 < 0)) {
+							// Previos is not digit. Number is less than non-number.
+							return digit2 - digit1;
+						}
+						// Are previus digits all zeros ?
+						while (digit == 0)
+							digit = pos > 0 ? digit(name1.charAt(--pos)) : -1;
+						if (digit < 0) {
+							// All previos digits are zeros. Skip zeros further.
+							while (digit1 == 0)
+								digit1 = pos1 < len1 ? digit(name1.charAt(pos1++)) : -1;
+							while (digit2 == 0)
+								digit2 = pos2 < len2 ? digit(name2.charAt(pos2++)) : -1;
+						}
+
+						// skip matching digits
+						while (digit1 == digit2 && digit1 >= 0) {
+							digit1 = pos1 < len1 ? digit(name1.charAt(pos1++)) : -1;
+							digit2 = pos2 < len2 ? digit(name2.charAt(pos2++)) : -1;
+						}
+
+						boolean dig1 = digit1 >= 0;
+						boolean dig2 = digit2 >= 0;
+						for (int i = 0; dig1 && dig2; i++) {
+							dig1 = pos1 + i < len1 && digit(name1.charAt(pos1 + i)) >= 0;
+							dig2 = pos2 + i < len2 && digit(name2.charAt(pos2 + i)) >= 0;
+						}
+						if (dig1 != dig2) return dig1 ? 1 : -1;
+						if (digit1 != digit2) return digit1 - digit2;
+					}
+					return ch1 - ch2;
+				}
+			}
+			return len1 - len2;
+		}
 	};
 
-    private static int digit(char ch) {
-        if (ch < '\u0080')
-            return ch >= '0' && ch <= '9' ? ch - '0' : -1;
-        return Character.digit((int)ch, 10);
-    }
+	private static int digit(char ch) {
+		if (ch < '\u0080')
+			return ch >= '0' && ch <= '9' ? ch - '0' : -1;
+		return Character.digit((int)ch, 10);
+	}
 
 //	/**
 //	 * Test of STRING_NUMBER_ORDER.
@@ -1594,8 +1596,8 @@ public class TextUtils
 // 		"a0a",        // { 'a',  0, '0', 'a' }
 // 		"a01",        // { 'a',  1, '0', '1' }
 // 		"a1",         // { 'a',  1, '1' }
-//        "a[1]",       // { 'a', '[', 1, '1', ']' }
-//        "a[10]",      // { 'a', '[', 10, '1', '0', ']' }
+//		"a[1]",       // { 'a', '[', 1, '1', ']' }
+//		"a[10]",      // { 'a', '[', 10, '1', '0', ']' }
 // 		"in",         // { 'i', 'n' }
 // 		"in1",        // { 'i', 'n',  1, '1' }
 // 		"in1a",       // { 'i', 'n',  1, '1', 'a' }
@@ -1623,18 +1625,18 @@ public class TextUtils
 	/**
 	 * Comparator class for sorting Objects by their string name.
 	 */
-    public static class ObjectsByToString implements Comparator<Object>
-    {
+	public static class ObjectsByToString implements Comparator<Object>
+	{
 		/**
 		 * Method to sort Objects by their string name.
 		 */
-        public int compare(Object o1, Object o2)
-        {
-            String s1 = o1.toString();
-            String s2 = o2.toString();
-            return s1.compareToIgnoreCase(s2);
-        }
-    }
+		public int compare(Object o1, Object o2)
+		{
+			String s1 = o1.toString();
+			String s2 = o2.toString();
+			return s1.compareToIgnoreCase(s2);
+		}
+	}
 
 	/**
 	 * Comparator class for sorting Cells by their view order.
@@ -1645,7 +1647,7 @@ public class TextUtils
 		 * Method to sort Cells by their view order.
 		 */
 		public int compare(Cell c1, Cell c2)
-        {
+		{
 			View v1 = c1.getView();
 			View v2 = c2.getView();
 			return v1.getOrder() - v2.getOrder();
@@ -1717,21 +1719,21 @@ public class TextUtils
 	/**
 	 * Comparator class for sorting Networks by their name.
 	 */
-    public static class NetworksByName implements Comparator<Network>
-    {
+	public static class NetworksByName implements Comparator<Network>
+	{
 		/**
 		 * Method to sort Networks by their name.
 		 */
-    	public int compare(Network n1, Network n2)
-        {
-            String s1 = n1.describe(false);
-            String s2 = n2.describe(false);
-            return s1.compareToIgnoreCase(s2);
-        }
-    }
+		public int compare(Network n1, Network n2)
+		{
+			String s1 = n1.describe(false);
+			String s2 = n2.describe(false);
+			return s1.compareToIgnoreCase(s2);
+		}
+	}
 
-    public static final Comparator<Connection> CONNECTIONS_ORDER = new Comparator<Connection>() {
-        public int compare(Connection c1, Connection c2) {
+	public static final Comparator<Connection> CONNECTIONS_ORDER = new Comparator<Connection>() {
+		public int compare(Connection c1, Connection c2) {
 			int i1 = c1.getPortInst().getPortProto().getPortIndex();
 			int i2 = c2.getPortInst().getPortProto().getPortIndex();
 			int cmp = i1 - i2;
@@ -1740,47 +1742,47 @@ public class TextUtils
 			if (cmp != 0) return cmp;
 			return c1.getEndIndex() - c2.getEndIndex();
 		}
-    };
+	};
 
-    /**
-     * Method to replace all special characters in the instance name coming from external files such as"/"..
-     * @param n
-     * @param onlyBrackets
-     * @param correctBrackets
-     * @return String where characters "/", "[", "]" are replacedby "_". "\" is removed.
-     */
-    public static String correctName(String n, boolean onlyBrackets, boolean correctBrackets)
-    {
-        int index;
+	/**
+	 * Method to replace all special characters in the instance name coming from external files such as"/"..
+	 * @param n
+	 * @param onlyBrackets
+	 * @param correctBrackets
+	 * @return String where characters "/", "[", "]" are replacedby "_". "\" is removed.
+	 */
+	public static String correctName(String n, boolean onlyBrackets, boolean correctBrackets)
+	{
+		int index;
 
-        // removing brackets only if ] is not the last item in the string
-        // It doesn't correct brackets if {a[1],b[2],c[3]} in VerilogReading
-        if (correctBrackets)
-        {
-            index = n.indexOf("]");
-            if (index != -1 && index < n.length()-1)
-            {
-                n = n.replace('[', '-');
-                n = n.replace("]", "-");
-            }
-        }
-        if (onlyBrackets) return n;
+		// removing brackets only if ] is not the last item in the string
+		// It doesn't correct brackets if {a[1],b[2],c[3]} in VerilogReading
+		if (correctBrackets)
+		{
+			index = n.indexOf("]");
+			if (index != -1 && index < n.length()-1)
+			{
+				n = n.replace('[', '-');
+				n = n.replace("]", "-");
+			}
+		}
+		if (onlyBrackets) return n;
 
-        // First replace "/" for "-"
-        index = n.indexOf("/");
-        if (index != -1)
-            n = n.replaceAll("/", "_");
-        // Remove possible space character representing as \
-        index = n.indexOf("\\");
-        if (index != -1)
-        {
-            assert(false); // detect this before
-            n = n.substring(index+1);
-        }
-        return n;
-    }
+		// First replace "/" for "-"
+		index = n.indexOf("/");
+		if (index != -1)
+			n = n.replaceAll("/", "_");
+		// Remove possible space character representing as \
+		index = n.indexOf("\\");
+		if (index != -1)
+		{
+			assert(false); // detect this before
+			n = n.substring(index+1);
+		}
+		return n;
+	}
 
-    /**
+	/**
 	 * Class to define the kind of text string to search
 	 */
 	public enum WhatToSearch {

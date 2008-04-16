@@ -295,7 +295,7 @@ public class Simulate extends Input
 		return null;
 	}
 
-	/*
+	/**
 	 * Method to get the next line of text from the simulator.
 	 * Returns null at end of file.
 	 */
