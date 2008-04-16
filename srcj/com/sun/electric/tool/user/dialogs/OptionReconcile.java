@@ -131,9 +131,12 @@ public class OptionReconcile extends EDialog
 				newValue = b ? "ON" : "OFF";
 			} else if (trueMeaning != null) {
 				oldValue = trueMeaning[setting.getInt()];
-				if (oldValue.length() > 30) oldValue = oldValue.substring(0, 30) + "...";
 				newValue = trueMeaning[((Integer)obj).intValue()];
-			}
+            }
+            if (oldValue.length() > 30)
+                oldValue = oldValue.substring(0, 30) + "...";
+            if (newValue.length() > 30)
+                newValue = newValue.substring(0, 30) + "...";
 
 /*
 			// the first column: the "Accept" checkbox
