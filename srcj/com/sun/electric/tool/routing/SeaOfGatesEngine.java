@@ -629,7 +629,7 @@ public class SeaOfGatesEngine
 			{
 				// routed: remove the unrouted arcs
 				for(ArcInst aiKill : routeBatches[b].unroutedArcs)
-					aiKill.kill();
+					if (aiKill.isLinked()) aiKill.kill();
 				cell.killNodes(routeBatches[b].unroutedNodes);
 			} else
 			{
@@ -656,7 +656,7 @@ public class SeaOfGatesEngine
 							if (nr.routeInBatch-1 < headPort || nr.routeInBatch-1 >= tailPort) continue;
 							if (nr.winningWF == null || nr.winningWF.vertices == null) allRouted = false;
 						}
-						if (allRouted) aiKill.kill();
+						if (allRouted && aiKill.isLinked()) aiKill.kill();
 					}
 				}
 			}

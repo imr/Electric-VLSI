@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07i: ******************************
 
+BUG: (4/16/08, SMR) Sea-of-gates router gives "arc killed" error messages (Bug #1414).
+FIX: Check for deletion before deleting arcs.
+
 IMP/MAN: (4/16/08, SMR) Waveform window can be panned horizontally by dragging
      the time scale at the top.  Also added two new commands to the
      "Window / Waveform Window" menu: "Fill Only in X" and "Fill Only in Y" (Bug #1654).

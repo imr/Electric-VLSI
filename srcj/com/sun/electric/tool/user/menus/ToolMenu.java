@@ -1075,7 +1075,7 @@ public class ToolMenu {
 		}
         for(Network net : nets)
         {
-            System.out.println("Network '" + net.describe(true) + "':");
+            System.out.println("Network " + net.describe(true) + ":");
 
             // find all exports on network "net"
             HashSet<Export> listedExports = new HashSet<Export>();
