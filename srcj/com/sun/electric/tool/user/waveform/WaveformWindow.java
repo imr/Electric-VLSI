@@ -3955,7 +3955,51 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		}
 	}
 
+	/**
+	 * Method to make the waveform window/panel fill in X only.
+	 */
+	public static void fillInX()
+	{
+		WindowFrame current = WindowFrame.getCurrentWindowFrame();
+		WindowContent content = current.getContent();
+		if (!(content instanceof WaveformWindow))
+		{
+			System.out.println("Must select a Waveform window first");
+			return;
+		}
+		WaveformWindow ww = (WaveformWindow)content;
+		ww.fillWaveform(1);
+	}
+
+	/**
+	 * Method to make the waveform window/panel fill in Y only.
+	 */
+	public static void fillInY()
+	{
+		WindowFrame current = WindowFrame.getCurrentWindowFrame();
+		WindowContent content = current.getContent();
+		if (!(content instanceof WaveformWindow))
+		{
+			System.out.println("Must select a Waveform window first");
+			return;
+		}
+		WaveformWindow ww = (WaveformWindow)content;
+		ww.fillWaveform(2);
+	}
+
+	/**
+	 * Method to make the waveform window/panel fill in X and Y.
+	 */
 	public void fillScreen()
+	{
+		fillWaveform(3);
+	}
+
+	/**
+	 * Method to make the stimuli fill the waveform window.
+	 * @param how what to fill: 1=X, 2=Y, 3=both.
+	 */
+	private void fillWaveform(int how)
 	{
 		// accumulate bounds for all displayed panels
 		double leftEdge=0, rightEdge=0;
@@ -4029,8 +4073,12 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			{
 				if (wp.getMinXAxis() != leftEdge || wp.getMaxXAxis() != rightEdge)
 				{
-					wp.setXAxisRange(leftEdge, rightEdge);
-					repaint = true;
+					// only if X filling is requested
+					if ((how&1) != 0)
+					{
+						wp.setXAxisRange(leftEdge, rightEdge);
+						repaint = true;
+					}
 				}
 			}
 			if (yBounds != null)
@@ -4043,8 +4091,12 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				highValue += valueRange;
 				if (wp.getYAxisLowValue() != lowValue || wp.getYAxisHighValue() != highValue)
 				{
-					wp.setYAxisRange(lowValue, highValue);
-					repaint = true;
+					// only if Y filling is requested
+					if ((how&2) != 0)
+					{
+						wp.setYAxisRange(lowValue, highValue);
+						repaint = true;
+					}
 				}
 			}
 			if (repaint)

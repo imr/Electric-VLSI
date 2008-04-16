@@ -43,6 +43,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -56,10 +57,11 @@ import javax.swing.JPopupMenu;
 /**
  * This class defines the horizontal ruler display at the top of each Panel.
  */
-public class HorizRuler extends JPanel implements MouseListener
+public class HorizRuler extends JPanel implements MouseListener, MouseMotionListener
 {
 	private Panel wavePanel;
 	private WaveformWindow waveWindow;
+	private double startX;
 
 	// constructor
 	HorizRuler(Panel wavePanel, WaveformWindow waveWindow)
@@ -74,6 +76,7 @@ public class HorizRuler extends JPanel implements MouseListener
 		setPreferredSize(sz);
 
 		addMouseListener(this);
+		addMouseMotionListener(this);
 
 		// a drop target for the ruler panel
 		new DropTarget(this, DnDConstants.ACTION_LINK, WaveformWindow.waveformDropTarget, true);
@@ -269,25 +272,59 @@ public class HorizRuler extends JPanel implements MouseListener
 	 */
 	public void mousePressed(MouseEvent evt)
 	{
-		if (!ClickZoomWireListener.isRightMouse(evt)) return;
-		waveWindow.vcrClickStop();
+		if (ClickZoomWireListener.isRightMouse(evt))
+		{
+			waveWindow.vcrClickStop();
 
-		// right click in horizontal ruler area: show popup of choices
-		JPopupMenu menu = new JPopupMenu();
-		JMenuItem item = new JMenuItem("Linear");
-		item.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { makeLinear(); } });
-		menu.add(item);
-		item = new JMenuItem("Logarithmic");
-		item.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { makeLogarithmic(); } });
-		menu.add(item);
-		menu.addSeparator();
-		item = new JMenuItem("Make the X axis show Time");
-		item.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { restoreTime(); } });
-		menu.add(item);
+			// right click in horizontal ruler area: show popup of choices
+			JPopupMenu menu = new JPopupMenu();
+			JMenuItem item = new JMenuItem("Linear");
+			item.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { makeLinear(); } });
+			menu.add(item);
+			item = new JMenuItem("Logarithmic");
+			item.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { makeLogarithmic(); } });
+			menu.add(item);
+			menu.addSeparator();
+			item = new JMenuItem("Make the X axis show Time");
+			item.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { restoreTime(); } });
+			menu.add(item);
 
-		menu.show(this, evt.getX(), evt.getY());
+			menu.show(this, evt.getX(), evt.getY());
+			return;
+		}
+
+		// start dragging the timeline
+		Panel pan = wavePanel;
+		if (pan == null && waveWindow.getNumPanels() > 0)
+			pan = waveWindow.getPanel(0);
+		if (pan != null)
+		{
+			startX = pan.convertXScreenToData(evt.getX());
+		}
 	}
 
+	public void mouseDragged(MouseEvent evt)
+	{
+		Panel pan = wavePanel;
+		if (pan == null && waveWindow.getNumPanels() > 0)
+			pan = waveWindow.getPanel(0);
+		if (pan != null)
+		{
+			double endX = pan.convertXScreenToData(evt.getX());
+			double dXValue = endX - startX;
+	
+			for(Iterator<Panel> it = waveWindow.getPanels(); it.hasNext(); )
+			{
+				Panel wp = it.next();
+				if (!waveWindow.isXAxisLocked() && wp != wavePanel) continue;
+				wp.setXAxisRange(wp.getMinXAxis() - dXValue, wp.getMaxXAxis() - dXValue);
+				wp.repaintWithRulers();
+			}
+			startX = endX;
+		}
+	}
+
+	public void mouseMoved(MouseEvent evt) {}
 	public void mouseReleased(MouseEvent evt) {}
 	public void mouseClicked(MouseEvent evt) {}
 	public void mouseEntered(MouseEvent evt) {}

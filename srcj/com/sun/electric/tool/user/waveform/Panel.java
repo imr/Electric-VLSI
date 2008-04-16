@@ -1425,7 +1425,7 @@ public class Panel extends JPanel
 	{
 		List<WaveSelection> selectedObjects = null;
 		if (bounds != null) selectedObjects = new ArrayList<WaveSelection>();
-		int wid = sz.width;
+//		int wid = sz.width;
 		int hei = sz.height;
 		Signal xSignal = xAxisSignal;
 		if (waveWindow.isXAxisLocked()) xSignal = waveWindow.getXAxisSignalAll();
