@@ -34,12 +34,12 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.drc.DRC;
+import com.sun.electric.tool.extract.TransistorSearch;
+import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
-import com.sun.electric.tool.io.FileType;
-import com.sun.electric.tool.Job;
-import com.sun.electric.tool.extract.TransistorSearch;
 
 import java.awt.geom.Rectangle2D;
 import java.io.BufferedOutputStream;
@@ -56,6 +56,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.swing.JFrame;
 
@@ -92,7 +94,7 @@ public class CellLists extends EDialog
 	{
 		super(parent, modal);
 		initComponents();
-        getRootPane().setDefaultButton(ok);
+		getRootPane().setDefaultButton(ok);
 
 		// make a popup of views
 		for (View v : View.getOrderedViews())
@@ -219,17 +221,17 @@ public class CellLists extends EDialog
 		if (maxlen < 0) line += "\t"; else line += " ";
 
 		boolean goodDRC = false;
-        int activeBits = DRC.getActiveBits(cell.getTechnology());
+		int activeBits = DRC.getActiveBits(cell.getTechnology());
 		Date lastGoodDate = DRC.getLastDRCDateBasedOnBits(cell, true, activeBits, true);
-        // checking spacing drc
-        if (!Job.getDebug() && lastGoodDate != null && cell.getRevisionDate().before(lastGoodDate)) goodDRC = true;
+		// checking spacing drc
+		if (!Job.getDebug() && lastGoodDate != null && cell.getRevisionDate().before(lastGoodDate)) goodDRC = true;
 		if (goodDRC) line += "D"; else line += " ";
-        // now check min area
-        goodDRC = false;
-        lastGoodDate = DRC.getLastDRCDateBasedOnBits(cell, false, activeBits, true);
-        if (!Job.getDebug() && lastGoodDate != null && cell.getRevisionDate().before(lastGoodDate)) goodDRC = true;
-        if (goodDRC) line += "A"; else line += " ";
-        if (maxlen < 0) line += "\t"; else line += " ";
+		// now check min area
+		goodDRC = false;
+		lastGoodDate = DRC.getLastDRCDateBasedOnBits(cell, false, activeBits, true);
+		if (!Job.getDebug() && lastGoodDate != null && cell.getRevisionDate().before(lastGoodDate)) goodDRC = true;
+		if (goodDRC) line += "A"; else line += " ";
+		if (maxlen < 0) line += "\t"; else line += " ";
 
 //		if (net_ncchasmatch(cell) != 0) addstringtoinfstr(infstr, x_("N")); else
 //			addstringtoinfstr(infstr, x_(" "));
@@ -239,7 +241,7 @@ public class CellLists extends EDialog
 	/**
 	 * Method to recursively walk the hierarchy from "np", marking all cells below it.
 	 */
-	private void recursiveMark(Cell cell, HashSet<Cell> cellsSeen)
+	private void recursiveMark(Cell cell, Set<Cell> cellsSeen)
 	{
 		if (cellsSeen.contains(cell)) return;
 		cellsSeen.add(cell);
@@ -328,7 +330,7 @@ public class CellLists extends EDialog
 		Cell curCell = WindowFrame.needCurCell();
 		if (curCell == null) return;
 
-		HashMap<NodeProto,GenMath.MutableInteger> nodeCount = new HashMap<NodeProto,GenMath.MutableInteger>();
+		Map<NodeProto,GenMath.MutableInteger> nodeCount = new HashMap<NodeProto,GenMath.MutableInteger>();
 
 		// first zero the count of each nodeproto
 		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
@@ -359,8 +361,8 @@ public class CellLists extends EDialog
 		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology curtech = it.next();
-            int totalVal = 0;
-            for(Iterator<PrimitiveNode> nIt = curtech.getNodes(); nIt.hasNext(); )
+			int totalVal = 0;
+			for(Iterator<PrimitiveNode> nIt = curtech.getNodes(); nIt.hasNext(); )
 			{
 				PrimitiveNode np = nIt.next();
 				GenMath.MutableInteger count = nodeCount.get(np);
@@ -371,12 +373,12 @@ public class CellLists extends EDialog
 					printtech = curtech;
 				}
 				System.out.println(TextUtils.toBlankPaddedString(count.intValue(), 6) + " " + np.describe(true) + " nodes");
-                totalVal += count.intValue();
-            }
-            System.out.println(TextUtils.toBlankPaddedString(totalVal, 6) + " Total nodes for " + curtech.getTechName() + " technology");
-        }
+				totalVal += count.intValue();
+			}
+			System.out.println(TextUtils.toBlankPaddedString(totalVal, 6) + " Total nodes for " + curtech.getTechName() + " technology");
+		}
 
-        for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
+		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 		{
 			Library lib = it.next();
 			Library printlib = null;
@@ -399,7 +401,7 @@ public class CellLists extends EDialog
 	 * Method to recursively examine cell "np" and update the number of
 	 * instantiated primitive nodeprotos in the "temp1" field of the nodeprotos.
 	 */
-	private static void addObjects(Cell cell, HashMap<NodeProto,GenMath.MutableInteger> nodeCount)
+	private static void addObjects(Cell cell, Map<NodeProto,GenMath.MutableInteger> nodeCount)
 	{
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
@@ -427,7 +429,7 @@ public class CellLists extends EDialog
 		Cell curCell = WindowFrame.needCurCell();
 		if (curCell == null) return;
 
-		HashMap<Cell,GenMath.MutableInteger> nodeCount = new HashMap<Cell,GenMath.MutableInteger>();
+		Map<Cell,GenMath.MutableInteger> nodeCount = new HashMap<Cell,GenMath.MutableInteger>();
 
 		// set counters on every cell in every library
 		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
@@ -476,86 +478,181 @@ public class CellLists extends EDialog
 			System.out.println("There are no instances in " + curCell);
 	}
 
-    /**
-     * This method implements the command to count the number of transistors
-     * from this current Cell.
-     */
-    public static void numberOfTransistorsCommand()
+	/**
+	 * This method implements the command to count the number of transistors
+	 * from this current Cell.
+	 */
+	public static void numberOfTransistorsCommand()
 	{
 		Cell curCell = WindowFrame.needCurCell();
 		if (curCell == null) return;
-        TransistorSearch.countNumberOfTransistors(curCell);
-    }
+		TransistorSearch.countNumberOfTransistors(curCell);
+	}
 
-    /**
+//	/**
+//	 * This method implements the command to list the usage of the current Cell.
+//	 */
+//	public static void listCellUsageCommand()
+//	{
+//		Cell curCell = WindowFrame.needCurCell();
+//		if (curCell == null) return;
+//
+//		Map<Cell,GenMath.MutableInteger> nodeCount = new HashMap<Cell,GenMath.MutableInteger>();
+//
+//		// set counters on every cell in every library
+//		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
+//		{
+//			Library lib = it.next();
+//			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
+//			{
+//				Cell cell = cIt.next();
+//				nodeCount.put(cell, new GenMath.MutableInteger(0));
+//			}
+//		}
+//
+//		// count the number of instances in this cell
+//		boolean found = false;
+//		for(Iterator<NodeInst> nIt = curCell.getInstancesOf(); nIt.hasNext(); )
+//		{
+//			NodeInst ni = nIt.next();
+//			Cell cell = ni.getParent();
+//			GenMath.MutableInteger count = nodeCount.get(cell);
+//			if (count != null)
+//			{
+//				count.increment();
+//				found = true;
+//			}
+//		}
+//
+//		// count the number of instances in this cell's icon
+//		Cell iconCell = curCell.iconView();
+//		if (iconCell != null)
+//		{
+//			for(Iterator<NodeInst> nIt = iconCell.getInstancesOf(); nIt.hasNext(); )
+//			{
+//				NodeInst ni = nIt.next();
+//				if (ni.isIconOfParent()) continue;
+//				Cell cell = ni.getParent();
+//				GenMath.MutableInteger count = nodeCount.get(cell);
+//				if (count != null)
+//				{
+//					count.increment();
+//					found = true;
+//				}
+//			}
+//		}
+//
+//		// show the results
+//		if (!found)
+//		{
+//			System.out.println("Cell " + curCell.describe(true) + " is not used anywhere");
+//			return;
+//		}
+//		System.out.println("Cell " + curCell.describe(true) + " is used in these locations:");
+//		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
+//		{
+//			Library lib = it.next();
+//			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
+//			{
+//				Cell cell = cIt.next();
+//				GenMath.MutableInteger count = nodeCount.get(cell);
+//				if (count == null || count.intValue() == 0) continue;
+//				System.out.println("  " + count.intValue() + " instances in " + cell);
+//			}
+//		}
+//	}
+
+	/**
 	 * This method implements the command to list the usage of the current Cell.
 	 */
-	public static void listCellUsageCommand()
+	public static void listCellUsageCommand(boolean recursive)
 	{
-		Cell curCell = WindowFrame.needCurCell();
-		if (curCell == null) return;
+		Cell c = WindowFrame.needCurCell();
+		if (c == null) return;
 
-		HashMap<Cell,GenMath.MutableInteger> nodeCount = new HashMap<Cell,GenMath.MutableInteger>();
+		Map<Cell,Map<Cell,GenMath.MutableInteger>> nodeCount = new HashMap<Cell,Map<Cell,GenMath.MutableInteger>>();
+		List<Cell> cellsToConsider = new ArrayList<Cell>();
+		cellsToConsider.add(c);
 
-		// set counters on every cell in every library
-		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
+		for(int i=0; i<cellsToConsider.size(); i++)
 		{
-			Library lib = it.next();
-			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
-			{
-				Cell cell = cIt.next();
-				nodeCount.put(cell, new GenMath.MutableInteger(0));
-			}
-		}
+			Cell bottom = cellsToConsider.get(i);
 
-		// count the number of instances in this cell
-		boolean found = false;
-		for(Iterator<NodeInst> nIt = curCell.getInstancesOf(); nIt.hasNext(); )
-		{
-			NodeInst ni = nIt.next();
-			Cell cell = ni.getParent();
-			GenMath.MutableInteger count = nodeCount.get(cell);
-			if (count != null)
-			{
-				count.increment();
-				found = true;
-			}
-		}
-
-		// count the number of instances in this cell's icon
-		Cell iconCell = curCell.iconView();
-		if (iconCell != null)
-		{
-			for(Iterator<NodeInst> nIt = iconCell.getInstancesOf(); nIt.hasNext(); )
+			// count the number of instances in this cell
+			for(Iterator<NodeInst> nIt = bottom.getInstancesOf(); nIt.hasNext(); )
 			{
 				NodeInst ni = nIt.next();
-				if (ni.isIconOfParent()) continue;
-				Cell cell = ni.getParent();
-				GenMath.MutableInteger count = nodeCount.get(cell);
-				if (count != null)
+				Cell top = ni.getParent();
+				if (recursive)
 				{
-					count.increment();
-					found = true;
+					if (!cellsToConsider.contains(top)) cellsToConsider.add(top);
+				}
+				Map<Cell,GenMath.MutableInteger> tally = nodeCount.get(top);
+				if (tally == null)
+				{
+					tally = new HashMap<Cell,GenMath.MutableInteger>();
+					nodeCount.put(top, tally);
+				}
+				GenMath.MutableInteger instanceCount = tally.get(bottom);
+				if (instanceCount == null)
+				{
+					instanceCount = new GenMath.MutableInteger(0);
+					tally.put(bottom, instanceCount);
+				}
+				instanceCount.increment();
+			}
+
+			// count the number of instances in this cell's icon
+			Cell iconCell = bottom.iconView();
+			if (iconCell != null)
+			{
+				for(Iterator<NodeInst> nIt = iconCell.getInstancesOf(); nIt.hasNext(); )
+				{
+					NodeInst ni = nIt.next();
+					if (ni.isIconOfParent()) continue;
+					Cell top = ni.getParent();
+					if (recursive)
+					{
+						if (!cellsToConsider.contains(top)) cellsToConsider.add(top);
+					}
+					Map<Cell,GenMath.MutableInteger> tally = nodeCount.get(top);
+					if (tally == null)
+					{
+						tally = new HashMap<Cell,GenMath.MutableInteger>();
+						nodeCount.put(top, tally);
+					}
+					GenMath.MutableInteger instanceCount = tally.get(bottom);
+					if (instanceCount == null)
+					{
+						instanceCount = new GenMath.MutableInteger(0);
+						tally.put(bottom, instanceCount);
+					}
+					instanceCount.increment();
 				}
 			}
 		}
 
 		// show the results
-		if (!found)
+		if (nodeCount.size() == 0)
 		{
-			System.out.println("Cell " + curCell.describe(true) + " is not used anywhere");
+			System.out.println("Cell " + c.describe(true) + " is not used anywhere");
 			return;
 		}
-		System.out.println("Cell " + curCell.describe(true) + " is used in these locations:");
+		if (recursive) System.out.println("Cell " + c.describe(true) + " recursive usage:"); else
+			System.out.println("Cell " + c.describe(true) + " usage:");
 		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 		{
 			Library lib = it.next();
 			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 			{
 				Cell cell = cIt.next();
-				GenMath.MutableInteger count = nodeCount.get(cell);
-				if (count == null || count.intValue() == 0) continue;
-				System.out.println("  " + count.intValue() + " instances in " + cell);
+				Map<Cell,GenMath.MutableInteger> tally = nodeCount.get(cell);
+				if (tally == null) continue;
+				for(Cell bottom : tally.keySet())
+				{
+					GenMath.MutableInteger count = tally.get(bottom);
+					System.out.println("  " + cell + " has " + count.intValue() + " instances of " + bottom);
+				}
 			}
 		}
 	}
@@ -922,7 +1019,7 @@ public class CellLists extends EDialog
 	private void ok(java.awt.event.ActionEvent evt)//GEN-FIRST:event_ok
 	{//GEN-HEADEREND:event_ok
 		// get cell and port markers
-		HashSet<Cell> cellsSeen = new HashSet<Cell>();
+		Set<Cell> cellsSeen = new HashSet<Cell>();
 
 		// mark cells to be shown
 		if (allCells.isSelected())
