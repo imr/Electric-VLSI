@@ -445,11 +445,11 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 		return ni;
 	}
 
-    public static NodeInst lowLevelNewInstance(Cell parent, ImmutableNodeInst d) {
+    public static NodeInst lowLevelNewInstance(Cell parent, ImmutableNodeInst d)
+    {
         if (d.protoId instanceof CellId && ((CellId)d.protoId).isIcon())
             return new IconNodeInst(d, parent);
-        else
-            return new NodeInst(d, parent);
+        return new NodeInst(d, parent);
     }
 
 	/**
@@ -885,10 +885,11 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 		newNi.copyTextDescriptorFrom(this, NodeInst.NODE_NAME);
 		newNi.copyTextDescriptorFrom(this, NodeInst.NODE_PROTO);
 		newNi.copyStateBits(this);
+		if (!getNameKey().isTempname())
+			newNi.setName(getName());
 
 		// now delete the original nodeinst
 		kill();
-		newNi.setName(getName());
 		return newNi;
 	}
 
