@@ -189,8 +189,8 @@ public class Panel extends JPanel
 		curMeasurement = null;
 
 		// setup this panel window
-		int height = waveWindow.getPanelSizeDigital();
-		if (analog) height = waveWindow.getPanelSizeAnalog();
+		int height = User.getWaveformDigitalPanelHeight();
+		if (analog) height = User.getWaveformAnalogPanelHeight();
 		sz = new Dimension(50, height);
 		szValid = false;
 		setSize(sz.width, sz.height);

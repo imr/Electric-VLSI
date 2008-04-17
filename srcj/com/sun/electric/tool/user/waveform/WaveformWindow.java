@@ -197,8 +197,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	/** The highlighter for this waveform window. */		private Highlighter highlighter;
 	/** 0: color display, 1: color printing, 2: B&W printing */	private int nowPrinting;
 
-	/** default height of a digital panel */				private static int panelSizeDigital = 25;
-	/** default height of an analog panel */				private static int panelSizeAnalog  = 75;
 	/** lock for crossprobing */							private static boolean freezeWaveformHighlighting = false;
 	/** lock for crossprobing */							private static boolean freezeEditWindowHighlighting = false;
 	/** The global listener for all waveform windows. */	private static WaveformWindowHighlightListener waveHighlighter = new WaveformWindowHighlightListener();
@@ -283,8 +281,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			column2.setPreferredWidth(500);
 			leftSideColumn = new WaveCellEditor(table, 0);
 			rightSideColumn = new WaveCellEditor(table, 1);
-			int height = getPanelSizeDigital();
-			if (sd.isAnalog()) height = getPanelSizeAnalog();
+			int height = User.getWaveformDigitalPanelHeight();
+			if (sd.isAnalog()) height = User.getWaveformAnalogPanelHeight();
 			table.setRowHeight(height);
 			scrollAll = new JScrollPane(table);
 
@@ -1269,8 +1267,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				}
 			}
 		}
-		int panelSize = panelSizeDigital;
-		if (sd.isAnalog()) panelSize = panelSizeAnalog;
+		int panelSize = User.getWaveformDigitalPanelHeight();
+		if (sd.isAnalog()) panelSize = User.getWaveformAnalogPanelHeight();
 
 		// determine the X and Y ranges
 		Rectangle2D bounds = null;
@@ -1566,8 +1564,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				if (i == openedPanelIndex)
 				{
 					openedPanelHeightIndex = validPanels;
-					int height = getPanelSizeDigital();
-					if (sd.isAnalog()) height = getPanelSizeAnalog();
+					int height = User.getWaveformDigitalPanelHeight();
+					if (sd.isAnalog()) height = User.getWaveformAnalogPanelHeight();
 					rowHeights[validPanels++] = height;
 					continue;
 				}
@@ -1601,25 +1599,27 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 */
 	public void growPanels(double scale)
 	{
-		int origDigitalPanelSize = panelSizeDigital;
-		panelSizeDigital = (int)(panelSizeDigital * scale);
-		if (panelSizeDigital < MINDIGITALPANELSIZE) panelSizeDigital = MINDIGITALPANELSIZE;
-		int origAnalogPanelSize = panelSizeAnalog;
-		panelSizeAnalog = (int)(panelSizeAnalog * scale);
-		if (panelSizeAnalog < MINANALOGPANELSIZE) panelSizeAnalog = MINANALOGPANELSIZE;
-
 		// if minimum doesn't apply to this display, stop now
+		int minHeight;
 		if (sd.isAnalog())
 		{
-			if (origAnalogPanelSize == panelSizeAnalog) return;
+			int origPanelSize = User.getWaveformAnalogPanelHeight();
+			int newPanelSize = (int)(origPanelSize * scale);
+			if (newPanelSize < MINANALOGPANELSIZE) newPanelSize = MINANALOGPANELSIZE;
+			if (origPanelSize == newPanelSize) return;
+			User.setWaveformAnalogPanelHeight(newPanelSize);
+			minHeight = MINANALOGPANELSIZE;
 		} else
 		{
-			if (origDigitalPanelSize == panelSizeDigital) return;
+			int origPanelSize = User.getWaveformDigitalPanelHeight();
+			int newPanelSize = (int)(origPanelSize * scale);
+			if (newPanelSize < MINDIGITALPANELSIZE) newPanelSize = MINDIGITALPANELSIZE;
+			if (origPanelSize == newPanelSize) return;
+			User.setWaveformDigitalPanelHeight(newPanelSize);
+			minHeight = MINDIGITALPANELSIZE;
 		}
 
 		// resize the panels
-		int minHeight = MINDIGITALPANELSIZE;
-		if (sd.isAnalog()) minHeight = MINANALOGPANELSIZE;
 		if (USETABLES)
 		{
 			for(int i=0; i<table.getRowCount(); i++)
@@ -1701,18 +1701,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		wp.repaintContents();
 		saveSignalOrder();
 	}
-
-	/**
-	 * Method to return the default height of a digital panel.
-	 * @return the default height of a digital panel.
-	 */
-	public int getPanelSizeDigital() { return panelSizeDigital; }
-
-	/**
-	 * Method to return the default height of an analog panel.
-	 * @return the default height of an analog panel.
-	 */
-	public int getPanelSizeAnalog() { return panelSizeAnalog; }
 
 	// ************************************* THE HORIZONTAL RULER *************************************
 

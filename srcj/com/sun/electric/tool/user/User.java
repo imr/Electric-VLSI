@@ -119,7 +119,7 @@ public class User extends Listener
 //		Rectangle2D.Double oldBounds = new Rectangle2D.Double();
 //        oldD.computeBounds(ni, oldBounds);
 //		Rectangle2D.Double newBounds = new Rectangle2D.Double();
-//        ni.getD().computeBounds(ni, newBounds);	// TODO Why can't we use "ni.getBounds()" ?
+//        ni.getD().computeBounds(ni, newBounds);	// TO DO Why can't we use "ni.getBounds()" ?
 //		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 //		{
 //			WindowFrame wf = it.next();
@@ -128,7 +128,7 @@ public class User extends Listener
 //				EditWindow wnd = (EditWindow)wf.getContent();
 //				if (wnd.getCell() == cell)
 //				{
-//					// TODO figure out way to find text bounds on the OLD object
+//					// TO DO figure out way to find text bounds on the OLD object
 //					setChangedInWindow(wnd, oldBounds);
 //
 //					// figure out full bounds including text
@@ -163,7 +163,7 @@ public class User extends Listener
 //				EditWindow wnd = (EditWindow)wf.getContent();
 //				if (wnd.getCell() == cell)
 //				{
-//					// TODO figure out way to find text bounds on the OLD object
+//					// TO DO figure out way to find text bounds on the OLD object
 //					setChangedInWindow(wnd, oldBounds);
 //
 //					// figure out full bounds including text
@@ -2793,4 +2793,30 @@ public class User extends Listener
 	 * @param on true if new nodes are mirrored in X.
 	 */
 	public static void setNewNodeMirrorX(boolean on) { cacheNewNodeMirrorX.setBoolean(on); }
+
+	private static Pref cacheWaveformDigitalPanelHeight = Pref.makeIntPref("WaveformDigitalPanelHeight", tool.prefs, 25);
+	/**
+	 * Method to tell the height of digital waveform panels.
+	 * The default is "25".
+	 * @return the height of digital waveform panels.
+	 */
+	public static int getWaveformDigitalPanelHeight() { return cacheWaveformDigitalPanelHeight.getInt(); }
+	/**
+	 * Method to set the height of digital waveform panels.
+	 * @param h the height of digital waveform panels.
+	 */
+	public static void setWaveformDigitalPanelHeight(int h) { cacheWaveformDigitalPanelHeight.setInt(h); }
+
+	private static Pref cacheWaveformAnalogPanelHeight = Pref.makeIntPref("WaveformAnalogPanelHeight", tool.prefs, 75);
+	/**
+	 * Method to tell the height of analog waveform panels.
+	 * The default is "75".
+	 * @return the height of analog waveform panels.
+	 */
+	public static int getWaveformAnalogPanelHeight() { return cacheWaveformAnalogPanelHeight.getInt(); }
+	/**
+	 * Method to set the height of analog waveform panels.
+	 * @param h the height of analog waveform panels.
+	 */
+	public static void setWaveformAnalogPanelHeight(int h) { cacheWaveformAnalogPanelHeight.setInt(h); }
 }

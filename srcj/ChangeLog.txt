@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07i: ******************************
 
+IMP: (4/17/08, SMR) Waveform window now remembers default panel height set by
+     buttons (Bug #1656).
+
 BUG: (4/16/08, SMR) Reinvoking Electric when there is insufficient memory ignores
      the "user.home" parameter setting (Bug #1656).
 FIX: In Launcher.invokeElectric(), consult a list of parameters to copy (currently
