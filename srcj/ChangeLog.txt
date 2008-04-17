@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07i: ******************************
 
+IMP/MAN: (4/17/08, SMR) New command "Export / Follow Export Up Hierarchy"
+     shows the usage of the selected export recursively up the hierarchy (for Ivan).
+
 IMP/MAN: (4/17/08, SMR) New command "Cell / Cell Info / List Cell Usage, Hierarchically"
      shows the usage of the current cell, but recursively shows usage of cells that use
      it further up the hierarchy (for Ivan).

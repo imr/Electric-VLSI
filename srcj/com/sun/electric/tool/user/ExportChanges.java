@@ -33,6 +33,7 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.network.Netlist;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
@@ -85,7 +86,7 @@ public final class ExportChanges
 		Export pp;
 		int equiv;
 		int busList;
-	};
+	}
 
 	public static void describeExports(boolean summarize)
 	{
@@ -401,6 +402,145 @@ public final class ExportChanges
 			String s1 = p1.getPortProto().getName();
 			String s2 = p2.getPortProto().getName();
 			return TextUtils.STRING_NUMBER_ORDER.compare(s1, s2);
+		}
+	}
+
+	/**
+	 * Method to follow the current export up the hierarchy.
+	 * Lists all networks and exports connected in higher cells.
+	 */
+	public static void followExport()
+	{
+		// make sure there is a current cell
+		Cell cell = WindowFrame.needCurCell();
+		if (cell == null) return;
+
+		List<Export> exportsToFollow = getSelectedExports();
+		if (exportsToFollow.size() == 0)
+		{
+			System.out.println("There are no selected exports to follow");
+			return;
+		}
+
+		Map<Cell,Set<Network>> networksSeen = new HashMap<Cell,Set<Network>>();
+		Map<Cell,Set<Export>> exportsSeen = new HashMap<Cell,Set<Export>>();
+		List<Export> exportsFollowed = new ArrayList<Export>();
+		for(Export e : exportsToFollow) exportsFollowed.add(e);
+
+		for(int i=0; i<exportsFollowed.size(); i++)
+		{
+			Export e = exportsFollowed.get(i);
+			Cell upperCell = e.getParent();
+			for(Iterator<NodeInst> nIt = upperCell.getInstancesOf(); nIt.hasNext(); )
+			{
+				NodeInst ni = nIt.next();
+				Cell higher = ni.getParent();
+				Set<Network> netsSeenInCell = networksSeen.get(higher);
+				if (netsSeenInCell == null)
+				{
+					netsSeenInCell = new HashSet<Network>();
+					networksSeen.put(higher, netsSeenInCell);
+				}
+				Netlist nl = higher.acquireUserNetlist();
+				Network net = nl.getNetwork(ni, e, 0);
+				if (netsSeenInCell.contains(net)) continue;
+				netsSeenInCell.add(net);
+
+				for(Iterator<Export> it = net.getExports(); it.hasNext(); )
+				{
+					Export furtherUp = it.next();
+					Set<Export> exportsSeenInCell = exportsSeen.get(higher);
+					if (exportsSeenInCell == null)
+					{
+						exportsSeenInCell = new HashSet<Export>();
+						exportsSeen.put(higher, exportsSeenInCell);
+					}
+					if (exportsSeenInCell.contains(furtherUp)) continue;
+					exportsSeenInCell.add(furtherUp);
+					exportsFollowed.add(furtherUp);
+				}
+			}
+
+			// now consider icon cells
+			Cell iconCell = upperCell.iconView();
+			if (iconCell != null)
+			{
+				for(Iterator<NodeInst> nIt = iconCell.getInstancesOf(); nIt.hasNext(); )
+				{
+					NodeInst ni = nIt.next();
+					if (ni.isIconOfParent()) continue;
+					Cell higher = ni.getParent();
+					Set<Network> netsSeenInCell = networksSeen.get(higher);
+					if (netsSeenInCell == null)
+					{
+						netsSeenInCell = new HashSet<Network>();
+						networksSeen.put(higher, netsSeenInCell);
+					}
+					Netlist nl = higher.acquireUserNetlist();
+					Network net = nl.getNetwork(ni, e, 0);
+					if (netsSeenInCell.contains(net)) continue;
+					netsSeenInCell.add(net);
+
+					for(Iterator<Export> it = net.getExports(); it.hasNext(); )
+					{
+						Export furtherUp = it.next();
+						Set<Export> exportsSeenInCell = exportsSeen.get(higher);
+						if (exportsSeenInCell == null)
+						{
+							exportsSeenInCell = new HashSet<Export>();
+							exportsSeen.put(higher, exportsSeenInCell);
+						}
+						if (exportsSeenInCell.contains(furtherUp)) continue;
+						exportsSeenInCell.add(furtherUp);
+						exportsFollowed.add(furtherUp);
+					}
+				}
+			}
+		}
+		if (networksSeen.size() == 0)
+		{
+			System.out.println("The selected Exports are not used anywhere");
+			return;
+		}
+
+		if (exportsToFollow.size() > 1)
+		{
+			System.out.print("The Exports ");
+			for(int i=0; i<exportsToFollow.size(); i++)
+			{
+				if (i > 0) System.out.print(",");
+				System.out.print(" " + exportsToFollow.get(i).getName());
+			}
+			System.out.println(" are used:");
+		} else System.out.println("The Export " + exportsToFollow.get(0).getName() + " is used:");
+
+		for(Cell c : networksSeen.keySet())
+		{
+			Set<Network> netsSeenInCell = networksSeen.get(c);
+			Set<Export> exportsSeenInCell = exportsSeen.get(c);
+			System.out.print("   Cell " + c.describe(false));
+			if (netsSeenInCell.size() > 1) System.out.print(" networks"); else
+				System.out.print(" network");
+			boolean comma = false;
+			for(Network n : netsSeenInCell)
+			{
+				if (comma) System.out.print(",");
+				comma = true;
+				System.out.print(" " + n.getName());
+			}
+			System.out.println();
+			if (exportsSeenInCell != null)
+			{
+				System.out.print("      And further exported as");
+				comma = false;
+				for(Export e : exportsSeenInCell)
+				{
+					if (comma) System.out.print(",");
+					comma = true;
+					System.out.print(" " + e.getName());
+				}
+				System.out.println();
+			}
 		}
 	}
 
@@ -834,7 +974,6 @@ public final class ExportChanges
 			}
 
 			// if the node is arrayed, extend the range of the export
-//			Netlist nl = cell.acquireUserNetlist();
 			int busWidth = pi.getNodeInst().getNameKey().busWidth();
 			if (busWidth > 1)
 			{
@@ -898,6 +1037,26 @@ public final class ExportChanges
 	/****************************** EXPORT DELETION ******************************/
 
 	/**
+	 * Method to return a list of selected exports.
+	 * If none are selected, the list is empty.
+	 */
+	private static List<Export> getSelectedExports()
+	{
+		List<Export> selectedExports = new ArrayList<Export>();
+		EditWindow wnd = EditWindow.getCurrent();
+		List<DisplayedText> dts = wnd.getHighlighter().getHighlightedText(true);
+		for(DisplayedText dt : dts)
+		{
+			if (dt.getElectricObject() instanceof Export)
+			{
+				Export pp = (Export)dt.getElectricObject();
+				selectedExports.add(pp);
+			}
+		}
+		return selectedExports;
+	}
+
+	/**
 	 * Method to delete the currently selected exports.
 	 */
 	public static void deleteExport()
@@ -906,17 +1065,7 @@ public final class ExportChanges
 		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
 
-		List<Export> exportsToDelete = new ArrayList<Export>();
-		EditWindow wnd = EditWindow.getCurrent();
-		List<DisplayedText> dts = wnd.getHighlighter().getHighlightedText(true);
-		for(DisplayedText dt : dts)
-		{
-			if (dt.getElectricObject() instanceof Export)
-			{
-				Export pp = (Export)dt.getElectricObject();
-				exportsToDelete.add(pp);
-			}
-		}
+		List<Export> exportsToDelete = getSelectedExports();
 		if (exportsToDelete.size() == 0)
 		{
 			System.out.println("There are no selected exports to delete");
@@ -1034,22 +1183,6 @@ public final class ExportChanges
 		{
 			cell.killExports(exportsToDelete);
 			System.out.println(exportsToDelete.size() + " exports deleted");
-
-//			// disallow port action if lock is on
-//			if (CircuitChangeJobs.cantEdit(cell, null, true, true) != 0) return false;
-//
-//			int total = 0;
-//			for(Export e : exportsToDelete)
-//			{
-//				int errorCode = CircuitChangeJobs.cantEdit(cell, e.getOriginalPort().getNodeInst(), true, true);
-//				if (errorCode < 0) break;
-//				if (errorCode > 0) continue;
-//				e.kill();
-//				total++;
-//			}
-//			if (total == 0) System.out.println("No exports deleted"); else
-//				System.out.println(total + " exports deleted");
-
 			return true;
 		}
 	}
@@ -1229,7 +1362,7 @@ public final class ExportChanges
 		Point2D   loc;
 		PortProto pp;
 		int	      angle;
-	};
+	}
 
 	/**
 	 * Method to show all exports in the current cell.
