@@ -79,6 +79,7 @@ public interface WindowContent
 	public abstract void zoomInContents();
 	public abstract void focusOnHighlighted();
 	public abstract void panXOrY(int direction, double[] panningAmounts, int ticks);
+	public abstract void centerCursor();
 
 	public abstract void setCell(Cell cell, VarContext context, WindowFrame.DisplayAttributes displayAttributes);
 	public abstract Cell getCell();

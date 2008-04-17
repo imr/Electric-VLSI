@@ -138,7 +138,7 @@ public class WindowMenu {
                 new EMenuItem("Center _Selection") { public void run() {
                     ZoomAndPanListener.centerSelection(); }},
                 new EMenuItem("Center _Cursor", numpad5) { public void run() {
-                    ZoomAndPanListener.centerCursor(); }},
+                    ZoomAndPanListener.centerCursor(WindowFrame.getCurrentWindowFrame()); }},
                 new EMenuItem("Match Other Window in _X") { public void run() {
                     matchOtherWindowCommand(1); }},
                 new EMenuItem("Match Other Window in _Y") { public void run() {

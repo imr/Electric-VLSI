@@ -82,7 +82,7 @@ public class WaveSignal
 				{
 					signal.wavePanel.clearHighlightedSignals();
 					signal.wavePanel.addHighlightedSignal(signal, true);
-					signal.wavePanel.makeSelectedPanel();
+					signal.wavePanel.makeSelectedPanel(e.getX(), e.getY());
 				}
 				JPopupMenu menu = new JPopupMenu("Color");
 				for(int i=0; i < colorArray.length; i++)
@@ -121,7 +121,7 @@ public class WaveSignal
 			signal.sigButton.setForeground(col);
 			signal.wavePanel.repaintContents();
 		}
-	};
+	}
 
 	public WaveSignal(Panel wavePanel, Signal sSig)
 	{
@@ -268,7 +268,7 @@ public class WaveSignal
 			// standard click: add this as the only trace
 			ws.wavePanel.clearHighlightedSignals();
 			ws.wavePanel.addHighlightedSignal(ws, true);
-			ws.wavePanel.makeSelectedPanel();
+			ws.wavePanel.makeSelectedPanel(-1, -1);
 		} else
 		{
 			// shift click: add or remove to list of highlighted traces

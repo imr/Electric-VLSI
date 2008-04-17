@@ -125,9 +125,9 @@ public class View3DWindow extends JPanel
     /** scale3D factor in Z axis */                         private double scale3D = J3DUtils.get3DFactor();
 	/** Highlighter for this window */                      private Highlighter highlighter;
 	private PickCanvas pickCanvas;
-	/** Lis with all Shape3D drawn per ElectricObject */    private HashMap<ElectricObject,List<Shape3D>> electricObjectMap = new HashMap<ElectricObject,List<Shape3D>>();
+	/** List with all Shape3D drawn per ElectricObject */    private Map<ElectricObject,List<Shape3D>> electricObjectMap = new HashMap<ElectricObject,List<Shape3D>>();
     private boolean oneTransformPerNode = false;
-    /** Map with object transformation for individual moves */ private HashMap<Shape3D,TransformGroup> transformGroupMap = new HashMap<Shape3D,TransformGroup>();
+    /** Map with object transformation for individual moves */ private Map<Shape3D,TransformGroup> transformGroupMap = new HashMap<Shape3D,TransformGroup>();
     /** To detect max number of nodes */                    private boolean reachLimit = false;
     /** To ask question only once */                        private boolean alreadyChecked = false;
     /** Job reference */                                    private Job job;
@@ -518,6 +518,13 @@ public class View3DWindow extends JPanel
         keyBehavior.moveAlongAxis(direction, mult*ticks);
 	}
 
+	/**
+	 * Method to shift the panels so that the current cursor location becomes the center.
+	 */
+	public void centerCursor()
+	{
+	}
+
 //    public void setViewAndZoom(double x, double y, double zoom)
 //    {
 ////        translateB.setView(x, y);
@@ -870,7 +877,7 @@ public class View3DWindow extends JPanel
 
             for (Geometric geom : geomList)
             {
-                ElectricObject eobj = (ElectricObject)geom;
+                ElectricObject eobj = geom;
 
                 List<Shape3D> list = electricObjectMap.get(eobj);
 
@@ -1054,7 +1061,7 @@ public class View3DWindow extends JPanel
 			t2d.scale(scale, scale);
 
 			try {
-				ImageObserver obj = (ImageObserver)ep;
+				ImageObserver obj = ep;
 				g2d.drawImage(bImage, t2d, obj);
 			}
 			catch (Exception ex) {
@@ -1115,7 +1122,7 @@ public class View3DWindow extends JPanel
         for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext();)
         {
             NodeInst ni = it.next();
-            Variable var = (Variable)ni.getVar("3D_NODE_DEMO");
+            Variable var = ni.getVar("3D_NODE_DEMO");
             if (var == null) continue;
             List<Shape3D> list = electricObjectMap.get(ni);
             for (int i = 0; i < list.size(); i++)
@@ -1357,21 +1364,21 @@ public class View3DWindow extends JPanel
             if (ni.getProto() == Artwork.tech().pinNode)
             {
                 Rectangle2D rect = ni.getBounds();
-                Variable var = (Variable)ni.getVar("3D_Z_VALUE");
+                Variable var = ni.getVar("3D_Z_VALUE");
                 double zValue = (var == null) ? zCenter : TextUtils.atof(var.getObject().toString());
-                var = (Variable)ni.getVar("3D_SCALE_VALUE");
+                var = ni.getVar("3D_SCALE_VALUE");
                 double scale = (var == null) ? 1 : TextUtils.atof(var.getObject().toString());
-                var = (Variable)ni.getVar("3D_HEADING_VALUE");
+                var = ni.getVar("3D_HEADING_VALUE");
                 double heading = (var == null) ? 0 : TextUtils.atof(var.getObject().toString());
-                var = (Variable)ni.getVar("3D_PITCH_VALUE");
+                var = ni.getVar("3D_PITCH_VALUE");
                 double pitch = (var == null) ? 0 : TextUtils.atof(var.getObject().toString());
-                var = (Variable)ni.getVar("3D_BANK_VALUE");
+                var = ni.getVar("3D_BANK_VALUE");
                 double bank = (var == null) ? 0 : TextUtils.atof(var.getObject().toString());
-                var = (Variable)ni.getVar("3D_ROTX_VALUE");
+                var = ni.getVar("3D_ROTX_VALUE");
                 double rotX = (var == null) ? 0 : TextUtils.atof(var.getObject().toString());
-                var = (Variable)ni.getVar("3D_ROTY_VALUE");
+                var = ni.getVar("3D_ROTY_VALUE");
                 double rotY = (var == null) ? 0 : TextUtils.atof(var.getObject().toString());
-                var = (Variable)ni.getVar("3D_ROTZ_VALUE");
+                var = ni.getVar("3D_ROTZ_VALUE");
                 double rotZ = (var == null) ? 0 : TextUtils.atof(var.getObject().toString());
                 J3DUtils.ThreeDDemoKnot knot = new J3DUtils.ThreeDDemoKnot(rect.getCenterX(), rect.getCenterY(),
                         zValue, scale, heading, pitch, bank, rotX, rotY, rotZ);
@@ -1416,7 +1423,7 @@ public class View3DWindow extends JPanel
         for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext();)
         {
             NodeInst ni = it.next();
-            Variable var = (Variable)ni.getVar("3D_NODE_DEMO");
+            Variable var = ni.getVar("3D_NODE_DEMO");
             if (var == null) continue;
             List<J3DUtils.ThreeDDemoKnot> tmpList = knotList;
             if (tmpList == null)

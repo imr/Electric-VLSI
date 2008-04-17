@@ -39,8 +39,10 @@ import java.awt.BorderLayout;
 import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.Point;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.awt.print.PageFormat;
 import java.beans.PropertyChangeListener;
@@ -759,6 +761,14 @@ public class TextWindow implements WindowContent
 	 * @param ticks
 	 */
 	public void panXOrY(int direction, double[] panningAmounts, int ticks)
+	{
+		// Nothing in this case
+	}
+
+	/**
+	 * Method to shift the window so that the current cursor location becomes the center.
+	 */
+	public void centerCursor()
 	{
 		// Nothing in this case
 	}

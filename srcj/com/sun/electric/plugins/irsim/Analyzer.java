@@ -15,7 +15,6 @@
  * software for any purpose.  It is provided "as is" without
  * express or implied warranty.
  */
-
 package com.sun.electric.plugins.irsim;
 
 import com.sun.electric.database.geometry.GenMath;
@@ -107,9 +106,9 @@ public class Analyzer extends Engine
 	/** maximum width of print line */					private static final int	MAXCOL        = 80;
 
 	/** set of potential characters */					private static final String potChars = "luxh.";
-    /** scale factor for resolution */                  private static final long   resolutionScale = 1000;
-    /** 1 -> 1ns, 100 -> 0.01ns resolution, etc */
-    /** time values in command file are in ns */        private static final double cmdFileUnits = 0.000000001;
+	/** scale factor for resolution */					private static final long   resolutionScale = 1000;
+	/** 1 -> 1ns, 100 -> 0.01ns resolution, etc */
+	/** time values in command file are in ns */		private static final double cmdFileUnits = 0.000000001;
 
 	/**
 	 * Class that defines a single low-level IRSIM control command.
@@ -122,20 +121,20 @@ public class Analyzer extends Engine
 		/** negated signals named in command */		List<DigitalSignal> sigsNegated;
 		/** duration of step, where appropriate */	double        value;
 		/** next in list of vectors */				SimVector     next;
-	};
+	}
 
 	public static class AssertWhen
 	{
 		/** which node we will check */				Sim.Node       node;
 		/** what value has the node */				char	       val;
 		/** next in list of assertions */			AssertWhen     nxt;
-	};
+	}
 
 	private static class Sequence
 	{
 		/** signal to control */					DigitalSignal  sig;
 		/** array of values */						String  []     values;
-	};
+	}
 
 	private SimVector firstVector = null;
 	private SimVector lastVector = null;
@@ -169,11 +168,11 @@ public class Analyzer extends Engine
 	/** the simulation engine */					private Sim            theSim;
 	/** the waveform window */						private WaveformWindow ww;
 	/** the analysis data being displayed */		private DigitalAnalysis analysis;
-    /** the cell being simulated */					private Cell           cell;
-    /** the context for the cell being simulated */	private VarContext     context;
-    /** the name of the file being simulated */		private String         fileName;
-    /** the name of the last vector file read */	private String         vectorFileName;
-    /** mapping from signals to nodes */			private HashMap<DigitalSignal,Sim.Node> nodeMap;
+	/** the cell being simulated */					private Cell           cell;
+	/** the context for the cell being simulated */	private VarContext     context;
+	/** the name of the file being simulated */		private String         fileName;
+	/** the name of the last vector file read */	private String         vectorFileName;
+	/** mapping from signals to nodes */			private HashMap<DigitalSignal,Sim.Node> nodeMap;
 
 	/************************** ELECTRIC INTERFACE **************************/
 
@@ -193,50 +192,33 @@ public class Analyzer extends Engine
 		theAnalyzer.cell = cell;
 		theAnalyzer.context = context;
 		theAnalyzer.fileName = fileName;
-        startIrsim(theAnalyzer);
-//		new StartIRSIM(theAnalyzer);
+		startIrsim(theAnalyzer);
 	}
 
-//	private static class StartIRSIM extends Job
-//	{
-//		private Analyzer analyzer;
-//
-//		public StartIRSIM(Analyzer analyzer)
-//		{
-//			super("Simulate cell", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
-//			this.analyzer = analyzer;
-//			startJob();
-//		}
-//
-//		public boolean doIt() throws JobException
-//		{
-//            startIrsim(analyzer);
-//			return true;
-//		}
-//	}
-    
-    private static void startIrsim(Analyzer analyzer) {
-        synchronized(analyzer) {
-            System.out.println("IRSIM, version " + simVersion);
-            
-            // now initialize the simulator
-            analyzer.initRSim();
-            
-            // Load network
-            if (analyzer.cell != null) System.out.println("Loading netlist for " + analyzer.cell + "..."); else
-                System.out.println("Loading netlist for file " + analyzer.fileName + "...");
-            analyzer.loadCircuit();
-            Stimuli sd = analyzer.analysis.getStimuli();
-            Simulation.showSimulationData(sd, null);
-            
-            // make a waveform window
-            analyzer.ww = sd.getWaveformWindow();
-            analyzer.ww.setDefaultHorizontalRange(0.0, DEFIRSIMTIMERANGE);
-            analyzer.ww.setMainXPositionCursor(DEFIRSIMTIMERANGE/5.0*2.0);
-            analyzer.ww.setExtensionXPositionCursor(DEFIRSIMTIMERANGE/5.0*3.0);
-            analyzer.init();
-        }
-    }
+	private static void startIrsim(Analyzer analyzer)
+	{
+		synchronized(analyzer)
+		{
+			System.out.println("IRSIM, version " + simVersion);
+
+			// now initialize the simulator
+			analyzer.initRSim();
+
+			// Load network
+			if (analyzer.cell != null) System.out.println("Loading netlist for " + analyzer.cell + "..."); else
+				System.out.println("Loading netlist for file " + analyzer.fileName + "...");
+			analyzer.loadCircuit();
+			Stimuli sd = analyzer.analysis.getStimuli();
+			Simulation.showSimulationData(sd, null);
+
+			// make a waveform window
+			analyzer.ww = sd.getWaveformWindow();
+			analyzer.ww.setDefaultHorizontalRange(0.0, DEFIRSIMTIMERANGE);
+			analyzer.ww.setMainXPositionCursor(DEFIRSIMTIMERANGE/5.0*2.0);
+			analyzer.ww.setExtensionXPositionCursor(DEFIRSIMTIMERANGE/5.0*3.0);
+			analyzer.init();
+		}
+	}
 
 	private void init()
 	{
@@ -679,7 +661,7 @@ public class Analyzer extends Engine
 				// keep track of time
 				if (command == VECTORS)
 				{
-                    if (sv == null) continue;
+					if (sv == null) continue;
 					currentTime += sv.value * cmdFileUnits;
 					continue;
 				}
@@ -705,7 +687,7 @@ public class Analyzer extends Engine
 					for(Signal sig : sigs)
 					{
 						Panel wp = new Panel(ww, false, analysis.getAnalysisType());
-						wp.makeSelectedPanel();
+						wp.makeSelectedPanel(-1, -1);
 						new WaveSignal(wp, sig);
 					}
 					continue;
@@ -2230,7 +2212,8 @@ public class Analyzer extends Engine
      * A value of 1000 corresponds to 1ps resolution.
      * @return resolution scale factor
      */
-    protected static long getResolutionScale() {
+    protected static long getResolutionScale()
+    {
         return resolutionScale;
     }
 
@@ -2857,6 +2840,7 @@ public class Analyzer extends Engine
 	}
 
 	static long pTime;
+
 	/**
 	 * print traceback of node's activity and that of its ancestors
 	 */

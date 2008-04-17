@@ -80,15 +80,15 @@ import javax.swing.JTextField;
  */
 public class Simulation extends Tool
 {
-	/** the Simulation tool. */		private static Simulation tool = new Simulation();
+	/** the Simulation tool. */							private static Simulation tool = new Simulation();
 
-	/** key of Variable holding rise time. */				public static final Variable.Key RISE_DELAY_KEY = Variable.newKey("SIM_rise_delay");
-	/** key of Variable holding fall time. */				public static final Variable.Key FALL_DELAY_KEY = Variable.newKey("SIM_fall_delay");
-	/** key of Variable holding flag for weak nodes. */		public static final Variable.Key WEAK_NODE_KEY = Variable.newKey("SIM_weak_node");
-	/** key of Variable holding "M" factors. */				public static final Variable.Key M_FACTOR_KEY = Variable.newKey("ATTR_M");
+	/** key of Variable holding rise time. */			public static final Variable.Key RISE_DELAY_KEY = Variable.newKey("SIM_rise_delay");
+	/** key of Variable holding fall time. */			public static final Variable.Key FALL_DELAY_KEY = Variable.newKey("SIM_fall_delay");
+	/** key of Variable holding flag for weak nodes. */	public static final Variable.Key WEAK_NODE_KEY = Variable.newKey("SIM_weak_node");
+	/** key of Variable holding "M" factors. */			public static final Variable.Key M_FACTOR_KEY = Variable.newKey("ATTR_M");
 
-	/** constant for ALS simulation */						public static final int ALS_ENGINE = 0;
-	/** constant for IRSIM simulation */					public static final int IRSIM_ENGINE = 1;
+	/** constant for ALS simulation */					public static final int ALS_ENGINE = 0;
+	/** constant for IRSIM simulation */				public static final int IRSIM_ENGINE = 1;
 
 	private static boolean irsimChecked = false;
 	private static Class<?> irsimClass = null;
@@ -96,7 +96,8 @@ public class Simulation extends Tool
 
 	private static boolean fleetChecked = false;
 	private static Class<?> fleetClass = null;
-	private static EMenu fleetSimMenu= null;
+	private static EMenu fleetSimMenu = null;
+
 	/**
 	 * The constructor sets up the Simulation tool.
 	 */
@@ -112,15 +113,15 @@ public class Simulation extends Tool
 	{
 	}
 
-    /**
-     * Method to retrieve the singleton associated with the Simulation tool.
-     * @return the Simulation tool.
-     */
-    public static Simulation getSimulationTool() { return tool; }
+	/**
+	 * Method to retrieve the singleton associated with the Simulation tool.
+	 * @return the Simulation tool.
+	 */
+	public static Simulation getSimulationTool() { return tool; }
 
 	/****************************** CONTROL OF SIMULATION ENGINES ******************************/
 
-	private static final int CONVERT_TO_VHDL      =  1;
+	private static final int CONVERT_TO_VHDL	  =  1;
 	private static final int COMPILE_VHDL_FOR_SIM =  4;
 
 	/**
@@ -132,24 +133,24 @@ public class Simulation extends Tool
 	 */
 	public static void startSimulation(int engine, boolean forceDeck, Cell prevCell, Engine prevEngine)
 	{
-    	Cell cell = null;
-        VarContext context = null;
-    	String fileName = null;
+		Cell cell = null;
+		VarContext context = null;
+		String fileName = null;
 		if (prevCell != null) cell = prevCell; else
 		{
 			UserInterface ui = Job.getUserInterface();
-	    	if (forceDeck)
-	    	{
-	    		fileName = OpenFile.chooseInputFile(FileType.IRSIM, "IRSIM deck to simulate");
-	    		if (fileName == null) return;
+			if (forceDeck)
+			{
+				fileName = OpenFile.chooseInputFile(FileType.IRSIM, "IRSIM deck to simulate");
+				if (fileName == null) return;
 				cell = ui.getCurrentCell();
-	    	} else
-	    	{
+			} else
+			{
 				cell = ui.needCurrentCell();
-		        if (cell == null) return;
-	            EditWindow_ wnd = ui.getCurrentEditWindow_();
-	            if (wnd != null) context = wnd.getVarContext();
-	    	}
+				if (cell == null) return;
+				EditWindow_ wnd = ui.getCurrentEditWindow_();
+				if (wnd != null) context = wnd.getVarContext();
+			}
 		}
 		switch (engine)
 		{
@@ -208,7 +209,7 @@ public class Simulation extends Tool
 
 		public boolean doIt() throws JobException
 		{
-            Library destLib = cell.getLibrary();
+			Library destLib = cell.getLibrary();
 			textCellsToRedraw = new ArrayList<Cell>();
 			fieldVariableChanged("textCellsToRedraw");
 			if ((activities&CONVERT_TO_VHDL) != 0)
@@ -271,11 +272,11 @@ public class Simulation extends Tool
 			return true;
 		}
 
-        public void terminateOK()
-        {
-            for(Cell cell : textCellsToRedraw) {
-                TextWindow.updateText(cell);
-            }
+		public void terminateOK()
+		{
+			for(Cell cell : textCellsToRedraw) {
+				TextWindow.updateText(cell);
+			}
 			if (prevEngine != null)
 			{
 				ALS.restartSimulation(cell, originalCell, (ALS)prevEngine);
@@ -283,7 +284,7 @@ public class Simulation extends Tool
 			{
 				ALS.simulateNetlist(cell, originalCell);
 			}
-        }
+		}
 	}
 
 	/**
@@ -341,7 +342,7 @@ public class Simulation extends Tool
 		} catch (Exception e)
 		{
 			System.out.println("Unable to run the IRSIM simulator");
-	        e.printStackTrace(System.out);
+			e.printStackTrace(System.out);
 		}
 	}
 
@@ -378,7 +379,7 @@ public class Simulation extends Tool
 			}
 			catch (Exception e) {
 				System.out.println("Unable to get FleetSimMenu");
-		        e.printStackTrace(System.out);
+				e.printStackTrace(System.out);
 			}
 		}
 
@@ -387,7 +388,8 @@ public class Simulation extends Tool
 	 	return true;
 	}
 
-	public static EMenu FLEETMenu() {
+	public static EMenu FLEETMenu()
+	{
 		return fleetSimMenu;
 	}
 
@@ -537,7 +539,7 @@ public class Simulation extends Tool
 	{
 		UserInterface ui = Job.getUserInterface();
 		EditWindow_ wnd = ui.getCurrentEditWindow_();
-        if (wnd == null) return;
+		if (wnd == null) return;
 
 		NodeInst ni = (NodeInst)wnd.getOneElectricObject(NodeInst.class);
 		if (ni == null) return;
@@ -551,7 +553,7 @@ public class Simulation extends Tool
 	{
 		private NodeInst ni;
 
-    	protected SetSpiceModel(NodeInst ni)
+		protected SetSpiceModel(NodeInst ni)
 		{
 			super("Set Spice Model", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.ni = ni;
@@ -574,7 +576,7 @@ public class Simulation extends Tool
 	{
 		UserInterface ui = Job.getUserInterface();
 		EditWindow_ wnd = ui.getCurrentEditWindow_();
-        if (wnd == null) return;
+		if (wnd == null) return;
 
 		List<Geometric> list = wnd.getHighlightedEObjs(false, true);
 		if (list.size() == 0)
@@ -593,7 +595,7 @@ public class Simulation extends Tool
 		private List<Geometric> list;
 		private int type;
 
-    	protected SetWireType(List<Geometric> list, int type)
+		protected SetWireType(List<Geometric> list, int type)
 		{
 			super("Change Verilog Wire Types", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.list = list;
@@ -634,7 +636,7 @@ public class Simulation extends Tool
 	{
 		UserInterface ui = Job.getUserInterface();
 		EditWindow_ wnd = ui.getCurrentEditWindow_();
-        if (wnd == null) return;
+		if (wnd == null) return;
 
 		NodeInst ni = (NodeInst)wnd.getOneElectricObject(NodeInst.class);
 		if (ni == null) return;
@@ -649,7 +651,7 @@ public class Simulation extends Tool
 		private NodeInst ni;
 		private boolean weak;
 
-    	protected SetTransistorStrength(NodeInst ni, boolean weak)
+		protected SetTransistorStrength(NodeInst ni, boolean weak)
 		{
 			super("Change Transistor Strength", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.ni = ni;
@@ -752,7 +754,7 @@ public class Simulation extends Tool
 							wp = new Panel(ww, sd.isAnalog(), an.getAnalysisType());
 							if (xAxisSignal != null)
 								wp.setXAxisSignal(xAxisSignal);
-							wp.makeSelectedPanel();
+							wp.makeSelectedPanel(-1, -1);
 							showedSomething = true;
 						}
 						new WaveSignal(wp, sSig);
@@ -768,7 +770,7 @@ public class Simulation extends Tool
 					for(Iterator<Panel> it = ww.getPanels(); it.hasNext(); )
 					{
 						Panel panel = it.next();
-						panel.makeSelectedPanel();
+						panel.makeSelectedPanel(-1, -1);
 						ww.fillScreen();
 					}
 				} else
@@ -779,11 +781,11 @@ public class Simulation extends Tool
 			}
 		}
 
-        if (an == null) // wrong format?
-        {
-            System.out.println("ERROR: No simulation data found: waveform window not shown");
+		if (an == null) // wrong format?
+		{
+			System.out.println("ERROR: No simulation data found: waveform window not shown");
 			return;
-        }
+		}
 
 		// nothing saved, so show a default set of signals (if it even exists)
 		if (sd.isAnalog())
@@ -793,7 +795,7 @@ public class Simulation extends Tool
 			double lowValue = bounds.getMinY();
 			double highValue = bounds.getMaxY();
 			wp.setYAxisRange(lowValue, highValue);
-			wp.makeSelectedPanel();
+			wp.makeSelectedPanel(-1, -1);
 		} else
 		{
 			// put all top-level signals in, up to a limit
@@ -807,7 +809,7 @@ public class Simulation extends Tool
 				if (sDSig.isInBus()) continue;
 				if (sDSig.getSignalName().indexOf('@') >= 0) continue;
 				Panel wp = new Panel(ww, sd.isAnalog(), an.getAnalysisType());
-				wp.makeSelectedPanel();
+				wp.makeSelectedPanel(-1, -1);
 				new WaveSignal(wp, sDSig);
 				numSignals++;
 				if (numSignals > 15) break;
@@ -885,13 +887,13 @@ public class Simulation extends Tool
 		{
 			super(parent, modal);
 
-	        getContentPane().setLayout(new GridBagLayout());
-	        setTitle("Clock Specification");
-	        setName("");
-	        addWindowListener(new WindowAdapter()
-	        {
-	            public void windowClosing(WindowEvent evt) { closeDialog(evt); }
-	        });
+			getContentPane().setLayout(new GridBagLayout());
+			setTitle("Clock Specification");
+			setName("");
+			addWindowListener(new WindowAdapter()
+			{
+				public void windowClosing(WindowEvent evt) { closeDialog(evt); }
+			});
 			ButtonGroup fp = new ButtonGroup();
 
 			// the frequency and period section
@@ -900,7 +902,7 @@ public class Simulation extends Tool
 			gbc.gridx = 0;   gbc.gridy = 0;
 			gbc.insets = new Insets(4, 4, 4, 4);
 			gbc.anchor = GridBagConstraints.WEST;
-	        getContentPane().add(freqBut, gbc);
+			getContentPane().add(freqBut, gbc);
 			fp.add(freqBut);
 
 			freqField = new JTextField();
@@ -909,14 +911,14 @@ public class Simulation extends Tool
 			gbc.gridx = 1;   gbc.gridy = 0;
 			gbc.fill = GridBagConstraints.HORIZONTAL;
 			gbc.insets = new Insets(4, 4, 4, 4);
-	        getContentPane().add(freqField, gbc);
+			getContentPane().add(freqField, gbc);
 
 			periodBut = new JRadioButton("Period:");
 			gbc = new GridBagConstraints();
 			gbc.gridx = 0;   gbc.gridy = 1;
 			gbc.insets = new Insets(4, 4, 4, 4);
 			gbc.anchor = GridBagConstraints.WEST;
-	        getContentPane().add(periodBut, gbc);
+			getContentPane().add(periodBut, gbc);
 			fp.add(periodBut);
 			periodBut.setSelected(true);
 
@@ -927,30 +929,30 @@ public class Simulation extends Tool
 			gbc.gridx = 1;   gbc.gridy = 1;
 			gbc.fill = GridBagConstraints.HORIZONTAL;
 			gbc.insets = new Insets(4, 4, 4, 4);
-	        getContentPane().add(periodField, gbc);
+			getContentPane().add(periodField, gbc);
 
 			// the OK and Cancel buttons
 			JButton cancel = new JButton("Cancel");
-	        cancel.addActionListener(new ActionListener()
-	        {
-	            public void actionPerformed(ActionEvent evt) { cancel(evt); }
-	        });
+			cancel.addActionListener(new ActionListener()
+			{
+				public void actionPerformed(ActionEvent evt) { cancel(evt); }
+			});
 			gbc = new GridBagConstraints();
 			gbc.gridx = 0;   gbc.gridy = 2;
 			gbc.insets = new Insets(4, 4, 4, 4);
-	        getContentPane().add(cancel, gbc);
+			getContentPane().add(cancel, gbc);
 
 			JButton ok = new JButton("OK");
-	        ok.addActionListener(new ActionListener()
-	        {
-	            public void actionPerformed(ActionEvent evt) { ok(evt); }
-	        });
+			ok.addActionListener(new ActionListener()
+			{
+				public void actionPerformed(ActionEvent evt) { ok(evt); }
+			});
 			gbc = new GridBagConstraints();
 			gbc.gridx = 1;   gbc.gridy = 2;
 			gbc.insets = new Insets(4, 4, 4, 4);
-	        getContentPane().add(ok, gbc);
+			getContentPane().add(ok, gbc);
 
-	        pack();
+			pack();
 
 			getRootPane().setDefaultButton(ok);
 			finishInitialization();
@@ -984,10 +986,11 @@ public class Simulation extends Tool
 		}
 	}
 
-    @Override
-    protected void initProjectSettings() {
-        initVerilogProjectSettings();
-    }
+	@Override
+	protected void initProjectSettings()
+	{
+		initVerilogProjectSettings();
+	}
 
 	/****************************** FAST HENRY OPTIONS ******************************/
 
@@ -1149,23 +1152,23 @@ public class Simulation extends Tool
 	 */
 	public static Setting getVerilogUseTriregSetting() { return tool.cacheVerilogUseTrireg; }
 
-    private Setting cacheVerilogUseAssign;
+	private Setting cacheVerilogUseAssign;
 	private Setting cacheVerilogUseTrireg;
 
-    private void initVerilogProjectSettings() {
-        makeBooleanSetting("VerilogUseAssign", "Verilog tab", "Verilog uses Assign construct", false);
-        makeBooleanSetting("VerilogUseTrireg", "Verilog tab", "Verilog presumes wire is Trireg", false);
-    }
+	private void initVerilogProjectSettings() {
+		makeBooleanSetting("VerilogUseAssign", "Verilog tab", "Verilog uses Assign construct", false);
+		makeBooleanSetting("VerilogUseTrireg", "Verilog tab", "Verilog presumes wire is Trireg", false);
+	}
 
-    private static Pref cacheVerilogStopAtStandardCells = Pref.makeBooleanPref("VerilogStopAtStandardCells", tool.prefs, false);
-    public static void setVerilogStopAtStandardCells(boolean b) { cacheVerilogStopAtStandardCells.setBoolean(b); }
-    public static boolean getVerilogStopAtStandardCells() { return cacheVerilogStopAtStandardCells.getBoolean(); }
+	private static Pref cacheVerilogStopAtStandardCells = Pref.makeBooleanPref("VerilogStopAtStandardCells", tool.prefs, false);
+	public static void setVerilogStopAtStandardCells(boolean b) { cacheVerilogStopAtStandardCells.setBoolean(b); }
+	public static boolean getVerilogStopAtStandardCells() { return cacheVerilogStopAtStandardCells.getBoolean(); }
 
 
-    /****************************** CDL OPTIONS ******************************/
+	/****************************** CDL OPTIONS ******************************/
 
 	private static Pref cacheCDLLibName = Pref.makeStringPref("CDLLibName", tool.prefs, "");
-//    static { cacheCDLLibName.attachToObject(tool, "IO/CDL tab", "Cadence library name"); }
+//	static { cacheCDLLibName.attachToObject(tool, "IO/CDL tab", "Cadence library name"); }
 	/**
 	 * Method to return the CDL library name.
 	 * CDL is a weak form of a Spice deck, and it includes a Cadence library name.
@@ -1180,7 +1183,7 @@ public class Simulation extends Tool
 	public static void setCDLLibName(String libName) { cacheCDLLibName.setString(libName); }
 
 	private static Pref cacheCDLLibPath = Pref.makeStringPref("CDLLibPath", tool.prefs, "");
-//    static { cacheCDLLibPath.attachToObject(tool, "IO/CDL tab", "Cadence library path"); }
+//	static { cacheCDLLibPath.attachToObject(tool, "IO/CDL tab", "Cadence library path"); }
 	/**
 	 * Method to return the CDL library path.
 	 * CDL is a weak form of a Spice deck, and it includes a Cadence library.
@@ -1195,7 +1198,7 @@ public class Simulation extends Tool
 	public static void setCDLLibPath(String libName) { cacheCDLLibPath.setString(libName); }
 
 	private static Pref cacheCDLConvertBrackets = Pref.makeBooleanPref("CDLConvertBrackets", tool.prefs, false);
-//    static { cacheCDLConvertBrackets.attachToObject(tool, "IO/CDL tab", "CDL converts brackets"); }
+//	static { cacheCDLConvertBrackets.attachToObject(tool, "IO/CDL tab", "CDL converts brackets"); }
 	/**
 	 * Method to tell whether CDL converts square bracket characters.
 	 * CDL is a weak form of a Spice deck, and it includes a Cadence library.
@@ -1209,25 +1212,25 @@ public class Simulation extends Tool
 	 */
 	public static void setCDLConvertBrackets(boolean c) { cacheCDLConvertBrackets.setBoolean(c); }
 
-    /**
-     * File to be included when writing CDL netlists. "" to not include any file
-     */
-    private static Pref cacheCDLIncludeFile = Pref.makeStringPref("CDLIncludeFile", tool.prefs, "");
-    public static String getCDLIncludeFile() { return cacheCDLIncludeFile.getString(); }
-    public static void setCDLIncludeFile(String file) { cacheCDLIncludeFile.setString(file); }
+	/**
+	 * File to be included when writing CDL netlists. "" to not include any file
+	 */
+	private static Pref cacheCDLIncludeFile = Pref.makeStringPref("CDLIncludeFile", tool.prefs, "");
+	public static String getCDLIncludeFile() { return cacheCDLIncludeFile.getString(); }
+	public static void setCDLIncludeFile(String file) { cacheCDLIncludeFile.setString(file); }
 
-    private static Pref cacheCDLIgnoreResistors = Pref.makeBooleanPref("CDLLIgnoreResistors", tool.prefs, false);
-//    static { cacheCDLLibName.attachToObject(tool, "IO/CDL tab", "Cadence library name"); }
-    /**
-     * Method to get the state of "ignore resistors" for netlisting
-     * @return the state of "ignore resistors"
-     */
-    public static boolean getCDLIgnoreResistors() { return cacheCDLIgnoreResistors.getBoolean(); }
-    /**
-     * Method to get the state of "ignore resistors" for netlisting
-     * @param b the state of "ignore resistors"
-     */
-    public static void setCDLIgnoreResistors(boolean b) { cacheCDLIgnoreResistors.setBoolean(b); }
+	private static Pref cacheCDLIgnoreResistors = Pref.makeBooleanPref("CDLLIgnoreResistors", tool.prefs, false);
+//	static { cacheCDLLibName.attachToObject(tool, "IO/CDL tab", "Cadence library name"); }
+	/**
+	 * Method to get the state of "ignore resistors" for netlisting
+	 * @return the state of "ignore resistors"
+	 */
+	public static boolean getCDLIgnoreResistors() { return cacheCDLIgnoreResistors.getBoolean(); }
+	/**
+	 * Method to get the state of "ignore resistors" for netlisting
+	 * @param b the state of "ignore resistors"
+	 */
+	public static void setCDLIgnoreResistors(boolean b) { cacheCDLIgnoreResistors.setBoolean(b); }
 
 	/****************************** BUILT-IN SIMULATION OPTIONS ******************************/
 
@@ -1342,40 +1345,40 @@ public class Simulation extends Tool
 	 */
 	public static void setIRSIMStepModel(String m) { cacheIRSIMStepModel.setString(m); }
 
-    private static Pref cacheIRSIMDelayedX = Pref.makeBooleanPref("IRSIMDelayedX", tool.prefs, true);
-    /**
-     * Get whether or not IRSIM uses a delayed X model, versus the old fast-propogating X model
-     * @return true if using the delayed X model, false if using the old fast-propogating X model
-     */
-    public static boolean isIRSIMDelayedX() { return cacheIRSIMDelayedX.getBoolean(); }
-    /**
-     * Get whether or not IRSIM uses a delayed X model, versus the old fast-propogating X model
-     * @param b true to use the delayed X model, false to use the old fast-propogating X model
-     */
-    public static void setIRSIMDelayedX(boolean b) { cacheIRSIMDelayedX.setBoolean(b); }
+	private static Pref cacheIRSIMDelayedX = Pref.makeBooleanPref("IRSIMDelayedX", tool.prefs, true);
+	/**
+	 * Get whether or not IRSIM uses a delayed X model, versus the old fast-propogating X model
+	 * @return true if using the delayed X model, false if using the old fast-propogating X model
+	 */
+	public static boolean isIRSIMDelayedX() { return cacheIRSIMDelayedX.getBoolean(); }
+	/**
+	 * Get whether or not IRSIM uses a delayed X model, versus the old fast-propogating X model
+	 * @param b true to use the delayed X model, false to use the old fast-propogating X model
+	 */
+	public static void setIRSIMDelayedX(boolean b) { cacheIRSIMDelayedX.setBoolean(b); }
 
 	/****************************** SPICE OPTIONS ******************************/
 
-    public enum SpiceEngine {
-        /** Spice 2 engine. */		SPICE_ENGINE_2(0, "Spice 2"),
-        /** Spice 3 engine. */		SPICE_ENGINE_3(1, "Spice 3"),
-        /** HSpice engine. */		SPICE_ENGINE_H(2, "HSpice"),
-        /** PSpice engine. */		SPICE_ENGINE_P(3, "PSpice"),
-        /** GNUCap engine. */		SPICE_ENGINE_G(4, "Gnucap"),
-        /** SmartSpice engine. */	SPICE_ENGINE_S(5, "SmartSpice"),
-        /** HSpice engine for Assura. */	    SPICE_ENGINE_H_ASSURA(6, "HSpice for Assura"),
-        /** HSpice engine for Calibre. */	    SPICE_ENGINE_H_CALIBRE(7, "HSpice for Calibre");
+	public enum SpiceEngine {
+		/** Spice 2 engine. */		SPICE_ENGINE_2(0, "Spice 2"),
+		/** Spice 3 engine. */		SPICE_ENGINE_3(1, "Spice 3"),
+		/** HSpice engine. */		SPICE_ENGINE_H(2, "HSpice"),
+		/** PSpice engine. */		SPICE_ENGINE_P(3, "PSpice"),
+		/** GNUCap engine. */		SPICE_ENGINE_G(4, "Gnucap"),
+		/** SmartSpice engine. */	SPICE_ENGINE_S(5, "SmartSpice"),
+		/** HSpice engine for Assura. */		SPICE_ENGINE_H_ASSURA(6, "HSpice for Assura"),
+		/** HSpice engine for Calibre. */		SPICE_ENGINE_H_CALIBRE(7, "HSpice for Calibre");
 
-        private int code;
-        private String name;
-        private SpiceEngine(int val, String name)
-        {
-            this.code = val;
-            this.name = name;
-        }
-        public int code() { return code; }
-        public String toString() { return name;}
-    }
+		private int code;
+		private String name;
+		private SpiceEngine(int val, String name)
+		{
+			this.code = val;
+			this.name = name;
+		}
+		public int code() { return code; }
+		public String toString() { return name;}
+	}
 
 	private static Pref cacheSpiceEngine = Pref.makeIntPref("SpiceEngine", tool.prefs, SpiceEngine.SPICE_ENGINE_H.code());
 //	static
@@ -1395,18 +1398,18 @@ public class Simulation extends Tool
 	 * Simulation.SPICE_ENGINE_P for PSpice.<BR>
 	 * Simulation.SPICE_ENGINE_G for GNUCap.<BR>
 	 * Simulation.SPICE_ENGINE_S for Smart Spice.<BR>
-     * Simulation.SPICE_ENGINE_H_ASSURA for HSpice for Assura.<BR>
-     * Where Simulation.SPICE_ENGINE_3 is the default.
+	 * Simulation.SPICE_ENGINE_H_ASSURA for HSpice for Assura.<BR>
+	 * Where Simulation.SPICE_ENGINE_3 is the default.
 	 */
 	public static SpiceEngine getSpiceEngine()
-    {
-        int cache = cacheSpiceEngine.getInt();
-        for (SpiceEngine p : SpiceEngine.values())
-        {
-            if (p.code() == cache) return p;
-        }
-        throw new Error("No Spice engine found");
-    }
+	{
+		int cache = cacheSpiceEngine.getInt();
+		for (SpiceEngine p : SpiceEngine.values())
+		{
+			if (p.code() == cache) return p;
+		}
+		throw new Error("No Spice engine found");
+	}
 	/**
 	 * Method to set which SPICE engine is being used.
 	 * Since different versions of SPICE have slightly different syntax,
@@ -1419,12 +1422,12 @@ public class Simulation extends Tool
 	 * Simulation.SpiceEngine.SPICE_ENGINE_P for PSpice.<BR>
 	 * Simulation.SpiceEngine.SPICE_ENGINE_G for GNUCap.<BR>
 	 * Simulation.SpiceEngine.SPICE_ENGINE_S for Smart Spice.<BR>
-     * Simulation.SpiceEngine.SPICE_ENGINE_H_ASSURA for HSpice for Assura.
+	 * Simulation.SpiceEngine.SPICE_ENGINE_H_ASSURA for HSpice for Assura.
 	 */
 	public static void setSpiceEngine(SpiceEngine engine) { cacheSpiceEngine.setInt(engine.code()); }
 
 	private static Pref cacheSpiceLevel = Pref.makeStringPref("SpiceLevel", tool.prefs, "1");
-//    static { cacheSpiceLevel.attachToObject(tool, "Tools/Spice tab", "Spice level"); }
+//	static { cacheSpiceLevel.attachToObject(tool, "Tools/Spice tab", "Spice level"); }
 	/**
 	 * Method to tell which SPICE level is being used.
 	 * SPICE can use 3 different levels of simulation.
@@ -1439,7 +1442,7 @@ public class Simulation extends Tool
 	public static void setSpiceLevel(String level) { cacheSpiceLevel.setString(level); }
 
 	private static Pref cacheSpiceOutputFormat = Pref.makeStringPref("SpiceOutputFormat", tool.prefs, "Standard");
-//    static { cacheSpiceOutputFormat.attachToObject(tool, "Tools/Spice tab", "Spice output format"); }
+//	static { cacheSpiceOutputFormat.attachToObject(tool, "Tools/Spice tab", "Spice output format"); }
 	/**
 	 * Method to tell the type of output files expected from Spice.
 	 * @return the type of output files expected from Spice.
@@ -1478,68 +1481,68 @@ public class Simulation extends Tool
 	 */
 	public static void setSpiceShortResistors(int sr) { cacheSpiceShortResistors.setInt(sr); }
 
-    public static final String spiceRunChoiceDontRun = "Don't Run";
-    public static final String spiceRunChoiceRunIgnoreOutput = "Run, Ignore Output";
-    public static final String spiceRunChoiceRunReportOutput = "Run, Report Output";
-    private static final String [] spiceRunChoices = {spiceRunChoiceDontRun, spiceRunChoiceRunIgnoreOutput, spiceRunChoiceRunReportOutput};
+	public static final String spiceRunChoiceDontRun = "Don't Run";
+	public static final String spiceRunChoiceRunIgnoreOutput = "Run, Ignore Output";
+	public static final String spiceRunChoiceRunReportOutput = "Run, Report Output";
+	private static final String [] spiceRunChoices = {spiceRunChoiceDontRun, spiceRunChoiceRunIgnoreOutput, spiceRunChoiceRunReportOutput};
 
-    private static Pref cacheSpiceRunChoice = Pref.makeIntPref("SpiceRunChoice", tool.prefs, 0);
-//    static {
-//        Pref.Meaning m = cacheSpiceRunChoice.attachToObject(tool, "Tool Options, Spice tab", "Spice Run Choice");
-//        m.setTrueMeaning(new String[] {spiceRunChoiceDontRun, spiceRunChoiceRunIgnoreOutput, spiceRunChoiceRunReportOutput});
-//    }
-    /** Determines possible settings for the Spice Run Choice */
-    public static String [] getSpiceRunChoiceValues() { return spiceRunChoices; }
-    /** Get the current setting for the Spice Run Choice preference */
-    public static String getSpiceRunChoice() { return spiceRunChoices[cacheSpiceRunChoice.getInt()]; }
-    /** Set the setting for the Spice Run Choice preference. Ignored if invalid */
-    public static void setSpiceRunChoice(String choice) {
-        String [] values = getSpiceRunChoiceValues();
-        for (int i=0; i<values.length; i++) {
-            if (values[i].equals(choice)) { cacheSpiceRunChoice.setInt(i); return; }
-        }
-    }
+	private static Pref cacheSpiceRunChoice = Pref.makeIntPref("SpiceRunChoice", tool.prefs, 0);
+//	static {
+//		Pref.Meaning m = cacheSpiceRunChoice.attachToObject(tool, "Tool Options, Spice tab", "Spice Run Choice");
+//		m.setTrueMeaning(new String[] {spiceRunChoiceDontRun, spiceRunChoiceRunIgnoreOutput, spiceRunChoiceRunReportOutput});
+//	}
+	/** Determines possible settings for the Spice Run Choice */
+	public static String [] getSpiceRunChoiceValues() { return spiceRunChoices; }
+	/** Get the current setting for the Spice Run Choice preference */
+	public static String getSpiceRunChoice() { return spiceRunChoices[cacheSpiceRunChoice.getInt()]; }
+	/** Set the setting for the Spice Run Choice preference. Ignored if invalid */
+	public static void setSpiceRunChoice(String choice) {
+		String [] values = getSpiceRunChoiceValues();
+		for (int i=0; i<values.length; i++) {
+			if (values[i].equals(choice)) { cacheSpiceRunChoice.setInt(i); return; }
+		}
+	}
 
-    private static Pref cacheSpiceRunDir = Pref.makeStringPref("SpiceRunDir", tool.prefs, "");
-//    static { cacheSpiceRunDir.attachToObject(tool, "Tool Options, Spice tab", "Spice Run Dir"); }
-    /** Get the spice run directory */
-    public static String getSpiceRunDir() { return cacheSpiceRunDir.getString(); }
-    /** Set the spice run directory */
-    public static void setSpiceRunDir(String dir) { cacheSpiceRunDir.setString(dir); }
+	private static Pref cacheSpiceRunDir = Pref.makeStringPref("SpiceRunDir", tool.prefs, "");
+//	static { cacheSpiceRunDir.attachToObject(tool, "Tool Options, Spice tab", "Spice Run Dir"); }
+	/** Get the spice run directory */
+	public static String getSpiceRunDir() { return cacheSpiceRunDir.getString(); }
+	/** Set the spice run directory */
+	public static void setSpiceRunDir(String dir) { cacheSpiceRunDir.setString(dir); }
 
-    private static Pref cacheSpiceUseRunDir = Pref.makeBooleanPref("SpiceUseRunDir", tool.prefs, false);
-//    static { cacheSpiceUseRunDir.attachToObject(tool, "Tool Options, Spice tab", "Use Run Dir"); }
-    /** Get whether or not to use the user-specified spice run dir */
-    public static boolean getSpiceUseRunDir() { return cacheSpiceUseRunDir.getBoolean(); }
-    /** Set whether or not to use the user-specified spice run dir */
-    public static void setSpiceUseRunDir(boolean b) { cacheSpiceUseRunDir.setBoolean(b); }
+	private static Pref cacheSpiceUseRunDir = Pref.makeBooleanPref("SpiceUseRunDir", tool.prefs, false);
+//	static { cacheSpiceUseRunDir.attachToObject(tool, "Tool Options, Spice tab", "Use Run Dir"); }
+	/** Get whether or not to use the user-specified spice run dir */
+	public static boolean getSpiceUseRunDir() { return cacheSpiceUseRunDir.getBoolean(); }
+	/** Set whether or not to use the user-specified spice run dir */
+	public static void setSpiceUseRunDir(boolean b) { cacheSpiceUseRunDir.setBoolean(b); }
 
-    private static Pref cacheSpiceOutputOverwrite = Pref.makeBooleanPref("SpiceOverwriteOutputFile", tool.prefs, false);
-//    static { cacheSpiceOutputOverwrite.attachToObject(tool, "Tool Options, Spice tab", "Overwrite Output Spice File"); }
-    /** Get whether or not we automatically overwrite the spice output file */
-    public static boolean getSpiceOutputOverwrite() { return cacheSpiceOutputOverwrite.getBoolean(); }
-    /** Set whether or not we automatically overwrite the spice output file */
-    public static void setSpiceOutputOverwrite(boolean b) { cacheSpiceOutputOverwrite.setBoolean(b); }
+	private static Pref cacheSpiceOutputOverwrite = Pref.makeBooleanPref("SpiceOverwriteOutputFile", tool.prefs, false);
+//	static { cacheSpiceOutputOverwrite.attachToObject(tool, "Tool Options, Spice tab", "Overwrite Output Spice File"); }
+	/** Get whether or not we automatically overwrite the spice output file */
+	public static boolean getSpiceOutputOverwrite() { return cacheSpiceOutputOverwrite.getBoolean(); }
+	/** Set whether or not we automatically overwrite the spice output file */
+	public static void setSpiceOutputOverwrite(boolean b) { cacheSpiceOutputOverwrite.setBoolean(b); }
 
-    private static Pref cacheSpiceRunProbe = Pref.makeBooleanPref("SpiceRunProbe", tool.prefs, false);
-    /** Get whether or not to run the spice probe after running spice */
-    public static boolean getSpiceRunProbe() { return cacheSpiceRunProbe.getBoolean(); }
-    /** Set whether or not to run the spice probe after running spice */
-    public static void setSpiceRunProbe(boolean b) { cacheSpiceRunProbe.setBoolean(b); }
+	private static Pref cacheSpiceRunProbe = Pref.makeBooleanPref("SpiceRunProbe", tool.prefs, false);
+	/** Get whether or not to run the spice probe after running spice */
+	public static boolean getSpiceRunProbe() { return cacheSpiceRunProbe.getBoolean(); }
+	/** Set whether or not to run the spice probe after running spice */
+	public static void setSpiceRunProbe(boolean b) { cacheSpiceRunProbe.setBoolean(b); }
 
-    private static Pref cacheSpiceRunProgram = Pref.makeStringPref("SpiceRunProgram", tool.prefs, "");
-//    static { cacheSpiceRunProgram.attachToObject(tool, "Tool Options, Spice tab", "Spice Run Program"); }
-    /** Get the spice run program */
-    public static String getSpiceRunProgram() { return cacheSpiceRunProgram.getString(); }
-    /** Set the spice run program */
-    public static void setSpiceRunProgram(String c) { cacheSpiceRunProgram.setString(c); }
+	private static Pref cacheSpiceRunProgram = Pref.makeStringPref("SpiceRunProgram", tool.prefs, "");
+//	static { cacheSpiceRunProgram.attachToObject(tool, "Tool Options, Spice tab", "Spice Run Program"); }
+	/** Get the spice run program */
+	public static String getSpiceRunProgram() { return cacheSpiceRunProgram.getString(); }
+	/** Set the spice run program */
+	public static void setSpiceRunProgram(String c) { cacheSpiceRunProgram.setString(c); }
 
-    private static Pref cacheSpiceRunProgramArgs = Pref.makeStringPref("SpiceRunProgramArgs", tool.prefs, "");
-//    static { cacheSpiceRunProgramArgs.attachToObject(tool, "Tool Options, Spice tab", "Spice Run Program Args"); }
-    /** Get the spice run program args */
-    public static String getSpiceRunProgramArgs() { return cacheSpiceRunProgramArgs.getString(); }
-    /** Set the spice run program args */
-    public static void setSpiceRunProgramArgs(String c) { cacheSpiceRunProgramArgs.setString(c); }
+	private static Pref cacheSpiceRunProgramArgs = Pref.makeStringPref("SpiceRunProgramArgs", tool.prefs, "");
+//	static { cacheSpiceRunProgramArgs.attachToObject(tool, "Tool Options, Spice tab", "Spice Run Program Args"); }
+	/** Get the spice run program args */
+	public static String getSpiceRunProgramArgs() { return cacheSpiceRunProgramArgs.getString(); }
+	/** Set the spice run program args */
+	public static void setSpiceRunProgramArgs(String c) { cacheSpiceRunProgramArgs.setString(c); }
 
 	private static Pref cacheSpicePartsLibrary = null;
 	/**
@@ -1572,7 +1575,7 @@ public class Simulation extends Tool
 	}
 
 	private static Pref cacheSpiceHeaderCardInfo = Pref.makeStringPref("SpiceHeaderCardInfo", tool.prefs, "");
-//    static { cacheSpiceHeaderCardInfo.attachToObject(tool, "Tools/Spice tab", "Spice header card information"); }
+//	static { cacheSpiceHeaderCardInfo.attachToObject(tool, "Tools/Spice tab", "Spice header card information"); }
 	/**
 	 * Method to get the Spice header card specification.
 	 * Header cards can come from one of three places, depending on the specification:<BR>
@@ -1595,7 +1598,7 @@ public class Simulation extends Tool
 	public static void setSpiceHeaderCardInfo(String spec) { cacheSpiceHeaderCardInfo.setString(spec); }
 
 	private static Pref cacheSpiceTrailerCardInfo = Pref.makeStringPref("SpiceTrailerCardInfo", tool.prefs, "");
-//    static { cacheSpiceTrailerCardInfo.attachToObject(tool, "Tools/Spice tab", "Spice trailer card information"); }
+//	static { cacheSpiceTrailerCardInfo.attachToObject(tool, "Tools/Spice tab", "Spice trailer card information"); }
 	/**
 	 * Method to get the Spice trailer card specification.
 	 * Trailer cards can come from one of three places, depending on the specification:<BR>
@@ -1617,23 +1620,23 @@ public class Simulation extends Tool
 	 */
 	public static void setSpiceTrailerCardInfo(String spec) { cacheSpiceTrailerCardInfo.setString(spec); }
 
-    public enum SpiceParasitics
-    {
-        /** simple parasitics (source/drain area&perimeter) */		SIMPLE(0, "Trans area/perim only (no RC)"),
-        /** RC parasitics to substrate. */							RC_CONSERVATIVE(1, "Conservative RC"),
-        /** RC parasitics to substrate or intervening layers. */	RC_PROXIMITY(2, "Proximity-based RC");
+	public enum SpiceParasitics
+	{
+		/** simple parasitics (source/drain area&perimeter) */		SIMPLE(0, "Trans area/perim only (no RC)"),
+		/** RC parasitics to substrate. */							RC_CONSERVATIVE(1, "Conservative RC"),
+		/** RC parasitics to substrate or intervening layers. */	RC_PROXIMITY(2, "Proximity-based RC");
 
-        private int code;
-        private String name;
+		private int code;
+		private String name;
 
-        private SpiceParasitics(int val, String name)
-        {
-            this.code = val;
-            this.name = name;
-        }
-        public int code() { return code; }
-        public String toString() { return name;}
-    }
+		private SpiceParasitics(int val, String name)
+		{
+			this.code = val;
+			this.name = name;
+		}
+		public int code() { return code; }
+		public String toString() { return name;}
+	}
 
 	private static Pref cacheSpiceParasiticsLevel = Pref.makeIntPref("SpiceParasiticsLevel", tool.prefs, SpiceParasitics.SIMPLE.code());
 	/**
@@ -1644,10 +1647,10 @@ public class Simulation extends Tool
 	public static SpiceParasitics getSpiceParasiticsLevel()
 	{
 		int curCode = cacheSpiceParasiticsLevel.getInt();
-        for (SpiceParasitics p : SpiceParasitics.values())
-        {
-            if (p.code() == curCode) return p;
-        }
+		for (SpiceParasitics p : SpiceParasitics.values())
+		{
+			if (p.code() == curCode) return p;
+		}
 		return null;
 	}
 
@@ -1657,36 +1660,36 @@ public class Simulation extends Tool
 	 */
 	public static void setSpiceParasiticsLevel(SpiceParasitics p) { cacheSpiceParasiticsLevel.setInt(p.code); }
 
-    public static Pref cacheParasiticsUseVerboseNaming = Pref.makeBooleanPref("ParasiticsUseVerboseNaming", tool.prefs, true);
-    public static boolean isParasiticsUseVerboseNaming() { return cacheParasiticsUseVerboseNaming.getBoolean(); }
-    public static void setParasiticsUseVerboseNaming(boolean b) { cacheParasiticsUseVerboseNaming.setBoolean(b); }
+	public static Pref cacheParasiticsUseVerboseNaming = Pref.makeBooleanPref("ParasiticsUseVerboseNaming", tool.prefs, true);
+	public static boolean isParasiticsUseVerboseNaming() { return cacheParasiticsUseVerboseNaming.getBoolean(); }
+	public static void setParasiticsUseVerboseNaming(boolean b) { cacheParasiticsUseVerboseNaming.setBoolean(b); }
 
-    public static Pref cacheParasiticsBackAnnotateLayout = Pref.makeBooleanPref("ParasiticsBackAnnotateLayout", tool.prefs, true);
-    public static boolean isParasiticsBackAnnotateLayout() { return cacheParasiticsBackAnnotateLayout.getBoolean(); }
-    public static void setParasiticsBackAnnotateLayout(boolean b) { cacheParasiticsBackAnnotateLayout.setBoolean(b); }
+	public static Pref cacheParasiticsBackAnnotateLayout = Pref.makeBooleanPref("ParasiticsBackAnnotateLayout", tool.prefs, true);
+	public static boolean isParasiticsBackAnnotateLayout() { return cacheParasiticsBackAnnotateLayout.getBoolean(); }
+	public static void setParasiticsBackAnnotateLayout(boolean b) { cacheParasiticsBackAnnotateLayout.setBoolean(b); }
 
-    public static Pref cacheParasiticsExtractPowerGround = Pref.makeBooleanPref("ParasiticsExtractPowerGround", tool.prefs, false);
-    public static boolean isParasiticsExtractPowerGround() { return cacheParasiticsExtractPowerGround.getBoolean(); }
-    public static void setParasiticsExtractPowerGround(boolean b) { cacheParasiticsExtractPowerGround.setBoolean(b); }
+	public static Pref cacheParasiticsExtractPowerGround = Pref.makeBooleanPref("ParasiticsExtractPowerGround", tool.prefs, false);
+	public static boolean isParasiticsExtractPowerGround() { return cacheParasiticsExtractPowerGround.getBoolean(); }
+	public static void setParasiticsExtractPowerGround(boolean b) { cacheParasiticsExtractPowerGround.setBoolean(b); }
 
-    public static Pref cacheParasiticsUseExemptedNetsFile = Pref.makeBooleanPref("UseExemptedNetsFile", tool.prefs, false);
-    public static boolean isParasiticsUseExemptedNetsFile() { return cacheParasiticsUseExemptedNetsFile.getBoolean(); }
-    public static void setParasiticsUseExemptedNetsFile(boolean b) { cacheParasiticsUseExemptedNetsFile.setBoolean(b); }
+	public static Pref cacheParasiticsUseExemptedNetsFile = Pref.makeBooleanPref("UseExemptedNetsFile", tool.prefs, false);
+	public static boolean isParasiticsUseExemptedNetsFile() { return cacheParasiticsUseExemptedNetsFile.getBoolean(); }
+	public static void setParasiticsUseExemptedNetsFile(boolean b) { cacheParasiticsUseExemptedNetsFile.setBoolean(b); }
 
-    public static Pref cacheParasiticsIgnoreExemptedNets = Pref.makeBooleanPref("IgnoreExemptedNets", tool.prefs, true);
-    public static boolean isParasiticsIgnoreExemptedNets() { return cacheParasiticsIgnoreExemptedNets.getBoolean(); }
-    public static void setParasiticsIgnoreExemptedNets(boolean b) { cacheParasiticsIgnoreExemptedNets.setBoolean(b); }
+	public static Pref cacheParasiticsIgnoreExemptedNets = Pref.makeBooleanPref("IgnoreExemptedNets", tool.prefs, true);
+	public static boolean isParasiticsIgnoreExemptedNets() { return cacheParasiticsIgnoreExemptedNets.getBoolean(); }
+	public static void setParasiticsIgnoreExemptedNets(boolean b) { cacheParasiticsIgnoreExemptedNets.setBoolean(b); }
 
-    public static Pref cacheParasiticsExtractsR = Pref.makeBooleanPref("ParasiticsExtractsR", tool.prefs, true);
-    public static boolean isParasiticsExtractsR() { return cacheParasiticsExtractsR.getBoolean(); }
-    public static void setParasiticsExtractsR(boolean b) { cacheParasiticsExtractsR.setBoolean(b); }
+	public static Pref cacheParasiticsExtractsR = Pref.makeBooleanPref("ParasiticsExtractsR", tool.prefs, true);
+	public static boolean isParasiticsExtractsR() { return cacheParasiticsExtractsR.getBoolean(); }
+	public static void setParasiticsExtractsR(boolean b) { cacheParasiticsExtractsR.setBoolean(b); }
 
-    public static Pref cacheParasiticsExtractsC = Pref.makeBooleanPref("ParasiticsExtractsC", tool.prefs, true);
-    public static boolean isParasiticsExtractsC() { return cacheParasiticsExtractsC.getBoolean(); }
-    public static void setParasiticsExtractsC(boolean b) { cacheParasiticsExtractsC.setBoolean(b); }
+	public static Pref cacheParasiticsExtractsC = Pref.makeBooleanPref("ParasiticsExtractsC", tool.prefs, true);
+	public static boolean isParasiticsExtractsC() { return cacheParasiticsExtractsC.getBoolean(); }
+	public static void setParasiticsExtractsC(boolean b) { cacheParasiticsExtractsC.setBoolean(b); }
 
-    private static Pref cacheSpiceUseNodeNames = Pref.makeBooleanPref("SpiceUseNodeNames", tool.prefs, true);
-//    static { cacheSpiceUseNodeNames.attachToObject(tool, "Tools/Spice tab", "Spice uses node names"); }
+	private static Pref cacheSpiceUseNodeNames = Pref.makeBooleanPref("SpiceUseNodeNames", tool.prefs, true);
+//	static { cacheSpiceUseNodeNames.attachToObject(tool, "Tools/Spice tab", "Spice uses node names"); }
 	/**
 	 * Method to tell whether or not to use node names in Spice output.
 	 * If node names are off, then numbers are used.
@@ -1702,7 +1705,7 @@ public class Simulation extends Tool
 	public static void setSpiceUseNodeNames(boolean u) { cacheSpiceUseNodeNames.setBoolean(u); }
 
 	private static Pref cacheSpiceForceGlobalPwrGnd = Pref.makeBooleanPref("SpiceForceGlobalPwrGnd", tool.prefs, false);
-//    static { cacheSpiceForceGlobalPwrGnd.attachToObject(tool, "Tools/Spice tab", "Spice forces global VDD/GND"); }
+//	static { cacheSpiceForceGlobalPwrGnd.attachToObject(tool, "Tools/Spice tab", "Spice forces global VDD/GND"); }
 	/**
 	 * Method to tell whether or not to write global power and ground in Spice output.
 	 * If this is off, then individual power and ground references are made.
@@ -1718,7 +1721,7 @@ public class Simulation extends Tool
 	public static void setSpiceForceGlobalPwrGnd(boolean g) { cacheSpiceForceGlobalPwrGnd.setBoolean(g); }
 
 	private static Pref cacheSpiceUseCellParameters = Pref.makeBooleanPref("SpiceUseCellParameters", tool.prefs, false);
-//    static { cacheSpiceForceGlobalPwrGnd.attachToObject(tool, "Tools/Spice tab", "Spice uses cell parameters"); }
+//	static { cacheSpiceForceGlobalPwrGnd.attachToObject(tool, "Tools/Spice tab", "Spice uses cell parameters"); }
 	/**
 	 * Method to tell whether or not to use cell parameters in Spice output.
 	 * When cell parameters are used, any parameterized cell is written many times,
@@ -1736,7 +1739,7 @@ public class Simulation extends Tool
 	public static void setSpiceUseCellParameters(boolean p) { cacheSpiceUseCellParameters.setBoolean(p); }
 
 	private static Pref cacheSpiceWriteTransSizeInLambda = Pref.makeBooleanPref("SpiceWriteTransSizeInLambda", tool.prefs, false);
-//    static { cacheSpiceWriteTransSizeInLambda.attachToObject(tool, "Tools/Spice tab", "Spice writes transistor sizes in lambda"); }
+//	static { cacheSpiceWriteTransSizeInLambda.attachToObject(tool, "Tools/Spice tab", "Spice writes transistor sizes in lambda"); }
 	/**
 	 * Method to tell whether or not to write transistor sizes in "lambda" grid units in Spice output.
 	 * Lambda grid units are the basic units of design.
@@ -1753,27 +1756,27 @@ public class Simulation extends Tool
 	 */
 	public static void setSpiceWriteTransSizeInLambda(boolean l) { cacheSpiceWriteTransSizeInLambda.setBoolean(l); }
 
-    private static Pref cacheSpiceWriteSubcktTopCell = Pref.makeBooleanPref("SpiceWriteSubcktTopCell", tool.prefs, false);
-    public static boolean isSpiceWriteSubcktTopCell() { return cacheSpiceWriteSubcktTopCell.getBoolean(); }
-    public static void setSpiceWriteSubcktTopCell(boolean b) { cacheSpiceWriteSubcktTopCell.setBoolean(b); }
+	private static Pref cacheSpiceWriteSubcktTopCell = Pref.makeBooleanPref("SpiceWriteSubcktTopCell", tool.prefs, false);
+	public static boolean isSpiceWriteSubcktTopCell() { return cacheSpiceWriteSubcktTopCell.getBoolean(); }
+	public static void setSpiceWriteSubcktTopCell(boolean b) { cacheSpiceWriteSubcktTopCell.setBoolean(b); }
 
-    private static Pref cacheSpiceWriteTopCellInstance = Pref.makeBooleanPref("SpiceWriteTopCellInstance", tool.prefs, true);
-    public static boolean isSpiceWriteTopCellInstance() { return cacheSpiceWriteTopCellInstance.getBoolean(); }
-    public static void setSpiceWriteTopCellInstance(boolean b) { cacheSpiceWriteTopCellInstance.setBoolean(b); }
+	private static Pref cacheSpiceWriteTopCellInstance = Pref.makeBooleanPref("SpiceWriteTopCellInstance", tool.prefs, true);
+	public static boolean isSpiceWriteTopCellInstance() { return cacheSpiceWriteTopCellInstance.getBoolean(); }
+	public static void setSpiceWriteTopCellInstance(boolean b) { cacheSpiceWriteTopCellInstance.setBoolean(b); }
 
-    private static Pref cacheSpiceWriteEmptySubckts = Pref.makeBooleanPref("SpiceWriteEmptySubckts", tool.prefs, true);
-    public static boolean isSpiceWriteEmtpySubckts() { return cacheSpiceWriteEmptySubckts.getBoolean(); }
-    public static void setSpiceWriteEmptySubckts(boolean b) { cacheSpiceWriteEmptySubckts.setBoolean(b); }
+	private static Pref cacheSpiceWriteEmptySubckts = Pref.makeBooleanPref("SpiceWriteEmptySubckts", tool.prefs, true);
+	public static boolean isSpiceWriteEmtpySubckts() { return cacheSpiceWriteEmptySubckts.getBoolean(); }
+	public static void setSpiceWriteEmptySubckts(boolean b) { cacheSpiceWriteEmptySubckts.setBoolean(b); }
 
-    private static Pref cacheSpiceWriteFinalDotEnd = Pref.makeBooleanPref("SpiceWriteFinalDotEnd", tool.prefs, true);
-    public static boolean isSpiceWriteFinalDotEnd() { return cacheSpiceWriteFinalDotEnd.getBoolean(); }
-    public static void setSpiceWriteFinalDotEnd(boolean b) { cacheSpiceWriteFinalDotEnd.setBoolean(b); }
+	private static Pref cacheSpiceWriteFinalDotEnd = Pref.makeBooleanPref("SpiceWriteFinalDotEnd", tool.prefs, true);
+	public static boolean isSpiceWriteFinalDotEnd() { return cacheSpiceWriteFinalDotEnd.getBoolean(); }
+	public static void setSpiceWriteFinalDotEnd(boolean b) { cacheSpiceWriteFinalDotEnd.setBoolean(b); }
 
-    private static Pref cachedSpiceIgnoreParasiticResistors = Pref.makeBooleanPref("SpiceIgnoreParasiticResistors", tool.prefs, false);
-    public static boolean isSpiceIgnoreParasiticResistors() { return cachedSpiceIgnoreParasiticResistors.getBoolean(); }
-    public static void setSpiceIgnoreParasiticResistors(boolean b) { cachedSpiceIgnoreParasiticResistors.setBoolean(b); }
+	private static Pref cachedSpiceIgnoreParasiticResistors = Pref.makeBooleanPref("SpiceIgnoreParasiticResistors", tool.prefs, false);
+	public static boolean isSpiceIgnoreParasiticResistors() { return cachedSpiceIgnoreParasiticResistors.getBoolean(); }
+	public static void setSpiceIgnoreParasiticResistors(boolean b) { cachedSpiceIgnoreParasiticResistors.setBoolean(b); }
 
-    private static Pref cacheSpiceEpicReaderMemorySize = Pref.makeIntPref("SpiceEpicReaderMemorySize", tool.prefs, 1000);
+	private static Pref cacheSpiceEpicReaderMemorySize = Pref.makeIntPref("SpiceEpicReaderMemorySize", tool.prefs, 1000);
 	/**
 	 * Method to tell the maximum memory to use for EpicReaderProcess, in megatybes.
 	 * The default is 1000 (1 gigabyte).

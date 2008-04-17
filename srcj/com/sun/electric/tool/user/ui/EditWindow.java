@@ -3896,4 +3896,16 @@ public class EditWindow extends JPanel
 		getSavedFocusBrowser().updateCurrentFocus();
 		fullRepaint();
 	}
+
+	/**
+	 * Method to shift the window so that the current cursor location becomes the center.
+	 */
+	public void centerCursor()
+	{
+		Point pt = getLastMousePosition();
+		Point2D center = screenToDatabase(pt.x, pt.y);
+		setOffset(center);
+        getSavedFocusBrowser().updateCurrentFocus();
+		fullRepaint();
+	}
 }

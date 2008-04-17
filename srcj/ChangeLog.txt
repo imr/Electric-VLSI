@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07i: ******************************
 
+IMP/MAN: (4/17/08, SMR) Waveform window now handles "Window / Special Pan /
+     Center Cursor" (^5) which centers the horizontal axis over the cursor (Bug #1654).
+
 IMP: (4/17/08, SMR) Waveform window now remembers default panel height set by
      buttons (Bug #1656).
 

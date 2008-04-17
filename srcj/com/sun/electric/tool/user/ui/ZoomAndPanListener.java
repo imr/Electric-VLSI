@@ -252,16 +252,11 @@ public class ZoomAndPanListener
 
 	/**
 	 * This method implements the command to center the cursor.
+     * @param wf the WindowFrame
 	 */
-	public static void centerCursor()
+	public static void centerCursor(WindowFrame wf)
 	{
-		EditWindow wnd = EditWindow.needCurrent();
-		if (wnd == null) return;
-		Point pt = wnd.getLastMousePosition();
-		Point2D center = wnd.screenToDatabase(pt.x, pt.y);
-		wnd.setOffset(center);
-        wnd.getSavedFocusBrowser().updateCurrentFocus();
-		wnd.fullRepaint();
+	    wf.getContent().centerCursor();
 	}
 
 }

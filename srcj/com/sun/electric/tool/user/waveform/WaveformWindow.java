@@ -118,6 +118,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 
@@ -166,7 +167,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	/** the "grow panel" button for widening. */			private JButton growPanel;
 	/** the "shrink panel" button for narrowing. */			private JButton shrinkPanel;
 	/** the list of panels. */								private JComboBox signalNameList;
-	/** mapping from analysis to entries in "SIGNALS" tree*/private HashMap<Analysis,TreePath> treePathFromAnalysis = new HashMap<Analysis,TreePath>();
+	/** mapping from analysis to entries in "SIGNALS" tree*/private Map<Analysis,TreePath> treePathFromAnalysis = new HashMap<Analysis,TreePath>();
 	/** true if rebuilding the list of panels */			private boolean rebuildingSignalNameList = false;
 	/** the main scroll of all panels. */					private JScrollPane scrollAll;
 	/** the split between signal names and traces. */		private JSplitPane split;
@@ -1113,13 +1114,37 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	}
 
 	/**
+	 * Method to shift the panels so that the current cursor location becomes the center.
+	 */
+	public void centerCursor()
+	{
+		Panel pan = Panel.getCurrentPanel();
+		if (pan == null) return;
+
+		int x = Panel.getCurrentXPos();
+		if (x < 0) return;
+		Dimension dim = pan.getSize();
+		double startX = pan.convertXScreenToData(x);
+		double endX = pan.convertXScreenToData(dim.width/2);
+		double dXValue = endX - startX;
+
+		for(Iterator<Panel> it = getPanels(); it.hasNext(); )
+		{
+			Panel wp = it.next();
+			if (!isXAxisLocked() && wp != pan) continue;
+			wp.setXAxisRange(wp.getMinXAxis() - dXValue, wp.getMaxXAxis() - dXValue);
+			wp.repaintWithRulers();
+		}
+	}
+
+	/**
 	 * Method to set the window title.
 	 */
 	public void setWindowTitle()
 	{
 		if (wf == null) return;
 		String title = "";
-		if (sd.getEngine() != null) title = "Simulation of"; else title = "Waveforms of ";
+		if (sd.getEngine() != null) title = "Simulation of "; else title = "Waveforms of ";
 		if (sd != null && sd.getDataType() != null)
 		{
 			if (sd.getEngine() != null) title = sd.getDataType().getName() + " simulation of "; else
@@ -1315,7 +1340,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		if (vertAxisPos > 0) panel.setVertAxisPos(vertAxisPos);
 
 		// show and return the panel
-		panel.makeSelectedPanel();
+		panel.makeSelectedPanel(-1, -1);
 		getPanel().validate();
 		if (getMainHorizRuler() != null)
 			getMainHorizRuler().repaint();
@@ -2102,7 +2127,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		DefaultMutableTreeNode signalsExplorerTree = new DefaultMutableTreeNode(analysis);
 		TreePath analysisPath = parentPath.pathByAddingChild(signalsExplorerTree);
 		treePathFromAnalysis.put(an, analysisPath);
-		HashMap<String,TreePath> contextMap = new HashMap<String,TreePath>();
+		Map<String,TreePath> contextMap = new HashMap<String,TreePath>();
 		contextMap.put("", analysisPath);
 		Collections.sort(signals, new SignalsByName());
 
@@ -2169,7 +2194,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 * @param contextMap a HashMap of branch names to tree paths.
 	 * @return the tree path for the requested branch name.
 	 */
-	private TreePath makeContext(String branchName, HashMap<String,TreePath> contextMap, char separatorChar)
+	private TreePath makeContext(String branchName, Map<String,TreePath> contextMap, char separatorChar)
 	{
 		TreePath branchTree = contextMap.get(branchName);
 		if (branchTree != null) return branchTree;
@@ -2288,7 +2313,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					if (range == 0) range = 2;
 					double rangeExtra = range / 10;
 					wp.setYAxisRange(lowValue - rangeExtra, highValue + rangeExtra);
-					wp.makeSelectedPanel();
+					wp.makeSelectedPanel(-1, -1);
 					newPanel = false;
 				}
 				if (!xAxisLocked)
@@ -3057,7 +3082,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		freezeWaveformHighlighting = false;
 	}
 
-	private HashMap<Network,Integer> netValues;
+	private Map<Network,Integer> netValues;
 
 	/**
 	 * Method to update associated layout windows when the main cursor changes.
@@ -3173,7 +3198,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		return Color.RED;
 	}
 
-	private void putValueOnTrace(DigitalSignal ds, Cell cell, HashMap<Network,Integer> netValues, Netlist netlist)
+	private void putValueOnTrace(DigitalSignal ds, Cell cell, Map<Network,Integer> netValues, Netlist netlist)
 	{
 		// set simulation value on the network in the associated layout/schematic window
 		Network net = findNetwork(netlist, ds.getSignalName());
@@ -3741,7 +3766,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		}
 	}
 
-	private static HashMap<String,String> savedSignalOrder = new HashMap<String,String>();
+	private static Map<String,String> savedSignalOrder = new HashMap<String,String>();
 
 	/**
 	 * Method to save the signal ordering on the cell.
@@ -4528,7 +4553,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 						return;
 					}
 					WaveSignal.addSignalToPanel(sSig, panel, null);
-					panel.makeSelectedPanel();
+					panel.makeSelectedPanel(-1, -1);
 					continue;
 				}
 

@@ -158,6 +158,8 @@ public class Panel extends JPanel
 	/** The color of the grid (a gray) */					private static Color gridColor = new Color(0x808080);
 	/** the panel numbering index */						private static int nextPanelNumber = 1;
 	/** for determining double-clicks */					private static long lastClick = 0;
+	/** current panel */									private static Panel curPanel;
+	/** current X coordinate in the panel */				private static int curXPos;
 
 	/** for drawing far-dotted lines */						private static final BasicStroke farDottedLine = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[] {4,12}, 0);
 	/** the size of control point squares */				private static final int CONTROLPOINTSIZE = 6;
@@ -514,6 +516,9 @@ public class Panel extends JPanel
 
 	public void setVertAxisPos(int x) { vertAxisPos = x; }
 
+	public static Panel getCurrentPanel() { return curPanel; }
+
+	public static int getCurrentXPos() { return curXPos; }
 
 	// ************************************* SIGNALS IN THE PANEL *************************************
 
@@ -1864,7 +1869,7 @@ public class Panel extends JPanel
 		waveWindow.vcrClickStop();
 
 		// set this to be the selected panel
-		makeSelectedPanel();
+		makeSelectedPanel(evt.getX(), evt.getY());
 
 		// reset dragging from last time
 		for(Iterator<Panel> it = waveWindow.getPanels(); it.hasNext(); )
@@ -1924,14 +1929,17 @@ public class Panel extends JPanel
 	}
 
 	public void mouseClicked(MouseEvent evt) {}
-	public void mouseEntered(MouseEvent evt) {}
-	public void mouseExited(MouseEvent evt) {}
+
+	public void mouseEntered(MouseEvent evt) { curPanel = this;   curXPos = evt.getX(); }
+
+	public void mouseExited(MouseEvent evt) { curPanel = null; }
 
 	/**
 	 * the MouseMotionListener events
 	 */
 	public void mouseMoved(MouseEvent evt)
 	{
+		curXPos = evt.getX();
 		ToolBar.CursorMode mode = ToolBar.getCursorMode();
 		if (mode == ToolBar.CursorMode.ZOOM) mouseMovedZoom(evt);
         else if (mode == ToolBar.CursorMode.PAN) mouseMovedPan(evt);
@@ -1940,6 +1948,7 @@ public class Panel extends JPanel
 
 	public void mouseDragged(MouseEvent evt)
 	{
+		curXPos = evt.getX();
 		ToolBar.CursorMode mode = ToolBar.getCursorMode();
 		if (ClickZoomWireListener.isRightMouse(evt) && (evt.getModifiersEx()&MouseEvent.SHIFT_DOWN_MASK) != 0)
 			mode = ToolBar.CursorMode.ZOOM;
@@ -1987,7 +1996,7 @@ public class Panel extends JPanel
 				wp.clearHighlightedSignals();
 			}
 			addHighlightedSignal(ws, true);
-			makeSelectedPanel();
+			makeSelectedPanel(-1, -1);
 		} else
 		{
 			// shift click: add or remove to list of highlighted traces
@@ -2433,7 +2442,7 @@ public class Panel extends JPanel
 	/**
 	 * Method to make this the highlighted Panel.
 	 */
-	public void makeSelectedPanel()
+	public void makeSelectedPanel(int x, int y)
 	{
 		for(Iterator<Panel> it = waveWindow.getPanels(); it.hasNext(); )
 		{
@@ -2449,6 +2458,8 @@ public class Panel extends JPanel
 			selected = true;
 			repaintContents();
 		}
+		curPanel = this;
+		curXPos = x;
 	}
 
 	public boolean isSelected() { return selected; }
