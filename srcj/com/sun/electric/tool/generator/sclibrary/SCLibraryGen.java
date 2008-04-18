@@ -187,6 +187,10 @@ public class SCLibraryGen {
                 NodeInst ni = it.next();
                 ni.newVar(Artwork.ART_COLOR, new Integer(blueColorIndex));
             }
+            // remove 'X' attribute
+            if (iconcell.getVar(sizeKey) != null) {
+                iconcell.delVar(sizeKey);
+            }
         }
         return true;
     }
