@@ -212,7 +212,7 @@ public class ViewMenu {
 		int ret = Job.getUserInterface().askForChoice("There is no Skeleton view of " + curCell +
 			"\nDo you want to create an empty cell?", "Create Skeleton View", options, "No");
 		if (ret == 1) return;
-		new ViewChanges.CreateAndViewCell(curCell.getName() + "{sk}", curCell.getLibrary());
+		new ViewChanges.CreateAndViewCell(curCell.getName() + "{lay.sk}", curCell.getLibrary());
 	}
 
 	public static void editOtherViewCommand()
