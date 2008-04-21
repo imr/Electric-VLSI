@@ -35,6 +35,7 @@ import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.Waveform;
 import com.sun.electric.tool.simulation.WaveformImpl;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -756,7 +757,6 @@ public class HSpiceOut extends Simulate
 				if (eofReached)  { System.out.println("EOF before the end of the data");   break; }
 				allTheData.add(oneSetOfData);
 			}
-//			int numEvents = allTheData.size();
 			an.theSweeps.add(allTheData);
 			sweepCounter--;
 			if (sweepCounter <= 0) break;
@@ -793,8 +793,18 @@ public class HSpiceOut extends Simulate
 			if (constantPrefix == null) constantPrefix = prefix;
 			if (!constantPrefix.equals(prefix)) { hasPrefix = false;   break; }
 		}
-		if (hasPrefix) constantPrefix += "."; else
-			constantPrefix = null;
+		if (!hasPrefix) constantPrefix = null; else
+		{
+			String fileName = fileURL.getFile();
+			int pos = fileName.lastIndexOf(File.separatorChar);
+			if (pos >= 0) fileName = fileName.substring(pos+1);
+			pos = fileName.lastIndexOf('/');
+			if (pos >= 0) fileName = fileName.substring(pos+1);
+			pos = fileName.indexOf('.');
+			if (pos >= 0) fileName = fileName.substring(0, pos);
+			if (fileName.equals(constantPrefix)) constantPrefix += "."; else
+				constantPrefix = null;
+		}
 
 		for(int k=0; k<numSignals; k++)
 		{

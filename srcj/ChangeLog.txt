@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07i: ******************************
 
+BUG: (4/21/08, SMR) HSpice input sometimes mangles signal names incorrectly (But #1630).
+FIX: Only remove common signal prefixes if they also match the file name.
+
 IMP/MAN: (4/21/08, SMR) Changed all of the "Edit XXX View" commands in the
      View menu so that if the view does not exist, you are prompted to create
      it (Bug #1609).
