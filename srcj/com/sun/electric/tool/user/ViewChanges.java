@@ -97,6 +97,38 @@ public class ViewChanges
 	// constructor, never used
 	ViewChanges() {}
 
+	/****************************** CREATE AND VIEW A CELL ******************************/
+
+	/**
+	 * Class to create a cell and display it in a new window.
+	 */
+	public static class CreateAndViewCell extends Job
+	{
+		private String cellName;
+		private Library lib;
+		private Cell c;
+
+		public CreateAndViewCell(String cellName, Library lib)
+		{
+			super("Create and View a Cell", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.cellName = cellName;
+			this.lib = lib;
+			startJob();
+		}
+
+		public boolean doIt() throws JobException
+		{
+			c = Cell.makeInstance(lib, cellName);
+			fieldVariableChanged("c");
+			return true;
+		}
+
+		public void terminateOK()
+		{
+			WindowFrame.createEditWindow(c);
+		}
+	}
+
 	/****************************** CONVERT OLD-STYLE MULTI-PAGE SCHEMATICS ******************************/
 
 	public static void convertMultiPageViews()
@@ -816,7 +848,6 @@ public class ViewChanges
 				bbNi.setTrace(boxOutline);
 
 				// put the original cell name on it
-//				bbNi.newDisplayVar(Schematics.SCHEM_FUNCTION, curCell.getName());
 				TextDescriptor td = TextDescriptor.getAnnotationTextDescriptor().withRelSize(bodyTextSize);
 				bbNi.newVar(Schematics.SCHEM_FUNCTION, curCell.getName(), td);
 			}
@@ -1239,7 +1270,6 @@ public class ViewChanges
 		Point2D newLoc = new Point2D.Double(orig.getAnchorCenterX(), orig.getAnchorCenterY());
 		Orientation orient = Orientation.fromAngle(angle);
 		NodeInst newNI = NodeInst.makeInstance(prim, newLoc, wid, hei, newCell, orient, null, techSpecific);
-//		NodeInst newNI = NodeInst.makeInstance(prim, newLoc, wid, hei, newCell, angle, null, techSpecific);
 		return newNI;
 	}
 

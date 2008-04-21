@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07i: ******************************
 
+IMP/MAN: (4/21/08, SMR) Changed all of the "Edit XXX View" commands in the
+     View menu so that if the view does not exist, you are prompted to create
+     it (Bug #1609).
+
 IMP/MAN: (4/17/08, SMR) New command "Export / Follow Export Up Hierarchy"
      shows the usage of the selected export recursively up the hierarchy (for Ivan).
 
