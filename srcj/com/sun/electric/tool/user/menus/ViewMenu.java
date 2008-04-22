@@ -115,104 +115,32 @@ public class ViewMenu {
 
 	public static void editLayoutViewCommand()
 	{
-		Cell curCell = WindowFrame.needCurCell();
-		if (curCell == null) return;
-		Cell layoutView = curCell.otherView(View.LAYOUT);
-		if (layoutView != null)
-		{
-			WindowFrame.createEditWindow(layoutView);
-			return;
-		}
-		String [] options = {"Yes", "No"};
-		int ret = Job.getUserInterface().askForChoice("There is no layout view of " + curCell +
-			"\nDo you want to create an empty cell?", "Create Layout View", options, "No");
-		if (ret == 1) return;
-		new ViewChanges.CreateAndViewCell(curCell.getName() + "{lay}", curCell.getLibrary());
+		editView(View.LAYOUT);
 	}
 
 	public static void editSchematicViewCommand()
 	{
-		Cell curCell = WindowFrame.needCurCell();
-		if (curCell == null) return;
-		final Cell schematicView = curCell.otherView(View.SCHEMATIC);
-		if (schematicView != null)
-		{
-			WindowFrame.createEditWindow(schematicView);
-			return;
-		}
-		String [] options = {"Yes", "No"};
-		int ret = Job.getUserInterface().askForChoice("There is no schematic view of " + curCell +
-			"\nDo you want to create an empty cell?", "Create Schematic View", options, "No");
-		if (ret == 1) return;
-		new ViewChanges.CreateAndViewCell(curCell.getName() + "{sch}", curCell.getLibrary());
+		editView(View.SCHEMATIC);
 	}
 
 	public static void editIconViewCommand()
 	{
-		Cell curCell = WindowFrame.needCurCell();
-		if (curCell == null) return;
-		Cell iconView = curCell.otherView(View.ICON);
-		if (iconView != null)
-		{
-			WindowFrame.createEditWindow(iconView);
-			return;
-		}
-		String [] options = {"Yes", "No"};
-		int ret = Job.getUserInterface().askForChoice("There is no icon view of " + curCell +
-			"\nDo you want to create an empty cell?", "Create Icon View", options, "No");
-		if (ret == 1) return;
-		new ViewChanges.CreateAndViewCell(curCell.getName() + "{ic}", curCell.getLibrary());
+		editView(View.ICON);
 	}
 
 	public static void editVHDLViewCommand()
 	{
-		Cell curCell = WindowFrame.needCurCell();
-		if (curCell == null) return;
-		Cell vhdlView = curCell.otherView(View.VHDL);
-		if (vhdlView != null)
-		{
-			WindowFrame.createEditWindow(vhdlView);
-			return;
-		}
-		String [] options = {"Yes", "No"};
-		int ret = Job.getUserInterface().askForChoice("There is no VHDL view of " + curCell +
-			"\nDo you want to create an empty cell?", "Create VHDL View", options, "No");
-		if (ret == 1) return;
-		new ViewChanges.CreateAndViewCell(curCell.getName() + "{vhdl}", curCell.getLibrary());
+		editView(View.VHDL);
 	}
 
 	public static void editDocViewCommand()
 	{
-		Cell curCell = WindowFrame.needCurCell();
-		if (curCell == null) return;
-		Cell docView = curCell.otherView(View.DOC);
-		if (docView != null)
-		{
-			WindowFrame.createEditWindow(docView);
-			return;
-		}
-		String [] options = {"Yes", "No"};
-		int ret = Job.getUserInterface().askForChoice("There is no Documentation view of " + curCell +
-			"\nDo you want to create an empty cell?", "Create Documentation View", options, "No");
-		if (ret == 1) return;
-		new ViewChanges.CreateAndViewCell(curCell.getName() + "{doc}", curCell.getLibrary());
+		editView(View.DOC);
 	}
 
 	public static void editSkeletonViewCommand()
 	{
-		Cell curCell = WindowFrame.needCurCell();
-		if (curCell == null) return;
-		Cell skelView = curCell.otherView(View.LAYOUTSKEL);
-		if (skelView != null)
-		{
-			WindowFrame.createEditWindow(skelView);
-			return;
-		}
-		String [] options = {"Yes", "No"};
-		int ret = Job.getUserInterface().askForChoice("There is no Skeleton view of " + curCell +
-			"\nDo you want to create an empty cell?", "Create Skeleton View", options, "No");
-		if (ret == 1) return;
-		new ViewChanges.CreateAndViewCell(curCell.getName() + "{lay.sk}", curCell.getLibrary());
+		editView(View.LAYOUTSKEL);
 	}
 
 	public static void editOtherViewCommand()
@@ -229,17 +157,28 @@ public class ViewMenu {
 		if (newName == null) return;
 		String newViewName = (String)newName;
 		View newView = View.findView(newViewName);
-		Cell otherView = curCell.otherView(newView);
-		if (otherView != null)
+		editView(newView);
+	}
+
+	private static void editView(View v)
+	{
+		Cell curCell = WindowFrame.needCurCell();
+		if (curCell == null) return;
+		if (curCell.getView() == v)
 		{
-			WindowFrame.createEditWindow(otherView);
+			System.out.println("Cell " + curCell.describe(false) + " is already the " + v.getFullName() + " view");
+			return;
+		}
+		Cell otherCell = curCell.otherView(v);
+		if (otherCell != null)
+		{
+			WindowFrame.createEditWindow(otherCell);
 			return;
 		}
 		String [] options = {"Yes", "No"};
-		int ret = Job.getUserInterface().askForChoice("There is no " + newViewName + " view of " + curCell +
-			"\nDo you want to create an empty cell?", "Create " + newViewName + " View", options, "No");
+		int ret = Job.getUserInterface().askForChoice("There is no " + v.getFullName() + " view of " + curCell +
+			"\nDo you want to create an empty cell?", "Create " + v.getFullName() + " View", options, "No");
 		if (ret == 1) return;
-		new ViewChanges.CreateAndViewCell(curCell.getName() + "{" + newView.getAbbreviation() + "}", curCell.getLibrary());
+		new ViewChanges.CreateAndViewCell(curCell.getName() + "{" + v.getAbbreviation() + "}", curCell.getLibrary());
 	}
-
 }
