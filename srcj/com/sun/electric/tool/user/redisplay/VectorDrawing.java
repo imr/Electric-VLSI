@@ -72,6 +72,7 @@ class VectorDrawing
     private int scale_int;
 	/** true if "peeking" and expanding to the bottom */	private boolean fullInstantiate;
 	/** A List of NodeInsts to the cell being in-place edited. */private List<NodeInst> inPlaceNodePath;
+	/** The current cell being in-place edited. */			private Cell inPlaceCurrent;
 	/** time that rendering started */						private long startTime;
 	/** true if the user has been told of delays */			private boolean takingLongTime;
 	/** true to stop rendering */							private boolean stopRendering;
@@ -119,7 +120,8 @@ class VectorDrawing
      * @param inPlaceNodePath a List of NodeInsts to the cell being in-place edited
 	 * @param screenLimit the area in the cell to display (null to show all).
 	 */
-	public void render(PixelDrawing offscreen, double scale, Point2D offset, Cell cell, boolean fullInstantiate, List<NodeInst> inPlaceNodePath, Rectangle screenLimit, VarContext context)
+	public void render(PixelDrawing offscreen, double scale, Point2D offset, Cell cell, boolean fullInstantiate,
+		List<NodeInst> inPlaceNodePath, Cell inPlaceCurrent, Rectangle screenLimit, VarContext context)
 	{
 		// set colors to use
 		textGraphics.setColor(new Color(User.getColor(User.ColorPrefType.TEXT)));
@@ -159,6 +161,7 @@ class VectorDrawing
 		// draw recursively
 		this.fullInstantiate = fullInstantiate;
 		this.inPlaceNodePath = inPlaceNodePath;
+		this.inPlaceCurrent = inPlaceCurrent;
 		szHalfWidth = sz.width / 2;
 		szHalfHeight = sz.height / 2;
 		screenLX = 0;   screenHX = sz.width;
@@ -325,24 +328,25 @@ class VectorDrawing
 				continue;
 			}
 
-			boolean expanded = ni.isExpanded() || fullInstantiate;
-
-			// if not expanded, but viewing this cell in-place, expand it
-			if (!expanded)
+			// see if drawing "down in place"
+			boolean onPathDown = false;
+			if (inPlaceNodePath != null)
 			{
-				if (inPlaceNodePath != null)
+				for(NodeInst niOnPath : inPlaceNodePath)
 				{
-					for(int pathIndex=0; pathIndex<inPlaceNodePath.size(); pathIndex++)
+					if (niOnPath.getProto().getId() == vsc.subCellId)
 					{
-						NodeInst niOnPath = inPlaceNodePath.get(pathIndex);
-						if (niOnPath.getProto().getId() == vsc.subCellId)
-						{
-							expanded = true;
-							break;
-						}
+						onPathDown = true;
+						break;
 					}
 				}
 			}
+
+			// see if cell contents should be drawn
+			boolean expanded = ni.isExpanded() || fullInstantiate;
+
+			// if not expanded, but viewing this cell in-place, expand it
+			if (!expanded && onPathDown) expanded = true;
 
 			if (expanded)
 			{
@@ -401,7 +405,8 @@ class VectorDrawing
 					offscreen.drawText(tempRect, Poly.Type.TEXTBOX, descript, subCell.describe(false), null, textGraphics, false);
 				}
 			}
-			drawPortList(vsc, subVC, soX, soY, ni.isExpanded());
+			if (level == 0 || onPathDown || inPlaceCurrent == cell)
+				drawPortList(vsc, subVC, soX, soY, ni.isExpanded());
 		}
 	}
 
@@ -625,7 +630,7 @@ class VectorDrawing
 //					layerBitMap = null;
 //					lX = hX = cX;
 //					lY = hY = cY;
-//				} else 
+//				} else
                 if (vt.textType == VectorCache.VectorText.TEXTTYPEEXPORT && vt.basePort != null)
 				{
                 	if (!vt.basePort.getParent().isVisible()) continue;

@@ -24,25 +24,25 @@
 package com.sun.electric.tool.user.redisplay;
 
 import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.geometry.GenMath;
+import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.EditWindow0;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.tool.user.User;
-import com.sun.electric.database.geometry.Orientation;
-import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.id.CellId;
-import com.sun.electric.database.variable.EditWindow0;
-import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
@@ -63,14 +63,15 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.awt.image.VolatileImage;
 import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import javax.swing.SwingUtilities;
 
 /**
@@ -254,6 +255,7 @@ class LayerDrawing
 	/** whether any layers are highlighted/dimmed */		boolean highlightingLayers;
 	/** true if the last display was a full-instantiate */	private boolean lastFullInstantiate = false;
 	/** A List of NodeInsts to the cell being in-place edited. */private List<NodeInst> inPlaceNodePath;
+	/** The current cell being in-place edited. */			private Cell inPlaceCurrent;
 	/** true if text can be drawn (not too zoomed-out) */	private boolean canDrawText;
     /** Threshold for relative text can be drawn */         private double canDrawRelativeText = Double.MAX_VALUE;
 	/** maximum size before an object is too small */		private static double maxObjectSize;
@@ -1114,6 +1116,7 @@ class LayerDrawing
         EditWindow wnd = drawing.wnd;
 		Cell cell = wnd.getInPlaceEditTopCell();
 		inPlaceNodePath = wnd.getInPlaceEditNodePath();
+		inPlaceCurrent = wnd.getCell();
 
 		// set colors to use
         textColor = new Color(User.getColor(User.ColorPrefType.TEXT));
@@ -1444,25 +1447,26 @@ class LayerDrawing
 			if (hX < clipLX || lX > clipHX) continue;
 			if (hY < clipLY || lY > clipHY) continue;
 
+			// see if drawing "down in place"
+			boolean onPathDown = false;
+			if (inPlaceNodePath != null)
+			{
+				for(NodeInst niOnPath : inPlaceNodePath)
+				{
+					if (niOnPath.getProto().getId() == vsc.subCellId)
+					{
+						onPathDown = true;
+						break;
+					}
+				}
+			}
+
+			// see if cell contents should be drawn
             boolean isExpanded = cell.isExpanded(vsc.n.nodeId);
 			boolean expanded = isExpanded || fullInstantiate;
 
 			// if not expanded, but viewing this cell in-place, expand it
-			if (!expanded)
-			{
-				if (inPlaceNodePath != null)
-				{
-					for(int pathIndex=0; pathIndex<inPlaceNodePath.size(); pathIndex++)
-					{
-						NodeInst niOnPath = inPlaceNodePath.get(pathIndex);
-						if (niOnPath.getProto().getId() == vsc.subCellId)
-						{
-							expanded = true;
-							break;
-						}
-					}
-				}
-			}
+			if (!expanded && onPathDown) expanded = true;
 
 			// two ways to draw a cell instance
             CellId subCellId = vsc.subCellId;
@@ -1511,7 +1515,7 @@ class LayerDrawing
 					drawText(tempRect, Poly.Type.TEXTBOX, descript, np.describe(false), textGraphics);
 				}
 			}
-			if (canDrawText)
+			if (canDrawText && (topLevel || onPathDown || inPlaceCurrent == cell))
                 drawPortList(vsc, subVC, soX, soY, isExpanded);
         }
 

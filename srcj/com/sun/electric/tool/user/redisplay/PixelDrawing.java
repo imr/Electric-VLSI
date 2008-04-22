@@ -74,6 +74,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+
 import javax.swing.SwingUtilities;
 
 /**
@@ -561,7 +562,8 @@ public class PixelDrawing
             drawCell(cell, drawLimitBounds, fullInstantiate, Orientation.IDENT, DBMath.MATID, wnd.getCell());
 		} else
 		{
-			drawing.vd.render(this, scale, new Point2D.Double(drawing.da.offX, drawing.da.offY), cell, fullInstantiate, inPlaceNodePath, renderBounds, varContext);
+			drawing.vd.render(this, scale, new Point2D.Double(drawing.da.offX, drawing.da.offY), cell, fullInstantiate,
+				inPlaceNodePath, wnd.getCell(), renderBounds, varContext);
 		}
 
 		// merge transparent image into opaque one
@@ -655,7 +657,7 @@ public class PixelDrawing
 		} else
 		{
             VectorDrawing vd = new VectorDrawing();
-			vd.render(this, scale, offset, cell, false, null, null, varContext);
+			vd.render(this, scale, offset, cell, false, null, null, null, varContext);
 		}
 
 		// merge transparent image into opaque one
