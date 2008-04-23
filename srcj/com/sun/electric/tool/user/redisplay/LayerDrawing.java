@@ -64,6 +64,7 @@ import java.awt.image.DataBufferInt;
 import java.awt.image.VolatileImage;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -254,7 +255,7 @@ class LayerDrawing
     
 	/** whether any layers are highlighted/dimmed */		boolean highlightingLayers;
 	/** true if the last display was a full-instantiate */	private boolean lastFullInstantiate = false;
-	/** A List of NodeInsts to the cell being in-place edited. */private List<NodeInst> inPlaceNodePath;
+	/** A set of subcells being in-place edited. */         private BitSet inPlaceSubcellPath;
 	/** The current cell being in-place edited. */			private Cell inPlaceCurrent;
 	/** true if text can be drawn (not too zoomed-out) */	private boolean canDrawText;
     /** Threshold for relative text can be drawn */         private double canDrawRelativeText = Double.MAX_VALUE;
@@ -1115,7 +1116,16 @@ class LayerDrawing
 
         EditWindow wnd = drawing.wnd;
 		Cell cell = wnd.getInPlaceEditTopCell();
-		inPlaceNodePath = wnd.getInPlaceEditNodePath();
+        List<NodeInst> inPlaceNodePath = wnd.getInPlaceEditNodePath();
+        if (inPlaceNodePath.isEmpty()) {
+            inPlaceSubcellPath = null;
+        } else {
+            inPlaceSubcellPath = new BitSet();
+            for (NodeInst ni: inPlaceNodePath) {
+                Cell subCell = (Cell)ni.getProto();
+                inPlaceSubcellPath.set(subCell.getId().cellIndex);
+            }
+        }
 		inPlaceCurrent = wnd.getCell();
 
 		// set colors to use
@@ -1448,18 +1458,7 @@ class LayerDrawing
 			if (hY < clipLY || lY > clipHY) continue;
 
 			// see if drawing "down in place"
-			boolean onPathDown = false;
-			if (inPlaceNodePath != null)
-			{
-				for(NodeInst niOnPath : inPlaceNodePath)
-				{
-					if (niOnPath.getProto().getId() == vsc.subCellId)
-					{
-						onPathDown = true;
-						break;
-					}
-				}
-			}
+			boolean onPathDown = inPlaceSubcellPath != null && inPlaceSubcellPath.get(vsc.subCellId.cellIndex);
 
 			// see if cell contents should be drawn
             boolean isExpanded = cell.isExpanded(vsc.n.nodeId);
@@ -1668,21 +1667,7 @@ class LayerDrawing
 		if (fullInstantiate) expanded = true;
 
 		// if not expanded, but viewing this cell in-place, expand it
-		if (!expanded)
-		{
-			if (inPlaceNodePath != null)
-			{
-				for(int pathIndex=0; pathIndex<inPlaceNodePath.size(); pathIndex++)
-				{
-					NodeInst niOnPath = inPlaceNodePath.get(pathIndex);
-					if (niOnPath.getProto() == subCell)
-					{
-						expanded = true;
-						break;
-					}
-				}
-			}
-		}
+        expanded = expanded || inPlaceSubcellPath != null && inPlaceSubcellPath.get(subCell.getId().cellIndex);
 		if (!expanded) return;
 
 		if (screenBounds.width < sz.width/2 || screenBounds.height <= sz.height/2)
