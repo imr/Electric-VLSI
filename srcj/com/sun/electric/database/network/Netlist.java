@@ -199,8 +199,8 @@ public abstract class Netlist
     abstract void fillNames(int netIndex, Collection<String> exportedNames, Collection<String> privateNames);
 
     /**numExternalNets
-     * Method to tell whether this network has any exports on it.
-     * @return true if there are exports on this Network.
+     * Method to tell whether this network has any exports or globals on it.
+     * @return true if there are exports or globals on this Network.
      */
     abstract boolean isExported(int netIndex);
 

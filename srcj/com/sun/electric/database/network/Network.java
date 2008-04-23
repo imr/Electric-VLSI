@@ -185,8 +185,8 @@ public class Network {
     }
 
     /**
-     * Method to tell whether this network has any exports on it.
-     * @return true if there are exports on this Network.
+     * Method to tell whether this network has any exports or globals on it.
+     * @return true if there are exports or globals on this Network.
      */
     public boolean isExported() { return netlist.isExported(netIndex); }
 
