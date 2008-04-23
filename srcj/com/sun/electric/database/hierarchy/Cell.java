@@ -3692,7 +3692,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
      * Method to return true if bus names are allowed in this Cell
      * @return true if bus names are allowed in this Cell
      */
-    public boolean busNamesAllowed() { return isIcon() || isSchematic(); }
+    public boolean busNamesAllowed() { return getD().busNamesAllowed(); }
 
     /**
      * Method to return true if this Cell is a layout Cell.

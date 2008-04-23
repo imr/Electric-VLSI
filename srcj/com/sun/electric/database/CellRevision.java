@@ -137,7 +137,7 @@ public class CellRevision {
         }
 
         CellId cellId = d.cellId;
-        boolean busNamesAllowed = cellId.isIcon() || cellId.isSchematic();
+        boolean busNamesAllowed = d.busNamesAllowed();
         if (this.d != d) {
             if (d.techId == null)
                 throw new NullPointerException("tech");
@@ -404,7 +404,7 @@ public class CellRevision {
     public void check() {
         d.check();
         CellId cellId = d.cellId;
-        boolean busNamesAllowed = cellId.isIcon() || cellId.isSchematic();
+        boolean busNamesAllowed = d.busNamesAllowed();
         BitSet checkTechUsages = new BitSet();
         checkTechUsages.set(d.techId.techIndex);
         int[] checkCellUsages = getInstCounts();

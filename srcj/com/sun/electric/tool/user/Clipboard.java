@@ -39,7 +39,6 @@ import com.sun.electric.database.variable.DisplayedText;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
@@ -412,9 +411,7 @@ public class Clipboard
 			clear();
 
 			// copy objects to clipboard
-			copyListToCell(clipCell, highlightedGeoms, highlightedText, null, null,
-				new Point2D.Double(0,0), User.isDupCopiesExports(), User.isArcsAutoIncremented(),
-				alignment, inPlace, inPlaceOrient);
+			copyListToClipboard(highlightedGeoms, highlightedText, alignment, inPlace, inPlaceOrient);
 			return true;
 		}
 	}
@@ -461,9 +458,7 @@ public class Clipboard
 			}
 
 			// copy objects to clipboard
-			copyListToCell(clipCell, geomList, textList, null, null,
-				new Point2D.Double(0, 0), User.isDupCopiesExports(), User.isArcsAutoIncremented(),
-				alignment, inPlace, inPlaceOrient);
+			copyListToClipboard(geomList, textList,	alignment, inPlace, inPlaceOrient);
 
 			// and delete the original objects
 			CircuitChangeJobs.eraseObjectsInList(cell, geomList, reconstructArcs);
@@ -714,6 +709,13 @@ public class Clipboard
 		}
 	}
 
+	public static void copyListToClipboard(List<Geometric> geomList, List<DisplayedText> textList,
+		double alignment, AffineTransform inPlace, Orientation inPlaceOrient) {
+        copyListToCell(clipCell, geomList, textList, null, null, new Point2D.Double(),
+                User.isDupCopiesExports(), User.isArcsAutoIncremented(),
+                alignment, inPlace, inPlaceOrient);
+    }
+    
 	/**
 	 * Method to copy the list of Geometrics to a new Cell.
 	 * @param toCell the destination cell of the Geometrics.

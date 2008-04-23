@@ -276,6 +276,16 @@ public class ImmutableCell extends ImmutableElectricObject {
         return cellId.isIcon() || cellId.isSchematic();
     }
     
+    /**
+     * Method to return true if bus names are allowed in this Cell
+     * @return true if bus names are allowed in this Cell
+     */
+    public boolean busNamesAllowed() {
+        // A hack: bus names are allowed in Clipboard until Clipboard becomes a GUI object 
+        return cellId.isIcon() || cellId.isSchematic() || cellId.libId.libName.equals("Clipboard!!");
+    }
+    
+    
     @Override
     public String toString() { return cellId.toString(); }
 }
