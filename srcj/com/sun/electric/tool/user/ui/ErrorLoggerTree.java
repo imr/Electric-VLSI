@@ -41,7 +41,11 @@ import com.sun.electric.tool.user.dialogs.OpenFile;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -61,24 +65,24 @@ public class ErrorLoggerTree {
     /** Top of error tree */            private static final DefaultMutableTreeNode errorTree = new DefaultMutableTreeNode("ERRORS");
     /** Path to error tree */           private static final TreePath errorPath = (new TreePath(ExplorerTreeModel.rootNode)).pathByAddingChild(errorTree);
     /** Current Logger */               static DefaultMutableTreeNode currentLogger;
-    
+
     private static final ErrorLogger networkErrorLogger = ErrorLogger.newInstance("Network Errors");
 //    private static final ErrorLogger drcErrorLogger = ErrorLogger.newInstance("DRC (incremental)");
     private static DefaultMutableTreeNode networkTree;
     private static DefaultMutableTreeNode drcTree;
 
     // public methods called from any thread
-    
+
     public static boolean hasLogger(ErrorLogger logger) {
         return indexOf(logger) >= 0;
     };
-    
+
     public static void addLogger(ErrorLogger logger, boolean explain, boolean terminate) {
         logger.termLogging_(terminate);
         if (logger.getNumLogs() == 0) return;
         SwingUtilities.invokeLater(new AddLogger(logger, explain));
     };
-    
+
     public static void updateNetworkErrors(Cell cell, List<ErrorLogger.MessageLog> errors) {
         SwingUtilities.invokeLater(new UpdateNetwork(cell.getId(), errors));
     }
@@ -88,9 +92,9 @@ public class ErrorLoggerTree {
     }
 
     // public methods called from GUI thread
-    
+
     public static DefaultMutableTreeNode getExplorerTree() { return errorTree; }
-    
+
     /**
      * Method to advance to the next error and report it.
      */
@@ -105,6 +109,22 @@ public class ErrorLoggerTree {
     public static String reportPrevMessage() {
         if (currentLogger == null) return "No errors to report";
         return ((ErrorLoggerTreeNode)currentLogger.getUserObject()).reportPrevMessage_();
+    }
+
+    /**
+     * Method to show the current collection of errors.
+     */
+    public static void showCurrentErrors()
+    {
+    	WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+    	if (wf == null) return;
+        if (currentLogger == null) return;
+
+		Job.getUserInterface().getCurrentEditWindow_().clearHighlighting();
+        ErrorLoggerTreeNode node = (ErrorLoggerTreeNode)ErrorLoggerTree.currentLogger.getUserObject();
+		int index = indexOf(node);
+		highlightLogger(index);
+    	Job.getUserInterface().getCurrentEditWindow_().finishedHighlighting();
     }
 
     private static class AddLogger implements Runnable {
@@ -125,7 +145,7 @@ public class ErrorLoggerTree {
             }
         }
     }
-    
+
     private static void explain(ErrorLogger logger) {
         // To print consistent message in message window
         String extraMsg = "errors/warnings";
@@ -141,7 +161,7 @@ public class ErrorLoggerTree {
                     logger.getSystem() + " finished with Errors", JOptionPane.INFORMATION_MESSAGE);
         }
     }
-    
+
     private static class UpdateNetwork implements Runnable {
         private CellId cellId;
         private ArrayList<ErrorLogger.MessageLog> errors;
@@ -166,7 +186,7 @@ public class ErrorLoggerTree {
             setCurrent(0);
         }
     }
-            
+
     private static class UpdateDrc implements Runnable {
         private CellId cellId;
         private ArrayList<ErrorLogger.MessageLog> newErrors;
@@ -201,7 +221,7 @@ public class ErrorLoggerTree {
             setCurrent(index);
         }
     }
-            
+
     private static DefaultMutableTreeNode addLogger(int index, ErrorLogger logger) {
         ErrorLoggerTreeNode tn = new ErrorLoggerTreeNode(logger);
         UserInterfaceMain.addDatabaseChangeListener(tn);
@@ -215,7 +235,7 @@ public class ErrorLoggerTree {
         updateTree(newNode);
         return newNode;
     }
-    
+
     private static void removeLogger(int index) {
         if (errorTree.getChildCount() <= index)
             return; // nothing to remove. Case of incremental errors
@@ -238,7 +258,7 @@ public class ErrorLoggerTree {
         errorTree.remove(index);
         ExplorerTreeModel.fireTreeNodesRemoved(errorTree, errorPath, childIndices, children);
     }
-    
+
     private static void highlightLogger(int index)
     {
     	EditWindow ew = EditWindow.getCurrent();
@@ -258,7 +278,7 @@ public class ErrorLoggerTree {
         	}
         }
     }
-    
+
     private static void updateTree(DefaultMutableTreeNode loggerNode) {
         TreePath loggerPath = errorPath.pathByAddingChild(loggerNode);
         int oldChildCount = loggerNode.getChildCount();
@@ -275,7 +295,6 @@ public class ErrorLoggerTree {
         ErrorLogger logger = ((ErrorLoggerTreeNode)loggerNode.getUserObject()).logger;
         if (logger.getNumLogs() == 0) return;
         DefaultMutableTreeNode groupNode = loggerNode;
-        int currentSortKey = -1;
         Map<Integer,DefaultMutableTreeNode> sortKeyMap = new HashMap<Integer,DefaultMutableTreeNode>();
         HashMap<Integer,String> sortKeyGroupNamesMap = logger.getSortKeyToGroupNames();
         // Extra level for loggers
@@ -310,7 +329,7 @@ public class ErrorLoggerTree {
         }
         ExplorerTreeModel.fireTreeNodesInserted(errorTree, loggerPath, childIndex, children);
     }
-    
+
     private static void setCurrent(int index) {
         int oldIndex = currentLogger != null ? indexOf((ErrorLoggerTreeNode)currentLogger.getUserObject()) : -1;
         if (index == oldIndex) return;
@@ -338,7 +357,7 @@ public class ErrorLoggerTree {
         }
         ExplorerTreeModel.fireTreeNodesChanged(errorTree, errorPath, childIndex, children);
     }
-    
+
     /** Delete this logger */
 //    private static void delete(ErrorLoggerTreeNode node) {
 //        int index = indexOf(node);
@@ -351,13 +370,13 @@ public class ErrorLoggerTree {
 //                currentLogger = null;
 //        }
 //    }
-    
+
     private static int indexOf(ErrorLoggerTreeNode tn) {
         for (int i = 0, numLoggers = errorTree.getChildCount(); i < numLoggers; i++)
             if (((DefaultMutableTreeNode)errorTree.getChildAt(i)).getUserObject() == tn) return i;
         return -1;
     }
-        
+
     private static int indexOf(ErrorLogger logger) {
         for (int i = 0, numLoggers = errorTree.getChildCount(); i < numLoggers; i++) {
             DefaultMutableTreeNode defaultMutableTreeNode = (DefaultMutableTreeNode)errorTree.getChildAt(i);
@@ -385,7 +404,7 @@ public class ErrorLoggerTree {
     public static void importLogger()
     {
         String fileName = OpenFile.chooseInputFile(FileType.XML, "Read ErrorLogger");
-        if (fileName == null) return; // nothing to load 
+        if (fileName == null) return; // nothing to load
 
         try {
             ErrorLogger.XMLParser parser = new ErrorLogger.XMLParser();
@@ -403,7 +422,7 @@ public class ErrorLoggerTree {
         ErrorLoggerDefaultMutableTreeNode(ErrorLoggerTreeNode tn) { super(tn); }
         public boolean isLeaf() { return false; }
     }
-    
+
     public static class ErrorLoggerTreeNode implements DatabaseChangeListener, ActionListener
     {
         private ErrorLogger logger;
@@ -425,7 +444,7 @@ public class ErrorLoggerTree {
             }
             return reportLog(currentLogNumber, showHigh);
         }
-        
+
         public String reportPrevMessage_() {
             if (currentLogNumber > 0) {
                 currentLogNumber--;
@@ -435,16 +454,16 @@ public class ErrorLoggerTree {
             }
             return reportLog(currentLogNumber, true);
         }
-        
+
         /**
          * Report an error
          */
         private String reportLog(int logNumber, boolean showHigh) {
-            
+
             if (logNumber < 0 || (logNumber >= logger.getNumLogs())) {
                 return logger.getSystem() + ": no such error or warning "+(logNumber+1)+", only "+logger.getNumLogs()+" errors.";
             }
-            
+
             ErrorLogger.MessageLog el = logger.getLog(logNumber);
             String extraMsg = null;
             if (logNumber < logger.getNumErrors()) {
@@ -455,7 +474,7 @@ public class ErrorLoggerTree {
             String message = Job.getUserInterface().reportLog(el, showHigh, null);
             return (logger.getSystem() + extraMsg + ": " + message);
         }
-        
+
         public void databaseChanged(DatabaseChangeEvent e) {
             // check if any errors need to be deleted
             boolean changed = false;
@@ -478,7 +497,7 @@ public class ErrorLoggerTree {
             else
                 updateTree((DefaultMutableTreeNode)errorTree.getChildAt(index));
         }
-        
+
         public void actionPerformed(ActionEvent e)
         {
             int index = indexOf(this);
@@ -553,7 +572,7 @@ public class ErrorLoggerTree {
             }
         }
     }
-    
+
     public static void deleteAllLoggers() {
         for (int i = errorTree.getChildCount() - 1; i >= 0; i--)
             removeLogger(i);

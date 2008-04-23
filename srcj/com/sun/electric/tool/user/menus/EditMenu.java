@@ -21,7 +21,6 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-
 package com.sun.electric.tool.user.menus;
 
 import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
@@ -61,7 +60,25 @@ import com.sun.electric.tool.user.Clipboard;
 import com.sun.electric.tool.user.Highlight2;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.dialogs.*;
+import com.sun.electric.tool.user.dialogs.Array;
+import com.sun.electric.tool.user.dialogs.ArtworkLook;
+import com.sun.electric.tool.user.dialogs.Attributes;
+import com.sun.electric.tool.user.dialogs.BusParameters;
+import com.sun.electric.tool.user.dialogs.Change;
+import com.sun.electric.tool.user.dialogs.ChangeText;
+import com.sun.electric.tool.user.dialogs.EditKeyBindings;
+import com.sun.electric.tool.user.dialogs.FindText;
+import com.sun.electric.tool.user.dialogs.GetInfoArc;
+import com.sun.electric.tool.user.dialogs.GetInfoExport;
+import com.sun.electric.tool.user.dialogs.GetInfoMulti;
+import com.sun.electric.tool.user.dialogs.GetInfoNode;
+import com.sun.electric.tool.user.dialogs.GetInfoOutline;
+import com.sun.electric.tool.user.dialogs.GetInfoText;
+import com.sun.electric.tool.user.dialogs.MoveBy;
+import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.user.dialogs.SelectObject;
+import com.sun.electric.tool.user.dialogs.SpecialProperties;
+import com.sun.electric.tool.user.dialogs.Spread;
 import com.sun.electric.tool.user.tecEdit.LibToTech;
 import com.sun.electric.tool.user.tecEdit.Manipulate;
 import com.sun.electric.tool.user.tecEdit.TechToLib;
@@ -105,1113 +122,1100 @@ import javax.swing.KeyStroke;
  */
 public class EditMenu {
 
-    static EMenu makeMenu() {
-        /****************************** THE EDIT MENU ******************************/
+	static EMenu makeMenu() {
+		/****************************** THE EDIT MENU ******************************/
 
-        // mnemonic keys available:  B       JK     Q
-        // still don't have mnemonic for "Repeat Last Action"
-        return new EMenu("_Edit",
+		// mnemonic keys available:  B       JK     Q
+		// still don't have mnemonic for "Repeat Last Action"
+		return new EMenu("_Edit",
 
-            new EMenuItem("Cu_t", 'X') { public void run() {
-                Clipboard.cut(); }},
-            new EMenuItem("Cop_y", 'C') { public void run() {
-                Clipboard.copy(); }},
-            new EMenuItem("_Paste", 'V') { public void run() {
-                Clipboard.paste(); }},
-            new EMenuItem("Dup_licate", 'M') { public void run() {
-                Clipboard.duplicate(); }},
+			new EMenuItem("Cu_t", 'X') { public void run() {
+				Clipboard.cut(); }},
+			new EMenuItem("Cop_y", 'C') { public void run() {
+				Clipboard.copy(); }},
+			new EMenuItem("_Paste", 'V') { public void run() {
+				Clipboard.paste(); }},
+			new EMenuItem("Dup_licate", 'M') { public void run() {
+				Clipboard.duplicate(); }},
 
-            SEPARATOR,
+			SEPARATOR,
 
-       // TODO: figure out how to remove this property change listener for correct garbage collection
-            ToolBar.undoCommand, // U
-            ToolBar.redoCommand, // D
-            new EMenuItem("Sho_w Undo List") { public void run() {
-                showUndoListCommand(); }},
-            new EMenuItem("Repeat Last Action", KeyStroke.getKeyStroke('&')) { public void run() {
-                EMenuItem.repeatLastCommand(); }},
+		// TODO: figure out how to remove this property change listener for correct garbage collection
+			ToolBar.undoCommand, // U
+			ToolBar.redoCommand, // D
+			new EMenuItem("Sho_w Undo List") { public void run() {
+				showUndoListCommand(); }},
+			new EMenuItem("Repeat Last Action", KeyStroke.getKeyStroke('&')) { public void run() {
+				EMenuItem.repeatLastCommand(); }},
 
-            SEPARATOR,
+			SEPARATOR,
 
-        // mnemonic keys available: AB  EFGHIJKLMN PQRSTUV XYZ
-            new EMenu("_Rotate",
-                new EMenuItem("90 Degrees Clock_wise") { public void run() {
-                    CircuitChanges.rotateObjects(2700); }},
-                new EMenuItem("90 Degrees _Counterclockwise", 'J') { public void run() {
-                    CircuitChanges.rotateObjects(900); }},
-                new EMenuItem("180 _Degrees") { public void run() {
-                    CircuitChanges.rotateObjects(1800); }},
-                new EMenuItem("_Other...") { public void run() {
-                    CircuitChanges.rotateObjects(0); }}),
+		// mnemonic keys available: AB  EFGHIJKLMN PQRSTUV XYZ
+			new EMenu("_Rotate",
+				new EMenuItem("90 Degrees Clock_wise") { public void run() {
+					CircuitChanges.rotateObjects(2700); }},
+				new EMenuItem("90 Degrees _Counterclockwise", 'J') { public void run() {
+					CircuitChanges.rotateObjects(900); }},
+				new EMenuItem("180 _Degrees") { public void run() {
+					CircuitChanges.rotateObjects(1800); }},
+				new EMenuItem("_Other...") { public void run() {
+					CircuitChanges.rotateObjects(0); }}),
 
-        // mnemonic keys available: ABCDEFGHIJK MNOPQRST VWXYZ
-            new EMenu("_Mirror",
-                new EMenuItem("_Up <-> Down") { public void run() {
-                    CircuitChanges.mirrorObjects(true); }},
-                new EMenuItem("_Left <-> Right") { public void run() {
-                    CircuitChanges.mirrorObjects(false); }}),
+		// mnemonic keys available: ABCDEFGHIJK MNOPQRST VWXYZ
+			new EMenu("_Mirror",
+				new EMenuItem("_Up <-> Down") { public void run() {
+					CircuitChanges.mirrorObjects(true); }},
+				new EMenuItem("_Left <-> Right") { public void run() {
+					CircuitChanges.mirrorObjects(false); }}),
 
-        // mnemonic keys available:  BCDEFGH JKLM OPQRSTUVWXYZ
-            new EMenu("Si_ze",
-                new EMenuItem("_Interactively", 'B') { public void run() {
-                    SizeListener.sizeObjects(); }},
-                new EMenuItem("All Selected _Nodes...") { public void run() {
-                    SizeListener.sizeAllNodes(); }},
-                new EMenuItem("All Selected _Arcs...") { public void run() {
-                    SizeListener.sizeAllArcs(); }}),
+		// mnemonic keys available:  BCDEFGH JKLM OPQRSTUVWXYZ
+			new EMenu("Si_ze",
+				new EMenuItem("_Interactively", 'B') { public void run() {
+					SizeListener.sizeObjects(); }},
+				new EMenuItem("All Selected _Nodes...") { public void run() {
+					SizeListener.sizeAllNodes(); }},
+				new EMenuItem("All Selected _Arcs...") { public void run() {
+					SizeListener.sizeAllArcs(); }}),
 
-        // mnemonic keys available:    DEFGHIJK  NOPQ   U WXYZ
-            new EMenu("Mo_ve",
-                new EMenuItem("_Spread...") { public void run() {
-                    Spread.showSpreadDialog(); }},
-                new EMenuItem("_Move Objects By...") { public void run() {
-                    MoveBy.showMoveByDialog(); }},
-                new EMenuItem("_Align to Grid") { public void run() {
-                    CircuitChanges.alignToGrid(); }},
-                SEPARATOR,
-                new EMenuItem("Align Horizontally to _Left") { public void run() {
-                    CircuitChanges.alignNodes(true, 0); }},
-                new EMenuItem("Align Horizontally to _Right") { public void run() {
-                    CircuitChanges.alignNodes(true, 1); }},
-                new EMenuItem("Align Horizontally to _Center") { public void run() {
-                    CircuitChanges.alignNodes(true, 2); }},
-                SEPARATOR,
-                new EMenuItem("Align Vertically to _Top") { public void run() {
-                    CircuitChanges.alignNodes(false, 0); }},
-                new EMenuItem("Align Vertically to _Bottom") { public void run() {
-                    CircuitChanges.alignNodes(false, 1); }},
-                new EMenuItem("Align _Vertically to Center") { public void run() {
-                    CircuitChanges.alignNodes(false, 2); }}),
+		// mnemonic keys available:    DEFGHIJK  NOPQ   U WXYZ
+			new EMenu("Mo_ve",
+				new EMenuItem("_Spread...") { public void run() {
+					Spread.showSpreadDialog(); }},
+				new EMenuItem("_Move Objects By...") { public void run() {
+					MoveBy.showMoveByDialog(); }},
+				new EMenuItem("_Align to Grid") { public void run() {
+					CircuitChanges.alignToGrid(); }},
+				SEPARATOR,
+				new EMenuItem("Align Horizontally to _Left") { public void run() {
+					CircuitChanges.alignNodes(true, 0); }},
+				new EMenuItem("Align Horizontally to _Right") { public void run() {
+					CircuitChanges.alignNodes(true, 1); }},
+				new EMenuItem("Align Horizontally to _Center") { public void run() {
+					CircuitChanges.alignNodes(true, 2); }},
+				SEPARATOR,
+				new EMenuItem("Align Vertically to _Top") { public void run() {
+					CircuitChanges.alignNodes(false, 0); }},
+				new EMenuItem("Align Vertically to _Bottom") { public void run() {
+					CircuitChanges.alignNodes(false, 1); }},
+				new EMenuItem("Align _Vertically to Center") { public void run() {
+					CircuitChanges.alignNodes(false, 2); }}),
 
-            SEPARATOR,
+			SEPARATOR,
 
-        // mnemonic keys available:   CDEFGHIJKLMNOPQR TUVWXYZ
-            new EMenu("_Erase",
-                new EMenuItem("_Selected", KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0)) {
-                    public void run() {
-                        CircuitChanges.deleteSelected(); }},
-                new EMenuItem("_Arcs Connected to Selected Nodes") { public void run() {
-                    CircuitChanges.deleteArcsOnSelected(false); }},
-                new EMenuItem("Arcs Connected _Between Selected Nodes") { public void run() {
-                    CircuitChanges.deleteArcsOnSelected(true); }}),
+		// mnemonic keys available:   CDEFGHIJKLMNOPQR TUVWXYZ
+			new EMenu("_Erase",
+				new EMenuItem("_Selected", KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0)) {
+					public void run() {
+						CircuitChanges.deleteSelected(); }},
+				new EMenuItem("_Arcs Connected to Selected Nodes") { public void run() {
+					CircuitChanges.deleteArcsOnSelected(false); }},
+				new EMenuItem("Arcs Connected _Between Selected Nodes") { public void run() {
+					CircuitChanges.deleteArcsOnSelected(true); }}),
 
-            new EMenuItem("_Array...", KeyStroke.getKeyStroke(KeyEvent.VK_F6, 0)) { public void run() {
-                Array.showArrayDialog(); }},
-            new EMenuItem("C_hange...", KeyStroke.getKeyStroke('C', 0)) { public void run() {
-                Change.showChangeDialog(); }},
+			new EMenuItem("_Array...", KeyStroke.getKeyStroke(KeyEvent.VK_F6, 0)) { public void run() {
+				Array.showArrayDialog(); }},
+			new EMenuItem("C_hange...", KeyStroke.getKeyStroke('C', 0)) { public void run() {
+				Change.showChangeDialog(); }},
 
-            SEPARATOR,
+			SEPARATOR,
 
-        // mnemonic keys available: A C  FG IJK M  QR TUVWXYZ
-            new EMenu("Propert_ies",
-                new EMenuItem("_Object Properties...", 'I') { public void run() {
-                    getInfoCommand(false); }},
-                new EMenuItem("_Parameters Properties...") { public void run() {
-                    Attributes.showDialog(); }},
-                SEPARATOR,
-                new EMenuItem("_See All Attributes on Node") { public void run() {
-                    seeAllParametersCommand(); }},
-                new EMenuItem("_Hide All Attributes on Node") { public void run() {
-                    hideAllParametersCommand(); }},
-                new EMenuItem("_Default Attribute Visibility") { public void run() {
-                    defaultParamVisibilityCommand(); }},
-                new EMenuItem("Update Attributes Inheritance on _Node") { public void run() {
-                    updateInheritance(false); }},
-                new EMenuItem("Update Attributes Inheritance all _Libraries") { public void run() {
-                    updateInheritance(true); }},
-                SEPARATOR,
-                new EMenuItem("Parameterize _Bus Name") { public void run() {
-                    BusParameters.makeBusParameter(); }},
-                new EMenuItem("_Edit Bus Parameters...") { public void run() {
-                    BusParameters.showBusParametersDialog(); }}),
+		// mnemonic keys available: A C  FG IJK M  QR TUVWXYZ
+			new EMenu("Propert_ies",
+				new EMenuItem("_Object Properties...", 'I') { public void run() {
+					getInfoCommand(false); }},
+				new EMenuItem("_Parameters Properties...") { public void run() {
+					Attributes.showDialog(); }},
+				SEPARATOR,
+				new EMenuItem("_See All Attributes on Node") { public void run() {
+					seeAllParametersCommand(); }},
+				new EMenuItem("_Hide All Attributes on Node") { public void run() {
+					hideAllParametersCommand(); }},
+				new EMenuItem("_Default Attribute Visibility") { public void run() {
+					defaultParamVisibilityCommand(); }},
+				new EMenuItem("Update Attributes Inheritance on _Node") { public void run() {
+					updateInheritance(false); }},
+				new EMenuItem("Update Attributes Inheritance all _Libraries") { public void run() {
+					updateInheritance(true); }},
+				SEPARATOR,
+				new EMenuItem("Parameterize _Bus Name") { public void run() {
+					BusParameters.makeBusParameter(); }},
+				new EMenuItem("_Edit Bus Parameters...") { public void run() {
+					BusParameters.showBusParametersDialog(); }}),
 
-        // mnemonic keys available:     E G I KL  OPQ S  VWXYZ
-            new EMenu("Ar_c",
-                new EMenuItem("_Rigid") { public void run() {
-                    CircuitChanges.arcRigidCommand(); }},
-                new EMenuItem("_Not Rigid") { public void run() {
-                    CircuitChanges.arcNotRigidCommand(); }},
-                new EMenuItem("_Fixed Angle") { public void run() {
-                    CircuitChanges.arcFixedAngleCommand(); }},
-                new EMenuItem("Not Fixed _Angle") { public void run() {
-                    CircuitChanges.arcNotFixedAngleCommand(); }},
-                SEPARATOR,
-                new EMenuItem("Toggle _Directionality") { public void run() {
-                    CircuitChanges.arcDirectionalCommand(); }},
-                new EMenuItem("Toggle End Extension of Both Head/Tail") { public void run() {
-                    CircuitChanges.arcHeadExtendCommand(); CircuitChanges.arcTailExtendCommand();}},
-                new EMenuItem("Toggle End Extension of _Head") { public void run() {
-                    CircuitChanges.arcHeadExtendCommand(); }},
-                new EMenuItem("Toggle End Extension of _Tail") { public void run() {
-                    CircuitChanges.arcTailExtendCommand(); }},
-                SEPARATOR,
-                new EMenuItem("Insert _Jog In Arc") { public void run() {
-                    insertJogInArcCommand(); }},
-                new EMenuItem("Rip _Bus") { public void run() {
-                    CircuitChanges.ripBus(); }},
-                SEPARATOR,
-                new EMenuItem("_Curve through Cursor") { public void run() {
-                    CurveListener.setCurvature(true); }},
-                new EMenuItem("Curve abo_ut Cursor") { public void run() {
-                    CurveListener.setCurvature(false); }},
-                new EMenuItem("Re_move Curvature") { public void run() {
-                    CurveListener.removeCurvature(); }}),
+		// mnemonic keys available:     E G I KL  OPQ S  VWXYZ
+			new EMenu("Ar_c",
+				new EMenuItem("_Rigid") { public void run() {
+					CircuitChanges.arcRigidCommand(); }},
+				new EMenuItem("_Not Rigid") { public void run() {
+					CircuitChanges.arcNotRigidCommand(); }},
+				new EMenuItem("_Fixed Angle") { public void run() {
+					CircuitChanges.arcFixedAngleCommand(); }},
+				new EMenuItem("Not Fixed _Angle") { public void run() {
+					CircuitChanges.arcNotFixedAngleCommand(); }},
+				SEPARATOR,
+				new EMenuItem("Toggle _Directionality") { public void run() {
+					CircuitChanges.arcDirectionalCommand(); }},
+				new EMenuItem("Toggle End Extension of Both Head/Tail") { public void run() {
+					CircuitChanges.arcHeadExtendCommand(); CircuitChanges.arcTailExtendCommand();}},
+				new EMenuItem("Toggle End Extension of _Head") { public void run() {
+					CircuitChanges.arcHeadExtendCommand(); }},
+				new EMenuItem("Toggle End Extension of _Tail") { public void run() {
+					CircuitChanges.arcTailExtendCommand(); }},
+				SEPARATOR,
+				new EMenuItem("Insert _Jog In Arc") { public void run() {
+					insertJogInArcCommand(); }},
+				new EMenuItem("Rip _Bus") { public void run() {
+					CircuitChanges.ripBus(); }},
+				SEPARATOR,
+				new EMenuItem("_Curve through Cursor") { public void run() {
+					CurveListener.setCurvature(true); }},
+				new EMenuItem("Curve abo_ut Cursor") { public void run() {
+					CurveListener.setCurvature(false); }},
+				new EMenuItem("Re_move Curvature") { public void run() {
+					CurveListener.removeCurvature(); }}),
 
-            ToolBar.modesSubMenu, // O                
+			ToolBar.modesSubMenu, // O
 
-        // mnemonic keys available: AB    GH JKLMNOPQRS UVWXYZ
-            new EMenu("Te_xt",
-                new EMenuItem("_Find Text...", 'L') { public void run() {
-                    FindText.findTextDialog(); }},
-                new EMenuItem("_Change Text Size...") { public void run() {
-                    ChangeText.changeTextDialog(); }},
-                new EMenuItem("_Increase All Text Size", '=') { public void run() {
-                    changeGlobalTextSize(1.25); }},
-                new EMenuItem("_Decrease All Text Size", '-') { public void run() {
-                    changeGlobalTextSize(0.8); }},
-                new EMenuItem("Add _Text Annotation", KeyStroke.getKeyStroke('T', 0)) { public void run() {
-                    PaletteFrame.placeInstance("ART_message", null, false); }},
-                new EMenuItem("Edit Text Cell _Externally...") { public void run() {
-                    editExternally(); }}),
+		// mnemonic keys available: AB    GH JKLMNOPQRS UVWXYZ
+			new EMenu("Te_xt",
+				new EMenuItem("_Find Text...", 'L') { public void run() {
+					FindText.findTextDialog(); }},
+				new EMenuItem("_Change Text Size...") { public void run() {
+					ChangeText.changeTextDialog(); }},
+				new EMenuItem("_Increase All Text Size", '=') { public void run() {
+					changeGlobalTextSize(1.25); }},
+				new EMenuItem("_Decrease All Text Size", '-') { public void run() {
+					changeGlobalTextSize(0.8); }},
+				new EMenuItem("Add _Text Annotation", KeyStroke.getKeyStroke('T', 0)) { public void run() {
+					PaletteFrame.placeInstance("ART_message", null, false); }},
+				new EMenuItem("Edit Text Cell _Externally...") { public void run() {
+					editExternally(); }}),
 
-        // mnemonic keys available: ABCD FGHIJK M O Q  TUVWXYZ
-            new EMenu("Clea_nup Cell",
-                new EMenuItem("Cleanup _Pins") { public void run() {
-                    CircuitChanges.cleanupPinsCommand(false); }},
-                new EMenuItem("Cleanup Pins _Everywhere") { public void run() {
-                    CircuitChanges.cleanupPinsCommand(true); }},
-                new EMenuItem("Show _Nonmanhattan") { public void run() {
-                    CircuitChanges.showNonmanhattanCommand(); }},
-                new EMenuItem("Show Pure _Layer Nodes") { public void run() {
-                    CircuitChanges.showPureLayerCommand(); }},
-                new EMenuItem("_Shorten Selected Arcs") { public void run() {
-                    CircuitChanges.shortenArcsCommand(); }},
-                new EMenuItem("Show _Redundant Pure-Layer Nodes") { public void run() {
-                    CircuitChanges.showRedundantPureLayerNodes(); }}),
+		// mnemonic keys available: ABCD FGHIJK M O Q  TUVWXYZ
+			new EMenu("Clea_nup Cell",
+				new EMenuItem("Cleanup _Pins") { public void run() {
+					CircuitChanges.cleanupPinsCommand(false); }},
+				new EMenuItem("Cleanup Pins _Everywhere") { public void run() {
+					CircuitChanges.cleanupPinsCommand(true); }},
+				new EMenuItem("Show _Nonmanhattan") { public void run() {
+					CircuitChanges.showNonmanhattanCommand(); }},
+				new EMenuItem("Show Pure _Layer Nodes") { public void run() {
+					CircuitChanges.showPureLayerCommand(); }},
+				new EMenuItem("_Shorten Selected Arcs") { public void run() {
+					CircuitChanges.shortenArcsCommand(); }},
+				new EMenuItem("Show _Redundant Pure-Layer Nodes") { public void run() {
+					CircuitChanges.showRedundantPureLayerNodes(); }}),
 
-        // mnemonic keys available:    DE GHIJKL  OPQRSTUVWXYZ
-            new EMenu("Technology Speci_fic",
-                new EMenuItem("Toggle Port _Negation", 'T') { public void run() {
-                    CircuitChanges.toggleNegatedCommand(); }},
-                new EMenuItem("_Artwork Color and Pattern...") { public void run() {
-                    ArtworkLook.showArtworkLookDialog(); }},
-                SEPARATOR,
-                new EMenuItem("Descri_be this Technology") { public void run() {
-                    describeTechnologyCommand(); }},
-                new EMenuItem("Do_cument Current Technology") { public void run() {
-                    Manipulate.describeTechnology(Technology.getCurrent()); }},
-                new EMenuItem("Write XML of Current Technology...") { public void run()
-                {
-                    Technology tech = Technology.getCurrent();
-                    Xml.Technology xmlTech = tech.getXmlTech();
-                    if (xmlTech == null)
-                        xmlTech = tech.makeXml();
-                    String fileName = tech.getTechName() + ".xml";
-                    fileName = OpenFile.chooseOutputFile(FileType.XML, "Technology XML File", fileName);
-//                    fileName = JOptionPane.showInputDialog("Technology XML File", fileName);
-                    if (fileName != null) // didn't press cancel button
-                    {
-                        xmlTech.writeXml(fileName);
-                    }
-                }},
-                new EMenuItem("Write XML of Technology from Old Electric Build...") { public void run() {
-                    writeXmlTechnologyFromElectricBuildCommand(); }},
-                SEPARATOR,
-                new EMenuItem("Rena_me Current Technology...") { public void run() {
-                    CircuitChanges.renameCurrentTechnology(); }},
-//              new EMenuItem("D_elete Current Technology", null, { public void run() {
-//                  CircuitChanges.deleteCurrentTechnology(); }});
-                SEPARATOR,
+		// mnemonic keys available:    DE GHIJKL  OPQRSTUVWXYZ
+			new EMenu("Technology Speci_fic",
+				new EMenuItem("Toggle Port _Negation", 'T') { public void run() {
+					CircuitChanges.toggleNegatedCommand(); }},
+				new EMenuItem("_Artwork Color and Pattern...") { public void run() {
+					ArtworkLook.showArtworkLookDialog(); }},
+				SEPARATOR,
+				new EMenuItem("Descri_be this Technology") { public void run() {
+					describeTechnologyCommand(); }},
+				new EMenuItem("Do_cument Current Technology") { public void run() {
+					Manipulate.describeTechnology(Technology.getCurrent()); }},
+				new EMenuItem("Write XML of Current Technology...") { public void run()
+				{
+					Technology tech = Technology.getCurrent();
+					Xml.Technology xmlTech = tech.getXmlTech();
+					if (xmlTech == null)
+						xmlTech = tech.makeXml();
+					String fileName = tech.getTechName() + ".xml";
+					fileName = OpenFile.chooseOutputFile(FileType.XML, "Technology XML File", fileName);
+					if (fileName != null) // didn't press cancel button
+					{
+						xmlTech.writeXml(fileName);
+					}
+				}},
+				new EMenuItem("Write XML of Technology from Old Electric Build...") { public void run() {
+					writeXmlTechnologyFromElectricBuildCommand(); }},
+				SEPARATOR,
+				new EMenuItem("Rena_me Current Technology...") { public void run() {
+					CircuitChanges.renameCurrentTechnology(); }},
+				SEPARATOR,
 
-                // mnemonic keys available:  B DEFG IJKLM O Q  TUV XYZ
-                new EMenu("_FPGA",
-                    new EMenuItem("Read _Architecture And Primitives...") { public void run() {
-                        FPGA.tech().readArchitectureFile(true); }},
-                    new EMenuItem("Read P_rimitives...") { public void run() {
-                        FPGA.tech().readArchitectureFile(false); }},
-                    SEPARATOR,
-                    new EMenuItem("Edit _Pips...") { public void run() {
-                        FPGA.tech().programPips(); }},
-                    SEPARATOR,
-                    new EMenuItem("Show _No Wires") { public void run() {
-                        FPGA.tech().setWireDisplay(0); }},
-                    new EMenuItem("Show A_ctive Wires") { public void run() {
-                        FPGA.tech().setWireDisplay(1); }},
-                    new EMenuItem("Show All _Wires") { public void run() {
-                        FPGA.tech().setWireDisplay(2); }},
-                    SEPARATOR,
-                    new EMenuItem("_Show Text") { public void run() {
-                        FPGA.tech().setTextDisplay(true); }},
-                    new EMenuItem("_Hide Text") { public void run() {
-                        FPGA.tech().setTextDisplay(false); }})),
+				// mnemonic keys available:  B DEFG IJKLM O Q  TUV XYZ
+				new EMenu("_FPGA",
+					new EMenuItem("Read _Architecture And Primitives...") { public void run() {
+						FPGA.tech().readArchitectureFile(true); }},
+					new EMenuItem("Read P_rimitives...") { public void run() {
+						FPGA.tech().readArchitectureFile(false); }},
+					SEPARATOR,
+					new EMenuItem("Edit _Pips...") { public void run() {
+						FPGA.tech().programPips(); }},
+					SEPARATOR,
+					new EMenuItem("Show _No Wires") { public void run() {
+						FPGA.tech().setWireDisplay(0); }},
+					new EMenuItem("Show A_ctive Wires") { public void run() {
+						FPGA.tech().setWireDisplay(1); }},
+					new EMenuItem("Show All _Wires") { public void run() {
+						FPGA.tech().setWireDisplay(2); }},
+					SEPARATOR,
+					new EMenuItem("_Show Text") { public void run() {
+						FPGA.tech().setTextDisplay(true); }},
+					new EMenuItem("_Hide Text") { public void run() {
+						FPGA.tech().setTextDisplay(false); }})),
 
-        // mnemonic keys available: AB  EFGH JK MNO QRS UV XYZ
-            new EMenu("Technolo_gy Editing",
-                new EMenuItem("Convert Technology to _Library for Editing...") { public void run() {
-                    TechToLib.makeLibFromTech(); }},
-                new EMenuItem("Convert Library to _Technology...") { public void run() {
-                    LibToTech.makeTechFromLib(); }},
-                SEPARATOR,
-                new EMenuItem("_Identify Primitive Layers") { public void run() {
-                    Manipulate.identifyLayers(false); }},
-                new EMenuItem("Identify _Ports") { public void run() {
-                    Manipulate.identifyLayers(true); }},
-                SEPARATOR,
-                new EMenuItem("Edit Library _Dependencies...") { public void run() {
-                    Manipulate.editLibraryDependencies(); }},
-                new EMenuItem("Edit _Component Menu...") { public void run() {
-                    Manipulate.editComponentMenu(); }},
-                SEPARATOR,
-                new EMenuItem("Technology Creation _Wizard...") { public void run() {
-                    TechEditWizard.techEditWizardCommand(); }}),
+		// mnemonic keys available: AB  EFGH JK MNO QRS UV XYZ
+			new EMenu("Technolo_gy Editing",
+				new EMenuItem("Convert Technology to _Library for Editing...") { public void run() {
+					TechToLib.makeLibFromTech(); }},
+				new EMenuItem("Convert Library to _Technology...") { public void run() {
+					LibToTech.makeTechFromLib(); }},
+				SEPARATOR,
+				new EMenuItem("_Identify Primitive Layers") { public void run() {
+					Manipulate.identifyLayers(false); }},
+				new EMenuItem("Identify _Ports") { public void run() {
+					Manipulate.identifyLayers(true); }},
+				SEPARATOR,
+				new EMenuItem("Edit Library _Dependencies...") { public void run() {
+					Manipulate.editLibraryDependencies(); }},
+				new EMenuItem("Edit _Component Menu...") { public void run() {
+					Manipulate.editComponentMenu(); }},
+				SEPARATOR,
+				new EMenuItem("Technology Creation _Wizard...") { public void run() {
+					TechEditWizard.techEditWizardCommand(); }}),
 
-        // mnemonic keys available:  B   F    KLM   Q        Z
-            new EMenu("_Selection",
-                new EMenuItem("Sele_ct All", 'A') { public void run() {
-                    selectAllCommand(); }},
-                new EMenuItem("Select All _Easy") { public void run() {
-                    selectEasyCommand(); }},
-                new EMenuItem("Select All _Hard") { public void run() {
-                    selectHardCommand(); }},
-                new EMenuItem("Select Nothin_g") { public void run() {
-                    selectNothingCommand(); }},
-                SEPARATOR,
-                new EMenuItem("Select All Like _This") { public void run() {
-                    selectAllLikeThisCommand(); }},
-                new EMenuItem("Select _Next Like This" /*, '\t', KeyEvent.VK_TAB */) { public void run() {
-                    selectNextLikeThisCommand(true); }},
-                new EMenuItem("Select _Previous Like This") { public void run() {
-                    selectNextLikeThisCommand(false); }},
-                SEPARATOR,
-                new EMenuItem("_Select Object...") { public void run() {
-                    SelectObject.selectObjectDialog(null, false); }},
-                new EMenuItem("Deselect All _Arcs") { public void run() {
-                    deselectAllArcsCommand(); }},
-                SEPARATOR,
-                new EMenuItem("Make Selected Eas_y") { public void run() {
-                    selectMakeEasyCommand(); }},
-                new EMenuItem("Make Selected Har_d") { public void run() {
-                    selectMakeHardCommand(); }},
-                SEPARATOR,
-                new EMenuItem("P_ush Selection") { public void run() {
-                    EditWindow wnd = EditWindow.getCurrent(); if (wnd == null) return;
-                    wnd.getHighlighter().pushHighlight(); }},
-                new EMenuItem("P_op Selection") { public void run() {
-                    EditWindow wnd = EditWindow.getCurrent(); if (wnd ==null) return;
-                    wnd.getHighlighter().popHighlight(); }},
-                SEPARATOR,
-                new EMenuItem("Enclosed Ob_jects") { public void run() {
-                    selectEnclosedObjectsCommand(); }},
-                SEPARATOR,
-                new EMenuItem("Show Ne_xt Error", KeyStroke.getKeyStroke('>')) { public void run() {
-                    showNextErrorCommand(); }},
-                new EMenuItem("Show Pre_vious Error", KeyStroke.getKeyStroke('<')) { public void run() {
-                    showPrevErrorCommand(); }},
-                SEPARATOR,
-                new EMenuItem("Add to Waveform _in New Panel", KeyStroke.getKeyStroke('A', 0)) { public void run() {
-                    addToWaveformNewCommand(); }},
-                new EMenuItem("Add to _Waveform in Current Panel", KeyStroke.getKeyStroke('O', 0)) { public void run() {
-                    addToWaveformCurrentCommand(); }},
-                new EMenuItem("_Remove from Waveform", KeyStroke.getKeyStroke('R', 0)) { public void run() {
-                    removeFromWaveformCommand(); }}));
-    }
+		// mnemonic keys available:  B   F    K M   Q        Z
+			new EMenu("_Selection",
+				new EMenuItem("Sele_ct All", 'A') { public void run() {
+					selectAllCommand(); }},
+				new EMenuItem("Select All _Easy") { public void run() {
+					selectEasyCommand(); }},
+				new EMenuItem("Select All _Hard") { public void run() {
+					selectHardCommand(); }},
+				new EMenuItem("Select Nothin_g") { public void run() {
+					selectNothingCommand(); }},
+				SEPARATOR,
+				new EMenuItem("Select All Like _This") { public void run() {
+					selectAllLikeThisCommand(); }},
+				new EMenuItem("Select _Next Like This" /*, '\t', KeyEvent.VK_TAB */) { public void run() {
+					selectNextLikeThisCommand(true); }},
+				new EMenuItem("Select _Previous Like This") { public void run() {
+					selectNextLikeThisCommand(false); }},
+				SEPARATOR,
+				new EMenuItem("_Select Object...") { public void run() {
+					SelectObject.selectObjectDialog(null, false); }},
+				new EMenuItem("Deselect All _Arcs") { public void run() {
+					deselectAllArcsCommand(); }},
+				SEPARATOR,
+				new EMenuItem("Make Selected Eas_y") { public void run() {
+					selectMakeEasyCommand(); }},
+				new EMenuItem("Make Selected Har_d") { public void run() {
+					selectMakeHardCommand(); }},
+				SEPARATOR,
+				new EMenuItem("P_ush Selection") { public void run() {
+					EditWindow wnd = EditWindow.getCurrent(); if (wnd == null) return;
+					wnd.getHighlighter().pushHighlight(); }},
+				new EMenuItem("P_op Selection") { public void run() {
+					EditWindow wnd = EditWindow.getCurrent(); if (wnd ==null) return;
+					wnd.getHighlighter().popHighlight(); }},
+				SEPARATOR,
+				new EMenuItem("Enclosed Ob_jects") { public void run() {
+					selectEnclosedObjectsCommand(); }},
+				SEPARATOR,
+				new EMenuItem("Show Ne_xt Error", KeyStroke.getKeyStroke('>')) { public void run() {
+					showNextErrorCommand(); }},
+				new EMenuItem("Show Pre_vious Error", KeyStroke.getKeyStroke('<')) { public void run() {
+					showPrevErrorCommand(); }},
+				new EMenuItem("Show Current Co_llection of Errors") { public void run() {
+					ErrorLoggerTree.showCurrentErrors(); }},
+				SEPARATOR,
+				new EMenuItem("Add to Waveform _in New Panel", KeyStroke.getKeyStroke('A', 0)) { public void run() {
+					addToWaveformNewCommand(); }},
+				new EMenuItem("Add to _Waveform in Current Panel", KeyStroke.getKeyStroke('O', 0)) { public void run() {
+					addToWaveformCurrentCommand(); }},
+				new EMenuItem("_Remove from Waveform", KeyStroke.getKeyStroke('R', 0)) { public void run() {
+					removeFromWaveformCommand(); }}));
+	}
 
-//	/**
-//     * Repeat the last Command
-//     */
-//    public static void repeatLastCommand() {
-//        AbstractButton lastActivated = MenuBar.repeatLastCommandListener.getLastActivated();
-//        if (lastActivated != null)
-//        {
-//        	lastActivated.doClick();
-//        }
-//    }
+	/**
+	 * This method implements the command to show the Key Bindings Options dialog.
+	 */
+	public static void keyBindingsCommand()
+	{
+		// edit key bindings for current menu
+		TopLevel top = TopLevel.getCurrentJFrame();
+		EditKeyBindings dialog = new EditKeyBindings(top.getEMenuBar(), top, true);
+		dialog.setVisible(true);
+	}
 
-    /**
-     * This method implements the command to show the Key Bindings Options dialog.
-     */
-    public static void keyBindingsCommand()
-    {
-        // edit key bindings for current menu
-        TopLevel top = TopLevel.getCurrentJFrame();
-        EditKeyBindings dialog = new EditKeyBindings(top.getEMenuBar(), top, true);
-        dialog.setVisible(true);
-    }
+	/**
+	 * This method shows the GetInfo dialog for the highlighted nodes, arcs, and/or text.
+	 */
+	public static void getInfoCommand(boolean doubleClick)
+	{
+		EditWindow wnd = EditWindow.getCurrent();
+		if (wnd == null) return;
+		if (wnd.getHighlighter().getNumHighlights() == 0)
+		{
+			// information about the cell
+			Cell c = WindowFrame.getCurrentCell();
+			//if (c != null) c.getInfo();
+			if (c != null) Attributes.showDialog();
+		} else
+		{
+			int [] counts = new int[5];
+			NodeInst theNode = Highlight2.getInfoCommand(wnd.getHighlighter().getHighlights(), counts);
+			// information about the selected items
+			int arcCount = counts[0];
+			int nodeCount = counts[1];
+			int exportCount = counts[2];
+			int textCount = counts[3];
+			int graphicsCount = counts[4];
 
-    /**
-     * This method shows the GetInfo dialog for the highlighted nodes, arcs, and/or text.
-     */
-    public static void getInfoCommand(boolean doubleClick)
-    {
-        EditWindow wnd = EditWindow.getCurrent();
-        if (wnd == null) return;
-        if (wnd.getHighlighter().getNumHighlights() == 0)
-        {
-            // information about the cell
-            Cell c = WindowFrame.getCurrentCell();
-            //if (c != null) c.getInfo();
-            if (c != null) Attributes.showDialog();
-        } else
-        {
-            int [] counts = new int[5];
-            NodeInst theNode = Highlight2.getInfoCommand(wnd.getHighlighter().getHighlights(), counts);
-            // information about the selected items
-            int arcCount = counts[0];
-            int nodeCount = counts[1];
-            int exportCount = counts[2];
-            int textCount = counts[3];
-            int graphicsCount = counts[4];
+			// special dialogs for double-clicking on known nodes
+			if (doubleClick)
+			{
+				// if double-clicked on a technology editing object, modify it
+				if (arcCount == 0 && exportCount == 0 && graphicsCount == 0 &&
+					(nodeCount == 1 ^ textCount == 1) && theNode != null)
+				{
+					int opt = Manipulate.getOptionOnNode(theNode);
+					if (opt >= 0)
+					{
+						Manipulate.modifyObject(wnd, theNode, opt);
+						return;
+					}
+				}
 
-            // special dialogs for double-clicking on known nodes
-            if (doubleClick)
-            {
-                // if double-clicked on a technology editing object, modify it
-                if (arcCount == 0 && exportCount == 0 && graphicsCount == 0 &&
-                    (nodeCount == 1 ^ textCount == 1) && theNode != null)
-                {
-                    int opt = Manipulate.getOptionOnNode(theNode);
-                    if (opt >= 0)
-                    {
-                        Manipulate.modifyObject(wnd, theNode, opt);
-                        return;
-                    }
-                }
+				if (arcCount == 0 && exportCount == 0 && graphicsCount == 0 &&
+					nodeCount == 1 &&  textCount == 0 && theNode != null)
+				{
+					int ret = SpecialProperties.doubleClickOnNode(wnd, theNode);
+					if (ret > 0) return;
+					if (ret < 0) doubleClick = false;
+				}
+			}
 
-                if (arcCount == 0 && exportCount == 0 && graphicsCount == 0 &&
-                    nodeCount == 1 &&  textCount == 0 && theNode != null)
-                {
-                    int ret = SpecialProperties.doubleClickOnNode(wnd, theNode);
-                    if (ret > 0) return;
-                    if (ret < 0) doubleClick = false;
-                }
-            }
+			if (arcCount <= 1 && nodeCount <= 1 && exportCount <= 1 && textCount <= 1 && graphicsCount == 0)
+			{
+				if (arcCount == 1) GetInfoArc.showDialog();
+				if (nodeCount == 1)
+				{
+					// if in outline-edit mode, show that dialog
+					if (WindowFrame.getListener() == OutlineListener.theOne)
+					{
+						GetInfoOutline.showOutlinePropertiesDialog();
+					} else
+					{
+						GetInfoNode.showDialog();
+					}
+				}
+				if (exportCount == 1)
+				{
+					if (doubleClick)
+					{
+						GetInfoText.editTextInPlace();
+					} else
+					{
+						GetInfoExport.showDialog();
+					}
+				}
+				if (textCount == 1)
+				{
+					if (doubleClick)
+					{
+						GetInfoText.editTextInPlace();
+					} else
+					{
+						GetInfoText.showDialog();
+					}
+				}
+			} else
+			{
+				GetInfoMulti.showDialog();
+			}
+		}
+	}
 
-            if (arcCount <= 1 && nodeCount <= 1 && exportCount <= 1 && textCount <= 1 && graphicsCount == 0)
-            {
-                if (arcCount == 1) GetInfoArc.showDialog();
-                if (nodeCount == 1)
-                {
-                    // if in outline-edit mode, show that dialog
-                    if (WindowFrame.getListener() == OutlineListener.theOne)
-                    {
-                        GetInfoOutline.showOutlinePropertiesDialog();
-                    } else
-                    {
-                        GetInfoNode.showDialog();
-                    }
-                }
-                if (exportCount == 1)
-                {
-                    if (doubleClick)
-                    {
-                        GetInfoText.editTextInPlace();
-                    } else
-                    {
-                        GetInfoExport.showDialog();
-                    }
-                }
-                if (textCount == 1)
-                {
-                    if (doubleClick)
-                    {
-                        GetInfoText.editTextInPlace();
-                    } else
-                    {
-                        GetInfoText.showDialog();
-                    }
-                }
-            } else
-            {
-                GetInfoMulti.showDialog();
-            }
-        }
-    }
+	/**
+	 * Method to handle the "See All Parameters on Node" command.
+	 */
+	public static void seeAllParametersCommand()
+	{
+		new ParameterVisibility(0, MenuCommands.getSelectedObjects(true, false));
+	}
 
-    /**
-     * Method to handle the "See All Parameters on Node" command.
-     */
-    public static void seeAllParametersCommand()
-    {
-        new ParameterVisibility(0, MenuCommands.getSelectedObjects(true, false));
-    }
+	/**
+	 * Method to handle the "Hide All Parameters on Node" command.
+	 */
+	public static void hideAllParametersCommand()
+	{
+		new ParameterVisibility(1, MenuCommands.getSelectedObjects(true, false));
+	}
 
-    /**
-     * Method to handle the "Hide All Parameters on Node" command.
-     */
-    public static void hideAllParametersCommand()
-    {
-        new ParameterVisibility(1, MenuCommands.getSelectedObjects(true, false));
-    }
+	/**
+	 * Method to handle the "Default Parameter Visibility" command.
+	 */
+	public static void defaultParamVisibilityCommand()
+	{
+		new ParameterVisibility(2, MenuCommands.getSelectedObjects(true, false));
+	}
 
-    /**
-     * Method to handle the "Default Parameter Visibility" command.
-     */
-    public static void defaultParamVisibilityCommand()
-    {
-        new ParameterVisibility(2, MenuCommands.getSelectedObjects(true, false));
-    }
+	/**
+	 * Class to do change parameter visibility in a new thread.
+	 */
+	private static class ParameterVisibility extends Job
+	{
+		private int how;
+		private List<Geometric> selected;
 
-    /**
-     * Class to do change parameter visibility in a new thread.
-     */
-    private static class ParameterVisibility extends Job
-    {
-        private int how;
-        private List<Geometric> selected;
+		protected ParameterVisibility(int how, List<Geometric> selected)
+		{
+			super("Change Parameter Visibility", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.how = how;
+			this.selected = selected;
+			startJob();
+		}
 
-        protected ParameterVisibility(int how, List<Geometric> selected)
-        {
-            super("Change Parameter Visibility", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-            this.how = how;
-            this.selected = selected;
-            startJob();
-        }
-
-        public boolean doIt() throws JobException
-        {
-            // change visibility of parameters on the current node(s)
-            int changeCount = 0;
-            List<Geometric> list = selected;
-            for(Geometric geom : list)
-            {
-                NodeInst ni = (NodeInst)geom;
-                if (!ni.isCellInstance()) continue;
-                boolean changed = false;
-                for(Iterator<Variable> vIt = ni.getVariables(); vIt.hasNext(); )
-                {
-                    Variable var = vIt.next();
-                    Variable nVar = findParameterSource(var, ni);
-                    if (nVar == null) continue;
-                    switch (how)
-                    {
-                        case 0:			// make all parameters visible
-                            if (var.isDisplay()) continue;
-                            ni.addVar(var.withDisplay(true));
-                            changed = true;
-                            break;
-                        case 1:			// make all parameters invisible
-                            if (!var.isDisplay()) continue;
-                            ni.addVar(var.withTextDescriptor(var.getTextDescriptor().withDisplay(TextDescriptor.Display.HIDDEN)));
-                            changed = true;
-                            break;
-                        case 2:			// make all parameters have default visiblity
-                            if (nVar.getTextDescriptor().isInterior())
-                            {
-                                // prototype wants parameter to be invisible
-                                if (!var.isDisplay()) continue;
-                                ni.addVar(var.withDisplay(false));
-                                changed = true;
-                            } else
-                            {
-                                // prototype wants parameter to be visible
-                                if (var.isDisplay()) continue;
-                                ni.addVar(var.withDisplay(true));
-                                changed = true;
-                            }
-                            break;
-                    }
-                }
-                if (changed)
-                {
+		public boolean doIt() throws JobException
+		{
+			// change visibility of parameters on the current node(s)
+			int changeCount = 0;
+			List<Geometric> list = selected;
+			for(Geometric geom : list)
+			{
+				NodeInst ni = (NodeInst)geom;
+				if (!ni.isCellInstance()) continue;
+				boolean changed = false;
+				for(Iterator<Variable> vIt = ni.getVariables(); vIt.hasNext(); )
+				{
+					Variable var = vIt.next();
+					Variable nVar = findParameterSource(var, ni);
+					if (nVar == null) continue;
+					switch (how)
+					{
+						case 0:			// make all parameters visible
+							if (var.isDisplay()) continue;
+							ni.addVar(var.withDisplay(true));
+							changed = true;
+							break;
+						case 1:			// make all parameters invisible
+							if (!var.isDisplay()) continue;
+							ni.addVar(var.withTextDescriptor(var.getTextDescriptor().withDisplay(TextDescriptor.Display.HIDDEN)));
+							changed = true;
+							break;
+						case 2:			// make all parameters have default visiblity
+							if (nVar.getTextDescriptor().isInterior())
+							{
+								// prototype wants parameter to be invisible
+								if (!var.isDisplay()) continue;
+								ni.addVar(var.withDisplay(false));
+								changed = true;
+							} else
+							{
+								// prototype wants parameter to be visible
+								if (var.isDisplay()) continue;
+								ni.addVar(var.withDisplay(true));
+								changed = true;
+							}
+							break;
+					}
+				}
+				if (changed)
+				{
 //					Undo.redrawObject(ni);
-                    changeCount++;
-                }
-            }
-            if (changeCount == 0) System.out.println("No Parameter visibility changed"); else
-                System.out.println("Changed visibility on " + changeCount + " nodes");
-            return true;
-        }
+					changeCount++;
+				}
+			}
+			if (changeCount == 0) System.out.println("No Parameter visibility changed"); else
+				System.out.println("Changed visibility on " + changeCount + " nodes");
+			return true;
+		}
 
-        /**
-         * Method to find the formal parameter that corresponds to the actual parameter
-         * "var" on node "ni".  Returns null if not a parameter or cannot be found.
-         */
-        private Variable findParameterSource(Variable var, NodeInst ni)
-        {
-            // find this parameter in the cell
-            Cell np = (Cell)ni.getProto();
-            Cell cnp = np.contentsView();
-            if (cnp != null) np = cnp;
-            for(Iterator<Variable> it = np.getVariables(); it.hasNext(); )
-            {
-                Variable nVar = it.next();
-                if (var.getKey() == nVar.getKey()) return nVar;
-            }
-            return null;
-        }
-    }
+		/**
+		 * Method to find the formal parameter that corresponds to the actual parameter
+		 * "var" on node "ni".  Returns null if not a parameter or cannot be found.
+		 */
+		private Variable findParameterSource(Variable var, NodeInst ni)
+		{
+			// find this parameter in the cell
+			Cell np = (Cell)ni.getProto();
+			Cell cnp = np.contentsView();
+			if (cnp != null) np = cnp;
+			for(Iterator<Variable> it = np.getVariables(); it.hasNext(); )
+			{
+				Variable nVar = it.next();
+				if (var.getKey() == nVar.getKey()) return nVar;
+			}
+			return null;
+		}
+	}
 
-    public static void updateInheritance(boolean allLibraries)
-    {
-        // get currently selected node(s)
-        List<Geometric> highlighted = MenuCommands.getSelectedObjects(true, false);
-        new UpdateAttributes(highlighted, allLibraries, 0);
-    }
+	public static void updateInheritance(boolean allLibraries)
+	{
+		// get currently selected node(s)
+		List<Geometric> highlighted = MenuCommands.getSelectedObjects(true, false);
+		new UpdateAttributes(highlighted, allLibraries, 0);
+	}
 
-    private static class UpdateAttributes extends Job {
-        private List<Geometric> highlighted;
-        private boolean allLibraries;
-        private int whatToUpdate;
+	private static class UpdateAttributes extends Job {
+		private List<Geometric> highlighted;
+		private boolean allLibraries;
+		private int whatToUpdate;
 
-        /**
-         * Update Attributes.
-         * @param highlighted currently highlighted objects
-         * @param allLibraries if true, update all nodeinsts in all libraries, otherwise update
-         * highlighted
-         * @param whatToUpdate if 0, update inheritance. If 1, update attributes locations.
-         */
-        UpdateAttributes(List<Geometric> highlighted, boolean allLibraries, int whatToUpdate) {
-            super("Update Inheritance", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-            this.highlighted = highlighted;
-            this.allLibraries = allLibraries;
-            this.whatToUpdate = whatToUpdate;
-            startJob();
-        }
+		/**
+		 * Update Attributes.
+		 * @param highlighted currently highlighted objects
+		 * @param allLibraries if true, update all nodeinsts in all libraries, otherwise update
+		 * highlighted
+		 * @param whatToUpdate if 0, update inheritance. If 1, update attributes locations.
+		 */
+		UpdateAttributes(List<Geometric> highlighted, boolean allLibraries, int whatToUpdate) {
+			super("Update Inheritance", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.highlighted = highlighted;
+			this.allLibraries = allLibraries;
+			this.whatToUpdate = whatToUpdate;
+			startJob();
+		}
 
-        public boolean doIt() throws JobException {
-            int count = 0;
-            if (allLibraries) {
-                for (Iterator<Library> it = Library.getLibraries(); it.hasNext(); ) {
-                    Library lib = it.next();
-                    for (Iterator<Cell> it2 = lib.getCells(); it2.hasNext(); ) {
-                        Cell c = it2.next();
-                        for (Iterator<NodeInst> it3 = c.getNodes(); it3.hasNext(); ) {
-                            NodeInst ni = it3.next();
-                            if (ni.isCellInstance()) {
-                                if (whatToUpdate == 0) {
-                                    updateInheritance(ni, (Cell)ni.getProto());
-                                    count++;
-                                }
-                                if (whatToUpdate == 1) {
-                                    updateLocations(ni, (Cell)ni.getProto());
-                                    count++;
-                                }
-                            }
-                        }
-                    }
-                }
-            } else {
-                for (Geometric eobj : highlighted) {
-                    if (eobj instanceof NodeInst) {
-                        NodeInst ni = (NodeInst)eobj;
-                        if (ni.isCellInstance()) {
-                            if (whatToUpdate == 0) {
-                                updateInheritance(ni, (Cell)ni.getProto());
-                                count++;
-                            }
-                            if (whatToUpdate == 1) {
-                                updateLocations(ni, (Cell)ni.getProto());
-                                count++;
-                            }
-                        }
-                    }
-                }
-            }
-            if (whatToUpdate == 0)
-                System.out.println("Updated Attribute Inheritance on "+count+" nodes");
-            if (whatToUpdate == 1)
-                System.out.println("Updated Attribute Locations on "+count+" nodes");
-            return true;
-        }
+		public boolean doIt() throws JobException {
+			int count = 0;
+			if (allLibraries) {
+				for (Iterator<Library> it = Library.getLibraries(); it.hasNext(); ) {
+					Library lib = it.next();
+					for (Iterator<Cell> it2 = lib.getCells(); it2.hasNext(); ) {
+						Cell c = it2.next();
+						for (Iterator<NodeInst> it3 = c.getNodes(); it3.hasNext(); ) {
+							NodeInst ni = it3.next();
+							if (ni.isCellInstance()) {
+								if (whatToUpdate == 0) {
+									updateInheritance(ni, (Cell)ni.getProto());
+									count++;
+								}
+								if (whatToUpdate == 1) {
+									updateLocations(ni, (Cell)ni.getProto());
+									count++;
+								}
+							}
+						}
+					}
+				}
+			} else {
+				for (Geometric eobj : highlighted) {
+					if (eobj instanceof NodeInst) {
+						NodeInst ni = (NodeInst)eobj;
+						if (ni.isCellInstance()) {
+							if (whatToUpdate == 0) {
+								updateInheritance(ni, (Cell)ni.getProto());
+								count++;
+							}
+							if (whatToUpdate == 1) {
+								updateLocations(ni, (Cell)ni.getProto());
+								count++;
+							}
+						}
+					}
+				}
+			}
+			if (whatToUpdate == 0)
+				System.out.println("Updated Attribute Inheritance on "+count+" nodes");
+			if (whatToUpdate == 1)
+				System.out.println("Updated Attribute Locations on "+count+" nodes");
+			return true;
+		}
 
-        private void updateInheritance(NodeInst ni, Cell proto) {
-            CircuitChangeJobs.inheritAttributes(ni, true);
-        }
+		private void updateInheritance(NodeInst ni, Cell proto) {
+			CircuitChangeJobs.inheritAttributes(ni, true);
+		}
 
-        private void updateLocations(NodeInst ni, Cell proto) {
+		private void updateLocations(NodeInst ni, Cell proto) {
+		}
+	}
 
-        }
-    }
+	/**
+	 * Method to change the global text scale by a given amount.
+	 * @param scale the amount to scale the global text size.
+	 */
+	public static void changeGlobalTextSize(double scale)
+	{
+		double curScale = User.getGlobalTextScale();
+		curScale *= scale;
+		if (curScale != 0)
+		{
+			User.setGlobalTextScale(curScale);
+			EditWindow.repaintAllContents();
+		}
+	}
 
-    /**
-     * Method to change the global text scale by a given amount.
-     * @param scale the amount to scale the global text size.
-     */
-    public static void changeGlobalTextSize(double scale)
-    {
-        double curScale = User.getGlobalTextScale();
-        curScale *= scale;
-        if (curScale != 0)
-        {
-            User.setGlobalTextScale(curScale);
-            EditWindow.repaintAllContents();
-        }
-    }
+	/**
+	 * Method to edit the current text-cell in an external editor.
+	 */
+	private static void editExternally()
+	{
+		TextWindow tw = null;
+		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+		if (wf != null && wf.getContent() instanceof TextWindow)
+		{
+			tw = (TextWindow)wf.getContent();
+		}
+		if (tw == null)
+		{
+			Job.getUserInterface().showErrorMessage("You must be editing a text cell before editing it externally", "No Text To Edit");
+			return;
+		}
+		String externalEditor = User.getDefaultTextExternalEditor();
+		if (externalEditor.length() == 0)
+		{
+			Job.getUserInterface().showErrorMessage("No external text editor is defined.  Use the Display/Text Preferences to set one", "No Text Editor Set");
+			return;
+		}
+		Cell cell = tw.getCell();
+		String fileName = null;
+		File f = null;
+		for(int i=1; i<1000; i++)
+		{
+			fileName = cell.getName() + i + ".txt";
+			f = new File(fileName);
+			if (!f.exists())
+			{
+				fileName = User.getWorkingDirectory() + "/" + fileName;
+				break;
+			}
+			f = null;
+		}
+		if (f == null) return;
+		if (!tw.writeTextCell(fileName))
+		{
+			// error with written file
+			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+				"Could not save temporary file " + fileName, "Error saving temporary file", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+		try
+		{
+			Client.OS os = Client.getOperatingSystem();
+			String commandString;
+			if (os == Client.OS.WINDOWS) commandString = "cmd /c \"" + externalEditor + "\" " + fileName;
+			else if (os == Client.OS.MACINTOSH)
+			{
+				// MacOS box only allows the selection of *.app programs.
+				int index = externalEditor.indexOf(".app"); // like TextEdit.app
+				if (index != -1)
+				{
+					String rootName = externalEditor.substring(0, index);
+					int ind2 = rootName.lastIndexOf("/");
+					if (ind2 != -1) // remove all /
+						rootName = rootName.substring(ind2, rootName.length());
+					commandString = externalEditor + "/Contents/MacOS/" + rootName + " " + fileName;
+				}
+				else
+					commandString = externalEditor + " " + fileName;
+			}
+			else
+				commandString = externalEditor + " " + fileName;
+			Process p = Runtime.getRuntime().exec(commandString);
+			try
+			{
+				p.waitFor();
+			} catch (InterruptedException e)
+			{
+				System.out.println("External text editor interrupted: " + e);
+			}
+		} catch (IOException e)
+		{
+			System.out.println("IO Exception: " + e);
+		}
+		tw.readTextCell(fileName);
+		tw.goToLineNumber(1);
+		f.delete();
+	}
 
-    /**
-     * Method to edit the current text-cell in an external editor.
-     */
-    private static void editExternally()
-    {
-        TextWindow tw = null;
-        WindowFrame wf = WindowFrame.getCurrentWindowFrame();
-        if (wf != null && wf.getContent() instanceof TextWindow)
-        {
-            tw = (TextWindow)wf.getContent();
-        }
-        if (tw == null)
-        {
-            Job.getUserInterface().showErrorMessage("You must be editing a text cell before editing it externally", "No Text To Edit");
-            return;
-        }
-        String externalEditor = User.getDefaultTextExternalEditor();
-        if (externalEditor.length() == 0)
-        {
-            Job.getUserInterface().showErrorMessage("No external text editor is defined.  Use the Display/Text Preferences to set one", "No Text Editor Set");
-            return;
-        }
-        Cell cell = tw.getCell();
-        String fileName = null;
-        File f = null;
-        for(int i=1; i<1000; i++)
-        {
-            fileName = cell.getName() + i + ".txt";
-            f = new File(fileName);
-            if (!f.exists())
-            {
-                fileName = User.getWorkingDirectory() + "/" + fileName;
-                break;
-            }
-            f = null;
-        }
-        if (f == null) return;
-        if (!tw.writeTextCell(fileName))
-        {
-            // error with written file
-            JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-                    "Could not save temporary file " + fileName, "Error saving temporary file", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-        try
-        {
-            Client.OS os = Client.getOperatingSystem();
-            String commandString;
-            if (os == Client.OS.WINDOWS) commandString = "cmd /c \"" + externalEditor + "\" " + fileName;
-            else if (os == Client.OS.MACINTOSH)
-            {
-                // MacOS box only allows the selection of *.app programs.
-                int index = externalEditor.indexOf(".app"); // like TextEdit.app
-                if (index != -1)
-                {
-                    String rootName = externalEditor.substring(0, index);
-                    int ind2 = rootName.lastIndexOf("/");
-                    if (ind2 != -1) // remove all /
-                        rootName = rootName.substring(ind2, rootName.length());
-                    commandString = externalEditor + "/Contents/MacOS/" + rootName + " " + fileName;
-                }
-                else
-                    commandString = externalEditor + " " + fileName;
-            }
-            else
-                commandString = externalEditor + " " + fileName;
-            Process p = Runtime.getRuntime().exec(commandString);
-            try
-            {
-                p.waitFor();
-            } catch (InterruptedException e)
-            {
-                System.out.println("External text editor interrupted: " + e);
-            }
-        } catch (IOException e)
-        {
-            System.out.println("IO Exception: " + e);
-        }
-        tw.readTextCell(fileName);
-        tw.goToLineNumber(1);
-        f.delete();
-    }
+	/**
+	 * This method implements the command to highlight all objects in the current Cell.
+	 */
+	public static void selectAllCommand()
+	{
+		doSelection(false, false);
+	}
 
-    /**
-     * This method implements the command to highlight all objects in the current Cell.
-     */
-    public static void selectAllCommand()
-    {
-        doSelection(false, false);
-    }
+	/**
+	 * This method implements the command to highlight all objects in the current Cell
+	 * that are easy to select.
+	 */
+	public static void selectEasyCommand()
+	{
+		doSelection(true, false);
+	}
 
-    /**
-     * This method implements the command to highlight all objects in the current Cell
-     * that are easy to select.
-     */
-    public static void selectEasyCommand()
-    {
-        doSelection(true, false);
-    }
+	/**
+	 * This method implements the command to highlight all objects in the current Cell
+	 * that are hard to select.
+	 */
+	public static void selectHardCommand()
+	{
+		doSelection(false, true);
+	}
 
-    /**
-     * This method implements the command to highlight all objects in the current Cell
-     * that are hard to select.
-     */
-    public static void selectHardCommand()
-    {
-        doSelection(false, true);
-    }
+	private static void doSelection(boolean mustBeEasy, boolean mustBeHard)
+	{
+		Cell curCell = WindowFrame.needCurCell();
+		if (curCell == null) return;
+		EditWindow wnd = EditWindow.getCurrent();
+		if (wnd == null) return;
+		Highlighter highlighter = wnd.getHighlighter();
 
-    private static void doSelection(boolean mustBeEasy, boolean mustBeHard)
-    {
-        Cell curCell = WindowFrame.needCurCell();
-        if (curCell == null) return;
-        EditWindow wnd = EditWindow.getCurrent();
-        if (wnd == null) return;
-        Highlighter highlighter = wnd.getHighlighter();
+		// compute bounds for multi-page schematics
+		Rectangle2D thisPageBounds = null;
+		if (curCell.isMultiPage())
+		{
+			int curPage = wnd.getMultiPageNumber();
+			Dimension d = new Dimension();
+			int frameFactor = Cell.FrameDescription.getCellFrameInfo(curCell, d);
+			if (frameFactor == 0 && curCell.isMultiPage())
+			{
+				double offY = curPage * Cell.FrameDescription.MULTIPAGESEPARATION;
+				thisPageBounds = new Rectangle2D.Double(-d.getWidth()/2, -d.getHeight()/2+offY, d.getWidth(), d.getHeight());
+			}
+		}
 
-        // compute bounds for multi-page schematics
-        Rectangle2D thisPageBounds = null;
-        if (curCell.isMultiPage())
-        {
-            int curPage = wnd.getMultiPageNumber();
-            Dimension d = new Dimension();
-            int frameFactor = Cell.FrameDescription.getCellFrameInfo(curCell, d);
-            if (frameFactor == 0 && curCell.isMultiPage())
-            {
-                double offY = curPage * Cell.FrameDescription.MULTIPAGESEPARATION;
-                thisPageBounds = new Rectangle2D.Double(-d.getWidth()/2, -d.getHeight()/2+offY, d.getWidth(), d.getHeight());
-            }
-        }
+		boolean cellsAreHard = !User.isEasySelectionOfCellInstances();
+		highlighter.clear();
+		for(Iterator<NodeInst> it = curCell.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = it.next();
 
-        boolean cellsAreHard = !User.isEasySelectionOfCellInstances();
-        highlighter.clear();
-        for(Iterator<NodeInst> it = curCell.getNodes(); it.hasNext(); )
-        {
-            NodeInst ni = it.next();
+			// for multipage schematics, restrict to current page
+			if (thisPageBounds != null)
+			{
+				if (!thisPageBounds.contains(ni.getAnchorCenter())) continue;
+			}
 
-            // for multipage schematics, restrict to current page
-            if (thisPageBounds != null)
-            {
-                if (!thisPageBounds.contains(ni.getAnchorCenter())) continue;
-            }
+			// "select all" should not include the cell-center
+			if (ni.getProto() == Generic.tech().cellCenterNode && !mustBeEasy && !mustBeHard) continue;
+			boolean hard = ni.isHardSelect();
+			if ((ni.isCellInstance()) && cellsAreHard) hard = true;
+			if (mustBeEasy && hard) continue;
+			if (mustBeHard && !hard) continue;
+			if (!ni.isInvisiblePinWithText())
+				highlighter.addElectricObject(ni, curCell);
+			if (User.isTextVisibilityOnNode())
+			{
+				if (ni.isUsernamed())
+					highlighter.addText(ni, curCell, NodeInst.NODE_NAME);
+				for(Iterator<Variable> vIt = ni.getVariables(); vIt.hasNext(); )
+				{
+					Variable var = vIt.next();
+					if (var.isDisplay())
+						highlighter.addText(ni, curCell, var.getKey());
+				}
+			}
+		}
+		for(Iterator<ArcInst> it = curCell.getArcs(); it.hasNext(); )
+		{
+			ArcInst ai = it.next();
 
-            // "select all" should not include the cell-center
-            if (ni.getProto() == Generic.tech().cellCenterNode && !mustBeEasy && !mustBeHard) continue;
-            boolean hard = ni.isHardSelect();
-            if ((ni.isCellInstance()) && cellsAreHard) hard = true;
-            if (mustBeEasy && hard) continue;
-            if (mustBeHard && !hard) continue;
-            if (!ni.isInvisiblePinWithText())
-                highlighter.addElectricObject(ni, curCell);
-            if (User.isTextVisibilityOnNode())
-            {
-                if (ni.isUsernamed())
-                    highlighter.addText(ni, curCell, NodeInst.NODE_NAME);
-                for(Iterator<Variable> vIt = ni.getVariables(); vIt.hasNext(); )
-                {
-                    Variable var = vIt.next();
-                    if (var.isDisplay())
-                        highlighter.addText(ni, curCell, var.getKey());
-                }
-            }
-        }
-        for(Iterator<ArcInst> it = curCell.getArcs(); it.hasNext(); )
-        {
-            ArcInst ai = it.next();
+			// for multipage schematics, restrict to current page
+			if (thisPageBounds != null)
+			{
+				if (!thisPageBounds.contains(ai.getHeadLocation())) continue;
+			}
+			boolean hard = ai.isHardSelect();
+			if (mustBeEasy && hard) continue;
+			if (mustBeHard && !hard) continue;
+			highlighter.addElectricObject(ai, curCell);
+			if (User.isTextVisibilityOnArc())
+			{
+				if (ai.isUsernamed())
+					highlighter.addText(ai, curCell, ArcInst.ARC_NAME);
+				for(Iterator<Variable> vIt = ai.getVariables(); vIt.hasNext(); )
+				{
+					Variable var = vIt.next();
+					if (var.isDisplay())
+						highlighter.addText(ai, curCell, var.getKey());
+				}
+			}
+		}
+		for(Iterator<Export> it = curCell.getExports(); it.hasNext(); )
+		{
+			Export pp = it.next();
+			highlighter.addText(pp, curCell, null);
+		}
 
-            // for multipage schematics, restrict to current page
-            if (thisPageBounds != null)
-            {
-                if (!thisPageBounds.contains(ai.getHeadLocation())) continue;
-            }
-            boolean hard = ai.isHardSelect();
-            if (mustBeEasy && hard) continue;
-            if (mustBeHard && !hard) continue;
-            highlighter.addElectricObject(ai, curCell);
-            if (User.isTextVisibilityOnArc())
-            {
-                if (ai.isUsernamed())
-                    highlighter.addText(ai, curCell, ArcInst.ARC_NAME);
-                for(Iterator<Variable> vIt = ai.getVariables(); vIt.hasNext(); )
-                {
-                    Variable var = vIt.next();
-                    if (var.isDisplay())
-                        highlighter.addText(ai, curCell, var.getKey());
-                }
-            }
-        }
-        for(Iterator<Export> it = curCell.getExports(); it.hasNext(); )
-        {
-            Export pp = it.next();
-            highlighter.addText(pp, curCell, null);
-        }
+		// Selecting annotations
+		if (User.isTextVisibilityOnCell())
+		{
+			for(Iterator<Variable> it = curCell.getVariables(); it.hasNext(); )
+			{
+				Variable var = it.next();
+				if (var.isAttribute())
+				{
+					// for multipage schematics, restrict to current page
+					if (thisPageBounds != null)
+					{
+						if (!thisPageBounds.contains(new Point2D.Double(var.getXOff(), var.getYOff()))) continue;
+					}
+					highlighter.addText(curCell, curCell, var.getKey());
+				}
+			}
+		}
+		highlighter.finished();
+	}
 
-        // Selecting annotations
-        if (User.isTextVisibilityOnCell())
-        {
-            for(Iterator<Variable> it = curCell.getVariables(); it.hasNext(); )
-            {
-                Variable var = it.next();
-                if (var.isAttribute())
-                {
-                    // for multipage schematics, restrict to current page
-                    if (thisPageBounds != null)
-                    {
-                        if (!thisPageBounds.contains(new Point2D.Double(var.getXOff(), var.getYOff()))) continue;
-                    }
-                    highlighter.addText(curCell, curCell, var.getKey());
-                }
-            }
-        }
-        highlighter.finished();
-    }
+	/**
+	 * This method implements the command to highlight all objects in the current Cell
+	 * that are like the currently selected object.
+	 */
+	public static void selectAllLikeThisCommand()
+	{
+		Cell curCell = WindowFrame.needCurCell();
+		if (curCell == null) return;
+		EditWindow wnd = EditWindow.getCurrent();
+		if (wnd == null) return;
+		Highlighter highlighter = wnd.getHighlighter();
 
-    /**
-     * This method implements the command to highlight all objects in the current Cell
-     * that are like the currently selected object.
-     */
-    public static void selectAllLikeThisCommand()
-    {
-        Cell curCell = WindowFrame.needCurCell();
-        if (curCell == null) return;
-        EditWindow wnd = EditWindow.getCurrent();
-        if (wnd == null) return;
-        Highlighter highlighter = wnd.getHighlighter();
+		// make a set of prototypes and characteristics to match
+		Set<Object> likeThis = new HashSet<Object>();
+		for(Highlight2 h : highlighter.getHighlights())
+		{
+			// handle attribute text
+			if (h.isHighlightText())
+			{
+				Key key = h.getVarKey();
+				if (key != null && key != Export.EXPORT_NAME)
+				{
+					likeThis.add(key.getName());
+					continue;
+				}
+			}
 
-        // make a set of prototypes and characteristics to match
-        Set<Object> likeThis = new HashSet<Object>();
-        for(Highlight2 h : highlighter.getHighlights())
-        {
-        	// handle attribute text
-        	if (h.isHighlightText())
-        	{
-        		Key key = h.getVarKey();
-        		if (key != null && key != Export.EXPORT_NAME)
-        		{
-        			likeThis.add(key.getName());
-        			continue;
-        		}
-        	}
+			ElectricObject eObj = h.getElectricObject();
+			if (eObj instanceof PortInst) eObj = ((PortInst)eObj).getNodeInst();
+			if (eObj instanceof NodeInst)
+			{
+				NodeInst ni = (NodeInst)eObj;
+				likeThis.add(ni.getProto());
+			} else if (eObj instanceof ArcInst)
+			{
+				ArcInst ai = (ArcInst)eObj;
+				likeThis.add(ai.getProto());
+			} else if (eObj instanceof Export)
+			{
+				Export e = (Export)eObj;
+				PortCharacteristic pc = e.getCharacteristic();
+				likeThis.add(pc.getName());
+			}
+		}
 
-        	ElectricObject eObj = h.getElectricObject();
-    		if (eObj instanceof PortInst) eObj = ((PortInst)eObj).getNodeInst();
-            if (eObj instanceof NodeInst)
-            {
-                NodeInst ni = (NodeInst)eObj;
-                likeThis.add(ni.getProto());
-            } else if (eObj instanceof ArcInst)
-            {
-                ArcInst ai = (ArcInst)eObj;
-                likeThis.add(ai.getProto());
-            } else if (eObj instanceof Export)
-        	{
-        		Export e = (Export)eObj;
-        		PortCharacteristic pc = e.getCharacteristic();
-        		likeThis.add(pc.getName());
-        	}
-        }
+		highlighter.clear();
+		for(Iterator<NodeInst> it = curCell.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = it.next();
+			if (likeThis.contains(ni.getProto()))
+			{
+				if (ni.isInvisiblePinWithText())
+				{
+					for(Iterator<Variable> vIt = ni.getVariables(); vIt.hasNext(); )
+					{
+						Variable var = vIt.next();
+						if (var.isDisplay())
+						{
+							highlighter.addText(ni, curCell, var.getKey());
+							break;
+						}
+					}
+				} else
+				{
+					highlighter.addElectricObject(ni, curCell);
+				}
+			}
+			for(Iterator<Variable> vIt = ni.getVariables(); vIt.hasNext(); )
+			{
+				Variable var = vIt.next();
+				if (likeThis.contains(var.getKey().getName()))
+					highlighter.addText(ni, curCell, var.getKey());
+			}
+		}
+		for(Iterator<ArcInst> it = curCell.getArcs(); it.hasNext(); )
+		{
+			ArcInst ai = it.next();
+			if (likeThis.contains(ai.getProto()))
+				highlighter.addElectricObject(ai, curCell);
+			for(Iterator<Variable> vIt = ai.getVariables(); vIt.hasNext(); )
+			{
+				Variable var = vIt.next();
+				if (likeThis.contains(var.getKey().getName()))
+					highlighter.addText(ai, curCell, var.getKey());
+			}
+		}
+		for(Iterator<Export> it = curCell.getExports(); it.hasNext(); )
+		{
+			Export e = it.next();
+			PortCharacteristic pc = e.getCharacteristic();
+			if (!likeThis.contains(pc.getName())) continue;
+			highlighter.addText(e, curCell, Export.EXPORT_NAME);
+		}
+		for(Iterator<Variable> vIt = curCell.getVariables(); vIt.hasNext(); )
+		{
+			Variable var = vIt.next();
+			if (likeThis.contains(var.getKey().getName()))
+				highlighter.addText(curCell, curCell, var.getKey());
+		}
+		highlighter.finished();
+		System.out.println("Selected "+highlighter.getNumHighlights()+ " objects");
+	}
 
-        highlighter.clear();
-        for(Iterator<NodeInst> it = curCell.getNodes(); it.hasNext(); )
-        {
-            NodeInst ni = it.next();
-            if (likeThis.contains(ni.getProto()))
-            {
-	            if (ni.isInvisiblePinWithText())
-	            {
-	                for(Iterator<Variable> vIt = ni.getVariables(); vIt.hasNext(); )
-	                {
-	                    Variable var = vIt.next();
-	                    if (var.isDisplay())
-	                    {
-	                        highlighter.addText(ni, curCell, var.getKey());
-	                        break;
-	                    }
-	                }
-	            } else
-	            {
-	                highlighter.addElectricObject(ni, curCell);
-	            }
-            }
-            for(Iterator<Variable> vIt = ni.getVariables(); vIt.hasNext(); )
-            {
-            	Variable var = vIt.next();
-            	if (likeThis.contains(var.getKey().getName()))
-                    highlighter.addText(ni, curCell, var.getKey());
-            }
-        }
-        for(Iterator<ArcInst> it = curCell.getArcs(); it.hasNext(); )
-        {
-            ArcInst ai = it.next();
-            if (likeThis.contains(ai.getProto()))
-            	highlighter.addElectricObject(ai, curCell);
-            for(Iterator<Variable> vIt = ai.getVariables(); vIt.hasNext(); )
-            {
-            	Variable var = vIt.next();
-            	if (likeThis.contains(var.getKey().getName()))
-                    highlighter.addText(ai, curCell, var.getKey());
-            }
-        }
-        for(Iterator<Export> it = curCell.getExports(); it.hasNext(); )
-        {
-        	Export e = it.next();
-    		PortCharacteristic pc = e.getCharacteristic();
-        	if (!likeThis.contains(pc.getName())) continue;
-        	highlighter.addText(e, curCell, Export.EXPORT_NAME);
-        }
-        for(Iterator<Variable> vIt = curCell.getVariables(); vIt.hasNext(); )
-        {
-        	Variable var = vIt.next();
-        	if (likeThis.contains(var.getKey().getName()))
-                highlighter.addText(curCell, curCell, var.getKey());
-        }
-        highlighter.finished();
-        System.out.println("Selected "+highlighter.getNumHighlights()+ " objects");
-    }
+	/**
+	 * Method to select the next object that is of the same type as the current object.
+	 */
+	public static void selectNextLikeThisCommand(boolean next)
+	{
+		Cell curCell = WindowFrame.needCurCell();
+		if (curCell == null) return;
+		EditWindow wnd = EditWindow.getCurrent();
+		if (wnd == null) return;
+		Highlighter highlighter = wnd.getHighlighter();
+		Highlight2 high = highlighter.getOneHighlight();
+		if (high == null) return;
+		ElectricObject eObj = high.getElectricObject();
+		if (high.isHighlightEOBJ())
+		{
+			if (eObj instanceof PortInst)
+			{
+				eObj = ((PortInst)eObj).getNodeInst();
+			}
+			if (eObj instanceof NodeInst)
+			{
+				NodeInst thisNi = (NodeInst)eObj;
+				NodeInst [] allNodes = new NodeInst[curCell.getNumNodes()];
+				int tot = 0;
+				int which = 0;
+				for(Iterator<NodeInst> it = curCell.getNodes(); it.hasNext(); )
+				{
+					NodeInst ni = it.next();
+					if (ni.getProto() != thisNi.getProto()) continue;
+					if (ni == thisNi) which = tot;
+					allNodes[tot++] = ni;
+				}
+				if (next)
+				{
+					which++;
+					if (which >= tot) which = 0;
+				} else
+				{
+					which--;
+					if (which < 0) which = tot - 1;
+				}
+				highlighter.clear();
+				highlighter.addElectricObject(allNodes[which], curCell);
+				highlighter.finished();
+				return;
+			}
+			if (eObj instanceof ArcInst)
+			{
+				ArcInst thisAi = (ArcInst)eObj;
+				ArcInst [] allArcs = new ArcInst[curCell.getNumArcs()];
+				int tot = 0;
+				int which = 0;
+				for(Iterator<ArcInst> it = curCell.getArcs(); it.hasNext(); )
+				{
+					ArcInst ai = it.next();
+					if (ai.getProto() != thisAi.getProto()) continue;
+					if (ai == thisAi) which = tot;
+					allArcs[tot++] = ai;
+				}
+				if (next)
+				{
+					which++;
+					if (which >= tot) which = 0;
+				} else
+				{
+					which--;
+					if (which < 0) which = tot - 1;
+				}
+				highlighter.clear();
+				highlighter.addElectricObject(allArcs[which], curCell);
+				highlighter.finished();
+				return;
+			}
+		}
+		if (high.isHighlightText())
+		{
+			if (eObj instanceof Export)
+			{
+				PortCharacteristic pc = ((Export)eObj).getCharacteristic();
+				List<Export> allExports = new ArrayList<Export>();
+				int which = 0;
+				for(Iterator<Export> it = curCell.getExports(); it.hasNext(); )
+				{
+					Export e = it.next();
+					if (e.getCharacteristic() != pc) continue;
+					if (e == eObj) which = allExports.size();
+					allExports.add(e);
+				}
+				if (next)
+				{
+					which++;
+					if (which >= allExports.size()) which = 0;
+				} else
+				{
+					which--;
+					if (which < 0) which = allExports.size() - 1;
+				}
+				highlighter.clear();
+				highlighter.addText(allExports.get(which), curCell, Export.EXPORT_NAME);
+				highlighter.finished();
+			} else
+			{
+				// advance to next with this name
+				List<Key> allVarKeys = new ArrayList<Key>();
+				List<ElectricObject> allVarObjs = new ArrayList<ElectricObject>();
+				int which = 0;
+				for(Iterator<ArcInst> it = curCell.getArcs(); it.hasNext(); )
+				{
+					ArcInst ai = it.next();
+					for(Iterator<Variable> vIt = ai.getVariables(); vIt.hasNext(); )
+					{
+						Variable var = vIt.next();
+						if (var.getKey() != high.getVarKey()) continue;
+						if (ai == high.getElectricObject() && var.getKey() == high.getVarKey()) which = allVarKeys.size();
+						allVarKeys.add(var.getKey());
+						allVarObjs.add(ai);
+					}
+				}
+				for(Iterator<NodeInst> it = curCell.getNodes(); it.hasNext(); )
+				{
+					NodeInst ni = it.next();
+					for(Iterator<Variable> vIt = ni.getVariables(); vIt.hasNext(); )
+					{
+						Variable var = vIt.next();
+						if (var.getKey() != high.getVarKey()) continue;
+						if (ni == high.getElectricObject() && var.getKey() == high.getVarKey()) which = allVarKeys.size();
+						allVarKeys.add(var.getKey());
+						allVarObjs.add(ni);
+					}
+				}
+				for(Iterator<Variable> vIt = curCell.getVariables(); vIt.hasNext(); )
+				{
+					Variable var = vIt.next();
+					if (var.getKey() != high.getVarKey()) continue;
+					if (curCell == high.getElectricObject() && var.getKey() == high.getVarKey()) which = allVarKeys.size();
+					allVarKeys.add(var.getKey());
+					allVarObjs.add(curCell);
+				}
+				if (next)
+				{
+					which++;
+					if (which >= allVarKeys.size()) which = 0;
+				} else
+				{
+					which--;
+					if (which < 0) which = allVarKeys.size() - 1;
+				}
+				highlighter.clear();
+				highlighter.addText(allVarObjs.get(which), curCell, allVarKeys.get(which));
+				highlighter.finished();
+			}
+			return;
+		}
+		System.out.println("Cannot advance the current selection");
+	}
 
-    /**
-     * Method to select the next object that is of the same type as the current object.
-     */
-    public static void selectNextLikeThisCommand(boolean next)
-    {
-        Cell curCell = WindowFrame.needCurCell();
-        if (curCell == null) return;
-        EditWindow wnd = EditWindow.getCurrent();
-        if (wnd == null) return;
-        Highlighter highlighter = wnd.getHighlighter();
-        Highlight2 high = highlighter.getOneHighlight();
-        if (high == null) return;
-        ElectricObject eObj = high.getElectricObject();
-        if (high.isHighlightEOBJ())
-        {
-            if (eObj instanceof PortInst)
-            {
-                eObj = ((PortInst)eObj).getNodeInst();
-            }
-            if (eObj instanceof NodeInst)
-            {
-                NodeInst thisNi = (NodeInst)eObj;
-                NodeInst [] allNodes = new NodeInst[curCell.getNumNodes()];
-                int tot = 0;
-                int which = 0;
-                for(Iterator<NodeInst> it = curCell.getNodes(); it.hasNext(); )
-                {
-                    NodeInst ni = it.next();
-                    if (ni.getProto() != thisNi.getProto()) continue;
-                    if (ni == thisNi) which = tot;
-                    allNodes[tot++] = ni;
-                }
-                if (next)
-                {
-                    which++;
-                    if (which >= tot) which = 0;
-                } else
-                {
-                    which--;
-                    if (which < 0) which = tot - 1;
-                }
-                highlighter.clear();
-                highlighter.addElectricObject(allNodes[which], curCell);
-                highlighter.finished();
-                return;
-            }
-            if (eObj instanceof ArcInst)
-            {
-                ArcInst thisAi = (ArcInst)eObj;
-                ArcInst [] allArcs = new ArcInst[curCell.getNumArcs()];
-                int tot = 0;
-                int which = 0;
-                for(Iterator<ArcInst> it = curCell.getArcs(); it.hasNext(); )
-                {
-                    ArcInst ai = it.next();
-                    if (ai.getProto() != thisAi.getProto()) continue;
-                    if (ai == thisAi) which = tot;
-                    allArcs[tot++] = ai;
-                }
-                if (next)
-                {
-                    which++;
-                    if (which >= tot) which = 0;
-                } else
-                {
-                    which--;
-                    if (which < 0) which = tot - 1;
-                }
-                highlighter.clear();
-                highlighter.addElectricObject(allArcs[which], curCell);
-                highlighter.finished();
-                return;
-            }
-        }
-        if (high.isHighlightText())
-        {
-            if (eObj instanceof Export)
-            {
-        		PortCharacteristic pc = ((Export)eObj).getCharacteristic();
-        		List<Export> allExports = new ArrayList<Export>();
-                int which = 0;
-                for(Iterator<Export> it = curCell.getExports(); it.hasNext(); )
-                {
-                    Export e = it.next();
-                    if (e.getCharacteristic() != pc) continue;
-                    if (e == eObj) which = allExports.size();
-                    allExports.add(e);
-                }
-                if (next)
-                {
-                    which++;
-                    if (which >= allExports.size()) which = 0;
-                } else
-                {
-                    which--;
-                    if (which < 0) which = allExports.size() - 1;
-                }
-                highlighter.clear();
-                highlighter.addText(allExports.get(which), curCell, Export.EXPORT_NAME);
-                highlighter.finished();
-            } else
-            {
-            	// advance to next with this name
-        		List<Key> allVarKeys = new ArrayList<Key>();
-        		List<ElectricObject> allVarObjs = new ArrayList<ElectricObject>();
-                int which = 0;
-                for(Iterator<ArcInst> it = curCell.getArcs(); it.hasNext(); )
-                {
-                    ArcInst ai = it.next();
-                    for(Iterator<Variable> vIt = ai.getVariables(); vIt.hasNext(); )
-                    {
-                    	Variable var = vIt.next();
-                    	if (var.getKey() != high.getVarKey()) continue;
-	                    if (ai == high.getElectricObject() && var.getKey() == high.getVarKey()) which = allVarKeys.size();
-	                    allVarKeys.add(var.getKey());
-	                    allVarObjs.add(ai);
-                    }
-                }
-                for(Iterator<NodeInst> it = curCell.getNodes(); it.hasNext(); )
-                {
-                	NodeInst ni = it.next();
-                    for(Iterator<Variable> vIt = ni.getVariables(); vIt.hasNext(); )
-                    {
-                    	Variable var = vIt.next();
-                    	if (var.getKey() != high.getVarKey()) continue;
-	                    if (ni == high.getElectricObject() && var.getKey() == high.getVarKey()) which = allVarKeys.size();
-	                    allVarKeys.add(var.getKey());
-	                    allVarObjs.add(ni);
-                    }
-                }
-                for(Iterator<Variable> vIt = curCell.getVariables(); vIt.hasNext(); )
-                {
-                	Variable var = vIt.next();
-                	if (var.getKey() != high.getVarKey()) continue;
-                    if (curCell == high.getElectricObject() && var.getKey() == high.getVarKey()) which = allVarKeys.size();
-                    allVarKeys.add(var.getKey());
-                    allVarObjs.add(curCell);
-                }
-                if (next)
-                {
-                    which++;
-                    if (which >= allVarKeys.size()) which = 0;
-                } else
-                {
-                    which--;
-                    if (which < 0) which = allVarKeys.size() - 1;
-                }
-                highlighter.clear();
-                highlighter.addText(allVarObjs.get(which), curCell, allVarKeys.get(which));
-                highlighter.finished();            	
-            }
-            return;
-        }
-        System.out.println("Cannot advance the current selection");
-    }
-
-    /**
+	/**
      * This method implements the command to highlight nothing in the current Cell.
      */
     public static void selectNothingCommand()
@@ -1334,7 +1338,7 @@ public class EditMenu {
      * This method implements the command to show the next logged error.
      * The error log lists the results of the latest command (DRC, NCC, etc.)
      */
-    public static void showNextErrorCommand()
+    private static void showNextErrorCommand()
     {
         String msg = ErrorLoggerTree.reportNextMessage();
         System.out.println(msg);
@@ -1344,7 +1348,7 @@ public class EditMenu {
      * This method implements the command to show the last logged error.
      * The error log lists the results of the latest command (DRC, NCC, etc.)
      */
-    public static void showPrevErrorCommand()
+    private static void showPrevErrorCommand()
     {
         String msg = ErrorLoggerTree.reportPrevMessage();
         System.out.println(msg);
@@ -1764,11 +1768,11 @@ public class EditMenu {
     private static void writeXmlTechnologyFromElectricBuildCommand() {
         String jarPath = OpenFile.chooseInputFile(FileType.JAR, "Electric build", false, null, false);
         if (jarPath == null) return;
-        
+
         try {
             new TechExplorerDriver(jarPath, System.out) {
                 private int state = 0;
-                
+
                 @Override
                 protected void terminateOk(Object result) {
                     switch (state) {
@@ -1804,7 +1808,7 @@ public class EditMenu {
                             closeCommands();
                    }
                 }
-                
+
                 @Override
                 protected void terminateFail(Exception e) {
                     super.terminateFail(e);
