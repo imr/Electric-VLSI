@@ -3,6 +3,10 @@
 NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07i: ******************************
+
+BUG: (4/23/08, DN) Network API is confusing (Bug #1670).
+FIX: Add method Network.getGlobals().
+
 BUG: (4/22/08, RK) CMOS90 Nand2 gate layout generator was violating tsmc90 rule CO.S.2
 
 IMP: (4/22/08, SMR) Ports that are down the hierarchy and not selectable are

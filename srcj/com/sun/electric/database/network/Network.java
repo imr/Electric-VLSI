@@ -139,6 +139,19 @@ public class Network {
         return nodes.iterator();
     }
 
+    /** Get iterator over all Globals on Network */
+    public Iterator<Global> getGlobals() {
+        Global.Set globals = getNetlist().getGlobals();
+        ArrayList<Global> globalsOnNet = new ArrayList<Global>();
+        for (int i = 0; i < globals.size(); i++) {
+            Global g = globals.get(i);
+            if (getNetlist().getNetIndex(g) == netIndex)
+                globalsOnNet.add(g);
+            
+        }
+        return globalsOnNet.iterator();
+    }
+
     /** Get iterator over all Exports on Network */
     public Iterator<Export> getExports() {
         ArrayList<Export> exports = new ArrayList<Export>();
