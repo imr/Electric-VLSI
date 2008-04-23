@@ -415,11 +415,12 @@ public final class Main
 //			}
 
             // open no name library first
-            Input.changesQuiet(true);
+//            Input.changesQuiet(true);
             Library mainLib = Library.newInstance("noname", null);
             if (mainLib == null) return false;
+            mainLib.clearChanged();
             mainLib.setCurrent();
-            Input.changesQuiet(false);
+//            Input.changesQuiet(false);
 
             if (Job.BATCHMODE && beanShellScript != null)
                     EvalJavaBsh.runScript(beanShellScript);

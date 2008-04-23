@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07i: ******************************
 
+BUG: (4/23/08, DN) Quitting right after startup prompts to save library (Bug #1669).
+FIX: In Main.InitDatabase.doIt call "mainLib.clearChanged()".
+
 BUG: (4/23/08, DN) Network API is confusing (Bug #1670).
 FIX: Add method Network.getGlobals().
 
