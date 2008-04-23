@@ -1714,10 +1714,11 @@ public class ViewChanges
 						}
 						String exportName = null;
 						Export e = null;
-						if (network.isExported())
+						Iterator<Export> eIt = network.getExports();
+						if (eIt.hasNext())
 						{
+							e = eIt.next();
 							exportName = network.getName();
-							e = network.getExports().next();
 						}
 						for (int i=1; i<list.size(); i++)
 						{
@@ -1729,7 +1730,8 @@ public class ViewChanges
 								continue;
 							}
 
-							ArcInst newAi = ArcInst.makeInstanceBase(ratArc, 1, pi, nextPi, pi.getCenter(), nextPi.getCenter(), null);
+							ArcInst newAi = ArcInst.makeInstanceBase(ratArc, ratArc.getDefaultLambdaBaseWidth(), pi, nextPi,
+								pi.getCenter(), nextPi.getCenter(), null);
 							if (newAi == null)
 							{
 								System.out.println("Cell " + newCell.describe(true) + ": can't run " + ratArc + " from " +
