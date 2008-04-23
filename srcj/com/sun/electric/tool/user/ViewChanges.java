@@ -1537,11 +1537,11 @@ public class ViewChanges
 					Technology cmos90 = Technology.getCMOS90Technology();
 					if (cmos90 != null && type == TechType.TechTypeEnum.CMOS90)
 					{
-						stdCell = GateLayoutGenerator.sportParams();
+						stdCell = GateLayoutGenerator.sportParams(false);
 					} else
 					{
 						//stdCell = locoParams(outLib);
-						stdCell = GateLayoutGenerator.dividerParams(type);
+						stdCell = GateLayoutGenerator.dividerParams(type, false);
 						//stdCell = justinParams(outLib, technology);
 						if (type == null) stdCell = null;
 					}

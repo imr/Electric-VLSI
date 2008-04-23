@@ -146,7 +146,12 @@ public class GateLayoutGenerator {
 	}
 
     public static StdCellParams sportParams() {
+        return sportParams(true);
+    }
+
+    public static StdCellParams sportParams(boolean enableNCC) {
         StdCellParams stdCell = new StdCellParams(TechType.TechTypeEnum.CMOS90);
+        if (enableNCC) stdCell.enableNCC("purpleFour");
         stdCell.setSizeQuantizationError(0);
         stdCell.setMaxMosWidth(1000);
         stdCell.setVddY(24.5);
@@ -157,9 +162,13 @@ public class GateLayoutGenerator {
         return stdCell;
     }
 
-	public static StdCellParams dividerParams(TechType.TechTypeEnum technology) {
+    public static StdCellParams dividerParams(TechType.TechTypeEnum technology) {
+        return dividerParams(technology, true);
+    }
+
+	public static StdCellParams dividerParams(TechType.TechTypeEnum technology, boolean enableNCC) {
 		StdCellParams stdCell = new StdCellParams(technology);
-		stdCell.enableNCC("purpleFour");
+        if (enableNCC) stdCell.enableNCC("purpleFour");
 		stdCell.setSizeQuantizationError(0);
 		stdCell.setMaxMosWidth(1000);
 		stdCell.setVddY(21);
