@@ -195,42 +195,34 @@ public class Tech {
 		return techType.layerAtHeight(layHeight);
 	}
 	
-	/** Here is my first attempt to embed design rules into Tech. This is useful for
-	 * distinguising MoCMOS from tsmc180. RKao */
+	/** All the following static methods will be deprecated. Use the 
+	 * corresponding methods in TechType instead. RKao */
 
 	/** @return min width of Well */
-	public static double getWellWidth() {return techType.wellWidth;}
+	public static double getWellWidth() {return techType.getWellWidth();}
 	/** @return amount that well surrounds diffusion */
-	public static double getWellSurroundDiff() {return techType.wellSurroundDiff;}
+	public static double getWellSurroundDiff() {return techType.getWellSurroundDiff();}
 	/** @return MOS edge to gate edge */
-    public static double getGateExtendPastMOS() {return techType.gateExtendPastMOS;}
-    /** @return min width of polysilicon 1 */
-    public static double getP1Width() {return techType.p1Width;}
+    public static double getGateExtendPastMOS() {return techType.getGateExtendPastMOS();}
     /** @return min spacing between polysilicon 1 */
-    public static double getP1ToP1Space() {return techType.p1ToP1Space;}
-    /** @return min spacing between gates of series transistors */ 
-    public static double getGateToGateSpace() {return techType.gateToGateSpace;}
-    /** @return min spacing between MOS gate and diffusion edge of diff contact */
-    public static double getGateToDiffContSpace() {return techType.gateToDiffContSpace;}
+    public static double getP1ToP1Space() {return techType.getP1ToP1Space();}
     /** @return min width of diffusion surrounding diff contact */
-    public static double getDiffContWidth() {return techType.diffContWidth;}
+    public static double getDiffContWidth() {return techType.getDiffContWidth();}
     /** @return min width of poly contact */
-    public static double getP1M1Width() {return techType.p1M1Width;}
-    /** @return gate length that depends on foundry */
-    public static double getGateLength() {return techType.gateLength;}
+    public static double getP1M1Width() {return techType.getP1M1Width();}
     /** @return amount that select surrounds diffusion in well? */
-    public static double selectSurroundDiffInActiveContact() {return techType.selectSurroundDiffInActiveContact;}
+    public static double selectSurroundDiffInActiveContact() {return techType.selectSurroundDiffInActiveContact();}
     /** @return amount that Select surrounds MOS, along gate width dimension */
-    public static double selectSurroundDiffAlongGateInTrans() {return techType.selectSurroundDiffAlongGateInTrans;}
+    public static double selectSurroundDiffAlongGateInTrans() {return techType.selectSurroundDiffAlongGateInTrans();}
     /** @return y offset of poly arc connecting poly contact and gate in a L-Shape case */
-    public static double getPolyLShapeOffset() {return techType.offsetLShapePolyContact;}
+    public static double getPolyLShapeOffset() {return techType.getPolyLShapeOffset();}
     /** @return y offset of poly arc connecting poly contact and gate in a T-Shape case */
-    public static double getPolyTShapeOffset() {return techType.offsetTShapePolyContact;}
+    public static double getPolyTShapeOffset() {return techType.getPolyTShapeOffset();}
     /** @return select spacing rule */
-    public static double getSelectSpacingRule() {return techType.selectSpace;}
+    public static double getSelectSpacingRule() {return techType.getSelectSpacingRule();}
     /** @return select surround active in transistors but not along the gate */
-    public static double getSelectSurroundDiffInTrans() {return techType.selectSurroundDiffInTrans;}
+    public static double getSelectSurroundDiffInTrans() {return techType.getSelectSurroundDiffInTrans();}
     /** @return selecct surround over poly */
-    public static double getSelectSurroundOverPoly() {return techType.selectSurround;}
+    public static double getSelectSurroundOverPoly() {return techType.getSelectSurroundOverPoly();}
 }
 

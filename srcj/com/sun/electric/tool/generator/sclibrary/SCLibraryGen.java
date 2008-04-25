@@ -113,9 +113,9 @@ public class SCLibraryGen {
         }
         prMsg("Using purple library \""+purpleLibraryName+"\" and red library \""+redLibraryName+"\"");
 
-        if (sc.getTechnology() == TechType.TechTypeEnum.TSMC180.getTechType())
+        if (sc.getTechType() == TechType.TechTypeEnum.TSMC180.getTechType())
             scLibraryName = "sclibTSMC180";
-        else if (sc.getTechnology() == TechType.TechTypeEnum.CMOS90.getTechType())
+        else if (sc.getTechType() == TechType.TechTypeEnum.CMOS90.getTechType())
             scLibraryName = "sclibCMOS90";
         scLibrary = Library.findLibrary(scLibraryName);
         if (scLibrary == null) {

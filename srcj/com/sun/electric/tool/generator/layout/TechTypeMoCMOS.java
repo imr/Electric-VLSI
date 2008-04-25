@@ -20,10 +20,9 @@ public class TechTypeMoCMOS extends TechType {
 	    gateExtendPastMOS = 2;
 	    p1Width = 2;
 	    p1ToP1Space = 3;
-	    p1M1Width = 5;
 	    gateToGateSpace = 3;
 	    gateToDiffContSpace = .5;
-	    diffContWidth = 5;
+	    gateToDiffContSpaceDogBone = 1;
         gateLength = 2;
         offsetLShapePolyContact = 2.5 /* half poly contact height */ - 1 /*half poly arc width*/;
         offsetTShapePolyContact = 2.5 /* half poly contact height */ + 1 /*half poly arc width*/;
@@ -32,6 +31,9 @@ public class TechTypeMoCMOS extends TechType {
         selectSurround = -Double.NaN; // no valid value
         selectSurroundDiffInActiveContact = 2;
         selectSurroundDiffAlongGateInTrans = 2;
+        m1MinArea = 0;
+        diffCont_m1Width = 4;
+        diffContIncr = 5;
 	}
 
 	/** Singleton class */

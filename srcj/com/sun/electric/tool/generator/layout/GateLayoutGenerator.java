@@ -70,8 +70,8 @@ public class GateLayoutGenerator {
                                     String type, double Xstrength) {
         if (outputLib == null) return null;
         stdCell.setOutputLibrary(outputLib);
-        if (Tech.getTechnology() != stdCell.getTechnology())
-            Tech.setTechnology(stdCell.getTechnology());
+        if (Tech.getTechnology() != stdCell.getTechType())
+            Tech.setTechnology(stdCell.getTechType());
 
         if (Xstrength<0) return null;
 
@@ -115,7 +115,7 @@ public class GateLayoutGenerator {
                                    Cell cell, VarContext context,
                                    StdCellParams stdCell, boolean topLevelOnly) {
         stdCell.setOutputLibrary(outLib);
-        Tech.setTechnology(stdCell.getTechnology());
+        Tech.setTechnology(stdCell.getTechType());
         GenerateLayoutForGatesInSchematic visitor =
 			new GenerateLayoutForGatesInSchematic(stdCell, topLevelOnly);
 		HierarchyEnumerator.enumerateCell(cell, context, visitor);

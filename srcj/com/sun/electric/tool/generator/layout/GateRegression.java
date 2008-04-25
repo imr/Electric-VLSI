@@ -49,8 +49,11 @@ public class GateRegression extends Job {
 	};
 
     private static void allSizes(StdCellParams stdCell, TechType.TechTypeEnum technology) {
-        double minSz = 0.1;
-        double maxSz = 200;//500;
+        double minSz = 20;
+        double maxSz = 20;
+        // RKao debug
+//        double minSz = 0.1;
+//        double maxSz = 200;//500;
         for (double d=minSz; d<maxSz; d*=10) {
             for (double x=d; x<Math.min(d*10, maxSz); x*=1.01) {
                 aPass(x, stdCell, technology);
@@ -122,32 +125,35 @@ public class GateRegression extends Job {
         //Inv2iKn.makePart(10, stdCell);
         //Inv2iKn_wideOutput.makePart(10, stdCell);
         allSizes(stdCell, technology);
-
-        //aPass(50, stdCell, technology);
-
-        // test the ability to move ground bus
-        stdCell.setGndY(stdCell.getGndY() - 7);
-        stdCell.setNmosWellHeight(stdCell.getNmosWellHeight()+7);
-        //allSizes(stdCell, technology);
-        aPass(10, stdCell, technology);
-        aPass(200, stdCell, technology);
-        stdCell.setGndY(stdCell.getGndY() + 7);
-        stdCell.setNmosWellHeight(stdCell.getNmosWellHeight()-7);
-
-        // test different PMOS to NMOS heights
-        stdCell.setNmosWellHeight(50);
-        stdCell.setPmosWellHeight(100);
-        //allSizes(stdCell, technology);
-        aPass(10, stdCell, technology);
-        aPass(200, stdCell, technology);
-
-        stdCell.setNmosWellHeight(100);
-        stdCell.setPmosWellHeight(50);
-        //allSizes(stdCell, technology);
-        aPass(10, stdCell, technology);
-        aPass(200, stdCell, technology);
-        stdCell.setNmosWellHeight(70);
-        stdCell.setPmosWellHeight(70);
+        
+        // RKao debug
+//        
+//
+//        //aPass(50, stdCell, technology);
+//
+//        // test the ability to move ground bus
+//        stdCell.setGndY(stdCell.getGndY() - 7);
+//        stdCell.setNmosWellHeight(stdCell.getNmosWellHeight()+7);
+//        //allSizes(stdCell, technology);
+//        aPass(10, stdCell, technology);
+//        aPass(200, stdCell, technology);
+//        stdCell.setGndY(stdCell.getGndY() + 7);
+//        stdCell.setNmosWellHeight(stdCell.getNmosWellHeight()-7);
+//
+//        // test different PMOS to NMOS heights
+//        stdCell.setNmosWellHeight(50);
+//        stdCell.setPmosWellHeight(100);
+//        //allSizes(stdCell, technology);
+//        aPass(10, stdCell, technology);
+//        aPass(200, stdCell, technology);
+//
+//        stdCell.setNmosWellHeight(100);
+//        stdCell.setPmosWellHeight(50);
+//        //allSizes(stdCell, technology);
+//        aPass(10, stdCell, technology);
+//        aPass(200, stdCell, technology);
+//        stdCell.setNmosWellHeight(70);
+//        stdCell.setPmosWellHeight(70);
 
         Cell gallery = Gallery.makeGallery(scratchLib);
         DrcRings.addDrcRings(gallery, FILTER, stdCell);

@@ -33,6 +33,7 @@ import com.sun.electric.tool.generator.layout.FoldsAndWidth;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.generator.layout.StdCellParams;
 import com.sun.electric.tool.generator.layout.Tech;
+import com.sun.electric.tool.generator.layout.TechType;
 import com.sun.electric.tool.generator.layout.TrackRouter;
 import com.sun.electric.tool.generator.layout.TrackRouterH;
 
@@ -54,21 +55,27 @@ public class Inv2iKn {
 	private static final double outBusSpace =  3;
 	private static final double outY = 0;
 	private static final double weakRatio = 10;
+	
+	private static class MyGateSpace implements FoldedMos.GateSpace {
+		double dogBoneExtra;
+		MyGateSpace(TechType tech) {
+			dogBoneExtra = tech.getGateToDiffContSpaceDogBone() -
+			             tech.getGateToDiffContSpace();
+		}
+		
+		public double getExtraSpace(double requiredExtraSpace, int foldNdx,
+				int nbFolds, int spaceNdx, int nbGates){
+			return (foldNdx==nbFolds-1 && spaceNdx==1) ? 
+					  	dogBoneExtra 
+					: 
+						requiredExtraSpace;
+		}
+	}
 
 	private static void error(boolean pred, String msg) {
 		LayoutLib.error(pred, msg);
 	}
 
-	// Insert extra space between the leftmost diffusion contact and the
-	// leftmost gate.
-	private static final FoldedMos.GateSpace spaceLastGate =
-		new FoldedMos.GateSpace() {
-			public double getExtraSpace(double requiredExtraSpace, int foldNdx,
-										int nbFolds, int spaceNdx, int nbGates){
-				return (foldNdx==nbFolds-1 && spaceNdx==1) ? .5 : requiredExtraSpace;
-			}
-		};
-	
 	// If strong PMOS has only one fold then connect ODD src/drn of weak
 	// NMOS to ground
 	private static final StdCellParams.SelectSrcDrn flipWeakPmos =
@@ -88,6 +95,7 @@ public class Inv2iKn {
 		sz = stdCell.roundSize(sz);
 		String nm = "inv2iKn";
 		sz = stdCell.checkMinStrength(sz, 1, nm);
+		TechType tech = stdCell.getTechType();
 
 		double outsideSpace = 2 + 5 + 1.5; // p1_nd_sp + p1m1_wid + p1_p1_sp/2
 		double insideSpace = outBusWidth/2 + outBusSpace - .5; // MOS diff surrounds m1 by .5  
@@ -125,6 +133,9 @@ public class Inv2iKn {
 		FoldedMos nmos = new FoldedNmos(nmosX, nmosY, fwN.nbFolds, 1, 
 		                                fwN.gateWid, inv, stdCell);
 
+		// Insert extra space between the leftmost diffusion contact and the
+		// leftmost gate.
+		FoldedMos.GateSpace spaceLastGate =	new MyGateSpace(tech);
 		double weakY = insideSpace + fwW.physWid/2;
 		FoldedMos pmosW = new FoldedPmos(weakX, weakY, fwW.nbFolds, 1,
 										 fwW.gateWid, spaceLastGate, 'B', inv, stdCell);

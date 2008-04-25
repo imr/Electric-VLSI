@@ -124,19 +124,9 @@ public class StdCellParams {
 	private double nmosWellTieY, pmosWellTieY;
 
 	private double minGateWid;
-	private double diffContWid;
 	private double maxMosWidth;
 
-    /** This determines width of arcs connecting to diffusion contacts */
-    private double difWidHint;
-    /** Diff Contact to Gate node spacing */
-    private double viaToMosPitch;
-    /** Gate to Gate node spacing */
-    private double mosToMosPitch;
-    private double viaToViaPitch;
     private double gridResolution;
-    /** Incremental size of diffusion contacts that creates a new cut in the multi-cut contact */
-    private double difConIncr;
     private double drcRingSpace;
 
     // for well contacts
@@ -166,7 +156,7 @@ public class StdCellParams {
 	private String gndExportName = "gnd";
 	private PortCharacteristic vddExportRole = PortCharacteristic.PWR;
 	private PortCharacteristic gndExportRole = PortCharacteristic.GND;
-    private TechType.TechTypeEnum technology;
+	private TechType tech;
 
     // ------------------------ private methods -----------------------------
 
@@ -199,14 +189,8 @@ public class StdCellParams {
         pmosWellTieY = 0;
 
         minGateWid = 3;
-        diffContWid = 5;
         maxMosWidth = 45;
-        difWidHint = 4;
-        viaToMosPitch = 4;
-        mosToMosPitch = 5; //5 = 3(active) + 2(gate)
-        viaToViaPitch = 5;
         gridResolution = 0.5;
-        difConIncr = 5;
         drcRingSpace = 3;
         wellConSelectHeight = 9;
         wellConSelectOffset = 0;
@@ -241,14 +225,8 @@ public class StdCellParams {
         pmosWellTieY = 0;
 
         minGateWid = 5.2;
-        diffContWid = 5;
         maxMosWidth = 45;
-        difWidHint = 3.4;
-        viaToMosPitch = 4;
-        mosToMosPitch = 6;
-        viaToViaPitch = 5.2;
         gridResolution = 0.1;
-        difConIncr = 5.2;
         drcRingSpace = 0;
         wellConSelectHeight = 8.4;
         wellConSelectOffset = 0;
@@ -344,7 +322,7 @@ public class StdCellParams {
 
 		// Don't fold if gate width is less than width of diffusion
 		// contact.
-		if (wid >= diffContWid)
+		if (wid >= tech.getDiffContWidth())
 			nbGroups = roundupGroups;
 
 		return nbGroups;
@@ -556,10 +534,6 @@ public class StdCellParams {
     }
     public double getM2TrackWidth() { return m2TrackWidth; }
 
-    public double getDifWidHint() { return difWidHint; }
-
-    public double getDifConIncr() { return difConIncr; }
-
     public double getDRCRingSpacing() { return drcRingSpace; }
 
     public double getM1TrackAboveVDD() {
@@ -587,28 +561,11 @@ public class StdCellParams {
         return trackX;
     }
 
-    /** Get the minimum diffusion contact width. This is the size reported by
-     * the GUI, not the pre-offset size.
-     */
-    public double getMinDifContWid() {
-        SizeOffset so = Tech.ndm1().getProtoSizeOffset();
-        return (Tech.ndm1().getMinSizeRule().getHeight() - so.getHighYOffset() - so.getLowYOffset());
-    }
 
     public double getWellOverhangDiff() {
         if (Tech.is90nm()) return 8;
         else return 6;
     }
-
-    public void setViaToMosPitch(double p) { viaToMosPitch = p; }
-    public double getViaToMosPitch() { return viaToMosPitch; }
-
-    public void setMosToMosPitch(double p) { mosToMosPitch = p; }
-    /** This is the minimum pitch between gates that share src/drc without diffusion
-     * contacts in that shared src/drn area. */
-    public double getMosToMosPitch() { return mosToMosPitch; }
-
-    public double getViaToViaPitch() { return viaToViaPitch; }
 
     public double getGridResolution() { return gridResolution; }
 
@@ -647,13 +604,13 @@ public class StdCellParams {
 	//------------------------------------------------------------------------------
 	// Utilities for gate generators
 
-	public StdCellParams(TechType.TechTypeEnum tech) {
-        if      (tech == TechType.TechTypeEnum.CMOS90) initCMOS90();
-        else if (tech == TechType.TechTypeEnum.MOCMOS || tech == TechType.TechTypeEnum.TSMC180) initMoCMOS();
+	public StdCellParams(TechType.TechTypeEnum techEnum) {
+        if      (techEnum == TechType.TechTypeEnum.CMOS90) initCMOS90();
+        else if (techEnum == TechType.TechTypeEnum.MOCMOS || techEnum == TechType.TechTypeEnum.TSMC180) initMoCMOS();
         else {
-            error(true, "Standard Cell Params does not understand technology "+tech);
+            error(true, "Standard Cell Params does not understand technology "+techEnum);
         }
-        this.technology = tech;
+        this.tech = techEnum.getTechType();
     }
 
     void setOutputLibrary(Library lib) {
@@ -661,7 +618,8 @@ public class StdCellParams {
     }
     Library getOutputLibrary() { return layoutLib; }
 
-    public TechType getTechnology() { return technology.getTechType(); }
+    public TechType getTechType() { return tech; }
+    
     public double getNmosWellHeight() {
 		return nmosWellHeight;
 	}
@@ -1004,7 +962,7 @@ public class StdCellParams {
 			gateWid = roundGateWidth(totWid / groupSz / nbGroups);
 		}
 
-		double physWid = Math.max(diffContWid, gateWid);
+		double physWid = Math.max(tech.getDiffContWidth(), gateWid);
 		if (gateWid < minGateWid)
 			return null;
 		return new FoldsAndWidth(nbGroups * groupSz, gateWid, physWid);

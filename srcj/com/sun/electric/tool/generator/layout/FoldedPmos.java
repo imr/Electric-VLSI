@@ -25,17 +25,34 @@ package com.sun.electric.tool.generator.layout;
 
 import com.sun.electric.database.hierarchy.Cell;
 
+/** The FoldedPmos class is a layer beneath the gate layout generators.
+ * Therefore FoldedNmos should not use StdCellparams.
+ * 
+ * @author rkao */
 public class FoldedPmos extends FoldedMos {
 	/** By default the FoldedPmos shifts the diffusion contact to the
 	 * bottom of the transistor */
 	public FoldedPmos(double x, double y, int nbFolds, int nbSeries,
-                      double gateWidth, Cell f, StdCellParams stdCell) {
-		super('P', x, y, nbFolds, nbSeries, gateWidth, null, 'B', f, stdCell);
+                      double gateWidth, Cell f, TechType tech) {
+		super('P', x, y, nbFolds, nbSeries, gateWidth, null, 'B', f, tech);
 	}
+	public FoldedPmos(double x, double y, int nbFolds, int nbSeries,
+                      double gateWidth, GateSpace gateSpace,
+                      char justifyDiffCont, Cell f, TechType tech) {
+		super('P', x, y, nbFolds, nbSeries, gateWidth, gateSpace,
+			  justifyDiffCont, f, tech);
+	}
+	/** @deprecated */
+	public FoldedPmos(double x, double y, int nbFolds, int nbSeries,
+                      double gateWidth, Cell f, StdCellParams stdCell) {
+		super('P', x, y, nbFolds, nbSeries, gateWidth, null, 'B', f,
+			  stdCell.getTechType());
+	}
+	/** @deprecated */
 	public FoldedPmos(double x, double y, int nbFolds, int nbSeries,
                       double gateWidth, GateSpace gateSpace,
                       char justifyDiffCont, Cell f, StdCellParams stdCell) {
 		super('P', x, y, nbFolds, nbSeries, gateWidth, gateSpace,
-			  justifyDiffCont, f, stdCell);
+			  justifyDiffCont, f, stdCell.getTechType());
 	}
 }

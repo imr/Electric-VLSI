@@ -12,6 +12,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 
 /** The TechType class holds technology dependent information for the layout
@@ -116,11 +117,14 @@ public abstract class TechType implements Serializable {
         gateExtendPastMOS,
         p1Width,
         p1ToP1Space,
-        p1M1Width,
         gateToGateSpace,
         gateToDiffContSpace,
-        diffContWidth,
-        selectSurroundDiffInActiveContact;  // select surround in active contacts
+        gateToDiffContSpaceDogBone,
+        selectSurroundDiffInActiveContact,	// select surround in active contacts
+        m1MinArea, 							// min area rules, sq lambda
+        diffCont_m1Width,					// width of m1 of min sized diff contact  
+        diffContIncr;						// when diff cont increases by diffContIncr,
+                                            // we get an additional cut
 
     //----------------------------- private methods  -----------------------------
     private static void error(boolean pred, String msg) {
@@ -359,18 +363,15 @@ public abstract class TechType implements Serializable {
 
     public static enum TechTypeEnum {MOCMOS, TSMC180, CMOS90;
         private TechType type;
-        public TechType getTechType()
-        {
-            if (type == null)
-            {
+        public TechType getTechType() {
+            if (type == null) {
                 if (this == TechTypeEnum.MOCMOS)
                     type = TechTypeMoCMOS.MOCMOS;
                 else if (this == TechTypeEnum.TSMC180)
                     type = getTechTypeTSMC180();
                 else if (this == TechTypeEnum.CMOS90)
                     type = getTechTypeCMOS90();
-                else
-                {
+                else {
                     System.out.println("Invalid TechTypeEnum");
                     assert(false);
                 }
@@ -587,5 +588,56 @@ public abstract class TechType implements Serializable {
     public abstract String name();
 
     public abstract double reservedToLambda(int layer, double nbTracks);
+    
+	/** @return min width of Well */
+	public double getWellWidth() {return wellWidth;}
+	/** @return amount that well surrounds diffusion */
+	public double getWellSurroundDiff() {return wellSurroundDiff;}
+	/** @return MOS edge to gate edge */
+    public double getGateExtendPastMOS() {return gateExtendPastMOS;}
+    /** @return min width of polysilicon 1 */
+    public double getP1Width() {return p1Width;}
+    /** @return min spacing between polysilicon 1 */
+    public double getP1ToP1Space() {return p1ToP1Space;}
+    /** @return min spacing between gates of series transistors */ 
+    public double getGateToGateSpace() {return gateToGateSpace;}
+    /** @return min spacing between MOS gate and diffusion edge of diff contact */
+    public double getGateToDiffContSpace() {return gateToDiffContSpace;}
+    /** @return min spacing between MOS gate and diffusion edge of diff contact
+     * when the diffusion width is larger than the gate width */
+    public double getGateToDiffContSpaceDogBone() {return gateToDiffContSpaceDogBone;}
+    /** @return min width of diffusion surrounding diff contact */
+    public double getDiffContWidth() {
+        SizeOffset so = ndm1().getProtoSizeOffset();
+        return (ndm1().getMinSizeRule().getHeight() - so.getHighYOffset() - so.getLowYOffset());
+    }
+    /** @return min width of poly contact */
+    public double getP1M1Width() {
+        SizeOffset so = p1m1().getProtoSizeOffset();
+        return (p1m1().getMinSizeRule().getHeight() - so.getHighYOffset() - so.getLowYOffset());
+    }
+    /** @return gate length that depends on foundry */
+    public double getGateLength() {return gateLength;}
+    /** @return amount that select surrounds diffusion in well? */
+    public double selectSurroundDiffInActiveContact() {return selectSurroundDiffInActiveContact;}
+    /** @return amount that Select surrounds MOS, along gate width dimension */
+    public double selectSurroundDiffAlongGateInTrans() {return selectSurroundDiffAlongGateInTrans;}
+    /** @return y offset of poly arc connecting poly contact and gate in a L-Shape case */
+    public double getPolyLShapeOffset() {return offsetLShapePolyContact;}
+    /** @return y offset of poly arc connecting poly contact and gate in a T-Shape case */
+    public double getPolyTShapeOffset() {return offsetTShapePolyContact;}
+    /** @return select spacing rule */
+    public double getSelectSpacingRule() {return selectSpace;}
+    /** @return select surround active in transistors but not along the gate */
+    public double getSelectSurroundDiffInTrans() {return selectSurroundDiffInTrans;}
+    /** @return select surround over poly */
+    public double getSelectSurroundOverPoly() {return selectSurround;}
+    /** @return minimum metal1 area (sq lambda) */
+    public double getM1MinArea() {return m1MinArea;}
+    /** @return width of metal-1 in min sized diffusion contact */
+    public double getDiffCont_m1Width() {return diffCont_m1Width;}
+    /** @return amount diffusion contact grows to accomodate an one additional contact cut */ 
+    public double getDiffContIncr() {return diffContIncr;}
+
 
 }
