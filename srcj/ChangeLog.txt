@@ -4,10 +4,15 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07i: ******************************
 
-FIX: (4/28/08, RK) CMOS90 Nand2en has wrong width hints. CMOS90 
+FIX: (4/25/08, RK) NCC Sport regressions fail. This is because Electric no longer
+     supports the fictional metal-5 to metal-8 via. This via was a
+     temporary expedient. It is not worth supporting. I modified
+     one Sport regression to expect the large number of mismatched cells. (Bug #1590)
+
+FIX: (4/24/08, RK) CMOS90 Nand2en has wrong width hints. CMOS90 
      generators may generate metal-1 minimum area errors. (Bug #1671)
 
-IMP: (4/28/08, RK) I removed use of StdCellParams from FoldedMos. FoldedMos
+IMP: (4/24/08, RK) I removed use of StdCellParams from FoldedMos. FoldedMos
      is supposed to be a in layer beneath StdCellParams. I moved much
      technology specific information from StdCellParams to TechType. 
 
