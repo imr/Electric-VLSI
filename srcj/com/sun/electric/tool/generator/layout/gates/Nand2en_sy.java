@@ -31,7 +31,7 @@ import com.sun.electric.tool.generator.layout.FoldedPmos;
 import com.sun.electric.tool.generator.layout.FoldsAndWidth;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.generator.layout.StdCellParams;
-import com.sun.electric.tool.generator.layout.Tech;
+import com.sun.electric.tool.generator.layout.TechType;
 import com.sun.electric.tool.generator.layout.TrackRouter;
 import com.sun.electric.tool.generator.layout.TrackRouterH;
 
@@ -49,6 +49,7 @@ public class Nand2en_sy {
 	}
 	
 	public static Cell makePart(double sz, StdCellParams stdCell) {
+		TechType tech = stdCell.getTechType();
 		sz = stdCell.roundSize(sz);
 		String nm = "nand2en_sy";
 		sz = stdCell.checkMinStrength(sz, 1, nm);
@@ -86,7 +87,7 @@ public class Nand2en_sy {
 		double nmosY = nmosTop - fwN.physWid/2;
 		int nbSeries = 2;
 		FoldedMos nmos = new FoldedNmos(nmosX, nmosY, fwN.nbFolds, nbSeries,
-										fwN.gateWid, nand, stdCell);
+										fwN.gateWid, nand, tech);
 		
 		// Create multiple FoldedPmos.  Each FoldedPmos has, at most, 2
 		// folds.
@@ -99,7 +100,7 @@ public class Nand2en_sy {
 			// pmos is shifted right by 2 lambda to allow weak PMOS to share drain
 			double pmosX = nmosX + 2 + pmosPitch * (nbFoldsP/2);
 			pmoss[nbFoldsP/2] = new FoldedPmos(pmosX, pmosY, nbFolds, nbSeries,
-											   fwP.gateWid, nand, stdCell);
+											   fwP.gateWid, nand, tech);
 		}
 		stdCell.fillDiffAndSelectNotches(pmoss, true);
 		
@@ -109,7 +110,7 @@ public class Nand2en_sy {
 		double weakX = rightDiffX + 8.5;
 		double weakY = pmosBot + fwW.physWid/2;
 		FoldedMos weakPmos = new FoldedPmos(weakX, weakY, fwW.nbFolds, 1,
-											fwW.gateWid, nand, stdCell);
+											fwW.gateWid, nand, tech);
 		// create an array that holds all PMOS, strong and weak
 		FoldedMos[] stroWeakPmoss = new FoldedMos[pmoss.length+1];
 		for (int i=0; i<pmoss.length; i++) {
@@ -121,20 +122,10 @@ public class Nand2en_sy {
 		stdCell.wireVddGnd(nmos, StdCellParams.EVEN, nand);
 		stdCell.wireVddGnd(stroWeakPmoss, StdCellParams.EVEN, nand);
 		
-//		// fool Electric's NCC into paralleling NMOS stacks by connecting
-//		// stacks' internal diffusion nodes.
-//		// fool Electric's NCC into paralleling NMOS stacks by connecting
-//		// stacks' internal diffusion nodes.
-//		for (int i=2; i<nmos.nbInternalSrcDrns(); i++) {
-//			LayoutLib.newArcInst(Tech.universalArc, 0,
-//								 nmos.getInternalSrcDrn(i%2),
-//								 nmos.getInternalSrcDrn(i));
-//		}
-		
 		// Nand input B
-		LayoutLib.newExport(nand, "inb", PortCharacteristic.IN, Tech.m1(),
+		LayoutLib.newExport(nand, "inb", PortCharacteristic.IN, tech.m1(),
 							4, inbX, inbY);
-		TrackRouter inb = new TrackRouterH(Tech.m1(), 3, inbY, nand);
+		TrackRouter inb = new TrackRouterH(tech.m1(), 3, inbY, tech, nand);
 		inb.connect(nand.findExport("inb"));
 		
 		for (int i=0; i<nmos.nbGates(); i++) {
@@ -155,9 +146,9 @@ public class Nand2en_sy {
 		// Nand input A
 		// m1_wid + m1_space + m1_wid/2
 		double inaX = StdCellParams.getRightDiffX(weakPmos, nmos) + 2 + 3 + 2;
-		LayoutLib.newExport(nand, "ina", PortCharacteristic.IN, Tech.m1(),
+		LayoutLib.newExport(nand, "ina", PortCharacteristic.IN, tech.m1(),
 							4, inaX, inaY);
-		TrackRouter ina = new TrackRouterH(Tech.m1(), 3, inaY, nand);
+		TrackRouter ina = new TrackRouterH(tech.m1(), 3, inaY, tech, nand);
 		ina.connect(nand.findExport("ina"));
 		for (int i=0; i<nmos.nbGates(); i++) {
 			if (i%2 == 1) ina.connect(nmos.getGate(i, 'T'), 1.5);
@@ -168,16 +159,16 @@ public class Nand2en_sy {
 		
 		// Nand output
 		double outX = inaX + 2 + 3 + 2;	// m1_wid/2 + m1_sp + m1_wid/2
-		LayoutLib.newExport(nand, "out", PortCharacteristic.OUT, Tech.m1(),
+		LayoutLib.newExport(nand, "out", PortCharacteristic.OUT, tech.m1(),
 							4, outX, outHiY);
-		TrackRouter outHi = new TrackRouterH(Tech.m2(), 4, outHiY, nand);
+		TrackRouter outHi = new TrackRouterH(tech.m2(), 4, outHiY, tech, nand);
 		outHi.connect(nand.findExport("out"));
 		for (int i=0; i<stroWeakPmoss.length; i++) {
 			for (int j=1; j<stroWeakPmoss[i].nbSrcDrns(); j+=2) {
 				outHi.connect(stroWeakPmoss[i].getSrcDrn(j));
 			}
 		}
-		TrackRouter outLo = new TrackRouterH(Tech.m2(), 4, outLoY, nand);
+		TrackRouter outLo = new TrackRouterH(tech.m2(), 4, outLoY, tech, nand);
 		outLo.connect(nand.findExport("out"));
 		for (int i=1; i<nmos.nbSrcDrns(); i+=2) {
 			outLo.connect(nmos.getSrcDrn(i));

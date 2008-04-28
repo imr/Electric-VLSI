@@ -56,6 +56,7 @@ public abstract class TrackRouter {
 	Double center = null;
 	PortInst prevElbow;
     boolean endsExtend;
+    final TechType tech;
 
 	// ------------------ private and protected methods ----------------------
 	static void error(boolean pred, String msg) {
@@ -159,21 +160,24 @@ public abstract class TrackRouter {
 
 	//------------------------------- public methods  ----------------------------
 	// all ports lie on the same routing track
-	public TrackRouter(ArcProto lay, double wid, Cell parnt) {
+	public TrackRouter(ArcProto lay, double wid, TechType tech, Cell parnt) {
 		parent = parnt;
 		layer = lay;
 		width = wid;
         endsExtend = true;
+        this.tech = tech;
 	}
 
 	// ports may be offset from routing track
-	public TrackRouter(ArcProto lay, double wid, double centerVal, 
+	public TrackRouter(ArcProto lay, double wid, double centerVal,
+			           TechType tech,
 	                   Cell parnt) {
 		parent = parnt;
 		layer = lay;
 		width = wid;
 		center = new Double(centerVal);
         endsExtend = true;
+        this.tech = tech;
 	}
 
     public void setEndsExtend(boolean b) { endsExtend = b; }

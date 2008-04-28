@@ -31,6 +31,7 @@ import com.sun.electric.tool.generator.layout.FoldsAndWidth;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.generator.layout.StdCellParams;
 import com.sun.electric.tool.generator.layout.Tech;
+import com.sun.electric.tool.generator.layout.TechType;
 import com.sun.electric.tool.generator.layout.TrackRouter;
 import com.sun.electric.tool.generator.layout.TrackRouterH;
 
@@ -44,6 +45,7 @@ public class Pms2 {
 	}
 	
 	public static Cell makePart(double sz, StdCellParams stdCell) {
+		TechType tech = stdCell.getTechType();
 		sz = stdCell.roundSize(sz);
 		String nm = "pms2";
 		sz = stdCell.checkMinStrength(sz, .25, nm);
@@ -70,50 +72,42 @@ public class Pms2 {
 		
 		// leave vertical m1 track for g
 		double gX = 1.5 + 2;		// m1_m1_sp/2 + m1_wid/2
-		LayoutLib.newExport(pms2, "g", PortCharacteristic.IN, Tech.m1(),
+		LayoutLib.newExport(pms2, "g", PortCharacteristic.IN, tech.m1(),
 							4, gX, gY);
 		double mosX = gX + 2 + 3 + 2; 	// m1_wid/2 + m1_m1_sp + m1_wid/2
 		double pmosY = pmosBot + fw.physWid/2;
 		FoldedMos pmos = new FoldedPmos(mosX, pmosY, fw.nbFolds, nbStacked,
-										fw.gateWid, pms2, stdCell);
+										fw.gateWid, pms2, tech);
 		
 		// g2  m1_wid/2 + m1_m1_sp + m1_wid/2
 		double g2X = StdCellParams.getRightDiffX(pmos) + 2 + 3 + 2;
-		LayoutLib.newExport(pms2, "g2", PortCharacteristic.IN, Tech.m1(),
+		LayoutLib.newExport(pms2, "g2", PortCharacteristic.IN, tech.m1(),
 							4, g2X, g2Y);
 		// output  m1_wid/2 + m1_m1_sp + m1_wid/2
 		double dX = g2X + 2 + 3 + 2;
-		LayoutLib.newExport(pms2, "d", PortCharacteristic.OUT, Tech.m1(),
+		LayoutLib.newExport(pms2, "d", PortCharacteristic.OUT, tech.m1(),
 							4, dX, dY);
 		// create gnd export and connect to MOS source/drains
 		stdCell.wireVddGnd(pmos, StdCellParams.EVEN, pms2);
 		
-//		// fool Electric's NCC into paralleling PMOS stacks by connecting
-//		// stacks' internal diffusion nodes.
-//		for (int i=1; i<pmos.nbInternalSrcDrns(); i+=1) {
-//			LayoutLib.newArcInst(Tech.universalArc, 0,
-//								 pmos.getInternalSrcDrn(0),
-//								 pmos.getInternalSrcDrn(i));
-//		}
-		
 		// connect inputs a and b
-		TrackRouter g = new TrackRouterH(Tech.m1(), 3, gY, pms2);
-		TrackRouter g2 = new TrackRouterH(Tech.m1(), 3, g2Y, pms2);
+		TrackRouter g = new TrackRouterH(tech.m1(), 3, gY, tech, pms2);
+		TrackRouter g2 = new TrackRouterH(tech.m1(), 3, g2Y, tech, pms2);
 		g.connect(pms2.findExport("g"));
 		g2.connect(pms2.findExport("g2"));
 		for (int i=0; i<pmos.nbGates(); i+=2) {
 			// connect 2 gates at a time in case nbFolds==1
 			if ((i/2)%2==0) {
-				g.connect(pmos.getGate(i, 'B'), -4, Tech.getPolyLShapeOffset());
-				g2.connect(pmos.getGate(i+1, 'T'), 4, -Tech.getPolyLShapeOffset());
+				g.connect(pmos.getGate(i, 'B'), -4, tech.getPolyLShapeOffset());
+				g2.connect(pmos.getGate(i+1, 'T'), 4, -tech.getPolyLShapeOffset());
 			} else {
-				g.connect(pmos.getGate(i+1, 'B'), 4, Tech.getPolyLShapeOffset());
-				g2.connect(pmos.getGate(i, 'T'), -4, -Tech.getPolyLShapeOffset());
+				g.connect(pmos.getGate(i+1, 'B'), 4, tech.getPolyLShapeOffset());
+				g2.connect(pmos.getGate(i, 'T'), -4, -tech.getPolyLShapeOffset());
 			}
 		}
 		
 		// connect output
-		TrackRouter d = new TrackRouterH(Tech.m2(), 4, dY, pms2);
+		TrackRouter d = new TrackRouterH(tech.m2(), 4, dY, tech, pms2);
 		d.connect(pms2.findExport("d"));
 		for (int i=1; i<pmos.nbSrcDrns(); i+=2) {d.connect(pmos.getSrcDrn(i));}
 		

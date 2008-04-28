@@ -30,6 +30,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.generator.layout.StdCellParams;
 import com.sun.electric.tool.generator.layout.Tech;
+import com.sun.electric.tool.generator.layout.TechType;
 
 /**
  * This part simply reserves space for one vertical metal1 track to be
@@ -37,6 +38,7 @@ import com.sun.electric.tool.generator.layout.Tech;
  */ 
 public class VertTrack {
 	public static Cell makePart(StdCellParams stdCell) {
+		TechType tech = stdCell.getTechType();
 		String nm = stdCell.parameterizedName("vertTrack")+"{lay}";
 		Cell vtrack = stdCell.findPart(nm);
 		if (vtrack!=null) return vtrack;
@@ -45,13 +47,13 @@ public class VertTrack {
 		// (m1m1 space)/2 + (m1 width)/2
 		double inX = 1.5 + 2;
 		double inY = 0;
-		PortInst inPin = LayoutLib.newNodeInst(Tech.m1pin(), inX, inY, 1, 1, 0,
+		PortInst inPin = LayoutLib.newNodeInst(tech.m1pin(), inX, inY, 1, 1, 0,
 											   vtrack).getOnlyPortInst();
 		Export.newInstance(vtrack, inPin, "in")
 			.setCharacteristic(PortCharacteristic.IN);
 		// Add some metal to port to allow software to guess the width
 		// of metal to use to connect to this port.
-		LayoutLib.newArcInst(Tech.m1(), 3, inPin, inPin);
+		LayoutLib.newArcInst(tech.m1(), 3, inPin, inPin);
 		
 		// Well width must be at least 12 to avoid DRC errors
 		// This cell is one of the rare cases where the cell's essential

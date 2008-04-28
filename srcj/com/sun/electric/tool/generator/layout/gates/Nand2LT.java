@@ -33,6 +33,7 @@ import com.sun.electric.tool.generator.layout.FoldsAndWidth;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.generator.layout.StdCellParams;
 import com.sun.electric.tool.generator.layout.Tech;
+import com.sun.electric.tool.generator.layout.TechType;
 import com.sun.electric.tool.generator.layout.TrackRouter;
 import com.sun.electric.tool.generator.layout.TrackRouterH;
 
@@ -50,6 +51,7 @@ public class Nand2LT {
 	}
 	
 	public static Cell makePart(double sz, StdCellParams stdCell) {
+		TechType tech = stdCell.getTechType();
 		sz = stdCell.roundSize(sz);
 		String nm = "nand2LT";
 		sz = stdCell.checkMinStrength(sz, 1, nm);
@@ -79,7 +81,7 @@ public class Nand2LT {
 		// NMOS
 		double nmosY = nmosTop - fwN.physWid/2;
 		FoldedMos nmos = new FoldedNmos(mosX, nmosY, fwN.nbFolds, nbStacked,
-										fwN.gateWid, nand, stdCell);
+										fwN.gateWid, nand, tech);
 		
 		// PMOS FoldedMos.  Each FoldedMos has exactly 2 folds.
 		double pmosY = pmosBot + fwP.physWid/2;
@@ -87,7 +89,7 @@ public class Nand2LT {
 		for (int i=0; i<pmoss.length; i++) {
 			double pmosPitch = 26;
 			double pmosX = mosX + pmosPitch * i;
-			pmoss[i] = new FoldedPmos(pmosX, pmosY, 2, 1, fwP.gateWid, nand, stdCell);
+			pmoss[i] = new FoldedPmos(pmosX, pmosY, 2, 1, fwP.gateWid, nand, tech);
 		}
 		stdCell.fillDiffAndSelectNotches(pmoss, true);
 		
@@ -95,40 +97,32 @@ public class Nand2LT {
 		stdCell.wireVddGnd(nmos, StdCellParams.EVEN, nand);
 		stdCell.wireVddGnd(pmoss, StdCellParams.EVEN, nand);
 		
-//		// fool Electric's NCC into paralleling NMOS stacks by connecting
-//		// stacks' internal diffusion nodes.
-//		for (int i=1; i<nmos.nbInternalSrcDrns(); i++) {
-//			LayoutLib.newArcInst(Tech.universalArc, 0,
-//								 nmos.getInternalSrcDrn(0),
-//								 nmos.getInternalSrcDrn(i));
-//		}
-		
 		// Nand input B
 		// m1_wid + m1_space + m1_wid/2
 		double inbX = StdCellParams.getRightDiffX(nmos, pmoss) + 2 + 3 + 2;
-		LayoutLib.newExport(nand, "inb", PortCharacteristic.IN, Tech.m1(),
+		LayoutLib.newExport(nand, "inb", PortCharacteristic.IN, tech.m1(),
 							4, inbX, inbY);
-		TrackRouter inb = new TrackRouterH(Tech.m1(), 3, inbY, nand);
+		TrackRouter inb = new TrackRouterH(tech.m1(), 3, inbY, tech, nand);
 		inb.connect(nand.findExport("inb"));
 		for (int i=0; i<nmos.nbGates(); i+=2) {
 			if (i/2 % 2 == 0) {
-				inb.connect(nmos.getGate(i+1, 'T'), Tech.getPolyLShapeOffset());
+				inb.connect(nmos.getGate(i+1, 'T'), tech.getPolyLShapeOffset());
 			} else {
 				inb.connect(nmos.getGate(i, 'T'), -6.5);
 			}
 		}
 		for (int i=0; i<pmoss.length; i++) {
-			inb.connect(pmoss[i].getGate(1, 'B'), -Tech.getPolyLShapeOffset());
+			inb.connect(pmoss[i].getGate(1, 'B'), -tech.getPolyLShapeOffset());
 		}
 		
 		// Nand input A
-		LayoutLib.newExport(nand, "ina", PortCharacteristic.IN, Tech.m1(),
+		LayoutLib.newExport(nand, "ina", PortCharacteristic.IN, tech.m1(),
 							4, inaX, inaY);
-		TrackRouter inA = new TrackRouterH(Tech.m1(), 3, inaY, nand);
+		TrackRouter inA = new TrackRouterH(tech.m1(), 3, inaY, tech, nand);
 		inA.connect(nand.findExport("ina"));
 		for (int i=0; i<nmos.nbGates(); i+=2) {
 			if (i/2 % 2 == 0) {
-				inA.connect(nmos.getGate(i, 'T'), -Tech.getPolyLShapeOffset());
+				inA.connect(nmos.getGate(i, 'T'), -tech.getPolyLShapeOffset());
 			} else {
 				//double offset = (i+1==nmos.nbGates()-1) ? 6.5;
 				double offset = 6.5;
@@ -139,23 +133,23 @@ public class Nand2LT {
 					// vertical routing track for inb.
 					offset -= 7 - (inbX-contX);
 				}
-				inA.connect(g, offset, -Tech.getPolyLShapeOffset());
+				inA.connect(g, offset, -tech.getPolyLShapeOffset());
 			}
 		}
 		for (int i=0; i<pmoss.length; i++) {
-			inA.connect(pmoss[i].getGate(0, 'B'), -Tech.getPolyLShapeOffset());
+			inA.connect(pmoss[i].getGate(0, 'B'), -tech.getPolyLShapeOffset());
 		}
 		
 		// Nand output
 		double outX = inbX + 2 + 3 + 2;	// m1_wid/2 + m1_sp + m1_wid/2
-		LayoutLib.newExport(nand, "out", PortCharacteristic.OUT, Tech.m1(),
+		LayoutLib.newExport(nand, "out", PortCharacteristic.OUT, tech.m1(),
 							4, outX, outHiY);
-		TrackRouter outHi = new TrackRouterH(Tech.m2(), 4, outHiY, nand);
+		TrackRouter outHi = new TrackRouterH(tech.m2(), 4, outHiY, tech, nand);
 		outHi.connect(nand.findExport("out"));
 		for (int i=0; i<pmoss.length; i++) {
 			outHi.connect(pmoss[i].getSrcDrn(1));
 		}
-		TrackRouter outLo = new TrackRouterH(Tech.m2(), 4, outLoY, nand);
+		TrackRouter outLo = new TrackRouterH(tech.m2(), 4, outLoY, tech, nand);
 		outLo.connect(nand.findExport("out"));
 		for (int i=1; i<nmos.nbSrcDrns(); i+=2) {
 			outLo.connect(nmos.getSrcDrn(i));

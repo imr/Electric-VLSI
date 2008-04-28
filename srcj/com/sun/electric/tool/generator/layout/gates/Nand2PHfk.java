@@ -33,6 +33,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.generator.layout.StdCellParams;
 import com.sun.electric.tool.generator.layout.Tech;
+import com.sun.electric.tool.generator.layout.TechType;
 import com.sun.electric.tool.generator.layout.TrackRouter;
 import com.sun.electric.tool.generator.layout.TrackRouterH;
 
@@ -45,6 +46,7 @@ public class Nand2PHfk {
 //	}
 
 	public static Cell makePart(double sz, StdCellParams stdCell) {
+		TechType tech = stdCell.getTechType();
 		String nm = "nand2PHfk";
 		sz = stdCell.roundSize(sz);
 		sz = stdCell.checkMinStrength(sz, 1, nm);
@@ -81,19 +83,19 @@ public class Nand2PHfk {
 		l.add(tie);
 
 		// connect up power and ground
-		TrackRouter vdd = new TrackRouterH(Tech.m2(), 10, nand);
+		TrackRouter vdd = new TrackRouterH(tech.m2(), 10, tech, nand);
 		vdd.connect(l, vddName);
 
-		TrackRouter gnd = new TrackRouterH(Tech.m2(), 10, nand);
+		TrackRouter gnd = new TrackRouterH(tech.m2(), 10, tech, nand);
 		gnd.connect(l, gndName);
 
 		// connect up signal wires
-		TrackRouter out = new TrackRouterH(Tech.m2(), 4, outHiY, nand);
+		TrackRouter out = new TrackRouterH(tech.m2(), 4, outHiY, tech, nand);
 		out.connect(new PortInst[] {inv2i.findPortInst("out"),
 									pms1.findPortInst("d"),
 									invK.findPortInst("out"),
 									inv1.findPortInst("in")});
-		TrackRouter k = new TrackRouterH(Tech.m2(), 4, outLoY, nand);
+		TrackRouter k = new TrackRouterH(tech.m2(), 4, outLoY, tech, nand);
 		k.connect(new PortInst[] {invK.findPortInst("in"),
 								  inv1.findPortInst("out")});
 		// exports

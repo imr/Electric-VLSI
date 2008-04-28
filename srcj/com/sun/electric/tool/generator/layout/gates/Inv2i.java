@@ -31,7 +31,7 @@ import com.sun.electric.tool.generator.layout.FoldedPmos;
 import com.sun.electric.tool.generator.layout.FoldsAndWidth;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.generator.layout.StdCellParams;
-import com.sun.electric.tool.generator.layout.Tech;
+import com.sun.electric.tool.generator.layout.TechType;
 import com.sun.electric.tool.generator.layout.TrackRouter;
 import com.sun.electric.tool.generator.layout.TrackRouterH;
 
@@ -49,6 +49,7 @@ public class Inv2i {
 	}
 	
 	public static Cell makePart(double sz, StdCellParams stdCell) {
+		TechType tech = stdCell.getTechType();
 		sz = stdCell.roundSize(sz);
 		String nm = "inv2i";
 		sz = stdCell.checkMinStrength(sz, 1, nm);
@@ -76,49 +77,49 @@ public class Inv2i {
 		// PMOS
 		double pmosY = pmosBot + fwP.physWid/2;
 		FoldedMos pmos = new FoldedPmos(mosX, pmosY, fwP.nbFolds, 1,
-										fwP.gateWid, buf, stdCell);
+										fwP.gateWid, buf, tech);
 		// NMOS
 		double nmosY = nmosTop - fwN.physWid/2;
 		FoldedMos nmos = new FoldedNmos(mosX, nmosY, fwN.nbFolds, 1,
-										fwN.gateWid, buf, stdCell);
+										fwN.gateWid, buf, tech);
 		
 		// create vdd and gnd exports and connect to MOS source/drains
 		stdCell.wireVddGnd(nmos, StdCellParams.EVEN, buf);
 		stdCell.wireVddGnd(pmos, StdCellParams.EVEN, buf);
 		
 		// Connect NMOS and PMOS gates
-		TrackRouter pGates = new TrackRouterH(Tech.m1(), 3, pGatesY, buf);
+		TrackRouter pGates = new TrackRouterH(tech.m1(), 3, pGatesY, tech, buf);
 		for (int i=0; i<pmos.nbGates(); i++) {
 			pGates.connect(pmos.getGate(i, 'B'));
 		}
-		TrackRouter nGates = new TrackRouterH(Tech.m1(), 3, nGatesY, buf);
+		TrackRouter nGates = new TrackRouterH(tech.m1(), 3, nGatesY, tech, buf);
 		for (int i=0; i<nmos.nbGates(); i++) {
 			nGates.connect(nmos.getGate(i, 'T'));
 		}
 		
 		// input n
-		LayoutLib.newExport(buf, "in[n]", PortCharacteristic.IN, Tech.m1(),
+		LayoutLib.newExport(buf, "in[n]", PortCharacteristic.IN, tech.m1(),
 							4, inNX, nGatesY);
 		nGates.connect(buf.findExport("in[n]"));
 		
 		// input p
 		double lastSrcDrnX = StdCellParams.getRightDiffX(pmos, nmos);
 		double inPX = lastSrcDrnX + 2 + 3 + 2; // ndm1/2 + m1_m1_sp + m1_wid/2
-		LayoutLib.newExport(buf,"in[p]", PortCharacteristic.IN, Tech.m1(),
+		LayoutLib.newExport(buf,"in[p]", PortCharacteristic.IN, tech.m1(),
 							4, inPX, pGatesY);
 		pGates.connect(buf.findExport("in[p]"));
 		
 		// Buf output
 		double outX = inPX + 2 + 3 + 2;	// m1_wid/2 + m1_sp + m1_wid/2
-		LayoutLib.newExport(buf, "out", PortCharacteristic.OUT, Tech.m1(),
+		LayoutLib.newExport(buf, "out", PortCharacteristic.OUT, tech.m1(),
 							4, outX, 0);
-		TrackRouter outHi = new TrackRouterH(Tech.m2(), 4, outHiY, buf);
+		TrackRouter outHi = new TrackRouterH(tech.m2(), 4, outHiY, tech, buf);
 		outHi.connect(buf.findExport("out"));
 		for (int i=1; i<pmos.nbSrcDrns(); i+=2) {
 			outHi.connect(pmos.getSrcDrn(i));
 		}
 		
-		TrackRouter outLo = new TrackRouterH(Tech.m2(), 4, outLoY, buf);
+		TrackRouter outLo = new TrackRouterH(tech.m2(), 4, outLoY, tech, buf);
 		outLo.connect(buf.findExport("out"));
 		for (int i=1; i<nmos.nbSrcDrns(); i+=2) {
 			outLo.connect(nmos.getSrcDrn(i));

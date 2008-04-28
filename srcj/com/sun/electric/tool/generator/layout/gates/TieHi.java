@@ -29,6 +29,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.generator.layout.StdCellParams;
 import com.sun.electric.tool.generator.layout.Tech;
+import com.sun.electric.tool.generator.layout.TechType;
 
 /**
  * This part has an output connected to Vdd.
@@ -37,6 +38,7 @@ public class TieHi {
 	private static final double DEF_SIZE = LayoutLib.DEF_SIZE;
 
 	public static Cell makePart(StdCellParams stdCell) {
+		TechType tech = stdCell.getTechType();
 		String nm = stdCell.parameterizedName("tieHi")+"{lay}";
 		Cell tieHi = stdCell.findPart(nm);
 		if (tieHi!=null) return tieHi;
@@ -51,18 +53,18 @@ public class TieHi {
 		// of metal-1 out connections.
 		String vddName = stdCell.getVddExportName();
 		PortCharacteristic vddRole = stdCell.getVddExportRole();
-		LayoutLib.newExport(tieHi, vddName, vddRole, Tech.m2(), 4, pwrX, pwrY);
+		LayoutLib.newExport(tieHi, vddName, vddRole, tech.m2(), 4, pwrX, pwrY);
 		LayoutLib.newExport(tieHi, "pwr", PortCharacteristic.OUT,
-							Tech.m1(), 4, pwrX, pwrY);
+							tech.m1(), 4, pwrX, pwrY);
 
 		// connect the two exports using a via
-		PortInst via = LayoutLib.newNodeInst(Tech.m1m2(), pwrX,
+		PortInst via = LayoutLib.newNodeInst(tech.m1m2(), pwrX,
 											 pwrY, 4, stdCell.getVddWidth(),
 											 0, tieHi).getOnlyPortInst();
 		
-		LayoutLib.newArcInst(Tech.m2(), DEF_SIZE,
+		LayoutLib.newArcInst(tech.m2(), DEF_SIZE,
 							 tieHi.findExport(vddName).getOriginalPort(), via);
-		LayoutLib.newArcInst(Tech.m1(), DEF_SIZE,
+		LayoutLib.newArcInst(tech.m1(), DEF_SIZE,
 							 tieHi.findExport("pwr").getOriginalPort(), via);
 		
 		// Well width must be at least 12 to avoid DRC errors

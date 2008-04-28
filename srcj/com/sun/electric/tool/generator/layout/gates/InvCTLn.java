@@ -32,6 +32,7 @@ import com.sun.electric.tool.generator.layout.FoldsAndWidth;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.generator.layout.StdCellParams;
 import com.sun.electric.tool.generator.layout.Tech;
+import com.sun.electric.tool.generator.layout.TechType;
 import com.sun.electric.tool.generator.layout.TrackRouter;
 import com.sun.electric.tool.generator.layout.TrackRouterH;
 
@@ -52,6 +53,7 @@ public class InvCTLn {
 	}
 	
 	public static Cell makePart(double sz, StdCellParams stdCell) {
+		TechType tech = stdCell.getTechType();
 		String nm = "invCTLn";
 		sz = stdCell.roundSize(sz);
 		sz = stdCell.checkMinStrength(sz, .5, nm);
@@ -87,7 +89,7 @@ public class InvCTLn {
 			double x = pmosX + (nbFoldsP/2)*pmosPitch;
 			int nbFolds = Math.min(2, fwP.nbFolds - nbFoldsP);
 			FoldedMos pmos = new FoldedPmos(x, pmosY, nbFolds, 1, fwP.gateWid,
-											inv, stdCell);
+											inv, tech);
 			pmoss[nbFoldsP/2] = pmos;
 		}
 		stdCell.fillDiffAndSelectNotches(pmoss, true);
@@ -96,7 +98,7 @@ public class InvCTLn {
 		double nmosX = pmosX + 8;
 		double nmosY = nmosTop - fwN.physWid/2;
 		FoldedMos nmos = new FoldedNmos(nmosX, nmosY, fwN.nbFolds, nbSeriesN,
-										fwN.gateWid, inv, stdCell);
+										fwN.gateWid, inv, tech);
 		
 		// create vdd and gnd exports and connect to MOS source/drains
 		stdCell.wireVddGnd(nmos, StdCellParams.EVEN, inv);
@@ -105,56 +107,56 @@ public class InvCTLn {
 //		// fool Electric's NCC into paralleling NMOS stacks by connecting
 //		// stacks' internal diffusion nodes.
 //		for (int i=0; i<nmos.nbInternalSrcDrns(); i++) {
-//			LayoutLib.newArcInst(Tech.universalArc, 0,nmos.getInternalSrcDrn(0),
+//			LayoutLib.newArcInst(tech.universalArc, 0,nmos.getInternalSrcDrn(0),
 //								 nmos.getInternalSrcDrn(i));
 //		}
 		
 		// Inv input: in 
 		// m1_wid + m1_space + m1_wid/2
-		LayoutLib.newExport(inv, "in", PortCharacteristic.IN, Tech.m1(), 4,
+		LayoutLib.newExport(inv, "in", PortCharacteristic.IN, tech.m1(), 4,
 							inX, inY);
-		TrackRouter in = new TrackRouterH(Tech.m1(), 3, inY, inv);
+		TrackRouter in = new TrackRouterH(tech.m1(), 3, inY, tech, inv);
 		in.connect(inv.findExport("in"));
 		for (int i=0; i<pmoss.length; i++) {
 			FoldedMos pmos = pmoss[i];
-			in.connect(pmos.getGate(0, 'B'), 4, Tech.getPolyLShapeOffset());
+			in.connect(pmos.getGate(0, 'B'), 4, tech.getPolyLShapeOffset());
 			if (pmos.nbGates()==2) {
-				in.connect(pmos.getGate(1, 'B'), -4, Tech.getPolyLShapeOffset());
+				in.connect(pmos.getGate(1, 'B'), -4, tech.getPolyLShapeOffset());
 			}
 		}
 		for (int i=0; i<nmos.nbGates(); i+=2) {
 			if (i/2 %2 == 0) {
-				in.connect(nmos.getGate(i, 'T'), -4, -Tech.getPolyTShapeOffset());
+				in.connect(nmos.getGate(i, 'T'), -4, -tech.getPolyTShapeOffset());
 			} else {
-				in.connect(nmos.getGate(i+1, 'T'), 4, -Tech.getPolyTShapeOffset());
+				in.connect(nmos.getGate(i+1, 'T'), 4, -tech.getPolyTShapeOffset());
 			}
 		}
 		
 		// Inv input: ctl
 		double rightDiffX = StdCellParams.getRightDiffX(nmos, pmoss);
 		double ctlX = rightDiffX + wirePitch;
-		LayoutLib.newExport(inv, "ctl", PortCharacteristic.IN, Tech.m1(), 4,
+		LayoutLib.newExport(inv, "ctl", PortCharacteristic.IN, tech.m1(), 4,
 							ctlX, ctlY);
-		TrackRouter ctl = new TrackRouterH(Tech.m1(), 3, ctlY, inv);
+		TrackRouter ctl = new TrackRouterH(tech.m1(), 3, ctlY, tech, inv);
 		ctl.connect(inv.findExport("ctl"));
 		for (int i=0; i<nmos.nbGates(); i+=2) {
 			if (i/2 % 2 == 0) {
-				ctl.connect(nmos.getGate(i+1, 'T'), 4, -Tech.getPolyLShapeOffset());
+				ctl.connect(nmos.getGate(i+1, 'T'), 4, -tech.getPolyLShapeOffset());
 			} else {
-				ctl.connect(nmos.getGate(i, 'T'), -4, -Tech.getPolyLShapeOffset());
+				ctl.connect(nmos.getGate(i, 'T'), -4, -tech.getPolyLShapeOffset());
 			}
 		}
 		
 		// Inv output: out
 		double outX = ctlX + wirePitch;
-		LayoutLib.newExport(inv, "out", PortCharacteristic.OUT, Tech.m1(),
+		LayoutLib.newExport(inv, "out", PortCharacteristic.OUT, tech.m1(),
 							4, outX, outHiY);
-		TrackRouter outHi = new TrackRouterH(Tech.m2(), 4, outHiY, inv);
+		TrackRouter outHi = new TrackRouterH(tech.m2(), 4, outHiY, tech, inv);
 		outHi.connect(inv.findExport("out"));
 		for (int i=0; i<pmoss.length; i++) {
 			outHi.connect(pmoss[i].getSrcDrn(1));
 		}
-		TrackRouter outLo = new TrackRouterH(Tech.m2(), 4, outLoY, inv);
+		TrackRouter outLo = new TrackRouterH(tech.m2(), 4, outLoY, tech, inv);
 		outLo.connect(inv.findExport("out"));
 		for (int i=1; i<nmos.nbSrcDrns(); i+=2) {
 			outLo.connect(nmos.getSrcDrn(i));

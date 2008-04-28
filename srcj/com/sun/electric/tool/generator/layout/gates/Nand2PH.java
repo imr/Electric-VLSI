@@ -33,6 +33,7 @@ import com.sun.electric.tool.generator.layout.FoldsAndWidth;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.generator.layout.StdCellParams;
 import com.sun.electric.tool.generator.layout.Tech;
+import com.sun.electric.tool.generator.layout.TechType;
 import com.sun.electric.tool.generator.layout.TrackRouter;
 import com.sun.electric.tool.generator.layout.TrackRouterH;
 
@@ -52,6 +53,7 @@ public class Nand2PH {
 	}
 	
 	public static Cell makePart(double sz, StdCellParams stdCell) {
+		TechType tech = stdCell.getTechType();
 		sz = stdCell.roundSize(sz);
 		String nm = "nand2PH";
 		sz = stdCell.checkMinStrength(sz, 1, nm);
@@ -88,17 +90,17 @@ public class Nand2PH {
 		// PMOS
 		double pmosY = pmosBot + fwP.physWid/2;
 		FoldedMos pmos = new FoldedPmos(mosX, pmosY, fwP.nbFolds, 1,
-										fwP.gateWid, gate, stdCell);
+										fwP.gateWid, gate, tech);
 		// weak NMOS B
 		double nmosWeakY = nmosTop - fwW.physWid/2;
 		FoldedMos nmosB = new FoldedNmos(mosX, nmosWeakY, fwW.nbFolds, 1,
-										 fwW.gateWid, gate, stdCell);
+										 fwW.gateWid, gate, tech);
 		// reset NMOS
 		double nmosBRightX = StdCellParams.getRightDiffX(nmosB);
 		double nmosX = nmosBRightX + 11; 	// ndm1_ndm1_sp
 		double nmosY = nmosTop - fwN.physWid/2;
 		FoldedMos nmosR = new FoldedNmos(nmosX, nmosY, fwN.nbFolds, 1,
-										 fwN.gateWid, gate, stdCell);
+										 fwN.gateWid, gate, tech);
 		
 		// weak NMOS A
 		double rstNmosRightX = StdCellParams.getRightDiffX(nmosR);
@@ -108,7 +110,7 @@ public class Nand2PH {
 		double nmosAX = Math.max(rstNmosRightX + 11,	// ndm1_ndm1_sp
 								 pmosRightX-fwW.nbFolds*8); // mos_diff_diff_sp
 		FoldedMos nmosA = new FoldedNmos(nmosAX, nmosWeakY, fwW.nbFolds, 1,
-										 fwW.gateWid, gate, stdCell);
+										 fwW.gateWid, gate, tech);
 		
 		FoldedMos[] nmoss = new FoldedMos[] {nmosB, nmosR, nmosA};
 
@@ -121,66 +123,66 @@ public class Nand2PH {
 		stdCell.wireVddGnd(nmoss, StdCellParams.EVEN, gate);
 		
 		// Connect PMOS gates
-		TrackRouter bGates = new TrackRouterH(Tech.m1(), 3, pGatesY, gate);
-		TrackRouter aGatesHi = new TrackRouterH(Tech.m1(), 4, pGatesY, gate);
+		TrackRouter bGates = new TrackRouterH(tech.m1(), 3, pGatesY, tech, gate);
+		TrackRouter aGatesHi = new TrackRouterH(tech.m1(), 4, pGatesY, tech, gate);
 		int nbGates = pmos.nbGates()/2;
 		for (int i=0; i<nbGates; i++) {
 			bGates.connect(pmos.getGate(i, 'B'));
 			aGatesHi.connect(pmos.getGate(i+nbGates, 'B'));
 		}
 		// Connect weak NMOS gates
-		TrackRouter aGatesLo = new TrackRouterH(Tech.m1(), 3, nGatesY, gate);
+		TrackRouter aGatesLo = new TrackRouterH(tech.m1(), 3, nGatesY, tech, gate);
 		nbGates = nmosA.nbGates();
 		for (int i=0; i<nbGates; i++) {
 			bGates.connect(nmosB.getGate(i, 'T'));
 			aGatesLo.connect(nmosA.getGate(i, 'T'));
 		}
 		// Connect reset NMOS input
-		TrackRouter resetHi = new TrackRouterH(Tech.m1(), 3, nGatesY, gate);
+		TrackRouter resetHi = new TrackRouterH(tech.m1(), 3, nGatesY, tech, gate);
 		for (int i=0; i<nmosR.nbGates(); i++) {
 			resetHi.connect(nmosR.getGate(i, 'T'));
 		}
 		PortInst resetNjog =
-			LayoutLib.newNodeInst(Tech.m1pin(), resetNJogX, nGatesY, DEF_SIZE,
+			LayoutLib.newNodeInst(tech.m1pin(), resetNJogX, nGatesY, DEF_SIZE,
 								  DEF_SIZE, 0, gate).getOnlyPortInst();
 		resetHi.connect(resetNjog);
-		TrackRouter resetLo = new TrackRouterH(Tech.m2(), 3, outLoY, gate);
+		TrackRouter resetLo = new TrackRouterH(tech.m2(), 3, outLoY, tech, gate);
 		resetLo.connect(resetNjog);
 		LayoutLib.newExport(gate, "resetN", PortCharacteristic.IN,
-							Tech.m1(), 4, resetNX, outLoY);
+							tech.m1(), 4, resetNX, outLoY);
 		resetLo.connect(gate.findExport("resetN"));
 		
 		// Connect upper and lower tracks of input A
 		PortInst jogA =
-		  LayoutLib.newNodeInst(Tech.m1pin(), LayoutLib.roundCenterX(nmosA.getGate(0, 'T')), pGatesY,
+		  LayoutLib.newNodeInst(tech.m1pin(), LayoutLib.roundCenterX(nmosA.getGate(0, 'T')), pGatesY,
 								DEF_SIZE,
 								DEF_SIZE, 0, gate).getOnlyPortInst();
 		aGatesLo.connect(jogA);
 		aGatesHi.connect(jogA);
 		
 		// input B
-		LayoutLib.newExport(gate, "inb", PortCharacteristic.IN, Tech.m1(),
+		LayoutLib.newExport(gate, "inb", PortCharacteristic.IN, tech.m1(),
 							4, inbX, pGatesY);
 		bGates.connect(gate.findExport("inb"));
 		
 		// input A
 		double rightDiffX = StdCellParams.getRightDiffX(pmos, nmosA);
 		double inaX = rightDiffX + 7;	// track_pitch
-		LayoutLib.newExport(gate, "ina", PortCharacteristic.IN, Tech.m1(),
+		LayoutLib.newExport(gate, "ina", PortCharacteristic.IN, tech.m1(),
 							4, inaX, nGatesY);
 		aGatesLo.connect(gate.findExport("ina"));
 		
 		// Gate output
 		double outX = inaX + 7;		// track_pitch
-		LayoutLib.newExport(gate, "out", PortCharacteristic.OUT, Tech.m1(),
+		LayoutLib.newExport(gate, "out", PortCharacteristic.OUT, tech.m1(),
 							4, outX, 0);
-		TrackRouter outHi = new TrackRouterH(Tech.m2(), 4, outHiY, gate);
+		TrackRouter outHi = new TrackRouterH(tech.m2(), 4, outHiY, tech, gate);
 		outHi.connect(gate.findExport("out"));
 		for (int i=1; i<pmos.nbSrcDrns(); i+=2) {
 			outHi.connect(pmos.getSrcDrn(i));
 		}
 		
-		TrackRouter outLo = new TrackRouterH(Tech.m2(), 4, outLoY, gate);
+		TrackRouter outLo = new TrackRouterH(tech.m2(), 4, outLoY, tech, gate);
 		outLo.connect(gate.findExport("out"));
 		for (int i=1; i<nmosB.nbSrcDrns(); i+=2) {
 			outLo.connect(nmosB.getSrcDrn(i));

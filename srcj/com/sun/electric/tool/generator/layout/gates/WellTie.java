@@ -29,6 +29,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.generator.layout.StdCellParams;
 import com.sun.electric.tool.generator.layout.Tech;
+import com.sun.electric.tool.generator.layout.TechType;
 import com.sun.electric.tool.generator.layout.TrackRouterH;
 
 // Well Ties now serve two roles. 
@@ -71,6 +72,7 @@ public class WellTie {
 	 * width contact */
 	public static Cell makePart(boolean nmos, boolean
 								pmos, double wid, StdCellParams stdCell) {
+		TechType tech = stdCell.getTechType();
 		if (wid==0) wid=WELL_CONT_PITCH;
 		
 		String nm = (nmos?"Nmos":"") + (pmos?"Pmos":"") + "WellTie";
@@ -104,27 +106,27 @@ public class WellTie {
 				String portNm = stdCell.getNmosWellTieName();
 				Export e =
 					LayoutLib.newExport(tie, portNm,
-										stdCell.getNmosWellTieRole(), Tech.m2(),
+										stdCell.getNmosWellTieRole(), tech.m2(),
 										4, leftWellContX,
 										stdCell.getNmosWellTieY());
 				// left well contact
 				PortInst left =
-					LayoutLib.newNodeInst(Tech.pwm1(), leftWellContX, stdCell.getNmosWellTieY(), 
+					LayoutLib.newNodeInst(tech.pwm1(), leftWellContX, stdCell.getNmosWellTieY(), 
 					                      DEF_SIZE, 
 					                      DEF_SIZE, 
 					                      0, tie).getOnlyPortInst();
 				// connect them
 				TrackRouterH tr = 
-					new TrackRouterH(Tech.m2(),
+					new TrackRouterH(tech.m2(),
 									 stdCell.getNmosWellTieWidth(),
-									 stdCell.getNmosWellTieY(), tie);
+									 stdCell.getNmosWellTieY(), tech, tie);
 				tr.connect(e);
 				tr.connect(left);
 				
 				// Insert right contact if there's room. 
 				if (wid>=WELL_CONT_PITCH*2) {
 					PortInst right =
-						LayoutLib.newNodeInst(Tech.pwm1(), rightWellContX, stdCell.getNmosWellTieY(), 
+						LayoutLib.newNodeInst(tech.pwm1(), rightWellContX, stdCell.getNmosWellTieY(), 
 						                      DEF_SIZE, 
 						                      DEF_SIZE, 0, tie
 											  ).getOnlyPortInst();
@@ -136,16 +138,16 @@ public class WellTie {
 				String portNm = stdCell.getPmosWellTieName();
 				Export e =
 					LayoutLib.newExport(tie, portNm,
-										stdCell.getPmosWellTieRole(), Tech.m2(),
+										stdCell.getPmosWellTieRole(), tech.m2(),
 										4, leftWellContX,
 										stdCell.getPmosWellTieY());
 				TrackRouterH tr =
-					new TrackRouterH(Tech.m2(),
+					new TrackRouterH(tech.m2(),
 									 stdCell.getPmosWellTieWidth(),
-									 stdCell.getPmosWellTieY(), tie);
+									 stdCell.getPmosWellTieY(), tech, tie);
 				// left well contact
 				PortInst left =
-					LayoutLib.newNodeInst(Tech.nwm1(), leftWellContX, stdCell.getPmosWellTieY(), 
+					LayoutLib.newNodeInst(tech.nwm1(), leftWellContX, stdCell.getPmosWellTieY(), 
 					                      DEF_SIZE,
 										  DEF_SIZE, 0, tie
 										  ).getOnlyPortInst();
@@ -156,7 +158,7 @@ public class WellTie {
 				// Insert right contact if there's room.
 				if (wid>=WELL_CONT_PITCH*2) {
 					PortInst right =
-						LayoutLib.newNodeInst(Tech.nwm1(), rightWellContX, stdCell.getPmosWellTieY(), 
+						LayoutLib.newNodeInst(tech.nwm1(), rightWellContX, stdCell.getPmosWellTieY(), 
 						                      DEF_SIZE,
 											  DEF_SIZE, 0, tie
 											  ).getOnlyPortInst();

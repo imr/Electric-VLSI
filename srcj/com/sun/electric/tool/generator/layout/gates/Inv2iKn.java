@@ -92,10 +92,10 @@ public class Inv2iKn {
 			}
 		};
 	public static Cell makePart(double sz, StdCellParams stdCell) {
+		TechType tech = stdCell.getTechType();
 		sz = stdCell.roundSize(sz);
 		String nm = "inv2iKn";
 		sz = stdCell.checkMinStrength(sz, 1, nm);
-		TechType tech = stdCell.getTechType();
 
 		double outsideSpace = 2 + 5 + 1.5; // p1_nd_sp + p1m1_wid + p1_p1_sp/2
 		double insideSpace = outBusWidth/2 + outBusSpace - .5; // MOS diff surrounds m1 by .5  
@@ -131,25 +131,25 @@ public class Inv2iKn {
 		
 		double nmosY = -insideSpace - fwN.physWid / 2;
 		FoldedMos nmos = new FoldedNmos(nmosX, nmosY, fwN.nbFolds, 1, 
-		                                fwN.gateWid, inv, stdCell);
+		                                fwN.gateWid, inv, tech);
 
 		// Insert extra space between the leftmost diffusion contact and the
 		// leftmost gate.
 		FoldedMos.GateSpace spaceLastGate =	new MyGateSpace(tech);
 		double weakY = insideSpace + fwW.physWid/2;
 		FoldedMos pmosW = new FoldedPmos(weakX, weakY, fwW.nbFolds, 1,
-										 fwW.gateWid, spaceLastGate, 'B', inv, stdCell);
+										 fwW.gateWid, spaceLastGate, 'B', inv, tech);
 		
 		// strong PMOS overlaps weak PMOS
 		double pmosY = insideSpace + fwP.physWid/2;
 		double pmosX = pmosW.getSrcDrn(fwW.nbFolds).getBounds().getCenterX();
 		FoldedMos pmos = new FoldedPmos(pmosX, pmosY, fwP.nbFolds, 1,
-		                                fwP.gateWid, inv, stdCell);
+		                                fwP.gateWid, inv, tech);
 
 		// inverter output:  m1_wid/2 + m1_m1_sp + m1_wid/2 
 		double outX = StdCellParams.getRightDiffX(nmos, pmos) + 2 + 3 + 2;
 		LayoutLib.newExport(inv, "out", PortCharacteristic.OUT,
-			                Tech.m1(), 4, outX, 0);
+			                tech.m1(), 4, outX, 0);
 
 		// create vdd and gnd exports and connect to MOS source/drains
 		stdCell.wireVddGnd(nmos, StdCellParams.EVEN, inv);
@@ -159,7 +159,7 @@ public class Inv2iKn {
 				           inv);
 
 		// Connect gates of weak MOS using poly
-		TrackRouter weakPoly = new TrackRouterH(Tech.p1(), 2, 0, inv);
+		TrackRouter weakPoly = new TrackRouterH(tech.p1(), 2, 0, tech, inv);
 		for (int i=0; i<pmosW.nbGates(); i++) {
 			weakPoly.connect(pmosW.getGate(i, 'B'));
 		}
@@ -175,15 +175,15 @@ public class Inv2iKn {
 		double inLoFromMos = nmosBot - 2 - 2.5; // -nd_p1_sp - p1m1_wid/2
 		double inLoY = Math.min(inLoFromGnd, inLoFromMos);
 
-		LayoutLib.newExport(inv, "in[n]", PortCharacteristic.IN, Tech.m1(),
+		LayoutLib.newExport(inv, "in[n]", PortCharacteristic.IN, tech.m1(),
                             4, inNX, outLoY);
-		PortInst m1pin = LayoutLib.newNodeInst(Tech.m1pin(), weakX, outLoY, 4, 4, 0, 
+		PortInst m1pin = LayoutLib.newNodeInst(tech.m1pin(), weakX, outLoY, 4, 4, 0, 
 				                               inv).getOnlyPortInst();
-		TrackRouter inNHi = new TrackRouterH(Tech.m2(), 3, outLoY, inv);
+		TrackRouter inNHi = new TrackRouterH(tech.m2(), 3, outLoY, tech, inv);
 		inNHi.connect(inv.findExport("in[n]"));
 		inNHi.connect(m1pin);
 
-		TrackRouter inLo = new TrackRouterH(Tech.m1(), 3, inLoY, inv);
+		TrackRouter inLo = new TrackRouterH(tech.m1(), 3, inLoY, tech, inv);
 		inLo.connect(m1pin);
 		for (int i = 0; i < nmos.nbGates(); i++) {
 			inLo.connect(nmos.getGate(i, 'B'));
@@ -196,16 +196,16 @@ public class Inv2iKn {
 		double inHiFromMos = pmosTop + 2 + 2.5; // +pd_p1_sp + p1m1_wid/2
 		double inHiY = Math.max(inHiFromVdd, inHiFromMos);
 
-		LayoutLib.newExport(inv, "in[p]", PortCharacteristic.IN, Tech.m1(),
+		LayoutLib.newExport(inv, "in[p]", PortCharacteristic.IN, tech.m1(),
                             4, inPX, inHiY);
-		TrackRouter inHi = new TrackRouterH(Tech.m1(), 3, inHiY, inv);
+		TrackRouter inHi = new TrackRouterH(tech.m1(), 3, inHiY, tech, inv);
 		inHi.connect(inv.findExport("in[p]"));
 		for (int i=0; i<pmos.nbGates(); i++) {
 			inHi.connect(pmos.getGate(i, 'T'));
 		}
 
 		// connect up output
-		TrackRouter out = new TrackRouterH(Tech.m1(), outBusWidth, outY, inv);
+		TrackRouter out = new TrackRouterH(tech.m1(), outBusWidth, outY, tech, inv);
 		out.connect(inv.findExport("out"));
 		for (int i=(weakPmosOneFold?0:1); i<pmosW.nbSrcDrns(); i+=2) {
 			out.connect(pmosW.getSrcDrn(i));

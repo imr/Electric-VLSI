@@ -33,15 +33,15 @@ import com.sun.electric.technology.ArcProto;
 
 public class TrackRouterH extends TrackRouter {
 	// ---------------------------- public methods ----------------------------
-	// all ports lie on the same routing track
-	public TrackRouterH(ArcProto lay, double wid, Cell parnt) {
-		super(lay, wid, parnt);
+	/** all ports lie on the same routing track */
+	public TrackRouterH(ArcProto lay, double wid, TechType tech, Cell parnt) {
+		super(lay, wid, tech, parnt);
 	}
 
-	// ports may be offset from routing track
+	/** ports may be offset from routing track */
 	public TrackRouterH(ArcProto lay, double wid, double centerVal,
-		                Cell parnt) {
-		super(lay, wid, centerVal, parnt);
+		                TechType tech, Cell parnt) {
+		super(lay, wid, centerVal, tech, parnt);
 	}
 
 	/** Place Via at newPort.X + viaOffset.  If an 'L' shaped connection
@@ -56,7 +56,7 @@ public class TrackRouterH extends TrackRouter {
 		if (center==null)
 			center = new Double(centerP.getY()); // LayoutLib.roundCenterY(newPort));
 
-		ArcProto portLyr = Tech.closestLayer(newPort.getPortProto(), layer);
+		ArcProto portLyr = tech.closestLayer(newPort.getPortProto(), layer);
 
 		double newWid = LayoutLib.widestWireWidth(newPort);
 

@@ -997,7 +997,7 @@ public class StdCellParams {
 		Cell f = leftDiff.getNodeInst().getParent();
 		double busWid = mos instanceof FoldedPmos ? vddWidth : gndWidth;
 		double busY = mos instanceof FoldedPmos ? vddY : gndY;
-		TrackRouter net = new TrackRouterH(Tech.m2(), busWid, busY, p);
+		TrackRouter net = new TrackRouterH(Tech.m2(), busWid, busY, tech, p);
 
 		String exportNm = mos instanceof FoldedPmos ? vddExportName : gndExportName;
 		if (f.findPortProto(exportNm)==null) {

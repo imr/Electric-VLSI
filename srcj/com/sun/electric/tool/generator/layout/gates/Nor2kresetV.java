@@ -33,6 +33,7 @@ import com.sun.electric.tool.generator.layout.FoldsAndWidth;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.generator.layout.StdCellParams;
 import com.sun.electric.tool.generator.layout.Tech;
+import com.sun.electric.tool.generator.layout.TechType;
 import com.sun.electric.tool.generator.layout.TrackRouter;
 import com.sun.electric.tool.generator.layout.TrackRouterH;
 
@@ -53,6 +54,7 @@ public class Nor2kresetV {
 	}
 	
 	public static Cell makePart(double sz, StdCellParams stdCell) {
+		TechType tech = stdCell.getTechType();
 		String nm = "nor2kresetV";
 		sz = stdCell.roundSize(sz);
 		sz = stdCell.checkMinStrength(sz, 1, nm);
@@ -92,7 +94,7 @@ public class Nor2kresetV {
 		double pmosX = jogX + wirePitch;
 		double pmosY = pmosBot + fwP.physWid/2;
 		FoldedMos pmos = new FoldedPmos(pmosX, pmosY, fwP.nbFolds, nbSeriesP,
-										fwP.gateWid, nor, stdCell);
+										fwP.gateWid, nor, tech);
 		
 		// Allocate two folds per FoldedNmos.  Align NMOS gate 0 with PMOS
 		// gate 1
@@ -104,7 +106,7 @@ public class Nor2kresetV {
 			double x = nmosX + (nbFoldsN/2)*nmosPitch;
 			int nbFolds = Math.min(2, fwN.nbFolds - nbFoldsN);
 			FoldedMos nmos = new FoldedNmos(x, nmosY, nbFolds, 1, fwN.gateWid,
-											nor, stdCell);
+											nor, tech);
 			nmoss[nbFoldsN/2] = nmos;
 		}
 		stdCell.fillDiffAndSelectNotches(nmoss, true);
@@ -116,7 +118,7 @@ public class Nor2kresetV {
 		double bigNmosX = Math.max(rightPDiffX, rightNDiffX + 11);
 		double bigY = nmosTop - fwS.physWid/2;
 		FoldedMos bigMos = new FoldedNmos(bigNmosX, bigY, fwS.nbFolds, 1,
-										  fwS.gateWid, nor, stdCell);
+										  fwS.gateWid, nor, tech);
 
         // Fill select notch between weak mos and reset nmos
         stdCell.fillDiffAndSelectNotches(new FoldedMos[]{nmoss[nmoss.length-1], bigMos}, false);
@@ -125,55 +127,47 @@ public class Nor2kresetV {
 		stdCell.wireVddGnd(nmoss, StdCellParams.EVEN, nor);
 		stdCell.wireVddGnd(pmos, StdCellParams.EVEN, nor);
 		
-//		// fool Electric's NCC into paralleling PMOS stacks by connecting
-//		// stacks' internal diffusion nodes.
-//		for (int i=0; i<pmos.nbInternalSrcDrns(); i++) {
-//			LayoutLib.newArcInst(Tech.universalArc, 0,
-//								 pmos.getInternalSrcDrn(0),
-//								 pmos.getInternalSrcDrn(i));
-//		}
-		
 		// Nor input B
 		double inbHiY = outHiY;
 		// m1_wid + m1_space + m1_wid/2
-		LayoutLib.newExport(nor, "inb", PortCharacteristic.IN, Tech.m1(),
+		LayoutLib.newExport(nor, "inb", PortCharacteristic.IN, tech.m1(),
 							4, inbX, inbHiY);
-		PortInst jog = LayoutLib.newNodeInst(Tech.m1pin(), jogX, inbHiY, 1, 1, 0,
+		PortInst jog = LayoutLib.newNodeInst(tech.m1pin(), jogX, inbHiY, 1, 1, 0,
 											 nor).getOnlyPortInst();
-		TrackRouter inbHi = new TrackRouterH(Tech.m2(), 3, inbHiY, nor);
+		TrackRouter inbHi = new TrackRouterH(tech.m2(), 3, inbHiY, tech, nor);
 		inbHi.connect(nor.findExport("inb"));
 		inbHi.connect(jog);
 		
-		TrackRouter inb = new TrackRouterH(Tech.m1(), 3, inbLoY, nor);
+		TrackRouter inb = new TrackRouterH(tech.m1(), 3, inbLoY, tech, nor);
 		inb.connect(jog);
 		for (int i=0; i<pmos.nbGates(); i+=2) {
 			if (i/2 % 2 == 0){
-				inb.connect(pmos.getGate(i+1, 'B'), 4, Tech.getPolyLShapeOffset());
+				inb.connect(pmos.getGate(i+1, 'B'), 4, tech.getPolyLShapeOffset());
 			} else {
-				inb.connect(pmos.getGate(i, 'B'), -4, Tech.getPolyLShapeOffset());
+				inb.connect(pmos.getGate(i, 'B'), -4, tech.getPolyLShapeOffset());
 			}
 		}
 		for (int i=0; i<nmoss.length; i++) {
 			FoldedMos mos = nmoss[i];
 			for (int j=0; j<mos.nbGates(); j++) {
-				inb.connect(mos.getGate(j, 'T'), (j%2==0 ? 4. : -4.), -Tech.getPolyTShapeOffset());
+				inb.connect(mos.getGate(j, 'T'), (j%2==0 ? 4. : -4.), -tech.getPolyTShapeOffset());
 			}
 		}
 		
 		// Nor input A
-		LayoutLib.newExport(nor, "ina", PortCharacteristic.IN, Tech.m1(),
+		LayoutLib.newExport(nor, "ina", PortCharacteristic.IN, tech.m1(),
 							4, inaX, inaY);
-		TrackRouter inA = new TrackRouterH(Tech.m1(), 3, inaY, nor);
+		TrackRouter inA = new TrackRouterH(tech.m1(), 3, inaY, tech, nor);
 		inA.connect(nor.findExport("ina"));
 		for (int i=0; i<pmos.nbGates(); i+=2) {
 			if (i/2 % 2 == 0) {
-				inA.connect(pmos.getGate(i, 'B'), -4, Tech.getPolyLShapeOffset());
+				inA.connect(pmos.getGate(i, 'B'), -4, tech.getPolyLShapeOffset());
 			} else {
-				inA.connect(pmos.getGate(i+1, 'B'), 4, Tech.getPolyLShapeOffset());
+				inA.connect(pmos.getGate(i+1, 'B'), 4, tech.getPolyLShapeOffset());
 			}
 		}
 		for (int i=0; i<bigMos.nbGates(); i++) {
-			inA.connect(bigMos.getGate(i, 'T'), 0, -Tech.getPolyLShapeOffset());
+			inA.connect(bigMos.getGate(i, 'T'), 0, -tech.getPolyLShapeOffset());
 		}
 		
 		// resetV input
@@ -181,8 +175,8 @@ public class Nor2kresetV {
 		double resetX = StdCellParams.getRightDiffX(bigMos) + 2 + 3 + 2;
 		double resetY = nmosTop - fwS.physWid + 2.5 - wirePitch;
 		LayoutLib.newExport(nor, "resetV", PortCharacteristic.IN,
-							Tech.m1(), 4, resetX, resetY);
-		TrackRouter reset = new TrackRouterH(Tech.m1(), 3, resetY, nor);
+							tech.m1(), 4, resetX, resetY);
+		TrackRouter reset = new TrackRouterH(tech.m1(), 3, resetY, tech, nor);
 		reset.connect(nor.findExport("resetV"));
 		for (int i=0; i<bigMos.nbSrcDrns(); i+=2) {
 			reset.connect(bigMos.getSrcDrn(i));
@@ -190,14 +184,14 @@ public class Nor2kresetV {
 		
 		// Nor output
 		double outX = resetX + 2 + 3 + 2;	// m1_wid/2 + m1_sp + m1_wid/2
-		LayoutLib.newExport(nor, "out", PortCharacteristic.OUT, Tech.m1(),
+		LayoutLib.newExport(nor, "out", PortCharacteristic.OUT, tech.m1(),
 							4, outX, outHiY);
-		TrackRouter outHi = new TrackRouterH(Tech.m2(), 4, outHiY, nor);
+		TrackRouter outHi = new TrackRouterH(tech.m2(), 4, outHiY, tech, nor);
 		outHi.connect(nor.findExport("out"));
 		for (int i=1; i<pmos.nbSrcDrns(); i+=2) {
 			outHi.connect(pmos.getSrcDrn(i));
 		}
-		TrackRouter outLo = new TrackRouterH(Tech.m2(), 4, outLoY, nor);
+		TrackRouter outLo = new TrackRouterH(tech.m2(), 4, outLoY, tech, nor);
 		outLo.connect(nor.findExport("out"));
 		for (int i=0; i<nmoss.length; i++) {
 			for (int j=1; j<nmoss[i].nbSrcDrns(); j+=2) {

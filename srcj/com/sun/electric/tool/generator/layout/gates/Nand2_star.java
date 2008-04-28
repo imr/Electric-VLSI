@@ -32,6 +32,7 @@ import com.sun.electric.tool.generator.layout.FoldsAndWidth;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.generator.layout.StdCellParams;
 import com.sun.electric.tool.generator.layout.Tech;
+import com.sun.electric.tool.generator.layout.TechType;
 import com.sun.electric.tool.generator.layout.TrackRouter;
 import com.sun.electric.tool.generator.layout.TrackRouterH;
 
@@ -49,6 +50,7 @@ class Nand2_star {
 	}
 
 	static Cell makePart(double sz, String threshold, StdCellParams stdCell) {
+		TechType tech = stdCell.getTechType();
 		sz = stdCell.roundSize(sz);
 		error(!threshold.equals("") && !threshold.equals("HLT"),
 			  "Nand2: threshold not \"\" or \"HLT\": "+threshold);
@@ -82,7 +84,7 @@ class Nand2_star {
 		// PMOS
 		double pmosY = pmosBot + fwP.physWid/2;
 		FoldedMos pmos = new FoldedPmos(pmosX, pmosY, fwP.nbFolds, 1,
-										fwP.gateWid, nand, stdCell);
+										fwP.gateWid, nand, tech);
 		// NMOS
 		double nmosY = nmosTop - fwN.physWid/2;
 		
@@ -99,7 +101,7 @@ class Nand2_star {
 			double nmosX = LayoutLib.roundCenterX(pmos.getSrcDrn(0))
 				+ 3 + (nbFoldsN/2)*nmosPitch;
 			FoldedMos nmos = new FoldedNmos(nmosX, nmosY, nbFolds, nbStacked,
-											fwN.gateWid, nand, stdCell);
+											fwN.gateWid, nand, tech);
 			nmoss[nbFoldsN/2] = nmos;
 		}
 		stdCell.fillDiffAndSelectNotches(nmoss, true);
@@ -108,20 +110,10 @@ class Nand2_star {
 		stdCell.wireVddGnd(nmoss, StdCellParams.EVEN, nand);
 		stdCell.wireVddGnd(pmos, StdCellParams.EVEN, nand);
 		
-//		// fool Electric's NCC into paralleling NMOS stacks by connecting
-//		// stacks' internal diffusion nodes.
-//		for (int i=0; i<nmoss.length; i++) {
-//			for (int j=0; j<nmoss[i].nbInternalSrcDrns(); j++) {
-//				LayoutLib.newArcInst(Tech.universalArc, 0,
-//									 nmoss[0].getInternalSrcDrn(0),
-//									 nmoss[i].getInternalSrcDrn(j));
-//			}
-//		}
-		
 		// Nand input A
-		LayoutLib.newExport(nand, "ina", PortCharacteristic.IN, Tech.m1(),
+		LayoutLib.newExport(nand, "ina", PortCharacteristic.IN, tech.m1(),
 							4, inaX, inaY);
-		TrackRouter inA = new TrackRouterH(Tech.m1(), 3, inaY, nand);
+		TrackRouter inA = new TrackRouterH(tech.m1(), 3, inaY, tech, nand);
 		inA.connect(nand.findExport("ina"));
 		for (int i=0; i<nmoss.length; i++) {
 			for (int j=0; j<nmoss[i].nbGates(); j+=2) {
@@ -143,9 +135,9 @@ class Nand2_star {
 		// Nand input B
 		// m1_wid + m1_space + m1_wid/2
 		double inbX = StdCellParams.getRightDiffX(pmos, nmoss) + 2 + 3 + 2;
-		LayoutLib.newExport(nand, "inb", PortCharacteristic.IN, Tech.m1(),
+		LayoutLib.newExport(nand, "inb", PortCharacteristic.IN, tech.m1(),
 							4, inbX, inbY);
-		TrackRouter inb = new TrackRouterH(Tech.m1(), 3, inbY, nand);
+		TrackRouter inb = new TrackRouterH(tech.m1(), 3, inbY, tech, nand);
 		inb.connect(nand.findExport("inb"));
 		for (int i=0; i<nmoss.length; i++) {
 			for (int j=0; j<nmoss[i].nbGates(); j+=2) {
@@ -166,14 +158,14 @@ class Nand2_star {
 		
 		// Nand output
 		double outX = inbX + 2 + 3 + 2;	// m1_wid/2 + m1_sp + m1_wid/2
-		LayoutLib.newExport(nand, "out", PortCharacteristic.OUT, Tech.m1(),
+		LayoutLib.newExport(nand, "out", PortCharacteristic.OUT, tech.m1(),
 							4, outX, outHiY);
-		TrackRouter outHi = new TrackRouterH(Tech.m2(), 4, outHiY, nand);
+		TrackRouter outHi = new TrackRouterH(tech.m2(), 4, outHiY, tech, nand);
 		outHi.connect(nand.findExport("out"));
 		for (int i=1; i<pmos.nbSrcDrns(); i+=2) {
 			outHi.connect(pmos.getSrcDrn(i));
 		}
-		TrackRouter outLo = new TrackRouterH(Tech.m2(), 4, outLoY, nand);
+		TrackRouter outLo = new TrackRouterH(tech.m2(), 4, outLoY, tech, nand);
 		outLo.connect(nand.findExport("out"));
 		for (int i=0; i<nmoss.length; i++) {
 			for (int j=1; j<nmoss[i].nbSrcDrns(); j+=2) {

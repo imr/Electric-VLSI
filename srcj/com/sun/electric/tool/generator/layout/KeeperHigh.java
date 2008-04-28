@@ -28,10 +28,10 @@ import java.util.Iterator;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
-import com.sun.electric.database.prototype.PortCharacteristic;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.VarContext;
@@ -45,6 +45,7 @@ public class KeeperHigh {
 
 	public static Cell makePart(Cell schem, VarContext context,
 								StdCellParams stdCell) {
+		TechType tech = stdCell.getTechType();
 		Netlist netlist = schem.getNetlist();
 
 		Iterator<NodeInst> nodes = schem.getNodes();
@@ -107,17 +108,17 @@ public class KeeperHigh {
 		*/
 
 		// connect up power and ground
-		TrackRouter vdd = new TrackRouterH(Tech.m2(), 10, keep);
+		TrackRouter vdd = new TrackRouterH(tech.m2(), 10, tech, keep);
 		vdd.connect(new NodeInst[] { mc, pmos, invK, invI }, "vdd");
 
-		TrackRouter gnd = new TrackRouterH(Tech.m2(), 10, keep);
+		TrackRouter gnd = new TrackRouterH(tech.m2(), 10, tech, keep);
 		gnd.connect(new NodeInst[] { mc, invK, invI }, "gnd");
 
 		// connect up signal wires
 		TrackRouter d =
-			new TrackRouterH(Tech.m2(), 4,
+			new TrackRouterH(tech.m2(), 4,
 							 LayoutLib.roundCenterY(pmos.findPortInst("d")),
-							 keep);
+							 tech, keep);
 		d.connect(new PortInst[] {pmos.findPortInst("d"),
 								  invK.findPortInst("out"),
 								  invI.findPortInst("in")});
@@ -126,13 +127,13 @@ public class KeeperHigh {
 		//double trackY = -11;
 		*/
 		double trackY = stdCell.getTrackY(-1);
-		TrackRouter d_bar = new TrackRouterH(Tech.m2(), 4, trackY, keep);
+		TrackRouter d_bar = new TrackRouterH(tech.m2(), 4, trackY, tech, keep);
 		d_bar.connect(new PortInst[] {invK.findPortInst("in"),
 									  invI.findPortInst("out")});
 		TrackRouter mc_bar =
-			new TrackRouterH(Tech.m1(), 4,
+			new TrackRouterH(tech.m1(), 4,
 					         LayoutLib.roundCenterY(pmos.findPortInst("g")),
-							 keep);
+					         tech, keep);
 		mc_bar.connect(new PortInst[] {mc.findPortInst("out"),
 									   pmos.findPortInst("g")});
 

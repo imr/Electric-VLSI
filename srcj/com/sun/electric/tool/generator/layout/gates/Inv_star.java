@@ -31,7 +31,7 @@ import com.sun.electric.tool.generator.layout.FoldedPmos;
 import com.sun.electric.tool.generator.layout.FoldsAndWidth;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.generator.layout.StdCellParams;
-import com.sun.electric.tool.generator.layout.Tech;
+import com.sun.electric.tool.generator.layout.TechType;
 import com.sun.electric.tool.generator.layout.TrackRouter;
 import com.sun.electric.tool.generator.layout.TrackRouterH;
 
@@ -51,6 +51,7 @@ class Inv_star {
 	}
 
 	static Cell makePart(double sz, String threshold, StdCellParams stdCell) {
+		TechType tech = stdCell.getTechType();
 		sz = stdCell.roundSize(sz);
 		error(!threshold.equals("") && !threshold.equals("LT")
 			  && !threshold.equals("HT"),
@@ -90,21 +91,21 @@ class Inv_star {
 
 		// leave vertical m1 track for in
 		double inX = 1.5 + 2; // m1_m1_sp/2 + m1_wid/2
-		LayoutLib.newExport(inv, "in", PortCharacteristic.IN, Tech.m1(),
+		LayoutLib.newExport(inv, "in", PortCharacteristic.IN, tech.m1(),
 			                4, inX, inY);
 
 		double mosX = inX + 2 + 3 + 2; // m1_wid/2 + m1_m1_sp + m1_wid/2
 		double nmosY = -wellOverhangDiff - fwN.physWid / 2;
 		FoldedMos nmos = new FoldedNmos(mosX, nmosY, fwN.nbFolds, 1, 
-		                                fwN.gateWid, inv, stdCell);
+		                                fwN.gateWid, inv, tech);
 		double pmosY = wellOverhangDiff + fwP.physWid / 2;
 		FoldedMos pmos = new FoldedPmos(mosX, pmosY, fwP.nbFolds, 1,
-		                                fwP.gateWid, inv, stdCell);
+		                                fwP.gateWid, inv, tech);
 
 		// inverter output:  m1_wid/2 + m1_m1_sp + m1_wid/2 
 		double outX = StdCellParams.getRightDiffX(nmos, pmos) + 2 + 3 + 2;
 		LayoutLib.newExport(inv, "out", PortCharacteristic.OUT,
-			                Tech.m1(), 4, outX, 0);
+			                tech.m1(), 4, outX, 0);
 
 		// create vdd and gnd exports and connect to MOS source/drains
 		stdCell.wireVddGnd(nmos, StdCellParams.EVEN, inv);
@@ -112,7 +113,7 @@ class Inv_star {
 
 		// Connect up input. Do PMOS gates first because PMOS gate spacing
 		// is a valid spacing for p1m1 vias even for small strengths.
-		TrackRouter in = new TrackRouterH(Tech.m1(), 3, inY, inv);
+		TrackRouter in = new TrackRouterH(tech.m1(), 3, inY, tech, inv);
 		in.connect(inv.findExport("in"));
 		for (int i=0; i<pmos.nbGates(); i++)  in.connect(pmos.getGate(i, 'B'));
 		for (int i=0; i<nmos.nbGates(); i++)  in.connect(nmos.getGate(i, 'T'));
@@ -125,7 +126,7 @@ class Inv_star {
 			double inLoFromMos = nmosBot - 2 - 2.5; // -nd_p1_sp - p1m1_wid/2
 			double inLoY = Math.min(inLoFromGnd, inLoFromMos);
 
-			TrackRouter inLo = new TrackRouterH(Tech.m1(), 3, inLoY, inv);
+			TrackRouter inLo = new TrackRouterH(tech.m1(), 3, inLoY, tech, inv);
 			inLo.connect(inv.findExport("in"));
 			for (int i = 0; i < nmos.nbGates(); i++) {
 				inLo.connect(nmos.getGate(i, 'B'));
@@ -138,7 +139,7 @@ class Inv_star {
 			double inHiFromMos = pmosTop + 2 + 2.5; // +pd_p1_sp + p1m1_wid/2
 			double inHiY = Math.max(inHiFromVdd, inHiFromMos);
 
-			TrackRouter inHi = new TrackRouterH(Tech.m1(), 3, inHiY, inv);
+			TrackRouter inHi = new TrackRouterH(tech.m1(), 3, inHiY, tech, inv);
 			inHi.connect(inv.findExport("in"));
 			for (int i=0; i<pmos.nbGates(); i++) {
 				inHi.connect(pmos.getGate(i, 'T'));
@@ -146,13 +147,13 @@ class Inv_star {
 		}
 
 		// connect up output
-		TrackRouter outHi = new TrackRouterH(Tech.m2(), 4, outHiY, inv);
+		TrackRouter outHi = new TrackRouterH(tech.m2(), 4, outHiY, tech, inv);
 		outHi.connect(inv.findExport("out"));
 		for (int i=1; i<pmos.nbSrcDrns(); i += 2) {
 			outHi.connect(pmos.getSrcDrn(i));
 		}
 
-		TrackRouter outLo = new TrackRouterH(Tech.m2(), 4, outLoY, inv);
+		TrackRouter outLo = new TrackRouterH(tech.m2(), 4, outLoY, tech, inv);
 		outLo.connect(inv.findExport("out"));
 		for (int i = 1; i < nmos.nbSrcDrns(); i += 2) {
 			outLo.connect(nmos.getSrcDrn(i));

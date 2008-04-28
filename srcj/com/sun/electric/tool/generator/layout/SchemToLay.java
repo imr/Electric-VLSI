@@ -576,17 +576,17 @@ public class SchemToLay {
 		Collections.sort(ports, compare);
 	}
 	
-	private static void metal1route(PortInst prev, PortInst port) {
+	private static void metal1route(PortInst prev, PortInst port, TechType tech) {
 		NodeInst prevInst = prev.getNodeInst();
 		// If one gate is half height and the other full height then we
 		// must route horizontally from the half height gate first because
 		// the half height gate doesn't have a full vertical metal-1
 		// channel.
 		if (isNstk(prevInst) || isPstk(prevInst)) {
-			LayoutLib.newArcInst(Tech.m1(), 4, prev, port);
+			LayoutLib.newArcInst(tech.m1(), 4, prev, port);
 		} else {
 			// prev is full height so route vertically from prev
-			LayoutLib.newArcInst(Tech.m1(), 4, port, prev);
+			LayoutLib.newArcInst(tech.m1(), 4, port, prev);
 		}
 	}
 	
@@ -596,7 +596,7 @@ public class SchemToLay {
 	// also.
 	//
 	// The list of ports must be sorted in X from lowest to hightest.
-	private static void metal1route(ArrayList<PortInst> ports) {
+	private static void metal1route(ArrayList<PortInst> ports, TechType tech) {
 		final double ADJACENT_DIST = 7;
 		for (int i=1; i<ports.size(); i++) {
 			PortInst prev = ports.get(i-1);
@@ -606,7 +606,7 @@ public class SchemToLay {
 			            LayoutLib.roundCenterX(prev);
 			error(dx<=0, "metal1route: ports not sorted left to right!");
 			if (dx<=ADJACENT_DIST) {
-				metal1route(prev, port);
+				metal1route(prev, port, tech);
 				// Remove prev and back up so we consider the port that moves
 				// into index i as a result of the deletion.
 				ports.remove(--i);
@@ -617,11 +617,12 @@ public class SchemToLay {
 	
 	private static void connectSegment(RouteSeg r, TrackAllocator trackAlloc,
 									   StdCellParams stdCell, Cell gasp) {
+		TechType tech = stdCell.getTechType();
 		ArrayList<PortInst> ports = r.getAllPorts();
 		sortPortsLeftToRight(ports);
 		
 		// first route physically adjacent ports in metal-1
-		metal1route(ports);
+		metal1route(ports, tech);
 		
 		// Don't allocate a metal-2 track if the net is internal and there
 		// is nothing left to connect in metal-2.
@@ -637,7 +638,7 @@ public class SchemToLay {
 		//System.out.println("Using assigned track: "+trackY);
 		//}
 	  
-		TrackRouter route = new TrackRouterH(Tech.m2(), 4.0, trackY, gasp);
+		TrackRouter route = new TrackRouterH(tech.m2(), 4.0, trackY, tech, gasp);
 		
 		// connect RouteSeg's exports
 		Iterator<Export> expIt = r.findExports();
@@ -650,7 +651,7 @@ public class SchemToLay {
 			error(ports.size()==0, "No device ports on this net?: "+expNm);
 			
 			double x = LayoutLib.roundCenterX(ports.get(0));
-			LayoutLib.newExport(gasp, expNm, exp.getCharacteristic(), Tech.m2(), 
+			LayoutLib.newExport(gasp, expNm, exp.getCharacteristic(), tech.m2(), 
 			                    4, x, trackY);
 			route.connect(gasp.findExport(expNm));
 		}
@@ -734,27 +735,28 @@ public class SchemToLay {
 	
 	private static void connectWellTies(ArrayList<NodeInst> layInsts,
 										StdCellParams stdCell, Cell gasp) {
+		TechType tech = stdCell.getTechType();
 		if (stdCell.getSeparateWellTies()) {
 			// Rock connects well ties to exports rather than to vdd or gnd
-			TrackRouter nTie = new TrackRouterH(Tech.m2(),
+			TrackRouter nTie = new TrackRouterH(tech.m2(),
 												stdCell.getNmosWellTieWidth(),
 												stdCell.getNmosWellTieY(),
-												gasp);
+												tech, gasp);
 			LayoutLib.newExport(gasp, stdCell.getNmosWellTieName(), 
 			                    stdCell.getNmosWellTieRole(),
-								Tech.m2(), 4,
+								tech.m2(), 4,
 								// m1_m1_sp/2
 								stdCell.getNmosWellTieWidth()/2 + 1.5, 
 								stdCell.getNmosWellTieY());
 			nTie.connect(gasp.findExport(stdCell.getNmosWellTieName()));
 			nTie.connect(layInsts, stdCell.getNmosWellTieName());
-			TrackRouter pTie = new TrackRouterH(Tech.m2(),
+			TrackRouter pTie = new TrackRouterH(tech.m2(),
 												stdCell.getPmosWellTieWidth(),
 												stdCell.getPmosWellTieY(),
-												gasp);
+												tech, gasp);
 			LayoutLib.newExport(gasp, stdCell.getPmosWellTieName(),
 								stdCell.getPmosWellTieRole(),
-								Tech.m2(), 4,
+								tech.m2(), 4,
 								// m1_m1_sp/2
 								stdCell.getPmosWellTieWidth()/2 + 1.5,
 								stdCell.getPmosWellTieY());
@@ -886,6 +888,7 @@ public class SchemToLay {
 	public static Cell makePart(Cell schem, VarContext context,
 								HashMap<String,Object> exportTrackAssign,
 								StdCellParams stdCell) {
+		TechType tech = stdCell.getTechType();
 		error(!schem.getView().getFullName().equals("schematic"),
 			  "not a schematic: "+schem.getName());
 		
@@ -919,10 +922,10 @@ public class SchemToLay {
 		layInsts = place(layInsts, allSegs, stdCell, gasp);
 		
 		// vdd and gnd wires
-		TrackRouter gnd = new TrackRouterH(Tech.m2(), stdCell.getGndWidth(),
-										   stdCell.getGndY(), gasp);
-		TrackRouter vdd = new TrackRouterH(Tech.m2(), stdCell.getVddWidth(),
-										   stdCell.getVddY(), gasp);
+		TrackRouter gnd = new TrackRouterH(tech.m2(), stdCell.getGndWidth(),
+										   stdCell.getGndY(), tech, gasp);
+		TrackRouter vdd = new TrackRouterH(tech.m2(), stdCell.getVddWidth(),
+										   stdCell.getVddY(), tech, gasp);
 		
 		// place vdd and gnd exports on the first full height layout instance
 		Export.newInstance(gasp, findFirstPort(layInsts, "gnd"), "gnd")

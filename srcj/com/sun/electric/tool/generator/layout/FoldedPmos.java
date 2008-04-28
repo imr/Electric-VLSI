@@ -42,17 +42,4 @@ public class FoldedPmos extends FoldedMos {
 		super('P', x, y, nbFolds, nbSeries, gateWidth, gateSpace,
 			  justifyDiffCont, f, tech);
 	}
-	/** @deprecated */
-	public FoldedPmos(double x, double y, int nbFolds, int nbSeries,
-                      double gateWidth, Cell f, StdCellParams stdCell) {
-		super('P', x, y, nbFolds, nbSeries, gateWidth, null, 'B', f,
-			  stdCell.getTechType());
-	}
-	/** @deprecated */
-	public FoldedPmos(double x, double y, int nbFolds, int nbSeries,
-                      double gateWidth, GateSpace gateSpace,
-                      char justifyDiffCont, Cell f, StdCellParams stdCell) {
-		super('P', x, y, nbFolds, nbSeries, gateWidth, gateSpace,
-			  justifyDiffCont, f, stdCell.getTechType());
-	}
 }

@@ -43,17 +43,4 @@ public class FoldedNmos extends FoldedMos {
 		      justifyDiffCont, f, tech);
 	}
 
-	/** @deprecated */
-	public FoldedNmos(double x, double y, int nbFolds, int nbSeries,
-                      double gateWidth, Cell f, StdCellParams stdCell) {
-		super('N', x, y, nbFolds, nbSeries, gateWidth, null, 'T', f, 
-			  stdCell.getTechType());
-	}
-	/** @deprecated */
-	public FoldedNmos(double x, double y, int nbFolds, int nbSeries,
-                      double gateWidth, GateSpace gateSpace,
-                      char justifyDiffCont, Cell f, StdCellParams stdCell) {
-		super('N', x, y, nbFolds, nbSeries, gateWidth, gateSpace, 
-		      justifyDiffCont, f, stdCell.getTechType());
-	}
 }
