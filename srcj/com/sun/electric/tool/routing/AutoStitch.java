@@ -29,9 +29,12 @@ import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.ObjectQTree;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.geometry.PolyMerge;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.HierarchyEnumerator;
+import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
@@ -46,6 +49,7 @@ import com.sun.electric.database.topology.RTBounds;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.UserInterface;
+import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
@@ -80,6 +84,8 @@ public class AutoStitch
 	/** list of all routes to be created at end of analysis */		private List<Route> allRoutes;
 	/** list of pins that may be inline pins due to created arcs */	private Set<NodeInst> possibleInlinePins;
 	/** set of nodes to check (prevents duplicate checks) */		private Set<NodeInst> nodeMark;
+
+	/****************************************** CONTROL ******************************************/
 
 	/**
 	 * Method to do auto-stitching.
@@ -176,7 +182,7 @@ public class AutoStitch
 			Rectangle2D limitBound = null;
 			if (lX != hX && lY != hY)
 				limitBound = new Rectangle2D.Double(lX, lY, hX-lX, hY-lY);
-			runAutoStitch(cell, nodesToStitch, arcsToStitch, null, limitBound, forced, false);
+			runAutoStitch(cell, nodesToStitch, arcsToStitch, null, limitBound, forced, Routing.isAutoStitchCreateExports(), false);
 			return true;
 		}
 	}
@@ -189,18 +195,18 @@ public class AutoStitch
 	 * @param stayInside is the area in which to route (null to route arbitrarily).
 	 * @param limitBound if not null, only consider connections that occur in this area.
 	 * @param forced true if the stitching was explicitly requested (and so results should be printed).
+	 * @param createExports true to create exports in subcells where necessary.
 	 * @param showProgress true to show progress.
 	 */
 	public static void runAutoStitch(Cell cell, List<NodeInst> nodesToStitch, List<ArcInst> arcsToStitch,
-		PolyMerge stayInside, Rectangle2D limitBound, boolean forced, boolean showProgress)
+		PolyMerge stayInside, Rectangle2D limitBound, boolean forced, boolean createExports, boolean showProgress)
 	{
 		AutoStitch as = new AutoStitch();
-		as.runNow(cell, nodesToStitch, arcsToStitch, stayInside, limitBound, forced, showProgress);
+		as.runNow(cell, nodesToStitch, arcsToStitch, stayInside, limitBound, forced, createExports, showProgress);
 	}
 
 	private AutoStitch()
 	{
-		allRoutes = new ArrayList<Route>();
 		possibleInlinePins = new HashSet<NodeInst>();
 	}
 
@@ -212,16 +218,25 @@ public class AutoStitch
 	 * @param stayInside is the area in which to route (null to route arbitrarily).
 	 * @param limitBound if not null, only consider connections that occur in this area.
 	 * @param forced true if the stitching was explicitly requested (and so results should be printed).
+	 * @param createExports true to create exports in subcells where necessary.
 	 * @param showProgress true to show progress.
 	 */
 	private void runNow(Cell cell, List<NodeInst> nodesToStitch, List<ArcInst> arcsToStitch,
-		PolyMerge stayInside, Rectangle2D limitBound, boolean forced, boolean showProgress)
+		PolyMerge stayInside, Rectangle2D limitBound, boolean forced, boolean createExports, boolean showProgress)
 	{
+		// initialization
+		if (cell.isAllLocked())
+		{
+			System.out.println("WARNING: Cell " + cell.describe(false) + " is locked: no changes can be made");
+			return;
+		}
 		if (showProgress) Job.getUserInterface().setProgressNote("Initializing routing");
 		ArcProto preferredArc = Routing.getPreferredRoutingArcProto();
 
-		if (nodesToStitch == null) // no data from highlighter
+		// gather objects to stitch
+		if (nodesToStitch == null)
 		{
+			// no data from highlighter
 			nodesToStitch = new ArrayList<NodeInst>();
 			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 			{
@@ -243,7 +258,52 @@ public class AutoStitch
 				arcsToStitch.add(it.next());
 		}
 
-		// next pre-compute bounds on all nodes in cells to be changed
+		// next mark nodes to be checked
+		nodeMark = new HashSet<NodeInst>();
+		for(NodeInst ni : nodesToStitch)
+			nodeMark.add(ni);
+		Map<ArcProto,Integer> arcsCreatedMap = new HashMap<ArcProto,Integer>();
+		Map<NodeProto,Integer> nodesCreatedMap = new HashMap<NodeProto,Integer>();
+		allRoutes = new ArrayList<Route>();
+
+		// compute the number of tasks to perform and start progress bar
+		int totalToStitch = nodesToStitch.size() + arcsToStitch.size();
+
+		// if creating exports, make first pass in which exports must be created
+		if (createExports)
+		{
+			int soFar = 0;
+			if (showProgress) Job.getUserInterface().setProgressNote("Routing " + totalToStitch + " objects with export creation...");
+
+			// run through the nodeinsts to be checked for export-creation stitching
+			for(NodeInst ni : nodesToStitch)
+			{
+				soFar++;
+				if (showProgress && (soFar%100) == 0)
+					Job.getUserInterface().setProgressValue(soFar * 100 / totalToStitch);
+				checkExportCreationStitching(ni);
+			}
+
+			// now run through the arcinsts to be checked for export-creation stitching
+			for(ArcInst ai : arcsToStitch)
+			{
+				soFar++;
+				if (showProgress && (soFar%100) == 0)
+					Job.getUserInterface().setProgressValue(soFar * 100 / totalToStitch);
+
+				// only interested in arcs that are wider than their nodes (and have geometry that sticks out)
+				if (!arcTooWide(ai)) continue;
+				if (!ai.isLinked()) continue;
+				checkExportCreationStitching(ai);
+			}
+
+			// now run these arcs and reinitialize the list
+			makeConnections(showProgress, arcsCreatedMap, nodesCreatedMap);
+			allRoutes = new ArrayList<Route>();
+			if (showProgress) Job.getUserInterface().setProgressNote("Initializing routing");
+		}
+
+		// next pre-compute bounds on all nodes in cell
 		Map<NodeInst, Rectangle2D[]> nodeBounds = new HashMap<NodeInst, Rectangle2D[]>();
 		Map<NodeInst, ObjectQTree> nodePortBounds = new HashMap<NodeInst, ObjectQTree>();
 		for(Iterator<NodeInst> nIt = cell.getNodes(); nIt.hasNext(); )
@@ -290,22 +350,14 @@ public class AutoStitch
 			}
 		}
 
-		// next mark nodes to be checked
-		nodeMark = new HashSet<NodeInst>();
-		for(NodeInst ni : nodesToStitch)
-		{
-			nodeMark.add(ni);
-		}
-
 		// finally, initialize the information about which layer is smallest on each arc
 		Map<ArcProto,Layer> arcLayers = new HashMap<ArcProto,Layer>();
 
-		int totalToStitch = nodesToStitch.size() + arcsToStitch.size();
-		int soFar = 0;
-		if (showProgress) Job.getUserInterface().setProgressNote("Routing " + totalToStitch + " objects...");
-
 		// get the topology object for knowing what is connected
 		Topology top = new Topology(cell);
+
+		int soFar = 0;
+		if (showProgress) Job.getUserInterface().setProgressNote("Routing " + totalToStitch + " objects...");
 
 		// now run through the nodeinsts to be checked for stitching
 		for(NodeInst ni : nodesToStitch)
@@ -313,8 +365,6 @@ public class AutoStitch
 			soFar++;
 			if (showProgress && (soFar%100) == 0)
 				Job.getUserInterface().setProgressValue(soFar * 100 / totalToStitch);
-
-			if (cell.isAllLocked()) continue;
 			checkStitching(ni, nodeBounds, nodePortBounds, arcLayers, stayInside, top, limitBound, preferredArc);
 		}
 
@@ -326,7 +376,6 @@ public class AutoStitch
 				Job.getUserInterface().setProgressValue(soFar * 100 / totalToStitch);
 
 			if (!ai.isLinked()) continue;
-			if (cell.isAllLocked()) continue;
 
 			// only interested in arcs that are wider than their nodes (and have geometry that sticks out)
 			if (!arcTooWide(ai)) continue;
@@ -334,96 +383,7 @@ public class AutoStitch
 		}
 
 		// create the routes
-		totalToStitch = allRoutes.size();
-		soFar = 0;
-		if (showProgress)
-		{
-			Job.getUserInterface().setProgressValue(0);
-			Job.getUserInterface().setProgressNote("Creating " + totalToStitch + " wires...");
-		}
-		Collections.sort(allRoutes, new compRoutes());
-		Map<ArcProto,Integer> arcsCreatedMap = new HashMap<ArcProto,Integer>();
-		Map<NodeProto,Integer> nodesCreatedMap = new HashMap<NodeProto,Integer>();
-		for (Route route : allRoutes)
-		{
-			soFar++;
-			if (showProgress && (soFar%100) == 0)
-				Job.getUserInterface().setProgressValue(soFar * 100 / totalToStitch);
-
-			RouteElement re = route.get(0);
-			Cell c = re.getCell();
-
-			// see if the route is unnecessary because of existing connections
-			RouteElementPort start = route.getStart();
-			RouteElementPort end = route.getEnd();
-			PortInst startPi = start.getPortInst();
-			PortInst endPi = end.getPortInst();
-			if (startPi != null && endPi != null)
-			{
-				boolean already = false;
-				for(Iterator<Connection> cIt = startPi.getConnections(); cIt.hasNext(); )
-				{
-					Connection con = cIt.next();
-					ArcInst existingAI = con.getArc();
-					if (existingAI.getHead() == con)
-					{
-						if (existingAI.getTail().getPortInst() == endPi) { already = true;   break; }
-					} else
-					{
-						if (existingAI.getHead().getPortInst() == endPi) { already = true;   break; }
-					}
-				}
-				if (already) continue;
-			}
-
-			// if requesting no new geometry, make sure all arcs are proper width
-			if (stayInside != null)
-			{
-//				for (RouteElement obj : route)
-//				{
-//					if (obj instanceof RouteElementArc)
-//					{
-//						RouteElementArc reArc = (RouteElementArc)obj;
-//						if (reArc.getAction() != RouteElementAction.deleteArc)
-//						{
-//							Point2D head = reArc.getHeadConnPoint();
-//							Point2D tail = reArc.getTailConnPoint();
-//
-//							// insist that minimum size arcs be used
-//							ArcProto ap = reArc.getArcProto();
-//							Layer arcLayer = ap.getLayerIterator().next();
-//							double width = ap.getDefaultLambdaFullWidth();
-//							MutableBoolean headExtend = new MutableBoolean(reArc.getHeadExtension());
-//							MutableBoolean tailExtend = new MutableBoolean(reArc.getTailExtension());
-//							if (!stayInside.arcPolyFits(arcLayer, head, tail, reArc.getArcWidth(),
-//								headExtend, tailExtend))
-//							{
-//								// current arc doesn't fit, try reducing by a small amount
-//								double tinyAmountLess = reArc.getArcWidth() - DBMath.getEpsilon();
-//								if (tinyAmountLess >= 0 &&
-//									stayInside.arcPolyFits(arcLayer, head, tail, tinyAmountLess, headExtend, tailExtend))
-//								{
-//									// smaller width works: set it
-//									reArc.setArcWidth(tinyAmountLess);
-//								} else if (ap.getDefaultLambdaFullWidth() < reArc.getArcWidth() &&
-//									stayInside.arcPolyFits(arcLayer, head, tail, ap.getDefaultLambdaFullWidth(), headExtend, tailExtend))
-//								{
-//									// default size arc fits, use it
-//									reArc.setArcWidth(ap.getDefaultLambdaFullWidth());
-//								} else
-//								{
-//									// default size arc doesn't fit, make it zero-size
-//									reArc.setArcWidth(ap.getLambdaWidthOffset());
-//								}
-//							}
-//							reArc.setHeadExtension(headExtend.booleanValue());
-//							reArc.setTailExtension(tailExtend.booleanValue());
-//						}
-//					}
-//				}
-			}
-			Router.createRouteNoJob(route, c, false, arcsCreatedMap, nodesCreatedMap);
-		}
+		makeConnections(showProgress, arcsCreatedMap, nodesCreatedMap);
 
 		// report results
 		if (forced) Router.reportRoutingResults("AUTO ROUTING", arcsCreatedMap, nodesCreatedMap);
@@ -459,112 +419,55 @@ public class AutoStitch
 		}
 	}
 
-	/**
-	 * Class to sort Routes.
-	 */
-	private static class compRoutes implements Comparator<Route>
+	private void makeConnections(boolean showProgress, Map<ArcProto,Integer> arcsCreatedMap,
+		Map<NodeProto,Integer> nodesCreatedMap)
 	{
-		public int compare(Route r1, Route r2)
+		// create the routes
+		int totalToStitch = allRoutes.size();
+		int soFar = 0;
+		if (showProgress)
 		{
-			// separate nodes from arcs
-			RouteElementPort r1s = r1.getStart();
-			RouteElementPort r1e = r1.getEnd();
-			RouteElementPort r2s = r2.getStart();
-			RouteElementPort r2e = r2.getEnd();
-			boolean r1ToArc = r1s.getPortInst() == null || r1e.getPortInst() == null;
-			boolean r2ToArc = r2s.getPortInst() == null || r2e.getPortInst() == null;
-			if (r1ToArc && !r2ToArc) return 1;
-			if (!r1ToArc && r2ToArc) return -1;
-			if (r1ToArc && r2ToArc)
+			Job.getUserInterface().setProgressValue(0);
+			Job.getUserInterface().setProgressNote("Creating " + totalToStitch + " wires...");
+		}
+		Collections.sort(allRoutes, new CompRoutes());
+		for (Route route : allRoutes)
+		{
+			soFar++;
+			if (showProgress && (soFar%100) == 0)
+				Job.getUserInterface().setProgressValue(soFar * 100 / totalToStitch);
+
+			RouteElement re = route.get(0);
+			Cell c = re.getCell();
+
+			// see if the route is unnecessary because of existing connections
+			RouteElementPort start = route.getStart();
+			RouteElementPort end = route.getEnd();
+			PortInst startPi = start.getPortInst();
+			PortInst endPi = end.getPortInst();
+			if (startPi != null && endPi != null)
 			{
-				ArcProto ap1 = null, ap2 = null;
-				if (r1s.getNewArcs().hasNext()) ap1 = ((RouteElementArc)(r1s.getNewArcs().next())).getArcProto();
-				if (r1e.getNewArcs().hasNext()) ap1 = ((RouteElementArc)(r1e.getNewArcs().next())).getArcProto();
-				if (r2s.getNewArcs().hasNext()) ap2 = ((RouteElementArc)(r2s.getNewArcs().next())).getArcProto();
-				if (r2e.getNewArcs().hasNext()) ap2 = ((RouteElementArc)(r2e.getNewArcs().next())).getArcProto();
-				if (ap1 == null || ap2 == null) return 0;
-				return ap1.compareTo(ap2);
+				boolean already = false;
+				for(Iterator<Connection> cIt = startPi.getConnections(); cIt.hasNext(); )
+				{
+					Connection con = cIt.next();
+					ArcInst existingAI = con.getArc();
+					if (existingAI.getHead() == con)
+					{
+						if (existingAI.getTail().getPortInst() == endPi) { already = true;   break; }
+					} else
+					{
+						if (existingAI.getHead().getPortInst() == endPi) { already = true;   break; }
+					}
+				}
+				if (already) continue;
 			}
 
-			// get the first route in proper order
-			NodeInst n1s = r1s.getPortInst().getNodeInst();
-			NodeInst n1e = r1e.getPortInst().getNodeInst();
-			if (n1s.compareTo(n1e) < 0)
-			{
-				NodeInst s = n1s;   n1s = n1e;   n1e = s;
-				RouteElementPort se = r1s;   r1s = r1e;   r1e = se;
-			}
-
-			// get the second route in proper order
-			NodeInst n2s = r2s.getPortInst().getNodeInst();
-			NodeInst n2e = r2e.getPortInst().getNodeInst();
-			if (n2s.compareTo(n2e) < 0)
-			{
-				NodeInst s = n2s;   n2s = n2e;   n2e = s;
-				RouteElementPort se = r2s;   r2s = r2e;   r2e = se;
-			}
-
-			// sort by the starting and ending nodes
-			int res = n1s.compareTo(n2s);
-			if (res != 0) return res;
-			res = n1e.compareTo(n2e);
-			if (res != 0) return res;
-
-			// sort by the starting and ending port names
-			res = r1s.getPortInst().getPortProto().getName().compareTo(r2s.getPortInst().getPortProto().getName());
-			if (res != 0) return res;
-			res = r1e.getPortInst().getPortProto().getName().compareTo(r2e.getPortInst().getPortProto().getName());
-			if (res != 0) return res;
-
-//			// sort by the starting and ending port locations
-//			Poly p1s = r1s.getPortInst().getPoly();
-//			Poly p2s = r2s.getPortInst().getPoly();
-//			double x1 = p1s.getCenterX();
-//			double y1 = p1s.getCenterY();
-//			double x2 = p2s.getCenterX();
-//			double y2 = p2s.getCenterY();
-//			if (x1 < x2) return 1;
-//			if (x1 > x2) return -1;
-//			if (y1 < y2) return 1;
-//			if (y1 > y2) return -1;
-//
-//			Poly p1e = r1e.getPortInst().getPoly();
-//			Poly p2e = r2e.getPortInst().getPoly();
-//			x1 = p1e.getCenterX();
-//			y1 = p1e.getCenterY();
-//			x2 = p2e.getCenterX();
-//			y2 = p2e.getCenterY();
-//			if (x1 < x2) return 1;
-//			if (x1 > x2) return -1;
-//			if (y1 < y2) return 1;
-//			if (y1 > y2) return -1;
-			return 0;
+			Router.createRouteNoJob(route, c, false, arcsCreatedMap, nodesCreatedMap);
 		}
 	}
 
-	/**
-	 * Method to determine if an arc is too wide for its ends.
-	 * Arcs that are wider than their nodes stick out from those nodes,
-	 * and their geometry must be considered, even though the nodes have been checked.
-	 * @param ai the ArcInst to check.
-	 * @return true if the arc is wider than its end nodes
-	 */
-	private boolean arcTooWide(ArcInst ai)
-	{
-		boolean headTooWide = true;
-		NodeInst hNi = ai.getHeadPortInst().getNodeInst();
-		if (hNi.isCellInstance()) headTooWide = false; else
-			if (ai.getLambdaBaseWidth() <= hNi.getLambdaBaseXSize() &&
-				ai.getLambdaBaseWidth() <= hNi.getLambdaBaseYSize()) headTooWide = false;
-
-		boolean tailTooWide = true;
-		NodeInst tNi = ai.getTailPortInst().getNodeInst();
-		if (tNi.isCellInstance()) tailTooWide = false; else
-			if (ai.getLambdaBaseWidth() <= tNi.getLambdaBaseXSize() &&
-				ai.getLambdaBaseWidth() <= tNi.getLambdaBaseYSize()) tailTooWide = false;
-
-		return headTooWide || tailTooWide;
-	}
+	/****************************************** NORMAL STITCHING ******************************************/
 
 	/**
 	 * Method to check an object for possible stitching to neighboring objects.
@@ -671,6 +574,7 @@ public class AutoStitch
 	{
 		// if both nodes are being checked, examine them only once
 		if (nodeMark.contains(oNi) && oNi.getNodeIndex() <= ni.getNodeIndex()) return;
+
 		// now look at every layer in this node
 		Rectangle2D oBounds = oNi.getBounds();
 		if (ni.isCellInstance())
@@ -1261,55 +1165,6 @@ public class AutoStitch
 	}
 
 	/**
-	 * Method to connect two objects if they touch.
-	 * @param eobj1 the first object (either an ArcInst or a PortInst).
-	 * @param net1 the network on which the first object resides.
-	 * @param eobj2 the second object (either an ArcInst or a PortInst).
-	 * @param net2 the network on which the second object resides.
-	 * @param cell the Cell in which these objects reside.
-	 * @param ctr bend point suggestion when making "L" connection.
-	 * @param stayInside is the area in which to route (null to route arbitrarily).
-	 * @param top the topology of the cell.
-	 * @return true if a connection is made.
-	 */
-	private boolean connectObjects(ElectricObject eobj1, Network net1, ElectricObject eobj2, Network net2,
-		Cell cell, Point2D ctr, PolyMerge stayInside, Topology top)
-	{
-		// run the wire
-		NodeInst ni1 = null;
-		if (eobj1 instanceof NodeInst) ni1 = (NodeInst)eobj1; else
-			if (eobj1 instanceof PortInst) ni1 = ((PortInst)eobj1).getNodeInst();
-
-		NodeInst ni2 = null;
-		if (eobj2 instanceof NodeInst) ni2 = (NodeInst)eobj2; else
-			if (eobj2 instanceof PortInst) ni2 = ((PortInst)eobj2).getNodeInst();
-
-		Route route = router.planRoute(cell, eobj1, eobj2, ctr, stayInside, true, true);
-		if (route.size() == 0) return false;
-		allRoutes.add(route);
-		top.connect(net1, net2);
-
-		// if either ni or oNi is a pin primitive, see if it is a candidate for clean-up
-		if (ni1 != null)
-		{
-			if (ni1.getFunction() == PrimitiveNode.Function.PIN &&
-				!ni1.hasExports() && !ni1.hasConnections())
-			{
-				possibleInlinePins.add(ni1);
-			}
-		}
-		if (ni2 != null)
-		{
-			if (ni2.getFunction() == PrimitiveNode.Function.PIN &&
-				!ni2.hasExports() && !ni2.hasConnections())
-			{
-				possibleInlinePins.add(ni2);
-			}
-		}
-		return true;
-	}
-
-	/**
 	 * Method to connect two nodes if they touch.
 	 * @param ni the first node to test.
 	 * @param pp the port on the first node to test.
@@ -1708,6 +1563,593 @@ public class AutoStitch
 	}
 
 	/**
+	 * Method to connect two objects if they touch.
+	 * @param eobj1 the first object (either an ArcInst or a PortInst).
+	 * @param net1 the network on which the first object resides.
+	 * @param eobj2 the second object (either an ArcInst or a PortInst).
+	 * @param net2 the network on which the second object resides.
+	 * @param cell the Cell in which these objects reside.
+	 * @param ctr bend point suggestion when making "L" connection.
+	 * @param stayInside is the area in which to route (null to route arbitrarily).
+	 * @param top the topology of the cell.
+	 * @return true if a connection is made.
+	 */
+	private boolean connectObjects(ElectricObject eobj1, Network net1, ElectricObject eobj2, Network net2,
+		Cell cell, Point2D ctr, PolyMerge stayInside, Topology top)
+	{
+		// run the wire
+		NodeInst ni1 = null;
+		if (eobj1 instanceof NodeInst) ni1 = (NodeInst)eobj1; else
+			if (eobj1 instanceof PortInst) ni1 = ((PortInst)eobj1).getNodeInst();
+
+		NodeInst ni2 = null;
+		if (eobj2 instanceof NodeInst) ni2 = (NodeInst)eobj2; else
+			if (eobj2 instanceof PortInst) ni2 = ((PortInst)eobj2).getNodeInst();
+
+		Route route = router.planRoute(cell, eobj1, eobj2, ctr, stayInside, true, true);
+		if (route.size() == 0) return false;
+		allRoutes.add(route);
+		top.connect(net1, net2);
+
+		// if either ni or oNi is a pin primitive, see if it is a candidate for clean-up
+		if (ni1 != null)
+		{
+			if (ni1.getFunction() == PrimitiveNode.Function.PIN &&
+				!ni1.hasExports() && !ni1.hasConnections())
+			{
+				possibleInlinePins.add(ni1);
+			}
+		}
+		if (ni2 != null)
+		{
+			if (ni2.getFunction() == PrimitiveNode.Function.PIN &&
+				!ni2.hasExports() && !ni2.hasConnections())
+			{
+				possibleInlinePins.add(ni2);
+			}
+		}
+		return true;
+	}
+
+	/****************************************** EXPORT-CREATION STITCHING ******************************************/
+
+	/**
+	 * Method to check an object for possible stitching to neighboring objects with export creation.
+	 * Actual stitching is not done, but necessary exports are created.
+	 * @param geom the object to check for stitching.
+	 */
+	private void checkExportCreationStitching(Geometric geom)
+	{
+		Cell cell = geom.getParent();
+		NodeInst ni = null;
+		if (geom instanceof NodeInst) ni = (NodeInst)geom;
+
+		// make a list of other geometrics that touch or overlap this one (copy it because the main list will change)
+		List<Geometric> geomsInArea = new ArrayList<Geometric>();
+		Rectangle2D geomBounds = geom.getBounds();
+		double epsilon = DBMath.getEpsilon();
+		Rectangle2D searchBounds = new Rectangle2D.Double(geomBounds.getMinX()-epsilon, geomBounds.getMinY()-epsilon,
+			geomBounds.getWidth()+epsilon*2, geomBounds.getHeight()+epsilon*2);
+		for(Iterator<RTBounds> it = cell.searchIterator(searchBounds); it.hasNext(); )
+		{
+			Geometric oGeom = (Geometric)it.next();
+			if (oGeom != geom) geomsInArea.add(oGeom);
+		}
+		for(Geometric oGeom : geomsInArea)
+		{
+			// find another node in this area
+			if (oGeom instanceof ArcInst)
+			{
+				// other geometric is an ArcInst
+				ArcInst oAi = (ArcInst)oGeom;
+
+				if (ni == null) continue;
+
+				// compare node "ni" against arc "oAi"
+				if (ni.isCellInstance())
+					compareNodeInstWithArcMakeExport(ni, oAi);
+			} else
+			{
+				// other geometric a NodeInst
+				NodeInst oNi = (NodeInst)oGeom;
+				if (!oNi.isCellInstance())
+				{
+					PrimitiveNode pnp = (PrimitiveNode)oNi.getProto();
+					if (pnp.getTechnology() == Generic.tech()) continue;
+					if (pnp.getFunction() == PrimitiveNode.Function.NODE) continue;
+				}
+
+				if (ni == null)
+				{
+					// compare arc "geom" against node "oNi"
+					if (oNi.isCellInstance())
+						compareNodeInstWithArcMakeExport(oNi, (ArcInst)geom);
+					continue;
+				}
+
+				// compare node "ni" against node "oNi"
+				if (oNi.isCellInstance() && ni.isCellInstance())
+					compareTwoNodesMakeExport(ni, oNi);
+			}
+		}
+	}
+
+	/**
+	 * Method to compare a node instance and an arc to see if they touch and should be connected and an export created.
+	 * @param ni the NodeInst to compare.
+	 * @param ai the ArcInst to compare.
+	 */
+	private void compareNodeInstWithArcMakeExport(NodeInst ni, ArcInst ai)
+	{
+		// get the polygon and layer that needs to connect
+		Poly arcPoly = null;
+		Poly [] arcPolys = ai.getProto().getTechnology().getShapeOfArc(ai);
+		int aTot = arcPolys.length;
+		for(int i=0; i<aTot; i++)
+		{
+			arcPoly = arcPolys[i];
+			Layer arcLayer = arcPoly.getLayer();
+			Layer.Function arcLayerFun = arcLayer.getFunction();
+			if (arcLayerFun.isMetal() || arcLayerFun.isDiff() || arcLayerFun.isPoly()) break;
+			arcPoly = null;
+		}
+		if (arcPoly == null) return;
+
+		// look for geometry inside the cell that touches the arc, and make an export so it can connect
+		ArcTouchVisitor atv = new ArcTouchVisitor(ai, arcPoly, ni);
+		HierarchyEnumerator.enumerateCell(ni.getParent(), VarContext.globalContext, atv);
+		SubPolygon sp = atv.getExportDrillLocation();
+		if (sp != null)
+			makeExportDrill((NodeInst)sp.theObj, sp.poly.getPort(), sp.context);
+	}
+
+	/**
+	 * HierarchyEnumerator subclass to find cell geometry that touches an arc at the upper level.
+	 */
+	private class ArcTouchVisitor extends HierarchyEnumerator.Visitor
+	{
+		private ArcInst arcOfInterest;
+		private Poly arcPoly;
+		private int arcNetID;
+		private NodeInst cellOfInterest;
+		private Rectangle2D arcBounds;
+		private SubPolygon bestSubPolygon;
+
+		public ArcTouchVisitor(ArcInst arcOfInterest, Poly arcPoly, NodeInst cellOfInterest)
+		{
+			this.arcOfInterest = arcOfInterest;
+			this.arcPoly = arcPoly;
+			this.cellOfInterest = cellOfInterest;
+			arcNetID = -1;
+			arcBounds = arcPoly.getBounds2D();
+			bestSubPolygon = null;
+		}
+
+		public SubPolygon getExportDrillLocation() { return bestSubPolygon; }
+
+		public boolean enterCell(HierarchyEnumerator.CellInfo info) { return true; }
+
+		public void exitCell(HierarchyEnumerator.CellInfo info)
+		{
+			if (info.isRootCell()) return;
+			Netlist nl = info.getNetlist();
+
+			// look at all nodes and see if they intersect the arc
+			for(Iterator<NodeInst> it = info.getCell().getNodes(); it.hasNext(); )
+			{
+				NodeInst ni = it.next();
+				if (ni.isCellInstance()) continue;
+				PrimitiveNode pNp = (PrimitiveNode)ni.getProto();
+				AffineTransform nodeTrans = ni.rotateOut(info.getTransformToRoot());
+				Technology tech = pNp.getTechnology();
+				Poly [] nodeInstPolyList = tech.getShapeOfNode(ni, true, true, null);
+				for(int i=0; i<nodeInstPolyList.length; i++)
+				{
+					PolyBase poly = nodeInstPolyList[i];
+					if (poly.getLayer() != arcPoly.getLayer()) continue;
+					poly.transform(nodeTrans);
+					int netID = -1;
+					if (poly.getPort() != null)
+					{
+						Network net = nl.getNetwork(ni, poly.getPort(), 0);
+						if (net != null) netID = info.getNetID(net);
+					}
+					if (netID == arcNetID) continue;
+					if (poly.separation(arcPoly) > DBMath.getEpsilon()) continue;
+					SubPolygon sp = new SubPolygon(poly, info.getContext(), netID, ni);
+					if (bestSubPolygon != null)
+					{
+						if (!ni.hasExports()) continue;
+					}
+					bestSubPolygon = sp;
+				}
+			}			
+		}
+
+		public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
+		{
+			NodeInst ni = no.getNodeInst();
+			if (info.isRootCell())
+			{
+				// ignore any subcells that aren't the one being examined
+				if (ni != cellOfInterest) return false;
+
+				// cache the network ID of the arc
+				if (arcNetID < 0)
+				{
+					Netlist nl = info.getNetlist();
+					Network net = nl.getNetwork(arcOfInterest, 0);
+					if (net != null) arcNetID = info.getNetID(net);
+				}
+				return true;
+			}
+
+			// only examine subcells if they intersect the arc
+			if (!ni.isCellInstance()) return false;
+			Rectangle2D b = ni.getBounds();
+			Rectangle2D bounds = new Rectangle2D.Double(b.getMinX(), b.getMinY(), b.getWidth(), b.getHeight());
+			AffineTransform trans = info.getTransformToRoot();
+			DBMath.transformRect(bounds, trans);
+			if (bounds.intersects(arcBounds)) return true;
+			return false;
+		}
+	}
+
+	/**
+	 * Method to create a stack of exports to reach a piece of geometry down the hierarchy.
+	 * @param ni the NodeInst at the bottom of the hierarchy being exported.
+	 * @param exportThis the port on the NodeInst being exported.
+	 * @param where the hierarchical stack that defines the path to the top.
+	 */
+	private void makeExportDrill(NodeInst ni, PortProto exportThis, VarContext where)
+	{
+		while (where != VarContext.globalContext)
+		{
+			PortInst pi = ni.findPortInstFromProto(exportThis);
+			if (pi == null) break;
+			Iterator<Export> eIt = pi.getExports();
+			if (eIt.hasNext())
+			{
+				exportThis = eIt.next();
+			} else
+			{
+	            String exportName = ElectricObject.uniqueObjectName("E1", ni.getParent(), PortProto.class, false);
+	            exportThis = Export.newInstance(ni.getParent(), pi, exportName);
+			}
+			ni = where.getNodable().getNodeInst();
+			where = where.pop();
+		}
+	}
+
+	/**
+	 * Class to define a polygon that is down in the hierarchy and has a context.
+	 */
+	private static class SubPolygon
+	{
+		PolyBase poly;
+		int netID;
+		VarContext context;
+		Geometric theObj;
+
+		SubPolygon(PolyBase poly, VarContext context, int netID, Geometric theObj)
+		{
+			this.poly = poly;
+			this.context = context;
+			this.netID = netID;
+			this.theObj = theObj;
+		}
+	}
+
+	/**
+	 * Class to define two polygons that will connect down in the hierarchy.
+	 */
+	private static class PolyConnection
+	{
+		SubPolygon sp1, sp2;
+		double distance;
+
+		PolyConnection(SubPolygon sp1, SubPolygon sp2)
+		{
+			this.sp1 = sp1;
+			this.sp2 = sp2;
+			distance = sp1.poly.getCenter().distance(sp2.poly.getCenter());
+		}
+	}
+
+	/**
+	 * Method to compare two node instances to see if anything inside of them needs to connect.
+	 * May have to create exports to make the connection.
+	 * @param ni1 the first cell instance being checked.
+	 * @param ni2 the second cell instance being checked.
+	 */
+	private void compareTwoNodesMakeExport(NodeInst ni1, NodeInst ni2)
+	{
+		// force the second to be a cell instance
+		if (!ni2.isCellInstance())
+		{
+			NodeInst swap = ni1;   ni1 = ni2;   ni2 = swap;
+		}
+		if (!ni2.isCellInstance()) return;
+
+		// first find the area of intersection between the two nodes
+		Rectangle2D bound1 = ni1.getBounds();
+		Rectangle2D bound2 = ni2.getBounds();
+		bound1 = new Rectangle2D.Double(bound1.getMinX()-DBMath.getEpsilon(), bound1.getMinY()-DBMath.getEpsilon(),
+			bound1.getWidth()+DBMath.getEpsilon()*2, bound1.getHeight()+DBMath.getEpsilon()*2);
+		bound2 = new Rectangle2D.Double(bound2.getMinX()-DBMath.getEpsilon(), bound2.getMinY()-DBMath.getEpsilon(),
+			bound2.getWidth()+DBMath.getEpsilon()*2, bound2.getHeight()+DBMath.getEpsilon()*2);
+		if (!bound1.intersects(bound2)) return;
+		Rectangle2D intersectArea = bound1.createIntersection(bound2);
+
+		// now find all polygons in Node 1 that are in the intersection area
+		List<SubPolygon> polygons = new ArrayList<SubPolygon>();
+		if (ni1.isCellInstance())
+		{
+			GatherPolygonVisitor gpv = new GatherPolygonVisitor(polygons, intersectArea, ni1);
+			HierarchyEnumerator.enumerateCell(ni1.getParent(), VarContext.globalContext, gpv);
+		} else
+		{
+			Technology tech = ni1.getProto().getTechnology();
+			Poly[] polys = tech.getShapeOfNode(ni1, true, true, null);
+			AffineTransform trans = ni1.rotateOut();
+			for(int i=0; i<polys.length; i++)
+			{
+				Poly poly = polys[i];
+				poly.transform(trans);
+				if (!poly.getBounds2D().intersects(intersectArea)) continue;
+				polygons.add(new SubPolygon(poly, VarContext.globalContext, -1, ni1));
+			}
+		}
+
+		// now take the list into the second node and look for connections
+		CheckPolygonVisitor cpv = new CheckPolygonVisitor(polygons, intersectArea, ni2);
+		HierarchyEnumerator.enumerateCell(ni2.getParent(), VarContext.globalContext, cpv);
+		List<PolyConnection> polysFound = cpv.getFoundConnections();
+
+		// show what is matched
+		for(PolyConnection p : polysFound)
+		{
+			if (p.sp1.theObj instanceof ArcInst || p.sp2.theObj instanceof ArcInst) continue;
+			makeExportDrill((NodeInst)p.sp1.theObj, p.sp1.poly.getPort(), p.sp1.context);
+			makeExportDrill((NodeInst)p.sp2.theObj, p.sp2.poly.getPort(), p.sp2.context);
+		}
+	}
+
+	/**
+	 * HierarchyEnumerator subclass to check all geometry in a cell aganst polygons that may intersect.
+	 */
+	private class CheckPolygonVisitor extends HierarchyEnumerator.Visitor
+	{
+		private List<SubPolygon> polygons;
+		private Rectangle2D intersectArea;
+		private NodeInst cellOfInterest;
+		private List<PolyConnection> connectionsFound;
+
+		public CheckPolygonVisitor(List<SubPolygon> polygons, Rectangle2D intersectArea, NodeInst cellOfInterest)
+		{
+			this.polygons = polygons;
+			this.intersectArea = intersectArea;
+			this.cellOfInterest = cellOfInterest;
+			connectionsFound = new ArrayList<PolyConnection>();
+		}
+
+		public List<PolyConnection> getFoundConnections() { return connectionsFound; }
+
+		public boolean enterCell(HierarchyEnumerator.CellInfo info) { return true; }
+
+		public void exitCell(HierarchyEnumerator.CellInfo info)
+		{
+			AffineTransform toTop = info.getTransformToRoot();
+			Netlist nl = info.getNetlist();
+
+			// check all nodes against the list
+			for(Iterator<NodeInst> it = info.getCell().getNodes(); it.hasNext(); )
+			{
+				NodeInst ni = it.next();
+				if (ni.isCellInstance()) continue;
+				AffineTransform nodeTrans = ni.rotateOut(toTop);
+				Technology tech = ni.getProto().getTechnology();
+				Poly[] polys = tech.getShapeOfNode(ni, true, true, null);
+				for(int i=0; i<polys.length; i++)
+				{
+					Poly poly = polys[i];
+					if (poly.getPort() == null) continue;
+					poly.transform(nodeTrans);
+					if (!poly.getBounds2D().intersects(intersectArea)) continue;
+					for(SubPolygon sp : polygons)
+					{
+						if (sp.poly.getLayer() != poly.getLayer()) continue;
+						if (sp.poly.separation(poly) > DBMath.getEpsilon()) continue;
+						int netID = -1;
+						Network net = nl.getNetwork(ni, poly.getPort(), 0);
+						if (net != null) netID = info.getNetID(net);
+						SubPolygon sp2 = new SubPolygon(poly, info.getContext(), netID, ni);
+						addConnection(sp, sp2);
+					}
+				}
+			}
+
+			// check all arcs against the list
+			for(Iterator<ArcInst> it = info.getCell().getArcs(); it.hasNext(); )
+			{
+				ArcInst ai = it.next();
+				Technology tech = ai.getProto().getTechnology();
+				Poly [] arcPolyList = tech.getShapeOfArc(ai);
+				for(int i=0; i<arcPolyList.length; i++)
+				{
+					PolyBase poly = arcPolyList[i];
+					poly.transform(toTop);
+					if (!poly.getBounds2D().intersects(intersectArea)) continue;
+					for(SubPolygon sp : polygons)
+					{
+						if (sp.poly.getLayer() != poly.getLayer()) continue;
+						if (sp.poly.separation(poly) > 0) continue;
+						Network net = nl.getNetwork(ai, 0);
+						int netID = info.getNetID(net);
+						SubPolygon sp2 = new SubPolygon(poly, info.getContext(), netID, ai);
+						addConnection(sp, sp2);
+					}
+				}
+			}
+		}
+
+		public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
+		{
+			// only examine subcells if they intersect the area of interest
+			NodeInst ni = no.getNodeInst();
+			if (info.isRootCell())
+			{
+				// ignore any subcells that aren't the one being examined
+				if (ni != cellOfInterest) return false;
+			}
+			if (!ni.isCellInstance()) return false;
+			Rectangle2D b = ni.getBounds();
+			Rectangle2D bounds = new Rectangle2D.Double(b.getMinX(), b.getMinY(), b.getWidth(), b.getHeight());
+			AffineTransform trans = info.getTransformToRoot();
+			DBMath.transformRect(bounds, trans);
+			if (bounds.intersects(intersectArea)) return true;
+			return false;
+		}
+
+		private void addConnection(SubPolygon sp1, SubPolygon sp2)
+		{
+			double distance = sp1.poly.getCenter().distance(sp2.poly.getCenter());
+			boolean found = false;
+			for(PolyConnection pc : connectionsFound)
+			{
+				if (pc.sp1.netID == sp1.netID && pc.sp2.netID == sp2.netID)
+				{
+					// found this connection: see if it is closer
+					boolean replace = distance < pc.distance;
+					int oldNodeCount = (pc.sp1.theObj instanceof NodeInst?1:0) + (pc.sp2.theObj instanceof NodeInst?1:0);
+					int newNodeCount = (sp1.theObj instanceof NodeInst?1:0) + (sp2.theObj instanceof NodeInst?1:0);
+					if (newNodeCount > oldNodeCount) replace = true; else
+						if (newNodeCount < oldNodeCount) replace = false;
+					if (replace)
+					{
+						pc.sp1 = sp1;
+						pc.sp2 = sp2;
+						pc.distance = distance;
+					}
+					found = true;
+					break;
+				}
+			}
+			if (!found)
+			{
+				connectionsFound.add(new PolyConnection(sp1, sp2));
+			}
+		}
+	}
+
+	/**
+	 * HierarchyEnumerator subclass to find all geometry in a cell that touches a desired area at the upper level.
+	 */
+	private class GatherPolygonVisitor extends HierarchyEnumerator.Visitor
+	{
+		private List<SubPolygon> polygons;
+		private Rectangle2D intersectArea;
+		private NodeInst cellOfInterest;
+
+		public GatherPolygonVisitor(List<SubPolygon> polygons, Rectangle2D intersectArea, NodeInst cellOfInterest)
+		{
+			this.polygons = polygons;
+			this.intersectArea = intersectArea;
+			this.cellOfInterest = cellOfInterest;
+		}
+
+		public boolean enterCell(HierarchyEnumerator.CellInfo info) { return true; }
+
+		public void exitCell(HierarchyEnumerator.CellInfo info)
+		{
+			AffineTransform toTop = info.getTransformToRoot();
+			Netlist nl = info.getNetlist();
+
+			// add all nodes to the list
+			for(Iterator<NodeInst> it = info.getCell().getNodes(); it.hasNext(); )
+			{
+				NodeInst ni = it.next();
+				if (ni.isCellInstance()) continue;
+				AffineTransform nodeTrans = ni.rotateOut(toTop);
+				Technology tech = ni.getProto().getTechnology();
+				Poly[] polys = tech.getShapeOfNode(ni, true, true, null);
+				for(int i=0; i<polys.length; i++)
+				{
+					Poly poly = polys[i];
+					if (poly.getPort() == null) continue;
+					poly.transform(nodeTrans);
+					if (!poly.getBounds2D().intersects(intersectArea)) continue;
+					int netID = -1;
+					Network net = nl.getNetwork(ni, poly.getPort(), 0);
+					if (net != null) netID = info.getNetID(net);
+					polygons.add(new SubPolygon(poly, info.getContext(), netID, ni));
+				}
+			}
+
+			// add all arcs to the list
+			for(Iterator<ArcInst> it = info.getCell().getArcs(); it.hasNext(); )
+			{
+				ArcInst ai = it.next();
+				Technology tech = ai.getProto().getTechnology();
+				Poly [] arcPolyList = tech.getShapeOfArc(ai);
+				for(int i=0; i<arcPolyList.length; i++)
+				{
+					PolyBase poly = arcPolyList[i];
+					poly.transform(toTop);
+					if (!poly.getBounds2D().intersects(intersectArea)) continue;
+					Network net = nl.getNetwork(ai, 0);
+					int netID = info.getNetID(net);
+					polygons.add(new SubPolygon(poly, info.getContext(), netID, ai));
+				}
+			}
+		}
+
+		public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
+		{
+			// only examine subcells if they intersect the area of interest
+			NodeInst ni = no.getNodeInst();
+			if (info.isRootCell())
+			{
+				// ignore any subcells that aren't the one being examined
+				if (ni != cellOfInterest) return false;
+			}
+			if (!ni.isCellInstance()) return false;
+			Rectangle2D b = ni.getBounds();
+			Rectangle2D bounds = new Rectangle2D.Double(b.getMinX(), b.getMinY(), b.getWidth(), b.getHeight());
+			AffineTransform trans = info.getTransformToRoot();
+			DBMath.transformRect(bounds, trans);
+			if (bounds.intersects(intersectArea)) return true;
+			return false;
+		}
+	}
+
+	/****************************************** SUPPORT ******************************************/
+
+	/**
+	 * Method to determine if an arc is too wide for its ends.
+	 * Arcs that are wider than their nodes stick out from those nodes,
+	 * and their geometry must be considered, even though the nodes have been checked.
+	 * @param ai the ArcInst to check.
+	 * @return true if the arc is wider than its end nodes
+	 */
+	private boolean arcTooWide(ArcInst ai)
+	{
+		boolean headTooWide = true;
+		NodeInst hNi = ai.getHeadPortInst().getNodeInst();
+		if (hNi.isCellInstance()) headTooWide = false; else
+			if (ai.getLambdaBaseWidth() <= hNi.getLambdaBaseXSize() &&
+				ai.getLambdaBaseWidth() <= hNi.getLambdaBaseYSize()) headTooWide = false;
+
+		boolean tailTooWide = true;
+		NodeInst tNi = ai.getTailPortInst().getNodeInst();
+		if (tNi.isCellInstance()) tailTooWide = false; else
+			if (ai.getLambdaBaseWidth() <= tNi.getLambdaBaseXSize() &&
+				ai.getLambdaBaseWidth() <= tNi.getLambdaBaseYSize()) tailTooWide = false;
+
+		return headTooWide || tailTooWide;
+	}
+
+	/**
 	 * Method to get the shape of a node as a list of Polys.
 	 * The autorouter uses this instead of Technology.getShapeOfNode()
 	 * because this gets electrical layers and makes invisible pins be visible
@@ -1810,6 +2252,89 @@ public class AutoStitch
 			bestArea = area;
 			bestFound = true;
 			arcLayers.put(ap, poly.getLayer());
+		}
+	}
+
+	/**
+	 * Class to sort Routes.
+	 */
+	private static class CompRoutes implements Comparator<Route>
+	{
+		public int compare(Route r1, Route r2)
+		{
+			// separate nodes from arcs
+			RouteElementPort r1s = r1.getStart();
+			RouteElementPort r1e = r1.getEnd();
+			RouteElementPort r2s = r2.getStart();
+			RouteElementPort r2e = r2.getEnd();
+			boolean r1ToArc = r1s.getPortInst() == null || r1e.getPortInst() == null;
+			boolean r2ToArc = r2s.getPortInst() == null || r2e.getPortInst() == null;
+			if (r1ToArc && !r2ToArc) return 1;
+			if (!r1ToArc && r2ToArc) return -1;
+			if (r1ToArc && r2ToArc)
+			{
+				ArcProto ap1 = null, ap2 = null;
+				if (r1s.getNewArcs().hasNext()) ap1 = ((RouteElementArc)(r1s.getNewArcs().next())).getArcProto();
+				if (r1e.getNewArcs().hasNext()) ap1 = ((RouteElementArc)(r1e.getNewArcs().next())).getArcProto();
+				if (r2s.getNewArcs().hasNext()) ap2 = ((RouteElementArc)(r2s.getNewArcs().next())).getArcProto();
+				if (r2e.getNewArcs().hasNext()) ap2 = ((RouteElementArc)(r2e.getNewArcs().next())).getArcProto();
+				if (ap1 == null || ap2 == null) return 0;
+				return ap1.compareTo(ap2);
+			}
+
+			// get the first route in proper order
+			NodeInst n1s = r1s.getPortInst().getNodeInst();
+			NodeInst n1e = r1e.getPortInst().getNodeInst();
+			if (n1s.compareTo(n1e) < 0)
+			{
+				NodeInst s = n1s;   n1s = n1e;   n1e = s;
+				RouteElementPort se = r1s;   r1s = r1e;   r1e = se;
+			}
+
+			// get the second route in proper order
+			NodeInst n2s = r2s.getPortInst().getNodeInst();
+			NodeInst n2e = r2e.getPortInst().getNodeInst();
+			if (n2s.compareTo(n2e) < 0)
+			{
+				NodeInst s = n2s;   n2s = n2e;   n2e = s;
+				RouteElementPort se = r2s;   r2s = r2e;   r2e = se;
+			}
+
+			// sort by the starting and ending nodes
+			int res = n1s.compareTo(n2s);
+			if (res != 0) return res;
+			res = n1e.compareTo(n2e);
+			if (res != 0) return res;
+
+			// sort by the starting and ending port names
+			res = r1s.getPortInst().getPortProto().getName().compareTo(r2s.getPortInst().getPortProto().getName());
+			if (res != 0) return res;
+			res = r1e.getPortInst().getPortProto().getName().compareTo(r2e.getPortInst().getPortProto().getName());
+			if (res != 0) return res;
+
+//			// sort by the starting and ending port locations
+//			Poly p1s = r1s.getPortInst().getPoly();
+//			Poly p2s = r2s.getPortInst().getPoly();
+//			double x1 = p1s.getCenterX();
+//			double y1 = p1s.getCenterY();
+//			double x2 = p2s.getCenterX();
+//			double y2 = p2s.getCenterY();
+//			if (x1 < x2) return 1;
+//			if (x1 > x2) return -1;
+//			if (y1 < y2) return 1;
+//			if (y1 > y2) return -1;
+//
+//			Poly p1e = r1e.getPortInst().getPoly();
+//			Poly p2e = r2e.getPortInst().getPoly();
+//			x1 = p1e.getCenterX();
+//			y1 = p1e.getCenterY();
+//			x2 = p2e.getCenterX();
+//			y2 = p2e.getCenterY();
+//			if (x1 < x2) return 1;
+//			if (x1 > x2) return -1;
+//			if (y1 < y2) return 1;
+//			if (y1 > y2) return -1;
+			return 0;
 		}
 	}
 

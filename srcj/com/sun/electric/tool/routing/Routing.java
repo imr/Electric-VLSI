@@ -1263,6 +1263,19 @@ public class Routing extends Listener
 	 */
 	public static void setAutoStitchOn(boolean on) { cacheAutoStitchOn.setBoolean(on); }
 
+	private static Pref cacheAutoStitchCreateExports = Pref.makeBooleanPref("AutoStitchCreateExports", Routing.tool.prefs, false);
+	/**
+	 * Method to tell whether Auto-stitching should create exports if necessary.
+	 * The default is "false".
+	 * @return true if Auto-stitching should create exports if necessary.
+	 */
+	public static boolean isAutoStitchCreateExports() { return cacheAutoStitchCreateExports.getBoolean(); }
+	/**
+	 * Method to set whether Auto-stitching should create exports if necessary.
+	 * @param on true if Auto-stitching should create exports if necessary.
+	 */
+	public static void setAutoStitchCreateExports(boolean on) { cacheAutoStitchCreateExports.setBoolean(on); }
+
 	/****************************** MIMIC-STITCHING OPTIONS ******************************/
 
 	private static Pref cacheMimicStitchOn = Pref.makeBooleanPref("MimicStitchOn", Routing.tool.prefs, false);

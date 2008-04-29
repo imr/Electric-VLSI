@@ -124,6 +124,7 @@ public class Connectivity
 	/** the smallest polygon acceptable for merging */			private double smallestPoly;
 	/** debugging: list of objects created */					private List<ERectangle> addedRectangles;
 	/** debugging: list of objects created */					private List<ERectangle> addedLines;
+	/** list of exported pins to realize at the end */			private List<ExportedPin> pinsForLater;
 
 	/**
 	 * Method to examine the current cell and extract it's connectivity in a new one.
@@ -385,6 +386,7 @@ public class Connectivity
 		startSection("Gathering geometry in " + oldCell + "...");		// HAS PROGRESS IN IT
 		Set<Cell> expandedCells = new HashSet<Cell>();
 		exportsToRestore = new ArrayList<Export>();
+		pinsForLater = new ArrayList<ExportedPin>();
 		allCutLayers = new HashMap<Layer,List<PolyBase>>();
 		extractCell(oldCell, newCell, pat, expandedCells, merge, GenMath.MATID);
 		if (expandedCells.size() > 0)
@@ -454,7 +456,7 @@ public class Connectivity
 			for(Iterator<ArcInst> it = newCell.getArcs(); it.hasNext(); )
 				allArcs.add(it.next());
 		}
-		AutoStitch.runAutoStitch(newCell, null, null, originalUnscaledMerge, null, false, true);
+		AutoStitch.runAutoStitch(newCell, null, null, originalUnscaledMerge, null, false, true, true);
 		if (DEBUGSTEPS)
 		{
 			initDebugging();
@@ -495,6 +497,20 @@ public class Connectivity
 			addedBatchRectangles.add(addedRectangles);
 			addedBatchLines.add(addedLines);
 			addedBatchNames.add(descr);
+		}
+	}
+
+	private static class ExportedPin
+	{
+		Point2D location;
+		NodeInst ni;
+		AffineTransform trans;
+
+		ExportedPin(NodeInst ni, Point2D location, AffineTransform trans)
+		{
+			this.ni = ni;
+			this.location = location;
+			this.trans = trans;
 		}
 	}
 
@@ -545,6 +561,17 @@ public class Connectivity
 			} else
 			{
 				PrimitiveNode np = (PrimitiveNode)ni.getProto();
+
+				// special case for exported but unconnected pins: save for later
+				if (np.getFunction() == PrimitiveNode.Function.PIN)
+				{
+					if (ni.hasExports() && !ni.hasConnections())
+					{
+						ExportedPin ep = new ExportedPin(ni, ni.getTrueCenter(), prevTrans);
+						pinsForLater.add(ep);
+						continue;
+					}
+				}
 				if (np.getFunction() != PrimitiveNode.Function.NODE) copyType = ni.getProto(); else
 				{
 					if (ignoreNodes.contains(np)) copyType = ni.getProto();
@@ -1018,9 +1045,12 @@ public class Connectivity
 
 		public String toString()
 		{
-			return "CENTERLINE from ("+(start.getX()/SCALEFACTOR)+","+(start.getY()/SCALEFACTOR)+") to ("+
-				(end.getX()/SCALEFACTOR)+","+(end.getY()/SCALEFACTOR)+") wid="+width/SCALEFACTOR+
-			", len="+(start.distance(end)/SCALEFACTOR);
+			return "CENTERLINE from (" + TextUtils.formatDouble(start.getX()/SCALEFACTOR) + "," +
+				TextUtils.formatDouble(start.getY()/SCALEFACTOR) + ") to (" +
+				TextUtils.formatDouble(end.getX()/SCALEFACTOR) + "," +
+				TextUtils.formatDouble(end.getY()/SCALEFACTOR) + ") wid=" +
+				TextUtils.formatDouble(width/SCALEFACTOR) + ", len=" +
+				TextUtils.formatDouble((start.distance(end)/SCALEFACTOR));
 		}
 	}
 
@@ -1196,50 +1226,68 @@ public class Connectivity
 		// if no ports were found but there were cells, should create new exports in the cells
 		if (touchingNodes.size() == 0 && mightCreateExports)
 		{
-			for(Iterator<RTBounds> it = newCell.searchIterator(checkBounds); it.hasNext(); )
-			{
-				RTBounds geom = it.next();
-				if (!(geom instanceof NodeInst)) continue;
-				NodeInst ni = (NodeInst)geom;
-				if (!ni.isCellInstance()) continue;
-
-				// can we create an export on the cell?
-				PortInst pi = makePort(ni, layer, pt);
-				if (pi != null)
-				{
-					touchingNodes.add(pi);
-					break;
-				}
-			}
+			// can we create an export on the cell?
+			PortInst pi = makePort(newCell, layer, pt);
+			if (pi != null)
+				touchingNodes.add(pi);
 		}
 		return touchingNodes;
 	}
 
 	/**
-	 * Method to create an export so that a node can connect to a layer.
-	 * @param ni the node that needs to connect.
+	 * Method to connect to a given location and layer.
+	 * @param cell the cell in which this location/layer exists.
 	 * @param layer the layer on which to connect.
-	 * @param pt the location on the node for the connection.
-	 * @return the PortInst on the node (null if it cannot be created).
+	 * @param pt the location in the Cell for the connection.
+	 * @return a PortInst on a node in the Cell (null if it cannot be found).
 	 */
-	private PortInst makePort(NodeInst ni, Layer layer, Point2D pt)
+	private PortInst makePort(Cell cell, Layer layer, Point2D pt)
 	{
-		Cell subCell = (Cell)ni.getProto();
-
-		AffineTransform transIn = ni.rotateIn(ni.translateIn());
-		Point2D inside = new Point2D.Double();
-		transIn.transform(pt, inside);
-		Rectangle2D bounds = new Rectangle2D.Double(inside.getX(), inside.getY(), 0, 0);
-		for(Iterator<RTBounds> it = subCell.searchIterator(bounds); it.hasNext(); )
+		Rectangle2D checkBounds = new Rectangle2D.Double(pt.getX(), pt.getY(), 0, 0);
+		for(Iterator<RTBounds> it = cell.searchIterator(checkBounds); it.hasNext(); )
 		{
 			RTBounds geom = it.next();
-			if (geom instanceof ArcInst) continue;
+			if (!(geom instanceof NodeInst)) continue;
 			NodeInst subNi = (NodeInst)geom;
 			PortInst foundPi = null;
 			if (subNi.isCellInstance())
 			{
-				PortInst pi = makePort(subNi, layer, inside);
-				if (pi != null) foundPi = pi;
+				AffineTransform transIn = subNi.rotateIn(subNi.translateIn());
+				Point2D inside = new Point2D.Double();
+				transIn.transform(pt, inside);
+				Cell subCell = (Cell)subNi.getProto();
+				PortInst pi = makePort(subCell, layer, inside);
+				if (pi != null)
+				{
+					// already exported?
+					for(Iterator<Export> eIt = pi.getNodeInst().getExports(); eIt.hasNext(); )
+					{
+						Export e = eIt.next();
+						if (e.getOriginalPort() == pi)
+						{
+							foundPi = subNi.findPortInstFromProto(e);
+							return foundPi;
+						}
+					}
+
+					// if not already exported, make the export now
+					if (foundPi == null)
+					{
+						Netlist nl = subCell.acquireUserNetlist();
+						Network net = nl.getNetwork(pi);
+						String exportName = null;
+						for(Iterator<String> nIt = net.getExportedNames(); nIt.hasNext(); )
+						{
+							String eName = nIt.next();
+							if (exportName == null || exportName.length() < eName.length()) exportName = eName;
+						}
+						if (exportName == null) exportName = "E";
+						exportName = ElectricObject.uniqueObjectName(exportName, subCell, PortProto.class, true);
+						Export e = Export.newInstance(subCell, pi, exportName);
+						foundPi = subNi.findPortInstFromProto(e);
+						return foundPi;
+					}
+				}
 			} else
 			{
 				Technology tech = subNi.getProto().getTechnology();
@@ -1252,37 +1300,13 @@ public class Connectivity
 					if (poly.getPort() == null) continue;
 					if (geometricLayer(poly.getLayer()) != layer) continue;
 					poly.transform(trans);
-					if (poly.contains(inside))
+					if (poly.contains(pt))
 					{
 						// found polygon that touches the point.  Make the export
-						foundPi = findPortInstClosestToPoly(subNi, (PrimitivePort)poly.getPort(), inside);
-						break;
+						foundPi = findPortInstClosestToPoly(subNi, (PrimitivePort)poly.getPort(), pt);
+						return foundPi;
 					}
 				}
-			}
-			if (foundPi != null)
-			{
-				// already exported?
-				for(Iterator<Export> eIt = foundPi.getNodeInst().getExports(); eIt.hasNext(); )
-				{
-					Export e = eIt.next();
-					if (e.getOriginalPort() == foundPi)
-						return ni.findPortInstFromProto(e);
-				}
-
-				// figure out what export it is connected to
-				Netlist nl = subCell.acquireUserNetlist();
-				Network net = nl.getNetwork(foundPi);
-				String exportName = null;
-				for(Iterator<String> nIt = net.getExportedNames(); nIt.hasNext(); )
-				{
-					String eName = nIt.next();
-					if (exportName == null || exportName.length() < eName.length()) exportName = eName;
-				}
-				if (exportName == null) exportName = "E";
-				exportName = ElectricObject.uniqueObjectName(exportName, subCell, PortProto.class, true);
-				Export e = Export.newInstance(subCell, foundPi, exportName);
-				return ni.findPortInstFromProto(e);
 			}
 		}
 		return null;
@@ -1317,17 +1341,17 @@ public class Connectivity
 	 */
 	private void extractVias(PolyMerge merge, PolyMerge originalMerge, Cell newCell)
 	{
-		// make a list of all via/cut layers in the technology
+		// make a list of all via/cut layers in the technology and count the number of vias/cuts
 		int totalCuts = 0;
 		List<Layer> layers = new ArrayList<Layer>();
 		for (Layer layer : allCutLayers.keySet())
 		{
 			layers.add(layer);
 			List<PolyBase> cutList = allCutLayers.get(layer);
-			if (cutList != null) totalCuts += cutList.size();
+			totalCuts += cutList.size();
 		}
 
-		// create a list of nodes that have been created
+		// initialize list of nodes that have been created
 		List<NodeInst> contactNodes = new ArrayList<NodeInst>();
 
 		// examine all vias/cuts for possible contacts
@@ -1337,9 +1361,6 @@ public class Connectivity
 			// compute the possible via nodes that this layer could become
 			List<PossibleVia> possibleVias = findPossibleVias(layer);
 
-			// get all of the geometry on the cut/via layer
-			List<PolyBase> cutList = allCutLayers.get(layer);
-
 			// make a list of all necessary layers
 			Set<Layer> layersToExamine = new HashSet<Layer>();
 			for(PossibleVia pv : possibleVias)
@@ -1347,6 +1368,9 @@ public class Connectivity
 				for(int i=0; i<pv.layers.length; i++)
 					layersToExamine.add(pv.layers[i]);
 			}
+
+			// get all of the geometry on the cut/via layer
+			List<PolyBase> cutList = allCutLayers.get(layer);
 
 			RTNode root = null;
 			if (Extract.isApproximateCuts())
@@ -1364,7 +1388,7 @@ public class Connectivity
 				soFar++;
 				if ((soFar % 100) == 0) Job.getUserInterface().setProgressValue(soFar * 100 / totalCuts);
 
-				// figure out which of the layers are present at this cut point
+				// figure out which of the layers is present at this cut point
 				Rectangle2D cutBox = cut.getBox();
 				if (cutBox == null)
 				{
@@ -1429,6 +1453,7 @@ public class Connectivity
 						trueWidth = pv.minHeight;
 						trueHeight = pv.minWidth;
 					}
+					Layer badLayer = null;
 					if (Extract.isApproximateCuts() && pv.cutNodeLayer.getRepresentation() == Technology.NodeLayer.MULTICUTBOX)
 					{
 						// look for other cuts in the vicinity
@@ -1463,12 +1488,16 @@ public class Connectivity
 						}
 
 						// see if a multi-cut contact fits
-						double lX = multiCutArea.getMinX() - trueWidth/2;
-						double hX = multiCutArea.getMaxX() + trueWidth/2;
-						double lY = multiCutArea.getMinY() - trueHeight/2;
-						double hY = multiCutArea.getMaxY() + trueHeight/2;
+//						double lX = multiCutArea.getMinX() - trueWidth/2;
+//						double hX = multiCutArea.getMaxX() + trueWidth/2;
+//						double lY = multiCutArea.getMinY() - trueHeight/2;
+//						double hY = multiCutArea.getMaxY() + trueHeight/2;
+						double lX = multiCutArea.getCenterX() - trueWidth/2;
+						double hX = multiCutArea.getCenterX() + trueWidth/2;
+						double lY = multiCutArea.getCenterY() - trueHeight/2;
+						double hY = multiCutArea.getCenterY() + trueHeight/2;
 						multiCutArea.setRect(lX, lY, hX-lX, hY-lY);
-						Layer badLayer = doesNodeFit(pv, multiCutArea, originalMerge, ignorePWell, ignoreNWell);
+						badLayer = doesNodeFit(pv, multiCutArea, originalMerge, ignorePWell, ignoreNWell);
 						if (badLayer == null)
 						{
 							// it fits: create it
@@ -1479,28 +1508,31 @@ public class Connectivity
 								mw = multiCutArea.getHeight();
 								mh = multiCutArea.getWidth();
 							}
-							realizeNode(pv.pNp, multiCutArea.getCenterX(), multiCutArea.getCenterY(), mw, mh,
-								pv.rotation*10, null, merge, newCell, contactNodes);
+							realizeBiggestContact(pv.pNp, multiCutArea.getCenterX(), multiCutArea.getCenterY(), mw, mh,
+								pv.rotation*10, originalMerge, newCell, contactNodes);
+//							realizeNode(pv.pNp, multiCutArea.getCenterX(), multiCutArea.getCenterY(), mw, mh,
+//								pv.rotation*10, null, merge, newCell, contactNodes);
 							for(PolyBase cutsFound : cutsInArea)
 								cutList.remove(cutsFound);
 							soFar += cutsInArea.size() - 1;
 							foundCut = true;
 							break;
 						}
-					}
-
-					// see if a single-cut contact fits
-					Rectangle2D contactLoc = new Rectangle2D.Double(cutBox.getCenterX() - trueWidth/2,
-						cutBox.getCenterY() - trueHeight/2, trueWidth, trueHeight);
-					Layer badLayer = doesNodeFit(pv, contactLoc, originalMerge, ignorePWell, ignoreNWell);
-					if (badLayer == null)
+					} else
 					{
-						// it fits: create it
-						realizeNode(pv.pNp, contactLoc.getCenterX(), contactLoc.getCenterY(), pv.minWidth, pv.minHeight,
-							pv.rotation*10, null, merge, newCell, contactNodes);
-						cutList.remove(cut);
-						foundCut = true;
-						break;
+						// exact cut placement required: see if a single-cut contact fits
+						Rectangle2D contactLoc = new Rectangle2D.Double(cutBox.getCenterX() - trueWidth/2,
+							cutBox.getCenterY() - trueHeight/2, trueWidth, trueHeight);
+						badLayer = doesNodeFit(pv, contactLoc, originalMerge, ignorePWell, ignoreNWell);
+						if (badLayer == null)
+						{
+							// it fits: create it
+							realizeBiggestContact(pv.pNp, contactLoc.getCenterX(), contactLoc.getCenterY(), pv.minWidth, pv.minHeight,
+								pv.rotation*10, originalMerge, newCell, contactNodes);
+							cutList.remove(cut);
+							foundCut = true;
+							break;
+						}
 					}
 
 					reason = "node " + pv.pNp.describe(false) + ", layer " + badLayer.getName() + " does not fit";
@@ -1529,6 +1561,104 @@ public class Connectivity
 		PolyMerge subtractMerge = new PolyMerge();
 		extractContactNodes(root, merge, subtractMerge, 0, contactNodes.size());
 		merge.subtractMerge(subtractMerge);
+	}
+
+	/**
+	 * Method to create the biggest contact node in a given location.
+	 * @param pNp the type of node to create.
+	 * @param x the center X coordinate of the node.
+	 * @param y the center Y coordinate of the node.
+	 * @param sX the initial width of the node.
+	 * @param sY the initial height of the node.
+	 * @param rot the rotation of the node.
+	 * @param merge the merge in which this node must reside.
+	 * @param newCell the Cell in which the node will be created.
+	 * @param contactNodes a list of nodes that were created.
+	 */
+	private void realizeBiggestContact(PrimitiveNode pNp, double x, double y, double sX, double sY, int rot,
+		PolyMerge merge, Cell newCell, List<NodeInst> contactNodes)
+	{
+		Orientation orient = Orientation.fromAngle(rot);
+		EPoint ctr = new EPoint(x / SCALEFACTOR, y / SCALEFACTOR);
+
+		// first find an X size that does not fit
+		double lowXInc = 0;
+		double highXInc = SCALEFACTOR*2;
+		for(;;)
+		{
+			NodeInst ni = NodeInst.makeDummyInstance(pNp, ctr, (sX+highXInc) / SCALEFACTOR, sY / SCALEFACTOR, orient);
+			if (ni == null) return;
+			Poly error = dummyNodeFits(ni, merge);
+			if (error != null) break;
+			lowXInc = highXInc;
+			highXInc *= 2;
+		}
+
+		// now iterate to find the precise node X size
+		for(;;)
+		{
+			if (highXInc - lowXInc <= 1) break;
+			double medInc = (lowXInc + highXInc) / 2;
+			NodeInst ni = NodeInst.makeDummyInstance(pNp, ctr, (sX+medInc) / SCALEFACTOR, sY / SCALEFACTOR, orient);
+			if (ni == null) return;
+			Poly error = dummyNodeFits(ni, merge);
+			if (error == null) lowXInc = medInc; else
+				highXInc = medInc;
+		}
+
+		// first find an Y size that does not fit
+		double lowYInc = 0;
+		double highYInc = SCALEFACTOR*2;
+		for(;;)
+		{
+			NodeInst ni = NodeInst.makeDummyInstance(pNp, ctr, sX / SCALEFACTOR, (sY+highYInc) / SCALEFACTOR, orient);
+			if (ni == null) return;
+			Poly error = dummyNodeFits(ni, merge);
+			if (error != null) break;
+			lowYInc = highYInc;
+			highYInc *= 2;
+		}
+
+		// now iterate to find the precise node Y size
+		for(;;)
+		{
+			if (highYInc - lowYInc <= 1) break;
+			double medInc = (lowYInc + highYInc) / 2;
+			NodeInst ni = NodeInst.makeDummyInstance(pNp, ctr, sX / SCALEFACTOR, (sY+medInc) / SCALEFACTOR, orient);
+			if (ni == null) return;
+			Poly error = dummyNodeFits(ni, merge);
+			if (error == null) lowYInc = medInc; else
+				highYInc = medInc;
+		}
+		sX += lowXInc;
+		sY += lowYInc;
+
+		realizeNode(pNp, x, y, sX, sY, rot, null, merge, newCell, contactNodes);
+	}
+
+	private Poly dummyNodeFits(NodeInst ni, PolyMerge merge)
+	{
+		AffineTransform trans = ni.rotateOut();
+		Technology tech = ni.getProto().getTechnology();
+		Poly [] polys = tech.getShapeOfNode(ni);
+		for(Poly poly : polys)
+		{
+			Layer l = poly.getLayer();
+			if (l == null) continue;
+			l = geometricLayer(l);
+			poly.setLayer(l);
+			if (l.getFunction().isSubstrate()) continue;
+			if (l.getFunction().isContact()) continue;
+			poly.transform(trans);
+			Point2D[] points = poly.getPoints();
+			for(int i=0; i<points.length; i++)
+				poly.setPoint(i, scaleUp(points[i].getX()), scaleUp(points[i].getY()));
+			if (!merge.contains(l, poly))
+			{
+				return poly;
+			}
+		}
+		return null;
 	}
 
 	/**
@@ -2920,8 +3050,10 @@ public class Connectivity
 					if (Math.min(lastDist, thisDist) >= Math.max(oLastDist, oThisDist) ||
 						Math.min(oLastDist, oThisDist) >= Math.max(lastDist, thisDist)) continue;
 					if (DEBUGCENTERLINES)
-						System.out.println("PARALLEL LINES ("+lastPt.getX()+","+lastPt.getY()+") to ("+thisPt.getX()+","+thisPt.getY()+")"+
-							" and ("+oLastPt.getX()+","+oLastPt.getY()+") to ("+oThisPt.getX()+","+oThisPt.getY()+")");
+						System.out.println("PARALLEL LINES ("+TextUtils.formatDouble(lastPt.getX()/SCALEFACTOR)+","+TextUtils.formatDouble(lastPt.getY()/SCALEFACTOR)+
+							") to ("+TextUtils.formatDouble(thisPt.getX()/SCALEFACTOR)+","+TextUtils.formatDouble(thisPt.getY()/SCALEFACTOR)+")"+
+							" and ("+TextUtils.formatDouble(oLastPt.getX()/SCALEFACTOR)+","+TextUtils.formatDouble(oLastPt.getY()/SCALEFACTOR)+
+							") to ("+TextUtils.formatDouble(oThisPt.getX()/SCALEFACTOR)+","+TextUtils.formatDouble(oThisPt.getY()/SCALEFACTOR)+")");
 
 					// find the overlap
 					if (lastDist > thisDist)
@@ -3349,6 +3481,39 @@ public class Connectivity
 				if (pnUse == null) continue;
 				NodeInst ni = NodeInst.makeInstance(pnUse, loc, pnUse.getDefWidth(), pnUse.getDefHeight(), newCell);
 				Export.newInstance(newCell, ni.getOnlyPortInst(), e.getName());
+			}
+		}
+
+		// now handle exported pins
+		for(ExportedPin ep : pinsForLater)
+		{
+			for(Iterator<Export> eIt = ep.ni.getExports(); eIt.hasNext(); )
+			{
+				Export e = eIt.next();
+				ArcProto[] possibleCons = e.getBasePort().getConnections();
+				ArcProto ap = possibleCons[0];
+				Layer layer = ap.getLayer(0);
+				PortInst pi = makePort(newCell, layer, ep.location);
+				if (pi != null)
+				{
+					// found location of export: create export if not already done
+					Export found = newCell.findExport(e.getName());
+					if (found != null) continue;
+				}
+
+				// must create export stand-alone (not really a good idea, but cannot find anything to connect to it)
+				double sX = ep.ni.getXSize();
+				double sY = ep.ni.getYSize();
+				Point2D instanceAnchor = new Point2D.Double(0, 0);
+				ep.trans.transform(ep.ni.getAnchorCenter(), instanceAnchor);
+				NodeInst newNi = NodeInst.makeInstance(ep.ni.getProto(), instanceAnchor, sX, sY, newCell);
+				if (newNi == null)
+				{
+					System.out.println("Problem creating new instance of " + ep.ni.getProto());
+					return;
+				}
+				PortInst newPi = newNi.findPortInstFromProto(e.getOriginalPort().getPortProto());
+				Export.newInstance(newCell, newPi, e.getName());
 			}
 		}
 	}

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07j: ******************************
 
+IMP/MAN: (4/29/08, SMR) Auto-stitcher now has the option to create exports
+     (Bug #1593).
+
 BUG: (4/29/08, RK) My cleanup of the gate layout generation code broke
      the TSMC180 regressions 080429_0000. Repaired.
 

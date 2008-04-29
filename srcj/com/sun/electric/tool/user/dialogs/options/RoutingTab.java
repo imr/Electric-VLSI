@@ -140,6 +140,10 @@ public class RoutingTab extends PreferencePanel
 			routDefaultArc.setSelectedItem(initRoutDefArc.getName());
 		}
 
+		// auot routing section
+		routAutoCreateExports.setSelected(Routing.isAutoStitchCreateExports());
+
+		// mimic routing section
 		routMimicPortsMustMatch.setSelected(Routing.isMimicStitchMatchPorts());
 		routMimicPortsWidthMustMatch.setSelected(Routing.isMimicStitchMatchPortWidth());
 		routMimicNumArcsMustMatch.setSelected(Routing.isMimicStitchMatchNumArcs());
@@ -358,6 +362,10 @@ public class RoutingTab extends PreferencePanel
 		cur = routMimicKeepPins.isSelected();
 		if (cur != Routing.isMimicStitchPinsKept())
 			Routing.setMimicStitchPinsKept(cur);
+
+		cur = routAutoCreateExports.isSelected();
+		if (cur != Routing.isAutoStitchCreateExports())
+			Routing.setAutoStitchCreateExports(cur);
 	}
 
 	/** This method is called from within the constructor to
@@ -371,7 +379,31 @@ public class RoutingTab extends PreferencePanel
 
         routStitcher = new javax.swing.ButtonGroup();
         routing = new javax.swing.JPanel();
-        jPanel7 = new javax.swing.JPanel();
+        left = new javax.swing.JPanel();
+        seaOfGates = new javax.swing.JPanel();
+        jLabel1 = new javax.swing.JLabel();
+        sogRouteTechnology = new javax.swing.JComboBox();
+        sogRouteArcOptions = new javax.swing.JScrollPane();
+        jLabel2 = new javax.swing.JLabel();
+        sogMaxArcWidth = new javax.swing.JTextField();
+        jLabel3 = new javax.swing.JLabel();
+        sogComplexityLimit = new javax.swing.JTextField();
+        sogParallel = new javax.swing.JCheckBox();
+        sogParallelDij = new javax.swing.JCheckBox();
+        jLabel4 = new javax.swing.JLabel();
+        all = new javax.swing.JPanel();
+        routTechLabel = new javax.swing.JLabel();
+        routDefaultArc = new javax.swing.JComboBox();
+        routNoStitcher = new javax.swing.JRadioButton();
+        routAutoStitcher = new javax.swing.JRadioButton();
+        routMimicStitcher = new javax.swing.JRadioButton();
+        routTechnology = new javax.swing.JComboBox();
+        routArcLabel = new javax.swing.JLabel();
+        routOverrideArc = new javax.swing.JCheckBox();
+        right = new javax.swing.JPanel();
+        auto = new javax.swing.JPanel();
+        routAutoCreateExports = new javax.swing.JCheckBox();
+        mimic = new javax.swing.JPanel();
         jLabel70 = new javax.swing.JLabel();
         routMimicPortsMustMatch = new javax.swing.JCheckBox();
         routMimicInteractive = new javax.swing.JCheckBox();
@@ -382,25 +414,6 @@ public class RoutingTab extends PreferencePanel
         routMimicPortsWidthMustMatch = new javax.swing.JCheckBox();
         routMimicKeepPins = new javax.swing.JCheckBox();
         routMimicOnlyNewTopology = new javax.swing.JCheckBox();
-        jPanel8 = new javax.swing.JPanel();
-        routTechLabel = new javax.swing.JLabel();
-        routDefaultArc = new javax.swing.JComboBox();
-        routNoStitcher = new javax.swing.JRadioButton();
-        routAutoStitcher = new javax.swing.JRadioButton();
-        routMimicStitcher = new javax.swing.JRadioButton();
-        routTechnology = new javax.swing.JComboBox();
-        routArcLabel = new javax.swing.JLabel();
-        routOverrideArc = new javax.swing.JCheckBox();
-        jPanel1 = new javax.swing.JPanel();
-        jLabel1 = new javax.swing.JLabel();
-        sogRouteTechnology = new javax.swing.JComboBox();
-        sogRouteArcOptions = new javax.swing.JScrollPane();
-        jLabel2 = new javax.swing.JLabel();
-        sogMaxArcWidth = new javax.swing.JTextField();
-        jLabel3 = new javax.swing.JLabel();
-        sogComplexityLimit = new javax.swing.JTextField();
-        sogParallel = new javax.swing.JCheckBox();
-        sogParallelDij = new javax.swing.JCheckBox();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -414,123 +427,119 @@ public class RoutingTab extends PreferencePanel
 
         routing.setLayout(new java.awt.GridBagLayout());
 
-        jPanel7.setLayout(new java.awt.GridBagLayout());
+        left.setLayout(new java.awt.GridBagLayout());
 
-        jPanel7.setBorder(javax.swing.BorderFactory.createTitledBorder("Mimic Stitcher"));
-        jLabel70.setText("Restrictions (when non-interactive):");
+        seaOfGates.setLayout(new java.awt.GridBagLayout());
+
+        seaOfGates.setBorder(javax.swing.BorderFactory.createTitledBorder("Sea-of-Gates Router"));
+        jLabel1.setText("Technology:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
+        seaOfGates.add(jLabel1, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
+        seaOfGates.add(sogRouteTechnology, gridBagConstraints);
+
+        sogRouteArcOptions.setMinimumSize(new java.awt.Dimension(100, 60));
+        sogRouteArcOptions.setOpaque(false);
+        sogRouteArcOptions.setPreferredSize(new java.awt.Dimension(100, 60));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
-        jPanel7.add(jLabel70, gridBagConstraints);
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
+        seaOfGates.add(sogRouteArcOptions, gridBagConstraints);
 
-        routMimicPortsMustMatch.setText("Ports must match");
-        routMimicPortsMustMatch.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
+        jLabel2.setText("Maximum arc width:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(1, 20, 1, 4);
-        jPanel7.add(routMimicPortsMustMatch, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
+        seaOfGates.add(jLabel2, gridBagConstraints);
 
-        routMimicInteractive.setText("Interactive mimicking");
+        sogMaxArcWidth.setColumns(10);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
+        seaOfGates.add(sogMaxArcWidth, gridBagConstraints);
+
+        jLabel3.setText("Search complexity limit:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(1, 4, 4, 4);
-        jPanel7.add(routMimicInteractive, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
+        seaOfGates.add(jLabel3, gridBagConstraints);
 
-        routMimicNumArcsMustMatch.setText("Number of existing arcs must match");
-        routMimicNumArcsMustMatch.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
+        sogComplexityLimit.setColumns(10);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
+        seaOfGates.add(sogComplexityLimit, gridBagConstraints);
+
+        sogParallel.setText("Do multiple routes in parallel");
+        sogParallel.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        sogParallel.setMargin(new java.awt.Insets(0, 0, 0, 0));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(1, 20, 1, 4);
-        jPanel7.add(routMimicNumArcsMustMatch, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(1, 20, 4, 4);
+        seaOfGates.add(sogParallel, gridBagConstraints);
 
-        routMimicNodeSizesMustMatch.setText("Node sizes must match");
-        routMimicNodeSizesMustMatch.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
+        sogParallelDij.setText("Use two processors per route");
+        sogParallelDij.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        sogParallelDij.setMargin(new java.awt.Insets(0, 0, 0, 0));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 5;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(1, 20, 1, 4);
-        jPanel7.add(routMimicNodeSizesMustMatch, gridBagConstraints);
+        seaOfGates.add(sogParallelDij, gridBagConstraints);
 
-        routMimicNodeTypesMustMatch.setText("Node types must match");
-        routMimicNodeTypesMustMatch.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
+        jLabel4.setText("If there are multiple processors available:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(1, 20, 1, 4);
-        jPanel7.add(routMimicNodeTypesMustMatch, gridBagConstraints);
-
-        routMimicNoOtherArcs.setText("Cannot have other arcs in the same direction");
-        routMimicNoOtherArcs.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 7;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(1, 20, 1, 4);
-        jPanel7.add(routMimicNoOtherArcs, gridBagConstraints);
-
-        routMimicPortsWidthMustMatch.setText("Bus ports must have same width");
-        routMimicPortsWidthMustMatch.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(1, 20, 1, 4);
-        jPanel7.add(routMimicPortsWidthMustMatch, gridBagConstraints);
-
-        routMimicKeepPins.setText("Keep pins");
-        routMimicKeepPins.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
-        routMimicKeepPins.setMargin(new java.awt.Insets(0, 0, 0, 0));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(1, 4, 4, 4);
-        jPanel7.add(routMimicKeepPins, gridBagConstraints);
-
-        routMimicOnlyNewTopology.setText("Ignore if already connected elsewhere");
-        routMimicOnlyNewTopology.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 8;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(1, 20, 4, 4);
-        jPanel7.add(routMimicOnlyNewTopology, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 1, 4);
+        seaOfGates.add(jLabel4, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
-        routing.add(jPanel7, gridBagConstraints);
+        gridBagConstraints.weightx = 0.5;
+        left.add(seaOfGates, gridBagConstraints);
 
-        jPanel8.setLayout(new java.awt.GridBagLayout());
+        all.setLayout(new java.awt.GridBagLayout());
 
-        jPanel8.setBorder(javax.swing.BorderFactory.createTitledBorder("All Routers"));
+        all.setBorder(javax.swing.BorderFactory.createTitledBorder("All Routers"));
         routTechLabel.setText("Technology:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(1, 20, 1, 4);
-        jPanel8.add(routTechLabel, gridBagConstraints);
+        all.add(routTechLabel, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
@@ -538,7 +547,7 @@ public class RoutingTab extends PreferencePanel
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(1, 4, 4, 4);
-        jPanel8.add(routDefaultArc, gridBagConstraints);
+        all.add(routDefaultArc, gridBagConstraints);
 
         routStitcher.add(routNoStitcher);
         routNoStitcher.setText("No stitcher running");
@@ -548,7 +557,7 @@ public class RoutingTab extends PreferencePanel
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(1, 4, 0, 4);
-        jPanel8.add(routNoStitcher, gridBagConstraints);
+        all.add(routNoStitcher, gridBagConstraints);
 
         routStitcher.add(routAutoStitcher);
         routAutoStitcher.setText("Auto-stitcher running");
@@ -558,7 +567,7 @@ public class RoutingTab extends PreferencePanel
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
-        jPanel8.add(routAutoStitcher, gridBagConstraints);
+        all.add(routAutoStitcher, gridBagConstraints);
 
         routStitcher.add(routMimicStitcher);
         routMimicStitcher.setText("Mimic-stitcher running");
@@ -568,14 +577,14 @@ public class RoutingTab extends PreferencePanel
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 4, 4);
-        jPanel8.add(routMimicStitcher, gridBagConstraints);
+        all.add(routMimicStitcher, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
-        jPanel8.add(routTechnology, gridBagConstraints);
+        all.add(routTechnology, gridBagConstraints);
 
         routArcLabel.setText("Arc:");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -583,7 +592,7 @@ public class RoutingTab extends PreferencePanel
         gridBagConstraints.gridy = 5;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(1, 20, 4, 4);
-        jPanel8.add(routArcLabel, gridBagConstraints);
+        all.add(routArcLabel, gridBagConstraints);
 
         routOverrideArc.setText("Use this arc in stitching routers:");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -592,107 +601,154 @@ public class RoutingTab extends PreferencePanel
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
-        jPanel8.add(routOverrideArc, gridBagConstraints);
+        all.add(routOverrideArc, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
-        routing.add(jPanel8, gridBagConstraints);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
+        gridBagConstraints.weightx = 0.5;
+        left.add(all, gridBagConstraints);
 
-        jPanel1.setLayout(new java.awt.GridBagLayout());
-
-        jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Sea-of-Gates Router"));
-        jLabel1.setText("Technology:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
-        jPanel1.add(jLabel1, gridBagConstraints);
+        routing.add(left, gridBagConstraints);
 
-        sogRouteTechnology.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        right.setLayout(new java.awt.GridBagLayout());
+
+        auto.setLayout(new java.awt.GridBagLayout());
+
+        auto.setBorder(javax.swing.BorderFactory.createTitledBorder("Auto Stitcher"));
+        routAutoCreateExports.setText("Create exports where necessary");
+        routAutoCreateExports.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        routAutoCreateExports.setMargin(new java.awt.Insets(0, 0, 0, 0));
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
-        jPanel1.add(sogRouteTechnology, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        auto.add(routAutoCreateExports, gridBagConstraints);
 
-        sogRouteArcOptions.setMinimumSize(new java.awt.Dimension(100, 75));
-        sogRouteArcOptions.setOpaque(false);
-        sogRouteArcOptions.setPreferredSize(new java.awt.Dimension(100, 75));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 0.5;
+        right.add(auto, gridBagConstraints);
+
+        mimic.setLayout(new java.awt.GridBagLayout());
+
+        mimic.setBorder(javax.swing.BorderFactory.createTitledBorder("Mimic Stitcher"));
+        jLabel70.setText("Restrictions (when non-interactive):");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.weighty = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
-        jPanel1.add(sogRouteArcOptions, gridBagConstraints);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
+        mimic.add(jLabel70, gridBagConstraints);
 
-        jLabel2.setText("Maximum arc width:");
+        routMimicPortsMustMatch.setText("Ports must match");
+        routMimicPortsMustMatch.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
-        jPanel1.add(jLabel2, gridBagConstraints);
-
-        sogMaxArcWidth.setColumns(10);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
-        jPanel1.add(sogMaxArcWidth, gridBagConstraints);
-
-        jLabel3.setText("Search complexity limit:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
-        jPanel1.add(jLabel3, gridBagConstraints);
-
-        sogComplexityLimit.setColumns(10);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
-        jPanel1.add(sogComplexityLimit, gridBagConstraints);
-
-        sogParallel.setText("Do multiple routes in parallel (if procs available)");
-        sogParallel.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
-        sogParallel.setMargin(new java.awt.Insets(0, 0, 0, 0));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(1, 4, 4, 4);
-        jPanel1.add(sogParallel, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(1, 20, 1, 4);
+        mimic.add(routMimicPortsMustMatch, gridBagConstraints);
 
-        sogParallelDij.setText("Use two processors per route (if available)");
-        sogParallelDij.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
-        sogParallelDij.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        routMimicInteractive.setText("Interactive mimicking");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 4, 4);
+        mimic.add(routMimicInteractive, gridBagConstraints);
+
+        routMimicNumArcsMustMatch.setText("Number of existing arcs must match");
+        routMimicNumArcsMustMatch.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
-        jPanel1.add(sogParallelDij, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(1, 20, 1, 4);
+        mimic.add(routMimicNumArcsMustMatch, gridBagConstraints);
+
+        routMimicNodeSizesMustMatch.setText("Node sizes must match");
+        routMimicNodeSizesMustMatch.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(1, 20, 1, 4);
+        mimic.add(routMimicNodeSizesMustMatch, gridBagConstraints);
+
+        routMimicNodeTypesMustMatch.setText("Node types must match");
+        routMimicNodeTypesMustMatch.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(1, 20, 1, 4);
+        mimic.add(routMimicNodeTypesMustMatch, gridBagConstraints);
+
+        routMimicNoOtherArcs.setText("No other arcs in the same direction");
+        routMimicNoOtherArcs.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(1, 20, 1, 4);
+        mimic.add(routMimicNoOtherArcs, gridBagConstraints);
+
+        routMimicPortsWidthMustMatch.setText("Bus ports must have same width");
+        routMimicPortsWidthMustMatch.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(1, 20, 1, 4);
+        mimic.add(routMimicPortsWidthMustMatch, gridBagConstraints);
+
+        routMimicKeepPins.setText("Keep pins");
+        routMimicKeepPins.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        routMimicKeepPins.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 4, 4);
+        mimic.add(routMimicKeepPins, gridBagConstraints);
+
+        routMimicOnlyNewTopology.setText("Ignore if already connected elsewhere");
+        routMimicOnlyNewTopology.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(1, 20, 4, 4);
+        mimic.add(routMimicOnlyNewTopology, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weighty = 1.0;
-        routing.add(jPanel1, gridBagConstraints);
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 0.5;
+        right.add(mimic, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
+        routing.add(right, gridBagConstraints);
 
         getContentPane().add(routing, new java.awt.GridBagConstraints());
 
@@ -707,14 +763,18 @@ public class RoutingTab extends PreferencePanel
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JPanel all;
+    private javax.swing.JPanel auto;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel70;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel7;
-    private javax.swing.JPanel jPanel8;
+    private javax.swing.JPanel left;
+    private javax.swing.JPanel mimic;
+    private javax.swing.JPanel right;
     private javax.swing.JLabel routArcLabel;
+    private javax.swing.JCheckBox routAutoCreateExports;
     private javax.swing.JRadioButton routAutoStitcher;
     private javax.swing.JComboBox routDefaultArc;
     private javax.swing.JCheckBox routMimicInteractive;
@@ -733,6 +793,7 @@ public class RoutingTab extends PreferencePanel
     private javax.swing.JLabel routTechLabel;
     private javax.swing.JComboBox routTechnology;
     private javax.swing.JPanel routing;
+    private javax.swing.JPanel seaOfGates;
     private javax.swing.JTextField sogComplexityLimit;
     private javax.swing.JTextField sogMaxArcWidth;
     private javax.swing.JCheckBox sogParallel;
