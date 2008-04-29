@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07j: ******************************
 
+BUG: (4/29/08, DN) AND primitives don't resize correctly when adding input wires (Bug #1653).
+FIX: In LayoutCell.transformByPort don't try to transform port positions of isolated ports.
+
 IMP: (4/28/08, RK) Eliminate many references to static globals of 
      com.sun.electric.tool.generator.layout.Tech.
 

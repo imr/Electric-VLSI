@@ -42,6 +42,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.tool.user.User;
 
 import java.awt.geom.AffineTransform;
@@ -928,7 +929,7 @@ class LayoutCell {
         PortProto pp = pi.getPortProto();
 		Poly oldPoly = Layout.oldPortPosition(pi);
         Poly curPoly = ni.getShapeOfPort(pp);
-        if (oldPoly == null) oldPoly = curPoly;
+        if (oldPoly == null || pp instanceof PrimitivePort && ((PrimitivePort)pp).isIsolated()) oldPoly = curPoly;
 
 		double scaleX = 1;
 		double scaleY = 1;
