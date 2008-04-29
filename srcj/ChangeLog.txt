@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07j: ******************************
 
+BUG: (4/29/08, RK) My cleanup of the gate layout generation code broke
+     the TSMC180 regressions 080429_0000. Repaired.
+
 BUG: (4/29/08, DN) AND primitives don't resize correctly when adding input wires (Bug #1653).
 FIX: In LayoutCell.transformByPort don't try to transform port positions of isolated ports.
 

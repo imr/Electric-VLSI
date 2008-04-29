@@ -23,16 +23,17 @@
  */
 package com.sun.electric.tool.generator.layout.gates;
 
+import java.awt.geom.Rectangle2D;
+
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.generator.layout.StdCellParams;
 import com.sun.electric.tool.generator.layout.Tech;
-
-import java.awt.geom.Rectangle2D;
+import com.sun.electric.tool.generator.layout.TechType;
 
 /** Create a ring in layers p1 and m1 - m5.  This ring is useful for
  * testing DRC correctness of my gate libraries.  I will draw a ring
@@ -112,6 +113,7 @@ public class DrcRing {
   /** Draw rings with inside width w and inside height h. The ring
    * position places the bottom left inside corner at (0, 0) */
   public static Cell makePart(double w, double h, StdCellParams stdCell) {
+	  TechType tech = stdCell.getTechType();
     String nm = "drcRing_W"+w+"_H"+h+"{lay}";
 
     Cell ring = stdCell.findPart(nm);
@@ -121,16 +123,16 @@ public class DrcRing {
     if (Tech.is90nm()) {
         // ignore poly, but put in select rings
         double pwellRatio = stdCell.getPmosWellHeight()/(stdCell.getNmosWellHeight()+stdCell.getPmosWellHeight());
-        drawRing(Tech.pselNode(), w, h, 4.8, ring, 'B', pwellRatio);
-        drawRing(Tech.nselNode(), w, h, 4.8, ring, 'T', pwellRatio);
+        drawRing(tech.pselNode(), w, h, 4.8, ring, 'B', pwellRatio);
+        drawRing(tech.nselNode(), w, h, 4.8, ring, 'T', pwellRatio);
     } else {
-        drawRing(Tech.p1(), w, h, ring);
+        drawRing(tech.p1(), w, h, ring);
     }
-    drawRing(Tech.m1(), w, h, ring);
-    drawRing(Tech.m2(), w, h, ring);
-    drawRing(Tech.m3(), w, h, ring);
-    drawRing(Tech.m4(), w, h, ring);
-    drawRing(Tech.m5(), w, h, ring);
+    drawRing(tech.m1(), w, h, ring);
+    drawRing(tech.m2(), w, h, ring);
+    drawRing(tech.m3(), w, h, ring);
+    drawRing(tech.m4(), w, h, ring);
+    drawRing(tech.m5(), w, h, ring);
 
     return ring;
   }

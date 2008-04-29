@@ -340,8 +340,12 @@ public abstract class FoldedMos {
 			mosY-= misAlign;
 		}
 
-		double extraDiffPolySpace= gateWidth >= tech.getDiffContWidth() ? 0.
-				: .5;
+		double extraDiffPolySpace = 
+			gateWidth >= tech.getDiffContWidth() ? (
+			    0.
+			) : (
+				tech.getGateToDiffContSpaceDogBone() - tech.getGateToDiffContSpace()
+			);
 		double viaToMosPitch = tech.getDiffContWidth()/2 + 
 		                       tech.getGateToDiffContSpace() +
 		                       tech.getGateLength()/2;
