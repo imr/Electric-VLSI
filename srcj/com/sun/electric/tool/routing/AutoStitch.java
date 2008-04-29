@@ -27,6 +27,7 @@ package com.sun.electric.tool.routing;
 
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.ObjectQTree;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyBase;
@@ -1747,7 +1748,6 @@ public class AutoStitch
 				{
 					PolyBase poly = nodeInstPolyList[i];
 					if (poly.getLayer() != arcPoly.getLayer()) continue;
-					poly.transform(nodeTrans);
 					int netID = -1;
 					if (poly.getPort() != null)
 					{
@@ -1755,7 +1755,9 @@ public class AutoStitch
 						if (net != null) netID = info.getNetID(net);
 					}
 					if (netID == arcNetID) continue;
-					if (poly.separation(arcPoly) > DBMath.getEpsilon()) continue;
+					poly.transform(nodeTrans);
+					double dist = poly.separation(arcPoly);
+					if (dist >= DBMath.getEpsilon()) continue;
 					SubPolygon sp = new SubPolygon(poly, info.getContext(), netID, ni);
 					if (bestSubPolygon != null)
 					{
@@ -1790,7 +1792,7 @@ public class AutoStitch
 			Rectangle2D bounds = new Rectangle2D.Double(b.getMinX(), b.getMinY(), b.getWidth(), b.getHeight());
 			AffineTransform trans = info.getTransformToRoot();
 			DBMath.transformRect(bounds, trans);
-			if (bounds.intersects(arcBounds)) return true;
+			if (DBMath.rectsIntersect(bounds, arcBounds)) return true;
 			return false;
 		}
 	}
@@ -1878,7 +1880,7 @@ public class AutoStitch
 			bound1.getWidth()+DBMath.getEpsilon()*2, bound1.getHeight()+DBMath.getEpsilon()*2);
 		bound2 = new Rectangle2D.Double(bound2.getMinX()-DBMath.getEpsilon(), bound2.getMinY()-DBMath.getEpsilon(),
 			bound2.getWidth()+DBMath.getEpsilon()*2, bound2.getHeight()+DBMath.getEpsilon()*2);
-		if (!bound1.intersects(bound2)) return;
+		if (!DBMath.rectsIntersect(bound1, bound2)) return;
 		Rectangle2D intersectArea = bound1.createIntersection(bound2);
 
 		// now find all polygons in Node 1 that are in the intersection area
@@ -1896,7 +1898,7 @@ public class AutoStitch
 			{
 				Poly poly = polys[i];
 				poly.transform(trans);
-				if (!poly.getBounds2D().intersects(intersectArea)) continue;
+				if (!DBMath.rectsIntersect(poly.getBounds2D(), intersectArea)) continue;
 				polygons.add(new SubPolygon(poly, VarContext.globalContext, -1, ni1));
 			}
 		}
@@ -1955,11 +1957,11 @@ public class AutoStitch
 					Poly poly = polys[i];
 					if (poly.getPort() == null) continue;
 					poly.transform(nodeTrans);
-					if (!poly.getBounds2D().intersects(intersectArea)) continue;
+					if (!DBMath.rectsIntersect(poly.getBounds2D(), intersectArea)) continue;
 					for(SubPolygon sp : polygons)
 					{
 						if (sp.poly.getLayer() != poly.getLayer()) continue;
-						if (sp.poly.separation(poly) > DBMath.getEpsilon()) continue;
+						if (sp.poly.separation(poly) >= DBMath.getEpsilon()) continue;
 						int netID = -1;
 						Network net = nl.getNetwork(ni, poly.getPort(), 0);
 						if (net != null) netID = info.getNetID(net);
@@ -1979,7 +1981,7 @@ public class AutoStitch
 				{
 					PolyBase poly = arcPolyList[i];
 					poly.transform(toTop);
-					if (!poly.getBounds2D().intersects(intersectArea)) continue;
+					if (!DBMath.rectsIntersect(poly.getBounds2D(), intersectArea)) continue;
 					for(SubPolygon sp : polygons)
 					{
 						if (sp.poly.getLayer() != poly.getLayer()) continue;
@@ -2007,7 +2009,7 @@ public class AutoStitch
 			Rectangle2D bounds = new Rectangle2D.Double(b.getMinX(), b.getMinY(), b.getWidth(), b.getHeight());
 			AffineTransform trans = info.getTransformToRoot();
 			DBMath.transformRect(bounds, trans);
-			if (bounds.intersects(intersectArea)) return true;
+			if (DBMath.rectsIntersect(bounds, intersectArea)) return true;
 			return false;
 		}
 
@@ -2076,9 +2078,11 @@ public class AutoStitch
 				for(int i=0; i<polys.length; i++)
 				{
 					Poly poly = polys[i];
+					Layer.Function nodeLayerFun = poly.getLayer().getFunction();
+					if (!nodeLayerFun.isMetal() && !nodeLayerFun.isDiff() && !nodeLayerFun.isPoly()) continue;
 					if (poly.getPort() == null) continue;
 					poly.transform(nodeTrans);
-					if (!poly.getBounds2D().intersects(intersectArea)) continue;
+					if (!DBMath.rectsIntersect(poly.getBounds2D(), intersectArea)) continue;
 					int netID = -1;
 					Network net = nl.getNetwork(ni, poly.getPort(), 0);
 					if (net != null) netID = info.getNetID(net);
@@ -2095,8 +2099,10 @@ public class AutoStitch
 				for(int i=0; i<arcPolyList.length; i++)
 				{
 					PolyBase poly = arcPolyList[i];
+					Layer.Function arcLayerFun = poly.getLayer().getFunction();
+					if (!arcLayerFun.isMetal() && !arcLayerFun.isDiff() && !arcLayerFun.isPoly()) continue;
 					poly.transform(toTop);
-					if (!poly.getBounds2D().intersects(intersectArea)) continue;
+					if (!DBMath.rectsIntersect(poly.getBounds2D(), intersectArea)) continue;
 					Network net = nl.getNetwork(ai, 0);
 					int netID = info.getNetID(net);
 					polygons.add(new SubPolygon(poly, info.getContext(), netID, ai));
@@ -2118,7 +2124,7 @@ public class AutoStitch
 			Rectangle2D bounds = new Rectangle2D.Double(b.getMinX(), b.getMinY(), b.getWidth(), b.getHeight());
 			AffineTransform trans = info.getTransformToRoot();
 			DBMath.transformRect(bounds, trans);
-			if (bounds.intersects(intersectArea)) return true;
+			if (DBMath.rectsIntersect(bounds, intersectArea)) return true;
 			return false;
 		}
 	}
