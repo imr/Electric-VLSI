@@ -51,6 +51,7 @@ import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.variable.DisplayedText;
 import com.sun.electric.database.variable.EditWindow0;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
@@ -886,7 +887,12 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 		newNi.copyTextDescriptorFrom(this, NodeInst.NODE_PROTO);
 		newNi.copyStateBits(this);
 		if (!getNameKey().isTempname())
-			newNi.setName(getName());
+		{
+			String savedName = getName();
+			String tempName = ElectricObject.uniqueObjectName(savedName, parent, NodeInst.class, true);
+			setName(tempName);
+			newNi.setName(savedName);
+		}
 
 		// now delete the original nodeinst
 		kill();

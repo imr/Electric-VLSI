@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07j: ******************************
 
+BUG: (4/30/08, SMR) Replacing nodes loses node names (Bug #1672).
+FIX: In NodeInst.replace(), rename old node before copying name to new node
+     to prevent duplicate name errors.
+
 IMP: (4/28/08, RK) Remove more references to 
      com.sun.electric.tool.generator.layout.Tech.
 
