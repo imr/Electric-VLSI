@@ -192,7 +192,7 @@ public class FillCell {
 		double h = horLay.getVddWidth(horNdx);
 		double y = horLay.getVddCenter(horNdx);
 		ArcProto horMetal = horLay.getMetalType();
-		PrimitiveNode viaType = Tech.getViaFor(verMetal, horMetal);
+		PrimitiveNode viaType = tech.getViaFor(verMetal, horMetal);
 		PortInst horPort = (verNdx%2==0) ? horLay.getVdd(horNdx, 0) : horLay.getVdd(horNdx, 1);
         // Line below will detect mixture of technologies.
         LayoutLib.error(viaType==null, "can't find via for metal layers " + verMetal + " " + horMetal);
@@ -218,7 +218,7 @@ public class FillCell {
 		double h = horLay.getGndWidth(horNdx);
 		double y = horLay.getGndCenter(horNdx);
 		ArcProto horMetal = horLay.getMetalType();
-		PrimitiveNode viaType = Tech.getViaFor(verMetal, horMetal);
+		PrimitiveNode viaType = tech.getViaFor(verMetal, horMetal);
 		PortInst horPort = (verNdx%2==0) ? horLay.getGnd(horNdx, 0) : horLay.getGnd(horNdx, 1);
 		LayoutLib.error(viaType==null, "can't find via for metal layers");
 
@@ -277,10 +277,10 @@ public class FillCell {
 
 		double cellWidth = plans[topLayer].cellWidth;
 		double cellHeight = plans[topLayer].cellHeight;
-		LayoutLib.newNodeInst(Tech.essentialBounds(),
+		LayoutLib.newNodeInst(tech.essentialBounds(),
 							  -cellWidth/2, -cellHeight/2,
 							  G.DEF_SIZE, G.DEF_SIZE, 180, cell);
-		LayoutLib.newNodeInst(Tech.essentialBounds(),
+		LayoutLib.newNodeInst(tech.essentialBounds(),
 							  cellWidth/2, cellHeight/2,
 							  G.DEF_SIZE, G.DEF_SIZE, 0, cell);
 //        cell.setCharacteristicSpacing(cellWidth, cellHeight);
