@@ -2024,6 +2024,7 @@ public class ViewChanges
 				NodeInst ni = no.getNodeInst();
 				// scale edge offsets if this is a primitive
 				double newXSize = 0, newYSize = 0;
+				Orientation or = ni.getOrient();
 				if (newNp instanceof PrimitiveNode)
 				{
 					// get offsets for new node type
@@ -2046,6 +2047,41 @@ public class ViewChanges
 							newYSize = VarContext.objectToDouble(context.evalVar(length, no), newYSize);
 							newYSize = newYSize + offset.getHighYOffset() + offset.getLowYOffset();
 						}
+
+						// see which way the existing transistor is rotated
+						Point2D origSLoc = ni.getTransistorSourcePort().getCenter();
+						Point2D origDLoc = ni.getTransistorDrainPort().getCenter();
+						Point2D origCtr = new Point2D.Double((origSLoc.getX()+origDLoc.getX())/2, (origSLoc.getY()+origDLoc.getY())/2);
+						int gOrigAng = DBMath.figureAngle(origCtr, ni.getTransistorGatePort().getCenter());
+						int sOrigAng = DBMath.figureAngle(origCtr, ni.getTransistorSourcePort().getCenter());
+						int dOrigAng = DBMath.figureAngle(origCtr, ni.getTransistorDrainPort().getCenter());
+						int origDirection = (gOrigAng - dOrigAng + 3600) % 3600;
+
+						// see if the transistor should be rotated
+						for(;;)
+						{
+							NodeInst testNi = NodeInst.makeDummyInstance(newNp, ni.getAnchorCenter(), newXSize, newYSize, or);
+							PortInst gPi = pNewNp.getTechnology().getTransistorGatePort(testNi);
+							PortInst sPi = pNewNp.getTechnology().getTransistorSourcePort(testNi);
+							PortInst dPi = pNewNp.getTechnology().getTransistorDrainPort(testNi);
+							int gAng = DBMath.figureAngle(ni.getAnchorCenter(), gPi.getCenter());
+							int sAng = DBMath.figureAngle(ni.getAnchorCenter(), sPi.getCenter());
+							int dAng = DBMath.figureAngle(ni.getAnchorCenter(), dPi.getCenter());
+							int direction = (gAng - dAng + 3600) % 3600;
+							if (origDirection != direction)
+							{
+								// flip it
+								or = Orientation.fromJava(or.getAngle(), !or.isXMirrored(), or.isYMirrored());
+								continue;
+							}
+
+							int sDelta = (sAng - sOrigAng) % 3600;
+							int dDelta = (dAng - dOrigAng) % 3600;
+							int averageDelta = (sDelta + dDelta) / 2;
+							if (averageDelta <= 450 && averageDelta >= -450) break;
+							if (averageDelta <= 450) or = or.concatenate(Orientation.R); else
+								or = or.concatenate(Orientation.RRR);
+						}
 					}
 				} else
 				{
@@ -2056,7 +2092,7 @@ public class ViewChanges
 				}
 
 				// create the node
-				NodeInst newNi = NodeInst.makeInstance(newNp, ni.getAnchorCenter(), newXSize, newYSize, newCell, ni.getOrient(), no.getName(), ni.getTechSpecific());
+				NodeInst newNi = NodeInst.makeInstance(newNp, ni.getAnchorCenter(), newXSize, newYSize, newCell, or, no.getName(), ni.getTechSpecific());
 				if (newNi == null)
 				{
 					System.out.println("Could not create " + newNp + " in " + newCell);
