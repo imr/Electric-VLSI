@@ -170,7 +170,7 @@ public class GateRegression extends Job {
 		super("Run Gate regression", User.getUserTool(), Job.Type.CHANGE,
 			  null, null, Job.Priority.ANALYSIS);
         this.technology = techNm;
-        Tech.setTechnology(techNm.getTechType());
+        Tech.setTechType(techNm.getTechType());
 		startJob();
 	}
 }

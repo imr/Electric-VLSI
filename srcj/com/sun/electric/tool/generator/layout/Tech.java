@@ -23,8 +23,6 @@
  */
 package com.sun.electric.tool.generator.layout;
 
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
@@ -35,194 +33,169 @@ import com.sun.electric.technology.PrimitiveNode;
  * cumbersome to pass around a "tech" parameter.
  * However, I've since been modifying Tech.java to make it easier to eliminate
  * this global data. 
+ * @Deprecated please use TechType instead
  */
 public class Tech {
 	//---------------------------- private data ----------------------------------
 	private static TechType techType = null;
 
 	//----------------------------- public data ----------------------------------
+	/** @Deprecated please use TechType instead */
 	public static final Variable.Key ATTR_X = Variable.newKey("ATTR_X");
+	/** @Deprecated please use TechType instead */
 	public static final Variable.Key ATTR_S = Variable.newKey("ATTR_S");
+	/** @Deprecated please use TechType instead */
 	public static final Variable.Key ATTR_SN = Variable.newKey("ATTR_SN");
+	/** @Deprecated please use TechType instead */
 	public static final Variable.Key ATTR_SP = Variable.newKey("ATTR_SP");
 
 	//----------------------------- public methods  ------------------------------
 
     /** layers */
+	/** @Deprecated please use TechType instead */
 	public static ArcProto pdiff() {return techType.pdiff();}
+	/** @Deprecated please use TechType instead */
 	public static ArcProto ndiff() {return techType.ndiff();}
+	/** @Deprecated please use TechType instead */
 	public static ArcProto p1() {return techType.p1();}
+	/** @Deprecated please use TechType instead */
 	public static ArcProto m1() {return techType.m1();}
+	/** @Deprecated please use TechType instead */
 	public static ArcProto m2() {return techType.m2();}
+	/** @Deprecated please use TechType instead */
 	public static ArcProto m3() {return techType.m3();}
+	/** @Deprecated please use TechType instead */
 	public static ArcProto m4() {return techType.m4();}
+	/** @Deprecated please use TechType instead */
 	public static ArcProto m5() {return techType.m5();}
+	/** @Deprecated please use TechType instead */
 	public static ArcProto m6() {return techType.m6();}
+	/** @Deprecated please use TechType instead */
 	public static ArcProto m7() {return techType.m7();}
+	/** @Deprecated please use TechType instead */
 	public static ArcProto m8() {return techType.m8();}
+	/** @Deprecated please use TechType instead */
 	public static ArcProto m9() {return techType.m9();}
+	/** @Deprecated please use TechType instead */
 	public static ArcProto ndiff18() {return techType.ndiff18();}
+	/** @Deprecated please use TechType instead */
 	public static ArcProto pdiff18() {return techType.pdiff18();}
+	/** @Deprecated please use TechType instead */
 	public static ArcProto ndiff25() {return techType.ndiff25();}
+	/** @Deprecated please use TechType instead */
 	public static ArcProto pdiff25() {return techType.pdiff25();}
+	/** @Deprecated please use TechType instead */
 	public static ArcProto ndiff33() {return techType.ndiff33();}
+	/** @Deprecated please use TechType instead */
 	public static ArcProto pdiff33() {return techType.pdiff33();}
 
 	/** pins */
+	/** @Deprecated please use TechType instead */
 	public static PrimitiveNode ndpin() {return techType.ndpin();}
+	/** @Deprecated please use TechType instead */
 	public static PrimitiveNode pdpin() {return techType.pdpin();}
+	/** @Deprecated please use TechType instead */
 	public static PrimitiveNode p1pin() {return techType.p1pin();}
+	/** @Deprecated please use TechType instead */
 	public static PrimitiveNode m1pin() {return techType.m1pin();}
+	/** @Deprecated please use TechType instead */
 	public static PrimitiveNode m2pin() {return techType.m2pin();}
+	/** @Deprecated please use TechType instead */
 	public static PrimitiveNode m3pin() {return techType.m3pin();}
+	/** @Deprecated please use TechType instead */
 	public static PrimitiveNode m4pin() {return techType.m4pin();}
+	/** @Deprecated please use TechType instead */
 	public static PrimitiveNode m5pin() {return techType.m5pin();}
+	/** @Deprecated please use TechType instead */
 	public static PrimitiveNode m6pin() {return techType.m6pin();}
+	/** @Deprecated please use TechType instead */
 	public static PrimitiveNode m7pin() {return techType.m7pin();}
+	/** @Deprecated please use TechType instead */
 	public static PrimitiveNode m8pin() {return techType.m8pin();}
+	/** @Deprecated please use TechType instead */
 	public static PrimitiveNode m9pin() {return techType.m9pin();}
 
 	/** vias */
+	/** @Deprecated please use TechType instead */
 	public static PrimitiveNode nwm1() {return techType.nwm1();}
+	/** @Deprecated please use TechType instead */
 	public static PrimitiveNode pwm1() {return techType.pwm1();}
+	/** @Deprecated please use TechType instead */
 	public static PrimitiveNode nwm1Y() {return techType.nwm1Y();}
+	/** @Deprecated please use TechType instead */
 	public static PrimitiveNode pwm1Y() {return techType.pwm1Y();}
+	/** @Deprecated please use TechType instead */
 	public static PrimitiveNode ndm1() {return techType.ndm1();}
+	/** @Deprecated please use TechType instead */
 	public static PrimitiveNode pdm1() {return techType.pdm1();}
+	/** @Deprecated please use TechType instead */
 	public static PrimitiveNode p1m1() {return techType.p1m1();}
+	/** @Deprecated please use TechType instead */
 	public static PrimitiveNode m1m2() {return techType.m1m2();}
+	/** @Deprecated please use TechType instead */
 	public static PrimitiveNode m2m3() {return techType.m2m3();}
+	/** @Deprecated please use TechType instead */
 	public static PrimitiveNode m3m4() {return techType.m3m4();}
+	/** @Deprecated please use TechType instead */
 	public static PrimitiveNode m4m5() {return techType.m4m5();}
+	/** @Deprecated please use TechType instead */
 	public static PrimitiveNode m5m6() {return techType.m5m6();}
+	/** @Deprecated please use TechType instead */
 	public static PrimitiveNode m6m7() {return techType.m6m7();}
+	/** @Deprecated please use TechType instead */
 	public static PrimitiveNode m7m8() {return techType.m7m8();}
+	/** @Deprecated please use TechType instead */
 	public static PrimitiveNode m8m9() {return techType.m8m9();}
 
 	/** Transistors */
+	/** @Deprecated please use TechType instead */
 	public static PrimitiveNode nmos() {return techType.nmos();}
-	public static PrimitiveNode pmos() {return techType.pmos();}
-	public static PrimitiveNode nmos18() {return techType.nmos18();}
-	public static PrimitiveNode pmos18() {return techType.pmos18();}
+	/** @Deprecated please use TechType instead */
 	public static PrimitiveNode nmos25() {return techType.nmos25();}
-	public static PrimitiveNode pmos25() {return techType.pmos25();}
-	public static PrimitiveNode nmos33() {return techType.nmos33();}
-	public static PrimitiveNode pmos33() {return techType.pmos33();}
 	
     /** special threshold transistor contacts */
-    public static PrimitiveNode nmos18contact() {return techType.nmos18contact();}
-    public static PrimitiveNode pmos18contact() {return techType.pmos18contact();}
+	/** @Deprecated please use TechType instead */
     public static PrimitiveNode nmos25contact() {return techType.nmos25contact();}
+	/** @Deprecated please use TechType instead */
     public static PrimitiveNode pmos25contact() {return techType.pmos25contact();}
-    public static PrimitiveNode nmos33contact() {return techType.nmos33contact();}
-    public static PrimitiveNode pmos33contact() {return techType.pmos33contact();}
 
 	/** Well */
-	public static PrimitiveNode nwell() {return techType.nwell();} 
+	/** @Deprecated please use TechType instead */
 	public static PrimitiveNode pwell() {return techType.pwell();} 
 
 	/** Layer nodes are sometimes used to patch notches */
-	public static PrimitiveNode m1Node() {return techType.m1Node();} 
-	public static PrimitiveNode m2Node() {return techType.m2Node();} 
-	public static PrimitiveNode m3Node() {return techType.m3Node();} 
-	public static PrimitiveNode m4Node() {return techType.m4Node();} 
-	public static PrimitiveNode m5Node() {return techType.m5Node();} 
-	public static PrimitiveNode m6Node() {return techType.m6Node();} 
-	public static PrimitiveNode m7Node() {return techType.m7Node();} 
-	public static PrimitiveNode m8Node() {return techType.m8Node();} 
-	public static PrimitiveNode m9Node() {return techType.m9Node();} 
-	public static PrimitiveNode p1Node() {return techType.p1Node();} 
-	public static PrimitiveNode pdNode() {return techType.pdNode();} 
-	public static PrimitiveNode ndNode() {return techType.ndNode();} 
-	public static PrimitiveNode pselNode() {return techType.pselNode();} 
+	/** @Deprecated please use TechType instead */
 	public static PrimitiveNode nselNode() {return techType.nselNode();} 
 
 	/** Transistor layer nodes */
-	public static PrimitiveNode od18() {return techType.od18();} 
+	/** @Deprecated please use TechType instead */
 	public static PrimitiveNode od25() {return techType.od25();} 
-	public static PrimitiveNode od33() {return techType.od33();} 
-	public static PrimitiveNode vth() {return techType.vth();} 
-	public static PrimitiveNode vtl() {return techType.vtl();} 
 	
 	/** Essential-Bounds */
+	/** @Deprecated please use TechType instead */
 	public static PrimitiveNode essentialBounds() {return techType.essentialBounds();} 
-
-	/** Facet-Center */
-	public static PrimitiveNode facetCenter() {return techType.facetCenter();} 
-
-	/** round to avoid MOCMOS CIF resolution errors */
-	public static double roundToGrid(double x) {
-		return (is90nm()) ? x : (Math.rint(x * 2) / 2);
-	}
-	public static TechType.MosInst newNmosInst(double x, double y, 
-			                          double w, double l, Cell parent) {
-		return techType.newNmosInst(x, y, w, l, parent);
-	}
-	public static TechType.MosInst newPmosInst(double x, double y, 
-                                      double w, double l, Cell parent) {
-		return techType.newPmosInst(x, y, w, l, parent);
-	}
-
-    public static TechType getTechnology() { return techType; }
+	
+	/** @Deprecated please use TechType instead */
+	public static TechType getTechType() {return techType;}
 
     /** Change to a new technology. If the requested technology is the same
      * as the current technology then do nothing.
      * @param requestedTechnology technology to change to.
      */
-    public static void setTechnology(TechType requestedTechnology) {
+	/** @Deprecated please use TechType instead */
+    public static void setTechType(TechType requestedTechnology) {
 		if (requestedTechnology == techType) return;
 		
         techType = requestedTechnology;
 	}
 
+	/** @Deprecated please use TechType instead */
     public static boolean is90nm() {return techType==TechType.TechTypeEnum.CMOS90.getTechType();}
 
+	/** @Deprecated please use TechType instead */
     public static PrimitiveNode getViaFor(ArcProto a1, ArcProto a2) {
     	return techType.getViaFor(a1, a2);
     }
     
-	/** layer may only be poly or metal */
-	public static ArcProto closestLayer(PortProto port, ArcProto layer) {
-		return techType.closestLayer(port, layer);
-	}
-	public static int layerHeight(ArcProto p) {
-		return techType.layerHeight(p);
-	}
-	public static PrimitiveNode viaAbove(int layHeight) {
-		return techType.viaAbove(layHeight);
-	}
-	public static ArcProto layerAtHeight(int layHeight) {
-		return techType.layerAtHeight(layHeight);
-	}
-	
-	/** All the following static methods will be deprecated. Use the 
-	 * corresponding methods in TechType instead. RKao */
-
-	/** @return min width of Well */
-	public static double getWellWidth() {return techType.getWellWidth();}
-	/** @return amount that well surrounds diffusion */
-	public static double getWellSurroundDiff() {return techType.getWellSurroundDiff();}
-	/** @return MOS edge to gate edge */
-    public static double getGateExtendPastMOS() {return techType.getGateExtendPastMOS();}
-    /** @return min spacing between polysilicon 1 */
-    public static double getP1ToP1Space() {return techType.getP1ToP1Space();}
-    /** @return min width of diffusion surrounding diff contact */
-    public static double getDiffContWidth() {return techType.getDiffContWidth();}
-    /** @return min width of poly contact */
-    public static double getP1M1Width() {return techType.getP1M1Width();}
-    /** @return amount that select surrounds diffusion in well? */
-    public static double selectSurroundDiffInActiveContact() {return techType.selectSurroundDiffInActiveContact();}
-    /** @return amount that Select surrounds MOS, along gate width dimension */
-    public static double selectSurroundDiffAlongGateInTrans() {return techType.selectSurroundDiffAlongGateInTrans();}
-    /** @return y offset of poly arc connecting poly contact and gate in a L-Shape case */
-    public static double getPolyLShapeOffset() {return techType.getPolyLShapeOffset();}
-    /** @return y offset of poly arc connecting poly contact and gate in a T-Shape case */
-    public static double getPolyTShapeOffset() {return techType.getPolyTShapeOffset();}
-    /** @return select spacing rule */
-    public static double getSelectSpacingRule() {return techType.getSelectSpacingRule();}
-    /** @return select surround active in transistors but not along the gate */
-    public static double getSelectSurroundDiffInTrans() {return techType.getSelectSurroundDiffInTrans();}
-    /** @return selecct surround over poly */
-    public static double getSelectSurroundOverPoly() {return techType.getSelectSurroundOverPoly();}
 }
 

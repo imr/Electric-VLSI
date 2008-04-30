@@ -1,14 +1,14 @@
 package com.sun.electric.tool.generator.layout.fill;
 
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.tool.generator.layout.Tech;
-import com.sun.electric.tool.generator.layout.StdCellParams;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.tool.generator.layout.Tech;
+import com.sun.electric.tool.generator.layout.TechType;
 
 // ------------------------------------ CapCell -------------------------------
 /** CapCell is built assuming horizontal metal 1 straps. I deal with the
@@ -33,12 +33,8 @@ class CapCellMosis extends CapCell{
 	 *  since that is how we build CapCell */
 	private static class ProtoPlan{
 		private final double MAX_MOS_WIDTH = 40;
-		private final double SEL_WIDTH_OF_NDM1 =
-			Tech.getDiffContWidth() +
-		    Tech.selectSurroundDiffInActiveContact()*2;
-		private final double SEL_TO_MOS =
-			Tech.selectSurroundDiffAlongGateInTrans();
-
+		private final double SEL_WIDTH_OF_NDM1;
+		private final double SEL_TO_MOS;
 		public final double protoWidth, protoHeight;
 
 		public final double vddWidth = 9;
@@ -55,7 +51,10 @@ class CapCellMosis extends CapCell{
 		public final double mosPitchY;
 		public final double botWellContY;
 
-		public ProtoPlan(CapFloorplan instPlan) {
+		public ProtoPlan(CapFloorplan instPlan, TechType tech) {
+			SEL_WIDTH_OF_NDM1 = tech.getDiffContWidth() + tech.selectSurroundDiffInActiveContact()*2;
+			SEL_TO_MOS = tech.selectSurroundDiffAlongGateInTrans();
+			
 			protoWidth =
 				instPlan.horizontal ? instPlan.cellWidth : instPlan.cellHeight;
 			protoHeight =
@@ -64,19 +63,19 @@ class CapCellMosis extends CapCell{
 			// compute number of MOS's bottom to top
 			mosPitchY = gndWidth + 2*vddGndSpace + vddWidth;
 			gateLength = mosPitchY - gndWidth - 2;
-			numMosY = (int) Math.floor((protoHeight-Tech.getWellWidth())/mosPitchY);
+			numMosY = (int) Math.floor((protoHeight-tech.getWellWidth())/mosPitchY);
 			botWellContY = - numMosY * mosPitchY / 2;
 
 			// min distance from left Cell edge to center of leftmost diffusion
 			// contact.
 			double cellEdgeToDiffContCenter =
-				Tech.getWellSurroundDiff() + Tech.getDiffContWidth()/2;
+				tech.getWellSurroundDiff() + tech.getDiffContWidth()/2;
 			// min distance from left Cell Edge to center of leftmost poly
 			// contact.
-			double polyContWidth = Math.floor(gateLength / Tech.getP1M1Width()) *
-			                       Tech.getP1M1Width();
+			double polyContWidth = Math.floor(gateLength / tech.getP1M1Width()) *
+			                       tech.getP1M1Width();
 			double cellEdgeToPolyContCenter =
-				Tech.getP1ToP1Space()/2 + polyContWidth/2;
+				tech.getP1ToP1Space()/2 + polyContWidth/2;
 			// diffusion and poly contact centers line up
 			double cellEdgeToContCenter = Math.max(cellEdgeToDiffContCenter,
 					                               cellEdgeToPolyContCenter);
@@ -105,13 +104,14 @@ class CapCellMosis extends CapCell{
 	private final String LEFT_POLY = "n-trans-poly-left";
 	private final String RIGHT_POLY = "n-trans-poly-right";
 	private final ProtoPlan plan;
+	private final TechType tech;
 
 	/** Interleave well contacts with diffusion contacts left to right. Begin
 	 *  and end with well contacts */
 	private PortInst[] diffCont(double y, ProtoPlan plan, Cell cell) {
 		PortInst[] conts = new PortInst[plan.numMosX];
 		double x = - plan.numMosX * plan.mosPitchX / 2;
-		PortInst wellCont = LayoutLib.newNodeInst(Tech.pwm1(), x, y, G.DEF_SIZE,
+		PortInst wellCont = LayoutLib.newNodeInst(tech.pwm1(), x, y, G.DEF_SIZE,
 										 		  G.DEF_SIZE, 0, cell
 										 		  ).getOnlyPortInst();
 		Export e = Export.newInstance(cell, wellCont,
@@ -120,27 +120,27 @@ class CapCellMosis extends CapCell{
 
 		for (int i=0; i<plan.numMosX; i++) {
 			x += plan.mosPitchX/2;
-			conts[i] = LayoutLib.newNodeInst(Tech.ndm1(), x, y, plan.gateWidth, 5,
+			conts[i] = LayoutLib.newNodeInst(tech.ndm1(), x, y, plan.gateWidth, 5,
 											 0, cell).getOnlyPortInst();
-			LayoutLib.newArcInst(Tech.m1(), plan.gndWidth, wellCont, conts[i]);
+			LayoutLib.newArcInst(tech.m1(), plan.gndWidth, wellCont, conts[i]);
 			x += plan.mosPitchX/2;
-			wellCont = LayoutLib.newNodeInst(Tech.pwm1(), x, y, G.DEF_SIZE,
+			wellCont = LayoutLib.newNodeInst(tech.pwm1(), x, y, G.DEF_SIZE,
 											 G.DEF_SIZE, 0, cell
 											 ).getOnlyPortInst();
-			LayoutLib.newArcInst(Tech.m1(), plan.gndWidth, conts[i], wellCont);
+			LayoutLib.newArcInst(tech.m1(), plan.gndWidth, conts[i], wellCont);
 		}
 
 		// bring metal to cell left and right edges to prevent notches
 		x = -plan.protoWidth/2 + plan.gndWidth/2;
 		PortInst pi;
-		pi = LayoutLib.newNodeInst(Tech.m1pin(), x, y, G.DEF_SIZE, G.DEF_SIZE, 0,
+		pi = LayoutLib.newNodeInst(tech.m1pin(), x, y, G.DEF_SIZE, G.DEF_SIZE, 0,
 		                           cell).getOnlyPortInst();
-		LayoutLib.newArcInst(Tech.m1(), plan.gndWidth, pi, conts[0]);
+		LayoutLib.newArcInst(tech.m1(), plan.gndWidth, pi, conts[0]);
 
 		x = plan.protoWidth/2 - plan.gndWidth/2;
-		pi = LayoutLib.newNodeInst(Tech.m1pin(), x, y, G.DEF_SIZE, G.DEF_SIZE, 0,
+		pi = LayoutLib.newNodeInst(tech.m1pin(), x, y, G.DEF_SIZE, G.DEF_SIZE, 0,
 		                           cell).getOnlyPortInst();
-		LayoutLib.newArcInst(Tech.m1(), plan.gndWidth, pi, conts[conts.length-1]);
+		LayoutLib.newArcInst(tech.m1(), plan.gndWidth, pi, conts[conts.length-1]);
 
 		return conts;
 	}
@@ -151,7 +151,7 @@ class CapCellMosis extends CapCell{
 					 ProtoPlan plan, Cell cell) {
 		final double POLY_CONT_HEIGHT = plan.vddWidth + 1;
 		double x = plan.leftWellContX;
-		PortInst poly = LayoutLib.newNodeInst(Tech.p1m1(), x, y, POLY_CONT_WIDTH,
+		PortInst poly = LayoutLib.newNodeInst(tech.p1m1(), x, y, POLY_CONT_WIDTH,
 											  POLY_CONT_HEIGHT, 0, cell
 											  ).getOnlyPortInst();
 		PortInst leftCont = poly;
@@ -161,18 +161,18 @@ class CapCellMosis extends CapCell{
 
 		for (int i=0; i<plan.numMosX; i++) {
 			x += plan.mosPitchX/2;
-			NodeInst mos = LayoutLib.newNodeInst(Tech.nmos(), x, y, plan.gateWidth,
+			NodeInst mos = LayoutLib.newNodeInst(tech.nmos(), x, y, plan.gateWidth,
 												 plan.gateLength, 0, cell);
-			G.noExtendArc(Tech.p1(), POLY_CONT_HEIGHT, poly,
+			G.noExtendArc(tech.p1(), POLY_CONT_HEIGHT, poly,
 						  mos.findPortInst(LEFT_POLY));
 			x += plan.mosPitchX/2;
-			PortInst polyR = LayoutLib.newNodeInst(Tech.p1m1(), x, y,
+			PortInst polyR = LayoutLib.newNodeInst(tech.p1m1(), x, y,
 												   POLY_CONT_WIDTH,
 										 		   POLY_CONT_HEIGHT, 0, cell
 										 		   ).getOnlyPortInst();
-			G.noExtendArc(Tech.m1(), plan.vddWidth, poly, polyR);
+			G.noExtendArc(tech.m1(), plan.vddWidth, poly, polyR);
 			poly = polyR;
-			G.noExtendArc(Tech.p1(), POLY_CONT_HEIGHT, poly,
+			G.noExtendArc(tech.p1(), POLY_CONT_HEIGHT, poly,
 						  mos.findPortInst(RIGHT_POLY));
 			botDiffs[i] = mos.findPortInst(BOT_DIFF);
 			topDiffs[i] = mos.findPortInst(TOP_DIFF);
@@ -182,14 +182,14 @@ class CapCellMosis extends CapCell{
 		// bring metal to cell left and right edges to prevent notches
 		x = -plan.protoWidth/2 + plan.vddWidth/2;
 		PortInst pi;
-		pi = LayoutLib.newNodeInst(Tech.m1pin(), x, y, G.DEF_SIZE, G.DEF_SIZE, 0,
+		pi = LayoutLib.newNodeInst(tech.m1pin(), x, y, G.DEF_SIZE, G.DEF_SIZE, 0,
 								   cell).getOnlyPortInst();
-		LayoutLib.newArcInst(Tech.m1(), plan.vddWidth, pi, leftCont);
+		LayoutLib.newArcInst(tech.m1(), plan.vddWidth, pi, leftCont);
 
 		x = plan.protoWidth/2 - plan.vddWidth/2;
-		pi = LayoutLib.newNodeInst(Tech.m1pin(), x, y, G.DEF_SIZE, G.DEF_SIZE, 0,
+		pi = LayoutLib.newNodeInst(tech.m1pin(), x, y, G.DEF_SIZE, G.DEF_SIZE, 0,
 								   cell).getOnlyPortInst();
-		LayoutLib.newArcInst(Tech.m1(), plan.vddWidth, pi, rightCont);
+		LayoutLib.newArcInst(tech.m1(), plan.vddWidth, pi, rightCont);
 
 	}
 
@@ -205,18 +205,23 @@ class CapCellMosis extends CapCell{
 		double y1 = roundToHalfLambda(p1P.getY()); // LayoutLib.roundCenterY(p1));
 		double y2 = roundToHalfLambda(LayoutLib.roundCenterY(p2));
 
-		LayoutLib.newArcInst(Tech.ndiff(), LayoutLib.DEF_SIZE, p1, x, y1, p2, x, y2);
+		LayoutLib.newArcInst(tech.ndiff(), LayoutLib.DEF_SIZE, p1, x, y1, p2, x, y2);
 	}
 
 	private void connectDiffs(PortInst[] a, PortInst[] b) {
 		for (int i=0; i<a.length; i++) {
-			//LayoutLib.newArcInst(Tech.ndiff, G.DEF_SIZE, a[i], b[i]);
+			//LayoutLib.newArcInst(tech.ndiff, G.DEF_SIZE, a[i], b[i]);
 			newDiffArc(a[i], b[i]);
 		}
 	}
-
+	/** @Deprecated */
 	public CapCellMosis(Library lib, CapFloorplan instPlan) {
-		this.plan = new ProtoPlan(instPlan);
+		this(lib, instPlan, Tech.getTechType());
+	}
+
+	public CapCellMosis(Library lib, CapFloorplan instPlan, TechType tech) {
+		this.plan = new ProtoPlan(instPlan, tech);
+		this.tech = tech;
 		PortInst[] botDiffs = new PortInst[plan.numMosX];
 		PortInst[] topDiffs = new PortInst[plan.numMosX];
 
@@ -233,12 +238,16 @@ class CapCellMosis extends CapCell{
 			connectDiffs(topDiffs, lastCont);
 		}
 		// Cover the sucker with well to eliminate notch errors
-		LayoutLib.newNodeInst(Tech.pwell(), 0, 0, plan.protoWidth,
+		LayoutLib.newNodeInst(tech.pwell(), 0, 0, plan.protoWidth,
 		                      plan.protoHeight, 0, cell);
 	}
+	@Override
     public int numVdd() {return plan.numMosY;}
+	@Override
 	public int numGnd() {return plan.numMosY+1;}
+	@Override
 	public double getVddWidth() {return plan.vddWidth;}
+	@Override
 	public double getGndWidth() {return plan.gndWidth;}
 }
 

@@ -79,7 +79,7 @@ public class TrackRouterV extends TrackRouter {
 			lastPort = closeVia.getPort2();
 		} else {
 			ViaStack vs = new ViaStack(layer, portLyr, center.doubleValue(), 
-			                           y, width, newWid, parent);
+			                           y, width, newWid, tech, parent);
 			insertVia(vs);
 			lastPort = vs.getPort2();
 		}

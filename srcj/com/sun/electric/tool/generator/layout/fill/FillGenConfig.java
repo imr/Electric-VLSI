@@ -93,7 +93,7 @@ public class FillGenConfig implements Serializable
         this.useMaster = useMaster;
 
         techType = tech;
-        Tech.setTechnology(tech.getTechType());
+        Tech.setTechType(tech.getTechType());
 
         this.fillLibName = lib;
         this.perim = perim;

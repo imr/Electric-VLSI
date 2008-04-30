@@ -70,8 +70,8 @@ public class GateLayoutGenerator {
                                     String type, double Xstrength) {
         if (outputLib == null) return null;
         stdCell.setOutputLibrary(outputLib);
-        if (Tech.getTechnology() != stdCell.getTechType())
-            Tech.setTechnology(stdCell.getTechType());
+        if (Tech.getTechType() != stdCell.getTechType())
+            Tech.setTechType(stdCell.getTechType());
 
         if (Xstrength<0) return null;
 
@@ -115,7 +115,7 @@ public class GateLayoutGenerator {
                                    Cell cell, VarContext context,
                                    StdCellParams stdCell, boolean topLevelOnly) {
         stdCell.setOutputLibrary(outLib);
-        Tech.setTechnology(stdCell.getTechType());
+        Tech.setTechType(stdCell.getTechType());
         GenerateLayoutForGatesInSchematic visitor =
 			new GenerateLayoutForGatesInSchematic(stdCell, topLevelOnly);
 		HierarchyEnumerator.enumerateCell(cell, context, visitor);
@@ -233,7 +233,7 @@ public class GateLayoutGenerator {
             Library outLib = LayoutLib.openLibForWrite(outLibNm);
 
             StdCellParams stdCell;
-            Tech.setTechnology(technology.getTechType());
+            Tech.setTechType(technology.getTechType());
             Technology cmos90 = Technology.getCMOS90Technology();
             if (cmos90 != null && technology == TechType.TechTypeEnum.CMOS90) {
                 stdCell = sportParams();

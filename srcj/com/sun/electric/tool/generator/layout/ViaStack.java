@@ -33,6 +33,7 @@ import com.sun.electric.technology.PrimitiveNode;
 class ViaStack {
 	// ------------------------------private data -----------------------------
 	private PortInst port1, port2;
+	private final TechType tech;
 
 	// ---------------------------- private methods --------------------------
 	private void swap() {
@@ -44,7 +45,7 @@ class ViaStack {
 		                    double height, Cell f) {
 		PortInst viaBelow = null;
 		for (int h=hLo; h<hHi; h++) {
-			PrimitiveNode via = Tech.viaAbove(h);
+			PrimitiveNode via = tech.viaAbove(h);
 
 			// Don't let via width or height drop below minimum required for
 			// 1 cut.
@@ -58,7 +59,7 @@ class ViaStack {
 				port1 = viaAbove;
 			} else {
 				// connect to lower via
-				LayoutLib.newArcInst(Tech.layerAtHeight(h), 1, viaBelow,
+				LayoutLib.newArcInst(tech.layerAtHeight(h), 1, viaBelow,
 					                 viaAbove);
 			}
 			port2 = viaAbove;
@@ -70,15 +71,16 @@ class ViaStack {
 
 	// square vias
 	public ViaStack(ArcProto arc1, ArcProto arc2, double x, double y, 
-	                double width, Cell f) {
-		this(arc1, arc2, x, y, width, width, f);
+	                double width, TechType tech, Cell f) {
+		this(arc1, arc2, x, y, width, width, tech, f);
 	}
 
 	// rectangular vias
 	public ViaStack(ArcProto arc1, ArcProto arc2, double x, double y,
-		            double width, double height, Cell f) {
-		int h1 = Tech.layerHeight(arc1);
-		int h2 = Tech.layerHeight(arc2);
+		            double width, double height, TechType tech, Cell f) {
+		this.tech = tech;
+		int h1 = tech.layerHeight(arc1);
+		int h2 = tech.layerHeight(arc2);
 		int deltaZ = h2 - h1;
 		if (arc1==arc2) {
 			NodeProto pin = arc1.findOverridablePinProto(); 

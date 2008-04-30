@@ -5,6 +5,7 @@ import com.sun.electric.technology.Technology;
 
 public class TechTypeMoCMOS extends TechType {
 	private static final long serialVersionUID = 0;
+    private static boolean singletonCreated = false;
 	
 	private static final String[] LAYER_NAMES = {"Polysilicon-1", "Metal-1", 
 	    "Metal-2", "Metal-3", "Metal-4", "Metal-5", "Metal-6"};
@@ -13,9 +14,14 @@ public class TechTypeMoCMOS extends TechType {
 		LayoutLib.error(pred, msg);
 	}
 	
-	private TechTypeMoCMOS() {
-		super(Technology.getMocmosTechnology(), LAYER_NAMES);
-        error(wellWidth != 17, "wrong value in Tech");
+	public TechTypeMoCMOS(TechTypeEnum techEnum) {
+		super(Technology.getMocmosTechnology(), techEnum, LAYER_NAMES);
+		
+        // Make sure that not more than one instance of this class gets created
+        if (singletonCreated) 
+        	throw new RuntimeException("Only one instance of TechTypeMoCMOS is allowed");
+        singletonCreated = true;
+        
 	    wellSurroundDiff = 3;
 	    gateExtendPastMOS = 2;
 	    p1Width = 2;
@@ -36,23 +42,18 @@ public class TechTypeMoCMOS extends TechType {
         diffContIncr = 5;
 	}
 
-	/** Singleton class */
-	public static final TechType MOCMOS = new TechTypeMoCMOS();
-	// Singleton class: Don't deserialize
-    private Object readResolve() {return MOCMOS;}
-
 	@Override
 	public double roundToGrid(double x)	{return Math.rint(x * 2) / 2;}
 
 	@Override
 	public MosInst newNmosInst(double x, double y, 
 							   double w, double l, Cell parent) {
-		return new MosInst.MosInstH('n', x, y, w, l, parent);
+		return new MosInst.MosInstH('n', x, y, w, l, this, parent);
 	}
 	@Override
 	public MosInst newPmosInst(double x, double y, 
 							   double w, double l, Cell parent) {
-		return new MosInst.MosInstH('p', x, y, w, l, parent);
+		return new MosInst.MosInstH('p', x, y, w, l, this, parent);
 	}
 	@Override
 	public String name() {return "MOCMOS";}

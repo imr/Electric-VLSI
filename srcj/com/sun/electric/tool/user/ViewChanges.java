@@ -1533,7 +1533,7 @@ public class ViewChanges
 					if      (newTech == Technology.getMocmosTechnology()) type = TechType.TechTypeEnum.MOCMOS;
 					else if (newTech == Technology.findTechnology("TSMC180")) type = TechType.TechTypeEnum.TSMC180;
 					else if (newTech == Technology.findTechnology("CMOS90")) type = TechType.TechTypeEnum.CMOS90;
-					Tech.setTechnology(type.getTechType());
+					Tech.setTechType(type.getTechType());
 					Technology cmos90 = Technology.getCMOS90Technology();
 					if (cmos90 != null && type == TechType.TechTypeEnum.CMOS90)
 					{

@@ -93,6 +93,12 @@ public class StdCellParams {
 
 	// -------------------------- private data ---------------------------------
 	private static final double DEF_SIZE = LayoutLib.DEF_SIZE;
+    private static final Variable.Key ATTR_X = Variable.newKey("ATTR_X");
+    private static final Variable.Key ATTR_S = Variable.newKey("ATTR_S");
+    private static final Variable.Key ATTR_SN = Variable.newKey("ATTR_SN");
+    private static final Variable.Key ATTR_SP = Variable.newKey("ATTR_SP");
+
+
 
     // ===============================================================
     /* These variable's initial values are Technology dependent */
@@ -259,6 +265,9 @@ public class StdCellParams {
 			generateTracks(blockages);
 		}
 	}
+	private boolean is90nm() {
+		return tech.getEnum()==TechType.TechTypeEnum.CMOS90;
+	}
 
 	// create a list of tracks that don't overlap vdd or gnd
 	private void generateTracks(TrackBlockages blockages) {
@@ -333,10 +342,10 @@ public class StdCellParams {
 		double diffWid = mosLeft.getPhysWidth();
 		Cell f = mosLeft.getSrcDrn(0).getNodeInst().getParent();
 //		PrimitiveNode diffCont =
-//			mosLeft instanceof FoldedPmos ? Tech.pdm1 : Tech.ndm1;
-		ArcProto diffArc = mosLeft instanceof FoldedPmos ? Tech.pdiff() : Tech.ndiff();
+//			mosLeft instanceof FoldedPmos ? tech.pdm1 : tech.ndm1;
+		ArcProto diffArc = mosLeft instanceof FoldedPmos ? tech.pdiff() : tech.ndiff();
 		NodeProto diffNode =
-			mosLeft instanceof FoldedPmos ? Tech.pdNode() : Tech.ndNode();
+			mosLeft instanceof FoldedPmos ? tech.pdNode() : tech.ndNode();
 
 		double prevX = LayoutLib.roundCenterX(prevPort);
 		double thisX = LayoutLib.roundCenterX(thisPort);
@@ -344,7 +353,7 @@ public class StdCellParams {
 
 		// If they overlap perfectly or if they're so far apart there's no
 		// select notch then no notches of any kind are possible.
-		if (dist == 0 || (dist >= selectOverhangsDiffCont * 2 + Tech.getSelectSpacingRule()))
+		if (dist == 0 || (dist >= selectOverhangsDiffCont * 2 + tech.getSelectSpacingRule()))
 			return;
 
 		// Fill a notch with diffusion.
@@ -360,7 +369,7 @@ public class StdCellParams {
         // if they are not aligned along Y, the extra select node might not cover top transistor.
         if (!DBMath.areEquals(mosY, mosRightY))
         {
-            double activePlusSelect = diffWid/2 + Tech.getSelectSurroundDiffInTrans();
+            double activePlusSelect = diffWid/2 + tech.getSelectSurroundDiffInTrans();
             double topY = -activePlusSelect, bottomY = activePlusSelect;
             double sign = 1;
 
@@ -407,9 +416,9 @@ public class StdCellParams {
                 // m1 is 1 lambda narrower than diffusion contact width
                 double m1Wid = mosLeft.getDiffContWidth() - 1;
                 NodeInst mFill =
-                    LayoutLib.newNodeInst(Tech.m1Node(), thisX-dist/2, contY,	dist,
+                    LayoutLib.newNodeInst(tech.m1Node(), thisX-dist/2, contY,	dist,
                                           m1Wid, 0, f);
-                LayoutLib.newArcInst(Tech.m1(), DEF_SIZE, thisPort, mFill.getOnlyPortInst());
+                LayoutLib.newArcInst(tech.m1(), DEF_SIZE, thisPort, mFill.getOnlyPortInst());
             }
         }
         // Rounding values to avoid out-of-grid values
@@ -538,7 +547,7 @@ public class StdCellParams {
 
     public double getM1TrackAboveVDD() {
         double trackX;
-        if (Tech.is90nm()) {
+        if (is90nm()) {
             // vddTop + m1_m1_sp + m1_wid/2 + m1_xcon_extension
             trackX = getVddY() + getVddWidth()/2 + 2.4 + getM1TrackWidth()/2 + 2.8;
         } else {
@@ -551,7 +560,7 @@ public class StdCellParams {
     public double getM1TrackBelowGnd() {
         double trackX;
         double gndBot = getGndY() - getGndWidth()/2;
-        if (Tech.is90nm()) {
+        if (is90nm()) {
             // gndBot - m1_m1_sp - m1_wid/2 - m1_xcon_extension
             trackX = gndBot - 2.4 - getM1TrackWidth()/2 - 2.8;
         } else {
@@ -563,7 +572,7 @@ public class StdCellParams {
 
 
     public double getWellOverhangDiff() {
-        if (Tech.is90nm()) return 8;
+        if (is90nm()) return 8;
         else return 6;
     }
 
@@ -571,7 +580,7 @@ public class StdCellParams {
 
     /** Get the fold pitch for folded transistor, given the number of series transistors */
     public double getFoldPitch(int nbSeries) {
-        if (Tech.is90nm())
+        if (is90nm())
             return (8 + (nbSeries - 1) * (3 + 2));
         else
             return (8 + (nbSeries - 1) * (3 + 2));
@@ -771,7 +780,7 @@ public class StdCellParams {
     /** round to nearest multiple of 1/2 lambda for MoCMOS,
      * nearest multiple of 0.2 for CMOS90 */
 	public double roundGateWidth(double w) {
-        if (Tech.is90nm()) {
+        if (is90nm()) {
 		    double size = Math.rint(w * 5) / 5;
             if (size < minGateWid) {
                 System.out.println("Warning: gate width of "+size+" too small, using "+minGateWid);
@@ -848,14 +857,14 @@ public class StdCellParams {
 
 	private NodeInst addNmosWell(double loX, double hiX, double y, Cell cell) {
 		NodeInst well =
-			LayoutLib.newNodeInst(Tech.pwell(), (loX+hiX)/2, y-nmosWellHeight/2,
+			LayoutLib.newNodeInst(tech.pwell(), (loX+hiX)/2, y-nmosWellHeight/2,
 								hiX-loX, nmosWellHeight, 0, cell);
 		well.setHardSelect();
 		return well;
 	}
 	private NodeInst addPmosWell(double loX, double hiX, double y, Cell cell) {
 		NodeInst well =
-			LayoutLib.newNodeInst(Tech.nwell(), (loX+hiX)/2, y+pmosWellHeight/2,
+			LayoutLib.newNodeInst(tech.nwell(), (loX+hiX)/2, y+pmosWellHeight/2,
 								  hiX-loX, pmosWellHeight, 0, cell);
 		well.setHardSelect();
 		return well;
@@ -891,23 +900,23 @@ public class StdCellParams {
 
 	/** essential bounds for PMOS only cells */
 	public void addPstackEssentialBounds(double loX, double hiX, Cell cell) {
-		LayoutLib.newNodeInst(Tech.essentialBounds(), loX, 0, DEF_SIZE, DEF_SIZE,
+		LayoutLib.newNodeInst(tech.essentialBounds(), loX, 0, DEF_SIZE, DEF_SIZE,
 							  180, cell);
-		LayoutLib.newNodeInst(Tech.essentialBounds(), hiX, pmosWellHeight, DEF_SIZE, 
+		LayoutLib.newNodeInst(tech.essentialBounds(), hiX, pmosWellHeight, DEF_SIZE, 
 							  DEF_SIZE, 0, cell);
 	}
 	/** essential bounds for NMOS only cells */
 	public void addNstackEssentialBounds(double loX, double hiX, Cell cell) {
-		LayoutLib.newNodeInst(Tech.essentialBounds(), loX, -nmosWellHeight, DEF_SIZE, 
+		LayoutLib.newNodeInst(tech.essentialBounds(), loX, -nmosWellHeight, DEF_SIZE, 
 							  DEF_SIZE, 180, cell);
-		LayoutLib.newNodeInst(Tech.essentialBounds(), hiX, 0, DEF_SIZE,
+		LayoutLib.newNodeInst(tech.essentialBounds(), hiX, 0, DEF_SIZE,
 							  DEF_SIZE, 0, cell);
 	}
 	/** essential bounds for cells with both NMOS and PMOS */
 	public void addEssentialBounds(double loX, double hiX, Cell cell) {
-		LayoutLib.newNodeInst(Tech.essentialBounds(), loX, -nmosWellHeight, DEF_SIZE, 
+		LayoutLib.newNodeInst(tech.essentialBounds(), loX, -nmosWellHeight, DEF_SIZE, 
 		                      DEF_SIZE, 180, cell);
-		LayoutLib.newNodeInst(Tech.essentialBounds(), hiX, pmosWellHeight, DEF_SIZE, 
+		LayoutLib.newNodeInst(tech.essentialBounds(), hiX, pmosWellHeight, DEF_SIZE, 
 			                  DEF_SIZE, 0, cell);
 	}
 
@@ -997,14 +1006,14 @@ public class StdCellParams {
 		Cell f = leftDiff.getNodeInst().getParent();
 		double busWid = mos instanceof FoldedPmos ? vddWidth : gndWidth;
 		double busY = mos instanceof FoldedPmos ? vddY : gndY;
-		TrackRouter net = new TrackRouterH(Tech.m2(), busWid, busY, tech, p);
+		TrackRouter net = new TrackRouterH(tech.m2(), busWid, busY, tech, p);
 
 		String exportNm = mos instanceof FoldedPmos ? vddExportName : gndExportName;
 		if (f.findPortProto(exportNm)==null) {
 			// The export doesn't yet exist.  Create and export a metal2 pin
 			// aligned with the first diffusion.
 			double x = leftDiff.getBounds().getCenterX();
-			NodeInst pinProt = LayoutLib.newNodeInst(Tech.m2pin(), x,
+			NodeInst pinProt = LayoutLib.newNodeInst(tech.m2pin(), x,
 			                                         busY, DEF_SIZE, DEF_SIZE, 0, f);
 			PortInst pin = pinProt.getOnlyPortInst();
 			Export e = Export.newInstance(f, pin, exportNm);
@@ -1016,7 +1025,7 @@ public class StdCellParams {
 			// ground strap.  The width of this strap serves as a hint to
 			// Electric as to the width to use to connect to this export at
 			// the next level up.
-			LayoutLib.newArcInst(Tech.m2(), busWid, pin, pin);
+			LayoutLib.newArcInst(tech.m2(), busWid, pin, pin);
 
 			net.connect(pin);
 		}
@@ -1047,10 +1056,10 @@ public class StdCellParams {
 							// to center won't generate CIF resolution errors.
 							double dY = Math.ceil(notchHiY - notchLoY);
 							NodeInst patchNode = 
-							  LayoutLib.newNodeInst(Tech.m1Node(), (leftX+rightX)/2, notchLoY+dY/2,
+							  LayoutLib.newNodeInst(tech.m1Node(), (leftX+rightX)/2, notchLoY+dY/2,
 							  deltaX, dY, 0, f);
 							PortInst patch = patchNode.getOnlyPortInst();
-							LayoutLib.newArcInst(Tech.m1(), DEF_SIZE, patch, thisDiff);
+							LayoutLib.newArcInst(tech.m1(), DEF_SIZE, patch, thisDiff);
 						}
 					}
 					lastDiff = thisDiff;
@@ -1082,13 +1091,13 @@ public class StdCellParams {
 	}
 
 	public static double getSize(NodeInst iconInst, VarContext context) {
-		Variable var = iconInst.getVar(Tech.ATTR_X);
+		Variable var = iconInst.getVar(ATTR_X);
 		if (var==null)
-			var = iconInst.getVar(Tech.ATTR_S);
+			var = iconInst.getVar(ATTR_S);
 		if (var==null)
-			var = iconInst.getVar(Tech.ATTR_SP);
+			var = iconInst.getVar(ATTR_SP);
 		if (var==null)
-			var = iconInst.getVar(Tech.ATTR_SN);
+			var = iconInst.getVar(ATTR_SN);
 
 		if (var==null) {
 			System.out.println("can't find size, using 40");
@@ -1132,7 +1141,7 @@ public class StdCellParams {
 		return Math.max(getRightDiffX(ra), getRightDiffX(rb));
 	}
 
-	public static void addEssentialBoundsFromChildren(Cell cell) {
+	public static void addEssentialBoundsFromChildren(Cell cell, TechType tech) {
 		double loX, loY, hiX, hiY;
 		loX = loY = Double.MAX_VALUE;
 		hiX = hiY = Double.MIN_VALUE;
@@ -1143,9 +1152,9 @@ public class StdCellParams {
 			hiX = Math.max(hiX, b.getMaxX());
 			hiY = Math.max(hiY, b.getMaxY());
 		}
-		LayoutLib.newNodeInst(Tech.essentialBounds(), loX, loY, 
+		LayoutLib.newNodeInst(tech.essentialBounds(), loX, loY, 
 		                      DEF_SIZE, DEF_SIZE, 180, cell);
-		LayoutLib.newNodeInst(Tech.essentialBounds(), hiX, hiY,
+		LayoutLib.newNodeInst(tech.essentialBounds(), hiX, hiY,
 		                      DEF_SIZE, DEF_SIZE, 0, cell);
 	}
 
@@ -1200,17 +1209,17 @@ public class StdCellParams {
 	 * specified diffusion node*/
 	public void addSelAroundDiff(NodeProto prot, Rectangle2D diffNodeBnd, double activeGateDiff,
                                  Cell cell) {
-		error(prot!=Tech.pdNode() && prot!=Tech.ndNode(),
+		error(prot!=tech.pdNode() && prot!=tech.ndNode(),
 			  "addSelectAroundDiff: only works with MOSIS CMOS diff nodes");
-		NodeProto sel = prot == Tech.pdNode() ? Tech.pselNode() : Tech.nselNode();
+		NodeProto sel = prot == tech.pdNode() ? tech.pselNode() : tech.nselNode();
         // Note that transistors are rotated in 90 degrees with res
 		double w = diffNodeBnd.getWidth();
 		double h = diffNodeBnd.getHeight();
         // add the select surround if gate is longer than contact
-            h += Tech.selectSurroundDiffAlongGateInTrans() * 2;
+            h += tech.selectSurroundDiffAlongGateInTrans() * 2;
         if (activeGateDiff > 0)
             h -= activeGateDiff;
-//            w =+ Tech.getSelectSurroundDiffInTrans() * 2;
+//            w =+ tech.getSelectSurroundDiffInTrans() * 2;
 
 		NodeInst node = LayoutLib.newNodeInst(sel, diffNodeBnd.getCenterX(), diffNodeBnd.getCenterY(), w, h, 0, cell);
 
@@ -1234,8 +1243,9 @@ public class StdCellParams {
      * @param nSelect
      * @param includePoly
      */
-    public static SelectFill fillSelect(Cell cell, boolean pSelect, boolean nSelect, boolean includePoly) {
-        double selSurroundPoly = Tech.getSelectSurroundOverPoly();
+    public SelectFill fillSelect(Cell cell, boolean pSelect, boolean nSelect, 
+    		                     boolean includePoly) {
+        double selSurroundPoly = tech.getSelectSurroundOverPoly();
         if (selSurroundPoly < 0) return null;// do nothing.
         Rectangle2D pselectBounds = LayoutLib.getBounds(cell, Layer.Function.IMPLANTP);
         Rectangle2D nselectBounds = LayoutLib.getBounds(cell, Layer.Function.IMPLANTN);
@@ -1261,13 +1271,13 @@ public class StdCellParams {
 
         if (pSelect)
         {
-            pni = LayoutLib.newNodeInst(Tech.pselNode(), pselectBounds.getCenterX(), pselectBounds.getCenterY(),
+            pni = LayoutLib.newNodeInst(tech.pselNode(), pselectBounds.getCenterX(), pselectBounds.getCenterY(),
                     pselectBounds.getWidth(), pselectBounds.getHeight(), 0, cell);
             pni.setHardSelect();
         }
         if (nSelect)
         {
-            nni = LayoutLib.newNodeInst(Tech.nselNode(), nselectBounds.getCenterX(), nselectBounds.getCenterY(),
+            nni = LayoutLib.newNodeInst(tech.nselNode(), nselectBounds.getCenterX(), nselectBounds.getCenterY(),
                     nselectBounds.getWidth(), nselectBounds.getHeight(), 0, cell);
             nni.setHardSelect();
         }
@@ -1290,23 +1300,23 @@ public class StdCellParams {
         double m1m1_sp = 2.4;
         double psel_sp = 4.8;
         double nsel_sp = 4.8;
-        Technology tech = cell.getTechnology();
+        Technology techy = cell.getTechnology();
         if (pspace > (wellConSelectHeight+m1m1_sp) + 2*gridResolution) {
             // there is space, create it
             double pwellX = roundToGrid(gndPort.getBounds().getCenterX());
             double pwellY = -roundToGrid(nselMaxY + 0.5*wellConSelectHeight + wellConSelectOffset) - gridResolution;
-            SizeOffset so = Tech.pwm1Y().getProtoSizeOffset();
-            NodeInst ni = LayoutLib.newNodeInst(Tech.pwm1Y(), pwellX, pwellY,
-                    Tech.pwm1Y().getDefWidth() - so.getHighXOffset() - so.getLowXOffset(),
-                    Tech.pwm1Y().getDefHeight() -so.getHighYOffset() - so.getLowYOffset(), 0, cell);
-            LayoutLib.newArcInst(Tech.m1(), getM1TrackWidth(), ni.getOnlyPortInst(), gndPort);
+            SizeOffset so = tech.pwm1Y().getProtoSizeOffset();
+            NodeInst ni = LayoutLib.newNodeInst(tech.pwm1Y(), pwellX, pwellY,
+                    tech.pwm1Y().getDefWidth() - so.getHighXOffset() - so.getLowXOffset(),
+                    tech.pwm1Y().getDefHeight() -so.getHighYOffset() - so.getLowYOffset(), 0, cell);
+            LayoutLib.newArcInst(tech.m1(), getM1TrackWidth(), ni.getOnlyPortInst(), gndPort);
             added = true;
             // if the space to the end of the cell is less than the select to select spacing,
             // fill it in with the appropriate select.
             double distFromEdge = getNmosWellHeight() - (Math.abs(pwellY) + 0.5*wellConSelectHeight);
             if (distFromEdge < psel_sp) {
                 // get size of select layer
-                Poly [] polys = tech.getShapeOfNode(ni);
+                Poly [] polys = techy.getShapeOfNode(ni);
                 if (polys != null) {
                     Layer.Function function = Layer.Function.IMPLANTP;
                     Rectangle2D bounds = null;
@@ -1320,7 +1330,7 @@ public class StdCellParams {
                         // fill over the well contact.  Round up bottom of fill so it is on lambda grid
                         double fillBot = (int)(Math.abs(pwellY) - 0.5*wellConSelectHeight) + 1;
                         double fillH = getNmosWellHeight() - fillBot;
-                        ni = LayoutLib.newNodeInst(Tech.pselNode(), pwellX, -1*roundToGrid(fillH/2 + fillBot),
+                        ni = LayoutLib.newNodeInst(tech.pselNode(), pwellX, -1*roundToGrid(fillH/2 + fillBot),
                                 bounds.getWidth(), roundToGrid(fillH), 0, cell);
                         ni.setHardSelect();
                     }
@@ -1331,18 +1341,18 @@ public class StdCellParams {
         if (nspace > (wellConSelectHeight+m1m1_sp) + 2*gridResolution) {
             double nwellX = roundToGrid(vddPort.getBounds().getCenterX());
             double nwellY = roundToGrid(pselMaxY + 0.5*wellConSelectHeight + wellConSelectOffset) + gridResolution;
-            SizeOffset so = Tech.nwm1Y().getProtoSizeOffset();
-            NodeInst ni = LayoutLib.newNodeInst(Tech.nwm1Y(), nwellX, nwellY,
-                    Tech.nwm1Y().getDefWidth() - so.getHighXOffset() - so.getLowXOffset(),
-                    Tech.nwm1Y().getDefHeight() - so.getHighYOffset() - so.getLowYOffset(), 0, cell);
-            LayoutLib.newArcInst(Tech.m1(), getM1TrackWidth(), ni.getOnlyPortInst(), vddPort);
+            SizeOffset so = tech.nwm1Y().getProtoSizeOffset();
+            NodeInst ni = LayoutLib.newNodeInst(tech.nwm1Y(), nwellX, nwellY,
+                    tech.nwm1Y().getDefWidth() - so.getHighXOffset() - so.getLowXOffset(),
+                    tech.nwm1Y().getDefHeight() - so.getHighYOffset() - so.getLowYOffset(), 0, cell);
+            LayoutLib.newArcInst(tech.m1(), getM1TrackWidth(), ni.getOnlyPortInst(), vddPort);
             added = true;
             // if the space to the end of the cell is less than the select to select spacing,
             // fill it in with the appropriate select.
             double distFromEdge = getPmosWellHeight() - (Math.abs(nwellY) + 0.5*wellConSelectHeight);
             if (distFromEdge < nsel_sp) {
                 // get size of select layer
-                Poly [] polys = tech.getShapeOfNode(ni);
+                Poly [] polys = techy.getShapeOfNode(ni);
                 if (polys != null) {
                     Layer.Function function = Layer.Function.IMPLANTN;
                     Rectangle2D bounds = null;
@@ -1356,7 +1366,7 @@ public class StdCellParams {
                         // fill over the well contact.  Round up bottom of fill so it is on lambda grid
                         double fillBot = (int)(Math.abs(nwellY) - 0.5*wellConSelectHeight) + 1;
                         double fillH = getPmosWellHeight() - fillBot;
-                        ni = LayoutLib.newNodeInst(Tech.nselNode(), nwellX, roundToGrid(fillH/2 + fillBot),
+                        ni = LayoutLib.newNodeInst(tech.nselNode(), nwellX, roundToGrid(fillH/2 + fillBot),
                                 bounds.getWidth(), roundToGrid(fillH), 0, cell);
                         ni.setHardSelect();
                     }

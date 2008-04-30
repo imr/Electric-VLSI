@@ -579,7 +579,7 @@ public class FillGeneratorTool extends Tool {
         this.config = config;
         this.libInitialized = false; 
         /** Set technology */
-        Tech.setTechnology(config.techType.getTechType());
+        Tech.setTechType(config.techType.getTechType());
     }
 
     public enum Units {NONE, LAMBDA, TRACKS}

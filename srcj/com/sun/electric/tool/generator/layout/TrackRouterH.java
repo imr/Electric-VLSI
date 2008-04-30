@@ -90,7 +90,7 @@ public class TrackRouterH extends TrackRouter {
 		} else {
 			// create a new via or pin
 			ViaStack vs = new ViaStack(layer, portLyr, x, center.doubleValue(), 
-			                           newWid, width, parent);
+			                           newWid, width, tech, parent);
 			insertVia(vs);
 			lastPort = vs.getPort2();
 		}

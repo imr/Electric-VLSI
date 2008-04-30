@@ -1,6 +1,7 @@
 package com.sun.electric.tool.generator.layout;
 
 import java.io.Serializable;
+import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -44,6 +45,7 @@ public abstract class TechType implements Serializable {
     }
     private final Technology generic = Technology.findTechnology("generic");
     private final Technology technology;
+    private final TechTypeEnum techEnum;
     private final PrimitiveNode essentialBounds =
         generic.findNodeProto("Essential-Bounds");
     private final PrimitiveNode facetCenter =
@@ -112,7 +114,6 @@ public abstract class TechType implements Serializable {
 
     // RKao my first attempt to embed technology specific dimensions
     protected double
-        wellWidth,
         wellSurroundDiff,
         gateExtendPastMOS,
         p1Width,
@@ -184,20 +185,21 @@ public abstract class TechType implements Serializable {
         putViaMap(p1, m1, p1m1);
     }
 
-    protected TechType(Technology tech, String[] layerNms) {
+    protected TechType(Technology techy, TechTypeEnum techEnum, String[] layerNms) {
         // This error could happen when there are XML errors while uploading the technologies.
-        error((tech==null), "Null technology in TechType constructor");
+        error((techy==null), "Null technology in TechType constructor");
         
         // I can't break this into subroutines because most data members are
         // final.
         nbLay = layerNms.length;
-        technology = tech;
+        technology = techy;
+        this.techEnum = techEnum;
 
         //--------------------------- initialize layers -----------------------
         layers = new ArcProto[nbLay];
         for (int i=0; i<nbLay; i++) {
-            layers[i] = tech.findArcProto(layerNms[i]);
-            error(layers[i]==null, "No such layer: " + layerNms[i] + " in technology " + tech.getTechName());
+            layers[i] = techy.findArcProto(layerNms[i]);
+            error(layers[i]==null, "No such layer: " + layerNms[i] + " in technology " + techy.getTechName());
         }
         p1 = getLayer(0);
         m1 = getLayer(1);
@@ -210,30 +212,30 @@ public abstract class TechType implements Serializable {
         m8 = getLayer(8);
         m9 = getLayer(9);
 
-        pdiff = tech.findArcProto("P-Active");
-        ndiff = tech.findArcProto("N-Active");
-        ndiff18 = tech.findArcProto("thick-OD18-N-Active");
-        pdiff18 = tech.findArcProto("thick-OD18-P-Active");
-        ndiff25 = tech.findArcProto("thick-OD25-N-Active");
-        pdiff25 = tech.findArcProto("thick-OD25-P-Active");
-        ndiff33 = tech.findArcProto("thick-OD33-N-Active");
-        pdiff33 = tech.findArcProto("thick-OD33-P-Active");
+        pdiff = techy.findArcProto("P-Active");
+        ndiff = techy.findArcProto("N-Active");
+        ndiff18 = techy.findArcProto("thick-OD18-N-Active");
+        pdiff18 = techy.findArcProto("thick-OD18-P-Active");
+        ndiff25 = techy.findArcProto("thick-OD25-N-Active");
+        pdiff25 = techy.findArcProto("thick-OD25-P-Active");
+        ndiff33 = techy.findArcProto("thick-OD33-N-Active");
+        pdiff33 = techy.findArcProto("thick-OD33-P-Active");
 
         // Layer Nodes
-        m1Node = tech.findNodeProto("Metal-1-Node");
-        m2Node = tech.findNodeProto("Metal-2-Node");
-        m3Node = tech.findNodeProto("Metal-3-Node");
-        m4Node = tech.findNodeProto("Metal-4-Node");
-        m5Node = tech.findNodeProto("Metal-5-Node");
-        m6Node = tech.findNodeProto("Metal-6-Node");
-        m7Node = tech.findNodeProto("Metal-7-Node");
-        m8Node = tech.findNodeProto("Metal-8-Node");
-        m9Node = tech.findNodeProto("Metal-9-Node");
-        p1Node = tech.findNodeProto("Polysilicon-1-Node");
-        pdNode = tech.findNodeProto("P-Active-Node");
-        ndNode = tech.findNodeProto("N-Active-Node");
-        nselNode = tech.findNodeProto("N-Select-Node");
-        pselNode = tech.findNodeProto("P-Select-Node");
+        m1Node = techy.findNodeProto("Metal-1-Node");
+        m2Node = techy.findNodeProto("Metal-2-Node");
+        m3Node = techy.findNodeProto("Metal-3-Node");
+        m4Node = techy.findNodeProto("Metal-4-Node");
+        m5Node = techy.findNodeProto("Metal-5-Node");
+        m6Node = techy.findNodeProto("Metal-6-Node");
+        m7Node = techy.findNodeProto("Metal-7-Node");
+        m8Node = techy.findNodeProto("Metal-8-Node");
+        m9Node = techy.findNodeProto("Metal-9-Node");
+        p1Node = techy.findNodeProto("Polysilicon-1-Node");
+        pdNode = techy.findNodeProto("P-Active-Node");
+        ndNode = techy.findNodeProto("N-Active-Node");
+        nselNode = techy.findNodeProto("N-Select-Node");
+        pselNode = techy.findNodeProto("P-Select-Node");
 
         //--------------------------- initialize pins -------------------------
         pdpin = findPin(pdiff);
@@ -254,7 +256,7 @@ public abstract class TechType implements Serializable {
         for (int i = 0; i < nbLay - 1; i++) {
             vias[i] = findNode(PrimitiveNode.Function.CONTACT,
                                new ArcProto[] {layers[i], layers[i+1]},
-                               tech);
+                               techy);
             error(vias[i] == null, "No via for layer: " + layerNms[i]);
         }
 
@@ -268,45 +270,43 @@ public abstract class TechType implements Serializable {
         m7m8 = getVia(7);
         m8m9 = getVia(8);
 
-        ndm1 = tech.findNodeProto("Metal-1-N-Active-Con");
-        pdm1 = tech.findNodeProto("Metal-1-P-Active-Con");
-        nwm1 = tech.findNodeProto("Metal-1-N-Well-Con");
-        pwm1 = tech.findNodeProto("Metal-1-P-Well-Con");
-        nwm1Y = tech.findNodeProto("Y-Metal-1-N-Well-Con");
-        pwm1Y = tech.findNodeProto("Y-Metal-1-P-Well-Con");
+        ndm1 = techy.findNodeProto("Metal-1-N-Active-Con");
+        pdm1 = techy.findNodeProto("Metal-1-P-Active-Con");
+        nwm1 = techy.findNodeProto("Metal-1-N-Well-Con");
+        pwm1 = techy.findNodeProto("Metal-1-P-Well-Con");
+        nwm1Y = techy.findNodeProto("Y-Metal-1-N-Well-Con");
+        pwm1Y = techy.findNodeProto("Y-Metal-1-P-Well-Con");
 
         // initialize special threshold transistor contacts
-        nmos18contact = tech.findNodeProto("thick-OD18-Metal-1-N-Active-Con");
-        pmos18contact = tech.findNodeProto("thick-OD18-Metal-1-P-Active-Con");
-        nmos25contact = tech.findNodeProto("thick-OD25-Metal-1-N-Active-Con");
-        pmos25contact = tech.findNodeProto("thick-OD25-Metal-1-P-Active-Con");
-        nmos33contact = tech.findNodeProto("thick-OD33-Metal-1-N-Active-Con");
-        pmos33contact = tech.findNodeProto("thick-OD33-Metal-1-P-Active-Con");
+        nmos18contact = techy.findNodeProto("thick-OD18-Metal-1-N-Active-Con");
+        pmos18contact = techy.findNodeProto("thick-OD18-Metal-1-P-Active-Con");
+        nmos25contact = techy.findNodeProto("thick-OD25-Metal-1-N-Active-Con");
+        pmos25contact = techy.findNodeProto("thick-OD25-Metal-1-P-Active-Con");
+        nmos33contact = techy.findNodeProto("thick-OD33-Metal-1-N-Active-Con");
+        pmos33contact = techy.findNodeProto("thick-OD33-Metal-1-P-Active-Con");
 
         initViaMap();
 
         //------------------------ initialize transistors ---------------------
-        nmos = tech.findNodeProto("N-Transistor");
-        pmos = tech.findNodeProto("P-Transistor");
-        nmos18 = tech.findNodeProto("OD18-N-Transistor");
-        pmos18 = tech.findNodeProto("OD18-P-Transistor");
-        nmos25 = tech.findNodeProto("OD25-N-Transistor");
-        pmos25 = tech.findNodeProto("OD25-P-Transistor");
-        nmos33 = tech.findNodeProto("OD33-N-Transistor");
-        pmos33 = tech.findNodeProto("OD33-P-Transistor");
+        nmos = techy.findNodeProto("N-Transistor");
+        pmos = techy.findNodeProto("P-Transistor");
+        nmos18 = techy.findNodeProto("OD18-N-Transistor");
+        pmos18 = techy.findNodeProto("OD18-P-Transistor");
+        nmos25 = techy.findNodeProto("OD25-N-Transistor");
+        pmos25 = techy.findNodeProto("OD25-P-Transistor");
+        nmos33 = techy.findNodeProto("OD33-N-Transistor");
+        pmos33 = techy.findNodeProto("OD33-P-Transistor");
 
         // transistor layers
-        od18 = tech.findNodeProto("OD18-Node");
-        od25 = tech.findNodeProto("OD25-Node");
-        od33 = tech.findNodeProto("OD33-Node");
-        vth = tech.findNodeProto("VTH-Node");
-        vtl = tech.findNodeProto("VTL-Node");
+        od18 = techy.findNodeProto("OD18-Node");
+        od25 = techy.findNodeProto("OD25-Node");
+        od33 = techy.findNodeProto("OD33-Node");
+        vth = techy.findNodeProto("VTH-Node");
+        vtl = techy.findNodeProto("VTL-Node");
 
         //--------------------------- initialize well -------------------------
-        nwell = tech.findNodeProto("N-Well-Node");
-        pwell = tech.findNodeProto("P-Well-Node");
-
-        wellWidth = nwm1.getMinSizeRule().getWidth();
+        nwell = techy.findNodeProto("N-Well-Node");
+        pwell = techy.findNodeProto("P-Well-Node");
     }
 
     //---------------------------- public classes -----------------------------
@@ -322,8 +322,9 @@ public abstract class TechType implements Serializable {
                         double angle,
                         String leftDiff, String rightDiff,
                         String topPoly, String botPoly,
+                        TechType tech,
                         Cell parent) {
-            NodeProto npr = np=='n' ? Tech.nmos() : Tech.pmos();
+            NodeProto npr = np=='n' ? tech.nmos() : tech.pmos();
             this.leftDiff = leftDiff;
             this.rightDiff = rightDiff;
             this.topPoly = topPoly;
@@ -342,35 +343,37 @@ public abstract class TechType implements Serializable {
 
         public static class MosInstV extends MosInst {
             public MosInstV(char np, double x, double y, double w, double l,
-                               Cell parent) {
+            		        TechType tech, Cell parent) {
                 super(np, x, y, l, w, 0,
                       "diff-left", "diff-right", "poly-top", "poly-bottom",
-                      parent);
+                      tech, parent);
             }
         }
         public static class MosInstH extends MosInst {
             public MosInstH(char np, double x, double y, double w, double l,
-                               Cell parent) {
+                            TechType tech, Cell parent) {
                 super(np, x, y, w, l, 90,
                       np+"-trans-diff-top", np+"-trans-diff-bottom",
                       np+"-trans-poly-right", np+"-trans-poly-left",
-                      parent);
+                      tech, parent);
             }
         }
     }
 
     //------------------------------ public data ------------------------------
 
+    /** These are the Electric technologies understood by the gate layout
+     * generators */
     public static enum TechTypeEnum {MOCMOS, TSMC180, CMOS90;
         private TechType type;
         public TechType getTechType() {
             if (type == null) {
                 if (this == TechTypeEnum.MOCMOS)
-                    type = TechTypeMoCMOS.MOCMOS;
+                    type = new TechTypeMoCMOS(this);
                 else if (this == TechTypeEnum.TSMC180)
-                    type = getTechTypeTSMC180();
+                    type = getTechTypeTSMC180(this);
                 else if (this == TechTypeEnum.CMOS90)
-                    type = getTechTypeCMOS90();
+                    type = getTechTypeCMOS90(this);
                 else {
                     System.out.println("Invalid TechTypeEnum");
                     assert(false);
@@ -380,22 +383,16 @@ public abstract class TechType implements Serializable {
         }
     }
 
-    /** These are the Electric technologies understood by the gate layout
-     * generators */
-//    public static final TechType
-//        MOCMOS = TechTypeMoCMOS.MOCMOS,
-//        TSMC180 = getTechTypeTSMC180(), //TechTypeTSMC180.TSMC180,
-//        CMOS90 = getTechTypeCMOS90(); //TechTypeCMOS90.CMOS90;
-
-    private static TechType getTechTypeTSMC180()
+    private static TechType getTechTypeTSMC180(TechTypeEnum techEnum)
     {
         TechType tsmc180 = null;
         try
         {
             Class tsmc180Class = Class.forName("com.sun.electric.plugins.tsmc.TechTypeTSMC180");
-
-            java.lang.reflect.Field techField = tsmc180Class.getDeclaredField("TSMC180");
-            tsmc180 = (TechType) techField.get(null);
+            Constructor<TechType> techConstr = tsmc180Class.getConstructor(TechTypeEnum.class);
+            tsmc180 = techConstr.newInstance(techEnum);
+//            java.lang.reflect.Field techField = tsmc180Class.getDeclaredField("TSMC180");
+//            tsmc180 = (TechType) techField.get(null);
          } catch (Exception e)
         {
             assert(false); // runtime error
@@ -403,15 +400,16 @@ public abstract class TechType implements Serializable {
          return tsmc180;
     }
 
-    private static TechType getTechTypeCMOS90()
+    private static TechType getTechTypeCMOS90(TechTypeEnum techEnum)
     {
         TechType cmos90 = null;
         try
 		{
 			Class cmos90Class = Class.forName("com.sun.electric.plugins.tsmc.TechTypeCMOS90");
-
-			java.lang.reflect.Field techField = cmos90Class.getDeclaredField("CMOS90");
-			cmos90 = (TechType) techField.get(null);
+            Constructor<TechType> techConstr = cmos90Class.getConstructor(TechTypeEnum.class);
+            cmos90 = techConstr.newInstance(techEnum);
+//			java.lang.reflect.Field techField = cmos90Class.getDeclaredField("CMOS90");
+//			cmos90 = (TechType) techField.get(null);
          } catch (Exception e)
         {
             assert(false); // runtime error
@@ -419,15 +417,11 @@ public abstract class TechType implements Serializable {
  		return cmos90;
     }
 
-    public static final Variable.Key ATTR_X = Variable.newKey("ATTR_X");
-    public static final Variable.Key ATTR_S = Variable.newKey("ATTR_S");
-    public static final Variable.Key ATTR_SN = Variable.newKey("ATTR_SN");
-    public static final Variable.Key ATTR_SP = Variable.newKey("ATTR_SP");
-
     //----------------------------- public methods ----------------------------
 
     public abstract int getNumMetals();
     public Technology getTechnology() {return technology;}
+    public TechTypeEnum getEnum() {return techEnum; }
 
     /** layers */
     public ArcProto pdiff() {return pdiff;}
@@ -590,7 +584,7 @@ public abstract class TechType implements Serializable {
     public abstract double reservedToLambda(int layer, double nbTracks);
     
 	/** @return min width of Well */
-	public double getWellWidth() {return wellWidth;}
+	public double getWellWidth() {return nwm1.getMinSizeRule().getWidth();}
 	/** @return amount that well surrounds diffusion */
 	public double getWellSurroundDiff() {return wellSurroundDiff;}
 	/** @return MOS edge to gate edge */
