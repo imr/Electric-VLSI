@@ -1564,13 +1564,12 @@ public class ViewChanges
 			public boolean enterCell(HierarchyEnumerator.CellInfo info)
 			{
 				Cell oldCell = info.getCell();
-				VarContext context = info.getContext();
-				Info myInfo = (Info)info;
 				if (convertedCells.containsKey(oldCell)) return false;
 				if (stdCell != null)
 				{
+					Info myInfo = (Info)info;
 					myInfo.generatedCells = GateLayoutGenerator.generateLayoutFromSchematics(
-						oldCell.getLibrary(), oldCell, context, stdCell, true);
+						oldCell.getLibrary(), oldCell, info.getContext(), stdCell, true);
 				}
 				return true;
 			}
@@ -1798,7 +1797,7 @@ public class ViewChanges
 					if (api.getPortProto() == schConn.pp)
 					{
 						//System.out.println("Associated port "+i+": "+schConn.no.getProto().getName()+"."+schConn.pp.getName()+" to "+
-						//                    layNi.getProto().getName()+"."+layNi.getProto().getPort(i).getName());
+						// layNi.getProto().getName()+"."+layNi.getProto().getPort(i).getName());
 						return layNi.getPortInst(i);
 					}
 				}

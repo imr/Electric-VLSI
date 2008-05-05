@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07j: ******************************
 
+BUG: (5/5/08, SMR) Converting from schematics to layout creates DRC and gallery cells
+     unnecessarily (Bug #1675).
+FIX: In GateLayoutGenerator.generateLayoutFromSchematics(), do not create DRC or
+     gallery if no Red/Purple gates were found.
+
 BUG: (4/30/08, SMR) Converting from schematics to layout orients the transistors
      incorrectly (Bug #1674).
 FIX: In ViewChanges.MakeLayoutView.MakeLayoutVisitor.placeLayoutNode(), compute

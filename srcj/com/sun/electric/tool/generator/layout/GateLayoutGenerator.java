@@ -23,10 +23,6 @@
  */
 package com.sun.electric.tool.generator.layout;
 
-import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
-
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Library;
@@ -43,6 +39,10 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.generator.layout.gates.MoCMOSGenerator;
 import com.sun.electric.tool.logicaleffort.LEInst;
 import com.sun.electric.tool.user.User;
+
+import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
 
 /*
  * Regression test for gate generators
@@ -121,10 +121,14 @@ public class GateLayoutGenerator {
 		HierarchyEnumerator.enumerateCell(cell, context, visitor);
 //		HierarchyEnumerator.enumerateCell(cell, context, null, visitor);
 
-        Cell gallery = Gallery.makeGallery(outLib);
-        DrcRings.addDrcRings(gallery, FILTER, stdCell);
+		Map<Nodable,Cell> result = visitor.getGeneratedCells();
+		if (result.size() > 0)
+		{
+	        Cell gallery = Gallery.makeGallery(outLib);
+	        DrcRings.addDrcRings(gallery, FILTER, stdCell);
+		}
 
-        return visitor.getGeneratedCells();
+        return result;
 	}
 
     public static void generateFromSchematicsJob(TechType.TechTypeEnum type) {
@@ -291,6 +295,7 @@ class GenerateLayoutForGatesInSchematic extends HierarchyEnumerator.Visitor {
         this.topLevelOnly = topLevelOnly;
         this.generatedCells = new HashMap<Nodable,Cell>();
     }
+
 	/** @return value of strength attribute "ATTR_X" or -1 if no such
 	 * attribute or -2 if attribute exists but has no value. */
 	private static double getStrength(Nodable no, VarContext context) {
