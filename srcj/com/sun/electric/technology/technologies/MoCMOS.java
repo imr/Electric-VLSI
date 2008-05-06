@@ -1118,7 +1118,7 @@ public class MoCMOS extends Technology
 //				new Technology.NodeLayer(activeCutLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(7.5))
         )
 //				new Technology.NodeLayer(activeCutLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(7.5))
-			
+
 //				new Technology.NodeLayer(activeCutLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(7.5))
 			});
 		metalActiveContactNodes[P_TYPE].addPrimitivePorts(new PrimitivePort []
@@ -1145,7 +1145,7 @@ public class MoCMOS extends Technology
 //				new Technology.NodeLayer(activeCutLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(7.5))
         )
 //				new Technology.NodeLayer(activeCutLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(7.5))
-			
+
 //				new Technology.NodeLayer(activeCutLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(7.5))
 			});
 		metalActiveContactNodes[N_TYPE].addPrimitivePorts(new PrimitivePort []
@@ -1170,7 +1170,7 @@ public class MoCMOS extends Technology
 //				new Technology.NodeLayer(polyCutLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1.5))
         )
 //				new Technology.NodeLayer(polyCutLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1.5))
-			
+
 //				new Technology.NodeLayer(polyCutLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(1.5))
 			});
 		metal1PolyContactNodes[0].addPrimitivePorts(new PrimitivePort []
@@ -1195,7 +1195,7 @@ public class MoCMOS extends Technology
 //				new Technology.NodeLayer(polyCutLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(4))
         )
 //				new Technology.NodeLayer(polyCutLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(4))
-			
+
 //				new Technology.NodeLayer(polyCutLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(4))
 			});
 		metal1PolyContactNodes[1].addPrimitivePorts(new PrimitivePort []
@@ -1222,7 +1222,7 @@ public class MoCMOS extends Technology
 //				new Technology.NodeLayer(polyCutLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(6.5))
         )
 //				new Technology.NodeLayer(polyCutLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(6.5))
-			
+
 //				new Technology.NodeLayer(polyCutLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(6.5))
 			});
 		metal1PolyContactNodes[2].addPrimitivePorts(new PrimitivePort []
@@ -1348,17 +1348,17 @@ public class MoCMOS extends Technology
                 new Technology.NodeLayer []
                 {
                     new Technology.NodeLayer(activeLayers[P_TYPE], 1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
-                        new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromTop(6)),
-                        new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromTop(11))}),
+                        new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromTop(11)),
+                        new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromTop(6))}),
                     new Technology.NodeLayer(metalLayers[0], 1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
-                        new Technology.TechPoint(EdgeH.fromLeft(6.5), EdgeV.fromTop(6.5)),
-                        new Technology.TechPoint(EdgeH.fromRight(6.5), EdgeV.fromTop(10.5))}),
+                        new Technology.TechPoint(EdgeH.fromLeft(6.5), EdgeV.fromTop(10.5)),
+                        new Technology.TechPoint(EdgeH.fromRight(6.5), EdgeV.fromTop(6.5))}),
                     new Technology.NodeLayer(activeLayers[P_TYPE], 3, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
-                        new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromBottom(11)),
-                        new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromBottom(6))}),
+                        new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromBottom(6)),
+                        new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromBottom(11))}),
                     new Technology.NodeLayer(metalLayers[0], 3, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
-                        new Technology.TechPoint(EdgeH.fromLeft(6.5), EdgeV.fromBottom(10.5)),
-                        new Technology.TechPoint(EdgeH.fromRight(6.5), EdgeV.fromBottom(6.5))}),
+                        new Technology.TechPoint(EdgeH.fromLeft(6.5), EdgeV.fromBottom(6.5)),
+                        new Technology.TechPoint(EdgeH.fromRight(6.5), EdgeV.fromBottom(10.5))}),
                     new Technology.NodeLayer(activeLayers[P_TYPE], -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
                         new Technology.TechPoint(EdgeH.fromLeft(7), EdgeV.fromBottom(9)),
                         new Technology.TechPoint(EdgeH.fromRight(7), EdgeV.fromTop(9))}),
@@ -1368,11 +1368,11 @@ public class MoCMOS extends Technology
                     new Technology.NodeLayer(wellLayers[N_TYPE], -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox()),
                     new Technology.NodeLayer(selectLayers[P_TYPE], -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(4)),
                     new Technology.NodeLayer(activeCutLayer, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
-                        new Technology.TechPoint(EdgeH.fromLeft(7.5), EdgeV.fromBottom(9.5)),
-                        new Technology.TechPoint(EdgeH.fromLeft(9.5), EdgeV.fromBottom(7.5))}),
+                        new Technology.TechPoint(EdgeH.fromLeft(7.5), EdgeV.fromBottom(7.5)),
+                        new Technology.TechPoint(EdgeH.fromLeft(9.5), EdgeV.fromBottom(9.5))}),
                     new Technology.NodeLayer(activeCutLayer, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
-                        new Technology.TechPoint(EdgeH.fromLeft(7.5), EdgeV.fromTop(7.5)),
-                        new Technology.TechPoint(EdgeH.fromLeft(9.5), EdgeV.fromTop(9.5))})
+                        new Technology.TechPoint(EdgeH.fromLeft(7.5), EdgeV.fromTop(9.5)),
+                        new Technology.TechPoint(EdgeH.fromLeft(9.5), EdgeV.fromTop(7.5))})
                 });
             scalableTransistorNodes[P_TYPE].addPrimitivePorts(new PrimitivePort []
                 {
@@ -1395,17 +1395,17 @@ public class MoCMOS extends Technology
                 new Technology.NodeLayer []
                 {
                     new Technology.NodeLayer(activeLayers[N_TYPE], 1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
-                        new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromTop(6)),
-                        new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromTop(11))}),
+                        new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromTop(11)),
+                        new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromTop(6))}),
                     new Technology.NodeLayer(metalLayers[0], 1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
-                        new Technology.TechPoint(EdgeH.fromLeft(6.5), EdgeV.fromTop(6.5)),
-                        new Technology.TechPoint(EdgeH.fromRight(6.5), EdgeV.fromTop(10.5))}),
+                        new Technology.TechPoint(EdgeH.fromLeft(6.5), EdgeV.fromTop(10.5)),
+                        new Technology.TechPoint(EdgeH.fromRight(6.5), EdgeV.fromTop(6.5))}),
                     new Technology.NodeLayer(activeLayers[N_TYPE], 3, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
-                        new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromBottom(11)),
-                        new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromBottom(6))}),
+                        new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromBottom(6)),
+                        new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromBottom(11))}),
                     new Technology.NodeLayer(metalLayers[0], 3, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
-                        new Technology.TechPoint(EdgeH.fromLeft(6.5), EdgeV.fromBottom(10.5)),
-                        new Technology.TechPoint(EdgeH.fromRight(6.5), EdgeV.fromBottom(6.5))}),
+                        new Technology.TechPoint(EdgeH.fromLeft(6.5), EdgeV.fromBottom(6.5)),
+                        new Technology.TechPoint(EdgeH.fromRight(6.5), EdgeV.fromBottom(10.5))}),
                     new Technology.NodeLayer(activeLayers[N_TYPE], -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
                         new Technology.TechPoint(EdgeH.fromLeft(7), EdgeV.fromBottom(9)),
                         new Technology.TechPoint(EdgeH.fromRight(7), EdgeV.fromTop(9))}),
@@ -1415,11 +1415,11 @@ public class MoCMOS extends Technology
                     new Technology.NodeLayer(wellLayers[P_TYPE], -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox()),
                     new Technology.NodeLayer(selectLayers[N_TYPE], -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(4)),
                     new Technology.NodeLayer(activeCutLayer, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
-                        new Technology.TechPoint(EdgeH.fromLeft(7.5), EdgeV.fromBottom(9.5)),
-                        new Technology.TechPoint(EdgeH.fromLeft(9.5), EdgeV.fromBottom(7.5))}),
+                        new Technology.TechPoint(EdgeH.fromLeft(7.5), EdgeV.fromBottom(7.5)),
+                        new Technology.TechPoint(EdgeH.fromLeft(9.5), EdgeV.fromBottom(9.5))}),
                     new Technology.NodeLayer(activeCutLayer, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
-                        new Technology.TechPoint(EdgeH.fromLeft(7.5), EdgeV.fromTop(7.5)),
-                        new Technology.TechPoint(EdgeH.fromLeft(9.5), EdgeV.fromTop(9.5))})
+                        new Technology.TechPoint(EdgeH.fromLeft(7.5), EdgeV.fromTop(9.5)),
+                        new Technology.TechPoint(EdgeH.fromLeft(9.5), EdgeV.fromTop(7.5))})
                 });
             scalableTransistorNodes[N_TYPE].addPrimitivePorts(new PrimitivePort []
                 {
@@ -1547,7 +1547,7 @@ public class MoCMOS extends Technology
                     new Technology.NodeLayer(pBaseLayer, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(13)),
                     // N Well
                     new Technology.NodeLayer(wellLayers[N_TYPE], -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
-                
+
                 });
             npnTransistorNode.addPrimitivePorts(new PrimitivePort []
                 {
@@ -2020,10 +2020,10 @@ public class MoCMOS extends Technology
         addRule(t, layerWidth, metalLayers[5],      "30.1");
         addRule(t, layerWidth, padFrameLayer,       "defaultWidth");
         // defaultWidth = 8
-        
+
         make3d(t, common);
     }
-    
+
     private void addRule(Xml807.Technology t, Map<Xml807.Layer,Xml807.Distance> layerRule, Layer layer, String ... mocmosRules) {
         Xml807.Layer l = t.findLayer(layer.getName());
         Xml807.Distance dist = new Xml807.Distance();
@@ -2032,7 +2032,7 @@ public class MoCMOS extends Technology
             dist.addRule(mocmosRules[i], 2);
         layerRule.put(l, dist);
     }
-    
+
 	/******************** SCALABLE TRANSISTOR DESCRIPTION ********************/
 
 	private static final int SCALABLE_ACTIVE_TOP = 0;
