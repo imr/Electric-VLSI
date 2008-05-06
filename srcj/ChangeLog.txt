@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07j: ******************************
 
+BUG: (5/6/08, DN) Bugs reading mocmos.xml (Bug #1594).
+FIX: In MoCMOS constructor swap some coordinates in Scalable Transistor definition.
+
+IMP: (5/6/08, DN) Move the algorithm ensuring consistency of cell parameters in a group
+   from CheckAndRepair to LibraryRead.
+
 BUG: (5/5/08, SMR) Converting from schematics to layout creates DRC and gallery cells
      unnecessarily (Bug #1675).
 FIX: In GateLayoutGenerator.generateLayoutFromSchematics(), do not create DRC or

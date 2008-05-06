@@ -1177,19 +1177,23 @@ public class ELIB extends LibraryFiles
     @Override
     Variable[] findVarsOnExampleIcon(Cell parentCell, Cell iconCell) {
 		// get information about this cell
-		int cellIndex = parentCell.getTempInt();
+        int cellIndex;
+        for (cellIndex = 0; cellIndex < nodeProtoList.length; cellIndex++) {
+            if (nodeProtoList[cellIndex] == parentCell)
+                break;
+        }
 		if (cellIndex+1 >= firstNodeIndex.length) return null;
 		int startNode = firstNodeIndex[cellIndex];
 		int endNode = firstNodeIndex[cellIndex+1];
 
 		for (int i = startNode; i < endNode; i++) {
-			NodeProto np = nodeInstList.protoType[i];
+			NodeProto np = convertNodeProto(nodeTypeList[i]);
             if (np == iconCell)
                 return nodeInstList.vars[i];
         }
         return null;
     }
-    
+
 	// *************************** THE CELL CLEANUP INTERFACE ***************************
 
 	/**

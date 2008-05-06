@@ -574,11 +574,17 @@ public class ReadableDump extends LibraryFiles
     @Override
     Variable[] findVarsOnExampleIcon(Cell parentCell, Cell iconCell) {
 		// get information about this cell
-		int cellIndex = parentCell.getTempInt();
+        int cellIndex;
+        for (cellIndex = 0; cellIndex < nodeProtoList.length; cellIndex++) {
+            if (nodeProtoList[cellIndex] == parentCell)
+                break;
+        }
+        if (cellIndex >= nodeInstList.length) return null;
 		LibraryFiles.NodeInstList nil = nodeInstList[cellIndex];
 
 		for (int i = 0; i < nil.protoType.length; i++) {
-			NodeProto np = nil.protoType[i];
+            findNodeProto(cellIndex, i);
+			NodeProto np = nodeInstList[cellIndex].protoType[i];
             if (np == iconCell)
                 return nil.vars[i];
         }

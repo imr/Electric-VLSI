@@ -24,6 +24,7 @@
 package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.IdMapper;
+import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
@@ -32,7 +33,6 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.id.PortProtoId;
@@ -62,6 +62,7 @@ import com.sun.electric.tool.io.ELIBConstants;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.output.Verilog;
 import com.sun.electric.tool.io.output.CellModelPrefs;
+import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.dialogs.OpenFile;
@@ -86,7 +87,7 @@ import java.util.Set;
  */
 public abstract class LibraryFiles extends Input
 {
-    private static final boolean UNIFY_CELL_PARAMETERS = false;
+    private static final boolean UNIFY_CELL_PARAMETERS = true;
 	/** key of Varible holding true library of fake cell. */                public static final Variable.Key IO_TRUE_LIBRARY = Variable.newKey("IO_true_library");
 	/** key of Variable to denote a dummy cell or library */                public static final Variable.Key IO_DUMMY_OBJECT = Variable.newKey("IO_dummy_object");
 
@@ -534,10 +535,10 @@ public abstract class LibraryFiles extends Input
 			return true;
 		}
 	}
-    
+
     abstract boolean readTheLibrary(boolean onlyProjectSettings, LibraryStatistics.FileContents fc) throws IOException;
     abstract Map<Cell,Variable[]> createLibraryCells(boolean onlyProjectSettings);
-    
+
     private void realizeCellVariables(Map<Cell,Variable[]> originalVars) {
         if (!UNIFY_CELL_PARAMETERS) {
             for (Map.Entry<Cell,Variable[]> e: originalVars.entrySet())
@@ -552,36 +553,35 @@ public abstract class LibraryFiles extends Input
             visitedCellGroups.add(cellGroup);
         }
     }
-    
+
+    /**
+     * Realize cell variables on all cells of a cell group
+     * @param cellGroup the cell group to realize variables
+     * @param originalVars original variables from disk library
+     */
     private void realizeCellVariables(Cell.CellGroup cellGroup, Map<Cell,Variable[]> originalVars) {
-        // Find cell owner
-        Cell cellOwner = cellGroup.getMainSchematics();
-        if (cellOwner == null) {
-            for (Iterator<Cell> it = cellGroup.getCells(); it.hasNext(); ) {
-                Cell cell = it.next();
-                if (cell.isIcon()) {
-                    cellOwner = cell;
-                    break;
-                }
-            }
-        }
-        
-        // Reailze variables on params owner and collect group params
-        HashMap<Variable.AttrKey,Variable> groupParams = new HashMap<Variable.AttrKey,Variable>();
+        // Determine and create group parameters
+        Cell cellOwner = cellGroup.getParameterOwner();
+        HashMap<Variable.AttrKey,Variable> groupParams = null;
         if (cellOwner != null) {
+            groupParams = new HashMap<Variable.AttrKey,Variable>();
             Variable[] ownerVars = originalVars.get(cellOwner);
             for (Variable var: ownerVars) {
-                if (var.getTextDescriptor().isParam()) {
-                    var = var.withInherit(true);
-                    groupParams.put((Variable.AttrKey)var.getKey(), var);
-                }
-                realizeVariable(cellOwner, var);
+                if (!var.getTextDescriptor().isParam()) continue;
+                if (cellOwner.isDeprecatedVariable(var.getKey())) continue;
+                if (var.getKey() == NccCellAnnotations.NCC_ANNOTATION_KEY) continue;
+                var = var.withInherit(true);
+                cellGroup.addParam(var);
+                groupParams.put((Variable.AttrKey)var.getKey(), var);
             }
         }
-        
+
+        /**
+         * Modify attributes of group parameters in each icon and schematic cell
+         * Realize variables
+         */
         for (Iterator<Cell> it = cellGroup.getCells(); it.hasNext(); ) {
             Cell cell = it.next();
-            if (cell == cellOwner) continue;
             Variable[] origVars = originalVars.get(cell);
             if (cell.isIcon() || cell.isSchematic())
                 realizeCellVariables(cell, origVars, groupParams);
@@ -589,7 +589,7 @@ public abstract class LibraryFiles extends Input
                 realizeVariables(cell, origVars);
         }
     }
-    
+
     private void realizeCellVariables(Cell cell, Variable[] origVars, HashMap<Variable.AttrKey,Variable> groupParams) {
         int foundParams = 0;
         for (Variable var: origVars) {
@@ -597,58 +597,82 @@ public abstract class LibraryFiles extends Input
                 Variable.Key varKey = var.getKey();
                 Variable groupParam = groupParams.get(varKey);
                 if (groupParam != null) {
-                    TextDescriptor td = var.getTextDescriptor().withCode(groupParam.getCode());
-                    if (!td.isParam()) {
-                        errorLogger.logError("Make param from attribute " + var, cell, 2);
-                        td = td.withParam(true);
+                    if (!var.getTextDescriptor().isParam()) {
+                        String msg = "Attribute \"" + var.getTrueName() + "\" on " + cell +
+                                " must be parameter as on " + cell.getCellGroup().getParameterOwner();
+                        errorLogger.logError(msg, EPoint.fromLambda(var.getXOff(), var.getYOff()), cell, 2);
+                        var = var.withParam(true);
                     }
-                    td = td.withInherit(true);
-                    var = var.withTextDescriptor(td);
+                    var = var.withInherit(true);
+                    if (!var.getObject().equals(groupParam.getObject())) {
+                        String msg = "Parameter \"" + var.getTrueName() +
+                                "\" has value " + var.getPureValue(-1) + " on " + cell +
+                                " instead of " + groupParam.getPureValue(-1) + " as on " + cell.getCellGroup().getParameterOwner();
+                        errorLogger.logError(msg, EPoint.fromLambda(var.getXOff(), var.getYOff()), cell, 2);
+                        var = var.withObject(groupParam.getObject());
+                    }
+                    if (var.getUnit() != groupParam.getUnit()) {
+                        String msg = "Parameter \"" + var.getTrueName() +
+                                "\" has unit " + var.getUnit() + " on " + cell +
+                                " instead of " + groupParam.getUnit() + " as on " + cell.getCellGroup().getParameterOwner();
+                        errorLogger.logError(msg, EPoint.fromLambda(var.getXOff(), var.getYOff()), cell, 2);
+                        var = var.withUnit(groupParam.getUnit());
+                    }
                     foundParams++;
                 } else if (var.getTextDescriptor().isParam()) {
-                    errorLogger.logError("Delete param " + var, cell, 2);
+                    String msg = cell + " has extra parameter \"" + var.getTrueName() +
+                            "\" compared to " + cell.getCellGroup().getParameterOwner();
+                    errorLogger.logError(msg, EPoint.fromLambda(var.getXOff(), var.getYOff()), cell, 2);
                     var = var.withParam(false);
+                    if (var.getKey() == NccCellAnnotations.NCC_ANNOTATION_KEY)
+                        var = var.withInherit(false).withInterior(false);
                 }
             }
             realizeVariable(cell, var);
         }
         if (foundParams == groupParams.size()) return;
-        
+
+        // Create parameters which were omitted in the disk library
         HashSet<Variable.AttrKey> omittedParams = new HashSet<Variable.AttrKey>(groupParams.keySet());
         for (Variable var: origVars)
             omittedParams.remove(var.getKey());
         assert omittedParams.size() + foundParams == groupParams.size();
+
+        // For icon cell try to find variables on an example icon in schematic cell
+        Variable[] exampleVars = null;
+        if (cell.isIcon()) {
+            for (Iterator<Cell> cit = cell.getCellGroup().getCells(); cit.hasNext();) {
+                Cell schCell = cit.next();
+                if (!schCell.isSchematic()) continue;
+                exampleVars = findVarsOnExampleIcon(schCell, cell);
+                if (exampleVars == null) continue;
+                break;
+            }
+        }
         for (Variable.AttrKey omittedParam: omittedParams) {
             Variable param = groupParams.get(omittedParam);
-            if (cell.isIcon()) {
-                Variable exampleParam = null;
-                for (Iterator<Cell> cit = cell.getCellGroup().getCells(); cit.hasNext(); ) {
-                    Cell schCell = cit.next();
-                    if (!schCell.isSchematic()) continue;
-                    Variable[] vars = findVarsOnExampleIcon(schCell, cell);
-                    if (vars == null) continue;
-                    for (Variable var: vars) {
-                        if (var.getKey() != omittedParam) continue;
-                        exampleParam = var;
-                        errorLogger.logWarning("Created param " + omittedParam + " on " + cell + " from example on " +  schCell, cell, 2);
-                        break;
-                    }
+            String msg = cell + " must have parameter \"" + param.getTrueName() + "\" as on " + cell.getCellGroup().getParameterOwner();
+            Variable exampleParam = null;
+            if (exampleVars != null) {
+                for (Variable var: exampleVars) {
+                    if (var == null || var.getKey() != omittedParam) continue;
+                    exampleParam = var;
                     break;
                 }
-                if (exampleParam != null) {
-                    TextDescriptor td = exampleParam.getTextDescriptor();
-                    boolean display = td.isDisplay();
-                    td = td.withParam(true).withInherit(true).withInterior(display).withDisplay(true).withCode(param.getCode());
-                    param = param.withTextDescriptor(td);
-                } else {
-                    errorLogger.logError("Create param " + omittedParam + " on " + cell, 2);
-                }
+            }
+            if (exampleParam != null) {
+                TextDescriptor td = exampleParam.getTextDescriptor();
+                td = td.withInherit(true).withParam(true).withCode(param.getCode()).withUnit(param.getUnit());
+                boolean interior = !exampleParam.isDisplay();
+                td = td.withInterior(interior).withDisplay(true);
+                param = param.withTextDescriptor(td);
             }
             assert param.getTextDescriptor().isParam() && param.isInherit();
+            errorLogger.logError(msg, EPoint.fromLambda(param.getXOff(), param.getYOff()), cell, 2);
             realizeVariable(cell, param);
         }
     }
-    
+
     abstract Variable[] findVarsOnExampleIcon(Cell parentCell, Cell iconCell);
 
 	protected void scanNodesForRecursion(Cell cell, HashSet<Cell> markCellForNodes, NodeProto [] nil, int start, int end)
@@ -1279,7 +1303,7 @@ public abstract class LibraryFiles extends Input
         for (Variable var: vars)
             realizeVariable(eObj, var);
     }
-    
+
     private void realizeVariable(ElectricObject eObj, Variable var) {
         if (var == null || eObj.isDeprecatedVariable(var.getKey())) return;
         String origVarName = var.getKey().toString();
