@@ -549,7 +549,7 @@ public class Connectivity
 					{
 						// expanding the subcell
 						expandedCells.add(subCell);
-						AffineTransform subTrans = ni.rotateOut(ni.translateOut(prevTrans));
+						AffineTransform subTrans = ni.translateOut(ni.rotateOut(prevTrans));
 						extractCell(subCell, newCell, pat, expandedCells, merge, subTrans);
 						continue;
 					}
@@ -1296,7 +1296,6 @@ public class Connectivity
 				for(int i=0; i<polyList.length; i++)
 				{
 					Poly poly = polyList[i];
-                    if (poly.isPseudoLayer()) continue;
 					if (poly.getPort() == null) continue;
 					if (geometricLayer(poly.getLayer()) != layer) continue;
 					poly.transform(trans);
@@ -1381,6 +1380,7 @@ public class Connectivity
 			}
 
 			// the new way to extract vias
+			List<PolyBase> cutsNotExtracted = new ArrayList<PolyBase>();
 			while (cutList.size() > 0)
 			{
 				PolyBase cut = cutList.get(0);
@@ -1396,6 +1396,7 @@ public class Connectivity
 					System.out.println("Cannot extract nonManhattan contact cut at (" +
 						(cutBox.getCenterX()/SCALEFACTOR) + "," + (cutBox.getCenterY()/SCALEFACTOR) + ")");
 					cutList.remove(cut);
+					cutsNotExtracted.add(cut);
 					continue;
 				}
 				Point2D ctr = new Point2D.Double(cutBox.getCenterX(), cutBox.getCenterY());
@@ -1488,10 +1489,6 @@ public class Connectivity
 						}
 
 						// see if a multi-cut contact fits
-//						double lX = multiCutArea.getMinX() - trueWidth/2;
-//						double hX = multiCutArea.getMaxX() + trueWidth/2;
-//						double lY = multiCutArea.getMinY() - trueHeight/2;
-//						double hY = multiCutArea.getMaxY() + trueHeight/2;
 						double lX = multiCutArea.getCenterX() - trueWidth/2;
 						double hX = multiCutArea.getCenterX() + trueWidth/2;
 						double lY = multiCutArea.getCenterY() - trueHeight/2;
@@ -1510,8 +1507,6 @@ public class Connectivity
 							}
 							realizeBiggestContact(pv.pNp, multiCutArea.getCenterX(), multiCutArea.getCenterY(), mw, mh,
 								pv.rotation*10, originalMerge, newCell, contactNodes);
-//							realizeNode(pv.pNp, multiCutArea.getCenterX(), multiCutArea.getCenterY(), mw, mh,
-//								pv.rotation*10, null, merge, newCell, contactNodes);
 							for(PolyBase cutsFound : cutsInArea)
 								cutList.remove(cutsFound);
 							soFar += cutsInArea.size() - 1;
@@ -1545,8 +1540,11 @@ public class Connectivity
 					if (reason != null) msg += " because " + reason;
 					System.out.println(msg);
 					cutList.remove(cut);
+					cutsNotExtracted.add(cut);
 				}
 			}
+			if (cutsNotExtracted.size() > 0)
+				allCutLayers.put(layer, cutsNotExtracted);
 		}
 
 		// now remove all created contacts from the original merge
@@ -2825,61 +2823,57 @@ public class Connectivity
 //System.out.println("COMPARE "+cl+" WITH "+oCl);
 				Point2D intersect = GenMath.intersect(cl.start, cl.angle, oCl.start, oCl.angle);
 				if (intersect == null) continue;
-//				if (cl.start.distance(intersect) <= oCl.width/2 || cl.end.distance(intersect) <= oCl.width/2 ||
-//					oCl.start.distance(intersect) <= cl.width/2 || oCl.end.distance(intersect) <= cl.width/2)
-				{
 //System.out.println("  INTERSECTION AT ("+intersect.getX()+","+intersect.getY()+")");
-					both[0] = cl;   both[1] = oCl;
-					for(int b=0; b<2; b++)
+				both[0] = cl;   both[1] = oCl;
+				for(int b=0; b<2; b++)
+				{
+					Point2D newStart = both[b].start, newEnd = both[b].end;
+					double distToStart = newStart.distance(intersect);
+					double distToEnd = newEnd.distance(intersect);
+
+					// see if intersection is deeply inside of the segment
+					boolean makeT = insideSegment(newStart, newEnd, intersect) &&
+						Math.min(distToStart, distToEnd) > both[b].width/2;
+
+					// adjust the centerline to end at the intersection point
+					double extendStart = 0, extendEnd = 0, extendAltStart = 0, extendAltEnd = 0, betterExtension = 0;
+					Point2D altNewStart = new Point2D.Double(0,0), altNewEnd = new Point2D.Double(0,0);
+					if (distToStart < distToEnd)
 					{
-						Point2D newStart = both[b].start, newEnd = both[b].end;
-						double distToStart = newStart.distance(intersect);
-						double distToEnd = newEnd.distance(intersect);
-
-						// see if intersection is deeply inside of the segment
-						boolean makeT = insideSegment(newStart, newEnd, intersect) &&
-							Math.min(distToStart, distToEnd) > both[b].width/2;
-
-						// adjust the centerline to end at the intersection point
-						double extendStart = 0, extendEnd = 0, extendAltStart = 0, extendAltEnd = 0, betterExtension = 0;
-						Point2D altNewStart = new Point2D.Double(0,0), altNewEnd = new Point2D.Double(0,0);
-						if (distToStart < distToEnd)
-						{
-							betterExtension = newStart.distance(intersect);
-							altNewStart.setLocation(newStart);   altNewEnd.setLocation(intersect);
-							newStart = intersect;
-							extendAltEnd = extendStart = both[b].width / 2;
-						} else
-						{
-							betterExtension = newEnd.distance(intersect);
-							altNewStart.setLocation(intersect);   altNewEnd.setLocation(newEnd);
-							newEnd = intersect;
-							extendAltStart = extendEnd = both[b].width / 2;
-						}
-						Poly extended = Poly.makeEndPointPoly(newStart.distance(newEnd), both[b].width, both[b].angle,
+						betterExtension = newStart.distance(intersect);
+						altNewStart.setLocation(newStart);   altNewEnd.setLocation(intersect);
+						newStart = intersect;
+						extendAltEnd = extendStart = both[b].width / 2;
+					} else
+					{
+						betterExtension = newEnd.distance(intersect);
+						altNewStart.setLocation(intersect);   altNewEnd.setLocation(newEnd);
+						newEnd = intersect;
+						extendAltStart = extendEnd = both[b].width / 2;
+					}
+					Poly extended = Poly.makeEndPointPoly(newStart.distance(newEnd), both[b].width, both[b].angle,
+						newStart, extendStart, newEnd, extendEnd, Poly.Type.FILLED);
+					if (!originalMerge.contains(layer, extended))
+					{
+						if (extendStart > 0) extendStart = betterExtension;
+						if (extendEnd > 0) extendEnd = betterExtension;
+						extended = Poly.makeEndPointPoly(newStart.distance(newEnd), both[b].width, both[b].angle,
 							newStart, extendStart, newEnd, extendEnd, Poly.Type.FILLED);
-						if (!originalMerge.contains(layer, extended))
+					}
+					if (originalMerge.contains(layer, extended))
+					{
+						both[b].setStart(newStart.getX(), newStart.getY());
+						both[b].setEnd(newEnd.getX(), newEnd.getY());
+						if (extendStart != 0) both[b].startHub = true;
+						if (extendEnd != 0) both[b].endHub = true;
+						if (makeT)
 						{
-							if (extendStart > 0) extendStart = betterExtension;
-							if (extendEnd > 0) extendEnd = betterExtension;
-							extended = Poly.makeEndPointPoly(newStart.distance(newEnd), both[b].width, both[b].angle,
-								newStart, extendStart, newEnd, extendEnd, Poly.Type.FILLED);
-						}
-						if (originalMerge.contains(layer, extended))
-						{
-							both[b].setStart(newStart.getX(), newStart.getY());
-							both[b].setEnd(newEnd.getX(), newEnd.getY());
-							if (extendStart != 0) both[b].startHub = true;
-							if (extendEnd != 0) both[b].endHub = true;
-							if (makeT)
-							{
-								// too much shrinkage: split the centerline
-								Centerline newCL = new Centerline(both[b].width, altNewStart, altNewEnd);
-								if (extendAltStart != 0) newCL.startHub = true;
-								if (extendAltEnd != 0) newCL.endHub = true;
-								validCenterlines.add(newCL);
-								continue;
-							}
+							// too much shrinkage: split the centerline
+							Centerline newCL = new Centerline(both[b].width, altNewStart, altNewEnd);
+							if (extendAltStart != 0) newCL.startHub = true;
+							if (extendAltEnd != 0) newCL.endHub = true;
+							validCenterlines.add(newCL);
+							continue;
 						}
 					}
 				}
@@ -3104,12 +3098,9 @@ public class Connectivity
 					for(int p=0; p<4; p++)
 					{
 						double length = possibleStart[p].distance(possibleEnd[p]);
-						Poly clPoly = makeEndPointPoly(length, width, angle,
-							possibleStart[p], possibleEnd[p]);
-//clPoly.roundPoints();
-//Point2D [] ps = clPoly.getPoints();
-//System.out.print("TRY (ANGLE="+angle+")");
-//for(int t=0; t<ps.length; t++) System.out.print(" ("+ps[t].getX()+","+ps[t].getY()+")"); System.out.println();
+//						Poly clPoly = makeEndPointPoly(length, width, angle, possibleStart[p], possibleEnd[p]);
+						Poly clPoly = Poly.makeEndPointPoly(length, width, angle,
+							possibleStart[p], 0, possibleEnd[p], 0, Poly.Type.FILLED);
 						if (originalMerge.contains(poly.getLayer(), clPoly))
 						{
 							// if the width is much greater than the length, rotate the centerline 90 degrees
@@ -3181,41 +3172,6 @@ public class Connectivity
 				System.out.println("FINALLY HAVE "+cl.toString());
 		}
 		return centerlines;
-	}
-
-	public static Poly makeEndPointPoly(double len, double wid, double angle, Point2D endH, Point2D endT)
-	{
-		double w2 = wid / 2;
-		double x1 = endH.getX();   double y1 = endH.getY();
-		double x2 = endT.getX();   double y2 = endT.getY();
-		double xextra, yextra, xe1, ye1, xe2, ye2;
-		if (len == 0)
-		{
-			double sa = Math.sin(angle);
-			double ca = Math.cos(angle);
-			xe1 = x1;
-			ye1 = y1;
-			xe2 = x2;
-			ye2 = y2;
-			xextra = ca * w2;
-			yextra = sa * w2;
-		} else
-		{
-			xe1 = x1;
-			ye1 = y1;
-			xe2 = x2;
-			ye2 = y2;
-			xextra = w2 * (x2-x1) / len;
-			yextra = w2 * (y2-y1) / len;
-		}
-		Point2D.Double [] points = new Point2D.Double[] {
-			new Point2D.Double(yextra + xe1, ye1 - xextra),
-			new Point2D.Double(xe1 - yextra, xextra + ye1),
-			new Point2D.Double(xe2 - yextra, xextra + ye2),
-			new Point2D.Double(yextra + xe2, ye2 - xextra)};
-		Poly poly = new Poly(points);
-		poly.setStyle(Poly.Type.FILLED);
-		return poly;
 	}
 
 	/**
@@ -3354,36 +3310,16 @@ public class Connectivity
 					}
 				}
 
-				// just generate more pure-layer nodes
-				PrimitiveNode pNp = layer.getPureLayerNode();
-				if (pNp == null)
-				{
-					System.out.println("CANNOT FIND PURE LAYER NODE FOR LAYER "+poly.getLayer().getName());
-					continue;
-				}
-				Rectangle2D polyBounds = poly.getBounds2D();
-				double centerX = polyBounds.getCenterX() / SCALEFACTOR;
-				double centerY = polyBounds.getCenterY() / SCALEFACTOR;
-				Point2D center = new Point2D.Double(centerX, centerY);
-
-				// compute any trace information if the shape is nonmanhattan
-				EPoint [] newPoints = null;
-				if (poly.getBox() == null)
-				{
-					// store the trace
-					Point2D [] points = poly.getPoints();
-					newPoints = new EPoint[points.length];
-					for(int i=0; i<points.length; i++)
-						newPoints[i] = new EPoint(points[i].getX() / SCALEFACTOR, points[i].getY() / SCALEFACTOR);
-				}
-				NodeInst ni = createNode(pNp, center, polyBounds.getWidth() / SCALEFACTOR,
-					polyBounds.getHeight() / SCALEFACTOR, newPoints, newCell);
+				// just generate a pure-layer node
+				NodeInst ni = makePureLayerNodeFromPoly(poly, newCell);
+				if (ni == null) continue;
 
 				// connect to the rest if possible
 				if (ap != null)
 				{
 					PortInst fPi = ni.getOnlyPortInst();
 					Poly fPortPoly = fPi.getPoly();
+					Rectangle2D polyBounds = poly.getBounds2D();
 					Rectangle2D searchBound = new Rectangle2D.Double(polyBounds.getMinX()/SCALEFACTOR, polyBounds.getMinY()/SCALEFACTOR,
 						polyBounds.getWidth()/SCALEFACTOR, polyBounds.getHeight()/SCALEFACTOR);
 					PortInst bestTPi = null;
@@ -3433,6 +3369,48 @@ public class Connectivity
 				}
 			}
 		}
+
+		// also throw in unextracted contact cuts
+		for (Layer layer : allCutLayers.keySet())
+		{
+			List<PolyBase> cutList = allCutLayers.get(layer);
+			for(PolyBase poly : cutList)
+				makePureLayerNodeFromPoly(poly, newCell);
+		}
+	}
+
+	/**
+	 * Method to convert a Poly to a pure-layer node.
+	 * @param poly the PolyBase to convert.
+	 * @param cell the Cell in which to place the node.
+	 * @return the NodeInst that was created (null on error).
+	 */
+	private NodeInst makePureLayerNodeFromPoly(PolyBase poly, Cell cell)
+	{
+		PrimitiveNode pNp = poly.getLayer().getPureLayerNode();
+		if (pNp == null)
+		{
+			System.out.println("CANNOT FIND PURE LAYER NODE FOR LAYER " + poly.getLayer().getName());
+			return null;
+		}
+		Rectangle2D polyBounds = poly.getBounds2D();
+		double centerX = polyBounds.getCenterX() / SCALEFACTOR;
+		double centerY = polyBounds.getCenterY() / SCALEFACTOR;
+		Point2D center = new Point2D.Double(centerX, centerY);
+
+		// compute any trace information if the shape is nonmanhattan
+		EPoint [] newPoints = null;
+		if (poly.getBox() == null)
+		{
+			// store the trace
+			Point2D [] points = poly.getPoints();
+			newPoints = new EPoint[points.length];
+			for(int i=0; i<points.length; i++)
+				newPoints[i] = new EPoint(points[i].getX() / SCALEFACTOR, points[i].getY() / SCALEFACTOR);
+		}
+		NodeInst ni = createNode(pNp, center, polyBounds.getWidth() / SCALEFACTOR,
+			polyBounds.getHeight() / SCALEFACTOR, newPoints, cell);
+		return ni;
 	}
 
 	/**
@@ -3696,7 +3674,7 @@ public class Connectivity
 		merge.subtract(layer, poly);
 	}
 
-	double scaleUp(double v)
+	private double scaleUp(double v)
 	{
 		return DBMath.round(v) * SCALEFACTOR;
 	}
@@ -3773,28 +3751,63 @@ public class Connectivity
 		return properPolyList;
 	}
 
-	/**
-	 * Debugging method to report the coordinates of all geometry on a given layer.
-	 */
-	public String describeLayer(PolyMerge merge, Layer layer)
-	{
-		List<PolyBase> polyList = getMergePolys(merge, layer);
-		if (polyList == null) return "DOES NOT EXIST";
-		StringBuffer sb = new StringBuffer();
-		for(PolyBase p : polyList)
-		{
-			Point2D [] points = p.getPoints();
-			sb.append(" [");
-			for(int j=0; j<points.length; j++)
-			{
-				Point2D pt = points[j];
-				if (j > 0) sb.append(" ");
-				sb.append("("+pt.getX()+","+pt.getY()+")");
-			}
-			sb.append("]");
-		}
-		return sb.toString();
-	}
+//	/**
+//	 * Debugging method to report the coordinates of all geometry on a given layer.
+//	 */
+//	public String describeLayer(PolyMerge merge, Layer layer)
+//	{
+//		List<PolyBase> polyList = getMergePolys(merge, layer);
+//		if (polyList == null) return "DOES NOT EXIST";
+//		StringBuffer sb = new StringBuffer();
+//		for(PolyBase p : polyList)
+//		{
+//			Point2D [] points = p.getPoints();
+//			sb.append(" [");
+//			for(int j=0; j<points.length; j++)
+//			{
+//				Point2D pt = points[j];
+//				if (j > 0) sb.append(" ");
+//				sb.append("("+pt.getX()+","+pt.getY()+")");
+//			}
+//			sb.append("]");
+//		}
+//		return sb.toString();
+//	}
+
+//	private static Poly makeEndPointPoly(double len, double wid, double angle, Point2D endH, Point2D endT)
+//	{
+//		double w2 = wid / 2;
+//		double x1 = endH.getX();   double y1 = endH.getY();
+//		double x2 = endT.getX();   double y2 = endT.getY();
+//		double xextra, yextra, xe1, ye1, xe2, ye2;
+//		if (len == 0)
+//		{
+//			double sa = Math.sin(angle);
+//			double ca = Math.cos(angle);
+//			xe1 = x1;
+//			ye1 = y1;
+//			xe2 = x2;
+//			ye2 = y2;
+//			xextra = ca * w2;
+//			yextra = sa * w2;
+//		} else
+//		{
+//			xe1 = x1;
+//			ye1 = y1;
+//			xe2 = x2;
+//			ye2 = y2;
+//			xextra = w2 * (x2-x1) / len;
+//			yextra = w2 * (y2-y1) / len;
+//		}
+//		Point2D.Double [] points = new Point2D.Double[] {
+//			new Point2D.Double(yextra + xe1, ye1 - xextra),
+//			new Point2D.Double(xe1 - yextra, xextra + ye1),
+//			new Point2D.Double(xe2 - yextra, xextra + ye2),
+//			new Point2D.Double(yextra + xe2, ye2 - xextra)};
+//		Poly poly = new Poly(points);
+//		poly.setStyle(Poly.Type.FILLED);
+//		return poly;
+//	}
 
 	/**
 	 * Class for showing progress of extraction in a modeless dialog
