@@ -304,7 +304,7 @@ public class CircuitChangeJobs
 				DBMath.gridAlign(center, alignment);
 				double bodyXOffset = center.getX() - ni.getAnchorCenterX();
 				double bodyYOffset = center.getY() - ni.getAnchorCenterY();
-	
+
 				double portXOffset = bodyXOffset;
 				double portYOffset = bodyYOffset;
 				boolean mixedportpos = false;
@@ -330,7 +330,7 @@ public class CircuitChangeJobs
 				{
 					bodyXOffset = portXOffset;   bodyYOffset = portYOffset;
 				}
-	
+
 				// if a primitive has an offset, see if the node edges are aligned
 				if (bodyXOffset != 0 || bodyYOffset != 0)
 				{
@@ -357,7 +357,7 @@ public class CircuitChangeJobs
 						}
 					}
 				}
-	
+
 				// move the node
 				if (bodyXOffset != 0 || bodyYOffset != 0)
 				{
@@ -374,7 +374,7 @@ public class CircuitChangeJobs
 					}
 					ni.move(bodyXOffset, bodyYOffset);
 					adjustedNodes++;
-	
+
 					// restore arc constraints
 					for(Iterator<Connection> aIt = ni.getConnections(); aIt.hasNext(); )
 					{
@@ -387,7 +387,7 @@ public class CircuitChangeJobs
 					}
 				}
 			}
-	
+
 			// now adjust the arcs
 			int adjustedArcs = 0;
 			for(Geometric geom : list)
@@ -395,14 +395,14 @@ public class CircuitChangeJobs
 				if (!(geom instanceof ArcInst)) continue;
 				ArcInst ai = (ArcInst)geom;
 				if (!ai.isLinked()) continue;
-	
+
 				Point2D origHead = ai.getHeadLocation();
 				Point2D origTail = ai.getTailLocation();
 				Point2D arcHead = new Point2D.Double(origHead.getX(), origHead.getY());
 				Point2D arcTail = new Point2D.Double(origTail.getX(), origTail.getY());
 				DBMath.gridAlign(arcHead, alignment);
 				DBMath.gridAlign(arcTail, alignment);
-	
+
 				double headXOff = arcHead.getX() - origHead.getX();
 				double headYOff = arcHead.getY() - origHead.getY();
 				double tailXOff = arcTail.getX() - origTail.getX();
@@ -419,7 +419,7 @@ public class CircuitChangeJobs
 					if (!ai.tailStillInPort(origTail, false)) continue;
 					tailXOff = tailYOff = 0;
 				}
-	
+
 				// make sure an arc does not change angle
 				int ang = ai.getAngle();
 				if (ang == 0 || ang == 1800)
@@ -445,7 +445,7 @@ public class CircuitChangeJobs
 					if ((constr & 2) != 0) ai.setFixedAngle(true);
 				}
 			}
-	
+
 			// show results
 			if (adjustedNodes == 0 && adjustedArcs == 0) System.out.println("No adjustments necessary"); else
 				System.out.println("Adjusted " + adjustedNodes + " nodes and " + adjustedArcs + " arcs");
@@ -935,7 +935,10 @@ public class CircuitChangeJobs
 				} else
 				{
 					// deleting a variable
-					eobj.delVar(key);
+                    if (eobj instanceof Cell && eobj.isParam(key))
+                        ((Cell)eobj).getCellGroup().delParam((Variable.AttrKey)key);
+                    else
+                        eobj.delVar(key);
 				}
 			}
 			if (cell != null)
@@ -1496,7 +1499,7 @@ public class CircuitChangeJobs
 			return true;
 		}
 	}
-	
+
 	/**
 	 * This class implements the changes needed to shorten selected arcs.
 	 */
@@ -1585,10 +1588,10 @@ public class CircuitChangeJobs
 	                } else {
 					    ni = (NodeInst)firstEObj;
 	                }
-	
+
 					// make sure moving the node is allowed
 					if (cantEdit(cell, ni, true, false, true) != 0) return false;
-	
+
 					ni.move(dX, dY);
 	                if (verbose) System.out.println("Moved "+ni+": delta(X,Y) = ("+dX+","+dY+")");
 	                updateStatusBar = true;
@@ -1747,7 +1750,7 @@ public class CircuitChangeJobs
 					}
 				}
 			}
-			
+
 			// make flag to track the nodes that move
 			HashSet<NodeInst> flag = new HashSet<NodeInst>();
 
@@ -2016,10 +2019,10 @@ public class CircuitChangeJobs
 		{
 			NodeInst ni = it.next();
 			if (ni.getFunction() != PrimitiveNode.Function.PIN) continue;
-	
+
 			// if the pin is an export, save it
 			if (ni.hasExports()) continue;
-	
+
 			// if the pin is connected to two arcs along the same slope, delete it
 			if (ni.isInlinePin())
 			{
@@ -2519,7 +2522,7 @@ public class CircuitChangeJobs
                 for (Iterator<Variable> it = newNi.getVariables(); it.hasNext(); ) {
                     Variable var = it.next();
                     Variable.Key key = var.getKey();
-                    if (key != NodeInst.TRACE && !PossibleVariables.validKey(key, (PrimitiveNode)newNp)) 
+                    if (key != NodeInst.TRACE && !PossibleVariables.validKey(key, (PrimitiveNode)newNp))
                     {
                         newNi.delVar(var.getKey());
                     }
@@ -2823,7 +2826,7 @@ public class CircuitChangeJobs
 			System.out.println("Library '" + oldName + "' renamed to '" + newName + "'");
 			return true;
 		}
-        
+
         public void terminateOK() {
             User.fixStaleCellReferences(idMapper);
         }

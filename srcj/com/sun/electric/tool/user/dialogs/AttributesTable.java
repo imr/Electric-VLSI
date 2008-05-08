@@ -25,6 +25,7 @@ package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
@@ -305,7 +306,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
 
         /**
          * Set this to be the list of variables shown
-         * @param owner ElectricObject which owns Variables 
+         * @param owner ElectricObject which owns Variables
          * @param variables the list of Variables to show
          */
         private void setVars(ElectricObject owner, List<Variable> variables) {
@@ -544,7 +545,10 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
                 // delete variables first
                 for (Variable.Key key : varsToDelete)
                 {
-                    owner.delVar(key);
+                    if (owner instanceof Cell && owner.isParam(key))
+                        ((Cell)owner).getCellGroup().delParam((Variable.AttrKey)key);
+                    else
+                        owner.delVar(key);
                 }
 
                 // now create new and update existing variables

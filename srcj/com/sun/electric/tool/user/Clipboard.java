@@ -467,8 +467,13 @@ public class Clipboard
             for(DisplayedText dt : textList)
             {
                 ElectricObject owner = dt.getElectricObject();
-                if (!(owner instanceof Cell)) continue;                
-                owner.delVar(dt.getVariableKey());
+                if (!(owner instanceof Cell)) continue;
+                Cell cell = (Cell)owner;
+                Variable.Key key = dt.getVariableKey();
+                if (cell.isParam(key))
+                    cell.getCellGroup().delParam((Variable.AttrKey)key);
+                else
+                    cell.delVar(key);
             }
 			return true;
 		}
@@ -702,6 +707,10 @@ public class Clipboard
 		clipCell.killNodes(nodesToDelete);
 
         // Delete all variables
+        for(Iterator<Variable> it = clipCell.getParameters(); it.hasNext(); ) {
+            Variable var = it.next();
+            clipCell.getCellGroup().delParam((Variable.AttrKey)var.getKey());
+        }
         for(Iterator<Variable> it = clipCell.getVariables(); it.hasNext(); )
 		{
 			Variable var = it.next();
@@ -715,7 +724,7 @@ public class Clipboard
                 User.isDupCopiesExports(), User.isArcsAutoIncremented(),
                 alignment, inPlace, inPlaceOrient);
     }
-    
+
 	/**
 	 * Method to copy the list of Geometrics to a new Cell.
 	 * @param toCell the destination cell of the Geometrics.
@@ -936,7 +945,7 @@ public class Clipboard
 				if (geom instanceof NodeInst)
 				{
 					NodeInst ni = (NodeInst)geom;
-	
+
 					// special case for displayable text on invisible pins
 					if (ni.isInvisiblePinWithText())
 					{

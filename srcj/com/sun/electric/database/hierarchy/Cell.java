@@ -259,7 +259,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 
             	// find nonconflicting location of this cell attribute
             	Point2D offset = cell.newVarOffset();
-                cell.addVar(param.withOff(offset.getX(), offset.getY()));
+                cell.addParam(param.withOff(offset.getX(), offset.getY()));
             }
         }
 
@@ -268,10 +268,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
          * @param key the key of the parameter to delete.
          */
         public void delParam(Variable.AttrKey key) {
-            assert cells.iterator().next().isParam(key);
             for (Cell cell: cells) {
                 if (!(cell.isIcon() || cell.isSchematic())) continue;
-                cell.delVar(key);
+                cell.delParam(key);
             }
         }
 
@@ -283,10 +282,13 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
          * @param newName the new name of the parameter
          */
         public void renameParam(Variable.AttrKey key, Variable.AttrKey newName) {
-            assert cells.iterator().next().isParam(key);
+            if (newName == key) return;
             for (Cell cell: cells) {
                 if (!(cell.isIcon() || cell.isSchematic())) continue;
-                cell.renameVar(key, newName.getName());
+        		Variable oldParam = cell.getParameter(key);
+            	// create new var
+                cell.addParam(Variable.newInstance(newName, oldParam.getObject(), oldParam.getTextDescriptor()));
+        		cell.delParam(key);
             }
         }
 
@@ -3212,6 +3214,13 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
      * @param var Variable to add.
      */
     public void addVar(Variable var) {
+//        if (var.getTextDescriptor().isParam())
+//            throw new IllegalArgumentException("Parameters should be added by CellGroup.addParam");
+        setD(getD().withVariable(var));
+    }
+
+    private void addParam(Variable var) {
+        assert var.getTextDescriptor().isParam() && var.isInherit();
         setD(getD().withVariable(var));
     }
 
@@ -3221,8 +3230,15 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 */
 	public void delVar(Variable.Key key)
 	{
+        if (isParam(key))
+            throw new IllegalArgumentException("Parameters should be deleted by CellGroup.delParam");
         setD(getD().withoutVariable(key));
 	}
+
+    private void delParam(Variable.AttrKey key) {
+        assert isParam(key);
+        setD(getD().withoutVariable(key));
+    }
 
     /**
      * Method to return NodeProtoId of this NodeProto.
