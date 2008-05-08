@@ -1744,9 +1744,10 @@ public class AutoStitch
 			// transform the intersection point back down into low-level
 			try
 			{
-				sp.xfToTop.invert();
+//				sp.xfToTop.invert();
+				sp.xfToTop.inverseTransform(breakPt, breakPt);
 			} catch (NoninvertibleTransformException e) { return; }
-			sp.xfToTop.transform(breakPt, breakPt);
+//			sp.xfToTop.transform(breakPt, breakPt);
 
 			// break the arc at that point
 			PrimitiveNode pinType = breakArc.getProto().findPinProto();
