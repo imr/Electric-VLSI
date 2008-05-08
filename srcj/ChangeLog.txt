@@ -4,7 +4,7 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07j: ******************************
 
-IMP: (5/7/08, GVG) Add new contacts in CMOS90 (Bug #1677)
+IMP: (5/7/08, GVG) Add new contacts M12->M67, Poly in CMOS90 (Bug #1677)
 
 BUG: (5/6/08, SMR) Printing quality is not well understood (Bug #1648).
 FIX: Updated section 4-8 of manual to explain different hardcopy options and limitations.
