@@ -61,6 +61,7 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.CircuitChangeJobs;
 
 import java.awt.geom.AffineTransform;
+import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
@@ -1505,7 +1506,7 @@ public class AutoStitch
 		Poly oPortPoly = oNi.getShapeOfPort(opp);
 		Point2D oPortCenter = new Point2D.Double(oPortPoly.getCenterX(), oPortPoly.getCenterY());
 
-		if (USEQTREE)
+		if (USEQTREE && stayInside == null)
 		{
 			if (ni.isCellInstance() || oNi.isCellInstance())
 			{
@@ -1697,11 +1698,97 @@ public class AutoStitch
 		if (arcPoly == null) return;
 
 		// look for geometry inside the cell that touches the arc, and make an export so it can connect
-		ArcTouchVisitor atv = new ArcTouchVisitor(ai, arcPoly, ni);
+		ArcTouchVisitor atv = new ArcTouchVisitor(ai, arcPoly, ni, false);
 		HierarchyEnumerator.enumerateCell(ni.getParent(), VarContext.globalContext, atv);
 		SubPolygon sp = atv.getExportDrillLocation();
 		if (sp != null)
+		{
 			makeExportDrill((NodeInst)sp.theObj, sp.poly.getPort(), sp.context);
+			return;
+		}
+
+		// try arcs
+		atv.setDoArcs(true);
+		HierarchyEnumerator.enumerateCell(ni.getParent(), VarContext.globalContext, atv);
+		sp = atv.getExportDrillLocation();
+		if (sp != null)
+		{
+			// get arc transformed to top-level
+			ArcInst breakArc = (ArcInst)sp.theObj;
+			Point2D head = breakArc.getHeadLocation();
+			head = new Point2D.Double(head.getX(), head.getY());
+			Point2D tail = breakArc.getTailLocation();
+			tail = new Point2D.Double(tail.getX(), tail.getY());
+			sp.xfToTop.transform(head, head);
+			sp.xfToTop.transform(tail, tail);
+			int angle = DBMath.figureAngle(head, tail);
+
+			// find where it intersects the top-level arc
+			Point2D breakPt = null;
+			if (angle%1800 == ai.getAngle()%1800)
+			{
+				if (DBMath.distToLine(head, tail, ai.getHeadLocation()) <
+					DBMath.distToLine(head, tail, ai.getTailLocation()))
+				{
+					breakPt = DBMath.intersect(head, angle, ai.getHeadLocation(), (ai.getAngle()+900)%3600);
+				} else
+				{
+					breakPt = DBMath.intersect(head, angle, ai.getTailLocation(), (ai.getAngle()+900)%3600);
+				}
+			} else
+			{
+				breakPt = DBMath.intersect(head, angle, ai.getHeadLocation(), ai.getAngle());
+			}
+			if (breakPt == null) return;
+
+			// transform the intersection point back down into low-level
+			try
+			{
+				sp.xfToTop.invert();
+			} catch (NoninvertibleTransformException e) { return; }
+			sp.xfToTop.transform(breakPt, breakPt);
+
+			// break the arc at that point
+			PrimitiveNode pinType = breakArc.getProto().findPinProto();
+			NodeInst pin = NodeInst.newInstance(pinType, breakPt, pinType.getDefaultLambdaBaseWidth(),
+				pinType.getDefaultLambdaBaseHeight(), breakArc.getParent());
+			if (pin == null) return;
+
+			PortInst pi = pin.getOnlyPortInst();
+			PortInst headPort = breakArc.getHeadPortInst();
+            PortInst tailPort = breakArc.getTailPortInst();
+            Point2D headPt = breakArc.getHeadLocation();
+            Point2D tailPt = breakArc.getTailLocation();
+            double width = breakArc.getLambdaBaseWidth();
+            String arcName = breakArc.getName();
+
+            // create the new arcs
+            ArcInst newAi1 = ArcInst.makeInstanceBase(breakArc.getProto(), width, headPort, pi, headPt, breakPt, null);
+            ArcInst newAi2 = ArcInst.makeInstanceBase(breakArc.getProto(), width, pi, tailPort, breakPt, tailPt, null);
+			if (newAi1 == null || newAi2 == null) return;
+            newAi1.setHeadNegated(breakArc.isHeadNegated());
+            newAi1.setHeadExtended(breakArc.isHeadExtended());
+            newAi1.setHeadArrowed(breakArc.isHeadArrowed());
+            newAi2.setTailNegated(breakArc.isTailNegated());
+            newAi2.setTailExtended(breakArc.isTailExtended());
+            newAi2.setTailArrowed(breakArc.isTailArrowed());
+            breakArc.kill();
+            if (arcName != null)
+            {
+                if (headPt.distance(breakPt) > tailPt.distance(breakPt))
+                {
+                    newAi1.setName(arcName);
+                    newAi1.copyTextDescriptorFrom(breakArc, ArcInst.ARC_NAME);
+                } else
+                {
+                	newAi2.setName(arcName);
+                	newAi2.copyTextDescriptorFrom(breakArc, ArcInst.ARC_NAME);
+                }
+            }
+
+            // now drill the break pin to the top
+			makeExportDrill(pin, pi.getPortProto(), sp.context);
+		}
 	}
 
 	/**
@@ -1713,20 +1800,24 @@ public class AutoStitch
 		private Poly arcPoly;
 		private int arcNetID;
 		private NodeInst cellOfInterest;
+		private boolean doArcs;
 		private Rectangle2D arcBounds;
 		private SubPolygon bestSubPolygon;
 
-		public ArcTouchVisitor(ArcInst arcOfInterest, Poly arcPoly, NodeInst cellOfInterest)
+		public ArcTouchVisitor(ArcInst arcOfInterest, Poly arcPoly, NodeInst cellOfInterest, boolean doArcs)
 		{
 			this.arcOfInterest = arcOfInterest;
 			this.arcPoly = arcPoly;
 			this.cellOfInterest = cellOfInterest;
+			this.doArcs = doArcs;
 			arcNetID = -1;
 			arcBounds = arcPoly.getBounds2D();
 			bestSubPolygon = null;
 		}
 
 		public SubPolygon getExportDrillLocation() { return bestSubPolygon; }
+
+		public void setDoArcs(boolean doArcs) { this.doArcs = doArcs; }
 
 		public boolean enterCell(HierarchyEnumerator.CellInfo info) { return true; }
 
@@ -1735,37 +1826,65 @@ public class AutoStitch
 			if (info.isRootCell()) return;
 			Netlist nl = info.getNetlist();
 
-			// look at all nodes and see if they intersect the arc
-			for(Iterator<NodeInst> it = info.getCell().getNodes(); it.hasNext(); )
+			if (doArcs)
 			{
-				NodeInst ni = it.next();
-				if (ni.isCellInstance()) continue;
-				PrimitiveNode pNp = (PrimitiveNode)ni.getProto();
-				AffineTransform nodeTrans = ni.rotateOut(info.getTransformToRoot());
-				Technology tech = pNp.getTechnology();
-				Poly [] nodeInstPolyList = tech.getShapeOfNode(ni, true, true, null);
-				for(int i=0; i<nodeInstPolyList.length; i++)
+				// look at all arcs and see if they intersect the arc
+				for(Iterator<ArcInst> it = info.getCell().getArcs(); it.hasNext(); )
 				{
-					PolyBase poly = nodeInstPolyList[i];
-					if (poly.getLayer() != arcPoly.getLayer()) continue;
-					int netID = -1;
-					if (poly.getPort() != null)
+					ArcInst ai = it.next();
+					ArcProto ap = ai.getProto();
+					AffineTransform arcTrans = info.getTransformToRoot();
+					Technology tech = ap.getTechnology();
+					Poly [] arcInstPolyList = tech.getShapeOfArc(ai);
+					for(int i=0; i<arcInstPolyList.length; i++)
 					{
-						Network net = nl.getNetwork(ni, poly.getPort(), 0);
+						PolyBase poly = arcInstPolyList[i];
+						if (poly.getLayer() != arcPoly.getLayer()) continue;
+						int netID = -1;
+						Network net = nl.getNetwork(ai, 0);
 						if (net != null) netID = info.getNetID(net);
+						if (netID == arcNetID) continue;
+						poly.transform(arcTrans);
+						double dist = poly.separation(arcPoly);
+						if (dist >= DBMath.getEpsilon()) continue;
+						SubPolygon sp = new SubPolygon(poly, info.getContext(), netID, ai, arcTrans);
+						bestSubPolygon = sp;
 					}
-					if (netID == arcNetID) continue;
-					poly.transform(nodeTrans);
-					double dist = poly.separation(arcPoly);
-					if (dist >= DBMath.getEpsilon()) continue;
-					SubPolygon sp = new SubPolygon(poly, info.getContext(), netID, ni);
-					if (bestSubPolygon != null)
-					{
-						if (!ni.hasExports()) continue;
-					}
-					bestSubPolygon = sp;
 				}
-			}			
+			} else
+			{
+				// look at all nodes and see if they intersect the arc
+				for(Iterator<NodeInst> it = info.getCell().getNodes(); it.hasNext(); )
+				{
+					NodeInst ni = it.next();
+					if (ni.isCellInstance()) continue;
+					PrimitiveNode pNp = (PrimitiveNode)ni.getProto();
+					AffineTransform nodeTrans = ni.rotateOut(info.getTransformToRoot());
+					Technology tech = pNp.getTechnology();
+					Poly [] nodeInstPolyList = tech.getShapeOfNode(ni, true, true, null);
+					for(int i=0; i<nodeInstPolyList.length; i++)
+					{
+						PolyBase poly = nodeInstPolyList[i];
+						if (poly.getLayer() != arcPoly.getLayer()) continue;
+						int netID = -1;
+						if (poly.getPort() != null)
+						{
+							Network net = nl.getNetwork(ni, poly.getPort(), 0);
+							if (net != null) netID = info.getNetID(net);
+						}
+						if (netID == arcNetID) continue;
+						poly.transform(nodeTrans);
+						double dist = poly.separation(arcPoly);
+						if (dist >= DBMath.getEpsilon()) continue;
+						SubPolygon sp = new SubPolygon(poly, info.getContext(), netID, ni, null);
+						if (bestSubPolygon != null)
+						{
+							if (!ni.hasExports()) continue;
+						}
+						bestSubPolygon = sp;
+					}
+				}
+			}
 		}
 
 		public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
@@ -1832,13 +1951,15 @@ public class AutoStitch
 		int netID;
 		VarContext context;
 		Geometric theObj;
+		AffineTransform xfToTop;
 
-		SubPolygon(PolyBase poly, VarContext context, int netID, Geometric theObj)
+		SubPolygon(PolyBase poly, VarContext context, int netID, Geometric theObj, AffineTransform xfToTop)
 		{
 			this.poly = poly;
 			this.context = context;
 			this.netID = netID;
 			this.theObj = theObj;
+			this.xfToTop = xfToTop;
 		}
 	}
 
@@ -1899,7 +2020,7 @@ public class AutoStitch
 				Poly poly = polys[i];
 				poly.transform(trans);
 				if (!DBMath.rectsIntersect(poly.getBounds2D(), intersectArea)) continue;
-				polygons.add(new SubPolygon(poly, VarContext.globalContext, -1, ni1));
+				polygons.add(new SubPolygon(poly, VarContext.globalContext, -1, ni1, null));
 			}
 		}
 
@@ -1965,7 +2086,7 @@ public class AutoStitch
 						int netID = -1;
 						Network net = nl.getNetwork(ni, poly.getPort(), 0);
 						if (net != null) netID = info.getNetID(net);
-						SubPolygon sp2 = new SubPolygon(poly, info.getContext(), netID, ni);
+						SubPolygon sp2 = new SubPolygon(poly, info.getContext(), netID, ni, null);
 						addConnection(sp, sp2);
 					}
 				}
@@ -1988,7 +2109,7 @@ public class AutoStitch
 						if (sp.poly.separation(poly) > 0) continue;
 						Network net = nl.getNetwork(ai, 0);
 						int netID = info.getNetID(net);
-						SubPolygon sp2 = new SubPolygon(poly, info.getContext(), netID, ai);
+						SubPolygon sp2 = new SubPolygon(poly, info.getContext(), netID, ai, null);
 						addConnection(sp, sp2);
 					}
 				}
@@ -2086,7 +2207,7 @@ public class AutoStitch
 					int netID = -1;
 					Network net = nl.getNetwork(ni, poly.getPort(), 0);
 					if (net != null) netID = info.getNetID(net);
-					polygons.add(new SubPolygon(poly, info.getContext(), netID, ni));
+					polygons.add(new SubPolygon(poly, info.getContext(), netID, ni, null));
 				}
 			}
 
@@ -2105,7 +2226,7 @@ public class AutoStitch
 					if (!DBMath.rectsIntersect(poly.getBounds2D(), intersectArea)) continue;
 					Network net = nl.getNetwork(ai, 0);
 					int netID = info.getNetID(net);
-					polygons.add(new SubPolygon(poly, info.getContext(), netID, ai));
+					polygons.add(new SubPolygon(poly, info.getContext(), netID, ai, null));
 				}
 			}
 		}

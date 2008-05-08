@@ -160,15 +160,17 @@ public class Connectivity
 		public boolean doIt() throws JobException
 		{
 			Connectivity c = new Connectivity(cell);
-			String expansionPattern = Extract.getCellExpandPattern();
-			Pattern pat;
-			try
+			String expansionPattern = Extract.getCellExpandPattern().trim();
+			Pattern pat = null;
+			if (expansionPattern.length() > 0)
 			{
-				pat = Pattern.compile(expansionPattern, Pattern.CASE_INSENSITIVE);
-			} catch(PatternSyntaxException e)
-			{
-				System.out.println("Pattern syntax error on '" + expansionPattern + "': " + e.getMessage());
-				pat = null;
+				try
+				{
+					pat = Pattern.compile(expansionPattern, Pattern.CASE_INSENSITIVE);
+				} catch(PatternSyntaxException e)
+				{
+					System.out.println("Pattern syntax error on '" + expansionPattern + "': " + e.getMessage());
+				}
 			}
 			if (DEBUGSTEPS)
 			{
