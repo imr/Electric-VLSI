@@ -95,9 +95,7 @@ import javax.swing.JLabel;
 /**
  * This is the Connectivity extractor.
  *
- * Still to do:
- *    Nonmanhattan contacts
- *    Explicit connection where two cells overlap
+ * Still need to handle nonmanhattan contacts
  */
 public class Connectivity
 {
@@ -2721,12 +2719,12 @@ public class Connectivity
 					merge.subtract(tempLayer1, aPoly);
 					continue;
 				}
-
 				if (DEBUGCENTERLINES)
 				{
 					System.out.println("GATHERED:");
 					for(Centerline cl : centerlines) System.out.println("    "+cl);
 				}
+
 				// now pull out the relevant ones
 				double lastWidth = -1;
 				boolean lastWidthNonManhattan = false;
@@ -2809,23 +2807,24 @@ public class Connectivity
 		for(int i=0; i<validCenterlines.size(); i++)
 		{
 			Centerline cl = validCenterlines.get(i);
-			double minCLX = Math.min(cl.start.getX(), cl.end.getX());
-			double maxCLX = Math.max(cl.start.getX(), cl.end.getX());
-			double minCLY = Math.min(cl.start.getY(), cl.end.getY());
-			double maxCLY = Math.max(cl.start.getY(), cl.end.getY());
+			double minCLX = Math.min(cl.start.getX(), cl.end.getX()) - cl.width;
+			double maxCLX = Math.max(cl.start.getX(), cl.end.getX()) + cl.width;
+			double minCLY = Math.min(cl.start.getY(), cl.end.getY()) - cl.width;
+			double maxCLY = Math.max(cl.start.getY(), cl.end.getY()) + cl.width;
 			for(int j=i+1; j<validCenterlines.size(); j++)
 			{
 				Centerline oCl = validCenterlines.get(j);
-				double minOCLX = Math.min(oCl.start.getX(), oCl.end.getX());
-				double maxOCLX = Math.max(oCl.start.getX(), oCl.end.getX());
-				double minOCLY = Math.min(oCl.start.getY(), oCl.end.getY());
-				double maxOCLY = Math.max(oCl.start.getY(), oCl.end.getY());
+				double minOCLX = Math.min(oCl.start.getX(), oCl.end.getX()) - oCl.width;
+				double maxOCLX = Math.max(oCl.start.getX(), oCl.end.getX()) + oCl.width;
+				double minOCLY = Math.min(oCl.start.getY(), oCl.end.getY()) - oCl.width;
+				double maxOCLY = Math.max(oCl.start.getY(), oCl.end.getY()) + oCl.width;
 				if (minOCLX > maxCLX || maxOCLX < minCLX || minOCLY > maxCLY || maxOCLY < minCLY) continue;
 
 //System.out.println("COMPARE "+cl+" WITH "+oCl);
 				Point2D intersect = GenMath.intersect(cl.start, cl.angle, oCl.start, oCl.angle);
 				if (intersect == null) continue;
-//System.out.println("  INTERSECTION AT ("+intersect.getX()+","+intersect.getY()+")");
+//System.out.println("  INTERSECTION AT ("+TextUtils.formatDouble(intersect.getX()/SCALEFACTOR)+","+
+//	TextUtils.formatDouble(intersect.getY()/SCALEFACTOR)+")");
 				both[0] = cl;   both[1] = oCl;
 				for(int b=0; b<2; b++)
 				{
