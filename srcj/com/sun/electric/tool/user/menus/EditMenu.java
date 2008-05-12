@@ -242,7 +242,7 @@ public class EditMenu {
 				new EMenuItem("_Edit Bus Parameters...") { public void run() {
 					BusParameters.showBusParametersDialog(); }}),
 
-		// mnemonic keys available:     E G I KL  OPQ S  VWXYZ
+		// mnemonic keys available:     E G I KL   PQ S  VWXYZ
 			new EMenu("Ar_c",
 				new EMenuItem("_Rigid") { public void run() {
 					CircuitChanges.arcRigidCommand(); }},
@@ -255,7 +255,7 @@ public class EditMenu {
 				SEPARATOR,
 				new EMenuItem("Toggle _Directionality") { public void run() {
 					CircuitChanges.arcDirectionalCommand(); }},
-				new EMenuItem("Toggle End Extension of Both Head/Tail") { public void run() {
+				new EMenuItem("Toggle End Extension _of Both Head/Tail") { public void run() {
 					CircuitChanges.arcHeadExtendCommand(); CircuitChanges.arcTailExtendCommand();}},
 				new EMenuItem("Toggle End Extension of _Head") { public void run() {
 					CircuitChanges.arcHeadExtendCommand(); }},
