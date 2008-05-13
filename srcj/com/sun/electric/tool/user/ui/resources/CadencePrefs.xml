@@ -9,23 +9,6 @@
         <map/>
         <node name="electric">
           <map/>
-          <node name="database">
-            <map/>
-            <node name="hierarchy">
-              <map/>
-            </node>
-            <node name="network">
-              <map/>
-            </node>
-            <node name="variable">
-              <map/>
-            </node>
-          </node>
-          <node name="plugins">
-            <map/>
-            <node name="menus">
-            </node>
-          </node>
           <node name="technology">
             <map/>
             <node name="technologies">
@@ -268,8 +251,6 @@
                 <entry key="ColorWaveformForeground" value="-1"/>
                 <entry key="DefaultTextCellFont" value="Monospaced"/>
               </map>
-              <node name="dialogs">
-              </node>
               <node name="menus">
                 <map>
                   <entry key="MenuKeyBinding-File | Preferences..." value="alt P"/>

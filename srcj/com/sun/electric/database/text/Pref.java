@@ -32,6 +32,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.LineNumberReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.PrintWriter;
@@ -54,6 +55,8 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
+
+import org.xml.sax.SAXParseException;
 
 /**
  * This class manages options.
@@ -229,7 +232,13 @@ public class Pref
             Technology.cacheTransparentLayerColors();
 		} catch (InvalidPreferencesFormatException e)
 		{
-			System.out.println("Invalid preferences format");
+			String message = "Invalid preferences format";
+			if (e.getCause() instanceof SAXParseException)
+			{
+				SAXParseException se = (SAXParseException)e.getCause();
+				message += " (line " + se.getLineNumber() + ")";
+			}
+			System.out.println(message + ": "+e.getMessage());
 			return;
 		} catch (IOException e)
 		{
