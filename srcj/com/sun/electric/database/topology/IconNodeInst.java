@@ -37,6 +37,8 @@ import java.util.TreeMap;
  */
 class IconNodeInst extends NodeInst
 {
+    private static final boolean KEEP_TEXT_ATTRIBUTES = true;
+
 	/**
 	 * The constructor of IconNodeInst. Use the factory "newInstance" instead.
      * @param d persistent data of this IconNodeInst.
@@ -206,6 +208,8 @@ class IconNodeInst extends NodeInst
     }
 
     private static Variable composeInstParam(Variable iconParam, Variable instVar) {
+        if (KEEP_TEXT_ATTRIBUTES && instVar != null)
+            return instVar.withInherit(false).withInterior(false).withUnit(iconParam.getUnit());
         boolean display = !iconParam.isInterior();
         iconParam = iconParam.withInherit(false).withInterior(false).withDisplay(display);
         if (instVar != null)
