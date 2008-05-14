@@ -24,7 +24,7 @@ public class InfinityA extends FlagDesign {
 
 	// Constructor does everything
 	public InfinityA(FlagConstructorData data) {
-		super(Config.CONFIG, data);
+		super(Infinity2Config.CONFIG, data);
 		
         LayoutNetlist layNets = createLayoutInstancesFromSchematic(data);
         

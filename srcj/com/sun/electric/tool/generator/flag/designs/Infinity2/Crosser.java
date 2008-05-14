@@ -24,7 +24,7 @@ public class Crosser extends FlagDesign {
 
 	// Constructor does everything
 	public Crosser(FlagConstructorData data) {
-		super(Config.CONFIG, data);
+		super(Infinity2Config.CONFIG, data);
 		
         LayoutNetlist layNets = createLayoutInstancesFromSchematic(data);
         

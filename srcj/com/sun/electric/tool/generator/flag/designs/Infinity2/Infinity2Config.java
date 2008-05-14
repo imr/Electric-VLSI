@@ -4,8 +4,8 @@ import com.sun.electric.tool.generator.flag.FlagConfig;
 import com.sun.electric.tool.generator.flag.scan.ScanChain;
 import com.sun.electric.tool.generator.layout.TechType;
 
-public class Config extends FlagConfig {
-	private Config() {
+public class Infinity2Config extends FlagConfig {
+	private Infinity2Config() {
 		tech = TechType.TechTypeEnum.CMOS90;
 	    m2PwrGndWid = 9;
 	    m3PwrGndWid = 21;
@@ -21,5 +21,5 @@ public class Config extends FlagConfig {
 		chains.add(new ScanChain("sic[1:9]", "soc[1:9]", ""));
 		chains.add(new ScanChain("sir[1:9]", "sor[1:9]", ""));
 	}
-	public static Config CONFIG = new Config();
+	public static Infinity2Config CONFIG = new Infinity2Config();
 }

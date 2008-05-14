@@ -24,7 +24,7 @@ public class RingH extends FlagDesign {
 
 	// Constructor does everything
 	public RingH(FlagConstructorData data) {
-		super(Config.CONFIG, data);
+		super(Infinity2Config.CONFIG, data);
 		
         LayoutNetlist layNets = createLayoutInstancesFromSchematic(data);
         addEssentialBounds(layNets.getLayoutCell());

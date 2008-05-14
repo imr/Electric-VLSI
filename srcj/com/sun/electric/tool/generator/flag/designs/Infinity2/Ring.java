@@ -24,7 +24,7 @@ public class Ring extends FlagDesign {
 
 	// Constructor does everything
 	public Ring(FlagConstructorData data) {
-		super(Config.CONFIG, data);
+		super(Infinity2Config.CONFIG, data);
 		
         LayoutNetlist layNets = createLayoutInstancesFromSchematic(data);
         
