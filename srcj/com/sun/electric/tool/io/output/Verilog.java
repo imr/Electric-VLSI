@@ -646,6 +646,14 @@ public class Verilog extends Topology
             // look for a Verilog template on the prototype
             if (no.isCellInstance())
             {
+                // if writing standard cell netlist, do not write out cells that
+                // do not contain standard cells
+                if (Simulation.getVerilogStopAtStandardCells())
+                {
+                    if (!standardCells.containsStandardCell((Cell)niProto) &&
+                        !SCLibraryGen.isStandardCell((Cell)niProto)) continue;
+                }
+
                 Variable varTemplate = ((Cell)niProto).getVar(VERILOG_TEMPLATE_KEY);
                 if (varTemplate != null)
                 {
@@ -665,14 +673,6 @@ public class Verilog extends Topology
                         }
                     }
                     continue;
-                }
-
-                // if writing standard cell netlist, do not write out cells that
-                // do not contain standard cells
-                if (Simulation.getVerilogStopAtStandardCells())
-                {
-                    if (!standardCells.containsStandardCell((Cell)niProto) &&
-                        !SCLibraryGen.isStandardCell((Cell)niProto)) continue;
                 }
             }
 
