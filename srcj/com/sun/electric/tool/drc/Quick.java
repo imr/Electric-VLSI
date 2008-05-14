@@ -1202,16 +1202,17 @@ public class Quick
 		int localIndex = topGlobalIndex * ci.multiplier + ci.localIndex + ci.offset;
 
 		// determine if original object has multiple contact cuts
-		boolean baseMulti = false;
+        Technology.MultiCutData multiCutData = null;
 		if (geom instanceof NodeInst)
-		{
-			baseMulti = tech.isMultiCutCase((NodeInst)geom);
-		}
+        {
+            multiCutData = tech.getMultiCutData((NodeInst)geom);
+        }
+//        boolean baseMulti = tech.isMultiCutInTechnology(multiCutData);
 
 		// search in the area surrounding the box
 		bounds.setRect(bounds.getMinX()-bound, bounds.getMinY()-bound, bounds.getWidth()+bound*2, bounds.getHeight()+bound*2);
 		return (badBoxInArea(poly, layer, tech, net, geom, trans, globalIndex, bounds, (Cell)oNi.getProto(), localIndex,
-                oNi.getParent(), topGlobalIndex, upTrans, baseMulti, false));
+                oNi.getParent(), topGlobalIndex, upTrans, multiCutData, false));
         // true in this case you don't want to check Geometric.objectsTouch(nGeom, geom) if nGeom and geom are in the
         // same cell because they could come from different cell instances.
 	}
@@ -1237,14 +1238,17 @@ public class Quick
 		bounds.setRect(poly.getBounds2D());
 
 		// determine if original object has multiple contact cuts
-		boolean baseMulti = false;
+        Technology.MultiCutData multiCutData = null;
 		if (geom instanceof NodeInst)
-			baseMulti = tech.isMultiCutCase((NodeInst)geom);
+        {
+            multiCutData = tech.getMultiCutData((NodeInst)geom);
+        }
+//        boolean baseMulti = tech.isMultiCutInTechnology(multiCutData);
 
-		// search in the area surrounding the box
+        // search in the area surrounding the box
 		bounds.setRect(bounds.getMinX()-bound, bounds.getMinY()-bound, bounds.getWidth()+bound*2, bounds.getHeight()+bound*2);
 		return badBoxInArea(poly, layer, tech, net, geom, trans, globalIndex, bounds, cell, globalIndex,
-			    cell, globalIndex, DBMath.MATID, baseMulti, true);
+			    cell, globalIndex, DBMath.MATID, multiCutData, true);
 	}
 
     /**
@@ -1263,7 +1267,7 @@ public class Quick
 	 */
 	private boolean badBoxInArea(Poly poly, Layer layer, Technology tech, int net, Geometric geom, AffineTransform trans,
                                  int globalIndex, Rectangle2D bounds, Cell cell, int cellGlobalIndex,
-                                 Cell topCell, int topGlobalIndex, AffineTransform upTrans, boolean baseMulti,
+                                 Cell topCell, int topGlobalIndex, AffineTransform upTrans, Technology.MultiCutData multiCutData,
                                  boolean sameInstance)
 	{
 		Rectangle2D rBound = new Rectangle2D.Double();
@@ -1272,8 +1276,10 @@ public class Quick
 		Netlist netlist = getCheckProto(cell).netlist;
         Rectangle2D subBound = new Rectangle2D.Double(); //Sept 30
         boolean foundError = false;
+        boolean isLayerAContact = layer.getFunction().isContact();
+        boolean baseMulti = tech.isMultiCutInTechnology(multiCutData);
 
-		// These nodes won't generate any DRC errors. Most of them are pins
+        // These nodes won't generate any DRC errors. Most of them are pins
 		if (geom instanceof NodeInst && NodeInst.isSpecialNode(((NodeInst)geom)))
 			return false;
 
@@ -1313,7 +1319,7 @@ public class Quick
 
 					// compute localIndex
 					if (badBoxInArea(poly, layer, tech, net, geom, trans, globalIndex, subBound, (Cell)np, localIndex,
-						             topCell, topGlobalIndex, subTrans, baseMulti, sameInstance))
+						             topCell, topGlobalIndex, subTrans, multiCutData, sameInstance))
                     {
                         foundError = true;
                         if (errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE) return true;
@@ -1325,9 +1331,6 @@ public class Quick
 
 					// see if this type of node can interact with this layer
 					if (!checkLayerWithNode(layer, np)) continue;
-
-//                    System.out.println("Checking Node " + ni.getName() + " " + layer.getName() + " " +
-//                            geom);
 
                     // see if the objects directly touch but they are not
                     // coming from different NodeInst (not from checkCellInstContents
@@ -1346,7 +1349,32 @@ public class Quick
 						subPolyList[i].transform(rTrans);
 					    /* Step 1 */
 					boolean multi = baseMulti;
-					if (!multi) multi = tech.isMultiCutCase(ni);
+                    Technology.MultiCutData niMCD = tech.getMultiCutData(ni);
+                    // in case it is one via against many from another contact (3-contact configuration)
+                    if (!multi && isLayerAContact && niMCD != null)
+                    {          
+                        multi = tech.isMultiCutInTechnology(niMCD);
+                        if (!multi)
+                        {
+                            // geom must be NodeInst
+                            NodeInst gNi = (NodeInst)geom;
+                            // in this case, both possible contacts are either 1xn or mx1 with n,m>=1
+                            if (multiCutData.numCutsX() == 1) // it is 1xn
+                            {
+                                // Checking if they match at the Y axis. If yes, they are considered as a long 1xn array
+                                // so multi=false. The other element must be 1xM
+                                if (niMCD.numCutsY() != 1 && ni.getAnchorCenterX() != gNi.getAnchorCenterX())
+                                    multi = true;
+                            }
+                            else
+                            {
+                                // Checking if they match at the Y axis. If yes, they are considered as a long 1xn array
+                                // so multi=false
+                                if (niMCD.numCutsX() != 1 && ni.getAnchorCenterY() != gNi.getAnchorCenterY())
+                                    multi = true;
+                            }
+                        }
+                    }
                     int multiInt = (multi) ? 1 : 0;
 					for(int j=0; j<tot; j++)
 					{
@@ -1465,7 +1493,7 @@ public class Quick
 				for(int i=0; i<tot; i++)
 					subPolyList[i].transform(upTrans);
 				cropActiveArc(ai, subPolyList);
-				boolean multi = baseMulti;
+				boolean multi = baseMulti; // this condition is not very relevant for arcs because no cut/via is used in arcs
                 int multiInt = (multi) ? 1 : 0;
 
 				for(int j=0; j<tot; j++)
@@ -2076,8 +2104,9 @@ public class Quick
 		NodeProto np = ni.getProto();
 		int globalIndex = 0;
 		Cell subCell = geom.getParent();
-		boolean baseMulti = false;
-		Technology tech = null;
+//		boolean baseMulti = false;
+        Technology.MultiCutData multiCutData = null;
+        Technology tech = null;
 		Poly [] nodeInstPolyList = null;
 		AffineTransform trans = DBMath.MATID;
 
@@ -2093,7 +2122,8 @@ public class Quick
 			trans = oNi.rotateOut();
 			nodeInstPolyList = tech.getShapeOfNode(oNi, true, ignoreCenterCuts, null);
 			convertPseudoLayers(oNi, nodeInstPolyList);
-			baseMulti = tech.isMultiCutCase(oNi);
+            multiCutData = tech.getMultiCutData(oNi);
+//            baseMulti = tech.isMultiCutCase(oNi);
 		} else
 		{
 			ArcInst oAi = (ArcInst)geom;
@@ -2145,7 +2175,7 @@ public class Quick
 
 			// see if this polygon has errors in the cell
 			if (badBoxInArea(poly, polyLayer, tech, net, geom, trans, globalIndex, subBounds, (Cell)np, localIndex,
-                    subCell, globalIndex, subTrans, baseMulti, false)) return true;
+                    subCell, globalIndex, subTrans, multiCutData, false)) return true;
 		}
 		return false;
 	}

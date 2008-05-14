@@ -3596,10 +3596,26 @@ public class Technology implements Comparable<Technology>, Serializable
 	 */
 	public boolean isMultiCutInTechnology(MultiCutData mcd)
 	{
-		return (mcd.numCuts() > 1);
+        if (mcd == null) return false;
+        return (mcd.numCuts() > 1);
 	}
 
-	/**
+    /**
+     * Method to get a multi-cut structure associated to
+     * a NodeInst representing a Multiple-cut contact.
+     * @param ni the NodeInst being tested.
+     * @return a non-null MultiCutData pointer if it is a Multiple-cut contact
+     */
+    public MultiCutData getMultiCutData(NodeInst ni)
+    {
+        if (ni.isCellInstance()) return null;
+		PrimitiveNode pnp = (PrimitiveNode)ni.getProto();
+		if (!pnp.isMulticut()) return null;
+
+		return ((new MultiCutData(ni.getD(), ni.getTechPool())));
+    }
+
+    /**
 	 * Method to decide whether a NodeInst is a multi-cut contact.
 	 * The function is done by the Technologies so that it can be subclassed.
 	 * @param ni the NodeInst being tested.
@@ -3607,11 +3623,10 @@ public class Technology implements Comparable<Technology>, Serializable
 	 */
 	public boolean isMultiCutCase(NodeInst ni)
 	{
-		if (ni.isCellInstance()) return false;
-		PrimitiveNode pnp = (PrimitiveNode)ni.getProto();
-		if (!pnp.isMulticut()) return false;
+        MultiCutData data = getMultiCutData(ni);
+        if (data == null) return false;
 
-		return (isMultiCutInTechnology(new MultiCutData(ni.getD(), ni.getTechPool())));
+		return (isMultiCutInTechnology(data));
 	}
 
 	/**
@@ -3749,7 +3764,7 @@ public class Technology implements Comparable<Technology>, Serializable
          */
         public double getCutSizeY() { return cutSizeY; }
 
-		/**
+        /**
 		 * Method to fill in the contact cuts of a contact when there are
 		 * multiple cuts.  Node is in "ni" and the contact cut number (0 based) is
 		 * in "cut".

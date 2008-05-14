@@ -576,10 +576,23 @@ public class DRCTemplate implements Serializable
                 if (nodeNames == null)
                 {
                     DRCTemplate tmp;
+
                     if (maxW == null)
                         tmp = new DRCTemplate(ruleName, when, type, pair[0], pair[1], values, null, condition);
                     else
                         tmp = new DRCTemplate(ruleName, when, type, maxW, minLen, pair[0], pair[1], values, -1);
+
+                    if (type == DRCTemplate.DRCRuleType.UCONSPA2D)
+                    {
+                        tmp.multiCuts = 1;
+                        DRCTemplate tmp1 = new DRCTemplate(tmp);
+                        tmp1.ruleType = DRCTemplate.DRCRuleType.UCONSPA;
+                        drcRules.add(tmp1); // duplicate but with UCONSPA
+                        DRCTemplate tmp2 = new DRCTemplate(tmp);
+                        tmp1.ruleType = DRCTemplate.DRCRuleType.CONSPA;
+                        drcRules.add(tmp2); // duplicate but with CONSPA
+                    }
+                    
                     drcRules.add(tmp);
                 }
                 else

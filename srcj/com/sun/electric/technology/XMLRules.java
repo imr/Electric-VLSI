@@ -224,7 +224,7 @@ public class XMLRules implements DRCRules, Serializable
      }
 
     /**
-     * Method to retrieve specific rules stored per node that involve two layers
+     * Method to retrieve specific SURROUND rules stored per node that involve two layers
      * @param index the combined index of the two layers involved
      * @param type
      * @param nodeName list containing the name of the primitive

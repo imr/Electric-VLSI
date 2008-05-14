@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07j: ******************************
 
+BUG: (5/13/08, GVG) DRC doesn't check active cut rule C, page 74 (doc) of tsmc90 (Bug #1664)
+FIX: Extra code was added to switch from B to C rule if multi-cuts are detected.
+The code should not be slower than before.
+
 IMP: (5/13/08, DN) User can set TextAttributus of parameters on node instances.
 
 IMP: (5/7/08, GVG) Add new contacts M12->M67, Poly in CMOS90 (Bug #1677)
