@@ -18,6 +18,7 @@ import com.sun.electric.tool.generator.layout.GateLayoutGenerator;
 import com.sun.electric.tool.generator.layout.StdCellParams;
 import com.sun.electric.tool.generator.layout.TechType;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.io.output.Verilog;
 import com.sun.electric.tool.user.User;
 
 /**
@@ -223,6 +224,10 @@ public class SCLibraryGen {
             if (schcell.getVar(sizeKey) != null) {
                 schcell.delVar(sizeKey);
             }
+            // remove verilog template attribute
+            if (schcell.getVar(Verilog.VERILOG_TEMPLATE_KEY) != null) {
+                schcell.delVar(Verilog.VERILOG_TEMPLATE_KEY);
+            }
             // change X value on red gate
             for (Iterator<NodeInst> it = schcell.getNodes(); it.hasNext(); ) {
                 NodeInst ni = it.next();
@@ -330,23 +335,26 @@ public class SCLibraryGen {
 
         private Map<Cell,Integer> standardCellMap = new HashMap<Cell,Integer>();
         private Map<String,Cell> standardCellsByName = new HashMap<String,Cell>();
+        private List<VarContext> standardCellContexts = new ArrayList<VarContext>();
         private boolean nameConflict = false;
 
         public boolean enterCell(HierarchyEnumerator.CellInfo info) {
             Cell cell = info.getCell();
-            if (standardCellMap.containsKey(cell)) return false; // cached already
             if (SCLibraryGen.isStandardCell(cell)) {
-                standardCellMap.put(cell, standardCell);
-                // check for name conflict
-                Cell otherCell = standardCellsByName.get(cell.getName());
-                if (otherCell != null && otherCell != cell) {
-                    System.out.println("Error: multiple standard cells with same name not allowed: "+
-                            cell.libDescribe()+" and "+ otherCell.libDescribe());
-                    nameConflict = true;
-                } else {
-                    standardCellsByName.put(cell.getName(), cell);
+                standardCellContexts.add(info.getContext());
+
+                if (!standardCellMap.containsKey(cell)) {
+                    standardCellMap.put(cell, standardCell);
+                    // check for name conflict
+                    Cell otherCell = standardCellsByName.get(cell.getName());
+                    if (otherCell != null && otherCell != cell) {
+                        System.out.println("Error: multiple standard cells with same name not allowed: "+
+                                cell.libDescribe()+" and "+ otherCell.libDescribe());
+                        nameConflict = true;
+                    } else {
+                        standardCellsByName.put(cell.getName(), cell);
+                    }
                 }
-                return false;
             }
             return true;
         }
@@ -420,6 +428,10 @@ public class SCLibraryGen {
          * @return true if name conflict exists
          */
         public boolean getNameConflict() { return nameConflict; }
+
+        public List<VarContext> getStandardCellsContextsInHier() {
+            return standardCellContexts;
+        }
 
         /**
          * Get cells of the given type. The type is one of
