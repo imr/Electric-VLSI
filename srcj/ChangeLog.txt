@@ -4,7 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07j: ******************************
 
-BUG: The command "Cell / Cell Info / List Nodes In This Cell" counts "example"
+IMP/MAN (5/15/08, SMR): The "Node Preferences" option "Reconstruct arcs when deleting instances"
+     is now "Reconstruct arcs and exports when deleting instances" and recreates
+     pins for exports (Bug #1681).
+
+BUG (5/15/08, SMR): The command "Cell / Cell Info / List Nodes In This Cell" counts "example"
      icons, which it shouldn't.  This gives incorrect instance counts when examining
      schematics (Bug #1684).
 FIX: Fixed in CellLists.listNodesInCellCommand().

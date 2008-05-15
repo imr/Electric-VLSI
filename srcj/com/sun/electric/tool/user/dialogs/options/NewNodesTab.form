@@ -168,9 +168,9 @@
                 </Constraint>
               </Constraints>
             </Component>
-            <Component class="javax.swing.JCheckBox" name="reconstructArcs">
+            <Component class="javax.swing.JCheckBox" name="nodeReconstructArcsExports">
               <Properties>
-                <Property name="text" type="java.lang.String" value="Reconstruct arcs when deleting instances"/>
+                <Property name="text" type="java.lang.String" value="Reconstruct arcs and exports when deleting instances"/>
               </Properties>
               <Constraints>
                 <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">

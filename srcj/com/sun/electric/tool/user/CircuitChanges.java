@@ -451,7 +451,7 @@ public class CircuitChanges
 
 			// delete if anything was selected
 			if (highlightedText.size() == 0 && highlighted.size() == 0) return;
-	        new CircuitChangeJobs.DeleteSelected(cell, highlightedText, highlighted, User.isReconstructArcsToDeletedCells());
+	        new CircuitChangeJobs.DeleteSelected(cell, highlightedText, highlighted, User.isReconstructArcsAndExportsToDeletedCells());
 		}
 	}
 

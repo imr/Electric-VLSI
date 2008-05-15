@@ -2656,20 +2656,22 @@ public class User extends Listener
 	 */
 	public static void setPlaceCellCenter(boolean on) { cachePlaceCellCenter.setBoolean(on); }
 
-	private static Pref cacheReconstructArcsToDeletedCells = Pref.makeBooleanPref("ReconstructArcsToDeletedCells", tool.prefs, true);
+	private static Pref cacheReconstructArcsAndExportsToDeletedCells = Pref.makeBooleanPref("ReconstructArcsToDeletedCells", tool.prefs, true);
 	/**
-	 * Method to tell whether to reconstruct arcs to deleted cell instances.
-	 * When true, deleting a cell instance will leave the connecting arcs in place (now terminated with pins).
+	 * Method to tell whether to reconstruct arcs and exports to deleted cell instances.
+	 * When true, deleting a cell instance will leave the connecting arcs in place (terminated with pins)
+	 * and will leave existing exports in place (sitting on pins).
 	 * The default is "true".
-	 * @return true if the system should reconstruct arcs to deleted cell instances.
+	 * @return true if the system should reconstruct arcs and exports to deleted cell instances.
 	 */
-	public static boolean isReconstructArcsToDeletedCells() { return cacheReconstructArcsToDeletedCells.getBoolean(); }
+	public static boolean isReconstructArcsAndExportsToDeletedCells() { return cacheReconstructArcsAndExportsToDeletedCells.getBoolean(); }
 	/**
-	 * Method to set whether to reconstruct arcs to deleted cell instances.
-	 * When true, deleting a cell instance will leave the connecting arcs in place (now terminated with pins).
-	 * @param on true if the system should reconstruct arcs to deleted cell instances.
+	 * Method to set whether to reconstruct arcs and exports to deleted cell instances.
+	 * When true, deleting a cell instance will leave the connecting arcs in place (terminated with pins)
+	 * and will leave existing exports in place (sitting on pins).
+	 * @param on true if the system should reconstruct arcs and exports to deleted cell instances.
 	 */
-	public static void setReconstructArcsToDeletedCells(boolean on) { cacheReconstructArcsToDeletedCells.setBoolean(on); }
+	public static void setReconstructArcsAndExportsToDeletedCells(boolean on) { cacheReconstructArcsAndExportsToDeletedCells.setBoolean(on); }
 
 	private static Pref cacheCheckCellDates = Pref.makeBooleanPref("CheckCellDates", tool.prefs, false);
 	/**
