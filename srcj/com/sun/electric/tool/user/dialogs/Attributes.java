@@ -1012,7 +1012,7 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
         jPanel1.add(newButton, gridBagConstraints);
 
         deleteButton.setText("Delete");
@@ -1023,9 +1023,9 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         jPanel1.add(deleteButton, gridBagConstraints);
 
         renameButton.setText("Rename...");
@@ -1036,9 +1036,9 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         jPanel1.add(renameButton, gridBagConstraints);
 
         done.setText("Done");
@@ -1049,17 +1049,20 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         jPanel1.add(done, gridBagConstraints);
 
-        applyToInstances.setText("Apply to instances");
+        applyToInstances.setText("Show new parameter on instances");
         applyToInstances.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
         applyToInstances.setMargin(new java.awt.Insets(0, 0, 0, 0));
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
         jPanel1.add(applyToInstances, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
