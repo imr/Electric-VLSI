@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07j: ******************************
 
+IMP: (5/15/08, SMR) Added "Apply to instances" checkbox to "Parameters" dialog
+     to request that newly-created parameters be placed on all instances.
+
 IMP: (5/15/08, SMR) Added Electric icon to file I/O dialogs.
 
 BUG: (5/15/08, SMR) Vector display algorithm "greeks" some cells long before
