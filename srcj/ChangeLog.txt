@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07j: ******************************
 
+IMP: (5/15/08, SMR) Added Electric icon to file I/O dialogs.
+
 BUG: (5/15/08, SMR) Vector display algorithm "greeks" some cells long before
      others, causing inconsistency of display (Bug #1683).
 FIX: In VectorCache.renderPoly(), ignore all implant layers when computing maximum

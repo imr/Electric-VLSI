@@ -35,6 +35,7 @@ import java.awt.FileDialog;
 import java.io.File;
 import java.util.Iterator;
 import javax.swing.JFileChooser;
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileSystemView;
 
@@ -227,7 +228,9 @@ public class OpenFile
 			if (wantDirectory) dialog.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 //			dialog.setLocation(location.x, location.y);
 //			dialog.addComponentListener(new MoveComponentListener());
-			int returnVal = dialog.showOpenDialog(null);
+			JFrame chooseFrame = new JFrame();
+			chooseFrame.setIconImage(TopLevel.getFrameIcon().getImage());
+			int returnVal = dialog.showOpenDialog(chooseFrame);
 			if (returnVal == JFileChooser.APPROVE_OPTION)
 			{
 				File file = dialog.getSelectedFile();
@@ -315,7 +318,9 @@ public class OpenFile
                 dialog.setFileFilter(FileMenu.getLibraryFormat(defaultFile, types[0]).getFileFilterSwing());
                 dialog.setSelectedFile(new File(defaultFile));
             }
-			int returnVal = dialog.showSaveDialog(null);
+			JFrame chooseFrame = new JFrame();
+			chooseFrame.setIconImage(TopLevel.getFrameIcon().getImage());
+			int returnVal = dialog.showSaveDialog(chooseFrame);
 			if (returnVal == JFileChooser.APPROVE_OPTION)
 			{
 				File file = dialog.getSelectedFile();
