@@ -67,6 +67,8 @@ public class DRCTemplate implements Serializable
         /** only applies if there are 9 metal layers in process */		    M9 (0400000),
         /** only applies if there are 10 metal layers in process */		    M10 (01000000),
         /** only applies if there are 11 metal layers in process */		    M11 (0200000),
+        /** only applies if there are 12 metal layers in process */		    M12 (0400000),
+        /** Max number of layers are dictated by EGraphics.TRANSPARENT_12.
         /** only applies if analog (npn-transistor( rules are in effect */  AN(04000000),
 
         /** only applies if alternate contact rules are in effect */		AC (040),

@@ -1110,6 +1110,7 @@ public class TechEditWizardData
     }
     
     private void dumpXMLFile(String fileName)
+        throws IOException
     {
         Xml.Technology t = new Xml.Technology();
 
@@ -1305,7 +1306,10 @@ public class TechEditWizardData
                 onDisplay = false; onPrinter = false;
             }
             EGraphics graph = new EGraphics(onDisplay, onPrinter, null, tcol, r, g, b, opacity, true, pattern);
-            Xml.Layer layer = makeXmlLayer(t.layers, layer_width, "Metal-"+metalNum, Layer.Function.getMetal(metalNum), 0, graph,
+            Layer.Function fun = Layer.Function.getMetal(metalNum);
+            if (fun == null)
+                throw new IOException("invalid number of metals");
+            Xml.Layer layer = makeXmlLayer(t.layers, layer_width, "Metal-"+metalNum, fun, 0, graph,
                 (char)('A' + cifNumber++), metal_width[i], true);
             metalLayers.add(layer);
         }
@@ -1320,7 +1324,10 @@ public class TechEditWizardData
             int b = via_colour.getBlue();
             double opacity = 0.7;
             EGraphics graph = new EGraphics(false, false, null, 0, r, g, b, opacity, true, nullPattern);
-            viaLayers.add(makeXmlLayer(t.layers, layer_width, "Via-"+metalNum, Layer.Function.getContact(metalNum), Layer.Function.CONMETAL,
+            Layer.Function fun = Layer.Function.getContact(metalNum);
+            if (fun == null)
+                throw new IOException("invalid number of vias");
+            viaLayers.add(makeXmlLayer(t.layers, layer_width, "Via-"+metalNum, fun, Layer.Function.CONMETAL,
                 graph, (char)('A' + cifNumber++), via_size[i], false));
         }
 

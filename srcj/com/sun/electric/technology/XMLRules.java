@@ -889,7 +889,19 @@ public class XMLRules implements DRCRules, Serializable
     public void loadDRCRules(Technology tech, Foundry foundry, DRCTemplate theRule, boolean pWellProcess)
     {
         int numMetals = tech.getNumMetals();
-        DRCTemplate.DRCMode m = numMetals >= 2 ? DRCTemplate.DRCMode.valueOf("M"+numMetals) : DRCTemplate.DRCMode.ALL;
+        DRCTemplate.DRCMode m = DRCTemplate.DRCMode.ALL;
+//        numMetals >= 2 ? DRCTemplate.DRCMode.valueOf("M"+numMetals) : DRCTemplate.DRCMode.ALL;
+
+        try{
+            if (numMetals >= 2)
+            {
+                 m = DRCTemplate.DRCMode.valueOf("M"+numMetals);
+            }
+        }
+        catch (Exception e)
+        {
+            System.out.println("Trying to upload metal layer that does not exist:" + numMetals);
+        }
 
         if (theRule.isRuleIgnoredInPWellProcess(pWellProcess))  // Skip this rule in pwell process
             return;

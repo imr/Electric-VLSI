@@ -318,21 +318,31 @@ public class Layer
 		/**
 		 * Method to find the Function that corresponds to Metal on a given layer.
 		 * @param level the layer (starting at 1 for Metal-1).
-		 * @return the Function that represents that Metal layer.
+		 * @return the Function that represents that Metal layer. Null if the given layer level is invalid.
 		 */
 		public static Function getMetal(int level)
 		{
-			Function func = metalLayers.get(new Integer(level));
+            if (level > EGraphics.TRANSPARENT_12)
+            {
+                System.out.println("Invalid metal layer level:" + level);
+                return null;
+            }
+            Function func = metalLayers.get(new Integer(level));
 			return func;
 		}
 
 		/**
 		 * Method to find the Function that corresponds to a contact on a given layer.
 		 * @param level the layer (starting at 1 for Contact-1).
-		 * @return the Function that represents that Contact layer.
+		 * @return the Function that represents that Contact layer. Null if the given layer level is invalid.
 		 */
 		public static Function getContact(int level)
 		{
+            if (level > EGraphics.TRANSPARENT_12)
+            {
+                System.out.println("Invalid via layer level:" + level);
+                return null;
+            }
 			Function func = contactLayers.get(new Integer(level));
 			return func;
 		}
