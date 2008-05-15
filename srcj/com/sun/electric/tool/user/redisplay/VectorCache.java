@@ -38,7 +38,6 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.CellUsage;
 import com.sun.electric.database.id.PrimitivePortId;
@@ -74,10 +73,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
- *
+ * Class to hold scalable representation of circuit displays.
  */
 public class VectorCache {
     public static boolean DEBUG = false;
@@ -85,8 +85,8 @@ public class VectorCache {
 
     /** database to work. */                                public final EDatabase database;
 	/** list of cell expansions. */							private final ArrayList<VectorCellGroup> cachedCells = new ArrayList<VectorCellGroup>();
-	/** list of polygons to include in cells */				private final HashMap<CellId,List<VectorBase>> addPolyToCell = new HashMap<CellId,List<VectorBase>>();
-	/** list of instances to include in cells */			private final HashMap<CellId,List<VectorLine>> addInstToCell = new HashMap<CellId,List<VectorLine>>();
+	/** list of polygons to include in cells */				private final Map<CellId,List<VectorBase>> addPolyToCell = new HashMap<CellId,List<VectorBase>>();
+	/** list of instances to include in cells */			private final Map<CellId,List<VectorLine>> addInstToCell = new HashMap<CellId,List<VectorLine>>();
     /** List of VectorManhattanBuilders */                  private final ArrayList<VectorManhattanBuilder>boxBuilders = new ArrayList<VectorManhattanBuilder>();
     /** List of VectorManhattanBiilders for pure ndoes. */  private final ArrayList<VectorManhattanBuilder>pureBoxBuilders = new ArrayList<VectorManhattanBuilder>();
     /** Current VarContext. */                              private VarContext varContext;
@@ -358,7 +358,7 @@ public class VectorCache {
         float cellMinSize;
         CellBackup cellBackup;
 		boolean isParameterized;
-		HashMap<Orientation,VectorCell> orientations = new HashMap<Orientation,VectorCell>();
+		Map<Orientation,VectorCell> orientations = new HashMap<Orientation,VectorCell>();
 		List<VectorCellExport> exports;
 
 		VectorCellGroup(CellId cellId)
@@ -1212,12 +1212,12 @@ public class VectorCache {
                     Technology tech = layer.getTechnology();
                     if (tech != null && vc.vcg != null && tech.getTechName().equals(vc.vcg.cellBackup.cellRevision.d.techId.techName))
                         layerIndex = layer.getIndex();
-					Layer.Function fun = layer.getFunction();
-					if (!pureLayer && (fun.isImplant() || fun.isSubstrate()))
-					{
-						// well and substrate layers are made smaller so that they "greek" sooner
-                        minSize /= 10;
-					}
+//					Layer.Function fun = layer.getFunction();
+//					if (!pureLayer && fun.isSubstrate())
+//					{
+//						// substrate layers are made smaller so that they "greek" sooner
+//                        minSize /= 10;
+//					}
 				}
                 if (layerIndex >= 0) {
                     putBox(layerIndex, pureLayer ? pureBoxBuilders : boxBuilders, lX, lY, hX, hY);
@@ -1225,7 +1225,14 @@ public class VectorCache {
                     VectorManhattan vm = new VectorManhattan(lX, lY, hX, hY, layer, graphics, pureLayer);
                     filledShapes.add(vm);
                 }
-				vc.maxFeatureSize = Math.max(vc.maxFeatureSize, minSize);
+
+                // ignore implant layers when computing largest feature size
+				if (layer != null)
+				{
+					Layer.Function fun = layer.getFunction();
+					if (fun.isSubstrate()) minSize = 0;
+				}
+                vc.maxFeatureSize = Math.max(vc.maxFeatureSize, minSize);
 				return;
 			}
 			VectorPolygon vp = new VectorPolygon(points, layer, graphics);

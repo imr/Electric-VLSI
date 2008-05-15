@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07j: ******************************
 
+BUG: (5/15/08, SMR) Vector display algorithm "greeks" some cells long before
+     others, causing inconsistency of display (Bug #1683).
+FIX: In VectorCache.renderPoly(), ignore all implant layers when computing maximum
+     feature size.
+
 BUG: (5/15/08, SMR) "Edit / Cut" on export text doesn't work (Bug #1680).
 FIX: Fixed Clipboard.CutObjects.doIt().
 
