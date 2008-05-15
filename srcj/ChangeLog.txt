@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07j: ******************************
 
+BUG: (5/14/08, DN) Schematic DRC regressions failed.
+FIX: In IconNodeInst.composeInstParam derive isDisplay() on instance parameter from
+isInterior() on icom parameter.
+
 IMP: (5/14/08, RK) Fix NCC documentation
 
 BUG: (5/13/08, GVG) DRC doesn't check active cut rule C, page 74 (doc) of tsmc90 (Bug #1664)

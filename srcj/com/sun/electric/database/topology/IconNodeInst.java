@@ -208,9 +208,9 @@ class IconNodeInst extends NodeInst
     }
 
     private static Variable composeInstParam(Variable iconParam, Variable instVar) {
-        if (KEEP_TEXT_ATTRIBUTES && instVar != null)
-            return instVar.withInherit(false).withInterior(false).withUnit(iconParam.getUnit());
         boolean display = !iconParam.isInterior();
+        if (KEEP_TEXT_ATTRIBUTES && instVar != null)
+            return instVar.withInherit(false).withInterior(false).withDisplay(display).withUnit(iconParam.getUnit());
         iconParam = iconParam.withInherit(false).withInterior(false).withDisplay(display);
         if (instVar != null)
             iconParam = iconParam.withObject(instVar.getObject());
