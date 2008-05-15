@@ -309,19 +309,6 @@ public class CellLists extends EDialog
 		}
 	}
 
-//	/**
-//	 * Class for counting instances.
-//	 * It is basically a modifiable Integer.
-//	 */
-//	private static class InstanceCount
-//	{
-//		private int count;
-//
-//		InstanceCount() { count = 0; }
-//		public void increment() { count++; }
-//		public int getCount() { return count; }
-//	}
-
 	/**
 	 * This method implements the command to list (recursively) the nodes in this Cell.
 	 */
@@ -330,29 +317,8 @@ public class CellLists extends EDialog
 		Cell curCell = WindowFrame.needCurCell();
 		if (curCell == null) return;
 
-		Map<NodeProto,GenMath.MutableInteger> nodeCount = new HashMap<NodeProto,GenMath.MutableInteger>();
-
-		// first zero the count of each nodeproto
-		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
-		{
-			Technology tech = it.next();
-			for(Iterator<PrimitiveNode> nIt = tech.getNodes(); nIt.hasNext(); )
-			{
-				PrimitiveNode np = nIt.next();
-				nodeCount.put(np, new GenMath.MutableInteger(0));
-			}
-		}
-		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
-		{
-			Library lib = it.next();
-			for(Iterator<Cell> nIt = lib.getCells(); nIt.hasNext(); )
-			{
-				Cell np = nIt.next();
-				nodeCount.put(np, new GenMath.MutableInteger(0));
-			}
-		}
-
 		// now look at every object recursively in this cell
+		Map<NodeProto,GenMath.MutableInteger> nodeCount = new HashMap<NodeProto,GenMath.MutableInteger>();
 		addObjects(curCell, nodeCount);
 
 		// print the totals
@@ -366,7 +332,7 @@ public class CellLists extends EDialog
 			{
 				PrimitiveNode np = nIt.next();
 				GenMath.MutableInteger count = nodeCount.get(np);
-				if (count.intValue() == 0) continue;
+				if (count == null) continue;
 				if (curtech != printtech)
 				{
 					System.out.println(curtech.getTechName() + " technology:");
@@ -386,7 +352,7 @@ public class CellLists extends EDialog
 			{
 				Cell cell = cIt.next();
 				GenMath.MutableInteger count = nodeCount.get(cell);
-				if (count.intValue() == 0) continue;
+				if (count == null) continue;
 				if (lib != printlib)
 				{
 					System.out.println(lib + ":");
@@ -406,9 +372,15 @@ public class CellLists extends EDialog
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = it.next();
+			if (ni.isIconOfParent()) continue;
 			NodeProto np = ni.getProto();
 			GenMath.MutableInteger count = nodeCount.get(np);
-			if (count != null) count.increment();
+			if (count == null)
+			{
+				count = new GenMath.MutableInteger(0);
+				nodeCount.put(np, count);
+			}
+			count.increment();
 
 			if (!ni.isCellInstance()) continue;
 			Cell subCell = (Cell)np;
@@ -429,26 +401,19 @@ public class CellLists extends EDialog
 		Cell curCell = WindowFrame.needCurCell();
 		if (curCell == null) return;
 
-		Map<Cell,GenMath.MutableInteger> nodeCount = new HashMap<Cell,GenMath.MutableInteger>();
-
-		// set counters on every cell in every library
-		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
-		{
-			Library lib = it.next();
-			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
-			{
-				Cell cell = cIt.next();
-				nodeCount.put(cell, new GenMath.MutableInteger(0));
-			}
-		}
-
 		// count the number of instances in this cell
+		Map<Cell,GenMath.MutableInteger> nodeCount = new HashMap<Cell,GenMath.MutableInteger>();
 		for(Iterator<NodeInst> it = curCell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = it.next();
 			if (!ni.isCellInstance()) continue;
 			GenMath.MutableInteger count = nodeCount.get(ni.getProto());
-			if (count != null) count.increment();
+			if (count == null)
+			{
+				count = new GenMath.MutableInteger(0);
+				nodeCount.put((Cell)ni.getProto(), count);
+			}
+			count.increment();
 		}
 
 		// show the results
@@ -460,7 +425,7 @@ public class CellLists extends EDialog
 			{
 				Cell cell = cIt.next();
 				GenMath.MutableInteger count = nodeCount.get(cell);
-				if (count == null || count.intValue() == 0) continue;
+				if (count == null) continue;
 				if (first)
 					System.out.println("Instances appearing in " + curCell);
 				first = false;
@@ -1313,5 +1278,4 @@ public class CellLists extends EDialog
     private javax.swing.JComboBox views;
     private javax.swing.ButtonGroup whichCells;
     // End of variables declaration//GEN-END:variables
-
 }

@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07j: ******************************
 
+BUG: The command "Cell / Cell Info / List Nodes In This Cell" counts "example"
+     icons, which it shouldn't.  This gives incorrect instance counts when examining
+     schematics (Bug #1684).
+FIX: Fixed in CellLists.listNodesInCellCommand().
+
 BUG: (5/14/08, DN) Schematic DRC regressions failed.
 FIX: In IconNodeInst.composeInstParam derive isDisplay() on instance parameter from
 isInterior() on icom parameter.
