@@ -55,6 +55,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.Technology.NodeLayer;
 import com.sun.electric.technology.Technology.TechPoint;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
@@ -792,6 +793,16 @@ public class Connectivity
 					// make sure the wire fits
 					MutableBoolean headExtend = new MutableBoolean(true), tailExtend = new MutableBoolean(true);
 					boolean fits = originalMerge.arcPolyFits(layer, loc1, loc2, cl.width, headExtend, tailExtend);
+					if (DEBUGCENTERLINES)
+					{
+//						System.out.println("   END1=("+
+//							TextUtils.formatDouble(loc1.getX()/SCALEFACTOR)+","+
+//							TextUtils.formatDouble(loc1.getY()/SCALEFACTOR)+")   END2=("+
+//							TextUtils.formatDouble(loc2.getX()/SCALEFACTOR)+","+
+//							TextUtils.formatDouble(loc2.getY()/SCALEFACTOR)+")   WID="+
+//							TextUtils.formatDouble(cl.width/SCALEFACTOR));
+						System.out.println("FIT="+fits+" "+cl);
+					}
 					if (!fits)
 					{
 						// arc does not fit, try reducing width
@@ -803,12 +814,16 @@ public class Connectivity
 						{
 							cl.width = scaleUp(gridWid);
 							fits = originalMerge.arcPolyFits(layer, loc1, loc2, cl.width, headExtend, tailExtend);
+							if (DEBUGCENTERLINES)
+								System.out.println("   WID="+(cl.width/SCALEFACTOR)+" FIT="+fits);
 						}
 					}
 					if (!fits)
 					{
 						cl.width = 0;
 						fits = originalMerge.arcPolyFits(layer, loc1, loc2, cl.width, headExtend, tailExtend);
+						if (DEBUGCENTERLINES)
+							System.out.println("   WID=0 FIT="+fits);
 					}
 					if (!fits) continue;
 
@@ -1454,6 +1469,18 @@ public class Connectivity
 						trueWidth = pv.minHeight;
 						trueHeight = pv.minWidth;
 					}
+
+					// see if this is an active/poly layer (in which case, there can be no poly/active in the area)
+					boolean activeCut = false;
+					boolean polyCut = false;
+					NodeLayer [] primLayers = pv.pNp.getLayers();
+					for(int i=0; i<primLayers.length; i++)
+					{
+						if (primLayers[i].getLayer().getFunction().isDiff()) activeCut = true;
+						if (primLayers[i].getLayer().getFunction().isPoly()) polyCut = true;
+					}
+					if (activeCut && polyCut) activeCut = polyCut = false;
+
 					Layer badLayer = null;
 					if (Extract.isApproximateCuts() && pv.cutNodeLayer.getRepresentation() == Technology.NodeLayer.MULTICUTBOX)
 					{
@@ -1506,7 +1533,7 @@ public class Connectivity
 								mh = multiCutArea.getWidth();
 							}
 							realizeBiggestContact(pv.pNp, multiCutArea.getCenterX(), multiCutArea.getCenterY(), mw, mh,
-								pv.rotation*10, originalMerge, newCell, contactNodes);
+								pv.rotation*10, originalMerge, newCell, contactNodes, activeCut, polyCut);
 							for(PolyBase cutsFound : cutsInArea)
 								cutList.remove(cutsFound);
 							soFar += cutsInArea.size() - 1;
@@ -1522,8 +1549,10 @@ public class Connectivity
 						if (badLayer == null)
 						{
 							// it fits: create it
-							realizeBiggestContact(pv.pNp, contactLoc.getCenterX(), contactLoc.getCenterY(), pv.minWidth, pv.minHeight,
-								pv.rotation*10, originalMerge, newCell, contactNodes);
+							realizeNode(pv.pNp, contactLoc.getCenterX(), contactLoc.getCenterY(), pv.minWidth, pv.minHeight,
+								pv.rotation*10, null, originalMerge, newCell, contactNodes);
+//							realizeBiggestContact(pv.pNp, contactLoc.getCenterX(), contactLoc.getCenterY(), pv.minWidth, pv.minHeight,
+//								pv.rotation*10, originalMerge, newCell, contactNodes, activeCut, polyCut);
 							cutList.remove(cut);
 							foundCut = true;
 							break;
@@ -1572,9 +1601,11 @@ public class Connectivity
 	 * @param merge the merge in which this node must reside.
 	 * @param newCell the Cell in which the node will be created.
 	 * @param contactNodes a list of nodes that were created.
+	 * @param activeCut true if this is an active cut and must not have poly in the area.
+	 * @param polyCut true if this is an poly cut and must not have active in the area.
 	 */
 	private void realizeBiggestContact(PrimitiveNode pNp, double x, double y, double sX, double sY, int rot,
-		PolyMerge merge, Cell newCell, List<NodeInst> contactNodes)
+		PolyMerge merge, Cell newCell, List<NodeInst> contactNodes, boolean activeCut, boolean polyCut)
 	{
 		Orientation orient = Orientation.fromAngle(rot);
 		EPoint ctr = new EPoint(x / SCALEFACTOR, y / SCALEFACTOR);
@@ -1586,7 +1617,7 @@ public class Connectivity
 		{
 			NodeInst ni = NodeInst.makeDummyInstance(pNp, ctr, (sX+highXInc) / SCALEFACTOR, sY / SCALEFACTOR, orient);
 			if (ni == null) return;
-			Poly error = dummyNodeFits(ni, merge);
+			Poly error = dummyNodeFits(ni, merge, activeCut, polyCut);
 			if (error != null) break;
 			lowXInc = highXInc;
 			highXInc *= 2;
@@ -1599,7 +1630,7 @@ public class Connectivity
 			double medInc = (lowXInc + highXInc) / 2;
 			NodeInst ni = NodeInst.makeDummyInstance(pNp, ctr, (sX+medInc) / SCALEFACTOR, sY / SCALEFACTOR, orient);
 			if (ni == null) return;
-			Poly error = dummyNodeFits(ni, merge);
+			Poly error = dummyNodeFits(ni, merge, activeCut, polyCut);
 			if (error == null) lowXInc = medInc; else
 				highXInc = medInc;
 		}
@@ -1611,7 +1642,7 @@ public class Connectivity
 		{
 			NodeInst ni = NodeInst.makeDummyInstance(pNp, ctr, sX / SCALEFACTOR, (sY+highYInc) / SCALEFACTOR, orient);
 			if (ni == null) return;
-			Poly error = dummyNodeFits(ni, merge);
+			Poly error = dummyNodeFits(ni, merge, activeCut, polyCut);
 			if (error != null) break;
 			lowYInc = highYInc;
 			highYInc *= 2;
@@ -1624,7 +1655,7 @@ public class Connectivity
 			double medInc = (lowYInc + highYInc) / 2;
 			NodeInst ni = NodeInst.makeDummyInstance(pNp, ctr, sX / SCALEFACTOR, (sY+medInc) / SCALEFACTOR, orient);
 			if (ni == null) return;
-			Poly error = dummyNodeFits(ni, merge);
+			Poly error = dummyNodeFits(ni, merge, activeCut, polyCut);
 			if (error == null) lowYInc = medInc; else
 				highYInc = medInc;
 		}
@@ -1634,11 +1665,13 @@ public class Connectivity
 		realizeNode(pNp, x, y, sX, sY, rot, null, merge, newCell, contactNodes);
 	}
 
-	private Poly dummyNodeFits(NodeInst ni, PolyMerge merge)
+	private Poly dummyNodeFits(NodeInst ni, PolyMerge merge, boolean activeCut, boolean polyCut)
 	{
 		AffineTransform trans = ni.rotateOut();
 		Technology tech = ni.getProto().getTechnology();
 		Poly [] polys = tech.getShapeOfNode(ni);
+		double biggestArea = 0;
+		Poly biggestPoly = null;
 		for(Poly poly : polys)
 		{
 			Layer l = poly.getLayer();
@@ -1648,6 +1681,12 @@ public class Connectivity
 			if (l.getFunction().isSubstrate()) continue;
 			if (l.getFunction().isContact()) continue;
 			poly.transform(trans);
+			double area = poly.getArea();
+			if (area > biggestArea)
+			{
+				biggestArea = area;
+				biggestPoly = poly;
+			}
 			Point2D[] points = poly.getPoints();
 			for(int i=0; i<points.length; i++)
 				poly.setPoint(i, scaleUp(points[i].getX()), scaleUp(points[i].getY()));
@@ -1655,6 +1694,19 @@ public class Connectivity
 			{
 				return poly;
 			}
+		}
+
+		// contact fits, now check for active or poly problems
+		if (activeCut && biggestPoly != null)
+		{
+			// disallow poly in the contact area
+			if (merge.intersects(polyLayer, biggestPoly)) return biggestPoly;
+		}
+		if (polyCut && biggestPoly != null)
+		{
+			// disallow active in the contact area
+			if (pActiveLayer != null && merge.intersects(pActiveLayer, biggestPoly)) return biggestPoly;
+			if (nActiveLayer != null && nActiveLayer != pActiveLayer && merge.intersects(nActiveLayer, biggestPoly)) return biggestPoly;
 		}
 		return null;
 	}
@@ -2719,11 +2771,6 @@ public class Connectivity
 					merge.subtract(tempLayer1, aPoly);
 					continue;
 				}
-				if (DEBUGCENTERLINES)
-				{
-					System.out.println("GATHERED:");
-					for(Centerline cl : centerlines) System.out.println("    "+cl);
-				}
 
 				// now pull out the relevant ones
 				double lastWidth = -1;
@@ -2798,8 +2845,9 @@ public class Connectivity
 
 		if (DEBUGCENTERLINES)
 		{
+			System.out.println("MERGED:");
 			for(int i=0; i<validCenterlines.size(); i++)
-				System.out.println("MERGED CENTERLINE: "+validCenterlines.get(i));
+				System.out.println("    "+validCenterlines.get(i));
 		}
 
 		// now extend centerlines so they meet
@@ -2833,8 +2881,12 @@ public class Connectivity
 					double distToEnd = newEnd.distance(intersect);
 
 					// see if intersection is deeply inside of the segment
-					boolean makeT = insideSegment(newStart, newEnd, intersect) &&
-						Math.min(distToStart, distToEnd) > both[b].width/2;
+					boolean makeT = insideSegment(newStart, newEnd, intersect);
+					if (makeT)
+					{
+						int minDistToEnd = (int)Math.min(distToStart, distToEnd);
+						if (minDistToEnd <= both[b].width/2) makeT = false;
+					}
 
 					// adjust the centerline to end at the intersection point
 					double extendStart = 0, extendEnd = 0, extendAltStart = 0, extendAltEnd = 0, betterExtension = 0;
@@ -2882,7 +2934,7 @@ public class Connectivity
 		}
 		if (DEBUGCENTERLINES)
 		{
-			System.out.println("FINAL CENTERLINE: ");
+			System.out.println("FINAL: ");
 			for(Centerline cl : validCenterlines) System.out.println("    "+cl);
 		}
 		return validCenterlines;
@@ -3143,8 +3195,9 @@ public class Connectivity
 		Collections.sort(centerlines, new ParallelWiresByLength());
 		if (DEBUGCENTERLINES)
 		{
+			System.out.println("SORTED BY LENGTH:");
 			for(Centerline cl : centerlines)
-				System.out.println("SORTED BY LENGTH "+cl.toString());
+				System.out.println("    "+cl.toString());
 		}
 
 		// remove redundant centerlines
@@ -3169,8 +3222,9 @@ public class Connectivity
 		Collections.sort(centerlines, new ParallelWiresByWidth());
 		if (DEBUGCENTERLINES)
 		{
+			System.out.println("FINALLY:");
 			for(Centerline cl : centerlines)
-				System.out.println("FINALLY HAVE "+cl.toString());
+				System.out.println("    "+cl.toString());
 		}
 		return centerlines;
 	}
