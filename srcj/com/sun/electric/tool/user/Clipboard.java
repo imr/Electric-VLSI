@@ -463,17 +463,23 @@ public class Clipboard
 			// and delete the original objects
 			CircuitChangeJobs.eraseObjectsInList(cell, geomList, reconstructArcsAndExports);
 
-			// kill variables on cells
+			// kill exports and variables on cells
 			for(DisplayedText dt : textList)
 			{
 				ElectricObject owner = dt.getElectricObject();
-				if (!(owner instanceof Cell)) continue;
-				Cell cell = (Cell)owner;
-				Variable.Key key = dt.getVariableKey();
-				if (cell.isParam(key))
-					cell.getCellGroup().delParam((Variable.AttrKey)key);
-				else
-					cell.delVar(key);
+				if (owner instanceof Cell)
+				{
+					Cell cell = (Cell)owner;
+					Variable.Key key = dt.getVariableKey();
+					if (cell.isParam(key))
+						cell.getCellGroup().delParam((Variable.AttrKey)key);
+					else
+						cell.delVar(key);
+				} else if (dt.getVariableKey() == Export.EXPORT_NAME)
+				{
+					Export e = (Export)owner;
+					e.kill();
+				}
 			}
 			return true;
 		}
@@ -695,7 +701,7 @@ public class Clipboard
 		}
 
 		// delete all exports in the clipboard
-		HashSet<Export> exportsToDelete = new HashSet<Export>();
+		Set<Export> exportsToDelete = new HashSet<Export>();
 		for(Iterator<Export> it = clipCell.getExports(); it.hasNext(); )
 			exportsToDelete.add(it.next());
 		clipCell.killExports(exportsToDelete);
@@ -904,7 +910,6 @@ public class Clipboard
 				headP = new EPoint(headPi.getCenter().getX() + headDX, headPi.getCenter().getY() + headDY);
 				tailP = new EPoint(tailPi.getCenter().getX() + tailDX, tailPi.getCenter().getY() + tailDY);
 				ArcInst newAr = ArcInst.newInstanceBase(ai.getProto(), ai.getLambdaBaseWidth(),
-//				ArcInst newAr = ArcInst.newInstanceFull(ai.getProto(), ai.getLambdaFullWidth(),
 					headPi, tailPi, headP, tailP, name, ai.getAngle());
 				if (newAr == null)
 				{
@@ -1014,7 +1019,6 @@ public class Clipboard
 				break;
 			}
 		}
-
 
 		// make sure all variables are on the node
 		destNode.copyVarsFrom(srcNode);

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07j: ******************************
 
+BUG: (5/15/08, SMR) "Edit / Cut" on export text doesn't work (Bug #1680).
+FIX: Fixed Clipboard.CutObjects.doIt().
+
 IMP/MAN (5/15/08, SMR): The "Node Preferences" option "Reconstruct arcs when deleting instances"
      is now "Reconstruct arcs and exports when deleting instances" and recreates
      pins for exports (Bug #1681).
