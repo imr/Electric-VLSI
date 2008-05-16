@@ -1475,7 +1475,7 @@ public class TechEditWizardData
 //            nodesList.add(makeXmlNodeLayer(hla, via, true, size, size, cs, cs2)); // via
             String name = lb.name + "-" + lt.name;
             // port
-            minFullSize = EPoint.fromLambda(0.5*hla, 0.5*hla);   // TAKING the second hla
+            minFullSize = EPoint.fromLambda(0, 0);   // TAKING the second hla
 //            List<String> portNames = new ArrayList<String>();
 //            List<String> portNames = new ArrayList<String>();
             Xml.PrimitivePort pp = makeXmlPrimitivePort(name.toLowerCase(), 0, 180, 0,
