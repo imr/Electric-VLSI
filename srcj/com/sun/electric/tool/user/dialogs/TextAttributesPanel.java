@@ -322,11 +322,16 @@ public class TextAttributesPanel extends JPanel
 
         public boolean doIt() throws JobException {
             // change the code type
-            owner.updateVarCode(varKey, code);
-            
+            if (owner instanceof Cell && owner.isParam(varKey)) {
+                Cell cell = (Cell)owner;
+                cell.getCellGroup().updateParam((Variable.AttrKey)varKey, cell.getParameter(varKey).withCode(code).getObject());
+            } else {
+                owner.updateVarCode(varKey, code);
+            }
+
 			TextDescriptor td = owner.getTextDescriptor(varKey);
 			if (td == null) return false;
-            
+
             // change the units
             td = td.withUnit(TextDescriptor.Unit.getUnitAt(unit));
             // change the show style

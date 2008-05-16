@@ -162,7 +162,8 @@ public class Snapshot {
             CellId cellId;
             if (newBackup != null) {
                 newRevision = newBackup.cellRevision;
-                if (oldBackup == null || newRevision.d.groupName != oldBackup.cellRevision.d.groupName)
+                if (oldBackup == null || newRevision.d.groupName != oldBackup.cellRevision.d.groupName ||
+                        newRevision.d.params != oldBackup.cellRevision.d.params)
                     namesChanged = true;
 
                 // If usages changed, check CellUsagesIn.
@@ -923,7 +924,7 @@ public class Snapshot {
 
         assert cellBackups.size() == cellGroups.length;
         Arrays.fill(cellGroups, -1);
-        int groupCount = 0;
+        ArrayList<ImmutableCell> groupParamOwners = new ArrayList<ImmutableCell>();
         for (int cellIndex = 0; cellIndex < cellBackups.size(); cellIndex++) {
             CellBackup cellBackup = cellBackups.get(cellIndex);
             if (cellBackup == null) continue;
@@ -947,7 +948,15 @@ public class Snapshot {
                 throw new IllegalArgumentException("cells with same proto name in different groups");
             Integer gn = groupNameToGroupIndexInLibrary.get(groupName);
             if (gn == null) {
-                gn = Integer.valueOf(groupCount++);
+                gn = Integer.valueOf(groupParamOwners.size());
+                groupParamOwners.add(null);
+                if (d.paramsAllowed()) {
+                    ImmutableCell paramOwner = groupParamOwners.get(gn.intValue());
+                    if (paramOwner != null)
+                        d.checkSimilarParams(paramOwner);
+                    else
+                        groupParamOwners.set(gn.intValue(), paramOwner);
+                }
                 groupNameToGroupIndexInLibrary.put(groupName, gn);
             }
             cellGroups[cellIndex] = gn.intValue();

@@ -733,7 +733,7 @@ public class Sue extends Input
                         instObject = Variable.withCode(newObject, TextDescriptor.Code.JAVA);
                     }
 					ni.newVar(varKey, instObject, TextDescriptor.newTextDescriptor(mtd));
-                        
+
                     // make sure the parameter exists in the cell definition
                     NodeProto np = ni.getProto();
                     if (isParam && ni.isCellInstance()) {
@@ -745,7 +745,7 @@ public class Sue extends Input
                             TextDescriptor td = TextDescriptor.getCellTextDescriptor().withParam(true).
                             	withCode(TextDescriptor.Code.SPICE).withDispPart(TextDescriptor.DispPos.NAMEVALUE);
                             newObject = Variable.withCode(newObject, TextDescriptor.Code.SPICE);
-                            cnp.newVar(varKey, newObject, td);
+                            cnp.getCellGroup().addParam(Variable.newInstance(varKey, newObject, td));
                         }
                     }
 //					Variable var = ni.newDisplayVar(Variable.newKey(sueVarName), newObject);

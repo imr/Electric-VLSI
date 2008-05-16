@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07j: ******************************
 
+IMP: (5/16/08, DN) The consistency between parameters on icon and schematic cells in a group
+     is database invariant.
+
 BUG: (5/15/08, GVG) Exception while in TechWizardEditor if numMetals > 12 (Bug #1687)
 FIX: Extra code in Layer, DRCTemplate and TechEditWizardData to catch the inconsistency.
 

@@ -168,6 +168,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		private void add(Cell cell)
 		{
             lib.checkChanging();
+            Cell paramOwner = getParameterOwner();
 			synchronized(cells)
 			{
                 if (!cells.contains(cell))
@@ -175,6 +176,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
                 setMainSchematics(false);
 			}
 			cell.cellGroup = this;
+            if (cell.getD().paramsAllowed() && paramOwner != null)
+                cell.setParams(paramOwner);
 		}
 
 		/**
@@ -302,7 +305,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             assert cells.iterator().next().isParam(key);
             for (Cell cell: cells) {
                 if (!(cell.isIcon() || cell.isSchematic())) continue;
-                cell.updateVar(key, value);
+        		Variable oldParam = cell.getParameter(key);
+                cell.addParam(oldParam.withObject(value));
             }
         }
 
@@ -317,7 +321,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             assert cells.iterator().next().isParam(key);
             for (Cell cell: cells) {
                 if (!(cell.isIcon() || cell.isSchematic())) continue;
-                cell.updateVarText(key, text);
+        		Variable oldParam = cell.getParameter(key);
+                cell.addParam(oldParam.withText(text));
             }
         }
 
@@ -861,7 +866,18 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		}
 
 		// copy cell variables
-		newCell.copyVarsFrom(fromCell);
+//		newCell.copyVarsFrom(fromCell);
+        for (Iterator<Variable> it = fromCell.getVariables(); it.hasNext(); ) {
+            Variable fromVar = it.next();
+            if (newCell.isParam(fromVar.getKey())) {
+                newCell.setTextDescriptor(fromVar.getKey(), fromVar.getTextDescriptor());
+            } else if (fromVar.getTextDescriptor().isParam()) {
+                newCell.getCellGroup().addParam(fromVar);
+                newCell.setTextDescriptor(fromVar.getKey(), fromVar.getTextDescriptor());
+            } else {
+                newCell.addVar(fromVar);
+            }
+        }
 
 		// reset (copy) date information
 		newCell.lowLevelSetCreationDate(fromCell.getCreationDate());
@@ -3214,8 +3230,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
      * @param var Variable to add.
      */
     public void addVar(Variable var) {
-//        if (var.getTextDescriptor().isParam())
-//            throw new IllegalArgumentException("Parameters should be added by CellGroup.addParam");
+        if (var.getTextDescriptor().isParam() || isParam(var.getKey()))
+            throw new IllegalArgumentException("Parameters should be added by CellGroup.addParam");
         setD(getD().withVariable(var));
     }
 
@@ -3239,6 +3255,37 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         assert isParam(key);
         setD(getD().withoutVariable(key));
     }
+
+    private void setParams(Cell paramOwner) {
+        for (Iterator<Variable> it = getParameters(); it.hasNext(); ) {
+            delParam((Variable.AttrKey)it.next().getKey());
+        }
+        for (Iterator<Variable> it = paramOwner.getParameters(); it.hasNext(); ) {
+            Variable param = it.next();
+            addParam(param);
+        }
+    }
+
+	/**
+	 * Updates the TextDescriptor on this Cell selected by varKey.
+	 * The varKey may be a key of parameter or variable on this Cell.
+	 * If varKey doesn't select any text descriptor, no action is performed.
+	 * The TextDescriptor gives information for displaying the Variable.
+	 * @param varKey key of variable or special key.
+	 * @param td new value TextDescriptor
+	 */
+    @Override
+	public void setTextDescriptor(Variable.Key varKey, TextDescriptor td) {
+        Variable param = getParameter(varKey);
+        if (param != null) {
+            td = td.withParam(true).withInherit(true).withUnit(param.getUnit()).withCode(param.getCode());
+            addParam(param.withTextDescriptor(td));
+            return;
+        }
+		Variable var = getVar(varKey);
+		if (var != null)
+            addVar(var.withTextDescriptor(td.withParam(false)));
+	}
 
     /**
      * Method to return NodeProtoId of this NodeProto.
@@ -4270,141 +4317,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             }
         }
 
-        errorCount += checkAndRepairCellParameters(repair, errorLogger);
-
 		return errorCount;
 	}
-
-    private int checkAndRepairCellParameters(boolean repair, ErrorLogger errorLogger) {
-        if (!(isIcon() || isSchematic())) return 0;
-        Cell parameterOwner = getCellGroup().getParameterOwner();
-        if (parameterOwner == this) return 0;
-
-        int errorCount = 0;
-        String addedParams = "";
-        NodeInst exampleInst = null;
-        Iterator<Variable> it = getVariables();
-        Iterator<Variable> oit = parameterOwner.getParameters();
-        Variable attr = it.hasNext() ? it.next() : null;
-        Variable param = oit.hasNext() ? oit.next() : null;
-        for (;;) {
-            while (attr != null && !attr.isAttribute()) {
-                attr = it.hasNext() ? it.next() : null;
-            }
-            int cmp;
-            if (param != null) {
-                cmp = attr != null ? attr.getKey().compareTo(param.getKey()) : 1;
-            } else if (attr != null) {
-                cmp = -1;
-            } else {
-                break;
-            }
-            if (cmp < 0) {
-                if (attr.getTextDescriptor().isParam()) {
-                    String msg = this + " has extra parameter \"" + attr.getTrueName() +
-                            "\" compared to " + parameterOwner;
-                     if (repair) {
-                        addVar(attr.withParam(false));
-                        msg += " (REPAIRED)";
-                    }
-                    errorLogger.logError(msg, EPoint.fromLambda(attr.getXOff(), attr.getYOff()), this, 2);
-                    errorCount++;
-                }
-            } else if (cmp == 0) {
-                if (!attr.getTextDescriptor().isParam()) {
-                    String msg = "Attribute \"" + attr.getTrueName() + "\" on " + this +
-                            " must be parameter as on " + parameterOwner;
-                    if (repair) {
-                        addVar(attr.withInherit(true).withParam(true));
-                        msg += " (REPAIRED)";
-                    }
-                    errorLogger.logError(msg, EPoint.fromLambda(attr.getXOff(), attr.getYOff()), this, 2);
-                    errorCount++;
-                }
-                if (!attr.getObject().equals(param.getObject())) {
-                    String msg = "Parameter \"" + attr.getTrueName() +
-                            "\" has value " + attr.getPureValue(-1) + " on " + this +
-                            " instead of " + param.getPureValue(-1) + " as on " + parameterOwner;
-                    if (repair) {
-                        addVar(attr.withObject(param.getObject()));
-                        msg += " (REPAIRED)";
-                    }
-                    errorLogger.logError(msg, EPoint.fromLambda(attr.getXOff(), attr.getYOff()), this, 2);
-                    errorCount++;
-                }
-                if (attr.getUnit() != param.getUnit()) {
-                    String msg = "Parameter \"" + attr.getTrueName() +
-                            "\" has unit " + attr.getUnit() + " on " + this +
-                            " instead of " + param.getUnit() + " as on " + parameterOwner;
-                    if (repair) {
-                        addVar(attr.withUnit(param.getUnit()));
-                        msg += " (REPAIRED)";
-                    }
-                    errorLogger.logError(msg, EPoint.fromLambda(attr.getXOff(), attr.getYOff()), this, 2);
-                    errorCount++;
-                }
-            } else {
-                Variable newParam = param;
-                addedParams += " \"" + param.getTrueName() + "\"";
-                String msg = this + " must have parameter \"" + param.getTrueName() + "\" as on " + parameterOwner;
-                boolean error = false;
-                if (isIcon() && exampleInst == null) {
-                    for (Cell cell: getCellGroup().cells) {
-                        if (!cell.isSchematic()) continue;
-                        for (NodeInst ni: cell.nodes) {
-                            if (ni.getProto() != this) continue;
-                            exampleInst = ni;
-                            break;
-                        }
-                    }
-                }
-                Variable exampleParam = exampleInst != null ? exampleInst.getVar(param.getKey()) : null;
-                boolean interior = false;
-                if (exampleParam != null) {
-                    TextDescriptor td = exampleParam.getTextDescriptor();
-                    td = td.withInherit(true).withParam(true).withCode(param.getCode());
-                    interior = !exampleParam.isDisplay();
-                    td = td.withInterior(interior).withDisplay(true);
-                    if (!exampleParam.getObject().equals(param.getObject())) {
-                        //msg += " (" + exampleParam.getPureValue(-1) + " -> " + param.getPureValue(-1) + " )";
-                        //error = true;
-                    }
-                    if (td.getUnit() != param.getUnit()) {
-                        //msg += " (" + td.getUnit() + " -> " + param.getUnit() + " )";
-                        td = td.withUnit(param.getUnit());
-                        //error = true;
-                    }
-                    newParam = param.withTextDescriptor(td);
-                    error = true;
-                } else {
-                    error = true;
-                }
-                if (repair) {
-                    addVar(newParam);
-                    msg += " (REPAIRED)";
-                }
-                if (error) {
-                    errorLogger.logError(msg, EPoint.fromLambda(newParam.getXOff(), newParam.getYOff()), this, 2);
-                    errorCount++;
-                }
-            }
-            if (cmp <= 0)
-                attr = it.hasNext() ? it.next() : null;
-            if (cmp >= 0)
-                param = oit.hasNext() ? oit.next() : null;
-        }
-/*
-        // redundant with above messages
-        if (addedParams.length() > 0) {
-            String msg = "Add parameters" + addedParams + " to " + this;
-            if (exampleInst != null)
-                msg += " from example icon on " + exampleInst.getParent();
-            errorLogger.logWarning(msg, this, 3);
-            errorCount++;
-        }
-*/
-        return errorCount;
-    }
 
     /**
      * Method to check invariants in this Cell.

@@ -2180,7 +2180,10 @@ public class EditWindow extends JPanel
 			if (sic.object == null)
 			{
 				// cell variable name name
-				cell.updateVarText(sic.key, newString);
+                if (cell.isParam(sic.key))
+                    cell.getCellGroup().updateParamText((Variable.AttrKey)sic.key, newString);
+                else
+                    cell.updateVarText(sic.key, newString);
 			} else
 			{
 				if (sic.key == NodeInst.NODE_NAME)

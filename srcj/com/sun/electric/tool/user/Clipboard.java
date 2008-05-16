@@ -931,7 +931,11 @@ public class Clipboard
 			Variable var = eObj.getVar(varKey);
 			double xP = var.getTextDescriptor().getXOff();
 			double yP = var.getTextDescriptor().getYOff();
-			toCell.newVar(varKey, var.getObject(), var.getTextDescriptor().withOff(xP+dX, yP+dY));
+            Variable newVar = Variable.newInstance(varKey, var.getObject(), var.getTextDescriptor().withOff(xP+dX, yP+dY));
+            if (var.getTextDescriptor().isParam())
+                toCell.getCellGroup().addParam(newVar);
+            else
+                toCell.addVar(newVar);
 			if (newTextList != null) newTextList.add(new DisplayedText(toCell, varKey));
 		}
 		return lastCreatedNode;
@@ -1129,7 +1133,7 @@ public class Clipboard
 				ArcInst ai = (ArcInst)geom;
 				Poly poly = ai.makeLambdaPoly(ai.getGridBaseWidth(), Poly.Type.FILLED);
 				Rectangle2D bounds = poly.getBounds2D();
-				
+
 				if (llcorner == null) {
 					llcorner = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
 					urcorner = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
@@ -1441,21 +1445,21 @@ public class Clipboard
 				public void actionPerformed(ActionEvent e) { moveObjectsRight(); }
 			});
 			popup.add(m);
-			
+
 			m = new JMenuItem("Move objects up");
 			m.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0));
 			m.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) { moveObjectsUp(); }
 			});
 			popup.add(m);
-			
+
 			m = new JMenuItem("Move objects down");
 			m.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0));
 			m.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) { moveObjectsDown(); }
 			});
 			popup.add(m);
-			
+
 			m = new JMenuItem("Abort");
 			m.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0));
 			m.addActionListener(new ActionListener() {

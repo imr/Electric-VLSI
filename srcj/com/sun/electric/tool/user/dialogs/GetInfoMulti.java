@@ -27,6 +27,7 @@ import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Orientation;
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.TextUtils;
@@ -39,7 +40,6 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.Client;
 import com.sun.electric.tool.Job;
@@ -205,7 +205,7 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
      */
     public void highlighterLostFocus(Highlighter highlighterGainedFocus) {
         if (!isVisible()) return;
-        loadMultiInfo();        
+        loadMultiInfo();
     }
 
     /**
@@ -699,7 +699,7 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
         }
 		return -1;
 	}
-	
+
 	private String findComponentStringValue(ChangeType type)
 	{
         if (currentChangeTypes != null)
@@ -712,7 +712,7 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
         }
 		return "";
 	}
-	
+
 	private int findComponentIntValue(ChangeType type)
 	{
         if (currentChangeTypes != null)
@@ -809,7 +809,7 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 					if (mcp.invisOutside == 1) ni.setVisInside(); else
 						if (mcp.invisOutside == 2) ni.clearVisInside();
 					if (mcp.locked == 1) ni.setLocked(); else
-						if (mcp.locked == 2) ni.clearLocked();	
+						if (mcp.locked == 2) ni.clearLocked();
 				}
 
 				// see if size, position, or orientation changed
@@ -1033,8 +1033,14 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 				{
 					ElectricObject eobj = dt.getElectricObject();
 					Variable.Key descKey = dt.getVariableKey();
-					if (mcp.code != null)
-						eobj.updateVarCode(descKey, mcp.code);
+					if (mcp.code != null) {
+                        if (eobj instanceof Cell && eobj.isParam(descKey)) {
+                            Cell cell = (Cell)eobj;
+                            cell.getCellGroup().updateParam((Variable.AttrKey)descKey, cell.getParameter(descKey).withCode(mcp.code).getObject());
+                        } else {
+                            eobj.updateVarCode(descKey, mcp.code);
+                        }
+                    }
 					MutableTextDescriptor td = eobj.getMutableTextDescriptor(descKey);
 
 					boolean tdChanged = false;
@@ -1100,7 +1106,7 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 						TextDescriptor.DispPos sh = TextDescriptor.DispPos.getShowStylesAt(mcp.show);
 						td.setDispPart(sh);
 						tdChanged = true;
-					}					
+					}
 					if (mcp.bold == 1) { td.setBold(true);   tdChanged = true; } else
 						if (mcp.bold == 2) { td.setBold(false);   tdChanged = true; }
 					if (mcp.italic == 1) { td.setItalic(true);   tdChanged = true; } else

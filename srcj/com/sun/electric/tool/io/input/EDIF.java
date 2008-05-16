@@ -1410,7 +1410,7 @@ public class EDIF extends Input
 			{
 				index2 = baseName.substring(comma+1, closeSq);
 				restOfLine = baseName.substring(closeSq);
-			}				
+			}
 		}
 
 		int [] indices = getIndices(index1);
@@ -3613,8 +3613,9 @@ System.out.println("NET "+net1.describe(false)+" AND NET "+net2.describe(false)+
 						curCellParameterOff++;
 						TextDescriptor td = TextDescriptor.getCellTextDescriptor().withDispPart(TextDescriptor.DispPos.NAMEVALUE).
 							withInherit(true).withParam(true).withOff(0, curCellParameterOff);
-						curCell.newVar(Variable.newKey("ATTR_" + propertyReference), propertyValue, td);
-					}					
+                        Variable param = Variable.newInstance(Variable.newKey("ATTR_" + propertyReference), propertyValue, td);
+						curCell.getCellGroup().addParam(param);
+					}
 				}
 			}
 			propertyReference = "";

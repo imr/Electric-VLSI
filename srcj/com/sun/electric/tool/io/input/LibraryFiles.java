@@ -619,7 +619,10 @@ public abstract class LibraryFiles extends Input
                         var = var.withUnit(groupParam.getUnit());
                     }
                     foundParams++;
-                } else if (var.getTextDescriptor().isParam()) {
+                    cell.setTextDescriptor(var.getKey(), var.getTextDescriptor());
+                    continue;
+                }
+                if (var.getTextDescriptor().isParam()) {
                     String msg = cell + " has extra parameter \"" + var.getTrueName() +
                             "\" compared to " + cell.getCellGroup().getParameterOwner();
                     errorLogger.logError(msg, EPoint.fromLambda(var.getXOff(), var.getYOff()), cell, 2);
@@ -669,7 +672,7 @@ public abstract class LibraryFiles extends Input
             }
             assert param.getTextDescriptor().isParam() && param.isInherit();
             errorLogger.logError(msg, EPoint.fromLambda(param.getXOff(), param.getYOff()), cell, 2);
-            realizeVariable(cell, param);
+            cell.setTextDescriptor(param.getKey(), param.getTextDescriptor());
         }
     }
 
@@ -1306,6 +1309,7 @@ public abstract class LibraryFiles extends Input
 
     private void realizeVariable(ElectricObject eObj, Variable var) {
         if (var == null || eObj.isDeprecatedVariable(var.getKey())) return;
+        var = var.withParam(false);
         String origVarName = var.getKey().toString();
         // convert old port variables
         if (eObj instanceof NodeInst && var.getKey().getName().startsWith("ATTRP_")) {
