@@ -161,7 +161,7 @@ public class TechEditWizardData
 	public int getStepSize() { return stepsize; }
 	public void setStepSize(int n) { stepsize = n; }
 
-	public int getNumMetalLayers() { return num_metal_layers; }
+    public int getNumMetalLayers() { return num_metal_layers; }
 	public void setNumMetalLayers(int n)
 	{
 		int smallest = Math.min(n, num_metal_layers);
@@ -825,7 +825,7 @@ public class TechEditWizardData
 		if (fileName == null) return;
 		try
 		{
-            dumpXMLFile(fileName + "new");
+            dumpXMLFile(fileName+"New");
             PrintWriter printWriter = new PrintWriter(new BufferedWriter(new FileWriter(fileName)));
 			dumpTechnology(printWriter);
 			printWriter.close();
@@ -995,7 +995,8 @@ public class TechEditWizardData
      * Method to create the XML version of a Layer.
      * @return
      */
-    private Xml.Layer makeXmlLayer(List<Xml.Layer> layers, Map<Xml.Layer,WizardField> layer_width, String name, Layer.Function function, int extraf,
+    private Xml.Layer makeXmlLayer(List<Xml.Layer> layers, Map<Xml.Layer,WizardField> layer_width, String name,
+                                   Layer.Function function, int extraf,
                                    EGraphics graph, char cifLetter, WizardField width, boolean pureLayerNode) {
         Xml.Layer l = new Xml.Layer();
         l.name = name;
@@ -1017,6 +1018,7 @@ public class TechEditWizardData
             l.pureLayerNode = new Xml.PureLayerNode();
             l.pureLayerNode.name = name + "-Node";
             l.pureLayerNode.style = Poly.Type.FILLED;
+            l.pureLayerNode.size.addLambda(scaledValue(width.v));
             l.pureLayerNode.port = "Port_" + name;
 /*            l.pureLayerNode.size.addRule(width.rule, 1);*/
             l.pureLayerNode.portArcs.add(name);
@@ -1034,17 +1036,13 @@ public class TechEditWizardData
      * Method to create the XML version of NodeLayer
      * @param hla
      * @param lb
-     * @param multiCutBox
-     * @param sizex
-     * @param sizey
-     * @param sep1d
-     * @param sep2d @return
+     * @param style
      */
-    private Xml.NodeLayer makeXmlNodeLayer(double hla, Xml.Layer lb)
+    private Xml.NodeLayer makeXmlNodeLayer(double hla, Xml.Layer lb, Poly.Type style)
     {
         Xml.NodeLayer nl = new Xml.NodeLayer();
         nl.layer = lb.name;
-        nl.style = Poly.Type.FILLED;
+        nl.style = style;
         nl.inLayers = nl.inElectricalLayers = true;
         nl.representation = Technology.NodeLayer.BOX;
         nl.lx.k = -1; nl.hx.k = 1; nl.ly.k = -1; nl.hy.k = 1;
@@ -1061,10 +1059,10 @@ public class TechEditWizardData
         nl.lx.k = -1; nl.hx.k = 1; nl.ly.k = -1; nl.hy.k = 1;
 
 //        nl.sizeRule = sizeRule;
-        nl.sizex = sizeRule.v;
-        nl.sizey = sizeRule.v;
-        nl.sep1d = sepRule.v;
-        nl.sep2d = sepRule2D.v;
+        nl.sizex = scaledValue(sizeRule.v);
+        nl.sizey = scaledValue(sizeRule.v);
+        nl.sep1d = scaledValue(sepRule.v);
+        nl.sep2d = scaledValue(sepRule2D.v);
         return nl;
         
     }
@@ -1440,17 +1438,34 @@ public class TechEditWizardData
                 makeXmlArcLayer(pplusLayer, diff_width, pplus_overhang_diff),
                 makeXmlArcLayer(nwellLayer, diff_width, nwell_overhang_diff));
 
-        // Pins
+        // Pins and contacts
+        
         List<Xml.NodeLayer> nodesList = new ArrayList<Xml.NodeLayer>();
+        List<Xml.PrimitivePort> nodePorts = new ArrayList<Xml.PrimitivePort>();
         for(int i=1; i<num_metal_layers; i++)
 		{
-            nodesList.clear();
             double hla = DBMath.round(metal_width[i-1].v / (stepsize*2));
             Xml.Layer lb = metalLayers.get(i-1);
-            nodesList.add(makeXmlNodeLayer(hla, lb)); // bottom layer
-            hla = DBMath.round(metal_width[i].v / (stepsize*2));
+
+            // Pin bottom metal
+            nodePorts.clear();
+            nodesList.clear();
+            nodesList.add(makeXmlNodeLayer(hla, lb, Poly.Type.CROSSED)); // pin bottom metal
+            EPoint minFullSize = EPoint.fromLambda(0, 0);
+            nodePorts.add(makeXmlPrimitivePort(lb.name.toLowerCase(), 0, 180, 0,
+                minFullSize, 0, 0, null));
+            makeXmlPrimitive(t.nodes, lb.name + "-Pin", PrimitiveNode.Function.PIN, hla, hla, 0, 0,
+                new SizeOffset(hla, hla, hla, hla),
+                nodesList, nodePorts, null);
+
+            // Contact Square
+            nodePorts.clear();
+            nodesList.clear();
+            double metalW = via_size[i-1].v/2 + contact_metal_overhang_all_sides.v;
+            hla = scaledValue(metalW);
+            nodesList.add(makeXmlNodeLayer(hla, lb, Poly.Type.FILLED)); // bottom layer
             Xml.Layer lt = metalLayers.get(i);
-            nodesList.add(makeXmlNodeLayer(hla, lt)); // top layer
+            nodesList.add(makeXmlNodeLayer(hla, lt, Poly.Type.FILLED)); // top layer
             // via
             Xml.Layer via = viaLayers.get(i-1);
             nodesList.add(makeXmlMulticut(hla, via, via_size[i-1], via_spacing[i-1], via_array_spacing[i-1])); // via
@@ -1460,8 +1475,8 @@ public class TechEditWizardData
 //            nodesList.add(makeXmlNodeLayer(hla, via, true, size, size, cs, cs2)); // via
             String name = lb.name + "-" + lt.name;
             // port
-            List<Xml.PrimitivePort> nodePorts = new ArrayList<Xml.PrimitivePort>();
-            EPoint minFullSize = EPoint.fromLambda(0.5*hla, 0.5*hla);
+            minFullSize = EPoint.fromLambda(0.5*hla, 0.5*hla);   // TAKING the second hla
+//            List<String> portNames = new ArrayList<String>();
 //            List<String> portNames = new ArrayList<String>();
             Xml.PrimitivePort pp = makeXmlPrimitivePort(name.toLowerCase(), 0, 180, 0,
                 minFullSize, 0, 0, null);
@@ -1520,19 +1535,19 @@ public class TechEditWizardData
     private void makeLayerRuleMinWid(Xml.Technology t, Xml.Layer l, WizardField fld) {
         for (Xml.Foundry f: t.foundries) {
             f.rules.add(new DRCTemplate(fld.rule, DRCTemplate.DRCMode.ALL.mode(), DRCTemplate.DRCRuleType.MINWID,
-                l.name, null, new double[] {DBMath.round(fld.v/stepsize)}, null, null));
+                l.name, null, new double[] {scaledValue(fld.v)}, null, null));
         }
     }
     
     private void makeLayersRule(Xml.Technology t, Xml.Layer l, DRCTemplate.DRCRuleType ruleType, WizardField fld) {
         for (Xml.Foundry f: t.foundries) {
             f.rules.add(new DRCTemplate(fld.rule, DRCTemplate.DRCMode.ALL.mode(), ruleType,
-                l.name, l.name, new double[] {DBMath.round(fld.v/stepsize)}, null, null));
+                l.name, l.name, new double[] {scaledValue(fld.v)}, null, null));
         }
     }
 
     private void makeLayersRuleSurround(Xml.Technology t, Xml.Layer l1, Xml.Layer l2, WizardField fld) {
-        double value = DBMath.round(fld.v/stepsize);
+        double value = scaledValue(fld.v);
         for (Xml.Foundry f: t.foundries) {
             f.rules.add(new DRCTemplate(fld.rule, DRCTemplate.DRCMode.ALL.mode(), DRCTemplate.DRCRuleType.SURROUND,
                 l1.name, l2.name, new double[] {value, value}, null, null));
@@ -2810,4 +2825,6 @@ public class TechEditWizardData
         double roundedV = DBMath.round(v);
         return roundedV + "";  // the "" is needed to call the String constructor
 	}
+
+    private double scaledValue(double val) { return DBMath.round(val / stepsize); }
 }
