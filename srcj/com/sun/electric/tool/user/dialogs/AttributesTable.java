@@ -68,7 +68,6 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
     /** True if default instance parameters apper in the table */
     private static final boolean DEFAULT_PARAMETERS_SHOWN = true;
 
-
 	/**
 	 * Class to define attributes on nodes or arcs.
 	 */
@@ -87,7 +86,6 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
     private static class VariableTableModel extends AbstractTableModel {
 
         private List<VarEntry> vars;                     // list of variables to display
-//        private boolean DEBUG = false;                      // if true, displays database var names
         private static final String [] columnNames = { "Name", "Value", "Code", "Display", "Units" };
         private boolean showCode = true;
         private boolean showDispPos = false;
@@ -484,7 +482,6 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
          * Cancel all changes
          */
         public void cancelChanges() {
-
         }
 
         private String getUniqueName(String name) {
@@ -568,19 +565,19 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
                     {
                         // this is a new variable
                         newVar = owner.newVar(key, obj);
-//                        ve.var = newVar;
                     } else
                     {
                         // update variable
                         newVar = owner.updateVar(key, obj);
-//                        ve.var = newVar;
                     }
 
                     if (newVar != null)
                     {
                         // set/update properties
                         assert newVar.getCode() == code;
-                        TextDescriptor td = newVar.getTextDescriptor();
+                        TextDescriptor td = null;
+                        // TODO if this is a parameter, it should find the default text descriptor
+                        td = newVar.getTextDescriptor();
                         td = td.withDisplay(display).withDispPart(dispPos).withUnit(units);
                         owner.setTextDescriptor(newVar.getKey(), td);
                     }
@@ -860,15 +857,6 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
     private void clearVariables() {
         ((VariableTableModel)getModel()).clearVariables();
     }
-
-//     public void databaseChanged(Undo.Change evt) {}
-//     public boolean isGUIListener() { return true; }
-//     public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
-//         // reload vars
-//         ElectricObject eobj = owner;
-//         setElectricObject(null);
-//         setElectricObject(eobj);
-//     }
 
     public void databaseChanged(DatabaseChangeEvent e) {
         // reload vars
