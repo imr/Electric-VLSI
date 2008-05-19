@@ -1256,30 +1256,8 @@ public class CircuitChangeJobs
 			{
 				if (!ni.isCellInstance()) continue;
 
-				// reconstruct each connection to a deleted cell instance
-				for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext(); )
-				{
-					Connection con = cIt.next();
-					ArcInst ai = con.getArc();
-					if (arcsToDelete.contains(ai)) continue;
-
-					// recreate them
-					int otherEnd = 1 - con.getEndIndex();
-					PortInst otherPi = ai.getPortInst(otherEnd);
-					NodeInst otherNi = otherPi.getNodeInst();
-					if (otherNi == ni)
-					{
-						// special case: arc from node to itself gets preserved?
-						continue;
-					}
-					if (nodesToDelete.contains(otherNi)) continue;
-
-					// reconnect a piece of hair to a cell instance
-					PrimitiveNode pinNp = ai.getProto().findPinProto();
-					NodeInst pin = NodeInst.makeInstance(pinNp, con.getLocation(), pinNp.getDefWidth(), pinNp.getDefHeight(), cell);
-					ArcInst.makeInstanceBase(ai.getProto(), ai.getLambdaBaseWidth(), otherPi, pin.getOnlyPortInst(),
-						ai.getConnection(otherEnd).getLocation(), con.getLocation(), ai.getName());
-				}
+				// make a map of recreated ports
+				Map<PortInst,PortInst> reassigned = new HashMap<PortInst,PortInst>();
 
 				// reconstruct exports to deleted cell instances
 				for(Iterator<Export> eIt = ni.getExports(); eIt.hasNext(); )
@@ -1306,7 +1284,41 @@ public class CircuitChangeJobs
 					NodeInst eNi = NodeInst.makeInstance(subNp, ctr, subNi.getXSize(), subNi.getYSize(),
 						cell, orient, null, 0);
 					pi = eNi.findPortInstFromProto(subPP);
+					reassigned.put(e.getOriginalPort(), pi);
 					e.move(pi);
+				}
+
+				// reconstruct each connection to a deleted cell instance
+				for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext(); )
+				{
+					Connection con = cIt.next();
+					ArcInst ai = con.getArc();
+					if (arcsToDelete.contains(ai)) continue;
+
+					// recreate them
+					int thisEnd = con.getEndIndex();
+					int otherEnd = 1 - thisEnd;
+					PortInst thisPi = ai.getPortInst(thisEnd);
+					PortInst otherPi = ai.getPortInst(otherEnd);
+					NodeInst otherNi = otherPi.getNodeInst();
+					if (otherNi == ni)
+					{
+						// special case: arc from node to itself gets preserved?
+						continue;
+					}
+					if (nodesToDelete.contains(otherNi)) continue;
+
+					// reconnect a piece of hair to a cell instance
+					PortInst alreadyPI = reassigned.get(thisPi);
+					if (alreadyPI == null)
+					{
+						PrimitiveNode pinNp = ai.getProto().findPinProto();
+						NodeInst pin = NodeInst.makeInstance(pinNp, con.getLocation(), pinNp.getDefWidth(), pinNp.getDefHeight(), cell);
+						alreadyPI = pin.getOnlyPortInst();
+						reassigned.put(thisPi, alreadyPI);
+					}
+					ArcInst.makeInstanceBase(ai.getProto(), ai.getLambdaBaseWidth(), otherPi, alreadyPI,
+						ai.getConnection(otherEnd).getLocation(), con.getLocation(), ai.getName());
 				}
 			}
 		}
