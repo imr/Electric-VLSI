@@ -226,29 +226,29 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 	{
 		// update current window
 		EditWindow curWnd = EditWindow.getCurrent();
-	    if (curWnd != null) wnd = curWnd;
+		if (curWnd != null) wnd = curWnd;
 
 		// must have a single node selected
 		NodeInst ni = null;
 		PortProto pp = null;
 		int nodeCount = 0;
-        if (wnd != null) {
-            for(Highlight2 h : wnd.getHighlighter().getHighlights())
-            {
-                if (!h.isHighlightEOBJ()) continue;
-                ElectricObject eobj = h.getElectricObject();
-                if (eobj instanceof PortInst)
-                {
-                    pp = ((PortInst)eobj).getPortProto();
-                    eobj = ((PortInst)eobj).getNodeInst();
-                }
-                if (eobj instanceof NodeInst)
-                {
-                    ni = (NodeInst)eobj;
-                    nodeCount++;
-                }
-            }
-        }
+		if (wnd != null) {
+			for(Highlight2 h : wnd.getHighlighter().getHighlights())
+			{
+				if (!h.isHighlightEOBJ()) continue;
+				ElectricObject eobj = h.getElectricObject();
+				if (eobj instanceof PortInst)
+				{
+					pp = ((PortInst)eobj).getPortProto();
+					eobj = ((PortInst)eobj).getNodeInst();
+				}
+				if (eobj instanceof NodeInst)
+				{
+					ni = (NodeInst)eobj;
+					nodeCount++;
+				}
+			}
+		}
 		if (nodeCount > 1) ni = null;
 		if (ni == null)
 		{
@@ -289,15 +289,15 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 				popup.setEnabled(false);
 				ports.setEnabled(false);
 				attributes.setEnabled(false);
-                attributesTable.setElectricObject(null);
-                attributesTable.setEnabled(false);
+				attributesTable.setElectricObject(null);
+				attributesTable.setEnabled(false);
 				busMembers.setEnabled(false);
 				listPane.setEnabled(false);
 				listModel.clear();
 				locked.setEnabled(false);
 				locked.setSelected(false);
 				see.setEnabled(false);
-                editParameters.setEnabled(false);
+				editParameters.setEnabled(false);
 				colorAndPattern.setEnabled(false);
 
 				shownNode = null;
@@ -309,12 +309,12 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 		shownNode = ni;
 		shownPort = pp;
 
-        EDialog.focusClearOnTextField(name);
+		EDialog.focusClearOnTextField(name);
 
 		// in small version
 		NodeProto np = ni.getProto();
 		name.setEditable(true);
-        boolean sizeEditable = true;
+		boolean sizeEditable = true;
 		xPos.setEditable(true);
 		yPos.setEditable(true);
 		rotation.setEditable(true);
@@ -325,74 +325,74 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 		initialName = ni.getName();
 		initialXPos = ni.getAnchorCenterX();
 		initialYPos = ni.getAnchorCenterY();
-        double initXSize = ni.getLambdaBaseXSize();
-        double initYSize = ni.getLambdaBaseYSize();
-        initialRotation = ni.getAngle();
-        swapXY = false;
-        if (initialRotation == 900 || initialRotation == 2700) swapXY = true;
+		double initXSize = ni.getLambdaBaseXSize();
+		double initYSize = ni.getLambdaBaseYSize();
+		initialRotation = ni.getAngle();
+		swapXY = false;
+		if (initialRotation == 900 || initialRotation == 2700) swapXY = true;
 
-        type.setText(np.describe(false));
-        name.setText(initialName);
-        xPos.setText(TextUtils.formatDouble(initialXPos));
-        yPos.setText(TextUtils.formatDouble(initialYPos));
-        boolean realMirrorX = ni.isXMirrored();
-        boolean realMirrorY = ni.isYMirrored();
-        if (swapXY)
-        {
-            xSize.setText(TextUtils.formatDouble(initYSize));
-            ySize.setText(TextUtils.formatDouble(initXSize));
-            initialMirrorX = realMirrorY;
-            initialMirrorY = realMirrorX;
-        } else
-        {
-            xSize.setText(TextUtils.formatDouble(initXSize));
-            ySize.setText(TextUtils.formatDouble(initYSize));
-            initialMirrorX = realMirrorX;
-            initialMirrorY = realMirrorY;
-        }
-        initialXSize = xSize.getText();
-        initialYSize = ySize.getText();
-        mirrorX.setSelected(initialMirrorX);
-        mirrorY.setSelected(initialMirrorY);
+		type.setText(np.describe(false));
+		name.setText(initialName);
+		xPos.setText(TextUtils.formatDouble(initialXPos));
+		yPos.setText(TextUtils.formatDouble(initialYPos));
+		boolean realMirrorX = ni.isXMirrored();
+		boolean realMirrorY = ni.isYMirrored();
+		if (swapXY)
+		{
+			xSize.setText(TextUtils.formatDouble(initYSize));
+			ySize.setText(TextUtils.formatDouble(initXSize));
+			initialMirrorX = realMirrorY;
+			initialMirrorY = realMirrorX;
+		} else
+		{
+			xSize.setText(TextUtils.formatDouble(initXSize));
+			ySize.setText(TextUtils.formatDouble(initYSize));
+			initialMirrorX = realMirrorX;
+			initialMirrorY = realMirrorY;
+		}
+		initialXSize = xSize.getText();
+		initialYSize = ySize.getText();
+		mirrorX.setSelected(initialMirrorX);
+		mirrorY.setSelected(initialMirrorY);
 		rotation.setText(TextUtils.formatDouble(initialRotation / 10.0));
-
-        // special case for transistors and resistors
-        PrimitiveNodeSize npSize = ni.getPrimitiveNodeSize(null);
-        if (npSize != null) {
-            xsizeLabel.setText("Width:");
-            ysizeLabel.setText("Length:");
-            double width = npSize.getDoubleWidth();
-            if (width == 0 && npSize.getWidth() != null)
-                xSize.setText(npSize.getWidth().toString());
-            else
-                xSize.setText(TextUtils.formatDouble(width));
-            double length = npSize.getDoubleLength();
-            if (length == 0 && npSize.getLength() != null)
-                ySize.setText(npSize.getLength().toString());
-            else
-                ySize.setText(TextUtils.formatDouble(length));
-            initialXSize = xSize.getText();
-            initialYSize = ySize.getText();
-//        } else if (ni.getFunction()==PrimitiveNode.Function.PRESIST) {
-//        	// special case for Poly resistors
-//        	xsizeLabel.setText("Length:");
+		
+		// special case for transistors and resistors
+		PrimitiveNodeSize npSize = ni.getPrimitiveNodeSize(null);
+		if (npSize != null) {
+			xsizeLabel.setText("Width:");
+			ysizeLabel.setText("Length:");
+			double width = npSize.getDoubleWidth();
+			if (width == 0 && npSize.getWidth() != null)
+				xSize.setText(npSize.getWidth().toString());
+			else
+				xSize.setText(TextUtils.formatDouble(width));
+			double length = npSize.getDoubleLength();
+			if (length == 0 && npSize.getLength() != null)
+				ySize.setText(npSize.getLength().toString());
+			else
+				ySize.setText(TextUtils.formatDouble(length));
+			initialXSize = xSize.getText();
+			initialYSize = ySize.getText();
+//		} else if (ni.getFunction()==PrimitiveNode.Function.PRESIST) {
+//			// special case for Poly resistors
+//			xsizeLabel.setText("Length:");
 //			ysizeLabel.setText("Width:");
-        } else {
-            xsizeLabel.setText("X size:");
-            ysizeLabel.setText("Y size:");
-        }
+		} else {
+			xsizeLabel.setText("X size:");
+			ysizeLabel.setText("Y size:");
+		}
 
 		// in "more" version
 		easyToSelect.setEnabled(true);
 		invisibleOutsideCell.setEnabled(true);
 		ports.setEnabled(true);
 		attributes.setEnabled(true);
-        attributesTable.setEnabled(true);
-        busMembers.setEnabled(true);
+		attributesTable.setEnabled(true);
+		busMembers.setEnabled(true);
 		listPane.setEnabled(true);
 		locked.setEnabled(true);
-        editParameters.setEnabled(false);
-        if (ni.isCellInstance()) editParameters.setEnabled(true);
+		editParameters.setEnabled(false);
+		if (ni.isCellInstance()) editParameters.setEnabled(true);
 		colorAndPattern.setEnabled(ni.getProto().getTechnology() == Artwork.tech());
 
 		// grab all attributes and parameters
@@ -412,10 +412,10 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 			avp.code = var.isCode();
 			allAttributes.add(avp);
 		}
-        boolean hasAttributes = allAttributes.size() != 0 || ni.getParameters().hasNext();
+		boolean hasAttributes = allAttributes.size() != 0 || ni.getParameters().hasNext();
 		attributes.setEnabled(hasAttributes);
-        attributesTable.setEnabled(hasAttributes);
-        attributesTable.setElectricObject(ni);
+		attributesTable.setEnabled(hasAttributes);
+		attributesTable.setElectricObject(ni);
 		if (attributes.isSelected() && !hasAttributes) ports.setSelected(true);
 
 		int busWidth = 1;
@@ -428,7 +428,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 		if (busWidth <= 1)
 		{
 			if (busMembers.isSelected()) ports.setSelected(true);
-	        busMembers.setEnabled(false);
+			busMembers.setEnabled(false);
 		}
 		showProperList();
 
@@ -444,14 +444,14 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 		Point2D [] outline = ni.getTrace();
 		if (outline != null)
 		{
-            sizeEditable = false;
+			sizeEditable = false;
 		}
 
 		// if there is outline information on a transistor, remember that
 		initialTextField = null;
-        boolean lengthEditable = false;
-        if (ni.isSerpentineTransistor())
-            lengthEditable = true;
+		boolean lengthEditable = false;
+		if (ni.isSerpentineTransistor())
+			lengthEditable = true;
 
 		// set the expansion button
 		if (np instanceof Cell)
@@ -461,20 +461,20 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 			initialExpansion = ni.isExpanded();
 			if (initialExpansion) expanded.setSelected(true); else
 				unexpanded.setSelected(true);
-            sizeEditable = false;
+			sizeEditable = false;
 		} else
 		{
 			expanded.setEnabled(false);
 			unexpanded.setEnabled(false);
 		}
 
-        if (sizeEditable) {
-            xSize.setEditable(true);
-            ySize.setEditable(true);
-        } else {
-            xSize.setEditable(false);
-            ySize.setEditable(lengthEditable);
-        }
+		if (sizeEditable) {
+			xSize.setEditable(true);
+			ySize.setEditable(true);
+		} else {
+			xSize.setEditable(false);
+			ySize.setEditable(lengthEditable);
+		}
 
 		// load visible-outside-cell state
 		initialInvisibleOutsideCell = ni.isVisInside();
@@ -491,21 +491,21 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 		locked.setSelected(initialLocked);
 
 		// load special node information
-        PrimitiveNode.Function fun = ni.getFunction();
+		PrimitiveNode.Function fun = ni.getFunction();
 		if (np == Schematics.tech().transistorNode || np == Schematics.tech().transistor4Node)
 		{
-            if (!ni.isFET())
-            {
-                textField.setEditable(true);
-                textFieldLabel.setText("Area:");
+			if (!ni.isFET())
+			{
+				textField.setEditable(true);
+				textFieldLabel.setText("Area:");
 
-                Variable var = ni.getVar(Schematics.ATTR_AREA);
+				Variable var = ni.getVar(Schematics.ATTR_AREA);
 
-                textField.setText(var.getPureValue(-1));
+				textField.setText(var.getPureValue(-1));
 
-                popupLabel.setText("Transistor type:");
-                popup.addItem(fun.getName());
-            }
+				popupLabel.setText("Transistor type:");
+				popup.addItem(fun.getName());
+			}
 		}
 
 		scalableTrans = false;
@@ -556,7 +556,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 		}
 		if (fun.isResistor())
 		{
-            if (fun == PrimitiveNode.Function.PRESIST)
+			if (fun == PrimitiveNode.Function.PRESIST)
 				textFieldLabel.setText("Poly resistance:"); else
 					textFieldLabel.setText("Resistance:");
 //			formatinfstr(infstr, x_(" (%s):"),
@@ -652,7 +652,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 			textField.setEditable(true);
 			textField.setText(initialTextField);
 		}
-        EDialog.focusOnTextField(name);
+		EDialog.focusOnTextField(name);
 	}
 
 	private void showProperList()
@@ -663,7 +663,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 		if (ports.isSelected())
 		{
 			// show ports
-            listPane.setViewportView(list);
+			listPane.setViewportView(list);
 			NodeProto np = shownNode.getProto();
 			List<String> portMessages = new ArrayList<String>();
 			int selectedLine = 0;
@@ -736,8 +736,8 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 			}
 			see.setEnabled(true);
 			list.setListData(portMessages.toArray());
-            list.setSelectedIndex(selectedLine);
-            list.ensureIndexIsVisible(selectedLine);
+			list.setSelectedIndex(selectedLine);
+			list.ensureIndexIsVisible(selectedLine);
 		}
 		if (busMembers.isSelected())
 		{
@@ -751,11 +751,12 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 				if (net != null) netDescr = net.describe(false);
 				busMessages.add(i + ": " + netDescr);
 			}
+			listPane.setViewportView(list);
 			list.setListData(busMessages.toArray());
 		}
 		if (attributes.isSelected())
 		{
-            listPane.setViewportView(attributesTable);
+			listPane.setViewportView(attributesTable);
 		}
 	}
 
@@ -764,8 +765,8 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 		private NodeInst ni;
 		private double initialXPos, initialYPos, currentXPos, currentYPos;
 		private String initialXSize, initialYSize, currentXSize, currentYSize;
-		private boolean initialMirrorX, initialMirrorY, currentMirrorX, currentMirrorY;
-		private int initialRotation, currentRotation;
+		private boolean currentMirrorX, currentMirrorY;
+		private int currentRotation;
 		private int initialPopupIndex, currentPopupIndex;
 		private boolean initialEasyToSelect, currentEasyToSelect;
 		private boolean initialInvisibleOutsideCell, currentInvisibleOutsideCell;
@@ -781,8 +782,8 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 		public ChangeNode(NodeInst ni,
 			double initialXPos, double currentXPos, double initialYPos, double currentYPos,
 			String initialXSize, String currentXSize, String initialYSize, String currentYSize,
-			boolean initialMirrorX, boolean currentMirrorX, boolean initialMirrorY, boolean currentMirrorY,
-			int initialRotation, int currentRotation,
+			boolean currentMirrorX, boolean currentMirrorY,
+			int currentRotation,
 			int initialPopupIndex, int currentPopupIndex,
 			boolean initialEasyToSelect, boolean currentEasyToSelect,
 			boolean initialInvisibleOutsideCell, boolean currentInvisibleOutsideCell,
@@ -801,9 +802,9 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 			this.initialYPos = initialYPos;                                   this.currentYPos = currentYPos;
 			this.initialXSize = initialXSize;                                 this.currentXSize = currentXSize;
 			this.initialYSize = initialYSize;                                 this.currentYSize = currentYSize;
-			this.initialMirrorX = initialMirrorX;                             this.currentMirrorX = currentMirrorX;
-			this.initialMirrorY = initialMirrorY;                             this.currentMirrorY = currentMirrorY;
-			this.initialRotation = initialRotation;                           this.currentRotation = currentRotation;
+			                                                                  this.currentMirrorX = currentMirrorX;
+			                                                                  this.currentMirrorY = currentMirrorY;
+			                                                                  this.currentRotation = currentRotation;
 			this.initialPopupIndex = initialPopupIndex;                       this.currentPopupIndex = currentPopupIndex;
 			this.initialEasyToSelect = initialEasyToSelect;                   this.currentEasyToSelect = currentEasyToSelect;
 			this.initialInvisibleOutsideCell = initialInvisibleOutsideCell;   this.currentInvisibleOutsideCell = currentInvisibleOutsideCell;
@@ -860,7 +861,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 					ni.clearLocked();
 			}
 
-            // handle special node information
+			// handle special node information
 			if (scalableTrans)
 			{
 				if (currentPopupIndex != initialPopupIndex)
@@ -879,7 +880,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 					Variable var = ni.updateVar(Schematics.ATTR_WIDTH, new Double(width));
 					if (var != null && oldVar == null)
 					{
-                        ni.addVar(var.withDisplay(true).withDispPart(TextDescriptor.DispPos.NAMEVALUE));
+						ni.addVar(var.withDisplay(true).withDispPart(TextDescriptor.DispPos.NAMEVALUE));
 					}
 				}
 			}
@@ -889,7 +890,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 				if (!currentTextField.equals(initialTextField))
 				{
 					Variable var = ni.updateVarText(Schematics.SCHEM_DIODE, currentTextField);
-                    if (var != null && !var.isDisplay()) ni.addVar(var.withDisplay(true));
+					if (var != null && !var.isDisplay()) ni.addVar(var.withDisplay(true));
 					changed = true;
 				}
 			}
@@ -898,7 +899,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 				if (!currentTextField.equals(initialTextField))
 				{
 					Variable var = ni.updateVarText(Schematics.SCHEM_RESISTANCE, currentTextField);
-                    if (var != null && !var.isDisplay()) ni.addVar(var.withDisplay(true));
+					if (var != null && !var.isDisplay()) ni.addVar(var.withDisplay(true));
 					changed = true;
 				}
 			}
@@ -907,7 +908,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 				if (!currentTextField.equals(initialTextField))
 				{
 					Variable var = ni.updateVarText(Schematics.SCHEM_CAPACITANCE, currentTextField);
-                    if (var != null && !var.isDisplay()) ni.addVar(var.withDisplay(true));
+					if (var != null && !var.isDisplay()) ni.addVar(var.withDisplay(true));
 					changed = true;
 				}
 			}
@@ -916,7 +917,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 				if (!currentTextField.equals(initialTextField))
 				{
 					Variable var = ni.updateVarText(Schematics.SCHEM_INDUCTANCE, currentTextField);
-                    if (var != null && !var.isDisplay()) ni.addVar(var.withDisplay(true));
+					if (var != null && !var.isDisplay()) ni.addVar(var.withDisplay(true));
 					changed = true;
 				}
 			}
@@ -925,7 +926,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 				if (!currentTextField.equals(initialTextField))
 				{
 					Variable var = ni.updateVarText(Schematics.SCHEM_FUNCTION, currentTextField);
-                    if (var != null && !var.isDisplay()) ni.addVar(var.withDisplay(true));
+					if (var != null && !var.isDisplay()) ni.addVar(var.withDisplay(true));
 					changed = true;
 				}
 			}
@@ -934,7 +935,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 				if (!currentTextField.equals(initialTextField))
 				{
 					Variable var = ni.updateVarText(Schematics.SCHEM_GLOBAL_NAME, currentTextField);
-                    if (var != null && !var.isDisplay()) ni.addVar(var.withDisplay(true));
+					if (var != null && !var.isDisplay()) ni.addVar(var.withDisplay(true));
 					changed = true;
 				}
 
@@ -964,103 +965,103 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 				}
 			}
 
-            double initXSize, initYSize;
-    		double currXSize, currYSize;
-            Orientation orient;
+			double initXSize, initYSize;
+			double currXSize, currYSize;
+			Orientation orient;
 
-            // Figure out change in X and Y size
-            // if swapXY, X size was put in Y text box, and vice versa.
-            if (swapXY)
-            {
-                // get true size minus offset (this is the size the user sees)
-                currXSize = TextUtils.atof(currentYSize, new Double(ni.getLambdaBaseXSize()));
-                currYSize = TextUtils.atof(currentXSize, new Double(ni.getLambdaBaseYSize()));
-                initXSize = TextUtils.atof(initialYSize, new Double(currXSize));
-                initYSize = TextUtils.atof(initialXSize, new Double(currYSize));
+			// Figure out change in X and Y size
+			// if swapXY, X size was put in Y text box, and vice versa.
+			if (swapXY)
+			{
+				// get true size minus offset (this is the size the user sees)
+				currXSize = TextUtils.atof(currentYSize, new Double(ni.getLambdaBaseXSize()));
+				currYSize = TextUtils.atof(currentXSize, new Double(ni.getLambdaBaseYSize()));
+				initXSize = TextUtils.atof(initialYSize, new Double(currXSize));
+				initYSize = TextUtils.atof(initialXSize, new Double(currYSize));
 
-                // mirror
-                orient = Orientation.fromJava(currentRotation, currentMirrorY, currentMirrorX);
-            } else
-            {
-                currXSize = TextUtils.atof(currentXSize, new Double(ni.getLambdaBaseXSize()));
-                currYSize = TextUtils.atof(currentYSize, new Double(ni.getLambdaBaseYSize()));
-                initXSize = TextUtils.atof(initialXSize, new Double(currXSize));
-                initYSize = TextUtils.atof(initialYSize, new Double(currYSize));
+				// mirror
+				orient = Orientation.fromJava(currentRotation, currentMirrorY, currentMirrorX);
+			} else
+			{
+				currXSize = TextUtils.atof(currentXSize, new Double(ni.getLambdaBaseXSize()));
+				currYSize = TextUtils.atof(currentYSize, new Double(ni.getLambdaBaseYSize()));
+				initXSize = TextUtils.atof(initialXSize, new Double(currXSize));
+				initYSize = TextUtils.atof(initialYSize, new Double(currYSize));
 
-                // mirror
-                orient = Orientation.fromJava(currentRotation, currentMirrorX, currentMirrorY);
-            }
+				// mirror
+				orient = Orientation.fromJava(currentRotation, currentMirrorX, currentMirrorY);
+			}
 
-            // The following code is specific for transistors, and uses the X/Y size fields for
-            // Width and Length, and therefore may override the values such that the node size does not
-            // get set by them.
-            PrimitiveNodeSize size = ni.getPrimitiveNodeSize(null);
-            if (size != null)
-            {
-                // see if this is a schematic transistor
-                if (np == Schematics.tech().transistorNode || np == Schematics.tech().transistor4Node ||
-                    np == Schematics.tech().resistorNode)
-                {
-                    Object width, length;
-                    if (ni.isFET() || ni.getFunction() == PrimitiveNode.Function.PRESIST)
+			// The following code is specific for transistors, and uses the X/Y size fields for
+			// Width and Length, and therefore may override the values such that the node size does not
+			// get set by them.
+			PrimitiveNodeSize size = ni.getPrimitiveNodeSize(null);
+			if (size != null)
+			{
+				// see if this is a schematic transistor
+				if (np == Schematics.tech().transistorNode || np == Schematics.tech().transistor4Node ||
+					np == Schematics.tech().resistorNode)
+				{
+					Object width, length;
+					if (ni.isFET() || ni.getFunction() == PrimitiveNode.Function.PRESIST)
 					{
-                        // see if we can convert width and length to a Number
-                        double w = TextUtils.atof(currentXSize, null);
-                        if (w == 0)
-                        {
-                            // set width to whatever text is there
-                            width = Variable.withCode(currentXSize, ni.getCode(Schematics.ATTR_WIDTH));
-                        } else
-                        {
-                            width = new Double(w);
-                        }
+						// see if we can convert width and length to a Number
+						double w = TextUtils.atof(currentXSize, null);
+						if (w == 0)
+						{
+							// set width to whatever text is there
+							width = Variable.withCode(currentXSize, ni.getCode(Schematics.ATTR_WIDTH));
+						} else
+						{
+							width = new Double(w);
+						}
 
-                        double l = TextUtils.atof(currentYSize, null);
-                        if (l == 0)
-                        {
-                            // set length to whatever text is there
-                            length = Variable.withCode(currentYSize, ni.getCode(Schematics.ATTR_LENGTH));
-                        } else
-                        {
-                            length = new Double(l);
-                        }
-                        ni.setPrimitiveNodeSize(width, length);
-                    }
-                } else // transistors or resistors
-                {
-                    // this is a layout transistor
-                    if (ni.isSerpentineTransistor())
-                    {
-                        // serpentine transistors can only set length
-                        double initialLength = ni.getSerpentineTransistorLength();
-                        double length = TextUtils.atof(currentYSize, new Double(initialLength));
-                        if (length != initialLength)
-                            ni.setSerpentineTransistorLength(length);
-                    } else
-                    {
-                        // set length and width by node size for layout transistors
-                        double initialWidth = size.getDoubleWidth();
-                        double initialLength = size.getDoubleLength();
-                        double width = TextUtils.atof(currentXSize, new Double(initialWidth));
-                        double length = TextUtils.atof(currentYSize, new Double(initialLength));
-                        if (!DBMath.doublesEqual(width, initialWidth) ||
-                            !DBMath.doublesEqual(length, initialLength))
-                        {
-                            // set transistor or resistor size
-                            ni.setPrimitiveNodeSize(width, length);
-                        }
-                    }
-                }
-                // ignore size change, but retain mirroring change (sign)
-                currXSize = initXSize = ni.getLambdaBaseXSize();
-                currYSize = initYSize = ni.getLambdaBaseYSize();
-                if (swapXY)
-                    orient = Orientation.fromJava(currentRotation, currentMirrorY, currentMirrorX);
-                else
-                    orient = Orientation.fromJava(currentRotation, currentMirrorX, currentMirrorY);
-            }
+						double l = TextUtils.atof(currentYSize, null);
+						if (l == 0)
+						{
+							// set length to whatever text is there
+							length = Variable.withCode(currentYSize, ni.getCode(Schematics.ATTR_LENGTH));
+						} else
+						{
+							length = new Double(l);
+						}
+						ni.setPrimitiveNodeSize(width, length);
+					}
+				} else // transistors or resistors
+				{
+					// this is a layout transistor
+					if (ni.isSerpentineTransistor())
+					{
+						// serpentine transistors can only set length
+						double initialLength = ni.getSerpentineTransistorLength();
+						double length = TextUtils.atof(currentYSize, new Double(initialLength));
+						if (length != initialLength)
+							ni.setSerpentineTransistorLength(length);
+					} else
+					{
+						// set length and width by node size for layout transistors
+						double initialWidth = size.getDoubleWidth();
+						double initialLength = size.getDoubleLength();
+						double width = TextUtils.atof(currentXSize, new Double(initialWidth));
+						double length = TextUtils.atof(currentYSize, new Double(initialLength));
+						if (!DBMath.doublesEqual(width, initialWidth) ||
+							!DBMath.doublesEqual(length, initialLength))
+						{
+							// set transistor or resistor size
+							ni.setPrimitiveNodeSize(width, length);
+						}
+					}
+				}
+				// ignore size change, but retain mirroring change (sign)
+				currXSize = initXSize = ni.getLambdaBaseXSize();
+				currYSize = initYSize = ni.getLambdaBaseYSize();
+				if (swapXY)
+					orient = Orientation.fromJava(currentRotation, currentMirrorY, currentMirrorX);
+				else
+					orient = Orientation.fromJava(currentRotation, currentMirrorX, currentMirrorY);
+			}
 
-            Orientation dOrient = orient.concatenate(ni.getOrient().inverse());
+			Orientation dOrient = orient.concatenate(ni.getOrient().inverse());
 			if (!DBMath.doublesEqual(currentXPos, initialXPos) ||
 				!DBMath.doublesEqual(currentYPos, initialYPos) ||
 				!DBMath.doublesEqual(currXSize, initXSize) ||
@@ -1069,9 +1070,9 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 			{
 				ni.modifyInstance(DBMath.round(currentXPos - initialXPos), DBMath.round(currentYPos - initialYPos),
 					DBMath.round(currXSize - initXSize),
-                    DBMath.round(currYSize - initYSize), dOrient);
+					DBMath.round(currYSize - initYSize), dOrient);
 			}
-            fieldVariableChanged("expansionChanged");
+			fieldVariableChanged("expansionChanged");
 
 			return true;
 		}
@@ -1080,7 +1081,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 		{
 			if (expansionChanged)
 			{
-	            EditWindow.expansionChanged(ni.getParent());
+				EditWindow.expansionChanged(ni.getParent());
 				EditWindow.clearSubCellCache();
 				EditWindow.repaintAllContents();
 			}
@@ -1092,7 +1093,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 	 * WARNING: Do NOT modify this code. The content of this method is
 	 * always regenerated by the Form Editor.
 	 */
-    // <editor-fold defaultstate="collapsed" desc=" Generated Code ">//GEN-BEGIN:initComponents
+	// <editor-fold defaultstate="collapsed" desc=" Generated Code ">//GEN-BEGIN:initComponents
     private void initComponents() {
         java.awt.GridBagConstraints gridBagConstraints;
 
@@ -1585,7 +1586,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 			getContentPane().remove(moreStuffBottom);
 			more.setText("More");
 		}
-        pack();
+		pack();
 	}//GEN-LAST:event_moreActionPerformed
 
 	private void seeActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_seeActionPerformed
@@ -1595,13 +1596,13 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 		ArcInst ai = portObjects.get(currentIndex);
 		if (ai == null) return;
 		NodeInst ni = shownNode;
-        if (wnd != null) {
-            Highlighter highlighter = wnd.getHighlighter();
-            highlighter.clear();
-            highlighter.addElectricObject(ni, ni.getParent());
-            highlighter.addElectricObject(ai, ai.getParent());
-            highlighter.finished();
-        }
+		if (wnd != null) {
+			Highlighter highlighter = wnd.getHighlighter();
+			highlighter.clear();
+			highlighter.addElectricObject(ni, ni.getParent());
+			highlighter.addElectricObject(ai, ai.getParent());
+			highlighter.finished();
+		}
 	}//GEN-LAST:event_seeActionPerformed
 
 	private void attributesActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_attributesActionPerformed
@@ -1625,8 +1626,8 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 		new ChangeNode(shownNode,
 			initialXPos, currentXPos, initialYPos, currentYPos,
 			initialXSize, xSize.getText(), initialYSize, ySize.getText(),
-			initialMirrorX, mirrorX.isSelected(), initialMirrorY, mirrorY.isSelected(),
-			initialRotation, currentRotation,
+			mirrorX.isSelected(), mirrorY.isSelected(),
+			currentRotation,
 			initialPopupIndex, popup.getSelectedIndex(),
 			initialEasyToSelect, easyToSelect.isSelected(),
 			initialInvisibleOutsideCell, invisibleOutsideCell.isSelected(),
@@ -1638,7 +1639,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 			bigger,
 			scalableTrans,
 			swapXY);
-        attributesTable.applyChanges();
+		attributesTable.applyChanges();
 
 		initialName = name.getText().trim();
 		initialExpansion = expanded.isSelected();
@@ -1669,22 +1670,22 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
 	{
-        prefs.putBoolean("GetInfoNode-bigger", bigger);
-        if (ports.isSelected()) prefs.putInt("GetInfoNode-buttonSelected", 0);
-        if (attributes.isSelected()) prefs.putInt("GetInfoNode-buttonSelected", 1);
-        if (busMembers.isSelected()) prefs.putInt("GetInfoNode-buttonSelected", 2);
-        super.closeDialog();
+		prefs.putBoolean("GetInfoNode-bigger", bigger);
+		if (ports.isSelected()) prefs.putInt("GetInfoNode-buttonSelected", 0);
+		if (attributes.isSelected()) prefs.putInt("GetInfoNode-buttonSelected", 1);
+		if (busMembers.isSelected()) prefs.putInt("GetInfoNode-buttonSelected", 2);
+		super.closeDialog();
 	}//GEN-LAST:event_closeDialog
 
     private void editParametersActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editParametersActionPerformed
-        if (shownNode == null) return;
-        if (!shownNode.isCellInstance()) return;
-        Cell.CellGroup group = ((Cell)shownNode.getProto()).getCellGroup();
-        Cell paramOwner = group.getParameterOwner();
-        if (paramOwner != null) {
-            WindowFrame.createEditWindow(paramOwner);
-            Attributes.showDialog();
-        }
+		if (shownNode == null) return;
+		if (!shownNode.isCellInstance()) return;
+		Cell.CellGroup group = ((Cell)shownNode.getProto()).getCellGroup();
+		Cell paramOwner = group.getParameterOwner();
+		if (paramOwner != null) {
+			WindowFrame.createEditWindow(paramOwner);
+			Attributes.showDialog();
+		}
     }//GEN-LAST:event_editParametersActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
