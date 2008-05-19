@@ -514,6 +514,15 @@ public class Verilog extends Topology
         }
         if (!first) printWriter.println();
 
+        // if writing standard cell netlist, do not netlist contents of standard cells
+        if (Simulation.getVerilogStopAtStandardCells())
+        {
+            if (SCLibraryGen.isStandardCell(cell)) {
+                printWriter.println("endmodule   /* " + cni.getParameterizedName() + " */");
+                return;
+            }
+        }
+
         // describe power and ground nets
         if (cni.getPowerNet() != null) printWriter.println("  supply1 vdd;");
         if (cni.getGroundNet() != null) printWriter.println("  supply0 gnd;");
