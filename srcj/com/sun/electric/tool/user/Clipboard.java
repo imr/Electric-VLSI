@@ -466,21 +466,52 @@ public class Clipboard
 			// kill exports and variables on cells
 			for(DisplayedText dt : textList)
 			{
-				ElectricObject owner = dt.getElectricObject();
-				if (owner instanceof Cell)
+				// deleting variable on object
+				Variable.Key key = dt.getVariableKey();
+				ElectricObject eobj = dt.getElectricObject();
+				if (key == NodeInst.NODE_NAME)
 				{
-					Cell cell = (Cell)owner;
-					Variable.Key key = dt.getVariableKey();
-					if (cell.isParam(key))
-						cell.getCellGroup().delParam((Variable.AttrKey)key);
+					// deleting the name of a node
+					NodeInst ni = (NodeInst)eobj;
+					ni.setName(null);
+					ni.move(0, 0);
+				} else if (key == ArcInst.ARC_NAME)
+				{
+					// deleting the name of an arc
+					ArcInst ai = (ArcInst)eobj;
+					ai.setName(null);
+					ai.modify(0, 0, 0, 0);
+				} else if (key == Export.EXPORT_NAME)
+				{
+					// deleting the name of an export
+					Export pp = (Export)eobj;
+					pp.kill();
+				} else
+				{
+					// deleting a variable
+					if (eobj instanceof Cell && eobj.isParam(key))
+						((Cell)eobj).getCellGroup().delParam((Variable.AttrKey)key);
 					else
-						cell.delVar(key);
-				} else if (dt.getVariableKey() == Export.EXPORT_NAME)
-				{
-					Export e = (Export)owner;
-					e.kill();
+						eobj.delVar(key);
 				}
 			}
+//			for(DisplayedText dt : textList)
+//			{
+//				ElectricObject owner = dt.getElectricObject();
+//				if (owner instanceof Cell)
+//				{
+//					Cell cell = (Cell)owner;
+//					Variable.Key key = dt.getVariableKey();
+//					if (cell.isParam(key))
+//						cell.getCellGroup().delParam((Variable.AttrKey)key);
+//					else
+//						cell.delVar(key);
+//				} else if (dt.getVariableKey() == Export.EXPORT_NAME)
+//				{
+//					Export e = (Export)owner;
+//					e.kill();
+//				}
+//			}
 			return true;
 		}
 	}

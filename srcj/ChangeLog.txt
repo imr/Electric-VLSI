@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07j: ******************************
 
+BUG: (5/15/08, SMR) "Edit / Cut" on node and arc text doesn't work (Bug #1686).
+FIX: Fixed Clipboard.CutObjects.doIt().
+
 IMP: (5/16/08, DN) The consistency between parameters on icon and schematic cells in a group
      is database invariant.
 
