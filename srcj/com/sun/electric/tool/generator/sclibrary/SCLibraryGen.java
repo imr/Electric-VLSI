@@ -340,6 +340,12 @@ public class SCLibraryGen {
 
         public boolean enterCell(HierarchyEnumerator.CellInfo info) {
             Cell cell = info.getCell();
+            // skip cached and does not contain standard cell
+            // (we want to traverse all hierarchy that contains standard cells
+            // to produce the standard cell contexts list)
+            if (standardCellMap.get(cell) == doesNotContainStandardCell)
+                return false;
+
             if (SCLibraryGen.isStandardCell(cell)) {
                 standardCellContexts.add(info.getContext());
 
@@ -355,6 +361,7 @@ public class SCLibraryGen {
                         standardCellsByName.put(cell.getName(), cell);
                     }
                 }
+                return false;
             }
             return true;
         }
@@ -369,7 +376,7 @@ public class SCLibraryGen {
                 // standard cell tag is on schematic view
                 Cell proto = ni.getProtoEquivalent();
                 if (proto == null) proto = (Cell)ni.getProto();
-                if (containsStandardCell(proto) || SCLibraryGen.isStandardCell(proto)) {
+                if (containsStandardCell(proto) || standardCellMap.get(proto) == standardCell) {
                     standardCellMap.put(cell, containsStandardCell);
                     return;
                 }
