@@ -1414,9 +1414,6 @@ public class TechEditWizardData
 
         // write arcs
         // metal arcs
-//        String[] layerNames = new String[5];
-//        Technology.Distance[] layerValues = new Technology.Distance[5];
-//        Technology.DistanceContext context = Technology.EMPTY_CONTEXT;
         for(int i=1; i<=num_metal_layers; i++)
         {
             double ant = (int)Math.round(metal_antenna_ratio[i-1]) | 200;
@@ -1442,18 +1439,23 @@ public class TechEditWizardData
         
         List<Xml.NodeLayer> nodesList = new ArrayList<Xml.NodeLayer>();
         List<Xml.PrimitivePort> nodePorts = new ArrayList<Xml.PrimitivePort>();
+        List<String> portNames = new ArrayList<String>();
+
         for(int i=1; i<num_metal_layers; i++)
 		{
-            double hla = DBMath.round(metal_width[i-1].v / (stepsize*2));
+//            double hla = DBMath.round(metal_width[i-1].v / (stepsize*2));
+            double hla = scaledValue(metal_width[i-1].v / 2);
             Xml.Layer lb = metalLayers.get(i-1);
 
             // Pin bottom metal
             nodePorts.clear();
             nodesList.clear();
+            portNames.clear();
             nodesList.add(makeXmlNodeLayer(hla, lb, Poly.Type.CROSSED)); // pin bottom metal
             EPoint minFullSize = EPoint.fromLambda(0, 0);
+            portNames.add(lb.name);
             nodePorts.add(makeXmlPrimitivePort(lb.name.toLowerCase(), 0, 180, 0,
-                minFullSize, 0, 0, null));
+                minFullSize, 0, 0, portNames));
             makeXmlPrimitive(t.nodes, lb.name + "-Pin", PrimitiveNode.Function.PIN, hla, hla, 0, 0,
                 new SizeOffset(hla, hla, hla, hla),
                 nodesList, nodePorts, null);
@@ -1469,19 +1471,15 @@ public class TechEditWizardData
             // via
             Xml.Layer via = viaLayers.get(i-1);
             nodesList.add(makeXmlMulticut(hla, via, via_size[i-1], via_spacing[i-1], via_array_spacing[i-1])); // via
-//            double size = DBMath.round(via_size[i-1].v/stepsize);
-//            double cs = DBMath.round(via_spacing[i-1].v/stepsize);
-//            double cs2 = DBMath.round(via_array_spacing[i-1].v/stepsize);
-//            nodesList.add(makeXmlNodeLayer(hla, via, true, size, size, cs, cs2)); // via
             String name = lb.name + "-" + lt.name;
             // port
-            minFullSize = EPoint.fromLambda(0, 0);   // TAKING the second hla
-//            List<String> portNames = new ArrayList<String>();
-//            List<String> portNames = new ArrayList<String>();
+            minFullSize = EPoint.fromLambda(0, 0);
+            portNames.add(lt.name);
             Xml.PrimitivePort pp = makeXmlPrimitivePort(name.toLowerCase(), 0, 180, 0,
-                minFullSize, 0, 0, null);
+                minFullSize, 0, 0, portNames);
             nodePorts.add(pp);
 
+            // Square contacts
             makeXmlPrimitive(t.nodes, name + "-Con", PrimitiveNode.Function.CONTACT, hla, hla, 0, 0,
                 new SizeOffset(hla, hla, hla, hla),
                 nodesList, nodePorts, null);
@@ -1520,7 +1518,8 @@ public class TechEditWizardData
         Xml.ArcLayer al = new Xml.ArcLayer();
         al.layer = layer.name;
         al.style = Poly.Type.FILLED;
-/*        al.extend.assign(makeXmlDistance(flds));*/
+        for (int i = 0; i < flds.length; i++)
+            al.extend.addLambda(scaledValue(flds[i].v/2));
         return al;
     }
     
