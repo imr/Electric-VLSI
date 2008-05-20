@@ -2,6 +2,8 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.07k: ******************************
+
 ************************* Version 8.07j: ******************************
 
 BUG: (5/19/08, SMR) Deleting instances with exported and wired ports leaves
