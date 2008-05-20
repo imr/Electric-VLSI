@@ -43,7 +43,7 @@ public class InfinityC extends FlagDesign {
 
         stitchScanChains(layNets);
 
-        routeSignalsSog(layNets);
+        routeSignalsSog(layNets.getToConnects());
         
         reexportPowerGround(layNets.getLayoutCell());
         

@@ -61,7 +61,7 @@ public class Router {
 	private final FlagConfig config;
 	private final Scan scan;
 
-	private TechType tech() {return config.tech.getTechType();}
+	private TechType tech() {return config.techTypeEnum.getTechType();}
 	
 	private void prln(String s) {Utils.prln(s);}
 	private void pr(String s) {Utils.pr(s);}
@@ -612,7 +612,7 @@ public class Router {
 			if (!isSimple(connPorts)) continue;
 			
 			if (connPorts.size()==2 || connPorts.size()==3) {
-				ToConnect tcX = new ToConnect(null);
+				ToConnect tcX = new ToConnect();
 				for (List<PortInst> ports : connPorts) {
 					error(ports.size()!=1, "We only allow one port per cluster");
 					tcX.addPortInst(ports.get(0));

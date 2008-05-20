@@ -11,20 +11,16 @@ import com.sun.electric.tool.generator.flag.Utils;
 /** A list of PortInsts that need to be connected by the router */
 public class ToConnect {
 	private List<PortInst> ports = new ArrayList<PortInst>();
-	private List<String> exportNames;
+	private List<String> exportNames = new ArrayList<String>();
 	
-	public ToConnect(Iterator<String> expNmIt) {
-		if (expNmIt!=null && expNmIt.hasNext()) {
-			exportNames = new ArrayList<String>();
-			while (expNmIt.hasNext()) {
-				exportNames.add(expNmIt.next());
-			}
-		}
+	public ToConnect() { }
+	public ToConnect(List<String> expNms) {
+		for (String expNm : expNms)  exportNames.add(expNm);
 	}
 	public void addPortInst(PortInst pi) {ports.add(pi);}
 	public List<PortInst> getPortInsts() {return ports;}
 	public int numPortInsts() {return ports.size();}
-	public boolean isExported() {return exportNames!=null;}
+	public boolean isExported() {return exportNames.size()!=0;}
 	public Collection<String> getExportName() {return exportNames;}
 	
 	public String toString() {

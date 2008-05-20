@@ -47,8 +47,8 @@ public class AbutRouter {
 	private List<PortInst> findPortsNearBoundary(NodeInst ni, double boundaryXY,
 				                                 double distFromBoundary) {
 		List<PortInst> boundaryPorts = new ArrayList<PortInst>();
-		for (Iterator piIt=ni.getPortInsts(); piIt.hasNext();) {
-			PortInst pi = (PortInst) piIt.next();
+		for (Iterator<PortInst> piIt=ni.getPortInsts(); piIt.hasNext();) {
+			PortInst pi = piIt.next();
 			double xy = coordPerpedicularToBoundary(pi);
 			if (Math.abs(xy-boundaryXY)<=distFromBoundary) {
 				boundaryPorts.add(pi);

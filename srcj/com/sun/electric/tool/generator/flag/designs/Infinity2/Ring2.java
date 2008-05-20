@@ -36,7 +36,7 @@ public class Ring2 extends FlagDesign {
         
         stitchScanChainsSog(layNets);
         
-        routeSignalsSog(layNets);
+        routeSignalsSog(layNets.getToConnects());
         
 	}
 }

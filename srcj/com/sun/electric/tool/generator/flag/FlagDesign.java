@@ -40,7 +40,7 @@ public class FlagDesign {
 	private final Router router;
 	private final SogRouterAdapter sogRouterAdapter;
 
-	public TechType tech() {return config.tech.getTechType();}
+	public TechType tech() {return config.techTypeEnum.getTechType();}
     
 	
 //	public static Rectangle2D findColBounds(Collection<NodeInst> stages) {
@@ -657,8 +657,8 @@ public class FlagDesign {
 		List<ToConnect> scans = selectScanToConnects(layNets.getToConnects());
 		sogRouterAdapter.route(scans);
 	}
-	protected void routeSignalsSog(LayoutNetlist layNets) {
-		List<ToConnect> signals = selectSignalToConnects(layNets.getToConnects());
+	protected void routeSignalsSog(List<ToConnect> toConns) {
+		List<ToConnect> signals = selectSignalToConnects(toConns);
 		sogRouterAdapter.route(signals);
 	}
 	protected void routeSignals(LayoutNetlist layNets) {

@@ -7,7 +7,7 @@ import com.sun.electric.tool.generator.flag.scan.ScanChain;
 import com.sun.electric.tool.generator.layout.TechType;
 
 public class FlagConfig {
-	public TechType.TechTypeEnum tech;
+	public TechType.TechTypeEnum techTypeEnum;
     public double m2PwrGndWid;
     public double m3PwrGndWid;
     public double m3PwrGndPitch;

@@ -66,7 +66,7 @@ public class SchematicVisitor extends Visitor {
 				int netID = info.getNetID(net);
 				ToConnect conn = netIdToToConn.get(netID);
 				if (conn==null) {
-					conn = new ToConnect(null);
+					conn = new ToConnect();
 					netIdToToConn.put(netID, conn);
 				}
 				conn.addPortInst(layPortInst);
@@ -160,8 +160,10 @@ public class SchematicVisitor extends Visitor {
 				Network net = netIt.next();
 				Iterator<String> expIt = net.getExportedNames();
 				if (expIt.hasNext()) {
+					List<String> expNms = new ArrayList<String>();
+					while (expIt.hasNext()) expNms.add(expIt.next()); 
 					netIdToToConn.put(info.getNetID(net), 
-                                      new ToConnect(expIt));
+                                      new ToConnect(expNms));
 				}
 			}
 		} else {
