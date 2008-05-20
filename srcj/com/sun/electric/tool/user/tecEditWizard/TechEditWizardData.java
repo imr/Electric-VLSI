@@ -886,7 +886,9 @@ public class TechEditWizardData
         }
 //            DRCTemplate nodeSize = xmlRules.getRule(pnp.getPrimNodeIndexInTech(), DRCTemplate.DRCRuleType.NODSIZ);
 //        SizeOffset so = getProtoSizeOffset();
-        if (so.getLowXOffset() == 0 && so.getHighXOffset() == 0 && so.getLowYOffset() == 0 && so.getHighYOffset() == 0)
+        if (so != null &&
+            (so.getLowXOffset() == 0 && so.getHighXOffset() == 0 &&
+                so.getLowYOffset() == 0 && so.getHighYOffset() == 0))
             so = null;
         if (!minFullSize.equals(EPoint.ORIGIN))
 /*            n.diskOffset = minFullSize*/;
@@ -1037,7 +1039,7 @@ public class TechEditWizardData
      * @param lb
      * @param style
      */
-    private Xml.NodeLayer makeXmlNodeLayer(double hla, Xml.Layer lb, Poly.Type style)
+    private Xml.NodeLayer makeXmlNodeLayer(double hlax, double hlay, Xml.Layer lb, Poly.Type style)
     {
         Xml.NodeLayer nl = new Xml.NodeLayer();
         nl.layer = lb.name;
@@ -1045,7 +1047,7 @@ public class TechEditWizardData
         nl.inLayers = nl.inElectricalLayers = true;
         nl.representation = Technology.NodeLayer.BOX;
         nl.lx.k = -1; nl.hx.k = 1; nl.ly.k = -1; nl.hy.k = 1;
-        nl.lx.addLambda(-hla); nl.hx.addLambda(hla); nl.ly.addLambda(-hla); nl.hy.addLambda(hla);
+        nl.lx.addLambda(-hlax); nl.hx.addLambda(hlax); nl.ly.addLambda(-hlay); nl.hy.addLambda(hlay);
         return nl;
     }
     
@@ -1449,7 +1451,7 @@ public class TechEditWizardData
             nodePorts.clear();
             nodesList.clear();
             portNames.clear();
-            nodesList.add(makeXmlNodeLayer(hla, lb, Poly.Type.CROSSED)); // pin bottom metal
+            nodesList.add(makeXmlNodeLayer(hla, hla, lb, Poly.Type.CROSSED)); // pin bottom metal
             EPoint minFullSize = EPoint.fromLambda(0, 0);
             portNames.add(lb.name);
             nodePorts.add(makeXmlPrimitivePort(lb.name.toLowerCase(), 0, 180, 0,
@@ -1463,9 +1465,9 @@ public class TechEditWizardData
             nodesList.clear();
             double metalW = via_size[i-1].v/2 + contact_metal_overhang_all_sides.v;
             hla = scaledValue(metalW);
-            nodesList.add(makeXmlNodeLayer(hla, lb, Poly.Type.FILLED)); // bottom layer
+            nodesList.add(makeXmlNodeLayer(hla, hla, lb, Poly.Type.FILLED)); // bottom layer
             Xml.Layer lt = metalLayers.get(i);
-            nodesList.add(makeXmlNodeLayer(hla, lt, Poly.Type.FILLED)); // top layer
+            nodesList.add(makeXmlNodeLayer(hla, hla, lt, Poly.Type.FILLED)); // top layer
             // via
             Xml.Layer via = viaLayers.get(i-1);
             nodesList.add(makeXmlMulticut(hla, via, via_size[i-1], via_spacing[i-1], via_array_spacing[i-1])); // via
@@ -1482,7 +1484,46 @@ public class TechEditWizardData
                 new SizeOffset(hla, hla, hla, hla),
                 nodesList, nodePorts, null, false);
         }
+
+        /** Transistors **/
+        // write the transistors
+		for(int i = 0; i < 2; i++)
+        {
+            String name;
+            double wellx = 0, welly = 0, impx, impy;
+            Xml.Layer wellLayer = null, activeLayer = null;
+
+            if (i==0)
+			{
+				name = "P";
+                wellLayer = nwellLayer;
+                activeLayer = diffPLayer;
+                wellx = scaledValue((gate_width.v+nwell_overhang_diff.v*2)/2);
+                welly = scaledValue((gate_length.v+diff_poly_overhang.v*2+nwell_overhang_diff.v*2)/2);
+                impx = scaledValue((gate_width.v+pplus_overhang_diff.v*2)/2);
+                impy = scaledValue((gate_length.v+diff_poly_overhang.v*2+pplus_overhang_diff.v*2)/2);
+			} else
+			{
+				name = "N";
+                activeLayer = diffNLayer;
+                impx = scaledValue((gate_width.v+nplus_overhang_diff.v*2)/2);
+                impy = scaledValue((gate_length.v+diff_poly_overhang.v*2+nplus_overhang_diff.v*2)/2);
+			}
+            nodesList.clear();
+            nodePorts.clear();
+
+            // Well layer
+            if (wellLayer != null)
+                nodesList.add(makeXmlNodeLayer(wellx, welly, wellLayer, Poly.Type.FILLED));
+
+            // Active layers
+            nodesList.add(makeXmlNodeLayer(impx, impy, activeLayer, Poly.Type.FILLED));
+
+            makeXmlPrimitive(t.nodes, name + "-Transistor", PrimitiveNode.Function.TRANMOS, 0, 0, 0, 0,
+                null, nodesList, nodePorts, null, false);
+        }
         
+        /** RULES **/
         Xml.Foundry f = new Xml.Foundry();
         f.name = Foundry.Type.NONE.name();
         t.foundries.add(f);
