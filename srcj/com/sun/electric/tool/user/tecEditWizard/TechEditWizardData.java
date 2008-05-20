@@ -846,10 +846,9 @@ public class TechEditWizardData
                                                double ppLeft, double ppBottom,
                                                SizeOffset so, List<Xml.NodeLayer> nodeLayers,
                                                List<Xml.PrimitivePort> nodePorts,
-                                               PrimitiveNode.NodeSizeRule nodeSizeRule)
+                                               PrimitiveNode.NodeSizeRule nodeSizeRule, boolean isArcsShrink)
     {
         Xml.PrimitiveNode n = new Xml.PrimitiveNode();
-        boolean isArcsShrink = true;
 
         n.name = name;
         n.function = function;
@@ -1443,7 +1442,6 @@ public class TechEditWizardData
 
         for(int i=1; i<num_metal_layers; i++)
 		{
-//            double hla = DBMath.round(metal_width[i-1].v / (stepsize*2));
             double hla = scaledValue(metal_width[i-1].v / 2);
             Xml.Layer lb = metalLayers.get(i-1);
 
@@ -1458,7 +1456,7 @@ public class TechEditWizardData
                 minFullSize, 0, 0, portNames));
             makeXmlPrimitive(t.nodes, lb.name + "-Pin", PrimitiveNode.Function.PIN, hla, hla, 0, 0,
                 new SizeOffset(hla, hla, hla, hla),
-                nodesList, nodePorts, null);
+                nodesList, nodePorts, null, true);
 
             // Contact Square
             nodePorts.clear();
@@ -1482,7 +1480,7 @@ public class TechEditWizardData
             // Square contacts
             makeXmlPrimitive(t.nodes, name + "-Con", PrimitiveNode.Function.CONTACT, hla, hla, 0, 0,
                 new SizeOffset(hla, hla, hla, hla),
-                nodesList, nodePorts, null);
+                nodesList, nodePorts, null, false);
         }
         
         Xml.Foundry f = new Xml.Foundry();
