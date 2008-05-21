@@ -1,0 +1,55 @@
+<?xml version='1.0' encoding='utf-8'?>
+
+<!-- test for ModelLoader -->
+
+<!DOCTYPE model SYSTEM "ArchSimModel.dtd">
+
+<model name= "first-test">
+
+
+
+<component name= "in" type= "B" />
+<component name="out" type= "A" />
+<component name= "out0" type= "A"/>
+<component name= "in0" type= "B"/>
+<component name= "in1" type= "B"/>
+<component name= "out00" type= "A"/>
+<component name= "out01" type= "A"/>
+<component name= "inOut00" type= "C"/>
+<component name= "inOut01" type= "C"/>
+
+<component name= "in00" type= "B">
+<parameter name= "par1" value= "par1" />
+<parameter name= "par2" value= "par2"/>
+</component>
+
+
+
+<connection name= "SINGLE">
+	<from component="out" terminal="DATA" />
+	<to component="in" terminal="DATA" />
+</connection>
+
+<connection name="FORK" >
+	<from component="out0" terminal="DATA" />
+	
+	<to component="in0" terminal="DATA" />	
+	<to component= "in1" terminal="DATA" />
+</connection>
+
+<connection name="TWOBYTWO" >
+	<from component="out00" terminal="DATA" />
+	<from component="out01" terminal="DATA" />
+	
+	<to component="inOut00" terminal="DATA_IN" />
+	<to component="inOut01" terminal= "DATA_IN" />
+</connection>
+
+<connection name= "FUNNEL">
+	<from component= "inOut00" terminal= "DATA_OUT" />
+	<from component= "inOut01" terminal="DATA_OUT" />
+	
+	<to component= "in00" terminal="DATA" />
+</connection>
+
+</model>

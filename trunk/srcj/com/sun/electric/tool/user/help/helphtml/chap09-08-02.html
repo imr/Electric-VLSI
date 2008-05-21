@@ -1,0 +1,152 @@
+<!-- NEED 3in -->
+
+<!-- HEADER 9-8-2: Other Generators -->
+
+<!-- COMMAND Tool/Generation/Coverage Implants Generator -->
+<!-- COMMAND Tool/Generation/ROM Generator... -->
+<!-- COMMAND Tool/Generation/MOSIS CMOS PLA Generator... -->
+<!-- COMMAND Tool/Generation/Generate gate layouts (MoCMOS) -->
+<!-- COMMAND Tool/Generation/Fill (MoCMOS)... -->
+
+There are other generators built into Electric.
+These commands (in menu <B>Tool / Generation</B>) may be used:
+<UL>
+
+<LI><B>Coverage Implants Generator</B>
+Although individual MOS nodes and arcs have the proper amount of implant around them,
+a collection of such objects may result in an irregular implant boundary.
+To clean this up, you can place pure-layer nodes of implant that neatly cover the implant area
+(see <A HREF="chap07-01-01.html#chap07-01-01">Section 7-1-1</A>).
+This command does it automatically.
+It removes previous pieces of coverage implant before running, so that the result is a clean cover.
+</LI>
+
+<LI><B>ROM Generator...</B>
+The ROM generator constructs many cells to describe a ROM from a personality file.
+You will be prompted for the personality file.
+The first line of the ROM personality file lists the degree of folding.
+For example, a 256-word x 10-bit ROM with a folding degree of 4 will be implemented as a 64 x 40 array
+with 4:1 column multiplexors to return 10 bits of data while occupying more of a square form factor.
+The number of words and degree of folding should be a power of 2.
+The remaining lines of the file list the contents of each word.
+The parser is pretty picky.
+There should be a carriage return after the list word, but no other blank lines in the file.
+Here is a sample ROM file:
+<BR>
+<CODE>
+&nbsp;&nbsp;&nbsp;1<BR>
+&nbsp;&nbsp;&nbsp;010101<BR>
+&nbsp;&nbsp;&nbsp;011001<BR>
+&nbsp;&nbsp;&nbsp;100101<BR>
+&nbsp;&nbsp;&nbsp;101010<BR>
+&nbsp;&nbsp;&nbsp;4<BR>
+&nbsp;&nbsp;&nbsp;00000000<BR>
+&nbsp;&nbsp;&nbsp;10000000<BR>
+&nbsp;&nbsp;&nbsp;01000000<BR>
+&nbsp;&nbsp;&nbsp;11000000
+</CODE>
+</LI>
+
+<LI><B>MOSIS CMOS PLA Generator...</B>
+The MOSIS CMOS PLA generator reads two personality files (AND and OR) and
+generates a PLA array.
+Each file has only two numbers on the first line to define the size of the array,
+and the values of the array on subsequent lines.
+Both the AND file and the OR file are similar.
+Here is some sample PLA logic:
+<CENTER><TABLE><TR><TD>
+<I>f</I> = (<I>a</I> <B>and</B> <I>b</I> <B>and</B> (<B>not</B> <I>c</I>)) <B>or</B> ((<B>not</B> <I>b</I>) <B>and</B> (<B>not</B> <I>a</I>))
+</TD></TR>
+<TR><TD>
+<I>g</I> = (<I>a</I> <B>and</B> <I>c</I>) <B>or</B> ((<B>not</B> <I>a</I>) <B>and</B> (<B>not</B> <I>c</I>))
+</TD></TR></TABLE></CENTER>
+Here is the AND file for the above logic:
+<BR>
+<CODE>
+&nbsp;&nbsp;&nbsp;4&nbsp;&nbsp;3<BR>
+&nbsp;&nbsp;&nbsp;1&nbsp;&nbsp;1&nbsp;&nbsp;0<BR>
+&nbsp;&nbsp;&nbsp;0&nbsp;&nbsp;0&nbsp;&nbsp;X<BR>
+&nbsp;&nbsp;&nbsp;1&nbsp;&nbsp;X&nbsp;&nbsp;1<BR>
+&nbsp;&nbsp;&nbsp;0&nbsp;&nbsp;X&nbsp;&nbsp;0
+</CODE>
+</LI>
+
+<LI><B>Fill (MoCMOS)...</B>
+Fill cells are used to meet metal density rules in modern fabrication processes
+by filling spaces with certain metal layers.
+Fill cells are also created to improve chip power distribution and to avoid
+voltage drops by inserting cap transistors.
+Electric has a coverage facility to evaluate the amount of fill
+(see <A HREF="chap09-02-04.html#chap09-02-04">Section 9-2-4</A>).
+This command generates fill cells.
+<P>
+Unlike other fill generators, Electric's fill generator creates cells
+containing power and ground grids of specified layers, usually starting at Metal-2.
+These cells can also be arrayed into tile cells to cover larger areas.
+When Metal-1 is filled, the generator will cover the area with cap transistors whose
+functionality is to prevent voltage drops in the power grid.
+<P>
+<CENTER><IMG SRC="fig09-59.png" ALT="Figure 9.59" BORDER=0></CENTER>
+<P>
+The Fill dialog has two tabs: "Floorplan" and "Tiling".
+The Floorplan section specifies what is inside of a single fill cell.
+The Tiling section specifies how those cells are arrayed.
+<P>
+The Floorplan section offers two fill techniques: <I>Template Fill</I> and
+<I>Fill Cell</I> (not yet available).
+Template Fill generates fill cells of a given width and height.
+The default values reflect the minimum spacing rules given by the technology.
+The "Reserved Space" section lets you specify which layers of metal will be in the fill cells.
+These metal layers alternate running horizontally and vertically (the "Even layer orientation"
+controls which layer runs horizontally first).
+<P>
+<TABLE><TR><TD>
+The fill cell will have four metal wires running in each direction:
+the outer two are Ground and the inner two are Power.
+The spacing between the inner two is given in the "Vdd Space" section next
+to the selected metal layer.
+The spacing between the ground wires and the edge is half of the "Gnd Space"
+value.
+The spacing between the power and ground wires is the minimal design-rule
+spacing for that layer of metal.
+The width of the wires is then adjusted to fill the remaining space in the cell.
+</TD><TD><IMG SRC="fig09-62.png" ALT="Figure 9.62" BORDER=0></TD></TR></TABLE>
+<P>
+<TABLE><TR><TD><IMG SRC="fig09-61.png" ALT="Figure 9.61" BORDER=0></TD><TD>
+The Tiling section lets you request arrays of fill cells to be generated.
+Check the desired sizes and they will be generated.
+Each generated array cell will contain the specified-size array,
+and it will be internally wired.
+</TD></TR></TABLE>
+<P>
+</LI>
+
+<LI><B>Generate gate layouts (MoCMOS)</B>
+Generates the layout for schematic cells in the Purple and Red libraries
+(see <A HREF="chap09-09.html#chap09-09">Section 9-9</A>).
+To use this command you must have a schematic in the current window.
+The command then hierarchically scans the schematic looking for instances of the
+Purple and Red library cells.
+When it finds such instances it generates layout for them and places the layout
+in a library called "autoGenLibMOCMOS".
+If the cell already exists, it is not regenerated.
+<P>
+The gate layout generator recognizes these gates from the Purple and Red libraries:
+<CENTER><TABLE>
+<TR><TD>inv</TD><TD>mullerC_sy</TD><TD>nand2HTen</TD><TD>nms2K</TD></TR>
+<TR><TD>inv2i</TD><TD>nand2</TD><TD>nand3</TD><TD>nms2_sy</TD></TR>
+<TR><TD>inv2iKn</TD><TD>nand2HLT_sy&nbsp;&nbsp;</TD><TD>nand3LT</TD><TD>nms3_sy3</TD></TR>
+<TR><TD>inv2iKp</TD><TD>nand2LT</TD><TD>nand3LT_sy3&nbsp;&nbsp;</TD><TD>nor2</TD></TR>
+<TR><TD>invCLK</TD><TD>nand2LT_sy</TD><TD>nand3LTen</TD><TD>nor2kresetV</TD></TR>
+<TR><TD>invCTLn</TD><TD>nand2PH</TD><TD>nand3MLT</TD><TD>pms1</TD></TR>
+<TR><TD>invHT</TD><TD>nand2_sy</TD><TD>nand3en</TD><TD>pms1K</TD></TR>
+<TR><TD>invK</TD><TD>nand2en</TD><TD>nms1</TD><TD>pms2</TD></TR>
+<TR><TD>invLT</TD><TD>nand2k</TD><TD>nms1K</TD><TD>pms2_sy</TD></TR>
+<TR><TD>inv_passgate&nbsp;&nbsp;</TD><TD>nand2LTen</TD><TD>nms2</TD><TD>&nbsp;</TD></TR>
+</TABLE></CENTER>
+
+</LI>
+
+</UL>
+
+<!-- TRAILER -->

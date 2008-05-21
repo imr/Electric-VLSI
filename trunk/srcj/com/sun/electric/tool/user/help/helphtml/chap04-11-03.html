@@ -1,0 +1,78 @@
+<!-- HEADER 4-11-3: 3D Behaviors and Animation -->
+
+<!-- COMMAND Window/3D Window/Capture Frame/Animate -->
+<!-- COMMAND Help/3D Showcase/Load Library -->
+<!-- COMMAND Help/3D Showcase/3D View of Cage Cell -->
+<!-- COMMAND Help/3D Showcase/Animate Cage Cell -->
+
+Behaviors are controls that affect the 3D display.
+In Electric, there are 3 types of behaviors available.
+<TABLE><TR><TD>
+<OL>
+<LI><B>Orbit Behavior</B> combines three basic mouse behaviors: zoom, pan and rotate.
+The left button rotates, the right button pans, and the middle button zooms.
+Click and drag to alter the display.</LI>
+<LI><B>3D Axis Behavior</B> is available when the 3D axis is shown.
+Clicking on the axis affects rotation (but not panning or zooming).
+This axis is not part of the standard Electric distribution and must be installed separately
+(see <A HREF="chap01-05.html#chap01-05">Section 1-5</A>).</LI>
+<LI>
+<B>Navigator Behavior</B> is controlled by special keys.
+Use the up/down/left/right arrow keys as shown in the table.</LI>
+</OL>
+</TD><TD WIDTH="40%">
+<center>
+<table border=1>
+<tr><th>Key Press</th><th>Effect</th></tr>
+<tr><td>DOWN Arrow</td><td>Move along -Z axis</td></tr>
+<tr><td>UP Arrow</td><td>Move along +Z axis</td></tr>
+<tr><td>CTRL + DOWN Arrow</td><td>Move along -Y axis</td></tr>
+<tr><td>CTRL + UP Arrow</td><td>Move along +Y axis</td></tr>
+<tr><td>ALT + LEFT Arrow</td><td>Move along -X axis</td></tr>
+<tr><td>ALT + RIGHT Arrow</td><td>Move along +X axis</td></tr>
+<tr><td>RIGHT Arrow</td><td>Rotate along -Y axis</td></tr>
+<tr><td>LEFT Arrow</td><td>Rotate along +Y axis</td></tr>
+<tr><td>CTRL + RIGHT Arrow</td><td>Rotate along -Z axis</td></tr>
+<tr><td>CTRL + LEFT Arrow</td><td>Rotate along +Z axis</td></tr>
+<tr><td>ALT + DOWN Arrow</td><td>Rotate along -X axis</td></tr>
+<tr><td>ALT + UP Arrow</td><td>Rotate along +X axis</td></tr>
+</table>
+</center>
+</TD></TR></TABLE>
+<P>
+<!-- NEED 2in -->
+<B>Animation</B>
+<P>
+A 3D display can be animated by creating "key frames" along a time line.
+Interpolators examine the key frames and smoothly animate the 3D view.
+There are two types of interpolators: <I>simple</I> and <I>path</I>.
+Simple interpolators have a start 
+and end frame, varying the view between them linearly.
+Path interpolators allow multiple key frames to combine into a single smooth animation. 
+
+<P>
+<TABLE>
+<TR>
+<TD>
+Spline interpolators can be created and controlled with the <B>Capture Frame/Animate</B>
+command (in menu <B>Window / 3D Window</B>).
+To animate, you must create a sequence of key frames that define the view changes. 
+Each key frame represents a different 3D view of the scene.
+</TD>
+<TD><CENTER><IMG SRC="fig04-18.png" ALT="Figure 4.18"></CENTER></TD>
+</TABLE>
+<P>
+To control the animation, make changes to the display and click "Enter Frame".
+You can enter as many frames as you want and animate them later. 
+The animated sequence is a "demo" that can be saved to disk and restored later for playback.
+A QuickTime movie can be created by using the "Create Movie" button.
+For this option, the JMF plugin must be available (see <A HREF="chap01-05.html#chap01-05">Section 1-5</A>).
+
+<P>
+There is a built-in demo of animation, available in the <B>Help / 3D Showcase</B> menu.
+First, use the <B>Load Library</B> command to load the demo library.
+Next, use the <B>3D View of Cage Cell</B> command to start the 3D viewer on the cage cell (used on the cover page of this manual).
+Finally, use the <B>Animate Cage Cell</B> command to start an animation demo on the 3D view of the cage cell.</LI>
+<P> 
+
+<!-- TRAILER -->

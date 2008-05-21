@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE package SYSTEM "promises.dtd">
+
+<package name="com.sun.electric.database.geometry">
+	<promise keyword="promise" contents="&quot;colorNotRelevant&quot; for add*Listener(**) | remove*Listener(**)"/>
+	<promise keyword="promise" contents="&quot;requiresColor (DBExaminer | DBChanger);&quot; for get*(**) | is*(**) | clipLine(**) | doubles*(**) | figureAngle*(**)"/>
+	<promise keyword="promise" contents="&quot;requiresColor DBChanger;&quot; for set*(**) | kill*(**) | clear*(**) | add*(**)"/>
+	<promise keyword="promise" contents="&quot;requiresColor (DBExaminer | DBChanger);&quot; for describe(**) | logLevelGet*(**) | objectsTouch(**) | contains(**)"/>
+</package>

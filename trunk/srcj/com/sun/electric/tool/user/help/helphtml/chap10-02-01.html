@@ -1,0 +1,64 @@
+<!-- HEADER 10-2-1: Header, View, and Tool -->
+
+<H3>Headers</H3>
+<P>
+The first line in the JELIB file should be the "H" header line.  The syntax is:
+<P>
+<CENTER><TABLE BORDER=1 WIDTH="90%">
+<TR><TD COLSPAN=2><B>H&lt;name&gt; | &lt;version&gt; [ | &lt;variable&gt; ]*</B></TD></TR>
+<TR><TD WIDTH="20%">&lt;name&gt;</TD><TD WIDTH="80%">the name of the library.</TD></TR>
+<TR><TD>&lt;version&gt;</TD><TD>the version of Electric that wrote the library.</TD></TR>
+<TR><TD>&lt;variable&gt;</TD><TD>a list of variables on the library
+(see <A HREF="chap10-04-01.html#chap10-04-01">Section 10-4-1</A>).</TD></TR>
+</TABLE>
+</CENTER>
+<P>
+The name of the library is used in the JELIB file to identify references to this library.
+The actual name of this library is obtained from the file path of this JELIB file.
+<P>
+Example:
+<P>
+&nbsp;&nbsp;&nbsp;&nbsp;<CODE>Hlatches|8.01</CODE>
+<P>
+Declares that library "latches" was written from Electric version 8.01. 
+<P>
+<H3>Views</H3>
+<P>
+All views used in the library must be declared.
+<P>
+<CENTER><TABLE BORDER=1 WIDTH="90%">
+<TR><TD COLSPAN=2><B>V&lt;full name&gt; | &lt;name&gt;</B></TD></TR>
+<TR><TD WIDTH="20%">&lt;full name&gt;</TD><TD WIDTH="80%">the full name of the view.</TD></TR>
+<TR><TD>&lt;name&gt;</TD><TD>the abbreviation name of the view.</TD></TR>
+</TABLE>
+</CENTER>
+<P>
+Example:
+<P>
+&nbsp;&nbsp;&nbsp;&nbsp;<CODE>Vlayout|lay</CODE>
+<P>
+Declares view with abbreviation name "lay" and full name "layout".
+<P>
+<!-- NEED 3in -->
+<H3>Tools</H3>
+<P>
+There is no need to declare all tools in the header.
+The only reason for a tool declaration to exist is if the tool has project setting variables stored on it.
+If there are multiple tool lines, they are sorted by the tool name. The syntax is:
+<P>
+<CENTER><TABLE BORDER=1 WIDTH="90%">
+<TR><TD COLSPAN=2><B>O&lt;name&gt; [ | &lt;variable&gt; ]*</B></TD></TR>
+<TR><TD WIDTH="20%">&lt;name&gt;</TD><TD WIDTH="80%">the name of the tool.</TD></TR>
+<TR><TD>&lt;variable&gt;</TD><TD>a list of project settings on the tool
+(stored as variables, see <A HREF="chap10-04-01.html#chap10-04-01">Section 10-4-1</A>).</TD></TR>
+</TABLE>
+</CENTER>
+<P>
+Example:
+<P>
+&nbsp;&nbsp;&nbsp;&nbsp;<CODE>Ologeffort|GlobalFanout()D12.0</CODE>
+<P>
+Declares a project setting on the "Logical Effort" tool object.
+The "GlobalFanout" is set to the floating point value 12.
+
+<!-- TRAILER -->

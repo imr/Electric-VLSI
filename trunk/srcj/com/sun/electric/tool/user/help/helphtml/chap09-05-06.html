@@ -1,0 +1,71 @@
+<!-- NEED 4in -->
+
+<!-- HEADER 9-5-6: ALS Models -->
+
+As previous examples have shown, the model entity provides connectivity between other entities,
+including other model entities.
+The model may be used in conjunction with gate and function entities
+to describe the behavior of any circuit.
+<P>
+The model entity is headed by a <B>model</B>
+declaration statement and followed by a body which references instances of other entities,
+lower in the hierarchy.
+The model name and a list of exports (which are referenced in a higher level model description)
+are included in this statement.
+The format of the <B>model</B> declaration statement is:
+<P>
+<CENTER><TABLE WIDTH="80%">
+<TR><TD WIDTH="30%"><B>Format:</B></TD><TD WIDTH="70%">model <I>name</I>(<I>signal1</I>, <I>signal2</I>,
+<I>signal3</I>, ... <I>signalN</I>)</TD></TR>
+<TR><TD><B>Example:</B></TD><TD>model dff(d, ck, set, reset, q, q_bar)</TD></TR>
+</TABLE></CENTER>
+<P>
+References to instances of primitive objects (gates and functions)
+and lower level models are used to describe the topology of the model to the simulator.
+The format of an instance reference statement is:
+<P>
+<CENTER><TABLE WIDTH="80%">
+<TR><TD WIDTH="30%"><B>Format:</B></TD><TD WIDTH="70%"><I>instance</I> : <I>model</I> ( <I>signal1</I>,
+<I>signal2</I>, <I>signal3</I>, ... <I>signalN</I> )</TD></TR>
+<TR><TD><B>Example:</B></TD><TD>gate1: subgate(input, en, mix)</TD></TR>
+</TABLE></CENTER>
+<P>
+It should be noted each instance reference in a model entity must have
+a unique instance name.
+The following is an example of the use of a model entity:
+<P><CODE><FONT SIZE="-1">
+&nbsp;&nbsp;&nbsp;model latch(input, en, en_bar, out)<BR>
+&nbsp;&nbsp;&nbsp;gate1: xgate(input, en, mix)<BR>
+&nbsp;&nbsp;&nbsp;gate2: xgate(out, en_bar, mix)<BR>
+&nbsp;&nbsp;&nbsp;gate3: inverter(mix, out_bar)<BR>
+&nbsp;&nbsp;&nbsp;gate4: inverter(out_bar, out)<BR>
+<BR>
+&nbsp;&nbsp;&nbsp;gate xgate(in, ctl, out)<BR>
+&nbsp;&nbsp;&nbsp;t: delta=8.0e-9<BR>
+&nbsp;&nbsp;&nbsp;t: delta=8.0e-9<BR>
+&nbsp;&nbsp;&nbsp;i: ctl=L       o: out=X@0<BR>
+&nbsp;&nbsp;&nbsp;i: ctl=H in=L  o: out=L<BR>
+&nbsp;&nbsp;&nbsp;i: ctl=H in=H  o: out=H<BR>
+&nbsp;&nbsp;&nbsp;i:             o: out=X@2<BR>
+<BR>
+&nbsp;&nbsp;&nbsp;gate inverter(in, out)<BR>
+&nbsp;&nbsp;&nbsp;t: delta=5.0e-9<BR>
+&nbsp;&nbsp;&nbsp;i: in=L        o: out=H<BR>
+&nbsp;&nbsp;&nbsp;i: in=H        o: out=L<BR>
+&nbsp;&nbsp;&nbsp;i:             o: out=X@2
+</FONT></CODE><P>
+This example contains the description of a simple latch.
+When the enable signal is asserted high (en=H, en_bar=L)
+the input data passes through the transmission gate (gate1)
+and then through two inverters where it eventually reaches the output.
+When enable is asserted low (en=L, en_bar=H)
+the input connection is broken and the feedback transmission gate (gate2) is turned on.
+<P>
+<H3>The Set Statement</H3>
+<P>
+The <B>set</B>
+statement is used to initialize signals within the model description
+to specific logic states before the simulation run takes place.
+This feature is useful for tying unused inputs to power(H) or ground(L).
+
+<!-- TRAILER -->

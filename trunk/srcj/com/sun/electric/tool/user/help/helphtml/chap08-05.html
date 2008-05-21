@@ -1,0 +1,97 @@
+<!-- HEADER 8-5: The Arc Cells -->
+
+<!-- COMMAND Edit/Technology Specific/Identify Primitive Layers -->
+
+<H3>Creating and Deleting Arc Cells</H3>
+<P>
+Arcs are the wires in a technology, and they are constructed from pieces of geometry on the layers.
+To edit an existing arc,
+select it from the cell explorer or the <B>Edit Cell...</B> command (in menu <B>Edit</B>).
+<P>
+<TABLE><TR><TD><CENTER><IMG SRC="fig08-25.png" ALT="Figure 8.25"></CENTER></TD><TD>
+To create a new arc, use the context menu on the "TECHNOLOGY ARCS" entry of the cell explorer
+and choose "Add New Arc".
+</TD></TR></TABLE>
+<P>
+An arc can be deleted simply by deleting its cell.
+An arc can be renamed by renaming its cell,
+but remember to use the name "arc-" in front
+(i.e. the old name is "arc-metal" and the new name is "arc-metal-1").
+Finally, you can rearrange the order in which the arcs will be listed with the "Reorder Arcs" command from the
+context menu.
+<P>
+<H3>Editing Special Arc Information</H3>
+<P>
+Arc cells show a sample arc on the bottom and a few pieces of textual information above it.
+The textual information can be updated by double-clicking on it.
+<P>
+<TABLE><TR><TD>
+<UL>
+<LI>"Function" describes the arc's function,
+which is a different set than the layer functions.
+As with layer functions, the arc functions should be carefully considered.</LI>
+<LI>"Fixed-angle" lets you choose whether or not default arcs of this type are drawn at fixed angles
+(see <A HREF="chap05-02-01.html#chap05-02-01">Section 5-2-1</A>).
+In many layout technologies, the correct state is "yes".
+The particular fixed angle is specified by the "Angle increment" field below.</LI>
+</UL>
+</TD><TD><CENTER><IMG SRC="fig08-07.png" ALT="Figure 8.7"></CENTER></TD></TR></TABLE>
+<UL>
+<LI>"Wipes pins" lets you choose whether or not these arcs completely erase connecting pins
+(the sensible state is "yes" because pins are drawn in the same layer and would not be visible anyway).</LI>
+<LI>"Extend arcs" lets you choose whether or not these arcs extend beyond their endpoints by half of their width
+(see <A HREF="chap05-04-03.html#chap05-04-03">Section 5-4-3</A>).
+The typical state is "yes".</LI>
+<LI>"Angle increment" is the preferred angle granularity of this type of arc
+(see <A HREF="chap05-05.html#chap05-05">Section 5-5</A>).</LI>
+The typical state is "90" which requests Manhattan arcs.
+<LI>"Antenna Ratio" is used in antenna rules calculations
+(see <A HREF="chap09-03-02.html#chap09-03-02">Section 9-3-2</A>).</LI>
+</UL>
+<P>
+A well arc that contains a well layer and does not contain device diffusion
+(i.e. opposite doping to the well)
+must not be defined as "diffusion"; it must be defined as "well-diffusion".
+This prevents the Spice extractor from incorrectly adding any p or n doped area found
+in the well arc to the source or drain area of a transistor on the same network.
+This does not mean that a device arc cannot contain a well layer.
+Device arcs will be declared as "p-diffusion" or "n-diffusion",
+and their well layer will be handled correctly;
+the arc connectivity is really defined by the device diffusion layer.
+For example, a p-device arc will have an N-well,
+or N substrate under it,
+and a p-type diffusion will end up as part of the drain or source of the P transistor to which it is connected.
+<P>
+<H3>Editing Arc Geometry</H3>
+<P>
+In addition to the above information,
+the arc must also be described with pieces of geometry on the various layers.
+Thus, a prototypical arc must be drawn in this cell.
+The length of the arc is not important,
+but the smaller dimension is presumed to be the width and defines the default for this arc type.
+<P>
+Use the entries from the component menu of the side bar to create new layers.
+The typical layer in an IC technology is a Filled box (third from the top).
+<P>
+<TABLE><TR><TD><CENTER><IMG SRC="fig08-10.png" ALT="Figure 8.10"></CENTER></TD><TD>
+After the geometry is created, it can be moved and resized with standard Electric commands.
+Remember to keep all arc geometry separate from the information messages in the cell
+so that the technology editor can distinguish them.
+Once a piece of geometry is created,
+its layer can be set by double-clicking on it.
+A menu is then presented with possible layers (ignore the last entries, "SET-MINIMUM-SIZE",
+and "CLEAR-MINIMUM-SIZE" which are used only for nodes).
+<P>
+Besides geometric layers,
+the graphical arc description must have a highlight layer to show where the arc will be outlined when used in a circuit.
+Although the highlighting is typically drawn around the outside of all geometry,
+implant layers may extend beyond the highlight (see the CMOS diffusion arcs for an example of this).
+Select the "HIGH" entry in the component menu to create this special type of layer.
+</TD><TD></TR></TABLE>
+<P>
+After geometry has been created, there may be some confusion as to what is there.
+To find out,
+use the <B>Identify Primitive Layers</B> command (in menu <B>Edit / Technology Specific</B>),
+which temporarily labels each piece of geometry in the arc cell.
+
+<!-- TRAILER -->

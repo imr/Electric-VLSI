@@ -1,0 +1,69 @@
+<!-- NEED 3in -->
+
+<!-- HEADER 2-4-2: Other Modification -->
+
+<!-- COMMAND Edit/Move/Move Objects By... -->
+<!-- COMMAND Edit/Properties/Object Properties... -->
+
+<TABLE><TR><TD>
+Another way to move a node is to use the <B>Object Properties...</B> command
+(in menu <B>Edit / Properties</B>),
+and type new X and Y positions.
+This dialog allows other modifications to be made as well (orientation, etc.)
+<P>
+The dialog shows the location of the anchor-point of the node.
+</TD><TD><CENTER><IMG SRC="fig02-01.png" ALT="Figure 2.1"></CENTER></TD></TR></TABLE>
+<P>
+The dialog also has a field for the node's name.
+This name is not related to network information, but it must be unique, and can be used for identification.
+If a schematic node is given an arrayed name (such as "and[0:3]") then it indicates that the node is arrayed that many times.
+Nodes (and arcs) are automatically given unique names when first created (such as "nmos@0").
+<P>
+<TABLE><TR><TD>
+The Object Properties dialog is modeless: it can remain on the screen while other editing is being done.
+If a different node is selected, the dialog updates to show that node's information.
+The "Apply" button changes the selected node to match the new values typed into the dialog.
+<P>
+The <B>Object Properties...</B> dialog can also expand to show more information.
+When the "More" button is clicked, it grows to full size as shown.
+The full size <B>Object Properties...</B> dialog has many new controls,
+which vary according to the type of node selected:
+<P>
+</TD><TD><CENTER><IMG SRC="fig02-13.png" ALT="Figure 2.13"></CENTER></TD></TR></TABLE>
+<UL>
+<LI>"Expanded" and "Unexpanded" control how the node is drawn (if it is a cell instance).
+An expanded instance is one that shows its contents; an unexpanded instance is drawn as a black box
+(see <A HREF="chap03-04.html#chap03-04">Section 3-4</A>).</LI>
+
+<LI>"Easy to Select" sets whether this node is selectable with a simple click.
+This feature allows you to eliminate pieces of circuitry from active editing
+(see <A HREF="chap02-01-05.html#chap02-01-05">Section 2-1-5</A>).</LI>
+
+<LI>"Invisible Outside Cell" 
+indicates that this node will not be drawn when the current cell is viewed from higher-up the hierarchy.</LI>
+<LI>"Locked" nodes may not be changed (moved, deleted).</LI>
+</UL>
+<P>
+The bottom of the expanded <B>Object Properties...</B> dialog has a scroll area that can view "Ports" or "Attributes".
+By default, a list of the node's ports is shown, including any exports, connections, and highlight details.
+If the "Attributes" button is selected, the list shows the attributes on the node.
+When "Attributes" is selected, the entries in the list let you modify individual values.
+Note that there is also an "Attributes" button, which brings up a full dialog for editing them.
+See <A HREF="chap06-08-05.html#chap06-08-05">Section 6-8-5</A> for more on Attributes.
+<P>
+<!-- NEED 4in -->
+If many objects are selected,
+you can move them by a specific distance with the <B>Move Objects By...</B>
+command (in menu <B>Edit / Move</B>).
+<P>
+If many nodes are selected, the <B>Object Properties...</B> command will list all of them,
+and allow appropriate changes to be made (depending on what is selected).
+<P>
+<CENTER><IMG SRC="fig02-12.png" ALT="Figure 2.12"></CENTER>
+<P>
+Changes are only made in the fields where you type a value.
+To remove an item from the list of selected objects, use the "Remove" button.
+To remove all but the selected item, use "Remove Others".
+If only two objects are selected, this dialog shows the distance between their centers.
+
+<!-- TRAILER -->

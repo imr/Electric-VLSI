@@ -1,0 +1,74 @@
+<!-- HEADER 9-12: Silicon Compiler -->
+
+<!-- COMMAND Tool/Silicon Compiler/Convert Current Cell to Layout -->
+<!-- COMMAND Tool/Silicon Compiler/Compile VHDL to Netlist View -->
+
+<!-- PREFERENCE Tools/Silicon Compiler -->
+
+Electric has a silicon compiler called QUISC
+(the Queen's University Interactive Silicon Compiler).
+It is a powerful tool that can do placement and routing of standard cells from a schematic or a structural VHDL description.
+When placing and routing VHDL, it is compiled into a netlist which is then used to drive placement and routing.
+When placing and routing a schematic, it is converted into VHDL, compiled to a netlist, and laid-out.
+Thus, a byproduct of silicon compilation will be a {net.quisc} view of a cell, and potentially a {vhdl} view.
+<P>
+Be warned that the silicon compiler is rather old,
+and so it produces layout that alternates standard cell rows and routing rows.
+Modern silicon compilers use multiple metal processes to route over the standard cells,
+but this system does not.
+This system uses two layers: a <I>vertical</I> routing arc to run in and out of cells,
+and a <I>horizontal</I> routing arc to run between the cells in the routing channel.
+It also uses <I>power</I> arcs to bring power and ground to the cell rows,
+and <I>main power</I> arcs to connect the rails on the left and right.
+<P>
+The VHDL description is normally placed in the "vhdl" view of a cell
+(see <A HREF="chap04-10.html#chap04-10">Section 4-10</A> for more on text editing).
+There is a VHDL example in cell "tool-SiliconCompiler{vhdl}" of the "samples" library.
+To access it, use the <B>Load Library</B> command (in menu <B>Help / Samples</B>).
+<P>
+To convert a schematic or VHDL cell into layout, use the <B>Convert Current Cell to Layout</B> command
+(in menu <B>Tools / Silicon Compiler</B>).
+To compile VHDL to the {net.quisc} view, use the <B>Compile VHDL to Netlist View</B> command
+(this is typically not needed, since the previous command does it automatically).
+<P>
+When creating a schematic or VHDL cell to be compiled,
+it is important to know what primitives are available in the standard cell library.
+Electric comes with a CMOS cell library in the MOSIS CMOS ("mocmos") technology.
+This library is not correct, and exists only to illustrate the Silicon Compiler.
+These component declarations are available:
+<P>
+component and2 port(a1, a2 : in bit; y : out bit);  end component;<BR>
+component and3 port(a1, a2, a3 : in bit; y : out bit);  end component;<BR>
+component and4 port(a1, a2, a3, a4 : in bit; y : out bit);  end component;<BR>
+component inverter port(a : in bit; y : out bit);  end component;<BR>
+component nand2 port(a1, a2 : in bit;  y : out bit);  end component;<BR>
+component nand3 port(a1, a2, a3 : in bit;  y : out bit);  end component;<BR>
+component nand4 port(a1, a2, a3, a4 : in bit; y : out bit);  end component;<BR>
+component nor2 port(a1, a2 : in bit; y : out bit);  end component;<BR>
+component nor3 port(a1, a2, a3 : in bit;  y : out bit);  end component;<BR>
+component nor4 port(a1, a2, a3, a4 : in bit;  y : out bit);  end component;<BR>
+component or2 port(a1, a2 : in bit; y : out bit);  end component;<BR>
+component or3 port(a1, a2, a3 : in bit;  y : out bit);  end component;<BR>
+component or4 port(a1, a2, a3, a4 : in bit;  y : out bit);  end component;<BR>
+component rdff port(d, ck, cb, reset : in bit; q, qb : out bit);  end component;<BR>
+component xor2 port(a1, a2 : in bit;  y : out bit);  end component;
+<P>
+The "Silicon Compiler" preferences (in menu <B>File / Preferences...</B>, "Tools" section, "Silicon Compiler" tab)
+let you control many aspects of placement and routing.
+<P>
+<CENTER><IMG SRC="fig09-36.png" ALT="Figure 9.36"></CENTER>
+<P>
+<UL>
+<LI>The "Layout" section controls the number of rows of cells that will be created.
+A one-row circuit may be exceedingly wide and short, so you may wish to experiment with this value.
+For a square circuit, the number of rows should be the square root of the number of instances in the circuit
+(the number of instances appears as the sum of the unresolved references,
+listed by the VHDL Compiler).</LI>
+<LI>The "Arcs" section lets you set the horizontal and vertical routing arcs, as well as the power rails.</LI>
+<LI>The "Well" section gives you the option of placing blocks of P-well and N-well over the cell rows.</LI>
+<LI>The "Design Rules" section lets you control Via size, metal spacing, feed-through size,
+port distance, and active distance.</LI>
+</UL>
+
+
+<!-- TRAILER -->

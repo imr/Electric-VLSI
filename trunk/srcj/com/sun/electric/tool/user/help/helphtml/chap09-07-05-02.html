@@ -1,0 +1,68 @@
+<!-- HEADER 9-7-5-2: NCC GUI: Exports -->
+
+<P>
+The exports node is always a leaf node with the name "Exports
+[X]", where "X" is
+the number of export mismatches in this comparison.
+Selecting an exports node displays a table on the right side of the
+NCC graphical window (see below). The table has two columns -
+one per compared cell. The header contains cell names. Each row
+corresponds to a mismatch. A table cell has zero or more <I>export
+lists</I>. An export list is a list of all the exports found on a
+network and is displayed as a list of export names surrounded by
+curly brackets "{ }". Each export
+list is a single hyperlink which highlights all the exports in the
+list.</P>
+<P>
+Multiple export lists in a table cell occur when a single network in one
+design (e.g. the schematic) has one or more exports that match
+multiple exports attached to more than one network in the other
+design (e.g. the layout). For example, the mismatch on the third row
+from the top in the figure below has layout exports (the second column)
+attached to a single network matching schematic exports (the first
+column) attached to two networks.</P>
+<P>
+<CENTER><IMG SRC="fig09-43.png" ALT="Figure 9.43" BORDER=1></CENTER>
+<P>
+An empty table cell means one design has exports that match no exports
+with the same names in the other design. For example, the mismatch in
+the top row above has the layout export "E_core_sclk"
+matching no exports in the schematic.</P>
+<P>
+Some exports are <I>implied</I>. For example, if a schematic cell uses a
+global ground, but does not contain an export for that ground, then
+NCC will automatically insert an implied
+export for ground. This
+is done because most often the corresponding layout cell has a ground
+export, and we want the schematic and layout cells to match. Implied
+exports are not hyperlinked and have ":implied" added to their names (see below).</P>
+<P>
+When NCC does not find any topological mismatches, it attempts to suggest
+possible matches for exports that failed to match by name. Such
+<I>suggestions</I> are printed in green. The first row of the table
+below indicates that the "outO[1][T]"
+export in the layout topologically matches the "outO[T]"
+export in the schematic, even though they have different names. The
+second row indicates that the "outE[1][F]"
+export in the layout topologically matches the "net@4[1]"
+wire in the schematic, even though the "net@4[1]"
+wire has no exports. Note that a wire name is not an export list and
+is not surrounded by curly brackets.</P>
+<P>
+<CENTER><IMG SRC="fig09-44.png" ALT="Figure 9.44" BORDER=1><BR>
+<FONT SIZE="-1">Implied exports are marked by &quot;implied&quot;. Suggestions
+are printed in green.</FONT></CENTER>
+<P>
+Exports that match by name, but are not on equivalent networks, have red
+hyperlinks. Such exports might have suggested matches as well, 
+which are printed in green. In the first row of the table below,
+the "jtag[1]" export in the
+schematic does not topologically match the "jtag[1]"
+export in the layout, but does match the "jtag[8]"
+export in the layout.</P>
+<P>
+<CENTER><IMG SRC="fig09-45.png" ALT="Figure 9.45" BORDER=1><BR>
+<FONT SIZE="-1">Exports that match by name, but are not on equivalent networks
+have red hyperlinks</FONT></CENTER>
+
+<!-- TRAILER -->

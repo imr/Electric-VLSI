@@ -1,0 +1,58 @@
+<!-- HEADER 1-11-7: Schematics Tutorial: Hierarchy and Icons -->
+
+Electric supports hierarchy by allowing you to create icons for a schematic and place them in another cell.
+Before creating an icon, all connection points to the schematic should be defined.
+To define connection points for a schematic, you must create <I>exports</I> on the schematic.
+<!-- NEED 2in -->
+<P>
+<TABLE><TR>
+<TD><CENTER><IMG SRC="fig01-22.png" ALT="Figure 1.22"></CENTER></TD><TD>
+To see an example of this, select the output port of the Buffer node and issue the
+<B>Create Export...</B> command (in menu <B>Export</B>).
+You will be prompted for an export name and its characteristics
+(set the characteristics to "output").
+</TD></TR></TABLE>
+<P>
+
+<TABLE><TR><TD>
+<BR><BR><BR>
+The output port on the buffer node is now exported to the outside world.
+Run a wire from the input side of the And node and export the pin at the end of the wire.
+Your circuit should look like this.
+<BR><BR><BR>
+</TD><TD><CENTER><IMG SRC="fig01-20.png" ALT="Figure 1.20"></CENTER></TD></TR></TABLE>
+<P>
+<TABLE><TR><TD><CENTER><IMG SRC="fig01-21.png" ALT="Figure 1.21"></CENTER></TD><TD>
+You can now make an icon for this circuit by using the <B>Make Icon</B> command (in menu <B>View</B>).
+The icon will be placed in your circuit (you may have to move it away from the rest of the circuitry).
+The result will look like this.
+</TD></TR></TABLE>
+<P>
+<TABLE><TR><TD>
+To test this icon in a circuit, create a new cell in which to place instances of the icon.
+Use the <B>New Cell...</B> command (in menu <B>Cell</B>).
+Type the new cell name ("Higher" is used in the example here) and make sure its view is "schematic".
+<P>
+A new (empty) cell will appear in a separate window.
+Try creating a few simple nodes in this new window (place a gate or two).
+</TD><TD><CENTER><IMG SRC="fig01-25.png" ALT="Figure 1.25"></CENTER></TD></TR></TABLE>
+<TABLE><TR>
+<TD><CENTER><IMG SRC="fig01-28.png" ALT="Figure 1.28"></CENTER></TD><TD>
+Now place an instance of the other cell by using the <B>Place Cell Instance...</B> command (in menu <B>Cell</B>).
+You can also click the "Cell" entry in the component menu.
+You will be given a list of cells to create:
+select the one that is in the OTHER window (the one called "MyCircuit{ic}" in this example).
+Then click in the newer cell to create the instance.
+</TD></TR></TABLE>
+<P>
+<TABLE><TR><TD>
+The icon that appears is a node in the same sense as the Buffer and And gate:
+it can be moved, wired, and so on.
+In addition, because the node contains subcomponents,
+you can see its contents by selecting it and using the
+<B>Down Hierarchy</B> command (in menu <B>Cell / Down Hierarchy</B>).
+Note that if the objects in a cell no longer fit in the display window,
+use the <B>Fill Window</B> command (in menu <B>Window</B>).
+</TD><TD><CENTER><IMG SRC="fig01-23.png" ALT="Figure 1.23"></CENTER></TD></TR></TABLE>
+
+<!-- TRAILER -->

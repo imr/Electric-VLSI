@@ -1,0 +1,39 @@
+<!-- HEADER 7-4-1: The MOS Technologies -->
+
+There are both nMOS and CMOS technologies available in Electric,
+with many different design rules.
+Use the popup at the top of the component menu to select a different MOS technology.
+<P>
+There is one nMOS technology: "nmos"
+(the specifications used in the Mead and Conway textbook).
+<P>
+There are a few CMOS technologies available.
+The most basic is "cmos", which uses an idealized set of design-rules from a paper by Griswold.
+The most popular CMOS technology is "mocmos" (MOSIS design rules)
+which has two layers of polysilicon and up to 6 layers of metal with standard,
+submicron, or deep rules (this is described more fully in the
+<A HREF="chap07-04-02.html#chap07-04-02">next Section</A>).
+There is even "rcmos", which uses round geometry!
+<P>
+<TABLE><TR><TD><CENTER><IMG SRC="fig07-16.png" ALT="Figure 7.16"></CENTER></TD><TD>
+Each MOS technology has two transistors
+(enhancement and depletion in nMOS technologies, <I>n</I> and <I>p</I> in CMOS).
+These nodes can have serpentine paths by highlighting them and using "Outline Edit" mode
+(see <A HREF="chap06-10-01.html#chap06-10-01">Section 6-10-1</A>).
+</TD></TR></TABLE>
+<P>
+<TABLE><TR><TD>
+The contact nodes in the MOS technologies automatically increase the number of cut layers when the contact grows in size.
+For very large contacts, however, the display of these cuts can waste time.
+Therefore, when very large contacts are displayed at small scale,
+the interior cuts may not be drawn (as shown on the right).
+Be assured, however, that the cuts are actually there, and will appear in all appropriate output.
+</TD><TD><CENTER><IMG SRC="fig07-18.png" ALT="Figure 7.18"></CENTER></TD></TR></TABLE>
+<P>
+Although individual MOS nodes and arcs have the proper amount of implant around them,
+a collection of such objects may result in an irregular implant boundary.
+To clean this up, you can place pure-layer nodes of implant that neatly cover the implant area.
+Also, you can do this automatically with the <B>Coverage Implants Generator</B>
+command (in menu <B>Tool / Generation</B>, see <A HREF="chap09-08-02.html#chap09-08-02">Section 9-8-2</A>).
+
+<!-- TRAILER -->

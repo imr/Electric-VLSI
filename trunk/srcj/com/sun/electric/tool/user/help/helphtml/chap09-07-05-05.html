@@ -1,0 +1,57 @@
+<!-- HEADER 9-7-5-5: NCC GUI: Export Assertions -->
+
+<P>
+It is very common for a layout cell, <CODE>A</CODE>,
+to have multiple ground wires that are connected by it's
+parent cell, <CODE>B</CODE>. For example,
+cell <CODE>A</CODE> may have a wire with the
+export "gnd" and a different wire
+with the export "gnd_1". When
+cell <CODE>B</CODE> instantiates <CODE>A</CODE>,
+cell <CODE>B</CODE> connects <CODE>A</CODE>'s
+exports "gnd" and "gnd_1".
+However, <CODE>A</CODE>'s schematic
+typically has only one combined "gnd"
+wire. When NCC compares <CODE>A</CODE>'s
+schematic and layout, it finds that the ground wires mismatch. As a
+solution, the designer adds the following NCC annotation into <CODE>A</CODE>'s
+layout cell:</P>
+
+<P ALIGN=CENTER>exportsConnectedByParent gnd gnd_1</P>
+
+<P>
+This annotation constitutes a promise
+that whenever <CODE>A</CODE> is
+instantiated, its exports "gnd"
+and "gnd_1" will be connected.
+Then, when NCC compares A's schematic and layout, it assumes that the
+promise has been kept and the comparison passes. However, when NCC
+compares <CODE>B</CODE>'s schematic and
+layout, it checks to see if the designer is keeping the promise. If
+the promise is not kept, and no new promise to connect exports in the
+next parent is given, then NCC reports an export assertion error in
+the "Export Assertions" leaf node.</P>
+
+<P>
+When an "Export Assertions" node is selected, it displays a table with
+two columns and one or more rows (see below). Each row corresponds to
+a broken promise. The first column has cell names. The second column
+lists exports that the designer promised would be connected, but
+which remained disconnected. The exports are organized into two or
+more export lists. Each export list is a comma-separated list of
+exports enclosed in curly brackets "{ }".
+Exports in the same list are connected. Exports in
+different lists are disconnected. The designer promised that all
+exports in all lists would be connected.</P>
+<P>
+<CENTER><IMG SRC="fig09-51.png" ALT="Figure 9.51" BORDER=1></CENTER>
+<p>
+All exports are individually highlightable. For example, if the designer clicks on the "vdd" 
+export then NCC will open up a window for cell "rectifier{lay}" and highlight the net connected
+to the export "vdd".</p>
+<p>
+Tip: If it the design includes multiple instances of cell "rectifier{lay}" then
+the designer can find out which particular instance failed to keep the promise by typing control-U
+which will pop up a level in the hierarchy.</p>
+
+<!-- TRAILER -->

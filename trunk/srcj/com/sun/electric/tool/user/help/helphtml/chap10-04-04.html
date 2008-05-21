@@ -1,0 +1,52 @@
+<!-- NEED 3in -->
+<!-- HEADER 10-4-4: Example -->
+
+As an example of the JELIB format, let us assume a design with two levels of hierarchy.
+The bottom level of hierarchy (cell "low") has 3 nodes, two arcs, and an export:
+<P>
+<CENTER><IMG SRC="fig10-01.png"></CENTER>
+<P>
+The top level of hierarchy (cell "high") has two instances of the cell
+(the right instance is rotated 90 degrees) and an arc connecting them:
+<P>
+<CENTER><IMG SRC="fig10-02.png"></CENTER>
+<P>
+<!-- NEED 5in -->
+Here is the JELIB file for the above layout.
+<CENTER><TABLE BORDER=1>
+<TR><TD>
+<CODE>
+# header information:<BR>
+Hccc|8.05<BR>
+<BR>
+# Views:<BR>
+Vlayout|lay<BR>
+<BR>
+# Technologies:<BR>
+Tmocmos|mocmosSecondPolysilicon()BF<BR>
+<BR>
+# Cell high;1{lay}<BR>
+Chigh;1{lay}||mocmos|1093555876000|1094258888640|<BR>
+Ngeneric:Facet-Center|art@0||0|0||||AV<BR>
+Ilow;1{lay}|low@0||-14|12|||D5G4;<BR>
+Ilow;1{lay}|low@1||15|12|R||D5G4;<BR>
+AMetal-1|net@0|||S0|low@1|a|5|22|low@0|a|-4|22<BR>
+X<BR>
+<BR>
+# Cell low;1{lay}<BR>
+Clow;1{lay}||mocmos|1093555232000|1094258870406|<BR>
+Ngeneric:Facet-Center|art@0||0|0||||AV<BR>
+NMetal-1-Metal-2-Con|contact@0||-10|10||||<BR>
+NMetal-1-Pin|pin@0||10|10||||<BR>
+NMetal-2-Pin|pin@1||-10|-10||||<BR>
+AMetal-1|net@0|||S1800|contact@0||-10|10|pin@0||10|10<BR>
+AMetal-2|net@1|||S900|contact@0||-10|10|pin@1||-10|-10<BR>
+Ea||D5G2;|pin@0||U<BR>
+X<BR>
+<BR>
+# Groups:<BR>
+G|high;1{lay}<BR>
+G|low;1{lay}<BR>
+</CODE></TD></TR></TABLE></CENTER>
+
+<!-- TRAILER -->

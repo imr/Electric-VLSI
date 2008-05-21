@@ -1,0 +1,75 @@
+<!-- HEADER 10-1: JELIB and DELIB File Format -->
+
+This chapter describes Electric's native file format, which ends in "jelib".
+These files contain an entire library of cells.
+The "delib" variation is used when each cell is stored in its own file
+(useful when using CVS version control on a project,
+see <A HREF="chap06-13.html#chap06-13">Section 6-13</A>).
+The earlier file format, which ends in "elib", remains undocumented and is no longer recommended.
+<P>
+JELIB files are text-readable files.
+Each line of a JELIB file starts with an identifying character that distinguishes the line.
+Blank lines, and those that start with the comment identifying character (#) are ignored.
+There is no limit to the length of a line of text.
+<P>
+After the identifying character at the start of a line, there are a set of fields.
+All of the fields are separated by the separator character (|) except for the first field,
+which begins immediately after the identifying character.
+No blank spaces are allowed on a line (that is, any blank spaces are treated as valid characters).
+Control characters (such as the identifying characters) must be upper case.
+In order to insert a '|' or '\n' or '\r' into a field, it must be enclosed in the quotation mark characters (").
+Backslash character can be used inside enclosed strings to denote special characters: 
+<P>
+<CENTER><TABLE BORDER=1 WIDTH="80%">
+<TR><TH WIDTH="20%">Characters</TH><TH WIDTH="80%">Meaning</TH></TR>
+<TR><TD ALIGN=CENTER>\n</TD><TD>line feed character (\n)</TD></TR>
+<TR><TD ALIGN=CENTER>\r</TD><TD>carriage return character (\r)</TD></TR>
+<TR><TD ALIGN=CENTER>\"</TD><TD>quotation mark character (")</TD></TR>
+<TR><TD ALIGN=CENTER>\\</TD><TD>backslash character (\)</TD></TR>
+</TABLE></CENTER>
+<P>
+Each of the different types of lines in the file has a fixed set of fields that must appear.
+Some line types also allow additional fields at the end to add variables
+(attribute/value pairs, see <A HREF="chap10-04-01.html#chap10-04-01">Section 10-4-1</A>). 
+<P>
+The JELIB file has 3 parts: the <I>header</I>, <I>cells</I>, and <I>trailer</I>.
+<P>
+The header has these elements:
+<P>
+<CENTER><TABLE BORDER=1 WIDTH="80%">
+<TR><TD ALIGN=CENTER WIDTH="10%">H</TD><TD WIDTH="90%">Header information; variable fields are allowed</TD></TR>
+<TR><TD ALIGN=CENTER>V</TD><TD>View information</TD></TR>
+<TR><TD ALIGN=CENTER>L</TD><TD>External library information</TD></TR>
+<TR><TD ALIGN=CENTER>R</TD><TD>External cell in the above external library</TD></TR>
+<TR><TD ALIGN=CENTER>F</TD><TD>External export in the above external cell</TD></TR>
+<TR><TD ALIGN=CENTER>T</TD><TD>Technology information; variable fields are allowed</TD></TR>
+<TR><TD ALIGN=CENTER>O</TD><TD>Tool information; variable fields are allowed</TD></TR>
+</TABLE></CENTER>
+<P>
+The cells have these elements:
+<P>
+<CENTER><TABLE BORDER=1 WIDTH="80%">
+<TR><TD ALIGN=CENTER WIDTH="10%">C</TD><TD WIDTH="90%">Cell header; variable fields are allowed</TD></TR>
+<TR><TD ALIGN=CENTER>N</TD><TD>Primitive node information in the current cell; variable fields are allowed</TD></TR>
+<TR><TD ALIGN=CENTER>I</TD><TD>Cell instance information in the current cell; variable fields are allowed</TD></TR>
+<TR><TD ALIGN=CENTER>A</TD><TD>Arc information in the current cell; variable fields are allowed</TD></TR>
+<TR><TD ALIGN=CENTER>E</TD><TD>Export information in the current cell; variable fields are allowed</TD></TR>
+<TR><TD ALIGN=CENTER>X</TD><TD>Cell termination</TD></TR>
+</TABLE></CENTER>
+<P>
+The trailer has this element:
+<P>
+<CENTER><TABLE BORDER=1 WIDTH="80%">
+<TR><TD ALIGN=CENTER WIDTH="10%">G</TD><TD WIDTH="90%">Group information</TD></TR>
+</TABLE></CENTER>
+<P>
+Everything in the file is completely ordered.
+There is an ordering to the external libraries, cells in those libraries, technologies, tools, cells,
+nodes/arcs/exports in a cell, etc.
+Even the extra variables on a line are ordered.
+The ordering is usually a name sort.
+By ordering everything in the file, the exact same file is generated every time,
+and text comparison operations will accurately find differences between two files.
+Note, however, that the JELIB reader does not require any sorting, and can handle the data in any order. 
+
+<!-- TRAILER -->

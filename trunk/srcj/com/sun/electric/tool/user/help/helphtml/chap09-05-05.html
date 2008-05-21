@@ -1,0 +1,111 @@
+<!-- NEED 4in -->
+
+<!-- HEADER 9-5-5: ALS Functions -->
+
+The function entity is an alternate method of specifying behavior.
+It makes reference to a Java method that has been compiled into Electric.
+Because there are only a limited number of these methods,
+and because the source code isn't always easy to update,
+the function entity is of limited use.
+However, the facility is very powerful and can be used to efficiently model complex circuits.
+It permits the designer to work at higher levels of abstraction so that the overall
+system can be conceived before the low level circuitry is designed.
+Examples of this include arithmetic logic units, RAM, ROM,
+and other circuitry which is easier to describe in terms of a software algorithm
+than a gate level hardware description.
+To add a function to the simulator, edit the module "com.sun.electric.tool.simulation.als.UserCom.java".
+<P>
+The function entity is headed by a <B>function</B> declaration statement that
+gives a name and a list of exports
+(which are referenced in a higher level model description).
+The format of this statement is shown below: 
+<P>
+<CENTER><TABLE WIDTH="80%">
+<TR><TD WIDTH="30%"><B>Format:</B></TD><TD WIDTH="70%">function <I>name</I>(<I>signal1</I>, <I>signal2</I>,
+<I>signal3</I>, ... <I>signalN</I>)</TD></TR>
+<TR><TD><B>Example:</B></TD><TD>function JK_FF(ck, j, k, out)</TD></TR>
+<TR><TD></TD><TD>function DFFLOP(data_in, clk, data_out)</TD></TR>
+<TR><TD></TD><TD>function BUS_TO_STATE(b7,b6,b5,b4,b3,b2,b1,b0, output)</TD></TR>
+<TR><TD></TD><TD>function STATE_TO_BUS(input, b7,b6,b5,b4,b3,b2,b1,b0)</TD></TR>
+</TABLE></CENTER>
+<P>
+The name refers to a Java method,
+which will find the signal parameters in the same order that they appear in the argument list.
+The only four functions currently available are listed above.
+There are two flip-flops (JK and D)
+and two numeric converters that translate between a bus of 8 signals and a composite hexadecimal digit.
+<P>
+
+<H3>Declaring Input and Output Ports</H3>
+<P>
+The <B>i:</B> and <B>o:</B>
+statements which follow the function declaration are used to tell the simulator which
+signals are responsible for driving the function and which drive other events.
+If any signal in the event driving list changes state, the function is called
+and the output values are recalculated.
+The format of an <B>i:</B> statement, which contains a list of event driving inputs, is shown below:
+<P>
+<CENTER><TABLE WIDTH="80%">
+<TR><TD WIDTH="30%"><B>Format:</B></TD><TD WIDTH="70%">i: <I>signal1</I> <I>signal2</I> <I>signal3</I> ... <I>signalN</I></TD></TR>
+<TR><TD><B>Example:</B></TD><TD>i: b7 b6 b5 b4 b3 b2 b1 b0</TD></TR> 
+<TR><TD></TD><TD>i: input phi phi_bar set reset</TD></TR>
+</TABLE></CENTER>
+<P>
+The format of an <B>o:</B> statement which contains a list of output ports is shown below:
+<P>
+<CENTER><TABLE WIDTH="80%">
+<TR><TD WIDTH="30%"><B>Format:</B></TD><TD WIDTH="70%">o: <I>signal1</I> <I>signal2</I> <I>signal3</I> ... <I>signalN</I></TD></TR>
+<TR><TD><B>Example:</B></TD><TD>o: out1 out2 out3</TD></TR>
+<TR><TD></TD><TD>o: q q_bar</TD></TR>
+</TABLE></CENTER>
+<P>
+
+<H3>Other Specifications</H3>
+<P>
+Just as there are special statements that affect the operating characteristics of a gate entity,
+so are these statements available to direct the function entity.
+The <B>t:</B> statement is used to set the time delay between input and output changes.
+The <B>load</B> statement is used to set the relative loading (capacitance) for the input and output ports.
+The <B>priority</B> statement is used to establish the scheduling priority.
+The <B>set</B> statement is used to initialize signals to specific logic states before
+the simulation run takes place.
+The format of these statement is identical to that of the gate entity.
+Note that the Java method does not have to use the values specified in these
+statements and can schedule events with values that are specified directly inside the code.
+<P>
+
+<H3>Example of Function Use</H3>
+<P>
+The specification for a 3 bit shift register (edge triggered) is shown below.
+This circuit uses a function primitive to model the operation of a D flip-flop:
+<P><CODE>
+&nbsp;&nbsp;&nbsp;model main(input, ck, q2, q1, q0)<BR>
+&nbsp;&nbsp;&nbsp;stage0: DFFLOP(input, ck, q0)<BR>
+&nbsp;&nbsp;&nbsp;stage1: DFFLOP(q0, ck, q1)<BR>
+&nbsp;&nbsp;&nbsp;stage2: DFFLOP(q1, ck, q2)<BR>
+<BR>
+&nbsp;&nbsp;&nbsp;function DFFLOP(data_in, clock, output)<BR>
+&nbsp;&nbsp;&nbsp;i: clock<BR>
+&nbsp;&nbsp;&nbsp;o: output<BR>
+&nbsp;&nbsp;&nbsp;t: delta=10e-9<BR>
+&nbsp;&nbsp;&nbsp;load clock=2.0
+</CODE><P>
+It should be noted that the clock is the only event driving input for the flip-flop function.
+There is no need to call the function if the signal "data_in" will be sampled
+only when the event driving signal
+("clock") changes state.
+The designer can write the function so that it samples the data only when the
+function is called and the clock input is asserted high
+(rising edge triggered).
+If the clock signal is low when the function is called (falling clock edge)
+the procedure can ignore the data and return control back to the simulation program.
+<P>
+The calling arguments to the Java method are set up as a linked list of signal pointers.
+The simulator places the arguments into this list in the same order that they appear
+in the declaration of the function entity.
+The programmer requires some knowledge of the internals of the simulator to
+extract the correct information from this list and to schedule new events.
+A complete discussion of function entity programming is beyond the scope of this document.
+
+
+<!-- TRAILER -->

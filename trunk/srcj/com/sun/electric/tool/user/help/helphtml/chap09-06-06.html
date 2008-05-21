@@ -1,0 +1,26 @@
+<!-- HEADER 9-6-6: Sea-of-Gates Routing -->
+
+<!-- COMMAND Tool/Routing/Sea-Of-Gates Route -->
+
+The sea-of-gates router is able to take an arbitrary set of unrouted arcs and convert them to layout.
+<P>
+To do this, use the <B>Sea-Of-Gates Route</B> command (in menu <B>Tool / Routing</B>).
+If there are unrouted arcs selected, these will be the only ones converted.
+Otherwise, all unrouted arcs in the cell will be converted.
+<P>
+The Sea-of-Gates router uses metal layers in the current technology.
+You can disable the use of any layer, or favor it above others to guide the routing.
+To do this, use the Routing Preferences
+(in menu <B>File / Preferences...</B>, "Tools" section, "Routing" tab).
+<P>
+Another control found in the Routing Preferences sets the maximum width
+of a route segment.
+By default, each segment is made as wide as the widest arc already connected to that segment.
+However, in some situations, very wide arcs exist, and the connecting routes should not be that wide.
+By setting the maximum width, this limits the size of generated layout.
+<P>
+The other control in the Routing Preferences sets the maximum number of steps that
+the router will take to find a route.
+The larger the value, the longer the router will run until giving up.
+
+<!-- TRAILER -->

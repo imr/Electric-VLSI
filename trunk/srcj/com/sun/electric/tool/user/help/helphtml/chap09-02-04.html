@@ -1,0 +1,29 @@
+<!-- NEED 5in -->
+
+<!-- HEADER 9-2-4: Coverage Rules -->
+
+<!-- COMMAND Tool/DRC/Check Area Coverage -->
+<!-- COMMAND Tool/DRC/List Layer Coverage on Cell -->
+<!-- PREFERENCE Tools/Coverage -->
+
+Some foundries request that each layer occupy a minimum percentage of the chip.
+To enforce such rules, additional pieces of geometry must be placed around the chip to fill that layer.
+<P>
+<TABLE><TR><TD>
+To check for proper minimum layer coverage, use the <B>Check Area Coverage</B> command
+(in menu <B>Tool / DRC</B>).
+To control the coverage rules, use the Coverage Preferences
+(in menu <B>File / Preferences...</B>, "Tools" section, "Coverage" tab).
+Each layer in the technology has a minimum percentage of coverage that is needed.
+<P>
+The coverage check proceeds in a "tiled" manner, checking rectangular areas of the cell.
+For example, to check each 100x100 unit area of the cell, set "Width" and "Height" to 100,
+and set "DeltaX" and "DeltaY" to 100.
+</TD><TD><CENTER><IMG SRC="fig09-01.png" ALT="Figure 9.1"></CENTER></TD></TR></TABLE>
+<P>
+The <B>List Layer Coverage on Cell</B> command is another way to compute the percentage of the cell that is covered by each layer.
+This command examines the entire cell without breaking it into tiled rectangles.
+<P>
+Use the <B>Fill (MoCMOS)...</B> command (in menu <B>Tool / Generation</B>) to automatically generating fill
+(see <A HREF="chap09-08-02.html#chap09-08-02">Section 9-8-2</A>).
+<!-- TRAILER -->

@@ -1,0 +1,55 @@
+<!-- HEADER 3-4: Examining Cell Instances -->
+
+<!-- COMMAND Cell/Expand Cell Instances/One Level Down -->
+<!-- COMMAND Cell/Expand Cell Instances/All the Way -->
+<!-- COMMAND Cell/Expand Cell Instances/Specified Amount... -->
+<!-- COMMAND Cell/Unexpand Cell Instances/One Level Up -->
+<!-- COMMAND Cell/Unexpand Cell Instances/All the Way -->
+<!-- COMMAND Cell/Unexpand Cell Instances/Specified Amount... -->
+<!-- COMMAND Cell/Look Inside Highlighted -->
+
+When instances are initially created, they are drawn as black boxes with nothing inside.
+This form of instance display is called <I>unexpanded</I>.
+When the instances show the actual layout inside of them, they are <I>expanded</I>.
+This distinction applies only in layout; schematic icons never show their actual contents.
+<P>
+To expand a cell instance, select it and use the commands of the <B>Cell / Expand Cell Instances</B> menu.
+The <B>One Level Down</B> command opens up the next closed level;
+the <B>All the Way</B> command opens up all levels to the bottom;
+and the <B>Specified Amount...</B> lets you type a number of levels of hierarchy to expand.
+These commands expand all highlighted cells.
+If a highlighted cell is already expanded,
+this command expands any subcells inside of the instance, repeatedly down the hierarchy.
+<P>
+Once expanded,
+a cell instance will continue to be drawn with its contents shown until the commands of the <B>Cell / Unexpand Cell Instances</B>
+command are used.
+These commands return cell instances to their black-box form,
+starting with the deepest subcells that are expanded at the bottom of the hierarchy.
+The <B>One Level Up</B> command closes up the bottommost expanded level;
+the <B>All the Way</B> command closes all levels from the bottom;
+and the <B>Specified Amount...</B> lets you type a number of levels of hierarchy to close.
+<P>
+<TABLE><TR><TD><CENTER><IMG SRC="fig03-25.png" ALT="Figure 3.25"></CENTER></TD><TD>
+You can also use the expansion (opened eye) and unexpansion (closed eye) icons from the tool bar to expand and unexpand by one level.
+</TD></TR></TABLE>
+<P>
+The expansion information can also be controlled by using the <B>Object Properties...</B>
+command (in menu <B>Edit / Properties</B>) and clicking on the "Expanded" or "Unexpanded" buttons.
+<P>
+There are times when you want to see the layout inside of a cell instance, but only temporarily.
+The <B>Look Inside Highlighted</B> command (in menu <B>Cell</B>) displays everything in the highlighted area,
+down through all hierarchical levels.
+This is a one-shot display that reverts to unexpanded form if the window is shifted, scaled, or redrawn.
+<P>
+There is a slight difference in specification between the <B>Expand Cell Instances</B>
+commands and the <B>Look Inside Highlighted</B> command.
+The <B>Expand Cell Instances</B> commands affect cell instances only,
+and thus any instances that are highlighted or in the highlighted area will be completely expanded.
+The <B>Look Inside Highlighted</B> command affects layout display in an area,
+so only those parts of instances that are inside of the highlighted area will be shown.
+Thus, the command <B>Look Inside Highlighted</B> is more precise in what it expands and can be used,
+in conjunction with Area selection, to show only a specific part of the circuit
+(see <A HREF="chap02-01-03.html#chap02-01-03">Section 2-1-3</A> for more on area selection).
+
+<!-- TRAILER -->

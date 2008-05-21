@@ -1,0 +1,57 @@
+<!-- HEADER 9-4-1: Introduction to Simulation -->
+
+<!-- COMMAND Tool/Simulation (Others)/Write ArchSim Deck... -->
+<!-- COMMAND Tool/Simulation (Others)/Display ArchSim Journal... -->
+<!-- COMMAND Tool/Simulation (Spice)/Write CDL Deck... -->
+<!-- COMMAND Tool/Simulation (Others)/Write COSMOS Deck... -->
+<!-- COMMAND Tool/Simulation (Others)/Write ESIM/RNL Deck... -->
+<!-- COMMAND Tool/Simulation (Others)/Write Maxwell Deck... -->
+<!-- COMMAND Tool/Simulation (Others)/Write MOSSIM Deck... -->
+<!-- COMMAND Tool/Simulation (Others)/Write PAL Deck... -->
+<!-- COMMAND Tool/Simulation (Others)/Write RSIM Deck... -->
+<!-- COMMAND Tool/Simulation (Others)/Write SILOS Deck... -->
+<!-- COMMAND Tool/Simulation (Others)/Write Tegas Deck... -->
+
+Electric has two built-in simulators:
+IRSIM (see <A HREF="chap09-05-01.html#chap09-05-01">Section 9-5-1</A>)
+and ALS (see <A HREF="chap09-05-02.html#chap09-05-02">Section 9-5-2</A>).
+It also can generate decks for many other simulators.
+The ability to interface to external simulators is controlled with the
+<B>Tool / Simulation (Spice)</B>, <B>Tool / Simulation (Verilog)</B>, and
+<B>Tool / Simulation (Others)</B> menus.
+<P>
+Be aware that the Electric distribution does not come packaged with these external simulators.
+You must get your own copy of Spice, Verilog, or any other simulator mentioned here.
+<P>
+Electric can write netlists for these simulators:
+<P>
+<CENTER><TABLE BORDER=1 WIDTH="100%">
+<TR><TD WIDTH="20%"><B>Simulator</B></TD><TD WIDTH="20%"><B>Level</B></TD><TD WIDTH="60%"><B>Netlist Command</B></TD></TR>
+<TR><TD>ArchSim</TD><TD>functional</TD><TD><B>Tool / Simulation (Others) / Write ArchSim Deck...</B></TD></TR>
+<TR><TD>CDL</TD><TD>circuit</TD><TD><B>Tool / Simulation (Spice) / Write CDL Deck...</B></TD></TR>
+<TR><TD>COSMOS</TD><TD>switch</TD><TD><B>Tool / Simulation (Others) / Write COSMOS Deck...</B></TD></TR>
+<TR><TD>ESIM/RNL</TD><TD>switch</TD><TD><B>Tool / Simulation (Others) / Write ESIM/RNL Deck...</B></TD></TR>
+<TR><TD>FastHenry</TD><TD>inductance</TD><TD><B>Tool / Simulation (Others) / Write FastHenry Deck...</B></TD></TR>
+<TR><TD>IRSIM</TD><TD>switch</TD><TD><B>Tool / Simulation (Others) / Write IRSIM Deck...</B></TD></TR>
+<TR><TD>Maxwell</TD><TD>circuit</TD><TD><B>Tool / Simulation (Others) / Write Maxwell Deck...</B></TD></TR>
+<TR><TD>MOSSIM</TD><TD>switch</TD><TD><B>Tool / Simulation (Others) / Write MOSSIM Deck...</B></TD></TR>
+<TR><TD>PAL</TD><TD>gate</TD><TD><B>Tool / Simulation (Others) / Write PAL Deck...</B></TD></TR>
+<TR><TD>RSIM</TD><TD>switch</TD><TD><B>Tool / Simulation (Others) / Write RSIM Deck...</B></TD></TR>
+<TR><TD>SILOS</TD><TD>functional</TD><TD><B>Tool / Simulation (Others) / Write SILOS Deck...</B></TD></TR>
+<TR><TD>Spice</TD><TD>circuit</TD><TD><B>Tool / Simulation (Spice) / Write Spice Deck...</B></TD></TR>
+<TR><TD>Tegas</TD><TD>functional</TD><TD><B>Tool / Simulation (Others) / Write Tegas Deck...</B></TD></TR>
+<TR><TD>Verilog</TD><TD>functional</TD><TD><B>Tool / Simulation (Verilog) / Write Verilog Deck...</B></TD></TR>
+</TABLE></CENTER>
+
+<P>
+For more control of netlist generation, see
+<A HREF="chap03-09-03.html#chap03-09-03">Section 3-9-3</A>.
+<P>
+The ArchSim simulator is a special-purpose experimental simulator.
+Output from it can be displayed in a waveform window by using <B>Display ArchSim Journal...</B>
+(in menu <B>Tool / Simulation (Others)</B>).
+<P>
+For more information on Spice, see <A HREF="chap09-04-03.html#chap09-04-03">Section 9-4-3</A>;
+for Verilog, see <A HREF="chap09-04-02.html#chap09-04-02">Section 9-4-2</A>;
+and for FastHenry, see <A HREF="chap09-04-05.html#chap09-04-05">Section 9-4-5</A>.
+<!-- TRAILER -->

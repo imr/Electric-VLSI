@@ -1,0 +1,34 @@
+<!-- HEADER 6-10-1: Introduction to Outlines -->
+
+<!-- COMMAND Edit/Cleanup Cell/Show Pure Layer Nodes -->
+<!-- COMMAND Edit/Cleanup Cell/Show Redundant Pure-Layer Nodes -->
+
+<TABLE><TR><TD>
+For some primitive nodes, it is not enough to rotate, mirror, and scale.
+These primitives can to be augmented with an <I>outline</I>,
+which is a polygonal description.
+<P>
+There are quite a few primitive nodes that make use of outline information.
+The MOS transistors use the outline to define the gate path in serpentine configurations
+(see <A HREF="chap07-04-01.html#chap07-04-01">Section 7-4-1</A>).
+The Artwork technology has nodes that use outline information:
+Opened-Solid-Polygon, Opened-Dotted-Polygon, Opened-Dashed-Polygon,
+Opened-Thicker-Polygon, Closed-Polygon, Filled-Polygon, and Spline
+(see <A HREF="chap07-06-01.html#chap07-06-01">Section 7-6-1</A>).
+<P>
+For arbitrary shapes on arbitrary layers,
+use the <I>pure-layer</I> nodes in the IC layout technologies.
+The pure-layer nodes are found under the "Pure" entry in the component menu.
+For example,
+the node called "Metal-1-Node" in the CMOS technologies looks like a rectangle of the Metal-1,
+until you add outline information.
+With an outline, this node can take any shape.
+</TD><TD><CENTER><IMG SRC="fig06-17.png" ALT="Figure 6.17"></CENTER></TD></TR></TABLE>
+
+<P>
+Because pure-layer nodes are unusual, it is useful to be able to identify them.
+Use the <B>Show Pure Layer Nodes</B> command (in menu <B>Edit / Cleanup Cell</B>)
+to highlight all of them in the current cell.
+If pure-layer nodes overlap each other, use <B>Show Redundant Pure Layer Nodes</B>
+to identify those that are enclosed by others and, therefore, are redundant.
+<!-- TRAILER -->

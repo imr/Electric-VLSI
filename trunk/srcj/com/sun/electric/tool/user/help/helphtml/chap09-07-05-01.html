@@ -1,0 +1,49 @@
+<!-- HEADER 9-7-5-1: NCC GUI: Overview -->
+
+When a designer runs NCC, and NCC finds mismatches, the NCC graphical
+display window pops up displaying the mismatches. The display varies
+from platform to platform. Below is a typical display with some
+essential features.</P>
+<P>
+<CENTER><IMG SRC="fig09-42.png" ALT="Figure9.42" BORDER=1></CENTER>
+<P>
+The left side of the window is a tree providing an overview of the kinds
+of mismatches that NCC found. The right side has information
+corresponding to the currently selected tree node(s).</P>
+<P>
+Each top-level tree node corresponds to a comparison of two cells. In
+the above example, the label on the top-level node indicates that the
+comparison that failed was between the cells: 
+"E_pads{sch}" and "E_pads{lay}" in the library: "heater".
+If the two cells have
+different names or are from different libraries, then their names are
+shown individually. For example, "libraryA:gateA{sch}
+&amp; libraryB:gateB{sch}".
+The number in square brackets at the right end of the cell names,
+in this example "[14]",
+is the number of mismatches.</P>
+<P>
+In general, if you see a tree node with a number in square brackets,
+then this number is the total number of mismatches grouped under this
+node.</P>
+<P>
+Selecting a top-level tree node displays the number of parts, wires, and ports
+in the compared cells in the right part of the window.
+For all other nodes, the right side of the window displays a list of
+component names arranged in different ways, as described in
+subsequent sections. Some components are highlightable, in which case
+their names are printed as blue, red, or green hyperlinks.</P>
+<P>
+A top-level node has one or more subnodes. Subnodes can have the
+following types: Exports, Parts, Wires, Parts (hash code), Wires
+(hash code), Sizes, Export Assertions, Export/Global Network
+Conflicts, Export/Global Characteristics Conflicts, and Unrecognized
+Parts. 
+</P>
+<P>
+For more information on the NCC graphical user interface, see:
+<BR>
+&nbsp;&nbsp;&nbsp;Kao, Russell, Ivan Minevskiy, and Jon Lexau, "Design Notes for Electric's Network Consistency Check",
+Sun Microsystems Laboratories Technical Report 2006-152, January 2006.
+
+<!-- TRAILER -->

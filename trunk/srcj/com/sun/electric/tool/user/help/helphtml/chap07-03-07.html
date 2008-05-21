@@ -1,0 +1,44 @@
+<!-- NEED 5in -->
+
+<!-- HEADER 7-3-7: DXF Control -->
+
+<!-- COMMAND File/Import/DXF (AutoCAD)... -->
+<!-- COMMAND File/Export/DXF (AutoCAD)... -->
+<!-- PREFERENCE I/O/DXF -->
+<!-- PROJECTSETTING DXF -->
+
+DXF (Drawing eXchange Format) is a solid modeling format used by
+<A HREF="http://www.autodesk.com">AutoCAD</A> systems.
+For more information on reading and writing DXF, see
+<A HREF="chap03-09-02.html#chap03-09-02">Section 3-9-2</A> and
+<A HREF="chap03-09-03.html#chap03-09-03">Section 3-9-3</A>, respectively.
+
+<TABLE><TR><TD>
+DXF settings are controlled with the DXF Project Settings
+(in menu <B>File / Project Settings...</B>, "DXF" tab).
+<P>
+This dialog controls the list of acceptable DXF layers.
+These layers can be typed into the edit field, separated by commas.
+If a layer name in the DXF file is not found in the list of acceptable layers, it will be ignored.
+<P>
+To control scaling, you can change the meaning of units in the DXF file.
+The default unit is "Millimeters",
+which means that a value of 5 in the DXF file becomes 5 millimeters in Electric.
+</TD><TD><CENTER><IMG SRC="fig07-28.png" ALT="Figure 7.28"></CENTER></TD></TR></TABLE>
+
+<P>
+
+<TABLE><TR><TD><CENTER><IMG SRC="fig07-08.png" ALT="Figure 7.8"></CENTER></TD><TD>
+Other DXF settings are controlled with the DXF Preferences
+(in menu <B>File / Preferences...</B>, "I/O" section, "DXF" tab).
+For the difference between Preferences and Project Settings, see
+<A HREF="chap06-03.html#chap06-03">Section 6-3</A>.
+<P>
+By default, Electric flattens DXF input, removing levels of hierarchy and creating a single cell with the DXF artwork.
+By unchecking the "Input flattens hierarchy", Electric will preserve the structure of the DXF file.
+<P>
+If you check "Input reads all layers", then all layers are read into Electric,
+regardless of whether the layer names are known.
+</TD></TR></TABLE>
+
+<!-- TRAILER -->

@@ -1,0 +1,36 @@
+<!-- NEED 5in -->
+<!-- HEADER 2-2-3: Special Cases -->
+
+<!-- COMMAND Edit/Cleanup Cell/Cleanup Pins -->
+<!-- COMMAND Edit/Cleanup Cell/Cleanup Pins Everywhere -->
+<!-- COMMAND Edit/Arc/Insert Jog In Arc -->
+
+The default width is set by the Arcs Preferences (in menu <B>File / Preferences...</B>, "General" section, "Arcs" tab).
+If there are other arcs of this type already connected to the new one,
+and they are wider than normal, then the new arc will use that width.
+<P>
+Note that all arcs overlap their endpoint by half of their width,
+so very wide arcs may overlap their destination with too much geometry.
+You can turn off this overlap by using the <B>Toggle End Extension of Head</B> and
+<B>Toggle End Extension of Tail</B> commands (in menu <B>Edit / Arc</B>).
+See <A HREF="chap05-04-03.html#chap05-04-03">Section 5-4-3</A> for more on end extension.
+<P>
+<TABLE><TR><TD>
+An unusual circuit creation command is the <B>Insert Jog In Arc</B> command (in menu <B>Edit / Arc</B>).
+This command inserts a jog in the highlighted arc by replacing it with three new arcs.
+Two of the new arcs run to the location of the cursor,
+and the third arc is perpendicular to them, connecting the ends at the cursor location
+(initially it has zero length).
+</TD><TD><CENTER><IMG SRC="fig02-11.png" ALT="Figure 2.11"></CENTER></TD></TR></TABLE>
+<P>
+Once the jog is inserted, either half of the arc may be moved without affecting the other half,
+and the perpendicular arc will keep the circuit connected.
+<P>
+Beginning users often leave many extra pins in their circuits.
+With the <B>Cleanup Pins</B> command (in menu <B>Edit / Cleanup Cell</B>),
+these pins are automatically removed from your circuit, leaving a cleaner network.
+The command does other pin organizations, such as making sure that text on these pins is located correctly,
+identifying zero-sized pins, and identifying oversized pins.
+The <B>Cleanup Pins Everywhere</B> command does this function for all cells at once.
+
+<!-- TRAILER -->

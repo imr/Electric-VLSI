@@ -1,0 +1,20 @@
+# header information:
+Hleparts|8.01w|USER_electrical_units()I70464
+
+# Tools:
+Ologeffort|LE_diffn_attr()S"diffn"|LE_diffp_attr()S"diffp"|LE_drive_attr()S"S"|LE_export_le_attr()S"le"|LE_last_convergence_epsilon()F0.1|LE_last_def_wire_ratio()F0.1666|LE_last_diff_ratio_nmos()F0.7|LE_last_diff_ratio_pmos()F0.7|LE_last_gate_cap()F0.4|LE_last_global_fanout_effort()F4.5|LE_last_keeper_size_adj()F0.1|LE_last_max_iterations()I40|LE_last_sized_fanout()F0.0|LE_last_top_level_facet()S"top{sch}"|LE_local_convergence_epsilon()F0.1|LE_local_def_wire_ratio()F0.1666|LE_local_diff_ratio_nmos()F0.7|LE_local_diff_ratio_pmos()F0.7|LE_local_fanout_attr()S"su"|LE_local_gate_cap()F0.4|LE_local_global_fanout_effort()F4.5|LE_local_keeper_size_adj()F0.1|LE_local_max_iterations()I40|LE_wire_length_attr()S"L"
+
+# Cell LogicalEffortLoad{ic}
+CLogicalEffortLoad|ic|1|artwork|1014853513000|1014863037000|E|ATTR_Capacitance(D5G0.75;HNUCY-2;)F0.0|prototype_center()I[0,0]
+Ngeneric:Facet-Center|art@0||0|0|0|0|0|AV|
+Nartwork:Opened-Polygon|art@1||0|-0.5|0|1|0|||ART_color()I26|trace()V[0/0.5,0/-0.5]
+Nartwork:Opened-Polygon|art@2||0|-1.5|2|0|0|||ART_color()I26|trace()V[-1/0,1/0]
+Nartwork:Opened-Polygon|art@3||0|-1|2|0|0|||ART_color()I26|trace()V[-1/0,1/0]
+Nartwork:Opened-Polygon|art@4||0|-2|0|1|0|||ART_color()I26|trace()V[0/0.5,0/-0.5]
+Nartwork:Closed-Polygon|art@5||0|-2.875|1.5|0.75|0|||ART_color()I26|trace()V[-0.75/0.375,0.75/0.375,0/-0.375]
+Nschematic:Bus_Pin|pin@0||0|0|0|0|0||
+Etap|D5G2;|pin@0||0|0|U
+X
+
+# Groups:
+GLogicalEffortLoad{ic}

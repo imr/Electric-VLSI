@@ -1,0 +1,77 @@
+<!-- HEADER 1-12-5: Schematics and Layout Tutorial: Analysis -->
+
+<H3>Design Rule Checking</H3>
+<P>
+At any time, you can check your layout against the design rules by using the
+<B>Check Hierarchically</B> command (in menu <B>Tool / DRC</B>), or just type the F5 key.
+When DRC is done, use the ">" key to step through and highlight errors; see the Messages window for comments.
+<P>
+You can also use this command to check a schematic.
+Schematic design rules are simply "rules of etiquette" which report unusual situations in the circuit drawing.
+See <A HREF="chap09-02-01.html#chap09-02-01">Section 9-2-1</A> for more on DRC.
+<P>
+<H3>Network Consistency Checking</H3>
+<P>
+One of the most useful analysis tools is Network Consistency Checking (NCC).
+This compares the networks in two different cells to make sure they are equivalent
+(this step is sometimes called LVS: layout-versus-schematic).
+<P>
+To run NCC, edit either the layout or the schematic cell, and use the
+<B>Schematic and Layout Views of Cell in Current Window</B> command
+(in menu <B>Tool / NCC</B>).
+This check will not consider transistor sizes, only circuit connectivity.
+<P>
+When the circuit has passed NCC at the connectivity level, turn on transistor size checking.
+To do this, check "Check transistor sizes" in the NCC Preferences
+(use the <B>Preferences</B> command in menu <B>File</B>, section "Tools", tab "NCC").
+<P>
+Electric ideally likes layout, schematic and icons of the same items to be named identically
+(i.e. "nand2{sch}" and "nand2{lay}" have identical names).
+Having the same name places cells in the same cell group.
+(Much of this naming happens automatically in Electric when new views of a current cell are made.)
+If the two cells to be compared are not in the same group,
+additional work is needed to tell NCC what to compare.
+See <A HREF="chap09-07-01.html#chap09-07-01">Section 9-7-1</A> for more on NCC.
+<P>
+
+<H3>Simulation</H3>
+<P>
+Electric has two built-in simulators, and can interface to many more.
+The built-in simulators are ALS and IRSIM.
+ALS is a logic-level simulator, and is not useful for transistor-level design.
+IRSIM is a gate-level simulator, and can handle the transistors in this example.
+Unfortunately, IRSIM is not packaged with the basic Electric system (it is a free, but separate, "plugin").
+See <A HREF="chap01-05.html#chap01-05">Section 1-5</A>
+for details on adding the IRSIM simulator to Electric.
+<P>
+To simulate a circuit with IRSIM, use the <B>IRSIM: Simulate Current Cell</B> command
+(in menu <B>Tool / Simulation (Built-in)</B>).
+A waveform window appears to show the simulation status.
+To get the waveform window and your schematic/layout to appear side-by-side, use the
+<B>Tile Vertically</B> command (in menu <B>Window / Adjust Position</B>).
+<P>
+The exported signals of your design will automatically appear in the waveform window.
+To add an internal signal to the waveform display,
+select it and use the <B>Add to Waveform in New Panel</B> (in menu <B>Edit / Selection</B>),
+or just type "a".
+To set a "1" value on a signal, select it (in either the waveform or the schematic/layout)
+and use <B>Set Signal High at Main Time</B> (in menu <B>Tool / Simulation (Built-in)</B>),
+or just type "V".
+You can drag the "main" time cursor (the dashed line) to any point in the waveform window.
+Notice that as you drag it, level information is displayed in the schematic/layout.
+See <A HREF="chap09-05-01.html#chap09-05-01">Section 9-5-1</A> for more on the IRSIM simulator.
+<P>
+Besides built-in simulation, Electric can generate input decks for many popular external simulators
+(see <A HREF="chap09-04-01.html#chap09-04-01">Section 9-4-1</A>).
+For example, to simulate with Spice, follow these steps:
+<UL>
+<LI>Use the Spice Preferences to select the Spice engine that you have (Spice 3, HSpice, PSpice,
+SmartSpice, etc.)</LI>
+<LI>Use the <B>Write Spice Deck...</B> command (in menu <B>Tool / Simulation (Spice)</B>)
+to generate an input deck for Spice.</LI>
+<LI>Run the simulation externally</LI>
+<LI>Use the <B>Plot Spice Listing...</B> command (in menu <B>Tool / Simulation (Spice)</B>)
+to read the output of Spice and display it in a waveform window.</LI>
+</UL>
+See <A HREF="chap09-04-03.html#chap09-04-03">Section 9-4-3</A> for more on Spice.
+<!-- TRAILER -->

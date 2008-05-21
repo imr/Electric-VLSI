@@ -1,0 +1,33 @@
+<!-- NEED 2in -->
+
+<!-- HEADER 9-6-5: River Routing -->
+
+<!-- COMMAND Tool/Routing/River-Route -->
+
+<TABLE><TR><TD>
+River routing is the running of multiple parallel wires between two facing rows
+(presumably two cell instances or two rows of instances).
+The wires must remain in sequential order and cannot cross each other.
+Thus, they appear as a flowing stream of lines, and have the appearance of a river.
+</TD><TD><CENTER><IMG SRC="fig09-60.png" ALT="Figure 9.60"></CENTER></TD></TR></TABLE>
+<P>
+To specify an intended path for the river-router,
+every connection must be made with an Unrouted arc.
+Thus, before river-routing, there should be a series of direct (and presumably nonmanhattan) unrouted arcs.
+These arcs are replaced with the appropriate geometry during river-routing.
+<P>
+To convert the unrouted wires into layout,
+use the <B>River-Route</B> command (in menu <B>Tool / Routing</B>).
+If there are unrouted arcs selected, these will be the only ones converted.
+Otherwise, all unrouted arcs in the cell will be converted.
+If it is necessary, nodes may be moved to make room for the river-routed wires.
+<P>
+The river router always routes to the left or bottom side of the routing channel.
+Thus, if there is a vertical channel that is very wide,
+the wires will run to the left side and then jog to their proper location there.
+The only way to force routing to the right or top side is to rotate the entire circuit so that these sides are on the left and bottom.
+<P>
+For an example of river routing, open the Samples library and edit the cell "tool-RoutingRiver"
+(you can read the library with the <B>Sample Cells</B> command, in menu <B>Help / Load Built-in Libraries</B>).
+
+<!-- TRAILER -->

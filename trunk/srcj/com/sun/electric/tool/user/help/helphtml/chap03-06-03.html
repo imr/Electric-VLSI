@@ -1,0 +1,37 @@
+<!-- HEADER 3-6-3: Export Deletion and Movement -->
+
+<!-- COMMAND Export/Delete Export -->
+<!-- COMMAND Export/Delete Exports on Selected -->
+<!-- COMMAND Export/Delete Exports in Highlighted Area -->
+<!-- COMMAND Export/Move Export -->
+
+You can delete an export simply by selecting its name and using the <B>Selected</B>
+command of the <B>Edit / Erase</B> menu (or typing the Delete key).
+You can also use the <B>Delete Export</B> command (in menu <B>Export</B>).
+<P>
+To remove many exports at once,
+the <B>Delete Exports on Selected</B> command removes all exports on all highlighted nodes.
+Also, the <B>Delete Exports in Highlighted Area</B> command removes only those exports that are in the selected area.
+When an export is deleted, all arcs connected to that port on instances of the current cell
+(higher up the hierarchy) are also deleted
+(see <A HREF="chap02-03.html#chap02-03">Section 2-3</A>).
+<P>
+To move export text, simply select it and drag it.
+The location of the text has no effect on the location of the export:
+moving the text is only for improvement of the display.
+However, if you check "Move node with export name" in the
+Ports/Exports Preferences (in menu <B>File / Preferences...</B>, "Display" section, "Ports/Exports" tab),
+then moving an export name will cause the node (and the export) to move as well.
+<P>
+It is sometimes desirable to keep an export but to transfer it to another node.
+If a cell is in use higher in the hierarchy,
+unexporting and then reexporting deletes all existing connections.
+Instead, the <B>Move Export</B> command (in menu <B>Export</B>) can be used.
+Before using this command,
+two nodes and their ports must be highlighted with
+<I><A HREF="chap01-08.html#chap01-08">left</A></I>
+button and
+<I><A HREF="chap01-08.html#chap01-08">shift-left</A></I> button.
+The export is moved from the first node to the second node.
+
+<!-- TRAILER -->

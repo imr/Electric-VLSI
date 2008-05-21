@@ -1,0 +1,23 @@
+<!-- HEADER 7-3-1: I/O Specifications -->
+
+Electric is able to read and write circuits in a number of different formats.
+This is done with the <B>Import</B> and the <B>Export</B> commands (in menu <B>File</B>).
+See <A HREF="chap03-09-02.html#chap03-09-02">Section 3-9-2</A> for more on Import;
+see <A HREF="chap03-09-03.html#chap03-09-03">Section 3-9-3</A> for more on Export.
+<P>
+To properly control translation,
+use the many settings dialogs for the different file types,
+both Preferences (in menu <B>File / Preferences...</B>, "I/O" section) and
+Project Settings (in menu <B>File / Project Settings...</B>).
+
+<P>
+Unfortunately, many of these formats are pure geometry with no information about the circuit connections.
+When read, they appear as pure-layer nodes.
+This means that transistors, contacts, and other multi-layer nodes are not constructed properly.
+Although the cell appears visually correct, and can be used to export the same type of file, it cannot be analyzed at a circuit level.
+The node extractor can be used to convert these pure-layer nodes to true Electric components
+(see <A HREF="chap09-10-02.html#chap09-10-02">Section 9-10-2</A>).
+<P>
+The next few sections describe control of different I/O formats.
+
+<!-- TRAILER -->

@@ -1,0 +1,33 @@
+<!-- HEADER 10-4-3: Groups -->
+
+After all of the cells are listed, they are organized into groups.
+Each group line consists simply of a list of cells in that group.
+The first cell listed is the "main schematics" of the group.
+If there is no such cell, the first field is empty.
+After that, the cells appear in alphabetical order.
+<P>
+Group lines are optional, because much of the group information can be derived from the cell names
+and cell group fields.
+<P>
+When multiple groups are declared, they appear sorted by the group name (which is derived from the cell names in it).
+The syntax is:
+<P>
+<CENTER><TABLE BORDER=1 WIDTH="90%">
+<TR><TD COLSPAN=2><B>G&lt;cell&gt; | &lt;cell&gt; | ... | &lt;cell&gt;</B></TD></TR>
+<TR><TD WIDTH="20%">&lt;cell&gt;</TD><TD WIDTH="80%">the name of the cells in the group.
+&lt;cell&gt; may consists only of proto name,
+because all cells with the same base name are put into the same group.</TD></TR>
+</TABLE>
+</CENTER>
+<P>
+Examples:
+<P>
+&nbsp;&nbsp;&nbsp;&nbsp;<CODE>Gsam;2{sch}</CODE>
+<P>
+"sam;2{sch}" is the main schematic of the cell group consisting of all views and versions of cells with proto name "sam".
+<P>
+&nbsp;&nbsp;&nbsp;&nbsp;<CODE>G|high|higha</CODE>
+<P>
+Places all views and versions of cells with proto names "high" and "higha" in the same group (there is no main schematic).
+
+<!-- TRAILER -->

@@ -1,0 +1,58 @@
+<!-- HEADER 7-3-2: CIF Control -->
+
+<!-- COMMAND File/Import/CIF (Caltech Intermediate Format)... -->
+<!-- COMMAND File/Export/CIF (Caltech Intermediate Format)... -->
+<!-- PREFERENCE I/O/CIF -->
+<!-- PROJECTSETTING CIF -->
+
+<P>
+<TABLE><TR><TD>
+CIF (Caltech Intermediate Format) is used as an interchange between
+design systems and fabrication facilities.
+Most CIF settings are found in the CIF Project Settings
+(in menu <B>File / Project Settings...</B>, "CIF" tab).
+Here you can assign CIF names to each layer in the technology.
+You can also control how CIF output is produced.
+</TD><TD><CENTER><IMG SRC="fig07-26.png" ALT="Figure 7.26"></CENTER></TD></TR></TABLE>
+
+<P>
+By default, CIF output writes the entire hierarchy below the current cell.
+If you check "Output Mimics Display",
+cell instances that are unexpanded will be represented as an outline in the CIF file.
+This is useful when the CIF output is intended for hardcopy display,
+and only the screen contents is desired.
+<P>
+Another option is whether or not to merge adjoining geometry.
+This is an issue because of the duplication and overlap that occurs wherever arcs and nodes meet.
+The default action is to write each node and arc individually.
+This makes the file larger because of redundant box information,
+however it is faster to generate and uses simpler constructs.
+If you check "Output Merges Boxes",
+all connecting regions on the same layer are merged into one complex polygon.
+This requires more processing, produces a smaller file, and generates more complex constructs.
+<P>
+Another option is whether or not to instantiate the circuit in the CIF.
+By default, the currently displayed cell becomes the top level of the CIF file,
+and is instantiated at the end of the file.
+This causes the CIF file to display the current cell.
+If the CIF file is to be used as a library, with no current cell,
+then uncheck "Output Instantiates Top Level", and there will be no invocation of the current cell.
+<P>
+Be advised that the CIF format has a minimum resolution of 10 nanometers.
+Since nothing smaller can be accurately represented in the file, the CIF output of smaller geometries will
+generate errors.
+
+<P>
+<TABLE><TR><TD><CENTER><IMG SRC="fig07-10.png" ALT="Figure 7.10"></CENTER></TD><TD>
+Only one setting is unrelated to circuitry and found in the CIF Preferences
+(in menu <B>File / Preferences...</B>, "I/O" section, "CIF" tab).
+This controls how CIF is read.
+<P>
+When reading CIF files, the CIF "wire" statements are assumed to have rounded geometry at the ends and corners.
+If you check "Input Squares Wires", CIF input assumes that wire ends are square and extend by half of their width.
+<P>
+For the difference between Preferences and Project Settings, see
+<A HREF="chap06-03.html#chap06-03">Section 6-3</A>.
+</TD></TR></TABLE>
+
+<!-- TRAILER -->

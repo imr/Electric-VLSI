@@ -1,0 +1,184 @@
+<!-- HEADER 9-7-5-3: NCC GUI: Parts and Wires -->
+
+<P>
+NCC
+ finds mismatches by applying two partitioning techniques in sequence.
+First it uses <I>local partitioning</I> and
+then it uses <I>hash code partitioning</I>. If local partitioning
+finds mismatches, then NCC reports only those. The mismatches in
+local partitioning of parts and wires are grouped under nodes with
+names "Parts [X]"
+ and "Wires [X]",
+where "X" is the number of mismatched local partitioning classes (see figure below).
+Each class node represents a class of parts or wires sharing the same
+local characteristics.</P>
+<P>
+<H3>Parts</H3>
+<P>
+Parts are partitioned into equivalence
+classes based upon their type and the number of wires attached to
+them. The figure below shows a list of two part classes.</P>
+<P>
+<CENTER>
+<IMG SRC="fig09-46.png" ALT="Figure 9.46" BORDER=1></CENTER>
+<P>
+
+The tree node corresponding to the
+first class is selected and has the name
+<BR>
+<CODE>&nbsp;&nbsp;&nbsp;#1
+ [36]: pads180nm_100um:PAD_dgnd</CODE>
+<BR>
+which has the
+ following meaning:</P>
+<UL>
+<LI>
+<CODE><U>#1</U></CODE> The
+ sequence number of this class</LI>
+<LI><CODE><U>[36]</U></CODE> The
+ number of mismatched parts in one of the two cells, whichever is
+bigger. In our example, the schematic cell has 1 mismatched part
+in this class and the layout has 36 mismatched parts in this
+class. The maximum of 1 and 36 is 36 and, therefore, the tree node
+has "[36]" in its name.</LI>
+<LI><CODE><U>pads180nm_100um</U></CODE> Part library</LI>
+<LI><CODE><U>PAD_dgnd</U></CODE> Part
+ type</LI>
+</UL>
+<P>
+In the example above, part types were
+enough to partition parts into classes. In many other cases, like the
+one in the figure below, types are not enough and the number of different
+wires attached to a part is employed as an additional partitioning
+criterion.</P>
+
+<P>
+
+When a part class node is
+selected, the right half of the window displays a two-column table.
+Each column corresponds to one of the compared cells and has a list
+of that cell's parts which belong to the selected part class.
+Matched parts are printed in green.</P>
+<P>
+<CENTER>
+<IMG SRC="fig09-47.png" ALT="Figure 9.47" BORDER=1><BR>
+<FONT SIZE="-1">The number of
+ attached Wires as a Part class characteristic</FONT></CENTER>
+<P>
+Parts on the same line
+ match each other. Mismatched parts are printed in red in no
+particular order.</P>
+<P>
+<H3>
+Wires</H3>
+<P>
+NCC partitions wires into equivalence
+classes based upon the number of different port types attached to
+them. Examples of port types include an NMOS "gate"
+port, a PMOS "diffusion" port,
+and a NAND "output" port.
+Port
+ type counts are represented as a list of leaf nodes under the wire
+class node. Since zero-value counts at the beginning of the list tend
+to be numerous and are rarely used by designers, they are further
+grouped under a "0's";
+ node.</P>
+
+<P>
+For
+ example, in the figure below, the second wire class is expanded and we can
+see its four characteristics, the first three of which are &quot;zero&quot;.
+The first characteristic has a leaf node called
+"pads180nm_150um:PAD_raw
+ welltapL ports", which means that wires in this class
+are <I>not</I> attached to
+the port "welltapL" of the part
+"PAD_raw" from the library
+"pads180nm_150um".</P>
+
+<P>
+The fourth characteristic is "1
+ = number of pads180nm_150um:PAD_raw padRaw ports".
+The
+ name suggests that all wires in this class are connected to the
+"padRaw" ports of 3 instances of
+parts with type "PAD_raw" from
+library "pads180nm_150um".</P>
+<P>
+<CENTER>
+<IMG SRC="fig09-41.png" ALT="Figure 9.41" BORDER=1></CENTER>
+<P>
+When a wire class node is selected, the
+right half of the window displays a two-column table (see figure below). Each
+column corresponds to one of the compared cells and has a list of
+that cell's wires which belong to the selected wire class. Matched
+wires are printed in green, the two wires on the same line match each
+other. Mismatched wires are printed in red in no particular order.</P>
+<P>
+<CENTER><IMG SRC="fig09-48.png" ALT="Figure 9.48" BORDER=1></CENTER>
+<P>
+The
+ tree node names contain the first mismatched wires from both lists.
+For example, in the above figure, the second wire class has the node name
+<BR>
+&nbsp;&nbsp;&nbsp;<CODE>#2
+ : { E_eq_Vo,...}
+ { W_core_eqVo,... }  [10]</CODE>
+<BR>
+which has the following meaning:</P>
+<UL>
+<LI><CODE><U>#2</U></CODE> The
+ sequence number of this class.</LI>
+<LI><CODE><U>{
+E_eq_Vo,...}</U></CODE> The
+ first mismatched wire in the first cell's list is called "E_eq_Vo."
+The ellipsis after the name suggest
+ that there is more than one wire in the list.</LI>
+<LI><CODE><U>{ W_core_eqVo,... }</U></CODE> The
+ first mismatched wire in the second cell's list is called
+"W_core_eqVo."</LI>
+<LI><CODE><U>[10]</U></CODE> The
+ number of mismatched wires in one of the two cells, whichever is
+bigger. In our example, the schematic cell has 10 mismatched wires
+in this class, and the layout has 2 mismatched wires in this
+class. The maximum of 10 and 2 is 10, and therefore, the tree node
+has "[10]" in its name.</LI>
+</UL>
+<P>
+<H3>
+Hash Code Partitioning</H3>
+<P>
+If
+ local partitioning fails to find a mismatch, then NCC reports
+mismatches found by <I>hash code partitioning</I>
+under the nodes labeled "Parts
+ (hash code)" and "Wires
+ (hash code)".
+Unlike their local partitioning
+counterparts, hash code partitioning classes do not have any
+characteristics.</P>
+<P>
+<H3>
+Selecting Multiple Classes</H3>
+<P>
+It is possible to select more than one
+class by holding the <I>Control</I> (<I>Command</I> on Macintosh) or
+the <I>Shift</I> key during selection. In this case, the right side
+will have multiple rows, one row per class. The figure below shows what is
+displayed when the three wire classes in the figure above are selected. Up to
+five classes can be displayed at once. Rows are arranged in the order
+in which the classes are selected.</P>
+<P>
+<CENTER><IMG SRC="fig09-49.png" ALT="Figure 9.49" BORDER=1><BR>
+<FONT SIZE="-1">Up to five equivalence classes can be selected simultaneously</FONT></CENTER>
+<P>
+Selecting one or more subnodes of a
+class node is equivalent to selecting the class node itself. This
+means that no class appears twice in the table on the right. If some
+node of a type different from Parts, Wires, Parts (hash code), or
+Wires (hash code) is selected as well, then it has a higher display
+priority and its contents are displayed instead. For example, if an
+exports node was selected with the three wire class nodes, then the
+export table would be displayed on the right.</P>
+
+<!-- TRAILER -->

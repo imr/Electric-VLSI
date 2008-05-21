@@ -1,0 +1,66 @@
+<!-- HEADER 6-13: CVS Project Management -->
+
+<!-- COMMAND File/CVS/Commit All Open Libraries -->
+<!-- COMMAND File/CVS/Update Open Libraries -->
+<!-- COMMAND File/CVS/Get Status Open Libraries -->
+<!-- COMMAND File/CVS/List Editors Open Libraries -->
+<!-- COMMAND File/CVS/Update Project Libraries -->
+<!-- COMMAND File/CVS/Get Status Project Libraries -->
+<!-- COMMAND File/CVS/List Editors Project Libraries -->
+<!-- COMMAND File/CVS/Checkout From Repository -->
+
+<!-- PREFERENCE General/CVS -->
+
+Electric implements an interface to the Concurrent Versioning System (CVS) program,
+a popular version control system.
+This section assumes the user is familiar with how CVS works, and the
+various CVS commands.  Such information is readily available on the web.
+<P>
+<TABLE><TR><TD>
+To enable Electric to use CVS,
+you must first configure the CVS Preferences (in
+<B>File / Preferences...</B>, "General" section, "CVS" tab).  CVS must be enabled,
+and the repository location must be specified.  Electric does not implement
+the CVS protocol, it merely provides an interface to interact with an external
+CVS program, so that program must be specified in the preferences.
+</TD><TD><CENTER><IMG SRC="fig06-27.png" ALT="Figure 6.27"></CENTER></TD></TR></TABLE>
+
+<P>
+The Electric GUI allows the user to perform the common CVS commands via
+the menu <B>File / CVS</B>, or via the popup-context menu on the libraries
+and cells listed in the explorer tree.
+The menu commands apply to all libraries; the explorer-tree context menus apply only to the selected library.
+<P>
+With CVS enabled in Electric, the explorer tree uses colors to show the
+state of libraries or cells in CVS.  When using a JELIB or ELIB library
+format, the library name and all cells are the same color, because
+the entire library is a single file.  When using
+a DELIB format, the cells are different color, because each cell
+is its own file.  The colors and their associated state
+are shown below.  Colors at the top of the table will be displayed before colors
+at the bottom of the table, if two states are simultaneously valid.
+<P>
+<!-- NEED 2in -->
+<CENTER><TABLE border="1" WIDTH="60%">
+<TR><TD ALIGN=CENTER><B>State</B></TD><TD ALIGN=CENTER><B>Color</B></TD></TR>
+<TR><TD>Conflicts with CVS version</TD><TD><font color="#ff0000">Red</font></TD></TR>
+<TR><TD>Locally Modified</TD><TD><font color="#0000ff">Blue</font></TD></TR>
+<TR><TD>Needs Update</TD><TD><font color="#FF66FF">Magenta</font></TD></TR>
+<TR><TD>Added/Removed</TD><TD><font color="#00ff00">Green</font></TD></TR>
+<TR><TD>Unknown (not in CVS)</TD><TD><font color="#FFCC66">Orange</font></TD></TR>
+<TR><TD>Up-to-date</TD><TD>Black</TD></TR>
+</TABLE></CENTER>
+<P>
+These are the commands implemented by Electric:
+<UL>
+<LI><B>Update</B> Retrieves latest version from CVS repository.</LI>
+<LI><B>Commit</B> Commit a locally modified version to CVS.</LI>
+<LI><B>Get Status</B> Check the status with respect to the CVS version.</LI>
+<LI><B>List Editors</B> List other users who have a locally modified version of the file.</LI>
+<LI><B>Show Log</B> Display a dialog of all versions of the file in CVS (allows checkout of specific version).</LI>
+<LI><B>Rollback</B> Revert to latest CVS version.</LI>
+<LI><B>Add</B> Add the file to CVS (requires a commit to actually add it).</LI>
+<LI><B>Remove</B> Remove the file from CVS (requires a commit to actually remove it).</LI>
+</UL>
+
+<!-- TRAILER -->

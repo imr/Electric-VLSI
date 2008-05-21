@@ -1,0 +1,338 @@
+<!-- NEED 2in -->
+
+<!-- HEADER 7-6-2: The FPGA Technology -->
+
+<!-- COMMAND Edit/Technology Specific/FPGA/Read Architecture And Primitives... -->
+<!-- COMMAND Edit/Technology Specific/FPGA/Read Primitives... -->
+<!-- COMMAND Edit/Technology Specific/FPGA/Edit Pips... -->
+<!-- COMMAND Edit/Technology Specific/FPGA/Show No Wires -->
+<!-- COMMAND Edit/Technology Specific/FPGA/Show Active Wires -->
+<!-- COMMAND Edit/Technology Specific/FPGA/Show All Wires -->
+<!-- COMMAND Edit/Technology Specific/FPGA/Show Text -->
+<!-- COMMAND Edit/Technology Specific/FPGA/Hide Text -->
+
+The FPGA technology is a "soft" technology that creates primitives according to an FPGA Architecture file.
+Special commands in the <B>Edit / Technology Specific / FPGA</B> menu let you create the
+FPGA primitives, build FPGA structures, and program them.
+<P>
+The FPGA Architecture file contains all of the information needed to define a specific FPGA chip.
+It has three sections:
+the <I>Primitive Definition</I> section,
+the <I>Block Definition</I> section, and the <I>Architecture</I> section.
+The Primitive Definition section describes the basic blocks for a family of FPGA chips
+(these are primitives in the FPGA technology).
+The Block Definition section builds upon the primitives to create higher-level blocks.
+Finally, the Architecture section defines the top-level block that is the FPGA.
+<P>
+An FPGA Architecture file must have the Primitive Definition section,
+but it need not have the Block Definition or Architecture Sections.
+This is because the placement of the primitives can be saved in an Electric library,
+rather than the architecture file.
+Thus, after reading the Primitive Definition section (which creates the primitives),
+and reading the Block Definition and Architecture Sections
+(which places the primitives to create a chip library) the library can be saved to disk.
+Subsequent design activity can proceed by reading only the Primitive Definition section and then
+reading the library with the chip definition.
+This avoids large FPGA Architecture files
+(the Primitive Definition section will be smaller than the Block Definition and Architecture sections).
+<P>
+<H3>Primitive Definition Section</H3>
+<P>
+The Primitive Definition section defines the lowest-level blocks,
+which become primitive nodes in the FPGA technology.
+A primitive definition looks like this:
+<P>
+<CODE>
+<FONT SIZE="-1">
+(primdef<BR>
+&nbsp;&nbsp;(attributes<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(name PRIMNAME)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(size X Y)<BR>
+&nbsp;&nbsp;)<BR>
+&nbsp;&nbsp;(ports<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(port<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(name PORTNAME)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(position X Y)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(direction input | output | bidir)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;)<BR>
+&nbsp;&nbsp;)<BR>
+&nbsp;&nbsp;(components<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(pip<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(name PIPNAME)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(position X Y)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(connectivity NET1 NET2)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;)<BR>
+&nbsp;&nbsp;)<BR>
+&nbsp;&nbsp;(nets<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(net<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(name INTNAME)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(segment FROMPART TOPART)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;)<BR>
+&nbsp;&nbsp;)<BR>
+)</FONT></CODE>
+<P>
+The <CODE>attributes</CODE> section defines general information about the block.
+The <CODE>ports</CODE> section defines external connections.
+The <CODE>components</CODE> section defines logic in the block (currently only PIPs).
+The <CODE>nets</CODE> section defines internal networks.
+There can be multiple <CODE>segment</CODE> entries in a net,
+each defining a straight wire that runs from the <CODE>FROMPART</CODE> to the <CODE>TOPART</CODE>.
+These parts can be either <CODE>port PORTNAME</CODE> or <CODE>coord X Y</CODE>,
+depending on whether the net ends at a port or at an arbitrary position inside of the primitive.
+<P>
+For example, this block has two vertical nets and two horizontal nets.
+Four pips are placed at the intersections.
+Six ports are defined (two on the left, two on the top, and two on the bottom).
+Here is the code:
+<P>
+<TABLE><TR><TD VALIGN=TOP WIDTH="65%">
+<CODE><FONT SIZE="-1">
+(primdef<BR>
+&nbsp;&nbsp;(attributes<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(name sampleblock)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(size 40 60)<BR>
+&nbsp;&nbsp;)<BR>
+
+&nbsp;&nbsp;(ports<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(port (name inleft1) (position  0 40)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(direction input) )<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(port (name inleft2) (position  0 20)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(direction input) )<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(port (name outtop1) (position 10 60)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(direction output) )<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(port (name outtop2) (position 30 60)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(direction output) )<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(port (name outbot1) (position 10  0)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(direction output) )<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(port (name outbot2) (position 30  0)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(direction output) )<BR>
+&nbsp;&nbsp;)</FONT></CODE>
+</TD><TD WIDTH="35%"><CENTER><IMG SRC="fig07-11.png" ALT="Figure 7.11"></CENTER></TD></TR></TABLE>
+<CODE><FONT SIZE="-1">
+&nbsp;&nbsp;(components<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(pip (name pip1) (position 10 20) (connectivity intv1 inth1) )<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(pip (name pip2) (position 30 20) (connectivity intv2 inth1) )<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(pip (name pip3) (position 10 40) (connectivity intv1 inth2) )<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(pip (name pip4) (position 30 40) (connectivity intv2 inth2) )<BR>
+&nbsp;&nbsp;)<BR>
+<BR>
+&nbsp;&nbsp;(nets<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(net (name intv1) (segment port outbot1 port outtop1 ) )<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(net (name intv2) (segment port outbot2 port outtop2 ) )<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(net (name inth1) (segment port inleft2 coord 30 20 ) )<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(net (name inth2) (segment port inleft1 coord 30 40 ) )<BR>
+&nbsp;&nbsp;)<BR>
+)</FONT></CODE>
+
+<P>
+<H3>Block Definition and Architecture Sections</H3>
+<P>
+The Block Definition and Architecture sections define higher-level blocks composed of primitives.
+They looks like this:
+<P>
+<CODE>
+<FONT SIZE="-1">
+(blockdef
+<BR>
+&nbsp;&nbsp;(attributes
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(name CHIPNAME)
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(size X Y)
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(wirecolor COLOR)
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(repeatercolor COLOR)
+<BR>
+&nbsp;&nbsp;)
+<BR>
+
+<BR>
+&nbsp;&nbsp;(ports
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(port
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(name PORTNAME)
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(position X Y)
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(direction input | output | bidir)
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;)
+<BR>
+&nbsp;&nbsp;)
+<BR>
+
+<BR>
+&nbsp;&nbsp;(components
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(instance
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(attributes ATTPAIRS)
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(type BLOCKTYPE)
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(name BLOCKNAME)
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(position X Y)
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(rotation ROT)
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;)
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(repeater
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(name BLOCKNAME)
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(porta X Y)
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(portb X Y)
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(direction vertical | horizontal)
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;)
+<BR>
+&nbsp;&nbsp;)
+<BR>
+
+<BR>
+&nbsp;&nbsp;(nets
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(net
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(name INTNAME)
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(segment FROMPART TOPART)
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;)
+<BR>
+&nbsp;&nbsp;)
+<BR>
+)
+<BR>
+</FONT></CODE>
+<P>
+The only difference between the Architecture section and the Block Definition section is that the
+Architecture section has the keyword <CODE>architecture</CODE> instead of <CODE>blockdef</CODE>.
+There can be only one <CODE>architecture</CODE> section, but there can be many <CODE>blockdef</CODE>s,
+defining a complete hierarchy.
+<P>
+The <CODE>attributes</CODE> section defines general information about the block.
+<P>
+The <CODE>ports</CODE> section defines external connections.
+<P>
+The <CODE>components</CODE> section defines logic in the block
+(currently instances of other blocks or repeaters).
+The <CODE>rotation</CODE> of an instance is the number of degrees counterclockwise, rotated about the center.
+The <CODE>attributes</CODE> section of the instance assigns name/value pairs
+(this can be used to program the FPGA).
+<P>
+The <CODE>nets</CODE> section defines internal networks.
+There can be multiple <CODE>segment</CODE> entries in a net,
+each defining a straight wire that runs from the <CODE>FROMPART</CODE> to the <CODE>TOPART</CODE>.
+These parts can be either <CODE>component INSTNAME PORTNAME</CODE>, <CODE>port PORTNAME</CODE>,
+or <CODE>coord X Y</CODE>, depending on whether the net ends at a component,
+port or at an arbitrary position inside of the block.
+<P>
+<TABLE><TR><TD VALIGN=TOP WIDTH="65%">
+Here is an example of block definition code and its layout.
+<P>
+<CODE><FONT SIZE="-1">
+(blockdef<BR>
+&nbsp;&nbsp;(attributes<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(name testblock)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(size 80 150)<BR>
+&nbsp;&nbsp;)<BR>
+
+&nbsp;&nbsp;(components<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(instance (type sampleblock) (name block0)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(position 30 80) )<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(instance (type sampleblock) (name block1)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(position 30 10) )<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(repeater (name r0) (porta 10 120)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(portb 20 120) (direction horizontal)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(repeater (name r1) (porta 10 100)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(portb 20 100) (direction horizontal)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(repeater (name r2) (porta 10 50)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(portb 20 50) (direction horizontal)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(repeater (name r3) (porta 10 30)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(portb 20 30) (direction horizontal)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;)<BR>
+&nbsp;&nbsp;)</FONT>
+</CODE>
+</TD><TD WIDTH="35%"><CENTER><IMG SRC="fig07-25.png" ALT="Figure 7.25"></CENTER></TD></TR></TABLE>
+<P>
+<CODE><FONT SIZE="-1">
+&nbsp;&nbsp;(ports<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(port (name top0)  (position 40 150) (direction bidir) )<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(port (name top1)  (position 60 150) (direction bidir) )<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(port (name left0) (position  0 120) (direction input) )<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(port (name left1) (position  0 100) (direction input) )<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(port (name left2) (position  0  50) (direction input) )<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(port (name left3) (position  0  30) (direction input) )<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(port (name bot0)  (position 40   0) (direction bidir) )<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(port (name bot1)  (position 60   0) (direction bidir) )<BR>
+&nbsp;&nbsp;)<BR>
+<BR>
+&nbsp;&nbsp;(nets<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(net (name iv0)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(segment port top0 component block0 outtop1) )<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(net (name iv1)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(segment port top1 component block0 outtop2) )<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(net (name iv2)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(segment component block0 outbot1 component block1 outtop1))<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(net (name iv3)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(segment component block0 outbot2 component block1 outtop2))<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(net (name iv4)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(segment component block1 outbot1 port bot0) )<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(net (name iv5)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(segment component block1 outbot2 port bot1) )<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(net (name ih0)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(segment port left0 component r0 a) )<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(net (name ih1)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(segment component r0 b component block0 inleft1) )<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(net (name ih2)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(segment port left1 component r1 a) )<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(net (name ih3)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(segment component r1 b component block0 inleft2) )<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(net (name ih4)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(segment port left2 component r2 a) )<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(net (name ih5)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(segment component r2 b component block1 inleft1) )<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(net (name ih6)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(segment port left3 component r3 a) )<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(net (name ih7)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(segment component r3 b component block1 inleft2) )<BR>
+&nbsp;&nbsp;)<BR>
+)
+</FONT></CODE>
+<P>
+<!-- NEED 3in -->
+<H3>Commands</H3>
+To read an architecture file, use the <B>Read Architecture And Primitives...</B> command
+(in menu <B>Edit / Technology Specific / FPGA</B>).
+You will be prompted for an architecture file.
+To read only the primitives from an architecture file, use the
+<B>Read Primitives...</B> command.
+<P>
+Once an FPGA is on the screen, two aspects of its display can be controlled: the wires
+and the text.
+Three commands control the display of wires:
+<B>Show All Wires</B> displays every wire,
+<B>Show No Wires</B> hides every wire, and
+<B>Show Active Wires</B> shows only the wires that have been
+connected to PIPs that have been programmed.
+Two commands control the display of text:
+<B>Show Text</B> displays text and <B>Hide Text</B> turns text display off.
+<P>
+Once an FPGA has been created,
+you can program the PIPs by selecting a component and using the
+<B>Edit Pips...</B> command.
+This will display a list of active PIPs on the component.
+For example, after clicking on one of the "SampleBlock" instances,
+you can type the string "pip1 pip4" to program two of the pips in that instance.
+
+<!-- TRAILER -->

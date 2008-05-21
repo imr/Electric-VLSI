@@ -1,0 +1,52 @@
+<!-- NEED 3in -->
+
+<!-- HEADER 7-5-2: Multipage Schematics and Frames -->
+
+<!-- COMMAND Cell/Multi-Page Cells/Make Cell Multi-Page -->
+<!-- COMMAND Cell/Multi-Page Cells/Create New Page -->
+<!-- COMMAND Cell/Multi-Page Cells/Delete This Page -->
+<!-- COMMAND Cell/Multi-Page Cells/Edit Next Page -->
+<!-- COMMAND Cell/Multi-Page Cells/Convert old-style Multi-Page Schematics -->
+<!-- PREFERENCE Display/Frame -->
+
+Multipage schematics are implemented in Electric
+by having each page map to a different area of a vast schematic cell.
+To create one of these multipage cells, use the <B>Make Cell Multi-Page</B> command
+(in menu <B>Cell / Multi-Page Cells</B>).
+You will then be editing page 1 of the multi-page schematic.
+<P>
+You can add pages to the current multipage schematic with the <B>Create New Page</B>
+command (in menu <B>Cell / Multi-Page Cells</B>).
+You can delete the current page with <B>Delete This Page</B>.
+To advance to the next page, use <B>Edit Next Page</B>.
+<P>
+Older versions of Electric implemented multipage schematics with different view types ("p1", "p2", ...).
+If these views appear instead of proper pages, use the <B>Convert old-style Multi-Page Schematics</B> command.
+<P>
+As a graphical aid to schematic design, frames can be displayed in a cell by using the <B>Cell Properties...</B>
+command (in menu <B>Cell</B>).
+Multi-page schematics require a cell frame on every page, but their presence is optional in other cells.
+<P>
+<TABLE><TR><TD><CENTER><IMG SRC="fig03-10.png" ALT="Figure 3.10"></CENTER></TD><TD>
+The frame size can be "Half-A", "A", "B", "C", "D",
+and "E".
+The frame can be horizontal (landscape) or vertical (portrait).
+You can choose to display a title box in the lower-right corner.
+The designer name can also be set for each cell.
+</TD></TR></TABLE>
+<P>
+Besides the designer name, cell frames have a company name and a project name.
+These values are not set for each cell, but instead are preferences that
+are set for each user.
+Individual libraries can override these defaults as well.
+<P>
+
+<TABLE><TR><TD VALIGN=TOP>
+The Frame Preferences (in menu <B>File / Preferences...</B>, "Display" section, "Frame" tab)
+lets you set all of these defaults.
+Note that the designer name is taken first from the cell,
+then from the library if the cell does not set a value, and finally from the general default
+if the library and cell do not set a value.
+</TD><TD><CENTER><IMG SRC="fig07-20.png" ALT="Figure 7.20"></CENTER></TD></TR></TABLE>
+
+<!-- TRAILER -->

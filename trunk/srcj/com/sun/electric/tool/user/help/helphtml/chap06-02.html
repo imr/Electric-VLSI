@@ -1,0 +1,69 @@
+<!-- HEADER 6-2: Creation Defaults -->
+
+<!-- PREFERENCE General/Nodes -->
+
+The <B>Duplicate</B> command is useful because a node may have been modified (rotated,
+scaled, etc.) and duplication preserves all of those changes.
+Using <B>Copy</B> and <B>Paste</B> does the same thing.
+Another way to create nodes that are nonstandard is to set creation defaults.
+<P>
+<TABLE><TR><TD>
+To do this, use the Nodes Preferences
+(in menu <B>File / Preferences...</B>, "General" section, "Nodes" tab).
+The top part of the dialog controls new primitive nodes.
+You can change the default size of any primitive node by choosing the node and changing the values.
+</TD><TD><CENTER><IMG SRC="fig06-01.png" ALT="Figure 6.1"></CENTER></TD></TR></TABLE>
+<P>
+The middle section of the dialog controls cells:
+<UL>
+<LI>"Check cell dates during editing"
+requests that date information be used to ensure a proper circuit building sequence.
+When this box is checked, warning messages will be issued when editing a cell that has more recent subcell instances.
+Electric tracks cell creation and revision dates, and this information can be displayed with the
+<B>Describe this Cell</B> command and others in menu <B>Cell / Cell Info</B>
+(see <A HREF="chap03-07-01.html#chap03-07-01">Section 3-7-1</A>).</LI>
+<LI>"Switch technology to match current cell"
+requests that the current technology automatically change whenever the current cell changes,
+so that the two match.</LI>
+<LI>"Place Cell-Center in new cells" requests that all newly created cells have a Cell-Center node
+placed at the origin (see <A HREF="chap03-03.html#chap03-03">Section 3-3</A> for more on Cell centers).</LI>
+<LI>"Reconstruct arcs when deleting instances" requests that arcs connected to cell instances
+be reconstructed when the cell instances are deleted.
+These reconstructed arcs appear to be the same as before, but they now connect to pins that end where the
+instance ports used to be.
+When this box is not checked, arcs connected to deleted instances are also deleted.</LI>
+<LI>"Always prompt for index when descending into array nodes"
+controls whether nodes with array specifications should be precisely tracked when descending the hierarchy
+(see <A HREF="chap03-05.html#chap03-05">Section 3-5</A> for more).</LI>
+</UL>
+
+<P>
+The bottom part of the dialog applies to all nodes:
+<UL>
+<LI>"Disallow modification of complex nodes" requests that all cell instances, transistors, and
+other complex nodes be anchored.
+Pins and contacts are not considered to be complex.</LI>
+<LI>"Disallow modification of locked primitives" requests that all lockable primitive node instances be anchored.
+Once locked, these nodes cannot be created, deleted,
+or modified in any way.
+Typically, only primitives in "array" technologies are lockable
+(such as the FPGA technology, see <A HREF="chap07-06-02.html#chap07-06-02">Section 7-6-2</A>),
+presuming that these components will be used to define the fixed circuitry that is then customized.
+Design of the fixed circuitry is done with this lock off,
+and then the customization phase is done with this lock on.</LI>
+<LI>"Move after Duplicate" allows duplicated objects to be positioned interactively.
+This is the default condition.
+However, if this is unchecked,
+then the <B>Duplicate</B> command (in menu <B>Edit</B>) will place a copy automatically,
+without allowing the new location to be specified by the cursor.</LI>
+<LI>"Duplicate/Array/Paste copies exports" requests that these node-copying operations also copy their exports.
+This includes the <B>Duplicate</B>, <B>Array</B>, and <B>Paste</B> commands (in menu <B>Edit</B>)
+.
+See <A HREF="chap06-04.html#chap06-04">Section 6-4</A> for more on arrays.</LI>
+<LI>"Extract copies exports" requests that extraction of cell instances also copy the exports.
+Extraction is done with the <B>Extract Cell Instance</B> command (in menu <B>Cell</B>).
+See <A HREF="chap03-08.html#chap03-08">Section 3-8</A> for more on extraction.
+</LI>
+</UL>
+
+<!-- TRAILER -->

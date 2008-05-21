@@ -1,0 +1,53 @@
+<!-- HEADER 6-6: Replacing Circuitry -->
+
+<!-- COMMAND Edit/Change... -->
+<!-- COMMAND Cell/Merge Libraries/Replace Cells from Library... -->
+
+The <B>Change...</B> command (in menu <B>Edit</B>)
+removes the currently highlighted node or arc and replaces it with a new one of a different type.
+<P>
+<TABLE><TR><TD>
+This same effect can be had by copying one object and then pasting it onto another
+(see <A HREF="chap06-01.html#chap06-01">Section 6-1</A>).
+A dialog is presented in which the possible replacements are shown.
+For node changing, you can choose to show primitives from the current technology, cells from the current library, or both.
+<P>
+When replacing an arc, the existing nodes on either end must be able to reconnect to the new type of arc.
+If "Change nodes with arcs" is checked, nodes will be changed to allow the new type of arc to remain connected.
+</TD><TD><CENTER><IMG SRC="fig06-04.png" ALT="Figure 6.4"></CENTER></TD></TR></TABLE>
+<P>
+When replacing a node, the existing arcs on it must be able to reconnect properly to the new node.
+However, the sizes of the replaced object can be different, and the layout will be adjusted.
+Electric determines which ports on the replaced node to use by examining the port names and locations.
+If the ports are aligned correctly but not named the same, this matching will fail.
+Check "Ignore port names" to disable name matching and use only position information.
+If the new node is missing essential ports, such that existing wires cannot be reconnected,
+then the change will fail (unless "Allow missing ports" is checked).
+<P>
+Besides replacing the currently highlighted node or arc ("Change selected ones only"),
+it is also possible to specify replacement of many other objects.
+<UL>
+<LI>"Change all connected to this" requests that other objects of the same type which are connected to the highlighted ones will be changed.
+<LI>"Change all in this cell" requests that all other objects of the same type in this cell will be changed.
+<LI>"Change all in this library" requests that all other objects of the same type in the current library will be changed.
+<LI>"Change all in all libraries" requests that all other objects of the same type in every library will be changed.
+</UL>
+<P>
+This is a modeless dialog: it can remain up while other editing is being done.
+Click "Done" to dismiss it, and "Apply" to make a change.
+<P>
+Note that some Schematic nodes use parameters to further describe them.
+For example, an electrolytic capacitor is really just a capacitor with the "electrolytic" parameter on it.
+Therefore, you can change a node into a capacitor, but not an electrolytic capacitor,
+because it is not in the list.
+To change a capacitor into an electrolytic capacitor, paste an electrolytic capacitor onto it.
+Besides capacitors, parameters can be found on diodes, transistors,
+sources, and two-ports (the four-connection primitives such as VCCS).
+<P>
+Another command for changing circuitry is <B>Replace Cells from Library...</B>
+(in menu <B>Cell / Merge Libraries</B>).
+This command replaces instances in the current cell with like-names ones from another library.
+It is useful when a new standard-cell library is replacing an old one,
+and all instances must be switched.
+
+<!-- TRAILER -->

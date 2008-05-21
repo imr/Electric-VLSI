@@ -1,0 +1,122 @@
+<!-- HEADER 9-7-2: NCC Commands -->
+
+<!-- COMMAND Tool/NCC/Schematic and Layout Views of Cell in Current Window -->
+<!-- COMMAND Tool/NCC/Cells from Two Windows -->
+<!-- COMMAND Tool/NCC/Copy Schematic User Names to Layout -->
+<!-- COMMAND Tool/NCC/Copy All Schematic Names to Layout -->
+<!-- COMMAND Tool/NCC/Highlight Equivalent -->
+<!-- COMMAND Tool/NCC/Run NCC for Schematic Cross-Probing -->
+
+<P>
+To compare two cells, use these commands (in menu <B>Tool / NCC</B>):
+<UL>
+<LI>
+   <B>Schematic and Layout Views of Cell in Current Window</B>
+   Use a heuristic to figure out what to compare against the cell in
+   the current window.  If the current cell is a schematic then
+   compare it against some layout cell in the same cell group.  If the
+   current cell is a layout then compare it against some schematic
+   cell in the same cell group.  Since most cell groups have one
+   layout cell and one schematic cell, this form of the NCC command is
+   usually the most convenient.
+</LI>
+<LI>
+   <B>Cells from Two Windows</B>
+   Compare the two cells that are displayed in the two opened windows
+   (there must be exactly two windows). This is useful when the
+   schematic and layout are not in the same cell group. The command
+   can also be used to compare schematics with schematics or layout
+   with layout. However, the command refuses to compare icon cells
+   since icons cells don't have defined connectivity.
+</LI>
+<li>
+    <b>Copy Schematic User Names to Layout</b> and <b>Copy All Schematic Names to Layout</B>
+    For each pair of matching schematic and layout cells, rename networks and nodes 
+    in the layout cell to have the same name as the equivalent networks
+    in the schematic cell. The first command copies only user-assigned names
+    from the schematic to the layout; the second command copies all names.
+    Furthermore, it only changes the names of layout networks and nodes 
+    that have no user-assigned names. If a layout network or node has
+    a user-assigned name that does not match the schematic then this 
+    command prints a warning. This command also warns when non-equivalent
+    networks or nodes have the same user-assigned name. 
+    <p>
+    Notes:
+    <ul>
+    <li>
+    These commands use the result generated
+    by the most recent run of NCC. That NCC run should be hierarchical 
+    without size checking.
+    </li><li>
+    These commands clear the saved result from the last run of NCC. 
+    If you need to run a command that needs the last result, for example
+    "Highlight Equivalent", then you must rerun NCC.
+    </li>
+    </ul>
+    </p>
+</li>
+<li>
+	<b>Highlight Equivalent</b>
+	Highlight the network or node that is equivalent to the currently selected
+	network or node, using the result of the most recent NCC run.
+	The user should be aware of a number of limitations:  
+	<ol>
+	<li>
+		This command works best for networks in the top
+		level cells compared by the most recent NCC run.
+	</li>
+	<li>
+		This command also works for nodes in the top
+		level cells compared by the most recent NCC run as long
+		as those nodes are primitive transistors or were treated as
+		primitives because NCC compared them hierarchically.
+	</li>
+	<li> 
+		Because NCC combines MOS transistors that are in series 
+		into a single NMOS_*STACK,
+		NCC
+		can't find equivalents for certain networks and nodes. 
+		For example,
+		when NCC merges two series MOS transistors into a single
+		NMOS_2STACK it removes the network between them from NCC's
+		database. Therefore if you click on that network and ask
+		to highlight the equivalent, NCC won't be able to find 
+		an equivalent. 
+	</li>
+	<li>
+		Because NCC combines MOS 
+		transistors that are in parallel, it can't find equivalents
+		for certain networks and nodes. For example when NCC
+		detects two parallel MOS
+		transistors, it removes one from NCC's database but adds
+		it's width to the other. Therefore if you click
+		on the transistor that was discarded and ask to highlight the equivalent, NCC
+		won't be able to find an equivalent.
+	</li>
+	</ol>
+</li>
+<li>
+	<b>Run NCC for Schematic Cross-Probing</b>
+
+	This command runs NCC and saves the net associations between schematic and layout.
+	The user can generate a Spice netlist (for example) from an Electric layout cell.
+	Simulating this netlist will result in a waveform file that uses layout hierarchy and net names.
+	If this waveform file is loaded into Electric, it cannot be cross-probed from the schematic.
+	It can be cross-probed from the layout, but that is often difficult to do.  
+	In this case, the user can run this NCC command,
+	which will save net associations between schematic and layout.
+	Then, the user can cross-probe from the schematic,
+	and Electric will automatically translate the schematic net to the appropriate layout net contained in the waveform file.
+
+</li>
+<li>
+	<b>Add NCC Annotation to Cell</b>
+	This is a submenu that allows user to select which NCC annotation
+	to add to a cell. Note that the designer should replace text surrounded 
+	by angle brackets: "&lt &gt". See <A HREF="chap09-07-04.html#chap09-07-04">Section 9-7-4</A>
+	on "NCC Annotations" for a description of each NCC annotation.
+</li>
+</UL>
+
+<!-- TRAILER -->
+

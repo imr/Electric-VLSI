@@ -1,0 +1,44 @@
+<!-- NEED 5in -->
+
+<!-- HEADER 9-4-5: FastHenry -->
+
+<!-- COMMAND Tool/Simulation (Others)/Write FastHenry Deck... -->
+<!-- COMMAND Tool/Simulation (Others)/FastHenry Arc Properties... -->
+<!-- PREFERENCE Tools/Fast Henry -->
+
+FastHenry is an inductance analysis tool (see the papers of <A HREF="http://rleweb.mit.edu/rlestaff/p-whit.htm">Jacob White</A>).
+When a FastHenry deck is generated, a subset of the arcs in the current cell are written.
+To include an arc in the FastHenry deck,
+select it and use the <B>FastHenry Arc Properties...</B> command (in menu <B>Tools / Simulation (Others)</B>).
+<TABLE><TR><TD>
+This command presents a dialog with FastHenry factors for the selected arc.
+The most important factor is at the top: "Include this arc in FastHenry analysis".
+By checking this, the arc is described in the FastHenry deck.
+Once this is checked, other fields in the dialog become active.
+You can set the thickness of this arc (the default value shown will be used if no override is specified).
+You can set the number of subdivisions that will be used in height and width (again,
+defaults are shown).
+You can even set the height of the two ends of the arc.
+</TD><TD><CENTER><IMG SRC="fig09-06.png" ALT="Figure 9.6"></CENTER></TD></TR></TABLE>
+<P>
+Arcs can be partitioned into different groups.
+Click the "New Group" button to define a group.
+After that, arcs can be assigned to one or more groups.
+<P>
+<!-- NEED 5in -->
+After all arcs have been marked, generate a FastHenry deck with the <B>Write FastHenry Deck...</B>
+command (in menu <B>Tools / Simulation (Others)</B>).
+Before doing that, however, you can set other options for FastHenry deck generation.
+To do this, use the
+FastHenry Preferences (in menu <B>File / Preferences...</B>, "Tools" section, "FastHenry" tab).
+<P>
+<CENTER><IMG SRC="fig09-02.png" ALT="Figure 9.2"></CENTER>
+<P>
+This dialog allows you to set the type of frequency analysis
+(single frequency or a sequence specified by a start, end, and number of runs per decade).
+You can choose to use single or multiple-pole analysis
+(and if multiple, you can specify the number of poles).
+The FastHenry Preferences dialog also allows you to set defaults for the individual arcs that will be included in the deck.
+You can specify the default thickness, and the default number of subdivisions (in height and width).
+
+<!-- TRAILER -->

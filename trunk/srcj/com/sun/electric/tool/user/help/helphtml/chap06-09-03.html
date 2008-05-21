@@ -1,0 +1,91 @@
+<!-- NEED 3in -->
+
+<!-- HEADER 6-9-3: Bus Naming -->
+
+<!-- COMMAND Edit/Arc/Rip Bus -->
+<!-- COMMAND Edit/Properties/Parameterize Bus Name -->
+<!-- COMMAND Edit/Properties/Edit Bus Parameters... -->
+<!-- PREFERENCE Tools/Network -->
+
+The Bus arc of the Schematics technology is a special arc that can carry multiple signals
+(see <A HREF="chap07-05-01.html#chap07-05-01">Section 7-5-1</A>).
+When giving a network name to Bus arcs, it is possible to specify complex bus names.
+<UL>
+<LI><B>Simple arrays</B> Bus names can be arrays (for example, "A[0:7]" which defines an 8-wide bus).
+The indices can ascend or descend.</LI>
+
+<LI><B>Lists</B> Bus names can be lists (for example,
+"clock,in1,out" which aggregates 3 signals into a 3-wide bus).</LI>
+
+<LI><B>Array index lists and ranges</B> Arrayed bus names can have lists of values (separated by commas)
+or ranges of values (using the colon).
+For example, the bus "b[0],c[3,5],d[1:2],e[8:6]" is an 8-wide bus with signals in this order:
+b[0], c[3], c[5], d[1], d[2], e[8], e[7], e[6].
+</LI>
+
+<LI><B>Multidimensional array indices</B> Arrays can be multiply indexed
+(for example "b[1:2][100,102]" defines a bus with 4 entries: b[1][100], b[1][102], b[2][100], and b[2][102]).
+You can have any number of dimensions in an array.</LI>
+
+<LI><B>Symbolic array indices</B> It is possible to use symbolic indices in bus naming
+(for example, the bus "r[x,y]" defines a 2-wide bus with the signals r[x] and r[y]).
+</LI>
+</UL>
+<P>
+<TABLE><TR><TD><CENTER><IMG SRC="fig09-12.png" ALT="Figure 9.12"></CENTER></TD><TD>
+When a bus is unnamed, the system determines its width from the ports that it connects.
+Some tools (such as simulation netlisters) need to name everything,
+and so use automatically-generated names.
+When this happens, the system must choose whether to number the bus ascending or descending.
+To resolve this issue,
+use the Network Preferences (in menu <B>File / Preferences...</B>, "Tools" section, "Network" tab),
+and choose "Ascending" or "Descending".
+(For information about the "Node Extraction" portion of the Network Preferences,
+see <A HREF="chap09-10-02.html#chap09-10-02">Section 9-10-2</A>.)
+</TD></TR></TABLE>
+<P>
+Individual wires that connect to a bus must be named with names from that bus.
+As an aid in obtaining individual signals from a bus,
+the <B>Rip Bus</B> command (in menu <B>Edit / Arc</B>)
+will automatically create such wires for the selected bus arc.
+<P>
+<H3>Arrayed Nodes</H3>
+<P>
+Besides using array names on busses, you can also give array names to cell instances in a schematic.
+Netlisters will create multiple copies of that node, named with the individual elements of the array.
+<P>
+Note that it is not possible to array a primitive node from the Schematic technology.
+Instead, you must place that node inside of a cell, and array instances of the cell.
+
+<!-- NEED 4in -->
+<P>
+<H3>Parameterized Bus Names</B>
+<P>
+<TABLE><TR><TD>
+It is possible to have variable-width busses by parameterizing their names.
+Electric maintains a list of global parameters, and these can be manipulated with the
+<B>Edit Bus Parameters...</B> command (in menu <B>Edit / Properties</B>).
+You can create and delete parameters, and can set values for each.
+</TD><TD><CENTER><IMG SRC="fig06-25.png" ALT="Figure 6.25"></CENTER></TD></TR></TABLE>
+<P>
+To use these parameters, you must add a template to an arc, node, or export name.
+<P>
+<TABLE><TR><TD><CENTER><IMG SRC="fig06-26.png" ALT="Figure 6.26"></CENTER></TD><TD>
+This figure shows an export called "in", and an arc called "internal".
+Both the export name and the arc name were selected, and the command
+<B>Parameterize Bus Name</B> issued (in menu <B>Edit / Properties</B>).
+</TD></TR></TABLE>
+<P>
+The templates are then shown near the original names.
+Arrayed nodes can also have their names parameterized.
+<P>
+You may type any text into the template.
+Wherever the string <CODE>$(par)</CODE> appears, it will be replaced
+with the parameter <CODE>par</CODE>.
+In this example, the parameter <CODE>x</CODE> has the value 7.
+You can also use simple arithmetic operators (just "+", "-", "*", and "/"),
+for example <CODE>in[0:$(x)-1]</CODE> defines a bus that runs from 0 to one minus the value of "x".
+When parameter values change, click the "Update All Templates" button to
+reevaluate all node, arc, and export names.
+
+<!-- TRAILER -->

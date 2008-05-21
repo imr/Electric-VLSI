@@ -1,0 +1,31 @@
+<!-- HEADER 3-11-1: Setting a Cell's View -->
+
+
+<!-- COMMAND View/Change Cell's View... -->
+
+Each cell has a <I>view</I>, which provides a description of its contents.
+A view consists of a full name and an abbreviation to be used in cell naming.
+For example, the "layout" view is abbreviated "lay" and so the layout view of cell "adder" is called "adder{lay}."
+When no view name appears, the cell has the "unknown" view.
+Possible views are:
+<UL>
+<LI>"layout" (for IC layout)
+<LI>"schematic" (for logic designs)
+<LI>"icon" (to describe a cell symbolically)
+<LI>"layout.skeleton" (a minimal view)
+<LI>"documentation" (a text-only view)
+<LI>"VHDL" or "Verilog" (text-only views for hardware-description languages)
+<LI>a number of "netlist" views
+(text-only views that list connectivity for various tools such as "netlisp", "als", "quisc", "rsim", and "silos")
+<LI>"unknown" (no specified view)
+</UL>
+<P>
+<TABLE><TR><TD>
+When creating a cell with the <B>New Cell...</B> command,
+you can specify its view.
+After creation,
+you can change the current cell's view with the <B>Change Cell's View...</B> command (in menu <B>View</B>).
+You can also use context menus in the cell explorer to change a cell's view.
+</TD><TD><CENTER><IMG SRC="fig03-06.png" ALT="Figure 3.6"></CENTER></TD></TR></TABLE>
+
+<!-- TRAILER -->

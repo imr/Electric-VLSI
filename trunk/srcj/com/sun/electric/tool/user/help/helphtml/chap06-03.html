@@ -1,0 +1,83 @@
+<!-- HEADER 6-3: Preferences and Project Settings -->
+
+<!-- COMMAND File/Preferences... -->
+<!-- COMMAND File/Project Settings... -->
+<!-- COMMAND File/Export/Preferences... -->
+<!-- COMMAND File/Export/Project Settings... -->
+<!-- COMMAND File/Import/Preferences... -->
+<!-- COMMAND File/Import/Project Settings... -->
+
+<TABLE><TR><TD><CENTER><IMG SRC="fig06-07.png" ALT="Figure 6.7"></CENTER></TD><TD>
+There are two commands for controlling settings in Electric: <B>Preferences...</B> and <B>Project Settings...</B>
+(both in menu <B>File</B>.  You can also get Preferences with this icon on the tool bar.
+</TD></TR></TABLE>
+<P>
+These two dialogs contain many panels for controlling different aspects of the system.
+The differences between these two dialogs is:
+<UL>
+<LI><B>Preferences</B> affect the user's interaction with the system.
+Examples are printer control, display colors, and keyboard bindings.
+Each user may have different preferences, and it does not impact the design being done.</LI>
+<LI><B>Project Settings</B> affect the actual circuitry being edited
+(and so should be the same for every user who is editing that circuitry).
+Examples are GDS layer mappings and technology scaling.</LI>
+</UL>
+<P>
+<CENTER><IMG SRC="fig06-24.png" ALT="Figure 6.24"></CENTER>
+<P>
+The left side of the Preferences or Project Settings dialog is a tree-structured list of all of its
+different panels.
+The right side is the actual panel, which changes according to the panel requested.
+Below the list of panels is a "Help" button which takes you to the proper manual page which explains that panel.
+<P>
+<H3>Where Preferences Are Stored</H3>
+<P>
+Preferences are stored permanently on your computer and are remembered each time you run Electric.
+The actual location of this information varies with each operating system.
+<UL>
+<LI><B>Windows:</B>
+In the registry.  Look in: HKEY_CURRENT_USER / Software / JavaSoft / Prefs / com / sun / electric.
+</LI>
+<LI><B>UNIX/Linux:</B>
+In your home directory.  Look in: ~/.java/.userPrefs/com/sun/electric
+</LI>
+<LI><B>Macintosh:</B>
+In your home directory, under Library/Preferences.  Look at: ~/Library/Preferences/com.sun.electric.plist
+</LI>
+</UL>
+You can delete the appropriate data to reset Electric to its "factory" state.
+<P>
+You can export your preferences to disk for ease of saving and transporting.
+Use the "Export" button in the dialog,
+or with the <B>Preferences...</B> command (in menu <B>File / Export</B>).
+These will write an XML file with preference information.
+This XML file can be read back into Electric's preferences with the
+"Import" button, or with the <B>Preferences...</B> command (in menu <B>File / Import</B>).
+<P>
+<H3>Where Project Settings Are Stored</H3>
+<P>
+Project settings are stored permanently on your computer in the same place as Preferences.
+However, they are also saved with your circuitry so that the values will be correct when
+the circuits are read back in.
+<P>
+By default, project settings are saved in each library that is saved to disk.
+However, for multiple-library projects, this can be troublesome if some libraries have
+different settings than others.
+The solution is to create a file, in the same directory as the libraries, called "projsettings.xml".
+If this file exists, then settings are taken from it (and ignored if found in the libraries).
+To write this file, use the <B>Project Settings...</B> command (in menu <B>File / Export</B>).
+To override current settings and explicitly read a project settings file, use the
+<B>Project Settings...</B> command (in menu <B>File / Import</B>).
+
+<!-- NEED 2in -->
+
+<P>
+When Electric finds Project Settings that are inconsistent with the current values, this dialog appears:
+<P>
+<CENTER><IMG SRC="fig07-19.png" ALT="Figure 19"></CENTER>
+<P>
+You must choose whether you want to use the new setting values (recommended)
+or the current setting.
+This can be done on an individual-setting basis, or for all settings that conflict.
+
+<!-- TRAILER -->

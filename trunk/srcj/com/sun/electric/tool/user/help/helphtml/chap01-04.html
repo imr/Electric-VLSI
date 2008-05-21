@@ -1,0 +1,37 @@
+<!-- HEADER 1-4: Setup -->
+
+Running Electric varies with the different platforms.
+Most systems also allow you to double-click on the .jar file.
+<P>
+If double-clicking doesn't work, try running it from the command-line by typing:
+<CENTER><CODE>java -jar electric.jar</CODE></CENTER>
+<P>
+An alternate command-line is:
+<CENTER><CODE>java -classpath electric.jar com.sun.electric.Launcher</CODE></CENTER><P>
+
+<P>
+There are a number of options that can be given at the end of the command line:
+<UL>
+<LI><CODE>-mdi</CODE> force a multiple document interface style
+(where Electric is one big window with smaller edit windows in it).</LI>
+
+<LI><CODE>-sdi</CODE> force a single document interface style
+(where each Electric window is separate).
+Note that the MDI/SDI settings can also be made from the Display Control Preferences
+(see <A HREF="chap04-03.html#chap04-03">Section 4-3</A>).</LI>
+
+<LI><CODE>-s &lt;script&gt;</CODE> run the &lt;script&gt; file through the Bean shell.</LI>
+
+<LI><CODE>-batch</CODE> run in batch mode (no windows or other user interface are shown).</LI>
+
+<LI><CODE>-version</CODE> provides full version information including build date.</LI>
+
+<LI><CODE>-v</CODE> provides brief version information.</LI>
+
+<LI><CODE>-NOMINMEM</CODE> ignore minimum memory requirements and start JVM.</LI>
+
+<LI><CODE>-help</CODE> prints a list of available command options.</LI>
+
+</UL>
+
+<!-- TRAILER -->

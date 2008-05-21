@@ -1,0 +1,75 @@
+<!-- HEADER 9-10-1: Parasitic Extraction -->
+
+<!-- PREFERENCE Tools/Parasitic -->
+<!-- PROJECTSETTING Parasitic -->
+
+<P>
+Parasitic Extraction is used by netlisters and other parts of the system that need to know
+about geometric factors.
+Control of parasitic extraction is done with the Parasitic Preferences
+(in menu <B>File / Preferences...</B>, "Tools" section, "Parasitic" tab) and the Parasitic Project Settings
+(in menu <B>File / Project Settings...</B>, "Parasitic" tab).
+For the difference between Preferences and Project Settings, see
+<A HREF="chap06-03.html#chap06-03">Section 6-3</A>.
+<P>
+<H3>Project Settings</H3>
+<P>
+<CENTER><IMG SRC="fig09-58.png" ALT="Figure 9.58"></CENTER>
+<P>
+Each layer of every technology is listed, and you can set its unit resistance,
+area capacitance, and edge capacitance.
+The "Factory Reset" buttons reverts values to the default shipped with Electric.
+<P>
+The bottom section controls values for every layer in a technology.
+You can set the minimum resistance and capacitance, as well as the maximum series resistance.
+The maximum series resistance breaks long single PI models into series of distributed PI models.
+"Include Gate In Resistance" requests that a transistor's gate area be included in overall
+area calculations for resistance determination.
+"Include Ground Network" requests that ground networks be analyzed.
+The "Gate Length Shrink" is a compensation factor for gate lengths.
+Some process technologies shrink the gate length by a fixed amount.
+<P>
+<H3>Preferences</H3>
+
+<CENTER><IMG SRC="fig09-26.png" ALT="Figure 9.26"></CENTER>
+<P>
+This dialog offers more controls:
+<UL>
+<LI>"Use Verbose Naming"
+The parasitic extractor inserts resistors,
+and thus makes multiple networks out of a single network.
+The new networks are automatically named by the netlister.
+Normally, the names are simple, such as "oldnetworkname#1".
+When verbose naming is requested, the network names include the nodes to which they connect,
+for example "oldnetworkname#m1m2conn-conn@0".
+This makes it possible for the user to cross-probe back to the layout from
+the expanded Spice file, but it makes the file larger.</LI>
+<LI>"Back Annotate Layout"
+transfers schematic net names to layout net names after NCC completes and matches.
+This allows one to probe networks in layout with the same name as in the schematics,
+making it easier to compare schematic simulations against layout simulations.</LI>
+<LI>"Use exemptedNets.txt file"
+looks for the file 'exemptedNets.txt' in your library directory. This file specifies
+nets that are exempted from simple parasitic extraction.  There are two ways these
+nets are treated, depending on subsequent setting: if "Extract everything except
+exempted nets" is selected, all networks are extracted except the ones in the
+exempted nets file. If "Extract only exempted nets", only the nets in the exempted
+nets file are extracted.  All nets connected to this net in subcircuits are also
+treated the same way.</LI>
+</UL>
+<P>
+<!-- NEED 3in -->
+Exempted Nets file format. One line per network. A network is specified by
+a library name, cell name, and net name.  When nets are not extracted, a
+lumped capacitance value may be specified to use on the network.  This last
+argument is optional (0 if not specified) and ignored when the exempted nets
+are the only nets extracted.
+<P><code>
+libraryName cellName netName [replacementCapValue]</code>
+<P>
+Example:
+<P><code>
+myLib myCell{lay} net@0<BR>
+myLib myCell{lay} in_a
+</code>
+<!-- TRAILER -->

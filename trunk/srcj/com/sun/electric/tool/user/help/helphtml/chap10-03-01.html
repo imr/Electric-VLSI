@@ -1,0 +1,46 @@
+<!-- HEADER 10-3-1: Cells -->
+
+After the header information, each cell is described.
+A cell consists of a cell declaration ("C") followed by a number of node ("N"), instance ("I"),
+arc ("A"), and export ("E") lines.
+The cell is terminated with a cell-end line ("X").
+Inside of a cell, all nodes come first and are sorted by the node name; arcs come next and are sorted by the arc name;
+finally come exports, sorted by the export name.
+Also, when there are multiple cells, their appearance in the file is sorted by the cell name.
+The syntax is:
+<P>
+<CENTER><TABLE BORDER=1 WIDTH="90%">
+<TR><TD COLSPAN=2><B>C&lt;name&gt; | &lt;group&gt; | &lt;tech&gt; | &lt;creation&gt; | &lt;revision&gt; |
+&lt;flags&gt; [ | &lt;variable&gt; ]*</B></TD></TR>
+<TR><TD WIDTH="20%">&lt;name&gt;</TD><TD WIDTH="80%">the name of the cell in the form "NAME;VERSION{VIEW}".</TD></TR>
+<TR><TD>&lt;group&gt;</TD><TD>the name of this cell's group (if different than expected).
+This field may be omitted in earlier-format libraries.</TD></TR>
+<TR><TD>&lt;tech&gt;</TD><TD>the technology of the cell.</TD></TR>
+<TR><TD>&lt;creation&gt;</TD><TD>the creation date of the cell (Java format).</TD></TR>
+<TR><TD>&lt;revision&gt;</TD><TD>the revision date of the cell (Java format).</TD></TR>
+<TR><TD>&lt;flags&gt;</TD><TD>flags for the cell.</TD></TR>
+<TR><TD>&lt;variable&gt;</TD><TD>a list of variables on the cell
+(see <A HREF="chap10-04-01.html#chap10-04-01">Section 10-4-1</A>).</TD></TR>
+</TABLE>
+</CENTER>
+<P>
+The Java format for dates (the creation and revision dates) is in milliseconds
+since the "epoch" (Midnight on January 1, 1970, GMT).
+<P>
+The &lt;flags&gt; field consists of any of the following letters, (sorted alphabetically):
+<P>
+"C"	if this cell is part of a cell-library.<BR>
+"E"	if the cell should be created "expanded".<BR>
+"I"	if instances in the cell are locked.<BR>
+"L"	if everything in the cell is locked.<BR>
+"T"	if this cell is part of a technology-library.
+<P>
+Example:
+<P>
+&nbsp;&nbsp;&nbsp;&nbsp;<CODE>CrxArray;1{lay}||mocmos|1092185029000|1092185060000|I</CODE>
+<P>
+Declares cell "rxArray{lay}", version 1, associated with the "mocmos" technology.
+The cell was created at date 1092185029000 and last modified at date 1092185060000.
+All instances in the cell are locked.
+
+<!-- TRAILER -->

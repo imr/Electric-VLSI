@@ -1,0 +1,24 @@
+<!-- HEADER 9-11: Compaction -->
+
+<!-- COMMAND Tool/Compaction/Do Compaction -->
+
+<!-- PREFERENCE Tools/Compaction -->
+
+The compaction tool squeezes layout down to minimal design-rule spacing.
+It does this by doing single-axis compaction,
+alternating horizontal and vertical directions until no further space can be found.
+Each pass of compaction squeezes either to the left or to the bottom of the circuit.
+<P>
+To compact, use the <B>Do Compaction</B> command (in menu <B>Tool / Compaction</B>).
+<P>
+<TABLE><TR><TD>
+The Compaction Preferences (in menu <B>File / Preferences...</B>, "Tools" section, "Compaction" tab)
+can tell the compactor to expand the circuit if it is too close for the design rules.
+<P>
+For an example of compaction, open the Samples library and edit the cell "tool-Compaction"
+(you can read the library with the <B>Sample Cells</B> command, in menu <B>Help / Load Built-in Libraries</B>).
+<P>
+Be warned that the compaction tool is experimental and doesn't always achieve optimal results.
+</TD><TD><CENTER><IMG SRC="fig09-10.png" ALT="Figure 9.10"></CENTER></TD></TR></TABLE>
+
+<!-- TRAILER -->

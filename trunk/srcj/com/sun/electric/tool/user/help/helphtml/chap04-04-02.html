@@ -1,0 +1,60 @@
+<!-- NEED 3in -->
+
+<!-- HEADER 4-4-2: Panning -->
+
+<!-- COMMAND Window/Pan Left -->
+<!-- COMMAND Window/Pan Right -->
+<!-- COMMAND Window/Pan Up -->
+<!-- COMMAND Window/Pan Down -->
+<!-- COMMAND Window/Special Pan/Center Selection -->
+<!-- COMMAND Window/Special Pan/Center Cursor -->
+<!-- COMMAND Window/Special Pan/Match Other Window in X -->
+<!-- COMMAND Window/Special Pan/Match Other Window in Y -->
+<!-- COMMAND Window/Special Pan/Match Other Window in X, Y, and Scale -->
+<!-- COMMAND Window/Redisplay Window -->
+<!-- COMMAND Edit/Modes/Edit/Toggle Pan -->
+
+Besides scaling, you can also pan the window contents,
+shifting it about on the display.
+This is typically done with the sliders on the right and bottom of the window.
+On systems that have a mouse wheel, you can use it to pan vertically
+(and hold the shift key while rolling the mouse wheel to pan horizontally).
+<P>
+<TABLE><TR><TD><CENTER><IMG SRC="fig04-09.png" ALT="Figure 4.9"></CENTER></TD><TD>
+You can also use the Pan tool from the tool bar to move the window contents.
+Once in this mode, clicking and dragging slides the circuitry smoothly.
+This mode can also be invoked with the
+<B>Toggle Pan</B> command (in menu <B>Edit / Modes / Edit</B>).
+</TD></TR></TABLE>
+<P>
+Yet another way to control screen panning is to use menu commands.
+The <B>Pan Left</B>, <B>Pan Right</B>, <B>Pan Up</B>,
+and <B>Pan Down</B> commands (in menu <B>Window</B>) all shift the window contents appropriately
+(and because they are bound to quick keys, these operations can even be done from the keyboard).
+By default, these commands shift the screen by about 30% of its size.
+You can use the Display Control Preferences
+(in menu <B>File / Preferences...</B>, "Display" section, "Display Control" tab),
+to change that amount.
+The <B>Small</B> panning distance causes subsequent shifts to be about 15% of the screen size.
+The <B>Medium</B> panning distance causes subsequent shifts to be about 30% of the screen size.
+The <B>Large</B> panning distance causes subsequent shifts to be about 60% of the screen size.
+<P>
+There are five special panning commands in the <B>Window / Special Pan</B> menu:
+<UL
+<LI><B>Center Selection</B> makes the window shift so that the highlighted objects are in the center of the window.</LI>
+<LI><B>Center Cursor</B> makes the window shift so that the current cursor location is in the center of the window.
+Note that this command is useful only when bound to a keystroke,
+because you cannot issue the command and have a valid cursor location at the same time.</LI>
+<LI><B>Match Other Window in X</B> redraws the current window so that it has the same horizontal pan as the other.
+If there are more than two windows, you will be asked to select the window to match.</LI>
+<LI><B>Match Other Window in Y</B> redraws the current window so that it has the same vertical pan as the other.
+If there are more than two windows, you will be asked to select the window to match.</LI>
+<LI><B>Match Other Window in X, Y and Scale</B> redraws the current window so that it has the same zoom and pan as the other.
+If there are more than two windows, you will be asked to select the window to match.</LI>
+</UL>
+
+<P>
+One final command is useful if the display appears incorrect.
+If this happens, redraw the screen with the <B>Redisplay Window</B> command (in menu <B>Window</B>).
+
+<!-- TRAILER -->

@@ -1,0 +1,66 @@
+<!-- HEADER 1-12-2: Schematics and Layout Tutorial: Schematic Entry -->
+
+Your first task is to create a schematic for a 2-input NAND gate.
+Each design is kept in a <I>cell</I>; for example, your schematic will be in the "nand2{sch}" cell,
+while your layout will eventually go in the "nand2{lay}" cell and your AND gate will go in the "and2{sch}" cell.
+Use the <B>New Cell</B> command (in menu <B>Cell</B>), or just type Ctrl-N.
+Enter "nand2" as the cell name and select "schematic" as the view.
+The editing window will now have the title "mipscells:nand2{sch}" indicating the library, cell name, and view.
+It is useful to put a label inside a cell, in addition to assigning its given name.
+To label your cell, select the "Components" tab of the sidebar (on the left), click on "Misc.", and select "Annotation text".
+Move the cursor to the location where you want the label to appear, and click to create the text.
+Change the text by double-clicking on it and typing "nand2".
+When done typing, click away from the text to exit the in-place editing (the text is now selected with an "X" through it).
+Then bring up the full properties dialog for this text with the <B>Object Properties</B> command
+(in menu <B>Edit / Properties</B>), or just type Ctrl-I.
+Set the "Text Size" to 5 units and click OK.
+When your cell is finished, you can move this label to a sensible location.
+<P>
+Electric defines various technologies for schematics and layout.
+To draw transistor-level schematics, you can use the symbols in the Components tab of the side bar.
+<P>
+<TABLE><TR><TD>
+Your goal is to draw a gate like the one shown here.
+Turn on the grid to help you align objects.
+To do this, use the <B>Toggle Grid</B> command (in menu <B>Window</B>), or just type Ctrl-G.
+Click on an nMOS transistor symbol in the Components tab on the left side of the screen.
+Then click in your schematic window to place the transistor in the circuit (perform this as two separate clicks, not drag-and-drop).
+Repeat until you have two nMOS transistors, two pMOS transistors, the Power symbol,
+and the Ground symbol arranged on the page.
+</TD><TD><CENTER><IMG SRC="fig01-34.png" ALT="Figure 1.34"></CENTER></TD></TR></TABLE>
+<P>
+These symbols are <I>nodes</I> in Electric parlance.
+You may move the nodes around by clicking and dragging.
+The transistors default to a width/length value of 2/2.
+Double-click on the pMOS transistor and change its width to 12.
+Recall that nMOS transistors are roughly twice as strong as pMOS transistors.
+So a single nMOS transistor would only have to be 6 wide.
+However, because the nMOS transistors are in series, they should also be 12 wide.
+<P>
+Now, connect the nodes with wires (called <I>arcs</I> in Electric parlance).
+Notice that when you click on a node, the closest <I>port</I> is also selected.
+These ports are the sides of arc connections.
+Click on a port such as the gate, source, or drain of a transistor.
+Right-click, hold the mouse, and drag away from the node.
+When you release the mouse, an arc will be created from the original node to the location of the cursor.
+A new "pin" node will also be created at the cursor to hold the other end of the arc.
+If you right-click and drag over an existing node, then you will connect to it.
+If two objects to be connected are not lined up, Electric will create two arcs to join them.
+The location of the cursor determines the angle of the bend, so wiggle it to see how the two arcs will run
+before releasing the button and creating the connection.
+See <A HREF="chap02-02-02.html#chap02-02-02">Section 2-2-2</A> for more on arc creation.
+<P>
+When the schematic is wired, you will need to create <I>exports</I> which define inputs and outputs of the cell.
+From the Components tab, select the "Off-Page" symbol and place it in the circuit.
+Connect the tip of the arrow the proper place in the circuit.
+To make an export on the other side of the Off-Page, select that port and use the <B>Create Export</B> command
+(in menu <B>Export</B>), or just type Ctrl-E.
+Name the export "a" and define its characteristic as "input".
+Similarly, create Off-Page symbols and exports for "b" and "y".
+<P>
+Now is a good time to save your library.
+Use the <B>Save Library</B> command (in menu <B>File</B>), or just type Ctrl-S.
+Get into the habit of saving your library regularly.
+Also, learn the keyboard shortcuts for the commands you use frequently.
+
+<!-- TRAILER -->

@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='us-ascii'?>
+
+<!--
+   DTD for an archsim model
+-->
+
+<!ELEMENT model ((component | connection?)+)>
+<!ATTLIST model
+	name CDATA #REQUIRED 
+>
+
+<!ELEMENT component ( parameter | comment )* >
+<!ATTLIST component
+	name CDATA #REQUIRED
+	type CDATA #REQUIRED
+	parameter CDATA #IMPLIED
+>
+
+<!ELEMENT connection (comment*, from+, to+, parameter*)>
+<!ATTLIST connection
+	name CDATA #REQUIRED
+>
+
+<!ELEMENT from (comment*) >
+<!ATTLIST from
+	component CDATA #REQUIRED
+	terminal CDATA #REQUIRED
+>
+
+<!ELEMENT to ( comment* ) >
+<!ATTLIST to
+	component CDATA #REQUIRED
+	terminal CDATA #REQUIRED
+>
+
+<!ELEMENT parameter (comment*) >
+<!ATTLIST parameter
+	name CDATA #REQUIRED
+	value CDATA #REQUIRED
+>
+                   
+<!ELEMENT comment (#PCDATA) >

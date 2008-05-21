@@ -1,0 +1,44 @@
+<!-- HEADER 4-10: Text Windows -->
+
+<!-- COMMAND Edit/Text/Find Text... -->
+<!-- COMMAND File/Import/Text Cell Contents... -->
+<!-- COMMAND File/Export/Text Cell Contents... -->
+<!-- COMMAND Edit/Text/Edit Text Cell Externally... -->
+
+<TABLE><TR><TD>
+Some cells are textual in nature (VHDL, Verilog, Netlists, or Documentation),
+and cause text to appear in the edit window.
+When editing a textual cell, a standard point-and-click editor appears.
+You can use the <B>Cut</B>, <B>Copy</B>, and <B>Paste</B> commands (in menu <B>Edit</B>).
+You can specify the font and size to use in textual editing windows with Text Preferences
+(in menu <B>File / Preferences...</B>, "Display" section, "Text" tab).
+<P>
+Instead of using the built-in text editor, you can request an external text editor be used
+(for example, EMACS).
+Do this with the <B>Edit Text Cell Externally...</B> command (in menu <B>Edit / Text</B>).
+Specify the external editor to use with the Text Preferences.
+</TD><TD><CENTER><IMG SRC="fig04-12.png" ALT="Figure 4.12"></CENTER></TD></TR></TABLE>
+<P>
+The contents of a text window can be saved to disk with the <B>Text Cell Contents...</B>
+command (in menu <B>File / Export</B>)
+and restored from disk with the <B>Text Cell Contents...</B> command (in menu <B>File / Import</B>).
+<P>
+Note that there is no "saving" of text windows because they are editing internal data structures.
+Therefore every change updates the information in Electric
+(but the library must be saved to truly preserve changes).
+<P>
+<TABLE><TR><TD><CENTER><IMG SRC="fig04-13.png" ALT="Figure 4.13"></CENTER></TD><TD>
+Text searching is done with the <B>Find Text...</B> command (in menu <B>Edit / Text</B>).
+You can find and/or replace text with the appropriate buttons.
+Check boxes allow the search to be case sensitive, have regular expressions,
+and to go in the reverse direction.
+In addition, you can jump directly to a specified line number.
+</TD></TR></TABLE>
+<P>
+Interestingly, the <B>Find Text...</B> command can also be used outside of the text edit window.
+If you are editing a layout or schematic, this dialog will search all of the node, arc, export, and other names.
+The checkboxes in the "Objects to Search" area control which of these pieces of text will be considered.
+"Automatically Generated" names are those created for you by the system.
+They can be included in the search but normally are not.
+
+<!-- TRAILER -->

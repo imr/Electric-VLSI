@@ -1,0 +1,84 @@
+<!-- HEADER 3-5: Moving Up and Down the Hierarchy -->
+
+<!-- COMMAND Cell/Down Hierarchy/Down Hierarchy -->
+<!-- COMMAND Cell/Down Hierarchy/Down Hierarchy, Keep Focus -->
+<!-- COMMAND Cell/Down Hierarchy/Down Hierarchy, New Window -->
+<!-- COMMAND Cell/Down Hierarchy/Down Hierarchy, Keep Focus, New Window -->
+<!-- COMMAND Cell/Down Hierarchy/Down Hierarchy In Place -->
+<!-- COMMAND Cell/Down Hierarchy/Down Hierarchy In Place To Object -->
+<!-- COMMAND Cell/Up Hierarchy -->
+
+Each editing window in Electric displays a single cell.
+Editing changes can be made only to that cell, and not to any subcells that appear as instances.
+Thus, you may be able to see the contents of a cell instance,
+but you cannot edit it.
+<P>
+To edit a cell instance, use one of these commands in the <B>Cell / Down Hierarchy</B> menu:
+<UL>
+<LI><B>Down Hierarchy</B> descends into the definition of the currently selected cell instance.
+You will now be able to edit that cell.
+</LI>
+<LI><B>Down Hierarchy, Keep Focus</B> descends while keeping the same window zoom and pan.</LI>
+<LI><B>Down Hierarchy, New Window</B> creates a new window in which to show the lower-level cell.</LI>
+<LI><B>Down Hierarchy, Keep Focus, New Window</B> creates a new window in which to show the lower-level cell,
+while maintaining the zoom and pan factor.</LI>
+</UL>
+<P>
+The opposite of going down the hierarchy is the <B>Up Hierarchy</B> command
+(in menu <B>Cell</B>),
+which pops you to the next higher cell in the hierarchy.
+If there was an associated <B>Down Hierarchy</B> command,
+then this returns you to the place where you started, up the hierarchy.
+If the <B>Down Hierarchy</B> commands were not used,
+Electric attempts to figure out the next higher cell in the hierarchy,
+switching icons for schematics where appropriate.
+If there are multiple possibilities
+(because the current cell is used in many locations) then you will be prompted for a specific location.
+<P>
+<TABLE><TR><TD><CENTER><IMG SRC="fig03-22.png" ALT="Figure 3.22"></CENTER></TD><TD>
+Besides using the <B>Up Hierarchy</B> and <B>Down Hierarchy</B> commands, you can also use
+the tool bar "back" and "forward" buttons to move through the hierarchy.
+If you right-click on these icons, you are given a list of cells and can jump directly to one of them.
+</TD></TR></TABLE>
+<P>
+When going down or up the hierarchy, if an export or port is selected,
+then the equivalent port or export is shown after the level of hierarchy has changed.
+
+<P>
+<H3>Layout Considerations</H3>
+<P>
+If a layout cell is selected, you can use the <B>Down Hierarchy In Place</B> command to
+edit the cell while showing the upper level of the hierarchy.
+The surrounding geometry at the upper level is not editable, and is grayed-out.
+<P>
+The <B>Down Hierarchy In Place To Object</B> command finds the object under the cursor
+(at any level of the hierarchy) and descends to that level.
+This may go down the hierarchy many times.
+It descends "in place" so that the original geometry is visible, but higher-levels
+are grayed-out.
+It is useful when trying to quickly find the hierarchy that exists at that point, and see which instances
+were used to construct it.
+<P>
+<H3>Schematic Considerations</H3>
+<P>
+If an icon is selected, the <B>Down Hierarchy</B> commands will take you to the associated schematic.
+If the icon that is selected is already in its own schematic
+(you can place an icon inside its own schematic for documentation purposes),
+then the <B>Down Hierarchy</B> command takes you to the actual icon so that you can edit it.
+<P>
+Schematic nodes can be arrayed by giving them array names
+(see <A HREF="chap06-09-03.html#chap06-09-03">Section 6-9-3</A>).
+When you descend into an arrayed node, the system does not know which element of the array
+you are entering.
+Most of the time, the specific element is irrelevant, but if the circuit is being simulated,
+the specific instance may be necessary for cross-probing.
+Therefore, if the cell is being simulated and you descend into an arrayed node, you will be
+prompted for the specific element that you wish to visit.
+<P>
+There are other situations that cannot be detected, where the specific element needs to be known.
+To solve this problem, you can request that Electric prompt for the specific element
+in all situations where an arrayed node is visited.
+To do this, check "Always prompt for index when descending into array nodes"
+in the Nodes Preferences (in menu <B>File / Preferences...</B>, "General" section, "Nodes" tab)
+
+<!-- TRAILER -->

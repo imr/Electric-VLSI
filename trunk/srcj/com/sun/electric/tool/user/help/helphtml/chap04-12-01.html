@@ -1,0 +1,221 @@
+<!-- HEADER 4-12-1: Digital Waveform Windows -->
+
+<!-- COMMAND Edit/Selection/Add to Waveform in New Panel -->
+<!-- COMMAND Edit/Selection/Remove from Waveform -->
+<!-- COMMAND Tool/Simulation (Built-in)/Set Signal High at Main Time -->
+<!-- COMMAND Tool/Simulation (Built-in)/Set Signal Low at Main Time -->
+<!-- COMMAND Tool/Simulation (Built-in)/Set Signal Undefined at Main Time -->
+<!-- COMMAND Tool/Simulation (Built-in)/Set Clock on Selected Signal... -->
+<!-- COMMAND Tool/Simulation (Built-in)/Update Simulation Window -->
+<!-- COMMAND Tool/Simulation (Built-in)/Get Information about Selected Signals -->
+<!-- COMMAND Tool/Simulation (Built-in)/Clear Selected Stimuli -->
+<!-- COMMAND Tool/Simulation (Built-in)/Clear All Stimuli on Selected Signals -->
+<!-- COMMAND Tool/Simulation (Built-in)/Clear All Stimuli -->
+<!-- COMMAND Tool/Simulation (Built-in)/Save Stimuli to Disk... -->
+<!-- COMMAND Tool/Simulation (Built-in)/Restore Stimuli from Disk... -->
+
+The waveform window is able to display digital simulation output.
+This simulation output can come from external simulators (such as Verilog and ArchSim)
+or built-in simulators (such as ALS and IRSIM).
+When displaying the results of external simulators, the system reads the simulation output and shows it.
+When internal simulators are displayed, you have the additional capability of changing the stimuli.
+<P>
+The digital waveform window looks like the picture below.
+Note also that there is a side bar with a cell explorer in the window, just like in all windows,
+but the explorer has a "SIGNALS" section that lists the signals found in the simulation.
+<P>
+<CENTER><IMG SRC="fig09-37.png" ALT="Figure 9.37"></CENTER>
+
+<H3>Wave Panels</H3>
+<P>
+The waveform window contains a set of <I>panels</I>, each with a signal name and signal waveform.
+In each panel, signal names are shown on the left, and their waveform on the right.
+Between the name and the waveform are two control buttons:
+<UL>
+<LI><B>Close</B> (an "X") to remove that panel from the waveform window.</LI>
+<LI><B>Hide</B> to stop displaying the panel, but keep it available
+(it can be restored by selecting its name from the popup at the top of the waveform window).</LI>
+</UL>
+The waveforms can be single signals or busses.
+Busses are collections of single signals that display integer values (for example, "himb[1:10]").
+To expand a bus, and show its individual signals in separate panels, double-click on its name.
+To contract the bus (removing its individual signals), double-click on the bus name again.
+<P>
+Although the color of the waveforms is usually the same, it can vary with the strength of the signal.
+To enable such a display, check "Multistate display" in the Simulators Preferences
+(in menu <B>File / Preferences...</B>, "Tools" section, "Simulators" tab).
+To control the actual colors used in multistate display, use the Layers Preferences
+(in menu <B>File / Preferences...</B>, "Display" section, "Layers" tab)
+and set the colors for "WAVEFORM: OFF STRENGTH", "WAVEFORM: NODE (WEAK) STRENGTH",
+"WAVEFORM: GATE STRENGTH", and "WAVEFORM: POWER STRENGTH".
+<P>
+You can select a signal by selecting either its name or the actual waveform.
+A selected signal is highlighted, and the selected panel is marked with a bold white line
+(see the "out" signal above).
+Note that when you click on a signal,
+the equivalent network in the associated schematic or layout window is also highlighted
+(more on this below).
+<P>
+You can rearrange the order of the signals by dragging their names to a new location.
+<P>
+You can add a new panel to the waveform window by double-clicking on its name in the "SIGNALS" area
+(or by dragging that name to the waveform part on the right).
+If the layout or schematics cell that produced the simulation is being displayed in another window,
+and the currently selected network in that window is found in the simulation output,
+then that output can be added to the waveform window with
+the <B>Add to Waveform in New Panel</B> command (in menu <B>Edit / Selection</B>).
+You can also use the <B>Remove from Waveform</B> command to remove the currently selected network from the waveform display.
+<P>
+The order of signals in the waveform window is saved in the original cell
+so that subsequent simulations will show the same signals.
+You can also save the configuration of the waveform window with the
+<B>Save Waveform Window Configuration to Disk...</B> command (in menu <B>Window / Waveform Window</B>)
+and you can restore the configuration with the <B>Restore Waveform Window Configuration from Disk...</B> command.
+
+<P>
+<H3>Time Control</H3>
+<P>
+Two vertical cursors appear in the window, called "main" and "extension"
+(the extension cursor is dotted).
+Their time values and their difference are shown at the top of the window.
+You can click over the cursors and drag them to different time locations.
+You can also use the "Center" buttons to bring these cursors to the center of the display.
+<P>
+The time axis of the simulation window can be controlled with the appropriate <B>Window</B> menu commands.
+Use <B>Zoom Out</B> and <B>Zoom In</B> to scale the time axis by a factor of two.
+Use <B>Focus on Highlighted</B> (in menu <B>Window / Special Zoom</B>)
+to display the range between the main and extension cursors.
+<BR>
+<TABLE><TR><TD><CENTER><IMG SRC="fig04-09.png" ALT="Figure 4.9"></CENTER></TD><TD>
+Besides controlling time with menu commands, you can also use the Pan and Zoom tools of the toolbar
+to change the view.
+</TD><TD><CENTER><IMG SRC="fig04-08.png" ALT="Figure 4.8"></CENTER></TD></TR></TABLE>
+<BR>
+The pan tool lets you smoothly shift time when you click and drag.
+In the zoom tool, you zoom into an area by clicking and dragging out that area.
+To zoom out, hold the shift key and click in the center of the desired area.
+<P>
+The time axis is drawn linearly, but it can be changed to a logarithmic scale by right-clicking on the ruler and choosing
+"Logarithmic" (use "Linear" to restore the scale).
+<P>
+The different panels in the waveform window are locked in time: they all show the same range of time,
+as shown at the top of the waveform window.
+If you click on the "time lock" button at the top of the waveform window
+(looks like a lock with the time on it:&nbsp;<IMG SRC="fig09-18.png" ALT="Figure 9.18">&nbsp;)
+then time is unlocked, and each panel has its own time scale.
+Now individual panels can show a different range of time than the rest.
+<P>
+Electric does crossprobing between the waveform window and an edit window with the original circuit.
+If the original circuit is being displayed, selection in the waveform window is mirrored in that cell.
+Also, whenever the main time cursor changes, the electrical state of the circuit is shown in that cell.
+Wires are colored differently according to their high/low/X/Z value in the simulation at that time.
+If you connect <I>Simulation Probe</I> nodes to any part of the circuit,
+those nodes light up with the appropriate color instead,
+which allows better visualization of activity patterns (see <A HREF="chap07-06-03.html#chap07-06-03">Section 7-6-3</A>).
+You can control the colors used in crossprobing by using the Layers Preferences
+(in menu <B>File / Preferences...</B>, "Display" section, "Layers" tab)
+and setting the colors for "WAVEFORM: CROSSPROBE LOW", "WAVEFORM: CROSSPROBE HIGH",
+"WAVEFORM: CROSSPROBE UNDEFINED", and "WAVEFORM: CROSSPROBE FLOATING".
+<P>
+For best visualization of the simulation activity, there is a set of VCR buttons to control an animation of the main time cursor.
+The play rate can be controlled by the up-arrow and down-arrow buttons, to the right of the VCR controls.
+These make the playback run faster or slower.
+As the time cursor sweeps across the waveform window, the original circuit can be seen to change levels.
+<P>
+These window functions apply to the digital simulation windows:
+<UL>
+<LI><B>Window / Fill Window</B> make all data fit in window.</LI>
+<LI><B>Window / Zoom Out</B> show twice as much time.</LI>
+<LI><B>Window / Zoom In</B> show half as much time.
+</LI>
+<LI><B>Window / Special Zoom / Focus on Highlighted</B> show from main to extension cursors.
+</LI>
+<LI><B>Window / Pan Left</B> show earlier time.
+</LI>
+<LI><B>Window / Pan Right</B> show later time.
+</LI>
+<LI><B>"Pan" tool in tool bar</B> freehand drag of time.</LI>
+<LI><B>"Zoom" tool in tool bar</B> drag area to zoom in, hold shift to zoom out.</LI>
+<LI><B>"Measure" tool in tool bar</B> for measuring time
+(see <A HREF="chap04-07-04.html#chap04-07-04">Section 4-7-4</A>).</LI>
+</UL>
+
+<P>
+<H3>Stimuli (for Built-in Simulators only)</H3>
+<P>
+When the waveform window displays the output of built-in simulators, you can set stimuli on the
+signals to affect the simulation.
+Each stimulus that you set is marked with a large red box at the time of the stimulus (see signals "cc" and "in").
+You can select the stimuli by clicking on the red box.
+A selected stimulus has a green box in it
+(see the rightmost stimulus on signal "in").
+<P>
+To set stimuli, select either a waveform or the equivalent network in the original schematic or layout.
+Once selected, use the <B>Set Signal High at Main Time</B>
+(in menu <B>Tool / Simulation (Built-in)</B>)
+to make that signal go to "high" at the time indicated by the Main cursor.
+Use <B>Set Signal Low at Main Time</B> to set the selected signal "low", and use
+<B>Set Signal Undefined at Main Time</B> to set the selected signal "undefined" (X).
+Use the <B>Get Information about Selected Signals</B> command to show stimuli and
+other information on the selected signals.
+<P>
+To remove the selected stimulus, use the <B>Clear Selected Stimuli</B> command.
+To remove all stimuli on a the selected waveforms, use <B>Clear All Stimuli on Selected Signals</B>.
+To remove all stimuli in the simulation, use <B>Clear All Stimuli</B>.
+
+<!-- NEED 3in -->
+<P>
+<TABLE><TR><TD>
+Besides simple test vectors,
+the ALS simulator can also set clock patterns on the currently selected signal
+by using the <B>Set Clock on Selected Signal...</B> command.
+There are two ways to specify a clock: by frequency (in cycles per second) or period (in seconds).
+</TD><TD><CENTER><IMG SRC="fig09-40.png" ALT="Figure 9.40"></CENTER></TD></TR></TABLE>
+<P>
+Note that the clock cycles infinitely,
+but Electric generates simulation events to fill only the current waveform window.
+If you want more clock events generated,
+zoom-out the waveform window before issuing the clock command.
+<P>
+Once a set of stimuli has been established, you can save it to disk with the
+<B>Save Stimuli to Disk...</B> command.
+These stimuli can be restored later with the <B>Restore Stimuli from Disk...</B> command.
+Each built-in simulator has its own format for saving stimuli.
+<P>
+The Simulators Preferences (in menu <B>File / Preferences...</B>, "Tools" section, "Simulators" tab),
+offers some controls for built-in simulators.
+<UL>
+<LI>"Auto advance time" requests that the main time cursor advance after each stimulus is added.
+This allows each stimulus added to occur at a new time.</LI>
+<LI>"Resimulate each change" requests that the simulator rerun the simulation after any change to the stimuli.
+Because the process of simulating a circuit can be costly, you might want to delay
+resimulation until all stimuli have been set.
+If you uncheck this item, you must issue the <B>Update Simulation Window</B> command to re-run the simulation.
+</UL>
+
+<P>
+<H3>Other Controls</H3>
+<P>
+At the top of the waveform window, above the signal names, are many useful controls.
+Those relating to time have already been discussed.
+Here are the remaining buttons:
+<UL>
+<LI><B>"Refresh"</B>&nbsp;<IMG SRC="fig09-28.png" ALT="Figure 9.28">&nbsp;&nbsp;
+Refreshing the simulation causes it to reload from the original source.
+In the case of external simulation, it is assumed that the simulation was re-run and the
+output file is different, so the simulation output file is re-read.
+In the case of built-in simulators, it is assumed that the original circuit has changed,
+so it is re-evaluated and reloaded into the simulator.
+This function is also available with the <B>Refresh Simulation Data</B> command
+(in menu <B>Window / Waveform Window</B>).</LI>
+<LI><B>The Panel popup</B> This is a list of all panels, including the hidden ones.
+Selecting a panel from this list toggles its "hidden" state, making a visible one disappear,
+and making a hidden one reappear.</LI>
+<LI><B>"Grow" and "Shrink"</B>&nbsp;<IMG SRC="fig09-31.png" ALT="Figure 9.31">&nbsp;&nbsp;
+These buttons, which show a waveform being stretched or squeezed,
+cause the minimum panel size to change.
+By shrinking the panel size, more of them can fit in the window without having to use a slider to access them.
+Also, the panels can be resized individually by dragging any of the dividers.</LI>
+</UL>
+
+<!-- TRAILER -->

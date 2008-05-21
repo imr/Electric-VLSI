@@ -1,0 +1,57 @@
+<!-- HEADER 9-7-1: NCC Overview -->
+
+
+Electric can compare two different cells and determine whether their
+networks have the same topology.  This operation is sometimes called
+Layout vs. Schematic (LVS), but because Electric can compare any two
+circuits (including two layouts or two schematics) we use the term Network
+Consistency Checking (NCC).
+<p>
+The Java Electric NCC differs from the C Electric NCC in two
+significant ways.
+<UL>
+<LI>
+  The Java Electric NCC firsts attempts to discover circuit mismatches
+  using a new algorithm called "Local Partitioning".  We do this
+  because Local Partitioning provides much more precise and
+  intelligible mismatch diagnostics.  We fall back upon the <A
+  HREF="http://www.cs.washington.edu/research/projects/lis/www/gemini/gemini.html">
+  Gemini algorithm</A> (Ebeling, Carl, "GeminiII: A Second Generation
+  Layout Validation Program", <I>Proceedings of ICCAD</I> 1988,
+  p322-325.) only as a last resort. In practice upwards of 95% of all
+  errors are found by Local Partitioning.
+</li>
+<li>
+  The Java Electric NCC has a "hierarchical" mode. When comparing a
+  cell hierarchically, NCC first tries to compare the cell's
+  descendents.  We <i>strongly</i> recommend this mode to the user
+  because it allows the Local Partitioning algorithm to provide even
+  more precise and intelligible mismatch diagnostics.
+</li>
+</ul>
+The Java Electric NCC is also significantly faster than the C Electric
+NCC.  For example, for one of our chips, C-NCC flat took 48 minutes,
+Java-NCC flat took 3.5 minutes, and Java-NCC hierarchical took 9
+seconds.
+<p>
+
+<h3> Limitations </h3>
+NCC has a number of limitations
+<ul>
+<li>
+  NCC does not check the substrate connection of transistors. This is
+  because Electric does not keep track of the connectivity
+  of the substrate connection of layout transistors. In fact, layout
+  transistors don't have substrate ports. We plan to remedy this.
+</li>
+</ul>
+
+<h3> Example </h3>
+
+For an example of network consistency checking, open the Samples
+library with the <B>Sample Cells</B> command (in menu <B>Help / Load Built-in Libraries</B>) and compare the
+cells "tool-NCC{lay}" and "tool-NCC{sch}".  These two cells are
+equivalent and the checker will find them to be so.
+
+<!-- TRAILER -->
+

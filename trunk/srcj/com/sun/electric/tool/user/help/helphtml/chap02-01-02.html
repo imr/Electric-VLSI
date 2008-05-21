@@ -1,0 +1,36 @@
+<!-- HEADER 2-1-2: Selection Appearance -->
+
+<TABLE><TR><TD><CENTER><IMG SRC="fig02-04.png" ALT="Figure 2.4"></CENTER></TD><TD>
+Highlighted objects have a box drawn around them.
+In some cases, the object extends beyond the box,
+but the box encloses the essential part of the object.
+For example, MOS transistors are highlighted where the two materials cross,
+even though the materials extend on all four sides.
+Also, CMOS active arcs have implants that surround them,
+but the highlight covers only the central active part.
+</TD></TR></TABLE>
+<P>
+Besides the basic box, there will be other things drawn when an object is highlighted.
+Highlighted arcs have their constraint characteristics displayed.
+The example above shows an arc that is both fixed-angle ("F") and slidable ("S").
+The letter "R" is used for rigid arcs, and an "X" appears when none of these constraints apply.
+See <A HREF="chap05-01.html#chap05-01">Section 5-1</A> for more information on arc constraints.
+<P>
+When nodes are selected, a port is also highlighted.
+The port that is highlighted is the one closest to the cursor when the node is selected.
+If the port is a single point, you see a "+" at the port.
+If the port is larger than a single point, it is shown as a line or rectangle.
+<P>
+<TABLE><TR><TD>
+Highlighted nodes will also show the entire network that extends out of the highlighted port.
+Arcs in that network will be drawn with dashed lines,
+and nodes in that network will be indicated with dots.
+The example here shows the highlighting of a pin node (in the upper-right)
+with a single-point port ("+") which is connected to a contact and a transistor.
+</TD><TD><CENTER><IMG SRC="fig02-08.png" ALT="Figure 2.8"></CENTER></TD></TR></TABLE>
+<P>
+It is important to understand that Electric is not exactly a WYSIWYG editor (what-you-see-is-what-you-get).
+Nodes that are touching on the screen may not actually be connected if there are no arcs joining them.
+The best way to ensure that the circuit is correct is to highlight a node and see the extent of the connections on it.
+
+<!-- TRAILER -->

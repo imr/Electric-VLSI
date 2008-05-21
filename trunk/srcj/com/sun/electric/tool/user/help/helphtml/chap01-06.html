@@ -1,0 +1,141 @@
+<!-- HEADER 1-6: Fundamental Concepts -->
+
+<U>MOST CAD SYSTEMS</U> use two methods to do circuit design: <I>connectivity</I>
+and <I>geometry</I>.
+<UL>
+<LI>The <B>connectivity</B> approach is used by every Schematic design system:
+you place components and draw connecting wires.
+The components remain connected, even when they move.
+<LI>The <B>geometry</B> approach is used by most Integrated Circuit (IC) layout systems:
+rectangles of "paint" are laid down on different layers to form the masks for chip fabrication.
+</UL>
+<P>
+<U>ELECTRIC IS DIFFERENT</U>
+because it uses connectivity for all design, even IC layout. 
+This means that you place components (MOS transistors, contacts, etc.) and draw 
+wires (metal-2, polysilicon, etc.) to connect them. The screen shows the true 
+geometry, but it knows the connectivity too.
+<P>
+The advantages of connectivity-based IC layout are many:
+<UL>
+<LI><B>No node extraction.</B>
+Node extraction is not a separate, error-prone step. Instead, the connectivity 
+is part of the layout description and is instantly available. This speeds up 
+all network-oriented operations, including simulation, layout-versus-schematic (LVS),
+and electrical rules checkers.
+<LI><B>No geometry errors.</B>
+Complex components are no longer composed of unrelated pieces of geometry that 
+can be moved independently. In paint systems, you can accidentally move the 
+gate geometry away from a transistor, thus deleting the transistor. In 
+Electric, the transistor is a single component, and cannot be accidentally 
+destroyed.
+<LI><B>More powerful editing.</B>
+Browsing the circuit is more powerful because the editor can show the entire 
+network whenever part of it is selected. Also, Electric combines the 
+connectivity with a layout constraint system to give the editor powerful 
+manipulation tools. These tools keep the design well-connected, even as the 
+circuit is modified on different levels of hierarchy.
+<LI><B>Tools are smarter</B>
+when they can use connectivity information. For example, the Design Rule 
+checker knows when the layout is connected and uses different spacing rules.
+<LI><B>Simpler design process.</B>
+When doing schematics and layout at the same time, getting a correct LVS
+typically involves many steps of design rule cleaning.
+This is because node extraction must be done to obtain the connectivity of the IC layout,
+and node extractors cannot work when the design rules are bad.
+So, each time LVS problems are found, the layout must be fixed and made DRC clean again.
+Since Electric can extract connectivity for LVS without having perfect design rules,
+the first step is to get the layout and schematics to match.
+Then the design rules can be cleaned-up without fear of losing the LVS match.
+<LI><B>Common user interface.</B>
+One CAD system, with a single user interface, can be used to do both IC layout 
+and schematics. Electric tightly integrates the process of drawing separate 
+schematics and has an LVS tool to compare them.
+</UL>
+<P>
+<!-- NEED 2in -->
+The disadvantages of connectivity-based IC layout are also known:
+<UL>
+<LI><B>It is different</B>
+from all the rest and requires retraining. This is true, but many have 
+converted and found it worthwhile. Users who are familiar with paint-based IC 
+layout systems typically have a harder time learning Electric than those with 
+no previous IC design experience.
+<LI><B>Requires extra work</B>
+on the user's part to enter the connectivity as well as the geometry. While 
+this may be true in the initial phases of design, it is not true overall. This 
+is because the use of connectivity, early in the design, helps the system to 
+find problems later on. In addition, Electric has many power tools for 
+automatically handling connectivity.
+<LI><B>Design is not WYSIWYG</B>
+(what-you-see-is-what-you-get) because objects that touch on the screen may or 
+may not be truly connected. Electric has many tools to ensure that the 
+connectivity has been properly constructed.
+</UL>
+<P>
+<TABLE>
+<TR>
+<TD>
+The way that Electric handles all types of circuit design is by viewing it as a 
+collection of <I>nodes</I> and <I>arcs</I>, woven into a network. The nodes are 
+electrical components such as transistors, contacts, and logic gates. Arcs are 
+simply wires that connect two components. <I>Ports</I> are the connection sites 
+on nodes where the wires connect.
+</TD>
+<TD><CENTER><IMG SRC="fig01-01.png" ALT="Figure 1.1"></CENTER>
+</TD>
+</TR>
+</TABLE>
+<P>
+In the above example, the transistor node on the left has three pieces of geometry on 
+different layers: polysilicon, active, and well. This node can be scaled, 
+rotated, and otherwise manipulated without concern for specific layer sizes. 
+This is because rules for drawing the node have been coded in a <I>technology</I>,
+which describes nodes and arcs in terms of specific layers.
+<P>
+Because Electric uses nodes and arcs for design, it is important that they be 
+used to make all of the relevant connections. Although layout may appear to be 
+connected when two components touch, a wire must still be used to indicate the 
+connectivity to Electric. This requires a bit more effort when designing a 
+circuit, but that effort is paid back in the many ways that Electric 
+understands your circuit.
+<P>
+Besides creating meaningful electrical networks, arcs which form wires in 
+Electric can also hold <I>constraints</I>. A constraint helps to control 
+geometric changes, for example, the <I>rigid</I>
+constraint holds two components in a fixed configuration while the rest of the 
+circuit stretches. These constraints propagate through the circuit, even across 
+hierarchical levels of design, so that very complex circuits can be 
+intelligently manipulated.
+<P>
+A <I>cell</I> is a collection of these nodes and arcs, forming a circuit 
+description. There can be different <I>views</I> of a cell, such as the 
+schematic, layout, icon, etc. Also, each view of a cell can have different <I>versions</I>, 
+forming a history of design. Multiple views and versions of a cell are organized into
+<i>Cell groups</i>.
+<P>
+For example, a clock cell may consist of a schematic view and a layout view. 
+The schematic view may have two versions: 1 (older) and 2 (newer). In such a 
+situation, the clock cell group contains 3 cells: the layout view called 
+"clock{lay}", the current schematic view called "clock{sch}", and the older 
+schematic view called "clock;1{sch}".
+<P>
+Hierarchy is implemented by placing instances of one cell into another. When 
+this is done, the cell that is placed is considered to be lower in the 
+hierarchy, and the cell where it is placed is higher. Therefore, the notion of 
+going <I>down</I> the hierarchy implies moving into a cell instance, and the 
+notion of going <I>up</I> the hierarchy implies popping out to where the cell 
+is placed. Note that cell instances are actually nodes, just like the 
+primitive transistors and gates. By defining <I>exports</I>
+inside of a cell, these become the connection sites, or ports, on instances of 
+that cell.
+<P>
+A collection of cells forms a <I>library</I>, and is treated on disk as a 
+single file. Because the entire library is handled as a single entity, it can 
+contain a complete hierarchy of cells. Any cell in the library can contain 
+instances of other cells.
+A complete circuit can be stored in a single library, or it can be broken up
+into multiple libraries.
+
+
+<!-- TRAILER -->

@@ -1,0 +1,48 @@
+<!-- NEED 5in -->
+
+<!-- HEADER 3-9-4: Standard Cell Libraries -->
+
+
+Electric comes with few useful libraries for doing design
+(see <A HREF="chap03-09-01.html#chap03-09-01">Section 3-9-1</A>).
+However, the system is able to make use of <A HREF="http://www.artisan.com">Artisan</A> libraries.
+These libraries are free, provided that you sign an Artisan license.
+Once you are licensed, you will have standard cell libraries, pad libraries, memory libraries, and more.
+<P>
+Artisan libraries are not distributed in Electric format.
+Instead, they come in a variety of formats that can be read into Electric.
+The GDS files contain the necessary geometry, and the LEF files contain the connectivity.
+By combining them, Electric creates a standard cell library that can be placed-and-routed and can be fabricated.
+Note that the data is not node-extracted, so not all of Electric's capabilities can be used with this data.
+<P>
+To create an Artisan library, follow these steps:
+<UL>
+<LI>Select the Artisan data that you want, and extract the GDS and LEF files for it.
+The GDS files will have the extension ".gds2", which is not what Electric expects
+(Electric expects them to end with ".gds"), so you may want to rename them.</LI>
+
+<LI>Read the LEF file into Electric with the <B>LEF (Library Exchange Format)...</B>
+command (in menu <B>File / Import</B>).
+Keep in mind that the LEF data may come in multiple versions for different numbers of metal layers.</LI>
+
+<LI>Read the GDS data into Electric with the <B>GDS II (Stream)...</B>
+command (in menu <B>File / Import</B>).
+Note that the proper GDS layers must be established first
+(with the GDS Preferences, see <A HREF="chap07-03-03.html#chap07-03-03">Section 7-3-3</A>).
+There will now be two libraries in memory: one with the GDS data and one with the LEF data.</LI>
+
+<LI>Merge the port information from the LEF library into the GDS library.
+It is important that the GDS library be the "current library"
+(use the <B>Change Current Library...</B> command in menu <B>File</B> if it is not).
+To merge the LEF port information, use the <B>Add Exports from Library...</B> command
+(of menu <B>Cell / Merge Libraries</B>).
+You will be prompted for another library, and should select the one with the LEF data.</LI>
+
+<LI>At this point, the GDS library now has standard cells in it, including the export information
+that was in the LEF library.
+Before saving it to disk, you should probably use the <B>Cell Properties...</B>
+command (of menu <B>Cells</B>, see <A HREF="chap03-07-03.html#chap03-07-03">Section 3-7-3</A>)
+and set all of the cells to be "Part of a cell-library".</LI>
+</UL>
+
+<!-- TRAILER -->

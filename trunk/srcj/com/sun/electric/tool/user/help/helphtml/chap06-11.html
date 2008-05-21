@@ -1,0 +1,76 @@
+<!-- HEADER 6-11: Interpretive Languages -->
+
+<!-- COMMAND Tool/Languages/Run Java Bean Shell Script -->
+
+Electric has the Bean Shell built into it.
+This enables you to load Java scripts that access the Electric database.
+<P>
+The Bean Shell is not part of the default Electric distribution.
+You must add it as a "plug in"
+(see <A HREF="chap01-05.html#chap01-05">Section 1-5</A> for more on plug-ins).
+<P>
+To run a script, use the <B>Run Java Bean Shell Script</B> command
+(in menu <B>Tool / Languages</B>).
+Here is an example script that searches the current cell for exports starting with "a".
+<CENTER><TABLE BORDER=1><TR><TD>
+<CODE>
+&nbsp;&nbsp;&nbsp;import com.sun.electric.database.hierarchy.Cell;
+<BR>
+&nbsp;&nbsp;&nbsp;import com.sun.electric.tool.user.ui.WindowFrame;
+<BR>
+&nbsp;&nbsp;&nbsp;import java.util.List;
+<BR>
+&nbsp;&nbsp;&nbsp;import java.util.ArrayList;
+<BR>
+&nbsp;&nbsp;&nbsp;import java.util.Iterator;
+<BR>
+
+<BR>
+&nbsp;&nbsp;&nbsp;// read library with test setup
+<BR>
+&nbsp;&nbsp;&nbsp;Cell lay = WindowFrame.getCurrentCell();
+<BR>
+
+<BR>
+&nbsp;&nbsp;&nbsp;// find all exports
+<BR>
+&nbsp;&nbsp;&nbsp;com.sun.electric.database.hierarchy.Export e;
+<BR>
+&nbsp;&nbsp;&nbsp;List aList = new ArrayList();
+<BR>
+&nbsp;&nbsp;&nbsp;for(Iterator it = lay.getPorts(); it.hasNext(); )
+<BR>
+&nbsp;&nbsp;&nbsp;{
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;e = (com.sun.electric.database.hierarchy.Export)it.next();
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (e.getName().startsWith("a")) aList.add(e);
+<BR>
+&nbsp;&nbsp;&nbsp;}
+<BR>
+
+<BR>
+&nbsp;&nbsp;&nbsp;String aOut = "Exports that start with 'a':";
+<BR>
+&nbsp;&nbsp;&nbsp;for(Iterator it = aList.iterator(); it.hasNext(); )
+<BR>
+&nbsp;&nbsp;&nbsp;{
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;e = (com.sun.electric.database.hierarchy.Export)it.next();
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;aOut += " " + e.getName();
+<BR>
+&nbsp;&nbsp;&nbsp;}
+<BR>
+&nbsp;&nbsp;&nbsp;System.out.println(aOut);
+</CODE>
+</TD></TR></TABLE></CENTER>
+<P>
+Notice that Electric's "Export" object must be a fully-qualified name, because the
+name "Export" is used for other reasons in the Bean Shell.
+This also applies to Electric's "EPoint" class.
+<P>
+For more information about accessing the internals of Electric, read the Javadoc
+in the source code.
+
+<!-- TRAILER -->

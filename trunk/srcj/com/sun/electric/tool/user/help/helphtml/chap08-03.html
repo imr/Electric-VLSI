@@ -1,0 +1,42 @@
+<!-- HEADER 8-3: Hierarchies of Technology Libraries -->
+
+<!-- COMMAND Edit/Technology Specific/Edit Library Dependencies... -->
+
+Although a technology is normally described with a single library,
+it is also possible to string together a sequence of libraries to describe a technology.
+The sequence forms an <I>inheritance hierarchy</I>,
+where later libraries in the sequence can override elements found in earlier libraries.
+For example, one library could be a <I>base</I> description for a family of technologies,
+and another library could be a <I>tailoring</I> description that describes a specific family member.
+The tailoring library might be very small, consisting of a single node description.
+That information would then override or augment the base library.
+<P>
+To connect a sequence of libraries,
+a list is placed in the bottommost library pointing to the earlier, or <I>dependent</I> libraries.
+In the example below, the current library is "smallPads" and it is tailored with two
+other libraries: "pads" and "cmos" (the base library).
+Note that the list implicitly begins with the current library,
+and continues in reverse order.
+In this example, the first library examined is "padsSmall",
+followed by "pads" and finally the base library "cmos".
+<P>
+When a piece of technology information is found in more than one library,
+the latest one is used (i.e. the current library's version is used before a dependent library's version,
+and a dependent library's version is used before that of another dependent library higher up the list).
+Note that the version which is used is expected to be the most recently created version,
+and a warning message will be issued if this is not the case.
+<P>
+Control of the library list is done with the <B>Edit Library Dependencies...</B> command
+(in menu <B>Edit / Technology Specific</B>).
+<P>
+<TABLE><TR><TD>
+A dialog is presented with two lists of libraries.
+The list on the left shows the dependent libraries and the list on the right shows all current libraries.
+By selecting a library name from the list on the right and clicking on the "&lt;&lt; Add" button,
+it is added to the list on the left.
+To add a library not shown, type its name into the box on the right and click the "&lt;&lt; Add" button.
+</TD><TD><CENTER><IMG SRC="fig08-02.png" ALT="Figure 8.2"></CENTER></TD></TR></TABLE>
+<P>
+To remove a library from the list on the left, select it and click the "Remove" button.
+
+<!-- TRAILER -->

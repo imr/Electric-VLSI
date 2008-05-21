@@ -1,0 +1,25 @@
+<!-- HEADER 6-5: Spreading Circuitry -->
+
+<!-- COMMAND Edit/Move/Spread... -->
+
+When a large amount of circuitry has been placed too close together or too far apart,
+Electric's constraint system can help.
+All that is necessary is to make all arcs in an area rigid and then move one node.
+Of course,
+you may have to move more than one node if the one you pick is not connected to everything else you want to move.
+Also, you must make sure that arcs connecting across the area boundary are nonrigid.
+Finally, setting arc rigidity should be done temporarily so that it does not spoil an existing constraint setup.
+All these operations are handled for you by the <B>Spread...</B> command (in menu
+<B>Edit / Move</B>).
+<P>
+<TABLE><TR><TD>
+With the <B>Spread...</B> command, the highlighted node is a focal point about which objects move.
+A dialog is presented in which an amount and a direction (up,
+down, left, or right) are specified.
+An infinite line is passed through the highlighted node's center and everything above,
+below, to the left of, or to the right of the line is moved by the specified amount.
+</TD><TD><CENTER><IMG SRC="fig06-03.png" ALT="Figure 6.3"></CENTER></TD></TR></TABLE>
+<P>
+Negative spread distances compact the circuit.
+
+<!-- TRAILER -->

@@ -1,0 +1,30 @@
+<!-- HEADER 10-2-3: Technologies -->
+
+<h3>Technologies</h3>
+<P>
+All technologies used in the library must be in the header.
+The other reason for a technology declaration to exist is if the technology has project settings stored on it.
+If there are multiple technology lines, they are sorted by technology name.
+The syntax is:
+<P>
+<CENTER><TABLE BORDER=1 WIDTH="90%">
+<TR><TD COLSPAN=2><B>T&lt;name&gt; [ | &lt;variable&gt; ]*</B></TD></TR>
+<TR><TD WIDTH="20%">&lt;name&gt;</TD><TD WIDTH="80%">the name of the technology.</TD></TR>
+<TR><TD>&lt;variable&gt;</TD><TD>a list of project settings on the technology
+(stored as variables, see <A HREF="chap10-04-01.html#chap10-04-01">Section 10-4-1</A>).</TD></TR>
+</TABLE>
+</CENTER>
+<P>
+Examples:
+<P>
+&nbsp;&nbsp;&nbsp;&nbsp;<CODE>Tmocmos</CODE>
+<P>
+Declares that there should be a technology called "mocmos".
+<P>
+&nbsp;&nbsp;&nbsp;&nbsp;<CODE>Tmocmos|ScaleFORmocmos()D200</CODE>
+<P>
+Declares the technology "mocmos" and also creates a project setting on that technology object called
+"ScaleFORmocmos" which is a double-precision value equal to 200.
+
+
+<!-- TRAILER -->

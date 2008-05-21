@@ -1,0 +1,79 @@
+<!-- HEADER 9-2-3: Design Rules -->
+
+<!-- COMMAND Tool/DRC/Export DRC Deck... -->
+<!-- COMMAND Tool/DRC/Import DRC Deck... -->
+<!-- PREFERENCE Technology/Design Rules -->
+
+<P>
+Four types of errors are detected by the incremental and hierarchical design-rule checkers.
+<I>Spacing</I> errors are caused by geometry that is too close, but not connected.
+<I>Notch</I> errors are caused by geometry that is too close, but connected.
+<I>Minimum size</I> errors are caused by geometry that is too small.
+<I>Resolution</I> errors are caused by geometries that are smaller than a specified limit.
+<P>
+In addition to examining geometry,
+the design-rule checkers use connectivity information to help find violations.
+This use of network information helps the designer to debug circuit connectivity.
+For example, if two overlapping nodes are not joined by an arc,
+they may be considered to be in violation,
+even if their geometry looks right.
+This is because the checkers know what is connected and have a separate set of rules for such situations.
+<P>
+To help guide the design-rule checker,
+an "exclusion" layer can be placed over areas that are not to be examined.
+This exclusion layer is created by clicking the "Misc." entry of the component menu
+and selecting "DRC Exclusion"
+(see <A HREF="chap07-06-03.html#chap07-06-03">Section 7-6-3</A>).
+Any errors that fall inside of this node's area are ignored. 
+<P>
+To edit the design rules, use the Design Rules Preferences
+(in menu <B>File / Preferences...</B>, "Technology" section, ""Design Rules" tab). 
+The dialog allows you to examine and modify the spacing limits for the current technology.
+Each rule has a numeric value (size or distance) as well as a textual description of the rule.
+The dialog is divided into two parts: "Node Rules" and "Layer Rules".
+<P>
+In the "Node Rules" section, you may set the minimum size of each node in the current technology.
+<P>
+<CENTER><IMG SRC="fig09-09.png" ALT="Figure 9.9"></CENTER>
+<P>
+In the "Layer Rules" section, you may set the minimum size, area, and enclosure area of each layer.
+You may also set the inter-layer spacing (between the "From Layer" and the "To Layer").
+Use the "Show only 'to' entries with rules" to restrict the displayed rules to those with valid values.
+<P>
+The layer-to-layer spacing rules appear in 3 forms:
+<I>normal</I>, <I>wide</I>, and <I>multicut</I>.
+Normal rules come in three flavors: connected, unconnected, and edge.
+The connected rules apply to pieces of geometry that are electrically connected;
+the unconnected rules apply to unconnected geometry;
+edge rules apply to unconnected layers
+ and ignore overlap when considering spacing distance.
+<P>
+The wide rules apply to large geometry.
+Although some technologies may have many different rules for different definitions of "large",
+the MOSIS CMOS technology has only one such rule.
+Additional rules can be controlled with the "Add Wide Rule" and "Delete Wide Rule" buttons.
+<P>
+The bottom of the dialog has some special features of design rules:
+<UL>
+<LI>The "Factory Reset" button restores all rules to the original set built into Electric.</LI>
+<LI>The "Min resolution" is the minimum resolution that can be manufactured.
+If zero, no resolution check is done.
+When checking resolution, all geometry of that size or less will be flagged as resolution errors.
+For example, current MOSIS rules require that no boundaries be quarter-unit or less,
+so a value of .25 in this field will detect such violations.</LI>
+</UL>
+<P>
+When rules have been changed, they are saved with your Preferences.
+To save them independently of the Preferences, use the
+<B>Export DRC Deck...</B> command (in menu <B>Tool / DRC</B>) to write an XML file with the design rules.
+Use the <B>Import DRC Deck...</B> command to restore these rules.
+<P>
+Note that the MOSIS CMOS design rule 6.7b is not checked by Electric
+because it is difficult to detect properly.
+This error is never fatal,
+and the worst case of missing this error is that active and poly are closer by 1/2 lambda,
+which merely results in an increase in capacitive coupling between them.
+If this fringing capacitance is important,
+you've probably got so much polysilicon in your circuit that it has bigger problems.
+
+<!-- TRAILER -->

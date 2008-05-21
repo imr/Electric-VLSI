@@ -1,0 +1,36 @@
+<!-- HEADER 6-7: Undo Control -->
+
+<!-- COMMAND Edit/Repeat Last Action -->
+<!-- COMMAND Edit/Undo -->
+<!-- COMMAND Edit/Redo -->
+<!-- COMMAND Edit/Show Undo List -->
+
+Electric has an undo mechanism that tracks all changes made during a session.
+When a command is issued, it and its side effects are stored.
+<P>
+The <B>Undo</B> command (in menu <B>Edit</B>) reverses the last change made
+(this includes any changes that may have been made by other tools).
+Multiple uses of the <B>Undo</B> command continue to undo further back.
+The <B>Redo</B> command redoes changes, up to the most recent change made.
+<P>
+<TABLE><TR><TD><CENTER><IMG SRC="fig06-09.png" ALT="Figure 6.9"></CENTER></TD><TD>
+You can also use the undo (counterclockwise) and redo (clockwise) icons from the tool bar.
+</TD></TR></TABLE>
+<P>
+Electric stores only the last 40 changes, so anything older than that cannot be undone.
+To increase the number of changes that are saved, use the
+General Preferences (in menu <B>File / Preferences...</B>, "General" section, "General" tab),
+and change the "Maximum undo history" field.
+To see a history of changes that were made, use the
+<B>Show Undo List</B> command (in menu <B>Edit</B>).
+<P>
+In Electric, almost every command is undoable, but there are some exceptions.
+Commands that write disk files are not undoable,
+because Electric would not be so presumptuous as to delete a disk file.
+
+<P>
+Another useful command in for controlling changes being made is
+<B>Repeat Last Action</B> (in menu <B>Edit</B>).
+This repeats the last command, but only works for commands that can sensibly be repeated.
+
+<!-- TRAILER -->

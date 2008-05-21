@@ -1,0 +1,62 @@
+<!-- HEADER 1-3: Requirements -->
+
+Electric is written in the Java programming language and is distributed as a single ".jar" file,
+typically called "electric.jar".
+There are two variations on the ".jar" file: with or without source code.
+Either of these files can run Electric, but the one with source code is larger because it also has
+all of the Java code.
+<P>
+Electric requires Java version 1.5 or later from Sun Microsystems.
+It can also run with Apache Harmony.
+However, it does not run properly on some open-source
+implementations of Java, including the version shipped on Fedora Core systems.
+You will have to reinstall Java from Sun or Apache in such cases. 
+<P>
+If you extract the source code from the ".jar" file and wish to build Electric, note that there are
+some Macintosh vs. non-Macintosh issues to consider.
+<UL>
+<LI><B>Build on a Macintosh</B>
+The easiest thing to do is to remove references to "AppleJavaExtensions.jar" from the Ant script
+(build.xml).
+This package is a collection of "stubs" to replace Macintosh functions that are unavailable elsewhere.
+You can also build a native "App" by running the "mac-app" Ant script.
+This script makes use of files in the "packaging" folder.
+Macintosh computers must be running OS 10.3 or later.
+</LI>
+<LI><B>Build on non-Macintosh</B>
+If you are building Electric on and for a non-Macintosh platform,
+remove references to "AppleJavaExtensions.jar" from the Ant script
+(build.xml).
+Also, remove the module "com.sun.electric.MacOSXInterface.java".
+It is sufficient to delete this module, because Electric automatically
+detects its presence and is able to run without it.</LI>
+<LI><B>Build on non-Macintosh, to run on all platforms</B>
+To build Electric so that it can run on all platforms, Macintosh and other,
+you will need to keep the module "com.sun.electric.MacOSXInterface.java".
+However, in order to build it, you will need the stub package "AppleJavaExtensions.jar".
+The package can be downloaded from Apple at
+<A HREF="http://developer.apple.com/samplecode/AppleJavaExtensions/AppleJavaExtensions.html">
+http://developer.apple.com/samplecode/AppleJavaExtensions/index.html</A>.</LI>
+</UL>
+<P>
+
+<H3>Memory Control</H3>
+<P>
+One problem with Java is that the Java Virtual Machine has a memory limit.
+This limit prevents programs from growing too large.
+However, it prevents large circuits from being edited.
+<P>
+If Electric runs out of memory, you can request more.
+To do this, use General Preferences (in menu <B>File / Preferences...</B>, "General" section, "General" tab).
+At the bottom of the dialog are two memory limit fields, for <I>heap space</I> and <I>permanent space</I>.
+Changes to these values take effect when you next run Electric.
+<P>
+The heap space limit is the most important because increasing it will offer much more circuitry capacity.
+Note that 32-bit JVMs can only grow so far.
+On 32-bit Windows systems you should not set it above 1500 (1.5 Gigabytes).
+On 32-bit Linux or Macintosh system, you should not set it above 3600 (3.6 Gigabytes).
+<P>
+Permanent space is an additional section of memory that can be insufficiently small.
+For very large chips, a value of 200 or larger may enhance performance.
+
+<!-- TRAILER -->

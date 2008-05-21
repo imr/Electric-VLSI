@@ -1,0 +1,52 @@
+<!-- HEADER 6-1: Making Copies -->
+
+<!-- COMMAND Edit/Cut -->
+<!-- COMMAND Edit/Copy -->
+<!-- COMMAND Edit/Paste -->
+<!-- COMMAND Edit/Duplicate -->
+
+Once you have created a collection of objects,
+it may be desirable to have other identical copies.
+There are two ways to do this: by duplication, and by cut-and-paste.
+<P>
+<H3>Duplication</H3>
+<P>
+The <B>Duplicate</B> command (in menu <B>Edit</B>) makes a copy of the selected nodes and arcs.
+After issuing this command, you can move the cursor to any location and click to place the copy.
+While moving the cursor, an outline of the duplicated objects is shown (as well as the amount of motion).
+<P>
+If you have disabled "Move after Duplicate"
+(in the Nodes Preferences, in menu <B>File / Preferences...</B>, "General" section, "Nodes" tab)
+then the duplicated objects are placed immediately without dragging.
+Initially, they are moved by a predefined amount.
+However, Electric remembers motion that is made after a duplication and uses that offset in subsequent duplications.
+<P>
+If any of the nodes have exports on them, they are not duplicated
+(unless "Duplicate/Array/Paste copies exports" is set in the Nodes Preferences).
+<P>
+The <B>Duplicate</B> command forces newly created nodes and arcs to have unique names.
+This means that if any nodes or arcs are named
+(using the <B>Object Properties...</B> command, in menu <B>Edit / Properties</B>) and then duplicated,
+the new ones will have different names
+(specifically, the old names with numbers appended or modified).
+<P>
+<H3>Cut-and-Paste</H3>
+<P>
+Another way to make copies of nodes and arcs is with the cut-and-paste commands.
+The <B>Copy</B> and <B>Cut</B> commands (in menu <B>Edit</B>) copy the currently selected nodes and arcs to a special buffer.
+<B>Cut</B> also removes the objects after copying them.
+The <B>Paste</B> command then copies the objects from the special buffer to the display.
+After issuing this command, an outline of the pasted objects attaches to the cursor.
+When you click,	the objects are placed at that location.
+You can right-click during the paste drag to affect the location, and to abort the paste.
+<P>
+Note that if you copy a node or arc and then select another before pasting,
+then the copied object will replace the selected object
+(changing its type and other properties,
+similar to the <B>Change...</B> command, see <A HREF="chap06-06.html#chap06-06">Section 6-6</A>).
+If you want the <B>Paste</B> command to make a second copy,
+be sure that nothing is selected when you issue the command.
+Thus, duplicating an object cannot be done by issuing a <B>Copy</B> and then a <B>Paste</B>.
+You must do a <B>Copy</B>, then deselect the object, then do a <B>Paste</B>.
+
+<!-- TRAILER -->

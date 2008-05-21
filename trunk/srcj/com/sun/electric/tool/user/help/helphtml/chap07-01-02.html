@@ -1,0 +1,61 @@
+<!-- HEADER 7-1-2: Controlling Technologies -->
+
+<!-- COMMAND Edit/Technology Specific/Describe this Technology -->
+<!-- COMMAND Edit/Technology Specific/Document Current Technology -->
+
+<!-- PREFERENCE Technology/Technology -->
+<!-- PROJECTSETTING Technology -->
+
+
+Electric has the concept of a <I>current technology</I> which is shown in the
+status bar.
+This technology affects many things, including the selection of nodes and arcs in the component menu.
+There are a number of ways to affect the current technology, both manual and automatic.
+<P>
+You can change the current technology by selecting it from the popup at the top of the
+side bar (either the "Components" or "Layers" tab).
+Electric automatically switches the current technology to match the cell being edited.
+If there are multiple cells being edited from different technologies, this switching can become annoying.
+To disable automatic technology switching,
+use the Nodes Preferences (in menu <B>File / Preferences...</B>, "General" section, "Nodes" tab),
+and uncheck "Switch technology to match current cell".
+<P>
+To see a list of primitive nodes and arcs in the current technology,
+use the <B>Describe this Technology</B> command (in menu <B>Edit / Technology Specific</B>).
+To see a detailed description of the current technology,
+use the <B>Document Current Technology</B> command.
+<P>
+<TABLE><TR><TD>
+Some technologies have settings that further customize them.
+The Technology Project Settings command (in menu <B>File / Project Settings...</B>, "Technology" tab)
+lets you control many general and specific technology settings.
+More information about the MOSIS CMOS section can be found in
+<A HREF="chap07-04-02.html#chap07-04-02">Section 7-4-2</A>.
+</TD><TD><CENTER><IMG SRC="fig07-29.png" ALT="Figure 7.29"></CENTER></TD></TR></TABLE>
+<P>
+The Defaults section has these controls:
+<UL>
+<LI>"Startup technology" controls the technology that is used when Electric first begins.
+It is also used when reading old libraries that are missing some technology information.
+</LI>
+<LI>"Layout technology to use for Schematics" sets the technology to use for real geometry
+(an integrated circuit technology, not a schematics or artwork technology).
+The default layout technology is used to give further information about schematics components
+(see, for example, <A HREF="chap09-04-03.html#chap09-04-03">Section 9-4-3</A>).
+</LI>
+</UL>
+
+<TABLE><TR><TD><CENTER><IMG SRC="fig07-14.png" ALT="Figure 7.14"></CENTER></TD><TD>
+Other settings are found in the Technology Preferences dialog
+(in menu <B>File / Preferences...</B>, "Technology" section, "Technology" tab)
+For the difference between Preferences and Project Settings, see
+<A HREF="chap06-03.html#chap06-03">Section 6-3</A>.
+<P>
+Layout Technology preferences are discussed in <A HREF="chap07-04-02.html#chap07-04-02">Section 7-4-2</A>.
+Artwork controls are discussed in <A HREF="chap07-06-01.html#chap07-06-01">Section 7-6-1</A>).
+Schematics controls are discussed in <A HREF="chap07-05-01.html#chap07-05-01">Section 7-5-1</A>
+and <A HREF="chap03-11-02.html#chap03-11-02">Section 3-11-2</A>.
+</TD></TR></TABLE>
+<P>
+
+<!-- TRAILER -->

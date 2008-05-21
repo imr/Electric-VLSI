@@ -1,0 +1,46 @@
+<!-- NEED 3in -->
+
+<!-- HEADER 2-1-5: Easy and Hard Selection -->
+
+<!-- COMMAND Edit/Modes/Select/Toggle Special Select -->
+<!-- COMMAND Edit/Selection/Select All Easy -->
+<!-- COMMAND Edit/Selection/Select All Hard -->
+<!-- COMMAND Edit/Selection/Make Selected Easy -->
+<!-- COMMAND Edit/Selection/Make Selected Hard -->
+
+In a busy circuit, many objects may overlap, causing confusion when selecting.
+To simplify selection, objects can be marked so that they are no longer <I>easy-to-select</I>,
+which means that standard selection does not work on them.
+<P>
+<TABLE><TR><TD><CENTER><IMG SRC="fig02-16.png" ALT="Figure 2.16"></CENTER></TD><TD>
+To select hard-to-select objects,
+use the <B>Toggle Special Select</B> command (in menu <B>Edit / Modes / Select</B>).
+You can also click on the "Special Select" tool bar button to enable "special selection".
+Once in this mode, all objects are selectable.
+</TD></TR></TABLE>
+
+<P>
+Ease of selection extends to more than just nodes and arcs.
+There are four "classes" of objects that can be selected:
+<UL>
+<LI>Basic objects (all arcs, primitive nodes, and port names)
+<LI>Cell instances
+<LI>Node and arc text (names and other text placed on nodes and arcs)
+<LI>Instance names (an unexpanded cell instance's name)
+</UL>
+By default, the first three classes are easy-to-select, and instance names are hard-to-select.
+If you uncheck "Easy selection of cell instances" in the Selection Preferences dialog,
+then cell instances become hard-to-select.
+<P>
+Although all nodes and arcs are typically easy-to-select,
+you can control them individually by unchecking the "Easy to Select" field in their properties dialog
+(use the <B>Object Properties...</B> command in menu <B>Edit / Properties</B>).
+If multiple objects are selected, the <B>Object Properties...</B> dialog has a popup on the right for changing their selection difficulty.
+<P>
+Special commands exist in the <B>Selection</B> menu for dealing with easy-to-select nodes and arcs.
+You can select all of the easy-to-select objects in the current cell with the <B>Select All Easy</B> command.
+Similarly, you can select those that are not easy-to-select with the <B>Select All Hard</B> command.
+To change the ease of selection for a set of objects,
+highlight them and use either <B>Make Selected Easy</B> or <B>Make Selected Hard</B>.
+
+<!-- TRAILER -->

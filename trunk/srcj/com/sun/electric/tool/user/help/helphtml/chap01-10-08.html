@@ -1,0 +1,28 @@
+<!-- HEADER 1-10-8: IC Layout Tutorial: Exports -->
+
+Before you can attach wires to the instance node,
+there must be connection sites, or <I>ports</I> on that node.
+Primitive nodes such as contacts and transistors already have their ports established,
+but you must explicitly create ports for cell instances.
+This is done by creating <I>exports</I> inside the cell definition.
+
+<P>
+<TABLE><TR>
+<TD><CENTER><IMG SRC="fig01-12.png" ALT="Figure 1.12"></CENTER></TD><TD>
+Move the cursor to the window with the lower-level cell
+("MyCircuit") and select the contact node.
+Then issue the <B>Create Export...</B> command (in menu <B>Export</B>).
+You will be prompted for an export name and its characteristic
+(the characteristics can be ignored for now).
+</TD></TR></TABLE>
+<P>
+
+<TABLE><TR>
+<TD><CENTER><IMG SRC="fig01-09.png" ALT="Figure 1.9"></CENTER></TD><TD>
+This takes the port on the contact node and exports it to the outside world.
+Its name will be visible on the unexpanded instance node in the higher-level cell.
+<P>
+You can now connect wires to that node in just the same way as you wired the contact.
+</TD><TD><CENTER><IMG SRC="fig01-13.png" ALT="Figure 1.13"></CENTER></TD></TR></TABLE>
+
+<!-- TRAILER -->
