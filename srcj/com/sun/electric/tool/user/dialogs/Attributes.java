@@ -54,7 +54,11 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JFrame;
@@ -86,7 +90,7 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
 
     private String initialName;
     private String initialValue;
-	private boolean showAttrsOnly = !Job.getDebug();
+	private boolean showParamsOnly = !Job.getDebug();
 
     private TextAttributesPanel attrPanel;
     private TextInfoPanel textPanel;
@@ -156,7 +160,7 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
         super(parent, false);
         initComponents();
 
-        if (showAttrsOnly) {
+        if (showParamsOnly) {
             getContentPane().remove(debugSelect);
             mainLabel.setText("Parameters:");
             setTitle("Edit Parameters");
@@ -314,11 +318,11 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
 	        if (curWnd == null) selectedCell = null;
 	        if (selectedCell != null)
 	        {
-                if (showAttrsOnly) {
+                if (showParamsOnly) {
                     if (!selectedCell.isIcon() && !selectedCell.isSchematic()) {
                         selectedCell = null;
                     } else {
-                        mainLabel.setText("Parameters on "+selectedCell.getName()+":");
+                        mainLabel.setText("Parameters on " + selectedCell.getName() + ":");
                     }
                 }
                 else if (curWnd.getHighlighter().getNumHighlights() == 1)
@@ -436,7 +440,7 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
             return;
         }
 
-        if (showAttrsOnly)
+        if (showParamsOnly)
             varName = "ATTR_" + varName;
 
         // try to find variable
@@ -445,7 +449,7 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
         {
             // make sure var is selected
             if (varKey != null)
-            list.setSelectedValue(varKey, true);
+            	list.setSelectedValue(varKey, true);
         } else {
             // no such var, remove selection and enable new buttons
             newButton.setEnabled(true);
@@ -465,13 +469,55 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
         list.clearSelection();
         listModel.clear();
 
-        // show the variables
-        for(Iterator<Variable> it = selectedObject.getVariables(); it.hasNext(); )
+        // show the parameters
+        Set<Variable.Key> seen = new HashSet<Variable.Key>();
+        Iterator<Variable> it = null;
+        if (selectedObject instanceof Cell)
         {
-            Variable var = it.next();
-            // if only showing Attributes, only add if it is an attribute
-            if (showAttrsOnly && !var.isAttribute()) continue;
-            listModel.addElement(var.getKey());
+        	Cell cell = (Cell)selectedObject;
+        	it = cell.getParameters();
+        }
+        if (selectedObject instanceof NodeInst)
+        {
+        	NodeInst ni = (NodeInst)selectedObject;
+        	it = ni.getParameters();
+        }
+        if (it != null)
+        {
+        	List<Variable.Key> params = new ArrayList<Variable.Key>();
+            for( ; it.hasNext(); )
+            {
+	            Variable var = it.next();
+	            params.add(var.getKey());
+            }
+            if (params.size() > 0)
+            {
+            	if (!showParamsOnly)
+                    listModel.addElement("------------ PARAMETERS ------------");
+            	for(Variable.Key key : params)
+            	{
+		            listModel.addElement(key);
+		            seen.add(key);
+            	}
+            }
+        }
+
+        // show variables if requested
+        if (!showParamsOnly)
+        {
+        	List<Variable.Key> variables = new ArrayList<Variable.Key>();
+	        for(Iterator<Variable> vIt = selectedObject.getVariables(); vIt.hasNext(); )
+	        {
+	            Variable var = vIt.next();
+	            if (seen.contains(var.getKey())) continue;
+	            variables.add(var.getKey());
+	        }
+	        if (variables.size() > 0)
+	        {
+	            listModel.addElement("------------ VARIABLES ------------");
+		        for(Variable.Key key : variables)
+		            listModel.addElement(key);
+	        }
         }
     }
 
@@ -483,8 +529,13 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
     {
         int i = list.getSelectedIndex();
         if (i < 0) return null;
-        Variable.Key key = (Variable.Key)list.getSelectedValue();
-        return selectedObject.getVar(key);
+        Object selectedObj = list.getSelectedValue();
+        if (selectedObj instanceof Variable.Key)
+        {
+	        Variable.Key key = (Variable.Key)selectedObj;
+	        return selectedObject.getVar(key);
+        }
+        return null;
     }
 
     /**
@@ -515,7 +566,12 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
             list.setSelectedValue(selectThisKey, true);
 
         Variable var = getSelectedVariable();
-        if (var == null) return;
+        if (var == null)
+        {
+            renameButton.setEnabled(false);
+            deleteButton.setEnabled(false);
+        	return;
+        }
         selectedVarKey = var.getKey();
 
         // set the Name field
@@ -557,7 +613,7 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
 			textPanel.setTextDescriptor(null, null);
         attrPanel.setVariable(var.getKey(), selectedObject);
 
-        // disable create button because var name already exists, enable selected: buttons
+        // enable buttons
         newButton.setEnabled(false);
         renameButton.setEnabled(true);
         deleteButton.setEnabled(true);
@@ -794,7 +850,7 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
 		String varName = varKey.getName();
 
 		// two modes: show attributes only, and show everything
-		if (showAttrsOnly)
+		if (showParamsOnly)
 		{
 			if (varName.startsWith("ATTR_"))
 				return varName.substring(5);
@@ -1119,7 +1175,7 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
         // if same name, ignore
         if (newName.equals(name.getText())) return;
 
-        if (showAttrsOnly)
+        if (showParamsOnly)
             newName = "ATTR_" + newName;
 
         // check if variable name already exists
@@ -1130,9 +1186,11 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
             return;
         }
 
-        new RenameAttribute(getSelectedVariable().getKey().getName(), newName, selectedObject);
+        Variable selVar = getSelectedVariable();
+        if (selVar != null)
+        	new RenameAttribute(selVar.getKey().getName(), newName, selectedObject);
 
-        if (showAttrsOnly)
+        if (showParamsOnly)
             newName = newName.substring(5);
 
         // set current name to renamed name
@@ -1159,7 +1217,7 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
                     "Invalid Input", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        if (showAttrsOnly)
+        if (showParamsOnly)
             varName = "ATTR_" + varName;
 
         // check if var of this name already exists on object
@@ -1189,7 +1247,9 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
     private void deleteButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_deleteButtonActionPerformed
     {//GEN-HEADEREND:event_deleteButtonActionPerformed
         // delete the attribute
-        new DeleteAttribute(getSelectedVariable(), selectedObject);
+    	Variable var = getSelectedVariable();
+    	if (var != null)
+    		new DeleteAttribute(var, selectedObject);
     }//GEN-LAST:event_deleteButtonActionPerformed
 
     /** Closes the dialog */
