@@ -1,0 +1,67 @@
+# header information:
+HTechEditorWizard|8.07k
+
+# Views:
+Vicon|ic
+Vlayout|lay
+
+# Cell Text;1{ic}
+CText;1{ic}||artwork|1211480534388|1211480692631|E
+Ngeneric:Facet-Center|art@0||0|0||||AV
+NPin|pin@0||10|0|1|1||
+NPin|pin@1||0|0|1|1||
+AThicker|A|BD8G2;||BFSXY0|pin@0||10|0|pin@1||0|0
+X
+
+# Cell WellImplant;1{lay}
+CWellImplant;1{lay}||mocmos|1211479363400|1211483215255|
+Ngeneric:Facet-Center|art@0||0|0||||AV
+Nartwork:Pin|pin@1||3|-10.9|1|1||
+Nartwork:Pin|pin@2||-3|-10.9|1|1||
+Nartwork:Pin|pin@3||3|-14.4|1|1||
+Nartwork:Pin|pin@4||0.5|-14.4|1|1||
+Nartwork:Pin|pin@5||2.9|-5.3|1|1||
+Nartwork:Pin|pin@6||-3.1|-5.3|1|1||
+Nartwork:Pin|pin@7||3.2|2.8|1|1||
+Nartwork:Pin|pin@8||0.7|2.8|1|1||
+Nartwork:Pin|pin@9||5|-2.6|1|1||
+Nartwork:Pin|pin@10||0.8|-2.6|1|1||
+Nartwork:Pin|pin@11||7|-7.4|1|1||
+Nartwork:Pin|pin@12||17|-7.4|1|1||
+Nartwork:Pin|pin@13||3|1|1|1||
+Nartwork:Pin|pin@14||9|1|1|1||
+Nartwork:Pin|pin@15||3|-12.4|1|1||
+Nartwork:Pin|pin@16||9|-12.4|1|1||
+Nartwork:Pin|pin@17||12|6|1|1||
+Nartwork:Pin|pin@18||12|3.5|1|1||
+Nartwork:Pin|pin@19||12|-10|1|1||
+Nartwork:Pin|pin@20||12|-12.5|1|1||
+NP-Well-Node|plnode@0||0|0|10|16||A
+NN-Active-Node|plnode@2||0|0|1|7||
+NP-Well-Node|plnode@3||12|0|10|16||A
+NN-Well-Node|plnode@9||0|-16|10|16||A
+NP-Select-Node|plnode@10||0|-16|6|12||
+NP-Active-Node|plnode@11||0|-16|1|7||
+NP-Select-Node|plnode@12||12|-16|6|12||
+NN-Well-Node|plnode@14||12|-16|10|16||A
+NP-Select-Node|plnode@15||0|0|6|12||
+NP-Select-Node|plnode@16||12|0|6|12||
+NTransistor-Poly-Node|plnode@17||12|0|1|7||
+NTransistor-Poly-Node|plnode@18||12|-16|1|7||
+Aartwork:Thicker|A|BD8FLeave alone;G1.5;||BFSXY0|pin@1||3|-10.9|pin@2||-3|-10.9
+Aartwork:Thicker|B|BD8FLeave alone;G1.5;||BFSXY0|pin@3||3|-14.4|pin@4||0.5|-14.4
+Aartwork:Thicker|B'|BD4FLeave alone;G1.5;||BFSXY900|pin@19||12|-10|pin@20||12|-12.5
+Aartwork:Thicker|C|BD8FLeave alone;G1.5;||BFSXY0|pin@16||9|-12.4|pin@15||3|-12.4
+Aartwork:Thicker|D|BD8FLeave alone;G1.5;||BFSXY0|pin@5||2.9|-5.3|pin@6||-3.1|-5.3
+Aartwork:Thicker|E|BD8FLeave alone;G1.5;||BFSXY0|pin@7||3.2|2.8|pin@8||0.7|2.8
+Aartwork:Thicker|E'|BD4FLeave alone;G1.5;||BFSXY900|pin@17||12|6|pin@18||12|3.5
+Aartwork:Thicker|F|BD8FLeave alone;G1.5;||BFSXY0|pin@14||9|1|pin@13||3|1
+Aartwork:Thicker|G|BD8FLeave alone;G1.5;||BFSXY0|pin@12||17|-7.4|pin@11||7|-7.4
+Aartwork:Thicker|H|BD8FLeave alone;G1.5;||BFSXY0|pin@9||5|-2.6|pin@10||0.8|-2.6
+X
+
+# Cell ddd;1{lay}
+Cddd;1{lay}||Gildanm|1211479233793|1211479235952|
+Ngeneric:Facet-Center|art@0||0|0||||AV
+NP-Transistor|nmos@0||-22.7|2.3||||
+X
