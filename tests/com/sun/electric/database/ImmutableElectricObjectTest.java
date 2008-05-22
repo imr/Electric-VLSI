@@ -234,19 +234,10 @@ public class ImmutableElectricObjectTest {
     /**
      * Test of check method, of class com.sun.electric.database.ImmutableElectricObject.
      */
-    @Test public void testCheck() {
-        System.out.println("check");
-
-        obj_Aa.check(true);
-    }
-
-    /**
-     * Test of check method, of class com.sun.electric.database.ImmutableElectricObject.
-     */
     @Test(expected=AssertionError.class) public void testCheckFailed() {
         System.out.println("checkFailed");
 
-        obj_Aa.check(false);
+        obj_Aa.check();
     }
 
     /**
