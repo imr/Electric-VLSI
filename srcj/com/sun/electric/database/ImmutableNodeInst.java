@@ -764,7 +764,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 	 * @throws AssertionError if invariant is broken.
 	 */
 	public void check() {
-        check(false);
+        super.check();
         assert nodeId >= 0;
 		assert protoId != null;
         boolean isIcon = protoId instanceof CellId && ((CellId)protoId).isIcon();

@@ -3237,7 +3237,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 
     private void addParam(Variable var) {
         assert var.getTextDescriptor().isParam() && var.isInherit();
-        setD(getD().withVariable(var));
+        setD(getD().withoutVariable(var.getKey()).withParam(var));
     }
 
 	/**
@@ -3253,7 +3253,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 
     private void delParam(Variable.AttrKey key) {
         assert isParam(key);
-        setD(getD().withoutVariable(key));
+        setD(getD().withoutParam(key));
     }
 
     private void setParams(Cell paramOwner) {
@@ -3264,6 +3264,52 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             Variable param = it.next();
             addParam(param);
         }
+    }
+
+	/**
+	 * Method to return the Variable on this Cell with a given key and type.
+	 * @param key the key of the Variable. Returns null if key is null.
+	 * @param type the required type of the Variable. Ignored if null.
+	 * @return the Variable with that key and type, or null if there is no such Variable
+	 * or default Variable value.
+	 */
+    @Override
+	public Variable getVar(Variable.Key key, Class type)
+	{
+		checkExamine();
+        if (key instanceof Variable.AttrKey) {
+            Variable param = getD().getParameter((Variable.AttrKey)key);
+            if (param != null) {
+                if (type == null) return param;				   // null type means any type
+                if (type.isInstance(param.getObject())) return param;
+            }
+        }
+		return super.getVar(key, type);
+	}
+
+	/**
+	 * Method to return an Iterator over all Parameters and Variables on this Cell.
+	 * @return an Iterator over all Parameters and Variables on this Cell.
+	 */
+    @Override
+	public Iterator<Variable> getVariables() {
+        if (getD().getNumParameters() == 0)
+            return getD().getVariables();
+        ArrayList<Variable> allVars = new ArrayList<Variable>();
+        for (Iterator<Variable> it = getD().getParameters(); it.hasNext(); )
+            allVars.add(it.next());
+        for (Iterator<Variable> it = getD().getVariables(); it.hasNext(); )
+            allVars.add(it.next());
+        return allVars.iterator();
+    }
+
+	/**
+	 * Method to return the number of Parameters and Variables on this Cell.
+	 * @return the number of Parameters and Variables on this ElectricObject.
+	 */
+    @Override
+	public int getNumVariables() {
+        return getD().getNumParameters() + getD().getNumVariables();
     }
 
 	/**

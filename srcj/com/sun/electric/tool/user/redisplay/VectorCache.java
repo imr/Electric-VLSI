@@ -834,14 +834,8 @@ public class VectorCache {
 	 * @return true if the cell has parameters
 	 */
     private static boolean isCellParameterized(CellRevision cellRevision) {
-        for(Iterator<Variable> vIt = cellRevision.d.getVariables(); vIt.hasNext(); ) {
-            Variable var = vIt.next();
-            if (var.getTextDescriptor().isParam()) {
-                // this attribute is not a parameter
-                if (var.getKey() == NCCKEY) continue;
-                return true;
-            }
-        }
+        if (cellRevision.d.getNumParameters() > 0)
+            return true;
 
         // look for any Java coded stuff (Logical Effort calls)
         for (ImmutableNodeInst n: cellRevision.nodes) {

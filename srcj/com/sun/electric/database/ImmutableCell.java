@@ -30,11 +30,13 @@ import com.sun.electric.database.id.IdReader;
 import com.sun.electric.database.id.IdWriter;
 import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.id.TechId;
+import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.variable.Variable;
 
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  * Immutable class ImmutableCell represents a cell.
@@ -144,6 +146,39 @@ public class ImmutableCell extends ImmutableElectricObject {
 	}
 
 	/**
+	 * Method to return the Parameter on this ImmuatbleCell with a given key.
+	 * @param key the key of the Variable.
+	 * @return the Parameter with that key, or null if there is no such Variable.
+	 * @throws NullPointerException if key is null
+	 */
+	public Variable getParameter(Variable.AttrKey key) {
+        int paramIndex = searchVar(params, key);
+        return paramIndex >= 0 ? params[paramIndex] : null;
+	}
+
+	/**
+	 * Method to return an Iterator over all Parameters on this ImmutableCell.
+	 * @return an Iterator over all Parameters on this ImmutableCell.
+	 */
+	public Iterator<Variable> getParameters() {
+        return ArrayIterator.iterator(params);
+    }
+
+	/**
+	 * Method to return the number of Parameters on this ImmutableCell.
+	 * @return the number of Parametes on this ImmutableCell.
+	 */
+	public int getNumParameters() { return params.length; }
+
+	/**
+	 * Method to return the Parameter by its paramIndex.
+     * @param paramIndex index of Parameter.
+	 * @return the Parameter with given paramIndex.
+     * @throws ArrayIndexOutOfBoundesException if paramIndex out of bounds.
+	 */
+	public Variable getParameter(int paramIndex) { return params[paramIndex]; }
+
+	/**
 	 * Returns ImmutableCell which differs from this ImmutableCell by additional Variable.
      * If this ImmutableCell has Variable with the same key as new, the old variable will not be in new
      * ImmutableCell.
@@ -152,15 +187,37 @@ public class ImmutableCell extends ImmutableElectricObject {
 	 * @throws NullPointerException if var is null
 	 */
     public ImmutableCell withVariable(Variable var) {
+        if (var.getTextDescriptor().isParam())
+            throw new IllegalArgumentException("Variable " + var + " is param");
+        if (var.isAttribute() && searchVar(params, var.getKey()) >= 0)
+            throw new IllegalArgumentException(this + " has parameter with the same name as variable " + var);
         if (!paramsAllowed())
             var = var.withParam(false);
         Variable[] vars = arrayWithVariable(var);
         if (this.getVars() == vars) return this;
-        Variable[] params = this.params;
-        if (var.getTextDescriptor().isParam() || searchVar(params, var.getKey()) >= 0)
-            params = gatherParams(vars);
 		return new ImmutableCell(this.cellId, this.groupName,
-                this.creationDate, this.revisionDate, this.techId, this.flags, vars, params);
+                this.creationDate, this.revisionDate, this.techId, this.flags, vars, this.params);
+    }
+
+	/**
+	 * Returns ImmutableCell which differs from this ImmutableCell by additional parameter.
+     * If this ImmutableCell has parameter with the same key as new, the old variable will not be in new
+     * ImmutableCell.
+	 * @param var additional Variable.
+	 * @return ImmutableCell with additional Variable.
+	 * @throws NullPointerException if var is null
+	 */
+    public ImmutableCell withParam(Variable var) {
+        if (!var.getTextDescriptor().isParam() || !var.isInherit())
+            throw new IllegalArgumentException("Variable " + var + " is not param");
+        if (!paramsAllowed())
+            throw new IllegalArgumentException("Parameters are not allowed for " + this);
+        if (searchVar(var.getKey()) >= 0)
+            throw new IllegalArgumentException(this + " has variable with the same name as parameter " + var);
+        Variable[] params = arrayWithVariable(this.params, var);
+        if (this.params == params) return this;
+		return new ImmutableCell(this.cellId, this.groupName,
+                this.creationDate, this.revisionDate, this.techId, this.flags, getVars(), params);
     }
 
 	/**
@@ -173,11 +230,22 @@ public class ImmutableCell extends ImmutableElectricObject {
     public ImmutableCell withoutVariable(Variable.Key key) {
         Variable[] vars = arrayWithoutVariable(key);
         if (this.getVars() == vars) return this;
-        Variable[] params = this.params;
-        if (getVar(key).getTextDescriptor().isParam())
-            params = gatherParams(vars);
 		return new ImmutableCell(this.cellId, this.groupName,
                 this.creationDate, this.revisionDate, this.techId, this.flags, vars, params);
+    }
+
+	/**
+	 * Returns ImmutableCell which differs from this ImmutableCell by removing parameter
+     * with the specified key. Returns this ImmutableCell if it doesn't contain parameter with the specified key.
+	 * @param key Variable Key to remove.
+	 * @return ImmutableCell without Variable with the specified key.
+	 * @throws NullPointerException if key is null
+	 */
+    public ImmutableCell withoutParam(Variable.AttrKey key) {
+        Variable[] params = arrayWithoutVariable(this.params, key);
+        if (this.params == params) return this;
+		return new ImmutableCell(this.cellId, this.groupName,
+                this.creationDate, this.revisionDate, this.techId, this.flags, getVars(), params);
     }
 
 	/**
@@ -187,22 +255,11 @@ public class ImmutableCell extends ImmutableElectricObject {
 	 */
     ImmutableCell withRenamedIds(IdMapper idMapper) {
         Variable[] vars = arrayWithRenamedIds(idMapper);
+        Variable[] params = arrayWithRenamedIds(this.params, idMapper);
         CellId cellId = idMapper.get(this.cellId);
-        if (getVars() == vars && this.cellId == cellId) return this;
-        Variable[] params = gatherParams(vars);
-        if (params.length == this.params.length) {
-            int i = 0;
-            for (; i < params.length; i++) {
-                if (params[i] != this.params[i])
-                    break;
-            }
-            if (i == params.length)
-                params = this.params;
-        }
-        if (Arrays.equals(params, this.params))
-            params = this.params;
+        if (getVars() == vars && this.params == params && this.cellId == cellId) return this;
 		return new ImmutableCell(cellId, this.groupName,
-                this.creationDate, this.revisionDate, this.techId, this.flags, vars, gatherParams(vars));
+                this.creationDate, this.revisionDate, this.techId, this.flags, vars, params);
     }
 
 	/**
@@ -211,26 +268,9 @@ public class ImmutableCell extends ImmutableElectricObject {
 	 * @return ImmutableCell without Variables.
 	 */
     public ImmutableCell withoutVariables() {
-        if (this.getNumVariables() == 0) return this;
+        if (this.getNumVariables() == 0 && params.length == 0) return this;
 		return new ImmutableCell(this.cellId, this.groupName,
                 this.creationDate, this.revisionDate, this.techId, this.flags, Variable.NULL_ARRAY, Variable.NULL_ARRAY);
-    }
-
-    private static Variable[] gatherParams(Variable[] vars) {
-        int countParams = 0;
-        for (Variable var: vars) {
-            if (var.getTextDescriptor().isParam())
-                countParams++;
-        }
-        if (countParams == 0)
-            return Variable.NULL_ARRAY;
-        Variable[] params = new Variable[countParams];
-        countParams = 0;
-        for (Variable var: vars) {
-            if (var.getTextDescriptor().isParam())
-                params[countParams++] = var;
-        }
-        return params;
     }
 
     void checkSimilarParams(ImmutableCell that) {
@@ -267,6 +307,10 @@ public class ImmutableCell extends ImmutableElectricObject {
             writer.writeTechId(techId);
         writer.writeInt(flags);
         super.write(writer);
+        boolean hasParams = params.length > 0;
+        writer.writeBoolean(hasParams);
+        if (hasParams)
+            writeVars(params, writer);
     }
 
     /**
@@ -284,7 +328,9 @@ public class ImmutableCell extends ImmutableElectricObject {
         int flags = reader.readInt();
         boolean hasVars = reader.readBoolean();
         Variable[] vars = hasVars ? readVars(reader) : Variable.NULL_ARRAY;
-        return new ImmutableCell(cellId, groupName, creationDate, revisionDate, techId, flags, vars, gatherParams(vars));
+        boolean hasParams = reader.readBoolean();
+        Variable[] params = hasParams ? readVars(reader) : Variable.NULL_ARRAY;
+        return new ImmutableCell(cellId, groupName, creationDate, revisionDate, techId, flags, vars, params);
     }
 
     /**
@@ -313,17 +359,27 @@ public class ImmutableCell extends ImmutableElectricObject {
 	 * @throws AssertionError if invariant is broken.
 	 */
 	public void check() {
-        check(paramsAllowed());
+        super.check();
         assert cellId != null;
         assert groupName.getVersion() == 0;
         assert groupName.getView() == View.SCHEMATIC;
         assert techId == null || techId.idManager == cellId.idManager;
-        int paramCount = 0;
-        for (Variable var: getVars()) {
-            if (var.getTextDescriptor().isParam())
-                assert var == params[paramCount++];
+        if (!paramsAllowed())
+            assert params == Variable.NULL_ARRAY;
+        for (int i = 0; i < params.length; i++) {
+            Variable param = params[i];
+            param.check(true);
+            assert param.getTextDescriptor().isParam() && param.getTextDescriptor().isInherit();
+            if (i > 0)
+                assert params[i - 1].getKey().compareTo(param.getKey()) < 0;
+            assert searchVar(param.getKey()) < 0;
         }
-        assert paramCount == params.length;
+        if (params.length > 0) {
+            for (Variable var: getVars()) {
+                if (var.isAttribute())
+                    assert searchVar(params, var.getKey()) < 0;
+            }
+        }
 	}
 
     /**

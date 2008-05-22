@@ -37,11 +37,11 @@ import java.net.URL;
  * Immutable class ImmutableLibrary represents a library.
  */
 public class ImmutableLibrary extends ImmutableElectricObject {
-    
+
 	/** LibId of this ImmutableLibrary. */                              public final LibId libId;
 	/** file location of this ImmutableLibrary */                       public final URL libFile;
 	/** version of Electric which wrote the ImmutableLibrary. */		public final Version version;
-    
+
 	/**
 	 * The private constructor of ImmutableLibrary. Use the factory "newInstance" instead.
      * @param libId id of this ImmutableLibrary.
@@ -107,7 +107,7 @@ public class ImmutableLibrary extends ImmutableElectricObject {
         if (this.getVars() == vars) return this;
 		return new ImmutableLibrary(this.libId, this.libFile, this.version, this.flags, vars);
     }
-    
+
 	/**
 	 * Returns ImmutableCell which differs from this ImmutableCell by removing Variable
      * with the specified key. Returns this ImmutableCell if it doesn't contain variable with the specified key.
@@ -120,7 +120,7 @@ public class ImmutableLibrary extends ImmutableElectricObject {
         if (this.getVars() == vars) return this;
 		return new ImmutableLibrary(this.libId, this.libFile, this.version, this.flags, vars);
     }
-    
+
 	/**
 	 * Returns ImmutableLibrary which differs from this ImmutableLibrary by renamed Ids.
 	 * @param idMapper a map from old Ids to new Ids.
@@ -132,7 +132,7 @@ public class ImmutableLibrary extends ImmutableElectricObject {
         if (getVars() == vars && this.libId == libId) return this;
 		return new ImmutableLibrary(libId, this.libFile, this.version, this.flags, vars);
     }
-    
+
 	/**
 	 * Returns ImmutableLibrary which differs from this ImmutableLibrary by flags.
 	 * @param flags new flags.
@@ -142,7 +142,7 @@ public class ImmutableLibrary extends ImmutableElectricObject {
         if (this.flags == flags) return this;
 		return new ImmutableLibrary(this.libId, this.libFile, this.version, flags, getVars());
     }
-    
+
     /**
      * Writes this ImmutableLibrary to IdWriter.
      * @param writer where to write.
@@ -154,7 +154,7 @@ public class ImmutableLibrary extends ImmutableElectricObject {
         writer.writeInt(flags);
         super.write(writer);
     }
-    
+
     /**
      * Reads ImmutableLibrary from SnapshotReader.
      * @param reader where to read.
@@ -170,7 +170,7 @@ public class ImmutableLibrary extends ImmutableElectricObject {
         Variable[] vars = hasVars ? readVars(reader) : Variable.NULL_ARRAY;
         return new ImmutableLibrary(libId, libFile, version, flags, vars);
     }
-    
+
     /**
      * Return a hash code value for fields of this object.
      * Variables of objects are not compared
@@ -190,19 +190,19 @@ public class ImmutableLibrary extends ImmutableElectricObject {
         return this.libId == that.libId && this.libFile == that.libFile &&
                 this.version == that.version && this.flags == that.flags;
     }
-    
+
 	/**
 	 * Returns a printable version of this ImmutableLibrary.
 	 * @return a printable version of this ImmutableLibrary.
 	 */
     public String toString() { return libId.toString(); }
-    
+
 	/**
 	 * Checks invariant of this ImmutableCell.
 	 * @throws AssertionError if invariant is broken.
 	 */
 	public void check() {
-        check(false);
+        super.check();
         assert libId != null;
 	}
 }

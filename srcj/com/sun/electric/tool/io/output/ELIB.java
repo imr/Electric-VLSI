@@ -28,6 +28,7 @@ package com.sun.electric.tool.io.output;
 import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellRevision;
 import com.sun.electric.database.ImmutableArcInst;
+import com.sun.electric.database.ImmutableCell;
 import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.ImmutableLibrary;
@@ -563,51 +564,65 @@ public class ELIB extends Output
 	 */
 	private void gatherVariables(String portName, ImmutableElectricObject d)
 	{
-		for (Iterator<Variable> it = d.getVariables(); it.hasNext(); )
-		{
-			Variable var = it.next();
-			Object value = var.getObject();
-			if (nameSpace != null) {
-                putNameSpace(diskName(portName, var));
+        if (d instanceof ImmutableCell) {
+            for (Iterator<Variable> it = ((ImmutableCell)d).getParameters(); it.hasNext();) {
+                Variable param = it.next();
+                gatherVariable(portName, param);
             }
-			gatherFont(var.getTextDescriptor());
-			int length = value instanceof Object[] ? ((Object[])value).length : 1;
-			for (int i = 0; i < length; i++)
-			{
-				Object v = value instanceof Object[] ? ((Object[])value)[i] : value;
-				if (v == null) continue;
-				if (v instanceof TechId || v instanceof Tool)
-				{
-					gatherObj(v);
-				} else if (v instanceof PrimitiveNodeId)
-				{
-					gatherObj(v);
-					gatherTech(((PrimitiveNodeId)v).techId);
-				} else if (v instanceof PrimitivePort)
-				{
-					PrimitiveNode pn = ((PrimitivePort)v).getParent();
-					gatherObj(pn.getId());
-					gatherTech(pn.getTechnology().getId());
-				} else if (v instanceof ArcProto)
-				{
-					gatherObj(v);
-					gatherTech(((ArcProto)v).getId().techId);
-				} else if (v instanceof CellId)
-				{
-                    CellId cellId = (CellId)v;
-                    if (snapshot.getCell(cellId) != null)
-    					gatherCell(cellId);
-				} else if (v instanceof ExportId)
-				{
-                    ExportId exportId = (ExportId)v;
-                    CellRevision cellRevision = snapshot.getCellRevision(exportId.getParentId());
-                    if (cellRevision != null && cellRevision.getExport(exportId) != null) {
-                        gatherObj(exportId);
-                        gatherCell(exportId.getParentId());
-                    }
-				}
-			}
+        }
+		for (Iterator<Variable> it = d.getVariables(); it.hasNext(); ) {
+			Variable var = it.next();
+            gatherVariable(portName, var);
 		}
+	}
+
+	/**
+	 * Gather variable into objInfo map.
+	 * @param var variable.
+	 */
+	private void gatherVariable(String portName, Variable var)
+	{
+        Object value = var.getObject();
+        if (nameSpace != null) {
+            putNameSpace(diskName(portName, var));
+        }
+        gatherFont(var.getTextDescriptor());
+        int length = value instanceof Object[] ? ((Object[])value).length : 1;
+        for (int i = 0; i < length; i++)
+        {
+            Object v = value instanceof Object[] ? ((Object[])value)[i] : value;
+            if (v == null) continue;
+            if (v instanceof TechId || v instanceof Tool)
+            {
+                gatherObj(v);
+            } else if (v instanceof PrimitiveNodeId)
+            {
+                gatherObj(v);
+                gatherTech(((PrimitiveNodeId)v).techId);
+            } else if (v instanceof PrimitivePort)
+            {
+                PrimitiveNode pn = ((PrimitivePort)v).getParent();
+                gatherObj(pn.getId());
+                gatherTech(pn.getTechnology().getId());
+            } else if (v instanceof ArcProto)
+            {
+                gatherObj(v);
+                gatherTech(((ArcProto)v).getId().techId);
+            } else if (v instanceof CellId)
+            {
+                CellId cellId = (CellId)v;
+                if (snapshot.getCell(cellId) != null)
+                    gatherCell(cellId);
+            } else if (v instanceof ExportId)
+            {
+                ExportId exportId = (ExportId)v;
+                CellRevision cellRevision = snapshot.getCellRevision(exportId.getParentId());
+                if (cellRevision != null && cellRevision.getExport(exportId) != null) {
+                    gatherObj(exportId);
+                    gatherCell(exportId.getParentId());
+                }
+            }
+        }
 	}
 
 	/**
@@ -1084,6 +1099,8 @@ public class ELIB extends Output
     void writeVariables(ImmutableElectricObject d) throws IOException {
         // write the number of Variables
         int count = d.getNumVariables();
+        if (d instanceof ImmutableCell)
+            count += ((ImmutableCell)d).getNumParameters();
         Variable.Key additionalVarKey = null;
         int additionalVarType = ELIBConstants.VSTRING;
         TextDescriptor additionalTextDescriptor = null;
@@ -1120,6 +1137,13 @@ public class ELIB extends Output
 
         writeInt("variables: ", count);
 
+        if (d instanceof ImmutableCell) {
+            // write the parameters
+            for(Iterator<Variable> it = ((ImmutableCell)d).getParameters(); it.hasNext(); ) {
+                Variable var = it.next();
+                writeVariable(null, var);
+            }
+        }
         // write the variables
         for(Iterator<Variable> it = d.getVariables(); it.hasNext(); ) {
             Variable var = it.next();

@@ -40,10 +40,10 @@ import java.io.IOException;
  * Immutable class ImmutableExport represents an export.
  */
 public class ImmutableExport extends ImmutableElectricObject {
-    
+
     public final static ImmutableExport[] NULL_ARRAY = {};
     public final static ImmutableArrayList<ImmutableExport> EMPTY_LIST = new ImmutableArrayList<ImmutableExport>(NULL_ARRAY);
-    
+
 	/** set if this port should always be drawn */			private static final int PORTDRAWN =         0400000000;
 	/** set to exclude this port from the icon */			private static final int BODYONLY =         01000000000;
 //	/** input/output/power/ground/clock state */			private static final int STATEBITS =       036000000000;
@@ -58,7 +58,7 @@ public class ImmutableExport extends ImmutableElectricObject {
     /** True if this ImmutableExport to be always drawn. */         public final boolean alwaysDrawn;
     /** True to exclude this ImmutableExport from the icon. */      public final boolean bodyOnly;
 	/** PortCharacteristic of this ImmutableExport. */              public final PortCharacteristic characteristic;
- 
+
 	/**
 	 * The private constructor of ImmutableExport. Use the factory "newInstance" instead.
      * @param exportId id of new Export.
@@ -204,7 +204,7 @@ public class ImmutableExport extends ImmutableElectricObject {
 		return new ImmutableExport(this.exportId, this.name, this.nameDescriptor,
                 this.originalNodeId, this.originalPortId, this.alwaysDrawn, this.bodyOnly, this.characteristic, vars);
     }
-    
+
 	/**
 	 * Returns ImmutableExport which differs from this ImmutableExport by removing Variable
      * with the specified key. Returns this ImmutableExport if it doesn't contain variable with the specified key.
@@ -218,7 +218,7 @@ public class ImmutableExport extends ImmutableElectricObject {
 		return new ImmutableExport(this.exportId, this.name, this.nameDescriptor,
                 this.originalNodeId, this.originalPortId, this.alwaysDrawn, this.bodyOnly, this.characteristic, vars);
     }
-    
+
 	/**
 	 * Returns ImmutableExport which differs from this ImmutableExport by renamed Ids.
 	 * @param idMapper a map from old Ids to new Ids.
@@ -234,7 +234,7 @@ public class ImmutableExport extends ImmutableElectricObject {
 		return new ImmutableExport(exportId, this.name, this.nameDescriptor,
                 this.originalNodeId, originalPortId, this.alwaysDrawn, this.bodyOnly, this.characteristic, vars);
     }
-    
+
     /**
      * Writes this ImmutableArcInst to IdWriter.
      * @param writer where to write.
@@ -250,7 +250,7 @@ public class ImmutableExport extends ImmutableElectricObject {
         writer.writeInt(characteristic.getBits());
         super.write(writer);
     }
-    
+
     /**
      * Reads ImmutableExport from SnapshotReader.
      * @param reader where to read.
@@ -270,7 +270,7 @@ public class ImmutableExport extends ImmutableElectricObject {
         return new ImmutableExport(exportId, name, nameDescriptor,
                 originalNodeId, originalPortId, alwaysDrawn, bodyOnly, characteristic, vars);
     }
-    
+
     /**
      * Returns ELIB user bits of this ImmutableExport.
      * @return ELIB user bits of this ImmutableExport.
@@ -281,7 +281,7 @@ public class ImmutableExport extends ImmutableElectricObject {
         if (bodyOnly) userBits |= BODYONLY;
         return userBits;
     }
-    
+
     /**
      * Get alwaysDrawn Export flag from ELIB user bits.
      * @param elibBits ELIB user bits.
@@ -327,7 +327,7 @@ public class ImmutableExport extends ImmutableElectricObject {
                 this.alwaysDrawn == that.alwaysDrawn && this.bodyOnly == that.bodyOnly &&
                 this.characteristic == that.characteristic;
     }
-    
+
     /**
      * Returns name key of string if string is a valid Export name, null if not.
      * @param name string to test.
@@ -339,13 +339,13 @@ public class ImmutableExport extends ImmutableElectricObject {
         Name nameKey = Name.findName(name);
         return nameKey.isValid() && !nameKey.isTempname() && !nameKey.hasEmptySubnames() && (busAllowed || !nameKey.isBus()) ? nameKey : null;
     }
-    
+
     /**
 	 * Checks invariant of this ImmutableExport.
 	 * @throws AssertionError if invariant is broken.
 	 */
 	public void check() {
-        check(false);
+        super.check();
 		assert exportId != null;
 		assert name != null;
         assert name.isValid() && !name.hasEmptySubnames() && !name.isTempname();

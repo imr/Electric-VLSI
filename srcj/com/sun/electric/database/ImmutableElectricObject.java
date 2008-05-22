@@ -61,7 +61,19 @@ public abstract class ImmutableElectricObject {
 	 * @throws NullPointerException if var is null
 	 */
     Variable[] arrayWithVariable(Variable var) {
-        int varIndex = searchVar(var.getKey());
+        return arrayWithVariable(vars, var);
+    }
+    
+	/**
+	 * Returns array of Variables which differs from given array of Variables by additional Variable.
+     * If the array has Variable with the same key as new, the old variable will not be in new array.
+     * @param vars array of Variables
+	 * @param var additional Variable.
+	 * @return array of Variables with additional Variable.
+	 * @throws NullPointerException if var is null
+	 */
+    static Variable[] arrayWithVariable(Variable[] vars, Variable var) {
+        int varIndex = searchVar(vars, var.getKey());
         int newLength = vars.length;
         if (varIndex < 0) {
             varIndex = ~varIndex;
@@ -83,7 +95,19 @@ public abstract class ImmutableElectricObject {
 	 * @throws NullPointerException if key is null
 	 */
     Variable[] arrayWithoutVariable(Variable.Key key) {
-        int varIndex = searchVar(key);
+        return arrayWithoutVariable(vars, key);
+    }
+    
+	/**
+	 * Returns array of Variable which differs from given array of Vasriables by removing Variable
+     * with the specified key. Returns given array if it doesn't contain variable with the specified key.
+     * @param vars array of Variables
+	 * @param key Variable Key to remove.
+	 * @return array of Variables without Variable with the specified key.
+	 * @throws NullPointerException if key is null
+	 */
+    static Variable[] arrayWithoutVariable(Variable[] vars, Variable.Key key) {
+        int varIndex = searchVar(vars, key);
         if (varIndex < 0) return vars;
         if (vars.length == 1 && varIndex == 0) return Variable.NULL_ARRAY;
         Variable[] newVars = new Variable[vars.length - 1];
@@ -99,6 +123,16 @@ public abstract class ImmutableElectricObject {
      * @return array of Variable with renamed Ids.
 	 */
     Variable[] arrayWithRenamedIds(IdMapper idMapper) {
+        return arrayWithRenamedIds(vars, idMapper);
+    }
+    
+	/**
+	 * Returns array of Variable which differs from given array of Variables by renamed Ids.
+     * Returns given array if it doesn't contain reanmed Ids.
+	 * @param idMapper a map from old Ids to new Ids.
+     * @return array of Variable with renamed Ids.
+	 */
+    static Variable[] arrayWithRenamedIds(Variable[] vars, IdMapper idMapper) {
         Variable[] newVars = null;
         for (int i = 0; i < vars.length; i++) {
             Variable oldVar = vars[i];
@@ -241,6 +275,14 @@ public abstract class ImmutableElectricObject {
      * @param writer where to write.
      */
     void writeVars(IdWriter writer) throws IOException {
+        writeVars(vars, writer);
+    }
+    
+    /**
+     * Writes variables of this ImmutableElectricObject.
+     * @param writer where to write.
+     */
+    static void writeVars(Variable[] vars, IdWriter writer) throws IOException {
         writer.writeInt(vars.length);
         for (int i = 0; i < vars.length; i++)
             vars[i].write(writer);
@@ -275,14 +317,13 @@ public abstract class ImmutableElectricObject {
     
     /**
 	 * Checks invariant of this ImmutableElectricObject.
-     * @param paramAllowed true if Variables with parameter flag are allowed on this ImmutableElectricObject
 	 * @throws AssertionError if invariant is broken.
 	 */
-	void check(boolean paramAllowed) {
+	void check() {
         if (vars.length == 0) return;
-        vars[0].check(paramAllowed);
+        vars[0].check(false);
         for (int i = 1; i < vars.length; i++) {
-            vars[i].check(paramAllowed);
+            vars[i].check(false);
             assert vars[i - 1].getKey().compareTo(vars[i].getKey()) < 0;
         }
     }

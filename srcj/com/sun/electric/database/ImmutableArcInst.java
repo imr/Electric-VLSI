@@ -835,7 +835,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 	 * @throws AssertionError if invariant is broken.
 	 */
 	public void check() {
-        check(false);
+        super.check();
         assert arcId >= 0;
 		assert protoId != null;
 		assert name != null;

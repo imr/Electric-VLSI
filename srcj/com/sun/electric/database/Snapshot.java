@@ -950,18 +950,18 @@ public class Snapshot {
             if (gn == null) {
                 gn = Integer.valueOf(groupParamOwners.size());
                 groupParamOwners.add(null);
-                if (d.paramsAllowed()) {
-                    ImmutableCell paramOwner = groupParamOwners.get(gn.intValue());
-                    if (paramOwner != null)
-                        d.checkSimilarParams(paramOwner);
-                    else
-                        groupParamOwners.set(gn.intValue(), paramOwner);
-                }
                 groupNameToGroupIndexInLibrary.put(groupName, gn);
             }
             cellGroups[cellIndex] = gn.intValue();
             if (!cellNamesInLibrary.add(cellId.cellName))
                 throw new IllegalArgumentException("duplicate CellName in library");
+            if (d.paramsAllowed()) {
+                ImmutableCell paramOwner = groupParamOwners.get(gn.intValue());
+                if (paramOwner != null)
+                    d.checkSimilarParams(paramOwner);
+                else
+                    groupParamOwners.set(gn.intValue(), paramOwner);
+            }
         }
     }
 

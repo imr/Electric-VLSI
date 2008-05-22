@@ -532,6 +532,10 @@ public class JELIB extends Output {
                     printVars(portProtoId.externalId, nid.getPortInst(portProtoId), null);
             }
         } else {
+            if (d instanceof ImmutableCell) {
+                for (Iterator<Variable> it = ((ImmutableCell)d).getParameters(); it.hasNext(); )
+                    printVar(null, it.next(), null);
+            }
             printVars(null, d, null);
         }
         printWriter.println();
@@ -550,21 +554,29 @@ public class JELIB extends Output {
         // write the variables
         for(Iterator<Variable> it = d.getVariables(); it.hasNext(); ) {
             Variable var = it.next();
-            Object varObj = var.getObject();
-            TextDescriptor td = var.getTextDescriptor();
-            boolean isParam = td.isParam();
-            if (ownerCell != null) {
-                Variable ownerParam = ownerCell.getVar(var.getKey());
-                if (ownerParam != null && ownerParam.getTextDescriptor().isParam())
-                    isParam = true;
-            }
-            String tdString = describeDescriptor(var, td, isParam);
-            printWriter.print("|" + convertVariableName(diskName(portName, var)) + "(" + tdString + ")");
-            String pt = makeString(varObj);
-            if (pt == null) pt = "";
-            printWriter.print(pt);
+            printVar(portName, var, ownerCell);
         }
     }
+
+    /**
+     * Method to write the variable on an object.
+     */
+    private void printVar(String portName, Variable var, ImmutableCell ownerCell) {
+        // write the variables
+        Object varObj = var.getObject();
+        TextDescriptor td = var.getTextDescriptor();
+        boolean isParam = td.isParam();
+        if (ownerCell != null && var.isAttribute()) {
+            Variable ownerParam = ownerCell.getParameter((Variable.AttrKey)var.getKey());
+            if (ownerParam != null && ownerParam.getTextDescriptor().isParam())
+                isParam = true;
+        }
+        String tdString = describeDescriptor(var, td, isParam);
+        printWriter.print("|" + convertVariableName(diskName(portName, var)) + "(" + tdString + ")");
+        String pt = makeString(varObj);
+        if (pt == null) pt = "";
+        printWriter.print(pt);
+}
 
     /**
      * Method to write the project settings on an object.
