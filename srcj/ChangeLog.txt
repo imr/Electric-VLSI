@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07k: ******************************
 
+IMP: (5/22/08, SMR) Explorer tree scrolls to show selected item (Bug #1691).
+
 IMP: (5/22/08, DN) Variables and parameters on ImmutableCell are in separate lists.
 
 IMP: (5/21/08, SMR) Creating parameters on instances places them correctly.

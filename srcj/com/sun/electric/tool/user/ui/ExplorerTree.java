@@ -132,7 +132,7 @@ import javax.swing.tree.TreeSelectionModel;
 /**
  * Class to display a cell explorer tree-view of the database.
  */
-public class ExplorerTree extends JTree implements /*DragGestureListener,*/ DragSourceListener
+public class ExplorerTree extends JTree implements DragSourceListener // , DragGestureListener
 {	
 	private final static TreePath[] NULL_TREE_PATH_ARRAY = {};
 
@@ -1372,6 +1372,18 @@ public class ExplorerTree extends JTree implements /*DragGestureListener,*/ Drag
 		{
 			currentPaths = getSelectionPaths();
 			if (currentPaths == null) currentPaths = new TreePath[0];
+			if (currentPaths.length > 0)
+			{
+			    Rectangle bounds = getPathBounds(currentPaths[0]);
+			    if (bounds != null)
+			    {
+					bounds.x = 0;
+					bounds.y -= bounds.height;
+				    bounds.width = 0;
+				    bounds.height *= 3;
+				    scrollRectToVisible(bounds);
+			    }
+			}
 			currentSelectedPaths = new TreePath[currentPaths.length];
 			for(int i=0; i<currentPaths.length; i++)
 			{
