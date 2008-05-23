@@ -2585,7 +2585,7 @@ public class CircuitChangeJobs
 		Cell cell = (Cell)ni.getProto();
 
 		// first inherit directly from this node's prototype
-		for(Iterator<Variable> it = cell.getVariables(); it.hasNext(); )
+		for(Iterator<Variable> it = cell.getParametersAndVariables(); it.hasNext(); )
 		{
 			Variable var = it.next();
 			if (!var.getTextDescriptor().isInherit()) continue;
@@ -2615,7 +2615,7 @@ public class CircuitChangeJobs
 			// if icon is this, ignore it: can't inherit from ourselves!
 			if (icon == ni) icon = null;
 
-			for(Iterator<Variable> it = cNp.getVariables(); it.hasNext(); )
+			for(Iterator<Variable> it = cNp.getParametersAndVariables(); it.hasNext(); )
 			{
 				Variable var = it.next();
 				if (!var.getTextDescriptor().isInherit()) continue;
@@ -2644,7 +2644,7 @@ public class CircuitChangeJobs
 					Variable oVar = null;
 
 					// try to find equivalent in all parameters on prototype
-					Iterator<Variable> oIt = cNp.getVariables();
+					Iterator<Variable> oIt = cNp.getParametersAndVariables();
 					boolean delete = true;
 					while (oIt.hasNext())
 					{

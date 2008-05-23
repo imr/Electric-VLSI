@@ -234,7 +234,7 @@ public class Variable implements Serializable
 
 	private static String findVariable(ElectricObject eObj, Key key)
 	{
-		for(Iterator<Variable> it = eObj.getVariables(); it.hasNext(); )
+		for(Iterator<Variable> it = eObj.getParametersAndVariables(); it.hasNext(); )
 		{
 			Variable var = it.next();
 			if (var.getKey() == key) return getObjectName(eObj);

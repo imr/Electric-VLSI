@@ -637,12 +637,13 @@ public class EditMenu {
 			Cell np = (Cell)ni.getProto();
 			Cell cnp = np.contentsView();
 			if (cnp != null) np = cnp;
-			for(Iterator<Variable> it = np.getVariables(); it.hasNext(); )
-			{
-				Variable nVar = it.next();
-				if (var.getKey() == nVar.getKey()) return nVar;
-			}
-			return null;
+            return np.getParameter(var.getKey());
+//			for(Iterator<Variable> it = np.getVariables(); it.hasNext(); )
+//			{
+//				Variable nVar = it.next();
+//				if (var.getKey() == nVar.getKey()) return nVar;
+//			}
+//			return null;
 		}
 	}
 
@@ -939,7 +940,7 @@ public class EditMenu {
 		// Selecting annotations
 		if (User.isTextVisibilityOnCell())
 		{
-			for(Iterator<Variable> it = curCell.getVariables(); it.hasNext(); )
+			for(Iterator<Variable> it = curCell.getParametersAndVariables(); it.hasNext(); )
 			{
 				Variable var = it.next();
 				if (var.isAttribute())
@@ -1049,7 +1050,7 @@ public class EditMenu {
 			if (!likeThis.contains(pc.getName())) continue;
 			highlighter.addText(e, curCell, Export.EXPORT_NAME);
 		}
-		for(Iterator<Variable> vIt = curCell.getVariables(); vIt.hasNext(); )
+		for(Iterator<Variable> vIt = curCell.getParametersAndVariables(); vIt.hasNext(); )
 		{
 			Variable var = vIt.next();
 			if (likeThis.contains(var.getKey().getName()))

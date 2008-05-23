@@ -405,7 +405,7 @@ public class ChangeText extends EDialog
 		}
 
 		// text on the cell
-		for(Iterator<Variable> vIt = cell.getVariables(); vIt.hasNext(); )
+		for(Iterator<Variable> vIt = cell.getParametersAndVariables(); vIt.hasNext(); )
 		{
 			Variable var = vIt.next();
 			if (!var.isDisplay()) continue;
@@ -624,7 +624,7 @@ public class ChangeText extends EDialog
 					what += " " + cp.numCellsChanged + " cells";
 					others = true;
 				}
-				System.out.println(what);				
+				System.out.println(what);
 			}
 			return true;
 		}

@@ -210,7 +210,7 @@ public abstract class ElectricObject implements Serializable
 	{
         //checkExamine();
 		int numVars = 0;
-		for (Iterator<Variable> it = getVariables(); it.hasNext(); )
+		for (Iterator<Variable> it = getParametersAndVariables(); it.hasNext(); )
 		{
 			Variable var = it.next();
 			if (var.isDisplay())
@@ -239,7 +239,7 @@ public abstract class ElectricObject implements Serializable
 		int numAddedVariables = 0;
 		double cX = rect.getCenterX();
 		double cY = rect.getCenterY();
-		for (Iterator<Variable> it = getVariables(); it.hasNext(); )
+		for (Iterator<Variable> it = getParametersAndVariables(); it.hasNext(); )
 		{
 			Variable var = it.next();
 			if (!var.isDisplay()) continue;
@@ -400,7 +400,7 @@ public abstract class ElectricObject implements Serializable
 	public Rectangle2D getTextBounds(EditWindow0 wnd)
 	{
 		Rectangle2D bounds = null;
-		for(Iterator<Variable> vIt = getVariables(); vIt.hasNext(); )
+		for(Iterator<Variable> vIt = getParametersAndVariables(); vIt.hasNext(); )
 		{
 			Variable var = vIt.next();
 			if (!var.isDisplay()) continue;
@@ -844,7 +844,7 @@ public abstract class ElectricObject implements Serializable
 	public void copyVarsFrom(ElectricObject other)
 	{
 		checkChanging();
-		for (Iterator<Variable> it = other.getVariables(); it.hasNext(); )
+		for (Iterator<Variable> it = other.getParametersAndVariables(); it.hasNext(); )
             addVar(it.next());
 	}
 
@@ -1224,6 +1224,12 @@ public abstract class ElectricObject implements Serializable
 	public synchronized int getNumVariables() { return getD().getNumVariables(); }
 
 	/**
+	 * Method to return an Iterator over all Parameters and Variables on this ElectricObject.
+	 * @return an Iterator over all Parameters and Variables on this ElectricObject.
+	 */
+	public Iterator<Variable> getParametersAndVariables() { return getVariables(); }
+
+	/**
 	 * Routing to check whether changing of this cell allowed or not.
 	 * By default checks whole database change. Overriden in subclasses.
 	 */
@@ -1303,7 +1309,7 @@ public abstract class ElectricObject implements Serializable
 	{
 		checkExamine();
 		boolean firstvar = true;
-		for(Iterator<Variable> it = getVariables(); it.hasNext() ;)
+		for(Iterator<Variable> it = getParametersAndVariables(); it.hasNext() ;)
 		{
 			Variable val = it.next();
 			Variable.Key key = val.getKey();

@@ -2128,7 +2128,7 @@ public class EditWindow extends JPanel
 			WhatToSearch whatVar = get(whatToSearch, TextUtils.WhatToSearch.CELL_VAR);
 			if (whatVar != null)
 			{
-				for(Iterator<Variable> it = cell.getVariables(); it.hasNext(); )
+				for(Iterator<Variable> it = cell.getParametersAndVariables(); it.hasNext(); )
 				{
 					Variable var = it.next();
 					if (!var.isDisplay()) continue;
@@ -2413,7 +2413,7 @@ public class EditWindow extends JPanel
 		private void addVariableTextToList(ElectricObject eObj, String search, boolean caseSensitive,
 			boolean regExp, Pattern p)
 		{
-			for(Iterator<Variable> it = eObj.getVariables(); it.hasNext(); )
+			for(Iterator<Variable> it = eObj.getParametersAndVariables(); it.hasNext(); )
 			{
 				Variable var = it.next();
 				if (!var.isDisplay()) continue;

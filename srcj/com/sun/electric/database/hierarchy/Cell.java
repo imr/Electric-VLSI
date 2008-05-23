@@ -863,7 +863,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 
 		// copy cell variables
 //		newCell.copyVarsFrom(fromCell);
-        for (Iterator<Variable> it = fromCell.getVariables(); it.hasNext(); ) {
+        for (Iterator<Variable> it = fromCell.getParametersAndVariables(); it.hasNext(); ) {
             Variable fromVar = it.next();
             if (newCell.isParam(fromVar.getKey())) {
                 newCell.setTextDescriptor(fromVar.getKey(), fromVar.getTextDescriptor());
@@ -2913,8 +2913,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
      * @return the Variable with that key, that is parameter. Returns null if none found.
      */
     public Variable getParameter(Variable.Key key) {
-        Variable var = getVar(key);
-        return var != null && var.getTextDescriptor().isParam() ? var : null;
+        return key instanceof Variable.AttrKey ? getD().getParameter((Variable.AttrKey)key) : null;
     }
 
     /**
@@ -2922,14 +2921,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
      * @return an Iterator over all Variables on this Cell.
      */
     public Iterator<Variable> getParameters() {
-        TreeMap<Variable.Key,Variable> keysToVars = new TreeMap<Variable.Key,Variable>();
-        // get all parameters on this object
-        for (Iterator<Variable> it = getVariables(); it.hasNext(); ) {
-            Variable v = it.next();
-            if (!v.getTextDescriptor().isParam()) continue;
-            keysToVars.put(v.getKey(), v);
-        }
-        return keysToVars.values().iterator();
+        return getD().getParameters();
     }
 
     /**
@@ -2937,12 +2929,22 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
      * @return true if this Cell has parameters.
      */
     public boolean hasParameters() {
-        for (Iterator<Variable> it = getVariables(); it.hasNext(); ) {
-            Variable v = it.next();
-            if (v.getTextDescriptor().isParam()) return true;
-        }
-        return false;
+        return getNumParameters() > 0;
     }
+
+	/**
+	 * Method to return the number of Parameters on this Cell.
+	 * @return the number of Parametes on this ImmutableCell.
+	 */
+	public int getNumParameters() { return getD().getNumParameters(); }
+
+	/**
+	 * Method to return the Parameter by its paramIndex.
+     * @param paramIndex index of Parameter.
+	 * @return the Parameter with given paramIndex.
+     * @throws ArrayIndexOutOfBoundesException if paramIndex out of bounds.
+	 */
+	public Variable getParameter(int paramIndex) { return getD().getParameter(paramIndex); }
 
 	/**
 	 * Method to return true if the Variable on this ElectricObject with given key is a parameter.
@@ -2953,8 +2955,27 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * @return true if the Variable with given key is a parameter.
 	 */
     public boolean isParam(Variable.Key varKey) {
-        Variable var = getVar(varKey);
-        return var != null && var.getTextDescriptor().isParam();
+        return varKey instanceof Variable.AttrKey && getD().getParameter((Variable.AttrKey)varKey) != null;
+    }
+
+    private void addParam(Variable var) {
+        assert var.getTextDescriptor().isParam() && var.isInherit();
+        setD(getD().withoutVariable(var.getKey()).withParam(var));
+    }
+
+    private void delParam(Variable.AttrKey key) {
+        assert isParam(key);
+        setD(getD().withoutParam(key));
+    }
+
+    private void setParams(Cell paramOwner) {
+        for (Iterator<Variable> it = getParameters(); it.hasNext(); ) {
+            delParam((Variable.AttrKey)it.next().getKey());
+        }
+        for (Iterator<Variable> it = paramOwner.getParameters(); it.hasNext(); ) {
+            Variable param = it.next();
+            addParam(param);
+        }
     }
 
 	/**
@@ -3167,7 +3188,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
     	int numVars = 0;
     	double xPosSum = 0;
     	double yPosBot = 0;
-    	for(Iterator<Variable> it = getVariables(); it.hasNext(); )
+    	for(Iterator<Variable> it = getParametersAndVariables(); it.hasNext(); )
     	{
     		Variable eVar = it.next();
     		if (!eVar.isDisplay()) continue;
@@ -3222,11 +3243,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         setD(getD().withVariable(var));
     }
 
-    private void addParam(Variable var) {
-        assert var.getTextDescriptor().isParam() && var.isInherit();
-        setD(getD().withoutVariable(var.getKey()).withParam(var));
-    }
-
 	/**
 	 * Method to delete a Variable from this Cell.
 	 * @param key the key of the Variable to delete.
@@ -3237,21 +3253,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             throw new IllegalArgumentException("Parameters should be deleted by CellGroup.delParam");
         setD(getD().withoutVariable(key));
 	}
-
-    private void delParam(Variable.AttrKey key) {
-        assert isParam(key);
-        setD(getD().withoutParam(key));
-    }
-
-    private void setParams(Cell paramOwner) {
-        for (Iterator<Variable> it = getParameters(); it.hasNext(); ) {
-            delParam((Variable.AttrKey)it.next().getKey());
-        }
-        for (Iterator<Variable> it = paramOwner.getParameters(); it.hasNext(); ) {
-            Variable param = it.next();
-            addParam(param);
-        }
-    }
 
 	/**
 	 * Method to return the Variable on this Cell with a given key.
@@ -3275,7 +3276,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * @return an Iterator over all Parameters and Variables on this Cell.
 	 */
     @Override
-	public Iterator<Variable> getVariables() {
+	public Iterator<Variable> getParametersAndVariables() {
         if (getD().getNumParameters() == 0)
             return getD().getVariables();
         ArrayList<Variable> allVars = new ArrayList<Variable>();
@@ -3284,15 +3285,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         for (Iterator<Variable> it = getD().getVariables(); it.hasNext(); )
             allVars.add(it.next());
         return allVars.iterator();
-    }
-
-	/**
-	 * Method to return the number of Parameters and Variables on this Cell.
-	 * @return the number of Parameters and Variables on this ElectricObject.
-	 */
-    @Override
-	public int getNumVariables() {
-        return getD().getNumParameters() + getD().getNumVariables();
     }
 
 	/**
@@ -4679,6 +4671,22 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             return (false);
         }
 
+        // Checking parameters
+        if (getNumParameters() != toCompare.getNumParameters())
+        {
+            if (buffer != null)
+                buffer.append("Cell '" + toCompare + "' has more parameters than '" + this + "'\n");
+            return (false);
+            
+        }
+        for (int i = 0; i < getNumParameters(); i++) {
+            if (!getParameter(i).compare(toCompare.getParameter(i), buffer)) {
+                if (buffer != null)
+                    buffer.append("No corresponding parameter '" + getParameter(i) + "' found in other cell" + "\n");
+                return (false);
+            }
+        }
+        
         // Checking attributes
         noCheckAgain.clear();
         for (Iterator<Variable> it = getVariables(); it.hasNext(); )

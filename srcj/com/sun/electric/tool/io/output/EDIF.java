@@ -119,7 +119,7 @@ public class EDIF extends Topology
 		public int getBusIndex() { return busIndex; }
 
 		public int getSplitterIndex() { return splitterIndex; }
-		
+
 		public static void makeBusRipper(NodeInst ni, Network net, int busWidth, int busIndex, int splitterIndex, String busName)
 		{
 			BusRipper br = new BusRipper(ni, net, busWidth, busIndex, splitterIndex, busName);
@@ -526,7 +526,7 @@ public class EDIF extends Topology
 		}
 		if (IOTool.isEDIFUseSchematicView())
 		{
-            for (Iterator<Variable> it = cell.getVariables(); it.hasNext(); ) {
+            for (Iterator<Variable> it = cell.getParametersAndVariables(); it.hasNext(); ) {
                 Variable var = it.next();
                 if (var.getTrueName().equals("prototype_center")) continue;
                 blockOpen("property");
@@ -990,7 +990,7 @@ public class EDIF extends Topology
 					} else blockPutIdentifier(oname);
 					blockPutIdentifier(Integer.toString(busWidth));
 				blockClose("array");
-	
+
 				// now each sub-net name
 				blockOpen("joined");
 				List<BusRipper> rippersOnBus = BusRipper.getRippersOnBus(cell, realBusName);
@@ -1012,7 +1012,7 @@ public class EDIF extends Topology
 					blockClose("portList");
 				}
 				blockClose("joined");
-	
+
 				// now graphics for the bus
 				if (IOTool.isEDIFUseSchematicView())
 				{
@@ -1041,10 +1041,10 @@ public class EDIF extends Topology
 			for(Iterator<CellAggregateSignal> it = cni.getCellAggregateSignals(); it.hasNext(); )
 			{
 				CellAggregateSignal cas = it.next();
-	
+
 				// ignore single signals
 				if (cas.getLowIndex() > cas.getHighIndex()) continue;
-	
+
 				blockOpen("netBundle");
 				String busName = cas.getNameWithIndices();
 				String oname = makeToken(busName);
@@ -1057,13 +1057,13 @@ public class EDIF extends Topology
 					blockClose("rename");
 				} else blockPutIdentifier(oname);
 				blockOpen("listOfNets");
-	
+
 				// now each sub-net name
 				int numSignals = cas.getHighIndex() - cas.getLowIndex() + 1;
 				for (int k=0; k<numSignals; k++)
 				{
 					blockOpen("net");
-	
+
 					// now output this name
 					CellSignal cs = cas.getSignal(k);
 					String pt = cs.getName();
@@ -1078,7 +1078,7 @@ public class EDIF extends Topology
 					} else blockPutIdentifier(oname);
 					blockClose("net");
 				}
-	
+
 				// now graphics for the bus
 				if (IOTool.isEDIFUseSchematicView())
 				{
@@ -1095,7 +1095,7 @@ public class EDIF extends Topology
 					setGraphic(EGUNKNOWN);
 					egraphic_override = EGUNKNOWN;
 				}
-	
+
 				blockClose("netBundle");
 				continue;
 			}
