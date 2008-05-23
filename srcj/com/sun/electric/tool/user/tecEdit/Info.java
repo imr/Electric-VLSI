@@ -459,14 +459,9 @@ public class Info
 
 	static String getValueOnNode(NodeInst ni)
 	{
-		String initial = "";
-		Variable var = ni.getVar(Artwork.ART_MESSAGE, String.class);
-		if (var != null)
-		{
-			initial = (String)var.getObject();
-			int colonPos = initial.indexOf(':');
-			if (colonPos > 0) initial = initial.substring(colonPos+2);
-		}
+		String initial = ni.getVarValue(Artwork.ART_MESSAGE, String.class, "");
+        int colonPos = initial.indexOf(':');
+		if (colonPos > 0) initial = initial.substring(colonPos+2);
 		return initial;
 	}
 

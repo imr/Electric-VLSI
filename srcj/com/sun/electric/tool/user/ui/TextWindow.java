@@ -122,10 +122,8 @@ public class TextWindow implements WindowContent
         int fontSize = User.getDefaultTextCellSize();
         if (cell != null)
         {
-	        Variable var = cell.getVar(Cell.TEXT_CELL_FONT_NAME, String.class);
-	        if (var != null) fontName = (String)var.getObject();
-	        var = cell.getVar(Cell.TEXT_CELL_FONT_SIZE, Integer.class);
-	        if (var != null) fontSize = ((Integer)var.getObject()).intValue();
+	        fontName = cell.getVarValue(Cell.TEXT_CELL_FONT_NAME, String.class, fontName);
+	        fontSize = cell.getVarValue(Cell.TEXT_CELL_FONT_SIZE, Integer.class, fontSize);
         }
 
         textArea.setFont(new Font(fontName, 0, fontSize));
@@ -155,7 +153,7 @@ public class TextWindow implements WindowContent
 	private void updateUndoRedo()
 	{
         // Commented temporarily DN 10-Apr-2006
-        
+
 //		TopLevel tl = TopLevel.getCurrentJFrame();
 //		PropertyChangeEvent un = new PropertyChangeEvent(tl, UserInterfaceMain.propUndoEnabled, null, new Boolean(undo.canUndo()));
 //		PropertyChangeEvent re = new PropertyChangeEvent(tl, UserInterfaceMain.propRedoEnabled, null, new Boolean(undo.canRedo()));
@@ -183,7 +181,7 @@ public class TextWindow implements WindowContent
 		{
 			System.out.println("Cannot undo");
 		}
-	} 
+	}
 
 	/**
 	 * Method to redo changes to text in this TextWindow.
@@ -609,7 +607,7 @@ public class TextWindow implements WindowContent
 	 * @param whatToSearch a collection of text types to consider.
 	 * @param highlightedOnly true to search only in the highlighted area.
 	 */
-	public void initTextSearch(String search, boolean caseSensitive, 
+	public void initTextSearch(String search, boolean caseSensitive,
 	    boolean regExp, Set<TextUtils.WhatToSearch> whatToSearch, boolean highlightedOnly)
 	{
 		if (regExp)

@@ -84,58 +84,54 @@ public abstract class ElectricObject implements Serializable
 	public abstract boolean isLinked();
 
 	/**
+	 * Method to return the value of the the Variable on this ElectricObject with a given key and type.
+	 * @param key the key of the Variable.
+	 * @param type the required type of the Variable.
+	 * @return the value Variable with that key and type, or null if there is no such Variable
+     * @throws NullPointerException if key is null
+	 */
+	public <T> T getVarValue(Variable.Key key, Class<T> type) {
+        return getVarValue(key, type, null);
+	}
+
+	/**
+	 * Method to return the value of the the Variable on this ElectricObject with a given key and type.
+	 * @param key the key of the Variable.
+	 * @param type the required type of the Variable.
+     * @param defaultValue default value
+	 * @return the value Variable with that key and type, or defaultValue if there is no such Variable
+     * @throws NullPointerException if key or type is null
+	 */
+	public <T> T getVarValue(Variable.Key key, Class<T> type, T defaultValue) {
+		Variable var = getVar(key);
+        if (var != null) {
+            Object value = var.getObject();
+            if (type.isInstance(value))
+                return (T)value;
+        }
+		return defaultValue; // null type means any type
+	}
+
+	/**
 	 * Method to return the Variable on this ElectricObject with a given name.
 	 * @param name the name of the Variable.
 	 * @return the Variable with that name, or null if there is no such Variable.
+     * @throws NullPointerException if name is null
 	 */
-	public Variable getVar(String name)
-	{
+	public Variable getVar(String name) {
 		Variable.Key key = Variable.findKey(name);
-		return getVar(key, null);
+		return key != null ? getVar(key) : null;
 	}
 
 	/**
 	 * Method to return the Variable on this ElectricObject with a given key.
 	 * @param key the key of the Variable.
 	 * @return the Variable with that key, or null if there is no such Variable.
+     * @throws NullPointerException if key is null
 	 */
-	public Variable getVar(Variable.Key key)
-	{
-		return getVar(key, null);
-	}
-
-	/**
-	 * Method to return the Variable on this ElectricObject with a given name and type.
-	 * @param name the name of the Variable.
-	 * @param type the required type of the Variable.
-	 * @return the Variable with that name and type, or null if there is no such Variable.
-	 */
-	public Variable getVar(String name, Class type)
-	{
-		Variable.Key key = Variable.findKey(name);
-		return getVar(key, type);
-	}
-
-	/**
-	 * Method to return the Variable on this ElectricObject with a given key and type.
-	 * @param key the key of the Variable. Returns null if key is null.
-	 * @param type the required type of the Variable. Ignored if null.
-	 * @return the Variable with that key and type, or null if there is no such Variable
-	 * or default Variable value.
-	 */
-	public Variable getVar(Variable.Key key, Class type)
-	{
-		checkExamine();
-		if (key == null) return null;
-		Variable var;
-		synchronized(this) {
-			var = getD().getVar(key);
-		}
-		if (var != null) {
-			if (type == null) return var;				   // null type means any type
-			if (type.isInstance(var.getObject())) return var;
-		}
-		return null;
+	public Variable getVar(Variable.Key key) {
+        checkExamine();
+		return getD().getVar(key);
 	}
 
 	/**

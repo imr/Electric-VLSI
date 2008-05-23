@@ -606,8 +606,9 @@ class NetSchem extends NetCell {
 		if (np == Schematics.tech().groundNode) return Global.ground;
 		if (np == Schematics.tech().powerNode) return Global.power;
 		if (np == Schematics.tech().globalNode) {
-			Variable var = ni.getVar(Schematics.SCHEM_GLOBAL_NAME, String.class);
-			if (var != null) return Global.newGlobal((String)var.getObject());
+			String globalName = ni.getVarValue(Schematics.SCHEM_GLOBAL_NAME, String.class);
+			if (globalName != null)
+                return Global.newGlobal(globalName);
 		}
 		return null;
 	}

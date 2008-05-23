@@ -36,12 +36,12 @@ import java.util.Iterator;
  * This immutable class is the base class of all Electric immutable objects that can be extended with Variables.
  */
 public abstract class ImmutableElectricObject {
-    
+
     /** array of variables sorted by their keys. */
     private final Variable[] vars;
 	/** flags of this IimmutableElectricObject. */
     public final int flags;
-    
+
 	/**
 	 * The package-private constructor of ImmutableElectricObject.
      * Use the factory "newInstance" instead.
@@ -63,7 +63,7 @@ public abstract class ImmutableElectricObject {
     Variable[] arrayWithVariable(Variable var) {
         return arrayWithVariable(vars, var);
     }
-    
+
 	/**
 	 * Returns array of Variables which differs from given array of Variables by additional Variable.
      * If the array has Variable with the same key as new, the old variable will not be in new array.
@@ -86,7 +86,7 @@ public abstract class ImmutableElectricObject {
         System.arraycopy(vars, vars.length - tailLength, newVars, varIndex + 1, tailLength);
         return newVars;
     }
-    
+
 	/**
 	 * Returns array of Variable which differs from array of this ImmutableElectricObject by removing Variable
      * with the specified key. Returns array of this ImmutableElectricObject if it doesn't contain variable with the specified key.
@@ -97,7 +97,7 @@ public abstract class ImmutableElectricObject {
     Variable[] arrayWithoutVariable(Variable.Key key) {
         return arrayWithoutVariable(vars, key);
     }
-    
+
 	/**
 	 * Returns array of Variable which differs from given array of Vasriables by removing Variable
      * with the specified key. Returns given array if it doesn't contain variable with the specified key.
@@ -115,7 +115,7 @@ public abstract class ImmutableElectricObject {
         System.arraycopy(vars, varIndex + 1, newVars, varIndex, newVars.length - varIndex);
         return newVars;
     }
-    
+
 	/**
 	 * Returns array of Variable which differs from array of this ImmutableElectricObject by renamed Ids.
      * Returns array of this ImmutableElectricObject if it doesn't contain reanmed Ids.
@@ -125,7 +125,7 @@ public abstract class ImmutableElectricObject {
     Variable[] arrayWithRenamedIds(IdMapper idMapper) {
         return arrayWithRenamedIds(vars, idMapper);
     }
-    
+
 	/**
 	 * Returns array of Variable which differs from given array of Variables by renamed Ids.
      * Returns given array if it doesn't contain reanmed Ids.
@@ -146,7 +146,7 @@ public abstract class ImmutableElectricObject {
         }
         return newVars != null ? newVars : vars;
     }
-    
+
 	/**
 	 * Method to return the Variable on this ImmuatbleElectricObject with a given key.
 	 * @param key the key of the Variable.
@@ -160,17 +160,21 @@ public abstract class ImmutableElectricObject {
 	}
 
 	/**
-	 * Method to return the Variable on this ImmutableElectricObject with a given key and type.
+	 * Method to return the value of the Variable on this ImmutableElectricObject with a given key and type.
 	 * @param key the key of the Variable.
-	 * @param type the required type of the Variable. Ignored if null.
-	 * @return the Variable with that key and type, or null if there is no such Variable
+	 * @param type the required type of the Variable.
+	 * @return the value of the Variable with that key and type, or null if there is no such Variable
 	 * or default Variable value.
-	 * @throws NullPointerException if key is null
+	 * @throws NullPointerException if key or type is null
 	 */
-	public Variable getVar(Variable.Key key, Class type)
-	{
+	public <T> T getVarValue(Variable.Key key, Class type) {
 		Variable var = getVar(key);
-		return var == null || type == null || type.isInstance(var.getObject()) ? var : null;
+        if (var != null) {
+            Object value = var.getObject();
+            if (type.isInstance(value))
+                return (T)value;
+        }
+		return null;
 	}
 
 	/**
@@ -258,7 +262,7 @@ public abstract class ImmutableElectricObject {
 		}
 		return -(low + 1);  // Variable not found.
     }
-    
+
     /**
      * Writes optional variable part of this ImmutableElectricObject.
      * @param writer where to write.
@@ -269,7 +273,7 @@ public abstract class ImmutableElectricObject {
         if (hasVars)
             writeVars(writer);
     }
-    
+
     /**
      * Writes variables of this ImmutableElectricObject.
      * @param writer where to write.
@@ -277,7 +281,7 @@ public abstract class ImmutableElectricObject {
     void writeVars(IdWriter writer) throws IOException {
         writeVars(vars, writer);
     }
-    
+
     /**
      * Writes variables of this ImmutableElectricObject.
      * @param writer where to write.
@@ -287,7 +291,7 @@ public abstract class ImmutableElectricObject {
         for (int i = 0; i < vars.length; i++)
             vars[i].write(writer);
     }
-    
+
     /**
      * Reads variables of this ImmutableElectricObject.
      * @param reader where to read.
@@ -300,7 +304,7 @@ public abstract class ImmutableElectricObject {
             vars[i] = Variable.read(reader);
         return vars;
     }
-    
+
     /**
      * Return a hash code value for fields of this object.
      * Variables of objects are not compared
@@ -314,7 +318,7 @@ public abstract class ImmutableElectricObject {
      * @return true if fields of objects are equal.
      */
     public abstract boolean equalsExceptVariables(ImmutableElectricObject o);
-    
+
     /**
 	 * Checks invariant of this ImmutableElectricObject.
 	 * @throws AssertionError if invariant is broken.

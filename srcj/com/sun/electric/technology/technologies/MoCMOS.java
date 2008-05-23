@@ -2081,10 +2081,9 @@ public class MoCMOS extends Technology
 		// determine special configurations (number of active contacts, inset of active contacts)
 		int numContacts = 2;
 		boolean insetContacts = false;
-		Variable var = ni.getVar(TRANS_CONTACT, String.class);
-		if (var != null)
+		String pt = ni.getVarValue(TRANS_CONTACT, String.class);
+		if (pt != null)
 		{
-			String pt = (String)var.getObject();
 			for(int i=0; i<pt.length(); i++)
 			{
 				char chr = pt.charAt(i);
@@ -2101,7 +2100,7 @@ public class MoCMOS extends Technology
 		double nodeWid = ni.getXSize();
 		double activeWid = nodeWid - 14;
 		int extraInset = 0;
-		var = ni.getVar(Schematics.ATTR_WIDTH);
+		Variable var = ni.getVar(Schematics.ATTR_WIDTH);
 		if (var != null)
 		{
 			VarContext evalContext = context;

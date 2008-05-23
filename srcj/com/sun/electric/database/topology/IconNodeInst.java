@@ -63,17 +63,16 @@ class IconNodeInst extends NodeInst
     }
 
 	/**
-	 * Method to return the Variable on this ElectricObject with a given key and type.
-	 * @param key the key of the Variable. Returns null if key is null.
-	 * @param type the required type of the Variable. Ignored if null.
+	 * Method to return the Variable on this ElectricObject with a given key.
+	 * @param key the key of the Variable.
 	 * @return the Variable with that key and type, or null if there is no such Variable
 	 * or default Variable value.
+     * @throws NullPointerException if key is null
 	 */
     @Override
-	public Variable getVar(Variable.Key key, Class type)
+	public Variable getVar(Variable.Key key)
 	{
 		checkExamine();
-		if (key == null) return null;
 		Variable instVar = getD().getVar(key);
         if (instVar == null)
             return null;
@@ -82,7 +81,7 @@ class IconNodeInst extends NodeInst
         if (iconParam != null)
             instVar = composeInstParam(iconParam, instVar);
         // null type means any type
-        return type == null || type.isInstance(instVar.getObject()) ? instVar : null;
+        return instVar;
 	}
 
 	/**

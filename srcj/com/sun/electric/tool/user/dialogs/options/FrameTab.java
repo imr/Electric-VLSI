@@ -76,15 +76,9 @@ public class FrameTab extends PreferencePanel
 		for(Library lib : Library.getVisibleLibraries())
 		{
 			LibraryFrameInfo lfi = new LibraryFrameInfo();
-			String company = "";
-			String designer = "";
-			String project = "";
-			Variable var = lib.getVar(User.FRAME_COMPANY_NAME, String.class);
-			if (var != null) company = (String)var.getObject();
-			var = lib.getVar(User.FRAME_DESIGNER_NAME, String.class);
-			if (var != null) designer = (String)var.getObject();
-			var = lib.getVar(User.FRAME_PROJECT_NAME, String.class);
-			if (var != null) project = (String)var.getObject();
+			String company = lib.getVarValue(User.FRAME_COMPANY_NAME, String.class, "");
+			String designer = lib.getVarValue(User.FRAME_DESIGNER_NAME, String.class, "");
+			String project = lib.getVarValue(User.FRAME_PROJECT_NAME, String.class, "");
 			lfi.companyName = TempPref.makeStringPref(company);
 			lfi.designerName = TempPref.makeStringPref(designer);
 			lfi.projectName = TempPref.makeStringPref(project);

@@ -355,7 +355,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 		mirrorX.setSelected(initialMirrorX);
 		mirrorY.setSelected(initialMirrorY);
 		rotation.setText(TextUtils.formatDouble(initialRotation / 10.0));
-		
+
 		// special case for transistors and resistors
 		PrimitiveNodeSize npSize = ni.getPrimitiveNodeSize(null);
 		if (npSize != null) {
@@ -526,12 +526,11 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 			popup.addItem("Only Bottom / normal spacing");
 			popup.addItem("Only Bottom / half-unit closer");
 			popup.addItem("None");
-			Variable var = ni.getVar(Technology.TRANS_CONTACT, String.class);
+			String pt = ni.getVarValue(Technology.TRANS_CONTACT, String.class);
 			int numContacts = 2;
 			boolean insetContacts = false;
-			if (var != null)
+			if (pt != null)
 			{
-				String pt = (String)var.getObject();
 				for(int i=0; i<pt.length(); i++)
 				{
 					char chr = pt.charAt(i);
@@ -547,7 +546,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 			popup.setEnabled(true);
 
 			textFieldLabel.setText("Width:");
-			var = ni.getVar(Schematics.ATTR_WIDTH);
+			Variable var = ni.getVar(Schematics.ATTR_WIDTH);
 			double width = ni.getLambdaBaseXSize();
 			if (var != null) width = TextUtils.atof(var.getPureValue(-1));
 			initialTextField = Double.toString(width);

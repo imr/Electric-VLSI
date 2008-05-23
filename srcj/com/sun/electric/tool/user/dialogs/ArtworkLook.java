@@ -250,7 +250,7 @@ public class ArtworkLook extends EModelessDialog implements HighlightListener
 			{
 				if (index == -1)
 				{
-					if (eObj.getVar(Artwork.ART_COLOR, Integer.class) != null)
+					if (eObj.getVarValue(Artwork.ART_COLOR, Integer.class) != null)
 						eObj.delVar(Artwork.ART_COLOR);
 				} else
 				{

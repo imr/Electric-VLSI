@@ -1066,15 +1066,15 @@ public abstract class LibraryFiles extends Input
 			{
 				Cell cell = reader.nodeProtoList[cellIndex];
 				if (cell == null) continue;
-				Variable var = cell.getVar(SPICE_MODEL_FILE_KEY, String.class);
-				if (var != null)
+				String spiceModelFile = cell.getVarValue(SPICE_MODEL_FILE_KEY, String.class);
+				if (spiceModelFile != null)
 				{
-					CellModelPrefs.spiceModelPrefs.setModelFile(cell, (String)var.getObject(), false, false);
+					CellModelPrefs.spiceModelPrefs.setModelFile(cell, spiceModelFile, false, false);
 				}
-                var = cell.getVar(Verilog.VERILOG_BEHAVE_FILE_KEY);
-                if (var != null)
+                String verilogModelFile = cell.getVarValue(Verilog.VERILOG_BEHAVE_FILE_KEY, String.class);
+                if (verilogModelFile != null)
                 {
-                    CellModelPrefs.verilogModelPrefs.setModelFile(cell, (String)var.getObject(), false, false);
+                    CellModelPrefs.verilogModelPrefs.setModelFile(cell, verilogModelFile, false, false);
                 }
 			}
 		}

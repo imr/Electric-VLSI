@@ -191,7 +191,7 @@ public class IOTool extends Tool
 		initGDSProjectSettings();
 		initDXFProjectSettings();
 	}
-	
+
 	/****************************** GENERAL IO PREFERENCES ******************************/
 
 	private static Pref cacheBackupRedundancy = Pref.makeIntPref("OutputBackupRedundancy", IOTool.tool.prefs, 0);
@@ -242,12 +242,12 @@ public class IOTool extends Tool
 
 	private Setting cacheUseCopyrightMessage;
 	private Setting cacheCopyrightMessage;
-	
+
 	private void initGeneralOutputProjectSettings() {
 		makeBooleanSetting("UseCopyrightMessage", "Netlists tab", "Use copyright message", false);
 		makeStringSetting("CopyrightMessage", "Netlists tab", "Copyright message", "");
 	}
-	
+
 	private static Pref cachePlotArea = Pref.makeIntPref("PlotArea", IOTool.tool.prefs, 0);
 	/**
 	 * Method to tell the area of the screen to plot for printing/PostScript/HPGL.
@@ -354,7 +354,7 @@ public class IOTool extends Tool
 	private Setting cacheCIFMimicsDisplay;
  	private Setting cacheCIFMergesBoxes;
 	private Setting cacheCIFInstantiatesTopLevel;
-	
+
 	private void initCIFProjectSettings() {
 		makeBooleanSetting("CIFMimicsDisplay", "CIF tab", "CIF output mimics display", false);
 		makeBooleanSetting("CIFMergesBoxes", "CIF tab", "CIF output merges boxes", false);
@@ -491,7 +491,7 @@ public class IOTool extends Tool
 	private Setting cacheGDSDefaultTextLayer;
 	private Setting cacheGDSOutputConvertsBracketsInExports;
 	private Setting cacheGDSCellNameLenMax;
-	
+
 	private void initGDSProjectSettings() {
 		makeBooleanSetting("GDSMergesBoxes", "GDS tab", "GDS output merges boxes", false);
 		makeBooleanSetting("GDSWritesExportPins", "GDS tab", "GDS output writes export pins", false);
@@ -500,7 +500,7 @@ public class IOTool extends Tool
 		makeBooleanSetting("GDSOutputConvertsBracketsInExports", "GDS tab", "GDS output converts brackets in exports", true);
 		makeIntSetting("GDSCellNameLenMax", "GDS tab", "GDS name length limit", 32);
 	}
-	
+
 	private static Pref cacheGDSInMergesBoxes = Pref.makeBooleanPref("GDSInMergesBoxes", IOTool.tool.prefs, false);
 	/**
 	 * Method to tell whether GDS Input merges boxes into complex polygons.
@@ -821,9 +821,8 @@ public class IOTool extends Tool
 	 */
 	public static Date getPrintEPSSavedDate(Cell cell)
 	{
-		Variable varDate = cell.getVar(POSTSCRIPT_FILEDATE, Integer[].class);
-		if (varDate == null) return null;
-		Integer [] lastSavedDateAsInts = (Integer [])varDate.getObject();
+		Integer [] lastSavedDateAsInts = cell.getVarValue(POSTSCRIPT_FILEDATE, Integer[].class);
+		if (lastSavedDateAsInts == null) return null;
 		long lastSavedDateInSeconds = ((long)lastSavedDateAsInts[0].intValue() << 32) |
 			(lastSavedDateAsInts[1].intValue() & 0xFFFFFFFF);
 		Date lastSavedDate = new Date(lastSavedDateInSeconds);

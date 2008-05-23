@@ -79,15 +79,11 @@ public class CellProperties extends EDialog
             defExpanded = TempPref.makeBooleanPref(cell.isWantExpanded());
 
             // remember the frame size
-            String fSize = "";
-            Variable var = cell.getVar(User.FRAME_SIZE, String.class);
-            if (var != null) fSize = (String)var.getObject();
+            String fSize = cell.getVarValue(User.FRAME_SIZE, String.class, "");
             frameSize = TempPref.makeStringPref(fSize);
 
             // remember the designer name
-            String dName = "";
-            var = cell.getVar(User.FRAME_DESIGNER_NAME, String.class);
-            if (var != null) dName = (String)var.getObject();
+            String dName = cell.getVarValue(User.FRAME_DESIGNER_NAME, String.class, "");
             designerName = TempPref.makeStringPref(dName);
 
             // remember the technology
@@ -95,13 +91,9 @@ public class CellProperties extends EDialog
             technologyName = TempPref.makeStringPref(tName);
 
             // remember text cell font/size
-            String fontName = "DEFAULT FONT";
-            var = cell.getVar(Cell.TEXT_CELL_FONT_NAME, String.class);
-            if (var != null) fontName = (String)var.getObject();
+            String fontName = cell.getVarValue(Cell.TEXT_CELL_FONT_NAME, String.class, "DEFAULT FONT");
             textCellFont = TempPref.makeStringPref(fontName);
-            int fontSize = User.getDefaultTextCellSize();
-            var = cell.getVar(Cell.TEXT_CELL_FONT_SIZE, Integer.class);
-            if (var != null) fontSize = ((Integer)var.getObject()).intValue();
+            int fontSize = cell.getVarValue(Cell.TEXT_CELL_FONT_SIZE, Integer.class, User.getDefaultTextCellSize());
             textCellSize = TempPref.makeIntPref(fontSize);
         }
 	}
@@ -1146,7 +1138,7 @@ public class CellProperties extends EDialog
 		private List<String> technologyName, technologyNameFactory;
 		private List<String> textCellFont, textCellFontFactory;
 		private List<Integer> textCellSize, textCellSizeFactory;
-	
+
 		private SetCellOptions(
 			List<Cell> cells,
 			List<Boolean> disAllMod,     List<Boolean> disAllModFactory,

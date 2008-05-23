@@ -790,13 +790,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             // if this is an icon, and this nodeinst is the box with the name of the cell on it,
             // then change the name from the old to the new
             if (newCell.isIcon()) {
-                Variable var = toNi.getVar(Schematics.SCHEM_FUNCTION, String.class);
-                if (var != null) {
-                    String name = (String)var.getObject();
-                    if (name.equals(fromCell.getName())) {
-                        toNi.updateVar(var.getKey(), newCell.getName());
-                    }
-                }
+                String name = toNi.getVarValue(Schematics.SCHEM_FUNCTION, String.class);
+                if (fromCell.getName().equals(name))
+                    toNi.updateVar(Schematics.SCHEM_FUNCTION, newCell.getName());
             }
 		}
 
@@ -1734,9 +1730,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		 */
 		public static int getCellFrameInfo(Cell cell, Dimension d)
 		{
-			Variable var = cell.getVar(User.FRAME_SIZE, String.class);
-			if (var == null) return 2;
-			String frameInfo = (String)var.getObject();
+			String frameInfo = cell.getVarValue(User.FRAME_SIZE, String.class);
+			if (frameInfo == null) return 2;
 			if (frameInfo.length() == 0) return 2;
 			int retval = 0;
 			char chr = frameInfo.charAt(0);
@@ -1773,9 +1768,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 			int frameFactor = getCellFrameInfo(cell, d);
 			if (frameFactor == 2) return;
 
-			Variable var = cell.getVar(User.FRAME_SIZE, String.class);
-			if (var == null) return;
-			String frameInfo = (String)var.getObject();
+			String frameInfo = cell.getVarValue(User.FRAME_SIZE, String.class);
+			if (frameInfo == null) return;
 			double schXSize = d.getWidth();
 			double schYSize = d.getHeight();
 
@@ -1906,37 +1900,30 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 				point0 = new Point2D.Double(schXSize/2 - frameWid - xLogoBox/2, -schYSize/2 + frameWid + yLogoBox*13.5/15);
 				addText(point0, yLogoBox*2/15, xLogoBox, yLogoBox*3/15, "Cell: " + cell.describe(false) + (cell.isMultiPage() ? " Page " + (pageNo+1) : ""));
 
-				String projectName = User.getFrameProjectName();
-				Variable pVar = cell.getLibrary().getVar(User.FRAME_PROJECT_NAME, String.class);
-				if (pVar != null) projectName = (String)pVar.getObject();
+				String projectName = cell.getLibrary().getVarValue(User.FRAME_PROJECT_NAME, String.class, User.getFrameProjectName());
 				if (projectName.length() > 0)
 				{
 					point0 = new Point2D.Double(schXSize/2 - frameWid - xLogoBox/2, -schYSize/2 + frameWid + yLogoBox*11/15);
 					addText(point0, yLogoBox*2/15, xLogoBox, yLogoBox*2/15, "Project: " + projectName);
 				}
 
-				String designerName = User.getFrameDesignerName();
-				Variable dVar = cell.getLibrary().getVar(User.FRAME_DESIGNER_NAME, String.class);
-				if (dVar != null) designerName = (String)dVar.getObject();
-				dVar = cell.getVar(User.FRAME_DESIGNER_NAME, String.class);
-				if (dVar != null) designerName = (String)dVar.getObject();
+                String designerName = cell.getVarValue(User.FRAME_DESIGNER_NAME, String.class);
+                if (designerName == null)
+                    designerName = cell.getLibrary().getVarValue(User.FRAME_DESIGNER_NAME, String.class, User.getFrameDesignerName());
 				if (designerName.length() > 0)
 				{
 					point0 = new Point2D.Double(schXSize/2 - frameWid - xLogoBox/2, -schYSize/2 + frameWid + yLogoBox*9/15);
 					addText(point0, yLogoBox*2/15, xLogoBox, yLogoBox*2/15, "Designer: " + designerName);
 				}
 
-				Variable lVar = cell.getVar(User.FRAME_LAST_CHANGED_BY, String.class);
-				if (lVar != null)
+				String lastChangeByName = cell.getVarValue(User.FRAME_LAST_CHANGED_BY, String.class);
+				if (lastChangeByName != null)
 				{
-					String lastChangeByName = (String)lVar.getObject();
 					point0 = new Point2D.Double(schXSize/2 - frameWid - xLogoBox/2, -schYSize/2 + frameWid + yLogoBox*7/15);
 					addText(point0, yLogoBox*2/15, xLogoBox, yLogoBox*2/15, "Last Changed By: " + lastChangeByName);
 				}
 
-				String companyName = User.getFrameCompanyName();
-				Variable cVar = cell.getLibrary().getVar(User.FRAME_COMPANY_NAME, String.class);
-				if (cVar != null) companyName = (String)cVar.getObject();
+				String companyName = cell.getLibrary().getVarValue(User.FRAME_COMPANY_NAME, String.class, User.getFrameCompanyName());
 				if (companyName.length() > 0)
 				{
 					point0 = new Point2D.Double(schXSize/2 - frameWid - xLogoBox/2, -schYSize/2 + frameWid + yLogoBox*5/15);
@@ -3267,24 +3254,20 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
     }
 
 	/**
-	 * Method to return the Variable on this Cell with a given key and type.
-	 * @param key the key of the Variable. Returns null if key is null.
-	 * @param type the required type of the Variable. Ignored if null.
+	 * Method to return the Variable on this Cell with a given key.
+	 * @param key the key of the Variable.
 	 * @return the Variable with that key and type, or null if there is no such Variable
-	 * or default Variable value.
+     * @throws NullPointerException if key is null
 	 */
     @Override
-	public Variable getVar(Variable.Key key, Class type)
-	{
+	public Variable getVar(Variable.Key key) {
 		checkExamine();
         if (key instanceof Variable.AttrKey) {
             Variable param = getD().getParameter((Variable.AttrKey)key);
-            if (param != null) {
-                if (type == null) return param;				   // null type means any type
-                if (type.isInstance(param.getObject())) return param;
-            }
+            if (param != null)
+                return param;
         }
-		return super.getVar(key, type);
+		return super.getVar(key);
 	}
 
 	/**
@@ -3822,10 +3805,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		if (!isMultiPage()) return 1;
 		Rectangle2D bounds = getBounds();
 		int numPages = (int)(bounds.getHeight() / FrameDescription.MULTIPAGESEPARATION) + 1;
-		Variable var = getVar(MULTIPAGE_COUNT_KEY, Integer.class);
-		if (var != null)
+		Integer storedCount = getVarValue(MULTIPAGE_COUNT_KEY, Integer.class);
+		if (storedCount != null)
 		{
-			Integer storedCount = (Integer)var.getObject();
 			if (storedCount.intValue() > numPages) numPages = storedCount.intValue();
 		}
 		return numPages;

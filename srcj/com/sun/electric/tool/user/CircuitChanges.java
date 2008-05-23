@@ -654,7 +654,7 @@ public class CircuitChanges
 		}
 		new CellChangeJobs.PackageCell(curCell, whatToPackage, newCellName);
 	}
-	
+
 	/**
 	 * Method to yank the contents of complex node instance "topno" into its
 	 * parent cell.
@@ -877,7 +877,7 @@ public class CircuitChanges
                 arcsToKill.add(oAi);
             }
         }
-        
+
 //		// look for duplicate arcs
 //		HashMap arcsToKill = new HashMap();
 //		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
@@ -1263,7 +1263,7 @@ public class CircuitChanges
         	highlighted.remove(cellCenterHighlight);
         }
         List<DisplayedText> highlightedText = highlighter.getHighlightedText(true);
-        
+
 		if (!highlightedEObjs.isEmpty() || !highlightedText.isEmpty())
             new CircuitChangeJobs.ManyMove(cell, highlightedEObjs, highlightedText, dX, dY);
 	}
@@ -1421,10 +1421,9 @@ public class CircuitChanges
 					NodeInst ni = nIt.next();
 					if (!ni.isCellInstance()) continue;
 					Cell subCell = (Cell)ni.getProto();
-					Variable var = subCell.getVar(LibraryFiles.IO_TRUE_LIBRARY, String.class);
-					if (var != null)
+					String pt = subCell.getVarValue(LibraryFiles.IO_TRUE_LIBRARY, String.class);
+					if (pt != null)
 					{
-						String pt = (String)var.getObject();
 						dummyLibs.add(pt);
 					}
 					markedLibs.add(subCell.getLibrary());
@@ -1467,9 +1466,8 @@ public class CircuitChanges
 						NodeInst ni = nIt.next();
 						if (!ni.isCellInstance()) continue;
 						Cell subCell = (Cell)ni.getProto();
-						Variable var = subCell.getVar(LibraryFiles.IO_TRUE_LIBRARY, String.class);
-						if (var == null) continue;
-						if (((String)var.getObject()).equals(dummyLibName)) { found = true;   break; }
+						String libName = subCell.getVarValue(LibraryFiles.IO_TRUE_LIBRARY, String.class);
+						if (dummyLibName.equals(libName)) { found = true;   break; }
 					}
 					if (found) infstr.append(" " + cell.noLibDescribe());
 				}

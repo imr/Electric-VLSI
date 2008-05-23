@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07k: ******************************
 
+IMP: (5/22/08, DN) New method "T ElectricObject.getVarValue(Variable.Key, Class<T>, T)".
+
 IMP: (5/22/08, SMR) Explorer tree scrolls to show selected item (Bug #1691).
 
 IMP: (5/22/08, DN) Variables and parameters on ImmutableCell are in separate lists.
@@ -88,7 +90,7 @@ BUG: (4/30/08, SMR) Replacing nodes loses node names (Bug #1672).
 FIX: In NodeInst.replace(), rename old node before copying name to new node
      to prevent duplicate name errors.
 
-IMP: (4/28/08, RK) Remove more references to 
+IMP: (4/28/08, RK) Remove more references to
      com.sun.electric.tool.generator.layout.Tech.
 
 IMP/MAN: (4/29/08, SMR) Auto-stitcher now has the option to create exports
@@ -100,7 +102,7 @@ BUG: (4/29/08, RK) My cleanup of the gate layout generation code broke
 BUG: (4/29/08, DN) AND primitives don't resize correctly when adding input wires (Bug #1653).
 FIX: In LayoutCell.transformByPort don't try to transform port positions of isolated ports.
 
-IMP: (4/28/08, RK) Eliminate many references to static globals of 
+IMP: (4/28/08, RK) Eliminate many references to static globals of
      com.sun.electric.tool.generator.layout.Tech.
 
 IMP/MAN: (4/28/08, SMR) Fixed GDS project settings dialog to say that
@@ -113,12 +115,12 @@ FIX: (4/25/08, RK) NCC Sport regressions fail. This is because Electric no longe
      temporary expedient. It is not worth supporting. I modified
      one Sport regression to expect the large number of mismatched cells. (Bug #1590)
 
-FIX: (4/24/08, RK) CMOS90 Nand2en has wrong width hints. CMOS90 
+FIX: (4/24/08, RK) CMOS90 Nand2en has wrong width hints. CMOS90
      generators may generate metal-1 minimum area errors. (Bug #1671)
 
 IMP: (4/24/08, RK) I removed use of StdCellParams from FoldedMos. FoldedMos
      is supposed to be a in layer beneath StdCellParams. I moved much
-     technology specific information from StdCellParams to TechType. 
+     technology specific information from StdCellParams to TechType.
 
 IMP/MAN: (4/23/08, SMR) New command "Edit / Selection / Show Current Collection of Errors"
      highlights all errors in the current collection (Bug #1621).
@@ -203,7 +205,7 @@ BUG: (4/14/08, SMR) Waveform window doesn't handle data with descending time val
 FIX: Must handle edges of waveform panel specially.
 
 BUG: (4/11/08, GVG) Sea of gates router (Bug #1414)
-FIX: Sea-of-Gates scrpts in the regressions were fixed. 
+FIX: Sea-of-Gates scrpts in the regressions were fixed.
 
 BUG: (4/10/08, SMR) Spice output does unusual things with quoted text (Bug #1644).
 FIX: When parameter text is inside parenthesis, don't enforce quotes.
@@ -339,7 +341,7 @@ FIX: In CMOS.getRuleAliases() add "H page 54" -> "J page 54".
 
 BUG: (3/7/08, GVG) Disk image may be damaged on MacOSX (Bug #1592)
 FIX: Adding extra flag to mkdmg.sh
- 
+
 BUG: (3/6/08, SMR) EDIF input doesn't always get export connected to circuitry (Bug #1591).
 FIX: Create second arc if necessary so that it can be given the export name.
 
@@ -370,7 +372,7 @@ IMP: (3/3/08, DN) Element <primitiveNode> in Technology Xml contains element
     <nodeBase> instead of former <sizeOffset> . Distances in <nodeBase> are from center.
 
 IMP/MAN: (3/3/08, DN) Added "Edit|Technology Specific|Write XML of Technology from Electric build"
-    command to convert technologies from old Electric builds. 
+    command to convert technologies from old Electric builds.
 
 BUG: (3/2/08, DN) NPE in Poly.transform after (Bug #1588)
 FIX: Check that "descript != null".
@@ -395,11 +397,11 @@ IMP/MAN: (2/25/08, DN+JKG) Merge branches/params to the trunk:
     Parameters are not allowed on cells other than icons/schematics.
     Parameters on icon instances inherits patched text descriptor from
     icon cell. Patching means: cleared params and inherit and interior flag.
-    Display flag of instance parameter is the negateion of the interior flag of 
+    Display flag of instance parameter is the negateion of the interior flag of
     icon Cell parameter.
 
     Spice netlister automatically detects paramters necessary for Spice output.
-    It writes them and only them as subcircuit parameters into Spice decks. 
+    It writes them and only them as subcircuit parameters into Spice decks.
     Both Spice and Java syntax are allowed for such parameters.
 
 ************************* Version 8.07e: *******************************
@@ -454,7 +456,7 @@ IMP: (2/19/08, DN) Spice netlister automatically detects spice cell parameters.
 
 IMP: (2/19/08, DN) Code variables in database has value of type CodeExpression.
 
-IMP: (2/17/08, DN) Size in ImmutableNodeInst matches the size written currently to JELIB. 
+IMP: (2/17/08, DN) Size in ImmutableNodeInst matches the size written currently to JELIB.
 
 IMP: (2/17/08, DN) Added class ImmutableIconInst to represent instances of Icon cells.
      Also merge miscellaneous changes from "params" branch.
@@ -597,7 +599,7 @@ IMP: (2/1/08, DN) Add "tftTest" to technology regressions.
 
 BUG: (2/1/08, DN) In "tft.xml" pure layer nodes HiK, Pent, Via1 try to connect to
    non-existing arcs.
-FIX: Comment <portArc> for these pure layer nodes. 
+FIX: Comment <portArc> for these pure layer nodes.
 
 IMP: (2/1/08, DN) Rename TFT.xml to tft.xml so that file name matches tech name.
 
@@ -677,7 +679,7 @@ FIX: Do not change the default close operation.
 
 BUG: (1/24/08, DN) New: quit when unable to save (Bug #1537)
 FIX: Create FileMenu.RenameAndSaveLibraryTask objects in GUI and pass it to doIt
-     methods of QuitJob, ReadLibrary, ImportLibrary, CloseLibrary jobs. 
+     methods of QuitJob, ReadLibrary, ImportLibrary, CloseLibrary jobs.
 
 BUG: (1/23/08, GVG) Quit command does not longer work (Bug #1543)
 FIX: Missing QuitJob.startJob().
@@ -857,7 +859,7 @@ IMP: (12/10/07, DN) Class MultiTaskJob - a draft of framework for multitask comp
 IMP: (12/7/07, GVG) More MT DRC improvements.
 
 BUG: (12/7/07, DN) CrossLib copy and cell revision dates: the cells are never described as "Same" (Bug #870).
-FIX: Don't update cell revision date if it was just set by Cell.lowLevelSetRevisionDate. 
+FIX: Don't update cell revision date if it was just set by Cell.lowLevelSetRevisionDate.
 
 BUG: (12/7/07, DN) Electric does not deal with missing cells properly (Bug #1283).
 FIX: In input.JELIB.fugireOutPortInst apply transform to missing port position.
@@ -913,7 +915,7 @@ IMP: (11/29/07, GVG) DBMath.isGreaterThan() using HALF_EPSILON instead of 0.5/GR
 PolyBase.isInsideGenericPolygonOriginal() testing for bounding box of the polygon first
 (strategy gave good results in new min area algorithm).
 
-IMP: (11/29/07, RK) I enabled Dima's change to make '.' a port separator 
+IMP: (11/29/07, RK) I enabled Dima's change to make '.' a port separator
 in layout as well as schematic. I fixed NCC regression to accomodate this change.
 
 ************************* Version 8.06m: *******************************
@@ -950,7 +952,7 @@ BUG: (11/20/07, SMR) Grid axes are not always correct (Bug #1430).
 FIX: Must set the offset values immediately in the Drawing.render() method.
 
 BUG: (11/20/07, DN) LayerCoverageTool.LayerCoverageData doesn't find short resistor Networks.
-FIX: Detect ShortResistors mode from networks and pass it to HierarchyEnumerator. 
+FIX: Detect ShortResistors mode from networks and pass it to HierarchyEnumerator.
 
 BUG: (11/19/07, DN) Topology does not handle shorted resistors settings correctly (Bug #1426).
 FIX: Three modes of Netlist.ShortResistors are possible: NO, PARASITIC, ALL .
@@ -974,7 +976,7 @@ IMP: (11/17/07, DN) Netlist class is abstract with two subclasses: NetlistImpl a
 IMP: (11/17/07, DN) Names are moved from Network to Netlist. Network objects are allocated lazily.
 
 BUG: (11/16/07, RK) HierarchyEnumerator uses too much heap (Bug #1424)
-FIX: Use hash table instead of array for netIdToNetDesc 
+FIX: Use hash table instead of array for netIdToNetDesc
 
 BUG: (11/16/07, GVG) fill cell generator generates exception (Bug #1432)
 FIX: LayoutLib.openLibForWrite was missing lib.setLibFile()
@@ -1114,7 +1116,7 @@ BUG: (10/25/07, GVG) DRC and Extension rule PP.EN.1 (Bug #1286)
 FIX: New version of Quick.checkExtensionRules by using conditional rules.
 The code will be slower with the extension checkings.
 
-BUG: (10/25/07, RK) Implement highlighting for Export Assertion failures. 
+BUG: (10/25/07, RK) Implement highlighting for Export Assertion failures.
       These are broken exportsConnectedByParent promises (Bug #1397)
 FIX:  Highlight network
 
@@ -1539,10 +1541,10 @@ FIX: call transformOut() instead of translateOut()
 BUG: (8/1/07, DN) Print command throws exception on Solaris.
 FIX: In EditWindow.getPrintImage test if ColorSupported attribute is absent on platform.
 
-IMP: (7/31/07, SAF) PIE: Added benchmarking counters and made 
+IMP: (7/31/07, SAF) PIE: Added benchmarking counters and made
      performance optimizations.
 
-BUG: (7/25/07, RK) Make NCC's joinGroup annotation work on schematic 
+BUG: (7/25/07, RK) Make NCC's joinGroup annotation work on schematic
      Cells as well as layout Cells (Bug #1345)
 
 ************************* Version 8.06b: *******************************
@@ -1555,7 +1557,7 @@ BUG: (7/24/07, SMR) GDS import leaves "_" on export names and does not
 FIX: In GDS.CellBuilder.makeInstances(), accumulate duplicate names and
      write NCC annotation.
 
-IMP: (7/11/07, SAF) PIE: Changed subcircuit factoring to compose 
+IMP: (7/11/07, SAF) PIE: Changed subcircuit factoring to compose
      hierarchically and use internal hierarchy connections.
 
 IMP: (7/3/07, SAF) PIE: Added options to control backtracking search.
@@ -1587,12 +1589,12 @@ FIX: Hash code update code in CSwapPart amended.
 BUG: (6/27/07, DN) Netlist problem for NPN transistor in MOCMOS technology (Bug #1341).
 FIX: In MoCMOS contructor fix port topology of "mocmos:NPN-Transistor:collector".
 
-IMP: (6/27/07, RK) Infinity: router is adding (DRC incorrect) wires 
+IMP: (6/27/07, RK) Infinity: router is adding (DRC incorrect) wires
 
 BUG: (6/27/07, RK) NCC doesn't recognize NPN layout transistors. (Bug #1340)
 FIX: Change NCC to work with NPN layout transistors
 
-IMP: (6/26/07, GVG) New TSMC180 pure layer nodes: UBM, PLMIDE, CBD and ESD1DMY. 
+IMP: (6/26/07, GVG) New TSMC180 pure layer nodes: UBM, PLMIDE, CBD and ESD1DMY.
 
 BUG: (6/26/07, DN) "mocmos:NPN-Transistor" collector should include N-Active boxes.
 FIX: In MoCMOS constructor use "activeLayers[N_TYPE]" instead of activeLayers[P_TYPE].
@@ -1607,11 +1609,11 @@ FIX: In "build.xml:jarWithVersion" don't exclude "packaging/electric.mf" and "pa
 BUG: (6/25/07, SAF) NMOS stacks with incorrectly interchanged gates can
      be matched by local partitioning and are never re-examined, which leads
      to false NCC passes in hierarchical mode.
-FIX: Forced one hashing step of all parts after any operation that could 
-     cause the bug behavior to detect the faulty interchange. 
+FIX: Forced one hashing step of all parts after any operation that could
+     cause the bug behavior to detect the faulty interchange.
 
 BUG: (6/25/07, SAF) PIE: If only one instance of a part exists it was
-     automatically matched by local partitioning without verifying proper 
+     automatically matched by local partitioning without verifying proper
      interchange.
 FIX: Any place where the algorithm can return without having checked
      interchange, all parts are forced to be examined for interchange first.
@@ -1664,7 +1666,7 @@ BUG: (6/17/07, DN) Port names of one-port primitives are omitted in JELIB, excep
 FIX: In output.JELIB omit port names of one-port primitives in PortInst.
      In Technology.convertOldPortName() convert anything in case of one-port primitives.
 
-IMP: (6/17/07, DN) Xml.Technology is serializable (together with EGraphics, Version, SizeOffset). 
+IMP: (6/17/07, DN) Xml.Technology is serializable (together with EGraphics, Version, SizeOffset).
 
 BUG: (6/14/07, DN) Tech editor test doesn't detect some technology mismatches.
 FIX: In TechnologyEditTest.compareTechnologies test port topology and serpentine numbers.
@@ -1815,7 +1817,7 @@ IMP: (6/1/07, GVG) Playing with sorted list in CSA code to get deterministic
      results. To facilitate comparisons with Oyster.
 
 IMP: (6/1/07, JKG) A 'primitive' module defined in the Verilog View cannot have
-     its ports referenced by name (.name(net)), but must be referenced by order. 
+     its ports referenced by name (.name(net)), but must be referenced by order.
 
 BUG: (6/1/07, GVG) Assertion running DRC MinArea on thick transistors (Bug# 1319)
 FIX: Problem found in MinArea code changed for bug# 1240 and 1244. The active
@@ -1829,7 +1831,7 @@ BUG: (5/31/07, SMR) PostScript output of fully-flattened circuit shows all
 FIX: In PostScript.recurseCircuitLevel() skip those nodes at lower levels.
 
 BUG: (5/30/07, DN) Some primitive ports have negative polygon.
-FIX: Swap lx and hx in 
+FIX: Swap lx and hx in
      tsmc180:P-Poly-RPO-Resistor:right-rpo
      tsmc180:N-Poly-RPO-Resistor:right-rpo
      tsmc180:P-Well-RPO-Resistor:right-well-resistor
@@ -1966,7 +1968,7 @@ IMP: (5/15/07, SMR) HSpice reader now ignores the "V()" wrapper around signal
 
 BUG: (5/15/07, DN) Electric hangs (and consumes vast amounts of memory) writing
      JELIB.
-FIX: In ImmutableNodeInst.PortInstIterator advance "chronIndex". 
+FIX: In ImmutableNodeInst.PortInstIterator advance "chronIndex".
 
 BUG: (5/14/07, SMR) Improved HSpice reader (for Ian).
 
@@ -2020,7 +2022,7 @@ IMP: (5/4/07, DN) Pseudo-layers are hidden:
     How to test for pseudo-layer:
      3) Technology.NodeLayer.isPseudoLayer();
      4) Poly.isPseudoLayer();
-     
+
 ************************* Version 8.05k: *********************************
 
 IMP: (5/4/07, SMR) Improved EDIF reading of unusual schematics.
@@ -2057,7 +2059,7 @@ FIX: Now looks everywhere and prompts user to delete from non-current libraries.
 
 BUG: (4/30/07, GVG) Transistors in MoCMOS-Mosis too tiny in the palette (Bug
      #1304)
-FIX: npnTransistorNode.setSkipSizeInPalette(); 
+FIX: npnTransistorNode.setSkipSizeInPalette();
 
 IMP: (4/30/07, GVG) Removing Highlight from CVS (old version of Highlight2)
 
@@ -2186,7 +2188,7 @@ FIX: Expected numbers fixed.
 BUG: (4/6/07, GVG) Error in CSA GateTimModelWrap constructor.
 FIX: Set correct condition for second switch statement.
 
-BUG: (4/6/07, GVG) Precision issue in awe.awe_LUFactor(). 
+BUG: (4/6/07, GVG) Precision issue in awe.awe_LUFactor().
 FIX: Added extra isZero condition. It might need to be used in other part of the
      code. Other issue related to wrong pointer increment done in Rice.
 
@@ -2272,7 +2274,7 @@ FIX: Change pure layer node of this layer to "Pad-Frame-Node".
 
 BUG: (4/03/07, DN) "cmos90:VTL-N-Node" and "cmos90:VTL-P-Node" have polygons of
      layer "VTH-N" and "VTH-P".
-FIX: Set layers to "VTL-N" and "VTL-P". 
+FIX: Set layers to "VTL-N" and "VTL-P".
 
 BUG: (4/03/07, DN) Layer with name "cmos90:pseudo-RDL" layer has not PSEUDO extra
      function.
@@ -2506,7 +2508,7 @@ IMP: (2/14/07, DN) Technology "tsmc90" was renamed to "cmos90" with same
      reader of ProjectSettings. Also, a technology "tsmc180" was added with a
      single foundry (TSMC). "mocmos" technology still contains both foundries
      (MOSIS and TSMC) for some time period necessary to migrate projects from
-     "mocmos/tsmc" to "tsmc180/tsmc". 
+     "mocmos/tsmc" to "tsmc180/tsmc".
 
 IMP: (2/13/07, GVG) Detecting if user has write permission for temporary
     file in Edit Text Cell Externally otherwise, it doesn't work. Bring up a
@@ -2730,7 +2732,7 @@ BUG: (11/15/06, GVG) Extension not added to hspice netlists (bug #1259)
 FIX: Mistake was introduced while cleaning the code.
 
 BUG: (11/14/06, DN) Check library throws assertion on directed and negated arcs.
-FIX: In ArcInst.check use "getShape" instead of "makeGridPoly". 
+FIX: In ArcInst.check use "getShape" instead of "makeGridPoly".
 
 BUG: (11/14/06, DN) Arc name "a," was considered valid.
 FIX: In Name.checkNameThrow more thorough test for empty subnames.
@@ -2889,10 +2891,10 @@ FIX: In Poly.makeEndPointPoly use "angle == 0" and "angle == 900" conditions.
      loaded libraries.
 
 BUG: (10/16/06, DN) API allows to create negated layout arcs.
-FIX:  Negated arc end is always connected to PrimitivePort which "isNegatable". 
+FIX:  Negated arc end is always connected to PrimitivePort which "isNegatable".
 
 BUG: (10/16/06, DN) Delete subcells, then undo. Their expansion status is lost.
-FIX: Keep info about expanded nodes on a Cell. 
+FIX: Keep info about expanded nodes on a Cell.
 
 IMP: (10/16/06, GVG) Skeleton to read DSPF
 
@@ -3217,7 +3219,7 @@ IMP: (8/30/06, Tarik) First version of the new graph view based on prefuse.
 
 IMP: (8/30/06, SMR) Moved "CVS" menu from "Tools" to "File".
 
-IMP: (8/29/06, SAF) PIE: InterchangeParts are now properly retrieved as neighbors of 
+IMP: (8/29/06, SAF) PIE: InterchangeParts are now properly retrieved as neighbors of
      UniquePort Parts.  Fixed bug in grouping equivalent interchangeable ports.  Changed
      InterchangePart so that in normal NCC, the proper wire hash code is retrieved and
      the port to port matrix is modified by the current EquivRecord code.
@@ -3261,7 +3263,7 @@ IMP: (8/28/06, SMR) Added new Export commands: "Re-Export Deep Highlighted Area"
 
 BUG: (8/28/06, RK) PIE: Backtracking bug hides much ambiguity, type string should be one to one with type code
 
-IMP: (8/25/06, SAF) PIE: InterchangePart access of P2P matrix from shared info, ports 
+IMP: (8/25/06, SAF) PIE: InterchangePart access of P2P matrix from shared info, ports
      partitioned by wire equivalence classes.
 
 IMP: (8/25/06, RK) PIE: Store CompositeInfo in CompositePart
@@ -3277,7 +3279,7 @@ IMP: (8/25/06, SAF) PIE: All pseudo part info created with cannonical port order
 IMP: (8/25/06, JKG) Added menu command for down hier in place to object, bug#733
 
 IMP: (8/24/06, SAF) PIE: Hash using sub-cell port to port matrix when creating port
-     to port matrix. Pins and pseudo-parts classified by equivalence type. 
+     to port matrix. Pins and pseudo-parts classified by equivalence type.
 
 IMP: (8/24/06, GVG) Function to count number of transistors in Schematics.
 
@@ -3291,7 +3293,7 @@ IMP: (8/24/06, SMR) Made waveform improvements: (1) Can now use the
      horizontal axis of another (Bug #893).
 
 BUG: (8/24/06, JKG) Bug #975 - Keypad keys do not work over VNC
-FIX: VNC transmits different key codes than normal, so I have added those keycodes to the 
+FIX: VNC transmits different key codes than normal, so I have added those keycodes to the
 menu items bound to keypad keys.
 
 IMP: (8/23/06, RK) PIE: Composite Information begun
@@ -3376,7 +3378,7 @@ IMP: (8/3/06, GVG) Different message dialogs in case of XML errors while importi
 error in case of problems, not full trace.
 
 IMP: (8/1/06, DN) EditWindow.getBlendingOrder don't put Generic.Gluph layer into blending order on solid layers.
-     So essential bounds are not shown. 
+     So essential bounds are not shown.
 
 IMP: (8/1/06, DN) EditWindow.getBlendingOrder uses LAYERS_BY_HEIGHT_LIFT_CONTACTS to sort layers.
     So every contact is higher than its upper metal. Requested by Jonathan Gainsley.
@@ -3408,7 +3410,7 @@ IMP: (7/30/06, DN) "Alpha blending limit" preference is added to DisplayControlT
 IMP: (7/26/06, GVG) Refactoring AutoStitch to get regressions working.
 
 BUG: (7/22/06, DN) N-well disappears in LayerDrawing.
-FIX: In PatternedTransparentRaster.copyBits use "continue" instead of "return". 
+FIX: In PatternedTransparentRaster.copyBits use "continue" instead of "return".
 
 IMP: (7/21/06, GVG) Request to add errors to list in real-time (bug #1169)
 Done using option in User's preferences for DRC until issues with job queuing is clarified.
@@ -3441,7 +3443,7 @@ IMP: (6/27/06, RK) NCC: Rewrote hash code algorithm to make it strictly activity
 
 BUG: (6/23/06, GVG) demo.j3d was not loaded from electric.jar
 FIX: Using URL and InputStream classes to upload files contained in jar.
- 
+
 BUG: (6/23/06, SMR) When doing cross-library copy and copying subcells,
      schematics don't copy with the icons (Bug #1130).
 FIX: In CellChangeJobs.copyRecursively(), copy related views independent
@@ -3770,7 +3772,7 @@ FIX: In Analyser.newVector(), change the line
 BUG: (5/30/06, SMR) Waveform window crashes when too many panels (Bug #1071)
 FIX: Fixed default panel sizes.  Also fixed other bugs in waveform window.
 
-IMP: (5/30/06, DN) Refactoring of redisplay code. Class PixelDrawing_ for new redisplay code. 
+IMP: (5/30/06, DN) Refactoring of redisplay code. Class PixelDrawing_ for new redisplay code.
 
 IMP: (5/30/06, DN) Client Electric connects to a server machine specified in command-line "-client <serverMachineName>".
 
@@ -4049,7 +4051,7 @@ FIX: Implement TextDescriptor.readResolve to resolve unique TestDescriptor.
 BUG: (5/4/06, GVG) Problems with ModifyNodeProperties job (no Bugzilla)
 FIX: TextDescriptor.Code serializable
 
-IMP: (5/4/06, DN) PixelDrawing takes shapes from VectorCache for faster redisplay. 
+IMP: (5/4/06, DN) PixelDrawing takes shapes from VectorCache for faster redisplay.
 
 BUG: (5/4/06, DN) Wrong names of SelectObjects/SelectArea buttons.
 FIX: Swap them in ToolBar.java.
@@ -4099,7 +4101,7 @@ FIX: Detect wf==null in EditWindow.fireCellHistoryStatus() (dirty fix!)
 BUG: (4/26/06, GVG) Get info dialog box remains behind other windows (Bug #949). Affecting only MacOSX apparently.
 FIX: Fixing unexpected change done for bug #878.
 
-IMP: (4/25/06, GVG) Aligning metals based on maximum numbers assigned to reserved tracks and spacing values in 
+IMP: (4/25/06, GVG) Aligning metals based on maximum numbers assigned to reserved tracks and spacing values in
      template fill generator otherwise tracks get misaligned.
 
 IMP: (4/24/06, GVG) Preparing AFG dialog box for release
@@ -4165,7 +4167,7 @@ BUG: (4/13/06, GVG) Fix for Error logger loading (Bug #933)
 FIX: Inconsistent DTD header after changes in highlight.
 
 BUG (4/13/06, DN): Exception in NetworkManager after cell deletion.
-FIX: In NetworkManager.updateAll use "l" instead if "i" in "some cells deleted" loop, 
+FIX: In NetworkManager.updateAll use "l" instead if "i" in "some cells deleted" loop,
 
 BUG (4/13/06, DN): Concurrent modification in redispaly (Bug #909, #923, #932).
 FIX: PixelDrawing.forceRedraw collects changed cells in a Set.
@@ -4300,13 +4302,13 @@ BUG: (3/24/06, GVG) MaxPerm=0 on Windows causes problems (not seen on Linux/Mac)
 FIX: detect the condition.
 
 IMP: (3/24/06, DN) Added method Cell.move(Library newLib) for CrossLibraryMove.
-     Database methods checkFresh moved to check.    
+     Database methods checkFresh moved to check.
 
 BUG: (3/24/06, DN)) Read Library Job used getCurrentCell inside doIt.
 FIX: Move it to terminateOK.
 
 IMP: (3/23/06, GVG) Access to reloadLibrary in ExplorerTree (no cvs mode).
-                                   
+
 IMP: (3/23/06, JG): Need facility to reload changed libraries from disk (Bug #721)
 
 IMP: (3/23/06, RK) NCC: trace resistor connectivity when highlighting equivalent Networks. Update User Manual.
@@ -4324,10 +4326,10 @@ One of them was that Electric was reloading only transparent colors after Pref i
 FIX: Recaching all color preferences. PrefType enum added.
 
 BUG: (3/21/08, DN) Regressions and those errors not catched/running forever... (Bug #901)
-FIX: Uodate Regression.java to recent changes in ServerClient.java 
+FIX: Uodate Regression.java to recent changes in ServerClient.java
 
 BUG: (3/21/06, DN) All libraries marked changed after loading up (Bug #900)
-FIX: In Main.InitDatabase insert Input.changesQuiet(false). 
+FIX: In Main.InitDatabase insert Input.changesQuiet(false).
 
 IMP: (3/21/06, DN) Snapshot Logging which is enabled by button in GeneralTab panel.
    Logging is performed to temporary file in platform-dependent  directory. Name of the file
@@ -4367,7 +4369,7 @@ BUG: (3/19/06, DN) Some export names are not repaired.
 FIX: In Cell.checkAndRepair iterate over copy of exports array.
 
 IMP: (3/18/06, GVG) Select Object dialog was useless if you navigate down/up the hierarchy (Bug #862)
- 
+
 BUG: (3/18/06, GVG) "Project file not fund" message in Project Management (Bug #849).
 FIX: RetrieveLibraryFromRepositoryJob implements terminateOK() instead of terminateIt.
 
@@ -4674,7 +4676,7 @@ BUG: (2/10/06, DN) MOSSIM regression results are not determenistc.
 FIX: Make "Topology.SortNetsByName" comparator transitive.
 
 BUG: (2/10/06, DN) Project settings are not loaded from disk libraries.
-FIX: Remove "meaning = null" int Pref.init* methods. 
+FIX: Remove "meaning = null" int Pref.init* methods.
 
 IMP: (2/9/06, DN) Fixes in Compaction and Generation regressions to run in client/server mode.
 
@@ -4745,19 +4747,19 @@ FIX: In Pref.getMeaningVariables(), ignore invalid options.
 
 IMP: (1/31/06, GVG) Move MessagesStream.messagesStream out of TopLevel (all regression scripts checked).
 More fixes in regressions.
- 
+
 IMP: (1/31/06, SMR) Added NodeInst.isCellInstance() to distinguish cells from primitives
      without using "instanceof".
 
 BUG: (1/30/06, DN) Regression tests hang.
-FIX: In ServerJobManager.DatabaseChangesThread.run do System.exit on empty job queue in batch mode. 
+FIX: In ServerJobManager.DatabaseChangesThread.run do System.exit on empty job queue in batch mode.
 
 BUG: (1/30/06, SMR) When global text is scaled, small text is still not displayed.
 FIX: In VectorDrawing.drawList(), account for global scale when clipping text.
 
 IMP: (1/30/06, SMR) Added Pref methods "delayPrefFlushing()" and "resumePrefFlushing()"
      to speed up bulk preference changes.  Used in WaveformWindow.preserveSignalOrder(),
-     Layer.preserveVisibility(), Pref.importPrefs(), Pref.finishPrefReconcilation(). 
+     Layer.preserveVisibility(), Pref.importPrefs(), Pref.finishPrefReconcilation().
 
 BUG: (1/30/06, SMR) Saved error logs do not read back in.
 FIX: Adjusted parsing to match new output.
@@ -4800,7 +4802,7 @@ IMP: (1/25/06, GVG) LayerCoverage tool ready for the new client/server structure
 
 IMP: (1/25/06, GVG New MinArea changes that stop checking if minimums are reached. Decomissioning ALGO_QTREE structure.
 
-IMP: (1/23/06, GVG) DRC, ParasiticTools, FillGenerator, GateRegression, GateLayoutGenerator ready for new client/server structure. 
+IMP: (1/23/06, GVG) DRC, ParasiticTools, FillGenerator, GateRegression, GateLayoutGenerator ready for new client/server structure.
 ErrorLogger is serializable.
 
 IMP: (1/23/06, DN) VarContext and Nodable are serializable.
@@ -4998,7 +5000,7 @@ FIX: Removed "setLocation()" from GetInfoNode, GetInfoExport, and GetInfoText.
 
 IMP: (11/30/05, SMR) Reduced the amount of memory used by signals (Bug #712).
 
-IMP: (11/30/05, DN) Command-line switch "-server" to dump snapshot trace. 
+IMP: (11/30/05, DN) Command-line switch "-server" to dump snapshot trace.
 
 IMP: (11/29/05, GVG) More changes related to the DISPLAY dependency while running batch jobs.
 Ability to reconcile options in batch mode (some code in OptionReconcile.java moved to Pref so it
@@ -5351,7 +5353,7 @@ BUG: (10/17/05, DN) exception while doing cross-library copy (Bug #652).
 FIX: In Cell.copyNodeProtoUsingMapping use getVar(SCHEM_FUNCTION, String.class).
 
 BUG: (10/16/05, DN) Irsim doesn't saves stimuli to disk correctly (found by Moscow students in GNU 8.02).
-FIX: In irsim.Analyzer.newVector don't divide thisStep by cmdFileUnits twice. 
+FIX: In irsim.Analyzer.newVector don't divide thisStep by cmdFileUnits twice.
 
 BUG: (10/14/05, SMR) Importing preferences doesn't update component menu (Bug #645).
 FIX: In PreferencesFrame.importActionPerformed(), update all component menus.
@@ -5415,7 +5417,7 @@ FIX: Improved location computation, highlighting, and rendering.
 IMP: (10/11/05, DN) Simplification of NodeInst and ArcInst ("duplicate" removed, "arcId/nodeId" is used instead).
 
 BUG: (10/10/05, DN) Alignment of text in cross-library copy (Bug #632).
-FIX: In CrossLibCopy.showCells use "CellName.compareTo" instead of STRING_NUMBER_COMPARE. 
+FIX: In CrossLibCopy.showCells use "CellName.compareTo" instead of STRING_NUMBER_COMPARE.
 
 BUG: (10/10/05, GVG) Correcting poly pin centers. They should be a point, not a rectangle.
 FIX: Changing offset in primitive.
@@ -5751,7 +5753,7 @@ BUG: (09/20/05, DN) Network names "p1-2" and "p12" are considered equivalent by 
 FIX: In text.Name class remove "trimPlusMinus".
 
 BUG: (09/20/05, DN) "s1.toLowerCase().equals(s2.inLowerCase()" is not equivalent to s1.equalsIgnoreCase" but is used in many places.
-FIX: In TextUtils add "canonicChar" and "canonicString" methods and use them. 
+FIX: In TextUtils add "canonicChar" and "canonicString" methods and use them.
 
 BUG: (09/20/05, DN) Assertion error after bus width error messages (Bug #549)
 FIX: In NetSchem.localConnections do something plausible when width mismatches.
@@ -5777,7 +5779,7 @@ BUG: (09/18/05, DN) Expanded status of Cells which have '/' in name is not saved
 FIX: In Cell.loadExpandStatus and Cell.saveExpandStatus put "cellName.replace('/', ':')".
 
 BUG: (09/18/05, DN) Compaction regression failed.
-FIX: In ArcInst.copyConstraintsFrom insert copy angle as well. 
+FIX: In ArcInst.copyConstraintsFrom insert copy angle as well.
 
 BUG: (09/16/05, RK) Fixed FillGenerator. It was placing Well outside Cell boundary on left and right. (Bugzilla# 551)
 
@@ -6089,9 +6091,9 @@ FIX: In "CircuitChanges.copyRecursively()", must actually check the destination 
      to prevent duplicate copying.
 
 BUG: DRC on loPI fill throws exception in method PolyBase.getSortedLoops (Bug #467).
-FIX: PolyBase is not Comparable, so pass AREA_COMPARATOR to "sort()" method. 
+FIX: PolyBase is not Comparable, so pass AREA_COMPARATOR to "sort()" method.
 
-IMP: (08/18/05, GVG) More changes for Mosis->TSMC switch (select surround in active contact) (Bug #477). 
+IMP: (08/18/05, GVG) More changes for Mosis->TSMC switch (select surround in active contact) (Bug #477).
 RPO is silicide block and with same pattern as in 90nm
 
 ************************* Version 8.03c: *********************************
@@ -6184,7 +6186,7 @@ BUG: (08/05/05, RK) Warning: "Improvement" below disables NCC GUI until GUI is c
 IMP: (08/05/05, RK) Improvement to Local Partitioning algorithm. (Bug #447)
 
 IMP: (08/05/05, DN) Yet another Spice format: Epic simulation output (for nanosim).
-    Format choice list in SpiceTab dialog has one more item - "Epic". 
+    Format choice list in SpiceTab dialog has one more item - "Epic".
 
 BUG: (08/05/05, DN) Problem with arc and tail extensions deleting a jog from arc.
 FIX: In CircuitChanges.reconnectArcs fill "ra.extendHead/Tail" from proper arc end only.
@@ -6212,7 +6214,7 @@ IMP: (07/30/05, GVG) Length/width of poly resistors (schematics/layout) can be c
 IMP: (07/29/05, GVG) Ability to check and repair libraries if original files contain
 layers that are not in used. Extra function to convert JELIB files into 7Layer tech
 by mapping unused layers/primitive nodes into valid ones. Eg. M8M9 -> M6M7, M5M8 -> M5M6.
-Done for arcs and nodes.      
+Done for arcs and nodes.
 
 BUG: (07/28/05, GVG) GDS number for RPO 29 instead of 155 (reported by JonG)
 
@@ -6234,12 +6236,12 @@ FIX: change "false" by electrical (reported by Lexau, it should be in Bugzilla)
 IMP: (07/26/05, JKG) Acepting String Arrays in Verilog (reported by Tarik, it should be in Bugzilla)
 (comments added by GVG)
 
-IMP: (07/26/05, IM): Added Unrecognized Part Type table to NCC GUI. 
+IMP: (07/26/05, IM): Added Unrecognized Part Type table to NCC GUI.
      It merged Unrecognized MOS Type and Unrecognized Resistor Type
      classes and tables.
 
 BUG: (07/26/05, IM): NCC GUI displays hash code errors when it shouldn't (Bug #438)
-FIX: Make NccComparisonMismatches to report hash code failures only when text 
+FIX: Make NccComparisonMismatches to report hash code failures only when text
      version of NCC would do so.
 
 ************************* Version 8.03a: *********************************
@@ -6253,7 +6255,7 @@ FIX: (07/21/05, RK) Change "Node Properties" dialog so it reports dimensions of 
 
 IMP: (07/21/05, RK) NCC: Add Poly resistors. This is incomplete because I haven't implmented size disambiguation for resistors yet. I will do this after I've fixed size diambiguation.
 
-IMP: (07/19/05, IM) NCC GUI: 
+IMP: (07/19/05, IM) NCC GUI:
      1) reworked selection and expansion of wire class tree nodes;
      2) improved data alignment in size mismatch tables.
 
@@ -6285,7 +6287,7 @@ IMP: (07/15/05, DN) HierarchyEnumerator can shorten resistors.
 IMP: (07/15/05, DN) "DumpHeap" and "AnalyzeHeap" commands in DebugMenus
      to assist in memory leakage investigateions.
 
-IMP: (07/14/05, IM) Each comparison in NCC GUI displays the number of 
+IMP: (07/14/05, IM) Each comparison in NCC GUI displays the number of
 parts, wires, and ports in its cells.
 
 BUG: (07/14/05, IM) Clicking on a hyperlink in Size Mismatch Table in NCC GUI
@@ -6293,7 +6295,7 @@ only highlights the top-level cell (bug 434).
 FIX: obtain the proper cell from the MOS to be highlithed.
 
 BUG: (07/14/05, IM) NCC GUI occasionally throws exception when moveCaretPosition()
-method is invoked on JEditorPane (bug 429). This is a bug in Java 1.4 
+method is invoked on JEditorPane (bug 429). This is a bug in Java 1.4
 (http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4688560).
 FIX: call moveCaretPosition() through SwingUtilities.invokeLater().
 
@@ -6332,7 +6334,7 @@ IMP: (07/11/05, IM) Added NCC GUI
 BUG: (07/11/05, IM) NetworkHighlighter wasn't highlighting networks without arcs
 FIX: (07/11/05, IM) Make NetworkHighlighter highlight all the PortInsts on a Network
 
-BUG: (07/11/05, IM) comparison of two VarContexts doesn't work beacuse pointer 
+BUG: (07/11/05, IM) comparison of two VarContexts doesn't work beacuse pointer
 comparison of Nodables is not reliable
 FIX: (07/11/05, IM) Compare Nodable parents and names
 
@@ -6631,7 +6633,7 @@ BUG: (06/13/05, DN) Some changes are not undoable yet. They don't cause saving
      library.
 FIX: Undo.otherChange() method to mark library for save.
 
-IMP: (06/13/05, DN) When writing ELIB/ReadableDump, round arc angle to nearest. 
+IMP: (06/13/05, DN) When writing ELIB/ReadableDump, round arc angle to nearest.
 
 IMP: (06/12/05, DN) lowLevelAllocate/lowLevelPopulate methods removed from
      "ArcInst" and "Export".
@@ -6913,7 +6915,7 @@ FIX: Restore the "wipeon1or2" flag to Schematics bus pins, then rework the
 IMP: (05/09/05, JKG) LE sizes now stored on top level cell instead of leaf
      instances.
 
-IMP: (05/09/05, JKG) Improved readability of hierarchical path in status bar. 
+IMP: (05/09/05, JKG) Improved readability of hierarchical path in status bar.
      Also, path shown for schematics. Also, second row remains visible because
      redraw of window is annoying when second row disappears and reappears.
 
@@ -6983,7 +6985,7 @@ IMP: (05/04/05, SMR) Added FPGA technology.
 BUG: (05/05/05, GVG) Infinite loop after executing "Repeat Last Action"
      (Bug #246)
 FIX: In RepeatLastCommandListener, we ignore actions coming from "Repeat Last
-     Action". 
+     Action".
 
 IMP: (05/05/05, DN) JELIB 'R' line can accept either 5 or 7 pieces.
 
@@ -7094,7 +7096,7 @@ FIX: Only expand to the current library after reading it.
 IMP (04/25/05, SMR) When replacing a library, error messages are more clear
      (Bug #255).
 
-IMP: (04/25/05, SMR) HSpice input can now accept files with the extension .tr1, 
+IMP: (04/25/05, SMR) HSpice input can now accept files with the extension .tr1,
      .tr2, ... (Bug #258).
 
 IMP: (04/25/05, SMR) Waveform window now allows dragging of the vertical axis on
@@ -7109,7 +7111,7 @@ IMP: (04/22/05, GVG) Alpha control in 3D preferences. Ability to load more than
 BUG: (04/22/05, GVG) Bug found in 3D highlight for primitives (original
      appearance not restored).
 FIX: Extra class holds the information.
-                                                               
+
 BUG: (04/22/05. GVG) Exception in Spice netlist if icon instance has a parameter
      not defined in Schematic (Bug #279)
 FIX: Prevent setParam(true) in Examine job (Variable.java:1000)
@@ -7121,7 +7123,7 @@ BUG: (04/21/05, SMR) Adding a signal to the waveform window doesn't show it at
      the same scale as the other signals (Bug #277).
 FIX: In WaveformWindow.java, set the scale when creating a new panel.
 
-IMP: (04/21/05, GVG) 3DView creation embedded in Job to abort big examples. 
+IMP: (04/21/05, GVG) 3DView creation embedded in Job to abort big examples.
      Ability to stop creation if number of nodes reached predefined limit (dialog
      with 3 options). Max number of nodes allowed in preferences.  3D Display
      option moved to 3D menu. Fix on axis location.
@@ -7181,7 +7183,7 @@ IMP: (04/14/05, GVG) Ability to choose technology while creating a new cell
      (Bug #245)
 
 IMP: (04/14/05, GVG) Changes in TSM90 and DRC to handle multiple foundries
-     (ST, TSMC). DRC rules are chosen depending on foundry selected: ST, TSMC, 
+     (ST, TSMC). DRC rules are chosen depending on foundry selected: ST, TSMC,
      Combined(ST, TSMC). Names/Values for some DRC rules varies according to
      foundry (eg. VT{H/L}_{P/N}.S.2/VT{H/L}_{P/N}.D.2). Added corresponding ST
      rules.  New native thick transistors, RPO, OD33, OD25 nodes. New "forbidden"
@@ -7354,7 +7356,7 @@ IMP: (03/25/05, SMR) Added HPGL output.
 IMP: (03/24/05, SMR) Unconnected nodes that are on the same network as a selected
      node now highlight (Bug #222).
 
-IMP: (03/27/05, GVG) Improvements in 3D directional lights. New defaults: 
+IMP: (03/27/05, GVG) Improvements in 3D directional lights. New defaults:
      (1 1 -1) (-1 1 -1)
 
 IMP: (03/23/05, SMR) More improvements to IRSIM; refactored "Stimuli" and broke
@@ -7363,7 +7365,7 @@ IMP: (03/23/05, SMR) More improvements to IRSIM; refactored "Stimuli" and broke
 BUG: (03/23/04, GVG) ExportCommand crashed if cell is null (no Bugzilla #)
 FIX: return was added to the code
 
-IMP: (03/22/05, SMR) Improvements to IRSIM command files (wildcards, vectors, 
+IMP: (03/22/05, SMR) Improvements to IRSIM command files (wildcards, vectors,
      individual stimuli removal)
 
 IMP: (03/21/05, GVG) First version of resistance calculation
@@ -7373,7 +7375,7 @@ IMP: (03/21/05, GVG) Parasitic values moved to ParasiticTab (out of SpiceTab)
 IMP: (03/21/05, RK) NCC: Improve the error message that's printed when one Wire
      matches several wires by Export names.
 
-IMP: (03/18/05, GVG) Changes in ParasiticsTool to handle IRSIM deck generation. 
+IMP: (03/18/05, GVG) Changes in ParasiticsTool to handle IRSIM deck generation.
      It generates so far information for transistors and capacitances.
 
 BUG: (03/17/05, GVG) In DRC introduced while adding new min area strategy.
@@ -7391,7 +7393,7 @@ IMP: (03/16/05, RK) NCC qLite regression: remove spurious sizes from
 IMP: (03/16/05, GVG) IRSIM will ignore non-fet transistors in schematic (not
      supported by IRSIM sim)
 
-BUG: (03/16/05, GVG) Exception in GetInfo for non FET transistors in schematic. 
+BUG: (03/16/05, GVG) Exception in GetInfo for non FET transistors in schematic.
      Function getTransistorSize() can't be called.
 FIX: get the area value by querying the corresponding attribute in the node
 
@@ -7419,7 +7421,7 @@ IMP: (03/14/05, RK) NCC: Add schematic bipolar transistors.
 
 IMP: (03/11/05, GVG) Ability to turn on/off axes
 
-IMP: (03/11/05, GVG) Cleaning up 3D tab in preferences if j3d is not available. 
+IMP: (03/11/05, GVG) Cleaning up 3D tab in preferences if j3d is not available.
      Some 3D options won't be available since they don't have sense if plugin is
      not available. This simplifies code maintenance.
 
@@ -7498,7 +7500,7 @@ IMP (02/21/05, GVG) New version of 3D tab in preferences. It would be a 3D view
      to 3D transparency factors in preference now.
 
 IMP (02/17/05, GVG) First version of 3D Demo Tool. Few extra classes in j3d
-     plugin.  Features: setup of original view angle, two spline interpolators, 
+     plugin.  Features: setup of original view angle, two spline interpolators,
      dialog box to control motion, using node variables to control camera
      viewpoint.
 
@@ -7532,7 +7534,7 @@ FIX: In EditWindow.paint(), call "requestFocusInWindow()" instead of
      "requestFocus()".
 
 BUG: (02/11/05, SMR) Cross-library copy may not copy all subcells (Bug #200).
-FIX: In CircuitChanges.copyRecursively(), when recursing to a related view, 
+FIX: In CircuitChanges.copyRecursively(), when recursing to a related view,
      supress more related views for the current cell only.
 
 BUG: (02/11/05, SMR) Copying cells doesn't get arcs right.
@@ -7603,7 +7605,7 @@ BUG: (02/08/05, SMR) Moving nodes may cause arcs to become disconnected
 FIX: In Layout.java, make consistent use of head/tail arc ends.
 
 IMP: (02/08/05, SMR) Made all pure-layer nodes have ports that run to their edges
-     Technologies affected: MoCMOS, BiCMOS, Bipolar, CMOS, MoCMOSOld, MoCMOSSub, 
+     Technologies affected: MoCMOS, BiCMOS, Bipolar, CMOS, MoCMOSOld, MoCMOSSub,
      nMOS.
 
 IMP: (02/07/05, SMR) Added "Show Pure Layer Nodes" command to "Edit / Cleanup"
@@ -7617,15 +7619,15 @@ IMP: Sweep algorithm by default in ERC, geometry on network and coverage implant
 BUG: (02/07/05, SMR) GDS output crashes (Bug #193).
 FIX: In GDS.java, fixed new outputDouble() implementation.
 
-IMP: (02/07/05, DN) Changed implementation of ArcInst and Connection: 
+IMP: (02/07/05, DN) Changed implementation of ArcInst and Connection:
      Connection's fields moved to Connection, immutable class EPoint is used for
      Locations.
 
 BUG: (02/06/05, SMR) Zooming in too far crashes.
 FIX: In GenMath.clipSegment(), do integer scaling using longs.
 
-IMP: (02/04/05, SMR) Directional arcs can now have arrow heads on either end. 
-     (Bug #150)  Modified Arc Properties dialog to control directional, negated, 
+IMP: (02/04/05, SMR) Directional arcs can now have arrow heads on either end.
+     (Bug #150)  Modified Arc Properties dialog to control directional, negated,
      and end extension.  Modified commands in Edit / Arc menu.  Modified internal
      way of storing these properties.
 
@@ -7633,7 +7635,7 @@ IMP: (02/03/05, SMR) Improvements in node extraction.  Added
      PolyMerge.subtractLayers().
 
 IMP: (02/04/05, GVG) Reorganizing tech palette including Bug#31
-     Added "n"/"p" to well, active and transistors. Added "Mos" to transistors. 
+     Added "n"/"p" to well, active and transistors. Added "Mos" to transistors.
      Added "Act" to actives. On Y axis, 3-node row (arc, pin, contact) sorted per
      Layer.  Done for all layout technologies.
 
@@ -7680,7 +7682,7 @@ IMP: (02/02/05, SMR) Status bar now shows both local coordinates and
      "hierarchical" coordinates (relative to an upper-level when the "Down
      Hierarchy" command has been used) (Bug #162).
 
-IMP: (02/02/05, GVG) Second version of sweep algorithm for merging areas. 
+IMP: (02/02/05, GVG) Second version of sweep algorithm for merging areas.
      GeometryHandler transformed into a abstract class.
 
 BUG: (02/01/05, GVG) Covering implants not working with PolyQTree structure after
@@ -7703,7 +7705,7 @@ IMP: (02/01/05, SMR) Highlighting a port on an "example icon" shows the
 
 IMP: (01/31/05, GVG) First version of sweep algorithm connected to ERC Well
 
-IMP: (01/31/05, SMR) Waveform window draws grid dimmer and in the background. 
+IMP: (01/31/05, SMR) Waveform window draws grid dimmer and in the background.
      Horizontal grid lines are adjusted to 10%, 30%, 50%, 70%, and 90% of actual
      values.  Panning commands (Ctrl-2-4-6-8) now work in waveform window.
 
@@ -7974,7 +7976,7 @@ IMP: (01/09/05, DN) Settors are removed from TextDescriptor class. Database
      and ElectricObject.setTextDescriptor(varName, td) can be used for uniform
      access to text descriptors in database. varName can be also one of:
        NodeInst.NODE_PROTO_TD, NodeInst.NODE_NAME_TD, ArcInst.ARC_NAME_TD,
-       Export.EXPORT_NAME_TD 
+       Export.EXPORT_NAME_TD
 
 IMP: (01/08/05, GVG) Catching expection due to bad filename while generating
      ImageIO during export.
@@ -7999,7 +8001,7 @@ FIX: In Launcher.invokeElectric()", quote results of System.getProperty().
 BUG: (12/23/04, GVG): Exception creating a bufferImage if width or heigth was
      zero (text) (Bug #139)
 FIX: return null in these cases
- 
+
 IMP: (12/23/04, GVG): Fixing side effects in TechPalette after Bug#103
 
 IMP: (12/23/04, GVG): TSMC90: Adding rules "A page 54", "B page 54" and "J page 54" even
@@ -8263,7 +8265,7 @@ FIX: Switched to N type
 BUG: (12/3/04, DN) In ELIB input technology and scale calculation is undeterministic (Bug #20).
 FIX: LibraryFiles.computeTech() ensures that subcells have computed technology.
 
-IMP: (12/3/04, DN) Technology.whatTechnology returns Artwork for text files.     
+IMP: (12/3/04, DN) Technology.whatTechnology returns Artwork for text files.
 
 IMP: (12/3/04, DN) Launcher enables assertions.
 
@@ -8519,7 +8521,7 @@ FIX: Do not consider exports to be attached to nodes when deleting.
 
 IMP: (11/12/04, SMR) Long network names are truncated in the "Arc Properties" dialog.
 
-BUG: (11/11/04, GVG) List Geometry on Network: fast algorithm in PolyQTree not working correctly while splitting the tree. 
+BUG: (11/11/04, GVG) List Geometry on Network: fast algorithm in PolyQTree not working correctly while splitting the tree.
 Fix: put back the slow code
 
 IMP: (11/11/04, RK) Undebugged implementation of NCC net equivalence reporting
@@ -8562,7 +8564,7 @@ IMP: (11/10/04, DN) Sorting of objects in JELIB output for regression purposes.
 	Compare protoName in "nameSameNumeric" order;
 	if equal compare views;
 	if equal compare versions - implicit (without number) version first,
-	   explicit (with number) versions in reverse order then; 
+	   explicit (with number) versions in reverse order then;
      3) Order of libraries, tools., technologies, primitiveNodes/Ports/Arcs - usual "String.compareTo"
      4) Order of Exports - "nameSameNumeric"
      5) Order of NodeInsts, ArcInsts
@@ -8580,7 +8582,7 @@ BUG: (11/10/04, RK) Make gate generator generate gates for every instance of a C
 IMP: (11/9/04, GVG) Two new toggles in DRC tab to ignore hierarchical/poly-select conditions.
 
 IMP: (11/9/04, GVG) LayoutLib.openLibForRead works with JELIB format. Terminate program if -batch option in EvalJavaBsh
-                                                        
+
 BUG: (11/9/04, GVG) DRC Min Area and select, disconnected nodes not considered.
 FIX: Special treatment in visitNodeInst by using PrimitiveNode.containsSubstrateLayer()
 

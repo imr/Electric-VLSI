@@ -1000,21 +1000,31 @@ public class DRC extends Listener
      */
     private static boolean getDateStored(Cell cell, Variable.Key key, GenMath.MutableLong date)
     {
-        long lastDRCDateInMilliseconds = 0;
+        long lastDRCDateInMilliseconds;
         // disk version
-        Variable varSpacingDate = cell.getVar(key, Long.class); // new strategy
-        if (varSpacingDate == null)
-            varSpacingDate = cell.getVar(key, Integer[].class);
-        if (varSpacingDate == null) return false;
-        Object lastDRCDateObject = varSpacingDate.getObject();
-        if (lastDRCDateObject instanceof Integer[]) {
-            Integer[] lastDRCDateAsInts = (Integer [])lastDRCDateObject;
+        Long lastDRCDateAsLong = cell.getVarValue(key, Long.class); // new strategy
+        if (lastDRCDateAsLong != null) {
+            lastDRCDateInMilliseconds = lastDRCDateAsLong.longValue();
+        } else {
+            Integer[] lastDRCDateAsInts = cell.getVarValue(key, Integer[].class);
+            if (lastDRCDateAsInts == null) return false;
             long lastDRCDateInSecondsHigh = lastDRCDateAsInts[0].intValue();
             long lastDRCDateInSecondsLow = lastDRCDateAsInts[1].intValue();
             lastDRCDateInMilliseconds = (lastDRCDateInSecondsHigh << 32) | (lastDRCDateInSecondsLow & 0xFFFFFFFFL);
-        } else {
-            lastDRCDateInMilliseconds = ((Long)lastDRCDateObject).longValue();
         }
+//        Variable varSpacingDate = cell.getVar(key, Long.class); // new strategy
+//        if (varSpacingDate == null)
+//            varSpacingDate = cell.getVar(key, Integer[].class);
+//        if (varSpacingDate == null) return false;
+//        Object lastDRCDateObject = varSpacingDate.getObject();
+//        if (lastDRCDateObject instanceof Integer[]) {
+//            Integer[] lastDRCDateAsInts = (Integer [])lastDRCDateObject;
+//            long lastDRCDateInSecondsHigh = lastDRCDateAsInts[0].intValue();
+//            long lastDRCDateInSecondsLow = lastDRCDateAsInts[1].intValue();
+//            lastDRCDateInMilliseconds = (lastDRCDateInSecondsHigh << 32) | (lastDRCDateInSecondsLow & 0xFFFFFFFFL);
+//        } else {
+//            lastDRCDateInMilliseconds = ((Long)lastDRCDateObject).longValue();
+//        }
         date.setValue(lastDRCDateInMilliseconds);
         return true;
     }
@@ -1063,17 +1073,27 @@ public class DRC extends Listener
             int thisByte = Layout.DRC_LAST_GOOD_BIT_DEFAULT;
             if (bitKey != null)
             {
-                Variable varBits = cell.getVar(bitKey, Integer.class);
-                if (varBits == null) // old Byte class
-                {
-                    varBits = cell.getVar(bitKey, Byte.class);
-                    if (varBits != null)
-                        thisByte =((Byte)varBits.getObject()).byteValue();
+                Integer varBitsAsInt = cell.getVarValue(bitKey, Integer.class);
+                if (varBitsAsInt != null) {
+                    thisByte = varBitsAsInt.intValue();
+                } else {
+                    Byte varBitsAsByte = cell.getVarValue(bitKey, Byte.class);
+                    if (varBitsAsByte != null)
+                        thisByte = varBitsAsByte.byteValue();
                     else
                         System.out.println("No valid bit associated to DRC data was found as cell variable");
                 }
-                else
-                    thisByte = ((Integer)varBits.getObject()).intValue();
+//                Variable varBits = cell.getVar(bitKey, Integer.class);
+//                if (varBits == null) // old Byte class
+//                {
+//                    varBits = cell.getVar(bitKey, Byte.class);
+//                    if (varBits != null)
+//                        thisByte =((Byte)varBits.getObject()).byteValue();
+//                    else
+//                        System.out.println("No valid bit associated to DRC data was found as cell variable");
+//                }
+//                else
+//                    thisByte = ((Integer)varBits.getObject()).intValue();
             }
             data.bits = thisByte;
             data.date = lastDRCDateInMilliseconds.longValue();
@@ -1238,7 +1258,7 @@ public class DRC extends Listener
                     String msg = "Network: Layout " + cell + " has arrayed " + ni;
                     System.out.println(msg);
                     errorLog.logError(msg, ni, cell, null, errorSortNetworks);
-                } 
+                }
                 boolean isSchematicNode;
                 if (ni.isCellInstance()) {
                     Cell subCell = (Cell)np;

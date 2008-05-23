@@ -876,9 +876,9 @@ public class Artwork extends Technology
 	private static EGraphics makeGraphics(ImmutableElectricObject d)
 	{
 		// get the color and pattern information
-		Variable colorVar = d.getVar(ART_COLOR, Integer.class);
+		Integer color = d.getVarValue(ART_COLOR, Integer.class);
 		Variable patternVar = d.getVar(ART_PATTERN);
-		if (colorVar == null && patternVar == null) return null;
+		if (color == null && patternVar == null) return null;
 
 		// make a fake layer with graphics
 		EGraphics graphics = new EGraphics(false, false, null, 0, 0,0,0, 0.8,true,
@@ -886,11 +886,8 @@ public class Artwork extends Technology
 				0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff});
 
 		// set the color if specified
-		if (colorVar != null)
-		{
-			Integer color = (Integer)colorVar.getObject();
+		if (color != null)
 			graphics.setColorIndex(color); // autoboxing
-		}
 
 		// set the stipple pattern if specified
 		if (patternVar != null)
