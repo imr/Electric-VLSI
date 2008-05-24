@@ -507,15 +507,15 @@ public class VarContext implements Serializable
             if (no != null)
                 parentVar = no.getVar(Variable.findKey(pMat.group(1)));
             if (parentVar != null) {
-                // see if param is spice code by looking at instance code, and definition code
+                // see if param is spice code by looking at instance code
                 boolean isSpiceCode = parentVar.getCode() == TextDescriptor.Code.SPICE;
-                if (no.isCellInstance()) {
-                    Cell c = (Cell)no.getProto();
-                    if (c.contentsView() != null) c = c.contentsView();
-                    Variable protoVar = c.getParameterOrVariable(parentVar.getKey());
-                    if (protoVar != null)
-                        isSpiceCode = protoVar.getCode() == TextDescriptor.Code.SPICE;
-                }
+//                if (no.isCellInstance()) {
+//                    Cell c = (Cell)no.getProto();
+//                    if (c.contentsView() != null) c = c.contentsView();
+//                    Variable protoVar = c.getParameterOrVariable(parentVar.getKey());
+//                    if (protoVar != null)
+//                        isSpiceCode = protoVar.getCode() == TextDescriptor.Code.SPICE;
+//                }
                 if (recurse || !isSpiceCode)
                     value = pop().evalVarRecurse(parentVar, getNodable());
             }
