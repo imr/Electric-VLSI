@@ -35,7 +35,6 @@ import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.id.CellId;
@@ -94,7 +93,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
@@ -3255,20 +3253,20 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	}
 
 	/**
-	 * Method to return the Variable on this Cell with a given key.
-	 * @param key the key of the Variable.
-	 * @return the Variable with that key and type, or null if there is no such Variable
+	 * Method to return the Parameter or Variable on this Cell with a given key.
+	 * @param key the key of the Parameter or Variable.
+	 * @return the Parameter or Variable with that key, or null if there is no such Parameter or Variable Variable.
      * @throws NullPointerException if key is null
 	 */
     @Override
-	public Variable getVar(Variable.Key key) {
+	public Variable getParameterOrVariable(Variable.Key key) {
 		checkExamine();
         if (key instanceof Variable.AttrKey) {
-            Variable param = getD().getParameter((Variable.AttrKey)key);
+            Variable param = getParameter((Variable.AttrKey)key);
             if (param != null)
                 return param;
         }
-		return super.getVar(key);
+		return getVar(key);
 	}
 
 	/**
@@ -3277,12 +3275,12 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 */
     @Override
 	public Iterator<Variable> getParametersAndVariables() {
-        if (getD().getNumParameters() == 0)
-            return getD().getVariables();
+        if (getNumParameters() == 0)
+            return getVariables();
         ArrayList<Variable> allVars = new ArrayList<Variable>();
-        for (Iterator<Variable> it = getD().getParameters(); it.hasNext(); )
+        for (Iterator<Variable> it = getParameters(); it.hasNext(); )
             allVars.add(it.next());
-        for (Iterator<Variable> it = getD().getVariables(); it.hasNext(); )
+        for (Iterator<Variable> it = getVariables(); it.hasNext(); )
             allVars.add(it.next());
         return allVars.iterator();
     }
@@ -4677,7 +4675,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             if (buffer != null)
                 buffer.append("Cell '" + toCompare + "' has more parameters than '" + this + "'\n");
             return (false);
-            
+
         }
         for (int i = 0; i < getNumParameters(); i++) {
             if (!getParameter(i).compare(toCompare.getParameter(i), buffer)) {
@@ -4686,7 +4684,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
                 return (false);
             }
         }
-        
+
         // Checking attributes
         noCheckAgain.clear();
         for (Iterator<Variable> it = getVariables(); it.hasNext(); )

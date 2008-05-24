@@ -739,7 +739,7 @@ public class Sue extends Input
                     if (isParam && ni.isCellInstance()) {
                         Cell cnp = ((Cell)np).contentsView();
                         if (cnp == null) cnp = (Cell)np;
-                        Variable contentsVar = cnp.getVar(varKey);
+                        Variable contentsVar = cnp.getParameterOrVariable(varKey);
                         if (contentsVar == null) {
                         	// really wanted: VTDISPLAYNAMEVALINH
                             TextDescriptor td = TextDescriptor.getCellTextDescriptor().withParam(true).

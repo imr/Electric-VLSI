@@ -154,7 +154,7 @@ public class TextAttributesPanel extends JPanel
         // then use the current panel values to apply to varName.
         td = owner.getTextDescriptor(varKey);
         if (td == null) return;
-        var = owner.getVar(varKey);
+        var = owner.getParameterOrVariable(varKey);
 
         // otherwise, use td
 
@@ -335,7 +335,7 @@ public class TextAttributesPanel extends JPanel
             // change the units
             td = td.withUnit(TextDescriptor.Unit.getUnitAt(unit));
             // change the show style
-			Variable var = owner.getVar(varKey);
+			Variable var = owner.getParameterOrVariable(varKey);
             if (dispPos < 0) {
                 // var should not be null
                 if (var != null) td = td.withDisplay(false);

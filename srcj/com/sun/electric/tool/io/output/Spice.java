@@ -96,7 +96,7 @@ public class Spice extends Topology
 {
     private static final boolean DETECT_SPICE_PARAMS = true;
     private static final boolean USE_JAVA_CODE = true;
-    
+
 	/** key of Variable holding generic Spice templates. */		public static final Variable.Key SPICE_TEMPLATE_KEY = Variable.newKey("ATTR_SPICE_template");
 	/** key of Variable holding Spice 2 templates. */			public static final Variable.Key SPICE_2_TEMPLATE_KEY = Variable.newKey("ATTR_SPICE_template_spice2");
 	/** key of Variable holding Spice 3 templates. */			public static final Variable.Key SPICE_3_TEMPLATE_KEY = Variable.newKey("ATTR_SPICE_template_spice3");
@@ -1467,7 +1467,7 @@ public class Spice extends Topology
     {
         return evalParam(context, no, instParam, forceEval, false, false);
     }
-    
+
     /**
      * Returns text representation of instance parameter
      * on specified Nodable in specified VarContext
@@ -1490,7 +1490,7 @@ public class Spice extends Topology
         }
         if (obj == null)
             obj = context.evalVar(instParam, no);
-        
+
         if (obj instanceof Number)
             obj = TextUtils.formatDoublePostFix(((Number)obj).doubleValue());
         return formatParam(String.valueOf(obj), instParam.getUnit(), wrapped);
@@ -1546,14 +1546,14 @@ public class Spice extends Topology
         allSpiceParams.put(np, params);
         return params;
     }
-    
+
 //  private static void printlnParams(String message, Set<Variable.Key> varKeys) {
 //      System.out.print(message);
 //      for (Variable.Key varKey: varKeys)
 //          System.out.print(" " + varKey);
 //      System.out.println();
 //  }
-    
+
     /**
      * Method to tell which Variables are important for primitive node in this netlister
      * @param pn primitive node to tell
@@ -1777,7 +1777,7 @@ public class Spice extends Topology
                     String pVal = "?";
                     Variable parentVar = attrVar;
                     if (prototype != null && prototype instanceof Cell)
-                        parentVar = ((Cell)prototype).getVar(attrVar.getKey());
+                        parentVar = ((Cell)prototype).getParameterOrVariable(attrVar.getKey());
                     if (USE_JAVA_CODE) {
                         pVal = evalParam(context, no, attrVar, forceEval, true, infstr.inParens());
                         if (infstr.inQuotes()) pVal = trimSingleQuotes(pVal);
@@ -1882,7 +1882,7 @@ public class Spice extends Topology
         }
         return infstr.getStringBuffer();
     }
-        
+
     private static class StringBufferQuoteParity
     {
     	private StringBuffer sb = new StringBuffer();
@@ -1956,7 +1956,7 @@ public class Spice extends Topology
             if (paramName.equalsIgnoreCase("length") && prim != null) continue;
             if (isPortReplacement && pp != null) continue;
             if (prototype != null && (varKey = Variable.findKey("ATTR_" + paramName)) != null) {
-                if (prototype instanceof PrimitiveNode || ((Cell) prototype).getVar(varKey) != null)
+                if (prototype instanceof PrimitiveNode || ((Cell) prototype).getParameterOrVariable(varKey) != null)
                     vars.add(varKey);
             }
         }

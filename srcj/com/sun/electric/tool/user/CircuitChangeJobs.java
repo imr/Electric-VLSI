@@ -2734,7 +2734,7 @@ public class CircuitChangeJobs
 		Variable posVar = np.getVar(nivar.getKey());
 		Variable var = posVar;
 		if (icon != null) {
-			Variable iconVar = icon.getVar(nivar.getKey());
+			Variable iconVar = icon.getParameterOrVariable(nivar.getKey());
 			if (iconVar != null) posVar = iconVar;
 		}
 

@@ -189,7 +189,7 @@ public class SCLibraryGen {
                 ni.newVar(Artwork.ART_COLOR, new Integer(blueColorIndex));
             }
             // remove 'X' attribute
-            if (iconcell.getVar(sizeKey) != null) {
+            if (iconcell.getParameterOrVariable(sizeKey) != null) {
                 iconcell.delVar(sizeKey);
             }
         }
@@ -221,7 +221,7 @@ public class SCLibraryGen {
                 }
             }
             // remove 'X' attribute
-            if (schcell.getVar(sizeKey) != null) {
+            if (schcell.getParameterOrVariable(sizeKey) != null) {
                 schcell.delVar(sizeKey);
             }
             // remove verilog template attribute

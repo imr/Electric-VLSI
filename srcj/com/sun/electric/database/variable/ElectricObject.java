@@ -103,7 +103,7 @@ public abstract class ElectricObject implements Serializable
      * @throws NullPointerException if key or type is null
 	 */
 	public <T> T getVarValue(Variable.Key key, Class<T> type, T defaultValue) {
-		Variable var = getVar(key);
+		Variable var = getParameterOrVariable(key);
         if (var != null) {
             Object value = var.getObject();
             if (type.isInstance(value))
@@ -120,7 +120,7 @@ public abstract class ElectricObject implements Serializable
 	 */
 	public Variable getVar(String name) {
 		Variable.Key key = Variable.findKey(name);
-		return key != null ? getVar(key) : null;
+		return key != null ? getParameterOrVariable(key) : null;
 	}
 
 	/**
@@ -130,6 +130,17 @@ public abstract class ElectricObject implements Serializable
      * @throws NullPointerException if key is null
 	 */
 	public Variable getVar(Variable.Key key) {
+        checkExamine();
+		return getD().getVar(key);
+	}
+
+	/**
+	 * Method to return the Parameter or Variable on this ElectricObject with a given key.
+	 * @param key the key of the Parameter or Variable.
+	 * @return the Parameter or Variable with that key, or null if there is no such Parameter or Variable Variable.
+     * @throws NullPointerException if key is null
+	 */
+	public Variable getParameterOrVariable(Variable.Key key) {
         checkExamine();
 		return getD().getVar(key);
 	}
@@ -148,7 +159,7 @@ public abstract class ElectricObject implements Serializable
 	 */
 	public TextDescriptor getTextDescriptor(Variable.Key varKey)
 	{
-		Variable var = getVar(varKey);
+		Variable var = getParameterOrVariable(varKey);
 		if (var == null) return null;
 		return var.getTextDescriptor();
 	}
@@ -186,7 +197,7 @@ public abstract class ElectricObject implements Serializable
 	 */
 	public TextDescriptor.Code getCode(Variable.Key varKey)
 	{
-		Variable var = getVar(varKey);
+		Variable var = getParameterOrVariable(varKey);
         return var != null ? var.getCode() : TextDescriptor.Code.NONE;
 	}
 
@@ -383,7 +394,7 @@ public abstract class ElectricObject implements Serializable
 			} else if (this instanceof Cell)
 			{
 				Cell cell = (Cell)this;
-				Poly [] polys = cell.getPolyList(cell.getVar(varKey), 0, 0, wnd, false);
+				Poly [] polys = cell.getPolyList(cell.getParameterOrVariable(varKey), 0, 0, wnd, false);
 				if (polys.length > 0) poly = polys[0];
 			}
 		}

@@ -48,7 +48,7 @@ public class DisplayedText implements Serializable
 
 	public Variable.Key getVariableKey() { return key; }
 
-	public Variable getVariable() { return eObj.getVar(key); }
+	public Variable getVariable() { return eObj.getParameterOrVariable(key); }
 
     /**
 	 * Method to tell whether this DisplayedText stays with its node.

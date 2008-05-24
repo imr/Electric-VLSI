@@ -4,7 +4,7 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07k: ******************************
 
-IMP: (5/22/08, DN) New methods in ElectricObject: getVarValue, getParametersAndVariables.
+IMP: (5/22/08, DN) New methods in ElectricObject: getVarValue, getParameterOrVariable, getParametersAndVariables.
 
 IMP: (5/22/08, SMR) Explorer tree scrolls to show selected item (Bug #1691).
 

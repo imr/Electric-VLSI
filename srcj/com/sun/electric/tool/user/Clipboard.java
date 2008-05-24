@@ -372,7 +372,7 @@ public class Clipboard
 		DisplayedText dt = highlightedText.get(0);
 		ElectricObject eObj = dt.getElectricObject();
 		Variable.Key varKey = dt.getVariableKey();
-		Variable var = eObj.getVar(varKey);
+		Variable var = eObj.getParameterOrVariable(varKey);
 		if (var == null) return;
 		String selected = var.describe(-1);
 		if (selected == null) return;
@@ -959,7 +959,7 @@ public class Clipboard
 			ElectricObject eObj = dt.getElectricObject();
 			if (!(eObj instanceof Cell)) continue;
 			Variable.Key varKey = dt.getVariableKey();
-			Variable var = eObj.getVar(varKey);
+			Variable var = eObj.getParameterOrVariable(varKey);
 			double xP = var.getTextDescriptor().getXOff();
 			double yP = var.getTextDescriptor().getYOff();
             Variable newVar = Variable.newInstance(varKey, var.getObject(), var.getTextDescriptor().withOff(xP+dX, yP+dY));

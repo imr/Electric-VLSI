@@ -655,7 +655,7 @@ class HighlightArea extends Highlight2
 }
 
 class HighlightMessage extends Highlight2
-{                                  
+{
 	/** The highlighted message. */								protected String msg;
     /** Location of the message highlight */                    protected Point2D loc;
     HighlightMessage(Cell c, String m, Point2D p)
@@ -689,14 +689,14 @@ class HighlightMessage extends Highlight2
 }
 
 class HighlightEOBJ extends Highlight2
-{                                                           
+{
 	/** The highlighted object. */								protected ElectricObject eobj;
     /** For Highlighted networks, this prevents excess highlights */ private boolean highlightConnected;
 	/** The highlighted outline point (only for NodeInst). */	protected int point;
 
     public HighlightEOBJ(ElectricObject e, Cell c, boolean connected, int p)
     {
-        super(c);  
+        super(c);
         this.eobj = e;
         this.highlightConnected = connected;
         this.point = p;
@@ -1321,13 +1321,13 @@ class HighlightEOBJ extends Highlight2
 }
 
 class HighlightText extends Highlight2
-{                                                          
+{
 	/** The highlighted object. */								protected final ElectricObject eobj;
 	/** The highlighted variable. */							protected final Variable.Key varKey;
 
     public HighlightText(ElectricObject e, Cell c, Variable.Key key)
     {
-        super(c);  
+        super(c);
         this.eobj = e;
         this.varKey = key;
         Class cls = null;
@@ -1364,7 +1364,7 @@ class HighlightText extends Highlight2
         	} else
         	{
 	            desc.append(", var: ");
-	            desc.append(eobj.getVar(varKey).describe(-1));
+	            desc.append(eobj.getParameterOrVariable(varKey).describe(-1));
         	}
         }
     }
@@ -1386,7 +1386,7 @@ class HighlightText extends Highlight2
 			varKey == ArcInst.ARC_NAME ||
 			varKey == NodeInst.NODE_PROTO ||
 			varKey == Export.EXPORT_NAME) return true;
-    	return eobj.getVar(varKey) != null;
+    	return eobj.getParameterOrVariable(varKey) != null;
     }
 
     boolean sameThing(Highlight2 obj)
@@ -1603,7 +1603,7 @@ class HighlightText extends Highlight2
         		description = "Text: Cell instance name " + ((NodeInst)eobj).describe(true);
         	} else
         	{
-        		description = "Text: " + eobj.getVar(varKey).getFullDescription(eobj);
+        		description = "Text: " + eobj.getParameterOrVariable(varKey).getFullDescription(eobj);
         	}
         }
         return description;

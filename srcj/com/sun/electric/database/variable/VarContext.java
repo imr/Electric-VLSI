@@ -512,7 +512,7 @@ public class VarContext implements Serializable
                 if (no.isCellInstance()) {
                     Cell c = (Cell)no.getProto();
                     if (c.contentsView() != null) c = c.contentsView();
-                    Variable protoVar = c.getVar(parentVar.getKey());
+                    Variable protoVar = c.getParameterOrVariable(parentVar.getKey());
                     if (protoVar != null)
                         isSpiceCode = protoVar.getCode() == TextDescriptor.Code.SPICE;
                 }

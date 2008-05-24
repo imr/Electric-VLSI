@@ -445,7 +445,7 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
 
         // try to find variable
         Variable.Key varKey = Variable.newKey(varName);
-        if (selectedObject.getVar(varKey) != null)
+        if (selectedObject.getParameterOrVariable(varKey) != null)
         {
             // make sure var is selected
             if (varKey != null)
@@ -533,7 +533,7 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
         if (selectedObj instanceof Variable.Key)
         {
 	        Variable.Key key = (Variable.Key)selectedObj;
-	        return selectedObject.getVar(key);
+	        return selectedObject.getParameterOrVariable(key);
         }
         return null;
     }
@@ -701,9 +701,9 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
         public boolean doIt() throws JobException
         {
             // check if var of this name already exists on object
-            if (owner.getVar(newVar.getKey()) != null)
+            if (owner.getParameterOrVariable(newVar.getKey()) != null)
                 throw new JobException("Can't create new attribute "+newVar+", already exists");
-            
+
             if (owner instanceof Cell && newVar.getTextDescriptor().isParam())
             {
             	// create the parameter
@@ -793,7 +793,7 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
         public boolean doIt() throws JobException
         {
             // get Variable by name
-            Variable var = owner.getVar(varKey);
+            Variable var = owner.getParameterOrVariable(varKey);
             if (var == null)
 				throw new JobException("Could not update Attribute " + varKey + ": it does not exist");
 

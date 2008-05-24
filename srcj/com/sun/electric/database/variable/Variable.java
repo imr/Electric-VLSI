@@ -787,7 +787,9 @@ public class Variable implements Serializable
      * @param owner owner of this variable.
      * @return true if variable is linked to a linked owner, false otherwise.
      */
-    public boolean isLinked(ElectricObject owner) { return owner.isLinked() && owner.getVar(getKey()) == this; }
+    public boolean isLinked(ElectricObject owner) {
+        return owner.isLinked() && owner.getParameterOrVariable(getKey()) == this;
+    }
 
 	/**
 	 * Method to return a more readable name for this Variable.

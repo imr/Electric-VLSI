@@ -131,7 +131,7 @@ public class GetInfoText extends EModelessDialog implements HighlightListener, D
 			{
 				if (ni != null && ni.isInvisiblePinWithText() && varKey == Artwork.ART_MESSAGE)
 					multiLineCapable = true;
-				var = owner.getVar(varKey);
+				var = owner.getParameterOrVariable(varKey);
 				if (var != null)
 				{
 					Object obj = var.getObject();
