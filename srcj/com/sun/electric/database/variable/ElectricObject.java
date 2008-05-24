@@ -103,7 +103,7 @@ public abstract class ElectricObject implements Serializable
      * @throws NullPointerException if key or type is null
 	 */
 	public <T> T getVarValue(Variable.Key key, Class<T> type, T defaultValue) {
-		Variable var = getParameterOrVariable(key);
+		Variable var = getVar(key);
         if (var != null) {
             Object value = var.getObject();
             if (type.isInstance(value))
@@ -120,7 +120,7 @@ public abstract class ElectricObject implements Serializable
 	 */
 	public Variable getVar(String name) {
 		Variable.Key key = Variable.findKey(name);
-		return key != null ? getParameterOrVariable(key) : null;
+		return key != null ? getVar(key) : null;
 	}
 
 	/**

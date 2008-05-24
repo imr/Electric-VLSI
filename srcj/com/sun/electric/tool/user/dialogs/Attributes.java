@@ -1179,7 +1179,7 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
             newName = "ATTR_" + newName;
 
         // check if variable name already exists
-        Variable var = selectedObject.getVar(newName);
+        Variable var = selectedObject.getParameterOrVariable(Variable.newKey(newName));
         if (var != null) {
             JOptionPane.showMessageDialog(this, "Attribute of that name already exists",
                     "No Action Taken", JOptionPane.ERROR_MESSAGE);
@@ -1221,7 +1221,7 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
             varName = "ATTR_" + varName;
 
         // check if var of this name already exists on object
-        if (selectedObject.getVar(varName) != null) {
+        if (selectedObject.getParameterOrVariable(Variable.newKey(varName)) != null) {
             JOptionPane.showMessageDialog(null, "Can't create new attribute "+varName+", already exists",
                     "Invalid Action", JOptionPane.WARNING_MESSAGE);
             return;
