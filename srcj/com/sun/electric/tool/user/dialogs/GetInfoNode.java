@@ -130,7 +130,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 		if (!theDialog.isVisible())
 		{
 			theDialog.pack();
-			theDialog.ensureMinimumSize();
+			theDialog.ensureProperSize();
 			theDialog.setVisible(true);
 		}
 		theDialog.toFront();

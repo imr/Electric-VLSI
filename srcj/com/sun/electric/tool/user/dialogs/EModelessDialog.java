@@ -29,6 +29,7 @@ import com.sun.electric.tool.user.ui.TopLevel;
 import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 
@@ -78,15 +79,42 @@ public class EModelessDialog extends JFrame
 	}
 
 	/**
-	 * Method to ensure that the dialog is at least as large as the user-specified size.
+	 * Method to ensure that the dialog is the proper size.
+	 * It must be at least as large as the user-specified size.
+	 * However, it cannot grow to be larger than the display.
 	 */
-	protected void ensureMinimumSize()
+	protected void ensureProperSize()
 	{
 		Dimension sz = EDialog.getDialogSize(getClass());
 		if (sz == null) return;
 		Dimension curSz = getSize();
 		if (curSz.width < sz.width || curSz.height < sz.height)
+		{
+			curSz = sz;
 			setSize(sz);
+		}
+
+		// get the overall area in which to work
+		Point p = getLocation();
+		Rectangle [] areas = TopLevel.getDisplays();
+		for(int i=0; i<areas.length; i++)
+		{
+			if (areas[i].contains(p))
+			{
+				boolean tooBig = false;
+				if (p.x + curSz.width >= areas[i].x + areas[i].width)
+				{
+					curSz.width = areas[i].x + areas[i].width - p.x - 100;
+					tooBig = true;
+				}
+				if (p.y + curSz.height >= areas[i].y + areas[i].height)
+				{
+					curSz.height = areas[i].y + areas[i].height - p.y - 100;
+					tooBig = true;
+				}
+				if (tooBig) setSize(curSz);
+			}
+		}
 	}
 
 	/**

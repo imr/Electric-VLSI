@@ -515,6 +515,46 @@ public class TopLevel extends JFrame
     }
 
     /**
+     * Method to return a list of possible window areas.
+     * On MDI systems, there is just one window areas.
+     * On SDI systems, there is one window areas for each display head on the computer.
+     * @return an array of window areas.
+     */
+    public static Rectangle [] getWindowAreas()
+	{
+		Rectangle [] areas;
+		if (isMDIMode())
+		{
+			TopLevel tl = getCurrentJFrame();
+			Dimension sz = tl.getContentPane().getSize();
+			areas = new Rectangle[1];
+			areas[0] = new Rectangle(0, 0, sz.width, sz.height);
+		} else
+		{
+			areas = getDisplays();
+		}
+		return areas;
+	}
+
+    /**
+     * Method to return a list of display areas, one for each display head on the computer.
+     * @return an array of display areas.
+     */
+    public static Rectangle [] getDisplays()
+	{
+		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+		GraphicsDevice [] gs = ge.getScreenDevices();
+		Rectangle [] areas = new Rectangle[gs.length];
+		for (int j = 0; j < gs.length; j++)
+		{
+			GraphicsDevice gd = gs[j];
+			GraphicsConfiguration gc = gd.getDefaultConfiguration();
+			areas[j] = gc.getBounds();
+		}
+		return areas;
+	}
+
+	/**
      * Print error message <code>msg</code> and stack trace
      * if <code>print</code> is true.
      * @param print print error message and stack trace if true

@@ -517,7 +517,7 @@ public class ManualViewer extends EModelessDialog
 		}
 		setJMenuBar(helpMenuBar);
 		pack();
-		ensureMinimumSize();
+		ensureProperSize();
 
 		StringBuffer sb = new StringBuffer();
 		sb.append("<CENTER><H1>HELP MENU ENABLED</H1></CENTER>\n");

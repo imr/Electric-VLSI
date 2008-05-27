@@ -81,7 +81,7 @@ public class GetInfoOutline extends EModelessDialog implements HighlightListener
         if (!theDialog.isVisible())
 		{
         	theDialog.pack();
-        	theDialog.ensureMinimumSize();
+        	theDialog.ensureProperSize();
     		theDialog.setVisible(true);
 		}
 		theDialog.toFront();

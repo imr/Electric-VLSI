@@ -223,7 +223,7 @@ public class GetInfoText extends EModelessDialog implements HighlightListener, D
         if (!theDialog.isVisible())
 		{
         	theDialog.pack();
-        	theDialog.ensureMinimumSize();
+        	theDialog.ensureProperSize();
     		theDialog.setVisible(true);
 		}
 		theDialog.toFront();
@@ -926,7 +926,7 @@ getContentPane().add(buttonsPanel, gridBagConstraints);
                     JTextArea area = (JTextArea)theText;
                     area.setRows(area.getLineCount());
                     pack();
-                    ensureMinimumSize();
+                    ensureProperSize();
                 }
             });
         } else {

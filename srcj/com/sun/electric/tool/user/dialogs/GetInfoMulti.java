@@ -180,7 +180,7 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 		}
         theDialog.loadMultiInfo();
         theDialog.pack();
-        theDialog.ensureMinimumSize();
+        theDialog.ensureProperSize();
 		theDialog.setVisible(true);
 		theDialog.toFront();
 	}
@@ -195,7 +195,7 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 		loadMultiInfo();
 		listPane.setPreferredSize(oldDim);
 		pack();
-		ensureMinimumSize();
+		ensureProperSize();
 	}
 
     /**
@@ -227,7 +227,7 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
             // update dialog
             loadMultiInfo();
 			pack();
-        	ensureMinimumSize();
+			ensureProperSize();
         }
     }
 

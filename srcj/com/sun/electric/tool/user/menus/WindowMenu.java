@@ -439,7 +439,7 @@ public class WindowMenu {
     public static void tileHorizontallyCommand()
     {
         // get the overall area in which to work
-        Rectangle [] areas = getWindowAreas();
+        Rectangle [] areas = getArrangementWindowAreas();
 
         // tile the windows in each area
         for (Rectangle area : areas)
@@ -482,7 +482,7 @@ public class WindowMenu {
     public static void tileVerticallyCommand()
     {
 		// get the overall area in which to work
-		Rectangle [] areas = getWindowAreas();
+		Rectangle [] areas = getArrangementWindowAreas();
 
 		// tile the windows in each area
         for (Rectangle area : areas)
@@ -525,7 +525,7 @@ public class WindowMenu {
     public static void cascadeWindowsCommand()
     {
 		// get the overall area in which to work
-		Rectangle [] areas = getWindowAreas();
+		Rectangle [] areas = getArrangementWindowAreas();
 
 		// tile the windows in each area
 		for (Rectangle area : areas)
@@ -622,27 +622,10 @@ public class WindowMenu {
 //		}
 //	}
 
-	private static Rectangle [] getWindowAreas()
+	private static Rectangle [] getArrangementWindowAreas()
     {
-		Rectangle [] areas;
-		if (TopLevel.isMDIMode())
-		{
-			TopLevel tl = TopLevel.getCurrentJFrame();
-			Dimension sz = tl.getContentPane().getSize();
-			areas = new Rectangle[1];
-			areas[0] = new Rectangle(0, 0, sz.width, sz.height);
-		} else
-		{
-			GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-			GraphicsDevice [] gs = ge.getScreenDevices();
-			areas = new Rectangle[gs.length];
-			for (int j = 0; j < gs.length; j++)
-			{
-				GraphicsDevice gd = gs[j];
-				GraphicsConfiguration gc = gd.getDefaultConfiguration();
-				areas[j] = gc.getBounds();
-			}
-		}
+		// get list of possible window areas
+		Rectangle [] areas = TopLevel.getWindowAreas();
 
         // remove the messages window
         MessagesWindow mw = TopLevel.getMessagesWindow();

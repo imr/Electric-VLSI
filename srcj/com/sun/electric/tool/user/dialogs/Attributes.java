@@ -113,7 +113,7 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
         if (!theDialog.isVisible())
 		{
         	theDialog.pack();
-        	theDialog.ensureMinimumSize();
+        	theDialog.ensureProperSize();
     		theDialog.setVisible(true);
 		}
 		theDialog.toFront();
