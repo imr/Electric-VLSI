@@ -360,7 +360,9 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 		PrimitiveNodeSize npSize = ni.getPrimitiveNodeSize(null);
 		if (npSize != null) {
 			xsizeLabel.setText("Width:");
+	        xsizeLabel.setDisplayedMnemonic('w');
 			ysizeLabel.setText("Length:");
+	        ysizeLabel.setDisplayedMnemonic('l');
 			double width = npSize.getDoubleWidth();
 			if (width == 0 && npSize.getWidth() != null)
 				xSize.setText(npSize.getWidth().toString());
@@ -379,7 +381,9 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 //			ysizeLabel.setText("Width:");
 		} else {
 			xsizeLabel.setText("X size:");
+	        xsizeLabel.setDisplayedMnemonic('s');
 			ysizeLabel.setText("Y size:");
+	        ysizeLabel.setDisplayedMnemonic('z');
 		}
 
 		// in "more" version
