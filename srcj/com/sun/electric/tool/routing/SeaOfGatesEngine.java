@@ -113,7 +113,7 @@ public class SeaOfGatesEngine
 	/** Percent of min cell size that route must stay inside. */				private static final double PERCENTLIMIT = 7;
 	/** Number of steps per unit when searching. */								private static final double GRANULARITY = 1;
 	/** Size of steps when searching. */										private static final double GRAINSIZE = (1/GRANULARITY);
-	/** Cost of routing in wrong direction (alternating horizontal/vertical) */	private static final int COSTALTERNATINGMETAL = 20;
+	/** Cost of routing in wrong direction (alternating horizontal/vertical) */	private static final int COSTALTERNATINGMETAL = 100;
 	/** Cost of changing layers. */												private static final int COSTLAYERCHANGE = 8;
 	/** Cost of routing away from the target. */								private static final int COSTWRONGDIRECTION = 15;
 	/** Cost of running on non-favored layer. */								private static final int COSTUNFAVORED = 10;
@@ -125,6 +125,7 @@ public class SeaOfGatesEngine
 	private SearchVertex svLimited = new SearchVertex(0, 0, 0, 0, null, 0, null);
 
 	/** Cell in which routing occurs. */										private Cell cell;
+	/** Cell size. */															private Rectangle2D cellBounds;
 	/** Technology to use for routing. */										private Technology tech;
 	/** R-Trees for metal blockage in the cell. */								private Map<Layer,RTNode> metalTrees;
 	/** R-Trees for via blockage in the cell. */								private Map<Layer,RTNode> viaTrees;
@@ -294,14 +295,14 @@ public class SeaOfGatesEngine
 			this.batchNumber = batchNumber;
 			this.routeInBatch = routeInBatch;
 
-			Rectangle2D bounds = cell.getBounds();
-			minimumSearchBoundX = downToGrain(bounds.getMinX());
-			maximumSearchBoundX = upToGrain(bounds.getMaxX());
-			minimumSearchBoundY = downToGrain(bounds.getMinY());
-			maximumSearchBoundY = upToGrain(bounds.getMaxY());
+			cellBounds = cell.getBounds();
+			minimumSearchBoundX = downToGrain(cellBounds.getMinX());
+			maximumSearchBoundX = upToGrain(cellBounds.getMaxX());
+			minimumSearchBoundY = downToGrain(cellBounds.getMinY());
+			maximumSearchBoundY = upToGrain(cellBounds.getMaxY());
 			if (PERCENTLIMIT > 0)
 			{
-				double maxStrayFromRouteBounds = Math.min(cell.getBounds().getWidth(), cell.getBounds().getHeight()) * PERCENTLIMIT / 100;
+				double maxStrayFromRouteBounds = Math.min(cellBounds.getWidth(), cellBounds.getHeight()) * PERCENTLIMIT / 100;
 				routeBounds = new Rectangle2D.Double(
 					Math.min(fromX, toX)-maxStrayFromRouteBounds, Math.min(fromY, toY)-maxStrayFromRouteBounds,
 					Math.abs(fromX-toX)+maxStrayFromRouteBounds*2, Math.abs(fromY-toY)+maxStrayFromRouteBounds*2);
@@ -567,7 +568,6 @@ public class SeaOfGatesEngine
 						continue;
 					}
 				}
-
 				NeededRoute nr = new NeededRoute(net.getName(), fromPi, fromX, fromY, fromZ, toPi, toX, toY, toZ,
 					netID, minWidth, b, batchNumber++);
 				routeBatches[b].segsInBatch++;
@@ -1958,13 +1958,21 @@ public class SeaOfGatesEngine
 			{
 				if (wf.toX == curX) svNext.cost += COSTWRONGDIRECTION/2; else
 					if ((wf.toX-curX) * dx < 0) svNext.cost += COSTWRONGDIRECTION;
-				if (COSTALTERNATINGMETAL != 0 && (nZ%2) == 0) svNext.cost += COSTALTERNATINGMETAL;
+				if ((nZ%2) == 0)
+				{
+					int c = COSTALTERNATINGMETAL * (int)Math.abs(dx) / (int)cellBounds.getWidth();
+					svNext.cost += c;
+				}
 			}
 			if (dy != 0)
 			{
 				if (wf.toY == curY) svNext.cost += COSTWRONGDIRECTION/2; else
 					if ((wf.toY-curY) * dy < 0) svNext.cost += COSTWRONGDIRECTION;
-				if (COSTALTERNATINGMETAL != 0 && (nZ%2) != 0) svNext.cost += COSTALTERNATINGMETAL;
+				if ((nZ%2) != 0)
+				{
+					int c = COSTALTERNATINGMETAL * (int)Math.abs(dy) / (int)cellBounds.getHeight();
+					svNext.cost += c;
+				}
 			}
 			if (dz != 0)
 			{
