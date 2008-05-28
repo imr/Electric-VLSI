@@ -55,8 +55,11 @@ import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * This is the Electrical Rule Checker tool.
@@ -68,9 +71,8 @@ public class ERCWellCheck
 	private GeometryHandler.GHMode mode;
 	private ErrorLogger errorLogger;
 	private List<WellCon> wellCons = new ArrayList<WellCon>();
-	private List<WellArea> wellAreas = new ArrayList<WellArea>();
-	private HashMap<Cell,GeometryHandler> cellMerges = new HashMap<Cell,GeometryHandler>(); // make a map of merge information in each cell
-	private HashMap<Cell,Cell> doneCells = new HashMap<Cell,Cell>(); // Mark if cells are done already.
+	private Map<Cell,GeometryHandler> cellMerges = new HashMap<Cell,GeometryHandler>(); // make a map of merge information in each cell
+	private Set<Cell> doneCells = new HashSet<Cell>(); // Mark if cells are done already.
 	private WellCheckJob job;
 	private double worstPWellDist;
 	private Point2D worstPWellCon;
@@ -206,25 +208,23 @@ public class ERCWellCheck
 		System.out.println("Checking Wells and Substrates in '" + cell.libDescribe() + "' ...");
 
 		// enumerate the hierarchy below here
-		Visitor wcVisitor = new Visitor(this);
+		WellCheckVisitor wcVisitor = new WellCheckVisitor();
 		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, wcVisitor);
 
 		// Checking if job is scheduled for abort or already aborted
 		if (job != null && job.checkAbort()) return 0;
 
 		// make a list of well and substrate areas
+		List<WellArea> wellAreas = new ArrayList<WellArea>();
 		int wellIndex = 0;
 		GeometryHandler topMerge = cellMerges.get(cell);
-
 		for (Layer layer : topMerge.getKeySet())
 		{
 			// Not sure if null goes here
 			Collection<PolyBase> set = topMerge.getObjects(layer, false, true);
-
 			for(PolyBase poly : set)
 			{
 				WellArea wa = new WellArea();
-
 				wa.poly = poly;
 				wa.poly.setLayer(layer);
 				wa.poly.setStyle(Poly.Type.FILLED);
@@ -257,7 +257,7 @@ public class ERCWellCheck
 			else
 				foundNWell = true;
 
-			//@TODO: contactAction != 0 -> do nothing
+			// TODO: contactAction != 0 -> do nothing
 			// find a contact in the area
 			boolean found = false;
 			for(WellCon wc : wellCons)
@@ -360,8 +360,8 @@ public class ERCWellCheck
 		// THIS IS A DRC JOB .. not efficient if done here.
 		if (ERC.isDRCCheck())
 		{
-			HashMap<Layer,DRCTemplate> rulesCon = new HashMap<Layer,DRCTemplate>();
-			HashMap<Layer,DRCTemplate> rulesNonCon = new HashMap<Layer,DRCTemplate>();
+			Map<Layer,DRCTemplate> rulesCon = new HashMap<Layer,DRCTemplate>();
+			Map<Layer,DRCTemplate> rulesNonCon = new HashMap<Layer,DRCTemplate>();
 
 			for(WellArea wa : wellAreas)
 			{
@@ -500,7 +500,6 @@ public class ERCWellCheck
 			System.out.println("FOUND " + errorCount + " WELL ERRORS (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
 		}
 
-		wellAreas.clear();
 		wellCons.clear();
 		doneCells.clear();
 		cellMerges.clear();
@@ -508,29 +507,22 @@ public class ERCWellCheck
 		return errorCount;
 	}
 
-	private static class Visitor extends HierarchyEnumerator.Visitor
+	private class WellCheckVisitor extends HierarchyEnumerator.Visitor
 	{
-		ERCWellCheck check;
-
-		public Visitor(ERCWellCheck check)
-		{
-			this.check = check;
-		}
+		public WellCheckVisitor() {}
 
 		public boolean enterCell(HierarchyEnumerator.CellInfo info)
 		{
 			// Checking if job is scheduled for abort or already aborted
-			if (check.job != null && check.job.checkAbort()) return (false);
+			if (job != null && job.checkAbort()) return false;
 
 			// make an object for merging all of the wells in this cell
 			Cell cell = info.getCell();
-			GeometryHandler thisMerge = check.cellMerges.get(cell);
-
-			if (thisMerge == null)
+			if (cellMerges.get(cell) == null)
 			{
-				thisMerge = GeometryHandler.createGeometryHandler(check.mode,
+				GeometryHandler thisMerge = GeometryHandler.createGeometryHandler(mode,
 					ercLayersArray.length);
-				check.cellMerges.put(cell, thisMerge);
+				cellMerges.put(cell, thisMerge);
 			}
 
 			return true;
@@ -539,21 +531,20 @@ public class ERCWellCheck
 		public void exitCell(HierarchyEnumerator.CellInfo info)
 		{
 			// Checking if job is scheduled for abort or already aborted
-			if (check.job != null && check.job.checkAbort()) return;
+			if (job != null && job.checkAbort()) return;
 
-			// make an object for merging all of the wells in this cell
+			// get the object for merging all of the wells in this cell
 			Cell cell = info.getCell();
-			GeometryHandler thisMerge = check.cellMerges.get(info.getCell());
+			GeometryHandler thisMerge = cellMerges.get(cell);
 			if (thisMerge == null) throw new Error("wrong condition in ERCWellCheck.enterCell()");
-			boolean done = check.doneCells.get(cell) != null;
 
-			if (!done)
+			if (!doneCells.contains(cell))
 			{
 				for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 				{
 					ArcInst ai = it.next();
-
 					Technology tech = ai.getProto().getTechnology();
+
 					// Getting only ercLayers
 					Poly [] arcInstPolyList = tech.getShapeOfArc(ai, ercLayers);
 					int tot = arcInstPolyList.length;
@@ -561,9 +552,9 @@ public class ERCWellCheck
 					{
 						Poly poly = arcInstPolyList[i];
 						Layer layer = poly.getLayer();
+
 						// Only interested in well/select
 						Shape newElem = poly;
-
 						thisMerge.add(layer, newElem);
 					}
 				}
@@ -575,18 +566,19 @@ public class ERCWellCheck
 				{
 					NodeInst ni = it.next();
 					if (!ni.isCellInstance()) continue;
+
 					// get sub-merge information for the cell instance
-					GeometryHandler subMerge = check.cellMerges.get(ni.getProto());
+					GeometryHandler subMerge = cellMerges.get(ni.getProto());
 					if (subMerge != null)
 					{
 						AffineTransform tTrans = ni.translateOut(ni.rotateOut());
 						thisMerge.addAll(subMerge, tTrans);
 					}
 				}
-			}
 
-			// To mark if cell is already done
-			check.doneCells.put(cell, cell);
+				// To mark if cell is already done
+				doneCells.add(cell);
+			}
 		}
 
 		public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
@@ -597,16 +589,14 @@ public class ERCWellCheck
 
 			// merge everything
 			Cell cell = info.getCell();
-			GeometryHandler thisMerge = check.cellMerges.get(cell);
 			AffineTransform trans = null;
-			PrimitiveNode.Function fun = ni.getFunction();
-			boolean wellSubsContact = (fun == PrimitiveNode.Function.WELL || fun == PrimitiveNode.Function.SUBSTRATE);
 
-			// No done yet
-			if (check.doneCells.get(cell) == null)
+			// Not done yet
+			if (!doneCells.contains(cell))
 			{
 				if (!ni.isCellInstance())
 				{
+					GeometryHandler thisMerge = cellMerges.get(cell);
 					PrimitiveNode pNp = (PrimitiveNode)ni.getProto();
 					Technology tech = pNp.getTechnology();
 
@@ -630,7 +620,8 @@ public class ERCWellCheck
 			}
 
 			// look for well and substrate contacts
-			if (wellSubsContact)
+			PrimitiveNode.Function fun = ni.getFunction();
+			if (fun == PrimitiveNode.Function.WELL || fun == PrimitiveNode.Function.SUBSTRATE)
 			{
 				WellCon wc = new WellCon();
 				wc.ctr = ni.getTrueCenter();
@@ -664,7 +655,7 @@ public class ERCWellCheck
 						}
 					}
 				}
-				check.wellCons.add(wc);
+				wellCons.add(wc);
 			}
 			return true;
 		}
