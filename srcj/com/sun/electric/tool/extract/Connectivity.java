@@ -793,16 +793,7 @@ public class Connectivity
 					// make sure the wire fits
 					MutableBoolean headExtend = new MutableBoolean(true), tailExtend = new MutableBoolean(true);
 					boolean fits = originalMerge.arcPolyFits(layer, loc1, loc2, cl.width, headExtend, tailExtend);
-					if (DEBUGCENTERLINES)
-					{
-//						System.out.println("   END1=("+
-//							TextUtils.formatDouble(loc1.getX()/SCALEFACTOR)+","+
-//							TextUtils.formatDouble(loc1.getY()/SCALEFACTOR)+")   END2=("+
-//							TextUtils.formatDouble(loc2.getX()/SCALEFACTOR)+","+
-//							TextUtils.formatDouble(loc2.getY()/SCALEFACTOR)+")   WID="+
-//							TextUtils.formatDouble(cl.width/SCALEFACTOR));
-						System.out.println("FIT="+fits+" "+cl);
-					}
+					if (DEBUGCENTERLINES) System.out.println("FIT="+fits+" "+cl);
 					if (!fits)
 					{
 						// arc does not fit, try reducing width
@@ -812,18 +803,23 @@ public class Connectivity
 						double gridWid = x * alignment;
 						if (gridWid < wid)
 						{
+							// grid-aligning the width results in a smaller value...try it
 							cl.width = scaleUp(gridWid);
 							fits = originalMerge.arcPolyFits(layer, loc1, loc2, cl.width, headExtend, tailExtend);
-							if (DEBUGCENTERLINES)
-								System.out.println("   WID="+(cl.width/SCALEFACTOR)+" FIT="+fits);
+							if (DEBUGCENTERLINES) System.out.println("   WID="+(cl.width/SCALEFACTOR)+" FIT="+fits);
+						} else
+						{
+							// see if width can be reduced by a small amount and still fit
+							cl.width--;
+							fits = originalMerge.arcPolyFits(layer, loc1, loc2, cl.width, headExtend, tailExtend);
+							if (DEBUGCENTERLINES) System.out.println("   WID="+(cl.width/SCALEFACTOR)+" FIT="+fits);
 						}
 					}
 					if (!fits)
 					{
 						cl.width = 0;
 						fits = originalMerge.arcPolyFits(layer, loc1, loc2, cl.width, headExtend, tailExtend);
-						if (DEBUGCENTERLINES)
-							System.out.println("   WID=0 FIT="+fits);
+						if (DEBUGCENTERLINES) System.out.println("   WID=0 FIT="+fits);
 					}
 					if (!fits) continue;
 
