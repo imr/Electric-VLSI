@@ -27,6 +27,7 @@ package com.sun.electric.tool.routing;
 
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
@@ -625,6 +626,7 @@ public class SeaOfGatesEngine
 		int numFailedRoutes = 0;
 		for(int b=0; b<numBatches; b++)
 		{
+			if (routeBatches[b] == null) continue;
 			if (routeBatches[b].numUnrouted == 0)
 			{
 				// routed: remove the unrouted arcs
@@ -2788,7 +2790,7 @@ public class SeaOfGatesEngine
 		{
 			Rectangle2D bounds = poly.getBounds2D();
 			DBMath.transformRect(bounds, trans);
-			addVia(new Point2D.Double(bounds.getCenterX(), bounds.getCenterY()), layer, netID);
+			addVia(new EPoint(bounds.getCenterX(), bounds.getCenterY()), layer, netID);
 		}
 	}
 
@@ -2806,7 +2808,7 @@ public class SeaOfGatesEngine
 			root = RTNode.makeTopLevel();
 			metalTrees.put(layer, root);
 		}
-		RTNode newRoot = RTNode.linkGeom(null, root, new SOGBound(bounds, netID));
+		RTNode newRoot = RTNode.linkGeom(null, root, new SOGBound(ERectangle.fromLambda(bounds), netID));
 		if (newRoot != root) metalTrees.put(layer, newRoot);
 	}
 
@@ -2825,7 +2827,7 @@ public class SeaOfGatesEngine
 			metalTrees.put(layer, root);
 		}
 		Rectangle2D bounds = poly.getBounds2D();
-		RTNode newRoot = RTNode.linkGeom(null, root, new SOGPoly(bounds, netID, poly));
+		RTNode newRoot = RTNode.linkGeom(null, root, new SOGPoly(ERectangle.fromLambda(bounds), netID, poly));
 		if (newRoot != root) metalTrees.put(layer, newRoot);
 	}
 
@@ -2835,7 +2837,7 @@ public class SeaOfGatesEngine
 	 * @param layer the via layer on which to add the point.
 	 * @param netID the global network ID of the geometry.
 	 */
-	private void addVia(Point2D loc, Layer layer, int netID)
+	private void addVia(EPoint loc, Layer layer, int netID)
 	{
 		RTNode root = viaTrees.get(layer);
 		if (root == null)

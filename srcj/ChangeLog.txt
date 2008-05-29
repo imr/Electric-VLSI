@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07k: ******************************
 
+BUG: (5/29/08, SMR) Sea-of-gates router fails to route (Bug #1689).
+FIX: Must convert coordinates to EPoint/ERectangle to properly round values.
+
 IMP: (5/29/08, DN) The consistency between parameters on icon cell and icon instances
     is invariant of Snapshot.
 
