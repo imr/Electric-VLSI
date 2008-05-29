@@ -1872,6 +1872,9 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		vcrPlayingBackwards = true;
 	}
 
+	/**
+	 * Method to stop the auto-playing in the simulation window.
+	 */
 	public void vcrClickStop()
 	{
 		if (vcrTimer == null) return;
@@ -2272,7 +2275,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 	/**
 	 * Method to add a list of signals to the waveform display.
-	 * @param sigs the signals to add.
+	 * @param found the signals to add.
 	 * @param newPanel true to create new panels for each signal.
 	 */
 	public void showSignals(List<Signal> found, boolean newPanel)
