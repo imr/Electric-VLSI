@@ -92,6 +92,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.TreeMap;
+
 import javax.swing.SwingUtilities;
 
 /**
@@ -5144,7 +5145,7 @@ public class Technology implements Comparable<Technology>, Serializable
     private class TechDistanceContext implements DistanceContext {
         private final Map<String,String> ruleAliases = getRuleAliases();
         private final XMLRules rules;
-        private final int numMetals = getNumMetals();
+//        private final int numMetals = getNumMetals();
 
         TechDistanceContext(XMLRules rules) {
             this.rules = rules;
@@ -5243,8 +5244,6 @@ public class Technology implements Comparable<Technology>, Serializable
 	 * @param startNodeProto the starting point in the "nodeProtoList" array.
 	 * @param endNodeProto the ending point in the "nodeProtoList" array.
 	 * @param arcProtoList the list of prototypes of ArcInsts in the Cell.
-	 * @param startArcProto the starting point in the "arcProtoList" array.
-	 * @param endArcProto the ending point in the "arcProtoList" array.
 	 * @return the Technology for that cell.
 	 */
 	public static Technology whatTechnology(NodeProto cellOrPrim, NodeProto [] nodeProtoList, int startNodeProto, int endNodeProto,

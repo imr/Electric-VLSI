@@ -98,8 +98,8 @@ public class MOSRules implements DRCRules {
 	private void setMinNodeSize(int index, String name, double width, double height)
 	{
         minNodeSizeRules[index] = name;
-        minNodeSize[index*2] = width; // autoboxing
-        minNodeSize[index*2+1] = height; // autoboxing
+        minNodeSize[index*2] = new Double(width);
+        minNodeSize[index*2+1] = new Double(height);
 	}
 
     /**
@@ -111,15 +111,15 @@ public class MOSRules implements DRCRules {
     public DRCTemplate getMinNodeSize(int index, int when)
     {
         // That division by 2 might be a problem
-        double[] vals = {minNodeSize[index*2], minNodeSize[index*2+1]};  // width and height
+        double[] vals = {minNodeSize[index*2].doubleValue(), minNodeSize[index*2+1].doubleValue()};  // width and height
         DRCTemplate rule = new DRCTemplate(minNodeSizeRules[index], when, DRCTemplate.DRCRuleType.NODSIZ, 0, 0, null, null,
                 vals, -1);
         return (rule);
     }
 
-     /**
-     * Returns technology associated to this rules set
-     * @return
+    /**
+     * Method to determine the technology associated with this rules set.
+     * @return the technology associated with this rules set.
      */
     public Technology getTechnology() {return tech;}
 
@@ -134,7 +134,7 @@ public class MOSRules implements DRCRules {
         //uTSize = (numLayers * numLayers + numLayers) / 2;
 
 		// initialize the width limit
-		wideLimit = 0.0; // auto-boxing
+		wideLimit = new Double(0);
 
 		// add names
 		layerNames = new String[numLayers];

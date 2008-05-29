@@ -134,7 +134,8 @@ public class AnalogAnalysis extends Analysis<AnalogSignal> {
 	 * Signal obtains range constructed from common time range and specified value bounds.
 	 * @param signalName signal name.
 	 * @param signalContext a common prefix for the signal name.
-	 * @param miValues specified values
+	 * @param minValue the minimum value.
+	 * @param maxValue the maximum value.
 	 * @return new AnalogSignal of this AnalogAnalysis
 	 */
 	public AnalogSignal addSignal(String signalName, String signalContext, double minTime, double maxTime, double minValue, double maxValue)

@@ -1509,7 +1509,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
     /**
      * Method to add a Parameter to this NodeInst.
      * Overridden in IconNodeInst
-     * @param key the key of the Variable to delete.
+     * @param param the Variable to add.
      */
     public void addParameter(Variable param) {
     }

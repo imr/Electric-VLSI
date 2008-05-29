@@ -38,7 +38,11 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.Job;
 
 import java.awt.geom.Point2D;
-import java.io.*;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintStream;
+import java.io.Serializable;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -265,7 +269,7 @@ public class ErrorLogger implements Serializable
         if (messages == null) return; // to avoid to increate empty lists during incremental checking
         for (MessageLog m: messages) {
             if (m instanceof WarningLog)
-                allWarnings.remove((WarningLog)m);
+                allWarnings.remove(m);
             else
                 allErrors.remove(m);
         }
@@ -684,9 +688,9 @@ public class ErrorLogger implements Serializable
     }
 
     /**
-     * Method to retrieve all MessageLogs associated to a given Cell
-     * @param cell
-     * @return
+     * Method to retrieve all MessageLogs associated with a given Cell
+     * @param cell the Cell to examine.
+     * @return all MessageLogs associated with the Cell.
      */
     public synchronized ArrayList<MessageLog> getAllLogs(Cell cell)
     {        
@@ -807,12 +811,12 @@ public class ErrorLogger implements Serializable
                 buffWriter.println("    <GroupLog message=\"" + correctXmlString(groupName) + "\">");
                 // Errors
                 for (MessageLog log : allErrors) {
-                    if (log.getSortKey() == i)
+                    if (log.getSortKey() == i.intValue())
                         log.xmlDescription(buffWriter);
                 }
                 // Warnings
                 for (WarningLog log : allWarnings) {
-                    if (log.getSortKey() == i)
+                    if (log.getSortKey() == i.intValue())
                         log.xmlDescription(buffWriter);
                 }
                 buffWriter.println("    </GroupLog>");
@@ -858,7 +862,7 @@ public class ErrorLogger implements Serializable
         if (sortKeysToGroupNames == null) {
             sortKeysToGroupNames = new HashMap<Integer,String>();
         }
-        return sortKeysToGroupNames.get(sortKey); // using overload
+        return sortKeysToGroupNames.get(new Integer(sortKey));
     }
 
     /**

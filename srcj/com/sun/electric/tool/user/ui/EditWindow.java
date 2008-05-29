@@ -1613,7 +1613,6 @@ public class EditWindow extends JPanel
 	 * }
 	 * return col;
 	 * @param layersAvailable layers available in this EditWindow
-	 * @param showOpacity show opacity controls in LayerTab.
 	 * @return alpha blending order.
 	 */
 	public List<AbstractDrawing.LayerColor> getBlendingOrder(Set<Layer> layersAvailable, boolean patternedDisplay, boolean alphaBlendingOvercolor) {

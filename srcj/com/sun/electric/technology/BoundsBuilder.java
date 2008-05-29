@@ -57,7 +57,7 @@ public class BoundsBuilder extends AbstractShapeBuilder {
     
     /**
      * Generate bounds of this ImmutableArcInst in easy case.
-     * @param shrinkage data to determine shrinkage.
+     * @param a ImmutableArcInst to examine.
      * @param intCoords integer coords to fill.
      * @return true if bounds were generated.
      */

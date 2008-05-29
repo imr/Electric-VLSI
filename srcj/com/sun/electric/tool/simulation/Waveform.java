@@ -37,7 +37,6 @@ public interface Waveform {
 
     /**
      * Method to return the value of this signal at a given event index.
-     * @param sweep sweep index
      * @param index the event index (0-based).
      * @param result double array of length 3 to return (time, lowValue, highValue)
      * If this signal is not a basic signal, return 0 and print an error message.

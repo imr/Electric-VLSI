@@ -1474,7 +1474,7 @@ public class Simulation extends Tool
 	public static int getSpiceShortResistors() { return cacheSpiceShortResistors.getInt(); }
 	/**
 	 * Method to set how SPICE should short resistors.
-	 * @param engine how SPICE should short resistors: <BR>
+	 * @param sr how SPICE should short resistors: <BR>
 	 * 0 for no resistor shorting.<BR>
 	 * 1 for parasitic resistor shorting (normal resistors shorted, poly resistors not shorted).<BR>
 	 * 2 for all resistor shorting.<BR>

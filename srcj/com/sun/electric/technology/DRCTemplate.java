@@ -29,21 +29,27 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 
-import javax.xml.parsers.SAXParserFactory;
-import javax.xml.parsers.SAXParser;
-import java.util.List;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintWriter;
+import java.io.Serializable;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
-import java.io.*;
-import java.net.URL;
-import java.net.URLConnection;
+import java.util.List;
 
-import org.xml.sax.helpers.DefaultHandler;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+
+import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
-import org.xml.sax.Attributes;
 import org.xml.sax.SAXParseException;
+import org.xml.sax.helpers.DefaultHandler;
 
 /**
  * Class to define rules from TSCM files...
@@ -131,7 +137,7 @@ public class DRCTemplate implements Serializable
     /**
      * Method to detect if a given rule could be ignored if the process is a PWell process
      * @param pWellProcess
-     * @return
+     * @return true if a given rule could be ignored if the process is a PWell process.
      */
     public boolean isRuleIgnoredInPWellProcess(boolean pWellProcess)
     {
@@ -519,9 +525,9 @@ public class DRCTemplate implements Serializable
             else if (attributes.getQName(i).equals("valueY"))
                 values[1] = Double.parseDouble(attributes.getValue(i));
             else if (attributes.getQName(i).equals("maxW"))
-                maxW = Double.parseDouble(attributes.getValue(i));
+                maxW = new Double(Double.parseDouble(attributes.getValue(i)));
             else if (attributes.getQName(i).equals("minLen"))
-                minLen = Double.parseDouble(attributes.getValue(i));
+                minLen = new Double(Double.parseDouble(attributes.getValue(i)));
             else
                 new Error("Invalid attribute in DRCXMLParser");
         }
@@ -582,7 +588,7 @@ public class DRCTemplate implements Serializable
                     if (maxW == null)
                         tmp = new DRCTemplate(ruleName, when, type, pair[0], pair[1], values, null, condition);
                     else
-                        tmp = new DRCTemplate(ruleName, when, type, maxW, minLen, pair[0], pair[1], values, -1);
+                        tmp = new DRCTemplate(ruleName, when, type, maxW.doubleValue(), minLen.doubleValue(), pair[0], pair[1], values, -1);
 
                     if (type == DRCTemplate.DRCRuleType.UCONSPA2D)
                     {

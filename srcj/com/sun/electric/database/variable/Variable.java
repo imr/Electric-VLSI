@@ -375,7 +375,7 @@ public class Variable implements Serializable
     /**
 	 * Checks invariant of this Variable.
      * @param paramAllowed true if paramerer flag is allowed on this Variable
-     * @param paramAllowed true if inherit flag is allowed on this Variable
+     * @param inheritAllowed true if inherit flag is allowed on this Variable
 	 * @throws AssertionError or NullPointerException if invariant is broken.
 	 */
 	public void check(boolean paramAllowed, boolean inheritAllowed) {
@@ -583,9 +583,9 @@ public class Variable implements Serializable
             case LIBRARY:
                 return reader.readLibId();
             case CELL:
-                return (CellId)reader.readNodeProtoId();
+                return reader.readNodeProtoId();
             case EXPORT:
-                return (ExportId)reader.readPortProtoId();
+                return reader.readPortProtoId();
             case STRING:
                 return reader.readString();
             case CODE:
@@ -611,7 +611,7 @@ public class Variable implements Serializable
             case TECHNOLOGY:
                 return reader.readTechId();
             case PRIM_NODE:
-                return (PrimitiveNodeId)reader.readNodeProtoId();
+                return reader.readNodeProtoId();
             case ARC_PROTO:
                 return reader.readArcProtoId();
             default:
@@ -651,10 +651,9 @@ public class Variable implements Serializable
             CodeExpression ce = (CodeExpression)value;
             if (ce.getExpr().equals(text)) return this;
             return new Variable(this.key, CodeExpression.valueOf(text, ce.getCode()), this.descriptor, this.type);
-        } else {
-            if (value.equals(text)) return this;
-            return new Variable(this.key, text, this.descriptor, STRING);
         }
+        if (value.equals(text)) return this;
+        return new Variable(this.key, text, this.descriptor, STRING);
     }
 
     /**

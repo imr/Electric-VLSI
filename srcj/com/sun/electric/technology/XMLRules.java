@@ -47,10 +47,10 @@ public class XMLRules implements DRCRules, Serializable
     }
 
     /**
-     * Returns technology associated to this rules set
-     * @return
+     * Method to determine the technology associated with this rules set.
+     * @return the technology associated with this rules set.
      */
-    public Technology getTechnology() {return tech;}
+    public Technology getTechnology() { return tech; }
 
     /**
 	 * Method to determine the index in the upper-left triangle array for two layers/nodes. In this type of rules,
