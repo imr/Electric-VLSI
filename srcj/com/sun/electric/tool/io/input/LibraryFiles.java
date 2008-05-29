@@ -1341,10 +1341,7 @@ public abstract class LibraryFiles extends Input
                 }
             }
         }
-        if (eObj instanceof NodeInst)
-            ((NodeInst)eObj).lowLevelAddVar(var);
-        else
-            eObj.addVar(var);
+        eObj.addVar(var);
     }
 
     static PortProto findPortProto(NodeProto np, String portId) {

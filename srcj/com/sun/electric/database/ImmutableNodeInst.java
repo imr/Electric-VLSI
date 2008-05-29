@@ -53,11 +53,8 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
-import java.util.SortedMap;
-import java.util.TreeMap;
 
 /**
  * Immutable class ImmutableNodeInst represents a node instance.
@@ -144,7 +141,6 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 
     public final static ImmutableNodeInst[] NULL_ARRAY = {};
     public final static ImmutableArrayList<ImmutableNodeInst> EMPTY_LIST = new ImmutableArrayList<ImmutableNodeInst>(NULL_ARRAY);
-    public final static SortedMap<Variable.AttrKey,Object> EMPTY_PARAMS = Collections.unmodifiableSortedMap(new TreeMap<Variable.AttrKey,Object>());
 
     /** id of this NodeInst in parent. */                           public final int nodeId;
 	/** Prototype id. */                                            public final NodeProtoId protoId;
@@ -208,13 +204,13 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
     static ImmutableNodeInst newInstance(int nodeId, NodeProtoId protoId, Name name, TextDescriptor nameDescriptor,
             Orientation orient, EPoint anchor, EPoint size,
             int flags, byte techBits, TextDescriptor protoDescriptor,
-            Variable[] vars, ImmutablePortInst[] ports, SortedMap<Variable.AttrKey,Object> params) {
+            Variable[] vars, ImmutablePortInst[] ports, Variable[] params) {
         if (protoId instanceof CellId && ((CellId)protoId).isIcon()) {
             return new ImmutableIconInst(nodeId, protoId, name, nameDescriptor,
                 orient, anchor, size, flags, (byte)techBits, protoDescriptor,
                 vars, ports, params);
         } else {
-            assert params == EMPTY_PARAMS;
+            assert params == Variable.NULL_ARRAY;
             return new ImmutableNodeInst(nodeId, protoId, name, nameDescriptor,
                 orient, anchor, size, flags, (byte)techBits, protoDescriptor,
                 vars, ports);
@@ -265,7 +261,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
             protoDescriptor = protoDescriptor.withDisplayWithoutParamAndCode();
         return newInstance(nodeId, protoId, name, nameDescriptor,
                 orient, anchor, size, flags, (byte)techBits, protoDescriptor,
-                Variable.NULL_ARRAY, ImmutablePortInst.NULL_ARRAY, EMPTY_PARAMS);
+                Variable.NULL_ARRAY, ImmutablePortInst.NULL_ARRAY, Variable.NULL_ARRAY);
     }
 
 //	/**
@@ -430,7 +426,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 	 * @throws NullPointerException if var is null
 	 */
     public ImmutableNodeInst withVariable(Variable var) {
-        Variable[] vars = arrayWithVariable(var.withParam(false));
+        Variable[] vars = arrayWithVariable(var.withParam(false).withInherit(false));
         if (this.getVars() == vars) return this;
 		return newInstance(this.nodeId, this.protoId, this.name, this.nameDescriptor,
                 this.orient, this.anchor, this.size, this.flags, this.techBits, this.protoDescriptor,
@@ -466,7 +462,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         if (getVars() == vars && this.protoId == protoId && this.ports == ports) return this;
 		return newInstance(this.nodeId, protoId, this.name, this.nameDescriptor,
                 this.orient, this.anchor, this.size, this.flags, this.techBits, this.protoDescriptor,
-                vars, ports, getDefinedParamsWithRenamedIds(idMapper));
+                vars, ports, arrayWithRenamedIds(getDefinedParams(), idMapper));
     }
 
 	/**
@@ -655,30 +651,15 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 //	 */
 //	public byte getTechSpecific() { return techBits; }
 
-	/**
-	 * Method to return the defined parameters on this ImmutableNodeInst.
-     * This is a map from Variable.Key to objects allowed as parameter values.
-     * Only instances of ImmutableIconInst subclass may have nonempty defined parameters map.
-	 * @return the defined parameters on this ImmutableNodeInst.
-	 */
-    public SortedMap<Variable.AttrKey,Object> getDefinedParams() {
-        return EMPTY_PARAMS;
-    }
-
-	/**
-	 * Returns Map of defined parameters which differs from Map of defined parameters of this ImmutableNodeInst by renamed Ids.
-     * Returns Map of defined parameters of this ImmutableNodeInst if it doesn't contain renamed Ids.
-	 * @param idMapper a map from old Ids to new Ids.
-     * @return Map of defined parametes with renamed Ids.
-	 */
-    SortedMap<Variable.AttrKey,Object> getDefinedParamsWithRenamedIds(IdMapper idMapper) {
-        return EMPTY_PARAMS;
+    Variable[] getDefinedParams() {
+        return Variable.NULL_ARRAY;
     }
 
     /**
      * Writes this ImmutableNodeInst to IdWriter.
      * @param writer where to write.
      */
+    @Override
     void write(IdWriter writer) throws IOException {
         writer.writeNodeId(nodeId);
         writer.writeNodeProtoId(protoId);
@@ -728,9 +709,9 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         }
         boolean hasVars = reader.readBoolean();
         Variable[] vars = hasVars ? readVars(reader) : Variable.NULL_ARRAY;
-        SortedMap<Variable.AttrKey,Object> params = EMPTY_PARAMS;
+        Variable[] params = Variable.NULL_ARRAY;
         if (protoId instanceof CellId && ((CellId)protoId).isIcon())
-            params = ImmutableIconInst.readParams(reader);
+            params = readVars(reader);
         return newInstance(nodeId, protoId, name, nameDescriptor, orient, anchor, size,
                 flags, techBits, protoDescriptor,
                 vars, ports, params);
@@ -764,7 +745,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 	 * @throws AssertionError if invariant is broken.
 	 */
 	public void check() {
-        super.check();
+        super.check(false);
         assert nodeId >= 0;
 		assert protoId != null;
         boolean isIcon = protoId instanceof CellId && ((CellId)protoId).isIcon();

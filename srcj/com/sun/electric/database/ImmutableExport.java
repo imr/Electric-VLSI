@@ -199,7 +199,7 @@ public class ImmutableExport extends ImmutableElectricObject {
 	 * @throws NullPointerException if var is null
 	 */
     public ImmutableExport withVariable(Variable var) {
-        Variable[] vars = arrayWithVariable(var.withParam(false));
+        Variable[] vars = arrayWithVariable(var.withParam(false).withInherit(false));
         if (this.getVars() == vars) return this;
 		return new ImmutableExport(this.exportId, this.name, this.nameDescriptor,
                 this.originalNodeId, this.originalPortId, this.alwaysDrawn, this.bodyOnly, this.characteristic, vars);
@@ -345,7 +345,7 @@ public class ImmutableExport extends ImmutableElectricObject {
 	 * @throws AssertionError if invariant is broken.
 	 */
 	public void check() {
-        super.check();
+        super.check(false);
 		assert exportId != null;
 		assert name != null;
         assert name.isValid() && !name.hasEmptySubnames() && !name.isTempname();

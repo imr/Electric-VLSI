@@ -52,7 +52,7 @@ public class ImmutablePortInst extends ImmutableElectricObject {
 	 * @throws NullPointerException if var is null
 	 */
     public ImmutablePortInst withVariable(Variable var) {
-        Variable[] vars = arrayWithVariable(var.withParam(false));
+        Variable[] vars = arrayWithVariable(var.withParam(false).withInherit(false));
         if (getVars() == vars) return this;
         return new ImmutablePortInst(vars);
     }
@@ -111,6 +111,6 @@ public class ImmutablePortInst extends ImmutableElectricObject {
 	 * @throws AssertionError if invariant is broken.
 	 */
 	public void check() {
-        super.check();
+        super.check(false);
     }
 }

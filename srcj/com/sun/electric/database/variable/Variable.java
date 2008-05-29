@@ -313,7 +313,7 @@ public class Variable implements Serializable
         this.value = value;
         this.descriptor = descriptor;
         this.type = type;
-        check(true);
+        check(true, true);
     }
 
 	/**
@@ -375,9 +375,10 @@ public class Variable implements Serializable
     /**
 	 * Checks invariant of this Variable.
      * @param paramAllowed true if paramerer flag is allowed on this Variable
+     * @param paramAllowed true if inherit flag is allowed on this Variable
 	 * @throws AssertionError or NullPointerException if invariant is broken.
 	 */
-	public void check(boolean paramAllowed) {
+	public void check(boolean paramAllowed, boolean inheritAllowed) {
 		assert key != null;
         assert value != null;
         assert type == getObjectType(value);
@@ -389,21 +390,9 @@ public class Variable implements Serializable
         }
         if (descriptor.isParam())
             assert paramAllowed && isAttribute();
+        if (descriptor.isInherit())
+            assert inheritAllowed;
 	}
-
-    /**
-     * Checks that Object is legal parameter value.
-     * @param paramValue parameter value to check
-     * @return true if Object is a legal parameter value
-     */
-    public static boolean isParamValue(Object paramValue) {
-        try {
-            getObjectType(paramValue);
-            return true;
-        } catch (IllegalArgumentException e) {
-            return false;
-        }
-    }
 
     private static byte getObjectType(Object value) {
         byte type;
@@ -464,15 +453,6 @@ public class Variable implements Serializable
         writer.writeVariableKey(key);
         writer.writeTextDescriptor(descriptor);
         writeObject(writer, value, type);
-    }
-
-    /**
-     * Write parameter value Object to IdWriter.
-     * @param writer where to write.
-     * @param paramValue Object to write
-     */
-    public static void writeParamValue(IdWriter writer, Object paramValue) throws IOException {
-        writeObject(writer, paramValue, getObjectType(paramValue));
     }
 
     private static void writeObject(IdWriter writer, Object obj, byte type) throws IOException {
@@ -556,15 +536,6 @@ public class Variable implements Serializable
         TextDescriptor td = reader.readTextDescriptor();
         Object value = readObject(reader);
         return Variable.newInstance(varKey, value, td);
-    }
-
-    /**
-     * Read parameter value Object from IdReader.
-     * @param reader from to write.
-     * @return Object read
-     */
-    public static Object readParamValue(IdReader reader) throws IOException {
-        return readObject(reader);
     }
 
     private static Object readObject(IdReader reader) throws IOException {
@@ -706,17 +677,7 @@ public class Variable implements Serializable
         return newValue != value ? withObject(newValue) : this;
     }
 
-	/**
-	 * Returns value of a parameter which differs from given value of a parameter by renamed Ids.
-	 * @param idMapper a mapper from old Ids to new Ids.
-     * @param paramValue given value of a parameter
-     * @return Variable which differs from this Variable by renamed Ids.
-	 */
-    public static Object paramValueWithRenamedIds(IdMapper idMapper, Object paramValue) {
-        return withRenamedIds(idMapper, paramValue, getObjectType(paramValue));
-    }
-
-    public static Object withRenamedIds(IdMapper idMapper, Object value, byte type) {
+    private static Object withRenamedIds(IdMapper idMapper, Object value, byte type) {
         Object newValue = value;
         switch (type) {
             case LIBRARY:

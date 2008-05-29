@@ -23,6 +23,7 @@
  */
 package com.sun.electric.database.topology;
 
+import com.sun.electric.database.ImmutableIconInst;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.ArrayIterator;
@@ -30,15 +31,12 @@ import com.sun.electric.database.variable.Variable;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.TreeMap;
 
 /**
  * Class defines NodeInsts that are icons.
  */
 class IconNodeInst extends NodeInst
 {
-    private static final boolean KEEP_TEXT_ATTRIBUTES = true;
-
 	/**
 	 * The constructor of IconNodeInst. Use the factory "newInstance" instead.
      * @param d persistent data of this IconNodeInst.
@@ -48,8 +46,15 @@ class IconNodeInst extends NodeInst
         super(d, parent);
     }
 
+    /**
+     * Returns persistent data of this IconNodeInst.
+     * @return persistent data of this IconNodeInst.
+     */
+    @Override
+    public ImmutableIconInst getD() { return (ImmutableIconInst)super.getD(); }
+
  	/**
-	 * Method to add a Variable on this ElectricObject.
+	 * Method to add a Variable on this IconNodeInst.
 	 * It may add a repaired copy of this Variable in some cases.
 	 * @param var Variable to add.
 	 */
@@ -57,10 +62,28 @@ class IconNodeInst extends NodeInst
 	public void addVar(Variable var) {
         Cell icon = (Cell)getProto();
         Variable iconParam = icon.getParameter(var.getKey());
-        if (iconParam != null)
+        if (iconParam != null) {
+            // ToDo: delete
             var = composeInstParam(iconParam, var);
-        super.addVar(var);
+            if (setD(getD().withParam(var), true))
+                // check for side-effects of the change
+                checkPossibleVariableEffects(var.getKey());
+        } else {
+            super.addVar(var.withParam(false).withInherit(false));
+        }
     }
+
+	/**
+	 * Method to delete a Variable from this IconNodeInst.
+	 * @param key the key of the Variable to delete.
+	 */
+	public void delVar(Variable.Key key)
+	{
+        // ToDo: delete
+        if (key.isAttribute())
+            delParameter((Variable.AttrKey)key);
+        super.delVar(key);
+	}
 
 	/**
 	 * Method to return the Variable on this ElectricObject with a given key.
@@ -73,15 +96,30 @@ class IconNodeInst extends NodeInst
 	public Variable getVar(Variable.Key key)
 	{
 		checkExamine();
-		Variable instVar = getD().getVar(key);
-        if (instVar == null)
-            return null;
-        Cell icon = (Cell)getProto();
-        Variable iconParam = icon.getParameter(key);
-        if (iconParam != null)
-            instVar = composeInstParam(iconParam, instVar);
-        // null type means any type
-        return instVar;
+        if (key.isAttribute()) {
+            // ToDo: delete
+            Variable param = getParameter((Variable.AttrKey)key);
+            if (param != null)
+                return param;
+        }
+		return getD().getVar(key);
+	}
+
+	/**
+	 * Method to return the Parameter or Variable on this ElectricObject with a given key.
+	 * @param key the key of the Parameter or Variable.
+	 * @return the Parameter or Variable with that key, or null if there is no such Parameter or Variable Variable.
+     * @throws NullPointerException if key is null
+	 */
+    @Override
+	public Variable getParameterOrVariable(Variable.Key key) {
+        checkExamine();
+        if (key.isAttribute()) {
+            Variable param = getParameter((Variable.AttrKey)key);
+            if (param != null)
+                return param;
+        }
+		return getD().getVar(key);
 	}
 
 	/**
@@ -90,17 +128,14 @@ class IconNodeInst extends NodeInst
 	 */
     @Override
 	public synchronized Iterator<Variable> getVariables() {
-        Cell icon = (Cell)getProto();
-        if (!icon.hasParameters())
+        if (getD().getNumDefinedParameters() == 0)
             return super.getVariables();
 
         ArrayList<Variable> vars = new ArrayList<Variable>();
+        for (Iterator<Variable> it = getDefinedParameters(); it.hasNext(); )
+            vars.add(it.next());
         for (Iterator<Variable> it = super.getVariables(); it.hasNext(); ) {
-            Variable instVar = it.next();
-            Variable iconParam = icon.getParameter(instVar.getKey());
-            if (iconParam != null)
-                instVar = composeInstParam(iconParam, instVar);
-            vars.add(instVar);
+            vars.add(it.next());
         }
         return vars.iterator();
     }
@@ -111,7 +146,7 @@ class IconNodeInst extends NodeInst
 	 */
     @Override
 	public synchronized int getNumVariables() {
-        return super.getNumVariables();
+        return super.getNumVariables() + getD().getNumDefinedParameters();
     }
 
     /**
@@ -124,11 +159,14 @@ class IconNodeInst extends NodeInst
      */
     @Override
     public Variable getParameter(Variable.Key key) {
+        if (!(key instanceof Variable.AttrKey))
+            return null;
+        Variable instParam = getD().getDefinedParameter((Variable.AttrKey)key);
+        if (instParam != null)
+            return instParam;
         Cell icon = (Cell)getProto();
         Variable iconParam = icon.getParameter(key);
-        if (iconParam == null) return null;
-		Variable instVar = getD().getVar(key);
-        return composeInstParam(iconParam, instVar);
+        return iconParam != null ? composeInstParam(iconParam, null) : null;
     }
 
     /**
@@ -139,7 +177,9 @@ class IconNodeInst extends NodeInst
      */
     @Override
     public boolean isDefinedParameter(Variable.Key key) {
-        return isParam(key) && getD().getVar(key) != null;
+        if (!(key instanceof Variable.AttrKey))
+            return false;
+        return getD().getDefinedParameter((Variable.AttrKey)key) != null;
     }
 
     /**
@@ -157,7 +197,7 @@ class IconNodeInst extends NodeInst
         // get all parameters on this object
         for (Iterator<Variable> it = icon.getParameters(); it.hasNext(); ) {
             Variable iconParam = it.next();
-            Variable instVar = getD().getVar(iconParam.getKey());
+            Variable instVar = getD().getDefinedParameter((Variable.AttrKey)iconParam.getKey());
             params.add(composeInstParam(iconParam, instVar));
         }
         return params.iterator();
@@ -168,20 +208,20 @@ class IconNodeInst extends NodeInst
      * This doesn't include any parameters on the defaultVarOwner object that are not on this object.
      * @return an Iterator over defined Parameters on this IconNodeInst.
      */
+    @Override
     public Iterator<Variable> getDefinedParameters() {
-        Cell icon = (Cell)getProto();
-        if (!icon.hasParameters())
-            return ArrayIterator.emptyIterator();
+        return getD().getDefinedParameters();
+    }
 
-        ArrayList<Variable> params = new ArrayList<Variable>();
-        // get all parameters on this object
-        for (Iterator<Variable> it = icon.getParameters(); it.hasNext(); ) {
-            Variable iconParam = it.next();
-            Variable instVar = getD().getVar(iconParam.getKey());
-            if (instVar == null) continue;
-            params.add(composeInstParam(iconParam, instVar));
-        }
-        return params.iterator();
+    /**
+     * Method to add a Parameter to this NodeInst.
+     * Overridden in IconNodeInst
+     * @param key the key of the Variable to delete.
+     */
+    public void addParameter(Variable param) {
+        if (param.getTextDescriptor().isParam() && setD(getD().withParam(param), true))
+            // check for side-effects of the change
+            checkPossibleVariableEffects(param.getKey());
     }
 
     /**
@@ -189,8 +229,11 @@ class IconNodeInst extends NodeInst
      * The Parameter becomes a default parameter with value inherited from the default owner
      * @param key the key of the Variable to delete.
      */
+    @Override
     public void delParameter(Variable.Key key) {
-        delVar(key);
+        if (key instanceof Variable.AttrKey && setD(getD().withoutParam((Variable.AttrKey)key), true))
+            // check for side-effects of the change
+            checkPossibleVariableEffects(key);
     }
 
 	/**
@@ -206,13 +249,22 @@ class IconNodeInst extends NodeInst
         return icon != null && icon.getParameter(varKey) != null;
     }
 
+//    public void addParam(Variable var) {
+//        assert var.getTextDescriptor().isParam() && var.isInherit();
+//        if (isIcon()) {
+//            // Remove variables with the same name as new parameter
+//            for (Iterator<NodeInst> it = getInstancesOf(); it.hasNext(); ) {
+//                NodeInst ni = it.next();
+//                ni.delVar(var.getKey());
+//            }
+//        }
+//        setD(getD().withoutVariable(var.getKey()).withParam(var));
+//    }
+//
     private static Variable composeInstParam(Variable iconParam, Variable instVar) {
         boolean display = !iconParam.isInterior();
-        if (KEEP_TEXT_ATTRIBUTES && instVar != null)
-            return instVar.withInherit(false).withInterior(false).withDisplay(display).withUnit(iconParam.getUnit());
-        iconParam = iconParam.withInherit(false).withInterior(false).withDisplay(display);
         if (instVar != null)
-            iconParam = iconParam.withObject(instVar.getObject());
-        return iconParam;
+            return instVar.withParam(true).withInherit(false).withInterior(false).withDisplay(display).withUnit(iconParam.getUnit());
+        return iconParam.withInherit(false).withInterior(false).withDisplay(display);
     }
 }

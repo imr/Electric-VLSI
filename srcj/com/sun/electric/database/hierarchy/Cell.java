@@ -286,10 +286,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             if (newName == key) return;
             for (Cell cell: cells) {
                 if (!(cell.isIcon() || cell.isSchematic())) continue;
-        		Variable oldParam = cell.getParameter(key);
-            	// create new var
-                cell.addParam(Variable.newInstance(newName, oldParam.getObject(), oldParam.getTextDescriptor()));
-        		cell.delParam(key);
+                cell.renameParam(key, newName);
             }
         }
 
@@ -2958,12 +2955,45 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 
     private void addParam(Variable var) {
         assert var.getTextDescriptor().isParam() && var.isInherit();
+        if (isIcon()) {
+            // Remove variables with the same name as new parameter
+            for (Iterator<NodeInst> it = getInstancesOf(); it.hasNext(); ) {
+                NodeInst ni = it.next();
+                if (!ni.isParam(var.getKey()))
+                    ni.delVar(var.getKey());
+            }
+        }
         setD(getD().withoutVariable(var.getKey()).withParam(var));
     }
 
     private void delParam(Variable.AttrKey key) {
         assert isParam(key);
+        if (isIcon()) {
+            // Remove instance parameters
+            for (Iterator<NodeInst> it = getInstancesOf(); it.hasNext(); ) {
+                NodeInst ni = it.next();
+                ni.delParameter(key);
+            }
+        }
         setD(getD().withoutParam(key));
+    }
+    
+    private void renameParam(Variable.AttrKey key, Variable.AttrKey newName) {
+        assert isParam(key);
+        Variable oldParam = getParameter(key);
+        // create new var
+        addParam(Variable.newInstance(newName, oldParam.getObject(), oldParam.getTextDescriptor()));
+        if (isIcon()) {
+            // Rename instance parameters
+            for (Iterator<NodeInst> it = getInstancesOf(); it.hasNext(); ) {
+                NodeInst ni = it.next();
+                if (!ni.isDefinedParameter(key)) continue;
+                Variable param = ni.getParameter(key);
+                ni.addParameter(Variable.newInstance(newName, param.getObject(), param.getTextDescriptor()));
+                ni.delParameter(key);
+            }
+        }
+        delParam(key);
     }
 
     private void setParams(Cell paramOwner) {
@@ -4677,10 +4707,12 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             return (false);
 
         }
-        for (int i = 0; i < getNumParameters(); i++) {
-            if (!getParameter(i).compare(toCompare.getParameter(i), buffer)) {
+        for (Iterator<Variable> it1 = getParameters(), it2 = toCompare.getParameters(); it1.hasNext(); ) {
+            Variable param1 = it1.next();
+            Variable param2 = it2.next();
+            if (!param1.compare(param2, buffer)) {
                 if (buffer != null)
-                    buffer.append("No corresponding parameter '" + getParameter(i) + "' found in other cell" + "\n");
+                    buffer.append("No corresponding parameter '" + param1 + "' found in other cell" + "\n");
                 return (false);
             }
         }

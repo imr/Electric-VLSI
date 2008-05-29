@@ -237,7 +237,7 @@ public class ImmutableElectricObjectTest {
     @Test(expected=AssertionError.class) public void testCheckFailed() {
         System.out.println("checkFailed");
 
-        obj_Aa.check();
+        obj_Aa.check(false);
     }
 
     /**

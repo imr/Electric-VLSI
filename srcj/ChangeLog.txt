@@ -4,6 +4,14 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07k: ******************************
 
+IMP: (5/29/08, DN) The consistency between parameters on icon cell and icon instances
+    is invariant of Snapshot.
+
+IMP: (5/22/08, DN) Variables and parameters on ImmutableIconInst are in separate lists.
+
+BUG: (5/29/08, DN) NPE in updateInheritedVar (Bug #1693)
+FIX: Replace CircuitsChangeJobs.updateInheritedVar by "ni.addVar(var)".
+
 IMP: (5/28/08, SMR) Sea-of-gates router honors alternating metal better (Bug #1679).
 
 IMP: (5/27/08, GVG) TechEditorWizard handling multi cuts rules for diff contacts.

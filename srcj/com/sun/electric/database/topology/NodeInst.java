@@ -942,16 +942,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
      * @param var Variable to add.
      */
     public void addVar(Variable var) {
-        lowLevelAddVar(var);
-    }
-
- 	/**
-	 * Low level Method to add a Variable on this ElectricObject.
-	 * It adds Variable without patching the TextDescriptor.
-     * This method is used in library read.
-	 * @param var Variable to add.
-	 */
-	public void lowLevelAddVar(Variable var) {
         if (setD(d.withVariable(var), true))
             // check for side-effects of the change
             checkPossibleVariableEffects(var.getKey());
@@ -1514,6 +1504,14 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
      */
     public Iterator<Variable> getDefinedParameters() {
         return ArrayIterator.emptyIterator();
+    }
+
+    /**
+     * Method to add a Parameter to this NodeInst.
+     * Overridden in IconNodeInst
+     * @param key the key of the Variable to delete.
+     */
+    public void addParameter(Variable param) {
     }
 
     /**

@@ -2721,50 +2721,51 @@ public class CircuitChangeJobs
 				}
 			}
 		} else {
-			newVar = ni.updateVar(var.getKey(), inheritAddress(np, var));
-			updateInheritedVar(newVar, ni, np, icon);
+            ni.addVar(var);
+//			newVar = ni.updateVar(var.getKey(), inheritAddress(np, var));
+//			updateInheritedVar(newVar, ni, np, icon);
 		}
 	}
 
-	private static void updateInheritedVar(Variable nivar, NodeInst ni, Cell np, NodeInst icon)
-	{
-		if (nivar == null) return;
-
-		// determine offset of the attribute on the instance
-		Variable posVar = np.getVar(nivar.getKey());
-		Variable var = posVar;
-		if (icon != null) {
-			Variable iconVar = icon.getParameterOrVariable(nivar.getKey());
-			if (iconVar != null) posVar = iconVar;
-		}
-
-		double xc = posVar.getXOff();
-		if (posVar == var) xc -= np.getBounds().getCenterX();
-		double yc = posVar.getYOff();
-		if (posVar == var) yc -= np.getBounds().getCenterY();
-		MutableTextDescriptor mtd = new MutableTextDescriptor(nivar.getTextDescriptor());
-		mtd.setDisplay(posVar.isDisplay());
-		mtd.setInherit(false);
-		mtd.setOff(xc, yc);
-		if (var.getTextDescriptor().isParam())
-		{
-			mtd.setInterior(false);
-			mtd.setDispPart(posVar.getDispPart());
-			mtd.setPos(posVar.getPos());
-			mtd.setRotation(posVar.getRotation());
-			mtd.setBold(posVar.isBold());
-			mtd.setItalic(posVar.isItalic());
-			mtd.setUnderline(posVar.isUnderline());
-			mtd.setFace(posVar.getFace());
-			TextDescriptor.Size s = posVar.getSize();
-			if (s.isAbsolute())
-				mtd.setAbsSize((int)s.getSize());
-			else
-				mtd.setRelSize(s.getSize());
-		}
-//		mtd.setCode(posVar.getCode());
-		ni.addVar(nivar.withTextDescriptor(TextDescriptor.newTextDescriptor(mtd)));
-	}
+//	private static void updateInheritedVar(Variable nivar, NodeInst ni, Cell np, NodeInst icon)
+//	{
+//		if (nivar == null) return;
+//
+//		// determine offset of the attribute on the instance
+//		Variable posVar = np.getVar(nivar.getKey());
+//		Variable var = posVar;
+//		if (icon != null) {
+//			Variable iconVar = icon.getParameterOrVariable(nivar.getKey());
+//			if (iconVar != null) posVar = iconVar;
+//		}
+//
+//		double xc = posVar.getXOff();
+//		if (posVar == var) xc -= np.getBounds().getCenterX();
+//		double yc = posVar.getYOff();
+//		if (posVar == var) yc -= np.getBounds().getCenterY();
+//		MutableTextDescriptor mtd = new MutableTextDescriptor(nivar.getTextDescriptor());
+//		mtd.setDisplay(posVar.isDisplay());
+//		mtd.setInherit(false);
+//		mtd.setOff(xc, yc);
+//		if (var.getTextDescriptor().isParam())
+//		{
+//			mtd.setInterior(false);
+//			mtd.setDispPart(posVar.getDispPart());
+//			mtd.setPos(posVar.getPos());
+//			mtd.setRotation(posVar.getRotation());
+//			mtd.setBold(posVar.isBold());
+//			mtd.setItalic(posVar.isItalic());
+//			mtd.setUnderline(posVar.isUnderline());
+//			mtd.setFace(posVar.getFace());
+//			TextDescriptor.Size s = posVar.getSize();
+//			if (s.isAbsolute())
+//				mtd.setAbsSize((int)s.getSize());
+//			else
+//				mtd.setRelSize(s.getSize());
+//		}
+////		mtd.setCode(posVar.getCode());
+//		ni.addVar(nivar.withTextDescriptor(TextDescriptor.newTextDescriptor(mtd)));
+//	}
 
 	/**
 	 * Helper method to determine the proper value of an inherited Variable.

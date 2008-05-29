@@ -192,12 +192,13 @@ public class Snapshot {
                 namesChanged = true;
             }
 
-            // If some exports deleted, check CellUsagesOf
+            // If some exports deleted or parameters changed, check CellUsagesOf
             if (oldBackup == null) continue;
             CellRevision oldRevision = oldBackup.cellRevision;
             if (newRevision != null && newRevision.definedExportsLength >= oldRevision.definedExportsLength &&
                     (newRevision.deletedExports == oldRevision.deletedExports ||
-                    !newRevision.deletedExports.intersects(oldRevision.definedExports))) continue;
+                    !newRevision.deletedExports.intersects(oldRevision.definedExports)) &&
+                    newRevision.d.params == oldRevision.d.params) continue;
             for (int i = 0, numUsages = cellId.numUsagesOf(); i < numUsages; i++) {
                 CellUsage u = cellId.getUsageOf(i);
                 int parentCellIndex = u.parentId.cellIndex;

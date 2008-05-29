@@ -31,6 +31,7 @@ import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableCell;
 import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableExport;
+import com.sun.electric.database.ImmutableIconInst;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.LibraryBackup;
 import com.sun.electric.database.Snapshot;
@@ -513,30 +514,26 @@ public class JELIB extends Output {
     private void printlnVars(ImmutableElectricObject d) {
         // write the variables
         if (d instanceof ImmutableNodeInst) {
+            if (d instanceof ImmutableIconInst) {
+                for (Iterator<Variable> it = ((ImmutableIconInst)d).getDefinedParameters(); it.hasNext(); )
+                    printVar(null, it.next());
+            }
             ImmutableNodeInst nid = (ImmutableNodeInst)d;
-            ImmutableCell ownerCell = null;
-//            if (nid.protoId instanceof CellId && ((CellId)nid.protoId).cellName.isIcon()) {
-//                ownerCell = snapshot.getCell((CellId)nid.protoId).cellRevision.d;
-//                int groupIndex = snapshot.cellGroups[ownerCell.cellId.cellIndex];
-//                CellId mainSchematics = snapshot.groupMainSchematics[groupIndex];
-//                if (mainSchematics != null)
-//                    ownerCell = snapshot.getCell(mainSchematics).cellRevision.d;
-//            }
-            printVars(null, nid, ownerCell);
+            printVars(null, nid);
             if (nid.hasPortInstVariables()) {
                 ArrayList<PortProtoId> portsWithVariables = new ArrayList<PortProtoId>();
                 for (Iterator<PortProtoId> it = nid.getPortsWithVariables(); it.hasNext(); )
                     portsWithVariables.add(it.next());
                 Collections.sort(portsWithVariables, PORTS_BY_EXTERNAL_ID);
                 for (PortProtoId portProtoId: portsWithVariables)
-                    printVars(portProtoId.externalId, nid.getPortInst(portProtoId), null);
+                    printVars(portProtoId.externalId, nid.getPortInst(portProtoId));
             }
         } else {
             if (d instanceof ImmutableCell) {
                 for (Iterator<Variable> it = ((ImmutableCell)d).getParameters(); it.hasNext(); )
-                    printVar(null, it.next(), null);
+                    printVar(null, it.next());
             }
-            printVars(null, d, null);
+            printVars(null, d);
         }
         printWriter.println();
     }
@@ -550,27 +547,22 @@ public class JELIB extends Output {
     /**
      * Method to write the variables on an object.
      */
-    private void printVars(String portName, ImmutableElectricObject d, ImmutableCell ownerCell) {
+    private void printVars(String portName, ImmutableElectricObject d) {
         // write the variables
         for(Iterator<Variable> it = d.getVariables(); it.hasNext(); ) {
             Variable var = it.next();
-            printVar(portName, var, ownerCell);
+            printVar(portName, var);
         }
     }
 
     /**
      * Method to write the variable on an object.
      */
-    private void printVar(String portName, Variable var, ImmutableCell ownerCell) {
+    private void printVar(String portName, Variable var) {
         // write the variables
         Object varObj = var.getObject();
         TextDescriptor td = var.getTextDescriptor();
         boolean isParam = td.isParam();
-        if (ownerCell != null && var.isAttribute()) {
-            Variable ownerParam = ownerCell.getParameter((Variable.AttrKey)var.getKey());
-            if (ownerParam != null && ownerParam.getTextDescriptor().isParam())
-                isParam = true;
-        }
         String tdString = describeDescriptor(var, td, isParam);
         printWriter.print("|" + convertVariableName(diskName(portName, var)) + "(" + tdString + ")");
         String pt = makeString(varObj);

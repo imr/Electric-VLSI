@@ -36,6 +36,7 @@ import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 
 import java.io.IOException;
@@ -44,6 +45,7 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
@@ -435,13 +437,13 @@ public class CellRevision {
                     checkPortInst(n, subCellId.getPortId(j));
                 }
                 if (subCellId.isIcon()) {
+                    for (Variable param: n.getDefinedParams())
+                        assert cui.usedAttributes.get((Variable.AttrKey)param.getKey()) == param.getUnit();
                     for (Iterator<Variable> it = n.getVariables(); it.hasNext(); ) {
                         Variable.Key varKey = it.next().getKey();
                         if (varKey.isAttribute())
-                            assert cui.usedAttributes.get(varKey) == Boolean.FALSE;
+                            assert cui.usedAttributes.get(varKey) == null;
                     }
-                    for (Variable.AttrKey attrKey: n.getDefinedParams().keySet())
-                        assert cui.usedAttributes.get(attrKey) == Boolean.TRUE;
                 }
             } else {
                 TechId techId = ((PrimitiveNodeId)n.protoId).techId;
@@ -545,16 +547,16 @@ public class CellRevision {
         final int instCount;
         final BitSet usedExports;
         final int usedExportsLength;
-        final TreeMap<Variable.AttrKey,Boolean> usedAttributes;
+        final TreeMap<Variable.AttrKey,TextDescriptor.Unit> usedAttributes;
 
-        CellUsageInfo(int instCount, BitSet usedExports, TreeMap<Variable.AttrKey,Boolean> usedAttributes) {
+        CellUsageInfo(int instCount, BitSet usedExports, TreeMap<Variable.AttrKey,TextDescriptor.Unit> usedAttributes) {
             this.instCount = instCount;
             usedExportsLength = usedExports.length();
             this.usedExports = usedExportsLength > 0 ? usedExports : EMPTY_BITSET;
             this.usedAttributes = usedAttributes;
         }
 
-        CellUsageInfo with(int instCount, BitSet usedExports, TreeMap<Variable.AttrKey,Boolean> usedAttributes) {
+        CellUsageInfo with(int instCount, BitSet usedExports, TreeMap<Variable.AttrKey,TextDescriptor.Unit> usedAttributes) {
             usedExports = UsageCollector.bitSetWith(this.usedExports, usedExports);
             usedAttributes = UsageCollector.usedAttributesWith(this.usedAttributes, usedAttributes);
             if (this.instCount == instCount && this.usedExports == usedExports &&
@@ -567,6 +569,20 @@ public class CellRevision {
                 throw new IllegalArgumentException("subCell deleted");
             if (subCellRevision.definedExportsLength < usedExportsLength || subCellRevision.deletedExports.intersects(usedExports))
                 throw new IllegalArgumentException("exportUsages");
+            if (isIcon()) {
+                for (Map.Entry<Variable.AttrKey,TextDescriptor.Unit> e: usedAttributes.entrySet()) {
+                    Variable.AttrKey paramKey = e.getKey();
+                    Variable param = subCellRevision.d.getParameter(paramKey);
+                    TextDescriptor.Unit unit = e.getValue();
+                    if (unit != null) {
+                        if (param == null || param.getUnit() != unit)
+                            throw new IllegalArgumentException("param " + paramKey);
+                    } else {
+                        if (param != null)
+                            throw new IllegalArgumentException("param " + paramKey);
+                    }
+                }
+            }
         }
 
         private boolean isIcon() { return usedAttributes != null; }

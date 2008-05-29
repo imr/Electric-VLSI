@@ -27,6 +27,7 @@ import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellRevision;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableExport;
+import com.sun.electric.database.ImmutableIconInst;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.DBMath;
@@ -839,6 +840,12 @@ public class VectorCache {
 
         // look for any Java coded stuff (Logical Effort calls)
         for (ImmutableNodeInst n: cellRevision.nodes) {
+            if (n instanceof ImmutableIconInst) {
+                for(Iterator<Variable> vIt = ((ImmutableIconInst)n).getDefinedParameters(); vIt.hasNext(); ) {
+                    Variable var = vIt.next();
+                    if (var.getCode() != TextDescriptor.Code.NONE) return true;
+                }
+            }
             for(Iterator<Variable> vIt = n.getVariables(); vIt.hasNext(); ) {
                 Variable var = vIt.next();
                 if (var.getCode() != TextDescriptor.Code.NONE) return true;

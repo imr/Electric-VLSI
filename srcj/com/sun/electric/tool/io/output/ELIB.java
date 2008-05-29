@@ -31,6 +31,7 @@ import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableCell;
 import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableExport;
+import com.sun.electric.database.ImmutableIconInst;
 import com.sun.electric.database.ImmutableLibrary;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.ImmutablePortInst;
@@ -569,6 +570,11 @@ public class ELIB extends Output
                 Variable param = it.next();
                 gatherVariable(portName, param);
             }
+        } else if (d instanceof ImmutableIconInst) {
+            for (Iterator<Variable> it = ((ImmutableIconInst)d).getDefinedParameters(); it.hasNext();) {
+                Variable param = it.next();
+                gatherVariable(portName, param);
+            }
         }
 		for (Iterator<Variable> it = d.getVariables(); it.hasNext(); ) {
 			Variable var = it.next();
@@ -1101,6 +1107,8 @@ public class ELIB extends Output
         int count = d.getNumVariables();
         if (d instanceof ImmutableCell)
             count += ((ImmutableCell)d).getNumParameters();
+        else if (d instanceof ImmutableIconInst)
+            count += ((ImmutableIconInst)d).getNumDefinedParameters();
         Variable.Key additionalVarKey = null;
         int additionalVarType = ELIBConstants.VSTRING;
         TextDescriptor additionalTextDescriptor = null;
@@ -1143,7 +1151,13 @@ public class ELIB extends Output
                 Variable var = it.next();
                 writeVariable(null, var);
             }
+        } else if (d instanceof ImmutableIconInst) {
+            for(Iterator<Variable> it = ((ImmutableIconInst)d).getDefinedParameters(); it.hasNext(); ) {
+                Variable var = it.next();
+                writeVariable(null, var);
+            }
         }
+        
         // write the variables
         for(Iterator<Variable> it = d.getVariables(); it.hasNext(); ) {
             Variable var = it.next();

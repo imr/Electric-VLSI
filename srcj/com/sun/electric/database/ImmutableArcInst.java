@@ -630,7 +630,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 	 * @throws NullPointerException if var is null
 	 */
     public ImmutableArcInst withVariable(Variable var) {
-        Variable[] vars = arrayWithVariable(var.withParam(false));
+        Variable[] vars = arrayWithVariable(var.withParam(false).withInherit(false));
         if (this.getVars() == vars) return this;
 		return new ImmutableArcInst(this.arcId, this.protoId, this.name, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
@@ -835,7 +835,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 	 * @throws AssertionError if invariant is broken.
 	 */
 	public void check() {
-        super.check();
+        super.check(false);
         assert arcId >= 0;
 		assert protoId != null;
 		assert name != null;

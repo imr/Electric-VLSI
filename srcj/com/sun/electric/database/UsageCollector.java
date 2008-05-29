@@ -32,6 +32,7 @@ import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.id.PrimitivePortId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.text.ImmutableArrayList;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 
 import java.util.Arrays;
@@ -47,7 +48,7 @@ import java.util.TreeMap;
  */
 class UsageCollector {
     static final BitSet EMPTY_BITSET = new BitSet();
-    static final TreeMap<Variable.AttrKey,Boolean> EMPTY_ATTRIBUTES = new TreeMap<Variable.AttrKey,Boolean>();
+    static final TreeMap<Variable.AttrKey,TextDescriptor.Unit> EMPTY_ATTRIBUTES = new TreeMap<Variable.AttrKey,TextDescriptor.Unit>();
 
     private final ImmutableCell d;
     private final HashMap<CellId, CellUsageInfoBuilder> cellIndices = new HashMap<CellId,CellUsageInfoBuilder>(16, 0.5f);
@@ -66,13 +67,13 @@ class UsageCollector {
             if (n.protoId instanceof CellId) {
                 CellUsageInfoBuilder cellCount = add((CellId)n.protoId, true);
                 if (cellCount.isIcon) {
+                    for (Variable param: n.getDefinedParams())
+                        cellCount.addAttribute((Variable.AttrKey)param.getKey(), param.getUnit());
                     for (int varIndex = 0; varIndex < n.getNumVariables(); varIndex++) {
                         Variable.Key varKey = n.getVar(varIndex).getKey();
                         if (varKey.isAttribute())
-                            cellCount.addAttribute((Variable.AttrKey)varKey, false);
+                            cellCount.addAttribute((Variable.AttrKey)varKey, null);
                     }
-                    for (Variable.AttrKey attrKey: n.getDefinedParams().keySet())
-                        cellCount.addAttribute(attrKey, true);
                 }
             } else {
                 techUsed.add(((PrimitiveNodeId)n.protoId).techId);
@@ -152,8 +153,8 @@ class UsageCollector {
         return newBitSet.equals(oldBitSet) ? oldBitSet : newBitSet;
     }
 
-    static TreeMap<Variable.AttrKey,Boolean> usedAttributesWith(TreeMap<Variable.AttrKey,Boolean> oldAttributes,
-            TreeMap<Variable.AttrKey,Boolean> newAttributes) {
+    static TreeMap<Variable.AttrKey,TextDescriptor.Unit> usedAttributesWith(TreeMap<Variable.AttrKey,TextDescriptor.Unit> oldAttributes,
+            TreeMap<Variable.AttrKey,TextDescriptor.Unit> newAttributes) {
         if (newAttributes == null)
             return null;
         if (newAttributes.isEmpty())
@@ -166,21 +167,21 @@ class UsageCollector {
         private final boolean isIcon;
         private int instCount;
         private final BitSet usedExports = new BitSet();
-        private final TreeMap<Variable.AttrKey, Boolean> usedAttributes;
+        private final TreeMap<Variable.AttrKey, TextDescriptor.Unit> usedAttributes;
 
         private CellUsageInfoBuilder(CellUsage cellUsage) {
             this.cellUsage = cellUsage;
             isIcon = cellUsage.protoId.isIcon();
-            usedAttributes = isIcon ? new TreeMap<Variable.AttrKey, Boolean>() : null;
+            usedAttributes = isIcon ? new TreeMap<Variable.AttrKey, TextDescriptor.Unit>() : null;
         }
 
-        private void addAttribute(Variable.AttrKey attrKey, boolean isParam) {
-            Boolean isParamObj = usedAttributes.get(attrKey);
-            if (isParamObj != null) {
-                if (isParam != isParamObj.booleanValue())
-                    throw new IllegalArgumentException(attrKey + " " + isParam);
+        private void addAttribute(Variable.AttrKey attrKey, TextDescriptor.Unit unit) {
+            TextDescriptor.Unit oldUnit = usedAttributes.get(attrKey);
+            if (oldUnit != null) {
+                if (unit != oldUnit)
+                    throw new IllegalArgumentException(attrKey + " " + unit);
             } else {
-                usedAttributes.put(attrKey, Boolean.valueOf(isParam));
+                usedAttributes.put(attrKey, unit);
             }
         }
 

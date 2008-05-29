@@ -27,23 +27,21 @@ package com.sun.electric.database;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.id.CellId;
-import com.sun.electric.database.id.IdReader;
 import com.sun.electric.database.id.IdWriter;
 import com.sun.electric.database.id.NodeProtoId;
+import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.Iterator;
 
 /**
  *
  */
 public class ImmutableIconInst extends ImmutableNodeInst {
-    public SortedMap<Variable.AttrKey,Object> params;
+    /** Parameters of this ImmutableIconInst. */                    final Variable[] params;
 
 	/**
 	 * The private constructor of ImmutableIconInst. Use the factory "newInstance" instead.
@@ -63,10 +61,78 @@ public class ImmutableIconInst extends ImmutableNodeInst {
     ImmutableIconInst(int nodeId, NodeProtoId protoId, Name name, TextDescriptor nameDescriptor,
             Orientation orient, EPoint anchor, EPoint size,
             int flags, byte techBits, TextDescriptor protoDescriptor,
-            Variable[] vars, ImmutablePortInst[] ports, SortedMap<Variable.AttrKey,Object> params) {
+            Variable[] vars, ImmutablePortInst[] ports, Variable[] params) {
         super(nodeId, protoId, name, nameDescriptor, orient, anchor, size, flags, techBits, protoDescriptor, vars, ports);
         this.params = params;
         check();
+    }
+
+	/**
+	 * Method to return the Parameter on this ImmuatbleIconInst with a given key.
+	 * @param key the key of the Variable.
+	 * @return the Parameter with that key, or null if there is no such Variable.
+	 * @throws NullPointerException if key is null
+	 */
+	public Variable getDefinedParameter(Variable.AttrKey key) {
+        int paramIndex = searchVar(params, key);
+        return paramIndex >= 0 ? params[paramIndex] : null;
+	}
+
+	/**
+	 * Method to return an Iterator over all Parameters on this ImmutableIconInst.
+	 * @return an Iterator over all Parameters on this ImmutableIconInst.
+	 */
+	public Iterator<Variable> getDefinedParameters() {
+        return ArrayIterator.iterator(params);
+    }
+
+	/**
+	 * Method to return the number of Parameters on this ImmutableIconInst.
+	 * @return the number of Parametes on this ImmutableIconInst.
+	 */
+	public int getNumDefinedParameters() { return params.length; }
+
+//	/**
+//	 * Method to return the Parameter by its paramIndex.
+//     * @param paramIndex index of Parameter.
+//	 * @return the Parameter with given paramIndex.
+//     * @throws ArrayIndexOutOfBoundesException if paramIndex out of bounds.
+//	 */
+//	public Variable getParameter(int paramIndex) { return params[paramIndex]; }
+
+	/**
+	 * Returns ImmutableIconInst which differs from this ImmutableIconInst by additional parameter.
+     * If this ImmutableIconInst has parameter with the same key as new, the old variable will not be in new
+     * ImmutableIconInst.
+	 * @param var additional Variable.
+	 * @return ImmutableIconInst with additional Variable.
+	 * @throws NullPointerException if var is null
+	 */
+    public ImmutableIconInst withParam(Variable var) {
+        if (!var.getTextDescriptor().isParam())
+            throw new IllegalArgumentException("Variable " + var + " is not param");
+        if (searchVar(var.getKey()) >= 0)
+            throw new IllegalArgumentException(this + " has variable with the same name as parameter " + var);
+        Variable[] params = arrayWithVariable(this.params, var.withInherit(false));
+        if (this.params == params) return this;
+		return new ImmutableIconInst(this.nodeId, this.protoId, this.name, this.nameDescriptor,
+                this.orient, this.anchor, this.size, this.flags, this.techBits, this.protoDescriptor,
+                getVars(), this.ports, params);
+    }
+
+	/**
+	 * Returns ImmutableIconInst which differs from this ImmutableIconInst by removing parameter
+     * with the specified key. Returns this ImmutableIconInst if it doesn't contain parameter with the specified key.
+	 * @param key Variable Key to remove.
+	 * @return ImmutableIconInst without Variable with the specified key.
+	 * @throws NullPointerException if key is null
+	 */
+    public ImmutableIconInst withoutParam(Variable.AttrKey key) {
+        Variable[] params = arrayWithoutVariable(this.params, key);
+        if (this.params == params) return this;
+		return new ImmutableIconInst(this.nodeId, this.protoId, this.name, this.nameDescriptor,
+                this.orient, this.anchor, this.size, this.flags, this.techBits, this.protoDescriptor,
+                getVars(), this.ports, params);
     }
 
 	/**
@@ -80,7 +146,9 @@ public class ImmutableIconInst extends ImmutableNodeInst {
 	 */
     @Override
     public ImmutableNodeInst withVariable(Variable var) {
-        if (var.isAttribute() && params.get(var.getKey()) != null)
+        if (var.getTextDescriptor().isParam())
+            throw new IllegalArgumentException("Variable " + var + " is param");
+        if (var.isAttribute() && searchVar(params, var.getKey()) >= 0)
             throw new IllegalArgumentException(var + " is already parameter");
         return super.withVariable(var);
     }
@@ -93,44 +161,14 @@ public class ImmutableIconInst extends ImmutableNodeInst {
     @Override
     ImmutableNodeInst withRenamedIds(IdMapper idMapper) {
         CellId newProtoId = idMapper.get((CellId)protoId);
-        if (!newProtoId.isIcon() && !params.isEmpty())
+        if (!newProtoId.isIcon() && params != Variable.NULL_ARRAY)
             throw new IllegalArgumentException("Icon params");
         return super.withRenamedIds(idMapper);
     }
 
-	/**
-	 * Method to return the defined parameters on this ImmutableIconInst.
-     * This is a map from Variable.Key to objects allowed as parameter values.
-	 * @return the defined parameters on this ImmutableNodeInst.
-	 */
     @Override
-    public SortedMap<Variable.AttrKey,Object> getDefinedParams() {
+    Variable[] getDefinedParams() {
         return params;
-    }
-
-	/**
-	 * Returns Map of defined parameters which differs from Map of defined parameters of this ImmutableIconInst by renamed Ids.
-     * Returns Map of defined parameters of this ImmutableIconInst if it doesn't contain renamed Ids.
-	 * @param idMapper a map from old Ids to new Ids.
-     * @return Map of defined parametes with renamed Ids.
-	 */
-    @Override
-    SortedMap<Variable.AttrKey,Object> getDefinedParamsWithRenamedIds(IdMapper idMapper) {
-        boolean renamed = false;
-        for (Object o: params.values()) {
-            if (Variable.paramValueWithRenamedIds(idMapper, o) != o) {
-                renamed = true;
-                break;
-            }
-        }
-        if (!renamed)
-            return params;
-        TreeMap<Variable.AttrKey,Object> renamedParams = new TreeMap<Variable.AttrKey,Object>();
-        for (SortedMap.Entry<Variable.AttrKey,Object> e: params.entrySet()) {
-            Object renamedValue = Variable.paramValueWithRenamedIds(idMapper, e.getValue());
-            renamedParams.put(e.getKey(), renamedValue);
-        }
-        return Collections.unmodifiableSortedMap(renamedParams);
     }
 
     /**
@@ -140,34 +178,18 @@ public class ImmutableIconInst extends ImmutableNodeInst {
     @Override
     void write(IdWriter writer) throws IOException {
         super.write(writer);
-        writer.writeInt(params.size());
-        for (SortedMap.Entry<Variable.AttrKey,Object> e: params.entrySet()) {
-            writer.writeVariableKey(e.getKey());
-            Variable.writeParamValue(writer, e.getValue());
-        }
-    }
-
-    static SortedMap<Variable.AttrKey,Object> readParams(IdReader reader) throws IOException {
-        int length = reader.readInt();
-        if (length == 0) return EMPTY_PARAMS;
-        TreeMap<Variable.AttrKey,Object> params = new TreeMap<Variable.AttrKey,Object>();
-        for (int i = 0; i < length; i++) {
-            Variable.AttrKey paramKey = (Variable.AttrKey)reader.readVariableKey();
-            Object value = Variable.readParamValue(reader);
-            params.put(paramKey, value);
-        }
-        return Collections.unmodifiableSortedMap(params);
+        writeVars(params, writer);
     }
 
     /**
-     * Indicates whether fields of other ImmutableElectricObject are equal to fileds of this object.
+     * Indicates whether fields of other ImmutableElectricObject are equal to fields of this object.
      * Variables of objects are not compared.
      * @param o other ImmutableElectricObject.
      * @return true if fields of objects are equal.
      */
     @Override
     public boolean equalsExceptVariables(ImmutableElectricObject o) {
-        return super.equals(o) && params.equals(((ImmutableIconInst)o).params);
+        return super.equals(o) && params == ((ImmutableIconInst)o).params;
     }
 
     /**
@@ -177,13 +199,21 @@ public class ImmutableIconInst extends ImmutableNodeInst {
     @Override
 	public void check() {
         super.check();
-        if (params.isEmpty())
-            assert params == EMPTY_PARAMS;
-        for (SortedMap.Entry<Variable.AttrKey,Object> e: params.entrySet()) {
-            Variable.Key paramKey = e.getKey();
-            Object paramValue = e.getValue();
-            assert getVar(paramKey) == null;
-            assert Variable.isParamValue(paramValue);
+        for (int i = 0; i < params.length; i++) {
+            Variable param = params[i];
+            param.check(true, false);
+            assert param.getTextDescriptor().isParam() && !param.getTextDescriptor().isInherit();
+            if (i > 0)
+                assert params[i - 1].getKey().compareTo(param.getKey()) < 0;
+            assert searchVar(param.getKey()) < 0;
+        }
+        if (params.length > 0) {
+            for (Variable var: getVars()) {
+                if (var.isAttribute())
+                    assert searchVar(params, var.getKey()) < 0;
+            }
+        } else {
+            assert params == Variable.NULL_ARRAY;
         }
 	}
 }

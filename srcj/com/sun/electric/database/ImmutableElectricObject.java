@@ -321,13 +321,14 @@ public abstract class ImmutableElectricObject {
 
     /**
 	 * Checks invariant of this ImmutableElectricObject.
+     * @param true if inherit is allowed on this ImmutableElectricObject
 	 * @throws AssertionError if invariant is broken.
 	 */
-	void check() {
+	void check(boolean inheritAllowed) {
         if (vars.length == 0) return;
-        vars[0].check(false);
+        vars[0].check(false, inheritAllowed);
         for (int i = 1; i < vars.length; i++) {
-            vars[i].check(false);
+            vars[i].check(false, inheritAllowed);
             assert vars[i - 1].getKey().compareTo(vars[i].getKey()) < 0;
         }
     }
