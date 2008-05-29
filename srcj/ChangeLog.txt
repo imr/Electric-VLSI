@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07k: ******************************
 
+BUG: (5/29/08, SMR) Cell extraction duplicates arcs (Bug #1694).
+FIX: In CellChangeJobs.replaceExtractedArcs(), ensure arc connects to extracted cell instance.
+
 BUG: (5/29/08, SMR) Sea-of-gates router fails to route (Bug #1689).
 FIX: Must convert coordinates to EPoint/ERectangle to properly round values.
 

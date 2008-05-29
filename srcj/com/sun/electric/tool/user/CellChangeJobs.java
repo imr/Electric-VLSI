@@ -90,7 +90,7 @@ public class CellChangeJobs
 			cell.kill();
 			return true;
 		}
-    }
+	}
 
 	/**
 	 * This class implement the command to delete a list of cells.
@@ -109,35 +109,29 @@ public class CellChangeJobs
 		public boolean doIt() throws JobException
 		{
 			// iteratively delete, allowing cells in use to be deferred
-            boolean didDelete = true;
-            while (didDelete)
-            {
-            	didDelete = false;
-	            for (int i=0; i<cellsToDelete.size(); i++)
-	            {
-	            	Cell cell = cellsToDelete.get(i);
+			boolean didDelete = true;
+			while (didDelete)
+			{
+				didDelete = false;
+				for (int i=0; i<cellsToDelete.size(); i++)
+				{
+					Cell cell = cellsToDelete.get(i);
 
-	            	// if the cell is in use, defer
-	        		if (cell.isInUse(null, true, true)) continue;
+					// if the cell is in use, defer
+					if (cell.isInUse(null, true, true)) continue;
 
-	        		// cell not in use: remove it from the list and delete it
-	        		cellsToDelete.remove(i);
-	        		i--;
-	        		System.out.println("Deleting " + cell);
+					// cell not in use: remove it from the list and delete it
+					cellsToDelete.remove(i);
+					i--;
+					System.out.println("Deleting " + cell);
 					cell.kill();
-	                didDelete = true;
-	            }
-            }
+					didDelete = true;
+				}
+			}
 
-            // warn about remaining cells that were in use
-            for(Cell cell : cellsToDelete)
-        		cell.isInUse("delete", false, true);
-
-//            for(Cell cell : cellsToDelete)
-//			{
-//				System.out.println("Deleting " + cell);
-//				cell.kill();
-//			}
+			// warn about remaining cells that were in use
+			for(Cell cell : cellsToDelete)
+				cell.isInUse("delete", false, true);
 			return true;
 		}
 
@@ -182,44 +176,44 @@ public class CellChangeJobs
 		}
 	}
 
-    /**
+	/**
 	 * Class to rename a cell in a new thread.
 	 */
 	public static class DeleteCellGroup extends Job
 	{
-        List<Cell> cells;
+		List<Cell> cells;
 
-        public DeleteCellGroup(Cell.CellGroup group)
+		public DeleteCellGroup(Cell.CellGroup group)
 		{
 			super("Delete Cell Group", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-            cells = new ArrayList<Cell>();
-            
-            for(Iterator<Cell> it = group.getCells(); it.hasNext(); )
-            {
-                cells.add(it.next());
-            }
-            startJob();
+			cells = new ArrayList<Cell>();
+
+			for(Iterator<Cell> it = group.getCells(); it.hasNext(); )
+			{
+				cells.add(it.next());
+			}
+			startJob();
 		}
 
 		public boolean doIt() throws JobException
 		{
-            for(Cell cell : cells)
+			for(Cell cell : cells)
 			{
-                // Doesn't check cells in the same group
-			    // check cell usage once more
-			    if (cell.isInUse("delete", false, false))
-                    return false;
-            }
-            // Now real delete
-            for(Cell cell : cells)
-            {
-                cell.kill();
-            }
+				// Doesn't check cells in the same group
+				// check cell usage once more
+				if (cell.isInUse("delete", false, false))
+					return false;
+			}
+			// Now real delete
+			for(Cell cell : cells)
+			{
+				cell.kill();
+			}
 			return true;
 		}
 	}
 
-    /**
+	/**
 	 * Class to rename a cell in a new thread.
 	 */
 	public static class RenameCellGroup extends Job
@@ -251,7 +245,7 @@ public class CellChangeJobs
 				lastName = cellName;
 			}
 
-			ArrayList<Cell> cells = new ArrayList<Cell>();
+			List<Cell> cells = new ArrayList<Cell>();
 			for(Iterator<Cell> it = cellInGroup.getCellGroup().getCells(); it.hasNext(); )
 				cells.add(it.next());
 			String newGroupCell = null;
@@ -314,7 +308,7 @@ public class CellChangeJobs
 					System.out.println("Creating cell: CellStructure");
 
 			// create CellGraphNodes for every cell and initialize the depth to -1
-			HashMap<Cell,CellGraphNode> cellGraphNodes = new HashMap<Cell,CellGraphNode>();
+			Map<Cell,CellGraphNode> cellGraphNodes = new HashMap<Cell,CellGraphNode>();
 			for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 			{
 				Library lib = it.next();
@@ -656,12 +650,6 @@ public class CellChangeJobs
 		// first check to see if there is a schematics link
 		Cell mainSchem = cell.getCellGroup().getMainSchematics();
 		if (mainSchem != null) return mainSchem;
-// 		for(Iterator<Cell> it = cell.getCellGroup().getCells(); it.hasNext(); )
-// 		{
-// 			Cell cellInGroup = it.next();
-// 			if (cellInGroup.getView() == View.SCHEMATIC) return cellInGroup;
-// 			if (cellInGroup.getView().isMultiPageView()) return cellInGroup;
-// 		}
 
 		// now check to see if there is any layout link
 		for(Iterator<Cell> it = cell.getCellGroup().getCells(); it.hasNext(); )
@@ -708,7 +696,7 @@ public class CellChangeJobs
 			if (cell == null) return false;
 
 			// copy the nodes into the new cell
-			HashMap<NodeInst,NodeInst> newNodes = new HashMap<NodeInst,NodeInst>();
+			Map<NodeInst,NodeInst> newNodes = new HashMap<NodeInst,NodeInst>();
 			for(Geometric look : whatToPackage)
 			{
 				if (!(look instanceof NodeInst)) continue;
@@ -791,30 +779,8 @@ public class CellChangeJobs
 
 		public boolean doIt() throws JobException
 		{
-//			if (depth != 1)
-//			{
-				doArbitraryExtraction(cell, nodes, copyExports, depth);
-				return true;
-//			}
-//			Job.getUserInterface().startProgressDialog("Extracting " + nodes.size() + " cells", null);
-//			HashMap<NodeInst,HashMap<NodeInst,NodeInst>> newNodes = new HashMap<NodeInst,HashMap<NodeInst,NodeInst>>();
-//			int done = 0;
-//			for(NodeInst ni : nodes)
-//			{
-//				if (!ni.isCellInstance()) continue;
-//				newNodes.put(ni, extractOneNode(ni, copyExports));
-//				done++;
-//				if ((done%10) == 0)
-//				{
-//					Job.getUserInterface().setProgressValue(done * 100 / nodes.size());
-//				}
-//			}
-//
-//			// replace arcs to the cell and exports on the cell
-//			replaceArcsAndExports(cell, newNodes);
-//
-//			Job.getUserInterface().stopProgressDialog();
-//			return true;
+			doArbitraryExtraction(cell, nodes, copyExports, depth);
+			return true;
 		}
 	}
 
@@ -828,8 +794,9 @@ public class CellChangeJobs
 		for(NodeInst ni : nodes)
 		{
 			if (!ni.isCellInstance()) continue;
-			HashMap<PortInst,PortInst> portMap = new HashMap<PortInst,PortInst>();
+			Map<PortInst,PortInst> portMap = new HashMap<PortInst,PortInst>();
 			extractOneLevel(cell, ni, GenMath.MATID, portMap, 1, depth);
+
 			newNodes.put(ni, portMap);
 			for (Iterator<Export> it = ni.getExports(); it.hasNext(); )
 				exportsToCopy.add(it.next());
@@ -957,6 +924,11 @@ public class CellChangeJobs
 			PortInst oldHeadPi = ai.getHeadPortInst();
 			NodeInst headNi = oldHeadPi.getNodeInst();
 			Map<PortInst,PortInst> headMap = nodeMaps.get(headNi);
+			PortInst oldTailPi = ai.getTailPortInst();
+			NodeInst tailNi = oldTailPi.getNodeInst();
+			Map<PortInst,PortInst> tailMap = nodeMaps.get(tailNi);
+			if (headMap == null && tailMap == null) continue;
+
 			PortInst newHeadPi = oldHeadPi;
 			if (headMap != null)
 			{
@@ -969,9 +941,6 @@ public class CellChangeJobs
 				}
 			}
 
-			PortInst oldTailPi = ai.getTailPortInst();
-			NodeInst tailNi = oldTailPi.getNodeInst();
-			Map<PortInst,PortInst> tailMap = nodeMaps.get(tailNi);
 			PortInst newTailPi = oldTailPi;
 			if (tailMap != null)
 			{
@@ -1011,190 +980,6 @@ public class CellChangeJobs
 			newAi.copyPropertiesFrom(ai);
 		}
 	}
-
-//	private static HashMap<NodeInst,NodeInst> extractOneNode(NodeInst topno, boolean copyExports)
-//	{
-//		// make transformation matrix for this cell
-//		Cell cell = topno.getParent();
-//		Cell subCell = (Cell)topno.getProto();
-//		AffineTransform localTrans = topno.translateOut();
-//		localTrans.preConcatenate(topno.rotateOut());
-//
-//		// build a list of nodes to copy
-//		HashMap<NodeInst,NodeInst> newNodes = new HashMap<NodeInst,NodeInst>();
-//		for(Iterator<NodeInst> it = subCell.getNodes(); it.hasNext(); )
-//			newNodes.put(it.next(), null);
-//
-//		// copy the nodes
-//		for (Map.Entry<NodeInst,NodeInst> e: newNodes.entrySet())
-//		{
-//			NodeInst ni = e.getKey();
-//			assert e.getValue() == null;
-//
-//			// do not extract "cell center" or "essential bounds" primitives
-//			NodeProto np = ni.getProto();
-//			if (np == Generic.tech.cellCenterNode || np == Generic.tech.essentialBoundsNode) continue;
-//
-//			Point2D pt = new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY());
-//			localTrans.transform(pt, pt);
-//
-//			String name = null;
-//			if (ni.isUsernamed())
-//				name = ElectricObject.uniqueObjectName(ni.getName(), cell, NodeInst.class, false);
-//			Orientation orient = topno.getOrient().concatenate(ni.getOrient());
-//			NodeInst newNi = NodeInst.makeInstance(np, pt, ni.getXSize(), ni.getYSize(), cell, orient, name, 0);
-//			if (newNi == null) continue;
-//
-//			e.setValue(newNi);
-//			newNi.copyTextDescriptorFrom(ni, NodeInst.NODE_NAME);
-//			newNi.copyStateBits(ni);
-//			newNi.copyVarsFrom(ni);
-//		}
-//
-//		// make a list of arcs to extract
-//		List<ArcInst> arcs = new ArrayList<ArcInst>();
-//		for(Iterator<ArcInst> it = subCell.getArcs(); it.hasNext(); )
-//			arcs.add(it.next());
-//
-//		// extract the arcs
-//		for(ArcInst ai : arcs)
-//		{
-//			// ignore arcs connected to nodes that didn't get yanked
-//			NodeInst niTail = newNodes.get(ai.getTailPortInst().getNodeInst());
-//			NodeInst niHead = newNodes.get(ai.getHeadPortInst().getNodeInst());
-//			if (niTail == null || niHead == null) continue;
-//			PortInst piTail = niTail.findPortInstFromProto(ai.getTailPortInst().getPortProto());
-//			PortInst piHead = niHead.findPortInstFromProto(ai.getHeadPortInst().getPortProto());
-//
-//			Point2D ptTail = new Point2D.Double();
-//			localTrans.transform(ai.getTailLocation(), ptTail);
-//			Point2D ptHead = new Point2D.Double();
-//			localTrans.transform(ai.getHeadLocation(), ptHead);
-//
-//			// make sure the head end fits in the port
-//			Poly polyHead = piHead.getPoly();
-//			if (!polyHead.isInside(ptHead))
-//			{
-//				ptHead.setLocation(polyHead.getCenterX(), polyHead.getCenterY());
-//			}
-//
-//			// make sure the tail end fits in the port
-//			Poly polyTail = piTail.getPoly();
-//			if (!polyTail.isInside(ptTail))
-//			{
-//				ptTail.setLocation(polyTail.getCenterX(), polyTail.getCenterY());
-//			}
-//
-//			String name = null;
-//			if (ai.isUsernamed())
-//				name = ElectricObject.uniqueObjectName(ai.getName(), cell, ArcInst.class, false);
-//			ArcInst newAi = ArcInst.makeInstanceBase(ai.getProto(), ai.getLambdaBaseWidth(), piHead, piTail, ptHead, ptTail, name);
-//			if (newAi != null)
-//				newAi.copyPropertiesFrom(ai);
-//		}
-//
-//		// copy the exports if requested
-//		if (copyExports)
-//		{
-//			// initialize for queueing creation of new exports
-//			for(Iterator<Export> it = subCell.getExports(); it.hasNext(); )
-//			{
-//				Export pp = it.next();
-//				NodeInst subNi = pp.getOriginalPort().getNodeInst();
-//				NodeInst newNi = newNodes.get(subNi);
-//				if (newNi == null) continue;
-//				PortInst pi = newNi.findPortInstFromProto(pp.getOriginalPort().getPortProto());
-//
-//				// don't copy if the port is already exported
-//				boolean alreadyDone = false;
-//				for(Iterator<Export> eIt = newNi.getExports(); eIt.hasNext(); )
-//				{
-//					Export oPp = eIt.next();
-//					if (oPp.getOriginalPort() == pi)
-//					{
-//						alreadyDone = true;
-//						break;
-//					}
-//				}
-//				if (alreadyDone) continue;
-//
-//				// copy the port
-//				String portName = ElectricObject.uniqueObjectName(pp.getName(), cell, PortProto.class, false);
-//				Export newPp = Export.newInstance(cell, pi, portName);
-//				if (newPp != null)
-//				{
-//					newPp.setCharacteristic(pp.getCharacteristic());
-//					newPp.copyTextDescriptorFrom(pp, Export.EXPORT_NAME);
-//					newPp.copyVarsFrom(pp);
-//				}
-//			}
-//		}
-//
-//		return newNodes;
-//	}
-//
-//	private static void replaceArcsAndExports(Cell cell, HashMap<NodeInst,HashMap<NodeInst,NodeInst>> newNodes) {
-//		// replace arcs to expanded subCells
-//		ArrayList<ArcInst> arcsCopy = new ArrayList<ArcInst>();
-//		for (Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
-//			arcsCopy.add(it.next());
-//
-//		PortInst[] pis = new PortInst[2];
-//		Point2D [] pts = new Point2D[2];
-//		for(ArcInst ai : arcsCopy)
-//		{
-//			boolean needToCopy = false;
-//			for (int i = 0; i < 2; i++) {
-//				pts[i] = ai.getLocation(i);
-//				PortInst pi = ai.getPortInst(i);
-//				HashMap<NodeInst,NodeInst> newNodesForSubcell = newNodes.get(pi.getNodeInst());
-//				if (newNodesForSubcell != null) {
-//					Export pp = (Export)pi.getPortProto();
-//					NodeInst subNi = pp.getOriginalPort().getNodeInst();
-//					NodeInst newNi = newNodesForSubcell.get(subNi);
-//					pi = newNi != null ? newNi.findPortInstFromProto(pp.getOriginalPort().getPortProto()) : null;
-//					needToCopy = true;
-//				}
-//				pis[i] = pi;
-//			}
-//			if (!needToCopy) continue;
-//
-//			ArcProto ap = ai.getProto();
-//			double wid = ai.getLambdaBaseWidth();
-//			String name = null;
-//			if (ai.isUsernamed())
-//				name = ElectricObject.uniqueObjectName(ai.getName(), cell, ArcInst.class, false);
-//
-//			ai.kill();
-//			if (pis[0] == null || pis[1] == null) continue;
-//			ArcInst newAi = ArcInst.makeInstanceBase(ap, wid, pis[0], pis[1], pts[0], pts[1], name);
-//			if (newAi != null)
-//				newAi.copyPropertiesFrom(ai);
-//		}
-//
-//		// replace the exports
-//		ArrayList<Export> exportsCopy = new ArrayList<Export>();
-//		for (Iterator<Export> it = cell.getExports(); it.hasNext(); )
-//			exportsCopy.add(it.next());
-//
-//		for(Export pp : exportsCopy) {
-//			PortInst oldPi = pp.getOriginalPort();
-//			HashMap<NodeInst,NodeInst> newNodesForSubcell = newNodes.get(oldPi.getNodeInst());
-//			if (newNodesForSubcell == null) continue;
-//			Export subPp = (Export)oldPi.getPortProto();
-//			NodeInst subNi = subPp.getOriginalPort().getNodeInst();
-//			NodeInst newNi = newNodesForSubcell.get(subNi);
-//			if (newNi == null) {
-//				pp.kill();
-//				continue;
-//			}
-//			PortInst newPi = newNi.findPortInstFromProto(subPp.getOriginalPort().getPortProto());
-//			pp.move(newPi);
-//		}
-//
-//		// delete the cell instance
-//		cell.killNodes(newNodes.keySet());
-//	}
 
 	/****************************** MAKE A NEW VERSION OF A CELL ******************************/
 
@@ -1365,7 +1150,7 @@ public class CellChangeJobs
 		IdMapper idMapper = new IdMapper();
 		Cell.setAllowCircularLibraryDependences(true);
 		try {
-			HashSet<Cell> existing = new HashSet<Cell>();
+			Set<Cell> existing = new HashSet<Cell>();
 			for(Cell fromCell : fromCells)
 			{
 				Cell copiedCell = copyRecursively(fromCell, toLib, verbose, move, "", true,
@@ -1400,7 +1185,7 @@ public class CellChangeJobs
 	 */
 	private static Cell copyRecursively(Cell fromCell, Library toLib,
 		boolean verbose, boolean move, String subDescript, boolean schematicRelatedView, boolean allRelatedViews,
-		boolean allRelatedViewsThisLevel, boolean copySubCells, boolean useExisting, HashSet<Cell> existing, IdMapper idMapper)
+		boolean allRelatedViewsThisLevel, boolean copySubCells, boolean useExisting, Set<Cell> existing, IdMapper idMapper)
 	{
 		// check for sensibility
 		if (copySubCells && !useExisting)
@@ -1468,7 +1253,7 @@ public class CellChangeJobs
 				while (found)
 				{
 					found = false;
-                    assert fromCell.isLinked();
+					assert fromCell.isLinked();
 					for(Iterator<Cell> it = fromCell.getCellGroup().getCells(); it.hasNext(); )
 					{
 						Cell np = it.next();
@@ -1489,8 +1274,8 @@ public class CellChangeJobs
 						found = true;
 						break;
 					}
-                    if (!fromCell.isLinked())
-                        return inDestLib(fromCell, existing);
+					if (!fromCell.isLinked())
+						return inDestLib(fromCell, existing);
 				}
 			}
 		} else
@@ -1562,19 +1347,12 @@ public class CellChangeJobs
 		{
 			newName = toName + toView.getAbbreviationExtension();
 		}
-		Cell newFromCell;
-//		if (move) {
-//			fromCell.move(toLib);
-//			if (useExisting)
-//				fromCell.replaceSubcellsByExisting();
-//			newFromCell = fromCell;
-//		} else {
-			newFromCell = Cell.copyNodeProto(fromCell, toLib, newName, useExisting);
-			if (newFromCell == null) {
-				System.out.println("Copy of " + subDescript + fromCell + " failed");
-				return null;
-			}
-//		}
+		Cell newFromCell = Cell.copyNodeProto(fromCell, toLib, newName, useExisting);
+		if (newFromCell == null)
+		{
+			System.out.println("Copy of " + subDescript + fromCell + " failed");
+			return null;
+		}
 
 		// remember that this cell was copied
 		existing.add(newFromCell);
@@ -1598,16 +1376,6 @@ public class CellChangeJobs
 		// if moving, adjust pointers and kill original cell
 		if (move)
 		{
-			// clear highlighting if the current node is being replaced
-//			list = us_gethighlighted(WANTNODEINST, 0, 0);
-//			for(i=0; list[i] != NOGEOM; i++)
-//			{
-//				if (!list[i]->entryisnode) continue;
-//				ni = list[i]->entryaddr.ni;
-//				if (ni->proto == fromCell) break;
-//			}
-//			if (list[i] != NOGEOM) us_clearhighlightcount();
-
 			// now replace old instances with the moved one
 			for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 			{
@@ -1639,7 +1407,6 @@ public class CellChangeJobs
 				}
 			}
 			idMapper.moveCell(fromCell.backup(), newFromCell.getId());
-//			if (deletedCells != null) deletedCells.add(fromCell);
 			fromCell.kill();
 		}
 		return newFromCell;
@@ -1651,7 +1418,7 @@ public class CellChangeJobs
 	 * @param existing a set where to find
 	 * @return a cell from a set with proper name and view.
 	 */
-	private static Cell inDestLib(Cell cell, HashSet<Cell> existing)
+	private static Cell inDestLib(Cell cell, Set<Cell> existing)
 	{
 		for(Cell copiedCell : existing)
 		{
