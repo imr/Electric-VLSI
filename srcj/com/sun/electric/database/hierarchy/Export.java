@@ -644,7 +644,6 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 	public void setTextDescriptor(Variable.Key varKey, TextDescriptor td)
 	{
         if (varKey == EXPORT_NAME) {
-            td = td.withCode(TextDescriptor.Code.NONE);
 			setD(d.withNameDescriptor(td), true);
             return;
         }

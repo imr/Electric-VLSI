@@ -32,9 +32,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.Arrays;
 import java.util.Iterator;
-import java.util.List;
 
 import static org.junit.Assert.*;
 import org.junit.Before;
@@ -772,65 +770,6 @@ public class TextDescriptorTest {
             // TODO review the generated test code and remove the default call to fail.
             fail("The test case is a prototype.");
         }
-    }
-
-
-    /**
-     * Test of getCFlags method, of class com.sun.electric.database.variable.AbstractTextDescriptor.Code.
-     */
-    @Test public void testCodeGetCFlags() {
-        System.out.println("getCFlags");
-
-        TextDescriptor.Code instance = TextDescriptor.Code.NONE;
-
-        int expResult = 0;
-        int result = instance.getCFlags();
-        assertEquals(expResult, result);
-    }
-
-    /**
-     * Test of toString method, of class com.sun.electric.database.variable.AbstractTextDescriptor.Code.
-     */
-    @Test public void testCodeToString() {
-        System.out.println("toString");
-
-        AbstractTextDescriptor.Code instance = TextDescriptor.Code.NONE;
-
-        String expResult = "Not Code";
-        String result = instance.toString();
-        assertEquals(expResult, result);
-    }
-
-    /**
-     * Test of getCodes method, of class com.sun.electric.database.variable.AbstractTextDescriptor.Code.
-     */
-    @Test public void testCodeGetCodes() {
-        System.out.println("getCodes");
-
-        List<TextDescriptor.Code> expResult = Arrays.asList(
-                TextDescriptor.Code.JAVA,
-                TextDescriptor.Code.SPICE,
-                TextDescriptor.Code.TCL,
-                TextDescriptor.Code.NONE
-                );
-        Iterator<TextDescriptor.Code> result = TextDescriptor.Code.getCodes();
-        int i = 0;
-        while (result.hasNext())
-            assertEquals(expResult.get(i++), result.next());
-        assertEquals(expResult.size(), i);
-    }
-
-    /**
-     * Test of getByCBits method, of class com.sun.electric.database.variable.AbstractTextDescriptor.Code.
-     */
-    @Test public void testCodeGetByCBits() {
-        System.out.println("getByCBits");
-
-        int cBits = 0;
-
-        TextDescriptor.Code expResult = TextDescriptor.Code.NONE;
-        TextDescriptor.Code result = TextDescriptor.Code.getByCBits(cBits);
-        assertEquals(expResult, result);
     }
 
 

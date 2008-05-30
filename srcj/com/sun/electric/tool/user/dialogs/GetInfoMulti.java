@@ -35,6 +35,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.CodeExpression;
 import com.sun.electric.database.variable.DisplayedText;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.MutableTextDescriptor;
@@ -561,7 +562,7 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 					case CHANGECODE:
 						JComboBox cd = new JComboBox();
 						cd.addItem("Leave alone");
-						for (Iterator<TextDescriptor.Code> cIt = TextDescriptor.Code.getCodes(); cIt.hasNext(); )
+						for (Iterator<CodeExpression.Code> cIt = CodeExpression.Code.getCodes(); cIt.hasNext(); )
 			                cd.addItem(cIt.next());
 						addChangePossibility("Code:", currentChangeValues[c] = cd, null, onePanel);
 						break;
@@ -752,7 +753,7 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 		private String font;
 		private int color;
 		private int bold, italic, underline;
-		private TextDescriptor.Code code;
+		private CodeExpression.Code code;
 		private int units;
 		private int show;
 	}
@@ -1350,8 +1351,8 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 			mcp.font = (String)findComboBoxValue(ChangeType.CHANGEFONT);
 			mcp.color = findComboBoxIndex(ChangeType.CHANGECOLOR);
 			Object cdValue = findComboBoxValue(ChangeType.CHANGECODE);
-			if (cdValue instanceof TextDescriptor.Code)
-				mcp.code = (TextDescriptor.Code)cdValue;
+			if (cdValue instanceof CodeExpression.Code)
+				mcp.code = (CodeExpression.Code)cdValue;
 			Object unValue = findComboBoxValue(ChangeType.CHANGEUNITS);
 			if (unValue instanceof TextDescriptor.Unit)
 				mcp.units = ((TextDescriptor.Unit)unValue).getIndex();

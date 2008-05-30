@@ -379,11 +379,10 @@ public class ImmutableArcInstTest {
     @Test public void testNewInstance() {
         System.out.println("newInstance");
 
-        TextDescriptor td = TextDescriptor.newTextDescriptor(new MutableTextDescriptor()).withCode(TextDescriptor.Code.JAVA).withParam(true);
+        TextDescriptor td = TextDescriptor.newTextDescriptor(new MutableTextDescriptor()).withParam(true);
         ImmutableArcInst a1 = ImmutableArcInst.newInstance(0, apId, nameA0, td, 0, ppId, n0.anchor, 1, ppId, n1.anchor, apExtend, 0, ImmutableArcInst.DEFAULT_FLAGS);
         a1.check();
         assertTrue(a1.nameDescriptor.isDisplay());
-        assertFalse(a1.nameDescriptor.isCode());
         assertFalse(a1.nameDescriptor.isParam());
 
         ImmutableArcInst a2 = ImmutableArcInst.newInstance(0, apId, nameA0, null, 0, ppId, n0.anchor, 0, ppId, n0.anchor, apExtend, -1, ImmutableArcInst.DEFAULT_FLAGS);
@@ -589,11 +588,10 @@ public class ImmutableArcInstTest {
         System.out.println("withNameDescriptor");
         assertSame(a0, a0.withNameDescriptor(a0.nameDescriptor));
 
-        TextDescriptor td = TextDescriptor.newTextDescriptor(new MutableTextDescriptor()).withCode(TextDescriptor.Code.JAVA).withParam(true).withUnderline(true);
+        TextDescriptor td = TextDescriptor.newTextDescriptor(new MutableTextDescriptor()).withParam(true).withUnderline(true);
         ImmutableArcInst a1 = a0.withNameDescriptor(td);
         a1.check();
         assertTrue(a1.nameDescriptor.isDisplay());
-        assertFalse(a1.nameDescriptor.isCode());
         assertFalse(a1.nameDescriptor.isParam());
         assertTrue(a1.nameDescriptor.isUnderline());
     }

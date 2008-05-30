@@ -843,18 +843,18 @@ public class VectorCache {
             if (n instanceof ImmutableIconInst) {
                 for(Iterator<Variable> vIt = ((ImmutableIconInst)n).getDefinedParameters(); vIt.hasNext(); ) {
                     Variable var = vIt.next();
-                    if (var.getCode() != TextDescriptor.Code.NONE) return true;
+                    if (var.isCode()) return true;
                 }
             }
             for(Iterator<Variable> vIt = n.getVariables(); vIt.hasNext(); ) {
                 Variable var = vIt.next();
-                if (var.getCode() != TextDescriptor.Code.NONE) return true;
+                if (var.isCode()) return true;
             }
         }
         for (ImmutableArcInst a: cellRevision.arcs) {
             for(Iterator<Variable> vIt = a.getVariables(); vIt.hasNext(); ) {
                 Variable var = vIt.next();
-                if (var.getCode() != TextDescriptor.Code.NONE) return true;
+                if (var.isCode()) return true;
             }
         }
 

@@ -3327,7 +3327,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	public void setTextDescriptor(Variable.Key varKey, TextDescriptor td) {
         Variable param = getParameter(varKey);
         if (param != null) {
-            td = td.withParam(true).withInherit(true).withUnit(param.getUnit()).withCode(param.getCode());
+            td = td.withParam(true).withInherit(true).withUnit(param.getUnit());
             addParam(param.withTextDescriptor(td));
             return;
         }

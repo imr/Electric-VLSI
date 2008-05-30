@@ -27,6 +27,7 @@ import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.CodeExpression;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
@@ -98,7 +99,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener
 			private String varTrueName;
 			private Variable.Key varKey;
 			private Object value;
-			private TextDescriptor.Code code;
+			private CodeExpression.Code code;
 			private TextDescriptor.DispPos dispPos;
 			private TextDescriptor.Unit units;
 			private boolean display;
@@ -110,7 +111,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener
 			// initial state of var entry
 			private String initialVarTrueName;
 			private Object initialValue;
-			private TextDescriptor.Code initialCode;
+			private CodeExpression.Code initialCode;
 			private TextDescriptor.DispPos initialDispPos;
 			private TextDescriptor.Unit initialUnits;
 			private boolean initialDisplay;
@@ -131,7 +132,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener
 
 			private String getName() { return varTrueName; }
 			private Object getObject() { return value; }
-			private TextDescriptor.Code getCode() { return code; }
+			private CodeExpression.Code getCode() { return code; }
 			private TextDescriptor.DispPos getDispPos() { return dispPos; }
 			private TextDescriptor.Unit getUnits() { return units; }
 			private boolean isDisplay() { return display; }
@@ -266,7 +267,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener
 			}
 
 			if (col == getCodeColumn()) {
-				TextDescriptor.Code newCode = (TextDescriptor.Code)aValue;
+				CodeExpression.Code newCode = (CodeExpression.Code)aValue;
 				if (newCode != ve.getCode()) {
 					ve.code = newCode;
 					fireTableCellUpdated(row, col);
@@ -331,7 +332,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener
 		}
 
 		public Class<?> getColumnClass(int col) {
-			if (col == getCodeColumn()) return TextDescriptor.Code.class;
+			if (col == getCodeColumn()) return CodeExpression.Code.class;
 			if (col == getDispColumn()) return Object.class;
 			if (col == getUnitsColumn()) return TextDescriptor.Unit.class;
 			return String.class;
@@ -364,7 +365,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener
 			ve.varKey = null;
 			ve.varTrueName = getUniqueName("newVar");
 			ve.value = "?";
-			ve.code = TextDescriptor.Code.NONE;
+			ve.code = CodeExpression.Code.NONE;
 			ve.dispPos = TextDescriptor.DispPos.NAMEVALUE;
 			ve.units = TextDescriptor.Unit.NONE;
 			ve.display = true;
@@ -437,7 +438,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener
 			List<Object> createValue = new ArrayList<Object>();
 			List<Boolean> createNew = new ArrayList<Boolean>();
 			List<Boolean> createDisplay = new ArrayList<Boolean>();
-			List<TextDescriptor.Code> createCode = new ArrayList<TextDescriptor.Code>();
+			List<CodeExpression.Code> createCode = new ArrayList<CodeExpression.Code>();
 			List<Integer> createDispPos = new ArrayList<Integer>();
 			List<Integer> createUnits = new ArrayList<Integer>();
 
@@ -449,7 +450,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener
 				Object newValue = ve.getObject();
 				boolean newCreate = false;
 				boolean newDisplay = ve.isDisplay();
-				TextDescriptor.Code newCode = ve.getCode();
+				CodeExpression.Code newCode = ve.getCode();
 				int newDispPos = ve.getDispPos().getIndex();
 				int newUnits = ve.getUnits().getIndex();
 
@@ -507,7 +508,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener
 			private List<Object> createValue;
 			private List<Boolean> createNew;
 			private List<Boolean> createDisplay;
-			private List<TextDescriptor.Code> createCode;
+			private List<CodeExpression.Code> createCode;
 			private List<Integer> createDispPos;
 			private List<Integer> createUnits;
 			private List<Variable.Key> varsToDelete;
@@ -517,7 +518,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener
 				List<Object> createValue,
 				List<Boolean> createNew,
 				List<Boolean> createDisplay,
-				List<TextDescriptor.Code> createCode,
+				List<CodeExpression.Code> createCode,
 				List<Integer> createDispPos,
 				List<Integer> createUnits,
 				List<Variable.Key> varsToDelete)
@@ -553,7 +554,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener
 					Object obj = createValue.get(i);
 					boolean makeNew = createNew.get(i).booleanValue();
 					boolean display = createDisplay.get(i).booleanValue();
-					TextDescriptor.Code code = createCode.get(i);
+					CodeExpression.Code code = createCode.get(i);
 					TextDescriptor.DispPos dispPos = TextDescriptor.DispPos.getShowStylesAt(createDispPos.get(i).intValue());
 					TextDescriptor.Unit units = TextDescriptor.Unit.getUnitAt(createUnits.get(i).intValue());
 					obj = Variable.withCode(obj, code);
@@ -670,7 +671,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener
 	private void initComboBoxes() {
 		if (codeComboBox == null) {
 			codeComboBox = new JComboBox();
-			for (Iterator<TextDescriptor.Code> it = TextDescriptor.Code.getCodes(); it.hasNext(); ) {
+			for (Iterator<CodeExpression.Code> it = CodeExpression.Code.getCodes(); it.hasNext(); ) {
 				codeComboBox.addItem(it.next());
 			}
 			codeComboBox.setFont(new Font("Dialog", 0, 11));

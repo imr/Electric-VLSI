@@ -35,11 +35,10 @@ public class TextDescriptor extends AbstractTextDescriptor
     /** the text descriptor is displayable */   private final Display display;
 	/** the bits of the text descriptor */		private final long bits;
 	/** the color of the text descriptor */		private final int colorIndex;
-    /** the code type of the text descriptor */ private final Code code;
     /** cache of all TextDescriptors */         private static final HashMap<TextDescriptor,TextDescriptor> allDescriptors = new HashMap<TextDescriptor,TextDescriptor>();
     /** empty text descriptor. Size is relative 1.0. isDisplay is true. */
     public static final TextDescriptor EMPTY = newTextDescriptor(new MutableTextDescriptor());
-    
+
     /**
 	 * The constructor creates canonized copy of anotherTextDescriptor.
 	 * @param descriptor another descriptor.
@@ -63,23 +62,22 @@ public class TextDescriptor extends AbstractTextDescriptor
         if (zeroXOff) bits &= ~VTXOFFNEG;
         if (zeroYOff) bits &= ~VTYOFFNEG;
         if (zeroXOff && zeroYOff) bits &= ~VTOFFSCALE;
-       
+
         this.display = display;
         this.bits = bits;
 		this.colorIndex = display != Display.NONE ? descriptor.getColorIndex() : 0;
-        this.code = descriptor.getCode();
 	}
-    
+
     private Object readResolve() {
         return getUniqueTextDescriptor(this);
     }
-    
+
     public static TextDescriptor newTextDescriptor(AbstractTextDescriptor td)
     {
         if (td instanceof TextDescriptor) return (TextDescriptor)td;
         return getUniqueTextDescriptor(td);
     }
-  
+
     private static TextDescriptor getUniqueTextDescriptor(AbstractTextDescriptor td)
     {
         TextDescriptor cacheTd = allDescriptors.get(td);
@@ -94,7 +92,7 @@ public class TextDescriptor extends AbstractTextDescriptor
         allDescriptors.put(itd, itd);
         return itd;
     }
-  
+
 	/**
 	 * Returns TextDescriptor which differs from this TextDescriptor by displayable flag.
 	 * Displayable Variables are shown with the object.
@@ -282,7 +280,7 @@ public class TextDescriptor extends AbstractTextDescriptor
 		td.setParam(state);
         return newTextDescriptor(td);
 	}
-    
+
 	/**
 	 * Returns TextDescriptor which differs from this TextDescriptor by
      * X and Y offsets of the text in the Variable's TextDescriptor.
@@ -330,37 +328,23 @@ public class TextDescriptor extends AbstractTextDescriptor
         return newTextDescriptor(td);
 	}
 
-    /**
-     * Returns TextDescriptor which differs from this TextDescriptor by code.
-     * @param code code of new TextDescriptor.
-     * @return TextDescriptor which differs from this TextDescriptor by code
-     */
-    public TextDescriptor withCode(Code code) {
-        if (code == null) code = Code.NONE;
-        if (getCode() == code) return this;
-		MutableTextDescriptor td = new MutableTextDescriptor(this);
-		td.setCode(code);
-        return newTextDescriptor(td);
-    }
-
-    public TextDescriptor withDisplayWithoutParamAndCode() {
-        if (isDisplay() && !isParam() && !isCode()) return this;
+    public TextDescriptor withDisplayWithoutParam() {
+        if (isDisplay() && !isParam()) return this;
         MutableTextDescriptor mtd = new MutableTextDescriptor(this);
         mtd.setDisplay(Display.SHOWN);
         mtd.setParam(false);
-        mtd.setCode(Code.NONE);
         return newTextDescriptor(mtd);
     }
-    
+
     public static int cacheSize() { return allDescriptors.size(); }
-    
+
 	/**
 	 * Method to return mode how this TextDescriptor is displayable.
 	 * @return Display mode how this TextDescriptor is displayable.
 	 */
     @Override
 	public Display getDisplay() { return display; }
-    
+
 	/**
 	 * Low-level method to get the bits in the TextDescriptor.
 	 * These bits are a collection of flags that are more sensibly accessed
@@ -372,7 +356,7 @@ public class TextDescriptor extends AbstractTextDescriptor
 	 */
     @Override
 	public long lowLevelGet() { return bits; }
-    
+
 	/**
 	 * Method to return the color index of the TextDescriptor.
 	 * Color indices are more general than colors, because they can handle
@@ -382,14 +366,7 @@ public class TextDescriptor extends AbstractTextDescriptor
 	 */
     @Override
 	public int getColorIndex() { return colorIndex; }
-    
-    /**
-     * Return code type of the TextDescriptor.
-     * @return code tyoe
-     */
-    @Override
-    public Code getCode() { return code; }
-    
+
     /**
 	 * Method to return a displayable TextDescriptor that is a default for Variables on NodeInsts.
 	 * @return a new TextDescriptor that can be stored in a Variable on a NodeInsts.
@@ -398,7 +375,7 @@ public class TextDescriptor extends AbstractTextDescriptor
 	{
 		return cacheNodeDescriptor.newTextDescriptor(true);
 	}
-    
+
 	/**
 	 * Method to return a displayable TextDescriptor that is a default for Variables on ArcInsts.
 	 * @return a new TextDescriptor that can be stored in a Variable on a ArcInsts.
@@ -407,7 +384,7 @@ public class TextDescriptor extends AbstractTextDescriptor
 	{
 		return cacheArcDescriptor.newTextDescriptor(true);
 	}
-    
+
 	/**
 	 * Method to return a displayable TextDescriptor that is a default for Variables on Exports.
 	 * @return a new TextDescriptor that can be stored in a Variable on a Exports.
@@ -434,7 +411,7 @@ public class TextDescriptor extends AbstractTextDescriptor
 	{
 		return cacheAnnotationDescriptor.newTextDescriptor(true);
 	}
-    
+
 	/**
 	 * Method to return a displayable TextDescriptor that is a default for Variables on Cell Instance Names.
 	 * @return a new TextDescriptor that can be stored in a Variable on a Cell Instance Names.

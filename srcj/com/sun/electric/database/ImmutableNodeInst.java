@@ -243,7 +243,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         	throw new IllegalArgumentException("bad name: "+name);
         if (name.hasDuplicates()) throw new IllegalArgumentException("name");
         if (nameDescriptor != null)
-            nameDescriptor = nameDescriptor.withDisplayWithoutParamAndCode();
+            nameDescriptor = nameDescriptor.withDisplayWithoutParam();
         if (orient == null) throw new NullPointerException("orient");
 		if (anchor == null) throw new NullPointerException("anchor");
         if (size == null) throw new NullPointerException("size");
@@ -258,7 +258,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         flags &= FLAG_BITS;
         techBits &= NTECHBITS >> NTECHBITSSH;
         if (protoDescriptor != null)
-            protoDescriptor = protoDescriptor.withDisplayWithoutParamAndCode();
+            protoDescriptor = protoDescriptor.withDisplayWithoutParam();
         return newInstance(nodeId, protoId, name, nameDescriptor,
                 orient, anchor, size, flags, (byte)techBits, protoDescriptor,
                 Variable.NULL_ARRAY, ImmutablePortInst.NULL_ARRAY, Variable.NULL_ARRAY);
@@ -300,7 +300,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 	 */
 	public ImmutableNodeInst withNameDescriptor(TextDescriptor nameDescriptor) {
         if (nameDescriptor != null)
-            nameDescriptor = nameDescriptor.withDisplayWithoutParamAndCode();
+            nameDescriptor = nameDescriptor.withDisplayWithoutParam();
         if (this.nameDescriptor == nameDescriptor) return this;
 		return newInstance(this.nodeId, this.protoId, this.name, nameDescriptor,
                 this.orient, this.anchor, this.size, this.flags, this.techBits, this.protoDescriptor,
@@ -410,7 +410,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 	 */
 	public ImmutableNodeInst withProtoDescriptor(TextDescriptor protoDescriptor) {
         if (protoDescriptor != null)
-            protoDescriptor = protoDescriptor.withDisplayWithoutParamAndCode();
+            protoDescriptor = protoDescriptor.withDisplayWithoutParam();
         if (this.protoDescriptor == protoDescriptor) return this;
 		return newInstance(this.nodeId, this.protoId, this.name, this.nameDescriptor,
                 this.orient, this.anchor, this.size, this.flags, this.techBits, protoDescriptor,
@@ -755,7 +755,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         assert !(name.isTempname() && name.isBus());
         assert !name.hasDuplicates();
         if (nameDescriptor != null)
-            assert nameDescriptor.isDisplay() && !nameDescriptor.isCode() && !nameDescriptor.isParam();
+            assert nameDescriptor.isDisplay() && !nameDescriptor.isParam();
         assert orient != null;
         assert anchor != null;
         assert size != null;
@@ -764,7 +764,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         assert (flags & ~FLAG_BITS) == 0;
         assert (techBits & ~(NTECHBITS >> NTECHBITSSH)) == 0;
         if (protoDescriptor != null)
-            assert protoDescriptor.isDisplay() && !protoDescriptor.isCode() && !protoDescriptor.isParam();
+            assert protoDescriptor.isDisplay() && !protoDescriptor.isParam();
         if (protoId instanceof CellId) {
             assert size == EPoint.ORIGIN;
         }

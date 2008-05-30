@@ -36,7 +36,6 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.generator.layout.LayoutLib;
@@ -54,7 +53,7 @@ class CellUsage extends HierarchyEnumerator.Visitor {
 	private Set<Cell> singleUseCells;
 	// Cells with at least one LEGATE descendent
 	private Set<Cell> cellsWithLeGates;
-	
+
 	private void prln(String s) {System.out.println(s);}
 	private void processCellGroupAdditions(CellContext cellCtxt) {
 		NccCellAnnotations ann = NccCellAnnotations.getAnnotations(cellCtxt.cell);
@@ -64,7 +63,7 @@ class CellUsage extends HierarchyEnumerator.Visitor {
 		Set<CellContext> additions = groupToAdditions.get(group);
 		if (additions==null) {
 			additions = new HashSet<CellContext>();
-			groupToAdditions.put(group, additions);					
+			groupToAdditions.put(group, additions);
 		}
 		additions.add(cellCtxt);
 	}
@@ -73,7 +72,7 @@ class CellUsage extends HierarchyEnumerator.Visitor {
 		if (root==null) root = cell;
 		VarContext context = info.getContext();
 		if (cellsInUse.containsKey(cell))  return false;
-		CellContext cellCtxt = new CellContext(cell, context); 
+		CellContext cellCtxt = new CellContext(cell, context);
 		cellsInUse.put(cell, cellCtxt);
 		processCellGroupAdditions(cellCtxt);
 		return true;
@@ -84,7 +83,7 @@ class CellUsage extends HierarchyEnumerator.Visitor {
 	public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info) {
 		return true;
 	}
-	
+
 	private void addUse(Set<Cell> usedOnce, Set<Cell> usedMoreThanOnce, Cell c) {
 		if (usedMoreThanOnce.contains(c)) return;
 		if (usedOnce.contains(c)) {
@@ -104,14 +103,14 @@ class CellUsage extends HierarchyEnumerator.Visitor {
 			// usedOnce holds all Cells instantiated exactly once by the design hierarchy
 			// rooted at c
 			Set<Cell> usedOnce = new HashSet<Cell>();
-			// For each child Cell of c: child 
+			// For each child Cell of c: child
 			for (Iterator<Nodable> noIt=c.getNetlist(NccNetlist.SHORT_RESISTORS).getNodables(); noIt.hasNext();) {
 				NodeProto np = noIt.next().getProto();
 				if (!(np instanceof Cell)) continue;
 				Cell child = (Cell) np;
 				addUse(usedOnce, usedMoreThanOnce, child);
 
-				// Subtle: If child is an icon without a schematic then child 
+				// Subtle: If child is an icon without a schematic then child
 				// won't have usedOnce set. Apparently Nodables aren't created
 				// for icons with no schematic.
 				if (!cellToUsedOnce.containsKey(child))  continue;
@@ -149,7 +148,7 @@ class CellUsage extends HierarchyEnumerator.Visitor {
 		for (Iterator<Variable> vIt=no.getDefinedParameters(); vIt.hasNext();) {
 //		for (Iterator<Variable> vIt=no.getVariables(); vIt.hasNext();) {
 			Variable v = vIt.next();
-			if (v.getCode()==TextDescriptor.Code.JAVA) {
+			if (v.isJava()) {
 				String expr = v.getObject().toString();
 				// It's spelled two different ways
 				if (expr.indexOf("getDrive")!=-1 || expr.indexOf("getdrive")!=-1) {
@@ -216,7 +215,7 @@ class CellUsage extends HierarchyEnumerator.Visitor {
 	/** Cell has only one size in the design */
 	public boolean cellHasOnlyOneSize(Cell cell) {
 		final boolean NEW_ALGORITHM = true;
-		
+
 //		//debug
 //		String cellNm = cell.getName();
 //		if (cellNm.indexOf("rxSlice")!=-1) {
@@ -225,9 +224,9 @@ class CellUsage extends HierarchyEnumerator.Visitor {
 //			prln("    LE Gates: "+cellsWithLeGates.contains(cell));
 //			prln("    Parameterized: "+cellIsParameterized(cell));
 //		}
-		
+
 		if (NEW_ALGORITHM) {
-			return singleUseCells.contains(cell) || 
+			return singleUseCells.contains(cell) ||
 		       (!cellsWithLeGates.contains(cell)) && !cellIsParameterized(cell);
 		} else {
 			return singleUseCells.contains(cell);
@@ -246,4 +245,4 @@ class CellUsage extends HierarchyEnumerator.Visitor {
 		return additions!=null ? additions : new HashSet<CellContext>();
 	}
 	public Cell getRoot() {return root;}
-} 
+}

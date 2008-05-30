@@ -28,6 +28,7 @@ import com.sun.electric.database.EObjectInputStream;
 import com.sun.electric.database.EObjectOutputStream;
 import com.sun.electric.database.id.IdReader;
 import com.sun.electric.database.id.IdWriter;
+import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.TextUtils;
 
 import java.io.IOException;
@@ -36,6 +37,7 @@ import java.io.StreamTokenizer;
 import java.io.StringReader;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -46,13 +48,20 @@ import java.util.regex.Pattern;
  * Class encapsulate expression in Java-like or Spice-like syntax
  */
 public class CodeExpression implements Serializable {
+    // Variable flags in C Electric
+	/** variable is interpreted code (with VCODE2) */	private static final int VCODE1 =                040;
+	/** variable is interpreted code (with VCODE1) */	private static final int VCODE2 =        04000000000;
+	/** variable is LISP */								private static final int VSPICE =             VCODE1;
+	/** variable is TCL */								private static final int VTCL =               VCODE2;
+	/** variable is Java */								private static final int VJAVA =      (VCODE1|VCODE2);
+
     private static final HashMap <String,CodeExpression> javaExpressions = new HashMap<String,CodeExpression>();
     private static final HashMap <String,CodeExpression> spiceExpressions = new HashMap<String,CodeExpression>();
     private static final HashMap <String,CodeExpression> tclExpressions = new HashMap<String,CodeExpression>();
     private static long numValueOfs;
     /** For replacing @variable */ private static final Pattern pPat = Pattern.compile("P\\(\"(\\w+)\"\\)");
-    
-    private final TextDescriptor.Code code;
+
+    private final Code code;
     private final String expr;
     private final Set<Variable.Key> depends;
     private final Expr exprTree;
@@ -61,7 +70,71 @@ public class CodeExpression implements Serializable {
     private final String spiceText;
     private final String spiceTextPar;
 
-    private CodeExpression(String expr, TextDescriptor.Code code) {
+    /**
+     * The type of Code that determines how this Variable's
+     * value should be evaluated. If NONE, no evaluation is done.
+     */
+    public static enum Code {
+        /** Indicator that code is in Java. */	JAVA("Java", VJAVA),
+		/** Indicator that code is in Lisp. */	SPICE("Spice", VSPICE),
+		/** Indicator that code is in TCL. */	TCL("TCL (not avail.)", VTCL),
+		/** Indicator that this is not code. */	NONE("Not Code", 0);
+
+        private final String name;
+        private final int cFlags;
+        private static final Code[] allCodes = Code.class.getEnumConstants();
+
+        private Code(String name, int cFlags) {
+            this.name = name;
+            this.cFlags = cFlags;
+        }
+
+		/**
+		 * Method to return the bits value of this code type.
+		 * This is used in I/O.
+		 * @return the bits value of this code type.
+		 */
+        public int getCFlags() { return cFlags; }
+
+		/**
+		 * Method to return a printable version of this Code.
+		 * @return a printable version of this Code.
+		 */
+        public String toString() { return name; }
+
+        /**
+         * Method to get an iterator over all Code types.
+         */
+        public static Iterator<Code> getCodes() { return ArrayIterator.iterator(allCodes); }
+
+		/**
+		 * Method to convert a bits value to a Code object.
+		 * @param cBits the bits value (from I/O).
+		 * @return the Code associated with those bits.
+		 */
+        public static Code getByCBits(int cBits)
+        {
+            switch (cBits & (VCODE1|VCODE2))
+            {
+                case VJAVA: return JAVA;
+                case VSPICE: return SPICE;
+                case VTCL: return TCL;
+                default: return NONE;
+            }
+        }
+
+		/**
+		 * Method to get a Code constant by its ordinal number.
+		 * @param ordinal the ordinal number of this Code constant ( as returned by ordinal()
+		 * @return the Code associated with this ordinal number.
+		 */
+        public static Code getByOrdinal(int ordinal)
+        {
+            return allCodes[ordinal];
+        }
+    }
+
+    private CodeExpression(String expr, Code code) {
         this.code = code;
         this.expr = expr;
         TreeSet<Variable.Key> varKeys = new TreeSet<Variable.Key>();
@@ -72,7 +145,7 @@ public class CodeExpression implements Serializable {
             varKeys.add(Variable.newKey(varName));
         }
         depends = Collections.unmodifiableSet(varKeys);
-        
+
         String patchedExpr = expr.replace("((Number)@X).doubleValue()", "@X");
         Expr exprTree = null;
         EvalSpice.ParseException parseException = null;
@@ -82,13 +155,13 @@ public class CodeExpression implements Serializable {
                 case SPICE: exprTree = parse(patchedExpr, false); break;
                 default: throw new EvalSpice.ParseException("Unsupported code " + code);
             }
-            
+
         } catch (EvalSpice.ParseException e) {
             parseException = e;
         }
         this.exprTree = exprTree;
         this.parseException = parseException;
-        
+
         if (parseException != null) {
             dependsOnEverything = true;
             spiceTextPar = spiceText = parseException.getMessage();
@@ -102,28 +175,28 @@ public class CodeExpression implements Serializable {
             spiceTextPar = new String(sb);
         }
      }
-    
+
     private Object writeReplace() { return new CodeExpressionKey(this); }
-    
+
     private static class CodeExpressionKey extends EObjectInputStream.Key<CodeExpression> {
         public CodeExpressionKey() {}
         private CodeExpressionKey(CodeExpression ce) { super(ce); }
-        
+
         @Override
         public void writeExternal(EObjectOutputStream out, CodeExpression ce) throws IOException {
             out.writeUTF(ce.getExpr());
             out.writeByte(ce.getCode().ordinal());
         }
-        
+
         @Override
         public CodeExpression readExternal(EObjectInputStream in) throws IOException, ClassNotFoundException {
             String expr = in.readUTF();
-            TextDescriptor.Code code = TextDescriptor.Code.getByOrdinal(in.readByte());
+            Code code = Code.getByOrdinal(in.readByte());
             return valueOf(expr, code);
         }
     }
-    
-    public static synchronized CodeExpression valueOf(String expression, TextDescriptor.Code code) {
+
+    public static synchronized CodeExpression valueOf(String expression, Code code) {
         numValueOfs++;
         HashMap<String,CodeExpression> allExpressions;
         switch (code) {
@@ -139,9 +212,9 @@ public class CodeExpression implements Serializable {
         }
         return ce;
     }
-    
-    public TextDescriptor.Code getCode() { return code; }
-    public boolean isJava() { return code == TextDescriptor.Code.JAVA; }
+
+    public Code getCode() { return code; }
+    public boolean isJava() { return code == Code.JAVA; }
     public String getExpr() { return expr; }
     public Set<Variable.Key> dependsOn() { return depends; }
     public EvalSpice.ParseException getParseException() { return parseException; }
@@ -155,12 +228,12 @@ public class CodeExpression implements Serializable {
             return parseException.getMessage();
         return exprTree.eval(new EvalContext());
     }
-    
+
     @Override
     public int hashCode() {
         return expr.hashCode();
     }
-    
+
     @Override
     public boolean equals(Object o) {
         if (o instanceof CodeExpression) {
@@ -169,10 +242,10 @@ public class CodeExpression implements Serializable {
         }
         return false;
     }
-    
+
     @Override
     public String toString() { return expr; }
-    
+
     /**
      * Write this CodeExpression to IdWriter.
      * @param writer where to write.
@@ -181,20 +254,20 @@ public class CodeExpression implements Serializable {
         writer.writeString(expr);
         writer.writeByte((byte)code.ordinal());
     }
-    
+
     /**
      * Read CodeExpression from SnapshotReader.
      * @param reader from to write.
      */
     public static CodeExpression read(IdReader reader) throws IOException {
         String expr = reader.readString();
-        TextDescriptor.Code code = TextDescriptor.Code.getByOrdinal(reader.readByte());
+        Code code = Code.getByOrdinal(reader.readByte());
         return valueOf(expr, code);
     }
-    
+
     void check() {
         assert expr != null;
-        assert code != null && code != TextDescriptor.Code.NONE;
+        assert code != null && code != Code.NONE;
     }
 
     /**
@@ -205,7 +278,7 @@ public class CodeExpression implements Serializable {
         System.out.println((javaExpressions.size() + spiceExpressions.size() + tclExpressions.size()) +
                 " CodeExpressions after " + numValueOfs + " valueOf calls");
         if (!verbose) return;
-        
+
         System.out.println(javaExpressions.size() + " java strings");
         for (CodeExpression ce: new TreeMap<String,CodeExpression>(javaExpressions).values())
             printCE(ce);
@@ -216,7 +289,7 @@ public class CodeExpression implements Serializable {
         for (CodeExpression ce: new TreeMap<String,CodeExpression>(tclExpressions).values())
             printCE(ce);
     }
-    
+
     private static void printCE(CodeExpression ce) {
         System.out.print("\"" + ce.getExpr() + "\"\t");
         if (ce.dependsOnEverything)
@@ -229,13 +302,13 @@ public class CodeExpression implements Serializable {
             System.out.print(" -> \"" + ce.spiceText + "\"");
         System.out.println();
     }
-    
+
     private static class EvalContext {
         private Object getDrive() { return null; }
         private Object subDrive(String instName, String varName) { return null; }
         private Object get(Variable.Key varKey) { return null; }
     }
-    
+
     private static abstract class Expr {
         static final int MIN_PRECEDENCE = 1;
         static final int MAX_PRECEDENCE = EvalSpice.Op.COND.precedence;
@@ -262,7 +335,7 @@ public class CodeExpression implements Serializable {
         abstract Object eval(EvalContext context);
         static boolean bool(double d) { return d != 0; }
     }
-    
+
     private static class ConstExpr extends Expr {
         private final Object value;
         ConstExpr(Object value) { this.value = value; }
@@ -272,7 +345,7 @@ public class CodeExpression implements Serializable {
         }
         Object eval(EvalContext context) { return value; }
     }
-    
+
     private static class VarExpr extends Expr {
 
         private final Variable.Key varKey;
@@ -307,7 +380,7 @@ public class CodeExpression implements Serializable {
         boolean dependsOnEverything() {
             return true;
         }
-        
+
         Object eval(EvalContext context) {
             return context.getDrive();
         }
@@ -315,7 +388,7 @@ public class CodeExpression implements Serializable {
 
     private static class SubDriveExpr extends Expr {
         private final String instName, varName;
-        
+
         SubDriveExpr(String instName, String varName) {
             this.instName = instName;
             this.varName = varName;
@@ -328,7 +401,7 @@ public class CodeExpression implements Serializable {
         boolean dependsOnEverything() {
             return true;
         }
-        
+
         Object eval(EvalContext context) {
             return context.subDrive(instName, varName);
         }
@@ -348,7 +421,7 @@ public class CodeExpression implements Serializable {
         }
         abstract double apply(double v);
     }
-    
+
     private static class UnaryOpExpr extends UnaryExpr {
         private static final String opName = EvalSpice.Op.MINUS.name;
         private static final int opPrecedence = MIN_PRECEDENCE;
@@ -364,9 +437,9 @@ public class CodeExpression implements Serializable {
             return -v;
         }
     }
-    
+
     private static class UnaryFunExpr extends UnaryExpr {
-        enum Fun { sin, abs, sqrt, int_; 
+        enum Fun { sin, abs, sqrt, int_;
             @Override public String toString() {
                 return this == int_ ? "int" : super.toString();
             }
@@ -392,7 +465,7 @@ public class CodeExpression implements Serializable {
             throw new AssertionError();
         }
     }
-    
+
     private static abstract class BinaryExpr extends Expr {
         final Expr ls, rs;
         BinaryExpr(Expr ls, Expr rs) { this.ls = ls; this.rs = rs; }
@@ -409,7 +482,7 @@ public class CodeExpression implements Serializable {
         }
         abstract double apply(double lv, double rv);
     }
-    
+
     private static class BinaryOpExpr extends BinaryExpr {
         private final EvalSpice.Op op;
         BinaryOpExpr(Expr ls, EvalSpice.Op op, Expr rs) {
@@ -439,7 +512,7 @@ public class CodeExpression implements Serializable {
         }
         private static double valueOf(boolean b) { return b ? 1 : 0; }
     }
-    
+
     private static class BinaryFunExpr extends BinaryExpr {
         enum Fun { min, max };
         private final Fun fun;
@@ -463,7 +536,7 @@ public class CodeExpression implements Serializable {
             throw new AssertionError();
         }
     }
-    
+
     private static class IfThenElseExpr extends Expr {
         private static final int precedence = MAX_PRECEDENCE;
         final Expr condS, thenS, elseS;
@@ -493,11 +566,11 @@ public class CodeExpression implements Serializable {
             return Double.valueOf(v);
         }
     }
-    
+
     static Expr parse(String expr, boolean isJava) throws EvalSpice.ParseException {
         return new ParseSpice_(expr, isJava).parse();
     }
-    
+
     static class ParseSpice_ {
         private String expr;
         private boolean isJava;
@@ -736,7 +809,7 @@ public class CodeExpression implements Serializable {
                 throw new EvalSpice.ParseException("Expected token "+(char)token);
             nextToken();
         }
-        
+
         private int nextToken() throws IOException, EvalSpice.ParseException {
             switch (tokenizer.nextToken()) {
                 case '*':

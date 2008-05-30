@@ -2703,12 +2703,10 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	public void setTextDescriptor(Variable.Key varKey, TextDescriptor td)
 	{
         if (varKey == NODE_NAME) {
-            td = td.withCode(TextDescriptor.Code.NONE);
 			setD(d.withNameDescriptor(td), true);
             return;
         }
         if (varKey == NODE_PROTO) {
-            td = td.withCode(TextDescriptor.Code.NONE);
 			setD(d.withProtoDescriptor(td), true);
             return;
         }

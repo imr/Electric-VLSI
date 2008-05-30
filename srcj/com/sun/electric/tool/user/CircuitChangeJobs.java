@@ -47,10 +47,10 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.CodeExpression;
 import com.sun.electric.database.variable.DisplayedText;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.variable.Variable;
@@ -2685,7 +2685,7 @@ public class CircuitChangeJobs
 			// set the attribute
 			TextDescriptor td = TextDescriptor.getPortInstTextDescriptor().withDisplay(false);
 			Object value = inheritAddress(pp, var);
-			value = Variable.withCode(value, TextDescriptor.Code.NONE);
+			value = Variable.withCode(value, CodeExpression.Code.NONE);
 			pi.newVar(attrKey, value, td);
 		}
 	}

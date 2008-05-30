@@ -283,7 +283,6 @@ public class IdWriter {
             out.writeLong(td.lowLevelGet());
             out.writeInt(td.getColorIndex());
             out.writeBoolean(td.isDisplay());
-            out.writeByte(td.getCode().ordinal());
             int face = td.getFace();
             String fontName = face != 0 ? TextDescriptor.ActiveFont.findActiveFont(face).getName() : "";
             out.writeUTF(fontName);

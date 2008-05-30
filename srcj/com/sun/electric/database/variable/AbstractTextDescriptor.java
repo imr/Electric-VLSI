@@ -25,7 +25,6 @@ package com.sun.electric.database.variable;
 
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.tool.user.User;
 import java.awt.Font;
@@ -104,12 +103,7 @@ abstract class AbstractTextDescriptor implements Serializable
     static long VTSEMANTIC = VTISPARAMETER | VTINTERIOR | VTINHERIT | VTUNITS;
 
     // Variable flags in C Electric
-	/** variable is interpreted code (with VCODE2) */	private static final int VCODE1 =                040;
 	/** display variable (uses textdescript field) */	/*private*/ static final int VDISPLAY =         0100;
-	/** variable is interpreted code (with VCODE1) */	private static final int VCODE2 =        04000000000;
-	/** variable is LISP */								private static final int VSPICE =             VCODE1;
-	/** variable is TCL */								private static final int VTCL =               VCODE2;
-	/** variable is Java */								private static final int VJAVA =      (VCODE1|VCODE2);
 
     /** enumeration which represents text visibility .*/
     public enum Display {
@@ -692,70 +686,6 @@ abstract class AbstractTextDescriptor implements Serializable
 		public String toString() { return fontName; }
 	}
 
-    /**
-     * The type of Code that determines how this Variable's
-     * value should be evaluated. If NONE, no evaluation is done.
-     */
-    public static enum Code {
-        /** Indicator that code is in Java. */	JAVA("Java", VJAVA),
-		/** Indicator that code is in Lisp. */	SPICE("Spice", VSPICE),
-		/** Indicator that code is in TCL. */	TCL("TCL (not avail.)", VTCL),
-		/** Indicator that this is not code. */	NONE("Not Code", 0);
-
-        private final String name;
-        private final int cFlags;
-        private static final Code[] allCodes = Code.class.getEnumConstants();
-
-        private Code(String name, int cFlags) {
-            this.name = name;
-            this.cFlags = cFlags;
-        }
-
-		/**
-		 * Method to return the bits value of this code type.
-		 * This is used in I/O.
-		 * @return the bits value of this code type.
-		 */
-        public int getCFlags() { return cFlags; }
-
-		/**
-		 * Method to return a printable version of this Code.
-		 * @return a printable version of this Code.
-		 */
-        public String toString() { return name; }
-
-        /**
-         * Method to get an iterator over all Code types.
-         */
-        public static Iterator<Code> getCodes() { return ArrayIterator.iterator(allCodes); }
-
-		/**
-		 * Method to convert a bits value to a Code object.
-		 * @param cBits the bits value (from I/O).
-		 * @return the Code associated with those bits.
-		 */
-        public static Code getByCBits(int cBits)
-        {
-            switch (cBits & (VCODE1|VCODE2))
-            {
-                case VJAVA: return JAVA;
-                case VSPICE: return SPICE;
-                case VTCL: return TCL;
-                default: return NONE;
-            }
-        }
-
-		/**
-		 * Method to get a Code constant by its ordinal number.
-		 * @param ordinal the ordinal number of this Code constant ( as returned by ordinal()
-		 * @return the Code associated with this ordinal number.
-		 */
-        public static Code getByOrdinal(int ordinal)
-        {
-            return allCodes[ordinal];
-        }
-    }
-
 	/**
 	 * DescriptorPref is a factory for creating text descriptors for a definite purpose.
 	 */
@@ -812,8 +742,8 @@ abstract class AbstractTextDescriptor implements Serializable
             }
             bits = (bits & ~VTFACE) | (face << VTFACESH);
             bits = bits & ~(VTISPARAMETER|VTINHERIT);
-            tdF = TextDescriptor.newTextDescriptor(new MutableTextDescriptor(bits, color, false, Code.NONE));
-            tdT = TextDescriptor.newTextDescriptor(new MutableTextDescriptor(bits, color, true, Code.NONE));
+            tdF = TextDescriptor.newTextDescriptor(new MutableTextDescriptor(bits, color, false));
+            tdT = TextDescriptor.newTextDescriptor(new MutableTextDescriptor(bits, color, true));
 			return display ? tdT : tdF;
 		}
 
@@ -911,7 +841,7 @@ abstract class AbstractTextDescriptor implements Serializable
 	 */
     @Override
     public int hashCode() {
-		return lowLevelGet0()^lowLevelGet1()^getColorIndex()^getCode().hashCode()^getDisplay().hashCode();
+		return lowLevelGet0()^lowLevelGet1()^getColorIndex()^getDisplay().hashCode();
     }
 
     /**
@@ -932,8 +862,8 @@ abstract class AbstractTextDescriptor implements Serializable
 		}
 		if (anObject instanceof AbstractTextDescriptor) {
     		AbstractTextDescriptor td = (AbstractTextDescriptor)anObject;
-			return lowLevelGet() == td.lowLevelGet() && getColorIndex() == td.getColorIndex() &&
-                    getCode() == td.getCode() && getDisplay() == td.getDisplay();
+            return lowLevelGet() == td.lowLevelGet() && getColorIndex() == td.getColorIndex() &&
+                    getDisplay() == td.getDisplay();
 		}
 		return false;
     }
@@ -1225,16 +1155,4 @@ abstract class AbstractTextDescriptor implements Serializable
 	 * @return the color index of the TextDescriptor.
 	 */
 	public abstract int getColorIndex();
-
-    /**
-     * Return code type of the TextDescriptor.
-     * @return code tyoe
-     */
-    public abstract Code getCode();
-
-	/**
-	 * Method to tell whether this TextDescriptor is any code.
-	 * @return true if this TextDescriptor is any code.
-	 */
-	public boolean isCode() { return getCode() != Code.NONE; }
 }

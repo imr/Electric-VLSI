@@ -805,7 +805,7 @@ public class Spice extends Topology
                         if (USE_JAVA_CODE) {
                             extra = evalParam(context, ni, resistVar, forceEval);
                         } else {
-                            if (resistVar.getCode() == TextDescriptor.Code.SPICE) {
+                            if (resistVar.getCode() == CodeExpression.Code.SPICE) {
                                 if (!useCDL && Simulation.isSpiceUseCellParameters()) {
                                     Object obj = context.evalSpice(resistVar, false);
                                     extra = String.valueOf(obj);
@@ -882,7 +882,7 @@ public class Spice extends Topology
                         if (USE_JAVA_CODE) {
                             extra = evalParam(context, no, capacVar, forceEval);
                         } else {
-                            if (capacVar.getCode() == TextDescriptor.Code.SPICE) {
+                            if (capacVar.getCode() == CodeExpression.Code.SPICE) {
                                 if (!useCDL && Simulation.isSpiceUseCellParameters()) {
                                     Object obj = context.evalSpice(capacVar, false);
                                     extra = String.valueOf(obj);
@@ -910,7 +910,7 @@ public class Spice extends Topology
                         if (USE_JAVA_CODE) {
                             extra = evalParam(context, no, inductVar, forceEval);
                         } else {
-                            if (inductVar.getCode() == TextDescriptor.Code.SPICE) {
+                            if (inductVar.getCode() == CodeExpression.Code.SPICE) {
                                 if (!useCDL && Simulation.isSpiceUseCellParameters()) {
                                     Object obj = context.evalSpice(inductVar, false);
                                     extra = String.valueOf(obj);
@@ -1783,7 +1783,7 @@ public class Spice extends Topology
                         if (infstr.inQuotes()) pVal = trimSingleQuotes(pVal);
                     } else {
                         if (!useCDL && Simulation.isSpiceUseCellParameters() &&
-                                parentVar.getCode() == TextDescriptor.Code.SPICE) {
+                                parentVar.getCode() == CodeExpression.Code.SPICE) {
                             Object obj = context.evalSpice(attrVar, false);
                             if (obj != null)
                                 pVal = obj.toString();

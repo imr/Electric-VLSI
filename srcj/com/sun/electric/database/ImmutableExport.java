@@ -107,7 +107,7 @@ public class ImmutableExport extends ImmutableElectricObject {
 		if (name == null) throw new NullPointerException("name");
         if (!name.isValid() || name.hasEmptySubnames() || name.isTempname()) throw new IllegalArgumentException("name");
         if (nameDescriptor != null)
-            nameDescriptor = nameDescriptor.withDisplayWithoutParamAndCode();
+            nameDescriptor = nameDescriptor.withDisplayWithoutParam();
         if (originalNodeId < 0) throw new IllegalArgumentException("originalNodeId");
         if (originalPortId == null) throw new NullPointerException("orignalPortId");
         if (characteristic == null) characteristic = PortCharacteristic.UNKNOWN;
@@ -136,7 +136,7 @@ public class ImmutableExport extends ImmutableElectricObject {
 	 */
 	public ImmutableExport withNameDescriptor(TextDescriptor nameDescriptor) {
         if (nameDescriptor != null)
-            nameDescriptor = nameDescriptor.withDisplayWithoutParamAndCode();
+            nameDescriptor = nameDescriptor.withDisplayWithoutParam();
         if (this.nameDescriptor == nameDescriptor) return this;
 		return new ImmutableExport(this.exportId, this.name, nameDescriptor,
                 this.originalNodeId, this.originalPortId, this.alwaysDrawn, this.bodyOnly, this.characteristic, getVars());
@@ -350,7 +350,7 @@ public class ImmutableExport extends ImmutableElectricObject {
 		assert name != null;
         assert name.isValid() && !name.hasEmptySubnames() && !name.isTempname();
         if (nameDescriptor != null)
-            assert nameDescriptor.isDisplay() && !nameDescriptor.isCode() && !nameDescriptor.isParam();
+            assert nameDescriptor.isDisplay() && !nameDescriptor.isParam();
         assert originalNodeId >= 0;
         assert originalPortId != null;
         assert characteristic != null;

@@ -43,6 +43,7 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.RTBounds;
+import com.sun.electric.database.variable.CodeExpression;
 import com.sun.electric.database.variable.EvalJavaBsh;
 import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
@@ -57,7 +58,6 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.output.Spice;
 
-import java.awt.Color;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -729,8 +729,7 @@ public class Sue extends Input
                     }
                     Object instObject = newObject;
                     if (makeJava) {
-                        mtd.setCode(TextDescriptor.Code.JAVA);
-                        instObject = Variable.withCode(newObject, TextDescriptor.Code.JAVA);
+                        instObject = Variable.withCode(newObject, CodeExpression.Code.JAVA);
                     }
 					ni.newVar(varKey, instObject, TextDescriptor.newTextDescriptor(mtd));
 
@@ -743,8 +742,8 @@ public class Sue extends Input
                         if (contentsVar == null) {
                         	// really wanted: VTDISPLAYNAMEVALINH
                             TextDescriptor td = TextDescriptor.getCellTextDescriptor().withParam(true).
-                            	withCode(TextDescriptor.Code.SPICE).withDispPart(TextDescriptor.DispPos.NAMEVALUE);
-                            newObject = Variable.withCode(newObject, TextDescriptor.Code.SPICE);
+                            	withDispPart(TextDescriptor.DispPos.NAMEVALUE);
+                            newObject = Variable.withCode(newObject, CodeExpression.Code.SPICE);
                             cnp.getCellGroup().addParam(Variable.newInstance(varKey, newObject, td));
                         }
                     }

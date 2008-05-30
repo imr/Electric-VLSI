@@ -195,10 +195,10 @@ public abstract class ElectricObject implements Serializable
 	 * @param varKey key of variable or special key.
 	 * @return the Code on this ElectricObject.
 	 */
-	public TextDescriptor.Code getCode(Variable.Key varKey)
+	public CodeExpression.Code getCode(Variable.Key varKey)
 	{
 		Variable var = getParameterOrVariable(varKey);
-        return var != null ? var.getCode() : TextDescriptor.Code.NONE;
+        return var != null ? var.getCode() : CodeExpression.Code.NONE;
 	}
 
 	/**
@@ -663,10 +663,6 @@ public abstract class ElectricObject implements Serializable
 		else if (this instanceof NodeInst) td = TextDescriptor.cacheNodeDescriptor.newTextDescriptor(display);
 		else if (this instanceof ArcInst) td = TextDescriptor.cacheArcDescriptor.newTextDescriptor(display);
 		else td = TextDescriptor.cacheAnnotationDescriptor.newTextDescriptor(display);
-        TextDescriptor.Code code = TextDescriptor.Code.NONE;
-        if (value instanceof CodeExpression)
-            code = ((CodeExpression)value).getCode();
-        td = td.withCode(code);
 		return newVar(key, value, td);
 	}
 
@@ -743,7 +739,7 @@ public abstract class ElectricObject implements Serializable
 	 * @param code the new code of the Variable.
 	 * @return the Variable that has been updated.
 	 */
-	public Variable updateVarCode(Variable.Key key, TextDescriptor.Code code)
+	public Variable updateVarCode(Variable.Key key, CodeExpression.Code code)
 	{
 		Variable var = getVar(key);
 		if (var == null) return null;
@@ -796,7 +792,6 @@ public abstract class ElectricObject implements Serializable
 	{
 		TextDescriptor td = other.getTextDescriptor(varKey);
 		if (td == null) return;
-        td = td.withCode(getCode(varKey));
 		setTextDescriptor(varKey, td);
 	}
 

@@ -665,7 +665,7 @@ public abstract class LibraryFiles extends Input
             }
             if (exampleParam != null) {
                 TextDescriptor td = exampleParam.getTextDescriptor();
-                td = td.withInherit(true).withParam(true).withCode(param.getCode()).withUnit(param.getUnit());
+                td = td.withInherit(true).withParam(true).withUnit(param.getUnit());
                 boolean interior = !exampleParam.isDisplay();
                 td = td.withInterior(interior).withDisplay(true);
                 param = param.withTextDescriptor(td);

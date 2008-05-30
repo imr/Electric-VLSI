@@ -31,7 +31,6 @@ public class MutableTextDescriptor extends AbstractTextDescriptor
     /** the text descriptor is displayable */   private Display display;
 	/** the bits of the text descriptor */		private long bits;
 	/** the color of the text descriptor */		private int colorIndex;
-    /** the code type of the text descriptor */ private Code code;
 
 	/**
 	 * The constructor creates copy of anotherTextDescriptor.
@@ -42,7 +41,6 @@ public class MutableTextDescriptor extends AbstractTextDescriptor
         this.display = descriptor.getDisplay();
 		this.bits = descriptor.lowLevelGet();
 		this.colorIndex = descriptor.getColorIndex();
-        this.code = descriptor.getCode();
 	}
 
 	/**
@@ -53,7 +51,7 @@ public class MutableTextDescriptor extends AbstractTextDescriptor
 	public MutableTextDescriptor()
     {
         // Size is relative 1.0
-        this((4L << Size.TXTQGRIDSH) << VTSIZESH, 0, true, Code.NONE);
+        this((4L << Size.TXTQGRIDSH) << VTSIZESH, 0, true);
     }
 
 	/**
@@ -61,16 +59,14 @@ public class MutableTextDescriptor extends AbstractTextDescriptor
 	 * @param descriptor the bits of the text descriptor.
 	 * @param colorIndex color index of the text descriptor.
      * @param display true if text descriptor is displayable
-     * @param code laguage code of text descriptor 
 	 */
-	public MutableTextDescriptor(long descriptor, int colorIndex, boolean display, Code code)
+	public MutableTextDescriptor(long descriptor, int colorIndex, boolean display)
 	{
         this.display = display ? Display.SHOWN : Display.NONE;
 		this.bits = descriptor;
 		this.colorIndex = colorIndex;
-        this.code = code != null ? code : Code.NONE;
 	}
-    
+
 	/**
 	 * Set this MutableTextDescriptor to given C Electric bits.
 	 * @param descriptor0 lower word of the text descriptor.
@@ -81,9 +77,8 @@ public class MutableTextDescriptor extends AbstractTextDescriptor
         display = Display.SHOWN;
         bits = ((long)descriptor1 << 32) | (descriptor0 & 0xffffffffL);
         colorIndex = 0;
-        code = Code.NONE;
     }
-    
+
 	/**
 	 * Set this MutableTextDescriptor to given C Electric bits.
 	 * @param descriptor0 lower word of the text descriptor.
@@ -95,16 +90,15 @@ public class MutableTextDescriptor extends AbstractTextDescriptor
         display = (cFlags & VDISPLAY) != 0 ? Display.SHOWN : Display.NONE;
         bits = ((long)descriptor1 << 32) | (descriptor0 & 0xffffffffL);
         colorIndex = 0;
-        code = Code.getByCBits(cFlags);
     }
-    
+
 	/**
 	 * Method to return mode how this TextDescriptor is displayable.
 	 * @return Display mode how this TextDescriptor is displayable.
 	 */
     @Override
 	public Display getDisplay() { return display; }
-    
+
 	/**
 	 * Low-level method to get the bits in the TextDescriptor.
 	 * These bits are a collection of flags that are more sensibly accessed
@@ -116,7 +110,7 @@ public class MutableTextDescriptor extends AbstractTextDescriptor
 	 */
     @Override
 	public long lowLevelGet() { return bits; }
-    
+
 	/**
 	 * Method to return the color index of the TextDescriptor.
 	 * Color indices are more general than colors, because they can handle
@@ -126,24 +120,17 @@ public class MutableTextDescriptor extends AbstractTextDescriptor
 	 */
     @Override
 	public int getColorIndex() { return colorIndex; }
-    
-    /**
-     * Return code type of the TextDescriptor.
-     * @return code tyoe
-     */
-    @Override
-    public Code getCode() { return code; }
 
     private void setField(long mask, int shift, int value)
     {
         bits = bits & ~mask | ((long)value << shift) & mask;
     }
-    
+
     private void setFlag(long mask, boolean state)
     {
         bits = state ? bits | mask : bits & ~mask;
     }
-    
+
 	/**
 	 * Method to return a displayable TextDescriptor that is a default for Variables on NodeInsts.
 	 * @return a new TextDescriptor that can be stored in a Variable on a NodeInsts.
@@ -349,10 +336,4 @@ public class MutableTextDescriptor extends AbstractTextDescriptor
 	 * @param u the Unit of the TextDescriptor.
 	 */
 	public void setUnit(Unit u) { setField(VTUNITS, VTUNITSSH, u.getIndex()); }
-
-    /**
-     * Sets the code type of this TextDescriptor
-     * @param code the code to set to
-     */
-    public void setCode(Code code) { this.code = code != null ? code : Code.NONE; }
 }

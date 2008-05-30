@@ -25,6 +25,7 @@
 package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.variable.CodeExpression;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
@@ -53,7 +54,7 @@ public class TextAttributesPanel extends JPanel
     private TextDescriptor.Unit initialUnit;
     private Object initialDispPos;      // this needs to be an object because one choice, "none" is a string
                                         // instead of a TextDescriptor.DispPos
-    private TextDescriptor.Code initialCode;
+    private CodeExpression.Code initialCode;
 
     /**
      * Create a Panel for editing attribute specific
@@ -65,7 +66,7 @@ public class TextAttributesPanel extends JPanel
         initComponents();
 
         // add variable code types
-        for (Iterator<TextDescriptor.Code> it = TextDescriptor.Code.getCodes(); it.hasNext(); ) {
+        for (Iterator<CodeExpression.Code> it = CodeExpression.Code.getCodes(); it.hasNext(); ) {
             code.addItem(it.next());
         }
 
@@ -80,8 +81,8 @@ public class TextAttributesPanel extends JPanel
         // default settings
 
         // set code
-        initialCode = TextDescriptor.Code.NONE;
-        code.setSelectedItem(TextDescriptor.Code.NONE);
+        initialCode = CodeExpression.Code.NONE;
+        code.setSelectedItem(CodeExpression.Code.NONE);
         // set units
         initialUnit = TextDescriptor.Unit.NONE;
         units.setSelectedItem(initialUnit);
@@ -159,7 +160,7 @@ public class TextAttributesPanel extends JPanel
         // otherwise, use td
 
         // set code
-        initialCode = TextDescriptor.Code.NONE;
+        initialCode = CodeExpression.Code.NONE;
         if (var != null) {
             initialCode = var.getCode();
             code.setSelectedItem(initialCode);
@@ -208,10 +209,6 @@ public class TextAttributesPanel extends JPanel
      */
     public TextDescriptor withPanelValues(TextDescriptor td)
     {
-        // change the code type
-        TextDescriptor.Code newCode = (TextDescriptor.Code)code.getSelectedItem();
-        td = td.withCode(newCode);
-
         // change the units
         TextDescriptor.Unit newUnit = (TextDescriptor.Unit)units.getSelectedItem();
         td = td.withUnit(newUnit);
@@ -238,7 +235,7 @@ public class TextAttributesPanel extends JPanel
     public Object withPanelCode(Object value)
     {
         // change the code type
-        TextDescriptor.Code newCode = (TextDescriptor.Code)code.getSelectedItem();
+        CodeExpression.Code newCode = (CodeExpression.Code)code.getSelectedItem();
         return Variable.withCode(value, newCode);
     }
 
@@ -252,7 +249,7 @@ public class TextAttributesPanel extends JPanel
         boolean changed = false;
 
         // see if code changed
-        TextDescriptor.Code newCode = (TextDescriptor.Code)code.getSelectedItem();
+        CodeExpression.Code newCode = (CodeExpression.Code)code.getSelectedItem();
         if (newCode != initialCode) changed = true;
         // see if units changed
         TextDescriptor.Unit newUnit = (TextDescriptor.Unit)units.getSelectedItem();
@@ -300,14 +297,14 @@ public class TextAttributesPanel extends JPanel
 
         private ElectricObject owner;
         private Variable.Key varKey;
-        private TextDescriptor.Code code;
+        private CodeExpression.Code code;
         private int unit;
         private int dispPos;
 
         private ChangeText(
                 ElectricObject owner,
                 Variable.Key varKey,
-                TextDescriptor.Code code,
+                CodeExpression.Code code,
                 int unit,
                 int dispPos)
         {

@@ -496,7 +496,7 @@ public class VarContext implements Serializable
 
     /** For replacing @variable */ private static final Pattern pPat = Pattern.compile("P\\(\"(\\w+)\"\\)");
     private Object evalSpice_(CodeExpression ce, boolean recurse) throws EvalException {
-        assert ce.getCode() == TextDescriptor.Code.SPICE;
+        assert ce.getCode() == CodeExpression.Code.SPICE;
         String expr = EvalJavaBsh.replace(ce.getExpr());
         Matcher pMat = pPat.matcher(expr);
         StringBuffer sb = new StringBuffer();
@@ -508,7 +508,7 @@ public class VarContext implements Serializable
                 parentVar = no.getVar(Variable.findKey(pMat.group(1)));
             if (parentVar != null) {
                 // see if param is spice code by looking at instance code
-                boolean isSpiceCode = parentVar.getCode() == TextDescriptor.Code.SPICE;
+                boolean isSpiceCode = parentVar.getCode() == CodeExpression.Code.SPICE;
 //                if (no.isCellInstance()) {
 //                    Cell c = (Cell)no.getProto();
 //                    if (c.contentsView() != null) c = c.contentsView();

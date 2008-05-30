@@ -51,6 +51,7 @@ import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.CodeExpression;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
@@ -1782,7 +1783,7 @@ public class ReadableDump extends LibraryFiles
 					td1 = TextUtils.atoi(keyWord, slashPos+1);
 			}
             TextDescriptor td = makeDescriptor(td0, td1, type);
-            TextDescriptor.Code code = TextDescriptor.Code.getByCBits(type);
+            CodeExpression.Code code = CodeExpression.Code.getByCBits(type);
 
 			// get value
 			if (getKeyword())

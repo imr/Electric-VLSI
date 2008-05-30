@@ -26,7 +26,10 @@ package com.sun.electric.database.variable;
 
 import com.sun.electric.database.variable.Variable.Key;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import org.junit.After;
@@ -62,32 +65,91 @@ public class CodeExpressionTest {
     }
 
     /**
+     * Test of getCFlags method, of class com.sun.electric.database.variable.AbstractTextDescriptor.Code.
+     */
+    @Test public void testCodeGetCFlags() {
+        System.out.println("getCFlags");
+
+        CodeExpression.Code instance = CodeExpression.Code.NONE;
+
+        int expResult = 0;
+        int result = instance.getCFlags();
+        assertEquals(expResult, result);
+    }
+
+    /**
+     * Test of toString method, of class com.sun.electric.database.variable.AbstractTextDescriptor.Code.
+     */
+    @Test public void testCodeToString() {
+        System.out.println("toString");
+
+        CodeExpression.Code instance = CodeExpression.Code.NONE;
+
+        String expResult = "Not Code";
+        String result = instance.toString();
+        assertEquals(expResult, result);
+    }
+
+    /**
+     * Test of getCodes method, of class com.sun.electric.database.variable.AbstractTextDescriptor.Code.
+     */
+    @Test public void testCodeGetCodes() {
+        System.out.println("getCodes");
+
+        List<CodeExpression.Code> expResult = Arrays.asList(
+                CodeExpression.Code.JAVA,
+                CodeExpression.Code.SPICE,
+                CodeExpression.Code.TCL,
+                CodeExpression.Code.NONE
+                );
+        Iterator<CodeExpression.Code> result = CodeExpression.Code.getCodes();
+        int i = 0;
+        while (result.hasNext())
+            assertEquals(expResult.get(i++), result.next());
+        assertEquals(expResult.size(), i);
+    }
+
+    /**
+     * Test of getByCBits method, of class com.sun.electric.database.variable.AbstractTextDescriptor.Code.
+     */
+    @Test public void testCodeGetByCBits() {
+        System.out.println("getByCBits");
+
+        int cBits = 0;
+
+        CodeExpression.Code expResult = CodeExpression.Code.NONE;
+        CodeExpression.Code result = CodeExpression.Code.getByCBits(cBits);
+        assertEquals(expResult, result);
+    }
+
+
+    /**
      * Test of valueOf method, of class CodeExpression.
      */
     @Test
     public void valueOf() {
         System.out.println("valueOf");
-        
-        CodeExpression ja = CodeExpression.valueOf("a", TextDescriptor.Code.JAVA);
-        assertSame(TextDescriptor.Code.JAVA, ja.getCode());
+
+        CodeExpression ja = CodeExpression.valueOf("a", CodeExpression.Code.JAVA);
+        assertSame(CodeExpression.Code.JAVA, ja.getCode());
         assertTrue(ja.isJava());
         assertEquals("a", ja.getExpr());
-        
-        CodeExpression sa = CodeExpression.valueOf("a", TextDescriptor.Code.SPICE);
-        assertSame(TextDescriptor.Code.SPICE, sa.getCode());
+
+        CodeExpression sa = CodeExpression.valueOf("a", CodeExpression.Code.SPICE);
+        assertSame(CodeExpression.Code.SPICE, sa.getCode());
         assertFalse(sa.isJava());
         assertEquals("a", sa.getExpr());
-        
-        CodeExpression ta = CodeExpression.valueOf("a", TextDescriptor.Code.TCL);
-        assertSame(TextDescriptor.Code.TCL, ta.getCode());
+
+        CodeExpression ta = CodeExpression.valueOf("a", CodeExpression.Code.TCL);
+        assertSame(CodeExpression.Code.TCL, ta.getCode());
         assertFalse(sa.isJava());
         assertEquals("a", sa.getExpr());
-        
-        CodeExpression ja1 = CodeExpression.valueOf("a", TextDescriptor.Code.JAVA);
+
+        CodeExpression ja1 = CodeExpression.valueOf("a", CodeExpression.Code.JAVA);
         assertSame(ja, ja1);
-        CodeExpression sa1 = CodeExpression.valueOf("a", TextDescriptor.Code.SPICE);
+        CodeExpression sa1 = CodeExpression.valueOf("a", CodeExpression.Code.SPICE);
         assertSame(sa, sa1);
-        CodeExpression ta1 = CodeExpression.valueOf("a", TextDescriptor.Code.TCL);
+        CodeExpression ta1 = CodeExpression.valueOf("a", CodeExpression.Code.TCL);
         assertSame(ta, ta1);
     }
 
@@ -99,23 +161,23 @@ public class CodeExpressionTest {
         System.out.println("valueOfNullCode");
         CodeExpression.valueOf("a", null);
     }
-    
+
     /**
      * Test of valueOf method, of class CodeExpression.
      */
     @Test(expected = IllegalArgumentException.class)
     public void valueOfBadCode() {
         System.out.println("valueOfBadCode");
-        CodeExpression.valueOf("a", TextDescriptor.Code.NONE);
+        CodeExpression.valueOf("a", CodeExpression.Code.NONE);
     }
-    
+
     /**
      * Test of dependsOn method, of class CodeExpression.
      */
     @Test
     public void dependsOn() {
         System.out.println("dependsOn");
-        CodeExpression instance = CodeExpression.valueOf("@a", TextDescriptor.Code.JAVA);
+        CodeExpression instance = CodeExpression.valueOf("@a", CodeExpression.Code.JAVA);
         Set<Key> expResult = Collections.singleton(Variable.newKey("ATTR_a"));
         Set<Key> result = instance.dependsOn();
         assertEquals(expResult, result);
@@ -127,9 +189,9 @@ public class CodeExpressionTest {
     @Test
     public void testToString() {
         System.out.println("toString");
-        assertEquals("@a", CodeExpression.valueOf("@a", TextDescriptor.Code.JAVA).toString());
-        assertEquals("@a", CodeExpression.valueOf("@a", TextDescriptor.Code.SPICE).toString());
-        assertEquals("@a", CodeExpression.valueOf("@a", TextDescriptor.Code.TCL).toString());
+        assertEquals("@a", CodeExpression.valueOf("@a", CodeExpression.Code.JAVA).toString());
+        assertEquals("@a", CodeExpression.valueOf("@a", CodeExpression.Code.SPICE).toString());
+        assertEquals("@a", CodeExpression.valueOf("@a", CodeExpression.Code.TCL).toString());
     }
 
     @Test
@@ -169,14 +231,14 @@ public class CodeExpressionTest {
 //"Pfingers=Math.ceil(2.*@X.doubleValue()/15.); (Pfingers + 1.0) * 13.0"	 ATTR_X ? Pfingers=Math.ceil(<Expected token ==>2.*P("ATTR_X").doubleValue()/15.); (Pfingers + 1.0) * 13.0 -> "Pfingers=Math.ceil(<Expected token ==>2.*P("ATTR_X").doubleValue()/15.); (Pfingers + 1.0) * 13.0"
 //"Pfingers=Math.ceil(2.*@X.doubleValue()/15.); (Pfingers + 1.0) * 8.0 + (Pfingers*1.5) * 5."	 ATTR_X ? Pfingers=Math.ceil(<Expected token ==>2.*P("ATTR_X").doubleValue()/15.); (Pfingers + 1.0) * 8.0 + (Pfingers*1.5) * 5. -> "Pfingers=Math.ceil(<Expected token ==>2.*P("ATTR_X").doubleValue()/15.); (Pfingers + 1.0) * 8.0 + (Pfingers*1.5) * 5."
     }
-    
+
     private void goodJava(String expr, String expected) {
-        CodeExpression ce = CodeExpression.valueOf(expr, TextDescriptor.Code.JAVA);
+        CodeExpression ce = CodeExpression.valueOf(expr, CodeExpression.Code.JAVA);
         assertNull(ce.getParseException());
         assertEquals(expected, ce.getSpiceText());
     }
-    
-    
+
+
     @Test
     public void testGoodSpice() {
         System.out.println("goodSpice");
@@ -213,13 +275,13 @@ public class CodeExpressionTest {
         goodSpice("(layer==0?0.00441:layer<8?0.011:0.016)*1e-15", "(layer==0?4.41m:layer<8?11m:16m)*1f");
         goodSpice("1/0", "1/0");
     }
-    
+
     private void goodSpice(String expr, String expected) {
-        CodeExpression ce = CodeExpression.valueOf(expr, TextDescriptor.Code.SPICE);
+        CodeExpression ce = CodeExpression.valueOf(expr, CodeExpression.Code.SPICE);
         assertNull(ce.getParseException());
         assertEquals(expected, ce.getSpiceText());
     }
-    
+
     @Test
     public void testBadSpice() {
         System.out.println("badSpice");
@@ -244,12 +306,12 @@ public class CodeExpressionTest {
         badSpice("1-min((a+b)*c,(a+b)", "1-min((a+b)*c,(a+b)<Expected token )>");
         badSpice("M1 - M3 : 10001", "M1 - M3 :<Unexpected character :> 10001");
     }
-    
+
     private void badSpice(String expr, String expected) {
-        CodeExpression ce = CodeExpression.valueOf(expr, TextDescriptor.Code.SPICE);
+        CodeExpression ce = CodeExpression.valueOf(expr, CodeExpression.Code.SPICE);
         assertEquals(expected, ce.getParseException().getMessage());
     }
-    
+
     /**
      * Test written by Jonathan Gainsley for EvalSpice class
      */
@@ -296,7 +358,7 @@ public class CodeExpressionTest {
         testEval("1/0", null);
         testEval("M1 - M3 : 10001", null);
     }
-    
+
     private void testEval(String expr, String expected) {
 //        CodeExpression ce = CodeExpression.valueOf(expr, false);
 //        String evald = ce.eval().toString();
@@ -309,10 +371,10 @@ public class CodeExpressionTest {
     }
 
     private void testEval(String expr, double expected) {
-        CodeExpression ce = CodeExpression.valueOf(expr, TextDescriptor.Code.SPICE);
+        CodeExpression ce = CodeExpression.valueOf(expr, CodeExpression.Code.SPICE);
         assertNull(ce.getParseException());
         Double result = (Double)ce.eval();
         assertEquals(expected, result);
     }
-    
+
 }

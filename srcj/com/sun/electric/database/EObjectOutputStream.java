@@ -166,22 +166,19 @@ public class EObjectOutputStream extends ObjectOutputStream {
         /** the text descriptor is displayable */   private boolean display;
         /** the bits of the text descriptor */		private long bits;
         /** the color of the text descriptor */		private int colorIndex;
-        /** the code type of the text descriptor */ private int cFlags;
         /** the name of font of text descriptor */  private String fontName;
         
         private ETextDescriptor(TextDescriptor td) {
             display = td.isDisplay();
             bits = td.lowLevelGet();
             colorIndex = td.getColorIndex();
-            cFlags = td.getCode().getCFlags();
             int face = td.getFace();
             if (face != 0)
                 fontName = TextDescriptor.ActiveFont.findActiveFont(face).toString();
         }
         
         private Object readResolve() throws ObjectStreamException {
-            TextDescriptor.Code code = TextDescriptor.Code.getByCBits(cFlags);
-            MutableTextDescriptor mtd = new MutableTextDescriptor(bits, colorIndex, display, code);
+            MutableTextDescriptor mtd = new MutableTextDescriptor(bits, colorIndex, display);
             int face = 0;
             if (fontName != null)
                 face = TextDescriptor.ActiveFont.findActiveFont(fontName).getIndex();

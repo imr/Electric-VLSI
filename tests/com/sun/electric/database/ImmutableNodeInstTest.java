@@ -140,11 +140,10 @@ public class ImmutableNodeInstTest {
     @Test public void testNewInstance() {
         System.out.println("newInstance");
         
-        TextDescriptor td = TextDescriptor.newTextDescriptor(new MutableTextDescriptor()).withCode(TextDescriptor.Code.JAVA).withParam(true);
+        TextDescriptor td = TextDescriptor.newTextDescriptor(new MutableTextDescriptor()).withParam(true);
         ImmutableNodeInst n1 = ImmutableNodeInst.newInstance(0, cellCenterNodeId, nameA0, td, Orientation.R, EPoint.fromLambda(1, 2), EPoint.fromLambda(17, 17), 0, 0, td);
         n1.check();
         assertTrue(n1.nameDescriptor.isDisplay());
-        assertFalse(n1.nameDescriptor.isCode());
         assertFalse(n1.nameDescriptor.isParam());
         assertSame(n1.nameDescriptor, n1.protoDescriptor);
         assertSame(n1.orient, Orientation.IDENT);

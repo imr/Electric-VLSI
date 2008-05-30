@@ -482,7 +482,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         if (name == null) throw new NullPointerException("name");
         if (!name.isValid() || name.hasEmptySubnames() || name.isTempname() && name.getBasename() != BASENAME) throw new IllegalArgumentException("name");
         if (nameDescriptor != null)
-            nameDescriptor = nameDescriptor.withDisplayWithoutParamAndCode();
+            nameDescriptor = nameDescriptor.withDisplayWithoutParam();
         if (tailNodeId < 0) throw new IllegalArgumentException("tailNodeId");
         if (tailPortId == null) throw new NullPointerException("tailPortId");
         if (tailLocation == null) throw new NullPointerException("tailLocation");
@@ -531,7 +531,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 	 */
 	public ImmutableArcInst withNameDescriptor(TextDescriptor nameDescriptor) {
         if (nameDescriptor != null)
-            nameDescriptor = nameDescriptor.withDisplayWithoutParamAndCode();
+            nameDescriptor = nameDescriptor.withDisplayWithoutParam();
         if (this.nameDescriptor == nameDescriptor) return this;
 		return new ImmutableArcInst(this.arcId, this.protoId, this.name, nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
@@ -843,7 +843,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         if (name.isTempname())
             assert name.getBasename() == BASENAME && !name.isBus();
         if (nameDescriptor != null)
-            assert nameDescriptor.isDisplay() && !nameDescriptor.isCode() && !nameDescriptor.isParam();
+            assert nameDescriptor.isDisplay() && !nameDescriptor.isParam();
         assert tailNodeId >= 0;
         assert tailPortId != null;
         assert tailLocation != null;

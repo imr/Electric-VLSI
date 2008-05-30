@@ -1143,7 +1143,6 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	public void setTextDescriptor(Variable.Key varKey, TextDescriptor td)
 	{
         if (varKey == ARC_NAME) {
-            td = td.withCode(TextDescriptor.Code.NONE);
 			setD(d.withNameDescriptor(td), true);
             return;
         }

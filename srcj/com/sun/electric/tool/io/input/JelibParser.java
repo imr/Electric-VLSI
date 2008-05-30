@@ -46,6 +46,7 @@ import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.CodeExpression;
 import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
@@ -226,8 +227,8 @@ public class JelibParser
 
     private static class TextDescriptorAndCode {
         private final TextDescriptor td;
-        private final TextDescriptor.Code code;
-        TextDescriptorAndCode(TextDescriptor td, TextDescriptor.Code code) {
+        private final CodeExpression.Code code;
+        TextDescriptorAndCode(TextDescriptor td, CodeExpression.Code code) {
             this.td = td;
             this.code = code;
         }
@@ -1296,7 +1297,7 @@ public class JelibParser
 
         boolean error = false;
         mtd.setCBits(0, 0, 0);
-        TextDescriptor.Code code = TextDescriptor.Code.NONE;
+        CodeExpression.Code code = CodeExpression.Code.NONE;
         if (!onVar) mtd.setDisplay(TextDescriptor.Display.SHOWN);
 		double xoff = 0, yoff = 0;
 		for(int j=0; j<varBits.length(); j++)
@@ -1447,14 +1448,13 @@ public class JelibParser
 						break;
 					}
                     switch (codeLetter) {
-                        case 'J': code = TextDescriptor.Code.JAVA; break;
-                        case 'L': code = TextDescriptor.Code.SPICE; break;
-                        case 'T': code = TextDescriptor.Code.TCL; break;
+                        case 'J': code = CodeExpression.Code.JAVA; break;
+                        case 'L': code = CodeExpression.Code.SPICE; break;
+                        case 'T': code = CodeExpression.Code.TCL; break;
                         default:
                             logError("Unknown language specification: " + varBits);
                             error = true;
                     }
-                    mtd.setCode(code);
 					break;
 				case 'U':		// units
 					j++;

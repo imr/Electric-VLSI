@@ -53,6 +53,7 @@ import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.CodeExpression;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
@@ -2539,7 +2540,7 @@ public class ELIB extends LibraryFiles
 				}
 			}
             TextDescriptor td = makeDescriptor(descript0, descript1, newtype);
-            TextDescriptor.Code code = TextDescriptor.Code.getByCBits(newtype);
+            CodeExpression.Code code = CodeExpression.Code.getByCBits(newtype);
 
 			Object newAddr;
 			if ((newtype&ELIBConstants.VISARRAY) != 0)

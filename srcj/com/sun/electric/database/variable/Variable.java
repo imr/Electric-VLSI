@@ -333,11 +333,6 @@ public class Variable implements Serializable
         byte type = getObjectType(value);
         if ((type & ARRAY) != 0)
             value = ((Object[])value).clone();
-        if (value instanceof CodeExpression) {
-            assert ((CodeExpression)value).getCode() == descriptor.getCode();
-        } else {
-            assert !descriptor.isCode();
-        }
 		return new Variable(key, value, descriptor, type);
     }
 
@@ -350,8 +345,8 @@ public class Variable implements Serializable
      * @param code code of new Object.
      * @return Object of specified Code derived from specified Object
      */
-    public static Object withCode(Object value, TextDescriptor.Code code) {
-        if (code == TextDescriptor.Code.NONE)
+    public static Object withCode(Object value, CodeExpression.Code code) {
+        if (code == CodeExpression.Code.NONE)
             return value instanceof CodeExpression ? value.toString() : value;
 
         if (value instanceof CodeExpression && ((CodeExpression)value).getCode() == code)
@@ -383,11 +378,6 @@ public class Variable implements Serializable
         assert value != null;
         assert type == getObjectType(value);
         assert descriptor != null;
-        if (value instanceof CodeExpression) {
-            assert ((CodeExpression)value).getCode() == descriptor.getCode();
-        } else {
-            assert !descriptor.isCode();
-        }
         if (descriptor.isParam())
             assert paramAllowed && isAttribute();
         if (descriptor.isInherit())
@@ -632,10 +622,7 @@ public class Variable implements Serializable
                 Arrays.equals((Object[])this.value, (Object[])value) &&
                 this.value.getClass().getComponentType() == value.getClass().getComponentType())
             return this;
-        TextDescriptor.Code code = TextDescriptor.Code.NONE;
-        if (value instanceof CodeExpression)
-            code = ((CodeExpression)value).getCode();
-        return newInstance(this.key, value, this.descriptor.withCode(code));
+        return newInstance(this.key, value, this.descriptor);
     }
 
 	/**
@@ -661,7 +648,7 @@ public class Variable implements Serializable
      * @param code code of new Variable.
      * @return Variable which differs from this Variable by code
      */
-    public Variable withCode(TextDescriptor.Code code) {
+    public Variable withCode(CodeExpression.Code code) {
         if (getCode() == code) return this;
         return withObject(withCode(value, code));
     }
@@ -1060,7 +1047,6 @@ public class Variable implements Serializable
      * @return Variable which differs from this Variable by TextDescriptor.
 	 */
 	public Variable withTextDescriptor(TextDescriptor descriptor) {
-        assert descriptor.getCode() == getCode();
         if (!isAttribute())
             descriptor = descriptor.withParam(false);
         if (this.descriptor == descriptor) return this;
@@ -1094,9 +1080,9 @@ public class Variable implements Serializable
      * Determine what code type this variable has, if any
      * @return the code type
      */
-    public TextDescriptor.Code getCode() {
+    public CodeExpression.Code getCode() {
         CodeExpression ce = getCodeExpression();
-        return ce != null ? ce.getCode() : TextDescriptor.Code.NONE;
+        return ce != null ? ce.getCode() : CodeExpression.Code.NONE;
     }
 
 	/**
