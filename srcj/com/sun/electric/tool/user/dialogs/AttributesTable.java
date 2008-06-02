@@ -67,8 +67,6 @@ import javax.swing.table.TableColumn;
  */
 public class AttributesTable extends JTable implements DatabaseChangeListener
 {
-	/** True if default instance parameters apper in the table */
-	private static final boolean DEFAULT_PARAMETERS_SHOWN = true;
 
 	/**
 	 * Class to define attributes on nodes or arcs.
@@ -846,7 +844,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener
 		// add new vars
 		if (eobj != null) {
 			List<Variable> vars = new ArrayList<Variable>();
-			if (DEFAULT_PARAMETERS_SHOWN && eobj instanceof NodeInst) {
+			if (eobj instanceof NodeInst) {
 				for (Iterator<Variable> it = ((NodeInst)eobj).getParameters(); it.hasNext(); ) {
 					// only add attributes
 					Variable param = it.next();

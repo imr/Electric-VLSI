@@ -24,7 +24,6 @@
 package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.IdMapper;
-import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
@@ -87,7 +86,6 @@ import java.util.Set;
  */
 public abstract class LibraryFiles extends Input
 {
-    private static final boolean UNIFY_CELL_PARAMETERS = true;
 	/** key of Varible holding true library of fake cell. */                public static final Variable.Key IO_TRUE_LIBRARY = Variable.newKey("IO_true_library");
 	/** key of Variable to denote a dummy cell or library */                public static final Variable.Key IO_DUMMY_OBJECT = Variable.newKey("IO_dummy_object");
 
@@ -540,11 +538,6 @@ public abstract class LibraryFiles extends Input
     abstract Map<Cell,Variable[]> createLibraryCells(boolean onlyProjectSettings);
 
     private void realizeCellVariables(Map<Cell,Variable[]> originalVars) {
-        if (!UNIFY_CELL_PARAMETERS) {
-            for (Map.Entry<Cell,Variable[]> e: originalVars.entrySet())
-                realizeVariables(e.getKey(), e.getValue());
-            return;
-        }
         HashSet<Cell.CellGroup> visitedCellGroups = new HashSet<Cell.CellGroup>();
         for (Cell cell: originalVars.keySet()) {
             Cell.CellGroup cellGroup = cell.getCellGroup();
@@ -1291,7 +1284,10 @@ public abstract class LibraryFiles extends Input
                     }
                 }
                 if (ni.isDeprecatedVariable(var.getKey())) continue;
-                ni.addVar(var);
+                if (ni.isParam(var.getKey()))
+                    ni.addParameter(var);
+                else
+                    ni.addVar(var.withParam(false));
             }
         }
 

@@ -582,21 +582,20 @@ public class EditMenu {
 				NodeInst ni = (NodeInst)geom;
 				if (!ni.isCellInstance()) continue;
 				boolean changed = false;
-				for(Iterator<Variable> vIt = ni.getVariables(); vIt.hasNext(); )
+				for(Iterator<Variable> vIt = ni.getParameters(); vIt.hasNext(); )
 				{
 					Variable var = vIt.next();
-					Variable nVar = findParameterSource(var, ni);
-					if (nVar == null) continue;
+					Variable nVar = ((Cell)ni.getProto()).getParameter(var.getKey());
 					switch (how)
 					{
 						case 0:			// make all parameters visible
 							if (var.isDisplay()) continue;
-							ni.addVar(var.withDisplay(true));
+							ni.addParameter(var.withDisplay(true));
 							changed = true;
 							break;
 						case 1:			// make all parameters invisible
 							if (!var.isDisplay()) continue;
-							ni.addVar(var.withTextDescriptor(var.getTextDescriptor().withDisplay(TextDescriptor.Display.HIDDEN)));
+							ni.addParameter(var.withTextDescriptor(var.getTextDescriptor().withDisplay(TextDescriptor.Display.HIDDEN)));
 							changed = true;
 							break;
 						case 2:			// make all parameters have default visiblity
@@ -604,13 +603,13 @@ public class EditMenu {
 							{
 								// prototype wants parameter to be invisible
 								if (!var.isDisplay()) continue;
-								ni.addVar(var.withDisplay(false));
+								ni.addParameter(var.withDisplay(false));
 								changed = true;
 							} else
 							{
 								// prototype wants parameter to be visible
 								if (var.isDisplay()) continue;
-								ni.addVar(var.withDisplay(true));
+								ni.addParameter(var.withDisplay(true));
 								changed = true;
 							}
 							break;
@@ -627,24 +626,24 @@ public class EditMenu {
 			return true;
 		}
 
-		/**
-		 * Method to find the formal parameter that corresponds to the actual parameter
-		 * "var" on node "ni".  Returns null if not a parameter or cannot be found.
-		 */
-		private Variable findParameterSource(Variable var, NodeInst ni)
-		{
-			// find this parameter in the cell
-			Cell np = (Cell)ni.getProto();
-			Cell cnp = np.contentsView();
-			if (cnp != null) np = cnp;
-            return np.getParameter(var.getKey());
-//			for(Iterator<Variable> it = np.getVariables(); it.hasNext(); )
-//			{
-//				Variable nVar = it.next();
-//				if (var.getKey() == nVar.getKey()) return nVar;
-//			}
-//			return null;
-		}
+//		/**
+//		 * Method to find the formal parameter that corresponds to the actual parameter
+//		 * "var" on node "ni".  Returns null if not a parameter or cannot be found.
+//		 */
+//		private Variable findParameterSource(Variable var, NodeInst ni)
+//		{
+//			// find this parameter in the cell
+//			Cell np = (Cell)ni.getProto();
+//			Cell cnp = np.contentsView();
+//			if (cnp != null) np = cnp;
+//            return np.getParameter(var.getKey());
+////			for(Iterator<Variable> it = np.getVariables(); it.hasNext(); )
+////			{
+////				Variable nVar = it.next();
+////				if (var.getKey() == nVar.getKey()) return nVar;
+////			}
+////			return null;
+//		}
 	}
 
 	public static void updateInheritance(boolean allLibraries)
@@ -898,7 +897,7 @@ public class EditMenu {
 			{
 				if (ni.isUsernamed())
 					highlighter.addText(ni, curCell, NodeInst.NODE_NAME);
-				for(Iterator<Variable> vIt = ni.getVariables(); vIt.hasNext(); )
+				for(Iterator<Variable> vIt = ni.getParametersAndVariables(); vIt.hasNext(); )
 				{
 					Variable var = vIt.next();
 					if (var.isDisplay())
@@ -1024,7 +1023,7 @@ public class EditMenu {
 					highlighter.addElectricObject(ni, curCell);
 				}
 			}
-			for(Iterator<Variable> vIt = ni.getVariables(); vIt.hasNext(); )
+			for(Iterator<Variable> vIt = ni.getParametersAndVariables(); vIt.hasNext(); )
 			{
 				Variable var = vIt.next();
 				if (likeThis.contains(var.getKey().getName()))
@@ -1181,7 +1180,7 @@ public class EditMenu {
 				for(Iterator<NodeInst> it = curCell.getNodes(); it.hasNext(); )
 				{
 					NodeInst ni = it.next();
-					for(Iterator<Variable> vIt = ni.getVariables(); vIt.hasNext(); )
+					for(Iterator<Variable> vIt = ni.getParametersAndVariables(); vIt.hasNext(); )
 					{
 						Variable var = vIt.next();
 						if (var.getKey() != high.getVarKey()) continue;

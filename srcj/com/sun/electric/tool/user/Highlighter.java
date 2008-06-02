@@ -522,7 +522,7 @@ public class Highlighter implements DatabaseChangeListener {
 			if (line4 != null) hl.remove(line4);
 			hl.finished();
 			hl.getWindowFrame().getContent().repaint();
-		}    
+		}
 	}
 
     /**
@@ -1111,7 +1111,7 @@ public class Highlighter implements DatabaseChangeListener {
             Job.releaseExamineLock();
             throw e;
         }
-		if (style == null) return null;  
+		if (style == null) return null;
         Point2D[] points = null;
         if (style == Poly.Type.TEXTCENT)
         {
@@ -1417,7 +1417,7 @@ public class Highlighter implements DatabaseChangeListener {
                 		// look at all variables on the node
                 		if (ni.getProto() != Generic.tech().invisiblePinNode || User.isTextVisibilityOnAnnotation())
                 		{
-	                		for(Iterator<Variable> vIt = ni.getVariables(); vIt.hasNext(); )
+	                		for(Iterator<Variable> vIt = ni.getParametersAndVariables(); vIt.hasNext(); )
 	                    	{
 	                    		Variable var = vIt.next();
 	                    		if (!var.isDisplay()) continue;

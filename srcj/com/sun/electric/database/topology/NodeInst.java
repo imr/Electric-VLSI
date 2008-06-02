@@ -3627,6 +3627,21 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
             }
 		}
 
+        for (Iterator<Variable> it1 = getVariables(), it2 = no.getVariables(); it1.hasNext() || it2.hasNext(); ) {
+            if (!it1.hasNext() || !it2.hasNext()) {
+                if (buffer != null)
+                    buffer.append("Different number of variables found in '" + no.getName() + "'\n");
+                return false;
+            }
+            Variable param1 = it1.next();
+            Variable param2 = it2.next();
+            if (!param1.compare(param2, buffer))
+            {
+                if (buffer != null)
+                    buffer.append("No corresponding parameter '" + param1 + "' found in '" + no.getName() + "'\n");
+                return false;
+            }
+        }
         noCheckAgain.clear();
 		for(Iterator<Variable> it = getVariables(); it.hasNext(); )
 		{

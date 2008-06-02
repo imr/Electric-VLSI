@@ -763,8 +763,7 @@ public abstract class ElectricObject implements Serializable
 	public void setTextDescriptor(Variable.Key varKey, TextDescriptor td) {
 		Variable var = getVar(varKey);
 		if (var == null) return;
-		if (!(this instanceof Cell))
-			td = td.withParam(false);
+        td = td.withParam(false);
 		addVar(var.withTextDescriptor(td));
 	}
 
@@ -850,7 +849,7 @@ public abstract class ElectricObject implements Serializable
 	public void copyVarsFrom(ElectricObject other)
 	{
 		checkChanging();
-		for (Iterator<Variable> it = other.getParametersAndVariables(); it.hasNext(); )
+		for (Iterator<Variable> it = other.getVariables(); it.hasNext(); )
             addVar(it.next());
 	}
 

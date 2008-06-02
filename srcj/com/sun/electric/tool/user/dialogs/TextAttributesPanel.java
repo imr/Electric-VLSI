@@ -25,6 +25,7 @@
 package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.CodeExpression;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
@@ -319,9 +320,14 @@ public class TextAttributesPanel extends JPanel
 
         public boolean doIt() throws JobException {
             // change the code type
-            if (owner instanceof Cell && owner.isParam(varKey)) {
-                Cell cell = (Cell)owner;
-                cell.getCellGroup().updateParam((Variable.AttrKey)varKey, cell.getParameter(varKey).withCode(code).getObject());
+            if (owner.isParam(varKey)) {
+                if (owner instanceof Cell) {
+                    Cell cell = (Cell)owner;
+                    cell.getCellGroup().updateParam((Variable.AttrKey)varKey, cell.getParameter(varKey).withCode(code).getObject());
+                } else if (owner instanceof NodeInst) {
+                    NodeInst ni = (NodeInst)owner;
+                    ni.addParameter(ni.getParameter(varKey).withCode(code));
+                }
             } else {
                 owner.updateVarCode(varKey, code);
             }

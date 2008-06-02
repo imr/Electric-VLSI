@@ -1624,8 +1624,12 @@ public class DRC extends Listener
                 for (Map.Entry<Geometric,List<Variable>> e : newVariables.entrySet())
                 {
                     Geometric ni = e.getKey();
-                    for (Variable var : e.getValue())
-                        ni.addVar(var);
+                    for (Variable var : e.getValue()) {
+                        if (ni.isParam(var.getKey()))
+                            ((NodeInst)ni).addParameter(var);
+                        else
+                            ni.addVar(var);
+                    }
                 }
             }
 			return true;

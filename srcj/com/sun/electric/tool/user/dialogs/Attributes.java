@@ -724,6 +724,9 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
 	                    }
 	                }
                 }
+            } else if (owner instanceof NodeInst && ((NodeInst)owner).isParam(newVar.getKey()))
+            {
+                ((NodeInst)owner).addParameter(newVar.withParam(true));
             } else
             {
                 // create the attribute

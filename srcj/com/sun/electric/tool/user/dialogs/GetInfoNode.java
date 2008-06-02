@@ -402,7 +402,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 		// grab all attributes and parameters
 		allAttributes.clear();
 
-		for(Iterator<Variable> it = ni.getVariables(); it.hasNext(); )
+		for(Iterator<Variable> it = ni.getParametersAndVariables(); it.hasNext(); )
 		{
 			Variable var = it.next();
 			String name = var.getKey().getName();

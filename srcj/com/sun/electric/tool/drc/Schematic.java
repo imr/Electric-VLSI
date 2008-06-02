@@ -291,10 +291,10 @@ public class Schematic
 				if (contentsCell == null) contentsCell = instCell;
 
 				// ensure that this node matches the parameter list
-				for(Iterator<Variable> it = ni.getVariables(); it.hasNext(); )
+				for(Iterator<Variable> it = ni.getDefinedParameters(); it.hasNext(); )
 				{
 					Variable var = it.next();
-                    if (!ni.isParam(var.getKey())) continue;
+                    assert ni.isParam(var.getKey());
 
                     Variable foundVar = contentsCell.getParameter(var.getKey());
 //					Variable foundVar = null;
@@ -458,7 +458,7 @@ public class Schematic
 				if (ni.getNodeIndex() > oNi.getNodeIndex()) continue;
 				if (oNi.getProto().getTechnology() == Generic.tech() ||
 					oNi.getProto().getTechnology() == Artwork.tech()) continue;
-	
+
 				// see if ports touch
 				for(Iterator<PortInst> pIt = oNi.getPortInsts(); pIt.hasNext(); )
 				{

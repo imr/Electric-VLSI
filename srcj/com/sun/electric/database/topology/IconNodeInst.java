@@ -27,6 +27,9 @@ import com.sun.electric.database.ImmutableIconInst;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.ArrayIterator;
+import com.sun.electric.database.variable.CodeExpression;
+import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 
 import java.util.ArrayList;
@@ -60,17 +63,9 @@ class IconNodeInst extends NodeInst
 	 */
     @Override
 	public void addVar(Variable var) {
-        Cell icon = (Cell)getProto();
-        Variable iconParam = icon.getParameter(var.getKey());
-        if (iconParam != null) {
-            // ToDo: delete
-            var = composeInstParam(iconParam, var);
-            if (setD(getD().withParam(var), true))
-                // check for side-effects of the change
-                checkPossibleVariableEffects(var.getKey());
-        } else {
-            super.addVar(var.withParam(false).withInherit(false));
-        }
+        if (isParam(var.getKey()))
+            throw new IllegalArgumentException(this + " already has a variable with name " + var);
+        super.addVar(var.withParam(false).withInherit(false));
     }
 
 	/**
@@ -123,30 +118,21 @@ class IconNodeInst extends NodeInst
 	}
 
 	/**
-	 * Method to return an Iterator over all Variables on this ElectricObject.
-	 * @return an Iterator over all Variables on this ElectricObject.
+	 * Method to return an Iterator over all Parameters and Variables on this ElectricObject.
+	 * @return an Iterator over all Parameters and Variables on this ElectricObject.
 	 */
     @Override
-	public synchronized Iterator<Variable> getVariables() {
+	public Iterator<Variable> getParametersAndVariables() {
         if (getD().getNumDefinedParameters() == 0)
-            return super.getVariables();
+            return getVariables();
 
         ArrayList<Variable> vars = new ArrayList<Variable>();
         for (Iterator<Variable> it = getDefinedParameters(); it.hasNext(); )
             vars.add(it.next());
-        for (Iterator<Variable> it = super.getVariables(); it.hasNext(); ) {
+        for (Iterator<Variable> it = getVariables(); it.hasNext(); ) {
             vars.add(it.next());
         }
         return vars.iterator();
-    }
-
-	/**
-	 * Method to return the number of Variables on this ElectricObject.
-	 * @return the number of Variables on this ElectricObject.
-	 */
-    @Override
-	public synchronized int getNumVariables() {
-        return super.getNumVariables() + getD().getNumDefinedParameters();
     }
 
     /**
@@ -219,7 +205,12 @@ class IconNodeInst extends NodeInst
      * @param key the key of the Variable to delete.
      */
     public void addParameter(Variable param) {
-        if (param.getTextDescriptor().isParam() && setD(getD().withParam(param), true))
+        if (!isParam(param.getKey()))
+            throw new IllegalArgumentException("Parameter " + param + " is not defined on " + getProto());
+        Cell icon = (Cell)getProto();
+        Variable iconParam = icon.getParameter(param.getKey());
+        param = composeInstParam(iconParam, param);
+        if (setD(getD().withParam(param), true))
             // check for side-effects of the change
             checkPossibleVariableEffects(param.getKey());
     }
@@ -246,8 +237,120 @@ class IconNodeInst extends NodeInst
     @Override
     public boolean isParam(Variable.Key varKey) {
         Cell icon = (Cell)getProto();
-        return icon != null && icon.getParameter(varKey) != null;
+        return icon.isParam(varKey);
     }
+
+	/**
+	 * Updates the TextDescriptor on this NodeInst selected by varKey.
+	 * The varKey may be a key of variable on this NodeInst or one of the
+	 * special keys:
+	 * NodeInst.NODE_NAME
+	 * NodeInst.NODE_PROTO
+	 * If varKey doesn't select any text descriptor, no action is performed.
+	 * The TextDescriptor gives information for displaying the Variable.
+	 * @param varKey key of variable or special key.
+	 * @param td new value TextDescriptor
+	 */
+	public void setTextDescriptor(Variable.Key varKey, TextDescriptor td)
+	{
+        Variable param = getParameter(varKey);
+        if (param != null) {
+            td = td.withParam(true).withInherit(false).withUnit(param.getUnit());
+            addParameter(param.withTextDescriptor(td));
+            return;
+        }
+        super.setTextDescriptor(varKey, td);
+    }
+
+ 	/**
+	 * Method to create a Variable on this ElectricObject with the specified values.
+	 * @param key the key of the Variable.
+	 * @param value the object to store in the Variable.
+	 * @param td text descriptor of the Variable
+	 * @return the Variable that has been created.
+	 */
+    @Override
+	public Variable newVar(Variable.Key key, Object value, TextDescriptor td)
+	{
+        if (isParam(key)) {
+            addParameter(getParameter(key).withObject(value).withTextDescriptor(td));
+            return getParameter(key);
+        }
+		return super.newVar(key, value, td);
+	}
+
+	/**
+	 * Method to update a Variable on this ElectricObject with the specified values.
+	 * If the Variable already exists, only the value is changed; the displayable attributes are preserved.
+	 * @param key the key of the Variable.
+	 * @param value the object to store in the Variable.
+	 * @return the Variable that has been updated.
+	 */
+    @Override
+	public Variable updateVar(Variable.Key key, Object value)
+	{
+        if (isParam(key)) {
+    		Variable param = getParameter(key);
+            addParameter(getParameter(key).withObject(value));
+            return getParameter(key);
+        }
+		return super.updateVar(key, value);
+	}
+
+	/**
+	 * Method to update a text Variable on this ElectricObject with the specified values.
+	 * If the Variable already exists, only the value is changed;
+     * the displayable attributes and Code are preserved.
+	 * @param key the key of the Variable.
+	 * @param text the text to store in the Variable.
+	 * @return the Variable that has been updated.
+	 */
+    @Override
+	public Variable updateVarText(Variable.Key key, String text)
+	{
+        if (isParam(key)) {
+    		Variable param = getParameter(key);
+            addParameter(getParameter(key).withText(text));
+            return getParameter(key);
+        }
+		return super.updateVarText(key, text);
+	}
+
+	/**
+	 * Method to update a Variable on this ElectricObject with the specified code.
+	 * If the Variable already exists, only the code is changed;
+     * the displayable attributes and value are preserved.
+	 * @param key the key of the Variable.
+	 * @param code the new code of the Variable.
+	 * @return the Variable that has been updated.
+	 */
+    @Override
+	public Variable updateVarCode(Variable.Key key, CodeExpression.Code code)
+	{
+        if (isParam(key)) {
+    		Variable param = getParameter(key);
+            addParameter(getParameter(key).withCode(code));
+            return getParameter(key);
+        }
+		return super.updateVarCode(key, code);
+	}
+
+	/**
+	 * Method to copy all variables from another ElectricObject to this ElectricObject.
+	 * @param other the other ElectricObject from which to copy Variables.
+	 */
+    @Override
+	public void copyVarsFrom(ElectricObject other)
+	{
+		checkChanging();
+		for (Iterator<Variable> it = other.getParametersAndVariables(); it.hasNext(); ) {
+            Variable var = it.next();
+            if (isParam(var.getKey()))
+                addParameter(var.withParam(true));
+            else
+                addVar(var.withParam(false));
+        }
+	}
 
 //    public void addParam(Variable var) {
 //        assert var.getTextDescriptor().isParam() && var.isInherit();

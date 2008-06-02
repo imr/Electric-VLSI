@@ -1035,9 +1035,14 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 					ElectricObject eobj = dt.getElectricObject();
 					Variable.Key descKey = dt.getVariableKey();
 					if (mcp.code != null) {
-                        if (eobj instanceof Cell && eobj.isParam(descKey)) {
-                            Cell cell = (Cell)eobj;
-                            cell.getCellGroup().updateParam((Variable.AttrKey)descKey, cell.getParameter(descKey).withCode(mcp.code).getObject());
+                        if (eobj.isParam(descKey)) {
+                            if (eobj instanceof Cell) {
+                                Cell cell = (Cell)eobj;
+                                cell.getCellGroup().updateParam((Variable.AttrKey)descKey, cell.getParameter(descKey).withCode(mcp.code).getObject());
+                            } else if (eobj instanceof NodeInst) {
+                                NodeInst ni = (NodeInst)eobj;
+                                ni.addParameter(ni.getParameter(descKey).withCode(mcp.code));
+                            }
                         } else {
                             eobj.updateVarCode(descKey, mcp.code);
                         }

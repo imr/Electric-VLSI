@@ -2584,91 +2584,99 @@ public class CircuitChangeJobs
 		if (!ni.isCellInstance()) return;
 		Cell cell = (Cell)ni.getProto();
 
-		// first inherit directly from this node's prototype
-		for(Iterator<Variable> it = cell.getParametersAndVariables(); it.hasNext(); )
+		// first inherit parameters from this node's prototype
+		for(Iterator<Variable> it = cell.getParameters(); it.hasNext(); )
+		{
+			Variable var = it.next();
+			assert var.getTextDescriptor().isInherit();
+			inheritCellParameter(var, ni);
+		}
+
+		// inherit attributes from this node's prototype
+		for(Iterator<Variable> it = cell.getVariables(); it.hasNext(); )
 		{
 			Variable var = it.next();
 			if (!var.getTextDescriptor().isInherit()) continue;
-			inheritCellAttribute(var, ni, cell, null);
+			inheritCellAttribute(var, ni);
 		}
 
 		// inherit directly from each port's prototype
 		for(Iterator<Export> it = cell.getExports(); it.hasNext(); )
 		{
 			Export pp = it.next();
-			inheritExportAttributes(pp, ni, cell);
+			inheritExportAttributes(pp, ni);
 		}
 
-		// if this node is an icon, also inherit from the contents prototype
-		Cell cNp = cell.contentsView();
-		if (cNp != null)
-		{
-			// look for an example of the icon in the contents
-			NodeInst icon = null;
-			for(Iterator<NodeInst> it = cNp.getNodes(); it.hasNext(); )
-			{
-				icon = it.next();
-				if (icon.getProto() == cell) break;
-				icon = null;
-			}
-
-			// if icon is this, ignore it: can't inherit from ourselves!
-			if (icon == ni) icon = null;
-
-			for(Iterator<Variable> it = cNp.getParametersAndVariables(); it.hasNext(); )
-			{
-				Variable var = it.next();
-				if (!var.getTextDescriptor().isInherit()) continue;
-				inheritCellAttribute(var, ni, cNp, icon);
-			}
-			for(Iterator<Export> it = cNp.getExports(); it.hasNext(); )
-			{
-				Export cpp = it.next();
-				inheritExportAttributes(cpp, ni, cNp);
-			}
-		}
-
-		// now delete parameters that are not in the prototype
-		if (cleanUp)
-		{
-			if (cNp == null) cNp = cell;
-			boolean found = true;
-			while (found)
-			{
-				found = false;
-				// look through all parameters on instance
-				for(Iterator<Variable> it = ni.getVariables(); it.hasNext(); )
-				{
-					Variable var = it.next();
-					if (!ni.isParam(var.getKey())) continue;
-					Variable oVar = null;
-
-					// try to find equivalent in all parameters on prototype
-					Iterator<Variable> oIt = cNp.getParametersAndVariables();
-					boolean delete = true;
-					while (oIt.hasNext())
-					{
-						oVar = oIt.next();
-						if (!cNp.isParam(oVar.getKey())) continue;
-						if (oVar.getKey() == var.getKey()) { delete = false; break; }
-					}
-					if (delete)
-					{
-						// no matching parameter on prototype found, so delete
-						ni.delVar(var.getKey());
-						found = true;
-						break;
-					}
-				}
-			}
-		}
+//		// if this node is an icon, also inherit from the contents prototype
+//		Cell cNp = cell.contentsView();
+//		if (cNp != null)
+//		{
+//			// look for an example of the icon in the contents
+//			NodeInst icon = null;
+//			for(Iterator<NodeInst> it = cNp.getNodes(); it.hasNext(); )
+//			{
+//				icon = it.next();
+//				if (icon.getProto() == cell) break;
+//				icon = null;
+//			}
+//
+//			// if icon is this, ignore it: can't inherit from ourselves!
+//			if (icon == ni) icon = null;
+//
+//			for(Iterator<Variable> it = cNp.getParametersAndVariables(); it.hasNext(); )
+//			{
+//				Variable var = it.next();
+//				if (!var.getTextDescriptor().isInherit()) continue;
+//				inheritCellAttribute(var, ni, cNp, icon);
+//			}
+//			for(Iterator<Export> it = cNp.getExports(); it.hasNext(); )
+//			{
+//				Export cpp = it.next();
+//				inheritExportAttributes(cpp, ni, cNp);
+//			}
+//		}
+//
+//		// now delete parameters that are not in the prototype
+//		if (cleanUp)
+//		{
+//			if (cNp == null) cNp = cell;
+//			boolean found = true;
+//			while (found)
+//			{
+//				found = false;
+//				// look through all parameters on instance
+//				for(Iterator<Variable> it = ni.getDefinedParameters(); it.hasNext(); )
+//				{
+//					Variable var = it.next();
+//					assert ni.isParam(var.getKey());
+//					Variable oVar = null;
+//
+//					// try to find equivalent in all parameters on prototype
+//					Iterator<Variable> oIt = cNp.getParameters();
+//					boolean delete = true;
+//					while (oIt.hasNext())
+//					{
+//						oVar = oIt.next();
+//						assert cNp.isParam(oVar.getKey());
+//						if (oVar.getKey() == var.getKey()) { delete = false; break; }
+//					}
+//					if (delete)
+//					{
+//						// no matching parameter on prototype found, so delete
+//						ni.delVar(var.getKey());
+//						found = true;
+//						break;
+//					}
+//				}
+//			}
+//		}
 	}
 
 	/**
 	 * Method to add all inheritable export variables from export "pp" on cell "np"
 	 * to instance "ni".
 	 */
-	private static void inheritExportAttributes(Export pp, NodeInst ni, Cell np)
+	private static void inheritExportAttributes(Export pp, NodeInst ni)
 	{
 		for(Iterator<Variable> it = pp.getVariables(); it.hasNext(); )
 		{
@@ -2694,7 +2702,7 @@ public class CircuitChangeJobs
 	 * Method to add inheritable variable "var" from cell "np" to instance "ni".
 	 * If "icon" is not NONODEINST, use the position of the variable from it.
 	 */
-	private static void inheritCellAttribute(Variable var, NodeInst ni, Cell np, NodeInst icon)
+	private static void inheritCellAttribute(Variable var, NodeInst ni)
 	{
 		// see if the attribute is already there
 		Variable.Key key = var.getKey();
@@ -2724,6 +2732,41 @@ public class CircuitChangeJobs
             ni.addVar(var);
 //			newVar = ni.updateVar(var.getKey(), inheritAddress(np, var));
 //			updateInheritedVar(newVar, ni, np, icon);
+		}
+	}
+
+	/**
+	 * Method to add inheritable variable "var" to instance "ni".
+	 * If "icon" is not NONODEINST, use the position of the variable from it.
+	 */
+	private static void inheritCellParameter(Variable var, NodeInst ni)
+	{
+		// see if the attribute is already there
+		Variable.Key key = var.getKey();
+		if (ni.isDefinedParameter(key))
+		{
+            Variable param = ni.getParameter(key);
+			// make sure visibility is OK
+			if (!var.isInterior())
+			{
+				// parameter should be visible: make it so
+				if (!param.isDisplay())
+				{
+					ni.addParameter(param.withDisplay(true));
+				}
+			} else
+			{
+				// parameter not normally visible: make it invisible if it has the default value
+				if (param.isDisplay())
+				{
+					if (var.describe(-1).equals(param.describe(-1)))
+					{
+						ni.addParameter(param.withDisplay(false));
+					}
+				}
+			}
+		} else {
+            ni.addParameter(var);
 		}
 	}
 

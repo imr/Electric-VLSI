@@ -1038,6 +1038,15 @@ public class Clipboard
 			}
 		}
 
+		// remove parameters that are not on the pasted object
+        for(Iterator<Variable> it = destNode.getDefinedParameters(); it.hasNext(); )
+        {
+            Variable destParam = it.next();
+            Variable.Key key = destParam.getKey();
+            if (!srcNode.isDefinedParameter(key))
+                destNode.delParameter(key);
+        }
+
 		// remove variables that are not on the pasted object
 		boolean checkAgain = true;
 		while (checkAgain)

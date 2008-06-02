@@ -366,7 +366,7 @@ public class ChangeText extends EDialog
 				// node name
 				accumulateTextFound(cp, ni, NodeInst.NODE_NAME, change);
 			}
-			for(Iterator<Variable> vIt = ni.getVariables(); vIt.hasNext(); )
+			for(Iterator<Variable> vIt = ni.getParametersAndVariables(); vIt.hasNext(); )
 			{
 				Variable var = vIt.next();
 				if (!var.isDisplay()) continue;
