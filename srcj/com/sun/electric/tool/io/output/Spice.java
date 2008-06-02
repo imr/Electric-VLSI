@@ -737,7 +737,7 @@ public class Spice extends Topology
 						Variable paramVar = it.next();
                         if (DETECT_SPICE_PARAMS && !spiceParams.contains(paramVar.getKey())) continue;
                         if (!USE_JAVA_CODE && !isNetlistableParam(paramVar)) continue;
-                        Variable instVar = no.getVar(paramVar.getKey());
+                        Variable instVar = no.getParameter(paramVar.getKey());
                         String paramStr = "??";
 						if (instVar != null)
 						{
@@ -1522,7 +1522,7 @@ public class Spice extends Topology
                         if (protoParams == UNIQUIFY_MARK)
                             uniquify = true;
                         for (Variable.Key protoParam: protoParams) {
-                            Variable var = ni.getVar(protoParam);
+                            Variable var = ni.getParameterOrVariable(protoParam);
                             if (var == null) continue;
                             CodeExpression ce = var.getCodeExpression();
                             if (ce == null) continue;
@@ -1769,8 +1769,7 @@ public class Spice extends Topology
                 Variable attrVar = null;
                 //Variable.Key varKey = Variable.findKey("ATTR_" + paramName);
                 if (varKey != null) {
-                    attrVar = no.getVar(varKey);
-                    if (attrVar == null) attrVar = no.getParameter(varKey);
+                    attrVar = no.getParameterOrVariable(varKey);
                 }
                 if (attrVar == null) infstr.append("??"); else
                 {

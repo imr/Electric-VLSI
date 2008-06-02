@@ -135,6 +135,17 @@ public abstract class ElectricObject implements Serializable
 	}
 
 	/**
+	 * Method to return the Parameter or Variable on this ElectricObject with a given name.
+	 * @param name the name of the Parameter or Variable.
+	 * @return the Parameter or Variable with that key, or null if there is no such Parameter or Variable Variable.
+     * @throws NullPointerException if key is null
+	 */
+	public Variable getParameterOrVariable(String name) {
+		Variable.Key key = Variable.findKey(name);
+        return key != null ? getParameterOrVariable(key) : null;
+	}
+
+	/**
 	 * Method to return the Parameter or Variable on this ElectricObject with a given key.
 	 * @param key the key of the Parameter or Variable.
 	 * @return the Parameter or Variable with that key, or null if there is no such Parameter or Variable Variable.
@@ -380,7 +391,7 @@ public abstract class ElectricObject implements Serializable
 						x = uBounds.getCenterX();
 						y = uBounds.getCenterY();
 					}
-					Poly [] polys = geom.getPolyList(geom.getVar(varKey), x, y, wnd, false);
+					Poly [] polys = geom.getPolyList(geom.getParameterOrVariable(varKey), x, y, wnd, false);
 					if (polys.length > 0)
 					{
 						poly = polys[0];

@@ -4351,11 +4351,13 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         }
 
         for (Cell cell: cellGroup.cells) {
-            Variable var = cell.getVar(NccCellAnnotations.NCC_ANNOTATION_KEY);
+            Variable var = cell.getParameterOrVariable(NccCellAnnotations.NCC_ANNOTATION_KEY);
             if (var != null && var.isInherit()) {
                 // cleanup NCC cell annotations which were inheritable
                 String nccMsg = "Cleaned up NCC annotations in cell " + cell.describe(false);
                 if (repair) {
+                    if (isParam(var.getKey()))
+                        getCellGroup().delParam((Variable.AttrKey)var.getKey());
                     cell.addVar(var.withInherit(false).withParam(false).withInterior(true));
                     nccMsg += " (REPAIRED)";
                 }

@@ -1000,7 +1000,7 @@ public abstract class Topology extends Output
 			}
 			for(Variable.Key key : paramValues.keySet())
 			{
-				Variable var = no.getVar(key);
+				Variable var = no.getParameter(key);
 				String eval = var.describe(context, no.getNodeInst());
 				if (eval == null) continue;
 				uniqueCellName += "-" + eval.toString();

@@ -1091,13 +1091,13 @@ public class StdCellParams {
 	}
 
 	public static double getSize(NodeInst iconInst, VarContext context) {
-		Variable var = iconInst.getVar(ATTR_X);
+		Variable var = iconInst.getParameterOrVariable(ATTR_X);
 		if (var==null)
-			var = iconInst.getVar(ATTR_S);
+			var = iconInst.getParameterOrVariable(ATTR_S);
 		if (var==null)
-			var = iconInst.getVar(ATTR_SP);
+			var = iconInst.getParameterOrVariable(ATTR_SP);
 		if (var==null)
-			var = iconInst.getVar(ATTR_SN);
+			var = iconInst.getParameterOrVariable(ATTR_SN);
 
 		if (var==null) {
 			System.out.println("can't find size, using 40");
@@ -1162,7 +1162,7 @@ public class StdCellParams {
 		HashMap<String,Object> schAsgn = new HashMap<String,Object>();
 		for (Iterator<PortProto> it = schem.getPorts(); it.hasNext();) {
 			Export e = (Export) it.next();
-			Object val = e.getVar("ATTR_track");
+			Object val = e.getParameterOrVariable("ATTR_track");
 			String key = e.getName();
 			if (val == null)
 				continue;

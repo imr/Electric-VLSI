@@ -223,8 +223,7 @@ public class LETool extends Tool {
                 throw new VarContext.EvalException("subdrive(): no nodeInst named "+nodeName);
         }
 
-        Variable var = ni.getVar(parName);                          // find variable on nodeinst
-        if (var == null) var = ni.getVar("ATTR_"+parName);          // maybe it's an attribute
+        Variable var = ni.getParameterOrVariable(parName);                          // find variable on nodeinst
         //if (var == null) return "subdrive(): no variable of name "+parName.replaceFirst("ATTR_", "");
         if (var == null)
             throw new VarContext.EvalException(parName.replaceFirst("ATTR_", "")+" not found");

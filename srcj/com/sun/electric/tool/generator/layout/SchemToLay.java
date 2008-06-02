@@ -83,7 +83,7 @@ import com.sun.electric.tool.generator.layout.gates.VertTrack;
 
 public class SchemToLay {
     // ------------------------ private types ---------------------------------
-	
+
 	// A RouteSeg is a list of layout ports that should be connected
 	// and a list of exports on that net.  Networks that connect to
 	// both NMOS stack and PMOS stack devices need to be divided into
@@ -92,13 +92,13 @@ public class SchemToLay {
 	// relationship between a Network and a RouteSeg
 	private static class RouteSeg {
 		private static final Iterator<Export> NO_EXPORTS = new ArrayList<Export>().iterator();
-		
+
 		private ArrayList<PortInst> pStkPorts = new ArrayList<PortInst>();
 		private ArrayList<PortInst> nStkPorts = new ArrayList<PortInst>();
 		private ArrayList<PortInst> nonStkPorts = new ArrayList<PortInst>();
 		private Iterator<Export> exports = NO_EXPORTS;
 		private Integer exportTrack = null;
-		
+
 		// Has this RouteSeg been assigned a track for its exports?
 		// WARNING!! Export tracks are PHYSICAL!!!!! They include blocked
 		// tracks.  Everywhere else in this program we talk about
@@ -107,11 +107,11 @@ public class SchemToLay {
 		private int getExpTrk() {return exportTrack.intValue();}
 		private boolean hasPmosExpTrk() {return hasExpTrk() && getExpTrk()>0;}
 		private boolean hasNmosExpTrk() {return hasExpTrk() && getExpTrk()<0;}
-		
+
 		private static ArrayList<PortInst> schemNetToLayPorts(Network net,
 													HashMap<NodeInst,NodeInst> iconToLay) {
 			ArrayList<PortInst> layPorts = new ArrayList<PortInst>();
-			
+
 			Iterator<PortInst> iPorts = SKIP_WIRE_PORTINSTS.filter(net.getPorts());
 			while (iPorts.hasNext()) {
 				PortInst iconPort = iPorts.next();
@@ -170,7 +170,7 @@ public class SchemToLay {
 		public boolean hasExports() {return exports.hasNext();}
 		public Iterator<Export> findExports() {return exports;}
 		public boolean hasNonStk() {return nonStkPorts.size()!=0;}
-		
+
 		// A RouteSeg containing both NMOS and PMOS stacks must be divided into
 		// two RouteSegs
 		public RouteSeg splitOffPstkRouteSeg(ArrayList<NodeInst> vertTracks,
@@ -182,7 +182,7 @@ public class SchemToLay {
 				// a part containing a vertical routing track so we can
 				// connect the NMOS and PMOS stacks.
 				NodeProto vtProt = VertTrack.makePart(stdCell);
-				NodeInst vtInst = 
+				NodeInst vtInst =
 				    LayoutLib.newNodeInst(vtProt, 0, 0, 0, 0, 0, gasp);
 				vertTracks.add(vtInst);
 				nonStkPorts.add(vtInst.findPortInst("in"));
@@ -193,10 +193,10 @@ public class SchemToLay {
 			ArrayList<PortInst> pPorts = pStkPorts;
 			pStkPorts = new ArrayList<PortInst>();
 			pPorts.add(nonStkPorts.get(0));
-			
+
 			Integer pExpTrk = hasPmosExpTrk() ? new Integer(getExpTrk()) : null;
 			Iterator<Export> pExports = hasPmosExpTrk() ? removeExports() : NO_EXPORTS;
-			
+
 			return new RouteSeg(pPorts, pExports, pExpTrk);
 		}
 		public ArrayList<PortInst> getAllPorts() {
@@ -236,7 +236,7 @@ public class SchemToLay {
 			return maxX;
 		}
 	}
-	
+
 	private static class TrackAllocator {
 		private static final double FULL_TRACK_XLO = -Integer.MAX_VALUE;
 		private static final double FULL_TRACK_WID = 2.0 * Integer.MAX_VALUE;
@@ -257,13 +257,13 @@ public class SchemToLay {
 			}
 			return false;
 		}
-		
+
 		private int findClearTrack(RouteSeg r, boolean isPmos, double wireWid) {
 			// external nets block the entire track
 			boolean ext = r.hasExports();
 			double xLo = ext ? FULL_TRACK_XLO : (r.getLoX() - wireWid/2);
 			double wid = ext ? FULL_TRACK_WID : (r.getHiX() - r.getLoX() + wireWid);
-			
+
 			int maxTrack = isPmos ? nbPmosTracks : nbNmosTracks;
 			int dir = isPmos ? 1 : -1;
 			for (int track=1; track<=maxTrack; track++) {
@@ -272,7 +272,7 @@ public class SchemToLay {
 			}
 			return 0;
 		}
-		
+
 		public void occupyTrack(RouteSeg r, double y, double wireWid) {
 			// external nets block the entire track
 			boolean ext = r.hasExports();
@@ -282,11 +282,11 @@ public class SchemToLay {
 			Rectangle2D block = new Rectangle2D.Double(xLo, yLo, wid, wireWid);
 			blockages.add(block);
 		}
-		
+
 		public void occupyTrack(RouteSeg r, int trkNdx, double wireWid) {
 			occupyTrack(r, stdCell.getTrackY(trkNdx), wireWid);
 		}
-		
+
 		public double getTrackY(RouteSeg r, double wireWid) {
 			int track;
 			if (r.hasPstk()) {
@@ -315,7 +315,7 @@ public class SchemToLay {
 			return stdCell.getTrackY(track);
 		}
 	}
-	
+
 	// In addition to the ordinary uninteresting schematic pieces, also
 	// skip Cell wire{ic}
 	private static class SkipWirePortInsts extends PortFilter.SchemPortFilter {
@@ -323,26 +323,26 @@ public class SchemToLay {
 			// if it's a wire pin, bus pin, off page then pitch it
 			if (super.skipPort(pi))  return true;
 			NodeProto np = pi.getNodeInst().getProto();
-			
+
 			// if it's an instance of the Cell wire{ic} then pitch it
 			if (np instanceof Cell && np.getName().equals("wire{ic}")) {
 				return true;
-			} 
-			if (np instanceof PrimitiveNode && 
+			}
+			if (np instanceof PrimitiveNode &&
 			    np.getName().equals("Global-Signal")) {
 				return true;
 			}
 			return false;
 		}
 	}
-	
+
 	// ----------------------------- private data -----------------------------
 	static final PortFilter SKIP_WIRE_PORTINSTS = new SkipWirePortInsts();
-	
+
 	private static void error(boolean pred, String msg) {
 		LayoutLib.error(pred, msg);
 	}
-	
+
 	private static double getNumericVal(Object val) {
 		if (val==null) {
 			System.out.println("null value detected, using 40");
@@ -353,12 +353,12 @@ public class SchemToLay {
 		error(true, "not a numeric value: "+val);
 		return 0;
 	}
-	
+
 	private static Cell getPurpleLay(NodeInst iconInst, VarContext context,
 									 StdCellParams stdCell) {
 		NodeProto prot = iconInst.getProto();
 		String pNm = prot.getName();
-		
+
 		// we actually generate layout for two primitive nodes: Power and Ground
 		if (!iconInst.isCellInstance()) {
 			if (pNm.equals("Power")) {
@@ -368,7 +368,7 @@ public class SchemToLay {
 			}
 			error(true, "can't generate layout for PrimitiveNode: "+pNm);
 		}
-		
+
 		// Keepers require special handling because they don't have sizes
 		// attached to them.  Instead, the components making up keepers
 		// have sizes attached.  We need to pass the schematic
@@ -380,14 +380,14 @@ public class SchemToLay {
 			NodeProto npe = ((Cell)iconInst.getProto()).getEquivalent();
 			return KeeperLow.makePart((Cell)npe, context.push(iconInst), stdCell);
 		}
-		
-		Variable var = iconInst.getVar(Tech.ATTR_S);
-		if (var==null)  var = iconInst.getVar(Tech.ATTR_SP);
-		if (var==null)  var = iconInst.getVar(Tech.ATTR_SN);
-		if (var==null)  var = iconInst.getVar(Tech.ATTR_X);
+
+		Variable var = iconInst.getParameterOrVariable(Tech.ATTR_S);
+		if (var==null)  var = iconInst.getParameterOrVariable(Tech.ATTR_SP);
+		if (var==null)  var = iconInst.getParameterOrVariable(Tech.ATTR_SN);
+		if (var==null)  var = iconInst.getParameterOrVariable(Tech.ATTR_X);
 		double x = getNumericVal(context.evalVar(var));
 		//System.out.println("Gate Type: " + pNm + ", Gate Size: " + x);  // Daniel
-		
+
 		StdCellParams sc = stdCell;
 		if      (pNm.equals("nms1{ic}"))          return Nms1.makePart(x, sc);
 		else if (pNm.equals("nms1K{ic}"))         return Nms1.makePart(x, sc);
@@ -417,8 +417,8 @@ public class SchemToLay {
 		else if (pNm.equals("nand2_sy{ic}"))      return Nand2_sy.makePart(x, sc);
 		else if (pNm.equals("nand2HLT_sy{ic}"))   return Nand2HLT_sy.makePart(x, sc);
 		else if (pNm.equals("nand2LT_sy{ic}"))    return Nand2LT_sy.makePart(x, sc);
-		else if (pNm.equals("nand2PH{ic}"))       return Nand2PH.makePart(x, sc);    
-		else if (pNm.equals("nand2PHfk{ic}"))     return Nand2PHfk.makePart(x, sc);    
+		else if (pNm.equals("nand2PH{ic}"))       return Nand2PH.makePart(x, sc);
+		else if (pNm.equals("nand2PHfk{ic}"))     return Nand2PHfk.makePart(x, sc);
 		else if (pNm.equals("nand3{ic}"))         return Nand3.makePart(x, sc);
 		else if (pNm.equals("nand3MLT{ic}"))      return Nand3MLT.makePart(x, sc);
 		else if (pNm.equals("nand3LT{ic}"))       return Nand3LT.makePart(x, sc);
@@ -437,7 +437,7 @@ public class SchemToLay {
 			return null;
 		}
 	}
-	
+
 	private static boolean isNstkNm(String nm) {
 		return nm.startsWith("nms1") || nm.startsWith("nms2") ||
 			nm.startsWith("NmosWellTie");
@@ -458,7 +458,7 @@ public class SchemToLay {
 	private static boolean isPstk(NodeInst ni) {
 		return isPstkNm(ni.getProto().getName());
 	}
-	
+
 	private static boolean isUsefulIconInst(NodeInst ni, Cell schematic) {
 		if (ni.isIconOfParent()) return false;
 		NodeProto np = ni.getProto();
@@ -467,21 +467,21 @@ public class SchemToLay {
 			// vdd or gnd.
 			if (np.getName().equals("Power") ||
 				np.getName().equals("Ground")) return true;
-			
+
 			// skip all other primitive drawing nodes such as wire pins,
 			// off-page.
 			return false;
 		}
-		
+
 		Cell c = (Cell) np;
-		
+
 		// skip anything that's not an Icon View
 		if (!c.getView().getFullName().equals("icon")) return false;
 		if (c.getName().equals("wire{ic}")) return false;
 		return true;
 	}
-	
-	
+
+
 	// Return layout instances. iconToLay maps from the icon instance to
 	// the layout instance.
 	private static void makeLayoutInsts(ArrayList<NodeInst> layInsts, HashMap<NodeInst,NodeInst> iconToLay,
@@ -498,18 +498,18 @@ public class SchemToLay {
 			layInsts.add(layInst);
 		}
 	}
-	
+
 	// Sort nets to reduce non-determinism. This isn't totally
 	// satisfactory because only nets with names will be ordered.
 	private static ArrayList<Network> sortNets(Iterator<Network> nets) {
 		ArrayList<Network> sortedNets = new ArrayList<Network>();
 		while (nets.hasNext()) {sortedNets.add(nets.next());}
-		
+
 		Comparator<Network> netNmComp = new Comparator<Network>() {
 				public int compare(Network n1, Network n2) {
 					Iterator<String> nms1 = n1.getNames();
 					Iterator<String> nms2 = n2.getNames();
-					
+
 					if (!nms1.hasNext() && !nms2.hasNext()) {
 						// neither net has a name
 						return 0;
@@ -526,7 +526,7 @@ public class SchemToLay {
 		Collections.sort(sortedNets, netNmComp);
 		return sortedNets;
 	}
-	
+
 	// Build route segments and sort them into two groups.
 	//
 	// 1) stkSegs: segments with N-stacks but no P-stacks and segments
@@ -544,11 +544,11 @@ public class SchemToLay {
 									   HashMap<NodeInst,NodeInst> iconToLay, HashMap<String,Object> expTrkAsgn,
 									   StdCellParams stdCell, Cell gasp) {
 		ArrayList<Network> sortedNets = sortNets(nets);
-		
+
 		for (int i=0; i<sortedNets.size(); i++) {
 			Network net = sortedNets.get(i);
 			RouteSeg r = new RouteSeg(net, iconToLay, expTrkAsgn);
-			
+
 			if (r.getAllPorts().size()==0) {
 				// Schematic net had nothing useful attached to it
 			} else if (r.hasNstk() && r.hasPstk()) {
@@ -562,11 +562,11 @@ public class SchemToLay {
 			}
 		}
 	}
-	
+
 	private static void sortPortsLeftToRight(ArrayList<PortInst> ports) {
 		Comparator<PortInst> compare = new Comparator<PortInst>() {
 				public int compare(PortInst p1, PortInst p2) {
-					double diff = LayoutLib.roundCenterX(p1) - 
+					double diff = LayoutLib.roundCenterX(p1) -
 					              LayoutLib.roundCenterX(p2);
 					if (diff<0) return -1;
 					if (diff==0) return 0;
@@ -575,7 +575,7 @@ public class SchemToLay {
 			};
 		Collections.sort(ports, compare);
 	}
-	
+
 	private static void metal1route(PortInst prev, PortInst port, TechType tech) {
 		NodeInst prevInst = prev.getNodeInst();
 		// If one gate is half height and the other full height then we
@@ -589,7 +589,7 @@ public class SchemToLay {
 			LayoutLib.newArcInst(tech.m1(), 4, port, prev);
 		}
 	}
-	
+
 	// Try to route physically adjacent ports in metal-1.  If we connect
 	// a pair of ports in metal-1, then remove the first of the two
 	// ports from the port list so the Track FillRouter doesn't connect them
@@ -601,8 +601,8 @@ public class SchemToLay {
 		for (int i=1; i<ports.size(); i++) {
 			PortInst prev = ports.get(i-1);
 			PortInst port = ports.get(i);
-			
-			double dx = LayoutLib.roundCenterX(port) - 
+
+			double dx = LayoutLib.roundCenterX(port) -
 			            LayoutLib.roundCenterX(prev);
 			error(dx<=0, "metal1route: ports not sorted left to right!");
 			if (dx<=ADJACENT_DIST) {
@@ -614,52 +614,52 @@ public class SchemToLay {
 			prev = port;
 		}
 	}
-	
+
 	private static void connectSegment(RouteSeg r, TrackAllocator trackAlloc,
 									   StdCellParams stdCell, Cell gasp) {
 		TechType tech = stdCell.getTechType();
 		ArrayList<PortInst> ports = r.getAllPorts();
 		sortPortsLeftToRight(ports);
-		
+
 		// first route physically adjacent ports in metal-1
 		metal1route(ports, tech);
-		
+
 		// Don't allocate a metal-2 track if the net is internal and there
 		// is nothing left to connect in metal-2.
 		if (ports.size()<=1 && !r.hasExports()) return;
-		
+
 		double trackY = r.hasExpTrk() ? (
             stdCell.getPhysTrackY(r.getExpTrk())
         ) : (
             trackAlloc.getTrackY(r, 4.0)
         );
-		
+
 		//if (r.hasExpTrk()) {
 		//System.out.println("Using assigned track: "+trackY);
 		//}
-	  
+
 		TrackRouter route = new TrackRouterH(tech.m2(), 4.0, trackY, tech, gasp);
-		
+
 		// connect RouteSeg's exports
 		Iterator<Export> expIt = r.findExports();
 		while (expIt.hasNext()) {
 			Export exp = expIt.next();
 			String expNm = exp.getName();
 			// Align the export with left most port
-			
+
 			// RKao debug
 			error(ports.size()==0, "No device ports on this net?: "+expNm);
-			
+
 			double x = LayoutLib.roundCenterX(ports.get(0));
-			LayoutLib.newExport(gasp, expNm, exp.getCharacteristic(), tech.m2(), 
+			LayoutLib.newExport(gasp, expNm, exp.getCharacteristic(), tech.m2(),
 			                    4, x, trackY);
 			route.connect(gasp.findExport(expNm));
 		}
-		
+
 		// connect RouteSeg's ports
 		route.connect(ports);
 	}
-	
+
 	private static void connectSegments(TrackAllocator trackAlloc,
 										ArrayList<RouteSeg> segs, boolean exports,
 										StdCellParams stdCell, Cell gasp) {
@@ -668,7 +668,7 @@ public class SchemToLay {
 			if (exports==r.hasExports()) connectSegment(r, trackAlloc, stdCell, gasp);
 		}
 	}
-	
+
 //	// find the sums of the lengths of all routing segments
 //	private static double estimateWireLength(ArrayList<RouteSeg> routeSegs) {
 //		double len = 0;
@@ -677,7 +677,7 @@ public class SchemToLay {
 //		}
 //		return len;
 //	}
-	
+
 	private static void buildPlacerNetlist(Placer placer, ArrayList<NodeInst> insts,
 										   ArrayList<RouteSeg> routeSegs) {
 		// create Placer instances
@@ -685,15 +685,15 @@ public class SchemToLay {
 		for (int i=0; i<insts.size(); i++) {
 			NodeInst inst = insts.get(i);
 			//inst.alterShape(1, 1, 0, 0, 0);
-			
+
 			int type;
 			if (isNstk(inst))         type=Placer.N;
 			else if (isPstk(inst))    type=Placer.P;
 			else                      type=Placer.PN;
 			double w = inst.getBounds().getWidth();
-			
+
 			Placer.Inst plInst = placer.addInst(type, w, inst);
-			
+
 			Iterator<PortInst> it = inst.getPortInsts();
 			while (it.hasNext()) {
 				PortInst port = it.next();
@@ -707,7 +707,7 @@ public class SchemToLay {
 		for (int i=0; i<routeSegs.size(); i++) {
 			RouteSeg seg = routeSegs.get(i);
 			Placer.Net plNet = placer.addNet();
-			
+
 			ArrayList<PortInst> ports = seg.getAllPorts();
 			for (int j=0; j<ports.size(); j++) {
 				PortInst port = ports.get(j);
@@ -717,22 +717,22 @@ public class SchemToLay {
 			}
 		}
 	}
-	
+
 	// try again using data structures built just for placement
 	private static ArrayList<NodeInst> place(ArrayList<NodeInst> insts, ArrayList<RouteSeg> routeSegs,
 								   StdCellParams stdCell, Cell gasp) {
 		//long sT = System.currentTimeMillis();
-		
+
 		Placer placer = new Placer(stdCell, gasp);
 		buildPlacerNetlist(placer, insts, routeSegs);
 		ArrayList<NodeInst> ans = placer.place1row();
 		//long eT = System.currentTimeMillis();
 		//double seconds = (eT-sT)/1000.0;
 		//System.out.println("Placement took: "+seconds+" seconds");
-		
+
 		return ans;
 	}
-	
+
 	private static void connectWellTies(ArrayList<NodeInst> layInsts,
 										StdCellParams stdCell, Cell gasp) {
 		TechType tech = stdCell.getTechType();
@@ -742,11 +742,11 @@ public class SchemToLay {
 												stdCell.getNmosWellTieWidth(),
 												stdCell.getNmosWellTieY(),
 												tech, gasp);
-			LayoutLib.newExport(gasp, stdCell.getNmosWellTieName(), 
+			LayoutLib.newExport(gasp, stdCell.getNmosWellTieName(),
 			                    stdCell.getNmosWellTieRole(),
 								tech.m2(), 4,
 								// m1_m1_sp/2
-								stdCell.getNmosWellTieWidth()/2 + 1.5, 
+								stdCell.getNmosWellTieWidth()/2 + 1.5,
 								stdCell.getNmosWellTieY());
 			nTie.connect(gasp.findExport(stdCell.getNmosWellTieName()));
 			nTie.connect(layInsts, stdCell.getNmosWellTieName());
@@ -764,11 +764,11 @@ public class SchemToLay {
 			pTie.connect(layInsts, stdCell.getPmosWellTieName());
 		}
 	}
-	
+
 	/*
 	  private static ArrayList wireEquivPortsList() {
 	  ArrayList equivPortsLists = new ArrayList();
-	  
+
 	  // search all libraries for the wire icon
 	  Iterator it = Electric.getLibraries();
 	  while (it.hasNext()) {
@@ -776,7 +776,7 @@ public class SchemToLay {
       Cell wireIcon = lib.findCell("wire{ic}");  if (wireIcon==null) continue;
       PortProto a = wireIcon.findPort("a");        if (a==null) continue;
       PortProto b = wireIcon.findPort("b");        if (b==null) continue;
-      
+
       // Well, it's got the right type, name, and port names. I might
       // as well treat it like a wire icon.
       ArrayList equivPortsList = new ArrayList();
@@ -786,33 +786,33 @@ public class SchemToLay {
 	  return equivPortsLists;
 	  }
 	*/
-	
+
 	// Remove from instance name first open bracket and everything
 	// following it.
 	private static String stripBusNotation(String instNm) {
 		int openBrack = instNm.indexOf("[");
 		return (openBrack>=0) ? instNm.substring(0,openBrack) : instNm;
 	}
-	
+
 	private static void instPath1(StringBuffer path, VarContext context) {
 		Nodable ni = context.getNodable();
 		if (ni==null) return;
-		
+
 		instPath1(path, context.pop());
-		
+
 		String me = ni.getName();
 		error(me==null, "instance in VarContext with no name!!!");
-		
+
 		String noBus = stripBusNotation(me);
 		path.append("/"+noBus);
 	}
-	
+
 	private static String instPath(VarContext context) {
 		StringBuffer path = new StringBuffer();
 		instPath1(path, context);
 		return path.toString();
 	}
-	
+
 	private static PortInst findFirstPort(ArrayList<NodeInst> layInsts, String nm) {
 		for (int i=0; i<layInsts.size(); i++) {
 			NodeInst pi = layInsts.get(i);
@@ -822,7 +822,7 @@ public class SchemToLay {
 		error(true, "no NodeInst with port found: "+nm);
 		return null;
 	}
-	
+
 	// Create the name of the new layout Cell by appending the instance
 	// path to the schematic facet name.
 	private static String layoutCellName(Cell schematic, VarContext context) {
@@ -831,10 +831,10 @@ public class SchemToLay {
 		int sfxPos = schemNm.indexOf("{sch}");
 		error(sfxPos==-1, "SchemToLay: no {sch} suffix on Cell schematic name?");
 		schemNm = schemNm.substring(0, sfxPos);
-		
+
 		return schemNm + "__" + instPath(context) + "{lay}";
 	}
-	
+
 	private static void blockAssignedTracks(TrackAllocator trackAlloc,
 											ArrayList<RouteSeg> routeSegs,
 											StdCellParams stdCell) {
@@ -845,7 +845,7 @@ public class SchemToLay {
 			}
 		}
 	}
-	
+
 	/** A schematic may have track assignments in the form of variables:
 	 * "ATTR_track=234" attached to Exports.  Track assignments may also
 	 * be specified by the program calling SchemToLay.makePart().  In
@@ -855,18 +855,18 @@ public class SchemToLay {
 											StdCellParams stdCell) {
 		// get assignment from schematic
 		HashMap<String,Object> schAsgn = stdCell.getSchemTrackAssign(schem);
-		
+
 		// program assignments override schematic assignments
 		HashMap<String,Object> combAsgn = new HashMap<String,Object>(schAsgn);
 		combAsgn.putAll(progAsgn);
-		
+
 		// report erroneous assignments
 		stdCell.validateTrackAssign(progAsgn, schem);
 		stdCell.validateTrackAssign(combAsgn, schem);
-		
+
 		return combAsgn;
 	}
-	
+
 	/** Read a Gasp cell schematic and produce the layout for it. <p>
 	 * Equivalent to:
 	 *
@@ -876,7 +876,7 @@ public class SchemToLay {
 								StdCellParams stdCell) {
 		return makePart(schem, context, new HashMap<String,Object>(), stdCell);
 	}
-	
+
 	/** Read a Gasp cell schematic and produce the layout for it.
 	 * @param schem Schematic view Cell
 	 * @param context Hierarchical path from root schematic.
@@ -891,20 +891,20 @@ public class SchemToLay {
 		TechType tech = stdCell.getTechType();
 		error(!schem.getView().getFullName().equals("schematic"),
 			  "not a schematic: "+schem.getName());
-		
+
 		String nm = layoutCellName(schem, context);
 		System.out.println("SchemToLay making: "+nm);
 		Cell gasp = stdCell.findPart(nm);
 		if (gasp!=null) return gasp;
 		gasp = stdCell.newPart(nm);
-		
-		// create layout for each schematic instance 
+
+		// create layout for each schematic instance
 		HashMap<NodeInst,NodeInst> iconToLay = new HashMap<NodeInst,NodeInst>();
 		ArrayList<NodeInst> layInsts = new ArrayList<NodeInst>();
 		makeLayoutInsts(layInsts, iconToLay, schem, gasp, context, stdCell);
-		
+
 		HashMap<String,Object> combTrkAsgn = mergeTrackAssign(schem, exportTrackAssign, stdCell);
-		
+
 		// create routing segments that will each require a track to route
 		Netlist netlist = schem.getNetlist(ShortResistors.PARASITIC);
 		ArrayList<RouteSeg> stkSegs = new ArrayList<RouteSeg>();
@@ -915,18 +915,18 @@ public class SchemToLay {
 		// Append parts containing space for vertical routing tracks
 		// needed to connect NMOS stacks and PMOS stacks.
 		layInsts.addAll(vertTracks);
-		
+
 		ArrayList<RouteSeg> allSegs = new ArrayList<RouteSeg>(stkSegs);
 		allSegs.addAll(noStkSegs);
-		
+
 		layInsts = place(layInsts, allSegs, stdCell, gasp);
-		
+
 		// vdd and gnd wires
 		TrackRouter gnd = new TrackRouterH(tech.m2(), stdCell.getGndWidth(),
 										   stdCell.getGndY(), tech, gasp);
 		TrackRouter vdd = new TrackRouterH(tech.m2(), stdCell.getVddWidth(),
 										   stdCell.getVddY(), tech, gasp);
-		
+
 		// place vdd and gnd exports on the first full height layout instance
 		Export.newInstance(gasp, findFirstPort(layInsts, "gnd"), "gnd")
 		    .setCharacteristic(PortCharacteristic.GND);
@@ -934,14 +934,14 @@ public class SchemToLay {
 		Export.newInstance(gasp, findFirstPort(layInsts, "vdd"), "vdd")
 		    .setCharacteristic(PortCharacteristic.PWR);
 		vdd.connect(gasp.findExport("vdd"));
-		
+
 		// connect up vdd and gnd
 		vdd.connect(layInsts, "vdd");
 		gnd.connect(layInsts, "gnd");
-		
+
 		// Rock connect well ties to exports rather than to vdd or gnd
 		connectWellTies(layInsts, stdCell, gasp);
-		
+
 		//
 		// Route signal wires.
 		//
@@ -956,27 +956,27 @@ public class SchemToLay {
 		// must be be split into an N-stack segment and a P-stack
 		// segment. The two segments must be connected by a non-stack cell
 		// or a special vertical routing channel.
-		
+
 		TrackAllocator trackAlloc = new TrackAllocator(stdCell);
-		
+
 		blockAssignedTracks(trackAlloc, stkSegs, stdCell);
 		blockAssignedTracks(trackAlloc, noStkSegs, stdCell);
-		
+
 		// First connect segments that have no exports.  These can
 		// potentially share tracks.  Then connect segments that are cell
 		// exports.  We need to leave track clear for these.
 		for (int i=0; i<2; i++) {
 			boolean exports = i==0 ? false : true;
-			
+
 			// Route RouteSegs that must be in the top of the cell and
 			// RouteSegs that must be in the bottom of the cell.
 			connectSegments(trackAlloc, stkSegs, exports, stdCell, gasp);
-			
+
 			// Route segments that can be either in the top or bottom of the
 			// cell.
 			connectSegments(trackAlloc, noStkSegs, exports, stdCell, gasp);
 		}
-		
+
 		// Compare schematic to layout
 		/*
 		if (stdCell.nccEnabled()) {

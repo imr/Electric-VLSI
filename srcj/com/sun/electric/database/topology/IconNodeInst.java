@@ -239,6 +239,7 @@ class IconNodeInst extends NodeInst
 	 * @param varKey key of variable or special key.
 	 * @param td new value TextDescriptor
 	 */
+    @Override
 	public void setTextDescriptor(Variable.Key varKey, TextDescriptor td)
 	{
         Variable param = getParameter(varKey);

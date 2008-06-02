@@ -505,7 +505,7 @@ public class VarContext implements Serializable
             Variable parentVar = null;
             Nodable no = getNodable();
             if (no != null)
-                parentVar = no.getVar(Variable.findKey(pMat.group(1)));
+                parentVar = no.getParameter(Variable.findKey(pMat.group(1)));
             if (parentVar != null) {
                 // see if param is spice code by looking at instance code
                 boolean isSpiceCode = parentVar.getCode() == CodeExpression.Code.SPICE;

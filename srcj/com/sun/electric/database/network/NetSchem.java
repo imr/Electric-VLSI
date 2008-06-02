@@ -135,6 +135,14 @@ class NetSchem extends NetCell {
         public Variable getParameter(Variable.Key key) { return nodeInst.getParameter(key); }
 
         /**
+         * Method to return the Parameter or Variable on this Nodable with a given key.
+         * @param key the key of the Parameter or Variable.
+         * @return the Parameter or Variable with that key, or null if there is no such Parameter or Variable Variable.
+         * @throws NullPointerException if key is null
+         */
+        public Variable getParameterOrVariable(Variable.Key key) { return nodeInst.getParameterOrVariable(key); }
+
+        /**
          * Method to tell if the Variable.Key is a defined parameters of this Nodable.
          * Parameters which are not defined on Nodable take default values from Icon Cell.
          * @param key the key of the parameter

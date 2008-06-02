@@ -696,9 +696,9 @@ public class ToolMenu {
             HashMap<Network,NodeInst> map = new HashMap<Network,NodeInst>();        // map of networks to associated wire model nodeinst
             for (Iterator<NodeInst> it = schLayCells[0].getNodes(); it.hasNext(); ) {
                 NodeInst ni = it.next();
-                Variable var = ni.getVar(LENetlister.ATTR_LEWIRE);
+                Variable var = ni.getParameterOrVariable(LENetlister.ATTR_LEWIRE);
                 if (var == null) continue;
-                var = ni.getVar(LENetlister.ATTR_L);
+                var = ni.getParameterOrVariable(LENetlister.ATTR_L);
                 if (var == null) {
                     System.out.println("No attribute L on wire model "+ni.describe(true)+", ignoring it.");
                     continue;

@@ -528,7 +528,7 @@ class Visitor extends HierarchyEnumerator.Visitor {
 		return new Wire[] {a, b};
 	}
 	private double getDoubleVariableValue(String varName, NodeInst ni, VarContext context) {
-		Variable var = ni.getVar(varName);
+		Variable var = ni.getParameterOrVariable(varName);
 		if (var==null) return 0;
 		Object obj = context==null ? var.getObject() : context.evalVar(var, ni);
 		return VarContext.objectToDouble(obj, 0);

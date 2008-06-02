@@ -2204,7 +2204,7 @@ public class EditWindow extends JPanel
 				{
 					// text on a variable
 					ElectricObject base = (ElectricObject)sic.object;
-					Variable var = base.getVar(sic.key);
+					Variable var = base.getParameterOrVariable(sic.key);
 					Object obj = var.getObject();
 					if (obj instanceof String || obj instanceof CodeExpression)
 					{

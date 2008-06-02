@@ -161,7 +161,7 @@ public abstract class LENetlister extends HierarchyEnumerator.Visitor {
             NodeInst ni = (NodeInst)instIt.next();
             if (ni.isIconOfParent()) continue;
             if (!ni.isCellInstance()) continue;
-            if (ni.getVar(ATTR_LESETTINGS) != null) {
+            if (ni.getParameterOrVariable(ATTR_LESETTINGS) != null) {
                 Technology tech = cell.getTechnology();
                 if (cell.isSchematic())
                     tech = layoutTech;
@@ -174,13 +174,13 @@ public abstract class LENetlister extends HierarchyEnumerator.Visitor {
                 float keeperRatio = (float)LETool.getKeeperRatio();
                 Variable var;
                 VarContext context = VarContext.globalContext;
-                if ((var = ni.getVar(ATTR_su)) != null) su = VarContext.objectToFloat(context.evalVar(var), su);
-                if ((var = ni.getVar(ATTR_wire_ratio)) != null) wireRatio = VarContext.objectToFloat(context.evalVar(var), wireRatio);
-                if ((var = ni.getVar(ATTR_epsilon)) != null) epsilon = VarContext.objectToFloat(context.evalVar(var), epsilon);
-                if ((var = ni.getVar(ATTR_max_iter)) != null) maxIterations = VarContext.objectToInt(context.evalVar(var), maxIterations);
-                if ((var = ni.getVar(ATTR_gate_cap)) != null) gateCap = VarContext.objectToFloat(context.evalVar(var), gateCap);
-                if ((var = ni.getVar(ATTR_alpha)) != null) alpha = VarContext.objectToFloat(context.evalVar(var), alpha);
-                if ((var = ni.getVar(ATTR_keeper_ratio)) != null) keeperRatio = VarContext.objectToFloat(context.evalVar(var), keeperRatio);
+                if ((var = ni.getParameterOrVariable(ATTR_su)) != null) su = VarContext.objectToFloat(context.evalVar(var), su);
+                if ((var = ni.getParameterOrVariable(ATTR_wire_ratio)) != null) wireRatio = VarContext.objectToFloat(context.evalVar(var), wireRatio);
+                if ((var = ni.getParameterOrVariable(ATTR_epsilon)) != null) epsilon = VarContext.objectToFloat(context.evalVar(var), epsilon);
+                if ((var = ni.getParameterOrVariable(ATTR_max_iter)) != null) maxIterations = VarContext.objectToInt(context.evalVar(var), maxIterations);
+                if ((var = ni.getParameterOrVariable(ATTR_gate_cap)) != null) gateCap = VarContext.objectToFloat(context.evalVar(var), gateCap);
+                if ((var = ni.getParameterOrVariable(ATTR_alpha)) != null) alpha = VarContext.objectToFloat(context.evalVar(var), alpha);
+                if ((var = ni.getParameterOrVariable(ATTR_keeper_ratio)) != null) keeperRatio = VarContext.objectToFloat(context.evalVar(var), keeperRatio);
                 return new NetlisterConstants(su, wireRatio, epsilon, maxIterations, gateCap, alpha, keeperRatio);
             }
         }
@@ -236,7 +236,7 @@ public abstract class LENetlister extends HierarchyEnumerator.Visitor {
             Library lib = (Library)it.next();
             for (Iterator<Cell> it2 = lib.getCells(); it2.hasNext(); ) {
                 Cell c = (Cell)it2.next();
-                if (c.getVar(ATTR_LESETTINGS) != null) {
+                if (c.getParameterOrVariable(ATTR_LESETTINGS) != null) {
                     settings = c;
                     break;
                 }
@@ -320,7 +320,7 @@ public abstract class LENetlister extends HierarchyEnumerator.Visitor {
                 }
 
                 // get su from instance we pushed into
-                Variable suvar = ni.getVar(ATTR_su);
+                Variable suvar = ni.getParameterOrVariable(ATTR_su);
                 if (suvar != null) {
                     float su = VarContext.objectToFloat(getContext().evalVar(suvar, null), -1f);
                     if (su != -1f) cellsu = su;

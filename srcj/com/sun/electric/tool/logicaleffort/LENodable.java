@@ -236,14 +236,14 @@ public class LENodable {
             // boolean leGate set to false; it will not be sized
             // NEW: If we find ATTR_LEWIRECAP, that is the capacitance to use,
             // and we will not calculate the cap from L and W.
-            var = no.getVar(LENetlister.ATTR_LEWIRECAP);
+            var = no.getParameterOrVariable(LENetlister.ATTR_LEWIRECAP);
             float cap = 0;
             if (var != null) {
                 retVal = context.evalVar(var);
                 if (testCachebility && (retVal == null)) return -1f;
                 cap = VarContext.objectToFloat(retVal, 0.0f);
             } else {
-                var = no.getVar(LENetlister.ATTR_L);
+                var = no.getParameterOrVariable(LENetlister.ATTR_L);
                 if (var == null) {
                     System.out.println("Error, no L attribute found on LEWIRE "+no.getName()+" in Cell "+no.getParent());
                     if (testCachebility) return -1f;
@@ -252,7 +252,7 @@ public class LENodable {
                 if (testCachebility && (retVal == null)) return -1f;
                 float len = VarContext.objectToFloat(retVal, 0.0f);
 
-                var = no.getVar(Schematics.ATTR_WIDTH);
+                var = no.getParameterOrVariable(Schematics.ATTR_WIDTH);
                 if (var == null) {
                     System.out.println("Warning, no width attribute found on LEWIRE "+no.getName()+" in Cell "+no.getParent());
                     if (testCachebility) return -1f;
@@ -266,7 +266,7 @@ public class LENodable {
             leX = leX/9.0f;                         // drive strength X=1 is 9 lambda of gate
         }
         else if (type == LENodable.Type.TRANSISTOR) {
-            var = no.getVar(Schematics.ATTR_WIDTH);
+            var = no.getParameterOrVariable(Schematics.ATTR_WIDTH);
             if (var == null) {
                 System.out.println("Error: transistor "+no.getName()+" has no width in Cell "+no.getParent());
                 //ErrorLogger.ErrorLog log = errorLogger.logError("Error: transistor "+no+" has no width in Cell "+info.getCell(), info.getCell(), 0);

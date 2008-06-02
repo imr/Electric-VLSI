@@ -1119,8 +1119,7 @@ public class Verilog extends Topology
                 Variable var = null;
                 Variable.Key varKey = Variable.findKey("ATTR_" + paramName);
                 if (varKey != null) {
-                    var = no.getVar(varKey);
-                    if (var == null) var = no.getParameter(varKey);
+                    var = no.getParameterOrVariable(varKey);
                 }
                 if (var == null) infstr.append("??"); else
                 {

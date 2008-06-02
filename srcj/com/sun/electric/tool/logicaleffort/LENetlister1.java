@@ -59,13 +59,13 @@ import java.util.TreeMap;
 /**
  * Creates a logical effort netlist to be sized by LESizer.
  * This is so the LESizer is independent of Electric's Database,
- * and can match George Chen's C++ version being developed for 
+ * and can match George Chen's C++ version being developed for
  * PNP.
  *
  * @author  gainsley
  */
 public class LENetlister1 extends LENetlister {
-    
+
     // ALL GATES SAME DELAY
     /** Netlister constants */                  protected NetlisterConstants constants;
 
@@ -103,7 +103,7 @@ public class LENetlister1 extends LENetlister {
         errorLogger = null;
         aborted = false;
     }
-    
+
     // Entry point: This netlists the cell
     @Override
     public boolean netlist(Cell cell, VarContext context, boolean useCaching) {
@@ -317,17 +317,17 @@ public class LENetlister1 extends LENetlister {
             // boolean leGate set to false; it will not be sized
             // NEW: If we find ATTR_LEWIRECAP, that is the capacitance to use,
             // and we will not calculate the cap from L and W.
-            var = ni.getVar(ATTR_LEWIRECAP);
+            var = ni.getParameterOrVariable(ATTR_LEWIRECAP);
             float cap = 0;
             if (var != null) {
                 cap = VarContext.objectToFloat(info.getContext().evalVar(var), 0.0f);
             } else {
-                var = ni.getVar(ATTR_L);
+                var = ni.getParameterOrVariable(ATTR_L);
                 if (var == null) {
                     System.out.println("Error, no L attribute found on LEWIRE "+info.getContext().push(ni).getInstPath("."));
                 }
                 float len = VarContext.objectToFloat(info.getContext().evalVar(var), 0.0f);
-                var = ni.getVar(Schematics.ATTR_WIDTH);
+                var = ni.getParameterOrVariable(Schematics.ATTR_WIDTH);
                 if (var == null) {
                     System.out.println("Warning, no width attribute found on LEWIRE "+info.getContext().push(ni).getInstPath("."));
                 }
@@ -340,7 +340,7 @@ public class LENetlister1 extends LENetlister {
         else if ((ni.getProto() != null) && (ni.getProto().getFunction().isTransistor())) {
             // handle transistor loads
             type = Instance.Type.STATICGATE;
-            var = ni.getVar(Schematics.ATTR_WIDTH);
+            var = ni.getParameterOrVariable(Schematics.ATTR_WIDTH);
             if (var == null) {
                 System.out.println("Error: transistor "+ni+" has no width in Cell "+info.getCell());
                 errorLogger.logError("Error: transistor "+ni+" has no width in Cell "+info.getCell(),
@@ -364,9 +364,9 @@ public class LENetlister1 extends LENetlister {
             float cap = VarContext.objectToFloat(info.getContext().evalVar(var), (float)0.0);
             leX = (float)(cap/constants.gateCap/1e-15/9.0f);
         }
-        else if (ni.getVar(ATTR_LESETTINGS) != null)
+        else if (ni.getParameterOrVariable(ATTR_LESETTINGS) != null)
             return false;
-        else if (ni.getVar(ATTR_LEIGNORE) != null)
+        else if (ni.getParameterOrVariable(ATTR_LEIGNORE) != null)
             return false;
 
 
@@ -393,7 +393,7 @@ public class LENetlister1 extends LENetlister {
             }
             if (dir == Pin.Dir.INPUT && type == Instance.Type.STATICGATE) {
                 // gate load: check if length > 2, if so, increase LE to account for added capacitance
-                var = ni.getVar(Schematics.ATTR_LENGTH);
+                var = ni.getParameterOrVariable(Schematics.ATTR_LENGTH);
                 if (var == null) {
                     System.out.println("Error: transistor "+ni+" has no length in Cell "+info.getCell());
                     errorLogger.logError("Error: transistor "+ni+" has no length in Cell "+info.getCell(),
@@ -414,7 +414,7 @@ public class LENetlister1 extends LENetlister {
         if (((LECellInfo)info).getSU() != -1f)
             localsu = ((LECellInfo)info).getSU();
         // check for step-up on gate
-        var = ni.getVar(ATTR_su);
+        var = ni.getParameterOrVariable(ATTR_su);
         if (var != null) {
             float nisu = VarContext.objectToFloat(info.getContext().evalVar(var), -1f);
             if (nisu != -1f)
@@ -428,7 +428,7 @@ public class LENetlister1 extends LENetlister {
 
         // set instance parameters for sizeable gates
         if (type == Instance.Type.LEGATE || type == Instance.Type.LEKEEPER) {
-            var = ni.getVar(ATTR_LEPARALLGRP);
+            var = ni.getParameterOrVariable(ATTR_LEPARALLGRP);
             if (var != null) {
                 // set parallel group number
                 int g = VarContext.objectToInt(info.getContext().evalVar(var), 0);
@@ -460,7 +460,7 @@ public class LENetlister1 extends LENetlister {
         float le = 1.0f;
 		if (!(pp instanceof Export))
 			return le;
-        Variable var = ((Export)pp).getVar(ATTR_le);
+        Variable var = ((Export)pp).getParameterOrVariable(ATTR_le);
         if (var != null) {
             leFound = true;
             le = VarContext.objectToFloat(info.getContext().evalVar(var), 1.0f);
@@ -468,12 +468,12 @@ public class LENetlister1 extends LENetlister {
                 (type == Instance.Type.LEGATE || type == Instance.Type.LEKEEPER)) {
             // if this is an Sizeable gate's output, look for diffn and diffp
             float diff = 0;
-            var = ((Export)pp).getVar(ATTR_diffn);
+            var = ((Export)pp).getParameterOrVariable(ATTR_diffn);
             if (var != null) {
                 diff += VarContext.objectToFloat(info.getContext().evalVar(var), 0);
                 leFound = true;
             }
-            var = ((Export)pp).getVar(ATTR_diffp);
+            var = ((Export)pp).getParameterOrVariable(ATTR_diffp);
             if (var != null) {
                 diff += VarContext.objectToFloat(info.getContext().evalVar(var), 0);
                 leFound = true;
@@ -640,5 +640,5 @@ public class LENetlister1 extends LENetlister {
     public static void test1() {
         LESizer.test1();
     }
-    
+
 }

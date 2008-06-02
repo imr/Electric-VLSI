@@ -142,8 +142,8 @@ class CellUsage extends HierarchyEnumerator.Visitor {
 		// NCC's hierarchy heuristics to behave badly.
 //        return no.getVar(LENetlister.ATTR_LEGATE)!=null ||
 //               no.getVar(LENetlister.ATTR_LEKEEPER)!=null;
-		boolean attrLeGate = no.getVar(LENetlister.ATTR_LEGATE)!=null ||
-			                 no.getVar(LENetlister.ATTR_LEKEEPER)!=null;
+		boolean attrLeGate = no.getParameterOrVariable(LENetlister.ATTR_LEGATE)!=null ||
+			                 no.getParameterOrVariable(LENetlister.ATTR_LEKEEPER)!=null;
 		boolean hasGetDrive = false;
 		for (Iterator<Variable> vIt=no.getDefinedParameters(); vIt.hasNext();) {
 //		for (Iterator<Variable> vIt=no.getVariables(); vIt.hasNext();) {

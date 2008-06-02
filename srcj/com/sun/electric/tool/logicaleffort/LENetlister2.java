@@ -62,7 +62,7 @@ import java.util.Map;
 /**
  * Creates a logical effort netlist to be sized by LESizer.
  * This is so the LESizer is independent of Electric's Database,
- * and can match George Chen's C++ version being developed for 
+ * and can match George Chen's C++ version being developed for
  * PNP.
  *
  * @author  gainsley
@@ -111,7 +111,7 @@ public class LENetlister2 extends LENetlister {
         errorLogger = null;
         aborted = false;
     }
-    
+
     // Entry point: This netlists the cell
     @Override
     public boolean netlist(Cell cell, VarContext context, boolean useCaching) {
@@ -124,7 +124,7 @@ public class LENetlister2 extends LENetlister {
         errorLogger = ErrorLogger.newInstance("LE Netlister");
 
 //        Netlist netlist = cell.getNetlist(true);
-        
+
         // read schematic-specific sizing options
         constants = getSettings(cell);
         if (constants == null) {
@@ -528,7 +528,7 @@ public class LENetlister2 extends LENetlister {
         else if ((ni.getProto() != null) && (ni.getProto().getFunction() == PrimitiveNode.Function.CAPAC)) {
             return LENodable.Type.CAPACITOR;
         }
-        else if ((var = ni.getVar(ATTR_LEIGNORE)) != null) {
+        else if ((var = ni.getParameterOrVariable(ATTR_LEIGNORE)) != null) {
             int ignore = VarContext.objectToInt(info.getContext().evalVar(var), 1);
             if (ignore == 1)
                 return LENodable.Type.IGNORE;
@@ -583,7 +583,7 @@ public class LENetlister2 extends LENetlister {
                 if (pp.getCharacteristic() == PortCharacteristic.BIDIR) dir = LEPin.Dir.OUTPUT;
                 if (dir == LEPin.Dir.INPUT) {
                     // gate load: check if length > 2, if so, increase LE to account for added capacitance
-                    var = ni.getVar(Schematics.ATTR_LENGTH);
+                    var = ni.getParameterOrVariable(Schematics.ATTR_LENGTH);
                     if (var == null) {
                         System.out.println("Error: transistor "+ni.getName()+" has no length in Cell "+ni.getParent());
                         //ErrorLogger.ErrorLog log = errorLogger.logError("Error: transistor "+ni+" has no length in Cell "+info.getCell(), info.getCell(), 0);
@@ -592,7 +592,7 @@ public class LENetlister2 extends LENetlister {
                     float length = VarContext.objectToFloat(info.getContext().evalVar(var), (float)2.0);
                     // not exactly correct because assumes all cap is area cap, which it isn't
                     if (length != 2.0f)
-                        le = le * length / 2.0f;                    
+                        le = le * length / 2.0f;
                 }
             }
             lenodable.addPort(pp.getName(), dir, le, jnet);
@@ -609,7 +609,7 @@ public class LENetlister2 extends LENetlister {
         float le = 1.0f;
 		if (!(pp instanceof Export))
 			return le;
-        Variable var = ((Export)pp).getVar(ATTR_le);
+        Variable var = ((Export)pp).getParameterOrVariable(ATTR_le);
         if (var != null) {
             leFound = true;
             le = VarContext.objectToFloat(info.getContext().evalVar(var), 1.0f);
@@ -617,12 +617,12 @@ public class LENetlister2 extends LENetlister {
                 (type == LENodable.Type.LEGATE || type == LENodable.Type.LEKEEPER)) {
             // if this is an Sizeable gate's output, look for diffn and diffp
             float diff = 0;
-            var = ((Export)pp).getVar(ATTR_diffn);
+            var = ((Export)pp).getParameterOrVariable(ATTR_diffn);
             if (var != null) {
                 diff += VarContext.objectToFloat(info.getContext().evalVar(var), 0);
                 leFound = true;
             }
-            var = ((Export)pp).getVar(ATTR_diffp);
+            var = ((Export)pp).getParameterOrVariable(ATTR_diffp);
             if (var != null) {
                 diff += VarContext.objectToFloat(info.getContext().evalVar(var), 0);
                 leFound = true;
@@ -753,5 +753,5 @@ public class LENetlister2 extends LENetlister {
     public static void test1() {
         LESizer.test1();
     }
-    
+
 }
