@@ -1522,6 +1522,18 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
     public void delParameter(Variable.Key key) {
     }
 
+	/**
+	 * Method to update a Parameter on this NodeInst with the specified values.
+	 * If the Variable already exists, only the value is changed; the displayable attributes are preserved.
+	 * @param key the key of the Variable.
+	 * @param value the object to store in the Variable.
+	 * @return the Variable that has been updated.
+	 */
+	public Variable updateParam(Variable.Key key, Object value)
+	{
+		return null;
+	}
+
     /**
 	 * Method to return the number of displayable Variables on this NodeInst and all of its PortInsts.
 	 * A displayable Variable is one that will be shown with its object.

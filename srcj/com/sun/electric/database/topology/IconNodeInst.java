@@ -69,18 +69,6 @@ class IconNodeInst extends NodeInst
     }
 
 	/**
-	 * Method to delete a Variable from this IconNodeInst.
-	 * @param key the key of the Variable to delete.
-	 */
-	public void delVar(Variable.Key key)
-	{
-        // ToDo: delete
-        if (key.isAttribute())
-            delParameter((Variable.AttrKey)key);
-        super.delVar(key);
-	}
-
-	/**
 	 * Method to return the Variable on this ElectricObject with a given key.
 	 * @param key the key of the Variable.
 	 * @return the Variable with that key and type, or null if there is no such Variable
@@ -288,6 +276,24 @@ class IconNodeInst extends NodeInst
 	 */
     @Override
 	public Variable updateVar(Variable.Key key, Object value)
+	{
+        if (isParam(key)) {
+    		Variable param = getParameter(key);
+            addParameter(getParameter(key).withObject(value));
+            return getParameter(key);
+        }
+		return super.updateVar(key, value);
+	}
+
+	/**
+	 * Method to update a Parameter on this ElectricObject with the specified values.
+	 * If the Variable already exists, only the value is changed; the displayable attributes are preserved.
+	 * @param key the key of the Variable.
+	 * @param value the object to store in the Variable.
+	 * @return the Variable that has been updated.
+	 */
+    @Override
+	public Variable updateParam(Variable.Key key, Object value)
 	{
         if (isParam(key)) {
     		Variable param = getParameter(key);

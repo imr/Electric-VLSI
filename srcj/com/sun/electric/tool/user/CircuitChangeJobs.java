@@ -935,10 +935,14 @@ public class CircuitChangeJobs
 				} else
 				{
 					// deleting a variable
-					if (eobj instanceof Cell && eobj.isParam(key))
-						((Cell)eobj).getCellGroup().delParam((Variable.AttrKey)key);
-					else
+					if (eobj.isParam(key)) {
+                        if (eobj instanceof Cell)
+    						((Cell)eobj).getCellGroup().delParam((Variable.AttrKey)key);
+                        else if (eobj instanceof NodeInst)
+                            ((NodeInst)eobj).delParameter(key);
+                    } else {
 						eobj.delVar(key);
+                    }
 				}
 			}
 			if (cell != null)

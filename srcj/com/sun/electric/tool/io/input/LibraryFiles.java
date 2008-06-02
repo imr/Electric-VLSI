@@ -1305,6 +1305,11 @@ public abstract class LibraryFiles extends Input
 
     private void realizeVariable(ElectricObject eObj, Variable var) {
         if (var == null || eObj.isDeprecatedVariable(var.getKey())) return;
+        if (eObj.isParam(var.getKey()) && eObj instanceof NodeInst) {
+            ((NodeInst)eObj).addParameter(var);
+            return;
+        }
+            
         var = var.withParam(false);
         String origVarName = var.getKey().toString();
         // convert old port variables

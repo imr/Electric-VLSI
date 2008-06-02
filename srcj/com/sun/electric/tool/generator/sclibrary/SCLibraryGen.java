@@ -188,9 +188,9 @@ public class SCLibraryGen {
                 NodeInst ni = it.next();
                 ni.newVar(Artwork.ART_COLOR, new Integer(blueColorIndex));
             }
-            // remove 'X' attribute
-            if (iconcell.getParameterOrVariable(sizeKey) != null) {
-                iconcell.delVar(sizeKey);
+            // remove 'X' parameter
+            if (iconcell.isParam(sizeKey)) {
+                iconcell.getCellGroup().delParam((Variable.AttrKey)sizeKey);
             }
         }
         return true;
@@ -220,9 +220,9 @@ public class SCLibraryGen {
                     }
                 }
             }
-            // remove 'X' attribute
-            if (schcell.getParameterOrVariable(sizeKey) != null) {
-                schcell.delVar(sizeKey);
+            // remove 'X' parameter
+            if (schcell.isParam(sizeKey)) {
+                schcell.getCellGroup().delParam((Variable.AttrKey)sizeKey);
             }
             // remove verilog template attribute
             if (schcell.getVar(Verilog.VERILOG_TEMPLATE_KEY) != null) {
@@ -234,14 +234,13 @@ public class SCLibraryGen {
                 if (ni.isCellInstance()) {
                     Cell np = (Cell)ni.getProto();
                     if (np.getLibrary() == redLibrary) {
-                        Variable var = ni.getVar(sizeKey);
-                        if (var != null) {
-                            ni.updateVar(sizeKey, Double.valueOf(size));
+                        if (ni.isDefinedParameter(sizeKey)) {
+                            ni.updateParam(sizeKey, Double.valueOf(size));
                         }
                     }
                     if (np.isIconOf(schcell)) {
                         // remove size attribute
-                        ni.delVar(sizeKey);
+                        ni.delParameter(sizeKey);
                     }
                 }
             }

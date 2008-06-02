@@ -639,8 +639,11 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
         {
             if (var == null) return false;
             Variable.Key varKey = var.getKey();
-            if (owner instanceof Cell && owner.isParam(varKey)) {
-                ((Cell)owner).getCellGroup().delParam((Variable.AttrKey)varKey);
+            if (owner.isParam(varKey)) {
+                if (owner instanceof Cell)
+                    ((Cell)owner).getCellGroup().delParam((Variable.AttrKey)varKey);
+                else if (owner instanceof NodeInst)
+                    ((NodeInst)owner).delParameter(varKey);
             } else {
                 owner.delVar(varKey);
             }
@@ -760,9 +763,13 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
         public boolean doIt() throws JobException
         {
             Variable.Key varKey = Variable.newKey(varName);
-            if (owner instanceof Cell && owner.isParam(varKey)) {
-                Variable.AttrKey newParamKey = (Variable.AttrKey)Variable.newKey(newVarName);
-                ((Cell)owner).getCellGroup().renameParam((Variable.AttrKey)varKey, newParamKey);
+            if (owner.isParam(varKey)) {
+                if (owner instanceof Cell) {
+                    Variable.AttrKey newParamKey = (Variable.AttrKey)Variable.newKey(newVarName);
+                    ((Cell)owner).getCellGroup().renameParam((Variable.AttrKey)varKey, newParamKey);
+                } else if (owner instanceof NodeInst) {
+                    System.out.println("Can't rename parameter on instance. Rename it on icon cell.");
+                }
             } else {
                 Variable var = owner.renameVar(varName, newVarName);
                 if (var == null)

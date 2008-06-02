@@ -539,10 +539,14 @@ public class AttributesTable extends JTable implements DatabaseChangeListener
 				// delete variables first
 				for (Variable.Key key : varsToDelete)
 				{
-					if (owner instanceof Cell && owner.isParam(key))
-						((Cell)owner).getCellGroup().delParam((Variable.AttrKey)key);
-					else
+					if (owner.isParam(key)) {
+                        if (owner instanceof Cell)
+    						((Cell)owner).getCellGroup().delParam((Variable.AttrKey)key);
+                        else if (owner instanceof NodeInst)
+                            ((NodeInst)owner).delParameter(key);
+                    } else {
 						owner.delVar(key);
+                    }
 				}
 
 				// now create new and update existing variables
