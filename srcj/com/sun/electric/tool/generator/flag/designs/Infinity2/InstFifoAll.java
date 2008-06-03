@@ -29,14 +29,32 @@ public class InstFifoAll extends FlagDesign {
 	
 	private Library findLibrary(String nm) {
 		Library l = Library.findLibrary(nm);
-		if (l==null) prln("Can't find Library: "+nm);
+		if (l==null) {
+			String errMsg = "Can't find Library: "+nm; 
+			prln(errMsg);
+			throw new RuntimeException(errMsg);
+		}
 		return l;
 	}
 	
 	private Cell findCell(Library lib, String cellNm) {
 		Cell c = lib.findNodeProto(cellNm);
-		if (c==null) prln("Can't find cell: "+cellNm+" in library: "+lib.getName());
+		if (c==null) { 
+			String errMsg = "Can't find cell: "+cellNm+" in library: "+lib.getName();
+			prln(errMsg);
+			throw new RuntimeException(errMsg);
+		}
 		return c;
+	}
+	
+	private PortInst findPortInst(NodeInst ni, String portNm) {
+		PortInst pi = ni.findPortInst(portNm);
+		if (pi==null) {
+			String errMsg = "NodeInst: "+ni.describe(false)+" has no PortInst named: "+portNm;
+			prln(errMsg);
+			throw new RuntimeException(errMsg);
+		}
+		return pi;
 	}
 
 	private void stackInsts(List<NodeInst> layInsts) {
@@ -49,23 +67,17 @@ public class InstFifoAll extends FlagDesign {
         }
 	}
 	
-	private boolean createLayInsts(Cell layCell) {
+	private void createLayInsts(Cell layCell) {
 		Library registersK = findLibrary("registersK");
-		if (registersK==null) return false;
 		Cell instReg14 = findCell(registersK, "instReg14{lay}");
 		Cell instReg12 = findCell(registersK, "instReg12{lay}");
 		Cell instReg14x2 = findCell(registersK, "instReg14x2{lay}");
 		Cell instReg12x2 = findCell(registersK, "instReg12x2{lay}");
 		Cell instMerge14 = findCell(registersK, "instMerge14{lay}");
 		Cell instMerge12 = findCell(registersK, "instMerge12{lay}");
-		if (instReg14==null || instReg12==null || instReg14x2==null || 
-			instReg12x2==null || instMerge14==null || instMerge12==null)
-			return false;
 		
 		Library fifosK = findLibrary("fifosK");
-		if (fifosK==null) return false;
 		Cell instFifoCont = fifosK.findNodeProto("instFifoCont{lay}");
-		if (instFifoCont==null) return false;
 		
 		// registers are ordered in the arrays from bottom to top 
 		lCol.add(LayoutLib.newNodeInst(instReg14, 0, 0, DEF_SIZE, DEF_SIZE, 0, layCell));
@@ -84,9 +96,8 @@ public class InstFifoAll extends FlagDesign {
 		rCol.add(LayoutLib.newNodeInst(instReg12, 0, 0, DEF_SIZE, DEF_SIZE, 0, layCell));
 		
 		ctl = LayoutLib.newNodeInst(instFifoCont, 0, 0, DEF_SIZE, DEF_SIZE, 0, layCell);
-		
-		return true;
 	}
+	
 	// position everything relative to the control block
 	private void placeLayInsts() {
 		LayoutLib.alignCorners(ctl, Corner.BL, lCol.get(0), Corner.BR, 0, 0);
@@ -107,30 +118,40 @@ public class InstFifoAll extends FlagDesign {
 	private void connectBus(List<ToConnect> toConns, int row1, String bus1, int row2, String bus2) {
 		for (int i=1; i<=14; i++) {
 			ToConnect net = new ToConnect();
-			net.addPortInst(lCol.get(row1).findPortInst(bus1+"["+i+"]"));
-			net.addPortInst(lCol.get(row2).findPortInst(bus2+"["+i+"]"));
+			net.addPortInst(findPortInst(lCol.get(row1), bus1+"["+i+"]"));
+			net.addPortInst(findPortInst(lCol.get(row2), bus2+"["+i+"]"));
 			toConns.add(net);
 		}
 		for (int i=1; i<=12; i++) {
 			ToConnect net = new ToConnect();
-			net.addPortInst(rCol.get(row1).findPortInst(bus1+"["+i+"]"));
-			net.addPortInst(rCol.get(row2).findPortInst(bus2+"["+i+"]"));
+			net.addPortInst(findPortInst(rCol.get(row1), bus1+"["+i+"]"));
+			net.addPortInst(findPortInst(rCol.get(row2), bus2+"["+i+"]"));
 			toConns.add(net);
 		}
 	}
 	private List<ToConnect> createNetlist() {
 		List<ToConnect> toConns = new ArrayList<ToConnect>();
 		connectBus(toConns, 0, "out", 3, "inX");
+		connectBus(toConns, 3, "outX", 3, "inY");
+		connectBus(toConns, 3, "outY", 6, "inY");
+		connectBus(toConns, 6, "outY", 6, "inX");
 		
-		
+		connectBus(toConns, 6, "outX", 7, "inA");
+		connectBus(toConns, 7, "out", 5, "inY");
+		connectBus(toConns, 5, "outY", 4, "inY");
+		connectBus(toConns, 4, "outY", 2, "inY");
+		connectBus(toConns, 2, "outY", 1, "inY");
+		connectBus(toConns, 1, "outY", 1, "inX");
+		connectBus(toConns, 1, "outX", 2, "inX");
+		connectBus(toConns, 2, "outX", 4, "inX");
+		connectBus(toConns, 4, "outX", 5, "inX");
+		connectBus(toConns, 5, "outX", 8, "in");
 		return toConns;
 	}
 	
 	public InstFifoAll(FlagConstructorData data) {
 		super(Infinity2Config.CONFIG, data);
-		boolean ok;
-		ok = createLayInsts(data.getLayoutCell());
-		if (!ok) return;
+		createLayInsts(data.getLayoutCell());
 		placeLayInsts();
         addEssentialBounds(data.getLayoutCell());
 		abutRoute();
