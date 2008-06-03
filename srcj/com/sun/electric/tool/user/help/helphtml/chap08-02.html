@@ -1,15 +1,17 @@
 <!-- HEADER 8-2: Converting between Technologies and Libraries -->
 
-<!-- COMMAND Edit/Technology Specific/Convert Technology to Library for Editing... -->
-<!-- COMMAND Edit/Technology Specific/Convert Library to Technology... -->
-<!-- COMMAND Edit/Technology Specific/Rename Current Technology... -->
+<!-- COMMAND Edit/Technology Editing/Convert Technology to Library for Editing... -->
+<!-- COMMAND Edit/Technology Editing/Convert Library to Technology... -->
+<!-- COMMAND Edit/Technology Specific/Write XML of Current Technology... -->
+<!-- COMMAND Edit/Technology Specific/Write XML of Technology from Old Electric Build... -->
+
 <!-- PROJECTSETTING Added Technologies -->
 
 <H3>Converting Technologies to Libraries</H3>
 <P>
 The best way to create a new technology is to change an existing one.
 Use the <B>Convert Technology to Library for Editing...</B> command
-(in menu <B>Edit / Technology Specific</B>) and select a similar technology.
+(in menu <B>Edit / Technology Editing</B>) and select a similar technology.
 Unfortunately, the Schematic and Artwork technologies are too complex to edit and cannot be converted.
 <P>
 Conversion of a technology to a library creates a library with the same name as the technology.
@@ -34,8 +36,7 @@ the <B>Convert Library to Technology...</B> command.
 You are given the opportunity of naming the technology, and can also request that XML code be produced
 (this code can be used to install the technology permanently).
 If a technology already exists with the name you want, you can request that it be renamed,
-or you can choose a different name for the new technology
-(note that technologies can also be renamed with the <B>Rename Current Technology...</B> command).
+or you can choose a different name for the new technology.
 </TD><TD><CENTER><IMG SRC="fig08-01.png" ALT="Figure 8.1"></CENTER></TD></TR></TABLE>
 <P>
 If there is an error in the library, conversion is aborted and you are given a chance to fix the library.
@@ -56,6 +57,15 @@ Use the "Add" button and browse to the XML file that was produced by the technol
 If you no longer want to have a technology installed in Electric, select it and use the "Remove" button.
 Note that changes to installed technologies do not take effect until Electric is next started.
 </TD></TR></TABLE>
+<P>
+Since XML files describe technologies, you can also edit technologies manually by editing these files
+(see <A HREF="chap08-10.html#chap08-10">Section 8-10</A> for the XML file format).
+To generate the XML file for a given technology, use the <B>Write XML of Current Technology...</B>
+command (in menu <B>Edit / Technology Specific</B>).
+It is also possible to extract an XML file for a technology from an older version of Electric.
+To do this, you need the JAR file for that release.
+Use the command <B>Write XML of Technology from Old Electric Build...</B>
+and specify both the Electric JAR file and the desired technology from that build.
 <P>
 <H3>Cleaning Up</H3>
 <P>

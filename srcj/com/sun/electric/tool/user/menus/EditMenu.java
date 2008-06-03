@@ -307,7 +307,7 @@ public class EditMenu {
 				new EMenuItem("Show _Redundant Pure-Layer Nodes") { public void run() {
 					CircuitChanges.showRedundantPureLayerNodes(); }}),
 
-		// mnemonic keys available:    DE GHIJKL  OPQRSTUVWXYZ
+		// mnemonic keys available:    DE GHIJKLM OPQRSTUVWXYZ
 			new EMenu("Technology Speci_fic",
 				new EMenuItem("Toggle Port _Negation", 'T') { public void run() {
 					CircuitChanges.toggleNegatedCommand(); }},
@@ -334,9 +334,9 @@ public class EditMenu {
 				new EMenuItem("Write XML of Technology from Old Electric Build...") { public void run() {
 					writeXmlTechnologyFromElectricBuildCommand(); }},
 				SEPARATOR,
-				new EMenuItem("Rena_me Current Technology...") { public void run() {
-					CircuitChanges.renameCurrentTechnology(); }},
-				SEPARATOR,
+//				new EMenuItem("Rename Current Technology...") { public void run() {
+//					CircuitChanges.renameCurrentTechnology(); }},
+//				SEPARATOR,
 
 				// mnemonic keys available:  B DEFG IJKLM O Q  TUV XYZ
 				new EMenu("_FPGA",

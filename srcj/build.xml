@@ -48,6 +48,7 @@
         <exclude name="com/sun/electric/plugins/pie/" if="GNU"/>
         <exclude name="com/sun/electric/plugins/prefuse/" if="GNU"/>
         <exclude name="com/sun/electric/tool/simulation/eventsim/" if="GNU"/>
+        <exclude name="com/sun/electric/tool/simulation/interval/" if="GNU"/>
     </patternset>
 
     <!-- Patternset for plugins that are not distributed by SFS -->
@@ -97,7 +98,6 @@
 	    <!--compilerarg value="-Xlint:unchecked"/-->
             <classpath refid="externalClassPath" />
             <classpath refid="prefuseClassPath" />
-            <exclude name="intervalsimulation/"/>
             <patternset refid="exclusion" />
         </javac>
     </target>

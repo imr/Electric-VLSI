@@ -443,6 +443,7 @@ public final class ExportChanges
 				}
 				Netlist nl = higher.acquireUserNetlist();
 				Network net = nl.getNetwork(ni, e, 0);
+				if (net == null) continue;
 				if (netsSeenInCell.contains(net)) continue;
 				netsSeenInCell.add(net);
 

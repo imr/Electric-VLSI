@@ -27,11 +27,12 @@ requests that the current technology automatically change whenever the current c
 so that the two match.</LI>
 <LI>"Place Cell-Center in new cells" requests that all newly created cells have a Cell-Center node
 placed at the origin (see <A HREF="chap03-03.html#chap03-03">Section 3-3</A> for more on Cell centers).</LI>
-<LI>"Reconstruct arcs when deleting instances" requests that arcs connected to cell instances
+<LI>"Reconstruct arcs and exports when deleting instances" requests that arcs connected to cell instances
 be reconstructed when the cell instances are deleted.
 These reconstructed arcs appear to be the same as before, but they now connect to pins that end where the
 instance ports used to be.
-When this box is not checked, arcs connected to deleted instances are also deleted.</LI>
+In addition, exports that were on deleted cell instances are moved to pins in the same location.
+When this box is not checked, arcs and exports connected to deleted instances are also deleted.</LI>
 <LI>"Always prompt for index when descending into array nodes"
 controls whether nodes with array specifications should be precisely tracked when descending the hierarchy
 (see <A HREF="chap03-05.html#chap03-05">Section 3-5</A> for more).</LI>

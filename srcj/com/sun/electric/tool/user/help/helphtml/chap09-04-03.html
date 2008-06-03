@@ -112,24 +112,36 @@ Spice Preferences (in menu <B>File / Preferences...</B>, "Tools" section, "Spice
 <P>
 The top part of this dialog allows you to control many of the Spice deck parameters such as:
 <UL>
-<LI><B>Spice Engine</B> Can be Spice 2, Spice 3, HSpice, PSpice, Gnucap, or SmartSpice.</LI>
-<LI><B>Spice Level</B> Can be 1, 2, or 3.</LI>
+<LI><B>Spice engine</B> Can be Spice 2, Spice 3, HSpice, PSpice, Gnucap, or SmartSpice.</LI>
+<LI><B>Spice level</B> Can be 1, 2, or 3.</LI>
 <LI><B>Output format</B> The format to expect when reading Spice output.</LI>
-<LI><B>Use Parasitics</B> Whether to include simple parasitics in the deck.</LI>
-<LI><B>Use Node Names</B> Whether to use actual node names in the deck (Spice 2 can only handle numbers).</LI>
-<LI><B>Force Global VDD/GND</B> Whether to force power and ground to be global signal names.</LI>
-<LI><B>Use Cell Parameters</B> When set, any parameters defined on the cell will appear in the Spice deck.
+<LI><B>Epic reader memory size</B> Sets the amount of memory to allocate to the separate reader process
+(which is only valid if the Output format is set to Epic).</LI>
+<LI><B>Resistor shorting</B> I DON'T KNOW.</LI>
+<LI><B>Parasitics</B> Controls the writing of parasitics in the Spice deck.
+Choices are:
+  <UL>
+  <LI>"Trans area/perim only (no RC)" which writes the area and perimeter of transistor active but
+does not write any Resistor/Capacitor information.</LI>
+  <LI>"Conservative RC" writes Resistor/Capacitor information (in addition to the area/perimeter).</LI>
+  <LI>"Proximity RC" is an experimental parasitics option that is not yet working.</LI>
+  </UL>
+</LI>
+<LI><B>Spice primitive set</B> Switches between Spice primitive sets.
+Currently there are only two: "spiceparts" and "spicepartsG3".</LI>
+<LI><B>Use node names</B> Whether to use actual node names in the deck (Spice 2 can only handle numbers).</LI>
+<LI><B>Force global VDD/GND</B> Whether to force power and ground to be global signal names.</LI>
+<LI><B>Use cell parameters</B> When set, any parameters defined on the cell will appear in the Spice deck.
 When not checked, each parameterized cell appears multiple times in the deck,
 once for each different parameter combination.
-See <A HREF="chap06-08-06.html#chap06-08-06">Section 6-8-6</A> for more on parameters.
-<LI><B>Write Trans Sizes in Units</B> Requests that the Spice deck contain scalable size information
+See <A HREF="chap06-08-05.html#chap06-08-05">Section 6-8-5</A> for more on parameters.
+<LI><B>Write trans sizes in units</B> Requests that the Spice deck contain scalable size information
 instead of absolute size information.</LI>
-<LI><B>Write Subckt for Top Cell</B> Requests that a the top-level cell be written
+<LI><B>Write .subckt for top cell</B> Requests that a the top-level cell be written
 as a subcircuit, and a call made to it.
 The default is to write the top-level cell without a subcircuit wrapper.</LI>
-<LI><B>Run Program</B> Lets Electric run Spice automatically after the deck has been written.</LI>
-<LI><B>Spice Primitive Set</B> Switches between Spice primitive sets.
-Currently there are only two: "spiceparts" and "spicepartsG3".</LI>
+<LI><B>Write .end statement</B> Requests that an .end statement be written at the end of the deck.
+This can be disabled in situations where the deck is part of a larger Spice deck.</LI>
 </UL>
 <P>
 <B>Running Spice:</B> Electric can create an external process as specified by the user to
@@ -141,12 +153,12 @@ command line command.
 <P>
 There are several options for the process:
 <UL>
-<LI><B>Use Dir</B> if specified, this is the working directory of the process.</LI>
-<LI><B>Overwrite existing file</B> this will overwrite the existing netlist without prompting the user.</LI>
+<LI><B>Run program</B> Identifies the Spice program to run.</LI>
+<LI><B>With args</B> the arguments passed to the program.</LI>
+<LI><B>Use dir</B> if specified, this is the working directory of the program.</LI>
+<LI><B>Overwrite existing file (no prompts)</B> this will overwrite the existing netlist without prompting the user.</LI>
 <LI><B>Run probe</B> this will run the waveform viewer on the output of the Spice run.</LI>
 <LI><B>Help</B> tells which environment variables are exported to be used by the process.</LI>
-<LI><B>Run program</B> the name of the executable to run.</LI>
-<LI><B>with arg</B> the arguments passed to the executable.</LI>
 </UL>
 <P>
 The lower section controls header and trailer cards

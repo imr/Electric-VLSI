@@ -7,6 +7,8 @@
 <!-- COMMAND Window/Waveform Window/Restore Waveform Window Configuration from Disk... -->
 <!-- COMMAND Window/Waveform Window/Refresh Simulation Data -->
 <!-- COMMAND Window/Waveform Window/Export Simulation Data... -->
+<!-- COMMAND Window/Waveform Window/Fill Only in X -->
+<!-- COMMAND Window/Waveform Window/Fill Only in Y -->
 
 The waveform window is able to display analog simulation output.
 This simulation output comes from external simulators (such as Spice).
@@ -110,6 +112,7 @@ to display the range between the main and extension cursors.
 <P>
 <TABLE><TR><TD><CENTER><IMG SRC="fig04-09.png" ALT="Figure 4.9"></CENTER></TD><TD>
 Besides controlling time with menu commands, you can also use the Pan and Zoom tools of the toolbar.
+You can also adjust time by clicking-and-dragging in the time axis at the top.
 </TD><TD><CENTER><IMG SRC="fig04-08.png" ALT="Figure 4.8"></CENTER></TD></TR></TABLE>
 <P>
 The pan tool lets you smoothly shift time when you click and drag.
@@ -139,12 +142,17 @@ As the time cursor sweeps across the waveform window, the original circuit can b
 <P>
 These window functions apply to the analog simulation windows:
 <UL>
-<LI><B>Window / Fill Window</B> make all data fit in window.</LI>
+<LI><B>Window / Fill Window</B> make all data fit in window.
+If you wish to fill only in X, use the <B>Fill Only in X</B> command
+(in the <B>Window / Waveform Window</B> menu).
+To fill only in Y, use <B>Fill Only in Y</B>.</LI>
 <LI><B>Window / Zoom Out</B> show twice as much time.</LI>
 <LI><B>Window / Zoom In</B> show half as much time.</LI>
 <LI><B>Window / Special Zoom / Focus on Highlighted</B> show from main to extension cursors.</LI>
 <LI><B>Window / Pan Left</B> show earlier time.</LI>
 <LI><B>Window / Pan Right</B> show later time.</LI>
+<LI><B>Window / Special Pan / Center Cursor</B> shifts the time so that the location of
+the cursor is in the center (this command is only sensibly executed by using its quick-key binding).</LI>
 <LI><B>"Pan" tool in tool bar</B> freehand drag of time.</LI>
 <LI><B>"Zoom" tool in tool bar</B> drag area to zoom in, hold shift to zoom out.</LI>
 <LI><B>"Measure" tool in tool bar</B> for measuring time.</LI>

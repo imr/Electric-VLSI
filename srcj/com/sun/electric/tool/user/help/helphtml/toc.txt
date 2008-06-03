@@ -141,8 +141,7 @@ Advanced Editing
   Selecting Text                     =chap06-08-02
   Modifying Text                     =chap06-08-03
   Text Defaults                      =chap06-08-04
-  Text Attributes                    =chap06-08-05
-  Cell Parameters                    =chap06-08-06
+  Cell Parameters                    =chap06-08-05
  Networks
   Introduction to Networks           =chap06-09-01
   Naming Networks                    =chap06-09-02
@@ -196,6 +195,7 @@ Creating New Technologies
  How Technology Changes Affect Existing Libraries =chap08-08
  Examples of Use                     =chap08-09
  Technology XML File Format          =chap08-10
+ The Technology Creation Wizard      =chap08-11
 
 Tools
  Introduction to Tools               =chap09-01
@@ -266,5 +266,4 @@ The JELIB File Format
  Miscellaneous
   Variables                          =chap10-04-01
   Text Descriptors                   =chap10-04-02
-  Groups                             =chap10-04-03
-  Example                            =chap10-04-04
+  Example                            =chap10-04-03

@@ -5,6 +5,7 @@
 <!-- COMMAND Cell/Cell Info/List Nodes in this Cell -->
 <!-- COMMAND Cell/Cell Info/Number of Transistors -->
 <!-- COMMAND Cell/Cell Info/List Cell Usage -->
+<!-- COMMAND Cell/Cell Info/List Cell Usage, Hierarchically -->
 <!-- COMMAND Cell/Cell Info/List Cell Instances -->
 
 <TABLE><TR><TD>
@@ -68,13 +69,15 @@ For more cell information, use the commands of menu <B>Cell / Cell Info</B>:
 This is a hierarchical count: if two cell instances each have two transistors inside of them,
 the total is 4 transistors.
 However, it counts only actual nodes, ignoring arrayed nodes
-(see <A HREF="chap06-09-03.html#chap06-09-03">Section 6-9-3</A>).
-</LI>
-<LI><B>List Cell Instances</B> shows all cell instances below the current cell.
-</LI>
+(see <A HREF="chap06-09-03.html#chap06-09-03">Section 6-9-3</A>).</LI>
+<LI><B>List Cell Instances</B> shows all cell instances below the current cell.</LI>
 <LI><B>List Cell Usage</B> looks up the hierarchy and finds cells that contain the
-current cell as an instance.
-</LI>
+current cell as an instance.</LI>
+<LI><B>List Cell Usage, Hierarchically</B> looks up the hierarchy and finds cells that contain the
+current cell as an instance or as a subinstance.
+For example, if cell A contains cell B, and cell B contains cell C,
+then using this command on cell C will mention both cells A and B,
+whereas the nonhierarchical version of this command will mention only cell B.</LI>
 <LI><B>Number of Transistors</B> counts the number of transistors in the current cell and below
 (considering arrayed instances, see <A HREF="chap02-04-02.html#chap02-04-02">Section 2-4-2</A>).</LI>
 </UL>
