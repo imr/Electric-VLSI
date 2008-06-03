@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07k: ******************************
 
+BUG: (6/3/08, SMR) Multi-object properties dialog doesn't handle font right (Bug #1697).
+FIX: In GetInfoMulti.findComboBoxValue(), handle "no change" case.
+
 IMP: (6/2/08, DN) Distinct methods for variables and parameters on NodeInst.
 
 IMP: (5/30/08, DN) Move TextDescriptor.Code to CodeExpression.Code .

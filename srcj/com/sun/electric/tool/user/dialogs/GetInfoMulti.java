@@ -682,7 +682,12 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
             for(int c=0; c<currentChangeTypes.length; c++)
             {
                 ChangeType change = currentChangeTypes[c];
-                if (change == type) return ((JComboBox)currentChangeValues[c]).getSelectedItem();
+                if (change == type)
+                {
+                	JComboBox cb = (JComboBox)currentChangeValues[c];
+                    if (cb.getSelectedIndex() == 0) return null;
+                	return cb.getSelectedItem();
+                }
             }
         }
 		return null;
@@ -928,7 +933,7 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 					switch (mcp.directional)
 					{
 						case 1: ai.setHeadArrowed(false);   ai.setTailArrowed(false);   ai.setBodyArrowed(false);   break;
-						case 2: ai.setHeadArrowed(true);    ai.setTailArrowed(false);	ai.setBodyArrowed(true);   break;
+						case 2: ai.setHeadArrowed(true);    ai.setTailArrowed(false);	ai.setBodyArrowed(true);    break;
 						case 3: ai.setHeadArrowed(false);   ai.setTailArrowed(true);	ai.setBodyArrowed(true);    break;
 						case 4: ai.setHeadArrowed(false);   ai.setTailArrowed(false);	ai.setBodyArrowed(true);    break;
 						case 5: ai.setHeadArrowed(true);    ai.setTailArrowed(true);	ai.setBodyArrowed(true);    break;
