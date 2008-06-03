@@ -248,7 +248,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 			}
 
 			// create inheritable variables
-			CircuitChangeJobs.inheritAttributes(ni, false);
+			CircuitChangeJobs.inheritAttributes(ni);
 		}
 		return ni;
 	}

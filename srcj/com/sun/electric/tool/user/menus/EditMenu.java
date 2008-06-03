@@ -223,8 +223,6 @@ public class EditMenu {
 			new EMenu("Propert_ies",
 				new EMenuItem("_Object Properties...", 'I') { public void run() {
 					getInfoCommand(false); }},
-				new EMenuItem("_Parameters Properties...") { public void run() {
-					Attributes.showDialog(); }},
 				SEPARATOR,
 				new EMenuItem("_See All Attributes on Node") { public void run() {
 					seeAllParametersCommand(); }},
@@ -232,10 +230,13 @@ public class EditMenu {
 					hideAllParametersCommand(); }},
 				new EMenuItem("_Default Attribute Visibility") { public void run() {
 					defaultParamVisibilityCommand(); }},
-				new EMenuItem("Update Attributes Inheritance on _Node") { public void run() {
-					updateInheritance(false); }},
-				new EMenuItem("Update Attributes Inheritance all _Libraries") { public void run() {
-					updateInheritance(true); }},
+				SEPARATOR,
+				new EMenuItem("Cell _Parameters...") { public void run() {
+					Attributes.showDialog(); }},
+				new EMenuItem("Update Parameters on _Node") { public void run() {
+					updateParameters(false); }},
+				new EMenuItem("Update Parameters all _Libraries") { public void run() {
+					updateParameters(true); }},
 				SEPARATOR,
 				new EMenuItem("Parameterize _Bus Name") { public void run() {
 					BusParameters.makeBusParameter(); }},
@@ -646,30 +647,26 @@ public class EditMenu {
 //		}
 	}
 
-	public static void updateInheritance(boolean allLibraries)
+	public static void updateParameters(boolean allLibraries)
 	{
 		// get currently selected node(s)
 		List<Geometric> highlighted = MenuCommands.getSelectedObjects(true, false);
-		new UpdateAttributes(highlighted, allLibraries, 0);
+		new UpdateParameters(highlighted, allLibraries);
 	}
 
-	private static class UpdateAttributes extends Job {
+	private static class UpdateParameters extends Job {
 		private List<Geometric> highlighted;
 		private boolean allLibraries;
-		private int whatToUpdate;
 
 		/**
-		 * Update Attributes.
+		 * Update Parameters.
 		 * @param highlighted currently highlighted objects
-		 * @param allLibraries if true, update all nodeinsts in all libraries, otherwise update
-		 * highlighted
-		 * @param whatToUpdate if 0, update inheritance. If 1, update attributes locations.
+		 * @param allLibraries if true, update all nodeinsts in all libraries, otherwise update highlighted
 		 */
-		UpdateAttributes(List<Geometric> highlighted, boolean allLibraries, int whatToUpdate) {
-			super("Update Inheritance", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+		UpdateParameters(List<Geometric> highlighted, boolean allLibraries) {
+			super("Update Parameters", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.highlighted = highlighted;
 			this.allLibraries = allLibraries;
-			this.whatToUpdate = whatToUpdate;
 			startJob();
 		}
 
@@ -683,14 +680,8 @@ public class EditMenu {
 						for (Iterator<NodeInst> it3 = c.getNodes(); it3.hasNext(); ) {
 							NodeInst ni = it3.next();
 							if (ni.isCellInstance()) {
-								if (whatToUpdate == 0) {
-									updateInheritance(ni, (Cell)ni.getProto());
-									count++;
-								}
-								if (whatToUpdate == 1) {
-									updateLocations(ni, (Cell)ni.getProto());
-									count++;
-								}
+								CircuitChangeJobs.inheritAttributes(ni);
+								count++;
 							}
 						}
 					}
@@ -700,30 +691,14 @@ public class EditMenu {
 					if (eobj instanceof NodeInst) {
 						NodeInst ni = (NodeInst)eobj;
 						if (ni.isCellInstance()) {
-							if (whatToUpdate == 0) {
-								updateInheritance(ni, (Cell)ni.getProto());
-								count++;
-							}
-							if (whatToUpdate == 1) {
-								updateLocations(ni, (Cell)ni.getProto());
-								count++;
-							}
+							CircuitChangeJobs.inheritAttributes(ni);
+							count++;
 						}
 					}
 				}
 			}
-			if (whatToUpdate == 0)
-				System.out.println("Updated Attribute Inheritance on "+count+" nodes");
-			if (whatToUpdate == 1)
-				System.out.println("Updated Attribute Locations on "+count+" nodes");
+			System.out.println("Updated Parameters on " + count + " nodes");
 			return true;
-		}
-
-		private void updateInheritance(NodeInst ni, Cell proto) {
-			CircuitChangeJobs.inheritAttributes(ni, true);
-		}
-
-		private void updateLocations(NodeInst ni, Cell proto) {
 		}
 	}
 

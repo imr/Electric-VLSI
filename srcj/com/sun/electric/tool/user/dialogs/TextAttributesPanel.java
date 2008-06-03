@@ -129,10 +129,17 @@ public class TextAttributesPanel extends JPanel
         loading = true;
 
 		// default information
-        attrInfo1.setText("Attributes created on a cell are");
-        attrInfo2.setText("inherited by instances of that cell");
         if (Job.getDebug())
-        	attrInfo3.setText("(if they start with 'ATTR_')");
+        {
+	        attrInfo1.setText("YOU ARE RUNNING IN DEBUG MODE, SO:");
+	        attrInfo2.setText("To create a parameter on a cell");
+        	attrInfo3.setText("its name must start with 'ATTR_'");
+        } else
+        {
+	        attrInfo1.setText("");
+	        attrInfo2.setText("");
+	        attrInfo3.setText("");
+        }
 
 		// do not allow empty var names
         if (varKey != null) {

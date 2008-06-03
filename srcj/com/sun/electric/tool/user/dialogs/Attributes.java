@@ -38,6 +38,7 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
+import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.Highlight2;
 import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
@@ -718,12 +719,10 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
 	                {
 	                	Cell cell = it.next();
 	                    if (!cell.isIcon()) continue;
-	                    Variable iconVar = cell.getParameter(newVar.getKey());
-
 	                    for(Iterator<NodeInst> nIt = cell.getInstancesOf(); nIt.hasNext(); )
 	                    {
 	                    	NodeInst ni = nIt.next();
-		                    ni.newVar(newVar.getKey(), newVar.getObject(), iconVar.getTextDescriptor());
+		                    CircuitChangeJobs.inheritCellParameter(newVar, ni);
 	                    }
 	                }
                 }
@@ -1242,13 +1241,6 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
 
         // Spawn a Job to create the Variable
         new CreateAttribute(varName, getVariableObject(val), selectedObject, this, applyToInstances.isSelected());
-//
-//        // Spawn a Job to set the new Variable's text options
-//        // because the var has not been created yet, set the futureVarName for the panel
-//        textPanel.applyChanges(true);
-//
-//        // same for text attributes panel
-//        attrPanel.applyChanges();
 
         initialName = varName;
         initialValue = val;

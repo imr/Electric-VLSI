@@ -268,7 +268,7 @@ public class CircuitChangeJobs
 	 */
 	public static class AlignObjects extends Job
 	{
-		private List<Geometric> list;          // list of highlighted objects to align
+		private List<Geometric> list;			// list of highlighted objects to align
 		private double alignment;
 
 		public AlignObjects(List<Geometric> highs, double alignment)
@@ -822,8 +822,6 @@ public class CircuitChangeJobs
 				{
 					Network subNet = netList.getNetwork(ai, i);
 					localStrings[i] = subNet.getName();
-//					if (subNet.hasNames()) localStrings[i] = (String)subNet.getNames().next(); else
-//						localStrings[i] = subNet.describe(false);
 				}
 
 				double sxw = Schematics.tech().wirePinNode.getDefWidth();
@@ -936,13 +934,13 @@ public class CircuitChangeJobs
 				{
 					// deleting a variable
 					if (eobj.isParam(key)) {
-                        if (eobj instanceof Cell)
-    						((Cell)eobj).getCellGroup().delParam((Variable.AttrKey)key);
-                        else if (eobj instanceof NodeInst)
-                            ((NodeInst)eobj).delParameter(key);
-                    } else {
+						if (eobj instanceof Cell)
+							((Cell)eobj).getCellGroup().delParam((Variable.AttrKey)key);
+						else if (eobj instanceof NodeInst)
+							((NodeInst)eobj).delParameter(key);
+					} else {
 						eobj.delVar(key);
-                    }
+					}
 				}
 			}
 			if (cell != null)
@@ -1380,21 +1378,6 @@ public class CircuitChangeJobs
 				ni.kill();
 			}
 		}
-
-//		// kill variables on cells
-//		for(Iterator it = list.iterator(); it.hasNext(); )
-//		{
-//			Object obj = it.next();
-//			if (!(obj instanceof Highlight)) continue;
-//			Highlight h = (Highlight)obj;
-//			if (h.getType() != Highlight.Type.TEXT) continue;
-//			Variable var = h.getVar();
-//			if (var == null) continue;
-//			ElectricObject owner = h.getElectricObject();
-//			if (!(owner instanceof Cell)) continue;
-//
-//			owner.delVar(var.getKey());
-//		}
 	}
 
 	/****************************** CLEAN-UP ******************************/
@@ -1470,11 +1453,6 @@ public class CircuitChangeJobs
 				if (arcsToKill.contains(ai))
 					ai.kill();
 			}
-//			for(ArcInst ai : arcsToKill)
-//			{
-//				if (!ai.isLinked()) continue;
-//				ai.kill();
-//			}
 
 			// report what was cleaned
 			StringBuffer infstr = new StringBuffer();
@@ -1928,39 +1906,6 @@ public class CircuitChangeJobs
 					}
 					continue;
 				}
-
-//				// only one end is slidable: move other node and the arc
-//				for(int k=0; k<2; k++)
-//				{
-//					if (e[k] != 0) continue;
-//					ni = ai->end[k].nodeinst;
-//					if (ni->lowx == ni->temp1 && ni->lowy == ni->temp2)
-//					{
-//						// node "ni" hasn't moved yet but must because arc motion forces it
-//						for(j=0; list[j] != NOGEOM; j++)
-//						{
-//							if (list[j]->entryisnode) continue;
-//							oai = list[j]->entryaddr.ai;
-//							if (oai->temp1 != (oai->end[0].xpos + oai->end[1].xpos) / 2 ||
-//								oai->temp2 != (oai->end[0].ypos + oai->end[1].ypos) / 2) continue;
-//							if (oai->end[0].nodeinst == ni) otherend = 1; else otherend = 0;
-//							if (db_stillinport(oai, otherend, ai->end[otherend].xpos+dX,
-//								ai->end[otherend].ypos+dY)) continue;
-//							(void)(*el_curconstraint->setobject)((INTBIG)oai,
-//								VARCINST, CHANGETYPETEMPRIGID, 0);
-//						}
-//						startobjectchange((INTBIG)ni, VNODEINST);
-//						modifynodeinst(ni, dX-(ni->lowx-ni->temp1), dY-(ni->lowy-ni->temp2),
-//							dX-(ni->lowx-ni->temp1), dY-(ni->lowy-ni->temp2), 0, 0);
-//						endobjectchange((INTBIG)ni, VNODEINST);
-//
-//						if (ai->temp1 != (ai->end[0].xpos + ai->end[1].xpos) / 2 ||
-//							ai->temp2 != (ai->end[0].ypos + ai->end[1].ypos) / 2) continue;
-//						startobjectchange((INTBIG)ai, VARCINST);
-//						(void)modifyarcinst(ai, 0, dX, dY, dX, dY);
-//						endobjectchange((INTBIG)ai, VARCINST);
-//					}
-//				}
 			}
 
 			// also move selected text
@@ -2292,21 +2237,16 @@ public class CircuitChangeJobs
 		{
 			NodeInst oNi = it.next();
 			Rectangle2D r = oNi.getBaseShape().getBounds2D();
-//			SizeOffset oSo = oNi.getSizeOffset();
 			if (direction == 'l' || direction == 'r')
 			{
 				if (r.getMinX() < lX && r.getMaxX() > hX)
-//				if (oNi.getTrueCenterX() - oNi.getXSize()/2 + oSo.getLowXOffset() < lX &&
-//					oNi.getTrueCenterX() + oNi.getXSize()/2 - oSo.getHighXOffset() > hX)
-						geomSeen.add(oNi);
+					geomSeen.add(oNi);
 				if (oNi.getTrueCenterX() == (lX+hX)/2)
 					geomSeen.add(oNi);
 			} else
 			{
 				if (r.getMinY() < lY && r.getMaxY() > hY)
-//				if (oNi.getTrueCenterY() - oNi.getYSize()/2 + oSo.getLowYOffset() < lY &&
-//					oNi.getTrueCenterY() + oNi.getYSize()/2 - oSo.getHighYOffset() > hY)
-						geomSeen.add(oNi);
+					geomSeen.add(oNi);
 				if (oNi.getTrueCenterY() == (lY+hY)/2)
 					geomSeen.add(oNi);
 			}
@@ -2572,7 +2512,7 @@ public class CircuitChangeJobs
 			}
 
 			// now inherit parameters that now do exist
-			inheritAttributes(newNi, true);
+			inheritAttributes(newNi);
 		}
 		return newNi;
 	}
@@ -2582,18 +2522,20 @@ public class CircuitChangeJobs
 	/**
 	 * Method to inherit all prototype attributes down to instance "ni".
 	 */
-	public static void inheritAttributes(NodeInst ni, boolean cleanUp)
+	public static void inheritAttributes(NodeInst ni)
 	{
 		// ignore primitives
 		if (!ni.isCellInstance()) return;
 		Cell cell = (Cell)ni.getProto();
 
 		// first inherit parameters from this node's prototype
-		for(Iterator<Variable> it = cell.getParameters(); it.hasNext(); )
+		if (cell.isIcon())
 		{
-			Variable var = it.next();
-			assert var.getTextDescriptor().isInherit();
-			inheritCellParameter(var, ni);
+			for(Iterator<Variable> vIt = cell.getParameters(); vIt.hasNext(); )
+			{
+				Variable var = vIt.next();
+				inheritCellParameter(var, ni);
+			}
 		}
 
 		// inherit attributes from this node's prototype
@@ -2610,70 +2552,6 @@ public class CircuitChangeJobs
 			Export pp = it.next();
 			inheritExportAttributes(pp, ni);
 		}
-
-//		// if this node is an icon, also inherit from the contents prototype
-//		Cell cNp = cell.contentsView();
-//		if (cNp != null)
-//		{
-//			// look for an example of the icon in the contents
-//			NodeInst icon = null;
-//			for(Iterator<NodeInst> it = cNp.getNodes(); it.hasNext(); )
-//			{
-//				icon = it.next();
-//				if (icon.getProto() == cell) break;
-//				icon = null;
-//			}
-//
-//			// if icon is this, ignore it: can't inherit from ourselves!
-//			if (icon == ni) icon = null;
-//
-//			for(Iterator<Variable> it = cNp.getParametersAndVariables(); it.hasNext(); )
-//			{
-//				Variable var = it.next();
-//				if (!var.getTextDescriptor().isInherit()) continue;
-//				inheritCellAttribute(var, ni, cNp, icon);
-//			}
-//			for(Iterator<Export> it = cNp.getExports(); it.hasNext(); )
-//			{
-//				Export cpp = it.next();
-//				inheritExportAttributes(cpp, ni, cNp);
-//			}
-//		}
-//
-//		// now delete parameters that are not in the prototype
-//		if (cleanUp)
-//		{
-//			if (cNp == null) cNp = cell;
-//			boolean found = true;
-//			while (found)
-//			{
-//				found = false;
-//				// look through all parameters on instance
-//				for(Iterator<Variable> it = ni.getDefinedParameters(); it.hasNext(); )
-//				{
-//					Variable var = it.next();
-//					assert ni.isParam(var.getKey());
-//					Variable oVar = null;
-//
-//					// try to find equivalent in all parameters on prototype
-//					Iterator<Variable> oIt = cNp.getParameters();
-//					boolean delete = true;
-//					while (oIt.hasNext())
-//					{
-//						oVar = oIt.next();
-//						assert cNp.isParam(oVar.getKey());
-//						if (oVar.getKey() == var.getKey()) { delete = false; break; }
-//					}
-//					if (delete)
-//					{
-//						// no matching parameter on prototype found, so delete
-//						ni.delVar(var.getKey());
-//						found = true;
-//						break;
-//					}
-//				}
-//			}
-//		}
 	}
 
 	/**
@@ -2733,86 +2611,51 @@ public class CircuitChangeJobs
 				}
 			}
 		} else {
-            ni.addVar(var);
+			ni.addVar(var);
 //			newVar = ni.updateVar(var.getKey(), inheritAddress(np, var));
 //			updateInheritedVar(newVar, ni, np, icon);
 		}
 	}
 
 	/**
-	 * Method to add inheritable variable "var" to instance "ni".
-	 * If "icon" is not NONODEINST, use the position of the variable from it.
+	 * Method to add parameter "var" to instance "ni".
 	 */
-	private static void inheritCellParameter(Variable var, NodeInst ni)
+	public static void inheritCellParameter(Variable var, NodeInst ni)
 	{
 		// see if the attribute is already there
 		Variable.Key key = var.getKey();
 		if (ni.isDefinedParameter(key))
 		{
-            Variable param = ni.getParameter(key);
+			Variable param = ni.getParameter(key);
+
 			// make sure visibility is OK
 			if (!var.isInterior())
 			{
 				// parameter should be visible: make it so
 				if (!param.isDisplay())
-				{
 					ni.addParameter(param.withDisplay(true));
-				}
 			} else
 			{
 				// parameter not normally visible: make it invisible if it has the default value
 				if (param.isDisplay())
 				{
 					if (var.describe(-1).equals(param.describe(-1)))
-					{
 						ni.addParameter(param.withDisplay(false));
-					}
 				}
 			}
-		} else {
-            ni.addParameter(var);
+		} else
+		{
+			Cell cell = (Cell)ni.getProto();
+			Variable iconVar = cell.getParameter(var.getKey());
+			TextDescriptor td = iconVar.getTextDescriptor();
+			Rectangle2D bounds = cell.getBounds();
+			double xd = td.getXOff() - bounds.getCenterX();
+			double yd = td.getYOff() - bounds.getCenterY();
+			td = td.withOff(xd, yd);
+			ni.newVar(var.getKey(), var.getObject(), td);
+//			ni.addParameter(var);
 		}
 	}
-
-//	private static void updateInheritedVar(Variable nivar, NodeInst ni, Cell np, NodeInst icon)
-//	{
-//		if (nivar == null) return;
-//
-//		// determine offset of the attribute on the instance
-//		Variable posVar = np.getVar(nivar.getKey());
-//		Variable var = posVar;
-//		if (icon != null) {
-//			Variable iconVar = icon.getParameterOrVariable(nivar.getKey());
-//			if (iconVar != null) posVar = iconVar;
-//		}
-//
-//		double xc = posVar.getXOff();
-//		if (posVar == var) xc -= np.getBounds().getCenterX();
-//		double yc = posVar.getYOff();
-//		if (posVar == var) yc -= np.getBounds().getCenterY();
-//		MutableTextDescriptor mtd = new MutableTextDescriptor(nivar.getTextDescriptor());
-//		mtd.setDisplay(posVar.isDisplay());
-//		mtd.setInherit(false);
-//		mtd.setOff(xc, yc);
-//		if (var.getTextDescriptor().isParam())
-//		{
-//			mtd.setInterior(false);
-//			mtd.setDispPart(posVar.getDispPart());
-//			mtd.setPos(posVar.getPos());
-//			mtd.setRotation(posVar.getRotation());
-//			mtd.setBold(posVar.isBold());
-//			mtd.setItalic(posVar.isItalic());
-//			mtd.setUnderline(posVar.isUnderline());
-//			mtd.setFace(posVar.getFace());
-//			TextDescriptor.Size s = posVar.getSize();
-//			if (s.isAbsolute())
-//				mtd.setAbsSize((int)s.getSize());
-//			else
-//				mtd.setRelSize(s.getSize());
-//		}
-////		mtd.setCode(posVar.getCode());
-//		ni.addVar(nivar.withTextDescriptor(TextDescriptor.newTextDescriptor(mtd)));
-//	}
 
 	/**
 	 * Helper method to determine the proper value of an inherited Variable.
@@ -3103,7 +2946,7 @@ public class CircuitChangeJobs
 //					ArcInst ai = cell.getArc(i);
 //					ArcProto ap = ai.getProto();
 //					if (ap.isNotUsed())
-//				    	list.add(ai);
+//						list.add(ai);
 //				}
 //				for (int i = 0; i < cell.getNumNodes(); i++)
 //				{
