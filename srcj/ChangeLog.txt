@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07k: ******************************
 
+BUG: (6/4/08, SMR) Verilog output combines "][" into a single underscore (Bug #1697).
+FIX: In Verilog.getSafeNetName(), do not merge underscores.
+
 BUG: (6/3/08, SMR) Multi-object properties dialog doesn't handle font right (Bug #1697).
 FIX: In GetInfoMulti.findComboBoxValue(), handle "no change" case.
 
