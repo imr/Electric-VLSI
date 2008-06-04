@@ -117,7 +117,18 @@ The top part of this dialog allows you to control many of the Spice deck paramet
 <LI><B>Output format</B> The format to expect when reading Spice output.</LI>
 <LI><B>Epic reader memory size</B> Sets the amount of memory to allocate to the separate reader process
 (which is only valid if the Output format is set to Epic).</LI>
-<LI><B>Resistor shorting</B> I DON'T KNOW.</LI>
+<LI><B>Resistor shorting</B> Specifies which resistors get shorted when writing a Spice netlist from a schematic.
+Choices are:
+  <UL>
+  <LI>"none" no resistors are shorted.  This preserves all resistors and is the correct setting for simulations.</LI>
+  <LI>"normal only" only normal schematic resistors are shorted.
+  This is useful when running external LVS tools like Calibre and Assura against a Spice netlist because
+  it shorts out parasitic resistors (such as from wire models)
+  but preserves poly resistors which are actual devices in the layout.</LI>
+  <LI>"normal and poly" both normal and poly schematic resistors are shorted.
+  This is available only because the Verilog netlister uses the same netlisting subsystem;
+  it is unlikely that you will want this setting for Spice netlisting.</LI>
+  </UL>
 <LI><B>Parasitics</B> Controls the writing of parasitics in the Spice deck.
 Choices are:
   <UL>

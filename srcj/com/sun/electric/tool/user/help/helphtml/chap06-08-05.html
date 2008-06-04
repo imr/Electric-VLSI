@@ -12,23 +12,20 @@
 <H3>Attributes</H3>
 Many commands in Electric add attribute information to the circuitry (for example, NCC annotations,
 Spice multipliers, Verilog transistor strength, etc.)
-These attributes are pieces of text that appear in the circuit
+These attributes are pieces of text that appear in the circuit.
 <P>
-When there are too many visible attributes, the display can become cluttered.
-Use the "Layers" tab of the sidebar to control the text
-(see <A HREF="chap04-05-03.html#chap04-05-03">Section 4-5-3</A> for more).
-Attributes on nodes are controlled by the "Node Text" checkbox; those on arcs with the "Arc Text" checkbox, etc.
-<P>
-Another way to control attribute text is to select the text and use the <B>Hide All Attributes on Node</B> command
-(in menu <B>Edit / Properties</B>).
-You can force all attributes to be displayed on a cell instance by using the <B>See All Attributes on Node</B> command.
-To restore default parameter visibility on a cell instance, use the <B>Default Attribute Visibility</B> command.
+Some attributes are normally hidden and others are normally displayed.
+Since this text can clutter the display,
+you can request that all text on a node be hidden by selecting the node and using the
+<B>Hide All Attributes on Node</B> command (in menu <B>Edit / Properties</B>).
+To see all text on a node, use the <B>See All Attributes on Node</B> command.
+Finally, to set text to its default visibility, use the <B>Default Attribute Visibility</B> command.
 <P>
 
 <H3>Parameters</H3>
 Parameters are special attributes that are passed from schematic icon instances to the schematics.
-Parameters are defined on the icon or schematic cell, and then they appear on the icon instances.
-Users can set different values on each icon instance, and the value will be passed down into the
+Parameters are defined in the icon or schematic cell, and then they appear on the icon instances.
+Users can set different values on each icon instance, and each value will be passed down into the
 schematic and applied as necessary.
 The computer-programming equivalent of this is that the cell's parameter is the "formal" value
 and the instance parameters are the "actual" values.
@@ -49,10 +46,11 @@ Use the <B>Cell Parameters...</B> command (in menu <B>Edit / Properties</B>).
 A list of parameters is shown at the top.
 You can create a new parameter by typing its name in the "Name:"
 field, its default value in the "Value:" field and then clicking the "Create New" button.
+If "Show new parameter on instances" is checked, this new parameter will be seen on all instances
+with its default value.
 The "Edit" button next to the "Value:" field lets you change the value in a separate dialog
 (useful for major changes).
-You can delete a parameter with the "Delete" button.
-An parameter's name can be changed with the "Rename..." button.
+You can delete a parameter with the "Delete" button and change its name with the "Rename..." button.
 </TD><TD><CENTER><IMG SRC="fig06-18.png" ALT="Figure 6.18"></CENTER></TD></TR></TABLE>
 <P>
 Just below the name and value fields are a set of popups that control
@@ -70,16 +68,16 @@ See <A HREF="chap07-02-02.html#chap07-02-02">Section 7-2-2</A> for more on these
 <P>
 You can control the way that a parameter is displayed in the circuit by selecting the appropriate entry in the "Show:" popup.
 You can request that various combinations of the parameter's name and value be displayed.
+The "Invisible outside cell" requests that the parameter not be drawn when viewed farther up the hierarchy.
 <P>
 The bottom part of the dialog affects the appearance of the parameter, and is only relevant if the parameter is being shown.
 The size of the text can be specified in relative or absolute units.
 The anchor-point of the text can be set.
-The X and Y offset of the anchor-point from the attached object can be specified.
+The X and Y offset of the anchor-point from the cell center can be specified.
 The font of the text can be chosen.
 The style of the text can be any combination of Italic, Bold, or Underline.
 You can specify the rotation of the text, in 90-degree increments.
 You can even give the text a color.
-The "Invisible outside cell" requests that the parameter not be drawn when viewed farther up the hierarchy.
 <P>
 The "Done" button terminates this dialog.
 Note that there is no "Cancel" button: this dialog makes changes as they are entered.
@@ -90,10 +88,14 @@ Parameters on cells are not tied to any node or arc.
 Instead, they float freely inside of the cell.
 You can select the text and drag it to any location in the cell.
 <P>
-Parameters on instances of cells are placed at the same location as they appear inside of the icon cell.
+Parameters get <I>inherited</I> when the cell is instantiated.
+This means that each new icon, when created, will have all of the parameters shown on it, with default values.
+You can select any of these pieces of text and edit them to have new values.
+The exception is the "Units" field which must match the defined parameter's units.
+If you delete a parameter's text, the parameter remains, but with default value.
 <P>
-If you do not wish to see a parameter's text on any instance, select the parameter text inside of the cell,
-use the <B>Object Properties...</B> command (in menu <B>Edit / Properties</B>), and check "Invisible outside cell".
+Parameters on instances of cells are placed at the same location as they appear inside of the icon cell.
+To change the location on all subsequently created icon instances, move the location in the icon.
 <P>
 Inside of the cell, the parameter is shown with its name and default value.
 To see the actual value from up the hierarchy, create a Java expression with the value "@PNAME" where PNAME is the parameter name.
@@ -104,16 +106,13 @@ Make sure to set its Code to Java.
 When first defined, the parameter has no actual value, and so appears as "heat not found".
 If an instance is created and its "heat" attribute is set to 7, then descending into that cell will show "7".
 <P>
-If a parameter is added to a cell, existing instances of that cell may not get properly updated.
-To do this, use the <B>Update Parameters on Node</B> command (in menu <B>Edit / Properties</B>).
+If a parameter is added to a cell without checking "Show new parameter on instances",
+existing instances of that cell will not show the parameter.
+To see the parameter at a later time, use the <B>Update Parameters on Node</B> command
+(in menu <B>Edit / Properties</B>).
 To do this everywhere, use the <B>Update Parameters all Libraries</B> command.
 <P>
-Parameters get <I>inherited</I> when the cell is instantiated.
-This means that each new icon, when created, will have all of the parameters shown on it, with default values.
-You can select any of these pieces of text and edit them to have new values.
-If you delete a parameter's text, the parameter remains, but with default value.
-<P>
-It is often desirable for each inherited parameter to have unique names.
+It is often desirable for each inherited parameter to have a unique value.
 If the value of a parameter inside of the schematic or icon cell has "++" in it,
 then the number before it will be incremented after each new icon instance is created.
 Similarly, a "--" indicates that the number be decremented after inheritance.
