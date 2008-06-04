@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07k: ******************************
 
+BUG: (6/4/08, SMR) Sea-of-gates router fails to route (Bug #1689).
+FIX: Switched the router to full gridless so it can handle these off-grid routes.
+
 BUG: (6/4/08, SMR) Verilog output combines "][" into a single underscore (Bug #1697).
 FIX: In Verilog.getSafeNetName(), do not merge underscores.
 

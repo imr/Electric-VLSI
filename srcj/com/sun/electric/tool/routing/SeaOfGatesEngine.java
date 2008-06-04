@@ -109,7 +109,7 @@ public class SeaOfGatesEngine
 {
 	/** True to display each step in the search. */								private static final boolean DEBUGSTEPS = false;
 	/** True to display the first routing failure. */							private static final boolean DEBUGFAILURE = false;
-	/** true to use full, gridless routing */									private static final boolean FULLGRAIN = false;
+	/** true to use full, gridless routing */									private static final boolean FULLGRAIN = true;
 
 	/** Percent of min cell size that route must stay inside. */				private static final double PERCENTLIMIT = 7;
 	/** Number of steps per unit when searching. */								private static final double GRANULARITY = 1;
@@ -1607,7 +1607,6 @@ public class SeaOfGatesEngine
 				wf.nr.winningWF = wf;
 				otherWf.abort = true;
 			}
-
 			whenDone.release();
 		}
 	}
@@ -1943,12 +1942,8 @@ public class SeaOfGatesEngine
 			svNext.last = svCurrent;
 
 			// stop if we found the destination
-			if (nX == wf.toX && nY == wf.toY && nZ == wf.toZ)
-			{
-				if (wf.debug) System.out.print(":FoundDestination");
-				return svNext;
-			}
-			if (DBMath.areEquals(nX, wf.toX) && DBMath.areEquals(nY, wf.toY) && nZ == wf.toZ)
+			boolean foundDest = DBMath.areEquals(nX, wf.toX) && DBMath.areEquals(nY, wf.toY);
+			if (foundDest && nZ == wf.toZ)
 			{
 				if (wf.debug) System.out.print(":FoundDestination");
 				return svNext;
