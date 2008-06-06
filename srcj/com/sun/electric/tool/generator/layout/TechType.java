@@ -43,6 +43,12 @@ public abstract class TechType implements Serializable {
         @Override
         public int hashCode() {return arc1.hashCode()*arc2.hashCode();}
     }
+	//----------------------------- public data ----------------------------------
+	private static final Variable.Key ATTR_X = Variable.newKey("ATTR_X");
+	private static final Variable.Key ATTR_S = Variable.newKey("ATTR_S");
+	private static final Variable.Key ATTR_SN = Variable.newKey("ATTR_SN");
+	private static final Variable.Key ATTR_SP = Variable.newKey("ATTR_SP");
+
     private final Technology generic = Technology.findTechnology("generic");
     private final Technology technology;
     private final TechTypeEnum techEnum;
@@ -632,6 +638,11 @@ public abstract class TechType implements Serializable {
     public double getDiffCont_m1Width() {return diffCont_m1Width;}
     /** @return amount diffusion contact grows to accomodate an one additional contact cut */ 
     public double getDiffContIncr() {return diffContIncr;}
+    
+    public Variable.Key getAttrX() {return ATTR_X;}
+    public Variable.Key getAttrS() {return ATTR_S;}
+    public Variable.Key getAttrSP() {return ATTR_SP;}
+    public Variable.Key getAttrSN() {return ATTR_SN;}
 
 
 }

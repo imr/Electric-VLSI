@@ -51,6 +51,7 @@ public class GateLayoutGenerator {
 
     // specify which gates shouldn't be surrounded by DRC rings
 	private static final DrcRings.Filter FILTER = new DrcRings.Filter() {
+		@Override
 		public boolean skip(NodeInst ni) {
 			// well tie cells don't pass DRC with DrcRings
 	        return ni.getProto().getName().indexOf("mosWellTie_") != -1;
@@ -69,9 +70,8 @@ public class GateLayoutGenerator {
     public static Cell generateCell(Library outputLib, StdCellParams stdCell,
                                     String type, double Xstrength) {
         if (outputLib == null) return null;
+        TechType tech = stdCell.getTechType();
         stdCell.setOutputLibrary(outputLib);
-        if (Tech.getTechType() != stdCell.getTechType())
-            Tech.setTechType(stdCell.getTechType());
 
         if (Xstrength<0) return null;
 
@@ -79,7 +79,7 @@ public class GateLayoutGenerator {
         if (pwr!=-1) type = type.substring(0, pwr);
 
         Cell c = null;
-        if (Tech.is90nm())
+        if (tech.getEnum()==TechType.TechTypeEnum.CMOS90)
         {
             try
             {
@@ -115,7 +115,6 @@ public class GateLayoutGenerator {
                                    Cell cell, VarContext context,
                                    StdCellParams stdCell, boolean topLevelOnly) {
         stdCell.setOutputLibrary(outLib);
-        Tech.setTechType(stdCell.getTechType());
         GenerateLayoutForGatesInSchematic visitor =
 			new GenerateLayoutForGatesInSchematic(stdCell, topLevelOnly);
 		HierarchyEnumerator.enumerateCell(cell, context, visitor);
@@ -214,6 +213,7 @@ public class GateLayoutGenerator {
 
 
     public static class GenerateFromSchematicsJob extends Job {
+    	static final long serialVersionUID = 0; 
 
         private TechType.TechTypeEnum technology;
         private Cell cell;
@@ -232,12 +232,12 @@ public class GateLayoutGenerator {
             context = wnd.getVarContext();
         }
 
+        @Override
         public boolean doIt() throws JobException {
             String outLibNm = "autoGenLib"+technology;
             Library outLib = LayoutLib.openLibForWrite(outLibNm);
 
             StdCellParams stdCell;
-            Tech.setTechType(technology.getTechType());
             Technology cmos90 = Technology.getCMOS90Technology();
             if (cmos90 != null && technology == TechType.TechTypeEnum.CMOS90) {
                 stdCell = sportParams();
@@ -275,6 +275,7 @@ class GenerateLayoutForGatesInSchematic extends HierarchyEnumerator.Visitor {
 	private final StdCellParams stdCell;
 	private final boolean DEBUG = false;
     private final boolean topLevelOnly;
+    private final Variable.Key ATTR_X;
     private Map<Nodable,Cell> generatedCells;
     private void trace(String s) {
 		if (DEBUG) System.out.println(s);
@@ -294,12 +295,13 @@ class GenerateLayoutForGatesInSchematic extends HierarchyEnumerator.Visitor {
 		this.stdCell = stdCell;
         this.topLevelOnly = topLevelOnly;
         this.generatedCells = new HashMap<Nodable,Cell>();
+        this.ATTR_X = stdCell.getTechType().getAttrX();
     }
 
 	/** @return value of strength attribute "ATTR_X" or -1 if no such
 	 * attribute or -2 if attribute exists but has no value. */
-	private static double getStrength(Nodable no, VarContext context) {
-		Variable var = no.getParameterOrVariable(Tech.ATTR_X);
+	private double getStrength(Nodable no, VarContext context) {
+		Variable var = no.getParameterOrVariable(ATTR_X);
 		if (var==null) return -1;
 		Object val = context.evalVar(var, no);
 		if (val==null) return -2;
@@ -337,15 +339,18 @@ class GenerateLayoutForGatesInSchematic extends HierarchyEnumerator.Visitor {
         return c;
     }
 
+	@Override
 	public boolean enterCell(CellInfo info) {
 		VarContext ctxt = info.getContext();
 		traceln("Entering Cell instance: "+ctxt.getInstPath("/"));
 		return true; 
 	}
+	@Override
 	public void exitCell(CellInfo info) {
 		VarContext ctxt = info.getContext();
 		traceln("Leaving Cell instance: "+ctxt.getInstPath("/"));
 	}
+	@Override
 	public boolean visitNodeInst(Nodable no, CellInfo info) {
 		// we never generate layout for PrimitiveNodes
 		if (no instanceof NodeInst) return false;

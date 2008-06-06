@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07k: ******************************
 
+IMP: (6/6/08, RK) Stop using deprecated data in SchemeToLay.java and GateLayoutGenerator.java
+
 IMP: (6/6/08, GVG) Renaming cells in Explorer window broken (Bug #1700).
 Adding extra message to warn user about the renaming of a cells group with multiple icons.
 

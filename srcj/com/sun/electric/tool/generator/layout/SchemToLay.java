@@ -319,6 +319,7 @@ public class SchemToLay {
 	// In addition to the ordinary uninteresting schematic pieces, also
 	// skip Cell wire{ic}
 	private static class SkipWirePortInsts extends PortFilter.SchemPortFilter {
+		@Override
 		public boolean skipPort(PortInst pi) {
 			// if it's a wire pin, bus pin, off page then pitch it
 			if (super.skipPort(pi))  return true;
@@ -356,6 +357,7 @@ public class SchemToLay {
 
 	private static Cell getPurpleLay(NodeInst iconInst, VarContext context,
 									 StdCellParams stdCell) {
+		TechType tech = stdCell.getTechType();
 		NodeProto prot = iconInst.getProto();
 		String pNm = prot.getName();
 
@@ -381,10 +383,10 @@ public class SchemToLay {
 			return KeeperLow.makePart((Cell)npe, context.push(iconInst), stdCell);
 		}
 
-		Variable var = iconInst.getParameterOrVariable(Tech.ATTR_S);
-		if (var==null)  var = iconInst.getParameterOrVariable(Tech.ATTR_SP);
-		if (var==null)  var = iconInst.getParameterOrVariable(Tech.ATTR_SN);
-		if (var==null)  var = iconInst.getParameterOrVariable(Tech.ATTR_X);
+		Variable var = iconInst.getParameterOrVariable(tech.getAttrS());
+		if (var==null)  var = iconInst.getParameterOrVariable(tech.getAttrSP());
+		if (var==null)  var = iconInst.getParameterOrVariable(tech.getAttrSN());
+		if (var==null)  var = iconInst.getParameterOrVariable(tech.getAttrX());
 		double x = getNumericVal(context.evalVar(var));
 		//System.out.println("Gate Type: " + pNm + ", Gate Size: " + x);  // Daniel
 
