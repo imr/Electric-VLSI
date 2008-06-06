@@ -256,9 +256,13 @@ public class CellChangeJobs
 					cell.rename(newName, newName);
 				} else
 				{
-					if (newGroupCell == null)
+                    if (newGroupCell == null)
+                    {
+                        System.out.println("Renaming is not possible because cells in group don't have same root name.");
+                        System.out.println("'" + newName + "' was added as prefix.");
 						newGroupCell = newName + cell.getName();
-					cell.rename(newName+cell.getName(), newGroupCell);
+                    }
+                    cell.rename(newName+cell.getName(), newGroupCell);
 				}
 			}
 			return true;
