@@ -57,11 +57,18 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.drc.DRC;
+import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.tool.user.dialogs.OpenFile;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -109,6 +116,7 @@ public class SeaOfGatesEngine
 {
 	/** True to display each step in the search. */								private static final boolean DEBUGSTEPS = false;
 	/** True to display the first routing failure. */							private static final boolean DEBUGFAILURE = false;
+	/** True to debug "infinite" loops. */										private static final boolean DEBUGLOOPS = true;
 	/** true to use full, gridless routing */									private static final boolean FULLGRAIN = true;
 
 	/** Percent of min cell size that route must stay inside. */				private static final double PERCENTLIMIT = 7;
@@ -161,6 +169,7 @@ public class SeaOfGatesEngine
 	private class Wavefront
 	{
 		/** The route that this is part of. */								private NeededRoute nr;
+		/** Wavefront name (for debugging). */								private String name;
 		/** List of active search vertices while running wavefront. */		private TreeSet<SearchVertex> active;
 		/** Resulting list of vertices found for this wavefront. */			private List<SearchVertex> vertices;
 		/** Set true to abort this wavefront's search. */					private boolean abort;
@@ -174,11 +183,12 @@ public class SeaOfGatesEngine
 		/** Gridless search vertices found while propagating wavefront. */	private Map<Double,Set<Double>> [] searchVertexPlanesDBL;
 
 		Wavefront(NeededRoute nr, PortInst from, double fromX, double fromY, int fromZ,
-			PortInst to, double toX, double toY, int toZ, boolean debug)
+			PortInst to, double toX, double toY, int toZ, String name, boolean debug)
 		{
 			this.nr = nr;
 			this.from = from;  this.fromX = fromX;  this.fromY = fromY;  this.fromZ = fromZ;
 			this.to = to;      this.toX = toX;      this.toY = toY;      this.toZ = toZ;
+			this.name = name;
 			this.debug = debug;
 			active = new TreeSet<SearchVertex>();
 			vertices = null;
@@ -316,8 +326,8 @@ public class SeaOfGatesEngine
 				Math.abs(fromX-toX), Math.abs(fromY-toY));
 
 			// make two wavefronts going in both directions
-			dir1 = new Wavefront(this, from, fromX, fromY, fromZ, to, toX, toY, toZ, DEBUGSTEPS);
-			dir2 = new Wavefront(this, to, toX, toY, toZ, from, fromX, fromY, fromZ, false);
+			dir1 = new Wavefront(this, from, fromX, fromY, fromZ, to, toX, toY, toZ, "a->b", DEBUGSTEPS);
+			dir2 = new Wavefront(this, to, toX, toY, toZ, from, fromX, fromY, fromZ, "b->a", false);
 		}
 
 		public void cleanSearchMemory()
@@ -1486,8 +1496,12 @@ public class SeaOfGatesEngine
 		{
 			// create threads and start them running
 			Semaphore outSem = new Semaphore(0);
-			new DijkstraInThread("Route a->b", nr.dir1, nr.dir2, outSem);
-			new DijkstraInThread("Route b->a", nr.dir2, nr.dir1, outSem);
+			DijkstraInThread t1 = new DijkstraInThread("Route a->b", nr.dir1, nr.dir2, outSem);
+			DijkstraInThread t2 = new DijkstraInThread("Route b->a", nr.dir2, nr.dir1, outSem);
+			t1.setOtherThread(t2);
+			t2.setOtherThread(t1);
+			t1.start();
+			t2.start();
 
 			// wait for threads to complete and get results
 			outSem.acquireUninterruptibly(2);
@@ -1575,6 +1589,7 @@ public class SeaOfGatesEngine
 		private Wavefront wf;
 		private Wavefront otherWf;
 		private Semaphore whenDone;
+		private DijkstraInThread other;
 
 		public DijkstraInThread(String name, Wavefront wf, Wavefront otherWf, Semaphore whenDone)
 		{
@@ -1582,15 +1597,16 @@ public class SeaOfGatesEngine
 			this.wf = wf;
 			this.otherWf = otherWf;
 			this.whenDone = whenDone;
-			start();
 		}
+
+		public void setOtherThread(DijkstraInThread other) { this.other = other; }
 
 		public void run()
 		{
 			SearchVertex result = null;
 			int numSearchVertices = 0;
 			while (result == null)
-			{
+			{					
 				// stop if the search is too complex
 				numSearchVertices++;
 				if (numSearchVertices > Routing.getSeaOfGatesComplexityLimit())
@@ -1598,14 +1614,26 @@ public class SeaOfGatesEngine
 					result = svLimited;
 				} else
 				{
-					result = advanceWavefront(wf);
+					if (wf.abort) result = svAborted; else
+					{
+						result = advanceWavefront(wf);
+					}
 				}
 			}
 			if (result != svAborted && result != svExhausted && result != svLimited)
 			{
+if (DEBUGLOOPS && Job.getDebug()) System.out.println("    Wavefront " + wf.name + " first completion");
 				wf.vertices = getOptimizedList(result);
 				wf.nr.winningWF = wf;
 				otherWf.abort = true;
+//				try
+//				{
+//					other.join(1000);
+//				} catch (InterruptedException e) {}
+//				whenDone.release();
+			} else
+			{
+if (DEBUGLOOPS && Job.getDebug()) System.out.println("    Wavefront " + wf.name + " completed");
 			}
 			whenDone.release();
 		}
@@ -1613,11 +1641,6 @@ public class SeaOfGatesEngine
 
 	private SearchVertex advanceWavefront(Wavefront wf)
 	{
-		if (wf.abort)
-		{
-			return svAborted;
-		}
-
 		// get the lowest cost point
 		if (wf.active.size() == 0) return svExhausted;
 		SearchVertex svCurrent = wf.active.first();
@@ -1761,7 +1784,6 @@ public class SeaOfGatesEngine
 
 			// see if the adjacent point has already been visited
 			if (wf.getVertex(nX, nY, nZ)) { if (wf.debug) System.out.print(":AlreadyVisited");   continue; }
-
 			// see if the space is available
 			int whichContact = 0;
 			Point2D [] cuts = null;
@@ -1792,8 +1814,7 @@ public class SeaOfGatesEngine
 							prevPath = prevPath.last;
 						} else break;
 					}
-					SOGBound sb = getMetalBlockageAndNotch(wf.nr.netID, nZ, halfWid, halfHei,
-						checkX, checkY, prevPath, wf.nr.minWidth);
+					SOGBound sb = getMetalBlockageAndNotch(wf,  nZ, halfWid, halfHei, checkX, checkY, prevPath);
 					if (sb == null) { allClear = true;   break; }
 
 					// see if it can be backed out slightly
@@ -1814,7 +1835,8 @@ public class SeaOfGatesEngine
 						// moved down too far...try a bit up
 						double newNY = downToGrainAlways(nY + GRAINSIZE);
 						if (newNY >= curY) break;
-						dy = newNY - curY;
+						double newDY = newNY - curY;
+						dy = newDY;
 					} else if (i == 3)
 					{
 						// moved up too far...try a bit down
@@ -1881,8 +1903,8 @@ public class SeaOfGatesEngine
 							int metalNo = lFun.getLevel() - 1;
 							double halfWid = conRect.getWidth()/2;
 							double halfHei = conRect.getHeight()/2;
-							if (getMetalBlockageAndNotch(wf.nr.netID, metalNo, halfWid, halfHei,
-								conRect.getCenterX(), conRect.getCenterY(), svCurrent, wf.nr.minWidth) != null)
+							if (getMetalBlockageAndNotch(wf, metalNo, halfWid, halfHei,
+								conRect.getCenterX(), conRect.getCenterY(), svCurrent) != null)
 							{
 								failed = true;
 								break;
@@ -2278,19 +2300,18 @@ public class SeaOfGatesEngine
 
 	/**
 	 * Method to see if a proposed piece of metal has DRC errors.
-	 * @param netID the network ID of the desired metal (blockages on this netID are ignored).
+	 * @param wf the Wavefront being processed.
 	 * @param metNo the level of the metal.
 	 * @param halfWidth half of the width of the metal.
 	 * @param halfHeight half of the height of the metal.
 	 * @param x the X coordinate at the center of the metal.
 	 * @param y the Y coordinate at the center of the metal.
 	 * @param svCurrent the list of SearchVertex's for finding notch errors in the current path.
-	 * @param minWidth the minimum arc width on the current path.
 	 * @return a blocking SOGBound object that is in the area.
 	 * Returns null if the area is clear.
 	 */
-	private SOGBound getMetalBlockageAndNotch(int netID, int metNo, double halfWidth, double halfHeight,
-		double x, double y, SearchVertex svCurrent, double minWidth)
+	private SOGBound getMetalBlockageAndNotch(Wavefront wf, int metNo, double halfWidth, double halfHeight,
+		double x, double y, SearchVertex svCurrent)
 	{
 		// get the R-Tree data for the metal layer
 		Layer layer = metalLayers[metNo];
@@ -2298,6 +2319,8 @@ public class SeaOfGatesEngine
 		if (rtree == null) return null;
 
 		// determine the size and width/length of this piece of metal
+		int netID = wf.nr.netID;
+		double minWidth = wf.nr.minWidth;
 		double metLX = x - halfWidth, metHX = x + halfWidth;
 		double metLY = y - halfHeight, metHY = y + halfHeight;
 		Rectangle2D metBound = new Rectangle2D.Double(metLX, metLY, metHX-metLX, metHY-metLY);
@@ -3029,6 +3052,25 @@ public class SeaOfGatesEngine
 //			}
 //			System.out.println();
 //		}
+//	}
+
+//	private static PrintWriter printWriter = null;
+//
+//	public static void logMessage(String msg)
+//	{
+//		if (printWriter == null)
+//		{
+//			try
+//			{
+//				printWriter = new PrintWriter(new BufferedWriter(new FileWriter("routingLog.txt")));
+//			} catch (IOException e)
+//			{
+//				System.out.println("Error creating routingLog");
+//				return;
+//			}
+//		}
+//        printWriter.println(msg);
+////        printWriter.flush();
 //	}
 
 	private void showSearchVertices(Map<Integer,Set<Integer>> [] planes, boolean horiz)
