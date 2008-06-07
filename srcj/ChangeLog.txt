@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07k: ******************************
 
+BUG: (6/7/08, DN) Assertion boundsDirty == BOUNDS_CORRECT in Cell.undo failed (Bug #1699).
+FIX: In Cell.computeBounds() don't skip calculations of bounds of invisible pins.
+
 IMP: (6/6/08, RK) Stop using deprecated data in SchemeToLay.java and GateLayoutGenerator.java
 
 IMP: (6/6/08, GVG) Renaming cells in Explorer window broken (Bug #1700).

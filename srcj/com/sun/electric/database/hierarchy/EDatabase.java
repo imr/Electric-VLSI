@@ -401,6 +401,8 @@ public class EDatabase {
                 cell.getMemoization();
                 cellBounds[cellIndex] = cell.getBounds();
                 cell.getTopology().getRTree();
+                assert cell.backup() == cellBackups[cellIndex];
+                assert cell.getBounds() == cellBounds[cellIndex];
             }
             cellsChanged = cellsChanged || cellBackups[cellIndex] != snapshot.getCell(cellIndex);
             cellBoundsChanged = cellBoundsChanged || cellBounds[cellIndex] != snapshot.getCellBounds(cellIndex);

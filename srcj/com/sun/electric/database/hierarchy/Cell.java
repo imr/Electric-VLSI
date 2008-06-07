@@ -1455,6 +1455,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         for(int i = 0; i < nodes.size(); i++ ) {
             NodeInst ni = nodes.get(i);
             NodeProto np = ni.getProto();
+            Rectangle2D bounds = ni.getBounds();
 
             // special case: do not include "cell center" primitives from Generic
             if (np == Generic.tech().cellCenterNode) continue;
@@ -1472,7 +1473,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
                 if (found) continue;
             }
 
-            Rectangle2D bounds = ni.getBounds();
             double lowx = bounds.getMinX();
             double highx = bounds.getMaxX();
             double lowy = bounds.getMinY();
