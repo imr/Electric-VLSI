@@ -992,7 +992,7 @@ public class SeaOfGatesEngine
 	 * @param length the length of one of the pieces (-1 to use default).
 	 * @return the design rule spacing (0 if none).
 	 */
-	private double getSpacingRule(int layer, double width, double length)
+	private synchronized double getSpacingRule(int layer, double width, double length)
 	{
 		// use default width if none specified
 		if (width < 0) width = metalArcs[layer].getDefaultLambdaBaseWidth();
@@ -1633,7 +1633,14 @@ if (DEBUGLOOPS && Job.getDebug()) System.out.println("    Wavefront " + wf.name 
 //				whenDone.release();
 			} else
 			{
-if (DEBUGLOOPS && Job.getDebug()) System.out.println("    Wavefront " + wf.name + " completed");
+                String status = "completed";
+                if (result == svAborted)
+                    status = "aborted";
+                else if (result == svExhausted)
+                    status = "exhausted";
+                else if (result == svLimited)
+                    status = "limited";
+if (DEBUGLOOPS && Job.getDebug()) System.out.println("    Wavefront " + wf.name + " " + status);
 			}
 			whenDone.release();
 		}
