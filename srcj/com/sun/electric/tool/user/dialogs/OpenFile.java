@@ -23,17 +23,18 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.tool.Client;
+import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.io.input.LibDirs;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.io.FileType;
-import com.sun.electric.tool.io.input.LibDirs;
-import com.sun.electric.tool.Client;
-import com.sun.electric.database.text.TextUtils;
 
 import java.awt.FileDialog;
 import java.io.File;
 import java.util.Iterator;
+
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -47,9 +48,9 @@ public class OpenFile
 	private static class OpenFileSwing extends JFileChooser
 	{
 		/** True if this is a file save dialog */						private boolean saveDialog;
-        /** True to set new dir as working dir (default is true) */     private boolean setSelectedDirAsWorkingDir;
-        /** Holds the last DELIB file visited in isTraversable */ File lastDELIBVisit = null;
-        private FileType fileType;
+		/** True to set new dir as working dir (default is true) */		private boolean setSelectedDirAsWorkingDir;
+		/** Holds the last DELIB file visited in isTraversable */ File lastDELIBVisit = null;
+		private FileType fileType;
 
 		/** Private constructor, use factory methods chooseInputFile or
 		 * chooseOutputFile instead.
@@ -73,74 +74,73 @@ public class OpenFile
 					if (result != JOptionPane.OK_OPTION) return;
 				}
 			} else {
-            // IF: Opening file found in LIBDIR redirect, then
-            // if user clicks on file and hits ok, it acts as if file
-            // is in current directory, which it is not.  We need to check
-            // libdir directories in this case.
-                FileSystemView view = getFileSystemView();
-                if ((view instanceof LibDirs.LibDirFileSystemView) && !f.exists()) {
-                    //LibDirs.LibDirFileSystemView lview = (LibDirs.LibDirFileSystemView)view;
-                    for (Iterator<String> it = LibDirs.getLibDirs(); it.hasNext(); ) {
-                        String dirName = it.next();
-                        File dir = new File(dirName);
-                        if (!dir.exists()) continue;
-                        if (!dir.isDirectory()) continue;
-                        File newFile = new File(dir, f.getName());
-                        if (newFile.exists()) {
-                            // assume it's this one
-                            f = newFile;
-                            break;
-                        }
-                    }
-                }
-            }
+				// IF: Opening file found in LIBDIR redirect, then
+				// if user clicks on file and hits ok, it acts as if file
+				// is in current directory, which it is not.  We need to check
+				// libdir directories in this case.
+				FileSystemView view = getFileSystemView();
+				if ((view instanceof LibDirs.LibDirFileSystemView) && !f.exists()) {
+					//LibDirs.LibDirFileSystemView lview = (LibDirs.LibDirFileSystemView)view;
+					for (Iterator<String> it = LibDirs.getLibDirs(); it.hasNext(); ) {
+						String dirName = it.next();
+						File dir = new File(dirName);
+						if (!dir.exists()) continue;
+						if (!dir.isDirectory()) continue;
+						File newFile = new File(dir, f.getName());
+						if (newFile.exists()) {
+							// assume it's this one
+							f = newFile;
+							break;
+						}
+					}
+				}
+			}
 
 			setSelectedFile(f);
 			if (setSelectedDirAsWorkingDir)
-                User.setWorkingDirectory(getCurrentDirectory().getPath());
+				User.setWorkingDirectory(getCurrentDirectory().getPath());
 
-            if (fileType != null)
-            fileType.setGroupPath(getCurrentDirectory().getPath());
+			if (fileType != null)
+				fileType.setGroupPath(getCurrentDirectory().getPath());
 			super.approveSelection();
 		}
 
-        /**
-         * Directories ending in .delib are treated as files.  Specifically, library files.
-         * @param f the file
-         * @return true if the file is traversable, false otherwise
-         */
-        public boolean isTraversable(File f) {
-            lastDELIBVisit = null;
-            if (f == null) return false;
-            if (f.getName().toLowerCase().endsWith("."+FileType.DELIB.getExtensions()[0])) {
-                lastDELIBVisit = f; // has to remember this value otherwise BasicFileChooserUI:actionPerformed will
-                // not ready DELIB file just typed in the TextField because isDir=true and isDirSelEnabled=false
-                // if ((isDir || !isFileSelEnabled)
-			    //   && (!isDir || !isDirSelEnabled)
-			    //   && (!isDirSelEnabled || selectedFile.exists()))
-                return false;
-            }
-            return super.isTraversable(f);
-        }
+		/**
+		 * Directories ending in .delib are treated as files.  Specifically, library files.
+		 * @param f the file
+		 * @return true if the file is traversable, false otherwise
+		 */
+		public boolean isTraversable(File f) {
+			lastDELIBVisit = null;
+			if (f == null) return false;
+			if (f.getName().toLowerCase().endsWith("."+FileType.DELIB.getExtensions()[0])) {
+				lastDELIBVisit = f; // has to remember this value otherwise BasicFileChooserUI:actionPerformed will
+				// not ready DELIB file just typed in the TextField because isDir=true and isDirSelEnabled=false
+				// if ((isDir || !isFileSelEnabled)
+				//   && (!isDir || !isDirSelEnabled)
+				//   && (!isDirSelEnabled || selectedFile.exists()))
+				return false;
+			}
+			return super.isTraversable(f);
+		}
 
-        /**
-         * Overridden to return true when the currently selected file is a .delib file.
-         * This allows .DELIB to be treated as files for the approve (open/save) button.
-         * @return
-         */
-        public boolean isDirectorySelectionEnabled() {
-
-            File file = getSelectedFile();
-            if (file == null && lastDELIBVisit != null)
-                file = lastDELIBVisit;
-            // return true if a .delib file is selected, otherwise call the parent method
-            if (file != null &&
-                (super.getFileSelectionMode() != JFileChooser.DIRECTORIES_ONLY) &&
-                file.getName().toLowerCase().endsWith("."+FileType.DELIB.getExtensions()[0])) {
-                return true;
-            }
-            return super.isDirectorySelectionEnabled();
-        }
+		/**
+		 * Overridden to return true when the currently selected file is a .delib file.
+		 * This allows .DELIB to be treated as files for the approve (open/save) button.
+		 * @return
+		 */
+		public boolean isDirectorySelectionEnabled() {
+			File file = getSelectedFile();
+			if (file == null && lastDELIBVisit != null)
+				file = lastDELIBVisit;
+			// return true if a .delib file is selected, otherwise call the parent method
+			if (file != null &&
+				(super.getFileSelectionMode() != JFileChooser.DIRECTORIES_ONLY) &&
+				file.getName().toLowerCase().endsWith("."+FileType.DELIB.getExtensions()[0])) {
+				return true;
+			}
+			return super.isDirectorySelectionEnabled();
+		}
 	}
 
 //	/** the location of the open file dialog */		private static Point location = null;
@@ -164,27 +164,27 @@ public class OpenFile
 		return chooseInputFile(null, title, true, User.getWorkingDirectory(), true);
 	}
 
-    /**
-     * Factory method to create a new open dialog box using the default Type.
-     * @param type the type of file to read. Defaults to ANY if null.
-     * @param title dialog title to use; if null uses "Open 'filetype'".
-     * @param wantDirectory true to request a directory be selected, instead of a file.
-     */
-    public static String chooseInputFile(FileType type, String title, boolean wantDirectory) {
-        return chooseInputFile(type, title, wantDirectory, User.getWorkingDirectory(), true);
-    }
+	/**
+	 * Factory method to create a new open dialog box using the default Type.
+	 * @param type the type of file to read. Defaults to ANY if null.
+	 * @param title dialog title to use; if null uses "Open 'filetype'".
+	 * @param wantDirectory true to request a directory be selected, instead of a file.
+	 */
+	public static String chooseInputFile(FileType type, String title, boolean wantDirectory) {
+		return chooseInputFile(type, title, wantDirectory, User.getWorkingDirectory(), true);
+	}
 
 	/**
 	 * Factory method to create a new open dialog box using the default Type.
 	 * @param type the type of file to read. Defaults to ANY if null.
 	 * @param title dialog title to use; if null uses "Open 'filetype'".
 	 * @param wantDirectory true to request a directory be selected, instead of a file.
-     * @param initialDir the initial directory
-     * @param setSelectedDirAsWorkingDir if the user approves the selection,
-     * set the directory as the current working dir if this is true.
+	 * @param initialDir the initial directory
+	 * @param setSelectedDirAsWorkingDir if the user approves the selection,
+	 * set the directory as the current working dir if this is true.
 	 */
 	public static String chooseInputFile(FileType type, String title, boolean wantDirectory,
-                                         String initialDir, boolean setSelectedDirAsWorkingDir)
+										 String initialDir, boolean setSelectedDirAsWorkingDir)
 	{
 		if (title == null)
 		{
@@ -194,7 +194,7 @@ public class OpenFile
 		}
 
 		boolean useSwing = true;
-        // MacOS Open Dialog doesn't work when directories must be available for selection
+		// MacOS Open Dialog doesn't work when directories must be available for selection
 //		if (!wantDirectory && Client.isOSMac())
 //			useSwing = false;
 
@@ -202,29 +202,29 @@ public class OpenFile
 //		System.out.println("Put it at "+location);
 
 
-        String path = (type != null) ? type.getGroupPath() : null;
-        if (path != null)
-            initialDir = path;
+		String path = (type != null) ? type.getGroupPath() : null;
+		if (path != null)
+			initialDir = path;
 
 		if (useSwing)
 		{
 			OpenFileSwing dialog = new OpenFileSwing();
 			dialog.saveDialog = false;
-            dialog.setSelectedDirAsWorkingDir = setSelectedDirAsWorkingDir;
-            dialog.fileType = type;
+			dialog.setSelectedDirAsWorkingDir = setSelectedDirAsWorkingDir;
+			dialog.fileType = type;
 			dialog.setDialogTitle(title);
-            File dir = new File(initialDir);
-            if (!dir.exists() || !dir.isDirectory()) dir = new File(User.getWorkingDirectory());
-            dialog.setCurrentDirectory(dir);
+			File dir = new File(initialDir);
+			if (!dir.exists() || !dir.isDirectory()) dir = new File(User.getWorkingDirectory());
+			dialog.setCurrentDirectory(dir);
 			if (type != null) {
-                if (type == FileType.ELIB || type == FileType.JELIB || type == FileType.DELIB ||
-                    type == FileType.LIBFILE || type == FileType.LIBRARYFORMATS) {
-                    LibDirs.LibDirFileSystemView view = LibDirs.newLibDirFileSystemView(dialog.getFileSystemView());
-                    dialog.setFileSystemView(view);
-                    dialog.setFileView(new LibDirs.LibDirFileView(view));
-                }
-                dialog.setFileFilter(type.getFileFilterSwing());
-            }
+				if (type == FileType.ELIB || type == FileType.JELIB || type == FileType.DELIB ||
+					type == FileType.LIBFILE || type == FileType.LIBRARYFORMATS) {
+					LibDirs.LibDirFileSystemView view = LibDirs.newLibDirFileSystemView(dialog.getFileSystemView());
+					dialog.setFileSystemView(view);
+					dialog.setFileView(new LibDirs.LibDirFileView(view));
+				}
+				dialog.setFileFilter(type.getFileFilterSwing());
+			}
 			if (wantDirectory) dialog.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 //			dialog.setLocation(location.x, location.y);
 //			dialog.addComponentListener(new MoveComponentListener());
@@ -264,20 +264,20 @@ public class OpenFile
 //		}
 //	}
 
-    /**
-     * Factory method to create a new save dialog box using the
-     * default EFileFilter.
-     * @param type the type of file. Defaults to ANY if null.
-     * @param title dialog title to use; if null uses "Write 'filetype'".
-     * @param defaultFile default file name to write.
-     */
-    public static String chooseOutputFile(FileType type, String title, String defaultFile)
-    {
-        FileType [] types;
-        if (type == null) types = null;
-        else types = new FileType [] {type};
-        return chooseOutputFile(types, title, defaultFile);
-    }
+	/**
+	 * Factory method to create a new save dialog box using the
+	 * default EFileFilter.
+	 * @param type the type of file. Defaults to ANY if null.
+	 * @param title dialog title to use; if null uses "Write 'filetype'".
+	 * @param defaultFile default file name to write.
+	 */
+	public static String chooseOutputFile(FileType type, String title, String defaultFile)
+	{
+		FileType [] types;
+		if (type == null) types = null;
+		else types = new FileType [] {type};
+		return chooseOutputFile(types, title, defaultFile);
+	}
 
 	/**
 	 * Factory method to create a new save dialog box using the
@@ -293,56 +293,52 @@ public class OpenFile
 			if (types != null) title = "Write " + types[0].getDescription(); else
 				title = "Write file";
 		}
-        if (types == null) types = new FileType [] {com.sun.electric.tool.io.FileType.ANY};
+		if (types == null) types = new FileType [] {com.sun.electric.tool.io.FileType.ANY};
 
 		boolean useSwing = true;
 		if (Client.isOSMac())
 			useSwing = false;
 
-        String initialDir = User.getWorkingDirectory();
-        String path = types[0].getGroupPath();
-        if (path != null)
-            initialDir = path;
+		String initialDir = User.getWorkingDirectory();
+		String path = types[0].getGroupPath();
+		if (path != null)
+			initialDir = path;
 
 		if (useSwing)
 		{
 			OpenFileSwing dialog = new OpenFileSwing();
 			dialog.saveDialog = true;
 			dialog.setDialogTitle(title);
-            for (int i=0; i<types.length; i++) {
-			    dialog.addChoosableFileFilter(types[i].getFileFilterSwing());
-            }
+			for (int i=0; i<types.length; i++) {
+				dialog.addChoosableFileFilter(types[i].getFileFilterSwing());
+			}
 			dialog.setCurrentDirectory(new File(initialDir));
-            if (defaultFile != null)
-            {
-                dialog.setFileFilter(FileMenu.getLibraryFormat(defaultFile, types[0]).getFileFilterSwing());
-                dialog.setSelectedFile(new File(defaultFile));
-            }
+			if (defaultFile != null)
+			{
+				dialog.setFileFilter(FileMenu.getLibraryFormat(defaultFile, types[0]).getFileFilterSwing());
+				dialog.setSelectedFile(new File(defaultFile));
+			}
 			JFrame chooseFrame = new JFrame();
 			chooseFrame.setIconImage(TopLevel.getFrameIcon().getImage());
 			int returnVal = dialog.showSaveDialog(chooseFrame);
 			if (returnVal == JFileChooser.APPROVE_OPTION)
 			{
 				File file = dialog.getSelectedFile();
-                String fileName = file.getPath();
-                FileType selectedType = com.sun.electric.tool.io.FileType.getType(dialog.getFileFilter());
-                if (selectedType != null)
-                {
-                    String dir = TextUtils.getFilePath(TextUtils.makeURLToFile(fileName));
-                    selectedType.setGroupPath(dir);
-	                String extension = selectedType.getExtensions()[0];
-	                int dotPos = fileName.lastIndexOf('.');
-	                if (dotPos < 0)
-                        fileName += "." + extension;
-                    else
-	                {
-	                    if (!fileName.substring(dotPos+1).equals(extension))
-	                    {
-	                        //fileName = fileName.substring(0, dotPos) + "." + extension;
-	                        fileName = fileName + "." + extension;
-	                    }
-	                }
-                }
+				String fileName = file.getPath();
+				FileType selectedType = FileType.getType(dialog.getFileFilter());
+				if (selectedType != null)
+				{
+					String dir = TextUtils.getFilePath(TextUtils.makeURLToFile(fileName));
+					selectedType.setGroupPath(dir);
+					String extension = selectedType.getExtensions()[0];
+					int dotPos = fileName.lastIndexOf('.');
+					if (dotPos < 0)
+						fileName += "." + extension; else
+					{
+						if (!fileName.substring(dotPos+1).startsWith(extension))
+							fileName = fileName + "." + extension;
+					}
+				}
 				return fileName;
 			}
 			return null;
@@ -356,7 +352,7 @@ public class OpenFile
 		awtDialog.setVisible(true);
 		String fileName = awtDialog.getFile();
 		if (fileName == null) return null;
-        types[0].setGroupPath(awtDialog.getDirectory());
+		types[0].setGroupPath(awtDialog.getDirectory());
 		return awtDialog.getDirectory() + fileName;
 	}
 
@@ -367,19 +363,19 @@ public class OpenFile
 	 */
 	public static FileType getOpenFileType(String libName, FileType def)
 	{
-        File libFile = new File(libName);
-        libName = libFile.getName();
-        // remove trailing file separator if file is a directory (as it is with .delib)
-        if (libName.endsWith(File.separator)) {
-            libName = libName.substring(0, libName.length()-1);
-        }
+		File libFile = new File(libName);
+		libName = libFile.getName();
+		// remove trailing file separator if file is a directory (as it is with .delib)
+		if (libName.endsWith(File.separator)) {
+			libName = libName.substring(0, libName.length()-1);
+		}
 
 		if (libName.endsWith(".elib"))
 			return com.sun.electric.tool.io.FileType.ELIB;
 		else if (libName.endsWith(".jelib"))
 			return com.sun.electric.tool.io.FileType.JELIB;
-        else if (libName.endsWith(".delib"))
-            return com.sun.electric.tool.io.FileType.DELIB;
+		else if (libName.endsWith(".delib"))
+			return com.sun.electric.tool.io.FileType.DELIB;
 		else if (libName.endsWith(".txt"))
 			return com.sun.electric.tool.io.FileType.READABLEDUMP;
 		return (def);
