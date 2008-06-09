@@ -50,9 +50,14 @@ import com.sun.electric.tool.user.User;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * This is the netlister for LEF.
@@ -64,13 +69,13 @@ import java.util.Iterator;
 public class LEF extends Output
 {
 	private Layer io_lefoutcurlayer;
-	private HashSet<NodeInst> nodesSeen;
-	private HashSet<ArcInst> arcsSeen;
+	private Set<NodeInst> nodesSeen;
+	private Set<ArcInst> arcsSeen;
 
 	/**
 	 * The main entry point for LEF deck writing.
-     * @param cell the top-level cell to write.
-     * @param context the hierarchical context to the cell.
+	 * @param cell the top-level cell to write.
+	 * @param context the hierarchical context to the cell.
 	 * @param filePath the disk file to create.
 	 */
 	public static void writeLEFFile(Cell cell, VarContext context, String filePath)
@@ -78,7 +83,7 @@ public class LEF extends Output
 		LEF out = new LEF();
 		if (out.openTextOutputStream(filePath)) return;
 
-        Netlist netlist = cell.getNetlist(Netlist.ShortResistors.ALL);
+		Netlist netlist = cell.getNetlist(Netlist.ShortResistors.ALL);
 		out.init(netlist);
 		HierarchyEnumerator.enumerateCell(netlist, context, new Visitor(out));
 		out.term(cell);
@@ -90,9 +95,7 @@ public class LEF extends Output
 	/**
 	 * Creates a new instance of the LEF netlister.
 	 */
-	LEF()
-	{
-	}
+	LEF() {}
 
 	private static class Visitor extends HierarchyEnumerator.Visitor
 	{
@@ -169,7 +172,7 @@ public class LEF extends Output
 		printWriter.println("");
 
 		// write main cell header
-        Cell cell = netList.getCell();
+		Cell cell = netList.getCell();
 		printWriter.println("MACRO " + cell.getName());
 		printWriter.println("  FOREIGN " + cell.getName() + " ;");
 		Rectangle2D bounds = cell.getBounds();
@@ -177,53 +180,86 @@ public class LEF extends Output
 		double height = TextUtils.convertDistance(bounds.getHeight(), cell.getTechnology(), TextUtils.UnitScale.MICRO);
 		printWriter.println("  SIZE " + TextUtils.formatDouble(width) + " BY " + TextUtils.formatDouble(height) + " ;");
 		printWriter.println("  SITE " + cell.getName() + " ;");
-		
+
 		// write all of the metal geometry and ports
 		nodesSeen = new HashSet<NodeInst>();
 		arcsSeen = new HashSet<ArcInst>();
-		boolean first = true;
+
+		// make a map of networks to exports on those networks
+		Map<Network,List<Export>> unconnectedExports = new HashMap<Network,List<Export>>();
 		for(Iterator<PortProto> it = cell.getPorts(); it.hasNext(); )
 		{
 			Export e = (Export)it.next();
-			if (first) first = false; else printWriter.println("");
-			printWriter.println("  PIN " + e.getName());
-
-			PortOriginal fp = new PortOriginal(e.getOriginalPort());
-			NodeInst rni = fp.getBottomNodeInst();
-			PrimitivePort rpp = fp.getBottomPortProto();
-			AffineTransform trans = fp.getTransformToTop();
-			printWriter.println("    PORT");
-			io_lefoutcurlayer = null;
-			Technology tech = rni.getProto().getTechnology();
-			Poly [] polys = tech.getShapeOfNode(rni, true, false, null);
-			if (polys.length == 0)
+			Network net = netList.getNetwork(e, 0);
+			List<Export> exportsOnNet = unconnectedExports.get(net);
+			if (exportsOnNet == null)
 			{
-				PrimitiveNode np = (PrimitiveNode)rni.getProto();
-				Technology.NodeLayer [] nls = np.getLayers();
-				if (nls.length > 0)
+				exportsOnNet = new ArrayList<Export>();
+				unconnectedExports.put(net, exportsOnNet);
+			}
+			exportsOnNet.add(e);
+		}
+
+		// write exports organized by network connections
+		boolean first = true;
+		for(Network net : unconnectedExports.keySet())
+		{
+			List<Export> exportsOnNet = unconnectedExports.get(net);
+			Export main = null;
+			for(Export e : exportsOnNet)
+			{
+				if (main == null) main = e; else
 				{
-					polys = new Poly[1];
-					polys[0] = new Poly(rni.getAnchorCenterX(), rni.getAnchorCenterY(), rni.getXSize(), rni.getYSize());
-					polys[0].setLayer(nls[0].getLayer().getNonPseudoLayer());
-					polys[0].setPort(rpp);
+					if (main.getName().length() > e.getName().length()) main = e;
 				}
 			}
-			for(int i=0; i<polys.length; i++)
+
+			if (first) first = false; else printWriter.println();
+			printWriter.println("  PIN " + main.getName());
+			Set<NodeInst> nodesUnderExports = new HashSet<NodeInst>();
+			for(Export e : exportsOnNet)
+				nodesUnderExports.add(e.getOriginalPort().getNodeInst());
+			for(Export e : exportsOnNet)
 			{
-				Poly poly = polys[i];
-				if (poly.getPort() != rpp) continue;
-				io_lefwritepoly(poly, trans, tech);
+				PortOriginal fp = new PortOriginal(e.getOriginalPort());
+				NodeInst rni = fp.getBottomNodeInst();
+				PrimitivePort rpp = fp.getBottomPortProto();
+				AffineTransform trans = fp.getTransformToTop();
+				printWriter.println("    PORT");
+				io_lefoutcurlayer = null;
+				Technology tech = rni.getProto().getTechnology();
+				Poly [] polys = tech.getShapeOfNode(rni, true, false, null);
+				if (polys.length == 0)
+				{
+					PrimitiveNode np = (PrimitiveNode)rni.getProto();
+					Technology.NodeLayer [] nls = np.getLayers();
+					if (nls.length > 0)
+					{
+						polys = new Poly[1];
+						polys[0] = new Poly(rni.getAnchorCenterX(), rni.getAnchorCenterY(), rni.getXSize(), rni.getYSize());
+						polys[0].setLayer(nls[0].getLayer().getNonPseudoLayer());
+						polys[0].setPort(rpp);
+					}
+				}
+				for(int i=0; i<polys.length; i++)
+				{
+					Poly poly = polys[i];
+					if (poly.getPort() != rpp) continue;
+					io_lefwritepoly(poly, trans, tech, true);
+
+//					// when there are multiple ports connected, can write only 1 polygon per port
+//					if (exportsOnNet.size() > 1) break;
+				}
+				if (e == main) io_lefoutspread(cell, net, nodesUnderExports, netList);
+				printWriter.println("    END");
 			}
-			Network net = netList.getNetwork(e, 0);
-			io_lefoutspread(cell, net, e.getOriginalPort().getNodeInst(), netList);
-			printWriter.println("    END");
-			if (e.getCharacteristic() == PortCharacteristic.PWR)
+			if (main.getCharacteristic() == PortCharacteristic.PWR)
 				printWriter.println("    USE POWER ;");
-			if (e.getCharacteristic() == PortCharacteristic.GND)
+			if (main.getCharacteristic() == PortCharacteristic.GND)
 				printWriter.println("    USE GROUND ;");
-			printWriter.println("  END " + e.getName());
+			printWriter.println("  END " + main.getName());
 		}
-	
+
 		// write the obstructions (all of the metal)
 		printWriter.println("");
 		printWriter.println("  OBS");
@@ -255,10 +291,10 @@ public class LEF extends Output
 			for(int i=0; i<polys.length; i++)
 			{
 				Poly poly = polys[i];
-				io_lefwritepoly(poly, rot, tech);
+				io_lefwritepoly(poly, rot, tech, false);
 			}
 		}
-	
+
 		// write metal layers for all arcs
 		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 		{
@@ -269,31 +305,30 @@ public class LEF extends Output
 			for(int i=0; i<polys.length; i++)
 			{
 				Poly poly = polys[i];
-				io_lefwritepoly(poly, trans, tech);
+				io_lefwritepoly(poly, trans, tech, false);
 			}
 		}
 	}
 
 	/**
 	 * Method to write all geometry in cell "cell" that is on network "net"
-	 * to file "out".  Does not write node "ignore".
+	 * to file "out".  Does not write nodes in "nodesUnderExports".
 	 */
-	void io_lefoutspread(Cell cell, Network net, NodeInst ignore, Netlist netList)
+	void io_lefoutspread(Cell cell, Network net, Set<NodeInst> nodesUnderExports, Netlist netList)
 	{
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = it.next();
 			if (ni.isCellInstance()) continue;
-			if (ni == ignore) continue;
+			if (nodesUnderExports.contains(ni)) continue;
 			PrimitiveNode.Function fun = ni.getFunction();
-			if (fun != PrimitiveNode.Function.PIN && 
+			if (fun != PrimitiveNode.Function.PIN &&
 				fun != PrimitiveNode.Function.CONTACT &&
-				fun != PrimitiveNode.Function.NODE 	&& 
-				/* added WELL so that WELL contacts which are part of either
-				 * VDD or GND nets are not written out as obstructions
-				 */
-				fun != PrimitiveNode.Function.WELL 	&& 
-				fun != PrimitiveNode.Function.SUBSTRATE 	&&
+				fun != PrimitiveNode.Function.NODE &&
+				// added WELL so that WELL contacts which are part of either
+				// VDD or GND nets are not written out as obstructions
+				fun != PrimitiveNode.Function.WELL &&
+				fun != PrimitiveNode.Function.SUBSTRATE &&
 				fun != PrimitiveNode.Function.CONNECT) continue;
 			boolean found = true;
 			for(Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext(); )
@@ -303,7 +338,7 @@ public class LEF extends Output
 				if (pNet != net) { found = false;   break; }
 			}
 			if (!found) continue;
-	
+
 			// write all layers on this node
 			nodesSeen.add(ni);
 			AffineTransform trans = ni.rotateOut();
@@ -312,10 +347,10 @@ public class LEF extends Output
 			for(int i=0; i<polys.length; i++)
 			{
 				Poly poly = polys[i];
-				io_lefwritepoly(poly, trans, tech);
+				io_lefwritepoly(poly, trans, tech, true);
 			}
 		}
-	
+
 		// write metal layers for all arcs
 		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 		{
@@ -328,7 +363,7 @@ public class LEF extends Output
 			for(int i=0; i<polys.length; i++)
 			{
 				Poly poly = polys[i];
-				io_lefwritepoly(poly, GenMath.MATID, tech);
+				io_lefwritepoly(poly, GenMath.MATID, tech, true);
 			}
 		}
 	}
@@ -337,7 +372,7 @@ public class LEF extends Output
 	 * Method to write polygon "poly" from technology "tech", transformed by "trans",
 	 * to "out".
 	 */
-	private void io_lefwritepoly(Poly poly, AffineTransform trans, Technology tech)
+	private void io_lefwritepoly(Poly poly, AffineTransform trans, Technology tech, boolean extraIndent)
 	{
 		Layer layer = poly.getLayer();
 		if (layer == null) return;
@@ -352,13 +387,15 @@ public class LEF extends Output
 		double fhy = TextUtils.convertDistance(polyBounds.getMaxY(), tech, TextUtils.UnitScale.MICRO);
 		if (layer != io_lefoutcurlayer)
 		{
+			if (extraIndent) printWriter.print("  ");
 			printWriter.println("    LAYER " + layername + " ;");
 			io_lefoutcurlayer = layer;
 		}
-		printWriter.println("    RECT " + TextUtils.formatDouble(flx) + " " + TextUtils.formatDouble(fly) + " " +
+		if (extraIndent) printWriter.print("  ");
+		printWriter.println("      RECT " + TextUtils.formatDouble(flx) + " " + TextUtils.formatDouble(fly) + " " +
 			TextUtils.formatDouble(fhx) + " " + TextUtils.formatDouble(fhy) + " ;");
 	}
-	
+
 	private String io_lefoutlayername(Layer layer)
 	{
 		layer = layer.getNonPseudoLayer();
@@ -366,18 +403,14 @@ public class LEF extends Output
 		if (fun.isMetal()) return "METAL" + fun.getLevel();
 		if (fun == Layer.Function.GATE) return "POLY1";
 		if (fun.isPoly()) return "POLY" + fun.getLevel();
-		if (fun == Layer.Function.CONTACT1) return "CONT";
-		if (fun == Layer.Function.CONTACT2) return "VIA12";
-		if (fun == Layer.Function.CONTACT3) return "VIA23";
-		if (fun == Layer.Function.CONTACT4) return "VIA34";
-		if (fun == Layer.Function.CONTACT5) return "VIA45";
-		if (fun == Layer.Function.CONTACT6) return "VIA56";
-		if (fun == Layer.Function.CONTACT7) return "VIA67";
-		if (fun == Layer.Function.CONTACT8) return "VIA78";
-		if (fun == Layer.Function.CONTACT9) return "VIA89";
-		if (fun == Layer.Function.CONTACT10) return "VIA9";
-		if (fun == Layer.Function.CONTACT11) return "VIA10";
-		if (fun == Layer.Function.CONTACT12) return "VIA11";
+		if (fun.isContact())
+		{
+			int level = fun.getLevel();
+			if (level == 1) return "CONT";
+			if (level < 10) return "VIA" + (level-1) + level;
+			if (level == 10) return "VIA9";
+			return "VIA" + (level-1);
+		}
 		if (fun == Layer.Function.DIFFN) return "NDIFF";
 		if (fun == Layer.Function.DIFFP) return "PDIFF";
 		if (fun == Layer.Function.DIFF) return "DIFF";
