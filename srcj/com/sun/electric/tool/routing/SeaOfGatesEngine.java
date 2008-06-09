@@ -57,18 +57,11 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.drc.DRC;
-import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.ErrorLogger;
-import com.sun.electric.tool.user.dialogs.OpenFile;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -116,7 +109,7 @@ public class SeaOfGatesEngine
 {
 	/** True to display each step in the search. */								private static final boolean DEBUGSTEPS = false;
 	/** True to display the first routing failure. */							private static final boolean DEBUGFAILURE = false;
-	/** True to debug "infinite" loops. */										private static final boolean DEBUGLOOPS = true;
+	/** True to debug "infinite" loops. */										private static final boolean DEBUGLOOPS = false;
 	/** true to use full, gridless routing */									private static final boolean FULLGRAIN = true;
 
 	/** Percent of min cell size that route must stay inside. */				private static final double PERCENTLIMIT = 7;
@@ -146,7 +139,6 @@ public class SeaOfGatesEngine
 	/** favoritism for each metal layer. */										private boolean [] favorArcs;
 	/** avoidance for each metal layer. */										private boolean [] preventArcs;
 	/** vias to use to go up from each metal layer. */							private MetalVias [] metalVias;
-	/** minimum spacing between this metal and itself. */						private Map<Double,Map<Double,Double>>[] layerSurround;
 	/** worst spacing rule for a given metal layer. */							private double [] worstMetalSurround;
 	/** minimum spacing between the centers of two vias. */						private double [] viaSurround;
 	/** the total length of wires routed */										private double totalWireLength;
@@ -181,6 +173,7 @@ public class SeaOfGatesEngine
 		/** debugging state */												private final boolean debug;
 		/** Search vertices found while propagating the wavefront. */		private Map<Integer,Set<Integer>> [] searchVertexPlanes;
 		/** Gridless search vertices found while propagating wavefront. */	private Map<Double,Set<Double>> [] searchVertexPlanesDBL;
+		/** minimum spacing between this metal and itself. */				private Map<Double,Map<Double,Double>>[] layerSurround;
 
 		Wavefront(NeededRoute nr, PortInst from, double fromX, double fromY, int fromZ,
 			PortInst to, double toX, double toY, int toZ, String name, boolean debug)
@@ -195,6 +188,9 @@ public class SeaOfGatesEngine
 			abort = false;
 			searchVertexPlanes = new Map[numMetalLayers];
 			searchVertexPlanesDBL = new Map[numMetalLayers];
+			layerSurround = new Map[numMetalLayers];
+			for(int i=0; i<numMetalLayers; i++)
+				layerSurround[i] = new HashMap<Double,Map<Double,Double>>();
 
 			if (debug) System.out.println("----------- SEARCHING FROM ("+TextUtils.formatDouble(fromX)+","+
 				TextUtils.formatDouble(fromY)+",M"+(fromZ+1)+") TO ("+TextUtils.formatDouble(toX)+","+
@@ -274,6 +270,44 @@ public class SeaOfGatesEngine
 				plane.put(iY, row);
 			}
 			row.add(new Integer((int)(x*GRANULARITY)));
+		}
+
+		/**
+		 * Method to determine the design rule spacing between two pieces of a given layer.
+		 * @param layer the layer index.
+		 * @param width the width of one of the pieces (-1 to use default).
+		 * @param length the length of one of the pieces (-1 to use default).
+		 * @return the design rule spacing (0 if none).
+		 */
+		public double getSpacingRule(int layer, double width, double length)
+		{
+			// use default width if none specified
+			if (width < 0) width = metalArcs[layer].getDefaultLambdaBaseWidth();
+			if (length < 0) length = 50;
+
+			// convert these to the next largest integers
+			Double wid = new Double(upToGrain(width));
+			Double len = new Double(upToGrain(length));
+
+			// see if the rule is cached6
+			Map<Double,Double> widMap = layerSurround[layer].get(wid);
+			if (widMap == null)
+			{
+				widMap = new HashMap<Double,Double>();
+				layerSurround[layer].put(wid, widMap);
+			}
+			Double value = widMap.get(len);
+			if (value == null)
+			{
+				// rule not cached: compute it
+				Layer lay = metalLayers[layer];
+				DRCTemplate rule = DRC.getSpacingRule(lay, null, lay, null, false, -1, width, length);
+				double v = 0;
+				if (rule != null) v = rule.getValue(0);
+				value = new Double(v);
+				widMap.put(len, value);
+			}
+			return value.doubleValue();
 		}
 	}
 
@@ -520,7 +554,12 @@ public class SeaOfGatesEngine
 
 				// see if access is blocked
 				double metalSpacing = Math.max(metalArcs[fromZ].getDefaultLambdaBaseWidth(), minWidth) / 2;
-				double surround = getSpacingRule(fromZ, -1, -1);
+
+				// determine "from" surround
+				Layer lay = metalLayers[fromZ];
+				DRCTemplate rule = DRC.getSpacingRule(lay, null, lay, null, false, -1, metalArcs[fromZ].getDefaultLambdaBaseWidth(), -1);
+				double surround = 0;
+				if (rule != null) surround = rule.getValue(0);
 				SOGBound block = getMetalBlockage(netID, fromZ, metalSpacing, metalSpacing, surround, fromX, fromY);
 				if (block != null)
 				{
@@ -550,7 +589,11 @@ public class SeaOfGatesEngine
 					}
 				}
 				metalSpacing = Math.max(metalArcs[toZ].getDefaultLambdaBaseWidth(), minWidth) / 2;
-				surround = getSpacingRule(toZ, -1, -1);
+
+				// determine "to" surround
+				lay = metalLayers[toZ];
+				rule = DRC.getSpacingRule(lay, null, lay, null, false, -1, metalArcs[toZ].getDefaultLambdaBaseWidth(), -1);
+				surround = 0;
 				block = getMetalBlockage(netID, toZ, metalSpacing, metalSpacing, surround, toX, toY);
 				if (block != null)
 				{
@@ -940,13 +983,9 @@ public class SeaOfGatesEngine
 		}
 
 		// compute design rule spacings
-		layerSurround = new Map[numMetalLayers];
 		worstMetalSurround = new double[numMetalLayers];
 		for(int i=0; i<numMetalLayers; i++)
-		{
-			layerSurround[i] = new HashMap<Double,Map<Double,Double>>();
 			worstMetalSurround[i] = DRC.getMaxSurround(metalLayers[i], Double.MAX_VALUE);
-		}
 		viaSurround = new double[numMetalLayers-1];
 		for(int i=0; i<numMetalLayers-1; i++)
 		{
@@ -983,44 +1022,6 @@ public class SeaOfGatesEngine
 			viaSurround[i] = spacing + width;
 		}
 		return false;
-	}
-
-	/**
-	 * Method to determine the design rule spacing between two pieces of a given layer.
-	 * @param layer the layer index.
-	 * @param width the width of one of the pieces (-1 to use default).
-	 * @param length the length of one of the pieces (-1 to use default).
-	 * @return the design rule spacing (0 if none).
-	 */
-	private synchronized double getSpacingRule(int layer, double width, double length)
-	{
-		// use default width if none specified
-		if (width < 0) width = metalArcs[layer].getDefaultLambdaBaseWidth();
-		if (length < 0) length = 50;
-
-		// convert these to the next largest integers
-		Double wid = new Double(upToGrain(width));
-		Double len = new Double(upToGrain(length));
-
-		// see if the rule is cached
-		Map<Double,Double> widMap = layerSurround[layer].get(wid);
-		if (widMap == null)
-		{
-			widMap = new HashMap<Double,Double>();
-			layerSurround[layer].put(wid, widMap);
-		}
-		Double value = widMap.get(len);
-		if (value == null)
-		{
-			// rule not cached: compute it
-			Layer lay = metalLayers[layer];
-			DRCTemplate rule = DRC.getSpacingRule(lay, null, lay, null, false, -1, width, length);
-			double v = 0;
-			if (rule != null) v = rule.getValue(0);
-			value = new Double(v);
-			widMap.put(len, value);
-		}
-		return value.doubleValue();
 	}
 
 	private double getMinWidth(List<PortInst> orderedPorts)
@@ -1496,12 +1497,8 @@ public class SeaOfGatesEngine
 		{
 			// create threads and start them running
 			Semaphore outSem = new Semaphore(0);
-			DijkstraInThread t1 = new DijkstraInThread("Route a->b", nr.dir1, nr.dir2, outSem);
-			DijkstraInThread t2 = new DijkstraInThread("Route b->a", nr.dir2, nr.dir1, outSem);
-			t1.setOtherThread(t2);
-			t2.setOtherThread(t1);
-			t1.start();
-			t2.start();
+			new DijkstraInThread("Route a->b", nr.dir1, nr.dir2, outSem);
+			new DijkstraInThread("Route b->a", nr.dir2, nr.dir1, outSem);
 
 			// wait for threads to complete and get results
 			outSem.acquireUninterruptibly(2);
@@ -1589,7 +1586,6 @@ public class SeaOfGatesEngine
 		private Wavefront wf;
 		private Wavefront otherWf;
 		private Semaphore whenDone;
-		private DijkstraInThread other;
 
 		public DijkstraInThread(String name, Wavefront wf, Wavefront otherWf, Semaphore whenDone)
 		{
@@ -1597,9 +1593,8 @@ public class SeaOfGatesEngine
 			this.wf = wf;
 			this.otherWf = otherWf;
 			this.whenDone = whenDone;
+			start();
 		}
-
-		public void setOtherThread(DijkstraInThread other) { this.other = other; }
 
 		public void run()
 		{
@@ -1622,25 +1617,21 @@ public class SeaOfGatesEngine
 			}
 			if (result != svAborted && result != svExhausted && result != svLimited)
 			{
-if (DEBUGLOOPS && Job.getDebug()) System.out.println("    Wavefront " + wf.name + " first completion");
+				if (DEBUGLOOPS)
+					System.out.println("    Wavefront " + wf.name + " first completion");
 				wf.vertices = getOptimizedList(result);
 				wf.nr.winningWF = wf;
 				otherWf.abort = true;
-//				try
-//				{
-//					other.join(1000);
-//				} catch (InterruptedException e) {}
-//				whenDone.release();
 			} else
 			{
-                String status = "completed";
-                if (result == svAborted)
-                    status = "aborted";
-                else if (result == svExhausted)
-                    status = "exhausted";
-                else if (result == svLimited)
-                    status = "limited";
-if (DEBUGLOOPS && Job.getDebug()) System.out.println("    Wavefront " + wf.name + " " + status);
+				if (DEBUGLOOPS)
+				{
+	                String status = "completed";
+	                if (result == svAborted) status = "aborted"; else
+	                	if (result == svExhausted) status = "exhausted"; else
+	                		if (result == svLimited) status = "limited";
+					System.out.println("    Wavefront " + wf.name + " " + status);
+				}
 			}
 			whenDone.release();
 		}
@@ -2148,7 +2139,7 @@ if (DEBUGLOOPS && Job.getDebug()) System.out.println("    Wavefront " + wf.name 
 	{
 		Rectangle2D jumpBound = wf.nr.jumpBound;
 		double width = Math.max(metalArcs[curZ].getDefaultLambdaBaseWidth(), wf.nr.minWidth);
-		double metalToMetal = getSpacingRule(curZ, width, -1);
+		double metalToMetal = wf.getSpacingRule(curZ, width, -1);
 		double metalSpacing = width / 2 + metalToMetal;
 		double lX = curX - metalSpacing, hX = curX + metalSpacing;
 		double lY = curY - metalSpacing, hY = curY + metalSpacing;
@@ -2412,7 +2403,7 @@ if (DEBUGLOOPS && Job.getDebug()) System.out.println("    Wavefront " + wf.name 
 			// see if it is within design-rule distance
 			double drWid = Math.max(Math.min(bound.getWidth(), bound.getHeight()), metWid);
 			double drLen = Math.max(Math.max(bound.getWidth(), bound.getHeight()), metLen);
-			double spacing = getSpacingRule(metNo, drWid, drLen);
+			double spacing = wf.getSpacingRule(metNo, drWid, drLen);
 			double lXAllow = metLX - spacing, hXAllow = metHX + spacing;
 			double lYAllow = metLY - spacing, hYAllow = metHY + spacing;
 			if (DBMath.isLessThanOrEqualTo(bound.getMaxX(), lXAllow) || DBMath.isGreaterThanOrEqualTo(bound.getMinX(), hXAllow) ||
@@ -2444,7 +2435,7 @@ if (DEBUGLOOPS && Job.getDebug()) System.out.println("    Wavefront " + wf.name 
 		// consider notch errors in the existing path
 		if (svCurrent != null)
 		{
-			double spacing = getSpacingRule(metNo, metWid, metLen);
+			double spacing = wf.getSpacingRule(metNo, metWid, metLen);
 			List<SearchVertex> svList = getOptimizedList(svCurrent);
 			for(int ind=1; ind<svList.size(); ind++)
 			{
@@ -3059,25 +3050,6 @@ if (DEBUGLOOPS && Job.getDebug()) System.out.println("    Wavefront " + wf.name 
 //			}
 //			System.out.println();
 //		}
-//	}
-
-//	private static PrintWriter printWriter = null;
-//
-//	public static void logMessage(String msg)
-//	{
-//		if (printWriter == null)
-//		{
-//			try
-//			{
-//				printWriter = new PrintWriter(new BufferedWriter(new FileWriter("routingLog.txt")));
-//			} catch (IOException e)
-//			{
-//				System.out.println("Error creating routingLog");
-//				return;
-//			}
-//		}
-//        printWriter.println(msg);
-////        printWriter.flush();
 //	}
 
 	private void showSearchVertices(Map<Integer,Set<Integer>> [] planes, boolean horiz)
