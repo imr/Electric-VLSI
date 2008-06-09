@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07k: ******************************
 
+IMP: (6/9/08, GVG) Should Electric detect a directoriy listed as a lib in the command line? (Bug #1704)
+
 BUG: (6/9/08, GVG) Assertion in DRC MTD area code while cleaning DRC dates.
 FIX: Not storing DRC date data during MTD DRC for area.
 
