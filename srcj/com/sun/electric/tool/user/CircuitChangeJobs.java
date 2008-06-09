@@ -2652,7 +2652,8 @@ public class CircuitChangeJobs
 			double xd = td.getXOff() - bounds.getCenterX();
 			double yd = td.getYOff() - bounds.getCenterY();
 			td = td.withOff(xd, yd);
-			ni.newVar(var.getKey(), var.getObject(), td);
+			Object value = inheritAddress(cell, var);
+			ni.newVar(var.getKey(), value, td);
 //			ni.addParameter(var);
 		}
 	}
@@ -2683,14 +2684,20 @@ public class CircuitChangeJobs
 		String retVal = str.substring(0, incrPoint) + str.substring(incrPoint+2);
 
 		// increment the variable
-		int i;
-		for(i = incrPoint-1; i>0; i--)
+		int i = incrPoint-1;
+		for( ; i>=0; i--)
 			if (!TextUtils.isDigit(str.charAt(i))) break;
 		i++;
 		int curVal = TextUtils.atoi(str.substring(i));
 		if (str.charAt(incrPoint) == '+') curVal++; else curVal--;
-		String newIncrString = str.substring(0, i) + curVal + str.substring(incrPoint+2);
-		addr.newVar(var.getKey(), newIncrString);
+		String newIncrString = str.substring(0, i) + curVal + str.substring(incrPoint);
+		if (addr instanceof Cell)
+		{
+			((Cell)addr).getCellGroup().updateParam((Variable.AttrKey)var.getKey(), newIncrString);
+		} else
+		{
+			addr.newVar(var.getKey(), newIncrString);
+		}
 
 		return retVal;
 	}
