@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
-import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
@@ -62,6 +61,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -90,24 +90,24 @@ public class Change extends EModelessDialog implements HighlightListener
 	private static boolean lastIgnorePortNames = false;
 	private static boolean lastAllowMissingPorts = false;
 	private static int whatToChange = CHANGE_SELECTED;
-    private static String libSelected = null;
+	private static String libSelected = null;
 	private List<Geometric> geomsToChange;                  // List of Geometrics to change
 	private JList changeList;
 	private DefaultListModel changeListModel;
 	private List<NodeProto> changeNodeProtoList;
-    private EditWindow wnd;
+	private EditWindow wnd;
 
 	public static void showChangeDialog()
 	{
-        if (Client.getOperatingSystem() == Client.OS.UNIX && theDialog != null)
-        {
-            // On Linux, if a dialog is built, closed using setVisible(false),
-            // and then requested again using setVisible(true), it does
-            // not appear on top. I've tried using toFront(), requestFocus(),
-            // but none of that works.  Instead, I brute force it and
-            // rebuild the dialog from scratch each time.
-           	theDialog.closeDialog(null);
-        }
+		if (Client.getOperatingSystem() == Client.OS.UNIX && theDialog != null)
+		{
+			// On Linux, if a dialog is built, closed using setVisible(false),
+			// and then requested again using setVisible(true), it does
+			// not appear on top. I've tried using toFront(), requestFocus(),
+			// but none of that works.  Instead, I brute force it and
+			// rebuild the dialog from scratch each time.
+		   	theDialog.closeDialog(null);
+		}
 		if (theDialog == null)
 		{
 			JFrame jf = null;
@@ -124,6 +124,9 @@ public class Change extends EModelessDialog implements HighlightListener
 	{
 		super(parent, false);
 		initComponents();
+        getRootPane().setDefaultButton(done);
+        apply.setMnemonic('A');
+        done.setMnemonic('D');
 
 		// build the change list
 		changeListModel = new DefaultListModel();
@@ -141,15 +144,15 @@ public class Change extends EModelessDialog implements HighlightListener
 
 		// make a popup of libraries
 		List<Library> libList = Library.getVisibleLibraries();
-        int curIndex = libList.indexOf(Library.getCurrent());
+		int curIndex = libList.indexOf(Library.getCurrent());
 		for(Library lib: libList)
 		{
 			librariesPopup.addItem(lib.getName());
-            if (lib.getName().equals(libSelected))
-            {
-                curIndex = -1;                          // won't set to current library now
-                librariesPopup.setSelectedItem(libSelected);
-            }
+			if (lib.getName().equals(libSelected))
+			{
+				curIndex = -1;						// won't set to current library now
+				librariesPopup.setSelectedItem(libSelected);
+			}
 		}
 		if (curIndex >= 0) librariesPopup.setSelectedIndex(curIndex);
 		librariesPopup.addActionListener(new ActionListener()
@@ -245,7 +248,7 @@ public class Change extends EModelessDialog implements HighlightListener
 		if (src == changeInCell) whatToChange = CHANGE_CELL; else
 		if (src == changeInLibrary) whatToChange = CHANGE_LIBRARY; else
 		if (src == changeEverywhere) whatToChange = CHANGE_EVERYWHERE;
-        Geometric geomToChange = geomsToChange.get(0);
+		Geometric geomToChange = geomsToChange.get(0);
 		if (whatToChange == CHANGE_EVERYWHERE)
 		{
 			if (geomToChange instanceof ArcInst)
@@ -264,7 +267,7 @@ public class Change extends EModelessDialog implements HighlightListener
 		}
 	}
 
-    private static final Pattern dummyName = Pattern.compile("(.*?)FROM(.*?)\\{(.*)");
+	private static final Pattern dummyName = Pattern.compile("(.*?)FROM(.*?)\\{(.*)");
 
 	/**
 	 * Method called when the current selection has changed.
@@ -362,7 +365,7 @@ public class Change extends EModelessDialog implements HighlightListener
 		changeNodeProtoList.clear();
 		if (geomsToChange.size() == 0) return;
 		Technology curTech = Technology.getCurrent();
-        Geometric geomToChange = geomsToChange.get(0);
+		Geometric geomToChange = geomsToChange.get(0);
 		if (geomToChange instanceof NodeInst)
 		{
 			NodeInst ni = (NodeInst)geomToChange;
@@ -405,33 +408,33 @@ public class Change extends EModelessDialog implements HighlightListener
 					changeNodeProtoList.add(Generic.tech().unroutedPinNode);
 				}
 			}
-            changeList.setSelectedIndex(0);
+			changeList.setSelectedIndex(0);
 
-            // try to select prototype of selected node
-            if (ni.isCellInstance())
-            {
-                Cell c = (Cell)ni.getProto();
-                for (int i=0; i<changeListModel.getSize(); i++)
-                {
-                    String str = (String)changeListModel.get(i);
-                    if (str.equals(c.noLibDescribe()))
-                    {
-                        changeList.setSelectedIndex(i);
-                        break;
-                    }
-                }
-            } else
-            {
-                for (int i=0; i<changeListModel.getSize(); i++)
-                {
-                    String str = (String)changeListModel.get(i);
-                    if (str.equals(ni.getProto().describe(false)))
-                    {
-                        changeList.setSelectedIndex(i);
-                        break;
-                    }
-                }
-            }
+			// try to select prototype of selected node
+			if (ni.isCellInstance())
+			{
+				Cell c = (Cell)ni.getProto();
+				for (int i=0; i<changeListModel.getSize(); i++)
+				{
+					String str = (String)changeListModel.get(i);
+					if (str.equals(c.noLibDescribe()))
+					{
+						changeList.setSelectedIndex(i);
+						break;
+					}
+				}
+			} else
+			{
+				for (int i=0; i<changeListModel.getSize(); i++)
+				{
+					String str = (String)changeListModel.get(i);
+					if (str.equals(ni.getProto().describe(false)))
+					{
+						changeList.setSelectedIndex(i);
+						break;
+					}
+				}
+			}
 			if (showCells.isSelected())
 			{
 				String geomName = ((NodeInst)geomToChange).getProto().describe(false);
@@ -495,7 +498,7 @@ public class Change extends EModelessDialog implements HighlightListener
 			changeList.setSelectedIndex(0);
  		}
 		SwingUtilities.invokeLater(new Runnable() {
-            public void run() { EDialog.centerSelection(changeList); }});
+			public void run() { EDialog.centerSelection(changeList); }});
 	}
 
 	private void doTheChange()
@@ -506,10 +509,10 @@ public class Change extends EModelessDialog implements HighlightListener
 		if (geomToChange instanceof NodeInst)
 		{
 			int index = changeList.getSelectedIndex();
-	        np = changeNodeProtoList.get(index);
+			np = changeNodeProtoList.get(index);
 		} else
 		{
-	        String line = (String)changeList.getSelectedValue();
+			String line = (String)changeList.getSelectedValue();
 			ap = ArcProto.findArcProto(line);
 			if (ap == null)
 			{
@@ -565,7 +568,7 @@ public class Change extends EModelessDialog implements HighlightListener
 			fieldVariableChanged("highlightThese");
 			Set<Geometric> changedAlready = new HashSet<Geometric>();
 
-            for (Geometric geomToChange : geomsToChange)
+			for (Geometric geomToChange : geomsToChange)
 			{
 				// handle node replacement
 				if (geomToChange instanceof NodeInst)
@@ -577,8 +580,8 @@ public class Change extends EModelessDialog implements HighlightListener
 					if (CircuitChangeJobs.cantEdit(ni.getParent(), ni, true, false, true) != 0) return false;
 
 					// get nodeproto to replace it with
-	                Library library = Library.findLibrary(libName);
-	                if (library == null) return false;
+					Library library = Library.findLibrary(libName);
+					if (library == null) return false;
 					if (np == null) return false;
 
 					// sanity check
@@ -588,7 +591,7 @@ public class Change extends EModelessDialog implements HighlightListener
 						System.out.println("Node already of type " + np.describe(true));
 
 						// just skip this case. No need to redo it. This not an error.
-                        continue;
+						continue;
 					}
 
 					// replace the nodeinsts
@@ -659,7 +662,7 @@ public class Change extends EModelessDialog implements HighlightListener
 					} else if (changeInLibrary)
 					{
 						// replace throughout the library containing "this cell"if requested
-                        Library lib = WindowFrame.getCurrentCell().getLibrary();
+						Library lib = WindowFrame.getCurrentCell().getLibrary();
 						for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 						{
 							Cell cell = cIt.next();
@@ -771,10 +774,7 @@ public class Change extends EModelessDialog implements HighlightListener
 								if (errorCode > 0) continue;
 
 								NodeInst newNi = CircuitChangeJobs.replaceNodeInst(lNi, np, ignorePortNames, allowMissingPorts);
-								if (newNi != null)
-								{
-									total++;
-								}
+								if (newNi != null) total++;
 							}
 						}
 						System.out.println("All " + total + " " + oldNType.describe(true) +
@@ -938,31 +938,28 @@ public class Change extends EModelessDialog implements HighlightListener
 						for(ArcInst lAi : others)
 						{
 							ArcInst newAi = lAi.replace(ap);
-							if (newAi != null)
-							{
-								total++;
-							}
+							if (newAi != null) total++;
 						}
 						System.out.println("All " + total + " " + oldAType.describe() +
 							" arcs connected to this replaced with " + ap);
 					} else System.out.println(oldAType + " replaced with " +ap);
 				}
-            }
+			}
 			return true;
 		}
 
-        public void terminateOK()
-        {
-            EditWindow wnd = EditWindow.getCurrent();
-            if (wnd != null)
-            {
-	            Highlighter highlighter = wnd.getHighlighter();
-	        	for(Geometric geom : highlightThese)
-	        	{
-	        		highlighter.addElectricObject(geom, geom.getParent());
-	        	}
-            }
-        }
+		public void terminateOK()
+		{
+			EditWindow wnd = EditWindow.getCurrent();
+			if (wnd != null)
+			{
+				Highlighter highlighter = wnd.getHighlighter();
+				for(Geometric geom : highlightThese)
+				{
+					highlighter.addElectricObject(geom, geom.getParent());
+				}
+			}
+		}
 
 		/**
 		 * Method to replace arc "oldAi" with another of type "ap", adding layer-change contacts
@@ -971,7 +968,8 @@ public class Change extends EModelessDialog implements HighlightListener
 		 */
 		private void replaceAllArcs(Cell cell, List<Geometric> highs, ArcInst oldAi, ArcProto ap, boolean connected, boolean thiscell)
 		{
-			HashSet<Geometric> geomMarked = new HashSet<Geometric>();
+			Set<Geometric> geomMarked = new HashSet<Geometric>();
+			List<NodeInst> changePins = new ArrayList<NodeInst>();
 
 			for(Geometric geom : highs)
 			{
@@ -1011,26 +1009,19 @@ public class Change extends EModelessDialog implements HighlightListener
 					Connection con = cIt.next();
 					if (!geomMarked.contains(con.getArc())) { allArcs = false;   break; }
 				}
-				if (ni.hasConnections() && allArcs) geomMarked.add(ni);
+				if (ni.hasConnections() && allArcs)
+					changePins.add(ni);
 			}
 
 			// now create new pins where they belong
 			PrimitiveNode pin = ap.findOverridablePinProto();
 			double xS = pin.getDefWidth();
 			double yS = pin.getDefHeight();
-			List<NodeInst> dupPins = new ArrayList<NodeInst>();
-			for(Geometric geom : geomMarked)
+			Map<NodeInst,NodeInst> newNodes = new HashMap<NodeInst,NodeInst>();
+			for(NodeInst ni : changePins)
 			{
-				if (geom instanceof NodeInst)
-					dupPins.add((NodeInst)geom);
-			}
-			HashMap<NodeInst,NodeInst> newNodes = new HashMap<NodeInst,NodeInst>();
-			for(NodeInst ni : dupPins)
-			{
-				// TODO this used to provide the node name (ni.getName()) in the 2nd to last argument
 				NodeInst newNi = NodeInst.makeInstance(pin, ni.getAnchorCenter(), xS, yS, cell);
 				if (newNi == null) return;
-//				geomMarked.remove(newNi);
 				newNodes.put(ni, newNi);
 
 				// move exports
@@ -1076,7 +1067,7 @@ public class Change extends EModelessDialog implements HighlightListener
 				double wid = ap.getDefaultLambdaBaseWidth();
 				if (ai.getLambdaBaseWidth() > wid) wid = ai.getLambdaBaseWidth();
 				ArcInst newAi = ArcInst.makeInstanceBase(ap, wid, pi0, pi1, ai.getHeadLocation(),
-				    ai.getTailLocation(), ai.getName());
+					ai.getTailLocation(), ai.getName());
 				if (newAi == null) return;
 				newAi.copyPropertiesFrom(ai);
 				geomMarked.remove(newAi);
@@ -1093,7 +1084,7 @@ public class Change extends EModelessDialog implements HighlightListener
 			}
 
 			// delete old pins and copy their names to the new ones
-			for(NodeInst ni : dupPins)
+			for(NodeInst ni : changePins)
 			{
 				if (!ni.hasExports())
 				{
@@ -1118,13 +1109,33 @@ public class Change extends EModelessDialog implements HighlightListener
 			NodeInst lastNi = ai.getPortInst(end).getNodeInst();
 			PortProto lastPp = ai.getPortInst(end).getPortProto();
 			PortInst lastPi = lastNi.findPortInstFromProto(lastPp);
+			Point2D center = ai.getLocation(end);
+			Cell cell = ai.getParent();
+
+//			// first see if it can be replaced by a simple pin
+//			boolean allSame = true;
+//			for(Iterator<Connection> it = lastNi.getConnections(); it.hasNext(); )
+//			{
+//				Connection con = it.next();
+//				ArcInst aiOnNode = con.getArc();
+//				if (aiOnNode == ai) continue;
+//				if (aiOnNode.getProto() != ap) allSame = false;
+//			}
+//			if (allSame)
+//			{
+//				PrimitiveNode np = ap.findOverridablePinProto();
+//				if (lastNi.getProto() == np) return lastPi;
+//				NodeInst newNi = NodeInst.makeInstance(np, center, np.getDefWidth(), np.getDefHeight(), cell);
+//				if (newNi == null) return null;
+//				PortInst thisPi = newNi.getOnlyPortInst();
+//				return thisPi;
+//			}
+
 			Set<ArcProto> markedArcs = new HashSet<ArcProto>();
 			int depth = findPathToArc(lastPp, ap, 0, markedArcs);
 			if (depth < 0) return null;
 
 			// create the contacts
-			Cell cell = ai.getParent();
-			Point2D center = ai.getLocation(end);
 			for(int i=0; i<depth; i++)
 			{
 				ArcProto typ = contactStackArc[i];
@@ -1208,17 +1219,17 @@ public class Change extends EModelessDialog implements HighlightListener
 		}
 	}
 
-    private String getLibSelected()
-    {
-        return (String)librariesPopup.getSelectedItem();
-    }
+	private String getLibSelected()
+	{
+		return (String)librariesPopup.getSelectedItem();
+	}
 
 	/** This method is called from within the constructor to
 	 * initialize the form.
 	 * WARNING: Do NOT modify this code. The content of this method is
 	 * always regenerated by the Form Editor.
 	 */
-    private void initComponents()//GEN-BEGIN:initComponents
+	private void initComponents()//GEN-BEGIN:initComponents
     {
         java.awt.GridBagConstraints gridBagConstraints;
 
@@ -1413,7 +1424,7 @@ public class Change extends EModelessDialog implements HighlightListener
 	private void apply(java.awt.event.ActionEvent evt)//GEN-FIRST:event_apply
 	{//GEN-HEADEREND:event_apply
 		doTheChange();
-        libSelected = (String)librariesPopup.getSelectedItem();
+		libSelected = (String)librariesPopup.getSelectedItem();
 	}//GEN-LAST:event_apply
 
 	/** Closes the dialog */

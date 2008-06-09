@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07k: ******************************
 
+IMP: (6/9/08, SMR) "Change" dialog has mnemonics on buttons, "Done" is default (Bug #1709).
+
 BUG: (6/7/08, DN) Parallel Dijkstra algorithm in SeaOfGates router hangs sometimes.
 FIX: Synchronize access to "layerSurround" maps which are modified by both threads.
 
