@@ -26,6 +26,7 @@ package com.sun.electric.tool.user.dialogs;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
@@ -381,11 +382,26 @@ public class Change extends EModelessDialog implements HighlightListener
 					dontReload = false;
 				}
 
+				View origView = null;
+				if (ni.isCellInstance())
+					origView = ((Cell)ni.getProto()).getView();
 				String libName = (String)librariesPopup.getSelectedItem();
 				Library lib = Library.findLibrary(libName);
 				for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
 				{
 					Cell cell = it.next();
+					if (origView != null)
+					{
+						// filter according to original node's view
+						if (origView == View.ICON)
+						{
+							if (cell.getView() != View.ICON) continue;
+						} else if (origView == View.LAYOUT || origView == View.LAYOUTCOMP || origView == View.LAYOUTSKEL)
+						{
+							if (cell.getView() != View.LAYOUT && cell.getView() != View.LAYOUTCOMP && cell.getView() != View.LAYOUTSKEL)
+								continue;
+						}
+					}
 					changeListModel.addElement(cell.noLibDescribe());
 					changeNodeProtoList.add(cell);
 				}
