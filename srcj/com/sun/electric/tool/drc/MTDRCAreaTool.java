@@ -84,6 +84,11 @@ public class MTDRCAreaTool extends MTDRCTool
         ErrorLogger errorLogger = DRC.getDRCErrorLogger(true, false, ", Layer " + theLayer.getName());
         String msg = "Cell " + topCell.getName() + " , layer " + theLayer.getName();
 
+        Date lastAreaGoodDate = DRC.getLastDRCDateBasedOnBits(topCell, false, -1, !DRC.isDatesStoredInMemory());
+
+        if (DRC.isCellDRCDateGood(topCell, lastAreaGoodDate))
+            System.out.println("The cell seems to be MinArea OK. Should I run the code?");
+
         int totalNumErrors = checkMinArea(theLayer, topCell, errorLogger, rules, cellLayersCon, this, msg);
         HashSet<Cell> goodAreaDRCDate = new HashSet<Cell>();
         HashSet<Cell> cleanAreaDRCDate = new HashSet<Cell>();
