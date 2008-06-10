@@ -248,7 +248,7 @@ public class PixelDrawing
     
 	/** the size of the EditWindow */						private final Dimension sz;
     /** the scale of the EditWindow */                      private double scale;
-    /** the VarContext of the EditWindow */                 private VarContext varContext;
+    /** the VarContext of the EditWindow */                 private VarContext varContext = VarContext.globalContext;
     /** the X origin of the cell in display coordinates. */ private double originX;
     /** the Y origin of the cell in display coordinates. */ private double originY;
 	/** 0: color display, 1: color printing, 2: B&W printing */	private int nowPrinting;
