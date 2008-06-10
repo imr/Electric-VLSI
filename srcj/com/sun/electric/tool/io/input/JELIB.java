@@ -249,6 +249,7 @@ public class JELIB extends LibraryFiles
                 if (np == null) {
 					Input.errorLogger.logError(cc.fileName + ", line " + line +
 						", Cannot find primitive node " + pnId, cell, -1);
+                    undefinedTechs.add(pnId.techId);
                     CellName cellName = CellName.parseName(pnId.name);
                     if (cellName.getVersion() <= 0)
                         cellName = CellName.newName(cellName.getName(), cellName.getView(), 1);
@@ -296,15 +297,20 @@ public class JELIB extends LibraryFiles
 						", Creating dummy library " + prefixName, cell, -1);
 					cellLib = Library.newInstance(prefixName, null);
 				}
-				Cell dummyCell = Cell.makeInstance(cellLib, protoName);
-				if (dummyCell == null)
-				{
-					Input.errorLogger.logError(cc.fileName + ", line " + line +
-						", Unable to create dummy cell " + protoName + " in " + cellLib, cell, -1);
-					continue;
-				}
-				Input.errorLogger.logError(cc.fileName + ", line " + line +
-					", Creating dummy cell " + protoName + " in " + cellLib, cell, -1);
+                Cell dummyCell = cellLib.findNodeProto(protoName);
+                if (dummyCell != null && dummyCell.getVar(IO_DUMMY_OBJECT) == null)
+                    dummyCell = null;
+                if (dummyCell == null) {
+                    dummyCell = Cell.makeInstance(cellLib, protoName);
+                    if (dummyCell == null)
+                    {
+                        Input.errorLogger.logError(cc.fileName + ", line " + line +
+                            ", Unable to create dummy cell " + protoName + " in " + cellLib, cell, -1);
+                        continue;
+                    }
+                    Input.errorLogger.logError(cc.fileName + ", line " + line +
+                        ", Creating dummy cell " + protoName + " in " + cellLib, cell, -1);
+                }
 				Rectangle2D bounds = parser.externalCells.get(dummyCellId.toString());
 				if (bounds == null)
 				{
