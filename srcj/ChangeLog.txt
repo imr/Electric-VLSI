@@ -113,7 +113,7 @@ FIX: In VectorCache.renderPoly(), ignore all implant layers when computing maxim
 BUG: (5/15/08, SMR) "Edit / Cut" on export text doesn't work (Bug #1680).
 FIX: Fixed Clipboard.CutObjects.doIt().
 
-IMP/MAN (5/15/08, SMR): The "Node Preferences" option "Reconstruct arcs when deleting instances"
+IMP (5/15/08, SMR): The "Node Preferences" option "Reconstruct arcs when deleting instances"
      is now "Reconstruct arcs and exports when deleting instances" and recreates
      pins for exports (Bug #1681).
 
@@ -162,7 +162,7 @@ FIX: In NodeInst.replace(), rename old node before copying name to new node
 IMP: (4/28/08, RK) Remove more references to
      com.sun.electric.tool.generator.layout.Tech.
 
-IMP/MAN: (4/29/08, SMR) Auto-stitcher now has the option to create exports
+IMP: (4/29/08, SMR) Auto-stitcher now has the option to create exports
      (Bug #1593).
 
 BUG: (4/29/08, RK) My cleanup of the gate layout generation code broke
@@ -174,7 +174,7 @@ FIX: In LayoutCell.transformByPort don't try to transform port positions of isol
 IMP: (4/28/08, RK) Eliminate many references to static globals of
      com.sun.electric.tool.generator.layout.Tech.
 
-IMP/MAN: (4/28/08, SMR) Fixed GDS project settings dialog to say that
+IMP: (4/28/08, SMR) Fixed GDS project settings dialog to say that
      "Blank" layers generate no GDS, not "Negative".
 
 ************************* Version 8.07i: ******************************
@@ -191,7 +191,7 @@ IMP: (4/24/08, RK) I removed use of StdCellParams from FoldedMos. FoldedMos
      is supposed to be a in layer beneath StdCellParams. I moved much
      technology specific information from StdCellParams to TechType.
 
-IMP/MAN: (4/23/08, SMR) New command "Edit / Selection / Show Current Collection of Errors"
+IMP: (4/23/08, SMR) New command "Edit / Selection / Show Current Collection of Errors"
      highlights all errors in the current collection (Bug #1621).
 
 BUG: (4/23/08, DN) Cut and paste corrupts bus tag (Bug #1667).
@@ -211,21 +211,21 @@ IMP: (4/22/08, SMR) Ports that are down the hierarchy and not selectable are
 BUG: (4/21/08, SMR) HSpice input sometimes mangles signal names incorrectly (But #1630).
 FIX: Only remove common signal prefixes if they also match the file name.
 
-IMP/MAN: (4/21/08, SMR) Changed all of the "Edit XXX View" commands in the
+IMP: (4/21/08, SMR) Changed all of the "Edit XXX View" commands in the
      View menu so that if the view does not exist, you are prompted to create
      it (Bug #1609).
 
-IMP/MAN: (4/17/08, SMR) New command "Export / Follow Export Up Hierarchy"
+IMP: (4/17/08, SMR) New command "Export / Follow Export Up Hierarchy"
      shows the usage of the selected export recursively up the hierarchy (for Ivan).
 
-IMP/MAN: (4/17/08, SMR) New command "Cell / Cell Info / List Cell Usage, Hierarchically"
+IMP: (4/17/08, SMR) New command "Cell / Cell Info / List Cell Usage, Hierarchically"
      shows the usage of the current cell, but recursively shows usage of cells that use
      it further up the hierarchy (for Ivan).
 
 BUG: (4/17/08, SMR) Changing a node to a different one keeps the same temporary name. (Bug #1662).
 FIX: In NodeInst.replace(), copy name only if it is not a temporary name.
 
-IMP/MAN: (4/17/08, SMR) Waveform window now handles "Window / Special Pan /
+IMP: (4/17/08, SMR) Waveform window now handles "Window / Special Pan /
      Center Cursor" (^5) which centers the horizontal axis over the cursor (Bug #1654).
 
 IMP: (4/17/08, SMR) Waveform window now remembers default panel height set by
@@ -239,7 +239,7 @@ FIX: In Launcher.invokeElectric(), consult a list of parameters to copy (current
 BUG: (4/16/08, SMR) Sea-of-gates router gives "arc killed" error messages (Bug #1414).
 FIX: Check for deletion before deleting arcs.
 
-IMP/MAN: (4/16/08, SMR) Waveform window can be panned horizontally by dragging
+IMP: (4/16/08, SMR) Waveform window can be panned horizontally by dragging
      the time scale at the top.  Also added two new commands to the
      "Window / Waveform Window" menu: "Fill Only in X" and "Fill Only in Y" (Bug #1654).
 
@@ -283,7 +283,7 @@ BUG: (4/9/08, DN) RevisionDate of a Cell is not clear in Generation regressions.
 FIX: In Cell.lowLevelSetRevisionDate call "database.unfreshSnapshot()".
      In AbsractTest.compareResults call "cell.getDatabase().backup()".
 
-IMP/MAN: (4/9/08, SMR) Typing "z" when in zoom mode or "p" when in pan mode now
+IMP: (4/9/08, SMR) Typing "z" when in zoom mode or "p" when in pan mode now
      reverts to the last mode (not always click-zoom-wire) and can be used to
      return to paste dragging, interactive resizing, etc. (Bug #1628)
 
@@ -310,7 +310,7 @@ FIX: Allow bussed names in icon and schematics Cells only.
 
 IMP: (4/4/08, GVG) Better error message for Bug #1627.
 
-IMP/MAN: (4/3/08, SMR) Sea-of-Gates router now defaults to use parallel processing.
+IMP: (4/3/08, SMR) Sea-of-Gates router now defaults to use parallel processing.
 
 ************************* Version 8.07g: ******************************
 
@@ -331,10 +331,10 @@ FIX: Fixed quad-trees and updated Auto-stitcher.
 BUG: (4/1/08, GVG) Quad tree doesn't handle zero-sized objects (Bug #1626)
 FIX: ObjecQTree now can handles zero-sized objects. Basic test was added into Extraction regression.
 
-IMP/MAN: (3/31/08, SMR) Added command "Window / Messages Window / Tile with Edit Window"
+IMP: (3/31/08, SMR) Added command "Window / Messages Window / Tile with Edit Window"
      to make the messages window tile with the edit window (Bug #1625).
 
-IMP/MAN: (3/28/08, SMR) Using "Down Hierarchy In Place" on schematic icons
+IMP: (3/28/08, SMR) Using "Down Hierarchy In Place" on schematic icons
      lets you edit the icon (in place) instead of the schematic (Bug #1607).
 
 BUG: (3/27/08, SMR) Crash while reading HSpice MT0 file (Bug #1618).
@@ -372,7 +372,7 @@ FIX: In Technology.xsd use PositiveDouble type.
 BUG: (3/18/08, DN) Backward compatibility with XML Technologies (Bug #1611)
 FIX: In Technology.xsd make <display3d.mode> <display3d.factor> <*Rule.when> attributes optional.
 
-IMP/MAN: (3/18/08, SMR) Fragmented Spice netlister into multiple modules in preparation for
+IMP: (3/18/08, SMR) Fragmented Spice netlister into multiple modules in preparation for
      additional Spice parasitics.  Added more parasitics options to Spice Preferences.
 
 IMP: (3/17/08, DN) FullSize of primitive node is calculated as MBB of its layers.
@@ -430,17 +430,17 @@ IMP: (3/4/08, DN) Element <arcPin> inside <arcProto> defines <acrPin> NodeLayers
 BUG: (3/3/08, DN) SizeListener incorrectly determine new node size after SizeOffset changes.
 FIX: Repair SizeListener
 
-IMP/MAN: (3/3/08, SMR) Added "Toolbar" preferences (in Display section) for rearranging the toolbar.
+IMP: (3/3/08, SMR) Added "Toolbar" preferences (in Display section) for rearranging the toolbar.
      Also moved the "Component menu" preferences to the Display section.
 
-IMP/MAN: (3/3/08, SMR) Added toolbar commands to pulldown menus:
+IMP: (3/3/08, SMR) Added toolbar commands to pulldown menus:
      "Cell / Cell Viewing History / Go Back a Cell" and
      "Cell / Cell Viewing History / Go Forward a Cell" to move through the displayed cells in the window.
 
 IMP: (3/3/08, DN) Element <primitiveNode> in Technology Xml contains element
     <nodeBase> instead of former <sizeOffset> . Distances in <nodeBase> are from center.
 
-IMP/MAN: (3/3/08, DN) Added "Edit|Technology Specific|Write XML of Technology from Electric build"
+IMP: (3/3/08, DN) Added "Edit|Technology Specific|Write XML of Technology from Electric build"
     command to convert technologies from old Electric builds.
 
 BUG: (3/2/08, DN) NPE in Poly.transform after (Bug #1588)
@@ -454,7 +454,7 @@ IMP: (2/29/08, SMR) Added text rotation for rotated parameters (Bug #1587).
 BUG: (2/29/08, SMR) EDIF input shorts crossed wires at an angle (Bug #1586).
 FIX: In EDIF.findEDIFPort(), ensure that angled wires are computed properly.
 
-IMP/MAN: (2/25/08, DN+JKG) Merge branches/params to the trunk:
+IMP: (2/25/08, DN+JKG) Merge branches/params to the trunk:
     CheckAndRepairJob ensures consistency between parameters on icon and schematic cells.
     Icon/schematic cells in a group shares parameter names, default values, and units.
     They may differ in text descriptor (except units, param flag, inherit flag).
@@ -482,16 +482,16 @@ IMP: (2/24/08, DN) One more PrimitiveNode constructor with minSizeRule argument.
 BUG: (2/22/08, GVG) Incremental DRC finds errors when there are none (Bug #1584)
 FIX: Now using updateIncrementalDRCErrors function.
 
-IMP/MAN: (2/22/08, SMR) EDIF input now reads parameters only when they are
+IMP: (2/22/08, SMR) EDIF input now reads parameters only when they are
      explicitly listed in the EDIF Preferences dialog (Bug #1533).
 
 BUG: (2/21/08, DN) NPE in NCC regression (Bug #1583)
 FIX: Repair input.ReadableDump .
 
-IMP/MAN: (2/21/08, GVG) Better implementation of export of any given technology in XML (Bug #1567).
+IMP: (2/21/08, GVG) Better implementation of export of any given technology in XML (Bug #1567).
 Adding sizeoffset to pins defined by TechEditWizard.
 
-IMP/MAN: (2/21/08, SMR) Added ability to drag layers in the "Layers" tab
+IMP: (2/21/08, SMR) Added ability to drag layers in the "Layers" tab
      to rearrange their order.
 
 BUG: (2/20/08, DN) TechEditWizard writes Layer opacity "0" (Bug #1579).
@@ -517,9 +517,9 @@ FIX: In VectorCache.forceRedrawAfterChange move changedVisibility.add to proper 
 
 IMP: (2/19/08, GVG) Wrong names in pulldown menus for new technologies created with Wizard (Bug #1580)
 
-IMP/MAN: (2/19/08, JKG) Attributes dialog becomes parameters dialog.
+IMP: (2/19/08, JKG) Attributes dialog becomes parameters dialog.
 
-IMP/MAN: (2/19/08, JKG) Added "Edit|Logical Effort|Add LE Attribute to Selected Export" command.
+IMP: (2/19/08, JKG) Added "Edit|Logical Effort|Add LE Attribute to Selected Export" command.
 
 IMP: (2/19/08, DN) Spice netlister automatically detects spice cell parameters.
 
@@ -558,7 +558,7 @@ IMP: (2/14/08, GVG) minOccurs="0" in Technology.xsd, antennaRatio
 BUG: (2/13/08, GVG) Exception if number of metal layers is larger than 10 (Bug #1577)
 FIX: Number of DRCmodes extended.
 
-IMP/MAN: (2/13/08, GVG) Ability to export any given technology in XML (Bug #1567)
+IMP: (2/13/08, GVG) Ability to export any given technology in XML (Bug #1567)
 
 IMP: (2/13/08, GVG) Changes to guarantee Technology.getCurrent() won't retrieve a null tech
 if problems during technology parsing occurs. More consistent way to get MocMOS tech.
@@ -606,7 +606,7 @@ IMP: (2/11/08, SMR) "Via" panel of Technology Creation Wizard now uses pulldown 
 
 ************************* Version 8.07d: *******************************
 
-IMP/MAN: (2/11/08, SMR) Component menu dialog now supports cell instances.
+IMP: (2/11/08, SMR) Component menu dialog now supports cell instances.
 
 BUG: (2/4/08, DN) New: NPE while reading an old JELIB library (Bug #1555)
 FIX: In LibraryFiles.findPortProto() return single-port only for empty port name.
@@ -632,7 +632,7 @@ BUG: (2/6/08, GVG) via, M1_PP_Contact, M1_NP_Contact and PNJunction nodes in bip
 should be CONTACT instead of CONNECT in bipolar.xml
 FIX: Fixed and new 3D values were added.
 
-BUG/MAN: (2/6/08, SMR) Technology edit commands are in a confusing place (Bug #1559).
+BUG: (2/6/08, SMR) Technology edit commands are in a confusing place (Bug #1559).
 FIX: Moved tech-edit commands to their own submenu.  Fixed technology edit
      component editing so that it is clear that it is part of tech-edit.
      Also added "Factory Reset" to Component Menu preferences panel.
@@ -658,7 +658,7 @@ IMP: (2/4/08, DN)  JELIB reader parses cell string in parse stage instead of rea
 BUG: (2/4/08, DN) New: NPE while reading an old JELIB library (Bug #1555)
 FIX: In Cell.getPort() use getExportChron().
 
-IMP/MAN: (2/4/08, SMR) Added "Technology Creation Wizard" (from Andrew West).
+IMP: (2/4/08, SMR) Added "Technology Creation Wizard" (from Andrew West).
 
 BUG: (2/1/08, DN) Vector display algorithm and wrong display of highlighted geometries (#Bug 1551)
 FIX: In PixelDrawing.Drawing.paintComponent use the same rerendering condition as in LayerDrawing.
@@ -704,7 +704,7 @@ FIX: Min area date is stored in a different cell variable so only it is independ
 BUG: (1/30/08, GVG) Not properly reset of DRC dates if they were stored as Variables before (Bug #1549)
 FIX: Clear all cell vars even if it is not the inMemory mode.
 
-IMP/MAN: (1/30/08, DN) JELIB writer doesn't write 'G' lines, because Cell's Groups is
+IMP: (1/30/08, DN) JELIB writer doesn't write 'G' lines, because Cell's Groups is
      defined by a field in 'C' line.
 
 IMP: (1/28/08, GVG) Merge MTDRCArea with Spacing code (Bug #1544)
@@ -712,7 +712,7 @@ IMP: (1/28/08, GVG) Merge MTDRCArea with Spacing code (Bug #1544)
 BUG: (1/28/08, GVG) Inconsistency found in maxSurround rule in single and MT threaded versions (Bug #1547)
 FIX: Deterministic algorithm now.
 
-IMP/MAN: (1/28/08, GVG) Ability to switch between single-threaded DRC and the multi-threaded version (Bug #1548).
+IMP: (1/28/08, GVG) Ability to switch between single-threaded DRC and the multi-threaded version (Bug #1548).
 New option added in DRC preference.
 
 IMP: (1/28/08, SMR) Improved EDIF input.
@@ -734,7 +734,7 @@ BUG: (1/24/08, GVG) Picking wrong DRC spacing rule when notches are checked toge
 FIX: Search among all possible candidates if wideS < 0. Mostly valid only for notch checking in
 new MTDRC code.
 
-BUG/MAN: (1/24/08, SMR) EDIF mapping now handles cells (Bug #1471).
+BUG: (1/24/08, SMR) EDIF mapping now handles cells (Bug #1471).
 
 BUG: (1/24/08, GVG) ErrorLoggers are not added into Explorer (Bug #1541)
 FIX: Missing termLogging added.
@@ -760,14 +760,14 @@ IMP: (1/23/08, SMR) EDIF import obeys library names in the EDIF file (Bug #1532)
 IMP: (1/23/08, SMR) Added "DebugMenuDinesh" and "DebugMenuFrankie" to provide
      sandboxes for them.
 
-IMP/MAN: (1/22/08, GVG) Final implementation of PWell process flag in Technology dialog
+IMP: (1/22/08, GVG) Final implementation of PWell process flag in Technology dialog
 in ProjectSettings (Bug #1439). By default, the processes are pwell.
 
-IMP/MAN: (1/18/08, GVG) Part of the code to implement Bug #1439 (PWell process).
+IMP: (1/18/08, GVG) Part of the code to implement Bug #1439 (PWell process).
 Changes are not active yet until the regressions are updated. New setting in Technology
 dialog in ProjectSettings.
 
-IMP/MAN: (1/18/08) GetInfo menu added to ExplorerNodes (Bug# 1536).
+IMP: (1/18/08) GetInfo menu added to ExplorerNodes (Bug# 1536).
 
 BUG: (1/18/08, GVG) Wrong pulldown menu if two root nodes in Explorer are selected (Bug #1535).
 FIX: Detect if number of selected nodes is bigger than 1. If yes, skip that particular menu.
@@ -809,7 +809,7 @@ FIX: In NodeInst make readResulve package-private, In EObjectOutputStream treat 
 BUG: (1/10/08, DN) Assertion creating IconNodeInst.
 FIX: Change visibility of NodeInst constructors.
 
-IMP/MAN: (1/10/08, SMR) Spice Preferences now has option for writing .end statement
+IMP: (1/10/08, SMR) Spice Preferences now has option for writing .end statement
      and has choice of resistor shorting (Bug #1447).
 
 IMP: (1/10/08, DN) Inctances of icon cells have type IconNodeInst .
@@ -822,7 +822,7 @@ FIX: Initialize EpicAnalysis.signalsUnmodifieable in EpicAnalysis constructor.
 BUG: (1/9/08, SMR) Sea-of-Gates router creates notches (Bug #1476).
 FIX: Fixed code that compares part of route with previous parts of same route.
 
-IMP/MAN: (1/9/08, SMR) Added new command: "Export / Manipulate Exports..."
+IMP: (1/9/08, SMR) Added new command: "Export / Manipulate Exports..."
      which displays exports in cell in a dialog.  One of the buttons in this
      dialog is "Renumber Selected Numeric Export Names" which takes a set
      of numeric exports (i.e. exports with numeric suffixes, such as "gnd_1",
@@ -837,7 +837,7 @@ FIX: In Attributes.CreateAttribute constructor, build initial TextDescriptor.
 
 IMP: (1/8/08, DN) ImmutableArcInst is technology independent.
 
-IMP/MAN: (1/7/08, SMR) Improved "Arc Properties" and "Node Properties" dialogs
+IMP (1/7/08, SMR) Improved "Arc Properties" and "Node Properties" dialogs
      so that the current bus arc/port's members can be listed (Bug #1529).
 
 IMP: (1/7/08, SMR) Array command remembers all settings in preferences (Bug #1527).
