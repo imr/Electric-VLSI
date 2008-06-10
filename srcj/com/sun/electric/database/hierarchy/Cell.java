@@ -981,6 +981,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         database.undo(newSnapshot);
         database.lowLevelSetCanUndoing(false);
         Constraints.getCurrent().renameIds(idMapper);
+        lib.setChanged();
 
 		// restore the expansion state of instances of the cell
         for(CellId cid : expansionRemap.keySet())

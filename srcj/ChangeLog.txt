@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07k: ******************************
 
+BUG: (6/10/08, DN) Cell renaming doesn't mark "dirty" its library (Bug #1710).
+FIX: In Cell.rename() call lib.setChanged().
+
 IMP: (6/9/08, GVG) Should Electric detect a directoriy listed as a lib in the command line? (Bug #1704)
 
 BUG: (6/9/08, GVG) Assertion in DRC MTD area code while cleaning DRC dates.
