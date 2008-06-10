@@ -2653,8 +2653,8 @@ public class CircuitChangeJobs
 			double yd = td.getYOff() - bounds.getCenterY();
 			td = td.withOff(xd, yd);
 			Object value = inheritAddress(cell, var);
-			ni.newVar(var.getKey(), value, td);
-//			ni.addParameter(var);
+            ni.addParameter(Variable.newInstance(var.getKey(), value, td));
+//			ni.newVar(var.getKey(), value, td);
 		}
 	}
 
