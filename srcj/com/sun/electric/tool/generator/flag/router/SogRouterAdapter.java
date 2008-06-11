@@ -16,6 +16,7 @@ import com.sun.electric.tool.routing.SeaOfGatesEngine;
 /** The SogRouter is an adapter between FLAG and Electric's built in 
  * Sea of Gates router. */
 public class SogRouterAdapter {
+    private static final boolean DUMP_UNROUTED_ARCS = false;
 	private final Job job;
 	private final SeaOfGatesEngine seaOfGates = new SeaOfGatesEngine();
 	private final Technology generic = Technology.findTechnology("Generic");
@@ -31,7 +32,7 @@ public class SogRouterAdapter {
 	}
 	
 	private List<ArcInst> addUnroutedArcs(Cell cell, List<ToConnect> toConns) {
-		Netlist nl = cell.acquireUserNetlist();
+		Netlist nl = cell.getUserNetlist();
 
 		List<ArcInst> unroutedArcs = new ArrayList<ArcInst>();
 		for (ToConnect tc : toConns) {
@@ -60,6 +61,10 @@ public class SogRouterAdapter {
 		if (cell==null) return; 					// no work to do
 
 		List<ArcInst> arcsToRoute = addUnroutedArcs(cell, toConns);
+        if (DUMP_UNROUTED_ARCS) {
+            String newName = cell.getName() + "_unrouted{lay}";
+            Cell.copyNodeProto(cell, cell.getLibrary(), newName, true);
+        }
 		
 		seaOfGates.routeIt(job, cell, arcsToRoute);
 	}

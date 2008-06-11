@@ -429,12 +429,13 @@ public class SeaOfGatesEngine
 		{
 			// get list of PortInsts that comprise this net
 			ArcInst ai = arcsToRoute.get(b);
-			Netlist netList = cell.acquireUserNetlist();
-			if (netList == null)
-			{
-				System.out.println("Sorry, a deadlock aborted routing (network information unavailable).  Please try again");
-				break;
-			}
+			Netlist netList = cell.getUserNetlist();
+//			Netlist netList = cell.acquireUserNetlist();
+//			if (netList == null)
+//			{
+//				System.out.println("Sorry, a deadlock aborted routing (network information unavailable).  Please try again");
+//				break;
+//			}
 			Network net = netList.getNetwork(ai, 0);
 			if (net == null)
 			{
@@ -1097,8 +1098,9 @@ public class SeaOfGatesEngine
 	 */
 	private void addBlockagesAtPorts(List<ArcInst> arcsToRoute)
 	{
-		Netlist netList = cell.acquireUserNetlist();
-		if (netList == null) return;
+		Netlist netList = cell.getUserNetlist();
+//		Netlist netList = cell.acquireUserNetlist();
+//		if (netList == null) return;
 
 		for(ArcInst ai : arcsToRoute)
 		{
