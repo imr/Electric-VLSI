@@ -1878,9 +1878,9 @@ public class MoCMOS extends Technology
             tmp = new ArrayList<NodeInst>(2);
             String tmpVar = stdNames[i]+"Mos";
             tmp.add(makeNodeInst(transistorNodes[i], transistorNodes[i].getFunction(), 0, true, tmpVar, 9));
-            tmp.add(makeNodeInst(thickTransistorNodes[i], thickTransistorNodes[i].getFunction(), 0, true, "Thick " + tmpVar, 9));
+            tmp.add(makeNodeInst(thickTransistorNodes[i], thickTransistorNodes[i].getFunction(), 0, true, tmpVar, 9));
             if (scalableTransistorNodes != null)
-                tmp.add(makeNodeInst(scalableTransistorNodes[i], scalableTransistorNodes[i].getFunction(), 0, true, "Scalable " + tmpVar, 9));
+                tmp.add(makeNodeInst(scalableTransistorNodes[i], scalableTransistorNodes[i].getFunction(), 0, true, tmpVar, 9));
             factoryNodeGroups[count][i+1] = tmp;
         }
 

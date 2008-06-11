@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07l: ******************************
 
+BUG: (6/11/08, GVG) When there are multiple Transistors in an entry of the component menu,
+     the popup does not distinguish them properly (Bug #1712).
+FIX: Unedited changes in "makeNodeInst()" method of "cmos90" and "mocmos" to give proper names
+and put back !var.isDisplay() in TechPalette.getItemName().
+
 BUG: (6/11/08, SMR) When there are multiple Transistors in an entry of the component menu,
      the popup does not distinguish them properly (Bug #1712).
 FIX: Edited the "makeNodeInst()" method of "cmos90" and "mocmos" to give proper names.
