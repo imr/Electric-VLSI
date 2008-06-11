@@ -3425,7 +3425,8 @@ public class Technology implements Comparable<Technology>, Serializable
 				if (electrical)
 				{
 					int portIndex = primLayer.getPortNum();
-					if (portIndex >= 0) polys[0].setPort(np.getPort(portIndex));
+                    assert(portIndex < np.getNumPorts()); // wrong number of ports. Probably missing during the definition
+                    if (portIndex >= 0) polys[0].setPort(np.getPort(portIndex));
 				}
 				return polys;
 			}
@@ -3544,7 +3545,8 @@ public class Technology implements Comparable<Technology>, Serializable
 			if (electrical)
 			{
 				int portIndex = primLayer.getPortNum();
-				if (portIndex >= 0) polys[fillPoly].setPort(np.getPort(portIndex));
+                assert(portIndex < np.getNumPorts()); // wrong number of ports. Probably missing during the definition
+                if (portIndex >= 0) polys[fillPoly].setPort(np.getPort(portIndex));
 			}
 			fillPoly++;
 		}

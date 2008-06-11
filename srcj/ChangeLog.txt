@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07l: ******************************
 
+BUG: (6/11/08, GVG) Crash in DRC regression (Bug #1713)
+FIX: PrimitiveNodes defined without ports but portNum=0 was defined in the NodeLayer.
+Assertion added.
+
 BUG: (6/11/08, DN) Change operation changes the PrimitiveNode size? (Bug #1690)
 FIX: In NodeInst.replace() remove test for minimum sizes.
 
