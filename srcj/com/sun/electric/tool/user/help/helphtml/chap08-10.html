@@ -84,10 +84,12 @@ Here is a description of Xml technology file in Electric relreases 8.05 and 8.06
 </LI>
 </UL>
 Example:<BR>
-<CODE>&nbsp;&nbsp;&nbsp;&lt;technology name="mocmos" class="com.sun.electric.technology.technologies.MoCMOS"<BR>
+<CODE>&nbsp;&nbsp;&nbsp;&lt;technology name="mocmos"<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;class="com.sun.electric.technology.technologies.MoCMOS"<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;xmlns="http://electric.sun.com/Technology"<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;xsi:schemaLocation="http://electric.sun.com/Technology ../../technology/Technology.xsd"&gt;</CODE>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;xsi:schemaLocation="http://electric.sun.com/Technology<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;../../technology/Technology.xsd"&gt;</CODE>
 <P>
 Inside of the &lt;technology&gt; element are these subelements:
 <UL>
@@ -505,8 +507,8 @@ Inside of the &lt;primitiveNode&gt; element are these subelements:
     &nbsp;&nbsp;&nbsp;4.0 width/height with Jelib prior to Electric version "8.05o";<BR>
     &nbsp;&nbsp;&nbsp;0.0 width/height with Jelib in Electric versions since "8.05o".<BR>
     More formally, let <I>n.extendX</I> and <I>n.extendY</I> be the internal values associated with the node instance in the Electric database.
-    The values written to library prior to "diskOffset.untilVersion" were
-       <I>2*(n.extendX + diskOffset.x)</I> and <I>2*(n.extendY + diskOffset.y)</I>.<BR>
+    The values written to library prior to "diskOffset.untilVersion" were<BR>
+    &nbsp;&nbsp;&nbsp;<I>2*(n.extendX + diskOffset.x)</I> and <I>2*(n.extendY + diskOffset.y)</I>.<BR>
     The &lt;diskOffset&gt; element is necessary only with legacy technologies.<BR>
     Example:<BR>
     <CODE>&nbsp;&nbsp;&nbsp;&lt;diskOffset untilVersion="1" x="2.5" y="2.5"/&gt;</CODE>
@@ -517,9 +519,13 @@ Inside of the &lt;primitiveNode&gt; element are these subelements:
     Usually these elements are omitted because the default values of extendX and extendY are 0.
     So, the factory defaults of extendX and extendY are defaultWidth.lambda and defaultHeight.lambda
     The factory defaults of BaseWidth and BaseHeight are<BR>
-    &nbsp;&nbsp;&nbsp;<I>BaseRectangle.width + 2*defaultWidth.lambda</I> and <I>BaseRectangle.height + 2*defaultHeight.lambda</I> .<BR>
+    &nbsp;&nbsp;&nbsp;<I>BaseRectangle.width + 2*defaultWidth.lambda</I><BR>
+    and<BR>
+    &nbsp;&nbsp;&nbsp;<I>BaseRectangle.height + 2*defaultHeight.lambda</I> .<BR>
     The factory defaults of FullWidth and FullHeight are<BR>
-    &nbsp;&nbsp;&nbsp;<I>FullRectangle.width + 2*defaultWidth.lambda</I> and <I>FullRectangle.height + 2*defaultHeight.lambda</I> .
+    &nbsp;&nbsp;&nbsp;<I>FullRectangle.width + 2*defaultWidth.lambda</I><BR>
+    and<BR>
+    &nbsp;&nbsp;&nbsp;<I>FullRectangle.height + 2*defaultHeight.lambda</I> .
 </LI>
 <LI>
     <B>&lt;sizeOffset&gt;</B> defines the BaseRectangle of the node
