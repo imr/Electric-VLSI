@@ -770,7 +770,7 @@ public class GetInfoText extends EModelessDialog implements HighlightListener, D
         apply = new javax.swing.JButton();
         evaluation = new javax.swing.JLabel();
         theText = new javax.swing.JTextField();
-        textPanel = new TextInfoPanel(false);
+        textPanel = new TextInfoPanel(false, false);
         attrPanel = new TextAttributesPanel(false);
         multiLine = new javax.swing.JCheckBox();
 

@@ -79,10 +79,13 @@ public class TextInfoPanel extends javax.swing.JPanel
      * Create a new TextInfoPanel that can be used to edit
      * the Text Display options of a Variable.
      */
-    public TextInfoPanel(boolean updateChangesInstantly)
+    public TextInfoPanel(boolean updateChangesInstantly, boolean paramDialog)
     {
     	this.updateChangesInstantly = updateChangesInstantly;
         initComponents();
+
+        // pure "parameters" dialog doesn't have "Highlight Owner" button
+        if (paramDialog) remove(seeNode);
 
         font.addItem("DEFAULT FONT");
         Font[] fonts = GraphicsEnvironment.getLocalGraphicsEnvironment().getAllFonts();
@@ -237,7 +240,7 @@ public class TextInfoPanel extends javax.swing.JPanel
         italic.setEnabled(enabled);
         underline.setEnabled(enabled);
         invisibleOutsideCell.setEnabled(enabled);
-        seeNode.setEnabled(enabled);
+        seeNode.setEnabled(enabled && !(owner instanceof Cell));
         boxedWidth.setEnabled(false);               // only enabled when boxed anchor is selected
         boxedHeight.setEnabled(false);               // only enabled when boxed anchor is selected
         textColorComboBox.setEnabled(enabled);

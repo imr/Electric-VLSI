@@ -130,7 +130,7 @@ public class Version implements Comparable<Version>, Serializable
 
 	/**
 	 * Method to return author information
-	 * @return Steve M. Rubin
+	 * @return Steven M. Rubin
 	 */
 	public static String getAuthorInformation() { return "Written by Steven M. Rubin"; }
 
@@ -142,9 +142,9 @@ public class Version implements Comparable<Version>, Serializable
 
 	/**
 	 * Method to return copyright information
-	 * @return  Sun Microsystems and Static Free Software
+	 * @return Sun Microsystems and Static Free Software
 	 */
-	public static String getCopyrightInformation() { return "Copyright (c) 2007 Sun Microsystems and Static Free Software"; }
+	public static String getCopyrightInformation() { return "Copyright (c) 2008 Sun Microsystems and Static Free Software"; }
 
 	/**
 	 * Method to return a short description of warranty

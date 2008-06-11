@@ -219,7 +219,7 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         getContentPane().add(attrPanel, gridBagConstraints);
 
-        textPanel = new TextInfoPanel(true);
+        textPanel = new TextInfoPanel(true, showParamsOnly);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 5;

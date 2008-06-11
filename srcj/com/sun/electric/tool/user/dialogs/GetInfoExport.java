@@ -257,7 +257,7 @@ public class GetInfoExport extends EModelessDialog implements HighlightListener,
 		}
 
         // add textPanel
-        textPanel = new TextInfoPanel(false);
+        textPanel = new TextInfoPanel(false, false);
         java.awt.GridBagConstraints gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
