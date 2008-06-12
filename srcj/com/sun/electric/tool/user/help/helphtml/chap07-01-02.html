@@ -29,11 +29,12 @@ use the <B>Document Current Technology</B> command.
 Some technologies have settings that further customize them.
 The Technology Project Settings command (in menu <B>File / Project Settings...</B>, "Technology" tab)
 lets you control many general and specific technology settings.
-More information about the MOSIS CMOS section can be found in
+The bottom part of the dialog is specific to the MOSIS CMOS technology.
+More information about this can be found in
 <A HREF="chap07-04-02.html#chap07-04-02">Section 7-4-2</A>.
 </TD><TD><CENTER><IMG SRC="fig07-29.png" ALT="Figure 7.29"></CENTER></TD></TR></TABLE>
 <P>
-The Defaults section has these controls:
+The Defaults section at the top of the dialog has these controls:
 <UL>
 <LI>"Startup technology" controls the technology that is used when Electric first begins.
 It is also used when reading old libraries that are missing some technology information.
@@ -42,6 +43,11 @@ It is also used when reading old libraries that are missing some technology info
 (an integrated circuit technology, not a schematics or artwork technology).
 The default layout technology is used to give further information about schematics components
 (see, for example, <A HREF="chap09-04-03.html#chap09-04-03">Section 9-4-3</A>).
+</LI>
+<LI>"PWell process in Layout Technology" declares that the layout technologies are PWell,
+and therefore the PWell spacing and minimum width rules should be ignored by the design-rule checker.
+Since Electric displays both wells, users might be concerned with filling in notches in the PWell,
+but in these processes it is not necessary.
 </LI>
 </UL>
 

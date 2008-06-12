@@ -27,17 +27,17 @@ import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.tool.user.Resources;
 import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.tool.user.Resources;
 
 import java.awt.Color;
 import java.io.Serializable;
+import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Observable;
-import java.lang.reflect.Method;
-import java.util.Arrays;
 
 /**
  * Class to define the appearance of a piece of geometry.
@@ -113,7 +113,7 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 
 		public static Outline findOutline(int index)
 		{
-            return Outline.class.getEnumConstants()[index];
+			return Outline.class.getEnumConstants()[index];
 		}
 
 		public static Outline findOutline(String name)
@@ -136,16 +136,16 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 	/** opacity (0 to 1) of color */						private double opacity;
 	/** whether to draw color in foregound */				private boolean foreground;
 	/** stipple pattern to draw */							private int [] pattern;
-    /** stipple pattern to draw with proper bit order */    private int [] reversedPattern;
-	/** 3D appearance */                                    private Object appearance3D;
+	/** stipple pattern to draw with proper bit order */	private int [] reversedPattern;
+	/** 3D appearance */									private Object appearance3D;
 
-	private static HashMap<Layer,Pref> usePatternDisplayMap = new HashMap<Layer,Pref>();
-	private static HashMap<Layer,Pref> usePatternPrinterMap = new HashMap<Layer,Pref>();
-	private static HashMap<Layer,Pref> outlinePatternMap = new HashMap<Layer,Pref>();
-	private static HashMap<Layer,Pref> transparentLayerMap = new HashMap<Layer,Pref>();
-	private static HashMap<Layer,Pref> opacityMap = new HashMap<Layer,Pref>();
-	private static HashMap<Layer,Pref> colorMap = new HashMap<Layer,Pref>();
-	private static HashMap<Layer,Pref> patternMap = new HashMap<Layer,Pref>();
+	private static Map<Layer,Pref> usePatternDisplayMap = new HashMap<Layer,Pref>();
+	private static Map<Layer,Pref> usePatternPrinterMap = new HashMap<Layer,Pref>();
+	private static Map<Layer,Pref> outlinePatternMap = new HashMap<Layer,Pref>();
+	private static Map<Layer,Pref> transparentLayerMap = new HashMap<Layer,Pref>();
+	private static Map<Layer,Pref> opacityMap = new HashMap<Layer,Pref>();
+	private static Map<Layer,Pref> colorMap = new HashMap<Layer,Pref>();
+	private static Map<Layer,Pref> patternMap = new HashMap<Layer,Pref>();
 
 	/**
 	 * There are 3 ways to encode color in an integer.
@@ -243,7 +243,7 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 		this.blue = blue;
 		this.opacity = opacity;
 		this.foreground = foreground;
-        setPatternLow(pattern);
+		setPatternLow(pattern);
 		if (transparentLayer < 0 || transparentLayer > TRANSPARENT_12)
 		{
 			System.out.println("Graphics transparent color bad: " + transparentLayer);
@@ -281,8 +281,8 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 			System.out.println("Graphics color bad: (" + red + "," + green + "," + blue + ")");
 		}
 	}
-    
-//    private static void setPattern() {}
+
+//	private static void setPattern() {}
 
 	/**
 	 * Method to return the Layer associated with this EGraphics.
@@ -301,7 +301,7 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 		this.layer = layer;
 		Technology tech = layer.getTechnology();
 		if (tech == null || layer.getIndex() < 0) return;
-        String layerTechMsg = layer.getName() + "In" + tech.getTechName();
+		String layerTechMsg = layer.getName() + "In" + tech.getTechName();
 
 		Pref usePatternDisplayPref = Pref.makeBooleanPref("UsePatternDisplayFor" + layerTechMsg,
 			Technology.getTechnologyPreferences(), displayPatterned);
@@ -346,7 +346,7 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 			Technology.getTechnologyPreferences(), pat);
 		pat = patternPref.getString();
 		parsePatString(pat, pattern);
-        setPatternLow(pattern);
+		setPatternLow(pattern);
 		patternMap.put(layer, patternPref);
 	}
 
@@ -383,7 +383,7 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 		Pref patternPref = patternMap.get(layer);
 		String pat = patternPref.getString();
 		parsePatString(pat, pattern);
-        setPatternLow(pattern);
+		setPatternLow(pattern);
 	}
 
 	private String makePatString(int [] pattern)
@@ -523,6 +523,9 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 			Pref pref = outlinePatternMap.get(layer);
 			if (pref != null) pref.setInt(o.getIndex());
 		}
+
+		// recache the pattern information to test for null patterns with no outlines
+		setPatternLow(pattern);
 	}
 
 	/**
@@ -553,7 +556,7 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 	 */
 	public void setTransparentLayer(int transparentLayer)
 	{
-        if (transparentLayer < 0 || transparentLayer > TRANSPARENT_12)
+		if (transparentLayer < 0 || transparentLayer > TRANSPARENT_12)
 		{
 			System.out.println("Graphics transparent color bad: " + transparentLayer);
 		}
@@ -601,7 +604,7 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 	 */
 	public void setPattern(int [] pattern)
 	{
-        setPatternLow(pattern);
+		setPatternLow(pattern);
 
 		if (layer != null)
 		{
@@ -609,24 +612,43 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 			if (pref != null) pref.setString(makePatString(pattern));
 		}
 	}
-    
-    private void setPatternLow(int [] pattern) {
+
+	private void setPatternLow(int [] pattern) {
 		if (pattern.length != 16)
 		{
 			System.out.println("Graphics bad: has " + pattern.length + " pattern entries instead of 16");
 		}
-        this.pattern = pattern;
-        reversedPattern = new int[16];
-        for (int i = 0; i < reversedPattern.length; i++) {
-            int shortPattern = pattern[i];
-            if ((shortPattern >>> 16) != 0)
-    			System.out.println("Graphics bad: has " + Integer.toHexString(shortPattern) + " pattern line");
-            for (int j = 0; j < 16; j++) {
-                if ((shortPattern & (1 << (15 - j))) != 0)
-                    reversedPattern[i] |= 0x10001 << j;
-            }
-        }
-    }
+		this.pattern = pattern;
+		reversedPattern = new int[16];
+		boolean emptyPattern = true;
+		for (int i = 0; i < reversedPattern.length; i++) {
+			int shortPattern = pattern[i];
+			if (shortPattern != 0) emptyPattern = false;
+			if ((shortPattern >>> 16) != 0)
+				System.out.println("Graphics bad: has " + Integer.toHexString(shortPattern) + " pattern line");
+			for (int j = 0; j < 16; j++) {
+				if ((shortPattern & (1 << (15 - j))) != 0)
+					reversedPattern[i] |= 0x10001 << j;
+			}
+		}
+
+		// if the pattern is empty and has no outline, it cannot be seen
+		if (emptyPattern && patternOutline == Outline.NOPAT)
+		{
+			if (displayPatterned || printPatterned)
+			{
+				String msg = "Warning: layer ";
+				if (layer != null)
+				{
+					msg += layer.getName();
+					if (layer.getTechnology() != null) msg += " in technology " + layer.getTechnology().getTechName();
+				}
+				msg += " has an empty pattern.  Outlining it.";
+				System.out.println(msg);
+				patternOutline = Outline.PAT_S;
+			}
+		}
+	}
 
 	/**
 	 * Method to get the opacity of this EGraphics.
@@ -702,8 +724,8 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 
 	/**
 	 * Method to get the RGB value representing the color by factory default.
-     * (Bits 16-23 are red, 8-15 are green, 0-7 are blue).
-     * Alpha/opacity component is not returned 
+	 * (Bits 16-23 are red, 8-15 are green, 0-7 are blue).
+	 * Alpha/opacity component is not returned 
 	 * @return the RGB value representing the color by factory default.
 	 */
 	public int getFactoryColor()
@@ -713,16 +735,16 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 		return pref.getIntFactoryValue();
 	}
 
-    /**
-     * Returns the RGB value representing the color associated with this EGraphics.
-     * (Bits 16-23 are red, 8-15 are green, 0-7 are blue).
-     * Alpha/opacity component is not returned 
-     * @return the RGB value of the color
-     */
-    public int getRGB() {
-        return (red << 16) | (green << 8) | blue;
-    }
-    
+	/**
+	 * Returns the RGB value representing the color associated with this EGraphics.
+	 * (Bits 16-23 are red, 8-15 are green, 0-7 are blue).
+	 * Alpha/opacity component is not returned 
+	 * @return the RGB value of the color
+	 */
+	public int getRGB() {
+		return (red << 16) | (green << 8) | blue;
+	}
+
 	/**
 	 * Method to set the color associated with this EGraphics.
 	 * @param color the color to set.
@@ -740,19 +762,19 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 		}
 
 		// update any color used in 3D view if available
-        Object obj3D = get3DAppearance();
+		Object obj3D = get3DAppearance();
 
-        if (obj3D != null)
-        {
-            Class<?> app3DClass = Resources.get3DClass("utils.J3DAppearance");
-            try
-            {
-                Method setColorMethod3DClass = app3DClass.getDeclaredMethod("set3DColor", new Class[] {Object.class, Color.class});
-                setColorMethod3DClass.invoke(obj3D, new Object[]{null, color});
-            } catch (Exception e) {
-                System.out.println("Cannot call 3D plugin method set3DColor: " + e.getMessage());
-            }
-        }
+		if (obj3D != null)
+		{
+			Class<?> app3DClass = Resources.get3DClass("utils.J3DAppearance");
+			try
+			{
+				Method setColorMethod3DClass = app3DClass.getDeclaredMethod("set3DColor", new Class[] {Object.class, Color.class});
+				setColorMethod3DClass.invoke(obj3D, new Object[]{null, color});
+			} catch (Exception e) {
+				System.out.println("Cannot call 3D plugin method set3DColor: " + e.getMessage());
+			}
+		}
 	}
 
 	/**
@@ -1031,14 +1053,14 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 	 */
 	public Object get3DAppearance() {return appearance3D;}
 
-    /**
-     * Method to notify 3D observers
-     * @param layerVis
-     */
-    public void notifyVisibility(Boolean layerVis)
-    {
-        setChanged();
-        notifyObservers(layerVis);
-        clearChanged();
-    }
+	/**
+	 * Method to notify 3D observers
+	 * @param layerVis
+	 */
+	public void notifyVisibility(Boolean layerVis)
+	{
+		setChanged();
+		notifyObservers(layerVis);
+		clearChanged();
+	}
 }

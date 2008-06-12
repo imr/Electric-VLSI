@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07l: ******************************
 
+BUG: (6/12/08, SMR) Layers that use patterns but have null patterns and
+     no outline are not visible (Bug #1145).
+FIX: In EGraphics.setPatternLow(), detect this and add the outline.
+     Also modified CMOS90.java, MoCMOS.java, and tsmc180.xml to fix the
+     Pad-Frame layer which has this problem.
+
 BUG: (6/12/08, GVG) loading jelib from command line not working (Bug #1714)
 FIX: Undone changes for Bug #1704 for now (root cause of this problem).
 

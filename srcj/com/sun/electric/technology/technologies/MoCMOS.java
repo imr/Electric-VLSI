@@ -676,7 +676,7 @@ public class MoCMOS extends Technology
 
 		/** pad frame */
 		padFrameLayer = Layer.newInstance(this, "Pad-Frame",
-			new EGraphics(false, true, null, 0, 255,0,0, 1,false,
+			new EGraphics(false, false, null, 0, 255,0,0, 1,false,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
         createExtraLayers();
