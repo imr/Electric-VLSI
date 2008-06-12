@@ -433,9 +433,9 @@ public class FileMenu {
             }
         }
         if (defType == null) defType = FileType.DEFAULTLIB;
-        if (defType != FileType.DELIB && fileName.equals(file.getPath()))
-            System.out.println("The filename provided is not a valid Electric's library: '" +
-            fileName + "'.");
+//        if (defType != FileType.DELIB && fileName.equals(file.getPath()))
+//            System.out.println("The filename provided is not a valid Electric's library: '" +
+//            fileName + "'.");
         else
             new ReadLibrary(file, defType, TextUtils.getFilePath(file), null, null, null);
     }
