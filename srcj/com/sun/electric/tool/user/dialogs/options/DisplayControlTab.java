@@ -63,6 +63,7 @@ public class DisplayControlTab extends PreferencePanel
 	{
 		// top half (miscellaneous controls)
 		generalShowCursorCoordinates.setSelected(User.isShowHierarchicalCursorCoordinates());
+		dimUpperWhenDownInPlace.setSelected(User.isDimUpperLevelWhenDownInPlace());
 		sideBarOnRight.setSelected(User.isSideBarOnRight());
 		generalPanningDistance.addItem("Small");
 		generalPanningDistance.addItem("Medium");
@@ -86,7 +87,7 @@ public class DisplayControlTab extends PreferencePanel
 		generalGreekCellLimit.setText(Double.toString(User.getGreekCellSizeLimit() * 100.0));
 		patternScaleLimit.setText(Double.toString(User.getPatternedScaleLimit()));
 		useNewBlending.setSelected(!User.isLegacyComposite());
-        alphaBlendingOvercolorLimit.setText(Double.toString(User.getAlphaBlendingOvercolorLimit()));
+		alphaBlendingOvercolorLimit.setText(Double.toString(User.getAlphaBlendingOvercolorLimit()));
 	}
 
 	/**
@@ -98,6 +99,10 @@ public class DisplayControlTab extends PreferencePanel
 		boolean currBoolean = generalShowCursorCoordinates.isSelected();
 		if (currBoolean != User.isShowHierarchicalCursorCoordinates())
 			User.setShowHierarchicalCursorCoordinates(currBoolean);
+
+		currBoolean = dimUpperWhenDownInPlace.isSelected();
+		if (currBoolean != User.isDimUpperLevelWhenDownInPlace())
+			User.setDimUpperLevelWhenDownInPlace(currBoolean);
 
 		currBoolean = sideBarOnRight.isSelected();
 		if (currBoolean != User.isSideBarOnRight())
@@ -121,8 +126,8 @@ public class DisplayControlTab extends PreferencePanel
 				if (layerDisplay.isSelected()) currInt = 2;
 		if (currInt != User.getDisplayAlgorithm()) {
 			User.setDisplayAlgorithm(currInt);
-            EditWindow.displayAlgorithmChanged();
-        }
+			EditWindow.displayAlgorithmChanged();
+		}
 
 		currBoolean = generalUseGreekImages.isSelected();
 		if (currBoolean != User.isUseCellGreekingImages())
@@ -194,6 +199,7 @@ public class DisplayControlTab extends PreferencePanel
         jLabel7 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         displayStyle = new javax.swing.JComboBox();
+        dimUpperWhenDownInPlace = new javax.swing.JCheckBox();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -213,7 +219,7 @@ public class DisplayControlTab extends PreferencePanel
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
         general.add(generalShowCursorCoordinates, gridBagConstraints);
 
         sideBarOnRight.setText("Side Bar defaults to the right side");
@@ -222,22 +228,22 @@ public class DisplayControlTab extends PreferencePanel
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         general.add(sideBarOnRight, gridBagConstraints);
 
         jLabel1.setText("Panning distance:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         general.add(jLabel1, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         general.add(generalPanningDistance, gridBagConstraints);
 
         jPanel1.setLayout(new java.awt.GridBagLayout());
@@ -402,7 +408,7 @@ public class DisplayControlTab extends PreferencePanel
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
@@ -411,17 +417,26 @@ public class DisplayControlTab extends PreferencePanel
         jLabel2.setText("Display style:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         general.add(jLabel2, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         general.add(displayStyle, gridBagConstraints);
+
+        dimUpperWhenDownInPlace.setText("Dim upper levels of hierarchy when editing Down-In-Place");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        general.add(dimUpperWhenDownInPlace, gridBagConstraints);
 
         getContentPane().add(general, new java.awt.GridBagConstraints());
 
@@ -430,14 +445,14 @@ public class DisplayControlTab extends PreferencePanel
 
     private void useNewBlendingActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_useNewBlendingActionPerformed
     {//GEN-HEADEREND:event_useNewBlendingActionPerformed
-    	alphaBlendingLimitLabel.setEnabled(useNewBlending.isSelected());
-    	alphaBlendingOvercolorLimit.setEditable(useNewBlending.isSelected());
+		alphaBlendingLimitLabel.setEnabled(useNewBlending.isSelected());
+		alphaBlendingOvercolorLimit.setEditable(useNewBlending.isSelected());
     }//GEN-LAST:event_useNewBlendingActionPerformed
 
     private void resetOpacityActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_resetOpacityActionPerformed
     {//GEN-HEADEREND:event_resetOpacityActionPerformed
-    	resetAllOpacity = true;
-    	resetOpacity.setEnabled(false);
+		resetAllOpacity = true;
+		resetOpacity.setEnabled(false);
     }//GEN-LAST:event_resetOpacityActionPerformed
 
 	/** Closes the dialog */
@@ -450,6 +465,7 @@ public class DisplayControlTab extends PreferencePanel
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel alphaBlendingLimitLabel;
     private javax.swing.JTextField alphaBlendingOvercolorLimit;
+    private javax.swing.JCheckBox dimUpperWhenDownInPlace;
     private javax.swing.ButtonGroup displayAlgorithm;
     private javax.swing.JComboBox displayStyle;
     private javax.swing.JPanel general;
