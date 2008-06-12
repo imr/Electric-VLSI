@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07l: ******************************
 
+BUG: (6/12/08, SMR) Editing down-in-place can be slow (Bug #1711).
+FIX: Added new "Display Control" preference to control the dimming of upper
+     levels when editing down-in-place (the alpha blending can be slow).
+     Also added new "Layers" special color to control the color of the
+     border.
+
 BUG: (6/12/08, SMR) Layers that use patterns but have null patterns and
      no outline are not visible (Bug #1145).
 FIX: In EGraphics.setPatternLow(), detect this and add the outline.

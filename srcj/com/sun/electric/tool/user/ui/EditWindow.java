@@ -203,7 +203,7 @@ public class EditWindow extends JPanel
 
 	/** for drawing selection boxes */	private static final BasicStroke selectionLine = new BasicStroke(
 		1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[] {2}, 3);
-	/** for outlining down-hierarchy in-place bounds */	private static final BasicStroke inPlaceMarker = new BasicStroke(3);
+	/** for outlining down-hierarchy in-place bounds */	private static final BasicStroke inPlaceMarker = new BasicStroke(2);
 
 	private static EditWindowDropTarget editWindowDropTarget = new EditWindowDropTarget();
 
@@ -1285,24 +1285,31 @@ public class EditWindow extends JPanel
 			Point i4 = databaseToScreen(bounds.getMaxX(), bounds.getMinY());
 
 			// shade everything else except for the cell being edited
-			Polygon innerPoly = new Polygon();
-			innerPoly.addPoint(i1.x, i1.y);
-			innerPoly.addPoint(i2.x, i2.y);
-			innerPoly.addPoint(i3.x, i3.y);
-			innerPoly.addPoint(i4.x, i4.y);
-			Area outerArea = new Area(new Rectangle(0, 0, sz.width, sz.height));
-			Area innerArea = new Area(innerPoly);
-			outerArea.subtract(innerArea);
-			g.setColor(new Color(128, 128, 128, 128));
-			g.fill(outerArea);
+			if (User.isDimUpperLevelWhenDownInPlace())
+			{
+				Polygon innerPoly = new Polygon();
+				innerPoly.addPoint(i1.x, i1.y);
+				innerPoly.addPoint(i2.x, i2.y);
+				innerPoly.addPoint(i3.x, i3.y);
+				innerPoly.addPoint(i4.x, i4.y);
+				Area outerArea = new Area(new Rectangle(0, 0, sz.width, sz.height));
+				Area innerArea = new Area(innerPoly);
+				outerArea.subtract(innerArea);
+				g.setColor(new Color(128, 128, 128, 128));
+				g.fill(outerArea);
+			}
 
 			// draw a red box around the cell being edited
 			g.setStroke(inPlaceMarker);
-			g.setColor(Color.RED);
-			g.drawLine(i1.x, i1.y, i2.x, i2.y);
-			g.drawLine(i2.x, i2.y, i3.x, i3.y);
-			g.drawLine(i3.x, i3.y, i4.x, i4.y);
-			g.drawLine(i4.x, i4.y, i1.x, i1.y);
+	        g.setColor(new Color(User.getColor(User.ColorPrefType.DOWNINPLACEBORDER)));
+			int lX = Math.min(Math.min(i1.x, i2.x), Math.min(i3.x, i4.x));
+			int hX = Math.max(Math.max(i1.x, i2.x), Math.max(i3.x, i4.x));
+			int lY = Math.min(Math.min(i1.y, i2.y), Math.min(i3.y, i4.y));
+			int hY = Math.max(Math.max(i1.y, i2.y), Math.max(i3.y, i4.y));
+			g.drawLine(lX-1, lY-1, lX-1, hY+1);
+			g.drawLine(lX-1, hY+1, hX+1, hY+1);
+			g.drawLine(hX+1, hY+1, hX+1, lY-1);
+			g.drawLine(hX+1, lY-1, lX-1, lY-1);
 		}
 		logger.logp(Level.FINER, CLASS_NAME, "paintComponent", "overlays are drawn");
 

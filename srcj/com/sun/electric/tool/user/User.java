@@ -59,6 +59,7 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 /**
  * This is the User Interface tool.
@@ -577,7 +578,7 @@ public class User extends Listener
 
 	/************************** TRACKING CHANGES TO CELLS **************************/
 
-	private static HashMap<EditWindow,Rectangle2D> changedWindowRects = new HashMap<EditWindow,Rectangle2D>();
+	private static Map<EditWindow,Rectangle2D> changedWindowRects = new HashMap<EditWindow,Rectangle2D>();
 
 	/**
 	 * Method to tell which area of a window has been changed.
@@ -840,7 +841,7 @@ public class User extends Listener
      */
     public static Setting getPWellProcessLayoutTechnologySetting() {return tool.cachePWellProcess;}
     public static boolean isPWellProcessLayoutTechnology() {return getPWellProcessLayoutTechnologySetting().getBoolean();}
-    public static void setPWellProcessLayoutTechnology(boolean on) {getPWellProcessLayoutTechnologySetting().set(on);}
+    public static void setPWellProcessLayoutTechnology(boolean on) {getPWellProcessLayoutTechnologySetting().set(new Boolean(on));}
     
     @Override
     protected void initProjectSettings() {
@@ -1765,9 +1766,11 @@ public class User extends Listener
 
 	/****************************** COLOR PREFERENCES ******************************/
 
-    public enum ColorPrefType {BACKGROUND, GRID, HIGHLIGHT, MOUSEOVER_HIGHLIGHT, PORT_HIGHLIGHT, TEXT, INSTANCE,
-        WAVE_BACKGROUND, WAVE_FOREGROUND, WAVE_STIMULI, WAVE_OFF_STRENGTH, WAVE_NODE_STRENGTH, WAVE_GATE_STRENGTH,
-        WAVE_POWER_STRENGTH, WAVE_CROSS_LOW, WAVE_CROSS_HIGH, WAVE_CROSS_UNDEF, WAVE_CROSS_FLOAT}
+    public enum ColorPrefType {BACKGROUND, GRID, HIGHLIGHT, MOUSEOVER_HIGHLIGHT,
+    	PORT_HIGHLIGHT, TEXT, INSTANCE, DOWNINPLACEBORDER,
+        WAVE_BACKGROUND, WAVE_FOREGROUND, WAVE_STIMULI, WAVE_OFF_STRENGTH,
+        WAVE_NODE_STRENGTH, WAVE_GATE_STRENGTH, WAVE_POWER_STRENGTH, WAVE_CROSS_LOW,
+        WAVE_CROSS_HIGH, WAVE_CROSS_UNDEF, WAVE_CROSS_FLOAT}
 
     /**
      * Method to get the color of a given special layer on the display.
@@ -1778,6 +1781,7 @@ public class User extends Listener
      * PORT_HIGHLIGHT: color of the port highlight on the display. The default is "yellow".
      * TEXT: color of the text on the display. The default is "black".
      * INSTANCE: color of the instance outlines on the display. The default is "black".
+     * DOWNINPLACEBORDER: color of the border around cells drawn "down in place". The default is "red".
      * WAVE_BACKGROUND: color of the waveform window background. The default is "black".
      * WAVE_FOREGROUND: color of the waveform window foreground. This includes lines and text. The default is "white".
      * WAVE_STIMULI: color of the traces in waveform windows. Applies only when not a "multistate" display, which uses many colors.
@@ -1822,6 +1826,7 @@ public class User extends Listener
             case PORT_HIGHLIGHT: return cacheColorPortHighlight;
             case TEXT: return cacheColorText;
             case INSTANCE: return cacheColorInstanceOutline;
+            case DOWNINPLACEBORDER: return cacheColorDownInPlaceBorder;
             case WAVE_BACKGROUND: return cacheColorWaveformBackground;
             case WAVE_FOREGROUND: return cacheColorWaveformForeground;
             case WAVE_STIMULI: return cacheColorWaveformStimuli;
@@ -1847,6 +1852,7 @@ public class User extends Listener
      * PORT_HIGHLIGHT: color of the port highlight on the display.
      * TEXT: color of the text on the display.
      * INSTANCE: color of the instance outlines on the display.
+     * DOWNINPLACEBORDER: color of the border around cells drawn "down in place". The default is "red".
      * WAVE_BACKGROUND: color of the waveform window background.
      * WAVE_FOREGROUND: color of the waveform window foreground. This includes lines and text.
      * WAVE_STIMULI: color of the traces in waveform windows. Applies only when not a "multistate" display, which uses many colors.
@@ -1887,6 +1893,7 @@ public class User extends Listener
             case PORT_HIGHLIGHT: cacheColorPortHighlight.setInt(color); return;
             case TEXT: cacheColorText.setInt(color); return;
             case INSTANCE: cacheColorInstanceOutline.setInt(color); return;
+            case DOWNINPLACEBORDER: cacheColorDownInPlaceBorder.setInt(color); return;
             case WAVE_BACKGROUND: cacheColorWaveformBackground.setInt(color); return;
             case WAVE_FOREGROUND: cacheColorWaveformForeground.setInt(color); return;
             case WAVE_STIMULI: cacheColorWaveformStimuli.setInt(color); return;
@@ -1911,6 +1918,7 @@ public class User extends Listener
      * PORT_HIGHLIGHT: The default is "yellow".
      * TEXT: The default is "black".
      * INSTANCE: The default is "black".
+     * DOWNINPLACEBORDER: The default is "red".
      * WAVE_BACKGROUND: The default is "black".
      * WAVE_FOREGROUND: The default is "white".
      * WAVE_STIMULI: The default is "red".
@@ -1936,6 +1944,7 @@ public class User extends Listener
             case PORT_HIGHLIGHT: pf = cacheColorPortHighlight; break;
             case TEXT: pf = cacheColorText; break;
             case INSTANCE: pf = cacheColorInstanceOutline; break;
+            case DOWNINPLACEBORDER: pf = cacheColorDownInPlaceBorder; break;
             case WAVE_BACKGROUND: pf = cacheColorWaveformBackground; break;
             case WAVE_FOREGROUND: pf = cacheColorWaveformForeground; break;
             case WAVE_STIMULI: pf = cacheColorWaveformStimuli; break;
@@ -1964,6 +1973,8 @@ public class User extends Listener
 	private static Pref cacheColorText = Pref.makeIntPref("ColorText", tool.prefs, Color.BLACK.getRGB());
 
 	private static Pref cacheColorInstanceOutline = Pref.makeIntPref("ColorInstanceOutline", tool.prefs, Color.BLACK.getRGB());
+
+	private static Pref cacheColorDownInPlaceBorder = Pref.makeIntPref("ColorDownInPlaceBorder", tool.prefs, Color.RED.getRGB());
 
     private static Pref cacheColorWaveformBackground = Pref.makeIntPref("ColorWaveformBackground", tool.prefs, Color.BLACK.getRGB());
 
@@ -2381,6 +2392,23 @@ public class User extends Listener
 	 * @param on true to show hierarchical cursor coordinates as they move in the edit window.
 	 */
 	public static void setShowHierarchicalCursorCoordinates(boolean on) { cacheShowHierarchicalCursorCoordinates.setBoolean(on); }
+
+	private static Pref cacheDimUpperLevelWhenDownInPlace = Pref.makeBooleanPref("DimUpperLevelWhenDownInPlace", tool.prefs, true);
+	/**
+	 * Method to tell whether to dim the upper levels of the display when editing down-in-place.
+	 * When editing down-in-place, the upper levels are not editable and are dimmed.
+	 * This dimming causes slowdown on some systems and so it can be disabled.
+	 * The default is "true".
+	 * @return true to dim the upper levels of the display when editing down-in-place.
+	 */
+	public static boolean isDimUpperLevelWhenDownInPlace() { return cacheDimUpperLevelWhenDownInPlace.getBoolean(); }
+	/**
+	 * Method to set whether to dim the upper levels of the display when editing down-in-place.
+	 * When editing down-in-place, the upper levels are not editable and are dimmed.
+	 * This dimming causes slowdown on some systems and so it can be disabled.
+	 * @param dim true to dim the upper levels of the display when editing down-in-place.
+	 */
+	public static void setDimUpperLevelWhenDownInPlace(boolean dim) { cacheDimUpperLevelWhenDownInPlace.setBoolean(dim); }
 
 	private static Pref cacheWhichDisplayAlgorithm = Pref.makeIntPref("WhichDisplayAlgorithm", tool.prefs, 1);
 	/**
