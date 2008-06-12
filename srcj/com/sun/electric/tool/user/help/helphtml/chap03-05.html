@@ -53,7 +53,13 @@ then the equivalent port or export is shown after the level of hierarchy has cha
 <P>
 If a layout cell is selected, you can use the <B>Down Hierarchy In Place</B> command to
 edit the cell while showing the upper level of the hierarchy.
-The surrounding geometry at the upper level is not editable, and is grayed-out.
+A red border is drawn around the cell now being edited and the
+surrounding geometry at the upper level, which is not editable, is grayed-out.
+To change the border color, use the Layers Preferences
+(in menu File / Preferences..., "Display" section, "Layers" tab)
+and set the colors for the layer "SPECIAL: DOWN-IN-PLACE BORDER".
+To disable the graying-out of upper levels of hierarchy, use the Display Control Preferences
+and uncheck "Dim upper levels of hierarchy when editing Down-In-Place".
 <P>
 The <B>Down Hierarchy In Place To Object</B> command finds the object under the cursor
 (at any level of the hierarchy) and descends to that level.

@@ -31,7 +31,17 @@ Besides the text at the top of the dialog, these fields can be modified:
 These additional factors can be controlled:
 <UL>
 <LI>"Code" allows the text to be code in an interpretive language,
-in which case, the evaluation of that code is displayed.</LI>
+in which case, the evaluation of that code is displayed.
+The code choices are:
+<UL>
+<LI>"Not Code" the text is taken as-is.</LI>
+<LI>"Java" the text is handed to a Java interpreter for evaluation.
+For example, the expression "Math.abs(-4*5)" will be converted to "20".</LI>
+<LI>"Spice" the text is handled as a Spice expression.
+Spice allows simple expressions and Electric is able to evaluate them.
+These expressions are not as powerful as Java.
+One advantage of Spice code is that the Spice deck writer can send them unevaluated to the Spice deck.</LI>
+</LI>
 <LI>"Units" can be any electrical type (capacitance, resistance, etc.)
 See <A HREF="chap07-02-02.html#chap07-02-02">Section 7-2-2</A> for more on units.</LI>
 <LI>"Show" allows you to show the text value, the name of the piece of text, or both.</LI>
