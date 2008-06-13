@@ -1531,10 +1531,19 @@ public class TechEditWizardData
         double contSpacing = scaledValue(contact_spacing.v);
         double contArraySpacing = scaledValue(contact_array_spacing.v);
         portNames.clear();
-        portNames.add(diffPLayer.name);
+        portNames.add(diffNLayer.name);
+        // ndiff contact
         makeXmlPrimitiveCon(t.nodes, "N-Diff", hla, new SizeOffset(so, so, so, so), portNames,
                 makeXmlNodeLayer(hla, hla, hla, hla, diffNLayer, Poly.Type.FILLED, true), // bottom layer
                 makeXmlNodeLayer(nsel, nsel, nsel, nsel, nplusLayer, Poly.Type.FILLED, true), // top layer
+                makeXmlMulticut(diffCon, contSize, contSpacing, contArraySpacing)); // contact
+        // pdiff contact
+        portNames.clear();
+        portNames.add(diffPLayer.name);
+        makeXmlPrimitiveCon(t.nodes, "P-Diff", hla, new SizeOffset(so, so, so, so), portNames,
+                makeXmlNodeLayer(hla, hla, hla, hla, diffPLayer, Poly.Type.FILLED, true), // bottom layer
+                makeXmlNodeLayer(psel, psel, psel, psel, pplusLayer, Poly.Type.FILLED, true), // top layer
+                makeXmlNodeLayer(nwell, nwell, nwell, nwell, nwellLayer, Poly.Type.FILLED, true),
                 makeXmlMulticut(diffCon, contSize, contSpacing, contArraySpacing)); // contact
 
         /**************************** Metals Nodes/Arcs ***********************************************/
