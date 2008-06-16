@@ -44,11 +44,16 @@ import java.net.URLDecoder;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.Enumeration;
+import java.util.List;
 import java.util.Locale;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 /**
  * This class is a collection of text utilities.
@@ -1462,6 +1467,71 @@ public class TextUtils
 			return false;
 		}
 		return true;
+	}
+
+	/**
+	 * Method to examine a path and return all resources found there.
+	 * @param resourceName the path to examine.
+	 * @return a List of all resource names found there.
+	 */
+	public static List<String> getAllResources(String resourceName)
+	{
+		List<String> retval = new ArrayList<String>();
+		String cp = System.getProperty("java.class.path", ".");
+		String[] cpElements = cp.split(File.pathSeparator);
+		for(String cpElement : cpElements)
+		{
+			String classPath = cpElement + File.separator + resourceName.replace('.', File.separatorChar);
+			File file = new File(classPath);
+			if (file.isDirectory())
+			{
+				retval.addAll(getResourcesFromDirectory(file));
+			} else
+			{
+				File jarFile = new File(cpElement);
+				retval.addAll(getResourcesFromJarFile(jarFile, resourceName.replace('.', '/')));
+			}
+		}
+		return retval;
+	}
+
+	private static List<String> getResourcesFromJarFile(File file, String resName)
+	{
+		List<String> retval = new ArrayList<String>();
+		try
+		{
+			ZipFile zf = new ZipFile(file);
+			Enumeration e = zf.entries();
+			while (e.hasMoreElements())
+			{
+				ZipEntry ze = (ZipEntry)e.nextElement();
+				String entry = ze.getName();
+				if (entry.startsWith(resName))
+				{
+					retval.add(entry.substring(resName.length()+1));
+				}
+			}
+			zf.close();
+		} catch (IOException e) {}
+		return retval;
+	}
+
+	private static List<String> getResourcesFromDirectory(File directory)
+	{
+		List<String> retval = new ArrayList<String>();
+		File[] fileList = directory.listFiles();
+		for (File file : fileList)
+		{
+			if (file.isDirectory())
+			{
+				retval.addAll(getResourcesFromDirectory(file));
+			} else
+			{
+				String fileName = file.getName();
+				retval.add(fileName);
+			}
+		}
+		return retval;
 	}
 
 	/****************************** FOR SORTING OBJECTS ******************************/

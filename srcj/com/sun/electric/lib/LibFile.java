@@ -25,7 +25,6 @@ package com.sun.electric.lib;
 
 import com.sun.electric.database.text.TextUtils;
 
-import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,10 +37,11 @@ public class LibFile
 	/**
 	 * The constructor for LibFile is never called.
 	 */
-	private LibFile()
-	{
-	}
+	private LibFile() {}
 
+	/**
+	 * Singleton instance of this class used to find the package.
+	 */
 	private static final LibFile theOne = new LibFile();
 
 	/**
@@ -58,33 +58,37 @@ public class LibFile
 
 	/**
 	 * Method to find all files that are SPICE parts libraries.
+	 * These are the resources in this package that begin with the name "spiceparts".
 	 * @return an array of strings that name the SPICE parts libraries.
 	 */
 	public static String [] getSpicePartsLibraries()
 	{
-//		String sampleSpiceParts = "spiceparts.jelib";
-//		URL url = theOne.getClass().getResource(sampleSpiceParts);
-//		String pathToResources = TextUtils.getFilePath(url);
-//		int pos = pathToResources.indexOf(sampleSpiceParts);
-//		if (pos >= 0)
-//			pathToResources = pathToResources.substring(0, pos);
-//		File resourceDir = new File(pathToResources);
-//		String [] files = resourceDir.list();
-//
-//		List<String> spiceLibs = new ArrayList<String>();
-//		for(int i=0; i<files.length; i++)
-//		{
-//			if (files[i].startsWith("spiceparts") && files[i].endsWith(".jelib"))
-//				spiceLibs.add(files[i].substring(0, files[i].length()-6));
-//		}
-//
-//		// until we find a way to search the resources, this will have to do
-//		String [] libNames = new String[spiceLibs.size()];
-//		for(int i=0; i<spiceLibs.size(); i++)
-//			libNames[i] = spiceLibs.get(i);
-		String [] libNames = new String[2];
-		libNames[0] = "spiceparts";
-		libNames[1] = "spicepartsS3";
+		// build a list of resources in the library package
+		List<String> spiceLibNames = new ArrayList<String>();
+		String classPath = theOne.getClass().getPackage().getName();
+		List<String> spiceLibs = TextUtils.getAllResources(classPath);
+		for(String s : spiceLibs)
+		{
+			if (s.startsWith("spiceparts"))
+			{
+				int dotPos = s.indexOf('.');
+				if (dotPos > 0) s = s.substring(0, dotPos);
+				spiceLibNames.add(s);
+			}
+		}
+
+		// if no names are found, build a fake list
+		if (spiceLibNames.size() == 0)
+		{
+			System.out.println("Warning: Could not find list of built-in Spice libraries");
+			spiceLibNames.add("spiceparts");
+			spiceLibNames.add("spicepartsS3");
+		}
+
+		// make the array
+		String [] libNames = new String[spiceLibNames.size()];
+		for(int i=0; i<spiceLibNames.size(); i++)
+			libNames[i] = spiceLibNames.get(i);
 		return libNames;
 	}
 

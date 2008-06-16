@@ -266,7 +266,7 @@ public class ManualViewer extends EModelessDialog
         if (library == null)
         {
             System.out.println("Load first the library '" + fileName +
-                    "' (Help -> " + menuName + " -> Load Library)");
+                "' (Help -> " + menuName + " -> Load Library)");
             return null;
         }
         Cell cell = library.findNodeProto(cellName);
@@ -275,6 +275,7 @@ public class ManualViewer extends EModelessDialog
             System.out.println("Cell '" + cellName + "' not found");
             return null;
         }
+
         // Open the window frame if not available
         if (cell != WindowFrame.getCurrentCell())
             WindowFrame.createEditWindow(cell);
@@ -945,9 +946,11 @@ public class ManualViewer extends EModelessDialog
 			return;
 		}
 
+		Set<String> usedFiles = new HashSet<String>();
 		for(int index=0; index < pageSequence.size(); index++)
 		{
 			PageInfo pi = pageSequence.get(index);
+			usedFiles.add(pi.fileName + ".html");
 			InputStream stream = TextUtils.getURLStream(pi.url, null);
 			InputStreamReader is = new InputStreamReader(stream);
 
@@ -1001,11 +1004,49 @@ public class ManualViewer extends EModelessDialog
 				}
 				if (line.equals("<!-- TRAILER -->")) continue;
 				printWriter.println(line);
+
+				// look for "IMG SRC=" references
+				// IMG SRC="fig02-15.png"
+				int imgPos = line.indexOf("IMG SRC=\"");
+				if (imgPos >= 0)
+				{
+					int startPos = line.indexOf('"', imgPos);
+					if (startPos > 0)
+					{
+						int endPos = line.indexOf('"', startPos+1);
+						if (endPos > startPos)
+						{
+							String imgFile = line.substring(startPos+1, endPos);
+							usedFiles.add(imgFile);
+						}
+					}
+				}
 			}
 		}
 		printWriter.println("</BODY>");
 		printWriter.println("</HTML>");
 		printWriter.close();
+
+		// report on extraneous files and missing files
+		usedFiles.add("toc.txt");
+		usedFiles.add("iconbackarrow.png");
+		usedFiles.add("iconforearrow.png");
+		usedFiles.add("iconcontarrow.png");
+		usedFiles.add("samples.jelib");
+		usedFiles.add("floatingGates.jelib");
+		usedFiles.add("demoCage.j3d");
+		String classPath = htmlBaseClass.getPackage().getName() + "." + htmlDirectory;
+		List<String> manFiles = TextUtils.getAllResources(classPath);
+		for(String s : manFiles)
+		{
+			if (usedFiles.contains(s)) continue;
+			System.out.println("File " + s + " is not used");
+		}
+		for(String s : usedFiles)
+		{
+			if (manFiles.contains(s)) continue;
+			System.out.println("File " + s + " is missing");
+		}
 	}
 
 	/**
