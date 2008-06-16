@@ -40,14 +40,14 @@ import java.util.List;
 import java.util.logging.Logger;
 
 /**
- * Jobs are processes that will run in the background, such as 
+ * Jobs are processes that will run in the background, such as
  * DRC, NCC, Netlisters, etc.  Each Job gets placed in a Job
  * window, and reports its status.  A job can be cancelled.
- * 
+ *
  * <p>To start a new job, do:
  * <p>Job job = new Job(name);
  * <p>job.start();
- * 
+ *
  * <p>Job subclass must implement "doIt" method, it may override "terminateOK" method.
  * <p>Job subclass is activated by "Job.startJob()". In case of exception in constructor it is not activated.
  *    Hence "doIt" and "terminateOK" method are not called.
@@ -93,8 +93,8 @@ public abstract class Job implements Serializable {
     public static boolean LOCALDEBUGFLAG; // Gilda's case
 //    private static final String CLASS_NAME = Job.class.getName();
     static final Logger logger = Logger.getLogger("com.sun.electric.tool.job");
-    
-    
+
+
     /**
 	 * Method to tell whether Electric is running in "debug" mode.
 	 * If the program is started with the "-debug" switch, debug mode is enabled.
@@ -113,7 +113,7 @@ public abstract class Job implements Serializable {
         /** Server side. */                         SERVER,
         /** Client side. */                         CLIENT;
     }
-    
+
     /**
 	 * Type is a typesafe enum class that describes the type of job (CHANGE or EXAMINE).
 	 */
@@ -135,14 +135,14 @@ public abstract class Job implements Serializable {
 		/** Lowest priority: analysis. */				ANALYSIS;
 	}
 
-  
+
 	/** default execution time in milis */      /*private*/ static final int MIN_NUM_SECONDS = 60000;
     /** job manager */                          /*private*/ static JobManager jobManager;
 	static AbstractUserInterface currentUI;
 
     /** delete when done if true */             /*private*/ boolean deleteWhenDone;
     /** display on job list if true */          private boolean display;
-    
+
     // Job Status
     /** job start time */                       protected long startTime;
     /** job end time */                         protected long endTime;
@@ -157,7 +157,7 @@ public abstract class Job implements Serializable {
 //    /** bottom of "up-tree" of cells affected */private Cell upCell;
 //    /** top of "down-tree" of cells affected */ private Cell downCell;
 //    /** status */                               private String status = null;
-    
+
     transient EJob ejob;
     transient EDatabase database;
 
@@ -166,10 +166,10 @@ public abstract class Job implements Serializable {
         BATCHMODE = (mode == Mode.BATCH || mode == Mode.SERVER);
         currentUI = userInterface;
     }
-   
+
     public static void initJobManager(int numThreads, Job initDatabaseJob, Object mode, String serverMachineName) {
         Job.recommendedNumThreads = numThreads;
-        
+
         switch (threadMode) {
             case FULL_SCREEN:
                 if (User.isUseClientServer())
@@ -194,12 +194,12 @@ public abstract class Job implements Serializable {
         }
         jobManager.runLoop();
     }
-    
-    
+
+
     public static Mode getRunMode() { return threadMode; }
 
     public static int getNumThreads() { return recommendedNumThreads; }
-    
+
     /**
 	 * Constructor creates a new instance of Job.
 	 * @param jobName a string that describes this Job.
@@ -224,7 +224,7 @@ public abstract class Job implements Serializable {
 //        started = finished = aborted = scheduledToAbort = false;
 //        thread = null;
 	}
-	
+
     /**
      * Start a job. By default displays Job on Job List UI, and
      * delete Job when done.  Jobs that have state the user would like to use
@@ -235,7 +235,7 @@ public abstract class Job implements Serializable {
 	{
         startJob(!BATCHMODE, true);
     }
-	
+
     /**
      * Start a job on snapshot obtained at the end of current job. By default displays Job on Job List UI, and
      * delete Job when done.
@@ -244,7 +244,7 @@ public abstract class Job implements Serializable {
 	{
         startJob(!BATCHMODE, true, true);
     }
-	
+
     /**
      * Start the job by placing it on the JobThread queue.
      * If <code>display</code> is true, display job on Job List UI.
@@ -255,7 +255,7 @@ public abstract class Job implements Serializable {
     public void startJob(boolean display, boolean deleteWhenDone) {
         startJob(display, deleteWhenDone, false);
     }
-    
+
     /**
      * Start the job by placing it on the JobThread queue.
      * If <code>display</code> is true, display job on Job List UI.
@@ -267,7 +267,7 @@ public abstract class Job implements Serializable {
     {
         this.display = display;
         this.deleteWhenDone = deleteWhenDone;
-       
+
         Thread currentThread = Thread.currentThread();
         if (currentThread instanceof EThread && ((EThread)currentThread).ejob.jobType != Job.Type.EXAMINE) {
             ejob.startedByServer = true;
@@ -292,13 +292,13 @@ public abstract class Job implements Serializable {
     protected void fieldVariableChanged(String variableName) { ejob.fieldVariableChanged(variableName); }
 
 	//--------------------------ABSTRACT METHODS--------------------------
-    
+
     /** This is the main work method.  This method should
      * perform all needed tasks.
      * @throws JobException TODO
      */
     public abstract boolean doIt() throws JobException;
-    
+
     /**
      * This method executes in the Client side after termination of doIt method.
      * This method should perform all needed termination actions.
@@ -310,13 +310,13 @@ public abstract class Job implements Serializable {
         else
             terminateFail(jobException);
     }
-    
+
     /**
      * This method executes in the Client side after normal termination of doIt method.
      * This method should perform all needed termination actions.
      */
     public void terminateOK() {}
-    
+
     /**
      * This method executes in the Client side after exceptional termination of doIt method.
      * @param jobException null exception thrown by doIt.
@@ -333,7 +333,7 @@ public abstract class Job implements Serializable {
             ActivityLogger.logException(jobException);
         }
     }
-    
+
     //--------------------------PRIVATE JOB METHODS--------------------------
 
 	//--------------------------PROTECTED JOB METHODS-----------------------
@@ -346,7 +346,7 @@ public abstract class Job implements Serializable {
 
 //    /**
 //     * Method to end the current batch of changes and start another.
-//     * Besides starting a new batch, it cleans up the constraint system, and 
+//     * Besides starting a new batch, it cleans up the constraint system, and
 //     */
 //    protected void flushBatch()
 //    {
@@ -357,19 +357,19 @@ public abstract class Job implements Serializable {
 
     protected synchronized void setProgress(String progress) {
         jobManager.setProgress(ejob, progress);
-    }        
-    
+    }
+
     private synchronized String getProgress() { return ejob.progress; }
 
     /** Return run status */
     public boolean isFinished() { return finished; }
-    
+
     /** Tell thread to abort. Extending class should check
      * abort when/where applicable
      */
     public synchronized void abort() {
 //        if (ejob.jobType != Job.Type.EXAMINE) return;
-        if (aborted) { 
+        if (aborted) {
             System.out.println("Job already aborted: "+getStatus());
             return;
         }
@@ -419,7 +419,17 @@ public abstract class Job implements Serializable {
 
     /** get all jobs iterator */
     public static Iterator<Job> getAllJobs() { return jobManager.getAllJobs(); }
-    
+
+    /**
+     * If this current thread is a EThread running a Job return the Job.
+     * Return null otherwise.
+     * @return a running Job or null
+     */
+    public static Job getRunningJob() {
+        Thread thread = Thread.currentThread();
+        return thread instanceof EThread ? ((EThread)thread).getRunningJob() : null;
+    }
+
     /** get status */
     public String getStatus() {
         switch (ejob.state) {
@@ -629,7 +639,7 @@ public abstract class Job implements Serializable {
     }
 
     /**
-     * Low-level method. 
+     * Low-level method.
      */
     public static AbstractUserInterface getExtendedUserInterface() {
             return currentUI;
@@ -641,26 +651,26 @@ public abstract class Job implements Serializable {
             return ((EThread)currentThread).database;
         return EDatabase.clientDatabase();
     }
-    
+
     public EDatabase getDatabase() {
         return database;
     }
-    
+
     public static void wantUpdateGui() {
         jobManager.wantUpdateGui();
     }
-    
+
     public static void updateNetworkErrors(Cell cell, List<ErrorLogger.MessageLog> errors) {
         currentUI.updateNetworkErrors(cell, errors);
     }
-    
-    public static void updateIncrementalDRCErrors(Cell cell, List<ErrorLogger.MessageLog> newErrors, 
+
+    public static void updateIncrementalDRCErrors(Cell cell, List<ErrorLogger.MessageLog> newErrors,
                                                   List<ErrorLogger.MessageLog> delErrors) {
         currentUI.updateIncrementalDRCErrors(cell, newErrors, delErrors);
     }
 
 	//-------------------------------JOB UI--------------------------------
-    
+
     public String toString() { return ejob.jobName+" ("+getStatus()+")"; }
 
 
@@ -684,7 +694,7 @@ public abstract class Job implements Serializable {
         }
         return buf.toString();
     }
-        
+
     static void runTerminate(EJob ejob) {
         Throwable jobException = ejob.deserializeResult();
         Job job = ejob.clientJob;
@@ -696,7 +706,7 @@ public abstract class Job implements Serializable {
         }
         job.endTime = System.currentTimeMillis();
         job.finished = true;                        // is this redundant with Thread.isAlive()?
-        
+
         // say something if it took more than a minute by default
         if (job.reportExecution || (job.endTime - job.startTime) >= MIN_NUM_SECONDS) {
             if (User.isBeepAfterLongJobs()) {
@@ -705,5 +715,5 @@ public abstract class Job implements Serializable {
             System.out.println(job.getInfo());
         }
     }
-    
+
 }

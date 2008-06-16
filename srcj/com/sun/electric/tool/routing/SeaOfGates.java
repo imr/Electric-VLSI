@@ -180,7 +180,7 @@ public class SeaOfGates
 		} else
 		{
 			SeaOfGatesEngine router = new SeaOfGatesEngine();
-			router.routeIt(null, cell, arcsToRoute);
+			router.routeIt(Job.getRunningJob(), cell, arcsToRoute);
 		}
 	}
 

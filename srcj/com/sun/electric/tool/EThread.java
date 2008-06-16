@@ -43,14 +43,14 @@ class EThread extends Thread {
 
     private static final ArrayList<Snapshot> snapshotCache = new ArrayList<Snapshot>();
 	private static int maximumSnapshots = User.getMaxUndoHistory();
-    
+
     /** EJob which Thread is executing now. */
     EJob ejob;
     /* Database in which thread is executing. */
     EDatabase database;
-    
+
     private final UserInterface userInterface = new ServerJobManager.UserInterfaceRedirect();
-    
+
     /** Creates a new instance of EThread */
     EThread(int id) {
         super("EThread-" + id);
@@ -131,15 +131,15 @@ class EThread extends Thread {
                 database.unlock();
             }
             putInCache(ejob.oldSnapshot, ejob.newSnapshot);
-            
+
             finishedEJob = ejob;
             ejob = null;
             database = null;
-            
+
             Job.logger.logp(Level.FINER, CLASS_NAME, "run", "finishedJob {0}", finishedEJob.jobName);
         }
     }
-    
+
     private void recoverDatabase(boolean quick) {
         database.lowLevelSetCanUndoing(true);
         try {
@@ -165,14 +165,14 @@ class EThread extends Thread {
             }
         }
     }
-    
+
     UserInterface getUserInterface() { return userInterface; }
 
     void print(String str) {
         Client client = ejob != null ? ejob.client : null;
         Client.print(client, str);
     }
-    
+
     /**
      * Find some valid snapshot in cache.
      */
@@ -191,7 +191,7 @@ class EThread extends Thread {
             }
         }
     }
-    
+
     private static Snapshot findInCache(int snapshotId) {
         synchronized (snapshotCache) {
             for (int i = snapshotCache.size() - 1; i >= 0; i--) {
@@ -202,8 +202,8 @@ class EThread extends Thread {
         }
         return null;
     }
-    
-    
+
+
     private static void putInCache(Snapshot oldSnapshot, Snapshot newSnapshot) {
         synchronized (snapshotCache) {
             if (!snapshotCache.contains(newSnapshot)) {
@@ -215,7 +215,7 @@ class EThread extends Thread {
                 snapshotCache.remove(0);
         }
     }
-    
+
 	/**
 	 * Method to set the size of the history list and return the former size.
 	 * @param newSize the new size of the history list (number of batches of changes).
@@ -231,4 +231,14 @@ class EThread extends Thread {
 			snapshotCache.remove(0);
 		return oldSize;
 	}
+
+    /**
+     * If this EThread is running a Job return it.
+     * Return null otherwise.
+     * @return a running Job or null
+     */
+    Job getRunningJob() {
+        if (ejob == null) return null;
+        return ejob.jobType == Job.Type.EXAMINE ? ejob.clientJob : ejob.serverJob;
+    }
 }
