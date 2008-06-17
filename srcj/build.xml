@@ -49,6 +49,7 @@
         <exclude name="com/sun/electric/plugins/prefuse/" if="GNU"/>
         <exclude name="com/sun/electric/tool/simulation/eventsim/" if="GNU"/>
         <exclude name="com/sun/electric/tool/simulation/interval/" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/Java3D/" if="GNU"/>
     </patternset>
 
     <!-- Patternset for plugins that are not distributed by SFS -->
@@ -314,6 +315,7 @@
             <exclude name="electric.log"/>
             <exclude name="electric.mf"/>
             <exclude name="nbproject/"/>
+            <exclude name=".settings/"/>
             <exclude name="packaging/*.jar"/>
             <exclude name="packaging/*.gif"/>
             <exclude name="packaging/*.lsm"/>
