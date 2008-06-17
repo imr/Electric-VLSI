@@ -100,7 +100,7 @@ import javax.swing.tree.TreeSelectionModel;
 
 /**
  * A Dialog for displaying the Electric users manual.
- * 
+ *
  * The html files in the user's manual have special lines that control them:
  * <!-- HEADER 1-2: Chapter Title -->
  * <!-- COMMAND Menu/Command -->
@@ -144,8 +144,8 @@ public class ManualViewer extends EModelessDialog
 
 	private Class htmlBaseClass;
 	private String htmlDirectory;
-    private JScrollPane rightHalf;
-    private JEditorPane editorPane;
+	private JScrollPane rightHalf;
+	private JEditorPane editorPane;
 	private JSplitPane splitPane;
 	private JTextField searchField;
 	private JTree manualTree;
@@ -167,8 +167,8 @@ public class ManualViewer extends EModelessDialog
 	{
 		if (theManual == null)
 		{
-            JFrame jf = null;
-            if (TopLevel.isMDIMode()) jf = TopLevel.getCurrentJFrame();
+			JFrame jf = null;
+			if (TopLevel.isMDIMode()) jf = TopLevel.getCurrentJFrame();
 			theManual = new ManualViewer(jf, null, ManualViewer.class, "helphtml");
 		}
 		theManual.setVisible(true);
@@ -191,8 +191,8 @@ public class ManualViewer extends EModelessDialog
 	{
 		if (theManual == null)
 		{
-            JFrame jf = null;
-            if (TopLevel.isMDIMode()) jf = TopLevel.getCurrentJFrame();
+			JFrame jf = null;
+			if (TopLevel.isMDIMode()) jf = TopLevel.getCurrentJFrame();
 			theManual = new ManualViewer(jf, null, Main.class, RUSSIANMANUALPATH);
 		}
 		theManual.setVisible(true);
@@ -226,18 +226,18 @@ public class ManualViewer extends EModelessDialog
 	{
 		if (theManual == null)
 		{
-            JFrame jf = null;
-            if (TopLevel.isMDIMode()) jf = TopLevel.getCurrentJFrame();
+			JFrame jf = null;
+			if (TopLevel.isMDIMode()) jf = TopLevel.getCurrentJFrame();
 			theManual = new ManualViewer(jf, dialog+str, ManualViewer.class, "helphtml");
 		} else
 		{
 			if (str != null)
 			{
 				String prefFileName = keywordMap.get(dialog+str);
-			    if (prefFileName == null)
-			    {
-			    	Job.getUserInterface().showErrorMessage("No help for " + str + " settings", "Missing documentation");
-			    } else
+				if (prefFileName == null)
+				{
+					Job.getUserInterface().showErrorMessage("No help for " + str + " settings", "Missing documentation");
+				} else
 				{
 					for(int i=0; i<theManual.pageSequence.size(); i++)
 					{
@@ -254,147 +254,147 @@ public class ManualViewer extends EModelessDialog
 		theManual.setVisible(true);
 	}
 
-    /**
-     * Method to open the 2D view of a given layout cell
-     * @param fileName name of the library where the cell is stored
-     * @param cellName cell name
-     * @param menuName name of the menu executing this command
-     */
-    public static Cell open2DSample(String fileName, String cellName, String menuName)
-    {
-        Library library = Library.findLibrary(fileName);
-        if (library == null)
-        {
-            System.out.println("Load first the library '" + fileName +
-                "' (Help -> " + menuName + " -> Load Library)");
-            return null;
-        }
-        Cell cell = library.findNodeProto(cellName);
-        if (cell == null)
-        {
-            System.out.println("Cell '" + cellName + "' not found");
-            return null;
-        }
+	/**
+	 * Method to open the 2D view of a given layout cell
+	 * @param fileName name of the library where the cell is stored
+	 * @param cellName cell name
+	 * @param menuName name of the menu executing this command
+	 */
+	public static Cell open2DSample(String fileName, String cellName, String menuName)
+	{
+		Library library = Library.findLibrary(fileName);
+		if (library == null)
+		{
+			System.out.println("Load first the library '" + fileName +
+				"' (Help -> " + menuName + " -> Load Library)");
+			return null;
+		}
+		Cell cell = library.findNodeProto(cellName);
+		if (cell == null)
+		{
+			System.out.println("Cell '" + cellName + "' not found");
+			return null;
+		}
 
-        // Open the window frame if not available
-        if (cell != WindowFrame.getCurrentCell())
-            WindowFrame.createEditWindow(cell);
-        return cell;
-    }
+		// Open the window frame if not available
+		if (cell != WindowFrame.getCurrentCell())
+			WindowFrame.createEditWindow(cell);
+		return cell;
+	}
 
-    /**
-     * Method to open the 3D view of a given layout cell
-     * @param fileName name of the library where the cell is stored
-     * @param cellName cell name
-     */
-    public static void open3DSample(String fileName, String cellName, String menuName)
-    {
-        Cell cell = open2DSample(fileName, cellName, menuName);
+	/**
+	 * Method to open the 3D view of a given layout cell
+	 * @param fileName name of the library where the cell is stored
+	 * @param cellName cell name
+	 */
+	public static void open3DSample(String fileName, String cellName, String menuName)
+	{
+		Cell cell = open2DSample(fileName, cellName, menuName);
 
-        if (cell == null) return; // error opening the 2D view
+		if (cell == null) return; // error opening the 2D view
 
-        // Making sure all cell instances are expanded
-        for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext();)
-        {
-            NodeInst ni = it.next();
-            ni.setExpanded();
-        }
-        // to guarantee the redisplay with extended 
+		// Making sure all cell instances are expanded
+		for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext();)
+		{
+			NodeInst ni = it.next();
+			ni.setExpanded();
+		}
 
-        Class<?> plugin3D = Resources.get3DClass("ui.J3DMenu");
-        if (plugin3D != null)
-        {
-            // Adding 3D/Demo menu
-            try {
-                Method createMethod = plugin3D.getDeclaredMethod("create3DViewCommand", new Class[] {Boolean.class});
-                createMethod.invoke(plugin3D, new Object[] {new Boolean(false)});
-            } catch (Exception e)
-            {
-                System.out.println("Can't open 3D view: " + e.getMessage());
-                ActivityLogger.logException(e);
-            }
-        }
-    }
+		// to guarantee the redisplay with extended
+		Class<?> plugin3D = Resources.get3DClass("ui.J3DMenu");
+		if (plugin3D != null)
+		{
+			// Adding 3D/Demo menu
+			try {
+				Method createMethod = plugin3D.getDeclaredMethod("create3DViewCommand", new Class[] {Boolean.class});
+				createMethod.invoke(plugin3D, new Object[] {new Boolean(false)});
+			} catch (Exception e)
+			{
+				System.out.println("Can't open 3D view: " + e.getMessage());
+				ActivityLogger.logException(e);
+			}
+		}
+	}
 
-    /**
-     * Method to animate the 3D view of current layout cell
-     * @param demoName name of j3d file containing the demo
-     */
-    public static void animate3DSample(String demoName)
-    {
-        String fileName = "helphtml/" + demoName;
-        URL url = ManualViewer.class.getResource(fileName);
-        if (url == null)
-        {
-            System.out.println("Can't open 3D demo file '" + fileName + "'");
-            return;
-        }
-        Class<?> plugin3D = Resources.get3DClass("ui.J3DDemoDialog");
-        if (plugin3D != null)
-        {
-            // Adding 3D/Demo menu
-            try {
-                Method createMethod = plugin3D.getDeclaredMethod("create3DDemoDialog",
-                        new Class[] {java.awt.Frame.class, URL.class});
-                createMethod.invoke(plugin3D, new Object[] {TopLevel.getCurrentJFrame(), url});
-            } catch (Exception e)
-            {
-                System.out.println("Can't open 3D demo dialog: " + e.getMessage());
-                ActivityLogger.logException(e);
-            }
-        }
-    }
+	/**
+	 * Method to animate the 3D view of current layout cell
+	 * @param demoName name of j3d file containing the demo
+	 */
+	public static void animate3DSample(String demoName)
+	{
+		String fileName = "helphtml/" + demoName;
+		URL url = ManualViewer.class.getResource(fileName);
+		if (url == null)
+		{
+			System.out.println("Can't open 3D demo file '" + fileName + "'");
+			return;
+		}
+		Class<?> plugin3D = Resources.get3DClass("ui.J3DDemoDialog");
+		if (plugin3D != null)
+		{
+			// Adding 3D/Demo menu
+			try {
+				Method createMethod = plugin3D.getDeclaredMethod("create3DDemoDialog",
+					new Class[] {java.awt.Frame.class, URL.class});
+				createMethod.invoke(plugin3D, new Object[] {TopLevel.getCurrentJFrame(), url});
+			} catch (Exception e)
+			{
+				System.out.println("Can't open 3D demo dialog: " + e.getMessage());
+				ActivityLogger.logException(e);
+			}
+		}
+	}
 
-    /**
-     * Method to load a sample library from the lib area.
-     * @param fileName library name
-     */
+	/**
+	 * Method to load a sample library from the lib area.
+	 * @param fileName library name
+	 */
 	public static void loadSamplesLibrary(String fileName, String cellName)
 	{
-        Library lib = Library.findLibrary(fileName);
+		Library lib = Library.findLibrary(fileName);
 		if (lib != null)
-        {
-            System.out.println(lib + " already loaded");
-            Cell cell = lib.findNodeProto(cellName);
-            if (cell == null)
-                System.out.println("Cell '" + cellName + "' does not exist in " + lib);
-            return;
-        }
+		{
+			System.out.println(lib + " already loaded");
+			Cell cell = lib.findNodeProto(cellName);
+			if (cell == null)
+				System.out.println("Cell '" + cellName + "' does not exist in " + lib);
+			return;
+		}
 		URL url = ManualViewer.class.getResource("helphtml/"+fileName+".jelib");
 		new FileMenu.ReadLibrary(url, FileType.JELIB, cellName);
 	}
 
 	/**
-     * Create a new user's manual dialog.
-     * @param parent
-     */
-    private ManualViewer(Frame parent, String preference, Class baseClass, String htmlDir)
-    {
-        super(parent, false);
-        htmlBaseClass = baseClass;
-        htmlDirectory = htmlDir;
-        setTitle("User's Manual");
-        init();
+	 * Create a new user's manual dialog.
+	 * @param parent
+	 */
+	private ManualViewer(Frame parent, String preference, Class baseClass, String htmlDir)
+	{
+		super(parent, false);
+		htmlBaseClass = baseClass;
+		htmlDirectory = htmlDir;
+		setTitle("User's Manual");
+		init();
 
-        // load indices
-        loadPointers();
-        String prefFileName = null;
-        if (preference != null)
-        {
-            prefFileName = keywordMap.get(preference);
-		    if (prefFileName == null)
-		    	Job.getUserInterface().showErrorMessage("No help for " + preference + " settings", "Missing documentation");
-        }
+		// load indices
+		loadPointers();
+		String prefFileName = null;
+		if (preference != null)
+		{
+			prefFileName = keywordMap.get(preference);
+			if (prefFileName == null)
+				Job.getUserInterface().showErrorMessage("No help for " + preference + " settings", "Missing documentation");
+		}
 
 		// load the table of contents
-        String indexName = htmlDirectory + "/toc.txt";
+		String indexName = htmlDirectory + "/toc.txt";
 		URL url = htmlBaseClass.getResource(indexName);
 		InputStream stream = TextUtils.getURLStream(url, null);
-        if (stream == null)
-        {
-            System.out.println("Can't open " + indexName + " in " + htmlBaseClass.getPackage());
-            return;
-        }
+		if (stream == null)
+		{
+			System.out.println("Can't open " + indexName + " in " + htmlBaseClass.getPackage());
+			return;
+		}
 		InputStreamReader is = new InputStreamReader(stream);
 		pageSequence = new ArrayList<PageInfo>();
 		pageNodeSequence = new ArrayList<DefaultMutableTreeNode>();
@@ -406,7 +406,7 @@ public class ManualViewer extends EModelessDialog
 		int [] sectionNumbers = new int[5];
 		sectionNumbers[0] = -1;
 		currentIndex = lastPageVisited;
-        DefaultMutableTreeNode thisNode = null;
+		DefaultMutableTreeNode thisNode = null;
 		for(;;)
 		{
 			String line = getLine(is);
@@ -422,7 +422,7 @@ public class ManualViewer extends EModelessDialog
 			int titleEnd = line.indexOf('=', titleStart);
 			String fileName = null;
 			if (titleEnd < 0) titleEnd = line.length();
-            else
+			else
 				fileName = line.substring(titleEnd+1).trim();
 			String title = line.substring(titleStart, titleEnd).trim();
 
@@ -456,13 +456,13 @@ public class ManualViewer extends EModelessDialog
 				pi.newAtLevel = newAtLevel;
 				pi.url = htmlBaseClass.getResource(htmlDirectory + "/" + fileName + ".html");
 				if (pi.url == null)
-                    System.out.println("NULL URL to "+fileName);
+					System.out.println("NULL URL to "+fileName);
 				DefaultMutableTreeNode node = new DefaultMutableTreeNode(new Integer(pageSequence.size()));
-                if (preference != null && pi.fileName.equals(prefFileName))
-                {
-                    currentIndex = pageSequence.size();
-                    thisNode = node;
-                }
+				if (preference != null && pi.fileName.equals(prefFileName))
+				{
+					currentIndex = pageSequence.size();
+					thisNode = node;
+				}
 				stack[indent].add(node);
 				pageSequence.add(pi);
 				pageNodeSequence.add(node);
@@ -477,25 +477,25 @@ public class ManualViewer extends EModelessDialog
 			System.out.println("Error closing file");
 		}
 
-        // No preference page given
-        if (preference == null || thisNode != null)
-        {
-            // pre-expand the tree
-            TreePath topPath = manualTree.getPathForRow(0);
-            manualTree.expandPath(topPath);
-            topPath = manualTree.getPathForRow(1);
-            manualTree.expandPath(topPath);
-            manualTree.setSelectionPath(topPath);
-        } else
-        {
-        	TreePath tp = new TreePath(thisNode.getPath());
-        	manualTree.scrollPathToVisible(tp);
-        	manualTree.setSelectionPath(tp);
-        }
+		// No preference page given
+		if (preference == null || thisNode != null)
+		{
+			// pre-expand the tree
+			TreePath topPath = manualTree.getPathForRow(0);
+			manualTree.expandPath(topPath);
+			topPath = manualTree.getPathForRow(1);
+			manualTree.expandPath(topPath);
+			manualTree.setSelectionPath(topPath);
+		} else
+		{
+			TreePath tp = new TreePath(thisNode.getPath());
+			manualTree.scrollPathToVisible(tp);
+			manualTree.setSelectionPath(tp);
+		}
 		// load the title page of the manual
-        loadPage(currentIndex);
-        finishInitialization();
-    }
+		loadPage(currentIndex);
+		finishInitialization();
+	}
 
 	/**
 	 * Method to show the menu bar in the manual dialog.
@@ -545,14 +545,14 @@ public class ManualViewer extends EModelessDialog
 		}
 
 		// scan all manual entries for menu associations
-        String indexName = htmlDirectory + "/toc.txt";
+		String indexName = htmlDirectory + "/toc.txt";
 		URL url = htmlBaseClass.getResource(indexName);
 		InputStream stream = TextUtils.getURLStream(url, null);
-        if (stream == null)
-        {
-            System.out.println("Can't open " + indexName + " in " + htmlBaseClass.getPackage());
-            return;
-        }
+		if (stream == null)
+		{
+			System.out.println("Can't open " + indexName + " in " + htmlBaseClass.getPackage());
+			return;
+		}
 		InputStreamReader is = new InputStreamReader(stream);
 		for(;;)
 		{
@@ -767,7 +767,7 @@ public class ManualViewer extends EModelessDialog
 		return sb.toString();
 	}
 
-    private void loadPage(int index)
+	private void loadPage(int index)
 	{
 		// add to browsing history
 		history.add(new Integer(index));
@@ -775,18 +775,18 @@ public class ManualViewer extends EModelessDialog
 		currentIndex = index;
 		lastPageVisited = index;
 		PageInfo pi = pageSequence.get(index);
-        if (pi.url == null) return; // error reading the html file
-        DefaultMutableTreeNode node = pageNodeSequence.get(index);
-    	EDialog.recursivelyHighlight(manualTree, rootNode, node, manualTree.getPathForRow(0));
-        
+		if (pi.url == null) return; // error reading the html file
+		DefaultMutableTreeNode node = pageNodeSequence.get(index);
+		EDialog.recursivelyHighlight(manualTree, rootNode, node, manualTree.getPathForRow(0));
+
 		InputStream stream = TextUtils.getURLStream(pi.url, null);
-        InputStreamReader is;
-        try {
-            is = new InputStreamReader(stream, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            System.out.println("UTF-8 is UnsupportedEncodingException");
-            return;
-        }
+		InputStreamReader is;
+		try {
+			is = new InputStreamReader(stream, "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			System.out.println("UTF-8 is UnsupportedEncodingException");
+			return;
+		}
 		StringBuffer sb = new StringBuffer();
 
 		// emit header HTML
@@ -843,7 +843,7 @@ public class ManualViewer extends EModelessDialog
 		}
 		editorPane.setText(sb.toString());
 		editorPane.setCaretPosition(0);
-    }
+	}
 
 	/**
 	 * Method to go to the previous page that was viewed.
@@ -1005,9 +1005,8 @@ public class ManualViewer extends EModelessDialog
 				if (line.equals("<!-- TRAILER -->")) continue;
 				printWriter.println(line);
 
-				// look for "IMG SRC=" references
-				// IMG SRC="fig02-15.png"
-				int imgPos = line.indexOf("IMG SRC=\"");
+				// look for "SRC=" image references
+				int imgPos = line.indexOf("SRC=\"");
 				if (imgPos >= 0)
 				{
 					int startPos = line.indexOf('"', imgPos);
@@ -1018,6 +1017,27 @@ public class ManualViewer extends EModelessDialog
 						{
 							String imgFile = line.substring(startPos+1, endPos);
 							usedFiles.add(imgFile);
+						}
+					}
+				}
+
+				// look for "HREF=" hyperlink references
+				int refPos = line.indexOf("HREF=\"");
+				if (refPos >= 0)
+				{
+					int startPos = line.indexOf('"', refPos);
+					if (startPos > 0)
+					{
+						int endPos1 = line.indexOf('"', startPos+1);
+						if (endPos1 < 0) endPos1 = line.length();
+						int endPos2 = line.indexOf('#', startPos+1);
+						if (endPos2 < 0) endPos2 = line.length();
+						int endPos = Math.min(endPos1, endPos2);
+						if (endPos > startPos)
+						{
+							String htmlFile = line.substring(startPos+1, endPos);
+							if (!htmlFile.startsWith("http://") && !htmlFile.startsWith("mailto:"))
+								usedFiles.add(htmlFile);
 						}
 					}
 				}
@@ -1162,7 +1182,7 @@ public class ManualViewer extends EModelessDialog
 			}
 			printWriter.println("<HTML><HEAD>");
 			printWriter.println("<TITLE>Electric VLSI Design System User's Manual</TITLE></HEAD>");
-			printWriter.println("<BODY BGCOLOR=\"#FFFFFF\">");	
+			printWriter.println("<BODY BGCOLOR=\"#FFFFFF\">");
 
 			int lastIndex = index - 1;
 			if (lastIndex < 0) lastIndex = pageSequence.size() - 1;
@@ -1253,8 +1273,8 @@ public class ManualViewer extends EModelessDialog
 	private void edit()
 	{
 		PageInfo pi = pageSequence.get(currentIndex);
-        JFrame jf = null;
-        if (TopLevel.isMDIMode()) jf = TopLevel.getCurrentJFrame();
+		JFrame jf = null;
+		if (TopLevel.isMDIMode()) jf = TopLevel.getCurrentJFrame();
 		EditHTML dialog = new EditHTML(jf, pi.url, this);
 		dialog.setVisible(true);
 	}
@@ -1409,11 +1429,11 @@ public class ManualViewer extends EModelessDialog
 		}
 	}
 
-    /**
-     * Initialize list of all ToolTips and initilize components
-     */
-    private void init()
-    {
+	/**
+	 * Initialize list of all ToolTips and initilize components
+	 */
+	private void init()
+	{
 		// set up dialog
 		GridBagConstraints gbc;
 		getContentPane().setLayout(new GridBagLayout());
@@ -1436,7 +1456,7 @@ public class ManualViewer extends EModelessDialog
 		gbc.weightx = 1.0;  gbc.weighty = 1.0;
 		gbc.insets = new Insets(0, 4, 4, 4);
 		leftHalf.add(scrolledTree, gbc);
-		 
+
 		// forward and backward buttons
 		JButton backButton = new JButton("Back");
 		gbc = new GridBagConstraints();
@@ -1514,7 +1534,7 @@ public class ManualViewer extends EModelessDialog
 		{
 			public void actionPerformed(ActionEvent evt) { search(); }
 		});
-        getRootPane().setDefaultButton(searchButton);
+		getRootPane().setDefaultButton(searchButton);
 
 		if (Job.getDebug())
 		{
@@ -1581,11 +1601,11 @@ public class ManualViewer extends EModelessDialog
 		// close of dialog event
 		addWindowListener(new WindowAdapter()
 		{
-		    public void windowClosing(WindowEvent evt) { closeDialog(evt); }
+			public void windowClosing(WindowEvent evt) { closeDialog(evt); }
 		});
 
 		pack();
-    }
+	}
 
 	private static class ManualTree extends JTree
 	{
@@ -1647,11 +1667,11 @@ public class ManualViewer extends EModelessDialog
 		}
 	}
 
-    private void closeDialog(WindowEvent evt)
-    {
-        setVisible(false);
-        dispose();
+	private void closeDialog(WindowEvent evt)
+	{
+		setVisible(false);
+		dispose();
 		theManual = null;
-    }
+	}
 
 }
