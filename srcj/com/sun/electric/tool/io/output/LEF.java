@@ -51,6 +51,7 @@ import com.sun.electric.tool.user.User;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -200,9 +201,14 @@ public class LEF extends Output
 			exportsOnNet.add(e);
 		}
 
+		List<Network> netsToWrite = new ArrayList<Network>();
+		for(Network net : unconnectedExports.keySet())
+			netsToWrite.add(net);
+		Collections.sort(netsToWrite, new TextUtils.NetworksByName());
+		
 		// write exports organized by network connections
 		boolean first = true;
-		for(Network net : unconnectedExports.keySet())
+		for(Network net : netsToWrite)
 		{
 			List<Export> exportsOnNet = unconnectedExports.get(net);
 			Export main = null;
