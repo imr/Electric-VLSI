@@ -85,7 +85,6 @@ public class StepSize
 			return;
 		}
 		if (Double.isInfinite(l) || Double.isInfinite(h)) {
-//			System.out.println("Error: Inifite low or high range detected");
 			separation = 0;
 			return;
 		}
@@ -103,6 +102,11 @@ public class StepSize
 		double m = Math.pow(10, mp);
 
 		int di = (int)d;
+		if (di == 0)
+		{
+			separation = 0;
+			return;
+		}
 		if (di > 2 && di <= 5) di = 5; else 
 			if (di > 5) di = 10;
 		int li = (int)(l / m);
