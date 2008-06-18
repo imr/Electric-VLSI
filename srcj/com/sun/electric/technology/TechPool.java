@@ -412,8 +412,8 @@ public class TechPool extends AbstractMap<TechId, Technology> {
         }
     }
 
-    private class EntrySet extends AbstractSet<Entry<TechId, Technology>> {
-        private final Entry<TechId,Technology>[] entries;
+    private class EntrySet extends AbstractSet<Map.Entry<TechId, Technology>> {
+        private final TechEntry[] entries;
 
         EntrySet() {
             TreeSet<Technology> sortedTechs = new TreeSet<Technology>();
@@ -421,11 +421,11 @@ public class TechPool extends AbstractMap<TechId, Technology> {
                 if (tech != null)
                     sortedTechs.add(tech);
             }
-            entries = new Entry[sortedTechs.size()];
+            entries = new TechEntry[sortedTechs.size()];
             int i = 0;
             for (Technology tech: sortedTechs) {
                 TechId techId = tech.getId();
-                entries[i++] = new com.sun.electric.database.text.SimpleImmutableEntry<TechId, Technology>(techId, tech);
+                entries[i++] = new TechEntry(techId, tech);
             }
         }
 
@@ -443,7 +443,33 @@ public class TechPool extends AbstractMap<TechId, Technology> {
 
         @Override
         public Iterator<Entry<TechId, Technology>> iterator() {
-            return ArrayIterator.iterator(entries);
+            return ArrayIterator.<Map.Entry<TechId,Technology>>iterator(entries);
+        }
+    }
+
+    private static class TechEntry implements Map.Entry<TechId,Technology> {
+        private final TechId key;
+        private final Technology value;
+
+    	public TechEntry(TechId key, Technology value) {
+            if (key == null || value == null)
+                throw new NullPointerException();
+            this.key   = key;
+            this.value = value;
+        }
+
+        public TechId getKey() { return key; }
+    	public Technology getValue() { return value; }
+        public Technology setValue(Technology value) { throw new UnsupportedOperationException(); }
+        @Override public int hashCode() { return key.hashCode() ^ value.hashCode(); }
+        @Override public String toString() { return key + "=" + value; }
+
+        @Override
+        public boolean equals(Object o) {
+            if (!(o instanceof Map.Entry))
+                return false;
+            Map.Entry e = (Map.Entry)o;
+            return key.equals(e.getKey()) && value.equals(e.getValue());
         }
     }
 }

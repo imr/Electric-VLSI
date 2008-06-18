@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07l: ******************************
 
+IMP: (6/17/08, DN) Remove class text.SimpleImmutableEntry because of license.
+
 BUG: (6/16/08, DN) SogRouterAdapter: redundant metal, preferred routing directions (Bug #1679)
 FIX: Use API routing which sorts arcs by length.
 
