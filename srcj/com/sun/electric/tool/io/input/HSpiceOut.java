@@ -48,9 +48,29 @@ import java.util.List;
  * This includes transient information in .tr and .pa files (.pa0/.tr0, .pa1/.tr1, ...)
  * It also includes AC analysis in .ac files; DC analysis in .sw files;
  * and Measurements in .mt files.
+ *
+ * While trying to debug the condition count handling, these test cases were observed:
+ * CASE   VERSION  ANALYSIS   NUMNOI   SWEEPCNT   CNDCNT   CONDITIONS
+ *  H01    9007       TR         0         4        1      bma_w
+ *  H02    9007       TR        36        19        1      sweepv
+ *  H03    9007       TR         2        30        1      MONTE_CARLO
+ *                    DC       258        30        1      MONTE_CARLO
+ *  H04    9007       TR         2         7        1      TEMPERATURE
+ *                    DC         0         0        0
+ *                    AC         0         6        1      bigcap
+ *  H05    9601       TR         0         0        0
+ *  H06    9601       TR         0         0        0
+ *  H07    9601       TR         2        25        3      data_tim, inbufstr, outloadstr (sweep header has 2 numbers)
+ *  H08    9601       TR         4         3        2      ccdata, cc
+ *                    AC         4         2        1      lpvar (***CRASHES***)
+ *  H09    9601       TR         0         3        3      rdata, r, c (sweep header has 2 numbers)
+ *                    AC         0         3        3      rdata, r, c (sweep header has 2 numbers)
+ *  H10    9601       TR         0         4        8      rdata, r0, r1, r2, r3, r4, c0, c1 (sweep header has 7 numbers)
+ *                    AC         0         4        8      rdata, r0, r1, r2, r3, r4, c0, c1 (sweep header has 7 numbers)
  */
 public class HSpiceOut extends Simulate
 {
+	private static final boolean DEBUGCONDITIONS = false;
 	/** true if tr/ac/sw file is binary */						private boolean isTRACDCBinary;
 	/** true if binary tr/ac/sw file has bytes swapped */		private boolean isTRACDCBinarySwapped;
 	/** the raw file base */									private String fileBase;
@@ -323,9 +343,7 @@ public class HSpiceOut extends Simulate
 		try
 		{
 			swURL = new URL(fileURL.getProtocol(), fileURL.getHost(), fileURL.getPort(), fileBase + "." + trExtension);
-		} catch (java.net.MalformedURLException e)
-		{
-		}
+		} catch (java.net.MalformedURLException e) {}
 		if (swURL == null) return;
 		if (!TextUtils.URLExists(swURL)) return;
 
@@ -347,9 +365,7 @@ public class HSpiceOut extends Simulate
 		try
 		{
 			swURL = new URL(fileURL.getProtocol(), fileURL.getHost(), fileURL.getPort(), fileBase + "." + swExtension);
-		} catch (java.net.MalformedURLException e)
-		{
-		}
+		} catch (java.net.MalformedURLException e) {}
 		if (swURL != null && TextUtils.URLExists(swURL))
 		{
 			// process the DC data
@@ -362,9 +378,7 @@ public class HSpiceOut extends Simulate
 		try
 		{
 			icURL = new URL(fileURL.getProtocol(), fileURL.getHost(), fileURL.getPort(), fileBase + "." + icExtension);
-		} catch (java.net.MalformedURLException e)
-		{
-		}
+		} catch (java.net.MalformedURLException e) {}
 		if (icURL != null && TextUtils.URLExists(icURL))
 		{
 			// can't process the DC data
@@ -388,9 +402,7 @@ public class HSpiceOut extends Simulate
 		try
 		{
 			acURL = new URL(fileURL.getProtocol(), fileURL.getHost(), fileURL.getPort(), fileBase + "." + acExtension);
-		} catch (java.net.MalformedURLException e)
-		{
-		}
+		} catch (java.net.MalformedURLException e) {}
 		if (acURL == null) return;
 		if (!TextUtils.URLExists(acURL)) return;
 
@@ -412,9 +424,7 @@ public class HSpiceOut extends Simulate
 		try
 		{
 			paURL = new URL(fileURL.getProtocol(), fileURL.getHost(), fileURL.getPort(), fileBase + "." + paExtension);
-		} catch (java.net.MalformedURLException e)
-		{
-		}
+		} catch (java.net.MalformedURLException e) {}
 		if (paURL == null) return null;
 		if (!TextUtils.URLExists(paURL)) return null;
 		if (openTextInput(paURL)) return null;
@@ -510,6 +520,8 @@ public class HSpiceOut extends Simulate
 
 		// get number of sweeps
 		int sweepcnt = getHSpiceInt();
+		if (DEBUGCONDITIONS)
+			System.out.println("++++++++++++++++++++ VERSION="+version+" SWEEPCNT="+sweepcnt+" CNDCNT="+cndcnt+" NUMNOI="+numnoi+" MULTIPLIER="+multiplier);
 		if (cndcnt == 0) sweepcnt = 0;
 
 		// ignore the Monte Carlo information (76 characters over line break)
@@ -672,6 +684,8 @@ public class HSpiceOut extends Simulate
 				int i = getByteFromFile();
 				if (!isTRACDCBinary && i == '\n') { j--;   continue; }
 			}
+			if (DEBUGCONDITIONS)
+				System.out.println("CONDITION "+(c+1)+" IS "+line.toString());
 		}
 
 		// read the end-of-header marker
@@ -712,20 +726,28 @@ public class HSpiceOut extends Simulate
 			// get sweep info
 			if (sweepcnt > 0)
 			{
-				float sweepValue = getHSpiceFloat();
+				float sweepValue = getHSpiceFloat(false);
 				if (eofReached)  { System.out.println("EOF before sweep data");   break; }
-				an.addSweep(new Double(sweepValue));
-			}
+				String sweepName = TextUtils.formatDouble(sweepValue);
+				if (DEBUGCONDITIONS) System.out.println("READING SWEEP NUMBER: "+sweepValue);
 
-			// this is wierd: if there is more than 1 condition, ignore one extra sweep header value
-			if (cndcnt > 1) getHSpiceFloat();
+				// if there are more than 2 conditions, read extra sweep values
+				for(int i=2; i<cndcnt; i++)
+				{
+					float anotherSweepValue = getHSpiceFloat(false);
+					if (eofReached)  { System.out.println("EOF reading sweep header");   break; }
+					sweepName += "," + TextUtils.formatDouble(anotherSweepValue);
+					if (DEBUGCONDITIONS) System.out.println("  EXTRA SWEEP NUMBER: "+anotherSweepValue);
+				}
+				an.addSweep(sweepName);
+			}
 
 			// now read the data
 			List<float[]> allTheData = new ArrayList<float[]>();
 			for(;;)
 			{
 				// get the first number, see if it terminates
-				float time = getHSpiceFloat();
+				float time = getHSpiceFloat(true);
 				if (eofReached) break;
 				float [] oneSetOfData = new float[isComplex ? numSignals*2 + 1 : numSignals + 1];
 				oneSetOfData[0] = time;
@@ -735,24 +757,25 @@ public class HSpiceOut extends Simulate
 				{
 					int numSignal = (k + numnoi) % numSignals;
 					double value;
-					if (isComplex) {
-						float realPart = getHSpiceFloat();
-						float imagPart = getHSpiceFloat();
+					if (isComplex)
+					{
+						float realPart = getHSpiceFloat(false);
+						float imagPart = getHSpiceFloat(false);
 						oneSetOfData[numSignal*2 + 1] = realPart;
 						oneSetOfData[numSignal*2 + 2] = imagPart;
 						value = Math.hypot(realPart, imagPart); // amplitude of complex number
-					} else {
-						value = oneSetOfData[numSignal + 1] = getHSpiceFloat();
+					} else
+					{
+						value = oneSetOfData[numSignal + 1] = getHSpiceFloat(false);
 					}
-					if (eofReached) {
+					if (eofReached)
+					{
 						System.out.println("EOF in the middle of the data (at " + k + " out of " + numSignals +
 							" after " + allTheData.size() + " sets of data)");
 						break;
 					}
-					if (value < minValues[numSignal])
-						minValues[numSignal] = value;
-					if (value > maxValues[numSignal])
-						maxValues[numSignal] = value;
+					if (value < minValues[numSignal]) minValues[numSignal] = value;
+					if (value > maxValues[numSignal]) maxValues[numSignal] = value;
 				}
 				if (eofReached)  { System.out.println("EOF before the end of the data");   break; }
 				allTheData.add(oneSetOfData);
@@ -768,16 +791,16 @@ public class HSpiceOut extends Simulate
 		an.commonTime = new double[an.theSweeps.size()][];
 		double minTime = Double.POSITIVE_INFINITY;
 		double maxTime = Double.NEGATIVE_INFINITY;
-		for (int sweepNum=0; sweepNum<an.commonTime.length; sweepNum++) {
+		for (int sweepNum=0; sweepNum<an.commonTime.length; sweepNum++)
+		{
 			List<float[]> allTheData = an.theSweeps.get(sweepNum);
 			an.commonTime[sweepNum] = new double[allTheData.size()];
-			for (int eventNum = 0; eventNum < allTheData.size(); eventNum++) {
+			for (int eventNum = 0; eventNum < allTheData.size(); eventNum++)
+			{
 				double time = allTheData.get(eventNum)[0];
 				an.commonTime[sweepNum][eventNum] = time;
-				if (time < minTime)
-					minTime = time;
-				if (time > maxTime)
-					maxTime = time;
+				if (time < minTime) minTime = time;
+				if (time > maxTime) maxTime = time;
 			}
 		}
 
@@ -847,10 +870,11 @@ public class HSpiceOut extends Simulate
 		if (!firstbyteread)
 		{
 			if (dataInputStream.read() == -1) return true;
+			updateProgressDialog(1);
 		}
 		for(int i=0; i<3; i++)
 			if (dataInputStream.read() == -1) return true;
-		updateProgressDialog(4);
+		updateProgressDialog(3);
 
 		// read the number of 8-byte blocks
 		int blocks = 0;
@@ -886,7 +910,11 @@ public class HSpiceOut extends Simulate
 			bytes = 8192;
 		}
 		int amtread = dataInputStream.read(binaryTRACDCBuffer, 0, bytes);
-		if (amtread != bytes) return true;
+		if (amtread != bytes)
+		{
+			System.out.println("Expected to read " + bytes + " bytes but got only " + amtread);
+			return true;
+		}
 		updateProgressDialog(bytes);
 
 		// read the trailer count
@@ -898,7 +926,11 @@ public class HSpiceOut extends Simulate
 			if (isTRACDCBinarySwapped) trailer = ((trailer >> 8) & 0xFFFFFF) | ((uval&0xFF) << 24); else
 				trailer = (trailer << 8) | uval;
 		}
-		if (trailer != bytes) return true;
+		if (trailer != bytes)
+		{
+			System.out.println("Block trailer claims block had " + trailer + " bytes but block really had " + bytes);
+			return true;
+		}
 		updateProgressDialog(4);
 
 		// set pointers for the buffer
@@ -965,7 +997,7 @@ public class HSpiceOut extends Simulate
 	 * Method to read the next floating point number from the HSpice file.
 	 * @return the next number.  Sets the global "eofReached" true on EOF.
 	 */
-	private float getHSpiceFloat()
+	private float getHSpiceFloat(boolean testEOFValue)
 		throws IOException
 	{
 		if (!isTRACDCBinary)
@@ -982,7 +1014,7 @@ public class HSpiceOut extends Simulate
 				if (l == '\n') j--;
 			}
 			String result = line.toString();
-			if (result.equals("0.10000E+31")) { eofReached = true;   return 0; }
+			if (testEOFValue && result.equals("0.10000E+31")) { eofReached = true;   return 0; }
 			return (float)TextUtils.atof(result);
 		}
 
@@ -1010,7 +1042,8 @@ public class HSpiceOut extends Simulate
 		}
 		float f = Float.intBitsToFloat(fi);
 
-		if (f > 1.00000000E30 && f < 1.00000002E30)
+		// the termination value (in hex) is 71 49 F2 CA
+		if (testEOFValue && f > 1.00000000E30 && f < 1.00000002E30)
 		{
 			eofReached = true;
 			return 0;

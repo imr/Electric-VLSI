@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07l: ******************************
 
+BUG: (6/19/08, SMR) HSpice output files not read properly (Bug #1721).
+FIX: Sweep headers have "ConditionCount-1" values in them.
+
 BUG: (6/19/08, SMR) Component menu preferences trouble (Bug #1720).
 FIX: In TechPalette.rotateTransistor(), preserve node rotation.
 
