@@ -514,8 +514,14 @@ public class ComponentMenu extends EDialog
 		newItem.protoName = protoName;
 		newItem.function = PrimitiveNode.Function.findName((String)nodeFunction.getSelectedItem());
 		newItem.rotation = TextUtils.atoi(nodeAngle.getText()) * 10;
-		newItem.text = nodeName.getText();
-		newItem.fontSize = TextUtils.atof(nodeTextSize.getText());
+		newItem.text = nodeName.getText().trim();
+		String ts = nodeTextSize.getText().trim();
+		if (ts.length() == 0 && newItem.text.length() > 0)
+		{
+			// force a default text size if none given
+			ts = "6";
+		}
+		newItem.fontSize = TextUtils.atof(ts);
 		if (index < 0)
 		{
 			menuArray[menuSelectedY][menuSelectedX] = newItem;

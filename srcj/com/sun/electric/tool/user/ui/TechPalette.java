@@ -900,6 +900,10 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 	                    double scaley = entrySize/largest * 0.8;
 	                    double scale = Math.min(scalex, scaley);
 
+	                    // make sure the text is at the bottom of the entry
+	                    Variable var = ni.getVar(Technology.TECH_TMPVAR);
+	                    if (var != null)
+	                    	ni.setTextDescriptor(Technology.TECH_TMPVAR, var.getTextDescriptor().withOff(0, -largest/2/0.8));
 	                    VectorCache.VectorBase[] shapes = VectorCache.drawNode(ni);
 	                    drawShapes(g, imgX, imgY, scale, shapes);
                     }
