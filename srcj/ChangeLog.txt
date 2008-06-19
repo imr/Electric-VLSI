@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07l: ******************************
 
+BUG: (6/19/08, GVG) Possible wrong 3D values for second poly in mocmos (Bug #1722)
+FIX: Indeed, poly2 in MoCMOS is fine (above poly1). Fixing tsmc180.xml file to be consistent.
+
 IMP: (6/18/08, GVG) Improves in TechEditorWizard including better handling of errors in txt file
 and layers with a null pattern.
 
