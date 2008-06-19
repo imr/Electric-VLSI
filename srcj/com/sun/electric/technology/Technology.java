@@ -5758,7 +5758,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	    if (varName != null)
 	    {
 	    	TextDescriptor td = TextDescriptor.getNodeTextDescriptor().withDisplay(display).withRelSize(fontSize);
-	    	td = td.withOff(0, -ni.getYSize()/2).withPos(TextDescriptor.Position.UP);
+	    	td = td.withOff(0, -Math.max(ni.getXSize(), ni.getYSize())/2-2).withPos(TextDescriptor.Position.UP);
 	    	if (angle != 0) td = td.withRotation(TextDescriptor.Rotation.getRotation(360-angle/10));
             ni.newVar(TECH_TMPVAR, varName, td);
 	    }
