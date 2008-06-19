@@ -60,8 +60,8 @@
         <!-- Transistor poly Valid for N-Transistor, P-Transistor and scalable transistors -->
         <LayersRule ruleName="3.3 Mosis" layerNames="{Transistor-Poly, P-Active}, {Transistor-Poly, N-Active}" type="EXTENSION" when="DE" value="2.5"/> <!-- Poly from active -->
         <LayersRule ruleName="3.3 Mosis" layerNames="{Transistor-Poly, P-Active}, {Transistor-Poly, N-Active}" type="EXTENSION" when="SU|SC" value="2"/> <!-- Poly from active -->
-        <LayersRule ruleName="OD.C.6 TSMC" layerNames="{P-Active, Transistor-Poly}, {N-Active, Transistor-Poly}" type="EXTENSION" when="DE" value="4"/> <!-- Active from poly -->
-        <LayersRule ruleName="OD.C.6 TSMC" layerNames="{P-Active, Transistor-Poly}, {N-Active, Transistor-Poly}" type="EXTENSION" when="SU|SC" value="3"/> <!-- Active from poly -->
+        <LayersRule ruleName="Active from Poly Mosis" layerNames="{P-Active, Transistor-Poly}, {N-Active, Transistor-Poly}" type="EXTENSION" when="DE" value="4"/> <!-- Active from poly -->
+        <LayersRule ruleName="Active from Poly Mosis" layerNames="{P-Active, Transistor-Poly}, {N-Active, Transistor-Poly}" type="EXTENSION" when="SU|SC" value="3"/> <!-- Active from poly -->
         <NodeLayersRule ruleName="Trans SelPoly Surround Mosis" layerNames="{P-Select, Transistor-Poly}" type="SURROUND" when="ALL" value="2" nodeName="P-Transistor"/>
         <NodeLayersRule ruleName="Trans SelPoly Surround Mosis" layerNames="{N-Select, Transistor-Poly}" type="SURROUND" when="ALL" value="2" nodeName="N-Transistor"/>
 

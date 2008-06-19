@@ -2788,10 +2788,10 @@
         <LayersRule ruleName="3.3 Mosis" layerNames="{Transistor-Poly,N-Active}" type="EXTENSION" when="DE" value="2.5"/>
         <LayersRule ruleName="3.3 Mosis" layerNames="{Transistor-Poly,P-Active}" type="EXTENSION" when="SU|SC" value="2.0"/>
         <LayersRule ruleName="3.3 Mosis" layerNames="{Transistor-Poly,N-Active}" type="EXTENSION" when="SU|SC" value="2.0"/>
-        <LayersRule ruleName="OD.C.6 TSMC" layerNames="{P-Active,Transistor-Poly}" type="EXTENSION" when="DE" value="4.0"/>
-        <LayersRule ruleName="OD.C.6 TSMC" layerNames="{N-Active,Transistor-Poly}" type="EXTENSION" when="DE" value="4.0"/>
-        <LayersRule ruleName="OD.C.6 TSMC" layerNames="{P-Active,Transistor-Poly}" type="EXTENSION" when="SU|SC" value="3.0"/>
-        <LayersRule ruleName="OD.C.6 TSMC" layerNames="{N-Active,Transistor-Poly}" type="EXTENSION" when="SU|SC" value="3.0"/>
+        <LayersRule ruleName="Active from Poly Mosis" layerNames="{P-Active,Transistor-Poly}" type="EXTENSION" when="DE" value="4.0"/>
+        <LayersRule ruleName="Active from Poly Mosis" layerNames="{N-Active,Transistor-Poly}" type="EXTENSION" when="DE" value="4.0"/>
+        <LayersRule ruleName="Active from Poly Mosis" layerNames="{P-Active,Transistor-Poly}" type="EXTENSION" when="SU|SC" value="3.0"/>
+        <LayersRule ruleName="Active from Poly Mosis" layerNames="{N-Active,Transistor-Poly}" type="EXTENSION" when="SU|SC" value="3.0"/>
         <NodeLayersRule ruleName="Trans SelPoly Surround Mosis" layerNames="{P-Select,Transistor-Poly}" type="SURROUND" when="ALL" value="2.0" nodeName="P-Transistor"/>
         <NodeLayersRule ruleName="Trans SelPoly Surround Mosis" layerNames="{N-Select,Transistor-Poly}" type="SURROUND" when="ALL" value="2.0" nodeName="N-Transistor"/>
         <LayersRule ruleName="3.5 Mosis" layerNames="{Polysilicon-1,P-Active}" type="SPACING" when="ALL" value="1.0"/>
