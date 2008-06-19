@@ -203,9 +203,6 @@ public class ComponentMenu extends EDialog
 		{
 			public void actionPerformed(ActionEvent evt) { nodeInfoChanged(); }
 		});
-		showNodeName.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent evt) { nodeInfoChanged(); }
-		});
 
 		if (techEdit)
 		{
@@ -433,10 +430,6 @@ public class ComponentMenu extends EDialog
 			String name = "Node entry: " + ni.protoName;
 			if (!fromPopup) selectedMenuName.setText(name);
 			showThisNode(true, ni, null);
-//		} else if (item instanceof MenuCell)
-//		{
-//			MenuCell mc = (MenuCell)item;
-//			if (!fromPopup) selectedMenuName.setText("Cell entry: " + mc.cellName);
 		} else if (item instanceof Xml.ArcProto)
 		{
 			Xml.ArcProto ap = (Xml.ArcProto)item;
@@ -459,12 +452,14 @@ public class ComponentMenu extends EDialog
 			}
 		} else if (item instanceof String)
 		{
-            String s = (String)item;
-            if (s.startsWith("LOADCELL ")) {
-                if (!fromPopup) selectedMenuName.setText("Cell entry: " + s.substring(9));
-            } else {
-                if (!fromPopup) selectedMenuName.setText("Special entry: " + s);
-            }
+			String s = (String)item;
+			if (s.startsWith("LOADCELL "))
+			{
+				if (!fromPopup) selectedMenuName.setText("Cell entry: " + s.substring(9));
+			} else
+			{
+				if (!fromPopup) selectedMenuName.setText("Special entry: " + s);
+			}
 		} else
 		{
 			if (!fromPopup) selectedMenuName.setText("Empty entry");
@@ -495,10 +490,6 @@ public class ComponentMenu extends EDialog
 	 */
 	private String getNodeName(Xml.MenuNodeInst ni)
 	{
-		if (ni.text != null && ni.text.length() > 0)
-		{
-			return ni.text;
-		}
 		return ni.protoName;
 	}
 
@@ -562,7 +553,6 @@ public class ComponentMenu extends EDialog
 	private void showThisNode(boolean valid, Xml.MenuNodeInst ni, Xml.PrimitiveNode np)
 	{
 		changingNodeFields = true;
-		showNodeName.setSelected(false);
 		nodeName.setText("");
 		nodeTextSize.setText("");
 		nodeAngle.setText("");
@@ -577,7 +567,6 @@ public class ComponentMenu extends EDialog
 			nodeNameLabel.setEnabled(true);
 			nodeTextSize.setEnabled(true);
 			nodeTextSizeLabel.setEnabled(true);
-			showNodeName.setEnabled(true);
 			if (ni == null)
 			{
 				nodeAngle.setText("0");
@@ -590,7 +579,6 @@ public class ComponentMenu extends EDialog
 				if (ni.text != null)
 				{
 					nodeName.setText(ni.text);
-					showNodeName.setSelected(ni.text != null);
 					nodeTextSize.setText(TextUtils.formatDouble(ni.fontSize));
 				}
 			}
@@ -604,7 +592,6 @@ public class ComponentMenu extends EDialog
 			nodeNameLabel.setEnabled(false);
 			nodeTextSize.setEnabled(false);
 			nodeTextSizeLabel.setEnabled(false);
-			showNodeName.setEnabled(false);
 		}
 		changingNodeFields = false;
 	}
@@ -745,13 +732,6 @@ public class ComponentMenu extends EDialog
 						showString(g, "Node", lowX, highX, lowY, midY);
 						showString(g, getNodeName(ni), lowX, highX, midY, highY);
 						borderColor = Color.BLUE;
-//					} else if (item instanceof MenuCell)
-//					{
-//						MenuCell cell = (MenuCell)item;
-//						int midY = (lowY + highY) / 2;
-//						showString(g, "Cell", lowX, highX, lowY, midY);
-//						showString(g, cell.cellName, lowX, highX, midY, highY);
-//						borderColor = Color.BLUE;
 					} else if (item instanceof Xml.ArcProto)
 					{
 						Xml.ArcProto ap = (Xml.ArcProto)item;
@@ -770,17 +750,18 @@ public class ComponentMenu extends EDialog
 						showString(g, "POPUP", lowX, highX, lowY, highY);
 					} else if (item instanceof String)
 					{
-                        String s = (String)item;
-                        if (s.startsWith("LOADCELL ")) {
-                            String cellName = s.substring(9);
-                            int midY = (lowY + highY) / 2;
-                            showString(g, "Cell", lowX, highX, lowY, midY);
-                            showString(g, cellName, lowX, highX, midY, highY);
-                            borderColor = Color.BLUE;
-                            
-                        } else {
-                            showString(g, "\"" + (String)item + "\"", lowX, highX, lowY, highY);
-                        }
+						String s = (String)item;
+						if (s.startsWith("LOADCELL "))
+						{
+							String cellName = s.substring(9);
+							int midY = (lowY + highY) / 2;
+							showString(g, "Cell", lowX, highX, lowY, midY);
+							showString(g, cellName, lowX, highX, midY, highY);
+							borderColor = Color.BLUE;
+						} else
+						{
+							showString(g, "\"" + (String)item + "\"", lowX, highX, lowY, highY);
+						}
 					}
 					if (borderColor != null)
 					{
@@ -886,7 +867,6 @@ public class ComponentMenu extends EDialog
         nodeFunctionLabel = new javax.swing.JLabel();
         nodeNameLabel = new javax.swing.JLabel();
         nodeTextSizeLabel = new javax.swing.JLabel();
-        showNodeName = new javax.swing.JCheckBox();
         nodeTextSize = new javax.swing.JTextField();
         nodeName = new javax.swing.JTextField();
         nodeFunction = new javax.swing.JComboBox();
@@ -1126,16 +1106,6 @@ public class ComponentMenu extends EDialog
         gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
         lowerLeft.add(nodeTextSizeLabel, gridBagConstraints);
 
-        showNodeName.setText("Show Label in Menu");
-        showNodeName.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
-        showNodeName.setMargin(new java.awt.Insets(0, 0, 0, 0));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(1, 4, 4, 4);
-        lowerLeft.add(showNodeName, gridBagConstraints);
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 5;
@@ -1327,10 +1297,7 @@ public class ComponentMenu extends EDialog
 			case 2: // add a cell
 				String cellName = (String)listCells.getSelectedValue();
 				String libName = (String)libraryName.getSelectedItem();
-                addToMenu("LOADCELL " + libName + ":" + cellName);
-//				MenuCell mc = new MenuCell();
-//				mc.cellName = libName + ":" + cellName;
-//				addToMenu(mc);
+				addToMenu("LOADCELL " + libName + ":" + cellName);
 				break;
 			case 3:	// add a special text
 				String specialName = (String)listSpecials.getSelectedValue();
@@ -1375,7 +1342,6 @@ public class ComponentMenu extends EDialog
     private javax.swing.JScrollPane popupListPane;
     private javax.swing.JButton removeButton;
     private javax.swing.JLabel selectedMenuName;
-    private javax.swing.JCheckBox showNodeName;
     private javax.swing.JScrollPane specialListPane;
     // End of variables declaration//GEN-END:variables
 

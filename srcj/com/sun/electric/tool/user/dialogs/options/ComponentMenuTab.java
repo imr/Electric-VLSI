@@ -117,6 +117,7 @@ public class ComponentMenuTab extends PreferencePanel
 		}
 		return menuArray;
 	}
+
 	/**
 	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the tab.
@@ -185,10 +186,7 @@ public class ComponentMenuTab extends PreferencePanel
 			if (np instanceof Cell)
 			{
 				Cell cell = (Cell)np;
-                return "LOADCELL " + cell.libDescribe();
-//				Xml.MenuCell xmc = new Xml.MenuCell();
-//				xmc.cellName = cell.libDescribe();
-//				return xmc;
+				return "LOADCELL " + cell.libDescribe();
 			}
 			for(Xml.PrimitiveNode xnp : xTech.nodes)
 			{
@@ -230,11 +228,6 @@ public class ComponentMenuTab extends PreferencePanel
 			Xml.ArcProto xap = (Xml.ArcProto)obj;
 			ArcProto ap = tech.findArcProto(xap.name);
 			return ap;
-//		} else if (obj instanceof Xml.MenuCell)
-//		{
-//			Xml.MenuCell xmc = (Xml.MenuCell)obj;
-//			Cell cell = (Cell)Cell.findNodeProto(xmc.cellName);
-//			return cell;
 		}
 		return obj;
 	}

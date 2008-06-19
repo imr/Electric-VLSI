@@ -1494,7 +1494,7 @@ public class Technology implements Comparable<Technology>, Serializable
             boolean hasText = (n.text != null);
             PrimitiveNode pn = findNodeProto(n.protoName);
             if (pn != null)
-                return makeNodeInst(pn, n.function, n.rotation, hasText, n.text, n.fontSize);
+            	return makeNodeInst(pn, n.function, n.rotation, hasText, n.text, n.fontSize);
         }
         return menuItem.toString();
     }
@@ -5667,7 +5667,6 @@ public class Technology implements Comparable<Technology>, Serializable
 
 		// if there are no preferences, setup default
 		if (nodeGroups == null) nodeGroups = getDefaultNodesGrouped();
-
 		return filterNodeGroups(nodeGroups);
 	}
 
@@ -5758,7 +5757,10 @@ public class Technology implements Comparable<Technology>, Serializable
 
 	    if (varName != null)
 	    {
-            ni.newVar(TECH_TMPVAR, varName, TextDescriptor.getNodeTextDescriptor().withDisplay(display).withRelSize(fontSize).withOff(0, -6));
+	    	TextDescriptor td = TextDescriptor.getNodeTextDescriptor().withDisplay(display).withRelSize(fontSize);
+	    	td = td.withOff(0, -ni.getYSize()/2).withPos(TextDescriptor.Position.UP);
+	    	if (angle != 0) td = td.withRotation(TextDescriptor.Rotation.getRotation(360-angle/10));
+            ni.newVar(TECH_TMPVAR, varName, td);
 	    }
 
         return ni;

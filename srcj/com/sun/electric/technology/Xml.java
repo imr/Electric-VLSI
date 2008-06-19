@@ -266,11 +266,11 @@ public class Xml {
     }
 
     public static class MenuNodeInst implements Serializable {
-        public String protoName;
-        public com.sun.electric.technology.PrimitiveNode.Function function;
-        public String text;
-        public double fontSize;
-        public int rotation;
+        /** the name of the prototype in the menu */			public String protoName;
+        /** the function of the prototype */					public com.sun.electric.technology.PrimitiveNode.Function function;
+        /** label to draw in the menu entry (may be null) */	public String text;
+        /** the size of the menu entry label */					public double fontSize;
+        /** the rotation of the node in the menu entry */		public int rotation;
     }
 
     public static class Distance implements Serializable {
@@ -459,7 +459,6 @@ public class Xml {
         }
         return null;
     }
-
     /**
      * Method to parse a string of XML that describes the component menu in a Technology Editing context.
      * Normal parsing of XML returns objects in the Xml class, but

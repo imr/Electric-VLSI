@@ -162,7 +162,8 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 							Object o = nodes.get(k);
 							if (o instanceof NodeInst)
 							{
-								nodes.set(k, rotateTransistor((NodeInst)o));
+								NodeInst ni = (NodeInst)o;
+								nodes.set(k, rotateTransistor(ni));
 							}
 						}
 					}
@@ -189,6 +190,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 		if (!ni.getProto().getTechnology().isLayout()) return ni;
 		int rot = 0;
 		if (User.isRotateLayoutTransistors()) rot = 900;
+		rot = (rot + ni.getAngle()) % 3600;
 		PrimitiveNode.Function fun = ni.getFunction();
 		if (fun.isTransistor())
 		{
@@ -577,10 +579,10 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         {
             PaletteFrame.placeInstance(obj, panel, false);
         }
-    };
+    }
 
     static class PlacePopupListListener extends PlacePopupListener
-            implements ActionListener
+        implements ActionListener
     {
         List list;
 	    List subList;
@@ -608,7 +610,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 	        }
             panel.paletteImageStale = true;
         }
-    };
+    }
 
     public void mouseClicked(MouseEvent e) {}
     public void mouseEntered(MouseEvent e) {}
@@ -710,8 +712,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         if (wid <= 0 || hei <= 0) return;
 
         // show the image
-        // copying from the image (here, gScreen is the Graphics
-        // object for the onscreen window)
+        // copying from the image (here, gScreen is the Graphics object for the onscreen window)
         do {
             int returnCode;
             if (paletteImage == null) {
@@ -762,7 +763,6 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                 break;
             }
         }
-        //int index = inPalette.indexOf(User.getUserTool().getCurrentArcProto());
 
         if (index >= 0) {
             int x = index / menuY;
@@ -819,7 +819,6 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                         if (otherAp.isSpecialArc()) continue;  // these are not drawn in palette
                         if (otherAp.isSkipSizeInPalette()) continue;
                         double wid = DBMath.gridToLambda(2*(otherAp.getDefaultGridExtendOverMin() + otherAp.getMaxLayerGridExtend()));
-//                        double wid = otherAp.getDefaultLambdaFullWidth();
                         if (wid+menuArcLength > largest) largest = wid+menuArcLength;
                     }
 
@@ -842,7 +841,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                         if (ni.getFunction() == PrimitiveNode.Function.TRAPNP || ni.getFunction() == PrimitiveNode.Function.TRA4PNP)
                             drawArrow = true;
                     } else {
-                    // rendering a node: create the temporary node
+                    	// rendering a node: create the temporary node
                         NodeProto np = (NodeProto)toDraw;
                         ni = NodeInst.makeDummyInstance(np);
                         if (np == Schematics.tech().diodeNode || np == Schematics.tech().capacitorNode ||
@@ -852,7 +851,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                     // determine scale for rendering
                     if (ni.isCellInstance())
                     {
-                    	String str = ni.getProto().getName(); // .describe(false);
+                    	String str = ni.getProto().getName();
                         int defSize = 12;
                         Font f = new Font(User.getDefaultFont(), Font.BOLD, defSize);
                         FontMetrics fm = g.getFontMetrics(f);

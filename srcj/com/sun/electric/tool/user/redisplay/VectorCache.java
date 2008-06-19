@@ -824,7 +824,7 @@ public class VectorCache {
         addToThisCell.add(new VectorLine(lX, hY, lX, lY, 0, null, instanceGraphics));
 	}
 
-	private static final Variable.Key NCCKEY = Variable.newKey("ATTR_NCC");
+//	private static final Variable.Key NCCKEY = Variable.newKey("ATTR_NCC");
     private static final PrimitivePortId busPinPortId = Schematics.tech().busPinNode.getPort(0).getId();
 
 	/**
