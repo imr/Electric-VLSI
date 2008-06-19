@@ -570,7 +570,14 @@ public class TechEditWizardData
 		for(;;)
 		{
 			while (pos < str.length() && str.charAt(pos) == ' ') pos++;
-			if (getRule)
+
+            if (index >= fieldArray.length)
+            {
+                 Job.getUserInterface().showErrorMessage("Invalid metal index: " + index,
+						"Syntax Error In Technology File");
+					return;
+            }
+            if (getRule)
 			{
 				if (str.charAt(pos) != '"')
 				{
@@ -592,7 +599,7 @@ public class TechEditWizardData
 			} else
 			{
 				double v = TextUtils.atof(str.substring(pos));
-				fieldArray[index++].v = v;
+                fieldArray[index++].v = v;
 			}
 			while (pos < str.length() && str.charAt(pos) != ',' && str.charAt(pos) != ')') pos++;
 			if (str.charAt(pos) != ',') break;
@@ -1474,7 +1481,7 @@ public class TechEditWizardData
         Xml.Layer nwellLayer = makeXmlLayer(t.layers, layer_width, "N-Well", Layer.Function.WELLN, 0, graph,
             (char)('A' + cifNumber++), nwell_width, false);
 
-        graph = new EGraphics(true, true, null, 0, 255, 0, 0, 0.4, true, nullPattern);
+        graph = new EGraphics(false, false, null, 0, 255, 0, 0, 0.4, true, nullPattern);
         // DeviceMark
         makeXmlLayer(t.layers, layer_width, "DeviceMark", Layer.Function.CONTROL, 0, graph,
             (char)('A' + cifNumber++), nplus_width, false);
@@ -1496,7 +1503,7 @@ public class TechEditWizardData
                 makeXmlArcLayer(polyLayer, poly_width));
         // poly pin
         double hla = scaledValue(poly_width.v / 2);
-        makeXmlPrimitivePin(t.nodes, polyLayer.name, hla, new SizeOffset(hla, hla, hla, hla),
+        makeXmlPrimitivePin(t.nodes, polyLayer.name, hla, null, // new SizeOffset(hla, hla, hla, hla),
             makeXmlNodeLayer(hla, hla, hla, hla, polyLayer, Poly.Type.CROSSED, true));
 
         /**************************** N/P-Diff Nodes/Arcs ***********************************************/
@@ -1554,7 +1561,7 @@ public class TechEditWizardData
             Xml.Layer lb = metalLayers.get(i-1);
 
             // Pin bottom metal
-            makeXmlPrimitivePin(t.nodes, lb.name, hla, new SizeOffset(hla, hla, hla, hla),
+            makeXmlPrimitivePin(t.nodes, lb.name, hla, null, //new SizeOffset(hla, hla, hla, hla),
                 makeXmlNodeLayer(hla, hla, hla, hla, lb, Poly.Type.CROSSED, true));
 
             // Contact Square
@@ -1572,7 +1579,7 @@ public class TechEditWizardData
             portNames.clear();
             portNames.add(lt.name);
             portNames.add(lb.name);
-            makeXmlPrimitiveCon(t.nodes, name, hla, new SizeOffset(hla, hla, hla, hla), portNames,
+            makeXmlPrimitiveCon(t.nodes, name, hla, null /*new SizeOffset(hla, hla, hla, hla)*/, portNames,
                 makeXmlNodeLayer(hla, hla, hla, hla, lb, Poly.Type.FILLED, true), // bottom layer
                 makeXmlNodeLayer(hla, hla, hla, hla, lt, Poly.Type.FILLED, true), // top layer
                 makeXmlMulticut(via, viaSize, viaSpacing, viaArraySpacing)); // via

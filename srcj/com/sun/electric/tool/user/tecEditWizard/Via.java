@@ -127,7 +127,7 @@ public class Via extends TechEditWizardPanel
         gbc.insets = new Insets(4, 0, 1, 2);
         via.add(sizeRule, gbc);
 
-        JLabel spacingLabel = new JLabel("Via spacing (B):");
+        JLabel spacingLabel = new JLabel("Via inline spacing (B):");
     	gbc = new GridBagConstraints();
     	gbc.gridx = 0;   gbc.gridy = 5;
         gbc.anchor = GridBagConstraints.WEST;

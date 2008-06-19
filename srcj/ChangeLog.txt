@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07l: ******************************
 
+IMP: (6/18/08, GVG) Improves in TechEditorWizard including better handling of errors in txt file
+and layers with a null pattern.
+
 IMP: (6/17/08, DN) Remove class text.SimpleImmutableEntry because of license.
 
 BUG: (6/16/08, DN) SogRouterAdapter: redundant metal, preferred routing directions (Bug #1679)

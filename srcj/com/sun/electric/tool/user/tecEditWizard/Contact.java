@@ -135,7 +135,7 @@ public class Contact extends TechEditWizardPanel
 
         contact.setLayout(new java.awt.GridBagLayout());
 
-        jLabel1.setText("Size (A):");
+        jLabel1.setText("Cut size (A):");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
@@ -150,7 +150,7 @@ public class Contact extends TechEditWizardPanel
         gridBagConstraints.insets = new java.awt.Insets(1, 0, 1, 2);
         contact.add(size, gridBagConstraints);
 
-        jLabel2.setText("Spacing (B):");
+        jLabel2.setText("Cut inline spacing (B):");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
@@ -165,7 +165,7 @@ public class Contact extends TechEditWizardPanel
         gridBagConstraints.insets = new java.awt.Insets(1, 0, 1, 2);
         contact.add(spacing, gridBagConstraints);
 
-        jLabel3.setText("Metal overhang, inline (C):");
+        jLabel3.setText("Metal overhang, inline (D):");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 6;
@@ -180,7 +180,7 @@ public class Contact extends TechEditWizardPanel
         gridBagConstraints.insets = new java.awt.Insets(1, 0, 1, 2);
         contact.add(metalOverhangInline, gridBagConstraints);
 
-        jLabel4.setText("Metal overhang, all (D):");
+        jLabel4.setText("Metal overhang, all (E):");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 7;
@@ -201,7 +201,7 @@ public class Contact extends TechEditWizardPanel
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         contact.add(image, gridBagConstraints);
 
-        jLabel5.setText("Poly overhang (E):");
+        jLabel5.setText("Poly overhang (F):");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 8;
@@ -216,7 +216,7 @@ public class Contact extends TechEditWizardPanel
         gridBagConstraints.insets = new java.awt.Insets(1, 0, 1, 2);
         contact.add(polyOverhang, gridBagConstraints);
 
-        jLabel6.setText("Active spacing (F):");
+        jLabel6.setText("Active spacing (G):");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 9;
@@ -301,7 +301,7 @@ public class Contact extends TechEditWizardPanel
         gridBagConstraints.insets = new java.awt.Insets(1, 2, 1, 2);
         contact.add(activeSpacingRule, gridBagConstraints);
 
-        jLabel11.setText("Array Spacing (B'):");
+        jLabel11.setText("Cut array spacing (C):");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 5;
