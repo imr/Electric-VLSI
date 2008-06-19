@@ -53,21 +53,21 @@ public class LayerInfo extends Info
 	EGraphics      desc;
 	Layer.Function fun;
 	int            funExtra;
-    boolean        pseudo;
-    LayerInfo      myPseudo;
-    NodeInfo       pureLayerNode;
+	boolean        pseudo;
+	LayerInfo      myPseudo;
+	NodeInfo       pureLayerNode;
 	String         cif;
-    String         dxf;
-    String         skill;
+	String         dxf;
+	String         skill;
 	String         gds;
 	double         spiRes;
 	double         spiCap;
 	double         spiECap;
 	double         height3d;
 	double         thick3d;
-    String         mode3d;
-    double         factor3d;
-    double         coverage;
+	String         mode3d;
+	double         factor3d;
+	double         coverage;
 	Layer          generated;
 
 	static SpecialTextDescr [] layerTextTable =
@@ -89,7 +89,7 @@ public class LayerInfo extends Info
 	LayerInfo()
 	{
 		name = "";
-		desc = new EGraphics(false, true, null, 0, 0, 0, 0, 1, false, new int[16]);
+		desc = new EGraphics(false, false, null, 0, 0, 0, 0, 1, false, new int[16]);
 		fun = Layer.Function.UNKNOWN;
 		cif = "";
 		gds = "";
@@ -164,8 +164,8 @@ public class LayerInfo extends Info
 			}
 			NodeInst ni = NodeInst.makeInstance(Generic.tech().invisiblePinNode, new Point2D.Double(-12, 3.5), 0, 0, np);
 			if (ni == null) return;
-            
-            TextDescriptor td = TextDescriptor.getNodeTextDescriptor().withRelSize(0.5);
+
+			TextDescriptor td = TextDescriptor.getNodeTextDescriptor().withRelSize(0.5);
 			ni.newVar(Artwork.ART_MESSAGE, "Stipple Pattern", td);
 		}
 
@@ -212,8 +212,8 @@ public class LayerInfo extends Info
 		loadTableEntry(layerTextTable, LAYER3DHEIGHT, new Double(height3d));
 		loadTableEntry(layerTextTable, LAYER3DTHICK, new Double(thick3d));
 		loadTableEntry(layerTextTable, LAYER3DMODE, mode3d);
-        loadTableEntry(layerTextTable, LAYER3DFACTOR, new Double(factor3d));
-        loadTableEntry(layerTextTable, LAYERCOVERAGE, new Double(coverage));
+		loadTableEntry(layerTextTable, LAYER3DFACTOR, new Double(factor3d));
+		loadTableEntry(layerTextTable, LAYERCOVERAGE, new Double(coverage));
 
 		for(int i=0; i<layerTextTable.length; i++)
 		{
