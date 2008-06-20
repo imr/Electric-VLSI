@@ -991,21 +991,43 @@ public class Verilog extends Topology
 		// check export direction consistency (inconsistent directions can cause opens in some tools)
 		for (Iterator<Export> it = cell.getExports(); it.hasNext(); ) {
 			Export ex = it.next();
-				PortCharacteristic type = ex.getCharacteristic();
-				if (type == PortCharacteristic.BIDIR) continue; // whatever it is connect to is fine
-				for (int i=0; i<ex.getNameKey().busWidth(); i++) {
-					Network net = netList.getNetwork(ex, i);
-					List<Export> subports = instancePortsOnNet.get(net);
-					if (subports == null) continue;
-					for (Export subex : subports) {
-						PortCharacteristic subtype = subex.getCharacteristic();
-						if (type != subtype) {
-							System.out.println("Warning: Port Direction Inconsistency in cell "+cell.describe(false)+
-								" between export "+ex.getNameKey().subname(i)+"["+type+"] and instance port "+
-								subex.getParent().noLibDescribe()+" - "+subex.getName()+"["+subtype+"]");
-						}
-					}
-				}
+            PortCharacteristic type = ex.getCharacteristic();
+            if (type == PortCharacteristic.BIDIR) continue; // whatever it is connect to is fine
+            if (type == PortCharacteristic.OUT) {
+                // check all nets on bus
+                for (int i=0; i<ex.getNameKey().busWidth(); i++) {
+                    // make sure at least one subcell output driving this output export
+                    boolean outputFound = false;
+                    Network net = netList.getNetwork(ex, i);
+                    List<Export> subports = instancePortsOnNet.get(net);
+                    if (subports == null) continue;
+                    for (Export subex : subports) {
+                        if (subex.getCharacteristic() == PortCharacteristic.OUT) {
+                            outputFound = true; break;
+                        }
+                    }
+                    if (!outputFound) {
+                        System.out.println("Warning: Port Direction Inconsistency in cell "+cell.describe(false)+
+                            " for OUTPUT "+ex.getNameKey().subname(i)+"["+type+"]: no output driver found on network.");
+                    }
+                }
+            }
+            if (type == PortCharacteristic.IN) {
+                // check all nets on bus
+                for (int i=0; i<ex.getNameKey().busWidth(); i++) {
+                    // make sure no outputs driving input export
+                    Network net = netList.getNetwork(ex, i);
+                    List<Export> subports = instancePortsOnNet.get(net);
+                    if (subports == null) continue;
+                    for (Export subex : subports) {
+                        if (subex.getCharacteristic() == PortCharacteristic.OUT) {
+                            System.out.println("Warning: Port Direction Inconsistency in cell "+cell.describe(false)+
+                                " for INPUT "+ex.getNameKey().subname(i)+"["+type+"]: found output driver "+
+                                subex.getParent().noLibDescribe()+" - "+subex.getName()+"["+subex.getCharacteristic()+"] on network, should be BIDIR");
+                        }
+                    }
+                }
+            }
 		}
 	}
 
