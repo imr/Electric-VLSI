@@ -854,10 +854,7 @@ public class TechEditWizardData
 		if (fileName == null) return;
 		try
 		{
-            dumpXMLFile(fileName+"New");
-            PrintWriter printWriter = new PrintWriter(new BufferedWriter(new FileWriter(fileName)));
-			dumpTechnology(printWriter);
-			printWriter.close();
+            dumpXMLFile(fileName);
 		} catch (IOException e)
 		{
 			System.out.println("Error writing XML file");
@@ -894,14 +891,9 @@ public class TechEditWizardData
     {
         List<Xml.NodeLayer> nodesList = new ArrayList<Xml.NodeLayer>(list.length);
         List<Xml.PrimitivePort> nodePorts = new ArrayList<Xml.PrimitivePort>();
-//        List<String> portNames = new ArrayList<String>();
 
         for (Xml.NodeLayer lb : list)
-        {
             nodesList.add(lb);
-//            if (lb.representation != Technology.NodeLayer.MULTICUTBOX) // no multi-cut layers. Eg. vias
-//                portNames.add(lb.layer);
-        }
 
         nodePorts.add(makeXmlPrimitivePort(name.toLowerCase(), 0, 180, 0, null, 0, 0, 0, 0, portNames));
         return makeXmlPrimitive(nodes, name + "-Con", PrimitiveNode.Function.CONTACT, size, size, 0, 0,
@@ -1069,9 +1061,9 @@ public class TechEditWizardData
      * Method to create the XML version of a Layer.
      * @return
      */
-    private Xml.Layer makeXmlLayer(List<Xml.Layer> layers, Map<Xml.Layer,WizardField> layer_width, String name,
-                                   Layer.Function function, int extraf,
-                                   EGraphics graph, char cifLetter, WizardField width, boolean pureLayerNode) {
+    private Xml.Layer makeXmlLayer(List<Xml.Layer> layers, Map<Xml.Layer, WizardField> layer_width, String name,
+                                   Layer.Function function, int extraf, EGraphics graph, char cifLetter,
+                                   WizardField width, boolean pureLayerNode, boolean pureLayerPortArc) {
         Xml.Layer l = new Xml.Layer();
         l.name = name;
         l.function = function;
@@ -1088,6 +1080,10 @@ public class TechEditWizardData
         l.edgeCapacitance = 0;
 //            if (layer.getPseudoLayer() != null)
 //                l.pseudoLayer = layer.getPseudoLayer().getName();
+
+        // if pureLayerNode is false, pureLayerPortArc must be false
+        assert(pureLayerNode || !pureLayerPortArc);
+
         if (pureLayerNode) {
             l.pureLayerNode = new Xml.PureLayerNode();
             l.pureLayerNode.name = name + "-Node";
@@ -1095,7 +1091,8 @@ public class TechEditWizardData
             l.pureLayerNode.size.addLambda(scaledValue(width.v));
             l.pureLayerNode.port = "Port_" + name;
 /*            l.pureLayerNode.size.addRule(width.rule, 1);*/
-            l.pureLayerNode.portArcs.add(name);
+            if (pureLayerPortArc)
+                l.pureLayerNode.portArcs.add(name);
 //            for (ArcProto ap: pureLayerNode.getPort(0).getConnections()) {
 //                if (ap.getTechnology() != tech) continue;
 //                l.pureLayerNode.portArcs.add(ap.getName());
@@ -1383,7 +1380,7 @@ public class TechEditWizardData
             if (fun == null)
                 throw new IOException("invalid number of metals");
             Xml.Layer layer = makeXmlLayer(t.layers, layer_width, "Metal-"+metalNum, fun, 0, graph,
-                (char)('A' + cifNumber++), metal_width[i], true);
+                (char)('A' + cifNumber++), metal_width[i], true, true);
             metalLayers.add(layer);
         }
 
@@ -1401,35 +1398,35 @@ public class TechEditWizardData
             if (fun == null)
                 throw new IOException("invalid number of vias");
             viaLayers.add(makeXmlLayer(t.layers, layer_width, "Via-"+metalNum, fun, Layer.Function.CONMETAL,
-                graph, (char)('A' + cifNumber++), via_size[i], false));
+                graph, (char)('A' + cifNumber++), via_size[i], false, false));
         }
 
         // Poly
         EGraphics graph = new EGraphics(false, false, null, 1, 0, 0, 0, 1, true, nullPattern);
         Xml.Layer polyLayer = makeXmlLayer(t.layers, layer_width, "Poly", Layer.Function.POLY1, 0, graph,
-            (char)('A' + cifNumber++), poly_width, true);
+            (char)('A' + cifNumber++), poly_width, true, true);
         // PolyGate
         Xml.Layer polyGateLayer = makeXmlLayer(t.layers, layer_width, "PolyGate", Layer.Function.GATE, 0, graph,
-            (char)('A' + cifNumber++), poly_width, false);
+            (char)('A' + cifNumber++), poly_width, false, false);
 
         // PolyCon and DiffCon
         graph = new EGraphics(false, false, null, 0, contact_colour.getRed(), contact_colour.getGreen(),
             contact_colour.getBlue(), 1, true, nullPattern);
         // PolyCon
         Xml.Layer polyCon = makeXmlLayer(t.layers, layer_width, "PolyCon", Layer.Function.CONTACT1,
-            Layer.Function.CONPOLY, graph, (char)('A' + cifNumber++), contact_size, false);
+            Layer.Function.CONPOLY, graph, (char)('A' + cifNumber++), contact_size, false, false);
         // DiffCon
         Xml.Layer diffCon = makeXmlLayer(t.layers, layer_width, "DiffCon", Layer.Function.CONTACT1,
-            Layer.Function.CONDIFF, graph, (char)('A' + cifNumber++), contact_size, false);
+            Layer.Function.CONDIFF, graph, (char)('A' + cifNumber++), contact_size, false, false);
 
         // P-Diff and N-Diff
         graph = new EGraphics(false, false, null, 2, 0, 0, 0, 1, true, nullPattern);
         // N-Diff
         Xml.Layer diffNLayer = makeXmlLayer(t.layers, layer_width, "N-Diff", Layer.Function.DIFFN, 0, graph,
-            (char)('A' + cifNumber++), diff_width, true);
+            (char)('A' + cifNumber++), diff_width, true, true);
         // P-Diff
         Xml.Layer diffPLayer = makeXmlLayer(t.layers, layer_width, "P-Diff", Layer.Function.DIFFP, 0, graph,
-            (char)('A' + cifNumber++), diff_width, true);
+            (char)('A' + cifNumber++), diff_width, true, true);
 
         // NPlus and PPlus
         int [] pattern = new int[] { 0x1010,   //    X       X
@@ -1452,12 +1449,12 @@ public class TechEditWizardData
         graph = new EGraphics(true, true, null, 0, nplus_colour.getRed(), nplus_colour.getGreen(),
             nplus_colour.getBlue(), 1, true, pattern);
         Xml.Layer nplusLayer = makeXmlLayer(t.layers, layer_width, "NPlus", com.sun.electric.technology.Layer.Function.IMPLANTN, 0, graph,
-            (char)('A' + cifNumber++), nplus_width, false);
+            (char)('A' + cifNumber++), nplus_width, true, false);
         // PPlus
         graph = new EGraphics(true, true, null, 0, pplus_colour.getRed(), pplus_colour.getGreen(),
             pplus_colour.getBlue(), 1, true, pattern);
         Xml.Layer pplusLayer = makeXmlLayer(t.layers, layer_width, "PPlus", Layer.Function.IMPLANTP, 0, graph,
-            (char)('A' + cifNumber++), pplus_width, false);
+            (char)('A' + cifNumber++), pplus_width, true, false);
 
 //		layers.add("N-Well");
         pattern = new int[] { 0x0202,   //       X       X
@@ -1479,12 +1476,12 @@ public class TechEditWizardData
         graph = new EGraphics(true, true, null, 0, nwell_colour.getRed(), nwell_colour.getGreen(),
             nwell_colour.getBlue(), 1, true, pattern);
         Xml.Layer nwellLayer = makeXmlLayer(t.layers, layer_width, "N-Well", Layer.Function.WELLN, 0, graph,
-            (char)('A' + cifNumber++), nwell_width, false);
+            (char)('A' + cifNumber++), nwell_width, true, false);
 
         graph = new EGraphics(false, false, null, 0, 255, 0, 0, 0.4, true, nullPattern);
         // DeviceMark
         makeXmlLayer(t.layers, layer_width, "DeviceMark", Layer.Function.CONTROL, 0, graph,
-            (char)('A' + cifNumber++), nplus_width, false);
+            (char)('A' + cifNumber++), nplus_width, true, false);
 
         // write arcs
         // metal arcs
@@ -1505,7 +1502,21 @@ public class TechEditWizardData
         double hla = scaledValue(poly_width.v / 2);
         makeXmlPrimitivePin(t.nodes, polyLayer.name, hla, null, // new SizeOffset(hla, hla, hla, hla),
             makeXmlNodeLayer(hla, hla, hla, hla, polyLayer, Poly.Type.CROSSED, true));
-
+        // poly contact
+        portNames.clear();
+        portNames.add(polyLayer.name);
+        portNames.add(metalLayers.get(0).name);
+        hla = scaledValue((contact_size.v/2 + contact_poly_overhang.v));
+        Xml.Layer m1Layer = metalLayers.get(0);
+        double contSize = scaledValue(contact_size.v);
+        double contSpacing = scaledValue(contact_spacing.v);
+        double contArraySpacing = scaledValue(contact_array_spacing.v);
+        double metal1Over = scaledValue(contact_size.v/2 + contact_metal_overhang_all_sides.v);
+        makeXmlPrimitiveCon(t.nodes, polyLayer.name, hla, null, portNames,
+                makeXmlNodeLayer(metal1Over, metal1Over, metal1Over, metal1Over, m1Layer, Poly.Type.FILLED, true), // meta1 layer
+                makeXmlNodeLayer(hla, hla, hla, hla, polyLayer, Poly.Type.FILLED, true), // poly layer
+                makeXmlMulticut(diffCon, contSize, contSpacing, contArraySpacing)); // contact
+        
         /**************************** N/P-Diff Nodes/Arcs ***********************************************/
         // NDiff/PDiff arcs
         makeXmlArc(t.arcs, "N-Diff", ArcProto.Function.DIFFN, 0,
@@ -1517,40 +1528,64 @@ public class TechEditWizardData
                 makeXmlArcLayer(nwellLayer, diff_width, nwell_overhang_diff));
 
         // ndiff/pdiff pins
-        hla = scaledValue(diff_width.v/2);
-        double nsel = scaledValue(diff_width.v/2 + nplus_overhang_diff.v);
-        double psel = scaledValue(diff_width.v/2 + pplus_overhang_diff.v);
-        double nwell = scaledValue(diff_width.v/2 + nwell_overhang_diff.v);
-        double so = scaledValue(nwell_overhang_diff.v);
+        hla = scaledValue((contact_size.v/2 + diff_contact_overhang.v));
+        double nsel = scaledValue(contact_size.v/2 + diff_contact_overhang.v + nplus_overhang_diff.v);
+        double psel = scaledValue(contact_size.v/2 + diff_contact_overhang.v + pplus_overhang_diff.v);
+        double nwell = scaledValue(contact_size.v/2 + diff_contact_overhang.v + nwell_overhang_diff.v);
+        double nso = scaledValue(nwell_overhang_diff.v); // valid for elements that have nwell layers
+        double pso = scaledValue(nplus_overhang_diff.v);
 
         makeXmlPrimitivePin(t.nodes, "N-Diff", hla,
-            new SizeOffset(so, so, so, so),
+            new SizeOffset(pso, pso, pso, pso),
             makeXmlNodeLayer(hla, hla, hla, hla, diffNLayer, Poly.Type.CROSSED, true),
             makeXmlNodeLayer(nsel, nsel, nsel, nsel, nplusLayer, Poly.Type.CROSSED, true));
         makeXmlPrimitivePin(t.nodes, "P-Diff", hla,
-            new SizeOffset(so, so, so, so),
+            new SizeOffset(nso, nso, nso, nso),
             makeXmlNodeLayer(hla, hla, hla, hla, diffPLayer, Poly.Type.CROSSED, true),
             makeXmlNodeLayer(psel, psel, psel, psel, pplusLayer, Poly.Type.CROSSED, true),
             makeXmlNodeLayer(nwell, nwell, nwell, nwell, nwellLayer, Poly.Type.CROSSED, true));
 
         // ndiff/pdiff contacts
-        double contSize = scaledValue(contact_size.v);
-        double contSpacing = scaledValue(contact_spacing.v);
-        double contArraySpacing = scaledValue(contact_array_spacing.v);
+        hla = scaledValue((contact_size.v/2 + diff_contact_overhang.v));
         portNames.clear();
         portNames.add(diffNLayer.name);
+        portNames.add(m1Layer.name);
         // ndiff contact
-        makeXmlPrimitiveCon(t.nodes, "N-Diff", hla, new SizeOffset(so, so, so, so), portNames,
-                makeXmlNodeLayer(hla, hla, hla, hla, diffNLayer, Poly.Type.FILLED, true), // bottom layer
-                makeXmlNodeLayer(nsel, nsel, nsel, nsel, nplusLayer, Poly.Type.FILLED, true), // top layer
+        makeXmlPrimitiveCon(t.nodes, "N-Diff", hla, new SizeOffset(pso, pso, pso, pso), portNames,
+                makeXmlNodeLayer(metal1Over, metal1Over, metal1Over, metal1Over, m1Layer, Poly.Type.FILLED, true), // meta1 layer
+                makeXmlNodeLayer(hla, hla, hla, hla, diffNLayer, Poly.Type.FILLED, true), // active layer
+                makeXmlNodeLayer(nsel, nsel, nsel, nsel, nplusLayer, Poly.Type.FILLED, true), // select layer
                 makeXmlMulticut(diffCon, contSize, contSpacing, contArraySpacing)); // contact
         // pdiff contact
         portNames.clear();
         portNames.add(diffPLayer.name);
-        makeXmlPrimitiveCon(t.nodes, "P-Diff", hla, new SizeOffset(so, so, so, so), portNames,
-                makeXmlNodeLayer(hla, hla, hla, hla, diffPLayer, Poly.Type.FILLED, true), // bottom layer
-                makeXmlNodeLayer(psel, psel, psel, psel, pplusLayer, Poly.Type.FILLED, true), // top layer
-                makeXmlNodeLayer(nwell, nwell, nwell, nwell, nwellLayer, Poly.Type.FILLED, true),
+        portNames.add(m1Layer.name);
+        makeXmlPrimitiveCon(t.nodes, "P-Diff", hla, new SizeOffset(nso, nso, nso, nso), portNames,
+                makeXmlNodeLayer(metal1Over, metal1Over, metal1Over, metal1Over, m1Layer, Poly.Type.FILLED, true), // meta1 layer
+                makeXmlNodeLayer(hla, hla, hla, hla, diffPLayer, Poly.Type.FILLED, true), // active layer
+                makeXmlNodeLayer(psel, psel, psel, psel, pplusLayer, Poly.Type.FILLED, true), // select layer
+                makeXmlNodeLayer(nwell, nwell, nwell, nwell, nwellLayer, Poly.Type.FILLED, true), // well layer
+                makeXmlMulticut(diffCon, contSize, contSpacing, contArraySpacing)); // contact
+
+        /**************************** N/P-Well Contacts ***********************************************/
+        portNames.clear();
+        portNames.add(diffNLayer.name);
+        portNames.add(m1Layer.name);
+        // pwell contact
+        makeXmlPrimitiveCon(t.nodes, "P-Well", hla, new SizeOffset(pso, pso, pso, pso), portNames,
+                makeXmlNodeLayer(metal1Over, metal1Over, metal1Over, metal1Over, m1Layer, Poly.Type.FILLED, true), // meta1 layer
+                makeXmlNodeLayer(hla, hla, hla, hla, diffPLayer, Poly.Type.FILLED, true), // active layer
+                makeXmlNodeLayer(nsel, psel, psel, psel, pplusLayer, Poly.Type.FILLED, true), // select layer
+                makeXmlMulticut(diffCon, contSize, contSpacing, contArraySpacing)); // contact
+        // nwell contact
+        portNames.clear();
+        portNames.add(diffPLayer.name);
+        portNames.add(m1Layer.name);
+        makeXmlPrimitiveCon(t.nodes, "N-Well", hla, new SizeOffset(nso, nso, nso, nso), portNames,
+                makeXmlNodeLayer(metal1Over, metal1Over, metal1Over, metal1Over, m1Layer, Poly.Type.FILLED, true), // meta1 layer
+                makeXmlNodeLayer(hla, hla, hla, hla, diffNLayer, Poly.Type.FILLED, true), // active layer
+                makeXmlNodeLayer(nsel, nsel, nsel, nsel, nplusLayer, Poly.Type.FILLED, true), // select layer
+                makeXmlNodeLayer(nwell, nwell, nwell, nwell, nwellLayer, Poly.Type.FILLED, true), // well layer
                 makeXmlMulticut(diffCon, contSize, contSpacing, contArraySpacing)); // contact
 
         /**************************** Metals Nodes/Arcs ***********************************************/
@@ -1593,10 +1628,15 @@ public class TechEditWizardData
 		for(int i = 0; i < 2; i++)
         {
             String name;
-            double wellx = 0, welly = 0, selecty = 0;
+            double selecty = 0, selectx = 0;
             Xml.Layer wellLayer = null, activeLayer, selectLayer;
+            double sox = 0, soy = 0;
+            double width = scaledValue((gate_width.v));
+            double length = scaledValue((gate_length.v));
             double impx = scaledValue((gate_width.v)/2);
             double impy = scaledValue((gate_length.v+diff_poly_overhang.v*2)/2);
+            double wellx = scaledValue((gate_width.v/2+nwell_overhang_diff.v));
+            double welly = scaledValue((gate_length.v/2+diff_poly_overhang.v+nwell_overhang_diff.v));
 
             if (i==0)
 			{
@@ -1604,16 +1644,19 @@ public class TechEditWizardData
                 wellLayer = nwellLayer;
                 activeLayer = diffPLayer;
                 selectLayer = pplusLayer;
-                wellx = scaledValue((gate_width.v+(poly_endcap.v+pplus_overhang_poly.v)*2)/2);
-                welly = scaledValue((gate_length.v+diff_poly_overhang.v*2+nwell_overhang_diff.v*2)/2);
-                selecty = scaledValue((gate_length.v+diff_poly_overhang.v*2+pplus_overhang_diff.v*2)/2);
+                sox = scaledValue(nwell_overhang_diff.v);
+                soy = scaledValue(diff_poly_overhang.v+nwell_overhang_diff.v);
+                selectx = scaledValue((gate_width.v/2+(poly_endcap.v+pplus_overhang_poly.v)));
+                selecty = scaledValue((gate_length.v/2+diff_poly_overhang.v+pplus_overhang_diff.v));
             } else
 			{
 				name = "N";
                 activeLayer = diffNLayer;
                 selectLayer = nplusLayer;
-                wellx = scaledValue((gate_width.v+(poly_endcap.v+nplus_overhang_poly.v)*2)/2);
-                selecty = scaledValue((gate_length.v+diff_poly_overhang.v*2+nplus_overhang_diff.v*2)/2);
+                sox = scaledValue(poly_endcap.v+pplus_overhang_poly.v);
+                soy = scaledValue(diff_poly_overhang.v+pplus_overhang_diff.v);
+                selectx = scaledValue((gate_width.v/2+(poly_endcap.v+nplus_overhang_poly.v)));
+                selecty = scaledValue((gate_length.v/2+diff_poly_overhang.v+nplus_overhang_diff.v));
             }
             nodesList.clear();
             nodePorts.clear();
@@ -1653,11 +1696,11 @@ public class TechEditWizardData
             nodePorts.add(makeXmlPrimitivePort("trans-poly-right", 0, 180, 0, minFullSize, endPoly, endPoly, 0, 0, portNames));
 
             // Select layer
-            nodesList.add(makeXmlNodeLayer(wellx, wellx, selecty, selecty, selectLayer, Poly.Type.FILLED, true));
+            nodesList.add(makeXmlNodeLayer(selectx, selectx, selecty, selecty, selectLayer, Poly.Type.FILLED, true));
 
             // Transistor
             makeXmlPrimitive(t.nodes, name + "-Transistor", PrimitiveNode.Function.TRANMOS, 0, 0, 0, 0,
-                null, nodesList, nodePorts, null, false);
+                new SizeOffset(sox, sox, soy, soy), nodesList, nodePorts, null, false);
         }
         
         /** RULES **/
@@ -1729,1279 +1772,1279 @@ public class TechEditWizardData
         }
     }
 
-    private void dumpTechnology(PrintWriter pw)
-	{
-		// LAYER COLOURS
-		Color [] metal_colour = new Color[]
-		{
-			new Color(0,150,255),   // cyan/blue
-			new Color(148,0,211),   // purple
-			new Color(255,215,0),   // yellow
-			new Color(132,112,255), // mauve
-			new Color(255,160,122), // salmon
-			new Color(34,139,34),   // dull green
-			new Color(178,34,34),   // dull red
-			new Color(34,34,178),   // dull blue
-			new Color(153,153,153), // light gray
-			new Color(102,102,102)  // dark gray
-		};
-		Color poly_colour = new Color(255,155,192);   // pink
-		Color diff_colour = new Color(107,226,96);    // light green
-		Color via_colour = new Color(205,205,205);    // lighter gray
-		Color contact_colour = new Color(40,40,40);   // darker gray
-		Color nplus_colour = new Color(224,238,224);
-		Color pplus_colour = new Color(224,224,120);
-		Color nwell_colour = new Color(140,140,140);
-
-        // write the header
-		String foundry_name = "NONE";
-		pw.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-		pw.println();
-		pw.println("<!--");
-		pw.println(" *");
-		pw.println(" *  Electric technology file for process \"" + tech_name + "\"");
-		pw.println(" *");
-		pw.println(" *  Automatically generated by Electric's technology wizard");
-		pw.println(" *");
-		pw.println("-->");
-		pw.println();
-		pw.println("<technology name=\"" + tech_name + "\"");
-		pw.println("    xmlns=\"http://electric.sun.com/Technology\"");
-		pw.println("    xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"");
-		pw.println("    xsi:schemaLocation=\"http://electric.sun.com/Technology ../../technology/Technology.xsd\">");
-		pw.println();
-		pw.println("    <shortName>" + tech_name + "</shortName>");
-		pw.println("    <description>" + tech_description + "</description>");
-		pw.println("    <numMetals min=\"" + num_metal_layers + "\" max=\"" + num_metal_layers + "\" default=\"" + num_metal_layers + "\"/>");
-		pw.println("    <scale value=\"" + floaty(stepsize) + "\" relevant=\"true\"/>");
-		pw.println("    <defaultFoundry value=\"" + foundry_name + "\"/>");
-		pw.println("    <minResistance value=\"1.0\"/>");
-		pw.println("    <minCapacitance value=\"0.1\"/>");
-		pw.println();
-
-		// write the transparent layer colors
-		int li = 1;
-		pw.println("    <!-- Transparent layers -->");
-		pw.println("    <transparentLayer transparent=\"" + (li++) + "\">");
-		pw.println("        <r>" + poly_colour.getRed() + "</r>");
-		pw.println("        <g>" + poly_colour.getGreen() + "</g>");
-		pw.println("        <b>" + poly_colour.getBlue() + "</b>");
-		pw.println("    </transparentLayer>");
-		pw.println("    <transparentLayer transparent=\"" + (li++) + "\">");
-		pw.println("        <r>" + diff_colour.getRed() + "</r>");
-		pw.println("        <g>" + diff_colour.getGreen() + "</g>");
-		pw.println("        <b>" + diff_colour.getBlue() + "</b>");
-		pw.println("    </transparentLayer>");
-		pw.println("    <transparentLayer transparent=\"" + (li++) + "\">");
-		pw.println("        <r>" + metal_colour[0].getRed() + "</r>");
-		pw.println("        <g>" + metal_colour[0].getGreen() + "</g>");
-		pw.println("        <b>" + metal_colour[0].getBlue() + "</b>");
-		pw.println("    </transparentLayer>");
-		pw.println("    <transparentLayer transparent=\"" + (li++) + "\">");
-		pw.println("        <r>" + metal_colour[1].getRed() + "</r>");
-		pw.println("        <g>" + metal_colour[1].getGreen() + "</g>");
-		pw.println("        <b>" + metal_colour[1].getBlue() + "</b>");
-		pw.println("    </transparentLayer>");
-		pw.println("    <transparentLayer transparent=\"" + (li++) + "\">");
-		pw.println("        <r>" + metal_colour[2].getRed() + "</r>");
-		pw.println("        <g>" + metal_colour[2].getGreen() + "</g>");
-		pw.println("        <b>" + metal_colour[2].getBlue() + "</b>");
-		pw.println("    </transparentLayer>");
-
-		// write the layers
-		pw.println();
-		pw.println("<!--  LAYERS  -->");
-		List<String> layers = new ArrayList<String>();
-		for(int i=1; i<=num_metal_layers; i++)
-			layers.add("Metal-"+i);
-		for(int i=1; i<=num_metal_layers-1; i++)
-			layers.add("Via-"+i);
-		layers.add("Poly");
-		layers.add("PolyGate");
-		layers.add("PolyCon");
-		layers.add("DiffCon");
-		layers.add("N-Diff");
-		layers.add("P-Diff");
-		layers.add("NPlus");
-		layers.add("PPlus");
-		layers.add("N-Well");
-		layers.add("DeviceMark");
-		for(int i=0; i<layers.size(); i++)
-		{
-			String l = layers.get(i);
-			int tcol = 0;
-			String fun = "";
-			String extrafun = "";
-			int r = 255;
-			int g = 0;
-			int b = 0;
-        	double opacity = 0.4;
-			double la = -1;
-			String pat = null;
-
-			if (l.startsWith("Metal"))
-			{
-				int metLay = TextUtils.atoi(l.substring(6));
-				int metLayDig = (metLay-1) % 10;
-				switch (metLayDig)
-				{
-					case 0: tcol = 3;   break;
-					case 1: tcol = 4;   break;
-					case 2: tcol = 5;   break;
-					case 3:
-						pat="        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
-							"        <pattern>                </pattern>\n" +
-							"        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
-							"        <pattern>                </pattern>\n" +
-							"        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
-							"        <pattern>                </pattern>\n" +
-							"        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
-							"        <pattern>                </pattern>\n" +
-							"        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
-							"        <pattern>                </pattern>\n" +
-							"        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
-							"        <pattern>                </pattern>\n" +
-							"        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
-							"        <pattern>                </pattern>\n" +
-							"        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
-							"        <pattern>                </pattern>";
-						break;
-					case 4:
-						pat="        <pattern>X   X   X   X   </pattern>\n" +
-							"        <pattern>   X   X   X   X</pattern>\n" +
-							"        <pattern>  X   X   X   X </pattern>\n" +
-							"        <pattern> X   X   X   X  </pattern>\n" +
-							"        <pattern>X   X   X   X   </pattern>\n" +
-							"        <pattern>   X   X   X   X</pattern>\n" +
-							"        <pattern>  X   X   X   X </pattern>\n" +
-							"        <pattern> X   X   X   X  </pattern>\n" +
-							"        <pattern>X   X   X   X   </pattern>\n" +
-							"        <pattern>   X   X   X   X</pattern>\n" +
-							"        <pattern>  X   X   X   X </pattern>\n" +
-							"        <pattern> X   X   X   X  </pattern>\n" +
-							"        <pattern>X   X   X   X   </pattern>\n" +
-							"        <pattern>   X   X   X   X</pattern>\n" +
-							"        <pattern>  X   X   X   X </pattern>\n" +
-							"        <pattern> X   X   X   X  </pattern>";
-						break;
-					case 5:
-						pat="        <pattern>   X   X   X   X</pattern>\n" +
-							"        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
-							"        <pattern>   X   X   X   X</pattern>\n" +
-							"        <pattern> X X X X X X X X</pattern>\n" +
-							"        <pattern>   X   X   X   X</pattern>\n" +
-							"        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
-							"        <pattern>   X   X   X   X</pattern>\n" +
-							"        <pattern> X X X X X X X X</pattern>\n" +
-							"        <pattern>   X   X   X   X</pattern>\n" +
-							"        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
-							"        <pattern>   X   X   X   X</pattern>\n" +
-							"        <pattern> X X X X X X X X</pattern>\n" +
-							"        <pattern>   X   X   X   X</pattern>\n" +
-							"        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
-							"        <pattern>   X   X   X   X</pattern>\n" +
-							"        <pattern> X X X X X X X X</pattern>";
-						break;
-					case 6:
-						pat="        <pattern>X   X   X   X   </pattern>\n" +
-							"        <pattern> X   X   X   X  </pattern>\n" +
-							"        <pattern>  X   X   X   X </pattern>\n" +
-							"        <pattern>   X   X   X   X</pattern>\n" +
-							"        <pattern>X   X   X   X   </pattern>\n" +
-							"        <pattern> X   X   X   X  </pattern>\n" +
-							"        <pattern>  X   X   X   X </pattern>\n" +
-							"        <pattern>   X   X   X   X</pattern>\n" +
-							"        <pattern>X   X   X   X   </pattern>\n" +
-							"        <pattern> X   X   X   X  </pattern>\n" +
-							"        <pattern>  X   X   X   X </pattern>\n" +
-							"        <pattern>   X   X   X   X</pattern>\n" +
-							"        <pattern>X   X   X   X   </pattern>\n" +
-							"        <pattern> X   X   X   X  </pattern>\n" +
-							"        <pattern>  X   X   X   X </pattern>\n" +
-							"        <pattern>   X   X   X   X</pattern>";
-						break;
-					case 7:
-						pat="        <pattern>  X   X   X   X </pattern>\n" +
-							"        <pattern>                </pattern>\n" +
-							"        <pattern>X   X   X   X   </pattern>\n" +
-							"        <pattern>                </pattern>\n" +
-							"        <pattern>  X   X   X   X </pattern>\n" +
-							"        <pattern>                </pattern>\n" +
-							"        <pattern>X   X   X   X   </pattern>\n" +
-							"        <pattern>                </pattern>\n" +
-							"        <pattern>  X   X   X   X </pattern>\n" +
-							"        <pattern>                </pattern>\n" +
-							"        <pattern>X   X   X   X   </pattern>\n" +
-							"        <pattern>                </pattern>\n" +
-							"        <pattern>  X   X   X   X </pattern>\n" +
-							"        <pattern>                </pattern>\n" +
-							"        <pattern>X   X   X   X   </pattern>\n" +
-							"        <pattern>                </pattern>";
-						break;
-					case 8:
-						pat="        <pattern>                </pattern>\n" +
-							"        <pattern>  X   X   X   X </pattern>\n" +
-							"        <pattern>                </pattern>\n" +
-							"        <pattern>X   X   X   X   </pattern>\n" +
-							"        <pattern>                </pattern>\n" +
-							"        <pattern>  X   X   X   X </pattern>\n" +
-							"        <pattern>                </pattern>\n" +
-							"        <pattern>X   X   X   X   </pattern>\n" +
-							"        <pattern>                </pattern>\n" +
-							"        <pattern>  X   X   X   X </pattern>\n" +
-							"        <pattern>                </pattern>\n" +
-							"        <pattern>X   X   X   X   </pattern>\n" +
-							"        <pattern>                </pattern>\n" +
-							"        <pattern>  X   X   X   X </pattern>\n" +
-							"        <pattern>                </pattern>\n" +
-							"        <pattern>X   X   X   X   </pattern>";
-                        break;
-                    case 9:
-						pat="        <pattern>X X X X X X X X </pattern>\n" +
-							"        <pattern>X X X X X X X X </pattern>\n" +
-							"        <pattern>X X X X X X X X </pattern>\n" +
-							"        <pattern>X X X X X X X X </pattern>\n" +
-							"        <pattern>X X X X X X X X </pattern>\n" +
-							"        <pattern>X X X X X X X X </pattern>\n" +
-							"        <pattern>X X X X X X X X </pattern>\n" +
-							"        <pattern>X X X X X X X X </pattern>\n" +
-							"        <pattern>X X X X X X X X </pattern>\n" +
-							"        <pattern>X X X X X X X X </pattern>\n" +
-							"        <pattern>X X X X X X X X </pattern>\n" +
-							"        <pattern>X X X X X X X X </pattern>\n" +
-							"        <pattern>X X X X X X X X </pattern>\n" +
-							"        <pattern>X X X X X X X X </pattern>\n" +
-							"        <pattern>X X X X X X X X </pattern>\n" +
-							"        <pattern>X X X X X X X X </pattern>";
-						break;
-				}
-				fun = "METAL" + metLay;
-				int metLayHigh = (metLay-1) / 10;
-				r = metal_colour[metLayDig].getRed() * (10-metLayHigh) / 10;
-				g = metal_colour[metLayDig].getGreen() * (10-metLayHigh) / 10;
-				b = metal_colour[metLayDig].getBlue() * (10-metLayHigh) / 10;
-        		opacity = (75 - metLay * 5)/100.0;
-				la = metal_width[metLay-1].v / stepsize;
-			}
-
-			if (l.startsWith("Via"))
-			{
-				int viaLay = TextUtils.atoi(l.substring(4));
-				fun = "CONTACT" + viaLay;
-				extrafun = "connects-metal";
-				r = via_colour.getRed();
-				g = via_colour.getGreen();
-				b = via_colour.getBlue();
-                opacity = 0.7;
-				la = via_size[viaLay-1].v / stepsize;
-			}
-
-			if (l.equals("DeviceMark"))
-			{
-				fun = "CONTROL";
-				la = nplus_width.v / stepsize;
-				pat="        <pattern>                </pattern>\n" +
-					"        <pattern>                </pattern>\n" +
-					"        <pattern>                </pattern>\n" +
-					"        <pattern>                </pattern>\n" +
-					"        <pattern>                </pattern>\n" +
-					"        <pattern>                </pattern>\n" +
-					"        <pattern>                </pattern>\n" +
-					"        <pattern>                </pattern>\n" +
-					"        <pattern>                </pattern>\n" +
-					"        <pattern>                </pattern>\n" +
-					"        <pattern>                </pattern>\n" +
-					"        <pattern>                </pattern>\n" +
-					"        <pattern>                </pattern>\n" +
-					"        <pattern>                </pattern>\n" +
-					"        <pattern>                </pattern>\n" +
-					"        <pattern>                </pattern>";
-			}
-
-			if (l.equals("Poly"))
-			{
-				fun = "POLY1";
-				tcol = 1;
-                opacity = 1;
-				la = poly_width.v / stepsize;
-			}
-
-			if (l.equals("PolyGate"))
-			{
-				fun = "GATE";
-				tcol = 1;
-                opacity = 1;
-			}
-
-			if (l.equals("P-Diff"))
-			{
-				fun = "DIFFP";
-				tcol = 2;
-                opacity = 1;
-				la = diff_width.v / stepsize;
-			}
-
-			if (l.equals("N-Diff"))
-			{
-				fun = "DIFFN";
-				tcol = 2;
-                opacity = 1;
-				la = diff_width.v / stepsize;
-			}
-
-			if (l.equals("NPlus"))
-			{
-				fun = "IMPLANTN";
-				r = nplus_colour.getRed();
-				g = nplus_colour.getGreen();
-				b = nplus_colour.getBlue();
-                opacity = 1;
-				la = nplus_width.v / stepsize;
-				pat="        <pattern>   X       X    </pattern>\n" +
-					"        <pattern>  X       X     </pattern>\n" +
-					"        <pattern> X       X      </pattern>\n" +
-					"        <pattern>X       X       </pattern>\n" +
-					"        <pattern>       X       X</pattern>\n" +
-					"        <pattern>      X       X </pattern>\n" +
-					"        <pattern>     X       X  </pattern>\n" +
-					"        <pattern>    X       X   </pattern>\n" +
-					"        <pattern>   X       X    </pattern>\n" +
-					"        <pattern>  X       X     </pattern>\n" +
-					"        <pattern> X       X      </pattern>\n" +
-					"        <pattern>X       X       </pattern>\n" +
-					"        <pattern>       X       X</pattern>\n" +
-					"        <pattern>      X       X </pattern>\n" +
-					"        <pattern>     X       X  </pattern>\n" +
-					"        <pattern>    X       X   </pattern>";
-			}
-
-
-			if (l.equals("PPlus"))
-			{
-				fun = "IMPLANTP";
-				r = pplus_colour.getRed();
-				g = pplus_colour.getGreen();
-				b = pplus_colour.getBlue();
-                opacity = 1;
-				la = pplus_width.v / stepsize;
-				pat="        <pattern>   X       X    </pattern>\n" +
-					"        <pattern>  X       X     </pattern>\n" +
-					"        <pattern> X       X      </pattern>\n" +
-					"        <pattern>X       X       </pattern>\n" +
-					"        <pattern>       X       X</pattern>\n" +
-					"        <pattern>      X       X </pattern>\n" +
-					"        <pattern>     X       X  </pattern>\n" +
-					"        <pattern>    X       X   </pattern>\n" +
-					"        <pattern>   X       X    </pattern>\n" +
-					"        <pattern>  X       X     </pattern>\n" +
-					"        <pattern> X       X      </pattern>\n" +
-					"        <pattern>X       X       </pattern>\n" +
-					"        <pattern>       X       X</pattern>\n" +
-					"        <pattern>      X       X </pattern>\n" +
-					"        <pattern>     X       X  </pattern>\n" +
-					"        <pattern>    X       X   </pattern>";
-			}
-
-			if (l.equals("N-Well"))
-			{
-				fun = "WELLN";
-				r = nwell_colour.getRed();
-				g = nwell_colour.getGreen();
-				b = nwell_colour.getBlue();
-                opacity = 1;
-				la = nwell_width.v / stepsize;
-				pat="        <pattern>       X       X</pattern>\n" +
-					"        <pattern>X       X       </pattern>\n" +
-					"        <pattern> X       X      </pattern>\n" +
-					"        <pattern>  X       X     </pattern>\n" +
-					"        <pattern>   X       X    </pattern>\n" +
-					"        <pattern>    X       X   </pattern>\n" +
-					"        <pattern>     X       X  </pattern>\n" +
-					"        <pattern>      X       X </pattern>\n" +
-					"        <pattern>       X       X</pattern>\n" +
-					"        <pattern>X       X       </pattern>\n" +
-					"        <pattern> X       X      </pattern>\n" +
-					"        <pattern>  X       X     </pattern>\n" +
-					"        <pattern>   X       X    </pattern>\n" +
-					"        <pattern>    X       X   </pattern>\n" +
-					"        <pattern>     X       X  </pattern>\n" +
-					"        <pattern>      X       X </pattern>";
-			}
-
-			if (l.equals("PolyCon"))
-			{
-				fun = "CONTACT1";
-				extrafun = "connects-poly";
-				r = contact_colour.getRed();
-				g = contact_colour.getGreen();
-				b = contact_colour.getBlue();
-                opacity = 1;
-				la = contact_size.v / stepsize;
-			}
-
-			if (l.equals("DiffCon"))
-			{
-				fun = "CONTACT1";
-				extrafun = "connects-diff";
-				r = contact_colour.getRed();
-				g = contact_colour.getGreen();
-				b = contact_colour.getBlue();
-                opacity = 1;
-				la = contact_size.v / stepsize;
-			}
-
-			pw.println();
-			pw.println("    <layer name=\"" + l + "\" " + (fun.length() > 0 ? ("fun=\"" + fun + "\"") : "") +
-				(extrafun.length() > 0 ? (" extraFun=\"" + extrafun + "\"") : "") + ">");
-			if (tcol == 0)
-			{
-				pw.println("        <opaqueColor r=\"" + r + "\" g=\"" + g + "\" b=\"" + b + "\"/>");
-			} else
-			{
-				pw.println("        <transparentColor transparent=\"" + tcol + "\"/>");
-			}
-			pw.println("        <patternedOnDisplay>" + (pat == null ? "false" : "true") + "</patternedOnDisplay>");
-			pw.println("        <patternedOnPrinter>" + (pat == null ? "false" : "true") + "</patternedOnPrinter>");
-			if (pat == null)
-			{
-				for(int j=0; j<16; j++)
-					pw.println("        <pattern>                </pattern>");
-			} else
-			{
-				pw.println(pat);
-			}
-			pw.println("        <outlined>NOPAT</outlined>");
-			pw.println("        <opacity>" + opacity + "</opacity>");
-			pw.println("        <foreground>true</foreground>");
-			pw.println("        <display3D thick=\"1.0\" height=\"1.0\" mode=\"NONE\" factor=\"1.0\"/>");
-			char cifLetter = (char)('A' + i);
-			pw.println("        <cifLayer cif=\"C" + cifLetter + cifLetter + "\"/>");
-			pw.println("        <skillLayer skill=\"" + l + "\"/>");
-			pw.println("        <parasitics resistance=\"1.0\" capacitance=\"0.0\" edgeCapacitance=\"0.0\"/>");
-			if (fun.startsWith("METAL") || fun.startsWith("POLY") || fun.startsWith("DIFF"))
-			{
-				pw.println("        <pureLayerNode name=\"" + l + "-Node\" port=\"Port_" + l + "\">");
-				pw.println("            <lambda>" + floaty(la) + "</lambda>");
-				pw.println("            <portArc>" + l + "</portArc>");
-				pw.println("        </pureLayerNode>");
-			}
-			pw.println("    </layer>");
-		}
-
-		// write the arcs
-		List<String> arcs = new ArrayList<String>();
-		for(int i=1; i<=num_metal_layers; i++)
-			arcs.add("Metal-"+i);
-		arcs.add("Poly");
-		arcs.add("N-Diff");
-		arcs.add("P-Diff");
-		pw.println();
-		pw.println("<!--  ARCS  -->");
-		for(String l : arcs)
-		{
-			String fun = "";
-			int ant = -1;
-			double la = 0;
-			List<String> h = new ArrayList<String>();
-			if (l.startsWith("Metal"))
-			{
-				int metalLay = TextUtils.atoi(l.substring(6));
-				fun = "METAL" + metalLay;
-				la = metal_width[metalLay-1].v / stepsize;
-				ant = (int)Math.round(metal_antenna_ratio[metalLay-1]) | 200;
-				h.add(l + "=" + la);
-			}
-
-			if (l.equals("N-Diff"))
-			{
-				fun = "DIFFN";
-				h.add("N-Diff=" + (diff_width.v/stepsize));
-				h.add("NPlus=" + ((nplus_overhang_diff.v*2+diff_width.v)/stepsize));
-			}
-
-			if (l.equals("P-Diff"))
-			{
-				fun = "DIFFP";
-				h.add("P-Diff=" + (diff_width.v / stepsize));
-				h.add("PPlus=" + ((pplus_overhang_diff.v*2 + diff_width.v) / stepsize));
-				h.add("N-Well=" + ((nwell_overhang_diff.v*2 + diff_width.v) / stepsize));
-			}
-
-			if (l.equals("Poly"))
-			{
-				fun = "POLY1";
-				la = poly_width.v / stepsize;
-				ant = (int)Math.round(poly_antenna_ratio) | 200;
-				h.add(l + "=" + la);
-			}
-
-			double max = 0;
-			for(String hEach : h)
-			{
-				int equalsPos = hEach.indexOf('=');
-				double lim = TextUtils.atof(hEach.substring(equalsPos+1));
-				if (lim > max) max = lim;
-			}
-
-			if (ant >= 0) ant = Math.round(ant);
-			pw.println();
-			pw.println("    <arcProto name=\"" + l + "\" fun=\"" + fun + "\">");
-			pw.println("        <wipable/>");
-			pw.println("        <extended>true</extended>");
-			pw.println("        <fixedAngle>true</fixedAngle>");
-			pw.println("        <angleIncrement>90</angleIncrement>");
-            if (ant >= 0)
-                pw.println("        <antennaRatio>" + floaty(ant) + "</antennaRatio>");
-
-			for(String each : h)
-			{
-				int equalsPos = each.indexOf('=');
-				String nom = each.substring(0, equalsPos);
-				double lim = TextUtils.atof(each.substring(equalsPos+1));
-
-				pw.println("        <arcLayer layer=\"" + nom + "\" style=\"FILLED\">");
-				pw.println("            <lambda>" + floaty(lim/2) + "</lambda>");
-				pw.println("        </arcLayer>");
-			}
-			pw.println("    </arcProto>");
-		}
-
-		// write the pins
-		pw.println();
-		pw.println("<!--  PINS  -->");
-		for(int i=1; i<=num_metal_layers; i++)
-		{
-			double hla = metal_width[i-1].v / (stepsize*2);
-            String shla = floaty(hla);
-            pw.println();
-			pw.println("    <primitiveNode name=\"Metal-" + i + "-Pin\" fun=\"PIN\">");
-			pw.println("        <shrinkArcs/>");
-            pw.println("        <sizeOffset lx=\"" + shla + "\" hx=\"" + shla +
-				"\" ly=\"" + shla + "\" hy=\"" + shla +"\"/>");
-            pw.println("        <nodeLayer layer=\"Metal-" + i + "\" style=\"CROSSED\">");
-			pw.println("            <box>");
-			pw.println("                <lambdaBox klx=\"-" + shla + "\" khx=\"" + shla +
-				"\" kly=\"-" + shla + "\" khy=\"" + shla +"\"/>");
-			pw.println("            </box>");
-			pw.println("        </nodeLayer>");
-			pw.println("        <primitivePort name=\"M" + i + "\">");
-			pw.println("            <portAngle primary=\"0\" range=\"180\"/>");
-			pw.println("            <portTopology>0</portTopology>");
-			pw.println("            <box>");
-			pw.println("                <lambdaBox klx=\"0.0\" khx=\"0.0\" kly=\"0.0\" khy=\"0.0\"/>");
-			pw.println("            </box>");
-			pw.println("            <portArc>Metal-" + i + "</portArc>");
-			pw.println("        </primitivePort>");
-			pw.println("    </primitiveNode>");
-		}
-		double hla = poly_width.v / (stepsize*2);
-        String shla = floaty(hla);
-        pw.println();
-		pw.println("    <primitiveNode name=\"Poly-Pin\" fun=\"PIN\">");
-		pw.println("        <shrinkArcs/>");
-        pw.println("        <sizeOffset lx=\"" + shla + "\" hx=\"" + shla +
-            "\" ly=\"" + shla + "\" hy=\"" + shla +"\"/>");
-        pw.println("        <nodeLayer layer=\"Poly\" style=\"CROSSED\">");
-		pw.println("            <box>");
-		pw.println("                <lambdaBox klx=\"-" + shla + "\" khx=\"" + shla +
-			"\" kly=\"-" + shla + "\" khy=\"" + shla + "\"/>");
-		pw.println("            </box>");
-		pw.println("        </nodeLayer>");
-		pw.println("        <primitivePort name=\"Poly\">");
-		pw.println("            <portAngle primary=\"0\" range=\"180\"/>");
-		pw.println("            <portTopology>0</portTopology>");
-		pw.println("            <box>");
-		pw.println("                <lambdaBox klx=\"0.0\" khx=\"0.0\" kly=\"0.0\" khy=\"0.0\"/>");
-		pw.println("            </box>");
-		pw.println("            <portArc>Poly</portArc>");
-		pw.println("        </primitivePort>");
-		pw.println("    </primitiveNode>");
-
-		pw.println();
-		pw.println("<!--  P-Diff AND N-Diff PINS  -->");
-		for(int i=0; i<=1; i++)
-		{
-			String t, d1, d2, d3;
-			if (i == 1)
-			{
-				t = "P";
-				d1 = floaty(diff_width.v/(stepsize*2));
-				d2 = floaty((diff_width.v+pplus_overhang_diff.v*2)/(stepsize*2));
-				d3 = floaty((diff_width.v+nwell_overhang_diff.v*2)/(stepsize*2));
-			} else
-			{
-				t = "N";
-				d1 = floaty(diff_width.v/(stepsize*2));
-				d2 = floaty((diff_width.v+nplus_overhang_diff.v*2)/(stepsize*2));
-				d3 = d2;
-			}
-
-			String x = floaty(TextUtils.atof(d3) - TextUtils.atof(d1));
-			pw.println();
-			pw.println("    <primitiveNode name=\"" + t + "-Diff-Pin\" fun=\"PIN\">");
-			pw.println("        <shrinkArcs/>");
-//			pw.println("        <diskOffset untilVersion=\"1\" x=\"" + d3 + "\" y=\"" + d3 + "\"/>");
-//			pw.println("        <diskOffset untilVersion=\"2\" x=\"" + d1 + "\" y=\"" + d1 + "\"/>");
-			pw.println("        <sizeOffset lx=\"" + x + "\" hx=\"" + x + "\" ly=\"" + x + "\" hy=\"" + x + "\"/>");
-			if (t.equals("P"))
-			{
-				pw.println("        <nodeLayer layer=\"N-Well\" style=\"CROSSED\">");
-				pw.println("            <box>");
-				pw.println("                <lambdaBox klx=\"-" + d3 + "\" khx=\"" + d3 + "\" kly=\"-" + d3 + "\" khy=\"" + d3 + "\"/>");
-				pw.println("            </box>");
-				pw.println("        </nodeLayer>");
-			}
-			pw.println("        <nodeLayer layer=\"" + t + "Plus\" style=\"CROSSED\">");
-			pw.println("            <box>");
-			pw.println("                <lambdaBox klx=\"-" + d2 + "\" khx=\"" + d2 + "\" kly=\"-" + d2 + "\" khy=\"" + d2 + "\"/>");
-			pw.println("            </box>");
-			pw.println("        </nodeLayer>");
-			pw.println("        <nodeLayer layer=\"" + t + "-Diff\" style=\"CROSSED\">");
-			pw.println("            <box>");
-			pw.println("                <lambdaBox klx=\"-" + d1 + "\" khx=\"" + d1 + "\" kly=\"-" + d1 + "\" khy=\"" + d1 + "\"/>");
-			pw.println("            </box>");
-			pw.println("        </nodeLayer>");
-			pw.println("        <primitivePort name=\"" + t + "-Diff\">");
-			pw.println("            <portAngle primary=\"0\" range=\"180\"/>");
-			pw.println("            <portTopology>0</portTopology>");
-			pw.println("            <box>");
-			pw.println("                <lambdaBox klx=\"0.0\" khx=\"0.0\" kly=\"0.0\" khy=\"0.0\"/>");
-			pw.println("            </box>");
-			pw.println("            <portArc>" + t + "-Diff</portArc>");
-			pw.println("        </primitivePort>");
-			pw.println("    </primitiveNode>");
-		}
-
-		// write the contacts
-		pw.println();
-		pw.println("<!--  METAL TO METAL VIAS / CONTACTS  -->");
-		for(int alt=0; alt<=1; alt++)
-		{
-			for(int vl=0; vl<num_metal_layers; vl++)
-			{
-				String src, il;
-				if (vl == 0) { src = "Poly"; il = "PolyCon"; } else { src = "Metal-" + vl; il = "Via-" + vl; }
-				String dest = "Metal-" + (vl+1);
-				String upperx, uppery, lowerx, lowery, cs, cs2, c;
-				if (vl == 0)
-				{
-					// poly
-					if (alt != 0)
-					{
-						upperx = floaty((contact_metal_overhang_inline_only.v*2+contact_size.v)/(stepsize*2));
-						uppery = floaty(contact_size.v/(stepsize*2));
-					} else
-					{
-						upperx = floaty((contact_metal_overhang_all_sides.v*2+contact_size.v)/(stepsize*2));
-						uppery = upperx;
-					}
-					lowerx = floaty((contact_poly_overhang.v*2+contact_size.v)/(stepsize*2));
-					lowery = lowerx;
-
-					cs = floaty(contact_spacing.v/stepsize);
-					cs2 = cs;
-					c = floaty(contact_size.v/stepsize);
-				} else
-				{
-					if (alt != 0)
-					{
-						upperx = floaty(via_size[vl-1].v/(stepsize*2));
-						uppery = floaty((via_overhang_inline[vl-1].v*2+via_size[vl-1].v)/(stepsize*2));
-						lowerx = uppery;
-						lowery = upperx;
-					} else
-					{
-						upperx = floaty((via_overhang_inline[vl-1].v*2+via_size[vl-1].v)/(stepsize*2));
-						uppery = floaty(via_size[vl-1].v/(stepsize*2));
-						lowerx = upperx;
-						lowery = uppery;
-					}
-
-					c = floaty(via_size[vl-1].v/stepsize);
-					cs = floaty(via_spacing[vl-1].v/stepsize);
-					cs2 = floaty(via_array_spacing[vl-1].v/stepsize);
-				}
-
-				double maxx = TextUtils.atof(upperx);
-				if (TextUtils.atof(lowerx) > maxx) maxx = TextUtils.atof(lowerx);
-				double maxy = TextUtils.atof(uppery);
-				if (TextUtils.atof(lowery) > maxy) maxy = TextUtils.atof(lowery);
-				double minx = TextUtils.atof(upperx);
-				if (TextUtils.atof(lowerx) < minx) minx = TextUtils.atof(lowerx);
-				double miny = TextUtils.atof(uppery);
-				if (TextUtils.atof(lowery) < miny) miny = TextUtils.atof(lowery);
-				String ox = floaty(maxx-minx);
-				String oy = floaty(maxy-miny);
-
-				pw.println();
-				pw.println("    <primitiveNode name=\"" + src + "-" + dest + "-Con" + (alt != 0 ? "-X" : "") + "\" fun=\"CONTACT\">");
-//				pw.println("        <diskOffset untilVersion=\"2\" x=\"" + maxx + "\" y=\"" + maxy + "\"/>");
-//				pw.println("        <sizeOffset lx=\"" + ox + "\" hx=\"" + ox + "\" ly=\"" + oy + "\" hy=\"" + oy + "\"/>");
-				pw.println("        <nodeLayer layer=\"" + src + "\" style=\"FILLED\">");
-				pw.println("            <box>");
-				pw.println("                <lambdaBox klx=\"-" + lowerx + "\" khx=\"" + lowerx + "\" kly=\"-" + lowery + "\" khy=\"" + lowery + "\"/>");
-				pw.println("            </box>");
-				pw.println("        </nodeLayer>");
-				pw.println("        <nodeLayer layer=\"" + dest + "\" style=\"FILLED\">");
-				pw.println("            <box>");
-				pw.println("                <lambdaBox klx=\"-" + upperx + "\" khx=\"" + upperx + "\" kly=\"-" + uppery + "\" khy=\"" + uppery + "\"/>");
-				pw.println("            </box>");
-				pw.println("        </nodeLayer>");
-				pw.println("        <nodeLayer layer=\"" + il + "\" style=\"FILLED\">");
-				pw.println("            <multicutbox sizex=\"" + c + "\" sizey=\"" + c + "\" sep1d=\"" + cs + "\" sep2d=\"" + cs2 + "\">");
-				pw.println("                <lambdaBox klx=\"0.0\" khx=\"0.0\" kly=\"0.0\" khy=\"0.0\"/>");
-				pw.println("            </multicutbox>");
-				pw.println("        </nodeLayer>");
-				pw.println("        <primitivePort name=\"" + src + "-" + dest + "\">");
-				pw.println("            <portAngle primary=\"0\" range=\"180\"/>");
-				pw.println("            <portTopology>0</portTopology>");
-				pw.println("            <box>");
-				pw.println("                <lambdaBox klx=\"-" + minx + "\" khx=\"" + minx + "\" kly=\"-" + miny + "\" khy=\"" + miny + "\"/>");
-				pw.println("            </box>");
-				pw.println("            <portArc>" + src + "</portArc>");
-				pw.println("            <portArc>" + dest + "</portArc>");
-				pw.println("        </primitivePort>");
-				pw.println("        <minSizeRule width=\"" + floaty(2*maxx) + "\" height=\"" + floaty(2*maxy) + "\" rule=\"" + src + "-" + dest + " rules\"/>");
-				pw.println("    </primitiveNode>");
-			}
-		}
-
-		pw.println();
-		pw.println("<!--  N-Diff-Metal-1 and P-Diff-Metal-1  -->");
-		for(int alt=0; alt<=1; alt++)
-		{
-			for(int i=0; i<2; i++)
-			{
-				String t = "", sx = "", mx = "", my = "";
-				if (i == 0)
-				{
-					t = "N";
-					sx = floaty((nplus_overhang_diff.v*2+diff_contact_overhang.v*2+contact_size.v)/(stepsize*2));
-				} else
-				{
-					t = "P";
-					sx = floaty((pplus_overhang_diff.v*2+diff_contact_overhang.v*2+contact_size.v)/(stepsize*2));
-				}
-
-				if (alt != 0)
-				{
-					mx = floaty((contact_metal_overhang_inline_only.v*2+contact_size.v)/(stepsize*2));
-					my = floaty(contact_size.v/(stepsize*2));
-				} else
-				{
-					mx = floaty((contact_metal_overhang_all_sides.v*2+contact_size.v)/(stepsize*2));
-					my = mx;
-				}
-
-				String dx = floaty((diff_contact_overhang.v*2+contact_size.v)/(stepsize*2));
-				String wx = floaty((nwell_overhang_diff.v*2+diff_contact_overhang.v*2+contact_size.v)/(stepsize*2));
-
-				String maxx = mx;
-				if (TextUtils.atof(dx) > TextUtils.atof(maxx)) maxx = dx;
-				if (i==1 && TextUtils.atof(wx) > TextUtils.atof(maxx)) maxx = wx;
-				String maxy = my;
-				if (TextUtils.atof(dx) > TextUtils.atof(maxy)) maxy = dx;
-				if (i==1 && TextUtils.atof(wx) > TextUtils.atof(maxy)) maxy = wx;
-
-				String minx = mx;
-				if (TextUtils.atof(dx) < TextUtils.atof(minx)) minx = dx;
-				if (i==1 && TextUtils.atof(wx) < TextUtils.atof(minx)) minx = wx;
-				String miny = my;
-				if (TextUtils.atof(dx) < TextUtils.atof(miny)) miny = dx;
-				if (i==1 && TextUtils.atof(wx) < TextUtils.atof(miny)) miny = wx;
-
-				String sox = floaty(TextUtils.atof(maxx)-TextUtils.atof(dx));
-				String soy = floaty(TextUtils.atof(maxy)-TextUtils.atof(dx));
-
-				pw.println();
-				pw.println("    <primitiveNode name=\"" + t + "-Diff-Metal-1" + (alt != 0 ? "-X" : "") + "\" fun=\"CONTACT\">");
-//				pw.println("        <diskOffset untilVersion=\"1\" x=\"" + maxx + "\" y=\"" + maxy + "\"/>");
-//				pw.println("        <diskOffset untilVersion=\"2\" x=\"" + minx + "\" y=\"" + miny + "\"/>");
-				pw.println("        <sizeOffset lx=\"" + sox + "\" hx=\"" + sox + "\" ly=\"" + soy + "\" hy=\"" + soy + "\"/>");
-				pw.println("        <nodeLayer layer=\"Metal-1\" style=\"FILLED\">");
-				pw.println("            <box>");
-				pw.println("                <lambdaBox klx=\"-" + mx + "\" khx=\"" + mx + "\" kly=\"-" + my + "\" khy=\"" + my + "\"/>");
-				pw.println("            </box>");
-				pw.println("        </nodeLayer>");
-				pw.println("        <nodeLayer layer=\"" + t + "-Diff\" style=\"FILLED\">");
-				pw.println("            <box>");
-				pw.println("                <lambdaBox klx=\"-" + dx + "\" khx=\"" + dx + "\" kly=\"-" + dx + "\" khy=\"" + dx + "\"/>");
-				pw.println("            </box>");
-				pw.println("        </nodeLayer>");
-				if (i != 0)
-				{
-					pw.println("        <nodeLayer layer=\"N-Well\" style=\"FILLED\">");
-					pw.println("            <box>");
-					pw.println("                <lambdaBox klx=\"-" + wx + "\" khx=\"" + wx + "\" kly=\"-" + wx + "\" khy=\"" + wx + "\"/>");
-					pw.println("            </box>");
-					pw.println("        </nodeLayer>");
-				}
-				pw.println("        <nodeLayer layer=\"" + t + "Plus\" style=\"FILLED\">");
-				pw.println("            <box>");
-				pw.println("                <lambdaBox klx=\"-" + sx + "\" khx=\"" + sx + "\" kly=\"-" + sx + "\" khy=\"" + sx + "\"/>");
-				pw.println("            </box>");
-				pw.println("        </nodeLayer>");
-				pw.println("        <nodeLayer layer=\"DiffCon\" style=\"FILLED\">");
-				pw.println("            <multicutbox sizex=\"" + floaty(contact_size.v/stepsize) + "\" sizey=\"" +
-					floaty(contact_size.v/stepsize) + "\" sep1d=\"" + (floaty(contact_spacing.v/stepsize)) +
-					"\" sep2d=\"" + floaty(contact_spacing.v/stepsize) + "\">");
-				pw.println("                <lambdaBox klx=\"0.0\" khx=\"0.0\" kly=\"0.0\" khy=\"0.0\"/>");
-				pw.println("            </multicutbox>");
-				pw.println("        </nodeLayer>");
-				pw.println("        <primitivePort name=\"" + t + "-Diff-Metal-1" + "\">");
-				pw.println("            <portAngle primary=\"0\" range=\"180\"/>");
-				pw.println("            <portTopology>0</portTopology>");
-				pw.println("            <box>");
-				pw.println("                <lambdaBox klx=\"-" + dx + "\" khx=\"" + dx + "\" kly=\"-" + dx + "\" khy=\"" + dx + "\"/>");
-				pw.println("            </box>");
-				pw.println("            <portArc>" + t + "-Diff</portArc>");
-				pw.println("            <portArc>Metal-1</portArc>");
-				pw.println("        </primitivePort>");
-				pw.println("        <minSizeRule width=\"" + floaty(2*TextUtils.atof(maxx)) + "\" height=\"" +
-					floaty(2*TextUtils.atof(maxy)) + "\" rule=\"" + t + "-Diff, " + t + "+, M1" +
-					(i==1 ? ", N-Well" : "") + " and Contact rules\"/>");
-				pw.println("    </primitiveNode>");
-			}
-		}
-
-		pw.println();
-		pw.println("<!--  VDD-Tie-Metal-1 and VSS-Tie-Metal-1  -->");
-		for(int alt=0; alt<=1; alt++)
-		{
-			for(int i=0; i<2; i++)
-			{
-				String t, fun, dt, sx, mx, my;
-				if (i == 0)
-				{
-					t = "VDD";
-					fun = "WELL";
-					dt = "N";
-					sx = floaty((nplus_overhang_diff.v*2+diff_contact_overhang.v*2+contact_size.v)/(stepsize*2));
-				} else
-				{
-					t = "VSS";
-					fun = "SUBSTRATE";
-					dt = "P";
-					sx = floaty((pplus_overhang_diff.v*2+diff_contact_overhang.v*2+contact_size.v)/(stepsize*2));
-				}
-
-				if (alt != 0)
-				{
-					mx = floaty((contact_metal_overhang_inline_only.v*2+contact_size.v)/(stepsize*2));
-					my = floaty(contact_size.v/(stepsize*2));
-				} else
-				{
-					mx = floaty((contact_metal_overhang_all_sides.v*2+contact_size.v)/(stepsize*2));
-					my = mx;
-				}
-
-				String dx = floaty((diff_contact_overhang.v*2+contact_size.v)/(stepsize*2));
-				String wx = floaty((nwell_overhang_diff.v*2+diff_contact_overhang.v*2+contact_size.v)/(stepsize*2));
-
-				String maxx = mx;
-				if (TextUtils.atof(dx) > TextUtils.atof(maxx)) maxx = dx;
-				if (i==0 && TextUtils.atof(wx)>TextUtils.atof(maxx)) maxx = wx;
-				String maxy = my;
-				if (TextUtils.atof(dx) > TextUtils.atof(maxy)) maxy = dx;
-				if (i==0 && TextUtils.atof(wx)>TextUtils.atof(maxy)) maxy = wx;
-
-				String minx = mx;
-				if (TextUtils.atof(dx) < TextUtils.atof(minx)) minx = dx;
-				if (i==0 && TextUtils.atof(wx)<TextUtils.atof(minx)) minx = wx;
-				String miny = my;
-				if (TextUtils.atof(dx) < TextUtils.atof(miny)) miny = dx;
-				if (i==0 && TextUtils.atof(wx)<TextUtils.atof(miny)) miny = wx;
-
-				String sox = floaty(TextUtils.atof(maxx)-TextUtils.atof(dx));
-				String soy = floaty(TextUtils.atof(maxy)-TextUtils.atof(dx));
-
-				pw.println();
-				pw.println("    <primitiveNode name=\"" + t + "-Tie-Metal-1" + (alt != 0 ? "-X" : "") + "\" fun=\"" + fun + "\">");
-//				pw.println("        <diskOffset untilVersion=\"1\" x=\"" + maxx + "\" y=\"" + maxy + "\"/>");
-//				pw.println("        <diskOffset untilVersion=\"2\" x=\"" + minx + "\" y=\"" + miny + "\"/>");
-				pw.println("        <sizeOffset lx=\"" + sox + "\" hx=\"" + sox + "\" ly=\"" + soy + "\" hy=\"" + soy + "\"/>");
-				pw.println("        <nodeLayer layer=\"Metal-1\" style=\"FILLED\">");
-				pw.println("            <box>");
-				pw.println("                <lambdaBox klx=\"-" + mx + "\" khx=\"" + mx + "\" kly=\"-" + my + "\" khy=\"" + my + "\"/>");
-				pw.println("            </box>");
-				pw.println("        </nodeLayer>");
-				pw.println("        <nodeLayer layer=\"" + dt + "-Diff\" style=\"FILLED\">");
-				pw.println("            <box>");
-				pw.println("                <lambdaBox klx=\"-" + dx + "\" khx=\"" + dx + "\" kly=\"-" + dx + "\" khy=\"" + dx + "\"/>");
-				pw.println("            </box>");
-				pw.println("        </nodeLayer>");
-				if (i != 1)
-				{
-					pw.println("        <nodeLayer layer=\"N-Well\" style=\"FILLED\">");
-					pw.println("            <box>");
-					pw.println("                <lambdaBox klx=\"-" + wx + "\" khx=\"" + wx + "\" kly=\"-" + wx + "\" khy=\"" + wx + "\"/>");
-					pw.println("            </box>");
-					pw.println("        </nodeLayer>");
-				}
-				pw.println("        <nodeLayer layer=\"" + dt + "Plus\" style=\"FILLED\">");
-				pw.println("            <box>");
-				pw.println("                <lambdaBox klx=\"-" + sx + "\" khx=\"" + sx + "\" kly=\"-" + sx + "\" khy=\"" + sx + "\"/>");
-				pw.println("            </box>");
-				pw.println("        </nodeLayer>");
-				pw.println("        <nodeLayer layer=\"DiffCon\" style=\"FILLED\">");
-				pw.println("            <multicutbox sizex=\"" + floaty(contact_size.v/stepsize) + "\" sizey=\"" +
-					floaty(contact_size.v/stepsize) + "\" sep1d=\"" + floaty(contact_spacing.v/stepsize) +
-					"\" sep2d=\"" + floaty(contact_spacing.v/stepsize) + "\">");
-				pw.println("                <lambdaBox klx=\"0.0\" khx=\"0.0\" kly=\"0.0\" khy=\"0.0\"/>");
-				pw.println("            </multicutbox>");
-				pw.println("        </nodeLayer>");
-				pw.println("        <primitivePort name=\"" + t + "-Tie-M1" + "\">");
-				pw.println("            <portAngle primary=\"0\" range=\"180\"/>");
-				pw.println("            <portTopology>0</portTopology>");
-				pw.println("            <box>");
-				pw.println("                <lambdaBox klx=\"-" + dx + "\" khx=\"" + dx + "\" kly=\"-" + dx + "\" khy=\"" + dx + "\"/>");
-				pw.println("            </box>");
-				pw.println("            <portArc>Metal-1</portArc>");
-				pw.println("        </primitivePort>");
-				pw.println("        <minSizeRule width=\"" + floaty(2*TextUtils.atof(maxx)) + "\" height=\"" +
-					floaty(2*TextUtils.atof(maxy)) + "\" rule=\"" + dt + "-Diff, " + dt + "+, M1" +
-					(i==0 ? ", N-Well" : "") + " and Contact rules\"/>");
-				pw.println("    </primitiveNode>");
-			}
-		}
-
-		// write the transistors
-		for(int i=0; i<2; i++)
-		{
-			String wellx = "", welly = "", t, impx, impy;
-			if (i==0)
-			{
-				t = "P";
-				wellx = floaty((gate_width.v+nwell_overhang_diff.v*2)/(stepsize*2));
-				welly = floaty((gate_length.v+diff_poly_overhang.v*2+nwell_overhang_diff.v*2)/(stepsize*2));
-				impx = floaty((gate_width.v+pplus_overhang_diff.v*2)/(stepsize*2));
-				impy = floaty((gate_length.v+diff_poly_overhang.v*2+pplus_overhang_diff.v*2)/(stepsize*2));
-			} else
-			{
-				t = "N";
-				impx = floaty((gate_width.v+nplus_overhang_diff.v*2)/(stepsize*2));
-				impy = floaty((gate_length.v+diff_poly_overhang.v*2+nplus_overhang_diff.v*2)/(stepsize*2));
-			}
-			String diffx = floaty(gate_width.v/(stepsize*2));
-			String diffy = floaty((gate_length.v+diff_poly_overhang.v*2)/(stepsize*2));
-			String porty = floaty((gate_length.v+diff_poly_overhang.v*2-diff_width.v)/(stepsize*2));
-			String polyx = floaty((gate_width.v+poly_endcap.v*2)/(stepsize*2));
-			String polyy = floaty(gate_length.v/(stepsize*2));
-			String polyx2 = floaty((poly_endcap.v*2)/(stepsize*2));
-			String sx = floaty(TextUtils.atof(polyx)-TextUtils.atof(diffx));
-			String sy = floaty(TextUtils.atof(diffy)-TextUtils.atof(polyy));
-			pw.println();
-			pw.println("<!-- " + t + "-Transistor -->");
-			pw.println();
-			pw.println("    <primitiveNode name=\"" + t + "-Transistor\" fun=\"TRA" + t + "MOS\">");
-//			pw.println("        <diskOffset untilVersion=\"2\" x=\"" + polyx + "\" y=\"" + diffy + "\"/>");
-//			pw.println("        <sizeOffset lx=\"" + sx + "\" hx=\"" + sx + "\" ly=\"" + sy + "\" hy=\"" + sy + "\"/>");
-
-			pw.println("        <nodeLayer layer=\"Poly\" style=\"FILLED\">");
-			pw.println("        <box>");
-			pw.println("            <lambdaBox klx=\"-" + polyx + "\" khx=\"" + polyx + "\" kly=\"-" + polyy + "\" khy=\"" + polyy + "\"/>");
-			pw.println("        </box>");
-			pw.println("        </nodeLayer>");
-
-			pw.println("        <nodeLayer layer=\"PolyGate\" style=\"FILLED\">");
-			pw.println("        <box>");
-			pw.println("            <lambdaBox klx=\"-" + diffx + "\" khx=\"" + diffx + "\" kly=\"-" + polyy + "\" khy=\"" + polyy + "\"/>");
-			pw.println("        </box>");
-			pw.println("        </nodeLayer>");
-
-			pw.println("        <nodeLayer layer=\"" + t + "-Diff\" style=\"FILLED\">");
-			pw.println("        <box>");
-			pw.println("            <lambdaBox klx=\"-" + diffx + "\" khx=\"" + diffx + "\" kly=\"-" + diffy + "\" khy=\"" + diffy + "\"/>");
-			pw.println("        </box>");
-			pw.println("        </nodeLayer>");
-
-			pw.println("        <nodeLayer layer=\"" + t + "Plus\" style=\"FILLED\">");
-			pw.println("        <box>");
-			pw.println("            <lambdaBox klx=\"-" + impx + "\" khx=\"" + impx + "\" kly=\"-" + impy + "\" khy=\"" + impy + "\"/>");
-			pw.println("        </box>");
-			pw.println("        </nodeLayer>");
-
-			pw.println("        <nodeLayer layer=\"DeviceMark\" style=\"FILLED\">");
-			pw.println("        <box>");
-			pw.println("            <lambdaBox klx=\"-" + impx + "\" khx=\"" + impx + "\" kly=\"-" + impy + "\" khy=\"" + impy + "\"/>");
-			pw.println("        </box>");
-			pw.println("        </nodeLayer>");
-
-			if (i==0)
-			{
-				pw.println("        <nodeLayer layer=\"N-Well\" style=\"FILLED\">");
-				pw.println("        <box>");
-				pw.println("            <lambdaBox klx=\"-" + wellx + "\" khx=\"" + wellx + "\" kly=\"-" + welly + "\" khy=\"" + welly + "\"/>");
-				pw.println("        </box>");
-				pw.println("        </nodeLayer>");
-			}
-
-			pw.println("        <primitivePort name=\"Gate-Left\">");
-			pw.println("            <portAngle primary=\"180\" range=\"90\"/>");
-			pw.println("            <portTopology>0</portTopology>");
-			pw.println("            <box>");
-			pw.println("                <lambdaBox klx=\"-" + polyx + "\" khx=\"-" + polyx2 + "\" kly=\"-" + polyy + "\" khy=\"" + polyy + "\"/>");
-			pw.println("            </box>");
-			pw.println("            <portArc>Poly</portArc>");
-			pw.println("        </primitivePort>");
-
-			pw.println("        <primitivePort name=\"Diff-Top\">");
-			pw.println("            <portAngle primary=\"90\" range=\"90\"/>");
-			pw.println("            <portTopology>1</portTopology>");
-			pw.println("            <box>");
-			pw.println("                <lambdaBox klx=\"-" + diffx + "\" khx=\"" + diffx + "\" kly=\"" + porty + "\" khy=\"" + porty + "\"/>");
-			pw.println("            </box>");
-			pw.println("            <portArc>" + t + "-Diff</portArc>");
-			pw.println("        </primitivePort>");
-
-			pw.println("        <primitivePort name=\"Gate-Right\">");
-			pw.println("            <portAngle primary=\"0\" range=\"90\"/>");
-			pw.println("            <portTopology>0</portTopology>");
-			pw.println("            <box>");
-			pw.println("                <lambdaBox klx=\"" + polyx2 + "\" khx=\"" + polyx + "\" kly=\"-" + polyy + "\" khy=\"" + polyy + "\"/>");
-			pw.println("            </box>");
-			pw.println("            <portArc>Poly</portArc>");
-			pw.println("        </primitivePort>");
-
-			pw.println("        <primitivePort name=\"Diff-Bottom\">");
-			pw.println("            <portAngle primary=\"270\" range=\"90\"/>");
-			pw.println("            <portTopology>2</portTopology>");
-			pw.println("            <box>");
-			pw.println("                <lambdaBox klx=\"-" + diffx + "\" khx=\"" + diffx + "\" kly=\"-" + porty + "\" khy=\"-" + porty + "\"/>");
-			pw.println("            </box>");
-			pw.println("            <portArc>" + t + "-Diff</portArc>");
-			pw.println("        </primitivePort>");
-			pw.println("    </primitiveNode>");
-		}
-
-		// write trailing boilerplate
-		pw.println();
-		pw.println("<!--  SKELETON HEADERS  -->");
-		pw.println();
-		pw.println("    <spiceHeader level=\"1\">");
-		pw.println("        <spiceLine line=\"* Spice header (level 1)\"/>");
-		pw.println("    </spiceHeader>");
-		pw.println();
-		pw.println("    <spiceHeader level=\"2\">");
-		pw.println("        <spiceLine line=\"* Spice header (level 2)\"/>");
-		pw.println("    </spiceHeader>");
-
-		// write the component menu layout
-		int ts = 5;
-		pw.println();
-		pw.println("<!--  PALETTE  -->");
-		pw.println();
-		pw.println("    <menuPalette numColumns=\"3\">");
-		for(int i=1; i<=num_metal_layers; i++)
-		{
-			int h = i-1;
-			pw.println();
-			pw.println("        <menuBox>");
-			pw.println("            <menuArc>Metal-" + i + "</menuArc>");
-			pw.println("        </menuBox>");
-			pw.println("        <menuBox>");
-			pw.println("            <menuNode>Metal-" + i + "-Pin</menuNode>");
-			pw.println("        </menuBox>");
-			if (i != 1)
-			{
-				pw.println("        <menuBox>");
-                String name = "Metal-" + h + "-Metal-" + i + "-Con";
-                pw.println("            <menuNodeInst protoName=\"" + name + "\" function=\"CONTACT\">");
-				pw.println("                <menuNodeText text=\"" + name + "\" size=\"" + ts + "\"/>");
-				pw.println("            </menuNodeInst>");
-				pw.println("            <menuNodeInst protoName=\"" + name + "-X\" function=\"CONTACT\"/>");
-				pw.println("        </menuBox>");
-			} else
-			{
-				pw.println("        <menuBox>");
-				pw.println("        </menuBox>");
-			}
-		}
-		pw.println();
-		pw.println("        <menuBox>");
-		pw.println("            <menuArc>Poly</menuArc>");
-		pw.println("        </menuBox>");
-		pw.println("        <menuBox>");
-		pw.println("            <menuNode>Poly-Pin</menuNode>");
-		pw.println("        </menuBox>");
-		pw.println("        <menuBox>");
-		pw.println("            <menuNodeInst protoName=\"Poly-Metal-1-Con\" function=\"CONTACT\"/>");
+//    private void dumpTechnology(PrintWriter pw)
+//	{
+//		// LAYER COLOURS
+//		Color [] metal_colour = new Color[]
+//		{
+//			new Color(0,150,255),   // cyan/blue
+//			new Color(148,0,211),   // purple
+//			new Color(255,215,0),   // yellow
+//			new Color(132,112,255), // mauve
+//			new Color(255,160,122), // salmon
+//			new Color(34,139,34),   // dull green
+//			new Color(178,34,34),   // dull red
+//			new Color(34,34,178),   // dull blue
+//			new Color(153,153,153), // light gray
+//			new Color(102,102,102)  // dark gray
+//		};
+//		Color poly_colour = new Color(255,155,192);   // pink
+//		Color diff_colour = new Color(107,226,96);    // light green
+//		Color via_colour = new Color(205,205,205);    // lighter gray
+//		Color contact_colour = new Color(40,40,40);   // darker gray
+//		Color nplus_colour = new Color(224,238,224);
+//		Color pplus_colour = new Color(224,224,120);
+//		Color nwell_colour = new Color(140,140,140);
+//
+//        // write the header
+//		String foundry_name = "NONE";
+//		pw.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+//		pw.println();
+//		pw.println("<!--");
+//		pw.println(" *");
+//		pw.println(" *  Electric technology file for process \"" + tech_name + "\"");
+//		pw.println(" *");
+//		pw.println(" *  Automatically generated by Electric's technology wizard");
+//		pw.println(" *");
+//		pw.println("-->");
+//		pw.println();
+//		pw.println("<technology name=\"" + tech_name + "\"");
+//		pw.println("    xmlns=\"http://electric.sun.com/Technology\"");
+//		pw.println("    xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"");
+//		pw.println("    xsi:schemaLocation=\"http://electric.sun.com/Technology ../../technology/Technology.xsd\">");
+//		pw.println();
+//		pw.println("    <shortName>" + tech_name + "</shortName>");
+//		pw.println("    <description>" + tech_description + "</description>");
+//		pw.println("    <numMetals min=\"" + num_metal_layers + "\" max=\"" + num_metal_layers + "\" default=\"" + num_metal_layers + "\"/>");
+//		pw.println("    <scale value=\"" + floaty(stepsize) + "\" relevant=\"true\"/>");
+//		pw.println("    <defaultFoundry value=\"" + foundry_name + "\"/>");
+//		pw.println("    <minResistance value=\"1.0\"/>");
+//		pw.println("    <minCapacitance value=\"0.1\"/>");
+//		pw.println();
+//
+//		// write the transparent layer colors
+//		int li = 1;
+//		pw.println("    <!-- Transparent layers -->");
+//		pw.println("    <transparentLayer transparent=\"" + (li++) + "\">");
+//		pw.println("        <r>" + poly_colour.getRed() + "</r>");
+//		pw.println("        <g>" + poly_colour.getGreen() + "</g>");
+//		pw.println("        <b>" + poly_colour.getBlue() + "</b>");
+//		pw.println("    </transparentLayer>");
+//		pw.println("    <transparentLayer transparent=\"" + (li++) + "\">");
+//		pw.println("        <r>" + diff_colour.getRed() + "</r>");
+//		pw.println("        <g>" + diff_colour.getGreen() + "</g>");
+//		pw.println("        <b>" + diff_colour.getBlue() + "</b>");
+//		pw.println("    </transparentLayer>");
+//		pw.println("    <transparentLayer transparent=\"" + (li++) + "\">");
+//		pw.println("        <r>" + metal_colour[0].getRed() + "</r>");
+//		pw.println("        <g>" + metal_colour[0].getGreen() + "</g>");
+//		pw.println("        <b>" + metal_colour[0].getBlue() + "</b>");
+//		pw.println("    </transparentLayer>");
+//		pw.println("    <transparentLayer transparent=\"" + (li++) + "\">");
+//		pw.println("        <r>" + metal_colour[1].getRed() + "</r>");
+//		pw.println("        <g>" + metal_colour[1].getGreen() + "</g>");
+//		pw.println("        <b>" + metal_colour[1].getBlue() + "</b>");
+//		pw.println("    </transparentLayer>");
+//		pw.println("    <transparentLayer transparent=\"" + (li++) + "\">");
+//		pw.println("        <r>" + metal_colour[2].getRed() + "</r>");
+//		pw.println("        <g>" + metal_colour[2].getGreen() + "</g>");
+//		pw.println("        <b>" + metal_colour[2].getBlue() + "</b>");
+//		pw.println("    </transparentLayer>");
+//
+//		// write the layers
+//		pw.println();
+//		pw.println("<!--  LAYERS  -->");
+//		List<String> layers = new ArrayList<String>();
+//		for(int i=1; i<=num_metal_layers; i++)
+//			layers.add("Metal-"+i);
+//		for(int i=1; i<=num_metal_layers-1; i++)
+//			layers.add("Via-"+i);
+//		layers.add("Poly");
+//		layers.add("PolyGate");
+//		layers.add("PolyCon");
+//		layers.add("DiffCon");
+//		layers.add("N-Diff");
+//		layers.add("P-Diff");
+//		layers.add("NPlus");
+//		layers.add("PPlus");
+//		layers.add("N-Well");
+//		layers.add("DeviceMark");
+//		for(int i=0; i<layers.size(); i++)
+//		{
+//			String l = layers.get(i);
+//			int tcol = 0;
+//			String fun = "";
+//			String extrafun = "";
+//			int r = 255;
+//			int g = 0;
+//			int b = 0;
+//        	double opacity = 0.4;
+//			double la = -1;
+//			String pat = null;
+//
+//			if (l.startsWith("Metal"))
+//			{
+//				int metLay = TextUtils.atoi(l.substring(6));
+//				int metLayDig = (metLay-1) % 10;
+//				switch (metLayDig)
+//				{
+//					case 0: tcol = 3;   break;
+//					case 1: tcol = 4;   break;
+//					case 2: tcol = 5;   break;
+//					case 3:
+//						pat="        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
+//							"        <pattern>                </pattern>\n" +
+//							"        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
+//							"        <pattern>                </pattern>\n" +
+//							"        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
+//							"        <pattern>                </pattern>\n" +
+//							"        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
+//							"        <pattern>                </pattern>\n" +
+//							"        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
+//							"        <pattern>                </pattern>\n" +
+//							"        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
+//							"        <pattern>                </pattern>\n" +
+//							"        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
+//							"        <pattern>                </pattern>\n" +
+//							"        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
+//							"        <pattern>                </pattern>";
+//						break;
+//					case 4:
+//						pat="        <pattern>X   X   X   X   </pattern>\n" +
+//							"        <pattern>   X   X   X   X</pattern>\n" +
+//							"        <pattern>  X   X   X   X </pattern>\n" +
+//							"        <pattern> X   X   X   X  </pattern>\n" +
+//							"        <pattern>X   X   X   X   </pattern>\n" +
+//							"        <pattern>   X   X   X   X</pattern>\n" +
+//							"        <pattern>  X   X   X   X </pattern>\n" +
+//							"        <pattern> X   X   X   X  </pattern>\n" +
+//							"        <pattern>X   X   X   X   </pattern>\n" +
+//							"        <pattern>   X   X   X   X</pattern>\n" +
+//							"        <pattern>  X   X   X   X </pattern>\n" +
+//							"        <pattern> X   X   X   X  </pattern>\n" +
+//							"        <pattern>X   X   X   X   </pattern>\n" +
+//							"        <pattern>   X   X   X   X</pattern>\n" +
+//							"        <pattern>  X   X   X   X </pattern>\n" +
+//							"        <pattern> X   X   X   X  </pattern>";
+//						break;
+//					case 5:
+//						pat="        <pattern>   X   X   X   X</pattern>\n" +
+//							"        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
+//							"        <pattern>   X   X   X   X</pattern>\n" +
+//							"        <pattern> X X X X X X X X</pattern>\n" +
+//							"        <pattern>   X   X   X   X</pattern>\n" +
+//							"        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
+//							"        <pattern>   X   X   X   X</pattern>\n" +
+//							"        <pattern> X X X X X X X X</pattern>\n" +
+//							"        <pattern>   X   X   X   X</pattern>\n" +
+//							"        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
+//							"        <pattern>   X   X   X   X</pattern>\n" +
+//							"        <pattern> X X X X X X X X</pattern>\n" +
+//							"        <pattern>   X   X   X   X</pattern>\n" +
+//							"        <pattern>XXXXXXXXXXXXXXXX</pattern>\n" +
+//							"        <pattern>   X   X   X   X</pattern>\n" +
+//							"        <pattern> X X X X X X X X</pattern>";
+//						break;
+//					case 6:
+//						pat="        <pattern>X   X   X   X   </pattern>\n" +
+//							"        <pattern> X   X   X   X  </pattern>\n" +
+//							"        <pattern>  X   X   X   X </pattern>\n" +
+//							"        <pattern>   X   X   X   X</pattern>\n" +
+//							"        <pattern>X   X   X   X   </pattern>\n" +
+//							"        <pattern> X   X   X   X  </pattern>\n" +
+//							"        <pattern>  X   X   X   X </pattern>\n" +
+//							"        <pattern>   X   X   X   X</pattern>\n" +
+//							"        <pattern>X   X   X   X   </pattern>\n" +
+//							"        <pattern> X   X   X   X  </pattern>\n" +
+//							"        <pattern>  X   X   X   X </pattern>\n" +
+//							"        <pattern>   X   X   X   X</pattern>\n" +
+//							"        <pattern>X   X   X   X   </pattern>\n" +
+//							"        <pattern> X   X   X   X  </pattern>\n" +
+//							"        <pattern>  X   X   X   X </pattern>\n" +
+//							"        <pattern>   X   X   X   X</pattern>";
+//						break;
+//					case 7:
+//						pat="        <pattern>  X   X   X   X </pattern>\n" +
+//							"        <pattern>                </pattern>\n" +
+//							"        <pattern>X   X   X   X   </pattern>\n" +
+//							"        <pattern>                </pattern>\n" +
+//							"        <pattern>  X   X   X   X </pattern>\n" +
+//							"        <pattern>                </pattern>\n" +
+//							"        <pattern>X   X   X   X   </pattern>\n" +
+//							"        <pattern>                </pattern>\n" +
+//							"        <pattern>  X   X   X   X </pattern>\n" +
+//							"        <pattern>                </pattern>\n" +
+//							"        <pattern>X   X   X   X   </pattern>\n" +
+//							"        <pattern>                </pattern>\n" +
+//							"        <pattern>  X   X   X   X </pattern>\n" +
+//							"        <pattern>                </pattern>\n" +
+//							"        <pattern>X   X   X   X   </pattern>\n" +
+//							"        <pattern>                </pattern>";
+//						break;
+//					case 8:
+//						pat="        <pattern>                </pattern>\n" +
+//							"        <pattern>  X   X   X   X </pattern>\n" +
+//							"        <pattern>                </pattern>\n" +
+//							"        <pattern>X   X   X   X   </pattern>\n" +
+//							"        <pattern>                </pattern>\n" +
+//							"        <pattern>  X   X   X   X </pattern>\n" +
+//							"        <pattern>                </pattern>\n" +
+//							"        <pattern>X   X   X   X   </pattern>\n" +
+//							"        <pattern>                </pattern>\n" +
+//							"        <pattern>  X   X   X   X </pattern>\n" +
+//							"        <pattern>                </pattern>\n" +
+//							"        <pattern>X   X   X   X   </pattern>\n" +
+//							"        <pattern>                </pattern>\n" +
+//							"        <pattern>  X   X   X   X </pattern>\n" +
+//							"        <pattern>                </pattern>\n" +
+//							"        <pattern>X   X   X   X   </pattern>";
+//                        break;
+//                    case 9:
+//						pat="        <pattern>X X X X X X X X </pattern>\n" +
+//							"        <pattern>X X X X X X X X </pattern>\n" +
+//							"        <pattern>X X X X X X X X </pattern>\n" +
+//							"        <pattern>X X X X X X X X </pattern>\n" +
+//							"        <pattern>X X X X X X X X </pattern>\n" +
+//							"        <pattern>X X X X X X X X </pattern>\n" +
+//							"        <pattern>X X X X X X X X </pattern>\n" +
+//							"        <pattern>X X X X X X X X </pattern>\n" +
+//							"        <pattern>X X X X X X X X </pattern>\n" +
+//							"        <pattern>X X X X X X X X </pattern>\n" +
+//							"        <pattern>X X X X X X X X </pattern>\n" +
+//							"        <pattern>X X X X X X X X </pattern>\n" +
+//							"        <pattern>X X X X X X X X </pattern>\n" +
+//							"        <pattern>X X X X X X X X </pattern>\n" +
+//							"        <pattern>X X X X X X X X </pattern>\n" +
+//							"        <pattern>X X X X X X X X </pattern>";
+//						break;
+//				}
+//				fun = "METAL" + metLay;
+//				int metLayHigh = (metLay-1) / 10;
+//				r = metal_colour[metLayDig].getRed() * (10-metLayHigh) / 10;
+//				g = metal_colour[metLayDig].getGreen() * (10-metLayHigh) / 10;
+//				b = metal_colour[metLayDig].getBlue() * (10-metLayHigh) / 10;
+//        		opacity = (75 - metLay * 5)/100.0;
+//				la = metal_width[metLay-1].v / stepsize;
+//			}
+//
+//			if (l.startsWith("Via"))
+//			{
+//				int viaLay = TextUtils.atoi(l.substring(4));
+//				fun = "CONTACT" + viaLay;
+//				extrafun = "connects-metal";
+//				r = via_colour.getRed();
+//				g = via_colour.getGreen();
+//				b = via_colour.getBlue();
+//                opacity = 0.7;
+//				la = via_size[viaLay-1].v / stepsize;
+//			}
+//
+//			if (l.equals("DeviceMark"))
+//			{
+//				fun = "CONTROL";
+//				la = nplus_width.v / stepsize;
+//				pat="        <pattern>                </pattern>\n" +
+//					"        <pattern>                </pattern>\n" +
+//					"        <pattern>                </pattern>\n" +
+//					"        <pattern>                </pattern>\n" +
+//					"        <pattern>                </pattern>\n" +
+//					"        <pattern>                </pattern>\n" +
+//					"        <pattern>                </pattern>\n" +
+//					"        <pattern>                </pattern>\n" +
+//					"        <pattern>                </pattern>\n" +
+//					"        <pattern>                </pattern>\n" +
+//					"        <pattern>                </pattern>\n" +
+//					"        <pattern>                </pattern>\n" +
+//					"        <pattern>                </pattern>\n" +
+//					"        <pattern>                </pattern>\n" +
+//					"        <pattern>                </pattern>\n" +
+//					"        <pattern>                </pattern>";
+//			}
+//
+//			if (l.equals("Poly"))
+//			{
+//				fun = "POLY1";
+//				tcol = 1;
+//                opacity = 1;
+//				la = poly_width.v / stepsize;
+//			}
+//
+//			if (l.equals("PolyGate"))
+//			{
+//				fun = "GATE";
+//				tcol = 1;
+//                opacity = 1;
+//			}
+//
+//			if (l.equals("P-Diff"))
+//			{
+//				fun = "DIFFP";
+//				tcol = 2;
+//                opacity = 1;
+//				la = diff_width.v / stepsize;
+//			}
+//
+//			if (l.equals("N-Diff"))
+//			{
+//				fun = "DIFFN";
+//				tcol = 2;
+//                opacity = 1;
+//				la = diff_width.v / stepsize;
+//			}
+//
+//			if (l.equals("NPlus"))
+//			{
+//				fun = "IMPLANTN";
+//				r = nplus_colour.getRed();
+//				g = nplus_colour.getGreen();
+//				b = nplus_colour.getBlue();
+//                opacity = 1;
+//				la = nplus_width.v / stepsize;
+//				pat="        <pattern>   X       X    </pattern>\n" +
+//					"        <pattern>  X       X     </pattern>\n" +
+//					"        <pattern> X       X      </pattern>\n" +
+//					"        <pattern>X       X       </pattern>\n" +
+//					"        <pattern>       X       X</pattern>\n" +
+//					"        <pattern>      X       X </pattern>\n" +
+//					"        <pattern>     X       X  </pattern>\n" +
+//					"        <pattern>    X       X   </pattern>\n" +
+//					"        <pattern>   X       X    </pattern>\n" +
+//					"        <pattern>  X       X     </pattern>\n" +
+//					"        <pattern> X       X      </pattern>\n" +
+//					"        <pattern>X       X       </pattern>\n" +
+//					"        <pattern>       X       X</pattern>\n" +
+//					"        <pattern>      X       X </pattern>\n" +
+//					"        <pattern>     X       X  </pattern>\n" +
+//					"        <pattern>    X       X   </pattern>";
+//			}
+//
+//
+//			if (l.equals("PPlus"))
+//			{
+//				fun = "IMPLANTP";
+//				r = pplus_colour.getRed();
+//				g = pplus_colour.getGreen();
+//				b = pplus_colour.getBlue();
+//                opacity = 1;
+//				la = pplus_width.v / stepsize;
+//				pat="        <pattern>   X       X    </pattern>\n" +
+//					"        <pattern>  X       X     </pattern>\n" +
+//					"        <pattern> X       X      </pattern>\n" +
+//					"        <pattern>X       X       </pattern>\n" +
+//					"        <pattern>       X       X</pattern>\n" +
+//					"        <pattern>      X       X </pattern>\n" +
+//					"        <pattern>     X       X  </pattern>\n" +
+//					"        <pattern>    X       X   </pattern>\n" +
+//					"        <pattern>   X       X    </pattern>\n" +
+//					"        <pattern>  X       X     </pattern>\n" +
+//					"        <pattern> X       X      </pattern>\n" +
+//					"        <pattern>X       X       </pattern>\n" +
+//					"        <pattern>       X       X</pattern>\n" +
+//					"        <pattern>      X       X </pattern>\n" +
+//					"        <pattern>     X       X  </pattern>\n" +
+//					"        <pattern>    X       X   </pattern>";
+//			}
+//
+//			if (l.equals("N-Well"))
+//			{
+//				fun = "WELLN";
+//				r = nwell_colour.getRed();
+//				g = nwell_colour.getGreen();
+//				b = nwell_colour.getBlue();
+//                opacity = 1;
+//				la = nwell_width.v / stepsize;
+//				pat="        <pattern>       X       X</pattern>\n" +
+//					"        <pattern>X       X       </pattern>\n" +
+//					"        <pattern> X       X      </pattern>\n" +
+//					"        <pattern>  X       X     </pattern>\n" +
+//					"        <pattern>   X       X    </pattern>\n" +
+//					"        <pattern>    X       X   </pattern>\n" +
+//					"        <pattern>     X       X  </pattern>\n" +
+//					"        <pattern>      X       X </pattern>\n" +
+//					"        <pattern>       X       X</pattern>\n" +
+//					"        <pattern>X       X       </pattern>\n" +
+//					"        <pattern> X       X      </pattern>\n" +
+//					"        <pattern>  X       X     </pattern>\n" +
+//					"        <pattern>   X       X    </pattern>\n" +
+//					"        <pattern>    X       X   </pattern>\n" +
+//					"        <pattern>     X       X  </pattern>\n" +
+//					"        <pattern>      X       X </pattern>";
+//			}
+//
+//			if (l.equals("PolyCon"))
+//			{
+//				fun = "CONTACT1";
+//				extrafun = "connects-poly";
+//				r = contact_colour.getRed();
+//				g = contact_colour.getGreen();
+//				b = contact_colour.getBlue();
+//                opacity = 1;
+//				la = contact_size.v / stepsize;
+//			}
+//
+//			if (l.equals("DiffCon"))
+//			{
+//				fun = "CONTACT1";
+//				extrafun = "connects-diff";
+//				r = contact_colour.getRed();
+//				g = contact_colour.getGreen();
+//				b = contact_colour.getBlue();
+//                opacity = 1;
+//				la = contact_size.v / stepsize;
+//			}
+//
+//			pw.println();
+//			pw.println("    <layer name=\"" + l + "\" " + (fun.length() > 0 ? ("fun=\"" + fun + "\"") : "") +
+//				(extrafun.length() > 0 ? (" extraFun=\"" + extrafun + "\"") : "") + ">");
+//			if (tcol == 0)
+//			{
+//				pw.println("        <opaqueColor r=\"" + r + "\" g=\"" + g + "\" b=\"" + b + "\"/>");
+//			} else
+//			{
+//				pw.println("        <transparentColor transparent=\"" + tcol + "\"/>");
+//			}
+//			pw.println("        <patternedOnDisplay>" + (pat == null ? "false" : "true") + "</patternedOnDisplay>");
+//			pw.println("        <patternedOnPrinter>" + (pat == null ? "false" : "true") + "</patternedOnPrinter>");
+//			if (pat == null)
+//			{
+//				for(int j=0; j<16; j++)
+//					pw.println("        <pattern>                </pattern>");
+//			} else
+//			{
+//				pw.println(pat);
+//			}
+//			pw.println("        <outlined>NOPAT</outlined>");
+//			pw.println("        <opacity>" + opacity + "</opacity>");
+//			pw.println("        <foreground>true</foreground>");
+//			pw.println("        <display3D thick=\"1.0\" height=\"1.0\" mode=\"NONE\" factor=\"1.0\"/>");
+//			char cifLetter = (char)('A' + i);
+//			pw.println("        <cifLayer cif=\"C" + cifLetter + cifLetter + "\"/>");
+//			pw.println("        <skillLayer skill=\"" + l + "\"/>");
+//			pw.println("        <parasitics resistance=\"1.0\" capacitance=\"0.0\" edgeCapacitance=\"0.0\"/>");
+//			if (fun.startsWith("METAL") || fun.startsWith("POLY") || fun.startsWith("DIFF"))
+//			{
+//				pw.println("        <pureLayerNode name=\"" + l + "-Node\" port=\"Port_" + l + "\">");
+//				pw.println("            <lambda>" + floaty(la) + "</lambda>");
+//				pw.println("            <portArc>" + l + "</portArc>");
+//				pw.println("        </pureLayerNode>");
+//			}
+//			pw.println("    </layer>");
+//		}
+//
+//		// write the arcs
+//		List<String> arcs = new ArrayList<String>();
+//		for(int i=1; i<=num_metal_layers; i++)
+//			arcs.add("Metal-"+i);
+//		arcs.add("Poly");
+//		arcs.add("N-Diff");
+//		arcs.add("P-Diff");
+//		pw.println();
+//		pw.println("<!--  ARCS  -->");
+//		for(String l : arcs)
+//		{
+//			String fun = "";
+//			int ant = -1;
+//			double la = 0;
+//			List<String> h = new ArrayList<String>();
+//			if (l.startsWith("Metal"))
+//			{
+//				int metalLay = TextUtils.atoi(l.substring(6));
+//				fun = "METAL" + metalLay;
+//				la = metal_width[metalLay-1].v / stepsize;
+//				ant = (int)Math.round(metal_antenna_ratio[metalLay-1]) | 200;
+//				h.add(l + "=" + la);
+//			}
+//
+//			if (l.equals("N-Diff"))
+//			{
+//				fun = "DIFFN";
+//				h.add("N-Diff=" + (diff_width.v/stepsize));
+//				h.add("NPlus=" + ((nplus_overhang_diff.v*2+diff_width.v)/stepsize));
+//			}
+//
+//			if (l.equals("P-Diff"))
+//			{
+//				fun = "DIFFP";
+//				h.add("P-Diff=" + (diff_width.v / stepsize));
+//				h.add("PPlus=" + ((pplus_overhang_diff.v*2 + diff_width.v) / stepsize));
+//				h.add("N-Well=" + ((nwell_overhang_diff.v*2 + diff_width.v) / stepsize));
+//			}
+//
+//			if (l.equals("Poly"))
+//			{
+//				fun = "POLY1";
+//				la = poly_width.v / stepsize;
+//				ant = (int)Math.round(poly_antenna_ratio) | 200;
+//				h.add(l + "=" + la);
+//			}
+//
+//			double max = 0;
+//			for(String hEach : h)
+//			{
+//				int equalsPos = hEach.indexOf('=');
+//				double lim = TextUtils.atof(hEach.substring(equalsPos+1));
+//				if (lim > max) max = lim;
+//			}
+//
+//			if (ant >= 0) ant = Math.round(ant);
+//			pw.println();
+//			pw.println("    <arcProto name=\"" + l + "\" fun=\"" + fun + "\">");
+//			pw.println("        <wipable/>");
+//			pw.println("        <extended>true</extended>");
+//			pw.println("        <fixedAngle>true</fixedAngle>");
+//			pw.println("        <angleIncrement>90</angleIncrement>");
+//            if (ant >= 0)
+//                pw.println("        <antennaRatio>" + floaty(ant) + "</antennaRatio>");
+//
+//			for(String each : h)
+//			{
+//				int equalsPos = each.indexOf('=');
+//				String nom = each.substring(0, equalsPos);
+//				double lim = TextUtils.atof(each.substring(equalsPos+1));
+//
+//				pw.println("        <arcLayer layer=\"" + nom + "\" style=\"FILLED\">");
+//				pw.println("            <lambda>" + floaty(lim/2) + "</lambda>");
+//				pw.println("        </arcLayer>");
+//			}
+//			pw.println("    </arcProto>");
+//		}
+//
+//		// write the pins
+//		pw.println();
+//		pw.println("<!--  PINS  -->");
+//		for(int i=1; i<=num_metal_layers; i++)
+//		{
+//			double hla = metal_width[i-1].v / (stepsize*2);
+//            String shla = floaty(hla);
+//            pw.println();
+//			pw.println("    <primitiveNode name=\"Metal-" + i + "-Pin\" fun=\"PIN\">");
+//			pw.println("        <shrinkArcs/>");
+//            pw.println("        <sizeOffset lx=\"" + shla + "\" hx=\"" + shla +
+//				"\" ly=\"" + shla + "\" hy=\"" + shla +"\"/>");
+//            pw.println("        <nodeLayer layer=\"Metal-" + i + "\" style=\"CROSSED\">");
+//			pw.println("            <box>");
+//			pw.println("                <lambdaBox klx=\"-" + shla + "\" khx=\"" + shla +
+//				"\" kly=\"-" + shla + "\" khy=\"" + shla +"\"/>");
+//			pw.println("            </box>");
+//			pw.println("        </nodeLayer>");
+//			pw.println("        <primitivePort name=\"M" + i + "\">");
+//			pw.println("            <portAngle primary=\"0\" range=\"180\"/>");
+//			pw.println("            <portTopology>0</portTopology>");
+//			pw.println("            <box>");
+//			pw.println("                <lambdaBox klx=\"0.0\" khx=\"0.0\" kly=\"0.0\" khy=\"0.0\"/>");
+//			pw.println("            </box>");
+//			pw.println("            <portArc>Metal-" + i + "</portArc>");
+//			pw.println("        </primitivePort>");
+//			pw.println("    </primitiveNode>");
+//		}
+//		double hla = poly_width.v / (stepsize*2);
+//        String shla = floaty(hla);
+//        pw.println();
+//		pw.println("    <primitiveNode name=\"Poly-Pin\" fun=\"PIN\">");
+//		pw.println("        <shrinkArcs/>");
+//        pw.println("        <sizeOffset lx=\"" + shla + "\" hx=\"" + shla +
+//            "\" ly=\"" + shla + "\" hy=\"" + shla +"\"/>");
+//        pw.println("        <nodeLayer layer=\"Poly\" style=\"CROSSED\">");
+//		pw.println("            <box>");
+//		pw.println("                <lambdaBox klx=\"-" + shla + "\" khx=\"" + shla +
+//			"\" kly=\"-" + shla + "\" khy=\"" + shla + "\"/>");
+//		pw.println("            </box>");
+//		pw.println("        </nodeLayer>");
+//		pw.println("        <primitivePort name=\"Poly\">");
+//		pw.println("            <portAngle primary=\"0\" range=\"180\"/>");
+//		pw.println("            <portTopology>0</portTopology>");
+//		pw.println("            <box>");
+//		pw.println("                <lambdaBox klx=\"0.0\" khx=\"0.0\" kly=\"0.0\" khy=\"0.0\"/>");
+//		pw.println("            </box>");
+//		pw.println("            <portArc>Poly</portArc>");
+//		pw.println("        </primitivePort>");
+//		pw.println("    </primitiveNode>");
+//
+//		pw.println();
+//		pw.println("<!--  P-Diff AND N-Diff PINS  -->");
+//		for(int i=0; i<=1; i++)
+//		{
+//			String t, d1, d2, d3;
+//			if (i == 1)
+//			{
+//				t = "P";
+//				d1 = floaty(diff_width.v/(stepsize*2));
+//				d2 = floaty((diff_width.v+pplus_overhang_diff.v*2)/(stepsize*2));
+//				d3 = floaty((diff_width.v+nwell_overhang_diff.v*2)/(stepsize*2));
+//			} else
+//			{
+//				t = "N";
+//				d1 = floaty(diff_width.v/(stepsize*2));
+//				d2 = floaty((diff_width.v+nplus_overhang_diff.v*2)/(stepsize*2));
+//				d3 = d2;
+//			}
+//
+//			String x = floaty(TextUtils.atof(d3) - TextUtils.atof(d1));
+//			pw.println();
+//			pw.println("    <primitiveNode name=\"" + t + "-Diff-Pin\" fun=\"PIN\">");
+//			pw.println("        <shrinkArcs/>");
+////			pw.println("        <diskOffset untilVersion=\"1\" x=\"" + d3 + "\" y=\"" + d3 + "\"/>");
+////			pw.println("        <diskOffset untilVersion=\"2\" x=\"" + d1 + "\" y=\"" + d1 + "\"/>");
+//			pw.println("        <sizeOffset lx=\"" + x + "\" hx=\"" + x + "\" ly=\"" + x + "\" hy=\"" + x + "\"/>");
+//			if (t.equals("P"))
+//			{
+//				pw.println("        <nodeLayer layer=\"N-Well\" style=\"CROSSED\">");
+//				pw.println("            <box>");
+//				pw.println("                <lambdaBox klx=\"-" + d3 + "\" khx=\"" + d3 + "\" kly=\"-" + d3 + "\" khy=\"" + d3 + "\"/>");
+//				pw.println("            </box>");
+//				pw.println("        </nodeLayer>");
+//			}
+//			pw.println("        <nodeLayer layer=\"" + t + "Plus\" style=\"CROSSED\">");
+//			pw.println("            <box>");
+//			pw.println("                <lambdaBox klx=\"-" + d2 + "\" khx=\"" + d2 + "\" kly=\"-" + d2 + "\" khy=\"" + d2 + "\"/>");
+//			pw.println("            </box>");
+//			pw.println("        </nodeLayer>");
+//			pw.println("        <nodeLayer layer=\"" + t + "-Diff\" style=\"CROSSED\">");
+//			pw.println("            <box>");
+//			pw.println("                <lambdaBox klx=\"-" + d1 + "\" khx=\"" + d1 + "\" kly=\"-" + d1 + "\" khy=\"" + d1 + "\"/>");
+//			pw.println("            </box>");
+//			pw.println("        </nodeLayer>");
+//			pw.println("        <primitivePort name=\"" + t + "-Diff\">");
+//			pw.println("            <portAngle primary=\"0\" range=\"180\"/>");
+//			pw.println("            <portTopology>0</portTopology>");
+//			pw.println("            <box>");
+//			pw.println("                <lambdaBox klx=\"0.0\" khx=\"0.0\" kly=\"0.0\" khy=\"0.0\"/>");
+//			pw.println("            </box>");
+//			pw.println("            <portArc>" + t + "-Diff</portArc>");
+//			pw.println("        </primitivePort>");
+//			pw.println("    </primitiveNode>");
+//		}
+//
+//		// write the contacts
+//		pw.println();
+//		pw.println("<!--  METAL TO METAL VIAS / CONTACTS  -->");
+//		for(int alt=0; alt<=1; alt++)
+//		{
+//			for(int vl=0; vl<num_metal_layers; vl++)
+//			{
+//				String src, il;
+//				if (vl == 0) { src = "Poly"; il = "PolyCon"; } else { src = "Metal-" + vl; il = "Via-" + vl; }
+//				String dest = "Metal-" + (vl+1);
+//				String upperx, uppery, lowerx, lowery, cs, cs2, c;
+//				if (vl == 0)
+//				{
+//					// poly
+//					if (alt != 0)
+//					{
+//						upperx = floaty((contact_metal_overhang_inline_only.v*2+contact_size.v)/(stepsize*2));
+//						uppery = floaty(contact_size.v/(stepsize*2));
+//					} else
+//					{
+//						upperx = floaty((contact_metal_overhang_all_sides.v*2+contact_size.v)/(stepsize*2));
+//						uppery = upperx;
+//					}
+//					lowerx = floaty((contact_poly_overhang.v*2+contact_size.v)/(stepsize*2));
+//					lowery = lowerx;
+//
+//					cs = floaty(contact_spacing.v/stepsize);
+//					cs2 = cs;
+//					c = floaty(contact_size.v/stepsize);
+//				} else
+//				{
+//					if (alt != 0)
+//					{
+//						upperx = floaty(via_size[vl-1].v/(stepsize*2));
+//						uppery = floaty((via_overhang_inline[vl-1].v*2+via_size[vl-1].v)/(stepsize*2));
+//						lowerx = uppery;
+//						lowery = upperx;
+//					} else
+//					{
+//						upperx = floaty((via_overhang_inline[vl-1].v*2+via_size[vl-1].v)/(stepsize*2));
+//						uppery = floaty(via_size[vl-1].v/(stepsize*2));
+//						lowerx = upperx;
+//						lowery = uppery;
+//					}
+//
+//					c = floaty(via_size[vl-1].v/stepsize);
+//					cs = floaty(via_spacing[vl-1].v/stepsize);
+//					cs2 = floaty(via_array_spacing[vl-1].v/stepsize);
+//				}
+//
+//				double maxx = TextUtils.atof(upperx);
+//				if (TextUtils.atof(lowerx) > maxx) maxx = TextUtils.atof(lowerx);
+//				double maxy = TextUtils.atof(uppery);
+//				if (TextUtils.atof(lowery) > maxy) maxy = TextUtils.atof(lowery);
+//				double minx = TextUtils.atof(upperx);
+//				if (TextUtils.atof(lowerx) < minx) minx = TextUtils.atof(lowerx);
+//				double miny = TextUtils.atof(uppery);
+//				if (TextUtils.atof(lowery) < miny) miny = TextUtils.atof(lowery);
+//				String ox = floaty(maxx-minx);
+//				String oy = floaty(maxy-miny);
+//
+//				pw.println();
+//				pw.println("    <primitiveNode name=\"" + src + "-" + dest + "-Con" + (alt != 0 ? "-X" : "") + "\" fun=\"CONTACT\">");
+////				pw.println("        <diskOffset untilVersion=\"2\" x=\"" + maxx + "\" y=\"" + maxy + "\"/>");
+////				pw.println("        <sizeOffset lx=\"" + ox + "\" hx=\"" + ox + "\" ly=\"" + oy + "\" hy=\"" + oy + "\"/>");
+//				pw.println("        <nodeLayer layer=\"" + src + "\" style=\"FILLED\">");
+//				pw.println("            <box>");
+//				pw.println("                <lambdaBox klx=\"-" + lowerx + "\" khx=\"" + lowerx + "\" kly=\"-" + lowery + "\" khy=\"" + lowery + "\"/>");
+//				pw.println("            </box>");
+//				pw.println("        </nodeLayer>");
+//				pw.println("        <nodeLayer layer=\"" + dest + "\" style=\"FILLED\">");
+//				pw.println("            <box>");
+//				pw.println("                <lambdaBox klx=\"-" + upperx + "\" khx=\"" + upperx + "\" kly=\"-" + uppery + "\" khy=\"" + uppery + "\"/>");
+//				pw.println("            </box>");
+//				pw.println("        </nodeLayer>");
+//				pw.println("        <nodeLayer layer=\"" + il + "\" style=\"FILLED\">");
+//				pw.println("            <multicutbox sizex=\"" + c + "\" sizey=\"" + c + "\" sep1d=\"" + cs + "\" sep2d=\"" + cs2 + "\">");
+//				pw.println("                <lambdaBox klx=\"0.0\" khx=\"0.0\" kly=\"0.0\" khy=\"0.0\"/>");
+//				pw.println("            </multicutbox>");
+//				pw.println("        </nodeLayer>");
+//				pw.println("        <primitivePort name=\"" + src + "-" + dest + "\">");
+//				pw.println("            <portAngle primary=\"0\" range=\"180\"/>");
+//				pw.println("            <portTopology>0</portTopology>");
+//				pw.println("            <box>");
+//				pw.println("                <lambdaBox klx=\"-" + minx + "\" khx=\"" + minx + "\" kly=\"-" + miny + "\" khy=\"" + miny + "\"/>");
+//				pw.println("            </box>");
+//				pw.println("            <portArc>" + src + "</portArc>");
+//				pw.println("            <portArc>" + dest + "</portArc>");
+//				pw.println("        </primitivePort>");
+//				pw.println("        <minSizeRule width=\"" + floaty(2*maxx) + "\" height=\"" + floaty(2*maxy) + "\" rule=\"" + src + "-" + dest + " rules\"/>");
+//				pw.println("    </primitiveNode>");
+//			}
+//		}
+//
+//		pw.println();
+//		pw.println("<!--  N-Diff-Metal-1 and P-Diff-Metal-1  -->");
+//		for(int alt=0; alt<=1; alt++)
+//		{
+//			for(int i=0; i<2; i++)
+//			{
+//				String t = "", sx = "", mx = "", my = "";
+//				if (i == 0)
+//				{
+//					t = "N";
+//					sx = floaty((nplus_overhang_diff.v*2+diff_contact_overhang.v*2+contact_size.v)/(stepsize*2));
+//				} else
+//				{
+//					t = "P";
+//					sx = floaty((pplus_overhang_diff.v*2+diff_contact_overhang.v*2+contact_size.v)/(stepsize*2));
+//				}
+//
+//				if (alt != 0)
+//				{
+//					mx = floaty((contact_metal_overhang_inline_only.v*2+contact_size.v)/(stepsize*2));
+//					my = floaty(contact_size.v/(stepsize*2));
+//				} else
+//				{
+//					mx = floaty((contact_metal_overhang_all_sides.v*2+contact_size.v)/(stepsize*2));
+//					my = mx;
+//				}
+//
+//				String dx = floaty((diff_contact_overhang.v*2+contact_size.v)/(stepsize*2));
+//				String wx = floaty((nwell_overhang_diff.v*2+diff_contact_overhang.v*2+contact_size.v)/(stepsize*2));
+//
+//				String maxx = mx;
+//				if (TextUtils.atof(dx) > TextUtils.atof(maxx)) maxx = dx;
+//				if (i==1 && TextUtils.atof(wx) > TextUtils.atof(maxx)) maxx = wx;
+//				String maxy = my;
+//				if (TextUtils.atof(dx) > TextUtils.atof(maxy)) maxy = dx;
+//				if (i==1 && TextUtils.atof(wx) > TextUtils.atof(maxy)) maxy = wx;
+//
+//				String minx = mx;
+//				if (TextUtils.atof(dx) < TextUtils.atof(minx)) minx = dx;
+//				if (i==1 && TextUtils.atof(wx) < TextUtils.atof(minx)) minx = wx;
+//				String miny = my;
+//				if (TextUtils.atof(dx) < TextUtils.atof(miny)) miny = dx;
+//				if (i==1 && TextUtils.atof(wx) < TextUtils.atof(miny)) miny = wx;
+//
+//				String sox = floaty(TextUtils.atof(maxx)-TextUtils.atof(dx));
+//				String soy = floaty(TextUtils.atof(maxy)-TextUtils.atof(dx));
+//
+//				pw.println();
+//				pw.println("    <primitiveNode name=\"" + t + "-Diff-Metal-1" + (alt != 0 ? "-X" : "") + "\" fun=\"CONTACT\">");
+////				pw.println("        <diskOffset untilVersion=\"1\" x=\"" + maxx + "\" y=\"" + maxy + "\"/>");
+////				pw.println("        <diskOffset untilVersion=\"2\" x=\"" + minx + "\" y=\"" + miny + "\"/>");
+//				pw.println("        <sizeOffset lx=\"" + sox + "\" hx=\"" + sox + "\" ly=\"" + soy + "\" hy=\"" + soy + "\"/>");
+//				pw.println("        <nodeLayer layer=\"Metal-1\" style=\"FILLED\">");
+//				pw.println("            <box>");
+//				pw.println("                <lambdaBox klx=\"-" + mx + "\" khx=\"" + mx + "\" kly=\"-" + my + "\" khy=\"" + my + "\"/>");
+//				pw.println("            </box>");
+//				pw.println("        </nodeLayer>");
+//				pw.println("        <nodeLayer layer=\"" + t + "-Diff\" style=\"FILLED\">");
+//				pw.println("            <box>");
+//				pw.println("                <lambdaBox klx=\"-" + dx + "\" khx=\"" + dx + "\" kly=\"-" + dx + "\" khy=\"" + dx + "\"/>");
+//				pw.println("            </box>");
+//				pw.println("        </nodeLayer>");
+//				if (i != 0)
+//				{
+//					pw.println("        <nodeLayer layer=\"N-Well\" style=\"FILLED\">");
+//					pw.println("            <box>");
+//					pw.println("                <lambdaBox klx=\"-" + wx + "\" khx=\"" + wx + "\" kly=\"-" + wx + "\" khy=\"" + wx + "\"/>");
+//					pw.println("            </box>");
+//					pw.println("        </nodeLayer>");
+//				}
+//				pw.println("        <nodeLayer layer=\"" + t + "Plus\" style=\"FILLED\">");
+//				pw.println("            <box>");
+//				pw.println("                <lambdaBox klx=\"-" + sx + "\" khx=\"" + sx + "\" kly=\"-" + sx + "\" khy=\"" + sx + "\"/>");
+//				pw.println("            </box>");
+//				pw.println("        </nodeLayer>");
+//				pw.println("        <nodeLayer layer=\"DiffCon\" style=\"FILLED\">");
+//				pw.println("            <multicutbox sizex=\"" + floaty(contact_size.v/stepsize) + "\" sizey=\"" +
+//					floaty(contact_size.v/stepsize) + "\" sep1d=\"" + (floaty(contact_spacing.v/stepsize)) +
+//					"\" sep2d=\"" + floaty(contact_spacing.v/stepsize) + "\">");
+//				pw.println("                <lambdaBox klx=\"0.0\" khx=\"0.0\" kly=\"0.0\" khy=\"0.0\"/>");
+//				pw.println("            </multicutbox>");
+//				pw.println("        </nodeLayer>");
+//				pw.println("        <primitivePort name=\"" + t + "-Diff-Metal-1" + "\">");
+//				pw.println("            <portAngle primary=\"0\" range=\"180\"/>");
+//				pw.println("            <portTopology>0</portTopology>");
+//				pw.println("            <box>");
+//				pw.println("                <lambdaBox klx=\"-" + dx + "\" khx=\"" + dx + "\" kly=\"-" + dx + "\" khy=\"" + dx + "\"/>");
+//				pw.println("            </box>");
+//				pw.println("            <portArc>" + t + "-Diff</portArc>");
+//				pw.println("            <portArc>Metal-1</portArc>");
+//				pw.println("        </primitivePort>");
+//				pw.println("        <minSizeRule width=\"" + floaty(2*TextUtils.atof(maxx)) + "\" height=\"" +
+//					floaty(2*TextUtils.atof(maxy)) + "\" rule=\"" + t + "-Diff, " + t + "+, M1" +
+//					(i==1 ? ", N-Well" : "") + " and Contact rules\"/>");
+//				pw.println("    </primitiveNode>");
+//			}
+//		}
+//
+//		pw.println();
+//		pw.println("<!--  VDD-Tie-Metal-1 and VSS-Tie-Metal-1  -->");
+//		for(int alt=0; alt<=1; alt++)
+//		{
+//			for(int i=0; i<2; i++)
+//			{
+//				String t, fun, dt, sx, mx, my;
+//				if (i == 0)
+//				{
+//					t = "VDD";
+//					fun = "WELL";
+//					dt = "N";
+//					sx = floaty((nplus_overhang_diff.v*2+diff_contact_overhang.v*2+contact_size.v)/(stepsize*2));
+//				} else
+//				{
+//					t = "VSS";
+//					fun = "SUBSTRATE";
+//					dt = "P";
+//					sx = floaty((pplus_overhang_diff.v*2+diff_contact_overhang.v*2+contact_size.v)/(stepsize*2));
+//				}
+//
+//				if (alt != 0)
+//				{
+//					mx = floaty((contact_metal_overhang_inline_only.v*2+contact_size.v)/(stepsize*2));
+//					my = floaty(contact_size.v/(stepsize*2));
+//				} else
+//				{
+//					mx = floaty((contact_metal_overhang_all_sides.v*2+contact_size.v)/(stepsize*2));
+//					my = mx;
+//				}
+//
+//				String dx = floaty((diff_contact_overhang.v*2+contact_size.v)/(stepsize*2));
+//				String wx = floaty((nwell_overhang_diff.v*2+diff_contact_overhang.v*2+contact_size.v)/(stepsize*2));
+//
+//				String maxx = mx;
+//				if (TextUtils.atof(dx) > TextUtils.atof(maxx)) maxx = dx;
+//				if (i==0 && TextUtils.atof(wx)>TextUtils.atof(maxx)) maxx = wx;
+//				String maxy = my;
+//				if (TextUtils.atof(dx) > TextUtils.atof(maxy)) maxy = dx;
+//				if (i==0 && TextUtils.atof(wx)>TextUtils.atof(maxy)) maxy = wx;
+//
+//				String minx = mx;
+//				if (TextUtils.atof(dx) < TextUtils.atof(minx)) minx = dx;
+//				if (i==0 && TextUtils.atof(wx)<TextUtils.atof(minx)) minx = wx;
+//				String miny = my;
+//				if (TextUtils.atof(dx) < TextUtils.atof(miny)) miny = dx;
+//				if (i==0 && TextUtils.atof(wx)<TextUtils.atof(miny)) miny = wx;
+//
+//				String sox = floaty(TextUtils.atof(maxx)-TextUtils.atof(dx));
+//				String soy = floaty(TextUtils.atof(maxy)-TextUtils.atof(dx));
+//
+//				pw.println();
+//				pw.println("    <primitiveNode name=\"" + t + "-Tie-Metal-1" + (alt != 0 ? "-X" : "") + "\" fun=\"" + fun + "\">");
+////				pw.println("        <diskOffset untilVersion=\"1\" x=\"" + maxx + "\" y=\"" + maxy + "\"/>");
+////				pw.println("        <diskOffset untilVersion=\"2\" x=\"" + minx + "\" y=\"" + miny + "\"/>");
+//				pw.println("        <sizeOffset lx=\"" + sox + "\" hx=\"" + sox + "\" ly=\"" + soy + "\" hy=\"" + soy + "\"/>");
+//				pw.println("        <nodeLayer layer=\"Metal-1\" style=\"FILLED\">");
+//				pw.println("            <box>");
+//				pw.println("                <lambdaBox klx=\"-" + mx + "\" khx=\"" + mx + "\" kly=\"-" + my + "\" khy=\"" + my + "\"/>");
+//				pw.println("            </box>");
+//				pw.println("        </nodeLayer>");
+//				pw.println("        <nodeLayer layer=\"" + dt + "-Diff\" style=\"FILLED\">");
+//				pw.println("            <box>");
+//				pw.println("                <lambdaBox klx=\"-" + dx + "\" khx=\"" + dx + "\" kly=\"-" + dx + "\" khy=\"" + dx + "\"/>");
+//				pw.println("            </box>");
+//				pw.println("        </nodeLayer>");
+//				if (i != 1)
+//				{
+//					pw.println("        <nodeLayer layer=\"N-Well\" style=\"FILLED\">");
+//					pw.println("            <box>");
+//					pw.println("                <lambdaBox klx=\"-" + wx + "\" khx=\"" + wx + "\" kly=\"-" + wx + "\" khy=\"" + wx + "\"/>");
+//					pw.println("            </box>");
+//					pw.println("        </nodeLayer>");
+//				}
+//				pw.println("        <nodeLayer layer=\"" + dt + "Plus\" style=\"FILLED\">");
+//				pw.println("            <box>");
+//				pw.println("                <lambdaBox klx=\"-" + sx + "\" khx=\"" + sx + "\" kly=\"-" + sx + "\" khy=\"" + sx + "\"/>");
+//				pw.println("            </box>");
+//				pw.println("        </nodeLayer>");
+//				pw.println("        <nodeLayer layer=\"DiffCon\" style=\"FILLED\">");
+//				pw.println("            <multicutbox sizex=\"" + floaty(contact_size.v/stepsize) + "\" sizey=\"" +
+//					floaty(contact_size.v/stepsize) + "\" sep1d=\"" + floaty(contact_spacing.v/stepsize) +
+//					"\" sep2d=\"" + floaty(contact_spacing.v/stepsize) + "\">");
+//				pw.println("                <lambdaBox klx=\"0.0\" khx=\"0.0\" kly=\"0.0\" khy=\"0.0\"/>");
+//				pw.println("            </multicutbox>");
+//				pw.println("        </nodeLayer>");
+//				pw.println("        <primitivePort name=\"" + t + "-Tie-M1" + "\">");
+//				pw.println("            <portAngle primary=\"0\" range=\"180\"/>");
+//				pw.println("            <portTopology>0</portTopology>");
+//				pw.println("            <box>");
+//				pw.println("                <lambdaBox klx=\"-" + dx + "\" khx=\"" + dx + "\" kly=\"-" + dx + "\" khy=\"" + dx + "\"/>");
+//				pw.println("            </box>");
+//				pw.println("            <portArc>Metal-1</portArc>");
+//				pw.println("        </primitivePort>");
+//				pw.println("        <minSizeRule width=\"" + floaty(2*TextUtils.atof(maxx)) + "\" height=\"" +
+//					floaty(2*TextUtils.atof(maxy)) + "\" rule=\"" + dt + "-Diff, " + dt + "+, M1" +
+//					(i==0 ? ", N-Well" : "") + " and Contact rules\"/>");
+//				pw.println("    </primitiveNode>");
+//			}
+//		}
+//
+//		// write the transistors
+//		for(int i=0; i<2; i++)
+//		{
+//			String wellx = "", welly = "", t, impx, impy;
+//			if (i==0)
+//			{
+//				t = "P";
+//				wellx = floaty((gate_width.v+nwell_overhang_diff.v*2)/(stepsize*2));
+//				welly = floaty((gate_length.v+diff_poly_overhang.v*2+nwell_overhang_diff.v*2)/(stepsize*2));
+//				impx = floaty((gate_width.v+pplus_overhang_diff.v*2)/(stepsize*2));
+//				impy = floaty((gate_length.v+diff_poly_overhang.v*2+pplus_overhang_diff.v*2)/(stepsize*2));
+//			} else
+//			{
+//				t = "N";
+//				impx = floaty((gate_width.v+nplus_overhang_diff.v*2)/(stepsize*2));
+//				impy = floaty((gate_length.v+diff_poly_overhang.v*2+nplus_overhang_diff.v*2)/(stepsize*2));
+//			}
+//			String diffx = floaty(gate_width.v/(stepsize*2));
+//			String diffy = floaty((gate_length.v+diff_poly_overhang.v*2)/(stepsize*2));
+//			String porty = floaty((gate_length.v+diff_poly_overhang.v*2-diff_width.v)/(stepsize*2));
+//			String polyx = floaty((gate_width.v+poly_endcap.v*2)/(stepsize*2));
+//			String polyy = floaty(gate_length.v/(stepsize*2));
+//			String polyx2 = floaty((poly_endcap.v*2)/(stepsize*2));
+//			String sx = floaty(TextUtils.atof(polyx)-TextUtils.atof(diffx));
+//			String sy = floaty(TextUtils.atof(diffy)-TextUtils.atof(polyy));
+//			pw.println();
+//			pw.println("<!-- " + t + "-Transistor -->");
+//			pw.println();
+//			pw.println("    <primitiveNode name=\"" + t + "-Transistor\" fun=\"TRA" + t + "MOS\">");
+////			pw.println("        <diskOffset untilVersion=\"2\" x=\"" + polyx + "\" y=\"" + diffy + "\"/>");
+////			pw.println("        <sizeOffset lx=\"" + sx + "\" hx=\"" + sx + "\" ly=\"" + sy + "\" hy=\"" + sy + "\"/>");
+//
+//			pw.println("        <nodeLayer layer=\"Poly\" style=\"FILLED\">");
+//			pw.println("        <box>");
+//			pw.println("            <lambdaBox klx=\"-" + polyx + "\" khx=\"" + polyx + "\" kly=\"-" + polyy + "\" khy=\"" + polyy + "\"/>");
+//			pw.println("        </box>");
+//			pw.println("        </nodeLayer>");
+//
+//			pw.println("        <nodeLayer layer=\"PolyGate\" style=\"FILLED\">");
+//			pw.println("        <box>");
+//			pw.println("            <lambdaBox klx=\"-" + diffx + "\" khx=\"" + diffx + "\" kly=\"-" + polyy + "\" khy=\"" + polyy + "\"/>");
+//			pw.println("        </box>");
+//			pw.println("        </nodeLayer>");
+//
+//			pw.println("        <nodeLayer layer=\"" + t + "-Diff\" style=\"FILLED\">");
+//			pw.println("        <box>");
+//			pw.println("            <lambdaBox klx=\"-" + diffx + "\" khx=\"" + diffx + "\" kly=\"-" + diffy + "\" khy=\"" + diffy + "\"/>");
+//			pw.println("        </box>");
+//			pw.println("        </nodeLayer>");
+//
+//			pw.println("        <nodeLayer layer=\"" + t + "Plus\" style=\"FILLED\">");
+//			pw.println("        <box>");
+//			pw.println("            <lambdaBox klx=\"-" + impx + "\" khx=\"" + impx + "\" kly=\"-" + impy + "\" khy=\"" + impy + "\"/>");
+//			pw.println("        </box>");
+//			pw.println("        </nodeLayer>");
+//
+//			pw.println("        <nodeLayer layer=\"DeviceMark\" style=\"FILLED\">");
+//			pw.println("        <box>");
+//			pw.println("            <lambdaBox klx=\"-" + impx + "\" khx=\"" + impx + "\" kly=\"-" + impy + "\" khy=\"" + impy + "\"/>");
+//			pw.println("        </box>");
+//			pw.println("        </nodeLayer>");
+//
+//			if (i==0)
+//			{
+//				pw.println("        <nodeLayer layer=\"N-Well\" style=\"FILLED\">");
+//				pw.println("        <box>");
+//				pw.println("            <lambdaBox klx=\"-" + wellx + "\" khx=\"" + wellx + "\" kly=\"-" + welly + "\" khy=\"" + welly + "\"/>");
+//				pw.println("        </box>");
+//				pw.println("        </nodeLayer>");
+//			}
+//
+//			pw.println("        <primitivePort name=\"Gate-Left\">");
+//			pw.println("            <portAngle primary=\"180\" range=\"90\"/>");
+//			pw.println("            <portTopology>0</portTopology>");
+//			pw.println("            <box>");
+//			pw.println("                <lambdaBox klx=\"-" + polyx + "\" khx=\"-" + polyx2 + "\" kly=\"-" + polyy + "\" khy=\"" + polyy + "\"/>");
+//			pw.println("            </box>");
+//			pw.println("            <portArc>Poly</portArc>");
+//			pw.println("        </primitivePort>");
+//
+//			pw.println("        <primitivePort name=\"Diff-Top\">");
+//			pw.println("            <portAngle primary=\"90\" range=\"90\"/>");
+//			pw.println("            <portTopology>1</portTopology>");
+//			pw.println("            <box>");
+//			pw.println("                <lambdaBox klx=\"-" + diffx + "\" khx=\"" + diffx + "\" kly=\"" + porty + "\" khy=\"" + porty + "\"/>");
+//			pw.println("            </box>");
+//			pw.println("            <portArc>" + t + "-Diff</portArc>");
+//			pw.println("        </primitivePort>");
+//
+//			pw.println("        <primitivePort name=\"Gate-Right\">");
+//			pw.println("            <portAngle primary=\"0\" range=\"90\"/>");
+//			pw.println("            <portTopology>0</portTopology>");
+//			pw.println("            <box>");
+//			pw.println("                <lambdaBox klx=\"" + polyx2 + "\" khx=\"" + polyx + "\" kly=\"-" + polyy + "\" khy=\"" + polyy + "\"/>");
+//			pw.println("            </box>");
+//			pw.println("            <portArc>Poly</portArc>");
+//			pw.println("        </primitivePort>");
+//
+//			pw.println("        <primitivePort name=\"Diff-Bottom\">");
+//			pw.println("            <portAngle primary=\"270\" range=\"90\"/>");
+//			pw.println("            <portTopology>2</portTopology>");
+//			pw.println("            <box>");
+//			pw.println("                <lambdaBox klx=\"-" + diffx + "\" khx=\"" + diffx + "\" kly=\"-" + porty + "\" khy=\"-" + porty + "\"/>");
+//			pw.println("            </box>");
+//			pw.println("            <portArc>" + t + "-Diff</portArc>");
+//			pw.println("        </primitivePort>");
+//			pw.println("    </primitiveNode>");
+//		}
+//
+//		// write trailing boilerplate
+//		pw.println();
+//		pw.println("<!--  SKELETON HEADERS  -->");
+//		pw.println();
+//		pw.println("    <spiceHeader level=\"1\">");
+//		pw.println("        <spiceLine line=\"* Spice header (level 1)\"/>");
+//		pw.println("    </spiceHeader>");
+//		pw.println();
+//		pw.println("    <spiceHeader level=\"2\">");
+//		pw.println("        <spiceLine line=\"* Spice header (level 2)\"/>");
+//		pw.println("    </spiceHeader>");
+//
+//		// write the component menu layout
+//		int ts = 5;
+//		pw.println();
+//		pw.println("<!--  PALETTE  -->");
+//		pw.println();
+//		pw.println("    <menuPalette numColumns=\"3\">");
+//		for(int i=1; i<=num_metal_layers; i++)
+//		{
+//			int h = i-1;
+//			pw.println();
+//			pw.println("        <menuBox>");
+//			pw.println("            <menuArc>Metal-" + i + "</menuArc>");
+//			pw.println("        </menuBox>");
+//			pw.println("        <menuBox>");
+//			pw.println("            <menuNode>Metal-" + i + "-Pin</menuNode>");
+//			pw.println("        </menuBox>");
+//			if (i != 1)
+//			{
+//				pw.println("        <menuBox>");
+//                String name = "Metal-" + h + "-Metal-" + i + "-Con";
+//                pw.println("            <menuNodeInst protoName=\"" + name + "\" function=\"CONTACT\">");
+//				pw.println("                <menuNodeText text=\"" + name + "\" size=\"" + ts + "\"/>");
+//				pw.println("            </menuNodeInst>");
+//				pw.println("            <menuNodeInst protoName=\"" + name + "-X\" function=\"CONTACT\"/>");
+//				pw.println("        </menuBox>");
+//			} else
+//			{
+//				pw.println("        <menuBox>");
+//				pw.println("        </menuBox>");
+//			}
+//		}
+//		pw.println();
+//		pw.println("        <menuBox>");
+//		pw.println("            <menuArc>Poly</menuArc>");
+//		pw.println("        </menuBox>");
+//		pw.println("        <menuBox>");
+//		pw.println("            <menuNode>Poly-Pin</menuNode>");
+//		pw.println("        </menuBox>");
+//		pw.println("        <menuBox>");
+//		pw.println("            <menuNodeInst protoName=\"Poly-Metal-1-Con\" function=\"CONTACT\"/>");
+////		pw.println("            </menuNodeInst>");
+//		pw.println("            <menuNodeInst protoName=\"Poly-Metal-1-Con-X\" function=\"CONTACT\"/>");
+//		pw.println("        </menuBox>");
+//		pw.println();
+//		pw.println("        <menuBox>");
+//		pw.println("            <menuArc>P-Diff</menuArc>");
+//		pw.println("        </menuBox>");
+//		pw.println("        <menuBox>");
+//		pw.println("            <menuNode>P-Diff-Pin</menuNode>");
+//		pw.println("        </menuBox>");
+//		pw.println("        <menuBox>");
+//		pw.println("            <menuNodeInst protoName=\"P-Transistor\" function=\"TRAPMOS\">");
+//		pw.println("                <menuNodeText text=\"P\" size=\"" + ts + "\"/>");
 //		pw.println("            </menuNodeInst>");
-		pw.println("            <menuNodeInst protoName=\"Poly-Metal-1-Con-X\" function=\"CONTACT\"/>");
-		pw.println("        </menuBox>");
-		pw.println();
-		pw.println("        <menuBox>");
-		pw.println("            <menuArc>P-Diff</menuArc>");
-		pw.println("        </menuBox>");
-		pw.println("        <menuBox>");
-		pw.println("            <menuNode>P-Diff-Pin</menuNode>");
-		pw.println("        </menuBox>");
-		pw.println("        <menuBox>");
-		pw.println("            <menuNodeInst protoName=\"P-Transistor\" function=\"TRAPMOS\">");
-		pw.println("                <menuNodeText text=\"P\" size=\"" + ts + "\"/>");
-		pw.println("            </menuNodeInst>");
-		pw.println("        </menuBox>");
-		pw.println();
-		pw.println("        <menuBox>");
-		pw.println("            <menuArc>N-Diff</menuArc>");
-		pw.println("        </menuBox>");
-		pw.println("        <menuBox>");
-		pw.println("            <menuNode>N-Diff-Pin</menuNode>");
-		pw.println("        </menuBox>");
-		pw.println("        <menuBox>");
-		pw.println("            <menuNodeInst protoName=\"N-Transistor\" function=\"TRANMOS\">");
-		pw.println("                <menuNodeText text=\"N\" size=\"" + ts + "\"/>");
-		pw.println("            </menuNodeInst>");
-		pw.println("        </menuBox>");
-		pw.println();
-		pw.println("        <menuBox>");
-		pw.println("            <menuNodeInst protoName=\"VSS-Tie-Metal-1\" function=\"SUBSTRATE\">");
-		pw.println("                <menuNodeText text=\"VSS-Tie\" size=\"" + ts + "\"/>");
-		pw.println("            </menuNodeInst>");
-		pw.println("            <menuNodeInst protoName=\"VSS-Tie-Metal-1-X\" function=\"SUBSTRATE\"/>");
-		pw.println("        </menuBox>");
-		pw.println();
-		pw.println("        <menuBox>");
-		pw.println("            <menuNodeInst protoName=\"N-Diff-Metal-1\" function=\"CONTACT\">");
-		pw.println("                <menuNodeText text=\"N-Con\" size=\"" + ts + "\"/>");
-		pw.println("            </menuNodeInst>");
-		pw.println("            <menuNodeInst protoName=\"N-Diff-Metal-1-X\" function=\"CONTACT\"/>");
-		pw.println("        </menuBox>");
-		pw.println("        <menuBox>");
-		pw.println("        </menuBox>");
-		pw.println();
-		pw.println("        <menuBox>");
-		pw.println("            <menuNodeInst protoName=\"VDD-Tie-Metal-1\" function=\"WELL\">");
-		pw.println("                <menuNodeText text=\"VDD-Tie\" size=\"" + ts + "\"/>");
-		pw.println("            </menuNodeInst>");
-		pw.println("            <menuNodeInst protoName=\"VDD-Tie-Metal-1-X\" function=\"WELL\"/>");
-		pw.println("        </menuBox>");
-		pw.println("        <menuBox>");
-		pw.println("            <menuNodeInst protoName=\"P-Diff-Metal-1\" function=\"CONTACT\">");
-		pw.println("                <menuNodeText text=\"P-Con\" size=\"" + ts + "\"/>");
-		pw.println("            </menuNodeInst>");
-		pw.println("            <menuNodeInst protoName=\"P-Diff-Metal-1-X\" function=\"CONTACT\"/>");
-		pw.println("        </menuBox>");
-		pw.println("        <menuBox>");
-		pw.println("        </menuBox>");
-		pw.println();
-		pw.println("        <menuBox>");
-		pw.println("            <menuText>Pure</menuText>");
-		pw.println("        </menuBox>");
-		pw.println("        <menuBox>");
-		pw.println("            <menuText>Misc.</menuText>");
-		pw.println("        </menuBox>");
-		pw.println("        <menuBox>");
-		pw.println("            <menuText>Cell</menuText>");
-		pw.println("        </menuBox>");
-		pw.println("    </menuPalette>");
-		pw.println();
-		pw.println("    <Foundry name=\"" + foundry_name + "\">");
+//		pw.println("        </menuBox>");
+//		pw.println();
+//		pw.println("        <menuBox>");
+//		pw.println("            <menuArc>N-Diff</menuArc>");
+//		pw.println("        </menuBox>");
+//		pw.println("        <menuBox>");
+//		pw.println("            <menuNode>N-Diff-Pin</menuNode>");
+//		pw.println("        </menuBox>");
+//		pw.println("        <menuBox>");
+//		pw.println("            <menuNodeInst protoName=\"N-Transistor\" function=\"TRANMOS\">");
+//		pw.println("                <menuNodeText text=\"N\" size=\"" + ts + "\"/>");
+//		pw.println("            </menuNodeInst>");
+//		pw.println("        </menuBox>");
+//		pw.println();
+//		pw.println("        <menuBox>");
+//		pw.println("            <menuNodeInst protoName=\"VSS-Tie-Metal-1\" function=\"SUBSTRATE\">");
+//		pw.println("                <menuNodeText text=\"VSS-Tie\" size=\"" + ts + "\"/>");
+//		pw.println("            </menuNodeInst>");
+//		pw.println("            <menuNodeInst protoName=\"VSS-Tie-Metal-1-X\" function=\"SUBSTRATE\"/>");
+//		pw.println("        </menuBox>");
+//		pw.println();
+//		pw.println("        <menuBox>");
+//		pw.println("            <menuNodeInst protoName=\"N-Diff-Metal-1\" function=\"CONTACT\">");
+//		pw.println("                <menuNodeText text=\"N-Con\" size=\"" + ts + "\"/>");
+//		pw.println("            </menuNodeInst>");
+//		pw.println("            <menuNodeInst protoName=\"N-Diff-Metal-1-X\" function=\"CONTACT\"/>");
+//		pw.println("        </menuBox>");
+//		pw.println("        <menuBox>");
+//		pw.println("        </menuBox>");
+//		pw.println();
+//		pw.println("        <menuBox>");
+//		pw.println("            <menuNodeInst protoName=\"VDD-Tie-Metal-1\" function=\"WELL\">");
+//		pw.println("                <menuNodeText text=\"VDD-Tie\" size=\"" + ts + "\"/>");
+//		pw.println("            </menuNodeInst>");
+//		pw.println("            <menuNodeInst protoName=\"VDD-Tie-Metal-1-X\" function=\"WELL\"/>");
+//		pw.println("        </menuBox>");
+//		pw.println("        <menuBox>");
+//		pw.println("            <menuNodeInst protoName=\"P-Diff-Metal-1\" function=\"CONTACT\">");
+//		pw.println("                <menuNodeText text=\"P-Con\" size=\"" + ts + "\"/>");
+//		pw.println("            </menuNodeInst>");
+//		pw.println("            <menuNodeInst protoName=\"P-Diff-Metal-1-X\" function=\"CONTACT\"/>");
+//		pw.println("        </menuBox>");
+//		pw.println("        <menuBox>");
+//		pw.println("        </menuBox>");
+//		pw.println();
+//		pw.println("        <menuBox>");
+//		pw.println("            <menuText>Pure</menuText>");
+//		pw.println("        </menuBox>");
+//		pw.println("        <menuBox>");
+//		pw.println("            <menuText>Misc.</menuText>");
+//		pw.println("        </menuBox>");
+//		pw.println("        <menuBox>");
+//		pw.println("            <menuText>Cell</menuText>");
+//		pw.println("        </menuBox>");
+//		pw.println("    </menuPalette>");
+//		pw.println();
+//		pw.println("    <Foundry name=\"" + foundry_name + "\">");
+//
+//        // write GDS layers
+//		pw.println();
+//		for(int i=1; i<=num_metal_layers; i++)
+//		{
+//			pw.println("        <layerGds layer=\"Metal-" + i + "\" gds=\"" + gds_metal_layer[i-1] + "\"/>");
+//			if (i != num_metal_layers)
+//			{
+//				pw.println("        <layerGds layer=\"Via-" + i + "\" gds=\"" + gds_via_layer[i-1] + "\"/>");
+//			}
+//		}
+//		pw.println("        <layerGds layer=\"Poly\" gds=\"" + gds_poly_layer + "\"/>");
+//		pw.println("        <layerGds layer=\"PolyGate\" gds=\"" + gds_poly_layer + "\"/>");
+//		pw.println("        <layerGds layer=\"DiffCon\" gds=\"" + gds_contact_layer + "\"/>");
+//		pw.println("        <layerGds layer=\"PolyCon\" gds=\"" + gds_contact_layer + "\"/>");
+//		pw.println("        <layerGds layer=\"N-Diff\" gds=\"" + gds_diff_layer + "\"/>");
+//		pw.println("        <layerGds layer=\"P-Diff\" gds=\"" + gds_diff_layer + "\"/>");
+//		pw.println("        <layerGds layer=\"NPlus\" gds=\"" + gds_nplus_layer + "\"/>");
+//		pw.println("        <layerGds layer=\"PPlus\" gds=\"" + gds_pplus_layer + "\"/>");
+//		pw.println("        <layerGds layer=\"N-Well\" gds=\"" + gds_nwell_layer + "\"/>");
+//		pw.println("        <layerGds layer=\"DeviceMark\" gds=\"" + gds_marking_layer + "\"/>");
+//
+//		// write GDS layers
+//		pw.println();
+//		for(int i=1; i<=num_metal_layers; i++)
+//		{
+//			pw.println("        <layerGds layer=\"Metal-" + i + "\" gds=\"" + gds_metal_layer[i-1] + "\"/>");
+//			if (i != num_metal_layers)
+//			{
+//				pw.println("        <layerGds layer=\"Via-" + i + "\" gds=\"" + gds_via_layer[i-1] + "\"/>");
+//			}
+//		}
+//		pw.println("        <layerGds layer=\"Poly\" gds=\"" + gds_poly_layer + "\"/>");
+//		pw.println("        <layerGds layer=\"PolyGate\" gds=\"" + gds_poly_layer + "\"/>");
+//		pw.println("        <layerGds layer=\"DiffCon\" gds=\"" + gds_contact_layer + "\"/>");
+//		pw.println("        <layerGds layer=\"PolyCon\" gds=\"" + gds_contact_layer + "\"/>");
+//		pw.println("        <layerGds layer=\"N-Diff\" gds=\"" + gds_diff_layer + "\"/>");
+//		pw.println("        <layerGds layer=\"P-Diff\" gds=\"" + gds_diff_layer + "\"/>");
+//		pw.println("        <layerGds layer=\"NPlus\" gds=\"" + gds_nplus_layer + "\"/>");
+//		pw.println("        <layerGds layer=\"PPlus\" gds=\"" + gds_pplus_layer + "\"/>");
+//		pw.println("        <layerGds layer=\"N-Well\" gds=\"" + gds_nwell_layer + "\"/>");
+//		pw.println("        <layerGds layer=\"DeviceMark\" gds=\"" + gds_marking_layer + "\"/>");
+//		pw.println();
+//
+//		// Write basic design rules not implicit in primitives
+//
+//		// WIDTHS
+//		for(int i=0; i<num_metal_layers; i++)
+//		{
+//			pw.println("        <LayerRule ruleName=\"" + metal_width[i].rule + "\" layerName=\"Metal-" + (i+1) + "\" type=\"MINWID\" when=\"ALL\" value=\"" + floaty(metal_width[i].v/stepsize) + "\"/>");
+//		}
+//
+//		pw.println("        <LayerRule ruleName=\"" + diff_width.rule + "\" layerName=\"N-Diff\" type=\"MINWID\" when=\"ALL\" value=\"" + floaty(diff_width.v/stepsize) + "\"/>");
+//		pw.println("        <LayerRule ruleName=\"" + diff_width.rule + "\" layerName=\"P-Diff\" type=\"MINWID\" when=\"ALL\" value=\"" + floaty(diff_width.v/stepsize) + "\"/>");
+//		pw.println("        <LayerRule ruleName=\"" + nwell_width.rule + "\" layerName=\"N-Well\" type=\"MINWID\" when=\"ALL\" value=\"" + floaty(nwell_width.v/stepsize) + "\"/>");
+//		pw.println("        <LayerRule ruleName=\"" + nplus_width.rule + "\" layerName=\"NPlus\" type=\"MINWID\" when=\"ALL\" value=\"" + floaty(nplus_width.v/stepsize) + "\"/>");
+//		pw.println("        <LayerRule ruleName=\"" + pplus_width.rule + "\" layerName=\"PPlus\" type=\"MINWID\" when=\"ALL\" value=\"" + floaty(pplus_width.v/stepsize) + "\"/>");
+//		pw.println("        <LayerRule ruleName=\"" + poly_width.rule + "\" layerName=\"Poly\" type=\"MINWID\" when=\"ALL\" value=\"" + floaty(poly_width.v/stepsize) + "\"/>");
+//		pw.println("        <LayerRule ruleName=\"" + poly_width.rule + "\" layerName=\"PolyGate\" type=\"MINWID\" when=\"ALL\" value=\"" + floaty(poly_width.v/stepsize) + "\"/>");
+//
+//		// SPACINGS
+//		pw.println("        <LayersRule ruleName=\"" + diff_spacing.rule + "\" layerNames=\"{N-Diff,N-Diff}\" type=\"UCONSPA\" when=\"ALL\" value=\"" + floaty(diff_spacing.v/stepsize) + "\"/>");
+//		pw.println("        <LayersRule ruleName=\"" + diff_spacing.rule + "\" layerNames=\"{N-Diff,P-Diff}\" type=\"UCONSPA\" when=\"ALL\" value=\"" + floaty(diff_spacing.v/stepsize) + "\"/>");
+//		pw.println("        <LayersRule ruleName=\"" + diff_spacing.rule + "\" layerNames=\"{P-Diff,P-Diff}\" type=\"UCONSPA\" when=\"ALL\" value=\"" + floaty(diff_spacing.v/stepsize) + "\"/>");
+//		pw.println("        <LayersRule ruleName=\"" + poly_diff_spacing.rule + "\" layerNames=\"{Poly,N-Diff}\" type=\"UCONSPA\" when=\"ALL\" value=\"" + floaty(poly_diff_spacing.v/stepsize) + "\"/>");
+//		pw.println("        <LayersRule ruleName=\"" + poly_diff_spacing.rule + "\" layerNames=\"{Poly,P-Diff}\" type=\"UCONSPA\" when=\"ALL\" value=\"" + floaty(poly_diff_spacing.v/stepsize) + "\"/>");
+//		pw.println("        <LayersRule ruleName=\"" + poly_spacing.rule + "\" layerNames=\"{Poly,Poly}\" type=\"UCONSPA\" when=\"ALL\" value=\"" + floaty(poly_spacing.v/stepsize) + "\"/>");
+//
+//		pw.println("        <LayersRule ruleName=\"" + gate_spacing.rule + "\" layerNames=\"{PolyGate,PolyGate}\" type=\"UCONSPA\" when=\"ALL\" value=\"" + floaty(gate_spacing.v/stepsize) + "\"/>");
+//
+//		pw.println("        <LayersRule ruleName=\"" + nwell_spacing.rule + "\" layerNames=\"{N-Well,N-Well}\" type=\"UCONSPA\" when=\"ALL\" value=\"" + floaty(nwell_spacing.v/stepsize) + "\"/>");
+//		pw.println("        <LayersRule ruleName=\"" + nplus_spacing.rule + "\" layerNames=\"{NPlus,NPlus}\" type=\"UCONSPA\" when=\"ALL\" value=\"" + floaty(nplus_spacing.v/stepsize) + "\"/>");
+//		pw.println("        <LayersRule ruleName=\"" + pplus_spacing.rule + "\" layerNames=\"{PPlus,PPlus}\" type=\"UCONSPA\" when=\"ALL\" value=\"" + floaty(pplus_spacing.v/stepsize) + "\"/>");
+//
+//		pw.println("        <LayersRule ruleName=\"" + contact_spacing.rule + "\" layerNames=\"{PolyCon,PolyCon}\" type=\"UCONSPA\" when=\"ALL\" value=\"" + floaty(contact_spacing.v/stepsize) + "\"/>");
+//		pw.println("        <LayersRule ruleName=\"" + contact_spacing.rule + "\" layerNames=\"{DiffCon,DiffCon}\" type=\"UCONSPA\" when=\"ALL\" value=\"" + floaty(contact_spacing.v/stepsize) + "\"/>");
+//
+//		pw.println("        <LayersRule ruleName=\"" + polycon_diff_spacing.rule + "\" layerNames=\"{PolyCon,N-Diff}\" type=\"UCONSPA\" when=\"ALL\" value=\"" + floaty(polycon_diff_spacing.v/stepsize) + "\"/>");
+//		pw.println("        <LayersRule ruleName=\"" + polycon_diff_spacing.rule + "\" layerNames=\"{PolyCon,P-Diff}\" type=\"UCONSPA\" when=\"ALL\" value=\"" + floaty(polycon_diff_spacing.v/stepsize) + "\"/>");
+//
+//		pw.println("        <LayersRule ruleName=\"" + gate_contact_spacing.rule + "\" layerNames=\"{DiffCon,Poly}\" type=\"UCONSPA\" when=\"ALL\" value=\"" + floaty(gate_contact_spacing.v/stepsize) + "\"/>");
+//		pw.println("        <LayersRule ruleName=\"" + gate_contact_spacing.rule + "\" layerNames=\"{DiffCon,PolyGate}\" type=\"UCONSPA\" when=\"ALL\" value=\"" + floaty(gate_contact_spacing.v/stepsize) + "\"/>");
+//
+//        System.out.println("2DCut rules are missing");
+//
+//        for(int i=1; i<=num_metal_layers; i++)
+//		{
+//			pw.println("        <LayersRule ruleName=\"" + metal_spacing[i-1].rule + "\" layerNames=\"{Metal-" + i + ",Metal-" + i + "}\" type=\"UCONSPA\" when=\"ALL\" value=\"" + floaty(metal_spacing[i-1].v/stepsize) + "\"/>");
+//			if (i != num_metal_layers)
+//			{
+//				pw.println("        <LayersRule ruleName=\"" + via_spacing[i-1].rule + "\" layerNames=\"{Via-" + i + ",Via-" + i + "}\" type=\"UCONSPA\" when=\"ALL\" value=\"" + floaty(via_spacing[i-1].v/stepsize) + "\"/>");
+//			}
+//		}
+//		pw.println("    </Foundry>");
+//		pw.println();
+//		pw.println("</technology>");
+//	}
 
-        // write GDS layers
-		pw.println();
-		for(int i=1; i<=num_metal_layers; i++)
-		{
-			pw.println("        <layerGds layer=\"Metal-" + i + "\" gds=\"" + gds_metal_layer[i-1] + "\"/>");
-			if (i != num_metal_layers)
-			{
-				pw.println("        <layerGds layer=\"Via-" + i + "\" gds=\"" + gds_via_layer[i-1] + "\"/>");
-			}
-		}
-		pw.println("        <layerGds layer=\"Poly\" gds=\"" + gds_poly_layer + "\"/>");
-		pw.println("        <layerGds layer=\"PolyGate\" gds=\"" + gds_poly_layer + "\"/>");
-		pw.println("        <layerGds layer=\"DiffCon\" gds=\"" + gds_contact_layer + "\"/>");
-		pw.println("        <layerGds layer=\"PolyCon\" gds=\"" + gds_contact_layer + "\"/>");
-		pw.println("        <layerGds layer=\"N-Diff\" gds=\"" + gds_diff_layer + "\"/>");
-		pw.println("        <layerGds layer=\"P-Diff\" gds=\"" + gds_diff_layer + "\"/>");
-		pw.println("        <layerGds layer=\"NPlus\" gds=\"" + gds_nplus_layer + "\"/>");
-		pw.println("        <layerGds layer=\"PPlus\" gds=\"" + gds_pplus_layer + "\"/>");
-		pw.println("        <layerGds layer=\"N-Well\" gds=\"" + gds_nwell_layer + "\"/>");
-		pw.println("        <layerGds layer=\"DeviceMark\" gds=\"" + gds_marking_layer + "\"/>");
-
-		// write GDS layers
-		pw.println();
-		for(int i=1; i<=num_metal_layers; i++)
-		{
-			pw.println("        <layerGds layer=\"Metal-" + i + "\" gds=\"" + gds_metal_layer[i-1] + "\"/>");
-			if (i != num_metal_layers)
-			{
-				pw.println("        <layerGds layer=\"Via-" + i + "\" gds=\"" + gds_via_layer[i-1] + "\"/>");
-			}
-		}
-		pw.println("        <layerGds layer=\"Poly\" gds=\"" + gds_poly_layer + "\"/>");
-		pw.println("        <layerGds layer=\"PolyGate\" gds=\"" + gds_poly_layer + "\"/>");
-		pw.println("        <layerGds layer=\"DiffCon\" gds=\"" + gds_contact_layer + "\"/>");
-		pw.println("        <layerGds layer=\"PolyCon\" gds=\"" + gds_contact_layer + "\"/>");
-		pw.println("        <layerGds layer=\"N-Diff\" gds=\"" + gds_diff_layer + "\"/>");
-		pw.println("        <layerGds layer=\"P-Diff\" gds=\"" + gds_diff_layer + "\"/>");
-		pw.println("        <layerGds layer=\"NPlus\" gds=\"" + gds_nplus_layer + "\"/>");
-		pw.println("        <layerGds layer=\"PPlus\" gds=\"" + gds_pplus_layer + "\"/>");
-		pw.println("        <layerGds layer=\"N-Well\" gds=\"" + gds_nwell_layer + "\"/>");
-		pw.println("        <layerGds layer=\"DeviceMark\" gds=\"" + gds_marking_layer + "\"/>");
-		pw.println();
-
-		// Write basic design rules not implicit in primitives
-
-		// WIDTHS
-		for(int i=0; i<num_metal_layers; i++)
-		{
-			pw.println("        <LayerRule ruleName=\"" + metal_width[i].rule + "\" layerName=\"Metal-" + (i+1) + "\" type=\"MINWID\" when=\"ALL\" value=\"" + floaty(metal_width[i].v/stepsize) + "\"/>");
-		}
-
-		pw.println("        <LayerRule ruleName=\"" + diff_width.rule + "\" layerName=\"N-Diff\" type=\"MINWID\" when=\"ALL\" value=\"" + floaty(diff_width.v/stepsize) + "\"/>");
-		pw.println("        <LayerRule ruleName=\"" + diff_width.rule + "\" layerName=\"P-Diff\" type=\"MINWID\" when=\"ALL\" value=\"" + floaty(diff_width.v/stepsize) + "\"/>");
-		pw.println("        <LayerRule ruleName=\"" + nwell_width.rule + "\" layerName=\"N-Well\" type=\"MINWID\" when=\"ALL\" value=\"" + floaty(nwell_width.v/stepsize) + "\"/>");
-		pw.println("        <LayerRule ruleName=\"" + nplus_width.rule + "\" layerName=\"NPlus\" type=\"MINWID\" when=\"ALL\" value=\"" + floaty(nplus_width.v/stepsize) + "\"/>");
-		pw.println("        <LayerRule ruleName=\"" + pplus_width.rule + "\" layerName=\"PPlus\" type=\"MINWID\" when=\"ALL\" value=\"" + floaty(pplus_width.v/stepsize) + "\"/>");
-		pw.println("        <LayerRule ruleName=\"" + poly_width.rule + "\" layerName=\"Poly\" type=\"MINWID\" when=\"ALL\" value=\"" + floaty(poly_width.v/stepsize) + "\"/>");
-		pw.println("        <LayerRule ruleName=\"" + poly_width.rule + "\" layerName=\"PolyGate\" type=\"MINWID\" when=\"ALL\" value=\"" + floaty(poly_width.v/stepsize) + "\"/>");
-
-		// SPACINGS
-		pw.println("        <LayersRule ruleName=\"" + diff_spacing.rule + "\" layerNames=\"{N-Diff,N-Diff}\" type=\"UCONSPA\" when=\"ALL\" value=\"" + floaty(diff_spacing.v/stepsize) + "\"/>");
-		pw.println("        <LayersRule ruleName=\"" + diff_spacing.rule + "\" layerNames=\"{N-Diff,P-Diff}\" type=\"UCONSPA\" when=\"ALL\" value=\"" + floaty(diff_spacing.v/stepsize) + "\"/>");
-		pw.println("        <LayersRule ruleName=\"" + diff_spacing.rule + "\" layerNames=\"{P-Diff,P-Diff}\" type=\"UCONSPA\" when=\"ALL\" value=\"" + floaty(diff_spacing.v/stepsize) + "\"/>");
-		pw.println("        <LayersRule ruleName=\"" + poly_diff_spacing.rule + "\" layerNames=\"{Poly,N-Diff}\" type=\"UCONSPA\" when=\"ALL\" value=\"" + floaty(poly_diff_spacing.v/stepsize) + "\"/>");
-		pw.println("        <LayersRule ruleName=\"" + poly_diff_spacing.rule + "\" layerNames=\"{Poly,P-Diff}\" type=\"UCONSPA\" when=\"ALL\" value=\"" + floaty(poly_diff_spacing.v/stepsize) + "\"/>");
-		pw.println("        <LayersRule ruleName=\"" + poly_spacing.rule + "\" layerNames=\"{Poly,Poly}\" type=\"UCONSPA\" when=\"ALL\" value=\"" + floaty(poly_spacing.v/stepsize) + "\"/>");
-
-		pw.println("        <LayersRule ruleName=\"" + gate_spacing.rule + "\" layerNames=\"{PolyGate,PolyGate}\" type=\"UCONSPA\" when=\"ALL\" value=\"" + floaty(gate_spacing.v/stepsize) + "\"/>");
-
-		pw.println("        <LayersRule ruleName=\"" + nwell_spacing.rule + "\" layerNames=\"{N-Well,N-Well}\" type=\"UCONSPA\" when=\"ALL\" value=\"" + floaty(nwell_spacing.v/stepsize) + "\"/>");
-		pw.println("        <LayersRule ruleName=\"" + nplus_spacing.rule + "\" layerNames=\"{NPlus,NPlus}\" type=\"UCONSPA\" when=\"ALL\" value=\"" + floaty(nplus_spacing.v/stepsize) + "\"/>");
-		pw.println("        <LayersRule ruleName=\"" + pplus_spacing.rule + "\" layerNames=\"{PPlus,PPlus}\" type=\"UCONSPA\" when=\"ALL\" value=\"" + floaty(pplus_spacing.v/stepsize) + "\"/>");
-
-		pw.println("        <LayersRule ruleName=\"" + contact_spacing.rule + "\" layerNames=\"{PolyCon,PolyCon}\" type=\"UCONSPA\" when=\"ALL\" value=\"" + floaty(contact_spacing.v/stepsize) + "\"/>");
-		pw.println("        <LayersRule ruleName=\"" + contact_spacing.rule + "\" layerNames=\"{DiffCon,DiffCon}\" type=\"UCONSPA\" when=\"ALL\" value=\"" + floaty(contact_spacing.v/stepsize) + "\"/>");
-
-		pw.println("        <LayersRule ruleName=\"" + polycon_diff_spacing.rule + "\" layerNames=\"{PolyCon,N-Diff}\" type=\"UCONSPA\" when=\"ALL\" value=\"" + floaty(polycon_diff_spacing.v/stepsize) + "\"/>");
-		pw.println("        <LayersRule ruleName=\"" + polycon_diff_spacing.rule + "\" layerNames=\"{PolyCon,P-Diff}\" type=\"UCONSPA\" when=\"ALL\" value=\"" + floaty(polycon_diff_spacing.v/stepsize) + "\"/>");
-
-		pw.println("        <LayersRule ruleName=\"" + gate_contact_spacing.rule + "\" layerNames=\"{DiffCon,Poly}\" type=\"UCONSPA\" when=\"ALL\" value=\"" + floaty(gate_contact_spacing.v/stepsize) + "\"/>");
-		pw.println("        <LayersRule ruleName=\"" + gate_contact_spacing.rule + "\" layerNames=\"{DiffCon,PolyGate}\" type=\"UCONSPA\" when=\"ALL\" value=\"" + floaty(gate_contact_spacing.v/stepsize) + "\"/>");
-
-        System.out.println("2DCut rules are missing");
-
-        for(int i=1; i<=num_metal_layers; i++)
-		{
-			pw.println("        <LayersRule ruleName=\"" + metal_spacing[i-1].rule + "\" layerNames=\"{Metal-" + i + ",Metal-" + i + "}\" type=\"UCONSPA\" when=\"ALL\" value=\"" + floaty(metal_spacing[i-1].v/stepsize) + "\"/>");
-			if (i != num_metal_layers)
-			{
-				pw.println("        <LayersRule ruleName=\"" + via_spacing[i-1].rule + "\" layerNames=\"{Via-" + i + ",Via-" + i + "}\" type=\"UCONSPA\" when=\"ALL\" value=\"" + floaty(via_spacing[i-1].v/stepsize) + "\"/>");
-			}
-		}
-		pw.println("    </Foundry>");
-		pw.println();
-		pw.println("</technology>");
-	}
-
-	private String floaty(double v)
-	{
-        if (v < 0)
-            System.out.println("Negative distance of " + v + " in the tech editor wizard");
-        double roundedV = DBMath.round(v);
-        return roundedV + "";  // the "" is needed to call the String constructor
-	}
+//	private String floaty(double v)
+//	{
+//        if (v < 0)
+//            System.out.println("Negative distance of " + v + " in the tech editor wizard");
+//        double roundedV = DBMath.round(v);
+//        return roundedV + "";  // the "" is needed to call the String constructor
+//	}
 
     private double scaledValue(double val) { return DBMath.round(val / stepsize); }
 }
