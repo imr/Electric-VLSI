@@ -1002,13 +1002,16 @@ public class Verilog extends Topology
                     List<Export> subports = instancePortsOnNet.get(net);
                     if (subports == null) continue;
                     for (Export subex : subports) {
-                        if (subex.getCharacteristic() == PortCharacteristic.OUT) {
+                        if (subex.getCharacteristic() == PortCharacteristic.OUT ||
+                            subex.getCharacteristic() == PortCharacteristic.BIDIR ||
+                            subex.getCharacteristic() == PortCharacteristic.PWR ||
+                            subex.getCharacteristic() == PortCharacteristic.GND) {
                             outputFound = true; break;
                         }
                     }
                     if (!outputFound) {
                         System.out.println("Warning: Port Direction Inconsistency in cell "+cell.describe(false)+
-                            " for OUTPUT "+ex.getNameKey().subname(i)+"["+type+"]: no output driver found on network.");
+                            " for OUTPUT "+ex.getNameKey().subname(i)+"["+type+"]: no output/bidir/pwr/gnd driver found on network.");
                     }
                 }
             }
@@ -1020,10 +1023,13 @@ public class Verilog extends Topology
                     List<Export> subports = instancePortsOnNet.get(net);
                     if (subports == null) continue;
                     for (Export subex : subports) {
-                        if (subex.getCharacteristic() == PortCharacteristic.OUT) {
+                        if (subex.getCharacteristic() == PortCharacteristic.OUT ||
+                            subex.getCharacteristic() == PortCharacteristic.BIDIR ||
+                            subex.getCharacteristic() == PortCharacteristic.PWR ||
+                            subex.getCharacteristic() == PortCharacteristic.GND) {
                             System.out.println("Warning: Port Direction Inconsistency in cell "+cell.describe(false)+
-                                " for INPUT "+ex.getNameKey().subname(i)+"["+type+"]: found output driver "+
-                                subex.getParent().noLibDescribe()+" - "+subex.getName()+"["+subex.getCharacteristic()+"] on network, should be BIDIR");
+                                " for INPUT "+ex.getNameKey().subname(i)+"["+type+"]: found output/bidir/pwr/gnd driver "+
+                                subex.getParent().noLibDescribe()+" - "+subex.getName()+"["+subex.getCharacteristic()+"] on network.");
                         }
                     }
                 }
