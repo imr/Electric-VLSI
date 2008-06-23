@@ -2714,7 +2714,7 @@ public class Technology implements Comparable<Technology>, Serializable
 
 	/**
 	 * Returns the ArcProto in this technology with a particular chron index
-	 * @param chron index the Id of the ArcProto.
+	 * @param chronIndex index the Id of the ArcProto.
 	 * @return the ArcProto in this technology with that Id.
 	 */
 	ArcProto getArcProtoByChronIndex(int chronIndex)
@@ -3015,7 +3015,7 @@ public class Technology implements Comparable<Technology>, Serializable
 
 	/**
 	 * Returns the PrimitiveNode in this technology with a particular chron index
-	 * @param chron index the Id of the PrimitiveNode.
+	 * @param chronIndex index the Id of the PrimitiveNode.
 	 * @return the PrimitiveNode in this technology with that Id.
 	 */
 	PrimitiveNode getPrimitiveNodeByChronIndex(int chronIndex)
