@@ -5072,7 +5072,8 @@ public class Quick
             // Facet or special elements
 			NodeInst ni = no.getNodeInst();
             if (NodeInst.isSpecialNode(ni)) return (false);
-			NodeProto np = ni.getProto();
+            NodeProto np = ni.getProto();
+            if (!np.getTechnology().isLayout()) return (false); // only layout nodes
             MTDRCAreaTool.GeometryHandlerLayerBucket bucket = cellsMap.get(info.getCell());
 
             // Cells
