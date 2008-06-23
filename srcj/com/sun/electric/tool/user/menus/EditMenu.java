@@ -219,17 +219,17 @@ public class EditMenu {
 
 			SEPARATOR,
 
-		// mnemonic keys available: A C  FG IJK M  QR TUVWXYZ
+		// mnemonic keys available: A CD FGHIJK M   QRSTUVWXYZ
 			new EMenu("Propert_ies",
 				new EMenuItem("_Object Properties...", 'I') { public void run() {
 					getInfoCommand(false); }},
-				SEPARATOR,
-				new EMenuItem("_See All Attributes on Node") { public void run() {
-					seeAllParametersCommand(); }},
-				new EMenuItem("_Hide All Attributes on Node") { public void run() {
-					hideAllParametersCommand(); }},
-				new EMenuItem("_Default Attribute Visibility") { public void run() {
-					defaultParamVisibilityCommand(); }},
+//				SEPARATOR,
+//				new EMenuItem("See All Attributes on Node") { public void run() {
+//					seeAllParametersCommand(); }},
+//				new EMenuItem("Hide All Attributes on Node") { public void run() {
+//					hideAllParametersCommand(); }},
+//				new EMenuItem("Default Attribute Visibility") { public void run() {
+//					defaultParamVisibilityCommand(); }},
 				SEPARATOR,
 				new EMenuItem("Cell _Parameters...") { public void run() {
 					Attributes.showDialog(); }},
@@ -453,10 +453,11 @@ public class EditMenu {
 		if (wnd == null) return;
 		if (wnd.getHighlighter().getNumHighlights() == 0)
 		{
-			// information about the cell
-			Cell c = WindowFrame.getCurrentCell();
-			//if (c != null) c.getInfo();
-			if (c != null) Attributes.showDialog();
+			System.out.println("Must select an object first");
+//			// information about the cell
+//			Cell c = WindowFrame.getCurrentCell();
+//			//if (c != null) c.getInfo();
+//			if (c != null) Attributes.showDialog();
 		} else
 		{
 			int [] counts = new int[5];
