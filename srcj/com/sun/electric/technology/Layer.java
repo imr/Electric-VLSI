@@ -51,7 +51,7 @@ import java.util.Map;
  * The Layers are defined by the PrimitiveNode and ArcProto classes, and are used in the generation of geometry.
  * In addition, layers have extra information that is used for output and behavior.
  */
-public class Layer
+public class Layer 
 {
     public static final double DEFAULT_THICKNESS = 0; // 3D default thickness
     public static final double DEFAULT_DISTANCE = 0; // 3D default distance

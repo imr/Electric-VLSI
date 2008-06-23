@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07l: ******************************
 
+BUG: (6/23/08, GVG) Sort layers in 3D preference by their Z values (Bug #1723)
+FIX: Changed from LayerHeight to LayerZValueSorting.
+
 BUG: (6/23/08, GVG) Out of bounds exception in DRC layout with schematic primitive (Bug #1725)
 FIX: In MinArea, not detecting cases where NodeInsts are non-layout nodes.
 

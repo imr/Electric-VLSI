@@ -120,7 +120,7 @@ public class ThreeDTab extends PreferencePanel
 		threeDThicknessMap = new HashMap<Layer,GenMath.MutableDouble>();
 		threeDDistanceMap = new HashMap<Layer,GenMath.MutableDouble>();
         // Sorted by Height to be consistent with LayersTab
-		for(Layer layer : curTech.getLayersSortedByHeight())
+		for(Layer layer : curTech.getLayersSortedByZValue())
 		{
 			if (layer.isPseudoLayer()) continue;
 			threeDLayerModel.addElement(layer.getName());
