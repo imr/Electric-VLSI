@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07l: ******************************
 
+BUG: (6/23/08, GVG) Exception in DRC due to layer.index() = -1 (Bug #1726)
+FIX: Detecting non-layout nodes.
+
 IMP: (6/23/08, SMR) Using "Object Properties" when nothing is selected gives
      an error instead of bringing up "Parameters" dialog.
      Removed Edit menu commands "See/Hide All Attributes on Node" and

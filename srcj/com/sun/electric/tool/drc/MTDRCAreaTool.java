@@ -311,6 +311,8 @@ public class MTDRCAreaTool extends MTDRCTool
             if (ni.isCellInstance()) return (true);
 
 			NodeProto np = ni.getProto();
+            if (!np.getTechnology().isLayout()) return (false); // only layout nodes
+
             GeometryHandlerLayerBucket bucket = cellsMap.get(info.getCell());
 			AffineTransform trans = ni.rotateOut();
             PrimitiveNode pNp = (PrimitiveNode)np;

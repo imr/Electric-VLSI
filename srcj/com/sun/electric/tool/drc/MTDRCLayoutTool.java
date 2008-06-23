@@ -728,6 +728,8 @@ public class MTDRCLayoutTool extends MTDRCTool {
             // Skipping special nodes
             if (NodeInst.isSpecialNode(ni)) return false; // Oct 5;
 
+            if (!np.getTechnology().isLayout()) return (false); // only layout nodes
+
             if (np.getFunction() == PrimitiveNode.Function.PIN) return false; // Sept 30
 
             if (coverByExclusion(ni)) return false; // no errors
@@ -989,6 +991,10 @@ public class MTDRCLayoutTool extends MTDRCTool {
          */
         private boolean checkCellInst(NodeInst ni, int globalIndex)
         {
+            Cell thisCell = (Cell)ni.getProto();
+            if (thisCell.isLayout())
+                return false; // skips non-layout cells.
+
             // get transformation out of the instance
             AffineTransform upTrans = ni.translateOut(ni.rotateOut());
 

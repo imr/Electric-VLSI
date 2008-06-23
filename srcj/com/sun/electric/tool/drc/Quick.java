@@ -743,6 +743,8 @@ public class Quick
 		// Skipping special nodes
 		if (NodeInst.isSpecialNode(ni)) return false; // Oct 5;
 
+        if (!np.getTechnology().isLayout()) return (false); // only layout nodes
+
         if (np.getFunction() == PrimitiveNode.Function.PIN) return false; // Sept 30
 
         if (coverByExclusion(ni)) return false; // no errors
@@ -994,7 +996,11 @@ public class Quick
 	 */
 	private boolean checkCellInst(NodeInst ni, int globalIndex)
 	{
-		// get transformation out of the instance
+        Cell thisCell = (Cell)ni.getProto();
+        if (thisCell.isLayout())
+            return false; // skips non-layout cells.
+
+        // get transformation out of the instance
         AffineTransform upTrans = ni.translateOut(ni.rotateOut());
 
 		// get network numbering for the instance
@@ -1002,7 +1008,7 @@ public class Quick
 		int localIndex = globalIndex * ci.multiplier + ci.localIndex + ci.offset;
         boolean errorFound = false;
 
-		// look for other instances surrounding this one
+        // look for other instances surrounding this one
 		Rectangle2D nodeBounds = ni.getBounds();
 		Rectangle2D searchBounds = new Rectangle2D.Double(
 			nodeBounds.getMinX()-worstInteractionDistance,
@@ -4744,7 +4750,7 @@ public class Quick
 		// find this node in the table
 		boolean [] validLayers = layersInterNodes.get(np);
 		if (validLayers == null) return false;
-		return validLayers[layer.getIndex()];
+        return validLayers[layer.getIndex()];
 	}
 
 	/**
@@ -4918,7 +4924,8 @@ public class Quick
             // Facet or special elements
 			NodeInst ni = no.getNodeInst();
             if (NodeInst.isSpecialNode(ni)) return (false);
-			NodeProto np = ni.getProto();
+            NodeProto np = ni.getProto();
+            if (!np.getTechnology().isLayout()) return (false); // only layout nodes
 
             // Cells
             if (ni.isCellInstance()) return (true);
