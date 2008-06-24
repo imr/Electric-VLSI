@@ -743,7 +743,8 @@ public class Quick
 		// Skipping special nodes
 		if (NodeInst.isSpecialNode(ni)) return false; // Oct 5;
 
-        if (!np.getTechnology().isLayout()) return (false); // only layout nodes
+        if (!np.getTechnology().isLayout())
+            return (false); // only layout nodes
 
         if (np.getFunction() == PrimitiveNode.Function.PIN) return false; // Sept 30
 
@@ -997,7 +998,7 @@ public class Quick
 	private boolean checkCellInst(NodeInst ni, int globalIndex)
 	{
         Cell thisCell = (Cell)ni.getProto();
-        if (thisCell.isLayout())
+        if (!thisCell.isLayout())
             return false; // skips non-layout cells.
 
         // get transformation out of the instance
@@ -4925,7 +4926,8 @@ public class Quick
 			NodeInst ni = no.getNodeInst();
             if (NodeInst.isSpecialNode(ni)) return (false);
             NodeProto np = ni.getProto();
-            if (!np.getTechnology().isLayout()) return (false); // only layout nodes
+            if (!np.getTechnology().isLayout())
+                return (false); // only layout nodes
 
             // Cells
             if (ni.isCellInstance()) return (true);
@@ -5080,7 +5082,8 @@ public class Quick
 			NodeInst ni = no.getNodeInst();
             if (NodeInst.isSpecialNode(ni)) return (false);
             NodeProto np = ni.getProto();
-            if (!np.getTechnology().isLayout()) return (false); // only layout nodes
+            if (!np.getTechnology().isLayout())
+                return (false); // only layout nodes
             MTDRCAreaTool.GeometryHandlerLayerBucket bucket = cellsMap.get(info.getCell());
 
             // Cells
