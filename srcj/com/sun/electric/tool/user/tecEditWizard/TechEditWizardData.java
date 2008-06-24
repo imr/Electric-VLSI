@@ -98,8 +98,9 @@ public class TechEditWizardData
 	private WizardField pplus_spacing = new WizardField();
 
 	private WizardField nwell_width = new WizardField();
-	private WizardField nwell_overhang_diff = new WizardField();
-	private WizardField nwell_spacing = new WizardField();
+	private WizardField nwell_overhang_diff_p = new WizardField();
+    private WizardField nwell_overhang_diff_n = new WizardField();
+    private WizardField nwell_spacing = new WizardField();
 
 	// METAL RULES
 	private WizardField [] metal_width;
@@ -126,7 +127,7 @@ public class TechEditWizardData
 	private int [] gds_via_layer;
 	private int gds_marking_layer;		// Device marking layer
 
-	TechEditWizardData()
+	public TechEditWizardData()
 	{
 		stepsize = 100;
 		num_metal_layers = 2;
@@ -282,8 +283,10 @@ public class TechEditWizardData
 
 	public WizardField getNWellWidth() { return nwell_width; }
 	public void setNWellWidth(WizardField v) { nwell_width = v; }
-	public WizardField getNWellOverhangDiff() { return nwell_overhang_diff; }
-	public void setNWellOverhangDiff(WizardField v) { nwell_overhang_diff = v; }
+	public WizardField getNWellOverhangDiffP() { return nwell_overhang_diff_p; }
+	public void setNWellOverhangDiffP(WizardField v) { nwell_overhang_diff_p = v; }
+	public WizardField getNWellOverhangDiffN() { return nwell_overhang_diff_n; }
+	public void setNWellOverhangDiffN(WizardField v) { nwell_overhang_diff_n = v; }
 	public WizardField getNWellSpacing() { return nwell_spacing; }
 	public void setNWellSpacing(WizardField v) { nwell_spacing = v; }
 
@@ -369,11 +372,22 @@ public class TechEditWizardData
 	 * Method to import data from a file to this object.
 	 * @return true on success; false on failure.
 	 */
-	public boolean importData()
+	boolean importData()
 	{
 		String fileName = OpenFile.chooseInputFile(FileType.ANY, "Technology Wizard File");
 		if (fileName == null) return false;
-		URL url = TextUtils.makeURLToFile(fileName);
+        return importData(fileName);
+    }
+
+    /**
+     * Method to import data from a given file to this object. It is also in the regression so
+     * keep the access.
+     * @param fileName
+     * @return
+     */
+    public boolean importData(String fileName)
+    {
+        URL url = TextUtils.makeURLToFile(fileName);
 		try
 		{
 			URLConnection urlCon = url.openConnection();
@@ -481,9 +495,11 @@ public class TechEditWizardData
 
 					if (varName.equalsIgnoreCase("nwell_width")) nwell_width.v = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("nwell_width_rule")) nwell_width.rule = stripQuotes(varValue); else
-					if (varName.equalsIgnoreCase("nwell_overhang_diff")) nwell_overhang_diff.v = TextUtils.atof(varValue); else
-					if (varName.equalsIgnoreCase("nwell_overhang_diff_rule")) nwell_overhang_diff.rule = stripQuotes(varValue); else
-					if (varName.equalsIgnoreCase("nwell_spacing")) nwell_spacing.v = TextUtils.atof(varValue); else
+					if (varName.equalsIgnoreCase("nwell_overhang_diff_p")) nwell_overhang_diff_p.v = TextUtils.atof(varValue); else
+					if (varName.equalsIgnoreCase("nwell_overhang_diff_rule_p")) nwell_overhang_diff_p.rule = stripQuotes(varValue); else
+					if (varName.equalsIgnoreCase("nwell_overhang_diff_n")) nwell_overhang_diff_n.v = TextUtils.atof(varValue); else
+					if (varName.equalsIgnoreCase("nwell_overhang_diff_rule_n")) nwell_overhang_diff_n.rule = stripQuotes(varValue); else
+                    if (varName.equalsIgnoreCase("nwell_spacing")) nwell_spacing.v = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("nwell_spacing_rule")) nwell_spacing.rule = stripQuotes(varValue); else
 
 					if (varName.equalsIgnoreCase("metal_width")) fillWizardArray(varValue, metal_width, num_metal_layers, false); else
@@ -706,9 +722,11 @@ public class TechEditWizardData
 		pw.println();
 		pw.println("$nwell_width = " + TextUtils.formatDouble(nwell_width.v) + ";");
 		pw.println("$nwell_width_rule = \"" + nwell_width.rule + "\";");
-		pw.println("$nwell_overhang_diff = " + TextUtils.formatDouble(nwell_overhang_diff.v) + ";");
-		pw.println("$nwell_overhang_diff_rule = \"" + nwell_overhang_diff.rule + "\";");
-		pw.println("$nwell_spacing = " + TextUtils.formatDouble(nwell_spacing.v) + ";");
+		pw.println("$nwell_overhang_diff_p = " + TextUtils.formatDouble(nwell_overhang_diff_p.v) + ";");
+		pw.println("$nwell_overhang_diff_rule_p = \"" + nwell_overhang_diff_p.rule + "\";");
+        pw.println("$nwell_overhang_diff_n = " + TextUtils.formatDouble(nwell_overhang_diff_n.v) + ";");
+		pw.println("$nwell_overhang_diff_rule_n = \"" + nwell_overhang_diff_n.rule + "\";");
+        pw.println("$nwell_spacing = " + TextUtils.formatDouble(nwell_spacing.v) + ";");
 		pw.println("$nwell_spacing_rule = \"" + nwell_spacing.rule + "\";");
 		pw.println();
 		pw.println("######  METAL RULES  #####");
@@ -1178,8 +1196,13 @@ public class TechEditWizardData
         }
         return ppd;
     }
-    
-    private void dumpXMLFile(String fileName)
+
+    /**
+     * Leave as oublic for the regression.
+     * @param fileName
+     * @throws IOException
+     */
+    public void dumpXMLFile(String fileName)
         throws IOException
     {
         Xml.Technology t = new Xml.Technology();
@@ -1525,14 +1548,14 @@ public class TechEditWizardData
         makeXmlArc(t.arcs, "P-Diff", ArcProto.Function.DIFFP, 0,
                 makeXmlArcLayer(diffPLayer, diff_width),
                 makeXmlArcLayer(pplusLayer, diff_width, pplus_overhang_diff),
-                makeXmlArcLayer(nwellLayer, diff_width, nwell_overhang_diff));
+                makeXmlArcLayer(nwellLayer, diff_width, nwell_overhang_diff_p));
 
         // ndiff/pdiff pins
         hla = scaledValue((contact_size.v/2 + diff_contact_overhang.v));
         double nsel = scaledValue(contact_size.v/2 + diff_contact_overhang.v + nplus_overhang_diff.v);
         double psel = scaledValue(contact_size.v/2 + diff_contact_overhang.v + pplus_overhang_diff.v);
-        double nwell = scaledValue(contact_size.v/2 + diff_contact_overhang.v + nwell_overhang_diff.v);
-        double nso = scaledValue(nwell_overhang_diff.v); // valid for elements that have nwell layers
+        double nwell = scaledValue(contact_size.v/2 + diff_contact_overhang.v + nwell_overhang_diff_p.v);
+        double nso = scaledValue(nwell_overhang_diff_p.v); // valid for elements that have nwell layers
         double pso = scaledValue(nplus_overhang_diff.v);
 
         makeXmlPrimitivePin(t.nodes, "N-Diff", hla,
@@ -1568,6 +1591,8 @@ public class TechEditWizardData
                 makeXmlMulticut(diffCon, contSize, contSpacing, contArraySpacing)); // contact
 
         /**************************** N/P-Well Contacts ***********************************************/
+        nwell = scaledValue(contact_size.v/2 + diff_contact_overhang.v + nwell_overhang_diff_n.v);
+        nso = scaledValue(nwell_overhang_diff_n.v); // valid for elements that have nwell layers
         portNames.clear();
         portNames.add(diffNLayer.name);
         portNames.add(m1Layer.name);
@@ -1635,8 +1660,8 @@ public class TechEditWizardData
             double length = scaledValue((gate_length.v));
             double impx = scaledValue((gate_width.v)/2);
             double impy = scaledValue((gate_length.v+diff_poly_overhang.v*2)/2);
-            double wellx = scaledValue((gate_width.v/2+nwell_overhang_diff.v));
-            double welly = scaledValue((gate_length.v/2+diff_poly_overhang.v+nwell_overhang_diff.v));
+            double wellx = scaledValue((gate_width.v/2+nwell_overhang_diff_p.v));
+            double welly = scaledValue((gate_length.v/2+diff_poly_overhang.v+nwell_overhang_diff_p.v));
 
             if (i==0)
 			{
@@ -1644,8 +1669,8 @@ public class TechEditWizardData
                 wellLayer = nwellLayer;
                 activeLayer = diffPLayer;
                 selectLayer = pplusLayer;
-                sox = scaledValue(nwell_overhang_diff.v);
-                soy = scaledValue(diff_poly_overhang.v+nwell_overhang_diff.v);
+                sox = scaledValue(nwell_overhang_diff_p.v);
+                soy = scaledValue(diff_poly_overhang.v+nwell_overhang_diff_p.v);
                 selectx = scaledValue((gate_width.v/2+(poly_endcap.v+pplus_overhang_poly.v)));
                 selecty = scaledValue((gate_length.v/2+diff_poly_overhang.v+pplus_overhang_diff.v));
             } else
@@ -1715,7 +1740,10 @@ public class TechEditWizardData
         makeLayerRuleMinWid(t, nplusLayer, nplus_width);
         makeLayersRuleSurround(t, nplusLayer, diffNLayer, nplus_overhang_diff);
         makeLayerRuleMinWid(t, nwellLayer, nwell_width);
-        makeLayersRuleSurround(t, nwellLayer, diffPLayer, nwell_overhang_diff);
+        makeLayersRuleSurround(t, nwellLayer, diffPLayer, nwell_overhang_diff_p);
+        //
+        System.out.println("missing nwell_overhang_diff_n");
+
         makeLayerRuleMinWid(t, polyLayer, poly_width);
         
         for (int i = 0; i < num_metal_layers; i++) {
@@ -1742,13 +1770,13 @@ public class TechEditWizardData
         return al;
     }
     
-    private Technology.Distance makeXmlDistance(WizardField ... flds) {
-        Technology.Distance dist = new Technology.Distance();
-        dist.addRule(flds[0].rule, 0.5);
-        for (int i = 1; i < flds.length; i++)
-            dist.addRule(flds[i].rule, 1);
-        return dist;
-    }
+//    private Technology.Distance makeXmlDistance(WizardField ... flds) {
+//        Technology.Distance dist = new Technology.Distance();
+//        dist.addRule(flds[0].rule, 0.5);
+//        for (int i = 1; i < flds.length; i++)
+//            dist.addRule(flds[i].rule, 1);
+//        return dist;
+//    }
     
     private void makeLayerRuleMinWid(Xml.Technology t, Xml.Layer l, WizardField fld) {
         for (Xml.Foundry f: t.foundries) {
