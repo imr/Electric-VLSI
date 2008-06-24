@@ -992,7 +992,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
         private boolean checkCellInst(NodeInst ni, int globalIndex)
         {
             Cell thisCell = (Cell)ni.getProto();
-            if (thisCell.isLayout())
+            if (!thisCell.isLayout())
                 return false; // skips non-layout cells.
 
             // get transformation out of the instance
