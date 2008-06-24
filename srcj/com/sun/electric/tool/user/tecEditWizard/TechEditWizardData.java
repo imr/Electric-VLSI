@@ -1741,8 +1741,7 @@ public class TechEditWizardData
         makeLayersRuleSurround(t, nplusLayer, diffNLayer, nplus_overhang_diff);
         makeLayerRuleMinWid(t, nwellLayer, nwell_width);
         makeLayersRuleSurround(t, nwellLayer, diffPLayer, nwell_overhang_diff_p);
-        //
-        System.out.println("missing nwell_overhang_diff_n");
+        makeLayersRuleSurround(t, nwellLayer, diffNLayer, nwell_overhang_diff_n);
 
         makeLayerRuleMinWid(t, polyLayer, poly_width);
         
