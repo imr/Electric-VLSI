@@ -1101,8 +1101,9 @@ public class Layer
             Method setMethod = viewClass.getDeclaredMethod("setZValues", new Class[] {Layer.class, Double.class, Double.class, Double.class, Double.class});
             setMethod.invoke(viewClass,  new Object[] {this, new Double(getDistance()), new Double(getThickness()), new Double(distance), new Double(getThickness())});
         } catch (Exception e) {
-            System.out.println("Cannot call 3D plugin method setZValues: " + e.getMessage());
-            e.printStackTrace();
+            String extra = (e.getMessage() != null) ? " due to: " + e.getMessage() : ".";
+            System.out.print("Cannot call 3D plugin method setZValues" + extra);
+//            e.printStackTrace();
         }
         getDoublePref("Distance", layer3DDistancePrefs, distance).setDouble(distance);
     }
