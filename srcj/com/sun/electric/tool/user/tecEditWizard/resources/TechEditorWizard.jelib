@@ -1,5 +1,5 @@
 # header information:
-HTechEditorWizard|8.07l
+HTechEditorWizard|8.07k
 
 # Views:
 Vicon|ic
@@ -28,10 +28,10 @@ Aartwork:Thicker|D|BD4FLeave alone;G1.5;||BFSXY900|pin@6||0.2|4.5|pin@7||0.2|2.5
 X
 
 # Cell Contact;1{lay}
-CContact;1{lay}||mocmos|1213814711252|1213831310051|
+CContact;1{lay}||mocmos|1213814711252|1214354124890|
 Ngeneric:Facet-Center|art@0||0|0||||AV
-Nartwork:Pin|pin@0||-1|1.6|1|1||
-Nartwork:Pin|pin@1||1|1.6|1|1||
+Nartwork:Pin|pin@0||-1|-1.8|1|1||
+Nartwork:Pin|pin@1||1|-1.8|1|1||
 Nartwork:Pin|pin@2||10.8|0|1|1||
 Nartwork:Pin|pin@3||13.1|0|1|1||
 Nartwork:Pin|pin@4||-0.2|-6.95|1|1||
@@ -42,8 +42,8 @@ Nartwork:Pin|pin@8||1|0|1|1||
 Nartwork:Pin|pin@9||4.5|0|1|1||
 Nartwork:Pin|pin@10||-4.5|-7.15|1|1||
 Nartwork:Pin|pin@11||-2.2|-7.15|1|1||
-Nartwork:Pin|pin@12||-2.5|-1.8|1|1||
-Nartwork:Pin|pin@13||-1|-1.8|1|1||
+Nartwork:Pin|pin@12||-2.5|0|1|1||
+Nartwork:Pin|pin@13||-1|0|1|1||
 Nartwork:Pin|pin@14||3.8|-10.95|1|1||
 Nartwork:Pin|pin@15||9.2|-10.95|1|1||
 NPolysilicon-1-Node|plnode@0||0|0|5|5||
@@ -60,14 +60,49 @@ NPolysilicon-1-Node|plnode@11||0.8|-9.05|10|10||
 NPoly-Cap-Node|plnode@12||-1.2|-7.05|2|2||
 NPoly-Cap-Node|plnode@13||2.8|-7.05|2|2||
 NN-Active-Node|plnode@14||10.7|-9.05|3|10.6||
-Aartwork:Thicker|A|BD8FLeave alone;G1.5;||BFSXY0|pin@1||1|1.6|pin@0||-1|1.6
+Aartwork:Thicker|A|BD2FLeave alone;G1.5;||BFSXY0|pin@1||1|-1.8|pin@0||-1|-1.8
 Aartwork:Thicker|B|BD8FLeave alone;G1.5;||BFSXY0|pin@3||13.1|0|pin@2||10.8|0
 Aartwork:Thicker|C|BD8FLeave alone;G1.5;||BFSXY0|pin@5||1.8|-6.95|pin@4||-0.2|-6.95
 Aartwork:Thicker|C|BD4FLeave alone;G1.5;||BFSXY900|pin@7||-1.2|-8.05|pin@6||-1.2|-10.05
 Aartwork:Thicker|D|BD8FLeave alone;G1.5;||BFSXY0|pin@9||4.5|0|pin@8||1|0
 Aartwork:Thicker|E|BD8FLeave alone;G1.5;||BFSXY0|pin@11||-2.2|-7.15|pin@10||-4.5|-7.15
-Aartwork:Thicker|F|BD8FLeave alone;G1.5;||BFSXY0|pin@13||-1|-1.8|pin@12||-2.5|-1.8
+Aartwork:Thicker|F|BD8FLeave alone;G1.5;||BFSXY0|pin@13||-1|0|pin@12||-2.5|0
 Aartwork:Thicker|G|BD8FLeave alone;G1.5;||BFSXY0|pin@15||9.2|-10.95|pin@14||3.8|-10.95
+X
+
+# Cell Gate;1{lay}
+CGate;1{lay}||mocmos|1214351056100|1214351330673|
+Ngeneric:Facet-Center|art@0||0|0||||AV
+Nartwork:Pin|pin@0||0|-7.9|1|1||
+Nartwork:Pin|pin@1||0|-10|1|1||
+Nartwork:Pin|pin@2||1.5|-5.1|1|1||
+Nartwork:Pin|pin@3||-1.5|-5.1|1|1||
+Nartwork:Pin|pin@4||0|-1|1|1||
+Nartwork:Pin|pin@5||0|-4|1|1||
+Nartwork:Pin|pin@6||-3.7|-6|1|1||
+Nartwork:Pin|pin@7||-3.7|-8|1|1||
+NN-Active-Node|plnode@0||0|0|5|5||
+NPoly-Cap-Node|plnode@1||0|0|2|2||
+NN-Active-Node|plnode@2||0|-6.5|8|3|R|
+NPolysilicon-1-Node|plnode@3||-2|-5|2|12|R|
+NPolysilicon-1-Node|plnode@4||-2|-9|2|12|R|
+Aartwork:Thicker|A|BD4FLeave alone;G1.5;||BFSXY900|pin@0||0|-7.9|pin@1||0|-10
+Aartwork:Thicker|B|BD2FLeave alone;G1.5;||BFSXY0|pin@2||1.5|-5.1|pin@3||-1.5|-5.1
+Aartwork:Thicker|C|BD4FLeave alone;G1.5;||BFSXY900|pin@4||0|-1|pin@5||0|-4
+Aartwork:Thicker|D|BD4FLeave alone;G1.5;||BFSXY900|pin@6||-3.7|-6|pin@7||-3.7|-8
+X
+
+# Cell Metal;1{lay}
+CMetal;1{lay}||mocmos|1214351471769|1214351578349|
+Ngeneric:Facet-Center|art@0||0|0||||AV
+Nartwork:Pin|pin@2||1.7|1|1|1||
+Nartwork:Pin|pin@3||1.7|-1|1|1||
+Nartwork:Pin|pin@4||-2|4|1|1||
+Nartwork:Pin|pin@5||-2|1|1|1||
+NMetal-1-Node|plnode@0||0|0|9|2||
+NMetal-1-Node|plnode@1||0|5|9|2||
+Aartwork:Thicker|A|BD4FLeave alone;G1.5;||BFSXY900|pin@2||1.7|1|pin@3||1.7|-1
+Aartwork:Thicker|B|BD4FLeave alone;G1.5;||BFSXY900|pin@4||-2|4|pin@5||-2|1
 X
 
 # Cell Poly;1{lay}
@@ -97,6 +132,42 @@ Ngeneric:Facet-Center|art@0||0|0||||AV
 NPin|pin@0||10|0|1|1||
 NPin|pin@1||0|0|1|1||
 AThicker|A|BD8G2;||BFSXY0|pin@0||10|0|pin@1||0|0
+X
+
+# Cell Via;1{lay}
+CVia;1{lay}||mocmos|1214351614548|1214352678416|
+Ngeneric:Facet-Center|art@0||0|0||||AV
+Nartwork:Pin|pin@0||-3.2|7.4|1|1||
+Nartwork:Pin|pin@1||-1.2|7.4|1|1||
+Nartwork:Pin|pin@10||-1.2|9.1|1|1||
+Nartwork:Pin|pin@11||1.1|9.1|1|1||
+Nartwork:Pin|pin@12||3.1|9.65|1|1||
+Nartwork:Pin|pin@13||5.3|9.65|1|1||
+Nartwork:Pin|pin@14||-2|-0.95|1|1||
+Nartwork:Pin|pin@15||-2|1.05|1|1||
+Nartwork:Pin|pin@18||3|2.25|1|1||
+Nartwork:Pin|pin@19||5.3|2.25|1|1||
+Nartwork:Pin|pin@20||-1|2|1|1||
+Nartwork:Pin|pin@21||1|2|1|1||
+Nartwork:Pin|pin@22||-2.2|3.05|1|1||
+Nartwork:Pin|pin@23||-2.2|5.35|1|1||
+NMetal-1-Node|plnode@12||0|0.05|10.6|10.6||
+NPolysilicon-1-Node|plnode@13||0|0.05|10.6|10.6||
+NPoly-Cap-Node|plnode@14||-2|2.05|2|2||
+NPoly-Cap-Node|plnode@15||2|2.05|2|2||
+NMetal-1-Node|plnode@19||0|9.1|10.6|5.6||
+NPolysilicon-1-Node|plnode@20||0|9.1|10.6|5.6||
+NPoly-Cap-Node|plnode@21||-2.2|9.1|2|2||
+NPoly-Cap-Node|plnode@22||2.1|9.1|2|2||
+NPoly-Cap-Node|plnode@23||-2|-1.95|2|2||
+NPoly-Cap-Node|plnode@24||2|-1.95|2|2||
+Aartwork:Thicker|A|BD2FLeave alone;G1.5;||BFSXY0|pin@1||-1.2|7.4|pin@0||-3.2|7.4
+Aartwork:Thicker|B|BD8FLeave alone;G1.5;||BFSXY0|pin@11||1.1|9.1|pin@10||-1.2|9.1
+Aartwork:Thicker|C|BD4FLeave alone;G1.5;||BFSXY900|pin@15||-2|1.05|pin@14||-2|-0.95
+Aartwork:Thicker|C|BD8FLeave alone;G1.5;||BFSXY0|pin@21||1|2|pin@20||-1|2
+Aartwork:Thicker|D|BD8FLeave alone;G1.5;||BFSXY0|pin@13||5.3|9.65|pin@12||3.1|9.65
+Aartwork:Thicker|D|BD8FLeave alone;G1.5;||BFSXY0|pin@19||5.3|2.25|pin@18||3|2.25
+Aartwork:Thicker|D|BD4FLeave alone;G1.5;||BFSXY900|pin@23||-2.2|5.35|pin@22||-2.2|3.05
 X
 
 # Cell WellImplant;1{lay}
