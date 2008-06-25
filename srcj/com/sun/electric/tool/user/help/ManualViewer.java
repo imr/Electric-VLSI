@@ -114,7 +114,7 @@ public class ManualViewer extends EModelessDialog
 	private static final String RUSSIANMANUALPATH = "plugins/manualRussian";
 
 	/** the menus that are not checked */
-	private static Set<String> excludeMenu = new HashSet<String>();
+	public static Set<String> excludeMenu = new HashSet<String>();
 	static
 	{
 		excludeMenu.add("Sun");
