@@ -382,8 +382,8 @@ public class TechEditWizardData
     /**
      * Method to import data from a given file to this object. It is also in the regression so
      * keep the access.
-     * @param fileName
-     * @return
+     * @param fileName the name of the file to import.
+     * @return true on success; false on failure.
      */
     public boolean importData(String fileName)
     {
