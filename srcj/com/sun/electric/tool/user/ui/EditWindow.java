@@ -2923,11 +2923,22 @@ public class EditWindow extends JPanel
 	            double oldScale = getScale();
 	            Point2D oldOffset = getOffset();
 	            setScreenBounds(cellBounds);
+	            scale = scaleRequested;
 	            Rectangle2D relativeTextBounds = cell.getRelativeTextBounds(this);
 	            if (relativeTextBounds != null)
 	            {
 	                Rectangle2D newCellBounds = new Rectangle2D.Double();
 	                Rectangle2D.union(relativeTextBounds, cellBounds, newCellBounds);
+
+	                // do it twice more to get closer to the actual text size
+	                for(int i=0; i<2; i++)
+	                {
+		                setScreenBounds(newCellBounds);
+			            scale = scaleRequested;
+			            relativeTextBounds = cell.getRelativeTextBounds(this);
+			            if (relativeTextBounds != null)
+			                Rectangle2D.union(relativeTextBounds, cellBounds, newCellBounds);
+	                }
 	                cellBounds = newCellBounds;
 	            }
 	            setScale(oldScale);

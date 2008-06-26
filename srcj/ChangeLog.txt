@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07m: ******************************
 
+BUG: (6/26/08, SMR) Cells don't always fill the window (Bug #1730, #1731).
+FIX: In EditWindow.getBoundsInWindow(), set scale properly, iterate twice.
+
 BUG: (6/26/08, SMR) GDS output may crash on Artwork primitives (Bug #1728).
 FIX: Handle null graphics information caused by Artwork auto-generation of layers.
 
