@@ -44,8 +44,8 @@ import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
-import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.GDSLayers;
+import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
 
 import java.awt.geom.AffineTransform;
@@ -54,7 +54,16 @@ import java.awt.geom.Rectangle2D;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * This class writes files in GDS format.
@@ -179,7 +188,6 @@ public class GDS extends Geometry
 	{
 		// write this cell
 		Cell cell = cellGeom.cell;
-//        Foundry foundry = cell.getTechnology().getSelectedFoundry();
 		outputBeginStruct(cell);
         boolean renamePins = (cell == topCell && IOTool.getGDSConvertNCCExportsConnectedByParentPins());
         boolean colapseGndVddNames = (cell == topCell && IOTool.isGDSColapseVddGndPinNames());
@@ -202,7 +210,6 @@ public class GDS extends Geometry
             // r.getTechnology() == Generic.tech for layer Glyph
             if (layer == null || layer.getTechnology() == null || layer.getTechnology() == Generic.tech()) continue;
 			if (!selectLayer(layer))
-//			if (!selectLayer(foundry, layer))
             {
                 System.out.println("Skipping " + layer + " in GDS:writeCellGeom");
                 continue;
@@ -235,14 +242,12 @@ public class GDS extends Geometry
 				PortOriginal fp = new PortOriginal(pp.getOriginalPort());
 				PortInst bottomPort = fp.getBottomPort();
 				NodeInst bottomNi = bottomPort.getNodeInst();
-//				AffineTransform trans = fp.getTransformToTop();
 
 				// find the layer associated with this node
 				PrimitiveNode pNp = (PrimitiveNode)bottomNi.getProto();
 				Technology.NodeLayer [] nLay = pNp.getLayers();
 				Layer layer = nLay[0].getLayer().getNonPseudoLayer();
 				selectLayer(layer);
-//				selectLayer(foundry, layer);
 
 //				int textLayer = IOTool.getGDSOutDefaultTextLayer(), textType = 0;
 //				if (currentLayerNumbers.getTextLayer() != -1)
@@ -293,6 +298,7 @@ public class GDS extends Geometry
         }
         return nameMap;
     }
+
     private static class StringComparator implements Comparator<String>
     {
 		/**
@@ -307,7 +313,8 @@ public class GDS extends Geometry
             return (this == obj);
         }
     }
-	private void writeExportOnLayer(Export pp, int layer, int type, boolean remapNames, boolean colapseGndVddNames)
+
+    private void writeExportOnLayer(Export pp, int layer, int type, boolean remapNames, boolean colapseGndVddNames)
 	{
 		outputHeader(HDR_TEXT, 0);
 		outputHeader(HDR_LAYER, layer);
@@ -385,35 +392,14 @@ public class GDS extends Geometry
             }
             numbers = layerNumbers.get(layer);
         }
-        assert numbers != null;
+
+        // might be null because Artwork layers are auto-generated and not in the Technology list
+        if (numbers == null) numbers = GDSLayers.EMPTY;
         currentLayerNumbers = numbers;
+
         // validLayer false if layerName = "" like for pseudo metals
         return numbers.getNumLayers() > 0;
     }
-
-//	private boolean selectLayer(Foundry, foundry, Layer layer)
-//	{
-//		boolean validLayer = true;
-//		GDSLayers numbers = layerNumbers.get(layer);
-//		if (numbers == null)
-//		{
-////			String layerName = layer.getGDSLayer();
-//            String layerName = foundry.getGDSLayer(layer);
-//			if (layerName == null)
-//			{
-//				numbers = new GDSLayers();
-////				validLayer = false;
-//			} else
-//			{
-//				numbers = GDSLayers.parseLayerString(layerName);
-//			}
-//			layerNumbers.put(layer, numbers);
-//		}
-//        // validLayer false if layerName = "" like for pseudo metals
-//        validLayer = numbers.getNumLayers() > 0;
-//		currentLayerNumbers = numbers;
-//		return validLayer;
-//	}
 
 	protected void writePoly(PolyBase poly, int layerNumber, int layerType)
 	{
@@ -504,7 +490,6 @@ public class GDS extends Geometry
 		{
 			PrimitiveNode prim = (PrimitiveNode)ni.getProto();
 			Technology tech = prim.getTechnology();
-//            Foundry foundry = tech.getSelectedFoundry();
 			Poly [] polys = tech.getShapeOfNode(ni);
 			Layer firstLayer = null;
 			for (int i=0; i<polys.length; i++)
@@ -561,7 +546,9 @@ public class GDS extends Geometry
 
 	/*************************** GDS OUTPUT ROUTINES ***************************/
 
-	// Initialize various fields, get some standard values
+	/**
+	 * Method to initialize various fields, get some standard values
+	 */
 	private void initOutput()
 	{
 		blockCount = 0;
@@ -577,12 +564,10 @@ public class GDS extends Geometry
 
 		// precache the layers in this technology
 		boolean foundValid = false;
-//        Foundry foundry = tech.getSelectedFoundry();
 		for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
 		{
 			Layer layer = it.next();
 			if (selectLayer(layer)) foundValid = true;
-//			if (selectLayer(foundry, layer)) foundValid = true;
 		}
 		if (!foundValid)
 		{
@@ -626,7 +611,8 @@ public class GDS extends Geometry
 		// see if the name is unique
 		String baseName = name;
 		Collection existing = cellNames.values();
-        // try prepending the library name first
+
+		// try prepending the library name first
         if (existing.contains(name)) {
             int liblen = IOTool.getGDSCellNameLenMax() - (name.length() + concatStr.length());  // space for lib name
             if (liblen > 0) {
@@ -685,7 +671,7 @@ public class GDS extends Geometry
      */
     public HashMap<Cell,String> getCellNames() { return cellNames; }
 
-	/*
+	/**
 	 * Close the file, pad to make the file match the tape format
 	 */
 	private void doneWritingOutput()
@@ -713,7 +699,9 @@ public class GDS extends Geometry
 		}
 	}
 
-	// Write a library header, get the date information
+	/**
+	 * Method to write a library header, get the date information
+	 */
 	private void outputBeginLibrary(Cell cell)
 	{
 		outputHeader(HDR_HEADER, GDSVERSION);
@@ -752,7 +740,9 @@ public class GDS extends Geometry
 		outputName(HDR_STRNAME, name, IOTool.getGDSCellNameLenMax());
 	}
 
-	// Output date information
+	/**
+	 * Method to output date information
+	 */
 	private void outputDate(Date val)
 	{
 		short [] date = new short[6];
@@ -769,7 +759,7 @@ public class GDS extends Geometry
 		outputShortArray(date, 6);
 	}
 
-	/*
+	/**
 	 * Write a simple header, with a fixed length
 	 * Enter with the header as argument, the routine will output
 	 * the count, the header, and the argument (if present) in p1.
@@ -809,7 +799,7 @@ public class GDS extends Geometry
 		if (count == 8) outputInt(p1);
 	}
 
-	/*
+	/**
 	 * Add a name (STRNAME, LIBNAME, etc.) to the file. The header
 	 * to be used is in header; the string starts at p1
 	 * if there is an odd number of bytes, then output the 0 at
@@ -820,7 +810,9 @@ public class GDS extends Geometry
 		outputString(p1, header, max);
 	}
 
-	// Output an angle as part of a STRANS
+	/**
+	 * Method to output an angle as part of a STRANS
+	 */
 	private void outputAngle(int ang)
 	{
 		double gdfloat = ang / 10.0;
@@ -829,7 +821,9 @@ public class GDS extends Geometry
 		outputDouble(gdfloat);
 	}
 
-	// Output a magnification as part of a STRANS
+	/**
+	 * Method to output a magnification as part of a STRANS
+	 */
 	private void outputMag(double scale)
 	{
 		outputShort(HDR_N_MAG);
@@ -837,7 +831,9 @@ public class GDS extends Geometry
 		outputDouble(scale);
 	}
 
-	// Output the pairs of XY points to the file 
+	/**
+	 * Method to output the pairs of XY points to the file
+	 */ 
 	private void outputBoundary(PolyBase poly, int layerNumber, int layerType)
 	{
 		Point2D [] points = poly.getPoints();
@@ -914,7 +910,9 @@ public class GDS extends Geometry
 		outputHeader(HDR_ENDEL, 0);
 	}
 
-	// Add one byte to the file
+	/**
+	 * Method to add one byte to the file
+	 */
 	private void outputByte(byte val)
 	{
 		dataBufferGDS[bufferPosition++] = val;
@@ -942,27 +940,39 @@ public class GDS extends Geometry
 
 	/*************************** GDS LOW-LEVEL OUTPUT ROUTINES ***************************/
 
-	// Add a 2-byte integer
+	/**
+	 * Method to add a 2-byte integer to the output
+	 */
 	private void outputShort(short val)
 	{
 		outputByte((byte)((val>>8)&BYTEMASK));
 		outputByte((byte)(val&BYTEMASK));
 	}
 
-	// Four byte integer
+	/**
+	 * Method to add a 4-byte integer to the output
+	 */
 	private void outputInt(int val)
 	{
 		outputShort((short)(val>>16));
 		outputShort((short)val);
 	}
 
-	// Array of 2 byte integers in array ptr, count n
+	/**
+	 * Method to add an array of 2 byte integers to the output.
+	 * @param ptr the array.
+	 * @param n the array length.
+	 */
 	private void outputShortArray(short [] ptr, int n)
 	{
 		for (int i = 0; i < n; i++) outputShort(ptr[i]);
 	}
 
-	// Array of 4-byte integers or floating numbers in array  ptr, count n
+	/**
+	 * Method to add an array of 4 byte integers or floating numbers to the output.
+	 * @param ptr the array.
+	 * @param n the array length.
+	 */
 //	private void outputIntArray(int [] ptr, int n)
 //	{
 //		for (int i = 0; i < n; i++) outputInt(ptr[i]);
@@ -990,7 +1000,6 @@ public class GDS extends Geometry
         outputShort(header);
 
         assert( (j%2) == 0);
-        //System.out.println("Writing string "+str+" (length "+str.length()+") using "+j+" bytes");
 		int i = 0;
 		if (IOTool.isGDSOutUpperCase())
 		{

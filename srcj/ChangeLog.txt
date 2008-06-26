@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07m: ******************************
 
+BUG: (6/26/08, SMR) GDS output may crash on Artwork primitives (Bug #1728).
+FIX: Handle null graphics information caused by Artwork auto-generation of layers.
+
 IMP: (6/25/08, SMR) Tutorial about Technology Editor Wizard (Bug #1617)
 
 IMP: (6/25/08, JG) dummy metal layers in 90.
