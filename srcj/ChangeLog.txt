@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07m: ******************************
 
+IMP: (6/26/08, GVG) Native active contact added in cmos90.
+
+BUG: (6/26/08, GVG) cmos90 NT-N surround of active components incorrect (Bug #1727)
+FIX: Value modified.
+
 BUG: (6/26/08, SMR) Cells don't always fill the window (Bug #1730, #1731).
 FIX: In EditWindow.getBoundsInWindow(), set scale properly, iterate twice.
 
