@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.07m: ******************************
 
+IMP: (6/25/08, SMR) Tutorial about Technology Editor Wizard (Bug #1617)
+
 IMP: (6/25/08, JG) dummy metal layers in 90.
 
 ************************* Version 8.07l: ******************************
