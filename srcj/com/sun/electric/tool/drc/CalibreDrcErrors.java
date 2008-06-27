@@ -26,10 +26,8 @@ package com.sun.electric.tool.drc;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.io.output.GDS;
 import com.sun.electric.tool.user.ErrorLogger;
 
 import java.awt.Shape;
@@ -65,26 +63,27 @@ public class CalibreDrcErrors {
      * Create a new CalibreDrcError class, read the errors in,
      * and then convert them to the ErrorLogger.
      * @param filename the ASCII calibre drc results database file
+     * @return number of erros. Negative number in case of valid data.
      */
-    public static void importErrors(String filename, HashMap<Cell,String> mangledNames, String type) {
+    public static int importErrors(String filename, HashMap<Cell,String> mangledNames, String type) {
         BufferedReader in;
         try {
             FileReader reader = new FileReader(filename);
             in = new BufferedReader(reader);
         } catch (IOException e) {
             System.out.println("Error importing "+type+" Errors: "+e.getMessage());
-            return;
+            return -1;
         }
 
-        if (in == null) return;
+        if (in == null) return -1;
         CalibreDrcErrors errors = new CalibreDrcErrors(in, mangledNames, type);
         errors.filename = filename;
         // read first line
-        if (!errors.readTop()) return;
+        if (!errors.readTop()) return -1;
         // read all rule violations
-        if (!errors.readRules()) return;
+        if (!errors.readRules()) return -1;
         // finish
-        errors.done();
+        return errors.done();
     }
 
     // Constructor
@@ -321,7 +320,11 @@ public class CalibreDrcErrors {
         }
     }
 
-    private void done() {
+    /**
+     * Method to create Logger
+     * @return number of errors if found
+     */
+    private int done() {
         try {
             in.close();
         } catch (IOException e) {}
@@ -365,6 +368,7 @@ public class CalibreDrcErrors {
         	Job.getUserInterface().showInformationMessage(type+" Imported Zero Errors", type+" Import Complete");
         }
         logger.termLogging(true);
+        return logger.getNumErrors();
     }
 
     // -----------------------------------------------------------------------------
