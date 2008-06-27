@@ -5,6 +5,9 @@ NOTE: Please place changes under the version that will be released next.
 ************************* END OF Version 8.07, GNU RELEASE *************
 ************************* Version 8.07m: ******************************
 
+BUG: (6/27/08, GVG) A-type of active contacts don't stretch properly if size increases (bug #1732)
+FIX: M1 of those A-type contacts was aligned with respect to the center of the node.
+
 IMP: (6/27/08, SMR) Made "mipsCells" library have default number of metal layers.
 
 IMP: (6/27/08, SMR) DXF output now shows all technology polygons, not just artwork.
