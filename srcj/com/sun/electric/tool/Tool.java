@@ -137,7 +137,7 @@ public class Tool implements Comparable
                 staInit.invoke(Tool.class);
             }
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+//            System.out.println(e.getMessage());
         }
         
         for (Tool tool: tools.values())
