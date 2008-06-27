@@ -25,12 +25,11 @@
  */
 package com.sun.electric.tool.io.output;
 
+import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
@@ -56,11 +55,12 @@ public class DXF extends Output
 	private int dxfEntityHandle;
 	private Set<Cell> cellsSeen;
 	private TextUtils.UnitScale dxfDispUnit;
+	private String defaultDXFLayerName;
 	private static String [] ignorefromheader = {"$DWGCODEPAGE", "$HANDSEED", "$SAVEIMAGES"};
 
 	/**
 	 * The main entry point for DXF deck writing.
-     * @param cell the top-level cell to write.
+	 * @param cell the top-level cell to write.
 	 * @param filePath the disk file to create.
 	 */
 	public static void writeDXFFile(Cell cell, String filePath)
@@ -89,6 +89,8 @@ public class DXF extends Output
 		// write the header
 		Variable varheadertext = cell.getLibrary().getVar(DXF_HEADER_TEXT_KEY);
 		Variable varheaderid = cell.getLibrary().getVar(DXF_HEADER_ID_KEY);
+		Layer defLay = Artwork.tech().findLayer("Graphics");
+		defaultDXFLayerName = defLay.getDXFLayer();
 		if (varheadertext != null && varheaderid != null)
 		{
 			printWriter.print("  0\nSECTION\n");
@@ -99,8 +101,6 @@ public class DXF extends Output
 				// remove entries that confuse the issues
 				String pt = (String)varheadertext.getObject(i);
 				int code = ((Integer)varheaderid.getObject(i)).intValue();
-//				String pt = ((String [])varheadertext.getObject())[i];
-//				int code = ((Integer [])varheaderid.getObject())[i].intValue();
 				if (code == 9 && i <= len-2)
 				{
 					boolean found = false;
@@ -206,7 +206,7 @@ public class DXF extends Output
 			}
 
 			// determine layer name for this node
-			String layerName = "UNKNOWN";
+			String layerName = defaultDXFLayerName;
 			Variable var = ni.getVar(DXF_LAYER_KEY);
 			if (var != null) layerName = var.getPureValue(-1); else
 			{
@@ -338,6 +338,28 @@ public class DXF extends Output
 						printWriter.print(" 11\n" + TextUtils.formatDouble(x) + "\n");
 						printWriter.print(" 21\n" + TextUtils.formatDouble(y) + "\n");
 						printWriter.print(" 31\n0\n");
+					}
+				}
+				continue;
+			}
+
+			// write all other nodes
+			Poly [] polys = ni.getProto().getTechnology().getShapeOfNode(ni);
+			AffineTransform trans = ni.rotateOut();
+			for(int i=0; i<polys.length; i++)
+			{
+				Poly poly = polys[i];
+				poly.transform(trans);
+				if (poly.getStyle() == Poly.Type.FILLED)
+				{
+					printWriter.print("  0\nSOLID\n");
+					printWriter.print("  8\n" + layerName + "\n");
+					Point2D [] points = poly.getPoints();
+					for(int j=0; j<points.length; j++)
+					{
+						printWriter.print(" 1" + j + "\n" + TextUtils.formatDouble(points[j].getX()) + "\n");
+						printWriter.print(" 2" + j + "\n" + TextUtils.formatDouble(points[j].getY()) + "\n");
+						printWriter.print(" 3" + j + "\n0\n");
 					}
 				}
 			}
