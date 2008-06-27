@@ -5,6 +5,10 @@ NOTE: Please place changes under the version that will be released next.
 ************************* END OF Version 8.07, GNU RELEASE *************
 ************************* Version 8.07m: ******************************
 
+IMP: (6/27/08, SMR) Made "mipsCells" library have default number of metal layers.
+
+IMP: (6/27/08, SMR) DXF output now shows all technology polygons, not just artwork.
+
 IMP: (6/27/08, JG) menu commands to run fill generator for 90nm
 
 IMP: (6/26/08, GVG) Native active contact added in cmos90.
