@@ -59,7 +59,7 @@ public class Version implements Comparable<Version>, Serializable
 	/**
 	 * This is the current version of Electric
 	 */
-	private static final String CURRENT = "8.07";
+	private static final String CURRENT = "8.08a";
 	private static final String ROOTARNAME = "electric";
 
 	private final String version;
