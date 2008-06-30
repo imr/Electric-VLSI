@@ -1841,12 +1841,14 @@ public class Verilog extends Topology
 
 	/**
 	 * Get the Verilog-style name for a cell.
-	 * @param cell
-	 * @return the name of the cell
+	 * @param cell the cell to name.
+	 * @return the name of the cell.
 	 */
-	public static String getVerilogName(Cell cell) {
-		final Verilog v = new Verilog();
-		return cell.getLibrary().getName() + "__" + v.getSafeCellName(cell.getName());
+	private String getVerilogName(Cell cell) {
+//		final Verilog v = new Verilog();
+		String safeCellName = getSafeCellName(cell.getName());
+		if (!safeCellName.startsWith("_")) safeCellName = "__" + safeCellName;
+		return cell.getLibrary().getName() + safeCellName;
 	}
 
 	/**

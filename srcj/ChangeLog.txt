@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08a: ******************************
 
+BUG: (6/30/08, SMR) Verilog cell names are inconsistent (Bug #1719).
+FIX: Cleaned-up cell naming code.
+
 IMP: (6/30/08, SMR) Improved Spice parasitics (from Mahesh Balasubramanian, Bug #1735).
 
 IMP: (6/30/08, SMR) Added Verilog architecture parameterization facility
