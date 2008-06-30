@@ -143,8 +143,7 @@ public class Input
                 {
                     in = new VerilogReader();
 					if (in.openTextInput(fileURL)) return null;
-                }
-                else if (type == FileType.CIF)
+                } else if (type == FileType.CIF)
 				{
 					in = new CIF();
 					if (in.openTextInput(fileURL)) return null;
@@ -172,6 +171,10 @@ public class Input
 				{
 					in = new Sue();
 					if (in.openTextInput(fileURL)) return null;
+				} else if (type == FileType.APPLICON860)
+				{
+					in = new Applicon860();
+					if (in.openBinaryInput(fileURL)) return null;
 				} else
 				{
 					System.out.println("Unsupported input format");

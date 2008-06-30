@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08a: ******************************
 
+IMP/MAN: (6/30/08, SMR) Added input for Applicon/860 format files (Bug #1733).
+
 ************************* END OF Version 8.07, GNU RELEASE *************
 ************************* Version 8.07m: ******************************
 

@@ -131,7 +131,7 @@ public class FileMenu {
                 newLibraryCommand(); }},
 			ToolBar.openLibraryCommand, // O
 
-		// mnemonic keys available: A    F HIJK  NO QR   VW YZ
+		// mnemonic keys available:      F HIJK  NO QR   VW YZ
             new EMenu("_Import",
                 new EMenuItem("_CIF (Caltech Intermediate Format)...") { public void run() {
                     importLibraryCommand(FileType.CIF); }},
@@ -153,6 +153,8 @@ public class FileMenu {
                     importLibraryCommand(FileType.SUE); }},
                 new EMenuItem("_Verilog...") {	public void run() {
                     importLibraryCommand(FileType.VERILOG); }},
+                new EMenuItem("_Applicon 860...") {	public void run() {
+                    importLibraryCommand(FileType.APPLICON860); }},
                 IOTool.hasDais() ? new EMenuItem("Dais (_Sun CAD)...") { public void run() {
                     importLibraryCommand(FileType.DAIS); }} : null,
                 IOTool.hasDais() ? new EMenuItem("Dais (_Sun CAD) to current library...") { public void run() {
