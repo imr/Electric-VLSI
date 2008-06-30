@@ -133,7 +133,7 @@ public class Spice extends Topology
 	/** Spice type: 2, 3, H, P, etc */							private Simulation.SpiceEngine spiceEngine;
 	/** those cells that have overridden models */				private Map<Cell,String> modelOverrides = new HashMap<Cell,String>();
     /** Parameters used for Spice */                            private Map<NodeProto,Set<Variable.Key>> allSpiceParams = new HashMap<NodeProto,Set<Variable.Key>>();
-    /** for RC parasitics */                                    private SpiceRCSimple parasiticInfo;
+    /** for RC parasitics */                                    private SpiceParasiticsGeneral parasiticInfo;
     /** Networks exempted during parasitic ext */				private SpiceExemptedNets exemptedNets;
     /** Whether or not to write empty subckts  */				private boolean writeEmptySubckts = true;
     /** max length per line */									private int spiceMaxLenLine = SPICEMAXLENLINE;
@@ -419,7 +419,16 @@ public class Spice extends Topology
         if (spLevel != Simulation.SpiceParasitics.SIMPLE)
         {
             // make the parasitics info object if it does not already exist
-            if (parasiticInfo == null) parasiticInfo = new SpiceRCSimple();
+            if (parasiticInfo == null)
+            {
+                if (spLevel == Simulation.SpiceParasitics.RC_PROXIMITY)
+                {
+            		parasiticInfo = new SpiceParasitic();
+                } else if (spLevel == Simulation.SpiceParasitics.RC_CONSERVATIVE)
+                {
+            		parasiticInfo = new SpiceRCSimple();
+                }
+            }
             segmentedNets = parasiticInfo.initializeSegments(cell, cni, layoutTechnology, exemptedNets, info);
         }
 
@@ -1249,56 +1258,61 @@ public class Spice extends Topology
 		// print resistances and capacitances
 		if (segmentedNets != null)
 		{
-            // write caps
-            int capCount = 0;
-            multiLinePrint(true, "** Extracted Parasitic Capacitors ***\n");
-            for (SpiceSegmentedNets.NetInfo netInfo : segmentedNets.getUniqueSegments()) {
-                if (netInfo.getCap() > cell.getTechnology().getMinCapacitance()) {
-                    if (netInfo.getName().equals("gnd")) continue;           // don't write out caps from gnd to gnd
-                    multiLinePrint(false, "C" + capCount + " " + netInfo.getName() + " 0 " + TextUtils.formatDouble(netInfo.getCap(), 2) + "fF\n");
-                    capCount++;
-                }
-            }
+			if (spLevel == Simulation.SpiceParasitics.RC_PROXIMITY)
+            {
+            	parasiticInfo.writeNewSpiceCode(cell, cni, layoutTechnology, this);
+            } else {
+	            // write caps
+	            int capCount = 0;
+	            multiLinePrint(true, "** Extracted Parasitic Capacitors ***\n");
+	            for (SpiceSegmentedNets.NetInfo netInfo : segmentedNets.getUniqueSegments()) {
+	                if (netInfo.getCap() > cell.getTechnology().getMinCapacitance()) {
+	                    if (netInfo.getName().equals("gnd")) continue;           // don't write out caps from gnd to gnd
+	                    multiLinePrint(false, "C" + capCount + " " + netInfo.getName() + " 0 " + TextUtils.formatDouble(netInfo.getCap(), 2) + "fF\n");
+	                    capCount++;
+	                }
+	            }
 
-            // write resistors
-            int resCount = 0;
-            multiLinePrint(true, "** Extracted Parasitic Resistors ***\n");
-            for (Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); ) {
-                ArcInst ai = it.next();
-                Double res = segmentedNets.getRes(ai);
-                if (res == null) continue;
-                String n0 = segmentedNets.getNetName(ai.getHeadPortInst());
-                String n1 = segmentedNets.getNetName(ai.getTailPortInst());
-                int arcPImodels = SpiceSegmentedNets.getNumPISegments(res.doubleValue(), layoutTechnology.getMaxSeriesResistance());
-                if (arcPImodels > 1) {
-                    // have to break it up into smaller pieces
-                    double segCap = segmentedNets.getArcCap(ai)/(arcPImodels+1);
-                    double segRes = res.doubleValue()/arcPImodels;
-                    String segn0 = n0;
-                    String segn1 = n0;
-                    for (int i=0; i<arcPImodels; i++) {
-                        segn1 = n0 + "##" + i;
-                        // print cap on intermediate node
-                        if (i == (arcPImodels-1))
-                            segn1 = n1;
+	            // write resistors
+	            int resCount = 0;
+	            multiLinePrint(true, "** Extracted Parasitic Resistors ***\n");
+	            for (Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); ) {
+	                ArcInst ai = it.next();
+	                Double res = segmentedNets.getRes(ai);
+	                if (res == null) continue;
+	                String n0 = segmentedNets.getNetName(ai.getHeadPortInst());
+	                String n1 = segmentedNets.getNetName(ai.getTailPortInst());
+	                int arcPImodels = SpiceSegmentedNets.getNumPISegments(res.doubleValue(), layoutTechnology.getMaxSeriesResistance());
+	                if (arcPImodels > 1) {
+	                    // have to break it up into smaller pieces
+	                    double segCap = segmentedNets.getArcCap(ai)/(arcPImodels+1);
+	                    double segRes = res.doubleValue()/arcPImodels;
+	                    String segn0 = n0;
+	                    String segn1 = n0;
+	                    for (int i=0; i<arcPImodels; i++) {
+	                        segn1 = n0 + "##" + i;
+	                        // print cap on intermediate node
+	                        if (i == (arcPImodels-1))
+	                            segn1 = n1;
 
-                        multiLinePrint(false, "R"+resCount+" "+segn0+" "+segn1+" "+TextUtils.formatDouble(segRes)+"\n");
-                        resCount++;
-                        if (i < (arcPImodels-1)) {
-                            if (!segn1.equals("gnd") && segCap > layoutTechnology.getMinCapacitance()) {
-                                String capVal = TextUtils.formatDouble(segCap, 2);
-                                if (!capVal.equals("0.00")) {
-                                    multiLinePrint(false, "C"+capCount+" "+segn1+" 0 "+capVal+"fF\n");
-                                    capCount++;
-                                }
-                            }
-                        }
-                        segn0 = segn1;
-                    }
-                } else {
-                    multiLinePrint(false, "R" + resCount + " " + n0 + " " + n1 + " " + TextUtils.formatDouble(res.doubleValue(), 2) + "\n");
-                    resCount++;
-                }
+	                        multiLinePrint(false, "R"+resCount+" "+segn0+" "+segn1+" "+TextUtils.formatDouble(segRes)+"\n");
+	                        resCount++;
+	                        if (i < (arcPImodels-1)) {
+	                            if (!segn1.equals("gnd") && segCap > layoutTechnology.getMinCapacitance()) {
+	                                String capVal = TextUtils.formatDouble(segCap, 2);
+	                                if (!capVal.equals("0.00")) {
+	                                    multiLinePrint(false, "C"+capCount+" "+segn1+" 0 "+capVal+"fF\n");
+	                                    capCount++;
+	                                }
+	                            }
+	                        }
+	                        segn0 = segn1;
+	                    }
+	                } else {
+	                    multiLinePrint(false, "R" + resCount + " " + n0 + " " + n1 + " " + TextUtils.formatDouble(res.doubleValue(), 2) + "\n");
+	                    resCount++;
+	                }
+	            }
             }
 		}
 
@@ -2747,12 +2761,8 @@ public class Spice extends Topology
         } catch (NumberFormatException e) {}
 
         // not a number: if Spice engine cannot handle quotes, return stripped value
-		switch (spiceEngine)
-		{
-			case SPICE_ENGINE_2:
-			case SPICE_ENGINE_3:
-				return value;
-		}
+		if (spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_2 ||
+			spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_3) return value;
 
         // not a number but Spice likes quotes, enclose it
 		if (!wrapped) value = "'" + value + "'";
@@ -2807,7 +2817,7 @@ public class Spice extends Topology
 	 * and null characters.
 	 * Doesn't return anything.
 	 */
-	private void multiLinePrint(boolean isComment, String str)
+	public void multiLinePrint(boolean isComment, String str)
 	{
 		// put in line continuations, if over 78 chars long
 		char contChar = '+';

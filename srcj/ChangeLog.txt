@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08a: ******************************
 
+IMP: (6/30/08, SMR) Improved Spice parasitics (from Mahesh Balasubramanian, Bug #1735).
+
 IMP: (6/30/08, SMR) Added Verilog architecture parameterization facility
      (from Brian Van Essen, University of Washington, Bug #1734).
      Added "Verilog" preferences to choose formatting, standard cell handling,

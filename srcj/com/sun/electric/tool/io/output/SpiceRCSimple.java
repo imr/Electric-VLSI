@@ -58,14 +58,8 @@ import java.util.Set;
 /**
  * This is the simple-RC parasitics extractor for the Spice netlist writer.
  */
-public class SpiceRCSimple
+public class SpiceRCSimple extends SpiceParasiticsGeneral
 {
-    /** key of wire capacitance. */	private static final Variable.Key ATTR_C = Variable.newKey("ATTR_C");
-    /** key of wire resistance. */	private static final Variable.Key ATTR_R = Variable.newKey("ATTR_R");
-
-	/** List of segmented nets */	private List<SpiceSegmentedNets> segmentedParasiticInfo;
-	/** current segmented nets */	private SpiceSegmentedNets curSegmentedNets;
-
 	SpiceRCSimple()
 	{
 		segmentedParasiticInfo = new ArrayList<SpiceSegmentedNets>();
