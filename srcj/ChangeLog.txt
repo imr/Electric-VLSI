@@ -4,6 +4,14 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08a: ******************************
 
+IMP: (6/30/08, SMR) Added Verilog architecture parameterization facility
+     (from Brian Van Essen, University of Washington, Bug #1734).
+     Added "Verilog" preferences to choose formatting, standard cell handling,
+     and parameter control.
+     Added "Tool / Verilog / Set Verilog Default Parameter"
+     Added "Verilog Parameter" and "Verilog External Code" to "Misc" component menu
+     Can now highlight Electric objects with specified color.
+
 IMP/MAN: (6/30/08, SMR) Added input for Applicon/860 format files (Bug #1733).
 
 ************************* END OF Version 8.07, GNU RELEASE *************

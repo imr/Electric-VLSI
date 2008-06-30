@@ -386,6 +386,12 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                 menuItem = new JMenuItem("Verilog Declaration");
                 menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, "VERILOG_declaration"));
                 specialMenu.add(menuItem);
+                menuItem = new JMenuItem("Verilog Parameter");
+                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, "VERILOG_parameter"));
+                specialMenu.add(menuItem);
+                menuItem = new JMenuItem("Verilog External Code");
+                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, "VERILOG_external_code"));
+                specialMenu.add(menuItem);
                 menuItem = new JMenuItem("Simulation Probe");
                 menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, Generic.tech().simProbeNode));
                 specialMenu.add(menuItem);

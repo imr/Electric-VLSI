@@ -43,6 +43,8 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.EvalJavaBsh;
+import com.sun.electric.database.variable.CodeExpression;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
@@ -53,6 +55,7 @@ import com.sun.electric.tool.io.input.verilog.VerilogData;
 import com.sun.electric.tool.io.input.verilog.VerilogReader;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.dialogs.BusParameters;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -201,13 +204,23 @@ public class Verilog extends Topology
 
 	/** key of Variable holding verilog code. */			public static final Variable.Key VERILOG_CODE_KEY = Variable.newKey("VERILOG_code");
 	/** key of Variable holding verilog declarations. */	public static final Variable.Key VERILOG_DECLARATION_KEY = Variable.newKey("VERILOG_declaration");
+    /** key of Variable holding verilog parameters. */		public static final Variable.Key VERILOG_PARAMETER_KEY = Variable.newKey("VERILOG_parameter");
+    /** key of Variable holding verilog code that is 
+     ** external to the module. */							public static final Variable.Key VERILOG_EXTERNAL_CODE_KEY = Variable.newKey("VERILOG_external_code");
 	/** key of Variable holding verilog wire time. */		public static final Variable.Key WIRE_TYPE_KEY = Variable.newKey("SIM_verilog_wire_type");
 	/** key of Variable holding verilog templates. */		public static final Variable.Key VERILOG_TEMPLATE_KEY = Variable.newKey("ATTR_verilog_template");
+    /** key of Variable holding verilog defparams. */		public static final Variable.Key VERILOG_DEFPARAM_KEY = Variable.newKey("ATTR_verilog_defparam");
 	/** key of Variable holding file name with Verilog. */	public static final Variable.Key VERILOG_BEHAVE_FILE_KEY = Variable.newKey("SIM_verilog_behave_file");
 	/** those cells that have overridden models */			private Set<Cell> modelOverrides = new HashSet<Cell>();
 	/** those cells that have modules defined */			private Map<String,String> definedModules = new HashMap<String,String>(); // key: module name, value: source description
 	/** those cells that have primitives defined */			private Map<Cell,VerilogData.VerilogModule> definedPrimitives = new HashMap<Cell,VerilogData.VerilogModule>(); // key: module name, value: VerilogModule
 	/** map of cells that are or contain standard cells */  private SCLibraryGen.StandardCellHierarchy standardCells = new SCLibraryGen.StandardCellHierarchy();
+    
+    public static String getVerilogSafeName(String name, boolean isNode, boolean isBus) {
+    	Verilog v = new Verilog();
+    	if (isNode) return v.getSafeCellName(name);
+    	return v.getSafeNetName(name, isBus);
+    }
 
 	/**
 	 * The main entry point for Verilog deck writing.
@@ -265,7 +278,8 @@ public class Verilog extends Topology
 
 	protected void done()
 	{
-		Simulation.setVerilogStopAtStandardCells(false);
+    	// Remove this call that auto-overrides the new user visible preference
+		// Simulation.setVerilogStopAtStandardCells(false);
 	}
 
 	protected boolean skipCellAndSubcells(Cell cell) {
@@ -408,6 +422,9 @@ public class Verilog extends Topology
 		// gather networks in the cell
 		Netlist netList = cni.getNetList();
 
+        // add in any user-specified defines
+        includeTypedCode(cell, VERILOG_EXTERNAL_CODE_KEY, "external code");
+
 		// write the module header
 		printWriter.println();
 		StringBuffer sb = new StringBuffer();
@@ -440,6 +457,9 @@ public class Verilog extends Topology
 		sb.append(");\n");
 		writeWidthLimited(sb.toString());
 		definedModules.put(cni.getParameterizedName(), "Cell "+cell.libDescribe());
+
+        // add in any user-specified parameters
+        includeTypedCode(cell, VERILOG_PARAMETER_KEY, "parameters");
 
 		// look for "wire/trireg" overrides
 		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
@@ -685,6 +705,55 @@ public class Verilog extends Topology
 					continue;
 				}
 			}
+
+            // look for a Verilog defparam template on the prototype
+            // Defparam templates provide a mechanism for prepending per instance
+            // parameters on verilog declarations
+            if (no.isCellInstance())
+            {
+                Variable varDefparamTemplate = ((Cell)niProto).getVar(VERILOG_DEFPARAM_KEY);
+                if (varDefparamTemplate != null)
+                {
+                    if (varDefparamTemplate.getObject() instanceof String []) {
+                        String [] lines = (String [])varDefparamTemplate.getObject();
+                        // writeWidthLimited("  /* begin Verilog_defparam for "+no.getProto().describe(false)+" */\n");
+                        boolean firstDefparam = true;
+                        for (int i=0; i<lines.length; i++) {
+                        	//StringBuffer infstr = new StringBuffer();
+                        	String defparam = new String();
+                        	defparam = writeDefparam(lines[i], no, context);
+                        	if (defparam.length() != 0)
+                        	{
+                        		if (firstDefparam)
+                        		{
+                        			writeWidthLimited("  /* begin Verilog_defparam for "+no.getProto().describe(false)+" */\n");
+                        			firstDefparam = false;
+                        		}
+                        		writeWidthLimited(defparam);
+                        	}
+                        }
+                        if (!firstDefparam)
+                        {
+                        	writeWidthLimited("  // end Verilog_defparam\n");
+                        }
+                    } else
+                    {
+                        // special case: do not write out string "//"
+                        if (!((String)varDefparamTemplate.getObject()).equals("//"))
+                        {
+                        	String defparam = new String();
+                        	defparam = writeDefparam((String)varDefparamTemplate.getObject(), no, context);
+                        	if (defparam.length() != 0)
+                        	{
+                            	writeWidthLimited("  /* begin Verilog_defparam for "+no.getProto().describe(false)+"*/\n");
+                        		writeWidthLimited(defparam);
+                                writeWidthLimited("  // end Verilog_defparam\n");
+                        	}
+
+                        }
+                    }
+                }
+            }
 
 			// use "assign" statement if requested
 			if (Simulation.getVerilogUseAssign())
@@ -991,49 +1060,21 @@ public class Verilog extends Topology
 		// check export direction consistency (inconsistent directions can cause opens in some tools)
 		for (Iterator<Export> it = cell.getExports(); it.hasNext(); ) {
 			Export ex = it.next();
-            PortCharacteristic type = ex.getCharacteristic();
-            if (type == PortCharacteristic.BIDIR) continue; // whatever it is connect to is fine
-            if (type == PortCharacteristic.OUT) {
-                // check all nets on bus
-                for (int i=0; i<ex.getNameKey().busWidth(); i++) {
-                    // make sure at least one subcell output driving this output export
-                    boolean outputFound = false;
-                    Network net = netList.getNetwork(ex, i);
-                    List<Export> subports = instancePortsOnNet.get(net);
-                    if (subports == null) continue;
-                    for (Export subex : subports) {
-                        if (subex.getCharacteristic() == PortCharacteristic.OUT ||
-                            subex.getCharacteristic() == PortCharacteristic.BIDIR ||
-                            subex.getCharacteristic() == PortCharacteristic.PWR ||
-                            subex.getCharacteristic() == PortCharacteristic.GND) {
-                            outputFound = true; break;
-                        }
-                    }
-                    if (!outputFound) {
-                        System.out.println("Warning: Port Direction Inconsistency in cell "+cell.describe(false)+
-                            " for OUTPUT "+ex.getNameKey().subname(i)+"["+type+"]: no output/bidir/pwr/gnd driver found on network.");
-                    }
-                }
-            }
-            if (type == PortCharacteristic.IN) {
-                // check all nets on bus
-                for (int i=0; i<ex.getNameKey().busWidth(); i++) {
-                    // make sure no outputs driving input export
-                    Network net = netList.getNetwork(ex, i);
-                    List<Export> subports = instancePortsOnNet.get(net);
-                    if (subports == null) continue;
-                    for (Export subex : subports) {
-                        if (subex.getCharacteristic() == PortCharacteristic.OUT ||
-                            subex.getCharacteristic() == PortCharacteristic.BIDIR ||
-                            subex.getCharacteristic() == PortCharacteristic.PWR ||
-                            subex.getCharacteristic() == PortCharacteristic.GND) {
-                            System.out.println("Warning: Port Direction Inconsistency in cell "+cell.describe(false)+
-                                " for INPUT "+ex.getNameKey().subname(i)+"["+type+"]: found output/bidir/pwr/gnd driver "+
-                                subex.getParent().noLibDescribe()+" - "+subex.getName()+"["+subex.getCharacteristic()+"] on network.");
-                        }
-                    }
-                }
-            }
+			PortCharacteristic type = ex.getCharacteristic();
+			if (type == PortCharacteristic.BIDIR) continue; // whatever it is connect to is fine
+			for (int i=0; i<ex.getNameKey().busWidth(); i++) {
+				Network net = netList.getNetwork(ex, i);
+				List<Export> subports = instancePortsOnNet.get(net);
+				if (subports == null) continue;
+				for (Export subex : subports) {
+					PortCharacteristic subtype = subex.getCharacteristic();
+					if (type != subtype) {
+						System.out.println("Warning: Port Direction Inconsistency in cell "+cell.describe(false)+
+							" between export "+ex.getNameKey().subname(i)+"["+type+"] and instance port "+
+							subex.getParent().noLibDescribe()+" - "+subex.getName()+"["+subtype+"]");
+					}
+				}
+			}
 		}
 	}
 
@@ -1157,6 +1198,184 @@ public class Verilog extends Topology
 		infstr.append("\n");
 		writeWidthLimited(infstr.toString());
 	}
+
+    /**
+     * writeDefparam is a specialized version of writeTemplate.  This function will
+     * take a Electric Variable (Attribute) and write it out as a parameter.
+     * @param line
+     * @param no
+     * @param cni
+     * @param context
+     * @return
+     */
+    private String writeDefparam(String line, Nodable no, VarContext context)
+    {
+        // special case for Verilog defparams
+        StringBuffer infstr = new StringBuffer();
+        // Setup a standard template for defparams
+        infstr.append("  defparam ");
+        // Get the nodes instance name
+        infstr.append(getSafeNetName(no.getName(), true));
+        infstr.append(".");
+        // Prepend whatever text is on the line, assuming it is a a variable per line
+        // Garbage will be generated otherwise
+        for(int pt = 0; pt < line.length(); pt++)
+        {
+            char chr = line.charAt(pt);
+            if (chr != '$' || pt+1 >= line.length() || line.charAt(pt+1) != '(')
+            {
+                // process normal character
+                infstr.append(chr);
+                continue;
+            }
+
+            int startpt = pt + 2;
+            for(pt = startpt; pt < line.length(); pt++)
+                if (line.charAt(pt) == ')') break;
+            String paramName = line.substring(startpt, pt);
+            // Check the current parameter value against the default parameter value
+			// only overwrite if they are different.
+            if (!(no.getProto() instanceof Cell))
+            {
+            	System.out.println("Illegal attempt to replace a variable.");
+            	return "";
+            }
+			String defaultValue = replaceVariable(paramName, (Cell) no.getProto());
+            String paramValue = replaceVariable(paramName, no, context);
+
+            if (paramValue == "" || paramValue.equals(defaultValue)) return "";
+        	infstr.append(paramName);
+        	infstr.append(" = ");
+            infstr.append(paramValue);
+        	infstr.append(";");
+        }
+        infstr.append("\n");
+        // writeWidthLimited(infstr.toString());
+        return infstr.toString();
+    }
+
+    /**
+	 * replaceVariable - Replace Electric variables (attributes) with their
+	 * values on instances of a cell. Given that left and right parens are not
+	 * valid characters in Verilog identifiers, any Verilog code that matches
+	 * $([a-zA-Z0-9_$]*) is not a valid sequence. This allows us to extract any
+	 * electric variable and replace it with the attribute value.
+	 * Additionally, search the value of the Electric variable for a nested
+	 * variable and replace that as well.
+	 * Added for ArchGen Plugin - BVE
+	 * 
+	 * @param line
+	 * @param no
+	 * @param context
+	 * @return
+	 */
+    private String replaceVariable(String varName, Nodable no, VarContext context)
+    {
+    	// FIXIT - BVE should this be getSafeCellName
+    	if (varName.equalsIgnoreCase("node_name"))
+    		return getSafeNetName(no.getName(), true);
+
+		// look for variable name
+		Variable var = null;
+		Variable.Key varKey = Variable.findKey("ATTR_" + varName);
+		if (varKey != null)
+		{
+			var = no.getVar(varKey);
+			if (var == null) var = no.getParameter(varKey);
+        }
+		if (var == null) return ""; 
+//    	return String.valueOf(context.evalVar(var));
+		String val = String.valueOf(context.evalVar(var));
+
+		// Semi-recursive call to search the value of a variable for a nested variable.
+		return replaceVarInString(val, no.getParent());
+    }
+
+    /**
+	 * replaceVariable - Replace Electric variables (attributes) with their
+	 * values on definitions of a cell. Given that left and right parens are not
+	 * valid characters in Verilog identifiers, any verilog code that matches
+	 * $([a-zA-Z0-9_$]*) is not a valid sequence. This allows us to extract any
+	 * electric variable and replace it with the attribute value.
+	 * Added for ArchGen Plugin - BVE
+	 * 
+	 * @param line
+	 * @param cell
+	 * @return
+	 */
+    private String replaceVariable(String varName, Cell cell)
+    {
+    	// FIXIT - BVE should this be getSafeCellName
+    	if (varName.equalsIgnoreCase("node_name"))
+    		return getSafeNetName(cell.getName(), true);
+
+    	// look for variable name
+		Variable var = null;
+		Variable.Key varKey = Variable.findKey("ATTR_" + varName);
+		if (varKey != null) {
+			var = cell.getVar(varKey);
+			if (var == null) var = cell.getParameter(varKey);
+        }
+		if (var == null) return ""; 
+
+		// Copied this code from VarContext.java - evalVarRecurse
+        CodeExpression.Code code = var.getCode();
+        Object value = var.getObject();
+
+        if ((code == CodeExpression.Code.JAVA) ||
+        	(code == CodeExpression.Code.TCL) ||
+        	(code == CodeExpression.Code.SPICE)) return "";
+
+        return String.valueOf(value);
+    }
+
+    /**
+	 * replaceVarInString will search a string and replace any electric variable
+	 * with its attribute or parameter value, if it has one.
+	 * Added for ArchGen Plugin - BVE
+	 * 
+	 * @param line
+	 * @param cell
+	 * @return
+	 */
+    private String replaceVarInString(String line, Cell cell)
+    {
+        StringBuffer infstr = new StringBuffer();
+        // Search the line for any electric variables
+        for(int pt = 0; pt < line.length(); pt++)
+        {
+            char chr = line.charAt(pt);
+            if (chr != '$' || pt+1 >= line.length() || line.charAt(pt+1) != '(')
+            {
+                // process normal character
+                infstr.append(chr);
+                continue;
+            }
+
+            int startpt = pt + 2;
+            for(pt = startpt; pt < line.length(); pt++)
+                if (line.charAt(pt) == ')') break;
+            String paramName = line.substring(startpt, pt);
+            String paramValue = replaceVariable(paramName, cell);
+
+            // If the parameter doesn't have a value, then look in the bus parameters
+            if (paramValue != "") {
+            	infstr.append(paramValue);
+            }else {
+            	paramValue = BusParameters.replaceBusParameterInt("$("+paramName+")");
+                // If the parameter isn't a bus parameter, then just leave the paramName
+            	if (paramValue != "") {
+            		infstr.append(paramValue);
+            	} else
+            	{
+            		infstr.append("$(");
+            		infstr.append(paramName);
+            		infstr.append(")");
+            	}
+            }
+        }
+        return infstr.toString();
+    }
 
 	/**
 	 * Method to add a bus of signals named "name" to the infinite string "infstr".  If "name" is zero,
@@ -1313,13 +1532,18 @@ public class Verilog extends Topology
 			}
 			if (obj instanceof String)
 			{
-				printWriter.println("  " + (String)obj);
+            	String tmp = replaceVarInString((String)obj, cell);
+            	printWriter.println("  " + tmp);
+				// printWriter.println("  " + (String)obj);
 			} else
 			{
 				String [] stringArray = (String [])obj;
 				int len = stringArray.length;
-				for(int i=0; i<len; i++)
-					printWriter.println("  " + stringArray[i]);
+				for(int i=0; i<len; i++) {
+                	String tmp = replaceVarInString(stringArray[i], cell);
+                	printWriter.println("  " + tmp);
+					// printWriter.println("  " + stringArray[i]);
+                }
 			}
 		}
 		if (!first) printWriter.println();
@@ -1495,7 +1719,10 @@ public class Verilog extends Topology
 	protected boolean canParameterizeNames() {
 		if (Simulation.getVerilogStopAtStandardCells())
 			return false;
-		return true;
+
+		// Check user preference
+		if (Simulation.getVerilogParameterizeModuleNames()) return true;
+		return false;
 	}
 
 	private static final String [] verilogGates = new String [] {
@@ -1556,11 +1783,9 @@ public class Verilog extends Topology
 			" in Verilog View: "+cell.libDescribe());
 			return false;
 		}
-        if (main.isPrimitive()) {
-            definedPrimitives.put(cell, main);
-        }
+		definedPrimitives.put(cell, main);
 
-        String source = includeFile == null ? "Verilog View for "+cell.libDescribe() :
+		String source = includeFile == null ? "Verilog View for "+cell.libDescribe() :
 			"Include file: "+includeFile;
 		// check that modules have not already been defined
 		for (VerilogData.VerilogModule mod : modules) {

@@ -53,7 +53,6 @@ import javax.swing.ListSelectionModel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-
 /**
  * Class to handle the "Bus Parameters" dialog.
  */
@@ -108,6 +107,89 @@ public class BusParameters extends EDialog
 		new AddTemplate(owner);
 	}
 
+	/**
+	 * updateBusParametersInt - Method for internally updating bus parameters.
+	 * Can be called from internal electric routines.
+	 * Added for ArchGen Plugin - BVE
+	 */
+	public static void updateBusParametersInt()
+	{
+		BusParameters foo = new BusParameters(null);
+		foo.setVisible(false);
+		new UpdateAllParameters(foo.libParameters, true);
+	}
+	
+	/**
+	 * Method for internally updating bus parameters on a single cell.
+	 * Can be called from internal electric routines.
+	 * Added for ArchGen Plugin - BVE
+	 */
+	public static void updateCellBusParameterInt(Cell cell, Library lib)
+	{
+		HashMap<Library,String[]> libParam = new HashMap<Library,String[]>();
+		initializeLibParameters(libParam, null);
+		updateCellParameters(cell, lib, libParam);
+	}
+	
+	/**
+	 * replaceBusParameterInt - Replace bus parameters in Electric variables.
+	 * Can be called from internal Electric routines.
+	 * Added for ArchGen Plugin - BVE
+	 * @param var
+	 * @param lib
+	 * @return
+	 */
+	public static String replaceBusParameterInt(String varString)
+	{
+		// find library with variables in it
+		HashMap<Library,String[]> libParam = new HashMap<Library,String[]>();
+		initializeLibParameters(libParam, null);
+		return replaceVariableInString(varString, null, libParam);
+	}
+	
+	/**
+	 * Creates a template with a suffix appended to the owners's name.
+	 * @param owner
+	 * @param suffix
+	 */
+	public static void addTemplateWithString(ElectricObject owner, String suffix)
+	{
+		new AddTemplate(owner, true, suffix);
+	}
+	
+	/**
+	 * Internal method for finding all bus parameters across all libraries.  Refactored to
+	 * permit resuse.
+	 * Added for ArchGen Plugin - BVE
+	 * @param libParam
+	 * @param libPopup
+	 * @return
+	 */
+	private static Library initializeLibParameters(HashMap<Library,String[]> libParam, javax.swing.JComboBox libPopup)
+	{
+		Library bestLib = null;
+		int mostParameters = 0;
+		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
+		{
+			Library lib = it.next();
+			if (lib.isHidden()) continue;
+			if(libPopup != null) libPopup.addItem(lib.getName());
+			Variable var = lib.getVar(BUS_VARIABLES);
+			String [] parameterList = new String[0];
+			if (var != null) parameterList = (String [])var.getObject();
+			libParam.put(lib, parameterList);
+			if (parameterList.length > mostParameters)
+			{
+				bestLib = lib;
+				mostParameters = parameterList.length;
+			}
+		}
+		Library curLib = Library.getCurrent();
+		String [] parameterList = libParam.get(curLib);
+		if ((parameterList != null && parameterList.length > 0) || bestLib == null) bestLib = curLib;		
+		return bestLib;
+	}
+	
 	/** Creates new form Bus Parameters */
 	private BusParameters(Frame parent)
 	{
@@ -124,26 +206,8 @@ public class BusParameters extends EDialog
 
 		// find library with variables in it
 		libParameters = new HashMap<Library,String[]>();
-		Library bestLib = null;
-		int mostParameters = 0;
-		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
-		{
-			Library lib = it.next();
-			if (lib.isHidden()) continue;
-			libraryPopup.addItem(lib.getName());
-			Variable var = lib.getVar(BUS_VARIABLES);
-			String [] parameterList = new String[0];
-			if (var != null) parameterList = (String [])var.getObject();
-			libParameters.put(lib, parameterList);
-			if (parameterList.length > mostParameters)
-			{
-				bestLib = lib;
-				mostParameters = parameterList.length;
-			}
-		}
-		Library curLib = Library.getCurrent();
-		String [] parameterList = libParameters.get(curLib);
-		if ((parameterList != null && parameterList.length > 0) || bestLib == null) bestLib = curLib;
+		// BVE - Refactored code into helper function
+		Library bestLib = initializeLibParameters(libParameters, libraryPopup);
 
 		parametersList.addMouseListener(new MouseAdapter()
 		{
@@ -275,6 +339,17 @@ public class BusParameters extends EDialog
 			this.libParameters = libParameters;
 			startJob();
 		}
+		
+		private UpdateAllParameters(HashMap<Library,String[]> libParameters, boolean doItNow)
+		{
+			super("Update All Bus Parameters", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.libParameters = libParameters;
+			if (doItNow){
+			   try {doIt();} catch (Exception e) {e.printStackTrace();}
+			}else {
+				startJob();
+			}
+		}
 
 		public boolean doIt() throws JobException
 		{
@@ -285,52 +360,72 @@ public class BusParameters extends EDialog
 				for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 				{
 					Cell cell = cIt.next();
-					for(Iterator<NodeInst> nIt = cell.getNodes(); nIt.hasNext(); )
-					{
-						NodeInst ni = nIt.next();
-						Variable var = ni.getVar(NODE_BUS_TEMPLATE);
-						if (var != null)
-						{
-							String newVarString = updateVariable(var, lib, libParameters);
-							String arcName = ni.getName();
-							if (!arcName.equalsIgnoreCase(newVarString))
-								ni.setName(newVarString);
-						}
-					}
-					for(Iterator<ArcInst> aIt = cell.getArcs(); aIt.hasNext(); )
-					{
-						ArcInst ai = aIt.next();
-						Variable var = ai.getVar(ARC_BUS_TEMPLATE);
-						if (var != null)
-						{
-							String newVarString = updateVariable(var, lib, libParameters);
-							String arcName = ai.getName();
-							if (!arcName.equalsIgnoreCase(newVarString))
-								ai.setName(newVarString);
-						}
-					}
-					for(Iterator<Export> eIt = cell.getExports(); eIt.hasNext(); )
-					{
-						Export e = eIt.next();
-						Variable var = e.getVar(EXPORT_BUS_TEMPLATE);
-						if (var != null)
-						{
-							String newVarString = updateVariable(var, lib, libParameters);
-							String exportName = e.getName();
-							if (!exportName.equalsIgnoreCase(newVarString))
-								e.rename(newVarString);
-						}
-					}
+					// BVE - Old code refactored into helper function
+					updateCellParameters(cell, lib, libParameters);
 				}
 			}
 			return true;
 		}
 	}
 
-	private static String updateVariable(Variable var, Library lib, HashMap<Library,String[]> libParameters)
-	{
-		// first substitute variable names
-		String varString = (String)var.getObject();
+	/**
+	 * Internal method for updating the bus parameters within a single cell.  Refactored to
+	 * permit resuse.
+	 * Added for ArchGen Plugin - BVE
+	 * @param cell
+	 * @param lib
+	 * @param libParameters
+	 */
+	private static void updateCellParameters(Cell cell, Library lib, HashMap<Library,String[]> libParameters) {
+		for(Iterator<NodeInst> nIt = cell.getNodes(); nIt.hasNext(); )
+		{
+			NodeInst ni = nIt.next();
+			Variable var = ni.getVar(NODE_BUS_TEMPLATE);
+			if (var != null)
+			{
+				String newVarString = updateVariable(var, lib, libParameters);
+				String arcName = ni.getName();
+				if (!arcName.equalsIgnoreCase(newVarString))
+					ni.setName(newVarString);
+			}
+		}
+		for(Iterator<ArcInst> aIt = cell.getArcs(); aIt.hasNext(); )
+		{
+			ArcInst ai = aIt.next();
+			Variable var = ai.getVar(ARC_BUS_TEMPLATE);
+			if (var != null)
+			{
+				String newVarString = updateVariable(var, lib, libParameters);
+				String arcName = ai.getName();
+				if (!arcName.equalsIgnoreCase(newVarString))
+					ai.setName(newVarString);
+			}
+		}
+		for(Iterator<Export> eIt = cell.getExports(); eIt.hasNext(); )
+		{
+			Export e = eIt.next();
+			Variable var = e.getVar(EXPORT_BUS_TEMPLATE);
+			if (var != null)
+			{
+				String newVarString = updateVariable(var, lib, libParameters);
+				String exportName = e.getName();
+				if (!exportName.equalsIgnoreCase(newVarString))
+					e.rename(newVarString);
+			}
+		}
+	}
+	
+	/**
+	 * Internal method for replacing a bus parameter in a string.  Refactored to
+	 * permit reuse.
+	 * Added for ArchGen Plugin - BVE
+	 * @param var
+	 * @param lib
+	 * @param libParameters
+	 * @return
+	 */
+	private static String replaceVariableInString(String var, Library lib, HashMap<Library,String[]> libParameters) {
+		String varString = var;
 		for(;;)
 		{
 			int dollarPos = varString.indexOf("$(");
@@ -344,7 +439,10 @@ public class BusParameters extends EDialog
 			String varName = varString.substring(dollarPos+2, closePos);
 
 			String [] paramList = libParameters.get(lib);
-			String paramValue = findParameterValue(paramList, varName);
+			String paramValue = null;
+			if (paramList != null) {
+				paramValue = findParameterValue(paramList, varName);
+			}
 			if (paramValue == null)
 			{
 				for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
@@ -363,6 +461,15 @@ public class BusParameters extends EDialog
 			}
 			varString = varString.substring(0, dollarPos) + paramValue + varString.substring(closePos+1);
 		}
+		return varString;
+	}
+	
+	private static String updateVariable(Variable var, Library lib, HashMap<Library,String[]> libParameters)
+	{
+		// first substitute variable names
+		String varString = (String)var.getObject();
+		// BVE - Old code refactored into helper function
+		varString = replaceVariableInString(varString, lib, libParameters);
 
 		// now that variables are substituted, handle arithmetic
 		for(int i=0; i<varString.length(); i++)
@@ -423,12 +530,34 @@ public class BusParameters extends EDialog
 	private static class AddTemplate extends Job
 	{
 		private ElectricObject owner;
+		private String templateString;
 
 		private AddTemplate(ElectricObject owner)
 		{
 			super("Create Bus Parameter", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.owner = owner;
+			this.templateString = "";
 			startJob();
+		}
+		
+		/**
+		 * Constructor for adding a bus parameter template to an ElectricObject immediately or as a job.
+		 * Added the ability to append a string to the template
+		 * Added for ArchGen Plugin - BVE
+		 * @param owner
+		 * @param suffix
+		 * @return
+		 */
+		private AddTemplate(ElectricObject owner, boolean doItNow, String initValue)
+		{
+			super("Create Bus Parameter", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.owner = owner;
+			this.templateString = initValue;
+			if (doItNow) {
+			   try {doIt();} catch (Exception e) {e.printStackTrace();}
+			}else {
+				startJob();
+			}
 		}
 
 		public boolean doIt() throws JobException
@@ -442,7 +571,11 @@ public class BusParameters extends EDialog
 				if (!td.getSize().isAbsolute())
 					relSize = td.getSize().getSize();
 				td = td.withOff(td.getXOff(), td.getYOff() - relSize*1.5).withRelSize(relSize/2).withDispPart(TextDescriptor.DispPos.NAMEVALUE);
-				ni.newVar(NODE_BUS_TEMPLATE, ni.getName(), td);
+				if(!templateString.equals("")) {
+					ni.newVar(NODE_BUS_TEMPLATE, ni.getName()+templateString, td);				
+				}else {
+					ni.newVar(NODE_BUS_TEMPLATE, ni.getName(), td);
+				}
 			} else if (owner instanceof ArcInst)
 			{
 				// add template to arc
@@ -452,7 +585,11 @@ public class BusParameters extends EDialog
 				if (!td.getSize().isAbsolute())
 					relSize = td.getSize().getSize();
 				td = td.withOff(td.getXOff(), td.getYOff() - relSize*1.5).withRelSize(relSize/2).withDispPart(TextDescriptor.DispPos.NAMEVALUE);
-				ai.newVar(ARC_BUS_TEMPLATE, ai.getName(), td);
+				if(!templateString.equals("")) {
+					ai.newVar(ARC_BUS_TEMPLATE, ai.getName()+templateString, td);
+				}else {
+					ai.newVar(ARC_BUS_TEMPLATE, ai.getName(), td);
+				}
 			} else
 			{
 				// add template to export
@@ -462,7 +599,11 @@ public class BusParameters extends EDialog
 				if (!td.getSize().isAbsolute())
 					relSize = td.getSize().getSize();
 				td = td.withOff(td.getXOff(), td.getYOff() - relSize*1.5).withRelSize(relSize/2).withDispPart(TextDescriptor.DispPos.NAMEVALUE);
-				e.newVar(EXPORT_BUS_TEMPLATE, e.getName(), td);
+				if(!templateString.equals("")) {
+					e.newVar(EXPORT_BUS_TEMPLATE, e.getName()+templateString, td);
+				}else {
+					e.newVar(EXPORT_BUS_TEMPLATE, e.getName(), td);
+				}
 			}
 			return true;
 		}

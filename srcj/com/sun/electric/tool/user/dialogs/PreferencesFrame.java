@@ -195,6 +195,7 @@ public class PreferencesFrame extends EDialog
 		addTreeNode(new CellModelTab(parent, true, CellModelPrefs.spiceModelPrefs), toolSet);
 		if (Routing.hasSunRouter())
 			addTreeNode(new SunRouterTab(parent, true), toolSet);
+        addTreeNode(new VerilogTab(parent, true), toolSet);
 		addTreeNode(new CellModelTab(parent, true, CellModelPrefs.verilogModelPrefs), toolSet);
 		addTreeNode(new WellCheckTab(parent, true), toolSet);
 

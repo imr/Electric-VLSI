@@ -833,6 +833,8 @@ public class Variable implements Serializable
 		if (name.equals("transistor_width")) return "Transistor Width";
 		if (name.equals("VERILOG_code")) return "Verilog code";
 		if (name.equals("VERILOG_declaration")) return "Verilog declaration";
+		if (name.equals("VERILOG_parameter")) return "Verilog parameter";
+		if (name.equals("VERILOG_external_code")) return "Verilog external code";
 		return null;
 	}
 

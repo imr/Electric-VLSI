@@ -151,7 +151,34 @@ public class Highlighter implements DatabaseChangeListener {
 		return h1;
 	}
 
-    /**
+	/**
+	 * Method to add an ElectricObject to the list of highlighted objects.
+	 * @param eobj the ElectricObject to add to the list of highlighted objects.
+	 * @param cell the Cell in which the ElectricObject resides.
+	 * @return the newly created Highlight object.
+	 */
+	public Highlight2 addElectricObject(ElectricObject eobj, Cell cell, Color col)
+	{
+		return addElectricObject(eobj, cell, true, col);
+	}
+
+	/**
+	 * Method to add an ElectricObject to the list of highlighted objects.
+	 * @param eobj the ElectricObject to add to the list of highlighted objects.
+	 * @param cell the Cell in which the ElectricObject resides.
+	 * @param highlightConnected if true, highlight all objects that are in some way connected
+	 * to this object.  If false, do not. This is used by addNetwork to prevent extra
+	 * things from being highlighted later that are not connected to the network.
+	 * @return the newly created Highlight object.
+	 */
+	public Highlight2 addElectricObject(ElectricObject eobj, Cell cell, boolean highlightConnected, Color col)
+	{
+		Highlight2 h1 = new HighlightEOBJ(eobj, cell, highlightConnected, -1, col);
+		addHighlight(h1);
+		return h1;
+	}
+
+	/**
 	 * Method to add a text selection to the list of highlighted objects.
 	 * @param cell the Cell in which this area resides.
 	 * @param varKey the Variable.Key associated with the text (text is then a visual of that variable).
@@ -159,12 +186,12 @@ public class Highlighter implements DatabaseChangeListener {
 	 */
 	public Highlight2 addText(ElectricObject eobj, Cell cell, Variable.Key varKey)
 	{
-        HighlightText h1 = new HighlightText(eobj, cell, varKey);
-        addHighlight(h1);
+		HighlightText h1 = new HighlightText(eobj, cell, varKey);
+		addHighlight(h1);
 		return h1;
 	}
 
-    /**
+	/**
 	 * Method to add a message display to the list of highlighted objects.
 	 * @param cell the Cell in which this area resides.
 	 * @param message the String to display.
@@ -173,12 +200,12 @@ public class Highlighter implements DatabaseChangeListener {
 	 */
 	public Highlight2 addMessage(Cell cell, String message, Point2D loc)
 	{
-        Highlight2 h1 = new HighlightMessage(cell, message, loc);
-        addHighlight(h1);
+		Highlight2 h1 = new HighlightMessage(cell, message, loc);
+		addHighlight(h1);
 		return h1;
 	}
 
-    /**
+	/**
 	 * Method to add an area to the list of highlighted objects.
 	 * @param area the Rectangular area to add to the list of highlighted objects.
 	 * @param cell the Cell in which this area resides.

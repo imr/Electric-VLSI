@@ -63,27 +63,27 @@ import java.util.List;
  */
 public abstract class Highlight2 implements Cloneable{
 
-    /** for drawing solid lines */		public static final BasicStroke solidLine = new BasicStroke(0);
-    /** for drawing dotted lines */		public static final BasicStroke dottedLine = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[] {1}, 0);
-    /** for drawing dashed lines */		public static final BasicStroke dashedLine = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10, new float[] {10}, 0);
-    /** for drawing dashed lines */		public static final BasicStroke boldLine = new BasicStroke(3);
+	/** for drawing solid lines */		public static final BasicStroke solidLine = new BasicStroke(0);
+	/** for drawing dotted lines */		public static final BasicStroke dottedLine = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[] {1}, 0);
+	/** for drawing dashed lines */		public static final BasicStroke dashedLine = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10, new float[] {10}, 0);
+	/** for drawing dashed lines */		public static final BasicStroke boldLine = new BasicStroke(3);
 
-	/** The Cell containing the selection. */					protected Cell cell;
-    private static final int CROSSSIZE = 3;
+	/** The Cell containing the selection. */	protected Cell cell;
+	private static final int CROSSSIZE = 3;
 
-    Highlight2(Cell c)
-    {
-        this.cell = c;
-    }
+	Highlight2(Cell c)
+	{
+		this.cell = c;
+	}
 
-    public Cell getCell() { return cell; }
+	public Cell getCell() { return cell; }
 
-    boolean isValid()
-    {
-        if (cell != null)
-            if (!cell.isLinked()) return false;
-        return true;
-    }
+	boolean isValid()
+	{
+		if (cell != null)
+			if (!cell.isLinked()) return false;
+		return true;
+	}
 
     // creating so HighlightEOBJ is not a public class
     public boolean isHighlightEOBJ() { return false; }
@@ -691,53 +691,64 @@ class HighlightMessage extends Highlight2
 class HighlightEOBJ extends Highlight2
 {
 	/** The highlighted object. */								protected ElectricObject eobj;
-    /** For Highlighted networks, this prevents excess highlights */ private boolean highlightConnected;
+	/** For Highlighted networks, this prevents excess highlights */ private boolean highlightConnected;
 	/** The highlighted outline point (only for NodeInst). */	protected int point;
+	/** The color used when drawing polygons */					private Color color;
 
-    public HighlightEOBJ(ElectricObject e, Cell c, boolean connected, int p)
-    {
-        super(c);
-        this.eobj = e;
-        this.highlightConnected = connected;
-        this.point = p;
-    }
+	public HighlightEOBJ(ElectricObject e, Cell c, boolean connected, int p)
+	{
+		super(c);
+		this.eobj = e;
+		this.highlightConnected = connected;
+		this.point = p;
+		this.color = null;
+	}
 
-    void internalDescribe(StringBuffer desc)
-    {
-        desc.append(", ");
-        if (eobj instanceof PortInst) {
-            desc.append(((PortInst)eobj).describe(true));
-        }
-        if (eobj instanceof NodeInst) {
-            desc.append(((NodeInst)eobj).describe(true));
-        }
-        if (eobj instanceof ArcInst) {
-            desc.append(((ArcInst)eobj).describe(true));
-        }
-    }
+	public HighlightEOBJ(ElectricObject e, Cell c, boolean connected, int p, Color col)
+	{
+		super(c);  
+		this.eobj = e;
+		this.highlightConnected = connected;
+		this.point = p;
+		this.color = col;
+	}
 
-    public ElectricObject getElectricObject() { return eobj; }
+	void internalDescribe(StringBuffer desc)
+	{
+		desc.append(", ");
+		if (eobj instanceof PortInst) {
+			desc.append(((PortInst)eobj).describe(true));
+		}
+		if (eobj instanceof NodeInst) {
+			desc.append(((NodeInst)eobj).describe(true));
+		}
+		if (eobj instanceof ArcInst) {
+			desc.append(((ArcInst)eobj).describe(true));
+		}
+	}
 
-    public boolean isHighlightEOBJ() { return true; }
+	public ElectricObject getElectricObject() { return eobj; }
 
-    public void setPoint(int p) { point = p;}
-    public int getPoint() { return point; }
+	public boolean isHighlightEOBJ() { return true; }
 
-    boolean isValid()
-    {
-        if (!super.isValid()) return false;
+	public void setPoint(int p) { point = p;}
+	public int getPoint() { return point; }
 
-        if (eobj instanceof PortInst)
-            return ((PortInst)eobj).getNodeInst().isLinked();
-        return eobj.isLinked();
-    }
+	boolean isValid()
+	{
+		if (!super.isValid()) return false;
 
-    boolean sameThing(Highlight2 obj)
-    {
-        if (this == obj) return (true);
+		if (eobj instanceof PortInst)
+			return ((PortInst)eobj).getNodeInst().isLinked();
+		return eobj.isLinked();
+	}
+
+	boolean sameThing(Highlight2 obj)
+	{
+		if (this == obj) return (true);
 
 		// Consider already obj==null
-        if (obj == null || getClass() != obj.getClass())
+	    if (obj == null || getClass() != obj.getClass())
             return (false);
 
         ElectricObject realEObj = eobj;
@@ -755,6 +766,14 @@ class HighlightEOBJ extends Highlight2
     {
         Graphics2D g2 = (Graphics2D)g;
         highlightConnected = setConnected;
+
+		// switch colors if specified
+        Color oldColor = null;
+        if (color != null)
+        {
+            oldColor = g.getColor();
+            g.setColor(color);
+        }
 
         // highlight ArcInst
 		if (eobj instanceof ArcInst)
@@ -1170,9 +1189,13 @@ class HighlightEOBJ extends Highlight2
                 }
 			}
 		}
-    }
 
-    void getHighlightedEObjs(Highlighter highlighter, List<Geometric> list, boolean wantNodes, boolean wantArcs)
+		// switch back to old color if switched
+		if (oldColor != null)
+			g.setColor(oldColor);
+	}
+
+	void getHighlightedEObjs(Highlighter highlighter, List<Geometric> list, boolean wantNodes, boolean wantArcs)
     {
         getHighlightedEObjsInternal(getGeometric(), list, wantNodes, wantArcs);
     }

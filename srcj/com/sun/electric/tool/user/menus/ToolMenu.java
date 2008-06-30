@@ -289,7 +289,7 @@ public class ToolMenu {
 
 		//------------------- Simulation (Verilog)
 
-		// mnemonic keys available: AB  EFGHIJKLMNOPQRS U WXYZ
+		// mnemonic keys available: AB  EFGHIJKLMNO QRS U WXYZ
             new EMenu("Simulation (_Verilog)",
 		        new EMenuItem("Write _Verilog Deck...") { public void run() {
                     FileMenu.exportCommand(FileType.VERILOG, true); }},
@@ -300,6 +300,8 @@ public class ToolMenu {
                 SEPARATOR,
 		        new EMenuItem("Set Verilog _Template") { public void run() {
                     makeTemplate(Verilog.VERILOG_TEMPLATE_KEY); }},
+    		    new EMenuItem("Set Verilog Default _Parameter") { public void run() {
+    		    	makeTemplate(Verilog.VERILOG_DEFPARAM_KEY); }},
 
                 SEPARATOR,
 
@@ -411,7 +413,12 @@ public class ToolMenu {
                new EMenuItem("Cells from _Two Windows") { public void run() {
                     Pie.invokePieNcc(2); }}) : null,
 
-		//------------------- Network
+                    
+        // ------------------- Architecture Generator
+//            // If ArchGen package is installed then add menu entries to call it
+//            ArchGenPlugin.hasArchGen() ? ArchGenPlugin.getEMenu() : null,
+                            
+        //------------------- Network
 
 		// mnemonic keys available:    D F  IJK M O Q S   W YZ
             new EMenu("Net_work",
@@ -828,7 +835,7 @@ public class ToolMenu {
 				if (fun.isMetal()) coefficient = COEFFICIENTMETAL;
 				if (fun.isPoly()) coefficient = COEFFICIENTPOLY;
 				double result = halfPerimeter.doubleValue() * coefficient;
-				System.out.println("   Layer " + layer.getName() + " half-perimeter is " + TextUtils.formatDouble(halfPerimeter) +
+				System.out.println("   Layer " + layer.getName() + " half-perimeter is " + TextUtils.formatDouble(halfPerimeter.doubleValue()) +
 					" x " + coefficient + " = " + TextUtils.formatDouble(result));
 				numerator += result;
 			}
@@ -1546,10 +1553,32 @@ public class ToolMenu {
         new MakeTemplate(templateKey);
     }
 
+    /**
+     * Method to create a new template on the target cell.
+     * Templates can be for SPICE or Verilog, depending on the Variable name.
+     * @param templateKey the name of the variable to create.
+     */
+    public static void makeTemplate(Variable.Key templateKey, Cell tgtCell)
+    {
+        new MakeTemplate(templateKey, tgtCell);
+    }
+    
+    /**
+     * Method to create a new template on the target cell, with a predefined String or String [].
+     * Templates can be for SPICE or Verilog, depending on the Variable name.
+     * @param templateKey the name of the variable to create.
+     */
+    public static void makeTemplate(Variable.Key templateKey, Cell tgtCell, Object value)
+    {
+        new MakeTemplate(templateKey, tgtCell, value);
+    }
+    
     private static class MakeTemplate extends Job
     {
         private Variable.Key templateKey;
-
+        private Cell tgtCell;
+        private Object value;
+        
         protected MakeTemplate(Variable.Key templateKey)
         {
             super("Make template", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -1557,9 +1586,28 @@ public class ToolMenu {
             startJob();
         }
 
+        protected MakeTemplate(Variable.Key templateKey, Cell tgtCell)
+        {
+            super("Make template", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.templateKey = templateKey;
+            this.tgtCell = tgtCell;
+            startJob();
+        }        
+        
+        protected MakeTemplate(Variable.Key templateKey, Cell tgtCell, Object value)
+        {
+            super("Make template", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.templateKey = templateKey;
+            this.tgtCell = tgtCell;
+            this.value = value;
+            startJob();
+        }   
+        
         public boolean doIt() throws JobException
         {
-            Cell cell = WindowFrame.needCurCell();
+            Cell cell;
+            if (tgtCell != null) cell = tgtCell; else
+            	cell = WindowFrame.needCurCell();
             if (cell == null) return false;
             Variable templateVar = cell.getVar(templateKey);
             if (templateVar != null)
@@ -1570,7 +1618,12 @@ public class ToolMenu {
         	Point2D offset = cell.newVarOffset();
             TextDescriptor td = TextDescriptor.getCellTextDescriptor().withInterior(true).
             	withDispPart(TextDescriptor.DispPos.NAMEVALUE).withOff(offset.getX(), offset.getY());
-            cell.newVar(templateKey, "*Undefined", td);
+            if (value == null) {
+            	cell.newVar(templateKey, "*Undefined", td);
+            } else
+            {
+            	cell.newVar(templateKey, value, td);
+            }
             return true;
         }
     }

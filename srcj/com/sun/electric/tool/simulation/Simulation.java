@@ -1164,7 +1164,17 @@ public class Simulation extends Tool
 	public static void setVerilogStopAtStandardCells(boolean b) { cacheVerilogStopAtStandardCells.setBoolean(b); }
 	public static boolean getVerilogStopAtStandardCells() { return cacheVerilogStopAtStandardCells.getBoolean(); }
 
+    /**
+     * BVE - Improved support for Verilog generation
+     */
+    private static Pref cachePreserveVerilogFormating = Pref.makeBooleanPref("PreserveVerilogFormating", tool.prefs, true);
+    public static void setPreserveVerilogFormating(boolean b) { cachePreserveVerilogFormating.setBoolean(b); }
+    public static boolean getPreserveVerilogFormating() { return cachePreserveVerilogFormating.getBoolean(); }
 
+    private static Pref cacheVerilogParameterizeModuleNames = Pref.makeBooleanPref("VerilogParamertizeModuleNames", tool.prefs, false);
+    public static void setVerilogParameterizeModuleNames(boolean b) { cacheVerilogParameterizeModuleNames.setBoolean(b); }
+    public static boolean getVerilogParameterizeModuleNames() { return cacheVerilogParameterizeModuleNames.getBoolean(); }
+    
 	/****************************** CDL OPTIONS ******************************/
 
 	private static Pref cacheCDLLibName = Pref.makeStringPref("CDLLibName", tool.prefs, "");

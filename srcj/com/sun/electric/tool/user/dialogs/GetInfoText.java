@@ -36,6 +36,8 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.Client;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
+import com.sun.electric.tool.io.output.Verilog;
+import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.Highlight2;
 import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
@@ -654,11 +656,21 @@ public class GetInfoText extends EModelessDialog implements HighlightListener, D
 			ArrayList<String> textList = new ArrayList<String>();
 			for (int i=0; i<textArray.length; i++)
 			{
-				String str = textArray[i];
-				str = str.trim();
-				if (str.equals("")) continue;
-				textList.add(str);
-			}
+                String str = textArray[i];
+                if (Simulation.getPreserveVerilogFormating() && // Pref set
+                   cti.td.getPos() == TextDescriptor.Position.RIGHT && // Left justified text
+                   (cti.varKey == Verilog.VERILOG_PARAMETER_KEY || 
+                    cti.varKey == Verilog.VERILOG_CODE_KEY ||
+                    cti.varKey == Verilog.VERILOG_EXTERNAL_CODE_KEY ||
+                    cti.varKey == Verilog.VERILOG_DECLARATION_KEY)) {
+                    textList.add(str);
+                } else
+                {
+                    str = str.trim();
+                    if (str.equals("")) continue;
+                    textList.add(str);
+                }
+            }
 
 			textArray = new String[textList.size()];
 			for (int i=0; i<textList.size(); i++)
@@ -981,46 +993,57 @@ getContentPane().add(buttonsPanel, gridBagConstraints);
 //        return currentText;
 //    }
 
-    private void applyActionPerformed(ActionEvent evt) {
-        if (cti.shownText == null) return;
+	private void applyActionPerformed(ActionEvent evt)
+	{
+		if (cti.shownText == null) return;
 
-        // tell sub-panels to update if they have changed
-        textPanel.applyChanges(true);
-        attrPanel.applyChanges();
+		// tell sub-panels to update if they have changed
+		textPanel.applyChanges(true);
+		attrPanel.applyChanges();
 
-        boolean changed = false;
+		boolean changed = false;
 
-        // see if text changed
-        String currentText = theText.getText();
-        if (!currentText.equals(cti.initialText)) changed = true;
+		// see if text changed
+		String currentText = theText.getText();
+		if (!currentText.equals(cti.initialText)) changed = true;
 
-        if (changed) {
+		if (changed)
+		{
+			String[] textArray = currentText.split("\\n");
+			ArrayList<String> textList = new ArrayList<String>();
+			for (int i=0; i<textArray.length; i++) {
+				String str = textArray[i];
+				if (Simulation.getPreserveVerilogFormating() && // Pref set
+					cti.td.getPos() == TextDescriptor.Position.RIGHT && // Left justified text
+					(cti.varKey == Verilog.VERILOG_PARAMETER_KEY || 
+				 	cti.varKey == Verilog.VERILOG_CODE_KEY ||
+				 	cti.varKey == Verilog.VERILOG_EXTERNAL_CODE_KEY ||
+				 	cti.varKey == Verilog.VERILOG_DECLARATION_KEY))
+				{
+				 	textList.add(str);
+				} else
+				{
+					str = str.trim();
+					if (str.equals("")) continue;
+					textList.add(str);
+				}
+			}
 
-            String[] textArray = currentText.split("\\n");
-            ArrayList<String> textList = new ArrayList<String>();
-            for (int i=0; i<textArray.length; i++) {
-                String str = textArray[i];
-                str = str.trim();
-                if (str.equals("")) continue;
-                textList.add(str);
-            }
+			textArray = new String[textList.size()];
+			for (int i=0; i<textList.size(); i++) {
+				String str = textList.get(i);
+				textArray[i] = str;
+			}
 
-            textArray = new String[textList.size()];
-            for (int i=0; i<textList.size(); i++) {
-                String str = textList.get(i);
-                textArray[i] = str;
-            }
-
-            if (textArray.length > 0) {
-                // generate job to change text
-                new ChangeText(cti.owner, cti.varKey, textArray);
+			if (textArray.length > 0) {
+				// generate job to change text
+				new ChangeText(cti.owner, cti.varKey, textArray);
 				cti.initialText = currentText;
-            }
-        }
-        // update dialog
-        //UpdateDialog job2 = new UpdateDialog();
-
-    }
+			}
+		}
+		// update dialog
+		//UpdateDialog job2 = new UpdateDialog();
+	}
 
     private void okActionPerformed(ActionEvent evt) {
         applyActionPerformed(evt);
