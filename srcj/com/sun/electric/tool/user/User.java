@@ -1767,7 +1767,7 @@ public class User extends Listener
 	/****************************** COLOR PREFERENCES ******************************/
 
     public enum ColorPrefType {BACKGROUND, GRID, HIGHLIGHT, MOUSEOVER_HIGHLIGHT,
-    	PORT_HIGHLIGHT, TEXT, INSTANCE, DOWNINPLACEBORDER,
+    	PORT_HIGHLIGHT, TEXT, INSTANCE, ARTWORK, DOWNINPLACEBORDER,
         WAVE_BACKGROUND, WAVE_FOREGROUND, WAVE_STIMULI, WAVE_OFF_STRENGTH,
         WAVE_NODE_STRENGTH, WAVE_GATE_STRENGTH, WAVE_POWER_STRENGTH, WAVE_CROSS_LOW,
         WAVE_CROSS_HIGH, WAVE_CROSS_UNDEF, WAVE_CROSS_FLOAT}
@@ -1781,6 +1781,7 @@ public class User extends Listener
      * PORT_HIGHLIGHT: color of the port highlight on the display. The default is "yellow".
      * TEXT: color of the text on the display. The default is "black".
      * INSTANCE: color of the instance outlines on the display. The default is "black".
+     * ARTWORK: default color of the artwork primitives on the display. The default is "black".
      * DOWNINPLACEBORDER: color of the border around cells drawn "down in place". The default is "red".
      * WAVE_BACKGROUND: color of the waveform window background. The default is "black".
      * WAVE_FOREGROUND: color of the waveform window foreground. This includes lines and text. The default is "white".
@@ -1826,6 +1827,7 @@ public class User extends Listener
             case PORT_HIGHLIGHT: return cacheColorPortHighlight;
             case TEXT: return cacheColorText;
             case INSTANCE: return cacheColorInstanceOutline;
+            case ARTWORK: return cacheColorDefaultArtwork;
             case DOWNINPLACEBORDER: return cacheColorDownInPlaceBorder;
             case WAVE_BACKGROUND: return cacheColorWaveformBackground;
             case WAVE_FOREGROUND: return cacheColorWaveformForeground;
@@ -1893,6 +1895,7 @@ public class User extends Listener
             case PORT_HIGHLIGHT: cacheColorPortHighlight.setInt(color); return;
             case TEXT: cacheColorText.setInt(color); return;
             case INSTANCE: cacheColorInstanceOutline.setInt(color); return;
+            case ARTWORK: cacheColorDefaultArtwork.setInt(color); return;
             case DOWNINPLACEBORDER: cacheColorDownInPlaceBorder.setInt(color); return;
             case WAVE_BACKGROUND: cacheColorWaveformBackground.setInt(color); return;
             case WAVE_FOREGROUND: cacheColorWaveformForeground.setInt(color); return;
@@ -1944,6 +1947,7 @@ public class User extends Listener
             case PORT_HIGHLIGHT: pf = cacheColorPortHighlight; break;
             case TEXT: pf = cacheColorText; break;
             case INSTANCE: pf = cacheColorInstanceOutline; break;
+            case ARTWORK: pf = cacheColorDefaultArtwork; break;
             case DOWNINPLACEBORDER: pf = cacheColorDownInPlaceBorder; break;
             case WAVE_BACKGROUND: pf = cacheColorWaveformBackground; break;
             case WAVE_FOREGROUND: pf = cacheColorWaveformForeground; break;
@@ -1973,6 +1977,8 @@ public class User extends Listener
 	private static Pref cacheColorText = Pref.makeIntPref("ColorText", tool.prefs, Color.BLACK.getRGB());
 
 	private static Pref cacheColorInstanceOutline = Pref.makeIntPref("ColorInstanceOutline", tool.prefs, Color.BLACK.getRGB());
+
+	private static Pref cacheColorDefaultArtwork = Pref.makeIntPref("ColorDefaultArtwork", tool.prefs, Color.BLACK.getRGB());
 
 	private static Pref cacheColorDownInPlaceBorder = Pref.makeIntPref("ColorDownInPlaceBorder", tool.prefs, Color.RED.getRGB());
 

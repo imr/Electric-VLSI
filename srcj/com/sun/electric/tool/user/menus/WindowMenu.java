@@ -690,6 +690,7 @@ public class WindowMenu {
         User.resetFactoryColor(User.ColorPrefType.PORT_HIGHLIGHT);
         User.resetFactoryColor(User.ColorPrefType.TEXT);
         User.resetFactoryColor(User.ColorPrefType.INSTANCE);
+        User.resetFactoryColor(User.ColorPrefType.ARTWORK);
 		User.resetFactoryColor(User.ColorPrefType.WAVE_BACKGROUND);
 		User.resetFactoryColor(User.ColorPrefType.WAVE_FOREGROUND);
 		User.resetFactoryColor(User.ColorPrefType.WAVE_STIMULI);
@@ -712,6 +713,7 @@ public class WindowMenu {
         User.setColor(User.ColorPrefType.PORT_HIGHLIGHT, Color.YELLOW.getRGB());
         User.setColor(User.ColorPrefType.TEXT, Color.WHITE.getRGB());
         User.setColor(User.ColorPrefType.INSTANCE, Color.WHITE.getRGB());
+        User.setColor(User.ColorPrefType.ARTWORK, Color.WHITE.getRGB());
 		User.setColor(User.ColorPrefType.WAVE_BACKGROUND, Color.BLACK.getRGB());
 		User.setColor(User.ColorPrefType.WAVE_FOREGROUND, Color.WHITE.getRGB());
 		User.setColor(User.ColorPrefType.WAVE_STIMULI, Color.RED.getRGB());
@@ -734,6 +736,7 @@ public class WindowMenu {
         User.setColor(User.ColorPrefType.PORT_HIGHLIGHT, Color.DARK_GRAY.getRGB());
         User.setColor(User.ColorPrefType.TEXT, Color.BLACK.getRGB());
         User.setColor(User.ColorPrefType.INSTANCE, Color.BLACK.getRGB());
+        User.setColor(User.ColorPrefType.ARTWORK, Color.BLACK.getRGB());
 		User.setColor(User.ColorPrefType.WAVE_BACKGROUND, Color.WHITE.getRGB());
 		User.setColor(User.ColorPrefType.WAVE_FOREGROUND, Color.BLACK.getRGB());
 		User.setColor(User.ColorPrefType.WAVE_STIMULI, Color.RED.getRGB());

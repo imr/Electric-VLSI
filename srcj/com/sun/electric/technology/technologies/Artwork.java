@@ -43,7 +43,9 @@ import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.tool.user.User;
 
+import java.awt.Color;
 import java.awt.geom.Point2D;
 
 /**
@@ -854,7 +856,14 @@ public class Artwork extends Technology
 	private Layer getProperLayer(ImmutableElectricObject d)
 	{
 		EGraphics graphics = makeGraphics(d);
-		if (graphics == null) return defaultLayer;
+		if (graphics == null)
+		{
+			int col = User.getColor(User.ColorPrefType.ARTWORK) & 0xFFFFFF;
+			EGraphics eg = defaultLayer.getGraphics();
+			if (eg.getRGB() != col)
+				eg.setColorIndex(EGraphics.makeIndex(new Color(col)));
+			return defaultLayer;
+		}
 		Layer thisLayer = Layer.newInstanceFree(this, "Graphics", graphics);
 		return thisLayer;
 	}

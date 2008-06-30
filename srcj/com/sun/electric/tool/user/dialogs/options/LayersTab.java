@@ -193,6 +193,7 @@ public class LayersTab extends PreferencePanel
         nameTypeSpecialMap.put(User.ColorPrefType.PORT_HIGHLIGHT, "Special: PORT HIGHLIGHT");
         nameTypeSpecialMap.put(User.ColorPrefType.TEXT, "Special: TEXT");
         nameTypeSpecialMap.put(User.ColorPrefType.INSTANCE, "Special: INSTANCE OUTLINES");
+        nameTypeSpecialMap.put(User.ColorPrefType.ARTWORK, "Special: DEFAULT ARTWORK");
         nameTypeSpecialMap.put(User.ColorPrefType.DOWNINPLACEBORDER, "Special: DOWN-IN-PLACE BORDER");
         nameTypeSpecialMap.put(User.ColorPrefType.WAVE_BACKGROUND, "Special: WAVEFORM BACKGROUND");
         nameTypeSpecialMap.put(User.ColorPrefType.WAVE_FOREGROUND, "Special: WAVEFORM FOREGROUND");

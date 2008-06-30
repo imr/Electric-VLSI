@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08a: ******************************
 
+BUG/MAN: (6/30/08, SMR) Icons are invisible against a black background (Bug #1738).
+FIX: Created new Special color (in "Layers" preferences) with the name
+     "DEFAULT ARTWORK".  Use this value in Artwork.getProperLayer().
+
 BUG: (6/30/08, SMR) "Cross-library copy" fails if "Use Existing Subcells" is
      checked and ports do not match (#1736).
 FIX: Improved Cell:copyNodeProtoUsingMapping() to handle differences.
