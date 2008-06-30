@@ -798,6 +798,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 
 			// find the nodeinst and portinst connections for this arcinst
 			PortInst [] opi = new PortInst[2];
+			Point2D [] oLoc = new Point2D[2];
 			for(int i=0; i<2; i++)
 			{
 				opi[i] = null;
@@ -816,13 +817,15 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 				if (opi[i] == null)
 					System.out.println("Error: no port for " + ai.getProto() +
 						" arc on " + ono.getProto());
+				oLoc[i] = ai.getLocation(i);
+		        Poly poly = opi[i].getPoly();
+		        if (!poly.isInside(oLoc[i])) oLoc[i] = poly.getCenter();
 			}
 			if (opi[0] == null || opi[1] == null) return null;
 
 			// create the arcinst
 			ArcInst toAi = ArcInst.newInstanceBase(ai.getProto(), ai.getLambdaBaseWidth(), opi[ArcInst.HEADEND], opi[ArcInst.TAILEND],
-//			ArcInst toAi = ArcInst.newInstanceFull(ai.getProto(), ai.getLambdaFullWidth(), opi[ArcInst.HEADEND], opi[ArcInst.TAILEND],
-				ai.getHeadLocation(), ai.getTailLocation(), ai.getName(), ai.getAngle());
+				oLoc[ArcInst.HEADEND], oLoc[ArcInst.TAILEND], ai.getName(), ai.getAngle());
 			if (toAi == null) return null;
 
 			// copy arcinst information
