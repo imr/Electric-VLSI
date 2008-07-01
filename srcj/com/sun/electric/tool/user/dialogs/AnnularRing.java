@@ -145,20 +145,21 @@ public class AnnularRing extends EDialog
 		// figure out what node to use
         PrimitiveNode np = ((AnnularRingNode)layerJList.getSelectedValue()).node;
 		if (np == null) return;
-		new MakeAnnulus(cell, np, lastSegments, degrees, lastInner, lastOuter);
+		(new MakeAnnulus(cell, np, lastSegments, degrees, lastInner, lastOuter)).startJob();
 	}
 
 	/**
 	 * This class finishes the Annular Ring command by creating the ring.
 	 */
-	private static class MakeAnnulus extends Job
+	public static class MakeAnnulus extends Job
 	{
 		private Cell cell;
 		private PrimitiveNode np;
 		private int segments, degrees;
 		private double inner, outer;
+        private NodeInst ni;
 
-		protected MakeAnnulus(Cell cell, PrimitiveNode np, int segments, int degrees, double inner, double outer)
+        public MakeAnnulus(Cell cell, PrimitiveNode np, int segments, int degrees, double inner, double outer)
 		{
 			super("Make Annular Ring", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
@@ -167,11 +168,14 @@ public class AnnularRing extends EDialog
 			this.degrees = degrees;
 			this.inner = inner;
 			this.outer = outer;
-			startJob();
+            this.ni = null;
+            //startJob();
 		}
 
 		public boolean doIt() throws JobException
 		{
+            double snap = cell.getTechnology().getResolution();
+
 			// allocate space for the trace
 			int numSegments = segments + 1;
 			if (inner == 0 && degrees < 3600) numSegments += 2;
@@ -185,8 +189,10 @@ public class AnnularRing extends EDialog
 				{
 					int p = degrees * i / segments;
 					double x = inner * DBMath.cos(p);
-					double y = inner * DBMath.sin(p);
-					points[l++] = new EPoint(x, y);
+                    double y = inner * DBMath.sin(p);
+                    Point2D pt = new Point2D.Double(x, y);
+                    DBMath.gridAlign(pt, snap);
+                    points[l++] = new EPoint(pt.getX(), pt.getY());
 				}
 			}
 			if (inner == 0 && degrees < 3600)
@@ -196,7 +202,9 @@ public class AnnularRing extends EDialog
 				int p = degrees*i/segments;
 				double x = outer * DBMath.cos(p);
 				double y = outer * DBMath.sin(p);
-				points[l++] = new EPoint(x, y);
+                Point2D pt = new Point2D.Double(x, y);
+                DBMath.gridAlign(pt, snap);
+                points[l++] = new EPoint(pt.getX(), pt.getY());
 			}
 			if (inner == 0 && degrees < 3600)
 				points[l++] = new EPoint(0, 0);
@@ -213,17 +221,21 @@ public class AnnularRing extends EDialog
 			}
 			double cX = (lX + hX) / 2;
 			double cY = (lY + hY) / 2;
-			for(int i=0; i<points.length; i++)
-				points[i] = new EPoint(points[i].getX() - cX, points[i].getY() - cY);
-			double sX = hX - lX;
+			for(int i=0; i<points.length; i++) {
+				Point2D pt = new Point2D.Double(points[i].getX() - cX, points[i].getY() - cY);
+                DBMath.gridAlign(pt, snap);
+                points[i] = new EPoint(pt.getX(), pt.getY());
+            }
+            double sX = hX - lX;
 			double sY = hY - lY;
 
 			Point2D center = new Point2D.Double(0, 0);
-			NodeInst ni = NodeInst.makeInstance(np, center, sX, sY, cell);
+			ni = NodeInst.makeInstance(np, center, sX, sY, cell);
 			ni.setTrace(points);
 			return true;
 		}
-	}
+        public NodeInst getNodeInst() { return ni; }
+    }
 
     /** This method is called from within the constructor to
      * initialize the form.
