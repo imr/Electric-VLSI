@@ -1105,10 +1105,10 @@ public class XMLRules implements DRCRules, Serializable
         assert cutSizeValue == cutNode.getMulticutSizeX();
         assert cutSizeValue == cutNode.getMulticutSizeY();
         
-        DRCTemplate minNode = getRule(contact.getPrimNodeIndexInTech(), DRCTemplate.DRCRuleType.NODSIZ);
+//        DRCTemplate minNode = getRule(contact.getPrimNodeIndexInTech(), DRCTemplate.DRCRuleType.NODSIZ);
         if (getRule(contact.getPrimNodeIndexInTech(), DRCTemplate.DRCRuleType.NODSIZ) == null) {
 //            contact.setDefSize(totalSurrX, totalSurrY);
-            contact.setMinSize(totalSurrX, totalSurrY, "Minimum size");
+            contact.setMinSize(totalSurrX, totalSurrY, "Minimum size set by resize function");
         }
         double minWidth = contact.getMinSizeRule().getWidth();
         double minHeight = contact.getMinSizeRule().getHeight();
