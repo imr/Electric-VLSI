@@ -721,7 +721,6 @@ public class Quick
                 return false;
             }
         }
-//        System.out.println("DRC Exclusion found in coverByExclusion");
         return true;
     }
 
@@ -837,34 +836,66 @@ public class Quick
 		}
 
 		// check node for minimum size
-		PrimitiveNode.NodeSizeRule sizeRule = DRC.getMinSize(np);
-		if (sizeRule != null)
-		{
-			if (DBMath.isGreaterThan(sizeRule.getWidth(), ni.getXSize()) ||
-                DBMath.isGreaterThan(sizeRule.getHeight(), ni.getYSize()))
-			{
-//				SizeOffset so = ni.getSizeOffset();
-				double minSize = 0, actual = 0;
-                String msg = "X axis";
-				if (sizeRule.getWidth() - ni.getXSize() > sizeRule.getHeight() - ni.getYSize())
-				{
-                    actual = ni.getLambdaBaseXSize();
-                    minSize = actual + sizeRule.getWidth() - ni.getXSize();
-//					minSize = sizeRule.getWidth() - so.getLowXOffset() - so.getHighXOffset();
-//					actual = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
-				} else
-				{
-                    msg = "Y axis";
-                    actual = ni.getLambdaBaseYSize();
-					minSize = actual + sizeRule.getHeight() - ni.getYSize();
-//					minSize = sizeRule.getHeight() - so.getLowYOffset() - so.getHighYOffset();
-//					actual = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
-				}
-				reportError(DRC.DRCErrorType.MINSIZEERROR, msg, cell, minSize, actual, sizeRule.getRuleName(),
-					null, ni, null, null, null, null);
-                errorsFound = true;
-			}
-		}
+        if (DRC.checkNodeSize(ni, cell, errorLogger, exclusionMap, errorTypeSearch, interactiveLogger))
+            errorsFound = true;
+
+//        PrimitiveNode.NodeSizeRule sizeRule = DRC.getMinSize(np);
+//		if (sizeRule != null)
+//		{
+//            EPoint niSize = new EPoint(ni.getXSize(), ni.getYSize());
+//            boolean old = (DBMath.isGreaterThan(sizeRule.getWidth(), ni.getXSize()) ||
+//                DBMath.isGreaterThan(sizeRule.getHeight(), ni.getYSize()));
+//            List<Integer> errorsList = sizeRule.checkSize(niSize);
+//            boolean newV = errorsList != null;
+//            assert(old == newV);
+//
+//            if (errorsList != null)
+//            {
+//                for (Integer i : errorsList)
+//                {
+//                    String msg = null;
+//                    double minSize = 0, actual = 0;
+//
+//                    switch (i)
+//                    {
+//                        case 0: // X
+//                            msg = "X axis";
+//                            actual = ni.getLambdaBaseXSize();
+//                            minSize = actual + sizeRule.getWidth() - ni.getXSize();
+//                            break;
+//                        case 1: // y
+//                            msg = "Y axis";
+//                            actual = ni.getLambdaBaseYSize();
+//					        minSize = actual + sizeRule.getHeight() - ni.getYSize();
+//                            break;
+//                        default:
+//                            assert(false); // not valid!
+//                    }
+//                    reportError(DRC.DRCErrorType.MINSIZEERROR, msg, cell, minSize, actual, sizeRule.getRuleName(),
+//					null, ni, null, null, null, null);
+//                    errorsFound = true;
+//                }
+//            }
+//            if (sizeRule.isSizeInvalid(niSize))
+//            {
+//                double diffX =
+//                double minSize = 0, actual = 0;
+//                String msg = "X axis";
+//				if (sizeRule.getWidth() - ni.getXSize() > sizeRule.getHeight() - ni.getYSize())
+//				{
+//                    actual = ni.getLambdaBaseXSize();
+//                    minSize = actual + sizeRule.getWidth() - ni.getXSize();
+//				} else
+//				{
+//                    msg = "Y axis";
+//                    actual = ni.getLambdaBaseYSize();
+//					minSize = actual + sizeRule.getHeight() - ni.getYSize();
+//				}
+//				reportError(DRC.DRCErrorType.MINSIZEERROR, msg, cell, minSize, actual, sizeRule.getRuleName(),
+//					null, ni, null, null, null, null);
+//                errorsFound = true;
+//			}
+//		}
 		return errorsFound;
 	}
 

@@ -28,9 +28,7 @@ import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.constraint.Layout;
-import com.sun.electric.database.geometry.GeometryHandler;
-import com.sun.electric.database.geometry.PolyBase;
-import com.sun.electric.database.geometry.GenMath;
+import com.sun.electric.database.geometry.*;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.id.CellId;
@@ -1298,6 +1296,54 @@ public class DRC extends Listener
         }
     }
 
+    static boolean checkNodeSize(NodeInst ni, Cell cell, ErrorLogger errorLogger, Map<Cell, Area> exclusionMap,
+                                 DRCCheckMode errorTypeSearch, boolean interactiveLogger)
+    {
+        boolean errorsFound = false;
+        // check node for minimum size
+        NodeProto np = ni.getProto();
+        PrimitiveNode.NodeSizeRule sizeRule = getMinSize(np);
+		if (sizeRule != null)
+		{
+            EPoint niSize = new EPoint(ni.getXSize(), ni.getYSize());
+            boolean old = (DBMath.isGreaterThan(sizeRule.getWidth(), ni.getXSize()) ||
+                DBMath.isGreaterThan(sizeRule.getHeight(), ni.getYSize()));
+            List<Integer> errorsList = sizeRule.checkSize(niSize);
+            boolean newV = errorsList != null;
+            assert(old == newV);
+
+            if (errorsList != null)
+            {
+                for (Integer i : errorsList)
+                {
+                    String msg = null;
+                    double minSize = 0, actual = 0;
+
+                    switch (i)
+                    {
+                        case 0: // X
+                            msg = "X axis";
+                            actual = ni.getLambdaBaseXSize();
+                            minSize = actual + sizeRule.getWidth() - ni.getXSize();
+                            break;
+                        case 1: // y
+                            msg = "Y axis";
+                            actual = ni.getLambdaBaseYSize();
+					        minSize = actual + sizeRule.getHeight() - ni.getYSize();
+                            break;
+                        default:
+                            assert(false); // not valid!
+                    }
+                    createDRCErrorLogger(errorLogger, exclusionMap, errorTypeSearch, interactiveLogger,
+                        DRC.DRCErrorType.MINSIZEERROR, msg, cell, minSize, actual, sizeRule.getRuleName(),
+					null, ni, null, null, null, null);
+                    errorsFound = true;
+                }
+            }
+        }
+        return errorsFound;
+    }
+
     /****************************** OPTIONS ******************************/
 
 	private static Pref cacheIncrementalDRCOn = Pref.makeBooleanPref("IncrementalDRCOn", tool.prefs, false);
@@ -1492,6 +1538,9 @@ public class DRC extends Listener
         new DRCReset(startJob);
 	}
 
+    /***********************************
+     * DRCReset class
+     ***********************************/
     private static class DRCReset extends Job
     {
         DRCReset(boolean startJob)
@@ -1525,6 +1574,9 @@ public class DRC extends Listener
         }
     }
 
+    /***********************************
+     * DRCUpdate class
+     ***********************************/
     /**
 	 * Class to save good Layout DRC dates in a new thread or add new variables in Schematic DRC
 	 */

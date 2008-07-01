@@ -48,12 +48,7 @@ import java.io.IOException;
 import java.io.InvalidObjectException;
 import java.io.PrintWriter;
 import java.io.Serializable;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
+import java.util.*;
 
 /**
  * A PrimitiveNode represents information about a NodeProto that lives in a
@@ -563,8 +558,8 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
         this.baseRectangle = baseRectangle;
 
         if (minSizeRule != null) {
-            if (minSizeRule.length() == 0)
-                minSizeRule = getName() + " Min. Size";
+//            if (minSizeRule.length() == 0)
+//                minSizeRule = getName() + " Min. Size";
             minNodeSize = new NodeSizeRule(minSizeRule);
         }
 
@@ -1178,8 +1173,8 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	{
         setSizeCorrector(minWidth, minHeight);
         // If no name is provided, it uses the PrimitiveNode name to compose the rule name.
-        if (minSizeRule == null || minSizeRule.equals(""))
-            minSizeRule = this.getName() + " Min. Size";
+//        if (minSizeRule == null || minSizeRule.equals(""))
+//            minSizeRule = this.getName() + " Min. Size";
         minNodeSize = new NodeSizeRule(minSizeRule);
         check();
     }
@@ -2195,13 +2190,57 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
     {
         private final String rule;
 
-        private NodeSizeRule(String rule)
+        private NodeSizeRule(String r)
         {
-            this.rule = rule;
+            this.rule = r;
         }
 
-        public String getRuleName() { return rule; }
+        public String getRuleName()
+        {
+            if (rule != null)
+                return rule;
+            return getName() + " Min. Size";
+        }
+
         public double getWidth() { return fullRectangle.getLambdaWidth(); }
         public double getHeight() { return fullRectangle.getLambdaHeight(); }
+
+        /**
+         * Method to check if the given size complies with the node size rule. 0 is X, 1 is Y
+         * @param size
+         * @return
+         */
+        public List<Integer> checkSize(EPoint size)
+        {
+            List<Integer> list = null;
+            double diffX = getWidth() - size.getLambdaX();
+            if (DBMath.isGreaterThan(diffX, 0))
+            {
+                Integer val = new Integer(0);
+                list = new ArrayList<Integer>(2);
+                list.add(val);
+            }
+            double diffY = getHeight() - size.getLambdaY();
+            if (DBMath.isGreaterThan(diffY, 0))
+            {
+                Integer val = new Integer(1);
+                if (list == null)
+                    list = new ArrayList<Integer>(1);
+                list.add(val);
+            }
+            return list;
+        }
+    }
+
+    /**
+     * Class to detect those asymmetric metal contacts in new technologies where
+     * witdh and height are different but they don't care about orientation
+     */
+    public class AsymmetricNodeSizeRule extends NodeSizeRule
+    {
+        AsymmetricNodeSizeRule(String r)
+        {
+            super(r);
+        }
     }
 }

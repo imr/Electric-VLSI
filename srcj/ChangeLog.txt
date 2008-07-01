@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08a: ******************************
 
+BUG: (7/1/08, GVG) DRC should report both node min.size errors if they are present (Bug#1741)
+FIX: New strategy to check those errors.
+
 BUG: (7/1/08, SMR) Rotated multi-line text is wrong (Bug #1729).
 FIX: In ElectricObject.getPolyList() do not rotate multiline node text.
 
