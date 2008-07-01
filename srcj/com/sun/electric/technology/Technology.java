@@ -2506,17 +2506,17 @@ public class Technology implements Comparable<Technology>, Serializable
 
     /**
      * Method to make a sorted list of layers in this Technology
-     * based on their Z value, a preference stored per layer.
+     * based on their name.
      * @return a sorted list of Layers in this Technology.
      */
-    public List<Layer> getLayersSortedByZValue()
+    public List<Layer> getLayersSortedByName()
     {
         List<Layer> layerList = new ArrayList<Layer>();
         for(Iterator<Layer> it = getLayers(); it.hasNext(); )
         {
             layerList.add(it.next());
         }
-        Collections.sort(layerList, LAYERS_BY_ZVALUE);
+        Collections.sort(layerList, Layer.layerSortByName);
         return(layerList);
     }
 
@@ -2615,20 +2615,6 @@ public class Technology implements Comparable<Technology>, Serializable
 			return l1.getIndex() - l2.getIndex();
 		}
 	}
-
-    public static final LayerZValueSorting LAYERS_BY_ZVALUE = new LayerZValueSorting();
-    private static class LayerZValueSorting implements Comparator<Layer>
-    {
-        public int compare(Layer l1, Layer l2)
-		{
-            double z1 = l1.getDistance();
-            double z2 = l2.getDistance();
-
-            if (z1 < z2) return -1;
-            else if (z1 > z2) return 1;
-            return (0); // identical
-        }
-    }
 
     /**
      * Dummy method overridden by implementing technologies to define

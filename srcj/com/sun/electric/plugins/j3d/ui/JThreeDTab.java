@@ -91,7 +91,7 @@ public class JThreeDTab extends ThreeDTab
 		threeDDistanceMap = new HashMap<Layer,GenMath.MutableDouble>();
         transparencyMap = new HashMap<Layer,J3DAppearance>();
         // Sorted by Height to be consistent with LayersTab
-		for(Layer layer : curTech.getLayersSortedByZValue())
+		for(Layer layer : curTech.getLayersSortedByName())
 		{
 			if (layer.isPseudoLayer()) continue;
 			threeDLayerModel.addElement(layer.getName());

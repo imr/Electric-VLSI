@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08a: ******************************
 
+IM: (7/1/08, GVG) Sort layers in 3D preference by layers names. This is 
+ a change to implementation done for bug #1723 but it looks for intuitive.
+
 BUG: (7/1/08, GVG) 3D preferences not persistent? (Bug #1724)
 FIX: Layer.setFactory3DInfo was setting the cacheObject instead of the factoryObject.
 

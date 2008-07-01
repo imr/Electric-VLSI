@@ -511,7 +511,10 @@ public class Layer
         }
 	}
 
-	/**
+    /***************************************************************************************************
+     * Layer Comparators
+     ***************************************************************************************************/
+    /**
 	 * A comparator object for sorting Layers by their name.
 	 * Created once because it is used often.
 	 */
@@ -535,6 +538,10 @@ public class Layer
 			return s1.compareToIgnoreCase(s2);
         }
 	}
+
+    /***************************************************************************************************
+     * End of Layer Comparators
+     ***************************************************************************************************/
 
 	private final String name;
 	private int index = -1; // contains index in technology or -1 for standalone layers
