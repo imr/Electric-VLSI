@@ -2190,7 +2190,49 @@ public class User extends Listener
 	 */
 	public static void setWorkingDirectory(String dir) { cacheWorkingDirectory.setString(dir); }
 
-	private static Pref cachePromptForIndexWhenDescending = Pref.makeBooleanPref("PromptForIndexWhenDescending", tool.prefs, false);
+    private static Pref cacheRecentlyOpenedLibraries = Pref.makeStringPref("RecentlyOpenedLibraries", tool.prefs, "");
+
+    /**
+     * Get an array of File paths to recently opened libraries. These should be
+     * libraries the user opened, and not contain reference libraries opened as a
+     * result of a user opening a library.
+     * @return a list of file paths to libraries (without extension - no delib or jelib)
+     */
+    public static String [] getRecentlyOpenedLibraries() {
+        String libs = cacheRecentlyOpenedLibraries.getString();
+        if (libs.equals("")) return new String[0];
+        else return libs.split("\n");
+    }
+
+    /**
+     * Add a file path (no extension) to a list of recently opened libraries.
+     * This should not include reference libraries opened as a side-affect of
+     * opening a library.
+     * @param s the file path to a library
+     */
+    public static void addRecentlyOpenedLibrary(String s) {
+        int maxLength = 6;
+        String [] libs = getRecentlyOpenedLibraries();
+        for (String l : libs) {
+            if (l.equals(s)) return;
+        }
+        StringBuffer buf = new StringBuffer();
+        buf.append(s);
+        for (int i=0; i<maxLength && i<libs.length; i++) {
+            buf.append("\n");
+            buf.append(libs[i]);
+        }
+        cacheRecentlyOpenedLibraries.setString(buf.toString());
+    }
+
+    /**
+     * Clear the list of recently opened libraries.
+     */
+    public static void clearRecentlyOpenedLibraries() {
+        cacheRecentlyOpenedLibraries.setString("");
+    }
+
+    private static Pref cachePromptForIndexWhenDescending = Pref.makeBooleanPref("PromptForIndexWhenDescending", tool.prefs, false);
 	/**
 	 * Method to tell whether to prompt the user for an array index when descending into arrayed nodes.
 	 * When descending into arrayed nodes, the context doesn't know which index is being traversed.

@@ -89,10 +89,11 @@ public abstract class EMenuItem implements ActionListener {
      * @param text the menu item's displayed text.  An "_" in the string
      * indicates the location of the "mnemonic" key for that entry.
      * @param accelerators the shortcut keys, or null if none specified.
+     * @param useMnemonics true to use mnemonics, otherwise "_" is left untouched.
      */
-    EMenuItem(String text, KeyStroke [] accelerators) {
+    EMenuItem(String text, KeyStroke [] accelerators, boolean useMnemonics) {
         int mnemonicsPos = text.indexOf('_');
-        if (mnemonicsPos == text.length() - 1)
+        if (mnemonicsPos == text.length() - 1 || !useMnemonics)
             mnemonicsPos = -1; // Don't consider '_' at end of text
         this.mnemonicsPos = mnemonicsPos;
         this.text = mnemonicsPos >= 0 ? text.substring(0, mnemonicsPos) + text.substring(mnemonicsPos+1) : text;
@@ -100,6 +101,16 @@ public abstract class EMenuItem implements ActionListener {
         this.accelerators = accelerators;
     }
     
+    /**
+     * @param text the menu item's displayed text.  An "_" in the string
+     * indicates the location of the "mnemonic" key for that entry.
+     * A "\_" is replaced with "_" and the key after it is not treated as a mnemonic.
+     * @param accelerators the shortcut keys, or null if none specified.
+     */
+    EMenuItem(String text, KeyStroke [] accelerators) {
+        this(text, accelerators, true);
+    }
+
     /**
      * @param text the menu item's displayed text.  An "_" in the string
      * indicates the location of the "mnemonic" key for that entry.

@@ -121,7 +121,9 @@ import javax.swing.SwingUtilities;
  */
 public class FileMenu {
 
-	static EMenu makeMenu() {
+    public static final EMenu openRecentLibs = new EMenu("Open Recent Library", new ArrayList<EMenuItem>());
+
+    static EMenu makeMenu() {
 		/****************************** THE FILE MENU ******************************/
 
 		// mnemonic keys available:    D               T  WXYZ
@@ -130,6 +132,7 @@ public class FileMenu {
             new EMenuItem("_New Library...") { public void run() {
                 newLibraryCommand(); }},
 			ToolBar.openLibraryCommand, // O
+            openRecentLibs,
 
 		// mnemonic keys available:      F HIJK  NO QR   VW YZ
             new EMenu("_Import",
@@ -200,7 +203,7 @@ public class FileMenu {
                     exportCommand(FileType.L, false); }},
                 IOTool.hasSkill() ? new EMenuItem("S_kill (Cadence Commands)...") {	public void run() {
                     exportCommand(FileType.SKILL, false); }} : null,
-                IOTool.hasSkill() ? new EMenuItem("Skill Exports _Only (Cadence Commands)...") { public void run() { 
+                IOTool.hasSkill() ? new EMenuItem("Skill Exports _Only (Cadence Commands)...") { public void run() {
                     exportCommand(FileType.SKILLEXPORTSONLY, false); }} : null,
                 SEPARATOR,
                 new EMenuItem("_Eagle...") { public void run() {
@@ -225,7 +228,7 @@ public class FileMenu {
                     saveLibraryCommand(Library.getCurrent(), FileType.ELIB, true, false, false); }},
                 new EMenuItem("_JELIB (Version 8.03)...") { public void run() {	// really since 8.04k
                     saveOldJelib(); }},
-                new EMenuItem("P_references...") { public void run() { 
+                new EMenuItem("P_references...") { public void run() {
                     Job.getUserInterface().exportPrefs(); }},
                 new EMenuItem("Project Settings...") { public void run() {
                     ProjSettings.exportSettings(); }}
@@ -299,7 +302,7 @@ public class FileMenu {
                 {
                     @Override
                     public boolean isEnabled() { return CVS.isEnabled(); }
-                    
+
                     @Override
                     protected void registerItem() {
                         super.registerItem();
@@ -390,6 +393,9 @@ public class FileMenu {
 			}
 			FileType type = getLibraryFormat(fileName, FileType.DEFAULTLIB);
 			new ReadLibrary(fileURL, type, TextUtils.getFilePath(fileURL), deleteLib, saveTask, null);
+
+            User.addRecentlyOpenedLibrary(fileName);
+            updateRecentlyOpenedLibrariesList();
         }
     }
 
@@ -476,7 +482,7 @@ public class FileMenu {
 		public ReadLibrary(URL fileURL, FileType type, String cellName) {
             this(fileURL, type, null, null, null, cellName);
         }
-        
+
 		public ReadLibrary(URL fileURL, FileType type, String settingsDirectory,
                 Library deleteLib, RenameAndSaveLibraryTask saveTask, String cellName)
 		{
@@ -559,7 +565,30 @@ public class FileMenu {
         }
 	}
 
-	/**
+    public static void updateRecentlyOpenedLibrariesList() {
+        String [] recentLibs = User.getRecentlyOpenedLibraries();
+        List<EMenuItem> list = new ArrayList<EMenuItem>();
+
+
+        for (int i=0; i<recentLibs.length; i++) {
+            EMenuItem menu = new EMenuItem(recentLibs[i], null, false) {
+                public void run() {
+                    openLibraryCommand(TextUtils.makeURLToFile(this.getText()));
+                }
+                @Override protected void updateButtons() {}
+            };
+            list.add(menu);
+        }
+        if (list.size() == 0) {
+            EMenuItem menu = new EMenuItem("<none>") {
+                public void run() {}
+            };
+            list.add(menu);
+        }
+        openRecentLibs.setDynamicItems(list);
+    }
+
+    /**
 	 * Class to import a library in a new thread.
 	 */
 	public static class ImportLibrary extends Job

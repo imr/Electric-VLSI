@@ -181,6 +181,7 @@ public class TopLevel extends JFrame
         MessagesStream stream = MessagesStream.getMessagesStream();
         stream.addObserver(messagesWindow);
         WindowFrame.createEditWindow(null);
+        FileMenu.updateRecentlyOpenedLibrariesList();        
     }
 
 	private static Pref cacheWindowLoc = Pref.makeStringPref("WindowLocation", User.getUserTool().prefs, "");
