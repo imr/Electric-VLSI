@@ -4,7 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08a: ******************************
 
-IM: (7/1/08, GVG) Sort layers in 3D preference by layers names. This is 
+IMP: Primitive.CROSSCONTACT and PrimitveNode.ALIGNEDCONTACT bits to work on Bug #1740.
+
+IMP: (7/1/08, GVG) Sort layers in 3D preference by layers names. This is
  a change to implementation done for bug #1723 but it looks for intuitive.
 
 BUG: (7/1/08, GVG) 3D preferences not persistent? (Bug #1724)

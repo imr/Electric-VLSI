@@ -489,6 +489,8 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
     /** set if node is a od18 transistor */                 public static final int OD18BIT =   0100;
     /** set if node is a od25 transistor */                 public static final int OD25BIT =   0200;
     /** set if node is a od33 transistor */                 public static final int OD33BIT =   0400;
+    /** set if node is a cross contact */				    public static final int CROSSCONTACT =     010000000;
+    /** set if node is an aligned contact */				public static final int ALIGNCONTACT =     020000000;
 
 	/** set if nonmanhattan instances shrink */				private static final int NODESHRINK =              01;
 	/** set if instances can be wiped */					private static final int ARCSWIPE =             01000;
@@ -503,7 +505,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	/** set if node will be considered in palette */        private static final int SKIPSIZEINPALETTE = 01000000;
 	/** set if not used (don't put in menu) */				private static final int NNOTUSED =          02000000;
 
-	// --------------------- private data -----------------------------------
+    // --------------------- private data -----------------------------------
 
 	/** The Id of this PrimitiveNode. */			private final PrimitiveNodeId protoId;
 	/** This PrimitiveNode's Technology. */			private final Technology tech;
