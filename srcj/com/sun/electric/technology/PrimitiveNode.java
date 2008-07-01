@@ -42,7 +42,6 @@ import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.xml.Xml807;
-import com.sun.electric.tool.user.User;
 
 import java.io.IOException;
 import java.io.InvalidObjectException;
@@ -977,16 +976,16 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
      */
     public boolean isMulticut() { return numMultiCuts == 1; }
 
-	/**
-	 * Abstract method to return the default rotation for new instances of this PrimitiveNode.
-	 * @return the angle, in tenth-degrees to use when creating new NodeInsts of this PrimitiveNode.
-	 * If the value is 3600 or greater, it means that X should be mirrored.
-	 */
-	public int getDefPlacementAngle()
-	{
-		int defAngle = User.getNewNodeRotation();
-		return defAngle;
-	}
+//	/**
+//	 * Abstract method to return the default rotation for new instances of this PrimitiveNode.
+//	 * @return the angle, in tenth-degrees to use when creating new NodeInsts of this PrimitiveNode.
+//	 * If the value is 3600 or greater, it means that X should be mirrored.
+//	 */
+//	public int getDefPlacementAngle()
+//	{
+//		int defAngle = User.getNewNodeRotation();
+//		return defAngle;
+//	}
 
 	/**
 	 * Method to return the Pref that describes the defaut width of this PrimitiveNode.

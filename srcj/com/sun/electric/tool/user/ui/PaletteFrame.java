@@ -397,7 +397,7 @@ public class PaletteFrame implements MouseListener
 			if (np instanceof Cell) descript += ((Cell)np).noLibDescribe(); else
 			{
 				descript += np.getName() + " Primitive";
-				defAngle = ((PrimitiveNode)np).getDefPlacementAngle();
+				defAngle = User.getNewNodeRotation();
 			}
             wnd.getHighlighter().clear();
             new PlaceNewNode(descript, np, ni, defAngle, where, cell, textNode, makePort);

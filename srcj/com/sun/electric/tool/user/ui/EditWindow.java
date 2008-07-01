@@ -575,7 +575,7 @@ public class EditWindow extends JPanel
 		}
 		if (toDraw instanceof PrimitiveNode)
 		{
-			defAngle = ((PrimitiveNode)toDraw).getDefPlacementAngle();
+            defAngle = User.getNewNodeRotation();
 		}
 		if (np != null)
 		{
@@ -809,7 +809,7 @@ public class EditWindow extends JPanel
 			{
 				np = (NodeProto)obj;
 				if (np instanceof PrimitiveNode)
-					defAngle = ((PrimitiveNode)np).getDefPlacementAngle();
+					defAngle = User.getNewNodeRotation();
 			} else if (obj instanceof NodeInst)
 			{
 				ni = (NodeInst)obj;
