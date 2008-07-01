@@ -1306,36 +1306,15 @@ public class DRC extends Listener
 		if (sizeRule != null)
 		{
             EPoint niSize = new EPoint(ni.getXSize(), ni.getYSize());
-            boolean old = (DBMath.isGreaterThan(sizeRule.getWidth(), ni.getXSize()) ||
-                DBMath.isGreaterThan(sizeRule.getHeight(), ni.getYSize()));
-            List<Integer> errorsList = sizeRule.checkSize(niSize);
-            boolean newV = errorsList != null;
-            assert(old == newV);
+            EPoint niBase = new EPoint(ni.getLambdaBaseXSize(), ni.getLambdaBaseYSize());
+            List<PrimitiveNode.NodeSizeRule.NodeSizeRuleError> errorsList = sizeRule.checkSize(niSize, niBase);
 
             if (errorsList != null)
             {
-                for (Integer i : errorsList)
+                for (PrimitiveNode.NodeSizeRule.NodeSizeRuleError e : errorsList)
                 {
-                    String msg = null;
-                    double minSize = 0, actual = 0;
-
-                    switch (i)
-                    {
-                        case 0: // X
-                            msg = "X axis";
-                            actual = ni.getLambdaBaseXSize();
-                            minSize = actual + sizeRule.getWidth() - ni.getXSize();
-                            break;
-                        case 1: // y
-                            msg = "Y axis";
-                            actual = ni.getLambdaBaseYSize();
-					        minSize = actual + sizeRule.getHeight() - ni.getYSize();
-                            break;
-                        default:
-                            assert(false); // not valid!
-                    }
                     createDRCErrorLogger(errorLogger, exclusionMap, errorTypeSearch, interactiveLogger,
-                        DRC.DRCErrorType.MINSIZEERROR, msg, cell, minSize, actual, sizeRule.getRuleName(),
+                        DRC.DRCErrorType.MINSIZEERROR, e.message, cell, e.minSize, e.actual, sizeRule.getRuleName(),
 					null, ni, null, null, null, null);
                     errorsFound = true;
                 }

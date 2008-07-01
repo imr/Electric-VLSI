@@ -1172,9 +1172,12 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	{
         setSizeCorrector(minWidth, minHeight);
         // If no name is provided, it uses the PrimitiveNode name to compose the rule name.
-//        if (minSizeRule == null || minSizeRule.equals(""))
-//            minSizeRule = this.getName() + " Min. Size";
-        minNodeSize = new NodeSizeRule(minSizeRule);
+        // That is done in the class NodeSizeRule
+        if (DBMath.areEquals(minWidth, minHeight))
+            minNodeSize = new NodeSizeRule(minSizeRule);
+        else
+            // Different functions to check node sizes.
+            minNodeSize = new AsymmetricNodeSizeRule(minSizeRule);
         check();
     }
 
@@ -2187,17 +2190,30 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
      */
     public class NodeSizeRule
     {
-        private final String rule;
+        protected final String ruleName;
+
+        public class NodeSizeRuleError
+        {
+            public String message;
+            public double actual, minSize;
+
+            NodeSizeRuleError(String msg, double a, double s)
+            {
+                message = msg;
+                actual = a;
+                minSize = s;
+            }
+        }
 
         private NodeSizeRule(String r)
         {
-            this.rule = r;
+            this.ruleName = r;
         }
 
         public String getRuleName()
         {
-            if (rule != null)
-                return rule;
+            if (ruleName != null)
+                return ruleName;
             return getName() + " Min. Size";
         }
 
@@ -2209,23 +2225,27 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
          * @param size
          * @return
          */
-        public List<Integer> checkSize(EPoint size)
+        public List<NodeSizeRuleError> checkSize(EPoint size, EPoint base)
         {
-            List<Integer> list = null;
+            List<NodeSizeRuleError> list = null;
             double diffX = getWidth() - size.getLambdaX();
             if (DBMath.isGreaterThan(diffX, 0))
             {
-                Integer val = new Integer(0);
-                list = new ArrayList<Integer>(2);
-                list.add(val);
+                double actual = base.getLambdaX();
+                double minSize = actual + diffX;
+                NodeSizeRuleError error = new NodeSizeRuleError("X axis", actual, minSize);
+                list = new ArrayList<NodeSizeRuleError>(2);
+                list.add(error);
             }
             double diffY = getHeight() - size.getLambdaY();
             if (DBMath.isGreaterThan(diffY, 0))
             {
-                Integer val = new Integer(1);
+                double actual = base.getLambdaY();
+                double minSize = actual + diffY;
+                NodeSizeRuleError error = new NodeSizeRuleError("Y axis", actual, minSize);
                 if (list == null)
-                    list = new ArrayList<Integer>(1);
-                list.add(val);
+                    list = new ArrayList<NodeSizeRuleError>(1);
+                list.add(error);
             }
             return list;
         }
@@ -2240,6 +2260,80 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
         AsymmetricNodeSizeRule(String r)
         {
             super(r);
+        }
+
+        public String getRuleName()
+        {
+            if (ruleName != null)
+                return ruleName;
+            return getName() + " Asymmetric Min. Size";
+        }
+        /**
+         * Method to check if the given size complies with the node size rule. In this case, the min. rule value
+         * will be considered for the shortest side and the max. rule value for the longest side.
+         * @param size
+         * @return
+         */
+        public List<NodeSizeRuleError> checkSize(EPoint size, EPoint base)
+        {
+            List<NodeSizeRuleError> list = null;
+            double lambdaX = size.getLambdaX();
+            double lambdaY = size.getLambdaY();
+            double sizeX = getWidth();
+            double sizeY = getHeight();
+            double shortest, longest;
+            double shortVal, longVal;
+            String shortMsg, longMsg;
+            double shortActual, longActual;
+
+            // The shortest side is along X
+            if (DBMath.isLessThan(lambdaX, lambdaY))
+            {
+                shortest = lambdaX;
+                shortMsg = "X axis";
+                shortActual = base.getLambdaX();
+                longest = lambdaY;
+                longMsg = "Y axis";
+                longActual = base.getLambdaY();
+            }
+            else
+            {
+                shortest = lambdaY;
+                shortMsg = "Y axis";
+                shortActual = base.getLambdaY();
+                longest = lambdaX;
+                longMsg = "X axis";
+                longActual = base.getLambdaX();
+            }
+
+            // Getting the min. rule value
+            if (DBMath.isLessThan(sizeX, sizeY))
+            {
+                shortVal = sizeX;
+                longVal = sizeY;
+            }
+            else
+            {
+                shortVal = sizeY;
+                longVal = sizeX;
+            }
+
+            double diffMin = shortVal - shortest;
+            if (DBMath.isGreaterThan(diffMin, 0))
+            {
+                NodeSizeRuleError error = new NodeSizeRuleError(shortMsg, shortActual, shortActual+diffMin);
+                list = new ArrayList<NodeSizeRuleError>(2);
+                list.add(error);
+            }
+            double diffMax = longVal - longest;
+            if (DBMath.isGreaterThan(diffMax, 0))
+            {
+                NodeSizeRuleError error = new NodeSizeRuleError(longMsg, longActual, longActual+diffMax);
+                if (list == null)
+                    list = new ArrayList<NodeSizeRuleError>(2);
+                list.add(error);
+            }
+            return list;
         }
     }
 }

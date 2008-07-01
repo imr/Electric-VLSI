@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08a: ******************************
 
+BUG: (7/1/08, GVG) Bogus DRC error in CMOS90 m1m2 (Bug#1737)
+FIX: Allow asymmetric node size rules.
+
 IMP: (7/1/08, JG) snap annular ring points to technology grid.
 Add recently opened libs list. fix for custom sweeps for sequential arcs in SCTiming.
 
