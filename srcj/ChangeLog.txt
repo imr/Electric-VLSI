@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08a: ******************************
 
+BUG: (7/1/08, SMR) Rotated multi-line text is wrong (Bug #1729).
+FIX: In ElectricObject.getPolyList() do not rotate multiline node text.
+
 BUG/MAN: (6/30/08, SMR) Icons are invisible against a black background (Bug #1738).
 FIX: Created new Special color (in "Layers" preferences) with the name
      "DEFAULT ARTWORK".  Use this value in Artwork.getProperLayer().
