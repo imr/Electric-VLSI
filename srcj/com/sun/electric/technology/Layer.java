@@ -1023,8 +1023,8 @@ public class Layer
         thickness = DBMath.round(thickness);
         distance = DBMath.round(distance);
         // We don't call setDistance and setThickness directly here due to reflection code.
-        getDoublePref("Distance", layer3DDistancePrefs, distance).setDouble(distance);
-		getDoublePref("Thickness", layer3DThicknessPrefs, thickness).setDouble(thickness);
+        getDoublePref("Distance", layer3DDistancePrefs, distance).setFactoryDouble(distance);
+		getDoublePref("Thickness", layer3DThicknessPrefs, thickness).setFactoryDouble(thickness);
         if (mode != null)
             setTransparencyMode(mode);
         setTransparencyFactor(factor);
@@ -1321,10 +1321,10 @@ public class Layer
 	 * Method to set the minimum area to cover with this Layer in a particular cell.
 	 * @param area the minimum area coverage of this layer.
 	 */
-	public void setFactoryAreaCoverage(double area)
-	{
-		getDoublePref("AreaCoverageJob", areaCoveragePrefs, area).setDouble(area);
-	}
+//	public void setFactoryAreaCoverage(double area)
+//	{
+//		getDoublePref("AreaCoverageJob", areaCoveragePrefs, area).setDouble(area);
+//	}
 
     /**
 	 * Method to return the minimu area coverage that the layer must reach in the technology.
@@ -1336,7 +1336,7 @@ public class Layer
      * Methot to set minimu area coverage that the layer must reach in the technology.
      * @param area the minimum area coverage (in percentage).
      */
-	public void setFactoryAreaCoverageInfo(double area) { getDoublePref("AreaCoverageJob", areaCoveragePrefs, area).setDouble(area); }
+	public void setAreaCoverageInfo(double area) { getDoublePref("AreaCoverageJob", areaCoveragePrefs, area).setDouble(area); }
 
      /**
      * Method to finish initialization of this Technology.

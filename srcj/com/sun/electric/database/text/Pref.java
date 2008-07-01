@@ -682,7 +682,31 @@ public class Pref
 		}
 	}
 
-	/**
+    /**
+	 * Method to set a new double value on this Pref factory object.
+	 * @param v the new double value of this Pref factory object.
+	 * @return true if preference was really changed.
+	 */
+    public boolean setFactoryDouble(double v)
+    {
+		double cachedDouble = ((Double)factoryObj).doubleValue();
+		boolean changed = false;
+
+		if (v != cachedDouble)
+		{
+			factoryObj = new Double(v);
+			if (prefs != null)
+			{
+				prefs.putDouble(name, v);
+				if (doFlushing) flushOptions(prefs); else
+					queueForFlushing.add(prefs);
+			}
+			changed = true;
+		}
+		return (changed);
+    }
+
+    /**
 	 * Method to set a new double value on this Pref object.
 	 * @param v the new double value of this Pref object.
 	 * @return true if preference was really changed.

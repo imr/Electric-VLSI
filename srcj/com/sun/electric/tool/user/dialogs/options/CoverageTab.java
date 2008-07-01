@@ -251,7 +251,7 @@ public class CoverageTab extends PreferencePanel
 	            Object obj = layerAreaMap.get(layer);
 	            if (obj == null) continue;  // it should not happen though
 	            GenMath.MutableDouble value = (GenMath.MutableDouble)obj;
-	            layer.setFactoryAreaCoverageInfo(value.doubleValue());
+	            layer.setAreaCoverageInfo(value.doubleValue());
 			}
 		}
 	}
