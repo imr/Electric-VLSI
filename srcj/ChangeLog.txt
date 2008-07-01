@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08a: ******************************
 
+IMP: (7/1/08, JG) snap annular ring points to technology grid.
+Add recently opened libs list. fix for custom sweeps for sequential arcs in SCTiming.
+
 BUG: (7/1/08, GVG) DRC should report both node min.size errors if they are present (Bug#1741)
 FIX: New strategy to check those errors.
 
