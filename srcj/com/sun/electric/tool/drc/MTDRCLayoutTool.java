@@ -1553,14 +1553,16 @@ public class MTDRCLayoutTool extends MTDRCTool {
             if (trueBox1 == null || trueBox2 == null) return false;
             if (!maytouch) return false;
             // manhattan
-            double pdx = Math.max(trueBox2.getMinX() - trueBox1.getMaxX(), trueBox1.getMinX() - trueBox2.getMaxX());
-            double pdy = Math.max(trueBox2.getMinY() - trueBox1.getMaxY(), trueBox1.getMinY() - trueBox2.getMaxY());
+            double pdx = DBMath.round(Math.max(trueBox2.getMinX() - trueBox1.getMaxX(), trueBox1.getMinX() - trueBox2.getMaxX()));
+            double pdy = DBMath.round(Math.max(trueBox2.getMinY() - trueBox1.getMaxY(), trueBox1.getMinY() - trueBox2.getMaxY()));
             double pd = Math.max(pdx, pdy);
-            if (pdx == 0 && pdy == 0) pd = 0; // touching
+
+            if (DBMath.areEquals(pdx, 0) && DBMath.areEquals(pdy, 0))
+                pd = 0; // touching
             boolean foundError = false;
 
             // They have to overlap
-            if (pd > 0) return false;
+            if (DBMath.isGreaterThan(pd, 0)) return false;
 
             // they are electrically connected and they overlap: look for minimum size errors
             // of the overlapping region.
@@ -1568,10 +1570,10 @@ public class MTDRCLayoutTool extends MTDRCTool {
             if (wRule == null) return false; // no rule
 
             double minWidth = wRule.getValue(0);
-            double lxb = Math.max(trueBox1.getMinX(), trueBox2.getMinX());
-            double hxb = Math.min(trueBox1.getMaxX(), trueBox2.getMaxX());
-            double lyb = Math.max(trueBox1.getMinY(), trueBox2.getMinY());
-            double hyb = Math.min(trueBox1.getMaxY(), trueBox2.getMaxY());
+            double lxb = DBMath.round(Math.max(trueBox1.getMinX(), trueBox2.getMinX()));
+            double hxb = DBMath.round(Math.min(trueBox1.getMaxX(), trueBox2.getMaxX()));
+            double lyb = DBMath.round(Math.max(trueBox1.getMinY(), trueBox2.getMinY()));
+            double hyb = DBMath.round(Math.min(trueBox1.getMaxY(), trueBox2.getMaxY()));
             Point2D lowB = new Point2D.Double(lxb, lyb);
             Point2D highB = new Point2D.Double(hxb, hyb);
             Rectangle2D bounds = new Rectangle2D.Double(lxb, lyb, hxb - lxb, hyb - lyb);
@@ -1596,7 +1598,10 @@ public class MTDRCLayoutTool extends MTDRCTool {
 
             // Checking A-B distance
             double actual = lowB.distance(highB);
-            if (actual != 0 && DBMath.isGreaterThan(minWidth, actual) &&
+
+            // !DBMath.areEquals(actual, 0) is on, it skips cases where A==B.
+            // Condition off as of July 2nd 2008. Bugzilla 1745
+            if (/*!DBMath.areEquals(actual, 0) &&*/ DBMath.isGreaterThan(minWidth, actual) &&
                 foundSmallSizeDefect(cell, geom1, poly1, layer1, geom2, poly2, pd, lxb, lyb, hxb, hyb))
             {
                 // you can't pass geom1 or geom2 becuase they could be in different cells and therefore the message
@@ -1619,10 +1624,10 @@ public class MTDRCLayoutTool extends MTDRCTool {
             Point2D highB = new Point2D.Double(hxb, hyb);
             Rectangle2D bounds = new Rectangle2D.Double(lxb, lyb, hxb - lxb, hyb - lyb);
             Poly rebuild = new Poly(bounds);
-            Point2D pt1 = new Point2D.Double(lxb - TINYDELTA, lyb - TINYDELTA);
-            Point2D pt2 = new Point2D.Double(lxb - TINYDELTA, hyb + TINYDELTA);
-            Point2D pt1d = (Point2D) pt1.clone();
-            Point2D pt2d = (Point2D) pt2.clone();
+            Point2D pt1 = null; //new Point2D.Double(lxb - TINYDELTA, lyb - TINYDELTA);
+            Point2D pt2 = null; //new Point2D.Double(lxb - TINYDELTA, hyb + TINYDELTA);
+            Point2D pt1d = null; //(Point2D) pt1.clone();
+            Point2D pt2d = null; //(Point2D) pt2.clone();
 
             // Search area should be bigger than bounding box otherwise it might not get the cells due to
             // rounding errors.
@@ -1766,11 +1771,12 @@ public class MTDRCLayoutTool extends MTDRCTool {
             if (isBox1 != null && isBox2 != null)
             {
                 // manhattan
-                double pdx = Math.max(trueBox2.getMinX() - trueBox1.getMaxX(), trueBox1.getMinX() - trueBox2.getMaxX());
-                double pdy = Math.max(trueBox2.getMinY() - trueBox1.getMaxY(), trueBox1.getMinY() - trueBox2.getMaxY());
-                pd = DBMath.round(Math.max(pdx, pdy));
-                if (DBMath.areEquals(pdx, 0) && DBMath.areEquals(pdy, 0)) pd = 0; // touching
-                overlap = (pd < 0);
+                double pdx = DBMath.round(Math.max(trueBox2.getMinX() - trueBox1.getMaxX(), trueBox1.getMinX() - trueBox2.getMaxX()));
+                double pdy = DBMath.round(Math.max(trueBox2.getMinY() - trueBox1.getMaxY(), trueBox1.getMinY() - trueBox2.getMaxY()));
+                pd = Math.max(pdx, pdy);
+                if (DBMath.areEquals(pdx, 0) && DBMath.areEquals(pdy, 0))
+                    pd = 0; // touching
+                overlap = DBMath.isLessThan(pd, 0);
                 if (maytouch)
                 {
                     // they are electrically connected: see if they touch
@@ -1834,21 +1840,21 @@ public class MTDRCLayoutTool extends MTDRCTool {
                 if (edge)
                 {
                     // calculate the spacing between the box edges
-                    double pdedge = Math.min(
+                    double pdedge = DBMath.round(Math.min(
                         Math.min(Math.min(Math.abs(lX1 - lX2), Math.abs(lX1 - hX2)), Math.min(Math.abs(hX1 - lX2), Math.abs(hX1 - hX2))),
-                        Math.min(Math.min(Math.abs(lY1 - lY2), Math.abs(lY1 - hY2)), Math.min(Math.abs(hY1 - lY2), Math.abs(hY1 - hY2))));
+                        Math.min(Math.min(Math.abs(lY1 - lY2), Math.abs(lY1 - hY2)), Math.min(Math.abs(hY1 - lY2), Math.abs(hY1 - hY2)))));
                     pd = Math.max(pd, pdedge);
                 } else
                 {
-                    pdx = Math.max(lX2 - hX1, lX1 - hX2);
-                    pdy = Math.max(lY2 - hY1, lY1 - hY2);
+                    pdx = DBMath.round(Math.max(lX2-hX1, lX1-hX2));
+                    pdy = DBMath.round(Math.max(lY2-hY1, lY1-hY2));
 
-                    if (pdx == 0 && pdy == 0)
+                    if (DBMath.areEquals(pdx, 0) && DBMath.areEquals(pdy, 0))
                         pd = 0; // they are touching!!
                     else
                     {
                         // They are overlapping if pdx < 0 && pdy < 0
-                        pd = DBMath.round(Math.max(pdx, pdy));
+                        pd = (Math.max(pdx, pdy));
 
                         if (pd < theRule.getValue(0) && pd > 0)
                         {
@@ -1874,20 +1880,21 @@ public class MTDRCLayoutTool extends MTDRCTool {
                 // make sure polygons don't intersect
                 //@TODO combine this calculation otherwise Poly.intersects is called twice!
                 double pd1 = poly1.separation(poly2);
-                if (poly1.intersects(poly2)) pd = 0;
+                if (poly1.intersects(poly2))
+                    pd = 0;
                 else
                 {
                     // find distance between polygons
                     pd = poly1.separation(poly2);
                 }
-                if (pd1 != pd)
+                if (!DBMath.areEquals(pd1, pd))
                     System.out.println("Wrong case in non-nonmanhattan, Quick.");
             }
 
             DRC.DRCErrorType errorType = DRC.DRCErrorType.SPACINGERROR;
             if (theRule.ruleType == DRCTemplate.DRCRuleType.SURROUND)
             {
-                if (pd > 0) // layers don't overlap -> no condition to check
+                if (DBMath.isGreaterThan(pd, 0)) // layers don't overlap -> no condition to check
                     return errorFound;
                 pd = Math.abs(pd);
                 errorType = DRC.DRCErrorType.SURROUNDERROR;
@@ -1922,7 +1929,8 @@ public class MTDRCLayoutTool extends MTDRCTool {
                     if (maytouch)
                     {
                         // if they touch, it is acceptable
-                        if (pd <= 0) return errorFound;
+                        if (DBMath.isLessThanOrEqualTo(pd, 0))
+                            return errorFound;
 
                         // see if the notch is filled
                         boolean newR = lookForCrossPolygons(geom1, poly1, geom2, poly2, layer1, cell, overlap);
@@ -3309,13 +3317,15 @@ public class MTDRCLayoutTool extends MTDRCTool {
             Rectangle2D box1 = poly.getBounds2D();
             Rectangle2D box2 = nPoly.getBounds2D();
 
-            double pdx = Math.max(box2.getMinX() - box1.getMaxX(), box1.getMinX() - box2.getMaxX());
-            double pdy = Math.max(box2.getMinY() - box1.getMaxY(), box1.getMinY() - box2.getMaxY());
+            double pdx = DBMath.round(Math.max(box2.getMinX() - box1.getMaxX(), box1.getMinX() - box2.getMaxX()));
+            double pdy = DBMath.round(Math.max(box2.getMinY() - box1.getMaxY(), box1.getMinY() - box2.getMaxY()));
             double pd = Math.max(pdx, pdy);
-            if (pdx == 0 && pdy == 0) pd = 0; // touching
+            if (DBMath.areEquals(pdx, 0) && DBMath.areEquals(pdy, 0))
+                pd = 0; // touching
 
             // They have to overlap
-            if (pd > 0) return false;
+            if (DBMath.isGreaterThan(pd, 0))
+                return false;
             boolean foundError = false;
             double minX = Math.min(box1.getMinX(), box2.getMinX());
             double minY = Math.min(box1.getMinY(), box2.getMinY());
