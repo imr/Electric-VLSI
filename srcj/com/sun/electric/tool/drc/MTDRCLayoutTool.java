@@ -746,6 +746,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
                 convertPseudoLayers(ni, nodeInstPolyList);
                 int tot = nodeInstPolyList.length;
                 boolean isTransistor = np.getFunction().isTransistor();
+                Technology.MultiCutData multiCutData = tech.getMultiCutData(ni);
 
                 // examine the polygons on this node
                 for (int j = 0; j < tot; j++)
@@ -778,7 +779,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
                     // determine network for this polygon
                     int netNumber = getDRCNetNumber(netlist, poly.getPort(), ni, globalIndex);
 
-                    ret = badBox(poly, layer, netNumber, tech, ni, trans, cell, globalIndex);
+                    ret = badBox(poly, layer, netNumber, tech, ni, trans, cell, globalIndex, multiCutData);
                     if (ret)
                     {
                         if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
@@ -955,7 +956,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
 
                 int layerNum = layer.getIndex();
                 int netNumber = netNumbers[globalIndex]; // autoboxing
-                boolean ret = badBox(poly, layer, netNumber, tech, ai, DBMath.MATID, ai.getParent(), globalIndex);
+                boolean ret = badBox(poly, layer, netNumber, tech, ai, DBMath.MATID, ai.getParent(), globalIndex, null);
                 if (ret)
                 {
                     if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
@@ -1114,6 +1115,8 @@ public class MTDRCLayoutTool extends MTDRCTool {
                         Poly[] primPolyList = tech.getShapeOfNode(ni, true, ignoreCenterCuts, thisLayerFunction);
                         convertPseudoLayers(ni, primPolyList);
                         int tot = primPolyList.length;
+                        Technology.MultiCutData multiCutData = tech.getMultiCutData(ni);
+
                         for (int j = 0; j < tot; j++)
                         {
                             Poly poly = primPolyList[j];
@@ -1130,7 +1133,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
                             // determine network for this polygon
                             int net = getDRCNetNumber(netlist, poly.getPort(), ni, globalIndex);
                             boolean ret = badSubBox(poly, layer, net, tech, ni, rTrans,
-                                globalIndex, oNi, topGlobalIndex);
+                                globalIndex, oNi, topGlobalIndex, multiCutData);
                             if (ret)
                             {
                                 if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
@@ -1168,7 +1171,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
                             net = netList[globalIndex].intValue();
                         }
                         boolean ret = badSubBox(poly, layer, net, tech, ai, upTrans,
-                            globalIndex, oNi, topGlobalIndex);
+                            globalIndex, oNi, topGlobalIndex, null);
                         if (ret)
                         {
                             if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
@@ -1186,7 +1189,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
          * The polygon is compared against things inside node "oNi", and that node's parent has global index "topGlobalIndex".
          */
         private boolean badSubBox(Poly poly, Layer layer, int net, Technology tech, Geometric geom, AffineTransform trans,
-                                  int globalIndex, NodeInst oNi, int topGlobalIndex)
+                                  int globalIndex, NodeInst oNi, int topGlobalIndex, Technology.MultiCutData multiCutData)
         {
             // see how far around the box it is necessary to search
             double maxSize = poly.getMaxSize();
@@ -1207,16 +1210,16 @@ public class MTDRCLayoutTool extends MTDRCTool {
             int localIndex = topGlobalIndex * ci.multiplier + ci.localIndex + ci.offset;
 
             // determine if original object has multiple contact cuts
-            boolean baseMulti = false;
-            if (geom instanceof NodeInst)
-            {
-                baseMulti = tech.isMultiCutCase((NodeInst) geom);
-            }
+//            boolean baseMulti = false;
+//            if (geom instanceof NodeInst)
+//            {
+//                baseMulti = tech.isMultiCutCase((NodeInst) geom);
+//            }
 
             // search in the area surrounding the box
             bounds.setRect(bounds.getMinX() - bound, bounds.getMinY() - bound, bounds.getWidth() + bound * 2, bounds.getHeight() + bound * 2);
             return (badBoxInArea(poly, layer, tech, net, geom, trans, globalIndex, bounds, (Cell) oNi.getProto(), localIndex,
-                oNi.getParent(), topGlobalIndex, upTrans, baseMulti, false));
+                oNi.getParent(), topGlobalIndex, upTrans, multiCutData, false));
             // true in this case you don't want to check Geometric.objectsTouch(nGeom, geom) if nGeom and geom are in the
             // same cell because they could come from different cell instances.
         }
@@ -1230,7 +1233,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
          * this hierarchical level.
          */
         private boolean badBox(Poly poly, Layer layer, int net, Technology tech, Geometric geom,
-                               AffineTransform trans, Cell cell, int globalIndex)
+                               AffineTransform trans, Cell cell, int globalIndex, Technology.MultiCutData multiCutData)
         {
             // see how far around the box it is necessary to search
             double maxSize = poly.getMaxSize();
@@ -1242,14 +1245,14 @@ public class MTDRCLayoutTool extends MTDRCTool {
             bounds.setRect(poly.getBounds2D());
 
             // determine if original object has multiple contact cuts
-            boolean baseMulti = false;
-            if (geom instanceof NodeInst)
-                baseMulti = tech.isMultiCutCase((NodeInst) geom);
+//            boolean baseMulti = false;
+//            if (geom instanceof NodeInst)
+//                baseMulti = tech.isMultiCutCase((NodeInst) geom);
 
             // search in the area surrounding the box
             bounds.setRect(bounds.getMinX() - bound, bounds.getMinY() - bound, bounds.getWidth() + bound * 2, bounds.getHeight() + bound * 2);
             return badBoxInArea(poly, layer, tech, net, geom, trans, globalIndex, bounds, cell, globalIndex,
-                cell, globalIndex, DBMath.MATID, baseMulti, true);
+                cell, globalIndex, DBMath.MATID, multiCutData, true);
         }
 
         /**
@@ -1268,7 +1271,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
          */
         private boolean badBoxInArea(Poly poly, Layer layer, Technology tech, int net, Geometric geom, AffineTransform trans,
                                      int globalIndex, Rectangle2D bounds, Cell cell, int cellGlobalIndex,
-                                     Cell topCell, int topGlobalIndex, AffineTransform upTrans, boolean baseMulti,
+                                     Cell topCell, int topGlobalIndex, AffineTransform upTrans, Technology.MultiCutData multiCutData,
                                      boolean sameInstance)
         {
             Rectangle2D rBound = new Rectangle2D.Double();
@@ -1277,6 +1280,8 @@ public class MTDRCLayoutTool extends MTDRCTool {
             Netlist netlist = getCheckProto(cell).netlist;
             Rectangle2D subBound = new Rectangle2D.Double(); //Sept 30
             boolean foundError = false;
+            boolean isLayerAContact = layer.getFunction().isContact();
+            boolean baseMulti = tech.isMultiCutInTechnology(multiCutData);
 
             // These nodes won't generate any DRC errors. Most of them are pins
             if (geom instanceof NodeInst && NodeInst.isSpecialNode(((NodeInst) geom)))
@@ -1318,7 +1323,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
 
                         // compute localIndex
                         if (badBoxInArea(poly, layer, tech, net, geom, trans, globalIndex, subBound, (Cell) np, localIndex,
-                            topCell, topGlobalIndex, subTrans, baseMulti, sameInstance))
+                            topCell, topGlobalIndex, subTrans, multiCutData, sameInstance))
                         {
                             foundError = true;
                             if (errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE) return true;
@@ -1348,7 +1353,32 @@ public class MTDRCLayoutTool extends MTDRCTool {
                             subPolyList[i].transform(rTrans);
                         /* Step 1 */
                         boolean multi = baseMulti;
-                        if (!multi) multi = tech.isMultiCutCase(ni);
+                        Technology.MultiCutData niMCD = tech.getMultiCutData(ni);
+                        // in case it is one via against many from another contact (3-contact configuration)
+                        if (!multi && isLayerAContact && niMCD != null)
+                        {
+                            multi = tech.isMultiCutInTechnology(niMCD);
+                            if (!multi)
+                            {
+                                // geom must be NodeInst
+                                NodeInst gNi = (NodeInst)geom;
+                                // in this case, both possible contacts are either 1xn or mx1 with n,m>=1
+                                if (multiCutData.numCutsX() == 1) // it is 1xn
+                                {
+                                    // Checking if they match at the Y axis. If yes, they are considered as a long 1xn array
+                                    // so multi=false. The other element must be 1xM
+                                    if (niMCD.numCutsY() != 1 && ni.getAnchorCenterX() != gNi.getAnchorCenterX())
+                                        multi = true;
+                                }
+                                else
+                                {
+                                    // Checking if they match at the Y axis. If yes, they are considered as a long 1xn array
+                                    // so multi=false
+                                    if (niMCD.numCutsX() != 1 && ni.getAnchorCenterY() != gNi.getAnchorCenterY())
+                                        multi = true;
+                                }
+                            }
+                        }
                         int multiInt = (multi) ? 1 : 0;
                         for (int j = 0; j < tot; j++)
                         {
@@ -2091,7 +2121,8 @@ public class MTDRCLayoutTool extends MTDRCTool {
             NodeProto np = ni.getProto();
             int globalIndex = 0;
             Cell subCell = geom.getParent();
-            boolean baseMulti = false;
+//            boolean baseMulti = false;
+            Technology.MultiCutData multiCutData = null;
             Technology tech = null;
             Poly[] nodeInstPolyList = null;
             AffineTransform trans = DBMath.MATID;
@@ -2108,7 +2139,8 @@ public class MTDRCLayoutTool extends MTDRCTool {
                 trans = oNi.rotateOut();
                 nodeInstPolyList = tech.getShapeOfNode(oNi, true, ignoreCenterCuts, thisLayerFunction);
                 convertPseudoLayers(oNi, nodeInstPolyList);
-                baseMulti = tech.isMultiCutCase(oNi);
+                multiCutData = tech.getMultiCutData(oNi);
+//                baseMulti = tech.isMultiCutCase(oNi);
             } else
             {
                 ArcInst oAi = (ArcInst) geom;
@@ -2161,7 +2193,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
 
                 // see if this polygon has errors in the cell
                 if (badBoxInArea(poly, polyLayer, tech, net, geom, trans, globalIndex, subBounds, (Cell) np, localIndex,
-                    subCell, globalIndex, subTrans, baseMulti, false)) return true;
+                    subCell, globalIndex, subTrans, multiCutData, false)) return true;
             }
             return false;
         }

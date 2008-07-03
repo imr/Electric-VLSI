@@ -767,6 +767,7 @@ public class Quick
 		convertPseudoLayers(ni, nodeInstPolyList);
 		int tot = nodeInstPolyList.length;
         boolean isTransistor =  np.getFunction().isTransistor();
+        Technology.MultiCutData multiCutData = tech.getMultiCutData(ni);
 
         // examine the polygons on this node
 		for(int j=0; j<tot; j++)
@@ -799,7 +800,7 @@ public class Quick
 			// determine network for this polygon
 			int netNumber = getDRCNetNumber(netlist, poly.getPort(), ni, globalIndex);
 
-			ret = badBox(poly, layer, netNumber, tech, ni, trans, cell, globalIndex);
+			ret = badBox(poly, layer, netNumber, tech, ni, trans, cell, globalIndex, multiCutData);
 			if (ret)
 			{
 				if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
@@ -990,7 +991,7 @@ public class Quick
 
 			int layerNum = layer.getIndex();
 			int netNumber = netNumbers[globalIndex]; // autoboxing
-			boolean ret = badBox(poly, layer, netNumber, tech, ai, DBMath.MATID, ai.getParent(), globalIndex);
+			boolean ret = badBox(poly, layer, netNumber, tech, ai, DBMath.MATID, ai.getParent(), globalIndex, null);
 			if (ret)
 			{
 				if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
@@ -1148,7 +1149,9 @@ public class Quick
 					Poly [] primPolyList = tech.getShapeOfNode(ni, true, ignoreCenterCuts, null);
 					convertPseudoLayers(ni, primPolyList);
 					int tot = primPolyList.length;
-					for(int j=0; j<tot; j++)
+                    Technology.MultiCutData multiCutData = tech.getMultiCutData(ni);
+
+                    for(int j=0; j<tot; j++)
 					{
 						Poly poly = primPolyList[j];
 						Layer layer = poly.getLayer();
@@ -1163,7 +1166,7 @@ public class Quick
 						// determine network for this polygon
 						int net = getDRCNetNumber(netlist, poly.getPort(), ni, globalIndex);
 						boolean ret = badSubBox(poly, layer, net, tech, ni, rTrans,
-							globalIndex, oNi, topGlobalIndex);
+							globalIndex, oNi, topGlobalIndex, multiCutData);
 						if (ret)
 						{
 							if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
@@ -1201,7 +1204,7 @@ public class Quick
 						net = netList[globalIndex].intValue();
 					}
 					boolean ret = badSubBox(poly, layer, net, tech, ai, upTrans,
-						globalIndex, oNi, topGlobalIndex);
+						globalIndex, oNi, topGlobalIndex, null);
 					if (ret)
 					{
 						if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
@@ -1219,7 +1222,7 @@ public class Quick
 	 * The polygon is compared against things inside node "oNi", and that node's parent has global index "topGlobalIndex".
 	 */
 	private boolean badSubBox(Poly poly, Layer layer, int net, Technology tech, Geometric geom, AffineTransform trans,
-                              int globalIndex, NodeInst oNi, int topGlobalIndex)
+                              int globalIndex, NodeInst oNi, int topGlobalIndex, Technology.MultiCutData multiCutData)
 	{
 		// see how far around the box it is necessary to search
 		double maxSize = poly.getMaxSize();
@@ -1240,11 +1243,11 @@ public class Quick
 		int localIndex = topGlobalIndex * ci.multiplier + ci.localIndex + ci.offset;
 
 		// determine if original object has multiple contact cuts
-        Technology.MultiCutData multiCutData = null;
-		if (geom instanceof NodeInst)
-        {
-            multiCutData = tech.getMultiCutData((NodeInst)geom);
-        }
+//        Technology.MultiCutData multiCutData = null;
+//		if (geom instanceof NodeInst)
+//        {
+//            multiCutData = tech.getMultiCutData((NodeInst)geom);
+//        }
 //        boolean baseMulti = tech.isMultiCutInTechnology(multiCutData);
 
 		// search in the area surrounding the box
@@ -1264,7 +1267,7 @@ public class Quick
 	 * this hierarchical level.
 	 */
 	private boolean badBox(Poly poly, Layer layer, int net, Technology tech, Geometric geom,
-                           AffineTransform trans, Cell cell, int globalIndex)
+                           AffineTransform trans, Cell cell, int globalIndex, Technology.MultiCutData multiCutData)
 	{
 		// see how far around the box it is necessary to search
 		double maxSize = poly.getMaxSize();
@@ -1276,11 +1279,11 @@ public class Quick
 		bounds.setRect(poly.getBounds2D());
 
 		// determine if original object has multiple contact cuts
-        Technology.MultiCutData multiCutData = null;
-		if (geom instanceof NodeInst)
-        {
-            multiCutData = tech.getMultiCutData((NodeInst)geom);
-        }
+//        Technology.MultiCutData multiCutData = null;
+//		if (geom instanceof NodeInst)
+//        {
+//            multiCutData = tech.getMultiCutData((NodeInst)geom);
+//        }
 //        boolean baseMulti = tech.isMultiCutInTechnology(multiCutData);
 
         // search in the area surrounding the box

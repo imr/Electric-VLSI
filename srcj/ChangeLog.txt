@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08a: ******************************
 
+IMP: (7/3/08, GVG) Speeding DRC code by caching multicut info in a different way.
+
 BUG: (7/2/08, GVG) Notch in select not detected in CMOS90 (Bug #1745)
 FIX: Distance A-B in checkMinDefects can be zero.
 IMP: precision issues in some DRC functions noticed by running code on MacOSX and Linux.
