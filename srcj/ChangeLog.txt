@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08a: ******************************
 
+IMP: Adding rules reported in "DRC not caught by electric" (Bug #1746)
+
 IMP: (7/7/08, GVG) Calibre number of errors on Error logger (Bug #1749)
 
 IMP: (7/3/08, GVG) Speeding DRC code by caching multicut info in a different way.
