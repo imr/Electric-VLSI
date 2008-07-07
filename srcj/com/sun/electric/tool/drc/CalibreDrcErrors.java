@@ -336,7 +336,6 @@ public class CalibreDrcErrors {
         for (Iterator<DrcRuleViolation> it = ruleViolations.iterator(); it.hasNext(); ) {
             DrcRuleViolation v = it.next();
             String ruleDesc = v.header.comment.toString().replaceAll("\\n", ";");
-            logger.setGroupName(sortKey, ruleDesc);
             int y = 1;
             for (Iterator<DrcError> it2 = v.errors.iterator(); it2.hasNext(); ) {
                 DrcError drcError = it2.next();
@@ -361,6 +360,7 @@ public class CalibreDrcErrors {
                 y++;
                 count++;
             }
+            logger.setGroupName(sortKey, "(" + (y-1) + ") " + ruleDesc);
             sortKey++;
         }
         System.out.println(type+" Imported "+count+" errors from "+filename);
