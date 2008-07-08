@@ -4,7 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08a: ******************************
 
-IMP: (7/8/08, GVG) Close/Open all below here in Errors explorerTree (Bug #1752)
+IMP: (7/8/08, GVG) Close/Open all below here in Errors explorerTree (Bug #1752).
+Also fix problems with exporting warningLogs not associated to any given Cell.
 
 IMP: Adding rules reported in "DRC not caught by electric" (Bug #1746)
 

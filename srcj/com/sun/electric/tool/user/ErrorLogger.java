@@ -157,13 +157,17 @@ public class ErrorLogger implements Serializable
         protected void xmlDescription(PrintStream msg)
         {
             String className = this.getClass().getSimpleName();
-            if (logCellId == null) return;
-            Cell logCell = EDatabase.clientDatabase().getCell(logCellId);
-            if (logCell == null) return;
+            String cellInfo = "";
+
+            if (logCellId != null)
+            {
+                Cell logCell = EDatabase.clientDatabase().getCell(logCellId);
+                if (logCell != null)
+                    cellInfo = "cellName=\"" + logCell.describe(false) + "\"";
+            }
             // replace those characters that XML defines as special such as ">" and "&"
             String m = correctXmlString(message);
-            msg.append("\t<" + className + " message=\"" + m + "\" "
-                    + "cellName=\"" + logCell.describe(false) + "\">\n");
+            msg.append("\t<" + className + " message=\"" + m + "\" " + cellInfo + ">\n");
             for(ErrorHighlight eh : highlights)
             {
                 eh.xmlDescription(msg, EDatabase.clientDatabase());
@@ -777,7 +781,7 @@ public class ErrorLogger implements Serializable
         buffWriter.println(" >");
         buffWriter.println(" <!ATTLIST WarningLog");
         buffWriter.println("    message CDATA #REQUIRED");
-        buffWriter.println("    cellName CDATA #REQUIRED");
+        buffWriter.println("    cellName CDATA #IMPLIED"); // only warning logs can have no cells
         buffWriter.println(" >");
         buffWriter.println(" <!ATTLIST ERRORTYPEGEOM");
         buffWriter.println("    geomName CDATA #REQUIRED");
@@ -1127,16 +1131,19 @@ public class ErrorLogger implements Serializable
                 }
                 else
                 {
-                    View view = View.findView(viewName);
-                    curCell = Library.findCellInLibraries(cellName, view, libraryName);
-                    if ((curCell == null || !curCell.isLinked()))
+                    if (viewName != null && curCell != null)
                     {
-                        if (!badCellNames.contains(cellName))
+                        View view = View.findView(viewName);
+                        curCell = Library.findCellInLibraries(cellName, view, libraryName);
+                        if ((curCell == null || !curCell.isLinked()))
                         {
-                            badCellNames.add(cellName);
-                            System.out.println("Cannot find cell: " + cellName);
+                            if (!badCellNames.contains(cellName))
+                            {
+                                badCellNames.add(cellName);
+                                System.out.println("Cannot find cell: " + cellName);
+                            }
+                            //return;
                         }
-                        //return;
                     }
                     if (errorLogBody || warnLogBody)
                     {
@@ -1144,6 +1151,7 @@ public class ErrorLogger implements Serializable
                     }
                     else if (geoTypeBody)
                     {
+                        assert(curCell != null);
                         Geometric geom = curCell.findNode(geomName);
                         if (geom == null) // try arc instead
                             geom = curCell.findArc(geomName);
