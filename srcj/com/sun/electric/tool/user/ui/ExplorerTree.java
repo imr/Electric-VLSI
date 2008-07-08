@@ -1471,6 +1471,10 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 			currentMouseEvent = e;
 		}
 
+        /**
+         * Method to add the GetInfoMenu option in all ExplorerTree nodes to be consistent
+         * @param origMenu
+         */
         private void addGetInfoMenu(JPopupMenu origMenu)
         {
             JPopupMenu menu = origMenu;
@@ -1488,6 +1492,27 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 
             if (origMenu == null)
                 menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
+        }
+
+        /**
+         * Method to add standard open/close menus in the Explorer
+         * @param menu
+         */
+        private void addOpenCloseMenus(JPopupMenu menu)
+        {
+            JMenuItem menuItem = new JMenuItem("Open");
+            menu.add(menuItem);
+            menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { openAction(); } });
+
+            menuItem = new JMenuItem("Open all below here");
+            menu.add(menuItem);
+            menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { recursiveOpenAction(); } });
+
+            menuItem = new JMenuItem("Close all below here");
+            menu.add(menuItem);
+            menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { recursiveCloseAction(); } });
+
+            menu.addSeparator();
         }
 
         private void doContextMenu()
@@ -1513,12 +1538,15 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 				}
 			}
 
-			// handle actions that allow multiple selections
+            JPopupMenu menu;
+            JMenuItem menuItem;
+
+            // handle actions that allow multiple selections
 			if (allSame && selectedObject instanceof SweepSignal)
 			{
-				JPopupMenu menu = new JPopupMenu("Sweep Signal");
+				menu = new JPopupMenu("Sweep Signal");
 
-				JMenuItem menuItem = new JMenuItem("Include");
+				menuItem = new JMenuItem("Include");
 				menu.add(menuItem);
 				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { setSweepAction(true); } });
 
@@ -1536,9 +1564,9 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 
 			if (allSame && selectedObject instanceof Signal)
 			{
-				JPopupMenu menu = new JPopupMenu("Signals");
+				menu = new JPopupMenu("Signals");
 
-				JMenuItem menuItem = new JMenuItem("Add to current panel");
+				menuItem = new JMenuItem("Add to current panel");
 				menu.add(menuItem);
 				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { addToWaveform(false); } });
 
@@ -1561,9 +1589,9 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 				if (selectedObject instanceof Cell)
 				{
 					Cell cell = (Cell)selectedObject;
-					JPopupMenu menu = new JPopupMenu("Cell");
+					menu = new JPopupMenu("Cell");
 
-					JMenuItem menuItem = new JMenuItem("Delete Cell");
+					menuItem = new JMenuItem("Delete Cell");
 					menu.add(menuItem);
 					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { deleteCellAction(); } });
 
@@ -1596,7 +1624,7 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 			if (numCurrentlySelectedObjects() > 1 && CVS.isEnabled() &&
                     (getCurrentlySelectedLibraries().size() > 0 || getCurrentlySelectedCells().size() > 0))
 			{
-				JPopupMenu menu = new JPopupMenu("CVS");
+				menu = new JPopupMenu("CVS");
                 JMenu cvsMenu = new JMenu("CVS");
                 menu.add(cvsMenu);
                 addCVSMenu(cvsMenu);
@@ -1621,9 +1649,9 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 			if (selectedObject instanceof Cell)
 			{
 				Cell cell = (Cell)selectedObject;
-				JPopupMenu menu = new JPopupMenu("Cell");
+				menu = new JPopupMenu("Cell");
 
-				JMenuItem menuItem = new JMenuItem("Edit");
+				menuItem = new JMenuItem("Edit");
 				menu.add(menuItem);
 				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { editCellAction(false); } });
 
@@ -1739,9 +1767,9 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 			}
 			if (selectedObject instanceof ExplorerTreeModel.MultiPageCell)
 			{
-				JPopupMenu menu = new JPopupMenu("Cell");
+				menu = new JPopupMenu("Cell");
 
-				JMenuItem menuItem = new JMenuItem("Edit");
+				menuItem = new JMenuItem("Edit");
 				menu.add(menuItem);
 				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { editCellAction(false); } });
 
@@ -1765,30 +1793,16 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 			if (selectedObject instanceof Library)
 			{
 				Library lib = (Library)selectedObject;
-				JPopupMenu menu = new JPopupMenu("Library");
+				menu = new JPopupMenu("Library");
 
-				JMenuItem menuItem = new JMenuItem("Open");
-				menu.add(menuItem);
-				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { openAction(); } });
-
-				menuItem = new JMenuItem("Open all below here");
-				menu.add(menuItem);
-				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { recursiveOpenAction(); } });
-
-				menuItem = new JMenuItem("Close all below here");
-				menu.add(menuItem);
-				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { recursiveCloseAction(); } });
+                addOpenCloseMenus(menu);
 
 				if (lib != Library.getCurrent())
 				{
-					menu.addSeparator();
-
-					menuItem = new JMenuItem("Make This the Current Library");
+                    menuItem = new JMenuItem("Make This the Current Library");
 					menu.add(menuItem);
 					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { setCurLibAction(); } });
 				}
-
-				menu.addSeparator();
 
 				if (Project.isLibraryManaged(lib))
 				{
@@ -1838,21 +1852,9 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 			}
 			if (selectedObject instanceof Cell.CellGroup)
 			{
-				JPopupMenu menu = new JPopupMenu("CellGroup");
+				menu = new JPopupMenu("CellGroup");
 
-				JMenuItem menuItem = new JMenuItem("Open");
-				menu.add(menuItem);
-				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { openAction(); } });
-
-                menuItem = new JMenuItem("Open all below here");
-				menu.add(menuItem);
-				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { recursiveOpenAction(); } });
-
-				menuItem = new JMenuItem("Close all below here");
-				menu.add(menuItem);
-				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { recursiveCloseAction(); } });
-
-				menu.addSeparator();
+                addOpenCloseMenus(menu);
 
 				menuItem = new JMenuItem("Create New Cell");
 				menu.add(menuItem);
@@ -1888,9 +1890,9 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 
                 if (numSelectedElems == 1 && msg.toLowerCase().endsWith("sweeps"))
 				{
-					JPopupMenu menu = new JPopupMenu("All Sweeps");
+					menu = new JPopupMenu("All Sweeps");
 
-					JMenuItem menuItem = new JMenuItem("Include All");
+					menuItem = new JMenuItem("Include All");
 					menu.add(menuItem);
 					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { setAllSweepsAction(true); } });
 
@@ -1910,9 +1912,9 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 				}
                 if (numSelectedElems == 1 && msg.equalsIgnoreCase("errors"))
 				{
-					JPopupMenu menu = new JPopupMenu("Errors");
+					menu = new JPopupMenu("Errors");
 
-					JMenuItem menuItem = new JMenuItem("Delete All");
+					menuItem = new JMenuItem("Delete All");
 					menu.add(menuItem);
 					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { ErrorLoggerTree.deleteAllLoggers(); } });
 
@@ -1928,23 +1930,11 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
                 }
 				if (numSelectedElems == 1 && msg.equalsIgnoreCase("libraries"))
 				{
-					JPopupMenu menu = new JPopupMenu("Libraries");
+					menu = new JPopupMenu("Libraries");
 
-					JMenuItem menuItem = new JMenuItem("Open");
-					menu.add(menuItem);
-					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { openAction(); } });
+                    addOpenCloseMenus(menu);
 
-					menuItem = new JMenuItem("Open all below here");
-					menu.add(menuItem);
-					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { recursiveOpenAction(); } });
-
-					menuItem = new JMenuItem("Close all below here");
-					menu.add(menuItem);
-					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { recursiveCloseAction(); } });
-
-					menu.addSeparator();
-
-					menuItem = new JMenuItem("Create New Cell");
+                    menuItem = new JMenuItem("Create New Cell");
 					menu.add(menuItem);
 					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { newCellAction(); } });
 
@@ -1986,9 +1976,9 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 				}
 				if (numSelectedElems == 1 && msg.equalsIgnoreCase("TECHNOLOGY LAYERS"))
 				{
-					JPopupMenu menu = new JPopupMenu("Technology Layers");
+					menu = new JPopupMenu("Technology Layers");
 
-					JMenuItem menuItem = new JMenuItem("Add New Layer");
+					menuItem = new JMenuItem("Add New Layer");
 					menu.add(menuItem);
 					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Manipulate.makeCell(1); } });
 
@@ -2004,9 +1994,9 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 				}
 				if (numSelectedElems == 1 && msg.equalsIgnoreCase("TECHNOLOGY ARCS"))
 				{
-					JPopupMenu menu = new JPopupMenu("Technology Arcs");
+					menu = new JPopupMenu("Technology Arcs");
 
-					JMenuItem menuItem = new JMenuItem("Add New Arc");
+					menuItem = new JMenuItem("Add New Arc");
 					menu.add(menuItem);
 					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Manipulate.makeCell(2); } });
 
@@ -2022,9 +2012,9 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 				}
 				if (numSelectedElems == 1 && msg.equalsIgnoreCase("TECHNOLOGY NODES"))
 				{
-					JPopupMenu menu = new JPopupMenu("Technology Nodes");
+					menu = new JPopupMenu("Technology Nodes");
 
-					JMenuItem menuItem = new JMenuItem("Add New Node");
+					menuItem = new JMenuItem("Add New Node");
 					menu.add(menuItem);
 					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Manipulate.makeCell(3); } });
 
