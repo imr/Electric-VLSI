@@ -39,17 +39,13 @@ import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.ErrorLogger.MessageLog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
-import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeNode;
@@ -389,17 +385,17 @@ public class ErrorLoggerTree {
     /**
      * A static object is used so that its open/closed tree state can be maintained.
      */
-    public static JPopupMenu getPopupMenu(ErrorLoggerTreeNode log) {
-        JPopupMenu p = new JPopupMenu();
-        JMenuItem m;
-        m = new JMenuItem("Delete"); m.addActionListener(log); p.add(m);
-        m = new JMenuItem("Show All"); m.addActionListener(log); p.add(m);
-	    m = new JMenuItem("Export"); m.addActionListener(log); p.add(m);
-        m = new JMenuItem("Set Current"); m.addActionListener(log); p.add(m);
-        p.addSeparator();
-        m = new JMenuItem("Get Info"); m.addActionListener(log); p.add(m);
-        return p;
-    }
+//    public static JPopupMenu getPopupMenu(ErrorLoggerTreeNode log) {
+//        JPopupMenu p = new JPopupMenu();
+//        JMenuItem m;
+//        m = new JMenuItem("Delete"); m.addActionListener(log); p.add(m);
+//        m = new JMenuItem("Show All"); m.addActionListener(log); p.add(m);
+//	    m = new JMenuItem("Export"); m.addActionListener(log); p.add(m);
+//        m = new JMenuItem("Set Current"); m.addActionListener(log); p.add(m);
+//        p.addSeparator();
+//        m = new JMenuItem("Get Info"); m.addActionListener(log); p.add(m);
+//        return p;
+//    }
 
     public static void importLogger()
     {
@@ -423,7 +419,7 @@ public class ErrorLoggerTree {
         public boolean isLeaf() { return false; }
     }
 
-    public static class ErrorLoggerTreeNode implements DatabaseChangeListener, ActionListener
+    public static class ErrorLoggerTreeNode implements DatabaseChangeListener //, ActionListener
     {
         private ErrorLogger logger;
         private int currentLogNumber;
@@ -434,6 +430,8 @@ public class ErrorLoggerTree {
         }
 
         public ErrorLogger getLogger() { return logger; }
+
+        public String toString() { return "ErrorLogger Information: " +  logger.getInfo();}
 
         public String reportNextMessage_(boolean showHigh) {
             if (currentLogNumber < logger.getNumLogs()-1) {
@@ -498,83 +496,141 @@ public class ErrorLoggerTree {
                 updateTree((DefaultMutableTreeNode)errorTree.getChildAt(index));
         }
 
-        public void actionPerformed(ActionEvent e)
-        {
-            int index = indexOf(this);
-            if (e.getSource() instanceof JMenuItem)
-            {
-                JMenuItem m = (JMenuItem)e.getSource();
-                if (m.getText().equals("Delete"))
-                {
-                	boolean removedStuff = false;
-                	WindowFrame wf = WindowFrame.getCurrentWindowFrame();
-                	if (wf != null)
-                	{
-	                	ExplorerTree ex = wf.getExplorerTab();
-	                	TreePath [] paths = ex.getSelectionPaths();
-	                	for(int i=0; i<paths.length; i++)
-	                	{
-	    	                Object obj = paths[i].getLastPathComponent();
-	    	                if (obj instanceof DefaultMutableTreeNode)
-	    	                {
-	    	                	Object clickedObject = ((DefaultMutableTreeNode)obj).getUserObject();
-	    	                	if (clickedObject instanceof ErrorLoggerTreeNode)
-	    	                	{
-	    	                		index = indexOf((ErrorLoggerTreeNode)clickedObject);
-	    	                    	removeLogger(index);
-	    	                    	removedStuff = true;
-	    	                	}
-	    	                }
-	                	}
-                	}
-                	if (!removedStuff)
-                		removeLogger(index);
-                } else if (m.getText().equals("Export"))
-                {
-                    String filePath = null;
-                    try
-                    {
-                        filePath = OpenFile.chooseOutputFile(FileType.XML, null, "ErrorLoggerSave.xml");
-                        if (filePath == null) return; // cancel operation
-                        logger.exportErrorLogger(filePath);
-                    } catch (Exception se)
-                    {
-                        System.out.println("Error creating " + filePath);
-                    }
-                } else if (m.getText().equals("Show All"))
-                {
-                	WindowFrame wf = WindowFrame.getCurrentWindowFrame();
-                	if (wf == null) return;
-                	Job.getUserInterface().getCurrentEditWindow_().clearHighlighting();
-                	ExplorerTree ex = wf.getExplorerTab();
-                	TreePath [] paths = ex.getSelectionPaths();
-                	for(int i=0; i<paths.length; i++)
-                	{
-    	                Object obj = paths[i].getLastPathComponent();
-    	                if (obj instanceof DefaultMutableTreeNode)
-    	                {
-    	                	Object clickedObject = ((DefaultMutableTreeNode)obj).getUserObject();
-    	                	if (clickedObject instanceof ErrorLoggerTreeNode)
-    	                	{
-    	                		index = indexOf((ErrorLoggerTreeNode)clickedObject);
-    	                		highlightLogger(index);
-    	                	}
-    	                }
-                	}
-                	Job.getUserInterface().getCurrentEditWindow_().finishedHighlighting();
-                } else if (m.getText().equals("Get Info"))
-                {
-                    System.out.println("ErrorLogger Information: " +  logger.getInfo());
-                } else if (m.getText().equals("Set Current"))
-                {
-                    setCurrent(index);
-                }
-            }
-        }
+//        public void actionPerformed(ActionEvent e)
+//        {
+//            int index = indexOf(this);
+//            if (e.getSource() instanceof JMenuItem)
+//            {
+//                JMenuItem m = (JMenuItem)e.getSource();
+//                if (m.getText().equals("Delete"))
+//                {
+//                	boolean removedStuff = false;
+//                	WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+//                	if (wf != null)
+//                	{
+//	                	ExplorerTree ex = wf.getExplorerTab();
+//	                	TreePath [] paths = ex.getSelectionPaths();
+//	                	for(int i=0; i<paths.length; i++)
+//	                	{
+//	    	                Object obj = paths[i].getLastPathComponent();
+//	    	                if (obj instanceof DefaultMutableTreeNode)
+//	    	                {
+//	    	                	Object clickedObject = ((DefaultMutableTreeNode)obj).getUserObject();
+//	    	                	if (clickedObject instanceof ErrorLoggerTreeNode)
+//	    	                	{
+//	    	                		index = indexOf((ErrorLoggerTreeNode)clickedObject);
+//	    	                    	removeLogger(index);
+//	    	                    	removedStuff = true;
+//	    	                	}
+//	    	                }
+//	                	}
+//                	}
+//                	if (!removedStuff)
+//                		removeLogger(index);
+//                } else if (m.getText().equals("Export"))
+//                {
+//                    String filePath = null;
+//                    try
+//                    {
+//                        filePath = OpenFile.chooseOutputFile(FileType.XML, null, "ErrorLoggerSave.xml");
+//                        if (filePath == null) return; // cancel operation
+//                        logger.exportErrorLogger(filePath);
+//                    } catch (Exception se)
+//                    {
+//                        System.out.println("Error creating " + filePath);
+//                    }
+//                } else if (m.getText().equals("Show All"))
+//                {
+//                	WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+//                	if (wf == null) return;
+//                	Job.getUserInterface().getCurrentEditWindow_().clearHighlighting();
+//                	ExplorerTree ex = wf.getExplorerTab();
+//                	TreePath [] paths = ex.getSelectionPaths();
+//                	for(int i=0; i<paths.length; i++)
+//                	{
+//    	                Object obj = paths[i].getLastPathComponent();
+//    	                if (obj instanceof DefaultMutableTreeNode)
+//    	                {
+//    	                	Object clickedObject = ((DefaultMutableTreeNode)obj).getUserObject();
+//    	                	if (clickedObject instanceof ErrorLoggerTreeNode)
+//    	                	{
+//    	                		index = indexOf((ErrorLoggerTreeNode)clickedObject);
+//    	                		highlightLogger(index);
+//    	                	}
+//    	                }
+//                	}
+//                	Job.getUserInterface().getCurrentEditWindow_().finishedHighlighting();
+//                } else if (m.getText().equals("Get Info"))
+//                {
+//                    System.out.println("ErrorLogger Information: " +  logger.getInfo());
+//                } else if (m.getText().equals("Set Current"))
+//                {
+//                    setCurrent(index);
+//                }
+//            }
+//        }
     }
 
     public static void deleteAllLoggers() {
         for (int i = errorTree.getChildCount() - 1; i >= 0; i--)
             removeLogger(i);
+    }
+
+    public static void deleteLogger(ExplorerTree ex)
+    {                                             
+        TreePath [] paths = ex.getSelectionPaths();
+        for(int i=0; i<paths.length; i++)
+        {
+            Object obj = paths[i].getLastPathComponent();
+            if (obj instanceof DefaultMutableTreeNode)
+            {
+                Object clickedObject = ((DefaultMutableTreeNode)obj).getUserObject();
+                if (clickedObject instanceof ErrorLoggerTreeNode)
+                {
+                    int index = indexOf((ErrorLoggerTreeNode)clickedObject);
+                    removeLogger(index);
+                }
+            }
+        }
+    }
+
+    public static void exportLogger(ErrorLoggerTreeNode node)
+    {
+        ErrorLogger logger = node.getLogger();
+        String filePath = null;
+        try
+        {
+            filePath = OpenFile.chooseOutputFile(FileType.XML, null, "ErrorLoggerSave.xml");
+            if (filePath == null) return; // cancel operation
+            logger.exportErrorLogger(filePath);
+        } catch (Exception se)
+        {
+            System.out.println("Error creating " + filePath);
+        }
+    }
+    
+    public static void showAllLogger(ExplorerTree ex)
+    {  	
+        TreePath [] paths = ex.getSelectionPaths();
+        for(int i=0; i<paths.length; i++)
+        {
+            Object obj = paths[i].getLastPathComponent();
+            if (obj instanceof DefaultMutableTreeNode)
+            {
+                Object clickedObject = ((DefaultMutableTreeNode)obj).getUserObject();
+                if (clickedObject instanceof ErrorLoggerTreeNode)
+                {
+                    int index = indexOf((ErrorLoggerTreeNode)clickedObject);
+                    highlightLogger(index);
+                }
+            }
+        }
+        Job.getUserInterface().getCurrentEditWindow_().finishedHighlighting();
+    }
+
+    public static void setCurrentLogger(ErrorLoggerTreeNode node)
+    {
+        int index = indexOf(node);
+        setCurrent(index);
     }
 }

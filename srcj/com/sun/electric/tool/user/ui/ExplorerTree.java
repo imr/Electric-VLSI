@@ -194,7 +194,7 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 
 		// register our own extended renderer for custom icons and tooltips
 		setCellRenderer(new MyRenderer());
-        handler = new TreeHandler();
+        handler = new TreeHandler(this);
 		addMouseListener(handler);
 		addTreeSelectionListener(handler);
 	}
@@ -1198,12 +1198,15 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 
 	private class TreeHandler implements MouseListener, MouseMotionListener, TreeSelectionListener
 	{
-		private boolean draggingCell;
+        private ExplorerTree tree;
+        private boolean draggingCell;
 		private MouseEvent currentMouseEvent;
 		private TreePath [] currentPaths;
 		private TreePath [] originalPaths;
 
-		public void mouseClicked(MouseEvent e) {}
+        TreeHandler (ExplorerTree t) {tree = t;}
+
+        public void mouseClicked(MouseEvent e) {}
 
 		public void mouseEntered(MouseEvent e) {}
 
@@ -1914,6 +1917,8 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 				{
 					menu = new JPopupMenu("Errors");
 
+                    addOpenCloseMenus(menu);
+
 					menuItem = new JMenuItem("Delete All");
 					menu.add(menuItem);
 					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { ErrorLoggerTree.deleteAllLoggers(); } });
@@ -2034,9 +2039,38 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
             }
             if (selectedObject instanceof ErrorLoggerTree.ErrorLoggerTreeNode)
             {
-                ErrorLoggerTree.ErrorLoggerTreeNode logger = (ErrorLoggerTree.ErrorLoggerTreeNode)selectedObject;
-                JPopupMenu p = ErrorLoggerTree.getPopupMenu(logger);
-                if (p != null) p.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
+                final ErrorLoggerTree.ErrorLoggerTreeNode node = (ErrorLoggerTree.ErrorLoggerTreeNode)selectedObject;
+                menu = new JPopupMenu("ErrorLogger");
+
+                addOpenCloseMenus(menu);
+
+                menuItem = new JMenuItem("Delete");
+                menu.add(menuItem);
+                menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e)
+                { ErrorLoggerTree.deleteLogger(tree);}});
+
+                menuItem = new JMenuItem("Export");
+                menu.add(menuItem);
+                menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e)
+                { ErrorLoggerTree.exportLogger(node); } });
+
+                menuItem = new JMenuItem("Show All");
+                menu.add(menuItem);
+                menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e)
+                { ErrorLoggerTree.showAllLogger(tree); } });
+
+                menuItem = new JMenuItem("Set Current");
+                menu.add(menuItem);
+                menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e)
+                { ErrorLoggerTree.setCurrentLogger(node); } });
+
+                // Get info menu
+                addGetInfoMenu(menu);
+
+                    menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
+//                ErrorLoggerTree.ErrorLoggerTreeNode logger = (ErrorLoggerTree.ErrorLoggerTreeNode)selectedObject;
+//                JPopupMenu p = ErrorLoggerTree.getPopupMenu(logger);
+//                if (p != null) p.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
                 return;
             }
             if (selectedObject instanceof ErrorLogger.MessageLog)
