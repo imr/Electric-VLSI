@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08a: ******************************
 
+BUG: (7/9/08, GVG) verilog netlist parser missing a case (Bug #1717)
+FIX: Dealing with no name in element instances.
+
 IMP: (7/8/08, GVG) Close/Open all below here in Errors explorerTree (Bug #1752).
 Also fix problems with exporting warningLogs not associated to any given Cell.
 

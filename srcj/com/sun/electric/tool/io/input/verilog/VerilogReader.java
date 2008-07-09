@@ -86,78 +86,78 @@ public class VerilogReader extends Input
         }
     }
 
-    private void createInstance(Cell parent, VerilogData verilogData,
-                                VerilogData.VerilogModule module, Cell icon, CellInstance info)
-    {
-        NodeInst cellInst = NodeInst.newInstance(icon, getNextLocation(parent), 10, 10, parent,
-                        Orientation.IDENT, info.name, 0);
-
-        List<String> localPorts = new ArrayList<String>();
-
-        for (CellInstance.PortInfo port : info.list)
-        {
-            localPorts.clear();
-
-            String portLocal = port.local;
-
-            // It is unknown how many pins are coming in the stream
-            if (portLocal.contains("{"))
-            {
-                StringTokenizer parse = new StringTokenizer(portLocal, "{,}", false); // extracting pins
-                while (parse.hasMoreTokens())
-                {
-                    String name = parse.nextToken();
-                    name = name.replaceAll(" ", "");
-                    localPorts.add(name);
-                }
-            }
-            else
-                localPorts.add(portLocal);
-
-            for (String s : localPorts)
-            {
-                NodeInst pin = pinsMap.get(s);
-
-                if (pin == null)
-                {
-                    int index = s.indexOf("[");
-                    if (index != -1)
-                    {
-                        s = s.substring(0, index);
-                        pin = pinsMap.get(s);
-                    }
-                }
-
-                if (pin == null)
-                {
-                    if (s.equals("vss")) // ground
-                    {
-                        pin = readSupply(module, false, s);
-                    }
-                    else
-                    {
-                        if (Job.getDebug())
-                            System.out.println("Unknown signal " + s + " in cell " + parent.describe(false));
-                        PrimitiveNode primitive = (port.isBus) ? Schematics.tech().busPinNode : Schematics.tech().wirePinNode;
-                        pin = NodeInst.newInstance(primitive, getNextLocation(parent),
-                                primitiveWidth, primitiveHeight,
-//                                        primitive.getDefWidth(), primitive.getDefHeight(),
-                                parent, Orientation.IDENT, null/*s*/, 0);
-                        pinsMap.put(s, pin);
-                    }
-                }
-
-//                ArcProto node = (port.isBus) ? Schematics.tech.bus_arc : Schematics.tech.wire_arc;
-                ArcProto node = (pin.getProto() == Schematics.tech().busPinNode) ? Schematics.tech().bus_arc : Schematics.tech().wire_arc;
-                PortInst ex = cellInst.findPortInst(port.ex.getName());
-                ArcInst ai = ArcInst.makeInstanceBase(node, 0.0,
-//                ArcInst ai = ArcInst.makeInstanceFull(node, 0.0 /*node.getDefaultLambdaFullWidth()*/,
-                        pin.getOnlyPortInst(), ex, null, null, s);
-                assert(ai != null);
-                ai.setFixedAngle(false);
-            }
-        }
-    }
+//    private void createInstance(Cell parent, VerilogData verilogData,
+//                                VerilogData.VerilogModule module, Cell icon, CellInstance info)
+//    {
+//        NodeInst cellInst = NodeInst.newInstance(icon, getNextLocation(parent), 10, 10, parent,
+//                        Orientation.IDENT, info.name, 0);
+//
+//        List<String> localPorts = new ArrayList<String>();
+//
+//        for (CellInstance.PortInfo port : info.list)
+//        {
+//            localPorts.clear();
+//
+//            String portLocal = port.local;
+//
+//            // It is unknown how many pins are coming in the stream
+//            if (portLocal.contains("{"))
+//            {
+//                StringTokenizer parse = new StringTokenizer(portLocal, "{,}", false); // extracting pins
+//                while (parse.hasMoreTokens())
+//                {
+//                    String name = parse.nextToken();
+//                    name = name.replaceAll(" ", "");
+//                    localPorts.add(name);
+//                }
+//            }
+//            else
+//                localPorts.add(portLocal);
+//
+//            for (String s : localPorts)
+//            {
+//                NodeInst pin = pinsMap.get(s);
+//
+//                if (pin == null)
+//                {
+//                    int index = s.indexOf("[");
+//                    if (index != -1)
+//                    {
+//                        s = s.substring(0, index);
+//                        pin = pinsMap.get(s);
+//                    }
+//                }
+//
+//                if (pin == null)
+//                {
+//                    if (s.equals("vss")) // ground
+//                    {
+//                        pin = readSupply(module, false, s);
+//                    }
+//                    else
+//                    {
+//                        if (Job.getDebug())
+//                            System.out.println("Unknown signal " + s + " in cell " + parent.describe(false));
+//                        PrimitiveNode primitive = (port.isBus) ? Schematics.tech().busPinNode : Schematics.tech().wirePinNode;
+//                        pin = NodeInst.newInstance(primitive, getNextLocation(parent),
+//                                primitiveWidth, primitiveHeight,
+////                                        primitive.getDefWidth(), primitive.getDefHeight(),
+//                                parent, Orientation.IDENT, null/*s*/, 0);
+//                        pinsMap.put(s, pin);
+//                    }
+//                }
+//
+////                ArcProto node = (port.isBus) ? Schematics.tech.bus_arc : Schematics.tech.wire_arc;
+//                ArcProto node = (pin.getProto() == Schematics.tech().busPinNode) ? Schematics.tech().bus_arc : Schematics.tech().wire_arc;
+//                PortInst ex = cellInst.findPortInst(port.ex.getName());
+//                ArcInst ai = ArcInst.makeInstanceBase(node, 0.0,
+////                ArcInst ai = ArcInst.makeInstanceFull(node, 0.0 /*node.getDefaultLambdaFullWidth()*/,
+//                        pin.getOnlyPortInst(), ex, null, null, s);
+//                assert(ai != null);
+//                ai.setFixedAngle(false);
+//            }
+//        }
+//    }
 
     private NodeInst readSupply(VerilogData.VerilogModule module, boolean power, String name)
     {
@@ -167,8 +167,7 @@ public class VerilogReader extends Input
     }
 
     private CellInstance readInstance(VerilogData.VerilogModule module,
-                                      VerilogData.VerilogModule element,
-                                      boolean noMoreInfo) throws IOException
+                                      VerilogData.VerilogModule element) throws IOException
     {
         StringBuffer signature = new StringBuffer();
         List<String> exports = new ArrayList<String>();
@@ -186,13 +185,14 @@ public class VerilogReader extends Input
             {
                 String line = signature.toString();
                 int index = line.indexOf("("); // searching for first (
-                if (index <= 0)
+                String instanceName = element.getName() + "-instance";
+
+                // if index==0, no name provided -> name is null
+                assert(index > -1); // do we have cases with -1?
+                if (index > 0)
                 {
-                    System.out.println("It can't parse line '" + line + "'. Data ignored.");
-                    return null;
+                    instanceName = line.substring(0, index);
                 }
-//                assert(index > 0);
-                String instanceName = line.substring(0, index);
                 line = line.substring(index+1, line.length());
                 StringTokenizer parse = new StringTokenizer(line, ")", false);  //typicalSkipStrings can't be used
                 exports.clear(); pins.clear();
@@ -503,17 +503,14 @@ public class VerilogReader extends Input
             }
 
             // reading cell instances
-            VerilogData.VerilogModule element = null;
-            Cell schematics = null;
-            boolean noMoreInfo = false;
+            VerilogData.VerilogModule element = verilogData.getModule(key);
 
-            element = verilogData.getModule(key);
             if (element == null) // it hasn't been created
             {
                 element = verilogData.addModule(key, false); // assuming latches and other elements are treat as subcells
             }
 
-            CellInstance info = readInstance(module, element, noMoreInfo);
+            CellInstance info = readInstance(module, element);
         }
         // not reaching this point.
     }
