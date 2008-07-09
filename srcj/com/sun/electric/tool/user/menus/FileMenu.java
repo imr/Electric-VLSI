@@ -574,6 +574,11 @@ public class FileMenu {
             EMenuItem menu = new EMenuItem(recentLibs[i], null, false) {
                 public void run() {
                     openLibraryCommand(TextUtils.makeURLToFile(this.getText()));
+                    File f = new File(this.getText());
+                    if (f.exists()) {
+                        User.setWorkingDirectory(f.getParent());
+                        FileType.LIBRARYFORMATS.setGroupPath(f.getParent());
+                    }
                 }
                 @Override protected void updateButtons() {}
             };
