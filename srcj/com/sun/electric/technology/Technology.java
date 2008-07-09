@@ -1366,7 +1366,7 @@ public class Technology implements Comparable<Technology>, Serializable
                 EdgeH ehx = makeEdgeH(p.hx, context, fullSize);
                 EdgeV ely = makeEdgeV(p.ly, context, fullSize);
                 EdgeV ehy = makeEdgeV(p.hy, context, fullSize);
-                ports[i] = PrimitivePort.newInstance(this, pnp, makeConnections(p.portArcs, arcs), p.name,
+                ports[i] = PrimitivePort.newInstance(this, pnp, makeConnections(n.name, p.name, p.portArcs, arcs), p.name,
                         p.portAngle, p.portRange, p.portTopology, PortCharacteristic.UNKNOWN,
                         elx, ely, ehx, ehy);
             }
@@ -1397,7 +1397,7 @@ public class Technology implements Comparable<Technology>, Serializable
             if (l.pureLayerNode == null) continue;
             Layer layer = layers.get(l.name);
             PrimitiveNode pn = layer.makePureLayerNode(l.pureLayerNode.name, l.pureLayerNode.size.value, l.pureLayerNode.style,
-                    l.pureLayerNode.port, makeConnections(l.pureLayerNode.portArcs, arcs));
+                    l.pureLayerNode.port, makeConnections(l.pureLayerNode.name, l.pureLayerNode.port, l.pureLayerNode.portArcs, arcs));
             if (l.pureLayerNode.oldName != null)
                 oldNodeNames.put(l.pureLayerNode.oldName, pn);
         }
@@ -1428,12 +1428,16 @@ public class Technology implements Comparable<Technology>, Serializable
         }
     }
 
-    private ArcProto[] makeConnections(List<String> portArcs, HashMap<String,ArcProto> arcs) {
+    private ArcProto[] makeConnections(String nodeName, String portName, List<String> portArcs, HashMap<String,ArcProto> arcs) {
         ArcProto[] connections = new ArcProto[portArcs.size()];
         for (int j = 0; j < connections.length; j++) {
             ArcProto ap = arcs.get(portArcs.get(j));
             if (ap == null)
-                throw new NoSuchElementException(portArcs.get(j));
+            {
+                String error = "No such arcProto '" + portArcs.get(j) + "' found for node '" + nodeName +
+                "', port '" + portName + "'";
+                throw new NoSuchElementException(error);
+            }
             connections[j] = ap;
         }
         return connections;

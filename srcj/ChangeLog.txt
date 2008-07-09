@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08a: ******************************
 
+IMP: (7/9/08, GVG) Changes to improve XML error message (Bug #1692)
+
 IMP: (7/9/08, GVG) Selecting lightgray instead of orange for those
 CVSstatus == unknown (Bug #1754)
 
