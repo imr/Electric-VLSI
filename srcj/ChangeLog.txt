@@ -14,13 +14,14 @@ CVSstatus == unknown (Bug #1754)
 BUG: (7/9/08, GVG) verilog netlist parser missing a case (Bug #1717)
 FIX: Dealing with no name in element instances.
 
-
 IMP: (7/8/08, GVG) Close/Open all below here in Errors explorerTree (Bug #1752).
 Also fix problems with exporting warningLogs not associated to any given Cell.
 
-IMP: Adding rules reported in "DRC not caught by electric" (Bug #1746)
+IMP: (7/8/08, GVG) Adding rules reported in "DRC not caught by electric" (Bug #1746)
 
 IMP: (7/7/08, GVG) Calibre number of errors on Error logger (Bug #1749)
+
+IMP: (7/7/08, JG) Added recently opened libs menu in Electric
 
 IMP: (7/3/08, GVG) Speeding DRC code by caching multicut info in a different way.
 
@@ -28,7 +29,7 @@ BUG: (7/2/08, GVG) Notch in select not detected in CMOS90 (Bug #1745)
 FIX: Distance A-B in checkMinDefects can be zero.
 IMP: precision issues in some DRC functions noticed by running code on MacOSX and Linux.
 
-IMP: Primitive.CROSSCONTACT and PrimitveNode.ALIGNEDCONTACT bits to work on Bug #1740.
+IMP: (7/1/08, GVG) Primitive.CROSSCONTACT and PrimitveNode.ALIGNEDCONTACT bits to work on Bug #1740.
 
 IMP: (7/1/08, GVG) Sort layers in 3D preference by layers names. This is
  a change to implementation done for bug #1723 but it looks for intuitive.
