@@ -76,6 +76,8 @@ public class ActivityLogger {
             //System.setErr(new PrintStream(bout, true));
         } catch (IOException e) {
             System.out.println("Warning: Activity Log disabled: "+e.getMessage());
+            System.out.println("Activity logs are sent to the standard output once you close Electric.");
+            out = new PrintWriter(System.out);
         }
         if (out != null) out.println("Electric "+Version.getVersionInformation());
     }
