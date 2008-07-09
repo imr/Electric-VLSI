@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08a: ******************************
 
+IMP: (7/9/08, GVG) Selecting lightgray instead of orange for those
+CVSstatus == unknown (Bug #1754)
+
 BUG: (7/9/08, GVG) verilog netlist parser missing a case (Bug #1717)
 FIX: Dealing with no name in element instances.
 

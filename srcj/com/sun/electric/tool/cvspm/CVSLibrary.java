@@ -26,11 +26,8 @@ package com.sun.electric.tool.cvspm;
 
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.io.FileType;
-import com.sun.electric.tool.io.output.DELIB;
 import com.sun.electric.tool.user.dialogs.OpenFile;
-import com.sun.electric.tool.Job;
 
 import java.util.*;
 import java.io.File;
@@ -345,7 +342,7 @@ public class CVSLibrary {
         if (state == State.ADDED) return Color.green;
         if (state == State.REMOVED) return Color.green;
         if (state == State.PATCHED) return Color.black;
-        if (state == State.UNKNOWN) return Color.orange;
+        if (state == State.UNKNOWN) return Color.lightGray;
         return Color.black;
     }
 
