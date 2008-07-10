@@ -6,7 +6,7 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08a: ******************************
 
-IMP: (7/9/08, GV) Sending Activity logs to std out if permission is denied (Bug #1692)
+IMP: (7/9/08, GVG) Sending Activity logs to std out if permission is denied (Bug #1702)
 
 IMP: (7/9/08, GVG) Changes to improve XML error message (Bug #1692)
 
