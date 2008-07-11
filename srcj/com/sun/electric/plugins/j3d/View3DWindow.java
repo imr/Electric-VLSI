@@ -62,6 +62,7 @@ import com.sun.j3d.utils.picking.PickResult;
 import com.sun.j3d.utils.universe.PlatformGeometry;
 import com.sun.j3d.utils.universe.SimpleUniverse;
 import com.sun.j3d.utils.universe.ViewingPlatform;
+import com.sun.j3d.utils.geometry.Primitive;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -125,9 +126,9 @@ public class View3DWindow extends JPanel
     /** scale3D factor in Z axis */                         private double scale3D = J3DUtils.get3DFactor();
 	/** Highlighter for this window */                      private Highlighter highlighter;
 	private PickCanvas pickCanvas;
-	/** List with all Shape3D drawn per ElectricObject */    private Map<ElectricObject,List<Shape3D>> electricObjectMap = new HashMap<ElectricObject,List<Shape3D>>();
+	/** List with all Shape3D drawn per ElectricObject */    private Map<ElectricObject,List<Node>> electricObjectMap = new HashMap<ElectricObject,List<Node>>();
     private boolean oneTransformPerNode = false;
-    /** Map with object transformation for individual moves */ private Map<Shape3D,TransformGroup> transformGroupMap = new HashMap<Shape3D,TransformGroup>();
+    /** Map with object transformation for individual moves */ private Map<Node,TransformGroup> transformGroupMap = new HashMap<Node,TransformGroup>();
     /** To detect max number of nodes */                    private boolean reachLimit = false;
     /** To ask question only once */                        private boolean alreadyChecked = false;
     /** Job reference */                                    private Job job;
@@ -581,7 +582,7 @@ public class View3DWindow extends JPanel
 		ArcProto ap = ai.getProto();
 		Technology tech = ap.getTechnology();
 
-		List<Shape3D> list = addPolys(tech.getShapeOfArc(ai), transform, objTrans);
+		List<Node> list = addPolys(tech.getShapeOfArc(ai), transform, objTrans);
         if (list.isEmpty())
             System.out.println("No layer with non-zero thickness found in arc '" + ai.getName() + "'");
         else
@@ -605,7 +606,7 @@ public class View3DWindow extends JPanel
 		// Skipping Special nodes
         if (NodeInst.isSpecialNode(no)) return;
 
-		List<Shape3D> list = null;
+		List<Node> list = null;
 		if (no.isCellInstance())
 		{
 			// Cell
@@ -618,7 +619,7 @@ public class View3DWindow extends JPanel
 			values[0] *= scale3D;
 			values[1] *= scale3D;
 			Poly pol = new Poly(rect);
-            list = new ArrayList<Shape3D>(1);
+            list = new ArrayList<Node>(1);
 
             if (transform.getType() != AffineTransform.TYPE_IDENTITY)
 			    pol.transform(transform);
@@ -760,11 +761,11 @@ public class View3DWindow extends JPanel
 	 * @param transform
 	 * @param objTrans
 	 */
-	private List<Shape3D> addPolys(Poly [] polys, AffineTransform transform, TransformGroup objTrans)
+	private List<Node> addPolys(Poly [] polys, AffineTransform transform, TransformGroup objTrans)
 	{
 		if (polys == null) return (null);
 
-		List<Shape3D> list = new ArrayList<Shape3D>();
+		List<Node> list = new ArrayList<Node>();
 		for(int i = 0; i < polys.length; i++)
 		{
 			Poly poly = polys[i];
@@ -784,16 +785,30 @@ public class View3DWindow extends JPanel
 
 			// Setting appearance
             J3DAppearance ap = J3DAppearance.getAppearance(layer.getGraphics());
+            Poly.Type type = poly.getStyle();
 
-			if (poly.getBox() == null) // non-manhattan shape
-			{
-				list.add(J3DUtils.addPolyhedron(poly.getPathIterator(null), distance, thickness, ap, objTrans));
-			}
-			else
-			{
-				Rectangle2D bounds = poly.getBounds2D();
-				list.add(J3DUtils.addPolyhedron(bounds, distance, thickness, ap, objTrans));
-			}
+            switch (type)
+            {
+                case FILLED:
+                case CLOSED:
+                    // polygon cases
+                    if (poly.getBox() == null) // non-manhattan shape
+                    {
+                        list.add(J3DUtils.addPolyhedron(poly.getPathIterator(null), distance, thickness, ap, objTrans));
+                    }
+                    else
+                    {
+                        Rectangle2D bounds = poly.getBounds2D();
+                        list.add(J3DUtils.addPolyhedron(bounds, distance, thickness, ap, objTrans));
+                    }
+                    break;
+                case CIRCLE:
+                case DISC:
+                    list.add(J3DUtils.addCylinder(poly.getPoints(), distance, thickness, ap, objTrans));
+                    break;
+                default:
+                    System.out.println("Case not implemented in View3DDWindow.addPolys");
+            }
 		}
 		return (list);
 	}
@@ -818,19 +833,19 @@ public class View3DWindow extends JPanel
 		}
 		for (Highlight2 h : highlighter.getHighlights())
 		{
-//			Shape3D obj = (Shape3D)h.getObject();
             HighlightShape3D hObj = (HighlightShape3D)(h.getObject());
-            Shape3D obj = hObj.shape;
-			if (toSelect) // highlight cell, set transparency
+//            Node obj = hObj.shape;
+
+            if (toSelect) // highlight cell, set transparency
 			{
 				//J3DAppearance app = (J3DAppearance)obj.getAppearance();
-				obj.setAppearance(J3DAppearance.highligtApp);
+				hObj.setAppearance(J3DAppearance.highligtApp);
 				//app.getRenderingAttributes().setVisible(false);
 				//J3DAppearance.highligtApp.setGraphics(app.getGraphics());
 				if (view2D != null && do2D)
 				{
 					//Geometry geo = obj.getGeometry();
-					BoundingBox bb = (BoundingBox)obj.getBounds();
+					BoundingBox bb = (BoundingBox)hObj.shape.getBounds();
 					Point3d lowerP = new Point3d(), upperP = new Point3d();
 					bb.getUpper(upperP);
 					bb.getLower(lowerP);
@@ -850,10 +865,10 @@ public class View3DWindow extends JPanel
 				//if (graphics != null)
 				{
 					//J3DAppearance origAp = (J3DAppearance)graphics.get3DAppearance();
-					obj.setAppearance(hObj.origApp);
+					hObj.setAppearance(hObj.origApp);
 				}
 				else // its a cell
-					obj.setAppearance(J3DAppearance.cellApp);
+					hObj.setAppearance(J3DAppearance.cellApp);
 			}
 		}
 		if (!toSelect) highlighter.clear();
@@ -879,11 +894,11 @@ public class View3DWindow extends JPanel
             {
                 ElectricObject eobj = geom;
 
-                List<Shape3D> list = electricObjectMap.get(eobj);
+                List<Node> list = electricObjectMap.get(eobj);
 
                 if (list == null || list.size() == 0) continue;
 
-                for (Shape3D shape : list)
+                for (Node shape : list)
                 {
                     highlighter.addObject(new HighlightShape3D(shape), cell);
                 }
@@ -898,13 +913,34 @@ public class View3DWindow extends JPanel
      */
     private static class HighlightShape3D
     {
-        Shape3D shape;
+        Node shape;
         Appearance origApp;
 
-        HighlightShape3D(Shape3D shape)
+        HighlightShape3D(Node n)
         {
-            this.shape = shape;
-            this.origApp = shape.getAppearance();;
+            this.shape = n;
+            this.origApp = getAppearance(n);
+        }
+
+        static Appearance getAppearance(Node n)
+        {
+            if (n instanceof Shape3D)
+                return ((Shape3D)n).getAppearance();
+            else if (n instanceof Primitive)
+                return ((Primitive)n).getAppearance();
+            else
+                assert(false); // it should not happen
+            return null;
+        }
+
+        void setAppearance(Appearance a)
+        {
+            if (shape instanceof Shape3D)
+                ((Shape3D)shape).setAppearance(a);
+            else if (shape instanceof Primitive)
+                ((Primitive)shape).setAppearance(a);
+            else
+                assert(false); // it should not happen
         }
     }
 
@@ -1124,10 +1160,10 @@ public class View3DWindow extends JPanel
             NodeInst ni = it.next();
             Variable var = ni.getVar("3D_NODE_DEMO");
             if (var == null) continue;
-            List<Shape3D> list = electricObjectMap.get(ni);
+            List<Node> list = electricObjectMap.get(ni);
             for (int i = 0; i < list.size(); i++)
             {
-                Shape3D obj = list.get(i);
+                Node obj = list.get(i);
                 TransformGroup grp = transformGroupMap.get(obj);
 
                 grp.getTransform(currXform);
@@ -1431,10 +1467,10 @@ public class View3DWindow extends JPanel
                 tmpList = J3DUtils.readDemoDataFromFile(this);
                 if (tmpList == null) continue; // nothing load
             }
-            List<Shape3D> list = electricObjectMap.get(ni);
+            List<Node> list = electricObjectMap.get(ni);
             for (int j = 0; j < list.size(); j++)
             {
-                Shape3D obj = list.get(j);
+                Node obj = list.get(j);
                 TransformGroup grp = transformGroupMap.get(obj);
                 interMap = addInterpolatorPerGroup(tmpList, grp, interMap, false);
 //                BranchGroup behaviorBranch = new BranchGroup();

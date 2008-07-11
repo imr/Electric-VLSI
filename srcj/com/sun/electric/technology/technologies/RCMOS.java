@@ -414,7 +414,21 @@ public class RCMOS extends Technology
 //		pseudoSelect_lay.setFunction(Layer.Function.IMPLANTP, Layer.Function.PSEUDO);	// Pseudo-Select
 //		pseudoWell_lay.setFunction(Layer.Function.WELLP, Layer.Function.PSEUDO);		// Pseudo-Well
 
-		// The CIF names
+        // 3D values. Same values as in mocmos
+        metal1_lay.setFactory3DInfo(2.65, 16.5, "NONE", 0.2);
+        metal2_lay.setFactory3DInfo(2.65, 22.15, "NONE", 0.2);
+        polysilicon_lay.setFactory3DInfo(1, 14.75, "NONE", 0.2);
+        sActive_lay.setFactory3DInfo(4, 9, "NONE", 0.2);
+        dActive_lay.setFactory3DInfo(4, 9, "NONE", 0.2);
+        select_lay.setFactory3DInfo(5, 8, "NONE", 0.2);
+        well_lay.setFactory3DInfo(13, 0, "NONE", 0.2);
+        cut_lay.setFactory3DInfo(3.5, 13, "NONE", 0.2);
+        via_lay.setFactory3DInfo(3, 19.15, "NONE", 0.2);
+        passivation_lay.setFactory3DInfo(5, 19.15, "NONE", 0.2);
+        polyCut_lay.setFactory3DInfo(0.75, 15.75, "NONE", 0.2);
+        activeCut_lay.setFactory3DInfo(3.5, 13, "NONE", 0.2);
+
+        // The CIF names
 		metal1_lay.setFactoryCIFLayer("CMF");			// Metal-1
 		metal2_lay.setFactoryCIFLayer("CMS");			// Metal-2
 		polysilicon_lay.setFactoryCIFLayer("CPG");		// Polysilicon

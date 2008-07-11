@@ -25,7 +25,6 @@
 package com.sun.electric.plugins.j3d.utils;
 
 import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.plugins.j3d.View3DWindow;
 import com.sun.electric.tool.Job;
@@ -38,6 +37,8 @@ import com.sun.j3d.utils.behaviors.interpolators.KBKeyFrame;
 import com.sun.j3d.utils.behaviors.interpolators.TCBKeyFrame;
 import com.sun.j3d.utils.geometry.GeometryInfo;
 import com.sun.j3d.utils.geometry.NormalGenerator;
+import com.sun.j3d.utils.geometry.Cylinder;
+import com.sun.j3d.utils.geometry.Primitive;
 import com.sun.j3d.utils.picking.PickTool;
 import com.sun.j3d.utils.universe.SimpleUniverse;
 
@@ -45,6 +46,7 @@ import java.awt.Color;
 import java.awt.GraphicsConfiguration;
 import java.awt.geom.PathIterator;
 import java.awt.geom.Rectangle2D;
+import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.io.FileReader;
 import java.io.LineNumberReader;
@@ -76,13 +78,7 @@ import javax.media.j3d.Shape3D;
 import javax.media.j3d.Transform3D;
 import javax.media.j3d.TransformGroup;
 import javax.media.j3d.View;
-import javax.vecmath.Color3f;
-import javax.vecmath.Point3d;
-import javax.vecmath.Point3f;
-import javax.vecmath.Quat4f;
-import javax.vecmath.Vector3d;
-import javax.vecmath.Vector3f;
-import javax.vecmath.Vector4f;
+import javax.vecmath.*;
 
 /**
  * Utility class for 3D module
@@ -817,11 +813,67 @@ public final class J3DUtils
     }
 
     /**
+     * Method to add a cylindrical shaped element
+     * @param points
+     * @param distance
+     * @param thickness
+     * @param ap
+     * @param objTrans
+     * @return
+     */
+    public static Node addCylinder(Point2D[] points, double distance, double thickness,
+                                   Appearance ap, TransformGroup objTrans)
+	{
+        double cX = points[0].getX();
+        double cY = points[0].getY();
+        double radius = points[0].distance(points[1]);
+        Cylinder cylinder = new Cylinder((float)radius, (float)thickness, ap);
+        Vector3d bottomCenter = new Vector3d(cX,cY,distance);
+        Transform3D t = new Transform3D();
+        t.rotX(Math.PI/2);
+        t.setTranslation(bottomCenter);
+        t.setScale(1);
+        TransformGroup grp = new TransformGroup(t);
+        grp.addChild(cylinder); // adding Primitive to TransformaGroup so location can be modified.
+
+        grp.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+        grp.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
+        grp.setCapability(TransformGroup.ALLOW_CHILDREN_EXTEND);
+        grp.setCapability(TransformGroup.ALLOW_CHILDREN_READ);
+        grp.setCapability(TransformGroup.ALLOW_CHILDREN_WRITE);
+        grp.setCapability(TransformGroup.ENABLE_PICK_REPORTING);
+        grp.setCapability(TransformGroup.ALLOW_LOCAL_TO_VWORLD_READ);
+        grp.setCapability(TransformGroup.ALLOW_PICKABLE_READ);
+        grp.setCapability(TransformGroup.ALLOW_BOUNDS_READ);
+
+        Shape3D[] shapes = new Shape3D[3];
+        shapes[0] = cylinder.getShape(Cylinder.BODY);
+        shapes[1] = cylinder.getShape(Cylinder.TOP);
+        shapes[2] = cylinder.getShape(Cylinder.BOTTOM);
+
+        for (int i = 0; i < 3; i++)
+        {
+            shapes[i].setCapability(Primitive.ENABLE_PICK_REPORTING);
+            shapes[i].setCapability(Primitive.ENABLE_GEOMETRY_PICKING);
+            shapes[i].setCapability(Node.ALLOW_LOCAL_TO_VWORLD_READ);
+            shapes[i].setCapability(Primitive.ALLOW_PICKABLE_READ);
+            shapes[i].setCapability(Shape3D.ALLOW_APPEARANCE_READ);
+            shapes[i].setCapability(Shape3D.ALLOW_APPEARANCE_WRITE);
+            shapes[i].setCapability(Primitive.ALLOW_BOUNDS_READ);
+            shapes[i].setCapability(Shape3D.ALLOW_GEOMETRY_WRITE);
+            PickTool.setCapabilities(shapes[i], PickTool.INTERSECT_COORD);
+        }
+
+        objTrans.addChild(grp);
+        return cylinder;
+    }
+    
+    /**
 	 * Method to add a polyhedron to the transformation group
 	 * @param objTrans
 	 */
 	public static Shape3D addPolyhedron(Rectangle2D bounds, double distance, double thickness,
-	                          Appearance ap, TransformGroup objTrans)
+                                        Appearance ap, TransformGroup objTrans)
 	{
         GeometryInfo gi = new GeometryInfo(GeometryInfo.QUAD_ARRAY);
         double height = thickness + distance;

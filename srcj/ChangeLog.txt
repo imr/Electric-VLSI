@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08b: ******************************
 
+IMP: (7/11/08, GVG) Add 3D cylinders so rcmos can be properly displayed (Bug #1554)
+
 ************************* Version 8.08a: ******************************
 
 IMP: (7/9/08, GVG) Sending Activity logs to std out if permission is denied (Bug #1702)
