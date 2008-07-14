@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08b: ******************************
 
+BUG: (7/14/08, GVG) CB active/well contacts don't stretch properly if size increases in TSMC180 (Bug #1756)
+FIX: klx="0.0" khx="0.0" kly="0.0" khy="0.0 removed from XML file.
+
 IMP: (7/11/08, GVG) Add 3D cylinders so rcmos can be properly displayed (Bug #1554)
 
 ************************* Version 8.08a: ******************************
