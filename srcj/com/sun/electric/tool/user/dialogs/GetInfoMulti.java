@@ -1280,8 +1280,16 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 	{//GEN-HEADEREND:event_removeActionPerformed
 		int [] items = list.getSelectedIndices();
 		List<Integer> indices = new ArrayList<Integer>();
-		for(int i=0; i<items.length; i++) indices.add(new Integer(items[i]));
-		Collections.sort(indices, new Comparator<Integer>()
+
+        for(int i=0; i<items.length; i++)
+        {
+            if (items[i] < highlightList.size())
+                indices.add(new Integer(items[i]));
+            else
+                System.out.println("Trying to remove an invalid element: " + items[i]);
+        }
+
+        Collections.sort(indices, new Comparator<Integer>()
 		{
 			public int compare(Integer c1, Integer c2) { return c2.compareTo(c1); }
 		});

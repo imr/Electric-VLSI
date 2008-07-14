@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08b: ******************************
 
+BUG: (7/14/08, GVG) Exception while deleting illegal item in MultiObject dialog (Bug #1757)
+FIX: Case detected.
+
 BUG: (7/14/08, GVG) CB active/well contacts don't stretch properly if size increases in TSMC180 (Bug #1756)
 FIX: klx="0.0" khx="0.0" kly="0.0" khy="0.0 removed from XML file.
 
