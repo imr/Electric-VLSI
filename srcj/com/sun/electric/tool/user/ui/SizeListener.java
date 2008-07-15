@@ -74,7 +74,7 @@ public class SizeListener
 	private Cursor oldCursor;
 	private Point2D farthestPoint;
 	private static Cursor sizeCursor = ToolBar.readCursor("CursorSize.gif", 14, 14);
-
+    private static SizeListener currentListener = null;
 	private SizeListener() {}
 
 	/**
@@ -104,18 +104,30 @@ public class SizeListener
 		newListener = oldListener;
 		if (newListener == null || !(newListener instanceof SizeListener))
 		{
-			newListener = new SizeListener();
-			WindowFrame.setListener(newListener);
-		}
+			currentListener = new SizeListener();
+            newListener = currentListener;
+            WindowFrame.setListener(newListener);
+        }
 		((SizeListener)newListener).stretchGeom = geom;
-		((SizeListener)newListener).oldListener = oldListener;
-		((SizeListener)newListener).oldCursor = oldCursor;
+        // Only store data when the previous event listener is not this one
+        if (!(oldListener instanceof SizeListener))
+        {
+            ((SizeListener)newListener).oldListener = oldListener;
+		    ((SizeListener)newListener).oldCursor = oldCursor;
+        }
 
-		// change the cursor
+        // change the cursor
 		TopLevel.setCurrentCursor(sizeCursor);
 	}
 
-	/**
+    public static void restorePreviousListener(Object toDelete)
+    {
+        if (currentListener == null) return; // nothing to restore
+        if (currentListener.stretchGeom == toDelete)
+            currentListener.restoringOriginalSetup(null);
+    }
+
+    /**
 	 * Method to present a dialog to resize all selected nodes.
 	 */
 	public static void sizeAllNodes()
@@ -350,28 +362,38 @@ public class SizeListener
 	public void mouseReleased(MouseEvent evt)
 	{
 		// restore the listener to the former state
-		WindowFrame.setListener(oldListener);
-		TopLevel.setCurrentCursor(oldCursor);
 		EditWindow wnd = (EditWindow)evt.getSource();
-		showHighlight(null, wnd);
+        restoringOriginalSetup(wnd);
 
-		// handle scaling the selected objects
-		if (stretchGeom instanceof NodeInst)
-		{
-			NodeInst ni = (NodeInst)stretchGeom;
-			Point2D newCenter = new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY());
-			Point2D newSize = getNewNodeSize(evt, newCenter);
-			new ScaleNode(ni, new EPoint(newCenter.getX(), newCenter.getY()), newSize.getX(), newSize.getY());
-		} else
-		{
-			ArcInst ai = (ArcInst)stretchGeom;
-			double newLambdaBaseWidth = getNewArcSize(evt);
-			new ScaleArc(ai, newLambdaBaseWidth);
-		}
-		wnd.repaint();
+        // Checking the element hasn't been removed
+        assert(stretchGeom.isLinked());
+
+        // handle scaling the selected objects
+        if (stretchGeom instanceof NodeInst)
+        {
+            NodeInst ni = (NodeInst)stretchGeom;
+            Point2D newCenter = new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY());
+            Point2D newSize = getNewNodeSize(evt, newCenter);
+            new ScaleNode(ni, new EPoint(newCenter.getX(), newCenter.getY()), newSize.getX(), newSize.getY());
+        } else
+        {
+            ArcInst ai = (ArcInst)stretchGeom;
+            double newLambdaBaseWidth = getNewArcSize(evt);
+            new ScaleArc(ai, newLambdaBaseWidth);
+        }
+        wnd.repaint();
 	}
 
-	public void keyPressed(KeyEvent evt)
+    private void restoringOriginalSetup(EditWindow wnd)
+    {
+        // restore the listener to the former state
+        WindowFrame.setListener(oldListener);
+        TopLevel.setCurrentCursor(oldCursor);
+        if (wnd != null)
+            showHighlight(null, wnd);
+    }
+
+    public void keyPressed(KeyEvent evt)
 	{
 		int chr = evt.getKeyCode();
 		EditWindow wnd = (EditWindow)evt.getSource();
@@ -381,11 +403,8 @@ public class SizeListener
 		// ESCAPE for abort
 		if (chr == KeyEvent.VK_ESCAPE)
 		{
-			// restore the listener to the former state
-			WindowFrame.setListener(oldListener);
-			TopLevel.setCurrentCursor(oldCursor);
-			showHighlight(null, wnd);
-			System.out.println("Aborted");
+            restoringOriginalSetup(wnd);
+           System.out.println("Sizing aborted");
 		}
 	}
 

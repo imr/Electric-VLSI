@@ -67,6 +67,7 @@ import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.StatusBar;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.SizeListener;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -910,7 +911,11 @@ public class CircuitChangeJobs
 				// deleting variable on object
 				Variable.Key key = dt.getVariableKey();
 				ElectricObject eobj = dt.getElectricObject();
-				if (key == NodeInst.NODE_NAME)
+
+                // delete any reference to this Object in SizeListener
+                SizeListener.restorePreviousListener(eobj);
+                
+                if (key == NodeInst.NODE_NAME)
 				{
 					// deleting the name of a node
 					NodeInst ni = (NodeInst)eobj;
@@ -1074,7 +1079,11 @@ public class CircuitChangeJobs
 					}
 					ai1.copyPropertiesFrom(ai);
 				}
-				ai.kill();
+
+                // delete any reference to this Object in SizeListener
+                SizeListener.restorePreviousListener(ai);
+                
+                ai.kill();
 			}
 
 			// now remove nodes in the area
@@ -1156,7 +1165,9 @@ public class CircuitChangeJobs
 				if (errorCode < 0) return false;
 				if (errorCode > 0) continue;
 				nodesToDelete.add(ni);
-			}
+                // delete any reference to this Object in SizeListener
+                SizeListener.restorePreviousListener(ni);
+            }
 
 			// delete the nodes
 			cell.killNodes(nodesToDelete);

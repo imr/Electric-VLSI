@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08b: ******************************
 
+BUG: (7/15/08, GVG) Can't get out of Ctl-B mode (Bug #1760)
+FIX: Not allowing to store SizeListener as oldlistener.
+
+BUG: (7/15/08, GVG) NotSerializableException while resizing a node with ctl-b (Bug #1759)
+FIX: Detecting cases when objects are not longer linked.
+
 BUG: (7/14/08, GVG) Exception while deleting illegal item in MultiObject dialog (Bug #1757)
 FIX: Case detected.
 
