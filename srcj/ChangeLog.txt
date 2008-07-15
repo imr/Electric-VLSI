@@ -9,6 +9,7 @@ FIX: Case detected.
 
 BUG: (7/14/08, GVG) CB active/well contacts don't stretch properly if size increases in TSMC180 (Bug #1756)
 FIX: klx="0.0" khx="0.0" kly="0.0" khy="0.0 removed from XML file.
+FIX: Select in NT-N-Active contact also modified (it didn't min select extension from active)
 
 IMP: (7/11/08, GVG) Add 3D cylinders so rcmos can be properly displayed (Bug #1554)
 
