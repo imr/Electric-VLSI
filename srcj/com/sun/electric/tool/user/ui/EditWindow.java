@@ -3677,10 +3677,11 @@ public class EditWindow extends JPanel
 	/**
 	 * Method to snap a point to the nearest database-space grid unit.
 	 * @param pt the point to be snapped.
+     * @param direction -1 if X and Y coordinates, 0 if only X and 1 if only Y
 	 */
-	public static void gridAlignSize(Point2D pt)
+	public static void gridAlignSize(Point2D pt, int direction)
 	{
-		DBMath.gridAlign(pt, User.getAlignmentToGrid());
+		DBMath.gridAlign(pt, User.getAlignmentToGrid(), direction);
 //		DBMath.gridAlign(pt, User.getAlignmentToGrid()*2);
 	}
 

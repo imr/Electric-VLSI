@@ -231,13 +231,40 @@ public class DBMath extends GenMath {
 	 */
 	public static void gridAlign(Point2D pt, double alignment)
 	{
-        if (alignment <= 0) return;
-		long x = Math.round(pt.getX() / alignment);
-		long y = Math.round(pt.getY() / alignment);
-		pt.setLocation(x * alignment, y * alignment);
+        gridAlign(pt, alignment, -1);
 	}
 
-	/**
+    /**
+     * Method to snap the X, Y or both coordinates of a point to the nearest database-space grid unit
+     * @param pt the point to be snapped.
+     * @param alignment the alignment value to use.
+     * @param direction -1 if X and Y coordinates, 0 if only X and 1 if only Y
+     */
+    public static void gridAlign(Point2D pt, double alignment, int direction)
+    {
+        if (alignment <= 0) return;
+
+        switch (direction)
+        {
+            case -1:
+                long x = Math.round(pt.getX() / alignment);
+                long y = Math.round(pt.getY() / alignment);
+                pt.setLocation(x * alignment, y * alignment);
+                break;
+            case 0: // X only
+                x = Math.round(pt.getX() / alignment);
+                pt.setLocation(x * alignment, pt.getY());
+                break;
+            case 1: // y only
+                y = Math.round(pt.getY() / alignment);
+                pt.setLocation(pt.getX(), y * alignment);
+                break;
+            default:
+                assert(false); // it should not reach this point.
+        }
+    }
+
+    /**
      * Method to compare two double-precision database coordinates within an approximate epsilon.
      * @param a the first point.
      * @param b the second point.

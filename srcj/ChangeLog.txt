@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08b: ******************************
 
+BUG: (7/15/08, GVG) Ctrl-B for resizing does not lock properly on direction (Bug #1758)
+FIX: Detecting X or Y conditions and avoiding to snap the corresponding coordinates.
+
 BUG: (7/15/08, GVG) Can't get out of Ctl-B mode (Bug #1760)
 FIX: Not allowing to store SizeListener as oldlistener.
 

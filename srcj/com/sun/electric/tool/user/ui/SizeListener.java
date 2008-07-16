@@ -542,7 +542,8 @@ public class SizeListener
 			growthRatioX = ptToFarthestX / closestToFarthestX;
 			growthRatioY = ptToFarthestY / closestToFarthestY;
 		}
-		if (singleAxis)
+        int direction = -1; // both X and Y
+        if (singleAxis)
 		{
 			// constrain to single-axis stretching
 			double grx = Math.abs(growthRatioX);
@@ -555,12 +556,22 @@ public class SizeListener
 			{
 				if (gry == 0) gry = 9999; else gry = 1/gry;
 			}
-			if (grx > gry) growthRatioY = 1; else
-				growthRatioX = 1;
-		}
+			if (grx > gry)
+            {
+                growthRatioY = 1;
+                direction = 0; // Y
+            }
+            else
+            {
+                growthRatioX = 1;
+                direction = 1; // X
+            }
+        }
 		if (square)
 		{
-			if (Math.abs(growthRatioX) > Math.abs(growthRatioY)) growthRatioY = growthRatioX; else
+			if (Math.abs(growthRatioX) > Math.abs(growthRatioY))
+                growthRatioY = growthRatioX;
+            else
 				growthRatioX = growthRatioY;
 		}
 
@@ -570,7 +581,7 @@ public class SizeListener
 		Point2D newSize = new Point2D.Double(newXSize, newYSize);
 
 		// grid align the new node size
-		EditWindow.gridAlignSize(newSize);
+		EditWindow.gridAlignSize(newSize, direction);
 
 		// determine the new center point
 		if (!centerBased)
@@ -620,7 +631,8 @@ public class SizeListener
 		Point2D ptOnLine = DBMath.closestPointToLine(ai.getHeadLocation(), ai.getTailLocation(), pt);
 		double newLambdaBaseWidth = ptOnLine.distance(pt)*2;
 		Point2D newLambdaBaseSize = new Point2D.Double(newLambdaBaseWidth, newLambdaBaseWidth);
-		EditWindow.gridAlignSize(newLambdaBaseSize);
+        
+        EditWindow.gridAlignSize(newLambdaBaseSize, -1);
 		return newLambdaBaseSize.getX();
 	}
 
