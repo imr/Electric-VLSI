@@ -23,12 +23,7 @@
 */
 package com.sun.electric.tool.user.ncc;
 
-import java.awt.Frame;
-import java.beans.PropertyVetoException;
 import java.util.Iterator;
-
-import javax.swing.JFrame;
-import javax.swing.JInternalFrame;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -36,16 +31,12 @@ import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.tool.Job;
 import com.sun.electric.tool.ncc.result.NetObjReport;
 import com.sun.electric.tool.ncc.result.PartReport;
 import com.sun.electric.tool.ncc.result.PortReport;
 import com.sun.electric.tool.ncc.result.WireReport;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.WindowContent;
-import com.sun.electric.tool.user.ui.WindowFrame;
 
 public class HighlightTools {
     
@@ -55,57 +46,11 @@ public class HighlightTools {
         if (cell != null) {
             if (!cell.isLinked()) System.out.println("Cell is deleted");
             // make sure it is shown
-            boolean found = false;
-            EditWindow wnd = null;
-            for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); ) {
-                WindowFrame wf = it.next();
-                WindowContent content = wf.getContent();
-                if (!(content instanceof EditWindow)) continue;
-                wnd = (EditWindow)content;
-                if (wnd.getCell() == cell) {
-                    if (((context != null) && context.equals(wnd.getVarContext())) ||
-                            (context == null)) {
-                        // already displayed.  force window "wf" to front
-                        showFrame(wf);
-                        found = true;
-                        break;
-                    }
-                }
-            }
-            if (!found) {
-                // make a new window for the cell
-                WindowFrame wf = WindowFrame.createEditWindow(cell);
-                wnd = (EditWindow)wf.getContent();
-                wnd.setCell(cell, context, null);
-            }
+            EditWindow wnd = EditWindow.showEditWindowForCell(cell, context);
             highlighter = wnd.getHighlighter();
             highlighter.clear();
         }
         return highlighter;
-    }
-    
-    private static void showFrame(WindowFrame wf) {
-        if (TopLevel.isMDIMode()) {
-            JInternalFrame jif = wf.getInternalFrame();
-            try {
-                jif.setIcon(false);
-                jif.setSelected(true);
-            } catch (PropertyVetoException e) {}
-            if (!jif.isVisible()) {
-                jif.toFront();
-                TopLevel.addToDesktop(jif);
-            } else
-                jif.toFront();
-        } else {
-            JFrame jf = wf.getFrame();
-            jf.setState(Frame.NORMAL);
-            if (!jf.isVisible()) {
-                jf.toFront();
-                assert !Job.BATCHMODE;
-                jf.setVisible(true);
-            } else 
-                jf.toFront();
-        }                
     }
     
     public static void highlightPortExports(Highlighter highlighter, Cell cell, PortReport p) {

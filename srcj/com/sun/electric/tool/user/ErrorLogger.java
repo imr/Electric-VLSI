@@ -108,6 +108,8 @@ public class ErrorLogger implements Serializable
             index = 0;
         }
 
+        public Cell getCell() { return EDatabase.clientDatabase().getCell(logCellId);}
+
         public String getMessageString() { return message; }
 
         public Iterator<ErrorHighlight> getHighlights()
@@ -161,7 +163,7 @@ public class ErrorLogger implements Serializable
 
             if (logCellId != null)
             {
-                Cell logCell = EDatabase.clientDatabase().getCell(logCellId);
+                Cell logCell = getCell();
                 if (logCell != null)
                     cellInfo = "cellName=\"" + logCell.describe(false) + "\"";
             }

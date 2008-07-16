@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08b: ******************************
 
+IMP: (7/16/08, GVG) Display cell where MessageLog was found (Bug #1763)
+
 BUG: (7/15/08, GVG) Ctrl-B for resizing does not lock properly on direction (Bug #1758)
 FIX: Detecting X or Y conditions and avoiding to snap the corresponding coordinates.
 

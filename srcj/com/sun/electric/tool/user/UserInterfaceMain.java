@@ -344,31 +344,7 @@ public class UserInterfaceMain extends AbstractUserInterface
                     }
 
                     // make sure it is shown
-                    boolean found = false;
-                    for(Iterator<WindowFrame> it2 = WindowFrame.getWindows(); it2.hasNext(); )
-                    {
-                        WindowFrame wf = it2.next();
-                        WindowContent content = wf.getContent();
-                        if (!(content instanceof EditWindow)) continue;
-                        wnd = (EditWindow)content;
-                        if (wnd.getCell() == cell)
-                        {
-                            if (((eh.getVarContext() != null) && eh.getVarContext().equals(wnd.getVarContext())) ||
-                                    (eh.getVarContext() == null)) {
-                                // already displayed.  should force window "wf" to front? yes
-                                wf.getFrame().toFront();
-                                found = true;
-                                break;
-                            }
-                        }
-                    }
-                    if (!found)
-                    {
-                        // make a new window for the cell
-                        WindowFrame wf = WindowFrame.createEditWindow(cell);
-                        wnd = (EditWindow)wf.getContent();
-                        wnd.setCell(eh.getCell(database), eh.getVarContext(), null);
-                    }
+                    wnd = EditWindow.showEditWindowForCell(cell, eh.getVarContext());
                     if (highlighter == null) {
                         highlighter = wnd.getHighlighter();
                         highlighter.clear();
@@ -380,6 +356,7 @@ public class UserInterfaceMain extends AbstractUserInterface
                 eh.addToHighlighter(highlighter, database);
             }
 
+            // Something found to highlight
             if (highlighter != null)
             {
                 highlighter.ensureHighlightingSeen();
@@ -391,6 +368,17 @@ public class UserInterfaceMain extends AbstractUserInterface
                 if (!shown.intersects(hBounds))
                 {
                     wnd.focusOnHighlighted();
+                }
+            }
+            else
+            {
+                Cell logCell = log.getCell();
+                // Checking also that the cell hasn't been removed yet
+                if (logCell != null && logCell.isLinked())
+                {
+                    // in case of errors or warnings with only cell information
+                    // This would bring the EditWindow to the front.
+                    EditWindow.showEditWindowForCell(logCell, null);
                 }
             }
         }

@@ -1098,7 +1098,42 @@ public class EditWindow extends JPanel
 		return null;
 	}
 
-	public List<MutableTreeNode> loadExplorerTrees()
+    /**
+     * Method to bring to the front a WindowFrame associated to a given Cell.
+     * If no WindowFrame is found, a new WindowFrame will be created and displayed
+     * @param c
+     * @param varC
+     * @return
+     */
+    public static EditWindow showEditWindowForCell(Cell c, VarContext varC)
+    {
+        for(Iterator<WindowFrame> it2 = WindowFrame.getWindows(); it2.hasNext(); )
+        {
+            WindowFrame wf = it2.next();
+            WindowContent content = wf.getContent();
+            if (c != content.getCell())
+                continue;
+            if (!(content instanceof EditWindow))
+                continue;
+            EditWindow wnd = (EditWindow)content;
+            if (varC != null) // it has to be an EditWindow class
+            {
+                // VarContexts must match
+                if (!varC.equals(wnd.getVarContext()))
+                    continue;
+            }
+            WindowFrame.showFrame(wf);
+            return wnd;
+        }
+
+        // If no window is found, then create one
+        WindowFrame wf = WindowFrame.createEditWindow(c);
+        EditWindow wnd = (EditWindow)wf.getContent();
+        wnd.setCell(c, varC, null);
+        return wnd;
+    }
+
+    public List<MutableTreeNode> loadExplorerTrees()
 	{
 		return wf.loadDefaultExplorerTree();
 	}

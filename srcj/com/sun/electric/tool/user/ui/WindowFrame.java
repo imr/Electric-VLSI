@@ -35,21 +35,13 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Client;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.simulation.Stimuli;
-import com.sun.electric.tool.user.Highlight2;
-import com.sun.electric.tool.user.Highlighter;
-import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.UserInterfaceMain;
+import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.menus.WindowMenu;
 import com.sun.electric.tool.user.ui.WindowFrame.DisplayAttributes;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
 
-import java.awt.Component;
-import java.awt.Cursor;
-import java.awt.Dimension;
-import java.awt.GraphicsConfiguration;
-import java.awt.Point;
-import java.awt.Rectangle;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -68,17 +60,9 @@ import java.util.EventListener;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Observable;
+import java.beans.PropertyVetoException;
 
-import javax.swing.InputMap;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JInternalFrame;
-import javax.swing.JMenu;
-import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
-import javax.swing.JTabbedPane;
-import javax.swing.KeyStroke;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 import javax.swing.event.InternalFrameAdapter;
 import javax.swing.event.InternalFrameEvent;
 import javax.swing.tree.MutableTreeNode;
@@ -116,6 +100,34 @@ public class WindowFrame extends Observable
     /** current mouse motion listener */				public static MouseMotionListener curMouseMotionListener = ClickZoomWireListener.theOne;
     /** current mouse wheel listener */					public static MouseWheelListener curMouseWheelListener = ClickZoomWireListener.theOne;
     /** current key listener */							public static KeyListener curKeyListener = ClickZoomWireListener.theOne;
+
+    /**
+     * Use by highlight tools to bring the frame to the front.
+     * @param wf
+     */
+    public static void showFrame(WindowFrame wf) {
+        if (TopLevel.isMDIMode()) {
+            JInternalFrame jif = wf.getInternalFrame();
+            try {
+                jif.setIcon(false);
+                jif.setSelected(true);
+            } catch (PropertyVetoException e) {}
+            if (!jif.isVisible()) {
+                jif.toFront();
+                TopLevel.addToDesktop(jif);
+            } else
+                jif.toFront();
+        } else {
+            JFrame jf = wf.getFrame();
+            jf.setState(Frame.NORMAL);
+            if (!jf.isVisible()) {
+                jf.toFront();
+                assert !Job.BATCHMODE;
+                jf.setVisible(true);
+            } else
+                jf.toFront();
+        }
+    }
 
     public static void redrawNewColors()
     {
@@ -665,7 +677,7 @@ public class WindowFrame extends Observable
 	 */
 	public WindowContent getContent() { return content; }
 
-	/**
+    /**
 	 * Method to get the current WindowFrame. If there is no current
      * WindowFrame, then it will create a new EditWindow window frame.
 	 * @return the current WindowFrame.
