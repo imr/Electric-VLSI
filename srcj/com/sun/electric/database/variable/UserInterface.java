@@ -81,15 +81,9 @@ public interface UserInterface
     public void adjustReferencePoint(Cell cell, double cX, double cY);
 
 	/**
-	 * Method to request that all windows be redisplayed.
+	 * Method to request that all windows be redisplayed including palettes.
 	 */
-	public void repaintAllEditWindows();
-
-    /**
-     * Method to request the refresh of palette and layers tabs
-     * according to the new technology selected
-     */
-    public void loadComponentMenuForTechnology();
+	public void repaintAllWindows();
 
 	/**
 	 * Method to align a database coordinate with the current grid.

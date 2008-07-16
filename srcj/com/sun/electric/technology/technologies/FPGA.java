@@ -920,7 +920,7 @@ public class FPGA extends Technology
 				break;
 		}
 		UserInterface ui = Job.getUserInterface();
-		ui.repaintAllEditWindows();
+		ui.repaintAllWindows();
 	}
 
 	/**
@@ -932,7 +932,7 @@ public class FPGA extends Technology
 		if (show) internalDisplay |= TEXTDISPLAY; else
 			internalDisplay &= ~TEXTDISPLAY;
 		UserInterface ui = Job.getUserInterface();
-		ui.repaintAllEditWindows();
+		ui.repaintAllWindows();
 	}
 
 	/**
@@ -981,7 +981,7 @@ public class FPGA extends Technology
         public void terminateOK()
         {
 			UserInterface ui = Job.getUserInterface();
-			ui.repaintAllEditWindows();
+			ui.repaintAllWindows();
         }
 	}
 

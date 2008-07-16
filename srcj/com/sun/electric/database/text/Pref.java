@@ -32,7 +32,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.LineNumberReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.PrintWriter;
@@ -248,8 +247,8 @@ public class Pref
 		}
 
         Job.getExtendedUserInterface().restoreSavedBindings(false);
-        Job.getUserInterface().repaintAllEditWindows();
-		System.out.println("...preferences imported from " + fileURL.getFile());
+        Job.getUserInterface().repaintAllWindows();
+        System.out.println("...preferences imported from " + fileURL.getFile());
 	}
 
 	/**

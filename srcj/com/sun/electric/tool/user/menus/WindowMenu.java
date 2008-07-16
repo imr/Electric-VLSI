@@ -699,7 +699,7 @@ public class WindowMenu {
         EDatabase.clientDatabase().getGeneric().setBackgroudColor(Color.BLACK);
 
         // redraw
-        WindowFrame.redrawNewColors();
+        WindowFrame.repaintAllWindows();
     }
 
     /**
@@ -722,7 +722,7 @@ public class WindowMenu {
         EDatabase.clientDatabase().getGeneric().setBackgroudColor(Color.WHITE);
 
         // redraw
-        WindowFrame.redrawNewColors();
+        WindowFrame.repaintAllWindows();
     }
 
     /**
@@ -745,7 +745,7 @@ public class WindowMenu {
         EDatabase.clientDatabase().getGeneric().setBackgroudColor(Color.BLACK);
 
         // redraw
-        WindowFrame.redrawNewColors();
+        WindowFrame.repaintAllWindows();
     }
 
     private static GraphicsDevice [] getAllGraphicsDevices() {

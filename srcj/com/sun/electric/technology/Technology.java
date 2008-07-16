@@ -5920,8 +5920,7 @@ public class Technology implements Comparable<Technology>, Serializable
                 // recache display information for all cells that use this
                     User.technologyChanged();
                     UserInterface ui = Job.getUserInterface();
-                    ui.loadComponentMenuForTechnology();
-                    ui.repaintAllEditWindows();
+                    ui.repaintAllWindows();
                 }
             });
         }

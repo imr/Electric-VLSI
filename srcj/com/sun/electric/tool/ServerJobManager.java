@@ -530,15 +530,9 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
             Job.currentUI.setCurrentCell(lib, curCell);
 		}
 
-		public void repaintAllEditWindows() {
-            printStackTrace("repaintAllEditWindows");
-            Job.currentUI.repaintAllEditWindows();
-        }
-
-        public void loadComponentMenuForTechnology()
-        {
-            printStackTrace("loadComponentMenuForTechnology");
-            Job.currentUI.loadComponentMenuForTechnology();
+		public void repaintAllWindows() {
+            printStackTrace("repaintAllWindows");
+            Job.currentUI.repaintAllWindows();
         }
 
         public void adjustReferencePoint(Cell cell, double cX, double cY) {

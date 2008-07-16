@@ -129,7 +129,7 @@ public class WindowFrame extends Observable
         }
     }
 
-    public static void redrawNewColors()
+    public static void repaintAllWindows()
     {
 		for(Iterator<WindowFrame> it = getWindows(); it.hasNext(); )
 		{

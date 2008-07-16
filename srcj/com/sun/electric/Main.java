@@ -230,11 +230,8 @@ public final class Main
             }
             return curCell;
 		}
-		public void repaintAllEditWindows() {}
-        public void loadComponentMenuForTechnology()
-        {
-             System.out.println("Batch mode Electric has no loadComponentMenuForTechnology");
-        }
+		public void repaintAllWindows() {}
+
         public void adjustReferencePoint(Cell cell, double cX, double cY) {};
 		public void alignToGrid(Point2D pt) {}
 		public double getGridAlignment() { return 1; }

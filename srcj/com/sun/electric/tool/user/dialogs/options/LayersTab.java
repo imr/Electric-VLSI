@@ -374,7 +374,7 @@ public class LayersTab extends PreferencePanel
 		// redisplay if changes were made
 		if (changed)
 		{
-            WindowFrame.redrawNewColors();
+            WindowFrame.repaintAllWindows();
 		}
 	}
 

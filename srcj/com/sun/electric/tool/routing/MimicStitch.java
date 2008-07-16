@@ -952,7 +952,7 @@ public class MimicStitch
 					}
 	                wnd.finishedHighlighting();
 				}				
-				ui.repaintAllEditWindows();
+				ui.repaintAllWindows();
 			}
 		}
 	}
