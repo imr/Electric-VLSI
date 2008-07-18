@@ -4,7 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08b: ******************************
 
-IMP: (7/17/08, GVG) Min well contacts in CMOS90
+IMP: (7/17/08, GVG) Move option for Cells in ExplorerTree (Bug #1764).
+
+IMP: (7/17/08, GVG) Min well contacts in CMOS90.
 
 BUG: (7/16/08, GVG) Import User's preferences missing a palette refresh (Bug #1762)
 FIX: Consistent call of UserInferface.repaintAllWindows(), function that also takes care of palettes and tabs.

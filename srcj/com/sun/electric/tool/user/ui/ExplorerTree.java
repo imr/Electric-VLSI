@@ -1727,13 +1727,25 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 				menu.add(menuItem);
 				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { deleteCellAction(); } });
 
-				menu.addSeparator();
+                JMenu subMenu = new JMenu("Move Cell");
+				menu.add(subMenu);
+                for (Iterator<Library> libIter = Library.getLibraries(); libIter.hasNext();)
+                {
+                    Library lib = libIter.next();
+                    if (lib == cell.getLibrary()) continue; // already in this one
+                    if (lib.isHidden()) continue; // Clipboard.
+                    JMenuItem subMenuItem = new JMenuItem(lib.getName());
+                    subMenu.add(subMenuItem);
+                    subMenuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { moveCellAction(e); } });
+                }
+
+                menu.addSeparator();
 
 				menuItem = new JMenuItem("Rename Cell");
 				menu.add(menuItem);
 				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { renameCellAction(); } });
 
-				JMenu subMenu = new JMenu("Change View");
+				subMenu = new JMenu("Change View");
 				menu.add(subMenu);
 				for(View view : View.getOrderedViews())
 				{
@@ -2388,7 +2400,17 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 			CircuitChanges.renameCellInJob(cell, response);
 		}
 
-		private void reViewCellAction(ActionEvent e)
+        private void moveCellAction(ActionEvent e)
+        {
+			JMenuItem menuItem = (JMenuItem)e.getSource();
+			String libName = menuItem.getText();
+            Library destLib = Library.findLibrary(libName);
+            assert(destLib != null); // it should be consistent.
+            Cell cell = (Cell)getCurrentlySelectedObject(0);
+            new CrossLibraryCopyJob(cell, destLib, false, false);
+        }
+        
+        private void reViewCellAction(ActionEvent e)
 		{
 			JMenuItem menuItem = (JMenuItem)e.getSource();
 			String viewName = menuItem.getText();
