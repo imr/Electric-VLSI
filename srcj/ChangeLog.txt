@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08b: ******************************
 
+BUG: (7/21/08, GVG) Pasting of long geometries while locking a direction (Bug #1748)
+FIX: Detecting x and y deltas based on last mouse position.
+
 IMP: (7/17/08, GVG) Move option for Cells in ExplorerTree (Bug #1764).
 
 IMP: (7/17/08, GVG) Min well contacts in CMOS90.

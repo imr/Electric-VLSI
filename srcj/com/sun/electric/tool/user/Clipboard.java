@@ -1273,14 +1273,26 @@ public class Clipboard
 
 			double deltaX = mouseDB.getX() - refPastePoint.getX();
 			double deltaY = mouseDB.getY() - refPastePoint.getY();
-
-			// if orthogonal is true, convert to orthogonal
+            
+            // if orthogonal is true, convert to orthogonal
 			if (orthogonal)
 			{
-				// only use delta in direction that has larger delta
-				if (Math.abs(deltaX) > Math.abs(deltaY)) deltaY = 0;
-					else deltaX = 0;
-			}
+                double distanceX = deltaX;
+                double distanceY = deltaY;
+
+                // deciding direction for the move
+                if (lastMouseDB != null)
+                {
+                    distanceX = mouseDB.getX() - lastMouseDB.getX();
+                    distanceY = mouseDB.getY() - lastMouseDB.getY();
+                }
+                // only use delta in direction that has larger delta
+//                if (Math.abs(deltaX) > Math.abs(deltaY))
+                if (Math.abs(distanceX) > Math.abs(distanceY))
+                    deltaY = 0;
+                else
+                    deltaX = 0;
+            }
 
 			// this is now a delta, not a point
 			refPastePoint.setLocation(deltaX, deltaY);
