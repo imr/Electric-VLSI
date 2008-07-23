@@ -773,12 +773,7 @@ public class TextInfoPanel extends javax.swing.JPanel
             td.setInterior(invis);
 
             // handle changes to the font
-            if (font.equals("DEFAULT FONT")) td.setFace(0);
-            else {
-                TextDescriptor.ActiveFont newFont = TextDescriptor.ActiveFont.findActiveFont(font);
-                int newFontIndex = newFont != null ? newFont.getIndex() : 0;
-                td.setFace(newFontIndex);
-            }
+            td.setFaceWithActiveFont(font);
 
             // handle changes to italic / bold / underline
             td.setItalic(italic);

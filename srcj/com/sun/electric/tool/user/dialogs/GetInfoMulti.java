@@ -532,7 +532,8 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 						JComboBox fo = new JComboBox();
 						fo.addItem("Leave alone");
 				        Font[] fonts = GraphicsEnvironment.getLocalGraphicsEnvironment().getAllFonts();
-				        for(int i=0; i<fonts.length; i++)
+                        fo.addItem("DEFAULT FONT");
+                        for(int i=0; i<fonts.length; i++)
 				            fo.addItem(fonts[i].getFontName());
 						addChangePossibility("Text Font:", currentChangeValues[c] = fo, null, onePanel);
 						break;
@@ -540,7 +541,8 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 						JComboBox co = new JComboBox();
 						co.addItem("Leave alone");
 				        int [] colorIndices = EGraphics.getColorIndices();
-						for(int i=0; i<colorIndices.length; i++)
+                        co.addItem("DEFAULT COLOR");
+                        for(int i=0; i<colorIndices.length; i++)
 				            co.addItem(EGraphics.getColorIndexName(colorIndices[i]));
 						addChangePossibility("Text Color:", currentChangeValues[c] = co, null, onePanel);
 						break;
@@ -1006,16 +1008,12 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 					}
 					if (mcp.font != null)
 					{
-		                TextDescriptor.ActiveFont newFont = TextDescriptor.ActiveFont.findActiveFont(mcp.font);
-		                int newFontIndex = newFont != null ? newFont.getIndex() : 0;
-		                td.setFace(newFontIndex);
+                        td.setFaceWithActiveFont(mcp.font);
 						tdChanged = true;
 					}
 					if (mcp.color > 0)
 					{
-						int [] colorIndices = EGraphics.getColorIndices();
-				        int newColorIndex = colorIndices[mcp.color-1];
-						td.setColorIndex(newColorIndex);
+                        td.setColorWithEGraphicsIndex(mcp.color-1); // -1 because of DEFAULT COLOR
 						tdChanged = true;
 					}
 					if (mcp.bold == 1) { td.setBold(true);   tdChanged = true; } else
@@ -1094,16 +1092,12 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 					}
 					if (mcp.font != null)
 					{
-		                TextDescriptor.ActiveFont newFont = TextDescriptor.ActiveFont.findActiveFont(mcp.font);
-		                int newFontIndex = newFont != null ? newFont.getIndex() : 0;
-		                td.setFace(newFontIndex);
+                        td.setFaceWithActiveFont(mcp.font);
 						tdChanged = true;
 					}
 					if (mcp.color > 0)
 					{
-						int [] colorIndices = EGraphics.getColorIndices();
-				        int newColorIndex = colorIndices[mcp.color-1];
-						td.setColorIndex(newColorIndex);
+                        td.setColorWithEGraphicsIndex(mcp.color-1); // -1 because of DEFAULT COLOR
 						tdChanged = true;
 					}
 					if (mcp.units > 0)

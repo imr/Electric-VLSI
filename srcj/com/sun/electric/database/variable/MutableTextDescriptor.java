@@ -23,6 +23,8 @@
  */
 package com.sun.electric.database.variable;
 
+import com.sun.electric.database.geometry.EGraphics;
+
 /**
  * This class describes how variable text appears.
 */
@@ -199,6 +201,21 @@ public class MutableTextDescriptor extends AbstractTextDescriptor
 	public void setDisplay(Display display) { this.display = display; }
 
     /**
+     * Method to set the color index of the TextDescription with an EGraphics index.
+     * @param color
+     */
+    public void setColorWithEGraphicsIndex(int color)
+    {
+        int newColorIndex = color; // zero is DEFAULT COLOR
+        if (color > 0)
+        {
+            int [] colorIndices = EGraphics.getColorIndices();
+            newColorIndex = colorIndices[color-1];
+        }
+        setColorIndex(newColorIndex);
+    }
+
+    /**
 	 * Method to set the color index of the TextDescriptor.
 	 * Color indices are more general than colors, because they can handle
 	 * transparent layers, C-Electric-style opaque layers, and full color values.
@@ -247,7 +264,22 @@ public class MutableTextDescriptor extends AbstractTextDescriptor
 		setField(VTSIZE, VTSIZESH, size.getBits());
 	}
 
-	/**
+    /**
+     * Method to set the text font of a MutableTextDescriptor with a given Font.
+     * If DEFAULT FONT is the name, set the value to 0.
+     * @param fontName the name of the font.
+     */
+    public void setFaceWithActiveFont(String fontName)
+    {
+        if (fontName.equals("DEFAULT FONT")) setFace(0);
+        else {
+            TextDescriptor.ActiveFont newFont = TextDescriptor.ActiveFont.findActiveFont(fontName);
+            int newFontIndex = newFont != null ? newFont.getIndex() : 0;
+            setFace(newFontIndex);
+        }
+    }
+
+    /**
 	 * Method to set the text font of the TextDescriptor.
 	 * @param f the text font of the TextDescriptor.
 	 */

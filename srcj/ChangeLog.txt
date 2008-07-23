@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08b: ******************************
 
+IMP: (7/22/08, GVG) No default font/color available in Multi-Object dialog (Bug #1774)
+
 IMP: (7/22/08, GVG) Adding min poly contact in CMOS90
 
 BUG: (7/21/08, GVG) Pasting of long geometries while locking a direction (Bug #1748)
