@@ -999,7 +999,9 @@ public class EditMenu {
 					highlighter.addElectricObject(ni, curCell);
 				}
 			}
-			for(Iterator<Variable> vIt = ni.getParametersAndVariables(); vIt.hasNext(); )
+            if (likeThis.contains(NodeInst.NODE_NAME.getName()))
+                highlighter.addText(ni, curCell, NodeInst.NODE_NAME);
+            for(Iterator<Variable> vIt = ni.getParametersAndVariables(); vIt.hasNext(); )
 			{
 				Variable var = vIt.next();
 				if (likeThis.contains(var.getKey().getName()))
@@ -1009,9 +1011,11 @@ public class EditMenu {
 		for(Iterator<ArcInst> it = curCell.getArcs(); it.hasNext(); )
 		{
 			ArcInst ai = it.next();
-			if (likeThis.contains(ai.getProto()))
+            if (likeThis.contains(ai.getProto()))
 				highlighter.addElectricObject(ai, curCell);
-			for(Iterator<Variable> vIt = ai.getVariables(); vIt.hasNext(); )
+            if (likeThis.contains(ArcInst.ARC_NAME.getName()))
+                highlighter.addText(ai, curCell, ArcInst.ARC_NAME);
+            for(Iterator<Variable> vIt = ai.getVariables(); vIt.hasNext(); )
 			{
 				Variable var = vIt.next();
 				if (likeThis.contains(var.getKey().getName()))
