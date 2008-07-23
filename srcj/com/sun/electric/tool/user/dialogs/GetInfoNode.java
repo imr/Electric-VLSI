@@ -125,7 +125,8 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 			if (TopLevel.isMDIMode()) jf = TopLevel.getCurrentJFrame();
 			theDialog = new GetInfoNode(jf);
 		}
-		theDialog.loadInfo();
+
+        theDialog.loadInfo();
 
 		if (!theDialog.isVisible())
 		{
@@ -216,7 +217,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 			case 2: busMembers.setSelected(true);  break;
 		}
 
-		loadInfo();
+//		loadInfo();
 		finishInitialization();
 	}
 
