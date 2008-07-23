@@ -93,7 +93,8 @@ public class RouteElementArc extends RouteElement {
     	EPoint tailEP = EPoint.snap(tailConnPoint);
     	MutableBoolean headExtend = new MutableBoolean(extendArcHead);
     	MutableBoolean tailExtend = new MutableBoolean(extendArcTail);
-    	if (stayInside != null)
+
+        if (stayInside != null)
     	{
 //        	Technology.ArcLayer al = ap.getArcLayer(0);
         	Layer layer = ap.getLayer(0);
@@ -102,6 +103,7 @@ public class RouteElementArc extends RouteElement {
             double arcExtendOverMin = arcBaseWidth*0.5 - ap.getLambdaBaseExtend();
 //            double arcBaseWidth = arcWidth - ap.getLambdaWidthOffset();
         	boolean good = stayInside.arcPolyFits(layer, headEP, tailEP, 2*(arcExtendOverMin+layerExtend), headExtend, tailExtend);
+            double area = stayInside.getAreaOfLayer(layer);
 //        	boolean good = stayInside.arcPolyFits(layer, headEP, tailEP, arcWidth-offset, headExtend, tailExtend);
 
         	// try reducing to default width if it doesn't fit
@@ -115,12 +117,13 @@ public class RouteElementArc extends RouteElement {
         	}
 
         	// make it zero-width if it doesn't fit
-        	if (!good)
+        	if (!good && area > 0)
         	{
         		arcBaseWidth = 0;
 //        		arcFullWidth = ap.getLambdaWidthOffset();
         	}
     	}
+
         RouteElementArc e = new RouteElementArc(RouteElementAction.newArc, cell);
         e.arcProto = ap;
         e.arcBaseWidth = arcBaseWidth;

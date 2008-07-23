@@ -27,24 +27,11 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.TopLevel;
 
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.Frame;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.event.ActionEvent;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
-import java.awt.event.KeyEvent;
+import java.awt.*;
+import java.awt.event.*;
 import java.util.HashMap;
 
-import javax.swing.AbstractAction;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JDialog;
-import javax.swing.JList;
-import javax.swing.JTree;
-import javax.swing.KeyStroke;
+import javax.swing.*;
 import javax.swing.text.JTextComponent;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
@@ -56,7 +43,7 @@ public class EDialog extends JDialog
 {
 	private static HashMap<Class,Point> locations = new HashMap<Class,Point>();
 	private static HashMap<Class,Dimension> sizes = new HashMap<Class,Dimension>();
-//    public static TextBoxFocusListener textBoxFocusListener = new TextBoxFocusListener();
+    public static TextBoxFocusListener textBoxFocusListener = new TextBoxFocusListener();
 
 	/** Creates new form */
 	protected EDialog(Frame parent, boolean modal)
@@ -73,7 +60,7 @@ public class EDialog extends JDialog
 
 		addComponentListener(new MoveComponentListener());
 
-		final String CANCEL_DIALOG = "cancel-dialog";
+        final String CANCEL_DIALOG = "cancel-dialog";
 		KeyStroke accel = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
 		getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(accel, CANCEL_DIALOG);
 		getRootPane().getActionMap().put(CANCEL_DIALOG, new AbstractAction()
@@ -198,32 +185,46 @@ public class EDialog extends JDialog
      */
 	public static void focusOnTextField(JTextComponent textComponent)
     {
-        textComponent.setSelectionStart(0);
-        textComponent.setSelectionEnd(textComponent.getDocument().getLength());
+        textComponent.selectAll();
+//        textComponent.setSelectionStart(0);
+//        textComponent.setSelectionEnd(textComponent.getDocument().getLength());
     }
 
-//    private static class TextBoxFocusListener implements FocusListener
-//    {
-//        public void focusGained(FocusEvent e)
-//        {
-//            Component source = e.getComponent();
-//            if (source instanceof JTextField)
-//            {
-//                JTextField textField = (JTextField)source;
-//                if (textField.isEnabled() && textField.isEditable())
-//                {
-//                    int len = textField.getDocument().getLength();
-//                    textField.setSelectionStart(0);
-//                    textField.setSelectionEnd(len);
-//                }
-//            }
-//        }
-//
-//        public void focusLost(FocusEvent e)
-//        {
-//            // To change body of implemented methods use File | Settings | File Templates.
-//        }
-//    }
+    public static void addFocusListener(JTextField textField)
+    {
+        // to listen the accelerators in TextFields
+        textField.addFocusListener(new TextBoxFocusListener());
+    }
+
+    private static class TextBoxFocusListener implements FocusListener
+    {
+        public void focusGained(FocusEvent e)
+        {
+            Component source = e.getComponent();
+            if (source instanceof JTextField)
+            {
+                JTextField textField = (JTextField)source;
+                if (textField.isEnabled() && textField.isEditable())
+                {
+                    textField.selectAll();
+                }
+            }
+        }
+
+        public void focusLost(FocusEvent e)
+        {
+            // To change body of implemented methods use File | Settings | File Templates.
+            Component source = e.getComponent();
+            if (source instanceof JTextField)
+            {
+                JTextField textField = (JTextField)source;
+                if (textField.isEnabled() && textField.isEditable())
+                {
+                    textField.select(0,0);
+                }
+            }
+        }
+    }
 
 
 	/**

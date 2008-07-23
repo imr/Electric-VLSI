@@ -655,7 +655,16 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 			textField.setEditable(true);
 			textField.setText(initialTextField);
 		}
-		EDialog.focusOnTextField(name);
+        // Adding Focus listener for acceleratos
+//        EDialog.addFocusListener(name);
+//        EDialog.addFocusListener(xPos);
+//        EDialog.addFocusListener(yPos);
+//        EDialog.addFocusListener(xSize);
+//        EDialog.addFocusListener(ySize);
+//        EDialog.addFocusListener(rotation);
+
+        // Setting the initial focus
+        EDialog.focusOnTextField(name);
 	}
 
 	private void showProperList()
