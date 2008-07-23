@@ -4,7 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08b: ******************************
 
-IMP" (7/23/08, GVG) Select all like this doesn't work on annotation text? (Bug #1773)
+IMP: (7/23/08, GVG) ErrorLogger for extraction tool? (Bug #1772)
+
+IMP: (7/23/08, GVG) Select all like this doesn't work on annotation text? (Bug #1773)
 
 IMP: (7/22/08, GVG) No default font/color available in Multi-Object dialog (Bug #1774)
 

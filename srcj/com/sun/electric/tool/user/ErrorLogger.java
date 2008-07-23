@@ -459,8 +459,9 @@ public class ErrorLogger implements Serializable
      * @param cell the cell in which this message applies.
      * @param sortKey the sorting order of this message.
      */
-    public synchronized void logError(String message, List<Geometric> geomList, List<Export> exportList, List<EPoint> lineList, List<EPoint> pointList,
-    	List<PolyBase> polyList, Cell cell, int sortKey)
+    public synchronized void logError(String message, List<Geometric> geomList, List<Export> exportList,
+                                      List<EPoint> lineList, List<EPoint> pointList,
+                                      List<PolyBase> polyList, Cell cell, int sortKey)
     {
     	List<ErrorHighlight> h = new ArrayList<ErrorHighlight>();
     	if (geomList != null)

@@ -62,6 +62,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.routing.AutoStitch;
 import com.sun.electric.tool.user.Highlight2;
+import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.ui.TopLevel;
 
@@ -124,8 +125,9 @@ public class Connectivity
 	/** debugging: list of objects created */					private List<ERectangle> addedRectangles;
 	/** debugging: list of objects created */					private List<ERectangle> addedLines;
 	/** list of exported pins to realize at the end */			private List<ExportedPin> pinsForLater;
+    /** ErrorLogger to keep up with errors during extraction */ private ErrorLogger errorLogger;
 
-	/**
+    /**
 	 * Method to examine the current cell and extract it's connectivity in a new one.
 	 * @param recursive true to recursively extract the hierarchy below this cell.
 	 */
@@ -147,18 +149,20 @@ public class Connectivity
 		/** debugging: list of objects created */	private List<List<ERectangle>> addedBatchRectangles;
 		/** debugging: list of objects created */	private List<List<ERectangle>> addedBatchLines;
 		/** debugging: list of objects created */	private List<String> addedBatchNames;
+        /** */ private ErrorLogger errorLogger;
 
-		private ExtractJob(Cell cell, boolean recursive)
+        private ExtractJob(Cell cell, boolean recursive)
 		{
 			super("Extract Connectivity from " + cell, Extract.getExtractTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.recursive = recursive;
-			startJob();
+            this.errorLogger = ErrorLogger.newInstance("Extraction Tool on cell " + cell.getName());
+            startJob();
 		}
 
 		public boolean doIt() throws JobException
 		{
-			Connectivity c = new Connectivity(cell);
+			Connectivity c = new Connectivity(cell, errorLogger);
 			String expansionPattern = Extract.getCellExpandPattern().trim();
 			Pattern pat = null;
 			if (expansionPattern.length() > 0)
@@ -184,15 +188,17 @@ public class Connectivity
 			fieldVariableChanged("addedBatchLines");
 			fieldVariableChanged("addedBatchNames");
 			fieldVariableChanged("newCell");
-			return true;
+            fieldVariableChanged("errorLogger");
+            return true;
 		}
 
 		public void terminateOK()
 		{
 			UserInterface ui = Job.getUserInterface();
 			EditWindow_ wnd = ui.displayCell(newCell);
+            Job.getUserInterface().termLogging(errorLogger, false, false);
 
-			if (DEBUGSTEPS)
+            if (DEBUGSTEPS)
 			{
 				// show results of each step
 				JFrame jf = null;
@@ -217,14 +223,15 @@ public class Connectivity
 	 * Constructor to initialize connectivity extraction.
 	 * @param tech the Technology to extract to.
 	 */
-	private Connectivity(Cell cell)
+	private Connectivity(Cell cell, ErrorLogger eLog)
 	{
 		tech = cell.getTechnology();
 		convertedCells = new HashMap<Cell,Cell>();
 		smallestPoly = (SCALEFACTOR * SCALEFACTOR) * Extract.getSmallestPolygonSize();
 		bogusContacts = new HashSet<PrimitiveNode>();
+        errorLogger = eLog;
 
-		// find pure-layer nodes that are never involved in higher-level components, and should be ignored
+        // find pure-layer nodes that are never involved in higher-level components, and should be ignored
 		ignoreNodes = new HashSet<PrimitiveNode>();
 		for(Iterator<PrimitiveNode> pIt = tech.getNodes(); pIt.hasNext(); )
 		{
@@ -336,13 +343,25 @@ public class Connectivity
 		}
 	}
 
-	/**
+    /**
+     * Method to log errors during node extraction.
+     */
+    private void addErrorLog(Cell cell, String msg, EPoint... pList)
+    {
+        List<EPoint> pointList = new ArrayList<EPoint>();
+        for(EPoint p : pList)
+            pointList.add(p);
+        errorLogger.logError(msg, null, null, null, pointList, null, cell, -1);
+        System.out.println(msg);
+    }
+
+    /**
 	 * Top-level method in extracting connectivity from a Cell.
 	 * A new version of the cell is created that has real nodes (transistors, contacts) and arcs.
 	 * This cell should have pure-layer nodes which will be converted.
 	 */
 	private Cell doExtract(Cell oldCell, boolean recursive, Pattern pat, boolean top,
-		List<List<ERectangle>> addedBatchRectangles, List<List<ERectangle>> addedBatchLines, List<String> addedBatchNames)
+                           List<List<ERectangle>> addedBatchRectangles, List<List<ERectangle>> addedBatchLines, List<String> addedBatchNames)
 	{
 		if (recursive)
 		{
@@ -457,7 +476,7 @@ public class Connectivity
 			for(Iterator<ArcInst> it = newCell.getArcs(); it.hasNext(); )
 				allArcs.add(it.next());
 		}
-		AutoStitch.runAutoStitch(newCell, null, null, originalUnscaledMerge, null, false, true, true);
+        AutoStitch.runAutoStitch(newCell, null, null, originalUnscaledMerge, null, false, true, true);
 		if (DEBUGSTEPS)
 		{
 			initDebugging();
@@ -596,8 +615,8 @@ public class Connectivity
 					newCell, ni.getOrient(), ni.getName(), ni.getTechSpecific());
 				if (newNi == null)
 				{
-					System.out.println("Problem creating new instance of " + ni.getProto());
-					return;
+                    addErrorLog(newCell, "Problem creating new instance of " + ni.getProto(), new EPoint(sX, sY));
+                    return;
 				}
 				newNodes.put(ni, newNi);
 
@@ -823,15 +842,22 @@ public class Connectivity
 					}
 					if (!fits) continue;
 
-					// create the wire
+                    // create the wire
 					ArcInst ai = realizeArc(ap, pi1, pi2, loc1Unscaled, loc2Unscaled, cl.width / SCALEFACTOR,
 						!headExtend.booleanValue(), !tailExtend.booleanValue(), merge);
 					if (ai == null)
 					{
-						System.out.println("  Failed to run arc " + ap.getName() + " from (" + loc1Unscaled.getX() + "," +
+                        String msg = "  Failed to run arc " + ap.getName() + " from (" + loc1Unscaled.getX() + "," +
 							loc1Unscaled.getY() + ") on node " + pi1.getNodeInst().describe(false) + " to (" +
-							loc2Unscaled.getX() + "," + loc2Unscaled.getY() + ") on node " + pi2.getNodeInst().describe(false));
-						return true;
+							loc2Unscaled.getX() + "," + loc2Unscaled.getY() + ") on node " + pi2.getNodeInst().describe(false);
+//                        System.out.println(msg);
+//                        List<EPoint> pointList = new ArrayList<EPoint>();
+//                        pointList.add(new EPoint(loc1Unscaled.getX(), loc1Unscaled.getY()));
+//                        pointList.add(new EPoint(loc2Unscaled.getX(), loc2Unscaled.getY()));
+//                        errorLogger.logError(msg, null, null, null, pointList, null, newCell, -1);
+                        addErrorLog(newCell, msg, new EPoint(loc1Unscaled.getX(), loc1Unscaled.getY()),
+                            new EPoint(loc2Unscaled.getX(), loc2Unscaled.getY()));
+                        return true;
 					}
 				}
 			}
@@ -1224,8 +1250,9 @@ public class Connectivity
 						PortInst touchingPi = findPortInstClosestToPoly(ni, (PrimitivePort)oPoly.getPort(), pt);
 						if (touchingPi == null)
 						{
-							System.out.println("Can't find port for "+ni+" and "+oPoly.getPort());
-							continue;
+                            addErrorLog(newCell, "Can't find port for "+ni+" and "+oPoly.getPort(),
+                                new EPoint(pt.getX(), pt.getY()));
+                            continue;
 						}
 						touchingNodes.add(touchingPi);
 						break;
@@ -1404,9 +1431,11 @@ public class Connectivity
 				if (cutBox == null)
 				{
 					cutBox = cut.getBounds2D();
-					System.out.println("Cannot extract nonManhattan contact cut at (" +
-						(cutBox.getCenterX()/SCALEFACTOR) + "," + (cutBox.getCenterY()/SCALEFACTOR) + ")");
-					cutList.remove(cut);
+                    double centerX = cutBox.getCenterX()/SCALEFACTOR;
+                    double centerY = cutBox.getCenterY()/SCALEFACTOR;
+                    String msg = "Cannot extract nonManhattan contact cut at (" + (centerX) + "," + (centerY) + ")";
+                    addErrorLog(newCell, msg, new EPoint(centerX, centerY));
+                    cutList.remove(cut);
 					cutsNotExtracted.add(cut);
 					continue;
 				}
@@ -1560,10 +1589,12 @@ public class Connectivity
 				}
 				if (!foundCut)
 				{
-					String msg = "Did not extract contact cut at (" +
-						(cutBox.getCenterX()/SCALEFACTOR) + "," + (cutBox.getCenterY()/SCALEFACTOR) + ")";
+                    double centerX = cutBox.getCenterX()/SCALEFACTOR;
+                    double centerY = cutBox.getCenterY()/SCALEFACTOR;
+                    String msg = "Did not extract contact cut at (" +
+						(centerX) + "," + (centerY) + ")";
 					if (reason != null) msg += " because " + reason;
-					System.out.println(msg);
+                    addErrorLog(newCell, msg, new EPoint(centerX, centerY));
 					cutList.remove(cut);
 					cutsNotExtracted.add(cut);
 				}
@@ -1872,7 +1903,7 @@ public class Connectivity
 					{
 						bogusContacts.add(pNp);
 						System.out.println("Not extracting unusual via contact: " + pNp.describe(false));
-					}
+                    }
 					continue;
 				}
 			}
@@ -2141,9 +2172,10 @@ public class Connectivity
 					hei = transBox.getWidth();
 				} else
 				{
-					System.out.println("Transistor at (" + transBox.getCenterX() + "," + transBox.getCenterY() +
-						") doesn't have proper tabs...ignored");
-					continue;
+                    addErrorLog(newCell, "Transistor at (" + transBox.getCenterX() + "," + transBox.getCenterY() +
+						") doesn't have proper tabs...ignored",
+                    new EPoint(transBox.getCenterX(), transBox.getCenterY()));
+                    continue;
 				}
 				SizeOffset so = transistor.getProtoSizeOffset();
 				double width = wid + scaleUp(so.getLowXOffset() + so.getHighXOffset());
@@ -3415,8 +3447,10 @@ public class Connectivity
 						if (ai != null) ai.setFixedAngle(false);
 					} else
 					{
-						System.out.println("Unable to connect unextracted polygon");
-					}
+                        // Approximating the error with center
+                        addErrorLog(newCell, "Unable to connect unextracted polygon",
+                            new EPoint(searchBound.getCenterX(), searchBound.getCenterY()));
+                    }
 				}
 			}
 		}
@@ -3538,8 +3572,9 @@ public class Connectivity
 				NodeInst newNi = NodeInst.makeInstance(ep.ni.getProto(), instanceAnchor, sX, sY, newCell);
 				if (newNi == null)
 				{
-					System.out.println("Problem creating new instance of " + ep.ni.getProto());
-					return;
+                    addErrorLog(newCell, "Problem creating new instance of " + ep.ni.getProto(),
+                        new EPoint(sX, sY));
+                    return;
 				}
 				PortInst newPi = newNi.findPortInstFromProto(e.getOriginalPort().getPortProto());
 				Export.newInstance(newCell, newPi, e.getName());
@@ -3685,7 +3720,7 @@ public class Connectivity
 	private ArcInst realizeArc(ArcProto ap, PortInst pi1, PortInst pi2, Point2D pt1, Point2D pt2, double width,
 		boolean noHeadExtend, boolean noTailExtend, PolyMerge merge)
 	{
-		ArcInst ai = ArcInst.makeInstanceBase(ap, width, pi1, pi2, pt1, pt2, null);
+        ArcInst ai = ArcInst.makeInstanceBase(ap, width, pi1, pi2, pt1, pt2, null);
 		if (ai == null) return null;
 		if (noHeadExtend) ai.setHeadExtended(false);
 		if (noTailExtend) ai.setTailExtended(false);
