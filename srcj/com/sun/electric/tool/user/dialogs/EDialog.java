@@ -127,12 +127,6 @@ public class EDialog extends JDialog
         setVisible(false);
     }
 
-    public static void focusClearOnTextField(JTextComponent textComponent)
-    {
-        textComponent.setSelectionStart(0);
-        textComponent.setSelectionEnd(0);
-    }
-
 	/**
 	 * Method to ensure that a JComboBox of font names contains a given name.
 	 * @param fontBox the JComboBox with font names.
@@ -188,6 +182,17 @@ public class EDialog extends JDialog
         textComponent.selectAll();
 //        textComponent.setSelectionStart(0);
 //        textComponent.setSelectionEnd(textComponent.getDocument().getLength());
+    }
+
+    /**
+     * Unselect the text in the specified textComponebnt.
+     * @param textComponent
+     */
+    public static void focusClearOnTextField(JTextComponent textComponent)
+    {
+        textComponent.select(0, 0);
+//        textComponent.setSelectionStart(0);
+//        textComponent.setSelectionEnd(0);
     }
 
     public static void addFocusListener(JTextField textField)
