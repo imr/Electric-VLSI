@@ -4,7 +4,7 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08b: ******************************
 
-IMP: (7/23/08, GVG) Allow to combine contacts extraced with and without approximateCuts on.
+IMP: (7/23/08, GVG) Allow to combine contacts extracted with and without approximateCuts on.
 Higher priority to multi-cut contacts (approximateCuts on).
 
 IMP: (7/23/08, GVG) ErrorLogger for extraction tool? (Bug #1772)
@@ -15,8 +15,9 @@ IMP: (7/22/08, GVG) No default font/color available in Multi-Object dialog (Bug 
 
 IMP: (7/22/08, GVG) Adding min poly contact in CMOS90
 
-BUG: (7/21/08, GVG) Pasting of long geometries while locking a direction (Bug #1748)
-FIX: Detecting x and y deltas based on last mouse position.
+//BUG: (7/21/08, GVG) Pasting of long geometries while locking a direction (Bug #1748)
+//FIX: Detecting x and y deltas based on last mouse position.
+//Changed undone on 7/23/08
 
 IMP: (7/17/08, GVG) Move option for Cells in ExplorerTree (Bug #1764).
 
