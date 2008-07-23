@@ -1507,7 +1507,8 @@ public class Connectivity
 					if (activeCut && polyCut) activeCut = polyCut = false;
 
 					Layer badLayer = null;
-					if (Extract.isApproximateCuts() && pv.cutNodeLayer.getRepresentation() == Technology.NodeLayer.MULTICUTBOX)
+                    // Try AppriximateCuts first
+                    if (Extract.isApproximateCuts() && pv.cutNodeLayer.getRepresentation() == Technology.NodeLayer.MULTICUTBOX)
 					{
 						// look for other cuts in the vicinity
 						Set<PolyBase> cutsInArea = new HashSet<PolyBase>();
@@ -1565,7 +1566,9 @@ public class Connectivity
 							foundCut = true;
 							break;
 						}
-					} else
+					}
+                    // if no approximateCuts is available,
+                    //else
 					{
 						// exact cut placement required: see if a single-cut contact fits
 						Rectangle2D contactLoc = new Rectangle2D.Double(cutBox.getCenterX() - trueWidth/2,
