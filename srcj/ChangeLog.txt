@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08b: ******************************
 
+IMP: (7/24/08, GVG) RouteElementArc adds a Generic universal arc if width is zero.
+Change done for the NodeExtraction tool.
+
 IMP: (7/24/08, GVG) NodeExtraction: Ability to interrupt the job (Bug #1779)
 
 IMP: (7/23/08, GVG) Allow to combine contacts extracted with and without approximateCuts on.

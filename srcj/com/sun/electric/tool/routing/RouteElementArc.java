@@ -41,6 +41,7 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.routing.RouteElement.RouteElementAction;
 import com.sun.electric.tool.user.Highlighter;
 
@@ -119,6 +120,7 @@ public class RouteElementArc extends RouteElement {
         	if (!good) // && area > 0)
         	{
         		arcBaseWidth = 0;
+                ap = Generic.tech().universal_arc;
 //        		arcFullWidth = ap.getLambdaWidthOffset();
         	}
     	}
