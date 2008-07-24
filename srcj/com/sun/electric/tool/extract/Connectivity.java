@@ -126,6 +126,7 @@ public class Connectivity
 	/** debugging: list of objects created */					private List<ERectangle> addedLines;
 	/** list of exported pins to realize at the end */			private List<ExportedPin> pinsForLater;
     /** ErrorLogger to keep up with errors during extraction */ private ErrorLogger errorLogger;
+    /** Job that is holding the process */                      private Job job;
 
     /**
 	 * Method to examine the current cell and extract it's connectivity in a new one.
@@ -162,7 +163,7 @@ public class Connectivity
 
 		public boolean doIt() throws JobException
 		{
-			Connectivity c = new Connectivity(cell, errorLogger);
+			Connectivity c = new Connectivity(cell, this, errorLogger);
 			String expansionPattern = Extract.getCellExpandPattern().trim();
 			Pattern pat = null;
 			if (expansionPattern.length() > 0)
@@ -208,14 +209,19 @@ public class Connectivity
 			} else
 			{
 				// highlight pure layer nodes
-				for(Iterator<NodeInst> it = newCell.getNodes(); it.hasNext(); )
-				{
-					NodeInst ni = it.next();
-					PrimitiveNode.Function fun = ni.getFunction();
-					if (fun == PrimitiveNode.Function.NODE)
-						wnd.addElectricObject(ni, newCell);
-				}
-			}
+                if (newCell != null) // cell is null if job was aborted
+                {
+                    for(Iterator<NodeInst> it = newCell.getNodes(); it.hasNext(); )
+                    {
+                        NodeInst ni = it.next();
+                        PrimitiveNode.Function fun = ni.getFunction();
+                        if (fun == PrimitiveNode.Function.NODE)
+                            wnd.addElectricObject(ni, newCell);
+                    }
+                }
+                else
+                    System.out.println("Extraction job was aborted");
+            }
 		}
 	}
 
@@ -223,13 +229,14 @@ public class Connectivity
 	 * Constructor to initialize connectivity extraction.
 	 * @param tech the Technology to extract to.
 	 */
-	private Connectivity(Cell cell, ErrorLogger eLog)
+	private Connectivity(Cell cell, Job j, ErrorLogger eLog)
 	{
 		tech = cell.getTechnology();
 		convertedCells = new HashMap<Cell,Cell>();
 		smallestPoly = (SCALEFACTOR * SCALEFACTOR) * Extract.getSmallestPolygonSize();
 		bogusContacts = new HashSet<PrimitiveNode>();
         errorLogger = eLog;
+        job = j;
 
         // find pure-layer nodes that are never involved in higher-level components, and should be ignored
 		ignoreNodes = new HashSet<PrimitiveNode>();
@@ -403,8 +410,9 @@ public class Connectivity
 		PolyMerge merge = new PolyMerge();
 
 		// convert the nodes
-		startSection("Gathering geometry in " + oldCell + "...");		// HAS PROGRESS IN IT
-		Set<Cell> expandedCells = new HashSet<Cell>();
+		if (!startSection("Gathering geometry in " + oldCell + "..."))		// HAS PROGRESS IN IT
+            return null; // aborted
+        Set<Cell> expandedCells = new HashSet<Cell>();
 		exportsToRestore = new ArrayList<Export>();
 		pinsForLater = new ArrayList<ExportedPin>();
 		allCutLayers = new HashMap<Layer,List<PolyBase>>();
@@ -426,43 +434,51 @@ public class Connectivity
 
 		// start by extracting vias
 		initDebugging();
-		startSection("Extracting vias...");
-		extractVias(merge, originalMerge, newCell);
-		termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "Vias");
+		if (!startSection("Extracting vias..."))
+             return null; // aborted
+        if (!extractVias(merge, originalMerge, newCell))
+            return null; // aborted
+        termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "Vias");
 
 		// now extract transistors
 		initDebugging();
-		startSection("Extracting transistors...");
-		extractTransistors(merge, originalMerge, newCell);
+		if (!startSection("Extracting transistors..."))
+             return null; // aborted
+        extractTransistors(merge, originalMerge, newCell);
 		termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "Transistors");
 
 		// extend geometry that sticks out in space
 		initDebugging();
-		startSection("Extracting extensions...");
-		extendGeometry(merge, originalMerge, newCell, true);
+		if (!startSection("Extracting extensions..."))
+             return null; // aborted
+        extendGeometry(merge, originalMerge, newCell, true);
 		termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "StickOuts");
 
 		// look for wires and pins
 		initDebugging();
-		startSection("Extracting wires...");
-		if (makeWires(merge, originalMerge, newCell)) return newCell;
+		if (!startSection("Extracting wires..."))
+             return null; // aborted
+        if (makeWires(merge, originalMerge, newCell)) return newCell;
 		termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "Wires");
 
 		// convert any geometry that connects two networks
 		initDebugging();
-		startSection("Extracting connections...");
-		extendGeometry(merge, originalMerge, newCell, false);
+		if (!startSection("Extracting connections..."))
+             return null; // aborted
+        extendGeometry(merge, originalMerge, newCell, false);
 		termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "Bridges");
 
 		// dump any remaining layers back in as extra pure layer nodes
 		initDebugging();
-		startSection("Extracting leftover geometry...");
-		convertAllGeometry(merge, originalMerge, newCell);
+		if (!startSection("Extracting leftover geometry..."))
+             return null; // aborted
+        convertAllGeometry(merge, originalMerge, newCell);
 		termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "Pures");
 
 		// reexport any that were there before
-		startSection("Adding connecting wires...");
-		restoreExports(oldCell, newCell);
+		if (!startSection("Adding connecting wires..."))
+             return null; // aborted
+        restoreExports(oldCell, newCell);
 
 		// cleanup by auto-stitching
 		PolyMerge originalUnscaledMerge = new PolyMerge();
@@ -493,12 +509,20 @@ public class Connectivity
 		return newCell;
 	}
 
-	private void startSection(String msg)
+    /**
+     * Method to start a new connection section.
+     * @param msg message to display in progress window
+     * @return False if the job is scheduled for abort or was aborted
+     */
+    private boolean startSection(String msg)
 	{
 		System.out.println(msg);
-		Job.getUserInterface().setProgressNote(msg);
+        if (job.checkAbort())
+            return false;
+        Job.getUserInterface().setProgressNote(msg);
 		Job.getUserInterface().setProgressValue(0);
-	}
+        return true;
+    }
 
 	private void initDebugging()
 	{
@@ -1375,8 +1399,12 @@ public class Connectivity
 	/**
 	 * Method to scan the geometric information for possible contacts and vias.
 	 * Any vias found are created in the new cell and removed from the geometric information.
-	 */
-	private void extractVias(PolyMerge merge, PolyMerge originalMerge, Cell newCell)
+     * @param merge
+     * @param originalMerge
+     * @param newCell
+     * @return False if the job was aborted
+     */
+    private boolean extractVias(PolyMerge merge, PolyMerge originalMerge, Cell newCell)
 	{
 		// make a list of all via/cut layers in the technology and count the number of vias/cuts
 		int totalCuts = 0;
@@ -1607,9 +1635,10 @@ public class Connectivity
 		}
 
 		// now remove all created contacts from the original merge
-		startSection("Finish extracting " + contactNodes.size() + " vias...");
+		if (!startSection("Finish extracting " + contactNodes.size() + " vias..."))
+             return false; // aborted
 
-		// build an R-Tree of all created nodes
+        // build an R-Tree of all created nodes
 		RTNode root = RTNode.makeTopLevel();
 		for(NodeInst ni : contactNodes)
 			root = RTNode.linkGeom(null, root, ni);
@@ -1618,7 +1647,8 @@ public class Connectivity
 		PolyMerge subtractMerge = new PolyMerge();
 		extractContactNodes(root, merge, subtractMerge, 0, contactNodes.size());
 		merge.subtractMerge(subtractMerge);
-	}
+        return true;
+    }
 
 	/**
 	 * Method to create the biggest contact node in a given location.
