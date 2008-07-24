@@ -103,9 +103,8 @@ public class RouteElementArc extends RouteElement {
             double arcExtendOverMin = arcBaseWidth*0.5 - ap.getLambdaBaseExtend();
 //            double arcBaseWidth = arcWidth - ap.getLambdaWidthOffset();
         	boolean good = stayInside.arcPolyFits(layer, headEP, tailEP, 2*(arcExtendOverMin+layerExtend), headExtend, tailExtend);
-            double area = stayInside.getAreaOfLayer(layer);
+//            double area = stayInside.getAreaOfLayer(layer);
 //        	boolean good = stayInside.arcPolyFits(layer, headEP, tailEP, arcWidth-offset, headExtend, tailExtend);
-
         	// try reducing to default width if it doesn't fit
         	if (!good && arcBaseWidth > ap.getDefaultLambdaBaseWidth())
 //        	if (!good && arcFullWidth > ap.getDefaultLambdaFullWidth())
@@ -117,7 +116,7 @@ public class RouteElementArc extends RouteElement {
         	}
 
         	// make it zero-width if it doesn't fit
-        	if (!good && area > 0)
+        	if (!good) // && area > 0)
         	{
         		arcBaseWidth = 0;
 //        		arcFullWidth = ap.getLambdaWidthOffset();
