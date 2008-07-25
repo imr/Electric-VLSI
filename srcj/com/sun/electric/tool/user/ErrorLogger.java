@@ -108,7 +108,7 @@ public class ErrorLogger implements Serializable
             index = 0;
         }
 
-        public Cell getCell() { return EDatabase.clientDatabase().getCell(logCellId);}
+        public Cell getCell() { return (logCellId!=null)?EDatabase.clientDatabase().getCell(logCellId):null;}
 
         public String getMessageString() { return message; }
 

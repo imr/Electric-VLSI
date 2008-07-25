@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08b: ******************************
 
+BUG: (7/24/08, GVG) ErrorLogger crashes if cellId is null (Bug #1780)
+FIX: Detecting the case in doing MessageLog.getCell()
+
 IMP: (7/24/08, GVG) Min active contacts in CMOS90. Min well contacts were refactored to meet
 similar conditions as in the active case.
 
