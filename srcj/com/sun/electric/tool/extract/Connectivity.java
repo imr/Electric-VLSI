@@ -1622,8 +1622,8 @@ public class Connectivity
 				{
                     double centerX = cutBox.getCenterX()/SCALEFACTOR;
                     double centerY = cutBox.getCenterY()/SCALEFACTOR;
-                    String msg = "Did not extract contact cut at (" +
-						(centerX) + "," + (centerY) + ")";
+                    String msg = "Did not extract contact " + cut.getLayer().getName() + " cut at (" +
+						(centerX) + "," + (centerY) + ") in '" + newCell.getName() + "'";
 					if (reason != null) msg += " because " + reason;
                     addErrorLog(newCell, msg, new EPoint(centerX, centerY));
 					cutList.remove(cut);
