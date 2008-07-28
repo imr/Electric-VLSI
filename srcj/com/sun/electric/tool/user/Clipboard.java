@@ -1287,12 +1287,23 @@ public class Clipboard
 //                    distanceX = mouseDB.getX() - lastMouseDB.getX();
 //                    distanceY = mouseDB.getY() - lastMouseDB.getY();
 //                }
-//                // only use delta in direction that has larger delta
-                if (Math.abs(deltaX) > Math.abs(deltaY))
-//                if (Math.abs(distanceX) > Math.abs(distanceY))
-                    deltaY = 0;
-                else
-                    deltaX = 0;
+				
+				// If the mouse is within the X and Y extent of the object use X and Y only
+				// If the mouse is not confined to either extent then use the 45 degree rule
+				// Arguably we can change it to x degree rule where x is defined by the ratio of the widths
+				if (mouseDB.getX() > pasteBounds.getMinX() && mouseDB.getX() < pasteBounds.getMaxX()) {
+					deltaX = 0;
+				} else if (mouseDB.getY() > pasteBounds.getMinY() && mouseDB.getY() < pasteBounds.getMaxY()) {
+					deltaY = 0;
+				} else {
+//              	// only use delta in direction that has larger delta
+					if (Math.abs(deltaX) > Math.abs(deltaY))
+//                	if (Math.abs(distanceX) > Math.abs(distanceY))
+						deltaY = 0;
+					else
+						deltaX = 0;
+				}
+				
             }
 
 			// this is now a delta, not a point

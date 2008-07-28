@@ -3,6 +3,9 @@
 NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08b: ******************************
+BUG: (7/28/08, FYL) Pasting of long geometries while locking a direction (Bug #1748)
+FIX: Change in getDelta s.t. if mouse in X (or Y) object shadow then move is confined to X (or Y) otherwise
+     follows previous 45 degree rule.
 
 BUG: (7/24/08, GVG) ErrorLogger crashes if cellId is null (Bug #1780)
 FIX: Detecting the case in doing MessageLog.getCell()
@@ -25,10 +28,6 @@ IMP: (7/23/08, GVG) Select all like this doesn't work on annotation text? (Bug #
 IMP: (7/22/08, GVG) No default font/color available in Multi-Object dialog (Bug #1774)
 
 IMP: (7/22/08, GVG) Adding min poly contact in CMOS90
-
-//BUG: (7/21/08, GVG) Pasting of long geometries while locking a direction (Bug #1748)
-//FIX: Detecting x and y deltas based on last mouse position.
-//Changed undone on 7/23/08
 
 IMP: (7/17/08, GVG) Move option for Cells in ExplorerTree (Bug #1764).
 
