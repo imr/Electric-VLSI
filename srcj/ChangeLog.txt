@@ -24,7 +24,7 @@ Change done for the NodeExtraction tool.
 
 IMP: (7/24/08, GVG) NodeExtraction: Ability to interrupt the job (Bug #1779)
 
-IMP: (7/23/08, GVG) Allow to combine contacts extracted with and without approximateCuts on.
+IMP/MAN: (7/23/08, GVG) Allow to combine contacts extracted with and without approximateCuts on.
 Higher priority to multi-cut contacts (approximateCuts on).
 
 IMP: (7/23/08, GVG) ErrorLogger for extraction tool? (Bug #1772)
