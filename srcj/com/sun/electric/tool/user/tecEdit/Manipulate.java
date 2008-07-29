@@ -1151,7 +1151,8 @@ public class Manipulate
 				if (oCell == cell) return cell;
 			}
 		}
-		return null;
+        System.out.println("Layer " + cID.cellName + " not found");
+        return null;
 	}
 
 	/**
