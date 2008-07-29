@@ -2,6 +2,8 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.08c: ******************************
+
 ************************* Version 8.08b: ******************************
 
 BUG: (7/28/08, GVG) Exception while click on "See" in GetNodeInst if no ports are available (Bug #1784)
