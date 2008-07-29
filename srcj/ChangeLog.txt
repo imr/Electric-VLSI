@@ -3,6 +3,10 @@
 NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08b: ******************************
+
+BUG: (7/28/08, GVG) Exception while click on "See" in GetNodeInst if no ports are available (Bug #1784)
+FIX: Detecting if list index == -1.
+
 BUG: (7/28/08, FYL) Pasting of long geometries while locking a direction (Bug #1748)
 FIX: Change in getDelta s.t. if mouse in X (or Y) object shadow then move is confined to X (or Y) otherwise
      follows previous 45 degree rule.

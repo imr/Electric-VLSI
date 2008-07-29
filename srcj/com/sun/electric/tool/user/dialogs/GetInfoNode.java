@@ -1606,7 +1606,9 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 	{//GEN-HEADEREND:event_seeActionPerformed
 		if (!ports.isSelected()) return;
 		int currentIndex = list.getSelectedIndex();
-		ArcInst ai = portObjects.get(currentIndex);
+        if (currentIndex == -1) return; // nothing to select
+        
+        ArcInst ai = portObjects.get(currentIndex);
 		if (ai == null) return;
 		NodeInst ni = shownNode;
 		if (wnd != null) {
