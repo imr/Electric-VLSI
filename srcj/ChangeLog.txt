@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08c: ******************************
 
+BUG: (7/29/08, GVG) Exception with unknown foundry (Bug #1782)
+FIX: Change Type from enumerator to Class so it can accomodate new foundries. Technology.xsd was modified.
+
 ************************* Version 8.08b: ******************************
 
 BUG: (7/28/08, GVG) Exception while click on "See" in GetNodeInst if no ports are available (Bug #1784)

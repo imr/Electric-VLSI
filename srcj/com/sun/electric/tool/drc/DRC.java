@@ -938,24 +938,24 @@ public class DRC extends Listener
     public static void cleanCellsDueToFoundryChanges(Technology tech, Foundry f)
     {
         // Need to clean cells using this foundry because the rules might have changed.
-        System.out.println("Cleaning good DRC dates in cells using '" + f.getType().name() +
+        System.out.println("Cleaning good DRC dates in cells using '" + f.getType().getName() +
                 "' in '" + tech.getTechName() + "'");
         HashSet<Cell> cleanSpacingDRCDate = new HashSet<Cell>();
         HashSet<Cell> cleanAreaDRCDate = new HashSet<Cell>();
 
-        int bit = 0;
-        switch(f.getType())
-        {
-            case MOSIS:
-                bit = DRC_BIT_MOSIS_FOUNDRY;
-                break;
-            case TSMC:
-                bit = DRC_BIT_TSMC_FOUNDRY;
-                break;
-            case ST:
-                bit = DRC_BIT_ST_FOUNDRY;
-                break;
-        }
+        int bit = f.getType().getBit();
+//        switch(f.getType())
+//        {
+//            case MOSIS:
+//                bit = DRC_BIT_MOSIS_FOUNDRY;
+//                break;
+//            case TSMC:
+//                bit = DRC_BIT_TSMC_FOUNDRY;
+//                break;
+//            case ST:
+//                bit = DRC_BIT_ST_FOUNDRY;
+//                break;
+//        }
 
         boolean inMemory = isDatesStoredInMemory();
 
@@ -1199,18 +1199,19 @@ public class DRC extends Listener
         Foundry foundry = tech.getSelectedFoundry();
         if (foundry != null)
         {
-	        switch(foundry.getType())
-	        {
-	            case MOSIS:
-	                bits |= DRC_BIT_MOSIS_FOUNDRY;
-	                break;
-	            case TSMC:
-	                bits |= DRC_BIT_TSMC_FOUNDRY;
-	                break;
-	            case ST:
-	                bits |= DRC_BIT_ST_FOUNDRY;
-	                break;
-	        }
+            bits |= foundry.getType().getBit();
+//            switch(foundry.getType())
+//	        {
+//	            case MOSIS:
+//	                bits |= DRC_BIT_MOSIS_FOUNDRY;
+//	                break;
+//	            case TSMC:
+//	                bits |= DRC_BIT_TSMC_FOUNDRY;
+//	                break;
+//	            case ST:
+//	                bits |= DRC_BIT_ST_FOUNDRY;
+//	                break;
+//	        }
         }
         return bits;
     }

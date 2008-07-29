@@ -29,9 +29,9 @@ import com.sun.electric.database.text.Setting;
 import java.net.URL;
 
 import java.util.List;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.ArrayList;
 
 /**
  * This is supposed to better encapsulate a particular foundry
@@ -39,17 +39,53 @@ import java.util.Map;
  */
 public class Foundry {
 
-    public enum Type {
-        /** None */                                                         NONE (-1),
-        /** only for TSMC technology */                                     TSMC (010000),
-        /** only for ST technology */                                       ST (020000),
-        /** only for MOSIS technology */                                    MOSIS (040000);
-        private final int mode;
-        Type(int mode) {
-            this.mode = mode;
+    public static class Type {
+        public static Type NONE = new Type("NONE", -1, 0);
+        public static Type TSMC = new Type("TSMC", 010000, 010);  // DRC_BIT_TSMC_FOUNDRY = 010; /* For TSMC foundry selection */
+        public static Type ST = new Type("ST", 020000, 04); // DRC_BIT_ST_FOUNDRY = 04; /* For ST foundry selection */
+        public static Type MOSIS = new Type("MOSIS", 040000, 020); // DRC_BIT_MOSIS_FOUNDRY = 020; /* For Mosis foundry selection */
+        private static List<Type> typeList = new ArrayList<Type>(4);
+
+        static
+        {
+            typeList.add(NONE);
+            typeList.add(TSMC);
+            typeList.add(ST);
+            typeList.add(MOSIS);
         }
-        public int mode() { return this.mode; }
-        public String toString() {return name();}
+//    public enum Type {
+//        /** None */                                                         NONE (-1),
+//        /** only for TSMC technology */                                     TSMC (010000),
+//        /** only for ST technology */                                       ST (020000),
+//        /** only for MOSIS technology */                                    MOSIS (040000);
+        private final String name;  // foundry name
+        private final int mode; // foundry mode
+        private int bit; // foundry bit for DRC
+        Type(String n, int m, int b) {
+            this.name = n;
+            this.mode = m;
+            this.bit = b;
+        }
+        public int getBit() { return bit; }
+        public int getMode() { return mode; }
+        public String toString() {return name;}
+        public String getName() {return name;}
+
+        public static Type valueOf(String n)
+        {
+            for (Type t : typeList)
+            {
+                if (t.getName().equals(n))
+                    return t;
+            }
+            // none of the known foundries
+            Type t = new Type(n, 0100000, 0100);
+            System.out.println("New foundry requested: '" + n + "'");
+            typeList.add(t);
+            return t;
+        }
+
+        public static List<Type> getValues() {return typeList;}
     }
 
     private final Technology tech;
@@ -146,7 +182,7 @@ public class Foundry {
         setRules(parser.getRules().get(0).drcRules);
     }
     public void setRules(List<DRCTemplate> list) { rules = list; }
-    public String toString() { return type.name(); }
+    public String toString() { return type.getName(); }
 
     /**
      * Method to return the map from Layers of Foundry's technology to their GDS names in this foundry.
@@ -231,7 +267,7 @@ public class Foundry {
      */
     private String getGDSPrefName()
     {
-        return ("GDS("+type.name()+")");
+        return ("GDS("+type.getName()+")");
     }
 
     private ProjSettingsNode getGDSNode() {

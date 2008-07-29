@@ -1096,7 +1096,7 @@ public class Technology implements Comparable<Technology>, Serializable
 		userBits = 0;
 		if (prefs == null) prefs = Pref.groupForPackage(Schematics.class);
         cacheFoundry = TechSetting.makeStringSetting(this, "SelectedFoundryFor"+techName,
-        	"Technology tab", techName + " foundry", getProjectSettings(), "Foundry", defaultFoundry.name().toUpperCase());
+        	"Technology tab", techName + " foundry", getProjectSettings(), "Foundry", defaultFoundry.getName().toUpperCase());
         cacheNumMetalLayers = TechSetting.makeIntSetting(this, techName + "NumberOfMetalLayers",
             "Technology tab", techName + ": Number of Metal Layers", getProjectSettings(), "NumMetalLayers", defaultNumMetals);
 
@@ -2000,7 +2000,7 @@ public class Technology implements Comparable<Technology>, Serializable
 
         for (Iterator<Foundry> it = getFoundries(); it.hasNext();) {
             Foundry foundry = it.next();
-            out.println("    <Foundry name=\"" + foundry.getType().name() + "\">");
+            out.println("    <Foundry name=\"" + foundry.getType().getName() + "\">");
             for (Map.Entry<Layer,String> e: foundry.getGDSLayers().entrySet())
                 out.println("        <layerGds layer=\"" + e.getKey().getName() + "\" gds=\"" + e.getValue() + "\"/>");
             List<DRCTemplate> rules = foundry.getRules();
@@ -4896,7 +4896,7 @@ public class Technology implements Comparable<Technology>, Serializable
         for (Foundry f : foundries)
         {
             Foundry.Type t = f.getType();
-            if (t.name().equalsIgnoreCase(name))
+            if (t.getName().equalsIgnoreCase(name))
                 return f;
         }
 		return null;

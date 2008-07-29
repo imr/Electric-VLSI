@@ -1730,7 +1730,7 @@ public class TechEditWizardData
         
         /** RULES **/
         Xml.Foundry f = new Xml.Foundry();
-        f.name = Foundry.Type.NONE.name();
+        f.name = Foundry.Type.NONE.getName();
         t.foundries.add(f);
         
         makeLayerRuleMinWid(t, diffPLayer, diff_width);

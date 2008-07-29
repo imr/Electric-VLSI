@@ -914,20 +914,20 @@ public class XMLRules implements DRCRules, Serializable
             // New calculation
             boolean newValue = true;
             // Check all possibles foundries for this particular technology
-            for (Foundry.Type t : Foundry.Type.values())
+            for (Foundry.Type t : Foundry.Type.getValues())
             {
                 // The foundry is present but is not the choosen one, then invalid rule
                 if (t == Foundry.Type.NONE) continue;
 
-                if ((when&t.mode()) != 0 && foundry.getType() != t)
+                if ((when&t.getMode()) != 0 && foundry.getType() != t)
                     newValue = false;
                 if (!newValue) break;
             }
             boolean oldValue = true;
             // One of the 2 is present. Absence means rule is valid for both
-            if ((when&Foundry.Type.ST.mode()) != 0 && foundry.getType() == Foundry.Type.TSMC)
+            if ((when&Foundry.Type.ST.getMode()) != 0 && foundry.getType() == Foundry.Type.TSMC)
                 oldValue = false;
-            else if ((when&Foundry.Type.TSMC.mode()) != 0 && foundry.getType() == Foundry.Type.ST)
+            else if ((when&Foundry.Type.TSMC.getMode()) != 0 && foundry.getType() == Foundry.Type.ST)
                 oldValue = false;
             if(oldValue != newValue)
                 assert(false); // check this condition and clean the code!

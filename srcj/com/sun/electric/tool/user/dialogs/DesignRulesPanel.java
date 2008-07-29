@@ -370,21 +370,21 @@ public class DesignRulesPanel extends JPanel
         {
             // get new normal spacing values
             value = TextUtils.atof(drNormalConnected.getText());
-            list.add(new DRCTemplate(drNormalConnectedRule.getText(), foundry.mode(), DRCTemplate.DRCRuleType.CONSPA,
+            list.add(new DRCTemplate(drNormalConnectedRule.getText(), foundry.getMode(), DRCTemplate.DRCRuleType.CONSPA,
                     0, 0, null, null, new double[]{value}, -1));
             drRules.setSpacingRules(dindex, list, DRCTemplate.DRCRuleType.SPACING, false);
         }
         else if (field == drNormalUnconnected)
         {
             value = TextUtils.atof(drNormalUnconnected.getText());
-            list.add(new DRCTemplate(drNormalUnconnectedRule.getText(), foundry.mode(), DRCTemplate.DRCRuleType.UCONSPA,
+            list.add(new DRCTemplate(drNormalUnconnectedRule.getText(), foundry.getMode(), DRCTemplate.DRCRuleType.UCONSPA,
                     0, 0, null, null, new double[]{value}, -1));
             drRules.setSpacingRules(dindex, list, DRCTemplate.DRCRuleType.SPACING, false);
         }
         else if (field == drMultiUnconnected)
         {
             value = TextUtils.atof(drMultiUnconnected.getText());
-            list.add(new DRCTemplate(drMultiUnconnectedRule.getText(), foundry.mode(), DRCTemplate.DRCRuleType.UCONSPA2D,
+            list.add(new DRCTemplate(drMultiUnconnectedRule.getText(), foundry.getMode(), DRCTemplate.DRCRuleType.UCONSPA2D,
                     0, 0, null, null, new double[]{value}, 1));
             drRules.setSpacingRules(dindex, list, DRCTemplate.DRCRuleType.UCONSPA2D, false);
         }
@@ -392,7 +392,7 @@ public class DesignRulesPanel extends JPanel
         {
             // get new edge values
             value = TextUtils.atof(drNormalEdge.getText());
-            list.add(new DRCTemplate(drNormalEdgeRule.getText(), foundry.mode(), DRCTemplate.DRCRuleType.CONSPA,
+            list.add(new DRCTemplate(drNormalEdgeRule.getText(), foundry.getMode(), DRCTemplate.DRCRuleType.CONSPA,
                     0, 0, null, null, new double[]{value}, -1));
             drRules.setSpacingRules(dindex, list, DRCTemplate.DRCRuleType.SPACINGE, false);
         }
@@ -1259,7 +1259,7 @@ public class DesignRulesPanel extends JPanel
         if (ruleText.length() > 0 && value > 0 && (maxW > 0 || minLen > 0))
         {
 		    drSpacingsList.addItem("Rule " + (soFar+1));
-		    DRCTemplate wr = new DRCTemplate(drSpacingsRule.getText(), foundry.mode(), DRCTemplate.DRCRuleType.CONSPA,
+		    DRCTemplate wr = new DRCTemplate(drSpacingsRule.getText(), foundry.getMode(), DRCTemplate.DRCRuleType.CONSPA,
                     maxW, minLen, null, null, new double[]{value}, -1);
             drRules.addRule(dindex, wr, DRCTemplate.DRCRuleType.SPACING, true);
             wideSpacingRules.add(wr);

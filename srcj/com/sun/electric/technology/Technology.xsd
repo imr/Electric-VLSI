@@ -83,10 +83,11 @@
 
     <xsd:simpleType name="Foundry">
         <xsd:restriction base="xsd:string">
+            <!--
             <xsd:enumeration value="NONE"/>
             <xsd:enumeration value="MOSIS"/>
             <xsd:enumeration value="TSMC"/>
-            <xsd:enumeration value="ST"/>
+            <xsd:enumeration value="ST"/> -->
         </xsd:restriction>
     </xsd:simpleType>
 

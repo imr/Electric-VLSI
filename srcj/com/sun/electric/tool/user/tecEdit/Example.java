@@ -162,7 +162,8 @@ public class Example implements Serializable
 							ns.layer = Manipulate.getLayerCell(otherNi);
 							if (ns.layer == null)
 							{
-								tcr.markError(otherNi, np, "Node has no layer information");
+                                Manipulate.getLayerCell(otherNi);
+                                tcr.markError(otherNi, np, "Node has no layer information");
 								return null;
 							}
 							break;

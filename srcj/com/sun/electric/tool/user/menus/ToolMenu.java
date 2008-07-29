@@ -2040,9 +2040,9 @@ public class ToolMenu {
                 // set the new rules under the foundry imported
                 for (Iterator<Foundry> itF = tech.getFoundries(); itF.hasNext();) {
                     Foundry f = itF.next();
-                    if (f.getType().name().equalsIgnoreCase(bucket.foundry)) {
+                    if (f.getType().getName().equalsIgnoreCase(bucket.foundry)) {
                         f.setRules(bucket.drcRules);
-                        System.out.println("New DRC rules for foundry '" + f.getType().name() + "' were loaded in '" +
+                        System.out.println("New DRC rules for foundry '" + f.getType().getName() + "' were loaded in '" +
                                 tech.getTechName() + "'");
                         // Need to clean cells using this foundry because the rules might have changed.
                         DRC.cleanCellsDueToFoundryChanges(tech, f);

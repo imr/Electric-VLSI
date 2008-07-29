@@ -308,7 +308,7 @@ public class DRCTemplate implements Serializable
             {
                 Foundry foundry = it.next();
                 List<DRCTemplate> rules = foundry.getRules();
-                out.println("    <Foundry name=\"" + foundry.getType().name() + "\">");
+                out.println("    <Foundry name=\"" + foundry.getType().getName() + "\">");
 
                 for (DRCTemplate rule : rules)
                 {
@@ -629,7 +629,7 @@ public class DRCTemplate implements Serializable
     public static class DRCXMLBucket implements Serializable
     {
         public List<DRCTemplate> drcRules = new ArrayList<DRCTemplate>();
-        public String foundry = Foundry.Type.NONE.name();
+        public String foundry = Foundry.Type.NONE.getName();
     }
 
     /** Public XML Parser for DRC decks **/

@@ -101,7 +101,7 @@ public class DesignRulesTab extends PreferencePanel
 
 		// load the dialog
         String text = "Design Rules for Technology '" + curTech.getTechName() + "'";
-        if (foundry != Foundry.Type.NONE) text += " with foundry " + foundry.name();
+        if (foundry != Foundry.Type.NONE) text += " with foundry " + foundry.getName();
 		drTechName.setText(text);
 
         // Resolution

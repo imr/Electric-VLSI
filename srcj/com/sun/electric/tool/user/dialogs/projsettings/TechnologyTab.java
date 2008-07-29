@@ -83,7 +83,7 @@ public class TechnologyTab extends ProjSettingsPanel
 			Foundry factory = itF.next();
 			Foundry.Type type = factory.getType();
 			pulldown.addItem(type);
-			if (selectedFoundry.equalsIgnoreCase(factory.getType().name())) foundry = type;
+			if (selectedFoundry.equalsIgnoreCase(factory.getType().getName())) foundry = type;
 		}
 
 		pulldown.setEnabled(foundry != Foundry.Type.NONE);
@@ -242,7 +242,7 @@ public class TechnologyTab extends ProjSettingsPanel
 		if (foundry == null) return false; // technology without design rules.
 		boolean changed = false;
 
-		if (!foundry.name().equalsIgnoreCase(getString(tech.getPrefFoundrySetting())))
+		if (!foundry.getName().equalsIgnoreCase(getString(tech.getPrefFoundrySetting())))
 		{
 			changed = true;
 			String [] messages = {
@@ -256,7 +256,7 @@ public class TechnologyTab extends ProjSettingsPanel
 				JOptionPane.WARNING_MESSAGE, null, options, options[0]);
 			if (val != 2)
 			{
-				setString(tech.getPrefFoundrySetting(), foundry.name());
+				setString(tech.getPrefFoundrySetting(), foundry.getName());
 			}
 		}
 		return changed;
