@@ -1783,7 +1783,8 @@ public class Verilog extends Topology
 			" in Verilog View: "+cell.libDescribe());
 			return false;
 		}
-		definedPrimitives.put(cell, main);
+        if (main.isPrimitive())
+            definedPrimitives.put(cell, main);
 
 		String source = includeFile == null ? "Verilog View for "+cell.libDescribe() :
 			"Include file: "+includeFile;
