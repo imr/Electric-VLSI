@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08c: ******************************
 
+IMP/MAN: Renaming Y-metal contacts in CMOS90 with "SR" instead of "Y". SR stands for square recommended.
+
 BUG: (7/30/08, SMR) Empty pattern warnings in Tech Editor
 FIX: Set outliner after the pattern is defined.
 
