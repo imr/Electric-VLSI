@@ -242,6 +242,8 @@ public class LayerInfo extends Info
 		// look at all nodes in the layer description cell
 		int patternCount = 0;
 		Rectangle2D patternBounds = null;
+		boolean patternOnPrinter = false, patternOnDisplay = false;
+		EGraphics.Outline patternOutline = null;
 		for(Iterator<NodeInst> it = np.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = it.next();
@@ -324,30 +326,29 @@ public class LayerInfo extends Info
 					patternCount++;
 					break;
 				case LAYERSTYLE:
-					li.desc.setPatternedOnPrinter(true);
+					patternOnPrinter = true;
 					commaPos = str.indexOf(',');
 					if (commaPos >= 0)
 					{
 						if (str.substring(commaPos+1).equals("PrintSolid"))
-							li.desc.setPatternedOnPrinter(false);
+							patternOnPrinter = false;
 						str = str.substring(0, commaPos);
 					}
 					if (str.equalsIgnoreCase("solid"))
 					{
-						li.desc.setPatternedOnDisplay(false);
+						patternOnDisplay = false;
 					} else if (str.equalsIgnoreCase("patterned"))
 					{
-						li.desc.setPatternedOnDisplay(true);
-						li.desc.setOutlined(EGraphics.Outline.NOPAT);
+						patternOnDisplay = true;
+						patternOutline = EGraphics.Outline.NOPAT;
 					} else if (str.equalsIgnoreCase("patterned/outlined"))
 					{
-						li.desc.setPatternedOnDisplay(true);
-						li.desc.setOutlined(EGraphics.Outline.PAT_S);
+						patternOnDisplay = true;
+						patternOutline = EGraphics.Outline.PAT_S;
 					} else if (TextUtils.canonicString(str).startsWith("patterned/outline="))
 					{
-						li.desc.setPatternedOnDisplay(true);
-						EGraphics.Outline out = EGraphics.Outline.findOutline(str.substring(18));
-						li.desc.setOutlined(out);
+						patternOnDisplay = true;
+						patternOutline = EGraphics.Outline.findOutline(str.substring(18));
 					}
 					break;
 				case LAYERCIF:
@@ -414,6 +415,9 @@ public class LayerInfo extends Info
 				newPat[y+8] = newPat[y];
 		}
 		li.desc.setPattern(newPat);
+		li.desc.setPatternedOnPrinter(patternOnPrinter);
+		li.desc.setPatternedOnDisplay(patternOnDisplay);
+		if (patternOutline != null) li.desc.setOutlined(patternOutline);
 		return li;
 	}
 
