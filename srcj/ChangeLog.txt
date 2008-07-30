@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08c: ******************************
 
+BUG: (7/30/08, SMR) Empty pattern warnings in Tech Editor
+FIX: Set outliner after the pattern is defined.
+
 BUG: (7/29/08, GVG) Standard Technology Editor and transparency layers (Bug #1783)
 FIX: Picking the right layer name from the variable name.
 
