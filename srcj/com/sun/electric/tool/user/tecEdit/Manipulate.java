@@ -1409,16 +1409,16 @@ public class Manipulate
 		String initialTransLayer = Info.getValueOnNode(ni);
 		String [] transNames = new String[11];
 		transNames[0] = "none";
-		transNames[1] = "layer 1";
-		transNames[2] = "layer 2";
-		transNames[3] = "layer 3";
-		transNames[4] = "layer 4";
-		transNames[5] = "layer 5";
-		transNames[6] = "layer 6";
-		transNames[7] = "layer 7";
-		transNames[8] = "layer 8";
-		transNames[9] = "layer 9";
-		transNames[10] = "layer 10";
+		transNames[1] = "layer-1";
+		transNames[2] = "layer-2";
+		transNames[3] = "layer-3";
+		transNames[4] = "layer-4";
+		transNames[5] = "layer-5";
+		transNames[6] = "layer-6";
+		transNames[7] = "layer-7";
+		transNames[8] = "layer-8";
+		transNames[9] = "layer-9";
+		transNames[10] = "layer-10";
 		String choice = PromptAt.showPromptAt(wnd, ni, "Change Transparent Layer",
 			"New transparent layer number for this layer:", initialTransLayer, transNames);
 		if (choice == null) return;
