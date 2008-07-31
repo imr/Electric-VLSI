@@ -79,7 +79,7 @@ public class Foundry {
                     return t;
             }
             // none of the known foundries
-            Type t = new Type(n, 0100000, 0100);
+            Type t = new Type(n, 010000000, 0100);  // the mode has to be bigger than M9
             System.out.println("New foundry requested: '" + n + "'");
             typeList.add(t);
             return t;
