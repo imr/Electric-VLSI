@@ -205,6 +205,16 @@ public abstract class LibraryFiles extends Input
 					System.out.print("Attempting to open " + fileURL+"\n");
 					errmsg.setLength(0);
 					exists = TextUtils.URLExists(fileURL, errmsg);
+					if (!exists && (type != FileType.DELIB)) { // Check if this is a DELIB
+						fileURL = TextUtils.makeURLToFile(fileName+"."+FileType.DELIB.getExtensions()[0]);
+						System.out.print("Attempting to open " + fileURL+"\n");
+						errmsg.setLength(0);
+						exists = TextUtils.URLExists(fileURL, errmsg);
+						if (exists) { // If it is a DELIB
+							libName = null;        // Get the library name from fileURL
+							type = FileType.DELIB; // Set the type to DELIB
+						}
+					}
 					if (!exists) System.out.print(errmsg.toString());
 				}
 			}
