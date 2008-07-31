@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08c: ******************************
 
+IMP: (7/31/08, GVG) different highlight color for network (Bug #1776).
+Implemented using MOUSEOVER_HIGHLIGHT color.
+
 IMP: (7/31/08, FYL) LibraryFiles.java readLibrary defaults to .jelib extension if
      extension is not given.  Added another fallback to .delib extension.
      

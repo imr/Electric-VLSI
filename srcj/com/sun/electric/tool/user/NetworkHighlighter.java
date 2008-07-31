@@ -202,15 +202,29 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
         return objs;
     }
 
+
     /**
-     * Add all network objects (arcs, primitive nodes) to highlighter for current cell
+     * Retrieves the User's preference color for NodeInst objects
+     * @return
+     */
+    private static Color getNodeOrPortColor()
+    {
+        return new Color(User.getColor(User.ColorPrefType.MOUSEOVER_HIGHLIGHT)); // use to hightlight NodeInsts
+    }
+
+    /**
+     * Add all network objects (arcs, primitive nodes) to highlighter for current cell.
+     * Choose MOUSEOVER_HIGHLLIGHT color for non-wire objects and HIGHLIGHT color for wires.
      */
     private void addNetworkObjects() {
         // highlight objects in this cell
         HashSet<ElectricObject> objs = getNetworkObjects(cell, netlist, nets);
+        Color nodeColor = getNodeOrPortColor();
 
-        for (ElectricObject eObj : objs) {
-            highlighter.addElectricObject(eObj, cell, false);
+        for (ElectricObject eObj : objs)
+        {
+            Color color = !((eObj instanceof ArcInst)) ? nodeColor : null;
+            highlighter.addElectricObject(eObj, cell, false, color);
         }
     }
 
@@ -240,6 +254,7 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
 
         Cell currentCell = info.getCell();
         HashSet<ElectricObject> objs = getNetworkObjects(currentCell, netlist, localNets);
+        Color colorN = getNodeOrPortColor();
 
         // get polys for each object and transform them to root
         AffineTransform trans = info.getTransformToRoot();
@@ -257,12 +272,17 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
                 PortInst pi = (PortInst)o;
                 NodeInst ni = pi.getNodeInst();
                 poly = Highlight2.getNodeInstOutline(ni);
+                color = colorN;
             } else if (o instanceof Export) {
                 Export ep = (Export)o;
                 PortInst pi = ep.getOriginalPort();
                 NodeInst ni = pi.getNodeInst();
                 poly = ni.getShapeOfPort(pi.getPortProto());
                 color = Color.YELLOW;
+            }
+            else if (o instanceof NodeInst)
+            {
+                color = colorN;
             }
             poly.transform(trans);
             highlighter.addPoly(poly, cell, color);
