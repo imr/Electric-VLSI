@@ -1271,6 +1271,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         assert newBounds == cellBounds;
         boundsDirty = BOUNDS_CORRECT;
         topology.rebuildRTree();
+        assert boundsDirty == BOUNDS_CORRECT;
     }
 
     private void updateSubCells(BitSet exportsModified, BitSet boundsModified) {
@@ -1294,7 +1295,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             assert newBounds == cellBounds;
             boundsDirty = BOUNDS_CORRECT;
         }
+        assert boundsDirty == BOUNDS_CORRECT;
         topology.rebuildRTree();
+        assert boundsDirty == BOUNDS_CORRECT;
     }
 
 	/****************************** GRAPHICS ******************************/
@@ -1370,6 +1373,19 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 */
 	public void setGeomDirty() { setDirty(BOUNDS_CORRECT_GEOM); }
 
+    /**
+     * Debug method to check that bound dirty flag is clear
+     */
+    void checkBoundsCorrect() {
+        assert boundsDirty == BOUNDS_CORRECT;
+        for (NodeInst ni: nodes) {
+            if (ni.isCellInstance()) {
+                Cell subCell = (Cell)ni.getProto();
+                assert subCell.boundsDirty == BOUNDS_CORRECT;
+            }
+        }
+    }
+    
 	/**
 	 * Method to indicate that the bounds of this Cell are incorrect because
 	 * a node or arc has been created, deleted, or modified.
@@ -1456,6 +1472,12 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         boolean boundsEmpty = true;
         cellLowX = cellHighX = cellLowY = cellHighY = 0;
 
+        // Ensure that all subcells have correct bounds
+        for (Iterator<CellUsage> it = getUsagesIn(); it.hasNext(); ) {
+            CellUsage u = it.next();
+            u.getProto().getBounds();
+        }
+        
         for(int i = 0; i < nodes.size(); i++ ) {
             NodeInst ni = nodes.get(i);
             NodeProto np = ni.getProto();

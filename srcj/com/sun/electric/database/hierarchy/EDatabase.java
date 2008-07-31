@@ -706,6 +706,7 @@ public class EDatabase {
                 assert cell.cellBackupFresh;
                 assert cell.backup == snapshot.cellBackups.get(cellIndex);
                 assert cell.getBounds() == snapshot.getCellBounds(cellId);
+                cell.checkBoundsCorrect();
             }
         }
 
