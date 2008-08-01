@@ -241,7 +241,7 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 		this.red = red;
 		this.green = green;
 		this.blue = blue;
-		this.opacity = opacity;
+		this.opacity = validateOpacity(opacity);
 		this.foreground = foreground;
 		setPatternLow(pattern);
 		if (transparentLayer < 0 || transparentLayer > TRANSPARENT_12)
@@ -330,7 +330,7 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 
 		Pref opacityPref = Pref.makeDoublePref("OpacityFor" + layerTechMsg,
 			Technology.getTechnologyPreferences(), opacity);
-		opacity = opacityPref.getDouble();
+		opacity = validateOpacity(opacityPref.getDouble());
 		opacityMap.put(layer, opacityPref);
 		
 		Pref colorPref = Pref.makeIntPref("ColorFor" + layerTechMsg,
@@ -372,7 +372,7 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 		transparentLayer = transparentLayerPref.getInt();
 
 		Pref opacityPref = opacityMap.get(layer);
-		opacity = opacityPref.getDouble();
+		opacity = validateOpacity(opacityPref.getDouble());
 		
 		Pref colorPref = colorMap.get(layer);
 		int color = colorPref.getInt();
@@ -669,19 +669,42 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 		return pref.getDoubleFactoryValue();
 	}
 
-	/**
+    /**
+     * Method to check range of opacity provided.
+     * If < 0, reset it to zero.
+     * If > 1, reset it to one.
+     * @param opacity
+     * @return
+     */
+    private static double validateOpacity(double opacity)
+    {
+        if (opacity < 0)
+        {
+            System.out.println("Opacity " + opacity + " smaller than 0. Resetting to 0");
+            return 0;
+        }
+        else if (opacity > 1)
+        {
+
+            System.out.println("Opacity " + opacity + " bigger than 1. Resetting to 1");
+            return 1;
+        }
+        return opacity;
+    }
+
+    /**
 	 * Method to set the opacity of this EGraphics.
 	 * Opacity runs from 0 (transparent) to 1 (opaque).
 	 * @param opacity the opacity of this EGraphics.
 	 */
 	public void setOpacity(double opacity)
 	{
-		this.opacity = opacity;
+        this.opacity = validateOpacity(opacity);
 
 		if (layer != null)
 		{
 			Pref pref = opacityMap.get(layer);
-			if (pref != null) pref.setDouble(opacity);
+			if (pref != null) pref.setDouble(this.opacity);
 		}
 	}
 

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08c: ******************************
 
+BUG: (7/31/08, GVG) Electric doesn't check colors can be out of range (Bug #1792)
+FIX: Detect the case now in EGraphics.
+
 IMP/MAN: (7/31/08, GVG) Switch transistor display from LOCOS to STI (Bug #1747)
 
 BUG: (7/31/08, GVG) Assertion while loading DRC rules (Bug #1790)
