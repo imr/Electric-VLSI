@@ -701,6 +701,13 @@ public class JelibParser
             }
         }
 
+        // check if the version is not null
+        if (cc.version == null)
+        {
+            logError("Version for Cell '" + cc.cellId.cellName + "' is null");
+            return;
+        }
+
         // remember the contents of the cell for later
         if (allCells.containsKey(cc.cellId)) {
             logError("Duplicate cell " + cc.cellId);

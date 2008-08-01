@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08c: ******************************
 
+BUG: (8/1/08, GVG) NPE while reading Routing/data/expected/MazeRouting1Result.jelib (Bug #1793)
+FIX: Check if version is valid.
+
 BUG: (7/31/08, GVG) Electric doesn't check colors can be out of range (Bug #1792)
 FIX: Detect the case now in EGraphics.
 
