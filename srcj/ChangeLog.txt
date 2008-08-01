@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08c: ******************************
 
+IMP/MAN: (7/31/08, GVG) Switch transistor display from LOCOS to STI (Bug #1747)
+
 BUG: (7/31/08, GVG) Assertion while loading DRC rules (Bug #1790)
 FIX: Any foundry created while reading a XML tech should have mode >=1000000
 

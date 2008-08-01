@@ -636,6 +636,7 @@ public class View3DWindow extends JPanel
             {
                 int[] active = new int[2];
                 boxList = new ArrayList<Shape3D>(4);
+                List<Poly> toChange = new ArrayList<Poly>();
 
                 // Merge active regions
                 for (int i = 0; i < polys.length; i++)
@@ -652,8 +653,21 @@ public class View3DWindow extends JPanel
                     else if (fun.isGatePoly())
                         gate = i;
                     else if (fun.isPoly())
+                    {
                         poly = i;
+                        toChange.add(polys[i]);
+                    }
                 }
+                // if STI shape is selected, gate poly will be used in non-gate polys
+                // so the Z values will be identical
+                if (J3DUtils.is3DSTIPolyTransistorOn())
+                {
+                    for (Poly p : toChange)
+                    {
+                        p.setLayer(polys[gate].getLayer());
+                    }
+                }
+
                 if (count == 2)
                 {
                     Rectangle2D rect1 = polys[active[0]].getBounds2D();
@@ -675,7 +689,7 @@ public class View3DWindow extends JPanel
 			list = addPolys(polys, transform, objTrans);
 
 			// Adding extra layers after polygons are rotated.
-            if (nProto.getFunction().isTransistor() && gate != -1 && poly != -1)
+            if (!J3DUtils.is3DSTIPolyTransistorOn() && nProto.getFunction().isTransistor() && gate != -1 && poly != -1)
             {
 				Point3d [] pts = new Point3d[8];
 	            Point2D[] points = polys[gate].getPoints();

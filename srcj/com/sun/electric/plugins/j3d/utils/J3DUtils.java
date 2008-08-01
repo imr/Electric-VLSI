@@ -102,6 +102,7 @@ public final class J3DUtils
     private static Pref cache3DAntialiasing = Pref.makeBooleanPref("3DAntialiasing", User.getUserTool().prefs, false);
 	private static Pref cache3DPerspective = Pref.makeBooleanPref("3DPerspective", User.getUserTool().prefs, true);
     private static Pref cache3DCellBnd = Pref.makeBooleanPref("3DCellBnd", User.getUserTool().prefs, true);
+    private static Pref cache3DPolyShape = Pref.makeBooleanPref("3DCellBnd", User.getUserTool().prefs, true);
     private static Pref cache3DAxes = Pref.makeBooleanPref("3DAxes", User.getUserTool().prefs, false);
     private static Pref cache3DMaxNumber = Pref.makeIntPref("3DMaxNumNodes", User.getUserTool().prefs, 1000);
     private static Pref cache3DAlpha = Pref.makeIntPref("3DAlpha", User.getUserTool().prefs, 20000);
@@ -171,7 +172,7 @@ public final class J3DUtils
     }
 	/**
 	 * Method to set the color of the axes on the 3D display.
-	 * @param c the color of the axes on the 3D display.
+	 * @param colors the colors of the axes on the 3D display.
 	 */
 	private static void set3DColorAxes(int[] colors)
     {
@@ -205,7 +206,19 @@ public final class J3DUtils
      */
     public static void set3DAxesOn(boolean on) { cache3DAxes.setBoolean(on); }
 
+    /**
+	 * Method to tell whether to draw transistor poly with a STI shape.
+	 * The default is "true".
+	 * @return true to draw a STI shape in transistor poly
+	 */
+	public static boolean is3DSTIPolyTransistorOn() { return cache3DPolyShape.getBoolean(); }
 	/**
+	 * Method to set whether to draw transistor poly with a STI shape.
+	 * @param on true to draw a STI shape in transistor poly.
+	 */
+	public static void set3DSTIPolyTransistorOn(boolean on) { cache3DPolyShape.setBoolean(on); }
+
+    /**
 	 * Method to tell whether to draw bounding box for the cells.
 	 * The default is "true".
 	 * @return true to draw bounding box for the cells.
