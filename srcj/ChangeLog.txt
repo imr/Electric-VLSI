@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08c: ******************************
 
+
+BUG: (8/8/08, RK) NCC errors not detected when size checking is enabled.
+     (Bug #1787)
+FIX: Some cells can't be compared with size checking because the size varies 
+     with the instance. In that case perform a comparison without size checking.
+
 BUG: (8/1/08, GVG) NPE while reading Routing/data/expected/MazeRouting1Result.jelib (Bug #1793)
 FIX: Check if version is valid.
 

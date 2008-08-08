@@ -69,4 +69,20 @@ public class NccOptions implements Serializable {
 	
 	/** This is false only for old regressions */
 	public boolean oneNamePerPort = true;
+	
+	public NccOptions() {}
+	
+	public NccOptions(NccOptions o) {
+		operation = o.operation;
+		checkSizes = o.checkSizes;
+		absoluteSizeTolerance = o.absoluteSizeTolerance;
+		relativeSizeTolerance = o.relativeSizeTolerance;
+		skipPassed = o.skipPassed;
+		howMuchStatus = o.howMuchStatus;
+		haltAfterFirstMismatch = o.haltAfterFirstMismatch;
+		maxMismatchedEquivRecsToPrint = o.maxMismatchedEquivRecsToPrint;
+		maxMatchedEquivRecsToPrint = o.maxMatchedEquivRecsToPrint;
+		maxEquivRecMembersToPrint = o.maxEquivRecMembersToPrint;
+		oneNamePerPort = o.oneNamePerPort;
+	}
 }

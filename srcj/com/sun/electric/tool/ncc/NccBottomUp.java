@@ -210,20 +210,32 @@ public class NccBottomUp {
 			if (options.operation==NccOptions.FLAT_TOP_CELL && !blackBoxAnn &&
 			    it.hasNext()) continue;
 
-			// size checking only works if we compare Cells that are
-			// each instantiated exactly once
-			if (options.checkSizes && 
-				options.operation!=NccOptions.FLAT_TOP_CELL &&
-				!compareList.isSafeToCheckSizes() &&
-				!blackBoxAnn) continue;
-			
 			// release storage from previous Cell pair comparisons
 			if (options.operation==NccOptions.FLAT_EACH_CELL) 
 				results.abandonPriorResults();
 			
-			boolean blackBoxErr = 
-				compareCellsInCompareList(results, compareList, hierInfo, 
-					                      blackBoxAnn, options, aborter); 
+			boolean blackBoxErr;
+			if (options.checkSizes && !compareList.isSafeToCheckSizes() &&
+			    options.operation!=NccOptions.FLAT_TOP_CELL &&
+			    !blackBoxAnn) {
+				// size checking specified but this cell isn't safe to size 
+				// check because it is parameterized and it is instantiated 
+				// more than once. Just compare without size checking but purge
+				// any record of the fact that unsized comparison took place
+				NccOptions tmpOptions = new NccOptions(options);
+				tmpOptions.checkSizes = false;
+
+				blackBoxErr = 
+					compareCellsInCompareList(results, compareList, hierInfo, 
+						                      blackBoxAnn, tmpOptions, aborter); 
+
+				hierInfo.purgeCurrentCompareList();
+			} else {
+				blackBoxErr = 
+					compareCellsInCompareList(results, compareList, hierInfo, 
+						                      blackBoxAnn, options, aborter); 
+			}
+			
 			if (blackBoxErr) {
 				prln(
 					"Halting multiple cell NCC because of failure to build " +
