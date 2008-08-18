@@ -54,6 +54,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 /**
  * This is the simple-RC parasitics extractor for the Spice netlist writer.
  */
@@ -525,9 +526,11 @@ public class SpiceParasitic extends SpiceParasiticsGeneral
                 				arcList.add(null);
                 				arcList.add(CurrAi);
                 				if(sqrs > 3)
+                				{
                 					out.multiLinePrint(false, "XP" + tLineCount + " " + n0 + " " + n1 +" RCLINE R=" + TextUtils.formatDouble(res/sqrs, 2) + " C=" + TextUtils.formatDouble(cap/sqrs, 2) + "fF len=" + TextUtils.formatDouble(sqrs, 2) + "\n");
-                        		n0=n1;
-                        		tLineCount++;
+                					tLineCount++;
+                					n0=n1;
+                				}
                         		sqrs = 0;
                         		res = 0.0;
                         		cap = 0;
@@ -566,7 +569,7 @@ public class SpiceParasitic extends SpiceParasiticsGeneral
         					sqrs = 0;
                     		res = 0.0;
                     		cap = 0;
-                    		n0=segmentedNets.getNetName(MainAi.getHeadPortInst());
+                    		n0=segmentedNets.getNetName(FirstAi.getHeadPortInst());
         				}
                 	}	
                    	if(sqrs > 3 && res > 0 && cap >0 ) {
@@ -587,6 +590,3 @@ public class SpiceParasitic extends SpiceParasiticsGeneral
         }
 	}
 }
-	
-	
-	

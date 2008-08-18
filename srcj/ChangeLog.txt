@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08c: ******************************
 
+IMP: (8/18/08, SMR) Improved proximity-based RC in Spice parasitics (Bug #1781).
+
 BUG: (8/18/08, SMR) "Node" properties dialog doesn't highlight name
      when first displayed (Bug #1775).
 FIX: In GetInfoNode.showDialog(), request focus on name field.
