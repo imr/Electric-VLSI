@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08c: ******************************
 
+BUG: (8/18/08, SMR) "Node" properties dialog doesn't highlight name
+     when first displayed (Bug #1775).
+FIX: In GetInfoNode.showDialog(), request focus on name field.
+
 IMP: (8/18/08, SMR) "Spread" dialog now remembers settings (Bug #1797).
 
 BUG: (8/18/08, SMR) Text on arcs uses the size in effect when the arc was

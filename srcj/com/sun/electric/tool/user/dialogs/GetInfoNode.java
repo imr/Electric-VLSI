@@ -75,6 +75,7 @@ import javax.swing.DefaultListModel;
 import javax.swing.JFrame;
 import javax.swing.JList;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
 /**
@@ -133,6 +134,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 			theDialog.pack();
 			theDialog.ensureProperSize();
 			theDialog.setVisible(true);
+			theDialog.name.requestFocus();
 		}
 		theDialog.toFront();
 	}
@@ -224,6 +226,19 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 	protected void escapePressed() { cancelActionPerformed(null); }
 
 	protected void loadInfo()
+	{
+		if (!SwingUtilities.isEventDispatchThread())
+		{
+			SwingUtilities.invokeLater(new Runnable()
+			{
+				public void run() { doLoadInfo(); }
+			});
+			return;
+		}
+		doLoadInfo();
+	}
+
+	private void doLoadInfo()
 	{
 		// update current window
 		EditWindow curWnd = EditWindow.getCurrent();
