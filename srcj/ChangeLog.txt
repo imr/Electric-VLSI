@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08c: ******************************
 
+BUG: (8/18/08, SMR) Text on arcs uses the size in effect when the arc was
+     created (Bug #1799).
+FIX: In ArcInst.setName(), take a new default if the name didn't previously
+     exist.
+
 BUG: (8/18/08, SMR) Creating exports on schematics doesn't copy characteristics
      to the icon (Bug #1799).
 FIX: Created Export.newInstance() variant with a PortCharacteristic on it and

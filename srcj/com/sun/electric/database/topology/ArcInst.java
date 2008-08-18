@@ -392,8 +392,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 		{
 			// adjust the name descriptor for "smart" text placement
             long gridBaseWidth = 2*(gridExtendOverMin + protoType.getGridBaseExtend());
-			TextDescriptor smartDescriptor = getSmartTextDescriptor(angle, DBMath.gridToLambda(gridBaseWidth), nameDescriptor);
-			if (smartDescriptor != null) nameDescriptor = smartDescriptor;
+			nameDescriptor = getSmartTextDescriptor(angle, DBMath.gridToLambda(gridBaseWidth), nameDescriptor);
 		}
         TechPool techPool = parent.getTechPool();
         if (!(tailProto.getId() instanceof PrimitivePortId && techPool.getPrimitivePort((PrimitivePortId)tailProto.getId()).isNegatable()))
@@ -1029,9 +1028,9 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
         lowLevelModify(d.withName(key));
         if (doSmart)
         {
-    		TextDescriptor smartDescriptor = getSmartTextDescriptor(getAngle(), getLambdaBaseWidth(), d.nameDescriptor);
-//    		TextDescriptor smartDescriptor = getSmartTextDescriptor(getAngle(), d.getLambdaFullWidth(), d.nameDescriptor);
-        	if (smartDescriptor != null) setTextDescriptor(ARC_NAME, smartDescriptor);
+        	TextDescriptor td = TextDescriptor.getArcTextDescriptor();
+    		TextDescriptor smartDescriptor = getSmartTextDescriptor(getAngle(), getLambdaBaseWidth(), td);
+        	setTextDescriptor(ARC_NAME, smartDescriptor);
         }
 
         // apply constraints
@@ -1045,7 +1044,6 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	 * @param width the width of the arc.
 	 * @param prev the former text descriptor of the arc.
 	 * @return a new text descriptor that handles smart placement.
-	 * Returns null if no change was made.
 	 */
 	private static TextDescriptor getSmartTextDescriptor(int angle, double width, TextDescriptor prev)
 	{
@@ -1077,7 +1075,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 				return prev.withPos(TextDescriptor.Position.RIGHT).withOff(width/2, 0);
 			}
 		}
-		return null;
+		return prev;
 	}
 
 	/**
