@@ -120,7 +120,7 @@ public class SmartSpiceOut extends Simulate
 					return null;
 				}
 				Stimuli sd = new Stimuli();
-				an = new AnalogAnalysis(sd, AnalogAnalysis.ANALYSIS_SIGNALS);
+				an = new AnalogAnalysis(sd, AnalogAnalysis.ANALYSIS_SIGNALS, false);
 				sd.setCell(cell);
 				signalNames = new String[signalCount];
 				values = new double[signalCount][rowCount];

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08c: ******************************
 
+IMP: (8/18/08, SMR) Waveform window extrapolates values for digital simulators
+     (but still not for analog ones, Bug #1645).
+
 IMP: (8/18/08, SMR) Improved proximity-based RC in Spice parasitics (Bug #1781).
 
 BUG: (8/18/08, SMR) "Node" properties dialog doesn't highlight name

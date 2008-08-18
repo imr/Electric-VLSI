@@ -32,6 +32,7 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.simulation.AnalogAnalysis;
 import com.sun.electric.tool.simulation.AnalogSignal;
 import com.sun.electric.tool.simulation.Analysis;
+import com.sun.electric.tool.simulation.DigitalAnalysis;
 import com.sun.electric.tool.simulation.DigitalSignal;
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.Simulation;
@@ -1430,7 +1431,6 @@ public class Panel extends JPanel
 	{
 		List<WaveSelection> selectedObjects = null;
 		if (bounds != null) selectedObjects = new ArrayList<WaveSelection>();
-//		int wid = sz.width;
 		int hei = sz.height;
 		Signal xSignal = xAxisSignal;
 		if (waveWindow.isXAxisLocked()) xSignal = waveWindow.getXAxisSignalAll();
@@ -1508,18 +1508,18 @@ public class Panel extends JPanel
 		                            }
 	                        	}
 							}
-//	                    	if (i == numEvents-1 && linePointMode <= 1)
-//	                    	{
-//	                    		if (getMinXAxis() < getMaxXAxis())
-//	                    		{
-//		                    		// process extrapolated line from the last data point
-//		                            if (processALine(g, x, lowY, sz.width, lowY, bounds, forPs, selectedObjects, ws, s)) break;
-//		                            if (lastLY != lastHY || lowY != highY)
-//		                            {
-//		        						if (processALine(g, x, highY, sz.width, highY, bounds, forPs, selectedObjects, ws, s)) break;
-//		                            }
-//	                    		}
-//	                    	}
+	                        if (an.extrapolateValues() && i == numEvents-1 && linePointMode <= 1)
+	                    	{
+	                    		if (getMinXAxis() < getMaxXAxis())
+	                    		{
+		                    		// process extrapolated line from the last data point
+		                            if (processALine(g, x, lowY, sz.width, lowY, bounds, forPs, selectedObjects, ws, s)) break;
+		                            if (lastLY != lastHY || lowY != highY)
+		                            {
+		        						if (processALine(g, x, highY, sz.width, highY, bounds, forPs, selectedObjects, ws, s)) break;
+		                            }
+	                    		}
+	                    	}
 	                    	if (linePointMode >= 1)
 							{
 	                    		// drawing has points
@@ -1535,6 +1535,7 @@ public class Panel extends JPanel
 			{
 				// draw digital traces
 				DigitalSignal ds = (DigitalSignal)ws.getSignal();
+				DigitalAnalysis an = ds.getAnalysis();
 				List<DigitalSignal> bussedSignals = ds.getBussedSignals();
 				if (bussedSignals != null)
 				{
@@ -1618,12 +1619,16 @@ public class Panel extends JPanel
 						lastX = x;
 						if (nextXValue == Double.MAX_VALUE) break;
 					}
-//					if (lastX+5 < wid)
-//					{
-//						// run horizontal bars to the end
-//						if (processALine(g, lastX+5, 5, wid, 5, bounds, forPs, selectedObjects, ws, -1)) return selectedObjects;
-//						if (processALine(g, lastX+5, hei-5, wid, hei-5, bounds, forPs, selectedObjects, ws, -1)) return selectedObjects;
-//					}
+					if (an.extrapolateValues())
+					{
+						int wid = sz.width;
+						if (lastX+5 < wid)
+						{
+							// run horizontal bars to the end
+							if (processALine(g, lastX+5, 5, wid, 5, bounds, forPs, selectedObjects, ws, -1)) return selectedObjects;
+							if (processALine(g, lastX+5, hei-5, wid, hei-5, bounds, forPs, selectedObjects, ws, -1)) return selectedObjects;
+						}
+					}
 					continue;
 				}
 
@@ -1686,20 +1691,24 @@ public class Panel extends JPanel
 					{
 						if (processABox(g, lastx, lastLowy, x, lastHighy, bounds, forPs, selectedObjects, ws, false, 0)) return selectedObjects;
 					}
-//					if (i >= numEvents-1)
-//					{
-//						if (g != null && !Simulation.isWaveformDisplayMultiState())
-//						{
-//							if (state == Stimuli.LOGIC_Z) g.setColor(Color.GREEN); else g.setColor(Color.RED);
-//						}
-//						if (lowy == highy)
-//						{
-//							if (processALine(g, x, lowy, wid-1, lowy, bounds, forPs, selectedObjects, ws, -1)) return selectedObjects;
-//						} else
-//						{
-//							if (processABox(g, x, lowy, wid-1, highy, bounds, forPs, selectedObjects, ws, false, 0)) return selectedObjects;
-//						}
-//					}
+					if (an.extrapolateValues())
+					{
+						if (i >= numEvents-1)
+						{
+							if (g != null && !Simulation.isWaveformDisplayMultiState())
+							{
+								if (state == Stimuli.LOGIC_Z) g.setColor(Color.GREEN); else g.setColor(Color.RED);
+							}
+							int wid = sz.width;
+							if (lowy == highy)
+							{
+								if (processALine(g, x, lowy, wid-1, lowy, bounds, forPs, selectedObjects, ws, -1)) return selectedObjects;
+							} else
+							{
+								if (processABox(g, x, lowy, wid-1, highy, bounds, forPs, selectedObjects, ws, false, 0)) return selectedObjects;
+							}
+						}
+					}
 					lastx = x;
 					lastLowy = lowy;
 					lastHighy = highy;

@@ -89,7 +89,7 @@ public class EpicAnalysis extends AnalogAnalysis {
      * @param sd Stimuli.
      */
     EpicAnalysis(Stimuli sd) {
-        super(sd, AnalogAnalysis.ANALYSIS_TRANS);
+        super(sd, AnalogAnalysis.ANALYSIS_TRANS, false);
         signalsUnmodifiable = Collections.unmodifiableList(super.getSignals());
     }
     

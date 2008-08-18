@@ -76,7 +76,7 @@ public class PSpiceOut extends Simulate
 	{
 		boolean first = true;
 		Stimuli sd = new Stimuli();
-		AnalogAnalysis an = new AnalogAnalysis(sd, AnalogAnalysis.ANALYSIS_SIGNALS);
+		AnalogAnalysis an = new AnalogAnalysis(sd, AnalogAnalysis.ANALYSIS_SIGNALS, false);
 		sd.setCell(cell);
 		List<String> signalNames = new ArrayList<String>();
 		List<Double> [] values = null;

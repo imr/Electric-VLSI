@@ -35,9 +35,18 @@ public class AnalogAnalysis extends Analysis<AnalogSignal> {
 	/** the common time array (if there is common time) */		private double [] commonTime;
 	/** the common time array (if there is common time) */		private HashMap<AnalogSignal,Waveform[]> waveformCache = new HashMap<AnalogSignal,Waveform[]>();
 
-	public AnalogAnalysis(Stimuli sd, AnalysisType type)
+	/**
+	 * Constructor for a collection of analog simulation data.
+	 * @param sd Stimuli that this analysis is part of.
+	 * @param type the type of this analysis.
+	 * @param extrapolateToRight true to draw the last value to the right
+	 * (useful for IRSIM and other digital simulations).
+	 * False to stop drawing signals after their last value
+	 * (useful for Spice and other analog simulations).
+	 */
+	public AnalogAnalysis(Stimuli sd, AnalysisType type, boolean extrapolateToRight)
 	{
-		super(sd, type);
+		super(sd, type, extrapolateToRight);
 		if (type != ANALYSIS_MEAS)
 			sweeps = new ArrayList<Object>();
 	}

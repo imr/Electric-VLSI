@@ -102,7 +102,7 @@ public class ArchSimOut extends Simulate
 
 		// make a data structure for it
 		Stimuli sd = new Stimuli();
-		DigitalAnalysis an = new DigitalAnalysis(sd);
+		DigitalAnalysis an = new DigitalAnalysis(sd, true);
 		sd.setCell(cell);
 		for(String signalName : symbolTable.keySet())
 		{

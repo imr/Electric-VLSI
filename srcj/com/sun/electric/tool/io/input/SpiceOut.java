@@ -180,7 +180,7 @@ public class SpiceOut extends Simulate
 		}
 
 		Stimuli sd = new Stimuli();
-		AnalogAnalysis an = new AnalogAnalysis(sd, AnalogAnalysis.ANALYSIS_SIGNALS);
+		AnalogAnalysis an = new AnalogAnalysis(sd, AnalogAnalysis.ANALYSIS_SIGNALS, false);
 		sd.setCell(cell);
 
 		// convert lists to arrays

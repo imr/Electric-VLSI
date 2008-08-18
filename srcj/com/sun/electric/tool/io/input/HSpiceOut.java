@@ -98,7 +98,7 @@ public class HSpiceOut extends Simulate
 		List<List<float[]>> theSweeps = new ArrayList<List<float[]>>(); // sweep, event, signal
 
 		private SweepAnalysis(Stimuli sd, AnalogAnalysis.AnalysisType type) {
-			super(sd, type);
+			super(sd, type, false);
 		}
 
 		protected Waveform[] loadWaveforms(AnalogSignal signal) {
@@ -209,7 +209,7 @@ public class HSpiceOut extends Simulate
 		if (openTextInput(mtURL)) return;
 		System.out.println("Reading HSpice measurements '" + mtURL.getFile() + "'");
 
-		AnalogAnalysis an = new AnalogAnalysis(sd, AnalogAnalysis.ANALYSIS_MEAS);
+		AnalogAnalysis an = new AnalogAnalysis(sd, AnalogAnalysis.ANALYSIS_MEAS, false);
 		List<String> measurementNames = new ArrayList<String>();
 		HashMap<String,List<Double>> measurementData = new HashMap<String,List<Double>>();
 		String lastLine = null;

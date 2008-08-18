@@ -86,7 +86,7 @@ public class VerilogOut extends Simulate
 		throws IOException
 	{
 		Stimuli sd = new Stimuli();
-		DigitalAnalysis an = new DigitalAnalysis(sd);
+		DigitalAnalysis an = new DigitalAnalysis(sd, true);
 		sd.setCell(cell);
 		double timeScale = 1.0;
 		String currentScope = "";

@@ -952,7 +952,7 @@ public class ALS extends Engine
 		Stimuli sd = new Stimuli();
 		sd.setDataType(FileType.ALS);
 		sd.setEngine(this);
-		DigitalAnalysis an = new DigitalAnalysis(sd);
+		DigitalAnalysis an = new DigitalAnalysis(sd, true);
 		sd.setSeparatorChar('.');
 		sd.setCell(cell);
 		String topLevelName = cell.getName().toUpperCase();

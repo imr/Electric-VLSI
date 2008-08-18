@@ -262,7 +262,7 @@ public class Analyzer extends Engine
 		Stimuli sd = new Stimuli();
 		sd.setDataType(FileType.IRSIM);
 		sd.setEngine(this);
-		analysis = new DigitalAnalysis(sd);
+		analysis = new DigitalAnalysis(sd, true);
 		sd.setSeparatorChar('/');
 		sd.setCell(cell);
 		nodeMap = new HashMap<DigitalSignal,Sim.Node>();

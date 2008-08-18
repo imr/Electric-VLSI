@@ -73,11 +73,22 @@ public abstract class Analysis<S extends Signal>
 	/** a map of all signal names in this Analysis */			private HashMap<String,S> signalNames = new HashMap<String,S>();
 	/** the range of values in this Analysis */					private Rectangle2D bounds;
 	/** the left and right side of the Analysis */				private double leftEdge, rightEdge;
+	/** true to extrapolate last value in waveform window */	private boolean extrapolateToRight;
 
-	public Analysis(Stimuli sd, AnalysisType type)
+	/**
+	 * Constructor for a collection of simulation data.
+	 * @param sd Stimuli that this analysis is part of.
+	 * @param type the type of this analysis.
+	 * @param extrapolateToRight true to draw the last value to the right
+	 * (useful for IRSIM and other digital simulations).
+	 * False to stop drawing signals after their last value
+	 * (useful for Spice and other analog simulations).
+	 */
+	public Analysis(Stimuli sd, AnalysisType type, boolean extrapolateToRight)
 	{
 		this.sd = sd;
 		this.type = type;
+		this.extrapolateToRight = extrapolateToRight;
 		sd.addAnalysis(this);
 	}
 
@@ -109,6 +120,18 @@ public abstract class Analysis<S extends Signal>
 	public AnalysisType getAnalysisType()
 	{
 		return type;
+	}
+
+	/**
+	 * Method to tell whether signal values should be extrapolated to the
+	 * right side of the waveform window.
+	 * @return true to draw the last value to the right (useful for IRSIM and
+	 * other digital simulations).  False to stop drawing signals after their
+	 * last value (useful for Spice and other analog simulations).
+	 */
+	public boolean extrapolateValues()
+	{
+		return extrapolateToRight;
 	}
 
 	/**

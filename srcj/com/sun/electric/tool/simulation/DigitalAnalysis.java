@@ -32,8 +32,16 @@ import java.util.List;
 public class DigitalAnalysis extends Analysis<DigitalSignal> {
 	/** a list of all bussed signals in this Analysis */		    private List<DigitalSignal> allBussedSignals = new ArrayList<DigitalSignal>();
 
-    public DigitalAnalysis(Stimuli sd) {
-        super(sd, ANALYSIS_SIGNALS);
+	/**
+	 * Constructor for a collection of digital simulation data.
+	 * @param sd Stimuli that this analysis is part of.
+	 * @param extrapolateToRight true to draw the last value to the right
+	 * (useful for IRSIM and other digital simulations).
+	 * False to stop drawing signals after their last value
+	 * (useful for Spice and other analog simulations).
+	 */
+    public DigitalAnalysis(Stimuli sd, boolean extrapolateToRight) {
+        super(sd, ANALYSIS_SIGNALS, extrapolateToRight);
     }
     
     @Override

@@ -119,13 +119,13 @@ public class RawSpiceOut extends Simulate
 				// start reading a new analysis
 				if (postColon.startsWith("Transient Analysis"))
 				{
-					an = new AnalogAnalysis(sd, AnalogAnalysis.ANALYSIS_TRANS);
+					an = new AnalogAnalysis(sd, AnalogAnalysis.ANALYSIS_TRANS, false);
 				} else if (postColon.startsWith("DC Analysis"))
 				{
-					an = new AnalogAnalysis(sd, AnalogAnalysis.ANALYSIS_DC);
+					an = new AnalogAnalysis(sd, AnalogAnalysis.ANALYSIS_DC, false);
 				} else if (postColon.startsWith("AC Analysis"))
 				{
-					an = new AnalogAnalysis(sd, AnalogAnalysis.ANALYSIS_AC);
+					an = new AnalogAnalysis(sd, AnalogAnalysis.ANALYSIS_AC, false);
 				} else
 				{
 					System.out.println("ERROR: Unknown analysis: " + postColon);
