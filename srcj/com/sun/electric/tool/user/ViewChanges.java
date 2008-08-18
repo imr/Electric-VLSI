@@ -389,7 +389,7 @@ public class ViewChanges
 
 			// export the port from the node
 			PortInst newPi = newNi.findPortInstFromProto(bottomPp);
-			Export npp = Export.newInstance(skeletonCell, newPi, pp.getName());
+			Export npp = Export.newInstance(skeletonCell, newPi, pp.getName(), pp.getCharacteristic());
 			if (npp == null)
 			{
 				System.out.println("Could not create port " + pp.getName());
@@ -397,7 +397,6 @@ public class ViewChanges
 			}
 			npp.copyTextDescriptorFrom(pp, Export.EXPORT_NAME);
 			npp.copyVarsFrom(pp);
-			npp.setCharacteristic(pp.getCharacteristic());
 			newPortMap.put(pp, npp);
 		}
 
@@ -1004,7 +1003,7 @@ public class ViewChanges
 
 		// export the port that should be on this pin
 		PortInst pi = pinNi.getOnlyPortInst();
-		Export port = Export.newInstance(np, pi, pp.getName());
+		Export port = Export.newInstance(np, pi, pp.getName(), pp.getCharacteristic());
 		if (port != null)
 		{
 			TextDescriptor td = port.getTextDescriptor(Export.EXPORT_NAME);
@@ -1051,7 +1050,6 @@ public class ViewChanges
 			}
 			port.setOff(Export.EXPORT_NAME, xOffset, yOffset);
 			port.setAlwaysDrawn(alwaysDrawn);
-			port.setCharacteristic(pp.getCharacteristic());
 			port.copyVarsFrom(pp);
 		}
 
@@ -1253,10 +1251,9 @@ public class ViewChanges
 					PortInst schemPI = convertPort(mosNI, mosPP.getOriginalPort().getPortProto(), schemNI);
 					if (schemPI == null) continue;
 
-					Export schemPP = Export.newInstance(newCell, schemPI, mosPP.getName());
+					Export schemPP = Export.newInstance(newCell, schemPI, mosPP.getName(), mosPP.getCharacteristic());
 					if (schemPP != null)
 					{
-						schemPP.setCharacteristic(mosPP.getCharacteristic());
 						schemPP.copyTextDescriptorFrom(mosPP, Export.EXPORT_NAME);
 						schemPP.copyVarsFrom(mosPP);
 					}
@@ -1744,8 +1741,7 @@ public class ViewChanges
 							// create export if name matches
 							if (exportName != null && nextPi.getPortProto().getName().equals(exportName))
 							{
-								Export pp2 = Export.newInstance(newCell, nextPi, exportName);
-								pp2.setCharacteristic(e.getCharacteristic());
+								Export pp2 = Export.newInstance(newCell, nextPi, exportName, e.getCharacteristic());
 								pp2.copyTextDescriptorFrom(e, Export.EXPORT_NAME);
 								pp2.copyVarsFrom(e);
 								exportName = null;
@@ -1753,8 +1749,7 @@ public class ViewChanges
 						}
 						if (exportName != null)
 						{
-							Export pp2 = Export.newInstance(newCell, pi, exportName);
-							pp2.setCharacteristic(e.getCharacteristic());
+							Export pp2 = Export.newInstance(newCell, pi, exportName, e.getCharacteristic());
 							pp2.copyTextDescriptorFrom(e, Export.EXPORT_NAME);
 							pp2.copyVarsFrom(e);
 							exportName = null;
@@ -2112,9 +2107,8 @@ public class ViewChanges
 						PortProto pp = convertPortName(ni, newNi, portName);
 						if (pp == null) continue;
 						PortInst pi = newNi.findPortInstFromProto(pp);
-						Export pp2 = Export.newInstance(newCell, pi, exportName.toString());
+						Export pp2 = Export.newInstance(newCell, pi, exportName.toString(), e.getCharacteristic());
 						if (pp2 == null) continue;
-						pp2.setCharacteristic(e.getCharacteristic());
 						pp2.copyTextDescriptorFrom(e, Export.EXPORT_NAME);
 						pp2.copyVarsFrom(e);
 					}

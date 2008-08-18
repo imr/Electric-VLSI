@@ -995,9 +995,9 @@ public class EDIF extends Input
 		}
 	}
 
-	private Export makeExport(Cell cell, PortInst pi, String name)
+	private Export makeExport(Cell cell, PortInst pi, String name, PortCharacteristic pc)
 	{
-		Export ppt = Export.newInstance(cell, pi, convertParens(name));
+		Export ppt = Export.newInstance(cell, pi, convertParens(name), pc);
 		return ppt;
 	}
 
@@ -1967,15 +1967,11 @@ public class EDIF extends Input
 							errorCount++;
 						}
 						PortInst pi = ni.findPortInstFromProto(defaultIconPort);
-						ppt = makeExport(curCell, pi, pName);
+						ppt = makeExport(curCell, pi, pName, ePort.direction);
 						if (ppt == null)
 						{
 							System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create port <" + pName + ">");
 							errorCount++;
-						} else
-						{
-							// set the direction
-							ppt.setCharacteristic(ePort.direction);
 						}
 					}
 				}
@@ -3072,14 +3068,11 @@ public class EDIF extends Input
 
 			// now create the port
 			PortInst pi = ni.findPortInstFromProto(fPp);
-			Export ppt = makeExport(curCell, pi, portsListHead.name);
+			Export ppt = makeExport(curCell, pi, portsListHead.name, portsListHead.direction);
 			if (ppt == null)
 			{
 				System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create port <" + portsListHead.name + ">");
 				errorCount++;
-			} else
-			{
-				ppt.setCharacteristic(portsListHead.direction);
 			}
 			portReference = "";
 
@@ -3760,7 +3753,7 @@ System.out.println("NET "+net1.describe(false)+" AND NET "+net2.describe(false)+
 					if (ppt == null)
 					{
 						PortInst pi = ni.findPortInstFromProto(defaultIconPort);
-						ppt = makeExport(curCell, pi, exportName);
+						ppt = makeExport(curCell, pi, exportName, null);
 					}
 					if (ppt == null)
 					{
@@ -4143,23 +4136,23 @@ System.out.println("NET "+net1.describe(false)+" AND NET "+net2.describe(false)+
 							iX = arrayXVal;
 							iY = arrayYVal;
 							PortInst pi = ni.findPortInstFromProto(defaultIconPort);
-							Export ppt = makeExport(curCell, pi, pName);
+
+							// locate the direction of the port
+							PortCharacteristic pc = null;
+							for (EDIFPort ePort = portsListHead; ePort != null; ePort = ePort.next)
+							{
+								if (ePort.reference.equalsIgnoreCase(portReference))
+								{
+									// set the direction
+									pc = ePort.direction;
+									break;
+								}
+							}
+							Export ppt = makeExport(curCell, pi, pName, pc);
 							if (ppt == null)
 							{
 								System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create port <" + pName + ">");
 								errorCount++;
-							} else
-							{
-								// locate the direction of the port
-								for (EDIFPort ePort = portsListHead; ePort != null; ePort = ePort.next)
-								{
-									if (ePort.reference.equalsIgnoreCase(portReference))
-									{
-										// set the direction
-										ppt.setCharacteristic(ePort.direction);
-										break;
-									}
-								}
 							}
 						} else
 						{

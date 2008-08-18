@@ -963,15 +963,20 @@ public final class ExportChanges
 			if (errorCode < 0) break;
 			if (errorCode > 0) continue;
 
-			// presume the name of the new Export
+			// presume the name and characteristic of the new Export
 			Name protoName = pi.getPortProto().getNameKey();
+			PortCharacteristic pc = pi.getPortProto().getCharacteristic();
 
-			// or use export name if there is a reference export
+			// or use original export name/characteristic if there is one
 			Export refExport = null;
 			if (originalExports != null)
 			{
 				refExport = originalExports.get(pi);
-				if (refExport != null) protoName = refExport.getNameKey();
+				if (refExport != null)
+				{
+					protoName = refExport.getNameKey();
+					pc = refExport.getCharacteristic();
+				}
 			}
 
 			// if the node is arrayed, extend the range of the export
@@ -993,7 +998,7 @@ public final class ExportChanges
 			protoNameString = ElectricObject.uniqueObjectName(protoNameString, cell, PortProto.class, already, nextPlainIndex, false);
 
 			// create export
-			Export newPp = Export.newInstance(cell, pi, protoNameString);
+			Export newPp = Export.newInstance(cell, pi, protoNameString, pc);
 			if (newPp != null)
 			{
 				// copy text descriptor, var, and characteristic
@@ -1002,7 +1007,7 @@ public final class ExportChanges
 					newPp.copyTextDescriptorFrom((Export)pi.getPortProto(), Export.EXPORT_NAME);
 					newPp.copyVarsFrom(((Export)pi.getPortProto()));
 				}
-				newPp.setCharacteristic(pi.getPortProto().getCharacteristic());
+
 				// find original export if any, and copy text descriptor, vars, and characteristic
 				if (refExport != null)
 				{
@@ -1707,9 +1712,8 @@ public final class ExportChanges
 							np, oNi.getOrient(), oNi.getName(), oNi.getTechSpecific());
 						if (ni == null) continue;
 						PortInst pi = ni.findPortInstFromProto(oPp.getOriginalPort().getPortProto());
-						pp = Export.newInstance(np, pi, oPp.getName());
+						pp = Export.newInstance(np, pi, oPp.getName(), oPp.getCharacteristic());
 						if (pp == null) continue;
-						pp.setCharacteristic(oPp.getCharacteristic());
 						pp.copyTextDescriptorFrom(oPp, Export.EXPORT_NAME);
 						pp.copyVarsFrom(oPp);
 						newPorts++;

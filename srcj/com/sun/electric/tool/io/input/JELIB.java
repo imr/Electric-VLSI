@@ -490,7 +490,7 @@ public class JELIB extends LibraryFiles
 			return null;
 		}
 		PortInst portPI = portNI.getOnlyPortInst();
-		Export export = Export.newInstance(subCell, portPI, name, false);
+		Export export = Export.newInstance(subCell, portPI, name, null, false);
 		if (export == null)
 		{
 			Input.errorLogger.logError(fileName + ", line " + lineNumber +

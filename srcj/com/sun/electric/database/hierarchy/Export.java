@@ -138,7 +138,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 	 */
 	public static Export newInstance(Cell parent, PortInst portInst, String protoName)
 	{
-		return newInstance(parent, portInst, protoName, true);
+		return newInstance(parent, portInst, protoName, null, true);
 	}
 
 	/**
@@ -147,10 +147,26 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 	 * @param portInst the PortInst to export
 	 * @param protoName the name of this Export.
 	 * It may not have unprintable characters, spaces, or tabs in it.
+	 * @param characteristic the characteristic (input, output) of this Export.
+	 * @return the newly created Export.
+	 */
+	public static Export newInstance(Cell parent, PortInst portInst, String protoName, PortCharacteristic characteristic)
+	{
+		return newInstance(parent, portInst, protoName, characteristic, true);
+	}
+
+	/**
+	 * Method to create an Export with the specified values.
+	 * @param parent the Cell in which this Export resides.
+	 * @param portInst the PortInst to export
+	 * @param protoName the name of this Export.
+	 * It may not have unprintable characters, spaces, or tabs in it.
+	 * @param characteristic the characteristic (input, output) of this Export.
 	 * @param createOnIcon true to create an equivalent export on any associated icon.
 	 * @return the newly created Export.
 	 */
-	public static Export newInstance(Cell parent, PortInst portInst, String protoName, boolean createOnIcon)
+	public static Export newInstance(Cell parent, PortInst portInst, String protoName,
+		PortCharacteristic characteristic, boolean createOnIcon)
 	{
         if (protoName == null) return null;
 
@@ -191,7 +207,9 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
             alwaysDrawn = e.isAlwaysDrawn();
             bodyOnly = e.isBodyOnly();
         }
-		Export pp = newInstance(parent, exportId, protoName, smartPlacement(portInst), portInst, alwaysDrawn, bodyOnly, originalProto.getCharacteristic(), null);
+		PortCharacteristic newCharacteristic = characteristic;
+		if (newCharacteristic == null) newCharacteristic = originalProto.getCharacteristic();
+		Export pp = newInstance(parent, exportId, protoName, smartPlacement(portInst), portInst, alwaysDrawn, bodyOnly, newCharacteristic, null);
 
 		if (createOnIcon)
 		{

@@ -1082,16 +1082,16 @@ public class Maker
 			port = inst.getProto().getPort(0);
 
 		PortInst pi = inst.findPortInstFromProto(port);
-		Export xPort = Export.newInstance(bCell, pi, name);
-		if (xPort == null) return null;
+		PortCharacteristic pc = null;
 		switch (type)
 		{
-			case GetNetlist.INPORT:    xPort.setCharacteristic(PortCharacteristic.IN);     break;
-			case GetNetlist.OUTPORT:   xPort.setCharacteristic(PortCharacteristic.OUT);    break;
-			case GetNetlist.BIDIRPORT: xPort.setCharacteristic(PortCharacteristic.BIDIR);  break;
-			case GetNetlist.PWRPORT:   xPort.setCharacteristic(PortCharacteristic.PWR);    break;
-			default:                   xPort.setCharacteristic(PortCharacteristic.GND);    break;
+			case GetNetlist.INPORT:    pc = PortCharacteristic.IN;     break;
+			case GetNetlist.OUTPORT:   pc = PortCharacteristic.OUT;    break;
+			case GetNetlist.BIDIRPORT: pc = PortCharacteristic.BIDIR;  break;
+			case GetNetlist.PWRPORT:   pc = PortCharacteristic.PWR;    break;
+			default:                   pc = PortCharacteristic.GND;    break;
 		}
+		Export xPort = Export.newInstance(bCell, pi, name, pc);
 		return xPort;
 	}
 

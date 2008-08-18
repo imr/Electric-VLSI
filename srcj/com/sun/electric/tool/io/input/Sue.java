@@ -588,14 +588,11 @@ public class Sue extends Input
 						Iterator<PortInst> it = ni.getPortInsts();
 						PortInst pi = it.next();
 						if (keyword1.equalsIgnoreCase("output")) pi = it.next();
-						Export ppt = newExport(cell, pi, parP.theName);
+						Export ppt = newExport(cell, pi, parP.theName, type);
 						if (ppt == null)
 						{
 							System.out.println("Cell " + cellName + ", line " + lr.getLineNumber() +
 								", could not create export " + parP.theName);
-						} else
-						{
-							ppt.setCharacteristic(type);
 						}
 					} else
 					{
@@ -813,14 +810,11 @@ public class Sue extends Input
 				if (ni == null) continue;
 
 				PortInst pi = ni.getOnlyPortInst();
-				Export ppt = Export.newInstance(cell, pi, parP.theName);
+				Export ppt = Export.newInstance(cell, pi, parP.theName, parP.type);
 				if (ppt == null)
 				{
 					System.out.println("Cell " + cellName + ", line " + lr.getLineNumber() +
 						", could not create port " + parP.theName);
-				} else
-				{
-					ppt.setCharacteristic(parP.type);
 				}
 				continue;
 			}
@@ -1079,7 +1073,7 @@ public class Sue extends Input
 	 * Method to create a port called "thename" on port "pp" of node "ni" in cell "cell".
 	 * The name is modified if it already exists.
 	 */
-	private Export newExport(Cell cell, PortInst pi, String theName)
+	private Export newExport(Cell cell, PortInst pi, String theName, PortCharacteristic pc)
 	{
 		String portName = theName;
 		for(int i=0; ; i++)
@@ -1087,7 +1081,7 @@ public class Sue extends Input
 			Export ppt = (Export)cell.findPortProto(portName);
 			if (ppt == null)
 			{
-				return Export.newInstance(cell, pi, portName);
+				return Export.newInstance(cell, pi, portName, pc);
 			}
 
 			// make space for modified name

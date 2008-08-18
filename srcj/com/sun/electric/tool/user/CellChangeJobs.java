@@ -722,10 +722,9 @@ public class CellChangeJobs
 				{
 					Export pp = it.next();
 					PortInst pi = newNi.findPortInstFromProto(pp.getOriginalPort().getPortProto());
-					Export newPp = Export.newInstance(cell, pi, pp.getName());
+					Export newPp = Export.newInstance(cell, pi, pp.getName(), pp.getCharacteristic());
 					if (newPp != null)
 					{
-						newPp.setCharacteristic(pp.getCharacteristic());
 						newPp.copyTextDescriptorFrom(pp, Export.EXPORT_NAME);
 						newPp.copyVarsFrom(pp);
 					}

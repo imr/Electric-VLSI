@@ -372,14 +372,13 @@ public class NewExport extends EDialog
 	        if (CircuitChangeJobs.cantEdit(cell, ni, true, true, true) != 0) return false;
 
 			PortInst pi = ni.findPortInstFromProto(pp);
-			e = Export.newInstance(cell, pi, name);
+			PortCharacteristic characteristic = PortCharacteristic.findCharacteristic(ch);
+			e = Export.newInstance(cell, pi, name, characteristic);
 			if (e == null)
 			{
 				System.out.println("Failed to create export");
 				return false;
 			}
-			PortCharacteristic characteristic = PortCharacteristic.findCharacteristic(ch);
-			e.setCharacteristic(characteristic);
 			e.setAlwaysDrawn(drawn);
 			e.setBodyOnly(body);
 			if (characteristic.isReference())

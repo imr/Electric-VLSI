@@ -699,13 +699,12 @@ public class DEF extends LEFDEF
 				return true;
 			}
 			PortInst pi = ni.findPortInstFromProto(np.getPort(0));
-			Export e = Export.newInstance(cell, pi, pinName);
+			Export e = Export.newInstance(cell, pi, pinName, portCharacteristic);
 			if (e == null)
 			{
 				reportError("Unable to create pin name");
 				return true;
 			}
-			e.setCharacteristic(portCharacteristic);
 		}
 		return false;
 	}

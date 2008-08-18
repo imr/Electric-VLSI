@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08c: ******************************
 
+BUG: (8/18/08, SMR) Creating exports on schematics doesn't copy characteristics
+     to the icon (Bug #1799).
+FIX: Created Export.newInstance() variant with a PortCharacteristic on it and
+     use this in creating the icon export.
 
 BUG: (8/8/08, RK) NCC errors not detected when size checking is enabled.
      (Bug #1787)

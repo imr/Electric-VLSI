@@ -812,8 +812,7 @@ public class VerilogReader extends Input
                         cell, Orientation.IDENT, pinName, 0);
                 if (addExport)
                 {
-                    Export ex = Export.newInstance(cell, ni.getOnlyPortInst(), pinName);
-                    ex.setCharacteristic(portType);
+                    Export ex = Export.newInstance(cell, ni.getOnlyPortInst(), pinName, portType);
                 }
             }
             else
@@ -904,8 +903,7 @@ public class VerilogReader extends Input
 //                ArcInst.makeInstanceFull(Schematics.tech.wire_arc, 0.0 /*Schematics.tech.wire_arc.getDefaultLambdaFullWidth()*/,
                     ni.getOnlyPortInst(), supply.getOnlyPortInst(), null, null, name);
 
-                Export ex = Export.newInstance(cell, ni.getOnlyPortInst(), name);
-                ex.setCharacteristic(portType);
+                Export ex = Export.newInstance(cell, ni.getOnlyPortInst(), name, portType);
             }
             else
                 System.out.println("Skipping this characteristic?");
