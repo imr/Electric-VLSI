@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
-import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.tool.Job;
@@ -36,13 +35,15 @@ import com.sun.electric.tool.user.ui.TopLevel;
 import java.awt.Frame;
 import java.awt.geom.Rectangle2D;
 
-
 /**
  * Class to handle the "Spread" dialog.
  */
 public class Spread extends EDialog
 {
-    NodeInst ni;
+    private NodeInst currentNode;
+
+    private static char defDirection = 'u';
+    private static double defAmount = 1;
 
 	public static void showSpreadDialog()
 	{
@@ -58,15 +59,31 @@ public class Spread extends EDialog
 	public Spread(Frame parent, NodeInst ni)
 	{
 		super(parent, true);
-        this.ni = ni;
+		currentNode = ni;
 		initComponents();
         getRootPane().setDefaultButton(ok);
-		spreadUp.setSelected(true);
+        switch (defDirection)
+        {
+        	case 'u': spreadUp.setSelected(true);     break;
+        	case 'd': spreadDown.setSelected(true);   break;
+        	case 'l': spreadLeft.setSelected(true);   break;
+        	case 'r': spreadRight.setSelected(true);  break;
+        }
+        spreadAmount.setText(Double.toString(defAmount));
 		finishInitialization();
 	}
 
 	protected void escapePressed() { cancel(null); }
 
+    private void rememberDefaults()
+    {
+		defDirection = 0;
+		if (spreadUp.isSelected()) defDirection = 'u'; else
+		if (spreadDown.isSelected()) defDirection = 'd'; else
+		if (spreadLeft.isSelected()) defDirection = 'l'; else
+		if (spreadRight.isSelected()) defDirection = 'r';
+		defAmount = TextUtils.atof(spreadAmount.getText());
+    }
 
 	/** This method is called from within the constructor to
 	 * initialize the form.
@@ -191,22 +208,17 @@ public class Spread extends EDialog
         pack();
     }//GEN-END:initComponents
 
-	private void cancel(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cancel
+    private void cancel(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cancel
 	{//GEN-HEADEREND:event_cancel
+		rememberDefaults();
 		closeDialog(null);
 	}//GEN-LAST:event_cancel
 
 	private void ok(java.awt.event.ActionEvent evt)//GEN-FIRST:event_ok
 	{//GEN-HEADEREND:event_ok
 		// spread it
-		char direction = 0;
-		if (spreadUp.isSelected()) direction = 'u'; else
-		if (spreadDown.isSelected()) direction = 'd'; else
-		if (spreadLeft.isSelected()) direction = 'l'; else
-		if (spreadRight.isSelected()) direction = 'r';
-		double amount = TextUtils.atof(spreadAmount.getText());
-		if (ni == null) return;
-		new SpreadJob(ni, direction, amount);
+		rememberDefaults();
+		if (currentNode != null) new SpreadJob(currentNode, defDirection, defAmount);
 		closeDialog(null);
 	}//GEN-LAST:event_ok
 
@@ -223,15 +235,15 @@ public class Spread extends EDialog
 	private static class SpreadJob extends Job
 	{
 		private NodeInst ni;
-		private char direction;
-		private double amount;
+		private char dir;
+		private double amt;
 
-		private SpreadJob(NodeInst ni, char direction, double amount)
+		private SpreadJob(NodeInst ni, char dir, double amt)
 		{
 			super("Spread Circuitry", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.ni = ni;
-			this.direction = direction;
-			this.amount = amount;
+			this.dir = dir;
+			this.amt = amt;
 			startJob();
 		}
 
@@ -240,19 +252,14 @@ public class Spread extends EDialog
 		 */
 		public boolean doIt() throws JobException
 		{
-            Rectangle2D r = ni.getBaseShape().getBounds2D();
+			Rectangle2D r = ni.getBaseShape().getBounds2D();
 			double sLx = r.getMinX();
 			double sHx = r.getMaxX();
 			double sLy = r.getMinY();
 			double sHy = r.getMaxY();
-//			SizeOffset so = ni.getSizeOffset();
-//			double sLx = ni.getTrueCenterX() - ni.getXSize()/2 + so.getLowXOffset();
-//			double sHx = ni.getTrueCenterX() + ni.getXSize()/2 - so.getHighXOffset();
-//			double sLy = ni.getTrueCenterY() - ni.getYSize()/2 + so.getLowYOffset();
-//			double sHy = ni.getTrueCenterY() + ni.getYSize()/2 - so.getHighYOffset();
 
 			// spread it
-			CircuitChangeJobs.spreadCircuitry(ni.getParent(), ni, direction, amount, sLx, sHx, sLy, sHy);
+			CircuitChangeJobs.spreadCircuitry(ni.getParent(), ni, dir, amt, sLx, sHx, sLy, sHy);
 			return true;
 		}
 	}
@@ -268,5 +275,4 @@ public class Spread extends EDialog
     private javax.swing.JRadioButton spreadRight;
     private javax.swing.JRadioButton spreadUp;
     // End of variables declaration//GEN-END:variables
-
 }

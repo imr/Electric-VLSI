@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08c: ******************************
 
+IMP: (8/18/08, SMR) "Spread" dialog now remembers settings (Bug #1797).
+
 BUG: (8/18/08, SMR) Text on arcs uses the size in effect when the arc was
      created (Bug #1799).
 FIX: In ArcInst.setName(), take a new default if the name didn't previously
