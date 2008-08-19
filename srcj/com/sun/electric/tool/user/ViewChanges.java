@@ -545,31 +545,35 @@ public class ViewChanges
 			Cell iconCell = ip.makeIconForCell(curCell);
 			if (iconCell == null) return false;
 
-			// place an icon in the schematic
-			Point2D iconPos = new Point2D.Double(0,0);
-			Rectangle2D cellBounds = curCell.getBounds();
-			Rectangle2D iconBounds = iconCell.getBounds();
-			double halfWidth = iconBounds.getWidth() / 2;
-			double halfHeight = iconBounds.getHeight() / 2;
-			switch (exampleLocation)
+			// Check user preference to see if an instance should be made in the original schematic
+			if (exampleLocation != 4)
 			{
-				case 0:		// upper-right
-					iconPos.setLocation(cellBounds.getMaxX()+halfWidth, cellBounds.getMaxY()+halfHeight);
-					break;
-				case 1:		// upper-left
-					iconPos.setLocation(cellBounds.getMinX()-halfWidth, cellBounds.getMaxY()+halfHeight);
-					break;
-				case 2:		// lower-right
-					iconPos.setLocation(cellBounds.getMaxX()+halfWidth, cellBounds.getMinY()-halfHeight);
-					break;
-				case 3:		// lower-left
-					iconPos.setLocation(cellBounds.getMinX()-halfWidth, cellBounds.getMinY()-halfHeight);
-					break;
+				// place an icon in the schematic
+				Point2D iconPos = new Point2D.Double(0,0);
+				Rectangle2D cellBounds = curCell.getBounds();
+				Rectangle2D iconBounds = iconCell.getBounds();
+				double halfWidth = iconBounds.getWidth() / 2;
+				double halfHeight = iconBounds.getHeight() / 2;
+				switch (exampleLocation)
+				{
+					case 0:		// upper-right
+						iconPos.setLocation(cellBounds.getMaxX()+halfWidth, cellBounds.getMaxY()+halfHeight);
+						break;
+					case 1:		// upper-left
+						iconPos.setLocation(cellBounds.getMinX()-halfWidth, cellBounds.getMaxY()+halfHeight);
+						break;
+					case 2:		// lower-right
+						iconPos.setLocation(cellBounds.getMaxX()+halfWidth, cellBounds.getMinY()-halfHeight);
+						break;
+					case 3:		// lower-left
+						iconPos.setLocation(cellBounds.getMinX()-halfWidth, cellBounds.getMinY()-halfHeight);
+						break;
+				}
+				DBMath.gridAlign(iconPos, alignment);
+				double px = iconCell.getBounds().getWidth();
+				double py = iconCell.getBounds().getHeight();
+				iconNode = NodeInst.makeInstance(iconCell, iconPos, px, py, curCell);
 			}
-			DBMath.gridAlign(iconPos, alignment);
-			double px = iconCell.getBounds().getWidth();
-			double py = iconCell.getBounds().getHeight();
-			iconNode = NodeInst.makeInstance(iconCell, iconPos, px, py, curCell);
 			if (!doItNow)
 				fieldVariableChanged("iconNode");
 			return true;
@@ -602,6 +606,7 @@ public class ViewChanges
 		/** length of leads from body to export */							double leadLength;
 		/** spacing between leads (or exports) */							double leadSpacing;
 		/** true to place exports by location in original cell */			boolean placeByCellLocation;
+		/** true to place exports exactly by location in original cell */   boolean useExactLocation;
 		/** true to reverse placement of exports */							boolean reverseIconExportOrder;
 		/** true to draw an icon body (a rectangle) */						boolean drawBody;
 		/** size (in units) of text on body */								double bodyTextSize;
@@ -634,6 +639,7 @@ public class ViewChanges
 			leadLength = 2.0;
 			leadSpacing = 2.0;
 			placeByCellLocation = false;
+			useExactLocation = false;
 			reverseIconExportOrder = false;
 			drawBody = drawBodyAndLeads;
 			bodyTextSize = 1.0;
@@ -666,6 +672,7 @@ public class ViewChanges
 			leadLength = User.getIconGenLeadLength();
 			leadSpacing = User.getIconGenLeadSpacing();
 			placeByCellLocation = User.getIconGenExportPlacement() == 1;
+			useExactLocation = User.getIconGenExportPlacementExact();
 			reverseIconExportOrder = User.isIconGenReverseExportOrder();
 			drawBody = User.isIconGenDrawBody();
 			bodyTextSize = User.getIconGenBodyTextSize();
@@ -829,8 +836,16 @@ public class ViewChanges
 			}
 
 			// determine the size of the "black box" core
-			double ySize = Math.max(Math.max(leftSide, rightSide), 5) * leadSpacing;
-			double xSize = Math.max(Math.max(topSide, bottomSide), 3) * leadSpacing;
+			double xSize, ySize;
+			if (placeByCellLocation && useExactLocation)
+			{
+				xSize = curCell.getDefWidth();
+				ySize = curCell.getDefHeight();
+			} else
+			{
+				ySize = Math.max(Math.max(leftSide, rightSide), 5) * leadSpacing;
+				xSize = Math.max(Math.max(topSide, bottomSide), 3) * leadSpacing;
+			}
 
 			// create the "black box"
 			NodeInst bbNi = null;
@@ -839,11 +854,21 @@ public class ViewChanges
 				bbNi = NodeInst.newInstance(Artwork.tech().openedThickerPolygonNode, new Point2D.Double(0,0), xSize, ySize, iconCell);
 				if (bbNi == null) return null;
 				EPoint [] boxOutline = new EPoint[5];
-				boxOutline[0] = new EPoint(-xSize/2, -ySize/2);
-				boxOutline[1] = new EPoint(-xSize/2,  ySize/2);
-				boxOutline[2] = new EPoint( xSize/2,  ySize/2);
-				boxOutline[3] = new EPoint( xSize/2, -ySize/2);
-				boxOutline[4] = new EPoint(-xSize/2, -ySize/2);
+				if (placeByCellLocation && useExactLocation)
+				{
+					boxOutline[0] = new EPoint(curCell.getBounds().getMinX(), curCell.getBounds().getMinY());
+					boxOutline[1] = new EPoint(curCell.getBounds().getMinX(), curCell.getBounds().getMaxY());
+					boxOutline[2] = new EPoint(curCell.getBounds().getMaxX(), curCell.getBounds().getMaxY());
+					boxOutline[3] = new EPoint(curCell.getBounds().getMaxX(), curCell.getBounds().getMinY());
+					boxOutline[4] = new EPoint(curCell.getBounds().getMinX(), curCell.getBounds().getMinY());
+				} else
+				{
+					boxOutline[0] = new EPoint(-xSize/2, -ySize/2);
+					boxOutline[1] = new EPoint(-xSize/2,  ySize/2);
+					boxOutline[2] = new EPoint( xSize/2,  ySize/2);
+					boxOutline[3] = new EPoint( xSize/2, -ySize/2);
+					boxOutline[4] = new EPoint(-xSize/2, -ySize/2);
+				}
 				bbNi.setTrace(boxOutline);
 
 				// put the original cell name on it
@@ -861,32 +886,39 @@ public class ViewChanges
 				double spacing = leadSpacing;
 				double xPos = 0, yPos = 0;
 				double xBBPos = 0, yBBPos = 0;
-				switch (index)
+				if (placeByCellLocation && useExactLocation)
 				{
-					case 0:		// left side
-						xBBPos = -xSize/2;
-						xPos = xBBPos - leadLength;
-						if (leftSide*2 < rightSide) spacing = leadSpacing * 2;
-						yBBPos = yPos = ySize/2 - ((ySize - (leftSide-1)*spacing) / 2 + portPosition * spacing);
-						break;
-					case 1:		// right side
-						xBBPos = xSize/2;
-						xPos = xBBPos + leadLength;
-						if (rightSide*2 < leftSide) spacing = leadSpacing * 2;
-						yBBPos = yPos = ySize/2 - ((ySize - (rightSide-1)*spacing) / 2 + portPosition * spacing);
-						break;
-					case 2:		// top
-						if (topSide*2 < bottomSide) spacing = leadSpacing * 2;
-						xBBPos = xPos = xSize/2 - ((xSize - (topSide-1)*spacing) / 2 + portPosition * spacing);
-						yBBPos = ySize/2;
-						yPos = yBBPos + leadLength;
-						break;
-					case 3:		// bottom
-						if (bottomSide*2 < topSide) spacing = leadSpacing * 2;
-						xBBPos = xPos = xSize/2 - ((xSize - (bottomSide-1)*spacing) / 2 + portPosition * spacing);
-						yBBPos = -ySize/2;
-						yPos = yBBPos - leadLength;
-						break;
+					xBBPos = xPos = pp.getOriginalPort().getCenter().getX();
+					yBBPos = yPos = pp.getOriginalPort().getCenter().getY();
+				} else
+				{
+					switch (index)
+					{
+						case 0:		// left side
+							xBBPos = -xSize/2;
+							xPos = xBBPos - leadLength;
+							if (leftSide*2 < rightSide) spacing = leadSpacing * 2;
+							yBBPos = yPos = ySize/2 - ((ySize - (leftSide-1)*spacing) / 2 + portPosition * spacing);
+							break;
+						case 1:		// right side
+							xBBPos = xSize/2;
+							xPos = xBBPos + leadLength;
+							if (rightSide*2 < leftSide) spacing = leadSpacing * 2;
+							yBBPos = yPos = ySize/2 - ((ySize - (rightSide-1)*spacing) / 2 + portPosition * spacing);
+							break;
+						case 2:		// top
+							if (topSide*2 < bottomSide) spacing = leadSpacing * 2;
+							xBBPos = xPos = xSize/2 - ((xSize - (topSide-1)*spacing) / 2 + portPosition * spacing);
+							yBBPos = ySize/2;
+							yPos = yBBPos + leadLength;
+							break;
+						case 3:		// bottom
+							if (bottomSide*2 < topSide) spacing = leadSpacing * 2;
+							xBBPos = xPos = xSize/2 - ((xSize - (bottomSide-1)*spacing) / 2 + portPosition * spacing);
+							yBBPos = -ySize/2;
+							yPos = yBBPos - leadLength;
+							break;
+					}
 				}
 
 				int rotation = portRotation.get(pp).intValue();

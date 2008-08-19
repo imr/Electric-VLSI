@@ -75,7 +75,7 @@ public class User extends Listener
 	/** key of Variable holding user who last changed the cell. */		public static final Variable.Key FRAME_LAST_CHANGED_BY = Variable.newKey("USER_drawing_last_changed_by");
 	/** key of Variable holding cell project name. */					public static final Variable.Key FRAME_PROJECT_NAME = Variable.newKey("USER_drawing_project_name");
 
-    private ArcProto currentArcProto = null;
+	private ArcProto currentArcProto = null;
 	private NodeProto currentNodeProto = null;
 //	private boolean undoRedo;
 
@@ -96,15 +96,15 @@ public class User extends Listener
 		setOn();
 		setIncremental();
 
-        if (Job.getRunMode() != Job.Mode.CLIENT)
-            Clipboard.clear(); // To initialize Clibpoard Cell
+		if (Job.getRunMode() != Job.Mode.CLIENT)
+			Clipboard.clear(); // To initialize Clibpoard Cell
 	}
 
-    /**
-     * Method to retrieve the singleton associated with the User tool.
-     * @return the User tool.
-     */
-    public static User getUserTool() { return tool; }
+	/**
+	 * Method to retrieve the singleton associated with the User tool.
+	 * @return the User tool.
+	 */
+	public static User getUserTool() { return tool; }
 
 //	/**
 //	 * Method to handle a change to a NodeInst.
@@ -118,9 +118,9 @@ public class User extends Listener
 //		// remember what has changed in the cell
 //		Cell cell = ni.getParent();
 //		Rectangle2D.Double oldBounds = new Rectangle2D.Double();
-//        oldD.computeBounds(ni, oldBounds);
+//		oldD.computeBounds(ni, oldBounds);
 //		Rectangle2D.Double newBounds = new Rectangle2D.Double();
-//        ni.getD().computeBounds(ni, newBounds);	// TO DO Why can't we use "ni.getBounds()" ?
+//		ni.getD().computeBounds(ni, newBounds);	// TO DO Why can't we use "ni.getBounds()" ?
 //		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 //		{
 //			WindowFrame wf = it.next();
@@ -147,7 +147,7 @@ public class User extends Listener
 //	/**
 //	 * Method to handle a change to an ArcInst.
 //	 * @param ai the ArcInst that changed.
-//     * @param oD the old contents of the ArcInst.
+//	 * @param oD the old contents of the ArcInst.
 //	 */
 //	public void modifyArcInst(ArcInst ai, ImmutableArcInst oD)
 //	{
@@ -186,7 +186,7 @@ public class User extends Listener
 //	 */
 //	public void modifyExport(Export pp, ImmutableExport oD)
 //	{
-//        PortInst oldPi = ((Cell)pp.getParent()).getPortInst(oD.originalNodeId, oD.originalPortId);
+//		PortInst oldPi = ((Cell)pp.getParent()).getPortInst(oD.originalNodeId, oD.originalPortId);
 //		// remember what has changed in the cell
 //		Cell cell = (Cell)pp.getParent();
 //		NodeInst oldNi = oldPi.getNodeInst();
@@ -227,19 +227,19 @@ public class User extends Listener
 //	 * @param oD the old contents of the Cell.
 //	 */
 //	public void modifyCell(Cell cell, ImmutableCell oD) {
-//        redrawObject(cell);
-//        CellName oldCellName = oD.cellName;
-//        if (cell.getCellName() == oldCellName) return;
-//        if (cell.isInTechnologyLibrary()) {
-//            Manipulate.renamedCell(oldCellName.getName(), cell.getName());
-//        }
-//        for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); ) {
-//            WindowFrame wf = it.next();
-//            WindowContent content = wf.getContent();
-//            if (content.getCell() != cell) continue;
-//            content.setWindowTitle();
-//        }
-//    }
+//		redrawObject(cell);
+//		CellName oldCellName = oD.cellName;
+//		if (cell.getCellName() == oldCellName) return;
+//		if (cell.isInTechnologyLibrary()) {
+//			Manipulate.renamedCell(oldCellName.getName(), cell.getName());
+//		}
+//		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); ) {
+//			WindowFrame wf = it.next();
+//			WindowContent content = wf.getContent();
+//			if (content.getCell() != cell) continue;
+//			content.setWindowTitle();
+//		}
+//	}
 //
 //	/**
 //	 * Method to handle a change to a Library.
@@ -501,80 +501,80 @@ public class User extends Listener
 //	}
 
    /**
-     * Handles database changes of a Job.
-     * @param oldSnapshot database snapshot before Job.
-     * @param newSnapshot database snapshot after Job and constraint propagation.
-     * @param undoRedo true if Job was Undo/Redo job.
-     */
-    public void endBatch(Snapshot oldSnapshot, Snapshot newSnapshot, boolean undoRedo) {
+	 * Handles database changes of a Job.
+	 * @param oldSnapshot database snapshot before Job.
+	 * @param newSnapshot database snapshot after Job and constraint propagation.
+	 * @param undoRedo true if Job was Undo/Redo job.
+	 */
+	public void endBatch(Snapshot oldSnapshot, Snapshot newSnapshot, boolean undoRedo) {
 		for(Iterator<WindowFrame> wit = WindowFrame.getWindows(); wit.hasNext(); )
 		{
 			WindowFrame wf = wit.next();
-            WindowContent content = wf.getContent();
-            if (!(content instanceof EditWindow)) continue;
-            Cell winCell = content.getCell();
-            if (winCell == null) continue;
-            EditWindow wnd = (EditWindow)content;
-            if (!winCell.isLinked())
-                wnd.setCell(null, null, null);
-        }
-        EditWindow.invokeRenderJob();
-//        // Mark cells for redraw
-//        HashSet<Cell> marked = new HashSet<Cell>();
-//        for (CellId cellId: newSnapshot.getChangedCells(oldSnapshot)) {
-//            CellBackup newBackup = newSnapshot.getCell(cellId);
-//            CellBackup oldBackup = oldSnapshot.getCell(cellId);
-//            ERectangle newBounds = newSnapshot.getCellBounds(cellId);
-//            ERectangle oldBounds = oldSnapshot.getCellBounds(cellId);
-//            if (newBackup != oldBackup || newBounds != oldBounds) {
+			WindowContent content = wf.getContent();
+			if (!(content instanceof EditWindow)) continue;
+			Cell winCell = content.getCell();
+			if (winCell == null) continue;
+			EditWindow wnd = (EditWindow)content;
+			if (!winCell.isLinked())
+				wnd.setCell(null, null, null);
+		}
+		EditWindow.invokeRenderJob();
+//		// Mark cells for redraw
+//		HashSet<Cell> marked = new HashSet<Cell>();
+//		for (CellId cellId: newSnapshot.getChangedCells(oldSnapshot)) {
+//			CellBackup newBackup = newSnapshot.getCell(cellId);
+//			CellBackup oldBackup = oldSnapshot.getCell(cellId);
+//			ERectangle newBounds = newSnapshot.getCellBounds(cellId);
+//			ERectangle oldBounds = oldSnapshot.getCellBounds(cellId);
+//			if (newBackup != oldBackup || newBounds != oldBounds) {
 //				if (newBackup == null) continue; // What to do with deleted cells ??
-//                Cell cell = Cell.inCurrentThread(cellId);
-//                if (cell == null) continue; // This might be a desynchronization between GUI thread and delete???
-//                markCellForRedrawRecursively(cell, marked);
-////                VectorDrawing.cellChanged(cell);
-//                EditWindow.forceRedraw(cell);
-//            }
-//        }
+//				Cell cell = Cell.inCurrentThread(cellId);
+//				if (cell == null) continue; // This might be a desynchronization between GUI thread and delete???
+//				markCellForRedrawRecursively(cell, marked);
+////				VectorDrawing.cellChanged(cell);
+//				EditWindow.forceRedraw(cell);
+//			}
+//		}
 //		for(Iterator<WindowFrame> wit = WindowFrame.getWindows(); wit.hasNext(); )
 //		{
 //			WindowFrame wf = wit.next();
-//            WindowContent content = wf.getContent();
-//            if (!(content instanceof EditWindow)) continue;
-//            Cell winCell = content.getCell();
-//            if (winCell == null) continue;
-//            EditWindow wnd = (EditWindow)content;
-//            if (!winCell.isLinked()) {
-//                wnd.setCell(null, null, null);
-//            } else if (marked.contains(winCell)) {
-//                wnd.fullRepaint();
-//            }
-//        }
-    }
+//			WindowContent content = wf.getContent();
+//			if (!(content instanceof EditWindow)) continue;
+//			Cell winCell = content.getCell();
+//			if (winCell == null) continue;
+//			EditWindow wnd = (EditWindow)content;
+//			if (!winCell.isLinked()) {
+//				wnd.setCell(null, null, null);
+//			} else if (marked.contains(winCell)) {
+//				wnd.fullRepaint();
+//			}
+//		}
+	}
 
-    /**
-     * Reloading oe renaming libraries has the side affect that any EditWindows
-     * containing cells that were reloaded now point to old, unlinked
-     * cells instead of the new ones. This method checks for this state
-     * and fixes it.
-     * @param idMapper mapping of Library/Cell/Export ids, null if the library was renamed.
-     */
-    public static void fixStaleCellReferences(IdMapper idMapper) {
-        if (idMapper == null) return;
-        for (Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); ) {
-            WindowFrame frame = it.next();
-            if (frame.getContent() instanceof EditWindow) {
-                EditWindow wnd = (EditWindow)frame.getContent();
-                Cell cell = wnd.getCell();
-                if (cell == null) continue;
-                if (!cell.isLinked()) {
-                    CellId cellId = idMapper.get(cell.getId());
-                    Cell newCell = EDatabase.clientDatabase().getCell(cellId);
-                    if (newCell == null) continue;
-                    wnd.setCell(newCell, VarContext.globalContext, null);
-                }
-            }
-        }
-    }
+	/**
+	 * Reloading oe renaming libraries has the side affect that any EditWindows
+	 * containing cells that were reloaded now point to old, unlinked
+	 * cells instead of the new ones. This method checks for this state
+	 * and fixes it.
+	 * @param idMapper mapping of Library/Cell/Export ids, null if the library was renamed.
+	 */
+	public static void fixStaleCellReferences(IdMapper idMapper) {
+		if (idMapper == null) return;
+		for (Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); ) {
+			WindowFrame frame = it.next();
+			if (frame.getContent() instanceof EditWindow) {
+				EditWindow wnd = (EditWindow)frame.getContent();
+				Cell cell = wnd.getCell();
+				if (cell == null) continue;
+				if (!cell.isLinked()) {
+					CellId cellId = idMapper.get(cell.getId());
+					Cell newCell = EDatabase.clientDatabase().getCell(cellId);
+					if (newCell == null) continue;
+					wnd.setCell(newCell, VarContext.globalContext, null);
+				}
+			}
+		}
+	}
 
 	/************************** TRACKING CHANGES TO CELLS **************************/
 
@@ -622,17 +622,17 @@ public class User extends Listener
 //	 */
 //	public static void markCellForRedraw(Cell cell, boolean cellChanged)
 //	{
-//        HashSet<Cell> marked = new HashSet<Cell>();
-//        markCellForRedrawRecursively(cell, marked);
+//		HashSet<Cell> marked = new HashSet<Cell>();
+//		markCellForRedrawRecursively(cell, marked);
 //		if (cellChanged)
 //		{
 ////			VectorDrawing.cellChanged(cell);
 //			EditWindow.forceRedraw(cell);
-//            // recurse up the hierarchy so that all windows showing the cell get redrawn
-//            for(Iterator<NodeInst> it = cell.getInstancesOf(); it.hasNext(); ) {
-//                NodeInst ni = it.next();
-//                markCellForRedrawRecursively(ni.getParent(), marked);
-//            }
+//			// recurse up the hierarchy so that all windows showing the cell get redrawn
+//			for(Iterator<NodeInst> it = cell.getInstancesOf(); it.hasNext(); ) {
+//				NodeInst ni = it.next();
+//				markCellForRedrawRecursively(ni.getParent(), marked);
+//			}
 //		}
 //
 //		for(Iterator<WindowFrame> wit = WindowFrame.getWindows(); wit.hasNext(); )
@@ -649,9 +649,9 @@ public class User extends Listener
 //		}
 //	}
 //
-//    private static void markCellForRedrawRecursively(Cell cell, HashSet<Cell> marked) {
-//        if (marked.contains(cell)) return;
-//        marked.add(cell);
+//	private static void markCellForRedrawRecursively(Cell cell, HashSet<Cell> marked) {
+//		if (marked.contains(cell)) return;
+//		marked.add(cell);
 //		// recurse up the hierarchy so that all windows showing the cell get redrawn
 //		for(Iterator<NodeInst> it = cell.getInstancesOf(); it.hasNext(); )
 //		{
@@ -659,7 +659,7 @@ public class User extends Listener
 //			if (ni.isExpanded())
 //				markCellForRedrawRecursively(ni.getParent(), marked);
 //		}
-//    }
+//	}
 
 	/**
 	 * Method called when a technology's parameters change.
@@ -667,8 +667,8 @@ public class User extends Listener
 	 */
 	public static void technologyChanged()
 	{
-        VectorCache.theCache.clearCache();
-        EditWindow.clearSubCellCache();
+		VectorCache.theCache.clearCache();
+		EditWindow.clearSubCellCache();
 	}
 
 	/**
@@ -678,9 +678,9 @@ public class User extends Listener
 	public static void layerVisibilityChanged(boolean onlyText) {
 		if (!onlyText)
 			VectorCache.theCache.clearFadeImages();
-        EditWindow.clearSubCellCache();
+		EditWindow.clearSubCellCache();
 		EditWindow.repaintAllContents();
-    }
+	}
 
 	/****************************** MISCELLANEOUS FUNCTIONS ******************************/
 
@@ -727,17 +727,17 @@ public class User extends Listener
 		{
 			// first time: see if there is a sound card
 			try
-		    {
-		    	hasSound = javax.sound.sampled.AudioSystem.getMixerInfo().length > 0;
-			    if (!hasSound) return;
-		    }
-		    catch (Throwable t)
 			{
-		    	hasSound = false;
-		    	return;
-		    }
+				hasSound = javax.sound.sampled.AudioSystem.getMixerInfo().length > 0;
+				if (!hasSound) return;
+			}
+			catch (Throwable t)
+			{
+				hasSound = false;
+				return;
+			}
 
-		    // initialize the click sound
+			// initialize the click sound
 			URL url = Resources.getURLResource(TopLevel.class, "Click.wav");
 			if (url == null) { hasSound = false;   return; }
 			clickSound = Applet.newAudioClip(url);
@@ -803,11 +803,11 @@ public class User extends Listener
 	 */
 	public static Technology getSchematicTechnology()
 	{
-        String t = tool.cacheSchematicTechnology.getString();
+		String t = tool.cacheSchematicTechnology.getString();
 		Technology tech = Technology.findTechnology(t);
-        if (tech == null) return Technology.getMocmosTechnology();
-        return tech;
-    }
+		if (tech == null) return Technology.getMocmosTechnology();
+		return tech;
+	}
 	/**
 	 * Returns project Setting to tell the layout Technology to use when schematics are found.
 	 * This is important in Spice deck generation (for example) because the Spice primitives may
@@ -829,28 +829,28 @@ public class User extends Listener
 	 */
 	public static Setting getIncludeDateAndVersionInOutputSetting() { return tool.cacheIncludeDateAndVersionInOutput; }
 
-    private Setting cacheDefaultTechnology;
-    private Setting cacheSchematicTechnology;
+	private Setting cacheDefaultTechnology;
+	private Setting cacheSchematicTechnology;
 	private Setting cacheIncludeDateAndVersionInOutput;
-    private Setting cachePWellProcess;
+	private Setting cachePWellProcess;
 
-    /**
-     * Method to tell whether the process is a PWell process. If true, it will ignore the pwell spacing rule.
-     * The default is "true".
-     * @return true if the process is PWell
-     */
-    public static Setting getPWellProcessLayoutTechnologySetting() {return tool.cachePWellProcess;}
-    public static boolean isPWellProcessLayoutTechnology() {return getPWellProcessLayoutTechnologySetting().getBoolean();}
-    public static void setPWellProcessLayoutTechnology(boolean on) {getPWellProcessLayoutTechnologySetting().set(new Boolean(on));}
-    
-    @Override
-    protected void initProjectSettings() {
-        makeStringSetting("DefaultTechnology", "Technology tab", "Default Technology for editing", "mocmos");
-        makeStringSetting("SchematicTechnology", "Technology tab", "Schematics use scale values from this technology", "mocmos");
-        makeBooleanSetting("IncludeDateAndVersionInOutput", "Netlists tab", "Include date and version in output", true);
-        makeBooleanSetting("PWellProcess", "Technology tab", "Define Layout Technology as a PWell process", true);
-    }
-    
+	/**
+	 * Method to tell whether the process is a PWell process. If true, it will ignore the pwell spacing rule.
+	 * The default is "true".
+	 * @return true if the process is PWell
+	 */
+	public static Setting getPWellProcessLayoutTechnologySetting() {return tool.cachePWellProcess;}
+	public static boolean isPWellProcessLayoutTechnology() {return getPWellProcessLayoutTechnologySetting().getBoolean();}
+	public static void setPWellProcessLayoutTechnology(boolean on) {getPWellProcessLayoutTechnologySetting().set(new Boolean(on));}
+
+	@Override
+	protected void initProjectSettings() {
+		makeStringSetting("DefaultTechnology", "Technology tab", "Default Technology for editing", "mocmos");
+		makeStringSetting("SchematicTechnology", "Technology tab", "Schematics use scale values from this technology", "mocmos");
+		makeBooleanSetting("IncludeDateAndVersionInOutput", "Netlists tab", "Include date and version in output", true);
+		makeBooleanSetting("PWellProcess", "Technology tab", "Define Layout Technology as a PWell process", true);
+	}
+
 	/****************************** ICON GENERATION PREFERENCES ******************************/
 
 	private static Pref cacheIconGenDrawLeads = Pref.makeBooleanPref("IconGenDrawLeads", tool.prefs, true);
@@ -1023,6 +1023,26 @@ public class User extends Listener
 	 * 0: by characteristic   1: by location in original cell
 	 */
 	public static void setIconGenExportPlacement(int rot) { cacheIconGenExportPlacement.setInt(rot); }
+
+	/**
+	 * Flag to specify that generated exports in icons should be placed in the exact location
+	 * specified in the schematics.
+	 */
+	private static Pref cacheIconGenExportPlacementExact = Pref.makeBooleanPref("IconGenExportPlacementExact", tool.prefs, true);
+	/**
+	 * Method to tell whether exports are placed exactly according to schematics.
+	 * Only valid if icon ports are being placed by location.
+	 * @return true to place exports exactly according to schematics.
+	 * false: to place exports relative to their location in the original cell.
+	 */
+	public static boolean getIconGenExportPlacementExact() { return cacheIconGenExportPlacementExact.getBoolean(); }
+	/**
+	 * Method to set whether exports are placed exactly according to schematics.
+	 * Only valid if icon ports are being placed by location.
+	 * @param flag true to place exports exactly according to schematics.
+	 * false: to place exports relative to their location in the original cell.
+	 */
+	public static void setIconGenExportPlacementExact(boolean flag) { cacheIconGenExportPlacementExact.setBoolean(flag); }
 
 	private static Pref cacheIconGenInputRot = Pref.makeIntPref("IconGenInputRot", tool.prefs, 0);
 	/**
@@ -1240,6 +1260,7 @@ public class User extends Listener
 	 * 1: in the upper-left corner.
 	 * 2: in the lower-right corner.
 	 * 3: in the lower-left corner.
+	 * 4: no instance in the original schematic
 	 */
 	public static int getIconGenInstanceLocation() { return cacheIconGenInstanceLocation.getInt(); }
 	/**
@@ -1249,6 +1270,7 @@ public class User extends Listener
 	 * 1: in the upper-left corner.
 	 * 2: in the lower-right corner.
 	 * 3: in the lower-left corner.
+	 * 4: no instance in the original schematic
 	 */
 	public static void setIconGenInstanceLocation(int loc) { cacheIconGenInstanceLocation.setInt(loc); }
 
@@ -1355,32 +1377,32 @@ public class User extends Listener
 	 */
 	public static void setDraggingMustEncloseObjects(boolean on) { cacheDraggingMustEncloseObjects.setBoolean(on); }
 
-    private static Pref cacheMouseOverHighlighting = Pref.makeBooleanPref("UseMouseOverHighlighting", tool.prefs, true);
-    /**
-     * Method to tell whether dragging a selection rectangle must completely encose objects in order to select them.
-     * The default is "false", which means that the selection rectangle need only touch an object in order to select it.
-     * @return true if dragging a selection rectangle must completely encose objects in order to select them.
-     */
-    public static boolean isMouseOverHighlightingEnabled() { return cacheMouseOverHighlighting.getBoolean(); }
-    /**
-     * Method to set whether dragging a selection rectangle must completely encose objects in order to select them.
-     * @param on true if dragging a selection rectangle must completely encose objects in order to select them.
-     */
-    public static void setMouseOverHighlightingEnabled(boolean on) { cacheMouseOverHighlighting.setBoolean(on); }
+	private static Pref cacheMouseOverHighlighting = Pref.makeBooleanPref("UseMouseOverHighlighting", tool.prefs, true);
+	/**
+	 * Method to tell whether dragging a selection rectangle must completely encose objects in order to select them.
+	 * The default is "false", which means that the selection rectangle need only touch an object in order to select it.
+	 * @return true if dragging a selection rectangle must completely encose objects in order to select them.
+	 */
+	public static boolean isMouseOverHighlightingEnabled() { return cacheMouseOverHighlighting.getBoolean(); }
+	/**
+	 * Method to set whether dragging a selection rectangle must completely encose objects in order to select them.
+	 * @param on true if dragging a selection rectangle must completely encose objects in order to select them.
+	 */
+	public static void setMouseOverHighlightingEnabled(boolean on) { cacheMouseOverHighlighting.setBoolean(on); }
 
-    private static Pref cacheHighlightConnectedObjects = Pref.makeBooleanPref("HighlightConnectedObjects", tool.prefs, true);
-    /**
-     * Method to set whether to highlight objects connected to the selected object
-     * @return true to highlight objects connected to the selected object, false otherwise
-     */
-    public static boolean isHighlightConnectedObjects() { return cacheHighlightConnectedObjects.getBoolean(); }
-    /**
-     * Method to get whether to highlight objects connected to the selected object
-     * @param on true to highlight objects connected to the selected object
-     */
-    public static void setHighlightConnectedObjects(boolean on) { cacheHighlightConnectedObjects.setBoolean(on); }
+	private static Pref cacheHighlightConnectedObjects = Pref.makeBooleanPref("HighlightConnectedObjects", tool.prefs, true);
+	/**
+	 * Method to set whether to highlight objects connected to the selected object
+	 * @return true to highlight objects connected to the selected object, false otherwise
+	 */
+	public static boolean isHighlightConnectedObjects() { return cacheHighlightConnectedObjects.getBoolean(); }
+	/**
+	 * Method to get whether to highlight objects connected to the selected object
+	 * @param on true to highlight objects connected to the selected object
+	 */
+	public static void setHighlightConnectedObjects(boolean on) { cacheHighlightConnectedObjects.setBoolean(on); }
 
-    /****************************** GRID AND ALIGNMENT PREFERENCES ******************************/
+	/****************************** GRID AND ALIGNMENT PREFERENCES ******************************/
 
 	private static Pref cacheDefGridXSpacing = Pref.makeDoublePref("DefGridXSpacing", tool.prefs, 1);
 	/**
@@ -1440,33 +1462,33 @@ public class User extends Listener
 	 * @return the default alignment of objects to the grid.
 	 */
 	public static double getAlignmentToGrid()
-    {
-        double[] vals = getAlignmentToGridVector();
-        for (int i = 0; i < vals.length; i++)
-        {
-            if (vals[i] < 0) return Math.abs(vals[i]);
-        }
-        assert(false); // should never reach this point.
-        return -1;
-    }
-    private static Pref cacheAlignmentToGridVector = Pref.makeStringPref("AlignmentToGridVector", tool.prefs, "(-1 0.5 0.25)");
-    /**
-     * Method to return the default alignment of objects to the grid.
-     * The default is 1, meaning that placement and movement should land on whole grid units.
-     * @return the default alignment of objects to the grid.
-     */
-    public static double[] getAlignmentToGridVector()
-    {
-        return GenMath.transformVectorIntoValues(cacheAlignmentToGridVector.getString());
-    }
-    /**
-     * Method to set the default alignment of objects to the grid.
-     * @param dist the default alignment of objects to the grid.
-     */
-    public static void setAlignmentToGridVector(double[] dist)
-    {
-        cacheAlignmentToGridVector.setString(GenMath.transformStringsIntoVector(dist[0], dist[1], dist[2]));
-    }
+	{
+		double[] vals = getAlignmentToGridVector();
+		for (int i = 0; i < vals.length; i++)
+		{
+			if (vals[i] < 0) return Math.abs(vals[i]);
+		}
+		assert(false); // should never reach this point.
+		return -1;
+	}
+	private static Pref cacheAlignmentToGridVector = Pref.makeStringPref("AlignmentToGridVector", tool.prefs, "(-1 0.5 0.25)");
+	/**
+	 * Method to return the default alignment of objects to the grid.
+	 * The default is 1, meaning that placement and movement should land on whole grid units.
+	 * @return the default alignment of objects to the grid.
+	 */
+	public static double[] getAlignmentToGridVector()
+	{
+		return GenMath.transformVectorIntoValues(cacheAlignmentToGridVector.getString());
+	}
+	/**
+	 * Method to set the default alignment of objects to the grid.
+	 * @param dist the default alignment of objects to the grid.
+	 */
+	public static void setAlignmentToGridVector(double[] dist)
+	{
+		cacheAlignmentToGridVector.setString(GenMath.transformStringsIntoVector(dist[0], dist[1], dist[2]));
+	}
 
 	private static Pref cacheShowGridAxes = Pref.makeBooleanPref("ShowGridAxes", tool.prefs, false);
 	/**
@@ -1766,211 +1788,211 @@ public class User extends Listener
 
 	/****************************** COLOR PREFERENCES ******************************/
 
-    public enum ColorPrefType {BACKGROUND, GRID, HIGHLIGHT, MOUSEOVER_HIGHLIGHT,
-    	PORT_HIGHLIGHT, TEXT, INSTANCE, ARTWORK, DOWNINPLACEBORDER,
-        WAVE_BACKGROUND, WAVE_FOREGROUND, WAVE_STIMULI, WAVE_OFF_STRENGTH,
-        WAVE_NODE_STRENGTH, WAVE_GATE_STRENGTH, WAVE_POWER_STRENGTH, WAVE_CROSS_LOW,
-        WAVE_CROSS_HIGH, WAVE_CROSS_UNDEF, WAVE_CROSS_FLOAT}
+	public enum ColorPrefType {BACKGROUND, GRID, HIGHLIGHT, MOUSEOVER_HIGHLIGHT,
+		PORT_HIGHLIGHT, TEXT, INSTANCE, ARTWORK, DOWNINPLACEBORDER,
+		WAVE_BACKGROUND, WAVE_FOREGROUND, WAVE_STIMULI, WAVE_OFF_STRENGTH,
+		WAVE_NODE_STRENGTH, WAVE_GATE_STRENGTH, WAVE_POWER_STRENGTH, WAVE_CROSS_LOW,
+		WAVE_CROSS_HIGH, WAVE_CROSS_UNDEF, WAVE_CROSS_FLOAT}
 
-    /**
-     * Method to get the color of a given special layer on the display.
-     * BACKGROUND: color of the background on the display. The default is "light gray".
-     * GRID: color of the grid on the display. The default is "black".
-     * HIGHLIGHT: color of the highlight on the display. The default is "white".
-     * MOUSEOVER_HIGHLIGHT: color of the highlight on the display. The default is "white".
-     * PORT_HIGHLIGHT: color of the port highlight on the display. The default is "yellow".
-     * TEXT: color of the text on the display. The default is "black".
-     * INSTANCE: color of the instance outlines on the display. The default is "black".
-     * ARTWORK: default color of the artwork primitives on the display. The default is "black".
-     * DOWNINPLACEBORDER: color of the border around cells drawn "down in place". The default is "red".
-     * WAVE_BACKGROUND: color of the waveform window background. The default is "black".
-     * WAVE_FOREGROUND: color of the waveform window foreground. This includes lines and text. The default is "white".
-     * WAVE_STIMULI: color of the traces in waveform windows. Applies only when not a "multistate" display, which uses many colors.
-     * The default is "red".
-     * WAVE_OFF_STRENGTH: color of waveform window traces that have "off" strength. The default is "blue".
-     * WAVE_NODE_STRENGTH: color of waveform window traces that have "node" strength. The default is "green".
-     * WAVE_GATE_STRENGTH: color of waveform window traces that have "gate" strength. The default is "magenta".
-     * WAVE_POWER_STRENGTH: color of waveform window traces that have "power" strength. The default is "light gray".
-     * WAVE_CROSS_LOW: color of cross-probe traces from the waveform window that are "low". These are lines drawn on the
-     * schematic or layout to correspond with the value in the waveform window. The default is "blue".
-     * WAVE_CROSS_HIGH: color of cross-probe traces from the waveform window that are "high". These are lines drawn on the
-     * schematic or layout to correspond with the value in the waveform window. The default is "green".
-     * WAVE_CROSS_UNDEF: color of cross-probe traces from the waveform window that are "undefined". These are lines drawn on the
-     * schematic or layout to correspond with the value in the waveform window. The default is "black".
-     * WAVE_CROSS_FLOAT: color of cross-probe traces from the waveform window that are "floating". These are lines drawn
-     * on the schematic or layout to correspond with the value in the waveform window. The default is "light gray".
-     * @param pref special layer in question
-     * @return color of the special layer
-     */
-    public static int getColor(ColorPrefType pref) {return getColorInternal(pref, false);}
+	/**
+	 * Method to get the color of a given special layer on the display.
+	 * BACKGROUND: color of the background on the display. The default is "light gray".
+	 * GRID: color of the grid on the display. The default is "black".
+	 * HIGHLIGHT: color of the highlight on the display. The default is "white".
+	 * MOUSEOVER_HIGHLIGHT: color of the highlight on the display. The default is "white".
+	 * PORT_HIGHLIGHT: color of the port highlight on the display. The default is "yellow".
+	 * TEXT: color of the text on the display. The default is "black".
+	 * INSTANCE: color of the instance outlines on the display. The default is "black".
+	 * ARTWORK: default color of the artwork primitives on the display. The default is "black".
+	 * DOWNINPLACEBORDER: color of the border around cells drawn "down in place". The default is "red".
+	 * WAVE_BACKGROUND: color of the waveform window background. The default is "black".
+	 * WAVE_FOREGROUND: color of the waveform window foreground. This includes lines and text. The default is "white".
+	 * WAVE_STIMULI: color of the traces in waveform windows. Applies only when not a "multistate" display, which uses many colors.
+	 * The default is "red".
+	 * WAVE_OFF_STRENGTH: color of waveform window traces that have "off" strength. The default is "blue".
+	 * WAVE_NODE_STRENGTH: color of waveform window traces that have "node" strength. The default is "green".
+	 * WAVE_GATE_STRENGTH: color of waveform window traces that have "gate" strength. The default is "magenta".
+	 * WAVE_POWER_STRENGTH: color of waveform window traces that have "power" strength. The default is "light gray".
+	 * WAVE_CROSS_LOW: color of cross-probe traces from the waveform window that are "low". These are lines drawn on the
+	 * schematic or layout to correspond with the value in the waveform window. The default is "blue".
+	 * WAVE_CROSS_HIGH: color of cross-probe traces from the waveform window that are "high". These are lines drawn on the
+	 * schematic or layout to correspond with the value in the waveform window. The default is "green".
+	 * WAVE_CROSS_UNDEF: color of cross-probe traces from the waveform window that are "undefined". These are lines drawn on the
+	 * schematic or layout to correspond with the value in the waveform window. The default is "black".
+	 * WAVE_CROSS_FLOAT: color of cross-probe traces from the waveform window that are "floating". These are lines drawn
+	 * on the schematic or layout to correspond with the value in the waveform window. The default is "light gray".
+	 * @param pref special layer in question
+	 * @return color of the special layer
+	 */
+	public static int getColor(ColorPrefType pref) {return getColorInternal(pref, false);}
 
-    /**
-     * Method to return either the color or factory color of a given special layer
-     * @param pref
-     * @param factory
-     * @return
-     */
-    private static int getColorInternal(ColorPrefType pref, boolean factory)
-    {
-        Pref pf = getColorPref(pref);
-        return (factory) ? pf.getIntFactoryValue() : pf.getInt();
-    }
+	/**
+	 * Method to return either the color or factory color of a given special layer
+	 * @param pref
+	 * @param factory
+	 * @return
+	 */
+	private static int getColorInternal(ColorPrefType pref, boolean factory)
+	{
+		Pref pf = getColorPref(pref);
+		return (factory) ? pf.getIntFactoryValue() : pf.getInt();
+	}
 
-    public static Pref getColorPref(ColorPrefType pref)
-    {
-        switch (pref)
-        {
-            case BACKGROUND: return cacheColorBackground;
-            case GRID: return cacheColorGrid;
-            case HIGHLIGHT: return cacheColorHighlight;
-            case MOUSEOVER_HIGHLIGHT: return cacheColorMouseOverHighlight;
-            case PORT_HIGHLIGHT: return cacheColorPortHighlight;
-            case TEXT: return cacheColorText;
-            case INSTANCE: return cacheColorInstanceOutline;
-            case ARTWORK: return cacheColorDefaultArtwork;
-            case DOWNINPLACEBORDER: return cacheColorDownInPlaceBorder;
-            case WAVE_BACKGROUND: return cacheColorWaveformBackground;
-            case WAVE_FOREGROUND: return cacheColorWaveformForeground;
-            case WAVE_STIMULI: return cacheColorWaveformStimuli;
-            case WAVE_OFF_STRENGTH: return cacheColorWaveformStrengthOff;
-            case WAVE_NODE_STRENGTH: return cacheColorWaveformStrengthNode;
-            case WAVE_GATE_STRENGTH: return cacheColorWaveformStrengthGate;
-            case WAVE_POWER_STRENGTH: return cacheColorWaveformStrengthPower;
-            case WAVE_CROSS_LOW: return cacheColorWaveformCrossProbeLow;
-            case WAVE_CROSS_HIGH: return cacheColorWaveformCrossProbeHigh;
-            case WAVE_CROSS_UNDEF: return cacheColorWaveformCrossProbeX;
-            case WAVE_CROSS_FLOAT: return cacheColorWaveformCrossProbeZ;
-        }
-        assert(false); // should not reach this point
-        return null;
-    }
+	public static Pref getColorPref(ColorPrefType pref)
+	{
+		switch (pref)
+		{
+			case BACKGROUND: return cacheColorBackground;
+			case GRID: return cacheColorGrid;
+			case HIGHLIGHT: return cacheColorHighlight;
+			case MOUSEOVER_HIGHLIGHT: return cacheColorMouseOverHighlight;
+			case PORT_HIGHLIGHT: return cacheColorPortHighlight;
+			case TEXT: return cacheColorText;
+			case INSTANCE: return cacheColorInstanceOutline;
+			case ARTWORK: return cacheColorDefaultArtwork;
+			case DOWNINPLACEBORDER: return cacheColorDownInPlaceBorder;
+			case WAVE_BACKGROUND: return cacheColorWaveformBackground;
+			case WAVE_FOREGROUND: return cacheColorWaveformForeground;
+			case WAVE_STIMULI: return cacheColorWaveformStimuli;
+			case WAVE_OFF_STRENGTH: return cacheColorWaveformStrengthOff;
+			case WAVE_NODE_STRENGTH: return cacheColorWaveformStrengthNode;
+			case WAVE_GATE_STRENGTH: return cacheColorWaveformStrengthGate;
+			case WAVE_POWER_STRENGTH: return cacheColorWaveformStrengthPower;
+			case WAVE_CROSS_LOW: return cacheColorWaveformCrossProbeLow;
+			case WAVE_CROSS_HIGH: return cacheColorWaveformCrossProbeHigh;
+			case WAVE_CROSS_UNDEF: return cacheColorWaveformCrossProbeX;
+			case WAVE_CROSS_FLOAT: return cacheColorWaveformCrossProbeZ;
+		}
+		assert(false); // should not reach this point
+		return null;
+	}
 
-    /**
-     * Method to set the color of a given special layer
-     * BACKGROUND: color of the background on the display.
-     * GRID: color of the grid on the display.
-     * HIGHLIGHT: color of the highlight on the display.
-     * MOUSEOVER_HIGHLIGHT: color of the highlight on the display.
-     * PORT_HIGHLIGHT: color of the port highlight on the display.
-     * TEXT: color of the text on the display.
-     * INSTANCE: color of the instance outlines on the display.
-     * DOWNINPLACEBORDER: color of the border around cells drawn "down in place". The default is "red".
-     * WAVE_BACKGROUND: color of the waveform window background.
-     * WAVE_FOREGROUND: color of the waveform window foreground. This includes lines and text.
-     * WAVE_STIMULI: color of the traces in waveform windows. Applies only when not a "multistate" display, which uses many colors.
-     * WAVE_OFF_STRENGTH: color of waveform window traces that have "off" strength.
-     * WAVE_NODE_STRENGTH: color of waveform window traces that have "node" strength.
-     * WAVE_GATE_STRENGTH: color of waveform window traces that have "gate" strength.
-     * WAVE_POWER_STRENGTH: color of waveform window traces that have "power" strength.
-     * WAVE_CROSS_LOW: color of cross-probe traces from the waveform window that are "low". These are lines drawn on the
-     * schematic or layout to correspond with the value in the waveform window.
-     * WAVE_CROSS_HIGH: color of cross-probe traces from the waveform window that are "high". These are lines drawn on the
-     * schematic or layout to correspond with the value in the waveform window.
-     * WAVE_CROSS_UNDEF: color of cross-probe traces from the waveform window that are "undefined". These are lines drawn on the
-     * schematic or layout to correspond with the value in the waveform window.
-     * WAVE_CROSS_FLOAT: color of cross-probe traces from the waveform window that are "floating". These are lines drawn
-     * on the schematic or layout to correspond with the value in the waveform window.
-     * @param pref
-     * @param color
-     */
-    public static void setColor(ColorPrefType pref, int color)
-    {
-        switch (pref)
-        {
-            case BACKGROUND: cacheColorBackground.setInt(color);
-                // 3D case. Uses observer/observable pattern so doesn't make sense to call every single 3D ViewWindow
-                // and update
-                try
-                {
-                    Class<?> j3DUtilsClass = Resources.get3DClass("utils.J3DUtils");
-                    Method setMethod = j3DUtilsClass.getDeclaredMethod("setBackgroundColor", new Class[] {Object.class});
-                    setMethod.invoke(j3DUtilsClass, new Object[]{null});
-                } catch (Exception e) {
-                    System.out.println("Cannot call 3D plugin method setBackgroundColor: " + e.getMessage());
-                }
-                return;
-            case GRID: cacheColorGrid.setInt(color); return;
-            case HIGHLIGHT: cacheColorHighlight.setInt(color); return;
-            case MOUSEOVER_HIGHLIGHT: cacheColorMouseOverHighlight.setInt(color); return;
-            case PORT_HIGHLIGHT: cacheColorPortHighlight.setInt(color); return;
-            case TEXT: cacheColorText.setInt(color); return;
-            case INSTANCE: cacheColorInstanceOutline.setInt(color); return;
-            case ARTWORK: cacheColorDefaultArtwork.setInt(color); return;
-            case DOWNINPLACEBORDER: cacheColorDownInPlaceBorder.setInt(color); return;
-            case WAVE_BACKGROUND: cacheColorWaveformBackground.setInt(color); return;
-            case WAVE_FOREGROUND: cacheColorWaveformForeground.setInt(color); return;
-            case WAVE_STIMULI: cacheColorWaveformStimuli.setInt(color); return;
-            case WAVE_OFF_STRENGTH: cacheColorWaveformStrengthOff.setInt(color); return;
-            case WAVE_NODE_STRENGTH: cacheColorWaveformStrengthNode.setInt(color); return;
-            case WAVE_GATE_STRENGTH: cacheColorWaveformStrengthGate.setInt(color); return;
-            case WAVE_POWER_STRENGTH: cacheColorWaveformStrengthPower.setInt(color); return;
-            case WAVE_CROSS_LOW: cacheColorWaveformCrossProbeLow.setInt(color); return;
-            case WAVE_CROSS_HIGH: cacheColorWaveformCrossProbeHigh.setInt(color); return;
-            case WAVE_CROSS_UNDEF: cacheColorWaveformCrossProbeX.setInt(color); return;
-            case WAVE_CROSS_FLOAT: cacheColorWaveformCrossProbeZ.setInt(color); return;
-        }
-        assert(false); // should not reach this point
-    }
+	/**
+	 * Method to set the color of a given special layer
+	 * BACKGROUND: color of the background on the display.
+	 * GRID: color of the grid on the display.
+	 * HIGHLIGHT: color of the highlight on the display.
+	 * MOUSEOVER_HIGHLIGHT: color of the highlight on the display.
+	 * PORT_HIGHLIGHT: color of the port highlight on the display.
+	 * TEXT: color of the text on the display.
+	 * INSTANCE: color of the instance outlines on the display.
+	 * DOWNINPLACEBORDER: color of the border around cells drawn "down in place". The default is "red".
+	 * WAVE_BACKGROUND: color of the waveform window background.
+	 * WAVE_FOREGROUND: color of the waveform window foreground. This includes lines and text.
+	 * WAVE_STIMULI: color of the traces in waveform windows. Applies only when not a "multistate" display, which uses many colors.
+	 * WAVE_OFF_STRENGTH: color of waveform window traces that have "off" strength.
+	 * WAVE_NODE_STRENGTH: color of waveform window traces that have "node" strength.
+	 * WAVE_GATE_STRENGTH: color of waveform window traces that have "gate" strength.
+	 * WAVE_POWER_STRENGTH: color of waveform window traces that have "power" strength.
+	 * WAVE_CROSS_LOW: color of cross-probe traces from the waveform window that are "low". These are lines drawn on the
+	 * schematic or layout to correspond with the value in the waveform window.
+	 * WAVE_CROSS_HIGH: color of cross-probe traces from the waveform window that are "high". These are lines drawn on the
+	 * schematic or layout to correspond with the value in the waveform window.
+	 * WAVE_CROSS_UNDEF: color of cross-probe traces from the waveform window that are "undefined". These are lines drawn on the
+	 * schematic or layout to correspond with the value in the waveform window.
+	 * WAVE_CROSS_FLOAT: color of cross-probe traces from the waveform window that are "floating". These are lines drawn
+	 * on the schematic or layout to correspond with the value in the waveform window.
+	 * @param pref
+	 * @param color
+	 */
+	public static void setColor(ColorPrefType pref, int color)
+	{
+		switch (pref)
+		{
+			case BACKGROUND: cacheColorBackground.setInt(color);
+				// 3D case. Uses observer/observable pattern so doesn't make sense to call every single 3D ViewWindow
+				// and update
+				try
+				{
+					Class<?> j3DUtilsClass = Resources.get3DClass("utils.J3DUtils");
+					Method setMethod = j3DUtilsClass.getDeclaredMethod("setBackgroundColor", new Class[] {Object.class});
+					setMethod.invoke(j3DUtilsClass, new Object[]{null});
+				} catch (Exception e) {
+					System.out.println("Cannot call 3D plugin method setBackgroundColor: " + e.getMessage());
+				}
+				return;
+			case GRID: cacheColorGrid.setInt(color); return;
+			case HIGHLIGHT: cacheColorHighlight.setInt(color); return;
+			case MOUSEOVER_HIGHLIGHT: cacheColorMouseOverHighlight.setInt(color); return;
+			case PORT_HIGHLIGHT: cacheColorPortHighlight.setInt(color); return;
+			case TEXT: cacheColorText.setInt(color); return;
+			case INSTANCE: cacheColorInstanceOutline.setInt(color); return;
+			case ARTWORK: cacheColorDefaultArtwork.setInt(color); return;
+			case DOWNINPLACEBORDER: cacheColorDownInPlaceBorder.setInt(color); return;
+			case WAVE_BACKGROUND: cacheColorWaveformBackground.setInt(color); return;
+			case WAVE_FOREGROUND: cacheColorWaveformForeground.setInt(color); return;
+			case WAVE_STIMULI: cacheColorWaveformStimuli.setInt(color); return;
+			case WAVE_OFF_STRENGTH: cacheColorWaveformStrengthOff.setInt(color); return;
+			case WAVE_NODE_STRENGTH: cacheColorWaveformStrengthNode.setInt(color); return;
+			case WAVE_GATE_STRENGTH: cacheColorWaveformStrengthGate.setInt(color); return;
+			case WAVE_POWER_STRENGTH: cacheColorWaveformStrengthPower.setInt(color); return;
+			case WAVE_CROSS_LOW: cacheColorWaveformCrossProbeLow.setInt(color); return;
+			case WAVE_CROSS_HIGH: cacheColorWaveformCrossProbeHigh.setInt(color); return;
+			case WAVE_CROSS_UNDEF: cacheColorWaveformCrossProbeX.setInt(color); return;
+			case WAVE_CROSS_FLOAT: cacheColorWaveformCrossProbeZ.setInt(color); return;
+		}
+		assert(false); // should not reach this point
+	}
 
-    /**
-     * Method to reset to the factory color of a given special layer
-     * BACKGROUND: The default is "light gray".
-     * GRID: The default is "black".
-     * HIGHLIGHT: The default is "white".
-     * MOUSEOVER_HIGHLIGHT: The default is "white".
-     * PORT_HIGHLIGHT: The default is "yellow".
-     * TEXT: The default is "black".
-     * INSTANCE: The default is "black".
-     * DOWNINPLACEBORDER: The default is "red".
-     * WAVE_BACKGROUND: The default is "black".
-     * WAVE_FOREGROUND: The default is "white".
-     * WAVE_STIMULI: The default is "red".
-     * WAVE_OFF_STRENGTH: The default is "blue".
-     * WAVE_NODE_STRENGTH: The default is "green".
-     * WAVE_GATE_STRENGTH: The default is "magenta".
-     * WAVE_POWER_STRENGTH: The default is "light gray".
-     * WAVE_CROSS_LOW: The default is "blue".
-     * WAVE_CROSS_HIGH: The default is "green".
-     * WAVE_CROSS_UNDEF: The default is "black".
-     * WAVE_CROSS_FLOAT: The default is "light gray".
-     * @param pref
-     */
-    public static void resetFactoryColor(ColorPrefType pref)
-    {
-        Pref pf = null;
-        switch (pref)
-        {
-            case BACKGROUND: pf = cacheColorBackground; break;
-            case GRID: pf = cacheColorGrid; break;
-            case HIGHLIGHT: pf = cacheColorHighlight; break;
-            case MOUSEOVER_HIGHLIGHT: pf = cacheColorMouseOverHighlight; break;
-            case PORT_HIGHLIGHT: pf = cacheColorPortHighlight; break;
-            case TEXT: pf = cacheColorText; break;
-            case INSTANCE: pf = cacheColorInstanceOutline; break;
-            case ARTWORK: pf = cacheColorDefaultArtwork; break;
-            case DOWNINPLACEBORDER: pf = cacheColorDownInPlaceBorder; break;
-            case WAVE_BACKGROUND: pf = cacheColorWaveformBackground; break;
-            case WAVE_FOREGROUND: pf = cacheColorWaveformForeground; break;
-            case WAVE_STIMULI: pf = cacheColorWaveformStimuli; break;
-            case WAVE_OFF_STRENGTH: pf = cacheColorWaveformStrengthOff; break;
-            case WAVE_NODE_STRENGTH: pf = cacheColorWaveformStrengthNode; break;
-            case WAVE_GATE_STRENGTH: pf = cacheColorWaveformStrengthGate; break;
-            case WAVE_POWER_STRENGTH: pf = cacheColorWaveformStrengthPower; break;
-            case WAVE_CROSS_LOW: pf = cacheColorWaveformCrossProbeLow; break;
-            case WAVE_CROSS_HIGH: pf = cacheColorWaveformCrossProbeHigh; break;
-            case WAVE_CROSS_UNDEF: pf = cacheColorWaveformCrossProbeX; break;
-            case WAVE_CROSS_FLOAT: pf = cacheColorWaveformCrossProbeZ; break;
-        }
-        pf.setInt(pf.getIntFactoryValue());
-    }
+	/**
+	 * Method to reset to the factory color of a given special layer
+	 * BACKGROUND: The default is "light gray".
+	 * GRID: The default is "black".
+	 * HIGHLIGHT: The default is "white".
+	 * MOUSEOVER_HIGHLIGHT: The default is "white".
+	 * PORT_HIGHLIGHT: The default is "yellow".
+	 * TEXT: The default is "black".
+	 * INSTANCE: The default is "black".
+	 * DOWNINPLACEBORDER: The default is "red".
+	 * WAVE_BACKGROUND: The default is "black".
+	 * WAVE_FOREGROUND: The default is "white".
+	 * WAVE_STIMULI: The default is "red".
+	 * WAVE_OFF_STRENGTH: The default is "blue".
+	 * WAVE_NODE_STRENGTH: The default is "green".
+	 * WAVE_GATE_STRENGTH: The default is "magenta".
+	 * WAVE_POWER_STRENGTH: The default is "light gray".
+	 * WAVE_CROSS_LOW: The default is "blue".
+	 * WAVE_CROSS_HIGH: The default is "green".
+	 * WAVE_CROSS_UNDEF: The default is "black".
+	 * WAVE_CROSS_FLOAT: The default is "light gray".
+	 * @param pref
+	 */
+	public static void resetFactoryColor(ColorPrefType pref)
+	{
+		Pref pf = null;
+		switch (pref)
+		{
+			case BACKGROUND: pf = cacheColorBackground; break;
+			case GRID: pf = cacheColorGrid; break;
+			case HIGHLIGHT: pf = cacheColorHighlight; break;
+			case MOUSEOVER_HIGHLIGHT: pf = cacheColorMouseOverHighlight; break;
+			case PORT_HIGHLIGHT: pf = cacheColorPortHighlight; break;
+			case TEXT: pf = cacheColorText; break;
+			case INSTANCE: pf = cacheColorInstanceOutline; break;
+			case ARTWORK: pf = cacheColorDefaultArtwork; break;
+			case DOWNINPLACEBORDER: pf = cacheColorDownInPlaceBorder; break;
+			case WAVE_BACKGROUND: pf = cacheColorWaveformBackground; break;
+			case WAVE_FOREGROUND: pf = cacheColorWaveformForeground; break;
+			case WAVE_STIMULI: pf = cacheColorWaveformStimuli; break;
+			case WAVE_OFF_STRENGTH: pf = cacheColorWaveformStrengthOff; break;
+			case WAVE_NODE_STRENGTH: pf = cacheColorWaveformStrengthNode; break;
+			case WAVE_GATE_STRENGTH: pf = cacheColorWaveformStrengthGate; break;
+			case WAVE_POWER_STRENGTH: pf = cacheColorWaveformStrengthPower; break;
+			case WAVE_CROSS_LOW: pf = cacheColorWaveformCrossProbeLow; break;
+			case WAVE_CROSS_HIGH: pf = cacheColorWaveformCrossProbeHigh; break;
+			case WAVE_CROSS_UNDEF: pf = cacheColorWaveformCrossProbeX; break;
+			case WAVE_CROSS_FLOAT: pf = cacheColorWaveformCrossProbeZ; break;
+		}
+		pf.setInt(pf.getIntFactoryValue());
+	}
 
-    private static Pref cacheColorBackground = Pref.makeIntPref("ColorBackground", tool.prefs, Color.LIGHT_GRAY.getRGB());
+	private static Pref cacheColorBackground = Pref.makeIntPref("ColorBackground", tool.prefs, Color.LIGHT_GRAY.getRGB());
 
 	private static Pref cacheColorGrid = Pref.makeIntPref("ColorGrid", tool.prefs, Color.BLACK.getRGB());
 
 	private static Pref cacheColorHighlight = Pref.makeIntPref("ColorHighlight", tool.prefs, Color.WHITE.getRGB());
 
-    private static Pref cacheColorMouseOverHighlight = Pref.makeIntPref("ColorMouseOverHighlight", tool.prefs, (new Color(51,255,255)).getRGB());
+	private static Pref cacheColorMouseOverHighlight = Pref.makeIntPref("ColorMouseOverHighlight", tool.prefs, (new Color(51,255,255)).getRGB());
 
 	private static Pref cacheColorPortHighlight = Pref.makeIntPref("ColorPortHighlight", tool.prefs, Color.YELLOW.getRGB());
 
@@ -1982,11 +2004,11 @@ public class User extends Listener
 
 	private static Pref cacheColorDownInPlaceBorder = Pref.makeIntPref("ColorDownInPlaceBorder", tool.prefs, Color.RED.getRGB());
 
-    private static Pref cacheColorWaveformBackground = Pref.makeIntPref("ColorWaveformBackground", tool.prefs, Color.BLACK.getRGB());
+	private static Pref cacheColorWaveformBackground = Pref.makeIntPref("ColorWaveformBackground", tool.prefs, Color.BLACK.getRGB());
 
-    private static Pref cacheColorWaveformForeground = Pref.makeIntPref("ColorWaveformForeground", tool.prefs, Color.WHITE.getRGB());
+	private static Pref cacheColorWaveformForeground = Pref.makeIntPref("ColorWaveformForeground", tool.prefs, Color.WHITE.getRGB());
 
-    private static Pref cacheColorWaveformStimuli = Pref.makeIntPref("ColorWaveformStimuli", tool.prefs, Color.RED.getRGB());
+	private static Pref cacheColorWaveformStimuli = Pref.makeIntPref("ColorWaveformStimuli", tool.prefs, Color.RED.getRGB());
 
 	private static Pref cacheColorWaveformStrengthOff = Pref.makeIntPref("ColorWaveformStrengthOff", tool.prefs, Color.BLUE.getRGB());
 
@@ -2141,40 +2163,40 @@ public class User extends Listener
 
 	/****************************** MISCELLANEOUS PREFERENCES ******************************/
 
-//    public static final String INITIALWORKINGDIRSETTING_BASEDONOS = "Based on OS";
-//    public static final String INITIALWORKINGDIRSETTING_USECURRENTDIR = "Use current directory";
-//    public static final String INITIALWORKINGDIRSETTING_USELASTDIR = "Use last used directory";
-//    private static final String [] initialWorkingDirectorySettingChoices = {INITIALWORKINGDIRSETTING_BASEDONOS, INITIALWORKINGDIRSETTING_USECURRENTDIR, INITIALWORKINGDIRSETTING_USELASTDIR};
-//    private static Pref cacheInitialWorkingDirectorySetting = Pref.makeStringPref("InitialWorkingDirectorySetting", tool.prefs, initialWorkingDirectorySettingChoices[0]);
+//	public static final String INITIALWORKINGDIRSETTING_BASEDONOS = "Based on OS";
+//	public static final String INITIALWORKINGDIRSETTING_USECURRENTDIR = "Use current directory";
+//	public static final String INITIALWORKINGDIRSETTING_USELASTDIR = "Use last used directory";
+//	private static final String [] initialWorkingDirectorySettingChoices = {INITIALWORKINGDIRSETTING_BASEDONOS, INITIALWORKINGDIRSETTING_USECURRENTDIR, INITIALWORKINGDIRSETTING_USELASTDIR};
+//	private static Pref cacheInitialWorkingDirectorySetting = Pref.makeStringPref("InitialWorkingDirectorySetting", tool.prefs, initialWorkingDirectorySettingChoices[0]);
 //
-//    /**
-//     * Method to get the way Electric chooses the initial working directory
-//     * @return a string describing the way Electric chooses the initial working directory
-//     */
-//    public static String getInitialWorkingDirectorySetting() { return cacheInitialWorkingDirectorySetting.getString(); }
+//	/**
+//	 * Method to get the way Electric chooses the initial working directory
+//	 * @return a string describing the way Electric chooses the initial working directory
+//	 */
+//	public static String getInitialWorkingDirectorySetting() { return cacheInitialWorkingDirectorySetting.getString(); }
 //
-//    /**
-//     * Method to set the way Electric chooses the initial working directory
-//     * @param setting one of the String settings from getInitialWorkingDirectorySettings
-//     */
-//    public static void setInitialWorkingDirectorySetting(String setting) {
-//        for (int i=0; i<initialWorkingDirectorySettingChoices.length; i++) {
-//            if ((initialWorkingDirectorySettingChoices[i]).equals(setting)) {
-//                cacheInitialWorkingDirectorySetting.setString(setting);
-//            }
-//        }
-//    }
+//	/**
+//	 * Method to set the way Electric chooses the initial working directory
+//	 * @param setting one of the String settings from getInitialWorkingDirectorySettings
+//	 */
+//	public static void setInitialWorkingDirectorySetting(String setting) {
+//		for (int i=0; i<initialWorkingDirectorySettingChoices.length; i++) {
+//			if ((initialWorkingDirectorySettingChoices[i]).equals(setting)) {
+//				cacheInitialWorkingDirectorySetting.setString(setting);
+//			}
+//		}
+//	}
 //
-//    /**
-//     * Get the choices for the way Electric chooses the initial working directory
-//     * @return an iterator over a list of strings that can be used with setIntialWorkingDirectorySetting()
-//     */
-//    public static Iterator<String> getInitialWorkingDirectorySettings() {
-//        ArrayList<String> list = new ArrayList<String>();
-//        for (int i=0; i<initialWorkingDirectorySettingChoices.length; i++)
-//            list.add(initialWorkingDirectorySettingChoices[i]);
-//        return list.iterator();
-//    }
+//	/**
+//	 * Get the choices for the way Electric chooses the initial working directory
+//	 * @return an iterator over a list of strings that can be used with setIntialWorkingDirectorySetting()
+//	 */
+//	public static Iterator<String> getInitialWorkingDirectorySettings() {
+//		ArrayList<String> list = new ArrayList<String>();
+//		for (int i=0; i<initialWorkingDirectorySettingChoices.length; i++)
+//			list.add(initialWorkingDirectorySettingChoices[i]);
+//		return list.iterator();
+//	}
 
 	private static Pref cacheWorkingDirectory = Pref.makeStringPref("WorkingDirectory", tool.prefs, java.lang.System.getProperty("user.dir"));
 	/**
@@ -2182,7 +2204,7 @@ public class User extends Listener
 	 * The default is the Java "user directory".
 	 * @return the path of the current working directory.
 	 */
-    public static String getWorkingDirectory() { return cacheWorkingDirectory.getString(); }
+	public static String getWorkingDirectory() { return cacheWorkingDirectory.getString(); }
 
 	/**
 	 * Method to set the path of the current working directory.
@@ -2190,49 +2212,49 @@ public class User extends Listener
 	 */
 	public static void setWorkingDirectory(String dir) { cacheWorkingDirectory.setString(dir); }
 
-    private static Pref cacheRecentlyOpenedLibraries = Pref.makeStringPref("RecentlyOpenedLibraries", tool.prefs, "");
+	private static Pref cacheRecentlyOpenedLibraries = Pref.makeStringPref("RecentlyOpenedLibraries", tool.prefs, "");
 
-    /**
-     * Get an array of File paths to recently opened libraries. These should be
-     * libraries the user opened, and not contain reference libraries opened as a
-     * result of a user opening a library.
-     * @return a list of file paths to libraries (without extension - no delib or jelib)
-     */
-    public static String [] getRecentlyOpenedLibraries() {
-        String libs = cacheRecentlyOpenedLibraries.getString();
-        if (libs.equals("")) return new String[0];
-        else return libs.split("\n");
-    }
+	/**
+	 * Get an array of File paths to recently opened libraries. These should be
+	 * libraries the user opened, and not contain reference libraries opened as a
+	 * result of a user opening a library.
+	 * @return a list of file paths to libraries (without extension - no delib or jelib)
+	 */
+	public static String [] getRecentlyOpenedLibraries() {
+		String libs = cacheRecentlyOpenedLibraries.getString();
+		if (libs.equals("")) return new String[0];
+		return libs.split("\n");
+	}
 
-    /**
-     * Add a file path (no extension) to a list of recently opened libraries.
-     * This should not include reference libraries opened as a side-affect of
-     * opening a library.
-     * @param s the file path to a library
-     */
-    public static void addRecentlyOpenedLibrary(String s) {
-        int maxLength = 6;
-        String [] libs = getRecentlyOpenedLibraries();
-        for (String l : libs) {
-            if (l.equals(s)) return;
-        }
-        StringBuffer buf = new StringBuffer();
-        buf.append(s);
-        for (int i=0; i<maxLength && i<libs.length; i++) {
-            buf.append("\n");
-            buf.append(libs[i]);
-        }
-        cacheRecentlyOpenedLibraries.setString(buf.toString());
-    }
+	/**
+	 * Add a file path (no extension) to a list of recently opened libraries.
+	 * This should not include reference libraries opened as a side-affect of
+	 * opening a library.
+	 * @param s the file path to a library
+	 */
+	public static void addRecentlyOpenedLibrary(String s) {
+		int maxLength = 6;
+		String [] libs = getRecentlyOpenedLibraries();
+		for (String l : libs) {
+			if (l.equals(s)) return;
+		}
+		StringBuffer buf = new StringBuffer();
+		buf.append(s);
+		for (int i=0; i<maxLength && i<libs.length; i++) {
+			buf.append("\n");
+			buf.append(libs[i]);
+		}
+		cacheRecentlyOpenedLibraries.setString(buf.toString());
+	}
 
-    /**
-     * Clear the list of recently opened libraries.
-     */
-    public static void clearRecentlyOpenedLibraries() {
-        cacheRecentlyOpenedLibraries.setString("");
-    }
+	/**
+	 * Clear the list of recently opened libraries.
+	 */
+	public static void clearRecentlyOpenedLibraries() {
+		cacheRecentlyOpenedLibraries.setString("");
+	}
 
-    private static Pref cachePromptForIndexWhenDescending = Pref.makeBooleanPref("PromptForIndexWhenDescending", tool.prefs, false);
+	private static Pref cachePromptForIndexWhenDescending = Pref.makeBooleanPref("PromptForIndexWhenDescending", tool.prefs, false);
 	/**
 	 * Method to tell whether to prompt the user for an array index when descending into arrayed nodes.
 	 * When descending into arrayed nodes, the context doesn't know which index is being traversed.
@@ -2266,7 +2288,7 @@ public class User extends Listener
 	 */
 	public static void setBeepAfterLongJobs(boolean on) { cacheBeepAfterLongJobs.setBoolean(on); }
 
-    private static Pref cacheJobVerboseMode = Pref.makeBooleanPref("JobVerboseMode", tool.prefs, false);
+	private static Pref cacheJobVerboseMode = Pref.makeBooleanPref("JobVerboseMode", tool.prefs, false);
 	/**
 	 * Method to tell if jobs are described in messages window (verbose mode)
 	 * The default is "false".
@@ -2279,7 +2301,7 @@ public class User extends Listener
 	 */
 	public static void setJobVerboseMode(boolean on) { cacheJobVerboseMode.setBoolean(on); }
 
-    private static Pref cacheRotateLayoutTransistors = Pref.makeBooleanPref("RotateLayoutTransistors", tool.prefs, false);
+	private static Pref cacheRotateLayoutTransistors = Pref.makeBooleanPref("RotateLayoutTransistors", tool.prefs, false);
 	/**
 	 * Method to tell if layout transistors are rotated 90 degrees in the menu (and initial placement).
 	 * The default is "false".
@@ -2536,7 +2558,7 @@ public class User extends Listener
 	/**
 	 * Method to set the scale of EditWindow when use patterned drawing.
 	 * Smaller scales use solid drawing.
-     * @param l the scale of EditWindow when use patterned drawing.
+	 * @param l the scale of EditWindow when use patterned drawing.
 	 */
 	public static void setPatternedScaleLimit(double l) { cachePatternedScaleLimit.setDouble(l); }
 
@@ -2552,7 +2574,7 @@ public class User extends Listener
 	 * @param on true to use lagacy composite in LayerDrawing.
 	 */
 	public static void setLegacyComposite(boolean on) { cacheLegacyComposite.setBoolean(on); }
-    
+
 	private static Pref cacheAlphaBlendingLimit = Pref.makeDoublePref("AlphaBlendingLimit", tool.prefs, 0.6);
 	/**
 	 * Method to tell the scale of EditWindow when use overcolor in alpha blending color composite.
@@ -2612,7 +2634,6 @@ public class User extends Listener
 	 */
 	public static void setDisplayStyle(int s) { cacheDisplayStyle.setInt(s); }
 
-	
 	private static Pref cacheErrorLimit = Pref.makeIntPref("ErrorLimit", tool.prefs, 0);
 	/**
 	 * Method to tell the maximum number of errors to log.
@@ -2627,15 +2648,15 @@ public class User extends Listener
 	 */
 	public static void setErrorLimit(int limit) { cacheErrorLimit.setInt(limit); }
 
-    private static Pref cacheMaxUndoHistory = Pref.makeIntPref("MaxUndoHistory", tool.prefs, 40);
-    /**
-     * Method to get the maximum number of undos retained in memory
-     */
-    public static int getMaxUndoHistory() { return cacheMaxUndoHistory.getInt(); }
-    /**
-     * Method to set the maximum number of undos retained in memory
-     */
-    public static void setMaxUndoHistory(int n) { cacheMaxUndoHistory.setInt(n); }
+	private static Pref cacheMaxUndoHistory = Pref.makeIntPref("MaxUndoHistory", tool.prefs, 40);
+	/**
+	 * Method to get the maximum number of undos retained in memory
+	 */
+	public static int getMaxUndoHistory() { return cacheMaxUndoHistory.getInt(); }
+	/**
+	 * Method to set the maximum number of undos retained in memory
+	 */
+	public static void setMaxUndoHistory(int n) { cacheMaxUndoHistory.setInt(n); }
 
 	private static Pref cacheMemorySize = Pref.makeIntPref("MemorySize", tool.prefs, 65);
 	/**
@@ -2663,7 +2684,7 @@ public class User extends Listener
 	 */
 	public static void setPermSpace(int limit) { cachePermSize.setInt(limit); }
 
-    private static Pref cacheUseTwoJVMs = Pref.makeBooleanPref("UseTwoJVMs", tool.prefs, false);
+	private static Pref cacheUseTwoJVMs = Pref.makeBooleanPref("UseTwoJVMs", tool.prefs, false);
 	/**
 	 * Method to tell whether to use two JVMs when running Electric.
 	 * When using two JVMs, there is a client and a server, in separate memory spaces.

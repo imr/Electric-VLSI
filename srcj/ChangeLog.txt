@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08c: ******************************
 
+IMP/MAN: (8/19/08, SMR) Added icon generation improvements from Brian van Essen
+     at University of Washington.  Now have the ability to disable the placement
+     of an example icon, and also now have the ability to place ports exactly
+     as they appear in the schematic.
+
 BUG: (8/19/08, SMR) Undoing cell creation doesn't update window titles (Bug #1766).
 FIX: In EditWindow.databaseChanged(), rewrite window titles.
 

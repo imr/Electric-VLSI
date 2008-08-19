@@ -63,7 +63,7 @@ public class IconTab extends PreferencePanel
 		// listen for the "Make Icon" button
 		iconMakeIcon.addActionListener(new ActionListener()
 		{
-			public void actionPerformed(ActionEvent evt) { ViewChanges.makeIconViewCommand(); }
+			public void actionPerformed(ActionEvent evt) { makeIconNow(); }
 		});
 
 		// show the current cell
@@ -86,11 +86,21 @@ public class IconTab extends PreferencePanel
 		{
 			public void actionPerformed(ActionEvent evt) { placementChanged(); }
 		});
+		useExactSchemLoc.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { placementChanged(); }
+		});
 
 		// set how exports are placed (by characteristic or by location in original cell)
 		int how = User.getIconGenExportPlacement();
 		if (how == 0) iconPlaceByChar.setSelected(true); else
-			if (how == 1) iconPlaceByLoc.setSelected(true);
+		{
+			if (how == 1)
+			{
+				iconPlaceByLoc.setSelected(true);
+				useExactSchemLoc.setSelected(User.getIconGenExportPlacementExact());
+			}
+		}
 		placementChanged();
 
 		// initialize the side for each type of export
@@ -148,6 +158,7 @@ public class IconTab extends PreferencePanel
 		iconInstancePos.addItem("Upper-left");
 		iconInstancePos.addItem("Lower-right");
 		iconInstancePos.addItem("Lower-left");
+		iconInstancePos.addItem("No Instance");
 		iconInstancePos.setSelectedIndex(User.getIconGenInstanceLocation());
 
 		iconDrawLeads.setSelected(User.isIconGenDrawLeads());
@@ -189,14 +200,16 @@ public class IconTab extends PreferencePanel
 		iconClockRot.setEnabled(charEnabled);
 		iconReverseOrder.setEnabled(charEnabled);
 
-		iconLocLabel1.setEnabled(!charEnabled);
-		iconLocLabel2.setEnabled(!charEnabled);
-		iconLocLabel3.setEnabled(!charEnabled);
-		iconLocLabel4.setEnabled(!charEnabled);
-		iconLeftRot.setEnabled(!charEnabled);
-		iconRightRot.setEnabled(!charEnabled);
-		iconTopRot.setEnabled(!charEnabled);
-		iconBottomRot.setEnabled(!charEnabled);
+		boolean exactPlacementEnabled = useExactSchemLoc.isSelected();
+		iconLocLabel1.setEnabled(!charEnabled && !exactPlacementEnabled);
+		iconLocLabel2.setEnabled(!charEnabled && !exactPlacementEnabled);
+		iconLocLabel3.setEnabled(!charEnabled && !exactPlacementEnabled);
+		iconLocLabel4.setEnabled(!charEnabled && !exactPlacementEnabled);
+		iconLeftRot.setEnabled(!charEnabled && !exactPlacementEnabled);
+		iconRightRot.setEnabled(!charEnabled && !exactPlacementEnabled);
+		iconTopRot.setEnabled(!charEnabled && !exactPlacementEnabled);
+		iconBottomRot.setEnabled(!charEnabled && !exactPlacementEnabled);
+		useExactSchemLoc.setEnabled(!charEnabled);
 	}
 
 	private void initSide(JComboBox box)
@@ -215,6 +228,12 @@ public class IconTab extends PreferencePanel
 		box.addItem("270");
 	}
 
+	private void makeIconNow()
+	{
+		term();
+		ViewChanges.makeIconViewCommand();
+	}
+
 	/**
 	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the Icon tab.
@@ -224,6 +243,9 @@ public class IconTab extends PreferencePanel
 		int currInt = 0;
 		if (iconPlaceByLoc.isSelected()) currInt = 1;
 		if (currInt != User.getIconGenExportPlacement()) User.setIconGenExportPlacement(currInt);
+
+		// Set the checkbox for using the exact placement
+		User.setIconGenExportPlacementExact(useExactSchemLoc.isSelected());
 
 		// save which side each export type goes on
 		currInt = iconInputPos.getSelectedIndex();
@@ -290,7 +312,7 @@ public class IconTab extends PreferencePanel
 		double currDouble = TextUtils.atof(iconTextSize.getText());
 		if (currDouble != User.getIconGenBodyTextSize())
 			User.setIconGenBodyTextSize(currDouble);
-		
+
 		currBoolean = iconReverseOrder.isSelected();
 		if (currBoolean != User.isIconGenReverseExportOrder())
 			User.setIconGenReverseExportOrder(currBoolean);
@@ -379,6 +401,7 @@ public class IconTab extends PreferencePanel
         iconLeftRot = new javax.swing.JComboBox();
         iconRightRot = new javax.swing.JComboBox();
         iconReverseOrder = new javax.swing.JCheckBox();
+        useExactSchemLoc = new javax.swing.JCheckBox();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -890,6 +913,15 @@ public class IconTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel1.add(iconReverseOrder, gridBagConstraints);
 
+        useExactSchemLoc.setText("Use exact schematic location");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 5;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
+        jPanel1.add(useExactSchemLoc, gridBagConstraints);
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
@@ -972,6 +1004,7 @@ public class IconTab extends PreferencePanel
     private javax.swing.JPanel jPanel6;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JSeparator jSeparator11;
+    private javax.swing.JCheckBox useExactSchemLoc;
     // End of variables declaration//GEN-END:variables
 
 }
