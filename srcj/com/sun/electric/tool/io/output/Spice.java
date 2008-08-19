@@ -1160,13 +1160,13 @@ public class Spice extends Topology
                             else
                                 infstr.append(" L="+formatParam((String)size.getLength(), TextDescriptor.Unit.DISTANCE, false));
                         } else {
-                            infstr.append(" L=" + TextUtils.formatDouble(l, 2));
+                            infstr.append(" L=" + TextUtils.formatDouble(l));
                             if (!Simulation.isSpiceWriteTransSizeInLambda() && !st090laytrans) infstr.append("U");
                         }
                         if ((size.getDoubleWidth() == 0) && (size.getWidth() instanceof String)) {
                             infstr.append(" W="+formatParam((String)size.getWidth(), TextDescriptor.Unit.DISTANCE, false));
                         } else {
-                            infstr.append(" W=" + TextUtils.formatDouble(w, 2));
+                            infstr.append(" W=" + TextUtils.formatDouble(w));
                             if (!Simulation.isSpiceWriteTransSizeInLambda() && !st090laytrans) infstr.append("U");
                         }
                     }
@@ -1227,22 +1227,22 @@ public class Spice extends Topology
 					}
 					if (as > 0.0)
 					{
-						infstr.append(" AS=" + TextUtils.formatDouble(as, 3));
+						infstr.append(" AS=" + TextUtils.formatDouble(as));
 						if (!Simulation.isSpiceWriteTransSizeInLambda() && !st090laytrans) infstr.append("P");
 					}
 					if (ad > 0.0)
 					{
-						infstr.append(" AD=" + TextUtils.formatDouble(ad, 3));
+						infstr.append(" AD=" + TextUtils.formatDouble(ad));
 						if (!Simulation.isSpiceWriteTransSizeInLambda() && !st090laytrans) infstr.append("P");
 					}
 					if (ps > 0.0)
 					{
-						infstr.append(" PS=" + TextUtils.formatDouble(ps, 3));
+						infstr.append(" PS=" + TextUtils.formatDouble(ps));
 						if (!Simulation.isSpiceWriteTransSizeInLambda() && !st090laytrans) infstr.append("U");
 					}
 					if (pd > 0.0)
 					{
-						infstr.append(" PD=" + TextUtils.formatDouble(pd, 3));
+						infstr.append(" PD=" + TextUtils.formatDouble(pd));
 						if (!Simulation.isSpiceWriteTransSizeInLambda() && !st090laytrans) infstr.append("U");
 					}
 				}
@@ -1268,7 +1268,7 @@ public class Spice extends Topology
 	            for (SpiceSegmentedNets.NetInfo netInfo : segmentedNets.getUniqueSegments()) {
 	                if (netInfo.getCap() > cell.getTechnology().getMinCapacitance()) {
 	                    if (netInfo.getName().equals("gnd")) continue;           // don't write out caps from gnd to gnd
-	                    multiLinePrint(false, "C" + capCount + " " + netInfo.getName() + " 0 " + TextUtils.formatDouble(netInfo.getCap(), 2) + "fF\n");
+	                    multiLinePrint(false, "C" + capCount + " " + netInfo.getName() + " 0 " + TextUtils.formatDouble(netInfo.getCap()) + "fF\n");
 	                    capCount++;
 	                }
 	            }
@@ -1299,7 +1299,7 @@ public class Spice extends Topology
 	                        resCount++;
 	                        if (i < (arcPImodels-1)) {
 	                            if (!segn1.equals("gnd") && segCap > layoutTechnology.getMinCapacitance()) {
-	                                String capVal = TextUtils.formatDouble(segCap, 2);
+	                                String capVal = TextUtils.formatDouble(segCap);
 	                                if (!capVal.equals("0.00")) {
 	                                    multiLinePrint(false, "C"+capCount+" "+segn1+" 0 "+capVal+"fF\n");
 	                                    capCount++;
@@ -1309,7 +1309,7 @@ public class Spice extends Topology
 	                        segn0 = segn1;
 	                    }
 	                } else {
-	                    multiLinePrint(false, "R" + resCount + " " + n0 + " " + n1 + " " + TextUtils.formatDouble(res.doubleValue(), 2) + "\n");
+	                    multiLinePrint(false, "R" + resCount + " " + n0 + " " + n1 + " " + TextUtils.formatDouble(res.doubleValue()) + "\n");
 	                    resCount++;
 	                }
 	            }
@@ -2311,7 +2311,7 @@ public class Spice extends Topology
 		{
 			double scale = layoutTechnology.getScale();
 			multiLinePrint(true, "*** Lambda Conversion ***\n");
-			multiLinePrint(false, ".opt scale=" + TextUtils.formatDouble(scale / 1000.0, 3) + "U\n\n");
+			multiLinePrint(false, ".opt scale=" + TextUtils.formatDouble(scale / 1000.0) + "U\n\n");
 		}
 
 		// see if spice model/option cards from file if specified

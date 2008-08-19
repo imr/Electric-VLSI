@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08c: ******************************
 
+IMP: (8/19/08, SMR) Spice deck generation now uses 3 digits of precision
+     to the right of the decimal point (used to use 2 or 3 in different places).
+     Requested by Tela Inc.
+
 IMP/MAN: (8/19/08, SMR) Added icon generation improvements from Brian van Essen
      at University of Washington.  Now have the ability to disable the placement
      of an example icon, and also now have the ability to place ports exactly
