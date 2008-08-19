@@ -3783,7 +3783,10 @@ public class EditWindow extends JPanel
 
     public void databaseChanged(DatabaseChangeEvent e)
     {
-        // if cell was deleted, set cell to null
+    	if (cell != null && e.objectChanged(cell))
+    		setWindowTitle();
+
+    	// if cell was deleted, set cell to null
         if (cell != null && !cell.isLinked())
         {
         	showCell(null, VarContext.globalContext, true, null);

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08c: ******************************
 
+BUG: (8/19/08, SMR) Undoing cell creation doesn't update window titles (Bug #1766).
+FIX: In EditWindow.databaseChanged(), rewrite window titles.
+
 IMP: (8/18/08, SMR) Waveform window extrapolates values for digital simulators
      (but still not for analog ones, Bug #1645).
 
