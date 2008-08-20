@@ -2,7 +2,7 @@
 
 NOTE: Please place changes under the version that will be released next.
 
-************************* Version 8.08c: ******************************
+************************* Version 8.08d: ******************************
 
 IMP/MAN: (8/20/08, SMR) Modified the "Up Hierarchy" command on schematics to scan the
      cell group of the schematic for ALL icons, and then look for parent environments
@@ -10,6 +10,8 @@ IMP/MAN: (8/20/08, SMR) Modified the "Up Hierarchy" command on schematics to sca
      mismatches between icons and schematics (Bug #1799).
 
 IMP/MAN: (8/20/08, SMR) Middle mouse button now pans the screen (Bug #1715).
+
+************************* Version 8.08c: ******************************
 
 IMP: (8/19/08, SMR) Spice deck generation now uses 3 digits of precision
      to the right of the decimal point (used to use 2 or 3 in different places).
@@ -46,7 +48,7 @@ FIX: Created Export.newInstance() variant with a PortCharacteristic on it and
 
 BUG: (8/8/08, RK) NCC errors not detected when size checking is enabled.
      (Bug #1787)
-FIX: Some cells can't be compared with size checking because the size varies 
+FIX: Some cells can't be compared with size_ checking because the size varies 
      with the instance. In that case perform a comparison without size checking.
 
 BUG: (8/1/08, GVG) NPE while reading Routing/data/expected/MazeRouting1Result.jelib (Bug #1793)
