@@ -3409,9 +3409,10 @@ public class EditWindow extends JPanel
 			}
 			if (cell.isSchematic())
 			{
-				Cell iconView = cell.iconView();
-				if (iconView != null)
+				for(Iterator<Cell> cIt = cell.getCellGroup().getCells(); cIt.hasNext(); )
 				{
+					Cell iconView = cIt.next();
+					if (iconView.getView() != View.ICON) continue;
 					for(Iterator<NodeInst> it = iconView.getInstancesOf(); it.hasNext(); )
 					{
 						NodeInst ni = it.next();

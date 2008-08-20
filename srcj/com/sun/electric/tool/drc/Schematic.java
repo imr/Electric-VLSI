@@ -26,6 +26,7 @@ package com.sun.electric.tool.drc;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.NetworkTool;
@@ -53,6 +54,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Class to do schematic design-rule checking.
@@ -61,7 +63,7 @@ import java.util.List;
 public class Schematic
 {
     // Cells, nodes and arcs
-	private static HashSet<ElectricObject> nodesChecked = new HashSet<ElectricObject>();
+	private static Set<ElectricObject> nodesChecked = new HashSet<ElectricObject>();
     private static ErrorLogger errorLogger = null;
     private static HashMap<Geometric,List<Variable>> newVariables = new HashMap<Geometric,List<Variable>>();
 
@@ -155,8 +157,7 @@ public class Schematic
                 ArcInst ai = it.next();
                 schematicDoCheck(netlist, ai);
             }
-        }
-        else
+        } else
         {
             for (Geometric geo : geomsToCheck)
                 schematicDoCheck(netlist, geo);
@@ -345,6 +346,27 @@ public class Schematic
                                 addVariable(ni, var.withDisplay(true));
 							}
 						}
+					}
+				}
+			}
+
+			// check all exports for proper icon/schematics characteristics match
+			Cell parentCell = ni.getParent();
+			for(Iterator<Cell> cIt = parentCell.getCellGroup().getCells(); cIt.hasNext(); )
+			{
+				Cell iconCell = cIt.next();
+				if (iconCell.getView() != View.ICON) continue;
+				for(Iterator<Export> it = ni.getExports(); it.hasNext(); )
+				{
+					Export e = it.next();
+					Export iconExport = e.getEquivalentPort(iconCell);
+					if (iconExport == null) continue;
+					if (e.getCharacteristic() != iconExport.getCharacteristic())
+					{
+						errorLogger.logError("Export '" + e.getName() + "' on " + ni +
+							" is " + e.getCharacteristic().getFullName() +
+							" but export in icon cell " + iconCell.describe(false) + " is " +
+							iconExport.getCharacteristic().getFullName(), geom, cell, null, 0);
 					}
 				}
 			}

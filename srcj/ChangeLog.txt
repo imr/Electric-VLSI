@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08c: ******************************
 
+IMP/MAN: (8/20/08, SMR) Modified the "Up Hierarchy" command on schematics to scan the
+     cell group of the schematic for ALL icons, and then look for parent environments
+     of all of these icons.  Also, schematic DRC now finds export characteristic
+     mismatches between icons and schematics (Bug #1799).
+
 IMP/MAN: (8/20/08, SMR) Middle mouse button now pans the screen (Bug #1715).
 
 IMP: (8/19/08, SMR) Spice deck generation now uses 3 digits of precision
