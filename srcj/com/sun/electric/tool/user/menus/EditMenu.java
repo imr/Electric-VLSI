@@ -96,6 +96,8 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
 
 import java.awt.Dimension;
+import java.awt.Toolkit;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -103,6 +105,7 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
@@ -122,8 +125,11 @@ import javax.swing.KeyStroke;
  */
 public class EditMenu {
 
-	static EMenu makeMenu() {
-		/****************************** THE EDIT MENU ******************************/
+    static EMenu makeMenu() {
+//    	int ctrl = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+//    	int ctrlShift = ctrl | InputEvent.SHIFT_DOWN_MASK;
+
+    	/****************************** THE EDIT MENU ******************************/
 
 		// mnemonic keys available:  B       JK     Q
 		// still don't have mnemonic for "Repeat Last Action"
@@ -185,6 +191,37 @@ public class EditMenu {
 					MoveBy.showMoveByDialog(); }},
 				new EMenuItem("_Align to Grid") { public void run() {
 					CircuitChanges.alignToGrid(); }},
+//				SEPARATOR,
+//				new EMenuItem("Move Objects Left", KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0)) { public void run() {
+//					moveSelected(-1, 0, false, false); }},
+//				new EMenuItem("Move Objects Right", KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0)) { public void run() {
+//					moveSelected(1, 0, false, false); }},
+//				new EMenuItem("Move Objects Up", KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0)) { public void run() {
+//					moveSelected(0, 1, false, false); }},
+//				new EMenuItem("Move Objects Down", KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0)) { public void run() {
+//					moveSelected(0, -1, false, false); }},
+//				SEPARATOR,
+//				new EMenuItem("Move Objects More Left", new KeyStroke [] { KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, InputEvent.SHIFT_DOWN_MASK),
+//		    		KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, ctrl)}) { public void run() {
+//					moveSelected(-1, 0, false, false); }},
+//				new EMenuItem("Move Objects More Right", new KeyStroke [] { KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, InputEvent.SHIFT_DOWN_MASK),
+//		    		KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, ctrl)}) { public void run() {
+//					moveSelected(1, 0, false, false); }},
+//				new EMenuItem("Move Objects More Up", new KeyStroke [] { KeyStroke.getKeyStroke(KeyEvent.VK_UP, InputEvent.SHIFT_DOWN_MASK),
+//		    		KeyStroke.getKeyStroke(KeyEvent.VK_UP, ctrl)}) { public void run() {
+//					moveSelected(0, 1, false, false); }},
+//				new EMenuItem("Move Objects More Down", new KeyStroke [] { KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, InputEvent.SHIFT_DOWN_MASK),
+//		    		KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, ctrl)}) { public void run() {
+//					moveSelected(0, -1, false, false); }},
+//				SEPARATOR,
+//				new EMenuItem("Move Objects Most Left", KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, ctrlShift)) { public void run() {
+//					moveSelected(-1, 0, false, false); }},
+//				new EMenuItem("Move Objects Most Right", KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, ctrlShift)) { public void run() {
+//					moveSelected(1, 0, false, false); }},
+//				new EMenuItem("Move Objects Most Up", KeyStroke.getKeyStroke(KeyEvent.VK_UP, ctrlShift)) { public void run() {
+//					moveSelected(0, 1, false, false); }},
+//				new EMenuItem("Move Objects Most Down", KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, ctrlShift)) { public void run() {
+//					moveSelected(0, -1, false, false); }},
 				SEPARATOR,
 				new EMenuItem("Align Horizontally to _Left") { public void run() {
 					CircuitChanges.alignNodes(true, 0); }},
@@ -533,6 +570,46 @@ public class EditMenu {
 			}
 		}
 	}
+
+//	/**
+//	 * Method to move selected object(s).  If either scaleMove or scaleMove2
+//     * is true, the move is multiplied by the grid Bold frequency.  If both are
+//     * true the move gets multiplied twice.
+//     * @param dX amount to move in X in lambda
+//     * @param dY amount to move in Y in lambda
+//     * @param scaleMove scales move up if true
+//     * @param scaleMove2 scales move up if true (stacks with scaleMove)
+//     */
+//    private static void moveSelected(double dX, double dY, boolean scaleMove, boolean scaleMove2)
+//    {
+//        // scale distance according to arrow motion
+//        EditWindow wnd = EditWindow.getCurrent();
+//        if (wnd == null) return;
+//        Highlighter highlighter = wnd.getHighlighter();
+//		double arrowDistance = User.getAlignmentToGrid();
+//		dX *= arrowDistance;
+//		dY *= arrowDistance;
+//		int scaleX = User.getDefGridXBoldFrequency();
+//        int scaleY = User.getDefGridYBoldFrequency();
+//		if (scaleMove) { dX *= scaleX;   dY *= scaleY; }
+//		if (scaleMove2) { dX *= scaleX;   dY *= scaleY; }
+//		highlighter.setHighlightOffset(0, 0);
+//		if (wnd.isInPlaceEdit())
+//		{
+//			Point2D delta = new Point2D.Double(dX, dY);
+//			AffineTransform trans = wnd.getInPlaceTransformIn();
+//	        double m00 = trans.getScaleX();
+//	        double m01 = trans.getShearX();
+//	        double m10 = trans.getShearY();
+//	        double m11 = trans.getScaleY();
+//			AffineTransform justRot = new AffineTransform(m00, m10, m01, m11, 0, 0);
+//			justRot.transform(delta, delta);
+//			dX = delta.getX();
+//			dY = delta.getY();
+//		}
+//		CircuitChanges.manyMove(dX, dY);
+//		wnd.fullRepaint();
+//	}
 
 	/**
 	 * Method to handle the "See All Parameters on Node" command.
@@ -1592,7 +1669,7 @@ public class EditMenu {
             {
                 // highlight one of the jog nodes
                 highlighter.clear();
-                highlighter.addElectricObject(jogPoint, jogPoint.getParent());
+                highlighter.addElectricObject(jogPoint.getOnlyPortInst(), jogPoint.getParent());
                 highlighter.finished();
             }
         }

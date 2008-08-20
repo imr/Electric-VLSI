@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08d: ******************************
 
+BUG: (8/20/08, SMR) "Insert Jog In Arc" doesn't select a jog port, just a node (Bug #1800).
+FIX: In EditMenu.InsertJogInArcListener.terminateOK(), highlight the port, not the node.
+
 IMP/MAN: (8/20/08, SMR) Modified the "Up Hierarchy" command on schematics to scan the
      cell group of the schematic for ALL icons, and then look for parent environments
      of all of these icons.  Also, schematic DRC now finds export characteristic
