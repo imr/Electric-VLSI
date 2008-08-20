@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08c: ******************************
 
+IMP/MAN: (8/20/08, SMR) Middle mouse button now pans the screen (Bug #1715).
+
 IMP: (8/19/08, SMR) Spice deck generation now uses 3 digits of precision
      to the right of the decimal point (used to use 2 or 3 in different places).
      Requested by Tela Inc.

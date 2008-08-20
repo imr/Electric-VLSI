@@ -93,7 +93,8 @@ public class ClickZoomWireListener
 
     public static ClickZoomWireListener theOne = new ClickZoomWireListener();
 
-    private int clickX, clickY;                 /* last mouse pressed coords in screen space */
+    private int clickX, clickY;                 /* current mouse pressed coords in screen space */
+    private int lastX, lastY;                   /* last mouse pressed coords in screen space (for panning) */
     private Cell startCell;
     private double dbMoveStartX, dbMoveStartY;     /* left mouse pressed coords for move in database space */
     private double lastdbMouseX, lastdbMouseY;     /* last location of mouse */
@@ -247,6 +248,15 @@ public class ClickZoomWireListener
             if ((evt.getModifiers() & MouseEvent.BUTTON3_MASK) == MouseEvent.BUTTON3_MASK)
                 return true;
         }
+        return false;
+    }
+
+    /**
+     * See if event is a middle mouse click.  Platform independent.
+     */
+    public static boolean isMiddleMouse(InputEvent evt) {
+        if ((evt.getModifiers() & MouseEvent.BUTTON2_MASK) == MouseEvent.BUTTON2_MASK)
+            return true;
         return false;
     }
 
@@ -475,6 +485,12 @@ public class ClickZoomWireListener
                     mouseOver(dbClick, wnd);
 	            }
 	            return;
+	        }
+	        if (isMiddleMouse(evt)) {
+                // We will pan the screen
+	    		lastX = evt.getX();
+	    		lastY = evt.getY();
+                return;
 	        }
 	    }
     }
@@ -722,6 +738,20 @@ public class ClickZoomWireListener
                 	}
 	                wnd.repaint();
 	            }
+	        }
+	        if (isMiddleMouse(evt)) {
+                // Continue panning the screen
+		        int newX = evt.getX();
+		        int newY = evt.getY();
+				Point2D pt = wnd.getScheduledOffset();
+				double scale = wnd.getScale();
+				wnd.setOffset(new Point2D.Double(pt.getX() - (newX - lastX) / scale,
+					pt.getY() + (newY - lastY) / scale));
+                wnd.getSavedFocusBrowser().updateCurrentFocus();
+				wnd.fullRepaint();
+				lastX = newX;
+				lastY = newY;
+                return;
 	        }
 
 	        wnd.repaint();
@@ -1171,7 +1201,7 @@ public class ClickZoomWireListener
 	                modeLeft = Mode.none;
 	            }
 	        }
-	        }
+	    }
     }
 
     /**
@@ -1347,9 +1377,9 @@ public class ClickZoomWireListener
 				moveSelected(0, 1, evt.isShiftDown(), evt.isControlDown());
 			} else if (chr == KeyEvent.VK_DOWN) {
 				moveSelected(0, -1, evt.isShiftDown(), evt.isControlDown());
-			}
+			} else
 			// cancel current mode
-			else if (chr == KeyEvent.VK_ESCAPE) {
+			if (chr == KeyEvent.VK_ESCAPE) {
                 escapePressed(wnd);
             }
             else if (chr == KeyEvent.VK_CONTROL) {
@@ -1435,7 +1465,7 @@ public class ClickZoomWireListener
      * @param dX amount to move in X in lambda
      * @param dY amount to move in Y in lambda
      * @param scaleMove scales move up if true
-     * @param scaleMove2 scales omve up if true (stacks with scaleMove)
+     * @param scaleMove2 scales move up if true (stacks with scaleMove)
      */
     public static void moveSelected(double dX, double dY, boolean scaleMove, boolean scaleMove2) {
         // scale distance according to arrow motion
