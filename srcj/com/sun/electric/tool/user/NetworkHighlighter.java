@@ -84,18 +84,18 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
      * @param startDepth to start depth of the hierarchical search
      * @return endDepth the end depth of the hierarchical search
      */
-    public static synchronized List<Highlight2> getHighlights(Cell cell, Netlist netlist, Set<Network> nets, int startDepth, int endDepth) {
+    public static synchronized List<Highlight2> getHighlights(Cell cell, Netlist netlist, Set<Network> nets,
+    	int startDepth, int endDepth)
+    {
         NetworkHighlighter networkHighlighter = new NetworkHighlighter(cell, netlist, nets, startDepth, endDepth);
 
         HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, networkHighlighter);
-//        HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, netlist, networkHighlighter);
 
         return networkHighlighter.highlighter.getHighlights();
     }
 
-
-
-    public boolean enterCell(HierarchyEnumerator.CellInfo info) {
+    public boolean enterCell(HierarchyEnumerator.CellInfo info)
+    {
         if (currentDepth == 0) {
             // set the global net ID that will be used in sub cells
             netIDs = new BitSet();
@@ -132,19 +132,18 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
         return true;
     }
 
-
     /**
-     * Get objects connected to network 'net' in Cell 'cell' with Netlist 'netlist.
-     * @param cell
-     * @param netlist
-     * @param nets
-     * @return HashSet of ArcInsts, PortInsts and Exports on networs.
+     * Get objects connected to a network in a Cell.
+     * @param cell the Cell to examine.
+     * @param netlist the Netlist in the cell being examined.
+     * @param nets the desired Networks to find in the cell.
+     * @return Set of ArcInsts, PortInsts and Exports on the desired networs.
      */
-    private static HashSet<ElectricObject> getNetworkObjects(Cell cell, Netlist netlist, Set<Network> nets) {
-        HashSet<ElectricObject> objs = new HashSet<ElectricObject>();
+    private static Set<ElectricObject> getNetworkObjects(Cell cell, Netlist netlist, Set<Network> nets)
+    {
+        Set<ElectricObject> objs = new HashSet<ElectricObject>();
         
         // all port instances on the networks
-//        if (depth == 0)
 		if (!TRIMMEDDISPLAY)
 		{
 	        for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
@@ -167,7 +166,6 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
             for(int i=0; i<width; i++) {
                 if (!nets.contains(netlist.getNetwork(ai, i))) continue;
                 objs.add(ai);
-//                if (depth == 0)
         		if (!TRIMMEDDISPLAY)
         		{
 	                // also highlight end nodes of arc, if they are primitive nodes
@@ -187,7 +185,6 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
         }
 
         // show all exports on the networks if at the top level
-//        if (depth == 0)
 		if (!TRIMMEDDISPLAY)
 		{
 	        for(Iterator<PortProto> pIt = cell.getPorts(); pIt.hasNext(); ) {
@@ -201,7 +198,6 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
 		}
         return objs;
     }
-
 
     /**
      * Retrieves the User's preference color for NodeInst objects
@@ -218,13 +214,19 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
      */
     private void addNetworkObjects() {
         // highlight objects in this cell
-        HashSet<ElectricObject> objs = getNetworkObjects(cell, netlist, nets);
+        Set<ElectricObject> objs = getNetworkObjects(cell, netlist, nets);
         Color nodeColor = getNodeOrPortColor();
 
         for (ElectricObject eObj : objs)
         {
             Color color = !((eObj instanceof ArcInst)) ? nodeColor : null;
-            highlighter.addElectricObject(eObj, cell, false, color);
+            if (eObj instanceof Export)
+            {
+            	highlighter.addText(eObj, cell, Export.EXPORT_NAME);
+            } else
+            {
+            	highlighter.addElectricObject(eObj, cell, false, color);
+            }
         }
     }
 
@@ -236,7 +238,7 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
         Netlist netlist = info.getNetlist();
 
         // find all local networks in this cell that corresponds to global id
-        HashSet<Network> localNets = new HashSet<Network>();
+        Set<Network> localNets = new HashSet<Network>();
         for (Iterator<Network> it = netlist.getNetworks(); it.hasNext(); ) {
             Network aNet = it.next();
             if (netIDs.get(info.getNetID(aNet))) {
@@ -246,14 +248,14 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
         addNetworkPolys(localNets, info);
     }
 
-    private void addNetworkPolys(HashSet<Network> localNets, HierarchyEnumerator.CellInfo info) {
+    private void addNetworkPolys(Set<Network> localNets, HierarchyEnumerator.CellInfo info) {
         Netlist netlist = info.getNetlist();
 
         // no local net that matches with global network
         if (localNets.size() == 0) return;
 
         Cell currentCell = info.getCell();
-        HashSet<ElectricObject> objs = getNetworkObjects(currentCell, netlist, localNets);
+        Set<ElectricObject> objs = getNetworkObjects(currentCell, netlist, localNets);
         Color colorN = getNodeOrPortColor();
 
         // get polys for each object and transform them to root
@@ -263,7 +265,6 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
             Poly poly = null;
             if (o instanceof ArcInst) {
                 ArcInst ai = (ArcInst)o;
-//                if (currentDepth > 0)
 				if (TRIMMEDDISPLAY)
 					poly = new Poly(new Point2D.Double[]{ai.getHeadLocation().lambdaMutable(), ai.getTailLocation().lambdaMutable()});
                 else

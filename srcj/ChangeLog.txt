@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08d: ******************************
 
+BUG: (8/21/08, SMR) Highlighting a network doesn't identify export text (Bug #1803).
+FIX: In NetworkHighlighter.addNetworkObjects(), show exports properly.
+
 IMP/MAN: (8/21/08, SMR) Added "Window / Waveform Window / Clear All Signals in Waveform Window"
      to remove all panels from the waveform window (Bug #1768).
 
