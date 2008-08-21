@@ -883,7 +883,7 @@ public class Clipboard
 				reExpThese.add(newPi);
 				originalExports.put(newPi, e);
 			}
-			ExportChanges.reExportPorts(toCell, reExpThese, false, true, false, originalExports);
+			ExportChanges.reExportPorts(toCell, reExpThese, false, true, true, false, originalExports);
 		}
 
 		Map<ArcInst,ArcInst> newArcs = new HashMap<ArcInst,ArcInst>();

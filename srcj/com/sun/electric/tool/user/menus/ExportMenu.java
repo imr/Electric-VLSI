@@ -39,7 +39,7 @@ public class ExportMenu {
 	static EMenu makeMenu() {
 		/****************************** THE EXPORT MENU ******************************/
 
-		// mnemonic keys available:  B       JK     Q         
+		// mnemonic keys available: AB    G IJK     Q         
 		return new EMenu("E_xport",
 
 			new EMenuItem("_Create Export...", 'E') { public void run() {
@@ -49,10 +49,16 @@ public class ExportMenu {
 
 			new EMenuItem("Re-Export Ever_ything") { public void run() {
 				ExportChanges.reExportAll(); }},
-			new EMenuItem("Re-Export Sele_cted") { public void run() {
-				ExportChanges.reExportSelected(false); }},
-			new EMenuItem("Re-Export Selected, With _Wired Ports") { public void run() {
-				ExportChanges.reExportSelected(true); }},
+
+			// mnemonic keys available: ABCDEFGHIJKLMNO QRST V XYZ
+            new EMenu("Re-Export _Selected",
+                new EMenuItem("_Unwired Ports Only") { public void run() {
+                	ExportChanges.reExportSelected(false, true); }},
+                new EMenuItem("Wired and Unwired _Ports") { public void run() {
+                	ExportChanges.reExportSelected(true, true); }},
+                new EMenuItem("_Wired Ports Only") { public void run() {
+                	ExportChanges.reExportSelected(true, false); }}),
+
 			new EMenuItem("Re-E_xport Selected Port on All Nodes") { public void run() {
 				ExportChanges.reExportSelectedPort(); }},
 			new EMenuItem("Re-Export _Power and Ground") { public void run() {
@@ -60,14 +66,23 @@ public class ExportMenu {
 
 			SEPARATOR,
 
-			new EMenuItem("Re-Export _Highlighted Area") { public void run() {
-				ExportChanges.reExportHighlighted(false, false); }},
-			new EMenuItem("Re-Export Hi_ghlighted Area, With Wired Ports") { public void run() {
-				ExportChanges.reExportHighlighted(false, true); }},
-			new EMenuItem("Re-Export D_eep Highlighted Area") { public void run() {
-				ExportChanges.reExportHighlighted(true, false); }},
-			new EMenuItem("Re-Export Deep Highlighted Area, With W_ired Ports") { public void run() {
-				ExportChanges.reExportHighlighted(true, true); }},
+			// mnemonic keys available: ABCDEFGHIJKLMNO QRST V XYZ
+            new EMenu("Re-Export _Highlighted Area",
+                new EMenuItem("_Unwired Ports Only") { public void run() {
+                	ExportChanges.reExportHighlighted(false, false, true); }},
+                new EMenuItem("Wired and Unwired _Ports") { public void run() {
+                	ExportChanges.reExportHighlighted(false, true, true); }},
+                new EMenuItem("_Wired Ports Only") { public void run() {
+                	ExportChanges.reExportHighlighted(false, true, false); }}),
+
+			// mnemonic keys available: ABCDEFGHIJKLMNO QRST V XYZ
+            new EMenu("Re-Export D_eep Highlighted Area",
+                new EMenuItem("_Unwired Ports Only") { public void run() {
+                	ExportChanges.reExportHighlighted(true, false, true); }},
+                new EMenuItem("Wired and Unwired _Ports") { public void run() {
+                	ExportChanges.reExportHighlighted(true, true, true); }},
+                new EMenuItem("_Wired Ports Only") { public void run() {
+                	ExportChanges.reExportHighlighted(true, true, false); }}),
 
 			SEPARATOR,
 
@@ -88,7 +103,7 @@ public class ExportMenu {
 				ExportChanges.describeExports(true); }},
 			new EMenuItem("Lis_t Exports") { public void run() {
 				ExportChanges.describeExports(false); }},
-			new EMenuItem("_Show Exports") { public void run() {
+			new EMenuItem("Sho_w Exports") { public void run() {
 				ExportChanges.showExports(); }},
 			new EMenuItem("_Manipulate Exports...") { public void run() {
 				ManipulateExports.showDialog(); }},

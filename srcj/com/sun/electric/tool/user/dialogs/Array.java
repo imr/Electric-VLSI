@@ -55,6 +55,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.JOptionPane;
 
@@ -90,7 +91,7 @@ public class Array extends EDialog
 	/** amount when spacing by centerline distance */		private double spacingCenterlineX, spacingCenterlineY;
 	/** amount when spacing by characteristic distance */	private double essentialBndX, essentialBndY;
 	/** amount when spacing by measured distance */			private double spacingMeasuredX, spacingMeasuredY;
-	/** the selected objects to be arrayed */				private HashMap<Geometric,Geometric> selected;
+	/** the selected objects to be arrayed */				private Map<Geometric,Geometric> selected;
 	/** the bounds of the selected objects */				private Rectangle2D bounds;
 
 	/**
@@ -490,7 +491,7 @@ public class Array extends EDialog
 
 				// first replicate the nodes
 				boolean firstNode = true;
-				HashMap<NodeInst,NodeInst> nodeMap = new HashMap<NodeInst,NodeInst>();
+				Map<NodeInst,NodeInst> nodeMap = new HashMap<NodeInst,NodeInst>();
 				for(NodeInst ni : nodeList)
 				{
 					double xPos = cX + xOverlap * xIndex;
@@ -602,7 +603,7 @@ public class Array extends EDialog
 
 				// copy the exports, too
 				List<PortInst> portInstsToExport = new ArrayList<PortInst>();
-				HashMap<PortInst,Export> originalExports = new HashMap<PortInst,Export>();
+				Map<PortInst,Export> originalExports = new HashMap<PortInst,Export>();
 				for(Export pp : exportList)
 				{
 					PortInst oldPI = pp.getOriginalPort();
@@ -612,7 +613,7 @@ public class Array extends EDialog
 					portInstsToExport.add(pi);
 					originalExports.put(pi, pp);
 				}
-				ExportChanges.reExportPorts(cell, portInstsToExport, false, true, false, originalExports);
+				ExportChanges.reExportPorts(cell, portInstsToExport, false, true, true, false, originalExports);
 			}
 
 			// rename the replicated objects

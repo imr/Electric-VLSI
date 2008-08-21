@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.Connection;
@@ -46,6 +47,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
@@ -284,7 +286,7 @@ public class ManipulatePorts extends EDialog
 				if (!pe.isSelected()) continue;
 				queuedExports.add(pe.getPort());
 			}
-	        new ExportChanges.ReExportPorts(ni.getParent(), queuedExports, true, true, false, null);
+	        new ExportChanges.ReExportPorts(ni.getParent(), queuedExports, true, true, true, false, null);
 		}
 
 		public void unExportSelected()
