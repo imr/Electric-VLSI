@@ -197,7 +197,7 @@ public class WindowMenu {
                     importCadencePreferences(); }}
                     ),
 
-		// mnemonic keys available: ABC  FGHIJKLMNOPQ  TUVW  Z
+		// mnemonic keys available: AB   FGHIJKLMNOPQ  TUVW  Z
             new EMenu("W_aveform Window",
 		        new EMenuItem("_Save Waveform Window Configuration to Disk...") { public void run() {
                     WaveformWindow.saveConfiguration(); }},
@@ -206,6 +206,9 @@ public class WindowMenu {
                 SEPARATOR,
                 new EMenuItem("Refresh Simulation _Data") { public void run() {
                     WaveformWindow.refreshSimulationData(); }},
+                SEPARATOR,
+                new EMenuItem("_Clear All Signals in Waveform Window") { public void run() {
+                    WaveformWindow.clearSimulationData(); }},
                 SEPARATOR,
                 new EMenuItem("_Export Simulation Data...") { public void run() {
                     WaveformWindow.exportSimulationData(); }},

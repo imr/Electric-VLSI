@@ -3566,6 +3566,39 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	}
 
 	/**
+	 * Method to clear all panels from the waveform window.
+	 */
+	public static void clearSimulationData()
+	{
+		WindowFrame current = WindowFrame.getCurrentWindowFrame();
+		WindowContent content = current.getContent();
+		if (!(content instanceof WaveformWindow))
+		{
+			System.out.println("Nothing to refresh in non Waveform window");
+			return; // nothing to do
+		}
+		WaveformWindow ww = (WaveformWindow)content;
+
+		// clear the display
+		ww.clearAllPanels();
+		ww.saveSignalOrder();
+	}
+
+	/**
+	 * Method to remove all panels from the display.
+	 */
+	private void clearAllPanels()
+	{
+		List<Panel> closeList = new ArrayList<Panel>();
+		for(Panel wp : wavePanels)
+			closeList.add(wp);
+		for(Panel wp : closeList)
+		{
+			closePanel(wp);
+		}
+	}
+
+	/**
 	 * Method to refresh the simulation data from disk.
 	 */
 	private void refreshData()
@@ -3663,13 +3696,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		if (configurationFileName == null) return;
 
 		// clear the display
-		List<Panel> closeList = new ArrayList<Panel>();
-		for(Panel wp : ww.wavePanels)
-			closeList.add(wp);
-		for(Panel wp : closeList)
-		{
-			ww.closePanel(wp);
-		}
+		ww.clearAllPanels();
 
 		// read the file
 		URL url = TextUtils.makeURLToFile(configurationFileName);
@@ -3920,6 +3947,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		{
 			// add analog signal on top of current panel
 			AnalogSignal as = (AnalogSignal)sig;
+			boolean found = false;
 			for(Panel wp : wavePanels)
 			{
 				if (wp.isSelected())
@@ -3928,8 +3956,27 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					WaveSignal.addSignalToPanel(sig, wp, null);
 					if (getMainHorizRuler() != null)
 						getMainHorizRuler().repaint();
+					found = true;
 					break;
 				}
+			}
+			if (!found)
+			{
+				// create a new panel for the signal
+				Panel wp = makeNewPanel(as.getAnalysis());
+				Rectangle2D rangeBounds = as.getBounds();
+				double lowValue = rangeBounds.getMinY();
+				double highValue = rangeBounds.getMaxY();
+				double range = highValue - lowValue;
+				if (range == 0) range = 2;
+				double rangeExtra = range / 10;
+				wp.setYAxisRange(lowValue - rangeExtra, highValue + rangeExtra);
+				wp.makeSelectedPanel(-1, -1);
+				if (!xAxisLocked)
+					wp.setXAxisRange(as.getLeftEdge(), as.getRightEdge());
+				WaveSignal.addSignalToPanel(sig, wp, null);
+				if (getMainHorizRuler() != null)
+					getMainHorizRuler().repaint();
 			}
 		} else
 		{
