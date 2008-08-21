@@ -112,7 +112,8 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
         public static final DoAction renameCell = new DoAction("Rename Cell", "Rename Cells");
         public static final DoAction duplicateCell = new DoAction("Duplicate Cell", "Duplicate a Cell");
         public static final DoAction deleteCell = new DoAction("Delete Cell", "Delete Cells");
-        public static final DoAction selectCell = new DoAction("Select Cell", "Which Cell is Associated with this Data?");
+        public static final DoAction selectCellToAssoc = new DoAction("Select Cell", "Which Cell is Associated with this Data?");
+        public static final DoAction selectCellToCopy = new DoAction("Select Cell", "Copy Parameters from which Cell?");
     }
 
     /** Creates new form CellBrowser */
@@ -483,7 +484,7 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
             jList1.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
             doAction.setText("Apply Delete");
         }
-        else if (action == DoAction.duplicateCell || action == DoAction.selectCell) {
+        else if (action == DoAction.duplicateCell || action == DoAction.selectCellToAssoc) {
             // set current cell as the default
             Cell cell = WindowFrame.getCurrentCell();
             setCell(cell);
@@ -663,7 +664,7 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
             CellMenu.duplicateCell(cell, false);
             closeDialog(null);                     // we have performed the action
             updateCellList();
-        } else if (action == DoAction.selectCell)
+        } else if (action == DoAction.selectCellToAssoc || action == DoAction.selectCellToCopy)
 		{
             closeDialog(null);                     // we have performed the action
 		}

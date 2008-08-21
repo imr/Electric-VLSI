@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08d: ******************************
 
+IMP/MAN: (8/21/08, SMR) "Cell Parameters" dialog now lets you copy parameters
+     from another cell (Bug #1652).
+
 BUG: (8/20/08, SMR) "Insert Jog In Arc" doesn't select a jog port, just a node (Bug #1800).
 FIX: In EditMenu.InsertJogInArcListener.terminateOK(), highlight the port, not the node.
 

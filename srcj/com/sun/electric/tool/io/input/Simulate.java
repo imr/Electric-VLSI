@@ -161,7 +161,7 @@ public class Simulate extends Input
 			cell = curLib.findNodeProto(cellName);
 			if (cell == null)
 			{
-				CellBrowser dialog = new CellBrowser(TopLevel.getCurrentJFrame(), true, CellBrowser.DoAction.selectCell);
+				CellBrowser dialog = new CellBrowser(TopLevel.getCurrentJFrame(), true, CellBrowser.DoAction.selectCellToAssoc);
 		        dialog.setVisible(true);
 				cell = dialog.getSelectedCell();
 				if (cell == null) return;

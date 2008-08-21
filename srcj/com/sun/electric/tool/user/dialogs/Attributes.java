@@ -659,40 +659,45 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
         private boolean addToInstances;
         private transient Attributes dialog;
 
-        private CreateAttribute(String newName, Object newValue, ElectricObject owner, Attributes dialog, boolean addToInstances) {
+        private CreateAttribute(String newName, Object newValue, ElectricObject owner, Attributes dialog,
+        	boolean addToInstances, TextDescriptor useThis)
+        {
             super("Create Attribute", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.owner = owner;
             this.dialog = dialog;
             this.addToInstances = addToInstances;
 
             // determine textdescriptor for the variable
-            TextDescriptor td = null;
-            if (owner instanceof Cell)
+            TextDescriptor td = useThis;
+            if (useThis == null)
             {
-            	td = TextDescriptor.getCellTextDescriptor().withParam(true).withInherit(true);
-            } else if (owner instanceof NodeInst)
-            {
-            	td = TextDescriptor.getNodeTextDescriptor();
-            } else if (owner instanceof ArcInst)
-            {
-            	td = TextDescriptor.getArcTextDescriptor();
-            } else if (owner instanceof Export)
-            {
-            	td = TextDescriptor.getExportTextDescriptor();
-            } else if (owner instanceof PortInst)
-            {
-            	td = TextDescriptor.getPortInstTextDescriptor();
-            } else return;
+	            if (owner instanceof Cell)
+	            {
+	            	td = TextDescriptor.getCellTextDescriptor().withParam(true).withInherit(true);
+	            } else if (owner instanceof NodeInst)
+	            {
+	            	td = TextDescriptor.getNodeTextDescriptor();
+	            } else if (owner instanceof ArcInst)
+	            {
+	            	td = TextDescriptor.getArcTextDescriptor();
+	            } else if (owner instanceof Export)
+	            {
+	            	td = TextDescriptor.getExportTextDescriptor();
+	            } else if (owner instanceof PortInst)
+	            {
+	            	td = TextDescriptor.getPortInstTextDescriptor();
+	            } else return;
 
-            // add in specified factors
-            td = dialog.attrPanel.withPanelValues(td);
-            td = dialog.textPanel.withPanelValues(td);
+	            // add in specified factors
+	            td = dialog.attrPanel.withPanelValues(td);
+	            td = dialog.textPanel.withPanelValues(td);
 
-            if (owner instanceof Cell)
-            {
-            	// find nonconflicting location of this cell attribute
-            	Point2D offset = ((Cell)owner).newVarOffset();
-            	td = td.withOff(offset.getX(), offset.getY());
+	            if (owner instanceof Cell)
+	            {
+	            	// find nonconflicting location of this cell attribute
+	            	Point2D offset = ((Cell)owner).newVarOffset();
+	            	td = td.withOff(offset.getX(), offset.getY());
+	            }
             }
 
             newValue = dialog.attrPanel.withPanelCode(newValue);
@@ -713,6 +718,7 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
             	// create the parameter
             	CellGroup group = ((Cell)owner).getCellGroup();
             	group.addParam(newVar);
+            	owner.setTextDescriptor(newVar.getKey(), newVar.getTextDescriptor());
                 if (addToInstances)
                 {
 	                for (Iterator<Cell> it = group.getCells(); it.hasNext(); )
@@ -906,6 +912,7 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
         renameButton = new javax.swing.JButton();
         done = new javax.swing.JButton();
         applyToInstances = new javax.swing.JCheckBox();
+        copyButton = new javax.swing.JButton();
         editValue = new javax.swing.JButton();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
@@ -1088,9 +1095,9 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
         jPanel1.add(deleteButton, gridBagConstraints);
 
         renameButton.setText("Rename...");
@@ -1101,9 +1108,9 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
         jPanel1.add(renameButton, gridBagConstraints);
 
         done.setText("Done");
@@ -1114,9 +1121,8 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         jPanel1.add(done, gridBagConstraints);
 
@@ -1124,11 +1130,24 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
         applyToInstances.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
         applyToInstances.setMargin(new java.awt.Insets(0, 0, 0, 0));
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         jPanel1.add(applyToInstances, gridBagConstraints);
+
+        copyButton.setText("Copy From Cell...");
+        copyButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                copyButtonActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
+        jPanel1.add(copyButton, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -1161,6 +1180,19 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void copyButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_copyButtonActionPerformed
+		CellBrowser dialog = new CellBrowser(TopLevel.getCurrentJFrame(), true, CellBrowser.DoAction.selectCellToCopy);
+		dialog.setVisible(true);
+		Cell cell = dialog.getSelectedCell();
+		if (cell == null) return;
+		for(Iterator<Variable> it = cell.getParameters(); it.hasNext(); )
+		{
+			Variable var = it.next();
+	        new CreateAttribute(var.getKey().getName(), var.getObject(), selectedObject, this, applyToInstances.isSelected(),
+	        	var.getTextDescriptor());
+		}
+	}//GEN-LAST:event_copyButtonActionPerformed
 
 	private void editValueActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_editValueActionPerformed
 	{//GEN-HEADEREND:event_editValueActionPerformed
@@ -1223,7 +1255,7 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
         String varName = name.getText().trim();
         if (varName.trim().length() == 0) {
             JOptionPane.showMessageDialog(null, "Attribute name must not be empty",
-                    "Invalid Input", JOptionPane.WARNING_MESSAGE);
+                "Invalid Input", JOptionPane.WARNING_MESSAGE);
             return;
         }
         if (showParamsOnly)
@@ -1232,7 +1264,7 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
         // check if var of this name already exists on object
         if (selectedObject.getParameterOrVariable(Variable.newKey(varName)) != null) {
             JOptionPane.showMessageDialog(null, "Can't create new attribute "+varName+", already exists",
-                    "Invalid Action", JOptionPane.WARNING_MESSAGE);
+                "Invalid Action", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -1240,7 +1272,7 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
         String val = value.getText().trim();
 
         // Spawn a Job to create the Variable
-        new CreateAttribute(varName, getVariableObject(val), selectedObject, this, applyToInstances.isSelected());
+        new CreateAttribute(varName, getVariableObject(val), selectedObject, this, applyToInstances.isSelected(), null);
 
         initialName = varName;
         initialValue = val;
@@ -1264,6 +1296,7 @@ public class Attributes extends EModelessDialog implements HighlightListener, Da
     private javax.swing.JCheckBox applyToInstances;
     private javax.swing.JPanel body;
     private javax.swing.JLabel cellName;
+    private javax.swing.JButton copyButton;
     private javax.swing.JRadioButton currentArc;
     private javax.swing.JRadioButton currentCell;
     private javax.swing.JRadioButton currentExport;
