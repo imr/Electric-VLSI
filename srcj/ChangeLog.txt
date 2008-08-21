@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08d: ******************************
 
+IMP/MAN: (8/21/08, GVG) Get number of arcs in a cell (Bug #1804)
+Added in "List of Nodes/Arcs in this cell" option in CellMenu.
+
 IMP/MAN: (8/21/08, SMR) Added ability to re-export ports only for those
      ports that are already wired.  Rearranged Export menu so that the
      three commands which do exporting have sub-menus to choose which

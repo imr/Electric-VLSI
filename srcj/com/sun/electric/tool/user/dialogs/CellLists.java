@@ -31,9 +31,11 @@ import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.extract.TransistorSearch;
@@ -193,7 +195,7 @@ public class CellLists extends EDialog
 			String height = Double.toString(cell.getBounds().getHeight());
 			if (maxlen >= 0)
 			{
-				while (height.length() < 8) height = height + " ";
+				while (height.length() < 8) height += " ";
 			}
 			line += width + "x" + height;
 		}
@@ -310,16 +312,17 @@ public class CellLists extends EDialog
 	}
 
 	/**
-	 * This method implements the command to list (recursively) the nodes in this Cell.
+	 * This method implements the command to list (recursively) the nodes and arcs in this Cell.
 	 */
-	public static void listNodesInCellCommand()
+	public static void listNodesAndArcsInCellCommand()
 	{
 		Cell curCell = WindowFrame.needCurCell();
 		if (curCell == null) return;
 
 		// now look at every object recursively in this cell
 		Map<NodeProto,GenMath.MutableInteger> nodeCount = new HashMap<NodeProto,GenMath.MutableInteger>();
-		addObjects(curCell, nodeCount);
+        Map<ArcProto,GenMath.MutableInteger> arcCount = new HashMap<ArcProto,GenMath.MutableInteger>();
+        addObjects(curCell, nodeCount, arcCount);
 
 		// print the totals
 		System.out.println("Contents of " + curCell + ":");
@@ -328,7 +331,8 @@ public class CellLists extends EDialog
 		{
 			Technology curtech = it.next();
 			int totalVal = 0;
-			for(Iterator<PrimitiveNode> nIt = curtech.getNodes(); nIt.hasNext(); )
+            // nodes
+            for(Iterator<PrimitiveNode> nIt = curtech.getNodes(); nIt.hasNext(); )
 			{
 				PrimitiveNode np = nIt.next();
 				GenMath.MutableInteger count = nodeCount.get(np);
@@ -338,11 +342,28 @@ public class CellLists extends EDialog
 					System.out.println(curtech.getTechName() + " technology:");
 					printtech = curtech;
 				}
-				System.out.println(TextUtils.toBlankPaddedString(count.intValue(), 6) + " " + np.describe(true) + " nodes");
+				System.out.println("\t" + TextUtils.toBlankPaddedString(count.intValue(), 6) + " " + np.describe(true) + " nodes");
 				totalVal += count.intValue();
 			}
-			System.out.println(TextUtils.toBlankPaddedString(totalVal, 6) + " Total nodes for " + curtech.getTechName() + " technology");
-		}
+            System.out.println(TextUtils.toBlankPaddedString(totalVal, 6) + " Total nodes for " + curtech.getTechName() + " technology");
+
+            // arcs
+            totalVal = 0;
+            for(Iterator<ArcProto> nIt = curtech.getArcs(); nIt.hasNext(); )
+			{
+                ArcProto ap = nIt.next();
+				GenMath.MutableInteger count = arcCount.get(ap);
+				if (count == null) continue;
+				if (curtech != printtech)
+				{
+					System.out.println(curtech.getTechName() + " technology:");
+					printtech = curtech;
+				}
+				System.out.println("\t" + TextUtils.toBlankPaddedString(count.intValue(), 6) + " " + ap.describe() + " arcs");
+				totalVal += count.intValue();
+			}
+            System.out.println(TextUtils.toBlankPaddedString(totalVal, 6) + " Total arcs for " + curtech.getTechName() + " technology");
+        }
 
 		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 		{
@@ -367,7 +388,8 @@ public class CellLists extends EDialog
 	 * Method to recursively examine cell "np" and update the number of
 	 * instantiated primitive nodeprotos in the "temp1" field of the nodeprotos.
 	 */
-	private static void addObjects(Cell cell, Map<NodeProto,GenMath.MutableInteger> nodeCount)
+	private static void addObjects(Cell cell, Map<NodeProto,GenMath.MutableInteger> nodeCount,
+                                   Map<ArcProto,GenMath.MutableInteger> arcCount)
 	{
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
@@ -389,9 +411,23 @@ public class CellLists extends EDialog
 			if (ni.isIconOfParent()) continue;
 			Cell cnp = subCell.contentsView();
 			if (cnp == null) cnp = subCell;
-			addObjects(cnp, nodeCount);
+			addObjects(cnp, nodeCount, arcCount);
 		}
-	}
+
+        // counting arcs
+        for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
+        {
+			ArcInst ai = it.next();
+            ArcProto ap = ai.getProto();
+            GenMath.MutableInteger count = arcCount.get(ap);
+			if (count == null)
+			{
+				count = new GenMath.MutableInteger(0);
+				arcCount.put(ap, count);
+			}
+			count.increment();
+        }
+    }
 
 	/**
 	 * This method implements the command to list instances in this Cell.

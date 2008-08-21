@@ -161,8 +161,8 @@ public class CellMenu {
 				new EMenuItem("_General Cell Lists...") { public void run() {
 					CellLists.generalCellListsCommand(); }},
 				SEPARATOR,
-				new EMenuItem("List _Nodes in this Cell") { public void run() {
-					CellLists.listNodesInCellCommand(); }},
+				new EMenuItem("List _Nodes/Arcs in this Cell") { public void run() {
+					CellLists.listNodesAndArcsInCellCommand(); }},
 				new EMenuItem("List Cell _Instances") { public void run() {
 					CellLists.listCellInstancesCommand(); }},
 				new EMenuItem("List Cell _Usage") { public void run() {

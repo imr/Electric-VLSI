@@ -181,7 +181,7 @@ public final class ExportChanges
 		}
 
 		// describe each export
-		System.out.println("----- Exports on " + cell + " -----");
+		System.out.println("----- Exports on " + cell + ": total " + num_found + " -----");
 		Set<ArcProto> arcsSeen = new HashSet<ArcProto>();
 		for(int j=0; j<num_found; j++)
 		{
