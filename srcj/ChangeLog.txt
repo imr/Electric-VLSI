@@ -4,7 +4,7 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08d: ******************************
 
-IMP: (8/21/08, SMR) Added ability to re-export ports only for those
+IMP/MAN: (8/21/08, SMR) Added ability to re-export ports only for those
      ports that are already wired.  Rearranged Export menu so that the
      three commands which do exporting have sub-menus to choose which
      types of exports to wire (Bug #1769).
