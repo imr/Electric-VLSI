@@ -301,7 +301,7 @@ public class Highlighter implements DatabaseChangeListener {
 			System.out.println("Sorry, a deadlock aborted highlighting (network information unavailable).  Please try again");
 			return;
 		}
-        HashSet<Network> nets = new HashSet<Network>();
+        Set<Network> nets = new HashSet<Network>();
         nets.add(net);
         List<Highlight2> highlights = NetworkHighlighter.getHighlights(cell, netlist, nets, 0, 0);
         for (Highlight2 h : highlights) {
@@ -1926,7 +1926,6 @@ public class Highlighter implements DatabaseChangeListener {
 		AffineTransform trans = ni.rotateOut();
 
 		NodeProto np = ni.getProto();
-//		Poly nodePoly = null;
 		if (!ni.isCellInstance())
 		{
 			// special case for MOS transistors: examine the gate/active tabs

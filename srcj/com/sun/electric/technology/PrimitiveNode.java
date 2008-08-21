@@ -47,7 +47,13 @@ import java.io.IOException;
 import java.io.InvalidObjectException;
 import java.io.PrintWriter;
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
 
 /**
  * A PrimitiveNode represents information about a NodeProto that lives in a
@@ -63,322 +69,408 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	 */
 	public static enum Function
 	{
-		/**
-		 * Describes a node with unknown behavior.
-		 */
-		UNKNOWN("unknown", "node"),
-		/**
-		 * Describes a single-layer pin.
-		 * Pins connects wires of a single layer, have no geometry, and connect in the center of the node.
-		 */
-		PIN("pin", "pin"),
-		/**
-		 * Describes a two-layer contact.
-		 * Contacts connects wires of two different layers in the center of the node.
-		 */
-		CONTACT("contact", "contact"),
-		/**
-		 * Describes a pure-layer node.
-		 * Pure-layer nodes have a solid piece of geometry on a single layer.
-		 */
-		NODE("pure-layer-node", "plnode"),
-		/**
-		 * node a node that connects all ports.
-		 */
-		CONNECT("connection", "conn"),
-		/**
-		 * Describes a MOS enhancement transistor.
-		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port.
-		 */
-		TRANMOS("nMOS-transistor", "nmos"),
-		/**
-		 * Describes a MOS depletion transistor.
-		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port.
-		 */
-		TRADMOS("DMOS-transistor", "dmos"),
-		/**
-		 * Describes a MOS complementary transistor.
-		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port.
-		 */
-		TRAPMOS("pMOS-transistor", "pmos"),
-		/**
-		 * Describes a NPN junction transistor.
-		 * It has base on the first port, emitter on the second port, and collector on the third port.
-		 */
-		TRANPN("NPN-transistor", "npn"),
-		/**
-		 * Describes a PNP junction transistor.
-		 * It has base on the first port, emitter on the second port, and collector on the third port.
-		 */
-		TRAPNP("PNP-transistor", "pnp"),
-		/**
-		 * Describes a N-channel junction transistor.
+		/** Describes a node with unknown behavior. */
+		UNKNOWN("unknown", "node", false, false),
+
+		/** Describes a single-layer pin.
+		 * Pins connects wires of a single layer, have no geometry, and connect in the center of the node. */
+		PIN("pin", "pin", false, false),
+
+		/** Describes a two-layer contact.
+		 * Contacts connects wires of two different layers in the center of the node. */
+		CONTACT("contact", "contact", false, false),
+
+		/** Describes a pure-layer node.
+		 * Pure-layer nodes have a solid piece of geometry on a single layer. */
+		NODE("pure-layer-node", "plnode", false, false),
+
+		/** Describes a node that connects all ports. */
+		CONNECT("connection", "conn", false, false),
+
+		/** Describes an nMOS transistor.
+		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
+		TRANMOS("nMOS-transistor", "nmos", true, false),
+
+		/** Describes a pMOS transistor.
+		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
+		TRAPMOS("pMOS-transistor", "pmos", true, false),
+
+		/** Describes an nMOS depletion transistor (should be named TRANMOSD but isn't for historical purposes).
+		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
+		TRADMOS("depletion-nMOS-transistor", "nmos-d", true, false),
+
+		/** Describes a pMOS depletion transistor.
+		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
+		TRAPMOSD("depletion-pMOS-transistor", "pmos-d", true, false),
+
+		/** Describes an nMOS native transistor.
+		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
+		TRANMOSNT("native-nMOS-transistor", "nmos-nt", true, false),
+
+		/** Describes a pMOS native transistor.
+		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
+		TRAPMOSNT("native-pMOS-transistor", "pmos-nt", true, false),
+
+		/** Describes an nMOS low-threshold transistor.
+		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
+		TRANMOSVTL("low-threshold-nMOS-transistor", "nmos-vtl", true, false),
+
+		/** Describes a pMOS low-threshold transistor.
+		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
+		TRAPMOSVTL("low-threshold-pMOS-transistor", "pmos-vtl", true, false),
+
+		/** Describes an nMOS high-threshold transistor.
+		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
+		TRANMOSVTH("high-threshold-nMOS-transistor", "nmos-vth", true, false),
+
+		/** Describes a pMOS high-threshold transistor.
+		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
+		TRAPMOSVTH("high-threshold-pMOS-transistor", "pmos-vth", true, false),
+
+		/** Describes an nMOS high-voltage (1) transistor.
+		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
+		TRANMOSHV1("high-threshold-1-nMOS-transistor", "nmos-hv1", true, false),
+
+		/** Describes a pMOS high-threshold (1) transistor.
+		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
+		TRAPMOSHV1("high-threshold-pMOS-transistor", "pmos-hv1", true, false),
+
+		/** Describes an nMOS higher-voltage (2) transistor.
+		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
+		TRANMOSHV2("high-threshold-1-nMOS-transistor", "nmos-hv2", true, false),
+
+		/** Describes a pMOS higher-threshold (2) transistor.
+		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
+		TRAPMOSHV2("high-threshold-pMOS-transistor", "pmos-hv2", true, false),
+
+		/** Describes an nMOS highest-voltage (3) transistor.
+		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
+		TRANMOSHV3("high-threshold-1-nMOS-transistor", "nmos-hv3", true, false),
+
+		/** Describes a pMOS highest-threshold (3) transistor.
+		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
+		TRAPMOSHV3("high-threshold-pMOS-transistor", "pmos-hv3", true, false),
+
+		/** Describes an nMOS native high-voltage (1) transistor.
+		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
+		TRANMOSNTHV1("native-high-threshold-1-nMOS-transistor", "nmos-nt-hv1", true, false),
+
+		/** Describes a pMOS native high-threshold (1) transistor.
+		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
+		TRAPMOSNTHV1("native-high-threshold-pMOS-transistor", "pmos-nt-hv1", true, false),
+
+		/** Describes an nMOS native higher-voltage (2) transistor.
+		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
+		TRANMOSNTHV2("native-high-threshold-1-nMOS-transistor", "nmos-nt-hv2", true, false),
+
+		/** Describes a pMOS native higher-threshold (2) transistor.
+		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
+		TRAPMOSNTHV2("native-high-threshold-pMOS-transistor", "pmos-nt-hv2", true, false),
+
+		/** Describes an nMOS native highest-voltage (3) transistor.
+		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
+		TRANMOSNTHV3("native-high-threshold-1-nMOS-transistor", "nmos-nt-hv3", true, false),
+
+		/** Describes a pMOS native highest-threshold (3) transistor.
+		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
+		TRAPMOSNTHV3("native-high-threshold-pMOS-transistor", "pmos-nt-hv3", true, false),
+
+		/** Describes a NPN junction transistor.
+		 * It has base on the first port, emitter on the second port, and collector on the third port. */
+		TRANPN("NPN-transistor", "npn", true, false),
+
+		/** Describes a PNP junction transistor.
+		 * It has base on the first port, emitter on the second port, and collector on the third port. */
+		TRAPNP("PNP-transistor", "pnp", true, false),
+
+		/** Describes a N-channel junction transistor.
+		 * It has gate on the first port, source on the second port, and drain on the third port. */
+		TRANJFET("n-type-JFET-transistor", "njfet", true, false),
+
+		/** Describes a P-channel junction transistor.
+		 * It has gate on the first port, source on the second port, and drain on the third port. */
+		TRAPJFET("p-type-JFET-transistor", "pjfet", true, false),
+
+		/** Describes a MESFET depletion transistor.
+		 * It has gate on the first port, source on the second port, and drain on the third port. */
+		TRADMES("depletion-mesfet", "dmes", true, false),
+
+		/** Describes a MESFET enhancement transistor.
+		 * It has gate on the first port, source on the second port, and drain on the third port. */
+		TRAEMES("enhancement-mesfet", "emes", true, false),
+
+		/** Describes a general-purpose transistor.
+		 * It is defined self-referentially by the prototype name of the primitive. */
+		TRANSREF("prototype-defined-transistor", "tref", true, false),
+
+		/** Describes an undetermined transistor.
 		 * It has gate on the first port, source on the second port, and drain on the third port.
-		 */
-		TRANJFET("n-type-JFET-transistor", "njfet"),
-		/**
-		 * Describes a P-channel junction transistor.
-		 * It has gate on the first port, source on the second port, and drain on the third port.
-		 */
-		TRAPJFET("p-type-JFET-transistor", "pjfet"),
-		/**
-		 * Describes a MESFET depletion transistor.
-		 * It has gate on the first port, source on the second port, and drain on the third port.
-		 */
-		TRADMES("depletion-mesfet", "dmes"),
-		/**
-		 * Describes a MESFET enhancement transistor.
-		 * It has gate on the first port, source on the second port, and drain on the third port.
-		 */
-		TRAEMES("enhancement-mesfet", "emes"),
-		/**
-		 * Describes a general-purpose transistor.
-		 * It is defined self-referentially by the prototype name of the primitive.
-		 */
-		TRANSREF("prototype-defined-transistor","tref"),
-		/**
-		 * Describes an undetermined transistor.
-		 * It has gate on the first port, source on the second port, and drain on the third port.
-		 * The specific transistor type can be determined by examining the value from the NodeInst's "getTechSpecific" method.
-		 */
-		TRANS("transistor", "trans"),
-		/**
-		 * Describes a 4-port MOS enhancement transistor.
+		 * The specific transistor type can be determined by examining the value from the NodeInst's "getTechSpecific" method. */
+		TRANS("transistor", "trans", true, false),
+
+		/** Describes a 4-port nMOS transistor.
+		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port. */
+		TRA4NMOS("4-port-nMOS-transistor", "nmos-4", true, false),
+
+		/** Describes a 4-port pMOS transistor.
+		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port. */
+		TRA4PMOS("4-port-pMOS-transistor", "pmos-4", true, false),
+
+		/** Describes a 4-port nMOS depletion transistor (should be named TRA4NMOSD but isn't for historical purposes).
+		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port. */
+		TRA4DMOS("4-port-depletion-nMOS-transistor", "nmos-d-4", true, false),
+
+		/** Describes a 4-port pMOS depletion transistor.
+		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port. */
+		TRA4PMOSD("4-port-depletion-pMOS-transistor", "pmos-d-4", true, false),
+
+		/** Describes a 4-port nMOS native transistor.
+		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port. */
+		TRA4NMOSNT("4-port-native-nMOS-transistor", "nmos-nt-4", true, false),
+
+		/** Describes a 4-port pMOS native transistor.
+		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port. */
+		TRA4PMOSNT("4-port-native-pMOS-transistor", "pmos-nt-4", true, false),
+
+		/** Describes a 4-port nMOS low-threshold transistor.
+		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port. */
+		TRA4NMOSVTL("4-port-low-threshold-nMOS-transistor", "nmos-vtl-4", true, false),
+
+		/** Describes a 4-port pMOS low-threshold transistor.
+		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port. */
+		TRA4PMOSVTL("4-port-low-threshold-pMOS-transistor", "pmos-vtl-4", true, false),
+
+		/** Describes a 4-port nMOS high-threshold transistor.
+		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port. */
+		TRA4NMOSVTH("4-port-high-threshold-nMOS-transistor", "nmos-vth-4", true, false),
+
+		/** Describes a 4-port pMOS high-threshold transistor.
+		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port. */
+		TRA4PMOSVTH("4-port-high-threshold-pMOS-transistor", "pmos-vth-4", true, false),
+
+		/** Describes a 4-port nMOS high-voltage (1) transistor.
+		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port. */
+		TRA4NMOSHV1("4-port-high-threshold-1-nMOS-transistor", "nmos-hv1-4", true, false),
+
+		/** Describes a 4-port pMOS high-threshold (1) transistor.
+		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port. */
+		TRA4PMOSHV1("4-port-high-threshold-pMOS-transistor", "pmos-hv1-4", true, false),
+
+		/** Describes a 4-port nMOS higher-voltage (2) transistor.
+		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port. */
+		TRA4NMOSHV2("4-port-high-threshold-1-nMOS-transistor", "nmos-hv2-4", true, false),
+
+		/** Describes a 4-port pMOS higher-threshold (2) transistor.
+		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port. */
+		TRA4PMOSHV2("4-port-high-threshold-pMOS-transistor", "pmos-hv2-4", true, false),
+
+		/** Describes a 4-port nMOS highest-voltage (3) transistor.
+		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port. */
+		TRA4NMOSHV3("4-port-high-threshold-1-nMOS-transistor", "nmos-hv3-4", true, false),
+
+		/** Describes a 4-port pMOS highest-threshold (3) transistor.
+		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port. */
+		TRA4PMOSHV3("4-port-high-threshold-pMOS-transistor", "pmos-hv3-4", true, false),
+
+		/** Describes a 4-port nMOS native high-voltage (1) transistor.
+		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port. */
+		TRA4NMOSNTHV1("4-port-native-high-threshold-1-nMOS-transistor", "nmos-nt-hv1-4", true, false),
+
+		/** Describes a 4-port pMOS native high-threshold (1) transistor.
+		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port. */
+		TRA4PMOSNTHV1("4-port-native-high-threshold-pMOS-transistor", "pmos-nt-hv1-4", true, false),
+
+		/** Describes a 4-port nMOS native higher-voltage (2) transistor.
+		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port. */
+		TRA4NMOSNTHV2("4-port-native-high-threshold-1-nMOS-transistor", "nmos-nt-hv2-4", true, false),
+
+		/** Describes a 4-port pMOS native higher-threshold (2) transistor.
+		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port. */
+		TRA4PMOSNTHV2("4-port-native-high-threshold-pMOS-transistor", "pmos-nt-hv2-4", true, false),
+
+		/** Describes a 4-port nMOS native highest-voltage (3) transistor.
+		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port. */
+		TRA4NMOSNTHV3("4-port-native-high-threshold-1-nMOS-transistor", "nmos-nt-hv3-4", true, false),
+
+		/** Describes a 4-port pMOS native highest-threshold (3) transistor.
+		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port. */
+		TRA4PMOSNTHV3("4-port-native-high-threshold-pMOS-transistor", "pmos-nt-hv3-4", true, false),
+
+		/** Describes a 4-port NPN junction transistor.
+		 * It has base on the first port, emitter on the second port, collector on the third port, and substrate on the fourth port. */
+		TRA4NPN("4-port-NPN-transistor", "npn-4", true, false),
+
+		/** Describes a 4-port PNP junction transistor.
+		 * It has base on the first port, emitter on the second port, collector on the third port, and substrate on the fourth port. */
+		TRA4PNP("4-port-PNP-transistor", "pnp-4", true, false),
+
+		/** Describes a 4-port N-channel junction transistor.
+		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port. */
+		TRA4NJFET("4-port-n-type-JFET-transistor", "njfet-4", true, false),
+
+		/** Describes a 4-port P-channel junction transistor.
+		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port. */
+		TRA4PJFET("4-port-p-type-JFET-transistor", "pjfet-4", true, false),
+
+		/** Describes a 4-port MESFET depletion transistor.
+		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port. */
+		TRA4DMES("4-port-depletion-mesfet", "dmes-4", true, false),
+
+		/** Describes a 4-port MESFET enhancement transistor.
+		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port. */
+		TRA4EMES("4-port-enhancement-mesfet", "emes-4", true, false),
+
+		/** Describes a general-purpose transistor.
 		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port.
-		 */
-		TRA4NMOS("4-port-nMOS-transistor", "nmos4p"),
-		/**
-		 * Describes a 4-port MOS depletion transistor.
-		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port.
-		 */
-		TRA4DMOS("4-port-DMOS-transistor", "dmos4p"),
-		/**
-		 * Describes a 4-port MOS complementary transistor.
-		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port.
-		 */
-		TRA4PMOS("4-port-pMOS-transistor", "pmos4p"),
-		/**
-		 * Describes a 4-port NPN junction transistor.
-		 * It has base on the first port, emitter on the second port, collector on the third port, and substrate on the fourth port.
-		 */
-		TRA4NPN("4-port-NPN-transistor", "npn4p"),
-		/**
-		 * Describes a 4-port PNP junction transistor.
-		 * It has base on the first port, emitter on the second port, collector on the third port, and substrate on the fourth port.
-		 */
-		TRA4PNP("4-port-PNP-transistor", "pnp4p"),
-		/**
-		 * Describes a 4-port N-channel junction transistor.
-		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port.
-		 */
-		TRA4NJFET("4-port-n-type-JFET-transistor","njfet4p"),
-		/**
-		 * Describes a 4-port P-channel junction transistor.
-		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port.
-		 */
-		TRA4PJFET("4-port-p-type-JFET-transistor","pjfet4p"),
-		/**
-		 * Describes a 4-port MESFET depletion transistor.
-		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port.
-		 */
-		TRA4DMES("4-port-depletion-mesfet", "dmes4p"),
-		/**
-		 * Describes a 4-port MESFET enhancement transistor.
-		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port.
-		 */
-		TRA4EMES("4-port-enhancement-mesfet",	"emes4p"),
-		/**
-		 * Describes a general-purpose transistor.
-		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port.
-		 * The specific transistor type can be determined by examining the value from the NodeInst's "getTechSpecific" method.
-		 */
-		TRANS4("4-port-transistor", "trans4p"),
-		/**
-		 * Describes a resistor.
-		 */
-		RESIST("resistor", "res"),
-        /**
-		 * Describes a poly resistor.
-		 */
-		PRESIST("poly-resistor", "pres"),
-		/**
-		 * Describes a well resistor.
-		 */
-		WRESIST("well-resistor", "wres"),
-        /**
-		 * Describes an esd device
-		 */
-		ESDDEVICE("esd-device", "esdd"),
-        /**
-		 * Describes a capacitor.
-		 */
-		CAPAC("capacitor", "cap"),
-		/**
-		 * Describes an electrolytic capacitor.
-		 */
-		ECAPAC("electrolytic-capacitor", "ecap"),
-		/**
-		 * Describes a diode.
-		 */
-		DIODE("diode", "diode"),
-		/**
-		 * Describes a zener diode.
-		 */
-		DIODEZ("zener-diode", "zdiode"),
-		/**
-		 * Describes an inductor.
-		 */
-		INDUCT("inductor", "ind"),
-		/**
-		 * Describes a meter.
-		 */
-		METER("meter", "meter"),
-		/**
-		 * Describes a transistor base.
-		 */
-		BASE("base", "base"),
-		/**
-		 * Describes a transistor emitter.
-		 */
-		EMIT("emitter", "emit"),
-		/**
-		 * Describes a transistor collector.
-		 */
-		COLLECT("collector", "coll"),
-		/**
-		 * Describes a buffer.
-		 * It has input on the first port, clocking on the second port, and output on the third port.
-		 */
-		BUFFER("buffer", "buf"),
-		/**
-		 * Describes an AND gate.
-		 * It has inputs on the first port and output on the second port.
-		 */
-		GATEAND("AND-gate", "and"),
-		/**
-		 * Describes an OR gate.
-		 * It has inputs on the first port and output on the second port.
-		 */
-		GATEOR("OR-gate", "or"),
-		/**
-		 * Describes an XOR gate.
-		 * It has inputs on the first port and output on the second port.
-		 */
-		GATEXOR("XOR-gate", "xor"),
-		/**
-		 * Describes a RS flip-flop with master-slave triggering.
-		 */
-		FLIPFLOPRSMS("flip-flop-RS-MS", "ffRSms"),
-		/**
-		 * Describes a RS flip-flop with positive triggering.
-		 */
-		FLIPFLOPRSP("flip-flop-RS-P", "ffRSp"),
-		/**
-		 * Describes a RS flip-flop with negative triggering.
-		 */
-		FLIPFLOPRSN("flip-flop-RS-N", "ffRSn"),
-		/**
-		 * Describes a JK flip-flop with master-slave triggering.
-		 */
-		FLIPFLOPJKMS("flip-flop-JK-MS", "ffJKms"),
-		/**
-		 * Describes a JK flip-flop with positive triggering.
-		 */
-		FLIPFLOPJKP("flip-flop-JK-P", "ffJKp"),
-		/**
-		 * Describes a JK flip-flop with negative triggering.
-		 */
-		FLIPFLOPJKN("flip-flop-JK-N", "ffJKn"),
-		/**
-		 * Describes a D flip-flop with master-slave triggering.
-		 */
-		FLIPFLOPDMS("flip-flop-D-MS", "ffDms"),
-		/**
-		 * Describes a D flip-flop with positive triggering.
-		 */
-		FLIPFLOPDP("flip-flop-D-P", "ffDp"),
-		/**
-		 * Describes a D flip-flop with negative triggering.
-		 */
-		FLIPFLOPDN("flip-flop-D-N", "ffDn"),
-		/**
-		 * Describes a T flip-flop with master-slave triggering.
-		 */
-		FLIPFLOPTMS("flip-flop-T-MS", "ffTms"),
-		/**
-		 * Describes a T flip-flop with positive triggering.
-		 */
-		FLIPFLOPTP("flip-flop-T-P", "ffTp"),
-		/**
-		 * Describes a T flip-flop with negative triggering.
-		 */
-		FLIPFLOPTN("flip-flop-T-N", "ffTn"),
-		/**
-		 * Describes a multiplexor.
-		 */
-		MUX("multiplexor", "mux"),
-		/**
-		 * Describes a power connection.
-		 */
-		CONPOWER("power", "pwr"),
-		/**
-		 * Describes a ground connection.
-		 */
-		CONGROUND("ground", "gnd"),
-		/**
-		 * Describes voltage or current source.
-		 */
-		SOURCE("source", "source"),
-		/**
-		 * Describes a substrate contact.
-		 */
-		SUBSTRATE("substrate", "substr"),
-		/**
-		 * Describes a well contact.
-		 */
-		WELL("well", "well"),
-		/**
-		 * Describes a pure artwork.
-		 */
-		ART("artwork", "art"),
-		/**
-		 * Describes an array.
-		 */
-		ARRAY("array", "array"),
-		/**
-		 * Describes an alignment object.
-		 */
-		ALIGN("align", "align"),
-		/**
-		 * Describes a current-controlled voltage source.
-		 */
-		CCVS("ccvs", "ccvs"),
-		/**
-		 * Describes a current-controlled current source.
-		 */
-		CCCS("cccs", "cccs"),
-		/**
-		 * Describes a voltage-controlled voltage source.
-		 */
-		VCVS("vcvs", "vcvs"),
-		/**
-		 * Describes a voltage-controlled current source.
-		 */
-		VCCS("vccs", "vccs"),
-		/**
-		 * Describes a transmission line.
-		 */
-		TLINE("transmission-line", "transm");
+		 * The specific transistor type can be determined by examining the value from the NodeInst's "getTechSpecific" method. */
+		TRANS4("4-port-transistor", "trans-4", true, false),
+
+		/** Describes a resistor. */
+		RESIST("resistor", "res", false, false),
+
+		/** Describes a poly resistor. */
+		PRESIST("poly-resistor", "pres", false, false),
+
+		/** Describes a well resistor. */
+		WRESIST("well-resistor", "wres", false, false),
+
+		/** Describes an esd device */
+		ESDDEVICE("esd-device", "esdd", false, false),
+
+		/** Describes a capacitor. */
+		CAPAC("capacitor", "cap", false, false),
+
+		/** Describes an electrolytic capacitor. */
+		ECAPAC("electrolytic-capacitor", "ecap", false, false),
+
+		/** Describes a diode. */
+		DIODE("diode", "diode", false, false),
+
+		/** Describes a zener diode. */
+		DIODEZ("zener-diode", "zdiode", false, false),
+
+		/** Describes an inductor. */
+		INDUCT("inductor", "ind", false, false),
+
+		/** Describes a meter. */
+		METER("meter", "meter", false, false),
+
+		/** Describes a transistor base. */
+		BASE("base", "base", false, false),
+
+		/** Describes a transistor emitter. */
+		EMIT("emitter", "emit", false, false),
+
+		/** Describes a transistor collector. */
+		COLLECT("collector", "coll", false, false),
+
+		/** Describes a buffer.
+		 * It has input on the first port, clocking on the second port, and output on the third port. */
+		BUFFER("buffer", "buf", false, false),
+
+		/** Describes an AND gate.
+		 * It has inputs on the first port and output on the second port. */
+		GATEAND("AND-gate", "and", false, false),
+
+		/** Describes an OR gate.
+		 * It has inputs on the first port and output on the second port. */
+		GATEOR("OR-gate", "or", false, false),
+
+		/** Describes an XOR gate.
+		 * It has inputs on the first port and output on the second port. */
+		GATEXOR("XOR-gate", "xor", false, false),
+
+		/** Describes a RS flip-flop with master-slave triggering. */
+		FLIPFLOPRSMS("flip-flop-RS-MS", "ffRSms", false, true),
+
+		/** Describes a RS flip-flop with positive triggering. */
+		FLIPFLOPRSP("flip-flop-RS-P", "ffRSp", false, true),
+
+		/** Describes a RS flip-flop with negative triggering. */
+		FLIPFLOPRSN("flip-flop-RS-N", "ffRSn", false, true),
+
+		/** Describes a JK flip-flop with master-slave triggering. */
+		FLIPFLOPJKMS("flip-flop-JK-MS", "ffJKms", false, true),
+
+		/** Describes a JK flip-flop with positive triggering. */
+		FLIPFLOPJKP("flip-flop-JK-P", "ffJKp", false, true),
+
+		/** Describes a JK flip-flop with negative triggering. */
+		FLIPFLOPJKN("flip-flop-JK-N", "ffJKn", false, true),
+
+		/** Describes a D flip-flop with master-slave triggering. */
+		FLIPFLOPDMS("flip-flop-D-MS", "ffDms", false, true),
+
+		/** Describes a D flip-flop with positive triggering. */
+		FLIPFLOPDP("flip-flop-D-P", "ffDp", false, true),
+
+		/** Describes a D flip-flop with negative triggering. */
+		FLIPFLOPDN("flip-flop-D-N", "ffDn", false, true),
+
+		/** Describes a T flip-flop with master-slave triggering. */
+		FLIPFLOPTMS("flip-flop-T-MS", "ffTms", false, true),
+
+		/** Describes a T flip-flop with positive triggering. */
+		FLIPFLOPTP("flip-flop-T-P", "ffTp", false, true),
+
+		/** Describes a T flip-flop with negative triggering. */
+		FLIPFLOPTN("flip-flop-T-N", "ffTn", false, true),
+
+		/** Describes a multiplexor. */
+		MUX("multiplexor", "mux", false, false),
+
+		/** Describes a power connection. */
+		CONPOWER("power", "pwr", false, false),
+
+		/** Describes a ground connection. */
+		CONGROUND("ground", "gnd", false, false),
+
+		/** Describes voltage or current source. */
+		SOURCE("source", "source", false, false),
+
+		/** Describes a substrate contact. */
+		SUBSTRATE("substrate", "substr", false, false),
+
+		/** Describes a well contact. */
+		WELL("well", "well", false, false),
+
+		/** Describes a pure artwork. */
+		ART("artwork", "art", false, false),
+
+		/** Describes an array. */
+		ARRAY("array", "array", false, false),
+
+		/** Describes an alignment object. */
+		ALIGN("align", "align", false, false),
+
+		/** Describes a current-controlled voltage source. */
+		CCVS("ccvs", "ccvs", false, false),
+
+		/** Describes a current-controlled current source. */
+		CCCS("cccs", "cccs", false, false),
+
+		/** Describes a voltage-controlled voltage source. */
+		VCVS("vcvs", "vcvs", false, false),
+
+		/** Describes a voltage-controlled current source. */
+		VCCS("vccs", "vccs", false, false),
+
+		/** Describes a transmission line. */
+		TLINE("transmission-line", "transm", false, false);
 
 		private final String name;
 		private final String shortName;
 		private final Name basename;
+		private final boolean isTransistor;
+		private final boolean isFlipFlop;
 
-		private Function(String name, String shortName)
+		private Function(String name, String shortName, boolean isTransistor, boolean isFlipFlop)
 		{
 			this.name = name;
 			this.shortName = shortName;
 			this.basename = Name.findName(TextUtils.canonicString(shortName)+"@0").getBasename();
+			this.isTransistor = isTransistor;
+			this.isFlipFlop = isFlipFlop;
 		}
 
 		/**
@@ -431,13 +523,13 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
          * Method to tell whether this function describes a capacitor (normal or electrolytic).
          * @return true if this function describes a capacitor (normal or electrolytic).
          */
-        public boolean isCapacitor() {return (this == CAPAC || this == ECAPAC);}
+        public boolean isCapacitor() { return this == CAPAC || this == ECAPAC; }
 
         /**
          * Method to tell whether this function describes a resistor (normal, poly or nwell resistor).
          * @return true if this function describes a resistor (normal, poly or nwell resistor).
          */
-        public boolean isResistor() {return (this == RESIST || this == PRESIST || this == WRESIST);}
+        public boolean isResistor() { return this == RESIST || this == PRESIST || this == WRESIST; }
 
         /**
          * Method to tell whether this function describes an ESD device.
@@ -449,28 +541,106 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 		 * Method to tell whether this function describes a transistor.
 		 * @return true if this function describes a transistor.
 		 */
-		public boolean isTransistor()
+		public boolean isTransistor() { return isTransistor; }
+
+		/**
+		 * Method to tell whether this function describes a field-effect transtor.
+		 * This includes the nMOS, PMOS, and DMOS transistors, as well as the DMES and EMES transistors.
+		 * @return true if this function describes a field-effect transtor.
+		 */
+		public boolean isFET()
 		{
-			if (this == TRANMOS || this == TRAPMOS || this == TRADMOS ||
-				this == TRA4NMOS || this == TRA4PMOS || this == TRA4DMOS ||
-				this == TRANPN || this == TRAPNP || this == TRANJFET || this == TRAPJFET || this == TRAEMES || this == TRADMES ||
-				this == TRA4NPN || this == TRA4PNP || this == TRA4NJFET || this == TRA4PJFET || this == TRA4EMES || this == TRA4DMES ||
-				this == TRANSREF || this == TRANS || this == TRANS4) return true;
+			if (this == PrimitiveNode.Function.TRANMOS  || this == PrimitiveNode.Function.TRA4NMOS ||
+				this == PrimitiveNode.Function.TRAPMOS  || this == PrimitiveNode.Function.TRA4PMOS ||
+				this == PrimitiveNode.Function.TRADMOS  || this == PrimitiveNode.Function.TRA4DMOS ||
+				this == PrimitiveNode.Function.TRAPMOSD || this == PrimitiveNode.Function.TRA4PMOSD ||
+				this == PrimitiveNode.Function.TRANMOSNT || this == PrimitiveNode.Function.TRA4NMOSNT ||
+				this == PrimitiveNode.Function.TRAPMOSNT || this == PrimitiveNode.Function.TRA4PMOSNT ||
+				this == PrimitiveNode.Function.TRANMOSVTL || this == PrimitiveNode.Function.TRA4NMOSVTL ||
+				this == PrimitiveNode.Function.TRAPMOSVTL || this == PrimitiveNode.Function.TRA4PMOSVTL ||
+				this == PrimitiveNode.Function.TRANMOSVTH || this == PrimitiveNode.Function.TRA4NMOSVTH ||
+				this == PrimitiveNode.Function.TRAPMOSVTH || this == PrimitiveNode.Function.TRA4PMOSVTH ||
+				this == PrimitiveNode.Function.TRANMOSHV1 || this == PrimitiveNode.Function.TRA4NMOSHV1 ||
+				this == PrimitiveNode.Function.TRAPMOSHV1 || this == PrimitiveNode.Function.TRA4PMOSHV1 ||
+				this == PrimitiveNode.Function.TRANMOSHV2 || this == PrimitiveNode.Function.TRA4NMOSHV2 ||
+				this == PrimitiveNode.Function.TRAPMOSHV2 || this == PrimitiveNode.Function.TRA4PMOSHV2 ||
+				this == PrimitiveNode.Function.TRANMOSHV3 || this == PrimitiveNode.Function.TRA4NMOSHV3 ||
+				this == PrimitiveNode.Function.TRAPMOSHV3 || this == PrimitiveNode.Function.TRA4PMOSHV3 ||
+				this == PrimitiveNode.Function.TRANMOSNTHV1 || this == PrimitiveNode.Function.TRA4NMOSNTHV1 ||
+				this == PrimitiveNode.Function.TRAPMOSNTHV1 || this == PrimitiveNode.Function.TRA4PMOSNTHV1 ||
+				this == PrimitiveNode.Function.TRANMOSNTHV2 || this == PrimitiveNode.Function.TRA4NMOSNTHV2 ||
+				this == PrimitiveNode.Function.TRAPMOSNTHV2 || this == PrimitiveNode.Function.TRA4PMOSNTHV2 ||
+				this == PrimitiveNode.Function.TRANMOSNTHV3 || this == PrimitiveNode.Function.TRA4NMOSNTHV3 ||
+				this == PrimitiveNode.Function.TRAPMOSNTHV3 || this == PrimitiveNode.Function.TRA4PMOSNTHV3 ||
+				this == PrimitiveNode.Function.TRANJFET || this == PrimitiveNode.Function.TRA4NJFET ||
+				this == PrimitiveNode.Function.TRAPJFET || this == PrimitiveNode.Function.TRA4PJFET ||
+				this == PrimitiveNode.Function.TRADMES  || this == PrimitiveNode.Function.TRA4DMES ||
+				this == PrimitiveNode.Function.TRAEMES  || this == PrimitiveNode.Function.TRA4EMES)
+					return true;
 			return false;
+		}
+
+		/**
+		 * Method to tell whether this function describes an n-Type transtor.
+		 * This includes the MOS transistors, as well as the DMES and EMES transistors.
+		 * @return true if this function describes an n-Type transtor.
+		 */
+		public boolean isNTypeTransistor()
+		{
+			if (this == PrimitiveNode.Function.TRANMOS  || this == PrimitiveNode.Function.TRA4NMOS ||
+				this == PrimitiveNode.Function.TRADMOS  || this == PrimitiveNode.Function.TRA4DMOS ||
+				this == PrimitiveNode.Function.TRANMOSNT || this == PrimitiveNode.Function.TRA4NMOSNT ||
+				this == PrimitiveNode.Function.TRANMOSVTL || this == PrimitiveNode.Function.TRA4NMOSVTL ||
+				this == PrimitiveNode.Function.TRANMOSVTH || this == PrimitiveNode.Function.TRA4NMOSVTH ||
+				this == PrimitiveNode.Function.TRANMOSHV1 || this == PrimitiveNode.Function.TRA4NMOSHV1 ||
+				this == PrimitiveNode.Function.TRANMOSHV2 || this == PrimitiveNode.Function.TRA4NMOSHV2 ||
+				this == PrimitiveNode.Function.TRANMOSHV3 || this == PrimitiveNode.Function.TRA4NMOSHV3 ||
+				this == PrimitiveNode.Function.TRANMOSNTHV1 || this == PrimitiveNode.Function.TRA4NMOSNTHV1 ||
+				this == PrimitiveNode.Function.TRANMOSNTHV2 || this == PrimitiveNode.Function.TRA4NMOSNTHV2 ||
+				this == PrimitiveNode.Function.TRANMOSNTHV3 || this == PrimitiveNode.Function.TRA4NMOSNTHV3 ||
+				this == PrimitiveNode.Function.TRADMES  || this == PrimitiveNode.Function.TRA4DMES ||
+				this == PrimitiveNode.Function.TRAEMES  || this == PrimitiveNode.Function.TRA4EMES)
+					return true;
+			return false;
+		}
+
+		/**
+		 * Method to tell whether this function describes a p-Type transtor.
+		 * @return true if this function describes a p-Type transtor.
+		 */
+		public boolean isPTypeTransistor()
+		{
+			if (this == PrimitiveNode.Function.TRAPMOS  || this == PrimitiveNode.Function.TRA4PMOS ||
+				this == PrimitiveNode.Function.TRAPMOSD || this == PrimitiveNode.Function.TRA4PMOSD ||
+				this == PrimitiveNode.Function.TRAPMOSNT || this == PrimitiveNode.Function.TRA4PMOSNT ||
+				this == PrimitiveNode.Function.TRAPMOSVTL || this == PrimitiveNode.Function.TRA4PMOSVTL ||
+				this == PrimitiveNode.Function.TRAPMOSVTH || this == PrimitiveNode.Function.TRA4PMOSVTH ||
+				this == PrimitiveNode.Function.TRAPMOSHV1 || this == PrimitiveNode.Function.TRA4PMOSHV1 ||
+				this == PrimitiveNode.Function.TRAPMOSHV2 || this == PrimitiveNode.Function.TRA4PMOSHV2 ||
+				this == PrimitiveNode.Function.TRAPMOSHV3 || this == PrimitiveNode.Function.TRA4PMOSHV3 ||
+				this == PrimitiveNode.Function.TRAPMOSNTHV1 || this == PrimitiveNode.Function.TRA4PMOSNTHV1 ||
+				this == PrimitiveNode.Function.TRAPMOSNTHV2 || this == PrimitiveNode.Function.TRA4PMOSNTHV2 ||
+				this == PrimitiveNode.Function.TRAPMOSNTHV3 || this == PrimitiveNode.Function.TRA4PMOSNTHV3)
+					return true;
+			return false;
+		}
+
+		/**
+		 * Method to tell whether this function describes a bipolar transistor.
+		 * This includes NPN and PNP transistors.
+		 * @return true if this function describes a bipolar transtor.
+		 */
+		public boolean isBipolar()
+		{
+			return this==PrimitiveNode.Function.TRANPN || this==PrimitiveNode.Function.TRA4NPN ||
+			this==PrimitiveNode.Function.TRAPNP || this==PrimitiveNode.Function.TRA4PNP;
 		}
 
 		/**
 		 * Method to tell whether this function describes a flip-flop.
 		 * @return true if this function describes a flip-flop.
 		 */
-		public boolean isFlipFlop()
-		{
-			if (this == FLIPFLOPRSMS || this == FLIPFLOPRSP || this == FLIPFLOPRSN ||
-				this == FLIPFLOPJKMS || this == FLIPFLOPJKP || this == FLIPFLOPJKN ||
-				this == FLIPFLOPDMS || this == FLIPFLOPDP || this == FLIPFLOPDN ||
-				this == FLIPFLOPTMS || this == FLIPFLOPTP || this == FLIPFLOPTN) return true;
-			return false;
-		}
+		public boolean isFlipFlop() { return isFlipFlop; }
 
 		/**
 		 * Returns a printable version of this Function.
@@ -808,19 +978,9 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	 */
 	public Function getGroupFunction()
 	{
-		if (function == Function.TRANMOS || function == Function.TRA4NMOS ||
-			function == Function.TRAPMOS || function == Function.TRA4PMOS ||
-			function == Function.TRADMOS || function == Function.TRA4DMOS ||
-			function == Function.TRANPN || function == Function.TRA4NPN ||
-			function == Function.TRAPNP || function == Function.TRA4PNP ||
-			function == Function.TRANJFET || function == Function.TRA4NJFET ||
-			function == Function.TRAPJFET || function == Function.TRA4PJFET ||
-			function == Function.TRADMES || function == Function.TRA4DMES ||
-			function == Function.TRAEMES || function == Function.TRA4EMES ||
-			function == Function.TRANS4)
+		if (function.isTransistor)
 				return Function.TRANS;
-		if (function.isResistor() ||
-			function.isCapacitor() ||
+		if (function.isResistor() || function.isCapacitor() ||
             function == Function.DIODE || function == Function.DIODEZ || function == Function.INDUCT)
 				return Function.INDUCT;
 		if (function == Function.CCVS || function == Function.CCCS ||
@@ -977,17 +1137,6 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
      * @return true if this PrimitiveNode is multicut.
      */
     public boolean isMulticut() { return numMultiCuts == 1; }
-
-//	/**
-//	 * Abstract method to return the default rotation for new instances of this PrimitiveNode.
-//	 * @return the angle, in tenth-degrees to use when creating new NodeInsts of this PrimitiveNode.
-//	 * If the value is 3600 or greater, it means that X should be mirrored.
-//	 */
-//	public int getDefPlacementAngle()
-//	{
-//		int defAngle = User.getNewNodeRotation();
-//		return defAngle;
-//	}
 
 	/**
 	 * Method to return the Pref that describes the defaut width of this PrimitiveNode.
@@ -1868,12 +2017,6 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	    Layer layer = layers[0].getLayer();
 	    return (layer.getFunction().isSubstrate());
 	}
-
-// 	/**
-// 	 * Method to get the index of this PrimitiveNode.
-// 	 * @return the index of this PrimitiveNode.
-// 	 */
-// 	public final int getPrimNodeIndex() { return primNodeIndex; }
 
     /**
      * Method to retrieve index of the node in the given technology

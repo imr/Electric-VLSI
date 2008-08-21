@@ -42,6 +42,7 @@ import com.sun.electric.technology.PrimitiveNode;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 /**
  * This is the netlister for MOSSIM.
@@ -112,7 +113,7 @@ public class MOSSIM extends Topology
 
 		// gather strength information
 		Netlist netList = cni.getNetList();
-		HashMap<Network,String> strengthMap = new HashMap<Network,String>();
+		Map<Network,String> strengthMap = new HashMap<Network,String>();
 		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 		{
 			ArcInst ai = it.next();

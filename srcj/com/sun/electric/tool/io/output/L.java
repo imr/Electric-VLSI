@@ -79,9 +79,7 @@ public class L extends Output
 	/**
 	 * Creates a new instance of the L netlister.
 	 */
-	L()
-	{
-	}
+	L() {}
 
 	/**
 	 * Method to write all cells below a given Cell.

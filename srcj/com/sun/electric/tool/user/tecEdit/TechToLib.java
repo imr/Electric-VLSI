@@ -213,7 +213,7 @@ public class TechToLib
 		gi.generate(fNp);
 
 		// create the layer node names
-		HashMap<Layer,Cell> layerCells = new HashMap<Layer,Cell>();
+		Map<Layer,Cell> layerCells = new HashMap<Layer,Cell>();
 
 		// create the layer nodes
 		System.out.println("Creating the layers...");
@@ -295,7 +295,7 @@ public class TechToLib
 		ArcInfo[] aList = new ArcInfo[arcTotal];
 		String [] arcSequence = new String[arcTotal];
         int arcCount = 0;
-		HashMap<ArcProto,Cell> arcCells = new HashMap<ArcProto,Cell>();
+		Map<ArcProto,Cell> arcCells = new HashMap<ArcProto,Cell>();
 		for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
 		{
 			ArcProto ap = it.next();
@@ -523,7 +523,7 @@ public class TechToLib
 //				}
 
 				// also draw ports
-				HashMap<PrimitivePort,NodeInst> portNodes = new HashMap<PrimitivePort,NodeInst>();
+				Map<PrimitivePort,NodeInst> portNodes = new HashMap<PrimitivePort,NodeInst>();
 				for(Iterator<PortProto> pIt = pnp.getPorts(); pIt.hasNext(); )
 				{
 					PrimitivePort pp = (PrimitivePort)pIt.next();

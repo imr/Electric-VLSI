@@ -442,11 +442,8 @@ public class Spice extends Topology
 			if (fun == PrimitiveNode.Function.TRANPN || fun == PrimitiveNode.Function.TRA4NPN ||
 				fun == PrimitiveNode.Function.TRAPNP || fun == PrimitiveNode.Function.TRA4PNP ||
 				fun == PrimitiveNode.Function.TRANS) bipolarTrans++; else
-			if (fun == PrimitiveNode.Function.TRAEMES || fun == PrimitiveNode.Function.TRA4EMES ||
-				fun == PrimitiveNode.Function.TRADMES || fun == PrimitiveNode.Function.TRA4DMES ||
-				fun == PrimitiveNode.Function.TRADMOS || fun == PrimitiveNode.Function.TRA4DMOS ||
-				fun == PrimitiveNode.Function.TRANMOS || fun == PrimitiveNode.Function.TRA4NMOS) nmosTrans++; else
-			if (fun == PrimitiveNode.Function.TRAPMOS || fun == PrimitiveNode.Function.TRA4PMOS) pmosTrans++;
+			if (fun.isNTypeTransistor()) nmosTrans++; else
+			if (fun.isPTypeTransistor()) pmosTrans++;
 		}
 
 		// accumulate geometry of all arcs
@@ -1575,7 +1572,7 @@ public class Spice extends Topology
      */
     protected Set<Variable.Key> getImportantVars(PrimitiveNode pn)
     {
-        HashSet<Variable.Key> importantVars = new HashSet<Variable.Key>();
+        Set<Variable.Key> importantVars = new HashSet<Variable.Key>();
 
         // look for a SPICE template on the primitive
         String line = pn.getSpiceTemplate();
@@ -1675,7 +1672,7 @@ public class Spice extends Topology
     {
         Variable varTemplate = getEngineTemplate(cell);
         if (varTemplate == null) return null;
-        HashSet<Variable.Key> depends = new HashSet<Variable.Key>();
+        Set<Variable.Key> depends = new HashSet<Variable.Key>();
         findVarsInTemplate(varTemplate, cell, true, depends);
         //depends.add(Simulation.M_FACTOR_KEY);
         return depends;

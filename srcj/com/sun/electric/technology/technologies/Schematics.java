@@ -59,6 +59,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.JPopupMenu;
 
@@ -91,7 +92,7 @@ public class Schematics extends Technology
 	/** Defines a Negative clock Flip-flop. */			private static final int FFCLOCKN = 010;
 
 	/** Defines an nMOS transistor. */					private static final int TRANNMOS =   0;
-	/** Defines a DMOS transistor. */					private static final int TRANDMOS =   1;
+	/** Defines a DMOS transistor. */					private static final int TRANNMOSD =  1;
 	/** Defines a PMOS transistor. */					private static final int TRANPMOS =   2;
 	/** Defines an NPN Junction transistor. */			private static final int TRANNPN =    3;
 	/** Defines a PNP Junction transistor. */			private static final int TRANPNP =    4;
@@ -1444,12 +1445,12 @@ public class Schematics extends Technology
         list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4NPN, 900, false, "NPN 4-port", 4.5));
         list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4PNP, 900, false, "PNP 4-port", 4.5));
         list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4NMOS, 900, false, "nMOS 4-port", 4.5));
-        list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4PMOS, 900, false, "PMOS 4-port", 4.5));
-        list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4DMOS, 900, false, "DMOS 4-port", 4.5));
+        list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4PMOS, 900, false, "pMOS 4-port", 4.5));
+        list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4DMOS, 900, false, "nMOS-D 4-port", 4.5));
         list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4DMES, 900, false, "DMES 4-port", 4.5));
         list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4EMES, 900, false, "EMES 4-port", 4.5));
-        list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4PJFET, 900, false, "PJFET 4-port", 4.5));
-        list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4PJFET, 900, false, "NJFET 4-port", 4.5));
+        list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4PJFET, 900, false, "pJFET 4-port", 4.5));
+        list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4PJFET, 900, false, "nJFET 4-port", 4.5));
         factoryNodeGroups[8][0] = list;
 
         // 3-port transistors
@@ -1457,12 +1458,12 @@ public class Schematics extends Technology
         list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRANPN, 900, false, "NPN", 4.5));
         list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRAPNP, 900, false, "PNP", 4.5));
         list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRANMOS, 900, false, "nMOS", 4.5));
-        list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRAPMOS, 900, false, "PMOS", 4.5));
-        list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRADMOS, 900, false, "DMOS", 4.5));
+        list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRAPMOS, 900, false, "pMOS", 4.5));
+        list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRADMOS,900, false, "nMOS-D", 4.5));
         list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRADMES, 900, false, "DMES", 4.5));
         list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRAEMES, 900, false, "EMES", 4.5));
-        list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRAPJFET, 900, false, "PJFET", 4.5));
-        list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRANJFET, 900, false, "NJFET", 4.5));
+        list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRAPJFET, 900, false, "pJFET", 4.5));
+        list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRANJFET, 900, false, "nJFET", 4.5));
         factoryNodeGroups[9][0] = list;
 
         factoryNodeGroups[10][0] = switchNode;
@@ -1751,7 +1752,7 @@ public class Schematics extends Technology
 			switch (tranBits)
 			{
 				case TRANNMOS:  primLayers = tranLayersN;      break;
-				case TRANDMOS:  primLayers = tranLayersD;      break;
+				case TRANNMOSD: primLayers = tranLayersD;      break;
 				case TRANPMOS:  primLayers = tranLayersP;      break;
 				case TRANNPN:   primLayers = tranLayersNPN;    break;
 				case TRANPNP:   primLayers = tranLayersPNP;    break;
@@ -1822,7 +1823,7 @@ public class Schematics extends Technology
 			switch (tranBits)
 			{
 				case TRANNMOS:  primLayers = tran4LayersN;      break;
-				case TRANDMOS:  primLayers = tran4LayersD;      break;
+				case TRANNMOSD: primLayers = tran4LayersD;      break;
 				case TRANPMOS:  primLayers = tran4LayersP;      break;
 				case TRANNPN:   primLayers = tran4LayersNPN;    break;
 				case TRANPNP:   primLayers = tran4LayersPNP;    break;
@@ -2117,7 +2118,7 @@ public class Schematics extends Technology
 			switch (techBits)
 			{
 				case TRANNMOS:  return PrimitiveNode.Function.TRANMOS;
-				case TRANDMOS:  return PrimitiveNode.Function.TRADMOS;
+				case TRANNMOSD: return PrimitiveNode.Function.TRADMOS;
 				case TRANPMOS:  return PrimitiveNode.Function.TRAPMOS;
 				case TRANNPN:   return PrimitiveNode.Function.TRANPN;
 				case TRANPNP:   return PrimitiveNode.Function.TRAPNP;
@@ -2133,7 +2134,7 @@ public class Schematics extends Technology
 			switch (techBits)
 			{
 				case TRANNMOS:  return PrimitiveNode.Function.TRA4NMOS;
-				case TRANDMOS:  return PrimitiveNode.Function.TRA4DMOS;
+				case TRANNMOSD: return PrimitiveNode.Function.TRA4DMOS;
 				case TRANPMOS:  return PrimitiveNode.Function.TRA4PMOS;
 				case TRANNPN:   return PrimitiveNode.Function.TRA4NPN;
 				case TRANPNP:   return PrimitiveNode.Function.TRA4PNP;
@@ -2188,16 +2189,16 @@ public class Schematics extends Technology
 	public static int getPrimitiveFunctionBits(PrimitiveNode.Function function)
 	{
 		if (function == PrimitiveNode.Function.ECAPAC) return CAPACELEC;
-		if (function == PrimitiveNode.Function.CAPAC) return CAPACNORM;
+		if (function == PrimitiveNode.Function.CAPAC)  return CAPACNORM;
 
         if (function == PrimitiveNode.Function.PRESIST) return RESISTPOLY;
-		if (function == PrimitiveNode.Function.RESIST) return RESISTNORM;
+		if (function == PrimitiveNode.Function.RESIST)  return RESISTNORM;
 
 		if (function == PrimitiveNode.Function.DIODEZ) return DIODEZENER;
-		if (function == PrimitiveNode.Function.DIODE) return DIODENORM;
+		if (function == PrimitiveNode.Function.DIODE)  return DIODENORM;
 
 		if (function == PrimitiveNode.Function.TRANMOS)  return TRANNMOS;
-		if (function == PrimitiveNode.Function.TRADMOS)  return TRANDMOS;
+		if (function == PrimitiveNode.Function.TRADMOS)  return TRANNMOSD;
 		if (function == PrimitiveNode.Function.TRAPMOS)  return TRANPMOS;
 		if (function == PrimitiveNode.Function.TRANPN)   return TRANNPN;
 		if (function == PrimitiveNode.Function.TRAPNP)   return TRANPNP;
@@ -2207,7 +2208,7 @@ public class Schematics extends Technology
 		if (function == PrimitiveNode.Function.TRAEMES)  return TRANEMES;
 
 		if (function == PrimitiveNode.Function.TRA4NMOS)  return TRANNMOS;
-		if (function == PrimitiveNode.Function.TRA4DMOS)  return TRANDMOS;
+		if (function == PrimitiveNode.Function.TRA4DMOS)  return TRANNMOSD;
 		if (function == PrimitiveNode.Function.TRA4PMOS)  return TRANPMOS;
 		if (function == PrimitiveNode.Function.TRA4NPN)   return TRANNPN;
 		if (function == PrimitiveNode.Function.TRA4PNP)   return TRANPNP;
@@ -2444,7 +2445,7 @@ public class Schematics extends Technology
 		if (schemTech != null) return schemTech;
 
 		// look at all circuitry and see which technologies are in use
-		HashMap<Technology,DBMath.MutableInteger> usedTechnologies = new HashMap<Technology,DBMath.MutableInteger>();
+		Map<Technology,DBMath.MutableInteger> usedTechnologies = new HashMap<Technology,DBMath.MutableInteger>();
 		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 			usedTechnologies.put(it.next(), new DBMath.MutableInteger(0));
 		for(Iterator<Library> lIt = Library.getLibraries(); lIt.hasNext(); )
@@ -2516,7 +2517,7 @@ public class Schematics extends Technology
 	 */
 	public static void setNegatingBubbleSize(double s) { cacheBubbleSize.setDouble(s); }
 
-	private static HashMap<PrimitiveNode,Pref> primPrefs = new HashMap<PrimitiveNode,Pref>();
+	private static Map<PrimitiveNode,Pref> primPrefs = new HashMap<PrimitiveNode,Pref>();
 	private static Pref getPrefForPrimitive(PrimitiveNode np)
 	{
 		Pref pref = primPrefs.get(np);

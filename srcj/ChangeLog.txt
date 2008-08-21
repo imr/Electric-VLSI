@@ -4,6 +4,13 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08d: ******************************
 
+IMP: (8/21/08, SMR) Added new transistor node functions:
+     pMOS-D (there was already a "DMOS" but that becomes "nMOS-D")
+     NT (native)
+     VTL/VTH (threshold low/high)
+     HV1/2/3 (high voltage at three levels)
+     NTHV1/2/3 (native high voltage at three levels)
+
 BUG: (8/21/08, SMR) Highlighting a network doesn't identify export text (Bug #1803).
 FIX: In NetworkHighlighter.addNetworkObjects(), show exports properly.
 

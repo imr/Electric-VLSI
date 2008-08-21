@@ -48,6 +48,7 @@ import com.sun.electric.tool.user.User;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -55,7 +56,7 @@ import java.util.Set;
  */
 public class Sim extends Output
 {
-	private HashMap<Integer,String> globalNetNames;
+	private Map<Integer,String> globalNetNames;
 	private int globalNetVDD, globalNetGND, globalNetPhi1H, globalNetPhi1L, globalNetPhi2H, globalNetPhi2L;
 	/** key of Variable holding COSMOS attributes. */	private static final Variable.Key COSMOS_ATTRIBUTE_KEY = Variable.newKey("SIM_cosmos_attribute");
 

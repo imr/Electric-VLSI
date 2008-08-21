@@ -2976,15 +2976,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	public boolean isFET()
 	{
 		PrimitiveNode.Function fun = getFunction();
-		if (fun == PrimitiveNode.Function.TRANMOS  || fun == PrimitiveNode.Function.TRA4NMOS ||
-			fun == PrimitiveNode.Function.TRAPMOS  || fun == PrimitiveNode.Function.TRA4PMOS ||
-			fun == PrimitiveNode.Function.TRADMOS  || fun == PrimitiveNode.Function.TRA4DMOS ||
-			fun == PrimitiveNode.Function.TRANJFET || fun == PrimitiveNode.Function.TRA4NJFET ||
-			fun == PrimitiveNode.Function.TRAPJFET || fun == PrimitiveNode.Function.TRA4PJFET ||
-			fun == PrimitiveNode.Function.TRADMES  || fun == PrimitiveNode.Function.TRA4DMES ||
-			fun == PrimitiveNode.Function.TRAEMES  || fun == PrimitiveNode.Function.TRA4EMES)
-				return true;
-		return false;
+		return fun.isFET();
 	}
 
 	/**
@@ -2992,10 +2984,10 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 * This includes NPN and PNP transistors.
 	 * @return true if this NodeInst is a bipolar transtor.
 	 */
-	public boolean isBipolar() {
+	public boolean isBipolar()
+	{
 		PrimitiveNode.Function fun = getFunction();
-		return fun==PrimitiveNode.Function.TRANPN || fun==PrimitiveNode.Function.TRA4NPN ||
-		       fun==PrimitiveNode.Function.TRAPNP || fun==PrimitiveNode.Function.TRA4PNP;
+		return fun.isBipolar();
 	}
 
     /**
