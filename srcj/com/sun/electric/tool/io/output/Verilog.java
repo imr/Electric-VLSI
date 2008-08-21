@@ -1847,10 +1847,14 @@ public class Verilog extends Topology
 	 */
 	private String getVerilogName(Cell cell) {
 //		final Verilog v = new Verilog();
-		String safeCellName = getSafeCellName(cell.getName());
+        // this should mirror the code in parameterizedName(), minus the parameter stuff
+        String uniqueCellName = getUniqueCellName(cell);
+        if (uniqueCellName != null) return uniqueCellName;
+        // otherwise, use old code
+        String safeCellName = getSafeCellName(cell.getName());
 		if (!safeCellName.startsWith("_")) safeCellName = "__" + safeCellName;
 		return cell.getLibrary().getName() + safeCellName;
-	}
+    }
 
 	/**
 	 * Find a cell corresponding to the Verilog-style name
