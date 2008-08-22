@@ -4,7 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08d: ******************************
 
-IMP: (8/22/08, DN) Rename Xml807 to XmlParam for less confusing.
+IMP: (8/22/08, DN) Rename technology.xml.Xml807 to technology.xml.XmlParam for less confusing.
+   Save technology.Xml revision released in Version 8.07 as technology.xml.Xml807.
 
 BUG: (8/21/08, JKG) fix bug for Verilog Cells that start with numbers
 
