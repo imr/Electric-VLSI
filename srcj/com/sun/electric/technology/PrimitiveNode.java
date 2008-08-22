@@ -41,7 +41,7 @@ import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.technologies.Generic;
-import com.sun.electric.technology.xml.Xml807;
+import com.sun.electric.technology.xml.XmlParam;
 
 import java.io.IOException;
 import java.io.InvalidObjectException;
@@ -2200,8 +2200,8 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
         return n;
     }
 
-    Xml807.PrimitiveNode makeXml807() {
-        Xml807.PrimitiveNode n = new Xml807.PrimitiveNode();
+    XmlParam.PrimitiveNode makeXmlParam() {
+        XmlParam.PrimitiveNode n = new XmlParam.PrimitiveNode();
         n.name = getName();
         for (Map.Entry<String,PrimitiveNode> e: tech.getOldNodeNames().entrySet()) {
             if (e.getValue() != this) continue;
@@ -2273,25 +2273,25 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
         for (Technology.NodeLayer nld: electricalNodeLayers) {
             int j = nodeLayers.indexOf(nld);
             if (j < 0) {
-                n.nodeLayers.add(nld.makeXml807(isSerp, minFullSize, false, true));
+                n.nodeLayers.add(nld.makeXmlParam(isSerp, minFullSize, false, true));
                 continue;
             }
             while (m < j)
-                n.nodeLayers.add(nodeLayers.get(m++).makeXml807(isSerp, minFullSize, true, false));
-            n.nodeLayers.add(nodeLayers.get(m++).makeXml807(isSerp, minFullSize, true, true));
+                n.nodeLayers.add(nodeLayers.get(m++).makeXmlParam(isSerp, minFullSize, true, false));
+            n.nodeLayers.add(nodeLayers.get(m++).makeXmlParam(isSerp, minFullSize, true, true));
         }
         while (m < nodeLayers.size())
-            n.nodeLayers.add(nodeLayers.get(m++).makeXml807(isSerp, minFullSize, true, false));
+            n.nodeLayers.add(nodeLayers.get(m++).makeXmlParam(isSerp, minFullSize, true, false));
 
         for (Iterator<PrimitivePort> pit = getPrimitivePorts(); pit.hasNext(); ) {
             PrimitivePort pp = pit.next();
-            n.ports.add(pp.makeXml807(minFullSize));
+            n.ports.add(pp.makeXmlParam(minFullSize));
         }
         n.specialType = getSpecialType();
         if (getSpecialValues() != null)
             n.specialValues = getSpecialValues().clone();
         if (nodeSizeRule != null) {
-            n.nodeSizeRule = new Xml807.NodeSizeRule();
+            n.nodeSizeRule = new XmlParam.NodeSizeRule();
             n.nodeSizeRule.width = nodeSizeRule.getWidth();
             n.nodeSizeRule.height = nodeSizeRule.getHeight();
             n.nodeSizeRule.rule = nodeSizeRule.getRuleName();

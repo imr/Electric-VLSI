@@ -36,7 +36,7 @@ import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.technologies.Generic;
 
-import com.sun.electric.technology.xml.Xml807;
+import com.sun.electric.technology.xml.XmlParam;
 import java.awt.Color;
 import java.io.IOException;
 import java.io.InvalidObjectException;
@@ -479,8 +479,8 @@ public class PrimitivePort implements PortProto, Comparable<PrimitivePort>, Seri
         return ppd;
     }
 
-    Xml807.PrimitivePort makeXml807(EPoint minFullSize) {
-        Xml807.PrimitivePort ppd = new Xml807.PrimitivePort();
+    XmlParam.PrimitivePort makeXmlParam(EPoint minFullSize) {
+        XmlParam.PrimitivePort ppd = new XmlParam.PrimitivePort();
         ppd.name = getName();
         ppd.portAngle = getAngle();
         ppd.portRange = getAngleRange();

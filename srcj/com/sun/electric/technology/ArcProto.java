@@ -30,7 +30,7 @@ import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.id.ArcProtoId;
 import com.sun.electric.database.text.Pref;
-import com.sun.electric.technology.xml.Xml807;
+import com.sun.electric.technology.xml.XmlParam;
 import com.sun.electric.tool.erc.ERC;
 import com.sun.electric.tool.user.User;
 
@@ -1231,6 +1231,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 * Returns a printable version of this ArcProto.
 	 * @return a printable version of this ArcProto.
 	 */
+    @Override
 	public String toString()
 	{
 		return "arc " + describe();
@@ -1302,8 +1303,8 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
         return a;
     }
 
-    Xml807.ArcProto makeXml807() {
-        Xml807.ArcProto a = new Xml807.ArcProto();
+    XmlParam.ArcProto makeXmlParam() {
+        XmlParam.ArcProto a = new XmlParam.ArcProto();
         a.name = getName();
         for (Map.Entry<String,ArcProto> e: tech.getOldArcNames().entrySet()) {
             if (e.getValue() != this) continue;
@@ -1323,9 +1324,9 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
         a.angleIncrement = getAngleIncrement();
         a.antennaRatio = ERC.getERCTool().getAntennaRatio(this);
         for (Technology.ArcLayer arcLayer: layers)
-            a.arcLayers.add(arcLayer.makeXml807());
+            a.arcLayers.add(arcLayer.makeXmlParam());
         if (arcPin != null) {
-            a.arcPin = new Xml807.ArcPin();
+            a.arcPin = new XmlParam.ArcPin();
             a.arcPin.name = arcPin.getName();
             PrimitivePort port = arcPin.getPort(0);
             a.arcPin.portName = port.getName();

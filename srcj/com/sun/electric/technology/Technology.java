@@ -63,7 +63,7 @@ import com.sun.electric.technology.technologies.FPGA;
 import com.sun.electric.technology.technologies.GEM;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
-import com.sun.electric.technology.xml.Xml807;
+import com.sun.electric.technology.xml.XmlParam;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.erc.ERC;
 import com.sun.electric.tool.user.ActivityLogger;
@@ -331,8 +331,8 @@ public class Technology implements Comparable<Technology>, Serializable
             return al;
         }
 
-        Xml807.ArcLayer makeXml807() {
-            Xml807.ArcLayer al = new Xml807.ArcLayer();
+        XmlParam.ArcLayer makeXmlParam() {
+            XmlParam.ArcLayer al = new XmlParam.ArcLayer();
             al.layer = layer.getName();
             al.style = style;
             al.extend.assign(xmlExtend);
@@ -846,8 +846,8 @@ public class Technology implements Comparable<Technology>, Serializable
             return nld;
         }
 
-        Xml807.NodeLayer makeXml807(boolean isSerp, EPoint correction, boolean inLayers, boolean inElectricalLayers) {
-            Xml807.NodeLayer nld = new Xml807.NodeLayer();
+        XmlParam.NodeLayer makeXmlParam(boolean isSerp, EPoint correction, boolean inLayers, boolean inElectricalLayers) {
+            XmlParam.NodeLayer nld = new XmlParam.NodeLayer();
             nld.layer = getLayer().getNonPseudoLayer().getName();
             nld.style = getStyle();
             nld.portNum = getPortNum();
@@ -2203,8 +2203,8 @@ public class Technology implements Comparable<Technology>, Serializable
     /**
      * Create Xml structure of this Technology
      */
-    public Xml807.Technology makeXml807() {
-        Xml807.Technology t = new Xml807.Technology();
+    public XmlParam.Technology makeXmlParam() {
+        XmlParam.Technology t = new XmlParam.Technology();
         t.techName = getTechName();
         if (getClass() != Technology.class)
             t.className = getClass().getName();
@@ -2218,7 +2218,7 @@ public class Technology implements Comparable<Technology>, Serializable
         t.minResistance = getMinResistanceSetting().getDoubleFactoryValue();
         t.minCapacitance = getMinCapacitanceSetting().getDoubleFactoryValue();
 
-        Xml807.DisplayStyle displayStyle = new Xml807.DisplayStyle();
+        XmlParam.DisplayStyle displayStyle = new XmlParam.DisplayStyle();
         displayStyle.name = "Electric";
         t.displayStyles.add(displayStyle);
         Color[] colorMap = getFactoryColorMap();
@@ -2230,12 +2230,12 @@ public class Technology implements Comparable<Technology>, Serializable
         for (Iterator<Layer> it = getLayers(); it.hasNext(); ) {
             Layer layer = it.next();
             assert !layer.isPseudoLayer();
-            layer.makeXml807(t, displayStyle);
+            layer.makeXmlParam(t, displayStyle);
         }
         HashSet<PrimitiveNode> arcPins = new HashSet<PrimitiveNode>();
         for (Iterator<ArcProto> it = getArcs(); it.hasNext(); ) {
             ArcProto ap = it.next();
-            t.arcs.add(ap.makeXml807());
+            t.arcs.add(ap.makeXmlParam());
             if (ap.arcPin != null)
                 arcPins.add(ap.arcPin);
         }
@@ -2243,7 +2243,7 @@ public class Technology implements Comparable<Technology>, Serializable
             PrimitiveNode pnp = it.next();
             if (pnp.getFunction() == PrimitiveNode.Function.NODE) continue;
             if (arcPins.contains(pnp)) continue;
-            t.nodes.add(pnp.makeXml807());
+            t.nodes.add(pnp.makeXmlParam());
         }
 
         addSpiceHeader(t, 1, getSpiceHeaderLevel1());
@@ -2256,7 +2256,7 @@ public class Technology implements Comparable<Technology>, Serializable
         for (Object[] row: origPalette) {
             assert row.length == numCols;
         }
-        t.menuPalette = new Xml807.MenuPalette();
+        t.menuPalette = new XmlParam.MenuPalette();
         t.menuPalette.numColumns = numCols;
         for (int row = 0; row < numRows; row++) {
             for (int col = 0; col < numCols; col++) {
@@ -2277,7 +2277,7 @@ public class Technology implements Comparable<Technology>, Serializable
 
         for (Iterator<Foundry> it = getFoundries(); it.hasNext(); ) {
             Foundry foundry = it.next();
-            Xml807.Foundry f = new Xml807.Foundry();
+            XmlParam.Foundry f = new XmlParam.Foundry();
             f.name = foundry.toString();
             Map<Layer,String> gdsMap = foundry.getGDSLayers();
             for (Map.Entry<Layer,String> e: gdsMap.entrySet()) {
@@ -2293,37 +2293,37 @@ public class Technology implements Comparable<Technology>, Serializable
         return t;
     }
 
-    protected void makeRuleSets(Xml807.Technology t) {
-        Xml807.RuleSet common = t.newRuleSet("common");
+    protected void makeRuleSets(XmlParam.Technology t) {
+        XmlParam.RuleSet common = t.newRuleSet("common");
         make3d(t, common);
     }
 
-    protected void make3d(Xml807.Technology t, Xml807.RuleSet ruleSet) {
-        Map<Xml807.Layer,Xml807.Distance> thick3d = ruleSet.newLayerRule("thick3d");
-        Map<Xml807.Layer,Xml807.Distance> height3d = ruleSet.newLayerRule("height3d");
+    protected void make3d(XmlParam.Technology t, XmlParam.RuleSet ruleSet) {
+        Map<XmlParam.Layer,XmlParam.Distance> thick3d = ruleSet.newLayerRule("thick3d");
+        Map<XmlParam.Layer,XmlParam.Distance> height3d = ruleSet.newLayerRule("height3d");
         for (Iterator<Layer> it = getLayers(); it.hasNext(); ) {
             Layer layer = it.next();
             assert !layer.isPseudoLayer();
-            layer.makeXml807(t, thick3d, height3d);
+            layer.makeXmlParam(t, thick3d, height3d);
         }
     }
 
-    private static void addSpiceHeader(Xml807.Technology t, int level, String[] spiceLines) {
+    private static void addSpiceHeader(XmlParam.Technology t, int level, String[] spiceLines) {
         if (spiceLines == null) return;
-        Xml807.SpiceHeader spiceHeader = new Xml807.SpiceHeader();
+        XmlParam.SpiceHeader spiceHeader = new XmlParam.SpiceHeader();
         spiceHeader.level = level;
         for (String spiceLine: spiceLines)
             spiceHeader.spiceLines.add(spiceLine);
         t.spiceHeaders.add(spiceHeader);
     }
 
-    private static Object makeMenuEntry(Xml807.Technology t, Object entry) {
+    private static Object makeMenuEntry(XmlParam.Technology t, Object entry) {
         if (entry instanceof ArcProto)
             return t.findArc(((ArcProto)entry).getName());
         if (entry instanceof PrimitiveNode) {
             PrimitiveNode pn = (PrimitiveNode)entry;
             if (pn.getFunction() == PrimitiveNode.Function.PIN) {
-                Xml807.MenuNodeInst n = new Xml807.MenuNodeInst();
+                XmlParam.MenuNodeInst n = new XmlParam.MenuNodeInst();
                 n.protoName = pn.getName();
                 n.function = PrimitiveNode.Function.PIN;
                 return n;
@@ -2332,7 +2332,7 @@ public class Technology implements Comparable<Technology>, Serializable
         }
         if (entry instanceof NodeInst) {
             NodeInst ni = (NodeInst)entry;
-            Xml807.MenuNodeInst n = new Xml807.MenuNodeInst();
+            XmlParam.MenuNodeInst n = new XmlParam.MenuNodeInst();
             n.protoName = ni.getProto().getName();
             n.function = ni.getFunction();
             n.rotation = ni.getOrient().getAngle();

@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: Xml807.java
+ * File: XmlParam.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -68,7 +68,7 @@ import org.xml.sax.helpers.DefaultHandler;
 /**
  *
  */
-public class Xml807 {
+public class XmlParam {
 
     public static class Technology implements Serializable {
         public String techName;
@@ -456,7 +456,7 @@ public class Xml807 {
         public final List<DRCTemplate> rules = new ArrayList<DRCTemplate>();
     }
 
-    private Xml807() {}
+    private XmlParam() {}
 
     private static enum XmlKeyword {
         technology,
@@ -586,13 +586,13 @@ public class Xml807 {
     private static synchronized void loadTechnologySchema() throws SAXException {
         if (schema != null) return;
         SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-        URL technologySchemaUrl = Technology.class.getResource("xml/Technology807.xsd");
+        URL technologySchemaUrl = Technology.class.getResource("xml/TechnologyParam.xsd");
         if (technologySchemaUrl != null)
             schema = schemaFactory.newSchema(technologySchemaUrl);
         else
         {
-            System.err.println("Schema file Technology807.xsd, working without XML schema");
-            System.out.println("Schema file Technology807.xsd, working without XML schema");
+            System.err.println("Schema file TechnologyParam.xsd, working without XML schema");
+            System.out.println("Schema file TechnologyParam.xsd, working without XML schema");
         }
     }
 
@@ -1832,7 +1832,7 @@ public class Xml807 {
             b(XmlKeyword.technology); a("name", t.techName); a("class", t.className); l();
             a("xmlns", "http://electric.sun.com/Technology"); l();
             a("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance"); l();
-            a("xsi:schemaLocation", "http://electric.sun.com/Technology ../../technology/xml/Technology807.xsd"); cl();
+            a("xsi:schemaLocation", "http://electric.sun.com/Technology ../../technology/xml/TechnologyParam.xsd"); cl();
             l();
 
             bcpel(XmlKeyword.shortName, t.shortTechName);

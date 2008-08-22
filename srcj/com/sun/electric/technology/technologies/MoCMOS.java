@@ -48,7 +48,7 @@ import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.XMLRules;
 import com.sun.electric.technology.Xml;
-import com.sun.electric.technology.xml.Xml807;
+import com.sun.electric.technology.xml.XmlParam;
 import com.sun.electric.tool.user.User;
 
 import java.awt.Color;
@@ -1987,9 +1987,9 @@ public class MoCMOS extends Technology
     }
 
     @Override
-    protected void makeRuleSets(Xml807.Technology t) {
-        Xml807.RuleSet common = t.newRuleSet("common");
-        Map<Xml807.Layer,Xml807.Distance> layerWidth = common.newLayerRule("width");
+    protected void makeRuleSets(XmlParam.Technology t) {
+        XmlParam.RuleSet common = t.newRuleSet("common");
+        Map<XmlParam.Layer,XmlParam.Distance> layerWidth = common.newLayerRule("width");
         addRule(t, layerWidth, wellLayers[P_TYPE],   "1.1");
         addRule(t, layerWidth, wellLayers[N_TYPE],   "1.1");
         addRule(t, layerWidth, activeLayers[P_TYPE], "2.1");
@@ -2024,9 +2024,9 @@ public class MoCMOS extends Technology
         make3d(t, common);
     }
 
-    private void addRule(Xml807.Technology t, Map<Xml807.Layer,Xml807.Distance> layerRule, Layer layer, String ... mocmosRules) {
-        Xml807.Layer l = t.findLayer(layer.getName());
-        Xml807.Distance dist = new Xml807.Distance();
+    private void addRule(XmlParam.Technology t, Map<XmlParam.Layer,XmlParam.Distance> layerRule, Layer layer, String ... mocmosRules) {
+        XmlParam.Layer l = t.findLayer(layer.getName());
+        XmlParam.Distance dist = new XmlParam.Distance();
         dist.addRule(mocmosRules[0], 1);
         for (int i = 1; i < mocmosRules.length; i++)
             dist.addRule(mocmosRules[i], 2);

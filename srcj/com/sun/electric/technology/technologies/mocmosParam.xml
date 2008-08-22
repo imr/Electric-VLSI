@@ -30,7 +30,7 @@
 <technology name="mocmos" class="com.sun.electric.technology.technologies.MoCMOS"
      xmlns="http://electric.sun.com/Technology"
      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-     xsi:schemaLocation="http://electric.sun.com/Technology ../../technology/xml/Technology807.xsd">
+     xsi:schemaLocation="http://electric.sun.com/Technology ../../technology/xml/TechnologyParam.xsd">
 
     <shortName>MOSIS CMOS</shortName>
     <description>MOSIS CMOS (2-6 metals [now 6], 1-2 polys [now 2], flex rules [now submicron])</description>

@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08d: ******************************
 
+IMP: (8/22/08, DN) Rename Xml807 to XmlParam for less confusing.
+
 BUG: (8/21/08, JKG) fix bug for Verilog Cells that start with numbers
 
 IMP/MAN: (8/21/08, GVG) Get number of arcs in a cell (Bug #1804)

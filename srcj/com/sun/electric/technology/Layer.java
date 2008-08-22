@@ -29,7 +29,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Setting;
-import com.sun.electric.technology.xml.Xml807;
+import com.sun.electric.technology.xml.XmlParam;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.projectSettings.ProjSettingsNode;
 import com.sun.electric.tool.Job;
@@ -1461,11 +1461,11 @@ public class Layer
     }
 
     /**
-     * Method to create XML version 8.07 of a Layer.
+     * Method to create parameterized XML.
      * @return
      */
-    Xml807.Layer makeXml807(Xml807.Technology t, Xml807.DisplayStyle displayStyle) {
-        Xml807.Layer l = t.newLayer(getName());
+    XmlParam.Layer makeXmlParam(XmlParam.Technology t, XmlParam.DisplayStyle displayStyle) {
+        XmlParam.Layer l = t.newLayer(getName());
         l.function = getFunction();
         l.extraFunction = getFunctionExtras();
         l.cif = (String)getCIFLayerSetting().getFactoryValue();
@@ -1476,7 +1476,7 @@ public class Layer
 //            if (layer.getPseudoLayer() != null)
 //                l.pseudoLayer = layer.getPseudoLayer().getName();
         if (pureLayerNode != null) {
-            l.pureLayerNode = new Xml807.PureLayerNode();
+            l.pureLayerNode = new XmlParam.PureLayerNode();
             l.pureLayerNode.name = pureLayerNode.getName();
             for (Map.Entry<String,PrimitiveNode> e: tech.getOldNodeNames().entrySet()) {
                 if (e.getValue() != pureLayerNode) continue;
@@ -1491,7 +1491,7 @@ public class Layer
             }
         }
 
-        Xml807.LayerDisplayStyle lds = displayStyle.newLayer(l);
+        XmlParam.LayerDisplayStyle lds = displayStyle.newLayer(l);
         lds.desc = getGraphics();
         if (!getTransparencyMode().equals(DEFAULT_MODE) || getTransparencyFactor() != DEFAULT_FACTOR) {
             lds.mode3D = getTransparencyMode();
@@ -1501,11 +1501,11 @@ public class Layer
         return l;
     }
 
-    void makeXml807(Xml807.Technology t,
-            Map<Xml807.Layer,Xml807.Distance> thick3D, Map<Xml807.Layer,Xml807.Distance> height3D) {
-        Xml807.Layer l = t.findLayer(getName());
-        Xml807.Distance dist;
-        dist = new Xml807.Distance(); dist.addLambda(getThickness()); thick3D.put(l, dist);
-        dist = new Xml807.Distance(); dist.addLambda(getDistance()); height3D.put(l, dist);
+    void makeXmlParam(XmlParam.Technology t,
+            Map<XmlParam.Layer,XmlParam.Distance> thick3D, Map<XmlParam.Layer,XmlParam.Distance> height3D) {
+        XmlParam.Layer l = t.findLayer(getName());
+        XmlParam.Distance dist;
+        dist = new XmlParam.Distance(); dist.addLambda(getThickness()); thick3D.put(l, dist);
+        dist = new XmlParam.Distance(); dist.addLambda(getDistance()); height3D.put(l, dist);
     }
 }
