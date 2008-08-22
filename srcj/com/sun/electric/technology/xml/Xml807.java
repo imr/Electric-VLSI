@@ -21,11 +21,15 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.technology;
+package com.sun.electric.technology.xml;
 
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.technology.DRCTemplate;
+import com.sun.electric.technology.EdgeH;
+import com.sun.electric.technology.EdgeV;
+import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology.TechPoint;
 import com.sun.electric.tool.Job;
 
@@ -63,7 +67,7 @@ import org.xml.sax.helpers.DefaultHandler;
 /**
  *
  */
-public class Xml {
+public class Xml807 {
 
     public static class Technology implements Serializable {
         public String techName;
@@ -258,7 +262,7 @@ public class Xml {
         public String writeXml() {
             StringWriter sw = new StringWriter();
             PrintWriter out = new PrintWriter(sw);
-            Xml.OneLineWriter writer = new Xml.OneLineWriter(out);
+            Xml807.OneLineWriter writer = new Xml807.OneLineWriter(out);
             writer.writeMenuPaletteXml(this);
             out.close();
             return sw.getBuffer().toString();
@@ -288,7 +292,7 @@ public class Xml {
         public final List<DRCTemplate> rules = new ArrayList<DRCTemplate>();
     }
 
-    private Xml() {}
+    private Xml807() {}
 
     private static enum XmlKeyword {
         technology,
@@ -491,7 +495,7 @@ public class Xml {
         private static boolean DEBUG = false;
         private Locator locator;
 
-        private Xml.Technology tech = new Xml.Technology();
+        private Xml807.Technology tech = new Xml807.Technology();
         private int curTransparent = 0;
         private int curR;
         private int curG;
@@ -1548,7 +1552,7 @@ public class Xml {
             this.out = out;
         }
 
-        private void writeTechnology(Xml.Technology t) {
+        private void writeTechnology(Xml807.Technology t) {
             Calendar cal = Calendar.getInstance();
             cal.setTime(new Date());
 
@@ -1618,34 +1622,34 @@ public class Xml {
             }
 
             comment("**************************************** LAYERS ****************************************");
-            for (Xml.Layer li: t.layers) {
+            for (Xml807.Layer li: t.layers) {
                 writeXml(li);
             }
 
             comment("******************** ARCS ********************");
-            for (Xml.ArcProto ai: t.arcs) {
+            for (Xml807.ArcProto ai: t.arcs) {
                 writeXml(ai);
                 l();
             }
 
             comment("******************** NODES ********************");
-            for (Xml.PrimitiveNode ni: t.nodes) {
+            for (Xml807.PrimitiveNode ni: t.nodes) {
                 writeXml(ni);
                 l();
             }
 
-            for (Xml.SpiceHeader spiceHeader: t.spiceHeaders)
+            for (Xml807.SpiceHeader spiceHeader: t.spiceHeaders)
                 writeSpiceHeaderXml(spiceHeader);
 
             writeMenuPaletteXml(t.menuPalette);
 
-            for (Xml.Foundry foundry: t.foundries)
+            for (Xml807.Foundry foundry: t.foundries)
                 writeFoundryXml(foundry);
 
             el(XmlKeyword.technology);
         }
 
-        private void writeXml(Xml.Layer li) {
+        private void writeXml(Xml807.Layer li) {
             EGraphics desc = li.desc;
             String funString = null;
             int funExtra = li.extraFunction;
@@ -1721,7 +1725,7 @@ public class Xml {
             l();
         }
 
-        private void writeXml(Xml.ArcProto ai) {
+        private void writeXml(Xml807.ArcProto ai) {
             b(XmlKeyword.arcProto); a("name", ai.name); a("fun", ai.function.getConstantName()); cl();
             bcpel(XmlKeyword.oldName, ai.oldName);
 
@@ -1751,7 +1755,7 @@ public class Xml {
                 el(XmlKeyword.defaultWidth);
             }
 
-            for (Xml.ArcLayer al: ai.arcLayers) {
+            for (Xml807.ArcLayer al: ai.arcLayers) {
                 String style = al.style == Poly.Type.FILLED ? "FILLED" : "CLOSED";
                 b(XmlKeyword.arcLayer); a("layer", al.layer); a("style", style);
                 double extend = al.extend.value;
@@ -1766,7 +1770,7 @@ public class Xml {
             el(XmlKeyword.arcProto);
         }
 
-        private void writeXml(Xml.PrimitiveNode ni) {
+        private void writeXml(Xml807.PrimitiveNode ni) {
             b(XmlKeyword.primitiveNode); a("name", ni.name); a("fun", ni.function.name()); cl();
             bcpel(XmlKeyword.oldName, ni.oldName);
 
@@ -1825,7 +1829,7 @@ public class Xml {
             }
 
             for(int j=0; j<ni.nodeLayers.size(); j++) {
-                Xml.NodeLayer nl = ni.nodeLayers.get(j);
+                Xml807.NodeLayer nl = ni.nodeLayers.get(j);
                 b(XmlKeyword.nodeLayer); a("layer", nl.layer); a("style", nl.style.name());
                 if (nl.portNum != 0) a("portNum", Integer.valueOf(nl.portNum));
                 if (!(nl.inLayers && nl.inElectricalLayers))
@@ -1864,7 +1868,7 @@ public class Xml {
                 el(XmlKeyword.nodeLayer);
             }
             for (int j = 0; j < ni.ports.size(); j++) {
-                Xml.PrimitivePort pd = ni.ports.get(j);
+                Xml807.PrimitivePort pd = ni.ports.get(j);
                 b(XmlKeyword.primitivePort); a("name", pd.name); cl();
                 b(XmlKeyword.portAngle); a("primary", pd.portAngle); a("range", pd.portRange); el();
                 bcpel(XmlKeyword.portTopology, pd.portTopology);
@@ -1909,7 +1913,7 @@ public class Xml {
             if (hy.k != 1) a("khy", hy.k);
         }
 
-        private void writeSpiceHeaderXml(Xml.SpiceHeader spiceHeader) {
+        private void writeSpiceHeaderXml(Xml807.SpiceHeader spiceHeader) {
             b(XmlKeyword.spiceHeader); a("level", spiceHeader.level); cl();
             for (String line: spiceHeader.spiceLines) {
                 b(XmlKeyword.spiceLine); a("line", line); el();
@@ -1918,7 +1922,7 @@ public class Xml {
             l();
         }
 
-        public void writeMenuPaletteXml(Xml.MenuPalette menuPalette) {
+        public void writeMenuPaletteXml(Xml807.MenuPalette menuPalette) {
             if (menuPalette == null) return;
             b(XmlKeyword.menuPalette); a("numColumns", menuPalette.numColumns); cl();
             for (int i = 0; i < menuPalette.menuBoxes.size(); i++) {
@@ -1939,12 +1943,12 @@ public class Xml {
             }
             cl();
             for (Object o: list) {
-                if (o instanceof Xml.ArcProto) {
-                    bcpel(XmlKeyword.menuArc, ((Xml.ArcProto)o).name);
-                } else if (o instanceof Xml.PrimitiveNode) {
-                    bcpel(XmlKeyword.menuNode, ((Xml.PrimitiveNode)o).name);
-                } else if (o instanceof Xml.MenuNodeInst) {
-                    Xml.MenuNodeInst ni = (Xml.MenuNodeInst)o;
+                if (o instanceof Xml807.ArcProto) {
+                    bcpel(XmlKeyword.menuArc, ((Xml807.ArcProto)o).name);
+                } else if (o instanceof Xml807.PrimitiveNode) {
+                    bcpel(XmlKeyword.menuNode, ((Xml807.PrimitiveNode)o).name);
+                } else if (o instanceof Xml807.MenuNodeInst) {
+                    Xml807.MenuNodeInst ni = (Xml807.MenuNodeInst)o;
                     b(XmlKeyword.menuNodeInst); a("protoName", ni.protoName); a("function", ni.function.name());
                     if (ni.rotation != 0) a("rotation", ni.rotation);
                     if (ni.text == null) {
@@ -1962,7 +1966,7 @@ public class Xml {
             el(XmlKeyword.menuBox);
         }
 
-        private void writeFoundryXml(Xml.Foundry foundry) {
+        private void writeFoundryXml(Xml807.Foundry foundry) {
             b(XmlKeyword.Foundry); a("name", foundry.name); cl();
             l();
             for (Map.Entry<String,String> e: foundry.layerGds.entrySet()) {
