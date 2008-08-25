@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08d: ******************************
 
+IMP: (8/25/08, SMR) Added one more new transistor node function:
+     FG (floating gate).
+
 IMP: (8/22/08, DN) Rename technology.xml.Xml807 to technology.xml.XmlParam for less confusing.
    Save technology.Xml revision released in Version 8.07 as technology.xml.Xml807.
 

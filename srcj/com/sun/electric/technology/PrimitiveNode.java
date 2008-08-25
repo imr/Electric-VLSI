@@ -111,6 +111,14 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
 		TRAPMOSNT("native-pMOS-transistor", "pmos-nt", true, false),
 
+		/** Describes an nMOS native transistor.
+		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
+		TRANMOSFG("floating-gate-nMOS-transistor", "nmos-fg", true, false),
+
+		/** Describes a pMOS native transistor.
+		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
+		TRAPMOSFG("floating-gate-pMOS-transistor", "pmos-fg", true, false),
+
 		/** Describes an nMOS low-threshold transistor.
 		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
 		TRANMOSVTL("low-threshold-nMOS-transistor", "nmos-vtl", true, false),

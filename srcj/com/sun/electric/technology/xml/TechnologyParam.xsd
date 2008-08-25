@@ -288,6 +288,8 @@
             <xsd:enumeration value="TRAPMOSD"/>
             <xsd:enumeration value="TRANMOSNT"/>
             <xsd:enumeration value="TRAPMOSNT"/>
+            <xsd:enumeration value="TRANMOSFG"/>
+            <xsd:enumeration value="TRAPMOSFG"/>
             <xsd:enumeration value="TRANMOSVTL"/>
             <xsd:enumeration value="TRAPMOSVTL"/>
             <xsd:enumeration value="TRANMOSVTH"/>
