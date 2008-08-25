@@ -36,6 +36,7 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.hierarchy.Cell.CellGroup;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
@@ -543,6 +544,29 @@ public class EditWindow extends JPanel
 	// ************************************* WHEN DROPPING A CELL NAME FROM THE EXPLORER TREE *************************************
 
 	/**
+	 * Method to figure out which cell in a cell group should be used when dragging the group
+	 * onto this EditWindow.
+	 * @param group the cell group dragged.
+	 * @return the Cell in the group to drag into this EditWindow.
+	 */
+	private Cell whichCellInGroup(CellGroup group)
+	{
+		if (cell == null) return null;
+		for(Iterator<Cell> it = group.getCells(); it.hasNext(); )
+		{
+			Cell c = it.next();
+			if (c.getView() == View.ICON)
+			{
+				if (cell.getView() == View.SCHEMATIC || cell.getView() == View.ICON) return c;
+			} else if (c.getView() != View.SCHEMATIC)
+			{
+				if (cell.getView() != View.SCHEMATIC && cell.getView() != View.ICON) return c;
+			}
+		}
+		return null;
+	}
+
+	/**
 	 * Method to set the highlight to show the outline of a node that will be placed in this EditWindow.
 	 * @param toDraw the object to draw (a NodeInst or a NodeProto).
 	 * @param oldx the X position (on the screen) of the outline.
@@ -558,6 +582,11 @@ public class EditWindow extends JPanel
 		Point2D drawnLoc = screenToDatabase(oldx, oldy);
 		EditWindow.gridAlign(drawnLoc);
 		NodeProto np = null;
+		if (toDraw instanceof CellGroup)
+		{
+			// figure out which cell in the group should be dragged
+			np = whichCellInGroup((CellGroup)toDraw);
+		}
 		if (toDraw instanceof NodeInst)
 		{
 			NodeInst ni = (NodeInst)toDraw;
@@ -805,7 +834,10 @@ public class EditWindow extends JPanel
 			NodeInst ni = null;
 			NodeProto np = null;
 			int defAngle = 0;
-			if (obj instanceof NodeProto)
+			if (obj instanceof CellGroup)
+			{
+				np = wnd.whichCellInGroup((CellGroup)obj);
+			} else if (obj instanceof NodeProto)
 			{
 				np = (NodeProto)obj;
 				if (np instanceof PrimitiveNode)

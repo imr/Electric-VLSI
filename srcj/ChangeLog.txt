@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08d: ******************************
 
+BUG: (8/25/08, SMR) Dragging a cell group from the explorer tree to a window
+     shows no outline (Bug #1809).
+FIX: In EditWindow, when dropping, handle cell groups.
+
 IMP: (8/25/08, SMR) Added one more new transistor node function:
      FG (floating gate).
 
