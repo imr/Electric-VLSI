@@ -292,6 +292,7 @@ public class ToolMenu {
 		// mnemonic keys available: AB  EFGHIJKLMNO QRS U WXYZ
             new EMenu("Simulation (_Verilog)",
 		        new EMenuItem("Write _Verilog Deck...") { public void run() {
+                    Simulation.setVerilogStopAtStandardCells(false);
                     FileMenu.exportCommand(FileType.VERILOG, true); }},
 		        new EMenuItem("Plot Verilog VCD _Dump...") { public void run() {
                     Simulate.plotVerilogResults(); }},
