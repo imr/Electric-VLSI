@@ -1623,9 +1623,9 @@ public final class ExportChanges
 			highlighter.addLine(locLineEnd, portList[index].loc, cell);
 		}
 		highlighter.finished();
-		if (total == 0)
-			System.out.println("No exported ports to show");
-		if (ignored > 0)
+        System.out.println(total + " exported ports to show");
+        
+        if (ignored > 0)
 			System.out.println("Could not display " + ignored + " ports (outside of the window)");
 	}
 
