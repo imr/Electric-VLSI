@@ -215,7 +215,8 @@ public class Verilog extends Topology
 	/** those cells that have modules defined */			private Map<String,String> definedModules = new HashMap<String,String>(); // key: module name, value: source description
 	/** those cells that have primitives defined */			private Map<Cell,VerilogData.VerilogModule> definedPrimitives = new HashMap<Cell,VerilogData.VerilogModule>(); // key: module name, value: VerilogModule
 	/** map of cells that are or contain standard cells */  private SCLibraryGen.StandardCellHierarchy standardCells = new SCLibraryGen.StandardCellHierarchy();
-    
+    /** file we are writing to */                           private String filePath;
+
     public static String getVerilogSafeName(String name, boolean isNode, boolean isBus) {
     	Verilog v = new Verilog();
     	if (isNode) return v.getSafeCellName(name);
@@ -231,7 +232,8 @@ public class Verilog extends Topology
 	public static void writeVerilogFile(Cell cell, VarContext context, String filePath)
 	{
 		Verilog out = new Verilog();
-		if (out.openTextOutputStream(filePath)) return;
+        if (out.openTextOutputStream(filePath)) return;
+        out.filePath = filePath;
 		if (out.writeCell(cell, context)) return;
 		if (out.closeTextOutputStream()) return;
 		System.out.println(filePath + " written");
@@ -292,7 +294,11 @@ public class Verilog extends Topology
 		// If one specified, write it out here and skip both cell and subcells
 		if (CellModelPrefs.verilogModelPrefs.isUseModelFromFile(cell)) {
 			String fileName = CellModelPrefs.verilogModelPrefs.getModelFile(cell);
-			// check that data from file is consistent
+            if (filePath.equals(fileName)) {
+                System.out.println("Error: Use Model From File file path for cell "+cell.describe(false)+" is the same as the file being written, skipping.");
+                return false;
+            }
+            // check that data from file is consistent
 			VerilogReader reader = new VerilogReader();
 			VerilogData data = reader.parseVerilog(fileName, true);
 			if (data == null) {
