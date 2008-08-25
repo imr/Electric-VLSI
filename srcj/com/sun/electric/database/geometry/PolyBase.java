@@ -433,52 +433,52 @@ public class PolyBase implements Shape, PolyNodeMerge
 	 * @param pt the point in question.
 	 * @return true if the point is inside of this Poly.
 	 */
-    private boolean isInsideGenericPolygonOriginal(Point2D pt)
-    {
-        // general polygon containment by summing angles to vertices
-        double ang = 0;
-        Point2D lastPoint = points[points.length-1];
-        //if (pt.equals(lastPoint)) return true;
-        if (DBMath.areEquals(pt, lastPoint))
-        {
-            return true;
-        }
-        Rectangle2D box = getBounds2D();
-
-        // The point is outside the bounding box of the polygon
-        if (!DBMath.pointInsideRect(pt, box))
-            return false;
-
-        int lastp = DBMath.figureAngle(pt, lastPoint);
-        for (Point2D thisPoint : points)
-        {
-            //if (pt.equals(thisPoint)) return true;
-            if (DBMath.areEquals(pt, thisPoint))
-            {
-                return true;
-            }
-            // Checking if point is along polygon edge
-            if (DBMath.isOnLine(thisPoint, lastPoint, pt))
-            {
-                return true;
-            }
-            int thisp = DBMath.figureAngle(pt, thisPoint);
-            int tang = lastp - thisp;
-            if (tang < -1800)
-                tang += 3600;
-            if (tang > 1800)
-                tang -= 3600;
-            ang += tang;
-            lastp = thisp;
-            lastPoint = thisPoint;
-        }
-        ang = Math.abs(ang);
-        //boolean completeCircle = ang == 0 || ang == 3600;
-        boolean oldCalculation = (!(ang <= points.length));
-        return (oldCalculation);
-        //if (Math.abs(ang) <= points.length) return false;
-        //return true;
-    }
+//    private boolean isInsideGenericPolygonOriginal(Point2D pt)
+//    {
+//        // general polygon containment by summing angles to vertices
+//        double ang = 0;
+//        Point2D lastPoint = points[points.length-1];
+//        //if (pt.equals(lastPoint)) return true;
+//        if (DBMath.areEquals(pt, lastPoint))
+//        {
+//            return true;
+//        }
+//        Rectangle2D box = getBounds2D();
+//
+//        // The point is outside the bounding box of the polygon
+//        if (!DBMath.pointInsideRect(pt, box))
+//            return false;
+//
+//        int lastp = DBMath.figureAngle(pt, lastPoint);
+//        for (Point2D thisPoint : points)
+//        {
+//            //if (pt.equals(thisPoint)) return true;
+//            if (DBMath.areEquals(pt, thisPoint))
+//            {
+//                return true;
+//            }
+//            // Checking if point is along polygon edge
+//            if (DBMath.isOnLine(thisPoint, lastPoint, pt))
+//            {
+//                return true;
+//            }
+//            int thisp = DBMath.figureAngle(pt, thisPoint);
+//            int tang = lastp - thisp;
+//            if (tang < -1800)
+//                tang += 3600;
+//            if (tang > 1800)
+//                tang -= 3600;
+//            ang += tang;
+//            lastp = thisp;
+//            lastPoint = thisPoint;
+//        }
+//        ang = Math.abs(ang);
+//        //boolean completeCircle = ang == 0 || ang == 3600;
+//        boolean oldCalculation = (!(ang <= points.length));
+//        return (oldCalculation);
+//        //if (Math.abs(ang) <= points.length) return false;
+//        //return true;
+//    }
 
     public boolean isInside(Point2D pt)
 	{
@@ -631,7 +631,19 @@ public class PolyBase implements Shape, PolyNodeMerge
 		return (false);
 	}
 
-	/**
+    /**
+     * Method to determine if this Poly represents a single-segment line
+     * @return
+     */
+    public boolean isSingleLine()
+    {
+        if (getStyle() != Poly.Type.OPENED) return false;
+        return (points.length == 2); // not a simple segment
+//        return (DBMath.areEquals(points[0].getX(), points[1].getX()) ||
+//        DBMath.areEquals(points[0].getY(), points[1].getY()));
+    }
+
+    /**
 	 * Method to reduce this Poly by the proper amount presuming that it describes a port connected to an arc.
 	 * This Poly is modified in place to reduce its size.
 	 * @param pi the PortInst that describes this Poly.
@@ -644,7 +656,7 @@ public class PolyBase implements Shape, PolyNodeMerge
 	{
 		// look down to the bottom level node/port
 		PortOriginal fp = new PortOriginal(pi);
-		AffineTransform trans = fp.getTransformToTop();
+//		AffineTransform trans = fp.getTransformToTop();
 		NodeInst ni = fp.getBottomNodeInst();
 
 		// do not reduce port if not filled
