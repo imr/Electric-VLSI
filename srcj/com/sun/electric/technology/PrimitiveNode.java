@@ -111,11 +111,11 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
 		TRAPMOSNT("native-pMOS-transistor", "pmos-nt", true, false),
 
-		/** Describes an nMOS native transistor.
+		/** Describes an nMOS floating gate transistor.
 		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
 		TRANMOSFG("floating-gate-nMOS-transistor", "nmos-fg", true, false),
 
-		/** Describes a pMOS native transistor.
+		/** Describes a pMOS floating gate transistor.
 		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
 		TRAPMOSFG("floating-gate-pMOS-transistor", "pmos-fg", true, false),
 
@@ -239,6 +239,14 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 		/** Describes a 4-port pMOS native transistor.
 		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port. */
 		TRA4PMOSNT("4-port-native-pMOS-transistor", "pmos-nt-4", true, false),
+
+		/** Describes a 4-port nMOS floating gate transistor.
+		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
+		TRA4NMOSFG("floating-gate-nMOS-transistor", "nmos-fg", true, false),
+
+		/** Describes a 4-port pMOS floating gate transistor.
+		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
+		TRA4PMOSFG("floating-gate-pMOS-transistor", "pmos-fg", true, false),
 
 		/** Describes a 4-port nMOS low-threshold transistor.
 		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port. */

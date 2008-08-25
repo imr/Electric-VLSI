@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08d: ******************************
 
+IMP/MAN: (8/25/08, SMR) Added new transistor types in the Schematic component
+     menu (Bug #1807).
+
 IMP: (8/25/08, SMR) Made Export menu commands "Summarize Exports",
      "List Exports", and "Follow Export Up Hierarchy" run in separate
      threads (Bug #1807).

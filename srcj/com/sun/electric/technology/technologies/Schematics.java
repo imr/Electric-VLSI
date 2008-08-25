@@ -69,52 +69,73 @@ import javax.swing.JPopupMenu;
  */
 public class Schematics extends Technology
 {
-	/** key of Variable holding global signal name. */	public static final Variable.Key SCHEM_GLOBAL_NAME = Variable.newKey("SCHEM_global_name");
-	/** key of Variable holding resistance. */			public static final Variable.Key SCHEM_RESISTANCE = Variable.newKey("SCHEM_resistance");
-	/** key of Variable holding capacitance. */			public static final Variable.Key SCHEM_CAPACITANCE = Variable.newKey("SCHEM_capacitance");
-	/** key of Variable holding inductance. */			public static final Variable.Key SCHEM_INDUCTANCE = Variable.newKey("SCHEM_inductance");
-	/** key of Variable holding diode area. */			public static final Variable.Key SCHEM_DIODE = Variable.newKey("SCHEM_diode");
-	/** key of Variable holding black-box function. */	public static final Variable.Key SCHEM_FUNCTION = Variable.newKey("SCHEM_function");
-	/** key of Variable holding transistor width. */	public static final Variable.Key ATTR_WIDTH = Variable.newKey("ATTR_width");
-	/** key of Variable holding transistor length. */	public static final Variable.Key ATTR_LENGTH = Variable.newKey("ATTR_length");
-	/** key of Variable holding transistor area. */		public static final Variable.Key ATTR_AREA = Variable.newKey("ATTR_area");
+	/** key of Variable holding global signal name. */		public static final Variable.Key SCHEM_GLOBAL_NAME = Variable.newKey("SCHEM_global_name");
+	/** key of Variable holding resistance. */				public static final Variable.Key SCHEM_RESISTANCE = Variable.newKey("SCHEM_resistance");
+	/** key of Variable holding capacitance. */				public static final Variable.Key SCHEM_CAPACITANCE = Variable.newKey("SCHEM_capacitance");
+	/** key of Variable holding inductance. */				public static final Variable.Key SCHEM_INDUCTANCE = Variable.newKey("SCHEM_inductance");
+	/** key of Variable holding diode area. */				public static final Variable.Key SCHEM_DIODE = Variable.newKey("SCHEM_diode");
+	/** key of Variable holding black-box function. */		public static final Variable.Key SCHEM_FUNCTION = Variable.newKey("SCHEM_function");
+	/** key of Variable holding transistor width. */		public static final Variable.Key ATTR_WIDTH = Variable.newKey("ATTR_width");
+	/** key of Variable holding transistor length. */		public static final Variable.Key ATTR_LENGTH = Variable.newKey("ATTR_length");
+	/** key of Variable holding transistor area. */			public static final Variable.Key ATTR_AREA = Variable.newKey("ATTR_area");
 
-	/** the Schematics Technology object. */			public static Schematics tech() { return sysSchematics; }
+	/** the Schematics Technology object. */				public static Schematics tech() { return sysSchematics; }
 
-//	/** Defines the Flip-flop type. */					private static final int FFTYPE =    07;
-	/** Defines an RS Flip-flop. */						private static final int FFTYPERS =   0;
-	/** Defines a JK Flip-flop. */						private static final int FFTYPEJK =   1;
-	/** Defines a D Flip-flop. */						private static final int FFTYPED =    2;
-	/** Defines a T Flip-flop. */						private static final int FFTYPET =    3;
-//	/** Defines the Flip-flop clocking bits. */			private static final int FFCLOCK =  014;
-	/** Defines a Master/Slave Flip-flop. */			private static final int FFCLOCKMS =  0;
-	/** Defines a Positive clock Flip-flop. */			private static final int FFCLOCKP =  04;
-	/** Defines a Negative clock Flip-flop. */			private static final int FFCLOCKN = 010;
+//	/** Defines the Flip-flop type. */						private static final int FFTYPE =    07;
+	/** Defines an RS Flip-flop. */							private static final int FFTYPERS =   0;
+	/** Defines a JK Flip-flop. */							private static final int FFTYPEJK =   1;
+	/** Defines a D Flip-flop. */							private static final int FFTYPED =    2;
+	/** Defines a T Flip-flop. */							private static final int FFTYPET =    3;
+//	/** Defines the Flip-flop clocking bits. */				private static final int FFCLOCK =  014;
+	/** Defines a Master/Slave Flip-flop. */				private static final int FFCLOCKMS =  0;
+	/** Defines a Positive clock Flip-flop. */				private static final int FFCLOCKP =  04;
+	/** Defines a Negative clock Flip-flop. */				private static final int FFCLOCKN = 010;
 
-	/** Defines an nMOS transistor. */					private static final int TRANNMOS =   0;
-	/** Defines a DMOS transistor. */					private static final int TRANNMOSD =  1;
-	/** Defines a PMOS transistor. */					private static final int TRANPMOS =   2;
-	/** Defines an NPN Junction transistor. */			private static final int TRANNPN =    3;
-	/** Defines a PNP Junction transistor. */			private static final int TRANPNP =    4;
-	/** Defines an N Junction FET transistor. */		private static final int TRANNJFET =  5;
-	/** Defines a P Junction FET transistor. */			private static final int TRANPJFET =  6;
-	/** Defines a Depletion MESFET transistor. */		private static final int TRANDMES =   7;
-	/** Defines an Enhancement MESFET transistor. */	private static final int TRANEMES =   8;
+	/** Defines an nMOS transistor. */						private static final int TRANNMOS      =  0;
+	/** Defines a nMOS depletion transistor. */				private static final int TRANNMOSD     =  1;
+	/** Defines a pMOS transistor. */						private static final int TRANPMOS      =  2;
+	/** Defines an NPN Junction transistor. */				private static final int TRANNPN       =  3;
+	/** Defines a PNP Junction transistor. */				private static final int TRANPNP       =  4;
+	/** Defines an N Junction FET transistor. */			private static final int TRANNJFET     =  5;
+	/** Defines a P Junction FET transistor. */				private static final int TRANPJFET     =  6;
+	/** Defines a Depletion MESFET transistor. */			private static final int TRANDMES      =  7;
+	/** Defines an Enhancement MESFET transistor. */		private static final int TRANEMES      =  8;
+	/** Defines a pMOS depletion transistor. */				private static final int TRANPMOSD     =  9;
+	/** Defines a nMOS native transistor. */				private static final int TRANNMOSNT    = 10;
+	/** Defines a pMOS native transistor. */				private static final int TRANPMOSNT    = 11;
+	/** Defines a nMOS floating gate transistor. */			private static final int TRANNMOSFG    = 12;
+	/** Defines a pMOS floating gate transistor. */			private static final int TRANPMOSFG    = 13;
+	/** Defines a nMOS low threshold transistor. */			private static final int TRANNMOSVTL   = 14;
+	/** Defines a pMOS low threshold transistor. */			private static final int TRANPMOSVTL   = 15;
+	/** Defines a nMOS high threshold transistor. */		private static final int TRANNMOSVTH   = 16;
+	/** Defines a pMOS high threshold transistor. */		private static final int TRANPMOSVTH   = 17;
+	/** Defines a nMOS high voltage-1 transistor. */		private static final int TRANNMOSHV1   = 18;
+	/** Defines a pMOS high voltage-1 transistor. */		private static final int TRANPMOSHV1   = 19;
+	/** Defines a nMOS high voltage-2 transistor. */		private static final int TRANNMOSHV2   = 20;
+	/** Defines a pMOS high voltage-2 transistor. */		private static final int TRANPMOSHV2   = 21;
+	/** Defines a nMOS high voltage-3 transistor. */		private static final int TRANNMOSHV3   = 22;
+	/** Defines a pMOS high voltage-3 transistor. */		private static final int TRANPMOSHV3   = 23;
+	/** Defines a nMOS native high voltage-1 transistor. */	private static final int TRANNMOSNTHV1 = 24;
+	/** Defines a pMOS native high voltage-1 transistor. */	private static final int TRANPMOSNTHV1 = 25;
+	/** Defines a nMOS native high voltage-2 transistor. */	private static final int TRANNMOSNTHV2 = 26;
+	/** Defines a pMOS native high voltage-2 transistor. */	private static final int TRANPMOSNTHV2 = 27;
+	/** Defines a nMOS native high voltage-3 transistor. */	private static final int TRANNMOSNTHV3 = 28;
+	/** Defines a pMOS native high voltage-3 transistor. */	private static final int TRANPMOSNTHV3 = 29;
 
-	/** Defines a normal Diode. */						private static final int DIODENORM =  0;
-	/** Defines a Zener Diode. */						private static final int DIODEZENER = 1;
+	/** Defines a normal Diode. */							private static final int DIODENORM =  0;
+	/** Defines a Zener Diode. */							private static final int DIODEZENER = 1;
 
-	/** Defines a normal Capacitor. */					private static final int CAPACNORM =  0;
-	/** Defines an Electrolytic Capacitor. */			private static final int CAPACELEC =  1;
+	/** Defines a normal Capacitor. */						private static final int CAPACNORM =  0;
+	/** Defines an Electrolytic Capacitor. */				private static final int CAPACELEC =  1;
 
-    /** Defines a normal Resistor. */                   private static final int RESISTNORM =  0;
-    /** Defines a poly Resistor. */                     private static final int RESISTPOLY =  1;
+    /** Defines a normal Resistor. */                   	private static final int RESISTNORM =  0;
+    /** Defines a poly Resistor. */                     	private static final int RESISTPOLY =  1;
 
-	/** Defines a Transconductance two-port (VCCS). */	private static final int TWOPVCCS =  0;
-	/** Defines a Transresistance two-port (CCVS). */	private static final int TWOPCCVS =  1;
-	/** Defines a Voltage gain two-port (VCVS). */		private static final int TWOPVCVS =  2;
-	/** Defines a Current gain two-port (CCCS). */		private static final int TWOPCCCS =  3;
-	/** Defines a Transmission Line two-port. */		private static final int TWOPTLINE = 4;
+	/** Defines a Transconductance two-port (VCCS). */		private static final int TWOPVCCS =  0;
+	/** Defines a Transresistance two-port (CCVS). */		private static final int TWOPCCVS =  1;
+	/** Defines a Voltage gain two-port (VCVS). */			private static final int TWOPVCVS =  2;
+	/** Defines a Current gain two-port (CCCS). */			private static final int TWOPCCCS =  3;
+	/** Defines a Transmission Line two-port. */			private static final int TWOPTLINE = 4;
 
 	/** the node layer */				public Layer node_lay;
 
@@ -154,12 +175,32 @@ public class Schematics extends Technology
 	private Technology.NodeLayer [] ffLayersJKMS, ffLayersJKP, ffLayersJKN;
 	private Technology.NodeLayer [] ffLayersDMS, ffLayersDP, ffLayersDN;
 	private Technology.NodeLayer [] ffLayersTMS, ffLayersTP, ffLayersTN;
-	private Technology.NodeLayer [] tranLayersN, tranLayersP, tranLayersD;
+	private Technology.NodeLayer [] tranLayersN, tranLayersP, tranLayersNd, tranLayersPd;
+	private Technology.NodeLayer [] tranLayersNnT, tranLayersPnT;
+	private Technology.NodeLayer [] tranLayersNfG, tranLayersPfG;
+	private Technology.NodeLayer [] tranLayersNvtL, tranLayersPvtL;
+	private Technology.NodeLayer [] tranLayersNvtH, tranLayersPvtH;
+	private Technology.NodeLayer [] tranLayersNht1, tranLayersPht1;
+	private Technology.NodeLayer [] tranLayersNht2, tranLayersPht2;
+	private Technology.NodeLayer [] tranLayersNht3, tranLayersPht3;
+	private Technology.NodeLayer [] tranLayersNnTht1, tranLayersPnTht1;
+	private Technology.NodeLayer [] tranLayersNnTht2, tranLayersPnTht2;
+	private Technology.NodeLayer [] tranLayersNnTht3, tranLayersPnTht3;
 	private Technology.NodeLayer [] tranLayersNPN, tranLayersPNP;
 	private Technology.NodeLayer [] tranLayersNJFET, tranLayersPJFET;
 	private Technology.NodeLayer [] tranLayersDMES, tranLayersEMES;
 	private Technology.NodeLayer [] twoLayersDefault, twoLayersVCVS, twoLayersVCCS, twoLayersCCVS, twoLayersCCCS, twoLayersTran;
-	private Technology.NodeLayer [] tran4LayersN, tran4LayersP, tran4LayersD;
+	private Technology.NodeLayer [] tran4LayersN, tran4LayersP, tran4LayersNd, tran4LayersPd;
+	private Technology.NodeLayer [] tran4LayersNnT, tran4LayersPnT;
+	private Technology.NodeLayer [] tran4LayersNfG, tran4LayersPfG;
+	private Technology.NodeLayer [] tran4LayersNvtL, tran4LayersPvtL;
+	private Technology.NodeLayer [] tran4LayersNvtH, tran4LayersPvtH;
+	private Technology.NodeLayer [] tran4LayersNht1, tran4LayersPht1;
+	private Technology.NodeLayer [] tran4LayersNht2, tran4LayersPht2;
+	private Technology.NodeLayer [] tran4LayersNht3, tran4LayersPht3;
+	private Technology.NodeLayer [] tran4LayersNnTht1, tran4LayersPnTht1;
+	private Technology.NodeLayer [] tran4LayersNnTht2, tran4LayersPnTht2;
+	private Technology.NodeLayer [] tran4LayersNnTht3, tran4LayersPnTht3;
 	private Technology.NodeLayer [] tran4LayersNPN, tran4LayersPNP;
 	private Technology.NodeLayer [] tran4LayersNJFET, tran4LayersPJFET;
 	private Technology.NodeLayer [] tran4LayersDMES, tran4LayersEMES;
@@ -903,28 +944,12 @@ public class Schematics extends Technology
 		sourceNode.setSquare();
 
 		/** transistor */
-		Technology.NodeLayer tranLayerMOS = new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-			new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge()),
-			new Technology.TechPoint(LEFTBYP75, EdgeV.makeBottomEdge()),
-			new Technology.TechPoint(LEFTBYP75, BOTBYP5),
-			new Technology.TechPoint(RIGHTBYP75, BOTBYP5),
-			new Technology.TechPoint(RIGHTBYP75, EdgeV.makeBottomEdge()),
-			new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeBottomEdge())});
 		Technology.NodeLayer tranLayerTranTop = new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 			new Technology.TechPoint(LEFTBYP75, BOTBYP25),
 			new Technology.TechPoint(RIGHTBYP75, BOTBYP25)});
 		Technology.NodeLayer tranLayerNMOS = new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 			new Technology.TechPoint(EdgeH.makeCenter(), BOTBYP25),
 			new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.fromTop(1))});
-		Technology.NodeLayer tranLayerPMOS = new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-			new Technology.TechPoint(EdgeH.makeCenter(), TOPBYP25),
-			new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.fromTop(1))});
-		Technology.NodeLayer tranLayerPMOSCircle = new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLE, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-			new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
-			new Technology.TechPoint(EdgeH.makeCenter(), BOTBYP25)});
-		Technology.NodeLayer tranLayerDMOS = new Technology.NodeLayer(node_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
-			new Technology.TechPoint(LEFTBYP75, BOTBYP75),
-			new Technology.TechPoint(RIGHTBYP75, BOTBYP5)});
 		Technology.NodeLayer tranLayerBTran1 = new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 			new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge()),
 			new Technology.TechPoint(LEFTBYP75, EdgeV.makeBottomEdge()),
@@ -974,9 +999,30 @@ public class Schematics extends Technology
 			new Technology.TechPoint(RIGHTBYP75, EdgeV.makeBottomEdge()),
 			new Technology.TechPoint(RIGHTBYP75, EdgeV.makeBottomEdge()),
 			new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeBottomEdge())});
-		tranLayersN = new Technology.NodeLayer [] {tranLayerMOS, tranLayerTranTop, tranLayerNMOS};
-		tranLayersP = new Technology.NodeLayer [] {tranLayerMOS, tranLayerTranTop, tranLayerPMOS, tranLayerPMOSCircle};
-		tranLayersD = new Technology.NodeLayer [] {tranLayerMOS, tranLayerTranTop, tranLayerNMOS, tranLayerDMOS};
+		tranLayersN = buildTransistorDescription(true, false, false, false, 0, 0, false);
+		tranLayersP = buildTransistorDescription(false, false, false, false, 0, 0, false);
+		tranLayersNd = buildTransistorDescription(true, true, false, false, 0, 0, false);
+		tranLayersPd = buildTransistorDescription(false, true, false, false, 0, 0, false);
+		tranLayersNnT = buildTransistorDescription(true, false, true, false, 0, 0, false);
+		tranLayersPnT = buildTransistorDescription(false, false, true, false, 0, 0, false);
+		tranLayersNfG = buildTransistorDescription(true, false, false, true, 0, 0, false);
+		tranLayersPfG = buildTransistorDescription(false, false, false, true, 0, 0, false);
+		tranLayersNvtL = buildTransistorDescription(true, false, false, false, -1, 0, false);
+		tranLayersPvtL = buildTransistorDescription(false, false, false, false, -1, 0, false);
+		tranLayersNvtH = buildTransistorDescription(true, false, false, false, 1, 0, false);
+		tranLayersPvtH = buildTransistorDescription(false, false, false, false, 1, 0, false);
+		tranLayersNht1 = buildTransistorDescription(true, false, false, false, 0, 1, false);
+		tranLayersPht1 = buildTransistorDescription(false, false, false, false, 0, 1, false);
+		tranLayersNht2 = buildTransistorDescription(true, false, false, false, 0, 2, false);
+		tranLayersPht2 = buildTransistorDescription(false, false, false, false, 0, 2, false);
+		tranLayersNht3 = buildTransistorDescription(true, false, false, false, 0, 3, false);
+		tranLayersPht3 = buildTransistorDescription(false, false, false, false, 0, 3, false);
+		tranLayersNnTht1 = buildTransistorDescription(true, false, true, false, 0, 1, false);
+		tranLayersPnTht1 = buildTransistorDescription(false, false, true, false, 0, 1, false);
+		tranLayersNnTht2 = buildTransistorDescription(true, false, true, false, 0, 2, false);
+		tranLayersPnTht2 = buildTransistorDescription(false, false, true, false, 0, 2, false);
+		tranLayersNnTht3 = buildTransistorDescription(true, false, true, false, 0, 3, false);
+		tranLayersPnTht3 = buildTransistorDescription(false, false, true, false, 0, 3, false);
 		tranLayersNPN = new Technology.NodeLayer [] {tranLayerBTran1, tranLayerTranTop, tranLayerNMOS, tranLayerBTran2};
 		tranLayersPNP = new Technology.NodeLayer [] {tranLayerBTran1, tranLayerTranTop, tranLayerNMOS, tranLayerBTran3};
 		tranLayersNJFET = new Technology.NodeLayer [] {tranLayerBTran4, tranLayerTranTop, tranLayerNMOS, tranLayerBTran5};
@@ -1282,27 +1328,6 @@ public class Schematics extends Technology
 		twoportNode.setFunction(PrimitiveNode.Function.TLINE);
 
 		/** 4-port transistor */
-		Technology.NodeLayer tranLayerNMOS4 = new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-			new Technology.TechPoint(LEFTBYP5, BOTBYP5),
-			new Technology.TechPoint(LEFTBYP5, EdgeV.makeBottomEdge()),
-			new Technology.TechPoint(LEFTBYP5, BOTBYP5),
-			new Technology.TechPoint(LEFTBYP35, BOTBYP75),
-			new Technology.TechPoint(LEFTBYP5, BOTBYP5),
-			new Technology.TechPoint(LEFTBYP66, BOTBYP75)});
-		Technology.NodeLayer tranLayerPMOS4 = new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-			new Technology.TechPoint(LEFTBYP5, BOTBYP5),
-			new Technology.TechPoint(LEFTBYP5, EdgeV.makeBottomEdge()),
-			new Technology.TechPoint(LEFTBYP5, EdgeV.makeBottomEdge()),
-			new Technology.TechPoint(LEFTBYP35, BOTBYP75),
-			new Technology.TechPoint(LEFTBYP5, EdgeV.makeBottomEdge()),
-			new Technology.TechPoint(LEFTBYP66, BOTBYP75)});
-		Technology.NodeLayer tranLayerDMOS4 = new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-			new Technology.TechPoint(LEFTBYP5, BOTBYP75),
-			new Technology.TechPoint(LEFTBYP5, EdgeV.makeBottomEdge()),
-			new Technology.TechPoint(LEFTBYP5, BOTBYP75),
-			new Technology.TechPoint(LEFTBYP35, BOTBYP9),
-			new Technology.TechPoint(LEFTBYP5, BOTBYP75),
-			new Technology.TechPoint(LEFTBYP66, BOTBYP9)});
 		Technology.NodeLayer tranLayerBIP4 = new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 			new Technology.TechPoint(LEFTBYP5, EdgeV.makeBottomEdge()),
 			new Technology.TechPoint(EdgeH.makeCenter(), BOTBYP25)});
@@ -1320,9 +1345,30 @@ public class Schematics extends Technology
 			new Technology.TechPoint(LEFTBYP35, BOTBYP5),
 			new Technology.TechPoint(LEFTBYP5, BOTBYP25),
 			new Technology.TechPoint(LEFTBYP66, BOTBYP5)});
-		tran4LayersN = new Technology.NodeLayer [] {tranLayerMOS, tranLayerTranTop, tranLayerNMOS, tranLayerNMOS4};
-		tran4LayersP = new Technology.NodeLayer [] {tranLayerMOS, tranLayerTranTop, tranLayerPMOS, tranLayerPMOSCircle, tranLayerPMOS4};
-		tran4LayersD = new Technology.NodeLayer [] {tranLayerMOS, tranLayerTranTop, tranLayerNMOS, tranLayerDMOS, tranLayerDMOS4};
+		tran4LayersN = buildTransistorDescription(true, false, false, false, 0, 0, true);
+		tran4LayersP = buildTransistorDescription(false, false, false, false, 0, 0, true);
+		tran4LayersNd = buildTransistorDescription(true, true, false, false, 0, 0, true);
+		tran4LayersPd = buildTransistorDescription(false, true, false, false, 0, 0, true);
+		tran4LayersNnT = buildTransistorDescription(true, false, true, false, 0, 0, true);
+		tran4LayersPnT = buildTransistorDescription(false, false, true, false, 0, 0, true);
+		tran4LayersNfG = buildTransistorDescription(true, false, false, true, 0, 0, true);
+		tran4LayersPfG = buildTransistorDescription(false, false, false, true, 0, 0, true);
+		tran4LayersNvtL = buildTransistorDescription(true, false, false, false, -1, 0, true);
+		tran4LayersPvtL = buildTransistorDescription(false, false, false, false, -1, 0, true);
+		tran4LayersNvtH = buildTransistorDescription(true, false, false, false, 1, 0, true);
+		tran4LayersPvtH = buildTransistorDescription(false, false, false, false, 1, 0, true);
+		tran4LayersNht1 = buildTransistorDescription(true, false, false, false, 0, 1, true);
+		tran4LayersPht1 = buildTransistorDescription(false, false, false, false, 0, 1, true);
+		tran4LayersNht2 = buildTransistorDescription(true, false, false, false, 0, 2, true);
+		tran4LayersPht2 = buildTransistorDescription(false, false, false, false, 0, 2, true);
+		tran4LayersNht3 = buildTransistorDescription(true, false, false, false, 0, 3, true);
+		tran4LayersPht3 = buildTransistorDescription(false, false, false, false, 0, 3, true);
+		tran4LayersNnTht1 = buildTransistorDescription(true, false, true, false, 0, 1, true);
+		tran4LayersPnTht1 = buildTransistorDescription(false, false, true, false, 0, 1, true);
+		tran4LayersNnTht2 = buildTransistorDescription(true, false, true, false, 0, 2, true);
+		tran4LayersPnTht2 = buildTransistorDescription(false, false, true, false, 0, 2, true);
+		tran4LayersNnTht3 = buildTransistorDescription(true, false, true, false, 0, 3, true);
+		tran4LayersPnTht3 = buildTransistorDescription(false, false, true, false, 0, 3, true);
 		tran4LayersNPN = new Technology.NodeLayer [] {tranLayerBTran1, tranLayerTranTop, tranLayerNMOS, tranLayerBTran2, tranLayerBIP4};
 		tran4LayersPNP = new Technology.NodeLayer [] {tranLayerBTran1, tranLayerTranTop, tranLayerNMOS, tranLayerBTran3, tranLayerBIP4};
 		tran4LayersNJFET = new Technology.NodeLayer [] {tranLayerBTran4, tranLayerTranTop, tranLayerNMOS, tranLayerBTran5, tranLayerPMES4};
@@ -1442,11 +1488,32 @@ public class Schematics extends Technology
 
         // 4-port transistors
         list = new ArrayList<Object>();
-        list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4NPN, 900, false, "NPN 4-port", 4.5));
-        list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4PNP, 900, false, "PNP 4-port", 4.5));
         list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4NMOS, 900, false, "nMOS 4-port", 4.5));
         list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4PMOS, 900, false, "pMOS 4-port", 4.5));
         list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4DMOS, 900, false, "nMOS-D 4-port", 4.5));
+        list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4PMOSD,900, false, "pMOS-D 4-port", 4.5));
+        list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4NMOSNT, 900, false, "nMOS-NT 4-port", 4.5));
+        list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4PMOSNT, 900, false, "pMOS-NT 4-port", 4.5));
+        list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4NMOSFG, 900, false, "nMOS-FG 4-port", 4.5));
+        list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4PMOSFG, 900, false, "pMOS-FG 4-port", 4.5));
+        list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4NMOSVTL, 900, false, "nMOS-VTL 4-port", 4.5));
+        list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4PMOSVTL, 900, false, "pMOS-VTL 4-port", 4.5));
+        list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4NMOSVTH, 900, false, "nMOS-VTH 4-port", 4.5));
+        list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4PMOSVTH, 900, false, "pMOS-VTH 4-port", 4.5));
+        list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4NMOSHV1, 900, false, "nMOS-HV1 4-port", 4.5));
+        list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4PMOSHV1, 900, false, "pMOS-HV1 4-port", 4.5));
+        list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4NMOSHV2, 900, false, "nMOS-HV2 4-port", 4.5));
+        list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4PMOSHV2, 900, false, "pMOS-HV2 4-port", 4.5));
+        list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4NMOSHV3, 900, false, "nMOS-HV3 4-port", 4.5));
+        list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4PMOSHV3, 900, false, "pMOS-HV3 4-port", 4.5));
+        list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4NMOSNTHV1, 900, false, "nMOS-NT-HV1 4-port", 4.5));
+        list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4PMOSNTHV1, 900, false, "pMOS-NT-HV1 4-port", 4.5));
+        list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4NMOSNTHV2, 900, false, "nMOS-NT-HV2 4-port", 4.5));
+        list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4PMOSNTHV2, 900, false, "pMOS-NT-HV2 4-port", 4.5));
+        list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4NMOSNTHV3, 900, false, "nMOS-NT-HV3 4-port", 4.5));
+        list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4PMOSNTHV3, 900, false, "pMOS-NT-HV3 4-port", 4.5));
+        list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4NPN, 900, false, "NPN 4-port", 4.5));
+        list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4PNP, 900, false, "PNP 4-port", 4.5));
         list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4DMES, 900, false, "DMES 4-port", 4.5));
         list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4EMES, 900, false, "EMES 4-port", 4.5));
         list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4PJFET, 900, false, "pJFET 4-port", 4.5));
@@ -1455,11 +1522,32 @@ public class Schematics extends Technology
 
         // 3-port transistors
         list = new ArrayList<Object>();
-        list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRANPN, 900, false, "NPN", 4.5));
-        list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRAPNP, 900, false, "PNP", 4.5));
         list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRANMOS, 900, false, "nMOS", 4.5));
         list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRAPMOS, 900, false, "pMOS", 4.5));
         list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRADMOS,900, false, "nMOS-D", 4.5));
+        list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRAPMOSD,900, false, "pMOS-D", 4.5));
+        list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRANMOSNT, 900, false, "nMOS-NT", 4.5));
+        list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRAPMOSNT, 900, false, "pMOS-NT", 4.5));
+        list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRANMOSFG, 900, false, "nMOS-FG", 4.5));
+        list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRAPMOSFG, 900, false, "pMOS-FG", 4.5));
+        list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRANMOSVTL, 900, false, "nMOS-VTL", 4.5));
+        list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRAPMOSVTL, 900, false, "pMOS-VTL", 4.5));
+        list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRANMOSVTH, 900, false, "nMOS-VTH", 4.5));
+        list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRAPMOSVTH, 900, false, "pMOS-VTH", 4.5));
+        list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRANMOSHV1, 900, false, "nMOS-HV1", 4.5));
+        list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRAPMOSHV1, 900, false, "pMOS-HV1", 4.5));
+        list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRANMOSHV2, 900, false, "nMOS-HV2", 4.5));
+        list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRAPMOSHV2, 900, false, "pMOS-HV2", 4.5));
+        list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRANMOSHV3, 900, false, "nMOS-HV3", 4.5));
+        list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRAPMOSHV3, 900, false, "pMOS-HV3", 4.5));
+        list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRANMOSNTHV1, 900, false, "nMOS-NT-HV1", 4.5));
+        list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRAPMOSNTHV1, 900, false, "pMOS-NT-HV1", 4.5));
+        list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRANMOSNTHV2, 900, false, "nMOS-NT-HV2", 4.5));
+        list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRAPMOSNTHV2, 900, false, "pMOS-NT-HV2", 4.5));
+        list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRANMOSNTHV3, 900, false, "nMOS-NT-HV3", 4.5));
+        list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRAPMOSNTHV3, 900, false, "pMOS-NT-HV3", 4.5));
+        list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRANPN, 900, false, "NPN", 4.5));
+        list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRAPNP, 900, false, "PNP", 4.5));
         list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRADMES, 900, false, "DMES", 4.5));
         list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRAEMES, 900, false, "EMES", 4.5));
         list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRAPJFET, 900, false, "pJFET", 4.5));
@@ -1511,6 +1599,148 @@ public class Schematics extends Technology
         factoryNodeGroups[12][1] = orNode;
         factoryNodeGroups[13][1] = andNode;
         return factoryNodeGroups;
+	}
+
+	private Technology.NodeLayer [] buildTransistorDescription(boolean nmos, boolean depletion,
+		boolean nt, boolean floating, int threshold, int highVoltage, boolean fourPort)
+	{
+		List<Technology.NodeLayer> layers = new ArrayList<Technology.NodeLayer>();
+
+		// first add the base
+		layers.add(new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge()),
+			new Technology.TechPoint(LEFTBYP75, EdgeV.makeBottomEdge()),
+			new Technology.TechPoint(LEFTBYP75, BOTBYP5),
+			new Technology.TechPoint(RIGHTBYP75, BOTBYP5),
+			new Technology.TechPoint(RIGHTBYP75, EdgeV.makeBottomEdge()),
+			new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeBottomEdge())}));
+		double vertBase = -0.25;
+
+		// if depletion, add a solid bar at the base
+		if (depletion)
+		{
+			layers.add(new Technology.NodeLayer(node_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+				new Technology.TechPoint(LEFTBYP75, BOTBYP75),
+				new Technology.TechPoint(RIGHTBYP75, BOTBYP5)}));
+		}
+
+		// add extra horizontal line if "floating"
+		if (floating)
+		{
+			EdgeV ntHeight = new EdgeV(vertBase+0.0625,0);
+			layers.add(new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+				new Technology.TechPoint(LEFTBYP75, ntHeight),
+				new Technology.TechPoint(RIGHTBYP75, ntHeight)}));
+		}
+
+		// adjust space if variable threshold
+		if (threshold < 0)
+		{
+			// low threshold: move closer to base
+			vertBase -= 0.07;
+		} else if (threshold > 0)
+		{
+			// high threshold: move farther to base
+			vertBase += 0.07;
+		}
+
+		// draw gate bar if not native
+		if (!nt)
+		{
+			vertBase += 0.125;
+			EdgeV gateLoc = new EdgeV(vertBase,0);
+			layers.add(new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+				new Technology.TechPoint(LEFTBYP75, gateLoc),
+				new Technology.TechPoint(RIGHTBYP75, gateLoc)}));
+		}
+
+		if (nmos)
+		{
+			// draw the stick to the gate
+			EdgeV gateBot = new EdgeV(vertBase,0);
+			layers.add(new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+				new Technology.TechPoint(EdgeH.makeCenter(), gateBot),
+				new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.fromTop(1))}));
+		} else
+		{
+			// draw the stick to the gate
+			EdgeV bubbleBot = new EdgeV(vertBase,0);
+			EdgeV bubbleCtr = new EdgeV(vertBase+0.125,0);
+			EdgeV bubbleTop = new EdgeV(vertBase+0.25,0);
+			layers.add(new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLE, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+				new Technology.TechPoint(EdgeH.makeCenter(), bubbleCtr),
+				new Technology.TechPoint(EdgeH.makeCenter(), bubbleBot)}));
+			layers.add(new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+				new Technology.TechPoint(EdgeH.makeCenter(), bubbleTop),
+				new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.fromTop(1))}));
+		}
+
+		// add battery if high-voltage
+		if (highVoltage > 0)
+		{
+			double batteryLoc = 0.45;
+			EdgeH batteryHorPos = new EdgeH(batteryLoc,0);
+
+			// height of battery from top of node
+			double batteryCtr = 0.125;
+			EdgeV batteryCtrEdge = new EdgeV(batteryCtr,0);
+			EdgeV batteryCtrShortTop = new EdgeV(batteryCtr+0.05,0);
+			EdgeV batteryCtrShortBot = new EdgeV(batteryCtr-0.05,0);
+			EdgeV batteryCtrLongTop = new EdgeV(batteryCtr+0.1,0);
+			EdgeV batteryCtrLongBot = new EdgeV(batteryCtr-0.1,0);
+
+			layers.add(new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+				new Technology.TechPoint(EdgeH.makeRightEdge(), batteryCtrEdge),
+				new Technology.TechPoint(batteryHorPos, batteryCtrEdge)}));
+
+			for(int i=0; i<highVoltage; i++)
+			{
+				layers.add(new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+					new Technology.TechPoint(batteryHorPos, batteryCtrLongBot),
+					new Technology.TechPoint(batteryHorPos, batteryCtrLongTop)}));
+				batteryLoc -= 0.05;
+				batteryHorPos = new EdgeH(batteryLoc,0);
+
+				layers.add(new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+					new Technology.TechPoint(batteryHorPos, batteryCtrShortBot),
+					new Technology.TechPoint(batteryHorPos, batteryCtrShortTop)}));
+				batteryLoc -= 0.05;
+				batteryHorPos = new EdgeH(batteryLoc,0);
+			}
+			batteryLoc += 0.05;
+			EdgeH batteryHorEnd = new EdgeH(batteryLoc,0);
+			layers.add(new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+				new Technology.TechPoint(batteryHorPos, batteryCtrEdge),
+				new Technology.TechPoint(batteryHorEnd, batteryCtrEdge)}));
+		}
+
+		// add base connection if requested
+		if (fourPort)
+		{
+			if (nmos)
+			{
+				layers.add(new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+					new Technology.TechPoint(LEFTBYP5, BOTBYP5),
+					new Technology.TechPoint(LEFTBYP5, EdgeV.makeBottomEdge()),
+					new Technology.TechPoint(LEFTBYP5, BOTBYP5),
+					new Technology.TechPoint(LEFTBYP35, BOTBYP75),
+					new Technology.TechPoint(LEFTBYP5, BOTBYP5),
+					new Technology.TechPoint(LEFTBYP66, BOTBYP75)}));
+			} else
+			{
+				layers.add(new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+					new Technology.TechPoint(LEFTBYP5, BOTBYP5),
+					new Technology.TechPoint(LEFTBYP5, EdgeV.makeBottomEdge()),
+					new Technology.TechPoint(LEFTBYP5, EdgeV.makeBottomEdge()),
+					new Technology.TechPoint(LEFTBYP35, BOTBYP75),
+					new Technology.TechPoint(LEFTBYP5, EdgeV.makeBottomEdge()),
+					new Technology.TechPoint(LEFTBYP66, BOTBYP75)}));
+
+			}
+		}
+		Technology.NodeLayer [] descr = new Technology.NodeLayer[layers.size()];
+		for(int i=0; i<layers.size(); i++) descr[i] = layers.get(i);
+		return descr;
 	}
 
 	private static Technology.NodeLayer[] NULLNODELAYER = new Technology.NodeLayer [] {};
@@ -1751,15 +1981,36 @@ public class Schematics extends Technology
 			int tranBits = ni.getTechSpecific();
 			switch (tranBits)
 			{
-				case TRANNMOS:  primLayers = tranLayersN;      break;
-				case TRANNMOSD: primLayers = tranLayersD;      break;
-				case TRANPMOS:  primLayers = tranLayersP;      break;
-				case TRANNPN:   primLayers = tranLayersNPN;    break;
-				case TRANPNP:   primLayers = tranLayersPNP;    break;
-				case TRANNJFET: primLayers = tranLayersNJFET;  break;
-				case TRANPJFET: primLayers = tranLayersPJFET;  break;
-				case TRANDMES:  primLayers = tranLayersDMES;   break;
-				case TRANEMES:  primLayers = tranLayersEMES;   break;
+				case TRANNMOS:      primLayers = tranLayersN;      break;
+				case TRANPMOS:      primLayers = tranLayersP;      break;
+				case TRANNMOSD:     primLayers = tranLayersNd;     break;
+				case TRANPMOSD:     primLayers = tranLayersPd;     break;
+				case TRANNMOSNT:    primLayers = tranLayersNnT;    break;
+				case TRANPMOSNT:    primLayers = tranLayersPnT;    break;
+				case TRANNMOSFG:    primLayers = tranLayersNfG;    break;
+				case TRANPMOSFG:    primLayers = tranLayersPfG;    break;
+				case TRANNMOSVTL:   primLayers = tranLayersNvtL;   break;
+				case TRANPMOSVTL:   primLayers = tranLayersPvtL;   break;
+				case TRANNMOSVTH:   primLayers = tranLayersNvtH;   break;
+				case TRANPMOSVTH:   primLayers = tranLayersPvtH;   break;
+				case TRANNMOSHV1:   primLayers = tranLayersNht1;   break;
+				case TRANPMOSHV1:   primLayers = tranLayersPht1;   break;
+				case TRANNMOSHV2:   primLayers = tranLayersNht2;   break;
+				case TRANPMOSHV2:   primLayers = tranLayersPht2;   break;
+				case TRANNMOSHV3:   primLayers = tranLayersNht3;   break;
+				case TRANPMOSHV3:   primLayers = tranLayersPht3;   break;
+				case TRANNMOSNTHV1: primLayers = tranLayersNnTht1; break;
+				case TRANPMOSNTHV1: primLayers = tranLayersPnTht1; break;
+				case TRANNMOSNTHV2: primLayers = tranLayersNnTht2; break;
+				case TRANPMOSNTHV2: primLayers = tranLayersPnTht2; break;
+				case TRANNMOSNTHV3: primLayers = tranLayersNnTht3; break;
+				case TRANPMOSNTHV3: primLayers = tranLayersPnTht3; break;
+				case TRANNPN:       primLayers = tranLayersNPN;    break;
+				case TRANPNP:       primLayers = tranLayersPNP;    break;
+				case TRANNJFET:     primLayers = tranLayersNJFET;  break;
+				case TRANPJFET:     primLayers = tranLayersPJFET;  break;
+				case TRANDMES:      primLayers = tranLayersDMES;   break;
+				case TRANEMES:      primLayers = tranLayersEMES;   break;
 			}
 		} else if (np == twoportNode)
 		{
@@ -1822,15 +2073,36 @@ public class Schematics extends Technology
 			int tranBits = ni.getTechSpecific();
 			switch (tranBits)
 			{
-				case TRANNMOS:  primLayers = tran4LayersN;      break;
-				case TRANNMOSD: primLayers = tran4LayersD;      break;
-				case TRANPMOS:  primLayers = tran4LayersP;      break;
-				case TRANNPN:   primLayers = tran4LayersNPN;    break;
-				case TRANPNP:   primLayers = tran4LayersPNP;    break;
-				case TRANNJFET: primLayers = tran4LayersNJFET;  break;
-				case TRANPJFET: primLayers = tran4LayersPJFET;  break;
-				case TRANDMES:  primLayers = tran4LayersDMES;   break;
-				case TRANEMES:  primLayers = tran4LayersEMES;   break;
+				case TRANNMOS:      primLayers = tran4LayersN;      break;
+				case TRANPMOS:      primLayers = tran4LayersP;      break;
+				case TRANNMOSD:     primLayers = tran4LayersNd;     break;
+				case TRANPMOSD:     primLayers = tran4LayersPd;     break;
+				case TRANNMOSNT:    primLayers = tran4LayersNnT;    break;
+				case TRANPMOSNT:    primLayers = tran4LayersPnT;    break;
+				case TRANNMOSFG:    primLayers = tran4LayersNfG;    break;
+				case TRANPMOSFG:    primLayers = tran4LayersPfG;    break;
+				case TRANNMOSVTL:   primLayers = tran4LayersNvtL;   break;
+				case TRANPMOSVTL:   primLayers = tran4LayersPvtL;   break;
+				case TRANNMOSVTH:   primLayers = tran4LayersNvtH;   break;
+				case TRANPMOSVTH:   primLayers = tran4LayersPvtH;   break;
+				case TRANNMOSHV1:   primLayers = tran4LayersNht1;   break;
+				case TRANPMOSHV1:   primLayers = tran4LayersPht1;   break;
+				case TRANNMOSHV2:   primLayers = tran4LayersNht2;   break;
+				case TRANPMOSHV2:   primLayers = tran4LayersPht2;   break;
+				case TRANNMOSHV3:   primLayers = tran4LayersNht3;   break;
+				case TRANPMOSHV3:   primLayers = tran4LayersPht3;   break;
+				case TRANNMOSNTHV1: primLayers = tran4LayersNnTht1; break;
+				case TRANPMOSNTHV1: primLayers = tran4LayersPnTht1; break;
+				case TRANNMOSNTHV2: primLayers = tran4LayersNnTht2; break;
+				case TRANPMOSNTHV2: primLayers = tran4LayersPnTht2; break;
+				case TRANNMOSNTHV3: primLayers = tran4LayersNnTht3; break;
+				case TRANPMOSNTHV3: primLayers = tran4LayersPnTht3; break;
+				case TRANNPN:       primLayers = tran4LayersNPN;    break;
+				case TRANPNP:       primLayers = tran4LayersPNP;    break;
+				case TRANNJFET:     primLayers = tran4LayersNJFET;  break;
+				case TRANPJFET:     primLayers = tran4LayersPJFET;  break;
+				case TRANDMES:      primLayers = tran4LayersDMES;   break;
+				case TRANEMES:      primLayers = tran4LayersEMES;   break;
 			}
 		} else if (np == offpageNode || np == powerNode || np == groundNode || np == sourceNode || np == resistorNode ||
 			np == inductorNode || np == meterNode || np == wellNode || np == substrateNode)
@@ -2117,15 +2389,36 @@ public class Schematics extends Technology
 		{
 			switch (techBits)
 			{
-				case TRANNMOS:  return PrimitiveNode.Function.TRANMOS;
-				case TRANNMOSD: return PrimitiveNode.Function.TRADMOS;
-				case TRANPMOS:  return PrimitiveNode.Function.TRAPMOS;
-				case TRANNPN:   return PrimitiveNode.Function.TRANPN;
-				case TRANPNP:   return PrimitiveNode.Function.TRAPNP;
-				case TRANNJFET: return PrimitiveNode.Function.TRANJFET;
-				case TRANPJFET: return PrimitiveNode.Function.TRAPJFET;
-				case TRANDMES:  return PrimitiveNode.Function.TRADMES;
-				case TRANEMES:  return PrimitiveNode.Function.TRAEMES;
+				case TRANNMOS:      return PrimitiveNode.Function.TRANMOS;
+				case TRANPMOS:      return PrimitiveNode.Function.TRAPMOS;
+				case TRANNMOSD:     return PrimitiveNode.Function.TRADMOS;
+				case TRANPMOSD:     return PrimitiveNode.Function.TRAPMOSD;
+				case TRANNMOSNT:    return PrimitiveNode.Function.TRANMOSNT;
+				case TRANPMOSNT:    return PrimitiveNode.Function.TRAPMOSNT;
+				case TRANNMOSFG:    return PrimitiveNode.Function.TRANMOSFG;
+				case TRANPMOSFG:    return PrimitiveNode.Function.TRAPMOSFG;
+				case TRANNMOSVTL:   return PrimitiveNode.Function.TRANMOSVTL;
+				case TRANPMOSVTL:   return PrimitiveNode.Function.TRAPMOSVTL;
+				case TRANNMOSVTH:   return PrimitiveNode.Function.TRANMOSVTH;
+				case TRANPMOSVTH:   return PrimitiveNode.Function.TRAPMOSVTH;
+				case TRANNMOSHV1:   return PrimitiveNode.Function.TRANMOSHV1;
+				case TRANPMOSHV1:   return PrimitiveNode.Function.TRAPMOSHV1;
+				case TRANNMOSHV2:   return PrimitiveNode.Function.TRANMOSHV2;
+				case TRANPMOSHV2:   return PrimitiveNode.Function.TRAPMOSHV2;
+				case TRANNMOSHV3:   return PrimitiveNode.Function.TRANMOSHV3;
+				case TRANPMOSHV3:   return PrimitiveNode.Function.TRAPMOSHV3;
+				case TRANNMOSNTHV1: return PrimitiveNode.Function.TRANMOSNTHV1;
+				case TRANPMOSNTHV1: return PrimitiveNode.Function.TRAPMOSNTHV1;
+				case TRANNMOSNTHV2: return PrimitiveNode.Function.TRANMOSNTHV2;
+				case TRANPMOSNTHV2: return PrimitiveNode.Function.TRAPMOSNTHV2;
+				case TRANNMOSNTHV3: return PrimitiveNode.Function.TRANMOSNTHV3;
+				case TRANPMOSNTHV3: return PrimitiveNode.Function.TRAPMOSNTHV3;
+				case TRANNPN:       return PrimitiveNode.Function.TRANPN;
+				case TRANPNP:       return PrimitiveNode.Function.TRAPNP;
+				case TRANNJFET:     return PrimitiveNode.Function.TRANJFET;
+				case TRANPJFET:     return PrimitiveNode.Function.TRAPJFET;
+				case TRANDMES:      return PrimitiveNode.Function.TRADMES;
+				case TRANEMES:      return PrimitiveNode.Function.TRAEMES;
 			}
 			return PrimitiveNode.Function.TRANMOS;
 		}
@@ -2133,15 +2426,36 @@ public class Schematics extends Technology
 		{
 			switch (techBits)
 			{
-				case TRANNMOS:  return PrimitiveNode.Function.TRA4NMOS;
-				case TRANNMOSD: return PrimitiveNode.Function.TRA4DMOS;
-				case TRANPMOS:  return PrimitiveNode.Function.TRA4PMOS;
-				case TRANNPN:   return PrimitiveNode.Function.TRA4NPN;
-				case TRANPNP:   return PrimitiveNode.Function.TRA4PNP;
-				case TRANNJFET: return PrimitiveNode.Function.TRA4NJFET;
-				case TRANPJFET: return PrimitiveNode.Function.TRA4PJFET;
-				case TRANDMES:  return PrimitiveNode.Function.TRA4DMES;
-				case TRANEMES:  return PrimitiveNode.Function.TRA4EMES;
+				case TRANNMOS:      return PrimitiveNode.Function.TRA4NMOS;
+				case TRANPMOS:      return PrimitiveNode.Function.TRA4PMOS;
+				case TRANNMOSD:     return PrimitiveNode.Function.TRA4DMOS;
+				case TRANPMOSD:     return PrimitiveNode.Function.TRA4PMOSD;
+				case TRANNMOSNT:    return PrimitiveNode.Function.TRA4NMOSNT;
+				case TRANPMOSNT:    return PrimitiveNode.Function.TRA4PMOSNT;
+				case TRANNMOSFG:    return PrimitiveNode.Function.TRA4NMOSFG;
+				case TRANPMOSFG:    return PrimitiveNode.Function.TRA4PMOSFG;
+				case TRANNMOSVTL:   return PrimitiveNode.Function.TRA4NMOSVTL;
+				case TRANPMOSVTL:   return PrimitiveNode.Function.TRA4PMOSVTL;
+				case TRANNMOSVTH:   return PrimitiveNode.Function.TRA4NMOSVTH;
+				case TRANPMOSVTH:   return PrimitiveNode.Function.TRA4PMOSVTH;
+				case TRANNMOSHV1:   return PrimitiveNode.Function.TRA4NMOSHV1;
+				case TRANPMOSHV1:   return PrimitiveNode.Function.TRA4PMOSHV1;
+				case TRANNMOSHV2:   return PrimitiveNode.Function.TRA4NMOSHV2;
+				case TRANPMOSHV2:   return PrimitiveNode.Function.TRA4PMOSHV2;
+				case TRANNMOSHV3:   return PrimitiveNode.Function.TRA4NMOSHV3;
+				case TRANPMOSHV3:   return PrimitiveNode.Function.TRA4PMOSHV3;
+				case TRANNMOSNTHV1: return PrimitiveNode.Function.TRA4NMOSNTHV1;
+				case TRANPMOSNTHV1: return PrimitiveNode.Function.TRA4PMOSNTHV1;
+				case TRANNMOSNTHV2: return PrimitiveNode.Function.TRA4NMOSNTHV2;
+				case TRANPMOSNTHV2: return PrimitiveNode.Function.TRA4PMOSNTHV2;
+				case TRANNMOSNTHV3: return PrimitiveNode.Function.TRA4NMOSNTHV3;
+				case TRANPMOSNTHV3: return PrimitiveNode.Function.TRA4PMOSNTHV3;
+				case TRANNPN:       return PrimitiveNode.Function.TRA4NPN;
+				case TRANPNP:       return PrimitiveNode.Function.TRA4PNP;
+				case TRANNJFET:     return PrimitiveNode.Function.TRA4NJFET;
+				case TRANPJFET:     return PrimitiveNode.Function.TRA4PJFET;
+				case TRANDMES:      return PrimitiveNode.Function.TRA4DMES;
+				case TRANEMES:      return PrimitiveNode.Function.TRA4EMES;
 			}
 			return PrimitiveNode.Function.TRA4NMOS;
 		}
@@ -2188,53 +2502,95 @@ public class Schematics extends Technology
 	 */
 	public static int getPrimitiveFunctionBits(PrimitiveNode.Function function)
 	{
-		if (function == PrimitiveNode.Function.ECAPAC) return CAPACELEC;
-		if (function == PrimitiveNode.Function.CAPAC)  return CAPACNORM;
+		if (function == PrimitiveNode.Function.ECAPAC)        return CAPACELEC;
+		if (function == PrimitiveNode.Function.CAPAC)         return CAPACNORM;
 
-        if (function == PrimitiveNode.Function.PRESIST) return RESISTPOLY;
-		if (function == PrimitiveNode.Function.RESIST)  return RESISTNORM;
+        if (function == PrimitiveNode.Function.PRESIST)       return RESISTPOLY;
+		if (function == PrimitiveNode.Function.RESIST)        return RESISTNORM;
 
-		if (function == PrimitiveNode.Function.DIODEZ) return DIODEZENER;
-		if (function == PrimitiveNode.Function.DIODE)  return DIODENORM;
+		if (function == PrimitiveNode.Function.DIODEZ)        return DIODEZENER;
+		if (function == PrimitiveNode.Function.DIODE)         return DIODENORM;
 
-		if (function == PrimitiveNode.Function.TRANMOS)  return TRANNMOS;
-		if (function == PrimitiveNode.Function.TRADMOS)  return TRANNMOSD;
-		if (function == PrimitiveNode.Function.TRAPMOS)  return TRANPMOS;
-		if (function == PrimitiveNode.Function.TRANPN)   return TRANNPN;
-		if (function == PrimitiveNode.Function.TRAPNP)   return TRANPNP;
-		if (function == PrimitiveNode.Function.TRANJFET) return TRANNJFET;
-		if (function == PrimitiveNode.Function.TRAPJFET) return TRANPJFET;
-		if (function == PrimitiveNode.Function.TRADMES)  return TRANDMES;
-		if (function == PrimitiveNode.Function.TRAEMES)  return TRANEMES;
+		if (function == PrimitiveNode.Function.TRANMOS)       return TRANNMOS;
+		if (function == PrimitiveNode.Function.TRAPMOS)       return TRANPMOS;
+		if (function == PrimitiveNode.Function.TRADMOS)       return TRANNMOSD;
+		if (function == PrimitiveNode.Function.TRAPMOSD)      return TRANPMOSD;
+		if (function == PrimitiveNode.Function.TRANMOSNT)     return TRANNMOSNT;
+		if (function == PrimitiveNode.Function.TRAPMOSNT)     return TRANPMOSNT;
+		if (function == PrimitiveNode.Function.TRANMOSFG)     return TRANNMOSFG;
+		if (function == PrimitiveNode.Function.TRAPMOSFG)     return TRANPMOSFG;
+		if (function == PrimitiveNode.Function.TRANMOSVTL)    return TRANNMOSVTL;
+		if (function == PrimitiveNode.Function.TRAPMOSVTL)    return TRANPMOSVTL;
+		if (function == PrimitiveNode.Function.TRANMOSVTH)    return TRANNMOSVTH;
+		if (function == PrimitiveNode.Function.TRAPMOSVTH)    return TRANPMOSVTH;
+		if (function == PrimitiveNode.Function.TRANMOSHV1)    return TRANNMOSHV1;
+		if (function == PrimitiveNode.Function.TRAPMOSHV1)    return TRANPMOSHV1;
+		if (function == PrimitiveNode.Function.TRANMOSHV2)    return TRANNMOSHV2;
+		if (function == PrimitiveNode.Function.TRAPMOSHV2)    return TRANPMOSHV2;
+		if (function == PrimitiveNode.Function.TRANMOSHV3)    return TRANNMOSHV3;
+		if (function == PrimitiveNode.Function.TRAPMOSHV3)    return TRANPMOSHV3;
+		if (function == PrimitiveNode.Function.TRANMOSNTHV1)  return TRANNMOSNTHV1;
+		if (function == PrimitiveNode.Function.TRAPMOSNTHV1)  return TRANPMOSNTHV1;
+		if (function == PrimitiveNode.Function.TRANMOSNTHV2)  return TRANNMOSNTHV2;
+		if (function == PrimitiveNode.Function.TRAPMOSNTHV2)  return TRANPMOSNTHV2;
+		if (function == PrimitiveNode.Function.TRANMOSNTHV3)  return TRANNMOSNTHV3;
+		if (function == PrimitiveNode.Function.TRAPMOSNTHV3)  return TRANPMOSNTHV3;
+		if (function == PrimitiveNode.Function.TRANPN)        return TRANNPN;
+		if (function == PrimitiveNode.Function.TRAPNP)        return TRANPNP;
+		if (function == PrimitiveNode.Function.TRANJFET)      return TRANNJFET;
+		if (function == PrimitiveNode.Function.TRAPJFET)      return TRANPJFET;
+		if (function == PrimitiveNode.Function.TRADMES)       return TRANDMES;
+		if (function == PrimitiveNode.Function.TRAEMES)       return TRANEMES;
 
-		if (function == PrimitiveNode.Function.TRA4NMOS)  return TRANNMOS;
-		if (function == PrimitiveNode.Function.TRA4DMOS)  return TRANNMOSD;
-		if (function == PrimitiveNode.Function.TRA4PMOS)  return TRANPMOS;
-		if (function == PrimitiveNode.Function.TRA4NPN)   return TRANNPN;
-		if (function == PrimitiveNode.Function.TRA4PNP)   return TRANPNP;
-		if (function == PrimitiveNode.Function.TRA4NJFET) return TRANNJFET;
-		if (function == PrimitiveNode.Function.TRA4PJFET) return TRANPJFET;
-		if (function == PrimitiveNode.Function.TRA4DMES)  return TRANDMES;
-		if (function == PrimitiveNode.Function.TRA4EMES)  return TRANEMES;
+		if (function == PrimitiveNode.Function.TRA4NMOS)      return TRANNMOS;
+		if (function == PrimitiveNode.Function.TRA4PMOS)      return TRANPMOS;
+		if (function == PrimitiveNode.Function.TRA4DMOS)      return TRANNMOSD;
+		if (function == PrimitiveNode.Function.TRA4PMOSD)     return TRANPMOSD;
+		if (function == PrimitiveNode.Function.TRA4NMOSNT)    return TRANNMOSNT;
+		if (function == PrimitiveNode.Function.TRA4PMOSNT)    return TRANPMOSNT;
+		if (function == PrimitiveNode.Function.TRA4NMOSFG)    return TRANNMOSFG;
+		if (function == PrimitiveNode.Function.TRA4PMOSFG)    return TRANPMOSFG;
+		if (function == PrimitiveNode.Function.TRA4NMOSVTL)   return TRANNMOSVTL;
+		if (function == PrimitiveNode.Function.TRA4PMOSVTL)   return TRANPMOSVTL;
+		if (function == PrimitiveNode.Function.TRA4NMOSVTH)   return TRANNMOSVTH;
+		if (function == PrimitiveNode.Function.TRA4PMOSVTH)   return TRANPMOSVTH;
+		if (function == PrimitiveNode.Function.TRA4NMOSHV1)   return TRANNMOSHV1;
+		if (function == PrimitiveNode.Function.TRA4PMOSHV1)   return TRANPMOSHV1;
+		if (function == PrimitiveNode.Function.TRA4NMOSHV2)   return TRANNMOSHV2;
+		if (function == PrimitiveNode.Function.TRA4PMOSHV2)   return TRANPMOSHV2;
+		if (function == PrimitiveNode.Function.TRA4NMOSHV3)   return TRANNMOSHV3;
+		if (function == PrimitiveNode.Function.TRA4PMOSHV3)   return TRANPMOSHV3;
+		if (function == PrimitiveNode.Function.TRA4NMOSNTHV1) return TRANNMOSNTHV1;
+		if (function == PrimitiveNode.Function.TRA4PMOSNTHV1) return TRANPMOSNTHV1;
+		if (function == PrimitiveNode.Function.TRA4NMOSNTHV2) return TRANNMOSNTHV2;
+		if (function == PrimitiveNode.Function.TRA4PMOSNTHV2) return TRANPMOSNTHV2;
+		if (function == PrimitiveNode.Function.TRA4NMOSNTHV3) return TRANNMOSNTHV3;
+		if (function == PrimitiveNode.Function.TRA4PMOSNTHV3) return TRANPMOSNTHV3;
+		if (function == PrimitiveNode.Function.TRA4NPN)       return TRANNPN;
+		if (function == PrimitiveNode.Function.TRA4PNP)       return TRANPNP;
+		if (function == PrimitiveNode.Function.TRA4NJFET)     return TRANNJFET;
+		if (function == PrimitiveNode.Function.TRA4PJFET)     return TRANPJFET;
+		if (function == PrimitiveNode.Function.TRA4DMES)      return TRANDMES;
+		if (function == PrimitiveNode.Function.TRA4EMES)      return TRANEMES;
 
-		if (function == PrimitiveNode.Function.FLIPFLOPRSMS) return FFTYPERS | FFCLOCKMS;
-		if (function == PrimitiveNode.Function.FLIPFLOPRSP)  return FFTYPERS | FFCLOCKP;
-		if (function == PrimitiveNode.Function.FLIPFLOPRSN)  return FFTYPERS | FFCLOCKN;
-		if (function == PrimitiveNode.Function.FLIPFLOPJKMS) return FFTYPEJK | FFCLOCKMS;
-		if (function == PrimitiveNode.Function.FLIPFLOPJKP)  return FFTYPEJK | FFCLOCKP;
-		if (function == PrimitiveNode.Function.FLIPFLOPJKN)  return FFTYPEJK | FFCLOCKN;
-		if (function == PrimitiveNode.Function.FLIPFLOPDMS)  return FFTYPED  | FFCLOCKMS;
-		if (function == PrimitiveNode.Function.FLIPFLOPDP)   return FFTYPED  | FFCLOCKP;
-		if (function == PrimitiveNode.Function.FLIPFLOPDN)   return FFTYPED  | FFCLOCKN;
-		if (function == PrimitiveNode.Function.FLIPFLOPTMS)  return FFTYPET  | FFCLOCKMS;
-		if (function == PrimitiveNode.Function.FLIPFLOPTP)   return FFTYPET  | FFCLOCKP;
-		if (function == PrimitiveNode.Function.FLIPFLOPTN)   return FFTYPET  | FFCLOCKN;
+		if (function == PrimitiveNode.Function.FLIPFLOPRSMS)  return FFTYPERS | FFCLOCKMS;
+		if (function == PrimitiveNode.Function.FLIPFLOPRSP)   return FFTYPERS | FFCLOCKP;
+		if (function == PrimitiveNode.Function.FLIPFLOPRSN)   return FFTYPERS | FFCLOCKN;
+		if (function == PrimitiveNode.Function.FLIPFLOPJKMS)  return FFTYPEJK | FFCLOCKMS;
+		if (function == PrimitiveNode.Function.FLIPFLOPJKP)   return FFTYPEJK | FFCLOCKP;
+		if (function == PrimitiveNode.Function.FLIPFLOPJKN)   return FFTYPEJK | FFCLOCKN;
+		if (function == PrimitiveNode.Function.FLIPFLOPDMS)   return FFTYPED  | FFCLOCKMS;
+		if (function == PrimitiveNode.Function.FLIPFLOPDP)    return FFTYPED  | FFCLOCKP;
+		if (function == PrimitiveNode.Function.FLIPFLOPDN)    return FFTYPED  | FFCLOCKN;
+		if (function == PrimitiveNode.Function.FLIPFLOPTMS)   return FFTYPET  | FFCLOCKMS;
+		if (function == PrimitiveNode.Function.FLIPFLOPTP)    return FFTYPET  | FFCLOCKP;
+		if (function == PrimitiveNode.Function.FLIPFLOPTN)    return FFTYPET  | FFCLOCKN;
 
-		if (function == PrimitiveNode.Function.VCCS) return TWOPVCCS;
-		if (function == PrimitiveNode.Function.CCVS) return TWOPCCVS;
-		if (function == PrimitiveNode.Function.VCVS) return TWOPVCVS;
-		if (function == PrimitiveNode.Function.CCCS) return TWOPCCCS;
-		if (function == PrimitiveNode.Function.TLINE) return TWOPTLINE;
+		if (function == PrimitiveNode.Function.VCCS)          return TWOPVCCS;
+		if (function == PrimitiveNode.Function.CCVS)          return TWOPCCVS;
+		if (function == PrimitiveNode.Function.VCVS)          return TWOPVCVS;
+		if (function == PrimitiveNode.Function.CCCS)          return TWOPCCCS;
+		if (function == PrimitiveNode.Function.TLINE)         return TWOPTLINE;
 
 		return 0;
 	}

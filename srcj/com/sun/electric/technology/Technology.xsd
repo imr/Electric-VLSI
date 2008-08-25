@@ -294,6 +294,8 @@
             <xsd:enumeration value="TRA4PMOSD"/>
             <xsd:enumeration value="TRA4NMOSNT"/>
             <xsd:enumeration value="TRA4PMOSNT"/>
+            <xsd:enumeration value="TRA4NMOSFG"/>
+            <xsd:enumeration value="TRA4PMOSFG"/>
             <xsd:enumeration value="TRA4NMOSVTL"/>
             <xsd:enumeration value="TRA4PMOSVTL"/>
             <xsd:enumeration value="TRA4NMOSVTH"/>
