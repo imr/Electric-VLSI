@@ -393,9 +393,6 @@ public class FileMenu {
 			}
 			FileType type = getLibraryFormat(fileName, FileType.DEFAULTLIB);
 			new ReadLibrary(fileURL, type, TextUtils.getFilePath(fileURL), deleteLib, saveTask, null);
-
-            User.addRecentlyOpenedLibrary(fileName);
-            updateRecentlyOpenedLibrariesList();
         }
     }
 
@@ -562,6 +559,9 @@ public class FileMenu {
 
             // Repair libraries.
             CircuitChanges.checkAndRepairCommand(true);
+
+            User.addRecentlyOpenedLibrary(fileURL.getFile());
+            updateRecentlyOpenedLibrariesList();
         }
 	}
 
