@@ -108,7 +108,7 @@ public class ExportMenu {
 			new EMenuItem("_Manipulate Exports...") { public void run() {
 				ManipulateExports.showDialog(); }},
 			new EMenuItem("_Follow Export Up Hierarchy") { public void run() {
-				ExportChanges.followExport(); }},
+				new ExportChanges.FollowExport(); }},
 
 			SEPARATOR,
 

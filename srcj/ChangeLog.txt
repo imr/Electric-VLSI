@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08d: ******************************
 
+IMP: (8/25/08, SMR) Made Export menu commands "Summarize Exports",
+     "List Exports", and "Follow Export Up Hierarchy" run in separate
+     threads (Bug #1807).
+
 BUG: (8/25/08, SMR) Cell history buttons don't work right in SDI mode (Bug #1753).
 FIX: In WindowFrame.WindowsEvents.windowActivated() must call fireCellHistoryStatus().
 

@@ -81,6 +81,11 @@ public final class ExportChanges
 {
 	/****************************** EXPORT LISTING ******************************/
 
+	public static void describeExports(boolean summarize)
+	{
+		new DescribeExports(summarize);
+	}
+
 	private static class ExportList
 	{
 		Export pp;
@@ -88,171 +93,150 @@ public final class ExportChanges
 		int busList;
 	}
 
-	public static void describeExports(boolean summarize)
+	/**
+	 * Class to rename an export in a new thread.
+	 */
+	private static class DescribeExports extends Job
 	{
-		Cell cell = WindowFrame.needCurCell();
-		if (cell == null) return;
-		Netlist netlist = cell.acquireUserNetlist();
-		if (netlist == null)
+		private boolean summarize;
+
+		protected DescribeExports(boolean summarize)
 		{
-			System.out.println("Sorry, a deadlock aborted your query (network information unavailable).  Please try again");
-			return;
+			super("Describe Exports", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
+			this.summarize = summarize;
+			startJob();
 		}
 
-		// compute the associated cell to check
-		Cell wnp = cell.contentsView();
-		if (wnp == null) wnp = cell.iconView();
-		if (wnp == cell) wnp = null;
-
-		// count the number of exports
-		if (cell.getNumPorts() == 0)
+		public boolean doIt() throws JobException
 		{
-			System.out.println("There are no exports on " + cell);
-			return;
-		}
-
-		// make a list of exports
-		List<ExportList> exports = new ArrayList<ExportList>();
-		for(Iterator<PortProto> it = cell.getPorts(); it.hasNext(); )
-		{
-			ExportList el = new ExportList();
-			el.pp = (Export)it.next();
-			el.equiv = -1;
-			el.busList = -1;
-			exports.add(el);
-		}
-
-		// sort exports by name within type
-		Collections.sort(exports, new ExportSortedByNameAndType());
-
-		// if summarizing, make associations that combine exports
-		int num_found = exports.size();
-		if (summarize)
-		{
-			// make associations among electrically equivalent exports
-			for(int j=0; j<num_found; j++)
+			Cell cell = WindowFrame.needCurCell();
+			if (cell == null) return false;
+			Netlist netlist = cell.acquireUserNetlist();
+			if (netlist == null)
 			{
-				int eqJ = exports.get(j).equiv;
-				int blJ = exports.get(j).busList;
-				if (eqJ != -1 || blJ != -1) continue;
-				Export ppJ = exports.get(j).pp;
-				for(int k=j+1; k<num_found; k++)
-				{
-					int eqK = exports.get(k).equiv;
-					int blK = exports.get(k).busList;
-					if (eqK != -1 || blK != -1) continue;
-					Export ppK = exports.get(k).pp;
-					if (ppJ.getCharacteristic() != ppK.getCharacteristic()) break;
-					if (!netlist.sameNetwork(ppJ.getOriginalPort().getNodeInst(), ppJ.getOriginalPort().getPortProto(),
-						ppK.getOriginalPort().getNodeInst(), ppK.getOriginalPort().getPortProto())) continue;
-					exports.get(k).equiv = j;
-					exports.get(j).equiv = -2;
-				}
+				System.out.println("Sorry, a deadlock aborted your query (network information unavailable).  Please try again");
+				return false;
 			}
 
-			// make associations among bussed exports
-			for(int j=0; j<num_found; j++)
-			{
-				int eqJ = exports.get(j).equiv;
-				int blJ = exports.get(j).busList;
-				if (eqJ != -1 || blJ != -1) continue;
-				Export ppJ = exports.get(j).pp;
-				String ptJ = ppJ.getName();
-				int sqPosJ = ptJ.indexOf('[');
-				if (sqPosJ < 0) continue;
-				for(int k=j+1; k<num_found; k++)
-				{
-					int eqK = exports.get(k).equiv;
-					int blK = exports.get(k).busList;
-					if (eqK != -1 || blK != -1) continue;
-					Export ppK = exports.get(k).pp;
-					if (ppJ.getCharacteristic() != ppK.getCharacteristic()) break;
+			// compute the associated cell to check
+			Cell wnp = cell.contentsView();
+			if (wnp == null) wnp = cell.iconView();
+			if (wnp == cell) wnp = null;
 
-					String ptK = ppK.getName();
-					int sqPosK = ptK.indexOf('[');
-					if (sqPosJ != sqPosK) continue;
-					if (ptJ.substring(0, sqPosJ).equalsIgnoreCase(ptK.substring(0, sqPosK)))
+			// count the number of exports
+			if (cell.getNumPorts() == 0)
+			{
+				System.out.println("There are no exports on " + cell);
+				return true;
+			}
+
+			// make a list of exports
+			List<ExportList> exports = new ArrayList<ExportList>();
+			for(Iterator<PortProto> it = cell.getPorts(); it.hasNext(); )
+			{
+				ExportList el = new ExportList();
+				el.pp = (Export)it.next();
+				el.equiv = -1;
+				el.busList = -1;
+				exports.add(el);
+			}
+
+			// sort exports by name within type
+			Collections.sort(exports, new ExportSortedByNameAndType());
+
+			// if summarizing, make associations that combine exports
+			int num_found = exports.size();
+			if (summarize)
+			{
+				// make associations among electrically equivalent exports
+				for(int j=0; j<num_found; j++)
+				{
+					int eqJ = exports.get(j).equiv;
+					int blJ = exports.get(j).busList;
+					if (eqJ != -1 || blJ != -1) continue;
+					Export ppJ = exports.get(j).pp;
+					for(int k=j+1; k<num_found; k++)
 					{
-						exports.get(k).busList = j;
-						exports.get(j).busList = -2;
+						int eqK = exports.get(k).equiv;
+						int blK = exports.get(k).busList;
+						if (eqK != -1 || blK != -1) continue;
+						Export ppK = exports.get(k).pp;
+						if (ppJ.getCharacteristic() != ppK.getCharacteristic()) break;
+						if (!netlist.sameNetwork(ppJ.getOriginalPort().getNodeInst(), ppJ.getOriginalPort().getPortProto(),
+							ppK.getOriginalPort().getNodeInst(), ppK.getOriginalPort().getPortProto())) continue;
+						exports.get(k).equiv = j;
+						exports.get(j).equiv = -2;
+					}
+				}
+
+				// make associations among bussed exports
+				for(int j=0; j<num_found; j++)
+				{
+					int eqJ = exports.get(j).equiv;
+					int blJ = exports.get(j).busList;
+					if (eqJ != -1 || blJ != -1) continue;
+					Export ppJ = exports.get(j).pp;
+					String ptJ = ppJ.getName();
+					int sqPosJ = ptJ.indexOf('[');
+					if (sqPosJ < 0) continue;
+					for(int k=j+1; k<num_found; k++)
+					{
+						int eqK = exports.get(k).equiv;
+						int blK = exports.get(k).busList;
+						if (eqK != -1 || blK != -1) continue;
+						Export ppK = exports.get(k).pp;
+						if (ppJ.getCharacteristic() != ppK.getCharacteristic()) break;
+	
+						String ptK = ppK.getName();
+						int sqPosK = ptK.indexOf('[');
+						if (sqPosJ != sqPosK) continue;
+						if (ptJ.substring(0, sqPosJ).equalsIgnoreCase(ptK.substring(0, sqPosK)))
+						{
+							exports.get(k).busList = j;
+							exports.get(j).busList = -2;
+						}
 					}
 				}
 			}
-		}
 
-		// describe each export
-		System.out.println("----- Exports on " + cell + ": total " + num_found + " -----");
-		Set<ArcProto> arcsSeen = new HashSet<ArcProto>();
-		for(int j=0; j<num_found; j++)
-		{
-			ExportList el = exports.get(j);
-			Export pp = el.pp;
-			if (el.equiv >= 0 || el.busList >= 0) continue;
-
-			// reset flags for arcs that can connect
-			for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
+			// describe each export
+			System.out.println("----- Exports on " + cell + ": total " + num_found + " -----");
+			Set<ArcProto> arcsSeen = new HashSet<ArcProto>();
+			for(int j=0; j<num_found; j++)
 			{
-				Technology tech = it.next();
-				for(Iterator<ArcProto> aIt = tech.getArcs(); aIt.hasNext(); )
+				ExportList el = exports.get(j);
+				Export pp = el.pp;
+				if (el.equiv >= 0 || el.busList >= 0) continue;
+
+				// reset flags for arcs that can connect
+				for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 				{
-					ArcProto ap = aIt.next();
-					arcsSeen.remove(ap);
-				}
-			}
-
-			String infstr = "";
-			String activity = pp.getCharacteristic().getFullName();
-			int m = j+1;
-			for( ; m<num_found; m++)
-			{
-				if (exports.get(m).equiv == j) break;
-			}
-			double lx = 0, hx = 0, ly = 0, hy = 0;
-			if (m < num_found)
-			{
-				// many exports that are electrically equivalent
-				infstr += activity + " exports ";
-				for(int k=j; k<num_found; k++)
-				{
-					if (j != k && exports.get(k).equiv != j) continue;
-					if (j != k) infstr += ", ";
-					Export opp = exports.get(k).pp;
-					infstr += "'" + opp.getName() + "'";
-					Poly poly = opp.getOriginalPort().getPoly();
-					double x = poly.getCenterX();
-					double y = poly.getCenterY();
-					if (j == k)
+					Technology tech = it.next();
+					for(Iterator<ArcProto> aIt = tech.getArcs(); aIt.hasNext(); )
 					{
-						lx = hx = x;   ly = hy = y;
-					} else
-					{
-						if (x < lx) lx = x;
-						if (x > hx) hx = x;
-						if (y < ly) ly = y;
-						if (y > hy) hy = y;
+						ArcProto ap = aIt.next();
+						arcsSeen.remove(ap);
 					}
-					ArcProto [] arcList = opp.getBasePort().getConnections();
-					for(int a=0; a<arcList.length; a++)
-						arcsSeen.add(arcList[a]);
 				}
-				infstr += " at (" + lx + "<=X<=" + hx + ", " + ly + "<=Y<=" + hy + "), electrically connected to";
-				infstr = addPossibleArcConnections(infstr, arcsSeen);
-			} else
-			{
-				m = j + 1;
+
+				String infstr = "";
+				String activity = pp.getCharacteristic().getFullName();
+				int m = j+1;
 				for( ; m<num_found; m++)
 				{
-					if (exports.get(m).busList == j) break;
+					if (exports.get(m).equiv == j) break;
 				}
+				double lx = 0, hx = 0, ly = 0, hy = 0;
 				if (m < num_found)
 				{
-					// many exports from the same bus
-					int tot = 0;
+					// many exports that are electrically equivalent
+					infstr += activity + " exports ";
 					for(int k=j; k<num_found; k++)
 					{
-						if (j != k && exports.get(k).busList != j) continue;
-						tot++;
+						if (j != k && exports.get(k).equiv != j) continue;
+						if (j != k) infstr += ", ";
 						Export opp = exports.get(k).pp;
+						infstr += "'" + opp.getName() + "'";
 						Poly poly = opp.getOriginalPort().getPoly();
 						double x = poly.getCenterX();
 						double y = poly.getCenterY();
@@ -270,67 +254,104 @@ public final class ExportChanges
 						for(int a=0; a<arcList.length; a++)
 							arcsSeen.add(arcList[a]);
 					}
-
-					List<Export> sortedBusList = new ArrayList<Export>();
-					sortedBusList.add(exports.get(j).pp);
-					for(int k=j+1; k<num_found; k++)
-					{
-						ExportList elK = exports.get(k);
-						if (elK.busList == j) sortedBusList.add(elK.pp);
-					}
-
-					// sort the bus by indices
-					Collections.sort(sortedBusList, new ExportSortedByBusIndex());
-
-					boolean first = true;
-					for(Export ppS : sortedBusList)
-					{
-						String pt1 = ppS.getName();
-						int openPos = pt1.indexOf('[');
-						if (first)
-						{
-							infstr += activity + " ports '" + pt1.substring(0, openPos) + "[";
-							first = false;
-						} else
-						{
-							infstr += ",";
-						}
-						int closePos = pt1.lastIndexOf(']');
-						infstr += pt1.substring(openPos+1, closePos);
-					}
-					infstr += "]' at (" + lx + "<=X<=" + hx + ", " + ly + "<=Y<=" + hy + "), same bus, connects to";
+					infstr += " at (" + lx + "<=X<=" + hx + ", " + ly + "<=Y<=" + hy + "), electrically connected to";
 					infstr = addPossibleArcConnections(infstr, arcsSeen);
 				} else
 				{
-					// isolated export
-					Poly poly = pp.getOriginalPort().getPoly();
-					double x = poly.getCenterX();
-					double y = poly.getCenterY();
-					infstr += activity + " export '" + pp.getName() + "' at (" + x + ", " + y + ") connects to";
-					ArcProto [] arcList = pp.getBasePort().getConnections();
-					for(int a=0; a<arcList.length; a++)
-						arcsSeen.add(arcList[a]);
-					infstr = addPossibleArcConnections(infstr, arcsSeen);
-
-					// check for the export in the associated cell
-					if (wnp != null)
+					m = j + 1;
+					for( ; m<num_found; m++)
 					{
-						if (pp.getEquivalentPort(wnp) == null)
-							infstr += " *** no equivalent in " + wnp;
+						if (exports.get(m).busList == j) break;
+					}
+					if (m < num_found)
+					{
+						// many exports from the same bus
+						int tot = 0;
+						for(int k=j; k<num_found; k++)
+						{
+							if (j != k && exports.get(k).busList != j) continue;
+							tot++;
+							Export opp = exports.get(k).pp;
+							Poly poly = opp.getOriginalPort().getPoly();
+							double x = poly.getCenterX();
+							double y = poly.getCenterY();
+							if (j == k)
+							{
+								lx = hx = x;   ly = hy = y;
+							} else
+							{
+								if (x < lx) lx = x;
+								if (x > hx) hx = x;
+								if (y < ly) ly = y;
+								if (y > hy) hy = y;
+							}
+							ArcProto [] arcList = opp.getBasePort().getConnections();
+							for(int a=0; a<arcList.length; a++)
+								arcsSeen.add(arcList[a]);
+						}
+
+						List<Export> sortedBusList = new ArrayList<Export>();
+						sortedBusList.add(exports.get(j).pp);
+						for(int k=j+1; k<num_found; k++)
+						{
+							ExportList elK = exports.get(k);
+							if (elK.busList == j) sortedBusList.add(elK.pp);
+						}
+
+						// sort the bus by indices
+						Collections.sort(sortedBusList, new ExportSortedByBusIndex());
+
+						boolean first = true;
+						for(Export ppS : sortedBusList)
+						{
+							String pt1 = ppS.getName();
+							int openPos = pt1.indexOf('[');
+							if (first)
+							{
+								infstr += activity + " ports '" + pt1.substring(0, openPos) + "[";
+								first = false;
+							} else
+							{
+								infstr += ",";
+							}
+							int closePos = pt1.lastIndexOf(']');
+							infstr += pt1.substring(openPos+1, closePos);
+						}
+						infstr += "]' at (" + lx + "<=X<=" + hx + ", " + ly + "<=Y<=" + hy + "), same bus, connects to";
+						infstr = addPossibleArcConnections(infstr, arcsSeen);
+					} else
+					{
+						// isolated export
+						Poly poly = pp.getOriginalPort().getPoly();
+						double x = poly.getCenterX();
+						double y = poly.getCenterY();
+						infstr += activity + " export '" + pp.getName() + "' at (" + x + ", " + y + ") connects to";
+						ArcProto [] arcList = pp.getBasePort().getConnections();
+						for(int a=0; a<arcList.length; a++)
+							arcsSeen.add(arcList[a]);
+						infstr = addPossibleArcConnections(infstr, arcsSeen);
+	
+						// check for the export in the associated cell
+						if (wnp != null)
+						{
+							if (pp.getEquivalentPort(wnp) == null)
+								infstr += " *** no equivalent in " + wnp;
+						}
 					}
 				}
-			}
 
-			TextUtils.printLongString(infstr);
-		}
-		if (wnp != null)
-		{
-			for(Iterator<PortProto> it = wnp.getPorts(); it.hasNext(); )
-			{
-				Export pp = (Export)it.next();
-				if (pp.getEquivalentPort(cell) == null)
-					System.out.println("*** Export " + pp.getName() + ", found in " + wnp + ", is missing here");
+				TextUtils.printLongString(infstr);
 			}
+			if (wnp != null)
+			{
+				for(Iterator<PortProto> it = wnp.getPorts(); it.hasNext(); )
+				{
+					Export pp = (Export)it.next();
+					if (pp.getEquivalentPort(cell) == null)
+						System.out.println("*** Export " + pp.getName() + ", found in " + wnp + ", is missing here");
+				}
+			}
+			return true;
 		}
 	}
 
@@ -406,70 +427,42 @@ public final class ExportChanges
 	}
 
 	/**
-	 * Method to follow the current export up the hierarchy.
+	 * Class to follow the current export up the hierarchy.
 	 * Lists all networks and exports connected in higher cells.
 	 */
-	public static void followExport()
+	public static class FollowExport extends Job
 	{
-		// make sure there is a current cell
-		Cell cell = WindowFrame.needCurCell();
-		if (cell == null) return;
-
-		List<Export> exportsToFollow = getSelectedExports();
-		if (exportsToFollow.size() == 0)
+		public FollowExport()
 		{
-			System.out.println("There are no selected exports to follow");
-			return;
+			super("Re-export highlighted", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			startJob();
 		}
 
-		Map<Cell,Set<Network>> networksSeen = new HashMap<Cell,Set<Network>>();
-		Map<Cell,Set<Export>> exportsSeen = new HashMap<Cell,Set<Export>>();
-		List<Export> exportsFollowed = new ArrayList<Export>();
-		for(Export e : exportsToFollow) exportsFollowed.add(e);
-
-		for(int i=0; i<exportsFollowed.size(); i++)
+		public boolean doIt() throws JobException
 		{
-			Export e = exportsFollowed.get(i);
-			Cell upperCell = e.getParent();
-			for(Iterator<NodeInst> nIt = upperCell.getInstancesOf(); nIt.hasNext(); )
-			{
-				NodeInst ni = nIt.next();
-				Cell higher = ni.getParent();
-				Set<Network> netsSeenInCell = networksSeen.get(higher);
-				if (netsSeenInCell == null)
-				{
-					netsSeenInCell = new HashSet<Network>();
-					networksSeen.put(higher, netsSeenInCell);
-				}
-				Netlist nl = higher.acquireUserNetlist();
-				Network net = nl.getNetwork(ni, e, 0);
-				if (net == null) continue;
-				if (netsSeenInCell.contains(net)) continue;
-				netsSeenInCell.add(net);
+			// make sure there is a current cell
+			Cell cell = WindowFrame.needCurCell();
+			if (cell == null) return false;
 
-				for(Iterator<Export> it = net.getExports(); it.hasNext(); )
-				{
-					Export furtherUp = it.next();
-					Set<Export> exportsSeenInCell = exportsSeen.get(higher);
-					if (exportsSeenInCell == null)
-					{
-						exportsSeenInCell = new HashSet<Export>();
-						exportsSeen.put(higher, exportsSeenInCell);
-					}
-					if (exportsSeenInCell.contains(furtherUp)) continue;
-					exportsSeenInCell.add(furtherUp);
-					exportsFollowed.add(furtherUp);
-				}
+			List<Export> exportsToFollow = getSelectedExports();
+			if (exportsToFollow.size() == 0)
+			{
+				System.out.println("There are no selected exports to follow");
+				return false;
 			}
 
-			// now consider icon cells
-			Cell iconCell = upperCell.iconView();
-			if (iconCell != null)
+			Map<Cell,Set<Network>> networksSeen = new HashMap<Cell,Set<Network>>();
+			Map<Cell,Set<Export>> exportsSeen = new HashMap<Cell,Set<Export>>();
+			List<Export> exportsFollowed = new ArrayList<Export>();
+			for(Export e : exportsToFollow) exportsFollowed.add(e);
+
+			for(int i=0; i<exportsFollowed.size(); i++)
 			{
-				for(Iterator<NodeInst> nIt = iconCell.getInstancesOf(); nIt.hasNext(); )
+				Export e = exportsFollowed.get(i);
+				Cell upperCell = e.getParent();
+				for(Iterator<NodeInst> nIt = upperCell.getInstancesOf(); nIt.hasNext(); )
 				{
 					NodeInst ni = nIt.next();
-					if (ni.isIconOfParent()) continue;
 					Cell higher = ni.getParent();
 					Set<Network> netsSeenInCell = networksSeen.get(higher);
 					if (netsSeenInCell == null)
@@ -479,6 +472,7 @@ public final class ExportChanges
 					}
 					Netlist nl = higher.acquireUserNetlist();
 					Network net = nl.getNetwork(ni, e, 0);
+					if (net == null) continue;
 					if (netsSeenInCell.contains(net)) continue;
 					netsSeenInCell.add(net);
 
@@ -496,52 +490,89 @@ public final class ExportChanges
 						exportsFollowed.add(furtherUp);
 					}
 				}
-			}
-		}
-		if (networksSeen.size() == 0)
-		{
-			System.out.println("The selected Exports are not used anywhere");
-			return;
-		}
 
-		if (exportsToFollow.size() > 1)
-		{
-			System.out.print("The Exports ");
-			for(int i=0; i<exportsToFollow.size(); i++)
-			{
-				if (i > 0) System.out.print(",");
-				System.out.print(" " + exportsToFollow.get(i).getName());
-			}
-			System.out.println(" are used:");
-		} else System.out.println("The Export " + exportsToFollow.get(0).getName() + " is used:");
+				// now consider icon cells
+				Cell iconCell = upperCell.iconView();
+				if (iconCell != null)
+				{
+					for(Iterator<NodeInst> nIt = iconCell.getInstancesOf(); nIt.hasNext(); )
+					{
+						NodeInst ni = nIt.next();
+						if (ni.isIconOfParent()) continue;
+						Cell higher = ni.getParent();
+						Set<Network> netsSeenInCell = networksSeen.get(higher);
+						if (netsSeenInCell == null)
+						{
+							netsSeenInCell = new HashSet<Network>();
+							networksSeen.put(higher, netsSeenInCell);
+						}
+						Netlist nl = higher.acquireUserNetlist();
+						Network net = nl.getNetwork(ni, e, 0);
+						if (netsSeenInCell.contains(net)) continue;
+						netsSeenInCell.add(net);
 
-		for(Cell c : networksSeen.keySet())
-		{
-			Set<Network> netsSeenInCell = networksSeen.get(c);
-			Set<Export> exportsSeenInCell = exportsSeen.get(c);
-			System.out.print("   Cell " + c.describe(false));
-			if (netsSeenInCell.size() > 1) System.out.print(" networks"); else
-				System.out.print(" network");
-			boolean comma = false;
-			for(Network n : netsSeenInCell)
-			{
-				if (comma) System.out.print(",");
-				comma = true;
-				System.out.print(" " + n.getName());
+						for(Iterator<Export> it = net.getExports(); it.hasNext(); )
+						{
+							Export furtherUp = it.next();
+							Set<Export> exportsSeenInCell = exportsSeen.get(higher);
+							if (exportsSeenInCell == null)
+							{
+								exportsSeenInCell = new HashSet<Export>();
+								exportsSeen.put(higher, exportsSeenInCell);
+							}
+							if (exportsSeenInCell.contains(furtherUp)) continue;
+							exportsSeenInCell.add(furtherUp);
+							exportsFollowed.add(furtherUp);
+						}
+					}
+				}
 			}
-			System.out.println();
-			if (exportsSeenInCell != null)
+			if (networksSeen.size() == 0)
 			{
-				System.out.print("      And further exported as");
-				comma = false;
-				for(Export e : exportsSeenInCell)
+				System.out.println("The selected Exports are not used anywhere");
+				return true;
+			}
+
+			if (exportsToFollow.size() > 1)
+			{
+				System.out.print("The Exports ");
+				for(int i=0; i<exportsToFollow.size(); i++)
+				{
+					if (i > 0) System.out.print(",");
+					System.out.print(" " + exportsToFollow.get(i).getName());
+				}
+				System.out.println(" are used:");
+			} else System.out.println("The Export " + exportsToFollow.get(0).getName() + " is used:");
+
+			for(Cell c : networksSeen.keySet())
+			{
+				Set<Network> netsSeenInCell = networksSeen.get(c);
+				Set<Export> exportsSeenInCell = exportsSeen.get(c);
+				System.out.print("   Cell " + c.describe(false));
+				if (netsSeenInCell.size() > 1) System.out.print(" networks"); else
+					System.out.print(" network");
+				boolean comma = false;
+				for(Network n : netsSeenInCell)
 				{
 					if (comma) System.out.print(",");
 					comma = true;
-					System.out.print(" " + e.getName());
+					System.out.print(" " + n.getName());
 				}
 				System.out.println();
+				if (exportsSeenInCell != null)
+				{
+					System.out.print("      And further exported as");
+					comma = false;
+					for(Export e : exportsSeenInCell)
+					{
+						if (comma) System.out.print(",");
+						comma = true;
+						System.out.print(" " + e.getName());
+					}
+					System.out.println();
+				}
 			}
+			return true;
 		}
 	}
 
