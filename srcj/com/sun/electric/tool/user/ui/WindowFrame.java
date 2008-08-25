@@ -1368,6 +1368,7 @@ public class WindowFrame extends Observable
 			WindowFrame realWF = wf.get();
 			realWF.usageClock = usageCounter++;
 			WindowFrame.setCurrentWindowFrame(realWF);
+			realWF.fireCellHistoryStatus();                // update tool bar history buttons
 		}
 
 		public void windowClosing(WindowEvent evt)

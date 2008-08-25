@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08d: ******************************
 
+BUG: (8/25/08, SMR) Cell history buttons don't work right in SDI mode (Bug #1753).
+FIX: In WindowFrame.WindowsEvents.windowActivated() must call fireCellHistoryStatus().
+
 BUG: (8/25/08, SMR) Dragging a cell group from the explorer tree to a window
      shows no outline (Bug #1809).
 FIX: In EditWindow, when dropping, handle cell groups.
