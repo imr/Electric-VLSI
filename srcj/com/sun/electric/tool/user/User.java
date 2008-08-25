@@ -2235,13 +2235,11 @@ public class User extends Listener
 	public static void addRecentlyOpenedLibrary(String s) {
 		int maxLength = 6;
 		String [] libs = getRecentlyOpenedLibraries();
-		for (String l : libs) {
-			if (l.equals(s)) return;
-		}
 		StringBuffer buf = new StringBuffer();
 		buf.append(s);
 		for (int i=0; i<maxLength && i<libs.length; i++) {
-			buf.append("\n");
+            if (s.equals(libs[i])) continue;
+            buf.append("\n");
 			buf.append(libs[i]);
 		}
 		cacheRecentlyOpenedLibraries.setString(buf.toString());
