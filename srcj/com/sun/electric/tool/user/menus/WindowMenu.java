@@ -193,7 +193,7 @@ public class WindowMenu {
                     blackBackgroundCommand(); }},
                 new EMenuItem("_White Background Colors") { public void run() {
                     whiteBackgroundCommand(); }},
-                new EMenuItem("_Cadence Colors and Keystrokes") { public void run() {
+                new EMenuItem("_Cadence Colors, Layers and Keystrokes") { public void run() {
                     importCadencePreferences(); }}
                     ),
 
