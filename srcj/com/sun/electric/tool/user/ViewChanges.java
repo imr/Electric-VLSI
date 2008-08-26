@@ -1256,7 +1256,7 @@ public class ViewChanges
 				TransistorSize ts = mosNI.getTransistorSize(VarContext.globalContext);
 				if (ts != null)
 				{
-					if (mosNI.isFET())
+					if (mosNI.getFunction().isFET())
 					{
 						// set length/width
 						TextDescriptor td = TextDescriptor.getNodeTextDescriptor().withRelSize(0.5).withOff(-0.5, -1);

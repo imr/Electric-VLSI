@@ -347,7 +347,10 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 		swapXY = false;
 		if (initialRotation == 900 || initialRotation == 2700) swapXY = true;
 
-		type.setText(np.describe(false));
+		String protoName = np.describe(false);
+		String extra = ni.getTechSpecificAddition();
+		if (extra.length() > 0) protoName += " (" + extra + ")";
+		type.setText(protoName);
 		name.setText(initialName);
 		xPos.setText(TextUtils.formatDouble(initialXPos));
 		yPos.setText(TextUtils.formatDouble(initialYPos));
@@ -514,7 +517,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 		PrimitiveNode.Function fun = ni.getFunction();
 		if (np == Schematics.tech().transistorNode || np == Schematics.tech().transistor4Node)
 		{
-			if (!ni.isFET())
+			if (!ni.getFunction().isFET())
 			{
 				textField.setEditable(true);
 				textFieldLabel.setText("Area:");
@@ -1031,7 +1034,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 					np == Schematics.tech().resistorNode)
 				{
 					Object width, length;
-					if (ni.isFET() || ni.getFunction() == PrimitiveNode.Function.PRESIST)
+					if (ni.getFunction().isFET() || ni.getFunction() == PrimitiveNode.Function.PRESIST)
 					{
 						// see if we can convert width and length to a Number
 						double w = TextUtils.atof(currentXSize, null);

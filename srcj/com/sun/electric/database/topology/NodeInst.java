@@ -2033,7 +2033,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 			protoType == Artwork.tech().openedDashedPolygonNode ||
 			protoType == Artwork.tech().openedThickerPolygonNode)
 				return false;
-		if (isFET()) return false;
+		if (getFunction().isFET()) return false;
 		return true;
 	}
 
@@ -2838,6 +2838,38 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	}
 
 	/**
+	 * Method to return a string that describes any technology-specific additions
+	 * to this NodeInst's prototype name.
+	 * @return an extra description of this NodeInst's prototype (may be an empty string).
+	 */
+	public String getTechSpecificAddition()
+	{
+		if (protoType instanceof PrimitiveNode && ((PrimitiveNode)protoType).isTechSpecific())
+		{
+			String description = protoType.describe(false);
+			PrimitiveNode.Function fun = getFunction();
+			String funName = fun.getName();
+			String funNameLC = funName.toLowerCase();
+			String descLC = description.toLowerCase();
+			if (!descLC.equals(funNameLC))
+			{
+				if (funNameLC.startsWith(descLC))
+				{
+					funName = funName.substring(description.length());
+					if (funName.startsWith("-")) funName = funName.substring(1);
+				}
+				if (funNameLC.endsWith(descLC))
+				{
+					funName = funName.substring(0, funName.length()-description.length());
+					if (funName.endsWith("-")) funName = funName.substring(0, funName.length()-1);
+				}
+				return funName;
+			}
+		}
+		return "";
+	}
+
+	/**
 	 * Method to describe this NodeInst as a string.
      * @param withQuotes to wrap description between quotes
 	 * @return a description of this NodeInst as a string.
@@ -2845,6 +2877,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	public String describe(boolean withQuotes)
 	{
 		String description = protoType.describe(false);
+		String extra = getTechSpecificAddition();
+		if (extra.length() > 0) description += "(" + extra + ")";
 		String name = (withQuotes) ? "'"+getName()+"'" : getName();
 		if (name != null) description += "[" + name + "]";
 		return description;
@@ -2925,24 +2959,13 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 
     /**
      * Method to see if this NodeInst is a Primitive Transistor.
-     * Use getFunction() to determine what specific transitor type it is,
-     * if any.
+     * Use getFunction() to determine what specific transitor type it is, if any.
      * @return true if NodeInst represents Primitive Transistor
      */
     public boolean isPrimitiveTransistor()
     {
         PrimitiveNode.Function func = protoType.getFunction(); // note bypasses ni.getFunction() call
-        if (func == PrimitiveNode.Function.TRANS ||            // covers all Schematic trans
-            func == PrimitiveNode.Function.TRANS4 ||           // covers all Schematic trans4
-            func == PrimitiveNode.Function.TRANMOS ||          // covers all MoCMOS nmos gates
-            func == PrimitiveNode.Function.TRAPMOS ||          // covers all MoCMOS pmos gates
-            func == PrimitiveNode.Function.TRANPN ||           // layout NPN
-            func == PrimitiveNode.Function.TRA4NPN ||          // layout NPN
-            func == PrimitiveNode.Function.TRAPNP ||           // layout PNP
-            func == PrimitiveNode.Function.TRA4PNP             // layout PNP
-            )
-            return true;
-        return false;
+        return func.isTransistor();
     }
 
 	/**
@@ -2968,27 +2991,27 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         return false;
     }
 
-	/**
-	 * Method to tell whether this NodeInst is a field-effect transtor.
-	 * This includes the nMOS, PMOS, and DMOS transistors, as well as the DMES and EMES transistors.
-	 * @return true if this NodeInst is a field-effect transtor.
-	 */
-	public boolean isFET()
-	{
-		PrimitiveNode.Function fun = getFunction();
-		return fun.isFET();
-	}
+//	/**
+//	 * Method to tell whether this NodeInst is a field-effect transtor.
+//	 * This includes the nMOS, PMOS, and DMOS transistors, as well as the DMES and EMES transistors.
+//	 * @return true if this NodeInst is a field-effect transtor.
+//	 */
+//	public boolean isFET()
+//	{
+//		PrimitiveNode.Function fun = getFunction();
+//		return fun.isFET();
+//	}
 
-	/**
-	 * Method to tell whether this NodeInst is a bipolar transistor.
-	 * This includes NPN and PNP transistors.
-	 * @return true if this NodeInst is a bipolar transtor.
-	 */
-	public boolean isBipolar()
-	{
-		PrimitiveNode.Function fun = getFunction();
-		return fun.isBipolar();
-	}
+//	/**
+//	 * Method to tell whether this NodeInst is a bipolar transistor.
+//	 * This includes NPN and PNP transistors.
+//	 * @return true if this NodeInst is a bipolar transtor.
+//	 */
+//	public boolean isBipolar()
+//	{
+//		PrimitiveNode.Function fun = getFunction();
+//		return fun.isBipolar();
+//	}
 
     /**
 	 * Method to return the size of this PrimitiveNode-type NodeInst.
@@ -3038,7 +3061,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
      */
     public void setPrimitiveNodeSize(double width, double length)
     {
-        if (!isPrimitiveTransistor() && !isFET() && !getFunction().isResistor()) return;
+        if (!isPrimitiveTransistor() && !getFunction().isFET() && !getFunction().isResistor()) return;
 		PrimitiveNode np = (PrimitiveNode)protoType;
         checkChanging();
         np.getTechnology().setPrimitiveNodeSize(this, width, length);

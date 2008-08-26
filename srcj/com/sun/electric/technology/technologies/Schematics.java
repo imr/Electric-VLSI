@@ -175,7 +175,8 @@ public class Schematics extends Technology
 	private Technology.NodeLayer [] ffLayersJKMS, ffLayersJKP, ffLayersJKN;
 	private Technology.NodeLayer [] ffLayersDMS, ffLayersDP, ffLayersDN;
 	private Technology.NodeLayer [] ffLayersTMS, ffLayersTP, ffLayersTN;
-	private Technology.NodeLayer [] tranLayersN, tranLayersP, tranLayersNd, tranLayersPd;
+	private Technology.NodeLayer [] tranLayersN, tranLayersP;
+	private Technology.NodeLayer [] tranLayersNd, tranLayersPd;
 	private Technology.NodeLayer [] tranLayersNnT, tranLayersPnT;
 	private Technology.NodeLayer [] tranLayersNfG, tranLayersPfG;
 	private Technology.NodeLayer [] tranLayersNvtL, tranLayersPvtL;
@@ -190,7 +191,8 @@ public class Schematics extends Technology
 	private Technology.NodeLayer [] tranLayersNJFET, tranLayersPJFET;
 	private Technology.NodeLayer [] tranLayersDMES, tranLayersEMES;
 	private Technology.NodeLayer [] twoLayersDefault, twoLayersVCVS, twoLayersVCCS, twoLayersCCVS, twoLayersCCCS, twoLayersTran;
-	private Technology.NodeLayer [] tran4LayersN, tran4LayersP, tran4LayersNd, tran4LayersPd;
+	private Technology.NodeLayer [] tran4LayersN, tran4LayersP;
+	private Technology.NodeLayer [] tran4LayersNd, tran4LayersPd;
 	private Technology.NodeLayer [] tran4LayersNnT, tran4LayersPnT;
 	private Technology.NodeLayer [] tran4LayersNfG, tran4LayersPfG;
 	private Technology.NodeLayer [] tran4LayersNvtL, tran4LayersPvtL;
@@ -1719,23 +1721,46 @@ public class Schematics extends Technology
 		{
 			if (nmos)
 			{
-				layers.add(new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-					new Technology.TechPoint(LEFTBYP5, BOTBYP5),
-					new Technology.TechPoint(LEFTBYP5, EdgeV.makeBottomEdge()),
-					new Technology.TechPoint(LEFTBYP5, BOTBYP5),
-					new Technology.TechPoint(LEFTBYP35, BOTBYP75),
-					new Technology.TechPoint(LEFTBYP5, BOTBYP5),
-					new Technology.TechPoint(LEFTBYP66, BOTBYP75)}));
+				if (depletion)
+				{
+					layers.add(new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+						new Technology.TechPoint(LEFTBYP5, BOTBYP75),
+						new Technology.TechPoint(LEFTBYP5, EdgeV.makeBottomEdge()),
+						new Technology.TechPoint(LEFTBYP5, BOTBYP75),
+						new Technology.TechPoint(LEFTBYP4, BOTBYP875),
+						new Technology.TechPoint(LEFTBYP5, BOTBYP75),
+						new Technology.TechPoint(LEFTBYP6, BOTBYP875)}));
+				} else
+				{
+					layers.add(new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+						new Technology.TechPoint(LEFTBYP5, BOTBYP5),
+						new Technology.TechPoint(LEFTBYP5, EdgeV.makeBottomEdge()),
+						new Technology.TechPoint(LEFTBYP5, BOTBYP5),
+						new Technology.TechPoint(LEFTBYP35, BOTBYP75),
+						new Technology.TechPoint(LEFTBYP5, BOTBYP5),
+						new Technology.TechPoint(LEFTBYP66, BOTBYP75)}));
+				}
 			} else
 			{
-				layers.add(new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-					new Technology.TechPoint(LEFTBYP5, BOTBYP5),
-					new Technology.TechPoint(LEFTBYP5, EdgeV.makeBottomEdge()),
-					new Technology.TechPoint(LEFTBYP5, EdgeV.makeBottomEdge()),
-					new Technology.TechPoint(LEFTBYP35, BOTBYP75),
-					new Technology.TechPoint(LEFTBYP5, EdgeV.makeBottomEdge()),
-					new Technology.TechPoint(LEFTBYP66, BOTBYP75)}));
-
+				if (depletion)
+				{
+					layers.add(new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+						new Technology.TechPoint(LEFTBYP5, BOTBYP75),
+						new Technology.TechPoint(LEFTBYP5, EdgeV.makeBottomEdge()),
+						new Technology.TechPoint(LEFTBYP5, EdgeV.makeBottomEdge()),
+						new Technology.TechPoint(LEFTBYP4, BOTBYP875),
+						new Technology.TechPoint(LEFTBYP5, EdgeV.makeBottomEdge()),
+						new Technology.TechPoint(LEFTBYP6, BOTBYP875)}));
+				} else
+				{
+					layers.add(new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+						new Technology.TechPoint(LEFTBYP5, BOTBYP5),
+						new Technology.TechPoint(LEFTBYP5, EdgeV.makeBottomEdge()),
+						new Technology.TechPoint(LEFTBYP5, EdgeV.makeBottomEdge()),
+						new Technology.TechPoint(LEFTBYP35, BOTBYP75),
+						new Technology.TechPoint(LEFTBYP5, EdgeV.makeBottomEdge()),
+						new Technology.TechPoint(LEFTBYP66, BOTBYP75)}));
+				}
 			}
 		}
 		Technology.NodeLayer [] descr = new Technology.NodeLayer[layers.size()];
@@ -2659,7 +2684,7 @@ public class Schematics extends Technology
 	 */
 	public TransistorSize getTransistorSize(NodeInst ni, VarContext context)
 	{
-		if (ni.isFET())
+		if (ni.getFunction().isFET())
 		{
             Object lengthObj = null;
             Variable var = ni.getVar(ATTR_LENGTH);
@@ -2749,7 +2774,7 @@ public class Schematics extends Technology
      */
     public void setPrimitiveNodeSize(NodeInst ni, Object width, Object length)
     {
-        if (ni.isFET() || ni.getFunction().isResistor())
+        if (ni.getFunction().isFET() || ni.getFunction().isResistor())
         {
             Variable var = ni.getVar(ATTR_LENGTH);
             if (var == null)

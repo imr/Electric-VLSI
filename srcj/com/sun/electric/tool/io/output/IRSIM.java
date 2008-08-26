@@ -177,7 +177,7 @@ public class IRSIM extends Output
             TransistorSize dim = ni.getTransistorSize(info.getContext());
             if (dim != null && (dim.getDoubleLength() == 0 || dim.getDoubleWidth() == 0))
             {
-            	if (ni.isFET())
+            	if (ni.getFunction().isFET())
             	{
             		double len = dim.getDoubleLength();
             		double wid = dim.getDoubleWidth();

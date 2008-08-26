@@ -41,6 +41,7 @@ import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.technology.xml.XmlParam;
 
 import java.io.IOException;
@@ -218,115 +219,115 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 
 		/** Describes a 4-port nMOS transistor.
 		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port. */
-		TRA4NMOS("4-port-nMOS-transistor", "nmos-4", true, false),
+		TRA4NMOS("nMOS-4-port-transistor", "nmos-4", true, false),
 
 		/** Describes a 4-port pMOS transistor.
 		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port. */
-		TRA4PMOS("4-port-pMOS-transistor", "pmos-4", true, false),
+		TRA4PMOS("pMOS-4-port-transistor", "pmos-4", true, false),
 
 		/** Describes a 4-port nMOS depletion transistor (should be named TRA4NMOSD but isn't for historical purposes).
 		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port. */
-		TRA4DMOS("4-port-depletion-nMOS-transistor", "nmos-d-4", true, false),
+		TRA4DMOS("depletion-nMOS-4-port-transistor", "nmos-d-4", true, false),
 
 		/** Describes a 4-port pMOS depletion transistor.
 		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port. */
-		TRA4PMOSD("4-port-depletion-pMOS-transistor", "pmos-d-4", true, false),
+		TRA4PMOSD("depletion-pMOS-4-port-transistor", "pmos-d-4", true, false),
 
 		/** Describes a 4-port nMOS native transistor.
 		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port. */
-		TRA4NMOSNT("4-port-native-nMOS-transistor", "nmos-nt-4", true, false),
+		TRA4NMOSNT("native-nMOS-4-port-transistor", "nmos-nt-4", true, false),
 
 		/** Describes a 4-port pMOS native transistor.
 		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port. */
-		TRA4PMOSNT("4-port-native-pMOS-transistor", "pmos-nt-4", true, false),
+		TRA4PMOSNT("native-pMOS-4-port-transistor", "pmos-nt-4", true, false),
 
 		/** Describes a 4-port nMOS floating gate transistor.
 		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
-		TRA4NMOSFG("floating-gate-nMOS-transistor", "nmos-fg", true, false),
+		TRA4NMOSFG("floating-gate-nMOS-4-port-transistor", "nmos-fg", true, false),
 
 		/** Describes a 4-port pMOS floating gate transistor.
 		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
-		TRA4PMOSFG("floating-gate-pMOS-transistor", "pmos-fg", true, false),
+		TRA4PMOSFG("floating-gate-pMOS-4-port-transistor", "pmos-fg", true, false),
 
 		/** Describes a 4-port nMOS low-threshold transistor.
 		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port. */
-		TRA4NMOSVTL("4-port-low-threshold-nMOS-transistor", "nmos-vtl-4", true, false),
+		TRA4NMOSVTL("low-threshold-nMOS-4-port-transistor", "nmos-vtl-4", true, false),
 
 		/** Describes a 4-port pMOS low-threshold transistor.
 		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port. */
-		TRA4PMOSVTL("4-port-low-threshold-pMOS-transistor", "pmos-vtl-4", true, false),
+		TRA4PMOSVTL("low-threshold-pMOS-4-port-transistor", "pmos-vtl-4", true, false),
 
 		/** Describes a 4-port nMOS high-threshold transistor.
 		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port. */
-		TRA4NMOSVTH("4-port-high-threshold-nMOS-transistor", "nmos-vth-4", true, false),
+		TRA4NMOSVTH("high-threshold-nMOS-4-port-transistor", "nmos-vth-4", true, false),
 
 		/** Describes a 4-port pMOS high-threshold transistor.
 		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port. */
-		TRA4PMOSVTH("4-port-high-threshold-pMOS-transistor", "pmos-vth-4", true, false),
+		TRA4PMOSVTH("high-threshold-pMOS-4-port-transistor", "pmos-vth-4", true, false),
 
 		/** Describes a 4-port nMOS high-voltage (1) transistor.
 		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port. */
-		TRA4NMOSHV1("4-port-high-threshold-1-nMOS-transistor", "nmos-hv1-4", true, false),
+		TRA4NMOSHV1("high-threshold-1-nMOS-4-port-transistor", "nmos-hv1-4", true, false),
 
 		/** Describes a 4-port pMOS high-threshold (1) transistor.
 		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port. */
-		TRA4PMOSHV1("4-port-high-threshold-pMOS-transistor", "pmos-hv1-4", true, false),
+		TRA4PMOSHV1("high-threshold-pMOS-4-port-transistor", "pmos-hv1-4", true, false),
 
 		/** Describes a 4-port nMOS higher-voltage (2) transistor.
 		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port. */
-		TRA4NMOSHV2("4-port-high-threshold-1-nMOS-transistor", "nmos-hv2-4", true, false),
+		TRA4NMOSHV2("high-threshold-1-nMOS-4-port-transistor", "nmos-hv2-4", true, false),
 
 		/** Describes a 4-port pMOS higher-threshold (2) transistor.
 		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port. */
-		TRA4PMOSHV2("4-port-high-threshold-pMOS-transistor", "pmos-hv2-4", true, false),
+		TRA4PMOSHV2("high-threshold-pMOS-4-port-transistor", "pmos-hv2-4", true, false),
 
 		/** Describes a 4-port nMOS highest-voltage (3) transistor.
 		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port. */
-		TRA4NMOSHV3("4-port-high-threshold-1-nMOS-transistor", "nmos-hv3-4", true, false),
+		TRA4NMOSHV3("high-threshold-1-nMOS-4-port-transistor", "nmos-hv3-4", true, false),
 
 		/** Describes a 4-port pMOS highest-threshold (3) transistor.
 		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port. */
-		TRA4PMOSHV3("4-port-high-threshold-pMOS-transistor", "pmos-hv3-4", true, false),
+		TRA4PMOSHV3("high-threshold-pMOS-4-port-transistor", "pmos-hv3-4", true, false),
 
 		/** Describes a 4-port nMOS native high-voltage (1) transistor.
 		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port. */
-		TRA4NMOSNTHV1("4-port-native-high-threshold-1-nMOS-transistor", "nmos-nt-hv1-4", true, false),
+		TRA4NMOSNTHV1("native-high-threshold-1-nMOS-4-port-transistor", "nmos-nt-hv1-4", true, false),
 
 		/** Describes a 4-port pMOS native high-threshold (1) transistor.
 		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port. */
-		TRA4PMOSNTHV1("4-port-native-high-threshold-pMOS-transistor", "pmos-nt-hv1-4", true, false),
+		TRA4PMOSNTHV1("native-high-threshold-pMOS-4-port-transistor", "pmos-nt-hv1-4", true, false),
 
 		/** Describes a 4-port nMOS native higher-voltage (2) transistor.
 		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port. */
-		TRA4NMOSNTHV2("4-port-native-high-threshold-1-nMOS-transistor", "nmos-nt-hv2-4", true, false),
+		TRA4NMOSNTHV2("native-high-threshold-1-nMOS-4-port-transistor", "nmos-nt-hv2-4", true, false),
 
 		/** Describes a 4-port pMOS native higher-threshold (2) transistor.
 		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port. */
-		TRA4PMOSNTHV2("4-port-native-high-threshold-pMOS-transistor", "pmos-nt-hv2-4", true, false),
+		TRA4PMOSNTHV2("native-high-threshold-pMOS-4-port-transistor", "pmos-nt-hv2-4", true, false),
 
 		/** Describes a 4-port nMOS native highest-voltage (3) transistor.
 		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port. */
-		TRA4NMOSNTHV3("4-port-native-high-threshold-1-nMOS-transistor", "nmos-nt-hv3-4", true, false),
+		TRA4NMOSNTHV3("native-high-threshold-1-nMOS-4-port-transistor", "nmos-nt-hv3-4", true, false),
 
 		/** Describes a 4-port pMOS native highest-threshold (3) transistor.
 		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port. */
-		TRA4PMOSNTHV3("4-port-native-high-threshold-pMOS-transistor", "pmos-nt-hv3-4", true, false),
+		TRA4PMOSNTHV3("native-high-threshold-pMOS-4-port-transistor", "pmos-nt-hv3-4", true, false),
 
 		/** Describes a 4-port NPN junction transistor.
 		 * It has base on the first port, emitter on the second port, collector on the third port, and substrate on the fourth port. */
-		TRA4NPN("4-port-NPN-transistor", "npn-4", true, false),
+		TRA4NPN("NPN-4-port-transistor", "npn-4", true, false),
 
 		/** Describes a 4-port PNP junction transistor.
 		 * It has base on the first port, emitter on the second port, collector on the third port, and substrate on the fourth port. */
-		TRA4PNP("4-port-PNP-transistor", "pnp-4", true, false),
+		TRA4PNP("PNP-4-port-transistor", "pnp-4", true, false),
 
 		/** Describes a 4-port N-channel junction transistor.
 		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port. */
-		TRA4NJFET("4-port-n-type-JFET-transistor", "njfet-4", true, false),
+		TRA4NJFET("n-type-JFET-4-port-transistor", "njfet-4", true, false),
 
 		/** Describes a 4-port P-channel junction transistor.
 		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port. */
-		TRA4PJFET("4-port-p-type-JFET-transistor", "pjfet-4", true, false),
+		TRA4PJFET("p-type-JFET-4-port-transistor", "pjfet-4", true, false),
 
 		/** Describes a 4-port MESFET depletion transistor.
 		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port. */
@@ -572,6 +573,8 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 				this == PrimitiveNode.Function.TRAPMOSD || this == PrimitiveNode.Function.TRA4PMOSD ||
 				this == PrimitiveNode.Function.TRANMOSNT || this == PrimitiveNode.Function.TRA4NMOSNT ||
 				this == PrimitiveNode.Function.TRAPMOSNT || this == PrimitiveNode.Function.TRA4PMOSNT ||
+				this == PrimitiveNode.Function.TRANMOSFG || this == PrimitiveNode.Function.TRA4NMOSFG ||
+				this == PrimitiveNode.Function.TRAPMOSFG || this == PrimitiveNode.Function.TRA4PMOSFG ||
 				this == PrimitiveNode.Function.TRANMOSVTL || this == PrimitiveNode.Function.TRA4NMOSVTL ||
 				this == PrimitiveNode.Function.TRAPMOSVTL || this == PrimitiveNode.Function.TRA4PMOSVTL ||
 				this == PrimitiveNode.Function.TRANMOSVTH || this == PrimitiveNode.Function.TRA4NMOSVTH ||
@@ -606,6 +609,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 			if (this == PrimitiveNode.Function.TRANMOS  || this == PrimitiveNode.Function.TRA4NMOS ||
 				this == PrimitiveNode.Function.TRADMOS  || this == PrimitiveNode.Function.TRA4DMOS ||
 				this == PrimitiveNode.Function.TRANMOSNT || this == PrimitiveNode.Function.TRA4NMOSNT ||
+				this == PrimitiveNode.Function.TRANMOSFG || this == PrimitiveNode.Function.TRA4NMOSFG ||
 				this == PrimitiveNode.Function.TRANMOSVTL || this == PrimitiveNode.Function.TRA4NMOSVTL ||
 				this == PrimitiveNode.Function.TRANMOSVTH || this == PrimitiveNode.Function.TRA4NMOSVTH ||
 				this == PrimitiveNode.Function.TRANMOSHV1 || this == PrimitiveNode.Function.TRA4NMOSHV1 ||
@@ -629,6 +633,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 			if (this == PrimitiveNode.Function.TRAPMOS  || this == PrimitiveNode.Function.TRA4PMOS ||
 				this == PrimitiveNode.Function.TRAPMOSD || this == PrimitiveNode.Function.TRA4PMOSD ||
 				this == PrimitiveNode.Function.TRAPMOSNT || this == PrimitiveNode.Function.TRA4PMOSNT ||
+				this == PrimitiveNode.Function.TRAPMOSFG || this == PrimitiveNode.Function.TRA4PMOSFG ||
 				this == PrimitiveNode.Function.TRAPMOSVTL || this == PrimitiveNode.Function.TRA4PMOSVTL ||
 				this == PrimitiveNode.Function.TRAPMOSVTH || this == PrimitiveNode.Function.TRA4PMOSVTH ||
 				this == PrimitiveNode.Function.TRAPMOSHV1 || this == PrimitiveNode.Function.TRA4PMOSHV1 ||
@@ -1017,6 +1022,20 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 		if (function == Function.SUBSTRATE || function == Function.WELL)
 			return Function.WELL;
 		return function;
+	}
+
+	/**
+	 * Method to tell whether this primitive node prototype has technology-specific information on it.
+	 * At the current time, only certain Schematics primitives have this information.
+	 * @return true this primitive node prototype has technology-specific information on it.
+	 */
+	public boolean isTechSpecific()
+	{
+		if (this == Schematics.tech().transistorNode || this == Schematics.tech().transistor4Node ||
+			this == Schematics.tech().flipflopNode || this == Schematics.tech().diodeNode ||
+			this == Schematics.tech().inductorNode || this == Schematics.tech().resistorNode ||
+			this == Schematics.tech().capacitorNode) return true;
+		return false;
 	}
 
 	/**

@@ -4111,7 +4111,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
                 }
 
                 // must be a transistor
-                if (!ni.isFET()) continue;
+                if (!ni.getFunction().isFET()) continue;
 
                 // must be inside of the bounding box of the desired layers
                 Rectangle2D nodeBounds = ni.getBounds();
@@ -4342,7 +4342,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
             {
                 PortInst pi = ai.getPortInst(i);
                 NodeInst ni = pi.getNodeInst();
-                if (!ni.isFET()) continue;
+                if (!ni.getFunction().isFET()) continue;
 
                 // crop the arc against this transistor
                 AffineTransform trans = ni.rotateOut();

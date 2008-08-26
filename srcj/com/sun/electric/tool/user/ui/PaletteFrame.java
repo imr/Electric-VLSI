@@ -552,7 +552,7 @@ public class PaletteFrame implements MouseListener
 					newNi.newDisplayVar(Schematics.SCHEM_DIODE, "10");
 				} else if (np == Schematics.tech().transistorNode || np == Schematics.tech().transistor4Node)
 				{
-					if (newNi.isFET())
+					if (newNi.getFunction().isFET())
 					{
 						TextDescriptor td = TextDescriptor.getNodeTextDescriptor().withOff(0.5, -1);
 						newNi.newVar(Schematics.ATTR_WIDTH, "2", td);

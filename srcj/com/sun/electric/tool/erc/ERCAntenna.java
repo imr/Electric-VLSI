@@ -420,7 +420,7 @@ public class ERCAntenna
 	
 			// see if we hit a transistor
 			boolean seen = false;
-			if (thisni.isFET())
+			if (thisni.getFunction().isFET())
 			{
 				// stop tracing
 				if (thisni.getTransistorDrainPort().getPortProto() == pp ||
