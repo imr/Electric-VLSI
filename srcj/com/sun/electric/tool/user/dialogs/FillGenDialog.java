@@ -689,14 +689,14 @@ public class FillGenDialog extends EDialog {
         for (int i = 0; i < tiledCells.length; i++)
             {
             if (tiledCells[i].getModel().isSelected())
-                items.add((i+2));
+                items.add(new Integer(i+2));
         }
         int[] cells = null;
         if (items.size() > 0)
         {
             cells = new int[items.size()];
             for (int i = 0; i < items.size(); i++)
-                cells[i] = items.get(i);
+                cells[i] = items.get(i).intValue();
         }
         TechType.TechTypeEnum techNm = TechType.TechTypeEnum.CMOS90; // putting one possible value
 

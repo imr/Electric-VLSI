@@ -1644,7 +1644,7 @@ public class FileMenu {
             return JOptionPane.CLOSED_OPTION;
         if(options == null) {
             if(selectedValue instanceof Integer)
-                return ((Integer)selectedValue); // using autoboxing
+                return (((Integer)selectedValue).intValue()); // using autoboxing
             return JOptionPane.CLOSED_OPTION;
         }
         for(int counter = 0, maxCounter = options.length;

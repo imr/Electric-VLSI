@@ -283,7 +283,7 @@ public class CellMenu {
 			}
 			boolean wasMulti = cell.isMultiPage();
 			cell.setMultiPage(true);
-			cell.newVar(Cell.MULTIPAGE_COUNT_KEY, numPages); // autoboxing
+			cell.newVar(Cell.MULTIPAGE_COUNT_KEY, new Integer(numPages)); // autoboxing
 			if (!wasMulti) System.out.println("Cell " + cell.describe(true) + " is now a multi-page schematic");
 			return true;
 		}
@@ -330,7 +330,7 @@ public class CellMenu {
 			{
 				CircuitChangeJobs.spreadCircuitry(cell, null, 'u', -Cell.FrameDescription.MULTIPAGESEPARATION, 0, 0, lY, hY);
 			}
-			cell.newVar(Cell.MULTIPAGE_COUNT_KEY, (numPages-1)); // autoboxing
+			cell.newVar(Cell.MULTIPAGE_COUNT_KEY, new Integer((numPages-1))); // autoboxing
 			fieldVariableChanged("numPages");
 			return true;
 		}

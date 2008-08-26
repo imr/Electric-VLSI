@@ -309,7 +309,7 @@ public class ErrorLoggerTree {
             // but, groupNode could be sub-node:
             if (logger.getSortKeyToGroupNames() != null)
             {
-                groupNode = sortKeyMap.get(el.getSortKey());
+                groupNode = sortKeyMap.get(new Integer(el.getSortKey()));
                 if (groupNode == null) // not found, put in loggerNode
                    groupNode = loggerNode;
             }

@@ -243,8 +243,8 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
 			{
 				Layer layer = lIt.next();
 				if (layer.isPseudoLayer()) continue;
-				if (noDimming) highlighted.put(layer, false); else
-					highlighted.put(layer, !layer.isDimmed());
+				if (noDimming) highlighted.put(layer, Boolean.FALSE); else
+					highlighted.put(layer, new Boolean(!layer.isDimmed()));
 			}
 		}
 

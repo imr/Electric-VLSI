@@ -317,7 +317,7 @@ public class TextTab extends PreferencePanel
 			textCellsChanged = true;
 		}
 		String externalEditor = textExternalEditor.getText();
-		if (!externalEditor.equals(User.getDefaultTextCellSize()))
+		if (!externalEditor.equals(new Integer(User.getDefaultTextCellSize())))
 			User.setDefaultTextExternalEditor(externalEditor);
 
 		if (!currentTextNodeDescriptor.equals(initialTextNodeDescriptor))

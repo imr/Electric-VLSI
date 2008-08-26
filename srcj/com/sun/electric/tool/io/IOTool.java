@@ -176,7 +176,7 @@ public class IOTool extends Tool
 		if (!hasDais()) return;
 		try
 		{
-			daisInputMethod.invoke(daisClass, new Object[] {url, lib, newLib});
+			daisInputMethod.invoke(daisClass, new Object[] {url, lib, new Boolean(newLib)});
 		} catch (Exception e)
 		{
 			System.out.println("Unable to run the Dais input module (" + e.getClass() + ")");

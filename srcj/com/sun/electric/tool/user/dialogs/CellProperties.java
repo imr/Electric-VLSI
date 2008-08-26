@@ -93,7 +93,7 @@ public class CellProperties extends EDialog
             // remember text cell font/size
             String fontName = cell.getVarValue(Cell.TEXT_CELL_FONT_NAME, String.class, "DEFAULT FONT");
             textCellFont = TempPref.makeStringPref(fontName);
-            int fontSize = cell.getVarValue(Cell.TEXT_CELL_FONT_SIZE, Integer.class, User.getDefaultTextCellSize());
+            int fontSize = cell.getVarValue(Cell.TEXT_CELL_FONT_SIZE, Integer.class, new Integer(User.getDefaultTextCellSize())).intValue();
             textCellSize = TempPref.makeIntPref(fontSize);
         }
 	}

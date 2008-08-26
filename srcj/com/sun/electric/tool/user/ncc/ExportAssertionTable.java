@@ -146,7 +146,7 @@ class AssertionTableModel extends ExportTableModel {
         int row  = index/1000000;  // row in table
         
         ExportAssertionFailures eaf = failures[row];
-        Object obj = eaf.getExportsGlobals()[line][item];
+//        Object obj = eaf.getExportsGlobals()[line][item];
         String nm = eaf.getNames()[line][item];
         Cell cell = eaf.getCell();
         VarContext context = eaf.getContext();
