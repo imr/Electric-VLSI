@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08d: ******************************
 
+BUG: (8/26/08, SMR) "Edit Schematic View" still doesn't fill the new window (Bug #1731).
+FIX: In ViewMenu.editView(), call setCellWindow() after creating window.
+
 IMP: (8/25/08, SMR) Renamed the command to switch to Cadence mode so that
      it indicates that it changes layers as well (Bug #1761).
 

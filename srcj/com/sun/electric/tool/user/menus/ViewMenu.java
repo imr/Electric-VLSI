@@ -172,7 +172,8 @@ public class ViewMenu {
 		Cell otherCell = curCell.otherView(v);
 		if (otherCell != null)
 		{
-			WindowFrame.createEditWindow(otherCell);
+			WindowFrame wf = WindowFrame.createEditWindow(otherCell);
+			wf.setCellWindow(otherCell, null);
 			return;
 		}
 		String [] options = {"Yes", "No"};
