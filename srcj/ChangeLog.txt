@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08e: ******************************
 
+BUG: (8/27/08, SMR) Technology libraries crash if there is no default foundry
+     information (Bug #1812).
+FIX: In Foundry.Type.valueOf(), handle null entries.
+
 IMP/MAN: (8/27/08, SMR) Grid alignment now has 5 steps in toolbar, menu, and preferences (Bug #1801).
 
 BUG: (8/27/08, GVG) DRC should not complain about zero lenghts. (Bug #1798)

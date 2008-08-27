@@ -73,6 +73,7 @@ public class Foundry {
 
         public static Type valueOf(String n)
         {
+        	if (n == null) return NONE;
             for (Type t : typeList)
             {
                 if (t.getName().equals(n))
