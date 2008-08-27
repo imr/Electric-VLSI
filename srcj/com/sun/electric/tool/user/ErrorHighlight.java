@@ -66,13 +66,13 @@ public abstract class ErrorHighlight implements Serializable {
     boolean isValid(EDatabase database) { return cellId == null || getCell(database) != null; } // Still have problems with minAre DRC errors
 
     public void addToHighlighter(Highlighter h, EDatabase database) {;}
-    
+
     public static ErrorHighlight newInstance(VarContext context, Geometric geom) {
         if (geom instanceof NodeInst)
             return new ErrorHighNode(context, (NodeInst)geom);
         return new ErrorHighArc(context, (ArcInst)geom);
     }
-    
+
     public static ErrorHighlight newInstance(Cell cell, Point2D p1, Point2D p2) {
         return new ErrorHighLine(cell, EPoint.snap(p1), EPoint.snap(p2), false);
     }
@@ -80,7 +80,7 @@ public abstract class ErrorHighlight implements Serializable {
     public static ErrorHighlight newInstance(Export e) {
         return new ErrorHighExport(null, e);
     }
-    
+
 }
 
 class ErrorHighExport extends ErrorHighlight {
@@ -200,7 +200,7 @@ class ErrorHighArc extends ErrorHighlight {
     public ErrorHighArc(VarContext con, ArcInst ai)
     {
         super(ai.getParent(), con);
-        arcId = ai.getD().arcId;
+        arcId = ai.getArcId();
     }
 
     boolean containsObject(Cell c, Object obj)

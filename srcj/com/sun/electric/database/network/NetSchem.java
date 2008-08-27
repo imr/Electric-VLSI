@@ -376,7 +376,7 @@ class NetSchem extends NetCell {
 	 * Get offset in networks map for given arc.
 	 */
 	int getNetMapOffset(ArcInst ai, int busIndex) {
-		int drawn = drawns[arcsOffset + ai.getArcIndex()];
+		int drawn = getArcDrawn(ai);
 		if (drawn < 0) return -1;
 		if (busIndex < 0 || busIndex >= drawnWidths[drawn]) return -1;
 		return drawnOffsets[drawn] + busIndex;
@@ -387,7 +387,7 @@ class NetSchem extends NetCell {
 	 * @return the either the network name or the bus n1ame on this ArcInst.
 	 */
 	Name getBusName(ArcInst ai) {
-		int drawn = drawns[arcsOffset + ai.getArcIndex()];
+		int drawn = getArcDrawn(ai);
 		return drawnNames[drawn];
 	}
 
@@ -398,7 +398,7 @@ class NetSchem extends NetCell {
 	public int getBusWidth(ArcInst ai)
 	{
 		if ((flags & VALID) == 0) redoNetworks();
-		int drawn = drawns[arcsOffset + ai.getArcIndex()];
+		int drawn = getArcDrawn(ai);
 		if (drawn < 0) return 0;
 		return drawnWidths[drawn];
 	}
@@ -937,8 +937,8 @@ class NetSchem extends NetCell {
 			}
 		}
 		if (ai2 == null || ai1 == ai2) return;
-		int large = drawns[arcsOffset + ai1.getArcIndex()];
-		int small = drawns[arcsOffset + ai2.getArcIndex()];
+		int large = getArcDrawn(ai1);
+		int small = getArcDrawn(ai2);
 		if (large < 0 || small < 0) return;
 		if (drawnWidths[small] > drawnWidths[large]) {
 			int temp = small;

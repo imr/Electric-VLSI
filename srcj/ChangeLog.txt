@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08e: ******************************
 
+BUG: (8/27/08) Severe performance degradation modifying cells with many arcs (Bug #1804).
+FIX: Remove field "ArcInst.arcIndex" to save on its recalculation.
+
 IMP: (8/26/08, SMR) Cleaned up boxing warnings.
 
 ************************* Version 8.08d: ******************************
@@ -107,7 +110,7 @@ FIX: Created Export.newInstance() variant with a PortCharacteristic on it and
 
 BUG: (8/8/08, RK) NCC errors not detected when size checking is enabled.
      (Bug #1787)
-FIX: Some cells can't be compared with size_ checking because the size varies 
+FIX: Some cells can't be compared with size_ checking because the size varies
      with the instance. In that case perform a comparison without size checking.
 
 BUG: (8/1/08, GVG) NPE while reading Routing/data/expected/MazeRouting1Result.jelib (Bug #1793)
@@ -126,7 +129,7 @@ Implemented using MOUSEOVER_HIGHLIGHT color.
 
 IMP: (7/31/08, FYL) LibraryFiles.java readLibrary defaults to .jelib extension if
      extension is not given.  Added another fallback to .delib extension.
-     
+
 BUG: (7/31/08, DN) Assertion boundsDirty == BOUNDS_CORRECT in Cell.undo failed (Bug #1699).
 FIX: In Cell.computeBounds() explicitely call getBounds() for all subcell.
 

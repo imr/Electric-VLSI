@@ -861,23 +861,29 @@ class LayoutCell {
 		Rectangle2D no2Bounds = no2pi.getPoly().getBounds2D();
 		Point2D no2Pt = new Point2D.Double(no2Bounds.getCenterX(), no2Bounds.getCenterY());
 
-		ArcInst ar1 = ArcInst.newInstanceBase(ap, wid, fpi, no2pi, headPt, no2Pt, null, 0);
-//		ArcInst ar1 = ArcInst.newInstanceFull(ap, wid, fpi, no2pi, headPt, no2Pt, null, 0);
+        int arcFlags = ai.getD().flags;
+        String arcName = ai.getName();
+        ai.kill(); // !!! See ai2.copyVarsFrom(ai) below
+
+        int flags1 = ImmutableArcInst.TAIL_NEGATED.set(arcFlags, false);
+		ArcInst ar1 = ArcInst.newInstanceBase(ap, wid, fpi, no2pi, headPt, no2Pt, null, 0, flags1);
 		if (ar1 == null) return;
-        ar1.copyConstraintsFrom(ai);
-//		ar1.copyStateBits(ai);
+//        ar1.copyConstraintsFrom(ai);
 //		if (ai.isHeadNegated()) ar1.setHeadNegated(true);
-		ArcInst ar2 = ArcInst.newInstanceBase(ap, wid, no2pi, no1pi, no2Pt, no1Pt, null, 0);
-//		ArcInst ar2 = ArcInst.newInstanceFull(ap, wid, no2pi, no1pi, no2Pt, no1Pt, null, 0);
+
+        int flags2 = ImmutableArcInst.TAIL_NEGATED.set(arcFlags, false);
+        flags2 = ImmutableArcInst.HEAD_NEGATED.set(flags2, false);
+		ArcInst ar2 = ArcInst.newInstanceBase(ap, wid, no2pi, no1pi, no2Pt, no1Pt, arcName, 0, flags2);
 		if (ar2 == null) return;
-        ar2.copyPropertiesFrom(ai);
-//		ar2.copyStateBits(ai);
-		ArcInst ar3 = ArcInst.newInstanceBase(ap, wid, no1pi, tpi, no1Pt, tailPt, null, 0);
-//		ArcInst ar3 = ArcInst.newInstanceFull(ap, wid, no1pi, tpi, no1Pt, tailPt, null, 0);
+        ar2.copyVarsFrom(ai); // !!! Referencing killed ai may cause problem in future versions
+        ar2.copyTextDescriptorFrom(ai, ArcInst.ARC_NAME);
+//        ar2.copyPropertiesFrom(ai);
+
+        int flags3 = ImmutableArcInst.HEAD_NEGATED.set(arcFlags, false);
+		ArcInst ar3 = ArcInst.newInstanceBase(ap, wid, no1pi, tpi, no1Pt, tailPt, null, flags3);
 		if (ar3 == null) return;
-        ar3.copyConstraintsFrom(ai);
-//		ar3.copyStateBits(ai);
-		if (ai.isTailNegated()) ar3.setTailNegated(true);
+//        ar3.copyConstraintsFrom(ai);
+//		if (ai.isTailNegated()) ar3.setTailNegated(true);
 		if (ar1 == null || ar2 == null || ar3 == null)
 		{
 			System.out.println("Problem creating jog arcs");
@@ -890,10 +896,10 @@ class LayoutCell {
 		setChangeClock(ar3, arctyp);
 
 		// now kill the arcinst
-		ar2.copyTextDescriptorFrom(ai, ArcInst.ARC_NAME);
-		ai.kill();
-		String oldName = ai.getName();
-		if (oldName != null) ar2.setName(oldName);
+//		ar2.copyTextDescriptorFrom(ai, ArcInst.ARC_NAME);
+//		ai.kill();
+//		String oldName = ai.getName();
+//		if (oldName != null) ar2.setName(oldName);
 	}
 
 	/**

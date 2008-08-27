@@ -55,9 +55,9 @@ class NetCell
 {
 	/** If bit set, netlist is valid for cell tree.*/				static final int VALID = 1;
 	/** If bit set, netlist is valid with current  equivPorts of subcells.*/static final int LOCALVALID = 2;
-    /** Separator for net names of unconnected port instances */    static final char PORT_SEPARATOR = '.'; 
+    /** Separator for net names of unconnected port instances */    static final char PORT_SEPARATOR = '.';
 
-    /** Network manager to which this NetCell belongs. */           final NetworkManager networkManager; 
+    /** Network manager to which this NetCell belongs. */           final NetworkManager networkManager;
 	/** Cell from database. */										final Cell cell;
 	/** Flags of this NetCell. */									int flags;
     /** The number of times this NetCell has been <i>structurally modified</i>.
@@ -81,6 +81,7 @@ class NetCell
                                                                     int[] equivPortsP;
                                                                     int[] equivPortsA;
 	/** Node offsets. */											int[] ni_pi;
+    /** arc index in alpanumeric order by arcId */                  private int[] arcIndexByArcIdMap;
 	/** */															int arcsOffset;
 	/** */															private int[] headConn;
 	/** */															private int[] tailConn;
@@ -92,11 +93,11 @@ class NetCell
 	/** A map from canonic String to NetName. */					HashMap<Name,GenMath.MutableInteger> netNames = new HashMap<Name,GenMath.MutableInteger>();
 	/** Counter for enumerating NetNames. */						private int netNameCount;
 	/** Counter for enumerating NetNames. */						int exportedNetNameCount;
-	
+
 	/** Netlist for ShortResistors.NO option. */                    NetlistImpl netlistN;
 	/** Netlist for true ShortResistors.PARASITIC option. */        NetlistShorted netlistP;
 	/** Netlist for true ShortResistors.ALL option. */              NetlistShorted netlistA;
-    
+
 
 	/** */															private static PortProto busPinPort = Schematics.tech().busPinNode.getPort(0);
 	/** */															private static ArcProto busArc = Schematics.tech().bus_arc;
@@ -196,7 +197,7 @@ class NetCell
 	 * Get offset in networks map for given arc.
 	 */
 	int getNetMapOffset(ArcInst ai, int busIndex) {
-		return drawns[arcsOffset + ai.getArcIndex()];
+		return getArcDrawn(ai);
 	}
 
 	/**
@@ -211,10 +212,16 @@ class NetCell
 	 */
 	public int getBusWidth(ArcInst ai)
 	{
-		int drawn = drawns[arcsOffset + ai.getArcIndex()];
+		int drawn = getArcDrawn(ai);
 		if (drawn < 0) return 0;
 		return 1;
 	}
+
+    int getArcDrawn(ArcInst ai) {
+        assert ai.getParent() == cell;
+        int arcIndex = arcIndexByArcIdMap[ai.getArcId()];
+        return drawns[arcsOffset + arcIndex];
+    }
 
 	private void initConnections() {
 		int numPorts = cell.getNumPorts();
@@ -228,6 +235,7 @@ class NetCell
 			ni_pi[i] = offset;
 			offset += ni.getProto().getNumPorts();
 		}
+        arcIndexByArcIdMap = cell.getTopology().getArcIndexByArcIdMap();
 		arcsOffset = offset;
 		offset += numArcs;
 		if (headConn == null || headConn.length != offset) {
@@ -285,7 +293,7 @@ class NetCell
 //	}
 
     private ArrayList<PortInst> stack;
-    
+
 	private void addToDrawn1(PortInst pi) {
 		int piOffset = getPortInstOffset(pi);
 		if (drawns[piOffset] >= 0) return;
@@ -348,7 +356,7 @@ class NetCell
             }
         }
     }
-    
+
 	void makeDrawns() {
 		initConnections();
 		Arrays.fill(drawns, -1);
@@ -434,7 +442,7 @@ class NetCell
 				}
 			}
 		}
-		out.close(); 
+		out.close();
 	}
 
 	void initNetnames() {
@@ -603,7 +611,7 @@ class NetCell
                 Export e = cell.getPort(i);
                 if (e.getName().equals(name.toString()))
                     networkManager.pushHighlight(cell.getPort(i));
-            } 
+            }
             for (int i = 0, numArcs = cell.getNumArcs(); i < numArcs; i++) {
                 ArcInst ai = cell.getArc(i);
                 if (!ai.isUsernamed()) continue;
@@ -644,7 +652,7 @@ class NetCell
 				changed = true;
 				equivPortsN[i] = netToPortN[netN];
 			}
-            
+
 			int netP = netlistP.netMap[drawns[i]];
 			if (netToPortP[netP] < 0)
 				netToPortP[netP] = i;
@@ -652,7 +660,7 @@ class NetCell
 				changed = true;
 				equivPortsP[i] = netToPortP[netP];
 			}
-            
+
 			int netA = netlistA.netMap[drawns[i]];
 			if (netToPortA[netA] < 0)
 				netToPortA[netA] = i;

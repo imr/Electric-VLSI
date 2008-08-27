@@ -37,6 +37,7 @@ import com.sun.electric.technology.BoundsBuilder;
 
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 
 /**
@@ -44,22 +45,22 @@ import java.util.Iterator;
  */
 public class Topology {
     /** Owner cell of this Topology. */                             final Cell cell;
-    
+
     /** A maximal suffix of temporary arc name. */                  private int maxArcSuffix = -1;
     /** Chronological list of ArcInst in this Cell. */              private final ArrayList<ArcInst> chronArcs = new ArrayList<ArcInst>();
     /** A list of ArcInsts in this Cell. */							private final ArrayList<ArcInst> arcs = new ArrayList<ArcInst>();
     /** True if arc bounds are valid. */                            boolean validArcBounds;
-    
+
 	/** The geometric data structure. */							private RTNode rTree = RTNode.makeTopLevel();
     /** True of RTree matches node/arc sizes */                     private boolean rTreeFresh;
-    
+
     /** Creates a new instance of Topology */
     public Topology(Cell cell, boolean loadBackup) {
         this.cell = cell;
         if (loadBackup)
             updateArcs(cell.backup().cellRevision);
     }
-    
+
 	/****************************** ARCS ******************************/
 
 	/**
@@ -101,6 +102,17 @@ public class Topology {
 		return arcId < chronArcs.size() ? chronArcs.get(arcId) : null;
 	}
 
+    public int[] getArcIndexByArcIdMap() {
+        int[] arcIndexByArcIdMap = new int[chronArcs.size()];
+        Arrays.fill(arcIndexByArcIdMap, -1);
+        for (int arcIndex = 0; arcIndex < getNumArcs(); arcIndex++) {
+            int arcId = getArc(arcIndex).getArcId();
+            assert arcIndexByArcIdMap[arcId] == -1;
+            arcIndexByArcIdMap[arcId] = arcIndex;
+        }
+        return arcIndexByArcIdMap;
+    }
+
 	/**
 	 * Method to find a named ArcInst on this Cell.
 	 * @param name the name of the ArcInst.
@@ -128,21 +140,16 @@ public class Topology {
         cell.setTopologyModified();
         validArcBounds = false;
         unfreshRTree();
-        
-		int arcIndex = searchArc(ai.getName(), ai.getD().arcId);
+
+		int arcIndex = searchArc(ai);
 		assert arcIndex < 0;
 		arcIndex = - arcIndex - 1;
 		arcs.add(arcIndex, ai);
-		for (; arcIndex < arcs.size(); arcIndex++)
-		{
-			ArcInst a = arcs.get(arcIndex);
-			a.setArcIndex(arcIndex);
-		}
-        int arcId = ai.getD().arcId;
+        int arcId = ai.getArcId();
         while (chronArcs.size() <= arcId) chronArcs.add(null);
         assert chronArcs.get(arcId) == null;
         chronArcs.set(arcId, ai);
-        
+
         // update maximal arc name suffux temporary name
 		if (ai.isUsernamed()) return;
 		Name name = ai.getNameKey();
@@ -183,18 +190,12 @@ public class Topology {
 		cell.checkChanging();
         cell.setTopologyModified();
         unfreshRTree();
-        
+
 		assert ai.isLinked();
-		int arcIndex = ai.getArcIndex();
+		int arcIndex = searchArc(ai);
 		ArcInst removedAi = arcs.remove(arcIndex);
 		assert removedAi == ai;
-		for (int i = arcIndex; i < arcs.size(); i++)
-		{
-			ArcInst a = arcs.get(i);
-			a.setArcIndex(i);
-		}
-		ai.setArcIndex(-1);
-        int arcId = ai.getD().arcId;
+        int arcId = ai.getArcId();
         assert chronArcs.get(arcId) == ai;
         chronArcs.set(arcId, null);
         cell.setDirty();
@@ -211,7 +212,7 @@ public class Topology {
         }
         return changed ? newArcs : null;
     }
-    
+
     public void updateArcs(CellRevision newRevision) {
         validArcBounds = false;
         arcs.clear();
@@ -228,7 +229,6 @@ public class Topology {
                 ai = new ArcInst(this, d, headPi, tailPi);
                 chronArcs.set(d.arcId, ai);
             }
-            ai.setArcIndex(i);
             arcs.add(ai);
             if (!ai.isUsernamed()) {
                 Name name = ai.getNameKey();
@@ -241,9 +241,8 @@ public class Topology {
         for (int i = 0; i < chronArcs.size(); i++) {
             ArcInst ai = chronArcs.get(i);
             if (ai == null) continue;
-            int arcIndex = ai.getArcIndex();
-            if (arcIndex >= arcs.size() || ai != arcs.get(arcIndex)) {
-                ai.setArcIndex(-1);
+            int arcIndex = searchArc(ai);
+            if (arcIndex < 0 || arcIndex >= arcs.size() || ai != arcs.get(arcIndex)) {
                 chronArcs.set(i, null);
                 continue;
             }
@@ -251,7 +250,7 @@ public class Topology {
         }
         assert arcCount == arcs.size();
     }
-    
+
     /**
      * Low-level routine.
      */
@@ -266,7 +265,11 @@ public class Topology {
         }
         validArcBounds = true;
     }
-    
+
+    private int searchArc(ArcInst ai) {
+        return searchArc(ai.getName(), ai.getArcId());
+    }
+
     /**
      * Searches the arcs for the specified (name,arcId) using the binary
      * search algorithm.
@@ -290,7 +293,7 @@ public class Topology {
 		while (low <= high) {
 			ArcInst ai = arcs.get(pick);
 			int cmp = TextUtils.STRING_NUMBER_ORDER.compare(ai.getName(), name);
-			if (cmp == 0) cmp = ai.getD().arcId - arcId;
+			if (cmp == 0) cmp = ai.getArcId() - arcId;
 
 			if (cmp < 0)
 				low = pick + 1;
@@ -302,7 +305,7 @@ public class Topology {
 		}
 		return -(low + 1);  // ArcInst not found.
     }
-    
+
 //    void setArcsModified() {
 //        cell.checkChanging();
 //        cell.setTopologyModified();
@@ -326,7 +329,7 @@ public class Topology {
     public void unfreshRTree() {
         rTreeFresh = false;
     }
-    
+
 	/**
 	 * Method to R-Tree of this Cell.
 	 * The R-Tree organizes all of the Geometric objects spatially for quick search.
@@ -366,7 +369,7 @@ public class Topology {
 //        long stopTime = System.currentTimeMillis();
 //        if (Job.getDebug()) System.out.println("Rebuilding R-Tree in " + this + " took " + (stopTime - startTime) + " msec");
     }
-    
+
     /**
      * Method to check invariants in this Cell.
      * @exception AssertionError if invariants are not valid
@@ -379,13 +382,12 @@ public class Topology {
             ArcInst ai = arcs.get(arcIndex);
             ImmutableArcInst a = ai.getD();
             assert ai.getParent() == cell;
-            assert ai.getArcIndex() == arcIndex;
             assert chronArcs.get(a.arcId) == ai;
             if (prevAi != null) {
                 int cmp = TextUtils.STRING_NUMBER_ORDER.compare(prevAi.getName(), ai.getName());
                 assert cmp <= 0;
                 if (cmp == 0)
-                    assert prevAi.getD().arcId < a.arcId;
+                    assert prevAi.getArcId() < a.arcId;
             }
             assert ai.getHeadPortInst() == cell.getPortInst(a.headNodeId, a.headPortId);
             assert ai.getTailPortInst() == cell.getPortInst(a.tailNodeId, a.tailPortId);
@@ -395,10 +397,11 @@ public class Topology {
         for (int arcId = 0; arcId < chronArcs.size(); arcId++) {
             ArcInst ai = chronArcs.get(arcId);
             if (ai == null) continue;
-            assert ai.getD().arcId == arcId;
-            assert ai == arcs.get(ai.getArcIndex());
+            assert ai.getArcId() == arcId;
+            int arcIndex = searchArc(ai);
+            assert ai == arcs.get(arcIndex);
         }
-        
+
         if (rTreeFresh)
             rTree.checkRTree(0, cell.getId());
     }

@@ -240,7 +240,7 @@ public class SeaOfGates
 			this.cell = cell;
 			arcIdsToRoute = new int[arcsToRoute.size()];
 			for (int i = 0; i < arcsToRoute.size(); i++)
-				arcIdsToRoute[i] = arcsToRoute.get(i).getD().arcId;
+				arcIdsToRoute[i] = arcsToRoute.get(i).getArcId();
 			startJob();
 		}
 

@@ -101,10 +101,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	/** bounds after transformation. */					private final Rectangle2D.Double visBounds = new Rectangle2D.Double();
 
 	/** PortInst on tail end of this arc instance */	/*package*/final PortInst tailPortInst;
-
 	/** PortInst on head end of this arc instance */	/*package*/final PortInst headPortInst;
-
-	/** 0-based index of this ArcInst in cell. */		private int arcIndex = -1;
 
 	/**
 	 * Private constructor of ArcInst.
@@ -147,7 +144,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
             if (ai.getDatabase() != out.getDatabase() || !ai.isLinked())
                 throw new NotSerializableException(ai + " not linked");
             out.writeObject(ai.getParent());
-            out.writeInt(ai.getD().arcId);
+            out.writeInt(ai.getArcId());
         }
 
         @Override
@@ -1581,18 +1578,12 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
     }
 
 	/**
-	 * Method to set an index of this ArcInst in Cell arcs.
-	 * This is a zero-based index of arcs on the Cell.
-	 * @param arcIndex an index of this ArcInst in Cell nodes.
-	 */
-	public void setArcIndex(int arcIndex) { this.arcIndex = arcIndex; }
-
-	/**
-	 * Method to get the index of this ArcInst.
-	 * This is a zero-based index of arcs on the Cell.
+	 * Method to get the arcId of this ArcInst.
+     * The arcId is assign to ArcInst in chronological order
+	 * The arcId doesn't relate to alpahnumeric ordering of arcs in the Cell.
 	 * @return the index of this ArcInst.
 	 */
-	public final int getArcIndex() { return arcIndex; }
+	public final int getArcId() { return d.arcId; }
 
     /**
      * Returns true if this ArcInst is linked into database.
@@ -1602,7 +1593,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	{
 		try
 		{
-			return parent != null && parent.isLinked() && parent.getArc(arcIndex) == this;
+			return parent != null && parent.isLinked() && parent.getArcById(getArcId()) == this;
 		} catch (IndexOutOfBoundsException e)
 		{
 			return false;

@@ -841,7 +841,7 @@ public class CircuitChanges
 				{
 					Connection oCon = oCIt.next();
 					ArcInst oAi = oCon.getArc();
-					if (ai.getArcIndex() <= oAi.getArcIndex()) continue;
+					if (ai.getArcId() <= oAi.getArcId()) continue;
 					Poly oPoly = oAi.makeLambdaPoly(oAi.getGridBaseWidth(), Poly.Type.FILLED);
 					double dist = poly.separation(oPoly);
 					if (dist <= 0) continue;
@@ -864,12 +864,13 @@ public class CircuitChanges
 		HashSet<ArcInst> arcsToKill = new HashSet<ArcInst>();
         for (int i = cell.getNumArcs() - 1; i >= 0; i--) {
             ArcInst ai = cell.getArc(i);
+            int arcId = ai.getArcId();
             if (arcsToKill.contains(ai)) continue;
             PortInst pi = ai.getHeadPortInst();
             for (Iterator<Connection> it = pi.getConnections(); it.hasNext(); ) {
                 Connection con = it.next();
                 ArcInst oAi = con.getArc();
-                if (oAi.getArcIndex() >= i) continue;
+                if (oAi.getArcId() >= arcId) continue;
                 if (ai.getProto() != oAi.getProto()) continue;
                 int otherEnd = 1 - con.getEndIndex();
                 PortInst oPi = oAi.getPortInst(otherEnd);

@@ -1808,7 +1808,7 @@ public class TextUtils
 			int i2 = c2.getPortInst().getPortProto().getPortIndex();
 			int cmp = i1 - i2;
 			if (cmp != 0) return cmp;
-			cmp = c1.getArc().getArcIndex() - c2.getArc().getArcIndex();
+			cmp = c1.getArc().getArcId() - c2.getArc().getArcId();
 			if (cmp != 0) return cmp;
 			return c1.getEndIndex() - c2.getEndIndex();
 		}
