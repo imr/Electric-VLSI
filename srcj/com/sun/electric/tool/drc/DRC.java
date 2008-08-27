@@ -90,18 +90,51 @@ public class DRC extends Listener
         ZEROLENGTHARCWARN, TECHMIXWARN
     }
 
-    public static void createDRCErrorLogger(ErrorLogger errorLogger, Map<Cell, Area> exclusionMap,
-                                            DRCCheckMode errorTypeSearch, boolean interactiveLogger,
+    public static class ReportInfo
+    {
+
+        /** error type search */				                    DRC.DRCCheckMode errorTypeSearch;
+        /** minimum output grid resolution */				        double minAllowedResolution;
+        /** true to ignore center cuts in large contacts. */		boolean ignoreCenterCuts = DRC.isIgnoreCenterCuts();;
+        /** maximum area to examine (the worst spacing rule). */	double worstInteractionDistance;
+        /** time stamp for numbering networks. */					int checkTimeStamp;
+        /** for numbering networks. */								int checkNetNumber;
+        /** total errors found in all threads. */					int totalSpacingMsgFound;
+        /** for logging errors */                                   ErrorLogger errorLogger;
+        /** for interactive error logging */                        boolean interactiveLogger = DRC.isInteractiveLoggingOn();
+        /** to cache current extra bits */                          int activeSpacingBits = 0;   
+        Map<Cell, Area> exclusionMap = new HashMap<Cell,Area>(); // The DRCExclusion object lists areas where Generic:DRC-Nodes exist to ignore errors.
+        boolean inMemory = DRC.isDatesStoredInMemory();
+
+        public ReportInfo(ErrorLogger eL, Technology tech, boolean specificGeoms)
+        {
+            errorLogger = eL;
+            activeSpacingBits = DRC.getActiveBits(tech);
+            worstInteractionDistance = DRC.getWorstSpacingDistance(tech, -1);
+            // minimim resolution different from zero if flag is on otherwise stays at zero (default)
+            minAllowedResolution = tech.getResolution();
+
+            errorTypeSearch = DRC.getErrorType();
+            if (specificGeoms)
+            {
+                errorTypeSearch = DRC.DRCCheckMode.ERROR_CHECK_CELL;
+            }
+        }
+    }
+
+    public static void createDRCErrorLogger(ReportInfo reportInfo,
                                             DRCErrorType errorType, String msg,
                                             Cell cell, double limit, double actual, String rule,
                                             PolyBase poly1, Geometric geom1, Layer layer1,
                                             PolyBase poly2, Geometric geom2, Layer layer2)
     {
-		if (errorLogger == null) return;
+        ErrorLogger errorLogger = reportInfo.errorLogger;
+
+        if (errorLogger == null) return;
 
 		// if this error is in an ignored area, don't record it
 		StringBuffer DRCexclusionMsg = new StringBuffer();
-        if (exclusionMap != null && exclusionMap.get(cell) != null)
+        if (reportInfo.exclusionMap != null && reportInfo.exclusionMap.get(cell) != null)
 		{
 			// determine the bounding box of the error
 			List<PolyBase> polyList = new ArrayList<PolyBase>(2);
@@ -112,7 +145,7 @@ public class DRC extends Listener
 				polyList.add(poly2);
 				geomList.add(geom2);
 			}
-            boolean found = checkExclusionMap(exclusionMap, cell, polyList, geomList, DRCexclusionMsg);
+            boolean found = checkExclusionMap(reportInfo.exclusionMap, cell, polyList, geomList, DRCexclusionMsg);
 
             // At least one DRC exclusion that contains both
             if (found) return;
@@ -125,7 +158,8 @@ public class DRC extends Listener
 		// Message already logged
         boolean onlyWarning = (errorType == DRCErrorType.ZEROLENGTHARCWARN || errorType == DRCErrorType.TECHMIXWARN);
         // Until a decent algorithm is in place for detecting repeated errors, ERROR_CHECK_EXHAUSTIVE might report duplicate errros
-		if ( geom2 != null && errorTypeSearch != DRCCheckMode.ERROR_CHECK_EXHAUSTIVE && errorLogger.findMessage(cell, geom1, geom2.getParent(), geom2, !onlyWarning))
+		if ( geom2 != null && reportInfo.errorTypeSearch != DRCCheckMode.ERROR_CHECK_EXHAUSTIVE &&
+            errorLogger.findMessage(cell, geom1, geom2.getParent(), geom2, !onlyWarning))
             return;
 
 		StringBuffer errorMessage = new StringBuffer();
@@ -272,7 +306,7 @@ public class DRC extends Listener
         else
 		    errorLogger.logError(errorMessage.toString(), geomList, null, null, null, polyList, cell, sortKey);
         // Temporary display of errors.
-        if (interactiveLogger)
+        if (reportInfo.interactiveLogger)
             Job.getUserInterface().termLogging(errorLogger, false, false);
 	}
 
@@ -1297,8 +1331,7 @@ public class DRC extends Listener
         }
     }
 
-    static boolean checkNodeSize(NodeInst ni, Cell cell, ErrorLogger errorLogger, Map<Cell, Area> exclusionMap,
-                                 DRCCheckMode errorTypeSearch, boolean interactiveLogger)
+    static boolean checkNodeSize(NodeInst ni, Cell cell, ReportInfo reportInfo)
     {
         boolean errorsFound = false;
         // check node for minimum size
@@ -1314,9 +1347,8 @@ public class DRC extends Listener
             {
                 for (PrimitiveNode.NodeSizeRule.NodeSizeRuleError e : errorsList)
                 {
-                    createDRCErrorLogger(errorLogger, exclusionMap, errorTypeSearch, interactiveLogger,
-                        DRC.DRCErrorType.MINSIZEERROR, e.message, cell, e.minSize, e.actual, sizeRule.getRuleName(),
-					null, ni, null, null, null, null);
+                    createDRCErrorLogger(reportInfo, DRC.DRCErrorType.MINSIZEERROR, e.message, cell,
+                        e.minSize, e.actual, sizeRule.getRuleName(), null, ni, null, null, null, null);
                     errorsFound = true;
                 }
             }

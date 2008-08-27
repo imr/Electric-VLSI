@@ -158,8 +158,8 @@ public class MTDRCLayoutTool extends MTDRCTool {
         private HashMap<Network,Integer[]> networkLists;
     //	private HashMap<Cell,Cell> cellsMap = new HashMap<Cell,Cell>(); // for cell caching
         private HashMap<Geometric,Geometric> nodesMap = new HashMap<Geometric,Geometric>(); // for node caching
-        private int activeSpacingBits = 0; // to cache current extra bits
-        private boolean inMemory = DRC.isDatesStoredInMemory();
+//        private int activeSpacingBits = 0; // to cache current extra bits
+//        private boolean inMemory = DRC.isDatesStoredInMemory();
         private Map<Layer,NodeInst> od2Layers = new HashMap<Layer,NodeInst>(3);  /** to control OD2 combination in the same die according to foundries */
 
         private List<InstanceInter> instanceInteractionList = new ArrayList<InstanceInter>();
@@ -169,20 +169,21 @@ public class MTDRCLayoutTool extends MTDRCTool {
          */
         private Map<Cell,Area> exclusionMap = new HashMap<Cell,Area>();
 
-        /** error type search */				                    private DRC.DRCCheckMode errorTypeSearch;
-        /** minimum output grid resolution */				        private double minAllowedResolution;
-        /** true to ignore center cuts in large contacts. */		private boolean ignoreCenterCuts;
-        /** maximum area to examine (the worst spacing rule). */	private double worstInteractionDistance;
-        /** time stamp for numbering networks. */					private int checkTimeStamp;
-        /** for numbering networks. */								private int checkNetNumber;
-        /** total errors found in all threads. */					private int totalMsgFound;
+//        /** error type search */				                    private DRC.DRCCheckMode errorTypeSearch;
+//        /** minimum output grid resolution */				        private double minAllowedResolution;
+//        /** true to ignore center cuts in large contacts. */		private boolean ignoreCenterCuts;
+//        /** maximum area to examine (the worst spacing rule). */	private double worstInteractionDistance;
+//        /** time stamp for numbering networks. */					private int checkTimeStamp;
+//        /** for numbering networks. */								private int checkNetNumber;
+//        /** total errors found in all threads. */					private int totalMsgFound;
         /** a NodeInst that is too tiny for its connection. */		private NodeInst tinyNodeInst;
         /** the other Geometric in "tiny" errors. */				private Geometric tinyGeometric;
         /** for tracking the time of good DRC. */					private HashSet<Cell> goodSpacingDRCDate = new HashSet<Cell>();
         /** for tracking cells that need to clean good DRC vars */	private HashSet<Cell> cleanSpacingDRCDate = new HashSet<Cell>();
 	/** for tracking the time of good DRC. */					private HashSet<Cell> goodAreaDRCDate = new HashSet<Cell>();
 	/** for tracking cells that need to clean good DRC vars */	private HashSet<Cell> cleanAreaDRCDate = new HashSet<Cell>();
-        /** for interactive error logging */                        private boolean interactiveLogger = false;
+//        /** for interactive error logging */                        private boolean interactiveLogger = false;
+        /** Miscellanous data for DRC */                            private DRC.ReportInfo reportInfo;
 
         /* for figuring out which layers are valid for DRC */
         private Technology layersValidTech;
@@ -194,7 +195,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
         private HashMap<ArcProto, boolean[]> layersInterArcs;
 
             // New for the MT code
-        private ErrorLogger errorLogger;
+//        private ErrorLogger errorLogger;
         private Layer theLayer;
         private Layer.Function.Set thisLayerFunction;
         private DRCRules currentRules;
@@ -233,37 +234,26 @@ public class MTDRCLayoutTool extends MTDRCTool {
                 name = "Node Min. Size";
             }
             theLayer = taskKey;
-            errorLogger = DRC.getDRCErrorLogger(true, false, ", " + name);
+
+
+        // if checking specific instances, adjust options and processor count
+            Geometric[] geomsToCheck = null; // for now.
+            int count = (geomsToCheck != null) ? geomsToCheck.length : 0;
+            boolean[] validity = null;
+            Rectangle2D bounds = null;
+//		if (count > 0)
+//		{
+//			reportInfo.errorTypeSearch = DRC.DRCCheckMode.ERROR_CHECK_CELL;
+//		}
+            ErrorLogger errorLogger = DRC.getDRCErrorLogger(true, false, ", " + name);
+            reportInfo = new DRC.ReportInfo(errorLogger, tech, (count > 0));
 
             // caching bits
-            activeSpacingBits = DRC.getActiveBits(tech);
-            System.out.println("Running DRC for " + name + " with " + DRC.explainBits(activeSpacingBits));
-
-            // caching memory setting
-            inMemory = DRC.isDatesStoredInMemory();
-            interactiveLogger = DRC.isInteractiveLoggingOn();
-
-            // minimim resolution different from zero if flag is on otherwise stays at zero (default)
-            minAllowedResolution = tech.getResolution();
+            System.out.println("Running DRC for " + name + " with " + DRC.explainBits(reportInfo.activeSpacingBits));
 
             // Check if there are DRC rules for particular tech
             // Nothing to check for this particular technology
             if (currentRules == null || currentRules.getNumberOfRules() == 0) return null;
-
-            // get the current DRC options
-            errorTypeSearch = DRC.getErrorType();
-            ignoreCenterCuts = DRC.isIgnoreCenterCuts();
-
-            // if checking specific instances, adjust options and processor count
-            Geometric[] geomsToCheck = null; // NULL for now
-            boolean[] validity = null;
-            Rectangle2D bounds = null;
-
-            int count = (geomsToCheck != null) ? geomsToCheck.length : 0;
-            if (count > 0)
-            {
-                errorTypeSearch = DRC.DRCCheckMode.ERROR_CHECK_CELL;
-            }
 
             // cache valid layers for this technology
             cacheValidLayers(tech);
@@ -271,9 +261,6 @@ public class MTDRCLayoutTool extends MTDRCTool {
 
             // clean out the cache of instances
             instanceInteractionList.clear();
-
-            // determine maximum DRC interaction distance
-            worstInteractionDistance = currentRules.getWorstSpacingDistance(-1);
 
             // determine if min area must be checked (if any layer got valid data)
 //	    cellsMap.clear();
@@ -289,7 +276,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
 
             // now recursively examine, setting information on all instances
             cp.hierInstanceCount = 1;
-            checkTimeStamp = 0;
+            reportInfo.checkTimeStamp = 0;
             checkEnumerateInstances(topCell);
 
             // now allocate space for hierarchical network arrays
@@ -324,7 +311,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
                     CheckProto ocp = getCheckProto((Cell) np);
                     ci.offset = ocp.totalPerCell;
                 }
-                checkTimeStamp++;
+                reportInfo.checkTimeStamp++;
                 for (Iterator<NodeInst> nIt = libCell.getNodes(); nIt.hasNext();)
                 {
                     NodeInst ni = nIt.next();
@@ -335,30 +322,30 @@ public class MTDRCLayoutTool extends MTDRCTool {
                     if (ni.isIconOfParent()) continue;
 
                     CheckProto ocp = getCheckProto((Cell) np);
-                    if (ocp.timeStamp != checkTimeStamp)
+                    if (ocp.timeStamp != reportInfo.checkTimeStamp)
                     {
                         CheckInst ci = checkInsts.get(ni);
-                        ocp.timeStamp = checkTimeStamp;
+                        ocp.timeStamp = reportInfo.checkTimeStamp;
                         ocp.totalPerCell += subCP.hierInstanceCount * ci.multiplier;
                     }
                 }
             }
 
             // now fill in the hierarchical network arrays
-            checkTimeStamp = 0;
-            checkNetNumber = 1;
+            reportInfo.checkTimeStamp = 0;
+            reportInfo.checkNetNumber = 1;
 
             HashMap<Network, Integer> enumeratedNets = new HashMap<Network, Integer>();
             for (Iterator<Network> nIt = cp.netlist.getNetworks(); nIt.hasNext();)
             {
                 Network net = nIt.next();
-                enumeratedNets.put(net, new Integer(checkNetNumber));
-                checkNetNumber++;
+                enumeratedNets.put(net, new Integer(reportInfo.checkNetNumber));
+                reportInfo.checkNetNumber++;
             }
             checkEnumerateNetworks(topCell, cp, 0, enumeratedNets);
 
             if (count <= 0)
-                System.out.println("Found " + checkNetNumber + " networks");
+                System.out.println("Found " + reportInfo.checkNetNumber + " networks");
 
             // now search for DRC exclusion areas
             exclusionMap.clear();
@@ -430,10 +417,10 @@ public class MTDRCLayoutTool extends MTDRCTool {
             // Previous # of errors/warnings
             int prevErrors = 0;
             int prevWarns = 0;
-            if (errorLogger != null)
+            if (reportInfo.errorLogger != null)
             {
-                prevErrors = errorLogger.getNumErrors();
-                prevWarns = errorLogger.getNumWarnings();
+                prevErrors = reportInfo.errorLogger.getNumErrors();
+                prevWarns = reportInfo.errorLogger.getNumWarnings();
             }
 
 //		cellsMap.put(cell, cell);
@@ -443,8 +430,8 @@ public class MTDRCLayoutTool extends MTDRCTool {
             if (drcVar != null && drcVar.getObject().toString().startsWith("black"))
             {
                 // Skipping this one
-                assert(totalMsgFound==0);
-                return totalMsgFound;
+                assert(reportInfo.totalSpacingMsgFound==0);
+                return reportInfo.totalSpacingMsgFound;
             }
 
             // first check all subcells
@@ -501,11 +488,11 @@ public class MTDRCLayoutTool extends MTDRCTool {
             cp.cellChecked = true;
             boolean skipLayer = skipLayerInvalidForMinArea(theLayer);
             boolean checkArea = (cell == topCell && !skipLayer &&
-                !DRC.isIgnoreAreaChecking() && errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_CELL);
+                !DRC.isIgnoreAreaChecking() && reportInfo.errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_CELL);
 
             // if the cell hasn't changed since the last good check, stop now
-            Date lastSpacingGoodDate = DRC.getLastDRCDateBasedOnBits(cell, true, activeSpacingBits, !inMemory);
-            Date lastAreaGoodDate = DRC.getLastDRCDateBasedOnBits(cell, false, -1, !inMemory);
+            Date lastSpacingGoodDate = DRC.getLastDRCDateBasedOnBits(cell, true, reportInfo.activeSpacingBits, !reportInfo.inMemory);
+            Date lastAreaGoodDate = DRC.getLastDRCDateBasedOnBits(cell, false, -1, !reportInfo.inMemory);
             if (allSubCellsStillOK && DRC.isCellDRCDateGood(cell, lastSpacingGoodDate) &&
                 (!checkArea || DRC.isCellDRCDateGood(cell, lastAreaGoodDate)))
             {
@@ -518,14 +505,14 @@ public class MTDRCLayoutTool extends MTDRCTool {
                 System.out.println("Checking " + cell + ", " + theLayer);
 
             // now look at every node and arc here
-            totalMsgFound = 0;
+            reportInfo.totalSpacingMsgFound = 0;
 
             // Check the area first but only when is not incremental
             // Only for the most top cell
             if (checkArea)
             {
-                assert(totalMsgFound == 0);
-                int totalAreaMsgFound = MTDRCAreaTool.checkMinArea(theLayer, topCell, errorLogger, currentRules, cellLayersCon, job, null);
+                assert(reportInfo.totalSpacingMsgFound == 0);
+                int totalAreaMsgFound = MTDRCAreaTool.checkMinArea(theLayer, topCell, reportInfo, currentRules, cellLayersCon, job, null);
                 if (totalAreaMsgFound == 0)
                     goodAreaDRCDate.add(cell);
                 else
@@ -560,8 +547,8 @@ public class MTDRCLayoutTool extends MTDRCTool {
                 }
                 if (ret)
                 {
-                    totalMsgFound++;
-                    if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) break;
+                    reportInfo.totalSpacingMsgFound++;
+                    if (reportInfo.errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) break;
                 }
             }
 
@@ -583,8 +570,8 @@ public class MTDRCLayoutTool extends MTDRCTool {
                     }
                     if (checkArcInst(cp, ai, globalIndex))
                     {
-                        totalMsgFound++;
-                        if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) break;
+                        reportInfo.totalSpacingMsgFound++;
+                        if (reportInfo.errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) break;
                     }
                 }
             }
@@ -592,7 +579,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
             // If message founds, then remove any possible good date
             // !allSubCellsStillOK disconnected on April 18, 2006. totalMsgFound should
             // dictate if this cell is re-marked.
-            if (totalMsgFound > 0) //  || !allSubCellsStillOK)
+            if (reportInfo.totalSpacingMsgFound > 0) //  || !allSubCellsStillOK)
             {
                 cleanSpacingDRCDate.add(cell);
             } else
@@ -605,10 +592,10 @@ public class MTDRCLayoutTool extends MTDRCTool {
             }
 
             // if there were no errors, remember that
-            if (errorLogger != null && printLog)
+            if (reportInfo.errorLogger != null && printLog)
             {
-                int localErrors = errorLogger.getNumErrors() - prevErrors;
-                int localWarnings = errorLogger.getNumWarnings() - prevWarns;
+                int localErrors = reportInfo.errorLogger.getNumErrors() - prevErrors;
+                int localWarnings = reportInfo.errorLogger.getNumWarnings() - prevWarns;
                 long endTime = System.currentTimeMillis();
                 if (localErrors == 0 && localWarnings == 0)
                 {
@@ -624,7 +611,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
                     System.out.println("\t(took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
             }
 
-            return totalMsgFound;
+            return reportInfo.totalSpacingMsgFound;
         }
 
         /**
@@ -637,23 +624,23 @@ public class MTDRCLayoutTool extends MTDRCTool {
          */
         private boolean checkResolution(PolyBase poly, Cell cell, Geometric geom)
         {
-            if (minAllowedResolution == 0) return false;
+            if (reportInfo.minAllowedResolution == 0) return false;
             int count = 0;
             String resolutionError = "";
             Point2D[] points = poly.getPoints();
             for (Point2D point : points)
             {
-                if (DBMath.hasRemainder(point.getX(), minAllowedResolution))
+                if (DBMath.hasRemainder(point.getX(), reportInfo.minAllowedResolution))
                 {
                     count++;
-                    resolutionError = TextUtils.formatDouble(Math.abs(((point.getX() / minAllowedResolution) % 1) * minAllowedResolution)) +
+                    resolutionError = TextUtils.formatDouble(Math.abs(((point.getX() / reportInfo.minAllowedResolution) % 1) * reportInfo.minAllowedResolution)) +
                         "(X=" + point.getX() + ")";
                     break; // with one error is enough
                 } else
-                    if (DBMath.hasRemainder(point.getY(), minAllowedResolution))
+                    if (DBMath.hasRemainder(point.getY(), reportInfo.minAllowedResolution))
                     {
                         count++;
-                        resolutionError = TextUtils.formatDouble(Math.abs(((point.getY() / minAllowedResolution) % 1) * minAllowedResolution)) +
+                        resolutionError = TextUtils.formatDouble(Math.abs(((point.getY() / reportInfo.minAllowedResolution) % 1) * reportInfo.minAllowedResolution)) +
                             "(Y=" + point.getY() + ")";
                         break;
                     }
@@ -662,7 +649,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
 
             // there was an error, for now print error
             Layer layer = poly.getLayer();
-            reportError(DRC.DRCErrorType.RESOLUTION, " resolution of " + resolutionError + " less than " + minAllowedResolution +
+            reportError(DRC.DRCErrorType.RESOLUTION, " resolution of " + resolutionError + " less than " + reportInfo.minAllowedResolution +
                 " on layer " + layer.getName(), cell, 0, 0, "Resolution", null, geom, null, null, null, null);
             return true;
         }
@@ -742,7 +729,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
             if (thisLayerFunction != null)
             {
                 // get all of the polygons on this node
-                Poly[] nodeInstPolyList = tech.getShapeOfNode(ni, true, ignoreCenterCuts, thisLayerFunction);
+                Poly[] nodeInstPolyList = tech.getShapeOfNode(ni, true, reportInfo.ignoreCenterCuts, thisLayerFunction);
                 convertPseudoLayers(ni, nodeInstPolyList);
                 int tot = nodeInstPolyList.length;
                 boolean isTransistor = np.getFunction().isTransistor();
@@ -772,7 +759,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
                     ret = checkResolution(poly, cell, ni);
                     if (ret)
                     {
-                        if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
+                        if (reportInfo.errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
                         errorsFound = true;
                     }
 
@@ -782,13 +769,13 @@ public class MTDRCLayoutTool extends MTDRCTool {
                     ret = badBox(poly, layer, netNumber, tech, ni, trans, cell, globalIndex, multiCutData);
                     if (ret)
                     {
-                        if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
+                        if (reportInfo.errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
                         errorsFound = true;
                     }
                     ret = checkMinWidth(ni, layer, poly, tot == 1);
                     if (ret)
                     {
-                        if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
+                        if (reportInfo.errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
                         errorsFound = true;
                     }
                     // Check select over transistor poly
@@ -797,7 +784,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
                     ret = !isTransistor && checkExtensionRules(ni, layer, poly, cell);
                     if (ret)
                     {
-                        if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
+                        if (reportInfo.errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
                         errorsFound = true;
                     }
 //            ret = checkExtensionRule(ni, layer, poly, cell);
@@ -810,7 +797,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
                     {
                         reportError(DRC.DRCErrorType.BADLAYERERROR, null, cell, 0, 0, null,
                             poly, ni, layer, null, null, null);
-                        if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
+                        if (reportInfo.errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
                         errorsFound = true;
                     }
                 }
@@ -822,41 +809,13 @@ public class MTDRCLayoutTool extends MTDRCTool {
                     DRCTemplate.DRCRuleType.FORBIDDEN))
                 {
                     reportError(DRC.DRCErrorType.FORBIDDEN, " is not allowed by selected foundry", cell, -1, -1, null, null, ni, null, null, null, null);
-                    if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
+                    if (reportInfo.errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
                     errorsFound = true;
                 }
 
                 // check node for minimum size
-                if (DRC.checkNodeSize(ni, cell, errorLogger, exclusionMap, errorTypeSearch, interactiveLogger))
+                if (DRC.checkNodeSize(ni, cell, reportInfo))
                     errorsFound = true;
-//                PrimitiveNode.NodeSizeRule sizeRule = DRC.getMinSize(np);
-//                if (sizeRule != null)
-//                {
-//                    if (DBMath.isGreaterThan(sizeRule.getWidth(), ni.getXSize()) ||
-//                        DBMath.isGreaterThan(sizeRule.getHeight(), ni.getYSize()))
-//                    {
-////                        SizeOffset so = ni.getSizeOffset();
-//                        double minSize = 0, actual = 0;
-//                        String msg = "X axis";
-//                        if (sizeRule.getWidth() - ni.getXSize() > sizeRule.getHeight() - ni.getYSize())
-//                        {
-//                            actual = ni.getLambdaBaseXSize();
-//                            minSize = actual + sizeRule.getWidth() - ni.getXSize();
-////                            minSize = sizeRule.getWidth() - so.getLowXOffset() - so.getHighXOffset();
-////                            actual = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
-//                        } else
-//                        {
-//                            msg = "Y axis";
-//                            actual = ni.getLambdaBaseYSize();
-//                            minSize = actual + sizeRule.getHeight() - ni.getYSize();
-////                            minSize = sizeRule.getHeight() - so.getLowYOffset() - so.getHighYOffset();
-////                            actual = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
-//                        }
-//                        reportError(DRC.DRCErrorType.MINSIZEERROR, msg, cell, minSize, actual, sizeRule.getRuleName(),
-//                            null, ni, null, null, null, null);
-//                        errorsFound = true;
-//                    }
-//                }
             }
             return errorsFound;
         }
@@ -939,7 +898,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
                 boolean ret = checkResolution(poly, ai.getParent(), ai);
                 if (ret)
                 {
-                    if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
+                    if (reportInfo.errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
                     errorsFound = true;
                 }
             }
@@ -959,13 +918,13 @@ public class MTDRCLayoutTool extends MTDRCTool {
                 boolean ret = badBox(poly, layer, netNumber, tech, ai, DBMath.MATID, ai.getParent(), globalIndex, null);
                 if (ret)
                 {
-                    if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
+                    if (reportInfo.errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
                     errorsFound = true;
                 }
                 ret = checkMinWidth(ai, layer, poly, tot == 1);
                 if (ret)
                 {
-                    if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
+                    if (reportInfo.errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
                     errorsFound = true;
                 }
                 // Check select over transistor poly
@@ -973,14 +932,14 @@ public class MTDRCLayoutTool extends MTDRCTool {
                 ret = checkExtensionRules(ai, layer, poly, ai.getParent());
                 if (ret)
                 {
-                    if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
+                    if (reportInfo.errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
                     errorsFound = true;
                 }
                 if (tech == layersValidTech && !layersValid[layerNum])
                 {
                     reportError(DRC.DRCErrorType.BADLAYERERROR, null, ai.getParent(), 0, 0, null,
                         (tot == 1) ? null : poly, ai, layer, null, null, null);
-                    if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
+                    if (reportInfo.errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
                     errorsFound = true;
                 }
             }
@@ -1008,6 +967,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
 
             // look for other instances surrounding this one
             Rectangle2D nodeBounds = ni.getBounds();
+            double worstInteractionDistance = reportInfo.worstInteractionDistance;
             Rectangle2D searchBounds = new Rectangle2D.Double(
                 nodeBounds.getMinX() - worstInteractionDistance,
                 nodeBounds.getMinY() - worstInteractionDistance,
@@ -1104,7 +1064,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
                             (triggerNi == null) ? ni : triggerNi);
                         if (ret)
                         {
-                            if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
+                            if (reportInfo.errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
                             logsFound = true;
                         }
                     } else
@@ -1112,7 +1072,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
                         AffineTransform rTrans = ni.rotateOut();
                         rTrans.preConcatenate(upTrans);
                         Technology tech = np.getTechnology();
-                        Poly[] primPolyList = tech.getShapeOfNode(ni, true, ignoreCenterCuts, thisLayerFunction);
+                        Poly[] primPolyList = tech.getShapeOfNode(ni, true, reportInfo.ignoreCenterCuts, thisLayerFunction);
                         convertPseudoLayers(ni, primPolyList);
                         int tot = primPolyList.length;
                         Technology.MultiCutData multiCutData = tech.getMultiCutData(ni);
@@ -1136,7 +1096,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
                                 globalIndex, oNi, topGlobalIndex, multiCutData);
                             if (ret)
                             {
-                                if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
+                                if (reportInfo.errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
                                 logsFound = true;
                             }
                         }
@@ -1174,7 +1134,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
                             globalIndex, oNi, topGlobalIndex, null);
                         if (ret)
                         {
-                            if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
+                            if (reportInfo.errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
                             logsFound = true;
                         }
                     }
@@ -1326,7 +1286,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
                             topCell, topGlobalIndex, subTrans, multiCutData, sameInstance))
                         {
                             foundError = true;
-                            if (errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE) return true;
+                            if (reportInfo.errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE) return true;
                         }
                     } else
                     {
@@ -1346,7 +1306,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
                         rTrans.preConcatenate(upTrans);
 
                         // get the shape of each nodeinst layer
-                        Poly[] subPolyList = tech.getShapeOfNode(ni, true, ignoreCenterCuts, null);
+                        Poly[] subPolyList = tech.getShapeOfNode(ni, true, reportInfo.ignoreCenterCuts, null);
                         convertPseudoLayers(ni, subPolyList);
                         int tot = subPolyList.length;
                         for (int i = 0; i < tot; i++)
@@ -1412,7 +1372,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
                             if (ret)
                             {
                                 foundError = true;
-                                if (errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE) return true;
+                                if (reportInfo.errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE) return true;
                             }
 
                             // check if both polys are cut and if the combine area doesn't excess cut sizes
@@ -1421,7 +1381,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
                             if (ret)
                             {
                                 foundError = true;
-                                if (errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE) return true;
+                                if (reportInfo.errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE) return true;
                             }
 
                             // if they connect electrically and adjoin, don't check
@@ -1438,7 +1398,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
                                 if (ret)
                                 {
                                     foundError = true;
-                                    if (errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE) return true;
+                                    if (reportInfo.errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE) return true;
                                 }
                                 continue;
                             }
@@ -1463,7 +1423,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
                             if (ret)
                             {
                                 foundError = true;
-                                if (errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE) return true;
+                                if (reportInfo.errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE) return true;
                             }
                         }
                     }
@@ -1533,7 +1493,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
                             if (ret)
                             {
                                 foundError = true;
-                                if (errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE) return true;
+                                if (reportInfo.errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE) return true;
                             }
                             continue;
                         }
@@ -1555,7 +1515,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
                         if (ret)
                         {
                             foundError = true;
-                            if (errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE) return true;
+                            if (reportInfo.errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE) return true;
                         }
 
                         // Checking extension, it could be slow
@@ -1563,7 +1523,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
                         if (ret)
                         {
                             foundError = true;
-                            if (errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE) return true;
+                            if (reportInfo.errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE) return true;
                         }
                     }
                 }
@@ -1812,7 +1772,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
                     // they are electrically connected: see if they touch
                     if (checkMinDefects(cell, maytouch, geom1, poly1, trueBox1, layer2, geom2, poly2, trueBox2, layer2, cell))
                     {
-                        if (errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE) return true;
+                        if (reportInfo.errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE) return true;
                         errorFound = true;
                     }
                 }
@@ -1949,7 +1909,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
                  * part of a VTH-transistors. Not very elegant solution but should work for now.
                  */
                 if (polyCoverByAnyVTLayer(cell, theRule, tech, new Poly[]{poly1, poly2}, new Layer[]{layer1, layer2},
-                    new Geometric[]{geom1, geom2}, ignoreCenterCuts))
+                    new Geometric[]{geom1, geom2}, reportInfo.ignoreCenterCuts))
                     return errorFound;
 
                 // special cases if the layers are the same
@@ -2071,6 +2031,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
 
             // look for other objects surrounding this one
             Rectangle2D nodeBounds = ni.getBounds();
+            double worstInteractionDistance = reportInfo.worstInteractionDistance;
             Rectangle2D searchBounds = new Rectangle2D.Double(
                 nodeBounds.getMinX() - worstInteractionDistance,
                 nodeBounds.getMinY() - worstInteractionDistance,
@@ -2137,7 +2098,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
 
                 tech = oNi.getProto().getTechnology();
                 trans = oNi.rotateOut();
-                nodeInstPolyList = tech.getShapeOfNode(oNi, true, ignoreCenterCuts, thisLayerFunction);
+                nodeInstPolyList = tech.getShapeOfNode(oNi, true, reportInfo.ignoreCenterCuts, thisLayerFunction);
                 convertPseudoLayers(oNi, nodeInstPolyList);
                 multiCutData = tech.getMultiCutData(oNi);
 //                baseMulti = tech.isMultiCutCase(oNi);
@@ -2207,7 +2168,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
         private boolean checkInteraction(NodeInst ni1, NodeInst n1Parent,
                                          NodeInst ni2, NodeInst n2Parent, NodeInst triggerNi)
         {
-            if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE) return false;
+            if (reportInfo.errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE) return false;
 
             // must recheck parameterized instances always
             CheckProto cp = getCheckProto((Cell) ni1.getProto());
@@ -2363,7 +2324,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
             if (checkAbort()) return;
 
             // number all of the instances in this cell
-            checkTimeStamp++;
+            reportInfo.checkTimeStamp++;
             List<CheckProto> subCheckProtos = new ArrayList<CheckProto>();
             for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext();)
             {
@@ -2375,9 +2336,9 @@ public class MTDRCLayoutTool extends MTDRCTool {
                 if (ni.isIconOfParent()) continue;
 
                 CheckProto cp = getCheckProto((Cell) np);
-                if (cp.timeStamp != checkTimeStamp)
+                if (cp.timeStamp != reportInfo.checkTimeStamp)
                 {
-                    cp.timeStamp = checkTimeStamp;
+                    cp.timeStamp = reportInfo.checkTimeStamp;
                     cp.instanceCount = 0;
                     cp.nodesInCell = new ArrayList<CheckInst>();
                     subCheckProtos.add(cp);
@@ -2459,7 +2420,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
                 {
                     Network net = nIt.next();
                     if (subEnumeratedNets.get(net) == null)
-                        subEnumeratedNets.put(net, new Integer(checkNetNumber++));
+                        subEnumeratedNets.put(net, new Integer(reportInfo.checkNetNumber++));
                 }
                 checkEnumerateNetworks(subCell, subCP, localIndex, subEnumeratedNets);
             }
@@ -2528,9 +2489,12 @@ public class MTDRCLayoutTool extends MTDRCTool {
             DRC.DRCErrorType errorType = DRC.DRCErrorType.MINWIDTHERROR;
             String extraMsg = msg;
             String rule = minWidthRule.ruleName;
-            if (zeroWide)
+            
+            // Only when the flat element is fully covered send the warning
+            // otherwise it is considered an error.
+            if (zeroWide && overlapLayer)
             {
-                if (overlapLayer) extraMsg = " but covered by other layer";
+                extraMsg = " but covered by other layer";
                 errorType = DRC.DRCErrorType.ZEROLENGTHARCWARN;
                 rule = null;
             }
@@ -2639,6 +2603,31 @@ public class MTDRCLayoutTool extends MTDRCTool {
             double minWidthValue = minWidthRule.getValue(0);
             // simpler analysis if manhattan
             Rectangle2D bounds = poly.getBox();
+
+            // only in case of flat elements represented by a line
+            // most likely an flat arc, vertical or horizontal.
+            // It doesn't consider arbitrary angled lines.
+            if (bounds == null && poly.isSingleLine())
+            {
+                Point2D [] points = poly.getPoints();
+                Point2D from = points[0];
+                Point2D to = points[1];
+                Point2D center = new Point2D.Double((from.getX() + to.getX()) / 2, (from.getY() + to.getY()) / 2);
+
+                // looking if points around the overlapping area are inside another region
+                // to avoid the error
+                boolean [] pointsFound = new boolean[3];
+                pointsFound[0] = pointsFound[1] = pointsFound[2] = false;
+                boolean found = lookForLayerNew(geom, poly, null, null, cell, layer, DBMath.MATID,  poly.getBounds2D(),
+                    from, to, center, pointsFound, true, true);
+                if (found) return false; // no error, flat element covered by othe elements.
+
+                if (reportError)
+                    reportError(DRC.DRCErrorType.MINWIDTHERROR, null, cell, minWidthValue, 0, minWidthRule.ruleName,
+                        (onlyOne) ? null : poly, geom, layer, null, null, null);
+                return true;
+            }
+
             if (bounds != null)
             {
                 boolean tooSmallWidth = DBMath.isGreaterThan(minWidthValue, bounds.getWidth());
@@ -3030,7 +3019,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
                     AffineTransform bound = ni.rotateOut();
                     bound.preConcatenate(moreTrans);
                     Technology tech = ni.getProto().getTechnology();
-                    Poly[] layerLookPolyList = tech.getShapeOfNode(ni, false, ignoreCenterCuts, thisLayerFunction); // consistent change!
+                    Poly[] layerLookPolyList = tech.getShapeOfNode(ni, false, reportInfo.ignoreCenterCuts, thisLayerFunction); // consistent change!
 //                layerLookPolyList = tech.getShapeOfNode(ni, false, ignoreCenterCuts, null);
                     int tot = layerLookPolyList.length;
                     for (int i = 0; i < tot; i++)
@@ -3149,7 +3138,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
                     Technology tech = ni.getProto().getTechnology();
                     // I have to ask for electrical layers otherwise it will retrieve one polygon for polysilicon
                     // and poly.polySame(poly1) will never be true. CONTRADICTION!
-                    Poly[] layerLookPolyList = tech.getShapeOfNode(ni, false, ignoreCenterCuts, thisLayerFunction); // consistent change!
+                    Poly[] layerLookPolyList = tech.getShapeOfNode(ni, false, reportInfo.ignoreCenterCuts, thisLayerFunction); // consistent change!
 //                layerLookPolyList = tech.getShapeOfNode(ni, false, ignoreCenterCuts, null);
                     int tot = layerLookPolyList.length;
                     for (int i = 0; i < tot; i++)
@@ -3263,7 +3252,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
                     Technology tech = ni.getProto().getTechnology();
                     // I have to ask for electrical layers otherwise it will retrieve one polygon for polysilicon
                     // and poly.polySame(poly1) will never be true. CONTRADICTION!
-                    Poly[] layerLookPolyList = tech.getShapeOfNode(ni, false, ignoreCenterCuts, layerFunction); // consistent change!);
+                    Poly[] layerLookPolyList = tech.getShapeOfNode(ni, false, reportInfo.ignoreCenterCuts, layerFunction); // consistent change!);
                     int tot = layerLookPolyList.length;
                     for (int i = 0; i < tot; i++)
                     {
@@ -3775,7 +3764,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
                     {
                         reportError(DRC.DRCErrorType.LAYERSURROUNDERROR, "No enough surround of " + rule.condition + ", ", geom.getParent(), rule.getValue(0),
                             -1, rule.ruleName, poly, geom, layer, null, null, null);
-                        if (errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE)
+                        if (reportInfo.errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE)
                             return true; // no need of checking other combinations
                         break; // with next rule
                     }
@@ -4176,7 +4165,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
                                      Layer nLayer, int nNet, Geometric nGeom, Rectangle2D bound)
         {
             Technology tech = ni.getProto().getTechnology();
-            Poly[] cropNodePolyList = tech.getShapeOfNode(ni, true, ignoreCenterCuts, null);
+            Poly[] cropNodePolyList = tech.getShapeOfNode(ni, true, reportInfo.ignoreCenterCuts, null);
             convertPseudoLayers(ni, cropNodePolyList);
             int tot = cropNodePolyList.length;
             if (tot < 0) return false;
@@ -4283,7 +4272,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
 //                }
 //            }
 //            else
-                cropArcPolyList = tech.getShapeOfNode(ni, false, ignoreCenterCuts, null);
+                cropArcPolyList = tech.getShapeOfNode(ni, false, reportInfo.ignoreCenterCuts, null);
                 int tot = cropArcPolyList.length;
                 for (int j = 0; j < tot; j++)
                 {
@@ -4347,7 +4336,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
                 // crop the arc against this transistor
                 AffineTransform trans = ni.rotateOut();
                 Technology tech = ni.getProto().getTechnology();
-                Poly[] activeCropPolyList = tech.getShapeOfNode(ni, false, ignoreCenterCuts, null);
+                Poly[] activeCropPolyList = tech.getShapeOfNode(ni, false, reportInfo.ignoreCenterCuts, null);
                 int nTot = activeCropPolyList.length;
                 for (int k = 0; k < nTot; k++)
                 {
@@ -4549,7 +4538,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
             // build the node table
             if (layersInterNodes != null && old != null)
             {
-                errorLogger.logWarning("Switching from '" + old.getTechName() +
+                reportInfo.errorLogger.logWarning("Switching from '" + old.getTechName() +
                     "' to '" + tech.getTechName() + "' in DRC process. Check for non desired nodes in ",
                     topCell, -1);
             }
@@ -4676,8 +4665,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
                                  PolyBase poly1, Geometric geom1, Layer layer1,
                                  PolyBase poly2, Geometric geom2, Layer layer2)
         {
-            DRC.createDRCErrorLogger(errorLogger, exclusionMap, errorTypeSearch, interactiveLogger,
-                errorType, msg, cell, limit, actual, rule, poly1, geom1, layer1,
+            DRC.createDRCErrorLogger(reportInfo, errorType, msg, cell, limit, actual, rule, poly1, geom1, layer1,
                 poly2, geom2, layer2);
     }
     }

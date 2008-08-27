@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08e: ******************************
 
+BUG: (8/27/08, GVG) DRC should not complain about zero lenghts. (Bug #1798)
+FIX: Flat arcs/nodes without being covered by other elements are reported as errors.
+NOTE: Only 1 extra point is used for the scanning and that might not be sufficient.
+
 BUG: (8/27/08, SMR) Cell history buttons are the same in each window (Bug #1753).
 FIX: Made these buttons be window-specific.
 

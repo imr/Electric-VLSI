@@ -50,6 +50,8 @@ import java.awt.geom.Area;
 
 public class MTDRCAreaTool extends MTDRCTool
 {
+    /** Miscellanous data for DRC */                            private DRC.ReportInfo reportInfo;
+
     public MTDRCAreaTool(Cell c, Consumer<MTDRCResult> consumer)
     {
         super("Design-Rule Area Check " + c, c, consumer);
@@ -58,7 +60,7 @@ public class MTDRCAreaTool extends MTDRCTool
     @Override
     boolean checkArea() {return true;}
 
-    static int checkMinArea(Layer theLayer, Cell topC, ErrorLogger errorLogger, DRCRules areaRules,
+    static int checkMinArea(Layer theLayer, Cell topC, DRC.ReportInfo rI, DRCRules areaRules,
                             CellLayersContainer cellLayersC, Job job, String msg)
     {                    
         DRCTemplate minAreaRule = areaRules.getMinValue(theLayer, DRCTemplate.DRCRuleType.MINAREA);
@@ -72,10 +74,10 @@ public class MTDRCAreaTool extends MTDRCTool
             System.out.println("Min Area DRC for " + msg + " in thread " + Thread.currentThread().getName());
         }
         HierarchyEnumerator.Visitor quickArea = new LayerAreaEnumerator(theLayer, minAreaRule, enclosedAreaRule,
-            spaceRule, topC, errorLogger, GeometryHandler.GHMode.ALGO_SWEEP,
+            spaceRule, topC, rI, GeometryHandler.GHMode.ALGO_SWEEP,
                 cellLayersC, job);
         HierarchyEnumerator.enumerateCell(topC, VarContext.globalContext, quickArea);
-        return errorLogger.getNumErrors() + errorLogger.getNumWarnings();
+        return rI.errorLogger.getNumErrors() + rI.errorLogger.getNumWarnings();
     }
 
     @Override
@@ -83,13 +85,14 @@ public class MTDRCAreaTool extends MTDRCTool
     {
         ErrorLogger errorLogger = DRC.getDRCErrorLogger(true, false, ", Layer " + theLayer.getName());
         String msg = "Cell " + topCell.getName() + " , layer " + theLayer.getName();
+        reportInfo = new DRC.ReportInfo(errorLogger, topCell.getTechnology(), false);
 
-        Date lastAreaGoodDate = DRC.getLastDRCDateBasedOnBits(topCell, false, -1, !DRC.isDatesStoredInMemory());
+        Date lastAreaGoodDate = DRC.getLastDRCDateBasedOnBits(topCell, false, -1, !reportInfo.inMemory);
 
         if (DRC.isCellDRCDateGood(topCell, lastAreaGoodDate))
             System.out.println("The cell seems to be MinArea OK. Should I run the code?");
 
-        int totalNumErrors = checkMinArea(theLayer, topCell, errorLogger, rules, cellLayersCon, this, msg);
+        int totalNumErrors = checkMinArea(theLayer, topCell, reportInfo, rules, cellLayersCon, this, msg);
         HashSet<Cell> goodAreaDRCDate = new HashSet<Cell>();
         HashSet<Cell> cleanAreaDRCDate = new HashSet<Cell>();
 
@@ -172,11 +175,12 @@ public class MTDRCAreaTool extends MTDRCTool
         private Collection<ArcProto> arcsList; // ArcProto that contains this layer
         private CellLayersContainer cellLayersCon;
         private DRCTemplate minAreaRule, enclosedAreaRule, spacingRule, minAreaEnclosedRule;
-        private ErrorLogger errorLogger;
+//        private ErrorLogger errorLogger;
         private Cell topCell;
+        private DRC.ReportInfo reportInfo;
 
         LayerAreaEnumerator(Layer layer, DRCTemplate minAreaR, DRCTemplate enclosedAreaR, DRCTemplate spaceR,
-                            Cell topC, ErrorLogger ErrorLog,
+                            Cell topC, DRC.ReportInfo rI,
                             GeometryHandler.GHMode m, CellLayersContainer cellLayersC, Job j)
         {
             // This is required so the poly arcs will be properly merged with the transistor polys
@@ -185,7 +189,7 @@ public class MTDRCAreaTool extends MTDRCTool
             this.enclosedAreaRule = enclosedAreaR;
             this.spacingRule = spaceR;
             this.topCell = topC;
-            this.errorLogger = ErrorLog;
+            this.reportInfo = rI;
             this.theLayer = layer;
             this.thisLayerFunction = DRC.getMultiLayersSet(theLayer);
             this.mode = m;
@@ -438,7 +442,7 @@ public class MTDRCAreaTool extends MTDRCTool
                 // isGreaterThan doesn't consider equals condition therefore negate condition is used
                 if (!DBMath.isGreaterThan(minVal, area)) return; // larger than the min value
                 count.increment();
-                DRC.createDRCErrorLogger(errorLogger, null, DRC.DRCCheckMode.ERROR_CHECK_DEFAULT, false,
+                DRC.createDRCErrorLogger(reportInfo,
                         errorType, null, cell, minVal, area, ruleName,
                         poly, null, layer, null, null, null);
             }
@@ -449,14 +453,14 @@ public class MTDRCAreaTool extends MTDRCTool
                 if (bnd.getWidth() < spacingRule.getValue(0))
                 {
                     count.increment();
-                    DRC.createDRCErrorLogger(errorLogger, null, DRC.DRCCheckMode.ERROR_CHECK_DEFAULT, false,
+                    DRC.createDRCErrorLogger(reportInfo,
                             DRC.DRCErrorType.NOTCHERROR, "(X axis)", cell, spacingRule.getValue(0), bnd.getWidth(),
                             spacingRule.ruleName, poly, null, layer, null, null, layer);
                 }
                 if (bnd.getHeight() < spacingRule.getValue(1))
                 {
                     count.increment();
-                    DRC.createDRCErrorLogger(errorLogger, null, DRC.DRCCheckMode.ERROR_CHECK_DEFAULT, false,
+                    DRC.createDRCErrorLogger(reportInfo,
                             DRC.DRCErrorType.NOTCHERROR, "(Y axis)", cell, spacingRule.getValue(1), bnd.getHeight(),
                             spacingRule.ruleName, poly, null, layer, null, null, layer);
                 }
