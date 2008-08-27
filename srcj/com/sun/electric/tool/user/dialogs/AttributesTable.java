@@ -467,8 +467,8 @@ public class AttributesTable extends JTable implements DatabaseChangeListener
 				}
 				createKey.add(newKey);
 				createValue.add(newValue);
-				createNew.add(new Boolean(newCreate));
-				createDisplay.add(new Boolean(newDisplay));
+				createNew.add(Boolean.valueOf(newCreate));
+				createDisplay.add(Boolean.valueOf(newDisplay));
 				createCode.add(newCode);
 				createDispPos.add(new Integer(newDispPos));
 				createUnits.add(new Integer(newUnits));

@@ -2671,7 +2671,7 @@ public class Spice extends Topology
             for (Cell c : emptyCells)
                 System.out.println("   "+c.describe(true));
         }
-        checkedCells.put(cell, new Boolean(empty));
+        checkedCells.put(cell, Boolean.valueOf(empty));
         return empty;
     }
 

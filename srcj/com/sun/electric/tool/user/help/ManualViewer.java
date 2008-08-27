@@ -307,7 +307,7 @@ public class ManualViewer extends EModelessDialog
 			// Adding 3D/Demo menu
 			try {
 				Method createMethod = plugin3D.getDeclaredMethod("create3DViewCommand", new Class[] {Boolean.class});
-				createMethod.invoke(plugin3D, new Object[] {new Boolean(false)});
+				createMethod.invoke(plugin3D, new Object[] {Boolean.FALSE});
 			} catch (Exception e)
 			{
 				System.out.println("Can't open 3D view: " + e.getMessage());

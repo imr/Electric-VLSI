@@ -383,7 +383,7 @@ public class ProjectSettingsFrame extends EDialog
     private ProjSettingsPanel getPluginPanel(String className, ProjectSettingsFrame frame, boolean modal) {
         try {
             Class<?> panelClass = Class.forName(className);
-            Object panel = panelClass.getConstructor(ProjectSettingsFrame.class, Boolean.class).newInstance(frame, new Boolean(modal));
+            Object panel = panelClass.getConstructor(ProjectSettingsFrame.class, Boolean.class).newInstance(frame, Boolean.valueOf(modal));
             return (ProjSettingsPanel)panel;
         } catch (Exception e) {
             System.out.println("Exception while loading plugin class "+className+": "+e.getMessage());

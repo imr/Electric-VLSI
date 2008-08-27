@@ -99,7 +99,7 @@ public class ManipulatePorts extends EDialog
 			for(int i=0; i<rows.length; i++)
 			{
 				Boolean b = (Boolean)model.getValueAt(rows[i], 0);
-				model.setValueAt(new Boolean(!b.booleanValue()), rows[i], 0);
+				model.setValueAt(Boolean.valueOf(!b.booleanValue()), rows[i], 0);
 			}
 		}
 
@@ -333,7 +333,7 @@ public class ManipulatePorts extends EDialog
 			switch (columnIndex)
 			{
 				// selected
-				case 0: return new Boolean(pe.isSelected());
+				case 0: return Boolean.valueOf(pe.isSelected());
 
 				// name
 				case 1: return pe.getPort().getPortProto().getName();

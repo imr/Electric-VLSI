@@ -88,7 +88,7 @@ public class ManipulateExports extends EDialog
 			for(int i=0; i<rows.length; i++)
 			{
 				Boolean b = (Boolean)model.getValueAt(rows[i], 0);
-				model.setValueAt(new Boolean(!b.booleanValue()), rows[i], 0);
+				model.setValueAt(Boolean.valueOf(!b.booleanValue()), rows[i], 0);
 			}
 		}
 
@@ -270,7 +270,7 @@ public class ManipulateExports extends EDialog
 			switch (columnIndex)
 			{
 				// selected
-				case 0: return new Boolean(pe.isSelected());
+				case 0: return Boolean.valueOf(pe.isSelected());
 
 				// name
 				case 1: return pe.getExport().getName();
@@ -279,7 +279,7 @@ public class ManipulateExports extends EDialog
 				case 2: return pe.getExport().getCharacteristic().getName();
 
 				// body-only
-				case 3: return new Boolean(pe.getExport().isBodyOnly());
+				case 3: return Boolean.valueOf(pe.getExport().isBodyOnly());
 			}
 			return null;
 		}

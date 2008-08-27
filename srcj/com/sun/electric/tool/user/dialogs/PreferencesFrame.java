@@ -132,7 +132,7 @@ public class PreferencesFrame extends EDialog
             {
                 Class<?> testTab = Class.forName("com.sun.electric.plugins.tests.TestTab");
                 Constructor tab = testTab.getDeclaredConstructor(new Class[]{Frame.class, Boolean.class});
-        		addTreeNode((PreferencePanel)tab.newInstance(new Object[] {parent, new Boolean(true)}), generalSet);
+        		addTreeNode((PreferencePanel)tab.newInstance(new Object[] {parent, Boolean.TRUE}), generalSet);
             }
             catch (Exception ex) { /* do nothing */ };
         }
@@ -182,7 +182,7 @@ public class PreferencesFrame extends EDialog
 	        {
 	            Class pTab = Class.forName("com.sun.electric.plugins.pie.ui.PIETab");
 	            Constructor tab = pTab.getDeclaredConstructor(new Class[]{Frame.class, boolean.class});
-	    		addTreeNode((PreferencePanel)tab.newInstance(new Object[] {parent, new Boolean(true)}), toolSet);
+	    		addTreeNode((PreferencePanel)tab.newInstance(new Object[] {parent, Boolean.TRUE}), toolSet);
 	        }
 	        catch (Exception ex) { /* do nothing */ };
 		}

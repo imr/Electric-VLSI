@@ -175,11 +175,11 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
 			{
 				Layer layer = lIt.next();
 				if (layer.isPseudoLayer()) continue;
-				visibility.put(layer, new Boolean(layer.isVisible()));
+				visibility.put(layer, Boolean.valueOf(layer.isVisible()));
 			}
 		}
-		visibility.put(Generic.tech().drcLay, new Boolean(Generic.tech().drcLay.isVisible()));
-		visibility.put(Generic.tech().afgLay, new Boolean(Generic.tech().afgLay.isVisible()));
+		visibility.put(Generic.tech().drcLay, Boolean.valueOf(Generic.tech().drcLay.isVisible()));
+		visibility.put(Generic.tech().afgLay, Boolean.valueOf(Generic.tech().afgLay.isVisible()));
 
 		setSelectedTechnology(cur);
 		loading = false;
@@ -244,7 +244,7 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
 				Layer layer = lIt.next();
 				if (layer.isPseudoLayer()) continue;
 				if (noDimming) highlighted.put(layer, Boolean.FALSE); else
-					highlighted.put(layer, new Boolean(!layer.isDimmed()));
+					highlighted.put(layer, Boolean.valueOf(!layer.isDimmed()));
 			}
 		}
 
@@ -455,7 +455,7 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
 		if (layer == null) return;
 
 		// remember the state of this layer
-		visibility.put(layer, new Boolean(on));
+		visibility.put(layer, Boolean.valueOf(on));
 
 		// update the list
 		layerListModel.set(i, lineName(layer));
@@ -475,14 +475,14 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
 		for (int i=0; i<len; i++)
 		{
 			Layer layer = getSelectedLayer(i);
-			Boolean b = new Boolean(false);
+			Boolean b = Boolean.valueOf(false);
 			if (level == 2 && layer.getFunction() == Layer.Function.GATE)
-				b = new Boolean(true);
+				b = Boolean.valueOf(true);
 			if (level == 1 && layer.getFunction().getLevel() <= 1)
-				b = new Boolean(true);
+				b = Boolean.valueOf(true);
 			if (layer.getFunction().getLevel() == level ||
 				layer.getFunction().getLevel() == (level-1) || level == 0)
-				b = new Boolean(true);
+				b = Boolean.valueOf(true);
 			visibility.put(layer, b);
 			layerListModel.set(i, lineName(layer));
 		}
@@ -513,7 +513,7 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
 		// remember the state of this layer
 		boolean newState = false;
 		if (how == 1) newState = !highlighted.get(layer).booleanValue();
-		highlighted.put(layer, new Boolean(newState));
+		highlighted.put(layer, Boolean.valueOf(newState));
 
 		// update the list
 		layerListModel.set(i, lineName(layer));

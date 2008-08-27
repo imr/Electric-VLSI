@@ -115,7 +115,7 @@ public class IOTool extends Tool
 		if (!hasSkill()) return;
 		try
 		{
-			skillOutputMethod.invoke(skillClass, new Object[] {cell, fileName, new Boolean(exportsOnly)});
+			skillOutputMethod.invoke(skillClass, new Object[] {cell, fileName, Boolean.valueOf(exportsOnly)});
 		} catch (Exception e)
 		{
 			System.out.println("Unable to run the Skill output module");
@@ -176,7 +176,7 @@ public class IOTool extends Tool
 		if (!hasDais()) return;
 		try
 		{
-			daisInputMethod.invoke(daisClass, new Object[] {url, lib, new Boolean(newLib)});
+			daisInputMethod.invoke(daisClass, new Object[] {url, lib, Boolean.valueOf(newLib)});
 		} catch (Exception e)
 		{
 			System.out.println("Unable to run the Dais input module (" + e.getClass() + ")");

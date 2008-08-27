@@ -104,7 +104,7 @@ public class PromptAt extends EDialog
 		public Field(String label, boolean initial)
 		{
 			this.label = label;
-			this.initial = new Boolean(initial);
+			this.initial = Boolean.valueOf(initial);
 			this.finalValue = this.initial;
 			this.type = FIELD_BOOL;
 		}

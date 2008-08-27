@@ -179,10 +179,10 @@ public class NodeInfo extends Info
 	{
 		// load up the structure with the current values
 		loadTableEntry(nodeTextTable, NODEFUNCTION, func);
-		loadTableEntry(nodeTextTable, NODESERPENTINE, new Boolean(serp));
-		loadTableEntry(nodeTextTable, NODESQUARE, new Boolean(square));
-		loadTableEntry(nodeTextTable, NODEWIPES, new Boolean(wipes));
-		loadTableEntry(nodeTextTable, NODELOCKABLE, new Boolean(lockable));
+		loadTableEntry(nodeTextTable, NODESERPENTINE, Boolean.valueOf(serp));
+		loadTableEntry(nodeTextTable, NODESQUARE, Boolean.valueOf(square));
+		loadTableEntry(nodeTextTable, NODEWIPES, Boolean.valueOf(wipes));
+		loadTableEntry(nodeTextTable, NODELOCKABLE, Boolean.valueOf(lockable));
 		loadTableEntry(nodeTextTable, NODESPICETEMPLATE, spiceTemplate);
 
 		// now create those text objects

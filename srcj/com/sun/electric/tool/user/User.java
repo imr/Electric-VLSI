@@ -841,7 +841,7 @@ public class User extends Listener
 	 */
 	public static Setting getPWellProcessLayoutTechnologySetting() {return tool.cachePWellProcess;}
 	public static boolean isPWellProcessLayoutTechnology() {return getPWellProcessLayoutTechnologySetting().getBoolean();}
-	public static void setPWellProcessLayoutTechnology(boolean on) {getPWellProcessLayoutTechnologySetting().set(new Boolean(on));}
+	public static void setPWellProcessLayoutTechnology(boolean on) {getPWellProcessLayoutTechnologySetting().set(Boolean.valueOf(on));}
 
 	@Override
 	protected void initProjectSettings() {

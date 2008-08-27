@@ -1115,7 +1115,7 @@ public class GetInfoArc extends EModelessDialog implements HighlightListener, Da
 		boolean currentEasyToSelect = easyToSelect.isSelected();
 		if (currentEasyToSelect != initialEasyToSelect)
 		{
-			newEasyToSelect = new Boolean(currentEasyToSelect);
+			newEasyToSelect = Boolean.valueOf(currentEasyToSelect);
 			initialEasyToSelect = currentEasyToSelect;
 		}
 
@@ -1123,7 +1123,7 @@ public class GetInfoArc extends EModelessDialog implements HighlightListener, Da
 		boolean currentRigid = rigid.isSelected();
 		if (currentRigid != initialRigid)
 		{
-			newRigid = new Boolean(currentRigid);
+			newRigid = Boolean.valueOf(currentRigid);
 			initialRigid = currentRigid;
 		}
 
@@ -1131,7 +1131,7 @@ public class GetInfoArc extends EModelessDialog implements HighlightListener, Da
 		boolean currentFixedAngle = fixedAngle.isSelected();
 		if (currentFixedAngle != initialFixedAngle)
 		{
-			newFixedAngle = new Boolean(currentFixedAngle);
+			newFixedAngle = Boolean.valueOf(currentFixedAngle);
 			initialFixedAngle = currentFixedAngle;
 		}
 
@@ -1139,7 +1139,7 @@ public class GetInfoArc extends EModelessDialog implements HighlightListener, Da
 		boolean currentSlidable = slidable.isSelected();
 		if (currentSlidable != initialSlidable)
 		{
-			newSlidable = new Boolean(currentSlidable);
+			newSlidable = Boolean.valueOf(currentSlidable);
 			initialSlidable = currentSlidable;
 		}
 

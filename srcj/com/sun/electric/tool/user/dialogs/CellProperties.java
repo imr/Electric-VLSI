@@ -1076,17 +1076,17 @@ public class CellProperties extends EDialog
 		{
             cells.add(cell);
 			PerCellValues pcv = getPCV(cell);
-			disAllMod.add(new Boolean(pcv.disAllMod.getBoolean()));
-			disAllModFactory.add(new Boolean(pcv.disAllMod.getBooleanFactoryValue()));
+			disAllMod.add(Boolean.valueOf(pcv.disAllMod.getBoolean()));
+			disAllModFactory.add(Boolean.valueOf(pcv.disAllMod.getBooleanFactoryValue()));
 
-			disInstMod.add(new Boolean(pcv.disInstMod.getBoolean()));
-			disInstModFactory.add(new Boolean(pcv.disInstMod.getBooleanFactoryValue()));
-			inCellLib.add(new Boolean(pcv.inCellLib.getBoolean()));
-			inCellLibFactory.add(new Boolean(pcv.inCellLib.getBooleanFactoryValue()));
-			useTechEditor.add(new Boolean(pcv.useTechEditor.getBoolean()));
-			useTechEditorFactory.add(new Boolean(pcv.useTechEditor.getBooleanFactoryValue()));
-			defExpanded.add(new Boolean(pcv.defExpanded.getBoolean()));
-			defExpandedFactory.add(new Boolean(pcv.defExpanded.getBooleanFactoryValue()));
+			disInstMod.add(Boolean.valueOf(pcv.disInstMod.getBoolean()));
+			disInstModFactory.add(Boolean.valueOf(pcv.disInstMod.getBooleanFactoryValue()));
+			inCellLib.add(Boolean.valueOf(pcv.inCellLib.getBoolean()));
+			inCellLibFactory.add(Boolean.valueOf(pcv.inCellLib.getBooleanFactoryValue()));
+			useTechEditor.add(Boolean.valueOf(pcv.useTechEditor.getBoolean()));
+			useTechEditorFactory.add(Boolean.valueOf(pcv.useTechEditor.getBooleanFactoryValue()));
+			defExpanded.add(Boolean.valueOf(pcv.defExpanded.getBoolean()));
+			defExpandedFactory.add(Boolean.valueOf(pcv.defExpanded.getBooleanFactoryValue()));
 
 			frameSize.add(pcv.frameSize.getString());
 			frameSizeFactory.add((String)pcv.frameSize.getFactoryValue());

@@ -106,9 +106,9 @@ public class ArcInfo extends Info
 	{
 		// load up the structure with the current values
 		loadTableEntry(arcTextTable, ARCFUNCTION, func);
-		loadTableEntry(arcTextTable, ARCFIXANG, new Boolean(fixAng));
-		loadTableEntry(arcTextTable, ARCWIPESPINS, new Boolean(wipes));
-		loadTableEntry(arcTextTable, ARCNOEXTEND, new Boolean(noExtend));
+		loadTableEntry(arcTextTable, ARCFIXANG, Boolean.valueOf(fixAng));
+		loadTableEntry(arcTextTable, ARCWIPESPINS, Boolean.valueOf(wipes));
+		loadTableEntry(arcTextTable, ARCNOEXTEND, Boolean.valueOf(noExtend));
 		loadTableEntry(arcTextTable, ARCINC, new Integer(angInc));
 		loadTableEntry(arcTextTable, ARCANTENNARATIO, new Double(antennaRatio));
 		loadTableEntry(arcTextTable, ARCWIDTHOFFSET, new Double(widthOffset));
