@@ -174,12 +174,23 @@ public abstract class AbstractShapeBuilder {
         double y1 = iy1;
         double s1;
         if (y1 == 0) {
-            s1 = x1;
-            if (x1 == 0) return new Point2D.Double(0, 0);
-            x1 = x1 > 0 ? 1 : -1;
+            if (x1 > 0) {
+                s1 = x1;
+                x1 = 1;
+            } else if (x1 < 0) {
+                s1 = -x1;
+                x1 = -1;
+            } else {
+                return new Point2D.Double(0, 0);
+            }
         } else if (x1 == 0) {
-            s1 = y1;
-            y1 = y1 > 0 ? 1 : -1;
+            if (y1 > 0) {
+                s1 = y1;
+                y1 = 1;
+            } else {
+                s1 = -y1;
+                y1 = -1;
+            }
         } else {
             s1 = x1*x1 + y1*y1;
         }
@@ -188,12 +199,23 @@ public abstract class AbstractShapeBuilder {
         double y2 = DBMath.roundShapeCoord(w2*GenMath.sin(angle2));
         double s2;
         if (y2 == 0) {
-            s2 = x2;
-            if (x2 == 0) return new Point2D.Double(0, 0);
-            x2 = x2 > 0 ? 1 : -1;
+            if (x2 > 0) {
+                s2 = x2;
+                x2 = 1;
+            } else if (x2 < 0) {
+                s2 = -x2;
+                x2 = -1;
+            } else {
+                return new Point2D.Double(0, 0);
+            }
         } else if (x2 == 0) {
-            s2 = y2;
-            y2 = y2 > 0 ? 1 : -1;
+            if (y2 > 0) {
+                s2 = y2;
+                y2 = 1;
+            } else {
+                s2 = -y2;
+                y2 = -1;
+            }
         } else {
             s2 = x2*x2 + y2*y2;
         }
@@ -417,7 +439,7 @@ public abstract class AbstractShapeBuilder {
                 ImmutableNodeInst n = cellRevision.nodes.get(nodeIndex);
                 NodeProtoId np = n.protoId;
                 if (np instanceof PrimitiveNodeId && techPool.getPrimitiveNode((PrimitiveNodeId)np).isArcsShrink())
-                    shrink[n.nodeId] = computeShrink(angles[nodeIndex]);
+                    shrink[n.nodeId] = computeShrink(angles[n.nodeId]);
             }
             this.shrink = shrink;
         }

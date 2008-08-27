@@ -4,7 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08e: ******************************
 
-BUG: (8/27/08) Severe performance degradation modifying cells with many arcs (Bug #1804).
+BUG: (8/27/08, DN) Arc shortening is broken.
+FIX: In AbstractShapeBuilder.computeExtension correctly scale vectors.
+
+BUG: (8/27/08, DN) Severe performance degradation modifying cells with many arcs (Bug #1804).
 FIX: Remove field "ArcInst.arcIndex" to save on its recalculation.
 
 IMP: (8/26/08, SMR) Cleaned up boxing warnings.
