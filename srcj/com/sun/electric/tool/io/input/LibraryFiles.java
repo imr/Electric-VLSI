@@ -32,10 +32,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.id.IdManager;
-import com.sun.electric.database.id.LibId;
-import com.sun.electric.database.id.PortProtoId;
-import com.sun.electric.database.id.TechId;
+import com.sun.electric.database.id.*;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Setting;
@@ -114,7 +111,7 @@ public abstract class LibraryFiles extends Input
 
 	/** the path to the library being read. */                              protected static String mainLibDirectory = null;
 	/** collection of libraries and their input objects. */					private static List<LibraryFiles> libsBeingRead;
-    /** collection of undefined Technologies */                             static Set<TechId> undefinedTechs;
+    /** collection of undefined Nodes/Technologies */                       static Map<TechId, Set<PrimitiveNodeId>> undefinedTechsAndPrimitives;
     /** Project settings from library file. */                              HashMap<Setting,Object> projectSettings = new HashMap<Setting,Object>();
 	protected static final boolean VERBOSE = false;
 	protected static final double TINYDISTANCE = DBMath.getEpsilon()*2;
@@ -523,8 +520,8 @@ public abstract class LibraryFiles extends Input
 	public static void initializeLibraryInput()
 	{
 		libsBeingRead = new ArrayList<LibraryFiles>();
-        undefinedTechs = new HashSet<TechId>();
-	}
+        undefinedTechsAndPrimitives = new HashMap<TechId, Set<PrimitiveNodeId>>();
+    }
 
 	public boolean readInputLibrary()
 	{
@@ -1098,16 +1095,22 @@ public abstract class LibraryFiles extends Input
 				listener.readLibrary(reader.lib);
 			}
 		}
-        if (!undefinedTechs.isEmpty()) {
-            String techs = "";
-            for (TechId techId: undefinedTechs)
-                techs += " " + techId;
-            Job.getUserInterface().showErrorMessage("Library contains nodes from unknown technology:" + techs, "Unknown technologies");
+        if (!undefinedTechsAndPrimitives.isEmpty()) {
+            String prims = "";
+            for (TechId techId: undefinedTechsAndPrimitives.keySet())
+            {
+                for (PrimitiveNodeId primId : undefinedTechsAndPrimitives.get(techId))
+                {
+                    prims += " " + primId + ", ";
+                }
+                Job.getUserInterface().showErrorMessage("Library contains unknown nodes from the technology '" + techId + "':\n" + prims,
+                    "Unknown nodes/technologies");
+            }
         }
 
         // clean up init (free LibraryFiles for garbage collection)
         libsBeingRead.clear();
-        undefinedTechs.clear();
+        undefinedTechsAndPrimitives.clear();
 	}
 
 // 	private static void convertOldLibraries()

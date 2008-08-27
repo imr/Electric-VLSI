@@ -59,12 +59,7 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * This class reads files in new library file (.jelib) format.
@@ -249,7 +244,13 @@ public class JELIB extends LibraryFiles
                 if (np == null) {
 					Input.errorLogger.logError(cc.fileName + ", line " + line +
 						", Cannot find primitive node " + pnId, cell, -1);
-                    undefinedTechs.add(pnId.techId);
+                    Set<PrimitiveNodeId> primSet = undefinedTechsAndPrimitives.get(pnId.techId);
+                    if (primSet == null)
+                    {
+                        primSet = new HashSet<PrimitiveNodeId>();
+                        undefinedTechsAndPrimitives.put(pnId.techId, primSet);
+                    }
+                    primSet.add(pnId);
                     CellName cellName = CellName.parseName(pnId.name);
                     if (cellName.getVersion() <= 0)
                         cellName = CellName.newName(cellName.getName(), cellName.getView(), 1);

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08e: ******************************
 
+IMP: (8/27/08, GVG) mocmos as unknown technlogy? (Bug #1806).
+Indeed the errors are due to unknown primitives. Message changed
+
 BUG: (8/27/08, SMR) Technology libraries crash if there is no default foundry
      information (Bug #1812).
 FIX: In Foundry.Type.valueOf(), handle null entries.
