@@ -936,8 +936,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			mainHorizRulerPanel.repaint();
 	}
 
-//	public void fireCellHistoryStatus() {}
-
 	/**
 	 * Method to initialize for a new text search.
 	 * @param search the string to locate.

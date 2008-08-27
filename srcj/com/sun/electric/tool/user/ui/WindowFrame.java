@@ -57,8 +57,10 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EventListener;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Observable;
 import java.beans.PropertyVetoException;
 
@@ -953,18 +955,6 @@ public class WindowFrame extends Observable
         return jf;
     }
 
-	/**
-	 * Method to return the ToolBar associated with this WindowFrame.
-     * In SDI mode this returns this WindowFrame's ToolBar.
-     * In MDI mode there is only one TooolBar, so this method will
-     * return that ToolBar.
-	 * @return the TooolBar associated with this WindowFrame.
-	 */
-    public ToolBar getToolBar() {
-        TopLevel topLevel = getFrame();
-        return topLevel != null ? topLevel.getToolBar() : null;
-    }
-
     /**
      * Method to return the JInternalFrame associated with this WindowFrame.
      * In SDI mode this returns null.
@@ -1164,14 +1154,14 @@ public class WindowFrame extends Observable
 	}
 
 	/** Returns true if we can go back in history list, false otherwise */
-	public boolean cellHistoryCanGoBack()
+	private boolean cellHistoryCanGoBack()
 	{
 		if (cellHistoryLocation > 0) return true;
 		return false;
 	}
 
 	/** Returns true if we can go forward in history list, false otherwise */
-	public boolean cellHistoryCanGoForward()
+	private boolean cellHistoryCanGoForward()
 	{
 		if (cellHistoryLocation < cellHistory.size() - 1) return true;
 		return false;
@@ -1182,12 +1172,25 @@ public class WindowFrame extends Observable
 	 * Used when new tool bar is created with existing edit window
 	 * (when moving windows across displays).
 	 */
-	public void fireCellHistoryStatus()
+	private void fireCellHistoryStatus()
 	{
 		ToolBar toolBar = getToolBar();
 		if (toolBar == null) return;
 		toolBar.updateCellHistoryStatus(cellHistoryCanGoBack(), cellHistoryCanGoForward());
 	}
+
+	/**
+	 * Method to return the ToolBar associated with this WindowFrame.
+     * In SDI mode this returns this WindowFrame's ToolBar.
+     * In MDI mode there is only one ToolBar, so this method will
+     * return that ToolBar.
+	 * @return the TooolBar associated with this WindowFrame.
+	 */
+    private ToolBar getToolBar()
+    {
+        TopLevel topLevel = getFrame();
+        return topLevel != null ? topLevel.getToolBar() : null;
+    }
 
 	/**
 	 * Adds to cellHistory record list.

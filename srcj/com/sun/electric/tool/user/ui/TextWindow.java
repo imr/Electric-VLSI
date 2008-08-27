@@ -587,15 +587,6 @@ public class TextWindow implements WindowContent
 
 	public void focusOnHighlighted() {}
 
-//    /**
-//     * Used when new tool bar is created with existing edit window
-//     * (when moving windows across displays).  Updates back/forward
-//     * button states.
-//     */
-//    public void fireCellHistoryStatus()
-//	{
-//    }
-
 	private String searchString = null;
 	private boolean searchCaseSensitive = false;
 
