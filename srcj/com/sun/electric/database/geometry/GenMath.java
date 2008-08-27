@@ -27,6 +27,8 @@ import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.AffineTransform;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 import java.io.Serializable;
@@ -109,40 +111,47 @@ public class GenMath
      *******************************************************************************************************/
 
     /**
-     * Method to transfor 3 doubles in a vector format handled by the preferences
-     * @param s1 first value
-     * @param s2 second value
-     * @param s3 third value
-     * @return string representing the vector
+     * Method to transform an array of doubles into a string that can be stored in a preference.
+     * The format of the string is "(v1 v2 v3 ...)"
+     * @param s the values.
+     * @return string representing the array.
      */
-    public static String transformStringsIntoVector(double s1, double s2, double s3)
+    public static String transformArrayIntoString(double [] s)
     {
-        String dir = "(" + s1 + " " + s2 + " " + s3 + ")";
+    	StringBuffer sb = new StringBuffer();
+    	for(int i=0; i<s.length; i++)
+    	{
+    		if (i == 0) sb.append('('); else
+    			sb.append(' ');
+    		sb.append(s[i]);
+    	}
+    	sb.append(')');
+        String dir = sb.toString();
         return dir;
     }
 
     /**
-     * Method to extract 3-value vector in an array of 3
-     * @param vector the input vector.
-     * @return the 3-long array.
+     * Method to extract an array of doubles from a string.
+     * The format of the string is "(v1 v2 v3 ...)"
+     * @param vector the input vector in string form.
+     * @return the array of values.
      */
-    public static double[] transformVectorIntoValues(String vector)
+    public static double[] transformStringIntoArray(String vector)
     {
-        double[] values = new double[3];
         StringTokenizer parse = new StringTokenizer(vector, "( )", false);
-        int pair = 0;
-
-        while (parse.hasMoreTokens() && pair < 3)
+        List<Double> valuesFound = new ArrayList<Double>();
+        while (parse.hasMoreTokens())
         {
             String value = parse.nextToken();
-            try{
-                values[pair++] = Double.parseDouble(value);
+            try {
+                valuesFound.add(new Double(Double.parseDouble(value)));
             } catch (Exception e)
             {
                 e.printStackTrace();
             }
         }
-
+        double [] values = new double[valuesFound.size()];
+        for(int i=0; i<valuesFound.size(); i++) values[i] = valuesFound.get(i).doubleValue();
         return values;
     }
 

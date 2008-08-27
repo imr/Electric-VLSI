@@ -1471,15 +1471,28 @@ public class User extends Listener
 		assert(false); // should never reach this point.
 		return -1;
 	}
-	private static Pref cacheAlignmentToGridVector = Pref.makeStringPref("AlignmentToGridVector", tool.prefs, "(-1 0.5 0.25)");
+	private static Pref cacheAlignmentToGridVector = Pref.makeStringPref("AlignmentToGridVector", tool.prefs, "(4 2 -1 0.5 0.25)");
 	/**
-	 * Method to return the default alignment of objects to the grid.
-	 * The default is 1, meaning that placement and movement should land on whole grid units.
-	 * @return the default alignment of objects to the grid.
+	 * Method to return an array of five grid alignment values.
+	 * If a value is negative, it is the current grid alignment to use.
+	 * @return an array of five grid alignment values.
 	 */
 	public static double[] getAlignmentToGridVector()
 	{
-		return GenMath.transformVectorIntoValues(cacheAlignmentToGridVector.getString());
+		double [] retVal = GenMath.transformStringIntoArray(cacheAlignmentToGridVector.getString());
+		if (retVal.length < 5)
+		{
+			double [] newRetVal = new double[5];
+			int shift = 5 - retVal.length;
+			for(int i=retVal.length-1; i>=0; i--) newRetVal[i+shift] = retVal[i];
+			while (shift > 0)
+			{
+				shift--;
+				newRetVal[shift] = Math.abs(newRetVal[shift+1] * 2);
+			}
+			retVal = newRetVal;
+		}
+		return retVal;
 	}
 	/**
 	 * Method to set the default alignment of objects to the grid.
@@ -1487,7 +1500,7 @@ public class User extends Listener
 	 */
 	public static void setAlignmentToGridVector(double[] dist)
 	{
-		cacheAlignmentToGridVector.setString(GenMath.transformStringsIntoVector(dist[0], dist[1], dist[2]));
+		cacheAlignmentToGridVector.setString(GenMath.transformArrayIntoString(dist));
 	}
 
 	private static Pref cacheShowGridAxes = Pref.makeBooleanPref("ShowGridAxes", tool.prefs, false);

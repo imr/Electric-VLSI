@@ -120,9 +120,11 @@ public class ToolBar extends JToolBar
 			outlineCommand,					// Edit:Modes:Edit:Toggle Outline Edit
 			measureCommand,					// Edit:Modes:Edit:Toggle Measure Distance
 			null,
-			fullArrowDistanceCommand,		// Edit:Modes:Movement:Full motion
-			halfArrowDistanceCommand,		// Edit:Modes:Movement:Half motion
-			quarterArrowDistanceCommand,	// Edit:Modes:Movement:Quarter motion
+			gridDistance1Command,			// Edit:Modes:Movement:Grid Alignment 1 (largest)
+			gridDistance2Command,			// Edit:Modes:Movement:Grid Alignment 2
+			gridDistance3Command,			// Edit:Modes:Movement:Grid Alignment 3
+			gridDistance4Command,			// Edit:Modes:Movement:Grid Alignment 4
+			gridDistance5Command,			// Edit:Modes:Movement:Grid Alignment 5 (smallest)
 			null,
 			selectObjectsCommand,			// Edit:Modes:Select:Select Objects
 			selectAreaCommand,				// Edit:Modes:Select:Select Area
@@ -158,9 +160,11 @@ public class ToolBar extends JToolBar
 			allButtons.add(zoomCommand);
 			allButtons.add(outlineCommand);
 			allButtons.add(measureCommand);
-			allButtons.add(fullArrowDistanceCommand);
-			allButtons.add(halfArrowDistanceCommand);
-			allButtons.add(quarterArrowDistanceCommand);
+			allButtons.add(gridDistance1Command);
+			allButtons.add(gridDistance2Command);
+			allButtons.add(gridDistance3Command);
+			allButtons.add(gridDistance4Command);
+			allButtons.add(gridDistance5Command);
 			allButtons.add(selectObjectsCommand);
 			allButtons.add(selectAreaCommand);
 			allButtons.add(toggleSelectSpecialCommand);
@@ -635,7 +639,7 @@ public class ToolBar extends JToolBar
 
 	private static CursorMode curMode = CursorMode.CLICKZOOMWIRE;
 
-   /**
+	/**
 	 * CursorMode is a typesafe enum class that describes the current editing mode (select, zoom, etc).
 	 */
 	public static enum CursorMode {
@@ -855,16 +859,18 @@ public class ToolBar extends JToolBar
 		@Override public void run() { setCursorMode(cm); }
 	}
 
-   // --------------------------- ArrowDistance staff ---------------------------------------------------------
+	// --------------------------- ArrowDistance staff ---------------------------------------------------------
 
 	/**
-	 * ArrowDisatance is a typesafe enum class that describes the distance that arrow keys move (full, half, or quarter).
+	 * ArrowDistance is a typesafe enum class that describes the distance that arrow keys move.
 	 */
 	public static enum ArrowDistance
 	{
-		/** Describes full grid unit motion. */				FULL(0),
-		/** Describes half grid unit motion. */				HALF(1),
-		/** Describes quarter grid unit motion. */			QUARTER(2);
+		/** Describes grid unit motion 1 (largest). */		GRID1(0),
+		/** Describes grid unit motion 2. */				GRID2(1),
+		/** Describes grid unit motion 3. */				GRID3(2),
+		/** Describes grid unit motion 4. */				GRID4(3),
+		/** Describes grid unit motion 5 (smallest). */		GRID5(4);
 
 		private final int position;
 
@@ -902,12 +908,16 @@ public class ToolBar extends JToolBar
 	 */
 	public static void setGridAligment() { updateToolBarButtons(); }
 
-	private static final ArrowDistanceButton fullArrowDistanceCommand = new ArrowDistanceButton("Full motion", 'F', "ButtonFull",
-		"Edit:Modes:Movement", ArrowDistance.FULL);
-	private static final ArrowDistanceButton halfArrowDistanceCommand = new ArrowDistanceButton("Half motion", 'H', "ButtonHalf",
-		"Edit:Modes:Movement", ArrowDistance.HALF);
-	private static final ArrowDistanceButton quarterArrowDistanceCommand = new ArrowDistanceButton("Quarter motion", "ButtonQuarter",
-		"Edit:Modes:Movement", ArrowDistance.QUARTER);
+	private static final ArrowDistanceButton gridDistance1Command = new ArrowDistanceButton("Grid Alignment 1 (largest)", "ButtonGrid1",
+		"Edit:Modes:Movement", ArrowDistance.GRID1);
+	private static final ArrowDistanceButton gridDistance2Command = new ArrowDistanceButton("Grid Alignment 2", "ButtonGrid2",
+		"Edit:Modes:Movement", ArrowDistance.GRID2);
+	private static final ArrowDistanceButton gridDistance3Command = new ArrowDistanceButton("Grid Alignment 3", "ButtonGrid3",
+		"Edit:Modes:Movement", ArrowDistance.GRID3);
+	private static final ArrowDistanceButton gridDistance4Command = new ArrowDistanceButton("Grid Alignment 4", "ButtonGrid4",
+		"Edit:Modes:Movement", ArrowDistance.GRID4);
+	private static final ArrowDistanceButton gridDistance5Command = new ArrowDistanceButton("Grid Alignment 5 (smallest)", "ButtonGrid5",
+		"Edit:Modes:Movement", ArrowDistance.GRID5);
 
 	private static class ArrowDistanceButton extends EToolBarRadioButton
 	{
@@ -925,6 +935,16 @@ public class ToolBar extends JToolBar
 			this.ad = ad;
 		}
 
+		/**
+		 * Updates appearance of toll bar button instance after change of state.
+		 */
+		void updateToolBarButton(AbstractButton item)
+		{
+			super.updateToolBarButton(item);
+			double[] vals = User.getAlignmentToGridVector();
+			item.setToolTipText(getToolTipText() + " [is " + Math.abs(vals[ad.position]) + "]");
+		}
+
 		@Override public boolean isSelected()
 		{
 			return ad.isSelected();
@@ -936,7 +956,7 @@ public class ToolBar extends JToolBar
 		}
 	}
 
-   // --------------------------- SelectMode staff ---------------------------------------------------------
+	// --------------------------- SelectMode staff ---------------------------------------------------------
 
 	private static SelectMode curSelectMode = SelectMode.OBJECTS;
 
@@ -976,7 +996,7 @@ public class ToolBar extends JToolBar
 		@Override public void run() { setSelectMode(sm); }
 	}
 
-   // --------------------------- SelectSpecial staff ---------------------------------------------------------
+	// --------------------------- SelectSpecial staff ---------------------------------------------------------
 
 	private static boolean selectSpecial = false;
 
@@ -1023,9 +1043,11 @@ public class ToolBar extends JToolBar
 			measureCommand),
 
 		new EMenu("_Movement",
-			fullArrowDistanceCommand,
-			halfArrowDistanceCommand,
-			quarterArrowDistanceCommand),
+			gridDistance1Command,
+			gridDistance2Command,
+			gridDistance3Command,
+			gridDistance4Command,
+			gridDistance5Command),
 
 		new EMenu("_Select",
 			selectObjectsCommand,

@@ -124,7 +124,7 @@ public class JThreeDTab extends ThreeDTab
 		threeD.add(threeDSideView, gbc);
 
         scaleField.setText(TextUtils.formatDouble(J3DUtils.get3DFactor()));
-        double[] rot = GenMath.transformVectorIntoValues(J3DUtils.get3DRotation());
+        double[] rot = GenMath.transformStringIntoArray(J3DUtils.get3DRotation());
         xRotField.setText(TextUtils.formatDouble(rot[0]));
         yRotField.setText(TextUtils.formatDouble(rot[1]));
         zRotField.setText(TextUtils.formatDouble(rot[2]));
@@ -306,17 +306,21 @@ public class JThreeDTab extends ThreeDTab
 
         StringBuffer dir = new StringBuffer();
         if (dirOneBox.isSelected())
-            dir.append(GenMath.transformStringsIntoVector(TextUtils.atof(xDirOneField.getText()),
-                    TextUtils.atof(yDirOneField.getText()),
-                    TextUtils.atof(zDirOneField.getText())));
-        else
-            dir.append(GenMath.transformStringsIntoVector(0, 0, 0));
+        {
+            double[] values = new double[] {TextUtils.atof(xDirOneField.getText()),
+                TextUtils.atof(yDirOneField.getText()),
+                TextUtils.atof(zDirOneField.getText())};
+            dir.append(GenMath.transformArrayIntoString(values));
+        } else
+            dir.append(GenMath.transformArrayIntoString(new double[] {0,0,0}));
         if (dirTwoBox.isSelected())
-            dir.append(GenMath.transformStringsIntoVector(TextUtils.atof(xDirTwoField.getText()),
-                    TextUtils.atof(yDirTwoField.getText()),
-                    TextUtils.atof(zDirTwoField.getText())));
-        else
-            dir.append(GenMath.transformStringsIntoVector(0, 0, 0));
+        {
+        	double[] values = new double[] {TextUtils.atof(xDirTwoField.getText()),
+                TextUtils.atof(yDirTwoField.getText()),
+                TextUtils.atof(zDirTwoField.getText())};
+            dir.append(GenMath.transformArrayIntoString(values));
+        } else
+            dir.append(GenMath.transformArrayIntoString(new double[] {0,0,0}));
         
         if (!dir.equals(J3DUtils.get3DLightDirs()))
             J3DUtils.set3DLightDirs(dir.toString());

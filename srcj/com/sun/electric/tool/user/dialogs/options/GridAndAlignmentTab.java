@@ -28,7 +28,8 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.ToolBar;
 
-import javax.swing.*;
+import javax.swing.AbstractButton;
+import javax.swing.JPanel;
 
 /**
  * Class to handle the "Grid And Alignment" tab of the Preferences dialog.
@@ -76,13 +77,12 @@ public class GridAndAlignmentTab extends PreferencePanel
 		gridShowAxes.setSelected(User.isGridAxesShown());
 
         double[] values = User.getAlignmentToGridVector();
-        gridFullCursor.setText(TextUtils.formatDouble(Math.abs(values[0])));
-        gridHalfCursor.setText(TextUtils.formatDouble(Math.abs(values[1])));
-        gridQuarterCursor.setText(TextUtils.formatDouble(Math.abs(values[2])));
-        AbstractButton[] list = {fullButton, halfButton, quarterButton};
-        alignGroup.add(fullButton);
-        alignGroup.add(halfButton);
-        alignGroup.add(quarterButton);
+        gridSize1.setText(TextUtils.formatDouble(Math.abs(values[0])));
+        gridSize2.setText(TextUtils.formatDouble(Math.abs(values[1])));
+        gridSize3.setText(TextUtils.formatDouble(Math.abs(values[2])));
+        gridSize4.setText(TextUtils.formatDouble(Math.abs(values[3])));
+        gridSize5.setText(TextUtils.formatDouble(Math.abs(values[4])));
+        AbstractButton[] list = {size1Button, size2Button, size3Button, size4Button, size5Button};
         for (int i = 0; i < values.length; i++)
         {
             if (values[i] < 0) // found the marked one
@@ -91,8 +91,6 @@ public class GridAndAlignmentTab extends PreferencePanel
                 break;
             }
         }
-
-//		gridAlignCursor.setText(TextUtils.formatDouble(User.getAlignmentToGrid()));
 	}
 
 	/**
@@ -145,28 +143,26 @@ public class GridAndAlignmentTab extends PreferencePanel
 			redraw = true;
 		}
 
-
         double[] oldValues = User.getAlignmentToGridVector();
-        double[] newValues = {TextUtils.atof(gridFullCursor.getText()),
-                              TextUtils.atof(gridHalfCursor.getText()),
-                              TextUtils.atof(gridQuarterCursor.getText())};
+        double[] newValues = {TextUtils.atof(gridSize1.getText()),
+                              TextUtils.atof(gridSize2.getText()),
+                              TextUtils.atof(gridSize3.getText()),
+                              TextUtils.atof(gridSize4.getText()),
+                              TextUtils.atof(gridSize5.getText())};
         int pos = -1;
-        if (fullButton.isSelected())
-            pos = 0;
-        else if (halfButton.isSelected())
-            pos = 1;
-        else
-            pos = 2;
-        if (newValues[pos] > 0)
-            newValues[pos] *= -1;
+        if (size1Button.isSelected()) pos = 0; else
+        if (size2Button.isSelected()) pos = 1; else
+        if (size3Button.isSelected()) pos = 2; else
+        if (size4Button.isSelected()) pos = 3; else
+            pos = 4;
+        if (newValues[pos] > 0) newValues[pos] *= -1;
 
-        if (oldValues[0] != newValues[0] || oldValues[1] != newValues[1] || oldValues[2] != newValues[2])
-//		currDouble = TextUtils.atof(gridAlignCursor.getText());
-//		if (currDouble != User.getAlignmentToGrid())
+        if (oldValues[0] != newValues[0] || oldValues[1] != newValues[1] ||
+        	oldValues[2] != newValues[2] || oldValues[3] != newValues[3] ||
+        	oldValues[4] != newValues[4])
         {
             User.setAlignmentToGridVector(newValues);
             ToolBar.setGridAligment();
-//			User.setAlignmentToGrid(currDouble);
         }
 
 		if (redraw && wnd != null)
@@ -200,13 +196,17 @@ public class GridAndAlignmentTab extends PreferencePanel
         jLabel13 = new javax.swing.JLabel();
         gridShowAxes = new javax.swing.JCheckBox();
         alignPart = new javax.swing.JPanel();
-        gridFullCursor = new javax.swing.JTextField();
+        gridSize5 = new javax.swing.JTextField();
         jLabel38 = new javax.swing.JLabel();
-        gridHalfCursor = new javax.swing.JTextField();
-        gridQuarterCursor = new javax.swing.JTextField();
-        fullButton = new javax.swing.JRadioButton();
-        halfButton = new javax.swing.JRadioButton();
-        quarterButton = new javax.swing.JRadioButton();
+        gridSize3 = new javax.swing.JTextField();
+        gridSize1 = new javax.swing.JTextField();
+        size1Button = new javax.swing.JRadioButton();
+        size2Button = new javax.swing.JRadioButton();
+        size3Button = new javax.swing.JRadioButton();
+        size4Button = new javax.swing.JRadioButton();
+        size5Button = new javax.swing.JRadioButton();
+        gridSize2 = new javax.swing.JTextField();
+        gridSize4 = new javax.swing.JTextField();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -359,60 +359,99 @@ public class GridAndAlignmentTab extends PreferencePanel
         alignPart.setLayout(new java.awt.GridBagLayout());
 
         alignPart.setBorder(javax.swing.BorderFactory.createTitledBorder("Alignment of Cursor to Grid"));
-        gridFullCursor.setColumns(8);
-        gridFullCursor.setPreferredSize(new java.awt.Dimension(40, 22));
+        gridSize5.setColumns(8);
+        gridSize5.setPreferredSize(new java.awt.Dimension(40, 22));
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        alignPart.add(gridFullCursor, gridBagConstraints);
+        gridBagConstraints.weightx = 0.5;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
+        alignPart.add(gridSize5, gridBagConstraints);
 
         jLabel38.setText("Values of zero will cause no alignment");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         alignPart.add(jLabel38, gridBagConstraints);
 
-        gridHalfCursor.setColumns(8);
+        gridSize3.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        alignPart.add(gridHalfCursor, gridBagConstraints);
+        gridBagConstraints.weightx = 0.5;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        alignPart.add(gridSize3, gridBagConstraints);
 
-        gridQuarterCursor.setColumns(8);
+        gridSize1.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        alignPart.add(gridQuarterCursor, gridBagConstraints);
+        gridBagConstraints.weightx = 0.5;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
+        alignPart.add(gridSize1, gridBagConstraints);
 
-        fullButton.setText("Full");
+        alignGroup.add(size1Button);
+        size1Button.setText("Size 1 (largest)");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        alignPart.add(fullButton, gridBagConstraints);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        alignPart.add(size1Button, gridBagConstraints);
 
-        halfButton.setText("Half");
+        alignGroup.add(size2Button);
+        size2Button.setText("Size 2");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        alignPart.add(size2Button, gridBagConstraints);
+
+        alignGroup.add(size3Button);
+        size3Button.setText("Size 3");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        alignPart.add(size3Button, gridBagConstraints);
+
+        alignGroup.add(size4Button);
+        size4Button.setText("Size 4");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        alignPart.add(size4Button, gridBagConstraints);
+
+        alignGroup.add(size5Button);
+        size5Button.setText("Size 5 (smallest)");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        alignPart.add(size5Button, gridBagConstraints);
+
+        gridSize2.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
-        alignPart.add(halfButton, gridBagConstraints);
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 0.5;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        alignPart.add(gridSize2, gridBagConstraints);
 
-        quarterButton.setText("Quarter");
+        gridSize4.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 0;
-        alignPart.add(quarterButton, gridBagConstraints);
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 0.5;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        alignPart.add(gridSize4, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -435,20 +474,20 @@ public class GridAndAlignmentTab extends PreferencePanel
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup alignGroup;
     private javax.swing.JPanel alignPart;
-    private javax.swing.JRadioButton fullButton;
     private javax.swing.JPanel grid;
     private javax.swing.JTextField gridBoldHoriz;
     private javax.swing.JTextField gridBoldVert;
     private javax.swing.JTextField gridCurrentHoriz;
     private javax.swing.JTextField gridCurrentVert;
-    private javax.swing.JTextField gridFullCursor;
-    private javax.swing.JTextField gridHalfCursor;
     private javax.swing.JTextField gridNewHoriz;
     private javax.swing.JTextField gridNewVert;
     private javax.swing.JPanel gridPart;
-    private javax.swing.JTextField gridQuarterCursor;
     private javax.swing.JCheckBox gridShowAxes;
-    private javax.swing.JRadioButton halfButton;
+    private javax.swing.JTextField gridSize1;
+    private javax.swing.JTextField gridSize2;
+    private javax.swing.JTextField gridSize3;
+    private javax.swing.JTextField gridSize4;
+    private javax.swing.JTextField gridSize5;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel13;
     private javax.swing.JLabel jLabel32;
@@ -457,7 +496,11 @@ public class GridAndAlignmentTab extends PreferencePanel
     private javax.swing.JLabel jLabel35;
     private javax.swing.JLabel jLabel36;
     private javax.swing.JLabel jLabel38;
-    private javax.swing.JRadioButton quarterButton;
+    private javax.swing.JRadioButton size1Button;
+    private javax.swing.JRadioButton size2Button;
+    private javax.swing.JRadioButton size3Button;
+    private javax.swing.JRadioButton size4Button;
+    private javax.swing.JRadioButton size5Button;
     // End of variables declaration//GEN-END:variables
 
 }
