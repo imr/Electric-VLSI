@@ -1726,16 +1726,18 @@ public class User extends Listener
 
 	private static Pref cacheGlobalTextScale = Pref.makeDoublePref("TextGlobalScale", tool.prefs, 1);
 	/**
-	 * Method to tell the global text scale factor.
-	 * This factor enlarges or reduces all displayed text.
+	 * Method to tell the default global text scale factor.
+	 * This factor is the initial text scaling factor for new windows and
+	 * enlarges or reduces all displayed text.
 	 * The default is "1".
-	 * @return the global text scale factor.
+	 * @return the default global text scale factor.
 	 */
 	public static double getGlobalTextScale() { return cacheGlobalTextScale.getDouble(); }
 	/**
-	 * Method to set the global text scale factor.
-	 * This factor enlarges or reduces all displayed text.
-	 * @param s the global text scale.
+	 * Method to set the default global text scale factor.
+	 * This factor is the initial text scaling factor for new windows and
+	 * enlarges or reduces all displayed text.
+	 * @param s the default global text scale.
 	 */
 	public static void setGlobalTextScale(double s) { cacheGlobalTextScale.setDouble(s); }
 

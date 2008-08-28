@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08e: ******************************
 
+IMP/MAN: (8/28/08, SMR) Global text scale now applies to individual windows.
+     "Text" Preferences lets you set both the default text scale for
+     new windows as well as the current scale for the current window (Bug #1810).
+
 IMP: (8/28/08, SMR) Multi-object Properties dialog on Annotation text
      now lets you move the text location (Bug #1789).
 

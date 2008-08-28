@@ -499,9 +499,6 @@ public abstract class ElectricObject implements Serializable
 		if (this instanceof NodeInst && (offX != 0 || offY != 0))
 		{
 			td = td.withOff(0, 0);
-//			MutableTextDescriptor mtd = new MutableTextDescriptor(td);
-//			mtd.setOff(0, 0);
-//			td = mtd;
 		}
 		boolean headerString = false;
 		double fontHeight = 1;
@@ -510,8 +507,8 @@ public abstract class ElectricObject implements Serializable
 		{
 			fontHeight = td.getTrueSize(wnd);
 			scale = wnd.getScale();
+			fontHeight *= wnd.getGlobalTextScale();
 		}
-		fontHeight *= User.getGlobalTextScale();
 		if (varLength > 1)
 		{
 			// compute text height
@@ -530,11 +527,6 @@ public abstract class ElectricObject implements Serializable
 			if (this instanceof NodeInst)
 			{
 				NodeInst ni = (NodeInst)this;
-//				AffineTransform offsetTrans = ni.pureRotateIn();
-//				Point2D off = new Point2D.Double(lineOffX, lineOffY);
-//				offsetTrans.transform(off, off);
-//				lineOffX = off.getX();
-//				lineOffY = off.getY();
 
 				if (style != Poly.Type.TEXTCENT && style != Poly.Type.TEXTBOX)
 				{
@@ -595,9 +587,6 @@ public abstract class ElectricObject implements Serializable
 				{
 					message = var.getTrueName()+ "[" + (varLength-1) + "]:";
 					entryTD = entryTD.withUnderline(true);
-//					MutableTextDescriptor mtd = new MutableTextDescriptor(td);
-//					mtd.setUnderline(true);
-//					entryTD = mtd;
 				} else
 				{
 					message = var.describe(i-1, context, this);

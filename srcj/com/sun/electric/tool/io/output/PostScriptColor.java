@@ -35,9 +35,11 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 
 import java.awt.Color;
@@ -53,6 +55,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * This class writes files in PostScript format.
@@ -162,8 +166,8 @@ public class PostScriptColor
 	private int                  totalInstances = 0;
 	private int                  cellNumber;
 	private boolean              curveWarning;
-	private HashSet<Technology>  techsSetup;
-	private HashMap<Cell,PsCell> cellStructs;
+	private Set<Technology>      techsSetup;
+	private Map<Cell,PsCell>     cellStructs;
 	private PostScript           psObject;
 
 	private PostScriptColor(PostScript psObject)
@@ -1107,7 +1111,8 @@ public class PostScriptColor
 					size = s.getSize();
 				}
 			}
-			size *= User.getGlobalTextScale();
+			EditWindow_ wnd = Job.getUserInterface().getCurrentEditWindow_();
+			if (wnd != null) size *= wnd.getGlobalTextScale();
 			double psLX = l.pos[0];   double psHX = l.pos[1];
 			double psLY = l.pos[2];   double psHY = l.pos[3];
 			if (l.style == Poly.Type.TEXTBOX)

@@ -96,8 +96,6 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
 
 import java.awt.Dimension;
-import java.awt.Toolkit;
-import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -105,7 +103,6 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
-import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
@@ -260,13 +257,6 @@ public class EditMenu {
 			new EMenu("Propert_ies",
 				new EMenuItem("_Object Properties...", 'I') { public void run() {
 					getInfoCommand(false); }},
-//				SEPARATOR,
-//				new EMenuItem("See All Attributes on Node") { public void run() {
-//					seeAllParametersCommand(); }},
-//				new EMenuItem("Hide All Attributes on Node") { public void run() {
-//					hideAllParametersCommand(); }},
-//				new EMenuItem("Default Attribute Visibility") { public void run() {
-//					defaultParamVisibilityCommand(); }},
 				SEPARATOR,
 				new EMenuItem("Cell _Parameters...") { public void run() {
 					Attributes.showDialog(); }},
@@ -491,10 +481,6 @@ public class EditMenu {
 		if (wnd.getHighlighter().getNumHighlights() == 0)
 		{
 			System.out.println("Must select an object first");
-//			// information about the cell
-//			Cell c = WindowFrame.getCurrentCell();
-//			//if (c != null) c.getInfo();
-//			if (c != null) Attributes.showDialog();
 		} else
 		{
 			int [] counts = new int[5];
@@ -696,7 +682,6 @@ public class EditMenu {
 				}
 				if (changed)
 				{
-//					Undo.redrawObject(ni);
 					changeCount++;
 				}
 			}
@@ -704,25 +689,6 @@ public class EditMenu {
 				System.out.println("Changed visibility on " + changeCount + " nodes");
 			return true;
 		}
-
-//		/**
-//		 * Method to find the formal parameter that corresponds to the actual parameter
-//		 * "var" on node "ni".  Returns null if not a parameter or cannot be found.
-//		 */
-//		private Variable findParameterSource(Variable var, NodeInst ni)
-//		{
-//			// find this parameter in the cell
-//			Cell np = (Cell)ni.getProto();
-//			Cell cnp = np.contentsView();
-//			if (cnp != null) np = cnp;
-//            return np.getParameter(var.getKey());
-////			for(Iterator<Variable> it = np.getVariables(); it.hasNext(); )
-////			{
-////				Variable nVar = it.next();
-////				if (var.getKey() == nVar.getKey()) return nVar;
-////			}
-////			return null;
-//		}
 	}
 
 	public static void updateParameters(boolean allLibraries)
@@ -786,11 +752,13 @@ public class EditMenu {
 	 */
 	public static void changeGlobalTextSize(double scale)
 	{
-		double curScale = User.getGlobalTextScale();
+		EditWindow wnd = EditWindow.needCurrent();
+		if (wnd == null) return;
+		double curScale = wnd.getGlobalTextScale();
 		curScale *= scale;
 		if (curScale != 0)
 		{
-			User.setGlobalTextScale(curScale);
+			wnd.setGlobalTextScale(curScale);
 			EditWindow.repaintAllContents();
 		}
 	}
@@ -1600,34 +1568,12 @@ public class EditMenu {
                 PortInst pi = ni.getOnlyPortInst();
                 PortInst pi2 = ni2.getOnlyPortInst();
 
-//				// see if edge alignment is appropriate
-//				if (us_edgealignment_ratio != 0 && (ai->end[0].xpos == ai->end[1].xpos ||
-//					ai->end[0].ypos == ai->end[1].ypos))
-//				{
-//					edgealignment = muldiv(us_edgealignment_ratio, WHOLE, el_curlib->lambda[el_curtech->techindex]);
-//					px = us_alignvalue(x, edgealignment, &otheralign);
-//					py = us_alignvalue(y, edgealignment, &otheralign);
-//					if (px != x || py != y)
-//					{
-//						// shift the nodes and make sure the ports are still valid
-//						startobjectchange((INTBIG)ni, VNODEINST);
-//						modifynodeinst(ni, px-x, py-y, px-x, py-y, 0, 0);
-//						endobjectchange((INTBIG)ni, VNODEINST);
-//						startobjectchange((INTBIG)ni2, VNODEINST);
-//						modifynodeinst(ni2, px-x, py-y, px-x, py-y, 0, 0);
-//						endobjectchange((INTBIG)ni2, VNODEINST);
-//						(void)shapeportpoly(ni, ppt, poly, FALSE);
-//						if (!isinside(nx, ny, poly)) getcenter(poly, &nx, &ny);
-//					}
-//				}
-
                 // now save the arc information and delete it
                 PortInst headPort = ai.getHeadPortInst();
                 PortInst tailPort = ai.getTailPortInst();
                 Point2D headPt = ai.getHeadLocation();
                 Point2D tailPt = ai.getTailLocation();
                 double width = ai.getLambdaBaseWidth();
-//                double width = ai.getLambdaFullWidth();
                 String arcName = ai.getName();
                 int angle = (ai.getAngle() + 900) % 3600;
 
@@ -1635,9 +1581,6 @@ public class EditMenu {
                 ArcInst newAi1 = ArcInst.makeInstanceBase(ap, width, headPort, pi, headPt, insert, null);
                 ArcInst newAi2 = ArcInst.makeInstanceBase(ap, width, pi, pi2, insert, insert, null);
                 ArcInst newAi3 = ArcInst.makeInstanceBase(ap, width, pi2, tailPort, insert, tailPt, null);
-//                ArcInst newAi1 = ArcInst.makeInstanceFull(ap, width, headPort, pi, headPt, insert, null);
-//                ArcInst newAi2 = ArcInst.makeInstanceFull(ap, width, pi, pi2, insert, insert, null);
-//                ArcInst newAi3 = ArcInst.makeInstanceFull(ap, width, pi2, tailPort, insert, tailPt, null);
                 newAi1.setHeadNegated(ai.isHeadNegated());
                 newAi1.setHeadExtended(ai.isHeadExtended());
                 newAi1.setHeadArrowed(ai.isHeadArrowed());

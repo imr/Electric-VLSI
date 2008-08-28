@@ -152,6 +152,7 @@ public class EditWindow extends JPanel
 {
 	/** the window scale */									private double scale;
 	/** the requested window scale */						private double scaleRequested;
+	/** the global text scale in this window */				private double globalTextScale;
 	/** the window offset */								private double offx = 0, offy = 0;
 	/** the requested window offset */						private double offxRequested, offyRequested;
 	/** the size of the window (in pixels) */				private Dimension sz;
@@ -230,6 +231,7 @@ public class EditWindow extends JPanel
 		setPreferredSize(sz);
 
 		scale = scaleRequested = 1;
+		globalTextScale = User.getGlobalTextScale();
 
 		// the total panel in the edit window
 		overall = new JPanel();
@@ -482,12 +484,6 @@ public class EditWindow extends JPanel
 							break;
 						}
 						ni = (NodeInst)no;
-//						if (((Cell)ni.getProto()).getView() == View.ICON)
-//						{
-//							validPath = false;
-//							break;
-//						}
-						//path = ni.describe() + path;
 						path = ni.getParent().getName() + "[" + ni.getName() + "]" + (first? "" : " / ") + path;
 						if (first) first = false;
 						AffineTransform trans = ni.translateOut(ni.rotateOut());
@@ -1232,13 +1228,6 @@ public class EditWindow extends JPanel
 
 	// ************************************* REPAINT *************************************
 
-//	private boolean intermediateRefresh = false;
-//
-//	public void allowIntermediateRefresh()
-//	{
-//		intermediateRefresh = true;
-//	}
-
 	/**
 	 * Method to repaint this EditWindow.
 	 * Composites the image (taken from the PixelDrawing object)
@@ -1283,11 +1272,8 @@ public class EditWindow extends JPanel
 		setScrollPosition();			// redraw scroll bars
 
 		// set the default text size (for highlighting, etc)
-		Font f = new Font(User.getDefaultFont(), Font.PLAIN, (int)(10*User.getGlobalTextScale()));
+		Font f = new Font(User.getDefaultFont(), Font.PLAIN, (int)(10*globalTextScale));
 		g.setFont(f);
-
-		// add in grid if requested
-//		if (showGrid) drawGrid(g);
 
 		// add cross-probed level display
 		showCrossProbeLevels(g);
@@ -1310,15 +1296,6 @@ public class EditWindow extends JPanel
 					Job.releaseExamineLock();
 					throw e;
 				}
-			} else {
-			  	// repaint
-/*
-				TimerTask redrawTask = new TimerTask() {
-					public void run() { repaint(); }
-				};
-				Timer timer = new Timer();
-				timer.schedule(redrawTask, 1000);
-*/
 			}
 		} else {
 			// unsafe
@@ -1379,13 +1356,6 @@ public class EditWindow extends JPanel
 			g.drawLine(hX+1, lY-1, lX-1, lY-1);
 		}
 		logger.logp(Level.FINER, CLASS_NAME, "paintComponent", "overlays are drawn");
-
-		// draw any components that are on top (such as in-line text edits)
-//		for(GetInfoText.EditInPlaceListener tl : inPlaceTextObjects)
-//		{
-//			tl.getTextComponent().paint(g);
-//		}
-//		super.paint(g);
 
 		// see if anything else is queued
 		if (scale != scaleRequested || offx != offxRequested || offy != offyRequested || !getSize().equals(sz))
@@ -1500,7 +1470,6 @@ public class EditWindow extends JPanel
 	{
 		// start rendering thread
 		if (wf == null) return;
-//		if (drawing.offscreen == null) return;
 		if (cell == null) {
 			repaint();
 			return;
@@ -1516,8 +1485,6 @@ public class EditWindow extends JPanel
 		}
 		invokeRenderJob(this);
 
-		// do the redraw in the main thread
-//		setScrollPosition();						// redraw scroll bars
 		logger.exiting(CLASS_NAME, "repaintContents");
 	}
 
@@ -1618,7 +1585,6 @@ public class EditWindow extends JPanel
 			}
 			if (bounds != null) {
 				User.clearChangedInWindow(wnd);
-//					wnd.highlighter.addArea(bounds, cell);
 			}
 			WindowFrame.DisplayAttributes da = new WindowFrame.DisplayAttributes(wnd.scaleRequested,
 				wnd.offxRequested, wnd.offyRequested, wnd.inPlaceDescent);
@@ -1670,7 +1636,6 @@ public class EditWindow extends JPanel
 				if (layer.getName().equals("Glyph"))
 					opacity = 0;		// essential bounds
 			}
-//			if (!layer.isVisible()) opacity = 0;
 			layer.getGraphics().setOpacity(opacity);
 		}
 	}
@@ -2012,97 +1977,6 @@ public class EditWindow extends JPanel
 		Rectangle2D bounds = new Rectangle2D.Double(lowX, lowY, sizeX, sizeY);
 		return bounds;
 	}
-
-	/**
-	 * Method to display the grid.
-	 * THIS METHOD IS NOT USED ANYMORE.  THE GRID IS NOW DRAWN INTO THE OFFSCREEN IMAGE.
-	 * SEE PixelDrawing.drawGrid()
-	 */
-//	private void drawGrid(Graphics g)
-//	{
-//		// grid spacing
-//		if (gridXSpacing == 0 || gridYSpacing == 0) return;
-//		double spacingX = gridXSpacing;
-//		double spacingY = gridYSpacing;
-//		double boldSpacingX = spacingX * User.getDefGridXBoldFrequency();
-//		double boldSpacingY = spacingY * User.getDefGridYBoldFrequency();
-//		double boldSpacingThreshX = spacingX / 4;
-//		double boldSpacingThreshY = spacingY / 4;
-//
-//		// screen extent
-//		Rectangle2D displayable = displayableBounds();
-//		double lX = displayable.getMinX();  double lY = displayable.getMaxY();
-//		double hX = displayable.getMaxX();  double hY = displayable.getMinY();
-//		double scaleX = sz.width / (hX - lX);
-//		double scaleY = sz.height / (lY - hY);
-//
-//		// initial grid location
-//		double x1 = DBMath.toNearest(lX, spacingX);
-//		double y1 = DBMath.toNearest(lY, spacingY);
-//
-//		// adjust grid placement according to scale
-//		boolean allBoldDots = false;
-//		if (spacingX * scaleX < 5 || spacingY * scaleY < 5)
-//		{
-//			// normal grid is too fine: only show the "bold dots"
-//			x1 = DBMath.toNearest(x1, boldSpacingX);   spacingX = boldSpacingX;
-//			y1 = DBMath.toNearest(y1, boldSpacingY);   spacingY = boldSpacingY;
-//
-//			// if even the bold dots are too close, don't draw a grid
-//			if (spacingX * scaleX < 10 || spacingY * scaleY < 10) return;
-//		} else if (spacingX * scaleX > 75 && spacingY * scaleY > 75)
-//		{
-//			// if zoomed-out far enough, show all bold dots
-//			allBoldDots = true;
-//		}
-//
-//		// draw the grid
-//		g.setColor(new Color(User.getColor(User.ColorPrefType.GRID)));
-//		for(double i = y1; i > hY; i -= spacingY)
-//		{
-//			double boldValueY = i;
-//			if (i < 0) boldValueY -= boldSpacingThreshY/2; else
-//				boldValueY += boldSpacingThreshY/2;
-//			boolean everyTenY = Math.abs(boldValueY) % boldSpacingY < boldSpacingThreshY;
-//			for(double j = x1; j < hX; j += spacingX)
-//			{
-//				Point xy = databaseToScreen(j, i);
-//				int x = xy.x;
-//				int y = xy.y;
-//				if (y < 0 || y > sz.height) continue;
-//				double boldValueX = j;
-//				if (j < 0) boldValueX -= boldSpacingThreshX/2; else
-//					boldValueX += boldSpacingThreshX/2;
-//				boolean everyTenX = Math.abs(boldValueX) % boldSpacingX < boldSpacingThreshX;
-//				if (allBoldDots && everyTenX && everyTenY)
-//				{
-//					g.fillRect(x-2,y, 5, 1);
-//					g.fillRect(x,y-2, 1, 5);
-//					g.fillRect(x-1,y-1, 3, 3);
-//					continue;
-//				}
-//
-//				// special case every 10 grid points in each direction
-//				if (allBoldDots || (everyTenX && everyTenY))
-//				{
-//					g.fillRect(x-1,y, 3, 1);
-//					g.fillRect(x,y-1, 1, 3);
-//					continue;
-//				}
-//
-//				// just a single dot
-//				g.fillRect(x,y, 1, 1);
-//			}
-//		}
-//		if (User.isGridAxesShown())
-//		{
-//			Point xy = databaseToScreen(0, 0);
-//			if (xy.x >= 0 && xy.x < sz.width)
-//				g.drawLine(xy.x, 0, xy.x, sz.height-1);
-//			if (xy.y >= 0 && xy.y < sz.height)
-//				g.drawLine(0, xy.y, sz.width-1, xy.y);
-//		}
-//	}
 
 	// *************************** SEARCHING FOR TEXT ***************************
 
@@ -2729,6 +2603,18 @@ public class EditWindow extends JPanel
 	public double getScale() { return scale; }
 
 	/**
+	 * Method to return the text scale factor for this window.
+	 * @return the text scale factor for this window.
+	 */
+	public double getGlobalTextScale() { return globalTextScale; }
+
+	/**
+	 * Method to set the text scale factor for this window.
+	 * @param gts the text scale factor for this window.
+	 */
+	public void setGlobalTextScale(double gts) { globalTextScale = gts; }
+
+	/**
 	 * Method to set the scale factor for this window.
 	 * @param scale the scale factor for this window.
 	 */
@@ -2819,44 +2705,10 @@ public class EditWindow extends JPanel
 		// scroll bar is being repositioned: ignore the change events it generates
 		ignoreScrollChange = true;
 
-		// adjust scroll bars to reflect new bounds (only if not being adjusted now)
-		// newValue, newThumbSize, newMin, newMax
-		/*
-		Rectangle2D overallBounds = cellBounds.createUnion(viewBounds);
-		if (!bottomScrollBar.getValueIsAdjusting()) {
-			bottomScrollBar.getModel().setRangeProperties(
-					(int)((offx-0.5*viewBounds.getWidth())*scrollRangeMult),
-					(int)(viewBounds.getWidth()*scrollRangeMult),
-					(int)((overallBounds.getX() - scrollPagePercent*overallBounds.getWidth())*scrollRangeMult),
-					(int)(((overallBounds.getX()+overallBounds.getWidth()) + scrollPagePercent*overallBounds.getWidth())*scrollRangeMult),
-					false);
-			bottomScrollBar.setUnitIncrement((int)(0.05*viewBounds.getWidth()*scrollRangeMult));
-			bottomScrollBar.setBlockIncrement((int)(scrollPagePercent*viewBounds.getWidth()*scrollRangeMult));
-		}
-		//System.out.println("overallBounds="+overallBounds);
-		//System.out.println("cellBounds="+cellBounds);
-		//System.out.println("offy="+offy);
-		System.out.print(" value="+(int)((-offy-0.5*viewBounds.getHeight()))*scrollRangeMult);
-		//System.out.print(" extent="+(int)(cellBounds.getHeight()));
-		System.out.print(" min="+(int)((-((overallBounds.getY()+overallBounds.getHeight()) + scrollPagePercent*overallBounds.getHeight())))*scrollRangeMult);
-		System.out.println(" max="+((int)(-(overallBounds.getY() - scrollPagePercent*overallBounds.getHeight())))*scrollRangeMult);
-		if (!rightScrollBar.getValueIsAdjusting()) {
-			rightScrollBar.getModel().setRangeProperties(
-					(int)((-offy-0.5*viewBounds.getHeight())*scrollRangeMult),
-					(int)((viewBounds.getHeight())*scrollRangeMult),
-					(int)((-((overallBounds.getY()+overallBounds.getHeight()) + scrollPagePercent*overallBounds.getHeight()))*scrollRangeMult),
-					(int)((-(overallBounds.getY() - scrollPagePercent*overallBounds.getHeight()))*scrollRangeMult),
-					false);
-			//System.out.println("model is "+rightScrollBar.getModel());
-			rightScrollBar.setUnitIncrement((int)(0.05*viewBounds.getHeight()*scrollRangeMult));
-			rightScrollBar.setBlockIncrement((int)(scrollPagePercent*viewBounds.getHeight()*scrollRangeMult));
-		}
-		*/
 		double width = (viewBounds.getWidth() < cellBounds.getWidth()) ? viewBounds.getWidth() : cellBounds.getWidth();
 		double height = (viewBounds.getHeight() < cellBounds.getHeight()) ? viewBounds.getHeight() : cellBounds.getHeight();
 
 		Point2D dbPt = new Point2D.Double(offx, offy);
-//		if (inPlaceDisplay) intoCell.transform(dbPt, dbPt);
 		double oX = dbPt.getX();   double oY = dbPt.getY();
 
 		if (!bottomScrollBar.getValueIsAdjusting())
@@ -2896,9 +2748,6 @@ public class EditWindow extends JPanel
 		Rectangle2D viewBounds = displayableBounds();
 		double width = (viewBounds.getWidth() < cellBounds.getWidth()) ? viewBounds.getWidth() : cellBounds.getWidth();
 		double newoffx = val+0.5*width;			// new offset
-		//double ignoreDelta = 0.03*viewBounds.getWidth();			// ignore delta
-		//double delta = newoffx - offx;
-		//if (Math.abs(delta) < Math.abs(ignoreDelta)) return;
 		Point2D offset = new Point2D.Double(newoffx, oY);
 		setOffset(offset);
 		getSavedFocusBrowser().updateCurrentFocus();
@@ -2918,10 +2767,6 @@ public class EditWindow extends JPanel
 		Rectangle2D viewBounds = displayableBounds();
 		double height = (viewBounds.getHeight() < cellBounds.getHeight()) ? viewBounds.getHeight() : cellBounds.getHeight();
 		double newoffy = -(val+0.5*height);
-		// annoying cause +y is down in java
-		//double ignoreDelta = 0.03*viewBounds.getHeight();			// ignore delta
-		//double delta = newoffy - offy;
-		//if (Math.abs(delta) < Math.abs(ignoreDelta)) return;
 		Point2D offset = new Point2D.Double(oX, newoffy);
 		setOffset(offset);
 		getSavedFocusBrowser().updateCurrentFocus();
@@ -3153,19 +2998,6 @@ public class EditWindow extends JPanel
      */
     public VarContext getVarContext() { return cellVarContext; }
 
-//    private PortInst[] pushSelectedPorts(PortInst pi) {
-//        PortInst[] newSelectedPorts = new PortInst[selectedPorts.length + 1];
-//        System.arraycopy(selectedPorts, 0, newSelectedPorts, 0, selectedPorts.length);
-//        newSelectedPorts[selectedPorts.length] = pi;
-//        return newSelectedPorts;
-//    }
-//
-//    private PortInst[] popSelectedPorts() {
-//        PortInst[] newSelectedPorts = new PortInst[selectedPorts.length - 1];
-//        System.arraycopy(selectedPorts, 0, newSelectedPorts, 0, newSelectedPorts.length);
-//        return newSelectedPorts;
-//    }
-
     /**
      * Push into an instance (go down the hierarchy)
      * @param keepFocus true to keep the zoom and scale in the new window.
@@ -3328,7 +3160,6 @@ public class EditWindow extends JPanel
 
 		// if getdrive is called
         for (Iterator<Variable> it = no.getDefinedParameters(); it.hasNext(); ) {
-//        for (Iterator<Variable> it = no.getVariables(); it.hasNext(); ) {
             Variable var = it.next();
             Object obj = var.getObject();
             if (obj instanceof CodeExpression) {
@@ -3379,7 +3210,6 @@ public class EditWindow extends JPanel
 				{
 					// found previous in cell history: show it
 					WindowFrame.CellHistory foundHistory = wf.getCellHistoryList().get(historyIndex);
-//					pi = foundHistory.getDisplayAttributes().selPort;
 					foundHistory.setContext(context);
 					if (selectedExport != null)
 						foundHistory.setSelPort(no.getNodeInst().findPortInstFromProto(selectedExport));
@@ -3404,14 +3234,6 @@ public class EditWindow extends JPanel
 						highlighter.addElectricObject(no.getNodeInst(), parent);
 				}
 				clearSubCellCache();
-
-//				// highlight node we came from
-//				if (selectedExport != null)
-//					pi = no.getNodeInst().findPortInstFromProto(selectedExport);
-//                if (pi != null)
-//                    highlighter.addElectricObject(pi, parent);
-//                else
-//					highlighter.addElectricObject(no.getNodeInst(), parent);
 
                 // highlight portinst selected at the time, if any
                 SelectObject.selectObjectDialog(parent, true);
@@ -3527,7 +3349,7 @@ public class EditWindow extends JPanel
      */
     private static void endBatch(Snapshot oldSnapshot, Snapshot newSnapshot) {
         // Mark cells for redraw
-        HashSet<CellId> topCells = new HashSet<CellId>();
+        Set<CellId> topCells = new HashSet<CellId>();
 		for(Iterator<WindowFrame> wit = WindowFrame.getWindows(); wit.hasNext(); )
 		{
 			WindowFrame wf = wit.next();
@@ -3564,18 +3386,8 @@ public class EditWindow extends JPanel
 	{
 		if (User.getDisplayAlgorithm() != 0)
             return;
-        HashSet<Cell> marked = new HashSet<Cell>();
+        Set<Cell> marked = new HashSet<Cell>();
         markCellForRedrawRecursively(cell, marked);
-//		if (cellChanged)
-//		{
-////			VectorDrawing.cellChanged(cell);
-//			EditWindow.forceRedraw(cell);
-//            // recurse up the hierarchy so that all windows showing the cell get redrawn
-//            for(Iterator<NodeInst> it = cell.getInstancesOf(); it.hasNext(); ) {
-//                NodeInst ni = it.next();
-//                markCellForRedrawRecursively(ni.getParent(), marked);
-//            }
-//		}
 
 		for(Iterator<WindowFrame> wit = WindowFrame.getWindows(); wit.hasNext(); )
 		{
@@ -3591,7 +3403,7 @@ public class EditWindow extends JPanel
 		}
 	}
 
-    private static void markCellForRedrawRecursively(Cell cell, HashSet<Cell> marked) {
+    private static void markCellForRedrawRecursively(Cell cell, Set<Cell> marked) {
         if (marked.contains(cell)) return;
         marked.add(cell);
 		// recurse up the hierarchy so that all windows showing the cell get redrawn
@@ -3750,7 +3562,6 @@ public class EditWindow extends JPanel
 	public static void gridAlignSize(Point2D pt, int direction)
 	{
 		DBMath.gridAlign(pt, User.getAlignmentToGrid(), direction);
-//		DBMath.gridAlign(pt, User.getAlignmentToGrid()*2);
 	}
 
 	// ************************************* TEXT *************************************
@@ -3893,7 +3704,6 @@ public class EditWindow extends JPanel
             }
             ColorSupported cs = ps.getAttribute(ColorSupported.class);
 			int printMode = 1;
-//			if (cs != ColorSupported.SUPPORTED) printMode = 0;
 			if (cs == null || cs.getValue() == 0) printMode = 2;
 			offscreen.setPrintingMode(printMode);
 			offscreen.setBackgroundColor(Color.WHITE);

@@ -59,6 +59,8 @@ import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.Color;
 import java.awt.Point;
@@ -103,6 +105,8 @@ public class VectorCache {
         public VarContext getVarContext() { return varContext; }
 
         public double getScale() { return curScale; }
+
+        public double getGlobalTextScale() { return User.getGlobalTextScale(); }
     };
 
 	/**

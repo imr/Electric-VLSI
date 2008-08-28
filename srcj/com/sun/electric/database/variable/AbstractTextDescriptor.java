@@ -37,6 +37,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * This class describes how variable text appears.
@@ -616,7 +617,7 @@ abstract class AbstractTextDescriptor implements Serializable
 		private String fontName;
 		private int index;
 		private static int indexCount = 0;
-		private static final HashMap<String,ActiveFont> fontMap = new HashMap<String,ActiveFont>();
+		private static final Map<String,ActiveFont> fontMap = new HashMap<String,ActiveFont>();
 		private static final List<ActiveFont> fontList = new ArrayList<ActiveFont>();
 
 		private ActiveFont(String fontName)
@@ -971,7 +972,7 @@ abstract class AbstractTextDescriptor implements Serializable
 	public double getTrueSize(EditWindow0 wnd)
 	{
         if (wnd != null)
-            return getTrueSize(wnd.getScale());
+            return getTrueSize(wnd.getScale(), wnd);
 		int textSize = getField(VTSIZE, VTSIZESH);
         double trueSize = textSize > 0 && textSize <= Size.TXTMAXPOINTS ? textSize : Size.DEFAULT_FONT_SIZE;
 		return trueSize*User.getGlobalTextScale();
@@ -982,9 +983,10 @@ abstract class AbstractTextDescriptor implements Serializable
 	 * If the TextDescriptor is already Absolute (in points) nothing needs to be done.
 	 * Otherwise, the scale is used to determine the acutal point size.
 	 * @param scale scale to draw.
+	 * @param wnd the EditWindow0 in which drawing will occur.
 	 * @return the point size of the text described by this TextDescriptor.
 	 */
-	public double getTrueSize(double scale)
+	public double getTrueSize(double scale, EditWindow0 wnd)
 	{
 		double trueSize;
 		int textSize = getField(VTSIZE, VTSIZESH);
@@ -998,7 +1000,7 @@ abstract class AbstractTextDescriptor implements Serializable
             // relative
             trueSize = (textSize>>Size.TXTQGRIDSH) * 0.25 * scale;
         }
-		return trueSize*User.getGlobalTextScale();
+		return trueSize * wnd.getGlobalTextScale();
 	}
 
 	/**

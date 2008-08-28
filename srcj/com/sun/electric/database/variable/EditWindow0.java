@@ -39,4 +39,10 @@ public interface EditWindow0 {
 	 * @return the scale factor for this window.
 	 */
 	public double getScale();
+    
+	/**
+	 * Method to return the text scale factor for this window.
+	 * @return the text scale factor for this window.
+	 */
+	public double getGlobalTextScale();
 }

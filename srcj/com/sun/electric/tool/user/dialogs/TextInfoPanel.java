@@ -422,7 +422,8 @@ public class TextInfoPanel extends javax.swing.JPanel
         textColorComboBox.setSelectedIndex(colorComboIndex);
 
         // report the global text scale
-        globalTextScale.setText("Scaled by " + TextUtils.formatDouble(User.getGlobalTextScale()*100) + "%");
+        double textScale = wnd != null ? wnd.getGlobalTextScale() : User.getGlobalTextScale();
+        globalTextScale.setText("Scaled by " + TextUtils.formatDouble(textScale*100) + "%");
 
         loading = false;
     }

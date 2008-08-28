@@ -116,6 +116,8 @@ public class TextTab extends PreferencePanel
 		textExternalEditor.setText(editor);
 
 		textGlobalScale.setText(TextUtils.formatDouble(User.getGlobalTextScale() * 100));
+		EditWindow wnd = EditWindow.getCurrent();
+		textWindowScale.setText(wnd == null ? "" : TextUtils.formatDouble(wnd.getGlobalTextScale() * 100));
 		
 		textNodes.setSelected(true);
 		textButtonChanged();
@@ -339,6 +341,13 @@ public class TextTab extends PreferencePanel
 			User.setGlobalTextScale(currentGlobalScale);
 			editCellsChanged = true;
 		}
+		currentGlobalScale = TextUtils.atof(textWindowScale.getText()) / 100;
+		EditWindow wnd = EditWindow.getCurrent();
+		if (wnd != null && currentGlobalScale != wnd.getGlobalTextScale())
+		{
+			wnd.setGlobalTextScale(currentGlobalScale);
+			editCellsChanged = true;
+		}
 
 		if (textCellsChanged || editCellsChanged)
 		{
@@ -353,8 +362,8 @@ public class TextTab extends PreferencePanel
 				}
 				if (editCellsChanged && wf.getContent() instanceof EditWindow)
 				{
-					EditWindow wnd = (EditWindow)wf.getContent();
-					wnd.fullRepaint();
+					EditWindow w = (EditWindow)wf.getContent();
+					w.fullRepaint();
 				}
 			}
 		}
@@ -400,6 +409,11 @@ public class TextTab extends PreferencePanel
         jLabel1 = new javax.swing.JLabel();
         textGlobalScale = new javax.swing.JTextField();
         jLabel2 = new javax.swing.JLabel();
+        jLabel4 = new javax.swing.JLabel();
+        textWindowScale = new javax.swing.JTextField();
+        jLabel5 = new javax.swing.JLabel();
+        jLabel8 = new javax.swing.JLabel();
+        jLabel9 = new javax.swing.JLabel();
         textCells = new javax.swing.JPanel();
         jLabel7 = new javax.swing.JLabel();
         textCellFont = new javax.swing.JComboBox();
@@ -628,27 +642,73 @@ public class TextTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         globals.add(textDefaultFont, gridBagConstraints);
 
-        jLabel1.setText("Global text scale:");
+        jLabel1.setText("Default global text scale");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 0, 4);
         globals.add(jLabel1, gridBagConstraints);
 
         textGlobalScale.setColumns(10);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridheight = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 1);
         globals.add(textGlobalScale, gridBagConstraints);
 
         jLabel2.setText("percent");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridheight = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 1, 2, 4);
         globals.add(jLabel2, gridBagConstraints);
+
+        jLabel4.setText("Global text scale in");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 0, 4);
+        globals.add(jLabel4, gridBagConstraints);
+
+        textWindowScale.setColumns(10);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridheight = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 1);
+        globals.add(textWindowScale, gridBagConstraints);
+
+        jLabel5.setText("percent");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridheight = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 1, 4, 4);
+        globals.add(jLabel5, gridBagConstraints);
+
+        jLabel8.setText("the current window:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 10, 4, 4);
+        globals.add(jLabel8, gridBagConstraints);
+
+        jLabel9.setText("for new windows:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 10, 2, 4);
+        globals.add(jLabel9, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -741,12 +801,16 @@ public class TextTab extends PreferencePanel
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel41;
     private javax.swing.JLabel jLabel42;
     private javax.swing.JLabel jLabel43;
     private javax.swing.JLabel jLabel44;
+    private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel8;
+    private javax.swing.JLabel jLabel9;
     private javax.swing.JSeparator jSeparator3;
     private javax.swing.JPanel text;
     private javax.swing.JComboBox textAnchor;
@@ -774,6 +838,7 @@ public class TextTab extends PreferencePanel
     private javax.swing.JCheckBox textUnderline;
     private javax.swing.JTextField textUnitSize;
     private javax.swing.JRadioButton textUnits;
+    private javax.swing.JTextField textWindowScale;
     private javax.swing.JPanel top;
     // End of variables declaration//GEN-END:variables
 

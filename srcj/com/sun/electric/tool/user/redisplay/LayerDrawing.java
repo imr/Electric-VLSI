@@ -273,7 +273,7 @@ class LayerDrawing
 	// the transparent bitmaps
 	/** the number of ints per row in offscreen maps */     private final int numIntsPerRow;
 
-	/** the map from layers to layer bitmaps */             private HashMap<Layer,TransparentRaster> layerRasters = new HashMap<Layer,TransparentRaster>();
+	/** the map from layers to layer bitmaps */             private Map<Layer,TransparentRaster> layerRasters = new HashMap<Layer,TransparentRaster>();
     /** temporary raster for patterned layers */            private PatternedTransparentRaster currentPatternedTransparentRaster = new PatternedTransparentRaster();
 	/** the top-level window being rendered */				private boolean renderedWindow;
 
@@ -285,8 +285,8 @@ class LayerDrawing
 	/** the size of the top-level EditWindow */				private static Dimension topSz;
     /** draw layers patterned (depends on scale). */        private boolean patternedDisplay;
     /** Alpha blending with overcolor (depends on scale). */private static boolean alphaBlendingOvercolor;           
-	/** list of cell expansions. */							private static HashMap<ExpandedCellKey,ExpandedCellInfo> expandedCells = null;
-    /** Set of changed cells. */                            private static final HashSet<CellId> changedCells = new HashSet<CellId>();
+	/** list of cell expansions. */							private static Map<ExpandedCellKey,ExpandedCellInfo> expandedCells = null;
+    /** Set of changed cells. */                            private static final Set<CellId> changedCells = new HashSet<CellId>();
 	/** scale of cell expansions. */						private static double expandedScale = 0;
 	/** number of extra cells to render this time */		private static int numberToReconcile;
 	/** zero rectangle */									private static final Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
@@ -309,6 +309,8 @@ class LayerDrawing
         public VarContext getVarContext() { return varContext; }
         
         public double getScale() { return scale; }
+
+        public double getGlobalTextScale() { return wnd.getGlobalTextScale(); }
     };
 
     static class Drawing extends AbstractDrawing {
@@ -321,7 +323,7 @@ class LayerDrawing
         
         // The following fields are produced by "render" method in Job thread.
         private volatile boolean needComposite;
-        /** the map from layers to layer bitmaps */             private volatile HashMap<Layer,TransparentRaster> layerRasters = new HashMap<Layer,TransparentRaster>();
+        /** the map from layers to layer bitmaps */             private volatile Map<Layer,TransparentRaster> layerRasters = new HashMap<Layer,TransparentRaster>();
         private volatile GreekTextInfo[] greekText = {};
         private volatile RenderTextInfo[] renderText = {};
         private volatile CrossTextInfo[] crossText = {};
@@ -429,7 +431,7 @@ class LayerDrawing
         public boolean hasOpacity() { return true; }
         
         private void layerComposite(Graphics2D g, LayerDrawing offscreen) {
-            HashMap<Layer,int[]> layerBits = new HashMap<Layer,int[]>();
+            Map<Layer,int[]> layerBits = new HashMap<Layer,int[]>();
             for (Map.Entry<Layer,TransparentRaster> e: layerRasters.entrySet())
                 layerBits.put(e.getKey(), e.getValue().layerBitMap);
             List<AbstractDrawing.LayerColor> blendingOrder = wnd.getBlendingOrder(layerBits.keySet(), offscreen.patternedDisplay, alphaBlendingOvercolor);
@@ -592,7 +594,7 @@ class LayerDrawing
         }
         
 //        private void layerCompositeSlow(Graphics2D g) {
-//            HashMap<Layer,int[]> layerBits = new HashMap<Layer,int[]>();
+//            Map<Layer,int[]> layerBits = new HashMap<Layer,int[]>();
 //            for (Map.Entry<Layer,TransparentRaster> e: layerRasters.entrySet())
 //                layerBits.put(e.getKey(), e.getValue().layerBitMap);
 //            List<EditWindow.LayerColor> blendingOrder = wnd.getBlendingOrder(layerBits.keySet(), true);
@@ -940,7 +942,7 @@ class LayerDrawing
         
         
         AlphaBlender alphaBlender = new AlphaBlender();
-        HashMap<Layer,int[]> layerBits = new HashMap<Layer,int[]>();
+        Map<Layer,int[]> layerBits = new HashMap<Layer,int[]>();
         for (Map.Entry<Layer,TransparentRaster> e: offscreen.layerRasters.entrySet())
             layerBits.put(e.getKey(), e.getValue().layerBitMap);
         List<AbstractDrawing.LayerColor> blendingOrder = getBlendingOrderForTechPalette(layerBits.keySet());
@@ -1185,7 +1187,7 @@ class LayerDrawing
 		objectCount = 0;
 		lastRefreshTime = System.currentTimeMillis();
 
-        HashSet<CellId> changedCellsCopy;
+		Set<CellId> changedCellsCopy;
         synchronized (changedCells) {
             changedCellsCopy = new HashSet<CellId>(changedCells);
             changedCells.clear();
@@ -1699,7 +1701,7 @@ class LayerDrawing
         }
 	}
 
-	private static void forceRedraw(HashSet<CellId> changedCells)
+	private static void forceRedraw(Set<CellId> changedCells)
 	{
 		// if there is no global for remembering cached cells, do not cache
 		if (expandedCells == null) return;
@@ -2405,7 +2407,7 @@ class LayerDrawing
                 VectorCache.VectorText vt = (VectorCache.VectorText)vb;
                 TextDescriptor td = vt.descript;
                 if (td != null && !td.isAbsoluteSize()) {
-                    double size = td.getTrueSize(expandedScale);
+                    double size = td.getTrueSize(expandedScale, wnd);
                     if (size <= canDrawRelativeText) continue;
                 } else {
                     if (!canDrawText) continue;
@@ -3502,7 +3504,7 @@ class LayerDrawing
 				Color full = EGraphics.getColorFromIndex(colorIndex);
 				if (full != null) col = full.getRGB() & 0xFFFFFF;
 			}
-			double dSize = descript.getTrueSize(scale);
+			double dSize = descript.getTrueSize(scale, wnd);
 			size = Math.min((int)dSize, MAXIMUMTEXTSIZE);
 			if (size < MINIMUMTEXTSIZE)
 			{

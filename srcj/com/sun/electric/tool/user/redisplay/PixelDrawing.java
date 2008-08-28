@@ -74,6 +74,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.swing.SwingUtilities;
 
@@ -283,7 +285,7 @@ public class PixelDrawing
         private byte[][] layerBitMap;
         PatternedOpaqueLayer(int height, int numBytesPerRow) { layerBitMap = new byte[height][numBytesPerRow]; }
     }
-	/** the map from layers to Patterned Opaque bitmaps */	private HashMap<Layer,PatternedOpaqueLayer> patternedOpaqueLayers = new HashMap<Layer,PatternedOpaqueLayer>();
+	/** the map from layers to Patterned Opaque bitmaps */	private Map<Layer,PatternedOpaqueLayer> patternedOpaqueLayers = new HashMap<Layer,PatternedOpaqueLayer>();
 	/** the top-level window being rendered */				private boolean renderedWindow;
 
 	/** whether to occasionally update the display. */		private boolean periodicRefresh;
@@ -293,8 +295,8 @@ public class PixelDrawing
 
 	/** the size of the top-level EditWindow */				private static Dimension topSz;
 	/** the last Technology that had transparent layers */	private static Technology techWithLayers = null;
-	/** list of cell expansions. */							private static HashMap<ExpandedCellKey,ExpandedCellInfo> expandedCells = null;
-    /** Set of changed cells. */                            private static final HashSet<CellId> changedCells = new HashSet<CellId>();
+	/** list of cell expansions. */							private static Map<ExpandedCellKey,ExpandedCellInfo> expandedCells = null;
+    /** Set of changed cells. */                            private static final Set<CellId> changedCells = new HashSet<CellId>();
 	/** scale of cell expansions. */						private static double expandedScale = 0;
 	/** number of extra cells to render this time */		private static int numberToReconcile;
 	/** zero rectangle */									private static final Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
@@ -314,6 +316,8 @@ public class PixelDrawing
         public VarContext getVarContext() { return varContext; }
         
         public double getScale() { return scale; }
+
+        public double getGlobalTextScale() { return wnd.getGlobalTextScale(); }
     };
 
     static class Drawing extends AbstractDrawing {
@@ -485,7 +489,6 @@ public class PixelDrawing
         double width = sz.width/scale;
         double height = sz.height/scale;
         drawBounds = new Rectangle2D.Double(drawing.da.offX - width/2, drawing.da.offY - height/2, width, height);
-//        drawBounds = wnd.getDisplayedBounds();
 
 		// set colors to use
         textColor = new Color(User.getColor(User.ColorPrefType.TEXT));
@@ -541,7 +544,7 @@ public class PixelDrawing
 		objectCount = 0;
 		lastRefreshTime = System.currentTimeMillis();
 
-        HashSet<CellId> changedCellsCopy;
+        Set<CellId> changedCellsCopy;
         synchronized (changedCells) {
             changedCellsCopy = new HashSet<CellId>(changedCells);
             changedCells.clear();
@@ -635,7 +638,7 @@ public class PixelDrawing
         clipHY = sz.height - 1;
 		clearImage(null);
 
-        HashSet<CellId> changedCellsCopy;
+        Set<CellId> changedCellsCopy;
         synchronized (changedCells) {
             changedCellsCopy = new HashSet<CellId>(changedCells);
             changedCells.clear();
@@ -1243,7 +1246,6 @@ public class PixelDrawing
 				double ctrY = ctr.getY();
                 if (renderedWindow && drawBounds != null) {
                     Rectangle2D databaseBounds = drawBounds;
-//                    Rectangle2D databaseBounds = wnd.getDisplayedBounds();
                     if (ctrX + halfWidth < databaseBounds.getMinX()) return;
                     if (ctrX - halfWidth > databaseBounds.getMaxX()) return;
                     if (ctrY + halfWidth < databaseBounds.getMinY()) return;
@@ -1684,7 +1686,7 @@ public class PixelDrawing
         }
 	}
 
-	private static void forceRedraw(HashSet<CellId> changedCells)
+	private static void forceRedraw(Set<CellId> changedCells)
 	{
 		// if there is no global for remembering cached cells, do not cache
 		if (expandedCells == null) return;
@@ -2904,7 +2906,7 @@ public class PixelDrawing
 				Color full = EGraphics.getColorFromIndex(colorIndex);
 				if (full != null) col = full.getRGB() & 0xFFFFFF;
 			}
-			double dSize = descript.getTrueSize(scale);
+			double dSize = descript.getTrueSize(scale, wnd);
 			size = (int)dSize;
 			if (size < MINIMUMTEXTSIZE)
 			{
