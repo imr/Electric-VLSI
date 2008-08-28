@@ -71,12 +71,14 @@ import javax.swing.AbstractButton;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
+import javax.swing.SwingConstants;
 
 /**
  * This class manages the Electric toolbar.
@@ -120,11 +122,8 @@ public class ToolBar extends JToolBar
 			outlineCommand,					// Edit:Modes:Edit:Toggle Outline Edit
 			measureCommand,					// Edit:Modes:Edit:Toggle Measure Distance
 			null,
-			gridDistance1Command,			// Edit:Modes:Movement:Grid Alignment 1 (largest)
-			gridDistance2Command,			// Edit:Modes:Movement:Grid Alignment 2
-			gridDistance3Command,			// Edit:Modes:Movement:Grid Alignment 3
-			gridDistance4Command,			// Edit:Modes:Movement:Grid Alignment 4
-			gridDistance5Command,			// Edit:Modes:Movement:Grid Alignment 5 (smallest)
+			gridSmaller,
+			gridLarger,
 			null,
 			selectObjectsCommand,			// Edit:Modes:Select:Select Objects
 			selectAreaCommand,				// Edit:Modes:Select:Select Area
@@ -160,11 +159,8 @@ public class ToolBar extends JToolBar
 			allButtons.add(zoomCommand);
 			allButtons.add(outlineCommand);
 			allButtons.add(measureCommand);
-			allButtons.add(gridDistance1Command);
-			allButtons.add(gridDistance2Command);
-			allButtons.add(gridDistance3Command);
-			allButtons.add(gridDistance4Command);
-			allButtons.add(gridDistance5Command);
+			allButtons.add(gridSmaller);
+			allButtons.add(gridLarger);
 			allButtons.add(selectObjectsCommand);
 			allButtons.add(selectAreaCommand);
 			allButtons.add(toggleSelectSpecialCommand);
@@ -436,6 +432,7 @@ public class ToolBar extends JToolBar
 	{
 		removeAll();
 		EToolBarButton[] buttons = getToolbarButtons();
+		boolean placedGridDistance = false;
 		for (int i=0; i<buttons.length; i++)
 		{
 			EToolBarButton b = buttons[i];
@@ -447,8 +444,20 @@ public class ToolBar extends JToolBar
 				AbstractButton j = b.genToolBarButton();
 				add(j);
 				j.setFocusable(false);
+				if (!placedGridDistance && (b == gridSmaller || b == gridLarger))
+				{
+					placedGridDistance = true;
+					rewriteGridDistance();
+					add(currentGridDistance);
+				}
 			}
 		}
+	}
+
+	private static void rewriteGridDistance()
+	{
+		double val = User.getAlignmentToGrid();
+		currentGridDistance.setText(" Grid=" + val + " ");
 	}
 
 	/**
@@ -556,7 +565,7 @@ public class ToolBar extends JToolBar
 		AbstractButton createToolBarButton() { return new JButton(); }
 
 		/**
-		 * Updates appearance of toll bar button instance after change of state.
+		 * Updates appearance of tool bar button instance after change of state.
 		 */
 		void updateToolBarButton(AbstractButton item)
 		{
@@ -862,97 +871,73 @@ public class ToolBar extends JToolBar
 	// --------------------------- ArrowDistance staff ---------------------------------------------------------
 
 	/**
-	 * ArrowDistance is a typesafe enum class that describes the distance that arrow keys move.
-	 */
-	public static enum ArrowDistance
-	{
-		/** Describes grid unit motion 1 (largest). */		GRID1(0),
-		/** Describes grid unit motion 2. */				GRID2(1),
-		/** Describes grid unit motion 3. */				GRID3(2),
-		/** Describes grid unit motion 4. */				GRID4(3),
-		/** Describes grid unit motion 5 (smallest). */		GRID5(4);
-
-		private final int position;
-
-		private ArrowDistance(int pos) {
-			this.position = pos;
-		}
-
-		public boolean isSelected()
-		{
-			double[] vals = User.getAlignmentToGridVector();
-			for (int i = 0; i < vals.length; i++)
-			{
-				if (vals[i] < 0)
-					return (i == position);
-			}
-			return false;
-		}
-
-		public void setAlignmentToGrid()
-		{
-			double[] vals = User.getAlignmentToGridVector();
-			for (int i = 0; i < vals.length; i++)
-			{
-				if (i != position)
-					vals[i] = Math.abs(vals[i]);
-				else
-					vals[i] = Math.abs(vals[i]) * -1;
-			}
-			User.setAlignmentToGridVector(vals);
-		}
-	}
-
-	/**
 	 * Method to signal ToolBar that gridAlignment changed
 	 */
 	public static void setGridAligment() { updateToolBarButtons(); }
 
-	private static final ArrowDistanceButton gridDistance1Command = new ArrowDistanceButton("Grid Alignment 1 (largest)", "ButtonGrid1",
-		"Edit:Modes:Movement", ArrowDistance.GRID1);
-	private static final ArrowDistanceButton gridDistance2Command = new ArrowDistanceButton("Grid Alignment 2", "ButtonGrid2",
-		"Edit:Modes:Movement", ArrowDistance.GRID2);
-	private static final ArrowDistanceButton gridDistance3Command = new ArrowDistanceButton("Grid Alignment 3", "ButtonGrid3",
-		"Edit:Modes:Movement", ArrowDistance.GRID3);
-	private static final ArrowDistanceButton gridDistance4Command = new ArrowDistanceButton("Grid Alignment 4", "ButtonGrid4",
-		"Edit:Modes:Movement", ArrowDistance.GRID4);
-	private static final ArrowDistanceButton gridDistance5Command = new ArrowDistanceButton("Grid Alignment 5 (smallest)", "ButtonGrid5",
-		"Edit:Modes:Movement", ArrowDistance.GRID5);
+	private static EMenuItem gridDistance1Command = new EMenuItem("Grid Alignment 1 (smallest)") { public void run() {
+		changeGridSize(4); }};
+	private static EMenuItem gridDistance2Command = new EMenuItem("Grid Alignment 2") { public void run() {
+		changeGridSize(3); }};
+	private static EMenuItem gridDistance3Command = new EMenuItem("Grid Alignment 3") { public void run() {
+		changeGridSize(2); }};
+	private static EMenuItem gridDistance4Command = new EMenuItem("Grid Alignment 4") { public void run() {
+		changeGridSize(1); }};
+	private static EMenuItem gridDistance5Command = new EMenuItem("Grid Alignment 5 (largest)") { public void run() {
+		changeGridSize(0); }};
+	private static JLabel currentGridDistance = new JLabel();
 
-	private static class ArrowDistanceButton extends EToolBarRadioButton
+	private static final EToolBarButton gridLarger = new EToolBarButton("Make Grid Larger",
+		KeyStroke.getKeyStroke('F', 0), "ButtonGridCoarser", "Edit")
+			{ public void run() { changeGridSize(true); } };
+
+	private static final EToolBarButton gridSmaller = new EToolBarButton("Make Grid Smaller",
+		KeyStroke.getKeyStroke('H', 0), "ButtonGridFiner", "Edit")
+			{ public void run() { changeGridSize(false); } };
+
+	private static void changeGridSize(int size)
 	{
-		private final ArrowDistance ad;
-
-		ArrowDistanceButton(String text, String iconName, String menuName, ArrowDistance ad)
+		double[] vals = User.getAlignmentToGridVector();
+		for (int i = 0; i < vals.length; i++)
 		{
-			super(text, null, iconName, menuName);
-			this.ad = ad;
+			if (i != size)
+				vals[i] = Math.abs(vals[i]);
+			else
+				vals[i] = Math.abs(vals[i]) * -1;
 		}
+		User.setAlignmentToGridVector(vals);
+		rewriteGridDistance();
+	}
 
-		ArrowDistanceButton(String text, char acceleratorChar, String iconName, String menuName, ArrowDistance ad)
+	private static void changeGridSize(boolean larger)
+	{
+		double[] vals = User.getAlignmentToGridVector();
+		for (int i = 0; i < vals.length; i++)
 		{
-			super(text, KeyStroke.getKeyStroke(acceleratorChar, 0), iconName, menuName);
-			this.ad = ad;
-		}
-
-		/**
-		 * Updates appearance of toll bar button instance after change of state.
-		 */
-		void updateToolBarButton(AbstractButton item)
-		{
-			super.updateToolBarButton(item);
-			double[] vals = User.getAlignmentToGridVector();
-			item.setToolTipText(getToolTipText() + " [is " + Math.abs(vals[ad.position]) + "]");
-		}
-
-		@Override public boolean isSelected()
-		{
-			return ad.isSelected();
-		}
-
-		@Override public void run()
-		{
-			ad.setAlignmentToGrid();
+			if (vals[i] < 0)
+			{
+				if (larger)
+				{
+					if (i > 0)
+					{
+						vals[i] = Math.abs(vals[i]);
+						vals[i-1] = -Math.abs(vals[i-1]);
+						User.setAlignmentToGridVector(vals);
+						rewriteGridDistance();
+						break;
+					}
+				} else
+				{
+					if (i < vals.length-1)
+					{
+						vals[i] = Math.abs(vals[i]);
+						vals[i+1] = -Math.abs(vals[i+1]);
+						User.setAlignmentToGridVector(vals);
+						rewriteGridDistance();
+						break;
+					}
+				}
+			}
 		}
 	}
 
@@ -1043,11 +1028,13 @@ public class ToolBar extends JToolBar
 			measureCommand),
 
 		new EMenu("_Movement",
+			gridSmaller,
 			gridDistance1Command,
 			gridDistance2Command,
 			gridDistance3Command,
 			gridDistance4Command,
-			gridDistance5Command),
+			gridDistance5Command,
+			gridLarger),
 
 		new EMenu("_Select",
 			selectObjectsCommand,
@@ -1270,6 +1257,11 @@ public class ToolBar extends JToolBar
 		{
 			for (Component c: toolBar.getComponents())
 			{
+				if (c == currentGridDistance)
+				{
+					rewriteGridDistance();
+					continue;
+				}
 				if (!(c instanceof AbstractButton)) continue;
 				AbstractButton b = (AbstractButton)c;
 				for (ActionListener a: b.getActionListeners())
