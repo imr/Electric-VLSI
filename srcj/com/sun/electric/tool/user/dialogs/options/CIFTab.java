@@ -71,6 +71,14 @@ public class CIFTab extends PreferencePanel
 			IOTool.setCIFInSquaresWires(currentValue);
 	}
 
+	/**
+	 * Method called when the factory reset is requested.
+	 */
+	public void reset()
+	{
+		IOTool.setCIFInSquaresWires(IOTool.isFactoryCIFInSquaresWires());
+	}
+
 	/** This method is called from within the constructor to
 	 * initialize the form.
 	 * WARNING: Do NOT modify this code. The content of this method is

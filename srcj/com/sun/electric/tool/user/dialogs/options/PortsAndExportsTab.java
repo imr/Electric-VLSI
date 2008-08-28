@@ -102,6 +102,14 @@ public class PortsAndExportsTab extends PreferencePanel
 		if (redraw) EditWindow.repaintAllContents();
 	}
 
+	/**
+	 * Method called when the factory reset is requested.
+	 */
+	public void reset()
+	{
+		System.out.println("CANNOT RESET PORT PREFERENCES YET");
+	}
+
 	/** This method is called from within the constructor to
 	 * initialize the form.
 	 * WARNING: Do NOT modify this code. The content of this method is

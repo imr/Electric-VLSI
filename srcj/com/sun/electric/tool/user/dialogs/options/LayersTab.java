@@ -378,6 +378,14 @@ public class LayersTab extends PreferencePanel
 		}
 	}
 
+	/**
+	 * Method called when the factory reset is requested.
+	 */
+	public void reset()
+	{
+		System.out.println("CANNOT RESET LAYERS PREFERENCES YET");
+	}
+
 	public int specialMapColor(String title, int curColor)
 	{
 		ColorPatternPanel.Info li = transAndSpecialMap.get(title);

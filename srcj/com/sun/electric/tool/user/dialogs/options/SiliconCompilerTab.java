@@ -157,6 +157,14 @@ public class SiliconCompilerTab extends PreferencePanel
 			SilComp.setMinActiveDistance(currDouble);
 	}
 
+	/**
+	 * Method called when the factory reset is requested.
+	 */
+	public void reset()
+	{
+		System.out.println("CANNOT RESET SILICON COMPILER PREFERENCES YET");
+	}
+
 	/** This method is called from within the constructor to
 	 * initialize the form.
 	 * WARNING: Do NOT modify this code. The content of this method is

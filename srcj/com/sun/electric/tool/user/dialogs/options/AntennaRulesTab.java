@@ -23,10 +23,10 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
-import com.sun.electric.technology.ArcProto;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.database.text.TempPref;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.erc.ERC;
 
 import java.awt.event.ActionEvent;
@@ -35,6 +35,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
@@ -63,7 +64,7 @@ public class AntennaRulesTab extends PreferencePanel
 
 	private JList antennaArcList;
 	private DefaultListModel antennaArcListModel;
-	private HashMap<ArcProto,TempPref> antennaOptions;
+	private Map<ArcProto,TempPref> antennaOptions;
 	private boolean antennaRatioChanging = false;
 	private boolean empty;
 
@@ -93,7 +94,7 @@ public class AntennaRulesTab extends PreferencePanel
 				ArcProto ap = it.next();
 				ArcProto.Function fun = ap.getFunction();
 				if (!fun.isMetal() && fun != ArcProto.Function.POLY1) continue;
-				double ratio = ERC.getERCTool().getAntennaRatio(ap); //ap.getAntennaRatio();
+				double ratio = ERC.getERCTool().getAntennaRatio(ap);
 				TempPref pref = TempPref.makeDoublePref(ratio);
 				antennaOptions.put(ap, pref);
 			}
@@ -196,6 +197,25 @@ public class AntennaRulesTab extends PreferencePanel
 			TempPref pref = antennaOptions.get(ap);
 			if (pref.getDoubleFactoryValue() != pref.getDouble())
 				ERC.getERCTool().setAntennaRatio(ap, pref.getDouble());
+		}
+	}
+
+	/**
+	 * Method called when the factory reset is requested.
+	 */
+	public void reset()
+	{
+		ERC erc = ERC.getERCTool();
+		for(Iterator<Technology> tIt = Technology.getTechnologies(); tIt.hasNext(); )
+		{
+			Technology tech = tIt.next();
+			for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
+			{
+				ArcProto ap = it.next();
+				ArcProto.Function fun = ap.getFunction();
+				if (!fun.isMetal() && fun != ArcProto.Function.POLY1) continue;
+				erc.setAntennaRatio(ap, erc.getFactoryAntennaRatio(ap));
+			}
 		}
 	}
 

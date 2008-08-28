@@ -164,6 +164,14 @@ public class ComponentMenuTab extends PreferencePanel
 		}
 	}
 
+	/**
+	 * Method called when the factory reset is requested.
+	 */
+	public void reset()
+	{
+		System.out.println("CANNOT RESET COMPONENT MENU PREFERENCES YET");
+	}
+
 	private Object convertToXML(Object obj, Xml.Technology xTech)
 	{
 		if (obj instanceof NodeInst)

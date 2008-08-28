@@ -1163,6 +1163,7 @@ public class Simulation extends Tool
 	private static Pref cacheVerilogStopAtStandardCells = Pref.makeBooleanPref("VerilogStopAtStandardCells", tool.prefs, false);
 	public static void setVerilogStopAtStandardCells(boolean b) { cacheVerilogStopAtStandardCells.setBoolean(b); }
 	public static boolean getVerilogStopAtStandardCells() { return cacheVerilogStopAtStandardCells.getBoolean(); }
+	public static boolean getFactoryVerilogStopAtStandardCells() { return cacheVerilogStopAtStandardCells.getBooleanFactoryValue(); }
 
     /**
      * BVE - Improved support for Verilog generation
@@ -1170,10 +1171,12 @@ public class Simulation extends Tool
     private static Pref cachePreserveVerilogFormating = Pref.makeBooleanPref("PreserveVerilogFormating", tool.prefs, true);
     public static void setPreserveVerilogFormating(boolean b) { cachePreserveVerilogFormating.setBoolean(b); }
     public static boolean getPreserveVerilogFormating() { return cachePreserveVerilogFormating.getBoolean(); }
+    public static boolean getFactoryPreserveVerilogFormating() { return cachePreserveVerilogFormating.getBooleanFactoryValue(); }
 
     private static Pref cacheVerilogParameterizeModuleNames = Pref.makeBooleanPref("VerilogParamertizeModuleNames", tool.prefs, false);
     public static void setVerilogParameterizeModuleNames(boolean b) { cacheVerilogParameterizeModuleNames.setBoolean(b); }
     public static boolean getVerilogParameterizeModuleNames() { return cacheVerilogParameterizeModuleNames.getBoolean(); }
+    public static boolean getFactoryVerilogParameterizeModuleNames() { return cacheVerilogParameterizeModuleNames.getBooleanFactoryValue(); }
     
 	/****************************** CDL OPTIONS ******************************/
 
@@ -1191,6 +1194,12 @@ public class Simulation extends Tool
 	 * @param libName the CDL library name.
 	 */
 	public static void setCDLLibName(String libName) { cacheCDLLibName.setString(libName); }
+	/**
+	 * Method to return the default CDL library name.
+	 * CDL is a weak form of a Spice deck, and it includes a Cadence library name.
+	 * @return the default CDL library name.
+	 */
+	public static String getFactoryCDLLibName() { return cacheCDLLibName.getStringFactoryValue(); }
 
 	private static Pref cacheCDLLibPath = Pref.makeStringPref("CDLLibPath", tool.prefs, "");
 //	static { cacheCDLLibPath.attachToObject(tool, "IO/CDL tab", "Cadence library path"); }
@@ -1206,6 +1215,12 @@ public class Simulation extends Tool
 	 * @param libName the CDL library path.
 	 */
 	public static void setCDLLibPath(String libName) { cacheCDLLibPath.setString(libName); }
+	/**
+	 * Method to return the default CDL library path.
+	 * CDL is a weak form of a Spice deck, and it includes a Cadence library.
+	 * @return the default CDL library path.
+	 */
+	public static String getFactoryCDLLibPath() { return cacheCDLLibPath.getStringFactoryValue(); }
 
 	private static Pref cacheCDLConvertBrackets = Pref.makeBooleanPref("CDLConvertBrackets", tool.prefs, false);
 //	static { cacheCDLConvertBrackets.attachToObject(tool, "IO/CDL tab", "CDL converts brackets"); }
@@ -1221,6 +1236,12 @@ public class Simulation extends Tool
 	 * @param c true if CDL converts square bracket characters.
 	 */
 	public static void setCDLConvertBrackets(boolean c) { cacheCDLConvertBrackets.setBoolean(c); }
+	/**
+	 * Method to tell whether CDL converts square bracket characters by default.
+	 * CDL is a weak form of a Spice deck, and it includes a Cadence library.
+	 * @return true if CDL converts square bracket characters by default.
+	 */
+	public static boolean isFactoryCDLConvertBrackets() { return cacheCDLConvertBrackets.getBooleanFactoryValue(); }
 
 	/**
 	 * File to be included when writing CDL netlists. "" to not include any file
@@ -1228,6 +1249,7 @@ public class Simulation extends Tool
 	private static Pref cacheCDLIncludeFile = Pref.makeStringPref("CDLIncludeFile", tool.prefs, "");
 	public static String getCDLIncludeFile() { return cacheCDLIncludeFile.getString(); }
 	public static void setCDLIncludeFile(String file) { cacheCDLIncludeFile.setString(file); }
+	public static String getFactoryCDLIncludeFile() { return cacheCDLIncludeFile.getStringFactoryValue(); }
 
 	private static Pref cacheCDLIgnoreResistors = Pref.makeBooleanPref("CDLLIgnoreResistors", tool.prefs, false);
 //	static { cacheCDLLibName.attachToObject(tool, "IO/CDL tab", "Cadence library name"); }

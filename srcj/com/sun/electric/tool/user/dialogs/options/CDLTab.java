@@ -76,6 +76,17 @@ public class CDLTab extends PreferencePanel
 		if (convertNow != Simulation.isCDLConvertBrackets()) Simulation.setCDLConvertBrackets(convertNow);
 	}
 
+	/**
+	 * Method called when the factory reset is requested.
+	 */
+	public void reset()
+	{
+        Simulation.setCDLIncludeFile(Simulation.getFactoryCDLIncludeFile());
+		Simulation.setCDLLibName(Simulation.getFactoryCDLLibName());
+		Simulation.setCDLLibPath(Simulation.getFactoryCDLLibPath());
+		Simulation.setCDLConvertBrackets(Simulation.isFactoryCDLConvertBrackets());
+	}
+
 	/** This method is called from within the constructor to
 	 * initialize the form.
 	 * WARNING: Do NOT modify this code. The content of this method is

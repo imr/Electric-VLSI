@@ -54,7 +54,7 @@ public class SkillTab extends PreferencePanel
 	public void init()
 	{
 		skillNoSubCells.setSelected(IOTool.isSkillExcludesSubcells());
-		skillFlattenHierarchy.setSelected( IOTool.isSkillFlattensHierarchy());
+		skillFlattenHierarchy.setSelected(IOTool.isSkillFlattensHierarchy());
         skillGDSNameLimit.setSelected(IOTool.isSkillGDSNameLimit());
 		if (!IOTool.hasSkill())
 		{
@@ -81,6 +81,16 @@ public class SkillTab extends PreferencePanel
         currBoolean = skillGDSNameLimit.isSelected();
         if (currBoolean != IOTool.isSkillGDSNameLimit())
             IOTool.setSkillGDSNameLimit(currBoolean);
+	}
+
+	/**
+	 * Method called when the factory reset is requested.
+	 */
+	public void reset()
+	{
+		IOTool.setSkillExcludesSubcells(IOTool.isFactorySkillExcludesSubcells());
+		IOTool.setSkillFlattensHierarchy(IOTool.isFactorySkillFlattensHierarchy());
+		IOTool.setSkillGDSNameLimit(IOTool.isFactorySkillGDSNameLimit());
 	}
 
 	/** This method is called from within the constructor to

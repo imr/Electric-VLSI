@@ -103,6 +103,14 @@ public class ParasiticTab extends PreferencePanel {
             Simulation.setParasiticsExtractsC(b);
     }
 
+	/**
+	 * Method called when the factory reset is requested.
+	 */
+	public void reset()
+	{
+		System.out.println("CANNOT RESET PARASITIC PREFERENCES YET");
+	}
+
 	/** This method is called from within the constructor to
 	 * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is

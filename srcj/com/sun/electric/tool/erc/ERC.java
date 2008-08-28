@@ -188,4 +188,11 @@ public class ERC extends Tool
 	 * @return the antenna ratio of this ArcProto.
 	 */
 	public double getAntennaRatio(ArcProto ap) { return getArcProtoAntennaPref(ap).getDouble(); }
+
+    /**
+	 * Method to tell the default antenna ratio of this ArcProto.
+	 * Antenna ratios are used in antenna checks that make sure the ratio of the area of a layer is correct.
+	 * @return the default antenna ratio of this ArcProto.
+	 */
+	public double getFactoryAntennaRatio(ArcProto ap) { return getArcProtoAntennaPref(ap).getDoubleFactoryValue(); }
 }

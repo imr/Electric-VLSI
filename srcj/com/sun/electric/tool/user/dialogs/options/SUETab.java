@@ -71,6 +71,15 @@ public class SUETab extends PreferencePanel
 			IOTool.setSueConvertsExpressions(currentConvertExpressions);
 	}
 
+	/**
+	 * Method called when the factory reset is requested.
+	 */
+	public void reset()
+	{
+		IOTool.setSueUses4PortTransistors(IOTool.isFactorySueUses4PortTransistors());
+		IOTool.setSueConvertsExpressions(IOTool.isFactorySueConvertsExpressions());
+	}
+
 	/** This method is called from within the constructor to
 	 * initialize the form.
 	 * WARNING: Do NOT modify this code. The content of this method is

@@ -78,4 +78,8 @@ public class PreferencePanel extends EDialog
 	 */
 	public void term() {}
 
+	/**
+	 * Method called when the factory reset is requested.
+	 */
+	public void reset() {}
 }

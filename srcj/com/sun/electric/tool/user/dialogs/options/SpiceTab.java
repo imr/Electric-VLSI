@@ -289,6 +289,14 @@ public class SpiceTab extends PreferencePanel
 		if (!Simulation.getSpiceTrailerCardInfo().equals(trailer)) Simulation.setSpiceTrailerCardInfo(trailer);
 	}
 
+	/**
+	 * Method called when the factory reset is requested.
+	 */
+	public void reset()
+	{
+		System.out.println("CANNOT RESET SPICE PREFERENCES YET");
+	}
+
 	// enable or disable the spice run options
 	private void setSpiceRunOptionsEnabled(boolean enabled) {
 		useDirCheckBox.setEnabled(enabled);

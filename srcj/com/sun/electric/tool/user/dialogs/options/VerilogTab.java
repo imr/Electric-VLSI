@@ -90,6 +90,16 @@ public class VerilogTab extends PreferencePanel
 	}
 
 	/**
+	 * Method called when the factory reset is requested.
+	 */
+	public void reset()
+	{
+		Simulation.setVerilogStopAtStandardCells(Simulation.getFactoryVerilogStopAtStandardCells());
+		Simulation.setPreserveVerilogFormating(Simulation.getFactoryPreserveVerilogFormating());
+		Simulation.setVerilogParameterizeModuleNames(Simulation.getFactoryVerilogParameterizeModuleNames());
+	}
+
+	/**
 	 * This method is called from within the constructor to initialize the form.
 	 */
     private void initComponents()

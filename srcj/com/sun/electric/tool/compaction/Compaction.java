@@ -169,6 +169,11 @@ if (--limitLoops <= 0) change = false;
 	 * @param on true if the compactor can spread circuitry apart; false to just compact it.
 	 */
 	public static void setAllowsSpreading(boolean on) { cacheAllowSpreading.setBoolean(on); }
+	/**
+	 * Method to tell whether the factory default for the compactor is to spread circuitry apart, or just compact it.
+	 * @return true if the compactor can spread circuitry apart in factory default.
+	 */
+	public static boolean getFactoryAllowsSpreading() { return cacheAllowSpreading.getBooleanFactoryValue(); }
 
 	/****************************** COMPACTION ******************************/
 

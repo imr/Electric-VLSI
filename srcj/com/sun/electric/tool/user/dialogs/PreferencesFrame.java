@@ -251,14 +251,29 @@ public class PreferencesFrame extends EDialog
 		gbc.insets = new Insets(4, 4, 4, 4);
 		leftPanel.add(restore, gbc);
 
+		int helpPos = 0;
+		if (Job.getDebug())
+		{
+			helpPos = 1;
+			JButton reset = new JButton("Reset");
+			reset.addActionListener(new ActionListener()
+			{
+				public void actionPerformed(ActionEvent evt) { resetActionPerformed(); }
+			});
+			gbc = new GridBagConstraints();
+			gbc.gridx = 0;   gbc.gridy = 2;
+			gbc.insets = new Insets(4, 4, 4, 4);
+			leftPanel.add(reset, gbc);
+		}
+
 		JButton help = new JButton("Help");
 		help.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent evt) { helpActionPerformed(); }
 		});
 		gbc = new GridBagConstraints();
-		gbc.gridx = 0;   gbc.gridy = 2;
-		gbc.gridwidth = 2;
+		gbc.gridx = helpPos;   gbc.gridy = 2;
+		if (helpPos == 0) gbc.gridwidth = 2;
 		gbc.insets = new Insets(4, 4, 4, 4);
 		leftPanel.add(help, gbc);
 
@@ -338,6 +353,18 @@ public class PreferencesFrame extends EDialog
 	private void okActionPerformed()
 	{
 		new OKUpdate(this);
+	}
+
+	private void resetActionPerformed()
+	{
+		boolean response = Job.getUserInterface().confirmMessage(
+			"Do you really want to reset all Preferences to their 'factory' state?");
+		if (response)
+		{
+			for(PreferencePanel ti : optionPanes)
+				ti.reset();
+			closeDialog(null);
+		}
 	}
 
 	private void helpActionPerformed()

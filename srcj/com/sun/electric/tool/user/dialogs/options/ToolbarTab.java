@@ -199,6 +199,14 @@ public class ToolbarTab extends PreferencePanel implements TreeSelectionListener
 		ToolBar.setToolbarButtons(newButtons);
 	}
 
+	/**
+	 * Method called when the factory reset is requested.
+	 */
+	public void reset()
+	{
+		System.out.println("CANNOT RESET TOOLBAR PREFERENCES YET");
+	}
+
 	private void buildSampleToolbar()
 	{
 		currentToolbar.removeAll();

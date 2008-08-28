@@ -134,6 +134,14 @@ public class ProjectManagementTab extends PreferencePanel
 	}
 
 	/**
+	 * Method called when the factory reset is requested.
+	 */
+	public void reset()
+	{
+		System.out.println("CANNOT RESET PROJECT MANAGEMENT PREFERENCES YET");
+	}
+
+	/**
 	 * This class displays a dialog for password-related operations.
 	 */
 	private static class PasswordDialog extends EDialog

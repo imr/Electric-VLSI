@@ -213,6 +213,15 @@ public class IOTool extends Tool
 	 * @param r the level of redundancy to apply when writing library files.
 	 */
 	public static void setBackupRedundancy(int r) { cacheBackupRedundancy.setInt(r); }
+	/**
+	 * Method to tell what kind of redundancy to apply when writing library files, by default.
+	 * The value is:
+	 * 0 for no backup (just overwrite the old file) [the default];
+	 * 1 for 1-level backup (rename the old file to have a "~" at the end);
+	 * 2 for full history backup (rename the old file to have date information in it).
+	 * @return the level of redundancy to apply when writing library files, by default.
+	 */
+	public static int getFactoryBackupRedundancy() { return cacheBackupRedundancy.getIntFactoryValue(); }
 
 	/****************************** GENERAL OUTPUT PREFERENCES ******************************/
 
@@ -373,6 +382,12 @@ public class IOTool extends Tool
 	 * @param s true if CIF input makes wire ends square.
 	 */
 	public static void setCIFInSquaresWires(boolean s) { cacheCIFInSquaresWires.setBoolean(s); }
+	/**
+	 * Method to tell whether CIF input makes wire ends square or round by default.
+	 * The default is "true" (square).
+	 * @return true if CIF input makes wire ends square by default.
+	 */
+	public static boolean isFactoryCIFInSquaresWires() { return cacheCIFInSquaresWires.getBooleanFactoryValue(); }
 
 	/****************************** DEF PREFERENCES ******************************/
 
@@ -388,6 +403,12 @@ public class IOTool extends Tool
 	 * @param on true if  DEF Input makes logical placement.
 	 */
 	public static void setDEFLogicalPlacement(boolean on) { cacheDEFLogicalPlacement.setBoolean(on); }
+	/**
+	 * Method to tell whether DEF Input makes logical placement by default.
+	 * The default is "true" (do the logical placement).
+	 * @return true if  DEF Input makes logical placement by default.
+	 */
+	public static boolean isFactoryDEFLogicalPlacement() { return cacheDEFLogicalPlacement.getBooleanFactoryValue(); }
 
 	private static Pref cacheDEFPhysicalPlacement = Pref.makeBooleanPref("DEFPhysicalPlacement", IOTool.tool.prefs, true);
 	/**
@@ -401,6 +422,12 @@ public class IOTool extends Tool
 	 * @param on true if  DEF Input makes physical placement.
 	 */
 	public static void setDEFPhysicalPlacement(boolean on) { cacheDEFPhysicalPlacement.setBoolean(on); }
+	/**
+	 * Method to tell whether DEF Input makes physical placement by default.
+	 * The default is "true" (do the physical placement).
+	 * @return true if  DEF Input makes physical placement by default.
+	 */
+	public static boolean isFactoryDEFPhysicalPlacement() { return cacheDEFPhysicalPlacement.getBooleanFactoryValue(); }
 
 	/****************************** GDS PREFERENCES ******************************/
 
@@ -988,6 +1015,12 @@ public class IOTool extends Tool
 	 * @param f true if DXF Input flattens the hierarchy.
 	 */
 	public static void setDXFInputFlattensHierarchy(boolean f) { cacheDXFInputFlattensHierarchy.setBoolean(f); }
+	/**
+	 * Method to tell whether DXF Input flattens the hierarchy by default.
+	 * Flattened DXF appears in a single cell.
+	 * @return true if DXF Input flattens the hierarchy by default.
+	 */
+	public static boolean isFactoryDXFInputFlattensHierarchy() { return cacheDXFInputFlattensHierarchy.getBooleanFactoryValue(); }
 
 	private static Pref cacheDXFInputReadsAllLayers = Pref.makeBooleanPref("DXFInputReadsAllLayers", IOTool.tool.prefs, false);
 	/**
@@ -1005,6 +1038,13 @@ public class IOTool extends Tool
 	 * @param a true if DXF input reads all layers.
 	 */
 	public static void setDXFInputReadsAllLayers(boolean a) { cacheDXFInputReadsAllLayers.setBoolean(a); }
+	/**
+	 * Method to tell whether DXF input reads all layers by default.
+	 * When a DXF layer in the file is unknown, it is ignored if all layers are NOT being read;
+	 * it is converted to another layer if all layers ARE being read.
+	 * @return true if DXF input reads all layers by default.
+	 */
+	public static boolean isFactoryDXFInputReadsAllLayers() { return cacheDXFInputReadsAllLayers.getBooleanFactoryValue(); }
 
 	/****************************** SUE INPUT PREFERENCES ******************************/
 
@@ -1022,6 +1062,12 @@ public class IOTool extends Tool
 	 * @param on true if Sue input creates 4-port transistors.
 	 */
 	public static void setSueUses4PortTransistors(boolean on) { cacheSueUses4PortTransistors.setBoolean(on); }
+	/**
+	 * Method to tell whether Sue input creates 4-port transistors by default.
+	 * Without this, standard 3-port transistors are created.
+	 * @return true if Sue input creates 4-port transistors by default.
+	 */
+	public static boolean isFactorySueUses4PortTransistors() { return cacheSueUses4PortTransistors.getBooleanFactoryValue(); }
 
 	private static Pref cacheSueConvertsExpressions = Pref.makeBooleanPref("SueConvertsExpressions", IOTool.tool.prefs, false);
 	/**
@@ -1037,6 +1083,12 @@ public class IOTool extends Tool
 	 * @param on true if Sue input converts Sue expressions to Electric form.
 	 */
 	public static void setSueConvertsExpressions(boolean on) { cacheSueConvertsExpressions.setBoolean(on); }
+	/**
+	 * Method to tell whether Sue input converts Sue expressions to Electric form by default.
+	 * Electric expressions have "@" in front of variables.
+	 * @return true if Sue input converts Sue expressions to Electric form by default.
+	 */
+	public static boolean isFactorySueConvertsExpressions() { return cacheSueConvertsExpressions.getBooleanFactoryValue(); }
 
 	/****************************** SKILL OUTPUT PREFERENCES ******************************/
 
@@ -1054,6 +1106,12 @@ public class IOTool extends Tool
 	 * @param on true if Skill Output excludes subcells.
 	 */
 	public static void setSkillExcludesSubcells(boolean on) { cacheSkillExcludesSubcells.setBoolean(on); }
+	/**
+	 * Method to tell whether Skill Output excludes subcells by default.
+	 * If subcells are included, a Skill output files have multiple cell definitions in them.
+	 * @return true if Skill Output excludes subcells by default.
+	 */
+	public static boolean isFactorySkillExcludesSubcells() { return cacheSkillExcludesSubcells.getBooleanFactoryValue(); }
 
 	private static Pref cacheSkillFlattensHierarchy = Pref.makeBooleanPref("SkillFlattensHierarchy", IOTool.tool.prefs, false);
 	/**
@@ -1069,6 +1127,12 @@ public class IOTool extends Tool
 	 * @param on true if Skill Output flattens the hierarchy.
 	 */
 	public static void setSkillFlattensHierarchy(boolean on) { cacheSkillFlattensHierarchy.setBoolean(on); }
+	/**
+	 * Method to tell whether Skill Output flattens the hierarchy by default.
+	 * Flattened files are larger, but have no hierarchical structure.
+	 * @return true if Skill Output flattens the hierarchy by default.
+	 */
+	public static boolean isFactorySkillFlattensHierarchy() { return cacheSkillFlattensHierarchy.getBooleanFactoryValue(); }
 
 	private static Pref cacheSkillGDSNameLimit = Pref.makeBooleanPref("SkillGDSNameLimit", IOTool.tool.prefs, false);
 	/**
@@ -1084,6 +1148,12 @@ public class IOTool extends Tool
 	 * @param on true if Skill Output flattens the hierarchy.
 	 */
 	public static void setSkillGDSNameLimit(boolean on) { cacheSkillGDSNameLimit.setBoolean(on); }
+	/**
+	 * Method to tell whether Skill Output flattens the hierarchy by default.
+	 * Flattened files are larger, but have no hierarchical structure.
+	 * @return true if Skill Output flattens the hierarchy by default.
+	 */
+	public static boolean isFactorySkillGDSNameLimit() { return cacheSkillGDSNameLimit.getBooleanFactoryValue(); }
 
 	/****************************** DAIS OUTPUT PREFERENCES ******************************/
 
