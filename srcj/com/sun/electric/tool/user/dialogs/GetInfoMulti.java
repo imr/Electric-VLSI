@@ -42,6 +42,7 @@ import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.technologies.Artwork;
+import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Client;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
@@ -84,7 +85,6 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 
-
 /**
  * Class to handle the "Multi-object Get Info" dialog.
  */
@@ -112,31 +112,44 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 	List<ArcInst>arcList;
 	List<Export> exportList;
 	List<DisplayedText> textList;
+	List<DisplayedText> annotationTextList;
 
     private EditWindow wnd;
 
-	private static final ChangeType [] nodeChanges = {ChangeType.CHANGEXSIZE, ChangeType.CHANGEYSIZE, ChangeType.CHANGEXPOS,
-                                                      ChangeType.CHANGEYPOS, ChangeType.CHANGEROTATION, ChangeType.CHANGEMIRRORLR,
-                                                      ChangeType.CHANGEMIRRORUD, ChangeType.CHANGEEXPANDED, ChangeType.CHANGEEASYSELECT,
-                                                      ChangeType.CHANGEINVOUTSIDECELL, ChangeType.CHANGELOCKED};
-	private static final ChangeType [] arcChanges = {ChangeType.CHANGEWIDTH, ChangeType.CHANGERIGID, ChangeType.CHANGEFIXANGLE,
-                                                     ChangeType.CHANGESLIDABLE, ChangeType.CHANGEEXTENSION, ChangeType.CHANGEDIRECTION,
-                                                     ChangeType.CHANGENEGATION, ChangeType.CHANGEEASYSELECT};
-	private static final ChangeType [] exportChanges = {ChangeType.CHANGECHARACTERISTICS, ChangeType.CHANGEBODYONLY, ChangeType.CHANGEALWAYSDRAWN,
-                                                        ChangeType.CHANGEPOINTSIZE, ChangeType.CHANGEUNITSIZE, ChangeType.CHANGEXOFF,
-                                                        ChangeType.CHANGEYOFF, ChangeType.CHANGETEXTROT, ChangeType.CHANGEANCHOR, ChangeType.CHANGEFONT,
-                                                        ChangeType.CHANGECOLOR, ChangeType.CHANGEBOLD, ChangeType.CHANGEITALIC, ChangeType.CHANGEUNDERLINE, ChangeType.CHANGEINVOUTSIDECELL};
-	private static final ChangeType [] textChanges = {ChangeType.CHANGEPOINTSIZE, ChangeType.CHANGEUNITSIZE, ChangeType.CHANGEXOFF, ChangeType.CHANGEYOFF,
-                                                      ChangeType.CHANGETEXTROT, ChangeType.CHANGEANCHOR, ChangeType.CHANGEFONT, ChangeType.CHANGECOLOR,
-                                                      ChangeType.CHANGECODE, ChangeType.CHANGEUNITS, ChangeType.CHANGESHOW,
-                                                      ChangeType.CHANGEBOLD, ChangeType.CHANGEITALIC, ChangeType.CHANGEUNDERLINE, ChangeType.CHANGEINVOUTSIDECELL};
+	private static final ChangeType [] nodeChanges = {
+		ChangeType.CHANGEXSIZE, ChangeType.CHANGEYSIZE, ChangeType.CHANGEXPOS, ChangeType.CHANGEYPOS,
+		ChangeType.CHANGEROTATION, ChangeType.CHANGEMIRRORLR, ChangeType.CHANGEMIRRORUD, ChangeType.CHANGEEXPANDED,
+		ChangeType.CHANGEEASYSELECT, ChangeType.CHANGEINVOUTSIDECELL, ChangeType.CHANGELOCKED};
+	private static final ChangeType [] arcChanges = {
+		ChangeType.CHANGEWIDTH, ChangeType.CHANGERIGID, ChangeType.CHANGEFIXANGLE, ChangeType.CHANGESLIDABLE,
+		ChangeType.CHANGEEXTENSION, ChangeType.CHANGEDIRECTION, ChangeType.CHANGENEGATION, ChangeType.CHANGEEASYSELECT};
+	private static final ChangeType [] exportChanges = {
+		ChangeType.CHANGECHARACTERISTICS, ChangeType.CHANGEBODYONLY, ChangeType.CHANGEALWAYSDRAWN,
+		ChangeType.CHANGEPOINTSIZE, ChangeType.CHANGEUNITSIZE, ChangeType.CHANGEXOFF, ChangeType.CHANGEYOFF,
+		ChangeType.CHANGETEXTROT, ChangeType.CHANGEANCHOR, ChangeType.CHANGEFONT, ChangeType.CHANGECOLOR,
+		ChangeType.CHANGEBOLD, ChangeType.CHANGEITALIC, ChangeType.CHANGEUNDERLINE, ChangeType.CHANGEINVOUTSIDECELL};
+	private static final ChangeType [] textChanges = {
+		ChangeType.CHANGEPOINTSIZE, ChangeType.CHANGEUNITSIZE, ChangeType.CHANGEXOFF, ChangeType.CHANGEYOFF,
+		ChangeType.CHANGETEXTROT, ChangeType.CHANGEANCHOR, ChangeType.CHANGEFONT, ChangeType.CHANGECOLOR,
+		ChangeType.CHANGECODE, ChangeType.CHANGEUNITS, ChangeType.CHANGESHOW,
+		ChangeType.CHANGEBOLD, ChangeType.CHANGEITALIC, ChangeType.CHANGEUNDERLINE, ChangeType.CHANGEINVOUTSIDECELL};
+	private static final ChangeType [] annotationChanges = {
+		ChangeType.CHANGEPOINTSIZE, ChangeType.CHANGEUNITSIZE, ChangeType.CHANGEXPOS, ChangeType.CHANGEYPOS,
+		ChangeType.CHANGETEXTROT, ChangeType.CHANGEANCHOR, ChangeType.CHANGEFONT, ChangeType.CHANGECOLOR,
+		ChangeType.CHANGECODE, ChangeType.CHANGEUNITS, ChangeType.CHANGESHOW,
+		ChangeType.CHANGEBOLD, ChangeType.CHANGEITALIC, ChangeType.CHANGEUNDERLINE, ChangeType.CHANGEINVOUTSIDECELL};
+	private static final ChangeType [] textAnnotationChanges = {
+		ChangeType.CHANGEPOINTSIZE, ChangeType.CHANGEUNITSIZE, ChangeType.CHANGETEXTROT, ChangeType.CHANGEANCHOR,
+		ChangeType.CHANGEFONT, ChangeType.CHANGECOLOR, ChangeType.CHANGECODE, ChangeType.CHANGEUNITS, ChangeType.CHANGESHOW,
+		ChangeType.CHANGEBOLD, ChangeType.CHANGEITALIC, ChangeType.CHANGEUNDERLINE, ChangeType.CHANGEINVOUTSIDECELL};
 	private static final ChangeType [] nodeArcChanges = {ChangeType.CHANGEEASYSELECT};
 	private static final ChangeType [] nodeTextChanges = {ChangeType.CHANGEINVOUTSIDECELL};
 	private static final ChangeType [] nodeExportChanges = {ChangeType.CHANGEINVOUTSIDECELL};
 	private static final ChangeType [] nodeTextExportChanges = {ChangeType.CHANGEINVOUTSIDECELL};
-	private static final ChangeType [] textExportChanges = {ChangeType.CHANGEPOINTSIZE, ChangeType.CHANGEUNITSIZE, ChangeType.CHANGEXOFF, ChangeType.CHANGEYOFF,
-                                                            ChangeType.CHANGETEXTROT, ChangeType.CHANGEANCHOR, ChangeType.CHANGEFONT, ChangeType.CHANGECOLOR, ChangeType.CHANGEBOLD,
-                                                            ChangeType.CHANGEITALIC, ChangeType.CHANGEUNDERLINE, ChangeType.CHANGEINVOUTSIDECELL};
+	private static final ChangeType [] textExportChanges = {
+		ChangeType.CHANGEPOINTSIZE, ChangeType.CHANGEUNITSIZE, ChangeType.CHANGEXOFF, ChangeType.CHANGEYOFF,
+		ChangeType.CHANGETEXTROT, ChangeType.CHANGEANCHOR, ChangeType.CHANGEFONT, ChangeType.CHANGECOLOR, ChangeType.CHANGEBOLD,
+		ChangeType.CHANGEITALIC, ChangeType.CHANGEUNDERLINE, ChangeType.CHANGEINVOUTSIDECELL};
 
 	private static final ChangeType [][] changeCombos =
 	{
@@ -156,6 +169,22 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 		nodeTextExportChanges,		// nodes      exports text
 		null,						//       arcs exports text
 		null,						// nodes arcs exports text
+		annotationChanges,			//                         annotation
+		null,						// nodes                   annotation
+		null,						//       arcs              annotation
+		null,						// nodes arcs              annotation
+		null,						//            exports      annotation
+		null,						// nodes      exports      annotation
+		null,						//       arcs exports      annotation
+		null,						// nodes arcs exports      annotation
+		textAnnotationChanges,		//                    text annotation
+		null,						// nodes              text annotation
+		null,						//       arcs         text annotation
+		null,						// nodes arcs         text annotation
+		null,						//            exports text annotation
+		null,						// nodes      exports text annotation
+		null,						//       arcs exports text annotation
+		null,						// nodes arcs exports text annotation
 	};
 
 	/**
@@ -281,6 +310,7 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 		arcList = new ArrayList<ArcInst>();
 		exportList = new ArrayList<Export>();
 		textList = new ArrayList<DisplayedText>();
+		annotationTextList = new ArrayList<DisplayedText>();
 		Geometric firstGeom = null, secondGeom = null;
 		double xPositionLow = Double.MAX_VALUE, xPositionHigh = -Double.MAX_VALUE;
 		double yPositionLow = Double.MAX_VALUE, yPositionHigh = -Double.MAX_VALUE;
@@ -315,9 +345,6 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 
 			        double xVal = ni.getLambdaBaseXSize();
 					double yVal = ni.getLambdaBaseYSize();
-//					SizeOffset so = ni.getSizeOffset();
-//			        double xVal = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
-//					double yVal = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
                     double angle = ni.getAngle();
                     rotLow = Math.min(rotLow, angle);
                     rotHigh = Math.max(rotHigh, angle);
@@ -344,8 +371,27 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 				if (varKey != null)
 				{
 					if (varKey == Export.EXPORT_NAME)
-						exportList.add((Export)h.getElectricObject()); else
-							textList.add(new DisplayedText(eobj, varKey));
+					{
+						exportList.add((Export)eobj);
+					} else
+					{
+						boolean isAnnotation = false;
+						if (eobj instanceof NodeInst)
+						{
+							NodeInst ni = (NodeInst)eobj;
+							if (ni.getProto() == Generic.tech().invisiblePinNode)
+							{
+								isAnnotation = true;
+								xPositionLow = Math.min(xPositionLow, ni.getAnchorCenterX());
+								xPositionHigh = Math.max(xPositionHigh, ni.getAnchorCenterX());
+								yPositionLow = Math.min(yPositionLow, ni.getAnchorCenterY());
+								yPositionHigh = Math.max(yPositionHigh, ni.getAnchorCenterY());
+							}
+						}
+						if (isAnnotation)
+							annotationTextList.add(new DisplayedText(eobj, varKey)); else
+								textList.add(new DisplayedText(eobj, varKey));
+					}
 				}
 			}
 		}
@@ -371,6 +417,7 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 		if (arcList.size() != 0) index += 2;
 		if (exportList.size() != 0) index += 4;
 		if (textList.size() != 0) index += 8;
+		if (annotationTextList.size() != 0) index += 16;
 
 		changePanel.removeAll();
 		currentChangeTypes = changeCombos[index];
@@ -775,11 +822,11 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 		private List<ArcInst> arcList;
 		private List<Export> exportList;
 		private List<DisplayedText> textList;
+		private List<DisplayedText> annotationTextList;
 
 		private MultiChange(
-			MultiChangeParameters mcp,
-			List<NodeInst> nodeList, List<ArcInst> arcList,
-			List<Export> exportList, List<DisplayedText> textList)
+			MultiChangeParameters mcp, List<NodeInst> nodeList, List<ArcInst> arcList,
+			List<Export> exportList, List<DisplayedText> textList, List<DisplayedText> annotationTextList)
 		{
 			super("Modify Objects", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.mcp = mcp;
@@ -787,6 +834,7 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 			this.arcList = arcList;
 			this.exportList = exportList;
 			this.textList = textList;
+			this.annotationTextList = annotationTextList;
 			startJob();
 		}
 
@@ -822,7 +870,7 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 
 				// see if size, position, or orientation changed
 				if (mcp.xPos.length() > 0 || mcp.yPos.length() > 0 || mcp.xSize.length() > 0 || mcp.ySize.length() > 0 ||
-						mcp.rot.length() > 0 || mcp.lr != 0 || mcp.ud != 0 || changes)
+					mcp.rot.length() > 0 || mcp.lr != 0 || mcp.ud != 0 || changes)
 				{
 					// can do mass changes, but not orientation
 					if (mcp.rot.length() == 0 && mcp.lr == 0 && mcp.ud == 0)
@@ -838,7 +886,6 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 						int i = 0;
 						for(NodeInst ni : nodeList)
 						{
-//		                    SizeOffset so = ni.getSizeOffset();
 							nis[i] = ni;
 							if (mcp.xPos.length() == 0) dXP[i] = 0; else
 								dXP[i] = newXPosition - ni.getAnchorCenterX();
@@ -854,15 +901,11 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 							{
 								double baseXSize = TextUtils.atof(newXSize);
 								dXS[i] = baseXSize - ni.getLambdaBaseXSize();
-//								double trueXSize = TextUtils.atof(newXSize) + so.getHighXOffset() + so.getLowXOffset();
-//								dXS[i] = trueXSize - ni.getXSize();
 							}
 							if (newYSize.equals("")) dYS[i] = 0; else
 							{
 								double baseYSize = TextUtils.atof(newYSize);
 								dYS[i] = baseYSize - ni.getLambdaBaseYSize();
-//								double trueYSize = TextUtils.atof(newYSize) + so.getHighYOffset() + so.getLowYOffset();
-//								dYS[i] = trueYSize - ni.getYSize();
 							}
 							i++;
 						}
@@ -871,7 +914,6 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 					{
 						for(NodeInst ni : nodeList)
 						{
-//		                    SizeOffset so = ni.getSizeOffset();
 							double dX = 0, dY = 0, dXS = 0, dYS = 0;
 							if (mcp.xPos.length() > 0) dX = TextUtils.atof(mcp.xPos) - ni.getAnchorCenterX();
 							if (mcp.yPos.length() > 0) dY = TextUtils.atof(mcp.yPos) - ni.getAnchorCenterY();
@@ -885,15 +927,11 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 							{
 								double baseXSize = TextUtils.atof(newXSize);
 								dXS = baseXSize - ni.getLambdaBaseXSize();
-//								double trueXSize = TextUtils.atof(newXSize) + so.getHighXOffset() + so.getLowXOffset();
-//								dXS = trueXSize - ni.getXSize();
 							}
 							if (newYSize.length() > 0)
 							{
 								double baseYSize = TextUtils.atof(newYSize);
 								dYS = baseYSize - ni.getLambdaBaseYSize();
-//								double trueYSize = TextUtils.atof(newYSize) + so.getHighYOffset() + so.getLowYOffset();
-//								dYS = trueYSize - ni.getYSize();
 							}
 							int dRot = 0;
 							if (mcp.rot.length() > 0) dRot = ((int)(TextUtils.atof(mcp.rot)*10) - ni.getAngle() + 3600) % 3600;
@@ -1033,36 +1071,65 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 
 			if (textList.size() > 0)
 			{
-				for(DisplayedText dt : textList)
-				{
-					ElectricObject eobj = dt.getElectricObject();
-					Variable.Key descKey = dt.getVariableKey();
-					if (mcp.code != null) {
-                        if (eobj.isParam(descKey)) {
-                            if (eobj instanceof Cell) {
-                                Cell cell = (Cell)eobj;
-                                cell.getCellGroup().updateParam((Variable.AttrKey)descKey, cell.getParameter(descKey).withCode(mcp.code).getObject());
-                            } else if (eobj instanceof NodeInst) {
-                                NodeInst ni = (NodeInst)eobj;
-                                ni.addParameter(ni.getParameter(descKey).withCode(mcp.code));
-                            }
-                        } else {
-                            eobj.updateVarCode(descKey, mcp.code);
-                        }
-                    }
-					MutableTextDescriptor td = eobj.getMutableTextDescriptor(descKey);
+				processTextList(textList, false);
+			}
+			if (annotationTextList.size() > 0)
+			{
+				processTextList(annotationTextList, true);
+			}
+			return true;
+		}
 
-					boolean tdChanged = false;
-					if (mcp.pointSize.length() > 0)
+		private void processTextList(List<DisplayedText> textList, boolean annotation)
+		{
+			for(DisplayedText dt : textList)
+			{
+				ElectricObject eobj = dt.getElectricObject();
+				Variable.Key descKey = dt.getVariableKey();
+				if (mcp.code != null)
+				{
+	                if (eobj.isParam(descKey))
+	                {
+	                    if (eobj instanceof Cell)
+	                    {
+	                        Cell cell = (Cell)eobj;
+	                        cell.getCellGroup().updateParam((Variable.AttrKey)descKey,
+	                        	cell.getParameter(descKey).withCode(mcp.code).getObject());
+	                    } else if (eobj instanceof NodeInst)
+	                    {
+	                        NodeInst ni = (NodeInst)eobj;
+	                        ni.addParameter(ni.getParameter(descKey).withCode(mcp.code));
+	                    }
+	                } else
+	                {
+	                    eobj.updateVarCode(descKey, mcp.code);
+	                }
+	            }
+				MutableTextDescriptor td = eobj.getMutableTextDescriptor(descKey);
+
+				boolean tdChanged = false;
+				if (mcp.pointSize.length() > 0)
+				{
+					td.setAbsSize(TextUtils.atoi(mcp.pointSize));
+					tdChanged = true;
+				}
+				if (mcp.unitSize.length() > 0)
+				{
+					td.setRelSize(TextUtils.atof(mcp.unitSize));
+					tdChanged = true;
+				}
+				if (annotation)
+				{
+					if (eobj instanceof NodeInst)
 					{
-						td.setAbsSize(TextUtils.atoi(mcp.pointSize));
-						tdChanged = true;
+						NodeInst ni = (NodeInst)eobj;
+						double dX = 0, dY = 0;
+						if (mcp.xPos.length() > 0) dX = TextUtils.atof(mcp.xPos) - ni.getAnchorCenterX();
+						if (mcp.yPos.length() > 0) dY = TextUtils.atof(mcp.yPos) - ni.getAnchorCenterY();
+						ni.modifyInstance(dX, dY, 0, 0, Orientation.IDENT);
 					}
-					if (mcp.unitSize.length() > 0)
-					{
-						td.setRelSize(TextUtils.atof(mcp.unitSize));
-						tdChanged = true;
-					}
+				} else
+				{
 					if (mcp.xOff.length() > 0)
 					{
 						td.setOff(TextUtils.atof(mcp.xOff), td.getYOff());
@@ -1073,60 +1140,59 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 						td.setOff(td.getXOff(), TextUtils.atof(mcp.yOff));
 						tdChanged = true;
 					}
-					if (mcp.textRotation > 0)
-					{
-						switch (mcp.textRotation)
-						{
-							case 1: td.setRotation(TextDescriptor.Rotation.ROT0);     break;
-							case 2: td.setRotation(TextDescriptor.Rotation.ROT90);    break;
-							case 3: td.setRotation(TextDescriptor.Rotation.ROT180);   break;
-							case 4: td.setRotation(TextDescriptor.Rotation.ROT270);   break;
-						}
-						tdChanged = true;
-					}
-					if (mcp.anchor >= 0)
-					{
-				        TextDescriptor.Position newPosition = TextDescriptor.Position.getPositionAt(mcp.anchor);
-						td.setPos(newPosition);
-						tdChanged = true;
-					}
-					if (mcp.font != null)
-					{
-                        td.setFaceWithActiveFont(mcp.font);
-						tdChanged = true;
-					}
-					if (mcp.color > 0)
-					{
-                        td.setColorWithEGraphicsIndex(mcp.color-1); // -1 because of DEFAULT COLOR
-						tdChanged = true;
-					}
-					if (mcp.units > 0)
-					{
-						TextDescriptor.Unit un = TextDescriptor.Unit.getUnitAt(mcp.units);
-						td.setUnit(un);
-						tdChanged = true;
-					}
-					if (mcp.show > 0)
-					{
-						TextDescriptor.DispPos sh = TextDescriptor.DispPos.getShowStylesAt(mcp.show);
-						td.setDispPart(sh);
-						tdChanged = true;
-					}
-					if (mcp.bold == 1) { td.setBold(true);   tdChanged = true; } else
-						if (mcp.bold == 2) { td.setBold(false);   tdChanged = true; }
-					if (mcp.italic == 1) { td.setItalic(true);   tdChanged = true; } else
-						if (mcp.italic == 2) { td.setItalic(false);   tdChanged = true; }
-					if (mcp.underline == 1) { td.setUnderline(true);   tdChanged = true; } else
-						if (mcp.underline == 2) { td.setUnderline(false);   tdChanged = true; }
-					if (mcp.invisOutside == 1) { td.setInterior(true);   tdChanged = true; } else
-						if (mcp.invisOutside == 2) { td.setInterior(false);   tdChanged = true; }
-
-					// update text descriptor if it changed
-					if (tdChanged)
-						eobj.setTextDescriptor(descKey, TextDescriptor.newTextDescriptor(td));
 				}
+				if (mcp.textRotation > 0)
+				{
+					switch (mcp.textRotation)
+					{
+						case 1: td.setRotation(TextDescriptor.Rotation.ROT0);     break;
+						case 2: td.setRotation(TextDescriptor.Rotation.ROT90);    break;
+						case 3: td.setRotation(TextDescriptor.Rotation.ROT180);   break;
+						case 4: td.setRotation(TextDescriptor.Rotation.ROT270);   break;
+					}
+					tdChanged = true;
+				}
+				if (mcp.anchor >= 0)
+				{
+			        TextDescriptor.Position newPosition = TextDescriptor.Position.getPositionAt(mcp.anchor);
+					td.setPos(newPosition);
+					tdChanged = true;
+				}
+				if (mcp.font != null)
+				{
+	                td.setFaceWithActiveFont(mcp.font);
+					tdChanged = true;
+				}
+				if (mcp.color > 0)
+				{
+	                td.setColorWithEGraphicsIndex(mcp.color-1); // -1 because of DEFAULT COLOR
+					tdChanged = true;
+				}
+				if (mcp.units > 0)
+				{
+					TextDescriptor.Unit un = TextDescriptor.Unit.getUnitAt(mcp.units);
+					td.setUnit(un);
+					tdChanged = true;
+				}
+				if (mcp.show > 0)
+				{
+					TextDescriptor.DispPos sh = TextDescriptor.DispPos.getShowStylesAt(mcp.show);
+					td.setDispPart(sh);
+					tdChanged = true;
+				}
+				if (mcp.bold == 1) { td.setBold(true);   tdChanged = true; } else
+					if (mcp.bold == 2) { td.setBold(false);   tdChanged = true; }
+				if (mcp.italic == 1) { td.setItalic(true);   tdChanged = true; } else
+					if (mcp.italic == 2) { td.setItalic(false);   tdChanged = true; }
+				if (mcp.underline == 1) { td.setUnderline(true);   tdChanged = true; } else
+					if (mcp.underline == 2) { td.setUnderline(false);   tdChanged = true; }
+				if (mcp.invisOutside == 1) { td.setInterior(true);   tdChanged = true; } else
+					if (mcp.invisOutside == 2) { td.setInterior(false);   tdChanged = true; }
+
+				// update text descriptor if it changed
+				if (tdChanged)
+					eobj.setTextDescriptor(descKey, TextDescriptor.newTextDescriptor(td));
 			}
-			return true;
 		}
 	}
 
@@ -1376,8 +1442,35 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 			mcp.underline = findComponentIntValue(ChangeType.CHANGEUNDERLINE);
 			mcp.invisOutside = findComponentIntValue(ChangeType.CHANGEINVOUTSIDECELL);
 		}
+		if (annotationTextList.size() > 0)
+		{
+			mcp.pointSize = findComponentStringValue(ChangeType.CHANGEPOINTSIZE);
+			mcp.unitSize = findComponentStringValue(ChangeType.CHANGEUNITSIZE);
+			mcp.xPos = findComponentStringValue(ChangeType.CHANGEXPOS);
+			mcp.yPos = findComponentStringValue(ChangeType.CHANGEYPOS);
+			mcp.textRotation = findComponentIntValue(ChangeType.CHANGETEXTROT);
+			Object anValue = findComboBoxValue(ChangeType.CHANGEANCHOR);
+			if (anValue instanceof TextDescriptor.Position)
+				mcp.anchor = ((TextDescriptor.Position)anValue).getIndex();
+			mcp.font = (String)findComboBoxValue(ChangeType.CHANGEFONT);
+			mcp.color = findComboBoxIndex(ChangeType.CHANGECOLOR);
+			Object cdValue = findComboBoxValue(ChangeType.CHANGECODE);
+			if (cdValue instanceof CodeExpression.Code)
+				mcp.code = (CodeExpression.Code)cdValue;
+			Object unValue = findComboBoxValue(ChangeType.CHANGEUNITS);
+			if (unValue instanceof TextDescriptor.Unit)
+				mcp.units = ((TextDescriptor.Unit)unValue).getIndex();
+			Object shValue = findComboBoxValue(ChangeType.CHANGESHOW);
+			if (shValue instanceof TextDescriptor.DispPos)
+				mcp.show = ((TextDescriptor.DispPos)shValue).getIndex();
+			mcp.bold = findComponentIntValue(ChangeType.CHANGEBOLD);
+			mcp.italic = findComponentIntValue(ChangeType.CHANGEITALIC);
+			mcp.underline = findComponentIntValue(ChangeType.CHANGEUNDERLINE);
+			mcp.invisOutside = findComponentIntValue(ChangeType.CHANGEINVOUTSIDECELL);
+		}
+		
 
-		new MultiChange(mcp, nodeList, arcList, exportList, textList);
+		new MultiChange(mcp, nodeList, arcList, exportList, textList, annotationTextList);
 	}//GEN-LAST:event_applyActionPerformed
 
 	private void removeOthersActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_removeOthersActionPerformed
@@ -1418,5 +1511,4 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
     private javax.swing.JButton removeOthers;
     private javax.swing.JLabel selectionCount;
     // End of variables declaration//GEN-END:variables
-
 }

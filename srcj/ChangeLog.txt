@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08e: ******************************
 
+IMP: (8/28/08, SMR) Multi-object Properties dialog on Annotation text
+     now lets you move the text location (Bug #1789).
+
 IMP: (8/28/08, SMR) Alt-S now brings up the Sun menu, not Steve (Bug #1813).
 
 BUG: (8/28/08, SMR) When editing "in place" database is updated with
