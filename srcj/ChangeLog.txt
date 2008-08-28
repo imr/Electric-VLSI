@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08e: ******************************
 
+BUG: (8/28/08, SMR) When editing "in place" database is updated with
+     each keystroke (Bug #1410).
+FIX: Now update database only when text editing is done.
+
 BUG: (8/27/08, GVG) mocmos as unknown technlogy? (Bug #1806).
 FIX: Indeed the errors are due to unknown primitives. Message changed
 

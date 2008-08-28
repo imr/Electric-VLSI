@@ -54,6 +54,8 @@ import java.awt.Font;
 import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -64,6 +66,7 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowFocusListener;
 import java.awt.font.GlyphVector;
@@ -73,14 +76,15 @@ import java.util.ArrayList;
 import java.util.EventListener;
 
 import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JEditorPane;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.text.Document;
@@ -93,8 +97,8 @@ import javax.swing.undo.UndoManager;
  */
 public class GetInfoText extends EModelessDialog implements HighlightListener, DatabaseChangeListener {
 	private static GetInfoText theDialog = null;
-    private CachedTextInfo cti;
-    private TextPropertiesFocusListener dialogFocusListener;
+	private CachedTextInfo cti;
+	private TextPropertiesFocusListener dialogFocusListener;
 
 	/**
 	 * Class to hold information about the text being manipulated.
@@ -103,11 +107,11 @@ public class GetInfoText extends EModelessDialog implements HighlightListener, D
 	{
 		private Highlight2 shownText;
 		private String initialText;
-	    private Variable var;
+		private Variable var;
 		private Variable.Key varKey;
-	    private TextDescriptor td;
-	    private ElectricObject owner;
-	    private String description;
+		private TextDescriptor td;
+		private ElectricObject owner;
+		private String description;
 		private boolean instanceName;
 		private boolean multiLineCapable;
 
@@ -157,13 +161,13 @@ public class GetInfoText extends EModelessDialog implements HighlightListener, D
 				{
 					description = "Name of " + ni.getProto();
 					varKey = NodeInst.NODE_NAME;
-                    initialText = ni.getName();
+					initialText = ni.getName();
 				} else if (varKey == ArcInst.ARC_NAME)
 				{
 					ArcInst ai = (ArcInst)owner;
 					description = "Name of " + ai.getProto();
 					varKey = ArcInst.ARC_NAME;
-                    initialText = ai.getName();
+					initialText = ai.getName();
 				} else if (varKey == NodeInst.NODE_PROTO)
 				{
 					description = "Name of cell instance " + ni.describe(true);
@@ -197,206 +201,181 @@ public class GetInfoText extends EModelessDialog implements HighlightListener, D
 		public boolean isMultiLineCapable() { return multiLineCapable; }
 	}
 
-    /**
-     * Method to show the Text Properties dialog.
-     */
-    public static void showDialog() {
-        if (Client.getOperatingSystem() == Client.OS.UNIX) {
-            // JKG 07Apr2006:
-            // On Linux, if a dialog is built, closed using setVisible(false),
-            // and then requested again using setVisible(true), it does
-            // not appear on top. I've tried using toFront(), requestFocus(),
-            // but none of that works.  Instead, I brute force it and
-            // rebuild the dialog from scratch each time.
-            if (theDialog != null)
-            {
-            	theDialog.removeWindowFocusListener(theDialog.dialogFocusListener);
-            	theDialog.dispose();
-            }
-            theDialog = null;
-        }
-        if (theDialog == null)
-        {
-        	JFrame jf = null;
-            if (TopLevel.isMDIMode()) jf = TopLevel.getCurrentJFrame();
-            theDialog = new GetInfoText(jf);
-        }
-        theDialog.loadTextInfo();
-        if (!theDialog.isVisible())
+	/**
+	 * Method to show the Text Properties dialog.
+	 */
+	public static void showDialog() {
+		if (Client.getOperatingSystem() == Client.OS.UNIX) {
+			// JKG 07Apr2006:
+			// On Linux, if a dialog is built, closed using setVisible(false),
+			// and then requested again using setVisible(true), it does
+			// not appear on top. I've tried using toFront(), requestFocus(),
+			// but none of that works.  Instead, I brute force it and
+			// rebuild the dialog from scratch each time.
+			if (theDialog != null)
+			{
+				theDialog.removeWindowFocusListener(theDialog.dialogFocusListener);
+				theDialog.dispose();
+			}
+			theDialog = null;
+		}
+		if (theDialog == null)
 		{
-        	theDialog.pack();
-        	theDialog.ensureProperSize();
-    		theDialog.setVisible(true);
+			JFrame jf = null;
+			if (TopLevel.isMDIMode()) jf = TopLevel.getCurrentJFrame();
+			theDialog = new GetInfoText(jf);
+		}
+		theDialog.loadTextInfo();
+		if (!theDialog.isVisible())
+		{
+			theDialog.pack();
+			theDialog.ensureProperSize();
+			theDialog.setVisible(true);
 		}
 		theDialog.toFront();
-    }
+	}
 
-    /**
-     * Creates new form Text Get-Info
-     */
+	/**
+	 * Creates new form Text Get-Info
+	 */
 	private GetInfoText(Frame parent)
 	{
-        super(parent, false);
-        initComponents();
-        getRootPane().setDefaultButton(ok);
+		super(parent, false);
+		initComponents();
+		getRootPane().setDefaultButton(ok);
 
-        UserInterfaceMain.addDatabaseChangeListener(this);
-        Highlighter.addHighlightListener(this);
-        dialogFocusListener = new TextPropertiesFocusListener();
-        addWindowFocusListener(dialogFocusListener);
+		UserInterfaceMain.addDatabaseChangeListener(this);
+		Highlighter.addHighlightListener(this);
+		dialogFocusListener = new TextPropertiesFocusListener();
+		addWindowFocusListener(dialogFocusListener);
 
-        loadTextInfo();
+		loadTextInfo();
 		finishInitialization();
-    }
+	}
 
-    private class TextPropertiesFocusListener implements WindowFocusListener
+	private class TextPropertiesFocusListener implements WindowFocusListener
 	{
 		public synchronized void windowGainedFocus(WindowEvent e)
 		{
-	        theText.requestFocus();
+			theText.requestFocus();
 		}
 
 		public void windowLostFocus(WindowEvent e) {}
 	}
 
-    /**
+	/**
 	 * Reloads the dialog when Highlights change
 	 */
-    public void highlightChanged(Highlighter which)
-    {
-        if (!isVisible()) return;
-        loadTextInfo();
-    }
+	public void highlightChanged(Highlighter which)
+	{
+		if (!isVisible()) return;
+		loadTextInfo();
+	}
 
-    /**
-     * Called when by a Highlighter when it loses focus. The argument
-     * is the Highlighter that has gained focus (may be null).
-     * @param highlighterGainedFocus the highlighter for the current window (may be null).
-     */
-    public void highlighterLostFocus(Highlighter highlighterGainedFocus) {
-        if (!isVisible()) return;
-        loadTextInfo();        
-    }
+	/**
+	 * Called when by a Highlighter when it loses focus. The argument
+	 * is the Highlighter that has gained focus (may be null).
+	 * @param highlighterGainedFocus the highlighter for the current window (may be null).
+	 */
+	public void highlighterLostFocus(Highlighter highlighterGainedFocus) {
+		if (!isVisible()) return;
+		loadTextInfo();
+	}
 
-    public void databaseChanged(DatabaseChangeEvent e) {
-        if (!isVisible()) return;
+	public void databaseChanged(DatabaseChangeEvent e) {
+		if (!isVisible()) return;
 
 		// update dialog
-        if (cti != null && e.objectChanged(cti.owner))
-            loadTextInfo();
-    }
+		if (cti != null && e.objectChanged(cti.owner))
+			loadTextInfo();
+	}
 
-//     public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
-//         if (!isVisible()) return;
-
-//         boolean reload = false;
-//         if (cti != null)
-//         {
-// 	        for (Iterator it = batch.getChanges(); it.hasNext(); ) {
-// 	            Undo.Change change = it.next();
-// 	            ElectricObject obj = change.getObject();
-// 	            if (obj == cti.owner) {
-// 	                reload = true;
-// 	                break;
-// 	            }
-// 	        }
-//         }
-//         if (reload) {
-//             // update dialog
-//             loadTextInfo();
-//         }
-//     }
-
-//     public void databaseChanged(Undo.Change change) {}
-
-//     public boolean isGUIListener() { return true; }
-
-    private void loadTextInfo() {
-        // must have a single text selected
-        Highlight2 textHighlight = null;
+	private void loadTextInfo() {
+		// must have a single text selected
+		Highlight2 textHighlight = null;
 		EditWindow curWnd = EditWindow.getCurrent();
-        int textCount = 0;
-        if (curWnd != null) {
-            for (Highlight2 h : curWnd.getHighlighter().getHighlights()) {
-                if (!h.isHighlightText()) continue;
-                // ignore export text
-                if (h.getVarKey() == Export.EXPORT_NAME) continue;
-                textHighlight = h;
-                textCount++;
-            }
-        }
-        if (textCount > 1) textHighlight = null;
-        boolean enabled = (textHighlight == null) ? false : true;
+		int textCount = 0;
+		if (curWnd != null) {
+			for (Highlight2 h : curWnd.getHighlighter().getHighlights()) {
+				if (!h.isHighlightText()) continue;
+				// ignore export text
+				if (h.getVarKey() == Export.EXPORT_NAME) continue;
+				textHighlight = h;
+				textCount++;
+			}
+		}
+		if (textCount > 1) textHighlight = null;
+		boolean enabled = (textHighlight == null) ? false : true;
 
-        EDialog.focusClearOnTextField(theText);
+		EDialog.focusClearOnTextField(theText);
 
-        // enable or disable everything
-        for (int i = 0; i < getComponentCount(); i++) {
-            Component c = getComponent(i);
-            c.setEnabled(enabled);
-        }
-        if (!enabled) {
-            header.setText("No Text Selected");
-            evaluation.setText(" ");
-            theText.setText("");
-            // for some reason, the following line causes keyboard input to get ignored on SUSE Linux 9.1
-//            theText.setEnabled(false);
+		// enable or disable everything
+		for (int i = 0; i < getComponentCount(); i++) {
+			Component c = getComponent(i);
+			c.setEnabled(enabled);
+		}
+		if (!enabled) {
+			header.setText("No Text Selected");
+			evaluation.setText(" ");
+			theText.setText("");
+			// for some reason, the following line causes keyboard input to get ignored on SUSE Linux 9.1
+//			theText.setEnabled(false);
 			cti = null;
-            textPanel.setTextDescriptor(null, null);
-            attrPanel.setVariable(null, null);
-            ok.setEnabled(false);
-            apply.setEnabled(false);
-            multiLine.setEnabled(false);
-            return;
-        }
+			textPanel.setTextDescriptor(null, null);
+			attrPanel.setVariable(null, null);
+			ok.setEnabled(false);
+			apply.setEnabled(false);
+			multiLine.setEnabled(false);
+			return;
+		}
 
 		// cache information about the Highlight
 		cti = new CachedTextInfo(textHighlight);
 
-        // enable buttons
-        ok.setEnabled(true);
-        apply.setEnabled(true);
+		// enable buttons
+		ok.setEnabled(true);
+		apply.setEnabled(true);
 
-        header.setText(cti.description);
-        theText.setText(cti.initialText);
-        theText.setEditable(true);
+		header.setText(cti.description);
+		theText.setText(cti.initialText);
+		theText.setEditable(true);
  
-        // if multiline text, make it a TextArea, otherwise it's a TextField
-        if (cti.initialText.indexOf('\n') != -1) {
-            // if this is the name of an object it should not be multiline
-            if (cti.shownText != null && (cti.varKey == NodeInst.NODE_NAME || cti.varKey == ArcInst.ARC_NAME)) {
-                multiLine.setEnabled(false);
-                multiLine.setSelected(false);
-            } else {
-                multiLine.setEnabled(true);
-                multiLine.setSelected(true);
-            }
-        } else {
-            // if this is the name of an object it should not be multiline
-            if (cti.shownText != null && (cti.varKey == NodeInst.NODE_NAME || cti.varKey == ArcInst.ARC_NAME)) {
-                multiLine.setEnabled(false);
-            } else {
-                multiLine.setEnabled(true);
-            }
-            multiLine.setSelected(false);
-        }
+		// if multiline text, make it a TextArea, otherwise it's a TextField
+		if (cti.initialText.indexOf('\n') != -1) {
+			// if this is the name of an object it should not be multiline
+			if (cti.shownText != null && (cti.varKey == NodeInst.NODE_NAME || cti.varKey == ArcInst.ARC_NAME)) {
+				multiLine.setEnabled(false);
+				multiLine.setSelected(false);
+			} else {
+				multiLine.setEnabled(true);
+				multiLine.setSelected(true);
+			}
+		} else {
+			// if this is the name of an object it should not be multiline
+			if (cti.shownText != null && (cti.varKey == NodeInst.NODE_NAME || cti.varKey == ArcInst.ARC_NAME)) {
+				multiLine.setEnabled(false);
+			} else {
+				multiLine.setEnabled(true);
+			}
+			multiLine.setSelected(false);
+		}
 
-        // if the var is code, evaluate it
-        evaluation.setText(" ");
-        if (cti.var != null) {
-            if (cti.var.isCode()) {
-                evaluation.setText("Evaluation: " + cti.var.describe(-1));
-            }
-        }
+		// if the var is code, evaluate it
+		evaluation.setText(" ");
+		if (cti.var != null) {
+			if (cti.var.isCode()) {
+				evaluation.setText("Evaluation: " + cti.var.describe(-1));
+			}
+		}
 
-        // set the text edit panel
-        textPanel.setTextDescriptor(cti.varKey, cti.owner);
-        attrPanel.setVariable(cti.varKey, cti.owner);
+		// set the text edit panel
+		textPanel.setTextDescriptor(cti.varKey, cti.owner);
+		attrPanel.setVariable(cti.varKey, cti.owner);
 
-        // do this last so everything gets packed right
-        changeTextComponent(cti.initialText, multiLine.isSelected());
+		// do this last so everything gets packed right
+		changeTextComponent(cti.initialText, multiLine.isSelected());
 
-        EDialog.focusOnTextField(theText);
+		EDialog.focusOnTextField(theText);
 
 		// if this is a cell instance name, disable editing
 		if (cti.varKey == NodeInst.NODE_PROTO)
@@ -405,7 +384,7 @@ public class GetInfoText extends EModelessDialog implements HighlightListener, D
 			theText.setEnabled(false);
 			multiLine.setEnabled(false);
 		}
-    }
+	}
 
 	protected void escapePressed() { cancelActionPerformed(null); }
 
@@ -504,20 +483,6 @@ public class GetInfoText extends EModelessDialog implements HighlightListener, D
 	}
 
 	/**
-	 * Class to handle special changes to changes to an edit-in-place object.
-	 */
-	private static class EIPDocumentListener implements DocumentListener
-	{
-		private EditInPlaceListener eipListener;
-
-		EIPDocumentListener(EditInPlaceListener l) { eipListener = l; }
-
-		public void changedUpdate(DocumentEvent e) { eipListener.documentChanged(); }
-		public void insertUpdate(DocumentEvent e) { eipListener.documentChanged(); }
-		public void removeUpdate(DocumentEvent e) { eipListener.documentChanged(); }
-	}
-
-	/**
 	 * Class to handle edit-in-place of text.
 	 */
 	public static class EditInPlaceListener implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener
@@ -527,7 +492,6 @@ public class GetInfoText extends EModelessDialog implements HighlightListener, D
 		private EventListener oldListener;
 		private JTextComponent tc;
 		private EMenuBar.Instance mb;
-		private EIPDocumentListener docListener;
 		private UndoManager undo;
 
 		public EditInPlaceListener(CachedTextInfo cti, EditWindow wnd, Font theFont, int lowX, int lowY)
@@ -549,9 +513,7 @@ public class GetInfoText extends EModelessDialog implements HighlightListener, D
 				});
 				tc = tf;
 			}
-			docListener = new EIPDocumentListener(this);
-		    Document doc = tc.getDocument();
-		    doc.addDocumentListener(docListener);
+			Document doc = tc.getDocument();
 
 			// Listen for undo and redo events
 			undo = new UndoManager();
@@ -560,7 +522,7 @@ public class GetInfoText extends EModelessDialog implements HighlightListener, D
 				public void undoableEditHappened(UndoableEditEvent evt) { undo.addEdit(evt.getEdit()); }
 			});
 
-		    tc.addKeyListener(this);
+			tc.addKeyListener(this);
 			tc.setSize(figureSize());
 			tc.setLocation(lowX, lowY);
 			tc.setBorder(new EmptyBorder(0,0,0,0));
@@ -593,9 +555,7 @@ public class GetInfoText extends EModelessDialog implements HighlightListener, D
 			try
 			{
 				if (undo.canUndo()) undo.undo();
-			} catch (CannotUndoException e)
-			{
-			}
+			} catch (CannotUndoException e) {}
 		}
 
 		/**
@@ -606,9 +566,7 @@ public class GetInfoText extends EModelessDialog implements HighlightListener, D
 			try
 			{
 				if (undo.canRedo()) undo.redo();
-			} catch (CannotUndoException e)
-			{
-			}
+			} catch (CannotUndoException e) {}
 		}
 
 		/**
@@ -640,50 +598,49 @@ public class GetInfoText extends EModelessDialog implements HighlightListener, D
 
 		public void closeEditInPlace()
 		{
+			// gather the current text and store it on the owner
+			String currentText = tc.getText();
+			if (!currentText.equals(cti.initialText))
+			{
+				String[] textArray = currentText.split("\\n");
+				ArrayList<String> textList = new ArrayList<String>();
+				for (int i=0; i<textArray.length; i++)
+				{
+					String str = textArray[i];
+					if (Simulation.getPreserveVerilogFormating() && // Pref set
+					   cti.td.getPos() == TextDescriptor.Position.RIGHT && // Left justified text
+					   (cti.varKey == Verilog.VERILOG_PARAMETER_KEY || 
+						cti.varKey == Verilog.VERILOG_CODE_KEY ||
+						cti.varKey == Verilog.VERILOG_EXTERNAL_CODE_KEY ||
+						cti.varKey == Verilog.VERILOG_DECLARATION_KEY)) {
+						textList.add(str);
+					} else
+					{
+						str = str.trim();
+						if (str.equals("")) continue;
+						textList.add(str);
+					}
+				}
+				textArray = new String[textList.size()];
+				for (int i=0; i<textList.size(); i++)
+				{
+					String str = textList.get(i);
+					textArray[i] = str;
+				}
+				if (textArray.length > 0)
+				{
+					// generate job to change text
+					new ChangeText(cti.owner, cti.varKey, textArray);
+				}
+			}
+
+			// close the in-place text editor
 			tc.removeKeyListener(this);
-			tc.getDocument().removeDocumentListener(docListener);
 			WindowFrame.setListener(oldListener);
 			wnd.removeInPlaceTextObject(this);
 			wnd.repaint();
 			wnd.requestFocus();
 			mb.setIgnoreTextEditKeys(false);
-		}
-
-		public void documentChanged()
-		{
-			String currentText = tc.getText();
-			String[] textArray = currentText.split("\\n");
-			ArrayList<String> textList = new ArrayList<String>();
-			for (int i=0; i<textArray.length; i++)
-			{
-                String str = textArray[i];
-                if (Simulation.getPreserveVerilogFormating() && // Pref set
-                   cti.td.getPos() == TextDescriptor.Position.RIGHT && // Left justified text
-                   (cti.varKey == Verilog.VERILOG_PARAMETER_KEY || 
-                    cti.varKey == Verilog.VERILOG_CODE_KEY ||
-                    cti.varKey == Verilog.VERILOG_EXTERNAL_CODE_KEY ||
-                    cti.varKey == Verilog.VERILOG_DECLARATION_KEY)) {
-                    textList.add(str);
-                } else
-                {
-                    str = str.trim();
-                    if (str.equals("")) continue;
-                    textList.add(str);
-                }
-            }
-
-			textArray = new String[textList.size()];
-			for (int i=0; i<textList.size(); i++)
-			{
-				String str = textList.get(i);
-				textArray[i] = str;
-			}
-
-			if (textArray.length > 0)
-			{
-				// generate job to change text
-				new ChangeText(cti.owner, cti.varKey, textArray);
-			}
 		}
  
 		// the MouseListener events
@@ -704,7 +661,7 @@ public class GetInfoText extends EModelessDialog implements HighlightListener, D
 		public void keyPressed(KeyEvent evt) {}
 		public void keyReleased(KeyEvent evt)
 		{
-	        int chr = evt.getKeyCode();
+			int chr = evt.getKeyCode();
 			if (chr == KeyEvent.VK_ESCAPE)
 			{
 				tc.setText(cti.initialText);
@@ -716,282 +673,227 @@ public class GetInfoText extends EModelessDialog implements HighlightListener, D
 		public void keyTyped(KeyEvent evt) {}
 	}
 
-    private static class ChangeText extends Job {
+	private static class ChangeText extends Job {
 		private ElectricObject owner;
 		private Variable.Key key;
 		private String[] newText;
 
 		private ChangeText(ElectricObject owner, Variable.Key key, String[] newText) {
-            super("Modify Text", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-            this.owner = owner;
-            this.key = key;
-            this.newText = newText;
-            startJob();
-        }
+			super("Modify Text", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.owner = owner;
+			this.key = key;
+			this.newText = newText;
+			startJob();
+		}
 
-        public boolean doIt() throws JobException
-        {
-            if (key == null) return false;
-        	if (key == Export.EXPORT_NAME)
-        	{
-            	Export pp = (Export)owner;
+		public boolean doIt() throws JobException
+		{
+			if (key == null) return false;
+			if (key == Export.EXPORT_NAME)
+			{
+				Export pp = (Export)owner;
 				pp.rename(newText[0]);
-        	} else if (key == NodeInst.NODE_NAME)
-        	{
-                ((NodeInst)owner).setName(newText[0]);
-        	} else if (key == ArcInst.ARC_NAME)
-        	{
-                ((ArcInst)owner).setName(newText[0]);
-        	} else if (owner instanceof Cell && owner.isParam(key))
-        	{
-                Cell.CellGroup cellGroup = ((Cell)owner).getCellGroup();
-	            if (newText.length > 1)
-	            {
-	                cellGroup.updateParam((Variable.AttrKey)key, newText);
-	            } else
-	            {
-	                // change variable text
-	                cellGroup.updateParamText((Variable.AttrKey)key, newText[0]);
-	            }
-            } else
-        	{
-	            if (newText.length > 1)
-	            {
-	                owner.updateVar(key, newText);
-	            } else
-	            {
-	                // change variable text
-	                owner.updateVarText(key, newText[0]);
-	            }
-            }
-            return true;
-        }
-    }
+			} else if (key == NodeInst.NODE_NAME)
+			{
+				((NodeInst)owner).setName(newText[0]);
+			} else if (key == ArcInst.ARC_NAME)
+			{
+				((ArcInst)owner).setName(newText[0]);
+			} else if (owner instanceof Cell && owner.isParam(key))
+			{
+				Cell.CellGroup cellGroup = ((Cell)owner).getCellGroup();
+				if (newText.length > 1)
+				{
+					cellGroup.updateParam((Variable.AttrKey)key, newText);
+				} else
+				{
+					// change variable text
+					cellGroup.updateParamText((Variable.AttrKey)key, newText[0]);
+				}
+			} else
+			{
+				if (newText.length > 1)
+				{
+					owner.updateVar(key, newText);
+				} else
+				{
+					// change variable text
+					owner.updateVarText(key, newText[0]);
+				}
+			}
+			return true;
+		}
+	}
 
-    /**
-     * This method is called from within the constructor to
-     * <p/>
-     * initialize the form.
-     */
-    private void initComponents() {
-        java.awt.GridBagConstraints gridBagConstraints;
+	/**
+	 * This method is called from within the constructor to
+	 * initialize the form.
+	 */
+	private void initComponents()
+	{
+		GridBagConstraints gridBagConstraints;
 
-        cancel = new javax.swing.JButton();
-        ok = new javax.swing.JButton();
-        header = new javax.swing.JLabel();
-        apply = new javax.swing.JButton();
-        evaluation = new javax.swing.JLabel();
-        theText = new javax.swing.JTextField();
-        textPanel = new TextInfoPanel(false, false);
-        attrPanel = new TextAttributesPanel(false);
-        multiLine = new javax.swing.JCheckBox();
+		cancel = new JButton();
+		ok = new JButton();
+		header = new JLabel();
+		apply = new JButton();
+		evaluation = new JLabel();
+		theText = new JTextField();
+		textPanel = new TextInfoPanel(false, false);
+		attrPanel = new TextAttributesPanel(false);
+		multiLine = new JCheckBox();
 
-        getContentPane().setLayout(new java.awt.GridBagLayout());
-        getRootPane().setDefaultButton(ok);
+		getContentPane().setLayout(new GridBagLayout());
+		getRootPane().setDefaultButton(ok);
 
-        setTitle("Text Properties");
-        setName("");
-        addWindowListener(new java.awt.event.WindowAdapter() {
-            public void windowClosing(java.awt.event.WindowEvent evt) {
-                closeDialog(evt);
-            }
-        });
+		setTitle("Text Properties");
+		setName("");
+		addWindowListener(new WindowAdapter() {
+			public void windowClosing(WindowEvent evt) { closeDialog(evt); }
+		});
 
-        header.setText("");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        getContentPane().add(header, gridBagConstraints);
+		header.setText("");
+		gridBagConstraints = new GridBagConstraints();
+		gridBagConstraints.gridx = 0;
+		gridBagConstraints.gridy = 0;
+		gridBagConstraints.gridwidth = 2;
+		gridBagConstraints.weightx = 1.0;
+		gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
+		gridBagConstraints.anchor = GridBagConstraints.WEST;
+		gridBagConstraints.insets = new Insets(4, 4, 4, 4);
+		getContentPane().add(header, gridBagConstraints);
 
-        changeTextComponent("", false);
+		changeTextComponent("", false);
 
-        multiLine.setText("Multi-Line Text");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 1;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        getContentPane().add(multiLine, gridBagConstraints);
-        multiLine.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                multiLineStateChanged();
-            }
-        });
+		multiLine.setText("Multi-Line Text");
+		gridBagConstraints = new GridBagConstraints();
+		gridBagConstraints.gridx = 2;
+		gridBagConstraints.gridy = 0;
+		gridBagConstraints.gridwidth = 1;
+		gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
+		gridBagConstraints.insets = new Insets(4, 4, 4, 4);
+		gridBagConstraints.anchor = GridBagConstraints.EAST;
+		getContentPane().add(multiLine, gridBagConstraints);
+		multiLine.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) { multiLineStateChanged(); }
+		});
 
-        evaluation.setText(" ");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
-        getContentPane().add(evaluation, gridBagConstraints);
+		evaluation.setText(" ");
+		gridBagConstraints = new GridBagConstraints();
+		gridBagConstraints.gridx = 0;
+		gridBagConstraints.gridy = 2;
+		gridBagConstraints.gridwidth = 3;
+		gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
+		gridBagConstraints.insets = new Insets(2, 4, 2, 4);
+		getContentPane().add(evaluation, gridBagConstraints);
 
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
-        getContentPane().add(textPanel, gridBagConstraints);
+		gridBagConstraints = new GridBagConstraints();
+		gridBagConstraints.gridx = 0;
+		gridBagConstraints.gridy = 3;
+		gridBagConstraints.gridwidth = 3;
+		gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
+		gridBagConstraints.insets = new Insets(2, 4, 2, 4);
+		getContentPane().add(textPanel, gridBagConstraints);
 
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
-        getContentPane().add(attrPanel, gridBagConstraints);
+		gridBagConstraints = new GridBagConstraints();
+		gridBagConstraints.gridx = 0;
+		gridBagConstraints.gridy = 4;
+		gridBagConstraints.gridwidth = 3;
+		gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
+		gridBagConstraints.insets = new Insets(2, 4, 2, 4);
+		getContentPane().add(attrPanel, gridBagConstraints);
 
-        cancel.setText("Cancel");
-        cancel.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                cancelActionPerformed(evt);
-            }
-        });
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.weightx = 0.1;
-        //gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        getContentPane().add(cancel, gridBagConstraints);
+		cancel.setText("Cancel");
+		cancel.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent evt) { cancelActionPerformed(evt); }
+		});
+		gridBagConstraints = new GridBagConstraints();
+		gridBagConstraints.gridx = 0;
+		gridBagConstraints.gridy = 5;
+		gridBagConstraints.weightx = 0.1;
+		gridBagConstraints.insets = new Insets(4, 4, 4, 4);
+		getContentPane().add(cancel, gridBagConstraints);
 
-        apply.setText("Apply");
-        apply.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                applyActionPerformed(evt);
-            }
-        });
+		apply.setText("Apply");
+		apply.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent evt) { applyActionPerformed(evt); }
+		});
 
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.weightx = 0.1;
-        //gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        getContentPane().add(apply, gridBagConstraints);
+		gridBagConstraints = new GridBagConstraints();
+		gridBagConstraints.gridx = 1;
+		gridBagConstraints.gridy = 5;
+		gridBagConstraints.weightx = 0.1;
+		gridBagConstraints.insets = new Insets(4, 4, 4, 4);
+		getContentPane().add(apply, gridBagConstraints);
 
-        ok.setText("OK");
-        ok.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                okActionPerformed(evt);
-            }
-        });
+		ok.setText("OK");
+		ok.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent evt) { okActionPerformed(evt); }
+		});
 
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.weightx = 0.1;
-        //gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        getContentPane().add(ok, gridBagConstraints);
-/*
+		gridBagConstraints = new GridBagConstraints();
+		gridBagConstraints.gridx = 2;
+		gridBagConstraints.gridy = 5;
+		gridBagConstraints.weightx = 0.1;
+		gridBagConstraints.insets = new Insets(4, 4, 4, 4);
+		getContentPane().add(ok, gridBagConstraints);
 
-gridBagConstraints = new java.awt.GridBagConstraints();
-gridBagConstraints.gridx = 0;
-gridBagConstraints.gridy = 5;
-gridBagConstraints.gridwidth = 1;
-gridBagConstraints.weightx = 1.0;
-gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
-getContentPane().add(buttonsPanel, gridBagConstraints);
-*/
+		pack();
+	}
 
-        pack();
-    }
+	private void multiLineStateChanged() {
+		// set text box type
+		changeTextComponent(theText.getText(), multiLine.isSelected());
+	}
 
-    private void multiLineStateChanged() {
-        // set text box type
-        changeTextComponent(theText.getText(), multiLine.isSelected());
-    }
+	private void changeTextComponent(String currentText, boolean multipleLines) {
 
-    private void changeTextComponent(String currentText, boolean multipleLines) {
+		if (cti == null || cti.shownText == null) return;
 
-        if (cti == null || cti.shownText == null) return;
+		getContentPane().remove(theText);
 
-        getContentPane().remove(theText);
+		if (currentText == null) currentText = "";
 
-        if (currentText == null) currentText = "";
+		if (multipleLines) {
+			// multiline text, change to text area
+			theText = new JTextArea();
+			String[] text = currentText.split("\\n");
+			int size = 1;
+			if (text.length > size) size = text.length;
+			((JTextArea)theText).setRows(size);
+			((JTextArea)theText).setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
 
-        if (multipleLines) {
-            // multiline text, change to text area
-            theText = new JTextArea();
-            String[] text = currentText.split("\\n");
-            int size = 1;
-            if (text.length > size) size = text.length;
-            ((JTextArea)theText).setRows(size);
-            ((JTextArea)theText).setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
+			// add listener to increase the number of rows if needed
+			theText.addKeyListener(new KeyListener() {
+				public void keyPressed(KeyEvent e) {}
+				public void keyTyped(KeyEvent e) {}
+				public void keyReleased(KeyEvent e) {
+					JTextArea area = (JTextArea)theText;
+					area.setRows(area.getLineCount());
+					pack();
+					ensureProperSize();
+				}
+			});
+		} else {
+			theText = new JTextField();
+			if (currentText.matches(".*?\\n.*")) {
+				currentText = currentText.substring(0, currentText.indexOf('\n'));
+			}
+		}
+		theText.setText(currentText);
 
-            // add listener to increase the number of rows if needed
-            theText.addKeyListener(new KeyListener() {
-                public void keyPressed(KeyEvent e) {}
-                public void keyTyped(KeyEvent e) {}
-                public void keyReleased(KeyEvent e) {
-                    JTextArea area = (JTextArea)theText;
-                    area.setRows(area.getLineCount());
-                    pack();
-                    ensureProperSize();
-                }
-            });
-        } else {
-            theText = new JTextField();
-            if (currentText.matches(".*?\\n.*")) {
-                currentText = currentText.substring(0, currentText.indexOf('\n'));
-            }
-        }
-        theText.setText(currentText);
+		GridBagConstraints gridBagConstraints = new GridBagConstraints();
+		gridBagConstraints.gridx = 0;
+		gridBagConstraints.gridy = 1;
+		gridBagConstraints.gridwidth = 3;
+		gridBagConstraints.fill = GridBagConstraints.BOTH;
+		gridBagConstraints.weightx = 1.0;
+		gridBagConstraints.weighty = 1.0;
+		gridBagConstraints.insets = new Insets(4, 4, 4, 4);
+		getContentPane().add(theText, gridBagConstraints);
 
-        GridBagConstraints gridBagConstraints = new GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.fill = GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.weighty = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        getContentPane().add(theText, gridBagConstraints);
-
-        pack();
-//        theText.requestFocus();
-    }
-
-//    private String getDelimtedText(javax.swing.text.JTextComponent c) {
-//        String currentText = c.getText();
-//
-//        // getText from JTextArea returns one line. I want the
-//        // new line characters to be in there.
-//        if (c instanceof JTextArea) {
-//        	JTextArea area = (JTextArea)c;
-//
-//            StringBuffer text = new StringBuffer();
-//            boolean first = true;
-//            for (int i = 0; i < area.getLineCount(); i++) {
-//                try {
-//                    if (!first) {
-//                        text.append("\n");
-//                    }
-//                    int startPos = area.getLineStartOffset(i);
-//                    int endPos = area.getLineEndOffset(i);
-//                    text.append(currentText.substring(startPos, endPos));
-//                    System.out.println("Line "+i+" is: "+currentText.substring(startPos, endPos));
-//                    first = false;
-//                } catch (javax.swing.text.BadLocationException e) {
-//                    ActivityLogger.logException(e);                    
-//                }
-//            }
-//            currentText = text.toString();
-//        }
-//
-//        return currentText;
-//    }
+		pack();
+	}
 
 	private void applyActionPerformed(ActionEvent evt)
 	{
@@ -1041,33 +943,31 @@ getContentPane().add(buttonsPanel, gridBagConstraints);
 				cti.initialText = currentText;
 			}
 		}
-		// update dialog
-		//UpdateDialog job2 = new UpdateDialog();
 	}
 
-    private void okActionPerformed(ActionEvent evt) {
-        applyActionPerformed(evt);
-        closeDialog(null);
-    }
+	private void okActionPerformed(ActionEvent evt) {
+		applyActionPerformed(evt);
+		closeDialog(null);
+	}
 
-    private void cancelActionPerformed(ActionEvent evt) {
-        closeDialog(null);
-    }
+	private void cancelActionPerformed(ActionEvent evt) {
+		closeDialog(null);
+	}
 
-    /**
-     * Closes the dialog
-     */
-    private void closeDialog(java.awt.event.WindowEvent evt) {
-        super.closeDialog();
-    }
+	/**
+	 * Closes the dialog
+	 */
+	private void closeDialog(WindowEvent evt) {
+		super.closeDialog();
+	}
 
-    private javax.swing.JButton apply;
-    private javax.swing.JButton cancel;
-    private javax.swing.JLabel evaluation;
-    private javax.swing.JLabel header;
-    private javax.swing.JButton ok;
-    private javax.swing.text.JTextComponent theText;
-    private TextInfoPanel textPanel;
-    private TextAttributesPanel attrPanel;
-    private javax.swing.JCheckBox multiLine;
+	private JButton apply;
+	private JButton cancel;
+	private JLabel evaluation;
+	private JLabel header;
+	private JButton ok;
+	private JTextComponent theText;
+	private TextInfoPanel textPanel;
+	private TextAttributesPanel attrPanel;
+	private JCheckBox multiLine;
 }
