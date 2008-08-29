@@ -1000,7 +1000,7 @@ abstract class AbstractTextDescriptor implements Serializable
             // relative
             trueSize = (textSize>>Size.TXTQGRIDSH) * 0.25 * scale;
         }
-		return trueSize * wnd.getGlobalTextScale();
+		return trueSize * (wnd == null ? User.getGlobalTextScale() : wnd.getGlobalTextScale());
 	}
 
 	/**
