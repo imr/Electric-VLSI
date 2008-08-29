@@ -1696,7 +1696,7 @@ public class Simulation extends Tool
 	public static boolean isParasiticsUseVerboseNaming() { return cacheParasiticsUseVerboseNaming.getBoolean(); }
 	public static void setParasiticsUseVerboseNaming(boolean b) { cacheParasiticsUseVerboseNaming.setBoolean(b); }
 
-	public static Pref cacheParasiticsBackAnnotateLayout = Pref.makeBooleanPref("ParasiticsBackAnnotateLayout", tool.prefs, true);
+	public static Pref cacheParasiticsBackAnnotateLayout = Pref.makeBooleanPref("ParasiticsBackAnnotateLayout", tool.prefs, false);
 	public static boolean isParasiticsBackAnnotateLayout() { return cacheParasiticsBackAnnotateLayout.getBoolean(); }
 	public static void setParasiticsBackAnnotateLayout(boolean b) { cacheParasiticsBackAnnotateLayout.setBoolean(b); }
 
