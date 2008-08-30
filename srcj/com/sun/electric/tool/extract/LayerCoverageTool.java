@@ -560,7 +560,7 @@ public class LayerCoverageTool extends Tool
 
         public boolean doIt() throws JobException
         {
-            LayerCoverageData data = new LayerCoverageData(null, cell, func, mode, geoms, null, overlapPoint);
+            LayerCoverageData data = new LayerCoverageData(this, cell, func, mode, geoms, null, overlapPoint);
             boolean done = data.doIt();
 
             if (func == LCMode.IMPLANT || (func == LCMode.NETWORK && geoms != null))
@@ -751,10 +751,16 @@ public class LayerCoverageTool extends Tool
             return rect.intersects(origBBox);
         }
 
-		public boolean enterCell(HierarchyEnumerator.CellInfo info)
+        private boolean isJobAborted()
+        {
+            return (parentJob != null && parentJob.checkAbort());
+        }
+
+        public boolean enterCell(HierarchyEnumerator.CellInfo info)
 		{
             // Checking if job is scheduled for abort or already aborted
-	        if (parentJob != null && parentJob.checkAbort()) return (false);
+	        if (isJobAborted())
+                return (false);
 
 			Cell curCell = info.getCell();
 			Netlist netlist = info.getNetlist();
@@ -767,6 +773,9 @@ public class LayerCoverageTool extends Tool
             boolean found = (netSet == null);
             for (Iterator<Network> it = netlist.getNetworks(); !found && it.hasNext(); )
             {
+                // In case there are many networks
+                if (isJobAborted())
+                    return (false);
                 Network parentNet = it.next();
                 HierarchyEnumerator.CellInfo cinfo = info;
                 boolean netFound = false;
@@ -855,7 +864,9 @@ public class LayerCoverageTool extends Tool
          */
 		public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
 		{
-			//if (checkAbort()) return false;
+             if (isJobAborted())
+                 return false;
+            //if (checkAbort()) return false;
 			NodeInst node = no.getNodeInst();
 
 			// Its like pins, facet-center

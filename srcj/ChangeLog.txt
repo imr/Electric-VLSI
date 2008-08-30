@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08e: ******************************
 
+BUG: (8/29/08, GVG) Get List of Geometry task doesn't abort (Bug #1816)
+FIX: parentJob was not included in LayerVisitor constructor signature.
+
 IMP/MAN: (8/28/08, SMR) Started implementation of global "factory reset".
      "Reset" button works only in debug mode, and those panels which
      cannot do reset issue error messages (Bug #1744).
