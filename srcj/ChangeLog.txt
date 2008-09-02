@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08e: ******************************
 
+IMP: (8/27/08, SMR) Fixes to grid alignment toolbar buttons (Bug #1801).
+
 BUG: (8/29/08, GVG) Get List of Geometry task doesn't abort (Bug #1816)
 FIX: parentJob was not included in LayerVisitor constructor signature.
 

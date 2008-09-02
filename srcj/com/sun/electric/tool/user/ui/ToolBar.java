@@ -78,7 +78,6 @@ import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
-import javax.swing.SwingConstants;
 
 /**
  * This class manages the Electric toolbar.
@@ -122,8 +121,8 @@ public class ToolBar extends JToolBar
 			outlineCommand,					// Edit:Modes:Edit:Toggle Outline Edit
 			measureCommand,					// Edit:Modes:Edit:Toggle Measure Distance
 			null,
-			gridSmaller,
 			gridLarger,
+			gridSmaller,
 			null,
 			selectObjectsCommand,			// Edit:Modes:Select:Select Objects
 			selectAreaCommand,				// Edit:Modes:Select:Select Area
@@ -159,8 +158,8 @@ public class ToolBar extends JToolBar
 			allButtons.add(zoomCommand);
 			allButtons.add(outlineCommand);
 			allButtons.add(measureCommand);
-			allButtons.add(gridSmaller);
 			allButtons.add(gridLarger);
+			allButtons.add(gridSmaller);
 			allButtons.add(selectObjectsCommand);
 			allButtons.add(selectAreaCommand);
 			allButtons.add(toggleSelectSpecialCommand);
@@ -457,7 +456,19 @@ public class ToolBar extends JToolBar
 	private static void rewriteGridDistance()
 	{
 		double val = User.getAlignmentToGrid();
-		currentGridDistance.setText(" Grid=" + val + " ");
+		if (TopLevel.isMDIMode())
+		{
+			ToolBar tb = TopLevel.getCurrentJFrame().getToolBar();
+			tb.currentGridDistance.setText(" " + val + " ");
+		} else
+		{
+			for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
+			{
+				WindowFrame wf = it.next();
+				ToolBar tb = wf.getFrame().getToolBar();
+				tb.currentGridDistance.setText(" " + val + " ");
+			}
+		}
 	}
 
 	/**
@@ -875,17 +886,17 @@ public class ToolBar extends JToolBar
 	 */
 	public static void setGridAligment() { updateToolBarButtons(); }
 
-	private static EMenuItem gridDistance1Command = new EMenuItem("Grid Alignment 1 (smallest)") { public void run() {
-		changeGridSize(4); }};
+	private static EMenuItem gridDistance1Command = new EMenuItem("Grid Alignment 1 (largest)") { public void run() {
+		changeGridSize(0); }};
 	private static EMenuItem gridDistance2Command = new EMenuItem("Grid Alignment 2") { public void run() {
-		changeGridSize(3); }};
+		changeGridSize(1); }};
 	private static EMenuItem gridDistance3Command = new EMenuItem("Grid Alignment 3") { public void run() {
 		changeGridSize(2); }};
 	private static EMenuItem gridDistance4Command = new EMenuItem("Grid Alignment 4") { public void run() {
-		changeGridSize(1); }};
-	private static EMenuItem gridDistance5Command = new EMenuItem("Grid Alignment 5 (largest)") { public void run() {
-		changeGridSize(0); }};
-	private static JLabel currentGridDistance = new JLabel();
+		changeGridSize(3); }};
+	private static EMenuItem gridDistance5Command = new EMenuItem("Grid Alignment 5 (smallest)") { public void run() {
+		changeGridSize(4); }};
+	private JLabel currentGridDistance = new JLabel();
 
 	private static final EToolBarButton gridLarger = new EToolBarButton("Make Grid Larger",
 		KeyStroke.getKeyStroke('F', 0), "ButtonGridCoarser", "Edit:Modes:Movement")
@@ -1028,13 +1039,13 @@ public class ToolBar extends JToolBar
 			measureCommand),
 
 		new EMenu("_Movement",
-			gridSmaller,
+			gridLarger,
 			gridDistance1Command,
 			gridDistance2Command,
 			gridDistance3Command,
 			gridDistance4Command,
 			gridDistance5Command,
-			gridLarger),
+			gridSmaller),
 
 		new EMenu("_Select",
 			selectObjectsCommand,
@@ -1249,7 +1260,7 @@ public class ToolBar extends JToolBar
 	// ----------------------------------------------------------------------------
 
 	/**
-	 * Update associated ToolBarButtons on all toolbars und updatable menu items on all menubars
+	 * Update associated ToolBarButtons on all toolbars and updatable menu items on all menubars
 	 */
 	public static void updateToolBarButtons()
 	{
@@ -1257,7 +1268,7 @@ public class ToolBar extends JToolBar
 		{
 			for (Component c: toolBar.getComponents())
 			{
-				if (c == currentGridDistance)
+				if (c == toolBar.currentGridDistance)
 				{
 					rewriteGridDistance();
 					continue;
