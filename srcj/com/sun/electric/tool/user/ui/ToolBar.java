@@ -458,8 +458,12 @@ public class ToolBar extends JToolBar
 		double val = User.getAlignmentToGrid();
 		if (TopLevel.isMDIMode())
 		{
-			ToolBar tb = TopLevel.getCurrentJFrame().getToolBar();
-			tb.currentGridDistance.setText(" " + val + " ");
+			TopLevel tl = TopLevel.getCurrentJFrame();
+			if (tl != null)
+			{
+				ToolBar tb = tl.getToolBar();
+				tb.currentGridDistance.setText(" " + val + " ");
+			}
 		} else
 		{
 			for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
