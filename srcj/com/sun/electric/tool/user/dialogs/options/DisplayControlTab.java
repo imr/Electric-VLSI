@@ -170,7 +170,25 @@ public class DisplayControlTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		System.out.println("CANNOT RESET DISPLAY PREFERENCES YET");
+		User.setShowHierarchicalCursorCoordinates(User.isFactoryShowHierarchicalCursorCoordinates());
+		User.setDimUpperLevelWhenDownInPlace(User.isFactoryDimUpperLevelWhenDownInPlace());
+		User.setSideBarOnRight(User.isFactorySideBarOnRight());
+		User.setPanningDistance(User.getFactoryPanningDistance());
+		User.setDisplayStyle(User.getFactoryDisplayStyle());
+
+		// bottom half (display algorithm)
+		User.setDisplayAlgorithm(User.getFactoryDisplayAlgorithm());
+		User.setUseCellGreekingImages(User.isFactoryUseCellGreekingImages());
+		User.setGreekSizeLimit(User.getFactoryGreekSizeLimit());
+		User.setGreekCellSizeLimit(User.getFactoryGreekCellSizeLimit());
+		User.setPatternedScaleLimit(User.getFactoryPatternedScaleLimit());
+		User.setLegacyComposite(User.isFactoryLegacyComposite());
+		User.setAlphaBlendingOvercolorLimit(User.getFactoryAlphaBlendingOvercolorLimit());
+		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
+		{
+			Technology tech = it.next();
+			EditWindow.setDefaultOpacity(tech);
+		}
 	}
 
 	/** This method is called from within the constructor to

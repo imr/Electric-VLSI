@@ -62,6 +62,12 @@ public class FileType implements Serializable {
         return ((FileTypeGroup)group).getPath();
     }
 
+    public static String getFactoryGroupPath(Object group)
+    {
+        assert(group instanceof FileTypeGroup);
+        return ((FileTypeGroup)group).getFactoryPath();
+    }
+
     public static void setFileTypeGroupDir(Object obj, String path)
     {
         assert(obj instanceof FileTypeGroup);
@@ -205,6 +211,11 @@ public class FileType implements Serializable {
         {
             Pref path = groupPrefs.get(this);
             return path.getString();
+        }
+        public String getFactoryPath()
+        {
+            Pref path = groupPrefs.get(this);
+            return path.getStringFactoryValue();
         }
     }
 

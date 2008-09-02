@@ -361,8 +361,13 @@ public class PreferencesFrame extends EDialog
 			"Do you really want to reset all Preferences to their 'factory' state?");
 		if (response)
 		{
+			Pref.delayPrefFlushing();
 			for(PreferencePanel ti : optionPanes)
+			{
+//				System.out.println("RESTTING PANEL: "+ti.getName());
 				ti.reset();
+			}
+			Pref.resumePrefFlushing();
 			closeDialog(null);
 		}
 	}

@@ -25,12 +25,11 @@ package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.user.User;
 
 import java.awt.Frame;
 import java.util.HashMap;
-import java.util.Collection;
 import java.util.Map;
 
 import javax.swing.JPanel;
@@ -40,7 +39,7 @@ import javax.swing.JPanel;
  */
 public class GeneralTab extends PreferencePanel
 {
-    private HashMap<Object,String> fileTypeMap = new HashMap<Object,String>();
+	private Map<Object,String> fileTypeMap = new HashMap<Object,String>();
 
 	/** Creates new form General Options */
 	public GeneralTab(Frame parent, boolean modal)
@@ -63,30 +62,29 @@ public class GeneralTab extends PreferencePanel
 	{
 		// I/O section
 		generalShowFileDialog.setSelected(User.isShowFileSelectionForNetlists());
-        for (Object obj : FileType.getFileTypeGroups())
-        {
-            workingDirComboBox.addItem(obj);
-            fileTypeMap.put(obj, null);
-        }
-        workingDirComboBoxActionPerformed(null);
-        pathTextField.setText(User.getWorkingDirectory());
+		for (Object obj : FileType.getFileTypeGroups())
+		{
+			workingDirComboBox.addItem(obj);
+			fileTypeMap.put(obj, null);
+		}
+		workingDirComboBoxActionPerformed(null);
+		pathTextField.setText(User.getWorkingDirectory());
 
-        // Jobs section
-        generalBeepAfterLongJobs.setSelected(User.isBeepAfterLongJobs());
-        generalVerboseMode.setSelected(User.isJobVerboseMode());
+		// Jobs section
+		generalBeepAfterLongJobs.setSelected(User.isBeepAfterLongJobs());
+		generalVerboseMode.setSelected(User.isJobVerboseMode());
 		generalErrorLimit.setText(Integer.toString(User.getErrorLimit()));
-        maxUndoHistory.setText(Integer.toString(User.getMaxUndoHistory()));
+		maxUndoHistory.setText(Integer.toString(User.getMaxUndoHistory()));
 
-        // Memory section
+		// Memory section
 		Runtime runtime = Runtime.getRuntime();
 		long maxMemLimit = runtime.maxMemory() / 1024 / 1024;
 		generalMemoryUsage.setText("Current memory usage: " + Long.toString(maxMemLimit) + " megabytes");
 		generalMaxMem.setText(Long.toString(User.getMemorySize()));
-        generalMaxSize.setText(Long.toString(User.getPermSpace()));
+		generalMaxSize.setText(Long.toString(User.getPermSpace()));
 
-        // Database section
+		// Database section
 		generalSnapshotLogging.setSelected(User.isUseTwoJVMs());
-//		generalSnapshotLogging.setEnabled(false);
 		generalLogClientServer.setSelected(User.isUseClientServer());
 	}
 
@@ -101,23 +99,19 @@ public class GeneralTab extends PreferencePanel
 		if (currBoolean != User.isShowFileSelectionForNetlists())
 			User.setShowFileSelectionForNetlists(currBoolean);
 
-        // Resetting dir path
-        for (Map.Entry<Object,String> entry : fileTypeMap.entrySet())
-        {
-            Object obj = entry.getKey();
-            FileType.setFileTypeGroupDir(obj, entry.getValue());
-        }
+		// Resetting dir path
+		for (Map.Entry<Object,String> entry : fileTypeMap.entrySet())
+		{
+			Object obj = entry.getKey();
+			FileType.setFileTypeGroupDir(obj, entry.getValue());
+		}
 
-//		String currentInitialWorkingDirSetting = (String)workingDirComboBox.getSelectedItem();
-//        if (!currentInitialWorkingDirSetting.equals(User.getInitialWorkingDirectorySetting()))
-//            User.setInitialWorkingDirectorySetting(currentInitialWorkingDirSetting);
-
-        // Jobs section
-        currBoolean = generalBeepAfterLongJobs.isSelected();
+		// Jobs section
+		currBoolean = generalBeepAfterLongJobs.isSelected();
 		if (currBoolean != User.isBeepAfterLongJobs())
 			User.setBeepAfterLongJobs(currBoolean);
 
-        currBoolean = generalVerboseMode.isSelected();
+		currBoolean = generalVerboseMode.isSelected();
 		if (currBoolean != User.isJobVerboseMode())
 			User.setJobVerboseMode(currBoolean);
 
@@ -125,19 +119,19 @@ public class GeneralTab extends PreferencePanel
 		if (currInt != User.getErrorLimit())
 			User.setErrorLimit(currInt);
 
-        currInt = TextUtils.atoi(maxUndoHistory.getText());
-        if (currInt != User.getMaxUndoHistory())
-        {
-            User.setMaxUndoHistory(currInt);
-            Undo.setHistoryListSize(currInt);
-        }
+		currInt = TextUtils.atoi(maxUndoHistory.getText());
+		if (currInt != User.getMaxUndoHistory())
+		{
+			User.setMaxUndoHistory(currInt);
+			Undo.setHistoryListSize(currInt);
+		}
 
 		// Memory section
 		currInt = TextUtils.atoi(generalMaxMem.getText());
 		if (currInt != User.getMemorySize())
 			User.setMemorySize(currInt);
 
-        currInt = TextUtils.atoi(generalMaxSize.getText());
+		currInt = TextUtils.atoi(generalMaxSize.getText());
 		if (currInt != User.getPermSpace())
 			User.setPermSpace(currInt);
 
@@ -156,7 +150,17 @@ public class GeneralTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		System.out.println("CANNOT RESET GENERAL PREFERENCES YET");
+		User.setShowFileSelectionForNetlists(User.isFactoryShowFileSelectionForNetlists());
+		for (Object obj : FileType.getFileTypeGroups())
+			FileType.setFileTypeGroupDir(obj, FileType.getFactoryGroupPath(obj));
+		User.setBeepAfterLongJobs(User.isFactoryBeepAfterLongJobs());
+		User.setJobVerboseMode(User.isFactoryJobVerboseMode());
+		User.setErrorLimit(User.getFactoryErrorLimit());
+		User.setMaxUndoHistory(User.getFactoryMaxUndoHistory());
+		User.setMemorySize(User.getFactoryMemorySize());
+		User.setPermSpace(User.getFactoryPermSpace());
+		User.setUseTwoJVMs(User.isFactoryUseTwoJVMs());
+		User.setUseClientServer(User.isFactoryUseClientServer());
 	}
 
 	/** This method is called from within the constructor to
@@ -493,16 +497,10 @@ public class GeneralTab extends PreferencePanel
         currentPathLabel.setText(FileType.getGroupPath(workingDirComboBox.getSelectedItem()));
     }//GEN-LAST:event_workingDirComboBoxActionPerformed
 
-//    private void newPath()
-//    {
-//         Object obj = workingDirComboBox.getSelectedItem();
-//        // Storing string
-//        fileTypeMap.put(obj, pathTextField.getText());
-//    }
-    private void resetButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_resetButtonActionPerformed
-        Object obj = workingDirComboBox.getSelectedItem();
-        // Storing string
-        fileTypeMap.put(obj, pathTextField.getText());
+	private void resetButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_resetButtonActionPerformed
+		Object obj = workingDirComboBox.getSelectedItem();
+		// Storing string
+		fileTypeMap.put(obj, pathTextField.getText());
 
     }//GEN-LAST:event_resetButtonActionPerformed
 
@@ -546,5 +544,4 @@ public class GeneralTab extends PreferencePanel
     private javax.swing.JButton resetButton;
     private javax.swing.JComboBox workingDirComboBox;
     // End of variables declaration//GEN-END:variables
-
 }

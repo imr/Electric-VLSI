@@ -100,7 +100,11 @@ public class SelectionTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		System.out.println("CANNOT RESET SELECTION PREFERENCES YET");
+		User.setEasySelectionOfCellInstances(User.isFactoryEasySelectionOfCellInstances());
+		User.setDraggingMustEncloseObjects(User.isFactoryDraggingMustEncloseObjects());
+		ClickZoomWireListener.theOne.setCancelMoveDelayMillis(ClickZoomWireListener.theOne.getFactoryCancelMoveDelayMillis());
+		User.setMouseOverHighlightingEnabled(User.isFactoryMouseOverHighlightingEnabled());
+		User.setHighlightConnectedObjects(User.isFactoryHighlightConnectedObjects());
 	}
 
 	/** This method is called from within the constructor to

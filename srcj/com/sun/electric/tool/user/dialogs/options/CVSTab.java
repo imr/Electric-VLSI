@@ -91,7 +91,9 @@ public class CVSTab extends PreferencePanel {
 	 */
 	public void reset()
 	{
-		System.out.println("CANNOT RESET CVS PREFERENCES YET");
+		CVS.setCVSRepository(CVS.getFactoryCVSRepository());
+		CVS.setCVSProgram(CVS.getFactoryCVSProgram());
+		CVS.setEnabled(CVS.isFactoryEnabled());
 	}
 
     /** This method is called from within the constructor to

@@ -1669,11 +1669,13 @@ public class ClickZoomWireListener
     private static final String zoomInDelayMillisPref = "zoomInDelayMillis";
 
     private void readPrefs() {
-        cancelMoveDelayMillis = prefs.getLong(cancelMoveDelayMillisPref, 200);
+        cancelMoveDelayMillis = prefs.getLong(cancelMoveDelayMillisPref, getFactoryCancelMoveDelayMillis());
         zoomInDelayMillis = prefs.getLong(zoomInDelayMillisPref, 120);
     }
 
     public long getCancelMoveDelayMillis() { return cancelMoveDelayMillis; }
+
+    public long getFactoryCancelMoveDelayMillis() { return 200; }
 
     public void setCancelMoveDelayMillis(long delay) {
         cancelMoveDelayMillis = delay;

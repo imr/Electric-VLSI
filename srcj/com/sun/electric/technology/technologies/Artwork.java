@@ -896,7 +896,7 @@ public class Artwork extends Technology
 
 		// set the color if specified
 		if (color != null)
-			graphics.setColorIndex(color); // autoboxing
+			graphics.setColorIndex(color.intValue()); // autoboxing
 
 		// set the stipple pattern if specified
 		if (patternVar != null)
@@ -919,12 +919,12 @@ public class Artwork extends Technology
 				if (len == 17)
 				{
 					// the last entry specifies the outline texture
-					int outlineIndex = pat[16];  // autoboxing
+					int outlineIndex = pat[16].intValue();  // autoboxing
 					graphics.setOutlined(EGraphics.Outline.findOutline(outlineIndex));
 					len = 16;
 				}
 				for(int i=0; i<len; i++)
-					pattern[i] = pat[i];  // autoboxing
+					pattern[i] = pat[i].intValue();  // autoboxing
 			} else if (obj instanceof Short[])
 			{
 				Short [] pat = (Short [])obj;
@@ -1026,16 +1026,15 @@ public class Artwork extends Technology
 	 * Method to tell whether arrow heads are filled-in.
 	 * @return true if arrow heads are filled-in.
 	 */
-	public static boolean isFilledArrowHeads()
-	{
-		return cacheFillArrows.getBoolean();
-	}
+	public static boolean isFilledArrowHeads() { return cacheFillArrows.getBoolean(); }
 	/**
 	 * Method to set whether arrow heads are filled-in.
 	 * @param f true if arrow heads are filled-in.
 	 */
-	public static void setFilledArrowHeads(boolean f)
-	{
-		cacheFillArrows.setBoolean(f);
-	}
+	public static void setFilledArrowHeads(boolean f) { cacheFillArrows.setBoolean(f); }
+	/**
+	 * Method to tell whether arrow heads are filled-in, by default.
+	 * @return true if arrow heads are filled-in, by default.
+	 */
+	public static boolean isFactoryFilledArrowHeads() { return cacheFillArrows.getBooleanFactoryValue(); }
 }

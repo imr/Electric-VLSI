@@ -179,7 +179,9 @@ public class FrameTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		System.out.println("CANNOT RESET FRAME PREFERENCES YET");
+		User.setFrameCompanyName(User.getFactoryFrameCompanyName());
+		User.setFrameDesignerName(User.getFactoryFrameDesignerName());
+		User.setFrameProjectName(User.getFactoryFrameProjectName());
 	}
 
 	/** This method is called from within the constructor to

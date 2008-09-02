@@ -2897,6 +2897,11 @@ public class Schematics extends Technology
 	 * @param s the negating bubble size (the diameter).
 	 */
 	public static void setNegatingBubbleSize(double s) { cacheBubbleSize.setDouble(s); }
+	/**
+	 * Method to tell the size of negating bubbles, by default.
+	 * @return the size of negating bubbles (the diameter), by default.
+	 */
+	public static double getFactoryNegatingBubbleSize() { return cacheBubbleSize.getDoubleFactoryValue(); }
 
 	private static Map<PrimitiveNode,Pref> primPrefs = new HashMap<PrimitiveNode,Pref>();
 	private static Pref getPrefForPrimitive(PrimitiveNode np)
@@ -2931,4 +2936,12 @@ public class Schematics extends Technology
 	 * @param v the VHDL names for the primitive.
 	 */
 	public static void setVHDLNames(PrimitiveNode np, String v) { getPrefForPrimitive(np).setString(v); }
+	/**
+	 * Method to tell the VHDL names for a primitive in this technology, by default.
+	 * These names have the form REGULAR/NEGATED, where REGULAR is the name to use
+	 * for regular uses of the primitive, and NEGATED is the name to use for negated uses.
+	 * @param np the primitive to query.
+	 * @return the the VHDL names for the primitive, by default.
+	 */
+	public static String getFactoryVHDLNames(PrimitiveNode np) { return getPrefForPrimitive(np).getStringFactoryValue(); }
 }

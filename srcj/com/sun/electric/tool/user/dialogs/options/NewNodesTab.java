@@ -34,6 +34,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import javax.swing.JPanel;
 import javax.swing.event.DocumentEvent;
@@ -63,7 +64,7 @@ public class NewNodesTab extends PreferencePanel
 		double initialHei, hei;
 		Variable var;
 	}
-	private HashMap<PrimitiveNode,PrimNodeInfo> initialNewNodesPrimInfo;
+	private Map<PrimitiveNode,PrimNodeInfo> initialNewNodesPrimInfo;
 	private boolean newNodesDataChanging = false;
 	private Technology selectedTech;
 

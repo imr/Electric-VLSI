@@ -84,6 +84,17 @@ public class ERC extends Tool
 	 * </UL>
 	 */
 	public static void setPWellCheck(int c) { cachePWellCheck.setInt(c); }
+	/**
+	 * Method to tell how much P-Well contact checking the ERC should do, by default.
+	 * The values are:
+	 * <UL>
+	 * <LI>0: must have a contact in every well area.</LI>
+	 * <LI>1: must have at least one contact.</LI>
+	 * <LI>2: do not check for contact presence.</LI>
+	 * </UL>
+	 * @return how much P-Well contact checking the ERC should do, by default.
+	 */
+	public static int getFactoryPWellCheck() { return cachePWellCheck.getIntFactoryValue(); }
 
 	private static Pref cacheMustConnectPWellToGround = Pref.makeBooleanPref("MustConnectPWellToGround", ERC.tool.prefs, true);
 	/**
@@ -97,6 +108,11 @@ public class ERC extends Tool
 	 * @param on true if ERC should check that all P-Well contacts connect to ground.
 	 */
 	public static void setMustConnectPWellToGround(boolean on) { cacheMustConnectPWellToGround.setBoolean(on); }
+	/**
+	 * Method to tell whether ERC should check that all P-Well contacts connect to ground, by default.
+	 * @return true if ERC should check that all P-Well contacts connect to ground, by default.
+	 */
+	public static boolean isFactoryMustConnectPWellToGround() { return cacheMustConnectPWellToGround.getBooleanFactoryValue(); }
 
 	private static Pref cacheNWellCheck = Pref.makeIntPref("NWellCheck", ERC.tool.prefs, 0);
 	/**
@@ -121,6 +137,17 @@ public class ERC extends Tool
 	 * </UL>
 	 */
 	public static void setNWellCheck(int c) { cacheNWellCheck.setInt(c); }
+	/**
+	 * Method to tell how much N-Well contact checking the ERC should do by default.
+	 * The values are:
+	 * <UL>
+	 * <LI>0: must have a contact in every well area.</LI>
+	 * <LI>1: must have at least one contact.</LI>
+	 * <LI>2: do not check for contact presence.</LI>
+	 * </UL>
+	 * @return how much N-Well contact checking the ERC should do by default.
+	 */
+	public static int getFactoryNWellCheck() { return cacheNWellCheck.getIntFactoryValue(); }
 
 	private static Pref cacheMustConnectNWellToPower = Pref.makeBooleanPref("MustConnectNWellToPower", ERC.tool.prefs, true);
 	/**
@@ -134,6 +161,11 @@ public class ERC extends Tool
 	 * @param on true if ERC should check that all N-Well contacts connect to power.
 	 */
 	public static void setMustConnectNWellToPower(boolean on) { cacheMustConnectNWellToPower.setBoolean(on); }
+	/**
+	 * Method to tell whether ERC should check that all N-Well contacts connect to power by default.
+	 * @return true if ERC should check that all N-Well contacts connect to power by default.
+	 */
+	public static boolean isFactoryMustConnectNWellToPower() { return cacheMustConnectNWellToPower.getBooleanFactoryValue(); }
 
 	private static Pref cacheFindWorstCaseWellContact = Pref.makeBooleanPref("FindWorstCaseWell", ERC.tool.prefs, false);
 	/**
@@ -147,19 +179,29 @@ public class ERC extends Tool
 	 * @param on true if ERC should find the contact that is farthest from the well edge.
 	 */
 	public static void setFindWorstCaseWell(boolean on) { cacheFindWorstCaseWellContact.setBoolean(on); }
+	/**
+	 * Method to tell whether ERC should find the contact that is farthest from the well edge, by default.
+	 * @return true if ERC should find the contact that is farthest from the well edge, by default.
+	 */
+	public static boolean isFactoryFindWorstCaseWell() { return cacheFindWorstCaseWellContact.getBooleanFactoryValue(); }
 
 	private static Pref cacheDRCCheck = Pref.makeBooleanPref("DRCCheckInERC", ERC.tool.prefs, false);
 	/**
-	 * Method to tell whether ERC should check DRC Spacing condition
+	 * Method to tell whether ERC should check DRC Spacing condition.
 	 * The default is "false".
-	 * @return true if ERC should check DRC Spacing condition
+	 * @return true if ERC should check DRC Spacing condition.
 	 */
 	public static boolean isDRCCheck() { return cacheDRCCheck.getBoolean(); }
 	/**
-	 * Method to tell whether ERC should check DRC Spacing condition
-	 * @param on true if ERC should check DRC Spacing condition
+	 * Method to tell whether ERC should check DRC Spacing condition.
+	 * @param on true if ERC should check DRC Spacing condition.
 	 */
 	public static void setDRCCheck(boolean on) { cacheDRCCheck.setBoolean(on); }
+	/**
+	 * Method to tell whether ERC should check DRC Spacing condition by default.
+	 * @return true if ERC should check DRC Spacing condition by default.
+	 */
+	public static boolean isFactoryDRCCheck() { return cacheDRCCheck.getBooleanFactoryValue(); }
 
     /**** ANTENNA Preferences ***/
 	private Pref getArcProtoAntennaPref(ArcProto ap)

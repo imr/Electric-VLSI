@@ -54,14 +54,14 @@ public class GDSTab extends PreferencePanel
 	 */
 	public void init()
 	{
-        gdsConvertNCCExportsConnectedByParentPins.setSelected(IOTool.getGDSConvertNCCExportsConnectedByParentPins());
-        gdsInputMergesBoxes.setSelected(IOTool.isGDSInMergesBoxes());
-		gdsInputIncludesText.setSelected(IOTool.isGDSInIncludesText());
-		gdsInputExpandsCells.setSelected(IOTool.isGDSInExpandsCells());
-		gdsInputInstantiatesArrays.setSelected(IOTool.isGDSInInstantiatesArrays());
-		gdsInputIgnoresUnknownLayers.setSelected(IOTool.isGDSInIgnoresUnknownLayers());
-        gdsSimplifyCells.setSelected(IOTool.isGDSInSimplifyCells());
-        gdsColapseNames.setSelected(IOTool.isGDSColapseVddGndPinNames());
+		IOTool.setGDSConvertNCCExportsConnectedByParentPins(IOTool.getFactoryGDSConvertNCCExportsConnectedByParentPins());
+		IOTool.setGDSInMergesBoxes(IOTool.isFactoryGDSInMergesBoxes());
+		IOTool.setGDSInIncludesText(IOTool.isFactoryGDSInIncludesText());
+		IOTool.setGDSInExpandsCells(IOTool.isFactoryGDSInExpandsCells());
+		IOTool.setGDSInInstantiatesArrays(IOTool.isFactoryGDSInInstantiatesArrays());
+		IOTool.setGDSInIgnoresUnknownLayers(IOTool.isFactoryGDSInIgnoresUnknownLayers());
+		IOTool.setGDSInSimplifyCells(IOTool.isFactoryGDSInSimplifyCells());
+		IOTool.setGDSColapseVddGndPinNames(IOTool.isFactoryGDSColapseVddGndPinNames());
 	}
 
 	/**

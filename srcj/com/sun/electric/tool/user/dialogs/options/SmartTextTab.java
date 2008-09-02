@@ -131,7 +131,10 @@ public class SmartTextTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		System.out.println("CANNOT RESET SMART TEXT PREFERENCES YET");
+		User.setSmartVerticalPlacementArc(User.getFactorySmartVerticalPlacementArc());
+		User.setSmartHorizontalPlacementArc(User.getFactorySmartHorizontalPlacementArc());
+		User.setSmartVerticalPlacementExport(User.getFactorySmartVerticalPlacementExport());
+		User.setSmartHorizontalPlacementExport(User.getFactorySmartHorizontalPlacementExport());
 	}
 
 	/** This method is called from within the constructor to

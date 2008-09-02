@@ -888,11 +888,11 @@ public class ToolBar extends JToolBar
 	private static JLabel currentGridDistance = new JLabel();
 
 	private static final EToolBarButton gridLarger = new EToolBarButton("Make Grid Larger",
-		KeyStroke.getKeyStroke('F', 0), "ButtonGridCoarser", "Edit")
+		KeyStroke.getKeyStroke('F', 0), "ButtonGridCoarser", "Edit:Modes:Movement")
 			{ public void run() { changeGridSize(true); } };
 
 	private static final EToolBarButton gridSmaller = new EToolBarButton("Make Grid Smaller",
-		KeyStroke.getKeyStroke('H', 0), "ButtonGridFiner", "Edit")
+		KeyStroke.getKeyStroke('H', 0), "ButtonGridFiner", "Edit:Modes:Movement")
 			{ public void run() { changeGridSize(false); } };
 
 	private static void changeGridSize(int size)

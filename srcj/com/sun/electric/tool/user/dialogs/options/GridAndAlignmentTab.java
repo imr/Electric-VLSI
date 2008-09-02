@@ -174,7 +174,12 @@ public class GridAndAlignmentTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		System.out.println("CANNOT RESET GRID PREFERENCES YET");
+		User.setDefGridXSpacing(User.getFactoryDefGridXSpacing());
+		User.setDefGridYSpacing(User.getFactoryDefGridYSpacing());
+		User.setDefGridXBoldFrequency(User.getFactoryDefGridXBoldFrequency());
+		User.setDefGridYBoldFrequency(User.getFactoryDefGridYBoldFrequency());
+		User.setGridAxesShown(User.isFactoryGridAxesShown());
+		User.setAlignmentToGridVector(User.getFactoryAlignmentToGridVector());
 	}
 
 	/** This method is called from within the constructor to

@@ -112,7 +112,11 @@ public class EDIFTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		System.out.println("CANNOT RESET EDIF PREFERENCES YET");
+		IOTool.setEDIFUseSchematicView(IOTool.isFactoryEDIFUseSchematicView());
+		IOTool.setEDIFInputScale(IOTool.getFactoryEDIFInputScale());
+		IOTool.setEDIFCadenceCompatibility(IOTool.isFactoryEDIFCadenceCompatibility());
+		IOTool.setEDIFConfigurationFile(IOTool.getFactoryEDIFConfigurationFile());
+		IOTool.setEDIFAcceptedParameters(IOTool.getFactoryEDIFAcceptedParameters());
 	}
 
 	/** This method is called from within the constructor to

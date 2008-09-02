@@ -190,7 +190,13 @@ public class UnitsTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		System.out.println("CANNOT RESET UNITS PREFERENCES YET");
+		User.setDistanceUnits(User.getFactoryDistanceUnits());
+		User.setResistanceUnits(User.getFactoryResistanceUnits());
+		User.setCapacitanceUnits(User.getFactoryCapacitanceUnits());
+		User.setInductanceUnits(User.getFactoryInductanceUnits());
+		User.setAmperageUnits(User.getFactoryAmperageUnits());
+		User.setVoltageUnits(User.getFactoryVoltageUnits());
+		User.setTimeUnits(User.getFactoryTimeUnits());
 	}
 
 	/** This method is called from within the constructor to

@@ -823,6 +823,11 @@ public class Project extends Listener
 	 * @param u the name of the current user of Project Management.
 	 */
 	public static void setCurrentUserName(String u) { cacheCurrentUserName.setString(u); }
+	/**
+	 * Method to tell the default name of the current user of Project Management.
+	 * @return the default name of the current user of Project Management.
+	 */
+	public static String getFactoryCurrentUserName() { return cacheCurrentUserName.getStringFactoryValue(); }
 
 	private static Pref cacheRepositoryLocation = Pref.makeStringPref("RepositoryLocation", tool.prefs, "");
 	/**
@@ -841,6 +846,11 @@ public class Project extends Listener
 		cacheRepositoryLocation.setString(r);
 		if (alter) projectDB.clearDatabase();
 	}
+	/**
+	 * Method to tell the default location of the project management repository.
+	 * @return the default location of the project management repository.
+	 */
+	public static String getFactoryRepositoryLocation() { return cacheRepositoryLocation.getStringFactoryValue(); }
 
 	private static Pref cacheAuthorizationPassword = Pref.makeStringPref("e", tool.prefs, "e");
 	/**

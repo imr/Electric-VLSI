@@ -248,7 +248,17 @@ public class TechnologyTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		System.out.println("CANNOT RESET TECHNOLOGY PREFERENCES YET");
+		User.setRotateLayoutTransistors(User.isFactoryRotateLayoutTransistors());
+		Artwork.setFilledArrowHeads(Artwork.isFactoryFilledArrowHeads());
+		Schematics.setNegatingBubbleSize(Schematics.getFactoryNegatingBubbleSize());
+		for(Iterator<PrimitiveNode> it = Schematics.tech().getNodes(); it.hasNext(); )
+		{
+			PrimitiveNode np = it.next();
+			if (np != Schematics.tech().andNode && np != Schematics.tech().orNode &&
+				np != Schematics.tech().xorNode && np != Schematics.tech().muxNode &&
+				np != Schematics.tech().bufferNode) continue;
+			Schematics.setVHDLNames(np, Schematics.getFactoryVHDLNames(np));
+		}
 	}
 
 	/** This method is called from within the constructor to

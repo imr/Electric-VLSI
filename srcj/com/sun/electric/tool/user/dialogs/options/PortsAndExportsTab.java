@@ -107,7 +107,9 @@ public class PortsAndExportsTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		System.out.println("CANNOT RESET PORT PREFERENCES YET");
+		User.setPortDisplayLevels(User.getFactoryPortDisplayLevel());
+		User.setExportDisplayLevels(User.getFactoryExportDisplayLevel());
+		User.setMoveNodeWithExport(User.isFactoryMoveNodeWithExport());
 	}
 
 	/** This method is called from within the constructor to

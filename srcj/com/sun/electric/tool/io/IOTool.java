@@ -274,6 +274,14 @@ public class IOTool extends Tool
 	 * 2=plot only the displayed window.
 	 */
 	public static void setPlotArea(int pa) { cachePlotArea.setInt(pa); }
+	/**
+	 * Method to tell the area of the screen to plot for printing/PostScript/HPGL, by default.
+	 * @return the area of the screen to plot for printing/PostScript/HPGL, by default:
+	 * 0=plot the entire cell;
+	 * 1=plot only the highlighted area;
+	 * 2=plot only the displayed window.
+	 */
+	public static int getFactoryPlotArea() { return cachePlotArea.getIntFactoryValue(); }
 
 	private static Pref cachePlotDate = Pref.makeBooleanPref("PlotDate", IOTool.tool.prefs, false);
 	/**
@@ -287,6 +295,11 @@ public class IOTool extends Tool
 	 * @param pd true to plot the date in PostScript output.
 	 */
 	public static void setPlotDate(boolean pd) { cachePlotDate.setBoolean(pd); }
+	/**
+	 * Method to tell whether to plot the date in PostScript output by default.
+	 * @return whether to plot the date in PostScript output by default.
+	 */
+	public static boolean isFactoryPlotDate() { return cachePlotDate.getBooleanFactoryValue(); }
 
 	private static Pref cachePrinterName = null;
 
@@ -542,6 +555,12 @@ public class IOTool extends Tool
 	 * @param on true if GDS Input merges boxes into complex polygons.
 	 */
 	public static void setGDSInMergesBoxes(boolean on) { cacheGDSInMergesBoxes.setBoolean(on); }
+	/**
+	 * Method to tell whether GDS Input merges boxes into complex polygons, by default.
+	 * This takes more time but produces a smaller database.
+	 * @return true if GDS Input merges boxes into complex polygons, by default.
+	 */
+	public static boolean isFactoryGDSInMergesBoxes() { return cacheGDSInMergesBoxes.getBooleanFactoryValue(); }
 
 	private static Pref cacheGDSInIncludesText = Pref.makeBooleanPref("GDSInIncludesText", IOTool.tool.prefs, false);
 	/**
@@ -557,6 +576,12 @@ public class IOTool extends Tool
 	 * @param on true if GDS Input ignores text.
 	 */
 	public static void setGDSInIncludesText(boolean on) { cacheGDSInIncludesText.setBoolean(on); }
+	/**
+	 * Method to tell whether GDS Input ignores text, by default.
+	 * Text can clutter the display, so some users don't want to read it.
+	 * @return true if GDS Input ignores text, by default.
+	 */
+	public static boolean isFactoryGDSInIncludesText() { return cacheGDSInIncludesText.getBooleanFactoryValue(); }
 
 	private static Pref cacheGDSInExpandsCells = Pref.makeBooleanPref("GDSInExpandsCells", IOTool.tool.prefs, false);
 	/**
@@ -570,6 +595,11 @@ public class IOTool extends Tool
 	 * @param on true if GDS Input expands cells.
 	 */
 	public static void setGDSInExpandsCells(boolean on) { cacheGDSInExpandsCells.setBoolean(on); }
+	/**
+	 * Method to tell whether GDS Input expands cells, by default.
+	 * @return true if GDS Input expands cells, by default.
+	 */
+	public static boolean isFactoryGDSInExpandsCells() { return cacheGDSInExpandsCells.getBooleanFactoryValue(); }
 
 	private static Pref cacheGDSInInstantiatesArrays = Pref.makeBooleanPref("GDSInInstantiatesArrays", IOTool.tool.prefs, true);
 	/**
@@ -585,6 +615,12 @@ public class IOTool extends Tool
 	 * @param on true if GDS Input instantiates arrays.
 	 */
 	public static void setGDSInInstantiatesArrays(boolean on) { cacheGDSInInstantiatesArrays.setBoolean(on); }
+	/**
+	 * Method to tell whether GDS Input instantiates arrays, by default.
+	 * When false, only the edges of arrays are instantiated, not those entries in the center.
+	 * @return true if GDS Input instantiates arrays, by default.
+	 */
+	public static boolean isFactoryGDSInInstantiatesArrays() { return cacheGDSInInstantiatesArrays.getBooleanFactoryValue(); }
 
 	private static Pref cacheGDSInIgnoresUnknownLayers = Pref.makeBooleanPref("GDSInIgnoresUnknownLayers", IOTool.tool.prefs, false);
 	/**
@@ -600,6 +636,12 @@ public class IOTool extends Tool
 	 * @param on true if GDS Input ignores unknown layers
 	 */
 	public static void setGDSInIgnoresUnknownLayers(boolean on) { cacheGDSInIgnoresUnknownLayers.setBoolean(on); }
+	/**
+	 * Method to tell whether GDS Input ignores unknown layers, by default.
+	 * Unknown layers are replaced with "DRC exclusion" nodes if not ignored.
+	 * @return true if GDS Input ignores unknown layers, by default.
+	 */
+	public static boolean isFactoryGDSInIgnoresUnknownLayers() { return cacheGDSInIgnoresUnknownLayers.getBooleanFactoryValue(); }
 
 	private static Pref cacheGDSConvertNCCExportsConnectedByParentPins = Pref.makeBooleanPref("GDSConvertNCCEconnectedByParentPins", IOTool.tool.prefs, false);
 	/**
@@ -618,6 +660,14 @@ public class IOTool extends Tool
 	 * pins that match the assertion to vdd:vdd.
 	 */
 	public static void setGDSConvertNCCExportsConnectedByParentPins(boolean b) { cacheGDSConvertNCCExportsConnectedByParentPins.setBoolean(b); }
+	/**
+	 * True to convert pin names to name:name for pins that are specified in the
+	 * NCC annotation, "exportsConnectedByParent" (by default).  This allows external LVS tools to
+	 * perform the analogous operation of virtual connection of networks.
+	 * For example, 'exportsConnectedByParent vdd /vdd_[0-9]+/' will rename all
+	 * pins that match the assertion to vdd:vdd.
+	 */
+	public static boolean getFactoryGDSConvertNCCExportsConnectedByParentPins() { return cacheGDSConvertNCCExportsConnectedByParentPins.getBooleanFactoryValue(); }
 
 	private static Pref cacheGDSInSimplifyCells = Pref.makeBooleanPref("GDSInSimplifyCells", IOTool.tool.prefs, false);
 	/**
@@ -631,6 +681,11 @@ public class IOTool extends Tool
 	 * @param on true if GDS Input simplifies contact vias.
 	 */
 	public static void setGDSInSimplifyCells(boolean on) { cacheGDSInSimplifyCells.setBoolean(on); }
+	/**
+	 * Method to tell whether GDS Input simplifies contact vias, by default.
+	 * @return true if GDS Input simplifies contact vias, by default.
+	 */
+	public static boolean isFactoryGDSInSimplifyCells() { return cacheGDSInSimplifyCells.getBooleanFactoryValue(); }
 
 	private static Pref cacheGDSColapseVddGndPinNames = Pref.makeBooleanPref("cacheGDSColapseVddGndPinNames", IOTool.tool.prefs, false);
 	/**
@@ -643,6 +698,11 @@ public class IOTool extends Tool
 	 * @param on true if GDS Input colapses vdd/gnd names.
 	 */
 	public static void setGDSColapseVddGndPinNames(boolean on) { cacheGDSColapseVddGndPinNames.setBoolean(on); }
+	/**
+	 * Method to tell whether Vdd_* and Gnd_* export pins must be colapsed, by default. This is for extraction in Fire/Ice.
+	 * @return true if GDS Input colapses vdd/gnd names, by default.
+	 */
+	public static boolean isFactoryGDSColapseVddGndPinNames() { return cacheGDSColapseVddGndPinNames.getBooleanFactoryValue(); }
 
 	/****************************** POSTSCRIPT OUTPUT PREFERENCES ******************************/
 
@@ -660,12 +720,18 @@ public class IOTool extends Tool
 	 * @param on true if PostScript Output is Encapsulated.
 	 */
 	public static void setPrintEncapsulated(boolean on) { cachePrintEncapsulated.setBoolean(on); }
+	/**
+	 * Method to tell whether PostScript Output is Encapsulated by default.
+	 * Encapsulated PostScript can be inserted into other documents.
+	 * @return true if PostScript Output is Encapsulated by default.
+	 */
+	public static boolean isFactoryPrintEncapsulated() { return cachePrintEncapsulated.getBooleanFactoryValue(); }
 
 	private static Pref cachePrintResolution = Pref.makeIntPref("PrintResolution", IOTool.tool.prefs, 300);
 	/**
 	 * Method to tell the default printing resolution.
 	 * Java printing assumes 72 DPI, this is an override.
-	 * The default is "300".
+	 * The factory default is "300".
 	 * @return the default printing resolution.
 	 */
 	public static int getPrintResolution() { return cachePrintResolution.getInt(); }
@@ -675,6 +741,12 @@ public class IOTool extends Tool
 	 * @param r the default printing resolution.
 	 */
 	public static void setPrintResolution(int r) { cachePrintResolution.setInt(r); }
+	/**
+	 * Method to tell the factory default printing resolution.
+	 * Java printing assumes 72 DPI, this is an override.
+	 * @return the factory default printing resolution.
+	 */
+	public static int getFactoryPrintResolution() { return cachePrintResolution.getIntFactoryValue(); }
 
 	private static Pref cachePrintForPlotter = Pref.makeBooleanPref("PostScriptForPlotter", IOTool.tool.prefs, false);
 	/**
@@ -690,6 +762,12 @@ public class IOTool extends Tool
 	 * @param on true if PostScript Output is for a plotter.
 	 */
 	public static void setPrintForPlotter(boolean on) { cachePrintForPlotter.setBoolean(on); }
+	/**
+	 * Method to tell whether PostScript Output is for a plotter, by default.
+	 * Plotters have width, but no height, since they are continuous feed.
+	 * @return true if PostScript Output is for a plotter, by default.
+	 */
+	public static boolean isFactoryPrintForPlotter() { return cachePrintForPlotter.getBooleanFactoryValue(); }
 
 	private static Pref cachePrintWidth = Pref.makeDoublePref("PostScriptWidth", IOTool.tool.prefs, 8.5);
 	/**
@@ -705,6 +783,12 @@ public class IOTool extends Tool
 	 * @param wid the width of PostScript Output.
 	 */
 	public static void setPrintWidth(double wid) { cachePrintWidth.setDouble(wid); }
+	/**
+	 * Method to tell the width of PostScript Output, by default.
+	 * The width is in inches.
+	 * @return the width of PostScript Output, by default.
+	 */
+	public static double getFactoryPrintWidth() { return cachePrintWidth.getDoubleFactoryValue(); }
 
 	private static Pref cachePrintHeight = Pref.makeDoublePref("PostScriptHeight", IOTool.tool.prefs, 11);
 	/**
@@ -720,6 +804,12 @@ public class IOTool extends Tool
 	 * @param hei the height of PostScript Output.
 	 */
 	public static void setPrintHeight(double hei) { cachePrintHeight.setDouble(hei); }
+	/**
+	 * Method to tell the height of PostScript Output, by default.
+	 * The height is in inches, and only applies if printing (not plotting).
+	 * @return the height of PostScript Output, by default.
+	 */
+	public static double getFactoryPrintHeight() { return cachePrintHeight.getDoubleFactoryValue(); }
 
 	private static Pref cachePrintMargin = Pref.makeDoublePref("PostScriptMargin", IOTool.tool.prefs, 0.75);
 	/**
@@ -735,6 +825,12 @@ public class IOTool extends Tool
 	 * @param mar the margin of PostScript Output.
 	 */
 	public static void setPrintMargin(double mar) { cachePrintMargin.setDouble(mar); }
+	/**
+	 * Method to tell the margin of PostScript Output, by default.
+	 * The margin is in inches and insets from all sides.
+	 * @return the margin of PostScript Output, by default.
+	 */
+	public static double getFactoryPrintMargin() { return cachePrintMargin.getDoubleFactoryValue(); }
 
 	private static Pref cachePrintRotation = Pref.makeIntPref("PostScriptRotation", IOTool.tool.prefs, 0);
 	/**
@@ -755,6 +851,15 @@ public class IOTool extends Tool
 	 * 2=rotate automatically to fit best.
 	 */
 	public static void setPrintRotation(int rot) { cachePrintRotation.setInt(rot); }
+	/**
+	 * Method to tell the rotation of PostScript Output, by default.
+	 * The plot can be normal or rotated 90 degrees to better fit the paper.
+	 * @return the rotation of PostScript Output, by default:
+	 * 0=no rotation;
+	 * 1=rotate 90 degrees;
+	 * 2=rotate automatically to fit best.
+	 */
+	public static int getFactoryPrintRotation() { return cachePrintRotation.getIntFactoryValue(); }
 
 	private static Pref cachePrintColorMethod = Pref.makeIntPref("PostScriptColorMethod", IOTool.tool.prefs, 0);
 	/**
@@ -775,6 +880,15 @@ public class IOTool extends Tool
 	 * 3=Color (merged).
 	 */
 	public static void setPrintColorMethod(int cm) { cachePrintColorMethod.setInt(cm); }
+	/**
+	 * Method to tell the color method of PostScript Output, by default.
+	 * @return the color method of PostScript Output, by default:
+	 * 0=Black & White;
+	 * 1=Color (solid);
+	 * 2=Color (stippled);
+	 * 3=Color (merged).
+	 */
+	public static int getFactoryPrintColorMethod() { return cachePrintColorMethod.getIntFactoryValue(); }
 
 	public static final Variable.Key POSTSCRIPT_EPS_SCALE = Variable.newKey("IO_postscript_EPS_scale");
 	/**
@@ -885,6 +999,12 @@ public class IOTool extends Tool
 	 * @param mar the width of PostScript lines.
 	 */
 	public static void setPrintPSLineWidth(double mar) { cachePrintPSLineWidth.setDouble(mar); }
+	/**
+	 * Method to tell the width of PostScript lines, by default.
+	 * Lines have their width scaled by this amount, so 1 means normal lines.
+	 * @return the width of PostScript lines, by default.
+	 */
+	public static double getFactoryPrintPSLineWidth() { return cachePrintPSLineWidth.getDoubleFactoryValue(); }
 
 	/****************************** EDIF PREFERENCES ******************************/
 
@@ -900,6 +1020,11 @@ public class IOTool extends Tool
 	 * @param f true if EDIF uses the schematic view.
 	 */
 	public static void setEDIFUseSchematicView(boolean f) { cacheEDIFUseSchematicView.setBoolean(f); }
+	/**
+	 * Method to tell whether EDIF uses the schematic view, by default.
+	 * @return true if EDIF uses the schematic view, by default.
+	 */
+	public static boolean isFactoryEDIFUseSchematicView() { return cacheEDIFUseSchematicView.getBooleanFactoryValue(); }
 
 	private static Pref cacheEDIFCadenceCompatibility = Pref.makeBooleanPref("EDIFCadenceCompatibility", IOTool.tool.prefs, true);
 	/**
@@ -913,6 +1038,11 @@ public class IOTool extends Tool
 	 * @param c true if EDIF I/O is compatible with Cadence.
 	 */
 	public static void setEDIFCadenceCompatibility(boolean c) { cacheEDIFCadenceCompatibility.setBoolean(c); }
+	/**
+	 * Method to tell whether EDIF I/O is compatible with Cadence, by default.
+	 * @return true if EDIF I/O is compatible with Cadence, by default.
+	 */
+	public static boolean isFactoryEDIFCadenceCompatibility() { return cacheEDIFCadenceCompatibility.getBooleanFactoryValue(); }
 
 	private static Pref cacheEDIFInputScale = Pref.makeDoublePref("EDIFInputScale", IOTool.tool.prefs, 0.05);
 	/**
@@ -926,6 +1056,11 @@ public class IOTool extends Tool
 	 * @param f the EDIF input scale.
 	 */
 	public static void setEDIFInputScale(double f) { cacheEDIFInputScale.setDouble(f); }
+	/**
+	 * Method to return the EDIF input scale, by default.
+	 * @return the EDIF input scale, by default.
+	 */
+	public static double getFactoryEDIFInputScale() { return cacheEDIFInputScale.getDoubleFactoryValue(); }
 
 	private static Pref cacheEDIFConfigurationFile = Pref.makeStringPref("EDIFConfigurationFile", IOTool.tool.prefs, "");
 	/**
@@ -939,6 +1074,11 @@ public class IOTool extends Tool
 	 * @param cFile the configuration file to use.
 	 */
 	public static void setEDIFConfigurationFile(String cFile) { cacheEDIFConfigurationFile.setString(cFile); }
+	/**
+	 * Method to tell the configuration file to use, by default.
+	 * @return the configuration file to use, by default.
+	 */
+	public static String getFactoryEDIFConfigurationFile() { return cacheEDIFConfigurationFile.getStringFactoryValue(); }
 
 	private static Pref cacheEDIFAcceptedParameters = Pref.makeStringPref("EDIFAcceptedParameters", IOTool.tool.prefs, "");
 	/**
@@ -956,6 +1096,13 @@ public class IOTool extends Tool
 	 * @param ap the accepted parameter names.
 	 */
 	public static void setEDIFAcceptedParameters(String ap) { cacheEDIFAcceptedParameters.setString(ap); }
+	/**
+	 * Method to return a string with accepted parameter names, by default.
+	 * These parameter names will be placed on cells when reading EDIF.
+	 * The string lists the names, separated by slashes.
+	 * @return a string with accepted parameter names, by default.
+	 */
+	public static String getFactoryEDIFAcceptedParameters() { return cacheEDIFAcceptedParameters.getStringFactoryValue(); }
 
 	/****************************** DXF PREFERENCES ******************************/
 

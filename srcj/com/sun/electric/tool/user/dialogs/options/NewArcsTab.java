@@ -35,6 +35,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -70,7 +71,7 @@ public class NewArcsTab extends PreferencePanel
 		int initialAngleIncrement, angleIncrement;
 		PrimitiveNode initialPin, pin;
 	}
-	private HashMap<ArcProto,PrimArcInfo> initialNewArcsPrimInfo;
+	private Map<ArcProto,PrimArcInfo> initialNewArcsPrimInfo;
 	private boolean newArcsDataChanging = false;
 	private Technology selectedTech;
 
@@ -98,12 +99,10 @@ public class NewArcsTab extends PreferencePanel
 				pai.initialEndsExtend = pai.endsExtend = ap.isExtended();
 	
 				pai.initialWid = pai.wid = ap.getDefaultLambdaBaseWidth();
-//				pai.initialWid = pai.wid = ap.getDefaultLambdaFullWidth();
 				pai.initialAngleIncrement = pai.angleIncrement = ap.getAngleIncrement();
 				pai.initialPin = pai.pin = ap.findOverridablePinProto();
 	
 				initialNewArcsPrimInfo.put(ap, pai);
-//				arcProtoList.addItem(ap.getName());
 			}
 		}
 		technologySelection.setSelectedItem(Technology.getCurrent().getTechName());
@@ -271,7 +270,6 @@ public class NewArcsTab extends PreferencePanel
 					ap.setExtended(pai.endsExtend);
 				if (pai.wid != pai.initialWid)
 					ap.setDefaultLambdaBaseWidth(pai.wid);
-//					ap.setDefaultLambdaFullWidth(pai.wid);
 				if (pai.angleIncrement != pai.initialAngleIncrement)
 					ap.setAngleIncrement(pai.angleIncrement);
 				if (pai.pin != pai.initialPin)
@@ -295,7 +293,33 @@ public class NewArcsTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		System.out.println("CANNOT RESET ARC PREFERENCES YET");
+		for(Iterator<Technology> tIt = Technology.getTechnologies(); tIt.hasNext(); )
+		{
+			Technology tech = tIt.next();
+			for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
+			{
+				ArcProto ap = it.next();
+				if (ap.isRigid() != ap.isFactoryRigid())
+					ap.setRigid(ap.isFactoryRigid());
+				if (ap.isFixedAngle() != ap.isFactoryFixedAngle())
+					ap.setFixedAngle(ap.isFactoryFixedAngle());
+				if (ap.isSlidable() != ap.isFactorySlidable())
+					ap.setSlidable(ap.isFactorySlidable());
+				if (ap.isDirectional() != ap.isFactoryDirectional())
+					ap.setDirectional(ap.isFactoryDirectional());
+				if (ap.isExtended() != ap.isFactoryExtended())
+					ap.setExtended(ap.isFactoryExtended());
+	
+				if (ap.getDefaultLambdaBaseWidth() != ap.getFactoryDefaultLambdaBaseWidth())
+					ap.setDefaultLambdaBaseWidth(ap.getFactoryDefaultLambdaBaseWidth());
+				if (ap.getAngleIncrement() != ap.getFactoryAngleIncrement())
+					ap.setAngleIncrement(ap.getFactoryAngleIncrement());
+				if (ap.findOverridablePinProto() != ap.findPinProto())
+					ap.setPinProto(ap.findPinProto());
+			}
+		}
+		User.setPlayClickSoundsWhenCreatingArcs(User.isFactoryPlayClickSoundsWhenCreatingArcs());
+		User.setArcsAutoIncremented(User.isFactoryArcsAutoIncremented());
 	}
 
 	/** This method is called from within the constructor to

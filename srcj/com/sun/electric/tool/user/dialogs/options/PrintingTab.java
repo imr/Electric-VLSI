@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.FileType;
@@ -32,6 +33,7 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Iterator;
 
 import javax.swing.JPanel;
 
@@ -198,7 +200,29 @@ public class PrintingTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		System.out.println("CANNOT RESET PRINTING PREFERENCES YET");
+		IOTool.setPlotArea(IOTool.getFactoryPlotArea());
+		IOTool.setPrintResolution(IOTool.getFactoryPrintResolution());
+		IOTool.setPrintEncapsulated(IOTool.isFactoryPrintEncapsulated());
+		IOTool.setPlotDate(IOTool.isFactoryPlotDate());
+		IOTool.setPrintForPlotter(IOTool.isFactoryPrintForPlotter());
+		IOTool.setPrintWidth(IOTool.getFactoryPrintWidth());
+		IOTool.setPrintHeight(IOTool.getFactoryPrintHeight());
+		IOTool.setPrintMargin(IOTool.getFactoryPrintMargin());
+		IOTool.setPrintPSLineWidth(IOTool.getFactoryPrintPSLineWidth());
+		IOTool.setPrintRotation(IOTool.getFactoryPrintRotation());
+		IOTool.setPrintColorMethod(IOTool.getFactoryPrintColorMethod());
+		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
+		{
+			Library lib = it.next();
+			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
+			{
+				Cell cell = cIt.next();
+				if (IOTool.getPrintEPSScale(cell) != 1)
+					IOTool.setPrintEPSScale(cell, 1);
+				if (IOTool.getPrintEPSSynchronizeFile(cell).length() > 0)
+					IOTool.setPrintEPSSynchronizeFile(cell, "");
+			}
+		}
 	}
 
 	/** This method is called from within the constructor to

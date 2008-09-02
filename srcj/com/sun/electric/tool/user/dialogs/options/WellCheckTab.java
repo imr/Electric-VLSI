@@ -111,7 +111,12 @@ public class WellCheckTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		System.out.println("CANNOT RESET WELL CHECK PREFERENCES YET");
+		ERC.setPWellCheck(ERC.getFactoryPWellCheck());
+		ERC.setMustConnectPWellToGround(ERC.isFactoryMustConnectPWellToGround());
+		ERC.setNWellCheck(ERC.getFactoryNWellCheck());
+		ERC.setMustConnectNWellToPower(ERC.isFactoryMustConnectNWellToPower());
+		ERC.setFindWorstCaseWell(ERC.isFactoryFindWorstCaseWell());
+		ERC.setDRCCheck(ERC.isFactoryDRCCheck());
 	}
 
 	/** This method is called from within the constructor to

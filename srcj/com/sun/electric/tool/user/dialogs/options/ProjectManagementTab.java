@@ -138,7 +138,8 @@ public class ProjectManagementTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		System.out.println("CANNOT RESET PROJECT MANAGEMENT PREFERENCES YET");
+		Project.setRepositoryLocation(Project.getFactoryRepositoryLocation());
+		Project.setCurrentUserName(Project.getFactoryCurrentUserName());
 	}
 
 	/**

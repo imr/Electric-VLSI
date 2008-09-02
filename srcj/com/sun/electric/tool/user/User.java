@@ -1317,6 +1317,14 @@ public class User extends Listener
 	 * 2: ports drawn as crosses.
 	 */
 	public static void setPortDisplayLevels(int level) { cachePortDisplayLevel.setInt(level); }
+	/**
+	 * Method to tell how to display ports, by default.
+	 * @return how to display ports, by default.
+	 * 0: full port names.
+	 * 1: short port names (stopping at the first nonalphabetic character).
+	 * 2: ports drawn as crosses.
+	 */
+	public static int getFactoryPortDisplayLevel() { return cachePortDisplayLevel.getIntFactoryValue(); }
 
 	private static Pref cacheExportDisplayLevel = Pref.makeIntPref("ExportDisplayLevel", tool.prefs, 0);
 	/**
@@ -1335,6 +1343,14 @@ public class User extends Listener
 	 * 2: exports drawn as crosses.
 	 */
 	public static void setExportDisplayLevels(int level) { cacheExportDisplayLevel.setInt(level); }
+	/**
+	 * Method to tell how to display exports, by default.
+	 * @return how to display exports, by default.
+	 * 0: full export names.
+	 * 1: short export names (stopping at the first nonalphabetic character).
+	 * 2: exports drawn as crosses.
+	 */
+	public static int getFactoryExportDisplayLevel() { return cacheExportDisplayLevel.getIntFactoryValue(); }
 
 	private static Pref cacheMoveNodeWithExport = Pref.makeBooleanPref("MoveNodeWithExport", tool.prefs, false);
 	/**
@@ -1348,6 +1364,11 @@ public class User extends Listener
 	 * @param on true to move a node when its export name moves.
 	 */
 	public static void setMoveNodeWithExport(boolean on) { cacheMoveNodeWithExport.setBoolean(on); }
+	/**
+	 * Method to tell whether to move a node when its export name moves, by default.
+	 * @return true to move a node when its export name moves, by default.
+	 */
+	public static boolean isFactoryMoveNodeWithExport() { return cacheMoveNodeWithExport.getBooleanFactoryValue(); }
 
 	/****************************** SELECTION PREFERENCES ******************************/
 
@@ -1363,6 +1384,11 @@ public class User extends Listener
 	 * @param on true if cell instances are all to be easy-to-select.
 	 */
 	public static void setEasySelectionOfCellInstances(boolean on) { cacheEasySelectionOfCellInstances.setBoolean(on); }
+	/**
+	 * Method to tell whether cell instances are all be easy-to-select by default.
+	 * @return true if cell instances are all be easy-to-select by default.
+	 */
+	public static boolean isFactoryEasySelectionOfCellInstances() { return cacheEasySelectionOfCellInstances.getBooleanFactoryValue(); }
 
 	private static Pref cacheDraggingMustEncloseObjects = Pref.makeBooleanPref("DraggingMustEncloseObjects", tool.prefs, false);
 	/**
@@ -1376,6 +1402,11 @@ public class User extends Listener
 	 * @param on true if dragging a selection rectangle must completely encose objects in order to select them.
 	 */
 	public static void setDraggingMustEncloseObjects(boolean on) { cacheDraggingMustEncloseObjects.setBoolean(on); }
+	/**
+	 * Method to tell whether dragging a selection rectangle must completely encose objects in order to select them, by default.
+	 * @return true if dragging a selection rectangle must completely encose objects in order to select them, by default.
+	 */
+	public static boolean isFactoryDraggingMustEncloseObjects() { return cacheDraggingMustEncloseObjects.getBooleanFactoryValue(); }
 
 	private static Pref cacheMouseOverHighlighting = Pref.makeBooleanPref("UseMouseOverHighlighting", tool.prefs, true);
 	/**
@@ -1389,6 +1420,11 @@ public class User extends Listener
 	 * @param on true if dragging a selection rectangle must completely encose objects in order to select them.
 	 */
 	public static void setMouseOverHighlightingEnabled(boolean on) { cacheMouseOverHighlighting.setBoolean(on); }
+	/**
+	 * Method to tell whether dragging a selection rectangle must completely encose objects in order to select them, by default.
+	 * @return true if dragging a selection rectangle must completely encose objects in order to select them, by default.
+	 */
+	public static boolean isFactoryMouseOverHighlightingEnabled() { return cacheMouseOverHighlighting.getBooleanFactoryValue(); }
 
 	private static Pref cacheHighlightConnectedObjects = Pref.makeBooleanPref("HighlightConnectedObjects", tool.prefs, true);
 	/**
@@ -1401,6 +1437,11 @@ public class User extends Listener
 	 * @param on true to highlight objects connected to the selected object
 	 */
 	public static void setHighlightConnectedObjects(boolean on) { cacheHighlightConnectedObjects.setBoolean(on); }
+	/**
+	 * Method to set whether to highlight objects connected to the selected object, by default.
+	 * @return true to highlight objects connected to the selected object by default, false otherwise
+	 */
+	public static boolean isFactoryHighlightConnectedObjects() { return cacheHighlightConnectedObjects.getBooleanFactoryValue(); }
 
 	/****************************** GRID AND ALIGNMENT PREFERENCES ******************************/
 
@@ -1416,6 +1457,11 @@ public class User extends Listener
 	 * @param dist the default spacing of grid dots in the X direction.
 	 */
 	public static void setDefGridXSpacing(double dist) { cacheDefGridXSpacing.setDouble(dist); }
+	/**
+	 * Method to return the default spacing of grid dots in the X direction (factory setting).
+	 * @return the default spacing of grid dots in the X direction (factory setting).
+	 */
+	public static double getFactoryDefGridXSpacing() { return cacheDefGridXSpacing.getDoubleFactoryValue(); }
 
 	private static Pref cacheDefGridYSpacing = Pref.makeDoublePref("DefGridYSpacing", tool.prefs, 1);
 	/**
@@ -1429,6 +1475,11 @@ public class User extends Listener
 	 * @param dist the default spacing of grid dots in the Y direction.
 	 */
 	public static void setDefGridYSpacing(double dist) { cacheDefGridYSpacing.setDouble(dist); }
+	/**
+	 * Method to return the default spacing of grid dots in the Y direction (factory setting).
+	 * @return the default spacing of grid dots in the Y direction (factory setting).
+	 */
+	public static double getFactoryDefGridYSpacing() { return cacheDefGridYSpacing.getDoubleFactoryValue(); }
 
 	private static Pref cacheDefGridXBoldFrequency = Pref.makeIntPref("DefGridXBoldFrequency", tool.prefs, 10);
 	/**
@@ -1442,6 +1493,11 @@ public class User extends Listener
 	 * @param dist the default frequency of bold grid dots in the X direction.
 	 */
 	public static void setDefGridXBoldFrequency(int dist) { cacheDefGridXBoldFrequency.setInt(dist); }
+	/**
+	 * Method to return the default frequency of bold grid dots in the X direction (factory setting).
+	 * @return the default frequency of bold grid dots in the X direction (factory setting).
+	 */
+	public static int getFactoryDefGridXBoldFrequency() { return cacheDefGridXBoldFrequency.getIntFactoryValue(); }
 
 	private static Pref cacheDefGridYBoldFrequency = Pref.makeIntPref("DefGridYBoldFrequency", tool.prefs, 10);
 	/**
@@ -1455,6 +1511,11 @@ public class User extends Listener
 	 * @param dist the default frequency of bold grid dots in the Y direction.
 	 */
 	public static void setDefGridYBoldFrequency(int dist) { cacheDefGridYBoldFrequency.setInt(dist); }
+	/**
+	 * Method to return the default frequency of bold grid dots in the Y direction (factory setting).
+	 * @return the default frequency of bold grid dots in the Y direction (factory setting).
+	 */
+	public static int getFactoryDefGridYBoldFrequency() { return cacheDefGridYBoldFrequency.getIntFactoryValue(); }
 
 	/**
 	 * Method to return the default alignment of objects to the grid.
@@ -1480,6 +1541,20 @@ public class User extends Listener
 	public static double[] getAlignmentToGridVector()
 	{
 		double [] retVal = GenMath.transformStringIntoArray(cacheAlignmentToGridVector.getString());
+		return correctAlignmentGridVector(retVal);
+	}
+	/**
+	 * Method to return an array of five grid alignment values, the defaults.
+	 * If a value is negative, it is the current grid alignment to use.
+	 * @return an array of five grid alignment values, the defaults.
+	 */
+	public static double[] getFactoryAlignmentToGridVector()
+	{
+		double [] retVal = GenMath.transformStringIntoArray(cacheAlignmentToGridVector.getStringFactoryValue());
+		return correctAlignmentGridVector(retVal);
+	}
+	private static double[] correctAlignmentGridVector(double [] retVal)
+	{
 		if (retVal.length < 5)
 		{
 			double [] newRetVal = new double[5];
@@ -1517,6 +1592,12 @@ public class User extends Listener
 	 * @param s true if grid axes are shown.
 	 */
 	public static void setGridAxesShown(boolean s) { cacheShowGridAxes.setBoolean(s); }
+	/**
+	 * Method to return true if grid axes are shown, by default.
+	 * Grid axes are solid lines passing through the origin.
+	 * @return true if grid axes are shown, by default.
+	 */
+	public static boolean isFactoryGridAxesShown() { return cacheShowGridAxes.getBooleanFactoryValue(); }
 
 	/****************************** TEXT PREFERENCES ******************************/
 
@@ -1639,6 +1720,12 @@ public class User extends Listener
 	 * @param s the type of "smart" vertical text placement to be done for Exports.
 	 */
 	public static void setSmartVerticalPlacementExport(int s) { cacheSmartVerticalPlacementExport.setInt(s); }
+	/**
+	 * Method to tell what type of "smart" vertical text placement should be done for Exports, by default.
+	 * The values can be 0: no smart placement; 1: place text "inside"; 2: place text "outside".
+	 * @return the type of "smart" vertical text placement to be done for Exports, by default.
+	 */
+	public static int getFactorySmartVerticalPlacementExport() { return cacheSmartVerticalPlacementExport.getIntFactoryValue(); }
 
 	private static Pref cacheSmartHorizontalPlacementExport = Pref.makeIntPref("SmartHorizontalPlacementExport", tool.prefs, 0);
 	/**
@@ -1654,6 +1741,12 @@ public class User extends Listener
 	 * @param s the type of "smart" horizontal text placement to be done for Exports.
 	 */
 	public static void setSmartHorizontalPlacementExport(int s) { cacheSmartHorizontalPlacementExport.setInt(s); }
+	/**
+	 * Method to tell what type of "smart" horizontal text placement should be done for Exports, by default.
+	 * The values can be 0: no smart placement; 1: place text "inside"; 2: place text "outside".
+	 * @return the type of "smart" horizontal text placement to be done for Exports, by default.
+	 */
+	public static int getFactorySmartHorizontalPlacementExport() { return cacheSmartHorizontalPlacementExport.getIntFactoryValue(); }
 
 	private static Pref cacheSmartVerticalPlacementArc = Pref.makeIntPref("SmartVerticalPlacementArc", tool.prefs, 0);
 	/**
@@ -1669,6 +1762,12 @@ public class User extends Listener
 	 * @param s the type of "smart" text placement to be done for vertical Arcs.
 	 */
 	public static void setSmartVerticalPlacementArc(int s) { cacheSmartVerticalPlacementArc.setInt(s); }
+	/**
+	 * Method to tell what type of "smart" text placement should be done for vertical Arcs, by default.
+	 * The values can be 0: place text inside; 1: place text to left; 2: place text to right.
+	 * @return the type of "smart" text placement to be done for vertical Arcs, by default.
+	 */
+	public static int getFactorySmartVerticalPlacementArc() { return cacheSmartVerticalPlacementArc.getIntFactoryValue(); }
 
 	private static Pref cacheSmartHorizontalPlacementArc = Pref.makeIntPref("SmartHorizontalPlacementArc", tool.prefs, 0);
 	/**
@@ -1684,6 +1783,12 @@ public class User extends Listener
 	 * @param s the type of "smart" text placement to be done for horizontal Arcs.
 	 */
 	public static void setSmartHorizontalPlacementArc(int s) { cacheSmartHorizontalPlacementArc.setInt(s); }
+	/**
+	 * Method to tell what type of "smart" text placement should be done for horizontal Arcs, by default.
+	 * The values can be 0: place text inside; 1: place text above; 2: place text below.
+	 * @return the type of "smart" text placement to be done for horizontal Arcs, by default.
+	 */
+	public static int getFactorySmartHorizontalPlacementArc() { return cacheSmartHorizontalPlacementArc.getIntFactoryValue(); }
 
 	private static Pref cacheDefaultFont = Pref.makeStringPref("DefaultFont", tool.prefs, "SansSerif");
 	/**
@@ -1770,6 +1875,12 @@ public class User extends Listener
 	 * @param c the company name to use in schematic frames.
 	 */
 	public static void setFrameCompanyName(String c) { cacheFrameCompanyName.setString(c); }
+	/**
+	 * Method to return the company name to use in schematic frames, by default.
+	 * The company information sits in a block in the lower-right corner.
+	 * @return the company name to use in schematic frames, by default.
+	 */
+	public static String getFactoryFrameCompanyName() { return cacheFrameCompanyName.getStringFactoryValue(); }
 
 	private static Pref cacheFrameDesignerName = Pref.makeStringPref("FrameDesignerName", tool.prefs, "");
 	/**
@@ -1785,6 +1896,12 @@ public class User extends Listener
 	 * @param c the designer name to use in schematic frames.
 	 */
 	public static void setFrameDesignerName(String c) { cacheFrameDesignerName.setString(c); }
+	/**
+	 * Method to return the designer name to use in schematic frames, by default.
+	 * The designer information sits in a block in the lower-right corner.
+	 * @return the designer name to use in schematic frames, by default.
+	 */
+	public static String getFactoryFrameDesignerName() { return cacheFrameDesignerName.getStringFactoryValue(); }
 
 	private static Pref cacheFrameProjectName = Pref.makeStringPref("FrameProjectName", tool.prefs, "");
 	/**
@@ -1800,6 +1917,12 @@ public class User extends Listener
 	 * @param c the project name to use in schematic frames.
 	 */
 	public static void setFrameProjectName(String c) { cacheFrameProjectName.setString(c); }
+	/**
+	 * Method to return the project name to use in schematic frames, by default.
+	 * The project information sits in a block in the lower-right corner.
+	 * @return the project name to use in schematic frames, by default.
+	 */
+	public static String getFactoryFrameProjectName() { return cacheFrameProjectName.getStringFactoryValue(); }
 
 	/****************************** COLOR PREFERENCES ******************************/
 
@@ -2061,6 +2184,14 @@ public class User extends Listener
 	{
 		cacheDistanceUnits.setInt(us.getIndex());
 	}
+	/**
+	 * Method to get default distance units.
+	 * @return the default distance units.
+	 */
+	public static TextUtils.UnitScale getFactoryDistanceUnits()
+	{
+		return TextUtils.UnitScale.findFromIndex(cacheDistanceUnits.getIntFactoryValue());
+	}
 
 	private static Pref cacheResistanceUnits = Pref.makeIntPref("ResistanceUnits", tool.prefs, TextUtils.UnitScale.NONE.getIndex());
 	/**
@@ -2079,6 +2210,14 @@ public class User extends Listener
 	public static void setResistanceUnits(TextUtils.UnitScale us)
 	{
 		cacheResistanceUnits.setInt(us.getIndex());
+	}
+	/**
+	 * Method to get default resistance units.
+	 * @return the default resistance units.
+	 */
+	public static TextUtils.UnitScale getFactoryResistanceUnits()
+	{
+		return TextUtils.UnitScale.findFromIndex(cacheResistanceUnits.getIntFactoryValue());
 	}
 
 	private static Pref cacheCapacitanceUnits = Pref.makeIntPref("CapacitanceUnits", tool.prefs, TextUtils.UnitScale.PICO.getIndex());
@@ -2099,6 +2238,14 @@ public class User extends Listener
 	{
 		cacheCapacitanceUnits.setInt(us.getIndex());
 	}
+	/**
+	 * Method to get default capacitance units.
+	 * @return the default capacitance units.
+	 */
+	public static TextUtils.UnitScale getFactoryCapacitanceUnits()
+	{
+		return TextUtils.UnitScale.findFromIndex(cacheCapacitanceUnits.getIntFactoryValue());
+	}
 
 	private static Pref cacheInductanceUnits = Pref.makeIntPref("InductanceUnits", tool.prefs, TextUtils.UnitScale.NANO.getIndex());
 	/**
@@ -2117,6 +2264,14 @@ public class User extends Listener
 	public static void setInductanceUnits(TextUtils.UnitScale us)
 	{
 		cacheInductanceUnits.setInt(us.getIndex());
+	}
+	/**
+	 * Method to get default inductance units.
+	 * @return the default inductance units.
+	 */
+	public static TextUtils.UnitScale getFactoryInductanceUnits()
+	{
+		return TextUtils.UnitScale.findFromIndex(cacheInductanceUnits.getIntFactoryValue());
 	}
 
 	private static Pref cacheAmperageUnits = Pref.makeIntPref("AmperageUnits", tool.prefs, TextUtils.UnitScale.MILLI.getIndex());
@@ -2137,6 +2292,14 @@ public class User extends Listener
 	{
 		cacheAmperageUnits.setInt(us.getIndex());
 	}
+	/**
+	 * Method to get default amperage (current) units.
+	 * @return the default amperage (current) units.
+	 */
+	public static TextUtils.UnitScale getFactoryAmperageUnits()
+	{
+		return TextUtils.UnitScale.findFromIndex(cacheAmperageUnits.getIntFactoryValue());
+	}
 
 	private static Pref cacheVoltageUnits = Pref.makeIntPref("VoltageUnits", tool.prefs, TextUtils.UnitScale.NONE.getIndex());
 	/**
@@ -2156,12 +2319,20 @@ public class User extends Listener
 	{
 		cacheVoltageUnits.setInt(us.getIndex());
 	}
+	/**
+	 * Method to get default voltage units.
+	 * @return the default voltage) units.
+	 */
+	public static TextUtils.UnitScale getFactoryVoltageUnits()
+	{
+		return TextUtils.UnitScale.findFromIndex(cacheVoltageUnits.getIntFactoryValue());
+	}
 
 	private static Pref cacheTimeUnits = Pref.makeIntPref("TimeUnits", tool.prefs, TextUtils.UnitScale.NONE.getIndex());
 	/**
 	 * Method to get current time units.
 	 * The default is "seconds".
-	 * @return the current time) units.
+	 * @return the current time units.
 	 */
 	public static TextUtils.UnitScale getTimeUnits()
 	{
@@ -2174,6 +2345,14 @@ public class User extends Listener
 	public static void setTimeUnits(TextUtils.UnitScale us)
 	{
 		cacheTimeUnits.setInt(us.getIndex());
+	}
+	/**
+	 * Method to get default time units.
+	 * @return the default time units.
+	 */
+	public static TextUtils.UnitScale getFactoryTimeUnits()
+	{
+		return TextUtils.UnitScale.findFromIndex(cacheTimeUnits.getIntFactoryValue());
 	}
 
 	/****************************** MISCELLANEOUS PREFERENCES ******************************/
@@ -2300,6 +2479,12 @@ public class User extends Listener
 	 * @param on true if the system should beep after long jobs.
 	 */
 	public static void setBeepAfterLongJobs(boolean on) { cacheBeepAfterLongJobs.setBoolean(on); }
+	/**
+	 * Method to tell whether to beep after long jobs, by default.
+	 * Any task longer than 1 minute is considered a "long job".
+	 * @return true if the system should beep after long jobs, by default.
+	 */
+	public static boolean isFactoryBeepAfterLongJobs() { return cacheBeepAfterLongJobs.getBooleanFactoryValue(); }
 
 	private static Pref cacheJobVerboseMode = Pref.makeBooleanPref("JobVerboseMode", tool.prefs, false);
 	/**
@@ -2313,6 +2498,11 @@ public class User extends Listener
 	 * @param on true if jobs are described in the messages window.
 	 */
 	public static void setJobVerboseMode(boolean on) { cacheJobVerboseMode.setBoolean(on); }
+	/**
+	 * Method to tell if jobs are described in messages window (verbose mode), by default.
+	 * @return true if jobs are described in the messages window, by default.
+	 */
+	public static boolean isFactoryJobVerboseMode() { return cacheJobVerboseMode.getBooleanFactoryValue(); }
 
 	private static Pref cacheRotateLayoutTransistors = Pref.makeBooleanPref("RotateLayoutTransistors", tool.prefs, false);
 	/**
@@ -2326,6 +2516,11 @@ public class User extends Listener
 	 * @param on true if layout transistors are rotated 90 degrees in the menu (and initial placement).
 	 */
 	public static void setRotateLayoutTransistors(boolean on) { cacheRotateLayoutTransistors.setBoolean(on); }
+	/**
+	 * Method to tell if layout transistors are rotated 90 degrees in the menu (and initial placement), by default.
+	 * @return true if layout transistors are rotated 90 degrees in the menu (and initial placement), by default.
+	 */
+	public static boolean isFactoryRotateLayoutTransistors() { return cacheRotateLayoutTransistors.getBooleanFactoryValue(); }
 
 	private static Pref cacheSideBarOnRight = Pref.makeBooleanPref("SideBarOnRight", tool.prefs, false);
 	/**
@@ -2341,6 +2536,12 @@ public class User extends Listener
 	 * @param on true to place the side bar on the right by default.
 	 */
 	public static void setSideBarOnRight(boolean on) { cacheSideBarOnRight.setBoolean(on); }
+	/**
+	 * Method to tell whether to place the side bar on the right by default (factory setting).
+	 * The side bar (with the cell explorer, component menu, and layers) is usually on the left side.
+	 * @return true to place the side bar on the right by default (factory setting).
+	 */
+	public static boolean isFactorySideBarOnRight() { return cacheSideBarOnRight.getBooleanFactoryValue(); }
 
 	private static Pref cacheDefaultWindowTab = Pref.makeIntPref("DefaultWindowTab", tool.prefs, 0);
 	/**
@@ -2456,6 +2657,11 @@ public class User extends Listener
 	 * @param on true if the system should play a "click" sound when an arc is created
 	 */
 	public static void setPlayClickSoundsWhenCreatingArcs(boolean on) { cachePlayClickSoundsWhenCreatingArcs.setBoolean(on); }
+	/**
+	 * Method to tell whether to play a "click" sound when an arc is created, by default.
+	 * @return true if the system should play a "click" sound when an arc is created, by default.
+	 */
+	public static boolean isFactoryPlayClickSoundsWhenCreatingArcs() { return cachePlayClickSoundsWhenCreatingArcs.getBooleanFactoryValue(); }
 
 	private static Pref cacheShowHierarchicalCursorCoordinates = Pref.makeBooleanPref("ShowHierarchicalCursorCoordinates", tool.prefs, true);
 	/**
@@ -2475,6 +2681,14 @@ public class User extends Listener
 	 * @param on true to show hierarchical cursor coordinates as they move in the edit window.
 	 */
 	public static void setShowHierarchicalCursorCoordinates(boolean on) { cacheShowHierarchicalCursorCoordinates.setBoolean(on); }
+	/**
+	 * Method to tell whether to show hierarchical cursor coordinates as they move in the edit window, by default.
+	 * Hierarchical coordinates are those in higher-levels of the hierarchy.  They are only displayed when
+	 * the user has done a "Down Hierarchy" to descend the hierarchy.  The coordinates are displayed from
+	 * the topmost Cell that the user visited.
+	 * @return true to show hierarchical cursor coordinates as they move in the edit window, by default.
+	 */
+	public static boolean isFactoryShowHierarchicalCursorCoordinates() { return cacheShowHierarchicalCursorCoordinates.getBooleanFactoryValue(); }
 
 	private static Pref cacheDimUpperLevelWhenDownInPlace = Pref.makeBooleanPref("DimUpperLevelWhenDownInPlace", tool.prefs, true);
 	/**
@@ -2492,6 +2706,13 @@ public class User extends Listener
 	 * @param dim true to dim the upper levels of the display when editing down-in-place.
 	 */
 	public static void setDimUpperLevelWhenDownInPlace(boolean dim) { cacheDimUpperLevelWhenDownInPlace.setBoolean(dim); }
+	/**
+	 * Method to tell whether to dim the upper levels of the display when editing down-in-place, by default.
+	 * When editing down-in-place, the upper levels are not editable and are dimmed.
+	 * This dimming causes slowdown on some systems and so it can be disabled.
+	 * @return true to dim the upper levels of the display when editing down-in-place, by default.
+	 */
+	public static boolean isFactoryDimUpperLevelWhenDownInPlace() { return cacheDimUpperLevelWhenDownInPlace.getBooleanFactoryValue(); }
 
 	private static Pref cacheWhichDisplayAlgorithm = Pref.makeIntPref("WhichDisplayAlgorithm", tool.prefs, 1);
 	/**
@@ -2509,6 +2730,13 @@ public class User extends Listener
 	 * 2 for the layer display algorithm (new).
 	 */
 	public static void setDisplayAlgorithm(int w) { cacheWhichDisplayAlgorithm.setInt(w); }
+	/**
+	 * Method to tell which display algorithm to use, by default.
+	 * @return 0 for the pixel display algorithm (oldest);
+	 * 1 for the vector display algorithm (old);
+	 * 2 for the layer display algorithm (new).
+	 */
+	public static int getFactoryDisplayAlgorithm() { return cacheWhichDisplayAlgorithm.getIntFactoryValue(); }
 
 	private static Pref cacheUseCellGreekingImages = Pref.makeBooleanPref("UseCellGreekingImages", tool.prefs, false);
 	/**
@@ -2524,6 +2752,12 @@ public class User extends Listener
 	 * @param on true to use small images when greeking cells.
 	 */
 	public static void setUseCellGreekingImages(boolean on) { cacheUseCellGreekingImages.setBoolean(on); }
+	/**
+	 * Method to tell whether to use small images when greeking cells, by default.
+	 * When not using images, then a single blended color is used for greeked cells.
+	 * @return true to use small images when greeking cells, by default.
+	 */
+	public static boolean isFactoryUseCellGreekingImages() { return cacheUseCellGreekingImages.getBooleanFactoryValue(); }
 
 	private static Pref cacheGreekSizeLimit = Pref.makeDoublePref("GreekSizeLimit", tool.prefs, 3);
 	/**
@@ -2544,6 +2778,14 @@ public class User extends Listener
 	 * @param l the smallest object that can be drawn.
 	 */
 	public static void setGreekSizeLimit(double l) { cacheGreekSizeLimit.setDouble(l); }
+	/**
+	 * Method to tell the smallest object that can be drawn, by default.
+	 * Anything smaller than this amount (in screen pixels) is "greeked", or drawn approximately.
+	 * Also, any cell whose complete contents (hierarchically to the bottom) are all smaller
+	 * than this size will be "greeked".
+	 * @return the smallest object that can be drawn, by default.
+	 */
+	public static double getFactoryGreekSizeLimit() { return cacheGreekSizeLimit.getDoubleFactoryValue(); }
 
 	private static Pref cacheGreekCellSizeLimit = Pref.makeDoublePref("GreekCellSizeLimit", tool.prefs, 0.1);
 	/**
@@ -2559,6 +2801,12 @@ public class User extends Listener
 	 * @param l the ratio of cell size to screen size beyond which no cell greeking happens.
 	 */
 	public static void setGreekCellSizeLimit(double l) { cacheGreekCellSizeLimit.setDouble(l); }
+	/**
+	 * Method to tell the ratio of cell size to screen size beyond which no cell greeking happens, by default.
+	 * Any cell that fills more than this fraction of the screen will not be greeked.
+	 * @return the ratio of cell size to screen size beyond which no cell greeking happens, by default.
+	 */
+	public static double getFactoryGreekCellSizeLimit() { return cacheGreekCellSizeLimit.getDoubleFactoryValue(); }
 
 	private static Pref cachePatternedScaleLimit = Pref.makeDoublePref("PatternedScaleLimit", tool.prefs, 0.1);
 	/**
@@ -2574,6 +2822,12 @@ public class User extends Listener
 	 * @param l the scale of EditWindow when use patterned drawing.
 	 */
 	public static void setPatternedScaleLimit(double l) { cachePatternedScaleLimit.setDouble(l); }
+	/**
+	 * Method to tell the scale of EditWindow when use patterned drawing, by default.
+	 * Smaller scales use solid drawing.
+	 * @return the scale of EditWindow when use patterned drawing, by default.
+	 */
+	public static double getFactoryPatternedScaleLimit() { return cachePatternedScaleLimit.getDoubleFactoryValue(); }
 
 	private static Pref cacheLegacyComposite = Pref.makeBooleanPref("LegacyComposite", tool.prefs, false);
 	/**
@@ -2587,6 +2841,11 @@ public class User extends Listener
 	 * @param on true to use lagacy composite in LayerDrawing.
 	 */
 	public static void setLegacyComposite(boolean on) { cacheLegacyComposite.setBoolean(on); }
+	/**
+	 * Method to tell whether to use lagacy composite in LayerDrawing, by default.
+	 * @return true to use lagacy composite in LayerDrawing, by default.
+	 */
+	public static boolean isFactoryLegacyComposite() { return cacheLegacyComposite.getBooleanFactoryValue(); }
 
 	private static Pref cacheAlphaBlendingLimit = Pref.makeDoublePref("AlphaBlendingLimit", tool.prefs, 0.6);
 	/**
@@ -2602,6 +2861,12 @@ public class User extends Listener
 	 * @param l the scale of EditWindow when use overcolor in alpha blending.
 	 */
 	public static void setAlphaBlendingOvercolorLimit(double l) { cacheAlphaBlendingLimit.setDouble(l); }
+	/**
+	 * Method to tell the scale of EditWindow when use overcolor in alpha blending color composite, by default.
+	 * Smaller scales don't use overcolor.
+	 * @return the scale of EditWindow when use overcolor in alpha blending, by default.
+	 */
+	public static double getFactoryAlphaBlendingOvercolorLimit() { return cacheAlphaBlendingLimit.getDoubleFactoryValue(); }
 
 	private static Pref cacheShowFileSelectionForNetlists = Pref.makeBooleanPref("ShowFileSelectionForNetlists", tool.prefs, true);
 	/**
@@ -2615,6 +2880,11 @@ public class User extends Listener
 	 * @param on true if the system should display a file selection dialog before writing netlists.
 	 */
 	public static void setShowFileSelectionForNetlists(boolean on) { cacheShowFileSelectionForNetlists.setBoolean(on); }
+	/**
+	 * Method to tell whether to display a file selection dialog before writing netlists, by default.
+	 * @return true if the system should display a file selection dialog before writing netlists, by default.
+	 */
+	public static boolean isFactoryShowFileSelectionForNetlists() { return cacheShowFileSelectionForNetlists.getBooleanFactoryValue(); }
 
 	private static Pref cachePanningDistance = Pref.makeIntPref("PanningDistance", tool.prefs, 1);
 	/**
@@ -2630,6 +2900,12 @@ public class User extends Listener
 	 * The values are: 0=small, 1=medium, 2=large.
 	 */
 	public static void setPanningDistance(int d) { cachePanningDistance.setInt(d); }
+	/**
+	 * Method to tell the distance to pan when shifting the screen or rolling the mouse wheel, by default.
+	 * The values are: 0=small, 1=medium, 2=large.
+	 * @return the distance to pan when shifting the screen or rolling the mouse wheel, by default.
+	 */
+	public static int getFactoryPanningDistance() { return cachePanningDistance.getIntFactoryValue(); }
 
 	private static Pref cacheDisplayStyle = Pref.makeIntPref("DisplayStyle", tool.prefs, 0);
 	/**
@@ -2646,6 +2922,12 @@ public class User extends Listener
 	 * Changes do not take effect until Electric is restarted.
 	 */
 	public static void setDisplayStyle(int s) { cacheDisplayStyle.setInt(s); }
+	/**
+	 * Method to tell the initial display style for Electric, by default.
+	 * The values are: 0=OS default, 1=MDI, 2=SDI.
+	 * @return the display style for Electric, by default.
+	 */
+	public static int getFactoryDisplayStyle() { return cacheDisplayStyle.getIntFactoryValue(); }
 
 	private static Pref cacheErrorLimit = Pref.makeIntPref("ErrorLimit", tool.prefs, 0);
 	/**
@@ -2660,6 +2942,12 @@ public class User extends Listener
 	 * A value of zero indicates that there is no limit.
 	 */
 	public static void setErrorLimit(int limit) { cacheErrorLimit.setInt(limit); }
+	/**
+	 * Method to tell the maximum number of errors to log, by default.
+	 * The value 0 which means that there is no limit.
+	 * @return the maximum number of errors to log, by default.
+	 */
+	public static int getFactoryErrorLimit() { return cacheErrorLimit.getIntFactoryValue(); }
 
 	private static Pref cacheMaxUndoHistory = Pref.makeIntPref("MaxUndoHistory", tool.prefs, 40);
 	/**
@@ -2670,6 +2958,10 @@ public class User extends Listener
 	 * Method to set the maximum number of undos retained in memory
 	 */
 	public static void setMaxUndoHistory(int n) { cacheMaxUndoHistory.setInt(n); }
+	/**
+	 * Method to get the maximum number of undos retained in memory, by default.
+	 */
+	public static int getFactoryMaxUndoHistory() { return cacheMaxUndoHistory.getIntFactoryValue(); }
 
 	private static Pref cacheMemorySize = Pref.makeIntPref("MemorySize", tool.prefs, 65);
 	/**
@@ -2683,6 +2975,11 @@ public class User extends Listener
 	 * @param limit maximum memory to use for Electric (in megabytes).
 	 */
 	public static void setMemorySize(int limit) { cacheMemorySize.setInt(limit); }
+	/**
+	 * Method to tell the maximum memory to use for Electric (in megabytes), by default.
+	 * @return the maximum memory to use for Electric (in megabytes), by default.
+	 */
+	public static int getFactoryMemorySize() { return cacheMemorySize.getIntFactoryValue(); }
 
 	private static Pref cachePermSize = Pref.makeIntPref("PermSize", tool.prefs, 0);
 	/**
@@ -2696,6 +2993,12 @@ public class User extends Listener
 	 * @param limit maximum permanent space of 2dn GC to use for Electric (in megabytes).
 	 */
 	public static void setPermSpace(int limit) { cachePermSize.setInt(limit); }
+	/**
+	 * Method to tell the maximum permanent space of 2dn GC to use for Electric (in megatybes), by default.
+	 * If zero, value is not considered.
+	 * @return the maximum memory to use for Electric (in megabytes), by default.
+	 */
+	public static int getFactoryPermSpace() { return cachePermSize.getIntFactoryValue(); }
 
 	private static Pref cacheUseTwoJVMs = Pref.makeBooleanPref("UseTwoJVMs", tool.prefs, false);
 	/**
@@ -2711,6 +3014,12 @@ public class User extends Listener
 	 * @param on true to use two JVMs when running Electric.
 	 */
 	public static void setUseTwoJVMs(boolean on) { cacheUseTwoJVMs.setBoolean(on); }
+	/**
+	 * Method to tell whether to use two JVMs when running Electric, by default.
+	 * When using two JVMs, there is a client and a server, in separate memory spaces.
+	 * @return true to use two JVMs when running Electric, by default.
+	 */
+	public static boolean isFactoryUseTwoJVMs() { return cacheUseTwoJVMs.getBooleanFactoryValue(); }
 
 	private static Pref cacheUseClientServer = Pref.makeBooleanPref("UseClientServer", tool.prefs, false);
 	/**
@@ -2724,6 +3033,11 @@ public class User extends Listener
 	 * @param on true to use a separate client and server for Electric
 	 */
 	public static void setUseClientServer(boolean on) { cacheUseClientServer.setBoolean(on); }
+	/**
+	 * Method to tell whether to use a separate client and server for Electric, by default.
+	 * @return true to use a separate client and server for Electric, by default.
+	 */
+	public static boolean isFactoryUseClientServer() { return cacheUseClientServer.getBooleanFactoryValue(); }
 
 	private static Pref cacheSnapshotLogging = Pref.makeBooleanPref("SnapshotLogging", tool.prefs, false);
 	/**
@@ -2879,6 +3193,11 @@ public class User extends Listener
 	 * @param on true if the system auto-increments arc names when doing a Duplicate/Paste/Array.
 	 */
 	public static void setArcsAutoIncremented(boolean on) { cacheArcsAutoIncremented.setBoolean(on); }
+	/**
+	 * Method to tell whether Duplicate/Paste/Array of ArcInsts auto-increments arc names, by default.
+	 * @return true if the system auto-increments arc names when doing a Duplicate/Paste/Array, by default.
+	 */
+	public static boolean isFactoryArcsAutoIncremented() { return cacheArcsAutoIncremented.getBooleanFactoryValue(); }
 
 	private static Pref cacheNewNodeRotation = Pref.makeIntPref("NewNodeRotation", tool.prefs, 0);
 	/**
