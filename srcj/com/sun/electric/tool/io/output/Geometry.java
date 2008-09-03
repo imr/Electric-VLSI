@@ -77,11 +77,11 @@ public abstract class Geometry extends Output
 	}
 
     /** Creates a new instance of Geometry */
-    Geometry() 
+    Geometry()
     {
     }
 
-    /** 
+    /**
      * Write cell to file
      * @return true on error
      */
@@ -91,7 +91,7 @@ public abstract class Geometry extends Output
 		return false;
 	}
 
-    /** 
+    /**
      * Write cell to file
      * @return true on error
      */
@@ -110,20 +110,20 @@ public abstract class Geometry extends Output
 		done();
 		return false;
     }
-        
-        
+
+
     /** Abstract method called before hierarchy traversal */
     protected abstract void start();
-    
+
     /** Abstract method called after traversal */
     protected abstract void done();
-    
+
     /** Abstract method to write CellGeom to disk */
     protected abstract void writeCellGeom(CellGeom cellGeom);
-    
+
     /** Overridable method to determine whether or not to merge geometry */
     protected boolean mergeGeom(int hierLevelsFromBottom) { return false; }
-    
+
     /** Overridable method to determine whether or not to include the original Geometric with a Poly */
     protected boolean includeGeometric() { return false; }
 
@@ -137,7 +137,7 @@ public abstract class Geometry extends Output
         /** Nodables (instances) in this Cell */			protected List<Nodable> nodables;
         /** Cell */											protected Cell cell;
 		/** true if cell name used in other libraries */	protected boolean nonUniqueName;
-        
+
         /** Constructor */
         protected CellGeom(Cell cell)
         {
@@ -164,9 +164,9 @@ public abstract class Geometry extends Output
 			int numUniversalArcs = 0;
 			ArcProto unroutedArc = Generic.tech().unrouted_arc;
 			int numUnroutedArcs = 0;
-			for (int i = 0, numArcs = cell.getNumArcs(); i < numArcs; i++)
+			for (Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 			{
-				ArcInst ai = cell.getArc(i);
+				ArcInst ai = it.next();
 				ArcProto ap = ai.getProto();
 				if (ap == universalArc) numUniversalArcs++;
 				if (ap == unroutedArc) numUnroutedArcs++;
@@ -176,7 +176,7 @@ public abstract class Geometry extends Output
 			if (numUnroutedArcs > 0)
 				System.out.println("Geometry: Layout " + cell + " has " + numUnroutedArcs + " " + unroutedArc.describe() + " arcs");
 		}
-        
+
         /** add polys to cell geometry */
         protected void addPolys(Poly[] polys, Geometric geom)
         {
@@ -199,7 +199,7 @@ public abstract class Geometry extends Output
                 }
             }
         }
-    }    
+    }
 
     //------------------HierarchyEnumerator.Visitor Implementation----------------------
 
@@ -219,7 +219,7 @@ public abstract class Geometry extends Output
 			curHierDepth = 0;
         }
 
-        public boolean enterCell(HierarchyEnumerator.CellInfo info) 
+        public boolean enterCell(HierarchyEnumerator.CellInfo info)
         {
         	if (curHierDepth > maxHierDepth) return false;
 			outGeomStack[curHierDepth] = cellGeom;
@@ -246,7 +246,7 @@ public abstract class Geometry extends Output
             return true;
         }
 
-        public void exitCell(HierarchyEnumerator.CellInfo info) 
+        public void exitCell(HierarchyEnumerator.CellInfo info)
         {
             // add arcs to cellGeom
     		for (Iterator<ArcInst> it = info.getCell().getArcs(); it.hasNext();)
@@ -254,7 +254,7 @@ public abstract class Geometry extends Output
         		ArcInst ai = it.next();
 				addArcInst(ai);
             }
-            
+
             boolean merge = outGeom.mergeGeom(maxHierDepth - curHierDepth);
 			if (merge)
 			{
@@ -283,7 +283,7 @@ public abstract class Geometry extends Output
             cellGeom = outGeomStack[curHierDepth];
         }
 
-        public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info) 
+        public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
         {
             if (!no.isCellInstance())
 			{

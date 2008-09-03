@@ -255,9 +255,10 @@ class NetCell
 			headConn[orig] = portOffset;
 			tailConn[portOffset] = -1;
 		}
-		for (int i = 0; i < cell.getNumArcs(); i++) {
-			ArcInst ai = cell.getArc(i);
-			int arcOffset = arcsOffset + i;
+        int arcIndex = 0;
+		for (Iterator<ArcInst> it = cell.getArcs(); arcIndex < numArcs; arcIndex++) {
+			ArcInst ai = it.next();
+			int arcOffset = arcsOffset + arcIndex;
 			int head = getPortInstOffset(ai.getHeadPortInst());
 			headConn[arcOffset] = headConn[head];
 			headConn[head] = arcOffset;
@@ -545,17 +546,18 @@ class NetCell
 			Export e = cell.getPort(i);
 			setNetName(netNameToNetIndex, drawns[i], e.getNameKey(), true);
 		}
-		int numArcs = cell.getNumArcs();
-		for (int i = 0; i < numArcs; i++) {
-			ArcInst ai = cell.getArc(i);
+		int numArcs = cell.getNumArcs(), arcIndex = 0;
+		for (Iterator<ArcInst> it = cell.getArcs(); arcIndex < numArcs; arcIndex++) {
+			ArcInst ai = it.next();
 			if (!ai.isUsernamed()) continue;
-			int drawn = drawns[arcsOffset + i];
+			int drawn = drawns[arcsOffset + arcIndex];
 			if (drawn < 0) continue;
 			setNetName(netNameToNetIndex, drawn, ai.getNameKey(), false);
 		}
-		for (int i = 0; i < numArcs; i++) {
-			ArcInst ai = cell.getArc(i);
-			int drawn = drawns[arcsOffset + i];
+        arcIndex = 0;
+		for (Iterator<ArcInst> it = cell.getArcs(); arcIndex < numArcs; arcIndex++) {
+			ArcInst ai = it.next();
+			int drawn = drawns[arcsOffset + arcIndex];
 			if (drawn < 0) continue;
             int netIndexN = netlistN.getNetIndexByMap(drawn);
 			if (netlistN.hasNames(netIndexN)) continue;
@@ -612,8 +614,8 @@ class NetCell
                 if (e.getName().equals(name.toString()))
                     networkManager.pushHighlight(cell.getPort(i));
             }
-            for (int i = 0, numArcs = cell.getNumArcs(); i < numArcs; i++) {
-                ArcInst ai = cell.getArc(i);
+            for (Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); ) {
+                ArcInst ai = it.next();
                 if (!ai.isUsernamed()) continue;
                 if (ai.getName().equals(name.toString()))
                 	networkManager.pushHighlight(ai);

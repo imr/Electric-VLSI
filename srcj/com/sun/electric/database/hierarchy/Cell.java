@@ -2419,6 +2419,23 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 */
 	public ArcInst findArc(String name) { return getTopology().findArc(name); }
 
+	/**
+	 * Method to unlink a set of these ArcInsts from this Cell.
+     * @param killedArcs a set of ArcInsts to kill.
+	 */
+	public void killArcs(Set<ArcInst> killedArcs) {
+        if (killedArcs.isEmpty()) return;
+		for(ArcInst ai : killedArcs) {
+            if (ai.getParent() != this)
+                throw new IllegalArgumentException("parent");
+		}
+        for (int arcIndex = getNumArcs() - 1; arcIndex >= 0; arcIndex--) {
+            ArcInst ai = getArc(arcIndex);
+            if (killedArcs.contains(ai))
+                ai.kill();
+        }
+    }
+
 	/****************************** EXPORTS ******************************/
 
 	/**

@@ -284,6 +284,12 @@ public class ImmutableArcInst extends ImmutableElectricObject {
      */
     public double getGridLength() { return tailLocation.gridDistance(headLocation); }
 
+    /**
+     * Returns true if length of this ImmutableArcInst is zero.
+     * @return true if length of this ImmutableArcInst is zero.
+     */
+    public boolean isZeroLength() { return tailLocation.equals(headLocation); }
+
 	/**
 	 * Method to return the rotation angle of this ImmutableArcInst.
      * This is an angle of direction from tailLocation to headLocation.

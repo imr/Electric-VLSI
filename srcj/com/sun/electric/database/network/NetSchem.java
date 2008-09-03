@@ -646,10 +646,11 @@ class NetSchem extends NetCell {
                 }
             }
 		}
-		for (int i = 0; i < numArcs; i++) {
-			int drawn = drawns[arcsOffset + i];
+        int arcIndex = 0;
+		for (Iterator<ArcInst> it = cell.getArcs(); arcIndex < numArcs; arcIndex++) {
+			int drawn = drawns[arcsOffset + arcIndex];
 			if (drawn < 0) continue;
-			ArcInst ai = cell.getArc(i);
+			ArcInst ai = it.next();
 			Name name = ai.getNameKey();
 			if (name.isTempname()) continue;
 			int newWidth = name.busWidth();
@@ -668,10 +669,11 @@ class NetSchem extends NetCell {
             }
 		}
 		ArcProto busArc = Schematics.tech().bus_arc;
-		for (int i = 0; i < numArcs; i++) {
-			int drawn = drawns[arcsOffset + i];
+        arcIndex = 0;
+		for (Iterator<ArcInst> it = cell.getArcs(); arcIndex < numArcs; arcIndex++) {
+			int drawn = drawns[arcsOffset + arcIndex];
 			if (drawn < 0) continue;
-			ArcInst ai = cell.getArc(i);
+			ArcInst ai = it.next();
 			Name name = ai.getNameKey();
 			if (!name.isTempname()) continue;
 			int oldWidth = drawnWidths[drawn];
@@ -745,10 +747,11 @@ class NetSchem extends NetCell {
             }
         }
         if (!originalFound) {
-            for (int i = 0; i < numArcs; i++) {
-                String name = cell.getArc(i).getName();
+            for (Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); ) {
+                ArcInst oai = it.next();
+                String name = oai.getName();
                 if (name.equals(firstname)) {
-                    networkManager.pushHighlight(cell.getArc(i));
+                    networkManager.pushHighlight(oai);
                     break;
                 }
             }
@@ -834,10 +837,10 @@ class NetSchem extends NetCell {
 		}
 
 		// Arcs
-		int numArcs = cell.getNumArcs();
-		for (int k = 0; k < numArcs; k++) {
-			ArcInst ai = cell.getArc(k);
-			int drawn = drawns[arcsOffset + k];
+		int numArcs = cell.getNumArcs(), arcIndex = 0;
+		for (Iterator<ArcInst> it = cell.getArcs(); arcIndex < numArcs; arcIndex++) {
+			ArcInst ai = it.next();
+			int drawn = drawns[arcsOffset + arcIndex];
 			if (drawn < 0) continue;
 			if (!ai.isUsernamed()) continue;
 			int busWidth = drawnWidths[drawn];
@@ -1043,9 +1046,10 @@ class NetSchem extends NetCell {
 		}
 
 		// add temporary names to unnamed nets
-		for (int i = 0, numArcs = cell.getNumArcs(); i < numArcs; i++) {
-			ArcInst ai = cell.getArc(i);
-			int drawn = drawns[arcsOffset + i];
+        int numArcs = cell.getNumArcs(), arcIndex = 0;
+		for (Iterator<ArcInst> it = cell.getArcs(); arcIndex < numArcs; arcIndex++) {
+			ArcInst ai = it.next();
+			int drawn = drawns[arcsOffset + arcIndex];
 			if (drawn < 0) continue;
 			for (int j = 0; j < drawnWidths[drawn]; j++) {
 				int netIndexN = netlistN.getNetIndex(ai, j);

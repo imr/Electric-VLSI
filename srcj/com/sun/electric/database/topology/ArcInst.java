@@ -653,6 +653,12 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	 */
 	public double getGridLength() { return d.getGridLength(); }
 
+    /**
+     * Returns true if length of this ArcInst is zero.
+     * @return true if length of this ArcInst is zero.
+     */
+    public boolean isZeroLength() { return d.isZeroLength(); }
+
 	/**
 	 * Method to return the rotation angle of this ArcInst.
      * This is an angle of direction from tailLocation to headLocation.

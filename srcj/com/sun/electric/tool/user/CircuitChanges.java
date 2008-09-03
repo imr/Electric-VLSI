@@ -862,8 +862,8 @@ public class CircuitChanges
 
 		// look for duplicate arcs
 		HashSet<ArcInst> arcsToKill = new HashSet<ArcInst>();
-        for (int i = cell.getNumArcs() - 1; i >= 0; i--) {
-            ArcInst ai = cell.getArc(i);
+        for (Iterator<ArcInst> ait = cell.getArcs(); ait.hasNext(); ) {
+            ArcInst ai = ait.next();
             int arcId = ai.getArcId();
             if (arcsToKill.contains(ai)) continue;
             PortInst pi = ai.getHeadPortInst();

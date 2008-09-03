@@ -39,7 +39,7 @@ final public class EPoint extends Point2D implements Serializable {
 	public static final EPoint ORIGIN = new EPoint(0, 0);
 
     // ---------- Flat implementation
-    
+
     /**
      * The X coordinate of this <code>EPoint</code> in grid unuts.
      */
@@ -60,7 +60,7 @@ final public class EPoint extends Point2D implements Serializable {
      */
     private final double lambdaY;
 
-    
+
     // ---------- ECoord implementation
 //    /**
 //     * The X coordinate of this <code>EPoint</code>.
@@ -73,9 +73,9 @@ final public class EPoint extends Point2D implements Serializable {
 //    private final ECoord y;
 
     // ----------
-    
+
     private static int createdEPoints;
-    
+
     /**
      * Constructs and initializes a <code>EPoint</code> with the
      * specified coordinates in lambda units snapped to the grid.
@@ -108,7 +108,7 @@ final public class EPoint extends Point2D implements Serializable {
 //        x = ECoord.fromGrid(gridX);
 //        y = ECoord.fromGrid(gridY);
         // ----------
-        
+
         createdEPoints++;
     }
 
@@ -121,7 +121,7 @@ final public class EPoint extends Point2D implements Serializable {
     public static EPoint fromLambda(double lambdaX, double lambdaY) {
         return lambdaX == 0 && lambdaY == 0 ? ORIGIN : fromGrid(DBMath.lambdaToGrid(lambdaX), DBMath.lambdaToGrid(lambdaY));
     }
-    
+
     /**
      * Returns <code>EPoint</code> with specified grid coordinates.
      * @param gridX the x-coordinate in grid units.
@@ -131,7 +131,7 @@ final public class EPoint extends Point2D implements Serializable {
     public static EPoint fromGrid(long gridX, long gridY) {
         return gridX == 0 && gridY == 0 ? ORIGIN : new EPoint(gridX, gridY);
     }
-    
+
     /**
      * Returns <code>EPoint</code> from specified <code>Point2D</code>
      * snapped to the grid.
@@ -143,7 +143,7 @@ final public class EPoint extends Point2D implements Serializable {
 	}
 
     /**
-     * Returns the X coordinate of this <code>EPoint</code> 
+     * Returns the X coordinate of this <code>EPoint</code>
      * in lambda units in <code>double</code> precision.
      * @return the X coordinate of this <code>EPoint</code>.
      */
@@ -153,7 +153,7 @@ final public class EPoint extends Point2D implements Serializable {
     }
 
     /**
-     * Returns the Y coordinate of this <code>EPoint</code> 
+     * Returns the Y coordinate of this <code>EPoint</code>
      * in lambda unuts in <code>double</code> precision.
      * @return the Y coordinate of this <code>EPoint</code>.
      */
@@ -163,7 +163,7 @@ final public class EPoint extends Point2D implements Serializable {
     }
 
     /**
-     * Returns the X coordinate of this <code>EPoint</code> 
+     * Returns the X coordinate of this <code>EPoint</code>
      * in lambda units in <code>double</code> precision.
      * @return the X coordinate of this <code>EPoint</code>.
      */
@@ -176,7 +176,7 @@ final public class EPoint extends Point2D implements Serializable {
     }
 
     /**
-     * Returns the Y coordinate of this <code>EPoint</code> 
+     * Returns the Y coordinate of this <code>EPoint</code>
      * in lambda units in <code>double</code> precision.
      * @return the Y coordinate of this <code>EPoint</code>.
      */
@@ -189,7 +189,7 @@ final public class EPoint extends Point2D implements Serializable {
     }
 
     /**
-     * Returns the X coordinate of this <code>EPoint</code> 
+     * Returns the X coordinate of this <code>EPoint</code>
      * in grid units in <code>long</code> precision.
      * @return the X coordinate of this <code>EPoint</code>.
      */
@@ -202,7 +202,7 @@ final public class EPoint extends Point2D implements Serializable {
     }
 
     /**
-     * Returns the Y coordinate of this <code>EPoint</code> 
+     * Returns the Y coordinate of this <code>EPoint</code>
      * in grid units in <code>long</code> precision.
      * @return the Y coordinate of this <code>EPoint</code>.
      */
@@ -279,16 +279,27 @@ final public class EPoint extends Point2D implements Serializable {
 //		return x.isSmall() & y.isSmall()
         // ----------
     }
-    
+
+    /**
+     * Returns true if this EPoint is equal to the other EPoint.
+     * This method returns the same result as general <code>equals</code>,
+     * but it could be a little faster, because no virtual method dispatching is required.
+     * @return true if this EPoint is equal to the other EPoint.
+     * @see java.awt.geom.Point2D#equals
+     */
+    public boolean equals(EPoint that) {
+        return this.gridX == that.gridX && this.gridY == that.gridY;
+    }
+
 	/**
-	 * Returns a <code>String</code> that represents the value 
+	 * Returns a <code>String</code> that represents the value
 	 * of this <code>EPoint</code>.
 	 * @return a string representation of this <code>EPoint</code>.
 	 */
 	public String toString() {
 	    return "EPoint["+getX()+", "+getY()+"]";
 	}
-    
+
     /**
      * Prints statistics about EPoint objects.
      */

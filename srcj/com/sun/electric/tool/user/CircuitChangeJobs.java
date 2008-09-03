@@ -914,7 +914,7 @@ public class CircuitChangeJobs
 
                 // delete any reference to this Object in SizeListener
                 SizeListener.restorePreviousListener(eobj);
-                
+
                 if (key == NodeInst.NODE_NAME)
 				{
 					// deleting the name of a node
@@ -1082,7 +1082,7 @@ public class CircuitChangeJobs
 
                 // delete any reference to this Object in SizeListener
                 SizeListener.restorePreviousListener(ai);
-                
+
                 ai.kill();
 			}
 
@@ -1459,11 +1459,7 @@ public class CircuitChangeJobs
 			{
 				ni.invisiblePinWithOffsetText(true);
 			}
-			for (int arcIndex = cell.getNumArcs() - 1; arcIndex >= 0; arcIndex--) {
-				ArcInst ai = cell.getArc(arcIndex);
-				if (arcsToKill.contains(ai))
-					ai.kill();
-			}
+            cell.killArcs(arcsToKill);
 
 			// report what was cleaned
 			StringBuffer infstr = new StringBuffer();
