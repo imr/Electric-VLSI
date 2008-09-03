@@ -91,8 +91,8 @@ public class Snapshot {
                 throw new IllegalArgumentException();
             this.cellBounds[cellIndex] = r;
         }
-        if (Job.getDebug())
-            check();
+//        if (Job.getDebug())
+//            check();
     }
 
     /**

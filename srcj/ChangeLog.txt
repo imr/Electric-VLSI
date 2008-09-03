@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08e: ******************************
 
+IMP: (9/03/08, DN) Don't recompute CellBackup.Memoization in constraint system.
+
 BUG: (9/03/08, DN) Exception caused by a move (Bug #1817).
 FIX: In LayerDrawing.drawGrid and PixelDrawing.drawGrid check for "x >= sz.width" and "y >= sz.height".
 

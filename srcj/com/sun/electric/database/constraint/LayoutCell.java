@@ -33,7 +33,9 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.id.CellUsage;
+import com.sun.electric.database.id.PortProtoId;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.Geometric;
@@ -56,6 +58,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 /**
  * Class to implement the layout-constraint system for a specific Cell.
@@ -98,6 +101,7 @@ class LayoutCell {
 //    private HashMap<Geometric,Integer> changeClock;
     /** Set of nodes already moved not to move twice. */
     private HashSet<NodeInst> movedNodes;
+    private CellBackup.Memoization m;
 
     LayoutCell(Cell cell, CellBackup oldBackup) {
         this.cell = cell;
@@ -135,6 +139,7 @@ class LayoutCell {
     private void doCompute() {
 //        changeClock = new HashMap<Geometric,Integer>();
         movedNodes = new HashSet<NodeInst>();
+        m = cell.getMemoization();
 
         LinkedHashSet<NodeInst> modifiedInsts = new LinkedHashSet<NodeInst>();
         for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
@@ -163,8 +168,8 @@ class LayoutCell {
             }
         }
         for (NodeInst ni : modifiedInsts) {
-            if (ni.hasExports())
-//            if (ni.getNumExports() != 0)
+            if (hasExports(ni))
+//            if (ni.hasExports())
                 exportsModified = true;
             ImmutableNodeInst d = getOldD(ni);
             Orientation dOrient = d != null ? ni.getOrient().concatenate(d.orient.inverse()) : Orientation.IDENT;
@@ -177,6 +182,7 @@ class LayoutCell {
                 ensureArcInst(ai, Layout.isRigid(ai) ? AI_RIGID : AI_FLEX);
             }
         }
+        m = null;
     }
 
 	/**
@@ -200,8 +206,8 @@ class LayoutCell {
         movedNodes.add(ni);
 
 		// see if this nodeinst is a port of the current cell
-		if (ni.hasExports())
-//		if (ni.getNumExports() != 0)
+		if (hasExports(ni))
+//		if (ni.hasExports())
             exportsModified = true;
 	}
 
@@ -238,7 +244,8 @@ class LayoutCell {
 
 		// build a list of the arcs with both ends on this nodeinst
 		List<ArcInst> interiorArcs = new ArrayList<ArcInst>();
-		for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
+		for(Iterator<Connection> it = getConnections(ni); it.hasNext(); )
+//		for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 		{
 			Connection con = it.next();
 			ArcInst ai = con.getArc();
@@ -290,7 +297,8 @@ class LayoutCell {
 	{
 		// build a list of the rigid arcs on this nodeinst
 		List<Connection> rigidArcs = new ArrayList<Connection>();
-		for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
+		for(Iterator<Connection> it = getConnections(ni); it.hasNext(); )
+//		for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 		{
 			Connection con = it.next();
 			ArcInst ai = con.getArc();
@@ -430,7 +438,8 @@ class LayoutCell {
 	{
 		// build a list of the flexible arcs on this nodeinst
 		List<Connection> flexArcs = new ArrayList<Connection>();
-		for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
+		for(Iterator<Connection> it = getConnections(ni); it.hasNext(); )
+//		for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 		{
 			Connection con = it.next();
 			ArcInst ai = con.getArc();
@@ -448,6 +457,7 @@ class LayoutCell {
 		if (flexArcs.size() == 0) return;
 
 		// look at all of the flexible arcs on this nodeinst
+//        long startTime = System.currentTimeMillis();
 		for(Connection thisEnd : flexArcs)
 		{
             ArcInst ai = thisEnd.getArc();
@@ -635,6 +645,8 @@ class LayoutCell {
 				") and tail=("+newPts[ArcInst.TAILEND].getX()+","+newPts[ArcInst.TAILEND].getY()+")");
 			doMoveArcInst(ai, newPts[ArcInst.HEADEND], newPts[ArcInst.TAILEND], AI_FLEX);
 		}
+//        long stopTime = System.currentTimeMillis();
+//        System.out.println("Moving in modFlex took " + (stopTime - startTime));
 	}
 
 	/**
@@ -655,8 +667,8 @@ class LayoutCell {
 		// look for longest other arc on "ono" to determine proper end position
 		double bestDist = Double.NEGATIVE_INFINITY;
 		ArcInst bestAI = null;
-		for(Iterator<Connection> it = ai.getPortInst(thatEndIndex).getConnections(); it.hasNext(); )
-//		for(Iterator<Connection> it = ono.getConnections(); it.hasNext(); )
+		for(Iterator<Connection> it = getConnections(ai.getPortInst(thatEndIndex)); it.hasNext(); )
+//		for(Iterator<Connection> it = ai.getPortInst(thatEndIndex).getConnections(); it.hasNext(); )
 		{
 			Connection con = it.next();
 			ArcInst oai = con.getArc();
@@ -1036,6 +1048,81 @@ class LayoutCell {
         if (oldD == null) return false;
         return ai.getHeadLocation() != oldD.headLocation || ai.getTailLocation() != oldD.tailLocation;
     }
+    
+    private boolean hasExports(NodeInst ni) {
+        return m.hasExports(ni.getD().nodeId);
+    }
+	/**
+	 * Method to return an Iterator over all Connections on this NodeInst.
+	 * @return an Iterator over all Connections on this NodeInst.
+	 */
+    private Iterator<Connection> getConnections(NodeInst ni) {
+        return new ConnectionIterator(ni.getD().nodeId);
+    }
+
+	/**
+	 * Method to return an Iterator over Connections on this PortInst since portIndex.
+	 * @return an Iterator over Connections on this NodeInst since portIndex.
+	 */
+    Iterator<Connection> getConnections(PortInst pi) {
+        return new ConnectionIterator(pi.getNodeInst().getD().nodeId, pi.getPortProto().getId().getChronIndex());
+    }
+
+    private class ConnectionIterator implements Iterator<Connection> {
+        private final ImmutableArrayList<ImmutableArcInst> arcs;
+        private final int nodeId;
+        private final int chronIndex;
+        int i;
+        ArcInst nextAi;
+        int nextConnIndex;
+
+        ConnectionIterator(int nodeId) {
+            arcs = m.getArcs();
+            chronIndex = -1;
+            this.nodeId = nodeId;
+            i = m.searchConnectionByPort(nodeId, 0);
+            findNext();
+        }
+        ConnectionIterator(int nodeId, int chronIndex) {
+            arcs = m.getArcs();
+            this.nodeId = nodeId;
+            this.chronIndex = chronIndex;
+            i = m.searchConnectionByPort(nodeId, chronIndex);
+            findNext();
+        }
+        public boolean hasNext() { return nextAi != null; }
+        public Connection next() {
+            if (nextAi == null)
+                throw new NoSuchElementException();
+            Connection con = nextAi.getConnection(nextConnIndex);
+            findNext();
+            return con;
+        }
+        public void remove() { throw new UnsupportedOperationException(); }
+
+        private void findNext() {
+            for (; i < m.connections.length; i++) {
+                int con = m.connections[i];
+                ImmutableArcInst a = arcs.get(con >>> 1);
+                int endIndex = con & 1;
+                int endNodeId = endIndex != 0 ? a.headNodeId : a.tailNodeId;
+                if (endNodeId != nodeId) break;
+                if (chronIndex >= 0) {
+                    PortProtoId endProtoId = endIndex != 0 ? a.headPortId : a.tailPortId;
+                    if (endProtoId.getChronIndex() != chronIndex) break;
+                }
+                ArcInst ai = cell.getArcById(a.arcId);
+                if (ai != null) {
+                    nextAi = ai;
+                    nextConnIndex = endIndex;
+                    i++;
+                    return;
+                }
+            }
+            nextAi = null;
+        }
+    }
+
 }
 
 //    private HashMap/*<NodeInst,RigidCluster>*/ makeRigidClusters() {
