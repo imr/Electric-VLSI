@@ -177,7 +177,7 @@ import javax.swing.SwingUtilities;
  *   When compositing at the top level, however, the POLs are converted back to patterns, so that they line-up.</LI>
  *   </UL>
  * </UL>
- * 
+ *
  */
 class LayerDrawing
 {
@@ -203,12 +203,12 @@ class LayerDrawing
     private static class ExpandedCellKey {
         private Cell cell;
         private Orientation orient;
-     
+
         private ExpandedCellKey(Cell cell, Orientation orient) {
             this.cell = cell;
             this.orient = orient;
         }
-        
+
         @Override
         public boolean equals(Object obj) {
             if (obj instanceof ExpandedCellKey) {
@@ -217,11 +217,11 @@ class LayerDrawing
             }
             return false;
         }
-        
+
         @Override
         public int hashCode() { return cell.hashCode()^orient.hashCode(); }
     }
-    
+
 	/**
 	 * This class holds information about expanded cell instances.
 	 * For efficiency, Electric remembers the bits in an expanded cell instance
@@ -243,7 +243,7 @@ class LayerDrawing
 			offscreen = null;
 		}
 	}
-    
+
 	/** the size of the EditWindow */						private final Dimension sz;
     /** the scale of the EditWindow */                      private double scale;
     /** the VarContext of the EditWindow */                 private VarContext varContext;
@@ -252,7 +252,7 @@ class LayerDrawing
     /** the scale of the EditWindow */                      private double scale_;
 	/** the window scale and pan factor */					private float factorX, factorY;
 	/** 0: color display, 1: color printing, 2: B&W printing */	private int nowPrinting;
-    
+
 	/** whether any layers are highlighted/dimmed */		boolean highlightingLayers;
 	/** true if the last display was a full-instantiate */	private boolean lastFullInstantiate = false;
 	/** A set of subcells being in-place edited. */         private BitSet inPlaceSubcellPath;
@@ -284,7 +284,7 @@ class LayerDrawing
 
 	/** the size of the top-level EditWindow */				private static Dimension topSz;
     /** draw layers patterned (depends on scale). */        private boolean patternedDisplay;
-    /** Alpha blending with overcolor (depends on scale). */private static boolean alphaBlendingOvercolor;           
+    /** Alpha blending with overcolor (depends on scale). */private static boolean alphaBlendingOvercolor;
 	/** list of cell expansions. */							private static Map<ExpandedCellKey,ExpandedCellInfo> expandedCells = null;
     /** Set of changed cells. */                            private static final Set<CellId> changedCells = new HashSet<CellId>();
 	/** scale of cell expansions. */						private static double expandedScale = 0;
@@ -304,10 +304,10 @@ class LayerDrawing
 
     private int clipLX, clipHX, clipLY, clipHY;
     private final int width;
-    
+
     private final EditWindow0 dummyWnd = new EditWindow0() {
         public VarContext getVarContext() { return varContext; }
-        
+
         public double getScale() { return scale; }
 
         public double getGlobalTextScale() { return wnd.getGlobalTextScale(); }
@@ -320,18 +320,18 @@ class LayerDrawing
         private int[] smallOpaqueData;
         private volatile LayerDrawing offscreen;
         /** alpha blender of layer maps */                      private final AlphaBlender alphaBlender = new AlphaBlender();
-        
+
         // The following fields are produced by "render" method in Job thread.
         private volatile boolean needComposite;
         /** the map from layers to layer bitmaps */             private volatile Map<Layer,TransparentRaster> layerRasters = new HashMap<Layer,TransparentRaster>();
         private volatile GreekTextInfo[] greekText = {};
         private volatile RenderTextInfo[] renderText = {};
         private volatile CrossTextInfo[] crossText = {};
-        
+
         Drawing(EditWindow wnd) {
             super(wnd);
         }
-        
+
         /**
          * This method is called from AWT thread.
          */
@@ -342,20 +342,20 @@ class LayerDrawing
             LayerDrawing offscreen_ = this.offscreen;
             if (offscreen_ == null || !offscreen_.getSize().equals(sz))
                 return false;
-            
+
             if (vImg == null || vImg.getWidth() != sz.width || vImg.getHeight() != sz.height) {
                 if (vImg != null)
                     vImg.flush();
                 vImg = wnd.createVolatileImage(sz.width, sz.height);
             }
-            
+
 //            smallImg = (BufferedImage)wnd.createImage(sz.width, 1);
             if (smallImg == null || smallImg.getWidth() != sz.width) {
                 smallImg = new BufferedImage(sz.width, SMALL_IMG_HEIGHT, BufferedImage.TYPE_INT_RGB);
                 DataBufferInt smallDbi = (DataBufferInt)smallImg.getRaster().getDataBuffer();
                 smallOpaqueData = smallDbi.getData();
             }
-            
+
             // show the image
             // copying from the image (here, gScreen is the Graphics
             // object for the onscreen window)
@@ -374,10 +374,10 @@ class LayerDrawing
                 }
                 g.drawImage(vImg, 0, 0, wnd);
             } while (vImg.contentsLost());
-            
+
             return true;
         }
-        
+
         /**
          * This method is called from AWT thread.
          */
@@ -420,16 +420,16 @@ class LayerDrawing
                 }
             } while (vImg.contentsLost());
         }
-        
+
         @Override
         public void opacityChanged() {
             assert SwingUtilities.isEventDispatchThread();
             needComposite = true;
         }
-        
+
         @Override
         public boolean hasOpacity() { return true; }
-        
+
         private void layerComposite(Graphics2D g, LayerDrawing offscreen) {
             Map<Layer,int[]> layerBits = new HashMap<Layer,int[]>();
             for (Map.Entry<Layer,TransparentRaster> e: layerRasters.entrySet())
@@ -444,7 +444,7 @@ class LayerDrawing
                 System.out.println();
             }
             alphaBlender.init(User.getColor(User.ColorPrefType.BACKGROUND), blendingOrder, layerBits);
-            
+
             int width = offscreen.sz.width;
             int height = offscreen.sz.height, clipLY = 0, clipHY = height - 1;
             int numIntsPerRow = offscreen.numIntsPerRow;
@@ -462,7 +462,7 @@ class LayerDrawing
                 y += h;
             }
         }
-        
+
         /**
          * Method to complete rendering by combining the transparent and opaque imagery.
          * This is called after all rendering is done.
@@ -470,7 +470,7 @@ class LayerDrawing
          */
         private void legacyLayerComposite(Graphics2D g, LayerDrawing offscreen) {
             wnd.getBlendingOrder(layerRasters.keySet(), false, false);
-            
+
             Technology curTech = Technology.getCurrent();
             if (curTech == null) {
                 for (Layer layer: layerRasters.keySet()) {
@@ -481,10 +481,10 @@ class LayerDrawing
             }
             if (curTech == null)
                 curTech = Generic.tech();
-            
+
             // get the technology's color map
             Color [] colorMap = curTech.getColorMap();
-            
+
             // adjust the colors if any of the transparent layers are dimmed
             boolean dimmedTransparentLayers = false;
             for(Iterator<Layer> it = curTech.getLayers(); it.hasNext(); ) {
@@ -506,7 +506,7 @@ class LayerDrawing
                     if (tIndex == 0) continue;
                     dimLayer[tIndex-1] = false;
                 }
-                
+
                 for(int i=0; i<colorMap.length; i++) {
                     newColorMap[i] = colorMap[i];
                     if (i == 0) continue;
@@ -527,7 +527,7 @@ class LayerDrawing
                 }
                 colorMap = newColorMap;
             }
-            
+
             int numTransparent = 0, numOpaque = 0;
             int deepestTransparentDepth = 0;
             for (Layer layer: layerRasters.keySet()) {
@@ -542,7 +542,7 @@ class LayerDrawing
             int[] transparentMasks = new int[numTransparent];
             TransparentRaster[] opaqueRasters = new TransparentRaster[numOpaque];
             int[] opaqueCols = new int[numOpaque];
-            
+
             numTransparent = numOpaque = 0;
             for (Map.Entry<Layer,TransparentRaster> e: layerRasters.entrySet()) {
                 Layer layer = e.getKey();
@@ -557,14 +557,14 @@ class LayerDrawing
                     opaqueRasters[numOpaque++] = raster;
                 }
             }
-            
+
             // determine range
             Dimension sz = offscreen.sz;
             int numIntsPerRow = offscreen.numIntsPerRow;
             int backgroundColor = User.getColor(User.ColorPrefType.BACKGROUND) & 0xFFFFFF;
             int lx = 0, hx = sz.width-1;
             int ly = 0, hy = sz.height-1;
-            
+
             for(int y=ly; y<=hy; y++) {
                 int baseByteIndex = y*numIntsPerRow;
                 int baseIndex = y * sz.width;
@@ -592,7 +592,7 @@ class LayerDrawing
                 g.drawImage(smallImg, 0, y, null);
             }
         }
-        
+
 //        private void layerCompositeSlow(Graphics2D g) {
 //            Map<Layer,int[]> layerBits = new HashMap<Layer,int[]>();
 //            for (Map.Entry<Layer,TransparentRaster> e: layerRasters.entrySet())
@@ -606,7 +606,7 @@ class LayerDrawing
 //                }
 //                System.out.println();
 //            }
-//            
+//
 //            Color background = new Color(User.getColor(User.ColorPrefType.BACKGROUND) | 0xFF000000);
 //            float[] backgroundComponents = background.getColorComponents(null);
 //            float backRed = backgroundComponents[0];
@@ -677,7 +677,7 @@ class LayerDrawing
 //                baseIndex += width;
 //            }
 //        }
-        
+
         /**
          * This method is called from Job thread.
          */
@@ -695,11 +695,11 @@ class LayerDrawing
             crossText = offscreen_.crossTextList.toArray(new CrossTextInfo[offscreen.crossTextList.size()]);
             renderText = offscreen_.renderTextList.toArray(new RenderTextInfo[offscreen.renderTextList.size()]);
         }
-        
+
         private static boolean joglChecked = false;
         private static Class<?> layerDrawerClass;
         private static Method joglShowLayerMethod;
-        
+
         /**
          * Method to tell whether JOGL redisplay is available.
          * JOGL is Java extension.
@@ -709,7 +709,7 @@ class LayerDrawing
         public static boolean hasJogl() {
             if (!joglChecked) {
                 joglChecked = true;
-                
+
                 // find the LayerDrawer class
                 try {
                     layerDrawerClass = Class.forName("com.sun.electric.plugins.jogl.LayerDrawer");
@@ -718,7 +718,7 @@ class LayerDrawing
             }
             return joglShowLayerMethod != null;
         }
-        
+
         @Override
         public void testJogl() {
             if (hasJogl()) {
@@ -743,7 +743,7 @@ class LayerDrawing
             }
 //            testJogl_();
         }
-        
+
 //        private void testJogl_() {
 //            JFrame frame = new JFrame("Jogl");
 //            GLCapabilities capabilities = new GLCapabilities();
@@ -751,50 +751,50 @@ class LayerDrawing
 //            capabilities.setHardwareAccelerated(false);
 //            System.out.println("Capabilities: " + capabilities);
 //            GLCanvas canvas = new GLCanvas(capabilities);
-//            
+//
 //            canvas.addGLEventListener(new JoglEventListener());
 //            frame.add(canvas);
 //            frame.setSize(offscreen.getSize());
-//            
+//
 //            frame.setVisible(true);
 //        }
-//        
+//
 //        private static void showInt(GL gl, String s, int i) {
 //            IntBuffer intBuffer = IntBuffer.allocate(100);
 //            gl.glGetIntegerv(GL.GL_MULTISAMPLE, intBuffer);
 //            System.out.println(s + ": " + intBuffer.get(0));
 //        }
-//    
+//
 //        private class JoglEventListener implements GLEventListener {
-//            
+//
 //            public void init(GLAutoDrawable drawable) {
 //                GL gl = drawable.getGL();
 //                gl = new DebugGL(gl);
 //                drawable.setGL(gl);
-//                
+//
 ////                gl.glDisable(GL.GL_MULTISAMPLE);
-//                
+//
 //                System.out.println("GL_VENDOR: " + gl.glGetString(GL.GL_VENDOR));
 //                System.out.println("GL_RENDERER: " + gl.glGetString(GL.GL_RENDERER));
 //                System.out.println("GL_VERSION: " + gl.glGetString(GL.GL_VERSION));
 //                showInt(gl, "GL_MULTISAMPLE", GL.GL_MULTISAMPLE);
 //                showInt(gl, "GL_SAMPLE_BUFFERS", GL.GL_SAMPLE_BUFFERS);
 //                showInt(gl, "GL_SAMPLES", GL.GL_SAMPLES);
-//                
+//
 ////                gl.glPixelStorei(GL.GL_UNPACK_SWAP_BYTES, 1);
 ////                gl.glPixelStorei(gl.GL_UNPACK_LSB_FIRST, 1);
 ////                gl.glPixelStorei(gl.GL_UNPACK_ALIGNMENT, 1);
-//                
+//
 ////                gl.glPixelTransferi(gl.GL_MAP_COLOR, 1);
 //                  gl.glEnable(gl.GL_BLEND);
 //                  gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA);
 //            }
-//            
+//
 //            public void display(GLAutoDrawable drawable) {
 //                List<EditWindow.LayerColor> blendingOrder = offscreen.wnd.getBlendingOrder(offscreen.layerRasters.keySet(), false);
-//                
+//
 //                GL gl = drawable.getGL();
-//                
+//
 //                BufferedImage bImg = vImg.getSnapshot();
 //                DataBufferInt dbi = (DataBufferInt)bImg.getRaster().getDataBuffer();
 //                int[] opaqueData = dbi.getData();
@@ -818,20 +818,20 @@ class LayerDrawing
 //                greenBuffer.rewind();
 //                blueBuffer.rewind();
 ////                IntBuffer intBuffer = IntBuffer.wrap(offscreen.opaqueData, 0, w*h);
-//                
+//
 //                long startTime = System.currentTimeMillis();
 ////                float[] bg = (new Color(User.getColor(User.ColorPrefType.BACKGROUND))).getRGBComponents(null);
 ////                gl.glClearColor(bg[0], bg[1], bg[2], 1.0f);
 //                gl.glClearColor(1f, 1f, 1f, 1f);
 //                gl.glClear(GL.GL_COLOR_BUFFER_BIT);
-//                
+//
 //                gl.glMatrixMode(GL.GL_PROJECTION);
 //                gl.glLoadIdentity();
 ////                gl.glFrustum(-1.0f, 1.0f, -h, h, 5.0f, 60.0f);
-//                
+//
 //                gl.glMatrixMode(GL.GL_MODELVIEW);
 //                gl.glLoadIdentity();
-//                
+//
 ////                ByteBuffer buf = ByteBuffer.allocate((w + 7)/8*h);
 ////                for (int i = 0; i < 100; i++)
 ////                    buf.put(i*3, (byte)0x55);
@@ -844,7 +844,7 @@ class LayerDrawing
 ////                gl.glPixelMapfv(gl.GL_PIXEL_MAP_I_TO_A, 2, new float[256], 0);
 ////                gl.glDrawPixels(10, 10, gl.GL_COLOR_INDEX, gl.GL_BITMAP, buf);
 ////                gl.glBitmap(10, 10, 0f, 0f, 0f, 0f, buf);
-//                
+//
 ////                byte[] bytes1 = new byte[(w+7)/8*h*2];
 ////                Arrays.fill(bytes1, (byte)-2);
 ////                bytes1[0] = 0;
@@ -859,7 +859,7 @@ class LayerDrawing
 ////                    float[] alpha = new float[256];
 ////                    Arrays.fill(alpha, 1f);
 ////                    gl.glPixelMapfv(gl.GL_PIXEL_MAP_I_TO_A, 256, alpha, 0);
-//                    
+//
 //                      for (int i = 0; i < 1000; i++)
 //                        gl.glDrawPixels(w, h, GL.GL_BGRA, GL.GL_UNSIGNED_INT_8_8_8_8_REV, intBuffer);
 ////                    gl.glDrawPixels(w, h, GL.GL_GREEN, GL.GL_UNSIGNED_BYTE, greenBuffer);
@@ -894,25 +894,25 @@ class LayerDrawing
 //                }
 //                long endTime = System.currentTimeMillis();
 //                System.out.println("jogl display took " + (endTime - startTime) + " msec");
-//                
+//
 //            }
-//            
+//
 //            public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {}
 //            public void displayChanged(GLAutoDrawable drawable, boolean modeChanged, boolean deviceChanged) {}
 //        }
     }
-    
+
     static void drawTechPalette(Graphics2D g, int imgX, int imgY, Rectangle entrySize, double scale, VectorCache.VectorBase[] shapes) {
         BufferedImage smallImg = new BufferedImage(entrySize.width, Drawing.SMALL_IMG_HEIGHT, BufferedImage.TYPE_INT_RGB);
         DataBufferInt smallDbi = (DataBufferInt)smallImg.getRaster().getDataBuffer();
         int[] smallOpaqueData = smallDbi.getData();
-        
+
         LayerDrawing offscreen = new LayerDrawing(new Dimension(entrySize.width, entrySize.height));
-            
+
 		// set colors to use
         LayerDrawing.textColor = new Color(User.getColor(User.ColorPrefType.TEXT));
         LayerDrawing.textGraphics.setColor(LayerDrawing.textColor);
-        
+
 		// initialize the cache of expanded cell displays
 //        varContext = wnd.getVarContext();
         offscreen.initOrigin(scale, EPoint.ORIGIN);
@@ -939,8 +939,8 @@ class LayerDrawing
         for (VectorCache.VectorBase shape: shapes)
             shapeList.add(shape);
         offscreen.drawList(0, 0, shapeList);
-        
-        
+
+
         AlphaBlender alphaBlender = new AlphaBlender();
         Map<Layer,int[]> layerBits = new HashMap<Layer,int[]>();
         for (Map.Entry<Layer,TransparentRaster> e: offscreen.layerRasters.entrySet())
@@ -955,7 +955,7 @@ class LayerDrawing
             System.out.println();
         }
         alphaBlender.init(User.getColor(User.ColorPrefType.BACKGROUND), blendingOrder, layerBits);
-        
+
         int width = offscreen.sz.width;
         int height = offscreen.sz.height, clipLY = 0, clipHY = height - 1;
         int numIntsPerRow = offscreen.numIntsPerRow;
@@ -972,7 +972,7 @@ class LayerDrawing
             g.drawImage(smallImg, imgX, imgY + y, null);
             y += h;
         }
-        
+
         g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         for (RenderTextInfo textInfo: offscreen.renderTextList) {
             textInfo.offX += imgX;
@@ -985,7 +985,7 @@ class LayerDrawing
 //        crossText = offscreen.crossTextList.toArray(new CrossTextInfo[offscreen.crossTextList.size()]);
 //        renderText = offscreen.renderTextList.toArray(new RenderTextInfo[offscreen.renderTextList.size()]);
     }
-    
+
     private static List<AbstractDrawing.LayerColor> getBlendingOrderForTechPalette(Set<Layer> layersAvailable) {
         boolean alphaBlendingOvercolor = true;
         ArrayList<AbstractDrawing.LayerColor> layerColors = new ArrayList<AbstractDrawing.LayerColor>();
@@ -1016,7 +1016,7 @@ class LayerDrawing
         }
         return layerColors;
     }
-    
+
     // ************************************* TOP LEVEL *************************************
 
 	/**
@@ -1031,17 +1031,17 @@ class LayerDrawing
         clipHX = sz.width - 1;
         clipLY = 0;
         clipHY = sz.height - 1;
-        
+
 		// allocate pointer to the opaque image
 		total = sz.height * sz.width;
 		numIntsPerRow = (sz.width + Integer.SIZE - 1) / Integer.SIZE;
 		renderedWindow = true;
 	}
-    
+
     public LayerDrawing(double scale, int lX, int hX, int lY, int hY) {
         this.scale = scale;
         scale_ = (float)(scale/DBMath.GRID);
-        
+
         this.originX = -lX;
         this.originY = hY;
         factorX = (float)(-originX/scale_);
@@ -1052,12 +1052,12 @@ class LayerDrawing
         clipHX = sz.width - 1;
         clipLY = 0;
         clipHY = sz.height - 1;
-        
+
 		// allocate pointer to the opaque image
 		total = sz.height * sz.width;
 		numIntsPerRow = (sz.width + Integer.SIZE - 1) / Integer.SIZE;
     }
-    
+
     void initOrigin(double scale, Point2D offset) {
         this.scale = scale;
         scale_ = (float)(scale/DBMath.GRID);
@@ -1135,7 +1135,7 @@ class LayerDrawing
 		textGraphics.setColor(textColor);
 		instanceGraphics.setColor(new Color(User.getColor(User.ColorPrefType.INSTANCE)));
         gridGraphics.setColor(new Color(User.getColor(User.ColorPrefType.GRID)));
-        
+
 		// initialize the cache of expanded cell displays
 		if (expandedScale != drawing.da.scale)
 		{
@@ -1199,11 +1199,11 @@ class LayerDrawing
         for(ExpandedCellInfo count : expandedCells.values())
             count.instanceCount = 0;
         if (TAKE_STATS) clearTime = System.currentTimeMillis();
-        
+
         // determine which cells should be cached (must have at least 2 instances)
         countCell(cell, drawLimitBounds, fullInstantiate, Orientation.IDENT, DBMath.MATID);
         if (TAKE_STATS) countTime = System.currentTimeMillis();
-        
+
         // now render it all
         renderTextList.clear();
         greekTextList.clear();
@@ -1211,7 +1211,7 @@ class LayerDrawing
         drawCell(cell, drawLimitBounds, fullInstantiate, Orientation.IDENT, 0, 0, true, wnd.getVarContext());
         // if a grid is requested, overlay it
 		if (cell != null && wnd.isGrid()) drawGrid(wnd, drawing.da);
-        
+
 		if (TAKE_STATS)
 		{
 			long endTime = System.currentTimeMillis();
@@ -1223,7 +1223,7 @@ class LayerDrawing
 				offscreensCreated+" ("+offscreenPixelsCreated+" pixels) new cell caches (my size is "+total+" pixels), memory used="+memConsumed);
 			System.out.println("   Cells ("+totalCells+") "+tinyCells+" are tiny;"+
 				" Primitives ("+totalPrims+") "+tinyPrims+" are tiny;"+
-				" Arcs ("+totalArcs+") "+tinyArcs+" are tiny, "+linedArcs+" are lines" + 
+				" Arcs ("+totalArcs+") "+tinyArcs+" are tiny, "+linedArcs+" are lines" +
                 " Texts " + renderTextList.size() + " Greeks " + greekTextList.size());
             if (true) {
                 System.out.print("    " + (boxCount+polygonCount+discCount+lineCount+crossCount+circleCount+arcCount)+" rendered: ");
@@ -1271,7 +1271,7 @@ class LayerDrawing
 		double boldSpacingThreshY = spacingY / 4;
 
 		// screen extent
-        
+
 		Rectangle2D displayable = displayableBounds(da.getIntoCellTransform());
 		double lX = displayable.getMinX();  double lY = displayable.getMaxY();
 		double hX = displayable.getMaxX();  double hY = displayable.getMinY();
@@ -1315,8 +1315,8 @@ class LayerDrawing
 				databaseToScreen(tmpPt.getX(), tmpPt.getY(), tempPt1);
 				int x = tempPt1.x;
 				int y = tempPt1.y;
-				if (x < 0 || x > sz.width) continue;
-				if (y < 0 || y > sz.height) continue;
+				if (x < 0 || x >= sz.width) continue;
+				if (y < 0 || y >= sz.height) continue;
 
 				double boldValueX = j;
 				if (j < 0) boldValueX -= boldSpacingThreshX/2; else
@@ -1328,7 +1328,7 @@ class LayerDrawing
 					int boxHX = x+2;   if (boxHX >= sz.width) boxHX = sz.width-1;
 					int boxLY = y-2;   if (boxLY < 0) boxLY = 0;
 					int boxHY = y+2;   if (boxHY >= sz.height) boxHY = sz.height-1;
-                    
+
                     // draw box  in opaque area
                     raster.fillBox(boxLX, boxHX, boxLY, boxHY);
 //                    for(int yg=boxLY; yg<=boxHY; yg++) {
@@ -1337,7 +1337,7 @@ class LayerDrawing
 //                            opaqueData[baseIndex + xg] = col;
 //                        baseIndex += sz.width;
 //                    }
-                    
+
 					if (x > 1) raster.fillPoint(x - 2, y);
 					if (x < sz.width-2) raster.fillPoint(x + 2, y);
 					if (y > 1) raster.fillPoint(x, y - 2);
@@ -1406,7 +1406,7 @@ class LayerDrawing
 		Point2D high = new Point2D.Double();
         screenToDatabase(sz.width-1, sz.height-1, high);
         intoCellTransform.transform(high, high);
-        
+
 		double lowX = Math.min(low.getX(), high.getX());
 		double lowY = Math.min(low.getY(), high.getY());
 		double sizeX = Math.abs(high.getX()-low.getX());
@@ -1428,7 +1428,7 @@ class LayerDrawing
             }
         }
     }
-    
+
 	// ************************************* HIERARCHY TRAVERSAL *************************************
 
 	/**
@@ -1439,7 +1439,7 @@ class LayerDrawing
 		renderedCells++;
 
         VectorCache.VectorCell vc = VectorCache.theCache.drawCell(cell.getId(), orient, context, scale);
-        
+
 		// draw all subcells
 		for(VectorCache.VectorSubCell vsc : vc.subCells) {
 			totalCells++;
@@ -1523,12 +1523,12 @@ class LayerDrawing
         // draw primitives
         drawList(oX, oY, vc.filledShapes);
         drawList(oX, oY, vc.shapes);
-            
+
 		// show cell variables if at the top level
         if (topLevel)
             drawList(oX, oY, vc.getTopOnlyShapes());
 	}
-    
+
 	/**
 	 * @return true if the cell is properly handled and need no further processing.
 	 * False to render the contents recursively.
@@ -1574,7 +1574,7 @@ class LayerDrawing
             int lY = (int)Math.ceil(cellBounds.getMinY()*scale - 0.5);
             int hY = (int)Math.floor(cellBounds.getMaxY()*scale + 0.5);
             assert lX <= hX && lY <= hY;
-            
+
 			// if this is the first use, create the offscreen buffer
 			if (expandedCellCount == null)
 			{
@@ -1740,9 +1740,9 @@ class LayerDrawing
             raster.copyBits(polSrc, minSrcX, maxSrcX, minSrcY, maxSrcY, cornerX, cornerY);
         }
     }
-    
+
 	// ************************************* RENDERING POLY SHAPES *************************************
-    
+
     /**
      * A class representing a rectangular array of pixels. References
      * to pixels outside of the bounding rectangle may result in an
@@ -1758,10 +1758,10 @@ class LayerDrawing
          * @param lX left X coordinate
          * @param hX right X coordiante
          * @param lY top Y coordinate
-         * @param hY bottom Y coordiante 
+         * @param hY bottom Y coordiante
          */
         public void fillBox(int lX, int hX, int lY, int hY);
-        
+
         /**
          * Method to fill a horizontal scanline [lX,hX] x [y].
          * Both low and high coordiantes are inclusive.
@@ -1771,7 +1771,7 @@ class LayerDrawing
          * @param hX right X coordiante
          */
         public void fillHorLine(int y, int lX, int hX);
-        
+
         /**
          * Method to fill a verticaltal scanline [x] x [lY,hY].
          * Both low and bigh coordiantes are inclusive.
@@ -1781,7 +1781,7 @@ class LayerDrawing
          * @param hY bottom Y coordiante
          */
         public void fillVerLine(int x, int lY, int hY);
-        
+
         /**
          * Method to fill a point.
          * Filling might be patterned.
@@ -1789,7 +1789,7 @@ class LayerDrawing
          * @param y Y coordinate
          */
         public void fillPoint(int x, int y);
-        
+
         /**
          * Method to draw a horizontal line [lX,hX] x [y].
          * Both low and high coordiantes are inclusive.
@@ -1799,7 +1799,7 @@ class LayerDrawing
          * @param hX right X coordiante
          */
         public void drawHorLine(int y, int lX, int hX);
-        
+
         /**
          * Method to draw a vertical line [x] x [lY,hY].
          * Both low and high coordiantes are inclusive.
@@ -1809,20 +1809,20 @@ class LayerDrawing
          * @param hY bottom Y coordiante
          */
         public void drawVerLine(int x, int lY, int hY);
-        
+
         /**
          * Method to draw a point.
          * @param x X coordinate
          * @param y Y coordinate
          */
         public void drawPoint(int x, int y);
-        
+
         /**
          * Method to return Electric Outline style for this ERaster.
          * @return Electric Outline style for this ERaster or null for no outline.
          */
         public EGraphics.Outline getOutline();
-        
+
         /**
          * Method to copy bits from rectangle of sorce TransparentRaster to thus ERaster.
          * @param polSrc source TransparentRaster.
@@ -1835,7 +1835,7 @@ class LayerDrawing
          */
         public void copyBits(TransparentRaster src, int minSrcX, int maxSrcX, int minSrcY, int maxSrcY, int dx, int dy);
     }
-    
+
     ERaster getRaster(Layer layer, EGraphics graphics, boolean forceVisible) {
         if (layer != null)
             layer = layer.getNonPseudoLayer();
@@ -1859,23 +1859,23 @@ class LayerDrawing
         }
         return raster;
     }
-    
+
 //    /**
 //     * ERaster for solid opaque layers.
 //     */
 //    private static class OpaqueRaster implements ERaster {
 //        private static OpaqueRaster current = new OpaqueRaster();
-//        
+//
 //        int[] opaqueData;
 //        int width;
 //        int col;
-//        
+//
 //        void init(int[] opaqueData, int width, int col) {
 //            this.opaqueData = opaqueData;
 //            this.width = width;
 //            this.col = col;
 //        }
-//        
+//
 //        public void fillBox(int lX, int hX, int lY, int hY) {
 //            int baseIndex = lY*width;
 //            for (int y = lY; y <= hY; y++) {
@@ -1884,13 +1884,13 @@ class LayerDrawing
 //                baseIndex += width;
 //            }
 //        }
-//        
+//
 //        public void fillHorLine(int y, int lX, int hX) {
 //            int baseIndex = y*width + lX;
 //            for (int x = lX; x <= hX; x++)
 //                opaqueData[baseIndex++] = col;
 //        }
-//        
+//
 //        public void fillVerLine(int x, int lY, int hY) {
 //            int baseIndex = lY*width + x;
 //            for (int y = lY; y <= hY; y++) {
@@ -1898,17 +1898,17 @@ class LayerDrawing
 //                baseIndex += width;
 //            }
 //        }
-//        
+//
 //        public void fillPoint(int x, int y) {
 //            opaqueData[y * width + x] = col;
 //        }
-//        
+//
 //        public void drawHorLine(int y, int lX, int hX) {
 //            int baseIndex = y*width + lX;
 //            for (int x = lX; x <= hX; x++)
 //                opaqueData[baseIndex++] = col;
 //        }
-//        
+//
 //        public void drawVerLine(int x, int lY, int hY) {
 //            int baseIndex = lY*width + x;
 //            for (int y = lY; y <= hY; y++) {
@@ -1916,7 +1916,7 @@ class LayerDrawing
 //                baseIndex += width;
 //            }
 //        }
-//        
+//
 //        public void drawPoint(int x, int y) {
 //            opaqueData[y * width + x] = col;
 //        }
@@ -1924,7 +1924,7 @@ class LayerDrawing
 //        public EGraphics.Outline getOutline() {
 //            return null;
 //        }
-//        
+//
 //        public void copyBits(TransparentRaster src, int minSrcX, int maxSrcX, int minSrcY, int maxSrcY, int dx, int dy) {
 //            int[] srcLayerBitMap = src.layerBitMap;
 //            for (int srcY = minSrcY; srcY <= maxSrcY; srcY++) {
@@ -1945,22 +1945,22 @@ class LayerDrawing
      */
     private static class TransparentRaster implements ERaster {
         private static TransparentRaster current = new TransparentRaster();
-        
+
         int[] layerBitMap;
         int intsPerRow;
-        
+
         private TransparentRaster() {}
-        
+
         TransparentRaster(int height, int numIntsPerRow) {
             this.intsPerRow = numIntsPerRow;
             layerBitMap = new int[height*numIntsPerRow];
         }
-            
+
         private void init(int[] layerBitMap, int intsPerRow) {
             this.layerBitMap = layerBitMap;
             this.intsPerRow = intsPerRow;
         }
-        
+
         public void fillBox(int lX, int hX, int lY, int hY) {
             int baseIndex = lY*intsPerRow;
             int lIndex = baseIndex + (lX>>5);
@@ -1984,7 +1984,7 @@ class LayerDrawing
                 }
             }
         }
-        
+
         public void eraseBox(int lX, int hX, int lY, int hY) {
             int baseIndex = lY*intsPerRow;
             int lIndex = baseIndex + (lX>>5);
@@ -2011,12 +2011,12 @@ class LayerDrawing
                 }
             }
         }
-        
+
         public void eraseAll() {
             for (int i = 0; i < layerBitMap.length; i++)
                 layerBitMap[i] = 0;
         }
-        
+
         public void fillHorLine(int y, int lX, int hX) {
             int baseIndex = y*intsPerRow;
             int lIndex = baseIndex + (lX>>5);
@@ -2030,7 +2030,7 @@ class LayerDrawing
                 layerBitMap[hIndex] |= (2 << (hX&31)) - 1;
             }
         }
-        
+
         public void fillVerLine(int x, int lY, int hY) {
             int baseIndex = lY*intsPerRow + (x>>5);
             int mask = 1 << (x&31);
@@ -2039,11 +2039,11 @@ class LayerDrawing
                 baseIndex += intsPerRow;
             }
         }
-        
+
         public void fillPoint(int x, int y) {
             layerBitMap[y*intsPerRow + (x>>5)] |= (1 << (x&31));
         }
-        
+
         public void drawHorLine(int y, int lX, int hX) {
             int baseIndex = y*intsPerRow;
             int lIndex = baseIndex + (lX>>5);
@@ -2057,7 +2057,7 @@ class LayerDrawing
                 layerBitMap[hIndex] |= (2 << (hX&31)) - 1;
             }
         }
-        
+
         public void drawVerLine(int x, int lY, int hY) {
             int baseIndex = lY*intsPerRow + (x>>5);
             int mask = 1 << (x&31);
@@ -2066,15 +2066,15 @@ class LayerDrawing
                 baseIndex += intsPerRow;
             }
         }
-        
+
         public void drawPoint(int x, int y) {
             layerBitMap[y*intsPerRow + (x>>5)] |= (1 << (x&31));
         }
-        
+
         public EGraphics.Outline getOutline() {
             return null;
         }
-        
+
         public void copyBits(TransparentRaster src, int minSrcX, int maxSrcX, int minSrcY, int maxSrcY, int dx, int dy) {
             int [] srcLayerBitMap = src.layerBitMap;
             int minDestX = minSrcX + dx;
@@ -2198,22 +2198,22 @@ class LayerDrawing
 //     */
 //    private static class PatternedOpaqueRaster extends OpaqueRaster {
 //        private static PatternedOpaqueRaster current = new PatternedOpaqueRaster();
-//        
+//
 //        int[] pattern;
 //        EGraphics.Outline outline;
-//        
+//
 //        private void init(int[] opaqueData, int width, int col, int[] pattern, EGraphics.Outline outline) {
 //            super.init(opaqueData, width, col);
 //            this.pattern = pattern;
 //            this.outline = outline;
 //        }
-//        
+//
 //        public void fillBox(int lX, int hX, int lY, int hY) {
 //            for (int y = lY; y <= hY; y++) {
 //                // setup pattern for this row
 //                int pat = pattern[y&15];
 //                if (pat == 0) continue;
-//                
+//
 //                int baseIndex = y * width;
 //                for (int x = lX; x <= hX; x++) {
 //                    if ((pat & (0x8000 >> (x&15))) != 0)
@@ -2221,7 +2221,7 @@ class LayerDrawing
 //                }
 //            }
 //        }
-//        
+//
 //        public void fillHorLine(int y, int lX, int hX) {
 //            int pat = pattern[y & 15];
 //            if (pat == 0) return;
@@ -2233,7 +2233,7 @@ class LayerDrawing
 //                }
 //            }
 //        }
-//        
+//
 //        public void fillVerLine(int x, int lY, int hY) {
 //            int patMask = 0x8000 >> (x&15);
 //            int baseIndex = lY*width + x;
@@ -2243,17 +2243,17 @@ class LayerDrawing
 //                baseIndex += width;
 //            }
 //        }
-//        
+//
 //        public void fillPoint(int x, int y) {
 //            int patMask = 0x8000 >> (x&15);
 //            if ((pattern[y&15] &  patMask) != 0)
 //                opaqueData[y*width + x] = col;
 //        }
-//        
+//
 //        public EGraphics.Outline getOutline() {
 //            return outline;
 //        }
-//        
+//
 //        public void copyBits(TransparentRaster src, int minSrcX, int maxSrcX, int minSrcY, int maxSrcY, int dx, int dy) {
 //            int[] srcLayerBitMap = src.layerBitMap;
 //            for (int srcY = minSrcY; srcY <= maxSrcY; srcY++) {
@@ -2272,22 +2272,22 @@ class LayerDrawing
 //            }
 //        }
 //    }
-    
+
     /**
      * ERaster for patterned transparent layers.
      */
     private static class PatternedTransparentRaster extends TransparentRaster {
         int[] pattern;
         EGraphics.Outline outline;
-  
+
         PatternedTransparentRaster() {}
-        
+
         private void init(int[] layerBitMap, int intsPerRow, int[] pattern, EGraphics.Outline outline) {
             super.init(layerBitMap, intsPerRow);
             this.pattern = pattern;
             this.outline = outline;
         }
-        
+
         public void fillBox(int lX, int hX, int lY, int hY) {
             int baseIndex = lY*intsPerRow;
             int lIndex = baseIndex + (lX>>5);
@@ -2316,7 +2316,7 @@ class LayerDrawing
                 }
             }
         }
-        
+
         public void fillHorLine(int y, int lX, int hX) {
             int pat = pattern[y & 15];
             if (pat == 0) return;
@@ -2334,7 +2334,7 @@ class LayerDrawing
                 layerBitMap[hIndex] |= pat & ((2 << (hX&31)) - 1);
             }
         }
-        
+
         public void fillVerLine(int x, int lY, int hY) {
             int baseIndex = lY*intsPerRow + (x>>5);
             int mask = 1 << (x&31);
@@ -2344,17 +2344,17 @@ class LayerDrawing
                 baseIndex += intsPerRow;
             }
         }
-        
+
         public void fillPoint(int x, int y) {
             int mask = (1 << (x&31)) & pattern[y&15];
             if (mask != 0)
                 layerBitMap[y*intsPerRow + (x>>5)] |= mask;
         }
-        
+
         public EGraphics.Outline getOutline() {
             return outline;
         }
-        
+
         public void copyBits(TransparentRaster src, int minSrcX, int maxSrcX, int minSrcY, int maxSrcY, int dx, int dy) {
             int[] srcLayerBitMap = src.layerBitMap;
             assert (minSrcY + dy)*intsPerRow + ((minSrcX + dx) >> 5) >= 0;
@@ -2376,7 +2376,7 @@ class LayerDrawing
             }
         }
     }
-    
+
 	// ************************************* RENDERING POLY SHAPES *************************************
 
     private static Rectangle tempRect = new Rectangle();
@@ -2386,7 +2386,7 @@ class LayerDrawing
         result.x = (int)(scrX >= 0 ? scrX + 0.5 : scrX - 0.5);
         result.y = (int)(scrY >= 0 ? scrY + 0.5 : scrY - 0.5);
     }
-    
+
 	/**
 	 * Method to draw a list of cached shapes.
 	 * @param oX the X offset to draw the shapes (in database grid coordinates).
@@ -2402,7 +2402,7 @@ class LayerDrawing
 //			if (stopRendering) throw new AbortRenderingException();
 			// handle refreshing
 			periodicRefresh();
-            
+
             if (vb instanceof VectorCache.VectorText) {
                 VectorCache.VectorText vt = (VectorCache.VectorText)vb;
                 TextDescriptor td = vt.descript;
@@ -2433,7 +2433,7 @@ class LayerDrawing
                         break;
                 }
 //				if (vt.height < maxTextSize) continue;
-                
+
                 String drawString = vt.str;
                 int lX = vt.bounds.x;
                 int lY = vt.bounds.y;
@@ -2445,7 +2445,7 @@ class LayerDrawing
                 lY = tempPt1.y;
                 hX = tempPt2.x;
                 hY = tempPt2.y;
-                
+
                 EGraphics graphics = vt.graphics;
                 if (vt.textType == VectorCache.VectorText.TEXTTYPEEXPORT && vt.basePort != null) {
                 	if (!vt.basePort.getParent().isVisible()) continue;
@@ -2457,21 +2457,21 @@ class LayerDrawing
                         crossTextList.add(new CrossTextInfo(cX, cY, textColor));
                         continue;
                     }
-                    
+
                     // draw export as text
                     if (exportDisplayLevel == 1)
                         drawString = Export.getShortName(drawString);
                     graphics = textGraphics;
                 }
-                
+
                 tempRect.setBounds(lX, lY, hX-lX, hY-lY);
                 drawText(tempRect, vt.style, vt.descript, drawString, graphics);
                 continue;
             }
-            
+
             ERaster raster = getRaster(vb.layer, vb.graphics, false);
             if (raster == null) continue;
-                
+
             // handle each shape
             if (vb instanceof VectorCache.VectorManhattan) {
                 boxCount++;
@@ -2482,7 +2482,7 @@ class LayerDrawing
                     int c1Y = vm.coords[i+1];
                     int c2X = vm.coords[i+2];
                     int c2Y = vm.coords[i+3];
-                    
+
                     // determine coordinates of rectangle on the screen
                     gridToScreen(c1X+oX, c2Y+oY, tempPt1);
                     gridToScreen(c2X+oX, c1Y+oY, tempPt2);
@@ -2490,7 +2490,7 @@ class LayerDrawing
                     int lY = tempPt1.y;
                     int hX = tempPt2.x;
                     int hY = tempPt2.y;
-                    
+
                     drawBox(lX, hX, lY, hY, raster);
                 }
             } else if (vb instanceof VectorCache.VectorPolygon) {
@@ -2506,11 +2506,11 @@ class LayerDrawing
             } else if (vb instanceof VectorCache.VectorLine) {
                 lineCount++;
                 VectorCache.VectorLine vl = (VectorCache.VectorLine)vb;
-                
+
                 // determine coordinates of line on the screen
                 gridToScreen(vl.fX+oX, vl.fY+oY, tempPt1);
                 gridToScreen(vl.tX+oX, vl.tY+oY, tempPt2);
-                
+
                 // clip and draw the line
                 drawLine(tempPt1, tempPt2, vl.texture, raster);
             } else if (vb instanceof VectorCache.VectorCross) {
@@ -2537,7 +2537,7 @@ class LayerDrawing
                         drawDisc(tempPt1, tempPt2, raster);
                         break;
                 }
-                
+
             } else if (vb instanceof VectorCache.VectorCircleArc) {
                 arcCount++;
                 VectorCache.VectorCircleArc vca = (VectorCache.VectorCircleArc)vb;
@@ -2591,7 +2591,7 @@ class LayerDrawing
 			// draw port as text
             boolean shortName = portDisplayLevel == 1;
             String drawString = vce.getName(shortName);
-            
+
 			tempRect.setBounds(cX, cY, 0, 0);
 			drawText(tempRect, vce.style, vce.descript, drawString, portGraphics);
 		}
@@ -2789,7 +2789,7 @@ class LayerDrawing
             }
         }
     }
-    
+
     private static void drawHorOutline(int y, int lX, int hX, int pattern, int len, ERaster raster) {
         int i = 0;
         for (int x = lX; x <= hX; x++) {
@@ -2799,7 +2799,7 @@ class LayerDrawing
             if (i == len) i = 0;
         }
     }
-    
+
     private static void drawVerOutline(int x, int lY, int hY, int pattern, int len, ERaster raster) {
         int i = 0;
         for (int y = lY; y <= hY; y++) {
@@ -2809,7 +2809,7 @@ class LayerDrawing
             if (i == len) i = 0;
         }
     }
-    
+
 //    /**
 //     * Method to draw a box on the off-screen buffer.
 //     */
@@ -3011,7 +3011,7 @@ class LayerDrawing
         tempPt3.y = y1;
         tempPt4.x = x2;
         tempPt4.y = y2;
-        
+
 		// first clip the line
 		if (GenMath.clipLine(tempPt3, tempPt4, 0, sz.width-1, 0, sz.height-1)) return;
 
@@ -3425,7 +3425,7 @@ class LayerDrawing
 					int k = (edge.fx + 32768) >> 16;
 
                     raster.fillHorLine(ycur, j, k);
-                    
+
 					left = edge.nextactive;
 				}
 			}
@@ -3560,7 +3560,7 @@ class LayerDrawing
 
             // greeked box in opaque area
             if (lX > hX || lY > hY) return;
-            
+
             greekTextList.add(new GreekTextInfo(lX, hX, lY, hY, color));
 //            for(int y=lY; y<=hY; y++) {
 //                int baseIndex = y * sz.width + lX;
@@ -3590,7 +3590,7 @@ class LayerDrawing
 	    private Rectangle2D bounds;                 // the real bounds of the rotated, anchored text (in screen units)
 	    private boolean underline;
         private int rotation;
-        private Color color; 
+        private Color color;
         private Rectangle rect;
         private int offX, offY;
 
@@ -3677,7 +3677,7 @@ class LayerDrawing
             }
             return true;
         }
-        
+
         private void draw(Graphics2D g) {
             int width = (int)rasBounds.getWidth();
             int height = (int)rasBounds.getHeight();
@@ -3703,7 +3703,7 @@ class LayerDrawing
     private class GreekTextInfo {
         int lX, hX, lY, hY;
         Color color;
-        
+
         private GreekTextInfo(int lX, int hX, int lY, int hY, Color color) {
             this.lX = lX;
             this.hX = hX;
@@ -3711,30 +3711,30 @@ class LayerDrawing
             this.hY = hY;
             this.color = color;
         }
-        
+
         private void draw(Graphics2D g) {
             g.setColor(color);
             g.drawLine(lX, lY, hX, hY);
         }
     }
-    
+
     private class CrossTextInfo {
         int x, y;
         Color color;
-        
+
         private CrossTextInfo(int x, int y, Color color) {
             this.x = x;
             this.y = y;
             this.color = color;
         }
-        
+
         private void draw(Graphics2D g) {
             g.setColor(color);
             g.drawLine(x - 3, y, x + 3, y);
             g.drawLine(x, y - 3, x, y + 3);
         }
     }
-    
+
 	/**
 	 * Method to return the coordinates of the lower-left corner of text in this window.
 	 * @param rasterWidth the width of the text.
@@ -4279,7 +4279,7 @@ class LayerDrawing
     private void drawPoint(int x, int y, byte[] layerBitMap, byte layerBitMask) {
         layerBitMap[y * width + x] |= layerBitMask;
     }
-    
+
     private void drawThickPoint(int x, int y, ERaster raster) {
         raster.drawPoint(x, y);
         if (x > clipLX)
@@ -4304,7 +4304,7 @@ class LayerDrawing
         if (y < sz.height-1)
             layerBitMap[baseIndex + width] |= layerBitMask;
     }
-    
+
 	/**
 	 * Method to convert a database coordinate to screen coordinates.
 	 * @param dbX the X coordinate (in database units).
@@ -4317,11 +4317,11 @@ class LayerDrawing
 		result.x = (int)(scrX >= 0 ? scrX + 0.5 : scrX - 0.5);
 		result.y = (int)(scrY >= 0 ? scrY + 0.5 : scrY - 0.5);
     }
-    
+
     private void screenToDatabase(int x, int y, Point2D result) {
         result.setLocation((x - originX)/scale, (originY - y)/scale);
     }
-    
+
 	/**
 	 * Method to convert a database rectangle to screen coordinates.
 	 * @param db the rectangle (in database units).

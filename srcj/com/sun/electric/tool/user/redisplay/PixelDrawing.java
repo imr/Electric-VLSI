@@ -181,7 +181,7 @@ import javax.swing.SwingUtilities;
  *   When compositing at the top level, however, the POLs are converted back to patterns, so that they line-up.</LI>
  *   </UL>
  * </UL>
- * 
+ *
  */
 public class PixelDrawing
 {
@@ -208,12 +208,12 @@ public class PixelDrawing
     private static class ExpandedCellKey {
         private Cell cell;
         private Orientation orient;
-     
+
         private ExpandedCellKey(Cell cell, Orientation orient) {
             this.cell = cell;
             this.orient = orient;
         }
-        
+
         @Override
         public boolean equals(Object obj) {
             if (obj instanceof ExpandedCellKey) {
@@ -222,11 +222,11 @@ public class PixelDrawing
             }
             return false;
         }
-        
+
         @Override
         public int hashCode() { return cell.hashCode()^orient.hashCode(); }
     }
-    
+
 	/**
 	 * This class holds information about expanded cell instances.
 	 * For efficiency, Electric remembers the bits in an expanded cell instance
@@ -247,14 +247,14 @@ public class PixelDrawing
 			offscreen = null;
 		}
 	}
-    
+
 	/** the size of the EditWindow */						private final Dimension sz;
     /** the scale of the EditWindow */                      private double scale;
     /** the VarContext of the EditWindow */                 private VarContext varContext = VarContext.globalContext;
     /** the X origin of the cell in display coordinates. */ private double originX;
     /** the Y origin of the cell in display coordinates. */ private double originY;
 	/** 0: color display, 1: color printing, 2: B&W printing */	private int nowPrinting;
-    
+
     /** the area of the cell to draw, in DB units */        private Rectangle2D drawBounds;
 	/** whether any layers are highlighted/dimmed */		boolean highlightingLayers;
 	/** true if the last display was a full-instantiate */	private boolean lastFullInstantiate = false;
@@ -311,10 +311,10 @@ public class PixelDrawing
 		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
 
     private int clipLX, clipHX, clipLY, clipHY;
-    
+
     private final EditWindow0 dummyWnd = new EditWindow0() {
         public VarContext getVarContext() { return varContext; }
-        
+
         public double getScale() { return scale; }
 
         public double getGlobalTextScale() { return wnd.getGlobalTextScale(); }
@@ -323,11 +323,11 @@ public class PixelDrawing
     static class Drawing extends AbstractDrawing {
         private final VectorDrawing vd = new VectorDrawing();
         private volatile PixelDrawing offscreen;
-        
+
         Drawing(EditWindow wnd) {
             super(wnd);
         }
-        
+
         @Override
         public boolean paintComponent(Graphics2D g, Dimension sz) {
             assert SwingUtilities.isEventDispatchThread();
@@ -335,12 +335,12 @@ public class PixelDrawing
             PixelDrawing offscreen = this.offscreen;
             if (offscreen == null || !offscreen.getSize().equals(sz))
                 return false;
-            
+
             // show the image
             g.drawImage(offscreen.getBufferedImage(), 0, 0, wnd);
             return true;
         }
-        
+
         @Override
         public void render(Dimension sz, WindowFrame.DisplayAttributes da, boolean fullInstantiate, Rectangle2D bounds) {
             PixelDrawing offscreen_ = this.offscreen;
@@ -349,14 +349,14 @@ public class PixelDrawing
             this.da = da;
             offscreen_.drawImage(this, fullInstantiate, bounds);
         }
-        
+
         @Override
         public void abortRendering() {
             if (User.getDisplayAlgorithm() > 0)
                 vd.abortRendering();
         }
     }
-    
+
     // ************************************* TOP LEVEL *************************************
 
 	/**
@@ -370,7 +370,7 @@ public class PixelDrawing
         clipHX = sz.width - 1;
         clipLY = 0;
         clipHY = sz.height - 1;
-        
+
 		// allocate pointer to the opaque image
 		img = new BufferedImage(sz.width, sz.height, BufferedImage.TYPE_INT_RGB);
 		WritableRaster raster = img.getRaster();
@@ -380,10 +380,10 @@ public class PixelDrawing
 		numBytesPerRow = (sz.width + 7) / 8;
 		renderedWindow = true;
 	}
-    
+
     public PixelDrawing(double scale, Rectangle screenBounds) {
         this.scale = scale;
-        
+
         this.originX = -screenBounds.x;
         this.originY = screenBounds.y + screenBounds.height;
         this.sz = new Dimension(screenBounds.width, screenBounds.height);
@@ -391,17 +391,17 @@ public class PixelDrawing
         clipHX = sz.width - 1;
         clipLY = 0;
         clipHY = sz.height - 1;
-        
+
 		// allocate pointer to the opaque image
         img = null;
 		total = sz.height * sz.width;
         opaqueData = new int[total];
 		numBytesPerRow = (sz.width + 7) / 8;
-        
+
 		// initialize the data
 		clearImage(null);
     }
-    
+
     void initOrigin(double scale, double offx, double offy) {
         this.scale = scale;
         this.originX = sz.width/2 - offx*scale;
@@ -412,7 +412,7 @@ public class PixelDrawing
 		clearImage(null);
         initOrigin(scale, 0, 0);
     }
-    
+
     /**
      * Method to set the printing mode used for all drawing.
      * @param mode the printing mode:  0=color display (default), 1=color printing, 2=B&W printing.
@@ -441,7 +441,7 @@ public class PixelDrawing
 	 * @return an RGB array for this edit window.
 	 */
     int[] getOpaqueData() { return opaqueData; }
-    
+
 	/**
 	 * Method for obtaining the size of the offscreen bitmap.
 	 * @return the size of the offscreen bitmap.
@@ -495,7 +495,7 @@ public class PixelDrawing
 		textGraphics.setColor(textColor);
 		gridGraphics.setColor(new Color(User.getColor(User.ColorPrefType.GRID)));
 		instanceGraphics.setColor(new Color(User.getColor(User.ColorPrefType.INSTANCE)));
-		
+
 		// initialize the cache of expanded cell displays
 		if (expandedScale != drawing.da.scale)
 		{
@@ -602,14 +602,14 @@ public class PixelDrawing
 	{
         clearSubCellCache();
         lastFullInstantiate = false;
-        expandedScale = this.scale = scale; 
+        expandedScale = this.scale = scale;
 
 		// set colors to use
         textColor = new Color(User.getColor(User.ColorPrefType.TEXT));
 		textGraphics.setColor(textColor);
 		gridGraphics.setColor(new Color(User.getColor(User.ColorPrefType.GRID)));
 		instanceGraphics.setColor(new Color(User.getColor(User.ColorPrefType.INSTANCE)));
-		
+
         if (wnd != null) varContext = wnd.getVarContext();
         initOrigin(scale, offset.getX(), offset.getY());
  		canDrawText = expandedScale > 1;
@@ -832,7 +832,7 @@ public class PixelDrawing
 				{
 					int index = baseIndex + x;
 					int pixelValue = opaqueData[index];
-				
+
 					// the value of Alpha starts at 0xFF, which means "background"
 					// opaque drawing typically sets it to 0, which means "filled"
 					// Text drawing can antialias by setting the edge values in the range 0-254
@@ -976,8 +976,8 @@ public class PixelDrawing
 				databaseToScreen(tmpPt.getX(), tmpPt.getY(), tempPt1);
 				int x = tempPt1.x;
 				int y = tempPt1.y;
-				if (x < 0 || x > sz.width) continue;
-				if (y < 0 || y > sz.height) continue;
+				if (x < 0 || x >= sz.width) continue;
+				if (y < 0 || y >= sz.height) continue;
 
 				double boldValueX = j;
 				if (j < 0) boldValueX -= boldSpacingThreshX/2; else
@@ -1038,7 +1038,7 @@ public class PixelDrawing
 		Point2D high = new Point2D.Double();
         screenToDatabase(sz.width-1, sz.height-1, high);
         intoCellTransform.transform(high, high);
-        
+
 		double lowX = Math.min(low.getX(), high.getX());
 		double lowY = Math.min(low.getY(), high.getY());
 		double sizeX = Math.abs(high.getX()-low.getX());
@@ -1081,7 +1081,7 @@ public class PixelDrawing
             }
         }
     }
-    
+
 	// ************************************* HIERARCHY TRAVERSAL *************************************
 
 	/**
@@ -1251,7 +1251,7 @@ public class PixelDrawing
                     if (ctrY + halfWidth < databaseBounds.getMinY()) return;
                     if (ctrY - halfWidth > databaseBounds.getMaxY()) return;
                 }
-	
+
 				PrimitiveNode prim = (PrimitiveNode)np;
 				totalPrims++;
 				if (!prim.isCanBeZeroSize() && halfWidth < halfMaxObjectSize && !forceVisible)
@@ -1343,7 +1343,7 @@ public class PixelDrawing
 				if (arcSize < maxObjectSize)
 				{
 					linedArcs++;
-	
+
 					// draw a tiny arc by setting a single dot from each layer
 					Point2D headEnd = new Point2D.Double(ai.getHeadLocation().getX(), ai.getHeadLocation().getY());
 					trans.transform(headEnd, headEnd);
@@ -1576,7 +1576,7 @@ public class PixelDrawing
 			expandedCellCount.offscreen.drawCell(subCell, null, fullInstantiate, orient, rotTrans, topCell);
 			offscreensCreated++;
             offscreenPixelsCreated += expandedCellCount.offscreen.total;
-            
+
 		}
 
 		// copy out of the offscreen buffer into the main buffer
@@ -1726,7 +1726,7 @@ public class PixelDrawing
             if (destY < 0 || destY >= sz.height) continue;
             int srcBase = srcY * dim.width;
             int destBase = destY * sz.width;
-            
+
             for (int srcX = minSrcX; srcX <= maxSrcX; srcX++) {
                 int destX = srcX + cornerX;
                 assert destX >= clipLX && destX <= clipHX;
@@ -1742,19 +1742,19 @@ public class PixelDrawing
             byte [][] srcLayerBitMap = srcOffscreen.layerBitMaps[i];
             if (srcLayerBitMap == null) continue;
             byte [][] destLayerBitMap = getLayerBitMap(i);
-            
+
             for (int srcY = minSrcY; srcY <= maxSrcY; srcY++) {
                 int destY = srcY + cornerY;
                 assert destY >= clipLY && destY <= clipHY;
                 if (destY < 0 || destY >= sz.height) continue;
                 byte [] srcRow = srcLayerBitMap[srcY];
                 byte [] destRow = destLayerBitMap[destY];
-                
+
                 for (int srcX = minSrcX; srcX <= maxSrcX; srcX++) {
                     int destX = srcX + cornerX;
                     assert destX >= clipLX && destX <= clipHX;
                     if (destX < 0 || destX >= sz.width) continue;
-                    
+
                     if ((srcRow[srcX>>3] & (1<<(srcX&7))) != 0)
                         destRow[destX>>3] |= (1 << (destX&7));
                 }
@@ -1828,7 +1828,7 @@ public class PixelDrawing
 	}
 
 	// ************************************* RENDERING POLY SHAPES *************************************
-    
+
     /**
      * A class representing a rectangular array of pixels. References
      * to pixels outside of the bounding rectangle may result in an
@@ -1844,10 +1844,10 @@ public class PixelDrawing
          * @param lX left X coordinate
          * @param hX right X coordiante
          * @param lY top Y coordinate
-         * @param hY bottom Y coordiante 
+         * @param hY bottom Y coordiante
          */
         public void fillBox(int lX, int hX, int lY, int hY);
-        
+
         /**
          * Method to fill a horizontal scanline [lX,hX] x [y].
          * Both low and high coordiantes are inclusive.
@@ -1857,7 +1857,7 @@ public class PixelDrawing
          * @param hX right X coordiante
          */
         public void fillHorLine(int y, int lX, int hX);
-        
+
         /**
          * Method to fill a verticaltal scanline [x] x [lY,hY].
          * Both low and bigh coordiantes are inclusive.
@@ -1867,7 +1867,7 @@ public class PixelDrawing
          * @param hY bottom Y coordiante
          */
         public void fillVerLine(int x, int lY, int hY);
-        
+
         /**
          * Method to fill a point.
          * Filling might be patterned.
@@ -1875,7 +1875,7 @@ public class PixelDrawing
          * @param y Y coordinate
          */
         public void fillPoint(int x, int y);
-        
+
         /**
          * Method to draw a horizontal line [lX,hX] x [y].
          * Both low and high coordiantes are inclusive.
@@ -1885,7 +1885,7 @@ public class PixelDrawing
          * @param hX right X coordiante
          */
         public void drawHorLine(int y, int lX, int hX);
-        
+
         /**
          * Method to draw a vertical line [x] x [lY,hY].
          * Both low and high coordiantes are inclusive.
@@ -1895,22 +1895,22 @@ public class PixelDrawing
          * @param hY bottom Y coordiante
          */
         public void drawVerLine(int x, int lY, int hY);
-        
+
         /**
          * Method to draw a point.
          * @param x X coordinate
          * @param y Y coordinate
          */
         public void drawPoint(int x, int y);
-        
+
         /**
          * Method to return Electric Outline style for this ERaster.
          * @return Electric Outline style for this ERaster or null for no outline.
          */
         public EGraphics.Outline getOutline();
     }
-    
-    
+
+
 	// ************************************* RENDERING POLY SHAPES *************************************
 
 	/**
@@ -1973,9 +1973,9 @@ public class PixelDrawing
         layerBitMaps[layerNum] = layerBitMap;
         numLayerBitMapsCreated++;
         return layerBitMap;
-        
+
     }
-    
+
 	/**
 	 * Render a Poly to the offscreen buffer.
 	 */
@@ -2493,7 +2493,7 @@ public class PixelDrawing
         tempPt3.y = y1;
         tempPt4.x = x2;
         tempPt4.y = y2;
-        
+
 		// first clip the line
 		if (GenMath.clipLine(tempPt3, tempPt4, 0, sz.width-1, 0, sz.height-1)) return;
 
@@ -3657,7 +3657,7 @@ public class PixelDrawing
 				pattern = desc.getPattern();
 				if (desc.getOutlined() != EGraphics.Outline.NOPAT)
 				{
-					drawCircle(center, edge, layerBitMap, desc, dimmed);			
+					drawCircle(center, edge, layerBitMap, desc, dimmed);
 				}
 			}
 		}
@@ -3981,11 +3981,11 @@ public class PixelDrawing
 		result.x = (int)(scrX >= 0 ? scrX + 0.5 : scrX - 0.5);
 		result.y = (int)(scrY >= 0 ? scrY + 0.5 : scrY - 0.5);
     }
-    
+
     private void screenToDatabase(int x, int y, Point2D result) {
         result.setLocation((x - originX)/scale, (originY - y)/scale);
     }
-    
+
 	/**
 	 * Method to convert a database rectangle to screen coordinates.
 	 * @param db the rectangle (in database units).

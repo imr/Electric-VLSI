@@ -4,10 +4,13 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08e: ******************************
 
-IMP: (8/03/08, DN) Get read of most calls of "Cell.getArc(int arcIndex)" because
+BUG: (9/03/08, DN) Exception caused by a move (Bug #1817).
+FIX: In LayerDrawing.drawGrid and PixelDrawing.drawGrid check for "x >= sz.width" and "y >= sz.height".
+
+IMP: (9/02/08, DN) Get read of most calls of "Cell.getArc(int arcIndex)" because
    of future change in its implementation for (Bug #1804).
 
-IMP: (8/03/08, DN) Add method "boolean ArcInst.isZeroLength()" which can be useful for (Bug #1798).
+IMP: (9/02/08, DN) Add method "boolean ArcInst.isZeroLength()" which can be useful for (Bug #1798).
 
 IMP: (8/27/08, SMR) Fixes to grid alignment toolbar buttons (Bug #1801).
 
