@@ -31,7 +31,6 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JPanel;
 
-
 /**
  * Class to handle the "FastHenry" tab of the Preferences dialog.
  */
@@ -142,7 +141,19 @@ public class FastHenryTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		System.out.println("CANNOT RESET FAST HENRY PREFERENCES YET");
+		Simulation.setFastHenryUseSingleFrequency(Simulation.isFastHenryUseSingleFrequency());
+		Simulation.setFastHenryDefThickness(Simulation.getFactoryFastHenryDefThickness());
+
+		Simulation.setFastHenryStartFrequency(Simulation.getFactoryFastHenryStartFrequency());
+		Simulation.setFastHenryEndFrequency(Simulation.getFactoryFastHenryEndFrequency());
+		Simulation.setFastHenryRunsPerDecade(Simulation.getFactoryFastHenryRunsPerDecade());
+
+		Simulation.setFastHenryWidthSubdivisions(Simulation.getFactoryFastHenryWidthSubdivisions());
+		Simulation.setFastHenryHeightSubdivisions(Simulation.getFactoryFastHenryHeightSubdivisions());
+		Simulation.setFastHenryMaxSegLength(Simulation.getFactoryFastHenryMaxSegLength());
+
+		Simulation.setFastHenryMultiPole(Simulation.isFactoryFastHenryMultiPole());
+		Simulation.setFastHenryNumPoles(Simulation.getFactoryFastHenryNumPoles());
 	}
 
 	/** This method is called from within the constructor to

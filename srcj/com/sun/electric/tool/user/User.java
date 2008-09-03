@@ -865,6 +865,11 @@ public class User extends Listener
 	 * @param on true if generated icons should have leads drawn.
 	 */
 	public static void setIconGenDrawLeads(boolean on) { cacheIconGenDrawLeads.setBoolean(on); }
+	/**
+	 * Method to tell whether generated icons should have leads drawn by default.
+	 * @return true if generated icons should have leads drawn by default.
+	 */
+	public static boolean isFactoryIconGenDrawLeads() { return cacheIconGenDrawLeads.getBooleanFactoryValue(); }
 
 	private static Pref cacheIconsAlwaysDrawn = Pref.makeBooleanPref("IconsAlwaysDrawn", tool.prefs, false);
 	/**
@@ -882,6 +887,13 @@ public class User extends Listener
 	 * @param on true if generated icon exports should be "always drawn".
 	 */
 	public static void setIconsAlwaysDrawn(boolean on) { cacheIconsAlwaysDrawn.setBoolean(on); }
+	/**
+	 * Method to tell whether generated icon exports should be "always drawn" by default.
+	 * Exports that are "always drawn" have their text shown on instances, even
+	 * when those exports are connected or further exported.
+	 * @return true if generated icon exports should be "always drawn" by default.
+	 */
+	public static boolean isFactoryIconsAlwaysDrawn() { return cacheIconsAlwaysDrawn.getBooleanFactoryValue(); }
 
 	private static Pref cacheIconGenDrawBody = Pref.makeBooleanPref("IconGenDrawBody", tool.prefs, true);
 	/**
@@ -897,6 +909,12 @@ public class User extends Listener
 	 * @param on true if generated icons should have a body drawn.
 	 */
 	public static void setIconGenDrawBody(boolean on) { cacheIconGenDrawBody.setBoolean(on); }
+	/**
+	 * Method to tell whether generated icons should have a body drawn by default.
+	 * The body is just a rectangle.
+	 * @return true if generated icons should have a body drawn by default.
+	 */
+	public static boolean isFactoryIconGenDrawBody() { return cacheIconGenDrawBody.getBooleanFactoryValue(); }
 
 	private static Pref cacheIconGenBodyTextSize = Pref.makeDoublePref("IconGenBodyTextSize", tool.prefs, 2.0);
 	/**
@@ -910,6 +928,11 @@ public class User extends Listener
 	 * @param s the size of body text on generated icons.
 	 */
 	public static void setIconGenBodyTextSize(double s) { cacheIconGenBodyTextSize.setDouble(s); }
+	/**
+	 * Method to tell the size of body text on generated icons, by default.
+	 * @return the size of body text on generated icons, by default.
+	 */
+	public static double getFactoryIconGenBodyTextSize() { return cacheIconGenBodyTextSize.getDoubleFactoryValue(); }
 
 	private static Pref cacheIconGenReverseExportOrder = Pref.makeBooleanPref("IconGenReverseExportOrder", tool.prefs, false);
 	/**
@@ -925,6 +948,12 @@ public class User extends Listener
 	 * @param on true if generated icons should reverse the order of exports.
 	 */
 	public static void setIconGenReverseExportOrder(boolean on) { cacheIconGenReverseExportOrder.setBoolean(on); }
+	/**
+	 * Method to tell whether generated icons should reverse the order of exports, by default.
+	 * Normally, exports are drawn top-to-bottom alphabetically.
+	 * @return true if generated icons should reverse the order of exports, by default.
+	 */
+	public static boolean isFactoryIconGenReverseExportOrder() { return cacheIconGenReverseExportOrder.getBooleanFactoryValue(); }
 
 	private static Pref cacheIconGenInputSide = Pref.makeIntPref("IconGenInputSide", tool.prefs, 0);
 	/**
@@ -939,6 +968,12 @@ public class User extends Listener
 	 * 0: left   1: right   2: top   3: bottom
 	 */
 	public static void setIconGenInputSide(int side) { cacheIconGenInputSide.setInt(side); }
+	/**
+	 * Method to tell where Input ports should go on generated icons, by default.
+	 * @return information about where Input ports should go on generated icons, by default.
+	 * 0: left   1: right   2: top   3: bottom
+	 */
+	public static int getFactoryIconGenInputSide() { return cacheIconGenInputSide.getIntFactoryValue(); }
 
 	private static Pref cacheIconGenOutputSide = Pref.makeIntPref("IconGenOutputSide", tool.prefs, 1);
 	/**
@@ -953,6 +988,12 @@ public class User extends Listener
 	 * 0: left   1: right (the default)   2: top   3: bottom
 	 */
 	public static void setIconGenOutputSide(int side) { cacheIconGenOutputSide.setInt(side); }
+	/**
+	 * Method to tell where Output ports should go on generated icons, by default.
+	 * @return information about where Output ports should go on generated icons, by default.
+	 * 0: left   1: right   2: top   3: bottom
+	 */
+	public static int getFactoryIconGenOutputSide() { return cacheIconGenOutputSide.getIntFactoryValue(); }
 
 	private static Pref cacheIconGenBidirSide = Pref.makeIntPref("IconGenBidirSide", tool.prefs, 2);
 	/**
@@ -967,6 +1008,12 @@ public class User extends Listener
 	 * 0: left   1: right   2: top (the default)   3: bottom
 	 */
 	public static void setIconGenBidirSide(int side) { cacheIconGenBidirSide.setInt(side); }
+	/**
+	 * Method to tell where Bidirectional ports should go on generated icons, by default.
+	 * @return information about where Bidirectional ports should go on generated icons, by default.
+	 * 0: left   1: right   2: top   3: bottom
+	 */
+	public static int getFactoryIconGenBidirSide() { return cacheIconGenBidirSide.getIntFactoryValue(); }
 
 	private static Pref cacheIconGenPowerSide = Pref.makeIntPref("IconGenPowerSide", tool.prefs, 3);
 	/**
@@ -981,6 +1028,12 @@ public class User extends Listener
 	 * 0: left   1: right   2: top   3: bottom (the default)
 	 */
 	public static void setIconGenPowerSide(int side) { cacheIconGenPowerSide.setInt(side); }
+	/**
+	 * Method to tell where Power ports should go on generated icons, by default.
+	 * @return information about where Power ports should go on generated icons, by default.
+	 * 0: left   1: right   2: top   3: bottom
+	 */
+	public static int getFactoryIconGenPowerSide() { return cacheIconGenPowerSide.getIntFactoryValue(); }
 
 	private static Pref cacheIconGenGroundSide = Pref.makeIntPref("IconGenGroundSide", tool.prefs, 3);
 	/**
@@ -995,6 +1048,12 @@ public class User extends Listener
 	 * 0: left   1: right   2: top   3: bottom (the default)
 	 */
 	public static void setIconGenGroundSide(int side) { cacheIconGenGroundSide.setInt(side); }
+	/**
+	 * Method to tell where Ground ports should go on generated icons, by default.
+	 * @return information about where Ground ports should go on generated icons, by default.
+	 * 0: left   1: right   2: top   3: bottom
+	 */
+	public static int getFactoryIconGenGroundSide() { return cacheIconGenGroundSide.getIntFactoryValue(); }
 
 	private static Pref cacheIconGenClockSide = Pref.makeIntPref("IconGenClockSide", tool.prefs, 0);
 	/**
@@ -1009,6 +1068,12 @@ public class User extends Listener
 	 * 0: left (the default)   1: right   2: top   3: bottom
 	 */
 	public static void setIconGenClockSide(int side) { cacheIconGenClockSide.setInt(side); }
+	/**
+	 * Method to tell where Clock ports should go on generated icons, by default.
+	 * @return information about where Clock ports should go on generated icons, by default.
+	 * 0: left   1: right   2: top   3: bottom
+	 */
+	public static int getFactoryIconGenClockSide() { return cacheIconGenClockSide.getIntFactoryValue(); }
 
 	private static Pref cacheIconGenExportPlacement = Pref.makeIntPref("IconGenExportPlacement", tool.prefs, 0);
 	/**
@@ -1023,6 +1088,12 @@ public class User extends Listener
 	 * 0: by characteristic   1: by location in original cell
 	 */
 	public static void setIconGenExportPlacement(int rot) { cacheIconGenExportPlacement.setInt(rot); }
+	/**
+	 * Method to tell how exports are placed in generated icons, by default.
+	 * @return information about how exports are placed in generated icons, by default.
+	 * 0: by characteristic   1: by location in original cell
+	 */
+	public static int getFactoryIconGenExportPlacement() { return cacheIconGenExportPlacement.getIntFactoryValue(); }
 
 	/**
 	 * Flag to specify that generated exports in icons should be placed in the exact location
@@ -1043,6 +1114,13 @@ public class User extends Listener
 	 * false: to place exports relative to their location in the original cell.
 	 */
 	public static void setIconGenExportPlacementExact(boolean flag) { cacheIconGenExportPlacementExact.setBoolean(flag); }
+	/**
+	 * Method to tell whether exports are placed exactly according to schematics, by default.
+	 * Only valid if icon ports are being placed by location.
+	 * @return true to place exports exactly according to schematics, by default.
+	 * false: to place exports relative to their location in the original cell.
+	 */
+	public static boolean getFactoryIconGenExportPlacementExact() { return cacheIconGenExportPlacementExact.getBooleanFactoryValue(); }
 
 	private static Pref cacheIconGenInputRot = Pref.makeIntPref("IconGenInputRot", tool.prefs, 0);
 	/**
@@ -1059,6 +1137,13 @@ public class User extends Listener
 	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
 	 */
 	public static void setIconGenInputRot(int rot) { cacheIconGenInputRot.setInt(rot); }
+	/**
+	 * Method to tell what angle Input ports should go on generated icons, by default.
+	 * This applies only when ports are placed by "characteristic", not "location".
+	 * @return information about what angle Input ports should go on generated icons, by default.
+	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
+	 */
+	public static int getFactoryIconGenInputRot() { return cacheIconGenInputRot.getIntFactoryValue(); }
 
 	private static Pref cacheIconGenOutputRot = Pref.makeIntPref("IconGenOutputRot", tool.prefs, 0);
 	/**
@@ -1075,6 +1160,13 @@ public class User extends Listener
 	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
 	 */
 	public static void setIconGenOutputRot(int rot) { cacheIconGenOutputRot.setInt(rot); }
+	/**
+	 * Method to tell what angle Output ports should go on generated icons, by default.
+	 * This applies only when ports are placed by "characteristic", not "location".
+	 * @return information about what angle Output ports should go on generated icons, by default.
+	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
+	 */
+	public static int getFactoryIconGenOutputRot() { return cacheIconGenOutputRot.getIntFactoryValue(); }
 
 	private static Pref cacheIconGenBidirRot = Pref.makeIntPref("IconGenBidirRot", tool.prefs, 0);
 	/**
@@ -1091,6 +1183,13 @@ public class User extends Listener
 	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
 	 */
 	public static void setIconGenBidirRot(int rot) { cacheIconGenBidirRot.setInt(rot); }
+	/**
+	 * Method to tell what angle Bidirectional ports should go on generated icons, by default.
+	 * This applies only when ports are placed by "characteristic", not "location".
+	 * @return information about what angle Bidirectional ports should go on generated icons, by default.
+	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
+	 */
+	public static int getFactoryIconGenBidirRot() { return cacheIconGenBidirRot.getIntFactoryValue(); }
 
 	private static Pref cacheIconGenPowerRot = Pref.makeIntPref("IconGenPowerRot", tool.prefs, 0);
 	/**
@@ -1107,6 +1206,13 @@ public class User extends Listener
 	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
 	 */
 	public static void setIconGenPowerRot(int rot) { cacheIconGenPowerRot.setInt(rot); }
+	/**
+	 * Method to tell what angle Power ports should go on generated icons, by default.
+	 * This applies only when ports are placed by "characteristic", not "location".
+	 * @return information about what angle Power ports should go on generated icons, by default.
+	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
+	 */
+	public static int getFactoryIconGenPowerRot() { return cacheIconGenPowerRot.getIntFactoryValue(); }
 
 	private static Pref cacheIconGenGroundRot = Pref.makeIntPref("IconGenGroundRot", tool.prefs, 0);
 	/**
@@ -1123,6 +1229,13 @@ public class User extends Listener
 	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
 	 */
 	public static void setIconGenGroundRot(int rot) { cacheIconGenGroundRot.setInt(rot); }
+	/**
+	 * Method to tell what angle Ground ports should go on generated icons, by default.
+	 * This applies only when ports are placed by "characteristic", not "location".
+	 * @return information about what angle Ground ports should go on generated icons, by default.
+	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
+	 */
+	public static int getFactoryIconGenGroundRot() { return cacheIconGenGroundRot.getIntFactoryValue(); }
 
 	private static Pref cacheIconGenClockRot = Pref.makeIntPref("IconGenClockRot", tool.prefs, 0);
 	/**
@@ -1139,6 +1252,13 @@ public class User extends Listener
 	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
 	 */
 	public static void setIconGenClockRot(int rot) { cacheIconGenClockRot.setInt(rot); }
+	/**
+	 * Method to tell what angle Clock ports should go on generated icons, by default.
+	 * This applies only when ports are placed by "characteristic", not "location".
+	 * @return information about what angle Clock ports should go on generated icons, by default.
+	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
+	 */
+	public static int getFactoryIconGenClockRot() { return cacheIconGenClockRot.getIntFactoryValue(); }
 
 	private static Pref cacheIconGenTopRot = Pref.makeIntPref("IconGenTopRot", tool.prefs, 0);
 	/**
@@ -1155,6 +1275,13 @@ public class User extends Listener
 	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
 	 */
 	public static void setIconGenTopRot(int rot) { cacheIconGenTopRot.setInt(rot); }
+	/**
+	 * Method to tell what angle Top ports should go on generated icons, by default.
+	 * This applies only when ports are placed by "location", not "characteristic".
+	 * @return information about what angle Top ports should go on generated icons, by default.
+	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
+	 */
+	public static int getFactoryIconGenTopRot() { return cacheIconGenTopRot.getIntFactoryValue(); }
 
 	private static Pref cacheIconGenBottomRot = Pref.makeIntPref("IconGenBottomRot", tool.prefs, 0);
 	/**
@@ -1171,6 +1298,13 @@ public class User extends Listener
 	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
 	 */
 	public static void setIconGenBottomRot(int rot) { cacheIconGenBottomRot.setInt(rot); }
+	/**
+	 * Method to tell what angle Bottom ports should go on generated icons, by default.
+	 * This applies only when ports are placed by "location", not "characteristic".
+	 * @return information about what angle Bottom ports should go on generated icons, by default.
+	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
+	 */
+	public static int getFactoryIconGenBottomRot() { return cacheIconGenBottomRot.getIntFactoryValue(); }
 
 	private static Pref cacheIconGenLeftRot = Pref.makeIntPref("IconGenLeftRot", tool.prefs, 0);
 	/**
@@ -1187,6 +1321,13 @@ public class User extends Listener
 	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
 	 */
 	public static void setIconGenLeftRot(int rot) { cacheIconGenLeftRot.setInt(rot); }
+	/**
+	 * Method to tell what angle Left ports should go on generated icons, by default.
+	 * This applies only when ports are placed by "location", not "characteristic".
+	 * @return information about what angle Left ports should go on generated icons, by default.
+	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
+	 */
+	public static int getFactoryIconGenLeftRot() { return cacheIconGenLeftRot.getIntFactoryValue(); }
 
 	private static Pref cacheIconGenRightRot = Pref.makeIntPref("IconGenRightRot", tool.prefs, 0);
 	/**
@@ -1203,6 +1344,13 @@ public class User extends Listener
 	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
 	 */
 	public static void setIconGenRightRot(int rot) { cacheIconGenRightRot.setInt(rot); }
+	/**
+	 * Method to tell what angle Right ports should go on generated icons, by default.
+	 * This applies only when ports are placed by "location", not "characteristic".
+	 * @return information about what angle Right ports should go on generated icons, by default.
+	 * 0: normal   1: rotate 90 degrees   2: rotate 180 degrees   3: rotate 270 degrees
+	 */
+	public static int getFactoryIconGenRightRot() { return cacheIconGenRightRot.getIntFactoryValue(); }
 
 	private static Pref cacheIconGenExportLocation = Pref.makeIntPref("IconGenExportLocation", tool.prefs, 1);
 	/**
@@ -1217,6 +1365,12 @@ public class User extends Listener
 	 * 0: on the body   1: at the end of the lead (the default)   2: in the middle of the lead
 	 */
 	public static void setIconGenExportLocation(int loc) { cacheIconGenExportLocation.setInt(loc); }
+	/**
+	 * Method to tell where exports should appear along the leads in generated icons, by default.
+	 * @return information about where exports should appear along the leads in generated icons, by default.
+	 * 0: on the body   1: at the end of the lead   2: in the middle of the lead
+	 */
+	public static int getFactoryIconGenExportLocation() { return cacheIconGenExportLocation.getIntFactoryValue(); }
 
 	private static Pref cacheIconGenExportStyle = Pref.makeIntPref("IconGenExportStyle", tool.prefs, 0);
 	/**
@@ -1235,6 +1389,14 @@ public class User extends Listener
 	 * 2: pointing outward from the export location
 	 */
 	public static void setIconGenExportStyle(int style) { cacheIconGenExportStyle.setInt(style); }
+	/**
+	 * Method to tell how the text should appear in generated icons, by default.
+	 * @return information about how the text should appear in generated icons, by default.
+	 * 0: centered at the export location
+	 * 1: pointing inward from the export location
+	 * 2: pointing outward from the export location
+	 */
+	public static int getFactoryIconGenExportStyle() { return cacheIconGenExportStyle.getIntFactoryValue(); }
 
 	private static Pref cacheIconGenExportTech = Pref.makeIntPref("IconGenExportTech", tool.prefs, 1);
 	/**
@@ -1251,6 +1413,13 @@ public class User extends Listener
 	 * 1: use Schematic:Bus-Pins for exports (can connect to schematic busses or wires).
 	 */
 	public static void setIconGenExportTech(int t) { cacheIconGenExportTech.setInt(t); }
+	/**
+	 * Method to tell how exports should be constructed in generated icons, by default.
+	 * @return information about how exports should be constructed in generated icons, by default.
+	 * 0: use Generic:Universal-Pins for non-bus exports (can connect to ANYTHING).
+	 * 1: use Schematic:Bus-Pins for exports (can connect to schematic busses or wires).
+	 */
+	public static int getFactoryIconGenExportTech() { return cacheIconGenExportTech.getIntFactoryValue(); }
 
 	private static Pref cacheIconGenInstanceLocation = Pref.makeIntPref("IconGenInstanceLocation", tool.prefs, 0);
 	/**
@@ -1273,6 +1442,16 @@ public class User extends Listener
 	 * 4: no instance in the original schematic
 	 */
 	public static void setIconGenInstanceLocation(int loc) { cacheIconGenInstanceLocation.setInt(loc); }
+	/**
+	 * Method to tell where to place an instance of the generated icons in the original schematic, by default.
+	 * @return information about where to place an instance of the generated icons in the original schematic, by default.
+	 * 0: in the upper-right corner.
+	 * 1: in the upper-left corner.
+	 * 2: in the lower-right corner.
+	 * 3: in the lower-left corner.
+	 * 4: no instance in the original schematic
+	 */
+	public static int getFactoryIconGenInstanceLocation() { return cacheIconGenInstanceLocation.getIntFactoryValue(); }
 
 	private static Pref cacheIconGenLeadLength = Pref.makeDoublePref("IconGenLeadLength", tool.prefs, 2.0f);
 	/**
@@ -1285,6 +1464,11 @@ public class User extends Listener
 	 * @param len how long to make leads in generated icons.
 	 */
 	public static void setIconGenLeadLength(double len) { cacheIconGenLeadLength.setDouble(len); }
+	/**
+	 * Method to tell how long to make leads in generated icons, by default.
+	 * @return information about how long to make leads in generated icons, by default.
+	 */
+	public static double getFactoryIconGenLeadLength() { return cacheIconGenLeadLength.getDoubleFactoryValue(); }
 
 	private static Pref cacheIconGenLeadSpacing = Pref.makeDoublePref("IconGenLeadSpacing", tool.prefs, 2.0f);
 	/**
@@ -1297,6 +1481,11 @@ public class User extends Listener
 	 * @param dist how far apart to space leads in generated icons.
 	 */
 	public static void setIconGenLeadSpacing(double dist) { cacheIconGenLeadSpacing.setDouble(dist); }
+	/**
+	 * Method to tell how far apart to space leads in generated icons, by default.
+	 * @return information about how far apart to space leads in generated icons, by default.
+	 */
+	public static double getFactoryIconGenLeadSpacing() { return cacheIconGenLeadSpacing.getDoubleFactoryValue(); }
 
 	/****************************** PORT AND EXPORT PREFERENCES ******************************/
 
@@ -2464,6 +2653,14 @@ public class User extends Listener
 	 * @param on true to prompt the user for an array index when descending into arrayed nodes.
 	 */
 	public static void setPromptForIndexWhenDescending(boolean on) { cachePromptForIndexWhenDescending.setBoolean(on); }
+	/**
+	 * Method to tell whether to prompt the user for an array index when descending into arrayed nodes, by default.
+	 * When descending into arrayed nodes, the context doesn't know which index is being traversed.
+	 * If a simulation window is present, the user is prompted, because the specific index is important.
+	 * When Logical Effort information is available, prompting is also necessary.
+	 * @return true to prompt the user for an array index when descending into arrayed nodes by default.
+	 */
+	public static boolean isFactoryPromptForIndexWhenDescending() { return cachePromptForIndexWhenDescending.getBooleanFactoryValue(); }
 
 	private static Pref cacheBeepAfterLongJobs = Pref.makeBooleanPref("BeepAfterLongJobs", tool.prefs, false);
 	/**
@@ -3066,6 +3263,12 @@ public class User extends Listener
 	 * @param on true if the system should switch technologies automatically when changing the current Cell.
 	 */
 	public static void setAutoTechnologySwitch(boolean on) { cacheAutoTechnologySwitch.setBoolean(on); }
+	/**
+	 * Method to tell whether to switch technologies automatically when changing the current Cell, by default.
+	 * Switching technologies means that the component menu updates to the new primitive set.
+	 * @return true if the system should switch technologies automatically when changing the current Cell, by default.
+	 */
+	public static boolean isFactoryAutoTechnologySwitch() { return cacheAutoTechnologySwitch.getBooleanFactoryValue(); }
 
 	private static Pref cachePlaceCellCenter = Pref.makeBooleanPref("PlaceCellCenter", tool.prefs, true);
 	/**
@@ -3079,6 +3282,11 @@ public class User extends Listener
 	 * @param on true if the system should place a Cell-Center primitive in every newly created Cell.
 	 */
 	public static void setPlaceCellCenter(boolean on) { cachePlaceCellCenter.setBoolean(on); }
+	/**
+	 * Method to tell whether to place a Cell-Center primitive in every newly created Cell, by default.
+	 * @return true if the system should place a Cell-Center primitive in every newly created Cell, by default.
+	 */
+	public static boolean isFactoryPlaceCellCenter() { return cachePlaceCellCenter.getBooleanFactoryValue(); }
 
 	private static Pref cacheReconstructArcsAndExportsToDeletedCells = Pref.makeBooleanPref("ReconstructArcsToDeletedCells", tool.prefs, true);
 	/**
@@ -3096,6 +3304,13 @@ public class User extends Listener
 	 * @param on true if the system should reconstruct arcs and exports to deleted cell instances.
 	 */
 	public static void setReconstructArcsAndExportsToDeletedCells(boolean on) { cacheReconstructArcsAndExportsToDeletedCells.setBoolean(on); }
+	/**
+	 * Method to tell whether to reconstruct arcs and exports to deleted cell instances, by default.
+	 * When true, deleting a cell instance will leave the connecting arcs in place (terminated with pins)
+	 * and will leave existing exports in place (sitting on pins).
+	 * @return true if the system should reconstruct arcs and exports to deleted cell instances, by default.
+	 */
+	public static boolean isFactoryReconstructArcsAndExportsToDeletedCells() { return cacheReconstructArcsAndExportsToDeletedCells.getBooleanFactoryValue(); }
 
 	private static Pref cacheCheckCellDates = Pref.makeBooleanPref("CheckCellDates", tool.prefs, false);
 	/**
@@ -3111,6 +3326,12 @@ public class User extends Listener
 	 * @param on true if the system should check Cell dates when placing instances.
 	 */
 	public static void setCheckCellDates(boolean on) { cacheCheckCellDates.setBoolean(on); }
+	/**
+	 * Method to tell whether to check Cell dates when placing instances, by default.
+	 * This is not currently implemented.
+	 * @return true if the system should check Cell dates when placing instances, by default.
+	 */
+	public static boolean isFactoryCheckCellDates() { return cacheCheckCellDates.getBooleanFactoryValue(); }
 
 	private static Pref cacheDisallowModificationLockedPrims = Pref.makeBooleanPref("DisallowModificationLockedPrims", tool.prefs, false);
 	/**
@@ -3126,6 +3347,12 @@ public class User extends Listener
 	 * @param on true if locked primitives cannot be modified.
 	 */
 	public static void setDisallowModificationLockedPrims(boolean on) { cacheDisallowModificationLockedPrims.setBoolean(on); }
+	/**
+	 * Method to tell whether locked primitives can be modified by default.
+	 * Locked primitives occur in array-technologies such as FPGA.
+	 * @return true if the locked primitives cannot be modified by default.
+	 */
+	public static boolean isFactoryDisallowModificationLockedPrims() { return cacheDisallowModificationLockedPrims.getBooleanFactoryValue(); }
 
 	private static Pref cacheDisallowModificationComplexNodes = Pref.makeBooleanPref("DisallowModificationComplexNodes", tool.prefs, false);
 	/**
@@ -3141,6 +3368,12 @@ public class User extends Listener
 	 * @param on true if complex nodes cannot be modified.
 	 */
 	public static void setDisallowModificationComplexNodes(boolean on) { cacheDisallowModificationComplexNodes.setBoolean(on); }
+	/**
+	 * Method to tell whether complex nodes can be modified by default.
+	 * Complex nodes are cell instances and advanced primitives (transistors, etc.)
+	 * @return true if the complex nodes cannot be modified by default.
+	 */
+	public static boolean isFactoryDisallowModificationComplexNodes() { return cacheDisallowModificationComplexNodes.getBooleanFactoryValue(); }
 
 	private static Pref cacheMoveAfterDuplicate = Pref.makeBooleanPref("MoveAfterDuplicate", tool.prefs, true);
 	/**
@@ -3154,6 +3387,11 @@ public class User extends Listener
 	 * @param on true if the system should move objects after duplicating them.
 	 */
 	public static void setMoveAfterDuplicate(boolean on) { cacheMoveAfterDuplicate.setBoolean(on); }
+	/**
+	 * Method to tell whether to move objects after duplicating them, by default.
+	 * @return true if the system should move objects after duplicating them, by default.
+	 */
+	public static boolean isFactoryMoveAfterDuplicate() { return cacheMoveAfterDuplicate.getBooleanFactoryValue(); }
 
 	private static Pref cacheDupCopiesExports = Pref.makeBooleanPref("DupCopiesExports", tool.prefs, false);
 	/**
@@ -3167,6 +3405,11 @@ public class User extends Listener
 	 * @param on true if the system copies exports when doing a Duplicate/Paste/Array of a NodeInst.
 	 */
 	public static void setDupCopiesExports(boolean on) { cacheDupCopiesExports.setBoolean(on); }
+	/**
+	 * Method to tell whether Duplicate/Paste/Array of NodeInst copies exports, by default.
+	 * @return true if the system copies exports when doing a Duplicate/Paste/Array of a NodeInst, by default.
+	 */
+	public static boolean isFactoryDupCopiesExports() { return cacheDupCopiesExports.getBooleanFactoryValue(); }
 
 	private static Pref cacheExtractCopiesExports = Pref.makeBooleanPref("ExtractCopiesExports", tool.prefs, true);
 	/**
@@ -3180,6 +3423,11 @@ public class User extends Listener
 	 * @param on true if the system copies exports when doing an Extract of a NodeInst.
 	 */
 	public static void setExtractCopiesExports(boolean on) { cacheExtractCopiesExports.setBoolean(on); }
+	/**
+	 * Method to tell whether Extract of NodeInst copies exports, by default.
+	 * @return true if the system copies exports when doing an Extract of a NodeInst, by default.
+	 */
+	public static boolean isFactoryExtractCopiesExports() { return cacheExtractCopiesExports.getBooleanFactoryValue(); }
 
 	private static Pref cacheArcsAutoIncremented = Pref.makeBooleanPref("ArcsAutoIncremented", tool.prefs, true);
 	/**

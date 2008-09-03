@@ -1334,13 +1334,19 @@ public class Layer
 //	}
 
     /**
-	 * Method to return the minimu area coverage that the layer must reach in the technology.
+	 * Method to return the minimum area coverage that the layer must reach in the technology.
 	 * @return the minimum area coverage (in percentage).
 	 */
 	public double getAreaCoverage() { return getDoublePref("AreaCoverageJob", areaCoveragePrefs, DEFAULT_AREA_COVERAGE).getDouble(); }
 
+	/**
+	 * Method to return the minimum area coverage that the layer must reach in the technology, by default.
+	 * @return the minimum area coverage (in percentage), by default.
+	 */
+	public double getFactoryAreaCoverage() { return getDoublePref("AreaCoverageJob", areaCoveragePrefs, DEFAULT_AREA_COVERAGE).getDoubleFactoryValue(); }
+
     /**
-     * Methot to set minimu area coverage that the layer must reach in the technology.
+     * Methot to set minimum area coverage that the layer must reach in the technology.
      * @param area the minimum area coverage (in percentage).
      */
 	public void setAreaCoverageInfo(double area) { getDoublePref("AreaCoverageJob", areaCoveragePrefs, area).setDouble(area); }

@@ -1253,11 +1253,27 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
     }
 
 	/**
+	 * Method to return the factory default base width of this PrimitiveNode in lambda units.
+	 * @return the factory default base width of this PrimitiveNode in lambda units.
+	 */
+	public double getFactoryDefaultLambdaBaseWidth() {
+        return DBMath.gridToLambda(getFactoryDefaultGridBaseWidth());
+    }
+
+	/**
 	 * Method to return the default base hwight of this PrimitiveNode in lambda units.
 	 * @return the default base height of this PrimitiveNode in lambda units.
 	 */
 	public double getDefaultLambdaBaseHeight() {
         return DBMath.gridToLambda(getDefaultGridBaseHeight());
+    }
+
+	/**
+	 * Method to return the factory default base hwight of this PrimitiveNode in lambda units.
+	 * @return the factory default base height of this PrimitiveNode in lambda units.
+	 */
+	public double getFactoryDefaultLambdaBaseHeight() {
+        return DBMath.gridToLambda(getFactoryDefaultGridBaseHeight());
     }
 
 
@@ -1270,11 +1286,28 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
     }
 
 	/**
+	 * Method to return the factory default base width of this PrimitiveNode in grid units.
+	 * @return the factory default base width of this PrimitiveNode in grid units.
+	 */
+	public long getFactoryDefaultGridBaseWidth() {
+        return baseRectangle.getGridWidth();
+    }
+
+
+	/**
 	 * Method to return the default base height of this PrimitiveNode in grid units.
 	 * @return the default base height of this PrimitiveNode in grid units.
 	 */
 	public long getDefaultGridBaseHeight() {
         return baseRectangle.getGridHeight() + 2*getDefaultGridExtendY();
+    }
+
+	/**
+	 * Method to return the factory default base height of this PrimitiveNode in grid units.
+	 * @return the factory default base height of this PrimitiveNode in grid units.
+	 */
+	public long getFactoryDefaultGridBaseHeight() {
+        return baseRectangle.getGridHeight();
     }
 
 	/**

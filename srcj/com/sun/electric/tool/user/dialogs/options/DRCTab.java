@@ -171,7 +171,18 @@ public class DRCTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		System.out.println("CANNOT RESET DRC PREFERENCES YET");
+		DRC.setIncrementalDRCOn(DRC.isFactoryIncrementalDRCOn());
+		DRC.setInteractiveDRCDragOn(DRC.isFactoryInteractiveDRCDragOn());
+		DRC.setErrorType(DRC.getFactoryErrorType());
+		DRC.setErrorLoggingType(DRC.getFactoryErrorLoggingType());
+		DRC.setMultiThreaded(DRC.isFactoryMultiThreaded());
+
+		DRC.setDatesStoredInMemory(DRC.isFactoryDatesStoredInMemory());
+		DRC.setIgnoreCenterCuts(DRC.isFactoryIgnoreCenterCuts());
+		DRC.setIgnoreAreaChecking(DRC.isFactoryIgnoreAreaChecking());
+		DRC.setIgnoreExtensionRuleChecking(DRC.isFactoryIgnoreExtensionRuleChecking());
+		DRC.setInteractiveLogging(DRC.isFactoryInteractiveLoggingOn());
+		DRC.setMinAreaAlgoOption(DRC.getFactoryMinAreaAlgoOption());
 	}
 
 	/** This method is called from within the constructor to

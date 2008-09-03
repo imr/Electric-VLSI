@@ -23,12 +23,17 @@
  */
 package com.sun.electric.tool.drc;
 
+import static com.sun.electric.tool.drc.DRC.tool;
+
 import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.constraint.Layout;
-import com.sun.electric.database.geometry.*;
+import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.geometry.GenMath;
+import com.sun.electric.database.geometry.GeometryHandler;
+import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.id.CellId;
@@ -55,9 +60,17 @@ import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.User;
 
-import java.awt.geom.Rectangle2D;
 import java.awt.geom.Area;
-import java.util.*;
+import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.prefs.Preferences;
 
 /**
@@ -65,12 +78,12 @@ import java.util.prefs.Preferences;
  */
 public class DRC extends Listener
 {
-	/** the DRC tool. */								protected static DRC tool = new DRC();
-	/** overrides of rules for each technology. */		private static HashMap<Technology,Pref> prefDRCOverride = new HashMap<Technology,Pref>();
-	/** map of cells and their objects to DRC */		private static HashMap<Cell,HashSet<Geometric>> cellsToCheck = new HashMap<Cell,HashSet<Geometric>>();
-    /** to temporary store DRC dates for spacing checking */                 private static HashMap<Cell,StoreDRCInfo> storedSpacingDRCDate = new HashMap<Cell,StoreDRCInfo>();
-    /** to temporary store DRC dates for area checking */                 private static HashMap<Cell,StoreDRCInfo> storedAreaDRCDate = new HashMap<Cell,StoreDRCInfo>();
-    /** for logging incremental errors */               private static ErrorLogger errorLoggerIncremental = ErrorLogger.newInstance("DRC (incremental)", true);
+	/** the DRC tool. */								     protected static DRC tool = new DRC();
+	/** overrides of rules for each technology. */		     private static Map<Technology,Pref> prefDRCOverride = new HashMap<Technology,Pref>();
+	/** map of cells and their objects to DRC */		     private static Map<Cell,Set<Geometric>> cellsToCheck = new HashMap<Cell,Set<Geometric>>();
+    /** to temporary store DRC dates for spacing checking */ private static Map<Cell,StoreDRCInfo> storedSpacingDRCDate = new HashMap<Cell,StoreDRCInfo>();
+    /** to temporary store DRC dates for area checking */    private static Map<Cell,StoreDRCInfo> storedAreaDRCDate = new HashMap<Cell,StoreDRCInfo>();
+    /** for logging incremental errors */                    private static ErrorLogger errorLoggerIncremental = ErrorLogger.newInstance("DRC (incremental)", true);
 
     public static Layer.Function.Set getMultiLayersSet(Layer layer)
     {
@@ -423,7 +436,7 @@ public class DRC extends Listener
 
         synchronized (cellsToCheck)
 		{
-			HashSet<Geometric> cellSet = cellsToCheck.get(cell);
+			Set<Geometric> cellSet = cellsToCheck.get(cell);
 			if (cellSet == null)
 			{
 				cellSet = new HashSet<Geometric>();
@@ -452,7 +465,7 @@ public class DRC extends Listener
 		Library curLib = Library.getCurrent();
 		if (curLib == null) return;
 		Cell cellToCheck = Job.getUserInterface().getCurrentCell(curLib);
-		HashSet<Geometric> cellSet = null;
+		Set<Geometric> cellSet = null;
 
 		// get a cell to check
 		synchronized (cellsToCheck)
@@ -974,8 +987,8 @@ public class DRC extends Listener
         // Need to clean cells using this foundry because the rules might have changed.
         System.out.println("Cleaning good DRC dates in cells using '" + f.getType().getName() +
                 "' in '" + tech.getTechName() + "'");
-        HashSet<Cell> cleanSpacingDRCDate = new HashSet<Cell>();
-        HashSet<Cell> cleanAreaDRCDate = new HashSet<Cell>();
+        Set<Cell> cleanSpacingDRCDate = new HashSet<Cell>();
+        Set<Cell> cleanAreaDRCDate = new HashSet<Cell>();
 
         int bit = f.getType().getBit();
 //        switch(f.getType())
@@ -1070,7 +1083,7 @@ public class DRC extends Listener
      */
     private static StoreDRCInfo getCellGoodDRCDateAndBits(Cell cell, boolean spacingCheck, boolean fromDisk)
     {
-        HashMap<Cell,StoreDRCInfo> storedDRCDate = storedSpacingDRCDate;
+        Map<Cell,StoreDRCInfo> storedDRCDate = storedSpacingDRCDate;
         Variable.Key dateKey = Layout.DRC_LAST_GOOD_DATE_SPACING;
         Variable.Key bitKey = Layout.DRC_LAST_GOOD_BIT_SPACING;
 
@@ -1259,8 +1272,8 @@ public class DRC extends Listener
     private static void checkNetworks(ErrorLogger errorLog, Cell cell, boolean isLayout) {
         final int errorSortNetworks = 0;
         final int errorSortNodes = 1;
-        HashMap<NodeProto,ArrayList<NodeInst>> strangeNodes = null;
-        HashMap<NodeProto,ArrayList<NodeInst>> unconnectedPins = null;
+        Map<NodeProto,ArrayList<NodeInst>> strangeNodes = null;
+        Map<NodeProto,ArrayList<NodeInst>> unconnectedPins = null;
         for (int i = 0, numNodes = cell.getNumNodes(); i < numNodes; i++) {
             NodeInst ni = cell.getNode(i);
             NodeProto np = ni.getProto();
@@ -1370,6 +1383,11 @@ public class DRC extends Listener
 	 * @param on true if DRC should be done incrementally.
 	 */
 	public static void setIncrementalDRCOn(boolean on) { cacheIncrementalDRCOn.setBoolean(on); }
+	/**
+	 * Method to tell whether DRC should be done incrementally, by default.
+	 * @return true if DRC should be done incrementally, by default.
+	 */
+	public static boolean isFactoryIncrementalDRCOn() { return cacheIncrementalDRCOn.getBooleanFactoryValue(); }
 
 	private static Pref cacheInteractiveDRCDragOn = Pref.makeBooleanPref("InteractiveDRCDrag", tool.prefs, true);
 	/**
@@ -1383,6 +1401,11 @@ public class DRC extends Listener
 	 * @param on true if DRC violations should be shown while nodes and arcs are dragged.
 	 */
 	public static void setInteractiveDRCDragOn(boolean on) { cacheInteractiveDRCDragOn.setBoolean(on); }
+	/**
+	 * Method to tell whether DRC violations should be shown while nodes and arcs are dragged, by default.
+	 * @return true if DRC violations should be shown while nodes and arcs are dragged, by default.
+	 */
+	public static boolean isFactoryInteractiveDRCDragOn() { return cacheInteractiveDRCDragOn.getBooleanFactoryValue(); }
 
     /** Logging Type **/
     private static Pref cacheErrorLoggingType = Pref.makeStringPref("ErrorLoggingType", tool.prefs,
@@ -1393,20 +1416,24 @@ public class DRC extends Listener
 	 * @return integer representing error type
 	 */
 	public static DRCCheckLogging getErrorLoggingType() {return DRCCheckLogging.valueOf(cacheErrorLoggingType.getString());}
-
 	/**
 	 * Method to set DRC logging type.
-	 * @param type representing error logging mode
+	 * @param type representing error logging mode.
 	 */
 	public static void setErrorLoggingType(DRCCheckLogging type) { cacheErrorLoggingType.setString(type.name()); }
+	/**
+	 * Method to retrieve logging type in DRC, by default.
+	 * @return integer representing error type, by default.
+	 */
+	public static DRCCheckLogging getFactoryErrorLoggingType() {return DRCCheckLogging.valueOf(cacheErrorLoggingType.getStringFactoryValue());}
 
     /** ErrorLevel **/
     private static Pref cacheErrorCheckLevel = Pref.makeIntPref("ErrorCheckLevel", tool.prefs,
             DRCCheckMode.ERROR_CHECK_DEFAULT.mode());
 	/**
-	 * Method to retrieve checking level in DRC
+	 * Method to retrieve checking level in DRC.
 	 * The default is "ERROR_CHECK_DEFAULT".
-	 * @return integer representing error type
+	 * @return integer representing error type.
 	 */
 	public static DRCCheckMode getErrorType()
     {
@@ -1417,12 +1444,24 @@ public class DRC extends Listener
         }
         return null;
     }
-
 	/**
 	 * Method to set DRC error type.
-	 * @param type representing error level
+	 * @param type representing error level.
 	 */
 	public static void setErrorType(DRCCheckMode type) { cacheErrorCheckLevel.setInt(type.mode()); }
+	/**
+	 * Method to retrieve checking level in DRC, by default.
+	 * @return integer representing error type, by default.
+	 */
+	public static DRCCheckMode getFactoryErrorType()
+    {
+        int val = cacheErrorCheckLevel.getIntFactoryValue();
+        for (DRCCheckMode p : DRCCheckMode.values())
+        {
+            if (p.mode() == val) return p;
+        }
+        return null;
+    }
 
 	private static Pref cacheIgnoreCenterCuts = Pref.makeBooleanPref("IgnoreCenterCuts", tool.prefs, false);
 //    static { cacheIgnoreCenterCuts.attachToObject(tool, "Tools/DRC tab", "DRC ignores center cuts in large contacts"); }
@@ -1439,6 +1478,12 @@ public class DRC extends Listener
 	 * @param on true if DRC should ignore center cuts in large contacts.
 	 */
 	public static void setIgnoreCenterCuts(boolean on) { cacheIgnoreCenterCuts.setBoolean(on); }
+	/**
+	 * Method to tell whether DRC should ignore center cuts in large contacts, by default.
+	 * Only the perimeter of cuts will be checked.
+	 * @return true if DRC should ignore center cuts in large contacts, by default.
+	 */
+	public static boolean isFactoryIgnoreCenterCuts() { return cacheIgnoreCenterCuts.getBooleanFactoryValue(); }
 
     private static Pref cacheIgnoreAreaChecking = Pref.makeBooleanPref("IgnoreAreaCheck", tool.prefs, false);
 //    static { cacheIgnoreAreaChecking.attachToObject(tool, "Tools/DRC tab", "DRC ignores area checking"); }
@@ -1453,6 +1498,11 @@ public class DRC extends Listener
 	 * @param on true if DRC should ignore minimum/enclosed area checking.
 	 */
 	public static void setIgnoreAreaChecking(boolean on) { cacheIgnoreAreaChecking.setBoolean(on); }
+	/**
+	 * Method to tell whether DRC should ignore minimum/enclosed area checking, by default.
+	 * @return true if DRC should ignore minimum/enclosed area checking, by default.
+	 */
+	public static boolean isFactoryIgnoreAreaChecking() { return cacheIgnoreAreaChecking.getBooleanFactoryValue(); }
 
     private static Pref cacheIgnoreExtensionRuleChecking = Pref.makeBooleanPref("IgnoreExtensionRuleCheck", tool.prefs, false);
 //    static { cacheIgnoreExtensionRuleChecking.attachToObject(tool, "Tools/DRC tab", "DRC extension rule checking"); }
@@ -1467,6 +1517,11 @@ public class DRC extends Listener
 	 * @param on true if DRC should check extension rules.
 	 */
 	public static void setIgnoreExtensionRuleChecking(boolean on) { cacheIgnoreExtensionRuleChecking.setBoolean(on); }
+	/**
+	 * Method to tell whether DRC should check extension rules, by default.
+	 * @return true if DRC should check extension rules, by default.
+	 */
+	public static boolean isFactoryIgnoreExtensionRuleChecking() { return cacheIgnoreExtensionRuleChecking.getBooleanFactoryValue(); }
 
     private static Pref cacheStoreDatesInMemory = Pref.makeBooleanPref("StoreDatesInMemory", tool.prefs, false);
     /**
@@ -1480,6 +1535,11 @@ public class DRC extends Listener
      * @param on true if DRC dates should be stored in memory or not.
      */
     public static void setDatesStoredInMemory(boolean on) { cacheStoreDatesInMemory.setBoolean(on); }
+    /**
+     * Method to tell whether DRC dates should be stored in memory or not, by default.
+     * @return true if DRC dates should be stored in memory or not, by default.
+     */
+    public static boolean isFactoryDatesStoredInMemory() { return cacheStoreDatesInMemory.getBooleanFactoryValue(); }
 
     private static Pref cacheInteractiveLog = Pref.makeBooleanPref("InteractiveLog", tool.prefs, false);
     /**
@@ -1493,6 +1553,11 @@ public class DRC extends Listener
      * @param on true if DRC loggers should be displayed in Explorer immediately.
      */
     public static void setInteractiveLogging(boolean on) { cacheInteractiveLog.setBoolean(on); }
+    /**
+     * Method to tell whether DRC loggers should be displayed in Explorer immediately, by default.
+     * @return true if DRC loggers should be displayed in Explorer immediately or not, by default.
+     */
+    public static boolean isFactoryInteractiveLoggingOn() { return cacheInteractiveLog.getBooleanFactoryValue(); }
 
     private static Pref cacheMinAreaAlgo = Pref.makeStringPref("MinAreaAlgorithm", tool.prefs, DRCCheckMinArea.AREA_LOCAL.name());
     /**
@@ -1506,6 +1571,11 @@ public class DRC extends Listener
      * @param mode DRCCheckMinArea type to set
      */
     public static void setMinAreaAlgoOption(DRCCheckMinArea mode) { cacheMinAreaAlgo.setString(mode.name()); }
+    /**
+     * Method to tell which min area algorithm to use, by default.
+     * @return true if DRC loggers should be displayed in Explorer immediately or not, by default.
+     */
+    public static DRCCheckMinArea getFactoryMinAreaAlgoOption() { return DRCCheckMinArea.valueOf(cacheMinAreaAlgo.getStringFactoryValue()); }
 
     private static Pref cacheMultiThread = Pref.makeBooleanPref("MinMultiThread", tool.prefs, false);
     /**
@@ -1519,6 +1589,11 @@ public class DRC extends Listener
      * @param mode True if it will run a multi-threaded version.
      */
     public static void setMultiThreaded(boolean mode) { cacheMultiThread.setBoolean(mode); }
+    /**
+     * Method to tell whether DRC should run in a single thread or multi-threaded, by default.
+     * @return true if DRC run in a multi-threaded fashion, by default.
+     */
+    public static boolean isFactoryMultiThreaded() { return cacheMultiThread.getBooleanFactoryValue(); }
 
     /****************************** END OF OPTIONS ******************************/
 
@@ -1529,7 +1604,7 @@ public class DRC extends Listener
     static void addDRCUpdate(int spacingBits,
                              Set<Cell> goodSpacingDRCDate, Set<Cell> cleanSpacingDRCDate,
                              Set<Cell> goodAreaDRCDate, Set<Cell> cleanAreaDRCDate,
-                             HashMap<Geometric, List<Variable>> newVariables)
+                             Map<Geometric, List<Variable>> newVariables)
     {
         boolean goodSpace = (goodSpacingDRCDate != null && goodSpacingDRCDate.size() > 0);
         boolean cleanSpace = (cleanSpacingDRCDate != null && cleanSpacingDRCDate.size() > 0);
@@ -1598,13 +1673,13 @@ public class DRC extends Listener
 		Set<Cell> cleanSpacingDRCDate;
         Set<Cell> goodAreaDRCDate;
 		Set<Cell> cleanAreaDRCDate;
-        HashMap<Geometric,List<Variable>> newVariables;
+        Map<Geometric,List<Variable>> newVariables;
         int activeBits = Layout.DRC_LAST_GOOD_BIT_DEFAULT;
 
 		public DRCUpdate(int bits,
                          Set<Cell> goodSpacingDRCD, Set<Cell> cleanSpacingDRCD,
                          Set<Cell> goodAreaDRCD, Set<Cell> cleanAreaDRCD,
-                         HashMap<Geometric, List<Variable>> newVars)
+                         Map<Geometric, List<Variable>> newVars)
 		{
 			super("Update DRC data", tool, Type.CHANGE, null, null, Priority.USER);
             this.goodSpacingDRCDate = goodSpacingDRCD;
@@ -1626,12 +1701,12 @@ public class DRC extends Listener
          * Template method to set DAte and bits information for a given map.
          * @param inMemory
          */
-        private static void setInformation(HashMap<Cell,StoreDRCInfo> storedDRCDate,
+        private static void setInformation(Map<Cell,StoreDRCInfo> storedDRCDate,
                                            Set<Cell> goodDRCDate, Set<Cell> cleanDRCDate,
                                            Variable.Key key, int bits, boolean inMemory)
         {
-            HashSet<Cell> goodDRCCells = new HashSet<Cell>();
-            Long time = System.currentTimeMillis();
+            Set<Cell> goodDRCCells = new HashSet<Cell>();
+            long time = System.currentTimeMillis();
 
             if (goodDRCDate != null)
             {

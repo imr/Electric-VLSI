@@ -108,7 +108,14 @@ public class ParasiticTab extends PreferencePanel {
 	 */
 	public void reset()
 	{
-		System.out.println("CANNOT RESET PARASITIC PREFERENCES YET");
+		Simulation.setParasiticsUseVerboseNaming(Simulation.isFactoryParasiticsUseVerboseNaming());
+		Simulation.setParasiticsBackAnnotateLayout(Simulation.isFactoryParasiticsBackAnnotateLayout());
+		Simulation.setParasiticsExtractPowerGround(Simulation.isFactoryParasiticsExtractPowerGround());
+		Simulation.setParasiticsUseExemptedNetsFile(Simulation.isFactoryParasiticsUseExemptedNetsFile());
+		Simulation.setParasiticsIgnoreExemptedNets(Simulation.isFactoryParasiticsIgnoreExemptedNets());
+		Simulation.setParasiticsExtractsR(Simulation.isFactoryParasiticsExtractsR());
+		Simulation.setParasiticsExtractsC(Simulation.isFactoryParasiticsExtractsC());
+		ParasiticTool.setMaxDistance(ParasiticTool.getFactoryMaxDistance());
 	}
 
 	/** This method is called from within the constructor to

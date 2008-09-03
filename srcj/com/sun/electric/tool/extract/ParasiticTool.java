@@ -31,7 +31,6 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.network.Network;
-import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Pref;
@@ -43,6 +42,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.RTBounds;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
@@ -59,6 +59,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Class to implement parasitic extraction.
@@ -109,7 +110,7 @@ public class ParasiticTool extends Tool {
 
     private static class ParasiticVisitor extends HierarchyEnumerator.Visitor
 	{
-		private HashMap<Network,NetPBucket> netMap;
+		private Map<Network,NetPBucket> netMap;
         //private Netlist netList;
         private List<Object> transAndRCList = new ArrayList<Object>();
         private ParasiticGenerator tool;
@@ -528,7 +529,7 @@ public class ParasiticTool extends Tool {
             }
 
             // Adding related nodes, searching per ports
-	        HashMap<NodeInst,NodeInst> nodeMap = new HashMap<NodeInst,NodeInst>();
+	        Map<NodeInst,NodeInst> nodeMap = new HashMap<NodeInst,NodeInst>();
             for (Iterator<PortInst> it = net.getPorts(); it.hasNext(); )
             {
                 PortInst pi = it.next();
@@ -612,4 +613,9 @@ public class ParasiticTool extends Tool {
 	 * @param value to set
 	 */
 	public static void setMaxDistance(double value) { cacheMaxDistance.setDouble(value); }
+	/**
+	 * Method to get maximum dstance for searching window, by default.
+	 * @return double representing the preference, by default.
+	 */
+	public static double getFactoryMaxDistance() { return cacheMaxDistance.getDoubleFactoryValue(); }
 }

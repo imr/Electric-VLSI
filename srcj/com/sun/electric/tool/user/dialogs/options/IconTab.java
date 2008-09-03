@@ -335,7 +335,42 @@ public class IconTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		System.out.println("CANNOT RESET ICON PREFERENCES YET");
+		User.setIconGenExportPlacement(User.getFactoryIconGenExportPlacement());
+		User.setIconGenExportPlacementExact(User.getFactoryIconGenExportPlacementExact());
+
+		User.setIconGenInputSide(User.getFactoryIconGenInputSide());
+		User.setIconGenOutputSide(User.getFactoryIconGenOutputSide());
+		User.setIconGenBidirSide(User.getFactoryIconGenBidirSide());
+		User.setIconGenPowerSide(User.getFactoryIconGenPowerSide());
+		User.setIconGenGroundSide(User.getFactoryIconGenGroundSide());
+		User.setIconGenClockSide(User.getFactoryIconGenClockSide());
+
+		User.setIconGenInputRot(User.getFactoryIconGenInputRot());
+		User.setIconGenOutputRot(User.getFactoryIconGenOutputRot());
+		User.setIconGenBidirRot(User.getFactoryIconGenBidirRot());
+		User.setIconGenPowerRot(User.getFactoryIconGenPowerRot());
+		User.setIconGenPowerRot(User.getFactoryIconGenPowerRot());
+		User.setIconGenClockRot(User.getFactoryIconGenClockRot());
+		User.setIconGenReverseExportOrder(User.isFactoryIconGenReverseExportOrder());
+
+		User.setIconGenTopRot(User.getFactoryIconGenTopRot());
+		User.setIconGenBottomRot(User.getFactoryIconGenBottomRot());
+		User.setIconGenLeftRot(User.getFactoryIconGenLeftRot());
+		User.setIconGenRightRot(User.getFactoryIconGenRightRot());
+
+		User.setIconGenDrawLeads(User.isFactoryIconGenDrawLeads());
+		User.setIconGenLeadLength(User.getFactoryIconGenLeadLength());
+		User.setIconGenLeadSpacing(User.getFactoryIconGenLeadSpacing());
+
+		User.setIconGenDrawBody(User.isFactoryIconGenDrawBody());
+		User.setIconGenBodyTextSize(User.getFactoryIconGenBodyTextSize());
+		User.setIconsAlwaysDrawn(User.isFactoryIconsAlwaysDrawn());
+
+		User.setIconGenExportLocation(User.getFactoryIconGenExportLocation());
+		User.setIconGenExportStyle(User.getFactoryIconGenExportStyle());
+
+		User.setIconGenExportTech(User.getFactoryIconGenExportTech());
+		User.setIconGenInstanceLocation(User.getFactoryIconGenInstanceLocation());
 	}
 
 	/** This method is called from within the constructor to

@@ -98,7 +98,7 @@ public class LayerCoverageTool extends Tool
 	/**
 	 * Method to get user preference for deltaX.
 	 * The default is 50 mm.
-	 * @return double representing deltaX
+	 * @return double representing deltaX.
 	 */
 	public static double getDeltaX(Technology tech)
     {
@@ -106,18 +106,26 @@ public class LayerCoverageTool extends Tool
     }
 	/**
 	 * Method to set user preference for deltaX.
-	 * @param delta double representing new deltaX
+	 * @param delta double representing new deltaX.
 	 */
 	public static void setDeltaX(double delta, Technology tech)
     {
         cacheDeltaX.setDouble(delta*tech.getScale());
+    }
+	/**
+	 * Method to get user preference for deltaX, by default.
+	 * @return double representing deltaX, by default.
+	 */
+	public static double getFactoryDeltaX(Technology tech)
+    {
+        return cacheDeltaX.getDoubleFactoryValue()/tech.getScale();
     }
 
     private static Pref cacheDeltaY = Pref.makeDoublePref("DeltaY", tool.prefs, defaultSize);
 	/**
 	 * Method to get user preference for deltaY.
 	 * The default is 50 mm.
-	 * @return double representing deltaY
+	 * @return double representing deltaY.
 	 */
 	public static double getDeltaY(Technology tech)
     {
@@ -125,18 +133,26 @@ public class LayerCoverageTool extends Tool
     }
 	/**
 	 * Method to set user preference for deltaY.
-	 * @param delta double representing new deltaY
+	 * @param delta double representing new deltaY.
 	 */
 	public static void setDeltaY(double delta, Technology tech)
     {
         cacheDeltaY.setDouble(delta*tech.getScale());
+    }
+	/**
+	 * Method to get user preference for deltaY, by default.
+	 * @return double representing deltaY, by default.
+	 */
+	public static double getFactoryDeltaY(Technology tech)
+    {
+        return cacheDeltaY.getDoubleFactoryValue()/tech.getScale();
     }
 
     private static Pref cacheWidth = Pref.makeDoublePref("Width", tool.prefs, defaultSize);
 	/**
 	 * Method to get user preference for deltaY.
 	 * The default is 50 mm.
-	 * @return double representing deltaY
+	 * @return double representing deltaY.
 	 */
 	public static double getWidth(Technology tech)
     {
@@ -144,18 +160,26 @@ public class LayerCoverageTool extends Tool
     }
 	/**
 	 * Method to set user preference for width of the bounding box.
-	 * @param w double representing new width
+	 * @param w double representing new width.
 	 */
 	public static void setWidth(double w, Technology tech)
     {
         cacheWidth.setDouble(w*tech.getScale());
+    }
+	/**
+	 * Method to get user preference for deltaY, by default.
+	 * @return double representing deltaY, by default.
+	 */
+	public static double getFactoryWidth(Technology tech)
+    {
+        return cacheWidth.getDoubleFactoryValue()/tech.getScale();
     }
 
     private static Pref cacheHeight = Pref.makeDoublePref("Height", tool.prefs, defaultSize);
 	/**
 	 * Method to get user preference for deltaY.
 	 * The default is 50 mm.
-	 * @return double representing deltaY
+	 * @return double representing deltaY.
 	 */
 	public static double getHeight(Technology tech)
     {
@@ -163,11 +187,19 @@ public class LayerCoverageTool extends Tool
     }
 	/**
 	 * Method to set user preference for height of the bounding box.
-	 * @param h double representing new width
+	 * @param h double representing new width.
 	 */
 	public static void setHeight(double h, Technology tech)
     {
         cacheHeight.setDouble(h*tech.getScale());
+    }
+	/**
+	 * Method to get user preference for deltaY, by default.
+	 * @return double representing deltaY, by default.
+	 */
+	public static double getFactoryHeight(Technology tech)
+    {
+        return cacheHeight.getDoubleFactoryValue()/tech.getScale();
     }
 
     /**
@@ -242,7 +274,7 @@ public class LayerCoverageTool extends Tool
     {
         Netlist netlist = exportCell.getNetlist();
         Network net = netlist.getNetwork(pi);
-        HashSet<Network> nets = new HashSet<Network>();
+        Set<Network> nets = new HashSet<Network>();
         nets.add(net);
         GeometryOnNetwork geoms = new GeometryOnNetwork(exportCell, nets, 1.0, false, layer);
         // This assumes that pi.getBounds() alywas gives you a degenerated rectangle (zero area) so
@@ -339,7 +371,7 @@ public class LayerCoverageTool extends Tool
         boolean doIt()
         {
             GeometryHandler tree = GeometryHandler.createGeometryHandler(mode, curCell.getTechnology().getNumLayers());
-            HashMap<Layer,Set<PolyBase>> originalPolygons = new HashMap<Layer,Set<PolyBase>>(); // Storing initial nodes
+            Map<Layer,Set<PolyBase>> originalPolygons = new HashMap<Layer,Set<PolyBase>>(); // Storing initial nodes
             Set<NodeInst> nodesToDelete = new HashSet<NodeInst>(); // should only be used by IMPLANT
             Set<Network> netSet = null;
             Layer onlyThisLayer = null;
@@ -651,10 +683,10 @@ public class LayerCoverageTool extends Tool
                         Double area = geoms.areas.get(i);
 
                         Double oldV = internalMap.get(layer);
-                        double newV = area;
+                        double newV = area.doubleValue();
                         if (oldV != null)
-                            newV += oldV;
-                        internalMap.put(layer, newV);
+                            newV += oldV.doubleValue();
+                        internalMap.put(layer, new Double(newV));
                     }
                 }
             }
@@ -683,7 +715,7 @@ public class LayerCoverageTool extends Tool
 		private GeometryHandler tree;
 		private Set<NodeInst> deleteList; // Only used for coverage Implants. New coverage implants are pure primitive nodes
 		private final LCMode function;
-		private HashMap<Layer,Set<PolyBase>> originalPolygons;
+		private Map<Layer,Set<PolyBase>> originalPolygons;
 		private Set<Network> netSet; // For network type, rest is null
         private Rectangle2D origBBox;
         private Area origBBoxArea;   // Area is always in coordinates of top cell
@@ -691,7 +723,7 @@ public class LayerCoverageTool extends Tool
         private GeometryOnNetwork geoms;
 
 		public LayerVisitor(Job job, GeometryHandler t, Set<NodeInst> delList, LCMode func,
-			HashMap<Layer, Set<PolyBase>> original, Set<Network> netSet, Rectangle2D bBox, Layer onlyThisLayer, GeometryOnNetwork geoms)
+			Map<Layer, Set<PolyBase>> original, Set<Network> netSet, Rectangle2D bBox, Layer onlyThisLayer, GeometryOnNetwork geoms)
 		{
             this.parentJob = job;
 			this.tree = t;
@@ -1072,8 +1104,8 @@ public class LayerCoverageTool extends Tool
             assert(layer != null);
             if (onlyThisLayer != null && layer != onlyThisLayer) return; // skip this one
 	        layers.add(layer);
-	        areas.add(area);
-	        halfPerimeters.add(halfperimeter);
+	        areas.add(new Double(area));
+	        halfPerimeters.add(new Double(halfperimeter));
 
 	        Layer.Function func = layer.getFunction();
 	        // accumulate total wire length on all metal/poly layers
@@ -1098,7 +1130,7 @@ public class LayerCoverageTool extends Tool
             {
                 Layer layer = layers.get(i);
                 Double area = areas.get(i);
-                double percentage = area/totalArea * 100;
+                double percentage = area.doubleValue()/totalArea * 100;
                 double minV = layer.getAreaCoverage();
                 if (percentage < minV)
                 {
@@ -1126,8 +1158,8 @@ public class LayerCoverageTool extends Tool
 
 	        for (int i=0; i<layers.size(); i++) {
 	            Layer layer = layers.get(i); // autoboxing
-	            double area = areas.get(i);  // autoboxing
-	            double halfperim = halfPerimeters.get(i);
+	            double area = areas.get(i).doubleValue();  // autoboxing
+	            double halfperim = halfPerimeters.get(i).doubleValue();
 
 	            System.out.println("\tLayer " + layer.getName()
 	                    + ":\t area " + TextUtils.formatDouble(area) + "(" + TextUtils.formatDouble((area/totalArea)*100, 2) + "%)"

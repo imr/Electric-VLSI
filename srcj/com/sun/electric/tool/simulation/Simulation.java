@@ -1006,6 +1006,11 @@ public class Simulation extends Tool
 	 * @param s true if FastHenry deck generation should use a single frequency.
 	 */
 	public static void setFastHenryUseSingleFrequency(boolean s) { cacheFastHenryUseSingleFrequency.setBoolean(s); }
+	/**
+	 * Method to tell whether FastHenry deck generation should use a single frequency, by default.
+	 * @return true if FastHenry deck generation should use a single frequency, by default.
+	 */
+	public static boolean isFactoryFastHenryUseSingleFrequency() { return cacheFastHenryUseSingleFrequency.getBooleanFactoryValue(); }
 
 	private static Pref cacheFastHenryStartFrequency = Pref.makeDoublePref("FastHenryStartFrequency", tool.prefs, 0);
 	/**
@@ -1019,6 +1024,11 @@ public class Simulation extends Tool
 	 * @param s the FastHenry starting frequency (or only if using a single frequency).
 	 */
 	public static void setFastHenryStartFrequency(double s) { cacheFastHenryStartFrequency.setDouble(s); }
+	/**
+	 * Method to return the FastHenry starting frequency (or only if using a single frequency), by default.
+	 * @return the FastHenry starting frequency (or only if using a single frequency), by default.
+	 */
+	public static double getFactoryFastHenryStartFrequency() { return cacheFastHenryStartFrequency.getDoubleFactoryValue(); }
 
 	private static Pref cacheFastHenryEndFrequency = Pref.makeDoublePref("FastHenryEndFrequency", tool.prefs, 0);
 	/**
@@ -1032,6 +1042,11 @@ public class Simulation extends Tool
 	 * @param e the FastHenry ending frequency.
 	 */
 	public static void setFastHenryEndFrequency(double e) { cacheFastHenryEndFrequency.setDouble(e); }
+	/**
+	 * Method to return the FastHenry ending frequency, by default.
+	 * @return the FastHenry ending frequency, by default.
+	 */
+	public static double getFactoryFastHenryEndFrequency() { return cacheFastHenryEndFrequency.getDoubleFactoryValue(); }
 
 	private static Pref cacheFastHenryRunsPerDecade = Pref.makeIntPref("FastHenryRunsPerDecade", tool.prefs, 1);
 	/**
@@ -1045,6 +1060,11 @@ public class Simulation extends Tool
 	 * @param r the number of runs per decade for FastHenry deck generation.
 	 */
 	public static void setFastHenryRunsPerDecade(int r) { cacheFastHenryRunsPerDecade.setInt(r); }
+	/**
+	 * Method to return the number of runs per decade for FastHenry deck generation, by default.
+	 * @return the number of runs per decade for FastHenry deck generation, by default.
+	 */
+	public static int getFactoryFastHenryRunsPerDecade() { return cacheFastHenryRunsPerDecade.getIntFactoryValue(); }
 
 	private static Pref cacheFastHenryMultiPole = Pref.makeBooleanPref("FastHenryMultiPole", tool.prefs, false);
 	/**
@@ -1058,6 +1078,11 @@ public class Simulation extends Tool
 	 * @param mp true if FastHenry deck generation should make a multipole subcircuit.
 	 */
 	public static void setFastHenryMultiPole(boolean mp) { cacheFastHenryMultiPole.setBoolean(mp); }
+	/**
+	 * Method to tell whether FastHenry deck generation should make a multipole subcircuit, by default.
+	 * @return true if FastHenry deck generation should make a multipole subcircuit, by default.
+	 */
+	public static boolean isFactoryFastHenryMultiPole() { return cacheFastHenryMultiPole.getBooleanFactoryValue(); }
 
 	private static Pref cacheFastHenryNumPoles = Pref.makeIntPref("FastHenryNumPoles", tool.prefs, 20);
 	/**
@@ -1071,6 +1096,11 @@ public class Simulation extends Tool
 	 * @param p the number of poles for FastHenry deck generation.
 	 */
 	public static void setFastHenryNumPoles(int p) { cacheFastHenryNumPoles.setInt(p); }
+	/**
+	 * Method to return the number of poles for FastHenry deck generation, by default.
+	 * @return the number of poles for FastHenry deck generation, by default.
+	 */
+	public static int getFactoryFastHenryNumPoles() { return cacheFastHenryNumPoles.getIntFactoryValue(); }
 
 	private static Pref cacheFastHenryDefThickness = Pref.makeDoublePref("FastHenryDefThickness", tool.prefs, 2);
 	/**
@@ -1084,6 +1114,11 @@ public class Simulation extends Tool
 	 * @param t the FastHenry default wire thickness.
 	 */
 	public static void setFastHenryDefThickness(double t) { cacheFastHenryDefThickness.setDouble(t); }
+	/**
+	 * Method to return the FastHenry default wire thickness, by default.
+	 * @return the FastHenry default wire thickness, by default.
+	 */
+	public static double getFactoryFastHenryDefThickness() { return cacheFastHenryDefThickness.getDoubleFactoryValue(); }
 
 	private static Pref cacheFastHenryWidthSubdivisions = Pref.makeIntPref("FastHenryWidthSubdivisions", tool.prefs, 1);
 	/**
@@ -1097,6 +1132,11 @@ public class Simulation extends Tool
 	 * @param w the default number of width subdivisions for FastHenry deck generation.
 	 */
 	public static void setFastHenryWidthSubdivisions(int w) { cacheFastHenryWidthSubdivisions.setInt(w); }
+	/**
+	 * Method to return the default number of width subdivisions for FastHenry deck generation, by default.
+	 * @return the default number of width subdivisions for FastHenry deck generation, by default.
+	 */
+	public static int getFactoryFastHenryWidthSubdivisions() { return cacheFastHenryWidthSubdivisions.getIntFactoryValue(); }
 
 	private static Pref cacheFastHenryHeightSubdivisions = Pref.makeIntPref("FastHenryHeightSubdivisions", tool.prefs, 1);
 	/**
@@ -1110,6 +1150,11 @@ public class Simulation extends Tool
 	 * @param h the default number of height subdivisions for FastHenry deck generation.
 	 */
 	public static void setFastHenryHeightSubdivisions(int h) { cacheFastHenryHeightSubdivisions.setInt(h); }
+	/**
+	 * Method to return the default number of height subdivisions for FastHenry deck generation, by default.
+	 * @return the default number of height subdivisions for FastHenry deck generation, by default.
+	 */
+	public static int getFactoryFastHenryHeightSubdivisions() { return cacheFastHenryHeightSubdivisions.getIntFactoryValue(); }
 
 	private static Pref cacheFastHenryMaxSegLength = Pref.makeDoublePref("FastHenryMaxSegLength", tool.prefs, 0);
 	/**
@@ -1123,6 +1168,11 @@ public class Simulation extends Tool
 	 * @param s the maximum segment length for FastHenry deck generation.
 	 */
 	public static void setFastHenryMaxSegLength(double s) { cacheFastHenryMaxSegLength.setDouble(s); }
+	/**
+	 * Method to return the maximum segment length for FastHenry deck generation, by default.
+	 * @return the maximum segment length for FastHenry deck generation, by default.
+	 */
+	public static double getFactoryFastHenryMaxSegLength() { return cacheFastHenryMaxSegLength.getDoubleFactoryValue(); }
 
 	/****************************** VERILOG OPTIONS ******************************/
 
@@ -1695,30 +1745,37 @@ public class Simulation extends Tool
 	public static Pref cacheParasiticsUseVerboseNaming = Pref.makeBooleanPref("ParasiticsUseVerboseNaming", tool.prefs, true);
 	public static boolean isParasiticsUseVerboseNaming() { return cacheParasiticsUseVerboseNaming.getBoolean(); }
 	public static void setParasiticsUseVerboseNaming(boolean b) { cacheParasiticsUseVerboseNaming.setBoolean(b); }
+	public static boolean isFactoryParasiticsUseVerboseNaming() { return cacheParasiticsUseVerboseNaming.getBooleanFactoryValue(); }
 
 	public static Pref cacheParasiticsBackAnnotateLayout = Pref.makeBooleanPref("ParasiticsBackAnnotateLayout", tool.prefs, false);
 	public static boolean isParasiticsBackAnnotateLayout() { return cacheParasiticsBackAnnotateLayout.getBoolean(); }
 	public static void setParasiticsBackAnnotateLayout(boolean b) { cacheParasiticsBackAnnotateLayout.setBoolean(b); }
+	public static boolean isFactoryParasiticsBackAnnotateLayout() { return cacheParasiticsBackAnnotateLayout.getBooleanFactoryValue(); }
 
 	public static Pref cacheParasiticsExtractPowerGround = Pref.makeBooleanPref("ParasiticsExtractPowerGround", tool.prefs, false);
 	public static boolean isParasiticsExtractPowerGround() { return cacheParasiticsExtractPowerGround.getBoolean(); }
 	public static void setParasiticsExtractPowerGround(boolean b) { cacheParasiticsExtractPowerGround.setBoolean(b); }
+	public static boolean isFactoryParasiticsExtractPowerGround() { return cacheParasiticsExtractPowerGround.getBooleanFactoryValue(); }
 
 	public static Pref cacheParasiticsUseExemptedNetsFile = Pref.makeBooleanPref("UseExemptedNetsFile", tool.prefs, false);
 	public static boolean isParasiticsUseExemptedNetsFile() { return cacheParasiticsUseExemptedNetsFile.getBoolean(); }
 	public static void setParasiticsUseExemptedNetsFile(boolean b) { cacheParasiticsUseExemptedNetsFile.setBoolean(b); }
+	public static boolean isFactoryParasiticsUseExemptedNetsFile() { return cacheParasiticsUseExemptedNetsFile.getBooleanFactoryValue(); }
 
 	public static Pref cacheParasiticsIgnoreExemptedNets = Pref.makeBooleanPref("IgnoreExemptedNets", tool.prefs, true);
 	public static boolean isParasiticsIgnoreExemptedNets() { return cacheParasiticsIgnoreExemptedNets.getBoolean(); }
 	public static void setParasiticsIgnoreExemptedNets(boolean b) { cacheParasiticsIgnoreExemptedNets.setBoolean(b); }
+	public static boolean isFactoryParasiticsIgnoreExemptedNets() { return cacheParasiticsIgnoreExemptedNets.getBooleanFactoryValue(); }
 
 	public static Pref cacheParasiticsExtractsR = Pref.makeBooleanPref("ParasiticsExtractsR", tool.prefs, true);
 	public static boolean isParasiticsExtractsR() { return cacheParasiticsExtractsR.getBoolean(); }
 	public static void setParasiticsExtractsR(boolean b) { cacheParasiticsExtractsR.setBoolean(b); }
+	public static boolean isFactoryParasiticsExtractsR() { return cacheParasiticsExtractsR.getBooleanFactoryValue(); }
 
 	public static Pref cacheParasiticsExtractsC = Pref.makeBooleanPref("ParasiticsExtractsC", tool.prefs, true);
 	public static boolean isParasiticsExtractsC() { return cacheParasiticsExtractsC.getBoolean(); }
 	public static void setParasiticsExtractsC(boolean b) { cacheParasiticsExtractsC.setBoolean(b); }
+	public static boolean isFactoryParasiticsExtractsC() { return cacheParasiticsExtractsC.getBooleanFactoryValue(); }
 
 	private static Pref cacheSpiceUseNodeNames = Pref.makeBooleanPref("SpiceUseNodeNames", tool.prefs, true);
 //	static { cacheSpiceUseNodeNames.attachToObject(tool, "Tools/Spice tab", "Spice uses node names"); }

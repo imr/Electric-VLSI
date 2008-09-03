@@ -24,7 +24,6 @@
 package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.text.Pref;
-import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
@@ -33,7 +32,54 @@ import com.sun.electric.tool.io.output.CellModelPrefs;
 import com.sun.electric.tool.ncc.Pie;
 import com.sun.electric.tool.routing.Routing;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.dialogs.options.*;
+import com.sun.electric.tool.user.dialogs.options.AntennaRulesTab;
+import com.sun.electric.tool.user.dialogs.options.CDLTab;
+import com.sun.electric.tool.user.dialogs.options.CIFTab;
+import com.sun.electric.tool.user.dialogs.options.CVSTab;
+import com.sun.electric.tool.user.dialogs.options.CellModelTab;
+import com.sun.electric.tool.user.dialogs.options.CompactionTab;
+import com.sun.electric.tool.user.dialogs.options.ComponentMenuTab;
+import com.sun.electric.tool.user.dialogs.options.CoverageTab;
+import com.sun.electric.tool.user.dialogs.options.DEFTab;
+import com.sun.electric.tool.user.dialogs.options.DRCTab;
+import com.sun.electric.tool.user.dialogs.options.DXFTab;
+import com.sun.electric.tool.user.dialogs.options.DaisTab;
+import com.sun.electric.tool.user.dialogs.options.DesignRulesTab;
+import com.sun.electric.tool.user.dialogs.options.DisplayControlTab;
+import com.sun.electric.tool.user.dialogs.options.EDIFTab;
+import com.sun.electric.tool.user.dialogs.options.FastHenryTab;
+import com.sun.electric.tool.user.dialogs.options.FrameTab;
+import com.sun.electric.tool.user.dialogs.options.GDSTab;
+import com.sun.electric.tool.user.dialogs.options.GeneralTab;
+import com.sun.electric.tool.user.dialogs.options.GridAndAlignmentTab;
+import com.sun.electric.tool.user.dialogs.options.IconTab;
+import com.sun.electric.tool.user.dialogs.options.LayersTab;
+import com.sun.electric.tool.user.dialogs.options.LibraryTab;
+import com.sun.electric.tool.user.dialogs.options.NCCTab;
+import com.sun.electric.tool.user.dialogs.options.NetworkTab;
+import com.sun.electric.tool.user.dialogs.options.NewArcsTab;
+import com.sun.electric.tool.user.dialogs.options.NewNodesTab;
+import com.sun.electric.tool.user.dialogs.options.ParasiticTab;
+import com.sun.electric.tool.user.dialogs.options.PortsAndExportsTab;
+import com.sun.electric.tool.user.dialogs.options.PreferencePanel;
+import com.sun.electric.tool.user.dialogs.options.PrintingTab;
+import com.sun.electric.tool.user.dialogs.options.ProjectManagementTab;
+import com.sun.electric.tool.user.dialogs.options.RoutingTab;
+import com.sun.electric.tool.user.dialogs.options.SUETab;
+import com.sun.electric.tool.user.dialogs.options.SelectionTab;
+import com.sun.electric.tool.user.dialogs.options.SiliconCompilerTab;
+import com.sun.electric.tool.user.dialogs.options.SimulatorsTab;
+import com.sun.electric.tool.user.dialogs.options.SkillTab;
+import com.sun.electric.tool.user.dialogs.options.SmartTextTab;
+import com.sun.electric.tool.user.dialogs.options.SpiceTab;
+import com.sun.electric.tool.user.dialogs.options.SunRouterTab;
+import com.sun.electric.tool.user.dialogs.options.TechnologyTab;
+import com.sun.electric.tool.user.dialogs.options.TextTab;
+import com.sun.electric.tool.user.dialogs.options.ThreeDTab;
+import com.sun.electric.tool.user.dialogs.options.ToolbarTab;
+import com.sun.electric.tool.user.dialogs.options.UnitsTab;
+import com.sun.electric.tool.user.dialogs.options.VerilogTab;
+import com.sun.electric.tool.user.dialogs.options.WellCheckTab;
 import com.sun.electric.tool.user.help.ManualViewer;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -49,10 +95,10 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.lang.reflect.Constructor;
 
 import javax.swing.JButton;
 import javax.swing.JPanel;
@@ -72,10 +118,9 @@ public class PreferencesFrame extends EDialog
 {
 	private JSplitPane splitPane;
 	private JTree optionTree;
-	JButton cancel;
-	JButton ok;
+	private JButton cancel, ok;
 
-	List<PreferencePanel> optionPanes = new ArrayList<PreferencePanel>();
+	private List<PreferencePanel> optionPanes = new ArrayList<PreferencePanel>();
 
 	/** The name of the current tab in this dialog. */		private static String currentTabName = "General";
 	/** The name of the current section in this dialog. */	private static String currentSectionName = "General ";
@@ -90,6 +135,20 @@ public class PreferencesFrame extends EDialog
 		dialog.setVisible(true);
 	}
 
+	/**
+	 * This method implements the command to show the PreferencesFrame dialog,
+	 * and chooses a panel.
+	 * @param tabName the name of the panel ("Grid", for example).
+	 * @param sectionName the name of the section in which the panel lives ("Display", for example).
+	 */
+	public static void preferencesCommand(String tabName, String sectionName)
+	{
+		currentTabName = tabName;
+		currentSectionName = sectionName + " ";
+		PreferencesFrame dialog = new PreferencesFrame(TopLevel.getCurrentJFrame());
+		dialog.setVisible(true);
+	}
+
 	/** Creates new form PreferencesFrame */
 	public PreferencesFrame(Frame parent)
 	{
@@ -99,10 +158,7 @@ public class PreferencesFrame extends EDialog
 		setName("");
 		addWindowListener(new WindowAdapter()
 		{
-			public void windowClosing(WindowEvent evt)
-			{
-				closeDialog(evt);
-			}
+			public void windowClosing(WindowEvent evt) { closeDialog(evt); }
 		});
 
 		DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode("Preferences");
@@ -117,25 +173,25 @@ public class PreferencesFrame extends EDialog
 		rootNode.add(generalSet);
 		addTreeNode(new GeneralTab(parent, true), generalSet);
 		addTreeNode(new SelectionTab(parent, true), generalSet);
-        TopLevel top = TopLevel.getCurrentJFrame();
-        if (top != null && top.getEMenuBar() != null)
-    		addTreeNode(new EditKeyBindings(top.getEMenuBar(), parent, true), generalSet);
+		TopLevel top = TopLevel.getCurrentJFrame();
+		if (top != null && top.getEMenuBar() != null)
+			addTreeNode(new EditKeyBindings(top.getEMenuBar(), parent, true), generalSet);
 		addTreeNode(new NewNodesTab(parent, true), generalSet);
 		addTreeNode(new NewArcsTab(parent, true), generalSet);
 		addTreeNode(new ProjectManagementTab(parent, true), generalSet);
 		addTreeNode(new CVSTab(parent, true), generalSet);
 		addTreeNode(new PrintingTab(parent, true), generalSet);
-        if (Job.getDebug())
-        {
-            // Open test tab only if plugin is available and in debug mode
-            try
-            {
-                Class<?> testTab = Class.forName("com.sun.electric.plugins.tests.TestTab");
-                Constructor tab = testTab.getDeclaredConstructor(new Class[]{Frame.class, Boolean.class});
-        		addTreeNode((PreferencePanel)tab.newInstance(new Object[] {parent, Boolean.TRUE}), generalSet);
-            }
-            catch (Exception ex) { /* do nothing */ };
-        }
+		if (Job.getDebug())
+		{
+			// Open test tab only if plugin is available and in debug mode
+			try
+			{
+				Class<?> testTab = Class.forName("com.sun.electric.plugins.tests.TestTab");
+				Constructor tab = testTab.getDeclaredConstructor(new Class[]{Frame.class, Boolean.class});
+				addTreeNode((PreferencePanel)tab.newInstance(new Object[] {parent, Boolean.TRUE}), generalSet);
+			}
+			catch (Exception ex) { /* do nothing */ };
+		}
 
 		// the "Display" section of the Preferences
 		DefaultMutableTreeNode displaySet = new DefaultMutableTreeNode("Display ");
@@ -178,13 +234,13 @@ public class PreferencesFrame extends EDialog
 		addTreeNode(new NCCTab(parent, true), toolSet);
 		if (Pie.hasPie())
 		{
-	        try
-	        {
-	            Class pTab = Class.forName("com.sun.electric.plugins.pie.ui.PIETab");
-	            Constructor tab = pTab.getDeclaredConstructor(new Class[]{Frame.class, boolean.class});
-	    		addTreeNode((PreferencePanel)tab.newInstance(new Object[] {parent, Boolean.TRUE}), toolSet);
-	        }
-	        catch (Exception ex) { /* do nothing */ };
+			try
+			{
+				Class pTab = Class.forName("com.sun.electric.plugins.pie.ui.PIETab");
+				Constructor tab = pTab.getDeclaredConstructor(new Class[]{Frame.class, boolean.class});
+				addTreeNode((PreferencePanel)tab.newInstance(new Object[] {parent, Boolean.TRUE}), toolSet);
+			}
+			catch (Exception ex) { /* do nothing */ };
 		}
 		addTreeNode(new NetworkTab(parent, true), toolSet);
 		addTreeNode(new ParasiticTab(parent, true), toolSet);
@@ -195,7 +251,7 @@ public class PreferencesFrame extends EDialog
 		addTreeNode(new CellModelTab(parent, true, CellModelPrefs.spiceModelPrefs), toolSet);
 		if (Routing.hasSunRouter())
 			addTreeNode(new SunRouterTab(parent, true), toolSet);
-        addTreeNode(new VerilogTab(parent, true), toolSet);
+		addTreeNode(new VerilogTab(parent, true), toolSet);
 		addTreeNode(new CellModelTab(parent, true, CellModelPrefs.verilogModelPrefs), toolSet);
 		addTreeNode(new WellCheckTab(parent, true), toolSet);
 
@@ -215,8 +271,8 @@ public class PreferencesFrame extends EDialog
 		topPath = optionTree.getNextMatch(currentSectionName, 0, null);
 		optionTree.expandPath(topPath);
 
-        // searching for selected node
-        openSelectedPath(rootNode);
+		// searching for selected node
+		openSelectedPath(rootNode);
 
 		// the left side of the preferences dialog: a tree
 		JPanel leftPanel = new JPanel();
@@ -329,21 +385,21 @@ public class PreferencesFrame extends EDialog
 			currentDMTN = dmtn;
 	}
 
-    private boolean openSelectedPath(DefaultMutableTreeNode rootNode)
-    {
-        for (int i = 0; i < rootNode.getChildCount(); i++)
-        {
-            DefaultMutableTreeNode node = (DefaultMutableTreeNode)rootNode.getChildAt(i);
-            Object o = node.getUserObject();
-            if (o.toString().equals(currentTabName))//indexOf(currentTabName) != -1)
-            {
-                optionTree.scrollPathToVisible(new TreePath(node.getPath()));
-                return true;
-            }
-            if (openSelectedPath(node)) return true;
-        }
-        return false;
-    }
+	private boolean openSelectedPath(DefaultMutableTreeNode rootNode)
+	{
+		for (int i = 0; i < rootNode.getChildCount(); i++)
+		{
+			DefaultMutableTreeNode node = (DefaultMutableTreeNode)rootNode.getChildAt(i);
+			Object o = node.getUserObject();
+			if (o.toString().equals(currentTabName))//indexOf(currentTabName) != -1)
+			{
+				optionTree.scrollPathToVisible(new TreePath(node.getPath()));
+				return true;
+			}
+			if (openSelectedPath(node)) return true;
+		}
+		return false;
+	}
 
 	private void cancelActionPerformed()
 	{
@@ -386,22 +442,22 @@ public class PreferencesFrame extends EDialog
 	private void importActionPerformed()
 	{
 		Job.getUserInterface().importPrefs();
-        TopLevel top = TopLevel.getCurrentJFrame();
-        top.getEMenuBar().restoreSavedBindings(false); // trying to cache again
+		TopLevel top = TopLevel.getCurrentJFrame();
+		top.getEMenuBar().restoreSavedBindings(false); // trying to cache again
 
 		// recache all layers and their graphics
-        Technology.cacheTransparentLayerColors();
+		Technology.cacheTransparentLayerColors();
 
 		// close dialog now because all values are cached badly
 		closeDialog(null);
 
 		// redraw everything
 		EditWindow.repaintAllContents();
-        for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
-        {
-        	WindowFrame wf = it.next();
-        	wf.loadComponentMenuForTechnology();
-        }
+		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
+		{
+			WindowFrame wf = it.next();
+			wf.loadComponentMenuForTechnology();
+		}
 	}
 
 	private void loadOptionPanel()
@@ -492,6 +548,7 @@ public class PreferencesFrame extends EDialog
 		{
 			dialog.pack();
 		}
+
 		public void treeExpanded(TreeExpansionEvent e)
 		{
 			TreePath tp = e.getPath();

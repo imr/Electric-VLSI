@@ -25,6 +25,7 @@ package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
@@ -251,7 +252,29 @@ public class NewNodesTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		System.out.println("CANNOT RESET NODE PREFERENCES YET");
+		for(Iterator<Technology> tIt = Technology.getTechnologies(); tIt.hasNext(); )
+		{
+			Technology tech = tIt.next();
+			for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
+			{
+				PrimitiveNode np = it.next();	
+				if (np.getDefaultLambdaBaseWidth() != np.getFactoryDefaultLambdaBaseWidth() ||
+					np.getDefaultLambdaBaseHeight() != np.getFactoryDefaultLambdaBaseHeight())
+						np.setDefSize(np.getFactoryDefaultLambdaBaseWidth(), np.getFactoryDefaultLambdaBaseHeight());
+			}
+		}
+
+		User.setCheckCellDates(User.isFactoryCheckCellDates());
+		User.setAutoTechnologySwitch(User.isFactoryAutoTechnologySwitch());
+		User.setPlaceCellCenter(User.isFactoryPlaceCellCenter());
+		User.setReconstructArcsAndExportsToDeletedCells(User.isFactoryReconstructArcsAndExportsToDeletedCells());
+		User.setPromptForIndexWhenDescending(User.isFactoryPromptForIndexWhenDescending());
+
+		User.setDisallowModificationComplexNodes(User.isFactoryDisallowModificationComplexNodes());
+		User.setDisallowModificationLockedPrims(User.isFactoryDisallowModificationLockedPrims());
+		User.setMoveAfterDuplicate(User.isFactoryMoveAfterDuplicate());
+		User.setDupCopiesExports(User.isFactoryDupCopiesExports());
+		User.setExtractCopiesExports(User.isFactoryExtractCopiesExports());
 	}
 
 	/** This method is called from within the constructor to

@@ -30,6 +30,7 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Client;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Highlight2;
@@ -447,10 +448,44 @@ public class ToolBar extends JToolBar
 				{
 					placedGridDistance = true;
 					rewriteGridDistance();
-					add(currentGridDistance);
+					if (!currentGridAmountInited)
+					{
+						currentGridAmountInited = true;
+						currentGridAmount.addActionListener(new ActionListener() {
+							public void actionPerformed(ActionEvent evt) { chooseGridAmount(); }
+						});
+					}
+					add(currentGridAmount);
 				}
 			}
 		}
+	}
+
+	private void chooseGridAmount()
+	{
+		JPopupMenu gridMenu = new JPopupMenu("Grid Spacing");
+		JMenuItem menuItem = new JMenuItem("Grid Alignment 1 (largest)");
+		menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { changeGridSize(0); } });
+		gridMenu.add(menuItem);
+		menuItem = new JMenuItem("Grid Alignment 2");
+		menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { changeGridSize(1); } });
+		gridMenu.add(menuItem);
+		menuItem = new JMenuItem("Grid Alignment 3");
+		menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { changeGridSize(2); } });
+		gridMenu.add(menuItem);
+		menuItem = new JMenuItem("Grid Alignment 4");
+		menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { changeGridSize(3); } });
+		gridMenu.add(menuItem);
+		menuItem = new JMenuItem("Grid Alignment 5 (smallest)");
+		menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { changeGridSize(4); } });
+		gridMenu.add(menuItem);
+		gridMenu.addSeparator();
+		menuItem = new JMenuItem("Grid Preferences...");
+		menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e)
+		{ PreferencesFrame.preferencesCommand("Grid", "Display"); } });
+		gridMenu.add(menuItem);
+		Point pt = currentGridAmount.getLocation();
+		gridMenu.show(this, pt.x, pt.y);
 	}
 
 	private static void rewriteGridDistance()
@@ -462,7 +497,7 @@ public class ToolBar extends JToolBar
 			if (tl != null)
 			{
 				ToolBar tb = tl.getToolBar();
-				tb.currentGridDistance.setText(" " + val + " ");
+				tb.currentGridAmount.setText(" " + val + " ");
 			}
 		} else
 		{
@@ -470,7 +505,7 @@ public class ToolBar extends JToolBar
 			{
 				WindowFrame wf = it.next();
 				ToolBar tb = wf.getFrame().getToolBar();
-				tb.currentGridDistance.setText(" " + val + " ");
+				tb.currentGridAmount.setText(" " + val + " ");
 			}
 		}
 	}
@@ -900,7 +935,8 @@ public class ToolBar extends JToolBar
 		changeGridSize(3); }};
 	private static EMenuItem gridDistance5Command = new EMenuItem("Grid Alignment 5 (smallest)") { public void run() {
 		changeGridSize(4); }};
-	private JLabel currentGridDistance = new JLabel();
+	private JButton currentGridAmount = new JButton();
+	private boolean currentGridAmountInited = false;
 
 	private static final EToolBarButton gridLarger = new EToolBarButton("Make Grid Larger",
 		KeyStroke.getKeyStroke('F', 0), "ButtonGridCoarser", "Edit:Modes:Movement")
@@ -1272,7 +1308,7 @@ public class ToolBar extends JToolBar
 		{
 			for (Component c: toolBar.getComponents())
 			{
-				if (c == toolBar.currentGridDistance)
+				if (c == toolBar.currentGridAmount)
 				{
 					rewriteGridDistance();
 					continue;
