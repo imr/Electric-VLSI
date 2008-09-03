@@ -2,6 +2,8 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.08f: ******************************
+
 ************************* Version 8.08e: ******************************
 
 BUG/MAN: (9/3/08, SMR) External Text Editor setting in "Text" preferences
