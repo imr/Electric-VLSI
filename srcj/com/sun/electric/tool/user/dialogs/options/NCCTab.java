@@ -23,11 +23,11 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
-import javax.swing.JPanel;
-
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.ncc.NccPreferences;
 import com.sun.electric.tool.ncc.NccOptions;
+import com.sun.electric.tool.ncc.NccPreferences;
+
+import javax.swing.JPanel;
 
 /**
  * Class to handle the "NCC" tab of the Preferences dialog.
@@ -71,8 +71,7 @@ public class NCCTab extends PreferencePanel
 		enableSizeChecking.setSelected(NccPreferences.getCheckSizes());
 		relativeSizeTolerance.setText(Double.toString(NccPreferences.getRelativeSizeTolerance()));
 		absoluteSizeTolerance.setText(Double.toString(NccPreferences.getAbsoluteSizeTolerance()));
-		haltAfterFindingFirstMismatchedCell.
-			setSelected(NccPreferences.getHaltAfterFirstMismatch());
+		haltAfterFindingFirstMismatchedCell.setSelected(NccPreferences.getHaltAfterFirstMismatch());
         skipPassed.setSelected(NccPreferences.getSkipPassed());
         maxMatched.setText(Integer.toString(NccPreferences.getMaxMatchedClasses()));
         maxMismatched.setText(Integer.toString(NccPreferences.getMaxMismatchedClasses()));
@@ -135,7 +134,30 @@ public class NCCTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		System.out.println("CANNOT RESET NCC PREFERENCES YET");
+		if (NccPreferences.getFactoryOperation() != NccPreferences.getOperation())
+			NccPreferences.setOperation(NccPreferences.getFactoryOperation());
+
+		if (NccPreferences.getFactoryCheckSizes() != NccPreferences.getCheckSizes())
+			NccPreferences.setCheckSizes(NccPreferences.getFactoryCheckSizes());
+		if (NccPreferences.getFactoryRelativeSizeTolerance() != NccPreferences.getRelativeSizeTolerance())
+			NccPreferences.setRelativeSizeTolerance(NccPreferences.getFactoryRelativeSizeTolerance());
+		if (NccPreferences.getFactoryAbsoluteSizeTolerance() != NccPreferences.getAbsoluteSizeTolerance())
+			NccPreferences.setAbsoluteSizeTolerance(NccPreferences.getFactoryAbsoluteSizeTolerance());
+
+		if (NccPreferences.getFactoryHaltAfterFirstMismatch() != NccPreferences.getHaltAfterFirstMismatch())
+			NccPreferences.setHaltAfterFirstMismatch(NccPreferences.getFactoryHaltAfterFirstMismatch());
+		if (NccPreferences.getFactorySkipPassed() != NccPreferences.getSkipPassed())
+			NccPreferences.setSkipPassed(NccPreferences.getFactorySkipPassed());
+
+		if (NccPreferences.getFactoryHowMuchStatus() != NccPreferences.getHowMuchStatus())
+			NccPreferences.setHowMuchStatus(NccPreferences.getFactoryHowMuchStatus());
+
+		if (NccPreferences.getFactoryMaxMismatchedClasses() != NccPreferences.getMaxMismatchedClasses())
+			NccPreferences.setMaxMatchedClasses(NccPreferences.getFactoryMaxMatchedClasses());
+		if (NccPreferences.getFactoryMaxMismatchedClasses() != NccPreferences.getMaxMismatchedClasses())
+			NccPreferences.setMaxMismatchedClasses(NccPreferences.getFactoryMaxMismatchedClasses());
+		if (NccPreferences.getFactoryMaxClassMembers() != NccPreferences.getMaxClassMembers())
+			NccPreferences.setMaxClassMembers(NccPreferences.getFactoryMaxClassMembers());
 	}
 
 	/** This method is called from within the constructor to

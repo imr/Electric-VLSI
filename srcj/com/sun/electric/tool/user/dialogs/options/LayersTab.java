@@ -43,6 +43,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.JPanel;
 
@@ -51,10 +52,10 @@ import javax.swing.JPanel;
  */
 public class LayersTab extends PreferencePanel
 {
-	private HashMap<Layer,ColorPatternPanel.Info> layerMap;
-	private HashMap<String,ColorPatternPanel.Info> transAndSpecialMap;
-    private HashMap<User.ColorPrefType, String> nameTypeSpecialMap;
-    private HashMap<Technology,Color []> colorMapMap;
+	private Map<Layer,ColorPatternPanel.Info> layerMap;
+	private Map<String,ColorPatternPanel.Info> transAndSpecialMap;
+    private Map<User.ColorPrefType, String> nameTypeSpecialMap;
+    private Map<Technology,Color []> colorMapMap;
 	private MyColorPatternPanel colorAndPatternPanel;
 
 	private static class MyColorPatternPanel extends ColorPatternPanel
@@ -383,7 +384,16 @@ public class LayersTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		System.out.println("CANNOT RESET LAYERS PREFERENCES YET");
+		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
+		{
+			Technology tech = it.next();
+			for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
+			{
+				Layer layer = lIt.next();
+				if (layer.isPseudoLayer() && layer.getNonPseudoLayer() != layer) continue;
+				layer.factoryResetGraphics();
+			}
+		}
 	}
 
 	public int specialMapColor(String title, int curColor)

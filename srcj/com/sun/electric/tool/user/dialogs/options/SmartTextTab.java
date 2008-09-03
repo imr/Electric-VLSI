@@ -23,29 +23,16 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
-import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.variable.MutableTextDescriptor;
-import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.TextWindow;
-import com.sun.electric.tool.user.ui.WindowFrame;
-
-import java.awt.GraphicsEnvironment;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.Iterator;
 
 import javax.swing.JPanel;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 
 /**
  * Class to handle the "Smart Text" tab of the Preferences dialog.
  */
 public class SmartTextTab extends PreferencePanel
 {
-	/** Creates new form TextTab */
+	/** Creates new form SmartTextTab */
 	public SmartTextTab(java.awt.Frame parent, boolean modal)
 	{
 		super(parent, modal);
@@ -131,10 +118,14 @@ public class SmartTextTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		User.setSmartVerticalPlacementArc(User.getFactorySmartVerticalPlacementArc());
-		User.setSmartHorizontalPlacementArc(User.getFactorySmartHorizontalPlacementArc());
-		User.setSmartVerticalPlacementExport(User.getFactorySmartVerticalPlacementExport());
-		User.setSmartHorizontalPlacementExport(User.getFactorySmartHorizontalPlacementExport());
+		if (User.getFactorySmartVerticalPlacementArc() != User.getFactorySmartVerticalPlacementArc())
+			User.setSmartVerticalPlacementArc(User.getFactorySmartVerticalPlacementArc());
+		if (User.getFactorySmartHorizontalPlacementArc() != User.getFactorySmartHorizontalPlacementArc())
+			User.setSmartHorizontalPlacementArc(User.getFactorySmartHorizontalPlacementArc());
+		if (User.getFactorySmartVerticalPlacementExport() != User.getFactorySmartVerticalPlacementExport())
+			User.setSmartVerticalPlacementExport(User.getFactorySmartVerticalPlacementExport());
+		if (User.getFactorySmartHorizontalPlacementExport() != User.getFactorySmartHorizontalPlacementExport())
+			User.setSmartHorizontalPlacementExport(User.getFactorySmartHorizontalPlacementExport());
 	}
 
 	/** This method is called from within the constructor to

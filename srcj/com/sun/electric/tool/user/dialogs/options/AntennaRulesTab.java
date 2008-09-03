@@ -214,7 +214,8 @@ public class AntennaRulesTab extends PreferencePanel
 				ArcProto ap = it.next();
 				ArcProto.Function fun = ap.getFunction();
 				if (!fun.isMetal() && fun != ArcProto.Function.POLY1) continue;
-				erc.setAntennaRatio(ap, erc.getFactoryAntennaRatio(ap));
+				if (erc.getFactoryAntennaRatio(ap) != erc.getAntennaRatio(ap))
+					erc.setAntennaRatio(ap, erc.getFactoryAntennaRatio(ap));
 			}
 		}
 	}

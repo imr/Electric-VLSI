@@ -23,11 +23,9 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
-import com.sun.electric.database.text.Pref;
 import com.sun.electric.tool.io.IOTool;
 
 import javax.swing.JPanel;
-
 
 /**
  * Class to handle the "DEF" tab of the Preferences dialog.
@@ -77,8 +75,10 @@ public class DEFTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		IOTool.setDEFLogicalPlacement(IOTool.isFactoryDEFLogicalPlacement());
-		IOTool.setDEFPhysicalPlacement(IOTool.isFactoryDEFPhysicalPlacement());
+		if (IOTool.isFactoryDEFLogicalPlacement() != IOTool.isDEFLogicalPlacement())
+			IOTool.setDEFLogicalPlacement(IOTool.isFactoryDEFLogicalPlacement());
+		if (IOTool.isFactoryDEFPhysicalPlacement() != IOTool.isDEFPhysicalPlacement())
+			IOTool.setDEFPhysicalPlacement(IOTool.isFactoryDEFPhysicalPlacement());
 	}
 
 	/** This method is called from within the constructor to

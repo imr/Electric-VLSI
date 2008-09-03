@@ -23,11 +23,12 @@
  */
 package com.sun.electric.tool.io.output;
 
-import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.tool.io.FileType;
 
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * User: gainsley
@@ -41,7 +42,7 @@ public class CellModelPrefs {
     private final String type;
     private final FileType fileType;
     private final boolean canLayoutFromNetlist;
-    private HashMap<String,Pref> modelFilePrefs;
+    private Map<String,Pref> modelFilePrefs;
 
     private CellModelPrefs(String type, FileType fileType, boolean canLayoutFromNetlist) {
         this.type = type;
@@ -105,6 +106,14 @@ public class CellModelPrefs {
             modelFilePrefs.put(prefName, modelPref);
         }
         return modelPref.getString();
+    }
+
+    public void factoryResetModelFile(Cell cell) {
+        String prefName = type + "ModelFileFor_" + cell.getLibrary().getName() +"_" + cell.getName() + "_" + cell.getView().getAbbreviation();
+        Pref modelPref = modelFilePrefs.get(prefName);
+        if (modelPref == null) return;
+        if (!modelPref.getStringFactoryValue().equals(modelPref.getString()))
+        	modelPref.setString(modelPref.getStringFactoryValue());
     }
 
 }

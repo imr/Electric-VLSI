@@ -101,7 +101,20 @@ public class NetworkTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		System.out.println("CANNOT RESET NETWORK PREFERENCES YET");
+		if (NetworkTool.isFactoryBusAscending() != NetworkTool.isBusAscending())
+			NetworkTool.setBusAscending(NetworkTool.isFactoryBusAscending());
+
+		// node extraction
+		if (Extract.isFactoryGridAlignExtraction() != Extract.isGridAlignExtraction())
+			Extract.setGridAlignExtraction(Extract.isFactoryGridAlignExtraction());
+		if (Extract.isFactoryApproximateCuts() != Extract.isApproximateCuts())
+			Extract.setApproximateCuts(Extract.isFactoryApproximateCuts());
+		if (Extract.getFactoryActiveHandling() != Extract.getActiveHandling())
+			Extract.setActiveHandling(Extract.getFactoryActiveHandling());
+		if (Extract.getFactorySmallestPolygonSize() != Extract.getSmallestPolygonSize())
+			Extract.setSmallestPolygonSize(Extract.getFactorySmallestPolygonSize());
+		if (!Extract.getFactoryCellExpandPattern().equals(Extract.getCellExpandPattern()))
+			Extract.setCellExpandPattern(Extract.getFactoryCellExpandPattern());
 	}
 
 	/** This method is called from within the constructor to

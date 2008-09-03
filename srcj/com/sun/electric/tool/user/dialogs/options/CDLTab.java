@@ -81,10 +81,14 @@ public class CDLTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-        Simulation.setCDLIncludeFile(Simulation.getFactoryCDLIncludeFile());
-		Simulation.setCDLLibName(Simulation.getFactoryCDLLibName());
-		Simulation.setCDLLibPath(Simulation.getFactoryCDLLibPath());
-		Simulation.setCDLConvertBrackets(Simulation.isFactoryCDLConvertBrackets());
+		if (!Simulation.getFactoryCDLIncludeFile().equals(Simulation.getCDLIncludeFile()))
+			Simulation.setCDLIncludeFile(Simulation.getFactoryCDLIncludeFile());
+		if (!Simulation.getFactoryCDLLibName().equals(Simulation.getCDLLibName()))
+			Simulation.setCDLLibName(Simulation.getFactoryCDLLibName());
+		if (!Simulation.getFactoryCDLLibPath().equals(Simulation.getCDLLibPath()))
+			Simulation.setCDLLibPath(Simulation.getFactoryCDLLibPath());
+		if (Simulation.isFactoryCDLConvertBrackets() != Simulation.isCDLConvertBrackets())
+			Simulation.setCDLConvertBrackets(Simulation.isFactoryCDLConvertBrackets());
 	}
 
 	/** This method is called from within the constructor to

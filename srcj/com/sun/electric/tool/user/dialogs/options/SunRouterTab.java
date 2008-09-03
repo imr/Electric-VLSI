@@ -259,7 +259,6 @@ public class SunRouterTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		System.out.println("CANNOT RESET SUN ROUTER PREFERENCES YET");
 	}
 
 	/** This method is called from within the constructor to

@@ -267,12 +267,17 @@ public class CoverageTab extends PreferencePanel
 			for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
 			{
 				Layer layer = it.next();
-				layer.setAreaCoverageInfo(layer.getFactoryAreaCoverage());
+				if (layer.getFactoryAreaCoverage() != layer.getAreaCoverage())
+					layer.setAreaCoverageInfo(layer.getFactoryAreaCoverage());
 			}
-			LayerCoverageTool.setWidth(LayerCoverageTool.getFactoryWidth(tech), tech);
-			LayerCoverageTool.setHeight(LayerCoverageTool.getFactoryHeight(tech), tech);
-			LayerCoverageTool.setDeltaX(LayerCoverageTool.getFactoryDeltaX(tech), tech);
-			LayerCoverageTool.setDeltaY(LayerCoverageTool.getFactoryDeltaY(tech), tech);
+			if (LayerCoverageTool.getFactoryWidth(tech) != LayerCoverageTool.getWidth(tech))
+				LayerCoverageTool.setWidth(LayerCoverageTool.getFactoryWidth(tech), tech);
+			if (LayerCoverageTool.getFactoryHeight(tech) != LayerCoverageTool.getHeight(tech))
+				LayerCoverageTool.setHeight(LayerCoverageTool.getFactoryHeight(tech), tech);
+			if (LayerCoverageTool.getFactoryDeltaX(tech) != LayerCoverageTool.getDeltaX(tech))
+				LayerCoverageTool.setDeltaX(LayerCoverageTool.getFactoryDeltaX(tech), tech);
+			if (LayerCoverageTool.getFactoryDeltaY(tech) != LayerCoverageTool.getDeltaY(tech))
+				LayerCoverageTool.setDeltaY(LayerCoverageTool.getFactoryDeltaY(tech), tech);
 		}
 	}
 

@@ -150,17 +150,27 @@ public class GeneralTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		User.setShowFileSelectionForNetlists(User.isFactoryShowFileSelectionForNetlists());
+		if (User.isFactoryShowFileSelectionForNetlists() != User.isShowFileSelectionForNetlists())
+			User.setShowFileSelectionForNetlists(User.isFactoryShowFileSelectionForNetlists());
 		for (Object obj : FileType.getFileTypeGroups())
-			FileType.setFileTypeGroupDir(obj, FileType.getFactoryGroupPath(obj));
-		User.setBeepAfterLongJobs(User.isFactoryBeepAfterLongJobs());
-		User.setJobVerboseMode(User.isFactoryJobVerboseMode());
-		User.setErrorLimit(User.getFactoryErrorLimit());
-		User.setMaxUndoHistory(User.getFactoryMaxUndoHistory());
-		User.setMemorySize(User.getFactoryMemorySize());
-		User.setPermSpace(User.getFactoryPermSpace());
-		User.setUseTwoJVMs(User.isFactoryUseTwoJVMs());
-		User.setUseClientServer(User.isFactoryUseClientServer());
+			if (!FileType.getFactoryGroupPath(obj).equals(FileType.getGroupPath(obj)))
+				FileType.setFileTypeGroupDir(obj, FileType.getFactoryGroupPath(obj));
+		if (User.isFactoryBeepAfterLongJobs() != User.isBeepAfterLongJobs())
+			User.setBeepAfterLongJobs(User.isFactoryBeepAfterLongJobs());
+		if (User.isFactoryJobVerboseMode() != User.isJobVerboseMode())
+			User.setJobVerboseMode(User.isFactoryJobVerboseMode());
+		if (User.getFactoryErrorLimit() != User.getErrorLimit())
+			User.setErrorLimit(User.getFactoryErrorLimit());
+		if (User.getFactoryMaxUndoHistory() != User.getMaxUndoHistory())
+			User.setMaxUndoHistory(User.getFactoryMaxUndoHistory());
+		if (User.getFactoryMemorySize() != User.getMemorySize())
+			User.setMemorySize(User.getFactoryMemorySize());
+		if (User.getFactoryPermSpace() != User.getPermSpace())
+			User.setPermSpace(User.getFactoryPermSpace());
+		if (User.isFactoryUseTwoJVMs() != User.isUseTwoJVMs())
+			User.setUseTwoJVMs(User.isFactoryUseTwoJVMs());
+		if (User.isFactoryUseClientServer() != User.isUseClientServer())
+			User.setUseClientServer(User.isFactoryUseClientServer());
 	}
 
 	/** This method is called from within the constructor to

@@ -24,17 +24,17 @@
 
 package com.sun.electric.tool.user.dialogs.options;
 
-import com.sun.electric.tool.cvspm.CVS;
-import com.sun.electric.tool.cvspm.Update;
-import com.sun.electric.tool.cvspm.CVSLibrary;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.tool.cvspm.CVS;
+import com.sun.electric.tool.cvspm.CVSLibrary;
+import com.sun.electric.tool.cvspm.Update;
 
-import javax.swing.*;
 import java.util.Iterator;
 
+import javax.swing.JPanel;
+
 /**
- *
- * @author  gainsley
+ * Class for showing the CVS preferences panel.
  */
 public class CVSTab extends PreferencePanel {
     
@@ -91,9 +91,12 @@ public class CVSTab extends PreferencePanel {
 	 */
 	public void reset()
 	{
-		CVS.setCVSRepository(CVS.getFactoryCVSRepository());
-		CVS.setCVSProgram(CVS.getFactoryCVSProgram());
-		CVS.setEnabled(CVS.isFactoryEnabled());
+		if (!CVS.getFactoryCVSRepository().equals(CVS.getCVSRepository()))
+			CVS.setCVSRepository(CVS.getFactoryCVSRepository());
+		if (!CVS.getFactoryCVSProgram().equals(CVS.getCVSProgram()))
+			CVS.setCVSProgram(CVS.getFactoryCVSProgram());
+		if (CVS.isFactoryEnabled() != CVS.isEnabled())
+			CVS.setEnabled(CVS.isFactoryEnabled());
 	}
 
     /** This method is called from within the constructor to

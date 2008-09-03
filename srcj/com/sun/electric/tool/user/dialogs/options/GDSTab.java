@@ -24,7 +24,6 @@
 package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.tool.io.IOTool;
-import com.sun.electric.tool.Job;
 
 import java.awt.Frame;
 
@@ -54,14 +53,14 @@ public class GDSTab extends PreferencePanel
 	 */
 	public void init()
 	{
-		IOTool.setGDSConvertNCCExportsConnectedByParentPins(IOTool.getFactoryGDSConvertNCCExportsConnectedByParentPins());
-		IOTool.setGDSInMergesBoxes(IOTool.isFactoryGDSInMergesBoxes());
-		IOTool.setGDSInIncludesText(IOTool.isFactoryGDSInIncludesText());
-		IOTool.setGDSInExpandsCells(IOTool.isFactoryGDSInExpandsCells());
-		IOTool.setGDSInInstantiatesArrays(IOTool.isFactoryGDSInInstantiatesArrays());
-		IOTool.setGDSInIgnoresUnknownLayers(IOTool.isFactoryGDSInIgnoresUnknownLayers());
-		IOTool.setGDSInSimplifyCells(IOTool.isFactoryGDSInSimplifyCells());
-		IOTool.setGDSColapseVddGndPinNames(IOTool.isFactoryGDSColapseVddGndPinNames());
+        gdsConvertNCCExportsConnectedByParentPins.setSelected(IOTool.getGDSConvertNCCExportsConnectedByParentPins());
+        gdsInputMergesBoxes.setSelected(IOTool.isGDSInMergesBoxes());
+		gdsInputIncludesText.setSelected(IOTool.isGDSInIncludesText());
+		gdsInputExpandsCells.setSelected(IOTool.isGDSInExpandsCells());
+		gdsInputInstantiatesArrays.setSelected(IOTool.isGDSInInstantiatesArrays());
+		gdsInputIgnoresUnknownLayers.setSelected(IOTool.isGDSInIgnoresUnknownLayers());
+        gdsSimplifyCells.setSelected(IOTool.isGDSInSimplifyCells());
+        gdsColapseNames.setSelected(IOTool.isGDSColapseVddGndPinNames());
 	}
 
 	/**
@@ -102,7 +101,22 @@ public class GDSTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		System.out.println("CANNOT RESET GDS PREFERENCES YET");
+		if (IOTool.getFactoryGDSConvertNCCExportsConnectedByParentPins() != IOTool.getGDSConvertNCCExportsConnectedByParentPins())
+			IOTool.setGDSConvertNCCExportsConnectedByParentPins(IOTool.getFactoryGDSConvertNCCExportsConnectedByParentPins());
+		if (IOTool.isFactoryGDSInMergesBoxes() != IOTool.isGDSInMergesBoxes())
+			IOTool.setGDSInMergesBoxes(IOTool.isFactoryGDSInMergesBoxes());
+		if (IOTool.isFactoryGDSInIncludesText() != IOTool.isGDSInIncludesText())
+			IOTool.setGDSInIncludesText(IOTool.isFactoryGDSInIncludesText());
+		if (IOTool.isFactoryGDSInExpandsCells() != IOTool.isGDSInExpandsCells())
+			IOTool.setGDSInExpandsCells(IOTool.isFactoryGDSInExpandsCells());
+		if (IOTool.isFactoryGDSInInstantiatesArrays() != IOTool.isGDSInInstantiatesArrays())
+			IOTool.setGDSInInstantiatesArrays(IOTool.isFactoryGDSInInstantiatesArrays());
+		if (IOTool.isFactoryGDSInIgnoresUnknownLayers() != IOTool.isGDSInIgnoresUnknownLayers())
+			IOTool.setGDSInIgnoresUnknownLayers(IOTool.isFactoryGDSInIgnoresUnknownLayers());
+		if (IOTool.isFactoryGDSInSimplifyCells() != IOTool.isGDSInSimplifyCells())
+			IOTool.setGDSInSimplifyCells(IOTool.isFactoryGDSInSimplifyCells());
+		if (IOTool.isFactoryGDSColapseVddGndPinNames() != IOTool.isGDSColapseVddGndPinNames())
+			IOTool.setGDSColapseVddGndPinNames(IOTool.isFactoryGDSColapseVddGndPinNames());
 	}
 
 	/** This method is called from within the constructor to

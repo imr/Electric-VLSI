@@ -169,7 +169,12 @@ public class ComponentMenuTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		System.out.println("CANNOT RESET COMPONENT MENU PREFERENCES YET");
+		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
+		{
+			Technology t = it.next();
+			Object [][] menu = t.getNodesGrouped(null);
+			t.setNodesGrouped(menu, "");
+		}
 	}
 
 	private Object convertToXML(Object obj, Xml.Technology xTech)

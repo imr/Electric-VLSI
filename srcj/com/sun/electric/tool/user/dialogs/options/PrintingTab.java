@@ -26,8 +26,8 @@ package com.sun.electric.tool.user.dialogs.options;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
@@ -200,17 +200,28 @@ public class PrintingTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		IOTool.setPlotArea(IOTool.getFactoryPlotArea());
-		IOTool.setPrintResolution(IOTool.getFactoryPrintResolution());
-		IOTool.setPrintEncapsulated(IOTool.isFactoryPrintEncapsulated());
-		IOTool.setPlotDate(IOTool.isFactoryPlotDate());
-		IOTool.setPrintForPlotter(IOTool.isFactoryPrintForPlotter());
-		IOTool.setPrintWidth(IOTool.getFactoryPrintWidth());
-		IOTool.setPrintHeight(IOTool.getFactoryPrintHeight());
-		IOTool.setPrintMargin(IOTool.getFactoryPrintMargin());
-		IOTool.setPrintPSLineWidth(IOTool.getFactoryPrintPSLineWidth());
-		IOTool.setPrintRotation(IOTool.getFactoryPrintRotation());
-		IOTool.setPrintColorMethod(IOTool.getFactoryPrintColorMethod());
+		if (IOTool.getFactoryPlotArea() != IOTool.getPlotArea())
+			IOTool.setPlotArea(IOTool.getFactoryPlotArea());
+		if (IOTool.getFactoryPrintResolution() != IOTool.getPrintResolution())
+			IOTool.setPrintResolution(IOTool.getFactoryPrintResolution());
+		if (IOTool.isFactoryPrintEncapsulated() != IOTool.isPrintEncapsulated())
+			IOTool.setPrintEncapsulated(IOTool.isFactoryPrintEncapsulated());
+		if (IOTool.isFactoryPlotDate() != IOTool.isPlotDate())
+			IOTool.setPlotDate(IOTool.isFactoryPlotDate());
+		if (IOTool.isFactoryPrintForPlotter() != IOTool.isPrintForPlotter())
+			IOTool.setPrintForPlotter(IOTool.isFactoryPrintForPlotter());
+		if (IOTool.getFactoryPrintWidth() != IOTool.getPrintWidth())
+			IOTool.setPrintWidth(IOTool.getFactoryPrintWidth());
+		if (IOTool.getFactoryPrintHeight() != IOTool.getPrintHeight())
+			IOTool.setPrintHeight(IOTool.getFactoryPrintHeight());
+		if (IOTool.getFactoryPrintMargin() != IOTool.getPrintMargin())
+			IOTool.setPrintMargin(IOTool.getFactoryPrintMargin());
+		if (IOTool.getFactoryPrintPSLineWidth() != IOTool.getPrintPSLineWidth())
+			IOTool.setPrintPSLineWidth(IOTool.getFactoryPrintPSLineWidth());
+		if (IOTool.getFactoryPrintRotation() != IOTool.getPrintRotation())
+			IOTool.setPrintRotation(IOTool.getFactoryPrintRotation());
+		if (IOTool.getFactoryPrintColorMethod() != IOTool.getPrintColorMethod())
+			IOTool.setPrintColorMethod(IOTool.getFactoryPrintColorMethod());
 		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 		{
 			Library lib = it.next();

@@ -267,7 +267,7 @@ public class ComponentMenu extends EDialog
 		changed = false;
 	}
 
-	private void factoryReset()
+	public void factoryReset()
 	{
 		menuHei = factoryMenuArray.length;
 		menuWid = factoryMenuArray[0].length;

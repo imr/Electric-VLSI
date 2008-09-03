@@ -373,7 +373,55 @@ public class RoutingTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		System.out.println("CANNOT RESET ROUTING PREFERENCES YET");
+		if (Routing.isFactoryMimicStitchOn() != Routing.isMimicStitchOn())
+			Routing.setMimicStitchOn(Routing.isFactoryMimicStitchOn());
+		if (Routing.isFactoryAutoStitchOn() != Routing.isAutoStitchOn())
+			Routing.setAutoStitchOn(Routing.isFactoryAutoStitchOn());
+		if (!Routing.getFactoryPreferredRoutingArc().equals(Routing.getPreferredRoutingArc()))
+			Routing.setPreferredRoutingArc(Routing.getFactoryPreferredRoutingArc());
+
+		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
+		{
+			Technology tech = it.next();
+			for(Iterator<ArcProto> aIt = tech.getArcs(); aIt.hasNext(); )
+			{
+				ArcProto ap = aIt.next();
+				if (Routing.isFactorySeaOfGatesFavor(ap) != Routing.isSeaOfGatesFavor(ap))
+					Routing.setSeaOfGatesFavor(ap, Routing.isFactorySeaOfGatesFavor(ap));
+				if (Routing.isFactorySeaOfGatesPrevent(ap) != Routing.isSeaOfGatesPrevent(ap))
+					Routing.setSeaOfGatesPrevent(ap, Routing.isFactorySeaOfGatesPrevent(ap));
+			}
+		}
+		if (Routing.getFactorySeaOfGatesMaxWidth() != Routing.getSeaOfGatesMaxWidth())
+			Routing.setSeaOfGatesMaxWidth(Routing.getFactorySeaOfGatesMaxWidth());
+		if (Routing.getFactorySeaOfGatesComplexityLimit() != Routing.getSeaOfGatesComplexityLimit())
+			Routing.setSeaOfGatesComplexityLimit(Routing.getFactorySeaOfGatesComplexityLimit());
+		if (Routing.isFactorySeaOfGatesUseParallelRoutes() != Routing.isSeaOfGatesUseParallelRoutes())
+			Routing.setSeaOfGatesUseParallelRoutes(Routing.isFactorySeaOfGatesUseParallelRoutes());
+		if (Routing.isFactorySeaOfGatesUseParallelFromToRoutes() != Routing.isSeaOfGatesUseParallelFromToRoutes())
+			Routing.setSeaOfGatesUseParallelFromToRoutes(Routing.isFactorySeaOfGatesUseParallelFromToRoutes());
+
+		if (Routing.isFactoryMimicStitchInteractive() != Routing.isMimicStitchInteractive())
+			Routing.setMimicStitchInteractive(Routing.isFactoryMimicStitchInteractive());
+		if (Routing.isFactoryMimicStitchPinsKept() != Routing.isMimicStitchPinsKept())
+			Routing.setMimicStitchPinsKept(Routing.isFactoryMimicStitchPinsKept());
+		if (Routing.isFactoryMimicStitchMatchPorts() != Routing.isMimicStitchMatchPorts())
+			Routing.setMimicStitchMatchPorts(Routing.isFactoryMimicStitchMatchPorts());
+		if (Routing.isFactoryMimicStitchMatchPortWidth() != Routing.isMimicStitchMatchPortWidth())
+			Routing.setMimicStitchMatchPortWidth(Routing.isFactoryMimicStitchMatchPortWidth());
+		if (Routing.isFactoryMimicStitchMatchNumArcs() != Routing.isMimicStitchMatchNumArcs())
+			Routing.setMimicStitchMatchNumArcs(Routing.isFactoryMimicStitchMatchNumArcs());
+		if (Routing.isFactoryMimicStitchMatchNodeSize() != Routing.isMimicStitchMatchNodeSize())
+			Routing.setMimicStitchMatchNodeSize(Routing.isFactoryMimicStitchMatchNodeSize());
+		if (Routing.isFactoryMimicStitchMatchNodeType() != Routing.isMimicStitchMatchNodeType())
+			Routing.setMimicStitchMatchNodeType(Routing.isFactoryMimicStitchMatchNodeType());
+		if (Routing.isFactoryMimicStitchNoOtherArcsSameDir() != Routing.isMimicStitchNoOtherArcsSameDir())
+			Routing.setMimicStitchNoOtherArcsSameDir(Routing.isFactoryMimicStitchNoOtherArcsSameDir());
+		if (Routing.isFactoryMimicStitchOnlyNewTopology() != Routing.isMimicStitchOnlyNewTopology())
+			Routing.setMimicStitchOnlyNewTopology(Routing.isFactoryMimicStitchOnlyNewTopology());
+
+		if (Routing.isFactoryAutoStitchCreateExports() != Routing.isAutoStitchCreateExports())
+			Routing.setAutoStitchCreateExports(Routing.isFactoryAutoStitchCreateExports());
 	}
 
 	/** This method is called from within the constructor to

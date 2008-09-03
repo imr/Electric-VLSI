@@ -23,21 +23,21 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 
-import javax.swing.JPanel;
+import java.awt.Frame;
 
+import javax.swing.JPanel;
 
 /**
  * Class to handle the "Simulators" tab of the Preferences dialog.
  */
 public class SimulatorsTab extends PreferencePanel
 {
-	/** Creates new form CompactionTab */
-	public SimulatorsTab(java.awt.Frame parent, boolean modal)
+	/** Creates new form SimulatorsTab */
+	public SimulatorsTab(Frame parent, boolean modal)
 	{
 		super(parent, modal);
 		initComponents();
@@ -50,12 +50,12 @@ public class SimulatorsTab extends PreferencePanel
 	public String getName() { return "Simulators"; }
 
 	// this is a copy of what is in com.sun.electric.plugins.irsim.Sim.java
-	/** event scheduling */							private static final int	DEBUG_EV	= 0x01;		
-	/** final value computation */					private static final int	DEBUG_DC	= 0x02;		
-	/** tau/delay computation */					private static final int	DEBUG_TAU	= 0x04;		
-	/** taup computation */							private static final int	DEBUG_TAUP	= 0x08;		
-	/** spike analysis */							private static final int	DEBUG_SPK	= 0x10;		
-	/** tree walk */								private static final int	DEBUG_TW	= 0x20;		
+	/** event scheduling */			private static final int	DEBUG_EV	= 0x01;		
+	/** final value computation */	private static final int	DEBUG_DC	= 0x02;		
+	/** tau/delay computation */	private static final int	DEBUG_TAU	= 0x04;		
+	/** taup computation */			private static final int	DEBUG_TAUP	= 0x08;		
+	/** spike analysis */			private static final int	DEBUG_SPK	= 0x10;		
+	/** tree walk */				private static final int	DEBUG_TW	= 0x20;		
 
 	/**
 	 * Method called at the start of the dialog.
@@ -149,7 +149,24 @@ public class SimulatorsTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		System.out.println("CANNOT RESET SIMULATORS PREFERENCES YET");
+		if (Simulation.isFactoryBuiltInResimulateEach() != Simulation.isBuiltInResimulateEach())
+			Simulation.setBuiltInResimulateEach(Simulation.isFactoryBuiltInResimulateEach());
+		if (Simulation.isFactoryBuiltInAutoAdvance() != Simulation.isBuiltInAutoAdvance())
+			Simulation.setBuiltInAutoAdvance(Simulation.isFactoryBuiltInAutoAdvance());
+		if (Simulation.isFactoryWaveformDisplayMultiState() != Simulation.isWaveformDisplayMultiState())
+			Simulation.setWaveformDisplayMultiState(Simulation.isFactoryWaveformDisplayMultiState());
+
+		// for IRSIM
+		if (!Simulation.getFactoryIRSIMParameterFile().equals(Simulation.getIRSIMParameterFile()))
+			Simulation.setIRSIMParameterFile(Simulation.getFactoryIRSIMParameterFile());
+		if (!Simulation.getFactoryIRSIMStepModel().equals(Simulation.getIRSIMStepModel()))
+			Simulation.setIRSIMStepModel(Simulation.getFactoryIRSIMStepModel());
+		if (Simulation.getFactoryIRSIMDebugging() != Simulation.getIRSIMDebugging())
+			Simulation.setIRSIMDebugging(Simulation.getFactoryIRSIMDebugging());
+		if (Simulation.isFactoryIRSIMShowsCommands() != Simulation.isIRSIMShowsCommands())
+			Simulation.setIRSIMShowsCommands(Simulation.isFactoryIRSIMShowsCommands());
+		if (Simulation.isFactoryIRSIMDelayedX() != Simulation.isIRSIMDelayedX())
+			Simulation.setIRSIMDelayedX(Simulation.isFactoryIRSIMDelayedX());
 	}
 
 	/** This method is called from within the constructor to
@@ -410,5 +427,4 @@ public class SimulatorsTab extends PreferencePanel
     private javax.swing.JComboBox simModel;
     private javax.swing.JPanel simulators;
     // End of variables declaration//GEN-END:variables
-
 }

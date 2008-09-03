@@ -141,19 +141,29 @@ public class FastHenryTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		Simulation.setFastHenryUseSingleFrequency(Simulation.isFastHenryUseSingleFrequency());
-		Simulation.setFastHenryDefThickness(Simulation.getFactoryFastHenryDefThickness());
+		if (Simulation.isFactoryFastHenryUseSingleFrequency() != Simulation.isFastHenryUseSingleFrequency())
+			Simulation.setFastHenryUseSingleFrequency(Simulation.isFactoryFastHenryUseSingleFrequency());
+		if (Simulation.getFactoryFastHenryDefThickness() != Simulation.getFastHenryDefThickness())
+			Simulation.setFastHenryDefThickness(Simulation.getFactoryFastHenryDefThickness());
 
-		Simulation.setFastHenryStartFrequency(Simulation.getFactoryFastHenryStartFrequency());
-		Simulation.setFastHenryEndFrequency(Simulation.getFactoryFastHenryEndFrequency());
-		Simulation.setFastHenryRunsPerDecade(Simulation.getFactoryFastHenryRunsPerDecade());
+		if (Simulation.getFactoryFastHenryStartFrequency() != Simulation.getFastHenryStartFrequency())
+			Simulation.setFastHenryStartFrequency(Simulation.getFactoryFastHenryStartFrequency());
+		if (Simulation.getFactoryFastHenryEndFrequency() != Simulation.getFastHenryEndFrequency())
+			Simulation.setFastHenryEndFrequency(Simulation.getFactoryFastHenryEndFrequency());
+		if (Simulation.getFactoryFastHenryRunsPerDecade() != Simulation.getFastHenryRunsPerDecade())
+			Simulation.setFastHenryRunsPerDecade(Simulation.getFactoryFastHenryRunsPerDecade());
 
-		Simulation.setFastHenryWidthSubdivisions(Simulation.getFactoryFastHenryWidthSubdivisions());
-		Simulation.setFastHenryHeightSubdivisions(Simulation.getFactoryFastHenryHeightSubdivisions());
-		Simulation.setFastHenryMaxSegLength(Simulation.getFactoryFastHenryMaxSegLength());
+		if (Simulation.getFactoryFastHenryWidthSubdivisions() != Simulation.getFastHenryWidthSubdivisions())
+			Simulation.setFastHenryWidthSubdivisions(Simulation.getFactoryFastHenryWidthSubdivisions());
+		if (Simulation.getFactoryFastHenryHeightSubdivisions() != Simulation.getFastHenryHeightSubdivisions())
+			Simulation.setFastHenryHeightSubdivisions(Simulation.getFactoryFastHenryHeightSubdivisions());
+		if (Simulation.getFactoryFastHenryMaxSegLength() != Simulation.getFastHenryMaxSegLength())
+			Simulation.setFastHenryMaxSegLength(Simulation.getFactoryFastHenryMaxSegLength());
 
-		Simulation.setFastHenryMultiPole(Simulation.isFactoryFastHenryMultiPole());
-		Simulation.setFastHenryNumPoles(Simulation.getFactoryFastHenryNumPoles());
+		if (Simulation.isFactoryFastHenryMultiPole() != Simulation.isFastHenryMultiPole())
+			Simulation.setFastHenryMultiPole(Simulation.isFactoryFastHenryMultiPole());
+		if (Simulation.getFactoryFastHenryNumPoles() != Simulation.getFastHenryNumPoles())
+			Simulation.setFastHenryNumPoles(Simulation.getFactoryFastHenryNumPoles());
 	}
 
 	/** This method is called from within the constructor to

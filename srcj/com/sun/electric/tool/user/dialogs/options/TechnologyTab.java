@@ -37,6 +37,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
@@ -65,7 +66,7 @@ public class TechnologyTab extends PreferencePanel
 
 	private JList schemPrimList;
 	private DefaultListModel schemPrimModel;
-	private HashMap<PrimitiveNode,String> schemPrimMap;
+	private Map<PrimitiveNode,String> schemPrimMap;
 	private boolean changingVHDL = false;
 
 	/**
@@ -248,16 +249,20 @@ public class TechnologyTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		User.setRotateLayoutTransistors(User.isFactoryRotateLayoutTransistors());
-		Artwork.setFilledArrowHeads(Artwork.isFactoryFilledArrowHeads());
-		Schematics.setNegatingBubbleSize(Schematics.getFactoryNegatingBubbleSize());
+		if (User.isFactoryRotateLayoutTransistors() != User.isRotateLayoutTransistors())
+			User.setRotateLayoutTransistors(User.isFactoryRotateLayoutTransistors());
+		if (Artwork.isFactoryFilledArrowHeads() != Artwork.isFilledArrowHeads())
+			Artwork.setFilledArrowHeads(Artwork.isFactoryFilledArrowHeads());
+		if (Schematics.getFactoryNegatingBubbleSize() != Schematics.getNegatingBubbleSize())
+			Schematics.setNegatingBubbleSize(Schematics.getFactoryNegatingBubbleSize());
 		for(Iterator<PrimitiveNode> it = Schematics.tech().getNodes(); it.hasNext(); )
 		{
 			PrimitiveNode np = it.next();
 			if (np != Schematics.tech().andNode && np != Schematics.tech().orNode &&
 				np != Schematics.tech().xorNode && np != Schematics.tech().muxNode &&
 				np != Schematics.tech().bufferNode) continue;
-			Schematics.setVHDLNames(np, Schematics.getFactoryVHDLNames(np));
+			if (Schematics.getFactoryVHDLNames(np).equals(Schematics.getVHDLNames(np)))
+				Schematics.setVHDLNames(np, Schematics.getFactoryVHDLNames(np));
 		}
 	}
 

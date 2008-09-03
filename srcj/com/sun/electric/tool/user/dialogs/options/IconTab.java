@@ -335,42 +335,71 @@ public class IconTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		User.setIconGenExportPlacement(User.getFactoryIconGenExportPlacement());
-		User.setIconGenExportPlacementExact(User.getFactoryIconGenExportPlacementExact());
+		if (User.getFactoryIconGenExportPlacement() != User.getIconGenExportPlacement())
+			User.setIconGenExportPlacement(User.getFactoryIconGenExportPlacement());
+		if (User.getFactoryIconGenExportPlacementExact() != User.getIconGenExportPlacementExact())
+			User.setIconGenExportPlacementExact(User.getFactoryIconGenExportPlacementExact());
 
-		User.setIconGenInputSide(User.getFactoryIconGenInputSide());
-		User.setIconGenOutputSide(User.getFactoryIconGenOutputSide());
-		User.setIconGenBidirSide(User.getFactoryIconGenBidirSide());
-		User.setIconGenPowerSide(User.getFactoryIconGenPowerSide());
-		User.setIconGenGroundSide(User.getFactoryIconGenGroundSide());
-		User.setIconGenClockSide(User.getFactoryIconGenClockSide());
+		if (User.getFactoryIconGenInputSide() != User.getIconGenInputSide())
+			User.setIconGenInputSide(User.getFactoryIconGenInputSide());
+		if (User.getFactoryIconGenOutputSide() != User.getIconGenOutputSide())
+			User.setIconGenOutputSide(User.getFactoryIconGenOutputSide());
+		if (User.getFactoryIconGenBidirSide() != User.getIconGenBidirSide())
+			User.setIconGenBidirSide(User.getFactoryIconGenBidirSide());
+		if (User.getFactoryIconGenPowerSide() != User.getIconGenPowerSide())
+			User.setIconGenPowerSide(User.getFactoryIconGenPowerSide());
+		if (User.getFactoryIconGenGroundSide() != User.getIconGenGroundSide())
+			User.setIconGenGroundSide(User.getFactoryIconGenGroundSide());
+		if (User.getFactoryIconGenClockSide() != User.getIconGenClockSide())
+			User.setIconGenClockSide(User.getFactoryIconGenClockSide());
 
-		User.setIconGenInputRot(User.getFactoryIconGenInputRot());
-		User.setIconGenOutputRot(User.getFactoryIconGenOutputRot());
-		User.setIconGenBidirRot(User.getFactoryIconGenBidirRot());
-		User.setIconGenPowerRot(User.getFactoryIconGenPowerRot());
-		User.setIconGenPowerRot(User.getFactoryIconGenPowerRot());
-		User.setIconGenClockRot(User.getFactoryIconGenClockRot());
-		User.setIconGenReverseExportOrder(User.isFactoryIconGenReverseExportOrder());
+		if (User.getFactoryIconGenInputRot() != User.getIconGenInputRot())
+			User.setIconGenInputRot(User.getFactoryIconGenInputRot());
+		if (User.getFactoryIconGenOutputRot() != User.getIconGenOutputRot())
+			User.setIconGenOutputRot(User.getFactoryIconGenOutputRot());
+		if (User.getFactoryIconGenBidirRot() != User.getIconGenBidirRot())
+			User.setIconGenBidirRot(User.getFactoryIconGenBidirRot());
+		if (User.getFactoryIconGenPowerRot() != User.getIconGenPowerRot())
+			User.setIconGenPowerRot(User.getFactoryIconGenPowerRot());
+		if (User.getFactoryIconGenPowerRot() != User.getIconGenPowerRot())
+			User.setIconGenPowerRot(User.getFactoryIconGenPowerRot());
+		if (User.getFactoryIconGenClockRot() != User.getIconGenClockRot())
+			User.setIconGenClockRot(User.getFactoryIconGenClockRot());
+		if (User.isFactoryIconGenReverseExportOrder() != User.isIconGenReverseExportOrder())
+			User.setIconGenReverseExportOrder(User.isFactoryIconGenReverseExportOrder());
 
-		User.setIconGenTopRot(User.getFactoryIconGenTopRot());
-		User.setIconGenBottomRot(User.getFactoryIconGenBottomRot());
-		User.setIconGenLeftRot(User.getFactoryIconGenLeftRot());
-		User.setIconGenRightRot(User.getFactoryIconGenRightRot());
+		if (User.getFactoryIconGenTopRot() != User.getIconGenTopRot())
+			User.setIconGenTopRot(User.getFactoryIconGenTopRot());
+		if (User.getFactoryIconGenBottomRot() != User.getIconGenBottomRot())
+			User.setIconGenBottomRot(User.getFactoryIconGenBottomRot());
+		if (User.getFactoryIconGenLeftRot() != User.getIconGenLeftRot())
+			User.setIconGenLeftRot(User.getFactoryIconGenLeftRot());
+		if (User.getFactoryIconGenRightRot() != User.getIconGenRightRot())
+			User.setIconGenRightRot(User.getFactoryIconGenRightRot());
 
-		User.setIconGenDrawLeads(User.isFactoryIconGenDrawLeads());
-		User.setIconGenLeadLength(User.getFactoryIconGenLeadLength());
-		User.setIconGenLeadSpacing(User.getFactoryIconGenLeadSpacing());
+		if (User.isFactoryIconGenDrawLeads() != User.isIconGenDrawLeads())
+			User.setIconGenDrawLeads(User.isFactoryIconGenDrawLeads());
+		if (User.getFactoryIconGenLeadLength() != User.getIconGenLeadLength())
+			User.setIconGenLeadLength(User.getFactoryIconGenLeadLength());
+		if (User.getFactoryIconGenLeadSpacing() != User.getIconGenLeadSpacing())
+			User.setIconGenLeadSpacing(User.getFactoryIconGenLeadSpacing());
 
-		User.setIconGenDrawBody(User.isFactoryIconGenDrawBody());
-		User.setIconGenBodyTextSize(User.getFactoryIconGenBodyTextSize());
-		User.setIconsAlwaysDrawn(User.isFactoryIconsAlwaysDrawn());
+		if (User.isFactoryIconGenDrawBody() != User.isIconGenDrawBody())
+			User.setIconGenDrawBody(User.isFactoryIconGenDrawBody());
+		if (User.getFactoryIconGenBodyTextSize() != User.getIconGenBodyTextSize())
+			User.setIconGenBodyTextSize(User.getFactoryIconGenBodyTextSize());
+		if (User.isFactoryIconsAlwaysDrawn() != User.isIconsAlwaysDrawn())
+			User.setIconsAlwaysDrawn(User.isFactoryIconsAlwaysDrawn());
 
-		User.setIconGenExportLocation(User.getFactoryIconGenExportLocation());
-		User.setIconGenExportStyle(User.getFactoryIconGenExportStyle());
+		if (User.getFactoryIconGenExportLocation() != User.getIconGenExportLocation())
+			User.setIconGenExportLocation(User.getFactoryIconGenExportLocation());
+		if (User.getFactoryIconGenExportStyle() != User.getIconGenExportStyle())
+			User.setIconGenExportStyle(User.getFactoryIconGenExportStyle());
 
-		User.setIconGenExportTech(User.getFactoryIconGenExportTech());
-		User.setIconGenInstanceLocation(User.getFactoryIconGenInstanceLocation());
+		if (User.getFactoryIconGenExportTech() != User.getIconGenExportTech())
+			User.setIconGenExportTech(User.getFactoryIconGenExportTech());
+		if (User.getFactoryIconGenInstanceLocation() != User.getIconGenInstanceLocation())
+			User.setIconGenInstanceLocation(User.getFactoryIconGenInstanceLocation());
 	}
 
 	/** This method is called from within the constructor to

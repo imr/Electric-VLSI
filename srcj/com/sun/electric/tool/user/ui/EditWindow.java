@@ -1636,7 +1636,8 @@ public class EditWindow extends JPanel
 				if (layer.getName().equals("Glyph"))
 					opacity = 0;		// essential bounds
 			}
-			layer.getGraphics().setOpacity(opacity);
+			if (layer.getGraphics().getOpacity() != opacity)
+				layer.getGraphics().setOpacity(opacity);
 		}
 	}
 

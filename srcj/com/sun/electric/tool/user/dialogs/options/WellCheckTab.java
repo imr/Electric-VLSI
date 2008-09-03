@@ -111,12 +111,18 @@ public class WellCheckTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		ERC.setPWellCheck(ERC.getFactoryPWellCheck());
-		ERC.setMustConnectPWellToGround(ERC.isFactoryMustConnectPWellToGround());
-		ERC.setNWellCheck(ERC.getFactoryNWellCheck());
-		ERC.setMustConnectNWellToPower(ERC.isFactoryMustConnectNWellToPower());
-		ERC.setFindWorstCaseWell(ERC.isFactoryFindWorstCaseWell());
-		ERC.setDRCCheck(ERC.isFactoryDRCCheck());
+		if (ERC.getFactoryPWellCheck() != ERC.getPWellCheck())
+			ERC.setPWellCheck(ERC.getFactoryPWellCheck());
+		if (ERC.isFactoryMustConnectPWellToGround() != ERC.isMustConnectPWellToGround())
+			ERC.setMustConnectPWellToGround(ERC.isFactoryMustConnectPWellToGround());
+		if (ERC.getFactoryNWellCheck() != ERC.getNWellCheck())
+			ERC.setNWellCheck(ERC.getFactoryNWellCheck());
+		if (ERC.isFactoryMustConnectNWellToPower() != ERC.isMustConnectNWellToPower())
+			ERC.setMustConnectNWellToPower(ERC.isFactoryMustConnectNWellToPower());
+		if (ERC.isFactoryFindWorstCaseWell() != ERC.isFindWorstCaseWell())
+			ERC.setFindWorstCaseWell(ERC.isFactoryFindWorstCaseWell());
+		if (ERC.isFactoryDRCCheck() != ERC.isDRCCheck())
+			ERC.setDRCCheck(ERC.isFactoryDRCCheck());
 	}
 
 	/** This method is called from within the constructor to

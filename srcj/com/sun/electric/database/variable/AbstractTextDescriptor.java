@@ -716,9 +716,12 @@ abstract class AbstractTextDescriptor implements Serializable
 		 */
 		public void factoryReset()
 		{
-			cacheBits.setLong(cacheBits.getLongFactoryValue());
-			cacheColor.setInt(cacheColor.getIntFactoryValue());
-			cacheFont.setString(cacheFont.getStringFactoryValue());
+			if (cacheBits.getLongFactoryValue() != cacheBits.getLong())
+				cacheBits.setLong(cacheBits.getLongFactoryValue());
+			if (cacheColor.getIntFactoryValue() != cacheColor.getInt())
+				cacheColor.setInt(cacheColor.getIntFactoryValue());
+			if (!cacheFont.getStringFactoryValue().equals(cacheFont.getString()))
+				cacheFont.setString(cacheFont.getStringFactoryValue());
 		}
 
 		private long swap(long value)

@@ -318,8 +318,10 @@ public class NewArcsTab extends PreferencePanel
 					ap.setPinProto(ap.findPinProto());
 			}
 		}
-		User.setPlayClickSoundsWhenCreatingArcs(User.isFactoryPlayClickSoundsWhenCreatingArcs());
-		User.setArcsAutoIncremented(User.isFactoryArcsAutoIncremented());
+		if (User.isFactoryPlayClickSoundsWhenCreatingArcs() != User.isPlayClickSoundsWhenCreatingArcs())
+			User.setPlayClickSoundsWhenCreatingArcs(User.isFactoryPlayClickSoundsWhenCreatingArcs());
+		if (User.isFactoryArcsAutoIncremented() != User.isArcsAutoIncremented())
+			User.setArcsAutoIncremented(User.isFactoryArcsAutoIncremented());
 	}
 
 	/** This method is called from within the constructor to

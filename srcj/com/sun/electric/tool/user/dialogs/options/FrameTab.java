@@ -25,12 +25,12 @@ package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TempPref;
-import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.user.User;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.JPanel;
 import javax.swing.event.DocumentEvent;
@@ -60,7 +60,7 @@ public class FrameTab extends PreferencePanel
 		TempPref designerName;
 		TempPref projectName;
 	}
-	private HashMap<Library,LibraryFrameInfo> frameLibInfo;
+	private Map<Library,LibraryFrameInfo> frameLibInfo;
 	private boolean frameInfoUpdating = false;
 
 	/**
@@ -179,9 +179,12 @@ public class FrameTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		User.setFrameCompanyName(User.getFactoryFrameCompanyName());
-		User.setFrameDesignerName(User.getFactoryFrameDesignerName());
-		User.setFrameProjectName(User.getFactoryFrameProjectName());
+		if (!User.getFactoryFrameCompanyName().equals(User.getFrameCompanyName()))
+			User.setFrameCompanyName(User.getFactoryFrameCompanyName());
+		if (!User.getFactoryFrameDesignerName().equals(User.getFrameDesignerName()))
+			User.setFrameDesignerName(User.getFactoryFrameDesignerName());
+		if (!User.getFactoryFrameProjectName().equals(User.getFrameProjectName()))
+			User.setFrameProjectName(User.getFactoryFrameProjectName());
 	}
 
 	/** This method is called from within the constructor to

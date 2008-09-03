@@ -29,6 +29,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.sc.SilComp;
 
 import java.util.Iterator;
+
 import javax.swing.JPanel;
 
 /**
@@ -81,7 +82,7 @@ public class SiliconCompilerTab extends PreferencePanel
 		nWellHeight.setText(TextUtils.formatDouble(SilComp.getNWellHeight()));
 		nWellOffset.setText(TextUtils.formatDouble(SilComp.getNWellOffset()));
 
-		// the Design Rules);
+		// the Design Rules
 		viaSize.setText(TextUtils.formatDouble(SilComp.getViaSize()));
 		minMetalSpacing.setText(TextUtils.formatDouble(SilComp.getMinMetalSpacing()));
 		feedThruSize.setText(TextUtils.formatDouble(SilComp.getFeedThruSize()));
@@ -162,7 +163,44 @@ public class SiliconCompilerTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		System.out.println("CANNOT RESET SILICON COMPILER PREFERENCES YET");
+		if (SilComp.getFactoryNumberOfRows() != SilComp.getNumberOfRows())
+			SilComp.setNumberOfRows(SilComp.getFactoryNumberOfRows());
+
+		if (!SilComp.getFactoryHorizRoutingArc().equals(SilComp.getHorizRoutingArc()))
+			SilComp.setHorizRoutingArc(SilComp.getFactoryHorizRoutingArc());
+		if (SilComp.getFactoryHorizArcWidth() != SilComp.getHorizArcWidth())
+			SilComp.setHorizArcWidth(SilComp.getFactoryHorizArcWidth());
+		if (!SilComp.getFactoryVertRoutingArc().equals(SilComp.getVertRoutingArc()))
+			SilComp.setVertRoutingArc(SilComp.getFactoryVertRoutingArc());
+		if (SilComp.getFactoryVertArcWidth() != SilComp.getVertArcWidth())
+			SilComp.setVertArcWidth(SilComp.getFactoryVertArcWidth());
+
+		if (SilComp.getFactoryPowerWireWidth() != SilComp.getPowerWireWidth())
+			SilComp.setPowerWireWidth(SilComp.getFactoryPowerWireWidth());
+		if (SilComp.getFactoryMainPowerWireWidth() != SilComp.getMainPowerWireWidth())
+			SilComp.setMainPowerWireWidth(SilComp.getFactoryMainPowerWireWidth());
+		if (!SilComp.getFactoryMainPowerArc().equals(SilComp.getMainPowerArc()))
+			SilComp.setMainPowerArc(SilComp.getFactoryMainPowerArc());
+
+		if (SilComp.getFactoryPWellHeight() != SilComp.getPWellHeight())
+			SilComp.setPWellHeight(SilComp.getFactoryPWellHeight());
+		if (SilComp.getFactoryPWellOffset() != SilComp.getPWellOffset())
+			SilComp.setPWellOffset(SilComp.getFactoryPWellOffset());
+		if (SilComp.getFactoryNWellHeight() != SilComp.getNWellHeight())
+			SilComp.setNWellHeight(SilComp.getFactoryNWellHeight());
+		if (SilComp.getFactoryNWellOffset() != SilComp.getNWellOffset())
+			SilComp.setNWellOffset(SilComp.getFactoryNWellOffset());
+
+		if (SilComp.getFactoryViaSize() != SilComp.getViaSize())
+			SilComp.setViaSize(SilComp.getFactoryViaSize());
+		if (SilComp.getFactoryMinMetalSpacing() != SilComp.getMinMetalSpacing())
+			SilComp.setMinMetalSpacing(SilComp.getFactoryMinMetalSpacing());
+		if (SilComp.getFactoryFeedThruSize() != SilComp.getFeedThruSize())
+			SilComp.setFeedThruSize(SilComp.getFactoryFeedThruSize());
+		if (SilComp.getFactoryMinPortDistance() != SilComp.getMinPortDistance())
+			SilComp.setMinPortDistance(SilComp.getFactoryMinPortDistance());
+		if (SilComp.getFactoryMinActiveDistance() != SilComp.getMinActiveDistance())
+			SilComp.setMinActiveDistance(SilComp.getFactoryMinActiveDistance());
 	}
 
 	/** This method is called from within the constructor to

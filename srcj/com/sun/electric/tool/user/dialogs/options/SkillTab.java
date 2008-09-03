@@ -88,9 +88,12 @@ public class SkillTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		IOTool.setSkillExcludesSubcells(IOTool.isFactorySkillExcludesSubcells());
-		IOTool.setSkillFlattensHierarchy(IOTool.isFactorySkillFlattensHierarchy());
-		IOTool.setSkillGDSNameLimit(IOTool.isFactorySkillGDSNameLimit());
+		if (IOTool.isFactorySkillExcludesSubcells() != IOTool.isSkillExcludesSubcells())
+			IOTool.setSkillExcludesSubcells(IOTool.isFactorySkillExcludesSubcells());
+		if (IOTool.isFactorySkillFlattensHierarchy() != IOTool.isSkillFlattensHierarchy())
+			IOTool.setSkillFlattensHierarchy(IOTool.isFactorySkillFlattensHierarchy());
+		if (IOTool.isFactorySkillGDSNameLimit() != IOTool.isSkillGDSNameLimit())
+			IOTool.setSkillGDSNameLimit(IOTool.isFactorySkillGDSNameLimit());
 	}
 
 	/** This method is called from within the constructor to

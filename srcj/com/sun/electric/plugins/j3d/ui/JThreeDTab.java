@@ -332,6 +332,33 @@ public class JThreeDTab extends ThreeDTab
             J3DUtils.set3DAlpha(currentInt);
 	}
 
+	public void reset()
+	{
+		for(Iterator<Layer> it = curTech.getLayers(); it.hasNext(); )
+		{
+			Layer layer = it.next();
+			if (layer.isPseudoLayer()) continue;       
+            J3DAppearance app = (J3DAppearance)layer.getGraphics().get3DAppearance();
+            if (app != null)
+            	app.factoryResetTransparencyAndRenderingAttributes();
+            layer.setThickness(layer.getFactoryThickness());
+            layer.setDistance(layer.getFactoryDistance());
+		}
+		J3DUtils.set3DPerspective(J3DUtils.isFactory3DPerspective());
+		J3DUtils.set3DCellBndOn(J3DUtils.isFactory3DCellBndOn());
+        J3DUtils.set3DAntialiasing(J3DUtils.isFactory3DAntialiasing());
+        J3DUtils.set3DAxesOn(J3DUtils.isFactory3DAxesOn());
+        J3DUtils.set3DSTIPolyTransistorOn(J3DUtils.isFactory3DSTIPolyTransistorOn());
+        J3DUtils.set3DMaxNumNodes(J3DUtils.getFactory3DMaxNumNodes());
+        J3DUtils.set3DAlpha(J3DUtils.getFactory3DAlpha());
+
+        J3DUtils.set3DOrigZoom(J3DUtils.getFactory3DOrigZoom());
+		J3DUtils.set3DFactor(J3DUtils.getFactory3DFactor());
+        J3DUtils.set3DRotation(J3DUtils.getFactory3DRotation());
+
+        J3DUtils.set3DLightDirs(J3DUtils.getFactory3DLightDirs());
+	}
+
 	/** This method is called from within the constructor to
 	 * initialize the form.
 	 * WARNING: Do NOT modify this code. The content of this method is

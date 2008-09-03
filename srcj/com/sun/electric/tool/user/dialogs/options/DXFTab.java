@@ -79,8 +79,10 @@ public class DXFTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		IOTool.setDXFInputFlattensHierarchy(IOTool.isFactoryDXFInputFlattensHierarchy());
-		IOTool.setDXFInputReadsAllLayers(IOTool.isFactoryDXFInputReadsAllLayers());
+		if (IOTool.isFactoryDXFInputFlattensHierarchy() != IOTool.isDXFInputFlattensHierarchy())
+			IOTool.setDXFInputFlattensHierarchy(IOTool.isFactoryDXFInputFlattensHierarchy());
+		if (IOTool.isFactoryDXFInputReadsAllLayers() != IOTool.isDXFInputReadsAllLayers())
+			IOTool.setDXFInputReadsAllLayers(IOTool.isFactoryDXFInputReadsAllLayers());
 	}
 
 	/** This method is called from within the constructor to

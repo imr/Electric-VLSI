@@ -40,7 +40,6 @@ import java.awt.event.ActionListener;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
-
 /**
  * Class to handle the "Design Rules" tab of the Preferences dialog.
  */
@@ -145,7 +144,7 @@ public class DesignRulesTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		System.out.println("CANNOT RESET DESIGN RULES PREFERENCES YET");
+		DRC.resetDRCDates(true);
 	}
 
 	/** This method is called from within the constructor to

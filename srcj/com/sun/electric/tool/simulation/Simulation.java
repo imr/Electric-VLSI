@@ -1329,6 +1329,12 @@ public class Simulation extends Tool
 	 * @param r true if built-in simulators resimulate after each change to the display.
 	 */
 	public static void setBuiltInResimulateEach(boolean r) { cacheBuiltInResimulateEach.setBoolean(r); }
+	/**
+	 * Method to tell whether built-in simulators resimulate after each change to the display, by default.
+	 * When false, the user must request resimulation after a set of changes is done.
+	 * @return true if built-in simulators resimulate after each change to the display, by default.
+	 */
+	public static boolean isFactoryBuiltInResimulateEach() { return cacheBuiltInResimulateEach.getBooleanFactoryValue(); }
 
 	private static Pref cacheBuiltInAutoAdvance = Pref.makeBooleanPref("BuiltInAutoAdvance", tool.prefs, false);
 	/**
@@ -1341,6 +1347,11 @@ public class Simulation extends Tool
 	 * @param r true if built-in simulators automatically advance the time cursor when stimuli are added.
 	 */
 	public static void setBuiltInAutoAdvance(boolean r) { cacheBuiltInAutoAdvance.setBoolean(r); }
+	/**
+	 * Method to tell whether built-in simulators automatically advance the time cursor when stimuli are added, by default.
+	 * @return true if built-in simulators automatically advance the time cursor when stimuli are added, by default.
+	 */
+	public static boolean isFactoryBuiltInAutoAdvance() { return cacheBuiltInAutoAdvance.getBooleanFactoryValue(); }
 
 	private static Pref cacheWaveformDisplayMultiState = Pref.makeBooleanPref("WaveformDisplayMultiState", tool.prefs, false);
 	/**
@@ -1360,6 +1371,14 @@ public class Simulation extends Tool
 	 * @param m true if the waveform uses a multi-state display.
 	 */
 	public static void setWaveformDisplayMultiState(boolean m) { cacheWaveformDisplayMultiState.setBoolean(m); }
+	/**
+	 * Method to tell whether the waveform uses a multi-state display, by default.
+	 * Multi-state displays distinguish different strengths with different colors in the waveform window,
+	 * and use different colors to distinguish different levels when drawing the cross-probing of the waveform
+	 * in the schematics and layout window.
+	 * @return true if the waveform uses a multi-state display, by default.
+	 */
+	public static boolean isFactoryWaveformDisplayMultiState() { return cacheWaveformDisplayMultiState.getBooleanFactoryValue(); }
 
 	/****************************** IRSIM OPTIONS ******************************/
 
@@ -1374,6 +1393,11 @@ public class Simulation extends Tool
 	 * @param r true if IRSIM shows commands that are issued (for debugging).
 	 */
 	public static void setIRSIMShowsCommands(boolean r) { cacheIRSIMShowsCommands.setBoolean(r); }
+	/**
+	 * Method to tell whether IRSIM shows commands that are issued (for debugging), by default.
+	 * @return true if IRSIM shows commands that are issued (for debugging), by default.
+	 */
+	public static boolean isFactoryIRSIMShowsCommands() { return cacheIRSIMShowsCommands.getBooleanFactoryValue(); }
 
 	private static Pref cacheIRSIMDebugging = Pref.makeIntPref("IRSIMDebugging", tool.prefs, 0);
 	/**
@@ -1400,6 +1424,18 @@ public class Simulation extends Tool
 	 * @param p the debugging level for IRSIM simulation.
 	 */
 	public static void setIRSIMDebugging(int p) { cacheIRSIMDebugging.setInt(p); }
+	/**
+	 * Method to tell the debugging level for IRSIM simulation, by default.
+	 * This is a combination of bits, where:
+	 * Bit 1: debug event scheduling (Sim.DEBUG_EV)
+	 * Bit 2: debug final value computation (Sim.DEBUG_DC)
+	 * Bit 3: debug tau/delay computation (Sim.DEBUG_TAU)
+	 * Bit 4: debug taup computation (Sim.DEBUG_TAUP)
+	 * Bit 5: debug spike analysis (Sim.DEBUG_SPK)
+	 * Bit 6: debug tree walk (Sim.DEBUG_TW)
+	 * @return the debugging level for IRSIM simulation, by default.
+	 */
+	public static int getFactoryIRSIMDebugging() { return cacheIRSIMDebugging.getIntFactoryValue(); }
 
 	private static Pref cacheIRSIMParameterFile = Pref.makeStringPref("IRSIMParameterFile", tool.prefs, "scmos0.3.prm");
 	/**
@@ -1412,6 +1448,11 @@ public class Simulation extends Tool
 	 * @param p the parameter file to use for IRSIM.
 	 */
 	public static void setIRSIMParameterFile(String p) { cacheIRSIMParameterFile.setString(p); }
+	/**
+	 * Method to tell the parameter file to use for IRSIM, by default.
+	 * @return the parameter file to use for IRSIM, by default.
+	 */
+	public static String getFactoryIRSIMParameterFile() { return cacheIRSIMParameterFile.getStringFactoryValue(); }
 
 	private static Pref cacheIRSIMStepModel = Pref.makeStringPref("IRSIMStepModel", tool.prefs, "RC");
 	/**
@@ -1426,18 +1467,29 @@ public class Simulation extends Tool
 	 * @param m the stepping model to use for IRSIM.
 	 */
 	public static void setIRSIMStepModel(String m) { cacheIRSIMStepModel.setString(m); }
+	/**
+	 * Method to tell the stepping model to use for IRSIM, by default.
+	 * Possible choices are "RC" and "Linear".
+	 * @return the stepping model to use for IRSIM, by default.
+	 */
+	public static String getFactoryIRSIMStepModel() { return cacheIRSIMStepModel.getStringFactoryValue(); }
 
 	private static Pref cacheIRSIMDelayedX = Pref.makeBooleanPref("IRSIMDelayedX", tool.prefs, true);
 	/**
-	 * Get whether or not IRSIM uses a delayed X model, versus the old fast-propogating X model
-	 * @return true if using the delayed X model, false if using the old fast-propogating X model
+	 * Get whether or not IRSIM uses a delayed X model, versus the old fast-propogating X model.
+	 * @return true if using the delayed X model, false if using the old fast-propogating X model.
 	 */
 	public static boolean isIRSIMDelayedX() { return cacheIRSIMDelayedX.getBoolean(); }
 	/**
-	 * Get whether or not IRSIM uses a delayed X model, versus the old fast-propogating X model
-	 * @param b true to use the delayed X model, false to use the old fast-propogating X model
+	 * Get whether or not IRSIM uses a delayed X model, versus the old fast-propogating X model.
+	 * @param b true to use the delayed X model, false to use the old fast-propogating X model.
 	 */
 	public static void setIRSIMDelayedX(boolean b) { cacheIRSIMDelayedX.setBoolean(b); }
+	/**
+	 * Get whether or not IRSIM uses a delayed X model, versus the old fast-propogating X model, by default.
+	 * @return true if using the delayed X model, false if using the old fast-propogating X model, by default.
+	 */
+	public static boolean isFactoryIRSIMDelayedX() { return cacheIRSIMDelayedX.getBooleanFactoryValue(); }
 
 	/****************************** SPICE OPTIONS ******************************/
 
@@ -1507,6 +1559,29 @@ public class Simulation extends Tool
 	 * Simulation.SpiceEngine.SPICE_ENGINE_H_ASSURA for HSpice for Assura.
 	 */
 	public static void setSpiceEngine(SpiceEngine engine) { cacheSpiceEngine.setInt(engine.code()); }
+	/**
+	 * Method to tell which SPICE engine is being used, by default.
+	 * Since different versions of SPICE have slightly different syntax,
+	 * this is needed to tell the deck generator which variation to target.
+	 * @return which SPICE engine is being used, by default.
+	 * These constants are available: <BR>
+	 * Simulation.SPICE_ENGINE_2 for Spice 2.<BR>
+	 * Simulation.SPICE_ENGINE_3 for Spice 3.<BR>
+	 * Simulation.SPICE_ENGINE_H for HSpice.<BR>
+	 * Simulation.SPICE_ENGINE_P for PSpice.<BR>
+	 * Simulation.SPICE_ENGINE_G for GNUCap.<BR>
+	 * Simulation.SPICE_ENGINE_S for Smart Spice.<BR>
+	 * Simulation.SPICE_ENGINE_H_ASSURA for HSpice for Assura.<BR>
+	 */
+	public static SpiceEngine getFactorySpiceEngine()
+	{
+		int cache = cacheSpiceEngine.getIntFactoryValue();
+		for (SpiceEngine p : SpiceEngine.values())
+		{
+			if (p.code() == cache) return p;
+		}
+		throw new Error("No Spice engine found");
+	}
 
 	private static Pref cacheSpiceLevel = Pref.makeStringPref("SpiceLevel", tool.prefs, "1");
 //	static { cacheSpiceLevel.attachToObject(tool, "Tools/Spice tab", "Spice level"); }
@@ -1522,6 +1597,12 @@ public class Simulation extends Tool
 	 * @param level which SPICE level is being used (1, 2, or 3).
 	 */
 	public static void setSpiceLevel(String level) { cacheSpiceLevel.setString(level); }
+	/**
+	 * Method to tell which SPICE level is being used, by default.
+	 * SPICE can use 3 different levels of simulation.
+	 * @return which SPICE level is being used (1, 2, or 3), by default.
+	 */
+	public static String getFactorySpiceLevel() { return cacheSpiceLevel.getStringFactoryValue(); }
 
 	private static Pref cacheSpiceOutputFormat = Pref.makeStringPref("SpiceOutputFormat", tool.prefs, "Standard");
 //	static { cacheSpiceOutputFormat.attachToObject(tool, "Tools/Spice tab", "Spice output format"); }
@@ -1543,6 +1624,15 @@ public class Simulation extends Tool
 	 * "Raw/Smart": Raw output from SmartSpice<BR>
 	 */
 	public static void setSpiceOutputFormat(String format) { cacheSpiceOutputFormat.setString(format); }
+	/**
+	 * Method to tell the type of output files expected from Spice, by default.
+	 * @return the type of output files expected from Spice, by default.
+	 * The values are:<BR>
+	 * "Standard": Standard output<BR>
+	 * "Raw" Raw output<BR>
+	 * "Raw/Smart": Raw output from SmartSpice<BR>
+	 */
+	public static String getFactorySpiceOutputFormat() { return cacheSpiceOutputFormat.getStringFactoryValue(); }
 
 	private static Pref cacheSpiceShortResistors = Pref.makeIntPref("SpiceShortResistors", tool.prefs, 0);
 	/**
@@ -1562,6 +1652,15 @@ public class Simulation extends Tool
 	 * 2 for all resistor shorting.<BR>
 	 */
 	public static void setSpiceShortResistors(int sr) { cacheSpiceShortResistors.setInt(sr); }
+	/**
+	 * Method to tell how SPICE should short resistors, by default.
+	 * These values can be: <BR>
+	 * 0 for no resistor shorting.<BR>
+	 * 1 for parasitic resistor shorting (normal resistors shorted, poly resistors not shorted).<BR>
+	 * 2 for all resistor shorting.<BR>
+	 * @return how SPICE should short resistors, by default.
+	 */
+	public static int getFactorySpiceShortResistors() { return cacheSpiceShortResistors.getIntFactoryValue(); }
 
 	public static final String spiceRunChoiceDontRun = "Don't Run";
 	public static final String spiceRunChoiceRunIgnoreOutput = "Run, Ignore Output";
@@ -1584,6 +1683,8 @@ public class Simulation extends Tool
 			if (values[i].equals(choice)) { cacheSpiceRunChoice.setInt(i); return; }
 		}
 	}
+	/** Get the default setting for the Spice Run Choice preference */
+	public static String getFactorySpiceRunChoice() { return spiceRunChoices[cacheSpiceRunChoice.getIntFactoryValue()]; }
 
 	private static Pref cacheSpiceRunDir = Pref.makeStringPref("SpiceRunDir", tool.prefs, "");
 //	static { cacheSpiceRunDir.attachToObject(tool, "Tool Options, Spice tab", "Spice Run Dir"); }
@@ -1591,6 +1692,8 @@ public class Simulation extends Tool
 	public static String getSpiceRunDir() { return cacheSpiceRunDir.getString(); }
 	/** Set the spice run directory */
 	public static void setSpiceRunDir(String dir) { cacheSpiceRunDir.setString(dir); }
+	/** Get the factory default spice run directory */
+	public static String getFactorySpiceRunDir() { return cacheSpiceRunDir.getStringFactoryValue(); }
 
 	private static Pref cacheSpiceUseRunDir = Pref.makeBooleanPref("SpiceUseRunDir", tool.prefs, false);
 //	static { cacheSpiceUseRunDir.attachToObject(tool, "Tool Options, Spice tab", "Use Run Dir"); }
@@ -1598,6 +1701,8 @@ public class Simulation extends Tool
 	public static boolean getSpiceUseRunDir() { return cacheSpiceUseRunDir.getBoolean(); }
 	/** Set whether or not to use the user-specified spice run dir */
 	public static void setSpiceUseRunDir(boolean b) { cacheSpiceUseRunDir.setBoolean(b); }
+	/** Get whether or not to use the user-specified spice run dir, by default */
+	public static boolean getFactorySpiceUseRunDir() { return cacheSpiceUseRunDir.getBooleanFactoryValue(); }
 
 	private static Pref cacheSpiceOutputOverwrite = Pref.makeBooleanPref("SpiceOverwriteOutputFile", tool.prefs, false);
 //	static { cacheSpiceOutputOverwrite.attachToObject(tool, "Tool Options, Spice tab", "Overwrite Output Spice File"); }
@@ -1605,12 +1710,16 @@ public class Simulation extends Tool
 	public static boolean getSpiceOutputOverwrite() { return cacheSpiceOutputOverwrite.getBoolean(); }
 	/** Set whether or not we automatically overwrite the spice output file */
 	public static void setSpiceOutputOverwrite(boolean b) { cacheSpiceOutputOverwrite.setBoolean(b); }
+	/** Get whether or not we automatically overwrite the spice output file, by default */
+	public static boolean getFactorySpiceOutputOverwrite() { return cacheSpiceOutputOverwrite.getBooleanFactoryValue(); }
 
 	private static Pref cacheSpiceRunProbe = Pref.makeBooleanPref("SpiceRunProbe", tool.prefs, false);
 	/** Get whether or not to run the spice probe after running spice */
 	public static boolean getSpiceRunProbe() { return cacheSpiceRunProbe.getBoolean(); }
 	/** Set whether or not to run the spice probe after running spice */
 	public static void setSpiceRunProbe(boolean b) { cacheSpiceRunProbe.setBoolean(b); }
+	/** Get whether or not to run the spice probe after running spice, by default */
+	public static boolean getFactorySpiceRunProbe() { return cacheSpiceRunProbe.getBooleanFactoryValue(); }
 
 	private static Pref cacheSpiceRunProgram = Pref.makeStringPref("SpiceRunProgram", tool.prefs, "");
 //	static { cacheSpiceRunProgram.attachToObject(tool, "Tool Options, Spice tab", "Spice Run Program"); }
@@ -1618,6 +1727,8 @@ public class Simulation extends Tool
 	public static String getSpiceRunProgram() { return cacheSpiceRunProgram.getString(); }
 	/** Set the spice run program */
 	public static void setSpiceRunProgram(String c) { cacheSpiceRunProgram.setString(c); }
+	/** Get the spice run program, by default */
+	public static String getFactorySpiceRunProgram() { return cacheSpiceRunProgram.getStringFactoryValue(); }
 
 	private static Pref cacheSpiceRunProgramArgs = Pref.makeStringPref("SpiceRunProgramArgs", tool.prefs, "");
 //	static { cacheSpiceRunProgramArgs.attachToObject(tool, "Tool Options, Spice tab", "Spice Run Program Args"); }
@@ -1625,6 +1736,8 @@ public class Simulation extends Tool
 	public static String getSpiceRunProgramArgs() { return cacheSpiceRunProgramArgs.getString(); }
 	/** Set the spice run program args */
 	public static void setSpiceRunProgramArgs(String c) { cacheSpiceRunProgramArgs.setString(c); }
+	/** Get the spice run program args, by default */
+	public static String getFactorySpiceRunProgramArgs() { return cacheSpiceRunProgramArgs.getStringFactoryValue(); }
 
 	private static Pref cacheSpicePartsLibrary = null;
 	/**
@@ -1655,6 +1768,20 @@ public class Simulation extends Tool
 		}
 		cacheSpicePartsLibrary.setString(parts);
 	}
+	/**
+	 * Method to return the name of the default Spice parts library.
+	 * The Spice parts library is a library of icons that are used in Spice.
+	 * @return the name of the default Spice parts library.
+	 */
+	public static String getFactorySpicePartsLibrary()
+	{
+		if (cacheSpicePartsLibrary == null)
+		{
+			String [] libNames = LibFile.getSpicePartsLibraries();
+			cacheSpicePartsLibrary = Pref.makeStringPref("SpicePartsLibrary", tool.prefs, libNames[0]);
+		}
+		return cacheSpicePartsLibrary.getStringFactoryValue();
+	}
 
 	private static Pref cacheSpiceHeaderCardInfo = Pref.makeStringPref("SpiceHeaderCardInfo", tool.prefs, "");
 //	static { cacheSpiceHeaderCardInfo.attachToObject(tool, "Tools/Spice tab", "Spice header card information"); }
@@ -1678,6 +1805,16 @@ public class Simulation extends Tool
 	 * @param spec the Spice header card specification.
 	 */
 	public static void setSpiceHeaderCardInfo(String spec) { cacheSpiceHeaderCardInfo.setString(spec); }
+	/**
+	 * Method to get the Spice header card specification, by default.
+	 * Header cards can come from one of three places, depending on the specification:<BR>
+	 * Specification="N O N E XXX" means use built-in header cards (XXX is the former specification).<BR>
+	 * Specification="Extension XXX" means use header cards from the file TOPCELL.XXX
+	 * where TOPCELL is the name of the top-level cell name and XXX is a specified extension.<BR>
+	 * Specification="XXX" means use header cards from the file XXX.
+	 * @return the Spice header card specification, by default.
+	 */
+	public static String getFactorySpiceHeaderCardInfo() { return cacheSpiceHeaderCardInfo.getStringFactoryValue(); }
 
 	private static Pref cacheSpiceTrailerCardInfo = Pref.makeStringPref("SpiceTrailerCardInfo", tool.prefs, "");
 //	static { cacheSpiceTrailerCardInfo.attachToObject(tool, "Tools/Spice tab", "Spice trailer card information"); }
@@ -1701,6 +1838,16 @@ public class Simulation extends Tool
 	 * @param spec the Spice trailer card specification.
 	 */
 	public static void setSpiceTrailerCardInfo(String spec) { cacheSpiceTrailerCardInfo.setString(spec); }
+	/**
+	 * Method to get the Spice trailer card specification, by default.
+	 * Trailer cards can come from one of three places, depending on the specification:<BR>
+	 * Specification="N O N E XXX" means use built-in trailer cards (XXX is the former specification).<BR>
+	 * Specification="Extension XXX" means use trailer cards from the file TOPCELL.XXX
+	 * where TOPCELL is the name of the top-level cell name and XXX is a specified extension.<BR>
+	 * Specification="XXX" means use trailer cards from the file XXX.
+	 * @return the Spice trailer card specification, by default.
+	 */
+	public static String getFactorySpiceTrailerCardInfo() { return cacheSpiceTrailerCardInfo.getStringFactoryValue(); }
 
 	public enum SpiceParasitics
 	{
@@ -1735,12 +1882,24 @@ public class Simulation extends Tool
 		}
 		return null;
 	}
-
 	/**
 	 * Method to set the level of parasitics to be used by Spice output.
 	 * @param p the level of parasitics to be used by Spice output.
 	 */
 	public static void setSpiceParasiticsLevel(SpiceParasitics p) { cacheSpiceParasiticsLevel.setInt(p.code); }
+	/**
+	 * Method to tell the level of parasitics being used by Spice output, by default.
+	 * @return the level of parasitics being used by Spice output, by default.
+	 */
+	public static SpiceParasitics getFactorySpiceParasiticsLevel()
+	{
+		int curCode = cacheSpiceParasiticsLevel.getIntFactoryValue();
+		for (SpiceParasitics p : SpiceParasitics.values())
+		{
+			if (p.code() == curCode) return p;
+		}
+		return null;
+	}
 
 	public static Pref cacheParasiticsUseVerboseNaming = Pref.makeBooleanPref("ParasiticsUseVerboseNaming", tool.prefs, true);
 	public static boolean isParasiticsUseVerboseNaming() { return cacheParasiticsUseVerboseNaming.getBoolean(); }
@@ -1792,6 +1951,12 @@ public class Simulation extends Tool
 	 * @param u true to use node names in Spice output.
 	 */
 	public static void setSpiceUseNodeNames(boolean u) { cacheSpiceUseNodeNames.setBoolean(u); }
+	/**
+	 * Method to tell whether or not to use node names in Spice output by default.
+	 * If node names are off, then numbers are used.
+	 * @return true to use node names in Spice output by default.
+	 */
+	public static boolean isFactorySpiceUseNodeNames() { return cacheSpiceUseNodeNames.getBooleanFactoryValue(); }
 
 	private static Pref cacheSpiceForceGlobalPwrGnd = Pref.makeBooleanPref("SpiceForceGlobalPwrGnd", tool.prefs, false);
 //	static { cacheSpiceForceGlobalPwrGnd.attachToObject(tool, "Tools/Spice tab", "Spice forces global VDD/GND"); }
@@ -1808,6 +1973,12 @@ public class Simulation extends Tool
 	 * @param g true to write global power and ground in Spice output.
 	 */
 	public static void setSpiceForceGlobalPwrGnd(boolean g) { cacheSpiceForceGlobalPwrGnd.setBoolean(g); }
+	/**
+	 * Method to tell whether or not to write global power and ground in Spice output, by default.
+	 * If this is off, then individual power and ground references are made.
+	 * @return true to write global power and ground in Spice output, by default.
+	 */
+	public static boolean isFactorySpiceForceGlobalPwrGnd() { return cacheSpiceForceGlobalPwrGnd.getBooleanFactoryValue(); }
 
 	private static Pref cacheSpiceUseCellParameters = Pref.makeBooleanPref("SpiceUseCellParameters", tool.prefs, false);
 //	static { cacheSpiceForceGlobalPwrGnd.attachToObject(tool, "Tools/Spice tab", "Spice uses cell parameters"); }
@@ -1826,6 +1997,13 @@ public class Simulation extends Tool
 	 * @param p true to use cell parameters in Spice output.
 	 */
 	public static void setSpiceUseCellParameters(boolean p) { cacheSpiceUseCellParameters.setBoolean(p); }
+	/**
+	 * Method to tell whether or not to use cell parameters in Spice output, by default.
+	 * When cell parameters are used, any parameterized cell is written many times,
+	 * once for each combination of parameter values.
+	 * @return true to use cell parameters in Spice output, by default.
+	 */
+	public static boolean isFactorySpiceUseCellParameters() { return cacheSpiceUseCellParameters.getBooleanFactoryValue(); }
 
 	private static Pref cacheSpiceWriteTransSizeInLambda = Pref.makeBooleanPref("SpiceWriteTransSizeInLambda", tool.prefs, false);
 //	static { cacheSpiceWriteTransSizeInLambda.attachToObject(tool, "Tools/Spice tab", "Spice writes transistor sizes in lambda"); }
@@ -1844,10 +2022,18 @@ public class Simulation extends Tool
 	 * @param l true to write transistor sizes in "lambda" grid units in Spice output.
 	 */
 	public static void setSpiceWriteTransSizeInLambda(boolean l) { cacheSpiceWriteTransSizeInLambda.setBoolean(l); }
+	/**
+	 * Method to tell whether or not to write transistor sizes in "lambda" grid units in Spice output, by default.
+	 * Lambda grid units are the basic units of design.
+	 * When writing in these units, the values are simpler, but an overriding scale factor brings them to the proper size.
+	 * @return true to write transistor sizes in "lambda" grid units in Spice output, by default.
+	 */
+	public static boolean isFactorySpiceWriteTransSizeInLambda() { return cacheSpiceWriteTransSizeInLambda.getBooleanFactoryValue(); }
 
 	private static Pref cacheSpiceWriteSubcktTopCell = Pref.makeBooleanPref("SpiceWriteSubcktTopCell", tool.prefs, false);
 	public static boolean isSpiceWriteSubcktTopCell() { return cacheSpiceWriteSubcktTopCell.getBoolean(); }
 	public static void setSpiceWriteSubcktTopCell(boolean b) { cacheSpiceWriteSubcktTopCell.setBoolean(b); }
+	public static boolean isFactorySpiceWriteSubcktTopCell() { return cacheSpiceWriteSubcktTopCell.getBooleanFactoryValue(); }
 
 	private static Pref cacheSpiceWriteTopCellInstance = Pref.makeBooleanPref("SpiceWriteTopCellInstance", tool.prefs, true);
 	public static boolean isSpiceWriteTopCellInstance() { return cacheSpiceWriteTopCellInstance.getBoolean(); }
@@ -1860,6 +2046,7 @@ public class Simulation extends Tool
 	private static Pref cacheSpiceWriteFinalDotEnd = Pref.makeBooleanPref("SpiceWriteFinalDotEnd", tool.prefs, true);
 	public static boolean isSpiceWriteFinalDotEnd() { return cacheSpiceWriteFinalDotEnd.getBoolean(); }
 	public static void setSpiceWriteFinalDotEnd(boolean b) { cacheSpiceWriteFinalDotEnd.setBoolean(b); }
+	public static boolean isFactorySpiceWriteFinalDotEnd() { return cacheSpiceWriteFinalDotEnd.getBooleanFactoryValue(); }
 
 	private static Pref cachedSpiceIgnoreParasiticResistors = Pref.makeBooleanPref("SpiceIgnoreParasiticResistors", tool.prefs, false);
 	public static boolean isSpiceIgnoreParasiticResistors() { return cachedSpiceIgnoreParasiticResistors.getBoolean(); }
@@ -1877,4 +2064,9 @@ public class Simulation extends Tool
 	 * @param limit maximum memory to use for EpicReaderProcess (in megabytes).
 	 */
 	public static void setSpiceEpicMemorySize(int limit) { cacheSpiceEpicReaderMemorySize.setInt(limit); }
+	/**
+	 * Method to tell the maximum memory to use for EpicReaderProcess (in megatybes), by default.
+	 * @return the maximum memory to use for EpicReaderProcess (in megabytes), by default.
+	 */
+	public static int getFactorySpiceEpicMemorySize() { return cacheSpiceEpicReaderMemorySize.getIntFactoryValue(); }
 }

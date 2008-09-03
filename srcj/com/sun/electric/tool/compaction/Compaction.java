@@ -173,7 +173,7 @@ if (--limitLoops <= 0) change = false;
 	 * Method to tell whether the factory default for the compactor is to spread circuitry apart, or just compact it.
 	 * @return true if the compactor can spread circuitry apart in factory default.
 	 */
-	public static boolean getFactoryAllowsSpreading() { return cacheAllowSpreading.getBooleanFactoryValue(); }
+	public static boolean isFactoryAllowsSpreading() { return cacheAllowSpreading.getBooleanFactoryValue(); }
 
 	/****************************** COMPACTION ******************************/
 

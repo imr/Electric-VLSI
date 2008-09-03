@@ -40,6 +40,9 @@ public class NccPreferences {
 	public static void setCheckSizes(boolean on) { 
 		checkSizes.setBoolean(on); 
 	}
+	public static boolean getFactoryCheckSizes() {
+		return checkSizes.getBooleanFactoryValue(); 
+	}
 
 	private static Pref relativeSizeTolerance = 
 		Pref.makeDoublePref("RelativeSizeTolerance", NccPreferences.tool.prefs, 0.0);
@@ -48,6 +51,9 @@ public class NccPreferences {
 	}
 	public static void setRelativeSizeTolerance(double d) { 
 		relativeSizeTolerance.setDouble(d); 
+	}
+	public static double getFactoryRelativeSizeTolerance() {
+		return relativeSizeTolerance.getDoubleFactoryValue(); 
 	}
 
 	private static Pref absoluteSizeTolerance = 
@@ -58,6 +64,9 @@ public class NccPreferences {
 	public static void setAbsoluteSizeTolerance(double d) { 
 		absoluteSizeTolerance.setDouble(d); 
 	}
+	public static double getFactoryAbsoluteSizeTolerance() {
+		return absoluteSizeTolerance.getDoubleFactoryValue(); 
+	}
 
 	private static Pref haltAfterFirstMismatch = 
 		Pref.makeBooleanPref("HaltAfterFirstMismatch", NccPreferences.tool.prefs, true);
@@ -66,6 +75,9 @@ public class NccPreferences {
 	}
 	public static void setHaltAfterFirstMismatch(boolean on) { 
 		haltAfterFirstMismatch.setBoolean(on); 
+	}
+	public static boolean getFactoryHaltAfterFirstMismatch() {
+		return haltAfterFirstMismatch.getBooleanFactoryValue(); 
 	}
     
 	private static Pref skipPassed = 
@@ -76,6 +88,9 @@ public class NccPreferences {
 	public static void setSkipPassed(boolean on) { 
 		skipPassed.setBoolean(on); 
 	}
+	public static boolean getFactorySkipPassed() {
+		return skipPassed.getBooleanFactoryValue(); 
+	}
 	
 	private static Pref maxMatchedClasses =
 		Pref.makeIntPref("MaxMatchedClasses", NccPreferences.tool.prefs, 10);
@@ -84,6 +99,9 @@ public class NccPreferences {
 	}
 	public static void setMaxMatchedClasses(int i) {
 		maxMatchedClasses.setInt(i);
+	}
+	public static int getFactoryMaxMatchedClasses() {
+		return maxMatchedClasses.getIntFactoryValue();
 	}
 
 	private static Pref maxMismatchedClasses =
@@ -94,6 +112,9 @@ public class NccPreferences {
 	public static void setMaxMismatchedClasses(int i) {
 		maxMismatchedClasses.setInt(i);
 	}
+	public static int getFactoryMaxMismatchedClasses() {
+		return maxMismatchedClasses.getIntFactoryValue();
+	}
 
 	private static Pref maxClassMembers =
 		Pref.makeIntPref("MaxClassMembers", NccPreferences.tool.prefs, 10);
@@ -102,6 +123,9 @@ public class NccPreferences {
 	}
 	public static void setMaxClassMembers(int i) {
 		maxClassMembers.setInt(i);
+	}
+	public static int getFactoryMaxClassMembers() {
+		return maxClassMembers.getIntFactoryValue();
 	}
 
 	private static Pref operation =
@@ -114,6 +138,12 @@ public class NccPreferences {
 	}
 	public static void setOperation(int i) {
 		operation.setInt(i);
+	}
+	public static int getFactoryOperation() {
+		int op = operation.getIntFactoryValue();
+		// guard against corrupted preferences
+		if (op<NccOptions.HIER_EACH_CELL || op>NccOptions.LIST_ANNOTATIONS) return NccOptions.HIER_EACH_CELL; 
+		return op;
 	}
 
 	private static int boundStatus(int s) {		
@@ -129,5 +159,8 @@ public class NccPreferences {
 	}
 	public static void setHowMuchStatus(int i) {
 		howMuchStatus.setInt(boundStatus(i));
+	}
+	public static int getFactoryHowMuchStatus() {
+		return boundStatus(howMuchStatus.getIntFactoryValue());
 	}
 }

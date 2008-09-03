@@ -27,6 +27,7 @@ package com.sun.electric.plugins.j3d.utils;
 
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.GenMath;
+import com.sun.electric.technology.Layer;
 
 import javax.media.j3d.*;
 import javax.vecmath.Color3f;
@@ -218,6 +219,16 @@ public class J3DAppearance extends Appearance
         graphics.getLayer().setTransparencyMode(modelS);
         double factor = transparencyAttributes.getTransparency();
         graphics.getLayer().setTransparencyFactor(factor);
+    }
+
+    public void factoryResetTransparencyAndRenderingAttributes()
+    {
+    	// TODO: are the next two lines necessary?
+//        super.setTransparencyAttributes(transparencyAttributes);
+//        super.getRenderingAttributes().setDepthBufferEnable(rendering);
+    	Layer layer = graphics.getLayer();
+    	layer.setTransparencyMode(layer.getFactoryTransparencyMode());
+    	layer.setTransparencyFactor(layer.getFactoryTransparencyFactor());
     }
 
     /********************************************************************************************************

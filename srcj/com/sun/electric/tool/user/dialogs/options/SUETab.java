@@ -27,7 +27,6 @@ import com.sun.electric.tool.io.IOTool;
 
 import javax.swing.JPanel;
 
-
 /**
  * Class to handle the "SUE" tab of the Preferences dialog.
  */
@@ -76,8 +75,10 @@ public class SUETab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		IOTool.setSueUses4PortTransistors(IOTool.isFactorySueUses4PortTransistors());
-		IOTool.setSueConvertsExpressions(IOTool.isFactorySueConvertsExpressions());
+		if (IOTool.isFactorySueUses4PortTransistors() != IOTool.isSueUses4PortTransistors())
+			IOTool.setSueUses4PortTransistors(IOTool.isFactorySueUses4PortTransistors());
+		if (IOTool.isFactorySueConvertsExpressions() != IOTool.isSueConvertsExpressions())
+			IOTool.setSueConvertsExpressions(IOTool.isFactorySueConvertsExpressions());
 	}
 
 	/** This method is called from within the constructor to

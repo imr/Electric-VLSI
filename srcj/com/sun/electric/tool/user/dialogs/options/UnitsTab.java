@@ -33,7 +33,7 @@ import javax.swing.JPanel;
  */
 public class UnitsTab extends PreferencePanel
 {
-	/** Creates new form Edit Options */
+	/** Creates new form Units Options */
 	public UnitsTab(java.awt.Frame parent, boolean modal)
 	{
 		super(parent, modal);
@@ -190,13 +190,20 @@ public class UnitsTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		User.setDistanceUnits(User.getFactoryDistanceUnits());
-		User.setResistanceUnits(User.getFactoryResistanceUnits());
-		User.setCapacitanceUnits(User.getFactoryCapacitanceUnits());
-		User.setInductanceUnits(User.getFactoryInductanceUnits());
-		User.setAmperageUnits(User.getFactoryAmperageUnits());
-		User.setVoltageUnits(User.getFactoryVoltageUnits());
-		User.setTimeUnits(User.getFactoryTimeUnits());
+		if (!User.getFactoryDistanceUnits().equals(User.getDistanceUnits()))
+			User.setDistanceUnits(User.getFactoryDistanceUnits());
+		if (!User.getFactoryResistanceUnits().equals(User.getResistanceUnits()))
+			User.setResistanceUnits(User.getFactoryResistanceUnits());
+		if (!User.getFactoryCapacitanceUnits().equals(User.getCapacitanceUnits()))
+			User.setCapacitanceUnits(User.getFactoryCapacitanceUnits());
+		if (!User.getFactoryInductanceUnits().equals(User.getInductanceUnits()))
+			User.setInductanceUnits(User.getFactoryInductanceUnits());
+		if (!User.getFactoryAmperageUnits().equals(User.getAmperageUnits()))
+			User.setAmperageUnits(User.getFactoryAmperageUnits());
+		if (!User.getFactoryVoltageUnits().equals(User.getVoltageUnits()))
+			User.setVoltageUnits(User.getFactoryVoltageUnits());
+		if (!User.getFactoryTimeUnits().equals(User.getTimeUnits()))
+			User.setTimeUnits(User.getFactoryTimeUnits());
 	}
 
 	/** This method is called from within the constructor to

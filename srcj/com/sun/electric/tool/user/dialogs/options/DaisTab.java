@@ -34,7 +34,7 @@ import javax.swing.JPanel;
  */
 public class DaisTab extends PreferencePanel
 {
-	/** Creates new form SkillTab */
+	/** Creates new form DaisTab */
 	public DaisTab(Frame parent, boolean modal)
 	{
 		super(parent, modal);
@@ -83,23 +83,23 @@ public class DaisTab extends PreferencePanel
 			IOTool.setDaisDisplayOnly(currBoolean);
 
 		currBoolean = readCellInstances.isSelected();
-		if (currBoolean !=  IOTool.isDaisReadCellInstances())
+		if (currBoolean != IOTool.isDaisReadCellInstances())
 			IOTool.setDaisReadCellInstances(currBoolean);
 
 		currBoolean = readDetailWires.isSelected();
-		if (currBoolean !=  IOTool.isDaisReadDetailWires())
+		if (currBoolean != IOTool.isDaisReadDetailWires())
 			IOTool.setDaisReadDetailWires(currBoolean);
 
 		currBoolean = readGlobalWires.isSelected();
-		if (currBoolean !=  IOTool.isDaisReadGlobalWires())
+		if (currBoolean != IOTool.isDaisReadGlobalWires())
 			IOTool.setDaisReadGlobalWires(currBoolean);
 
 		currBoolean = readPowerAndGround.isSelected();
-		if (currBoolean !=  IOTool.isDaisReadPowerAndGround())
+		if (currBoolean != IOTool.isDaisReadPowerAndGround())
 			IOTool.setDaisReadPowerAndGround(currBoolean);
 
 		currBoolean = readConnectivity.isSelected();
-		if (currBoolean !=  IOTool.isDaisReadConnectivity())
+		if (currBoolean != IOTool.isDaisReadConnectivity())
 			IOTool.setDaisReadConnectivity(currBoolean);
 	}
 
@@ -108,7 +108,18 @@ public class DaisTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		System.out.println("CANNOT RESET DAIS PREFERENCES YET");
+		if (IOTool.isFactoryDaisDisplayOnly() != IOTool.isDaisDisplayOnly())
+			IOTool.setDaisDisplayOnly(IOTool.isFactoryDaisDisplayOnly());
+		if (IOTool.isFactoryDaisReadCellInstances() != IOTool.isDaisReadCellInstances())
+			IOTool.setDaisReadCellInstances(IOTool.isFactoryDaisReadCellInstances());
+		if (IOTool.isFactoryDaisReadDetailWires() != IOTool.isDaisReadDetailWires())
+			IOTool.setDaisReadDetailWires(IOTool.isFactoryDaisReadDetailWires());
+		if (IOTool.isFactoryDaisReadGlobalWires() != IOTool.isDaisReadGlobalWires())
+			IOTool.setDaisReadGlobalWires(IOTool.isFactoryDaisReadGlobalWires());
+		if (IOTool.isFactoryDaisReadPowerAndGround() != IOTool.isDaisReadPowerAndGround())
+			IOTool.setDaisReadPowerAndGround(IOTool.isFactoryDaisReadPowerAndGround());
+		if (IOTool.isFactoryDaisReadConnectivity() != IOTool.isDaisReadConnectivity())
+			IOTool.setDaisReadConnectivity(IOTool.isFactoryDaisReadConnectivity());
 	}
 
 	/** This method is called from within the constructor to

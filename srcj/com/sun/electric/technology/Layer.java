@@ -26,24 +26,25 @@ package com.sun.electric.technology;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.EGraphics.Outline;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Setting;
 import com.sun.electric.technology.xml.XmlParam;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.projectSettings.ProjSettingsNode;
-import com.sun.electric.tool.Job;
-import java.awt.Color;
 
+import java.awt.Color;
 import java.io.PrintWriter;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -327,7 +328,7 @@ public class Layer
                 System.out.println("Invalid metal layer level:" + level);
                 return null;
             }
-            Function func = metalLayers.get(new Integer(level));
+            Function func = metalLayers.get(level);
 			return func;
 		}
 
@@ -343,7 +344,7 @@ public class Layer
                 System.out.println("Invalid via layer level:" + level);
                 return null;
             }
-			Function func = contactLayers.get(new Integer(level));
+			Function func = contactLayers.get(level);
 			return func;
 		}
 
@@ -354,7 +355,7 @@ public class Layer
 		 */
 		public static Function getPoly(int level)
 		{
-			Function func = polyLayers.get(new Integer(level));
+			Function func = polyLayers.get(level);
 			return func;
 		}
 
@@ -566,16 +567,16 @@ public class Layer
 	/** the pure-layer node that contains just this layer */				private PrimitiveNode pureLayerNode;
     /** the Xml expression for size pf pure-layer node */                   private Technology.Distance pureLayerNodeXmlSize;
 
-//	private static HashMap<String,Pref> gdsLayerPrefs = new HashMap<String,Pref>();
-    private static final HashMap<Layer,Pref> layerVisibilityPrefs = new HashMap<Layer,Pref>();
+//	private static Map<String,Pref> gdsLayerPrefs = new HashMap<String,Pref>();
+    private static final Map<Layer,Pref> layerVisibilityPrefs = new HashMap<Layer,Pref>();
 
     // 3D options
-	private static final HashMap<Layer,Pref> layer3DThicknessPrefs = new HashMap<Layer,Pref>();
-	private static final HashMap<Layer,Pref> layer3DDistancePrefs = new HashMap<Layer,Pref>();
-    private static final HashMap<Layer,Pref> layer3DTransModePrefs = new HashMap<Layer,Pref>(); // NONE is the default
-    private static final HashMap<Layer,Pref> layer3DTransFactorPrefs = new HashMap<Layer,Pref>(); // 0 is the default
+	private static final Map<Layer,Pref> layer3DThicknessPrefs = new HashMap<Layer,Pref>();
+	private static final Map<Layer,Pref> layer3DDistancePrefs = new HashMap<Layer,Pref>();
+    private static final Map<Layer,Pref> layer3DTransModePrefs = new HashMap<Layer,Pref>(); // NONE is the default
+    private static final Map<Layer,Pref> layer3DTransFactorPrefs = new HashMap<Layer,Pref>(); // 0 is the default
 
-    private static final HashMap<Layer,Pref> areaCoveragePrefs = new HashMap<Layer,Pref>();  // Used by area coverage tool
+    private static final Map<Layer,Pref> areaCoveragePrefs = new HashMap<Layer,Pref>();  // Used by area coverage tool
 
 	private Layer(String name, Technology tech, EGraphics graphics)
 	{
@@ -840,12 +841,43 @@ public class Layer
 	 */
 	public Layer getNonPseudoLayer() { return nonPseudoLayer; }
 
+//	/**
+//	 * Method to set the non-pseudo layer associated with this pseudo-Layer.
+//	 * Pseudo layers are those used in pins, and have no real geometry.
+//	 * @param nonPseudoLayer the non-pseudo layer associated with this pseudo-Layer.
+//	 */
+//	private void setNonPseudoLayer(Layer nonPseudoLayer) { this.nonPseudoLayer = nonPseudoLayer; }
+
 	/**
-	 * Method to set the non-pseudo layer associated with this pseudo-Layer.
-	 * Pseudo layers are those used in pins, and have no real geometry.
-	 * @param nonPseudoLayer the non-pseudo layer associated with this pseudo-Layer.
+	 * Method to reset the graphics on this Layer.
 	 */
-	private void setNonPseudoLayer(Layer nonPseudoLayer) { this.nonPseudoLayer = nonPseudoLayer; }
+	public void factoryResetGraphics()
+	{
+    	if (tech == null) return;
+		if (!visibilityInitialized)
+		{
+			Pref vp = getBooleanPref("Visibility", layerVisibilityPrefs, visible);
+			visible = vp.getBooleanFactoryValue();
+			if (vp.getBoolean() != visible) vp.setBoolean(visible);
+			visibilityInitialized = true;
+		}
+		if (graphics.getFactoryColorIndex() != EGraphics.makeIndex(graphics.getColor()))
+			graphics.setColorIndex(graphics.getFactoryColorIndex());
+		if (graphics.getFactoryTransparentLayer() != graphics.getTransparentLayer())
+			graphics.setTransparentLayer(graphics.getFactoryTransparentLayer());
+		if (graphics.getFactoryOpacity() != graphics.getOpacity())
+			graphics.setOpacity(graphics.getFactoryOpacity());
+		if (graphics.getForeground() != graphics.getForeground())
+			graphics.setForeground(graphics.getForeground());
+		if (!graphics.getFactoryPattern().equals(graphics.getPattern()))
+			graphics.setPattern(graphics.getFactoryPattern());
+		if (!graphics.getFactoryOutlined().equals(graphics.getOutlined()))
+			graphics.setOutlined(graphics.getFactoryOutlined());
+		if (graphics.isFactoryPatternedOnDisplay() != graphics.isPatternedOnDisplay())
+			graphics.setPatternedOnDisplay(graphics.isFactoryPatternedOnDisplay());
+		if (graphics.isFactoryPatternedOnPrinter() != graphics.isPatternedOnPrinter())
+			graphics.setPatternedOnPrinter(graphics.isFactoryPatternedOnPrinter());
+	}
 
 	/**
 	 * Method to tell whether this Layer is visible.
@@ -950,7 +982,7 @@ public class Layer
 	 * @param factory the factory default value for this Layer/purpose.
 	 * @return the string Pref object for this Layer/purpose.
 	 */
-    public Pref getStringPref(String what, HashMap<Layer,Pref> map, String factory)
+    public Pref getStringPref(String what, Map<Layer,Pref> map, String factory)
 	{
 		Pref pref = map.get(this);
 		if (pref == null)
@@ -968,7 +1000,7 @@ public class Layer
 	 * @param factory the factory default value for this Layer/purpose.
 	 * @return the boolean Pref object for this Layer/purpose.
 	 */
-    public Pref getBooleanPref(String what, HashMap<Layer,Pref> map, boolean factory)
+    public Pref getBooleanPref(String what, Map<Layer,Pref> map, boolean factory)
 	{
 		Pref pref = map.get(this);
 		if (pref == null)
@@ -986,7 +1018,7 @@ public class Layer
 	 * @param factory the factory default value for this Layer/purpose.
 	 * @return the double-precision Pref object for this Layer/purpose.
 	 */
-	public Pref getDoublePref(String what, HashMap<Layer,Pref> map, double factory)
+	public Pref getDoublePref(String what, Map<Layer,Pref> map, double factory)
 	{
 		Pref pref = map.get(this);
 		if (pref == null)
@@ -1004,7 +1036,7 @@ public class Layer
 	 * @param factory the factory default value for this Layer/purpose.
 	 * @return the integer Pref object for this Layer/purpose.
 	 */
-	public Pref getIntegerPref(String what, HashMap<Layer,Pref> map, int factory)
+	public Pref getIntegerPref(String what, Map<Layer,Pref> map, int factory)
 	{
 		Pref pref = map.get(this);
 		if (pref == null)
@@ -1019,7 +1051,7 @@ public class Layer
 	 * Method to set the 3D distance and thickness of this Layer.
 	 * @param thickness the thickness of this layer.
      * @param distance the distance of this layer above the ground plane (silicon).
- * Negative values represent layes in silicon like p++, p well, etc.
+     * Negative values represent layes in silicon like p++, p well, etc.
      * @param mode
      * @param factor
      */
@@ -1040,7 +1072,7 @@ public class Layer
     /**
 	 * Method to return the transparency mode of this layer as a string.
      * Possible values "NONE, "FASTEST", "NICEST", "BLENDED", "SCREEN_DOOR".
-	 * @return the transparency mode of this layer for the 3D view..
+	 * @return the transparency mode of this layer for the 3D view.
 	 */
 	public String getTransparencyMode() {
         if (isPseudoLayer())
@@ -1060,9 +1092,20 @@ public class Layer
     }
 
     /**
+	 * Method to return the transparency mode of this layer as a string, by default.
+     * Possible values "NONE, "FASTEST", "NICEST", "BLENDED", "SCREEN_DOOR".
+	 * @return the transparency mode of this layer for the 3D view, by default.
+	 */
+	public String getFactoryTransparencyMode() {
+        if (isPseudoLayer())
+            return getNonPseudoLayer().getFactoryTransparencyMode();
+        return getStringPref("3DTransparencyMode", layer3DTransModePrefs, DEFAULT_MODE).getStringFactoryValue();
+    }
+
+    /**
 	 * Method to return the transparency factor of this layer as a string.
      * Possible values from 0 (opaque) -> 1 (transparent)
-	 * @return the transparency factor of this layer for the 3D view..
+	 * @return the transparency factor of this layer for the 3D view.
 	 */
 	public double getTransparencyFactor() {
         if (isPseudoLayer())
@@ -1082,14 +1125,47 @@ public class Layer
     }
 
     /**
+	 * Method to return the transparency factor of this layer as a string, by default.
+     * Possible values from 0 (opaque) -> 1 (transparent)
+	 * @return the transparency factor of this layer for the 3D view, by default.
+	 */
+	public double getFactoryTransparencyFactor() {
+        if (isPseudoLayer())
+            return getNonPseudoLayer().getFactoryTransparencyFactor();
+        return getDoublePref("3DTransparencyFactor", layer3DTransFactorPrefs, DEFAULT_FACTOR).getDoubleFactoryValue();
+    }
+
+    /**
 	 * Method to return the distance of this layer.
 	 * The higher the distance value, the farther from the wafer.
 	 * @return the distance of this layer above the ground plane.
+	 */
+	public double Factory() {
+        if (isPseudoLayer())
+            return getNonPseudoLayer().getDistance();
+        return getDoublePref("Distance", layer3DDistancePrefs, DEFAULT_DISTANCE).getDouble();
+    }
+
+    /**
+	 * Method to return the distance of this layer, by default.
+	 * The higher the distance value, the farther from the wafer.
+	 * @return the distance of this layer above the ground plane, by default.
 	 */
 	public double getDistance() {
         if (isPseudoLayer())
             return getNonPseudoLayer().getDistance();
         return getDoublePref("Distance", layer3DDistancePrefs, DEFAULT_DISTANCE).getDouble();
+    }
+
+    /**
+	 * Method to return the distance of this layer, by default.
+	 * The higher the distance value, the farther from the wafer.
+	 * @return the distance of this layer above the ground plane, by default.
+	 */
+	public double getFactoryDistance() {
+        if (isPseudoLayer())
+            return getNonPseudoLayer().getFactoryDistance();
+        return getDoublePref("Distance", layer3DDistancePrefs, DEFAULT_DISTANCE).getDoubleFactoryValue();
     }
 
 	/**
@@ -1133,6 +1209,16 @@ public class Layer
         if (isPseudoLayer())
             return 0;
         return getDoublePref("Thickness", layer3DThicknessPrefs, DEFAULT_THICKNESS).getDouble();
+    }
+	/**
+	 * Method to return the thickness of this layer, by default.
+	 * Layers can have a thickness of 0, which causes them to be rendered flat.
+	 * @return the thickness of this layer, by default.
+	 */
+	public double getFactoryThickness() {
+        if (isPseudoLayer())
+            return 0;
+        return getDoublePref("Thickness", layer3DThicknessPrefs, DEFAULT_THICKNESS).getDoubleFactoryValue();
     }
 
 	/**

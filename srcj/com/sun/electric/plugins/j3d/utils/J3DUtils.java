@@ -30,14 +30,14 @@ import com.sun.electric.plugins.j3d.View3DWindow;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.dialogs.ColorPatternPanel;
+import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.dialogs.options.LayersTab;
 import com.sun.j3d.utils.behaviors.interpolators.KBKeyFrame;
 import com.sun.j3d.utils.behaviors.interpolators.TCBKeyFrame;
+import com.sun.j3d.utils.geometry.Cylinder;
 import com.sun.j3d.utils.geometry.GeometryInfo;
 import com.sun.j3d.utils.geometry.NormalGenerator;
-import com.sun.j3d.utils.geometry.Cylinder;
 import com.sun.j3d.utils.geometry.Primitive;
 import com.sun.j3d.utils.picking.PickTool;
 import com.sun.j3d.utils.universe.SimpleUniverse;
@@ -45,8 +45,8 @@ import com.sun.j3d.utils.universe.SimpleUniverse;
 import java.awt.Color;
 import java.awt.GraphicsConfiguration;
 import java.awt.geom.PathIterator;
-import java.awt.geom.Rectangle2D;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.FileReader;
 import java.io.LineNumberReader;
@@ -54,8 +54,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.StringTokenizer;
@@ -78,7 +78,13 @@ import javax.media.j3d.Shape3D;
 import javax.media.j3d.Transform3D;
 import javax.media.j3d.TransformGroup;
 import javax.media.j3d.View;
-import javax.vecmath.*;
+import javax.vecmath.Color3f;
+import javax.vecmath.Point3d;
+import javax.vecmath.Point3f;
+import javax.vecmath.Quat4f;
+import javax.vecmath.Vector3d;
+import javax.vecmath.Vector3f;
+import javax.vecmath.Vector4f;
 
 /**
  * Utility class for 3D module
@@ -156,6 +162,11 @@ public final class J3DUtils
         cache3DLightDirs.setString(c);
         setDirections(null);
     }
+    /**
+	 * Method to return the first light direction, by default.
+	 * @return the company name to use in schematic frames, by default.
+	 */
+	public static String getFactory3DLightDirs() { return cache3DLightDirs.getStringFactoryValue(); }
 
     /**
 	 * Method to get the color of the axes on the 3D display.
@@ -183,7 +194,7 @@ public final class J3DUtils
     }
 
     /**
-     * Method to get maximum number of nodes to consider a scene graph bi
+     * Method to get maximum number of nodes to consider a scene graph.
      * The default is "1000".
      * @return maximim number of nodes.
      */
@@ -193,6 +204,11 @@ public final class J3DUtils
      * @param num maximim number of nodes.
      */
     public static void set3DMaxNumNodes(int num) { cache3DMaxNumber.setInt(num); }
+    /**
+     * Method to get maximum number of nodes to consider a scene graph, by default.
+     * @return maximim number of nodes, by default.
+     */
+    public static int getFactory3DMaxNumNodes() { return cache3DMaxNumber.getIntFactoryValue(); }
 
     /**
      * Method to tell whether to draw 3D axes or not.
@@ -205,6 +221,11 @@ public final class J3DUtils
      * @param on true to draw 3D axes.
      */
     public static void set3DAxesOn(boolean on) { cache3DAxes.setBoolean(on); }
+    /**
+     * Method to tell whether to draw 3D axes or not, by default.
+     * @return true to draw 3D axes, by default.
+     */
+    public static boolean isFactory3DAxesOn() { return cache3DAxes.getBooleanFactoryValue(); }
 
     /**
 	 * Method to tell whether to draw transistor poly with a STI shape.
@@ -217,6 +238,11 @@ public final class J3DUtils
 	 * @param on true to draw a STI shape in transistor poly.
 	 */
 	public static void set3DSTIPolyTransistorOn(boolean on) { cache3DPolyShape.setBoolean(on); }
+    /**
+	 * Method to tell whether to draw transistor poly with a STI shape, by default.
+	 * @return true to draw a STI shape in transistor poly, by default.
+	 */
+	public static boolean isFactory3DSTIPolyTransistorOn() { return cache3DPolyShape.getBooleanFactoryValue(); }
 
     /**
 	 * Method to tell whether to draw bounding box for the cells.
@@ -229,6 +255,11 @@ public final class J3DUtils
 	 * @param on true to draw bounding box for the cells.
 	 */
 	public static void set3DCellBndOn(boolean on) { cache3DCellBnd.setBoolean(on); }
+    /**
+	 * Method to tell whether to draw bounding box for the cells, by default.
+	 * @return true to draw bounding box for the cells, by default.
+	 */
+	public static boolean isFactory3DCellBndOn() { return cache3DCellBnd.getBooleanFactoryValue(); }
 
 	/**
 	 * Method to tell whether to draw 3D views with perspective.
@@ -241,6 +272,11 @@ public final class J3DUtils
 	 * @param on true to draw 3D views with perspective.
 	 */
 	public static void set3DPerspective(boolean on) { cache3DPerspective.setBoolean(on); }
+	/**
+	 * Method to tell whether to draw 3D views with perspective, by default.
+	 * @return true to draw 3D views with perspective, by default.
+	 */
+	public static boolean isFactory3DPerspective() { return cache3DPerspective.getBooleanFactoryValue(); }
 
 	/**
 	 * Method to tell whether to use antialiasing in 3D view.
@@ -253,6 +289,11 @@ public final class J3DUtils
 	 * @param on true to draw 3D views with perspective.
 	 */
 	public static void set3DAntialiasing(boolean on) { cache3DAntialiasing.setBoolean(on); }
+	/**
+	 * Method to tell whether to use antialiasing in 3D view, by default.
+	 * @return true to draw 3D views with perspective, by default.
+	 */
+	public static boolean isFactory3DAntialiasing() { return cache3DAntialiasing.getBooleanFactoryValue(); }
 
     /**
 	 * Method to get original zoom factor for the view
@@ -266,6 +307,12 @@ public final class J3DUtils
 	 * @param value zoom factor
 	 */
 	public static void set3DOrigZoom(double value) { cache3DOrigZoom.setDouble(value); }
+
+	/**
+	 * Method to get original zoom factor for the view, by default.
+	 * @return original zoom factor, by default.
+	 */
+	public static double getFactory3DOrigZoom() { return cache3DOrigZoom.getDoubleFactoryValue(); }
 
     /**
 	 * Method to get default rotation for the view along X, Y and Z
@@ -281,6 +328,12 @@ public final class J3DUtils
 	public static void set3DRotation(String value) { cache3DRot.setString(value); }
 
     /**
+	 * Method to get factory default rotation for the view along X, Y and Z
+	 * @return factory default rotation along X, y and Z axes.
+	 */
+	public static String getFactory3DRotation() { return cache3DRot.getStringFactoryValue(); }
+
+    /**
 	 * Method to get current scale factor for Z values.
 	 * The default is 1.0
 	 * @return scale factor along Z.
@@ -292,6 +345,12 @@ public final class J3DUtils
 	 * @param value 3D scale factor to set.
 	 */
 	public static void set3DFactor(double value) { cache3DFactor.setDouble(value); }
+
+    /**
+	 * Method to get current scale factor for Z values, by default.
+	 * @return scale factor along Z, by default.
+	 */
+	public static double getFactory3DFactor() { return cache3DFactor.getDoubleFactoryValue(); }
 
     /**
 	 * Method to get current alpha speed for 3D demos
@@ -309,6 +368,12 @@ public final class J3DUtils
         cache3DAlpha.setInt(value);
         setAlpha(value);
     }
+
+	/**
+	 * Method to get current alpha speed for 3D demos, by default.
+	 * @return alpha speed, by default.
+	 */
+	public static int getFactory3DAlpha() { return cache3DAlpha.getIntFactoryValue(); }
 
     /**
      * Method to generate knots for interpolator from a file
@@ -1072,7 +1137,7 @@ public final class J3DUtils
 		}
 
 		if (shapes.size()>1) System.out.println("Error: case not handled");
-		return((Shape3D)shapes.get(0));
+		return shapes.get(0);
 	}
 
     /**
@@ -1083,15 +1148,15 @@ public final class J3DUtils
     public static void correctNormals(List<Point3d> topList, List<Point3d> bottomList)
     {
         // Determining normal direction
-        Point3d p0 = (Point3d)topList.get(0);
-        Point3d p1 = new Point3d((Point3d)topList.get(1));
+        Point3d p0 = topList.get(0);
+        Point3d p1 = new Point3d(topList.get(1));
         p1.sub(p0);
-        Point3d pn = new Point3d((Point3d)topList.get(topList.size()-1));
+        Point3d pn = new Point3d(topList.get(topList.size()-1));
         pn.sub(p0);
         Vector3d aux = new Vector3d();
         aux.cross(new Vector3d(p1), new Vector3d(pn));
         // the other layer
-        Point3d b0 = new Point3d((Point3d)bottomList.get(0));
+        Point3d b0 = new Point3d(bottomList.get(0));
         b0.sub(p0);
         // Now the dot product
         double dot = aux.dot(new Vector3d(b0));
@@ -1246,7 +1311,7 @@ public final class J3DUtils
      *******************************************************************************************************/
 
 
-    public static void get3DColorsInTab(HashMap<String,ColorPatternPanel.Info> transAndSpecialMap)
+    public static void get3DColorsInTab(Map<String,ColorPatternPanel.Info> transAndSpecialMap)
     {
         // 3D Stuff
 		transAndSpecialMap.put("Special: 3D CELL INSTANCES", new ColorPatternPanel.Info(get3DColorInstanceCellPref()));
@@ -1293,7 +1358,7 @@ public final class J3DUtils
             set3DColorAxes(colors3D);
             colorChanged = true;
         }
-        return (colorChanged); // using autoboxing
+        return Boolean.valueOf(colorChanged);
     }
 
     /*******************************************************************************************************
@@ -1328,6 +1393,5 @@ public final class J3DUtils
         // No-op since we always wait for off-screen rendering to complete
         }
     }
-
 
 }

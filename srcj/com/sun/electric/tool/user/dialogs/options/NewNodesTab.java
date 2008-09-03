@@ -25,7 +25,6 @@ package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
@@ -264,17 +263,27 @@ public class NewNodesTab extends PreferencePanel
 			}
 		}
 
-		User.setCheckCellDates(User.isFactoryCheckCellDates());
-		User.setAutoTechnologySwitch(User.isFactoryAutoTechnologySwitch());
-		User.setPlaceCellCenter(User.isFactoryPlaceCellCenter());
-		User.setReconstructArcsAndExportsToDeletedCells(User.isFactoryReconstructArcsAndExportsToDeletedCells());
-		User.setPromptForIndexWhenDescending(User.isFactoryPromptForIndexWhenDescending());
+		if (User.isFactoryCheckCellDates() != User.isCheckCellDates())
+			User.setCheckCellDates(User.isFactoryCheckCellDates());
+		if (User.isFactoryAutoTechnologySwitch() != User.isAutoTechnologySwitch())
+			User.setAutoTechnologySwitch(User.isFactoryAutoTechnologySwitch());
+		if (User.isFactoryPlaceCellCenter() != User.isPlaceCellCenter())
+			User.setPlaceCellCenter(User.isFactoryPlaceCellCenter());
+		if (User.isFactoryReconstructArcsAndExportsToDeletedCells() != User.isReconstructArcsAndExportsToDeletedCells())
+			User.setReconstructArcsAndExportsToDeletedCells(User.isFactoryReconstructArcsAndExportsToDeletedCells());
+		if (User.isFactoryPromptForIndexWhenDescending() != User.isPromptForIndexWhenDescending())
+			User.setPromptForIndexWhenDescending(User.isFactoryPromptForIndexWhenDescending());
 
-		User.setDisallowModificationComplexNodes(User.isFactoryDisallowModificationComplexNodes());
-		User.setDisallowModificationLockedPrims(User.isFactoryDisallowModificationLockedPrims());
-		User.setMoveAfterDuplicate(User.isFactoryMoveAfterDuplicate());
-		User.setDupCopiesExports(User.isFactoryDupCopiesExports());
-		User.setExtractCopiesExports(User.isFactoryExtractCopiesExports());
+		if (User.isFactoryDisallowModificationComplexNodes() != User.isDisallowModificationComplexNodes())
+			User.setDisallowModificationComplexNodes(User.isFactoryDisallowModificationComplexNodes());
+		if (User.isFactoryDisallowModificationLockedPrims() != User.isDisallowModificationLockedPrims())
+			User.setDisallowModificationLockedPrims(User.isFactoryDisallowModificationLockedPrims());
+		if (User.isFactoryMoveAfterDuplicate() != User.isMoveAfterDuplicate())
+			User.setMoveAfterDuplicate(User.isFactoryMoveAfterDuplicate());
+		if (User.isFactoryDupCopiesExports() != User.isDupCopiesExports())
+			User.setDupCopiesExports(User.isFactoryDupCopiesExports());
+		if (User.isFactoryExtractCopiesExports() != User.isExtractCopiesExports())
+			User.setExtractCopiesExports(User.isFactoryExtractCopiesExports());
 	}
 
 	/** This method is called from within the constructor to

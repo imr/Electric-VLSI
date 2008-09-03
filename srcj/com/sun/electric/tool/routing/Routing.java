@@ -27,7 +27,6 @@ import com.sun.electric.database.CellRevision;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.Snapshot;
-import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -291,14 +290,14 @@ public class Routing extends Listener
 			int total = nets.size();
 			Network [] netsToUnroute = new Network[total];
 			ArrayList<List<Connection>> netEnds = new ArrayList<List<Connection>>();
-			ArrayList<HashSet<ArcInst>> arcsToDelete = new ArrayList<HashSet<ArcInst>>();
-			ArrayList<HashSet<NodeInst>> nodesToDelete = new ArrayList<HashSet<NodeInst>>();
+			ArrayList<Set<ArcInst>> arcsToDelete = new ArrayList<Set<ArcInst>>();
+			ArrayList<Set<NodeInst>> nodesToDelete = new ArrayList<Set<NodeInst>>();
 			int i = 0;
 			for(Network net : nets)
 			{
 				netsToUnroute[i] = net;
-				HashSet<ArcInst> arcs = new HashSet<ArcInst>();
-				HashSet<NodeInst> nodes = new HashSet<NodeInst>();
+				Set<ArcInst> arcs = new HashSet<ArcInst>();
+				Set<NodeInst> nodes = new HashSet<NodeInst>();
 				arcsToDelete.add(arcs);
 				nodesToDelete.add(nodes);
 				netEnds.add(findNetEnds(net, arcs, nodes, netList, false));
@@ -325,7 +324,7 @@ public class Routing extends Listener
 			wnd.finishedHighlighting();
 		}
 
-		private static boolean unrouteNet(Network net, HashSet<ArcInst> arcsToDelete, HashSet<NodeInst> nodesToDelete,
+		private static boolean unrouteNet(Network net, Set<ArcInst> arcsToDelete, Set<NodeInst> nodesToDelete,
 			List<Connection> netEnds, Netlist netList, List<ArcInst> highlightThese)
 		{
 			// remove marked nodes and arcs
@@ -909,278 +908,6 @@ public class Routing extends Listener
 		return true;
 	}
 
-//	/**
-//	 * Method to copy the routing topology from one cell to another.
-//	 * @param fromCell the source of the routing topology.
-//	 * @param toCell the destination cell for the routing topology.
-//	 * @return true if successful.
-//	 */
-//	public static boolean copyTopologyOLD(Cell fromCell, Cell toCell)
-//	{
-//		System.out.println("Copying topology of " + fromCell + " to " + toCell);
-//		int wiresMade = 0;
-//
-//		// reset association pointers in the destination cell
-//		HashMap<NodeInst,NodeInst> nodesAssoc = new HashMap<NodeInst,NodeInst>();
-//
-//		// look for associations
-//		for(Iterator<NodeInst> it = toCell.getNodes(); it.hasNext(); )
-//		{
-//			NodeInst ni = it.next();
-//			if (ni.getProto() == Generic.tech.cellCenterNode || ni.getProto() == Generic.tech.essentialBoundsNode) continue;
-//			if (nodesAssoc.get(ni) != null) continue;
-//
-//			// ignore connecting nodes
-//			PrimitiveNode.Function fun = null;
-//			if (!ni.isCellInstance())
-//			{
-//				fun = ni.getFunction();
-//				if (fun == PrimitiveNode.Function.UNKNOWN || fun == PrimitiveNode.Function.PIN ||
-//					fun == PrimitiveNode.Function.CONTACT || fun == PrimitiveNode.Function.NODE)
-//				{
-//					if (ni.hasExports())
-//					{
-//						// an export on a simple node: find the equivalent
-//						for(Iterator<Export> eIt = ni.getExports(); eIt.hasNext(); )
-//						{
-//							Export e = eIt.next();
-//							Export fromE = fromCell.findExport(e.getName());
-//							if (fromE != null)
-//							{
-//								nodesAssoc.put(ni, fromE.getOriginalPort().getNodeInst());
-//								break;
-//							}
-//						}
-//					}
-//					continue;
-//				}
-//			}
-//
-//			// count the number of this type of node in the two cells
-//			List<NodeInst> fromList = new ArrayList<NodeInst>();
-//			for(Iterator<NodeInst> nIt = fromCell.getNodes(); nIt.hasNext(); )
-//			{
-//				NodeInst oNi = nIt.next();
-//				if (oNi.isCellInstance() != ni.isCellInstance()) continue;
-//				if (ni.isCellInstance())
-//				{
-//					if (((Cell)oNi.getProto()).getCellGroup() == ((Cell)ni.getProto()).getCellGroup()) fromList.add(oNi);
-//				} else
-//				{
-//					PrimitiveNode.Function oFun = oNi.getFunction();
-//					if (oFun == fun) fromList.add(oNi);
-//				}
-//			}
-//			List<NodeInst> toList = new ArrayList<NodeInst>();
-//			for(Iterator<NodeInst> nIt = toCell.getNodes(); nIt.hasNext(); )
-//			{
-//				NodeInst oNi = nIt.next();
-//				if (oNi.isCellInstance() != ni.isCellInstance()) continue;
-//				if (ni.isCellInstance())
-//				{
-//					if (oNi.getProto() == ni.getProto()) toList.add(oNi);
-//				} else
-//				{
-//					PrimitiveNode.Function oFun = oNi.getFunction();
-//					if (oFun == fun) toList.add(oNi);
-//				}
-//			}
-//
-//			// problem if the numbers don't match
-//			if (toList.size() != fromList.size())
-//			{
-//				if (fromList.size() == 0) continue;
-//				System.out.println("Warning: " + fromCell + " has " + fromList.size() + " of " + ni.getProto() +
-//					" but " + toCell + " has " + toList.size());
-//				return false;
-//			}
-//
-//			// look for name matches
-//			List<NodeInst> copyList = new ArrayList<NodeInst>(fromList);
-//			for(NodeInst fNi : copyList)
-//			{
-//				String fName = fNi.getName();
-//				NodeInst matchedNode = null;
-//				for(NodeInst tNi : toList)
-//				{
-//					String tName = tNi.getName();
-//					if (fName.equals(tName)) { matchedNode = tNi;   break; }
-//				}
-//				if (matchedNode != null)
-//				{
-//					// name match found: set the association
-//					nodesAssoc.put(matchedNode, fNi);
-//					fromList.remove(fNi);
-//					toList.remove(matchedNode);
-//				}
-//			}
-//
-//			if (toList.size() != fromList.size())
-//			{
-//				System.out.println("Error: after name match, there are " + fromList.size() +
-//					" instances of " + ni.getProto() + " in source and " + toList.size() + " in destination");
-//				return false;
-//			}
-//
-//			// sort the rest by position and force matches based on that
-//			if (fromList.size() == 0) continue;
-//			Collections.sort(fromList, new InstancesSpatially());
-//			Collections.sort(toList, new InstancesSpatially());
-//			for(int i=0; i<Math.min(toList.size(), fromList.size()); i++)
-//			{
-//				NodeInst tNi = toList.get(i);
-//				NodeInst fNi = fromList.get(i);
-//				nodesAssoc.put(tNi, fNi);
-//			}
-//		}
-//
-//		// association made, now copy the topology
-//		Netlist fNl = fromCell.acquireUserNetlist();
-//		Netlist tNl = toCell.acquireUserNetlist();
-//		if (fNl == null || tNl == null)
-//		{
-//			System.out.println("Sorry, a deadlock aborted topology copying (network information unavailable).  Please try again");
-//			return false;
-//		}
-//		for(Iterator<NodeInst> tIt = toCell.getNodes(); tIt.hasNext(); )
-//		{
-//			NodeInst tNi = tIt.next();
-//			NodeInst fNi = nodesAssoc.get(tNi);
-//			if (fNi == null) continue;
-//
-//			// look for another node that may match
-//			for(Iterator<NodeInst> oTIt = toCell.getNodes(); oTIt.hasNext(); )
-//			{
-//				NodeInst oTNi = oTIt.next();
-//				if (tNi == oTNi) continue;
-//				NodeInst oFNi = nodesAssoc.get(oTNi);
-//				if (oFNi == null) continue;
-//
-//				// see if they share a connection in the original
-//				PortInst fPi = null;
-//				PortInst oFPi = null;
-//				for(Iterator<PortInst> fPIt = fNi.getPortInsts(); fPIt.hasNext(); )
-//				{
-//					PortInst pi = fPIt.next();
-//					Network net = fNl.getNetwork(pi);
-//					for(Iterator<PortInst> oFPIt = oFNi.getPortInsts(); oFPIt.hasNext(); )
-//					{
-//						PortInst oPi = oFPIt.next();
-//						Network oNet = fNl.getNetwork(oPi);
-//						if (net == oNet) { fPi = pi;   oFPi = oPi;   break; }
-//					}
-//					if (fPi != null) break;
-//				}
-//				if (fPi == null) continue;
-//
-//				// this connection should be repeated in the other cell
-//				PortProto tPp = tNi.getProto().findPortProto(fPi.getPortProto().getName());
-//				PortInst tPi = null;
-//				if (tPp != null) tPi = tNi.findPortInstFromProto(tPp);
-//				if (tPi == null) continue;
-//
-//				PortProto oTPp = oTNi.getProto().findPortProto(oFPi.getPortProto().getName());
-//				PortInst oTPi = null;
-//				if (oTPp != null) oTPi = oTNi.findPortInstFromProto(oTPp);
-//				if (oTPi == null) continue;
-//
-//				// make the connection from "tni", port "tpp" to "otni" port "otpp"
-//				int result = makeUnroutedConnection(tPi, oTPi, toCell, tNl);
-//				if (result < 0) return false;
-//				wiresMade += result;
-//			}
-//		}
-//
-//		// add in any exported but unconnected pins
-//		for(Iterator<NodeInst> tIt = toCell.getNodes(); tIt.hasNext(); )
-//		{
-//			NodeInst tNi = tIt.next();
-//			if (nodesAssoc.get(tNi) != null) continue;
-//			if (tNi.isCellInstance()) continue;
-//			if (!tNi.hasExports()) continue;
-//			PrimitiveNode.Function fun = tNi.getFunction();
-//			if (fun != PrimitiveNode.Function.PIN && fun != PrimitiveNode.Function.CONTACT) continue;
-//
-//			// find that export in the source cell
-//			String matchName = (tNi.getExports().next()).getName();
-//			Network net = null;
-//			for(Iterator<PortProto> fIt = fromCell.getPorts(); fIt.hasNext(); )
-//			{
-//				Export fPp = (Export)fIt.next();
-//				int width = fNl.getBusWidth(fPp);
-//				for(int i=0; i<width; i++)
-//				{
-//					Network aNet = fNl.getNetwork(fPp, i);
-//					if (aNet == null) continue;
-//					if (aNet.toString().equalsIgnoreCase(matchName)) { net = aNet;   break; }
-//				}
-//				if (net != null) break;
-//			}
-//			if (net == null) continue;
-//
-//			// check to see if this is connected elsewhere in the "to" cell
-//			PortInst oFPi = null;
-//			NodeInst oTNi = null;
-//			for(Iterator<NodeInst> oTIt = toCell.getNodes(); oTIt.hasNext(); )
-//			{
-//				NodeInst ni = oTIt.next();
-//				NodeInst oFNi = nodesAssoc.get(ni);
-//				if (oFNi == null) continue;
-//
-//				// see if they share a connection in the original
-//				for(Iterator<PortInst> oFPIt = oFNi.getPortInsts(); oFPIt.hasNext(); )
-//				{
-//					PortInst pi = oFPIt.next();
-//					Network oNet = fNl.getNetwork(pi);
-//					if (oNet == null) continue;
-//					if (oNet == net) { oFPi = pi;   break; }
-//				}
-//				if (oFPi != null) { oTNi = ni;   break; }
-//			}
-//			if (oTNi != null)
-//			{
-//				// find the proper port in this cell
-//				PortProto oTPp = oTNi.getProto().findPortProto(oFPi.getPortProto().getName());
-//				PortInst oPi = oTNi.findPortInstFromProto(oTPp);
-//				if (oPi == null) continue;
-//
-//				// make the connection from "tni", port "tpp" to "otni" port "otpp"
-//				int result = makeUnroutedConnection(tNi.getPortInst(0), oPi, toCell, tNl);
-//				if (result < 0) return false;
-//				wiresMade += result;
-//			}
-//		}
-//		if (wiresMade == 0) System.out.println("No topology was copied"); else
-//			System.out.println("Created " + wiresMade + " arcs to copy the topology");
-//		return true;
-//	}
-//
-//	/**
-//	 * Helper method to run an unrouted wire between node "fni", port "fpp" and node "tni", port
-//	 * "tpp".  If the connection is already there, the routine doesn't make another.
-//	 * @return number of arcs created (-1 on error).
-//	 */
-//	private static int makeUnroutedConnection(PortInst fPi, PortInst tPi, Cell cell, Netlist nl)
-//	{
-//		// see if they are already connected
-//		if (fPi != null && tPi != null)
-//		{
-//			Network fNet = nl.getNetwork(fPi);
-//			Network tNet = nl.getNetwork(tPi);
-//			if (fNet == tNet) return 0;
-//		}
-//
-//		// make the connection from "tni", port "tpp" to "otni" port "otpp"
-//		Poly fPoly = fPi.getPoly();
-//		Poly tPoly = tPi.getPoly();
-//		Point2D fPt = new Point2D.Double(fPoly.getCenterX(), fPoly.getCenterY());
-//		Point2D tPt = new Point2D.Double(tPoly.getCenterX(), tPoly.getCenterY());
-//		double wid = Generic.tech.unrouted_arc.getDefaultLambdaFullWidth();
-//		ArcInst ai = ArcInst.makeInstance(Generic.tech.unrouted_arc, wid, fPi, tPi, fPt, tPt, null);
-//		if (ai == null) return -1;
-//		return 1;
-//	}
-
 	private static class PortsByName implements Comparator<PortInst>
 	{
 		public int compare(PortInst p1, PortInst p2)
@@ -1247,6 +974,11 @@ public class Routing extends Listener
 	 * @param arcName the name of the arc that should be used as a default by the stitching routers.
 	 */
 	public static void setPreferredRoutingArc(String arcName) { cachePreferredRoutingArc.setString(arcName); }
+	/**
+	 * Method to return the name of the arc that should be used as a factory default by the stitching routers.
+	 * @return the name of the arc that should be used as a factory default by the stitching routers.
+	 */
+	public static String getFactoryPreferredRoutingArc() { return cachePreferredRoutingArc.getStringFactoryValue(); }
 
 	/****************************** AUTO-STITCHING OPTIONS ******************************/
 
@@ -1262,6 +994,11 @@ public class Routing extends Listener
 	 * @param on true if Auto-stitching should be done.
 	 */
 	public static void setAutoStitchOn(boolean on) { cacheAutoStitchOn.setBoolean(on); }
+	/**
+	 * Method to tell whether Auto-stitching should be done, by default.
+	 * @return true if Auto-stitching should be done, by default.
+	 */
+	public static boolean isFactoryAutoStitchOn() { return cacheAutoStitchOn.getBooleanFactoryValue(); }
 
 	private static Pref cacheAutoStitchCreateExports = Pref.makeBooleanPref("AutoStitchCreateExports", Routing.tool.prefs, false);
 	/**
@@ -1275,6 +1012,11 @@ public class Routing extends Listener
 	 * @param on true if Auto-stitching should create exports if necessary.
 	 */
 	public static void setAutoStitchCreateExports(boolean on) { cacheAutoStitchCreateExports.setBoolean(on); }
+	/**
+	 * Method to tell whether Auto-stitching should create exports if necessary, by default.
+	 * @return true if Auto-stitching should create exports if necessary, by default.
+	 */
+	public static boolean isFactoryAutoStitchCreateExports() { return cacheAutoStitchCreateExports.getBooleanFactoryValue(); }
 
 	/****************************** MIMIC-STITCHING OPTIONS ******************************/
 
@@ -1290,6 +1032,11 @@ public class Routing extends Listener
 	 * @param on true if Mimic-stitching should be done.
 	 */
 	public static void setMimicStitchOn(boolean on) { cacheMimicStitchOn.setBoolean(on); }
+	/**
+	 * Method to tell whether Mimic-stitching should be done, by default.
+	 * @return true if Mimic-stitching should be done, by default.
+	 */
+	public static boolean isFactoryMimicStitchOn() { return cacheMimicStitchOn.getBooleanFactoryValue(); }
 
 	private static Pref cacheMimicStitchInteractive = Pref.makeBooleanPref("MimicStitchInteractive", Routing.tool.prefs, false);
 	/**
@@ -1305,6 +1052,12 @@ public class Routing extends Listener
 	 * @param on true if Mimic-stitching runs interactively.
 	 */
 	public static void setMimicStitchInteractive(boolean on) { cacheMimicStitchInteractive.setBoolean(on); }
+	/**
+	 * Method to tell whether Mimic-stitching runs interactively, by default.
+	 * During interactive Mimic stitching, each new set of arcs is shown to the user for confirmation.
+	 * @return true if Mimic-stitching runs interactively, by default.
+	 */
+	public static boolean isFactoryMimicStitchInteractive() { return cacheMimicStitchInteractive.getBooleanFactoryValue(); }
 
 	private static Pref cacheMimicStitchPinsKept = Pref.makeBooleanPref("MimicStitchPinsKept", Routing.tool.prefs, false);
 	/**
@@ -1318,6 +1071,11 @@ public class Routing extends Listener
 	 * @param on true if Mimic-stitching runs interactively.
 	 */
 	public static void setMimicStitchPinsKept(boolean on) { cacheMimicStitchPinsKept.setBoolean(on); }
+	/**
+	 * Method to tell whether Mimic-stitching keeps pins even if it has no arc connections, by default.
+	 * @return true if Mimic-stitching runs interactively, by default.
+	 */
+	public static boolean isFactoryMimicStitchPinsKept() { return cacheMimicStitchPinsKept.getBooleanFactoryValue(); }
 
 	private static Pref cacheMimicStitchMatchPorts = Pref.makeBooleanPref("MimicStitchMatchPorts", Routing.tool.prefs, false);
 	/**
@@ -1331,6 +1089,11 @@ public class Routing extends Listener
 	 * @param on true if Mimic-stitching only works between matching ports.
 	 */
 	public static void setMimicStitchMatchPorts(boolean on) { cacheMimicStitchMatchPorts.setBoolean(on); }
+	/**
+	 * Method to tell whether Mimic-stitching only works between matching ports, by default.
+	 * @return true if Mimic-stitching only works between matching ports, by default.
+	 */
+	public static boolean isFactoryMimicStitchMatchPorts() { return cacheMimicStitchMatchPorts.getBooleanFactoryValue(); }
 
 	private static Pref cacheMimicStitchMatchPortWidth = Pref.makeBooleanPref("MimicStitchMatchPortWidth", Routing.tool.prefs, true);
 	/**
@@ -1346,6 +1109,12 @@ public class Routing extends Listener
 	 * @param on true if Mimic-stitching only works between ports of the same width.
 	 */
 	public static void setMimicStitchMatchPortWidth(boolean on) { cacheMimicStitchMatchPortWidth.setBoolean(on); }
+	/**
+	 * Method to tell whether Mimic-stitching only works between ports of the same width, by default.
+	 * This applies only in the case of busses.
+	 * @return true if Mimic-stitching only works between matching ports, by default.
+	 */
+	public static boolean isFactoryMimicStitchMatchPortWidth() { return cacheMimicStitchMatchPortWidth.getBooleanFactoryValue(); }
 
 	private static Pref cacheMimicStitchMatchNumArcs = Pref.makeBooleanPref("MimicStitchMatchNumArcs", Routing.tool.prefs, false);
 	/**
@@ -1359,6 +1128,11 @@ public class Routing extends Listener
 	 * @param on true if Mimic-stitching only works when the number of existing arcs matches.
 	 */
 	public static void setMimicStitchMatchNumArcs(boolean on) { cacheMimicStitchMatchNumArcs.setBoolean(on); }
+	/**
+	 * Method to tell whether Mimic-stitching only works when the number of existing arcs matches, by default.
+	 * @return true if Mimic-stitching only works when the number of existing arcs matches, by default.
+	 */
+	public static boolean isFactoryMimicStitchMatchNumArcs() { return cacheMimicStitchMatchNumArcs.getBooleanFactoryValue(); }
 
 	private static Pref cacheMimicStitchMatchNodeSize = Pref.makeBooleanPref("MimicStitchMatchNodeSize", Routing.tool.prefs, false);
 	/**
@@ -1372,6 +1146,11 @@ public class Routing extends Listener
 	 * @param on true if Mimic-stitching only works when the node sizes are the same.
 	 */
 	public static void setMimicStitchMatchNodeSize(boolean on) { cacheMimicStitchMatchNodeSize.setBoolean(on); }
+	/**
+	 * Method to tell whether Mimic-stitching only works when the node sizes are the same, by default.
+	 * @return true if Mimic-stitching only works when the node sizes are the same, by default.
+	 */
+	public static boolean isFactoryMimicStitchMatchNodeSize() { return cacheMimicStitchMatchNodeSize.getBooleanFactoryValue(); }
 
 	private static Pref cacheMimicStitchMatchNodeType = Pref.makeBooleanPref("MimicStitchMatchNodeType", Routing.tool.prefs, true);
 	/**
@@ -1385,6 +1164,11 @@ public class Routing extends Listener
 	 * @param on true if Mimic-stitching only works when the nodes have the same type.
 	 */
 	public static void setMimicStitchMatchNodeType(boolean on) { cacheMimicStitchMatchNodeType.setBoolean(on); }
+	/**
+	 * Method to tell whether Mimic-stitching only works when the nodes have the same type, by default.
+	 * @return true if Mimic-stitching only works when the nodes have the same type, by default.
+	 */
+	public static boolean isFactoryMimicStitchMatchNodeType() { return cacheMimicStitchMatchNodeType.getBooleanFactoryValue(); }
 
 	private static Pref cacheMimicStitchNoOtherArcsSameDir = Pref.makeBooleanPref("MimicStitchNoOtherArcsSameDir", Routing.tool.prefs, true);
 	/**
@@ -1398,6 +1182,11 @@ public class Routing extends Listener
 	 * @param on true if Mimic-stitching only works when there are no other arcs running in the same direction.
 	 */
 	public static void setMimicStitchNoOtherArcsSameDir(boolean on) { cacheMimicStitchNoOtherArcsSameDir.setBoolean(on); }
+	/**
+	 * Method to tell whether Mimic-stitching only works when there are no other arcs running in the same direction, by default.
+	 * @return true if Mimic-stitching only works when there are no other arcs running in the same direction, by default.
+	 */
+	public static boolean isFactoryMimicStitchNoOtherArcsSameDir() { return cacheMimicStitchNoOtherArcsSameDir.getBooleanFactoryValue(); }
 
 	private static Pref cacheMimicStitchOnlyNewTopology = Pref.makeBooleanPref("MimicStitchOnlyNewTopology", Routing.tool.prefs, true);
 	/**
@@ -1413,13 +1202,19 @@ public class Routing extends Listener
 	 * @param on true if Mimic-stitching creates arcs only where not already connected.
 	 */
 	public static void setMimicStitchOnlyNewTopology(boolean on) { cacheMimicStitchOnlyNewTopology.setBoolean(on); }
+	/**
+	 * Method to tell whether Mimic-stitching creates arcs only where not already connected, by default.
+	 * If a connection is already made elsewhere, the new one is not made.
+	 * @return true if Mimic-stitching creates arcs only where not already connected, by default.
+	 */
+	public static boolean isFactoryMimicStitchOnlyNewTopology() { return cacheMimicStitchOnlyNewTopology.getBooleanFactoryValue(); }
 
 	/****************************** SEA-OF-GATES ROUTER OPTIONS ******************************/
 
-	/** Pref map for arc preventino by sea-of-gates router. */	private static HashMap<ArcProto,Pref> defaultSOGPreventPrefs = new HashMap<ArcProto,Pref>();
-	/** Pref map for arc favoring by sea-of-gates router. */	private static HashMap<ArcProto,Pref> defaultSOGFavorPrefs = new HashMap<ArcProto,Pref>();
+	/** Pref map for arc preventino by sea-of-gates router. */	private static Map<ArcProto,Pref> defaultSOGPreventPrefs = new HashMap<ArcProto,Pref>();
+	/** Pref map for arc favoring by sea-of-gates router. */	private static Map<ArcProto,Pref> defaultSOGFavorPrefs = new HashMap<ArcProto,Pref>();
 
-	private static Pref getArcProtoBitPref(ArcProto ap, String what, HashMap<ArcProto,Pref> map)
+	private static Pref getArcProtoBitPref(ArcProto ap, String what, Map<ArcProto,Pref> map)
 	{
 		Pref pref = map.get(ap);
 		if (pref == null)
@@ -1450,10 +1245,22 @@ public class Routing extends Listener
 	public static void setSeaOfGatesFavor(ArcProto ap, boolean favor) { getArcProtoBitPref(ap, "SeaOfGatesFavor", defaultSOGFavorPrefs).setBoolean(favor); }
 
 	/**
+	 * Method to tell if the "sea-of-gates" router can use this ArcProto, by default.
+	 * @return true if sea-of-gates routing should avoid this ArcProto, by default.
+	 */
+	public static boolean isFactorySeaOfGatesPrevent(ArcProto ap) { return getArcProtoBitPref(ap, "SeaOfGatesPrevent", defaultSOGPreventPrefs).getBooleanFactoryValue(); }
+
+	/**
 	 * Method to tell if the "sea-of-gates" router should favor this ArcProto.
 	 * @return true if sea-of-gates routing should favor this ArcProto.
 	 */
 	public static boolean isSeaOfGatesFavor(ArcProto ap) { return getArcProtoBitPref(ap, "SeaOfGatesFavor", defaultSOGFavorPrefs).getBoolean(); }
+
+	/**
+	 * Method to tell if the "sea-of-gates" router should favor this ArcProto, by default.
+	 * @return true if sea-of-gates routing should favor this ArcProto, by default.
+	 */
+	public static boolean isFactorySeaOfGatesFavor(ArcProto ap) { return getArcProtoBitPref(ap, "SeaOfGatesFavor", defaultSOGFavorPrefs).getBooleanFactoryValue(); }
 
 	private static Pref cacheSOGMaxWidth = Pref.makeDoublePref("SeaOfGatesMaxWidth", Routing.getRoutingTool().prefs, 10);
 	/**
@@ -1470,6 +1277,13 @@ public class Routing extends Listener
 	 * @param w the maximum arc width in sea-of-gates routing.
 	 */
 	public static void setSeaOfGatesMaxWidth(double w) { cacheSOGMaxWidth.setDouble(w); }
+	/**
+	 * Method to get the "sea-of-gates" maximum arc width, by default.
+	 * Since the SOG router places arcs that are as wide as the widest arc on the net,
+	 * this may be too large (especially near pads).  This value limits the width.
+	 * @return the maximum arc width in sea-of-gates routing, by default.
+	 */
+	public static double getFactorySeaOfGatesMaxWidth() { return cacheSOGMaxWidth.getDoubleFactoryValue(); }
 
 	private static Pref cacheSOGComplexityLimit = Pref.makeIntPref("SeaOfGatesComplexityLimit", Routing.getRoutingTool().prefs, 200000);
 	/**
@@ -1484,6 +1298,12 @@ public class Routing extends Listener
 	 * @param c the "sea-of-gates" complexity limit.
 	 */
 	public static void setSeaOfGatesComplexityLimit(int c) { cacheSOGComplexityLimit.setInt(c); }
+	/**
+	 * Method to get the "sea-of-gates" complexity limit, by default.
+	 * This is the maximum number of steps allowed when searching for a routing path.
+	 * @return the "sea-of-gates" complexity limit, by default.
+	 */
+	public static int getFactorySeaOfGatesComplexityLimit() { return cacheSOGComplexityLimit.getIntFactoryValue(); }
 
 	private static Pref cacheSOGUseParallelFromToRoutes = Pref.makeBooleanPref("SeaOfGatesUseParallelFromToRoutes", Routing.getRoutingTool().prefs, true);
 	/**
@@ -1502,6 +1322,14 @@ public class Routing extends Listener
 	 * @param p true if the "sea-of-gates" router does from/to analysis in parallel.
 	 */
 	public static void setSeaOfGatesUseParallelFromToRoutes(boolean p) { cacheSOGUseParallelFromToRoutes.setBoolean(p); }
+	/**
+	 * Method to tell whether the "sea-of-gates" router does from/to analysis in parallel, by default.
+	 * Normally, a path is found by looking both from one end to the other, and then from the other end back to the first.
+	 * The best result of these two searches is used as the route.
+	 * When true, both paths are run in parallel on separate processors if there are multiple processors.
+	 * @return true if the "sea-of-gates" router does from/to analysis in parallel, by default.
+	 */
+	public static boolean isFactorySeaOfGatesUseParallelFromToRoutes() { return cacheSOGUseParallelFromToRoutes.getBooleanFactoryValue(); }
 
 	private static Pref cacheSOGUseParallelRoutes = Pref.makeBooleanPref("SeaOfGatesUseParallelRoutes", Routing.getRoutingTool().prefs, false);
 	/**
@@ -1516,6 +1344,12 @@ public class Routing extends Listener
 	 * @param p true if the "sea-of-gates" router finds routes in parallel.
 	 */
 	public static void setSeaOfGatesUseParallelRoutes(boolean p) { cacheSOGUseParallelRoutes.setBoolean(p); }
+	/**
+	 * Method to tell whether the "sea-of-gates" router finds routes in parallel, by default.
+	 * When true, multiple routes are searched using parallel threads, if there are multiple processors.
+	 * @return true if the "sea-of-gates" router finds routes in parallel, by default.
+	 */
+	public static boolean isFactorySeaOfGatesUseParallelRoutes() { return cacheSOGUseParallelRoutes.getBooleanFactoryValue(); }
 
 	/****************************** SUN ROUTER OPTIONS ******************************/
 
@@ -1672,5 +1506,4 @@ public class Routing extends Listener
 	private static Pref cacheTakenPathSearchCost = Pref.makeIntPref("SunRouterTakenPathSearchCost", Routing.getRoutingTool().prefs, 10000);
 	public static int getSunRouterTakenPathSearchCost() { return cacheTakenPathSearchCost.getInt(); }
 	public static void setSunRouterTakenPathSearchCost(int r) { cacheTakenPathSearchCost.setInt(r); }
-
 }

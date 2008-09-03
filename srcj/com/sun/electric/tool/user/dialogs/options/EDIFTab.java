@@ -112,11 +112,16 @@ public class EDIFTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		IOTool.setEDIFUseSchematicView(IOTool.isFactoryEDIFUseSchematicView());
-		IOTool.setEDIFInputScale(IOTool.getFactoryEDIFInputScale());
-		IOTool.setEDIFCadenceCompatibility(IOTool.isFactoryEDIFCadenceCompatibility());
-		IOTool.setEDIFConfigurationFile(IOTool.getFactoryEDIFConfigurationFile());
-		IOTool.setEDIFAcceptedParameters(IOTool.getFactoryEDIFAcceptedParameters());
+		if (IOTool.isFactoryEDIFUseSchematicView() != IOTool.isEDIFUseSchematicView())
+			IOTool.setEDIFUseSchematicView(IOTool.isFactoryEDIFUseSchematicView());
+		if (IOTool.getFactoryEDIFInputScale() != IOTool.getEDIFInputScale())
+			IOTool.setEDIFInputScale(IOTool.getFactoryEDIFInputScale());
+		if (IOTool.isFactoryEDIFCadenceCompatibility() != IOTool.isEDIFCadenceCompatibility())
+			IOTool.setEDIFCadenceCompatibility(IOTool.isFactoryEDIFCadenceCompatibility());
+		if (!IOTool.getFactoryEDIFConfigurationFile().equals(IOTool.getEDIFConfigurationFile()))
+			IOTool.setEDIFConfigurationFile(IOTool.getFactoryEDIFConfigurationFile());
+		if (!IOTool.getFactoryEDIFAcceptedParameters().equals(IOTool.getEDIFAcceptedParameters()))
+			IOTool.setEDIFAcceptedParameters(IOTool.getFactoryEDIFAcceptedParameters());
 	}
 
 	/** This method is called from within the constructor to

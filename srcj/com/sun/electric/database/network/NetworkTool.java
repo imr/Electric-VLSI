@@ -375,6 +375,12 @@ public class NetworkTool extends Tool
 	 */
 	public static void setBusAscending(boolean a) { cacheBusAscending.setBoolean(a); }
 	/**
+	 * Method to tell whether unnamed busses should be numbered ascending, by default.
+	 * The alternative is descending.
+	 * @return true if unnamed busses should be numbered ascending, by default.
+	 */
+	public static boolean isFactoryBusAscending() { return cacheBusAscending.getBooleanFactoryValue(); }
+	/**
 	 * Method to tell whether unnamed busses should be numbered ascending in Netlist Engine.
 	 * The alternative is descending.
      * The method always returns false now.

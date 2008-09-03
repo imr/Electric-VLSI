@@ -24,8 +24,8 @@
 package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.tool.compaction.Compaction;
-import javax.swing.JPanel;
 
+import javax.swing.JPanel;
 
 /**
  * Class to handle the "Compaction" tab of the Preferences dialog.
@@ -70,7 +70,8 @@ public class CompactionTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		Compaction.setAllowsSpreading(Compaction.getFactoryAllowsSpreading());
+		if (Compaction.isFactoryAllowsSpreading() != Compaction.isAllowsSpreading())
+			Compaction.setAllowsSpreading(Compaction.isFactoryAllowsSpreading());
 	}
 
 	/** This method is called from within the constructor to

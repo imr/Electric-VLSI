@@ -78,7 +78,8 @@ public class LibraryTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		IOTool.setBackupRedundancy(IOTool.getFactoryBackupRedundancy());
+		if (IOTool.getFactoryBackupRedundancy() != IOTool.getBackupRedundancy())
+			IOTool.setBackupRedundancy(IOTool.getFactoryBackupRedundancy());
 	}
 
 	/** This method is called from within the constructor to

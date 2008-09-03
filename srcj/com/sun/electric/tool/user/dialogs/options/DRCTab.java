@@ -171,18 +171,29 @@ public class DRCTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		DRC.setIncrementalDRCOn(DRC.isFactoryIncrementalDRCOn());
-		DRC.setInteractiveDRCDragOn(DRC.isFactoryInteractiveDRCDragOn());
-		DRC.setErrorType(DRC.getFactoryErrorType());
-		DRC.setErrorLoggingType(DRC.getFactoryErrorLoggingType());
-		DRC.setMultiThreaded(DRC.isFactoryMultiThreaded());
+		if (DRC.isFactoryIncrementalDRCOn() != DRC.isIncrementalDRCOn())
+			DRC.setIncrementalDRCOn(DRC.isFactoryIncrementalDRCOn());
+		if (DRC.isFactoryInteractiveDRCDragOn() != DRC.isInteractiveDRCDragOn())
+			DRC.setInteractiveDRCDragOn(DRC.isFactoryInteractiveDRCDragOn());
+		if (!DRC.getFactoryErrorType().equals(DRC.getErrorType()))
+			DRC.setErrorType(DRC.getFactoryErrorType());
+		if (!DRC.getFactoryErrorLoggingType().equals(DRC.getErrorLoggingType()))
+			DRC.setErrorLoggingType(DRC.getFactoryErrorLoggingType());
+		if (DRC.isFactoryMultiThreaded() != DRC.isMultiThreaded())
+			DRC.setMultiThreaded(DRC.isFactoryMultiThreaded());
 
-		DRC.setDatesStoredInMemory(DRC.isFactoryDatesStoredInMemory());
-		DRC.setIgnoreCenterCuts(DRC.isFactoryIgnoreCenterCuts());
-		DRC.setIgnoreAreaChecking(DRC.isFactoryIgnoreAreaChecking());
-		DRC.setIgnoreExtensionRuleChecking(DRC.isFactoryIgnoreExtensionRuleChecking());
-		DRC.setInteractiveLogging(DRC.isFactoryInteractiveLoggingOn());
-		DRC.setMinAreaAlgoOption(DRC.getFactoryMinAreaAlgoOption());
+		if (DRC.isFactoryDatesStoredInMemory() != DRC.isDatesStoredInMemory())
+			DRC.setDatesStoredInMemory(DRC.isFactoryDatesStoredInMemory());
+		if (DRC.isFactoryIgnoreCenterCuts() != DRC.isIgnoreCenterCuts())
+			DRC.setIgnoreCenterCuts(DRC.isFactoryIgnoreCenterCuts());
+		if (DRC.isFactoryIgnoreAreaChecking() != DRC.isIgnoreAreaChecking())
+			DRC.setIgnoreAreaChecking(DRC.isFactoryIgnoreAreaChecking());
+		if (DRC.isFactoryIgnoreExtensionRuleChecking() != DRC.isIgnoreExtensionRuleChecking())
+			DRC.setIgnoreExtensionRuleChecking(DRC.isFactoryIgnoreExtensionRuleChecking());
+		if (DRC.isFactoryInteractiveLoggingOn() != DRC.isInteractiveLoggingOn())
+			DRC.setInteractiveLogging(DRC.isFactoryInteractiveLoggingOn());
+		if (!DRC.getFactoryMinAreaAlgoOption().equals(DRC.getMinAreaAlgoOption()))
+			DRC.setMinAreaAlgoOption(DRC.getFactoryMinAreaAlgoOption());
 	}
 
 	/** This method is called from within the constructor to

@@ -117,6 +117,11 @@ public class SilComp extends Tool
 	 * @param rows the new number of rows of cells to make.
 	 */
 	public static void setNumberOfRows(int rows) { cacheNumberOfRows.setInt(rows); }
+	/**
+	 * Method to return the number of rows of cells to make, by default.
+	 * @return the number of rows of cells to make, by default.
+	 */
+	public static int getFactoryNumberOfRows() { return cacheNumberOfRows.getIntFactoryValue(); }
 
 
 	private static Pref cacheHorizRoutingArc = Pref.makeStringPref("HorizRoutingArc", tool.prefs, "Metal-1");
@@ -131,6 +136,11 @@ public class SilComp extends Tool
 	 * @param arcName name of new horizontal routing arc.
 	 */
 	public static void setHorizRoutingArc(String arcName) { cacheHorizRoutingArc.setString(arcName); }
+	/**
+	 * Method to return the horizontal routing arc, by default.
+	 * @return the name of the horizontal routing arc, by default.
+	 */
+	public static String getFactoryHorizRoutingArc() { return cacheHorizRoutingArc.getStringFactoryValue(); }
 
 	private static Pref cacheHorizRoutingWidth = Pref.makeDoublePref("HorizArcWidth", tool.prefs, 4);
 	/**
@@ -144,6 +154,11 @@ public class SilComp extends Tool
 	 * @param wid the new width of the horizontal routing arc.
 	 */
 	public static void setHorizArcWidth(double wid) { cacheHorizRoutingWidth.setDouble(wid); }
+	/**
+	 * Method to return the width of the horizontal routing arc, by default.
+	 * @return the width of the horizontal routing arc, by default.
+	 */
+	public static double getFactoryHorizArcWidth() { return cacheHorizRoutingWidth.getDoubleFactoryValue(); }
 
 
 	private static Pref cacheVertRoutingArc = Pref.makeStringPref("VertRoutingArc", tool.prefs, "Metal-2");
@@ -158,6 +173,11 @@ public class SilComp extends Tool
 	 * @param arcName name of new vertical routing arc.
 	 */
 	public static void setVertRoutingArc(String arcName) { cacheVertRoutingArc.setString(arcName); }
+	/**
+	 * Method to return the vertical routing arc, by default.
+	 * @return the name of the vertical routing arc, by default.
+	 */
+	public static String getFactoryVertRoutingArc() { return cacheVertRoutingArc.getStringFactoryValue(); }
 
 	private static Pref cacheVertRoutingWidth = Pref.makeDoublePref("VertArcWidth", tool.prefs, 4);
 	/**
@@ -171,6 +191,11 @@ public class SilComp extends Tool
 	 * @param wid the new width of the vertical routing arc.
 	 */
 	public static void setVertArcWidth(double wid) { cacheVertRoutingWidth.setDouble(wid); }
+	/**
+	 * Method to return the width of the vertical routing arc, by default.
+	 * @return the width of the vertical routing arc, by default.
+	 */
+	public static double getFactoryVertArcWidth() { return cacheVertRoutingWidth.getDoubleFactoryValue(); }
 
 
 	private static Pref cachePowerWireWidth = Pref.makeDoublePref("PowerWireWidth", tool.prefs, 5);
@@ -185,6 +210,11 @@ public class SilComp extends Tool
 	 * @param wid the new width of the power and ground arc.
 	 */
 	public static void setPowerWireWidth(double wid) { cachePowerWireWidth.setDouble(wid); }
+	/**
+	 * Method to return the width of the power and ground arc, by default.
+	 * @return the width of the power and ground arc, by default.
+	 */
+	public static double getFactoryPowerWireWidth() { return cachePowerWireWidth.getDoubleFactoryValue(); }
 
 	private static Pref cacheMainPowerWireWidth = Pref.makeDoublePref("MainPowerWireWidth", tool.prefs, 8);
 	/**
@@ -198,6 +228,11 @@ public class SilComp extends Tool
 	 * @param wid the new width of the main power and ground arc.
 	 */
 	public static void setMainPowerWireWidth(double wid) { cacheMainPowerWireWidth.setDouble(wid); }
+	/**
+	 * Method to return the width of the main power and ground arc, by default.
+	 * @return the width of the main power and ground arc, by default.
+	 */
+	public static double getFactoryMainPowerWireWidth() { return cacheMainPowerWireWidth.getDoubleFactoryValue(); }
 
 	private static Pref cacheMainPowerArc = Pref.makeStringPref("MainPowerArc", tool.prefs, "Horizontal Arc");
 	/**
@@ -211,6 +246,11 @@ public class SilComp extends Tool
 	 * @param arcName name of new main power and ground arc.
 	 */
 	public static void setMainPowerArc(String arcName) { cacheMainPowerArc.setString(arcName); }
+	/**
+	 * Method to return the main power and ground arc, by default.
+	 * @return the name of the main power and ground arc, by default.
+	 */
+	public static String getFactoryMainPowerArc() { return cacheMainPowerArc.getStringFactoryValue(); }
 
 	private static Pref cachePWellHeight = Pref.makeDoublePref("PWellHeight", tool.prefs, 41);
 	/**
@@ -224,6 +264,11 @@ public class SilComp extends Tool
 	 * @param hei the new height of the p-well.
 	 */
 	public static void setPWellHeight(double hei) { cachePWellHeight.setDouble(hei); }
+	/**
+	 * Method to return the height of the p-well, by default.
+	 * @return the height of the p-well, by default.
+	 */
+	public static double getFactoryPWellHeight() { return cachePWellHeight.getDoubleFactoryValue(); }
 
 	private static Pref cachePWellOffset = Pref.makeDoublePref("PWellOffset", tool.prefs, 0);
 	/**
@@ -237,6 +282,11 @@ public class SilComp extends Tool
 	 * @param off the new offset of the p-well.
 	 */
 	public static void setPWellOffset(double off) { cachePWellOffset.setDouble(off); }
+	/**
+	 * Method to return the offset of the p-well, by default.
+	 * @return the offset of the p-well, by default.
+	 */
+	public static double getFactoryPWellOffset() { return cachePWellOffset.getDoubleFactoryValue(); }
 
 	private static Pref cacheNWellHeight = Pref.makeDoublePref("NWellHeight", tool.prefs, 51);
 	/**
@@ -250,6 +300,11 @@ public class SilComp extends Tool
 	 * @param hei the new height of the n-well.
 	 */
 	public static void setNWellHeight(double hei) { cacheNWellHeight.setDouble(hei); }
+	/**
+	 * Method to return the height of the n-well, by default.
+	 * @return the height of the n-well, by default.
+	 */
+	public static double getFactoryNWellHeight() { return cacheNWellHeight.getDoubleFactoryValue(); }
 
 	private static Pref cacheNWellOffset = Pref.makeDoublePref("NWellOffset", tool.prefs, 0);
 	/**
@@ -263,6 +318,11 @@ public class SilComp extends Tool
 	 * @param off the new offset of the n-well.
 	 */
 	public static void setNWellOffset(double off) { cacheNWellOffset.setDouble(off); }
+	/**
+	 * Method to return the offset of the n-well, by default.
+	 * @return the offset of the n-well, by default.
+	 */
+	public static double getFactoryNWellOffset() { return cacheNWellOffset.getDoubleFactoryValue(); }
 
 
 	private static Pref cacheViaSize = Pref.makeDoublePref("ViaSize", tool.prefs, 4);
@@ -277,6 +337,11 @@ public class SilComp extends Tool
 	 * @param off the new size of vias.
 	 */
 	public static void setViaSize(double off) { cacheViaSize.setDouble(off); }
+	/**
+	 * Method to return the size of vias, by default.
+	 * @return the size of vias, by default.
+	 */
+	public static double getFactoryViaSize() { return cacheViaSize.getDoubleFactoryValue(); }
 
 	private static Pref cacheMinMetalSpacing = Pref.makeDoublePref("MinMetalSpacing", tool.prefs, 6);
 	/**
@@ -290,6 +355,11 @@ public class SilComp extends Tool
 	 * @param off the new minimum metal spacing.
 	 */
 	public static void setMinMetalSpacing(double off) { cacheMinMetalSpacing.setDouble(off); }
+	/**
+	 * Method to return the minimum metal spacing, by default.
+	 * @return the minimum metal spacing, by default.
+	 */
+	public static double getFactoryMinMetalSpacing() { return cacheMinMetalSpacing.getDoubleFactoryValue(); }
 
 	private static Pref cacheFeedThruSize = Pref.makeDoublePref("FeedThruSize", tool.prefs, 16);
 	/**
@@ -303,6 +373,11 @@ public class SilComp extends Tool
 	 * @param off the new size of feed-throughs.
 	 */
 	public static void setFeedThruSize(double off) { cacheFeedThruSize.setDouble(off); }
+	/**
+	 * Method to return the size of feed-throughs, by default.
+	 * @return the size of feed-throughs, by default.
+	 */
+	public static double getFactoryFeedThruSize() { return cacheFeedThruSize.getDoubleFactoryValue(); }
 
 	private static Pref cacheMinPortDistance = Pref.makeDoublePref("MinPortDistance", tool.prefs, 8);
 	/**
@@ -316,6 +391,11 @@ public class SilComp extends Tool
 	 * @param off the new minimum port distance.
 	 */
 	public static void setMinPortDistance(double off) { cacheMinPortDistance.setDouble(off); }
+	/**
+	 * Method to return the minimum port distance, by default.
+	 * @return the minimum port distance, by default.
+	 */
+	public static double getFactoryMinPortDistance() { return cacheMinPortDistance.getDoubleFactoryValue(); }
 
 	private static Pref cacheMinActiveDistance = Pref.makeDoublePref("MinActiveDistance", tool.prefs, 8);
 	/**
@@ -329,5 +409,10 @@ public class SilComp extends Tool
 	 * @param off the new minimum active distance.
 	 */
 	public static void setMinActiveDistance(double off) { cacheMinActiveDistance.setDouble(off); }
+	/**
+	 * Method to return the minimum active distance, by default.
+	 * @return the minimum active distance, by default.
+	 */
+	public static double getFactoryMinActiveDistance() { return cacheMinActiveDistance.getDoubleFactoryValue(); }
 
 }

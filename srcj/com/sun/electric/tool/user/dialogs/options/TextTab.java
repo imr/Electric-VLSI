@@ -384,11 +384,16 @@ public class TextTab extends PreferencePanel
 		TextDescriptor.factoryResetAnnotationTextDescriptor();
 		TextDescriptor.factoryResetInstanceTextDescriptor();
 		TextDescriptor.factoryResetCellTextDescriptor();
-		User.setDefaultTextCellFont(User.getFactoryDefaultTextCellFont());
-		User.setDefaultTextCellSize(User.getFactoryDefaultTextCellSize());
-		User.setDefaultTextExternalEditor(User.getFactoryDefaultTextExternalEditor());
-		User.setDefaultFont(User.getFactoryDefaultFont());
-		User.setGlobalTextScale(User.getFactoryGlobalTextScale());
+		if (!User.getFactoryDefaultTextCellFont().equals(User.getDefaultTextCellFont()))
+			User.setDefaultTextCellFont(User.getFactoryDefaultTextCellFont());
+		if (User.getFactoryDefaultTextCellSize() != User.getDefaultTextCellSize())
+			User.setDefaultTextCellSize(User.getFactoryDefaultTextCellSize());
+		if (!User.getFactoryDefaultTextExternalEditor().equals(User.getDefaultTextExternalEditor()))
+			User.setDefaultTextExternalEditor(User.getFactoryDefaultTextExternalEditor());
+		if (!User.getFactoryDefaultFont().equals(User.getDefaultFont()))
+			User.setDefaultFont(User.getFactoryDefaultFont());
+		if (User.getFactoryGlobalTextScale() != User.getGlobalTextScale())
+			User.setGlobalTextScale(User.getFactoryGlobalTextScale());
 	}
 
 	/** This method is called from within the constructor to

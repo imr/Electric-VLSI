@@ -28,16 +28,6 @@ import com.sun.electric.tool.project.Users;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 
-import javax.swing.DefaultListModel;
-import javax.swing.JButton;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JPasswordField;
-import javax.swing.JTextField;
-import javax.swing.ListSelectionModel;
-
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -47,6 +37,16 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.Iterator;
+
+import javax.swing.DefaultListModel;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
 
 /**
  * Class to handle the "Project Management" tab of the Preferences dialog.
@@ -59,7 +59,7 @@ public class ProjectManagementTab extends PreferencePanel
 	private DefaultListModel userModel;
 	private boolean authorized;
 
-	/** Creates new form Edit Options */
+	/** Creates new form ProjectManagement Options */
 	public ProjectManagementTab(Frame parent, boolean modal)
 	{
 		super(parent, modal);
@@ -138,8 +138,10 @@ public class ProjectManagementTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		Project.setRepositoryLocation(Project.getFactoryRepositoryLocation());
-		Project.setCurrentUserName(Project.getFactoryCurrentUserName());
+		if (!Project.getFactoryRepositoryLocation().equals(Project.getRepositoryLocation()))
+			Project.setRepositoryLocation(Project.getFactoryRepositoryLocation());
+		if (!Project.getFactoryCurrentUserName().equals(Project.getCurrentUserName()))
+			Project.setCurrentUserName(Project.getFactoryCurrentUserName());
 	}
 
 	/**

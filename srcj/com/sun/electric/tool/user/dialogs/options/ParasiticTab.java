@@ -23,18 +23,12 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
-import com.sun.electric.database.text.TempPref;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.extract.ParasiticTool;
 import com.sun.electric.tool.simulation.Simulation;
 
 import java.awt.Frame;
-import java.util.HashMap;
 
-import javax.swing.DefaultListModel;
-import javax.swing.JList;
 import javax.swing.JPanel;
 
 /**
@@ -108,14 +102,22 @@ public class ParasiticTab extends PreferencePanel {
 	 */
 	public void reset()
 	{
-		Simulation.setParasiticsUseVerboseNaming(Simulation.isFactoryParasiticsUseVerboseNaming());
-		Simulation.setParasiticsBackAnnotateLayout(Simulation.isFactoryParasiticsBackAnnotateLayout());
-		Simulation.setParasiticsExtractPowerGround(Simulation.isFactoryParasiticsExtractPowerGround());
-		Simulation.setParasiticsUseExemptedNetsFile(Simulation.isFactoryParasiticsUseExemptedNetsFile());
-		Simulation.setParasiticsIgnoreExemptedNets(Simulation.isFactoryParasiticsIgnoreExemptedNets());
-		Simulation.setParasiticsExtractsR(Simulation.isFactoryParasiticsExtractsR());
-		Simulation.setParasiticsExtractsC(Simulation.isFactoryParasiticsExtractsC());
-		ParasiticTool.setMaxDistance(ParasiticTool.getFactoryMaxDistance());
+		if (Simulation.isFactoryParasiticsUseVerboseNaming() != Simulation.isParasiticsUseVerboseNaming())
+			Simulation.setParasiticsUseVerboseNaming(Simulation.isFactoryParasiticsUseVerboseNaming());
+		if (Simulation.isFactoryParasiticsBackAnnotateLayout() != Simulation.isParasiticsBackAnnotateLayout())
+			Simulation.setParasiticsBackAnnotateLayout(Simulation.isFactoryParasiticsBackAnnotateLayout());
+		if (Simulation.isFactoryParasiticsExtractPowerGround() != Simulation.isParasiticsExtractPowerGround())
+			Simulation.setParasiticsExtractPowerGround(Simulation.isFactoryParasiticsExtractPowerGround());
+		if (Simulation.isFactoryParasiticsUseExemptedNetsFile() != Simulation.isParasiticsUseExemptedNetsFile())
+			Simulation.setParasiticsUseExemptedNetsFile(Simulation.isFactoryParasiticsUseExemptedNetsFile());
+		if (Simulation.isFactoryParasiticsIgnoreExemptedNets() != Simulation.isParasiticsIgnoreExemptedNets())
+			Simulation.setParasiticsIgnoreExemptedNets(Simulation.isFactoryParasiticsIgnoreExemptedNets());
+		if (Simulation.isFactoryParasiticsExtractsR() != Simulation.isParasiticsExtractsR())
+			Simulation.setParasiticsExtractsR(Simulation.isFactoryParasiticsExtractsR());
+		if (Simulation.isFactoryParasiticsExtractsC() != Simulation.isParasiticsExtractsC())
+			Simulation.setParasiticsExtractsC(Simulation.isFactoryParasiticsExtractsC());
+		if (ParasiticTool.getFactoryMaxDistance() != ParasiticTool.getMaxDistance())
+			ParasiticTool.setMaxDistance(ParasiticTool.getFactoryMaxDistance());
 	}
 
 	/** This method is called from within the constructor to

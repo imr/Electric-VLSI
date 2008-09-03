@@ -94,9 +94,12 @@ public class VerilogTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		Simulation.setVerilogStopAtStandardCells(Simulation.getFactoryVerilogStopAtStandardCells());
-		Simulation.setPreserveVerilogFormating(Simulation.getFactoryPreserveVerilogFormating());
-		Simulation.setVerilogParameterizeModuleNames(Simulation.getFactoryVerilogParameterizeModuleNames());
+		if (Simulation.getFactoryVerilogStopAtStandardCells() != Simulation.getVerilogStopAtStandardCells())
+			Simulation.setVerilogStopAtStandardCells(Simulation.getFactoryVerilogStopAtStandardCells());
+		if (Simulation.getFactoryPreserveVerilogFormating() != Simulation.getPreserveVerilogFormating())
+			Simulation.setPreserveVerilogFormating(Simulation.getFactoryPreserveVerilogFormating());
+		if (Simulation.getFactoryVerilogParameterizeModuleNames() != Simulation.getVerilogParameterizeModuleNames())
+			Simulation.setVerilogParameterizeModuleNames(Simulation.getFactoryVerilogParameterizeModuleNames());
 	}
 
 	/**

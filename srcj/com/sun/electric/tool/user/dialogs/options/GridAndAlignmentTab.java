@@ -36,7 +36,7 @@ import javax.swing.JPanel;
  */
 public class GridAndAlignmentTab extends PreferencePanel
 {
-	/** Creates new form Edit Options */
+	/** Creates new form GridAndAlignment */
 	public GridAndAlignmentTab(java.awt.Frame parent, boolean modal)
 	{
 		super(parent, modal);
@@ -174,12 +174,18 @@ public class GridAndAlignmentTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		User.setDefGridXSpacing(User.getFactoryDefGridXSpacing());
-		User.setDefGridYSpacing(User.getFactoryDefGridYSpacing());
-		User.setDefGridXBoldFrequency(User.getFactoryDefGridXBoldFrequency());
-		User.setDefGridYBoldFrequency(User.getFactoryDefGridYBoldFrequency());
-		User.setGridAxesShown(User.isFactoryGridAxesShown());
-		User.setAlignmentToGridVector(User.getFactoryAlignmentToGridVector());
+		if (User.getFactoryDefGridXSpacing() != User.getDefGridXSpacing())
+			User.setDefGridXSpacing(User.getFactoryDefGridXSpacing());
+		if (User.getFactoryDefGridYSpacing() != User.getDefGridYSpacing())
+			User.setDefGridYSpacing(User.getFactoryDefGridYSpacing());
+		if (User.getFactoryDefGridXBoldFrequency() != User.getDefGridXBoldFrequency())
+			User.setDefGridXBoldFrequency(User.getFactoryDefGridXBoldFrequency());
+		if (User.getFactoryDefGridYBoldFrequency() != User.getDefGridYBoldFrequency())
+			User.setDefGridYBoldFrequency(User.getFactoryDefGridYBoldFrequency());
+		if (User.isFactoryGridAxesShown() != User.isGridAxesShown())
+			User.setGridAxesShown(User.isFactoryGridAxesShown());
+		if (User.getFactoryAlignmentToGridVector() != User.getAlignmentToGridVector())
+			User.setAlignmentToGridVector(User.getFactoryAlignmentToGridVector());
 	}
 
 	/** This method is called from within the constructor to

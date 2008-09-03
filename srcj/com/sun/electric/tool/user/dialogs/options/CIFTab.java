@@ -23,15 +23,9 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
-import com.sun.electric.technology.Layer;
 import com.sun.electric.tool.io.IOTool;
 
-import java.util.HashMap;
-
-import javax.swing.DefaultListModel;
-import javax.swing.JList;
 import javax.swing.JPanel;
-
 
 /**
  * Class to handle the "CIF" tab of the Preferences dialog.
@@ -76,7 +70,8 @@ public class CIFTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		IOTool.setCIFInSquaresWires(IOTool.isFactoryCIFInSquaresWires());
+		if (IOTool.isFactoryCIFInSquaresWires() != IOTool.isCIFInSquaresWires())
+			IOTool.setCIFInSquaresWires(IOTool.isFactoryCIFInSquaresWires());
 	}
 
 	/** This method is called from within the constructor to

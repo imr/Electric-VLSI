@@ -45,6 +45,7 @@ import java.awt.font.LineMetrics;
 import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
@@ -98,7 +99,7 @@ public class ThreeDTab extends PreferencePanel
 	private boolean initial3DTextChanging = false;
 	private JList threeDLayerList;
 	private DefaultListModel threeDLayerModel;
-	protected HashMap<Layer,GenMath.MutableDouble> threeDThicknessMap, threeDDistanceMap;
+	protected Map<Layer,GenMath.MutableDouble> threeDThicknessMap, threeDDistanceMap;
 	private JPanel threeDSideView;
 
 	/**
@@ -344,7 +345,15 @@ public class ThreeDTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		System.out.println("CANNOT RESET 3D PREFERENCES YET");
+		for(Iterator<Layer> it = curTech.getLayers(); it.hasNext(); )
+		{
+			Layer layer = it.next();
+			if (layer.isPseudoLayer()) continue;
+			if (layer.getFactoryThickness() != layer.getThickness())
+				layer.setThickness(layer.getFactoryThickness());
+			if (layer.getFactoryDistance() != layer.getDistance())
+				layer.setDistance(layer.getFactoryDistance());
+		}
 	}
 
 	/** This method is called from within the constructor to

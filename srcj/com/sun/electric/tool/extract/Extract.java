@@ -72,6 +72,12 @@ public class Extract extends Tool
 	 * @param a true if the node extractor should grid-align geometry before extraction.
 	 */
 	public static void setGridAlignExtraction(boolean a) { cacheExactGridAlign.setBoolean(a); }
+	/**
+	 * Method to tell whether the node extractor should grid-align geometry before extraction, by default.
+	 * This is useful if the input geometry has many small alignment errors.
+	 * @return true if the node extractor should grid-align geometry before extraction, by default.
+	 */
+	public static boolean isFactoryGridAlignExtraction() { return cacheExactGridAlign.getBooleanFactoryValue(); }
 
 	private static Pref cacheActiveHandling = Pref.makeIntPref("ActiveHandling", Extract.tool.prefs, 0);
 	/**
@@ -92,6 +98,15 @@ public class Extract extends Tool
 	 * 2: Insist on two different active layers (N and P) but ignore select/well surrounds.
 	 */
 	public static void setActiveHandling(int a) { cacheActiveHandling.setInt(a); }
+	/**
+	 * Method to tell how the node extractor should handle active layers, by default.
+	 * The values can be:
+	 * 0: Insist on two different active layers (N and P) and also proper select/well surrounds.
+	 * 1: Ignore active distinctions and use select/well surrounds to distinguish N from P.
+	 * 2: Insist on two different active layers (N and P) but ignore select/well surrounds.
+	 * @return an integer indicating how to handle active layers, by default.
+	 */
+	public static int getFactoryActiveHandling() { return cacheActiveHandling.getIntFactoryValue(); }
 
 	private static Pref cacheApproximateCuts = Pref.makeBooleanPref("ApproximateCuts", Extract.tool.prefs, false);
 	/**
@@ -109,6 +124,13 @@ public class Extract extends Tool
 	 * @param a true if the node extractor should approximate cut placement in multicut situations.
 	 */
 	public static void setApproximateCuts(boolean a) { cacheApproximateCuts.setBoolean(a); }
+	/**
+	 * Method to tell whether the node extractor should approximate cut placement in multicut situations, by default.
+	 * When via layers in multicut situations do not exactly match Electric's spacing, this will allow
+	 * a single large contact to be placed.
+	 * @return true if the node extractor should approximate cut placement in multicut situations, by default.
+	 */
+	public static boolean isFactoryApproximateCuts() { return cacheApproximateCuts.getBooleanFactoryValue(); }
 
 	private static Pref cacheSmallestPolygonSize = Pref.makeDoublePref("SmallestPolygonSize", Extract.tool.prefs, 0.25);
 	/**
@@ -124,6 +146,12 @@ public class Extract extends Tool
 	 * @param a the size of the smallest polygon to extract.
 	 */
 	public static void setSmallestPolygonSize(double a) { cacheSmallestPolygonSize.setDouble(a); }
+	/**
+	 * Method to return the size of the smallest polygon to extract, by default.
+	 * Any polygon smaller than this will be ignored.
+	 * @return the size of the smallest polygon to extract, by default.
+	 */
+	public static double getFactorySmallestPolygonSize() { return cacheSmallestPolygonSize.getDoubleFactoryValue(); }
 
 	private static Pref cacheCellExpandPattern = Pref.makeStringPref("CellExpandPattern", Extract.tool.prefs, ".*via.*");
 	/**
@@ -139,4 +167,10 @@ public class Extract extends Tool
 	 * @param a the cell expansion pattern for node extraction.
 	 */
 	public static void setCellExpandPattern(String a) { cacheCellExpandPattern.setString(a); }
+	/**
+	 * Method to return the cell expansion pattern for node extraction, by default.
+	 * All cells that match this string will be expanded before node extraction.
+	 * @return the cell expansion pattern for node extraction, by default.
+	 */
+	public static String getFactoryCellExpandPattern() { return cacheCellExpandPattern.getStringFactoryValue(); }
 }

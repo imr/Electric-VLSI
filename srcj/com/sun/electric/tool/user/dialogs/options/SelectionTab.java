@@ -100,11 +100,16 @@ public class SelectionTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		User.setEasySelectionOfCellInstances(User.isFactoryEasySelectionOfCellInstances());
-		User.setDraggingMustEncloseObjects(User.isFactoryDraggingMustEncloseObjects());
-		ClickZoomWireListener.theOne.setCancelMoveDelayMillis(ClickZoomWireListener.theOne.getFactoryCancelMoveDelayMillis());
-		User.setMouseOverHighlightingEnabled(User.isFactoryMouseOverHighlightingEnabled());
-		User.setHighlightConnectedObjects(User.isFactoryHighlightConnectedObjects());
+		if (User.isFactoryEasySelectionOfCellInstances() != User.isEasySelectionOfCellInstances())
+			User.setEasySelectionOfCellInstances(User.isFactoryEasySelectionOfCellInstances());
+		if (User.isFactoryDraggingMustEncloseObjects() != User.isDraggingMustEncloseObjects())
+			User.setDraggingMustEncloseObjects(User.isFactoryDraggingMustEncloseObjects());
+		if (ClickZoomWireListener.theOne.getFactoryCancelMoveDelayMillis() != ClickZoomWireListener.theOne.getCancelMoveDelayMillis())
+			ClickZoomWireListener.theOne.setCancelMoveDelayMillis(ClickZoomWireListener.theOne.getFactoryCancelMoveDelayMillis());
+		if (User.isFactoryMouseOverHighlightingEnabled() != User.isMouseOverHighlightingEnabled())
+			User.setMouseOverHighlightingEnabled(User.isFactoryMouseOverHighlightingEnabled());
+		if (User.isFactoryHighlightConnectedObjects() != User.isHighlightConnectedObjects())
+			User.setHighlightConnectedObjects(User.isFactoryHighlightConnectedObjects());
 	}
 
 	/** This method is called from within the constructor to

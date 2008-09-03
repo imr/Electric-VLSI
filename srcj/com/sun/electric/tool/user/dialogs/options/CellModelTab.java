@@ -25,11 +25,6 @@ package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.text.TempPref;
-import com.sun.electric.database.text.Pref;
-import com.sun.electric.database.variable.Variable;
-import com.sun.electric.tool.io.FileType;
-import com.sun.electric.tool.io.output.Verilog;
 import com.sun.electric.tool.io.output.CellModelPrefs;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 
@@ -52,7 +47,7 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 
 /**
- * Class to handle the "Verilog" tab of the Preferences dialog.
+ * Class to handle the "Spice/Verilog Model Files" tab of the Preferences dialog.
  */
 public class CellModelTab extends PreferencePanel
 {
@@ -97,13 +92,13 @@ public class CellModelTab extends PreferencePanel
         return modelPrefs.getType()+" Model Files";
     }
 
-	private HashMap<Cell,ModelPref> initialBehaveFiles;
+	private Map<Cell,ModelPref> initialBehaveFiles;
 	private JList cellList;
 	private DefaultListModel cellListModel;
 
 	/**
 	 * Method called at the start of the dialog.
-	 * Caches current values and displays them in the Verilog tab.
+	 * Caches current values and displays them in the tab.
 	 */
 	public void init()
 	{
@@ -373,7 +368,16 @@ public class CellModelTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		System.out.println("CANNOT RESET CELL MODEL PREFERENCES YET");
+		for(Iterator<Library> lIt = Library.getLibraries(); lIt.hasNext(); )
+		{
+			Library lib = lIt.next();
+			if (lib.isHidden()) continue;
+			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
+			{
+				Cell cell = cIt.next();
+				modelPrefs.factoryResetModelFile(cell);
+			}
+		}
 	}
 
 	/** This method is called from within the constructor to

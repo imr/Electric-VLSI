@@ -204,7 +204,11 @@ public class ToolbarTab extends PreferencePanel implements TreeSelectionListener
 	 */
 	public void reset()
 	{
-		System.out.println("CANNOT RESET TOOLBAR PREFERENCES YET");
+		EToolBarButton [] fButs = ToolBar.getFactoryButtons();
+		EToolBarButton [] buts = ToolBar.getToolbarButtons();
+		boolean same = fButs.equals(buts);
+		if (!same)
+			ToolBar.setToolbarButtons(ToolBar.getFactoryButtons());
 	}
 
 	private void buildSampleToolbar()

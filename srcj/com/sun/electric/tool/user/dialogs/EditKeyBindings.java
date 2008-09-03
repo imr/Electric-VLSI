@@ -101,6 +101,11 @@ public class EditKeyBindings extends PreferencePanel implements TreeSelectionLis
 
     public String getName() { return "Key Bindings"; }
 
+    public void reset()
+    {
+        menuBar.resetAllKeyBindings();
+    }
+
     // -------------------------------------------------------------------------
 
     /** This method is called from within the constructor to

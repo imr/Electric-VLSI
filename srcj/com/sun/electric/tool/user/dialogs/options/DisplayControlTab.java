@@ -170,20 +170,32 @@ public class DisplayControlTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		User.setShowHierarchicalCursorCoordinates(User.isFactoryShowHierarchicalCursorCoordinates());
-		User.setDimUpperLevelWhenDownInPlace(User.isFactoryDimUpperLevelWhenDownInPlace());
-		User.setSideBarOnRight(User.isFactorySideBarOnRight());
-		User.setPanningDistance(User.getFactoryPanningDistance());
-		User.setDisplayStyle(User.getFactoryDisplayStyle());
+		if (User.isFactoryShowHierarchicalCursorCoordinates() != User.isShowHierarchicalCursorCoordinates())
+			User.setShowHierarchicalCursorCoordinates(User.isFactoryShowHierarchicalCursorCoordinates());
+		if (User.isFactoryDimUpperLevelWhenDownInPlace() != User.isDimUpperLevelWhenDownInPlace())
+			User.setDimUpperLevelWhenDownInPlace(User.isFactoryDimUpperLevelWhenDownInPlace());
+		if (User.isFactorySideBarOnRight() != User.isSideBarOnRight())
+			User.setSideBarOnRight(User.isFactorySideBarOnRight());
+		if (User.getFactoryPanningDistance() != User.getPanningDistance())
+			User.setPanningDistance(User.getFactoryPanningDistance());
+		if (User.getFactoryDisplayStyle() != User.getDisplayStyle())
+			User.setDisplayStyle(User.getFactoryDisplayStyle());
 
 		// bottom half (display algorithm)
-		User.setDisplayAlgorithm(User.getFactoryDisplayAlgorithm());
-		User.setUseCellGreekingImages(User.isFactoryUseCellGreekingImages());
-		User.setGreekSizeLimit(User.getFactoryGreekSizeLimit());
-		User.setGreekCellSizeLimit(User.getFactoryGreekCellSizeLimit());
-		User.setPatternedScaleLimit(User.getFactoryPatternedScaleLimit());
-		User.setLegacyComposite(User.isFactoryLegacyComposite());
-		User.setAlphaBlendingOvercolorLimit(User.getFactoryAlphaBlendingOvercolorLimit());
+		if (User.getFactoryDisplayAlgorithm() != User.getDisplayAlgorithm())
+			User.setDisplayAlgorithm(User.getFactoryDisplayAlgorithm());
+		if (User.isFactoryUseCellGreekingImages() != User.isUseCellGreekingImages())
+			User.setUseCellGreekingImages(User.isFactoryUseCellGreekingImages());
+		if (User.getFactoryGreekSizeLimit() != User.getGreekSizeLimit())
+			User.setGreekSizeLimit(User.getFactoryGreekSizeLimit());
+		if (User.getFactoryGreekCellSizeLimit() != User.getGreekCellSizeLimit())
+			User.setGreekCellSizeLimit(User.getFactoryGreekCellSizeLimit());
+		if (User.getFactoryPatternedScaleLimit() != User.getPatternedScaleLimit())
+			User.setPatternedScaleLimit(User.getFactoryPatternedScaleLimit());
+		if (User.isFactoryLegacyComposite() != User.isLegacyComposite())
+			User.setLegacyComposite(User.isFactoryLegacyComposite());
+		if (User.getFactoryAlphaBlendingOvercolorLimit() != User.getAlphaBlendingOvercolorLimit())
+			User.setAlphaBlendingOvercolorLimit(User.getFactoryAlphaBlendingOvercolorLimit());
 		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = it.next();

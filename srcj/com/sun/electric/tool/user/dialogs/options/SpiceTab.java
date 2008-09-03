@@ -294,7 +294,53 @@ public class SpiceTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		System.out.println("CANNOT RESET SPICE PREFERENCES YET");
+		if (!Simulation.getFactorySpiceEngine().equals(Simulation.getSpiceEngine()))
+			Simulation.setSpiceEngine(Simulation.getFactorySpiceEngine());
+		if (!Simulation.getFactorySpiceLevel().equals(Simulation.getSpiceLevel()))
+			Simulation.setSpiceLevel(Simulation.getFactorySpiceLevel());
+		if (!Simulation.getFactorySpiceOutputFormat().equals(Simulation.getSpiceOutputFormat()))
+			Simulation.setSpiceOutputFormat(Simulation.getFactorySpiceOutputFormat());
+		if (Simulation.getFactorySpiceEpicMemorySize() != Simulation.getSpiceEpicMemorySize())
+			Simulation.setSpiceEpicMemorySize(Simulation.getFactorySpiceEpicMemorySize());
+		if (Simulation.getFactorySpiceShortResistors() != Simulation.getSpiceShortResistors())
+			Simulation.setSpiceShortResistors(Simulation.getFactorySpiceShortResistors());
+		if (!Simulation.getFactorySpiceParasiticsLevel().equals(Simulation.getSpiceParasiticsLevel()))
+			Simulation.setSpiceParasiticsLevel(Simulation.getFactorySpiceParasiticsLevel());
+		if (!Simulation.getFactorySpicePartsLibrary().equals(Simulation.getSpicePartsLibrary()))
+			Simulation.setSpicePartsLibrary(Simulation.getFactorySpicePartsLibrary());
+
+		if (Simulation.isFactorySpiceUseNodeNames() != Simulation.isSpiceUseNodeNames())
+			Simulation.setSpiceUseNodeNames(Simulation.isFactorySpiceUseNodeNames());
+		if (Simulation.isFactorySpiceForceGlobalPwrGnd() != Simulation.isSpiceForceGlobalPwrGnd())
+			Simulation.setSpiceForceGlobalPwrGnd(Simulation.isFactorySpiceForceGlobalPwrGnd());
+		if (Simulation.isFactorySpiceUseCellParameters() != Simulation.isSpiceUseCellParameters())
+			Simulation.setSpiceUseCellParameters(Simulation.isFactorySpiceUseCellParameters());
+		if (Simulation.isFactorySpiceWriteTransSizeInLambda() != Simulation.isSpiceWriteTransSizeInLambda())
+			Simulation.setSpiceWriteTransSizeInLambda(Simulation.isFactorySpiceWriteTransSizeInLambda());
+		if (Simulation.isFactorySpiceWriteSubcktTopCell() != Simulation.isSpiceWriteSubcktTopCell())
+			Simulation.setSpiceWriteSubcktTopCell(Simulation.isFactorySpiceWriteSubcktTopCell());
+		if (Simulation.isFactorySpiceWriteFinalDotEnd() != Simulation.isSpiceWriteFinalDotEnd())
+			Simulation.setSpiceWriteFinalDotEnd(Simulation.isFactorySpiceWriteFinalDotEnd());
+
+		if (!Simulation.getFactorySpiceRunChoice().equals(Simulation.getSpiceRunChoice()))
+			Simulation.setSpiceRunChoice(Simulation.getFactorySpiceRunChoice());
+		if (!Simulation.getFactorySpiceRunProgram().equals(Simulation.getSpiceRunProgram()))
+			Simulation.setSpiceRunProgram(Simulation.getFactorySpiceRunProgram());
+		if (!Simulation.getFactorySpiceRunProgramArgs().equals(Simulation.getSpiceRunProgramArgs()))
+			Simulation.setSpiceRunProgramArgs(Simulation.getFactorySpiceRunProgramArgs());
+		if (Simulation.getFactorySpiceUseRunDir() != Simulation.getSpiceUseRunDir())
+			Simulation.setSpiceUseRunDir(Simulation.getFactorySpiceUseRunDir());
+		if (!Simulation.getFactorySpiceRunDir().equals(Simulation.getSpiceRunDir()))
+			Simulation.setSpiceRunDir(Simulation.getFactorySpiceRunDir());
+		if (Simulation.getFactorySpiceOutputOverwrite() != Simulation.getSpiceOutputOverwrite())
+			Simulation.setSpiceOutputOverwrite(Simulation.getFactorySpiceOutputOverwrite());
+		if (Simulation.getFactorySpiceRunProbe() != Simulation.getSpiceRunProbe())
+			Simulation.setSpiceRunProbe(Simulation.getFactorySpiceRunProbe());
+
+		if (!Simulation.getFactorySpiceHeaderCardInfo().equals(Simulation.getSpiceHeaderCardInfo()))
+			Simulation.setSpiceHeaderCardInfo(Simulation.getFactorySpiceHeaderCardInfo());
+		if (!Simulation.getFactorySpiceTrailerCardInfo().equals(Simulation.getSpiceTrailerCardInfo()))
+			Simulation.setSpiceTrailerCardInfo(Simulation.getFactorySpiceTrailerCardInfo());
 	}
 
 	// enable or disable the spice run options
