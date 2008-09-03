@@ -27,10 +27,10 @@ import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.tool.user.User;
+
 import java.awt.Font;
 import java.awt.font.FontRenderContext;
 import java.awt.font.GlyphVector;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -104,7 +104,7 @@ abstract class AbstractTextDescriptor implements Serializable
     static long VTSEMANTIC = VTISPARAMETER | VTINTERIOR | VTINHERIT | VTUNITS;
 
     // Variable flags in C Electric
-	/** display variable (uses textdescript field) */	/*private*/ static final int VDISPLAY =         0100;
+	/** display variable (uses textdescript field) */	/*private*/ static final int VDISPLAY = 0100;
 
     /** enumeration which represents text visibility .*/
     public enum Display {
@@ -370,11 +370,11 @@ abstract class AbstractTextDescriptor implements Serializable
 	 */
 	public static class Size
 	{
-        /** The minimu size of text (in points). */		public static final int    TXTMINPOINTS =  1;
+        /** The minimu size of text (in points). */			public static final int    TXTMINPOINTS =  1;
 		/** The maximum size of text (in points). */		public static final int    TXTMAXPOINTS =  63;
-        /** The minimu size of text (in grid units). */	public static final double TXTMINQGRID  = 0.25;
+        /** The minimu size of text (in grid units). */		public static final double TXTMINQGRID  = 0.25;
 		/** The maximum size of text (in grid units). */	public static final double TXTMAXQGRID  = 127.75;
-        /** Default font size. */                           private static final int DEFAULT_FONT_SIZE = 14;
+        /** Default font size. */                           private static final int   DEFAULT_FONT_SIZE = 14;
 		/*private*/ static final int TXTQGRIDSH =          6;
 
 		private final boolean absolute;
@@ -542,7 +542,6 @@ abstract class AbstractTextDescriptor implements Serializable
 		/** Describes a Rotation of 270 degrees. */	public static final Rotation ROT270 =
 														new Rotation(270, 3, "90 degrees clockwise");
 	}
-
 
 	/**
 	 * Unit is a typesafe enum class that describes text's units on a Variable.
@@ -712,7 +711,17 @@ abstract class AbstractTextDescriptor implements Serializable
 			cacheFont = Pref.makeStringPref("TextDescriptorFontFor" + purpose, prefs, "");
 		}
 
-        private long swap(long value)
+		/**
+		 * Method to restore this DescriptorPref to its factory values.
+		 */
+		public void factoryReset()
+		{
+			cacheBits.setLong(cacheBits.getLongFactoryValue());
+			cacheColor.setInt(cacheColor.getIntFactoryValue());
+			cacheFont.setString(cacheFont.getStringFactoryValue());
+		}
+
+		private long swap(long value)
         {
             int v0 = (int)value;
             return (value >>> 32) | ((long)v0 << 32);
@@ -785,6 +794,10 @@ abstract class AbstractTextDescriptor implements Serializable
 	 * @param td the default TextDescriptor for Variables on NodeInsts.
 	 */
 	public static void setNodeTextDescriptor(AbstractTextDescriptor td) { cacheNodeDescriptor.setTextDescriptor(td); }
+	/**
+	 * Method to factory reset the TextDescriptor for Variables on NodeInsts.
+	 */
+	public static void factoryResetNodeTextDescriptor() { cacheNodeDescriptor.factoryReset(); }
 
 	/**
 	 * Default TextDescriptor for ArcInsts is 1 unit tall.
@@ -795,6 +808,10 @@ abstract class AbstractTextDescriptor implements Serializable
 	 * @param td the default TextDescriptor for Variables on ArcInsts.
 	 */
 	public static void setArcTextDescriptor(AbstractTextDescriptor td) { cacheArcDescriptor.setTextDescriptor(td); }
+	/**
+	 * Method to factory reset the TextDescriptor for Variables on ArcInsts.
+	 */
+	public static void factoryResetArcTextDescriptor() { cacheArcDescriptor.factoryReset(); }
 
 	/**
 	 * Default TextDescriptor for Exports and Ports is 2 units tall.
@@ -805,6 +822,10 @@ abstract class AbstractTextDescriptor implements Serializable
 	 * @param td the default TextDescriptor for Variables on Exports.
 	 */
 	public static void setExportTextDescriptor(AbstractTextDescriptor td) { cacheExportDescriptor.setTextDescriptor(td); }
+	/**
+	 * Method to factory reset the TextDescriptor for Variables on Exports.
+	 */
+	public static void factoryResetExportTextDescriptor() { cacheExportDescriptor.factoryReset(); }
 
 	/**
 	 * Default TextDescriptor for Annotations is 1 unit tall.
@@ -815,6 +836,10 @@ abstract class AbstractTextDescriptor implements Serializable
 	 * @param td the default TextDescriptor for Variables on Annotations.
 	 */
 	public static void setAnnotationTextDescriptor(AbstractTextDescriptor td) { cacheAnnotationDescriptor.setTextDescriptor(td); }
+	/**
+	 * Method to factory reset the TextDescriptor for Variables on Annotations.
+	 */
+	public static void factoryResetAnnotationTextDescriptor() { cacheAnnotationDescriptor.factoryReset(); }
 
 	/**
 	 * Default TextDescriptor for Cell Instance Names is 4 units tall.
@@ -825,16 +850,24 @@ abstract class AbstractTextDescriptor implements Serializable
 	 * @param td the default TextDescriptor for Variables on Cell Instance Names.
 	 */
 	public static void setInstanceTextDescriptor(AbstractTextDescriptor td) { cacheInstanceDescriptor.setTextDescriptor(td); }
+	/**
+	 * Method to factory reset the TextDescriptor for Variables on Cell Instance Names.
+	 */
+	public static void factoryResetInstanceTextDescriptor() { cacheInstanceDescriptor.factoryReset(); }
 
 	/**
 	 * Default TextDescriptor for Cell Variables is 1 unit tall.
 	 */
 	/*package*/ static final DescriptorPref cacheCellDescriptor = new DescriptorPref("Cell", 4);
 	/**
-	 * Method to set a TextDescriptor that is a default for Variables on Cell Variables.
-	 * @param td the default TextDescriptor for Variables on Cell Variables.
+	 * Method to set a TextDescriptor that is a default for Variables on Cells.
+	 * @param td the default TextDescriptor for Variables on Cells.
 	 */
 	public static void setCellTextDescriptor(AbstractTextDescriptor td) { cacheCellDescriptor.setTextDescriptor(td); }
+	/**
+	 * Method to factory reset the TextDescriptor for Variables on Cells.
+	 */
+	public static void factoryResetCellTextDescriptor() { cacheCellDescriptor.factoryReset(); }
 
     /**
      * Returns a hash code for this <code>TextDescriptor</code>.

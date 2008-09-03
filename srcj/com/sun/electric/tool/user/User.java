@@ -1991,6 +1991,11 @@ public class User extends Listener
 	 * @param f the default font to use on the display.
 	 */
 	public static void setDefaultFont(String f) { cacheDefaultFont.setString(f); }
+	/**
+	 * Method to get the factory default font to use on the display.
+	 * @return the factory default font to use on the display.
+	 */
+	public static String getFactoryDefaultFont() { return cacheDefaultFont.getStringFactoryValue(); }
 
 	private static Pref cacheDefaultTextCellFont = Pref.makeStringPref("DefaultTextCellFont", tool.prefs, "SansSerif");
 	/**
@@ -2004,6 +2009,11 @@ public class User extends Listener
 	 * @param f the default font to use when editing textual cells.
 	 */
 	public static void setDefaultTextCellFont(String f) { cacheDefaultTextCellFont.setString(f); }
+	/**
+	 * Method to get the factory default font to use when editing textual cells.
+	 * @return the factory default font to use when editing textual cells.
+	 */
+	public static String getFactoryDefaultTextCellFont() { return cacheDefaultTextCellFont.getStringFactoryValue(); }
 
 	private static Pref cacheDefaultTextCellSize = Pref.makeIntPref("DefaultTextCellSize", tool.prefs, 12);
 	/**
@@ -2017,6 +2027,11 @@ public class User extends Listener
 	 * @param s the size of text in textual cells.
 	 */
 	public static void setDefaultTextCellSize(int s) { cacheDefaultTextCellSize.setInt(s); }
+	/**
+	 * Method to tell the size of text in textual cells, by default.
+	 * @return the size of text in textual cells, by default.
+	 */
+	public static int getFactoryDefaultTextCellSize() { return cacheDefaultTextCellSize.getIntFactoryValue(); }
 
 	private static Pref cacheGlobalTextScale = Pref.makeDoublePref("TextGlobalScale", tool.prefs, 1);
 	/**
@@ -2034,6 +2049,13 @@ public class User extends Listener
 	 * @param s the default global text scale.
 	 */
 	public static void setGlobalTextScale(double s) { cacheGlobalTextScale.setDouble(s); }
+	/**
+	 * Method to tell the factory default global text scale factor.
+	 * This factor is the initial text scaling factor for new windows and
+	 * enlarges or reduces all displayed text.
+	 * @return the factory default global text scale factor.
+	 */
+	public static double getFactoryGlobalTextScale() { return cacheGlobalTextScale.getDoubleFactoryValue(); }
 
 	private static Pref cacheDefaultTextExternalEditor = Pref.makeStringPref("DefaultTextExternalEditor", tool.prefs, "");
 	/**
@@ -2047,6 +2069,11 @@ public class User extends Listener
 	 * @param e the program to invoke when externally editing textual cells.
 	 */
 	public static void setDefaultTextExternalEditor(String e) { cacheDefaultTextExternalEditor.setString(e); }
+	/**
+	 * Method to get the program to invoke when externally editing textual cells, by default.
+	 * @return the program to invoke when externally editing textual cells, by default.
+	 */
+	public static String getFactoryDefaultTextExternalEditor() { return cacheDefaultTextExternalEditor.getStringFactoryValue(); }
 
 	/****************************** FRAME PREFERENCES ******************************/
 

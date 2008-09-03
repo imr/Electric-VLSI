@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08e: ******************************
 
+BUG/MAN: (9/3/08, SMR) External Text Editor setting in "Text" preferences
+     corrupts the value and cannot be cleared (Bug #1819).
+FIX: Fixed corruption and added "Clear" button.
+
 IMP: (9/03/08, DN) Don't recompute CellBackup.Memoization in constraint system.
 
 BUG: (9/03/08, DN) Exception caused by a move (Bug #1817).

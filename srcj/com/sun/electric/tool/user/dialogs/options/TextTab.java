@@ -38,7 +38,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Iterator;
 
-import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -48,6 +47,9 @@ import javax.swing.event.DocumentListener;
  */
 public class TextTab extends PreferencePanel
 {
+	private static final String EXTERNALEDITOR_HEADER = "External editor: ";
+	private static final String EXTERNALEDITOR_NOTSET = "NOT SET";
+
 	/** Creates new form TextTab */
 	public TextTab(java.awt.Frame parent, boolean modal)
 	{
@@ -110,8 +112,8 @@ public class TextTab extends PreferencePanel
 		textDefaultFont.setSelectedItem(User.getDefaultFont());
 		textCellFont.setSelectedItem(User.getDefaultTextCellFont());
 		textCellSize.setText(Integer.toString(User.getDefaultTextCellSize()));
-		String editor = "External editor: ";
-		if (User.getDefaultTextExternalEditor().length() == 0) editor += "NOT SET"; else
+		String editor = EXTERNALEDITOR_HEADER;
+		if (User.getDefaultTextExternalEditor().length() == 0) editor += EXTERNALEDITOR_NOTSET; else
 			editor += User.getDefaultTextExternalEditor();
 		textExternalEditor.setText(editor);
 
@@ -319,7 +321,9 @@ public class TextTab extends PreferencePanel
 			textCellsChanged = true;
 		}
 		String externalEditor = textExternalEditor.getText();
-		if (!externalEditor.equals(new Integer(User.getDefaultTextCellSize())))
+		if (externalEditor.startsWith(EXTERNALEDITOR_HEADER)) externalEditor = externalEditor.substring(EXTERNALEDITOR_HEADER.length());
+		if (externalEditor.equals(EXTERNALEDITOR_NOTSET)) externalEditor = "";
+		if (!externalEditor.equals(User.getDefaultTextExternalEditor()))
 			User.setDefaultTextExternalEditor(externalEditor);
 
 		if (!currentTextNodeDescriptor.equals(initialTextNodeDescriptor))
@@ -374,7 +378,17 @@ public class TextTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		System.out.println("CANNOT RESET TEXT PREFERENCES YET");
+		TextDescriptor.factoryResetNodeTextDescriptor();
+		TextDescriptor.factoryResetArcTextDescriptor();
+		TextDescriptor.factoryResetExportTextDescriptor();
+		TextDescriptor.factoryResetAnnotationTextDescriptor();
+		TextDescriptor.factoryResetInstanceTextDescriptor();
+		TextDescriptor.factoryResetCellTextDescriptor();
+		User.setDefaultTextCellFont(User.getFactoryDefaultTextCellFont());
+		User.setDefaultTextCellSize(User.getFactoryDefaultTextCellSize());
+		User.setDefaultTextExternalEditor(User.getFactoryDefaultTextExternalEditor());
+		User.setDefaultFont(User.getFactoryDefaultFont());
+		User.setGlobalTextScale(User.getFactoryGlobalTextScale());
 	}
 
 	/** This method is called from within the constructor to
@@ -429,6 +443,7 @@ public class TextTab extends PreferencePanel
         textCellSize = new javax.swing.JTextField();
         textExternalEditor = new javax.swing.JLabel();
         textSetExternalEditor = new javax.swing.JButton();
+        textClearExternalEditor = new javax.swing.JButton();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -747,6 +762,7 @@ public class TextTab extends PreferencePanel
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         textCells.add(jLabel3, gridBagConstraints);
 
@@ -762,7 +778,7 @@ public class TextTab extends PreferencePanel
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         textCells.add(textExternalEditor, gridBagConstraints);
@@ -775,10 +791,23 @@ public class TextTab extends PreferencePanel
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         textCells.add(textSetExternalEditor, gridBagConstraints);
+
+        textClearExternalEditor.setText("Clear");
+        textClearExternalEditor.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                textClearExternalEditorActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        textCells.add(textClearExternalEditor, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -791,10 +820,14 @@ public class TextTab extends PreferencePanel
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    private void textClearExternalEditorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_textClearExternalEditorActionPerformed
+		textExternalEditor.setText(EXTERNALEDITOR_HEADER + EXTERNALEDITOR_NOTSET);
+    }//GEN-LAST:event_textClearExternalEditorActionPerformed
+
     private void textSetExternalEditorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_textSetExternalEditorActionPerformed
 		String fileName = OpenFile.chooseInputFile(FileType.ANY, "External editor");
 		if (fileName == null) return;
-		textExternalEditor.setText(fileName);
+		textExternalEditor.setText(EXTERNALEDITOR_HEADER + fileName);
     }//GEN-LAST:event_textSetExternalEditorActionPerformed
 
 	/** Closes the dialog */
@@ -829,6 +862,7 @@ public class TextTab extends PreferencePanel
     private javax.swing.JTextField textCellSize;
     private javax.swing.JRadioButton textCellText;
     private javax.swing.JPanel textCells;
+    private javax.swing.JButton textClearExternalEditor;
     private javax.swing.JComboBox textDefaultFont;
     private javax.swing.JLabel textExternalEditor;
     private javax.swing.JComboBox textFace;
