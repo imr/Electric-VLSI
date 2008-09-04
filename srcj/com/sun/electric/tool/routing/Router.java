@@ -305,9 +305,6 @@ public abstract class Router {
     public static ArcProto getArcToUse(PortProto port1, PortProto port2) {
         // current user selected arc
         ArcProto curAp = User.getUserTool().getCurrentArcProto();
-        ArcProto uni = Generic.tech().universal_arc;
-        ArcProto invis = Generic.tech().invisible_arc;
-        ArcProto unr = Generic.tech().unrouted_arc;
 
         // if connecting two busses, force a bus arc
 		if (curAp == Schematics.tech().wire_arc && port1 != null && port2 != null)
@@ -320,55 +317,48 @@ public abstract class Router {
         PortProto pp1 = null, pp2 = null;
         // Note: this makes it so either port1 or port2 can be null,
         // but only pp2 can be null down below
-        if (port1 == null) pp1 = port2; else {
-            pp1 = port1; pp2 = port2; }
+        if (port1 == null) pp1 = port2; else
+        	{ pp1 = port1; pp2 = port2; }
         if (pp1 == null && pp2 == null) return null;
-        
-        // Ignore pp2 if it is null
-        if (pp2 == null) {
-            // see if current arcproto works
-            if (pp1.connectsTo(curAp)) return curAp;
-            // otherwise, find one that does
-            Technology tech = pp1.getParent().getTechnology();
-            for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
-            {
-                ArcProto ap = it.next();
-                if (pp1.connectsTo(ap) && ap != uni && ap != invis && ap != unr) return ap;
-            }
-            // none in current technology: try any technology
-            for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
-            {
-                Technology anyTech = it.next();
-                for(Iterator<ArcProto> aIt = anyTech.getArcs(); aIt.hasNext(); )
-                {
-                    ArcProto ap = aIt.next();
-                    if (pp1.connectsTo(ap) && ap != uni && ap != invis && ap != unr) return ap;
-                }
-            }
-        } else {
-            // pp2 is not null, include it in search
 
-            // see if current arcproto workds
+        // see if current arcproto works
+        if (pp2 == null)
+        {
+            if (pp1.connectsTo(curAp)) return curAp;
+        } else
+        {
             if (pp1.connectsTo(curAp) && pp2.connectsTo(curAp)) return curAp;
-            // find one that works if current doesn't
-            Technology tech = pp1.getParent().getTechnology();
-            for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
-            {
-                ArcProto ap = it.next();
-                if (pp1.connectsTo(ap) && pp2.connectsTo(ap) && ap != uni && ap != invis && ap != unr) return ap;
-            }
-            // none in current technology: try any technology
-            for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
-            {
-                Technology anyTech = it.next();
-                for(Iterator<ArcProto> aIt = anyTech.getArcs(); aIt.hasNext(); )
-                {
-                    ArcProto ap = aIt.next();
-                    if (pp1.connectsTo(ap) && pp2.connectsTo(ap) && ap != uni && ap != invis && ap != unr) return ap;
-                }
-            }
         }
+
+        // otherwise, find one that does in the current technology
+        Technology tech = pp1.getParent().getTechnology();
+    	ArcProto ap = findArcThatConnects(tech, pp1, pp2);
+    	if (ap != null) return ap;
+
+        // none in current technology: try any technology but generic
+        for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
+        {
+            Technology anyTech = it.next();
+            if (anyTech == tech || anyTech == Generic.tech()) continue;
+            ap = findArcThatConnects(anyTech, pp1, pp2);
+            if (ap != null) return ap;
+        }
+
         return null;
+    }
+
+    private static ArcProto findArcThatConnects(Technology tech, PortProto pp1, PortProto pp2)
+    {
+		for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
+		{
+		    ArcProto ap = it.next();
+		    if (pp1.connectsTo(ap))
+		    {
+		    	if (pp2 == null || pp2.connectsTo(ap))
+		    		return ap;
+		    }
+		}
+		return null;
     }
 
     /**

@@ -185,15 +185,21 @@ public class VerticalRoute {
     public boolean isSpecificationSucceeded() { return specificationSucceeded; }
 
     // we need to copy the array, because we want to modify it
-    private ArcProto [] copyArcArray(ArcProto [] arcs) {
+    private ArcProto [] copyArcArray(ArcProto [] arcs)
+    {
         ArcProto [] copy = new ArcProto[arcs.length];
-        for (int i=0; i<arcs.length; i++) {
+
+        // see if there are nongeneric arcs
+        boolean allGeneric = true;
+        for(int i=0; i<arcs.length; i++)
+        	if (arcs[i].getTechnology() != Generic.tech()) allGeneric = false;
+
+        for (int i=0; i<arcs.length; i++)
+        {
             ArcProto arc = arcs[i];
             // get rid of arcs we won't route with
-            if (arc == Generic.tech().universal_arc && User.getUserTool().getCurrentArcProto() != Generic.tech().universal_arc) arc = null;
-            if (arc == Generic.tech().invisible_arc && User.getUserTool().getCurrentArcProto() != Generic.tech().invisible_arc) arc = null;
-            if (arc == Generic.tech().unrouted_arc && User.getUserTool().getCurrentArcProto() != Generic.tech().unrouted_arc) arc = null;
-            if ((arc != null) && (arc.isNotUsed())) arc = null;
+            if (!allGeneric && arc.getTechnology() == Generic.tech() && User.getUserTool().getCurrentArcProto() != arc) arc = null;
+            if (arc != null && arc.isNotUsed()) arc = null;
             copy[i] = arc;
         }
         return copy;

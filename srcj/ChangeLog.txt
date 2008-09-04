@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08f: ******************************
 
+BUG: (9/4/08, SMR) Cannot connect Port objects in technology editor (Bug #1820).
+FIX: Allow generic arcs to be routed if they connect generic nodes.
+
 ************************* Version 8.08e: ******************************
 
 BUG/MAN: (9/3/08, SMR) External Text Editor setting in "Text" preferences
