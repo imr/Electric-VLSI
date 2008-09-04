@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08f: ******************************
 
+IMP: (9/4/08, GVG) Avoid flat arcs in AutoStitch in case of ports are the same points. (Bug #1815)
+
 BUG: (9/4/08, SMR) Technologies with text on the well or substrate nodes
      have that text out of scale with other contacts (Bug #1822).
 FIX: In PrimitiveNode.getGroupFunction(), have Well and Substate nodes
