@@ -883,7 +883,10 @@ public class TechToLib
         if (nIn.func == PrimitiveNode.Function.NODE) {
             assert nIn.nodeLayers.length == 1;
             LayerInfo l = nIn.nodeLayers[0].layer;
-            assert l.pureLayerNode == null;
+            if (l.pureLayerNode != null)
+            	System.out.println("Warning: technology has two pure-layer nodes for layer " + l.name + ": " +
+            		l.pureLayerNode.name + " and " + nIn.name);
+//            assert l.pureLayerNode == null;
             l.pureLayerNode = nIn;
         }
         return nIn;
