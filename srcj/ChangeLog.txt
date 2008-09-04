@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08f: ******************************
 
+BUG: (9/4/08, SMR) Technologies with text on the well or substrate nodes
+     have that text out of scale with other contacts (Bug #1822).
+FIX: In PrimitiveNode.getGroupFunction(), have Well and Substate nodes
+     grouped with contacts.
+
 BUG: (9/4/08, SMR) Technology editor crashes when there are two pure-layer
      nodes for the same layer (Bug #1821).
 FIX: In TechToLib.makeNodeInfo(), change assertion to a warning.

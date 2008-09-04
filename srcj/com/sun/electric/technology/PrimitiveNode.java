@@ -1020,7 +1020,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 		if (function == Function.METER || function == Function.SOURCE)
 			return Function.SOURCE;
 		if (function == Function.SUBSTRATE || function == Function.WELL)
-			return Function.WELL;
+			return Function.CONTACT;
 		return function;
 	}
 

@@ -86,6 +86,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
@@ -102,7 +103,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
     /** the size of a palette entry. */					private int entrySize;
     /** the list of objects in the palette. */			private List<Object> inPalette = new ArrayList<Object>();
     /** the currently selected Node object. */			private Object highlightedNode;
-    /** to collect contacts that must be groups */      private HashMap<Object,Object> elementsMap = new HashMap<Object,Object>();
+    /** to collect contacts that must be groups */      private Map<Object,Object> elementsMap = new HashMap<Object,Object>();
     /** cached palette image */                         private VolatileImage paletteImage;
     /** if the palette image needs to be redrawn */     private boolean paletteImageStale;
     /** menu entry bounds */                            private Rectangle entryRect;
@@ -881,7 +882,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 	                    for(Iterator<PrimitiveNode> it = np.getTechnology().getNodes(); it.hasNext(); )
 	                    {
 	                        PrimitiveNode otherNp = it.next();
-	                        if (otherNp.getGroupFunction() != groupFunction) continue;
+							if (otherNp.getGroupFunction() != groupFunction) continue;
 	                        if (otherNp.isSkipSizeInPalette()) continue;
 	                        if (otherNp.getDefHeight() > largest) largest = otherNp.getDefHeight();
 	                        if (otherNp.getDefWidth() > largest) largest = otherNp.getDefWidth();
@@ -902,6 +903,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 	                    }
 
 	                    // render it
+                        if (largest == 0) largest = 1;
 	                    double scalex = entrySize/largest * 0.8;
 	                    double scaley = entrySize/largest * 0.8;
 	                    double scale = Math.min(scalex, scaley);
