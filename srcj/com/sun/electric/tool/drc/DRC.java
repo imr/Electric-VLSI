@@ -211,8 +211,8 @@ public class DRC extends Listener
             // to avoid the error
             boolean [] pointsFound = new boolean[3];
             pointsFound[0] = pointsFound[1] = pointsFound[2] = false;
-            boolean found = lookForLayerNew(geom, poly, null, null, cell, layer, DBMath.MATID,  poly.getBounds2D(),
-                from, to, center, pointsFound, true, true, reportInfo.ignoreCenterCuts);
+            boolean found = lookForLayerCoverage(geom, poly, null, null, cell, layer, DBMath.MATID,  poly.getBounds2D(),
+                from, to, center, pointsFound, true, null, true, reportInfo.ignoreCenterCuts);
             if (found) return false; // no error, flat element covered by othe elements.
 
             if (reportError)
@@ -318,111 +318,6 @@ public class DRC extends Listener
 	}
 
     /**
-	 * Method to examine cell "cell" in the area (lx<=X<=hx, ly<=Y<=hy) for objects
-	 * on layer "layer".  Apply transformation "moreTrans" to the objects.  If polygons are
-	 * found at (xf1,yf1) or (xf2,yf2) or (xf3,yf3) then sets "p1found/p2found/p3found" to 1.
-	 * If all locations are found, returns true.
-	 */
-	static boolean lookForLayerNew(Geometric geo1, Poly poly1, Geometric geo2, Poly poly2, Cell cell,
-                                   Layer layer, AffineTransform moreTrans, Rectangle2D bounds,
-                                   Point2D pt1, Point2D pt2, Point2D pt3, boolean[] pointsFound,
-                                   boolean overlap, boolean ignoreSameGeometry, boolean ignoreCenterCuts)
-	{
-		int j;
-        Rectangle2D newBounds = new Rectangle2D.Double();  // Sept 30
-
-		for(Iterator<RTBounds> it = cell.searchIterator(bounds); it.hasNext(); )
-		{
-			RTBounds g = it.next();
-
-            // You can't skip the same geometry otherwise layers in the same Geometric won't
-            // be tested
-            // But it is necessary while testing flat geometries...  in minWidthInternal
-			if (ignoreSameGeometry && (g == geo1 || g == geo2))
-                continue;
-
-            // I can't skip geometries to exclude from the search
-			if (g instanceof NodeInst)
-			{
-				NodeInst ni = (NodeInst)g;
-				if (NodeInst.isSpecialNode(ni)) continue; // Nov 16, no need for checking pins or other special nodes;
-				if (ni.isCellInstance())
-				{
-					// compute bounding area inside of sub-cell
-					AffineTransform rotI = ni.rotateIn();
-					AffineTransform transI = ni.translateIn();
-					rotI.preConcatenate(transI);
-					newBounds.setRect(bounds);
-					DBMath.transformRect(newBounds, rotI);
-
-					// compute new matrix for sub-cell examination
-					AffineTransform trans = ni.translateOut(ni.rotateOut());
-					trans.preConcatenate(moreTrans);
-					if (lookForLayerNew(geo1, poly1, geo2, poly2, (Cell)ni.getProto(), layer, trans, newBounds,
-						pt1, pt2, pt3, pointsFound, overlap, false, ignoreCenterCuts))
-							return true;
-					continue;
-				}
-				AffineTransform bound = ni.rotateOut();
-				bound.preConcatenate(moreTrans);
-				Technology tech = ni.getProto().getTechnology();
-                // I have to ask for electrical layers otherwise it will retrieve one polygon for polysilicon
-                // and poly.polySame(poly1) will never be true. CONTRADICTION!
-				Poly [] layerLookPolyList = tech.getShapeOfNode(ni, false, ignoreCenterCuts, null);
-				int tot = layerLookPolyList.length;
-				for(int i=0; i<tot; i++)
-				{
-					Poly poly = layerLookPolyList[i];
-					if (!tech.sameLayer(poly.getLayer(), layer)) continue;
-
-                    // Should be the transform before?
-					poly.transform(bound);
-
-					if (poly1 != null && !overlap && poly.polySame(poly1))
-						continue;
-					if (poly2 != null && !overlap && poly.polySame(poly2))
-						continue;
-
-					if (!pointsFound[0] && poly.isInside(pt1)) pointsFound[0] = true; // @TODO Should still evaluate isInside if pointsFound[i] is already valid?
-					if (!pointsFound[1] && poly.isInside(pt2)) pointsFound[1] = true;
-					if (pt3 != null && !pointsFound[2] && poly.isInside(pt3)) pointsFound[2] = true;
-					for (j = 0; j < pointsFound.length && pointsFound[j]; j++);
-					if (j == pointsFound.length) return true;
-                    // No need of checking rest of the layers
-                    break; // assuming only 1 polygon per layer (non-electrical)
-				}
-			} else
-			{
-				ArcInst ai = (ArcInst)g;
-				Technology tech = ai.getProto().getTechnology();
-				Poly [] layerLookPolyList = tech.getShapeOfArc(ai);
-				int tot = layerLookPolyList.length;
-				for(int i=0; i<tot; i++)
-				{
-					Poly poly = layerLookPolyList[i];
-					if (!tech.sameLayer(poly.getLayer(), layer)) continue;
-					poly.transform(moreTrans);  // @TODO Should still evaluate isInside if pointsFound[i] is already valid?
-					if (!pointsFound[0] && poly.isInside(pt1)) pointsFound[0] = true;
-					if (!pointsFound[1] && poly.isInside(pt2)) pointsFound[1] = true;
-					if (pt3 != null && !pointsFound[2] && poly.isInside(pt3)) pointsFound[2] = true;
-					for (j = 0; j < pointsFound.length && pointsFound[j]; j++);
-					if (j == pointsFound.length) return true;
-                    // No need of checking rest of the layers
-                    break;
-				}
-			}
-
-			for (j = 0; j < pointsFound.length && pointsFound[j]; j++);
-			if (j == pointsFound.length)
-            {
-                assert(false); // test when otherwise the calculation is useless! System.out.println("When?");
-                return true;
-            }
-		}
-		return false;
-	}
-
-    /**
      * Method to determine if neighbor would help to cover the minimum conditions
      * @return true if error was found (not warning)
      */
@@ -468,14 +363,14 @@ public class DRC extends Listener
                 bounds.getWidth()+ TINYDELTA *2, bounds.getHeight()+ TINYDELTA *2);
         boolean zeroWide = (bounds.getWidth() == 0 || bounds.getHeight() == 0);
 
-        boolean overlapLayer = Quick.lookForLayer(poly, cell, layer, DBMath.MATID, newBounds,
+        boolean overlapLayer = lookForLayer(poly, cell, layer, DBMath.MATID, newBounds,
                 left1, left2, left3, pointsFound, reportInfo.ignoreCenterCuts); //) return false;
 //        if (overlapLayer && !zeroWide) return false;
         if (overlapLayer) return false;
 
         // Try the other corner
         pointsFound[0] = pointsFound[1] = pointsFound[2] = false;
-        overlapLayer = Quick.lookForLayer(poly, cell, layer, DBMath.MATID, newBounds,
+        overlapLayer = lookForLayer(poly, cell, layer, DBMath.MATID, newBounds,
                 right1, right2, right3, pointsFound, reportInfo.ignoreCenterCuts); //) return false;
 //        if (overlapLayer && !zeroWide) return false;
         if (overlapLayer) return false;
@@ -497,6 +392,221 @@ public class DRC extends Listener
             createDRCErrorLogger(reportInfo, errorType, extraMsg, cell, minWidthRule.getValue(0), actual, rule,
                 (onlyOne) ? null : poly, geom, layer, null, null, null);
         return !overlapLayer;
+    }
+
+    /**
+         * Method to examine cell "cell" in the area (lx<=X<=hx, ly<=Y<=hy) for objects
+     * on layer "layer".  Apply transformation "moreTrans" to the objects.  If polygons are
+     * found at (xf1,yf1) or (xf2,yf2) or (xf3,yf3) then sets "p1found/p2found/p3found" to 1.
+     *  If poly1 or poly2 is not null, ignore geometries that are identical to them.
+     * If all locations are found, returns true.
+     */
+    static boolean lookForLayerCoverage(Geometric geo1, Poly poly1, Geometric geo2, Poly poly2, Cell cell,
+                                   Layer layer, AffineTransform moreTrans, Rectangle2D bounds,
+                                   Point2D pt1, Point2D pt2, Point2D pt3, boolean[] pointsFound,
+                                   boolean overlap, Layer.Function.Set layerFunction, boolean ignoreSameGeometry,
+                                   boolean ignoreCenterCuts)
+    {
+        int j;
+        Rectangle2D newBounds = new Rectangle2D.Double();  // Sept 30
+
+        for (Iterator<RTBounds> it = cell.searchIterator(bounds); it.hasNext();)
+        {
+            RTBounds g = it.next();
+
+            // You can't skip the same geometry otherwise layers in the same Geometric won't
+            // be tested.
+            // But it is necessary while testing flat geometries... in minWidthInternal
+            if (ignoreSameGeometry && (g == geo1 || g == geo2))
+                continue;
+
+            // I can't skip geometries to exclude from the search
+            if (g instanceof NodeInst)
+            {
+                NodeInst ni = (NodeInst) g;
+                if (NodeInst.isSpecialNode(ni))
+                    continue; // Nov 16, no need for checking pins or other special nodes;
+                if (ni.isCellInstance())
+                {
+                    // compute bounding area inside of sub-cell
+                    AffineTransform rotI = ni.rotateIn();
+                    AffineTransform transI = ni.translateIn();
+                    rotI.preConcatenate(transI);
+                    newBounds.setRect(bounds);
+                    DBMath.transformRect(newBounds, rotI);
+
+                    // compute new matrix for sub-cell examination
+                    AffineTransform trans = ni.translateOut(ni.rotateOut());
+                    trans.preConcatenate(moreTrans);
+                    if (lookForLayerCoverage(geo1, poly1, geo2, poly2, (Cell) ni.getProto(), layer, trans, newBounds,
+                        pt1, pt2, pt3, pointsFound, overlap, layerFunction, false, ignoreCenterCuts))
+                        return true;
+                    continue;
+                }
+                AffineTransform bound = ni.rotateOut();
+                bound.preConcatenate(moreTrans);
+                Technology tech = ni.getProto().getTechnology();
+                // I have to ask for electrical layers otherwise it will retrieve one polygon for polysilicon
+                // and poly.polySame(poly1) will never be true. CONTRADICTION!
+                Poly[] layerLookPolyList = tech.getShapeOfNode(ni, false, ignoreCenterCuts, layerFunction); // consistent change!);
+                int tot = layerLookPolyList.length;
+                for (int i = 0; i < tot; i++)
+                {
+                    Poly poly = layerLookPolyList[i];
+                    // sameLayer test required to check if Active layer is not identical to thick active layer
+                    if (!tech.sameLayer(poly.getLayer(), layer))
+                    {
+                        continue;
+                    }
+
+                    // Should be the transform before?
+                    poly.transform(bound);
+
+                    if (poly1 != null && !overlap && poly.polySame(poly1))
+                        continue;
+                    if (poly2 != null && !overlap && poly.polySame(poly2))
+                        continue;
+
+                    if (!pointsFound[0] && poly.isInside(pt1))
+                        pointsFound[0] = true; // @TODO Should still evaluate isInside if pointsFound[i] is already valid?
+                    if (!pointsFound[1] && poly.isInside(pt2)) pointsFound[1] = true;
+                    if (pt3 != null && !pointsFound[2] && poly.isInside(pt3)) pointsFound[2] = true;
+                    for (j = 0; j < pointsFound.length && pointsFound[j]; j++) ;
+                    if (j == pointsFound.length) return true;
+                    // No need of checking rest of the layers
+                    break; // assuming only 1 polygon per layer (non-electrical)
+                }
+            } else
+            {
+                ArcInst ai = (ArcInst) g;
+                Technology tech = ai.getProto().getTechnology();
+                Poly[] layerLookPolyList = tech.getShapeOfArc(ai, layerFunction); // consistent change!);
+                int tot = layerLookPolyList.length;
+                for (int i = 0; i < tot; i++)
+                {
+                    Poly poly = layerLookPolyList[i];
+                    // sameLayer test required to check if Active layer is not identical to thich actice layer
+                    if (!tech.sameLayer(poly.getLayer(), layer))
+                    {
+                        continue;
+                    }
+                    poly.transform(moreTrans);  // @TODO Should still evaluate isInside if pointsFound[i] is already valid?
+                    if (!pointsFound[0] && poly.isInside(pt1)) pointsFound[0] = true;
+                    if (!pointsFound[1] && poly.isInside(pt2)) pointsFound[1] = true;
+                    if (pt3 != null && !pointsFound[2] && poly.isInside(pt3)) pointsFound[2] = true;
+                    for (j = 0; j < pointsFound.length && pointsFound[j]; j++) ;
+                    if (j == pointsFound.length) return true;
+                    // No need of checking rest of the layers
+                    break;
+                }
+            }
+
+            for (j = 0; j < pointsFound.length && pointsFound[j]; j++) ;
+            if (j == pointsFound.length)
+            {
+                assert (false); // test when otherwise the calculation is useless! System.out.println("When?");
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+	 * Method to examine cell "cell" in the area (lx<=X<=hx, ly<=Y<=hy) for objects
+     * on layer "layer".  Apply transformation "moreTrans" to the objects.  If polygons are
+     * found at (xf1,yf1) or (xf2,yf2) or (xf3,yf3) then sets "p1found/p2found/p3found" to 1.
+     * If all locations are found, returns true.
+     */
+    static boolean lookForLayer(Poly thisPoly, Cell cell, Layer layer,
+                                AffineTransform moreTrans, Rectangle2D bounds, 
+                                Point2D pt1, Point2D pt2, Point2D pt3, boolean [] pointsFound,
+                                boolean ignoreCenterCuts)
+    {
+        int j;
+        boolean skip = false;
+        Rectangle2D newBounds = new Rectangle2D.Double();  // sept 30
+
+        for(Iterator<RTBounds> it = cell.searchIterator(bounds); it.hasNext(); )
+        {
+            RTBounds g = it.next();
+            if (g instanceof NodeInst)
+            {
+                NodeInst ni = (NodeInst)g;
+                if (NodeInst.isSpecialNode(ni)) continue; // Nov 16, no need for checking pins or other special nodes;
+                if (ni.isCellInstance())
+                {
+                    // compute bounding area inside of sub-cell
+                    AffineTransform rotI = ni.rotateIn();
+                    AffineTransform transI = ni.translateIn();
+                    rotI.preConcatenate(transI);
+                    newBounds.setRect(bounds);
+                    DBMath.transformRect(newBounds, rotI);
+
+                    // compute new matrix for sub-cell examination
+                    AffineTransform trans = ni.translateOut(ni.rotateOut());
+                    trans.preConcatenate(moreTrans);
+                    if (lookForLayer(thisPoly, (Cell)ni.getProto(), layer, trans, newBounds,
+                        pt1, pt2, pt3, pointsFound, ignoreCenterCuts))
+                            return true;
+                    continue;
+                }
+                AffineTransform bound = ni.rotateOut();
+                bound.preConcatenate(moreTrans);
+                Technology tech = ni.getProto().getTechnology();
+                Poly [] layerLookPolyList = tech.getShapeOfNode(ni, false, ignoreCenterCuts, null);
+                int tot = layerLookPolyList.length;
+                for(int i=0; i<tot; i++)
+                {
+                    Poly poly = layerLookPolyList[i];
+
+                    if (!tech.sameLayer(poly.getLayer(), layer)) continue;
+
+                    if (thisPoly != null && poly.polySame(thisPoly)) continue;
+                    poly.transform(bound);
+                    if (poly.isInside(pt1)) pointsFound[0] = true;
+                    if (poly.isInside(pt2)) pointsFound[1] = true;
+                    if (pt3 != null && poly.isInside(pt3)) pointsFound[2] = true;
+                    for (j = 0; j < pointsFound.length && pointsFound[j]; j++);
+                    boolean newR = (j == pointsFound.length);
+                    if (newR)
+                        return true;
+
+// No need of checking rest of the layers?
+//break;
+                }
+            } else
+            {
+                ArcInst ai = (ArcInst)g;
+                Technology tech = ai.getProto().getTechnology();
+                Poly [] layerLookPolyList = tech.getShapeOfArc(ai);
+                int tot = layerLookPolyList.length;
+                for(int i=0; i<tot; i++)
+                {
+                    Poly poly = layerLookPolyList[i];
+                    if (!tech.sameLayer(poly.getLayer(), layer)) continue;
+                    poly.transform(moreTrans);
+                    if (poly.isInside(pt1)) pointsFound[0] = true;
+                    if (poly.isInside(pt2)) pointsFound[1] = true;
+                    if (pt3 != null && poly.isInside(pt3)) pointsFound[2] = true;
+                    for (j = 0; j < pointsFound.length && pointsFound[j]; j++);
+                    boolean newR = (j == pointsFound.length);
+                    if (newR)
+                        return true;
+// No need of checking rest of the layers
+//break;
+                }
+            }
+
+            for (j = 0; j < pointsFound.length && pointsFound[j]; j++);
+if (j == pointsFound.length)
+{
+System.out.println("When?");
+return true;
+}
+        }
+if (skip) System.out.println("This case in lookForLayerNew antes");
+
+        return false;
     }
 
     /*********************************** QUICK DRC ERROR REPORTING ***********************************/

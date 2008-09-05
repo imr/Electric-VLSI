@@ -208,10 +208,6 @@ public class Quick
 
         // if checking specific instances, adjust options and processor count
         int count = (geomsToCheck != null) ? geomsToCheck.length : 0;
-//		if (count > 0)
-//		{
-//			reportInfo.errorTypeSearch = DRC.DRCCheckMode.ERROR_CHECK_CELL;
-//		}
 
         reportInfo = new DRC.ReportInfo(errorLog, tech, (count > 0));
         ErrorLogger errorLogger = errorLog;
@@ -1666,8 +1662,8 @@ public class Quick
         }
         // looking if points around the overlapping area are inside another region
         // to avoid the error
-        DRC.lookForLayerNew(geom1, poly1, geom2, poly2, cell, layer1, DBMath.MATID, search,
-                pt1d, pt2d, null, pointsFound, false, false, reportInfo.ignoreCenterCuts);
+        DRC.lookForLayerCoverage(geom1, poly1, geom2, poly2, cell, layer1, DBMath.MATID, search,
+                pt1d, pt2d, null, pointsFound, false, null, false, reportInfo.ignoreCenterCuts);
         // Nothing found
         if (!pointsFound[0] && !pointsFound[1])
         {
@@ -2436,16 +2432,16 @@ public class Quick
         boolean [] pointsFound = new boolean[3];
 		pointsFound[0] = pointsFound[1] = pointsFound[2] = false;
         // Test first with a vertical line
-        boolean found = DRC.lookForLayerNew(geom, poly, null, null, cell, layer, DBMath.MATID, bnd, pt1, pt2, pt3,
-                pointsFound, true, false, ignoreCenterCuts);
+        boolean found = DRC.lookForLayerCoverage(geom, poly, null, null, cell, layer, DBMath.MATID, bnd, pt1, pt2, pt3,
+                pointsFound, true, null, false, ignoreCenterCuts);
         if (!found)
             return found; // no need of checking horizontal line if the vertical test was not positive
         pt1.setLocation(polyBnd.getMinX(), midPointY);
         pt2.setLocation(polyBnd.getMaxX(), midPointY);
         pointsFound[0] = pointsFound[1] = false;
         pointsFound[2] = true; // no testing pt3 again
-        found = DRC.lookForLayerNew(geom, poly, null, null, cell, layer, DBMath.MATID, bnd, pt1, pt2, null,
-                pointsFound, true, false, ignoreCenterCuts);
+        found = DRC.lookForLayerCoverage(geom, poly, null, null, cell, layer, DBMath.MATID, bnd, pt1, pt2, null,
+                pointsFound, true, null, false, ignoreCenterCuts);
         return found;
     }
 
@@ -2929,111 +2925,13 @@ public class Quick
 		// search the cell for geometry that fills the notch
 		boolean [] pointsFound = new boolean[2];
 		pointsFound[0] = pointsFound[1] = false;
-		boolean allFound = DRC.lookForLayerNew(geo1, poly1, geo2, poly2, cell, layer, DBMath.MATID, bounds,
-		        pt1, pt2, null, pointsFound, overlap, false, reportInfo.ignoreCenterCuts);
+		boolean allFound = DRC.lookForLayerCoverage(geo1, poly1, geo2, poly2, cell, layer, DBMath.MATID, bounds,
+		        pt1, pt2, null, pointsFound, overlap, null, false, reportInfo.ignoreCenterCuts);
 
 		return allFound;
 	}
 
-	/**
-	 * Method to examine cell "cell" in the area (lx<=X<=hx, ly<=Y<=hy) for objects
-	 * on layer "layer".  Apply transformation "moreTrans" to the objects.  If polygons are
-	 * found at (xf1,yf1) or (xf2,yf2) or (xf3,yf3) then sets "p1found/p2found/p3found" to 1.
-	 * If all locations are found, returns true.
-	 */
-	static boolean lookForLayer(Poly thisPoly, Cell cell, Layer layer, AffineTransform moreTrans,
-                                Rectangle2D bounds, Point2D pt1, Point2D pt2, Point2D pt3, boolean [] pointsFound,
-                                boolean ignoreCenterCuts)
-	{
-		int j;
-        boolean skip = false;
-        Rectangle2D newBounds = new Rectangle2D.Double();  // sept 30
-
-		for(Iterator<RTBounds> it = cell.searchIterator(bounds); it.hasNext(); )
-		{
-			RTBounds g = it.next();
-			if (g instanceof NodeInst)
-			{
-				NodeInst ni = (NodeInst)g;
-				if (NodeInst.isSpecialNode(ni)) continue; // Nov 16, no need for checking pins or other special nodes;
-				if (ni.isCellInstance())
-				{
-					// compute bounding area inside of sub-cell
-					AffineTransform rotI = ni.rotateIn();
-					AffineTransform transI = ni.translateIn();
-					rotI.preConcatenate(transI);
-					newBounds.setRect(bounds);
-					DBMath.transformRect(newBounds, rotI);
-
-					// compute new matrix for sub-cell examination
-					AffineTransform trans = ni.translateOut(ni.rotateOut());
-					trans.preConcatenate(moreTrans);
-					if (lookForLayer(thisPoly, (Cell)ni.getProto(), layer, trans, newBounds,
-						pt1, pt2, pt3, pointsFound, ignoreCenterCuts))
-							return true;
-					continue;
-				}
-				AffineTransform bound = ni.rotateOut();
-				bound.preConcatenate(moreTrans);
-				Technology tech = ni.getProto().getTechnology();
-				Poly [] layerLookPolyList = tech.getShapeOfNode(ni, false, ignoreCenterCuts, null);
-				int tot = layerLookPolyList.length;
-				for(int i=0; i<tot; i++)
-				{
-					Poly poly = layerLookPolyList[i];
-
-					if (!tech.sameLayer(poly.getLayer(), layer)) continue;
-
-					if (thisPoly != null && poly.polySame(thisPoly)) continue;
-					poly.transform(bound);
-					if (poly.isInside(pt1)) pointsFound[0] = true;
-					if (poly.isInside(pt2)) pointsFound[1] = true;
-					if (pt3 != null && poly.isInside(pt3)) pointsFound[2] = true;
-					for (j = 0; j < pointsFound.length && pointsFound[j]; j++);
-					boolean newR = (j == pointsFound.length);
-					if (newR)
-                    {
-						return true;
-                    }
-                    // No need of checking rest of the layers?
-                    //break;
-				}
-			} else
-			{
-				ArcInst ai = (ArcInst)g;
-				Technology tech = ai.getProto().getTechnology();
-				Poly [] layerLookPolyList = tech.getShapeOfArc(ai);
-				int tot = layerLookPolyList.length;
-				for(int i=0; i<tot; i++)
-				{
-					Poly poly = layerLookPolyList[i];
-					if (!tech.sameLayer(poly.getLayer(), layer)) continue;
-					poly.transform(moreTrans);
-					if (poly.isInside(pt1)) pointsFound[0] = true;
-					if (poly.isInside(pt2)) pointsFound[1] = true;
-					if (pt3 != null && poly.isInside(pt3)) pointsFound[2] = true;
-					for (j = 0; j < pointsFound.length && pointsFound[j]; j++);
-					boolean newR = (j == pointsFound.length);
-					if (newR)
-						return true;
-                    // No need of checking rest of the layers
-                    //break;
-				}
-			}
-
-			for (j = 0; j < pointsFound.length && pointsFound[j]; j++);
-            if (j == pointsFound.length)
-            {
-                System.out.println("When?");
-                return true;
-            }
-		}
-        if (skip) System.out.println("This case in lookForLayerNew antes");
-
-		return false;
-	}
-
-	/**
+    /**
 	 * Method to examine cell "cell" in the area (lx<=X<=hx, ly<=Y<=hy) for objects
 	 * on layer "layer".  Apply transformation "moreTrans" to the objects.  If polygons are
 	 * found at (xf1,yf1) or (xf2,yf2) or (xf3,yf3) then sets "p1found/p2found/p3found" to 1.

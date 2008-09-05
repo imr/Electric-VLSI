@@ -1667,8 +1667,8 @@ public class MTDRCLayoutTool extends MTDRCTool
             }
             // looking if points around the overlapping area are inside another region
             // to avoid the error
-            lookForLayerNew(geom1, poly1, geom2, poly2, cell, layer1, DBMath.MATID, search,
-                pt1d, pt2d, null, pointsFound, false, false, false, reportInfo.ignoreCenterCuts);
+            DRC.lookForLayerCoverage(geom1, poly1, geom2, poly2, cell, layer1, DBMath.MATID, search,
+                pt1d, pt2d, null, pointsFound, false, thisLayerFunction, false, reportInfo.ignoreCenterCuts);
             // Nothing found
             if (!pointsFound[0] && !pointsFound[1])
             {
@@ -2530,16 +2530,16 @@ public class MTDRCLayoutTool extends MTDRCTool
             boolean[] pointsFound = new boolean[3];
             pointsFound[0] = pointsFound[1] = pointsFound[2] = false;
             // Test first with a vertical line
-            boolean found = lookForLayerNew(geom, poly, null, null, cell, layer, DBMath.MATID, bnd, pt1, pt2, pt3,
-                pointsFound, true, true, false, ignoreCenterCuts);
+            boolean found = DRC.lookForLayerCoverage(geom, poly, null, null, cell, layer, DBMath.MATID, bnd, pt1, pt2, pt3,
+                pointsFound, true, null, false, ignoreCenterCuts);
             if (!found)
                 return found; // no need of checking horizontal line if the vertical test was not positive
             pt1.setLocation(polyBnd.getMinX(), midPointY);
             pt2.setLocation(polyBnd.getMaxX(), midPointY);
             pointsFound[0] = pointsFound[1] = false;
             pointsFound[2] = true; // no testing pt3 again
-            found = lookForLayerNew(geom, poly, null, null, cell, layer, DBMath.MATID, bnd, pt1, pt2, null,
-                pointsFound, true, true, false, ignoreCenterCuts);
+            found = DRC.lookForLayerCoverage(geom, poly, null, null, cell, layer, DBMath.MATID, bnd, pt1, pt2, null,
+                pointsFound, true, null, false, ignoreCenterCuts);
             return found;
         }
 
@@ -2640,8 +2640,8 @@ public class MTDRCLayoutTool extends MTDRCTool
                 // to avoid the error
                 boolean [] pointsFound = new boolean[3];
                 pointsFound[0] = pointsFound[1] = pointsFound[2] = false;
-                boolean found = lookForLayerNew(geom, poly, null, null, cell, layer, DBMath.MATID,  poly.getBounds2D(),
-                    from, to, center, pointsFound, true, true, true, reportInfo.ignoreCenterCuts);
+                boolean found = DRC.lookForLayerCoverage(geom, poly, null, null, cell, layer, DBMath.MATID,  poly.getBounds2D(),
+                    from, to, center, pointsFound, true, null, true, reportInfo.ignoreCenterCuts);
                 if (found) return false; // no error, flat element covered by othe elements.
 
                 if (reportError)
@@ -2945,35 +2945,6 @@ public class MTDRCLayoutTool extends MTDRCTool
          * geometry on layer "layer" (in or below cell "cell").  Returns true if there is.
          * If "needBoth" is true, both points must have geometry, otherwise only 1 needs it.
          */
-//	private boolean lookForPoints(Point2D pt1, Point2D pt2, Layer layer, Cell cell, boolean needBoth)
-//	{
-//		Point2D pt3 = new Point2D.Double((pt1.getX()+pt2.getX()) / 2, (pt1.getY()+pt2.getY()) / 2);
-//
-//		// compute bounds for searching inside cells
-//		double flx = Math.min(pt1.getX(), pt2.getX());   double fhx = Math.max(pt1.getX(), pt2.getX());
-//		double fly = Math.min(pt1.getY(), pt2.getY());   double fhy = Math.max(pt1.getY(), pt2.getY());
-//		Rectangle2D bounds = new Rectangle2D.Double(flx, fly, fhx-flx, fhy-fly);
-//
-//		// search the cell for geometry that fills the notch
-//		boolean [] pointsFound = new boolean[3];
-//		pointsFound[0] = pointsFound[1] = pointsFound[2] = false;
-//		boolean allFound = lookForLayer(null, cell, layer, DBMath.MATID, bounds,
-//			pt1, pt2, pt3, pointsFound);
-//		if (needBoth)
-//		{
-//			if (allFound) return true;
-//		} else
-//		{
-//			if (pointsFound[0] || pointsFound[1]) return true;
-//		}
-//		return false;
-//	}
-
-        /**
-         * Method to explore the points (xf1,yf1) and (xf2,yf2) to see if there is
-         * geometry on layer "layer" (in or below cell "cell").  Returns true if there is.
-         * If "needBoth" is true, both points must have geometry, otherwise only 1 needs it.
-         */
         private boolean lookForCrossPolygons(Geometric geo1, Poly poly1, Geometric geo2, Poly poly2, Layer layer,
                                              Cell cell, boolean overlap)
         {
@@ -2994,8 +2965,8 @@ public class MTDRCLayoutTool extends MTDRCTool
             // search the cell for geometry that fills the notch
             boolean[] pointsFound = new boolean[2];
             pointsFound[0] = pointsFound[1] = false;
-            boolean allFound = lookForLayerNew(geo1, poly1, geo2, poly2, cell, layer, DBMath.MATID, bounds,
-                pt1, pt2, null, pointsFound, overlap, false, false, reportInfo.ignoreCenterCuts);
+            boolean allFound = DRC.lookForLayerCoverage(geo1, poly1, geo2, poly2, cell, layer, DBMath.MATID, bounds,
+                pt1, pt2, null, pointsFound, overlap, this.thisLayerFunction, false, reportInfo.ignoreCenterCuts);
 
             return allFound;
         }
@@ -3221,123 +3192,6 @@ public class MTDRCLayoutTool extends MTDRCTool
             return false;
         }
 
-        /**
-         * Method to examine cell "cell" in the area (lx<=X<=hx, ly<=Y<=hy) for objects
-         * on layer "layer".  Apply transformation "moreTrans" to the objects.  If polygons are
-         * found at (xf1,yf1) or (xf2,yf2) or (xf3,yf3) then sets "p1found/p2found/p3found" to 1.
-         * If all locations are found, returns true.
-         */
-        private boolean lookForLayerNew(Geometric geo1, Poly poly1, Geometric geo2, Poly poly2, Cell cell,
-                                        Layer layer, AffineTransform moreTrans, Rectangle2D bounds,
-                                        Point2D pt1, Point2D pt2, Point2D pt3, boolean[] pointsFound,
-                                        boolean overlap, boolean checkAllLayers, boolean ignoreSameGeometry,
-                                        boolean ignoreCenterCuts)
-        {
-            int j;
-            Rectangle2D newBounds = new Rectangle2D.Double();  // Sept 30
-            // Conditional rules need all layers for checking
-            Layer.Function.Set layerFunction = (!checkAllLayers) ? this.thisLayerFunction : null;
-
-            for (Iterator<RTBounds> it = cell.searchIterator(bounds); it.hasNext();)
-            {
-                RTBounds g = it.next();
-
-                // You can't skip the same geometry otherwise layers in the same Geometric won't
-                // be tested.
-                // But it is necessary while testing flat geometries... in minWidthInternal
-                if (ignoreSameGeometry && (g == geo1 || g == geo2))
-                    continue;
-
-                // I can't skip geometries to exclude from the search
-                if (g instanceof NodeInst)
-                {
-                    NodeInst ni = (NodeInst) g;
-                    if (NodeInst.isSpecialNode(ni))
-                        continue; // Nov 16, no need for checking pins or other special nodes;
-                    if (ni.isCellInstance())
-                    {
-                        // compute bounding area inside of sub-cell
-                        AffineTransform rotI = ni.rotateIn();
-                        AffineTransform transI = ni.translateIn();
-                        rotI.preConcatenate(transI);
-                        newBounds.setRect(bounds);
-                        DBMath.transformRect(newBounds, rotI);
-
-                        // compute new matrix for sub-cell examination
-                        AffineTransform trans = ni.translateOut(ni.rotateOut());
-                        trans.preConcatenate(moreTrans);
-                        if (lookForLayerNew(geo1, poly1, geo2, poly2, (Cell) ni.getProto(), layer, trans, newBounds,
-                            pt1, pt2, pt3, pointsFound, overlap, false, false, ignoreCenterCuts))
-                            return true;
-                        continue;
-                    }
-                    AffineTransform bound = ni.rotateOut();
-                    bound.preConcatenate(moreTrans);
-                    Technology tech = ni.getProto().getTechnology();
-                    // I have to ask for electrical layers otherwise it will retrieve one polygon for polysilicon
-                    // and poly.polySame(poly1) will never be true. CONTRADICTION!
-                    Poly[] layerLookPolyList = tech.getShapeOfNode(ni, false, ignoreCenterCuts, layerFunction); // consistent change!);
-                    int tot = layerLookPolyList.length;
-                    for (int i = 0; i < tot; i++)
-                    {
-                        Poly poly = layerLookPolyList[i];
-                        // sameLayer test required to check if Active layer is not identical to thick active layer
-                        if (!tech.sameLayer(poly.getLayer(), layer))
-                        {
-                            continue;
-                        }
-
-                        // Should be the transform before?
-                        poly.transform(bound);
-
-                        if (poly1 != null && !overlap && poly.polySame(poly1))
-                            continue;
-                        if (poly2 != null && !overlap && poly.polySame(poly2))
-                            continue;
-
-                        if (!pointsFound[0] && poly.isInside(pt1))
-                            pointsFound[0] = true; // @TODO Should still evaluate isInside if pointsFound[i] is already valid?
-                        if (!pointsFound[1] && poly.isInside(pt2)) pointsFound[1] = true;
-                        if (pt3 != null && !pointsFound[2] && poly.isInside(pt3)) pointsFound[2] = true;
-                        for (j = 0; j < pointsFound.length && pointsFound[j]; j++) ;
-                        if (j == pointsFound.length) return true;
-                        // No need of checking rest of the layers
-                        break; // assuming only 1 polygon per layer (non-electrical)
-                    }
-                } else
-                {
-                    ArcInst ai = (ArcInst) g;
-                    Technology tech = ai.getProto().getTechnology();
-                    Poly[] layerLookPolyList = tech.getShapeOfArc(ai, layerFunction); // consistent change!);
-                    int tot = layerLookPolyList.length;
-                    for (int i = 0; i < tot; i++)
-                    {
-                        Poly poly = layerLookPolyList[i];
-                        // sameLayer test required to check if Active layer is not identical to thich actice layer
-                        if (!tech.sameLayer(poly.getLayer(), layer))
-                        {
-                            continue;
-                        }
-                        poly.transform(moreTrans);  // @TODO Should still evaluate isInside if pointsFound[i] is already valid?
-                        if (!pointsFound[0] && poly.isInside(pt1)) pointsFound[0] = true;
-                        if (!pointsFound[1] && poly.isInside(pt2)) pointsFound[1] = true;
-                        if (pt3 != null && !pointsFound[2] && poly.isInside(pt3)) pointsFound[2] = true;
-                        for (j = 0; j < pointsFound.length && pointsFound[j]; j++) ;
-                        if (j == pointsFound.length) return true;
-                        // No need of checking rest of the layers
-                        break;
-                    }
-                }
-
-                for (j = 0; j < pointsFound.length && pointsFound[j]; j++) ;
-                if (j == pointsFound.length)
-                {
-                    assert (false); // test when otherwise the calculation is useless! System.out.println("When?");
-                    return true;
-                }
-            }
-            return false;
-        }
 
         /**
          * *************************** Cut Rule Functions **************************
@@ -4664,5 +4518,6 @@ public class MTDRCLayoutTool extends MTDRCTool
             exclusionMap.put(cell, area);
         }
     }
+
 }
 
