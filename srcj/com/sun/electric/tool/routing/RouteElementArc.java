@@ -367,11 +367,16 @@ public class RouteElementArc extends RouteElement {
 			// now run the arc
             double thisWidth = arcBaseWidth;
 
-            // The arc is zero length so better if arc width is min default width to avoid DRC errors => out sept 4 08
-            // The arc is zero length so better if arc width is zero to avoid DRC errors. The single point will
-            // be checked accoding to other geometries in DRC.
+            // The arc is zero length so better if arc width is min default width to avoid DRC errors if head/tail extended
+            // The arc is zero length so better if arc width is zero to avoid DRC errors if head/tail is not extended
             if (headPoint.equals(tailPoint))
-                thisWidth = 0; // arcProto.getDefaultLambdaBaseWidth();   // Sept 4 2008
+            {
+                if (extendArcHead || extendArcTail)
+                    thisWidth = arcProto.getDefaultLambdaBaseWidth();   // Sept 4 2008. Force to be a flat arc
+                else
+                    thisWidth = 0; // Sept 4 2008. Force to be a single point
+            }
+
             ArcInst newAi = ArcInst.makeInstanceBase(arcProto, thisWidth, headPi, tailPi, headPoint, tailPoint, arcName);
             if (newAi == null) return null;
 
