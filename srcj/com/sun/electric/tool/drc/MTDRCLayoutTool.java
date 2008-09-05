@@ -82,10 +82,8 @@ import java.util.*;
  * @author  Steve Rubin, Gilda Garreton
  */
 
-public class MTDRCLayoutTool extends MTDRCTool {
-    private static final double TINYDELTA = DBMath.getEpsilon()*1.1;
-    /** key of Variable holding DRC Cell annotations. */	private static final Variable.Key DRC_ANNOTATION_KEY = Variable.newKey("ATTR_DRC");
-
+public class MTDRCLayoutTool extends MTDRCTool
+{
     /**
 	 * The CheckInst object is associated with every cell instance in the library.
 	 * It helps determine network information on a global scale.
@@ -426,7 +424,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
 //		cellsMap.put(cell, cell);
 
             // Check if cell doesn't have special annotation
-            Variable drcVar = cell.getVar(DRC_ANNOTATION_KEY);
+            Variable drcVar = cell.getVar(DRC.DRC_ANNOTATION_KEY);
             if (drcVar != null && drcVar.getObject().toString().startsWith("black"))
             {
                 // Skipping this one
@@ -561,7 +559,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
                     Technology tech = ai.getProto().getTechnology();
                     if (tech != cellTech)
                     {
-                        reportError(DRC.DRCErrorType.TECHMIXWARN, " belongs to " + tech.getTechName(), cell, 0, 0, null, null, ai, null, null, null, null);
+                        DRC.createDRCErrorLogger(reportInfo, DRC.DRCErrorType.TECHMIXWARN, " belongs to " + tech.getTechName(), cell, 0, 0, null, null, ai, null, null, null, null);
                         continue;
                     }
                     if (bounds != null)
@@ -649,7 +647,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
 
             // there was an error, for now print error
             Layer layer = poly.getLayer();
-            reportError(DRC.DRCErrorType.RESOLUTION, " resolution of " + resolutionError + " less than " + reportInfo.minAllowedResolution +
+            DRC.createDRCErrorLogger(reportInfo, DRC.DRCErrorType.RESOLUTION, " resolution of " + resolutionError + " less than " + reportInfo.minAllowedResolution +
                 " on layer " + layer.getName(), cell, 0, 0, "Resolution", null, geom, null, null, null, null);
             return true;
         }
@@ -795,7 +793,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
 //			}
                     if (tech == layersValidTech && !layersValid[layer.getIndex()])
                     {
-                        reportError(DRC.DRCErrorType.BADLAYERERROR, null, cell, 0, 0, null,
+                        DRC.createDRCErrorLogger(reportInfo, DRC.DRCErrorType.BADLAYERERROR, null, cell, 0, 0, null,
                             poly, ni, layer, null, null, null);
                         if (reportInfo.errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
                         errorsFound = true;
@@ -808,7 +806,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
                 if (np instanceof PrimitiveNode && DRC.isForbiddenNode(currentRules, ((PrimitiveNode) np).getPrimNodeIndexInTech(), -1,
                     DRCTemplate.DRCRuleType.FORBIDDEN))
                 {
-                    reportError(DRC.DRCErrorType.FORBIDDEN, " is not allowed by selected foundry", cell, -1, -1, null, null, ni, null, null, null, null);
+                    DRC.createDRCErrorLogger(reportInfo, DRC.DRCErrorType.FORBIDDEN, " is not allowed by selected foundry", cell, -1, -1, null, null, ni, null, null, null, null);
                     if (reportInfo.errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
                     errorsFound = true;
                 }
@@ -849,7 +847,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
                             NodeInst node = e.getValue(); // od2Layers.get(lay1);
                             String message = "- combination of layers '" + layer.getName() + "' and '" + lay1.getName() + "' (in '" +
                                 node.getParent().getName() + ":" + node.getName() + "') not allowed by selected foundry";
-                            reportError(DRC.DRCErrorType.FORBIDDEN, message, ni.getParent(), -1, -1, null, null, ni, null, null, node, null);
+                            DRC.createDRCErrorLogger(reportInfo, DRC.DRCErrorType.FORBIDDEN, message, ni.getParent(), -1, -1, null, null, ni, null, null, node, null);
 
                             return true;
                         }
@@ -937,7 +935,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
                 }
                 if (tech == layersValidTech && !layersValid[layerNum])
                 {
-                    reportError(DRC.DRCErrorType.BADLAYERERROR, null, ai.getParent(), 0, 0, null,
+                    DRC.createDRCErrorLogger(reportInfo, DRC.DRCErrorType.BADLAYERERROR, null, ai.getParent(), 0, 0, null,
                         (tot == 1) ? null : poly, ai, layer, null, null, null);
                     if (reportInfo.errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
                     errorsFound = true;
@@ -1108,7 +1106,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
 
                     if (tech != cellTech)
                     {
-                        reportError(DRC.DRCErrorType.TECHMIXWARN, " belongs to " + tech.getTechName(), cell, 0, 0, null, null, ai, null, null, null, null);
+                        DRC.createDRCErrorLogger(reportInfo, DRC.DRCErrorType.TECHMIXWARN, " belongs to " + tech.getTechName(), cell, 0, 0, null, null, ai, null, null, null, null);
                         continue;
                     }
 
@@ -1596,7 +1594,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
             {
                 // you can't pass geom1 or geom2 becuase they could be in different cells and therefore the message
                 // could mislead
-                reportError(DRC.DRCErrorType.MINWIDTHERROR, null, topCell, minWidth, actual, wRule.ruleName, new Poly(bounds),
+                DRC.createDRCErrorLogger(reportInfo, DRC.DRCErrorType.MINWIDTHERROR, null, topCell, minWidth, actual, wRule.ruleName, new Poly(bounds),
                     null, layer1, null, null, layer2);
                 foundError = true;
             }
@@ -1621,8 +1619,8 @@ public class MTDRCLayoutTool extends MTDRCTool {
 
             // Search area should be bigger than bounding box otherwise it might not get the cells due to
             // rounding errors.
-            Rectangle2D search = new Rectangle2D.Double(DBMath.round(lxb - TINYDELTA), DBMath.round(lyb - TINYDELTA),
-                DBMath.round(hxb - lxb + 2 * TINYDELTA), DBMath.round(hyb - lyb + 2 * TINYDELTA));
+            Rectangle2D search = new Rectangle2D.Double(DBMath.round(lxb - DRC.TINYDELTA), DBMath.round(lyb - DRC.TINYDELTA),
+                DBMath.round(hxb - lxb + 2 * DRC.TINYDELTA), DBMath.round(hyb - lyb + 2 * DRC.TINYDELTA));
 
             // Looking for two corners not inside bounding boxes A and B
             if (pd == 0) // flat bounding box
@@ -1654,13 +1652,13 @@ public class MTDRCLayoutTool extends MTDRCTool {
                 if (pt1.getX() < pt2.getX())
                 {
                     // (y2-y1)/(x2-x1)(x1-tinydelta-x1) + y1
-                    pt1d = new Point2D.Double(pt1.getX() - TINYDELTA, -delta * TINYDELTA + pt1.getY());
+                    pt1d = new Point2D.Double(pt1.getX() - DRC.TINYDELTA, -delta * DRC.TINYDELTA + pt1.getY());
                     // (y2-y1)/(x2-x1)(x2+tinydelta-x2) + y2
-                    pt2d = new Point2D.Double(pt2.getX() + TINYDELTA, delta * TINYDELTA + pt2.getY());
+                    pt2d = new Point2D.Double(pt2.getX() + DRC.TINYDELTA, delta * DRC.TINYDELTA + pt2.getY());
                 } else
                 {
-                    pt1d = new Point2D.Double(pt2.getX() - TINYDELTA, -delta * TINYDELTA + pt2.getY());
-                    pt2d = new Point2D.Double(pt1.getX() + TINYDELTA, delta * TINYDELTA + pt1.getY());
+                    pt1d = new Point2D.Double(pt2.getX() - DRC.TINYDELTA, -delta * DRC.TINYDELTA + pt2.getY());
+                    pt2d = new Point2D.Double(pt1.getX() + DRC.TINYDELTA, delta * DRC.TINYDELTA + pt1.getY());
                 }
                 if (DBMath.areEquals(pt1.getX(), pt2.getX()) || DBMath.areEquals(pt1.getY(), pt2.getY()))
                 {
@@ -1670,7 +1668,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
             // looking if points around the overlapping area are inside another region
             // to avoid the error
             lookForLayerNew(geom1, poly1, geom2, poly2, cell, layer1, DBMath.MATID, search,
-                pt1d, pt2d, null, pointsFound, false, false);
+                pt1d, pt2d, null, pointsFound, false, false, false, reportInfo.ignoreCenterCuts);
             // Nothing found
             if (!pointsFound[0] && !pointsFound[1])
             {
@@ -1977,7 +1975,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
                 }
             }
 
-            reportError(errorType, msg, cell, theRule.getValue(0), pd, theRule.ruleName, origPoly1, geom1, layer1, origPoly2, geom2, layer2);
+            DRC.createDRCErrorLogger(reportInfo, errorType, msg, cell, theRule.getValue(0), pd, theRule.ruleName, origPoly1, geom1, layer1, origPoly2, geom2, layer2);
             return true;
         }
 
@@ -2446,11 +2444,11 @@ public class MTDRCLayoutTool extends MTDRCTool {
             {
                 actual = bounds.getWidth();
                 msg = "(X axis)";
-                double leftW = bounds.getMinX() - TINYDELTA;
+                double leftW = bounds.getMinX() - DRC.TINYDELTA;
                 left1 = new Point2D.Double(leftW, bounds.getMinY());
                 left2 = new Point2D.Double(leftW, bounds.getMaxY());
                 left3 = new Point2D.Double(leftW, bounds.getCenterY());
-                double rightW = bounds.getMaxX() + TINYDELTA;
+                double rightW = bounds.getMaxX() + DRC.TINYDELTA;
                 right1 = new Point2D.Double(rightW, bounds.getMinY());
                 right2 = new Point2D.Double(rightW, bounds.getMaxY());
                 right3 = new Point2D.Double(rightW, bounds.getCenterY());
@@ -2458,11 +2456,11 @@ public class MTDRCLayoutTool extends MTDRCTool {
             {
                 actual = bounds.getHeight();
                 msg = "(Y axis)";
-                double leftH = bounds.getMinY() - TINYDELTA;
+                double leftH = bounds.getMinY() - DRC.TINYDELTA;
                 left1 = new Point2D.Double(bounds.getMinX(), leftH);
                 left2 = new Point2D.Double(bounds.getMaxX(), leftH);
                 left3 = new Point2D.Double(bounds.getCenterX(), leftH);
-                double rightH = bounds.getMaxY() + TINYDELTA;
+                double rightH = bounds.getMaxY() + DRC.TINYDELTA;
                 right1 = new Point2D.Double(bounds.getMinX(), rightH);
                 right2 = new Point2D.Double(bounds.getMaxX(), rightH);
                 right3 = new Point2D.Double(bounds.getCenterX(), rightH);
@@ -2470,8 +2468,8 @@ public class MTDRCLayoutTool extends MTDRCTool {
             // see if there is more of this layer adjoining on either side
             boolean[] pointsFound = new boolean[3];
             pointsFound[0] = pointsFound[1] = pointsFound[2] = false;
-            Rectangle2D newBounds = new Rectangle2D.Double(bounds.getMinX() - TINYDELTA, bounds.getMinY() - TINYDELTA,
-                bounds.getWidth() + TINYDELTA * 2, bounds.getHeight() + TINYDELTA * 2);
+            Rectangle2D newBounds = new Rectangle2D.Double(bounds.getMinX() - DRC.TINYDELTA, bounds.getMinY() - DRC.TINYDELTA,
+                bounds.getWidth() + DRC.TINYDELTA * 2, bounds.getHeight() + DRC.TINYDELTA * 2);
             boolean zeroWide = (bounds.getWidth() == 0 || bounds.getHeight() == 0);
 
             boolean overlapLayer = lookForLayer(poly, cell, layer, DBMath.MATID, newBounds,
@@ -2500,7 +2498,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
             }
 
             if (reportError)
-                reportError(errorType, extraMsg, cell, minWidthRule.getValue(0), actual, rule,
+                DRC.createDRCErrorLogger(reportInfo, errorType, extraMsg, cell, minWidthRule.getValue(0), actual, rule,
                     (onlyOne) ? null : poly, geom, layer, null, null, null);
             return !overlapLayer;
         }
@@ -2515,7 +2513,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
          * @param upTrans
          * @return true if conditional layers are found for the test points
          */
-        private boolean searchForCondLayer(Geometric geom, Poly poly, Layer layer, Cell cell, Rectangle2D bounds, AffineTransform upTrans)
+        private boolean searchForCondLayer(Geometric geom, Poly poly, Layer layer, Cell cell, boolean ignoreCenterCuts)
         {
             Rectangle2D polyBnd = poly.getBounds2D();
             double midPointX = (polyBnd.getMinX() + polyBnd.getMaxX()) / 2;
@@ -2524,16 +2522,16 @@ public class MTDRCLayoutTool extends MTDRCTool {
             Point2D pt2 = new Point2D.Double(midPointX, polyBnd.getMaxY());
             Point2D pt3 = new Point2D.Double(midPointX, midPointY);
             // compute bounds for searching inside the given polygon
-            Rectangle2D bnd = new Rectangle2D.Double(DBMath.round(polyBnd.getMinX() - TINYDELTA),
-                DBMath.round(polyBnd.getMinY() - TINYDELTA),
-                DBMath.round(polyBnd.getWidth() + 2 * TINYDELTA), DBMath.round(polyBnd.getHeight() + 2 * TINYDELTA));
+            Rectangle2D bnd = new Rectangle2D.Double(DBMath.round(polyBnd.getMinX() - DRC.TINYDELTA),
+                DBMath.round(polyBnd.getMinY() - DRC.TINYDELTA),
+                DBMath.round(polyBnd.getWidth() + 2 * DRC.TINYDELTA), DBMath.round(polyBnd.getHeight() + 2 * DRC.TINYDELTA));
             // looking if points around the overlapping area are inside another region
             // to avoid the error
             boolean[] pointsFound = new boolean[3];
             pointsFound[0] = pointsFound[1] = pointsFound[2] = false;
             // Test first with a vertical line
             boolean found = lookForLayerNew(geom, poly, null, null, cell, layer, DBMath.MATID, bnd, pt1, pt2, pt3,
-                pointsFound, true, true);
+                pointsFound, true, true, false, ignoreCenterCuts);
             if (!found)
                 return found; // no need of checking horizontal line if the vertical test was not positive
             pt1.setLocation(polyBnd.getMinX(), midPointY);
@@ -2541,7 +2539,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
             pointsFound[0] = pointsFound[1] = false;
             pointsFound[2] = true; // no testing pt3 again
             found = lookForLayerNew(geom, poly, null, null, cell, layer, DBMath.MATID, bnd, pt1, pt2, null,
-                pointsFound, true, true);
+                pointsFound, true, true, false, ignoreCenterCuts);
             return found;
         }
 
@@ -2559,7 +2557,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
             // Only if there is one default size
             if (minWidthRule != null)
             {
-                errorDefault = checkMinWidthInternal(geom, layer, poly, onlyOne, minWidthRule, false);
+                errorDefault = checkMinWidthInternal(geom, layer, poly, onlyOne, minWidthRule, false, reportInfo);
                 if (!errorDefault) return false; // the default condition is the valid one.
             }
 
@@ -2569,7 +2567,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
             {
                 // Now the error is reporte. Not very efficient
                 if (errorDefault)
-                    checkMinWidthInternal(geom, layer, poly, onlyOne, minWidthRule, true);
+                    checkMinWidthInternal(geom, layer, poly, onlyOne, minWidthRule, true, reportInfo);
                 return errorDefault;
             }
 
@@ -2581,21 +2579,22 @@ public class MTDRCLayoutTool extends MTDRCTool {
             for (String la : layers)
             {
                 Layer l = layer.getTechnology().findLayer(la);
-                found = searchForCondLayer(geom, poly, l, geom.getParent(), null, null);
+                found = searchForCondLayer(geom, poly, l, geom.getParent(), reportInfo.ignoreCenterCuts);
                 if (!found)
                     break; // no need to check the next layer
             }
             // If condition is met then the new rule applied.
             if (found)
-                errorDefault = checkMinWidthInternal(geom, layer, poly, onlyOne, minWidthRuleCond, true);
+                errorDefault = checkMinWidthInternal(geom, layer, poly, onlyOne, minWidthRuleCond, true, reportInfo);
             else
                 if (errorDefault) // report the errors here in case of default values
-                    checkMinWidthInternal(geom, layer, poly, onlyOne, minWidthRule, true);
+                    checkMinWidthInternal(geom, layer, poly, onlyOne, minWidthRule, true, reportInfo);
             return errorDefault;
         }
 
         private boolean checkMinWidthInternal(Geometric geom, Layer layer, Poly poly, boolean onlyOne,
-                                              DRCTemplate minWidthRule, boolean reportError)
+                                              DRCTemplate minWidthRule, boolean reportError, 
+                                              DRC.ReportInfo reportInfo)
         {
             Cell cell = geom.getParent();
             if (minWidthRule == null) return false;
@@ -2607,11 +2606,34 @@ public class MTDRCLayoutTool extends MTDRCTool {
             // only in case of flat elements represented by a line
             // most likely an flat arc, vertical or horizontal.
             // It doesn't consider arbitrary angled lines.
-            if (bounds == null && poly.isSingleLine())
+            boolean flatPoly = (bounds == null ||
+            GenMath.doublesEqual(bounds.getHeight(), 0) || GenMath.doublesEqual(bounds.getWidth(), 0));
+            if (flatPoly)
             {
                 Point2D [] points = poly.getPoints();
                 Point2D from = points[0];
                 Point2D to = points[1];
+
+                // Assuming it is a single segment the flat region
+                // looking for two distinct points
+                if (DBMath.areEquals(from, to))
+                {
+                    boolean found = false;
+                    for (int i = 2; i < points.length; i++)
+                    {
+                        if (!DBMath.areEquals(from, points[i]))
+                        {
+                            to = points[i];
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) // single segment where to == from
+                    {
+                        return false; // skipping this case.
+                    }
+                }
+
                 Point2D center = new Point2D.Double((from.getX() + to.getX()) / 2, (from.getY() + to.getY()) / 2);
 
                 // looking if points around the overlapping area are inside another region
@@ -2619,11 +2641,11 @@ public class MTDRCLayoutTool extends MTDRCTool {
                 boolean [] pointsFound = new boolean[3];
                 pointsFound[0] = pointsFound[1] = pointsFound[2] = false;
                 boolean found = lookForLayerNew(geom, poly, null, null, cell, layer, DBMath.MATID,  poly.getBounds2D(),
-                    from, to, center, pointsFound, true, true);
+                    from, to, center, pointsFound, true, true, true, reportInfo.ignoreCenterCuts);
                 if (found) return false; // no error, flat element covered by othe elements.
 
                 if (reportError)
-                    reportError(DRC.DRCErrorType.MINWIDTHERROR, null, cell, minWidthValue, 0, minWidthRule.ruleName,
+                    DRC.createDRCErrorLogger(reportInfo, DRC.DRCErrorType.MINWIDTHERROR, null, cell, minWidthValue, 0, minWidthRule.ruleName,
                         (onlyOne) ? null : poly, geom, layer, null, null, null);
                 return true;
             }
@@ -2656,7 +2678,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
             if (actual < minWidthValue)
             {
                 if (reportError)
-                    reportError(DRC.DRCErrorType.MINWIDTHERROR, null, cell, minWidthValue, actual, minWidthRule.ruleName,
+                    DRC.createDRCErrorLogger(reportInfo, DRC.DRCErrorType.MINWIDTHERROR, null, cell, minWidthValue, actual, minWidthRule.ruleName,
                         (onlyOne) ? null : poly, geom, layer, null, null, null);
                 return true;
             }
@@ -2715,11 +2737,11 @@ public class MTDRCLayoutTool extends MTDRCTool {
                             // look between the points to see if it is minimum width or notch
                             if (poly.isInside(new Point2D.Double((center.getX() + inter.getX()) / 2, (center.getY() + inter.getY()) / 2)))
                             {
-                                reportError(DRC.DRCErrorType.MINWIDTHERROR, null, cell, minWidthValue,
+                                DRC.createDRCErrorLogger(reportInfo, DRC.DRCErrorType.MINWIDTHERROR, null, cell, minWidthValue,
                                     actual, minWidthRule.ruleName, (onlyOne) ? null : poly, geom, layer, null, null, null);
                             } else
                             {
-                                reportError(DRC.DRCErrorType.NOTCHERROR, null, cell, minWidthValue,
+                                DRC.createDRCErrorLogger(reportInfo, DRC.DRCErrorType.NOTCHERROR, null, cell, minWidthValue,
                                     actual, minWidthRule.ruleName, (onlyOne) ? null : poly, geom, layer, poly, geom, layer);
                             }
                         }
@@ -2770,7 +2792,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
                 // isGreaterThan doesn't consider equals condition therefore negate condition is used
                 if (!DBMath.isGreaterThan(minVal, area)) return; // larger than the min value
                 count.increment();
-                reportError(errorType, null, cell, minVal, area, ruleName,
+                DRC.createDRCErrorLogger(reportInfo, errorType, null, cell, minVal, area, ruleName,
                     poly, null, layer, null, null, null);
             }
             if (checkNotch)
@@ -2780,13 +2802,13 @@ public class MTDRCLayoutTool extends MTDRCTool {
                 if (bnd.getWidth() < spacingRule.getValue(0))
                 {
                     count.increment();
-                    reportError(DRC.DRCErrorType.NOTCHERROR, "(X axis)", cell, spacingRule.getValue(0), bnd.getWidth(),
+                    DRC.createDRCErrorLogger(reportInfo, DRC.DRCErrorType.NOTCHERROR, "(X axis)", cell, spacingRule.getValue(0), bnd.getWidth(),
                         spacingRule.ruleName, poly, null, layer, null, null, layer);
                 }
                 if (bnd.getHeight() < spacingRule.getValue(1))
                 {
                     count.increment();
-                    reportError(DRC.DRCErrorType.NOTCHERROR, "(Y axis)", cell, spacingRule.getValue(1), bnd.getHeight(),
+                    DRC.createDRCErrorLogger(reportInfo, DRC.DRCErrorType.NOTCHERROR, "(Y axis)", cell, spacingRule.getValue(1), bnd.getHeight(),
                         spacingRule.ruleName, poly, null, layer, null, null, layer);
                 }
             }
@@ -2865,15 +2887,15 @@ public class MTDRCLayoutTool extends MTDRCTool {
                             if (isBox1.getMinX() == isBox2.getMaxX()) xc = isBox1.getMinX();
                             double yc = isBox2.getMinY();
                             if (isBox1.getMinY() == isBox2.getMaxY()) yc = isBox1.getMinY();
-                            double xPlus = xc + TINYDELTA;
-                            double yPlus = yc + TINYDELTA;
+                            double xPlus = xc + DRC.TINYDELTA;
+                            double yPlus = yc + DRC.TINYDELTA;
                             pt1.setLocation(xPlus, yPlus);
                             pt2.setLocation(xPlus, yPlus);
                             if ((xPlus < isBox1.getMinX() || xPlus > isBox1.getMaxX() || yPlus < isBox1.getMinY() || yPlus > isBox1.getMaxY()) &&
                                 (xPlus < isBox2.getMinX() || xPlus > isBox2.getMaxX() || yPlus < isBox2.getMinY() || yPlus > isBox2.getMaxY()))
                                 return 1;
-                            pt1.setLocation(xc + TINYDELTA, yc - TINYDELTA);
-                            pt2.setLocation(xc - TINYDELTA, yc + TINYDELTA);
+                            pt1.setLocation(xc + DRC.TINYDELTA, yc - DRC.TINYDELTA);
+                            pt2.setLocation(xc - DRC.TINYDELTA, yc + DRC.TINYDELTA);
                             return 1;
                         }
 
@@ -2964,8 +2986,8 @@ public class MTDRCLayoutTool extends MTDRCTool {
             double fhx = Math.max(pt1.getX(), pt2.getX());
             double fly = Math.min(pt1.getY(), pt2.getY());
             double fhy = Math.max(pt1.getY(), pt2.getY());
-            Rectangle2D bounds = new Rectangle2D.Double(DBMath.round(flx - TINYDELTA), DBMath.round(fly - TINYDELTA),
-                DBMath.round(fhx - flx + 2 * TINYDELTA), DBMath.round(fhy - fly + 2 * TINYDELTA));
+            Rectangle2D bounds = new Rectangle2D.Double(DBMath.round(flx - DRC.TINYDELTA), DBMath.round(fly - DRC.TINYDELTA),
+                DBMath.round(fhx - flx + 2 * DRC.TINYDELTA), DBMath.round(fhy - fly + 2 * DRC.TINYDELTA));
             // Adding delta otherwise it won't consider points along edges.
             // Mind bounding boxes could have zero width or height
 
@@ -2973,7 +2995,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
             boolean[] pointsFound = new boolean[2];
             pointsFound[0] = pointsFound[1] = false;
             boolean allFound = lookForLayerNew(geo1, poly1, geo2, poly2, cell, layer, DBMath.MATID, bounds,
-                pt1, pt2, null, pointsFound, overlap, false);
+                pt1, pt2, null, pointsFound, overlap, false, false, reportInfo.ignoreCenterCuts);
 
             return allFound;
         }
@@ -3208,7 +3230,8 @@ public class MTDRCLayoutTool extends MTDRCTool {
         private boolean lookForLayerNew(Geometric geo1, Poly poly1, Geometric geo2, Poly poly2, Cell cell,
                                         Layer layer, AffineTransform moreTrans, Rectangle2D bounds,
                                         Point2D pt1, Point2D pt2, Point2D pt3, boolean[] pointsFound,
-                                        boolean overlap, boolean checkAllLayers)
+                                        boolean overlap, boolean checkAllLayers, boolean ignoreSameGeometry,
+                                        boolean ignoreCenterCuts)
         {
             int j;
             Rectangle2D newBounds = new Rectangle2D.Double();  // Sept 30
@@ -3221,8 +3244,9 @@ public class MTDRCLayoutTool extends MTDRCTool {
 
                 // You can't skip the same geometry otherwise layers in the same Geometric won't
                 // be tested.
-//			if (ignoreSameGeometry && (g == geo1 || g == geo2))
-//                continue;
+                // But it is necessary while testing flat geometries... in minWidthInternal
+                if (ignoreSameGeometry && (g == geo1 || g == geo2))
+                    continue;
 
                 // I can't skip geometries to exclude from the search
                 if (g instanceof NodeInst)
@@ -3243,7 +3267,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
                         AffineTransform trans = ni.translateOut(ni.rotateOut());
                         trans.preConcatenate(moreTrans);
                         if (lookForLayerNew(geo1, poly1, geo2, poly2, (Cell) ni.getProto(), layer, trans, newBounds,
-                            pt1, pt2, pt3, pointsFound, overlap, false))
+                            pt1, pt2, pt3, pointsFound, overlap, false, false, ignoreCenterCuts))
                             return true;
                         continue;
                     }
@@ -3252,7 +3276,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
                     Technology tech = ni.getProto().getTechnology();
                     // I have to ask for electrical layers otherwise it will retrieve one polygon for polysilicon
                     // and poly.polySame(poly1) will never be true. CONTRADICTION!
-                    Poly[] layerLookPolyList = tech.getShapeOfNode(ni, false, reportInfo.ignoreCenterCuts, layerFunction); // consistent change!);
+                    Poly[] layerLookPolyList = tech.getShapeOfNode(ni, false, ignoreCenterCuts, layerFunction); // consistent change!);
                     int tot = layerLookPolyList.length;
                     for (int i = 0; i < tot; i++)
                     {
@@ -3360,14 +3384,14 @@ public class MTDRCLayoutTool extends MTDRCTool {
             String ruleName = (rule != null) ? rule.ruleName : "for contacts";
             if (DBMath.isGreaterThan(rect.getWidth(), cutSizeX))
             {
-                reportError(DRC.DRCErrorType.CUTERROR, "along X", topCell, cutSizeX, rect.getWidth(),
+                DRC.createDRCErrorLogger(reportInfo, DRC.DRCErrorType.CUTERROR, "along X", topCell, cutSizeX, rect.getWidth(),
                     ruleName, new Poly(rect), null, layer, null, null, nLayer);
                 foundError = true;
 
             }
             if (DBMath.isGreaterThan(rect.getHeight(), cutSizeY))
             {
-                reportError(DRC.DRCErrorType.CUTERROR, "along Y", topCell, cutSizeY, rect.getHeight(),
+                DRC.createDRCErrorLogger(reportInfo, DRC.DRCErrorType.CUTERROR, "along Y", topCell, cutSizeY, rect.getHeight(),
                     ruleName, new Poly(rect), null, layer, null, null, layer);
                 foundError = true;
 
@@ -3418,7 +3442,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
 //        }
 //
 //        if (!found)
-//            reportError(DRCErrorType.FORBIDDEN, " does not comply with rule '" + extensionRule.ruleName + "'.", geom.getParent(), -1, -1, null, null, geom, null, null, null, null);
+//            DRC.createDRCErrorLogger(reportInfo, DRCErrorType.FORBIDDEN, " does not comply with rule '" + extensionRule.ruleName + "'.", geom.getParent(), -1, -1, null, null, geom, null, null, null, null);
 //        return false;
         }
 
@@ -3559,7 +3583,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
 ////                    // not easy to determine along which axis they are touching
 ////                    if ((dir == 1 && rect.getHeight() < extensionRule.value) || (dir == 0 && rect.getWidth() < extensionRule.value))
 ////                    {
-////                        reportError(LAYERDRCErrorType.SURROUNDERROR, "No enough extension, ", cell, extensionRule.value, -1, extensionRule.ruleName,
+////                        DRC.createDRCErrorLogger(reportInfo, LAYERDRCErrorType.SURROUNDERROR, "No enough extension, ", cell, extensionRule.value, -1, extensionRule.ruleName,
 ////                                nPoly, geom, layer, null, null, nLayer);
 ////                        error = true;
 ////                    }
@@ -3578,7 +3602,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
 ////                    // not easy to determine along which axis they are touching
 ////                    if (rect.getHeight() < extensionRule.value || rect.getWidth() < extensionRule.value)
 ////                    {
-////                        reportError(LAYERDRCErrorType.SURROUNDERROR, "No enough overlap, ", cell, extensionRule.value, -1, extensionRule.ruleName,
+////                        DRC.createDRCErrorLogger(reportInfo, LAYERDRCErrorType.SURROUNDERROR, "No enough overlap, ", cell, extensionRule.value, -1, extensionRule.ruleName,
 ////                                nPoly, geom, layer, null, null, nLayer);
 ////                        error = true;
 ////                    }
@@ -3694,9 +3718,9 @@ public class MTDRCLayoutTool extends MTDRCTool {
                     basicFound[0] = false;
                     basicPts[0] = basePts[j];
 
-                    Rectangle2D basicBnd = new Rectangle2D.Double(DBMath.round(basicPts[0].getX() - TINYDELTA),
-                        DBMath.round(basicPts[0].getY() - TINYDELTA),
-                        2 * (TINYDELTA), 2 * (TINYDELTA));
+                    Rectangle2D basicBnd = new Rectangle2D.Double(DBMath.round(basicPts[0].getX() - DRC.TINYDELTA),
+                        DBMath.round(basicPts[0].getY() - DRC.TINYDELTA),
+                        2 * (DRC.TINYDELTA), 2 * (DRC.TINYDELTA));
                     boolean f = false;
                     for (int i = 0; i < layers.length; i++)
                     {
@@ -3748,9 +3772,9 @@ public class MTDRCLayoutTool extends MTDRCTool {
                         basicBndPoint = basicPts[2];
                         break;
                     }
-                    basicBnd = new Rectangle2D.Double(DBMath.round(basicBndPoint.getX() - TINYDELTA),
-                        DBMath.round(basicBndPoint.getY() - TINYDELTA),
-                        DBMath.round(xValue + 2 * (TINYDELTA)), DBMath.round(yValue + 2 * (TINYDELTA)));
+                    basicBnd = new Rectangle2D.Double(DBMath.round(basicBndPoint.getX() - DRC.TINYDELTA),
+                        DBMath.round(basicBndPoint.getY() - DRC.TINYDELTA),
+                        DBMath.round(xValue + 2 * (DRC.TINYDELTA)), DBMath.round(yValue + 2 * (DRC.TINYDELTA)));
 
                     for (int i = 0; i < layers.length; i++)
                     {
@@ -3762,7 +3786,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
 
                     if (!f)
                     {
-                        reportError(DRC.DRCErrorType.LAYERSURROUNDERROR, "No enough surround of " + rule.condition + ", ", geom.getParent(), rule.getValue(0),
+                        DRC.createDRCErrorLogger(reportInfo, DRC.DRCErrorType.LAYERSURROUNDERROR, "No enough surround of " + rule.condition + ", ", geom.getParent(), rule.getValue(0),
                             -1, rule.ruleName, poly, geom, layer, null, null, null);
                         if (reportInfo.errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE)
                             return true; // no need of checking other combinations
@@ -3802,7 +3826,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
 //
 //            for (PolyBase nPoly : polyList)
 //            {
-//                reportError(DRCErrorType.LAYERSURROUNDERROR, "Polysilicon not covered, ", cell, minOverlapValue, -1,
+//                DRC.createDRCErrorLogger(reportInfo, DRCErrorType.LAYERSURROUNDERROR, "Polysilicon not covered, ", cell, minOverlapValue, -1,
 //                        minOverlapRule.ruleName, nPoly, geom, layer, null, null, null);
 //            }
 //		}
@@ -3820,7 +3844,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
 //			boolean foundAll = allPointsContainedInLayer(geom, cell, ruleBnd, null, extraPoints, founds);
 //
 //			if (!foundAll)
-//				reportError(DRCErrorType.LAYERSURROUNDERROR, "No enough surround, ", geom.getParent(), minOverlapValue,
+//				DRC.createDRCErrorLogger(reportInfo, DRCErrorType.LAYERSURROUNDERROR, "No enough surround, ", geom.getParent(), minOverlapValue,
 //                        -1, minOverlapRule.ruleName, poly, geom, layer, null, null, null);
 //		}
 //		return (!found);
@@ -4026,10 +4050,10 @@ public class MTDRCLayoutTool extends MTDRCTool {
             basePts[1] = new Point2D.Double(polyBounds.getMinX(), polyBounds.getMaxY());
             basePts[2] = new Point2D.Double(polyBounds.getMaxX(), polyBounds.getMaxY());
             basePts[3] = new Point2D.Double(polyBounds.getMaxX(), polyBounds.getMinY());
-            Rectangle2D basicBnd = new Rectangle2D.Double(DBMath.round(basePts[0].getX() - TINYDELTA),
-                DBMath.round(basePts[0].getY() - TINYDELTA),
-                DBMath.round(2 * (TINYDELTA) + polyBounds.getWidth()),
-                DBMath.round(2 * (TINYDELTA) + polyBounds.getHeight()));
+            Rectangle2D basicBnd = new Rectangle2D.Double(DBMath.round(basePts[0].getX() - DRC.TINYDELTA),
+                DBMath.round(basePts[0].getY() - DRC.TINYDELTA),
+                DBMath.round(2 * (DRC.TINYDELTA) + polyBounds.getWidth()),
+                DBMath.round(2 * (DRC.TINYDELTA) + polyBounds.getHeight()));
             // Searches for any posible VTH/VTH that fully covers the polysilicon.
             // It has to be recursive and could be expensive
             boolean found = lookForLayerWithPoints(null, polys[polyIndex], null, null, cell, layers[vtIndex],
@@ -4475,7 +4499,7 @@ public class MTDRCLayoutTool extends MTDRCTool {
                 else
                 {
                     Layer l = layer1.getTechnology().findLayer(layerName2);
-                    boolean found = searchForCondLayer(geo1, poly1, l, geo1.getParent(), null, null);
+                    boolean found = searchForCondLayer(geo1, poly1, l, geo1.getParent(), reportInfo.ignoreCenterCuts);
                     if (found)
                         theRule = null; // doesn't apply
                 }
@@ -4483,25 +4507,6 @@ public class MTDRCLayoutTool extends MTDRCTool {
 
             return theRule;
         }
-
-        /**
-         * Method to retrieve network from a Geometric object (NodeInst, ArcInst)
-         * @param netlist
-         * @param geom
-         * @param poly
-         * @return
-         */
-//    private Network getDRCNetNumber(Netlist netlist, Geometric geom, Poly poly)
-//    {
-//        Network jNet = null;
-//        if (geom instanceof ArcInst)
-//        {
-//            ArcInst ai = (ArcInst)geom;
-//            jNet = netlist.getNetwork(ai, 0);
-//        } else if (geom instanceof NodeInst)
-//            jNet = netlist.getNetwork((NodeInst)geom, poly.getPort(), 0);
-//        return jNet;
-//    }
 
         /**
          * Method to return the network number for port "pp" on node "ni", given that the node is
@@ -4658,16 +4663,6 @@ public class MTDRCLayoutTool extends MTDRCTool {
             ;
             exclusionMap.put(cell, area);
         }
-
-        /* Adds details about an error to the error list */
-        private void reportError(DRC.DRCErrorType errorType, String msg,
-                                 Cell cell, double limit, double actual, String rule,
-                                 PolyBase poly1, Geometric geom1, Layer layer1,
-                                 PolyBase poly2, Geometric geom2, Layer layer2)
-        {
-            DRC.createDRCErrorLogger(reportInfo, errorType, msg, cell, limit, actual, rule, poly1, geom1, layer1,
-                poly2, geom2, layer2);
-    }
     }
 }
 

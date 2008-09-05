@@ -632,18 +632,6 @@ public class PolyBase implements Shape, PolyNodeMerge
 	}
 
     /**
-     * Method to determine if this Poly represents a single-segment line
-     * @return
-     */
-    public boolean isSingleLine()
-    {
-        if (getStyle() != Poly.Type.OPENED) return false;
-        return (points.length == 2); // not a simple segment
-//        return (DBMath.areEquals(points[0].getX(), points[1].getX()) ||
-//        DBMath.areEquals(points[0].getY(), points[1].getY()));
-    }
-
-    /**
 	 * Method to reduce this Poly by the proper amount presuming that it describes a port connected to an arc.
 	 * This Poly is modified in place to reduce its size.
 	 * @param pi the PortInst that describes this Poly.
