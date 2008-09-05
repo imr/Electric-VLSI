@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08f: ******************************
 
+BUG: (9/5/08, GVG) DRC should report arcs that are not vertical nor horizontal (Bug #1824)
+FIX: Arc is tested before checking geometries per layer.
+
 IMP: (9/4/08, GVG) Avoid flat arcs in AutoStitch in case of ports are the same points. (Bug #1815)
 
 BUG: (9/4/08, SMR) Technologies with text on the well or substrate nodes

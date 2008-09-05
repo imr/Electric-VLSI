@@ -2426,82 +2426,7 @@ public class MTDRCLayoutTool extends MTDRCTool
 
         /*********************************** QUICK DRC SUPPORT ***********************************/
 
-        /**
-         * Method to determine if neighbor would help to cover the minimum conditions
-         *
-         * @return true if error was found (not warning)
-         */
-        private boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly, Layer layer, Rectangle2D bounds,
-                                                    DRCTemplate minWidthRule, int dir, boolean onlyOne, boolean reportError)
-        {
-            double actual = 0;
-            Point2D left1, left2, left3, right1, right2, right3;
-            //if (bounds.getWidth() < minWidthRule.value)
-            String msg = "";
 
-            // potential problem along X
-            if (dir == 0)
-            {
-                actual = bounds.getWidth();
-                msg = "(X axis)";
-                double leftW = bounds.getMinX() - DRC.TINYDELTA;
-                left1 = new Point2D.Double(leftW, bounds.getMinY());
-                left2 = new Point2D.Double(leftW, bounds.getMaxY());
-                left3 = new Point2D.Double(leftW, bounds.getCenterY());
-                double rightW = bounds.getMaxX() + DRC.TINYDELTA;
-                right1 = new Point2D.Double(rightW, bounds.getMinY());
-                right2 = new Point2D.Double(rightW, bounds.getMaxY());
-                right3 = new Point2D.Double(rightW, bounds.getCenterY());
-            } else
-            {
-                actual = bounds.getHeight();
-                msg = "(Y axis)";
-                double leftH = bounds.getMinY() - DRC.TINYDELTA;
-                left1 = new Point2D.Double(bounds.getMinX(), leftH);
-                left2 = new Point2D.Double(bounds.getMaxX(), leftH);
-                left3 = new Point2D.Double(bounds.getCenterX(), leftH);
-                double rightH = bounds.getMaxY() + DRC.TINYDELTA;
-                right1 = new Point2D.Double(bounds.getMinX(), rightH);
-                right2 = new Point2D.Double(bounds.getMaxX(), rightH);
-                right3 = new Point2D.Double(bounds.getCenterX(), rightH);
-            }
-            // see if there is more of this layer adjoining on either side
-            boolean[] pointsFound = new boolean[3];
-            pointsFound[0] = pointsFound[1] = pointsFound[2] = false;
-            Rectangle2D newBounds = new Rectangle2D.Double(bounds.getMinX() - DRC.TINYDELTA, bounds.getMinY() - DRC.TINYDELTA,
-                bounds.getWidth() + DRC.TINYDELTA * 2, bounds.getHeight() + DRC.TINYDELTA * 2);
-            boolean zeroWide = (bounds.getWidth() == 0 || bounds.getHeight() == 0);
-
-            boolean overlapLayer = lookForLayer(poly, cell, layer, DBMath.MATID, newBounds,
-                left1, left2, left3, pointsFound); //) return false;
-//        if (overlapLayer && !zeroWide) return false;
-            if (overlapLayer) return false;
-
-            // Try the other corner
-            pointsFound[0] = pointsFound[1] = pointsFound[2] = false;
-            overlapLayer = lookForLayer(poly, cell, layer, DBMath.MATID, newBounds,
-                right1, right2, right3, pointsFound); //) return false;
-//        if (overlapLayer && !zeroWide) return false;
-            if (overlapLayer) return false;
-
-            DRC.DRCErrorType errorType = DRC.DRCErrorType.MINWIDTHERROR;
-            String extraMsg = msg;
-            String rule = minWidthRule.ruleName;
-            
-            // Only when the flat element is fully covered send the warning
-            // otherwise it is considered an error.
-            if (zeroWide && overlapLayer)
-            {
-                extraMsg = " but covered by other layer";
-                errorType = DRC.DRCErrorType.ZEROLENGTHARCWARN;
-                rule = null;
-            }
-
-            if (reportError)
-                DRC.createDRCErrorLogger(reportInfo, errorType, extraMsg, cell, minWidthRule.getValue(0), actual, rule,
-                    (onlyOne) ? null : poly, geom, layer, null, null, null);
-            return !overlapLayer;
-        }
 
         /**
          * Function to look for conditional layers that will 100% overlap with the given region.
@@ -2557,7 +2482,8 @@ public class MTDRCLayoutTool extends MTDRCTool
             // Only if there is one default size
             if (minWidthRule != null)
             {
-                errorDefault = checkMinWidthInternal(geom, layer, poly, onlyOne, minWidthRule, false, reportInfo);
+                errorDefault = checkMinWidthInternal(geom, layer, poly, onlyOne, minWidthRule, false,
+                    this.thisLayerFunction, reportInfo);
                 if (!errorDefault) return false; // the default condition is the valid one.
             }
 
@@ -2567,7 +2493,8 @@ public class MTDRCLayoutTool extends MTDRCTool
             {
                 // Now the error is reporte. Not very efficient
                 if (errorDefault)
-                    checkMinWidthInternal(geom, layer, poly, onlyOne, minWidthRule, true, reportInfo);
+                    checkMinWidthInternal(geom, layer, poly, onlyOne, minWidthRule, true,
+                        this.thisLayerFunction, reportInfo);
                 return errorDefault;
             }
 
@@ -2585,16 +2512,17 @@ public class MTDRCLayoutTool extends MTDRCTool
             }
             // If condition is met then the new rule applied.
             if (found)
-                errorDefault = checkMinWidthInternal(geom, layer, poly, onlyOne, minWidthRuleCond, true, reportInfo);
+                errorDefault = checkMinWidthInternal(geom, layer, poly, onlyOne, minWidthRuleCond, true,
+                    this.thisLayerFunction, reportInfo);
             else
                 if (errorDefault) // report the errors here in case of default values
-                    checkMinWidthInternal(geom, layer, poly, onlyOne, minWidthRule, true, reportInfo);
+                    checkMinWidthInternal(geom, layer, poly, onlyOne, minWidthRule, true, thisLayerFunction, reportInfo);
             return errorDefault;
         }
 
         private boolean checkMinWidthInternal(Geometric geom, Layer layer, Poly poly, boolean onlyOne,
                                               DRCTemplate minWidthRule, boolean reportError, 
-                                              DRC.ReportInfo reportInfo)
+                                              Layer.Function.Set layerFunction, DRC.ReportInfo reportInfo)
         {
             Cell cell = geom.getParent();
             if (minWidthRule == null) return false;
@@ -2657,11 +2585,11 @@ public class MTDRCLayoutTool extends MTDRCTool
                 if (!tooSmallWidth && !tooSmallHeight) return false;
 
                 boolean foundError = false;
-                if (tooSmallWidth && checkExtensionWithNeighbors(cell, geom, poly, layer, bounds, minWidthRule,
-                    0, onlyOne, reportError))
+                if (tooSmallWidth && DRC.checkExtensionWithNeighbors(cell, geom, poly, layer, bounds, minWidthRule,
+                    0, onlyOne, reportError, layerFunction, reportInfo))
                     foundError = true;
-                if (tooSmallHeight && checkExtensionWithNeighbors(cell, geom, poly, layer, bounds, minWidthRule,
-                    1, onlyOne, reportError))
+                if (tooSmallHeight && DRC.checkExtensionWithNeighbors(cell, geom, poly, layer, bounds, minWidthRule,
+                    1, onlyOne, reportError, layerFunction, reportInfo))
                     foundError = true;
                 return foundError;
             }
@@ -2971,112 +2899,6 @@ public class MTDRCLayoutTool extends MTDRCTool
             return allFound;
         }
 
-        /**
-         * Method to examine cell "cell" in the area (lx<=X<=hx, ly<=Y<=hy) for objects
-         * on layer "layer".  Apply transformation "moreTrans" to the objects.  If polygons are
-         * found at (xf1,yf1) or (xf2,yf2) or (xf3,yf3) then sets "p1found/p2found/p3found" to 1.
-         * If all locations are found, returns true.
-         */
-        private boolean lookForLayer(Poly thisPoly, Cell cell, Layer layer, AffineTransform moreTrans,
-                                     Rectangle2D bounds, Point2D pt1, Point2D pt2, Point2D pt3, boolean[] pointsFound)
-        {
-            int j;
-            boolean skip = false;
-            Rectangle2D newBounds = new Rectangle2D.Double();  // sept 30
-
-            for (Iterator<RTBounds> it = cell.searchIterator(bounds); it.hasNext();)
-            {
-                RTBounds g = it.next();
-                if (g instanceof NodeInst)
-                {
-                    NodeInst ni = (NodeInst) g;
-                    if (NodeInst.isSpecialNode(ni))
-                        continue; // Nov 16, no need for checking pins or other special nodes;
-                    if (ni.isCellInstance())
-                    {
-                        // compute bounding area inside of sub-cell
-                        AffineTransform rotI = ni.rotateIn();
-                        AffineTransform transI = ni.translateIn();
-                        rotI.preConcatenate(transI);
-                        newBounds.setRect(bounds);
-                        DBMath.transformRect(newBounds, rotI);
-
-                        // compute new matrix for sub-cell examination
-                        AffineTransform trans = ni.translateOut(ni.rotateOut());
-                        trans.preConcatenate(moreTrans);
-                        if (lookForLayer(thisPoly, (Cell) ni.getProto(), layer, trans, newBounds,
-                            pt1, pt2, pt3, pointsFound))
-                            return true;
-                        continue;
-                    }
-                    AffineTransform bound = ni.rotateOut();
-                    bound.preConcatenate(moreTrans);
-                    Technology tech = ni.getProto().getTechnology();
-                    Poly[] layerLookPolyList = tech.getShapeOfNode(ni, false, reportInfo.ignoreCenterCuts, thisLayerFunction); // consistent change!
-//                layerLookPolyList = tech.getShapeOfNode(ni, false, ignoreCenterCuts, null);
-                    int tot = layerLookPolyList.length;
-                    for (int i = 0; i < tot; i++)
-                    {
-                        Poly poly = layerLookPolyList[i];
-                        // sameLayer test required to check if Active layer is not identical to thich actice layer
-                        if (!tech.sameLayer(poly.getLayer(), layer))
-                        {
-                            continue;
-                        }
-
-                        if (thisPoly != null && poly.polySame(thisPoly)) continue;
-                        poly.transform(bound);
-                        if (poly.isInside(pt1)) pointsFound[0] = true;
-                        if (poly.isInside(pt2)) pointsFound[1] = true;
-                        if (pt3 != null && poly.isInside(pt3)) pointsFound[2] = true;
-                        for (j = 0; j < pointsFound.length && pointsFound[j]; j++) ;
-                        boolean newR = (j == pointsFound.length);
-                        if (newR)
-                        {
-                            return true;
-                        }
-                        // No need of checking rest of the layers?
-                        //break;
-                    }
-                } else
-                {
-                    ArcInst ai = (ArcInst) g;
-                    Technology tech = ai.getProto().getTechnology();
-                    Poly[] layerLookPolyList = tech.getShapeOfArc(ai, thisLayerFunction); // consistent change!);
-                    int tot = layerLookPolyList.length;
-                    for (int i = 0; i < tot; i++)
-                    {
-                        Poly poly = layerLookPolyList[i];
-                        // sameLayer test required to check if Active layer is not identical to thich actice layer
-                        if (!tech.sameLayer(poly.getLayer(), layer))
-                        {
-                            continue;
-                        }
-
-                        poly.transform(moreTrans);
-                        if (poly.isInside(pt1)) pointsFound[0] = true;
-                        if (poly.isInside(pt2)) pointsFound[1] = true;
-                        if (pt3 != null && poly.isInside(pt3)) pointsFound[2] = true;
-                        for (j = 0; j < pointsFound.length && pointsFound[j]; j++) ;
-                        boolean newR = (j == pointsFound.length);
-                        if (newR)
-                            return true;
-                        // No need of checking rest of the layers
-                        //break;
-                    }
-                }
-
-                for (j = 0; j < pointsFound.length && pointsFound[j]; j++) ;
-                if (j == pointsFound.length)
-                {
-                    System.out.println("When?");
-                    return true;
-                }
-            }
-            if (skip) System.out.println("This case in lookForLayerNew antes");
-
-            return false;
-        }
 
         /**
          * Method to examine cell "cell" in the area (lx<=X<=hx, ly<=Y<=hy) for objects

@@ -726,7 +726,8 @@ public class Quick
         if (np instanceof PrimitiveNode && DRC.isForbiddenNode(((PrimitiveNode)np).getPrimNodeIndexInTech(), -1,
                 DRCTemplate.DRCRuleType.FORBIDDEN, tech))
         {
-            DRC.createDRCErrorLogger(reportInfo, DRC.DRCErrorType.FORBIDDEN, " is not allowed by selected foundry", cell, -1, -1, null, null, ni, null, null, null, null);
+            DRC.createDRCErrorLogger(reportInfo, DRC.DRCErrorType.FORBIDDEN, " is not allowed by selected foundry", cell, 
+                -1, -1, null, null, ni, null, null, null, null);
             if (reportInfo.errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
             errorsFound = true;
         }
@@ -872,10 +873,22 @@ public class Quick
 //        if (coverByExclusion(ai))
 //            return false; // no error
 
-		// get all of the polygons on this arc
+		boolean errorsFound = false;
+        // Checking if the arc is horizontal or vertical
+        Point2D from = ai.getHeadLocation();
+        Point2D to = ai.getTailLocation();
+
+        if (!DBMath.areEquals(from.getX(), to.getX()) && !DBMath.areEquals(from.getY(), to.getY()))
+        {
+            DRC.createDRCErrorLogger(reportInfo, DRC.DRCErrorType.CROCKEDERROR, null, ai.getParent(),
+                -1, -1, null, null, ai, null, null, null, null);
+            if (reportInfo.errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
+				errorsFound = true;
+        }
+        
+        // get all of the polygons on this arc
 		Technology tech = ai.getProto().getTechnology();
 		Poly [] arcInstPolyList = tech.getShapeOfArc(ai);
-		boolean errorsFound = false;
 
         // Check resolution before cropping the
         for(Poly poly : arcInstPolyList)
