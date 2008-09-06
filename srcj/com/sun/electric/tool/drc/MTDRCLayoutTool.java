@@ -881,11 +881,22 @@ public class MTDRCLayoutTool extends MTDRCTool
 //        if (coverByExclusion(ai))
 //            return false; // no error
 
+            boolean errorsFound = false;
+            // Checking if the arc is horizontal or vertical
+            Point2D from = ai.getHeadLocation();
+            Point2D to = ai.getTailLocation();
+
+            if (!DBMath.areEquals(from.getX(), to.getX()) && !DBMath.areEquals(from.getY(), to.getY()))
+            {
+                DRC.createDRCErrorLogger(reportInfo, DRC.DRCErrorType.CROOKEDERROR, null, ai.getParent(),
+                    -1, -1, null, null, ai, null, null, null, null);
+                if (reportInfo.errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
+                    errorsFound = true;
+            }
+
             // get all of the polygons on this arc
             Technology tech = ai.getProto().getTechnology();
             Poly[] arcInstPolyList = tech.getShapeOfArc(ai, thisLayerFunction);
-            boolean errorsFound = false;
-
             // Check resolution before cropping the
             for (Poly poly : arcInstPolyList)
             {
@@ -2482,7 +2493,7 @@ public class MTDRCLayoutTool extends MTDRCTool
             // Only if there is one default size
             if (minWidthRule != null)
             {
-                errorDefault = checkMinWidthInternal(geom, layer, poly, onlyOne, minWidthRule, false,
+                errorDefault = DRC.checkMinWidthInternal(geom, layer, poly, onlyOne, minWidthRule, false,
                     this.thisLayerFunction, reportInfo);
                 if (!errorDefault) return false; // the default condition is the valid one.
             }
@@ -2493,7 +2504,7 @@ public class MTDRCLayoutTool extends MTDRCTool
             {
                 // Now the error is reporte. Not very efficient
                 if (errorDefault)
-                    checkMinWidthInternal(geom, layer, poly, onlyOne, minWidthRule, true,
+                    DRC.checkMinWidthInternal(geom, layer, poly, onlyOne, minWidthRule, true,
                         this.thisLayerFunction, reportInfo);
                 return errorDefault;
             }
@@ -2512,172 +2523,12 @@ public class MTDRCLayoutTool extends MTDRCTool
             }
             // If condition is met then the new rule applied.
             if (found)
-                errorDefault = checkMinWidthInternal(geom, layer, poly, onlyOne, minWidthRuleCond, true,
+                errorDefault = DRC.checkMinWidthInternal(geom, layer, poly, onlyOne, minWidthRuleCond, true,
                     this.thisLayerFunction, reportInfo);
             else
                 if (errorDefault) // report the errors here in case of default values
-                    checkMinWidthInternal(geom, layer, poly, onlyOne, minWidthRule, true, thisLayerFunction, reportInfo);
+                    DRC.checkMinWidthInternal(geom, layer, poly, onlyOne, minWidthRule, true, thisLayerFunction, reportInfo);
             return errorDefault;
-        }
-
-        private boolean checkMinWidthInternal(Geometric geom, Layer layer, Poly poly, boolean onlyOne,
-                                              DRCTemplate minWidthRule, boolean reportError, 
-                                              Layer.Function.Set layerFunction, DRC.ReportInfo reportInfo)
-        {
-            Cell cell = geom.getParent();
-            if (minWidthRule == null) return false;
-
-            double minWidthValue = minWidthRule.getValue(0);
-            // simpler analysis if manhattan
-            Rectangle2D bounds = poly.getBox();
-
-            // only in case of flat elements represented by a line
-            // most likely an flat arc, vertical or horizontal.
-            // It doesn't consider arbitrary angled lines.
-            boolean flatPoly = (bounds == null ||
-            GenMath.doublesEqual(bounds.getHeight(), 0) || GenMath.doublesEqual(bounds.getWidth(), 0));
-            if (flatPoly)
-            {
-                Point2D [] points = poly.getPoints();
-                Point2D from = points[0];
-                Point2D to = points[1];
-
-                // Assuming it is a single segment the flat region
-                // looking for two distinct points
-                if (DBMath.areEquals(from, to))
-                {
-                    boolean found = false;
-                    for (int i = 2; i < points.length; i++)
-                    {
-                        if (!DBMath.areEquals(from, points[i]))
-                        {
-                            to = points[i];
-                            found = true;
-                            break;
-                        }
-                    }
-                    if (!found) // single segment where to == from
-                    {
-                        return false; // skipping this case.
-                    }
-                }
-
-                Point2D center = new Point2D.Double((from.getX() + to.getX()) / 2, (from.getY() + to.getY()) / 2);
-
-                // looking if points around the overlapping area are inside another region
-                // to avoid the error
-                boolean [] pointsFound = new boolean[3];
-                pointsFound[0] = pointsFound[1] = pointsFound[2] = false;
-                boolean found = DRC.lookForLayerCoverage(geom, poly, null, null, cell, layer, DBMath.MATID,  poly.getBounds2D(),
-                    from, to, center, pointsFound, true, null, true, reportInfo.ignoreCenterCuts);
-                if (found) return false; // no error, flat element covered by othe elements.
-
-                if (reportError)
-                    DRC.createDRCErrorLogger(reportInfo, DRC.DRCErrorType.MINWIDTHERROR, null, cell, minWidthValue, 0, minWidthRule.ruleName,
-                        (onlyOne) ? null : poly, geom, layer, null, null, null);
-                return true;
-            }
-
-            if (bounds != null)
-            {
-                boolean tooSmallWidth = DBMath.isGreaterThan(minWidthValue, bounds.getWidth());
-                boolean tooSmallHeight = DBMath.isGreaterThan(minWidthValue, bounds.getHeight());
-                if (!tooSmallWidth && !tooSmallHeight) return false;
-
-                boolean foundError = false;
-                if (tooSmallWidth && DRC.checkExtensionWithNeighbors(cell, geom, poly, layer, bounds, minWidthRule,
-                    0, onlyOne, reportError, layerFunction, reportInfo))
-                    foundError = true;
-                if (tooSmallHeight && DRC.checkExtensionWithNeighbors(cell, geom, poly, layer, bounds, minWidthRule,
-                    1, onlyOne, reportError, layerFunction, reportInfo))
-                    foundError = true;
-                return foundError;
-            }
-
-            // nonmanhattan polygon: stop now if it has no size
-            Poly.Type style = poly.getStyle();
-            if (style != Poly.Type.FILLED && style != Poly.Type.CLOSED && style != Poly.Type.CROSSED &&
-                style != Poly.Type.OPENED && style != Poly.Type.OPENEDT1 && style != Poly.Type.OPENEDT2 &&
-                style != Poly.Type.OPENEDT3 && style != Poly.Type.VECTORS) return false;
-
-            // simple check of nonmanhattan polygon for minimum width
-            bounds = poly.getBounds2D();
-            double actual = Math.min(bounds.getWidth(), bounds.getHeight());
-            if (actual < minWidthValue)
-            {
-                if (reportError)
-                    DRC.createDRCErrorLogger(reportInfo, DRC.DRCErrorType.MINWIDTHERROR, null, cell, minWidthValue, actual, minWidthRule.ruleName,
-                        (onlyOne) ? null : poly, geom, layer, null, null, null);
-                return true;
-            }
-
-            // check distance of each line's midpoint to perpendicular opposite point
-            Point2D[] points = poly.getPoints();
-            int count = points.length;
-            for (int i = 0; i < count; i++)
-            {
-                Point2D from;
-                if (i == 0) from = points[count - 1];
-                else
-                    from = points[i - 1];
-                Point2D to = points[i];
-                if (from.equals(to)) continue;
-
-                double ang = DBMath.figureAngleRadians(from, to);
-                Point2D center = new Point2D.Double((from.getX() + to.getX()) / 2, (from.getY() + to.getY()) / 2);
-                double perpang = ang + Math.PI / 2;
-                for (int j = 0; j < count; j++)
-                {
-                    if (j == i) continue;
-                    Point2D oFrom;
-                    if (j == 0) oFrom = points[count - 1];
-                    else
-                        oFrom = points[j - 1];
-                    Point2D oTo = points[j];
-                    if (oFrom.equals(oTo)) continue;
-                    double oAng = DBMath.figureAngleRadians(oFrom, oTo);
-                    double rAng = ang;
-                    while (rAng > Math.PI) rAng -= Math.PI;
-                    double rOAng = oAng;
-                    while (rOAng > Math.PI) rOAng -= Math.PI;
-                    if (DBMath.doublesEqual(rAng, rOAng))
-                    {
-                        // lines are parallel: see if they are colinear
-                        if (DBMath.isOnLine(from, to, oFrom)) continue;
-                        if (DBMath.isOnLine(from, to, oTo)) continue;
-                        if (DBMath.isOnLine(oFrom, oTo, from)) continue;
-                        if (DBMath.isOnLine(oFrom, oTo, to)) continue;
-                    }
-                    Point2D inter = DBMath.intersectRadians(center, perpang, oFrom, oAng);
-                    if (inter == null) continue;
-                    if (inter.getX() < Math.min(oFrom.getX(), oTo.getX()) || inter.getX() > Math.max(oFrom.getX(), oTo.getX()))
-                        continue;
-                    if (inter.getY() < Math.min(oFrom.getY(), oTo.getY()) || inter.getY() > Math.max(oFrom.getY(), oTo.getY()))
-                        continue;
-                    double fdx = center.getX() - inter.getX();
-                    double fdy = center.getY() - inter.getY();
-                    actual = DBMath.round(Math.sqrt(fdx * fdx + fdy * fdy));
-
-                    if (actual < minWidthValue)
-                    {
-                        if (reportError)
-                        {
-                            // look between the points to see if it is minimum width or notch
-                            if (poly.isInside(new Point2D.Double((center.getX() + inter.getX()) / 2, (center.getY() + inter.getY()) / 2)))
-                            {
-                                DRC.createDRCErrorLogger(reportInfo, DRC.DRCErrorType.MINWIDTHERROR, null, cell, minWidthValue,
-                                    actual, minWidthRule.ruleName, (onlyOne) ? null : poly, geom, layer, null, null, null);
-                            } else
-                            {
-                                DRC.createDRCErrorLogger(reportInfo, DRC.DRCErrorType.NOTCHERROR, null, cell, minWidthValue,
-                                    actual, minWidthRule.ruleName, (onlyOne) ? null : poly, geom, layer, poly, geom, layer);
-                            }
-                        }
-                        return true;
-                    }
-                }
-            }
-            return false;
         }
 
         private void traversePolyTree(Layer layer, PolyBase.PolyBaseTree obj, int level, DRCTemplate minAreaRule,
@@ -4340,6 +4191,7 @@ public class MTDRCLayoutTool extends MTDRCTool
             exclusionMap.put(cell, area);
         }
     }
+
 
 }
 

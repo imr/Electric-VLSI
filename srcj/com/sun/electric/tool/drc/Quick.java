@@ -880,7 +880,7 @@ public class Quick
 
         if (!DBMath.areEquals(from.getX(), to.getX()) && !DBMath.areEquals(from.getY(), to.getY()))
         {
-            DRC.createDRCErrorLogger(reportInfo, DRC.DRCErrorType.CROCKEDERROR, null, ai.getParent(),
+            DRC.createDRCErrorLogger(reportInfo, DRC.DRCErrorType.CROOKEDERROR, null, ai.getParent(),
                 -1, -1, null, null, ai, null, null, null, null);
             if (reportInfo.errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
 				errorsFound = true;
@@ -2472,7 +2472,7 @@ public class Quick
         // Only if there is one default size
         if (minWidthRule != null)
         {
-            errorDefault = DRC.checkMinWidthInternal(geom, layer, poly, onlyOne, minWidthRule, false, reportInfo);
+            errorDefault = DRC.checkMinWidthInternal(geom, layer, poly, onlyOne, minWidthRule, false, null, reportInfo);
             if (!errorDefault) return false; // the default condition is the valid one.
         }
 
@@ -2482,7 +2482,7 @@ public class Quick
         {
             // Now the error is reporte. Not very efficient
             if (errorDefault)
-                DRC.checkMinWidthInternal(geom, layer, poly, onlyOne, minWidthRule, true, reportInfo);
+                DRC.checkMinWidthInternal(geom, layer, poly, onlyOne, minWidthRule, true, null, reportInfo);
             return errorDefault;
         }
 
@@ -2500,9 +2500,9 @@ public class Quick
         }
         // If condition is met then the new rule applied.
         if (found)
-           errorDefault = DRC.checkMinWidthInternal(geom, layer, poly, onlyOne, minWidthRuleCond, true, reportInfo);
+           errorDefault = DRC.checkMinWidthInternal(geom, layer, poly, onlyOne, minWidthRuleCond, true, null, reportInfo);
         else if (errorDefault) // report the errors here in case of default values
-            DRC.checkMinWidthInternal(geom, layer, poly, onlyOne, minWidthRule, true, reportInfo);
+            DRC.checkMinWidthInternal(geom, layer, poly, onlyOne, minWidthRule, true, null, reportInfo);
         return errorDefault;
     }
 
