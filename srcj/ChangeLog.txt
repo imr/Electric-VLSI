@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08f: ******************************
 
+BUG: (8/27/08, DN) Severe performance degradation in ListGeometryOnNetwork (Bug #1804).
+FIX: Add method to Network API Netlist.getNetwork(Nodable no, Network subNetwork) and
+     use it in HierarchyEnumerator.getNetworkInParent().
+
 BUG: (9/5/08, GVG) DRC should report arcs that are not vertical nor horizontal (Bug #1824)
 FIX: Arc is tested before checking geometries per layer.
 

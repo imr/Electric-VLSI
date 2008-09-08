@@ -39,7 +39,7 @@ import java.util.Iterator;
  */
 public class NetlistImpl extends Netlist {
     private static final String[] NULL_STRING_ARRAY = {};
-    
+
     /**
      * Arrays of names for each net.
      * First names are exported names in STRING_NUMBER_ORDER,
@@ -53,12 +53,19 @@ public class NetlistImpl extends Netlist {
     private BitSet isUsernamed = new BitSet();
     /** Number of export names for each net */
     private int[] exportedNamesCount;
-    
+    private int[] equivPortIndexByNetIndex;
+
 	NetlistImpl(NetCell netCell, int numExternals, int[] map) {
         super(netCell, Netlist.ShortResistors.NO, numExternals, map);
-        exportedNamesCount = new int[getNumNetworks()];
+        exportedNamesCount = new int[numExternalNets];
+        equivPortIndexByNetIndex = new int[numExternalNets];
+        Arrays.fill(equivPortIndexByNetIndex, -1);
         names = new String[getNumNetworks()][];
         Arrays.fill(names, NULL_STRING_ARRAY);
+    }
+    
+    void setEquivPortIndexByNetIndex(int equivIndex, int netIndex) {
+        equivPortIndexByNetIndex[netIndex] = equivIndex;
     }
     
     @Override
@@ -68,7 +75,8 @@ public class NetlistImpl extends Netlist {
 
     @Override
     Iterator<String> getExportedNames(int netIndex) {
-        return ArrayIterator.iterator(names[netIndex], 0, exportedNamesCount[netIndex]);
+        int exportedNamesCount = netIndex < numExternalNets ? this.exportedNamesCount[netIndex] : 0;
+        return ArrayIterator.iterator(names[netIndex], 0, exportedNamesCount);
     }
 
     @Override
@@ -89,7 +97,7 @@ public class NetlistImpl extends Netlist {
         if (!isUsernamed(netIndex))
             return;
         String[] names = this.names[netIndex];
-        int exportedNamesCount = this.exportedNamesCount[netIndex];
+        int exportedNamesCount = netIndex < numExternalNets ? this.exportedNamesCount[netIndex] : 0;
         for (int i = 0; i < exportedNamesCount; i++)
             exportedNames.add(names[i]);
         if (privateNames != null) {
@@ -99,13 +107,15 @@ public class NetlistImpl extends Netlist {
     }
 
     @Override
-    boolean isExported(int netIndex) { return exportedNamesCount[netIndex] > 0; }
-
-    @Override
     boolean isUsernamed(int netIndex) { return isUsernamed.get(netIndex); }
 
     boolean hasNames(int netIndex) { return names[netIndex].length > 0; }
-    
+
+    @Override
+    int getEquivPortIndexByNetIndex(int netIndex) {
+        return equivPortIndexByNetIndex[netIndex];
+    }
+
     /**
      * Add user name to list of names of this Network.
      * @param netIndex index of Network
@@ -116,14 +126,17 @@ public class NetlistImpl extends Netlist {
         assert !nameKey.isTempname();
         String name = nameKey.toString();
         String[] theseNames = names[netIndex];
-        if (exported)
-            assert exportedNamesCount[netIndex] == theseNames.length;
+        int exportedCount = 0;
+        if (exported) {
+            exportedCount = exportedNamesCount[netIndex];
+            assert exportedCount == theseNames.length;
+        }
         int i = 0;
         for (; i < theseNames.length; i++) {
             String n = names[netIndex][i];
             int cmp = TextUtils.STRING_NUMBER_ORDER.compare(name, n);
             if (cmp == 0) return;
-            if (cmp < 0 && (exported || i >= exportedNamesCount[netIndex])) break;
+            if (cmp < 0 && (exported || i >= exportedCount)) break;
         }
         if (theseNames.length == 0) {
             names[netIndex] = new String[] { name };
@@ -138,7 +151,7 @@ public class NetlistImpl extends Netlist {
             exportedNamesCount[netIndex]++;
         isUsernamed.set(netIndex);
     }
-    
+
     void addTempName(int netIndex, String name) {
         assert names[netIndex].length == 0;
         names[netIndex] = new String[] { name };

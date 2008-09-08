@@ -50,7 +50,7 @@ public class NetlistShorted extends Netlist {
     NetlistShorted(Netlist baseNetlist, Netlist.ShortResistors shortResistors, int[] netMap) {
         super(baseNetlist.netCell, shortResistors, baseNetlist.numExternalEntries, netMap);
         this.baseNetlist = baseNetlist;
-        
+
         assert nm_net.length == baseNetlist.nm_net.length;
         int[] baseNetToThisNet = new int[baseNetlist.getNumNetworks()];
         Arrays.fill(baseNetToThisNet, -1);
@@ -80,12 +80,12 @@ public class NetlistShorted extends Netlist {
         for (int thisHead : thisNetHead) {
             assert thisHead >= 0;
         }
-        
+
         firstNames = new String[getNumNetworks()];
         for (int thisNetIndex = 0; thisNetIndex < getNumNetworks(); thisNetIndex++)
             makeName(thisNetIndex);
     }
-    
+
     /**
      * Returns most appropriate name of the net.
      * Intitialized net has at least one name - user-defiend or temporary.
@@ -174,21 +174,17 @@ public class NetlistShorted extends Netlist {
     }
 
     /**
-     * Method to tell whether this network has any exports on it.
-     * @return true if there are exports on this Network.
-     */
-    @Override
-    boolean isExported(int netIndex) {
-        return netIndex < getNumExternalNetworks();
-    }
-
-    /**
      * Method to tell whether this network has user-defined name.
      * @return true if this Network has user-defined name.
      */
     @Override
     boolean isUsernamed(int netIndex) {
         return isUsernamed.get(netIndex);
+    }
+
+    @Override
+    int getEquivPortIndexByNetIndex(int netIndex) {
+        return baseNetlist.getEquivPortIndexByNetIndex(thisNetHead[netIndex]);
     }
 
 //    void checkNames() {

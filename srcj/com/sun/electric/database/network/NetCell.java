@@ -172,6 +172,17 @@ class NetCell
 	 */
     int getNetMapOffset(Nodable no, Global global) { return -1; }
 
+	/**
+	 * Get offset in networks map for given subnetwork of nodable.
+	 * @param no nodable.
+	 * @param equivPortIndex index of entry in equivPortsX
+	 * @return offset in networks map.
+	 */
+    int getNetMapOffset(Nodable no, int equivPortIndex) {
+        NodeInst ni = (NodeInst)no;
+		return drawns[ni_pi[ni.getNodeIndex()] + equivPortIndex];
+    }
+
 	/*
 	 * Get offset in networks map for given port instance.
 	 */
@@ -544,7 +555,9 @@ class NetCell
 		int numPorts = cell.getNumPorts();
 		for (int i = 0; i < numPorts; i++) {
 			Export e = cell.getPort(i);
-			setNetName(netNameToNetIndex, drawns[i], e.getNameKey(), true);
+            int drawn = drawns[i];
+			setNetName(netNameToNetIndex, drawn, e.getNameKey(), true);
+            netlistN.setEquivPortIndexByNetIndex(i, netlistN.getNetIndex(e, 0));
 		}
 		int numArcs = cell.getNumArcs(), arcIndex = 0;
 		for (Iterator<ArcInst> it = cell.getArcs(); arcIndex < numArcs; arcIndex++) {
@@ -573,8 +586,16 @@ class NetCell
 				netlistN.addTempName(netIndexN, ni.getName() + PORT_SEPARATOR + ni.getProto().getPort(j).getName());
 			}
 		}
-        for (int i = 0, numNetworks = netlistN.getNumNetworks(); i < numNetworks; i++)
+
+        // check names and equivPortIndexByNetIndex map
+        for (int i = 0, numNetworks = netlistN.getNumNetworks(); i < numNetworks; i++) {
             assert netlistN.hasNames(i);
+            assert netlistN.isExported(i) == (i < netlistN.getNumExternalNetworks());
+            if (netlistN.isExported(i)) {
+                int equivPortIndex = netlistN.getEquivPortIndexByNetIndex(i);
+                assert equivPortIndex >= 0 && equivPortIndex < numPorts;
+            }
+        }
  		/*
 		// debug info
 		System.out.println("BuildNetworkList "+this);

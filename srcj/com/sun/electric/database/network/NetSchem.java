@@ -252,6 +252,7 @@ class NetSchem extends NetCell {
 		return changed;
 	}
 
+    @Override
 	int getPortOffset(int portIndex, int busIndex) {
 		portIndex = portImplementation[portIndex];
 		if (portIndex < 0) return -1;
@@ -260,6 +261,7 @@ class NetSchem extends NetCell {
 		return portOffset;
 	}
 
+    @Override
 	NetSchem getSchem() { return implementation; }
 
 	static int getPortOffset(NetworkManager networkManager, PortProto pp, int busIndex) {
@@ -274,6 +276,7 @@ class NetSchem extends NetCell {
 	/**
 	 * Get an iterator over all of the Nodables of this Cell.
 	 */
+    @Override
 	Iterator<Nodable> getNodables()
 	{
 		ArrayList<Nodable> nodables = new ArrayList<Nodable>();
@@ -293,11 +296,13 @@ class NetSchem extends NetCell {
 	/**
 	 * Get a set of global signal in this Cell and its descendants.
 	 */
+    @Override
 	Global.Set getGlobals() { return globals; }
 
 	/*
 	 * Get offset in networks map for given global signal.
 	 */
+    @Override
 	int getNetMapOffset(Global global) { return globals.indexOf(global); }
 
 	/**
@@ -306,6 +311,7 @@ class NetSchem extends NetCell {
 	 * @param global global signal.
 	 * @return offset in networks map.
 	 */
+    @Override
     int getNetMapOffset(Nodable no, Global global) {
 		if (!(no instanceof Proxy)) return -1;
 		Proxy proxy = (Proxy)no;
@@ -315,9 +321,22 @@ class NetSchem extends NetCell {
 		return proxy.nodeOffset + i;
 	}
 
+	/**
+	 * Get offset in networks map for given subnetwork of nodable.
+	 * @param no nodable.
+	 * @param equivPortIndex index of entry in equivPortsX
+	 * @return offset in networks map.
+	 */
+    @Override
+    int getNetMapOffset(Nodable no, int equivPortIndex) {
+        Proxy proxy = (Proxy)no;
+        return proxy.nodeOffset + equivPortIndex;
+    }
+
 	/*
 	 * Get offset in networks map for given port instance.
 	 */
+    @Override
 	int getNetMapOffset(Nodable no, PortProto portProto, int busIndex) {
 		Proxy proxy;
 		if (no instanceof NodeInst) {
@@ -347,6 +366,7 @@ class NetSchem extends NetCell {
 	 * Method to return the port width of port of the Nodable.
 	 * @return the either the port width.
 	 */
+    @Override
 	int getBusWidth(Nodable no, PortProto portProto) {
 		if (no instanceof NodeInst) {
 			NodeInst ni = (NodeInst)no;
@@ -365,6 +385,7 @@ class NetSchem extends NetCell {
 	/*
 	 * Get offset in networks map for given export.
 	 */
+    @Override
 	int getNetMapOffset(Export export, int busIndex) {
 		int drawn = drawns[export.getPortIndex()];
 		if (drawn < 0) return -1;
@@ -375,6 +396,7 @@ class NetSchem extends NetCell {
 	/*
 	 * Get offset in networks map for given arc.
 	 */
+    @Override
 	int getNetMapOffset(ArcInst ai, int busIndex) {
 		int drawn = getArcDrawn(ai);
 		if (drawn < 0) return -1;
@@ -386,6 +408,7 @@ class NetSchem extends NetCell {
 	 * Method to return either the network name or the bus name on this ArcInst.
 	 * @return the either the network name or the bus n1ame on this ArcInst.
 	 */
+    @Override
 	Name getBusName(ArcInst ai) {
 		int drawn = getArcDrawn(ai);
 		return drawnNames[drawn];
@@ -395,6 +418,7 @@ class NetSchem extends NetCell {
 	 * Method to return the bus width on this ArcInst.
 	 * @return the either the bus width on this ArcInst.
 	 */
+    @Override
 	public int getBusWidth(ArcInst ai)
 	{
 		if ((flags & VALID) == 0) redoNetworks();
@@ -403,6 +427,7 @@ class NetSchem extends NetCell {
 		return drawnWidths[drawn];
 	}
 
+    @Override
 	void invalidateUsagesOf(boolean strong)
 	{
 		super.invalidateUsagesOf(strong);
@@ -1029,9 +1054,19 @@ class NetSchem extends NetCell {
 	private void buildNetworkLists(int[] netMapF)
 	{
 		netlistN = new NetlistImpl(this, equivPortsN.length, netMapF);
+        int equivPortIndex = 0;
 		for (int i = 0; i < globals.size(); i++) {
-			netlistN.addUserName(netlistN.getNetIndexByMap(i), globals.get(i).getNameKey(), true);
+            Global global = globals.get(i);
+            int netIndex = netlistN.getNetIndex(global);
+			netlistN.addUserName(netIndex, global.getNameKey(), true);
+            netlistN.setEquivPortIndexByNetIndex(equivPortIndex++, netIndex);
 		}
+        for (Iterator<Export> it = cell.getExports(); it.hasNext(); ) {
+            Export e = it.next();
+            for (int busIndex = 0; busIndex < e.getNameKey().busWidth(); busIndex++)
+                netlistN.setEquivPortIndexByNetIndex(equivPortIndex++, netlistN.getNetIndex(e, busIndex));
+        }
+
         for (Map.Entry<Name,GenMath.MutableInteger> e: netNames.entrySet()) {
             Name name = e.getKey();
             int index = e.getValue().intValue();
@@ -1107,8 +1142,16 @@ class NetSchem extends NetCell {
 			}
 		}
 
-        for (int i = 0, numNetworks = netlistN.getNumNetworks(); i < numNetworks; i++)
+        // check names and equivPortIndexByNetIndex map
+        for (int i = 0, numNetworks = netlistN.getNumNetworks(); i < numNetworks; i++) {
             assert netlistN.hasNames(i);
+            assert netlistN.isExported(i) == (i < netlistN.getNumExternalNetworks());
+            if (netlistN.isExported(i)) {
+                int equivPortInd = netlistN.getEquivPortIndexByNetIndex(i);
+                assert equivPortInd >= 0 && equivPortInd < equivPortIndex;
+            }
+        }
+
 		/*
 		// debug info
 		System.out.println("BuildNetworkList "+cell);
@@ -1185,6 +1228,7 @@ class NetSchem extends NetCell {
 		return changed;
 	}
 
+    @Override
 	boolean redoNetworks1()
 	{
 //		System.out.println("redoNetworks1 on " + cell);
@@ -1233,4 +1277,3 @@ class NetSchem extends NetCell {
 		return changed;
 	}
 }
-

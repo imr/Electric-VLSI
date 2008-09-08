@@ -49,20 +49,20 @@ import java.util.Map;
  *
  * <p>The HierarchyEnumerator performs a recursive descent of
  * the "completely expanded" design hierarchy. The HierarchyEnumerator
- * brings the Visitor along with it during the excursion. 
+ * brings the Visitor along with it during the excursion.
  * The HierarchyEnumerator doesn't build a flattened data structure,
  * that's the prerogative of the Visitor. The HierarchyEnumerator simply
  * invokes Visitor methods for each Cell instance and NodeInst.
- * 
+ *
  * <p>The following example illustrates the notion of "completely
  * expanded". Suppose the root Cell instantiates Cell A twice, and
  * Cell A instantiates Cell B twice. Then the HierarchyEnumerator
- * visits two instances of Cell A and four instances of Cell B. 
+ * visits two instances of Cell A and four instances of Cell B.
  */
 public final class HierarchyEnumerator {
     /** Stores the information necessary to generate an instance name for a Part
-	  * It is sometimes important not to store the instance name as a String. 
-	  * When I stored instance names as strings in NCC profiles indicated that 
+	  * It is sometimes important not to store the instance name as a String.
+	  * When I stored instance names as strings in NCC profiles indicated that
 	  * almost 50% of the storage space was used in these strings and 70% of the
 	  * execution time was spent generating these Strings!!! */
 	public static abstract class NameProxy implements Serializable {
@@ -72,7 +72,7 @@ public final class HierarchyEnumerator {
 		private String makePath(VarContext context, String sep) {
 			String path = context.getInstPath(sep);
 			if (!path.equals(""))  path+=sep;
-			return path; 
+			return path;
 		}
 		protected NameProxy(VarContext context, String sep) {
 			this.context = context;
@@ -82,7 +82,7 @@ public final class HierarchyEnumerator {
 		abstract public Cell leafCell();
 		public VarContext getContext() {return context;}
 		public String toString() {
-			return makePath(context, sep) + leafName();		
+			return makePath(context, sep) + leafName();
 		}
         public String toString(int numRemoveParents) {
             VarContext localContext = context.removeParentContext(numRemoveParents);
@@ -121,7 +121,7 @@ public final class HierarchyEnumerator {
 		public Cell leafCell() {return nodable.getParent();}
 		public Nodable getNodable() {return nodable;}
 	}
-    
+
 	// --------------------- private data ------------------------------
 	private Visitor visitor;
 	private boolean caching;
@@ -129,7 +129,7 @@ public final class HierarchyEnumerator {
 	private int cellCnt = 0; // For statistics
 	private int instCnt = 0; // For statistics
 
-	private Map<Integer, NetDescription> netIdToNetDesc = 
+	private Map<Integer, NetDescription> netIdToNetDesc =
 		                                 new HashMap<Integer,NetDescription>();
     private HashMap<Cell,int[]> cellExternalIds = new HashMap<Cell,int[]>();
 
@@ -151,7 +151,7 @@ public final class HierarchyEnumerator {
 
     //private int nextNetID() { return netIdToNetDesc.size(); }
 
-	private int[] numberNets(Cell cell, Netlist netlist, 
+	private int[] numberNets(Cell cell, Netlist netlist,
 							 int[][] portNdxToNetIDs, CellInfo info) {
 		int numNets = netlist.getNumNetworks();
         int[] externalIds = getExternalIds(cell, netlist);
@@ -191,7 +191,7 @@ public final class HierarchyEnumerator {
                 netIdToNetDesc.put(curNetId++, new NetDescription(net, info));
             } else if (localId >= externalIds.length || portNdxToNetIDs == null) {
                 NetDescription nd = netIdToNetDesc.get(baseId + localId);
-                int cmp = !net.isUsernamed() ? 1 : nd.net.isUsernamed() ? 0 : -1; 
+                int cmp = !net.isUsernamed() ? 1 : nd.net.isUsernamed() ? 0 : -1;
                 if (cmp == 0 && net.isExported() != nd.net.isExported())
                     cmp = net.isExported() ? -1 : 1;
                 if (cmp == 0)
@@ -204,7 +204,7 @@ public final class HierarchyEnumerator {
 		}
 		return netNdxToNetID;
 	}
-	
+
 	private static int[] getGlobalNetIDs(Nodable no, Netlist netlist, int[] netNdxToNetID) {
 		Global.Set gs = netlist.getNetlist(no).getGlobals();
 		int[] netIDs = new int[gs.size()];
@@ -232,7 +232,7 @@ public final class HierarchyEnumerator {
 		return netIDs;
 	}
 
-	private static int[][] buildPortMap(Netlist netlist, Nodable ni, 
+	private static int[][] buildPortMap(Netlist netlist, Nodable ni,
 							     int[] netNdxToNetID) {
 		Cell cell = (Cell)ni.getProto();
 		int numPorts = cell.getNumPorts();
@@ -245,9 +245,9 @@ public final class HierarchyEnumerator {
 		return portNdxToNetIDs;
 	}
 
-	/** portNdxToNetIDs translates an Export's index to an array of NetIDs */ 
+	/** portNdxToNetIDs translates an Export's index to an array of NetIDs */
 	private void enumerateCell(Nodable parentInst, Cell cell,
-	                           VarContext context, Netlist netlist, 
+	                           VarContext context, Netlist netlist,
 	                           int[][] portNdxToNetIDs,
 		                       AffineTransform xformToRoot, CellInfo parent) {
 		CellInfo info = visitor.newCellInfo();
@@ -277,15 +277,15 @@ public final class HierarchyEnumerator {
 					xformToRoot2.concatenate(((NodeInst)ni).rotateOut());
 					xformToRoot2.concatenate(((NodeInst)ni).translateOut());
 				}
-				enumerateCell(ni, (Cell)np, 
-							  caching ? context.pushCaching(ni): context.push(ni), 
-							  netlist.getNetlist(ni), 
+				enumerateCell(ni, (Cell)np,
+							  caching ? context.pushCaching(ni): context.push(ni),
+							  netlist.getNetlist(ni),
 							  portNmToNetIDs2, xformToRoot2, info);
 			}
 		}
 
 		visitor.exitCell(info);
-		
+
 		// release storage associated with VarContext variable cache
 		context.deleteVariableCache();
 
@@ -297,7 +297,7 @@ public final class HierarchyEnumerator {
 
 	//  Set up everything for the root cell and then initiate the
 	//  hierarchical traversal.
-	private void doIt(Cell root, VarContext context, Netlist netlist, 
+	private void doIt(Cell root, VarContext context, Netlist netlist,
 	                  Visitor visitor, boolean cache) {
 		this.visitor = visitor;
 		this.caching = cache;
@@ -371,7 +371,7 @@ public final class HierarchyEnumerator {
 		 * then the return value is ignored by the
 		 * HierarchyEnumerator. */
 		public abstract boolean visitNodeInst(Nodable ni, CellInfo info);
-        
+
         /** Using visitNodeInst implements a Top-Down traversal. If one
          * wishes to implement Bottom-Up traversal, use this method instead,
          * or in conjunction with visitNodeInst. */
@@ -429,8 +429,8 @@ public final class HierarchyEnumerator {
 
 		// package private
 		void init(Nodable parentInst, Cell cell, VarContext context, Netlist netlist,
-		          int[] netToNetID, int[][] exportNdxToNetIDs, 
-				  AffineTransform xformToRoot, Map<Integer, NetDescription> netIdToNetDesc,	
+		          int[] netToNetID, int[][] exportNdxToNetIDs,
+				  AffineTransform xformToRoot, Map<Integer, NetDescription> netIdToNetDesc,
 				  CellInfo parentInfo) {
 			this.parentInst = parentInst;
 			this.cell = cell;
@@ -443,20 +443,20 @@ public final class HierarchyEnumerator {
 			this.parentInfo = parentInfo;
 		}
 		/**
-		 * <p>Return an AffineTransform that encodes the size, rotation, and 
+		 * <p>Return an AffineTransform that encodes the size, rotation, and
 		 * center of this NodeInst.
-		 *  
+		 *
 		 * <p>The returned AffineTransform has the property that when
 		 * it is applied to a unit square centered at the origin the
 		 * result is the bounding box of the NodeInst.
-		 * This transform is useful because it can be used to 
-		 * map the position of a NodeInst through levels of the design 
+		 * This transform is useful because it can be used to
+		 * map the position of a NodeInst through levels of the design
 		 * hierarchy.
-		 *  
-		 * <p>Note that the user can set the position of a NodeInst 
-		 * using NodeInst.setPositionFromTransform(). For example, the 
+		 *
+		 * <p>Note that the user can set the position of a NodeInst
+		 * using NodeInst.setPositionFromTransform(). For example, the
 		 * following operations make no change to a NodeInst's position:
-		 * 
+		 *
 		 * <code>
 		 * ni.setPositionFromTransform(ni.getPositionFromTransform());
 		 * </code>
@@ -489,17 +489,17 @@ public final class HierarchyEnumerator {
 //		private String makePath(VarContext context, String sep) {
 //			String path = context.getInstPath(sep);
 //			if (!path.equals(""))  path+=sep;
-//			return path; 
+//			return path;
 //		}
 
 		/**
 		 * Temporary for testing the HierarchyEnumerator.
-		 * 
+		 *
 		 * <p>Set the size, angle, and center of this NodeInst based upon an
-		 * affine transformation. 
-		 * 
-		 * <p>The AffineTransform must map a unit square centered at the 
-		 * origin to the desired bounding box for the NodeInst. 
+		 * affine transformation.
+		 *
+		 * <p>The AffineTransform must map a unit square centered at the
+		 * origin to the desired bounding box for the NodeInst.
 		 *
 		 * <p>Note that this operation cannot succeed for all affine
 		 * transformations.  The reason is that Electric's transformations
@@ -508,11 +508,11 @@ public final class HierarchyEnumerator {
 		 * not preserve right angles this method will print a warning
 		 * displaying the angle that results when a right angle is
 		 * transformed.
-		 * 
+		 *
 		 * <p>Warning: this code is experimental
-		 * @param xForm the affine transformation. xForm must yield the 
-		 * bounding box of the NodeInst when applied to a unit square 
-		 * centered at the origin. 
+		 * @param xForm the affine transformation. xForm must yield the
+		 * bounding box of the NodeInst when applied to a unit square
+		 * centered at the origin.
 		 */
 //		public void setPositionFromTransform(AffineTransform xForm) {
 //			double sizeX, sizeY, newAngle, centX, centY;
@@ -542,7 +542,7 @@ public final class HierarchyEnumerator {
 //			sizeY = bP.distance(aP);
 //			centX = bP.getX();
 //			centY = bP.getY();
-//		
+//
 //			double angleA = angleFromXY(aP.getX() - bP.getX(), aP.getY() - bP.getY());
 //			double angleC = angleFromXY(cP.getX() - bP.getX(), cP.getY() - bP.getY());
 //			double angleAC = angle0To360(angleA - angleC);
@@ -557,8 +557,8 @@ public final class HierarchyEnumerator {
 //			if (angleAC == 90) {
 //				newAngle = angle0To360(angleC);
 //			} else if (angleAC == 270) {
-//				// By using geometric constructions on paper I determined that I 
-//				// need to rotate by (270 degrees - angleC) and then transpose. 
+//				// By using geometric constructions on paper I determined that I
+//				// need to rotate by (270 degrees - angleC) and then transpose.
 //				newAngle = angle0To360(270 - angleC);
 //				sizeX = -sizeX; // Negative size means transpose (not mirror)
 //			} else {
@@ -638,7 +638,7 @@ public final class HierarchyEnumerator {
 		public final int getNetID(Network net) {
 			return getNetID(net.getNetIndex());
 		}
-		/** Map a net index from the current cell to a net ID. 
+		/** Map a net index from the current cell to a net ID.
 		 * number. During the course of the traversal, all nets that
 		 * map to the same net number are connected. Nets that map to
 		 * different net numbers are disconnected.
@@ -648,22 +648,22 @@ public final class HierarchyEnumerator {
 		private int getNetID(int netIndex) {
 			return netNdxToNetID[netIndex];
 		}
-		
+
 //		public final boolean isGlobalNet(int netID) {
 //			error(netID<0, "negative netIDs are illegal");
 //			return netID <= largestGlobalNetID;
 //		}
-		
-		/** 
+
+		/**
 		 * Get the set of netIDs that are connected to the specified port of
-		 * the specified Nodable. 
+		 * the specified Nodable.
 		 */
 		public final int[] getPortNetIDs(Nodable no, PortProto pp) {
-			return HierarchyEnumerator.getPortNetIDs(no, pp, netlist, 
+			return HierarchyEnumerator.getPortNetIDs(no, pp, netlist,
 													 netNdxToNetID);
 		}
 
-        /** Get a unique, flat net name for the network.  The network 
+        /** Get a unique, flat net name for the network.  The network
          * name will contain the hierarchical context as returned by
          * VarContext.getInstPath() if it is not a top-level network.
          * @param sep the context separator to use if needed.
@@ -672,14 +672,14 @@ public final class HierarchyEnumerator {
         	NameProxy proxy = getUniqueNetNameProxy(net, sep);
         	return proxy.toString();
         }
-        
+
         /** Same as getUniqueNetName except it returns a NameProxy instead of a
          * String name */
 		public final NetNameProxy getUniqueNetNameProxy(Network net, String sep) {
 			return getUniqueNetNameProxy(getNetID(net), sep);
 		}
-        
-		/** Get a unique, flat net name for the network.  The network 
+
+		/** Get a unique, flat net name for the network.  The network
 		 * name will contain the hierarchical context as returned by
 		 * VarContext.getInstPath() if it is not a top-level network.
 		 * @param sep the hierarchy separator to use if needed.
@@ -702,21 +702,21 @@ public final class HierarchyEnumerator {
 //			}
 			return new NetNameProxy(netContext, sep, ns.getNet());
 		}
-        
+
         /** Get a unique, flat instance name for the Nodable.
-         * @param no 
+         * @param no
          * @param sep the hierarchy separator to use if needed
          * @return a unique String identifer for the Nodable */
         public final String getUniqueNodableName(Nodable no, String sep) {
         	return getUniqueNodableNameProxy(no, sep).toString();
         }
 
-		/** Same as getUniqueNodableName except that it returns a NameProxy 
+		/** Same as getUniqueNodableName except that it returns a NameProxy
 		 *  instead of a String name. */
 		public final NodableNameProxy getUniqueNodableNameProxy(Nodable no, String sep) {
 			return new NodableNameProxy(getContext(), sep, no);
 		}
-        
+
 		/** Get the Network that is closest to the root in the design
 		 * hierarchy that corresponds to netID. */
 		public final NetDescription netIdToNetDescription(int netID) {
@@ -736,38 +736,39 @@ public final class HierarchyEnumerator {
             if (parentInfo == null) return null;
 			if (network == null) return null;
 			if (network.getNetlist() != netlist) return null;
-            // find export on network
-            boolean found = false;
-            Export export = null;
-            int i = 0;
-            for (Iterator<Export> it = cell.getExports(); it.hasNext(); ) {
-                export = it.next();
-                for (i=0; i<export.getNameKey().busWidth(); i++) {
-                    Network net = netlist.getNetwork(export, i);
-                    if (net == network) { found = true; break; }
-                }
-                if (found) break;
-            }
-            if (found) {
-                // find corresponding port on icon
-                //System.out.println("In "+cell.describe()+" JNet "+network.describe()+" is exported as "+export.getName()+"; index "+i);
-                Nodable no = context.getNodable();
-                PortProto pp = no.getProto().findPortProto(export.getNameKey());
-                //System.out.println("Found corresponding port proto "+pp.getName()+" on cell "+no.getProto().describe());
-                // find corresponding network in parent
-                Network parentNet = parentInfo.getNetlist().getNetwork(no, pp, i);
-                return parentNet;
-            }
-            // check if global network
-            Global.Set globals = netlist.getGlobals();
-            for (i=0; i<globals.size(); i++) {
-                Global global = globals.get(i);
-                if (netlist.getNetwork(global) == network) {
-                    // it is a global, return the global network in the parent
-                    return parentInfo.getNetlist().getNetwork(global);
-                }
-            }
-            return null;
+            return parentInfo.getNetlist().getNetwork(context.getNodable(), network);
+//            // find export on network
+//            boolean found = false;
+//            Export export = null;
+//            int i = 0;
+//            for (Iterator<Export> it = cell.getExports(); it.hasNext(); ) {
+//                export = it.next();
+//                for (i=0; i<export.getNameKey().busWidth(); i++) {
+//                    Network net = netlist.getNetwork(export, i);
+//                    if (net == network) { found = true; break; }
+//                }
+//                if (found) break;
+//            }
+//            if (found) {
+//                // find corresponding port on icon
+//                //System.out.println("In "+cell.describe()+" JNet "+network.describe()+" is exported as "+export.getName()+"; index "+i);
+//                Nodable no = context.getNodable();
+//                PortProto pp = no.getProto().findPortProto(export.getNameKey());
+//                //System.out.println("Found corresponding port proto "+pp.getName()+" on cell "+no.getProto().describe());
+//                // find corresponding network in parent
+//                Network parentNet = parentInfo.getNetlist().getNetwork(no, pp, i);
+//                return parentNet;
+//            }
+//            // check if global network
+//            Global.Set globals = netlist.getGlobals();
+//            for (i=0; i<globals.size(); i++) {
+//                Global global = globals.get(i);
+//                if (netlist.getNetwork(global) == network) {
+//                    // it is a global, return the global network in the parent
+//                    return parentInfo.getNetlist().getNetwork(global);
+//                }
+//            }
+//            return null;
         }
 
         /**
@@ -789,7 +790,7 @@ public final class HierarchyEnumerator {
 	 * root. If context is null then VarContext.globalContext is used.
 	 * @param visitor the object responsible for doing something useful
 	 * during the enumertion of the design hierarchy. */
-//	public static void enumerateCell(Cell root, VarContext context, 
+//	public static void enumerateCell(Cell root, VarContext context,
 //	                                 Netlist netlist, Visitor visitor) {
 //		if (netlist == null) netlist = NetworkTool.getUserNetlist(root);
 //		(new HierarchyEnumerator()).doIt(root, context, netlist, visitor, false, false, false, false);
@@ -797,15 +798,15 @@ public final class HierarchyEnumerator {
 	public static void enumerateCell(Cell root, VarContext context, Visitor visitor) {
         enumerateCell(root, context, visitor, Netlist.ShortResistors.NO);
 	}
-    
+
 	public static void enumerateCell(Cell root, VarContext context, Visitor visitor, Netlist.ShortResistors shortResistors) {
         enumerateCell(NetworkTool.getNetlist(root, shortResistors), context, visitor);
 	}
-    
+
 	public static void enumerateCell(Netlist rootNetlist, VarContext context, Visitor visitor) {
         enumerateCell(rootNetlist, context, visitor, false);
 	}
-    
+
 	/** Experimental. Optionally caches results of variable evaluation. */
 	public static void enumerateCell(Netlist rootNetlist, VarContext context,  Visitor visitor, boolean caching) {
         Netlist.ShortResistors shortResistors = rootNetlist.getShortResistors();
@@ -820,7 +821,7 @@ public final class HierarchyEnumerator {
         hierCellsRecurse(cell, uniqueChildCells);
         return uniqueChildCells.size();
     }
-        
+
     /** Recursive method used to traverse down hierarchy */
     private static void hierCellsRecurse(Cell cell, HashMap<Cell,Cell> uniqueCells) {
         for (Iterator<CellUsage> uit = cell.getUsagesIn(); uit.hasNext();) {

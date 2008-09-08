@@ -53,7 +53,7 @@ public abstract class Netlist
         /** Resistors are shortened except poly resistors */    PARASITIC,
         /** All resistors are shortened */                      ALL
     };
-    
+
 	// -------------------------- private data ---------------------------------
 
 	/** NetCell which owns this Netlist. */
@@ -75,7 +75,7 @@ public abstract class Netlist
 	/** An array of Networks in this Cell. */
 	private Network[] networks;
     int numExternalEntries;
-    private int numExternalNets;
+    int numExternalNets;
 
 	// ---------------------- package methods -----------------
 
@@ -89,14 +89,14 @@ public abstract class Netlist
 		expectedModCount = netCell.modCount;
 		netMap = map;
 		nm_net = new int[netMap.length];
-        
+
 		closureMap(netMap);
 		int k = 0;
 		for (int i = 0; i < netMap.length; i++) {
 			if (netMap[i] == i) k++;
 		}
 		networks = new Network[k];
-		
+
         numExternalEntries = numExternals;
 		k = 0;
 		for (int i = 0; i < netMap.length; i++) {
@@ -121,7 +121,7 @@ public abstract class Netlist
 		for (int i = 0; i < map.length; i++) map[i] = i;
         return map;
     }
-    
+
 	/**
 	 * Merge classes of equivalence map to which elements a1 and a2 belong.
 	 */
@@ -172,7 +172,7 @@ public abstract class Netlist
 //		}
 //		return true;
 //	}
-    
+
     /** A cell of this netlist. */
     public Cell getCell() { return netCell.cell; }
 
@@ -198,11 +198,11 @@ public abstract class Netlist
      */
     abstract void fillNames(int netIndex, Collection<String> exportedNames, Collection<String> privateNames);
 
-    /**numExternalNets
+    /**
      * Method to tell whether this network has any exports or globals on it.
      * @return true if there are exports or globals on this Network.
      */
-    abstract boolean isExported(int netIndex);
+    boolean isExported(int netIndex) { return netIndex < numExternalNets; }
 
     /**
      * Method to tell whether this network has user-defined name.
@@ -211,6 +211,8 @@ public abstract class Netlist
     abstract boolean isUsernamed(int netIndex);
 
 	int getNetIndexByMap(int mapOffset) { return nm_net[mapOffset]; }
+
+    abstract int getEquivPortIndexByNetIndex(int netIndex);
 
 	private final void checkForModification() {
 		if (expectedModCount != netCell.modCount)
@@ -300,7 +302,7 @@ public abstract class Netlist
 		checkForModification();
 		return getNetworkRaw(netIndex);
 	}
-    
+
 	/**
 	 * Get Network with specified index.
      * If Network was not allocated yet, allocate it.
@@ -314,7 +316,7 @@ public abstract class Netlist
             return network;
         }
         network = new Network(this, netIndex);
-        
+
         // Check if concurrent thread allocated this network also
         // This code is not properly synchronized !!!!!!
         if (networks[netIndex] != null)
@@ -361,8 +363,29 @@ public abstract class Netlist
 	}
 
 	/**
+	 * Get net index of signal connected to specified external network of nodable.
+     * Nodable must be subcell
+	 * @param no nodable (subcell)
+	 * @param subNetwork a network
+	 * @return network.
+	 */
+    int getNetIndex(Nodable no, Network subNetwork) {
+        checkForModification();
+        Netlist subNetlist = subNetwork.getNetlist();
+        assert subNetlist.shortResistors == shortResistors;
+		if (no.getParent() == netCell.cell && subNetlist.getCell() == no.getProto() && subNetwork.isExported()) {
+            int equivPortIndex = subNetlist.getEquivPortIndexByNetIndex(subNetwork.getNetIndex());
+            assert equivPortIndex >= 0 && equivPortIndex < subNetlist.netCell.equivPortsN.length;
+            int netMapIndex = netCell.getNetMapOffset(no, equivPortIndex);
+            if (netMapIndex >= 0)
+                return nm_net[netMapIndex];
+        }
+        return -1;
+    }
+
+	/**
 	 * Get net index of signal in a port instance of nodable.
-	 * @param no nodable 
+	 * @param no nodable
 	 * @param portProto port of nodable
 	 * @param busIndex index of signal in a bus or zero.
 	 * @return net index
@@ -439,8 +462,20 @@ public abstract class Netlist
 	}
 
 	/**
+	 * Get network of signal connected to specified external network of nodable.
+     * Nodable must be subcell
+	 * @param no nodable (subcell)
+	 * @param subNetwork a network
+	 * @return network.
+     * @throws IllegalArgumentException if nodable is not subcell
+	 */
+    public Network getNetwork(Nodable no, Network subNetwork) {
+        return getNetworkRaw(getNetIndex(no, subNetwork));
+    }
+
+	/**
 	 * Get network of signal in a port instance of nodable.
-	 * @param no nodable 
+	 * @param no nodable
 	 * @param portProto port of nodable
 	 * @param busIndex index of signal in a bus or zero.
 	 * @return network.
@@ -641,7 +676,7 @@ public abstract class Netlist
 	}
 
     public ShortResistors getShortResistors() { return shortResistors; }
-    
+
 	/**
 	 * Returns a printable version of this Netlist.
 	 * @return a printable version of this Netlist.
