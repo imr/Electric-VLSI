@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08f: ******************************
 
+BUG: (9/8/08, SMR) Changes to Units preferences are not remembered correctly (Bug #1827).
+FIX: Handle offsets correctly.
+
 BUG: (9/8/08, SMR) Some high-voltage transistors are called "high threshold" (Bug #1826).
 FIX: Fixed PrimitiveNode.java.
 

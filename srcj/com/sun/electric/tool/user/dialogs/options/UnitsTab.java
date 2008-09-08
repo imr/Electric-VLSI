@@ -46,6 +46,14 @@ public class UnitsTab extends PreferencePanel
 	/** return the name of this preferences tab. */
 	public String getName() { return "Units"; }
 
+	private static final int DISTANCE_OFFSET = TextUtils.UnitScale.MILLI.getIndex();
+	private static final int RESISTANCE_OFFSET = TextUtils.UnitScale.GIGA.getIndex();
+	private static final int CAPACITANCE_OFFSET = TextUtils.UnitScale.NONE.getIndex();
+	private static final int INDUCTANCE_OFFSET = TextUtils.UnitScale.NONE.getIndex();
+	private static final int CURRENT_OFFSET = TextUtils.UnitScale.NONE.getIndex();
+	private static final int VOLTAGE_OFFSET = TextUtils.UnitScale.KILO.getIndex();
+	private static final int TIME_OFFSET = TextUtils.UnitScale.NONE.getIndex();
+
 	private TextUtils.UnitScale initialUnitsDistance;
 	private TextUtils.UnitScale initialUnitsResistance;
 	private TextUtils.UnitScale initialUnitsCapacitance;
@@ -64,7 +72,7 @@ public class UnitsTab extends PreferencePanel
 		unitsDistance.addItem("Microns");
 		unitsDistance.addItem("Nanometers");
 		initialUnitsDistance = User.getDistanceUnits();
-		int index = initialUnitsDistance.getIndex() - TextUtils.UnitScale.MILLI.getIndex();
+		int index = initialUnitsDistance.getIndex() - DISTANCE_OFFSET;
 		if (index < 0) index = 0;
 		if (index >= unitsDistance.getItemCount()) index = unitsDistance.getItemCount() - 1;
 		unitsDistance.setSelectedIndex(index);
@@ -74,7 +82,7 @@ public class UnitsTab extends PreferencePanel
 		unitsResistance.addItem("Kilo-ohms");
 		unitsResistance.addItem("Ohms");
 		initialUnitsResistance = User.getResistanceUnits();
-		index = initialUnitsResistance.getIndex() - TextUtils.UnitScale.GIGA.getIndex();
+		index = initialUnitsResistance.getIndex() - RESISTANCE_OFFSET;
 		if (index < 0) index = 0;
 		if (index >= unitsDistance.getItemCount()) index = unitsDistance.getItemCount() - 1;
 		unitsResistance.setSelectedIndex(index);
@@ -86,7 +94,7 @@ public class UnitsTab extends PreferencePanel
 		unitsCapacitance.addItem("Pico-farads");
 		unitsCapacitance.addItem("Femto-farads");
 		initialUnitsCapacitance = User.getCapacitanceUnits();
-		index = initialUnitsCapacitance.getIndex() - TextUtils.UnitScale.NONE.getIndex();
+		index = initialUnitsCapacitance.getIndex() - CAPACITANCE_OFFSET;
 		if (index < 0) index = 0;
 		if (index >= unitsDistance.getItemCount()) index = unitsDistance.getItemCount() - 1;
 		unitsCapacitance.setSelectedIndex(index);
@@ -96,7 +104,7 @@ public class UnitsTab extends PreferencePanel
 		unitsInductance.addItem("Micro-henrys");
 		unitsInductance.addItem("Nano-henrys");
 		initialUnitsInductance = User.getInductanceUnits();
-		index = initialUnitsInductance.getIndex() - TextUtils.UnitScale.NONE.getIndex();
+		index = initialUnitsInductance.getIndex() - INDUCTANCE_OFFSET;
 		if (index < 0) index = 0;
 		if (index >= unitsDistance.getItemCount()) index = unitsDistance.getItemCount() - 1;
 		unitsInductance.setSelectedIndex(index);
@@ -105,7 +113,7 @@ public class UnitsTab extends PreferencePanel
 		unitsCurrent.addItem("Milli-amps");
 		unitsCurrent.addItem("Micro-amps");
 		initialUnitsAmperage = User.getAmperageUnits();
-		index = initialUnitsAmperage.getIndex() - TextUtils.UnitScale.NONE.getIndex();
+		index = initialUnitsAmperage.getIndex() - CURRENT_OFFSET;
 		if (index < 0) index = 0;
 		if (index >= unitsDistance.getItemCount()) index = unitsDistance.getItemCount() - 1;
 		unitsCurrent.setSelectedIndex(index);
@@ -115,7 +123,7 @@ public class UnitsTab extends PreferencePanel
 		unitsVoltage.addItem("Milli-volts");
 		unitsVoltage.addItem("Micro-volts");
 		initialUnitsVoltage = User.getVoltageUnits();
-		index = initialUnitsVoltage.getIndex() - TextUtils.UnitScale.KILO.getIndex();
+		index = initialUnitsVoltage.getIndex() - VOLTAGE_OFFSET;
 		if (index < 0) index = 0;
 		if (index >= unitsDistance.getItemCount()) index = unitsDistance.getItemCount() - 1;
 		unitsVoltage.setSelectedIndex(index);
@@ -127,27 +135,26 @@ public class UnitsTab extends PreferencePanel
 		unitsTime.addItem("Pico-seconds");
 		unitsTime.addItem("Femto-seconds");
 		initialUnitsTime = User.getTimeUnits();
-		index = initialUnitsTime.getIndex() - TextUtils.UnitScale.NONE.getIndex();
+		index = initialUnitsTime.getIndex() - TIME_OFFSET;
 		if (index < 0) index = 0;
 		if (index >= unitsDistance.getItemCount()) index = unitsDistance.getItemCount() - 1;
 		unitsTime.setSelectedIndex(index);
 
-        // Units no longer mean anything - all numbers are in real units, and are
-        // displayed scaled with appropriate post-fix.
-        index = TextUtils.UnitScale.NONE.getIndex();
-        unitsResistance.setSelectedIndex(-1);
-        unitsResistance.setEnabled(false);
-        unitsCapacitance.setSelectedIndex(-1);
-        unitsCapacitance.setEnabled(false);
-        unitsInductance.setSelectedIndex(-1);
-        unitsInductance.setEnabled(false);
-        unitsCurrent.setSelectedIndex(-1);
-        unitsCurrent.setEnabled(false);
-        unitsVoltage.setSelectedIndex(-1);
-        unitsVoltage.setEnabled(false);
-        unitsTime.setSelectedIndex(-1);
-        unitsTime.setEnabled(false);
-
+		// Units no longer mean anything - all numbers are in real units, and are
+		// displayed scaled with appropriate post-fix.
+		index = TextUtils.UnitScale.NONE.getIndex();
+		unitsResistance.setSelectedIndex(-1);
+		unitsResistance.setEnabled(false);
+		unitsCapacitance.setSelectedIndex(-1);
+		unitsCapacitance.setEnabled(false);
+		unitsInductance.setSelectedIndex(-1);
+		unitsInductance.setEnabled(false);
+		unitsCurrent.setSelectedIndex(-1);
+		unitsCurrent.setEnabled(false);
+		unitsVoltage.setSelectedIndex(-1);
+		unitsVoltage.setEnabled(false);
+		unitsTime.setSelectedIndex(-1);
+		unitsTime.setEnabled(false);
 	}
 
 	/**
@@ -156,31 +163,31 @@ public class UnitsTab extends PreferencePanel
 	 */
 	public void term()
 	{
-		TextUtils.UnitScale currentDistance = TextUtils.UnitScale.findFromIndex(unitsDistance.getSelectedIndex());
+		TextUtils.UnitScale currentDistance = TextUtils.UnitScale.findFromIndex(unitsDistance.getSelectedIndex() + DISTANCE_OFFSET);
 		if (currentDistance != initialUnitsDistance)
 			User.setDistanceUnits(currentDistance);
 
-		TextUtils.UnitScale currentResistance = TextUtils.UnitScale.findFromIndex(unitsResistance.getSelectedIndex());
+		TextUtils.UnitScale currentResistance = TextUtils.UnitScale.findFromIndex(unitsResistance.getSelectedIndex() + RESISTANCE_OFFSET);
 		if (currentResistance != initialUnitsResistance)
 			User.setResistanceUnits(currentResistance);
 
-		TextUtils.UnitScale currentCapacitance = TextUtils.UnitScale.findFromIndex(unitsCapacitance.getSelectedIndex());
+		TextUtils.UnitScale currentCapacitance = TextUtils.UnitScale.findFromIndex(unitsCapacitance.getSelectedIndex() + CAPACITANCE_OFFSET);
 		if (currentCapacitance != initialUnitsCapacitance)
 			User.setCapacitanceUnits(currentCapacitance);
 
-		TextUtils.UnitScale currentInductance = TextUtils.UnitScale.findFromIndex(unitsInductance.getSelectedIndex());
+		TextUtils.UnitScale currentInductance = TextUtils.UnitScale.findFromIndex(unitsInductance.getSelectedIndex() + INDUCTANCE_OFFSET);
 		if (currentInductance != initialUnitsInductance)
 			User.setInductanceUnits(currentInductance);
 
-		TextUtils.UnitScale currentAmperage = TextUtils.UnitScale.findFromIndex(unitsCurrent.getSelectedIndex());
+		TextUtils.UnitScale currentAmperage = TextUtils.UnitScale.findFromIndex(unitsCurrent.getSelectedIndex() + CURRENT_OFFSET);
 		if (currentAmperage != initialUnitsAmperage)
 			User.setAmperageUnits(currentAmperage);
 
-		TextUtils.UnitScale currentVoltage = TextUtils.UnitScale.findFromIndex(unitsVoltage.getSelectedIndex());
+		TextUtils.UnitScale currentVoltage = TextUtils.UnitScale.findFromIndex(unitsVoltage.getSelectedIndex() + VOLTAGE_OFFSET);
 		if (currentVoltage != initialUnitsVoltage)
 			User.setVoltageUnits(currentVoltage);
 
-		TextUtils.UnitScale currentTime = TextUtils.UnitScale.findFromIndex(unitsTime.getSelectedIndex());
+		TextUtils.UnitScale currentTime = TextUtils.UnitScale.findFromIndex(unitsTime.getSelectedIndex() + TIME_OFFSET);
 		if (currentTime != initialUnitsTime)
 			User.setTimeUnits(currentTime);
 	}
@@ -389,5 +396,4 @@ public class UnitsTab extends PreferencePanel
     private javax.swing.JComboBox unitsTime;
     private javax.swing.JComboBox unitsVoltage;
     // End of variables declaration//GEN-END:variables
-
 }
