@@ -861,8 +861,8 @@ public class Layer
 			if (vp.getBoolean() != visible) vp.setBoolean(visible);
 			visibilityInitialized = true;
 		}
-		if (graphics.getFactoryColorIndex() != EGraphics.makeIndex(graphics.getColor()))
-			graphics.setColorIndex(graphics.getFactoryColorIndex());
+		if (graphics.getFactoryColor() != graphics.getRGB())
+			graphics.setColor(new Color(graphics.getFactoryColor()));
 		if (graphics.getFactoryTransparentLayer() != graphics.getTransparentLayer())
 			graphics.setTransparentLayer(graphics.getFactoryTransparentLayer());
 		if (graphics.getFactoryOpacity() != graphics.getOpacity())

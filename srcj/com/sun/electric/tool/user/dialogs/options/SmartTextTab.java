@@ -54,14 +54,14 @@ public class SmartTextTab extends PreferencePanel
 		// set arc defaults
 		switch (User.getSmartVerticalPlacementArc())
 		{
-			case 0: arcVerticalInside.setSelected(true);     break;
+			case 0: arcVerticalInside.setSelected(true);    break;
 			case 1: arcVerticalLeft.setSelected(true);      break;
-			case 2: arcVerticalRight.setSelected(true);      break;
+			case 2: arcVerticalRight.setSelected(true);     break;
 		}
 		switch (User.getSmartHorizontalPlacementArc())
 		{
 			case 0: arcHorizontalInside.setSelected(true);    break;
-			case 1: arcHorizontalAbove.setSelected(true);      break;
+			case 1: arcHorizontalAbove.setSelected(true);     break;
 			case 2: arcHorizontalBelow.setSelected(true);     break;
 		}
 
@@ -118,13 +118,13 @@ public class SmartTextTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		if (User.getFactorySmartVerticalPlacementArc() != User.getFactorySmartVerticalPlacementArc())
+		if (User.getFactorySmartVerticalPlacementArc() != User.getSmartVerticalPlacementArc())
 			User.setSmartVerticalPlacementArc(User.getFactorySmartVerticalPlacementArc());
-		if (User.getFactorySmartHorizontalPlacementArc() != User.getFactorySmartHorizontalPlacementArc())
+		if (User.getFactorySmartHorizontalPlacementArc() != User.getSmartHorizontalPlacementArc())
 			User.setSmartHorizontalPlacementArc(User.getFactorySmartHorizontalPlacementArc());
-		if (User.getFactorySmartVerticalPlacementExport() != User.getFactorySmartVerticalPlacementExport())
+		if (User.getFactorySmartVerticalPlacementExport() != User.getSmartVerticalPlacementExport())
 			User.setSmartVerticalPlacementExport(User.getFactorySmartVerticalPlacementExport());
-		if (User.getFactorySmartHorizontalPlacementExport() != User.getFactorySmartHorizontalPlacementExport())
+		if (User.getFactorySmartHorizontalPlacementExport() != User.getSmartHorizontalPlacementExport())
 			User.setSmartHorizontalPlacementExport(User.getFactorySmartHorizontalPlacementExport());
 	}
 

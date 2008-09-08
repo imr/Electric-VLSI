@@ -425,6 +425,7 @@ public class PreferencesFrame extends EDialog
 			}
 			Pref.resumePrefFlushing();
 			closeDialog(null);
+            WindowFrame.repaintAllWindows();
 		}
 	}
 

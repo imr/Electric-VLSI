@@ -261,7 +261,7 @@ public class TechnologyTab extends PreferencePanel
 			if (np != Schematics.tech().andNode && np != Schematics.tech().orNode &&
 				np != Schematics.tech().xorNode && np != Schematics.tech().muxNode &&
 				np != Schematics.tech().bufferNode) continue;
-			if (Schematics.getFactoryVHDLNames(np).equals(Schematics.getVHDLNames(np)))
+			if (!Schematics.getFactoryVHDLNames(np).equals(Schematics.getVHDLNames(np)))
 				Schematics.setVHDLNames(np, Schematics.getFactoryVHDLNames(np));
 		}
 	}

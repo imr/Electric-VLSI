@@ -359,8 +359,8 @@ public class IconTab extends PreferencePanel
 			User.setIconGenOutputRot(User.getFactoryIconGenOutputRot());
 		if (User.getFactoryIconGenBidirRot() != User.getIconGenBidirRot())
 			User.setIconGenBidirRot(User.getFactoryIconGenBidirRot());
-		if (User.getFactoryIconGenPowerRot() != User.getIconGenPowerRot())
-			User.setIconGenPowerRot(User.getFactoryIconGenPowerRot());
+		if (User.getFactoryIconGenGroundRot() != User.getIconGenGroundRot())
+			User.setIconGenGroundRot(User.getFactoryIconGenGroundRot());
 		if (User.getFactoryIconGenPowerRot() != User.getIconGenPowerRot())
 			User.setIconGenPowerRot(User.getFactoryIconGenPowerRot());
 		if (User.getFactoryIconGenClockRot() != User.getIconGenClockRot())

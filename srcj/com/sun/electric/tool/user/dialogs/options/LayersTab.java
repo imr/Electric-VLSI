@@ -219,7 +219,7 @@ public class LayersTab extends PreferencePanel
             Class<?> j3DUtilsClass = Resources.get3DClass("utils.J3DUtils");
             if (j3DUtilsClass != null)
             {
-                Method setMethod = j3DUtilsClass.getDeclaredMethod("get3DColorsInTab", new Class[] {HashMap.class});
+                Method setMethod = j3DUtilsClass.getDeclaredMethod("get3DColorsInTab", new Class[] {Map.class});
                 setMethod.invoke(j3DUtilsClass, new Object[]{transAndSpecialMap});
             }
             else
@@ -387,6 +387,20 @@ public class LayersTab extends PreferencePanel
 		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = it.next();
+
+			// reload color map for technology if necessary
+			Color [] transColorsFactory = tech.getFactoryTransparentLayerColors();
+			Color [] transColors = tech.getTransparentLayerColors();
+			boolean reload = transColorsFactory.length != transColors.length;
+			if (!reload)
+			{
+				for(int i=0; i<transColors.length; i++)
+					if (transColorsFactory[i].getRGB() != transColors[i].getRGB()) reload = true;
+			}
+			if (reload)
+				tech.setColorMapFromLayers(transColorsFactory);
+
+			// reload individual layer graphics
 			for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
 			{
 				Layer layer = lIt.next();

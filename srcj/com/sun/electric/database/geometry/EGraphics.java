@@ -748,7 +748,7 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 	/**
 	 * Method to get the RGB value representing the color by factory default.
 	 * (Bits 16-23 are red, 8-15 are green, 0-7 are blue).
-	 * Alpha/opacity component is not returned 
+	 * Alpha/opacity component is not returned.
 	 * @return the RGB value representing the color by factory default.
 	 */
 	public int getFactoryColor()
@@ -756,19 +756,6 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 		if (layer == null) return 0;
 		Pref pref = colorMap.get(layer);
 		return pref.getIntFactoryValue();
-	}
-
-	/**
-	 * Method to get the color index of this EGraphics by factory default.
-	 * @return the color index value representing the color by factory default.
-	 */
-	public int getFactoryColorIndex()
-	{
-		if (layer == null) return 0;
-		Pref pref = colorMap.get(layer);
-		int col = pref.getIntFactoryValue();
-		int index = (col << 8) | FULLRGBBIT;
-		return index;
 	}
 
 	/**

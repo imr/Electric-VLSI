@@ -4975,6 +4975,34 @@ public class Technology implements Comparable<Technology>, Serializable
 	}
 
 	/**
+	 * Method to return the factory default colors for the transparent layers in this Technology.
+	 * @return the factory default colors for the transparent layers in this Technology.
+	 */
+	public Color [] getFactoryTransparentLayerColors()
+	{
+		Color [] colors = new Color[transparentLayers];
+		for(int i=0; i<transparentLayers; i++)
+		{
+			colors[i] = new Color(transparentColorPrefs[i].getIntFactoryValue());
+		}
+		return colors;
+	}
+
+	/**
+	 * Method to return the colors for the transparent layers in this Technology.
+	 * @return the factory for the transparent layers in this Technology.
+	 */
+	public Color [] getTransparentLayerColors()
+	{
+		Color [] colors = new Color[transparentLayers];
+		for(int i=0; i<transparentLayers; i++)
+		{
+			colors[i] = new Color(transparentColorPrefs[i].getInt());
+		}
+		return colors;
+	}
+
+	/**
 	 * Method to reload the color map when the layer color preferences have changed.
 	 */
 	public static void cacheTransparentLayerColors()
