@@ -118,7 +118,7 @@ public class TechConversionResult implements Serializable
 	public void showError()
 	{
 		// more complex errors have their own way to display
-		if (neList != null)
+		if (errorMessage == null)
 		{
 			explainStretchProblem();
 			return;

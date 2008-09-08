@@ -1922,16 +1922,20 @@ public class LibToTech
 		double multiYS = nodeBounds.getHeight();
 
 		// determine indentation of cuts
-		double multiIndent = nodeBounds.getMinX() - highlightBounds.getMinX();
+		double leftIndent = DBMath.round(nodeBounds.getMinX() - highlightBounds.getMinX());
+		double rightIndent = DBMath.round(highlightBounds.getMaxX() - nodeBounds.getMaxX());
+		double topIndent = DBMath.round(highlightBounds.getMaxY() - nodeBounds.getMaxY());
+		double bottomIndent = DBMath.round(nodeBounds.getMinY() - highlightBounds.getMinY());
 		double realIndentX = nodeBounds.getMinX() - firstEx.lx + multiXS/2;
 		double realIndentY = nodeBounds.getMinY() - firstEx.ly + multiYS/2;
-		if (highlightBounds.getMaxX() - nodeBounds.getMaxX() != multiIndent ||
-			nodeBounds.getMinY() - highlightBounds.getMinY() != multiIndent ||
-			highlightBounds.getMaxY() - nodeBounds.getMaxY() != multiIndent)
+		if (rightIndent != leftIndent || bottomIndent != leftIndent || topIndent != leftIndent)
 		{
-			error.markError(ns.node, np, "Multiple contact cuts must be indented uniformly");
+			error.markError(ns.node, np, "Multiple contact cuts must be indented uniformly (left=" +
+				leftIndent + ", right=" + rightIndent +
+				", top=" + topIndent + ", bottom=" + bottomIndent + ")");
 			return null;
 		}
+		double multiIndent = leftIndent;
 
 		// look at every example after the first
 		double xSep = -1, ySep = -1;

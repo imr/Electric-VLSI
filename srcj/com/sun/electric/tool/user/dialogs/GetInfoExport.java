@@ -28,6 +28,7 @@ import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.PortCharacteristic;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Client;
@@ -196,7 +197,7 @@ public class GetInfoExport extends EModelessDialog implements HighlightListener,
 
 		// set location
 		Poly poly = pp.getOriginalPort().getPoly();
-		centerLoc.setText("Center: (" + poly.getCenterX() + "," + poly.getCenterY() + ")");
+		centerLoc.setText("Center: (" + TextUtils.formatDouble(poly.getCenterX()) + "," + TextUtils.formatDouble(poly.getCenterY()) + ")");
 
 		// set Body and Always Drawn check boxes
 		initialBodyOnly = pp.isBodyOnly();
