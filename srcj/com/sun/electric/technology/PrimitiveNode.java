@@ -138,51 +138,51 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 
 		/** Describes an nMOS high-voltage (1) transistor.
 		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
-		TRANMOSHV1("high-threshold-1-nMOS-transistor", "nmos-hv1", true, false),
+		TRANMOSHV1("high-voltage-1-nMOS-transistor", "nmos-hv1", true, false),
 
-		/** Describes a pMOS high-threshold (1) transistor.
+		/** Describes a pMOS high-voltage (1) transistor.
 		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
-		TRAPMOSHV1("high-threshold-pMOS-transistor", "pmos-hv1", true, false),
+		TRAPMOSHV1("high-voltage-pMOS-transistor", "pmos-hv1", true, false),
 
 		/** Describes an nMOS higher-voltage (2) transistor.
 		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
-		TRANMOSHV2("high-threshold-1-nMOS-transistor", "nmos-hv2", true, false),
+		TRANMOSHV2("high-voltage-1-nMOS-transistor", "nmos-hv2", true, false),
 
-		/** Describes a pMOS higher-threshold (2) transistor.
+		/** Describes a pMOS higher-voltage (2) transistor.
 		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
-		TRAPMOSHV2("high-threshold-pMOS-transistor", "pmos-hv2", true, false),
+		TRAPMOSHV2("high-voltage-pMOS-transistor", "pmos-hv2", true, false),
 
 		/** Describes an nMOS highest-voltage (3) transistor.
 		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
-		TRANMOSHV3("high-threshold-1-nMOS-transistor", "nmos-hv3", true, false),
+		TRANMOSHV3("high-voltage-1-nMOS-transistor", "nmos-hv3", true, false),
 
-		/** Describes a pMOS highest-threshold (3) transistor.
+		/** Describes a pMOS highest-voltage (3) transistor.
 		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
-		TRAPMOSHV3("high-threshold-pMOS-transistor", "pmos-hv3", true, false),
+		TRAPMOSHV3("high-voltage-pMOS-transistor", "pmos-hv3", true, false),
 
 		/** Describes an nMOS native high-voltage (1) transistor.
 		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
-		TRANMOSNTHV1("native-high-threshold-1-nMOS-transistor", "nmos-nt-hv1", true, false),
+		TRANMOSNTHV1("native-high-voltage-1-nMOS-transistor", "nmos-nt-hv1", true, false),
 
-		/** Describes a pMOS native high-threshold (1) transistor.
+		/** Describes a pMOS native high-voltage (1) transistor.
 		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
-		TRAPMOSNTHV1("native-high-threshold-pMOS-transistor", "pmos-nt-hv1", true, false),
+		TRAPMOSNTHV1("native-high-voltage-pMOS-transistor", "pmos-nt-hv1", true, false),
 
 		/** Describes an nMOS native higher-voltage (2) transistor.
 		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
-		TRANMOSNTHV2("native-high-threshold-1-nMOS-transistor", "nmos-nt-hv2", true, false),
+		TRANMOSNTHV2("native-high-voltage-1-nMOS-transistor", "nmos-nt-hv2", true, false),
 
-		/** Describes a pMOS native higher-threshold (2) transistor.
+		/** Describes a pMOS native higher-voltage (2) transistor.
 		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
-		TRAPMOSNTHV2("native-high-threshold-pMOS-transistor", "pmos-nt-hv2", true, false),
+		TRAPMOSNTHV2("native-high-voltage-pMOS-transistor", "pmos-nt-hv2", true, false),
 
 		/** Describes an nMOS native highest-voltage (3) transistor.
 		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
-		TRANMOSNTHV3("native-high-threshold-1-nMOS-transistor", "nmos-nt-hv3", true, false),
+		TRANMOSNTHV3("native-high-voltage-1-nMOS-transistor", "nmos-nt-hv3", true, false),
 
-		/** Describes a pMOS native highest-threshold (3) transistor.
+		/** Describes a pMOS native highest-voltage (3) transistor.
 		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
-		TRAPMOSNTHV3("native-high-threshold-pMOS-transistor", "pmos-nt-hv3", true, false),
+		TRAPMOSNTHV3("native-high-voltage-pMOS-transistor", "pmos-nt-hv3", true, false),
 
 		/** Describes a NPN junction transistor.
 		 * It has base on the first port, emitter on the second port, and collector on the third port. */
