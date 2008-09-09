@@ -1290,7 +1290,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	 * @return the factory default base width of this PrimitiveNode in grid units.
 	 */
 	public long getFactoryDefaultGridBaseWidth() {
-        return baseRectangle.getGridWidth();
+        return baseRectangle.getGridWidth() + 2*getFactoryDefaultGridExtendX();
     }
 
 
@@ -1307,7 +1307,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	 * @return the factory default base height of this PrimitiveNode in grid units.
 	 */
 	public long getFactoryDefaultGridBaseHeight() {
-        return baseRectangle.getGridHeight();
+        return baseRectangle.getGridHeight() + 2*getFactoryDefaultGridExtendY();
     }
 
 	/**
@@ -1344,6 +1344,24 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	 */
 	public long getDefaultGridExtendY() {
         return DBMath.lambdaToGrid(getNodeProtoExtendYPref(0).getDouble());
+    }
+
+	/**
+	 * Method to return the factory defaut extend of this PrimitiveNode over minimal width\
+     * in grid units.
+	 * @return the defaut extend of this PrimitiveNode over minimal width in grid units.
+	 */
+	public long getFactoryDefaultGridExtendX() {
+        return DBMath.lambdaToGrid(getNodeProtoExtendXPref(0).getDoubleFactoryValue());
+    }
+
+	/**
+	 * Method to return the factory defaut extend of this PrimitiveNode over minimal height\
+     * in grid units.
+	 * @return the defaut extend of this PrimitiveNode overn ninimal height in grid units.
+	 */
+	public long getFactoryDefaultGridExtendY() {
+        return DBMath.lambdaToGrid(getNodeProtoExtendYPref(0).getDoubleFactoryValue());
     }
 
 	/**

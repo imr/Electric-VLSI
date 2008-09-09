@@ -427,7 +427,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 * This call returns only the width of the diffusion.
 	 * @return the factory default base width of this ArcProto in grid units.
 	 */
-    public long getFactoryDefaultGridBaseWidth() { return 2*gridBaseExtend; }
+    public long getFactoryDefaultGridBaseWidth() { return 2*(getFactoryDefaultGridExtendOverMin() +  gridBaseExtend); }
 
 	/**
 	 * Method to return the default extend of this ArcProto over minimal-width arc in base units.
@@ -443,6 +443,15 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 */
     public long getDefaultGridExtendOverMin() {
         return DBMath.lambdaToGrid(getArcProtoExtendPref().getDouble());
+    }
+
+	/**
+	 * Method to return the factory default extend of this ArcProto over minimal-width arc in grid units.
+	 * This is the half of the difference between default width and minimal width.
+	 * @return the default extend of this ArcProto over minimal-width arc in grid units.
+	 */
+    public long getFactoryDefaultGridExtendOverMin() {
+        return DBMath.lambdaToGrid(getArcProtoExtendPref().getDoubleFactoryValue());
     }
 
 	/**
