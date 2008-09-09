@@ -27,7 +27,6 @@ package com.sun.electric.tool.user.tecEdit;
 
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
@@ -128,9 +127,9 @@ public class LibToTech
 //	static INTBIG          *us_tecnode_grab = 0;
 //	static INTBIG           us_tecnode_grabcount;
 
-    private TechConversionResult error;
+	private TechConversionResult error;
 
-    /************************************* API AND USER INTERFACE *************************************/
+	/************************************* API AND USER INTERFACE *************************************/
 
 	/**
 	 * Method to convert the current library to a technology in a new job.
@@ -292,41 +291,41 @@ public class LibToTech
 	 */
 	private static class TechFromLibJob extends Job
 	{
-        private String newName;
-        private String fileName;
-        private TechConversionResult tcr;
+		private String newName;
+		private String fileName;
+		private TechConversionResult tcr;
 
-        private TechFromLibJob(String newName, boolean alsoXML)
-        {
-            super("Make Technology from Technolog Library", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-            this.newName = newName;
-            if (alsoXML)
-            {
-                // print the technology as XML
-                fileName = OpenFile.chooseOutputFile(FileType.XML, "File for Technology's XML Code",
-                        newName + ".xml");
-            }
-            startJob();
+		private TechFromLibJob(String newName, boolean alsoXML)
+		{
+			super("Make Technology from Technolog Library", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.newName = newName;
+			if (alsoXML)
+			{
+				// print the technology as XML
+				fileName = OpenFile.chooseOutputFile(FileType.XML, "File for Technology's XML Code",
+					newName + ".xml");
+			}
+			startJob();
 		}
 
-        @Override
+		@Override
 		public boolean doIt()
 		{
-    		LibToTech ltt = new LibToTech();
-    		tcr = new TechConversionResult();
-       		ltt.makeTech(newName, fileName, tcr);
+			LibToTech ltt = new LibToTech();
+			tcr = new TechConversionResult();
+	   		ltt.makeTech(newName, fileName, tcr);
    			fieldVariableChanged("tcr");
 			return true;
 		}
 
-        public void terminateOK()
-        {
-       		if (tcr.failed())
-       		{
-       			tcr.showError();
-    			System.out.println("Failed to convert the library to a technology");
-       		}
-        }
+		public void terminateOK()
+		{
+	   		if (tcr.failed())
+	   		{
+	   			tcr.showError();
+				System.out.println("Failed to convert the library to a technology");
+	   		}
+		}
 	}
 
 	/**
@@ -409,7 +408,7 @@ public class LibToTech
 		if (var != null)
 		{
 			String compMenuXML = (String)var.getObject();
-		    List<Xml.PrimitiveNode> nodes = new ArrayList<Xml.PrimitiveNode>();
+			List<Xml.PrimitiveNode> nodes = new ArrayList<Xml.PrimitiveNode>();
 			for(int i=0; i<nList.length; i++)
 			{
 				Xml.PrimitiveNode xnp = new Xml.PrimitiveNode();
@@ -417,16 +416,16 @@ public class LibToTech
 				xnp.function = nList[i].func;
 				nodes.add(xnp);
 			}
-		    List<Xml.ArcProto> arcs = new ArrayList<Xml.ArcProto>();
+			List<Xml.ArcProto> arcs = new ArrayList<Xml.ArcProto>();
 			for(int i=0; i<aList.length; i++)
 			{
 				Xml.ArcProto xap = new Xml.ArcProto();
 				xap.name = aList[i].name;
 				arcs.add(xap);
 			}
-		    Xml.MenuPalette xmp = Xml.parseComponentMenuXMLTechEdit(compMenuXML, nodes, arcs);
-		    int menuWid = xmp.numColumns;
-		    int menuHei = xmp.menuBoxes.size() / menuWid;
+			Xml.MenuPalette xmp = Xml.parseComponentMenuXMLTechEdit(compMenuXML, nodes, arcs);
+			int menuWid = xmp.numColumns;
+			int menuHei = xmp.menuBoxes.size() / menuWid;
 			gi.menuPalette = new Object[menuHei][menuWid];
 			int i = 0;
 			for(int y=0; y<menuHei; y++)
@@ -442,8 +441,11 @@ public class LibToTech
 					{
 						List<Object> convItems = new ArrayList<Object>();
 						for(Object obj : items)
-							convItems.add(obj);
-						item = convItems;
+						{
+							if (obj != null) convItems.add(obj);
+						}
+						if (convItems.size() > 0)
+							item = convItems;
 					}
 					gi.menuPalette[y][x] = item;
 				}
@@ -452,15 +454,15 @@ public class LibToTech
 
 		Xml.Technology t = makeXml(newTechName, gi, lList, nList, aList);
 		if (fileName != null)
-            t.writeXml(fileName);
-        Technology tech = new Technology(lib.getGeneric(), t);
-        tech.setup(lib.getDatabase());
+			t.writeXml(fileName);
+		Technology tech = new Technology(lib.getGeneric(), t);
+		tech.setup(lib.getDatabase());
 
-        // switch to this technology
+		// switch to this technology
 		System.out.println("Technology " + tech.getTechName() + " built.");
 		WindowFrame.updateTechnologyLists();
 		return tech;
-    }
+	}
 
 //	private void checkAndWarn(LayerInfo [] lList, ArcInfo [] aList, NodeInfo [] nList)
 //	{
@@ -543,7 +545,7 @@ public class LibToTech
 					break;
 				case Info.TECHSCALE:
 					gi.scale = TextUtils.atof(str);
-                    gi.scaleRelevant = true;
+					gi.scaleRelevant = true;
 					break;
 				case Info.TECHFOUNDRY:
 					gi.defaultFoundry = str;
@@ -965,7 +967,7 @@ public class LibToTech
 			{
 				NodeInfo.PortDetails nipd = ports.get(i);
 				Sample ns = portSamples.get(nipd);
-				
+
 				nipd.connections = new ArcInfo[0];
 				Variable var = ns.node.getVar(Info.CONNECTION_KEY);
 				if (var != null)
@@ -2377,7 +2379,7 @@ public class LibToTech
 			return s1.name.compareTo(s2.name);
 		}
 	}
-	
+
 	private static class SampleCoordAscending implements Comparator<Sample>
 	{
 		public int compare(Sample s1, Sample s2)
@@ -2481,38 +2483,38 @@ public class LibToTech
 
 	/************************************* WRITE TECHNOLOGY AS "JAVA" CODE *************************************/
 
-//    private static int NUM_FRACTIONS = 0; // was 3
+//	private static int NUM_FRACTIONS = 0; // was 3
 //
-//    /**
-//     * Dump technology information to Java
-//     * @param fileName name of file to write
-//     * @param newTechName new technology name
-//     * @param gi general technology information
-//     * @param lList information about layers
-//     * @param nList information about primitive nodes
-//     * @param aList information about primitive arcs.
-//     */
-//    private void dumpToJava(String fileName, String newTechName, GeneralInfo gi, LayerInfo[] lList, NodeInfo[] nList, ArcInfo[] aList) {
-//        try {
-//            PrintStream buffWriter = new PrintStream(new FileOutputStream(fileName));
-//            dumpToJava(buffWriter, newTechName, gi, lList, nList, aList);
-//            buffWriter.close();
-//            System.out.println("Wrote " + fileName);
-//        } catch (IOException e) {
-//            System.out.println("Error creating " + fileName);
-//        }
-//    }
+//	/**
+//	 * Dump technology information to Java
+//	 * @param fileName name of file to write
+//	 * @param newTechName new technology name
+//	 * @param gi general technology information
+//	 * @param lList information about layers
+//	 * @param nList information about primitive nodes
+//	 * @param aList information about primitive arcs.
+//	 */
+//	private void dumpToJava(String fileName, String newTechName, GeneralInfo gi, LayerInfo[] lList, NodeInfo[] nList, ArcInfo[] aList) {
+//		try {
+//			PrintStream buffWriter = new PrintStream(new FileOutputStream(fileName));
+//			dumpToJava(buffWriter, newTechName, gi, lList, nList, aList);
+//			buffWriter.close();
+//			System.out.println("Wrote " + fileName);
+//		} catch (IOException e) {
+//			System.out.println("Error creating " + fileName);
+//		}
+//	}
 //
-//    /**
-//     * write the layers, arcs, and nodes
-//     */
-//    private void dumpToJava(PrintStream buffWriter, String newTechName, GeneralInfo gi, LayerInfo[] lList, NodeInfo[] nList, ArcInfo[] aList) {
-//        // write the layers, arcs, and nodes
-//        dumpLayersToJava(buffWriter, newTechName, lList, gi);
-//        dumpArcsToJava(buffWriter, newTechName, aList, gi);
-//        dumpNodesToJava(buffWriter, newTechName, nList, lList, gi);
-//        dumpPaletteToJava(buffWriter, gi.menuPalette);
-//        dumpFoundryToJava(buffWriter, gi, lList);
+//	/**
+//	 * write the layers, arcs, and nodes
+//	 */
+//	private void dumpToJava(PrintStream buffWriter, String newTechName, GeneralInfo gi, LayerInfo[] lList, NodeInfo[] nList, ArcInfo[] aList) {
+//		// write the layers, arcs, and nodes
+//		dumpLayersToJava(buffWriter, newTechName, lList, gi);
+//		dumpArcsToJava(buffWriter, newTechName, aList, gi);
+//		dumpNodesToJava(buffWriter, newTechName, nList, lList, gi);
+//		dumpPaletteToJava(buffWriter, gi.menuPalette);
+//		dumpFoundryToJava(buffWriter, gi, lList);
 //		buffWriter.println("\t};");
 //
 //		// write method to reset rules
@@ -2520,18 +2522,18 @@ public class LibToTech
 //		{
 //			String conword = gi.conDist != null ? "conDist" : "null";
 //			String unconword = gi.unConDist != null ? "unConDist" : "null";
-//            buffWriter.println("\t/**");
-//            buffWriter.println("\t * Method to return the \"factory \"design rules for this Technology.");
-//            buffWriter.println("\t * @return the design rules for this Technology.");
-//            buffWriter.println("\t * @param resizeNodes");
-//            buffWriter.println("\t */");
+//			buffWriter.println("\t/**");
+//			buffWriter.println("\t * Method to return the \"factory \"design rules for this Technology.");
+//			buffWriter.println("\t * @return the design rules for this Technology.");
+//			buffWriter.println("\t * @param resizeNodes");
+//			buffWriter.println("\t */");
 //			buffWriter.println("\tpublic DRCRules getFactoryDesignRules(boolean resizeNodes)");
 //			buffWriter.println("\t{");
 //			buffWriter.println("\t\treturn MOSRules.makeSimpleRules(this, " + conword + ", " + unconword + ");");
 //			buffWriter.println("\t}");
 //		}
-//        buffWriter.println("}");
-//    }
+//		buffWriter.println("}");
+//	}
 //
 //	/**
 //	 * Method to dump the layer information in technology "tech" to the stream in
@@ -2599,14 +2601,14 @@ public class LibToTech
 //		buffWriter.println("{");
 //		buffWriter.println("\t/** the " + gi.description + " Technology object. */	public static final " +
 //				techName + " tech = new " + techName + "();");
-//        buffWriter.println();
-//        if (gi.conDist != null || gi.unConDist != null) {
-//            buffWriter.println("\tprivate static final double XX = -1;");
-//            buffWriter.println("\tprivate double [] conDist, unConDist;");
-//            buffWriter.println();
-//        }
+//		buffWriter.println();
+//		if (gi.conDist != null || gi.unConDist != null) {
+//			buffWriter.println("\tprivate static final double XX = -1;");
+//			buffWriter.println("\tprivate double [] conDist, unConDist;");
+//			buffWriter.println();
+//		}
 //
-//        buffWriter.println("	// -------------------- private and protected methods ------------------------");
+//		buffWriter.println("	// -------------------- private and protected methods ------------------------");
 //		buffWriter.println("\tprivate " + techName + "()");
 //		buffWriter.println("\t{");
 //		buffWriter.println("\t\tsuper(\"" + techName + "\", Foundry.Type." + gi.defaultFoundry + ", " + gi.defaultNumMetals + ");");
@@ -2614,9 +2616,9 @@ public class LibToTech
 //		buffWriter.println("\t\tsetTechDesc(\"" + gi.description + "\");");
 //		buffWriter.println("\t\tsetFactoryScale(" + TextUtils.formatDouble(gi.scale, NUM_FRACTIONS) + ", true);   // in nanometers: really " +
 //			(gi.scale / 1000) + " microns");
-//        buffWriter.println("\t\tsetFactoryResolution(" + gi.resolution + ");");
-//        if (gi.nonElectrical)
-//            buffWriter.println("\t\tsetNonElectrical();");
+//		buffWriter.println("\t\tsetFactoryResolution(" + gi.resolution + ");");
+//		if (gi.nonElectrical)
+//			buffWriter.println("\t\tsetNonElectrical();");
 //		buffWriter.println("\t\tsetNoNegatedArcs();");
 //		buffWriter.println("\t\tsetStaticTechnology();");
 //
@@ -2642,7 +2644,7 @@ public class LibToTech
 //			lList[i].javaName = makeJavaName(lList[i].name);
 //			buffWriter.println("\t\t/** " + lList[i].name + " layer */");
 //			buffWriter.println("\t\tLayer " + lList[i].javaName + "_lay = Layer.newInstance(this, \"" + lList[i].name + "\",");
-//            EGraphics desc = lList[i].desc;
+//			EGraphics desc = lList[i].desc;
 //			buffWriter.print("\t\t\tnew EGraphics(");
 //			if (desc.isPatternedOnDisplay()) buffWriter.print("true"); else
 //				buffWriter.print("false");
@@ -2719,11 +2721,11 @@ public class LibToTech
 //					extraFunction = true;
 //				}
 //			}
-//            if (lList[i].pseudo) {
+//			if (lList[i].pseudo) {
 //					if (extraFunction) infstr += "|"; else
 //						infstr += ", ";
 //					infstr += "Layer.Function.PSEUDO";
-//            }
+//			}
 //			infstr += ");";
 //			buffWriter.println("\t\t" + infstr + "\t\t// " + lList[i].name);
 //		}
@@ -2735,10 +2737,10 @@ public class LibToTech
 //			{
 //				buffWriter.println("\n\t\t// The CIF names");
 //				for(int i=0; i<lList.length; i++) {
-//                    if (lList[i].pseudo) continue;
+//					if (lList[i].pseudo) continue;
 //					buffWriter.println("\t\t" + lList[i].javaName + "_lay.setFactoryCIFLayer(\"" + lList[i].cif +
 //						"\");\t\t// " + lList[i].name);
-//                }
+//				}
 //				break;
 //			}
 //		}
@@ -2750,10 +2752,10 @@ public class LibToTech
 //			{
 //				buffWriter.println("\n\t\t// The DXF names");
 //				for(int i=0; i<lList.length; i++) {
-//                    if (lList[i].pseudo) continue;
+//					if (lList[i].pseudo) continue;
 //					buffWriter.println("\t\t" + lList[i].javaName + "_lay.setFactoryDXFLayer(\"" + lList[i].dxf +
 //						"\");\t\t// " + lList[i].name);
-//                }
+//				}
 //				break;
 //			}
 //		}
@@ -2765,10 +2767,10 @@ public class LibToTech
 //			{
 //				buffWriter.println("\n\t\t// The Skill names");
 //				for(int i=0; i<lList.length; i++) {
-//                    if (lList[i].pseudo) continue;
+//					if (lList[i].pseudo) continue;
 //					buffWriter.println("\t\t" + lList[i].javaName + "_lay.setFactorySkillLayer(\"" + lList[i].skill +
 //						"\");\t\t// " + lList[i].name);
-//                }
+//				}
 //				break;
 //			}
 //		}
@@ -2780,11 +2782,11 @@ public class LibToTech
 //			{
 //				buffWriter.println("\n\t\t// The layer height");
 //				for(int i=0; i<lList.length; i++) {
-//                    if (lList[i].pseudo) continue;
+//					if (lList[i].pseudo) continue;
 //					buffWriter.println("\t\t" + lList[i].javaName + "_lay.setFactory3DInfo(" +
 //						TextUtils.formatDouble(lList[i].thick3d, NUM_FRACTIONS) + ", " + TextUtils.formatDouble(lList[i].height3d, NUM_FRACTIONS) +
 //						");\t\t// " + lList[i].name);
-//                }
+//				}
 //				break;
 //			}
 //		}
@@ -2805,24 +2807,24 @@ public class LibToTech
 //		}
 //		buffWriter.println("\t\tsetFactoryParasitics(" + gi.minRes + ", " + gi.minCap + ");");
 //
-//        dumpSpiceHeader(buffWriter, 1, gi.spiceLevel1Header);
-//        dumpSpiceHeader(buffWriter, 2, gi.spiceLevel2Header);
-//        dumpSpiceHeader(buffWriter, 3, gi.spiceLevel3Header);
+//		dumpSpiceHeader(buffWriter, 1, gi.spiceLevel1Header);
+//		dumpSpiceHeader(buffWriter, 2, gi.spiceLevel2Header);
+//		dumpSpiceHeader(buffWriter, 3, gi.spiceLevel3Header);
 //
 //		// write design rules
-//        if (gi.conDist != null || gi.unConDist != null) {
-//            buffWriter.println("\n\t\t//******************** DESIGN RULES ********************");
+//		if (gi.conDist != null || gi.unConDist != null) {
+//			buffWriter.println("\n\t\t//******************** DESIGN RULES ********************");
 //
-//            if (gi.conDist != null) {
-//                buffWriter.println("\n\t\tconDist = new double[] {");
-//                dumpJavaDrcTab(buffWriter, gi.conDist, lList);
-//            }
-//            if (gi.unConDist != null) {
-//                buffWriter.println("\n\t\tunConDist = new double[] {");
-//                dumpJavaDrcTab(buffWriter, gi.unConDist, lList);
-//            }
-//        }
-//    }
+//			if (gi.conDist != null) {
+//				buffWriter.println("\n\t\tconDist = new double[] {");
+//				dumpJavaDrcTab(buffWriter, gi.conDist, lList);
+//			}
+//			if (gi.unConDist != null) {
+//				buffWriter.println("\n\t\tunConDist = new double[] {");
+//				dumpJavaDrcTab(buffWriter, gi.unConDist, lList);
+//			}
+//		}
+//	}
 //
 //	private void dumpJavaDrcTab(PrintStream buffWriter, double[] distances, LayerInfo[] lList/*), void *distances, TECHNOLOGY *tech, BOOLEAN isstring*/)
 //	{
@@ -2843,14 +2845,14 @@ public class LibToTech
 //		}
 ////		if (isstring) distlist = (CHAR **)distances; else
 ////			amtlist = (INTBIG *)distances;
-//        int ruleNum = 0;
+//		int ruleNum = 0;
 //		for(int j=0; j<lList.length; j++)
 //		{
 //			String shortName = lList[j].name;
-//            if (shortName.length() > 6)
-//                shortName = shortName.substring(0, 6);
-//            while (shortName.length() < 6)
-//                shortName += ' ';
+//			if (shortName.length() > 6)
+//				shortName = shortName.substring(0, 6);
+//			while (shortName.length() < 6)
+//				shortName += ' ';
 //			buffWriter.print("\t\t\t/* " + shortName + " */ ");
 //			for(int i=0; i<j; i++) buffWriter.print("   ");
 //			for(int i=j; i<lList.length; i++)
@@ -2864,11 +2866,11 @@ public class LibToTech
 //					double amt = distances[ruleNum++];
 //					if (amt < 0) buffWriter.print("XX"); else
 //					{
-//                        String amtStr = Double.toString(amt);
-//                        if (amtStr.endsWith(".0"))
-//                            amtStr = amtStr.substring(0, amtStr.length() - 2);
-//                        while (amtStr.length() < 2)
-//                            amtStr = ' ' + amtStr;
+//						String amtStr = Double.toString(amt);
+//						if (amtStr.endsWith(".0"))
+//							amtStr = amtStr.substring(0, amtStr.length() - 2);
+//						while (amtStr.length() < 2)
+//							amtStr = ' ' + amtStr;
 //						buffWriter.print(amtStr)/*, (float)amt/WHOLE)*/;
 ////					}
 //				}
@@ -2880,19 +2882,19 @@ public class LibToTech
 //		buffWriter.println("\t\t};");
 //	}
 //
-//    private void dumpSpiceHeader(PrintStream buffWriter, int level, String[] headerLines) {
-//        if (headerLines == null) return;
-//        buffWriter.println("\t\tString [] headerLevel" + level + " =");
-//        buffWriter.println("\t\t{");
-//        for (int i = 0; i < headerLines.length; i++) {
-//            buffWriter.print("\t\t\t\"" + headerLines[i]  + "\"");
-//            if (i < headerLines.length - 1)
-//                buffWriter.print(',');
-//            buffWriter.println();
-//        }
-//        buffWriter.println("\t\t};");
+//	private void dumpSpiceHeader(PrintStream buffWriter, int level, String[] headerLines) {
+//		if (headerLines == null) return;
+//		buffWriter.println("\t\tString [] headerLevel" + level + " =");
+//		buffWriter.println("\t\t{");
+//		for (int i = 0; i < headerLines.length; i++) {
+//			buffWriter.print("\t\t\t\"" + headerLines[i]  + "\"");
+//			if (i < headerLines.length - 1)
+//				buffWriter.print(',');
+//			buffWriter.println();
+//		}
+//		buffWriter.println("\t\t};");
 //		buffWriter.println("\t\tsetSpiceHeaderLevel" + level + "(headerLevel" + level + ");");
-//    }
+//	}
 //
 //	/**
 //	 * Method to dump the arc information in technology "tech" to the stream in
@@ -2907,16 +2909,16 @@ public class LibToTech
 //		// now write the arcs
 //		for(int i=0; i<aList.length; i++)
 //		{
-//            ArcInfo aIn = aList[i];
+//			ArcInfo aIn = aList[i];
 //			aIn.javaName = makeJavaName(aIn.name);
 //			buffWriter.println("\n\t\t/** " + aIn.name + " arc */");
 //			buffWriter.println("\t\tArcProto " + aIn.javaName + "_arc = newArcProto(\"" + aIn.name +
-//                    "\", " + TextUtils.formatDouble(aIn.widthOffset, NUM_FRACTIONS) +
-//                    ", " + TextUtils.formatDouble(aIn.maxWidth, NUM_FRACTIONS) +
-//                    ", ArcProto.Function." + aIn.func.getConstantName() + ",");
+//					"\", " + TextUtils.formatDouble(aIn.widthOffset, NUM_FRACTIONS) +
+//					", " + TextUtils.formatDouble(aIn.maxWidth, NUM_FRACTIONS) +
+//					", ArcProto.Function." + aIn.func.getConstantName() + ",");
 //			for(int k=0; k<aIn.arcDetails.length; k++)
 //			{
-//                ArcInfo.LayerDetails al = aList[i].arcDetails[k];
+//				ArcInfo.LayerDetails al = aList[i].arcDetails[k];
 //				buffWriter.print("\t\t\tnew Technology.ArcLayer(" + al.layer.javaName + "_lay, ");
 //				buffWriter.print(TextUtils.formatDouble(al.width, NUM_FRACTIONS) + ",");
 //				buffWriter.print(" Poly.Type." + al.style.name() + ")");
@@ -2926,17 +2928,17 @@ public class LibToTech
 //			buffWriter.println("\t\t);");
 //			if (aIn.wipes)
 //				buffWriter.println("\t\t" + aIn.javaName + "_arc.setWipable();");
-//            if (aIn.curvable)
+//			if (aIn.curvable)
 //				buffWriter.println("\t\t" + aIn.javaName + "_arc.setCurvable();");
-//            if (aIn.special)
+//			if (aIn.special)
 //				buffWriter.println("\t\t" + aIn.javaName + "_arc.setSpecialArc();");
-//            if (aIn.notUsed)
+//			if (aIn.notUsed)
 //				buffWriter.println("\t\t" + aIn.javaName + "_arc.setNotUsed(true);");
-//            if (aIn.skipSizeInPalette)
+//			if (aIn.skipSizeInPalette)
 //				buffWriter.println("\t\t" + aIn.javaName + "_arc.setSkipSizeInPalette();");
 //			buffWriter.println("\t\t" + aIn.javaName + "_arc.setFactoryFixedAngle(" + aIn.fixAng + ");");
-//            if (!aIn.slidable)
-//    			buffWriter.println("\t\t" + aIn.javaName + "_arc.setFactorySlidable(" + aIn.slidable + ");");
+//			if (!aIn.slidable)
+//				buffWriter.println("\t\t" + aIn.javaName + "_arc.setFactorySlidable(" + aIn.slidable + ");");
 //			buffWriter.println("\t\t" + aIn.javaName + "_arc.setFactoryExtended(" + !aIn.noExtend + ");");
 //			buffWriter.println("\t\t" + aIn.javaName + "_arc.setFactoryAngleIncrement(" + aIn.angInc + ");");
 //			buffWriter.println("\t\tERC.getERCTool().setAntennaRatio(" + aIn.javaName + "_arc, " +
@@ -2959,8 +2961,8 @@ public class LibToTech
 //			char chr = pt.charAt(i);
 //			if (Character.isLetterOrDigit(chr))
 //			{
-//                if (i == 0 && Character.isDigit(chr))
-//                    infstr.append("_");
+//				if (i == 0 && Character.isDigit(chr))
+//					infstr.append("_");
 //				if (upper) infstr.append(Character.toUpperCase(chr)); else
 //					infstr.append(Character.toLowerCase(chr));
 //				while (Character.isLetterOrDigit(chr))
@@ -3019,7 +3021,7 @@ public class LibToTech
 //		buffWriter.println("\t\t//******************** NODES ********************");
 //		for(int i=0; i<nList.length; i++)
 //		{
-//            NodeInfo nIn = nList[i];
+//			NodeInfo nIn = nList[i];
 //			// header comment
 //			String ab = nIn.abbrev;
 //			buffWriter.println();
@@ -3037,18 +3039,18 @@ public class LibToTech
 //			}
 //
 //			// print layers
-//            dumpNodeLayersToJava(buffWriter, nIn.nodeLayers, nIn.specialType == PrimitiveNode.SERPTRANS, false);
-//            for(int k=0; k<nIn.nodeLayers.length; k++) {
-//                NodeInfo.LayerDetails nld = nIn.nodeLayers[k];
-//                if (nld.message != null)
-//                    buffWriter.println("\t\t" + ab + "_node.getLayers()[" + k + "].setMessage(\"" + nld.message + "\");");
-//                TextDescriptor td = nld.descriptor;
-//                if (td != null) {
-//                    buffWriter.println("\t\t" + ab + "_node.getLayers()[" + k + "].setDescriptor(TextDescriptor.newTextDescriptor(");
-//                    buffWriter.println("\t\t\tnew MutableTextDescriptor(" + td.lowLevelGet() + ", " + td.getColorIndex() + ", " + td.isDisplay() +
-//                            ", TextDescriptor.Code." + td.getCode().name() + ")));");
-//                }
-//            }
+//			dumpNodeLayersToJava(buffWriter, nIn.nodeLayers, nIn.specialType == PrimitiveNode.SERPTRANS, false);
+//			for(int k=0; k<nIn.nodeLayers.length; k++) {
+//				NodeInfo.LayerDetails nld = nIn.nodeLayers[k];
+//				if (nld.message != null)
+//					buffWriter.println("\t\t" + ab + "_node.getLayers()[" + k + "].setMessage(\"" + nld.message + "\");");
+//				TextDescriptor td = nld.descriptor;
+//				if (td != null) {
+//					buffWriter.println("\t\t" + ab + "_node.getLayers()[" + k + "].setDescriptor(TextDescriptor.newTextDescriptor(");
+//					buffWriter.println("\t\t\tnew MutableTextDescriptor(" + td.lowLevelGet() + ", " + td.getColorIndex() + ", " + td.isDisplay() +
+//						", TextDescriptor.Code." + td.getCode().name() + ")));");
+//				}
+//			}
 //
 //			// print ports
 //			buffWriter.println("\t\t" + ab + "_node.addPrimitivePorts(new PrimitivePort[]");
@@ -3064,9 +3066,9 @@ public class LibToTech
 //					buffWriter.print(conns[l].javaName + "_arc");
 //					if (l+1 < conns.length) buffWriter.print(", ");
 //				}
-//                PortCharacteristic characteristic = portDetail.characterisitic;
-//                if (characteristic == null)
-//                    characteristic = PortCharacteristic.UNKNOWN;
+//				PortCharacteristic characteristic = portDetail.characterisitic;
+//				if (characteristic == null)
+//					characteristic = PortCharacteristic.UNKNOWN;
 //				buffWriter.println("}, \"" + portDetail.name + "\", " + portDetail.angle + "," +
 //					portDetail.range + ", " + portDetail.netIndex + ", PortCharacteristic." + characteristic.name() + ",");
 //				buffWriter.print("\t\t\t\t\t" + getEdgeLabel(portDetail.values[0], false) + ", " +
@@ -3078,22 +3080,22 @@ public class LibToTech
 //				buffWriter.println();
 //			}
 //			buffWriter.println("\t\t\t});");
-//            boolean needElectricalLayers = false;
-//            for (NodeInfo.LayerDetails nld: nIn.nodeLayers) {
-//                if (!(nld.inLayers && nld.inElectricalLayers))
-//                    needElectricalLayers = true;
-//            }
-//            if (needElectricalLayers) {
-//                buffWriter.println("\t\t" + ab + "_node.setElectricalLayers(");
-//                dumpNodeLayersToJava(buffWriter, nIn.nodeLayers, nIn.specialType == PrimitiveNode.SERPTRANS, true);
-//            }
-//            for (int j = 0; j < numPorts; j++) {
+//			boolean needElectricalLayers = false;
+//			for (NodeInfo.LayerDetails nld: nIn.nodeLayers) {
+//				if (!(nld.inLayers && nld.inElectricalLayers))
+//					needElectricalLayers = true;
+//			}
+//			if (needElectricalLayers) {
+//				buffWriter.println("\t\t" + ab + "_node.setElectricalLayers(");
+//				dumpNodeLayersToJava(buffWriter, nIn.nodeLayers, nIn.specialType == PrimitiveNode.SERPTRANS, true);
+//			}
+//			for (int j = 0; j < numPorts; j++) {
 //				NodeInfo.PortDetails portDetail = nIn.nodePortDetails[j];
-//                if (portDetail.isolated)
-//                    buffWriter.println("\t\t" + ab + "_node.getPortId(" + j + ").setIsolated();");
-//                if (portDetail.negatable)
-//                    buffWriter.println("\t\t" + ab + "_node.getPortId(" + j + ").setNegatable(true);");
-//            }
+//				if (portDetail.isolated)
+//					buffWriter.println("\t\t" + ab + "_node.getPortId(" + j + ").setIsolated();");
+//				if (portDetail.negatable)
+//					buffWriter.println("\t\t" + ab + "_node.getPortId(" + j + ").setNegatable(true);");
+//			}
 //
 //			// print the node information
 //			PrimitiveNode.Function fun = nIn.func;
@@ -3101,27 +3103,27 @@ public class LibToTech
 //
 //			if (nIn.wipes) buffWriter.println("\t\t" + ab + "_node.setWipeOn1or2();");
 //			if (nIn.square) buffWriter.println("\t\t" + ab + "_node.setSquare();");
-//            if (nIn.canBeZeroSize) buffWriter.println("\t\t" + ab + "_node.setCanBeZeroSize();");
+//			if (nIn.canBeZeroSize) buffWriter.println("\t\t" + ab + "_node.setCanBeZeroSize();");
 //			if (nIn.lockable) buffWriter.println("\t\t" + ab + "_node.setLockedPrim();");
-//            if (nIn.edgeSelect) buffWriter.println("\t\t" + ab + "_node.setEdgeSelect();");
-//            if (nIn.skipSizeInPalette) buffWriter.println("\t\t" + ab + "_node.setSkipSizeInPalette();");
-//            if (nIn.lowVt) buffWriter.println("\t\t" + ab + "_node.setNodeBit(PrimitiveNode.LOWVTBIT);");
-//            if (nIn.highVt) buffWriter.println("\t\t" + ab + "_node.setNodeBit(PrimitiveNode.HIGHVTBIT);");
-//            if (nIn.nativeBit) buffWriter.println("\t\t" + ab + "_node.setNodeBit(PrimitiveNode.NATIVEBIT);");
-//            if (nIn.od18) buffWriter.println("\t\t" + ab + "_node.setNodeBit(PrimitiveNode.OD18BIT);");
-//            if (nIn.od25) buffWriter.println("\t\t" + ab + "_node.setNodeBit(PrimitiveNode.OD25BIT);");
-//            if (nIn.od33) buffWriter.println("\t\t" + ab + "_node.setNodeBit(PrimitiveNode.OD33BIT);");
-//            if (nIn.notUsed) buffWriter.println("\t\t" + ab + "_node.setNotUsed(true);");
+//			if (nIn.edgeSelect) buffWriter.println("\t\t" + ab + "_node.setEdgeSelect();");
+//			if (nIn.skipSizeInPalette) buffWriter.println("\t\t" + ab + "_node.setSkipSizeInPalette();");
+//			if (nIn.lowVt) buffWriter.println("\t\t" + ab + "_node.setNodeBit(PrimitiveNode.LOWVTBIT);");
+//			if (nIn.highVt) buffWriter.println("\t\t" + ab + "_node.setNodeBit(PrimitiveNode.HIGHVTBIT);");
+//			if (nIn.nativeBit) buffWriter.println("\t\t" + ab + "_node.setNodeBit(PrimitiveNode.NATIVEBIT);");
+//			if (nIn.od18) buffWriter.println("\t\t" + ab + "_node.setNodeBit(PrimitiveNode.OD18BIT);");
+//			if (nIn.od25) buffWriter.println("\t\t" + ab + "_node.setNodeBit(PrimitiveNode.OD25BIT);");
+//			if (nIn.od33) buffWriter.println("\t\t" + ab + "_node.setNodeBit(PrimitiveNode.OD33BIT);");
+//			if (nIn.notUsed) buffWriter.println("\t\t" + ab + "_node.setNotUsed(true);");
 //			if (nIn.arcsShrink)
 //			buffWriter.println("\t\t" + ab + "_node.setArcsWipe();");
 //			buffWriter.println("\t\t" + ab + "_node.setArcsShrink();");
-//            if (nIn.nodeSizeRule != null) {
+//			if (nIn.nodeSizeRule != null) {
 //				buffWriter.println("\t\t" + ab + "_node.setMinSize(" + nIn.nodeSizeRule.getWidth() + ", " + nIn.nodeSizeRule.getHeight() +
-//                        ", \"" + nIn.nodeSizeRule.getRuleName() + "\");");
-//            }
-//            if (nIn.autoGrowth != null) {
+//					", \"" + nIn.nodeSizeRule.getRuleName() + "\");");
+//			}
+//			if (nIn.autoGrowth != null) {
 //				buffWriter.println("\t\t" + ab + "_node.setAutoGrowth(" + nIn.autoGrowth.getWidth() + ", " + nIn.autoGrowth.getHeight() + ");");
-//            }
+//			}
 //			if (nIn.specialType != 0)
 //			{
 //				switch (nIn.specialType)
@@ -3163,11 +3165,11 @@ public class LibToTech
 //				}
 //			}
 //		}
-//        buffWriter.println();
+//		buffWriter.println();
 //	}
 //
-//    private void dumpNodeLayersToJava(PrintStream buffWriter, NodeInfo.LayerDetails[] mergedLayerDetails, boolean isSerpentine, boolean electrical) {
-//        // print layers
+//	private void dumpNodeLayersToJava(PrintStream buffWriter, NodeInfo.LayerDetails[] mergedLayerDetails, boolean isSerpentine, boolean electrical) {
+//		// print layers
 //        buffWriter.println("\t\t\tnew Technology.NodeLayer []");
 //        buffWriter.println("\t\t\t{");
 //        ArrayList<NodeInfo.LayerDetails> layerDetails = new ArrayList<NodeInfo.LayerDetails>();
@@ -3370,291 +3372,290 @@ public class LibToTech
 	/************************************* WRITE TECHNOLOGY AS "XML" *************************************/
 
 	/**
-     * Method to convert tech-edit information to an Xml.Technology.
-     * @param newTechName new technology name.
-     * @param gi general technology information.
-     * @param lList information about layers.
-     * @param nList information about primitive nodes.
-     * @param aList information about primitive arcs.
-     */
-    private Xml.Technology makeXml(String newTechName, GeneralInfo gi, LayerInfo[] lList, NodeInfo[] nList, ArcInfo[] aList)
-    {
-        Xml.Technology t = new Xml.Technology();
-        t.techName = newTechName;
-        t.shortTechName = gi.shortName;
-        t.description = gi.description;
-        t.minNumMetals = t.maxNumMetals = t.defaultNumMetals = gi.defaultNumMetals;
-        t.scaleValue = gi.scale;
-        t.scaleRelevant = gi.scaleRelevant;
-        t.defaultFoundry = gi.defaultFoundry;
-        t.minResistance = gi.minRes;
-        t.minCapacitance = gi.minCap;
+	 * Method to convert tech-edit information to an Xml.Technology.
+	 * @param newTechName new technology name.
+	 * @param gi general technology information.
+	 * @param lList information about layers.
+	 * @param nList information about primitive nodes.
+	 * @param aList information about primitive arcs.
+	 */
+	private Xml.Technology makeXml(String newTechName, GeneralInfo gi, LayerInfo[] lList, NodeInfo[] nList, ArcInfo[] aList)
+	{
+		Xml.Technology t = new Xml.Technology();
+		t.techName = newTechName;
+		t.shortTechName = gi.shortName;
+		t.description = gi.description;
+		t.minNumMetals = t.maxNumMetals = t.defaultNumMetals = gi.defaultNumMetals;
+		t.scaleValue = gi.scale;
+		t.scaleRelevant = gi.scaleRelevant;
+		t.defaultFoundry = gi.defaultFoundry;
+		t.minResistance = gi.minRes;
+		t.minCapacitance = gi.minCap;
 
-        if (gi.transparentColors != null) {
-            for (int i = 0; i < gi.transparentColors.length; i++)
-                t.transparentLayers.add(gi.transparentColors[i]);
-        }
+		if (gi.transparentColors != null) {
+			for (int i = 0; i < gi.transparentColors.length; i++)
+				t.transparentLayers.add(gi.transparentColors[i]);
+		}
 
-        for (LayerInfo li: lList) {
-            if (li.pseudo) continue;
-            Xml.Layer layer = new Xml.Layer();
-            layer.name = li.name;
-            layer.function = li.fun;
-            layer.extraFunction = li.funExtra;
-            layer.desc = li.desc;
-            layer.thick3D = li.thick3d;
-            layer.height3D = li.height3d;
-            layer.mode3D = li.mode3d;
-            layer.factor3D = li.factor3d;
-            layer.cif = li.cif;
-            layer.resistance = li.spiRes;
-            layer.capacitance = li.spiCap;
-            layer.edgeCapacitance = li.spiECap;
-//	        if (li.myPseudo != null)
-//	            layer.pseudoLayer = li.myPseudo.name;
-            if (li.pureLayerNode != null) {
-                layer.pureLayerNode = new Xml.PureLayerNode();
-                layer.pureLayerNode.name = li.pureLayerNode.name;
-                layer.pureLayerNode.style = li.pureLayerNode.nodeLayers[0].style;
-                layer.pureLayerNode.port = li.pureLayerNode.nodePortDetails[0].name;
-                layer.pureLayerNode.size.addLambda(DBMath.round(li.pureLayerNode.xSize));
-                for (ArcInfo a: li.pureLayerNode.nodePortDetails[0].connections)
-                    layer.pureLayerNode.portArcs.add(a.name);
-            }
-            t.layers.add(layer);
-        }
+		for (LayerInfo li: lList) {
+			if (li.pseudo) continue;
+			Xml.Layer layer = new Xml.Layer();
+			layer.name = li.name;
+			layer.function = li.fun;
+			layer.extraFunction = li.funExtra;
+			layer.desc = li.desc;
+			layer.thick3D = li.thick3d;
+			layer.height3D = li.height3d;
+			layer.mode3D = li.mode3d;
+			layer.factor3D = li.factor3d;
+			layer.cif = li.cif;
+			layer.resistance = li.spiRes;
+			layer.capacitance = li.spiCap;
+			layer.edgeCapacitance = li.spiECap;
+//			if (li.myPseudo != null)
+//				layer.pseudoLayer = li.myPseudo.name;
+			if (li.pureLayerNode != null) {
+				layer.pureLayerNode = new Xml.PureLayerNode();
+				layer.pureLayerNode.name = li.pureLayerNode.name;
+				layer.pureLayerNode.style = li.pureLayerNode.nodeLayers[0].style;
+				layer.pureLayerNode.port = li.pureLayerNode.nodePortDetails[0].name;
+				layer.pureLayerNode.size.addLambda(DBMath.round(li.pureLayerNode.xSize));
+				for (ArcInfo a: li.pureLayerNode.nodePortDetails[0].connections)
+					layer.pureLayerNode.portArcs.add(a.name);
+			}
+			t.layers.add(layer);
+		}
 
-        for (ArcInfo ai: aList) {
-            Xml.ArcProto ap = new Xml.ArcProto();
-            ap.name = ai.name;
-            ap.function = ai.func;
-            ap.wipable = ai.wipes;
-            ap.curvable = ai.curvable;
-            ap.special = ai.special;
-            ap.notUsed = ai.notUsed;
-            ap.skipSizeInPalette = ai.skipSizeInPalette;
-            ap.extended = !ai.noExtend;
-            ap.fixedAngle = ai.fixAng;
-            ap.angleIncrement = ai.angInc;
-            ap.antennaRatio = ai.antennaRatio;
-//            ap.elibWidthOffset = DBMath.round(ai.widthOffset);
-            for (ArcInfo.LayerDetails al: ai.arcDetails) {
-                Xml.ArcLayer l = new Xml.ArcLayer();
-                l.layer = al.layer.name;
-                l.style = al.style == Poly.Type.FILLED ? Poly.Type.FILLED : Poly.Type.CLOSED;
-                l.extend.addLambda(DBMath.round(al.width/2));
-                ap.arcLayers.add(l);
-            }
-            t.arcs.add(ap);
-        }
+		for (ArcInfo ai: aList) {
+			Xml.ArcProto ap = new Xml.ArcProto();
+			ap.name = ai.name;
+			ap.function = ai.func;
+			ap.wipable = ai.wipes;
+			ap.curvable = ai.curvable;
+			ap.special = ai.special;
+			ap.notUsed = ai.notUsed;
+			ap.skipSizeInPalette = ai.skipSizeInPalette;
+			ap.extended = !ai.noExtend;
+			ap.fixedAngle = ai.fixAng;
+			ap.angleIncrement = ai.angInc;
+			ap.antennaRatio = ai.antennaRatio;
+//			ap.elibWidthOffset = DBMath.round(ai.widthOffset);
+			for (ArcInfo.LayerDetails al: ai.arcDetails) {
+				Xml.ArcLayer l = new Xml.ArcLayer();
+				l.layer = al.layer.name;
+				l.style = al.style == Poly.Type.FILLED ? Poly.Type.FILLED : Poly.Type.CLOSED;
+				l.extend.addLambda(DBMath.round(al.width/2));
+				ap.arcLayers.add(l);
+			}
+			t.arcs.add(ap);
+		}
 
-        for (NodeInfo ni: nList) {
-            if (ni.func == PrimitiveNode.Function.NODE && ni.nodeLayers[0].layer.pureLayerNode == ni)
-                continue;
-            Xml.PrimitiveNode pn = new Xml.PrimitiveNode();
-            pn.name = ni.name;
-            pn.function = ni.func;
-            pn.shrinkArcs = ni.arcsShrink;
-            pn.square = ni.square;
-            pn.canBeZeroSize = ni.canBeZeroSize;
-            pn.wipes = ni.wipes;
-            pn.lockable = ni.lockable;
-            pn.edgeSelect = ni.edgeSelect;
-            pn.skipSizeInPalette = ni.skipSizeInPalette;
-            pn.notUsed = ni.notUsed;
-            pn.lowVt = ni.lowVt;
-            pn.highVt = ni.highVt;
-            pn.nativeBit = ni.nativeBit;
-            pn.od18 = ni.od18;
-            pn.od25 = ni.od25;
-            pn.od33 = ni.od33;
-            EPoint minFullSize = EPoint.fromLambda(0.5*ni.xSize, 0.5*ni.ySize);
-            
-            pn.sizeOffset = ni.so;
-//            double lx = -minFullSize.getLambdaX();
-//            double hx = minFullSize.getLambdaX();
-//            double ly = -minFullSize.getLambdaY();
-//            double hy = minFullSize.getLambdaY();
-//            if (ni.so != null) {
-//                lx += ni.so.getLowXOffset();
-//                hx -= ni.so.getHighXOffset();
-//                ly += ni.so.getLowYOffset();
-//                hy -= ni.so.getHighYOffset();
-//            }
-/*            pn.nodeBase = ERectangle.fromLambda(lx, ly, hx - lx, hy - ly);
-            if (!minFullSize.equals(EPoint.ORIGIN))
-                pn.diskOffset = minFullSize;*/
-//            EPoint p2 = EPoint.fromGrid(pn.nodeBase.getGridWidth() >> 1, pn.nodeBase.getGridHeight() >> 1);
-//            if (!p2.equals(minFullSize))
-//                pn.diskOffset.put(Integer.valueOf(1), minFullSize);
-//            if (!p2.equals(EPoint.ORIGIN))
-//                pn.diskOffset.put(Integer.valueOf(2), p2);
-            
-//	        pn.defaultWidth.value = DBMath.round(ni.xSize);
-//	        pn.defaultHeight.value = DBMath.round(ni.ySize);
-            if (ni.spiceTemplate != null && !ni.spiceTemplate.equals(""))
-                pn.spiceTemplate = ni.spiceTemplate;
-            for(int j=0; j<ni.nodeLayers.length; j++) {
-                NodeInfo.LayerDetails nl = ni.nodeLayers[j];
-                pn.nodeLayers.add(makeNodeLayerDetails(nl, ni.serp, minFullSize));
-            }
-            for (int j = 0; j < ni.nodePortDetails.length; j++) {
-                NodeInfo.PortDetails pd = ni.nodePortDetails[j];
-                Xml.PrimitivePort pp = new Xml.PrimitivePort();
-                pp.name = pd.name;
-                pp.portAngle = pd.angle;
-                pp.portRange = pd.range;
-                pp.portTopology = pd.netIndex;
+		for (NodeInfo ni: nList) {
+			if (ni.func == PrimitiveNode.Function.NODE && ni.nodeLayers[0].layer.pureLayerNode == ni)
+				continue;
+			Xml.PrimitiveNode pn = new Xml.PrimitiveNode();
+			pn.name = ni.name;
+			pn.function = ni.func;
+			pn.shrinkArcs = ni.arcsShrink;
+			pn.square = ni.square;
+			pn.canBeZeroSize = ni.canBeZeroSize;
+			pn.wipes = ni.wipes;
+			pn.lockable = ni.lockable;
+			pn.edgeSelect = ni.edgeSelect;
+			pn.skipSizeInPalette = ni.skipSizeInPalette;
+			pn.notUsed = ni.notUsed;
+			pn.lowVt = ni.lowVt;
+			pn.highVt = ni.highVt;
+			pn.nativeBit = ni.nativeBit;
+			pn.od18 = ni.od18;
+			pn.od25 = ni.od25;
+			pn.od33 = ni.od33;
+			EPoint minFullSize = EPoint.fromLambda(0.5*ni.xSize, 0.5*ni.ySize);
 
-                EdgeH left = pd.values[0].getX();
-                EdgeH right = pd.values[1].getX();
-                EdgeV bottom = pd.values[0].getY();
-                EdgeV top = pd.values[1].getY();
+			pn.sizeOffset = ni.so;
+//			double lx = -minFullSize.getLambdaX();
+//			double hx = minFullSize.getLambdaX();
+//			double ly = -minFullSize.getLambdaY();
+//			double hy = minFullSize.getLambdaY();
+//			if (ni.so != null) {
+//				lx += ni.so.getLowXOffset();
+//				hx -= ni.so.getHighXOffset();
+//				ly += ni.so.getLowYOffset();
+//				hy -= ni.so.getHighYOffset();
+//			}
+/*			pn.nodeBase = ERectangle.fromLambda(lx, ly, hx - lx, hy - ly);
+			if (!minFullSize.equals(EPoint.ORIGIN))
+				pn.diskOffset = minFullSize;*/
+//			EPoint p2 = EPoint.fromGrid(pn.nodeBase.getGridWidth() >> 1, pn.nodeBase.getGridHeight() >> 1);
+//			if (!p2.equals(minFullSize))
+//				pn.diskOffset.put(Integer.valueOf(1), minFullSize);
+//			if (!p2.equals(EPoint.ORIGIN))
+//				pn.diskOffset.put(Integer.valueOf(2), p2);
 
-                pp.lx.k = left.getMultiplier()*2;
-                pp.lx.addLambda(left.getAdder() + minFullSize.getLambdaX()*left.getMultiplier()*2);
-                pp.hx.k = right.getMultiplier()*2;
-                pp.hx.addLambda(right.getAdder() + minFullSize.getLambdaX()*right.getMultiplier()*2);
-                pp.ly.k = bottom.getMultiplier()*2;
-                pp.ly.addLambda(bottom.getAdder() + minFullSize.getLambdaY()*bottom.getMultiplier()*2);
-                pp.hy.k = top.getMultiplier()*2;
-                pp.hy.addLambda(top.getAdder() + minFullSize.getLambdaY()*top.getMultiplier()*2);
+//			pn.defaultWidth.value = DBMath.round(ni.xSize);
+//			pn.defaultHeight.value = DBMath.round(ni.ySize);
+			if (ni.spiceTemplate != null && !ni.spiceTemplate.equals(""))
+				pn.spiceTemplate = ni.spiceTemplate;
+			for(int j=0; j<ni.nodeLayers.length; j++) {
+				NodeInfo.LayerDetails nl = ni.nodeLayers[j];
+				pn.nodeLayers.add(makeNodeLayerDetails(nl, ni.serp, minFullSize));
+			}
+			for (int j = 0; j < ni.nodePortDetails.length; j++) {
+				NodeInfo.PortDetails pd = ni.nodePortDetails[j];
+				Xml.PrimitivePort pp = new Xml.PrimitivePort();
+				pp.name = pd.name;
+				pp.portAngle = pd.angle;
+				pp.portRange = pd.range;
+				pp.portTopology = pd.netIndex;
 
-//	            pp.p0 = pd.values[0];
-//	            pp.p1 = pd.values[1];
-                for (ArcInfo a: pd.connections)
-                    pp.portArcs.add(a.name);
-                pn.ports.add(pp);
-            }
-            pn.specialType = ni.specialType;
-            if (pn.specialType == PrimitiveNode.SERPTRANS) {
-                pn.specialValues = new double[6];
-                for (int i = 0; i < 6; i++)
-                    pn.specialValues[i] = ni.specialValues[i];
-            }
-            if (ni.nodeSizeRule != null) {
-                pn.nodeSizeRule = new Xml.NodeSizeRule();
-                pn.nodeSizeRule.width = ni.nodeSizeRule.getWidth();
-                pn.nodeSizeRule.height = ni.nodeSizeRule.getHeight();
-                pn.nodeSizeRule.rule = ni.nodeSizeRule.getRuleName();
-            }
-            t.nodes.add(pn);
+				EdgeH left = pd.values[0].getX();
+				EdgeH right = pd.values[1].getX();
+				EdgeV bottom = pd.values[0].getY();
+				EdgeV top = pd.values[1].getY();
 
-        }
+				pp.lx.k = left.getMultiplier()*2;
+				pp.lx.addLambda(left.getAdder() + minFullSize.getLambdaX()*left.getMultiplier()*2);
+				pp.hx.k = right.getMultiplier()*2;
+				pp.hx.addLambda(right.getAdder() + minFullSize.getLambdaX()*right.getMultiplier()*2);
+				pp.ly.k = bottom.getMultiplier()*2;
+				pp.ly.addLambda(bottom.getAdder() + minFullSize.getLambdaY()*bottom.getMultiplier()*2);
+				pp.hy.k = top.getMultiplier()*2;
+				pp.hy.addLambda(top.getAdder() + minFullSize.getLambdaY()*top.getMultiplier()*2);
 
-        addSpiceHeader(t, 1, gi.spiceLevel1Header);
-        addSpiceHeader(t, 2, gi.spiceLevel2Header);
-        addSpiceHeader(t, 3, gi.spiceLevel3Header);
+//				pp.p0 = pd.values[0];
+//				pp.p1 = pd.values[1];
+				for (ArcInfo a: pd.connections)
+					pp.portArcs.add(a.name);
+				pn.ports.add(pp);
+			}
+			pn.specialType = ni.specialType;
+			if (pn.specialType == PrimitiveNode.SERPTRANS) {
+				pn.specialValues = new double[6];
+				for (int i = 0; i < 6; i++)
+					pn.specialValues[i] = ni.specialValues[i];
+			}
+			if (ni.nodeSizeRule != null) {
+				pn.nodeSizeRule = new Xml.NodeSizeRule();
+				pn.nodeSizeRule.width = ni.nodeSizeRule.getWidth();
+				pn.nodeSizeRule.height = ni.nodeSizeRule.getHeight();
+				pn.nodeSizeRule.rule = ni.nodeSizeRule.getRuleName();
+			}
+			t.nodes.add(pn);
+		}
 
-        if (gi.menuPalette != null)
-        {
-            t.menuPalette = new Xml.MenuPalette();
-            int numColumns = gi.menuPalette[0].length;
-            t.menuPalette.numColumns = numColumns;
-            for (Object[] menuLine: gi.menuPalette)
-            {
-                for (int i = 0; i < numColumns; i++)
-                	t.menuPalette.menuBoxes.add(makeMenuBoxXml(t, menuLine[i]));
-            }
-        }
+		addSpiceHeader(t, 1, gi.spiceLevel1Header);
+		addSpiceHeader(t, 2, gi.spiceLevel2Header);
+		addSpiceHeader(t, 3, gi.spiceLevel3Header);
 
-        Xml.Foundry foundry = new Xml.Foundry();
-        foundry.name = gi.defaultFoundry;
-        for (LayerInfo li: lList) {
-            if (li.gds != null && li.gds.length() > 0)
-                foundry.layerGds.put(li.name, li.gds);
-        }
-        if (gi.conDist != null && gi.unConDist != null) {
-            int layerTotal = lList.length;
-            int ruleIndex = 0;
-            for (int i1 = 0; i1 < layerTotal; i1++) {
-                LayerInfo l1 = lList[i1];
-                for (int i2 = i1; i2 < layerTotal; i2++) {
-                    LayerInfo l2 = lList[i2];
-                    double conSpa = gi.conDist[ruleIndex];
-                    double uConSpa = gi.unConDist[ruleIndex];
-                    if (conSpa > -1)
-                        foundry.rules.add(makeDesignRule("C" + ruleIndex, l1, l2, DRCTemplate.DRCRuleType.CONSPA, conSpa));
-                    if (uConSpa > -1)
-                        foundry.rules.add(makeDesignRule("U" + ruleIndex, l1, l2, DRCTemplate.DRCRuleType.UCONSPA, uConSpa));
-                    ruleIndex++;
-                }
-            }
-        }
-        t.foundries.add(foundry);
+		if (gi.menuPalette != null)
+		{
+			t.menuPalette = new Xml.MenuPalette();
+			int numColumns = gi.menuPalette[0].length;
+			t.menuPalette.numColumns = numColumns;
+			for (Object[] menuLine: gi.menuPalette)
+			{
+				for (int i = 0; i < numColumns; i++)
+					t.menuPalette.menuBoxes.add(makeMenuBoxXml(t, menuLine[i]));
+			}
+		}
 
-        return t;
-    }
+		Xml.Foundry foundry = new Xml.Foundry();
+		foundry.name = gi.defaultFoundry;
+		for (LayerInfo li: lList) {
+			if (li.gds != null && li.gds.length() > 0)
+				foundry.layerGds.put(li.name, li.gds);
+		}
+		if (gi.conDist != null && gi.unConDist != null) {
+			int layerTotal = lList.length;
+			int ruleIndex = 0;
+			for (int i1 = 0; i1 < layerTotal; i1++) {
+				LayerInfo l1 = lList[i1];
+				for (int i2 = i1; i2 < layerTotal; i2++) {
+					LayerInfo l2 = lList[i2];
+					double conSpa = gi.conDist[ruleIndex];
+					double uConSpa = gi.unConDist[ruleIndex];
+					if (conSpa > -1)
+						foundry.rules.add(makeDesignRule("C" + ruleIndex, l1, l2, DRCTemplate.DRCRuleType.CONSPA, conSpa));
+					if (uConSpa > -1)
+						foundry.rules.add(makeDesignRule("U" + ruleIndex, l1, l2, DRCTemplate.DRCRuleType.UCONSPA, uConSpa));
+					ruleIndex++;
+				}
+			}
+		}
+		t.foundries.add(foundry);
 
-    private Xml.NodeLayer makeNodeLayerDetails(NodeInfo.LayerDetails nl, boolean isSerp, EPoint correction) {
-        Xml.NodeLayer nld = new Xml.NodeLayer();
-        nld.layer = nl.layer.name;
-        nld.style = nl.style;
-        nld.portNum = nl.portIndex;
-        nld.inLayers = nl.inLayers;
-        nld.inElectricalLayers = nl.inElectricalLayers;
-        nld.representation = nl.representation;
-        Technology.TechPoint[] points = nl.values;
-        if (nld.representation == Technology.NodeLayer.BOX || nld.representation == Technology.NodeLayer.MULTICUTBOX) {
-            nld.lx.k = points[0].getX().getMultiplier()*2;
-            nld.lx.addLambda(DBMath.round(points[0].getX().getAdder() + correction.getLambdaX()*points[0].getX().getMultiplier()*2));
-            nld.hx.k = points[1].getX().getMultiplier()*2;
-            nld.hx.addLambda(DBMath.round(points[1].getX().getAdder() + correction.getLambdaX()*points[1].getX().getMultiplier()*2));
-            nld.ly.k = points[0].getY().getMultiplier()*2;
-            nld.ly.addLambda(DBMath.round(points[0].getY().getAdder() + correction.getLambdaY()*points[0].getY().getMultiplier()*2));
-            nld.hy.k = points[1].getY().getMultiplier()*2;
-            nld.hy.addLambda(DBMath.round(points[1].getY().getAdder() + correction.getLambdaY()*points[1].getY().getMultiplier()*2));
-        } else {
-            for (Technology.TechPoint p: points)
-                nld.techPoints.add(correction(p, correction));
-        }
-        nld.sizex = DBMath.round(nl.multiXS);
-        nld.sizey = DBMath.round(nl.multiYS);
-        nld.sep1d = DBMath.round(nl.multiSep);
-        nld.sep2d = DBMath.round(nl.multiSep2D);
-        if (isSerp) {
-            nld.lWidth = DBMath.round(nl.lWidth);
-            nld.rWidth = DBMath.round(nl.rWidth);
-            nld.tExtent = DBMath.round(nl.extendT);
-            nld.bExtent = DBMath.round(nl.extendB);
-        }
-        return nld;
-    }
+		return t;
+	}
 
-    private Technology.TechPoint correction(Technology.TechPoint p, EPoint correction)
-    {
-        EdgeH h = p.getX();
-        EdgeV v = p.getY();
-        h = new EdgeH(h.getMultiplier(), h.getAdder() + correction.getLambdaX()*h.getMultiplier()*2);
-        v = new EdgeV(v.getMultiplier(), v.getAdder() + correction.getLambdaY()*v.getMultiplier()*2);
-        return new Technology.TechPoint(h, v);
-    }
+	private Xml.NodeLayer makeNodeLayerDetails(NodeInfo.LayerDetails nl, boolean isSerp, EPoint correction) {
+		Xml.NodeLayer nld = new Xml.NodeLayer();
+		nld.layer = nl.layer.name;
+		nld.style = nl.style;
+		nld.portNum = nl.portIndex;
+		nld.inLayers = nl.inLayers;
+		nld.inElectricalLayers = nl.inElectricalLayers;
+		nld.representation = nl.representation;
+		Technology.TechPoint[] points = nl.values;
+		if (nld.representation == Technology.NodeLayer.BOX || nld.representation == Technology.NodeLayer.MULTICUTBOX) {
+			nld.lx.k = points[0].getX().getMultiplier()*2;
+			nld.lx.addLambda(DBMath.round(points[0].getX().getAdder() + correction.getLambdaX()*points[0].getX().getMultiplier()*2));
+			nld.hx.k = points[1].getX().getMultiplier()*2;
+			nld.hx.addLambda(DBMath.round(points[1].getX().getAdder() + correction.getLambdaX()*points[1].getX().getMultiplier()*2));
+			nld.ly.k = points[0].getY().getMultiplier()*2;
+			nld.ly.addLambda(DBMath.round(points[0].getY().getAdder() + correction.getLambdaY()*points[0].getY().getMultiplier()*2));
+			nld.hy.k = points[1].getY().getMultiplier()*2;
+			nld.hy.addLambda(DBMath.round(points[1].getY().getAdder() + correction.getLambdaY()*points[1].getY().getMultiplier()*2));
+		} else {
+			for (Technology.TechPoint p: points)
+				nld.techPoints.add(correction(p, correction));
+		}
+		nld.sizex = DBMath.round(nl.multiXS);
+		nld.sizey = DBMath.round(nl.multiYS);
+		nld.sep1d = DBMath.round(nl.multiSep);
+		nld.sep2d = DBMath.round(nl.multiSep2D);
+		if (isSerp) {
+			nld.lWidth = DBMath.round(nl.lWidth);
+			nld.rWidth = DBMath.round(nl.rWidth);
+			nld.tExtent = DBMath.round(nl.extendT);
+			nld.bExtent = DBMath.round(nl.extendB);
+		}
+		return nld;
+	}
 
-    private void addSpiceHeader(Xml.Technology t, int level, String[] spiceLines) {
-        if (spiceLines == null) return;
-        Xml.SpiceHeader spiceHeader = new Xml.SpiceHeader();
-        spiceHeader.level = level;
-        for (String spiceLine: spiceLines)
-            spiceHeader.spiceLines.add(spiceLine);
-        t.spiceHeaders.add(spiceHeader);
-    }
+	private Technology.TechPoint correction(Technology.TechPoint p, EPoint correction)
+	{
+		EdgeH h = p.getX();
+		EdgeV v = p.getY();
+		h = new EdgeH(h.getMultiplier(), h.getAdder() + correction.getLambdaX()*h.getMultiplier()*2);
+		v = new EdgeV(v.getMultiplier(), v.getAdder() + correction.getLambdaY()*v.getMultiplier()*2);
+		return new Technology.TechPoint(h, v);
+	}
 
-    private ArrayList<Object> makeMenuBoxXml(Xml.Technology t, Object o)
-    {
-        ArrayList<Object> menuBox = new ArrayList<Object>();
-        if (o != null)
-        {
-	        if (o instanceof List)
-	        {
-	        	for(Object subO : (List)o)
-	                menuBox.add(subO);
-	        } else menuBox.add(o);
-        }
-        return menuBox;
-    }
+	private void addSpiceHeader(Xml.Technology t, int level, String[] spiceLines) {
+		if (spiceLines == null) return;
+		Xml.SpiceHeader spiceHeader = new Xml.SpiceHeader();
+		spiceHeader.level = level;
+		for (String spiceLine: spiceLines)
+			spiceHeader.spiceLines.add(spiceLine);
+		t.spiceHeaders.add(spiceHeader);
+	}
 
-    private DRCTemplate makeDesignRule(String ruleName, LayerInfo l1, LayerInfo l2, DRCTemplate.DRCRuleType type, double value)
-    {
-        return new DRCTemplate(ruleName, DRCTemplate.DRCMode.ALL.mode(), type, l1.name, l2.name, new double[] {value}, null, null);
-    }
+	private List<Object> makeMenuBoxXml(Xml.Technology t, Object o)
+	{
+		List<Object> menuBox = new ArrayList<Object>();
+		if (o != null)
+		{
+			if (o instanceof List)
+			{
+				for(Object subO : (List)o)
+					menuBox.add(subO);
+			} else menuBox.add(o);
+		}
+		return menuBox;
+	}
+
+	private DRCTemplate makeDesignRule(String ruleName, LayerInfo l1, LayerInfo l2, DRCTemplate.DRCRuleType type, double value)
+	{
+		return new DRCTemplate(ruleName, DRCTemplate.DRCMode.ALL.mode(), type, l1.name, l2.name, new double[] {value}, null, null);
+	}
 }

@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08f: ******************************
 
+BUG: (9/9/08, SMR) Conversion of library to technology fails if component menu
+     items are unknown (Bug #1831).
+FIX: Give warnings when menu items are unknown.
+
 BUG: (9/9/08, DN) "Factory reset" command sets zero default sizes in Artwork.
 FIX: Add methods PrimitiveNode.getFactoryDefaultGridExtendX/Y and ArcProto.getFactoryDefaultGridExtendOverMin .
 

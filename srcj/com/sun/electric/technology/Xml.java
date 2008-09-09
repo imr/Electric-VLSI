@@ -53,6 +53,7 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
+
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.Locator;
@@ -166,7 +167,7 @@ public class Xml {
         public boolean notUsed;
         public boolean skipSizeInPalette;
 
-        public final TreeMap<Integer,Double> diskOffset = new TreeMap<Integer,Double>();
+        public final Map<Integer,Double> diskOffset = new TreeMap<Integer,Double>();
         public final Distance defaultWidth = new Distance();
         public boolean extended;
         public boolean fixedAngle;
@@ -200,7 +201,7 @@ public class Xml {
         public boolean od33;
 
         public com.sun.electric.technology.PrimitiveNode.Function function;
-        public final TreeMap<Integer,EPoint> diskOffset = new TreeMap<Integer,EPoint>();
+        public final Map<Integer,EPoint> diskOffset = new TreeMap<Integer,EPoint>();
         public final Distance defaultWidth = new Distance();
         public final Distance defaultHeight = new Distance();
         public SizeOffset sizeOffset;
@@ -399,7 +400,7 @@ public class Xml {
         }
     };
 
-    private static final HashMap<String,XmlKeyword> xmlKeywords = new HashMap<String,XmlKeyword>();
+    private static final Map<String,XmlKeyword> xmlKeywords = new HashMap<String,XmlKeyword>();
     static {
         for (XmlKeyword k: XmlKeyword.class.getEnumConstants())
             xmlKeywords.put(k.name(), k);
@@ -459,6 +460,7 @@ public class Xml {
         }
         return null;
     }
+
     /**
      * Method to parse a string of XML that describes the component menu in a Technology Editing context.
      * Normal parsing of XML returns objects in the Xml class, but
@@ -575,11 +577,9 @@ public class Xml {
         }
 
 
-
         ////////////////////////////////////////////////////////////////////
         // Default implementation of DTDHandler interface.
         ////////////////////////////////////////////////////////////////////
-
 
         /**
          * Receive notification of a notation declaration.
@@ -600,7 +600,6 @@ public class Xml {
         throws SAXException {
 //            int x = 0;
         }
-
 
         /**
          * Receive notification of an unparsed entity declaration.
@@ -625,11 +624,9 @@ public class Xml {
         }
 
 
-
         ////////////////////////////////////////////////////////////////////
         // Default implementation of ContentHandler interface.
         ////////////////////////////////////////////////////////////////////
-
 
         /**
          * Receive a Locator object for document events.
@@ -651,7 +648,6 @@ public class Xml {
                     " line=" + locator.getLineNumber() + " column=" + locator.getColumnNumber());
         }
 
-
         /**
          * Receive notification of the beginning of the document.
          *
@@ -671,7 +667,6 @@ public class Xml {
             }
         }
 
-
         /**
          * Receive notification of the end of the document.
          *
@@ -690,7 +685,6 @@ public class Xml {
                 System.out.println("endDocument");
             }
         }
-
 
         /**
          * Receive notification of the start of a Namespace mapping.
@@ -712,7 +706,6 @@ public class Xml {
             }
         }
 
-
         /**
          * Receive notification of the end of a Namespace mapping.
          *
@@ -731,7 +724,6 @@ public class Xml {
                 System.out.println("endPrefixMapping prefix=" + prefix);
             }
         }
-
 
         /**
          * Receive notification of the start of an element.
@@ -890,9 +882,11 @@ public class Xml {
                     break;
                 case diskOffset:
                     if (curArc != null)
-                        curArc.diskOffset.put(Integer.parseInt(a("untilVersion")), Double.parseDouble(a("width")));
+                        curArc.diskOffset.put(new Integer(Integer.parseInt(a("untilVersion"))),
+                        	new Double(Double.parseDouble(a("width"))));
                     if (curNode != null)
-                        curNode.diskOffset.put(Integer.parseInt(a("untilVersion")), EPoint.fromLambda(Double.parseDouble(a("x")), Double.parseDouble(a("y"))));
+                        curNode.diskOffset.put(new Integer(Integer.parseInt(a("untilVersion"))),
+                        	EPoint.fromLambda(Double.parseDouble(a("x")), Double.parseDouble(a("y"))));
                     break;
                 case defaultWidth:
                     if (curArc != null)
@@ -1140,7 +1134,6 @@ public class Xml {
             return v;
         }
 
-
         /**
          * Receive notification of the end of an element.
          *
@@ -1243,10 +1236,14 @@ public class Xml {
                         curNode.specialValues[curSpecialValueIndex++] = Double.parseDouble(text);
                         break;
                     case menuArc:
-                        curMenuBox.add(tech.findArc(text));
+                    	ArcProto ap = tech.findArc(text);
+                    	if (ap == null) System.out.println("Warning: cannot find arc '" + text + "' for component menu"); else
+                    		curMenuBox.add(ap);
                         break;
                     case menuNode:
-                        curMenuBox.add(tech.findNode(text));
+                    	PrimitiveNode np = tech.findNode(text);
+                    	if (np == null) System.out.println("Warning: cannot find node '" + text + "' for component menu"); else
+                    		curMenuBox.add(np);
                         break;
                     case menuText:
                         curMenuBox.add(text);
@@ -1364,7 +1361,6 @@ public class Xml {
             }
         }
 
-
         /**
          * Receive notification of character data inside an element.
          *
@@ -1400,7 +1396,6 @@ public class Xml {
             }
         }
 
-
         /**
          * Receive notification of ignorable whitespace in element content.
          *
@@ -1422,7 +1417,6 @@ public class Xml {
 //            int x = 0;
         }
 
-
         /**
          * Receive notification of a processing instruction.
          *
@@ -1443,7 +1437,6 @@ public class Xml {
 //            int x = 0;
         }
 
-
         /**
          * Receive notification of a skipped entity.
          *
@@ -1463,11 +1456,9 @@ public class Xml {
         }
 
 
-
         ////////////////////////////////////////////////////////////////////
         // Default implementation of the ErrorHandler interface.
         ////////////////////////////////////////////////////////////////////
-
 
         /**
          * Receive notification of a parser warning.
@@ -1489,7 +1480,6 @@ public class Xml {
                     " line=" + e.getLineNumber() + " column=" + e.getColumnNumber() + " message=" + e.getMessage() + " exception=" + e.getException());
         }
 
-
         /**
          * Receive notification of a recoverable parser error.
          *
@@ -1510,7 +1500,6 @@ public class Xml {
 //                    " line=" + e.getLineNumber() + " column=" + e.getColumnNumber() + " message=" + e.getMessage() + " exception=" + e.getException());
             throw e;
         }
-
 
         /**
          * Report a fatal XML parsing error.
@@ -1535,7 +1524,6 @@ public class Xml {
 //                    " line=" + e.getLineNumber() + " column=" + e.getColumnNumber() + " message=" + e.getMessage() + " exception=" + e.getException());
             throw e;
         }
-
     }
 
     private static class Writer {
@@ -1595,7 +1583,7 @@ public class Xml {
                 b(XmlKeyword.version); a("tech", version.techVersion); a("electric", version.electricVersion); el();
             }
             b(XmlKeyword.numMetals); a("min", t.minNumMetals); a("max", t.maxNumMetals); a("default", t.defaultNumMetals); el();
-            b(XmlKeyword.scale); a("value", t.scaleValue); a("relevant", t.scaleRelevant); el();
+            b(XmlKeyword.scale); a("value", t.scaleValue); a("relevant", Boolean.valueOf(t.scaleRelevant)); el();
             b(XmlKeyword.defaultFoundry); a("value", t.defaultFoundry); el();
             b(XmlKeyword.minResistance); a("value", t.minResistance); el();
             b(XmlKeyword.minCapacitance); a("value", t.minCapacitance); el();
@@ -1669,8 +1657,8 @@ public class Xml {
                 b(XmlKeyword.opaqueColor); a("r", color.getRed()); a("g", color.getGreen()); a("b", color.getBlue()); el();
             }
 
-            bcpel(XmlKeyword.patternedOnDisplay, desc.isPatternedOnDisplay());
-            bcpel(XmlKeyword.patternedOnPrinter, desc.isPatternedOnPrinter());
+            bcpel(XmlKeyword.patternedOnDisplay, Boolean.valueOf(desc.isPatternedOnDisplay()));
+            bcpel(XmlKeyword.patternedOnPrinter, Boolean.valueOf(desc.isPatternedOnPrinter()));
 
             int [] pattern = desc.getPattern();
             for(int j=0; j<16; j++) {
@@ -1683,7 +1671,7 @@ public class Xml {
             if (li.desc.getOutlined() != null)
                 bcpel(XmlKeyword.outlined, desc.getOutlined().getConstName());
             bcpel(XmlKeyword.opacity, desc.getOpacity());
-            bcpel(XmlKeyword.foreground, desc.getForeground());
+            bcpel(XmlKeyword.foreground, Boolean.valueOf(desc.getForeground()));
 
             // write the 3D information
             if (li.thick3D != 0 || li.height3D != 0 || li.mode3D != null) {
@@ -1735,8 +1723,8 @@ public class Xml {
                 bel(XmlKeyword.notUsed);
             if (ai.skipSizeInPalette)
                 bel(XmlKeyword.skipSizeInPalette);
-            bcpel(XmlKeyword.extended, ai.extended);
-            bcpel(XmlKeyword.fixedAngle, ai.fixedAngle);
+            bcpel(XmlKeyword.extended, Boolean.valueOf(ai.extended));
+            bcpel(XmlKeyword.fixedAngle, Boolean.valueOf(ai.fixedAngle));
             bcpel(XmlKeyword.angleIncrement, ai.angleIncrement);
             if (ai.antennaRatio != 0)
                 bcpel(XmlKeyword.antennaRatio, ai.antennaRatio);
@@ -1829,7 +1817,7 @@ public class Xml {
                 b(XmlKeyword.nodeLayer); a("layer", nl.layer); a("style", nl.style.name());
                 if (nl.portNum != 0) a("portNum", Integer.valueOf(nl.portNum));
                 if (!(nl.inLayers && nl.inElectricalLayers))
-                    a("electrical", nl.inElectricalLayers);
+                    a("electrical", Boolean.valueOf(nl.inElectricalLayers));
                 cl();
                 switch (nl.representation) {
                     case com.sun.electric.technology.Technology.NodeLayer.BOX:
@@ -1994,11 +1982,15 @@ public class Xml {
             p(value.toString());
             out.print("\"");
         }
+        private void a(String name, double value) { a(name, new Double(value)); }
+        private void a(String name, int value) { a(name, new Integer(value)); }
 
         private void bcpel(XmlKeyword key, Object v) {
             if (v == null) return;
             b(key); c(); p(v.toString()); el(key);
         }
+        private void bcpel(XmlKeyword key, int v) { bcpel(key, new Integer(v)); }
+        private void bcpel(XmlKeyword key, double v) { bcpel(key, new Double(v)); }
 
         private void bcl(XmlKeyword key) {
             b(key); cl();

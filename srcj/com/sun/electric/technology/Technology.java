@@ -1481,7 +1481,10 @@ public class Technology implements Comparable<Technology>, Serializable
             } else {
                 ArrayList<Object> list = new ArrayList<Object>();
                 for (Object o: menuBoxList)
+                {
+                	if (o == null) continue;
                     list.add(convertMenuItem(o));
+                }
                 row[column] = list;
             }
         }
