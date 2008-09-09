@@ -63,11 +63,11 @@ public class NetlistImpl extends Netlist {
         names = new String[getNumNetworks()][];
         Arrays.fill(names, NULL_STRING_ARRAY);
     }
-    
+
     void setEquivPortIndexByNetIndex(int equivIndex, int netIndex) {
         equivPortIndexByNetIndex[netIndex] = equivIndex;
     }
-    
+
     @Override
     Iterator<String> getNames(int netIndex) {
         return ArrayIterator.iterator(names[netIndex]);
@@ -126,11 +126,9 @@ public class NetlistImpl extends Netlist {
         assert !nameKey.isTempname();
         String name = nameKey.toString();
         String[] theseNames = names[netIndex];
-        int exportedCount = 0;
-        if (exported) {
-            exportedCount = exportedNamesCount[netIndex];
+        int exportedCount = netIndex < numExternalNets ? exportedNamesCount[netIndex] : 0;
+        if (exported)
             assert exportedCount == theseNames.length;
-        }
         int i = 0;
         for (; i < theseNames.length; i++) {
             String n = names[netIndex][i];

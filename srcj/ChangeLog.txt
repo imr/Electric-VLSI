@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08f: ******************************
 
+BUG: (8/27/08, DN) VerilogTest3 is broken because exported nets got private names.
+FIX: In NetlistImpl.addUserName correctly init "exportedCount".
+
 BUG: (9/8/08, GVG) MTD DRC code is not for schematics (Bug #1829)
 FIX: MTD code is only valid for layout.
 
