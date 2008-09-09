@@ -1609,7 +1609,7 @@ class HighlightText extends Highlight2
 
     public String describe()
     {
-        String description = "Text: unknown";
+        String description = "Unknown";
         if (varKey != null && eobj != null)
         {
         	if (varKey == NodeInst.NODE_NAME)
@@ -1620,13 +1620,13 @@ class HighlightText extends Highlight2
         		description = "Arc name for " + ((ArcInst)eobj).describe(true);
         	} else if (varKey == Export.EXPORT_NAME)
         	{
-        		description = "Text: Export '" + ((Export)eobj).getName() + "'";
+        		description = "Export '" + ((Export)eobj).getName() + "'";
         	} else if (varKey == NodeInst.NODE_PROTO)
         	{
-        		description = "Text: Cell instance name " + ((NodeInst)eobj).describe(true);
+        		description = "Cell instance name " + ((NodeInst)eobj).describe(true);
         	} else
         	{
-        		description = "Text: " + eobj.getParameterOrVariable(varKey).getFullDescription(eobj);
+        		description = eobj.getParameterOrVariable(varKey).getFullDescription(eobj);
         	}
         }
         return description;
@@ -1634,6 +1634,6 @@ class HighlightText extends Highlight2
 
     public String getInfo()
     {
-        return (describe());
+        return "Text: " + describe();
     }
 }

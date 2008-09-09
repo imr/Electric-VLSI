@@ -26,6 +26,7 @@ package com.sun.electric.tool.user.ui;
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.text.TextUtils;
@@ -33,8 +34,10 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.Highlight2;
 import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
@@ -336,9 +339,6 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
 				{
 					double xSize = theNode.getLambdaBaseXSize();
 					double ySize = theNode.getLambdaBaseYSize();
-//					SizeOffset so = theNode.getSizeOffset();
-//					double xSize = theNode.getXSize() - so.getLowXOffset() - so.getHighXOffset();
-//					double ySize = theNode.getYSize() - so.getLowYOffset() - so.getHighYOffset();
 					selectedMsg += " (size=" + TextUtils.formatDouble(xSize) +
 						"x" + TextUtils.formatDouble(ySize) + ")";
 				}
@@ -383,8 +383,8 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
             {
                 thePort = (PortInst)eObj;
                 theNode = thePort.getNodeInst();
-                return("NODE: " + theNode.describe(true) +
-                        " PORT: \'" + thePort.getPortProto().getName() + "\'");
+                return "NODE: " + theNode.describe(true) +
+                    " PORT: \'" + thePort.getPortProto().getName() + "\'";
             } else if (eObj instanceof NodeInst)
             {
                 theNode = (NodeInst)eObj;
@@ -399,11 +399,27 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
 	                return("netlist exception! try again. ArcIndex = -1");
 				Network net = netlist.getNetwork(theArc, 0);
 				String netMsg = (net != null) ? "NETWORK: "+net.describe(true)+ ", " : "";
-				return(netMsg + "ARC: " + theArc.describe(true));
+				return netMsg + "ARC: " + theArc.describe(true);
             }
         } else if (h.isHighlightText())
         {
-        	return h.describe();
+        	String descr = "TEXT: " + h.describe();
+			if (h.getVarKey() == Export.EXPORT_NAME && h.getElectricObject() instanceof Export)
+			{
+				Export e = (Export)h.getElectricObject();
+				ArcProto [] cons = e.getBasePort().getConnections();
+				boolean first = true;
+				for(int i=0; i<cons.length; i++)
+				{
+					ArcProto ap = cons[i];
+					if (ap.getTechnology() == Generic.tech()) continue;
+					if (first) descr += " ["; else descr += ",";
+					first = false;
+					descr += cons[i].getName();
+				}
+				if (!first) descr += "]";
+			}
+        	return descr;
         }
         return null;
     }

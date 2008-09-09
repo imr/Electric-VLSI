@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08f: ******************************
 
+IMP: (9/9/08, SMR) Status bar now shows arcs that selected export can connect to (Bug #1830).
+
 BUG: (9/9/08, SMR) Conversion of library to technology fails if component menu
      items are unknown (Bug #1831).
 FIX: Give warnings when menu items are unknown.
