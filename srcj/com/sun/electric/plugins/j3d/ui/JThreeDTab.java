@@ -25,27 +25,28 @@ package com.sun.electric.plugins.j3d.ui;
 
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.plugins.j3d.View3DWindow;
+import com.sun.electric.plugins.j3d.utils.J3DAppearance;
+import com.sun.electric.plugins.j3d.utils.J3DUtils;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.tool.user.dialogs.options.ThreeDTab;
-import com.sun.electric.plugins.j3d.utils.J3DAppearance;
-import com.sun.electric.plugins.j3d.View3DWindow;
-import com.sun.electric.plugins.j3d.utils.J3DUtils;
 
 import java.awt.GridBagConstraints;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
+import javax.media.j3d.TransparencyAttributes;
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.media.j3d.TransparencyAttributes;
 import javax.vecmath.Vector3f;
 
 /**
@@ -67,8 +68,8 @@ public class JThreeDTab extends ThreeDTab
 	private boolean initial3DTextChanging = false;
 	protected JList threeDLayerList;
 	private DefaultListModel threeDLayerModel;
-	public HashMap<Layer,GenMath.MutableDouble> threeDThicknessMap, threeDDistanceMap;
-    public HashMap<Layer,J3DAppearance> transparencyMap;
+	public Map<Layer,GenMath.MutableDouble> threeDThicknessMap, threeDDistanceMap;
+    public Map<Layer,J3DAppearance> transparencyMap;
 	private JThreeDSideView threeDSideView;
 
 	/**
@@ -337,26 +338,43 @@ public class JThreeDTab extends ThreeDTab
 		for(Iterator<Layer> it = curTech.getLayers(); it.hasNext(); )
 		{
 			Layer layer = it.next();
-			if (layer.isPseudoLayer()) continue;       
-            J3DAppearance app = (J3DAppearance)layer.getGraphics().get3DAppearance();
-            if (app != null)
-            	app.factoryResetTransparencyAndRenderingAttributes();
-            layer.setThickness(layer.getFactoryThickness());
-            layer.setDistance(layer.getFactoryDistance());
+			if (layer.isPseudoLayer()) continue;
+			if (!layer.getFactoryTransparencyMode().equals(layer.getTransparencyMode()) ||
+				layer.getFactoryTransparencyFactor() != layer.getTransparencyFactor())
+			{
+				layer.setTransparencyMode(layer.getFactoryTransparencyMode());
+				layer.setTransparencyFactor(layer.getFactoryTransparencyFactor());
+				layer.getGraphics().set3DAppearance(null);
+			}
+			if (layer.getFactoryThickness() != layer.getThickness())
+				layer.setThickness(layer.getFactoryThickness());
+			if (layer.getFactoryDistance() != layer.getDistance())
+				layer.setDistance(layer.getFactoryDistance());
 		}
-		J3DUtils.set3DPerspective(J3DUtils.isFactory3DPerspective());
-		J3DUtils.set3DCellBndOn(J3DUtils.isFactory3DCellBndOn());
-        J3DUtils.set3DAntialiasing(J3DUtils.isFactory3DAntialiasing());
-        J3DUtils.set3DAxesOn(J3DUtils.isFactory3DAxesOn());
-        J3DUtils.set3DSTIPolyTransistorOn(J3DUtils.isFactory3DSTIPolyTransistorOn());
-        J3DUtils.set3DMaxNumNodes(J3DUtils.getFactory3DMaxNumNodes());
-        J3DUtils.set3DAlpha(J3DUtils.getFactory3DAlpha());
+		if (J3DUtils.isFactory3DPerspective() != J3DUtils.is3DPerspective())
+			J3DUtils.set3DPerspective(J3DUtils.isFactory3DPerspective());
+		if (J3DUtils.isFactory3DCellBndOn() != J3DUtils.is3DCellBndOn())
+			J3DUtils.set3DCellBndOn(J3DUtils.isFactory3DCellBndOn());
+		if (J3DUtils.isFactory3DAntialiasing() != J3DUtils.is3DAntialiasing())
+			J3DUtils.set3DAntialiasing(J3DUtils.isFactory3DAntialiasing());
+		if (J3DUtils.isFactory3DAxesOn() != J3DUtils.is3DAxesOn())
+			J3DUtils.set3DAxesOn(J3DUtils.isFactory3DAxesOn());
+		if (J3DUtils.isFactory3DSTIPolyTransistorOn() != J3DUtils.is3DSTIPolyTransistorOn())
+			J3DUtils.set3DSTIPolyTransistorOn(J3DUtils.isFactory3DSTIPolyTransistorOn());
+		if (J3DUtils.getFactory3DMaxNumNodes() != J3DUtils.get3DMaxNumNodes())
+			J3DUtils.set3DMaxNumNodes(J3DUtils.getFactory3DMaxNumNodes());
+		if (J3DUtils.getFactory3DAlpha() != J3DUtils.get3DAlpha())
+			J3DUtils.set3DAlpha(J3DUtils.getFactory3DAlpha());
 
-        J3DUtils.set3DOrigZoom(J3DUtils.getFactory3DOrigZoom());
-		J3DUtils.set3DFactor(J3DUtils.getFactory3DFactor());
-        J3DUtils.set3DRotation(J3DUtils.getFactory3DRotation());
+		if (J3DUtils.getFactory3DOrigZoom() != J3DUtils.get3DOrigZoom())
+			J3DUtils.set3DOrigZoom(J3DUtils.getFactory3DOrigZoom());
+		if (J3DUtils.getFactory3DFactor() != J3DUtils.get3DFactor())
+			J3DUtils.set3DFactor(J3DUtils.getFactory3DFactor());
+		if (!J3DUtils.getFactory3DRotation().equals(J3DUtils.get3DRotation()))
+			J3DUtils.set3DRotation(J3DUtils.getFactory3DRotation());
 
-        J3DUtils.set3DLightDirs(J3DUtils.getFactory3DLightDirs());
+		if (!J3DUtils.getFactory3DLightDirs().equals(J3DUtils.get3DLightDirs()))
+			J3DUtils.set3DLightDirs(J3DUtils.getFactory3DLightDirs());
 	}
 
 	/** This method is called from within the constructor to

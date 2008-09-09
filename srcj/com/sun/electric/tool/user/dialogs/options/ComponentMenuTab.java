@@ -172,8 +172,8 @@ public class ComponentMenuTab extends PreferencePanel
 		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology t = it.next();
-			Object [][] menu = t.getNodesGrouped(null);
-			t.setNodesGrouped(menu, "");
+			Object [][] menu = t.getDefaultNodesGrouped();
+			t.setNodesGrouped(t.filterNodeGroups(menu), "");
 		}
 	}
 

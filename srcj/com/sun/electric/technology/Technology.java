@@ -4871,6 +4871,17 @@ public class Technology implements Comparable<Technology>, Serializable
 		return prefResolution.getDouble();
 	}
 
+    /**
+     * Method to retrieve the default resolution associated to the technology.
+     * This is the minimum size unit that can be represented.
+     * @return the technology's default resolution value.
+     */
+    public double getFactoryResolution()
+	{
+        if (prefResolution == null) setFactoryResolution(0);
+		return prefResolution.getDoubleFactoryValue();
+	}
+
 	/**
 	 * Method to get foundry in Tech Palette. Different foundry can define different DRC rules.
 	 * The default is "Generic".

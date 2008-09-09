@@ -26,6 +26,8 @@ package com.sun.electric.tool.user.dialogs.options;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.DRCRules;
 import com.sun.electric.technology.Foundry;
+import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.XMLRules;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.user.dialogs.DesignRulesPanel;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -36,6 +38,7 @@ import java.awt.GridBagConstraints;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Iterator;
 
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -144,7 +147,15 @@ public class DesignRulesTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		DRC.resetDRCDates(true);
+		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
+		{
+			Technology tech = it.next();
+			if (tech.getFactoryResolution() != tech.getResolution())
+				tech.setResolution(tech.getFactoryResolution());
+	        XMLRules rules = tech.getFactoryDesignRules();
+			DRC.setRules(tech, rules);
+			tech.setCachedRules(rules);
+		}
 	}
 
 	/** This method is called from within the constructor to

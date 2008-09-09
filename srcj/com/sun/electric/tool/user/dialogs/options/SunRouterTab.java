@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
-import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.routing.Routing;
 
@@ -58,101 +57,101 @@ public class SunRouterTab extends PreferencePanel
 		if (!Routing.hasSunRouter())
 		{
 			// global routing
-		    horizTileSize.setEnabled(false);
-		    vertTileSize.setEnabled(false);
-		    horizBitSize.setEnabled(false);
-		    vertBitSize.setEnabled(false);
-		    cutLineDeviation.setEnabled(false);
-		    verbosityCombo.setEnabled(false);
+			horizTileSize.setEnabled(false);
+			vertTileSize.setEnabled(false);
+			horizBitSize.setEnabled(false);
+			vertBitSize.setEnabled(false);
+			cutLineDeviation.setEnabled(false);
+			verbosityCombo.setEnabled(false);
 
-		    // capacity
-		    pinFactor.setEnabled(false);
-		    oneTileFactor.setEnabled(false);
-		    windowSize.setEnabled(false);
+			// capacity
+			pinFactor.setEnabled(false);
+			oneTileFactor.setEnabled(false);
+			windowSize.setEnabled(false);
 
-		    // ripup
-		    delta.setEnabled(false);
-		    overloadLimit.setEnabled(false);
-		    costLimit.setEnabled(false);
+			// ripup
+			delta.setEnabled(false);
+			overloadLimit.setEnabled(false);
+			costLimit.setEnabled(false);
 
-		    // layer assignment
-		    tilesPerLongNet.setEnabled(false);
-		    tilesPerMedNet.setEnabled(false);
-		    layerAssignCapF.setEnabled(false);
-		    longNetLength.setEnabled(false);
-		    medNetLength.setEnabled(false);
-		    unassignedPinDensityF.setEnabled(false);
+			// layer assignment
+			tilesPerLongNet.setEnabled(false);
+			tilesPerMedNet.setEnabled(false);
+			layerAssignCapF.setEnabled(false);
+			longNetLength.setEnabled(false);
+			medNetLength.setEnabled(false);
+			unassignedPinDensityF.setEnabled(false);
 
-		    // detail routing
-		    wireOffset.setEnabled(false);
-		    wireModulo.setEnabled(false);
-		    wireBlockageFactor.setEnabled(false);
-		    ripupMaximum.setEnabled(false);
-		    ripupPenalty.setEnabled(false);
-		    ripupExpansion.setEnabled(false);
-		    zRipupExpansion.setEnabled(false);
-		    ripupSearches.setEnabled(false);
-		    globalPathExpansion.setEnabled(false);
-		    sourceAccessExpansion.setEnabled(false);
-		    sinkAccessExpansion.setEnabled(false);
-		    denseViaAreaSize.setEnabled(false);
-		    retryExpandRouting.setEnabled(false);
-		    retryDenseViaAreaSize.setEnabled(false);
-		    pathSearchControl.setEnabled(false);
-		    sparseViaModulo.setEnabled(false);
-		    lowPathSearchCost.setEnabled(false);
-		    mediumPathSearchCost.setEnabled(false);
-		    highPathSearchCost.setEnabled(false);
-		    takenPathSearchCost.setEnabled(false);
+			// detail routing
+			wireOffset.setEnabled(false);
+			wireModulo.setEnabled(false);
+			wireBlockageFactor.setEnabled(false);
+			ripupMaximum.setEnabled(false);
+			ripupPenalty.setEnabled(false);
+			ripupExpansion.setEnabled(false);
+			zRipupExpansion.setEnabled(false);
+			ripupSearches.setEnabled(false);
+			globalPathExpansion.setEnabled(false);
+			sourceAccessExpansion.setEnabled(false);
+			sinkAccessExpansion.setEnabled(false);
+			denseViaAreaSize.setEnabled(false);
+			retryExpandRouting.setEnabled(false);
+			retryDenseViaAreaSize.setEnabled(false);
+			pathSearchControl.setEnabled(false);
+			sparseViaModulo.setEnabled(false);
+			lowPathSearchCost.setEnabled(false);
+			mediumPathSearchCost.setEnabled(false);
+			highPathSearchCost.setEnabled(false);
+			takenPathSearchCost.setEnabled(false);
 		} else
 		{
 			// global routing
-		    horizTileSize.setText("" + Routing.getSunRouterXTileSize());
-		    vertTileSize.setText("" + Routing.getSunRouterYTileSize());
-		    horizBitSize.setText("" + Routing.getSunRouterXBitSize());
-		    vertBitSize.setText("" + Routing.getSunRouterYBitSize());
-		    cutLineDeviation.setText("" + Routing.getSunRouterCutlineDeviation());
-		    verbosityCombo.setSelectedIndex(Routing.getSunRouterVerboseLevel());
+			horizTileSize.setText("" + Routing.getSunRouterXTileSize());
+			vertTileSize.setText("" + Routing.getSunRouterYTileSize());
+			horizBitSize.setText("" + Routing.getSunRouterXBitSize());
+			vertBitSize.setText("" + Routing.getSunRouterYBitSize());
+			cutLineDeviation.setText("" + Routing.getSunRouterCutlineDeviation());
+			verbosityCombo.setSelectedIndex(Routing.getSunRouterVerboseLevel());
 
-		    // capacity
-		    pinFactor.setText("" + Routing.getSunRouterPinFactor());
-		    oneTileFactor.setText("" + Routing.getSunRouterOneTileFactor());
-		    windowSize.setText("" + Routing.getSunRouterWindow());
+			// capacity
+			pinFactor.setText("" + Routing.getSunRouterPinFactor());
+			oneTileFactor.setText("" + Routing.getSunRouterOneTileFactor());
+			windowSize.setText("" + Routing.getSunRouterWindow());
 
-		    // ripup
-		    delta.setText("" + Routing.getSunRouterDelta());
-		    overloadLimit.setText("" + Routing.getSunRouterOverloadLimit());
-		    costLimit.setText("" + Routing.getSunRouterCostLimit());
+			// ripup
+			delta.setText("" + Routing.getSunRouterDelta());
+			overloadLimit.setText("" + Routing.getSunRouterOverloadLimit());
+			costLimit.setText("" + Routing.getSunRouterCostLimit());
 
-		    // layer assignment
-		    tilesPerLongNet.setText("" + Routing.getSunRouterTilesPerPinLongNet());
-		    tilesPerMedNet.setText("" + Routing.getSunRouterTilesPerPinMedNet());
-		    layerAssignCapF.setText("" + Routing.getSunRouterLayerAssgnCapF());
-		    longNetLength.setText("" + Routing.getSunRouterLengthLongNet());
-		    medNetLength.setText("" + Routing.getSunRouterLengthMedNet());
-		    unassignedPinDensityF.setText("" + Routing.getSunRouterUPinDensityF());
+			// layer assignment
+			tilesPerLongNet.setText("" + Routing.getSunRouterTilesPerPinLongNet());
+			tilesPerMedNet.setText("" + Routing.getSunRouterTilesPerPinMedNet());
+			layerAssignCapF.setText("" + Routing.getSunRouterLayerAssgnCapF());
+			longNetLength.setText("" + Routing.getSunRouterLengthLongNet());
+			medNetLength.setText("" + Routing.getSunRouterLengthMedNet());
+			unassignedPinDensityF.setText("" + Routing.getSunRouterUPinDensityF());
 
-		    // detail routing
-		    wireOffset.setText("" + Routing.getSunRouterWireOffset());
-		    wireModulo.setText("" + Routing.getSunRouterWireModulo());
-		    wireBlockageFactor.setText("" + Routing.getSunRouterWireBlockageFactor());
-		    ripupMaximum.setText("" + Routing.getSunRouterRipUpMaximum());
-		    ripupPenalty.setText("" + Routing.getSunRouterRipUpPenalty());
-		    ripupExpansion.setText("" + Routing.getSunRouterRipUpExpansion());
-		    zRipupExpansion.setText("" + Routing.getSunRouterZRipUpExpansion());
-		    ripupSearches.setText("" + Routing.getSunRouterRipUpSearches());
-		    globalPathExpansion.setText("" + Routing.getSunRouterGlobalPathExpansion());
-		    sourceAccessExpansion.setText("" + Routing.getSunRouterSourceAccessExpansion());
-		    sinkAccessExpansion.setText("" + Routing.getSunRouterSinkAccessExpansion());
-		    denseViaAreaSize.setText("" + Routing.getSunRouterDenseViaAreaSize());
-		    retryExpandRouting.setText("" + Routing.getSunRouterRetryExpandRouting());
-		    retryDenseViaAreaSize.setText("" + Routing.getSunRouterRetryDenseViaAreaSize());
-		    pathSearchControl.setText("" + Routing.getSunRouterPathSearchControl());
-		    sparseViaModulo.setText("" + Routing.getSunRouterSparseViaModulo());
-		    lowPathSearchCost.setText("" + Routing.getSunRouterLowPathSearchCost());
-		    mediumPathSearchCost.setText("" + Routing.getSunRouterMediumPathSearchCost());
-		    highPathSearchCost.setText("" + Routing.getSunRouterHighPathSearchCost());
-		    takenPathSearchCost.setText("" + Routing.getSunRouterTakenPathSearchCost());
+			// detail routing
+			wireOffset.setText("" + Routing.getSunRouterWireOffset());
+			wireModulo.setText("" + Routing.getSunRouterWireModulo());
+			wireBlockageFactor.setText("" + Routing.getSunRouterWireBlockageFactor());
+			ripupMaximum.setText("" + Routing.getSunRouterRipUpMaximum());
+			ripupPenalty.setText("" + Routing.getSunRouterRipUpPenalty());
+			ripupExpansion.setText("" + Routing.getSunRouterRipUpExpansion());
+			zRipupExpansion.setText("" + Routing.getSunRouterZRipUpExpansion());
+			ripupSearches.setText("" + Routing.getSunRouterRipUpSearches());
+			globalPathExpansion.setText("" + Routing.getSunRouterGlobalPathExpansion());
+			sourceAccessExpansion.setText("" + Routing.getSunRouterSourceAccessExpansion());
+			sinkAccessExpansion.setText("" + Routing.getSunRouterSinkAccessExpansion());
+			denseViaAreaSize.setText("" + Routing.getSunRouterDenseViaAreaSize());
+			retryExpandRouting.setText("" + Routing.getSunRouterRetryExpandRouting());
+			retryDenseViaAreaSize.setText("" + Routing.getSunRouterRetryDenseViaAreaSize());
+			pathSearchControl.setText("" + Routing.getSunRouterPathSearchControl());
+			sparseViaModulo.setText("" + Routing.getSunRouterSparseViaModulo());
+			lowPathSearchCost.setText("" + Routing.getSunRouterLowPathSearchCost());
+			mediumPathSearchCost.setText("" + Routing.getSunRouterMediumPathSearchCost());
+			highPathSearchCost.setText("" + Routing.getSunRouterHighPathSearchCost());
+			takenPathSearchCost.setText("" + Routing.getSunRouterTakenPathSearchCost());
 		}
 	}
 
@@ -259,6 +258,91 @@ public class SunRouterTab extends PreferencePanel
 	 */
 	public void reset()
 	{
+		// global routing
+		if (Routing.getFactorySunRouterXTileSize() != Routing.getSunRouterXTileSize())
+			Routing.setSunRouterXTileSize(Routing.getFactorySunRouterXTileSize());
+		if (Routing.getFactorySunRouterYTileSize() != Routing.getSunRouterYTileSize())
+			Routing.setSunRouterYTileSize(Routing.getFactorySunRouterYTileSize());
+		if (Routing.getFactorySunRouterXBitSize() != Routing.getSunRouterXBitSize())
+			Routing.setSunRouterXBitSize(Routing.getFactorySunRouterXBitSize());
+		if (Routing.getFactorySunRouterYBitSize() != Routing.getSunRouterYBitSize())
+			Routing.setSunRouterYBitSize(Routing.getFactorySunRouterYBitSize());
+		if (Routing.getFactorySunRouterCutlineDeviation() != Routing.getSunRouterCutlineDeviation())
+			Routing.setSunRouterCutlineDeviation(Routing.getFactorySunRouterCutlineDeviation());
+		if (Routing.getFactorySunRouterVerboseLevel() != Routing.getSunRouterVerboseLevel())
+			Routing.setSunRouterVerboseLevel(Routing.getFactorySunRouterVerboseLevel());
+
+		// capacity
+		if (Routing.getFactorySunRouterPinFactor() != Routing.getSunRouterPinFactor())
+			Routing.setSunRouterPinFactor(Routing.getFactorySunRouterPinFactor());
+		if (Routing.getFactorySunRouterOneTileFactor() != Routing.getSunRouterOneTileFactor())
+			Routing.setSunRouterOneTileFactor(Routing.getFactorySunRouterOneTileFactor());
+		if (Routing.getFactorySunRouterWindow() != Routing.getSunRouterWindow())
+			Routing.setSunRouterWindow(Routing.getFactorySunRouterWindow());
+
+		// ripup
+		if (Routing.getFactorySunRouterDelta() != Routing.getSunRouterDelta())
+			Routing.setSunRouterDelta(Routing.getFactorySunRouterDelta());
+		if (Routing.getFactorySunRouterOverloadLimit() != Routing.getSunRouterOverloadLimit())
+			Routing.setSunRouterOverloadLimit(Routing.getFactorySunRouterOverloadLimit());
+		if (Routing.getFactorySunRouterCostLimit() != Routing.getSunRouterCostLimit())
+			Routing.setSunRouterCostLimit(Routing.getFactorySunRouterCostLimit());
+
+		// layer assignment
+		if (Routing.getFactorySunRouterTilesPerPinLongNet() != Routing.getSunRouterTilesPerPinLongNet())
+			Routing.setSunRouterTilesPerPinLongNet(Routing.getFactorySunRouterTilesPerPinLongNet());
+		if (Routing.getFactorySunRouterTilesPerPinMedNet() != Routing.getSunRouterTilesPerPinMedNet())
+			Routing.setSunRouterTilesPerPinMedNet(Routing.getFactorySunRouterTilesPerPinMedNet());
+		if (Routing.getFactorySunRouterLayerAssgnCapF() != Routing.getSunRouterLayerAssgnCapF())
+			Routing.setSunRouterLayerAssgnCapF(Routing.getFactorySunRouterLayerAssgnCapF());
+		if (Routing.getFactorySunRouterLengthLongNet() != Routing.getSunRouterLengthLongNet())
+			Routing.setSunRouterLengthLongNet(Routing.getFactorySunRouterLengthLongNet());
+		if (Routing.getFactorySunRouterLengthMedNet() != Routing.getSunRouterLengthMedNet())
+			Routing.setSunRouterLengthMedNet(Routing.getFactorySunRouterLengthMedNet());
+		if (Routing.getFactorySunRouterUPinDensityF() != Routing.getSunRouterUPinDensityF())
+			Routing.setSunRouterUPinDensityF(Routing.getFactorySunRouterUPinDensityF());
+
+		// detail routing
+		if (Routing.getFactorySunRouterWireOffset() != Routing.getSunRouterWireOffset())
+			Routing.setSunRouterWireOffset(Routing.getFactorySunRouterWireOffset());
+		if (Routing.getFactorySunRouterWireModulo() != Routing.getSunRouterWireModulo())
+			Routing.setSunRouterWireModulo(Routing.getFactorySunRouterWireModulo());
+		if (Routing.getFactorySunRouterWireBlockageFactor() != Routing.getSunRouterWireBlockageFactor())
+			Routing.setSunRouterWireBlockageFactor(Routing.getFactorySunRouterWireBlockageFactor());
+		if (Routing.getFactorySunRouterRipUpMaximum() != Routing.getSunRouterRipUpMaximum())
+			Routing.setSunRouterRipUpMaximum(Routing.getFactorySunRouterRipUpMaximum());
+		if (Routing.getFactorySunRouterRipUpPenalty() != Routing.getSunRouterRipUpPenalty())
+			Routing.setSunRouterRipUpPenalty(Routing.getFactorySunRouterRipUpPenalty());
+		if (Routing.getFactorySunRouterRipUpExpansion() != Routing.getSunRouterRipUpExpansion())
+			Routing.setSunRouterRipUpExpansion(Routing.getFactorySunRouterRipUpExpansion());
+		if (Routing.getFactorySunRouterZRipUpExpansion() != Routing.getSunRouterZRipUpExpansion())
+			Routing.setSunRouterZRipUpExpansion(Routing.getFactorySunRouterZRipUpExpansion());
+		if (Routing.getFactorySunRouterRipUpSearches() != Routing.getSunRouterRipUpSearches())
+			Routing.setSunRouterRipUpSearches(Routing.getFactorySunRouterRipUpSearches());
+		if (Routing.getFactorySunRouterGlobalPathExpansion() != Routing.getSunRouterGlobalPathExpansion())
+			Routing.setSunRouterGlobalPathExpansion(Routing.getFactorySunRouterGlobalPathExpansion());
+		if (Routing.getFactorySunRouterSourceAccessExpansion() != Routing.getSunRouterSourceAccessExpansion())
+			Routing.setSunRouterSourceAccessExpansion(Routing.getFactorySunRouterSourceAccessExpansion());
+		if (Routing.getFactorySunRouterSinkAccessExpansion() != Routing.getSunRouterSinkAccessExpansion())
+			Routing.setSunRouterSinkAccessExpansion(Routing.getFactorySunRouterSinkAccessExpansion());
+		if (Routing.getFactorySunRouterDenseViaAreaSize() != Routing.getSunRouterDenseViaAreaSize())
+			Routing.setSunRouterDenseViaAreaSize(Routing.getFactorySunRouterDenseViaAreaSize());
+		if (Routing.getFactorySunRouterRetryExpandRouting() != Routing.getSunRouterRetryExpandRouting())
+			Routing.setSunRouterRetryExpandRouting(Routing.getFactorySunRouterRetryExpandRouting());
+		if (Routing.getFactorySunRouterRetryDenseViaAreaSize() != Routing.getSunRouterRetryDenseViaAreaSize())
+			Routing.setSunRouterRetryDenseViaAreaSize(Routing.getFactorySunRouterRetryDenseViaAreaSize());
+		if (Routing.getFactorySunRouterPathSearchControl() != Routing.getSunRouterPathSearchControl())
+			Routing.setSunRouterPathSearchControl(Routing.getFactorySunRouterPathSearchControl());
+		if (Routing.getFactorySunRouterSparseViaModulo() != Routing.getSunRouterSparseViaModulo())
+			Routing.setSunRouterSparseViaModulo(Routing.getFactorySunRouterSparseViaModulo());
+		if (Routing.getFactorySunRouterLowPathSearchCost() != Routing.getSunRouterLowPathSearchCost())
+			Routing.setSunRouterLowPathSearchCost(Routing.getFactorySunRouterLowPathSearchCost());
+		if (Routing.getFactorySunRouterMediumPathSearchCost() != Routing.getSunRouterMediumPathSearchCost())
+			Routing.setSunRouterMediumPathSearchCost(Routing.getFactorySunRouterMediumPathSearchCost());
+		if (Routing.getFactorySunRouterHighPathSearchCost() != Routing.getSunRouterHighPathSearchCost())
+			Routing.setSunRouterHighPathSearchCost(Routing.getFactorySunRouterHighPathSearchCost());
+		if (Routing.getFactorySunRouterTakenPathSearchCost() != Routing.getSunRouterTakenPathSearchCost())
+			Routing.setSunRouterTakenPathSearchCost(Routing.getFactorySunRouterTakenPathSearchCost());
 	}
 
 	/** This method is called from within the constructor to
@@ -1078,5 +1162,4 @@ public class SunRouterTab extends PreferencePanel
     private javax.swing.JTextField wireOffset;
     private javax.swing.JTextField zRipupExpansion;
     // End of variables declaration//GEN-END:variables
-
 }

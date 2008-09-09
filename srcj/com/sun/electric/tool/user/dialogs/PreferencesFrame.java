@@ -307,20 +307,15 @@ public class PreferencesFrame extends EDialog
 		gbc.insets = new Insets(4, 4, 4, 4);
 		leftPanel.add(restore, gbc);
 
-		int helpPos = 0;
-		if (Job.getDebug())
+		JButton reset = new JButton("Reset");
+		reset.addActionListener(new ActionListener()
 		{
-			helpPos = 1;
-			JButton reset = new JButton("Reset");
-			reset.addActionListener(new ActionListener()
-			{
-				public void actionPerformed(ActionEvent evt) { resetActionPerformed(); }
-			});
-			gbc = new GridBagConstraints();
-			gbc.gridx = 0;   gbc.gridy = 2;
-			gbc.insets = new Insets(4, 4, 4, 4);
-			leftPanel.add(reset, gbc);
-		}
+			public void actionPerformed(ActionEvent evt) { resetActionPerformed(); }
+		});
+		gbc = new GridBagConstraints();
+		gbc.gridx = 0;   gbc.gridy = 2;
+		gbc.insets = new Insets(4, 4, 4, 4);
+		leftPanel.add(reset, gbc);
 
 		JButton help = new JButton("Help");
 		help.addActionListener(new ActionListener()
@@ -328,8 +323,7 @@ public class PreferencesFrame extends EDialog
 			public void actionPerformed(ActionEvent evt) { helpActionPerformed(); }
 		});
 		gbc = new GridBagConstraints();
-		gbc.gridx = helpPos;   gbc.gridy = 2;
-		if (helpPos == 0) gbc.gridwidth = 2;
+		gbc.gridx = 1;   gbc.gridy = 2;
 		gbc.insets = new Insets(4, 4, 4, 4);
 		leftPanel.add(help, gbc);
 

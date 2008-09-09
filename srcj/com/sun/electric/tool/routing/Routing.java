@@ -1357,153 +1357,190 @@ public class Routing extends Listener
 	/** verbose level can be 0: silent, 1: quiet, 2: normal 3: verbose */
 	public static int getSunRouterVerboseLevel() { return cacheSLRVerboseLevel.getInt(); }
 	public static void setSunRouterVerboseLevel(int v) { cacheSLRVerboseLevel.setInt(v); }
+	public static int getFactorySunRouterVerboseLevel() { return cacheSLRVerboseLevel.getIntFactoryValue(); }
 
 	private static Pref cacheSLRCostLimit = Pref.makeDoublePref("SunRouterCostLimit", Routing.getRoutingTool().prefs, 10);
 	public static double getSunRouterCostLimit() { return cacheSLRCostLimit.getDouble(); }
 	public static void setSunRouterCostLimit(double r) { cacheSLRCostLimit.setDouble(r); }
+	public static double getFactorySunRouterCostLimit() { return cacheSLRCostLimit.getDoubleFactoryValue(); }
 
 	private static Pref cacheSLRCutlineDeviation = Pref.makeDoublePref("SunRouterCutlineDeviation", Routing.getRoutingTool().prefs, 0.1);
 	public static double getSunRouterCutlineDeviation() { return cacheSLRCutlineDeviation.getDouble(); }
 	public static void setSunRouterCutlineDeviation(double r) { cacheSLRCutlineDeviation.setDouble(r); }
+	public static double getFactorySunRouterCutlineDeviation() { return cacheSLRCutlineDeviation.getDoubleFactoryValue(); }
 
 	private static Pref cacheSLRDelta = Pref.makeDoublePref("SunRouterDelta", Routing.getRoutingTool().prefs, 1);
 	public static double getSunRouterDelta() { return cacheSLRDelta.getDouble(); }
 	public static void setSunRouterDelta(double r) { cacheSLRDelta.setDouble(r); }
+	public static double getFactorySunRouterDelta() { return cacheSLRDelta.getDoubleFactoryValue(); }
 
 	private static Pref cacheSLRXBitSize = Pref.makeIntPref("SunRouterXBitSize", Routing.getRoutingTool().prefs, 20);
 	public static int getSunRouterXBitSize() { return cacheSLRXBitSize.getInt(); }
 	public static void setSunRouterXBitSize(int r) { cacheSLRXBitSize.setInt(r); }
+	public static int getFactorySunRouterXBitSize() { return cacheSLRXBitSize.getIntFactoryValue(); }
 
 	private static Pref cacheSLRYBitSize = Pref.makeIntPref("SunRouterYBitSize", Routing.getRoutingTool().prefs, 20);
 	public static int getSunRouterYBitSize() { return cacheSLRYBitSize.getInt(); }
 	public static void setSunRouterYBitSize(int r) { cacheSLRYBitSize.setInt(r); }
+	public static int getFactorySunRouterYBitSize() { return cacheSLRYBitSize.getIntFactoryValue(); }
 
 	private static Pref cacheSLRXTileSize = Pref.makeIntPref("SunRouterXTileSize", Routing.getRoutingTool().prefs, 40);
 	public static int getSunRouterXTileSize() { return cacheSLRXTileSize.getInt(); }
 	public static void setSunRouterXTileSize(int r) { cacheSLRXTileSize.setInt(r); }
+	public static int getFactorySunRouterXTileSize() { return cacheSLRXTileSize.getIntFactoryValue(); }
 
 	private static Pref cacheSLRYTileSize = Pref.makeIntPref("SunRouterYTileSize", Routing.getRoutingTool().prefs, 40);
 	public static int getSunRouterYTileSize() { return cacheSLRYTileSize.getInt(); }
 	public static void setSunRouterYTileSize(int r) { cacheSLRYTileSize.setInt(r); }
+	public static int getFactorySunRouterYTileSize() { return cacheSLRYTileSize.getIntFactoryValue(); }
 
 	private static Pref cacheSLRLayerAssgnCapF = Pref.makeDoublePref("SunRouterLayerAssgnCapF", Routing.getRoutingTool().prefs, 0.9);
 	public static double getSunRouterLayerAssgnCapF() { return cacheSLRLayerAssgnCapF.getDouble(); }
 	public static void setSunRouterLayerAssgnCapF(double r) { cacheSLRLayerAssgnCapF.setDouble(r); }
+	public static double getFactorySunRouterLayerAssgnCapF() { return cacheSLRLayerAssgnCapF.getDoubleFactoryValue(); }
 
 	private static Pref cacheSLRLengthLongNet = Pref.makeDoublePref("SunRouterLengthLongNet", Routing.getRoutingTool().prefs, 0);
 	public static double getSunRouterLengthLongNet() { return cacheSLRLengthLongNet.getDouble(); }
 	public static void setSunRouterLengthLongNet(double r) { cacheSLRLengthLongNet.setDouble(r); }
+	public static double getFactorySunRouterLengthLongNet() { return cacheSLRLengthLongNet.getDoubleFactoryValue(); }
 
 	private static Pref cacheSLRLengthMedNet = Pref.makeDoublePref("SunRouterLengthMedNet", Routing.getRoutingTool().prefs, 0);
 	public static double getSunRouterLengthMedNet() { return cacheSLRLengthMedNet.getDouble(); }
 	public static void setSunRouterLengthMedNet(double r) { cacheSLRLengthMedNet.setDouble(r); }
+	public static double getFactorySunRouterLengthMedNet() { return cacheSLRLengthMedNet.getDoubleFactoryValue(); }
 
 	private static Pref cacheSLRTilesPerPinLongNet = Pref.makeDoublePref("SunRouterTilesPerPinLongNet", Routing.getRoutingTool().prefs, 5);
 	public static double getSunRouterTilesPerPinLongNet() { return cacheSLRTilesPerPinLongNet.getDouble(); }
 	public static void setSunRouterTilesPerPinLongNet(double r) { cacheSLRTilesPerPinLongNet.setDouble(r); }
+	public static double getFactorySunRouterTilesPerPinLongNet() { return cacheSLRTilesPerPinLongNet.getDoubleFactoryValue(); }
 
 	private static Pref cacheSLRTilesPerPinMedNet = Pref.makeDoublePref("SunRouterTilesPerPinMedNet", Routing.getRoutingTool().prefs, 3);
 	public static double getSunRouterTilesPerPinMedNet() { return cacheSLRTilesPerPinMedNet.getDouble(); }
 	public static void setSunRouterTilesPerPinMedNet(double r) { cacheSLRTilesPerPinMedNet.setDouble(r); }
+	public static double getFactorySunRouterTilesPerPinMedNet() { return cacheSLRTilesPerPinMedNet.getDoubleFactoryValue(); }
 	
 	private static Pref cacheSLROneTileFactor = Pref.makeDoublePref("SunRouterOneTileFactor", Routing.getRoutingTool().prefs, 2.65);
 	public static double getSunRouterOneTileFactor() { return cacheSLROneTileFactor.getDouble(); }
 	public static void setSunRouterOneTileFactor(double r) { cacheSLROneTileFactor.setDouble(r); }
+	public static double getFactorySunRouterOneTileFactor() { return cacheSLROneTileFactor.getDoubleFactoryValue(); }
 
 	private static Pref cacheSLROverloadLimit = Pref.makeIntPref("SunRouterOverloadLimit", Routing.getRoutingTool().prefs, 10);
 	public static int getSunRouterOverloadLimit() { return cacheSLROverloadLimit.getInt(); }
 	public static void setSunRouterOverloadLimit(int r) { cacheSLROverloadLimit.setInt(r); }
+	public static int getFactorySunRouterOverloadLimit() { return cacheSLROverloadLimit.getIntFactoryValue(); }
 
 	private static Pref cacheSLRPinFactor = Pref.makeIntPref("SunRouterPinFactor", Routing.getRoutingTool().prefs, 10);
 	public static int getSunRouterPinFactor() { return cacheSLRPinFactor.getInt(); }
 	public static void setSunRouterPinFactor(int r) { cacheSLRPinFactor.setInt(r); }
+	public static int getFactorySunRouterPinFactor() { return cacheSLRPinFactor.getIntFactoryValue(); }
 
 	private static Pref cacheSLRUPinDensityF = Pref.makeDoublePref("SunRouterUPinDensityF", Routing.getRoutingTool().prefs, 100);
 	public static double getSunRouterUPinDensityF() { return cacheSLRUPinDensityF.getDouble(); }
 	public static void setSunRouterUPinDensityF(double r) { cacheSLRUPinDensityF.setDouble(r); }
+	public static double getFactorySunRouterUPinDensityF() { return cacheSLRUPinDensityF.getDoubleFactoryValue(); }
 
 	private static Pref cacheSLRWindow = Pref.makeIntPref("SunRouterWindow", Routing.getRoutingTool().prefs, 30);
 	public static int getSunRouterWindow() { return cacheSLRWindow.getInt(); }
 	public static void setSunRouterWindow(int r) { cacheSLRWindow.setInt(r); }
-
+	public static int getFactorySunRouterWindow() { return cacheSLRWindow.getIntFactoryValue(); }
 
 	private static Pref cacheWireOffset = Pref.makeIntPref("SunRouterWireOffset", Routing.getRoutingTool().prefs, 0);
 	public static int getSunRouterWireOffset() { return cacheWireOffset.getInt(); }
 	public static void setSunRouterWireOffset(int r) { cacheWireOffset.setInt(r); }
+	public static int getFactorySunRouterWireOffset() { return cacheWireOffset.getIntFactoryValue(); }
 
 	private static Pref cacheWireModulo = Pref.makeIntPref("SunRouterWireModulo", Routing.getRoutingTool().prefs, -1);
 	public static int getSunRouterWireModulo() { return cacheWireModulo.getInt(); }
 	public static void setSunRouterWireModulo(int r) { cacheWireModulo.setInt(r); }
+	public static int getFactorySunRouterWireModulo() { return cacheWireModulo.getIntFactoryValue(); }
 
 	private static Pref cacheWireBlockageFactor = Pref.makeDoublePref("SunRouterWireBlockageFactor", Routing.getRoutingTool().prefs, 0);
 	public static double getSunRouterWireBlockageFactor() { return cacheWireBlockageFactor.getDouble(); }
 	public static void setSunRouterWireBlockageFactor(double r) { cacheWireBlockageFactor.setDouble(r); }
+	public static double getFactorySunRouterWireBlockageFactor() { return cacheWireBlockageFactor.getDoubleFactoryValue(); }
 
 	private static Pref cacheRipUpMaximum = Pref.makeIntPref("SunRouterRipUpMaximum", Routing.getRoutingTool().prefs, 3);
 	public static int getSunRouterRipUpMaximum() { return cacheRipUpMaximum.getInt(); }
 	public static void setSunRouterRipUpMaximum(int r) { cacheRipUpMaximum.setInt(r); }
+	public static int getFactorySunRouterRipUpMaximum() { return cacheRipUpMaximum.getIntFactoryValue(); }
 
 	private static Pref cacheRipUpPenalty = Pref.makeIntPref("SunRouterRipUpPenalty", Routing.getRoutingTool().prefs, 10);
 	public static int getSunRouterRipUpPenalty() { return cacheRipUpPenalty.getInt(); }
 	public static void setSunRouterRipUpPenalty(int r) { cacheRipUpPenalty.setInt(r); }
+	public static int getFactorySunRouterRipUpPenalty() { return cacheRipUpPenalty.getIntFactoryValue(); }
 
 	private static Pref cacheRipUpExpansion = Pref.makeIntPref("SunRouterRipUpExpansion", Routing.getRoutingTool().prefs, 10);
 	public static int getSunRouterRipUpExpansion() { return cacheRipUpExpansion.getInt(); }
 	public static void setSunRouterRipUpExpansion(int r) { cacheRipUpExpansion.setInt(r); }
+	public static int getFactorySunRouterRipUpExpansion() { return cacheRipUpExpansion.getIntFactoryValue(); }
 
 	private static Pref cacheZRipUpExpansion = Pref.makeIntPref("SunRouterZRipUpExpansion", Routing.getRoutingTool().prefs, 2);
 	public static int getSunRouterZRipUpExpansion() { return cacheZRipUpExpansion.getInt(); }
 	public static void setSunRouterZRipUpExpansion(int r) { cacheZRipUpExpansion.setInt(r); }
+	public static int getFactorySunRouterZRipUpExpansion() { return cacheZRipUpExpansion.getIntFactoryValue(); }
 
 	private static Pref cacheRipUpSearches = Pref.makeIntPref("SunRouterRipUpSearches", Routing.getRoutingTool().prefs, 1);
 	public static int getSunRouterRipUpSearches() { return cacheRipUpSearches.getInt(); }
 	public static void setSunRouterRipUpSearches(int r) { cacheRipUpSearches.setInt(r); }
+	public static int getFactorySunRouterRipUpSearches() { return cacheRipUpSearches.getIntFactoryValue(); }
 
 	private static Pref cacheGlobalPathExpansion = Pref.makeIntPref("SunRouterGlobalPathExpansion", Routing.getRoutingTool().prefs, 5);
 	public static int getSunRouterGlobalPathExpansion() { return cacheGlobalPathExpansion.getInt(); }
 	public static void setSunRouterGlobalPathExpansion(int r) { cacheGlobalPathExpansion.setInt(r); }
+	public static int getFactorySunRouterGlobalPathExpansion() { return cacheGlobalPathExpansion.getIntFactoryValue(); }
 
 	private static Pref cacheSourceAccessExpansion = Pref.makeIntPref("SunRouterSourceAccessExpansion", Routing.getRoutingTool().prefs, 10);
 	public static int getSunRouterSourceAccessExpansion() { return cacheSourceAccessExpansion.getInt(); }
 	public static void setSunRouterSourceAccessExpansion(int r) { cacheSourceAccessExpansion.setInt(r); }
+	public static int getFactorySunRouterSourceAccessExpansion() { return cacheSourceAccessExpansion.getIntFactoryValue(); }
 
 	private static Pref cacheSinkAccessExpansion = Pref.makeIntPref("SunRouterSinkAccessExpansion", Routing.getRoutingTool().prefs, 10);
 	public static int getSunRouterSinkAccessExpansion() { return cacheSinkAccessExpansion.getInt(); }
 	public static void setSunRouterSinkAccessExpansion(int r) { cacheSinkAccessExpansion.setInt(r); }
+	public static int getFactorySunRouterSinkAccessExpansion() { return cacheSinkAccessExpansion.getIntFactoryValue(); }
 
 	private static Pref cacheDenseViaAreaSize = Pref.makeIntPref("SunRouterDenseViaAreaSize", Routing.getRoutingTool().prefs, 60);
 	public static int getSunRouterDenseViaAreaSize() { return cacheDenseViaAreaSize.getInt(); }
 	public static void setSunRouterDenseViaAreaSize(int r) { cacheDenseViaAreaSize.setInt(r); }
+	public static int getFactorySunRouterDenseViaAreaSize() { return cacheDenseViaAreaSize.getIntFactoryValue(); }
 
 	private static Pref cacheRetryExpandRouting = Pref.makeIntPref("SunRouterRetryExpandRouting", Routing.getRoutingTool().prefs, 50);
 	public static int getSunRouterRetryExpandRouting() { return cacheRetryExpandRouting.getInt(); }
 	public static void setSunRouterRetryExpandRouting(int r) { cacheRetryExpandRouting.setInt(r); }
+	public static int getFactorySunRouterRetryExpandRouting() { return cacheRetryExpandRouting.getIntFactoryValue(); }
 
 	private static Pref cacheRetryDenseViaAreaSize = Pref.makeIntPref("SunRouterRetryDenseViaAreaSize", Routing.getRoutingTool().prefs, 100);
 	public static int getSunRouterRetryDenseViaAreaSize() { return cacheRetryDenseViaAreaSize.getInt(); }
 	public static void setSunRouterRetryDenseViaAreaSize(int r) { cacheRetryDenseViaAreaSize.setInt(r); }
+	public static int getFactorySunRouterRetryDenseViaAreaSize() { return cacheRetryDenseViaAreaSize.getIntFactoryValue(); }
 
 	private static Pref cachePathSearchControl = Pref.makeIntPref("SunRouterPathSearchControl", Routing.getRoutingTool().prefs, 10000);
 	public static int getSunRouterPathSearchControl() { return cachePathSearchControl.getInt(); }
 	public static void setSunRouterPathSearchControl(int r) { cachePathSearchControl.setInt(r); }
+	public static int getFactorySunRouterPathSearchControl() { return cachePathSearchControl.getIntFactoryValue(); }
 
 	private static Pref cacheSparseViaModulo = Pref.makeIntPref("SunRouterSparseViaModulo", Routing.getRoutingTool().prefs, 31);
 	public static int getSunRouterSparseViaModulo() { return cacheSparseViaModulo.getInt(); }
 	public static void setSunRouterSparseViaModulo(int r) { cacheSparseViaModulo.setInt(r); }
+	public static int getFactorySunRouterSparseViaModulo() { return cacheSparseViaModulo.getIntFactoryValue(); }
 
 	private static Pref cacheLowPathSearchCost = Pref.makeIntPref("SunRouterLowPathSearchCost", Routing.getRoutingTool().prefs, 5);
 	public static int getSunRouterLowPathSearchCost() { return cacheLowPathSearchCost.getInt(); }
 	public static void setSunRouterLowPathSearchCost(int r) { cacheLowPathSearchCost.setInt(r); }
+	public static int getFactorySunRouterLowPathSearchCost() { return cacheLowPathSearchCost.getIntFactoryValue(); }
 
 	private static Pref cacheMediumPathSearchCost = Pref.makeIntPref("SunRouterMediumPathSearchCost", Routing.getRoutingTool().prefs, 20);
 	public static int getSunRouterMediumPathSearchCost() { return cacheMediumPathSearchCost.getInt(); }
 	public static void setSunRouterMediumPathSearchCost(int r) { cacheMediumPathSearchCost.setInt(r); }
+	public static int getFactorySunRouterMediumPathSearchCost() { return cacheMediumPathSearchCost.getIntFactoryValue(); }
 
 	private static Pref cacheHighPathSearchCost = Pref.makeIntPref("SunRouterHighPathSearchCost", Routing.getRoutingTool().prefs, 100);
 	public static int getSunRouterHighPathSearchCost() { return cacheHighPathSearchCost.getInt(); }
 	public static void setSunRouterHighPathSearchCost(int r) { cacheHighPathSearchCost.setInt(r); }
+	public static int getFactorySunRouterHighPathSearchCost() { return cacheHighPathSearchCost.getIntFactoryValue(); }
 
 	private static Pref cacheTakenPathSearchCost = Pref.makeIntPref("SunRouterTakenPathSearchCost", Routing.getRoutingTool().prefs, 10000);
 	public static int getSunRouterTakenPathSearchCost() { return cacheTakenPathSearchCost.getInt(); }
 	public static void setSunRouterTakenPathSearchCost(int r) { cacheTakenPathSearchCost.setInt(r); }
+	public static int getFactorySunRouterTakenPathSearchCost() { return cacheTakenPathSearchCost.getIntFactoryValue(); }
 }

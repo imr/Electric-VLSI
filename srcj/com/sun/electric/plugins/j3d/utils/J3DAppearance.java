@@ -221,16 +221,6 @@ public class J3DAppearance extends Appearance
         graphics.getLayer().setTransparencyFactor(factor);
     }
 
-    public void factoryResetTransparencyAndRenderingAttributes()
-    {
-    	// TODO: are the next two lines necessary?
-//        super.setTransparencyAttributes(transparencyAttributes);
-//        super.getRenderingAttributes().setDepthBufferEnable(rendering);
-    	Layer layer = graphics.getLayer();
-    	layer.setTransparencyMode(layer.getFactoryTransparencyMode());
-    	layer.setTransparencyFactor(layer.getFactoryTransparencyFactor());
-    }
-
     /********************************************************************************************************
      *                  Model-View paradigm to control refresh from 2D
      ********************************************************************************************************/
