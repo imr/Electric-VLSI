@@ -159,13 +159,15 @@ public class ToolMenu {
             new EMenu("_DRC",
 		        new EMenuItem("Check _Hierarchically", KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0))
                 { public void run() {
-                    if (DRC.isMultiThreaded())
+                    Cell cell = Job.getUserInterface().needCurrentCell();
+                    // Multi-threaded code is only available for layout
+                    if (DRC.isMultiThreaded() && cell.isLayout())
                     {
-                        new MTDRCLayoutTool(Job.getUserInterface().needCurrentCell(), true, null).startJob();
+                        new MTDRCLayoutTool(cell, true, null).startJob();
                     }
                     else
                     {
-                        DRC.checkDRCHierarchically(Job.getUserInterface().needCurrentCell(), null, GeometryHandler.GHMode.ALGO_SWEEP, false);
+                        DRC.checkDRCHierarchically(cell, null, GeometryHandler.GHMode.ALGO_SWEEP, false);
                     }
                 }},
 		        new EMenuItem("Check _Selection Area Hierarchically") { public void run() {
