@@ -3199,7 +3199,7 @@ public class EditWindow extends JPanel
     /**
      * Pop out of an instance (go up the hierarchy)
      */
-    public void upHierarchy()
+    public void upHierarchy(boolean keepFocus)
 	{
         if (cell == null) return;
         Cell oldCell = cell;
@@ -3223,6 +3223,13 @@ public class EditWindow extends JPanel
 			if (no != null)
 			{
 		        Cell parent = no.getParent();
+		        double offsetX = 0, offsetY = 0;
+		        if (keepFocus)
+		        {
+					NodeInst ni = no.getNodeInst();
+					offsetX = ni.getAnchorCenterX();
+					offsetY = ni.getAnchorCenterY();
+		        }
 
 				// see if this was in history, if so, restore offset and scale
 				// search backwards to get most recent entry
@@ -3237,6 +3244,12 @@ public class EditWindow extends JPanel
 					foundHistory.setContext(context);
 					if (selectedExport != null)
 						foundHistory.setSelPort(no.getNodeInst().findPortInstFromProto(selectedExport));
+					if (keepFocus)
+					{
+						List<NodeInst> oldInPlaceDescent = foundHistory.getDisplayAttributes().inPlaceDescent;
+						foundHistory.setDisplayAttributes(new WindowFrame.DisplayAttributes(scale, offx + offsetX,
+							offy + offsetY, oldInPlaceDescent));
+					}
 					wf.setCellByHistory(historyIndex);
 				} else
 				{
@@ -3244,7 +3257,7 @@ public class EditWindow extends JPanel
                     List<NodeInst> newInPlaceDescent = new ArrayList<NodeInst>(inPlaceDescent);
                     if (!newInPlaceDescent.isEmpty())
                         newInPlaceDescent.remove(newInPlaceDescent.size() - 1);
-     			    WindowFrame.DisplayAttributes da = new WindowFrame.DisplayAttributes(scale, offx, offy, newInPlaceDescent);
+     			    WindowFrame.DisplayAttributes da = new WindowFrame.DisplayAttributes(scale, offx+offsetX, offy+offsetY, newInPlaceDescent);
 					showCell(parent, context, true, da);
 			        wf.addToHistory(parent, context, da);
 
@@ -3311,10 +3324,10 @@ public class EditWindow extends JPanel
 			{
 				// just one parent cell: show it
 				Cell parent = found.iterator().next();
-				setCell(parent, VarContext.globalContext, null);
 
-				// highlight instance
-                for (Iterator<NodeInst> it = parent.getNodes(); it.hasNext(); )
+				// find the instance in the parent
+				NodeInst theOne = null;
+				for (Iterator<NodeInst> it = parent.getNodes(); it.hasNext(); )
                 {
                     NodeInst ni = it.next();
                     if (ni.isCellInstance())
@@ -3322,14 +3335,30 @@ public class EditWindow extends JPanel
                         Cell nodeCell = (Cell)ni.getProto();
                         if (nodeCell == oldCell || nodeCell.isIconOf(oldCell))
                         {
-            				if (selectedExport != null)
-            					highlighter.addElectricObject(ni.findPortInstFromProto(selectedExport), parent); else
-            						highlighter.addElectricObject(ni, parent);
+                        	theOne = ni;
                             break;
                         }
                     }
                 }
-                highlighter.finished();
+
+		        double offsetX = 0, offsetY = 0;
+		        if (keepFocus && theOne != null)
+		        {
+					offsetX = theOne.getAnchorCenterX();
+					offsetY = theOne.getAnchorCenterY();
+		        }
+                WindowFrame.DisplayAttributes da = new WindowFrame.DisplayAttributes(getScale(), getOffset().getX()+offsetX,
+                	getOffset().getY()+offsetY, new ArrayList<NodeInst>());
+				setCell(parent, VarContext.globalContext, da);
+
+				// highlight instance
+				if (theOne != null)
+				{
+					if (selectedExport != null)
+						highlighter.addElectricObject(theOne.findPortInstFromProto(selectedExport), parent); else
+							highlighter.addElectricObject(theOne, parent);
+	                highlighter.finished();
+				}
                 SelectObject.selectObjectDialog(parent, true);
 			} else
 			{

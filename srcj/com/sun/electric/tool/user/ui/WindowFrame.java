@@ -1120,6 +1120,8 @@ public class WindowFrame extends Observable
 		public void setSelPort(PortInst selPort) { this.selPort = selPort; }
 
 		public DisplayAttributes getDisplayAttributes() { return da; }
+
+		public void setDisplayAttributes(DisplayAttributes da) { this.da = da; }
 	}
 
 	/**

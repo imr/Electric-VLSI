@@ -133,8 +133,11 @@ public class CellMenu {
 				new EMenuItem("Down Hierarchy In Place To Object", KeyStroke.getKeyStroke('D', KeyEvent.SHIFT_MASK)) { public void run() {
 					downHierInPlaceToObject(); }}),
 
-			new EMenuItem("_Up Hierarchy", 'U') { public void run() {
-				upHierCommand(); }},
+			new EMenu("_Up Hierarchy",
+				new EMenuItem("_Up Hierarchy", 'U') { public void run() {
+					upHierCommand(false); }},
+				new EMenuItem("Up Hierarchy, Keep _Focus") { public void run() {
+					upHierCommand(true); }}),
 
 			// mnemonic keys available: A CDE GHIJKLMNOPQRSTUVWXYZ
 			new EMenu("Cell Viewing Histor_y",
@@ -493,11 +496,11 @@ public class CellMenu {
 	/**
 	 * This command goes up the hierarchy
 	 */
-	private static void upHierCommand()
+	private static void upHierCommand(boolean keepFocus)
 	{
 		EditWindow curEdit = EditWindow.needCurrent();
 		if (curEdit == null) return;
-		curEdit.upHierarchy();
+		curEdit.upHierarchy(keepFocus);
 	}
 
 	private static void changeCellHistory(boolean back)
