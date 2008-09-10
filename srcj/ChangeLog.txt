@@ -2,6 +2,8 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.08g: ******************************
+
 ************************* Version 8.08f: ******************************
 
 IMP/MAN: (9/10/08, SMR) New command: "Up Hierarchy, Keep Focus" goes up
