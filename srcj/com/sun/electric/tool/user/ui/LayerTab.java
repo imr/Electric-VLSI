@@ -169,7 +169,7 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
 		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = it.next();
-			if (tech == Generic.tech() && !Job.getDebug()) continue;
+//			if (tech == Generic.tech() && !Job.getDebug()) continue;
 			technology.addItem(tech.getTechName());
 			for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
 			{
