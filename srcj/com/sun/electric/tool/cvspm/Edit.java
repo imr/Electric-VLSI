@@ -284,7 +284,7 @@ public class Edit {
                 LineNumberReader reader = new LineNumberReader(new InputStreamReader(new ByteArrayInputStream(out.toByteArray())));
                 editors = parseOutput(reader);
                 // also run status to see if they need an update
-                Update.StatusResult status = Update.update(args, useDir, Update.STATUS);
+                Update.StatusResult status = Update.update(args, useDir, Update.UpdateEnum.STATUS);
                 for (Cell cell : status.getCells(State.CONFLICT)) {
                     Editor e = new Editor(cell.describe(false), "CONFLICT", new Date(), "", "");
                     editors.add(e);

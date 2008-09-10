@@ -606,8 +606,9 @@ public class Spice extends Topology
 		{
 			Nodable no = nIt.next();
 			NodeProto niProto = no.getProto();
+            boolean includePwrVdd = Simulation.isSpiceWritePwrGndInSubcircuit();
 
-			// handle sub-cell calls
+            // handle sub-cell calls
 			if (no.isCellInstance())
 			{
 				Cell subCell = (Cell)niProto;
@@ -661,7 +662,12 @@ public class Spice extends Topology
 	                if (ignoreSubcktPort(subCS)) continue;
 					PortProto pp = subCS.getExport();
 	                if (!subCS.isGlobal() && pp == null) continue;
-					Network net;
+                    // If global pwr/vdd will be included in the subcircuit
+                    // Preparing code for bug #1828
+//                    if (!includePwrVdd && pp!= null && subCS.isGlobal() && (subCS.isGround() || subCS.isPower()))
+//                        continue;
+                        
+                    Network net;
                     int exportIndex = subCS.getExportIndex();
 
                     // This checks if we are netlisting a schematic top level with
@@ -703,8 +709,11 @@ public class Spice extends Topology
                     }
 
                     if (subCS.isGlobal())
-						net = netList.getNetwork(no, subCS.getGlobal()); else
-							net = netList.getNetwork(no, pp, exportIndex);
+                    {
+                        net = netList.getNetwork(no, subCS.getGlobal());
+                    }
+                    else
+                        net = netList.getNetwork(no, pp, exportIndex);
 					if (net == null)
 					{
 						System.out.println("Warning: cannot find network for signal " + subCS.getName() + " in cell " +

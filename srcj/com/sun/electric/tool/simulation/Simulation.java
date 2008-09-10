@@ -1980,7 +1980,27 @@ public class Simulation extends Tool
 	 */
 	public static boolean isFactorySpiceForceGlobalPwrGnd() { return cacheSpiceForceGlobalPwrGnd.getBooleanFactoryValue(); }
 
-	private static Pref cacheSpiceUseCellParameters = Pref.makeBooleanPref("SpiceUseCellParameters", tool.prefs, false);
+    private static Pref cacheSpiceWritePwrGndInSubcircuit = Pref.makeBooleanPref("cacheSpiceWritePwrGndInSubcircuit", tool.prefs, false);
+//	static { cacheSpiceWritePwrGndInSubcell.attachToObject(tool, "Tools/Spice tab", "Spice writes VDD/GND in subcircuits"); }
+	/**
+	 * Method to tell whether or not to write power and ground in Spice sub circuit section.
+	 * The default is false.
+	 * @return true to write power and ground in Spice sub circuit section.
+	 */
+	public static boolean isSpiceWritePwrGndInSubcircuit() { return cacheSpiceWritePwrGndInSubcircuit.getBoolean(); }
+	/**
+	 * Method to set whether or not to write power and ground in Spice sub circuit section.
+	 * @param g true to write power and ground in Spice sub circuit section.
+	 */
+	public static void setSpiceWritePwrGndInSubcircuit(boolean g) { cacheSpiceWritePwrGndInSubcircuit.setBoolean(g); }
+	/**
+	 * Method to tell whether or not to write power and ground in Spice sub circuit section, by default.
+	 * @return true to write power and ground in Spice sub circuit section.
+	 */
+	public static boolean isFactorySpiceWritePwrGndInSubcircuit() { return cacheSpiceWritePwrGndInSubcircuit.getBooleanFactoryValue(); }
+
+
+    private static Pref cacheSpiceUseCellParameters = Pref.makeBooleanPref("SpiceUseCellParameters", tool.prefs, false);
 //	static { cacheSpiceForceGlobalPwrGnd.attachToObject(tool, "Tools/Spice tab", "Spice uses cell parameters"); }
 	/**
 	 * Method to tell whether or not to use cell parameters in Spice output.

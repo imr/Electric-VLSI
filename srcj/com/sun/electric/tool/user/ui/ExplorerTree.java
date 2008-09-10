@@ -2518,13 +2518,13 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
             menuItem = new JMenuItem("Update");
             cvsMenu.add(menuItem);
             menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) {
-                cvsUpdate(Update.UPDATE); }});
+                cvsUpdate(Update.UpdateEnum.UPDATE); }});
             menuItem.setEnabled(!states.contains(State.UNKNOWN));
 
             menuItem = new JMenuItem("Get Status");
             cvsMenu.add(menuItem);
             menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) {
-                cvsUpdate(Update.STATUS); }});
+                cvsUpdate(Update.UpdateEnum.STATUS); }});
             menuItem.setEnabled(true);
 
             menuItem = new JMenuItem("List Editors");
@@ -2553,7 +2553,7 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
             menuItem = new JMenuItem("Rollback");
             cvsMenu.add(menuItem);
             menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) {
-                cvsUpdate(Update.ROLLBACK); }});
+                cvsUpdate(Update.UpdateEnum.ROLLBACK); }});
             menuItem.setEnabled(!states.contains(State.UNKNOWN));
 
             menuItem = new JMenuItem("Add to CVS");
@@ -2583,12 +2583,12 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
             menuItem = new JMenuItem("Rollforward");
             cvsMenu.add(menuItem);
             menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) {
-                cvsUpdate(Update.ROLLFORWARD); }});
+                cvsUpdate(Update.UpdateEnum.ROLLFORWARD); }});
             menuItem.setEnabled(false); // need more safeguards before I should enable this
             //menuItem.setEnabled(states.size() == 1 && states.contains(State.CONFLICT));
         }
 
-        private void cvsUpdate(int type) {
+        private void cvsUpdate(Update.UpdateEnum type) {
             List<Library> libs = getCurrentlySelectedLibraries();
             List<Cell> cells = getCurrentlySelectedCells();
             Update.update(libs, cells, type, false, true);

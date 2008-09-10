@@ -241,7 +241,7 @@ public abstract class LibraryFiles extends Input
 
         // if CVS is enabled, get status of library
         if (CVS.isEnabled()) {
-            Update.updateOpenLibraries(Update.STATUS);
+            Update.updateOpenLibraries(Update.UpdateEnum.STATUS);
         }
 		errorLogger.termLogging(true);
 

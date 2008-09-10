@@ -284,16 +284,16 @@ public class FileMenu {
                 new EMenuItem("Commit All Open Libraries") { public void run() {
                     Commit.commitAllLibraries(); }},
                 new EMenuItem("Update Open Libraries") { public void run() {
-                    Update.updateOpenLibraries(Update.UPDATE); }},
+                    Update.updateOpenLibraries(Update.UpdateEnum.UPDATE); }},
                 new EMenuItem("Get Status Open Libraries") { public void run() {
-                    Update.updateOpenLibraries(Update.STATUS); }},
+                    Update.updateOpenLibraries(Update.UpdateEnum.STATUS); }},
                 new EMenuItem("List Editors Open Libraries") { public void run() {
                     Edit.listEditorsOpenLibraries(); }},
                 SEPARATOR,
                 new EMenuItem("Update Project Libraries") { public void run() {
-                    Update.updateProject(Update.UPDATE); }},
+                    Update.updateProject(Update.UpdateEnum.UPDATE); }},
                 new EMenuItem("Get Status Project Libraries") { public void run() {
-                    Update.updateProject(Update.STATUS); }},
+                    Update.updateProject(Update.UpdateEnum.STATUS); }},
                 new EMenuItem("List Editors Project Libraries") { public void run() {
                     Edit.listEditorsProject(); }},
                 SEPARATOR,

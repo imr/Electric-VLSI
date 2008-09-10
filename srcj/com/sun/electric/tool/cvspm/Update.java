@@ -44,10 +44,28 @@ import java.util.*;
  */
 public class Update {
 
-    public static final int UPDATE = 0;
-    public static final int STATUS = 1;
-    public static final int ROLLBACK = 2;
-    public static final int ROLLFORWARD = 3;
+    public enum UpdateEnum {UPDATE("Update"), STATUS("Status"), ROLLBACK("Roll Back"), ROLLFORWARD("Roll Forward");
+        String name;
+
+        UpdateEnum(String n)
+        {
+            name = n;
+        }
+        String getMessage() {return name;}
+    };
+//    public static final int UPDATE = 0;
+//    public static final int STATUS = 1;
+//    public static final int ROLLBACK = 2;
+//    public static final int ROLLFORWARD = 3;
+//        private static String getMessage(int type) {
+//        switch(type) {
+//            case 0: return "Update";
+//            case 1: return "Status";
+//            case 2: return "Roll Back";
+//            case 3: return "Roll Forward";
+//        }
+//        return "";
+//    }
 
     // ------------------ Update/Status ---------------------
 
@@ -55,7 +73,7 @@ public class Update {
      * Update all libraries.
      * @param type the type of update to do
      */
-    public static void updateProject(int type) {
+    public static void updateProject(UpdateEnum type) {
         List<Library> allLibs = new ArrayList<Library>();
         for (Iterator<Library> it = Library.getLibraries(); it.hasNext(); ) {
             Library lib = it.next();
@@ -71,7 +89,7 @@ public class Update {
      * Update all open libraries.
      * @param type the type of update to do
      */
-    public static void updateOpenLibraries(int type) {
+    public static void updateOpenLibraries(UpdateEnum type) {
         List<Library> allLibs = new ArrayList<Library>();
         for (Iterator<Library> it = Library.getLibraries(); it.hasNext(); ) {
             Library lib = it.next();
@@ -88,7 +106,7 @@ public class Update {
      * @param lib
      * @param type the type of update to do
      */
-    public static void updateLibrary(Library lib, int type) {
+    public static void updateLibrary(Library lib, UpdateEnum type) {
         List<Library> libsToUpdate = new ArrayList<Library>();
         libsToUpdate.add(lib);
         update(libsToUpdate, null, type, false, false);
@@ -99,7 +117,7 @@ public class Update {
      * @param cell
      * @param type the type of update to do
      */
-    public static void updateCell(Cell cell, int type) {
+    public static void updateCell(Cell cell, UpdateEnum type) {
         List<Cell> cellsToUpdate = new ArrayList<Cell>();
         cellsToUpdate.add(cell);
         update(null, cellsToUpdate, type, false, false);
@@ -113,26 +131,26 @@ public class Update {
      * @param updateProject
      * @param checkEditors
      */
-    public static void update(List<Library> libs, List<Cell> cells, int type,
+    public static void update(List<Library> libs, List<Cell> cells, UpdateEnum type,
                               boolean updateProject, boolean checkEditors) {
         if (libs == null) libs = new ArrayList<Library>();
         if (cells == null) cells = new ArrayList<Cell>();
 
         // make sure cells are part of a DELIB
         CVSLibrary.LibsCells bad = CVSLibrary.notFromDELIB(cells);
-        if (type == STATUS) {
+        if (type == UpdateEnum.STATUS) {
             // remove offending cells
             for (Cell cell : bad.cells) cells.remove(cell);
         } else if (bad.cells.size() > 0) {
             CVS.showError("Error: the following Cells are not part of a DELIB library and cannot be acted upon individually",
-                    "CVS "+getMessage(type)+" Error", bad.libs, bad.cells);
+                    "CVS "+type.getMessage()+" Error", bad.libs, bad.cells);
             return;
         }
 
         // make sure the selecetd objecs are in cvs
         bad = CVSLibrary.getNotInCVS(libs, cells);
         // for STATUS, remove libraries not in cvs, and also set their state unknown
-        if (type == STATUS) {
+        if (type == UpdateEnum.STATUS) {
             for (Library lib : bad.libs) {
                 libs.remove(lib);
                 CVSLibrary.setState(lib, State.UNKNOWN);
@@ -144,7 +162,7 @@ public class Update {
         } else if (bad.libs.size() > 0 || bad.cells.size() > 0) {
             // if any of them not in cvs, issue error and abort
             CVS.showError("Error: the following Libraries or Cells are not in CVS",
-                    "CVS "+getMessage(type)+" Error", bad.libs, bad.cells);
+                    "CVS "+type.getMessage()+" Error", bad.libs, bad.cells);
             return;
         }
 
@@ -152,21 +170,21 @@ public class Update {
         CVSLibrary.LibsCells good = CVSLibrary.consolidate(libs, cells);
 
         // for update or rollback, make sure they are also not modified
-        if (type == UPDATE) {
+        if (type == UpdateEnum.UPDATE) {
             bad = CVSLibrary.getModified(libs, cells);
             if (bad.libs.size() > 0 || bad.cells.size() > 0) {
                 String [] choices = new String [] { "Continue Anyway", "Cancel" };
                 int choice = CVS.askForChoice("Warning: Unsaved changes may be lost!  For:",
-                        "CVS "+getMessage(type)+" Warning!",
+                        "CVS "+type.getMessage()+" Warning!",
                         bad.libs, bad.cells, choices, choices[1]);
                 if (choice == 1) return;
             }
         }
         // issue final warning for rollback
-        if (type == ROLLBACK) {
+        if (type == UpdateEnum.ROLLBACK) {
             String [] choices = new String [] { "Continue Anyway", "Cancel" };
             int choice = CVS.askForChoice("Warning: Saved and Unsaved changes will be lost!  For:",
-                    "CVS "+getMessage(type)+" Warning!",
+                    "CVS "+type.getMessage()+" Warning!",
                     good.libs, good.cells, choices, choices[1]);
             if (choice == 1) return;
         }
@@ -177,7 +195,7 @@ public class Update {
     private static class UpdateJob extends Job {
         private List<Cell> cellsToUpdate;
         private List<Library> librariesToUpdate;
-        private int type;
+        private UpdateEnum type;
         private List<Library> libsToReload;
         private boolean updateProject;                // update whole project
         private int exitVal;
@@ -189,8 +207,9 @@ public class Update {
          * @param librariesToUpdate
          */
         private UpdateJob(List<Cell> cellsToUpdate, List<Library> librariesToUpdate,
-                          int type, boolean updateProject, boolean checkEditors) {
-            super("CVS Update Library", User.getUserTool(), ((type==STATUS)?Job.Type.EXAMINE:Job.Type.CHANGE), null, null, Job.Priority.USER);
+                          UpdateEnum type, boolean updateProject, boolean checkEditors) {
+            super("CVS Update Library, " + type.getMessage(), User.getUserTool(),
+                ((type==UpdateEnum.STATUS)?Job.Type.EXAMINE:Job.Type.CHANGE), null, null, Job.Priority.USER);
             this.cellsToUpdate = cellsToUpdate;
             this.librariesToUpdate = librariesToUpdate;
             this.type = type;
@@ -215,7 +234,7 @@ public class Update {
             // whether or not to also rollback lastModified file
 
             List<File> backupFiles = new ArrayList<File>();
-            if (type == ROLLFORWARD) {
+            if (type == UpdateEnum.ROLLFORWARD) {
                 // build list of files to back up
                 for (Library lib : librariesToUpdate) {
                     File libFile = TextUtils.getFile(lib.getLibFile());
@@ -249,16 +268,16 @@ public class Update {
             if (updateFiles.trim().equals("") && !updateProject) {
                 exitVal = 0;
                 if (inJob) fieldVariableChanged("exitVal");
-                System.out.println("Nothing to "+getMessage(type));
+                System.out.println("Nothing to "+type.getMessage());
                 return true;
             }
 
-            if (updateProject && (type == UPDATE || type == STATUS)) updateFiles = "";
+            if (updateProject && (type == UpdateEnum.UPDATE || type == UpdateEnum.STATUS)) updateFiles = "";
             StatusResult result = update(updateFiles, useDir, type);
             commentStatusResult(result, type);
             exitVal = result.getExitVal();
 
-            if (type == ROLLFORWARD) {
+            if (type == UpdateEnum.ROLLFORWARD) {
                 // even if update failed, restore user's files
                 for (File f : backupFiles) {
                     File newf = new File(f.getAbsolutePath()+".ecvstemp");
@@ -270,7 +289,7 @@ public class Update {
                         }
                 }
                 // reload status
-                result = update(updateFiles, useDir, STATUS);
+                result = update(updateFiles, useDir, UpdateEnum.STATUS);
                 commentStatusResult(result, type);
             }
 
@@ -281,7 +300,7 @@ public class Update {
 
             // reload libs if needed
             libsToReload = new ArrayList<Library>();
-            if (type != STATUS && type != ROLLFORWARD) {
+            if (type != UpdateEnum.STATUS && type != UpdateEnum.ROLLFORWARD) {
                 for (Cell cell : result.getCells(State.UPDATE)) {
                     Library lib = cell.getLibrary();
                     if (!libsToReload.contains(lib))
@@ -294,7 +313,7 @@ public class Update {
                     libsToReload.set(i, Library.findLibrary(libName));
                 }
             }
-            if (type == ROLLBACK) {
+            if (type == UpdateEnum.ROLLBACK) {
                 // turn off edit for rolled back cells
                 for (Cell cell : result.getCells(State.UPDATE)) {
                     CVSLibrary.setEditing(cell, false);
@@ -302,14 +321,14 @@ public class Update {
             }
             // update states
             updateStates(result, type);
-            System.out.println(getMessage(type)+" complete.");
+            System.out.println(type.getMessage()+" complete.");
             if (inJob) fieldVariableChanged("libsToReload");
             return true;
         }
         public void terminateOK() {
             if (exitVal != 0 && exitVal != 1) {
-                Job.getUserInterface().showErrorMessage("CVS "+getMessage(type)+
-                        " Failed (exit status "+exitVal+")!  Please see messages window","CVS "+getMessage(type)+" Failed!");
+                Job.getUserInterface().showErrorMessage("CVS "+type.getMessage()+
+                        " Failed (exit status "+exitVal+")!  Please see messages window","CVS "+type.getMessage()+" Failed!");
                 return;
             }
             WindowFrame.wantToRedoLibraryTree();
@@ -321,7 +340,7 @@ public class Update {
     }
 
     static void statusNoJob(List<Library> libs, List<Cell> cells, boolean updateProject) {
-        UpdateJob job = new UpdateJob(cells, libs, STATUS, updateProject, false);
+        UpdateJob job = new UpdateJob(cells, libs, UpdateEnum.STATUS, updateProject, false);
         job.inJob = false;
         job.doIt();
     }
@@ -332,14 +351,14 @@ public class Update {
      * @param dir the directory.
      * @return parsed output from running CVS.
      */
-    protected static StatusResult update(String file, String dir, int type) {
+    protected static StatusResult update(String file, String dir, UpdateEnum type) {
         String command = "-q update -d -P ";
         String message = "Running CVS Update";
-        if (type == STATUS) {
+        if (type == UpdateEnum.STATUS) {
             command = "-nq update -d -P ";
             message = "Running CVS Status";
         }
-        if (type == ROLLBACK) {
+        if (type == UpdateEnum.ROLLBACK) {
             command = "-q update -C -P ";
             message = "Rollback from CVS";
         }
@@ -351,17 +370,7 @@ public class Update {
         return parseOutput(result, exitVal);
     }
 
-    private static String getMessage(int type) {
-        switch(type) {
-            case 0: return "Update";
-            case 1: return "Status";
-            case 2: return "Roll Back";
-            case 3: return "Roll Forward";
-        }
-        return "";
-    }
-
-    private static void updateStates(StatusResult result, int type) {
+    private static void updateStates(StatusResult result, UpdateEnum type) {
         for (Cell cell : result.getCells(State.ADDED)) {
             CVSLibrary.setState(cell, State.ADDED);
         }
@@ -375,7 +384,7 @@ public class Update {
             CVSLibrary.setState(cell, State.CONFLICT);
         }
         for (Cell cell : result.getCells(State.UPDATE)) {
-            if (type == STATUS)
+            if (type == UpdateEnum.STATUS)
                 CVSLibrary.setState(cell, State.UPDATE);
             else
                 CVSLibrary.setState(cell, State.NONE);
@@ -395,7 +404,7 @@ public class Update {
                 JOptionPane.WARNING_MESSAGE);
         if (ret == JOptionPane.NO_OPTION) return;
 
-        updateCell(cell, ROLLBACK);
+        updateCell(cell, UpdateEnum.ROLLBACK);
     }
 
     public static void rollback(Library lib) {
@@ -405,7 +414,7 @@ public class Update {
                 JOptionPane.WARNING_MESSAGE);
         if (ret == JOptionPane.NO_OPTION) return;
 
-        updateLibrary(lib, ROLLBACK);
+        updateLibrary(lib, UpdateEnum.ROLLBACK);
     }
 
     // ---------------------- Output Parsing -------------------------
@@ -467,7 +476,7 @@ public class Update {
      * checks the status of the given files.
      * Returns true if all files are up-to-date, false otherwise
      */
-    public static void commentStatusResult(StatusResult result, int type) {
+    public static void commentStatusResult(StatusResult result, UpdateEnum type) {
         boolean allFilesUpToDate = true;
         for (Cell cell : result.getCells(State.ADDED)) {
             System.out.println("Added\t"+cell.libDescribe());
@@ -494,20 +503,20 @@ public class Update {
             allFilesUpToDate = false;
         }
         for (Cell cell : result.getCells(State.UPDATE)) {
-            if (type == STATUS)
+            if (type == UpdateEnum.STATUS)
                 System.out.println("NeedsUpdate\t"+cell.libDescribe());
-            if (type == UPDATE)
+            if (type == UpdateEnum.UPDATE)
                 System.out.println("Updated\t"+cell.libDescribe());
             allFilesUpToDate = false;
         }
         for (String file : result.getUnknownFiles(State.UPDATE)) {
-            if (type == STATUS)
+            if (type == UpdateEnum.STATUS)
                 System.out.println("NeedsUpdate\t"+file);
-            if (type == UPDATE)
+            if (type == UpdateEnum.UPDATE)
                 System.out.println("Updated\t"+file);
             allFilesUpToDate = false;
         }
-        if (type == STATUS) {
+        if (type == UpdateEnum.STATUS) {
             if (allFilesUpToDate) System.out.println("All files up-to-date");
             else System.out.println("All other files up-to-date");
         }

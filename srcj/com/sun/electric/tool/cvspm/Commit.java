@@ -156,7 +156,7 @@ public class Commit {
             // check if any header file conflicts
             // if so, re-write header file for that library
             if (!headerFiles.toString().trim().equals("")) {
-                Update.StatusResult result = Update.update(headerFiles.toString(), useDir, Update.UPDATE);
+                Update.StatusResult result = Update.update(headerFiles.toString(), useDir, Update.UpdateEnum.UPDATE);
                 if (result.getExitVal() == 0) {
                     List<Library> headerlibs = result.getLibraryHeaderFiles(State.CONFLICT);
                     for (Library lib : headerlibs) {
