@@ -1920,8 +1920,8 @@ public class LibToTech
 
 		// determine size of each cut
 		Rectangle2D nodeBounds = ns.node.getBounds();
-		double multiXS = nodeBounds.getWidth();
-		double multiYS = nodeBounds.getHeight();
+		double multiXS = DBMath.round(nodeBounds.getWidth());
+		double multiYS = DBMath.round(nodeBounds.getHeight());
 
 		// determine indentation of cuts
 		double leftIndent = DBMath.round(nodeBounds.getMinX() - highlightBounds.getMinX());
@@ -1978,8 +1978,8 @@ public class LibToTech
 				// find separation
 				Rectangle2D thisNodeBounds = nsList[i].node.getBounds();
 				Rectangle2D lastNodeBounds = nsList[i-1].node.getBounds();
-				double sepX = Math.abs(lastNodeBounds.getCenterX() - thisNodeBounds.getCenterX());
-				double sepY = Math.abs(lastNodeBounds.getCenterY() - thisNodeBounds.getCenterY());
+				double sepX = DBMath.round(Math.abs(lastNodeBounds.getCenterX() - thisNodeBounds.getCenterX()));
+				double sepY = DBMath.round(Math.abs(lastNodeBounds.getCenterY() - thisNodeBounds.getCenterY()));
 
 				// check for validity
 				if (sepX < multiXS && sepY < multiYS)
@@ -2031,7 +2031,7 @@ public class LibToTech
 		double multiSepY = ySep - multiYS;
 		if (multiSepX != multiSepY)
 		{
-			error.markError(null, np, "Multiple contact cut X and Y spacing must be the same");
+			error.markError(null, np, "Multiple contact cut X and Y spacing must be the same (X=" + multiSepX + ", Y=" + multiSepY + ")");
 			return null;
 		}
 		ns.values = new Technology.TechPoint[2];
