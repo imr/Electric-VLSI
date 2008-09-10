@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08f: ******************************
 
+IMP/MAN: (9/9/08, GVG) Disable CVS rollback if you haven't saved the library (Bug #1836).
+Manual: only cells/libraries whose status!=NONE && status!=UNKNOWN can be rollbacked.
+
 IMP/MAN: (9/9/08, GVG) Prework to fix "electric adding explicit gnd port to schematics" (Bug #1823)
 
 IMP: (9/9/08, GVG) CVS update generates 1 Electric Job (Bug #1835).

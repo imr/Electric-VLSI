@@ -2554,7 +2554,7 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
             cvsMenu.add(menuItem);
             menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) {
                 cvsUpdate(Update.UpdateEnum.ROLLBACK); }});
-            menuItem.setEnabled(!states.contains(State.UNKNOWN));
+            menuItem.setEnabled(!states.contains(State.UNKNOWN) && !states.contains(State.NONE));
 
             menuItem = new JMenuItem("Add to CVS");
             cvsMenu.add(menuItem);
