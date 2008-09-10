@@ -65,9 +65,9 @@ import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.SizeListener;
 import com.sun.electric.tool.user.ui.StatusBar;
 import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.SizeListener;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -299,6 +299,30 @@ public class CircuitChangeJobs
 			{
 				if (!(geom instanceof NodeInst)) continue;
 				NodeInst ni = (NodeInst)geom;
+
+				Point2D [] points = ni.getTrace();
+				if (points != null)
+				{
+					AffineTransform transOut = ni.pureRotateOut();
+					Point2D [] newPoints = new Point2D[points.length];
+					boolean changed = false;
+					for(int i=0; i<points.length; i++)
+					{
+						Point2D newPoint = new Point2D.Double(points[i].getX() + ni.getAnchorCenterX(), points[i].getY() + ni.getAnchorCenterY());
+						transOut.transform(newPoint, newPoint);
+						double oldX = newPoint.getX();
+						double oldY = newPoint.getY();
+						DBMath.gridAlign(newPoint, alignment);
+						if (oldX != newPoint.getX() || oldY != newPoint.getY()) changed = true;
+						newPoints[i] = newPoint;
+					}
+					if (changed)
+					{
+						adjustedNodes++;
+						ni.setTrace(newPoints);
+					}
+					continue;
+				}
 
 				Point2D center = new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY());
 				DBMath.gridAlign(center, alignment);
@@ -2067,7 +2091,7 @@ public class CircuitChangeJobs
 			for (Iterator<PortInst> it = ni.getPortInsts(); it.hasNext(); ) {
 				PortInst pi = it.next();
 
-				ArrayList<ArcInst> arcs = new ArrayList<ArcInst>();
+				List<ArcInst> arcs = new ArrayList<ArcInst>();
 				for (Iterator<Connection> it2 = pi.getConnections(); it2.hasNext(); ) {
 					Connection conn = it2.next();
 					ArcInst ai = conn.getArc();

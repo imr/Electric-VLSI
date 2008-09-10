@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08f: ******************************
 
+BUG: (9/10/08, SMR) Grid alignment doesn't fix outline-edited nodes (Bug #1833).
+FIX: In CircuitChangeJobs.AlignObjects.doIt(), handle nodes with outlines.
+
 BUG: (9/10/08, SMR) Mouse-over highlighting of text is slow (Bug #1804).
 FIX: Optimized highlighting of text by caching it in an R-Tree.
 
