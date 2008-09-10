@@ -39,6 +39,7 @@ import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.RTBounds;
+import com.sun.electric.database.topology.RTNode;
 import com.sun.electric.database.variable.DisplayedText;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
@@ -323,7 +324,7 @@ public class Highlighter implements DatabaseChangeListener {
             showNetworkLevel = this.showNetworkLevel;
         }
         if (showNetworkLevel == 0) {
-            ArrayList<Network> sortedNets = new ArrayList<Network>(nets);
+            List<Network> sortedNets = new ArrayList<Network>(nets);
             Collections.sort(sortedNets, new TextUtils.NetworksByName());
             for (Network net : sortedNets) {
                 System.out.println("Highlighting "+net);
@@ -788,7 +789,7 @@ public class Highlighter implements DatabaseChangeListener {
 	 * @return an list of highlights
 	 */
 	public synchronized List<Highlight2> getHighlights() {
-        ArrayList<Highlight2> highlightsCopy = new ArrayList<Highlight2>(highlightList);
+        List<Highlight2> highlightsCopy = new ArrayList<Highlight2>(highlightList);
         return highlightsCopy;
     }
 
@@ -1389,202 +1390,7 @@ public class Highlighter implements DatabaseChangeListener {
     		// look for text if a window was given
             if (findText && wnd != null)
             {
-        		Rectangle2D textBounds = new Rectangle2D.Double();
-
-        		// start by examining all text on this Cell
-                if (User.isTextVisibilityOnCell())
-                {
-                    Poly [] polys = cell.getAllText(findSpecial, wnd);
-                    if (polys != null)
-                    {
-                        for(int i=0; i<polys.length; i++)
-                        {
-                            Poly poly = polys[i];
-                            if (poly == null) continue;
-                            if (poly.setExactTextBounds(wnd, cell)) continue;
-
-                            textBounds.setRect(poly.getBounds2D());
-                    		if (boundsIsHit(textBounds, bounds, directHitDist))
-                    			list.add(new HighlightText(cell, cell, poly.getDisplayedText().getVariableKey()));
-                        }
-                    }
-                }
-
-                // next examine all text on nodes in the cell
-                for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
-                {
-                    NodeInst ni = it.next();
-                    if (ni == null)
-                    {
-                    	if (Job.getDebug())
-                    		System.out.println("Something is wrong in Highlighter:findAllInArea");
-                        continue;
-                    }
-
-            		// check out node text
-                	if (User.isTextVisibilityOnNode())
-                	{
-                    	// first see if cell name text is selectable
-                		if (ni.isCellInstance() && !ni.isExpanded() && findSpecial && User.isTextVisibilityOnInstance())
-                		{
-                    		Poly.Type style = getHighlightTextStyleBounds(wnd, ni, NodeInst.NODE_PROTO, textBounds);
-                    		if (style != null && boundsIsHit(textBounds, bounds, directHitDist))
-	                			list.add(new HighlightText(ni, cell, NodeInst.NODE_PROTO));
-                		}
-
-                		// now see if node is named
-                		if (ni.isUsernamed())
-                		{
-                    		Poly.Type style = getHighlightTextStyleBounds(wnd, ni, NodeInst.NODE_NAME, textBounds);
-                    		if (style != null && boundsIsHit(textBounds, bounds, directHitDist))
-	                			list.add(new HighlightText(ni, cell, NodeInst.NODE_NAME));
-                		}
-
-                		// look at all variables on the node
-                		if (ni.getProto() != Generic.tech().invisiblePinNode || User.isTextVisibilityOnAnnotation())
-                		{
-	                		for(Iterator<Variable> vIt = ni.getParametersAndVariables(); vIt.hasNext(); )
-	                    	{
-	                    		Variable var = vIt.next();
-	                    		if (!var.isDisplay()) continue;
-	                    		Poly.Type style = getHighlightTextStyleBounds(wnd, ni, var.getKey(), textBounds);
-	                    		if (style != null && boundsIsHit(textBounds, bounds, directHitDist))
-		                    		list.add(new HighlightText(ni, cell, var.getKey()));
-	                    	}
-                		}
-
-                		// look at variables on ports on the node
-                		if (User.isTextVisibilityOnPort())
-                		{
-	                		for(Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext(); )
-	                		{
-	                			PortInst pi = pIt.next();
-		                		for(Iterator<Variable> vIt = pi.getVariables(); vIt.hasNext(); )
-		                    	{
-		                    		Variable var = vIt.next();
-		                    		if (!var.isDisplay()) continue;
-		                    		Poly.Type style = getHighlightTextStyleBounds(wnd, pi, var.getKey(), textBounds);
-		                    		if (style != null && boundsIsHit(textBounds, bounds, directHitDist))
-		                    			list.add(new HighlightText(pi, cell, var.getKey()));
-		                    	}
-	                		}
-                		}
-                	}
-
-            		// add export text
-            		if (User.isTextVisibilityOnExport())
-            		{
-                    	NodeProto np = ni.getProto();
-                    	if (!(np instanceof PrimitiveNode) || ((PrimitiveNode)np).isVisible())
-                    	{
-	            			for(Iterator<Export> eIt = ni.getExports(); eIt.hasNext(); )
-	            			{
-	            				Export pp = eIt.next();
-                                if (pp == null) continue; // in case of massive delete -> Swing accesses objects that are currently being modified
-                                Poly.Type style = getHighlightTextStyleBounds(wnd, pp, Export.EXPORT_NAME, textBounds);
-	                    		if (style != null && boundsIsHit(textBounds, bounds, directHitDist))
-		                    		list.add(new HighlightText(pp, cell, Export.EXPORT_NAME));
-
-	            				// add in variables on the exports
-	                    		for(Iterator<Variable> vIt = pp.getVariables(); vIt.hasNext(); )
-	                        	{
-	                        		Variable var = vIt.next();
-	                        		if (!var.isDisplay()) continue;
-	                        		style = getHighlightTextStyleBounds(wnd, pp, var.getKey(), textBounds);
-	                        		if (style != null && boundsIsHit(textBounds, bounds, directHitDist))
-		                        		list.add(new HighlightText(pp, cell, var.getKey()));
-	                        	}
-	                		}
-                    	}
-            		}
-// 					the old way to find node text
-//                  AffineTransform trans = ni.rotateOut();
-//                  EditWindow subWnd = wnd;
-//                  Poly [] polys = ni.getAllText(findSpecial, wnd);
-//                  if (polys == null) continue;
-//                  for(int i=0; i<polys.length; i++)
-//                  {
-//                      Poly poly = polys[i];
-//                      if (poly == null) continue;
-//
-//                      // "transform" used to follow "setExactTextBounds"
-//                      poly.transform(trans);
-//                      if (poly.setExactTextBounds(wnd, ni)) continue;
-//
-//                      // ignore areaMustEnclose if bounds is size 0,0
-//                      if (areaMustEnclose && (bounds.getHeight() > 0 || bounds.getLambdaFullWidth() > 0))
-//                      {
-//                          if (!poly.isInside(bounds)) continue;
-//                      } else
-//                      {
-//                          double hitdist = poly.polyDistance(bounds);
-//                          if (hitdist >= directHitDist) continue;
-//                      }
-//                      ElectricObject obj = ni;
-//                      if (poly.getPort() != null)
-//                      {
-//                          PortProto pp = poly.getPort();
-//							if (pp instanceof Export)
-//                            obj = (Export)pp;
-//                          for(Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext(); )
-//                          {
-//                              PortInst pi = pIt.next();
-//                              if (pi.getPortProto() == pp)
-//                              {
-//                                  obj = pi;
-//                                  break;
-//                              }
-//                          }
-//                      }
-//                      HighlightText h = new HighlightText(obj, cell, poly.getDisplayedText().getVariableKey());
-//                      list.add(h);
-//                  }
-                }
-
-                // next examine all text on arcs in the cell
-                if (User.isTextVisibilityOnArc())
-                {
-	                for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
-	                {
-	                    ArcInst ai = it.next();
-
-	                    // now see if arc is named
-                		if (ai.isUsernamed())
-                		{
-                    		Poly.Type style = getHighlightTextStyleBounds(wnd, ai, ArcInst.ARC_NAME, textBounds);
-                    		if (style != null && boundsIsHit(textBounds, bounds, directHitDist))
-	                			list.add(new HighlightText(ai, cell, ArcInst.ARC_NAME));
-                		}
-
-                		// look at all variables on the arc
-                		for(Iterator<Variable> vIt = ai.getVariables(); vIt.hasNext(); )
-                    	{
-                    		Variable var = vIt.next();
-                    		if (!var.isDisplay()) continue;
-                    		Poly.Type style = getHighlightTextStyleBounds(wnd, ai, var.getKey(), textBounds);
-                    		if (style != null && boundsIsHit(textBounds, bounds, directHitDist))
-	                    		list.add(new HighlightText(ai, cell, var.getKey()));
-                    	}
-//     					the old way to find arc text
-//                      Poly [] polys = ai.getAllText(findSpecial, wnd);
-//                      if (polys == null) continue;
-//                      for(int i=0; i<polys.length; i++)
-//                      {
-//                          Poly poly = polys[i];
-//                          if (poly.setExactTextBounds(wnd, ai)) continue;
-//
-//                          // ignore areaMustEnclose if bounds is size 0,0
-//                          if (areaMustEnclose && (bounds.getHeight() > 0 || bounds.getLambdaFullWidth() > 0))
-//                          {
-//                              if (!poly.isInside(bounds)) continue;
-//                          } else
-//                          {
-//                              if (poly.polyDistance(bounds) >= directHitDist) continue;
-//                          }
-//                          list.add(new HighlightText(ai, cell, poly.getDisplayedText().getVariableKey()));
-//                      }
-                    }
-                }
+            	findTextNow(cell, wnd, directHitDist, bounds, findSpecial, list);
             }
 
     		boolean areaMustEnclose = User.isDraggingMustEncloseObjects();
@@ -1647,6 +1453,225 @@ public class Highlighter implements DatabaseChangeListener {
             throw e;
         }
         return list;
+	}
+
+	/**
+	 * Class to define an R-Tree leaf node for cell text.
+	 */
+	private static class TextHighlightBound implements RTBounds
+	{
+		private Rectangle2D bound;
+		private ElectricObject obj;
+		private Variable.Key key;
+
+		TextHighlightBound(Rectangle2D bound, ElectricObject obj, Variable.Key key)
+		{
+			this.bound = new Rectangle2D.Double(bound.getMinX(), bound.getMinY(), bound.getWidth(), bound.getHeight());
+			this.obj = obj;
+			this.key = key;
+		}
+
+		public Rectangle2D getBounds() { return bound; }
+
+		public ElectricObject getElectricObject() { return obj; }
+
+		public Variable.Key getKey() { return key; }
+
+		public String toString() { return "TextBound"; }
+	}
+
+	/**
+	 * Method to locate text in an area, using the window's cache of text locations.
+	 * @param cell the Cell to examine.
+	 * @param wnd the EditWindow that the cell is displayed in.
+	 * @param directHitDist the distance to consider a direct hit.
+	 * @param bounds the area to search (all text in this bound will be returned in "list").
+	 * @param findSpecial true to find "hard-to-select" text.
+	 * @param list the place to add selected text.
+	 */
+	private static void findTextNow(Cell cell, EditWindow wnd, double directHitDist, Rectangle2D bounds, boolean findSpecial, List<Highlight2> list)
+	{
+		// get the window's cache of text locations
+		RTNode rtn = wnd.getTextInCell();
+		if (rtn == null)
+		{
+			// must rebuild the RTree of text in this cell
+			rtn = RTNode.makeTopLevel();
+
+			// create temporary Rectangle
+			Rectangle2D textBounds = new Rectangle2D.Double();
+
+			// start by examining all text on this Cell
+	        if (User.isTextVisibilityOnCell())
+	        {
+	            Poly [] polys = cell.getAllText(findSpecial, wnd);
+	            if (polys != null)
+	            {
+	                for(int i=0; i<polys.length; i++)
+	                {
+	                    Poly poly = polys[i];
+	                    if (poly == null) continue;
+	                    if (poly.setExactTextBounds(wnd, cell)) continue;
+
+	                    // save text area in cache
+	                    rtn = RTNode.linkGeom(null, rtn, new TextHighlightBound(poly.getBounds2D(), cell, poly.getDisplayedText().getVariableKey()));
+	                }
+	            }
+	        }
+
+	        // next examine all text on nodes in the cell
+	        for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
+	        {
+	            NodeInst ni = it.next();
+	            if (ni == null)
+	            {
+	            	if (Job.getDebug())
+	            		System.out.println("Something is wrong in Highlighter:findAllInArea");
+	                continue;
+	            }
+
+	    		// check out node text
+	        	if (User.isTextVisibilityOnNode())
+	        	{
+	            	// first see if cell name text is selectable
+	        		if (ni.isCellInstance() && !ni.isExpanded() && findSpecial && User.isTextVisibilityOnInstance())
+	        		{
+	            		Poly.Type style = getHighlightTextStyleBounds(wnd, ni, NodeInst.NODE_PROTO, textBounds);
+	            		if (style != null)
+	            		{
+		                    // save text area in cache
+		                    rtn = RTNode.linkGeom(null, rtn, new TextHighlightBound(textBounds, ni, NodeInst.NODE_PROTO));
+	            		}
+	        		}
+
+	        		// now see if node is named
+	        		if (ni.isUsernamed())
+	        		{
+	            		Poly.Type style = getHighlightTextStyleBounds(wnd, ni, NodeInst.NODE_NAME, textBounds);
+	            		if (style != null)
+	            		{
+		                    // save text area in cache
+		                    rtn = RTNode.linkGeom(null, rtn, new TextHighlightBound(textBounds, ni, NodeInst.NODE_NAME));
+	            		}
+	        		}
+
+	        		// look at all variables on the node
+	        		if (ni.getProto() != Generic.tech().invisiblePinNode || User.isTextVisibilityOnAnnotation())
+	        		{
+	            		for(Iterator<Variable> vIt = ni.getParametersAndVariables(); vIt.hasNext(); )
+	                	{
+	                		Variable var = vIt.next();
+	                		if (!var.isDisplay()) continue;
+	                		Poly.Type style = getHighlightTextStyleBounds(wnd, ni, var.getKey(), textBounds);
+	                		if (style != null)
+	                		{
+	    	                    // save text area in cache
+			                    rtn = RTNode.linkGeom(null, rtn, new TextHighlightBound(textBounds, ni, var.getKey()));
+	                		}
+	                	}
+	        		}
+
+	        		// look at variables on ports on the node
+	        		if (User.isTextVisibilityOnPort())
+	        		{
+	            		for(Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext(); )
+	            		{
+	            			PortInst pi = pIt.next();
+	                		for(Iterator<Variable> vIt = pi.getVariables(); vIt.hasNext(); )
+	                    	{
+	                    		Variable var = vIt.next();
+	                    		if (!var.isDisplay()) continue;
+	                    		Poly.Type style = getHighlightTextStyleBounds(wnd, pi, var.getKey(), textBounds);
+	                    		if (style != null)
+	                    		{
+	        	                    // save text area in cache
+				                    rtn = RTNode.linkGeom(null, rtn, new TextHighlightBound(textBounds, pi, var.getKey()));
+	                    		}
+	                    	}
+	            		}
+	        		}
+	        	}
+
+	    		// add export text
+	    		if (User.isTextVisibilityOnExport())
+	    		{
+	            	NodeProto np = ni.getProto();
+	            	if (!(np instanceof PrimitiveNode) || ((PrimitiveNode)np).isVisible())
+	            	{
+	        			for(Iterator<Export> eIt = ni.getExports(); eIt.hasNext(); )
+	        			{
+	        				Export pp = eIt.next();
+	                        if (pp == null) continue; // in case of massive delete -> Swing accesses objects that are currently being modified
+	                        Poly.Type style = getHighlightTextStyleBounds(wnd, pp, Export.EXPORT_NAME, textBounds);
+	                		if (style != null)
+	                		{
+	    	                    // save text area in cache
+			                    rtn = RTNode.linkGeom(null, rtn, new TextHighlightBound(textBounds, pp, Export.EXPORT_NAME));
+	                		}
+
+	        				// add in variables on the exports
+	                		for(Iterator<Variable> vIt = pp.getVariables(); vIt.hasNext(); )
+	                    	{
+	                    		Variable var = vIt.next();
+	                    		if (!var.isDisplay()) continue;
+	                    		style = getHighlightTextStyleBounds(wnd, pp, var.getKey(), textBounds);
+	                    		if (style != null)
+	                    		{
+	        	                    // save text area in cache
+				                    rtn = RTNode.linkGeom(null, rtn, new TextHighlightBound(textBounds, pp, var.getKey()));
+	                    		}
+	                    	}
+	            		}
+	            	}
+	    		}
+	        }
+
+	        // next examine all text on arcs in the cell
+	        if (User.isTextVisibilityOnArc())
+	        {
+	            for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
+	            {
+	                ArcInst ai = it.next();
+
+	                // now see if arc is named
+	        		if (ai.isUsernamed())
+	        		{
+	            		Poly.Type style = getHighlightTextStyleBounds(wnd, ai, ArcInst.ARC_NAME, textBounds);
+	            		if (style != null)
+	            		{
+		                    // save text area in cache
+		                    rtn = RTNode.linkGeom(null, rtn, new TextHighlightBound(textBounds, ai, ArcInst.ARC_NAME));
+	            		}
+	        		}
+
+	        		// look at all variables on the arc
+	        		for(Iterator<Variable> vIt = ai.getVariables(); vIt.hasNext(); )
+	            	{
+	            		Variable var = vIt.next();
+	            		if (!var.isDisplay()) continue;
+	            		Poly.Type style = getHighlightTextStyleBounds(wnd, ai, var.getKey(), textBounds);
+	            		if (style != null)
+	            		{
+		                    // save text area in cache
+		                    rtn = RTNode.linkGeom(null, rtn, new TextHighlightBound(textBounds, ai, var.getKey()));
+	            		}
+	            	}
+	            }
+	        }
+
+	        // save this R-Tree as the window's current cache
+	        wnd.setTextInCell(rtn);
+		}
+
+		// look through the R-Tree cache to find the proper highlight
+		Rectangle2D searchArea = new Rectangle2D.Double(bounds.getMinX()-directHitDist, bounds.getMinY()-directHitDist,
+			bounds.getWidth()+directHitDist*2, bounds.getHeight()+directHitDist*2);
+		for(RTNode.Search sea = new RTNode.Search(searchArea, rtn, true); sea.hasNext(); )
+		{
+			TextHighlightBound thb = (TextHighlightBound)sea.next();
+			if (boundsIsHit(thb.getBounds(), bounds, directHitDist))
+				list.add(new HighlightText(thb.getElectricObject(), cell, thb.getKey()));
+		}
 	}
 
 	/**

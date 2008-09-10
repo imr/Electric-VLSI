@@ -48,6 +48,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.topology.RTNode;
 import com.sun.electric.database.variable.CodeExpression;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
@@ -193,6 +194,7 @@ public class EditWindow extends JPanel
 	/** Highlighter for this window */						private Highlighter highlighter;
 	/** Mouse-over Highlighter for this window */			private Highlighter mouseOverHighlighter;
 	/** Ruler Highlighter for this window */				private Highlighter rulerHighlighter;
+	/** selectable text in this window */					private RTNode textInCell;
 
 	/** navigate through saved views */						private EditWindowFocusBrowser viewBrowser;
 
@@ -231,6 +233,7 @@ public class EditWindow extends JPanel
 		setPreferredSize(sz);
 
 		scale = scaleRequested = 1;
+		textInCell = null;
 		globalTextScale = User.getGlobalTextScale();
 
 		// the total panel in the edit window
@@ -999,22 +1002,34 @@ public class EditWindow extends JPanel
 	public AffineTransform getInPlaceTransformOut() { return outofCell; }
 
 	/**
-	 * Get the highlighter for this WindowContent
-	 * @return the highlighter
+	 * Get the highlighter for this WindowContent.
+	 * @return the highlighter.
 	 */
 	public Highlighter getHighlighter() { return highlighter; }
 
 	/**
-	 * Get the mouse over highlighter for this EditWindow
-	 * @return the mouse over highlighter
+	 * Get the mouse over highlighter for this EditWindow.
+	 * @return the mouse over highlighter.
 	 */
 	public Highlighter getMouseOverHighlighter() { return mouseOverHighlighter; }
 
 	/**
-	 * Get the ruler highlighter for this EditWindow (for measurement)
-	 * @return the ruler highlighter
+	 * Get the ruler highlighter for this EditWindow (for measurement).
+	 * @return the ruler highlighter.
 	 */
 	public Highlighter getRulerHighlighter() { return rulerHighlighter; }
+
+	/**
+	 * Get the RTree with all text in this Cell.
+	 * @return the RTree with all text in this Cell.
+	 */
+	public RTNode getTextInCell() { return textInCell; }
+
+	/**
+	 * Set the RTree with all text in this Cell.
+	 * @param tic the RTree with all text in this Cell.
+	 */
+	public void setTextInCell(RTNode tic) { textInCell = tic; }
 
 	/**
 	 * Method to return the WindowFrame in which this EditWindow resides.
@@ -1060,6 +1075,7 @@ public class EditWindow extends JPanel
 
 		// set new values
 		this.cell = cell;
+		textInCell = null;
 		setInPlaceEditNodePath(displayAttributes);
 		this.pageNumber = 0;
 		cellVarContext = context;
@@ -1266,6 +1282,8 @@ public class EditWindow extends JPanel
 		sz = getSize();
 		szHalfWidth = sz.width / 2;
 		szHalfHeight = sz.height / 2;
+		if (scale != drawing.da.scale || offx != drawing.da.offX || offy != drawing.da.offY)
+			textInCell = null;
 		scale = drawing.da.scale;
 		offx = drawing.da.offX;
 		offy = drawing.da.offY;
@@ -1359,7 +1377,10 @@ public class EditWindow extends JPanel
 
 		// see if anything else is queued
 		if (scale != scaleRequested || offx != offxRequested || offy != offyRequested || !getSize().equals(sz))
+		{
+			textInCell = null;
 			fullRepaint();
+		}
 		logger.exiting(CLASS_NAME, "paintComponent");
 	}
 
@@ -1656,8 +1677,8 @@ public class EditWindow extends JPanel
 	 * @return alpha blending order.
 	 */
 	public List<AbstractDrawing.LayerColor> getBlendingOrder(Set<Layer> layersAvailable, boolean patternedDisplay, boolean alphaBlendingOvercolor) {
-		ArrayList<AbstractDrawing.LayerColor> layerColors = new ArrayList<AbstractDrawing.LayerColor>();
-		ArrayList<Layer> sortedLayers = new ArrayList<Layer>(layersAvailable);
+		List<AbstractDrawing.LayerColor> layerColors = new ArrayList<AbstractDrawing.LayerColor>();
+		List<Layer> sortedLayers = new ArrayList<Layer>(layersAvailable);
 		Collections.sort(sortedLayers, Technology.LAYERS_BY_HEIGHT_LIFT_CONTACTS);
 		float[] backgroundComps = (new Color(User.getColor(User.ColorPrefType.BACKGROUND))).getRGBColorComponents(null);
 		float bRed = backgroundComps[0];
@@ -2836,6 +2857,7 @@ public class EditWindow extends JPanel
 	            double oldScale = getScale();
 	            Point2D oldOffset = getOffset();
 	            setScreenBounds(cellBounds);
+	            if (scale != scaleRequested) textInCell = null;
 	            scale = scaleRequested;
 	            Rectangle2D relativeTextBounds = cell.getRelativeTextBounds(this);
 	            if (relativeTextBounds != null)
@@ -2847,6 +2869,7 @@ public class EditWindow extends JPanel
 	                for(int i=0; i<2; i++)
 	                {
 		                setScreenBounds(newCellBounds);
+			            if (scale != scaleRequested) textInCell = null;
 			            scale = scaleRequested;
 			            relativeTextBounds = cell.getRelativeTextBounds(this);
 			            if (relativeTextBounds != null)
@@ -3054,7 +3077,7 @@ public class EditWindow extends JPanel
 		}
 
 		// handle in-place display
-      	ArrayList<NodeInst> newInPlaceDescent = new ArrayList<NodeInst>();
+      	List<NodeInst> newInPlaceDescent = new ArrayList<NodeInst>();
 		if (inPlace)
 		{
             newInPlaceDescent.addAll(inPlaceDescent);
@@ -3218,7 +3241,7 @@ public class EditWindow extends JPanel
 				} else
 				{
 					// no previous history: make one up
-                    ArrayList<NodeInst> newInPlaceDescent = new ArrayList<NodeInst>(inPlaceDescent);
+                    List<NodeInst> newInPlaceDescent = new ArrayList<NodeInst>(inPlaceDescent);
                     if (!newInPlaceDescent.isEmpty())
                         newInPlaceDescent.remove(newInPlaceDescent.size() - 1);
      			    WindowFrame.DisplayAttributes da = new WindowFrame.DisplayAttributes(scale, offx, offy, newInPlaceDescent);
