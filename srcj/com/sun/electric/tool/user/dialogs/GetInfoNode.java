@@ -526,8 +526,8 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 
 				textField.setText(var.getPureValue(-1));
 
-				popupLabel.setText("Transistor type:");
-				popup.addItem(fun.getName());
+//				popupLabel.setText("Transistor type:");
+//				popup.addItem(fun.getName());
 			}
 		}
 
@@ -622,11 +622,11 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 			textField.setEditable(true);
 			textField.setText(initialTextField);
 		}
-		if (fun.isFlipFlop())
-		{
-			popupLabel.setText("Flip-flop type:");
-			popup.addItem(fun.getName());
-		}
+//		if (fun.isFlipFlop())
+//		{
+//			popupLabel.setText("Flip-flop type:");
+//			popup.addItem(fun.getName());
+//		}
 		if (np == Schematics.tech().globalNode)
 		{
 			textFieldLabel.setText("Global name:");
