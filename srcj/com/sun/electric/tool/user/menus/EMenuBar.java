@@ -30,15 +30,19 @@ import com.sun.electric.tool.user.ui.KeyBindings;
 import com.sun.electric.tool.user.ui.KeyStrokePair;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
-import java.awt.event.KeyEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.util.ArrayList;
-
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.prefs.Preferences;
-import javax.swing.*;
+
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.KeyStroke;
 
 /**
  * EMenuBar is a menu bar template. It associates several menu bars together.
@@ -46,27 +50,12 @@ import javax.swing.*;
  * It also acts as an listener for updating all menu items on a state change.
  */
 public class EMenuBar extends EMenu {
-    
-//    /** all groups */                                               private static final HashMap<String,EMenuBar> menuBarGroups = new HashMap<String,EMenuBar>();
-    
+
     /** Preferences for User Bindings */                            private Preferences prefs;
-    /** All menu items created, stores as ArrayLists in HashMap */  HashMap<String,EMenuItem> menuItems = new HashMap<String,EMenuItem>();
+    /** All menu items created, stores as ArrayLists in HashMap */  Map<String,EMenuItem> menuItems = new HashMap<String,EMenuItem>();
     /** Key Binding Manager for menu items */                       public final KeyBindingManager keyBindingManager;
     /** Hidden menu */                                              private final EMenu hiddenMenu;
-    /** Updatable items. */                                         private final ArrayList<EMenuItem> updatableItems = new ArrayList<EMenuItem>();  
-    
-//    /** Factory method to create/get a group */
-//    public static EMenuBar newInstance(String name, EMenu hiddenMenu, EMenu... items) {
-//        
-//        synchronized(menuBarGroups) {
-//            if (menuBarGroups.containsKey(name)) {
-//                return menuBarGroups.get(name);
-//            }
-//            EMenuBar menuBar = new EMenuBar(name, hiddenMenu, items);
-//            menuBarGroups.put(name, menuBar);
-//            return menuBar;
-//        }
-//    }
+    /** Updatable items. */                                         private final List<EMenuItem> updatableItems = new ArrayList<EMenuItem>();  
     
     /**
 	 *@param name name of generic menu bar.

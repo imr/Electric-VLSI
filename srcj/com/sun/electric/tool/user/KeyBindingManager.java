@@ -21,9 +21,7 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-
 package com.sun.electric.tool.user;
-
 
 import com.sun.electric.tool.user.ui.KeyBindings;
 import com.sun.electric.tool.user.ui.KeyStrokePair;
@@ -80,10 +78,10 @@ import javax.swing.KeyStroke;
 public class KeyBindingManager {
 
     // ----------------------------- object stuff ---------------------------------
-    /** Hash table of lists all key bindings */     private HashMap<KeyStroke,Set<String>> inputMap;
-    /** Hash table of all actions */                private HashMap<String,Object> actionMap;
+    /** Hash table of lists all key bindings */     private Map<KeyStroke,Set<String>> inputMap;
+    /** Hash table of all actions */                private Map<String,Object> actionMap;
     /** last prefix key pressed */                  private KeyStroke lastPrefix;
-    /** Hash table of hash of lists of prefixed key bindings */ private HashMap<KeyStroke,HashMap<KeyStroke,Set<String>>> prefixedInputMapMaps;
+    /** Hash table of hash of lists of prefixed key bindings */ private Map<KeyStroke,Map<KeyStroke,Set<String>>> prefixedInputMapMaps;
     /** action to take on prefix key hit */         private PrefixAction prefixAction;
     /** where to store Preferences */               private Preferences prefs;
     /** prefix on pref key, if desired */           private String prefPrefix;
@@ -102,7 +100,7 @@ public class KeyBindingManager {
     public KeyBindingManager(String prefPrefix, Preferences prefs) {
         inputMap = new HashMap<KeyStroke,Set<String>>();
         actionMap = new HashMap<String,Object>();
-        prefixedInputMapMaps = new HashMap<KeyStroke,HashMap<KeyStroke,Set<String>>>();
+        prefixedInputMapMaps = new HashMap<KeyStroke,Map<KeyStroke,Set<String>>>();
         lastPrefix = null;
         prefixAction = new PrefixAction(this);
         this.prefs = prefs;
@@ -237,7 +235,7 @@ public class KeyBindingManager {
      */
     public void printKeyBindings()
     {
-        Map<String,HashMap<String,Set<String>>> set = new HashMap<String,HashMap<String,Set<String>>>();
+        Map<String,Map<String,Set<String>>> set = new HashMap<String,Map<String,Set<String>>>();
         List<String> keyList = new ArrayList<String>(); // has to be a list so it could be sorted.
         List<KeyBindingColumn> columnList = new ArrayList<KeyBindingColumn>(); // has to be a list so it could be sorted.
         KeyBindingColumn row = new KeyBindingColumn("Keys");
@@ -248,7 +246,7 @@ public class KeyBindingManager {
         {
             KeyStroke keyS = map.getKey();
             String key = KeyStrokePair.getStringFromKeyStroke(keyS);
-            HashMap<String,Set<String>> m = set.get(key);
+            Map<String,Set<String>> m = set.get(key);
             if (m == null)
             {
                 m = new HashMap<String,Set<String>>();
@@ -403,7 +401,7 @@ public class KeyBindingManager {
             return false;
         }
 
-        HashMap<KeyStroke,Set<String>> inputMapToUse = inputMap;
+        Map<KeyStroke,Set<String>> inputMapToUse = inputMap;
 
         // check if we should use prefixed key map instead of regular inputMap
         if (lastPrefix != null) {
@@ -442,7 +440,7 @@ public class KeyBindingManager {
             // decided to start another prefix-key-combo (that does not result in
             // a valid binding with the first prefix, obviously).  We'll be nice
             // and check for this case
-            HashMap prefixMap = prefixedInputMapMaps.get(stroke);
+            Map prefixMap = prefixedInputMapMaps.get(stroke);
             if (prefixMap != null) {
                 // valid prefix key, fire prefix event
                 prefixAction.actionPerformed(evt);
@@ -544,7 +542,7 @@ public class KeyBindingManager {
      */
     public synchronized void removeKeyBinding(String actionDesc, KeyStrokePair k) {
 
-        HashMap<KeyStroke,Set<String>> inputMapToUse = inputMap;
+        Map<KeyStroke,Set<String>> inputMapToUse = inputMap;
         // if prefix stroke exists, remove one prefixAction key string
         // (may be more than one if more than one binding has prefixStroke as it's prefix)
         if (k.getPrefixStroke() != null) {
@@ -634,16 +632,19 @@ public class KeyBindingManager {
     	private InputMap im;
     	private ActionMap am;
 
-    	KeyMaps(KeyBindingManager kbm, HashMap<KeyStroke,Set<String>> inputMap, HashMap<String,Object> actionMap)
+    	KeyMaps(KeyBindingManager kbm, Map<KeyStroke,Set<String>> inputMap, Map<String,Object> actionMap)
     	{
         	im = new InputMap();
         	am = new ActionMap();
         	for(KeyStroke ks : inputMap.keySet())
         	{
         		Set<String> theSet = inputMap.get(ks);
-        		String actionName = theSet.iterator().next();
-        		im.put(ks, actionName);
-        		am.put(actionName, new MyAbstractAction(actionName, kbm));
+        		if (theSet.size() > 0)
+        		{
+	        		String actionName = theSet.iterator().next();
+	        		im.put(ks, actionName);
+	        		am.put(actionName, new MyAbstractAction(actionName, kbm));
+        		}
         	}
         }
 
@@ -730,7 +731,7 @@ public class KeyBindingManager {
         List<KeyBindings> conflicts = new ArrayList<KeyBindings>();               // list of actual KeyBindings
         List<String> conflictsStrings = new ArrayList<String>();        // list of action strings
 
-        HashMap<KeyStroke,Set<String>> inputMapToUse = inputMap;
+        Map<KeyStroke,Set<String>> inputMapToUse = inputMap;
 
         if (pair.getPrefixStroke() != null) {
             // check if conflicts with any single key Binding
@@ -753,7 +754,7 @@ public class KeyBindingManager {
                         // find all string associated with prefix in prefix map
                         // NOTE: this condition is never true if prefixStroke is valid
                         // and we are using a prefixed map...prefixActions are only in primary inputMap.
-                        HashMap<KeyStroke,Set<String>> prefixMap = prefixedInputMapMaps.get(pair.getStroke());
+                        Map<KeyStroke,Set<String>> prefixMap = prefixedInputMapMaps.get(pair.getStroke());
                         if (prefixMap != null) {
                             for (Iterator<Set<String>> it2 = prefixMap.values().iterator(); it2.hasNext(); ) {
                                 // all existing prefixStroke,stroke combos conflict, so add them all
@@ -883,7 +884,7 @@ public class KeyBindingManager {
         KeyStroke prefixStroke = pair.getPrefixStroke();
         KeyStroke stroke = pair.getStroke();
 
-        HashMap<KeyStroke,Set<String>> inputMapToUse = inputMap;
+        Map<KeyStroke,Set<String>> inputMapToUse = inputMap;
         if (prefixStroke != null) {
             // find HashMap based on prefixAction
             inputMapToUse = prefixedInputMapMaps.get(prefixStroke);
