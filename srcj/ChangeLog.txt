@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08g: ******************************
 
+IMP/MAN: (9/10/08, GVG) Move option for Cells in ExplorerTree (Bug #1764).
+Indeed, it is a copy option to be consistent with the drag way to copy.
+It is a copy to avoid circular dependencies.
+
 BUG: (9/10/08, SMR) "Select Object" dialog crashes (Bug #1840).
 FIX: Trap empty sets in KeyBindingManager.KeyMaps constructor.
 

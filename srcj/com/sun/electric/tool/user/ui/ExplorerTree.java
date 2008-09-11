@@ -27,7 +27,6 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.cvspm.AddRemove;
 import com.sun.electric.tool.cvspm.CVS;
 import com.sun.electric.tool.cvspm.CVSLibrary;
@@ -60,6 +59,7 @@ import com.sun.electric.tool.user.ViewChanges;
 import com.sun.electric.tool.user.dialogs.ChangeCellGroup;
 import com.sun.electric.tool.user.dialogs.ChangeCurrentLib;
 import com.sun.electric.tool.user.dialogs.NewCell;
+import com.sun.electric.tool.user.dialogs.CrossLibCopy;
 import com.sun.electric.tool.user.menus.CellMenu;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.tecEdit.Manipulate;
@@ -892,7 +892,10 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 							ExplorerTree originalTree = getOriginalTree(dtde.getCurrentDataFlavors());
 							if (originalTree != null)
 							{
-								new CrossLibraryCopyJob(origCell, destLib, obj instanceof Cell.CellGroup, originalTree.subCells);
+                                List<Cell> fromCells = new ArrayList<Cell>();
+                                fromCells.add(origCell);
+                                new CrossLibCopy.CrossLibraryCopyJob(fromCells, destLib, null, false,
+                                    obj instanceof Cell.CellGroup, originalTree.subCells, true);
 								dtde.dropComplete(true);
 								return;
 							}
@@ -960,31 +963,31 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 		}
 	}
 
-	private static class CrossLibraryCopyJob extends Job
-	{
-		private Cell fromCell;
-		private Library toLibrary;
-		private boolean copyRelated, copySubs;
-
-		private CrossLibraryCopyJob(Cell fromCell, Library toLibrary, boolean copyRelated, boolean copySubs)
-		{
-			super("Cross-Library copy", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.fromCell = fromCell;
-			this.toLibrary = toLibrary;
-			this.copyRelated = copyRelated;
-			this.copySubs = copySubs;
-			startJob();
-		}
-
-		public boolean doIt() throws JobException
-		{
-			// do the copy
-			List<Cell> fromCells = new ArrayList<Cell>();
-			fromCells.add(fromCell);
-			CellChangeJobs.copyRecursively(fromCells, toLibrary, true, false, copyRelated, copySubs, true);
-			return true;
-		}
-	}
+//	private static class CrossLibraryCopyJob extends Job
+//	{
+//		private Cell fromCell;
+//		private Library toLibrary;
+//		private boolean copyRelated, copySubs;
+//
+//		private CrossLibraryCopyJob(Cell fromCell, Library toLibrary, boolean copyRelated, boolean copySubs)
+//		{
+//			super("Cross-Library copy", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+//			this.fromCell = fromCell;
+//			this.toLibrary = toLibrary;
+//			this.copyRelated = copyRelated;
+//			this.copySubs = copySubs;
+//			startJob();
+//		}
+//
+//		public boolean doIt() throws JobException
+//		{
+//			// do the copy
+//			List<Cell> fromCells = new ArrayList<Cell>();
+//			fromCells.add(fromCell);
+//			CellChangeJobs.copyRecursively(fromCells, toLibrary, true, false, copyRelated, copySubs, true);
+//			return true;
+//		}
+//	}
 
 	// *********************************** DISPLAY ***********************************
 
@@ -1727,17 +1730,9 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 				menu.add(menuItem);
 				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { deleteCellAction(); } });
 
-                JMenu subMenu = new JMenu("Move Cell");
+                JMenu subMenu = new JMenu("Copy Cell");
 				menu.add(subMenu);
-                for (Iterator<Library> libIter = Library.getLibraries(); libIter.hasNext();)
-                {
-                    Library lib = libIter.next();
-                    if (lib == cell.getLibrary()) continue; // already in this one
-                    if (lib.isHidden()) continue; // Clipboard.
-                    JMenuItem subMenuItem = new JMenuItem(lib.getName());
-                    subMenu.add(subMenuItem);
-                    subMenuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { moveCellAction(e); } });
-                }
+                prepareForCopyAction(subMenu, selectedObject);
 
                 menu.addSeparator();
 
@@ -1879,7 +1874,11 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 				menu.add(menuItem);
 				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { deleteGroupAction(); } });
 
-				menu.addSeparator();
+                JMenu subMenu = new JMenu("Copy Entire Group");
+				menu.add(subMenu);
+                prepareForCopyAction(subMenu, selectedObject);
+
+                menu.addSeparator();
 
 				menuItem = new JMenuItem("Rename Cells in Group");
 				menu.add(menuItem);
@@ -2178,7 +2177,7 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 			if (response == null) return;
 			CircuitChanges.renameCellGroupInJob(cellGroup, response);
 		}
-
+        
         private void deleteGroupAction()
         {
             Cell.CellGroup cellGroup = (Cell.CellGroup)getCurrentlySelectedObject(0);
@@ -2400,14 +2399,47 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 			CircuitChanges.renameCellInJob(cell, response);
 		}
 
-        private void moveCellAction(ActionEvent e)
+        private void prepareForCopyAction(JMenu subMenu, Object selectedObject)
+        {
+            Cell cell = null;
+            if (selectedObject instanceof Cell)
+            {
+                cell = (Cell)selectedObject;
+            }
+            else
+            {
+                cell = ((Cell.CellGroup)selectedObject).getCells().next();
+            }
+            for (Iterator<Library> libIter = Library.getLibraries(); libIter.hasNext();)
+            {
+                Library lib = libIter.next();
+                if (lib == cell.getLibrary()) continue; // already in this one
+                if (lib.isHidden()) continue; // Clipboard.
+                JMenuItem subMenuItem = new JMenuItem(lib.getName());
+                subMenu.add(subMenuItem);
+                subMenuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { copyCellOrCellGroupAction(e); } });
+            }
+        }
+
+        private void copyCellOrCellGroupAction(ActionEvent e)
         {
 			JMenuItem menuItem = (JMenuItem)e.getSource();
 			String libName = menuItem.getText();
             Library destLib = Library.findLibrary(libName);
             assert(destLib != null); // it should be consistent.
-            Cell cell = (Cell)getCurrentlySelectedObject(0);
-            new CrossLibraryCopyJob(cell, destLib, false, false);
+            List<Cell> fromCells = new ArrayList<Cell>();
+            Object obj = getCurrentlySelectedObject(0);
+            boolean copyRelated = (obj instanceof Cell.CellGroup);
+            Cell cell = null;
+            if (copyRelated)
+            {
+                // get first cell from the group
+                cell = ((Cell.CellGroup)obj).getCells().next();
+            }
+            else
+                cell = (Cell)obj;
+            fromCells.add(cell);
+            new CrossLibCopy.CrossLibraryCopyJob(fromCells, destLib, null, false, copyRelated, false, true);
         }
         
         private void reViewCellAction(ActionEvent e)

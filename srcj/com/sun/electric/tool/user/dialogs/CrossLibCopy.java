@@ -325,7 +325,7 @@ public class CrossLibCopy extends EDialog
 //		public StringBuffer getDifference() { return (buffer); }
 //	}
 
-	private static class CrossLibraryCopyJob extends Job
+	public static class CrossLibraryCopyJob extends Job
 	{
 		private List<Cell> fromCells;
 		private Library toLibrary;
@@ -334,7 +334,7 @@ public class CrossLibCopy extends EDialog
 		private int index;
         private IdMapper idMapper; 
 
-		protected CrossLibraryCopyJob(List<Cell> fromCells, Library toLibrary, CrossLibCopy dialog, boolean deleteAfter,
+		public CrossLibraryCopyJob(List<Cell> fromCells, Library toLibrary, CrossLibCopy dialog, boolean deleteAfter,
 			boolean copyRelated, boolean copySubs, boolean useExisting)
 		{
 			super("Cross-Library copy", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -347,8 +347,11 @@ public class CrossLibCopy extends EDialog
 			this.useExisting = useExisting;
 
 			// remember the selection line
-			index = dialog.listLeft.getSelectedIndex();
-			startJob();
+            if (dialog != null)
+                index = dialog.listLeft.getSelectedIndex();
+            else
+                index = -1; // use from the ExplorerTree
+            startJob();
 		}
 
 		public boolean doIt() throws JobException
@@ -362,8 +365,10 @@ public class CrossLibCopy extends EDialog
         public void terminateOK()
         {
             User.fixStaleCellReferences(idMapper);
+
+            if (dialog == null) return; // from ExplorerTree
             
-			// reload the dialog
+            // reload the dialog
 			dialog.showCells(false);
 
 			// reselect the last selected line
