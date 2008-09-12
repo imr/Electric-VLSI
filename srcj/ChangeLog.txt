@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08g: ******************************
 
+BUG: (9/12/08, GVG) Exception in FillCellGen if master cell doesn't have gnd/vdd exports
+FIX: Condition detected and code doesn't continue.
+
 BUG: (9/11/08, SMR) New text objects in a cell are not selectable (Bug #1841).
 FIX: In EditWindow.databaseChanged() clear text highlight cache (created by Bug #1804).
 

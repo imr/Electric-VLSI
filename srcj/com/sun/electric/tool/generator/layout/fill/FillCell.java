@@ -8,7 +8,6 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.generator.layout.LayoutLib;
-import com.sun.electric.tool.generator.layout.Tech;
 import com.sun.electric.tool.generator.layout.TechType;
 
 //---------------------------------- FillCell --------------------------------
