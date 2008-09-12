@@ -3689,6 +3689,9 @@ public class EditWindow extends JPanel
         	showCell(null, VarContext.globalContext, true, null);
             wf.cellHistoryGoBack();
         }
+
+        // recalculate text positions
+        textInCell = null;
     }
 
     /**
