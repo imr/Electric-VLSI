@@ -71,9 +71,9 @@ public class JThreeDSideView extends JPanel
         double origDist;
         double origThick;
 
-        Shape3DTab(Shape3D shape, double dist, double thick)
+        Shape3DTab(Shape3D s, double dist, double thick)
         {
-            this.shape = shape;
+            this.shape = s;
             this.origDist = dist;
             this.origThick = thick;
         }

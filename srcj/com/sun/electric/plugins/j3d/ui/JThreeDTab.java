@@ -72,7 +72,7 @@ public class JThreeDTab extends ThreeDTab
 	public Map<Layer,GenMath.MutableDouble> threeDThicknessMap, threeDDistanceMap;
     public Map<Layer,J3DAppearance> transparencyMap;
 	private JThreeDSideView threeDSideView;
-    private Layer polyLayer, gatePolyLayer; // to keep z distance consistent with STI/LOCO modes
+    private Layer polyLayer, gatePolyLayer, polyCutLayer; // to keep z distance consistent with STI/LOCO modes
 
     /**
 	 * Method called at the start of the dialog.
@@ -105,6 +105,8 @@ public class JThreeDTab extends ThreeDTab
                 gatePolyLayer = layer;
             else if (fun.isPoly())
                 polyLayer = layer;
+            else if (layer.isPolyCutLayer())
+                polyCutLayer = layer;
 
             threeDThicknessMap.put(layer, new GenMath.MutableDouble(layer.getThickness()));
 			threeDDistanceMap.put(layer, new GenMath.MutableDouble(layer.getDistance()));
@@ -117,7 +119,10 @@ public class JThreeDTab extends ThreeDTab
             transparencyMap.put(layer, newApp);
 
 		}
-		threeDLayerList.setSelectedIndex(0);
+        // correct field poly if STI mode is in
+        correctPolyValues();
+        
+        threeDLayerList.setSelectedIndex(0);
 		threeDHeight.getDocument().addDocumentListener(new ThreeDInfoDocumentListener(this));
 		threeDThickness.getDocument().addDocumentListener(new ThreeDInfoDocumentListener(this));
         // Transparency data
@@ -213,6 +218,7 @@ public class JThreeDTab extends ThreeDTab
      */
     private void correctPolyValues()
     {
+        if (!J3DUtils.is3DSTIPolyTransistorOn()) return; // nothing to correct
         if (gatePolyLayer != null && polyLayer != null &&
                 !DBMath.areEquals(gatePolyLayer.getDistance(), polyLayer.getDistance()))
         {
@@ -221,6 +227,11 @@ public class JThreeDTab extends ThreeDTab
             double h = gatePolyLayer.getDistance();
             polyLayer.setDistance(h);
             threeDDistanceMap.get(polyLayer).setValue(h);
+            // checking polyCut
+            if (polyCutLayer != null)
+            {
+
+            }
         }
     }
 
@@ -244,6 +255,7 @@ public class JThreeDTab extends ThreeDTab
             J3DAppearance.J3DTransparencyOption op = (J3DAppearance.J3DTransparencyOption)transparencyMode.getSelectedItem();
             ta.setTransparencyMode(op.mode);
             app.getRenderingAttributes().setDepthBufferEnable(op.mode != TransparencyAttributes.NONE);
+            correctPolyValues();
             threeDSideView.updateZValues(layer, thickness.doubleValue(), height.doubleValue());
         }
         else

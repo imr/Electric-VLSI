@@ -821,6 +821,15 @@ public class Layer
     }
 
     /**
+     * Method to determine if the layer corresponds to a poly cut layer. Used in 3D View
+     * @return true if this layer is a poly cut layer.
+     */
+    public boolean isPolyCutLayer()
+    {
+        return (function.isContact() && (functionExtras&Layer.Function.CONPOLY) != 0);
+    }
+
+    /**
 	 * Method to return true if this is pseudo-Layer.
 	 * Pseudo layers are those used in pins, and have no real geometry.
 	 * @return true if this is pseudo-layer.

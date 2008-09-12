@@ -34,6 +34,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
@@ -368,6 +369,23 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
         fieldSelected.setText(selectedMsg);
     }
 
+    private String addLayerInfo(PortProto pp)
+    {
+        String descr = "";
+        ArcProto [] cons = pp.getBasePort().getConnections();
+        boolean first = true;
+        for(int i=0; i<cons.length; i++)
+        {
+            ArcProto ap = cons[i];
+            if (ap.getTechnology() == Generic.tech()) continue;
+            if (first) descr += " ["; else descr += ",";
+            first = false;
+            descr += cons[i].getName();
+        }
+        if (!first) descr += "]";
+        return descr;
+    }
+
     /**
      * Get a String describing the Highlight, to display in the
      * "Selected" part of the status bar.
@@ -383,8 +401,10 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
             {
                 thePort = (PortInst)eObj;
                 theNode = thePort.getNodeInst();
+                String desc = (theNode.isCellInstance())?addLayerInfo(thePort.getPortProto()):"";
+
                 return "NODE: " + theNode.describe(true) +
-                    " PORT: \'" + thePort.getPortProto().getName() + "\'";
+                    " PORT: \'" + thePort.getPortProto().getName() + "\'" + desc;
             } else if (eObj instanceof NodeInst)
             {
                 theNode = (NodeInst)eObj;
@@ -407,17 +427,7 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
 			if (h.getVarKey() == Export.EXPORT_NAME && h.getElectricObject() instanceof Export)
 			{
 				Export e = (Export)h.getElectricObject();
-				ArcProto [] cons = e.getBasePort().getConnections();
-				boolean first = true;
-				for(int i=0; i<cons.length; i++)
-				{
-					ArcProto ap = cons[i];
-					if (ap.getTechnology() == Generic.tech()) continue;
-					if (first) descr += " ["; else descr += ",";
-					first = false;
-					descr += cons[i].getName();
-				}
-				if (!first) descr += "]";
+                descr += addLayerInfo(e.getOriginalPort().getPortProto());
 			}
         	return descr;
         }

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08g: ******************************
 
+IMP/MAN: (9/12/08, GVG) Export layer information shown on status bar (Bug #1830)
+Same behavior for ports on cells.
+
 BUG: (9/12/08, GVG) Explorer cell group drop on layout will drop a doc if exists (Bug #1842)
 FIX: Detecting doc view and ignoring it.
 
