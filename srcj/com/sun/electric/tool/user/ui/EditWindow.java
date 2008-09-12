@@ -554,10 +554,13 @@ public class EditWindow extends JPanel
 		for(Iterator<Cell> it = group.getCells(); it.hasNext(); )
 		{
 			Cell c = it.next();
-			if (c.getView() == View.ICON)
+            View cV = c.getView();
+            if (cV == View.DOC)
+                continue; // skip document
+            if (cV == View.ICON)
 			{
 				if (cell.getView() == View.SCHEMATIC || cell.getView() == View.ICON) return c;
-			} else if (c.getView() != View.SCHEMATIC)
+			} else if (cV != View.SCHEMATIC)
 			{
 				if (cell.getView() != View.SCHEMATIC && cell.getView() != View.ICON) return c;
 			}
