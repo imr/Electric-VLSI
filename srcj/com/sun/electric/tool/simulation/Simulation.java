@@ -1980,24 +1980,24 @@ public class Simulation extends Tool
 	 */
 	public static boolean isFactorySpiceForceGlobalPwrGnd() { return cacheSpiceForceGlobalPwrGnd.getBooleanFactoryValue(); }
 
-    private static Pref cacheSpiceWritePwrGndInSubcircuit = Pref.makeBooleanPref("cacheSpiceWritePwrGndInSubcircuit", tool.prefs, false);
-//	static { cacheSpiceWritePwrGndInSubcell.attachToObject(tool, "Tools/Spice tab", "Spice writes VDD/GND in subcircuits"); }
+    private static Pref cacheSpiceWritePwrGndInTopCell = Pref.makeBooleanPref("cacheSpiceWritePwrGndInTopCell", tool.prefs, true);
+//	static { cacheSpiceWritePwrGndInInTop.attachToObject(tool, "Tools/Spice tab", "Spice writes VDD/GND in top cell"); }
 	/**
-	 * Method to tell whether or not to write power and ground in Spice sub circuit section.
-	 * The default is false.
-	 * @return true to write power and ground in Spice sub circuit section.
+	 * Method to tell whether or not to write power and ground in Spice top cell section.
+	 * The default is true. True is the default behavoir until now.
+	 * @return true to write power and ground in Spice top cell section.
 	 */
-	public static boolean isSpiceWritePwrGndInSubcircuit() { return cacheSpiceWritePwrGndInSubcircuit.getBoolean(); }
+	public static boolean isSpiceWritePwrGndInTopCell() { return cacheSpiceWritePwrGndInTopCell.getBoolean(); }
 	/**
-	 * Method to set whether or not to write power and ground in Spice sub circuit section.
-	 * @param g true to write power and ground in Spice sub circuit section.
+	 * Method to set whether or not to write power and ground in Spice top cell section.
+	 * @param g true to write power and ground in Spice top cell section.
 	 */
-	public static void setSpiceWritePwrGndInSubcircuit(boolean g) { cacheSpiceWritePwrGndInSubcircuit.setBoolean(g); }
+	public static void setSpiceWritePwrGndInTopCell(boolean g) { cacheSpiceWritePwrGndInTopCell.setBoolean(g); }
 	/**
-	 * Method to tell whether or not to write power and ground in Spice sub circuit section, by default.
-	 * @return true to write power and ground in Spice sub circuit section.
+	 * Method to tell whether or not to write power and ground in Spice top cell section, by default.
+	 * @return true to write power and ground in Spice top cell section.
 	 */
-	public static boolean isFactorySpiceWritePwrGndInSubcircuit() { return cacheSpiceWritePwrGndInSubcircuit.getBooleanFactoryValue(); }
+	public static boolean isFactorySpiceWritePwrGndInTopCell() { return cacheSpiceWritePwrGndInTopCell.getBooleanFactoryValue(); }
 
 
     private static Pref cacheSpiceUseCellParameters = Pref.makeBooleanPref("SpiceUseCellParameters", tool.prefs, false);

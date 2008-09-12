@@ -101,7 +101,7 @@ public class SpiceTab extends PreferencePanel
 
 		spiceUseNodeNames.setSelected(Simulation.isSpiceUseNodeNames());
 		spiceForceGlobalPwrGnd.setSelected(Simulation.isSpiceForceGlobalPwrGnd());
-        spiceWritePwrGndSubcircuit.setSelected(Simulation.isSpiceWritePwrGndInSubcircuit());
+        spiceWritePwrGndSubcircuit.setSelected(Simulation.isSpiceWritePwrGndInTopCell());
         spiceUseCellParameters.setSelected(Simulation.isSpiceUseCellParameters());
 		spiceWriteTransSizesInLambda.setSelected(Simulation.isSpiceWriteTransSizeInLambda());
 		spiceWriteSubcktTopCell.setSelected(Simulation.isSpiceWriteSubcktTopCell());
@@ -226,7 +226,7 @@ public class SpiceTab extends PreferencePanel
 		if (Simulation.isSpiceForceGlobalPwrGnd() != booleanNow) Simulation.setSpiceForceGlobalPwrGnd(booleanNow);
 
         booleanNow = spiceWritePwrGndSubcircuit.isSelected();
-		if (Simulation.isSpiceWritePwrGndInSubcircuit() != booleanNow) Simulation.setSpiceWritePwrGndInSubcircuit(booleanNow);
+		if (Simulation.isSpiceWritePwrGndInTopCell() != booleanNow) Simulation.setSpiceWritePwrGndInTopCell(booleanNow);
 
         booleanNow = spiceUseCellParameters.isSelected();
 		if (Simulation.isSpiceUseCellParameters() != booleanNow) Simulation.setSpiceUseCellParameters(booleanNow);
@@ -317,8 +317,8 @@ public class SpiceTab extends PreferencePanel
 			Simulation.setSpiceUseNodeNames(Simulation.isFactorySpiceUseNodeNames());
 		if (Simulation.isFactorySpiceForceGlobalPwrGnd() != Simulation.isSpiceForceGlobalPwrGnd())
 			Simulation.setSpiceForceGlobalPwrGnd(Simulation.isFactorySpiceForceGlobalPwrGnd());
-        if (Simulation.isFactorySpiceWritePwrGndInSubcircuit() != Simulation.isSpiceWritePwrGndInSubcircuit())
-			Simulation.setSpiceWritePwrGndInSubcircuit(Simulation.isFactorySpiceWritePwrGndInSubcircuit());
+        if (Simulation.isFactorySpiceWritePwrGndInTopCell() != Simulation.isSpiceWritePwrGndInTopCell())
+			Simulation.setSpiceWritePwrGndInTopCell(Simulation.isFactorySpiceWritePwrGndInTopCell());
         if (Simulation.isFactorySpiceUseCellParameters() != Simulation.isSpiceUseCellParameters())
 			Simulation.setSpiceUseCellParameters(Simulation.isFactorySpiceUseCellParameters());
 		if (Simulation.isFactorySpiceWriteTransSizeInLambda() != Simulation.isSpiceWriteTransSizeInLambda())
@@ -861,7 +861,7 @@ public class SpiceTab extends PreferencePanel
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         upperRight.add(spiceForceGlobalPwrGnd, gridBagConstraints);
 
-        spiceWritePwrGndSubcircuit.setText("Write VDD/GND in subcircuits");
+        spiceWritePwrGndSubcircuit.setText("Write VDD/GND in top cell");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;

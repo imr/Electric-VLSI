@@ -606,7 +606,7 @@ public class Spice extends Topology
 		{
 			Nodable no = nIt.next();
 			NodeProto niProto = no.getProto();
-            boolean includePwrVdd = Simulation.isSpiceWritePwrGndInSubcircuit();
+            boolean includePwrVdd = Simulation.isSpiceWritePwrGndInTopCell();
 
             // handle sub-cell calls
 			if (no.isCellInstance())
