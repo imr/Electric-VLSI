@@ -24,6 +24,7 @@
 package com.sun.electric.plugins.j3d.ui;
 
 import com.sun.electric.database.geometry.GenMath;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.plugins.j3d.View3DWindow;
 import com.sun.electric.plugins.j3d.utils.J3DAppearance;
@@ -71,8 +72,9 @@ public class JThreeDTab extends ThreeDTab
 	public Map<Layer,GenMath.MutableDouble> threeDThicknessMap, threeDDistanceMap;
     public Map<Layer,J3DAppearance> transparencyMap;
 	private JThreeDSideView threeDSideView;
+    private Layer polyLayer, gatePolyLayer; // to keep z distance consistent with STI/LOCO modes
 
-	/**
+    /**
 	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the 3D tab.
 	 */
@@ -96,7 +98,15 @@ public class JThreeDTab extends ThreeDTab
 		{
 			if (layer.isPseudoLayer()) continue;
 			threeDLayerModel.addElement(layer.getName());
-			threeDThicknessMap.put(layer, new GenMath.MutableDouble(layer.getThickness()));
+            Layer.Function fun = layer.getFunction();
+
+            // to keep poly layers aligned if STI mode is selected.
+            if (fun.isGatePoly())
+                gatePolyLayer = layer;
+            else if (fun.isPoly())
+                polyLayer = layer;
+
+            threeDThicknessMap.put(layer, new GenMath.MutableDouble(layer.getThickness()));
 			threeDDistanceMap.put(layer, new GenMath.MutableDouble(layer.getDistance()));
             // Get a copy of JAppearance to set values temporarily
             // this function will generate JAppearance if doesn't exist yet
@@ -196,11 +206,29 @@ public class JThreeDTab extends ThreeDTab
         processDataInFields(layer, set);
 	}
 
+
+    /**
+     * Method to correct poly values in case of using STI mode. Field poly
+     * and gate poly should be aligned. Poly cut should also be corrected if that happens.
+     */
+    private void correctPolyValues()
+    {
+        if (gatePolyLayer != null && polyLayer != null &&
+                !DBMath.areEquals(gatePolyLayer.getDistance(), polyLayer.getDistance()))
+        {
+            System.out.println("Poly layer distance must be equals to the gate poly in STI mode.");
+            System.out.println("Poly cut will be aligned so its distance matches the end of the field poly");
+            double h = gatePolyLayer.getDistance();
+            polyLayer.setDistance(h);
+            threeDDistanceMap.get(polyLayer).setValue(h);
+        }
+    }
+
     /**
      * To process data in fields either from layer list or from
      * object picked.
      */
-    public void processDataInFields(Layer layer, boolean set)
+    void processDataInFields(Layer layer, boolean set)
     {
         if (!set) initial3DTextChanging = true;
         else if (initial3DTextChanging) return;

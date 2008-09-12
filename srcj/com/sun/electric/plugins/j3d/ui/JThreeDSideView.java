@@ -27,7 +27,6 @@ package com.sun.electric.plugins.j3d.ui;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.database.geometry.GenMath;
-import com.sun.electric.plugins.j3d.ui.JThreeDTab;
 import com.sun.electric.plugins.j3d.*;
 import com.sun.electric.plugins.j3d.utils.J3DUtils;
 import com.sun.electric.plugins.j3d.utils.J3DAppearance;
@@ -193,9 +192,9 @@ public class JThreeDSideView extends JPanel
             if (layer.isPseudoLayer()) continue;
             //if (!layer.isVisible()) continue;
             double xyFactor = (layer.getFunctionExtras() == Layer.Function.CONMETAL) ? 0.8 : 1;
-            J3DAppearance ap = (J3DAppearance)parentDialog.transparencyMap.get(layer);
-            GenMath.MutableDouble thickness = (GenMath.MutableDouble)parentDialog.threeDThicknessMap.get(layer);
-            GenMath.MutableDouble distance = (GenMath.MutableDouble)parentDialog.threeDDistanceMap.get(layer);
+            J3DAppearance ap = parentDialog.transparencyMap.get(layer);
+            GenMath.MutableDouble thickness = parentDialog.threeDThicknessMap.get(layer);
+            GenMath.MutableDouble distance = parentDialog.threeDDistanceMap.get(layer);
             double dis = distance.doubleValue();
             double thick = thickness.doubleValue();
             Rectangle2D bounds = new Rectangle2D.Double(0, 0, 10*xyFactor, 20*xyFactor);
@@ -236,7 +235,7 @@ public class JThreeDSideView extends JPanel
         }
         shape = layerPolyhedra.get(layer);
         if (shape != null)
-            shape.shape.setAppearance(J3DAppearance.highligtApp);
+            shape.shape.setAppearance(J3DAppearance.highlightApp);
         else
             System.out.println("Shape is null in JThreeDSideView.showLayer");
         currentLayerSelected = layer;
@@ -276,7 +275,7 @@ public class JThreeDSideView extends JPanel
             if (s != null)
             {
                 J3DAppearance app = (J3DAppearance)s.getAppearance();
-                if (app != J3DAppearance.highligtApp)
+                if (app != J3DAppearance.highlightApp)
                 {
                     Layer layer = app.getGraphics().getLayer();
                     parentDialog.threeDLayerList.setSelectedValue(layer.getName(), false);

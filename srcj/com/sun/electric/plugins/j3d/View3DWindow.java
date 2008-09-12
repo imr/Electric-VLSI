@@ -853,9 +853,9 @@ public class View3DWindow extends JPanel
             if (toSelect) // highlight cell, set transparency
 			{
 				//J3DAppearance app = (J3DAppearance)obj.getAppearance();
-				hObj.setAppearance(J3DAppearance.highligtApp);
+				hObj.setAppearance(J3DAppearance.highlightApp);
 				//app.getRenderingAttributes().setVisible(false);
-				//J3DAppearance.highligtApp.setGraphics(app.getGraphics());
+				//J3DAppearance.highlightApp.setGraphics(app.getGraphics());
 				if (view2D != null && do2D)
 				{
 					//Geometry geo = obj.getGeometry();
@@ -874,7 +874,7 @@ public class View3DWindow extends JPanel
 			}
 			else // back to normal
 			{
-				//EGraphics graphics = J3DAppearance.highligtApp.getGraphics();
+				//EGraphics graphics = J3DAppearance.highlightApp.getGraphics();
                 if (hObj.origApp != null)
 				//if (graphics != null)
 				{
@@ -1660,7 +1660,7 @@ public class View3DWindow extends JPanel
         if (result != null && result.getNode(PickResult.SHAPE3D) != null)
         {
 //             Shape3D shape = (Shape3D)result.getNode(PickResult.SHAPE3D);
-             //shape.setAppearance(J3DAppearance.highligtApp);
+             //shape.setAppearance(J3DAppearance.highlightApp);
             for (int i = 0; i < result.numIntersections(); i++)
             {
                 PickIntersection inter = result.getIntersection(i);

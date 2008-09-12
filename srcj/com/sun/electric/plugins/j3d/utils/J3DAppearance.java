@@ -26,8 +26,6 @@
 package com.sun.electric.plugins.j3d.utils;
 
 import com.sun.electric.database.geometry.EGraphics;
-import com.sun.electric.database.geometry.GenMath;
-import com.sun.electric.technology.Layer;
 
 import javax.media.j3d.*;
 import javax.vecmath.Color3f;
@@ -73,7 +71,7 @@ public class J3DAppearance extends Appearance
     private EGraphics graphics; // reference to layer for fast access to appearance
 
 	/** cell has a unique appearance **/    public static J3DAppearance cellApp;
-    /** highligh appearance **/             public static J3DAppearance highligtApp;
+    /** highlight appearance **/            public static J3DAppearance highlightApp;
     /** Appearance for axes */              public static J3DAppearance[] axisApps = new J3DAppearance[3];
 
     public J3DAppearance(J3DAppearance app)
@@ -319,10 +317,10 @@ public class J3DAppearance extends Appearance
     {
         Color userColor = new Color(J3DUtils.get3DColorHighlighted());
 
-        if (highligtApp == null)
-            highligtApp = new J3DAppearance(null, TransparencyAttributes.BLENDED, 0.5f, userColor);
+        if (highlightApp == null)
+            highlightApp = new J3DAppearance(null, TransparencyAttributes.BLENDED, 0.5f, userColor);
         else if (initValue == null) // redoing color only when it was changed in GUI
-            highligtApp.set3DColor(null, userColor);
+            highlightApp.set3DColor(null, userColor);
     }
 
     /**
