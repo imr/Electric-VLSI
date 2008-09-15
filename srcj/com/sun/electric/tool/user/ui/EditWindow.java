@@ -3353,6 +3353,7 @@ public class EditWindow extends JPanel
                 WindowFrame.DisplayAttributes da = new WindowFrame.DisplayAttributes(getScale(), getOffset().getX()+offsetX,
                 	getOffset().getY()+offsetY, new ArrayList<NodeInst>());
 				setCell(parent, VarContext.globalContext, da);
+				fillScreen();
 
 				// highlight instance
 				if (theOne != null)
