@@ -3207,7 +3207,10 @@ public class EditWindow extends JPanel
         if (cell == null) return;
         Cell oldCell = cell;
 
-        // determine which export is selected so it can be shown in the upper level
+        // when display is "in place", focus is implicitly kept, so don't request it here
+		if (inPlaceDisplay) keepFocus = false;
+
+		// determine which export is selected so it can be shown in the upper level
         Export selectedExport = null;
         Set<Network> nets = highlighter.getHighlightedNetworks();
         for(Network net : nets)

@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08g: ******************************
 
+BUG: (9/15/08, SMR) Going up hierarchy "keeping focus" when already
+     descended down the hierarchy "in place" fails (Bug #1814).
+FIX: If descended "in place" ignore "keep focus" when going up.
+
 BUG: (9/15/08, SMR) Going up hierarchy when there is only one choice does
      not redisplay (Bug #1844).
 FIX: In EditWindow.upHierarchy(), must fill screen after setting new cell.
