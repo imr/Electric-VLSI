@@ -24,7 +24,6 @@
 package com.sun.electric.plugins.j3d.ui;
 
 import com.sun.electric.database.geometry.GenMath;
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.plugins.j3d.View3DWindow;
 import com.sun.electric.plugins.j3d.utils.J3DAppearance;
@@ -72,7 +71,6 @@ public class JThreeDTab extends ThreeDTab
 	public Map<Layer,GenMath.MutableDouble> threeDThicknessMap, threeDDistanceMap;
     public Map<Layer,J3DAppearance> transparencyMap;
 	private JThreeDSideView threeDSideView;
-    private Layer polyLayer, gatePolyLayer, polyCutLayer; // to keep z distance consistent with STI/LOCO modes
 
     /**
 	 * Method called at the start of the dialog.
@@ -100,14 +98,6 @@ public class JThreeDTab extends ThreeDTab
 			threeDLayerModel.addElement(layer.getName());
             Layer.Function fun = layer.getFunction();
 
-            // to keep poly layers aligned if STI mode is selected.
-            if (fun.isGatePoly())
-                gatePolyLayer = layer;
-            else if (fun.isPoly())
-                polyLayer = layer;
-            else if (layer.isPolyCutLayer())
-                polyCutLayer = layer;
-
             threeDThicknessMap.put(layer, new GenMath.MutableDouble(layer.getThickness()));
 			threeDDistanceMap.put(layer, new GenMath.MutableDouble(layer.getDistance()));
             // Get a copy of JAppearance to set values temporarily
@@ -119,8 +109,6 @@ public class JThreeDTab extends ThreeDTab
             transparencyMap.put(layer, newApp);
 
 		}
-        // correct field poly if STI mode is in
-        correctPolyValues();
         
         threeDLayerList.setSelectedIndex(0);
 		threeDHeight.getDocument().addDocumentListener(new ThreeDInfoDocumentListener(this));
@@ -151,7 +139,6 @@ public class JThreeDTab extends ThreeDTab
         threeDZoom.setText(TextUtils.formatDouble(J3DUtils.get3DOrigZoom()));
         threeDCellBnd.setSelected(J3DUtils.is3DCellBndOn());
         threeDAxes.setSelected(J3DUtils.is3DAxesOn());
-        threeDTransistor.setSelected(J3DUtils.is3DSTIPolyTransistorOn());
         maxNodeField.setText(String.valueOf(J3DUtils.get3DMaxNumNodes()));
         alphaField.setText(String.valueOf(J3DUtils.get3DAlpha()));
 
@@ -211,30 +198,6 @@ public class JThreeDTab extends ThreeDTab
         processDataInFields(layer, set);
 	}
 
-
-    /**
-     * Method to correct poly values in case of using STI mode. Field poly
-     * and gate poly should be aligned. Poly cut should also be corrected if that happens.
-     */
-    private void correctPolyValues()
-    {
-        if (!J3DUtils.is3DSTIPolyTransistorOn()) return; // nothing to correct
-        if (gatePolyLayer != null && polyLayer != null &&
-                !DBMath.areEquals(gatePolyLayer.getDistance(), polyLayer.getDistance()))
-        {
-            System.out.println("Poly layer distance must be equals to the gate poly in STI mode.");
-            System.out.println("Poly cut will be aligned so its distance matches the end of the field poly");
-            double h = gatePolyLayer.getDistance();
-            polyLayer.setDistance(h);
-            threeDDistanceMap.get(polyLayer).setValue(h);
-            // checking polyCut
-            if (polyCutLayer != null)
-            {
-
-            }
-        }
-    }
-
     /**
      * To process data in fields either from layer list or from
      * object picked.
@@ -255,7 +218,6 @@ public class JThreeDTab extends ThreeDTab
             J3DAppearance.J3DTransparencyOption op = (J3DAppearance.J3DTransparencyOption)transparencyMode.getSelectedItem();
             ta.setTransparencyMode(op.mode);
             app.getRenderingAttributes().setDepthBufferEnable(op.mode != TransparencyAttributes.NONE);
-            correctPolyValues();
             threeDSideView.updateZValues(layer, thickness.doubleValue(), height.doubleValue());
         }
         else
@@ -318,11 +280,6 @@ public class JThreeDTab extends ThreeDTab
 		{
             J3DAppearance.setAxesVisibility(currentBoolean);
 			J3DUtils.set3DAxesOn(currentBoolean);
-		}
-        currentBoolean = threeDTransistor.isSelected();
-		if (currentBoolean != J3DUtils.is3DSTIPolyTransistorOn())
-		{
-			J3DUtils.set3DSTIPolyTransistorOn(currentBoolean);
 		}
 
         double currentValue = TextUtils.atof(scaleField.getText());
@@ -399,8 +356,6 @@ public class JThreeDTab extends ThreeDTab
 			J3DUtils.set3DAntialiasing(J3DUtils.isFactory3DAntialiasing());
 		if (J3DUtils.isFactory3DAxesOn() != J3DUtils.is3DAxesOn())
 			J3DUtils.set3DAxesOn(J3DUtils.isFactory3DAxesOn());
-		if (J3DUtils.isFactory3DSTIPolyTransistorOn() != J3DUtils.is3DSTIPolyTransistorOn())
-			J3DUtils.set3DSTIPolyTransistorOn(J3DUtils.isFactory3DSTIPolyTransistorOn());
 		if (J3DUtils.getFactory3DMaxNumNodes() != J3DUtils.get3DMaxNumNodes())
 			J3DUtils.set3DMaxNumNodes(J3DUtils.getFactory3DMaxNumNodes());
 		if (J3DUtils.getFactory3DAlpha() != J3DUtils.get3DAlpha())
@@ -475,7 +430,6 @@ public class JThreeDTab extends ThreeDTab
         maxNodeField = new javax.swing.JTextField();
         alphaLabel = new javax.swing.JLabel();
         alphaField = new javax.swing.JTextField();
-        threeDTransistor = new javax.swing.JCheckBox();
 
         setTitle("Edit Options");
         setName(""); // NOI18N
@@ -908,17 +862,6 @@ public class JThreeDTab extends ThreeDTab
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         threeD.add(alphaField, gridBagConstraints);
 
-        threeDTransistor.setSelected(true);
-        threeDTransistor.setText("STI shape on transistor poly");
-        threeDTransistor.setToolTipText("Turn on Axes if Java3D plugin is available");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 8;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        threeD.add(threeDTransistor, gridBagConstraints);
-
         getContentPane().add(threeD, new java.awt.GridBagConstraints());
 
         pack();
@@ -966,7 +909,6 @@ public class JThreeDTab extends ThreeDTab
     private javax.swing.JCheckBox threeDPerspective;
     private javax.swing.JLabel threeDTechnology;
     private javax.swing.JTextField threeDThickness;
-    private javax.swing.JCheckBox threeDTransistor;
     private javax.swing.JTextField threeDZoom;
     private javax.swing.JTextField transparancyField;
     private javax.swing.JLabel transparencyLabel;

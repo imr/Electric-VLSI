@@ -291,7 +291,7 @@
         <outlined>NOPAT</outlined>
         <opacity>1.0</opacity>
         <foreground>true</foreground>
-        <display3D thick="1.0" height="14.75" mode="NONE" factor="0.2"/>
+        <display3D thick="1.0" height="13.0" mode="NONE" factor="0.2"/>
         <cifLayer cif="CPG"/>
         <skillLayer skill="poly"/>
         <parasitics resistance="6.2" capacitance="0.1467" edgeCapacitance="0.0608"/>
@@ -552,7 +552,7 @@
         <outlined>NOPAT</outlined>
         <opacity>1.0</opacity>
         <foreground>true</foreground>
-        <display3D thick="0.75" height="15.75" mode="NONE" factor="0.2"/>
+        <display3D thick="2.50" height="14.00" mode="NONE" factor="0.2"/>
         <cifLayer cif="CCC"/>
         <skillLayer skill="pcont"/>
         <parasitics resistance="2.2" capacitance="0.0" edgeCapacitance="0.0"/>

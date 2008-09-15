@@ -228,23 +228,6 @@ public final class J3DUtils
     public static boolean isFactory3DAxesOn() { return cache3DAxes.getBooleanFactoryValue(); }
 
     /**
-	 * Method to tell whether to draw transistor poly with a STI shape.
-	 * The default is "true".
-	 * @return true to draw a STI shape in transistor poly
-	 */
-	public static boolean is3DSTIPolyTransistorOn() { return cache3DPolyShape.getBoolean(); }
-	/**
-	 * Method to set whether to draw transistor poly with a STI shape.
-	 * @param on true to draw a STI shape in transistor poly.
-	 */
-	public static void set3DSTIPolyTransistorOn(boolean on) { cache3DPolyShape.setBoolean(on); }
-    /**
-	 * Method to tell whether to draw transistor poly with a STI shape, by default.
-	 * @return true to draw a STI shape in transistor poly, by default.
-	 */
-	public static boolean isFactory3DSTIPolyTransistorOn() { return cache3DPolyShape.getBooleanFactoryValue(); }
-
-    /**
 	 * Method to tell whether to draw bounding box for the cells.
 	 * The default is "true".
 	 * @return true to draw bounding box for the cells.

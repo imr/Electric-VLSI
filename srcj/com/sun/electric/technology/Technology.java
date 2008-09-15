@@ -2449,15 +2449,21 @@ public class Technology implements Comparable<Technology>, Serializable
 	/**
 	 * Method to find the Layer in this Technology that matches a function description.
 	 * @param fun the layer function to locate.
-	 * @return the Layer that matches this description (null if not found).
+	 * @param functionExtras
+     * @return the Layer that matches this description (null if not found).
 	 */
-	public Layer findLayerFromFunction(Layer.Function fun)
+	public Layer findLayerFromFunction(Layer.Function fun, int functionExtras)
 	{
 		for(Iterator<Layer> it = this.getLayers(); it.hasNext(); )
 		{
 			Layer lay = it.next();
 			Layer.Function lFun = lay.getFunction();
-			if (lFun == fun) return lay;
+			if (lFun == fun)
+            {
+                // Nothing extra to look for or it really matches
+                if (functionExtras == -1 || functionExtras == lay.getFunctionExtras())
+                    return lay;
+            }
 		}
 		return null;
 	}

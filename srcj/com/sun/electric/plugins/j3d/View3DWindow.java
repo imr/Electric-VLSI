@@ -25,6 +25,7 @@
 package com.sun.electric.plugins.j3d;
 
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
@@ -133,6 +134,7 @@ public class View3DWindow extends JPanel
     /** To ask question only once */                        private boolean alreadyChecked = false;
     /** Job reference */                                    private Job job;
     /** Reference to limit to consider scene graph big */   private int maxNumNodes;
+    /** To consider a locos shape if field and gate polys are not alignedg */   private boolean locosShape;
 
     /** Inner class to create 3D view in a job. This should be safer in terms of the number of nodes
      * and be able to stop it
@@ -438,7 +440,7 @@ public class View3DWindow extends JPanel
 		// Background
         J3DUtils.createBackground(objRoot);
 
-		View3DEnumerator view3D = new View3DEnumerator();
+        View3DEnumerator view3D = new View3DEnumerator(cell);
         
         HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, view3D);
 //		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, null, view3D);
@@ -636,7 +638,6 @@ public class View3DWindow extends JPanel
             {
                 int[] active = new int[2];
                 boxList = new ArrayList<Shape3D>(4);
-                List<Poly> toChange = new ArrayList<Poly>();
 
                 // Merge active regions
                 for (int i = 0; i < polys.length; i++)
@@ -653,19 +654,7 @@ public class View3DWindow extends JPanel
                     else if (fun.isGatePoly())
                         gate = i;
                     else if (fun.isPoly())
-                    {
                         poly = i;
-                        toChange.add(polys[i]);
-                    }
-                }
-                // if STI shape is selected, gate poly will be used in non-gate polys
-                // so the Z values will be identical
-                if (J3DUtils.is3DSTIPolyTransistorOn())
-                {
-                    for (Poly p : toChange)
-                    {
-                        p.setLayer(polys[gate].getLayer());
-                    }
                 }
 
                 if (count == 2)
@@ -689,7 +678,7 @@ public class View3DWindow extends JPanel
 			list = addPolys(polys, transform, objTrans);
 
 			// Adding extra layers after polygons are rotated.
-            if (!J3DUtils.is3DSTIPolyTransistorOn() && nProto.getFunction().isTransistor() && gate != -1 && poly != -1)
+            if (locosShape && nProto.getFunction().isTransistor() && gate != -1 && poly != -1)
             {
 				Point3d [] pts = new Point3d[8];
 	            Point2D[] points = polys[gate].getPoints();
@@ -1332,9 +1321,18 @@ public class View3DWindow extends JPanel
      *****************************************************************************/
 	private class View3DEnumerator extends HierarchyEnumerator.Visitor
     {
-		public View3DEnumerator()
+        public View3DEnumerator(Cell cell)
 		{
-		}
+            // Checking if field poly and gate poly are not aligned.
+            // If not, the extra polyhedra are generated to build like a LoCos shape
+            Technology tech = cell.getTechnology();
+            Layer poly = tech.findLayerFromFunction(Layer.Function.POLY1, -1);
+            Layer gate = tech.findLayerFromFunction(Layer.Function.GATE, -1);
+            if (poly != null && gate != null && !DBMath.areEquals(poly.getDistance(), gate.getDistance()))
+            {
+                locosShape = true;
+            }
+        }
 
 		/**
 		 */
