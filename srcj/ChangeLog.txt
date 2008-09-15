@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08g: ******************************
 
+IMP: (09/15/08, FYL) Added exclusion of .nfs* in build.xml
+
 IMP/MAN: (9/12/08, GVG) Export layer information shown on status bar (Bug #1830)
 Same behavior for ports on cells.
 
