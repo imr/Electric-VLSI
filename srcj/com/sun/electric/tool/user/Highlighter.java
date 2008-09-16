@@ -1956,7 +1956,7 @@ public class Highlighter implements DatabaseChangeListener {
 			// special case for MOS transistors: examine the gate/active tabs
             // special case for RESIST in layout  (fun == PrimitiveNode.Function.RESIST and PrimitiveNode.POLYGONAL
 			PrimitiveNode.Function fun = np.getFunction();
-			if (fun == PrimitiveNode.Function.TRANMOS || fun == PrimitiveNode.Function.TRAPMOS || fun == PrimitiveNode.Function.TRADMOS ||
+			if (fun.isFET() ||
                 (!ni.isCellInstance() && fun.isResistor() && ((PrimitiveNode)np).getSpecialType() == PrimitiveNode.POLYGONAL))
 			{
 				Technology tech = np.getTechnology();
