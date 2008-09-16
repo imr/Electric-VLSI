@@ -313,20 +313,40 @@ class LayerDrawing
         public double getGlobalTextScale() { return wnd.getGlobalTextScale(); }
     };
 
+    private static class DrawingData {
+        private final LayerDrawing offscreen;
+        private final int width;
+        private final int height;
+        private final int numIntsPerRow;
+        private final boolean patternedDisplay;
+        /** the map from layers to layer bitmaps */             private final Map<Layer,TransparentRaster> layerRasters;
+        private final GreekTextInfo[] greekText;
+        private final RenderTextInfo[] renderText;
+        private final CrossTextInfo[] crossText;
+        
+        DrawingData(LayerDrawing offscreen) {
+            this.offscreen = offscreen;
+            width = offscreen.sz.width;
+            height = offscreen.sz.height;
+            numIntsPerRow = offscreen.numIntsPerRow;
+            patternedDisplay = offscreen.patternedDisplay;
+            layerRasters = new HashMap<Layer,TransparentRaster>(offscreen.layerRasters);
+            greekText = offscreen.greekTextList.toArray(new GreekTextInfo[offscreen.greekTextList.size()]);
+            crossText = offscreen.crossTextList.toArray(new CrossTextInfo[offscreen.crossTextList.size()]);
+            renderText = offscreen.renderTextList.toArray(new RenderTextInfo[offscreen.renderTextList.size()]);
+        }
+    }
+    
     static class Drawing extends AbstractDrawing {
         private static final int SMALL_IMG_HEIGHT = 2;
         /** the offscreen opaque image of the window */ private VolatileImage vImg;
         private BufferedImage smallImg;
         private int[] smallOpaqueData;
-        private volatile LayerDrawing offscreen;
         /** alpha blender of layer maps */                      private final AlphaBlender alphaBlender = new AlphaBlender();
 
         // The following fields are produced by "render" method in Job thread.
         private volatile boolean needComposite;
-        /** the map from layers to layer bitmaps */             private volatile Map<Layer,TransparentRaster> layerRasters = new HashMap<Layer,TransparentRaster>();
-        private volatile GreekTextInfo[] greekText = {};
-        private volatile RenderTextInfo[] renderText = {};
-        private volatile CrossTextInfo[] crossText = {};
+        private volatile DrawingData drawingData;
 
         Drawing(EditWindow wnd) {
             super(wnd);
@@ -339,8 +359,8 @@ class LayerDrawing
         public boolean paintComponent(Graphics2D g, Dimension sz) {
             assert SwingUtilities.isEventDispatchThread();
             assert sz.equals(wnd.getSize());
-            LayerDrawing offscreen_ = this.offscreen;
-            if (offscreen_ == null || !offscreen_.getSize().equals(sz))
+            DrawingData drawingData = this.drawingData;
+            if (drawingData == null || !drawingData.offscreen.getSize().equals(sz))
                 return false;
 
             if (vImg == null || vImg.getWidth() != sz.width || vImg.getHeight() != sz.height) {
@@ -363,14 +383,14 @@ class LayerDrawing
                 int returnCode = vImg.validate(wnd.getGraphicsConfiguration());
                 if (returnCode == VolatileImage.IMAGE_RESTORED) {
                     // Contents need to be restored
-                    renderOffscreen(offscreen_);	    // restore contents
+                    renderOffscreen(drawingData);	    // restore contents
                 } else if (returnCode == VolatileImage.IMAGE_INCOMPATIBLE) {
                     // old vImg doesn't work with new GraphicsConfig; re-create it
                     vImg.flush();
                     vImg = wnd.createVolatileImage(sz.width, sz.height);
-                    renderOffscreen(offscreen_);
+                    renderOffscreen(drawingData);
                 } else if (needComposite) {
-                    renderOffscreen(offscreen_);
+                    renderOffscreen(drawingData);
                 }
                 g.drawImage(vImg, 0, 0, wnd);
             } while (vImg.contentsLost());
@@ -381,19 +401,19 @@ class LayerDrawing
         /**
          * This method is called from AWT thread.
          */
-        private void renderOffscreen(LayerDrawing offscreen) {
+        private void renderOffscreen(DrawingData dd) {
             needComposite = false;
             do {
                 if (vImg.validate(wnd.getGraphicsConfiguration()) == VolatileImage.IMAGE_INCOMPATIBLE) {
                     // old vImg doesn't work with new GraphicsConfig; re-create it
-                    vImg = wnd.createVolatileImage(offscreen.sz.width, offscreen.sz.height);
+                    vImg = wnd.createVolatileImage(dd.width, dd.height);
                 }
                 long startTime = System.currentTimeMillis();
                 Graphics2D g = vImg.createGraphics();
                 if (User.isLegacyComposite())
-                    legacyLayerComposite(g, offscreen);
+                    legacyLayerComposite(g, dd);
                 else
-                    layerComposite(g, offscreen);
+                    layerComposite(g, dd);
 //                if (alphaBlendingComposite) {
 //                    boolean TRY_OVERBLEND = false;
 //                    if (TRY_OVERBLEND) {
@@ -405,18 +425,18 @@ class LayerDrawing
 //                    layerCompositeCompatable(g);
 //                }
                 long compositeTime = System.currentTimeMillis();
-                for (GreekTextInfo greekInfo: greekText)
+                for (GreekTextInfo greekInfo: dd.greekText)
                     greekInfo.draw(g);
-                for (CrossTextInfo crossInfo: crossText)
+                for (CrossTextInfo crossInfo: dd.crossText)
                     crossInfo.draw(g);
                 g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-                for (RenderTextInfo textInfo: renderText)
+                for (RenderTextInfo textInfo: dd.renderText)
                     textInfo.draw(g);
                 g.dispose();
                 if (TAKE_STATS) {
                     long endTime = System.currentTimeMillis();
                     System.out.println((alphaBlendingOvercolor ? "alphaBlendingOvercolor took " : "alphaBlending took ")
-                    + (compositeTime - startTime) + " msec, textRendering " + renderText.length + "+" + greekText.length + "+" + crossText.length + " took " + (endTime - compositeTime) + " msec");
+                    + (compositeTime - startTime) + " msec, textRendering " + dd.renderText.length + "+" + dd.greekText.length + "+" + dd.crossText.length + " took " + (endTime - compositeTime) + " msec");
                 }
             } while (vImg.contentsLost());
         }
@@ -430,11 +450,11 @@ class LayerDrawing
         @Override
         public boolean hasOpacity() { return true; }
 
-        private void layerComposite(Graphics2D g, LayerDrawing offscreen) {
+        private void layerComposite(Graphics2D g, DrawingData dd) {
             Map<Layer,int[]> layerBits = new HashMap<Layer,int[]>();
-            for (Map.Entry<Layer,TransparentRaster> e: layerRasters.entrySet())
+            for (Map.Entry<Layer,TransparentRaster> e: dd.layerRasters.entrySet())
                 layerBits.put(e.getKey(), e.getValue().layerBitMap);
-            List<AbstractDrawing.LayerColor> blendingOrder = wnd.getBlendingOrder(layerBits.keySet(), offscreen.patternedDisplay, alphaBlendingOvercolor);
+            List<AbstractDrawing.LayerColor> blendingOrder = wnd.getBlendingOrder(layerBits.keySet(), dd.patternedDisplay, alphaBlendingOvercolor);
             if (TAKE_STATS) {
                 System.out.print("BlendingOrder:");
                 for (AbstractDrawing.LayerColor lc: blendingOrder) {
@@ -445,9 +465,9 @@ class LayerDrawing
             }
             alphaBlender.init(User.getColor(User.ColorPrefType.BACKGROUND), blendingOrder, layerBits);
 
-            int width = offscreen.sz.width;
-            int height = offscreen.sz.height, clipLY = 0, clipHY = height - 1;
-            int numIntsPerRow = offscreen.numIntsPerRow;
+            int width = dd.width;
+            int height = dd.height, clipLY = 0, clipHY = height - 1;
+            int numIntsPerRow = dd.numIntsPerRow;
             int baseByteIndex = 0;
             int y = 0;
             while (y < height) {
@@ -468,12 +488,12 @@ class LayerDrawing
          * This is called after all rendering is done.
          * @return the offscreen Image with the final display.
          */
-        private void legacyLayerComposite(Graphics2D g, LayerDrawing offscreen) {
-            wnd.getBlendingOrder(layerRasters.keySet(), false, false);
+        private void legacyLayerComposite(Graphics2D g, DrawingData dd) {
+            wnd.getBlendingOrder(dd.layerRasters.keySet(), false, false);
 
             Technology curTech = Technology.getCurrent();
             if (curTech == null) {
-                for (Layer layer: layerRasters.keySet()) {
+                for (Layer layer: dd.layerRasters.keySet()) {
                     int transparentDepth = layer.getGraphics().getTransparentLayer();
                     if (transparentDepth != 0 && layer.getTechnology() != null)
                         curTech = layer.getTechnology();
@@ -520,9 +540,9 @@ class LayerDrawing
                         }
                     }
                     if (dimThisEntry) {
-                        newColorMap[i] = new Color(offscreen.dimColor(colorMap[i].getRGB()));
+                        newColorMap[i] = new Color(dd.offscreen.dimColor(colorMap[i].getRGB()));
                     } else {
-                        newColorMap[i] = new Color(offscreen.brightenColor(colorMap[i].getRGB()));
+                        newColorMap[i] = new Color(dd.offscreen.brightenColor(colorMap[i].getRGB()));
                     }
                 }
                 colorMap = newColorMap;
@@ -530,7 +550,7 @@ class LayerDrawing
 
             int numTransparent = 0, numOpaque = 0;
             int deepestTransparentDepth = 0;
-            for (Layer layer: layerRasters.keySet()) {
+            for (Layer layer: dd.layerRasters.keySet()) {
                 if (!layer.isVisible()) continue;
                 if (layer.getGraphics().getTransparentLayer() == 0) {
                     numOpaque++;
@@ -544,7 +564,7 @@ class LayerDrawing
             int[] opaqueCols = new int[numOpaque];
 
             numTransparent = numOpaque = 0;
-            for (Map.Entry<Layer,TransparentRaster> e: layerRasters.entrySet()) {
+            for (Map.Entry<Layer,TransparentRaster> e: dd.layerRasters.entrySet()) {
                 Layer layer = e.getKey();
                 if (!layer.isVisible()) continue;
                 TransparentRaster raster = e.getValue();
@@ -553,21 +573,20 @@ class LayerDrawing
                     transparentMasks[numTransparent] = (1 << (transparentNum - 1)) & (colorMap.length - 1);
                     transparentRasters[numTransparent++] = raster;
                 } else {
-                    opaqueCols[numOpaque] = offscreen.getTheColor(layer.getGraphics(), layer.isDimmed());
+                    opaqueCols[numOpaque] = dd.offscreen.getTheColor(layer.getGraphics(), layer.isDimmed());
                     opaqueRasters[numOpaque++] = raster;
                 }
             }
 
             // determine range
-            Dimension sz = offscreen.sz;
-            int numIntsPerRow = offscreen.numIntsPerRow;
+            int numIntsPerRow = dd.numIntsPerRow;
             int backgroundColor = User.getColor(User.ColorPrefType.BACKGROUND) & 0xFFFFFF;
-            int lx = 0, hx = sz.width-1;
-            int ly = 0, hy = sz.height-1;
+            int lx = 0, hx = dd.width-1;
+            int ly = 0, hy = dd.height-1;
 
             for(int y=ly; y<=hy; y++) {
                 int baseByteIndex = y*numIntsPerRow;
-                int baseIndex = y * sz.width;
+//                int baseIndex = y * dd.width;
                 for(int x=0; x<=hx; x++) {
                     int entry = baseByteIndex + (x>>5);
                     int maskBit = 1 << (x & 31);
@@ -593,107 +612,21 @@ class LayerDrawing
             }
         }
 
-//        private void layerCompositeSlow(Graphics2D g) {
-//            Map<Layer,int[]> layerBits = new HashMap<Layer,int[]>();
-//            for (Map.Entry<Layer,TransparentRaster> e: layerRasters.entrySet())
-//                layerBits.put(e.getKey(), e.getValue().layerBitMap);
-//            List<EditWindow.LayerColor> blendingOrder = wnd.getBlendingOrder(layerBits.keySet(), true);
-//            if (TAKE_STATS) {
-//                System.out.print("BlendingOrder:");
-//                for (EditWindow.LayerColor lc: blendingOrder) {
-//                    int alpha = lc.color.getAlpha();
-//                    System.out.print(" " + lc.layer.getName() + ":" + (alpha * 100 / 255));
-//                }
-//                System.out.println();
-//            }
-//
-//            Color background = new Color(User.getColor(User.ColorPrefType.BACKGROUND) | 0xFF000000);
-//            float[] backgroundComponents = background.getColorComponents(null);
-//            float backRed = backgroundComponents[0];
-//            float backGreen = backgroundComponents[1];
-//            float backBlue = backgroundComponents[2];
-//            float[] components = new float[4];
-//            TransparentRaster[] rasters = new TransparentRaster[blendingOrder.size()];
-//            for (int i = 0; i < blendingOrder.size(); i++) {
-//                EditWindow.LayerColor lc = blendingOrder.get(i);
-//                rasters[i] = layerRasters.get(lc.layer);
-//            }
-//            int width = offscreen.sz.width;
-//            int height = offscreen.sz.height, clipLY = 0, clipHY = height - 1;
-//            int numIntsPerRow = offscreen.numIntsPerRow;
-//            int baseIndex = clipLY*width, baseByteIndex = clipLY*numIntsPerRow;
-//            for (int y = 0; y < height; y++) {
-//                for (int x = 0; x < width; x++) {
-//                    float red = backRed;
-//                    float green = backGreen;
-//                    float blue = backBlue;
-//                    boolean hasSomething = false;
-//                    int entry = baseByteIndex + (x>>5);
-//                    int maskBit = 1 << (x & 31);
-//                    for (int i = 0; i < blendingOrder.size(); i++) {
-//                        if ((rasters[i].layerBitMap[entry] & maskBit) == 0) continue;
-//                        EditWindow.LayerColor lc = blendingOrder.get(i);
-//                        lc.color.getComponents(components);
-//                        float alpha = components[3];
-//                        if (alpha == 0.0) continue;
-//                        if (true) {
-//                            red = (red - backRed)*(1 - alpha) + components[0];
-//                            green = (green - backGreen)*(1 - alpha) + components[1];
-//                            blue = (blue - backBlue)*(1 - alpha) + components[2];
-//                        } else {
-//                            red = red*(1 - alpha) + components[0]*alpha;
-//                            green = green*(1 - alpha) + components[1]*alpha;
-//                            blue = blue*(1 - alpha) + components[2]*alpha;
-//                        }
-//                    }
-//                    if (red < 0f || red > 1f || green < 0f || green > 1f || blue < 0f || blue > 1f) {
-//                        int OVERBLEND_MODE = 2;
-//                        switch (OVERBLEND_MODE) {
-//                            case 0:
-//                                // highlight in white
-//                                red = green = blue = 1f;
-//                                break;
-//                            case 1:
-//                                // clip RGB components
-//                                red = Math.min(Math.max(red, 0f), 1f);
-//                                green = Math.min(Math.max(green, 0f), 1f);
-//                                blue = Math.min(Math.max(blue, 0f), 1f);
-//                                break;
-//                            case 2:
-//                                // decrease brightness
-//                                float max = Math.max(Math.max(red, green), blue);
-//                                float dec = max - 1f;
-//                                red = Math.max(red - dec, 0f);
-//                                green = Math.max(green - dec, 0f);
-//                                blue = Math.max(blue - dec, 0f);
-//                                break;
-//                        }
-//                    }
-//                    Color c = new Color(red, green, blue);
-//                    smallOpaqueData[x] = c.getRGB() | 0xFF000000;
-//                }
-//                g.drawImage(smallImg, 0, y, null);
-//                baseByteIndex += numIntsPerRow;
-//                baseIndex += width;
-//            }
-//        }
-
         /**
          * This method is called from Job thread.
          */
         @Override
         public void render(Dimension sz, WindowFrame.DisplayAttributes da, boolean fullInstantiate, Rectangle2D bounds) {
-            LayerDrawing offscreen_ = this.offscreen;
-            if (offscreen_ == null || !offscreen_.getSize().equals(sz))
-                this.offscreen = offscreen_ = new LayerDrawing(sz);
+            LayerDrawing offscreen = null;
+            if (drawingData != null && drawingData.offscreen.getSize().equals(sz))
+                offscreen = drawingData.offscreen;
+            if (offscreen == null)
+                offscreen = new LayerDrawing(sz);
             this.da = da;
 //            updateScaleAndOffset();
-            offscreen_.drawImage(this, fullInstantiate, bounds);
+            offscreen.drawImage(this, fullInstantiate, bounds);
             needComposite = true;
-            layerRasters = new HashMap<Layer,TransparentRaster>(offscreen_.layerRasters);
-            greekText = offscreen_.greekTextList.toArray(new GreekTextInfo[offscreen.greekTextList.size()]);
-            crossText = offscreen_.crossTextList.toArray(new CrossTextInfo[offscreen.crossTextList.size()]);
-            renderText = offscreen_.renderTextList.toArray(new RenderTextInfo[offscreen.renderTextList.size()]);
+            drawingData = new DrawingData(offscreen);
         }
 
         private static boolean joglChecked = false;
@@ -733,8 +666,7 @@ class LayerDrawing
                         boxes[i*4 + 2] = x + 10;
                         boxes[i*4 + 3] = y + 10;
                     }
-                    joglShowLayerMethod.invoke(layerDrawerClass, new Object[] {offscreen.sz, boxes, 1.0, 0.0, 0.0});
-//                joglShowLayerMethod.invoke(layerDrawerClass, new Object[] {offscreen.sz, boxes, offscreen.scale, wnd.getOffset().getX(), wnd.getOffset().getY()});
+//                    joglShowLayerMethod.invoke(layerDrawerClass, new Object[] {offscreen___.sz, boxes, 1.0, 0.0, 0.0});
                 } catch (Exception e) {
                     System.out.println("Unable to run the LayerDrawer input module (" + e.getClass() + ")");
                     e.printStackTrace(System.out);
