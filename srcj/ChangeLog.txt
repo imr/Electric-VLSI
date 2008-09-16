@@ -2,6 +2,8 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.08h: ******************************
+
 ************************* Version 8.08g: ******************************
 
 BUG: (9/15/08, SMR) Saved toolbar configuration may have errors (Bug #1851).
