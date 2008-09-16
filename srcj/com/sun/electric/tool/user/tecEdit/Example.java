@@ -25,9 +25,10 @@
  */
 package com.sun.electric.tool.user.tecEdit;
 
-import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.RTBounds;
 import com.sun.electric.technology.technologies.Generic;
@@ -38,6 +39,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * This class defines graphical node and arc examples during conversion of libraries to technologies.
@@ -48,6 +50,11 @@ public class Example implements Serializable
 	/** sample under analysis */				Sample       studySample;
 	/** bounding box of example */				double       lx, hx, ly, hy;
 
+	public Example()
+	{
+		samples = new ArrayList<Sample>();
+	}
+
 	/**
 	 * Method to parse the node examples in cell "np" and return a list of
 	 * EXAMPLEs (one per example).  "isNode" is true if this is a node
@@ -55,7 +62,7 @@ public class Example implements Serializable
 	 */
 	public static List<Example> getExamples(Cell np, boolean isNode, TechConversionResult tcr)
 	{
-		HashMap<NodeInst,Object> nodeExamples = new HashMap<NodeInst,Object>();
+		Map<NodeInst,Object> nodeExamples = new HashMap<NodeInst,Object>();
 		for(Iterator<NodeInst> it = np.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = it.next();
@@ -76,14 +83,10 @@ public class Example implements Serializable
 
 			// get a new cluster of nodes
 			Example ne = new Example();
-			ne.samples = new ArrayList<Sample>();
 			neList.add(ne);
 
-//			SizeOffset so = ni.getSizeOffset();
 			Poly poly = new Poly(ni.getAnchorCenterX(), ni.getAnchorCenterY(),
 				ni.getLambdaBaseXSize(), ni.getLambdaBaseYSize());
-//				ni.getXSize() - so.getLowXOffset() - so.getHighXOffset(),
-//				ni.getYSize() - so.getLowYOffset() - so.getHighYOffset());
 			poly.transform(ni.rotateOut());
 			Rectangle2D soFar = poly.getBounds2D();
 
@@ -106,11 +109,8 @@ public class Example implements Serializable
                 }
 				for(NodeInst otherNi: sortedNodes)
 				{
-//					SizeOffset oSo = otherNi.getSizeOffset();
 					Poly oPoly = new Poly(otherNi.getAnchorCenterX(), otherNi.getAnchorCenterY(),
 						otherNi.getLambdaBaseXSize(), otherNi.getLambdaBaseYSize());
-//						otherNi.getXSize() - oSo.getLowXOffset() - oSo.getHighXOffset(),
-//						otherNi.getYSize() - oSo.getLowYOffset() - oSo.getHighYOffset());
 					oPoly.transform(otherNi.rotateOut());
 					Rectangle2D otherRect = oPoly.getBounds2D();
 					if (!DBMath.rectsIntersect(otherRect, soFar)) continue;
@@ -121,11 +121,16 @@ public class Example implements Serializable
 					{
 						if (otherAssn instanceof Integer) continue;
 						if ((Example)otherAssn == ne) continue;
-						tcr.markError(otherNi, np, "Examples are too close");
+						String error = "Examples are too close.  Found " + neList.size() + " examples at:";
+						for(Example nee : neList)
+						{
+							error += " [" + TextUtils.formatDouble(nee.lx) + "<=X<=" + TextUtils.formatDouble(nee.hx) +
+								" and " + TextUtils.formatDouble(nee.ly) + "<=Y<=" + TextUtils.formatDouble(nee.hy) + "]";
+						}
+						tcr.markError(otherNi, np, error);
 						return null;
 					}
 					nodeExamples.put(otherNi, ne);
-
 					// add it to the cluster
 					Sample ns = new Sample();
 					ns.node = otherNi;

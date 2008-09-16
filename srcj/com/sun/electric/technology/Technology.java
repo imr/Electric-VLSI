@@ -1359,9 +1359,24 @@ public class Technology implements Comparable<Technology>, Serializable
             PrimitivePort[] ports = new PrimitivePort[n.ports.size()];
             for (int i = 0; i < ports.length; i++) {
                 Xml.PrimitivePort p = n.ports.get(i);
-                if (p.lx.value > p.hx.value || p.lx.k > p.hx.k ||
-                        p.ly.value > p.hy.value || p.ly.k > p.hy.k)
-                    System.out.println("Strange polygon in " + getTechName() + ":" + n.name + ":" + p.name);
+                if (p.lx.value > p.hx.value || p.lx.k > p.hx.k || p.ly.value > p.hy.value || p.ly.k > p.hy.k)
+                {
+                	double lX = p.lx.value - fullSize.getLambdaX()*p.lx.k;
+                	double hX = p.hx.value - fullSize.getLambdaX()*p.hx.k;
+                	double lY = p.ly.value - fullSize.getLambdaY()*p.ly.k;
+                	double hY = p.hy.value - fullSize.getLambdaY()*p.hy.k;
+                    String explain = " (LX=" + TextUtils.formatDouble(p.lx.k/2) + "W";
+                    if (lX >= 0) explain += "+";
+                    explain += TextUtils.formatDouble(lX) + ", HX=" + TextUtils.formatDouble(p.hx.k/2) + "W";
+                    if (hX >= 0) explain += "+";
+                    explain += TextUtils.formatDouble(hX) + ", LY=" + TextUtils.formatDouble(p.ly.k/2) + "H";
+                    if (lY >= 0) explain += "+";
+                    explain += TextUtils.formatDouble(lY) + ", HY=" + TextUtils.formatDouble(p.hy.k/2) + "H";
+                    if (hY >= 0) explain += "+";
+                    explain += TextUtils.formatDouble(hY);
+                    explain += " but size is " + fullSize.getLambdaX()*2 + "x" + fullSize.getLambdaY()*2 + ")";
+                    System.out.println("Warning: port " + p.name + " in primitive " + getTechName() + ":" + n.name + " has negative size" + explain);
+                }
                 EdgeH elx = makeEdgeH(p.lx, context, fullSize);
                 EdgeH ehx = makeEdgeH(p.hx, context, fullSize);
                 EdgeV ely = makeEdgeV(p.ly, context, fullSize);

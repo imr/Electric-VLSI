@@ -4,9 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08h: ******************************
 
+BUG: (9/16/08, SMR) Technology editor computes port sizes incorrectly (Bug #1854).
+FIX: In LibToTech.getBoundingBox(), used incorrect bounding computation.
+
 ************************* Version 8.08g: ******************************
 
-BUG: (9/15/08, SMR) Saved toolbar configuration may have errors (Bug #1851).
+BUG: (9/16/08, SMR) Saved toolbar configuration may have errors (Bug #1851).
 FIX: When errors are found, factory-reset the toolbar.
 
 IMP: (9/16/08, GVG) Disable grid buttons on the tool bar if min/max has been reached (Bug #1847)
