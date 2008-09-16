@@ -30,7 +30,6 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Client;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Highlight2;
@@ -72,7 +71,6 @@ import javax.swing.AbstractButton;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JRadioButtonMenuItem;
@@ -940,11 +938,27 @@ public class ToolBar extends JToolBar
 
 	private static final EToolBarButton gridLarger = new EToolBarButton("Make Grid Larger",
 		KeyStroke.getKeyStroke('F', 0), "ButtonGridCoarser", "Edit:Modes:Movement")
-			{ public void run() { changeGridSize(true); } };
+    {
+        public void run() { changeGridSize(true); }
+        public boolean isEnabled()
+        {
+		    double[] vals = User.getAlignmentToGridVector();
+            int index = findSelectedGridSize(vals);
+            return (index != 0); // most right
+        }
+    };
 
 	private static final EToolBarButton gridSmaller = new EToolBarButton("Make Grid Smaller",
 		KeyStroke.getKeyStroke('H', 0), "ButtonGridFiner", "Edit:Modes:Movement")
-			{ public void run() { changeGridSize(false); } };
+    {
+        public void run() { changeGridSize(false); }
+        public boolean isEnabled()
+        {
+		    double[] vals = User.getAlignmentToGridVector();
+            int index = findSelectedGridSize(vals);
+            return (index != vals.length - 1); // most right
+        }
+    };
 
 	private static void changeGridSize(int size)
 	{
@@ -960,36 +974,46 @@ public class ToolBar extends JToolBar
 		rewriteGridDistance();
 	}
 
-	private static void changeGridSize(boolean larger)
-	{
-		double[] vals = User.getAlignmentToGridVector();
+    /**
+     * Method to find the index of the current active grid size (negative value)
+     */
+    private static int findSelectedGridSize(double[] vals)
+    {
 		for (int i = 0; i < vals.length; i++)
 		{
 			if (vals[i] < 0)
 			{
-				if (larger)
-				{
-					if (i > 0)
-					{
-						vals[i] = Math.abs(vals[i]);
-						vals[i-1] = -Math.abs(vals[i-1]);
-						User.setAlignmentToGridVector(vals);
-						rewriteGridDistance();
-						break;
-					}
-				} else
-				{
-					if (i < vals.length-1)
-					{
-						vals[i] = Math.abs(vals[i]);
-						vals[i+1] = -Math.abs(vals[i+1]);
-						User.setAlignmentToGridVector(vals);
-						rewriteGridDistance();
-						break;
-					}
-				}
-			}
+                return i;
+            }
 		}
+        assert(false); // should not reach this point
+        return -1;
+    }
+
+    private static void changeGridSize(boolean larger)
+	{
+		double[] vals = User.getAlignmentToGridVector();
+        int i = findSelectedGridSize(vals);
+
+        if (larger)
+        {
+            if (i > 0)
+            {
+                vals[i] = Math.abs(vals[i]);
+                vals[i-1] = -Math.abs(vals[i-1]);
+                User.setAlignmentToGridVector(vals);
+                rewriteGridDistance();
+            }
+        } else
+        {
+            if (i < vals.length-1)
+            {
+                vals[i] = Math.abs(vals[i]);
+                vals[i+1] = -Math.abs(vals[i+1]);
+                User.setAlignmentToGridVector(vals);
+                rewriteGridDistance();
+            }
+        }
 	}
 
 	// --------------------------- SelectMode staff ---------------------------------------------------------

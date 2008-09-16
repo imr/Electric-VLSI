@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08g: ******************************
 
+IMP: (9/16/08, GVG) Disable grid buttons on the tool bar if min/max has been reached (Bug #1847)
+
 BUG: (9/16/08, DN) Exception in layer display algorithm (Bug #1846).
 FIX: Encapsulate rendering result in class LayerDrawing.DrawingData for atomic update.
 
