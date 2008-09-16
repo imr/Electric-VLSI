@@ -342,6 +342,7 @@ public class ToolBar extends JToolBar
 	private static EToolBarButton[] getDefaultToolbarButtons()
 	{		
 		String prefOrder = toolbarOrderPref.getString();
+		boolean buttonError = false;
 		if (prefOrder.length() > 0)
 		{
 			// preferences set
@@ -366,7 +367,11 @@ public class ToolBar extends JToolBar
 							break;
 						}
 					}
-					if (buttons[i] == null) System.out.println("WARNING: saved tool bar button '" + buttonName + "' is unknown");
+					if (buttons[i] == null)
+					{
+						System.out.println("WARNING: saved tool bar button '" + buttonName + "' is unknown");
+						buttonError = true;
+					}
 				} else if (entry.startsWith("U="))
 				{
 					// user-defined button
@@ -409,7 +414,9 @@ public class ToolBar extends JToolBar
 					}
 				}
 			}
-			return buttons;
+			if (!buttonError) return buttons;
+			toolbarOrderPref.setString("");
+			System.out.println("WARNING: saved toolbar configuration has errors...using factory settings");
 		}
 
 		// use built-in default
