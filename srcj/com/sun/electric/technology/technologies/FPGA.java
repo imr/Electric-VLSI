@@ -126,9 +126,9 @@ public class FPGA extends Technology
 
 		// The layer functions
 		wireLayer.setFunction(Layer.Function.METAL1);		// wire
-		componentLayer.setFunction(Layer.Function.ART);			// component
+		componentLayer.setFunction(Layer.Function.ART);		// component
 		pipLayer.setFunction(Layer.Function.ART);			// pip
-		repeaterLayer.setFunction(Layer.Function.ART);			// repeater
+		repeaterLayer.setFunction(Layer.Function.ART);		// repeater
 
 		//**************************************** ARC ****************************************
 
@@ -192,20 +192,19 @@ public class FPGA extends Technology
 			});
 		repeaterNode.setFunction(PrimitiveNode.Function.CONNECT);
 
-        // Building information for palette
-        nodeGroups = new Object[8][1];
-        int count = -1;
+		// Building information for palette
+		nodeGroups = new Object[7][1];
+		int count = 0;
+		nodeGroups[count++][0] = wireArc;
+		nodeGroups[count++][0] = Technology.SPECIALMENUCELL;
+		nodeGroups[count++][0] = Technology.SPECIALMENUMISC;
+		nodeGroups[count++][0] = Technology.SPECIALMENUPURE;
+		nodeGroups[count++][0] = wirePinNode;
+		nodeGroups[count++][0] = pipNode;
+		nodeGroups[count++][0] = repeaterNode;
 
-        nodeGroups[++count][0] = wireArc;
-        nodeGroups[++count][0] = Technology.SPECIALMENUCELL;
-        nodeGroups[++count][0] = Technology.SPECIALMENUMISC;
-        nodeGroups[++count][0] = Technology.SPECIALMENUPURE;
-        nodeGroups[++count][0] = wirePinNode;
-        nodeGroups[++count][0] = pipNode;
-        nodeGroups[++count][0] = repeaterNode;
-
-        //Foundry
-        newFoundry(Foundry.Type.NONE, null);
+		// Foundry
+		newFoundry(Foundry.Type.NONE, null);
 	}
 
 	/******************** TREE STRUCTURE FOR ARCHITECTURE FILE ********************/
@@ -215,7 +214,7 @@ public class FPGA extends Technology
 	private static class LispTree
 	{
 		private String keyword;
-		private int    lineNumber;
+		private int lineNumber;
 		private List<Object> values;
 
 		LispTree()
@@ -286,7 +285,7 @@ public class FPGA extends Technology
 			Technology.NodeLayer [] layers)
 		{
 			super(protoName, tech, EPoint.ORIGIN, EPoint.ORIGIN, null, defWidth, defHeight,
-                    ERectangle.ORIGIN, ERectangle.ORIGIN, layers);
+				ERectangle.ORIGIN, ERectangle.ORIGIN, layers);
 		}
 
 		int numPorts()
@@ -314,11 +313,10 @@ public class FPGA extends Technology
 //	/** key of Variable holding cache of active arcs. */	private static final Variable.Key ARCACTIVECACHE_KEY = Variable.newKey("FPGA_arcactivecache");
 	/** name of current repeater for activity examining */	private String         repeaterName;
 	/** nonzero if current repeater is found to be active */private boolean        repeaterActive;
-	/** what is being displayed */							private int            internalDisplay = ACTIVEPRIMDISPLAY | TEXTDISPLAY;
+	/** what is being displayed */							private int            internalDisplay = FULLPRIMDISPLAY | TEXTDISPLAY;
 	/** whether the technology has been read */				private boolean        defined = false;
 
 	private static final Technology.NodeLayer[] NULLNODELAYER = new Technology.NodeLayer[0];
-//	private static Poly[] NULLPOLYS = new Poly[0];
 
 	/**
 	 * Method to return a list of Polys that describe a given NodeInst.
@@ -333,11 +331,11 @@ public class FPGA extends Technology
 	 * @param layerOverride the layer to use for all generated polygons (if not null).
 	 * @return an array of Poly objects.
 	 */
-    @Override
+	@Override
 	protected Poly [] getShapeOfNode(NodeInst ni, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers, Layer layerOverride) {
-        return getShapeOfNode(ni, null, null, electrical, reasonable, primLayers, layerOverride);
-    }
-    
+		return getShapeOfNode(ni, null, null, electrical, reasonable, primLayers, layerOverride);
+	}
+
 	/**
 	 * Method to return a list of Polys that describe a given NodeInst.
 	 * This method overrides the general one in the Technology object
@@ -398,7 +396,6 @@ public class FPGA extends Technology
 					// propagate inactive segments to others that may be active
 					if (context != null && context.getNodable() != null)
 					{
-//						NodeInst oNi = (NodeInst)context.getNodable();
 						VarContext higher = context.pop();
 						for(int i=0; i<fn.numNets(); i++)
 						{
@@ -412,9 +409,7 @@ public class FPGA extends Technology
 									Connection con = it.next();
 									if (con.getPortInst().getPortProto() != fn.portList[j].pp) continue;
 									ArcInst ai = con.getArc();
-                                    int otherEnd = 1 - con.getEndIndex();
-//									int otherEnd = 0;
-//									if (ai.getConnection(0) == con) otherEnd = 1;
+									int otherEnd = 1 - con.getEndIndex();
 									if (arcEndActive(ai, otherEnd, higher)) { found = true;   break; }
 								}
 								if (found) break;
@@ -515,47 +510,28 @@ public class FPGA extends Technology
 		return super.getShapeOfNode(ni, electrical, reasonable, primLayers, layerOverride);
 	}
 
-    /**
-     * Fill the polygons that describe arc "a".
-     * @param b AbstractShapeBuilder to fill polygons.
-     * @param a the ImmutableArcInst that is being described.
-     */
-    @Override
-    protected void getShapeOfArc(AbstractShapeBuilder b, ImmutableArcInst a) {
-        super.getShapeOfArc(b, a);
-//		boolean active = true;
-//		if ((internalDisplay&DISPLAYLEVEL) == NOPRIMDISPLAY ||
-//			(internalDisplay&DISPLAYLEVEL) == ACTIVEPRIMDISPLAY)
-//		{
-//			VarContext context = VarContext.globalContext;
-////			if (wnd != null) context = wnd.getVarContext();  Need to be fixed. DN 11/2/06
-//			if (!arcActive(ai, context)) active = false;
-//		}
-//		if (!active) return NULLPOLYS;
-//
-//		Poly [] polys = new Poly[1];
-//		int polyNum = 0;
-//
-//		// draw the arc
-//		polys[polyNum] = ai.makeLambdaPoly(ai.getGridFullWidth(), Poly.Type.FILLED);
-//		if (polys[polyNum] == null) return null;
-//		polys[polyNum].setLayer(tech.wireLayer);
-//		polyNum++;
-//		return polys;
-    }
-    
-    /**
-     * Tells if arc can be drawn by simplified algorithm
-     * FPGA arcs are not easy
-     * @param a arc to test
-     * @param explain if true then print explanation why arc is not easy
-     * @return false
-     */
-    @Override
-    public boolean isEasyShape(ImmutableArcInst a, boolean explain) {
-        return false;
-    }
-    
+	/**
+	 * Fill the polygons that describe arc "a".
+	 * @param b AbstractShapeBuilder to fill polygons.
+	 * @param a the ImmutableArcInst that is being described.
+	 */
+	@Override
+	protected void getShapeOfArc(AbstractShapeBuilder b, ImmutableArcInst a) {
+		super.getShapeOfArc(b, a);
+	}
+
+	/**
+	 * Tells if arc can be drawn by simplified algorithm
+	 * FPGA arcs are not easy
+	 * @param a arc to test
+	 * @param explain if true then print explanation why arc is not easy
+	 * @return false
+	 */
+	@Override
+	public boolean isEasyShape(ImmutableArcInst a, boolean explain) {
+		return false;
+	}
+
 	/******************** TECHNOLOGY INTERFACE SUPPORT ********************/
 
 	private boolean arcEndActive(ArcInst ai, int j, VarContext curContext)
@@ -585,7 +561,6 @@ public class FPGA extends Technology
 		if (np instanceof FPGANode)
 		{
 			FPGANode fn = (FPGANode)np;
-//			VarContext down = curContext.push(ni);
 			reEvaluatePips(ni, fn, curContext);
 			for(int i = 0; i < fn.numPorts(); i++)
 			{
@@ -614,9 +589,7 @@ public class FPGA extends Technology
 					if (oAi == ai) continue;
 					Network oNet = nl.getNetwork(oAi, 0);
 					if (oNet != net) continue;
-                    int newEnd = 1 - nextCon.getEndIndex();
-//					int newEnd = 0;
-//					if (oAi.getConnection(0) == nextCon) newEnd = 1;
+					int newEnd = 1 - nextCon.getEndIndex();
 					if (arcEndActive(oAi, newEnd, curContext)) return true;
 				}
 
@@ -635,9 +608,7 @@ public class FPGA extends Technology
 							Connection nextCon = uIt.next();
 							ArcInst oAi = nextCon.getArc();
 							if (nextCon.getPortInst().getPortProto() != opp) continue;
-                            int newEnd = 1 - nextCon.getEndIndex();
-//							int newEnd = 0;
-//							if (oAi.getConnection(0) == nextCon) newEnd = 1;
+							int newEnd = 1 - nextCon.getEndIndex();
 							if (arcEndActive(oAi, newEnd, higher)) return true;
 						}
 					}
@@ -647,15 +618,6 @@ public class FPGA extends Technology
 		return false;
 	}
 
-//	private boolean arcActive(ArcInst ai, VarContext curContext)
-//	{
-//		// compute arc activity
-//		boolean value = false;
-//		if (arcEndActive(ai, 0, curContext)) value = true; else
-//			if (arcEndActive(ai, 1, curContext)) value = true;
-//		return value;
-//	}
-
 	/**
 	 * Method to reevaluate primitive node "ni" (which is associated with internal
 	 * structure "fn").  Finds programming of pips and sets pip and net activity.
@@ -664,40 +626,6 @@ public class FPGA extends Technology
 	{
 		// primitives with no pips or nets need no evaluation
 		if (fn.numNets() == 0 && fn.numPips() == 0) return;
-
-		// see if there is a cache on the node
-//		gettraversalpath(ni.parent, NOWINDOWPART, &nilist, &indexlist, &depth, 0);
-//		var = getvalkey((INTBIG)ni, VNODEINST, VCHAR|VISARRAY, NODEPIPCACHE_KEY);
-//		if (var != NOVARIABLE)
-//		{
-//			ptr = (UCHAR1 *)var.addr;
-//			cachedepth = ((INTBIG *)ptr)[0];   ptr += SIZEOFINTBIG;
-//			if (cachedepth == depth)
-//			{
-//				for(i=0; i<cachedepth; i++)
-//				{
-//					oni = ((NODEINST **)ptr)[0];   ptr += (sizeof (NODEINST *));
-//					if (oni != nilist[i]) break;
-//				}
-//				if (i >= cachedepth)
-//				{
-//					// cache applies to this node: get values
-//					for(i=0; i<fn.numNets(); i++)
-//					{
-//						value = ((INTSML *)ptr)[0];   ptr += SIZEOFINTSML;
-//						if (value != 0) fn.netList[i].segActive |= ACTIVEPART; else
-//							fn.netList[i].segActive &= ~ACTIVEPART;
-//					}
-//					for(i=0; i<fn.numPips(); i++)
-//					{
-//						value = ((INTSML *)ptr)[0];   ptr += SIZEOFINTSML;
-//						if (value != 0) fn.pipList[i].pipActive |= ACTIVEPART; else
-//							fn.pipList[i].pipActive &= ~ACTIVEPART;
-//					}
-//					return;
-//				}
-//			}
-//		}
 
 		// reevaluate: presume all nets and pips are inactive
 		for(int i=0; i<fn.numNets(); i++) fn.netList[i].segActive &= ~ACTIVEPART;
@@ -714,39 +642,6 @@ public class FPGA extends Technology
 			if (fPip.con1 > 0) fn.netList[fPip.con1].segActive |= ACTIVEPART;
 			if (fPip.con2 > 0) fn.netList[fPip.con2].segActive |= ACTIVEPART;
 		}
-
-//		// store the cache
-//		size = depth * (sizeof (NODEINST *)) + SIZEOFINTBIG + fn.numNets() * SIZEOFINTSML +
-//			fn.numPips() * SIZEOFINTSML;
-//		if (size > pipBufSize)
-//		{
-//			if (pipBufSize > 0) efree((CHAR *)pipBuf);
-//			pipBufSize = 0;
-//			pipBuf = (UCHAR1 *)emalloc(size, tech.cluster);
-//			if (pipBuf == 0) return;
-//			pipBufSize = size;
-//		}
-//		ptr = pipBuf;
-//		((INTBIG *)ptr)[0] = depth;   ptr += SIZEOFINTBIG;
-//		for(i=0; i<depth; i++)
-//		{
-//			((NODEINST **)ptr)[0] = nilist[i];   ptr += (sizeof (NODEINST *));
-//		}
-//		for(i=0; i<fn.numNets(); i++)
-//		{
-//			if ((fn.netList[i].segActive&ACTIVEPART) != 0) ((INTSML *)ptr)[0] = 1; else
-//				((INTSML *)ptr)[0] = 0;
-//			ptr += SIZEOFINTSML;
-//		}
-//		for(i=0; i<fn.numPips(); i++)
-//		{
-//			if ((fn.pipList[i].pipActive&ACTIVEPART) != 0) ((INTSML *)ptr)[0] = 1; else
-//				((INTSML *)ptr)[0] = 0;
-//			ptr += SIZEOFINTSML;
-//		}
-//		nextchangequiet();
-//		setvalkey((INTBIG)ni, VNODEINST, NODEPIPCACHE_KEY, (INTBIG)pipBuf,
-//			VCHAR|VISARRAY|(size<<VLENGTHSH)|VDONTSAVE);
 	}
 
 	/**
@@ -770,7 +665,7 @@ public class FPGA extends Technology
 		while (context != null)
 		{
 			Nodable niClimb = context.getNodable();
-            if (niClimb == null) break;
+			if (niClimb == null) break;
 			path[depth++] = niClimb;
 			context = context.pop();
 		}
@@ -794,7 +689,6 @@ public class FPGA extends Technology
 				String [] pipParts = start.split("\\.");
 				if (pipParts.length == 0 || pipParts.length > depth) continue;
 				boolean pathGood = true;
-//				VarContext climb = context;
 				for(int j=0; j<pipParts.length-1; j++)
 				{
 					if (!pipParts[j].equalsIgnoreCase(path[depth-2-j].getName()))
@@ -822,61 +716,6 @@ public class FPGA extends Technology
 			break;
 		}
 	}
-
-//	/* working memory for "arcActive()" */
-//	static INTBIG         arcBufSize = 0;
-//	static UCHAR1        *arcBuf;
-//
-//	/* working memory for "reEvaluatePips()" */
-//	static INTBIG         pipBufSize = 0;
-//	static UCHAR1        *pipBuf;
-
-//	void setMode(INTBIG count, CHAR *par[])
-//	{
-//		l = estrlen(pp = par[0]);
-//		if (namesamen(pp, x_("wipe-cache"), l) == 0)
-//		{
-//			clearCache(null);
-//			return;
-//		}
-//		if (namesamen(pp, x_("clear-node-cache"), l) == 0)
-//		{
-//			ni = (NODEINST *)us_getobject(VNODEINST, FALSE);
-//			if (ni == null) return;
-//			clearCache(ni);
-//			return;
-//		}
-//	}
-
-//	/*
-//	 * Routine to clear the cache of arc activity in the current cell.  If "ni" is NONODEINST,
-//	 * clear all node caches as well, otherwise only clear the node cache on "ni".
-//	 */
-//	void clearCache(NodeInst ni)
-//	{
-//		REGISTER VARIABLE *var;
-//		REGISTER ARCINST *ai;
-//		REGISTER NODEPROTO *np;
-//
-//		np = getcurcell();
-//		if (np == null)
-//		{
-//			ttyputerr(_("Must edit a cell to clear its cache"));
-//			return;
-//		}
-//		for(ai = np.firstarcinst; ai != null; ai = ai.nextarcinst)
-//		{
-//			var = getvalkey((INTBIG)ai, VARCINST, VCHAR|VISARRAY, ARCACTIVECACHE_KEY);
-//			if (var != NOVARIABLE)
-//				(void)delvalkey((INTBIG)ai, VARCINST, ARCACTIVECACHE_KEY);
-//		}
-//		if (ni != null)
-//		{
-//			var = getvalkey((INTBIG)ni, VNODEINST, VCHAR|VISARRAY, NODEPIPCACHE_KEY);
-//			if (var != NOVARIABLE)
-//				(void)delvalkey((INTBIG)ni, VNODEINST, NODEPIPCACHE_KEY);
-//		}
-//	}
 
 	/******************** TECHNOLOGY CONTROL ********************/
 
@@ -978,11 +817,11 @@ public class FPGA extends Technology
 			return true;
 		}
 
-        public void terminateOK()
-        {
+		public void terminateOK()
+		{
 			UserInterface ui = Job.getUserInterface();
 			ui.repaintAllWindows();
-        }
+		}
 	}
 
 	/**
@@ -990,7 +829,7 @@ public class FPGA extends Technology
 	 */
 	private static class BuildTechnology extends Job
 	{
-        private FPGA tech;
+		private FPGA tech;
 		private String fileName;
 		private boolean placeAndWire;
 		private Cell topCell;
@@ -998,7 +837,7 @@ public class FPGA extends Technology
 		private BuildTechnology(FPGA tech, String fileName, boolean placeAndWire)
 		{
 			super("Build FPGA Technology", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-            this.tech = tech;
+			this.tech = tech;
 			this.fileName = fileName;
 			this.placeAndWire = placeAndWire;
 			startJob();
@@ -1014,9 +853,6 @@ public class FPGA extends Technology
 			int total = tech.makePrimitives(lt);
 			System.out.println("Created " + total + " primitives");
 
-//			// setup the generic technology to handle all connections
-//			Generic.tech.makeUnivList();
-
 			// place and wire the primitives
 			if (placeAndWire)
 			{
@@ -1026,15 +862,15 @@ public class FPGA extends Technology
 			return true;
 		}
 
-        public void terminateOK()
-        {
+		public void terminateOK()
+		{
 			if (topCell != null)
 			{
 				// display top cell
 				UserInterface ui = Job.getUserInterface();
 				ui.displayCell(topCell);
 			}
-        }
+		}
 	}
 
 	/**
@@ -2005,9 +1841,8 @@ public class FPGA extends Technology
 			posY += hei/2;
 		}
 		Point2D ctr = new Point2D.Double(posX, posY);
-        Orientation orient = Orientation.fromAngle(rotation);
+		Orientation orient = Orientation.fromAngle(rotation);
 		NodeInst ni = NodeInst.makeInstance(np, ctr, wid, hei, cell, orient, nodeName, 0);
-//		NodeInst ni = NodeInst.makeInstance(np, ctr, wid, hei, cell, rotation, nodeName, 0);
 		if (ni == null) return true;
 
 		// add any attributes
@@ -2161,9 +1996,8 @@ public class FPGA extends Technology
 		double portBY = TextUtils.atof(ltPortB.getLeaf(1));
 		int angle = GenMath.figureAngle(new Point2D.Double(portAX, portAY), new Point2D.Double(portBX, portBY));
 		Point2D ctr = new Point2D.Double((portAX + portBX) / 2, (portAY + portBY) / 2);
-        Orientation orient = Orientation.fromAngle(angle);
+		Orientation orient = Orientation.fromAngle(angle);
 		NodeInst ni = NodeInst.makeInstance(repeaterNode, ctr, 10,3, cell, orient, name, 0);
-//		NodeInst ni = NodeInst.makeInstance(tech.repeaterNode, ctr, 10,3, cell, angle, name, 0);
 		if (ni == null)
 		{
 			System.out.println("Error creating repeater (line " + lt.lineNumber + ")");
@@ -2336,7 +2170,6 @@ public class FPGA extends Technology
 				PortInst pi0 = nis[0].findPortInstFromProto(pps[0]);
 				PortInst pi1 = nis[1].findPortInstFromProto(pps[1]);
 				ArcInst ai = ArcInst.makeInstanceBase(wireArc, 0, pi0, pi1);
-//				ArcInst ai = ArcInst.makeInstanceFull(tech.wireArc, 0, pi0, pi1);
 				if (ai == null)
 				{
 					System.out.println("Cannot run segment (line " + scanLT.lineNumber + ")");

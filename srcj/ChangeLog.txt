@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08h: ******************************
 
+BUG: (9/16/08, SMR) FPGA technology repeaters are invisible by default (Bug #1848).
+FIX: Made default be visible.
+
 BUG: (9/16/08, SMR) Technology editor computes port sizes incorrectly (Bug #1854).
 FIX: In LibToTech.getBoundingBox(), used incorrect bounding computation.
 
