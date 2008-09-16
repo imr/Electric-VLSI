@@ -108,7 +108,6 @@ public final class J3DUtils
     private static Pref cache3DAntialiasing = Pref.makeBooleanPref("3DAntialiasing", User.getUserTool().prefs, false);
 	private static Pref cache3DPerspective = Pref.makeBooleanPref("3DPerspective", User.getUserTool().prefs, true);
     private static Pref cache3DCellBnd = Pref.makeBooleanPref("3DCellBnd", User.getUserTool().prefs, true);
-    private static Pref cache3DPolyShape = Pref.makeBooleanPref("3DPolyShape", User.getUserTool().prefs, true);
     private static Pref cache3DAxes = Pref.makeBooleanPref("3DAxes", User.getUserTool().prefs, false);
     private static Pref cache3DMaxNumber = Pref.makeIntPref("3DMaxNumNodes", User.getUserTool().prefs, 1000);
     private static Pref cache3DAlpha = Pref.makeIntPref("3DAlpha", User.getUserTool().prefs, 20000);
