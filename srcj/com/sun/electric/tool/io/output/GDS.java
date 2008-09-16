@@ -132,10 +132,10 @@ public class GDS extends Geometry
 	/** Position of next byte in the buffer */	private static int bufferPosition;					
 	/** Number data buffers output so far */	private static int blockCount;				
 	/** constant for GDS units */				private static double scaleFactor;				
-	/** cell naming map */						private HashMap<Cell,String> cellNames;
-	/** layer number map */						private HashMap<Layer,GDSLayers> layerNumbers;
+	/** cell naming map */						private Map<Cell,String> cellNames;
+	/** layer number map */						private Map<Layer,GDSLayers> layerNumbers;
     /** separator string for lib + cell concatanated cell names */  public static final String concatStr = ".";
-    /** Name remapping if NCC annotation */     private HashMap<String,Set<String>> nameRemapping;
+    /** Name remapping if NCC annotation */     private Map<String,Set<String>> nameRemapping;
 
 	/**
 	 * Main entry point for GDS output.
@@ -275,8 +275,8 @@ public class GDS extends Geometry
 		outputHeader(HDR_ENDSTR, 0);
 	}
 
-    private HashMap<String,Set<String>> createExportNameMap(NccCellAnnotations ann, Cell cell) {
-        HashMap<String,Set<String>> nameMap = new HashMap<String,Set<String>>();
+    private Map<String,Set<String>> createExportNameMap(NccCellAnnotations ann, Cell cell) {
+        Map<String,Set<String>> nameMap = new HashMap<String,Set<String>>();
         for (Iterator<List<NccCellAnnotations.NamePattern>> it2 = ann.getExportsConnected(); it2.hasNext(); )
 		{
             List<NccCellAnnotations.NamePattern> list = it2.next();
@@ -586,7 +586,7 @@ public class GDS extends Geometry
      * @param cell the cell whose nodes and subnode cells will be given unique names.
      * @param cellNames a hashmap, key: cell, value: unique name (String).
      */
-    public static void buildUniqueNames(Cell cell, HashMap<Cell,String> cellNames) {
+    public static void buildUniqueNames(Cell cell, Map<Cell,String> cellNames) {
         if (!cellNames.containsKey(cell))
             cellNames.put(cell, makeUniqueName(cell, cellNames));
         for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
@@ -602,7 +602,7 @@ public class GDS extends Geometry
         }
     }
 
-	public static String makeUniqueName(Cell cell, HashMap<Cell,String> cellNames)
+	public static String makeUniqueName(Cell cell, Map<Cell,String> cellNames)
 	{
 		String name = makeGDSName(cell.getName(), IOTool.getGDSCellNameLenMax());
 		if (cell.getNewestVersion() != cell)
@@ -669,7 +669,7 @@ public class GDS extends Geometry
      * Get the name map. GDS output may mangle cell names
      * because of all cells occupy the same name space (no libraries).
      */
-    public HashMap<Cell,String> getCellNames() { return cellNames; }
+    public Map<Cell,String> getCellNames() { return cellNames; }
 
 	/**
 	 * Close the file, pad to make the file match the tape format

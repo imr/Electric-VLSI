@@ -1,19 +1,18 @@
 package com.sun.electric.tool.drc;
 
-import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.PolyBase;
-import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.user.ErrorLogger;
 
+import java.awt.geom.Point2D;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.ArrayList;
-import java.awt.geom.Point2D;
 
 /**
  * Reads RDB error database, typically used for reporting antenna rule
@@ -28,7 +27,7 @@ public class CalibreRdbErrors {
     private ErrorLogger logger;
     private BufferedReader in;
     private int lineno;
-    private HashMap<Cell,String> mangledNames;
+    private Map<Cell,String> mangledNames;
     private int errorCount;
 
     private static final String spaces = "[\\s\\t ]+";
@@ -49,7 +48,7 @@ public class CalibreRdbErrors {
      * @param filename the filename to import errors from
      * @param mangledNames mangled GDS cell names
      */
-    public void importErrors(String filename, HashMap<Cell,String> mangledNames) {
+    public void importErrors(String filename, Map<Cell,String> mangledNames) {
         lineno = 1;
         this.mangledNames = mangledNames;
         try {
@@ -200,8 +199,8 @@ public class CalibreRdbErrors {
                     }
                     double x=0, y=0;
                     try {
-                        x = Double.parseDouble(coords[0])/(double)scale/lambdaScale;
-                        y = Double.parseDouble(coords[1])/(double)scale/lambdaScale;
+                        x = Double.parseDouble(coords[0])/scale/lambdaScale;
+                        y = Double.parseDouble(coords[1])/scale/lambdaScale;
                     } catch (NumberFormatException e) {
                         System.out.println("Error: polygon coordinates should be numbers at line "+lineno+": "+line);
                         return false;
@@ -218,7 +217,6 @@ public class CalibreRdbErrors {
 
         // Log error
         StringBuffer props = new StringBuffer();
-        int i=0;
         for (Property prop : properties) {
             props.append(prop.toString());
         }

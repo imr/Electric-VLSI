@@ -37,7 +37,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Class to read DRC errors from Assura.
@@ -83,7 +83,7 @@ public class AssuraDrcErrors {
 	 * Method to import Assura DRC errors from a file.
 	 * @param filename the file to read.
 	 */
-    public static void importErrors(String filename, HashMap<Cell,String> mangledNames, String type) {
+    public static void importErrors(String filename, Map<Cell,String> mangledNames, String type) {
         BufferedReader in;
         try {
             FileReader reader = new FileReader(filename);

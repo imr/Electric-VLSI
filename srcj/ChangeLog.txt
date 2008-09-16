@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08h: ******************************
 
+IMP: (9/16/08, SMR) Added accelerators to Sun menu (Bug #1852).
+
 BUG: (9/16/08, SMR) New transistor types are hard to select (Bug #1855).
 FIX: In Highlighter.distToNode(), make special selection code apply to
      all Field-effect transistors.

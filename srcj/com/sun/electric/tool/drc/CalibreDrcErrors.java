@@ -36,7 +36,12 @@ import java.awt.geom.Point2D;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.StringTokenizer;
 
 /**
  * This reads an ASCII Calibre DRC error database
@@ -53,7 +58,7 @@ public class CalibreDrcErrors {
     private BufferedReader in;
     private List<DrcRuleViolation> ruleViolations;            // list of DrcRuleViolations
     private int lineno;
-    private HashMap<Cell,String> mangledNames;
+    private Map<Cell,String> mangledNames;
     private String type;
     private String filename;
 
@@ -65,7 +70,7 @@ public class CalibreDrcErrors {
      * @param filename the ASCII calibre drc results database file
      * @return number of erros. Negative number in case of valid data.
      */
-    public static int importErrors(String filename, HashMap<Cell,String> mangledNames, String type) {
+    public static int importErrors(String filename, Map<Cell,String> mangledNames, String type) {
         BufferedReader in;
         try {
             FileReader reader = new FileReader(filename);
@@ -87,7 +92,7 @@ public class CalibreDrcErrors {
     }
 
     // Constructor
-    private CalibreDrcErrors(BufferedReader in, HashMap<Cell,String> mangledNames, String type) {
+    private CalibreDrcErrors(BufferedReader in, Map<Cell,String> mangledNames, String type) {
         assert(in != null);
         this.in = in;
         lineno = 0;
@@ -450,7 +455,7 @@ public class CalibreDrcErrors {
         return line;
     }
 
-    public static Cell getCell(String cellName, HashMap<Cell,String> mangledNames) {
+    public static Cell getCell(String cellName, Map<Cell,String> mangledNames) {
         List<Cell> matchedNames = new ArrayList<Cell>();
         for (Map.Entry<Cell,String> entry : mangledNames.entrySet()) {
             String name = entry.getValue();
