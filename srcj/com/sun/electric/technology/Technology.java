@@ -3628,17 +3628,9 @@ public class Technology implements Comparable<Technology>, Serializable
 		if (std != null)
 		{
 			std.initTransPolyFilling();
-if (electrical) System.out.println("POLYGONS FOR "+ni.describe(false));
 			for(int i = 0; i < numExtraLayers; i++)
 			{
 				polys[fillPoly] = std.fillTransPoly(electrical);
-if (electrical)
-{
-	System.out.print("  LAYER "+polys[fillPoly].getLayer().getName()+" HAS POINTS:");
-	for(int k=0; k<polys[fillPoly].getPoints().length; k++)
-		System.out.print(" ("+polys[fillPoly].getPoints()[k].getX()+","+polys[fillPoly].getPoints()[k].getY()+")");
-	System.out.println();
-}
 				fillPoly++;
 			}
 		}
