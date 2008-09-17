@@ -2,7 +2,10 @@
 
 NOTE: Please place changes under the version that will be released next.
 
-************************* Version 8.08h: ******************************
+************************* Version 8.08g: ******************************
+
+BUG: (9/16/08, GVG) Exception in 3D view if transistors have only 1 poly (Bug #1856)
+FIX: Introduced while fixing #1839. It is fixed now.
 
 IMP: (9/16/08, SMR) Added accelerators to Sun menu (Bug #1852).
 
@@ -15,8 +18,6 @@ FIX: Made default be visible.
 
 BUG: (9/16/08, SMR) Technology editor computes port sizes incorrectly (Bug #1854).
 FIX: In LibToTech.getBoundingBox(), used incorrect bounding computation.
-
-************************* Version 8.08g: ******************************
 
 BUG: (9/16/08, SMR) Saved toolbar configuration may have errors (Bug #1851).
 FIX: When errors are found, factory-reset the toolbar.
