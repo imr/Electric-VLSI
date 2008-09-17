@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08h: ******************************
 
+BUG: (9/17/08, SMR) Serpentine transistors with both field and gate poly
+     emit both layers in the poly area (Bug #1857).
+FIX: Fixed Technology.SerpentineTrans class to handle serpentine transistors better.
+
 BUG: (9/17/08, GVG) NPE in GetInfoOutliner if click is in a 3D view window (Bug #1860)
 FIX: Detect if the EditWindow.getCurrent() is not null (eg. if the click is on a 3D window).
 

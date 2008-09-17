@@ -3627,9 +3627,18 @@ public class Technology implements Comparable<Technology>, Serializable
 		// add in the extra transistor layers
 		if (std != null)
 		{
+			std.initTransPolyFilling();
+if (electrical) System.out.println("POLYGONS FOR "+ni.describe(false));
 			for(int i = 0; i < numExtraLayers; i++)
 			{
-				polys[fillPoly] = std.fillTransPoly(i, electrical);
+				polys[fillPoly] = std.fillTransPoly(electrical);
+if (electrical)
+{
+	System.out.print("  LAYER "+polys[fillPoly].getLayer().getName()+" HAS POINTS:");
+	for(int k=0; k<polys[fillPoly].getPoints().length; k++)
+		System.out.print(" ("+polys[fillPoly].getPoints()[k].getX()+","+polys[fillPoly].getPoints()[k].getY()+")");
+	System.out.println();
+}
 				fillPoly++;
 			}
 		}
@@ -3876,6 +3885,9 @@ public class Technology implements Comparable<Technology>, Serializable
 	 */
 	private static class SerpentineTrans
 	{
+		private static final int LEFTANGLE =  900;
+		private static final int RIGHTANGLE =  2700;
+
 		/** the ImmutableNodeInst that is this serpentine transistor */			private ImmutableNodeInst theNode;
 		/** the prototype of this serpentine transistor */						private PrimitiveNode theProto;
 		/** the number of polygons that make up this serpentine transistor */	private int layersTotal;
@@ -3884,6 +3896,8 @@ public class Technology implements Comparable<Technology>, Serializable
 		/** the node layers that make up this serpentine transistor */			private Technology.NodeLayer [] primLayers;
 		/** the gate coordinates for this serpentine transistor */				private Point2D [] points;
 		/** the defining values for this serpentine transistor */				private double [] specialValues;
+		/** true if there are separate field and gate polys */					private boolean fieldPolyOnEndsOnly;
+		/** counter for filling the polygons of the serpentine transistor */	private int fillBox;
 
 		/**
 		 * Constructor throws initialize for a serpentine transistor.
@@ -3892,7 +3906,6 @@ public class Technology implements Comparable<Technology>, Serializable
 		public SerpentineTrans(ImmutableNodeInst niD, PrimitiveNode protoType, Technology.NodeLayer [] pLayers)
 		{
 			theNode = niD;
-
 			layersTotal = 0;
 			points = niD.getTrace();
 			if (points != null)
@@ -3911,6 +3924,24 @@ public class Technology implements Comparable<Technology>, Serializable
 				extraScale = 0;
 				double length = niD.getSerpentineTransistorLength();
 				if (length > 0) extraScale = (length - specialValues[3]) / 2;
+
+				// see if there are separate field and gate poly layers
+				fieldPolyOnEndsOnly = false;
+				int numFieldPoly = 0, numGatePoly = 0;
+				for(int i=0; i<count; i++)
+				{
+					if (primLayers[i].layer.getFunction().isPoly())
+					{
+						if (primLayers[i].layer.getFunction() == Layer.Function.GATE) numGatePoly++; else
+							numFieldPoly++;
+					}
+				}
+				if (numFieldPoly > 0 && numGatePoly > 0)
+				{
+					// when there are both field and gate poly elements, use field poly only on the ends
+					fieldPolyOnEndsOnly = true;
+					layersTotal = (count-numFieldPoly) * numSegments + numFieldPoly;
+				}
 			}
 		}
 
@@ -3920,8 +3951,11 @@ public class Technology implements Comparable<Technology>, Serializable
 		 */
 		public boolean hasValidData() { return points != null; }
 
-		private static final int LEFTANGLE =  900;
-		private static final int RIGHTANGLE =  2700;
+		/**
+		 * Method to start the filling of polygons in the serpentine transistor.
+		 * Call this before repeated calls to "fillTransPoly".
+		 */
+		private void initTransPolyFilling() { fillBox = 0; }
 
 		/**
 		 * Method to describe a box of a serpentine transistor.
@@ -3934,40 +3968,92 @@ public class Technology implements Comparable<Technology>, Serializable
 		 * gate segment that extends from left to right, and on the left of a
 		 * segment that goes from bottom to top.
 		 */
-		private Poly fillTransPoly(int box, boolean electrical)
+		private Poly fillTransPoly(boolean electrical)
 		{
-			// compute the segment (along the serpent) and element (of transistor)
-			int segment = box % numSegments;
-			int element = box / numSegments;
+			int segment = 0, element = 0;
+			boolean isFieldPolyEndcap1 = false, isFieldPolyEndcap2 = false;
+			boolean extendEnds = true;
+			for(;;)
+			{
+				// compute the segment (along the serpent) and element (of transistor)
+				segment = fillBox % numSegments;
+				element = fillBox / numSegments;
+				fillBox++;
 
-			// see if nonstandard width is specified
-			double lwid = primLayers[element].getSerpentineLWidth();
-			double rwid = primLayers[element].getSerpentineRWidth();
-			double extendt = primLayers[element].getSerpentineExtentT();
-			double extendb = primLayers[element].getSerpentineExtentB();
-			lwid += extraScale;
-			rwid += extraScale;
+				// if field poly appears only on the ends of the transistor, ignore interior requests
+				if (fieldPolyOnEndsOnly)
+				{
+					Layer layer = primLayers[element].getLayer();
+					if (layer.getFunction().isPoly())
+					{
+						if (layer.getFunction() == Layer.Function.GATE)
+						{
+							// found the gate poly: do not extend it
+							extendEnds = false;
+						} else
+						{
+							// found piece of field poly
+							if (segment == 0 && primLayers[element].getSerpentineExtentT() != 0) isFieldPolyEndcap1 = true; else
+								if (segment == numSegments-1 && primLayers[element].getSerpentineExtentB() != 0) isFieldPolyEndcap2 = true; else
+									continue;
+						}
+					}
+				}
+				break;
+			}
 
 			// prepare to fill the serpentine transistor
-			double xoff = theNode.anchor.getX();
-			double yoff = theNode.anchor.getY();
-			int thissg = segment;   int next = segment+1;
+			int thissg = segment;   int nextsg = segment+1;
 			Point2D thisPt = points[thissg];
-			Point2D nextPt = points[next];
+			Point2D nextPt = points[nextsg];
 			int angle = DBMath.figureAngle(thisPt, nextPt);
+			double extendt = primLayers[element].getSerpentineExtentT();
+			double extendb = primLayers[element].getSerpentineExtentB();
 
-			// push the points at the ends of the transistor
-			if (thissg == 0)
+			// special case for field poly endcaps
+			if (isFieldPolyEndcap1)
 			{
-				// extend "thissg" 180 degrees back
+				// first endcap: extend "thissg" 180 degrees back
+				nextPt = thisPt;
 				int ang = angle+1800;
 				thisPt = DBMath.addPoints(thisPt, DBMath.cos(ang) * extendt, DBMath.sin(ang) * extendt);
+				return buildSerpentinePoly(element, 0, numSegments, electrical, thisPt, nextPt, angle);
 			}
-			if (next == numSegments)
+			if (isFieldPolyEndcap2)
 			{
-				// extend "next" 0 degrees forward
+				// last endcap: extend "next" 0 degrees forward
+				thisPt = nextPt;
 				nextPt = DBMath.addPoints(nextPt, DBMath.cos(angle) * extendb, DBMath.sin(angle) * extendb);
+				return buildSerpentinePoly(element, 0, numSegments, electrical, thisPt, nextPt, angle);
 			}
+
+			// push the points at the ends of the transistor
+			if (extendEnds)
+			{
+				if (thissg == 0)
+				{
+					// extend "thissg" 180 degrees back
+					int ang = angle+1800;
+					thisPt = DBMath.addPoints(thisPt, DBMath.cos(ang) * extendt, DBMath.sin(ang) * extendt);
+				}
+				if (nextsg == numSegments)
+				{
+					// extend "next" 0 degrees forward
+					nextPt = DBMath.addPoints(nextPt, DBMath.cos(angle) * extendb, DBMath.sin(angle) * extendb);
+				}
+			}
+
+			return buildSerpentinePoly(element, thissg, nextsg, electrical, thisPt, nextPt, angle);
+		}
+
+		private Poly buildSerpentinePoly(int element, int thissg, int nextsg, boolean electrical, Point2D thisPt, Point2D nextPt, int angle)
+		{
+			// see if nonstandard width is specified
+			Technology.NodeLayer primLayer = primLayers[element];
+			double lwid = primLayer.getSerpentineLWidth();
+			double rwid = primLayer.getSerpentineRWidth();
+			lwid += extraScale;
+			rwid += extraScale;
 
 			// compute endpoints of line parallel to and left of center line
 			int ang = angle+LEFTANGLE;
@@ -4000,9 +4086,9 @@ public class Technology implements Comparable<Technology>, Serializable
 			}
 
 			// determine proper intersection of this and the next segment
-			if (next != numSegments)
+			if (nextsg != numSegments)
 			{
-				Point2D otherPt = points[next+1];
+				Point2D otherPt = points[nextsg+1];
 				int otherang = DBMath.figureAngle(nextPt, otherPt);
 				if (otherang != angle)
 				{
@@ -4017,6 +4103,8 @@ public class Technology implements Comparable<Technology>, Serializable
 
 			// fill the polygon
 			Point2D [] points = new Point2D.Double[4];
+			double xoff = theNode.anchor.getX();
+			double yoff = theNode.anchor.getY();
 			points[0] = DBMath.addPoints(thisL, xoff, yoff);
 			points[1] = DBMath.addPoints(thisR, xoff, yoff);
 			points[2] = DBMath.addPoints(nextR, xoff, yoff);
@@ -4044,7 +4132,6 @@ public class Technology implements Comparable<Technology>, Serializable
 //				}
 //			}
 
-			Technology.NodeLayer primLayer = primLayers[element];
 			retPoly.setStyle(primLayer.getStyle());
 			retPoly.setLayer(primLayer.getLayer());
 
