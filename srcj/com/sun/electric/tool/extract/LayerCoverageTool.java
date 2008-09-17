@@ -992,14 +992,14 @@ public class LayerCoverageTool extends Tool
 				PrimitiveNode.Function fun = node.getFunction();
 				if (fun.isTransistor())
 				{
-					if (fun == PrimitiveNode.Function.TRA4NMOS || fun == PrimitiveNode.Function.TRANMOS)
+					if (fun.isNTypeTransistor())
 					{
 						TransistorSize ts = node.getTransistorSize(info.getContext());
 						geoms.n_active.area += ts.getDoubleArea();
 						geoms.n_active.width += ts.getDoubleWidth();
 						geoms.n_gate.area += ts.getDoubleArea();
 						geoms.n_gate.width += ts.getDoubleWidth();
-					} else if (fun == PrimitiveNode.Function.TRA4PMOS || fun == PrimitiveNode.Function.TRAPMOS)
+					} else if (fun.isPTypeTransistor())
 					{
 						TransistorSize ts = node.getTransistorSize(info.getContext());
 						geoms.p_active.area += ts.getDoubleArea();

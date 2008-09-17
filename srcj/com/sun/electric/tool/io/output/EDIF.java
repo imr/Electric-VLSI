@@ -1472,8 +1472,8 @@ public class EDIF extends Topology
 		if (fun.isResistor()) /* == PrimitiveNode.Function.RESIST)*/ return "Resistor";
 		if (fun == PrimitiveNode.Function.TRANPN) return "npn";
 		if (fun == PrimitiveNode.Function.TRAPNP) return "pnp";
-        if (fun == PrimitiveNode.Function.TRA4NMOS) return "nfet";
-        if (fun == PrimitiveNode.Function.TRA4PMOS) return "pfet";
+        if (fun.isNTypeTransistor()) return "nfet";
+        if (fun.isPTypeTransistor()) return "pfet";
 		if (fun == PrimitiveNode.Function.SUBSTRATE) return "gtap";
 		return makeToken(ni.getProto().getName());
 	}

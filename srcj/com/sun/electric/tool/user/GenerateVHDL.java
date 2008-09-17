@@ -626,17 +626,17 @@ public class GenerateVHDL
 			// get the primitive function
 			PrimitiveNode.Function k = ni.getFunction();
 			primName = null;
-			if (k == PrimitiveNode.Function.TRANMOS || k == PrimitiveNode.Function.TRA4NMOS)
+			if (k == PrimitiveNode.Function.TRADMOS || k == PrimitiveNode.Function.TRA4DMOS)
+			{
+				primName = "DMOStran";
+				special = BLOCKMOSTRAN;
+			} else if (k.isNTypeTransistor())
 			{
 				primName = "nMOStran";
 				Variable var = ni.getVar(Simulation.WEAK_NODE_KEY);
 				if (var != null) primName = "nMOStranWeak";
 				special = BLOCKMOSTRAN;
-			} else if (k == PrimitiveNode.Function.TRADMOS || k == PrimitiveNode.Function.TRA4DMOS)
-			{
-				primName = "DMOStran";
-				special = BLOCKMOSTRAN;
-			} else if (k == PrimitiveNode.Function.TRAPMOS || k == PrimitiveNode.Function.TRA4PMOS)
+			} else if (k.isPTypeTransistor())
 			{
 				primName = "PMOStran";
 				Variable var = ni.getVar(Simulation.WEAK_NODE_KEY);

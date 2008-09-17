@@ -190,8 +190,7 @@ public class MOSSIM extends Topology
 				PrimitiveNode.Function type = ni.getFunction();
 
 				// if it is a transistor, write the information
-				if (type != PrimitiveNode.Function.TRANMOS && type != PrimitiveNode.Function.TRADMOS && type != PrimitiveNode.Function.TRAPMOS)
-					continue;
+				if (!type.isFET()) continue;
 
 				// gate is port 0 or 2, source is port 1, drain is port 3
 				PortInst gate = ni.getTransistorGatePort();
@@ -200,9 +199,9 @@ public class MOSSIM extends Topology
 
 				// write the transistor
 				StringBuffer infstr = new StringBuffer();
-				if (type == PrimitiveNode.Function.TRANMOS) infstr.append("n"); else
-					if (type == PrimitiveNode.Function.TRAPMOS) infstr.append("p"); else
-						if (type == PrimitiveNode.Function.TRADMOS) infstr.append("d");
+				if (type.isNTypeTransistor()) infstr.append("n"); else
+					if (type.isPTypeTransistor()) infstr.append("p"); else
+						infstr.append("d");
 
 				// write the strength of the transistor
 				Variable var = ni.getVar(MOSSIM_STRENGTH_KEY);

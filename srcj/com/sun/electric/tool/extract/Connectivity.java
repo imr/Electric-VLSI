@@ -2130,8 +2130,8 @@ public class Connectivity
 		for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
 		{
 			PrimitiveNode pNp = it.next();
-			if (pTransistor == null && pNp.getFunction() == PrimitiveNode.Function.TRAPMOS) pTransistor = pNp;
-			if (nTransistor == null && pNp.getFunction() == PrimitiveNode.Function.TRANMOS) nTransistor = pNp;
+			if (pTransistor == null && pNp.getFunction().isPTypeTransistor()) pTransistor = pNp;
+			if (nTransistor == null && pNp.getFunction().isNTypeTransistor()) nTransistor = pNp;
 		}
 		if (nTransistor != null)
 		{

@@ -256,7 +256,7 @@ public class Sim extends Output
 			PrimitiveNode.Function fun = ni.getFunction();
 
 			// if it is a transistor, write the information
-			if (fun == PrimitiveNode.Function.TRANMOS || fun == PrimitiveNode.Function.TRADMOS || fun == PrimitiveNode.Function.TRAPMOS)
+			if (fun.isFET())
 			{
 				Network gateNet = netList.getNetwork(ni.getTransistorGatePort());
 				int gate = ci.getNetID(gateNet);
@@ -268,9 +268,9 @@ public class Sim extends Output
 				int drain = ci.getNetID(drainNet);
 
 				String tType = "U";
-				if (fun == PrimitiveNode.Function.TRANMOS) tType = "e"; else
-				if (fun == PrimitiveNode.Function.TRADMOS) tType = "d"; else
-				if (fun == PrimitiveNode.Function.TRAPMOS) tType = "p";
+				if (fun.isNTypeTransistor()) tType = "e"; else
+					if (fun.isPTypeTransistor()) tType = "p"; else
+						tType = "d";
 
 				// determine size of transistor
 				TransistorSize size = ni.getTransistorSize(ci.getContext());

@@ -802,8 +802,7 @@ public class TechToLib
         nIn.name = pnp.getName();
         nIn.func = pnp.getFunction();
         nIn.serp = false;
-        if ((nIn.func == PrimitiveNode.Function.TRANMOS || nIn.func == PrimitiveNode.Function.TRAPMOS ||
-                nIn.func == PrimitiveNode.Function.TRADMOS) && pnp.isHoldsOutline()) nIn.serp = true;
+        if (nIn.func.isFET() && pnp.isHoldsOutline()) nIn.serp = true;
         nIn.arcsShrink = pnp.isArcsShrink();
         assert pnp.isArcsWipe() == nIn.arcsShrink;
         nIn.square = pnp.isSquare();

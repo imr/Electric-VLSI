@@ -392,14 +392,12 @@ class Visitor extends HierarchyEnumerator.Visitor {
 	/** @return true if NMOS schematic or layout primitive */
 	private boolean isNmosPrimitive(NodeInst ni) {
 		PrimitiveNode.Function func = ni.getFunction();
-		return func==PrimitiveNode.Function.TRA4NMOS ||
-	           func==PrimitiveNode.Function.TRANMOS;
+		return func.isNTypeTransistor();
 	}
 	/** @return true if PMOS schematic or layout primitive */
 	private boolean isPmosPrimitive(NodeInst ni) {
 		PrimitiveNode.Function func = ni.getFunction();
-		return func==PrimitiveNode.Function.TRA4PMOS ||
-               func==PrimitiveNode.Function.TRAPMOS;
+		return func.isPTypeTransistor();
 	}
 	/** @return true if NPN schematic or layout primitive */
 	private boolean isNpnPrimitive(NodeInst ni) {

@@ -1057,9 +1057,7 @@ public class LibToTech
 			}
 
 			// on MOS transistors, make sure the first 4 ports are poly/active/poly/active
-			if (nIn.func == PrimitiveNode.Function.TRANMOS || nIn.func == PrimitiveNode.Function.TRADMOS ||
-				nIn.func == PrimitiveNode.Function.TRAPMOS || nIn.func == PrimitiveNode.Function.TRADMES ||
-				nIn.func == PrimitiveNode.Function.TRAEMES)
+			if (nIn.func.isFET())
 			{
 				if (pol1Port < 0 || pol2Port < 0 || dif1Port < 0 || dif2Port < 0)
 				{

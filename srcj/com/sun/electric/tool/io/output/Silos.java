@@ -300,7 +300,7 @@ public class Silos extends Topology
 				NodeInst ni = (NodeInst)no;
 				PrimitiveNode.Function nodeType = getPrimitiveType(ni);
 				if (nodeType == PrimitiveNode.Function.UNKNOWN) continue;
-				if (nodeType == PrimitiveNode.Function.TRANMOS || nodeType == PrimitiveNode.Function.TRAPMOS)
+				if (nodeType.isFET())
 				{
 					// Transistors need a part number
 					writeWidthLimited(getNodeInstName(ni));
@@ -540,8 +540,8 @@ public class Silos extends Topology
 	private String getPrimitiveName(NodeInst ni, boolean neg)
 	{	
 		PrimitiveNode.Function f = getPrimitiveType(ni);
-		if (f == PrimitiveNode.Function.TRANMOS) return ".NMOS";
-		if (f == PrimitiveNode.Function.TRAPMOS) return ".PMOS";
+		if (f.isNTypeTransistor()) return ".NMOS";
+		if (f.isPTypeTransistor()) return ".PMOS";
 
 		if (f == PrimitiveNode.Function.BUFFER)
 		{
@@ -589,10 +589,8 @@ public class Silos extends Topology
 		if (ni.isCellInstance()) return null;
 
 		PrimitiveNode.Function func = ni.getFunction();
-		if (func == PrimitiveNode.Function.TRAPMOS || func == PrimitiveNode.Function.TRA4PMOS)
-			return PrimitiveNode.Function.TRAPMOS;
-		if (func == PrimitiveNode.Function.TRANMOS || func == PrimitiveNode.Function.TRA4NMOS)
-			return PrimitiveNode.Function.TRANMOS;
+		if (func.isPTypeTransistor()) return PrimitiveNode.Function.TRAPMOS;
+		if (func.isNTypeTransistor()) return PrimitiveNode.Function.TRANMOS;
 		if (func == PrimitiveNode.Function.GATEAND || func == PrimitiveNode.Function.GATEOR ||
 			func == PrimitiveNode.Function.GATEXOR || func == PrimitiveNode.Function.BUFFER ||
 			func == PrimitiveNode.Function.RESIST || func == PrimitiveNode.Function.CAPAC ||

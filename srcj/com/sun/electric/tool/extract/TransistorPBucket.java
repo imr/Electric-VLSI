@@ -56,7 +56,7 @@ public class TransistorPBucket implements ExtractedPBucket
 
     public char getType()
     {
-        char type = (ni.getFunction() == PrimitiveNode.Function.TRANMOS || ni.getFunction() == PrimitiveNode.Function.TRA4NMOS) ?
+        char type = (ni.getFunction().isNTypeTransistor()) ?
                 'n' : 'p';
         return type;
     }

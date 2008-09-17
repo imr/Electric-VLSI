@@ -481,7 +481,7 @@ public class L extends Output
 	{
 		if (ni.isCellInstance()) return INSTANCE;
 		PrimitiveNode.Function fun = ni.getFunction();
-		if (fun == PrimitiveNode.Function.TRANMOS || fun == PrimitiveNode.Function.TRADMOS || fun == PrimitiveNode.Function.TRAPMOS) return TRANSISTOR;
+		if (fun.isFET()) return TRANSISTOR;
 		if (fun != PrimitiveNode.Function.PIN) return OTHERNODE;
 		if (ni.getNumConnections() != 2) return OTHERNODE;
 		return TRUEPIN;
