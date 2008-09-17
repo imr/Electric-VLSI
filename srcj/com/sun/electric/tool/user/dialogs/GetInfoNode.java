@@ -375,23 +375,16 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 		rotation.setText(TextUtils.formatDouble(initialRotation / 10.0));
 
 		// special case for transistors
-		PrimitiveNodeSize npSize = ni.getPrimitiveNodeSize(null);
+		PrimitiveNodeSize npSize = ni.getPrimitiveDependentNodeSize(null);
 		if (npSize != null) {
 			xsizeLabel.setText("Width:");
 	        xsizeLabel.setDisplayedMnemonic('w');
 			ysizeLabel.setText("Length:");
 	        ysizeLabel.setDisplayedMnemonic('l');
-			double width = npSize.getDoubleWidth();
-			if (width == 0 && npSize.getWidth() != null)
-				xSize.setText(npSize.getWidth().toString());
-			else
-				xSize.setText(TextUtils.formatDouble(width));
-			double length = npSize.getDoubleLength();
-			if (length == 0 && npSize.getLength() != null)
-				ySize.setText(npSize.getLength().toString());
-			else
-				ySize.setText(TextUtils.formatDouble(length));
-			initialXSize = xSize.getText();
+            double finalW = npSize.getEvaluatedWidth(), finalH = npSize.getEvaluatedLength();
+            xSize.setText(TextUtils.formatDouble(finalW));
+            ySize.setText(TextUtils.formatDouble(finalH));
+            initialXSize = xSize.getText();
 			initialYSize = ySize.getText();
 		} else {
 			xsizeLabel.setText("X size:");
@@ -1005,7 +998,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 			// The following code is specific for transistors, and uses the X/Y size fields for
 			// Width and Length, and therefore may override the values such that the node size does not
 			// get set by them.
-			PrimitiveNodeSize size = ni.getPrimitiveNodeSize(null);
+			PrimitiveNodeSize size = ni.getPrimitiveDependentNodeSize(null);
 			if (size != null)
 			{
 				// see if this is a schematic transistor

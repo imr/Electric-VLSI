@@ -3014,12 +3014,32 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 //	}
 
     /**
-	 * Method to return the size of this PrimitiveNode-type NodeInst.
+	 * Method to return the size of this NodeInst in terms of width and
+     * height/length depending on the type of primitive.
+     * @param context the VarContext in which any evaluations take place,
+     * pass in VarContext.globalContext if no context needed.
+	 * @return the size of the NodeInst
+	 */
+	public PrimitiveNodeSize getNodeInstSize(VarContext context)
+	{
+        PrimitiveNodeSize size = getPrimitiveDependentNodeSize(context);
+        if (size == null) // not a special primitive like transistor or resistor
+        {
+            double length = getLambdaBaseXSize();
+            double width = getLambdaBaseYSize();
+            size = new PrimitiveNodeSize(new Double(width), new Double(length));
+        }
+        return size;
+    }
+
+    /**
+	 * Method to return the size of this PrimitiveNode-dependend NodeInst
+     * like transistors and resistors.
      * @param context the VarContext in which any evaluations take place,
      * pass in VarContext.globalContext if no context needed.
 	 * @return the size of the NodeInst if it is a PrimitiveNode
 	 */
-	public PrimitiveNodeSize getPrimitiveNodeSize(VarContext context)
+	public PrimitiveNodeSize getPrimitiveDependentNodeSize(VarContext context)
 	{
         PrimitiveNodeSize size = getTransistorSize(context);
         if (size == null) // Not a transistor

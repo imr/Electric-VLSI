@@ -750,8 +750,6 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
         this.baseRectangle = baseRectangle;
 
         if (minSizeRule != null) {
-//            if (minSizeRule.length() == 0)
-//                minSizeRule = getName() + " Min. Size";
             minNodeSize = new NodeSizeRule(minSizeRule);
         }
 

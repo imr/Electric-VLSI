@@ -75,4 +75,34 @@ public class PrimitiveNodeSize {
     public double getDoubleLength() {
         return VarContext.objectToDouble(length, 0);
     }
+
+    /**
+     * Method to return the actual width of the element based on the object
+     * used to store the information. Most of the time is a Double but
+     * Schematics might use different values depending on the Varialbles stored.
+     * @return
+     */
+    public double getEvaluatedWidth()
+    {
+        double width = getDoubleWidth();
+        if (width == 0 && getWidth() != null)
+            return ((Double)getWidth()).doubleValue();
+        else
+            return width;
+    }
+
+    /**
+     * Method to return the actual length of the element based on the object
+     * used to store the information. Most of the time is a Double but
+     * Schematics might use different values depending on the Varialbles stored.
+     * @return
+     */
+    public double getEvaluatedLength()
+    {
+        double length = getDoubleLength();
+        if (length == 0 && getLength() != null)
+            return ((Double)getLength()).doubleValue();
+        else
+            return length;
+    }
 }

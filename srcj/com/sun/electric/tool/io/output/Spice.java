@@ -1762,12 +1762,12 @@ public class Spice extends Topology
             } else if (paramName.equalsIgnoreCase("width") && prim != null)
             {
             	NodeInst ni = (NodeInst)no;
-                PrimitiveNodeSize npSize = ni.getPrimitiveNodeSize(context);
+                PrimitiveNodeSize npSize = ni.getPrimitiveDependentNodeSize(context);
             	if (npSize != null) infstr.append(npSize.getWidth().toString());
             } else if (paramName.equalsIgnoreCase("length") && prim != null)
             {
             	NodeInst ni = (NodeInst)no;
-                PrimitiveNodeSize npSize = ni.getPrimitiveNodeSize(context);
+                PrimitiveNodeSize npSize = ni.getPrimitiveDependentNodeSize(context);
                 if (npSize != null) infstr.append(npSize.getLength().toString());
             } else if (cni != null && pp != null)
             {
