@@ -219,7 +219,6 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 			case 2: busMembers.setSelected(true);  break;
 		}
 
-//		loadInfo();
 		finishInitialization();
 	}
 
@@ -375,7 +374,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 		mirrorY.setSelected(initialMirrorY);
 		rotation.setText(TextUtils.formatDouble(initialRotation / 10.0));
 
-		// special case for transistors and resistors
+		// special case for transistors
 		PrimitiveNodeSize npSize = ni.getPrimitiveNodeSize(null);
 		if (npSize != null) {
 			xsizeLabel.setText("Width:");
@@ -394,10 +393,6 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 				ySize.setText(TextUtils.formatDouble(length));
 			initialXSize = xSize.getText();
 			initialYSize = ySize.getText();
-//		} else if (ni.getFunction()==PrimitiveNode.Function.PRESIST) {
-//			// special case for Poly resistors
-//			xsizeLabel.setText("Length:");
-//			ysizeLabel.setText("Width:");
 		} else {
 			xsizeLabel.setText("X size:");
 	        xsizeLabel.setDisplayedMnemonic('s');
@@ -523,11 +518,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 				textFieldLabel.setText("Area:");
 
 				Variable var = ni.getVar(Schematics.ATTR_AREA);
-
 				textField.setText(var.getPureValue(-1));
-
-//				popupLabel.setText("Transistor type:");
-//				popup.addItem(fun.getName());
 			}
 		}
 
@@ -622,11 +613,6 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 			textField.setEditable(true);
 			textField.setText(initialTextField);
 		}
-//		if (fun.isFlipFlop())
-//		{
-//			popupLabel.setText("Flip-flop type:");
-//			popup.addItem(fun.getName());
-//		}
 		if (np == Schematics.tech().globalNode)
 		{
 			textFieldLabel.setText("Global name:");
@@ -674,13 +660,6 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 			textField.setEditable(true);
 			textField.setText(initialTextField);
 		}
-        // Adding Focus listener for acceleratos
-//        EDialog.addFocusListener(name);
-//        EDialog.addFocusListener(xPos);
-//        EDialog.addFocusListener(yPos);
-//        EDialog.addFocusListener(xSize);
-//        EDialog.addFocusListener(ySize);
-//        EDialog.addFocusListener(rotation);
 
         // Setting the initial focus
         EDialog.focusOnTextField(name);

@@ -29,21 +29,21 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.technology.ArcProto;
-import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.PrimitiveNodeSize;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.tool.Client;
 import com.sun.electric.tool.user.Highlight2;
 import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.UserInterfaceMain;
-import com.sun.electric.tool.Client;
 
 import java.awt.Dimension;
 import java.awt.FontMetrics;
@@ -124,7 +124,6 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
             gbc.weightx = 0.2;
             gbc.fill = GridBagConstraints.HORIZONTAL;
         }
-        //gbc.ipadx = 5;
         gbc.anchor = GridBagConstraints.WEST;
         int rightInsert = (Client.isOSMac()) ? 20 : 4;
         gbc.insets = new java.awt.Insets(0, 4, 0, rightInsert);
@@ -239,7 +238,7 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
 			} else
 			{
 				Rectangle2D bounds = cell.getBounds();
-				sizeMsg = "SIZE: " + TextUtils.formatDouble(bounds.getWidth(),1) + "x" +
+				sizeMsg = "CELL: " + TextUtils.formatDouble(bounds.getWidth(),1) + "x" +
                         TextUtils.formatDouble(bounds.getHeight(), 1);
 			}
 		}
@@ -338,10 +337,29 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
                 selectedMsg = "SELECTED "+getSelectedText(lastHighlight);
 				if (theNode != null)
 				{
-					double xSize = theNode.getLambdaBaseXSize();
-					double ySize = theNode.getLambdaBaseYSize();
-					selectedMsg += " (size=" + TextUtils.formatDouble(xSize) +
-						"x" + TextUtils.formatDouble(ySize) + ")";
+					PrimitiveNodeSize npSize = theNode.getPrimitiveNodeSize(null);
+					if (npSize != null)
+					{
+						selectedMsg += " (size=";
+						double width = npSize.getDoubleWidth();
+						if (width == 0 && npSize.getWidth() != null)
+							selectedMsg += npSize.getWidth().toString();
+						else
+							selectedMsg += TextUtils.formatDouble(width);
+						selectedMsg += "x";
+						double length = npSize.getDoubleLength();
+						if (length == 0 && npSize.getLength() != null)
+							selectedMsg += npSize.getLength().toString();
+						else
+							selectedMsg += TextUtils.formatDouble(length);
+						selectedMsg += ")";
+					} else
+					{
+						double xSize = theNode.getLambdaBaseXSize();
+						double ySize = theNode.getLambdaBaseYSize();
+						selectedMsg += " (size=" + TextUtils.formatDouble(xSize) +
+							"x" + TextUtils.formatDouble(ySize) + ")";
+					}
 				}
             } else
             {
@@ -446,11 +464,4 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
     public void databaseChanged(DatabaseChangeEvent e) {
         redoStatusBar();
     }
-
-//     public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
-//         redoStatusBar();
-//     }
-
-//     public void databaseChanged(Undo.Change evt) {}
-//     public boolean isGUIListener() { return true; }
 }

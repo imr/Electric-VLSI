@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08h: ******************************
 
+BUG: (9/17/08, SMR) Serpentine transistors don't display the proper size in the status bar (Bug #1857).
+FIX: Use advanced size information for transistors.
+
 ************************* Version 8.08g: ******************************
 
 BUG: (9/16/08, GVG) Exception in 3D view if transistors have only 1 poly (Bug #1856)
