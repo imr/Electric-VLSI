@@ -3160,7 +3160,7 @@ public class Technology implements Comparable<Technology>, Serializable
 			height = 2;
 			double serpentineLength = ni.getSerpentineTransistorLength();
 			if (serpentineLength > 0) height = serpentineLength;
-            System.out.println("No calculating length for active regions yet");
+            //System.out.println("No calculating length for active regions yet"); 
 		}
         double activeLen = getTransistorActiveLength(ni);
 		TransistorSize size = new TransistorSize(new Double(width), new Double(height), new Double(activeLen));

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08h: ******************************
 
+IMP: (9/17/08, GVG) Serpentine transistors incomplete for getTransistorSize? (Bug #1861)
+Commenting out the line. The message is even available in 8.03p. 
+
 BUG: (9/17/08, SMR) Serpentine transistors with both field and gate poly
      emit both layers in the poly area (Bug #1857).
 FIX: Fixed Technology.SerpentineTrans class to handle serpentine transistors better.
