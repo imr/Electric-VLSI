@@ -1099,9 +1099,16 @@ public abstract class LibraryFiles extends Input
             String prims = "";
             for (TechId techId: undefinedTechsAndPrimitives.keySet())
             {
+                int count = 0;
                 for (PrimitiveNodeId primId : undefinedTechsAndPrimitives.get(techId))
                 {
                     prims += " " + primId + ", ";
+                    count += primId.name.length();
+                    if (count > 50) // 50 is an arbritary number
+                    {
+                        count = 0;
+                        prims += "\n";
+                    }
                 }
                 Job.getUserInterface().showErrorMessage("Library contains unknown nodes from the technology '" + techId + "':\n" + prims,
                     "Unknown nodes/technologies");
