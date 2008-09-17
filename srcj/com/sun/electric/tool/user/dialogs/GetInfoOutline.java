@@ -125,7 +125,9 @@ public class GetInfoOutline extends EModelessDialog implements HighlightListener
 
 		// must have a node
         EditWindow wnd = EditWindow.getCurrent();
-		ni = (NodeInst)wnd.getHighlighter().getOneElectricObject(NodeInst.class);
+        if (wnd == null) // not an edit window. Eg 3D ViewWindows
+            return;
+        ni = (NodeInst)wnd.getHighlighter().getOneElectricObject(NodeInst.class);
 		if (ni == null) return;
 
 		// node must have coordinates
