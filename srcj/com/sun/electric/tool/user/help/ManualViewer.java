@@ -160,18 +160,31 @@ public class ManualViewer extends EModelessDialog
 	private List<Object> history = new ArrayList<Object>();
 	private static ManualViewer theManual = null;
 
-	/**
+    private static void setManualViewer(String preference, Class baseClass, String htmlDir, boolean setVisible)
+    {
+        if (theManual == null)
+        {
+            JFrame jf = null;
+            if (TopLevel.isMDIMode()) jf = TopLevel.getCurrentJFrame();
+            try{
+                theManual = new ManualViewer(jf, preference, baseClass, htmlDir);
+            }
+            catch (Exception e)
+            {
+                System.out.println("Error creating the ManualViewer");
+                theManual = null;
+            }
+        }
+        if (theManual != null && setVisible)
+            theManual.setVisible(true);
+    }
+    
+    /**
 	 * Method to display the user's manual.
 	 */
 	public static void userManualCommand()
 	{
-		if (theManual == null)
-		{
-			JFrame jf = null;
-			if (TopLevel.isMDIMode()) jf = TopLevel.getCurrentJFrame();
-			theManual = new ManualViewer(jf, null, ManualViewer.class, "helphtml");
-		}
-		theManual.setVisible(true);
+        setManualViewer(null, ManualViewer.class, "helphtml", true);
 	}
 
 	/**
@@ -189,13 +202,7 @@ public class ManualViewer extends EModelessDialog
 	 */
 	public static void userManualRussianCommand()
 	{
-		if (theManual == null)
-		{
-			JFrame jf = null;
-			if (TopLevel.isMDIMode()) jf = TopLevel.getCurrentJFrame();
-			theManual = new ManualViewer(jf, null, Main.class, RUSSIANMANUALPATH);
-		}
-		theManual.setVisible(true);
+        setManualViewer(null, Main.class, RUSSIANMANUALPATH, true);
 	}
 
 	/**
@@ -224,33 +231,28 @@ public class ManualViewer extends EModelessDialog
 	 */
 	private static void showSettingHelp(String dialog, String str)
 	{
-		if (theManual == null)
-		{
-			JFrame jf = null;
-			if (TopLevel.isMDIMode()) jf = TopLevel.getCurrentJFrame();
-			theManual = new ManualViewer(jf, dialog+str, ManualViewer.class, "helphtml");
-		} else
-		{
-			if (str != null)
-			{
-				String prefFileName = keywordMap.get(dialog+str);
-				if (prefFileName == null)
-				{
-					Job.getUserInterface().showErrorMessage("No help for " + str + " settings", "Missing documentation");
-				} else
-				{
-					for(int i=0; i<theManual.pageSequence.size(); i++)
-					{
-						PageInfo pi = theManual.pageSequence.get(i);
-						if (pi.fileName.equals(prefFileName))
-						{
-							theManual.loadPage(i);
-							break;
-						}
-					}
-				}
-			}
-		}
+        setManualViewer(dialog+str, ManualViewer.class, "helphtml", false);
+        if (theManual == null)
+            return; // error
+        if (str != null)
+        {
+            String prefFileName = keywordMap.get(dialog+str);
+            if (prefFileName == null)
+            {
+                Job.getUserInterface().showErrorMessage("No help for " + str + " settings", "Missing documentation");
+            } else
+            {
+                for(int i=0; i<theManual.pageSequence.size(); i++)
+                {
+                    PageInfo pi = theManual.pageSequence.get(i);
+                    if (pi.fileName.equals(prefFileName))
+                    {
+                        theManual.loadPage(i);
+                        break;
+                    }
+                }
+            }
+        }
 		theManual.setVisible(true);
 	}
 
@@ -368,7 +370,7 @@ public class ManualViewer extends EModelessDialog
 	 * Create a new user's manual dialog.
 	 * @param parent
 	 */
-	private ManualViewer(Frame parent, String preference, Class baseClass, String htmlDir)
+	private ManualViewer(Frame parent, String preference, Class baseClass, String htmlDir) throws Exception
 	{
 		super(parent, false);
 		htmlBaseClass = baseClass;
@@ -394,7 +396,9 @@ public class ManualViewer extends EModelessDialog
 		InputStream stream = TextUtils.getURLStream(url, null);
 		if (stream == null)
 		{
-			System.out.println("Can't open " + indexName + " in " + htmlBaseClass.getPackage());
+            String msg = "Can't open " + indexName + " in " + htmlBaseClass.getPackage();
+            Job.getUserInterface().showErrorMessage(msg, "Missing documentation");
+            System.out.println(msg);
 			return;
 		}
 		InputStreamReader is = new InputStreamReader(stream);
