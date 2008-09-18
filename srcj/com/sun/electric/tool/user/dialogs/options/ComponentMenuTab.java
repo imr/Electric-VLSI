@@ -165,6 +165,16 @@ public class ComponentMenuTab extends PreferencePanel
 	}
 
 	/**
+	 * Method called when the factory reset is requested for just this panel.
+	 * @return true if the panel can be reset "in place" without redisplay.
+	 */
+	public boolean resetThis()
+	{
+		theMenu.factoryReset();
+		return true;
+	}
+
+	/**
 	 * Method called when the factory reset is requested.
 	 */
 	public void reset()

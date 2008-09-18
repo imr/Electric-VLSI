@@ -5,9 +5,12 @@ NOTE: Please place changes under the version that will be released next.
 ************************* Version 8.08h: ******************************
 
 IMP/MAN: (9/18/08, SMR) Preferences dialog is now modeless.  Also has
-     "reset" for current panel and "reset all" for all panels (Bug #1867).
+     "reset" for current panel and "reset all" for all panels.
+     Individual preferences panels no longer have private
+     "factory reset" buttons: "Toolbar", "Layers", "Design Rules",
+     "Component Menu", "Key Bindings" (Bug #1867).
 
-BUG: (9/18/08, SMR) "Up Hierarchy, Keep Focus" stil not working right (Bug #1814).
+BUG: (9/18/08, SMR) "Up Hierarchy, Keep Focus" still not working right (Bug #1814).
 FIX: Handled many special cases.
 
 BUG: (9/18/08, GVG) Wrong 3D view of serpentine transistors (Bug #1862)

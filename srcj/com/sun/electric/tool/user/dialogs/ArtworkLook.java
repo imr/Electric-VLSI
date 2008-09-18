@@ -133,7 +133,7 @@ public class ArtworkLook extends EModelessDialog implements HighlightListener
 		getRootPane().setDefaultButton(ok);
 
 		// make the color/pattern panel
-		colorPatternPanel = new ColorPatternPanel(false, false);
+		colorPatternPanel = new ColorPatternPanel(false);
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.gridx = 0;      gbc.gridy = 0;
 		gbc.gridwidth = 3;  gbc.gridheight = 1;

@@ -200,6 +200,21 @@ public class ToolbarTab extends PreferencePanel implements TreeSelectionListener
 	}
 
 	/**
+	 * Method called when the factory reset is requested for just this panel.
+	 * @return true if the panel can be reset "in place" without redisplay.
+	 */
+	public boolean resetThis()
+	{
+		sampleToolbarComponents.clear();
+		EToolBarButton [] factorySet = ToolBar.getFactoryButtons();
+		for(int i=0; i<factorySet.length; i++)
+			sampleToolbarComponents.add(new DraggableToolbarEntry(i, factorySet[i]));
+		buildSampleToolbar();
+		trueParent.pack();
+		return true;
+	}
+
+	/**
 	 * Method called when the factory reset is requested.
 	 */
 	public void reset()
@@ -222,16 +237,6 @@ public class ToolbarTab extends PreferencePanel implements TreeSelectionListener
 			gbc.gridx = i;   gbc.gridy = 0;
 			currentToolbar.add(j, gbc);
 		}
-	}
-
-	private void factoryResetButton()
-	{
-		sampleToolbarComponents.clear();
-		EToolBarButton [] factorySet = ToolBar.getFactoryButtons();
-		for(int i=0; i<factorySet.length; i++)
-			sampleToolbarComponents.add(new DraggableToolbarEntry(i, factorySet[i]));
-		buildSampleToolbar();
-		trueParent.pack();
 	}
 
 	private void dropButton(String droppedButton)
@@ -846,8 +851,6 @@ public class ToolbarTab extends PreferencePanel implements TreeSelectionListener
         commandsPane = new javax.swing.JScrollPane();
         trashLabel = new javax.swing.JLabel();
         separatorLabel = new javax.swing.JLabel();
-        buttonsPane = new javax.swing.JPanel();
-        factoryReset = new javax.swing.JButton();
         attachImage = new javax.swing.JButton();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
@@ -930,21 +933,6 @@ public class ToolbarTab extends PreferencePanel implements TreeSelectionListener
         gridBagConstraints.insets = new java.awt.Insets(4, 10, 4, 20);
         toolbar.add(separatorLabel, gridBagConstraints);
 
-        buttonsPane.setLayout(new java.awt.GridBagLayout());
-
-        factoryReset.setText("Factory Reset");
-        factoryReset.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                factoryResetActionPerformed(evt);
-            }
-        });
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(2, 8, 2, 2);
-        buttonsPane.add(factoryReset, gridBagConstraints);
-
         attachImage.setText("Attach Image to Command...");
         attachImage.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -954,26 +942,15 @@ public class ToolbarTab extends PreferencePanel implements TreeSelectionListener
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 8);
-        buttonsPane.add(attachImage, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 6;
         gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
-        toolbar.add(buttonsPane, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 8);
+        toolbar.add(attachImage, gridBagConstraints);
 
         getContentPane().add(toolbar, new java.awt.GridBagConstraints());
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
-
-    private void factoryResetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_factoryResetActionPerformed
-    	factoryResetButton();
-    }//GEN-LAST:event_factoryResetActionPerformed
 
     private void attachImageActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_attachImageActionPerformed
     	attachImageToCommand();
@@ -988,10 +965,8 @@ public class ToolbarTab extends PreferencePanel implements TreeSelectionListener
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton attachImage;
-    private javax.swing.JPanel buttonsPane;
     private javax.swing.JScrollPane commandsPane;
     private javax.swing.JPanel currentToolbar;
-    private javax.swing.JButton factoryReset;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;

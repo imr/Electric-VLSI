@@ -223,16 +223,6 @@ public class ComponentMenu extends EDialog
 			cancel.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent evt) { closeDialog(null); }
 			});
-		} else
-		{
-			JButton reset = new JButton("Factory Reset");
-			gbc = new GridBagConstraints();
-			gbc.gridx = 0;       gbc.gridy = 4;
-			gbc.insets = new Insets(25, 4, 4, 4);
-			lowerRight.add(reset, gbc);
-			reset.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent evt) { factoryReset(); }
-			});
 		}
 	}
 

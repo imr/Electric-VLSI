@@ -82,4 +82,10 @@ public class PreferencePanel extends EDialog
 	 * Method called when the factory reset is requested.
 	 */
 	public void reset() {}
+
+	/**
+	 * Method called when the factory reset is requested for just one panel.
+	 * @return true if the panel could be reset "in place" without redisplay.
+	 */
+	public boolean resetThis() { return false; }
 }

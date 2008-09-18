@@ -441,10 +441,18 @@ public class PreferencesFrame extends EDialog
 				if (response)
 				{
 					Pref.delayPrefFlushing();
-					ti.reset();
+					boolean inPlace = ti.resetThis();
 					Pref.resumePrefFlushing();
-					closeDialog(null);
-			        WindowFrame.repaintAllWindows();
+					if (inPlace)
+					{
+						// panel was reset in place without redisplay
+					} else
+					{
+						// panel unable to reset itself: do hard reset and quit dialog
+						ti.reset();
+						closeDialog(null);
+				        WindowFrame.repaintAllWindows();
+					}
 					return;
 				}
 				break;

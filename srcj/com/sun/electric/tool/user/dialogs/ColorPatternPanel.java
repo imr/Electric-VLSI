@@ -26,8 +26,8 @@ package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EGraphics.Outline;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
@@ -45,6 +45,7 @@ import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -181,12 +182,12 @@ public class ColorPatternPanel extends JPanel
 	private MyPreviewPanel colorPreviewPanel;
 	private boolean warnedOfTransparentLayerSharing;
 	private String otherTransparentLayers;
-    private HashMap<Outline,ImageIcon> outlineImageIcons = new HashMap<Outline,ImageIcon>();
+    private Map<Outline,ImageIcon> outlineImageIcons = new HashMap<Outline,ImageIcon>();
 
 	/**
 	 * Create a Panel for editing color and pattern information.
 	 */
-	public ColorPatternPanel(boolean showPrinter, boolean showFactoryReset)
+	public ColorPatternPanel(boolean showPrinter)
 	{
 		initComponents();
 
@@ -247,20 +248,6 @@ public class ColorPatternPanel extends JPanel
 		gbc.gridwidth = 2;
 		gbc.insets = new Insets(4, 4, 4, 4);
 		color.add(colorPreviewPanel, gbc);
-
-		if (showFactoryReset)
-		{
-			JButton factoryReset = new JButton("Factory Reset All Layers");
-			gbc = new GridBagConstraints();
-			gbc.gridx = 0;   gbc.gridy = 3;
-			gbc.gridwidth = 2;
-			gbc.insets = new Insets(4, 4, 4, 4);
-			color.add(factoryReset, gbc);
-			factoryReset.addActionListener(new ActionListener()
-			{
-	            public void actionPerformed(ActionEvent evt) { factoryResetActionPerformed(); }
-	        });
-		}
 
 		if (showPrinter)
 		{
@@ -520,10 +507,6 @@ public class ColorPatternPanel extends JPanel
 		if (currentLI.transparentLayer != 0)
 			colorMap[currentLI.transparentLayer-1] = newColor;
 		colorPreviewPanel.repaint();
-	}
-
-	public void factoryResetActionPerformed()
-	{
 	}
 
 	/**

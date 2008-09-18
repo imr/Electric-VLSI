@@ -30,7 +30,9 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.ColorPatternPanel;
+import com.sun.electric.tool.user.ui.ToolBar;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.ui.ToolBar.EToolBarButton;
 
 import java.awt.Color;
 import java.awt.Frame;
@@ -56,23 +58,7 @@ public class LayersTab extends PreferencePanel
 	private Map<String,ColorPatternPanel.Info> transAndSpecialMap;
     private Map<User.ColorPrefType, String> nameTypeSpecialMap;
     private Map<Technology,Color []> colorMapMap;
-	private MyColorPatternPanel colorAndPatternPanel;
-
-	private static class MyColorPatternPanel extends ColorPatternPanel
-	{
-		private LayersTab lt;
-
-		public MyColorPatternPanel(LayersTab lt, boolean showPrinter, boolean showFactoryReset)
-		{
-			super(showPrinter, showFactoryReset);
-			this.lt = lt;
-		}
-
-		public void factoryResetActionPerformed()
-		{
-			lt.factoryResetAll();
-		}
-	}
+	private ColorPatternPanel colorAndPatternPanel;
 
     private void resetColorPanelInfo(ColorPatternPanel.Info cpi)
     {
@@ -94,31 +80,6 @@ public class LayersTab extends PreferencePanel
         cpi.blue = factoryColor & 0xFF;
     }
 
-    private void factoryResetAll()
-	{
-		for(Layer layer : layerMap.keySet())
-		{
-			ColorPatternPanel.Info cpi = layerMap.get(layer);
-            resetColorPanelInfo(cpi);
-		}
-        // Special layers
-        for(ColorPatternPanel.Info cpi: transAndSpecialMap.values())
-        {
-            resetColorPanelInfo(cpi);
-        }
-
-        for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
-		{
-			Technology tech = it.next();
-			Color [] map = new Color[tech.getNumTransparentLayers()];
-			Color [] fullMap = tech.getFactoryColorMap();
-			for(int i=0; i<map.length; i++)
-				map[i] = fullMap[1<<i];
-			colorMapMap.put(tech, map);
-		}
-		setTechnology();
-	}
-
 	/** Creates new form LayerTab */
 	public LayersTab(Frame parent, boolean modal)
 	{
@@ -126,7 +87,7 @@ public class LayersTab extends PreferencePanel
 		initComponents();
 
 		// make the color/pattern panel
-		colorAndPatternPanel = new MyColorPatternPanel(this, true, true);
+		colorAndPatternPanel = new ColorPatternPanel(true);
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.gridx = 0;      gbc.gridy = 1;
 		gbc.weightx = 1;    gbc.weighty = 1;
@@ -377,6 +338,36 @@ public class LayersTab extends PreferencePanel
 		{
             WindowFrame.repaintAllWindows();
 		}
+	}
+
+	/**
+	 * Method called when the factory reset is requested for just this panel.
+	 * @return true if the panel can be reset "in place" without redisplay.
+	 */
+	public boolean resetThis()
+	{
+		for(Layer layer : layerMap.keySet())
+		{
+			ColorPatternPanel.Info cpi = layerMap.get(layer);
+            resetColorPanelInfo(cpi);
+		}
+        // Special layers
+        for(ColorPatternPanel.Info cpi: transAndSpecialMap.values())
+        {
+            resetColorPanelInfo(cpi);
+        }
+
+        for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
+		{
+			Technology tech = it.next();
+			Color [] map = new Color[tech.getNumTransparentLayers()];
+			Color [] fullMap = tech.getFactoryColorMap();
+			for(int i=0; i<map.length; i++)
+				map[i] = fullMap[1<<i];
+			colorMapMap.put(tech, map);
+		}
+		setTechnology();
+		return true;
 	}
 
 	/**
