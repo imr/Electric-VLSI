@@ -124,7 +124,7 @@ public class PreferencesFrame extends EDialog
 
 	/** The name of the current tab in this dialog. */		private static String currentTabName = "General";
 	/** The name of the current section in this dialog. */	private static String currentSectionName = "General ";
-	private DefaultMutableTreeNode currentDMTN;
+	private DefaultMutableTreeNode initialDMTN;
 
 	/**
 	 * This method implements the command to show the PreferencesFrame dialog.
@@ -152,7 +152,7 @@ public class PreferencesFrame extends EDialog
 	/** Creates new form PreferencesFrame */
 	public PreferencesFrame(Frame parent)
 	{
-		super(parent, true);
+		super(parent, false);
 		getContentPane().setLayout(new GridBagLayout());
 		setTitle("Preferences");
 		setName("");
@@ -317,15 +317,35 @@ public class PreferencesFrame extends EDialog
 		gbc.insets = new Insets(4, 4, 4, 4);
 		leftPanel.add(reset, gbc);
 
+		JButton resetAll = new JButton("Reset All");
+		resetAll.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { resetAllActionPerformed(); }
+		});
+		gbc = new GridBagConstraints();
+		gbc.gridx = 1;   gbc.gridy = 2;
+		gbc.insets = new Insets(4, 4, 4, 4);
+		leftPanel.add(resetAll, gbc);
+
 		JButton help = new JButton("Help");
 		help.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent evt) { helpActionPerformed(); }
 		});
 		gbc = new GridBagConstraints();
-		gbc.gridx = 1;   gbc.gridy = 2;
+		gbc.gridx = 0;   gbc.gridy = 3;
 		gbc.insets = new Insets(4, 4, 4, 4);
 		leftPanel.add(help, gbc);
+
+		JButton apply = new JButton("Apply");
+		apply.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { applyActionPerformed(); }
+		});
+		gbc = new GridBagConstraints();
+		gbc.gridx = 1;   gbc.gridy = 3;
+		gbc.insets = new Insets(4, 4, 4, 4);
+		leftPanel.add(apply, gbc);
 
 		cancel = new JButton("Cancel");
 		cancel.addActionListener(new ActionListener()
@@ -333,7 +353,7 @@ public class PreferencesFrame extends EDialog
 			public void actionPerformed(ActionEvent evt) { cancelActionPerformed(); }
 		});
 		gbc = new GridBagConstraints();
-		gbc.gridx = 0;   gbc.gridy = 3;
+		gbc.gridx = 0;   gbc.gridy = 4;
 		gbc.insets = new Insets(4, 4, 4, 4);
 		leftPanel.add(cancel, gbc);
 
@@ -343,7 +363,7 @@ public class PreferencesFrame extends EDialog
 			public void actionPerformed(ActionEvent evt) { okActionPerformed(); }
 		});
 		gbc = new GridBagConstraints();
-		gbc.gridx = 1;   gbc.gridy = 3;
+		gbc.gridx = 1;   gbc.gridy = 4;
 		gbc.insets = new Insets(4, 4, 4, 4);
 		leftPanel.add(ok, gbc);
 		getRootPane().setDefaultButton(ok);
@@ -355,7 +375,7 @@ public class PreferencesFrame extends EDialog
 
 		loadOptionPanel();
 		splitPane.setLeftComponent(leftPanel);
-		recursivelyHighlight(optionTree, rootNode, currentDMTN, optionTree.getPathForRow(0));
+		recursivelyHighlight(optionTree, rootNode, initialDMTN, optionTree.getPathForRow(0));
 
 		gbc = new GridBagConstraints();
 		gbc.gridx = 0;   gbc.gridy = 0;
@@ -376,7 +396,7 @@ public class PreferencesFrame extends EDialog
 		DefaultMutableTreeNode dmtn = new DefaultMutableTreeNode(name);
 		theSet.add(dmtn);
 		if (sectionName.equals(currentSectionName) && name.equals(currentTabName))
-			currentDMTN = dmtn;
+			initialDMTN = dmtn;
 	}
 
 	private boolean openSelectedPath(DefaultMutableTreeNode rootNode)
@@ -385,7 +405,7 @@ public class PreferencesFrame extends EDialog
 		{
 			DefaultMutableTreeNode node = (DefaultMutableTreeNode)rootNode.getChildAt(i);
 			Object o = node.getUserObject();
-			if (o.toString().equals(currentTabName))//indexOf(currentTabName) != -1)
+			if (o.toString().equals(currentTabName))
 			{
 				optionTree.scrollPathToVisible(new TreePath(node.getPath()));
 				return true;
@@ -402,10 +422,37 @@ public class PreferencesFrame extends EDialog
 
 	private void okActionPerformed()
 	{
-		new OKUpdate(this);
+		new OKUpdate(this, true);
+	}
+
+	private void applyActionPerformed()
+	{
+		new OKUpdate(this, false);
 	}
 
 	private void resetActionPerformed()
+	{
+		for(PreferencePanel ti : optionPanes)
+		{
+			if (ti.getName().equals(currentTabName))
+			{
+				boolean response = Job.getUserInterface().confirmMessage(
+					"Do you really want to reset the " + ti.getName() + " Preferences to their 'factory' state?");
+				if (response)
+				{
+					Pref.delayPrefFlushing();
+					ti.reset();
+					Pref.resumePrefFlushing();
+					closeDialog(null);
+			        WindowFrame.repaintAllWindows();
+					return;
+				}
+				break;
+			}
+		}
+	}
+
+	private void resetAllActionPerformed()
 	{
 		boolean response = Job.getUserInterface().confirmMessage(
 			"Do you really want to reset all Preferences to their 'factory' state?");
@@ -413,10 +460,7 @@ public class PreferencesFrame extends EDialog
 		{
 			Pref.delayPrefFlushing();
 			for(PreferencePanel ti : optionPanes)
-			{
-//				System.out.println("RESTTING PANEL: "+ti.getName());
 				ti.reset();
-			}
 			Pref.resumePrefFlushing();
 			closeDialog(null);
             WindowFrame.repaintAllWindows();
@@ -481,11 +525,13 @@ public class PreferencesFrame extends EDialog
 	{
 		private transient PreferencesFrame dialog;
 		private Pref.PrefChangeBatch changeBatch;
+		private transient boolean andDone;
 
-		private OKUpdate(PreferencesFrame dialog)
+		private OKUpdate(PreferencesFrame dialog, boolean andDone)
 		{
 			super("Update Preferences", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.dialog = dialog;
+			this.andDone = andDone;
 
 			// gather preference changes on the client
 			Pref.gatherPrefChanges();
@@ -506,7 +552,7 @@ public class PreferencesFrame extends EDialog
 
 		public void terminateOK()
 		{
-			dialog.closeDialog(null);
+			if (andDone) dialog.closeDialog(null);
 		}
 	}
 
