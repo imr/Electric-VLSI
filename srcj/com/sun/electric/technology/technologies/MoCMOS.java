@@ -2364,16 +2364,21 @@ public class MoCMOS extends Technology
             double actOverhang = getTransistorExtension(primNode, false, rules);
             double lenValMax = DBMath.round(length /2 - (polyWid.getValue(0)/2));   // Y if poly gate is horizontal, X if poly is vertical
             double lenValMin = DBMath.round(lenValMax - actOverhang);
-            // Active layer
-            activeNode.getBottomEdge().setAdder(lenValMin); activeNode.getTopEdge().setAdder(-lenValMin);
-            activeBNode.getBottomEdge().setAdder(lenValMin); activeBNode.getTopEdge().setAdder(lenValMax);
-            activeTNode.getTopEdge().setAdder(-lenValMin); activeTNode.getBottomEdge().setAdder(-lenValMax);
 
             // poly from active
             double gateOverhang = getTransistorExtension(primNode, true, rules);
             double polyExten = actSurround.getValue(0) - gateOverhang;
             double gateEdge = polyExten + gateOverhang;
 
+            // Active layer
+            activeNode.getBottomEdge().setAdder(lenValMin); activeNode.getTopEdge().setAdder(-lenValMin);
+            activeBNode.getBottomEdge().setAdder(lenValMin); activeBNode.getTopEdge().setAdder(lenValMax);
+            activeTNode.getTopEdge().setAdder(-lenValMin); activeTNode.getBottomEdge().setAdder(-lenValMax);
+            activeNode.getLeftEdge().setAdder(gateEdge); activeNode.getRightEdge().setAdder(-gateEdge);
+            activeBNode.getLeftEdge().setAdder(gateEdge); activeBNode.getRightEdge().setAdder(-gateEdge);
+            activeTNode.getLeftEdge().setAdder(gateEdge); activeTNode.getRightEdge().setAdder(-gateEdge);
+
+            // poly
             polyNode.getBottomEdge().setAdder(lenValMax);  polyNode.getTopEdge().setAdder(-lenValMax);
             polyNode.getLeftEdge().setAdder(polyExten);    polyNode.getRightEdge().setAdder(-polyExten);
             polyLNode.getBottomEdge().setAdder(lenValMax); polyLNode.getTopEdge().setAdder(-lenValMax);

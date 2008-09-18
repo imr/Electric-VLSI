@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08h: ******************************
 
+BUG: (9/18/08, GVG) Transistor sizes wrong with mocmos/SCMOS conditions (Bug #1863)
+FIX: Resizing of left and right edges in MoCMOS transistor primitive was missing so default was always picked.
+
 IMP/MAN: (9/18/08, SMR) Preferences dialog is now modeless.  Also has
      "reset" for current panel and "reset all" for all panels.
      Individual preferences panels no longer have private
