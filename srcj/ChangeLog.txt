@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08h: ******************************
 
+BUG: (9/17/08. GVG) Error Logger Import of XML doesn't seems highlight area (Bug #1864)
+FIX: Wrong condition for cell object.
+
 IMP: (9/17/08, SMR) Generalized specific transistor function usage
      and now use PrimitiveNode.Function methods to distinguish N-type and
      P-type transistors (Bug #1858).

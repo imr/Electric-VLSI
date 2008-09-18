@@ -1134,7 +1134,7 @@ public class ErrorLogger implements Serializable
                 }
                 else
                 {
-                    if (viewName != null && curCell != null)
+                    if (viewName != null)
                     {
                         View view = View.findView(viewName);
                         curCell = Library.findCellInLibraries(cellName, view, libraryName);
