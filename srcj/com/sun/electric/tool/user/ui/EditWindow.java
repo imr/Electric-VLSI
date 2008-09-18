@@ -148,7 +148,7 @@ import javax.swing.tree.MutableTreeNode;
  * (to the right of the explorer panel).
  */
 public class EditWindow extends JPanel
-	implements EditWindow_, WindowContent, MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, ActionListener,
+	implements EditWindow_, WindowContent, MouseMotionListener, MouseListener, MouseWheelListener, KeyListener,
 		HighlightListener, DatabaseChangeListener
 {
 	/** the window scale */									private double scale;
@@ -376,38 +376,6 @@ public class EditWindow extends JPanel
 	// ************************************* EVENT LISTENERS *************************************
 
 	private int lastXPosition, lastYPosition;
-
-	/**
-	 * Respond to an action performed, in this case change the current cell
-	 * when the user clicks on an entry in the upHierarchy popup menu.
-	 */
-	public void actionPerformed(ActionEvent e)
-	{
-		JMenuItem source = (JMenuItem)e.getSource();
-		// extract library and cell from string
-		Cell cell = (Cell)Cell.findNodeProto(source.getText());
-		if (cell == null) return;
-		Cell currentCell = getCell();
-		setCell(cell, VarContext.globalContext, null);
-
-		// Highlight an instance of cell we came from in current cell
-		highlighter.clear();
-		for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
-			NodeInst ni = it.next();
-			if (ni.isCellInstance()) {
-				Cell nodeCell = (Cell)ni.getProto();
-				if (nodeCell == currentCell) {
-					highlighter.addElectricObject(ni, cell);
-					break;
-				}
-				if (nodeCell.isIconOf(currentCell)) {
-					highlighter.addElectricObject(ni, cell);
-					break;
-				}
-			}
-		}
-		highlighter.finished();
-	}
 
 	// the MouseListener events
 	public void mousePressed(MouseEvent evt)
@@ -2598,7 +2566,7 @@ public class EditWindow extends JPanel
 	private void drawPopupCloud(Graphics2D g)
 	{
 		// JKG NOTE: disabled for now
-		// TODO: decide whether or not this is useful
+		// must decide whether or not this is useful
 		/*
 		if (popupCloudText == null || popupCloudText.size() == 0) return;
 		// draw cloud
@@ -3207,9 +3175,6 @@ public class EditWindow extends JPanel
         if (cell == null) return;
         Cell oldCell = cell;
 
-        // when display is "in place", focus is implicitly kept, so don't request it here
-		if (inPlaceDisplay) keepFocus = false;
-
 		// determine which export is selected so it can be shown in the upper level
         Export selectedExport = null;
         Set<Network> nets = highlighter.getHighlightedNetworks();
@@ -3229,13 +3194,6 @@ public class EditWindow extends JPanel
 			if (no != null)
 			{
 		        Cell parent = no.getParent();
-		        double offsetX = 0, offsetY = 0;
-		        if (keepFocus)
-		        {
-					NodeInst ni = no.getNodeInst();
-					offsetX = ni.getAnchorCenterX();
-					offsetY = ni.getAnchorCenterY();
-		        }
 
 				// see if this was in history, if so, restore offset and scale
 				// search backwards to get most recent entry
@@ -3252,9 +3210,17 @@ public class EditWindow extends JPanel
 						foundHistory.setSelPort(no.getNodeInst().findPortInstFromProto(selectedExport));
 					if (keepFocus)
 					{
+						double newX = offx, newY = offy;
+						if (!inPlaceDisplay)
+						{
+							Point2D curCtr = new Point2D.Double(offx, offy);
+							AffineTransform up = no.getNodeInst().rotateOut(no.getNodeInst().translateOut());
+							up.transform(curCtr, curCtr);
+							newX = curCtr.getX();
+							newY = curCtr.getY();
+						}
 						List<NodeInst> oldInPlaceDescent = foundHistory.getDisplayAttributes().inPlaceDescent;
-						foundHistory.setDisplayAttributes(new WindowFrame.DisplayAttributes(scale, offx + offsetX,
-							offy + offsetY, oldInPlaceDescent));
+						foundHistory.setDisplayAttributes(new WindowFrame.DisplayAttributes(scale, newX, newY, oldInPlaceDescent));
 					}
 					wf.setCellByHistory(historyIndex);
 				} else
@@ -3263,7 +3229,17 @@ public class EditWindow extends JPanel
                     List<NodeInst> newInPlaceDescent = new ArrayList<NodeInst>(inPlaceDescent);
                     if (!newInPlaceDescent.isEmpty())
                         newInPlaceDescent.remove(newInPlaceDescent.size() - 1);
-     			    WindowFrame.DisplayAttributes da = new WindowFrame.DisplayAttributes(scale, offx+offsetX, offy+offsetY, newInPlaceDescent);
+					double newX = offx, newY = offy;
+    		        if (keepFocus)
+    		        {
+    					NodeInst ni = no.getNodeInst();
+						Point2D curCtr = new Point2D.Double(offx, offy);
+						AffineTransform up = ni.rotateOut(ni.translateOut());
+						up.transform(curCtr, curCtr);
+						newX = curCtr.getX();
+						newY = curCtr.getY();
+    		        }
+     			    WindowFrame.DisplayAttributes da = new WindowFrame.DisplayAttributes(scale, newX, newY, newInPlaceDescent);
 					showCell(parent, context, true, da);
 			        wf.addToHistory(parent, context, da);
 
@@ -3347,16 +3323,18 @@ public class EditWindow extends JPanel
                     }
                 }
 
-		        double offsetX = 0, offsetY = 0;
-		        if (keepFocus && theOne != null)
+				double newX = offx, newY = offy;
+		        if (keepFocus)
 		        {
-					offsetX = theOne.getAnchorCenterX();
-					offsetY = theOne.getAnchorCenterY();
+					Point2D curCtr = new Point2D.Double(offx, offy);
+					AffineTransform up = theOne.rotateOut(theOne.translateOut());
+					up.transform(curCtr, curCtr);
+					newX = curCtr.getX();
+					newY = curCtr.getY();
 		        }
-                WindowFrame.DisplayAttributes da = new WindowFrame.DisplayAttributes(getScale(), getOffset().getX()+offsetX,
-                	getOffset().getY()+offsetY, new ArrayList<NodeInst>());
+                WindowFrame.DisplayAttributes da = new WindowFrame.DisplayAttributes(getScale(), newX, newY, new ArrayList<NodeInst>());
 				setCell(parent, VarContext.globalContext, da);
-				fillScreen();
+		        if (!keepFocus) fillScreen();
 
 				// highlight instance
 				if (theOne != null)
@@ -3381,7 +3359,7 @@ public class EditWindow extends JPanel
 				{
                     String cellName = parent.describe(false);
 					JMenuItem menuItem = new JMenuItem(cellName);
-					menuItem.addActionListener(this);
+					menuItem.addActionListener(new UpHierarchyPopupListener(keepFocus));
 					parents.add(menuItem);
 				}
 				parents.show(overall, 0, 0);
@@ -3389,6 +3367,65 @@ public class EditWindow extends JPanel
         } catch (NullPointerException e)
 		{
             ActivityLogger.logException(e);
+		}
+    }
+
+    private class UpHierarchyPopupListener implements ActionListener
+    {
+    	private boolean keepFocus;
+
+    	UpHierarchyPopupListener(boolean k) { keepFocus = k; }
+
+    	/**
+		 * Respond to an action performed, in this case change the current cell
+		 * when the user clicks on an entry in the upHierarchy popup menu.
+		 */
+		public void actionPerformed(ActionEvent e)
+		{
+			JMenuItem source = (JMenuItem)e.getSource();
+			// extract library and cell from string
+			Cell cell = (Cell)Cell.findNodeProto(source.getText());
+			if (cell == null) return;
+			Cell currentCell = getCell();
+
+			// find one of these nodes in the upper cell
+			NodeInst theOne = null;
+			for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
+			{
+				NodeInst ni = it.next();
+				if (ni.isCellInstance())
+				{
+					Cell nodeCell = (Cell)ni.getProto();
+					if (nodeCell == currentCell)
+					{
+						theOne = ni;
+						break;
+					}
+					if (nodeCell.isIconOf(currentCell))
+					{
+						theOne = ni;
+						break;
+					}
+				}
+			}
+
+			double newX = offx, newY = offy;
+	        if (keepFocus)
+	        {
+				Point2D curCtr = new Point2D.Double(offx, offy);
+				AffineTransform up = theOne.rotateOut(theOne.translateOut());
+				up.transform(curCtr, curCtr);
+				newX = curCtr.getX();
+				newY = curCtr.getY();
+	        }
+	        WindowFrame.DisplayAttributes da = new WindowFrame.DisplayAttributes(getScale(), newX, newY, new ArrayList<NodeInst>());
+			setCell(cell, VarContext.globalContext, da);
+	        if (!keepFocus) fillScreen();
+
+			// Highlight an instance of cell we came from in current cell
+			highlighter.clear();
+			if (theOne != null) highlighter.addElectricObject(theOne, cell);
+			highlighter.finished();
 		}
     }
 
