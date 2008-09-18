@@ -798,8 +798,14 @@ public class Change extends EModelessDialog implements HighlightListener
 					} else System.out.println(oldNType + " replaced with " + np);
 				} else
 				{
-					// get arc to be replaced
+                    // get arc to be replaced
 					ArcInst ai = (ArcInst)geomToChange;
+
+                    if (ap == null)
+                    {
+                        System.out.println("Arc " + ai.getName() + " skipped");
+                        continue;
+                    }
 
 					// disallow replacement if lock is on
 					if (CircuitChangeJobs.cantEdit(ai.getParent(), null, true, false, true) != 0) return false;
