@@ -23,7 +23,8 @@
  */
 package com.sun.electric.tool.user.ui;
 
-import java.awt.AWTKeyStroke;
+import com.sun.electric.tool.Client;
+
 import java.awt.Toolkit;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
@@ -164,7 +165,55 @@ public class KeyStrokePair {
     public static KeyStroke stringToKeyStroke(String str) {
         // change NUMPAD-# to NUMPAD#
         str = str.replaceAll("NumPad\\-", "NUMPAD");
+
         // Hack: getKeyStroke does not understand mac's Command key.
+        // Hack tested on Leopard
+        if (str.length() > 0 && Client.isOSMac())
+        {
+            // Checking if the first character is a MaCOSX special one.
+            char ctl = 8963; // ctl
+            char command = 8984; // command
+            char shift = 8679;
+            boolean hasCtl = false, hasCmd = false, hasShift = false;
+
+            for (int i = 0; i < str.length(); i++)
+            {
+                char c = str.charAt(i);
+                if (!hasCtl && c == ctl)
+                    hasCtl = true;
+                if (!hasCmd && c == command)
+                    hasCmd = true;
+                if (!hasShift && c == shift)
+                    hasShift = true;
+                if (hasCtl && hasCmd && hasShift)
+                    break;
+            }
+            if (hasCtl)
+                str = str.replace(ctl, (char)32);
+            if (hasCmd)
+                str = str.replace(command, (char)32);
+            if (hasShift)
+                str = str.replace(shift, (char)32);
+            str = str.trim();
+            KeyStroke key = KeyStroke.getKeyStroke(str);
+
+            if (key != null)
+            {
+                int val = key.getModifiers();
+                if (hasCtl)
+                    val |= InputEvent.CTRL_DOWN_MASK;
+                if (hasShift)
+                    val |= InputEvent.SHIFT_DOWN_MASK;
+                if (hasCmd)
+                    val |= InputEvent.META_DOWN_MASK;
+                key = KeyStroke.getKeyStroke(key.getKeyCode(), val);
+                return key;
+            }
+        }
+
+
+        // Hack: getKeyStroke does not understand mac's Command key.
+        // Hack tested on Tiger
         if (str.matches(".*?command.*")) {
             // must be a mac, get mac command key
             str = str.replaceAll("command", "");

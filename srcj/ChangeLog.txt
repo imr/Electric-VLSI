@@ -4,7 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08h: ******************************
 
-BUG: (9/17/08. GVG) Error Logger Import of XML doesn't seems highlight area (Bug #1864)
+BUG: (9/18/08, GVG) Can't bind ctl/alt/command <option> on MacOSX (Bug #1802)
+FIX: Special detection of special keys on MacOSX Leopard
+
+BUG: (9/17/08, GVG) Error Logger Import of XML doesn't seems highlight area (Bug #1864)
 FIX: Wrong condition for cell object.
 
 IMP: (9/17/08, SMR) Generalized specific transistor function usage
