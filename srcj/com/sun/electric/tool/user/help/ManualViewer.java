@@ -373,6 +373,8 @@ public class ManualViewer extends EModelessDialog
 		super(parent, false);
 		htmlBaseClass = baseClass;
 		htmlDirectory = htmlDir;
+		pageSequence = new ArrayList<PageInfo>();
+		pageNodeSequence = new ArrayList<DefaultMutableTreeNode>();
 		setTitle("User's Manual");
 		init();
 
@@ -396,8 +398,6 @@ public class ManualViewer extends EModelessDialog
 			return;
 		}
 		InputStreamReader is = new InputStreamReader(stream);
-		pageSequence = new ArrayList<PageInfo>();
-		pageNodeSequence = new ArrayList<DefaultMutableTreeNode>();
 		DefaultMutableTreeNode [] stack = new DefaultMutableTreeNode[20];
 		stack[0] = rootNode;
 		boolean newAtLevel = false;

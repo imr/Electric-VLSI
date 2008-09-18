@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08h: ******************************
 
+BUG: (9/18/08, SMR) Manual viewer crashes if manual cannot be found (Bug #1865).
+FIX: Initialize field variables before issuing missing manual error.
+
 BUG: (9/18/08, GVG) Can't bind ctl/alt/command <option> on MacOSX (Bug #1802)
 FIX: Special detection of special keys on MacOSX Leopard
 
