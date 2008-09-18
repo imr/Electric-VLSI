@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08h: ******************************
 
+BUG: (9/18/08, SMR) Updates to the toolbar do not draw immediately (Bug #1870).
+FIX: In ToolBar.redoToolbar() call updateUI().
+
 BUG: (9/18/08, GVG) Transistor sizes wrong with mocmos/SCMOS conditions (Bug #1863)
 FIX: Resizing of left and right edges in MoCMOS transistor primitive was missing so default was always picked.
 

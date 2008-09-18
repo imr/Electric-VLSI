@@ -464,6 +464,7 @@ public class ToolBar extends JToolBar
 				}
 			}
 		}
+		updateUI();
 	}
 
 	private void chooseGridAmount()
