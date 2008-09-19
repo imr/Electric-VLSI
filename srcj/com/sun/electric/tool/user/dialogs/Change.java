@@ -100,7 +100,7 @@ public class Change extends EModelessDialog implements HighlightListener
 
 	public static void showChangeDialog()
 	{
-		if (Client.getOperatingSystem() == Client.OS.UNIX && theDialog != null)
+        if (Client.getOperatingSystem() == Client.OS.UNIX && theDialog != null)
 		{
 			// On Linux, if a dialog is built, closed using setVisible(false),
 			// and then requested again using setVisible(true), it does
@@ -285,11 +285,38 @@ public class Change extends EModelessDialog implements HighlightListener
 		if (wnd != null)
 		{
 			List<Geometric> highs = wnd.getHighlighter().getHighlightedEObjs(true, true);
-			for (Geometric geom : highs)
+            boolean hasArcs = false, hasCells = false, hasPrimitives = false;
+
+            for (Geometric geom : highs)
 			{
 				geomsToChange.add(geom);
-			}
-		}
+                if (geom instanceof ArcInst)
+                    hasArcs = true;
+                else if (geom instanceof NodeInst)
+                {
+                    NodeInst ni = (NodeInst)geom;
+                    if (ni.isCellInstance())
+                        hasCells = true;
+                    else
+                        hasPrimitives = true;
+                }
+            }
+            if (hasArcs && hasCells)
+            {
+                Job.getUserInterface().showErrorMessage("Select either arcs or cells only", "Wrong Selection");
+                geomsToChange.clear();
+            }
+            else if (hasArcs && hasPrimitives)
+            {
+                Job.getUserInterface().showErrorMessage("Select either arcs or primitives only", "Wrong Selection");
+                geomsToChange.clear();
+            }
+            else if (hasCells && hasPrimitives)
+            {
+                Job.getUserInterface().showErrorMessage("Select either cells or primitives only", "Wrong Selection");
+                geomsToChange.clear();
+            }
+        }
 		if (geomsToChange.size() == 0)
 		{
 			librariesPopup.setEnabled(false);

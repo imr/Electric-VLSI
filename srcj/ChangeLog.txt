@@ -5,8 +5,7 @@ NOTE: Please place changes under the version that will be released next.
 ************************* Version 8.08h: ******************************
 
 BUG: (9/18/08, GVG) Change in cells cases null point exception (Bug #1872)
-FIX: If the elements selected for the change are choosed by "Select All", make
-sure arcs are skipped if selected template is a cell.
+FIX: Checking if all selected highlighted belong to the same Geometry class.
 
 BUG: (9/18/08, SMR) Updates to the toolbar do not draw immediately (Bug #1870).
 FIX: In ToolBar.redoToolbar() call updateUI().
