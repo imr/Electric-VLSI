@@ -429,6 +429,8 @@ public class ErrorLoggerTree {
             this.logger = log;
         }
 
+        public void setLogNumber(int number) { currentLogNumber = number;}
+
         public ErrorLogger getLogger() { return logger; }
 
         public String toString() { return "ErrorLogger Information: " +  logger.getInfo();}

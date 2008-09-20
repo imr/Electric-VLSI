@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08h: ******************************
 
+IMP/MAN: (9/20/08, GVG) Error logger set index for stepping (Bug #1869).
+Next and previous will be with respect to the last ErrorLogger highlighted.
+
 BUG: (9/18/08, GVG) Change in cells cases null point exception (Bug #1872)
 FIX: Checking if all selected highlighted belong to the same Geometry class.
 

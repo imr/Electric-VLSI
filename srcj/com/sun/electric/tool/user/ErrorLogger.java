@@ -938,6 +938,18 @@ public class ErrorLogger implements Serializable
     public MessageLog getLog(int i) {
         return i < allErrors.size() ? allErrors.get(i) : allWarnings.get(i - allErrors.size());
     }
+
+    public int getLogIndex(MessageLog log)
+    {
+        int index = allErrors.indexOf(log);
+        if (index != -1)
+            return index;
+        index = allWarnings.indexOf(log);
+        if (index != -1)
+            return index + allErrors.size();
+        assert(false); // it should not reach one
+        return -1;
+    }
     
     /**
      * Method to list all logged errors and warnings.

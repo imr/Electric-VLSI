@@ -1330,7 +1330,21 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 
 				if (nodeObj instanceof ErrorLogger.MessageLog)
 				{
-					ErrorLogger.MessageLog el = (ErrorLogger.MessageLog)nodeObj;
+                    ErrorLogger.MessageLog el = (ErrorLogger.MessageLog)nodeObj;
+                    Object tree = cp.getParentPath().getLastPathComponent(); // flat method
+                    if (!(tree instanceof ErrorLoggerTree.ErrorLoggerDefaultMutableTreeNode))
+                        tree = cp.getParentPath().getParentPath().getLastPathComponent();
+
+                    if (!(tree instanceof ErrorLoggerTree.ErrorLoggerDefaultMutableTreeNode))
+                        assert(false); // should this happen?
+
+                    {
+                        ErrorLoggerTree.ErrorLoggerDefaultMutableTreeNode er = (ErrorLoggerTree.ErrorLoggerDefaultMutableTreeNode)tree;
+                        Object obj = er.getUserObject();
+                        ErrorLoggerTree.ErrorLoggerTreeNode node = (ErrorLoggerTree.ErrorLoggerTreeNode)obj;
+                        int index = node.getLogger().getLogIndex(el);
+                        node.setLogNumber(index);
+                    }
 					String msg = Job.getUserInterface().reportLog(el,true, null);
 					System.out.println(msg);
 					return;
