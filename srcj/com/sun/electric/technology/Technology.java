@@ -3911,7 +3911,8 @@ public class Technology implements Comparable<Technology>, Serializable
 				primLayers = pLayers;
 				int count = primLayers.length;
 				numSegments = points.length - 1;
-				layersTotal = count * numSegments;
+				layersTotal = count;
+//				layersTotal = count * numSegments;
 
 				extraScale = 0;
 				double length = niD.getSerpentineTransistorLength();
@@ -3932,7 +3933,7 @@ public class Technology implements Comparable<Technology>, Serializable
 				{
 					// when there are both field and gate poly elements, use field poly only on the ends
 					fieldPolyOnEndsOnly = true;
-					layersTotal = (count-numFieldPoly) * numSegments + numFieldPoly;
+//					layersTotal = (count-numFieldPoly) * numSegments + numFieldPoly;
 				}
 			}
 		}
@@ -3962,80 +3963,234 @@ public class Technology implements Comparable<Technology>, Serializable
 		 */
 		private Poly fillTransPoly(boolean electrical)
 		{
-			int segment = 0, element = 0;
-			boolean isFieldPolyEndcap1 = false, isFieldPolyEndcap2 = false;
-			boolean extendEnds = true;
-			for(;;)
-			{
-				// compute the segment (along the serpent) and element (of transistor)
-				segment = fillBox % numSegments;
-				element = fillBox / numSegments;
-				fillBox++;
+			int element = fillBox++;
+			Technology.NodeLayer primLayer = primLayers[element];
+			double extendt = primLayer.getSerpentineExtentT();
+			double extendb = primLayer.getSerpentineExtentB();
 
-				// if field poly appears only on the ends of the transistor, ignore interior requests
-				if (fieldPolyOnEndsOnly)
+			// if field poly appears only on the ends of the transistor, ignore interior requests
+			boolean extendEnds = true;
+			if (fieldPolyOnEndsOnly)
+			{
+				Layer layer = primLayer.getLayer();
+				if (layer.getFunction().isPoly())
 				{
-					Layer layer = primLayers[element].getLayer();
-					if (layer.getFunction().isPoly())
+					if (layer.getFunction() == Layer.Function.GATE)
 					{
-						if (layer.getFunction() == Layer.Function.GATE)
+						// found the gate poly: do not extend it
+						extendEnds = false;
+					} else
+					{
+						// found piece of field poly
+						if (extendt != 0)
 						{
-							// found the gate poly: do not extend it
-							extendEnds = false;
-						} else
+							// first endcap: extend "thissg" 180 degrees back
+							int thissg = 0;   int nextsg = 1;
+							Point2D thisPt = points[thissg];
+							Point2D nextPt = points[nextsg];
+							int angle = DBMath.figureAngle(thisPt, nextPt);
+							nextPt = thisPt;
+							int ang = angle+1800;
+							thisPt = DBMath.addPoints(thisPt, DBMath.cos(ang) * extendt, DBMath.sin(ang) * extendt);
+							return buildSerpentinePoly(element, 0, numSegments, electrical, thisPt, nextPt, angle);
+						} else if (extendb != 0)
 						{
-							// found piece of field poly
-							if (segment == 0 && primLayers[element].getSerpentineExtentT() != 0) isFieldPolyEndcap1 = true; else
-								if (segment == numSegments-1 && primLayers[element].getSerpentineExtentB() != 0) isFieldPolyEndcap2 = true; else
-									continue;
+							// last endcap: extend "next" 0 degrees forward
+							int thissg = numSegments-1;   int nextsg = numSegments;
+							Point2D thisPt = points[thissg];
+							Point2D nextPt = points[nextsg];
+							int angle = DBMath.figureAngle(thisPt, nextPt);
+							thisPt = nextPt;
+							nextPt = DBMath.addPoints(nextPt, DBMath.cos(angle) * extendb, DBMath.sin(angle) * extendb);
+							return buildSerpentinePoly(element, 0, numSegments, electrical, thisPt, nextPt, angle);
 						}
 					}
 				}
-				break;
 			}
 
-			// prepare to fill the serpentine transistor
-			int thissg = segment;   int nextsg = segment+1;
-			Point2D thisPt = points[thissg];
-			Point2D nextPt = points[nextsg];
-			int angle = DBMath.figureAngle(thisPt, nextPt);
-			double extendt = primLayers[element].getSerpentineExtentT();
-			double extendb = primLayers[element].getSerpentineExtentB();
-
-			// special case for field poly endcaps
-			if (isFieldPolyEndcap1)
+			// fill the polygon
+			Point2D [] outPoints = new Point2D.Double[(numSegments+1)*2];
+			double xoff = theNode.anchor.getX();
+			double yoff = theNode.anchor.getY();
+			for(int segment=0; segment<numSegments; segment++)
 			{
-				// first endcap: extend "thissg" 180 degrees back
-				nextPt = thisPt;
-				int ang = angle+1800;
-				thisPt = DBMath.addPoints(thisPt, DBMath.cos(ang) * extendt, DBMath.sin(ang) * extendt);
-				return buildSerpentinePoly(element, 0, numSegments, electrical, thisPt, nextPt, angle);
-			}
-			if (isFieldPolyEndcap2)
-			{
-				// last endcap: extend "next" 0 degrees forward
-				thisPt = nextPt;
-				nextPt = DBMath.addPoints(nextPt, DBMath.cos(angle) * extendb, DBMath.sin(angle) * extendb);
-				return buildSerpentinePoly(element, 0, numSegments, electrical, thisPt, nextPt, angle);
-			}
-
-			// push the points at the ends of the transistor
-			if (extendEnds)
-			{
-				if (thissg == 0)
+				int thissg = segment;   int nextsg = segment+1;
+				Point2D thisPt = points[thissg];
+				Point2D nextPt = points[nextsg];
+				int angle = DBMath.figureAngle(thisPt, nextPt);
+				if (extendEnds)
 				{
-					// extend "thissg" 180 degrees back
-					int ang = angle+1800;
-					thisPt = DBMath.addPoints(thisPt, DBMath.cos(ang) * extendt, DBMath.sin(ang) * extendt);
+					if (thissg == 0)
+					{
+						// extend "thissg" 180 degrees back
+						int ang = angle+1800;
+						thisPt = DBMath.addPoints(thisPt, DBMath.cos(ang) * extendt, DBMath.sin(ang) * extendt);
+					}
+					if (nextsg == numSegments)
+					{
+						// extend "next" 0 degrees forward
+						nextPt = DBMath.addPoints(nextPt, DBMath.cos(angle) * extendb, DBMath.sin(angle) * extendb);
+					}
 				}
-				if (nextsg == numSegments)
+
+				// see if nonstandard width is specified
+				double lwid = primLayer.getSerpentineLWidth();
+				double rwid = primLayer.getSerpentineRWidth();
+				lwid += extraScale;
+				rwid += extraScale;
+
+				// compute endpoints of line parallel to and left of center line
+				int ang = angle+LEFTANGLE;
+				double sin = DBMath.sin(ang) * lwid;
+				double cos = DBMath.cos(ang) * lwid;
+				Point2D thisL = DBMath.addPoints(thisPt, cos, sin);
+				Point2D nextL = DBMath.addPoints(nextPt, cos, sin);
+
+				// compute endpoints of line parallel to and right of center line
+				ang = angle+RIGHTANGLE;
+				sin = DBMath.sin(ang) * rwid;
+				cos = DBMath.cos(ang) * rwid;
+				Point2D thisR = DBMath.addPoints(thisPt, cos, sin);
+				Point2D nextR = DBMath.addPoints(nextPt, cos, sin);
+
+				// determine proper intersection of this and the previous segment
+				if (thissg != 0)
 				{
-					// extend "next" 0 degrees forward
-					nextPt = DBMath.addPoints(nextPt, DBMath.cos(angle) * extendb, DBMath.sin(angle) * extendb);
+					Point2D otherPt = points[thissg-1];
+					int otherang = DBMath.figureAngle(otherPt, thisPt);
+					if (otherang != angle)
+					{
+						ang = otherang + LEFTANGLE;
+						thisL = DBMath.intersect(DBMath.addPoints(thisPt, DBMath.cos(ang)*lwid, DBMath.sin(ang)*lwid),
+							otherang, thisL,angle);
+						ang = otherang + RIGHTANGLE;
+						thisR = DBMath.intersect(DBMath.addPoints(thisPt, DBMath.cos(ang)*rwid, DBMath.sin(ang)*rwid),
+							otherang, thisR,angle);
+					}
+				}
+
+				// determine proper intersection of this and the next segment
+				if (nextsg != numSegments)
+				{
+					Point2D otherPt = points[nextsg+1];
+					int otherang = DBMath.figureAngle(nextPt, otherPt);
+					if (otherang != angle)
+					{
+						ang = otherang + LEFTANGLE;
+						Point2D newPtL = DBMath.addPoints(nextPt, DBMath.cos(ang)*lwid, DBMath.sin(ang)*lwid);
+						nextL = DBMath.intersect(newPtL, otherang, nextL,angle);
+						ang = otherang + RIGHTANGLE;
+						Point2D newPtR = DBMath.addPoints(nextPt, DBMath.cos(ang)*rwid, DBMath.sin(ang)*rwid);
+						nextR = DBMath.intersect(newPtR, otherang, nextR,angle);
+					}
+				}
+
+				// fill the polygon
+				if (segment == 0)
+				{
+					// fill in the first two points
+					outPoints[0] = DBMath.addPoints(thisL, xoff, yoff);
+					outPoints[1] = DBMath.addPoints(nextL, xoff, yoff);
+					outPoints[(numSegments+1)*2-2] = DBMath.addPoints(nextR, xoff, yoff);
+					outPoints[(numSegments+1)*2-1] = DBMath.addPoints(thisR, xoff, yoff);
+				} else
+				{
+					outPoints[segment+1] = DBMath.addPoints(nextL, xoff, yoff);
+					outPoints[(numSegments+1)*2-2-segment] = DBMath.addPoints(nextR, xoff, yoff);
 				}
 			}
+			Poly retPoly = new Poly(outPoints);
+			retPoly.setStyle(primLayer.getStyle());
+			retPoly.setLayer(primLayer.getLayer());
 
-			return buildSerpentinePoly(element, thissg, nextsg, electrical, thisPt, nextPt, angle);
+			// include port information if requested
+			if (electrical)
+			{
+				int portIndex = primLayer.getPortNum();
+				if (portIndex >= 0)
+				{
+					assert theProto.getId() == theNode.protoId;
+					PortProto port = theProto.getPort(portIndex);
+					retPoly.setPort(port);
+				}
+			}
+			return retPoly;
+
+//			// the old way to compute it: segment-by-segment
+//			int segment = 0, element = 0;
+//			boolean isFieldPolyEndcap1 = false, isFieldPolyEndcap2 = false;
+//			boolean extendEnds = true;
+//			for(;;)
+//			{
+//				// compute the segment (along the serpent) and element (of transistor)
+//				segment = fillBox % numSegments;
+//				element = fillBox / numSegments;
+//				fillBox++;
+//
+//				// if field poly appears only on the ends of the transistor, ignore interior requests
+//				if (fieldPolyOnEndsOnly)
+//				{
+//					Layer layer = primLayers[element].getLayer();
+//					if (layer.getFunction().isPoly())
+//					{
+//						if (layer.getFunction() == Layer.Function.GATE)
+//						{
+//							// found the gate poly: do not extend it
+//							extendEnds = false;
+//						} else
+//						{
+//							// found piece of field poly
+//							if (segment == 0 && primLayers[element].getSerpentineExtentT() != 0) isFieldPolyEndcap1 = true; else
+//								if (segment == numSegments-1 && primLayers[element].getSerpentineExtentB() != 0) isFieldPolyEndcap2 = true; else
+//									continue;
+//						}
+//					}
+//				}
+//				break;
+//			}
+//
+//			// prepare to fill the serpentine transistor
+//			int thissg = segment;   int nextsg = segment+1;
+//			Point2D thisPt = points[thissg];
+//			Point2D nextPt = points[nextsg];
+//			int angle = DBMath.figureAngle(thisPt, nextPt);
+//			double extendt = primLayers[element].getSerpentineExtentT();
+//			double extendb = primLayers[element].getSerpentineExtentB();
+//
+//			// special case for field poly endcaps
+//			if (isFieldPolyEndcap1)
+//			{
+//				// first endcap: extend "thissg" 180 degrees back
+//				nextPt = thisPt;
+//				int ang = angle+1800;
+//				thisPt = DBMath.addPoints(thisPt, DBMath.cos(ang) * extendt, DBMath.sin(ang) * extendt);
+//				return buildSerpentinePoly(element, 0, numSegments, electrical, thisPt, nextPt, angle);
+//			}
+//			if (isFieldPolyEndcap2)
+//			{
+//				// last endcap: extend "next" 0 degrees forward
+//				thisPt = nextPt;
+//				nextPt = DBMath.addPoints(nextPt, DBMath.cos(angle) * extendb, DBMath.sin(angle) * extendb);
+//				return buildSerpentinePoly(element, 0, numSegments, electrical, thisPt, nextPt, angle);
+//			}
+//
+//			// push the points at the ends of the transistor
+//			if (extendEnds)
+//			{
+//				if (thissg == 0)
+//				{
+//					// extend "thissg" 180 degrees back
+//					int ang = angle+1800;
+//					thisPt = DBMath.addPoints(thisPt, DBMath.cos(ang) * extendt, DBMath.sin(ang) * extendt);
+//				}
+//				if (nextsg == numSegments)
+//				{
+//					// extend "next" 0 degrees forward
+//					nextPt = DBMath.addPoints(nextPt, DBMath.cos(angle) * extendb, DBMath.sin(angle) * extendb);
+//				}
+//			}
+//
+//			return buildSerpentinePoly(element, thissg, nextsg, electrical, thisPt, nextPt, angle);
 		}
 
 		private Poly buildSerpentinePoly(int element, int thissg, int nextsg, boolean electrical, Point2D thisPt, Point2D nextPt, int angle)

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08i: ******************************
 
+IMP: (9/22/08, SMR) Serpentine transistors now emit a single complex polygon
+     for every layer (instead of breaking it up into mulitple segments, Bug #1873).
+
 ************************* Version 8.08h: ******************************
 
 BUG: (9/22/08, GVG) Incorrect placement of p-contact (Bug #1871)
