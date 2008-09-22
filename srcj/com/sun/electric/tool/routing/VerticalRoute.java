@@ -497,7 +497,22 @@ public class VerticalRoute {
 						if (tryarc == startArc) continue;           // already connecting through startArc
 						if (tryarc == this.startArc) continue;      // original arc connecting from
 						if (specifiedRoute.contains(tryarc)) continue;       // already used this arc
-						specifiedRoute.add(tryarc);
+                        // if it is not the first specific route, then avoid to come back to the startPin
+                        if (specifiedRoute.size() > 0)
+                        {
+                            boolean notSameStart = false;
+                            for (Iterator<PrimitivePort> itP = tryarc.findPinProto().getPrimitivePorts(); itP.hasNext();)
+                            {
+                                PrimitivePort p = itP.next();
+                                if (p == startPort)
+                                {
+                                    notSameStart = true; // passing for the same port, avoiding loops
+                                }
+                            }
+                            if (notSameStart)
+                                continue;
+                        }
+                        specifiedRoute.add(tryarc);
 						if (DEBUGSEARCH) System.out.println(ds+"...found intermediate node "+pp+" through "+startArc+" to "+tryarc);
 						// recurse
 						findConnectingPorts(tryarc, endArc, ds);
