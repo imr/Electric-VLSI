@@ -4563,7 +4563,7 @@ public class Technology implements Comparable<Technology>, Serializable
      * @param pp PrimitivePort to test
      * @return true if all ArcProtos can connect to the PrimitivePort
      */
-    protected boolean isUniversalConnectivityPort(PrimitivePort pp) {
+	public boolean isUniversalConnectivityPort(PrimitivePort pp) {
         return false;
     }
 

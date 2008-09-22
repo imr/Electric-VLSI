@@ -37,6 +37,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNodeSize;
+import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Client;
@@ -381,6 +382,11 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
 
     private String addLayerInfo(PortProto pp)
     {
+    	// if the port is on a generic primitive which can connect to everything, say so
+    	PrimitivePort pRp = pp.getBasePort();
+    	if (pRp.getParent().getTechnology().isUniversalConnectivityPort(pRp))
+    		return " [ALL]";
+
         String descr = "";
         ArcProto [] cons = pp.getBasePort().getConnections();
         boolean first = true;

@@ -383,7 +383,7 @@ public class Generic extends Technology
      * @return true if all ArcProtos can connect to the PrimitivePort
      */
     @Override
-    protected boolean isUniversalConnectivityPort(PrimitivePort pp) {
+    public boolean isUniversalConnectivityPort(PrimitivePort pp) {
         return pp == univPinPort || pp == invisPinPort || pp == simProbePort;
     }
 

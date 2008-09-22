@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08i: ******************************
 
+BUG: (9/22/08, SMR) Selecting a port on a Generic primitive shows a
+     long list of possible arc connections (Bug #1878).
+FIX: For Generic primitives, report connectivity simply as "ALL".
+
 IMP: (9/22/08, SMR) Serpentine transistors now emit a single complex polygon
      for every layer (instead of breaking it up into mulitple segments, Bug #1873).
 
