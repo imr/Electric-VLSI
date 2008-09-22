@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08h: ******************************
 
+BUG/MAN: (9/22/08, SMR) Node Properties may spend too long listing ports (Bug #1874).
+FIX: Node Properties now lists only the first 100 ports (or bus members)
+     and has a "Show All" button to request the entire list.
+
 BUG: (9/22/08, GVG) Infinite loop on transistor width casting (Bug #1875)
 FIX: Transistors with ExpressionCode can properly return values now.
 

@@ -606,7 +606,6 @@ public class Spice extends Topology
 		{
 			Nodable no = nIt.next();
 			NodeProto niProto = no.getProto();
-            boolean includePwrVdd = Simulation.isSpiceWritePwrGndInTopCell();
 
             // handle sub-cell calls
 			if (no.isCellInstance())
@@ -662,16 +661,16 @@ public class Spice extends Topology
 	                if (ignoreSubcktPort(subCS)) continue;
 					PortProto pp = subCS.getExport();
 	                if (!subCS.isGlobal() && pp == null) continue;
-                    // If global pwr/vdd will be included in the subcircuit
+
+	                // If global pwr/vdd will be included in the subcircuit
                     // Preparing code for bug #1828
-//                    if (!includePwrVdd && pp!= null && subCS.isGlobal() && (subCS.isGround() || subCS.isPower()))
-//                        continue;
+//					if (!Simulation.isSpiceWritePwrGndInTopCell() && pp!= null && subCS.isGlobal() && (subCS.isGround() || subCS.isPower()))
+//						continue;
                         
                     Network net;
                     int exportIndex = subCS.getExportIndex();
 
-                    // This checks if we are netlisting a schematic top level with
-                    // swapped-in layout subcells
+                    // This checks if we are netlisting a schematic top level with swapped-in layout subcells
                     if (pp != null && cell.isSchematic() && (subCni.getCell().getView() == View.LAYOUT))
                     {
                         // find equivalent pp from layout to schematic
