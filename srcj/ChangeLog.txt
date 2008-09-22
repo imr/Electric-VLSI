@@ -2,6 +2,8 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.08i: ******************************
+
 ************************* Version 8.08h: ******************************
 
 BUG: (9/22/08, GVG) Incorrect placement of p-contact (Bug #1871)
