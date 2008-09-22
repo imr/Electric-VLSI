@@ -2341,6 +2341,8 @@ public class Spice extends Topology
                     return;
 				}
                 System.out.println("Spice Header Card '" + fileName + "' cannot be loaded");
+System.out.println("  DEBUGGING INFORMATION: filePath="+filePath);
+System.out.println("  DEBUGGING INFORMATION: filePart="+filePart);
             } else
 			{
 				// normal header file specified
@@ -2399,7 +2401,11 @@ public class Spice extends Topology
                     System.out.println("Spice Trailer Card '" + fileName + "' is included");
 				}
                 else
+                {
                     System.out.println("Spice Trailer Card '" + fileName + "' cannot be loaded");
+System.out.println("  DEBUGGING INFORMATION: filePath="+filePath);
+System.out.println("  DEBUGGING INFORMATION: filePart="+filePart);
+                }
 			} else
 			{
 				// normal trailer file specified
