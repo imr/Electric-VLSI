@@ -25,6 +25,7 @@
 package com.sun.electric.technology;
 
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.text.TextUtils;
 
 /**
  * Holds the Width and Length of a PrimitiveNode that is a transistor.
@@ -80,29 +81,35 @@ public class PrimitiveNodeSize {
      * Method to return the actual width of the element based on the object
      * used to store the information. Most of the time is a Double but
      * Schematics might use different values depending on the Varialbles stored.
-     * @return
+     * @return String represented the value
      */
-    public double getEvaluatedWidth()
+    public String getWidthInString()
     {
         double width = getDoubleWidth();
-        if (width == 0 && getWidth() != null)
-            return ((Double)getWidth()).doubleValue();
+        Object obj = getWidth();
+        if (width == 0 && obj != null)
+        {
+            return obj.toString();
+        }
         else
-            return width;
+            return TextUtils.formatDouble(width);
     }
 
     /**
      * Method to return the actual length of the element based on the object
      * used to store the information. Most of the time is a Double but
      * Schematics might use different values depending on the Varialbles stored.
-     * @return
+     * @return String represented the value
      */
-    public double getEvaluatedLength()
+    public String getLengthInString()
     {
         double length = getDoubleLength();
-        if (length == 0 && getLength() != null)
-            return ((Double)getLength()).doubleValue();
+        Object obj = getLength();
+        if (length == 0 && obj != null)
+        {
+            return obj.toString();
+        }
         else
-            return length;
+            return TextUtils.formatDouble(length);
     }
 }

@@ -341,11 +341,9 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
 					if (npSize != null)
 					{
 						selectedMsg += " (size=";
-                        double width = npSize.getEvaluatedWidth();
-                        selectedMsg += TextUtils.formatDouble(width);
+                        selectedMsg += npSize.getWidthInString();
 						selectedMsg += "x";
-                        double length = npSize.getEvaluatedLength();
-                        selectedMsg += TextUtils.formatDouble(length);
+                        selectedMsg += npSize.getLengthInString();
 						selectedMsg += ")";
 					} else
 					{

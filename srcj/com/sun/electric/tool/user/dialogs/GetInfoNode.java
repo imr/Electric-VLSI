@@ -381,9 +381,9 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 	        xsizeLabel.setDisplayedMnemonic('w');
 			ysizeLabel.setText("Length:");
 	        ysizeLabel.setDisplayedMnemonic('l');
-            double finalW = npSize.getEvaluatedWidth(), finalH = npSize.getEvaluatedLength();
-            xSize.setText(TextUtils.formatDouble(finalW));
-            ySize.setText(TextUtils.formatDouble(finalH));
+            String finalW = npSize.getWidthInString(), finalH = npSize.getLengthInString();
+            xSize.setText(finalW);
+            ySize.setText(finalH);
             initialXSize = xSize.getText();
 			initialYSize = ySize.getText();
 		} else {
