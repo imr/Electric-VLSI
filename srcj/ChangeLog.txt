@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08i: ******************************
 
+************************* Version 8.08h: ******************************
+
+BUG: (9/23/08, GVG) DRC fails on serpentine transistors (Bug #1857)
+FIX: Working with PrimitiveNodeSize and baseRectangle values now for case (1).
+Case (2) got fix with #1873.
+
 BUG: (9/23/08, SMR) Spice templates in icons cause crash if there is a schematic (Bug #1879).
 FIX: Handle Spice template at any place.
 
@@ -13,8 +19,6 @@ FIX: For Generic primitives, report connectivity simply as "ALL".
 
 IMP: (9/22/08, SMR) Serpentine transistors now emit a single complex polygon
      for every layer (instead of breaking it up into mulitple segments, Bug #1873).
-
-************************* Version 8.08h: ******************************
 
 BUG: (9/22/08, GVG) Incorrect placement of p-contact (Bug #1871)
 FIX: Skip startPort if it is available in the middle of the path. That should avoid infinite loops.

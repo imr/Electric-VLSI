@@ -2450,34 +2450,68 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
         public double getHeight() { return fullRectangle.getLambdaHeight(); }
 
         /**
-         * Method to check if the given size complies with the node size rule. 0 is X, 1 is Y
+         * Methot to check whether the current NodeSize size meets
+         * original conditions provided by the technology.
          * @param size
          * @return
          */
-        public List<NodeSizeRuleError> checkSize(EPoint size, EPoint base)
+        public List<NodeSizeRuleError> checkSize(PrimitiveNodeSize size)
         {
             List<NodeSizeRuleError> list = null;
-            double diffX = getWidth() - size.getLambdaX();
-            if (DBMath.isGreaterThan(diffX, 0))
+            double base = baseRectangle.getLambdaWidth();
+            double minSize = size.getDoubleWidth();
+            double diff = base - minSize;
+
+            if (DBMath.isGreaterThan(diff, 0))
             {
-                double actual = base.getLambdaX();
-                double minSize = actual + diffX;
-                NodeSizeRuleError error = new NodeSizeRuleError("X axis", actual, minSize);
+                NodeSizeRuleError error = new NodeSizeRuleError("X axis", base, minSize);
                 list = new ArrayList<NodeSizeRuleError>(2);
                 list.add(error);
             }
-            double diffY = getHeight() - size.getLambdaY();
-            if (DBMath.isGreaterThan(diffY, 0))
+
+            base = baseRectangle.getLambdaHeight();
+            minSize = size.getDoubleLength();
+            diff = base - minSize;
+
+            if (DBMath.isGreaterThan(diff, 0))
             {
-                double actual = base.getLambdaY();
-                double minSize = actual + diffY;
-                NodeSizeRuleError error = new NodeSizeRuleError("Y axis", actual, minSize);
-                if (list == null)
-                    list = new ArrayList<NodeSizeRuleError>(1);
+                NodeSizeRuleError error = new NodeSizeRuleError("Y axis", base, minSize);
+                list = new ArrayList<NodeSizeRuleError>(2);
                 list.add(error);
             }
+
             return list;
         }
+
+//        /**
+//         * Method to check if the given size complies with the node size rule. 0 is X, 1 is Y
+//         * @param size
+//         * @return
+//         */
+//        public List<NodeSizeRuleError> checkSize(EPoint size, EPoint base)
+//        {
+//            List<NodeSizeRuleError> list = null;
+//            double diffX = getWidth() - size.getLambdaX();
+//            if (DBMath.isGreaterThan(diffX, 0))
+//            {
+//                double actual = base.getLambdaX();
+//                double minSize = actual + diffX;
+//                NodeSizeRuleError error = new NodeSizeRuleError("X axis", actual, minSize);
+//                list = new ArrayList<NodeSizeRuleError>(2);
+//                list.add(error);
+//            }
+//            double diffY = getHeight() - size.getLambdaY();
+//            if (DBMath.isGreaterThan(diffY, 0))
+//            {
+//                double actual = base.getLambdaY();
+//                double minSize = actual + diffY;
+//                NodeSizeRuleError error = new NodeSizeRuleError("Y axis", actual, minSize);
+//                if (list == null)
+//                    list = new ArrayList<NodeSizeRuleError>(1);
+//                list.add(error);
+//            }
+//            return list;
+//        }
     }
 
     /**

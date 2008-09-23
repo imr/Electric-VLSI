@@ -3025,9 +3025,9 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         PrimitiveNodeSize size = getPrimitiveDependentNodeSize(context);
         if (size == null) // not a special primitive like transistor or resistor
         {
-            double length = getLambdaBaseXSize();
-            double width = getLambdaBaseYSize();
-            size = new PrimitiveNodeSize(new Double(width), new Double(length));
+            double x = getLambdaBaseXSize();
+            double y = getLambdaBaseYSize();
+            size = new PrimitiveNodeSize(new Double(x), new Double(y));
         }
         return size;
     }
