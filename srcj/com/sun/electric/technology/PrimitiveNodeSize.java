@@ -33,8 +33,8 @@ import com.sun.electric.database.text.TextUtils;
  * may be specified as strings if they are java code, or just numbers.
  */
 public class PrimitiveNodeSize {
-    protected final Object width;
-    protected final Object length;
+    protected final Object width; // by default width is along X
+    protected final Object length;// by default length is along Y
 
     /**
 	 * Constructor creates a PrimitiveNodeSize with a given size.
@@ -46,7 +46,7 @@ public class PrimitiveNodeSize {
         this.length = length;
     }
 
-	/**
+    /**
 	 * Method to return the width of this TransistorSize.
 	 * @return the width of this TransistorSize.
 	 */
@@ -75,6 +75,16 @@ public class PrimitiveNodeSize {
      */
     public double getDoubleLength() {
         return VarContext.objectToDouble(length, 0);
+    }
+
+    public double getDoubleAlongX()
+    {
+        return getDoubleWidth();
+    }
+
+    public double getDoubleAlongY()
+    {
+        return getDoubleLength();
     }
 
     /**

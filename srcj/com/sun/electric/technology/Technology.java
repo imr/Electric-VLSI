@@ -3146,9 +3146,6 @@ public class Technology implements Comparable<Technology>, Serializable
 	{
 		double width = ni.getLambdaBaseXSize();
 		double height = ni.getLambdaBaseYSize();
-//		SizeOffset so = ni.getSizeOffset();
-//		double width = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
-//		double height = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
 
 		// override if there is serpentine information
 		Point2D [] trace = ni.getTrace();
@@ -3163,7 +3160,7 @@ public class Technology implements Comparable<Technology>, Serializable
             //System.out.println("No calculating length for active regions yet"); 
 		}
         double activeLen = getTransistorActiveLength(ni);
-		TransistorSize size = new TransistorSize(new Double(width), new Double(height), new Double(activeLen));
+		TransistorSize size = new TransistorSize(new Double(width), new Double(height), new Double(activeLen), true);
 		return size;
 	}
 

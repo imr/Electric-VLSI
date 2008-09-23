@@ -2459,7 +2459,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
         {
             List<NodeSizeRuleError> list = null;
             double base = baseRectangle.getLambdaWidth();
-            double minSize = size.getDoubleWidth();
+            double minSize = size.getDoubleAlongX();
             double diff = base - minSize;
 
             if (DBMath.isGreaterThan(diff, 0))
@@ -2470,7 +2470,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
             }
 
             base = baseRectangle.getLambdaHeight();
-            minSize = size.getDoubleLength();
+            minSize = size.getDoubleAlongY();
             diff = base - minSize;
 
             if (DBMath.isGreaterThan(diff, 0))

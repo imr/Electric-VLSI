@@ -2711,7 +2711,7 @@ public class Schematics extends Technology
                 if (width != -1)
                     widthObj = new Double(width);
             }
-            TransistorSize size = new TransistorSize(widthObj, lengthObj, new Double(1.0));
+            TransistorSize size = new TransistorSize(widthObj, lengthObj, new Double(1.0), true);
             return size;
 		}
         Object areaObj = new Double(0);
@@ -2720,7 +2720,7 @@ public class Schematics extends Technology
             double area = VarContext.objectToDouble(areaObj, -1);
             if (area != -1) areaObj = new Double(area);
         }
-        TransistorSize size = new TransistorSize(areaObj, new Double(1.0), new Double(1.0));
+        TransistorSize size = new TransistorSize(areaObj, new Double(1.0), new Double(1.0), true);
         return size;
     }
 

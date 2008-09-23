@@ -183,7 +183,7 @@ public class IRSIM extends Output
             		double wid = dim.getDoubleWidth();
             		if (len == 0) len = 2;
             		if (wid == 0) wid = 2;
-            		dim = new TransistorSize(new Double(wid), new Double(len), dim.getActiveLength());
+            		dim = new TransistorSize(new Double(wid), new Double(len), dim.getActiveLength(), true);
                     System.out.println("Warning, cannot evaluate size of transistor " + ni +
                     	" in cell " + info.getCell() + ", using default sizes");
             	} else dim = null;

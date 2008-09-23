@@ -32,16 +32,19 @@ import com.sun.electric.database.variable.VarContext;
  */
 public class TransistorSize extends PrimitiveNodeSize {
     private final Object activeLength; // extension of OD on PO for parasitic calculation
+    private final boolean polyHorizontal; // by default the poly is aligned along X. Poly aligned X => width == X, length == Y
 
-	/**
+    /**
 	 * Constructor creates a TransistorSize with a given size.
 	 * @param width the width of the TransistorSize.
-	 * @param length the length of the TransistorSize.
-	 * @param activeLen the length of the active area of the TransistorSize.
-	 */
-    public TransistorSize(Object width, Object length, Object activeLen) {
+     * @param length the length of the TransistorSize.
+     * @param activeLen the length of the active area of the TransistorSize.
+     * @param polyAlignX
+     */
+    public TransistorSize(Object width, Object length, Object activeLen, boolean polyAlignX) {
         super(width, length);
         this.activeLength = activeLen;
+        this.polyHorizontal = polyAlignX;
     }
 
 	/**
@@ -69,5 +72,15 @@ public class TransistorSize extends PrimitiveNodeSize {
      */
     public double getDoubleActiveLength() {
     	return VarContext.objectToDouble(activeLength, 0);
+    }
+
+    public double getDoubleAlongX()
+    {
+        return (polyHorizontal) ? getDoubleWidth() : getDoubleLength();
+    }
+
+    public double getDoubleAlongY()
+    {
+        return (!polyHorizontal) ? getDoubleWidth() : getDoubleLength();
     }
 }
