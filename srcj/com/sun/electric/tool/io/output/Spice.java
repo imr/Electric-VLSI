@@ -1656,24 +1656,45 @@ public class Spice extends Topology
     /**
      * Method to determine which Spice engine is being targeted and to get the proper
      * template variable.
+     * Looks in associated icon/schematics cells to find it.
      * @param cell the Cell being netlisted.
-     * @return a Variable on that Cell with the proper Spice template (null if none).
+     * @return a Variable with the proper Spice template (null if none).
      */
     private Variable getEngineTemplate(Cell cell)
     {
-        Variable varTemplate = cell.getVar(preferedEngineTemplateKey);
+        Variable varTemplate = getEngineTemplateJustThis(cell);
 
-        // Any of the following spice templates, if missing, will default to the generic spice template
+        // try associated icon/schematic if no template found
         if (varTemplate == null)
         {
-            if (preferedEngineTemplateKey == SPICE_2_TEMPLATE_KEY ||
-                preferedEngineTemplateKey == SPICE_3_TEMPLATE_KEY ||
-                preferedEngineTemplateKey == SPICE_H_TEMPLATE_KEY ||
-                preferedEngineTemplateKey == SPICE_P_TEMPLATE_KEY ||
-                preferedEngineTemplateKey == SPICE_GC_TEMPLATE_KEY ||
-                preferedEngineTemplateKey == SPICE_SM_TEMPLATE_KEY)
-                	varTemplate = cell.getVar(SPICE_TEMPLATE_KEY);
+        	if (cell.isIcon())
+        	{
+        		Cell schCell = cell.contentsView();
+        		if (schCell != null)
+        	        varTemplate = getEngineTemplateJustThis(schCell);
+        	} else
+        	{
+        		Cell iconCell = cell.iconView();
+        		if (iconCell != null)
+        	        varTemplate = getEngineTemplateJustThis(iconCell);
+        	}
         }
+        return varTemplate;
+    }
+
+    /**
+     * Method to determine which Spice engine is being targeted and to get the proper
+     * template variable.
+     * @param cell the Cell being netlisted.
+     * @return a Variable with the proper Spice template (null if none).
+     */
+    private Variable getEngineTemplateJustThis(Cell cell)
+    {
+        Variable varTemplate = cell.getVar(preferedEngineTemplateKey);
+
+        // If not looking for the default spice templates, and special one is not found, try default
+        if (varTemplate == null && preferedEngineTemplateKey != SPICE_TEMPLATE_KEY)
+            varTemplate = cell.getVar(SPICE_TEMPLATE_KEY);
         return varTemplate;
     }
 
@@ -1895,7 +1916,8 @@ public class Spice extends Topology
                     found = true;
                 }
                 if (!found) {
-                    System.out.println("Unable to lookup key $("+paramName+") in cell "+context.getInstPath("."));
+                    System.out.println("Cannot find parameter $("+paramName+") in cell "+
+                    	(prototype != null ? prototype.describe(false) : context.getInstPath(".")));
                 }
             }
         }
@@ -2341,8 +2363,6 @@ public class Spice extends Topology
                     return;
 				}
                 System.out.println("Spice Header Card '" + fileName + "' cannot be loaded");
-System.out.println("  DEBUGGING INFORMATION: filePath="+filePath);
-System.out.println("  DEBUGGING INFORMATION: filePart="+filePart);
             } else
 			{
 				// normal header file specified
@@ -2403,8 +2423,6 @@ System.out.println("  DEBUGGING INFORMATION: filePart="+filePart);
                 else
                 {
                     System.out.println("Spice Trailer Card '" + fileName + "' cannot be loaded");
-System.out.println("  DEBUGGING INFORMATION: filePath="+filePath);
-System.out.println("  DEBUGGING INFORMATION: filePart="+filePart);
                 }
 			} else
 			{
@@ -2579,7 +2597,6 @@ System.out.println("  DEBUGGING INFORMATION: filePart="+filePart);
      */
     private boolean markCellsToUniquify(Cell cell)
     {
-        //System.out.println("Checking Cell "+cell.describe());
         if (uniquifyCells.containsKey(cell)) return uniquifyCells.get(cell) != null;
         boolean mark = false;
 
@@ -2596,9 +2613,11 @@ System.out.println("  DEBUGGING INFORMATION: filePart="+filePart);
             if (!ni.isCellInstance()) continue;
             Cell proto = ((Cell)ni.getProto()).contentsView();
             if (proto == null) proto = (Cell)ni.getProto();
+            if (getEngineTemplate(proto) != null) continue;
             if (markCellsToUniquify(proto)) { mark = true; }
         }
-        assert mark == (detectSpiceParams(cell) == UNIQUIFY_MARK);
+        boolean isUnique = detectSpiceParams(cell) == UNIQUIFY_MARK;
+        assert mark == isUnique;
         if (mark)
             uniquifyCells.put(cell, cell);
         else
