@@ -2667,7 +2667,7 @@ public class Schematics extends Technology
             if (width != -1)
                 widthObj = new Double(width);
         }
-        PrimitiveNodeSize size = new PrimitiveNodeSize(widthObj, lengthObj);
+        PrimitiveNodeSize size = new PrimitiveNodeSize(widthObj, lengthObj, true);
         return size;
     }
 

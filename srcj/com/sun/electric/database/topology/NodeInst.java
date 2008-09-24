@@ -3027,7 +3027,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         {
             double x = getLambdaBaseXSize();
             double y = getLambdaBaseYSize();
-            size = new PrimitiveNodeSize(new Double(x), new Double(y));
+            size = new PrimitiveNodeSize(new Double(x), new Double(y), true);
         }
         return size;
     }

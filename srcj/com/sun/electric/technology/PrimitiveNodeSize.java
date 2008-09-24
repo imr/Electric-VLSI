@@ -35,15 +35,18 @@ import com.sun.electric.database.text.TextUtils;
 public class PrimitiveNodeSize {
     protected final Object width; // by default width is along X
     protected final Object length;// by default length is along Y
+    private final boolean widthAlongX; // by default the poly is aligned along X. Poly aligned X => width == X, length == Y
 
     /**
 	 * Constructor creates a PrimitiveNodeSize with a given size.
 	 * @param width the width of the PrimitiveNodeSize.
-	 * @param length the length of the PrimitiveNodeSize.
-	 */
-    public PrimitiveNodeSize(Object width, Object length) {
+     * @param length the length of the PrimitiveNodeSize.
+     * @param widthOnX
+     */
+    public PrimitiveNodeSize(Object width, Object length, boolean widthOnX) {
         this.width = width;
         this.length = length;
+        this.widthAlongX = widthOnX;
     }
 
     /**
@@ -77,14 +80,24 @@ public class PrimitiveNodeSize {
         return VarContext.objectToDouble(length, 0);
     }
 
+    /**
+     * Method to get correct value along X axis. This is critical for resistors
+     * and transistors whose poly is along Y
+     * @return
+     */
     public double getDoubleAlongX()
     {
-        return getDoubleWidth();
+        return (widthAlongX) ? getDoubleWidth() : getDoubleLength();
     }
 
+    /**
+     * Method to get correct value along Y axis. This is critical for resistors
+     * and transistors whose poly is along Y.
+     * @return
+     */
     public double getDoubleAlongY()
     {
-        return getDoubleLength();
+        return (!widthAlongX) ? getDoubleWidth() : getDoubleLength();
     }
 
     /**

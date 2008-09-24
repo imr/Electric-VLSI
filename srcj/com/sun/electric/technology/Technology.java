@@ -3110,7 +3110,7 @@ public class Technology implements Comparable<Technology>, Serializable
 //        double length = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
 //        double width = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
 
-        PrimitiveNodeSize size = new PrimitiveNodeSize(new Double(width), new Double(length));
+        PrimitiveNodeSize size = new PrimitiveNodeSize(new Double(width), new Double(length), false);
         return size;
     }
 
