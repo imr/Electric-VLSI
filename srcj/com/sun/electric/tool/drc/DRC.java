@@ -1878,7 +1878,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
             List<PrimitiveNode.NodeSizeRule.NodeSizeRuleError> errorsList = sizeRule.checkSize(npSize);
 //            EPoint niSize = new EPoint(ni.getXSize(), ni.getYSize());
 //            EPoint niBase = new EPoint(ni.getLambdaBaseXSize(), ni.getLambdaBaseYSize());
-//            List<PrimitiveNode.NodeSizeRule.NodeSizeRuleError> errorsList = sizeRule.checkSize(niSize, niBase);
+//            List<PrimitiveNode.NodeSizeRule.NodeSizeRuleError> errorsLis = sizeRule.checkSize(niSize, niBase);
 
             if (errorsList != null)
             {

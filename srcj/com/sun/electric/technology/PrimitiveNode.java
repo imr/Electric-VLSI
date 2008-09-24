@@ -2531,42 +2531,40 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
                 return ruleName;
             return getName() + " Asymmetric Min. Size";
         }
+
         /**
-         * Method to check if the given size complies with the node size rule. In this case, the min. rule value
+         * Methot to check whether the current NodeSize size meets
+         * original conditions provided by the technology.
+         * In this case, the min. rule value
          * will be considered for the shortest side and the max. rule value for the longest side.
          * @param size
          * @return
          */
-        public List<NodeSizeRuleError> checkSize(EPoint size, EPoint base)
+        public List<NodeSizeRuleError> checkSize(PrimitiveNodeSize size)
         {
             List<NodeSizeRuleError> list = null;
-            double lambdaX = size.getLambdaX();
-            double lambdaY = size.getLambdaY();
-            double sizeX = getWidth();
-            double sizeY = getHeight();
+            double lambdaX = size.getDoubleAlongX();
+            double lambdaY = size.getDoubleAlongY();
+            double sizeX = baseRectangle.getLambdaWidth();
+            double sizeY = baseRectangle.getLambdaHeight();
             double shortest, longest;
             double shortVal, longVal;
             String shortMsg, longMsg;
-            double shortActual, longActual;
 
             // The shortest side is along X
             if (DBMath.isLessThan(lambdaX, lambdaY))
             {
                 shortest = lambdaX;
                 shortMsg = "X axis";
-                shortActual = base.getLambdaX();
                 longest = lambdaY;
                 longMsg = "Y axis";
-                longActual = base.getLambdaY();
             }
             else
             {
                 shortest = lambdaY;
                 shortMsg = "Y axis";
-                shortActual = base.getLambdaY();
                 longest = lambdaX;
                 longMsg = "X axis";
-                longActual = base.getLambdaX();
             }
 
             // Getting the min. rule value
@@ -2584,19 +2582,87 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
             double diffMin = shortVal - shortest;
             if (DBMath.isGreaterThan(diffMin, 0))
             {
-                NodeSizeRuleError error = new NodeSizeRuleError(shortMsg, shortActual, shortActual+diffMin);
+                NodeSizeRuleError error = new NodeSizeRuleError(shortMsg, shortest, shortVal);
                 list = new ArrayList<NodeSizeRuleError>(2);
                 list.add(error);
             }
             double diffMax = longVal - longest;
             if (DBMath.isGreaterThan(diffMax, 0))
             {
-                NodeSizeRuleError error = new NodeSizeRuleError(longMsg, longActual, longActual+diffMax);
+                NodeSizeRuleError error = new NodeSizeRuleError(longMsg, longVal, longest);
                 if (list == null)
                     list = new ArrayList<NodeSizeRuleError>(2);
                 list.add(error);
             }
             return list;
         }
+
+//        /**
+//         * Method to check if the given size complies with the node size rule. In this case, the min. rule value
+//         * will be considered for the shortest side and the max. rule value for the longest side.
+//         * @param size
+//         * @return
+//         */
+//        public List<NodeSizeRuleError> checkSize(EPoint size, EPoint base)
+//        {
+//            List<NodeSizeRuleError> list = null;
+//            double lambdaX = size.getLambdaX();
+//            double lambdaY = size.getLambdaY();
+//            double sizeX = getWidth();
+//            double sizeY = getHeight();
+//            double shortest, longest;
+//            double shortVal, longVal;
+//            String shortMsg, longMsg;
+//            double shortActual, longActual;
+//
+//            // The shortest side is along X
+//            if (DBMath.isLessThan(lambdaX, lambdaY))
+//            {
+//                shortest = lambdaX;
+//                shortMsg = "X axis";
+//                shortActual = base.getLambdaX();
+//                longest = lambdaY;
+//                longMsg = "Y axis";
+//                longActual = base.getLambdaY();
+//            }
+//            else
+//            {
+//                shortest = lambdaY;
+//                shortMsg = "Y axis";
+//                shortActual = base.getLambdaY();
+//                longest = lambdaX;
+//                longMsg = "X axis";
+//                longActual = base.getLambdaX();
+//            }
+//
+//            // Getting the min. rule value
+//            if (DBMath.isLessThan(sizeX, sizeY))
+//            {
+//                shortVal = sizeX;
+//                longVal = sizeY;
+//            }
+//            else
+//            {
+//                shortVal = sizeY;
+//                longVal = sizeX;
+//            }
+//
+//            double diffMin = shortVal - shortest;
+//            if (DBMath.isGreaterThan(diffMin, 0))
+//            {
+//                NodeSizeRuleError error = new NodeSizeRuleError(shortMsg, shortActual, shortActual+diffMin);
+//                list = new ArrayList<NodeSizeRuleError>(2);
+//                list.add(error);
+//            }
+//            double diffMax = longVal - longest;
+//            if (DBMath.isGreaterThan(diffMax, 0))
+//            {
+//                NodeSizeRuleError error = new NodeSizeRuleError(longMsg, longActual, longActual+diffMax);
+//                if (list == null)
+//                    list = new ArrayList<NodeSizeRuleError>(2);
+//                list.add(error);
+//            }
+//            return list;
+//        }
     }
 }

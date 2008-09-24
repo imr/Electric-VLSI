@@ -6,6 +6,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08h: ******************************
 
+BUG: (9/24/08, GVG) DRC min size broken for asymetric cmos90 contacts (Bug #1881)
+FIX: Asymmetric min rules amended as well.
+
 BUG: (9/23/08, GVG) DRC fails on serpentine transistors (Bug #1857)
 FIX: Working with PrimitiveNodeSize and baseRectangle values now for case (1).
 Case (2) got fix with #1873.
