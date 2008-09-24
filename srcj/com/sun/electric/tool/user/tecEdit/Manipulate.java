@@ -43,7 +43,6 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
-import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Xml;
 import com.sun.electric.technology.technologies.Artwork;
@@ -60,12 +59,19 @@ import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.geom.Point2D;
@@ -86,6 +92,7 @@ import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
 
 /**
@@ -320,17 +327,17 @@ public class Manipulate
 			case 1:		// layer
 				String layerName = JOptionPane.showInputDialog("Name of new layer:", "");
 				if (layerName == null) return;
-				cellName = "layer-" + layerName;
+				cellName = "layer-" + layerName + "{lay}";
 				break;
 			case 2:		// arc
 				String arcName = JOptionPane.showInputDialog("Name of new arc:", "");
 				if (arcName == null) return;
-				cellName = "arc-" + arcName;
+				cellName = "arc-" + arcName + "{lay}";
 				break;
 			case 3:		// node
 				String nodeName = JOptionPane.showInputDialog("Name of new node:", "");
 				if (nodeName == null) return;
-				cellName = "node-" + nodeName;
+				cellName = "node-" + nodeName + "{lay}";
 				break;
 			case 4:		// factors
 				cellName = "factors";
@@ -719,7 +726,6 @@ public class Manipulate
 			gbc.insets = new Insets(4, 4, 4, 4);
 			getContentPane().add(lab3, gbc);
 
-
 			// center column
 			JButton remove = new JButton("Remove");
 			gbc = new GridBagConstraints();
@@ -742,7 +748,6 @@ public class Manipulate
 			{
 				public void actionPerformed(ActionEvent evt) { addLib(); }
 			});
-
 
 			// right column
 			JLabel lab4 = new JLabel("All Libraries:");
@@ -972,25 +977,19 @@ public class Manipulate
 			highlighter.addMessage(np, msg, curPt);
 
             Rectangle2D nodeBounds = ns.node.getBaseShape().getBounds2D();
-//			SizeOffset so = ns.node.getSizeOffset();
-//			Rectangle2D nodeBounds = ns.node.getBounds();
 			Point2D other = null;
 			if (style[i] == Poly.Type.TEXTLEFT)
 			{
 				other = new Point2D.Double(nodeBounds.getMinX(), nodeBounds.getCenterY());
-//				other = new Point2D.Double(nodeBounds.getMinX()+so.getLowXOffset(), nodeBounds.getCenterY());
 			} else if (style[i] == Poly.Type.TEXTRIGHT)
 			{
 				other = new Point2D.Double(nodeBounds.getMaxX(), nodeBounds.getCenterY());
-//				other = new Point2D.Double(nodeBounds.getMaxX()-so.getHighXOffset(), nodeBounds.getCenterY());
 			} else if (style[i] == Poly.Type.TEXTTOP)
 			{
 				other = new Point2D.Double(nodeBounds.getCenterX(), nodeBounds.getMaxY());
-//				other = new Point2D.Double(nodeBounds.getCenterX(), nodeBounds.getMaxY()-so.getHighYOffset());
 			} else if (style[i] == Poly.Type.TEXTBOT)
 			{
 				other = new Point2D.Double(nodeBounds.getCenterX(), nodeBounds.getMinY());
-//				other = new Point2D.Double(nodeBounds.getCenterX(), nodeBounds.getMinY()+so.getLowYOffset());
 			}
 			highlighter.addLine(curPt, other, np);
 		}
@@ -1832,7 +1831,7 @@ public class Manipulate
 		}
 
 		// make a set of those arcs which can connect to this port
-		HashSet<NodeProto> connectSet = new HashSet<NodeProto>();
+		Set<NodeProto> connectSet = new HashSet<NodeProto>();
 		Variable var = ni.getVar(Info.CONNECTION_KEY);
 		if (var != null)
 		{
@@ -1870,13 +1869,9 @@ public class Manipulate
 		if (choice == null) return;
 
 		// save the results
-//		String [] fieldValues = new String[allArcs.size()];
-//		for(int i=0; i<allArcs.size(); i++)
 		String [] fieldValues = new String[fields.length];
 		for(int i=0; i<fields.length; i++)
-		{
 			fieldValues[i] = (String)fields[i].getFinal();
-		}
 		new ModifyPortJob(ni, allArcs, fieldValues);
 	}
 
@@ -2311,11 +2306,7 @@ public class Manipulate
 
 	public static void reorderPrimitives(int type)
 	{
-		RearrangeOrder dialog = new RearrangeOrder();
-		dialog.lib = Library.getCurrent();
-		dialog.type = type;
-		dialog.initComponents();
-		dialog.setVisible(true);
+		new RearrangeOrder(type);
 	}
 
 	/**
@@ -2327,16 +2318,100 @@ public class Manipulate
 		private DefaultListModel model;
 		private Library lib;
 		private int type;
+		private int startItem;
+		private int endItem;
+		private boolean endBefore;
+		private int endLineHighlightBefore;
 
 		/** Creates new form Rearrange technology components */
-		private RearrangeOrder()
+		private RearrangeOrder(int type)
 		{
 			super(null, true);
+			this.type = type;
+			lib = Library.getCurrent();
+
+			switch (type)
+			{
+				case 1: setTitle("Rearrange Layer Order");   break;
+				case 2: setTitle("Rearrange Arc Order");     break;
+				case 3: setTitle("Rearrange Node Order");    break;
+			}
+			setName("");
+			addWindowListener(new WindowAdapter()
+			{
+				public void windowClosing(WindowEvent evt) { exit(false); }
+			});
+			getContentPane().setLayout(new GridBagLayout());
+
+			JLabel title = new JLabel("Drag to reorganize the list");
+			GridBagConstraints gbc = new GridBagConstraints();
+			gbc.gridx = 0;      gbc.gridy = 0;
+			gbc.gridwidth = 2;
+			gbc.insets = new Insets(4, 4, 4, 4);
+			getContentPane().add(title, gbc);
+
+			JScrollPane center = new JScrollPane();
+			center.setPreferredSize(new Dimension(300, 150));
+			gbc = new GridBagConstraints();
+			gbc.gridx = 0;      gbc.gridy = 1;
+			gbc.weightx = 1;    gbc.weighty = 1;
+			gbc.gridwidth = 2;
+			gbc.fill = GridBagConstraints.BOTH;
+			gbc.insets = new Insets(4, 4, 4, 4);
+			getContentPane().add(center, gbc);
+
+			model = new DefaultListModel();
+			list = new JList(model);
+			list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+			center.setViewportView(list);
+			DragListener dl = new DragListener();
+			list.addMouseListener(dl);
+			list.addMouseMotionListener(dl);
+			list.setCellRenderer(new MyCellRenderer());
+
+			model.clear();
+			String [] listNames = null;
+			switch (type)
+			{
+				case 1: listNames = getLayerNameList();   break;
+				case 2: listNames = getArcNameList();     break;
+				case 3: listNames = getNodeNameList();    break;
+			}
+			for(int i=0; i<listNames.length; i++)
+				model.addElement(listNames[i]);
+			list.setSelectedIndex(-1);
+
+			// OK and Cancel
+			JButton cancel = new JButton("Cancel");
+			gbc = new GridBagConstraints();
+			gbc.gridx = 0;   gbc.gridy = 4;
+			gbc.insets = new Insets(4, 4, 4, 4);
+			getContentPane().add(cancel, gbc);
+			cancel.addActionListener(new ActionListener()
+			{
+				public void actionPerformed(ActionEvent evt) { exit(false); }
+			});
+
+			JButton ok = new JButton("OK");
+			getRootPane().setDefaultButton(ok);
+			gbc = new GridBagConstraints();
+			gbc.gridx = 1;   gbc.gridy = 4;
+			gbc.insets = new Insets(4, 4, 4, 4);
+			getContentPane().add(ok, gbc);
+			ok.addActionListener(new ActionListener()
+			{
+				public void actionPerformed(ActionEvent evt) { exit(true); }
+			});
+
+			pack();
+			setVisible(true);
 		}
 
 		protected void escapePressed() { exit(false); }
 
-		// Call this method when the user clicks the OK button
+		/**
+		 * Method to handle the OK button
+		 */
 		private void exit(boolean goodButton)
 		{
 			if (goodButton)
@@ -2349,6 +2424,9 @@ public class Manipulate
 			dispose();
 		}
 
+		/**
+		 * Class to handle saving the new orderings in a Job.
+		 */
 		private static class UpdateOrderingJob extends Job
 		{
 			private Library lib;
@@ -2383,140 +2461,100 @@ public class Manipulate
 		}
 
 		/**
-		 * Call when an up/down button is pressed.
-		 * @param direction: -2=far down, -1=down, 1=up, 2=far up
+		 * Class to handle selection display in the list.
+		 * Disables normal selection and instead shows only what is being dragged.
 		 */
-		private void moveSelected(int direction)
+		private class MyCellRenderer extends JLabel implements ListCellRenderer
 		{
-			int index = list.getSelectedIndex();
-			if (index < 0) return;
-			int newIndex = index;
-			switch (direction)
+			public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus)
 			{
-				case -2: newIndex -= 10;   break;
-				case -1: newIndex -= 1;    break;
-				case  1: newIndex += 1;    break;
-				case  2: newIndex += 10;   break;
+				String s = value.toString();
+				setText(s);
+				if (index == startItem)
+				{
+					setBackground(list.getForeground());
+					setForeground(list.getBackground());
+				} else
+				{
+					setBackground(list.getBackground());
+					setForeground(list.getForeground());
+				}
+				setEnabled(list.isEnabled());
+				setFont(list.getFont());
+				setOpaque(true);
+				return this;
 			}
-			if (newIndex < 0) newIndex = 0;
-			if (newIndex >= model.size()) newIndex = model.size()-1;
-			Object was = model.getElementAt(index);
-			model.remove(index);
-			model.add(newIndex, was);
-			list.setSelectedIndex(newIndex);
-			list.ensureIndexIsVisible(newIndex);
 		}
 
-		private void initComponents()
+		/**
+		 * Class to handle clicks and drags to rearrange the list.
+		 */
+		private class DragListener implements MouseListener, MouseMotionListener
 		{
-			getContentPane().setLayout(new GridBagLayout());
-
-			switch (type)
+			public void mousePressed(MouseEvent e)
 			{
-				case 1: setTitle("Rearrange Layer Order");   break;
-				case 2: setTitle("Rearrange Arc Order");     break;
-				case 3: setTitle("Rearrange Node Order");    break;
+				startItem = list.locationToIndex(e.getPoint());
+				endItem = startItem;
+				endBefore = true;
+				endLineHighlightBefore = -1;
 			}
-			setName("");
-			addWindowListener(new WindowAdapter()
+
+			public void mouseDragged(MouseEvent e)
 			{
-				public void windowClosing(WindowEvent evt) { exit(false); }
-			});
-
-			JScrollPane center = new JScrollPane();
-			center.setPreferredSize(new Dimension(300, 150));
-			GridBagConstraints gbc = new GridBagConstraints();
-			gbc.gridx = 0;      gbc.gridy = 0;
-			gbc.weightx = 1;    gbc.weighty = 1;
-			gbc.gridwidth = 2;  gbc.gridheight = 4;
-			gbc.anchor = GridBagConstraints.WEST;
-			gbc.fill = GridBagConstraints.BOTH;
-			gbc.insets = new Insets(4, 4, 4, 4);
-			getContentPane().add(center, gbc);
-
-			model = new DefaultListModel();
-			list = new JList(model);
-			list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-			center.setViewportView(list);
-
-			model.clear();
-			String [] listNames = null;
-			switch (type)
-			{
-				case 1: listNames = getLayerNameList();   break;
-				case 2: listNames = getArcNameList();     break;
-				case 3: listNames = getNodeNameList();    break;
+				highlightEndItem(e);
 			}
-			for(int i=0; i<listNames.length; i++)
-				model.addElement(listNames[i]);
 
-			JButton farUp = new JButton("Far Up");
-			gbc = new GridBagConstraints();
-			gbc.gridx = 2;   gbc.gridy = 0;
-			gbc.weighty = 0.25;
-			gbc.insets = new Insets(4, 4, 4, 4);
-			getContentPane().add(farUp, gbc);
-			farUp.addActionListener(new ActionListener()
+			public void mouseReleased(MouseEvent e)
 			{
-				public void actionPerformed(ActionEvent evt) { moveSelected(-2); }
-			});
+				removeHighlight();
 
-			JButton up = new JButton("Up");
-			gbc = new GridBagConstraints();
-			gbc.gridx = 2;   gbc.gridy = 1;
-			gbc.weighty = 0.25;
-			gbc.insets = new Insets(4, 4, 4, 4);
-			getContentPane().add(up, gbc);
-			up.addActionListener(new ActionListener()
+				// rearrange the list
+				int newIndex = endItem;
+				if (!endBefore) newIndex++;
+				if (newIndex > startItem) newIndex--;
+				Object was = model.getElementAt(startItem);
+				model.remove(startItem);
+				model.add(newIndex, was);
+				startItem = -1;
+			}
+
+			public void mouseMoved(MouseEvent e) {}
+			public void mouseClicked(MouseEvent e) {}
+			public void mouseEntered(MouseEvent e) {}
+			public void mouseExited(MouseEvent e) {}
+
+			private void highlightEndItem(MouseEvent e)
 			{
-				public void actionPerformed(ActionEvent evt) { moveSelected(-1); }
-			});
+				endItem = list.locationToIndex(e.getPoint());
+				int height = list.getFixedCellHeight();
+				Point pt = list.indexToLocation(endItem);
+				endBefore = e.getPoint().y < pt.y - height/2;
+				removeHighlight();
+				if (startItem == endItem) return;
+				if (startItem == endItem-1 && endBefore) return;
+				if (startItem == endItem+1 && !endBefore) return;
 
-			JButton down = new JButton("Down");
-			gbc = new GridBagConstraints();
-			gbc.gridx = 2;   gbc.gridy = 2;
-			gbc.weighty = 0.25;
-			gbc.insets = new Insets(4, 4, 4, 4);
-			getContentPane().add(down, gbc);
-			down.addActionListener(new ActionListener()
+				endLineHighlightBefore = endItem;
+				if (!endBefore) endLineHighlightBefore++;
+				Graphics g = list.getGraphics();
+				pt = list.indexToLocation(endLineHighlightBefore);
+				Rectangle rect = list.getBounds();
+				g.setColor(Color.RED);
+				g.drawLine(rect.x, pt.y, rect.x+rect.width, pt.y);
+			}
+
+			private void removeHighlight()
 			{
-				public void actionPerformed(ActionEvent evt) { moveSelected(1); }
-			});
-
-			JButton farDown = new JButton("Far Down");
-			gbc = new GridBagConstraints();
-			gbc.gridx = 2;   gbc.gridy = 3;
-			gbc.weighty = 0.25;
-			gbc.insets = new Insets(4, 4, 4, 4);
-			getContentPane().add(farDown, gbc);
-			farDown.addActionListener(new ActionListener()
-			{
-				public void actionPerformed(ActionEvent evt) { moveSelected(2); }
-			});
-
-			// OK and Cancel
-			JButton cancel = new JButton("Cancel");
-			gbc = new GridBagConstraints();
-			gbc.gridx = 0;   gbc.gridy = 4;
-			gbc.insets = new Insets(4, 4, 4, 4);
-			getContentPane().add(cancel, gbc);
-			cancel.addActionListener(new ActionListener()
-			{
-				public void actionPerformed(ActionEvent evt) { exit(false); }
-			});
-
-			JButton ok = new JButton("OK");
-			getRootPane().setDefaultButton(ok);
-			gbc = new GridBagConstraints();
-			gbc.gridx = 1;   gbc.gridy = 4;
-			gbc.insets = new Insets(4, 4, 4, 4);
-			getContentPane().add(ok, gbc);
-			ok.addActionListener(new ActionListener()
-			{
-				public void actionPerformed(ActionEvent evt) { exit(true); }
-			});
-
-			pack();
+				if (endLineHighlightBefore >= 0)
+				{
+					Graphics g = list.getGraphics();
+					Point pt = list.indexToLocation(endLineHighlightBefore);
+					Rectangle rect = list.getBounds();
+					g.setColor(list.getBackground());
+					g.drawLine(rect.x, pt.y, rect.x+rect.width, pt.y);
+					endLineHighlightBefore = -1;
+				}
+			}
 		}
 	}
 
@@ -2532,12 +2570,14 @@ public class Manipulate
             this.maxWid = header.length();
             elements = new ArrayList<String>(numE);
         }
+
         void add(String el)
         {
             elements.add(el);
             int len = el.length();
             if (maxWid < len) maxWid = len;
         }
+
         private String getColumn(String s)
         {
             StringBuffer val = new StringBuffer(s);
@@ -2547,6 +2587,7 @@ public class Manipulate
                 val.append(" "); // add the remaind spaces
             return val.toString();
         }
+
         String getUnderlying()
         {
             StringBuffer s = new StringBuffer();
@@ -2556,10 +2597,12 @@ public class Manipulate
             s.append("  "); // two extra spaces
             return s.toString();
         }
+
         String getHeader()
         {
             return getColumn(header);
         }
+
         String get(int pos)
         {
             if (pos >= elements.size())
@@ -2663,7 +2706,6 @@ public class Manipulate
 
         // write the layer information */
         DocColumn.printColumns(cols, "LAYERS IN " + tech.getTechName().toUpperCase());
-        //dumpFields(fields, layerCount+1, "LAYERS IN " + tech.getTechName().toUpperCase());
 
 		// ****************************** dump arcs ******************************
         cols = new DocColumn[8];
@@ -2725,7 +2767,6 @@ public class Manipulate
 
         // write the arc information */
         DocColumn.printColumns(cols, "ARCS IN " + tech.getTechName().toUpperCase());
-//        dumpFields(fields, tot, "ARCS IN " + tech.getTechName().toUpperCase());
 
 		// ****************************** dump nodes ******************************
         cols = new DocColumn[8];
@@ -2763,7 +2804,6 @@ public class Manipulate
             boolean firstTime = true;
             int numLayers = 0;
             for (Layer layer : map.keySet())
-//            for(int k=0; k<polys.length; k++)
             {
                 Set<Rectangle2D> set = new HashSet<Rectangle2D>();
                 List<Poly> list = map.get(layer);
@@ -2864,66 +2904,8 @@ public class Manipulate
 
 		// write the node information */
         DocColumn.printColumns(cols, "NODES IN " + tech.getTechName().toUpperCase());
-//        dumpFields(fields, tot, "NODES IN " + tech.getTechName().toUpperCase());
     }
 
-//	/**
-//	 * the entry Method for all technology editing
-//	 */
-//	void us_tecedentry(INTBIG count, CHAR *par[])
-//	{
-//		if (count == 0)
-//		{
-//			ttyputusage(x_("technology edit OPTION"));
-//			return;
-//		}
-//
-//		l = estrlen(pp = par[0]);
-//		if (namesamen(pp, x_("edit-design-rules"), l) == 0 && l >= 6)
-//		{
-//			us_teceditdrc();
-//			return;
-//		}
-//		if (namesamen(pp, x_("dependent-libraries"), l) == 0 && l >= 2)
-//		{
-//			if (count < 2)
-//			{
-//				// display dependent library names
-//				var = el_curlib.getVar(DEPENDENTLIB_KEY);
-//				if (var == NOVARIABLE) ttyputmsg(_("There are no dependent libraries")); else
-//				{
-//					i = getlength(var);
-//					ttyputmsg(_("%ld dependent %s:"), i, makeplural(x_("library"), i));
-//					for(l=0; l<i; l++)
-//					{
-//						pp = ((CHAR **)var.addr)[l];
-//						lib = getlibrary(pp);
-//						ttyputmsg(x_("    %s%s"), pp, (lib == NOLIBRARY ? _(" (not read in)") : x_("")));
-//					}
-//				}
-//				return;
-//			}
-//
-//			// clear list if just "-" is given
-//			if (count == 2 && estrcmp(par[1], x_("-")) == 0)
-//			{
-//				var = el_curlib.getVar(DEPENDENTLIB_KEY);
-//				if (var != NOVARIABLE)
-//					delval((INTBIG)el_curlib, VLIBRARY, DEPENDENTLIB_KEY);
-//				return;
-//			}
-//
-//			// create a list
-//			dependentlist = (CHAR **)emalloc((count-1) * (sizeof (CHAR *)), el_tempcluster);
-//			if (dependentlist == 0) return;
-//			for(i=1; i<count; i++) dependentlist[i-1] = par[i];
-//			el_curlib.newVar(DEPENDENTLIB_KEY, dependentlist);
-//			efree((CHAR *)dependentlist);
-//			return;
-//		}
-//		ttyputbadusage(x_("technology edit"));
-//	}
-//
 //	/*
 //	 * Routine for editing the DRC tables.
 //	 */
