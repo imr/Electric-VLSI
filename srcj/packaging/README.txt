@@ -1,10 +1,10 @@
 This README file describes the Electric VLSI Design System, a state-of-the-art computer-aided design system for
-VLSI circuit design. 
+VLSI circuit design.
 
 Electric designs MOS and bipolar integrated circuits, printed-circuit-boards, or any type of circuit you choose.
-It has many editing styles including layout, schematics, artwork, and architectural specifications. 
+It has many editing styles including layout, schematics, artwork, and architectural specifications.
 
-A large set of tools is available including design-rule checkers, simulators, routers, layout generators, and more. 
+A large set of tools is available including design-rule checkers, simulators, routers, layout generators, and more.
 
 Electric interfaces to most popular CAD specifications including EDIF, LEF/DEF, VHDL, CIF and GDS. 
 
