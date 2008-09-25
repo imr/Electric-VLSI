@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08i: ******************************
 
+IMP: (9/25/08, GVG) Making LE available as AbstractTest (Bug #1828)
+
 BUG/MAN: (9/25/08, SMR) "Select All" selects invisible objects (Bug #1843).
 FIX: Disable selection of primitive nodes or arcs that have no visible layers
      (already does this with click selection, now does it with "Select All").
