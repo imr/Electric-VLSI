@@ -6,6 +6,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08h: ******************************
 
+BUG: (9/24/08, GVG) Can't find wiring target (Bug #1884)
+FIX: Undoing "Incorrect placement of p-contact (Bug #1871)" because broke wiring target finding.
+
 BUG: (9/24/08, GVG) Delectable bug (Bug #1885)
 FIX: Typo fixed
 
