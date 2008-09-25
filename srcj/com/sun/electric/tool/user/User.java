@@ -1632,6 +1632,23 @@ public class User extends Listener
 	 */
 	public static boolean isFactoryHighlightConnectedObjects() { return cacheHighlightConnectedObjects.getBooleanFactoryValue(); }
 
+	private static Pref cacheHighlightInvisibleObjects = Pref.makeBooleanPref("HighlightInvisibleObjects", tool.prefs, false);
+	/**
+	 * Method to set whether to highlight objects whose layers are all invisible.
+	 * @return true to highlight objects whose layers are all invisible.
+	 */
+	public static boolean isHighlightInvisibleObjects() { return cacheHighlightInvisibleObjects.getBoolean(); }
+	/**
+	 * Method to get whether to highlight objects whose layers are all invisible.
+	 * @param on true to highlight objects whose layers are all invisible.
+	 */
+	public static void setHighlightInvisibleObjects(boolean on) { cacheHighlightInvisibleObjects.setBoolean(on); }
+	/**
+	 * Method to set whether to highlight objects whose layers are all invisible, by default.
+	 * @return true to highlight objects whose layers are all invisible by default.
+	 */
+	public static boolean isFactoryHighlightInvisibleObjects() { return cacheHighlightInvisibleObjects.getBooleanFactoryValue(); }
+
 	/****************************** GRID AND ALIGNMENT PREFERENCES ******************************/
 
 	private static Pref cacheDefGridXSpacing = Pref.makeDoublePref("DefGridXSpacing", tool.prefs, 1);

@@ -1731,8 +1731,11 @@ public class Highlighter implements DatabaseChangeListener {
 			} else
 			{
 				// do not include primitives that have all layers invisible
-				PrimitiveNode np = (PrimitiveNode)ni.getProto();
-				if (np.isNodeInvisible()) return null;
+				if (!User.isHighlightInvisibleObjects())
+				{
+					PrimitiveNode np = (PrimitiveNode)ni.getProto();
+					if (np.isNodeInvisible()) return null;
+				}
 			}
 			if (!findSpecial && hardToSelect) return null;
 
@@ -1813,7 +1816,7 @@ public class Highlighter implements DatabaseChangeListener {
 			if (!findSpecial && ai.isHardSelect()) return null;
 
 			// do not include arcs that have all layers invisible
-			if (ai.getProto().isArcInvisible()) return null;
+			if (!User.isHighlightInvisibleObjects() && ai.getProto().isArcInvisible()) return null;
 
 			// ignore areaMustEnclose if bounds is size 0,0
 	        if (areaMustEnclose && (bounds.getHeight() > 0 || bounds.getWidth() > 0))

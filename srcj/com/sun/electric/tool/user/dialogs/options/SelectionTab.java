@@ -60,6 +60,7 @@ public class SelectionTab extends PreferencePanel
         selectionCancelMoveDelay.setText(String.valueOf(cancelMoveDelayMillis));
         useMouseOverHighlighting.setSelected(User.isMouseOverHighlightingEnabled());
         highlightConnectedObjects.setSelected(User.isHighlightConnectedObjects());
+        selectInvisible.setSelected(User.isHighlightInvisibleObjects());
     }
 
 	/**
@@ -83,6 +84,10 @@ public class SelectionTab extends PreferencePanel
         currBoolean = highlightConnectedObjects.isSelected();
         if (currBoolean != User.isHighlightConnectedObjects())
             User.setHighlightConnectedObjects(currBoolean);
+
+        currBoolean = selectInvisible.isSelected();
+        if (currBoolean != User.isHighlightInvisibleObjects())
+            User.setHighlightInvisibleObjects(currBoolean);
 
         long delay;
         try {
@@ -110,6 +115,8 @@ public class SelectionTab extends PreferencePanel
 			User.setMouseOverHighlightingEnabled(User.isFactoryMouseOverHighlightingEnabled());
 		if (User.isFactoryHighlightConnectedObjects() != User.isHighlightConnectedObjects())
 			User.setHighlightConnectedObjects(User.isFactoryHighlightConnectedObjects());
+		if (User.isFactoryHighlightInvisibleObjects() != User.isHighlightInvisibleObjects())
+			User.setHighlightInvisibleObjects(User.isFactoryHighlightInvisibleObjects());
 	}
 
 	/** This method is called from within the constructor to
@@ -129,6 +136,7 @@ public class SelectionTab extends PreferencePanel
         jLabel58 = new javax.swing.JLabel();
         useMouseOverHighlighting = new javax.swing.JCheckBox();
         highlightConnectedObjects = new javax.swing.JCheckBox();
+        selectInvisible = new javax.swing.JCheckBox();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -143,6 +151,7 @@ public class SelectionTab extends PreferencePanel
         selection.setLayout(new java.awt.GridBagLayout());
 
         selEasyCellInstances.setText("Easy selection of cell instances");
+        selEasyCellInstances.setBorder(null);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
@@ -152,6 +161,7 @@ public class SelectionTab extends PreferencePanel
         selection.add(selEasyCellInstances, gridBagConstraints);
 
         selDraggingEnclosesEntireObject.setText("Dragging must enclose entire object");
+        selDraggingEnclosesEntireObject.setBorder(null);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
@@ -187,6 +197,7 @@ public class SelectionTab extends PreferencePanel
         selection.add(jLabel58, gridBagConstraints);
 
         useMouseOverHighlighting.setText("Enable Mouse-over highlighting");
+        useMouseOverHighlighting.setBorder(null);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
@@ -202,8 +213,18 @@ public class SelectionTab extends PreferencePanel
         gridBagConstraints.gridy = 4;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 8, 4, 4);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         selection.add(highlightConnectedObjects, gridBagConstraints);
+
+        selectInvisible.setText("Can select objects whose layers are invisible");
+        selectInvisible.setBorder(null);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        selection.add(selectInvisible, gridBagConstraints);
 
         getContentPane().add(selection, new java.awt.GridBagConstraints());
 
@@ -223,6 +244,7 @@ public class SelectionTab extends PreferencePanel
     private javax.swing.JLabel jLabel58;
     private javax.swing.JCheckBox selDraggingEnclosesEntireObject;
     private javax.swing.JCheckBox selEasyCellInstances;
+    private javax.swing.JCheckBox selectInvisible;
     private javax.swing.JPanel selection;
     private javax.swing.JTextField selectionCancelMoveDelay;
     private javax.swing.JCheckBox useMouseOverHighlighting;

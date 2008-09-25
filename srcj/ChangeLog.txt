@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08i: ******************************
 
+BUG/MAN: (9/25/08, SMR) "Select All" selects invisible objects (Bug #1843).
+FIX: Disable selection of primitive nodes or arcs that have no visible layers
+     (already does this with click selection, now does it with "Select All").
+     Also added "Selection" Preference to allow selection of invisible objects.
+
 IMP: (9/25/08, SMR) Changing an export characteristic applys the change to
      other views of the cell (Bug #1868).
 

@@ -912,6 +912,13 @@ public class EditMenu {
 			if ((ni.isCellInstance()) && cellsAreHard) hard = true;
 			if (mustBeEasy && hard) continue;
 			if (mustBeHard && !hard) continue;
+
+			// do not show primitives with all layers invisible
+			if (!User.isHighlightInvisibleObjects() && !ni.isCellInstance())
+			{
+				PrimitiveNode np = (PrimitiveNode)ni.getProto();
+				if (np.isNodeInvisible()) continue;
+			}
 			if (!ni.isInvisiblePinWithText())
 				highlighter.addElectricObject(ni, curCell);
 			if (User.isTextVisibilityOnNode())
@@ -938,6 +945,10 @@ public class EditMenu {
 			boolean hard = ai.isHardSelect();
 			if (mustBeEasy && hard) continue;
 			if (mustBeHard && !hard) continue;
+
+			// do not include arcs that have all layers invisible
+			if (!User.isHighlightInvisibleObjects() && ai.getProto().isArcInvisible()) continue;
+
 			highlighter.addElectricObject(ai, curCell);
 			if (User.isTextVisibilityOnArc())
 			{
