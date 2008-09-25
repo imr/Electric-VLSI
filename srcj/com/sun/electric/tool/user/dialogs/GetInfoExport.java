@@ -26,6 +26,7 @@ package com.sun.electric.tool.user.dialogs;
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.TextUtils;
@@ -43,6 +44,8 @@ import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.Frame;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.swing.JFrame;
@@ -122,31 +125,6 @@ public class GetInfoExport extends EModelessDialog implements HighlightListener,
 		if (e.objectChanged(shownExport))
             loadExportInfo();
     }
-
-//     /**
-//      * Respond to database changes
-//      * @param batch a batch of changes completed
-//      */
-//     public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
-//         if (!isVisible()) return;
-
-//         // check if we care about the changes
-//         boolean reload = false;
-//         for (Iterator it = batch.getChanges(); it.hasNext(); ) {
-//             Undo.Change change = it.next();
-//             ElectricObject obj = change.getObject();
-//             if (obj == shownExport) {
-//                 reload = true;
-//                 break;
-//             }
-//         }
-//         if (reload) {
-//             // update dialog
-//             loadExportInfo();
-//         }
-//     }
-//     public void databaseChanged(Undo.Change change) {}
-//     public boolean isGUIListener() { return true; }
 
 	private void loadExportInfo()
 	{
@@ -308,19 +286,50 @@ public class GetInfoExport extends EModelessDialog implements HighlightListener,
 
 			// change the body-only
 			pp.setBodyOnly(newBodyOnly);
-            // change always drawn
+
+			// change always drawn
 			pp.setAlwaysDrawn(newAlwaysDrawn);
 
 			// change the characteristic
 	        PortCharacteristic newChar = PortCharacteristic.findCharacteristic(newCharName);
-			pp.setCharacteristic(newChar);
+	        if (newChar != pp.getCharacteristic())
+	        {
+	        	pp.setCharacteristic(newChar);
+
+	        	// change characteristic in all views
+	        	List<Cell> othersChanged = new ArrayList<Cell>();
+	        	Cell thisCell = pp.getParent();
+	        	for(Iterator<Cell> it = thisCell.getCellGroup().getCells(); it.hasNext(); )
+	        	{
+	        		Cell otherCell = it.next();
+	        		if (otherCell == thisCell) continue;
+
+	        		Export otherPP = pp.getEquivalentPort(otherCell);
+	        		if (otherPP != null)
+	        		{
+	        			if (otherPP.getCharacteristic() != newChar)
+	        			{
+	        				otherPP.setCharacteristic(newChar);
+	        				othersChanged.add(otherCell);
+	        			}
+	        		}
+	        	}
+	        	if (othersChanged.size() > 0)
+	        	{
+	        		System.out.print("Also changed the characteristic of this export in");
+	        		for(int i=0; i<othersChanged.size(); i++)
+	        		{
+	        			Cell otherCell = othersChanged.get(i);
+	        			if (i != 0) System.out.print(",");
+	        			System.out.print(" " + otherCell.describe(false));
+	        		}
+	        		System.out.println();
+	        	}
+	        }
 
             // change reference name
 			if (newChar.isReference())
 				pp.newVar(Export.EXPORT_REFERENCE_NAME, newRefName);
-
-//			Undo.redrawObject(pp.getOriginalPort().getNodeInst());
-//				pp.getOriginalPort().getNodeInst().modifyInstance(0, 0, 0, 0, 0);
 			return true;
 		}
 	}
