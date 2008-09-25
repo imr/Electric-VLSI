@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08i: ******************************
 
+BUG: (9/25/08, SMR) GDS input crashes if no pure-layer node found (Bug #1886).
+FIX: In GDS.setLayer(), handle missing pure-layer nodes.
+
 ************************* Version 8.08h: ******************************
 
 BUG: (9/24/08, GVG) Can't find wiring target (Bug #1884)

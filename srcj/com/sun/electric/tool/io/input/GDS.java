@@ -1552,15 +1552,21 @@ public class GDS extends Input
 			if (layer == Generic.tech().drcLay && IOTool.isGDSInIgnoresUnknownLayers())
 				layerUsed = false;
             pinNodeProto = Generic.tech().universalPinNode;
-			if (pinLayers.contains(layerInt)) {
+			if (pinLayers.contains(layerInt))
+			{
                 layerIsPin = true;
-                for (Iterator<ArcProto> it = layer.getTechnology().getArcs(); it.hasNext(); ) {
-                    ArcProto arc = it.next();
+                if (layerNodeProto != null && layerNodeProto.getNumPorts() > 0)
+                {
                     PortProto pp = layerNodeProto.getPort(0);
-                    if (pp != null && pp.connectsTo(arc)) {
-                        pinNodeProto = arc.findOverridablePinProto();
-                        break;
-                    }
+	                for (Iterator<ArcProto> it = layer.getTechnology().getArcs(); it.hasNext(); )
+	                {
+	                    ArcProto arc = it.next();
+	                    if (pp.connectsTo(arc))
+	                    {
+	                        pinNodeProto = arc.findOverridablePinProto();
+	                        break;
+	                    }
+	                }
                 }
             }
 			if (layerNodeProto == null)
