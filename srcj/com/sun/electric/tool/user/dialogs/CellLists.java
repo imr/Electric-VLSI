@@ -30,12 +30,12 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.ArcProto;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.extract.TransistorSearch;
@@ -62,7 +62,6 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.swing.JFrame;
-
 
 /**
  * Class to handle the "Cell Lists" dialog.
@@ -345,7 +344,8 @@ public class CellLists extends EDialog
 				System.out.println("\t" + TextUtils.toBlankPaddedString(count.intValue(), 6) + " " + np.describe(true) + " nodes");
 				totalVal += count.intValue();
 			}
-            System.out.println(TextUtils.toBlankPaddedString(totalVal, 6) + " Total nodes for " + curtech.getTechName() + " technology");
+            if (totalVal > 0)
+            	System.out.println(TextUtils.toBlankPaddedString(totalVal, 6) + " Total nodes for " + curtech.getTechName() + " technology");
 
             // arcs
             totalVal = 0;
@@ -362,7 +362,8 @@ public class CellLists extends EDialog
 				System.out.println("\t" + TextUtils.toBlankPaddedString(count.intValue(), 6) + " " + ap.describe() + " arcs");
 				totalVal += count.intValue();
 			}
-            System.out.println(TextUtils.toBlankPaddedString(totalVal, 6) + " Total arcs for " + curtech.getTechName() + " technology");
+            if (totalVal > 0)
+            	System.out.println(TextUtils.toBlankPaddedString(totalVal, 6) + " Total arcs for " + curtech.getTechName() + " technology");
         }
 
 		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
@@ -489,79 +490,6 @@ public class CellLists extends EDialog
 		if (curCell == null) return;
 		TransistorSearch.countNumberOfTransistors(curCell);
 	}
-
-//	/**
-//	 * This method implements the command to list the usage of the current Cell.
-//	 */
-//	public static void listCellUsageCommand()
-//	{
-//		Cell curCell = WindowFrame.needCurCell();
-//		if (curCell == null) return;
-//
-//		Map<Cell,GenMath.MutableInteger> nodeCount = new HashMap<Cell,GenMath.MutableInteger>();
-//
-//		// set counters on every cell in every library
-//		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
-//		{
-//			Library lib = it.next();
-//			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
-//			{
-//				Cell cell = cIt.next();
-//				nodeCount.put(cell, new GenMath.MutableInteger(0));
-//			}
-//		}
-//
-//		// count the number of instances in this cell
-//		boolean found = false;
-//		for(Iterator<NodeInst> nIt = curCell.getInstancesOf(); nIt.hasNext(); )
-//		{
-//			NodeInst ni = nIt.next();
-//			Cell cell = ni.getParent();
-//			GenMath.MutableInteger count = nodeCount.get(cell);
-//			if (count != null)
-//			{
-//				count.increment();
-//				found = true;
-//			}
-//		}
-//
-//		// count the number of instances in this cell's icon
-//		Cell iconCell = curCell.iconView();
-//		if (iconCell != null)
-//		{
-//			for(Iterator<NodeInst> nIt = iconCell.getInstancesOf(); nIt.hasNext(); )
-//			{
-//				NodeInst ni = nIt.next();
-//				if (ni.isIconOfParent()) continue;
-//				Cell cell = ni.getParent();
-//				GenMath.MutableInteger count = nodeCount.get(cell);
-//				if (count != null)
-//				{
-//					count.increment();
-//					found = true;
-//				}
-//			}
-//		}
-//
-//		// show the results
-//		if (!found)
-//		{
-//			System.out.println("Cell " + curCell.describe(true) + " is not used anywhere");
-//			return;
-//		}
-//		System.out.println("Cell " + curCell.describe(true) + " is used in these locations:");
-//		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
-//		{
-//			Library lib = it.next();
-//			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
-//			{
-//				Cell cell = cIt.next();
-//				GenMath.MutableInteger count = nodeCount.get(cell);
-//				if (count == null || count.intValue() == 0) continue;
-//				System.out.println("  " + count.intValue() + " instances in " + cell);
-//			}
-//		}
-//	}
 
 	/**
 	 * This method implements the command to list the usage of the current Cell.
