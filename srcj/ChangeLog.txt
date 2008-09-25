@@ -4,10 +4,13 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08i: ******************************
 
+************************* Version 8.08h: ******************************
+
+BUG: (9/24/08, GVG) Delectable bug (Bug #1885)
+FIX: Typo fixed
+
 IMP/MAN: (9/24/08, SMR) Rearranging layers, nodes, or arcs in the technology editor
      uses a drag-and-drop interface.
-
-************************* Version 8.08h: ******************************
 
 BUG: (9/24/08, GVG) DRC min size broken for asymetric cmos90 contacts (Bug #1881)
 FIX: Asymmetric min rules amended as well.
