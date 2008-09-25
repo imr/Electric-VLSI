@@ -1436,10 +1436,10 @@ public class TechEditWizardData
         graph = new EGraphics(false, false, null, 0, contact_colour.getRed(), contact_colour.getGreen(),
             contact_colour.getBlue(), 1, true, nullPattern);
         // PolyCon
-        Xml.Layer polyCon = makeXmlLayer(t.layers, layer_width, "PolyCon", Layer.Function.CONTACT1,
+        Xml.Layer polyConLayer = makeXmlLayer(t.layers, layer_width, "PolyCon", Layer.Function.CONTACT1,
             Layer.Function.CONPOLY, graph, (char)('A' + cifNumber++), contact_size, false, false);
         // DiffCon
-        Xml.Layer diffCon = makeXmlLayer(t.layers, layer_width, "DiffCon", Layer.Function.CONTACT1,
+        Xml.Layer diffConLayer = makeXmlLayer(t.layers, layer_width, "DiffCon", Layer.Function.CONTACT1,
             Layer.Function.CONDIFF, graph, (char)('A' + cifNumber++), contact_size, false, false);
 
         // P-Diff and N-Diff
@@ -1479,7 +1479,7 @@ public class TechEditWizardData
         Xml.Layer pplusLayer = makeXmlLayer(t.layers, layer_width, "PPlus", Layer.Function.IMPLANTP, 0, graph,
             (char)('A' + cifNumber++), pplus_width, true, false);
 
-//		layers.add("N-Well");
+        // N-Well
         pattern = new int[] { 0x0202,   //       X       X
                         0x0101,   //        X       X
                         0x8080,   // X       X
@@ -1503,7 +1503,7 @@ public class TechEditWizardData
 
         graph = new EGraphics(false, false, null, 0, 255, 0, 0, 0.4, true, nullPattern);
         // DeviceMark
-        makeXmlLayer(t.layers, layer_width, "DeviceMark", Layer.Function.CONTROL, 0, graph,
+        Xml.Layer deviceMarkLayer = makeXmlLayer(t.layers, layer_width, "DeviceMark", Layer.Function.CONTROL, 0, graph,
             (char)('A' + cifNumber++), nplus_width, true, false);
 
         // write arcs
@@ -1538,7 +1538,7 @@ public class TechEditWizardData
         makeXmlPrimitiveCon(t.nodes, polyLayer.name, hla, null, portNames,
                 makeXmlNodeLayer(metal1Over, metal1Over, metal1Over, metal1Over, m1Layer, Poly.Type.FILLED, true), // meta1 layer
                 makeXmlNodeLayer(hla, hla, hla, hla, polyLayer, Poly.Type.FILLED, true), // poly layer
-                makeXmlMulticut(diffCon, contSize, contSpacing, contArraySpacing)); // contact
+                makeXmlMulticut(diffConLayer, contSize, contSpacing, contArraySpacing)); // contact
         
         /**************************** N/P-Diff Nodes/Arcs ***********************************************/
         // NDiff/PDiff arcs
@@ -1578,7 +1578,7 @@ public class TechEditWizardData
                 makeXmlNodeLayer(metal1Over, metal1Over, metal1Over, metal1Over, m1Layer, Poly.Type.FILLED, true), // meta1 layer
                 makeXmlNodeLayer(hla, hla, hla, hla, diffNLayer, Poly.Type.FILLED, true), // active layer
                 makeXmlNodeLayer(nsel, nsel, nsel, nsel, nplusLayer, Poly.Type.FILLED, true), // select layer
-                makeXmlMulticut(diffCon, contSize, contSpacing, contArraySpacing)); // contact
+                makeXmlMulticut(diffConLayer, contSize, contSpacing, contArraySpacing)); // contact
         // pdiff contact
         portNames.clear();
         portNames.add(diffPLayer.name);
@@ -1588,7 +1588,7 @@ public class TechEditWizardData
                 makeXmlNodeLayer(hla, hla, hla, hla, diffPLayer, Poly.Type.FILLED, true), // active layer
                 makeXmlNodeLayer(psel, psel, psel, psel, pplusLayer, Poly.Type.FILLED, true), // select layer
                 makeXmlNodeLayer(nwell, nwell, nwell, nwell, nwellLayer, Poly.Type.FILLED, true), // well layer
-                makeXmlMulticut(diffCon, contSize, contSpacing, contArraySpacing)); // contact
+                makeXmlMulticut(diffConLayer, contSize, contSpacing, contArraySpacing)); // contact
 
         /**************************** N/P-Well Contacts ***********************************************/
         nwell = scaledValue(contact_size.v/2 + diff_contact_overhang.v + nwell_overhang_diff_n.v);
@@ -1601,7 +1601,7 @@ public class TechEditWizardData
                 makeXmlNodeLayer(metal1Over, metal1Over, metal1Over, metal1Over, m1Layer, Poly.Type.FILLED, true), // meta1 layer
                 makeXmlNodeLayer(hla, hla, hla, hla, diffPLayer, Poly.Type.FILLED, true), // active layer
                 makeXmlNodeLayer(nsel, psel, psel, psel, pplusLayer, Poly.Type.FILLED, true), // select layer
-                makeXmlMulticut(diffCon, contSize, contSpacing, contArraySpacing)); // contact
+                makeXmlMulticut(diffConLayer, contSize, contSpacing, contArraySpacing)); // contact
         // nwell contact
         portNames.clear();
         portNames.add(diffPLayer.name);
@@ -1611,7 +1611,7 @@ public class TechEditWizardData
                 makeXmlNodeLayer(hla, hla, hla, hla, diffNLayer, Poly.Type.FILLED, true), // active layer
                 makeXmlNodeLayer(nsel, nsel, nsel, nsel, nplusLayer, Poly.Type.FILLED, true), // select layer
                 makeXmlNodeLayer(nwell, nwell, nwell, nwell, nwellLayer, Poly.Type.FILLED, true), // well layer
-                makeXmlMulticut(diffCon, contSize, contSpacing, contArraySpacing)); // contact
+                makeXmlMulticut(diffConLayer, contSize, contSpacing, contArraySpacing)); // contact
 
         /**************************** Metals Nodes/Arcs ***********************************************/
         // Pins and contacts
@@ -1732,7 +1732,30 @@ public class TechEditWizardData
         Xml.Foundry f = new Xml.Foundry();
         f.name = Foundry.Type.NONE.getName();
         t.foundries.add(f);
-        
+
+        // Writting GDS values
+        makeLayerGDS(t, diffPLayer, String.valueOf(gds_diff_layer));
+        makeLayerGDS(t, diffNLayer, String.valueOf(gds_diff_layer));
+        makeLayerGDS(t, pplusLayer, String.valueOf(gds_pplus_layer));
+        makeLayerGDS(t, nplusLayer, String.valueOf(gds_nplus_layer));
+        makeLayerGDS(t, nwellLayer, String.valueOf(gds_nwell_layer));
+        makeLayerGDS(t, deviceMarkLayer, String.valueOf(gds_marking_layer));
+        makeLayerGDS(t, polyConLayer, String.valueOf(gds_contact_layer));
+        makeLayerGDS(t, diffConLayer, String.valueOf(gds_contact_layer));
+        makeLayerGDS(t, polyLayer, String.valueOf(gds_poly_layer));
+        makeLayerGDS(t, polyGateLayer, String.valueOf(gds_poly_layer));
+
+        for (int i = 0; i < num_metal_layers; i++) {
+            Xml.Layer met = metalLayers.get(i);
+            makeLayerGDS(t, met, String.valueOf(gds_metal_layer[i]));
+
+            if (i > num_metal_layers - 2) continue;
+
+            Xml.Layer via = viaLayers.get(i);
+            makeLayerGDS(t, via, String.valueOf(gds_via_layer[i]));
+        }
+
+        // Writting Layer Rules
         makeLayerRuleMinWid(t, diffPLayer, diff_width);
         makeLayerRuleMinWid(t, diffNLayer, diff_width);
         makeLayerRuleMinWid(t, pplusLayer, pplus_width);
@@ -1776,7 +1799,13 @@ public class TechEditWizardData
 //            dist.addRule(flds[i].rule, 1);
 //        return dist;
 //    }
-    
+
+    private void makeLayerGDS(Xml.Technology t, Xml.Layer l, String gdsVal) {
+        for (Xml.Foundry f: t.foundries) {
+            f.layerGds.put(l.name, gdsVal);
+        }
+    }
+
     private void makeLayerRuleMinWid(Xml.Technology t, Xml.Layer l, WizardField fld) {
         for (Xml.Foundry f: t.foundries) {
             f.rules.add(new DRCTemplate(fld.rule, DRCTemplate.DRCMode.ALL.mode(), DRCTemplate.DRCRuleType.MINWID,
