@@ -1413,7 +1413,7 @@ public class TechEditWizardData
             if (fun == null)
                 throw new IOException("invalid number of vias");
             viaLayers.add(makeXmlLayer(t.layers, layer_width, "Via-"+metalNum, fun, Layer.Function.CONMETAL,
-                graph, (char)('A' + cifNumber++), via_size[i], false, false));
+                graph, (char)('A' + cifNumber++), via_size[i], true, false));
         }
 
         // Poly
@@ -1429,10 +1429,10 @@ public class TechEditWizardData
             contact_colour.getBlue(), 1, true, nullPattern);
         // PolyCon
         Xml.Layer polyConLayer = makeXmlLayer(t.layers, layer_width, "PolyCon", Layer.Function.CONTACT1,
-            Layer.Function.CONPOLY, graph, (char)('A' + cifNumber++), contact_size, false, false);
+            Layer.Function.CONPOLY, graph, (char)('A' + cifNumber++), contact_size, true, false);
         // DiffCon
         Xml.Layer diffConLayer = makeXmlLayer(t.layers, layer_width, "DiffCon", Layer.Function.CONTACT1,
-            Layer.Function.CONDIFF, graph, (char)('A' + cifNumber++), contact_size, false, false);
+            Layer.Function.CONDIFF, graph, (char)('A' + cifNumber++), contact_size, true, false);
 
         // P-Diff and N-Diff
         graph = new EGraphics(false, false, null, 2, 0, 0, 0, 1, true, nullPattern);
