@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08i: ******************************
 
+IMP: (9/29/08, GVG) Remove ErrorLogger entries with zero Calibre errors (Bug #1888)
+
 BUG: (9/25/08, GVG) Tech Wizard doesn't write GDS values properly in XML (Bug #1887)
 FIX: Functionality added
 

@@ -144,6 +144,8 @@ public class CalibreDrcErrors {
             while(true) {
                 DrcRuleViolation v = readRule();
                 if (v == null) break;
+                if (v.errors.size() == 0) // nothing to include
+                    break;
                 ruleViolations.add(v);
             }
         } catch (IOException e) {
