@@ -94,9 +94,10 @@ public class MoCMOS extends Technology
     private Layer pBaseLayer;
 
 	// arcs
-    /** metal 1->6 arc */						private ArcProto[] metalArcs = new ArcProto[6];
+    /** metal 1->6 arcs */						private ArcProto[] metalArcs = new ArcProto[6];
 	/** polysilicon 1/2 arc */					private ArcProto[] polyArcs = new ArcProto[2];
-    /** P/N-active arc */                       private ArcProto[] activeArcs = new ArcProto[2];
+    /** P/N-active arcs */                      private ArcProto[] activeArcs = new ArcProto[2];
+    /** P/N-well arcs */                        private ArcProto[] wellArcs = new ArcProto[2];
     /** General active arc */                   private ArcProto active_arc;
 
 	// nodes. Storing nodes only whe they are need in outside the constructor
@@ -111,9 +112,6 @@ public class MoCMOS extends Technology
     /** NPN Transistor */                       private PrimitiveNode npnTransistorNode;
     /** M1M2 -> M5M6 contacts */				private PrimitiveNode[] metalContactNodes = new PrimitiveNode[5];
     /** metal-1-P/N-Well-contacts */            private PrimitiveNode[] metalWellContactNodes = new PrimitiveNode[2];
-//	/** Polysilicon-1/2-Node */					private PrimitiveNode[] polyNodes = new PrimitiveNode[2];
-//	/** Via-1 -. Via-5 Nodes */					private PrimitiveNode[] viaNodes = new PrimitiveNode[5];
-
     // for dynamically modifying the transistor geometry
 	private Technology.NodeLayer[] transistorPolyLayers = new Technology.NodeLayer[2];
 	private Technology.NodeLayer[] transistorActiveLayers = new Technology.NodeLayer[2];
@@ -124,7 +122,6 @@ public class MoCMOS extends Technology
     private Technology.NodeLayer[] transistorPolyCLayers = new Technology.NodeLayer[2];
 	private Technology.NodeLayer[] transistorWellLayers = new Technology.NodeLayer[2];
 	private Technology.NodeLayer[] transistorSelectLayers = new Technology.NodeLayer[2];
-//	/** Metal-1 -> Metal-6 Nodes */			    private PrimitiveNode[] metalNodes = new PrimitiveNode[6];
 
 	// design rule constants
 //	/** wide rules apply to geometry larger than this */				private static final double WIDELIMIT = 100;
@@ -197,6 +194,8 @@ public class MoCMOS extends Technology
 		polyArcs[1] = findArcProto("Polysilicon-2");
 		activeArcs[P_TYPE] = findArcProto("P-Active");
 		activeArcs[N_TYPE] = findArcProto("N-Active");
+		wellArcs[P_TYPE] = findArcProto("P-Well");
+		wellArcs[N_TYPE] = findArcProto("N-Well");
 		active_arc = findArcProto("Active");
 
 		//**************************************** NODES ****************************************
@@ -727,20 +726,6 @@ public class MoCMOS extends Technology
 		pseudoSelectLayers[N_TYPE] = selectLayers[N_TYPE].makePseudo();	// Pseudo-N-Select
 		pseudoWellLayers[P_TYPE] = wellLayers[P_TYPE].makePseudo();		// Pseudo-P-Well
 		pseudoWellLayers[N_TYPE] = wellLayers[N_TYPE].makePseudo();		// Pseudo-N-Well
-//		pseudoMetal1_lay.setFunction(Layer.Function.METAL1, Layer.Function.PSEUDO);		// Pseudo-Metal-1
-//		pseudoMetal2_lay.setFunction(Layer.Function.METAL2, Layer.Function.PSEUDO);		// Pseudo-Metal-2
-//		pseudoMetal3_lay.setFunction(Layer.Function.METAL3, Layer.Function.PSEUDO);		// Pseudo-Metal-3
-//		pseudoMetal4_lay.setFunction(Layer.Function.METAL4, Layer.Function.PSEUDO);		// Pseudo-Metal-4
-//		pseudoMetal5_lay.setFunction(Layer.Function.METAL5, Layer.Function.PSEUDO);		// Pseudo-Metal-5
-//		pseudoMetal6_lay.setFunction(Layer.Function.METAL6, Layer.Function.PSEUDO);		// Pseudo-Metal-6
-//		pseudoPoly1_lay.setFunction(Layer.Function.POLY1, Layer.Function.PSEUDO);		// Pseudo-Polysilicon-1
-//		pseudoPoly2_lay.setFunction(Layer.Function.POLY2, Layer.Function.PSEUDO);		// Pseudo-Polysilicon-2
-//		pseudoActiveLayers[P_TYPE].setFunction(Layer.Function.DIFFP, Layer.Function.PSEUDO);		// Pseudo-P-Active
-//		pseudoActiveLayers[N_TYPE].setFunction(Layer.Function.DIFFN, Layer.Function.PSEUDO);		// Pseudo-N-Active
-//		pseudoSelectLayers[P_TYPE].setFunction(Layer.Function.IMPLANTP, Layer.Function.PSEUDO);	// Pseudo-P-Select
-//		pseudoSelectLayers[N_TYPE].setFunction(Layer.Function.IMPLANTN, Layer.Function.PSEUDO);	// Pseudo-N-Select
-//		pseudoWellLayers[P_TYPE].setFunction(Layer.Function.WELLP, Layer.Function.PSEUDO);		// Pseudo-P-Well
-//		pseudoWellLayers[N_TYPE].setFunction(Layer.Function.WELLN, Layer.Function.PSEUDO);		// Pseudo-N-Well
 
 		// The CIF names
 		metalLayers[0].setFactoryCIFLayer("CMF");				// Metal-1
@@ -865,15 +850,6 @@ public class MoCMOS extends Technology
 		silicideBlockLayer.setFactory3DInfo(0, BULK_LAYER, "NONE", 0.2);			// Silicide-Block
         padFrameLayer.setFactory3DInfo(0, passivationLayer.getDepth(), "NONE", 0.2);				// Pad-Frame
 
-//		pseudoPoly1_lay.setFactory3DInfo(0, poly1Layer.getDistance());			// Pseudo-Polysilicon-1
-//		pseudoPoly2_lay.setFactory3DInfo(0, poly2_lay.getDistance());			// Pseudo-Polysilicon-2
-//		pseudoActiveLayers[P_TYPE].setFactory3DInfo(0, activeLayers[P_TYPE].getDistance());			// Pseudo-P-Active
-//		pseudoActiveLayers[N_TYPE].setFactory3DInfo(0, activeLayers[N_TYPE].getDistance());			// Pseudo-N-Active
-//		pseudoSelectLayers[P_TYPE].setFactory3DInfo(0, selectLayers[P_TYPE].getDistance());			// Pseudo-P-Select
-//		pseudoSelectLayers[N_TYPE].setFactory3DInfo(0, selectLayers[N_TYPE].getDistance());			// Pseudo-N-Select
-//		pseudoWellLayers[P_TYPE].setFactory3DInfo(0, wellLayers[P_TYPE].getDistance());				// Pseudo-P-Well
-//		pseudoWellLayers[N_TYPE].setFactory3DInfo(0, wellLayers[N_TYPE].getDistance());				// Pseudo-N-Well
-
 		// The Spice parasitics
 		metalLayers[0].setFactoryParasitics(0.078, 0.1209, 0.1104);			// Metal-1
 		metalLayers[1].setFactoryParasitics(0.078, 0.0843, 0.0974);			// Metal-2
@@ -902,20 +878,6 @@ public class MoCMOS extends Technology
 		pActiveWellLayer.setFactoryParasitics(0, 0, 0);			// P-Active-Well
 		silicideBlockLayer.setFactoryParasitics(0, 0, 0);		// Silicide-Block
         thickActiveLayer.setFactoryParasitics(0, 0, 0);			// Thick-Active
-//		pseudoMetal1_lay.setFactoryParasitics(0, 0, 0);			// Pseudo-Metal-1
-//		pseudoMetal2_lay.setFactoryParasitics(0, 0, 0);			// Pseudo-Metal-2
-//		pseudoMetal3_lay.setFactoryParasitics(0, 0, 0);			// Pseudo-Metal-3
-//		pseudoMetal4_lay.setFactoryParasitics(0, 0, 0);			// Pseudo-Metal-4
-//		pseudoMetal5_lay.setFactoryParasitics(0, 0, 0);			// Pseudo-Metal-5
-//		pseudoMetal6_lay.setFactoryParasitics(0, 0, 0);			// Pseudo-Metal-6
-//		pseudoPoly1_lay.setFactoryParasitics(0, 0, 0);			// Pseudo-Polysilicon-1
-//		pseudoPoly2_lay.setFactoryParasitics(0, 0, 0);			// Pseudo-Polysilicon-2
-//		pseudoActiveLayers[P_TYPE].setFactoryParasitics(0, 0, 0);		// Pseudo-P-Active
-//		pseudoActiveLayers[N_TYPE].setFactoryParasitics(0, 0, 0);		// Pseudo-N-Active
-//		pseudoSelectLayers[P_TYPE].setFactoryParasitics(0, 0, 0);		// Pseudo-P-Select
-//		pseudoSelectLayers[N_TYPE].setFactoryParasitics(0, 0, 0);		// Pseudo-N-Select
-//		pseudoWellLayers[P_TYPE].setFactoryParasitics(0, 0, 0);			// Pseudo-P-Well
-//		pseudoWellLayers[N_TYPE].setFactoryParasitics(0, 0, 0);			// Pseudo-N-Well
 		padFrameLayer.setFactoryParasitics(0, 0, 0);				// Pad-Frame
 
 		setFactoryParasitics(4, 0.1);
