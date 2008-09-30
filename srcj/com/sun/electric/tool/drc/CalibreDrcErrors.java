@@ -61,6 +61,7 @@ public class CalibreDrcErrors {
     private Map<Cell,String> mangledNames;
     private String type;
     private String filename;
+    private boolean noPopupMessages;
 
     private static final String spaces = "[\\s\\t ]+";
 
@@ -70,7 +71,7 @@ public class CalibreDrcErrors {
      * @param filename the ASCII calibre drc results database file
      * @return number of erros. Negative number in case of valid data.
      */
-    public static int importErrors(String filename, Map<Cell,String> mangledNames, String type) {
+    public static int importErrors(String filename, Map<Cell,String> mangledNames, String type, boolean noPopupMessages) {
         BufferedReader in;
         try {
             FileReader reader = new FileReader(filename);
@@ -81,7 +82,7 @@ public class CalibreDrcErrors {
         }
 
         if (in == null) return -1;
-        CalibreDrcErrors errors = new CalibreDrcErrors(in, mangledNames, type);
+        CalibreDrcErrors errors = new CalibreDrcErrors(in, mangledNames, type, noPopupMessages);
         errors.filename = filename;
         // read first line
         if (!errors.readTop()) return -1;
@@ -92,13 +93,14 @@ public class CalibreDrcErrors {
     }
 
     // Constructor
-    private CalibreDrcErrors(BufferedReader in, Map<Cell,String> mangledNames, String type) {
+    private CalibreDrcErrors(BufferedReader in, Map<Cell,String> mangledNames, String type, boolean noPopupMessages) {
         assert(in != null);
         this.in = in;
         lineno = 0;
         ruleViolations = new ArrayList<DrcRuleViolation>();
         this.mangledNames = mangledNames;
         this.type = type;
+        this.noPopupMessages = noPopupMessages;
     }
 
     // read the cell name and precision, if any
@@ -370,10 +372,10 @@ public class CalibreDrcErrors {
             sortKey++;
         }
         System.out.println(type+" Imported "+count+" errors from "+filename);
-        if (count == 0) {
+        if (count == 0 && !noPopupMessages) {
         	Job.getUserInterface().showInformationMessage(type+" Imported Zero Errors", type+" Import Complete");
         }
-        logger.termLogging(true);
+        logger.termLogging(!noPopupMessages);
         return logger.getNumErrors();
     }
 

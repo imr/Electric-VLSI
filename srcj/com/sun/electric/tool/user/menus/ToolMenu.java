@@ -1967,7 +1967,7 @@ public class ToolMenu {
         Cell cell = wnd.getCell();
         HashMap<Cell,String> mangledNames = new HashMap<Cell,String>();
         com.sun.electric.tool.io.output.GDS.buildUniqueNames(cell, mangledNames);
-        CalibreDrcErrors.importErrors(fileName, mangledNames, "DRC");
+        CalibreDrcErrors.importErrors(fileName, mangledNames, "DRC", false);
     }
 
     public static void exportDRCDeck() {
