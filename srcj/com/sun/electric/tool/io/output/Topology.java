@@ -234,7 +234,7 @@ public abstract class Topology extends Output
 			CellNetInfo cni = null;
 			if (info.isRootCell())
 			{
-				cni = getNetworkInformation(cell, false, cell.getName(),
+				cni = getNetworkInformation(cell, false, getSafeCellName(cell.getName()),
 					isNetworksUseExportedNames(), info);
 				cellTopos.put(cell.getName(), cni);
 			} else
