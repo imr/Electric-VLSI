@@ -335,6 +335,7 @@ public class SCLibraryGen {
         private Map<Cell,Integer> standardCellMap = new HashMap<Cell,Integer>();
         private Map<String,Cell> standardCellsByName = new HashMap<String,Cell>();
         private List<VarContext> standardCellContexts = new ArrayList<VarContext>();
+        private Map<VarContext,VarContext> emptyCellContexts = new HashMap<VarContext,VarContext>();
         private boolean nameConflict = false;
 
         public boolean enterCell(HierarchyEnumerator.CellInfo info) {
@@ -342,8 +343,10 @@ public class SCLibraryGen {
             // skip cached and does not contain standard cell
             // (we want to traverse all hierarchy that contains standard cells
             // to produce the standard cell contexts list)
-            if (standardCellMap.get(cell) == doesNotContainStandardCell)
+            if (standardCellMap.get(cell) == doesNotContainStandardCell) {
+                emptyCellContexts.put(info.getContext(), info.getContext());
                 return false;
+            }
 
             if (SCLibraryGen.isStandardCell(cell)) {
                 standardCellContexts.add(info.getContext());
@@ -381,6 +384,19 @@ public class SCLibraryGen {
                 }
             }
             standardCellMap.put(cell, doesNotContainStandardCell);
+            VarContext context = info.getContext();
+            emptyCellContexts.put(context, context);
+            for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
+                NodeInst ni = it.next();
+                if (!ni.isCellInstance()) continue;
+                if (ni.isIconOfParent()) continue;
+                Cell proto = ni.getProtoEquivalent();
+                if (proto == null) proto = (Cell)ni.getProto();
+                if (standardCellMap.get(proto) == doesNotContainStandardCell) {
+                    VarContext nicontext = context.push(ni);
+                    emptyCellContexts.remove(nicontext);
+                }
+            }
         }
 
         public boolean visitNodeInst(Nodable ni, HierarchyEnumerator.CellInfo info) {
@@ -439,6 +455,20 @@ public class SCLibraryGen {
             return standardCellContexts;
         }
 
+        /**
+         * Get the contexts of cells that do not contain standard cells
+         * in the hierarchy. This set is minimal.
+         * @return a set of var contexts
+         */
+        public Set<String> getEmptyCellContextsInHier() {
+            Set<VarContext> contexts = emptyCellContexts.keySet();
+            Set<String> sorted = new TreeSet<String>();
+            for (VarContext context : contexts) {
+                String s = context.getInstPath("/");
+                sorted.add(s);
+            }
+            return sorted;
+        }
         /**
          * Get cells of the given type. The type is one of
          * Type.StandardCell
