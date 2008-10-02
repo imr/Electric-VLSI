@@ -326,23 +326,12 @@ public class Schematic
                     assert ni.isParam(var.getKey());
 
                     Variable foundVar = contentsCell.getParameter(var.getKey());
-//					Variable foundVar = null;
-//					for(Iterator cIt = contentsCell.getVariables(); cIt.hasNext(); )
-//					{
-//						Variable fVar = (Variable)cIt.next();
-//						if (!fVar.isParam()) continue;
-//						if (var.getKey() == fVar.getKey()) { foundVar = fVar;   break; }
-//					}
 					if (foundVar == null)
 					{
 						// this node's parameter is no longer on the cell: delete from instance
 						String trueVarName = var.getTrueName();
 						errorLogger.logError("Parameter '" + trueVarName + "' on " + ni +
 							" is invalid", geom, cell, null, eg.getSortKey());
-
-						// this is broken:
-//						ni.delVar(var.getKey());
-//						i--;
 					} else
 					{
 						// this node's parameter is still on the cell: make sure units are OK
@@ -374,6 +363,19 @@ public class Schematic
                                 addVariable(ni, var.withDisplay(true));
 							}
 						}
+					}
+				}
+
+				// make sure instance name isn't the same as a network in the cell
+				String nodeName = ni.getName();
+				for(Iterator<Network> it = netlist.getNetworks(); it.hasNext(); )
+				{
+					Network net = it.next();
+					if (net.hasName(nodeName))
+					{
+						errorLogger.logError("Node " + ni + " is named '" + nodeName +
+							"' which conflicts with a network name in this cell", geom, cell, null, eg.getSortKey());
+						break;
 					}
 				}
 			}
