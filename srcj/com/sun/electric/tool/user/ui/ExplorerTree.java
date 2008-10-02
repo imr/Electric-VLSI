@@ -58,8 +58,8 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ViewChanges;
 import com.sun.electric.tool.user.dialogs.ChangeCellGroup;
 import com.sun.electric.tool.user.dialogs.ChangeCurrentLib;
-import com.sun.electric.tool.user.dialogs.NewCell;
 import com.sun.electric.tool.user.dialogs.CrossLibCopy;
+import com.sun.electric.tool.user.dialogs.NewCell;
 import com.sun.electric.tool.user.menus.CellMenu;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.tecEdit.Manipulate;
@@ -102,6 +102,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.TreeSet;
 
 import javax.swing.ButtonGroup;
@@ -404,7 +406,7 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
         assert SwingUtilities.isEventDispatchThread();
 
 		// remember the state of the tree
-		ArrayList<TreePath> expanded = new ArrayList<TreePath>();
+		List<TreePath> expanded = new ArrayList<TreePath>();
 		recursivelyCacheExpandedPaths(expanded, new TreePath(rootNode));
         model().updateContentExplorerNodes(contentNodes);
         expandCachedPaths(expanded);
@@ -413,7 +415,7 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
     /**
      * Recursively
      */
-    private void recursivelyCacheExpandedPaths(ArrayList<TreePath> expanded, TreePath path) {
+    private void recursivelyCacheExpandedPaths(List<TreePath> expanded, TreePath path) {
 
         Object node = path.getLastPathComponent();
         if (!isExpanded(path))
@@ -430,7 +432,7 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
         }
     }
 
-    private void expandCachedPaths(ArrayList<TreePath> expanded) {
+    private void expandCachedPaths(List<TreePath> expanded) {
         for (TreePath path: expanded)
             expandCachedPath(path);
     }
@@ -963,32 +965,6 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 		}
 	}
 
-//	private static class CrossLibraryCopyJob extends Job
-//	{
-//		private Cell fromCell;
-//		private Library toLibrary;
-//		private boolean copyRelated, copySubs;
-//
-//		private CrossLibraryCopyJob(Cell fromCell, Library toLibrary, boolean copyRelated, boolean copySubs)
-//		{
-//			super("Cross-Library copy", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-//			this.fromCell = fromCell;
-//			this.toLibrary = toLibrary;
-//			this.copyRelated = copyRelated;
-//			this.copySubs = copySubs;
-//			startJob();
-//		}
-//
-//		public boolean doIt() throws JobException
-//		{
-//			// do the copy
-//			List<Cell> fromCells = new ArrayList<Cell>();
-//			fromCells.add(fromCell);
-//			CellChangeJobs.copyRecursively(fromCells, toLibrary, true, false, copyRelated, copySubs, true);
-//			return true;
-//		}
-//	}
-
 	// *********************************** DISPLAY ***********************************
 
 	private class MyRenderer extends DefaultTreeCellRenderer
@@ -1138,7 +1114,7 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 			return this;
 		}
 
-		private HashMap<View,IconGroup> iconGroups = new HashMap<View,IconGroup>();
+		private Map<View,IconGroup> iconGroups = new HashMap<View,IconGroup>();
 
 		private IconGroup findIconGroup(View view)
 		{
@@ -1408,12 +1384,6 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 			for(int i=0; i<currentPaths.length; i++)
 			{
                 currentSelectedPaths[i] = currentPaths[i];
-//                Object obj = currentPaths[i].getLastPathComponent();
-//                if (obj instanceof DefaultMutableTreeNode)
-//                    obj = ((DefaultMutableTreeNode)obj).getUserObject();
-//                currentSelectedObjects[i] = obj;
-//				DefaultMutableTreeNode node = (DefaultMutableTreeNode)currentPaths[i].getLastPathComponent();
-//				currentSelectedObjects[i] = node.getUserObject();
 			}
 
 			// update highlighting to match this selection
@@ -1438,8 +1408,6 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 			if (cp != null)
 			{
 				Object obj = getObjectInTreePath(cp);
-//                DefaultMutableTreeNode node = (DefaultMutableTreeNode)cp.getLastPathComponent();
-//                Object obj = node.getUserObject();
 				boolean selected = false;
 				for(int i=0; i<numCurrentlySelectedObjects(); i++)
 				{
@@ -2092,15 +2060,35 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
                 // Get info menu
                 addGetInfoMenu(menu);
 
-                    menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
-//                ErrorLoggerTree.ErrorLoggerTreeNode logger = (ErrorLoggerTree.ErrorLoggerTreeNode)selectedObject;
-//                JPopupMenu p = ErrorLoggerTree.getPopupMenu(logger);
-//                if (p != null) p.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
+                menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
+                return;
+            }
+            if (selectedObject instanceof ErrorLoggerTree.ErrorLoggerGroupNode)
+            {
+                menu = new JPopupMenu("Error Group");
+
+                menuItem = new JMenuItem("Show All");
+                menu.add(menuItem);
+                menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e)
+                { ErrorLoggerTree.showAllLogger(tree); } });
+
+                addGetInfoMenu(menu);
+
+                menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
                 return;
             }
             if (selectedObject instanceof ErrorLogger.MessageLog)
             {
-                addGetInfoMenu(null);
+                menu = new JPopupMenu("Error Message");
+
+                menuItem = new JMenuItem("Show All");
+                menu.add(menuItem);
+                menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e)
+                { ErrorLoggerTree.showAllLogger(tree); } });
+
+                addGetInfoMenu(menu);
+
+                menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
                 return;
             }
         }
@@ -2548,7 +2536,7 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
         private void addCVSMenu(JMenu cvsMenu) {
             List<Library> libs = getCurrentlySelectedLibraries();
             List<Cell> cells = getCurrentlySelectedCells();
-            TreeSet<State> states = new TreeSet<State>();
+            Set<State> states = new TreeSet<State>();
             for (Library lib : libs) {
                 states.add(CVSLibrary.getState(lib));
             }

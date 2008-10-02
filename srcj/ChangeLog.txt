@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08i: ******************************
 
+IMP/MAN: (10/2/08) You can now right-click on an error group or on multiple
+     error messages in the Explorer tree and choose "Show All" to highlight
+     them (Bug #1889).
+
 IMP/MAN: (10/2/08, SMR) Schematic DRC now checks that instance names don't
      conflict with network names (Bug #1895).
 

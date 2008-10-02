@@ -119,7 +119,7 @@ public class ErrorLoggerTree {
 		Job.getUserInterface().getCurrentEditWindow_().clearHighlighting();
         ErrorLoggerTreeNode node = (ErrorLoggerTreeNode)ErrorLoggerTree.currentLogger.getUserObject();
 		int index = indexOf(node);
-		highlightLogger(index);
+		highlightLogger(index, -1);
     	Job.getUserInterface().getCurrentEditWindow_().finishedHighlighting();
     }
 
@@ -160,7 +160,7 @@ public class ErrorLoggerTree {
 
     private static class UpdateNetwork implements Runnable {
         private CellId cellId;
-        private ArrayList<ErrorLogger.MessageLog> errors;
+        private List<ErrorLogger.MessageLog> errors;
         UpdateNetwork(CellId cellId, List<ErrorLogger.MessageLog> errors) {
             this.cellId = cellId;
             this.errors = new ArrayList<ErrorLogger.MessageLog>(errors);
@@ -185,8 +185,8 @@ public class ErrorLoggerTree {
 
     private static class UpdateDrc implements Runnable {
         private CellId cellId;
-        private ArrayList<ErrorLogger.MessageLog> newErrors;
-        private ArrayList<ErrorLogger.MessageLog> delErrors;
+        private List<ErrorLogger.MessageLog> newErrors;
+        private List<ErrorLogger.MessageLog> delErrors;
         UpdateDrc(CellId cId, List<ErrorLogger.MessageLog> newErrs, List<MessageLog> delErrs) {
             this.cellId = cId;
             if (newErrs != null)
@@ -255,7 +255,7 @@ public class ErrorLoggerTree {
         ExplorerTreeModel.fireTreeNodesRemoved(errorTree, errorPath, childIndices, children);
     }
 
-    private static void highlightLogger(int index)
+    private static void highlightLogger(int index, int sortKey)
     {
     	EditWindow ew = EditWindow.getCurrent();
     	if (ew == null) return;
@@ -267,6 +267,7 @@ public class ErrorLoggerTree {
         for(int i=0; i<el.getNumLogs(); i++)
         {
         	MessageLog ml = el.getLog(i);
+        	if (sortKey >= 0 && ml.getSortKey() != sortKey) continue;
         	for(Iterator<ErrorHighlight> it = ml.getHighlights(); it.hasNext(); )
         	{
         		ErrorHighlight eh = it.next();
@@ -288,25 +289,27 @@ public class ErrorLoggerTree {
             loggerNode.removeAllChildren();
             ExplorerTreeModel.fireTreeNodesRemoved(errorTree, loggerPath, childIndex, children);
         }
-        ErrorLogger logger = ((ErrorLoggerTreeNode)loggerNode.getUserObject()).logger;
+        ErrorLoggerTreeNode eltn = (ErrorLoggerTreeNode)loggerNode.getUserObject();
+        ErrorLogger logger = eltn.logger;
         if (logger.getNumLogs() == 0) return;
-        DefaultMutableTreeNode groupNode = loggerNode;
         Map<Integer,DefaultMutableTreeNode> sortKeyMap = new HashMap<Integer,DefaultMutableTreeNode>();
-        HashMap<Integer,String> sortKeyGroupNamesMap = logger.getSortKeyToGroupNames();
+        Map<Integer,String> sortKeyGroupNamesMap = logger.getSortKeyToGroupNames();
         // Extra level for loggers
         if (sortKeyGroupNamesMap != null) {
             for (Map.Entry e : sortKeyGroupNamesMap.entrySet())
             {
                 String name = (String)e.getValue();
-                DefaultMutableTreeNode grpNode = new DefaultMutableTreeNode(name);
+                Integer key = (Integer)e.getKey();
+                DefaultMutableTreeNode grpNode = new DefaultMutableTreeNode(new ErrorLoggerGroupNode(name, key.intValue(), eltn));
                 loggerNode.add(grpNode);
-                sortKeyMap.put((Integer)e.getKey(), grpNode);
+                sortKeyMap.put(key, grpNode);
             }
         }
         for (Iterator<ErrorLogger.MessageLog> it = logger.getLogs(); it.hasNext();) {
             ErrorLogger.MessageLog el = it.next();
             // by default, groupNode is entire loggerNode
             // but, groupNode could be sub-node:
+            DefaultMutableTreeNode groupNode = loggerNode;
             if (logger.getSortKeyToGroupNames() != null)
             {
                 groupNode = sortKeyMap.get(new Integer(el.getSortKey()));
@@ -382,21 +385,6 @@ public class ErrorLoggerTree {
         return -1;
     }
 
-    /**
-     * A static object is used so that its open/closed tree state can be maintained.
-     */
-//    public static JPopupMenu getPopupMenu(ErrorLoggerTreeNode log) {
-//        JPopupMenu p = new JPopupMenu();
-//        JMenuItem m;
-//        m = new JMenuItem("Delete"); m.addActionListener(log); p.add(m);
-//        m = new JMenuItem("Show All"); m.addActionListener(log); p.add(m);
-//	    m = new JMenuItem("Export"); m.addActionListener(log); p.add(m);
-//        m = new JMenuItem("Set Current"); m.addActionListener(log); p.add(m);
-//        p.addSeparator();
-//        m = new JMenuItem("Get Info"); m.addActionListener(log); p.add(m);
-//        return p;
-//    }
-
     public static void importLogger()
     {
         String fileName = OpenFile.chooseInputFile(FileType.XML, "Read ErrorLogger");
@@ -417,6 +405,26 @@ public class ErrorLoggerTree {
     public static class ErrorLoggerDefaultMutableTreeNode extends DefaultMutableTreeNode {
         ErrorLoggerDefaultMutableTreeNode(ErrorLoggerTreeNode tn) { super(tn); }
         public boolean isLeaf() { return false; }
+    }
+
+    public static class ErrorLoggerGroupNode
+    {
+    	private String name;
+    	private int sortKey;
+    	private ErrorLoggerTreeNode parent;
+
+    	ErrorLoggerGroupNode(String s, int k, ErrorLoggerTreeNode p)
+    	{
+    		name = s;
+    		sortKey = k;
+    		parent = p;
+    	}
+
+    	public int getSortKey() { return sortKey; }
+
+    	public ErrorLoggerTreeNode getParentNode() { return parent; }
+
+    	public String toString() { return name; }
     }
 
     public static class ErrorLoggerTreeNode implements DatabaseChangeListener //, ActionListener
@@ -613,6 +621,7 @@ public class ErrorLoggerTree {
     
     public static void showAllLogger(ExplorerTree ex)
     {  	
+        Job.getUserInterface().getCurrentEditWindow_().clearHighlighting();
         TreePath [] paths = ex.getSelectionPaths();
         for(int i=0; i<paths.length; i++)
         {
@@ -623,7 +632,25 @@ public class ErrorLoggerTree {
                 if (clickedObject instanceof ErrorLoggerTreeNode)
                 {
                     int index = indexOf((ErrorLoggerTreeNode)clickedObject);
-                    highlightLogger(index);
+                    highlightLogger(index, -1);
+                } else if (clickedObject instanceof ErrorLoggerGroupNode)
+                {
+                	ErrorLoggerGroupNode egn = (ErrorLoggerGroupNode)clickedObject;
+                	int sortKey = egn.getSortKey();
+                    int index = indexOf(egn.getParentNode());
+                    highlightLogger(index, sortKey);
+                } else if (clickedObject instanceof ErrorLogger.MessageLog)
+                {
+                	ErrorLogger.MessageLog ml = (ErrorLogger.MessageLog)clickedObject;
+                	EditWindow ew = EditWindow.getCurrent();
+                	if (ew == null) return;
+                	Highlighter h = ew.getHighlighter();
+                    EDatabase database = EDatabase.clientDatabase();
+                    for(Iterator<ErrorHighlight> it = ml.getHighlights(); it.hasNext(); )
+                	{
+                		ErrorHighlight eh = it.next();
+                		eh.addToHighlighter(h, database);
+                	}
                 }
             }
         }
