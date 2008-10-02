@@ -54,6 +54,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -65,7 +66,7 @@ public class Schematic
     // Cells, nodes and arcs
 	private static Set<ElectricObject> nodesChecked = new HashSet<ElectricObject>();
     private static ErrorLogger errorLogger = null;
-    private static HashMap<Geometric,List<Variable>> newVariables = new HashMap<Geometric,List<Variable>>();
+    private static Map<Geometric,List<Variable>> newVariables = new HashMap<Geometric,List<Variable>>();
 
 	public static ErrorLogger doCheck(ErrorLogger errorLog, Cell cell, Geometric[] geomsToCheck)
 	{
@@ -134,10 +135,36 @@ public class Schematic
 
 		// now check this cell
 		System.out.println("Checking schematic " + cell);
-		checkSchematicCell(cell, false, geomsToCheck);
+		ErrorGrouper eg = new ErrorGrouper(cell);
+		checkSchematicCell(cell, false, geomsToCheck, eg);
 	}
 
-	private static void checkSchematicCell(Cell cell, boolean justThis, Geometric[] geomsToCheck)
+	private static class ErrorGrouper
+	{
+		private boolean inited;
+		private int cellIndex;
+		private Cell cell;
+		private static int cellIndexCounter = 0;
+
+		ErrorGrouper(Cell cell)
+		{
+			inited = false;
+			cellIndex = cellIndexCounter++;
+			this.cell = cell;
+		}
+
+		public int getSortKey()
+		{
+			if (!inited)
+			{
+				inited = true;
+		        errorLogger.setGroupName(cellIndex, cell.getName());
+			}
+			return cellIndex;
+		}
+	}
+
+	private static void checkSchematicCell(Cell cell, boolean justThis, Geometric[] geomsToCheck, ErrorGrouper eg)
 	{
 		int initialErrorCount = errorLogger.getNumErrors();
 		Netlist netlist = NetworkTool.getUserNetlist(cell);
@@ -150,17 +177,17 @@ public class Schematic
                 NodeInst ni = it.next();
                 if (!ni.isCellInstance() &&
                     ni.getProto().getTechnology() == Generic.tech()) continue;
-                schematicDoCheck(netlist, ni);
+                schematicDoCheck(netlist, ni, eg);
             }
             for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
             {
                 ArcInst ai = it.next();
-                schematicDoCheck(netlist, ai);
+                schematicDoCheck(netlist, ai, eg);
             }
         } else
         {
             for (Geometric geo : geomsToCheck)
-                schematicDoCheck(netlist, geo);
+                schematicDoCheck(netlist, geo, eg);
         }
 
 		int errorCount = errorLogger.getNumErrors();
@@ -190,7 +217,7 @@ public class Schematic
 	/**
 	 * Method to check schematic object "geom".
 	 */
-	private static void schematicDoCheck(Netlist netlist, Geometric geom)
+	private static void schematicDoCheck(Netlist netlist, Geometric geom, ErrorGrouper eg)
 	{
         // Checked already
         if (nodesChecked.contains(geom))
@@ -218,7 +245,7 @@ public class Schematic
 					}
 					if (!found)
 					{
-						errorLogger.logError("Bus pin does not connect to any bus arcs", geom, cell, null, 0);
+						errorLogger.logError("Bus pin does not connect to any bus arcs", geom, cell, null, eg.getSortKey());
 						return;
 					}
 				}
@@ -240,7 +267,7 @@ public class Schematic
 						if (con.getArc().getProto() == Schematics.tech().wire_arc) i++;
 							geomList.add(con.getArc());
 					}
-					errorLogger.logError("Wire arcs cannot connect through a bus pin", geomList, null, cell, 0);
+					errorLogger.logError("Wire arcs cannot connect through a bus pin", geomList, null, cell, eg.getSortKey());
 					return;
 				}
 			}
@@ -260,14 +287,14 @@ public class Schematic
 					}
 					if (!found)
 					{
-						errorLogger.logError("Stranded pin (not connected or exported)", geom, cell, null, 0);
+						errorLogger.logError("Stranded pin (not connected or exported)", geom, cell, null, eg.getSortKey());
 						return;
 					}
 				}
 
 				if (ni.isInlinePin())
 				{
-					errorLogger.logError("Unnecessary pin (between 2 arcs)", geom, cell, null, 0);
+					errorLogger.logError("Unnecessary pin (between 2 arcs)", geom, cell, null, eg.getSortKey());
 					return;
 				}
 
@@ -279,7 +306,8 @@ public class Schematic
 					geomList.add(geom);
 					ptList.add(new EPoint(ni.getAnchorCenterX(), ni.getAnchorCenterY()));
 					ptList.add(new EPoint(pinLoc.getX(), pinLoc.getY()));
-					errorLogger.logError("Invisible pin has text in different location", geomList, null, ptList, null, null, cell, 0);
+					errorLogger.logError("Invisible pin has text in different location",
+						geomList, null, ptList, null, null, cell, eg.getSortKey());
 					return;
 				}
 			}
@@ -310,7 +338,7 @@ public class Schematic
 						// this node's parameter is no longer on the cell: delete from instance
 						String trueVarName = var.getTrueName();
 						errorLogger.logError("Parameter '" + trueVarName + "' on " + ni +
-							" is invalid", geom, cell, null, 0);
+							" is invalid", geom, cell, null, eg.getSortKey());
 
 						// this is broken:
 //						ni.delVar(var.getKey());
@@ -322,7 +350,7 @@ public class Schematic
 						{
 							String trueVarName = var.getTrueName();
 							errorLogger.logError("Parameter '" + trueVarName + "' on " + ni +
-								" had incorrect units (now fixed)", geom, cell, null, 0);
+								" had incorrect units (now fixed)", geom, cell, null, eg.getSortKey());
                             addVariable(ni, var.withUnit(foundVar.getUnit()));
 						}
 
@@ -333,7 +361,7 @@ public class Schematic
 							{
 								String trueVarName = var.getTrueName();
 								errorLogger.logError("Parameter '" + trueVarName + "' on " + ni +
-									" should not be visible (now fixed)", geom, cell, null, 0);
+									" should not be visible (now fixed)", geom, cell, null, eg.getSortKey());
                                 addVariable(ni, var.withDisplay(false));
 							}
 						} else
@@ -342,7 +370,7 @@ public class Schematic
 							{
 								String trueVarName = var.getTrueName();
 								errorLogger.logError("Parameter '" + trueVarName + "' on " + ni +
-									" should be visible (now fixed)", geom, cell, null, 0);
+									" should be visible (now fixed)", geom, cell, null, eg.getSortKey());
                                 addVariable(ni, var.withDisplay(true));
 							}
 						}
@@ -366,13 +394,13 @@ public class Schematic
 						errorLogger.logError("Export '" + e.getName() + "' on " + ni +
 							" is " + e.getCharacteristic().getFullName() +
 							" but export in icon cell " + iconCell.describe(false) + " is " +
-							iconExport.getCharacteristic().getFullName(), geom, cell, null, 0);
+							iconExport.getCharacteristic().getFullName(), geom, cell, null, eg.getSortKey());
 					}
 				}
 			}
 
 			// check for port overlap
-			checkPortOverlap(netlist, ni);
+			checkPortOverlap(netlist, ni, eg);
 		} else
 		{
 			ArcInst ai = (ArcInst)geom;
@@ -411,7 +439,7 @@ public class Schematic
 					if (ni.getNumConnections() != 1) continue;
 
 					// the arc dangles
-					errorLogger.logError("Arc dangles", geom, cell, null, 0);
+					errorLogger.logError("Arc dangles", geom, cell, null, eg.getSortKey());
 					return;
 				}
 			}
@@ -437,7 +465,8 @@ public class Schematic
 						geomList.add(geom);
 						geomList.add(ni);
 						errorLogger.logError("Arc " + ai.describe(true) + " connects to " +
-							pi.getPortProto() + " of " + ni + ", but there is no equivalent port in " + np, geomList, null, cell, 0);
+							pi.getPortProto() + " of " + ni + ", but there is no equivalent port in " + np,
+							geomList, null, cell, eg.getSortKey());
 						continue;
 					}
 				}
@@ -452,7 +481,7 @@ public class Schematic
 					geomList.add(geom);
 					geomList.add(ni);
 					errorLogger.logError("Arc " + ai.describe(true) + " (" + signals + " wide) connects to " +
-						pp + " of " + ni + " (" + portWidth + " wide)", geomList, null, cell, 0);
+						pp + " of " + ni + " (" + portWidth + " wide)", geomList, null, cell, eg.getSortKey());
 				}
 			}
 		}
@@ -461,7 +490,7 @@ public class Schematic
 	/**
 	 * Method to check whether any port on a node overlaps others without connecting.
 	 */
-	private static void checkPortOverlap(Netlist netlist, NodeInst ni)
+	private static void checkPortOverlap(Netlist netlist, NodeInst ni, ErrorGrouper eg)
 	{
 		if (ni.getProto().getTechnology() == Generic.tech() ||
 			ni.getProto().getTechnology() == Artwork.tech()) return;
@@ -499,7 +528,7 @@ public class Schematic
 					geomList.add(ni);
 					geomList.add(oNi);
 					errorLogger.logError("Nodes '" + ni + "' '" + oNi + "' have touching ports that are not connected",
-						geomList, null, cell, 0);
+						geomList, null, cell, eg.getSortKey());
 					return;
 				}
 			}
