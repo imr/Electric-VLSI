@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08i: ******************************
 
+IMP: (10/2/08, SMR) Sped up "ERC Well Check" significantly (Bug #1899).
+
 IMP/MAN: (10/1/08, SMR) Added "Reverse video" option in "Layout Text" (Bug #1894).
 
 IMP: (9/29/08, GVG) Remove ErrorLogger entries with zero Calibre errors (Bug #1888)

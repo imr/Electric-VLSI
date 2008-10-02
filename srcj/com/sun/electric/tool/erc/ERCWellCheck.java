@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.erc;
 
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GeometryHandler;
 import com.sun.electric.database.geometry.Poly;
@@ -37,13 +38,17 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.topology.RTBounds;
+import com.sun.electric.database.topology.RTNode;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.DRCTemplate;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.Technology.NodeLayer;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.drc.DRC;
@@ -52,8 +57,11 @@ import com.sun.electric.tool.user.ErrorLogger;
 import java.awt.Shape;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -68,11 +76,14 @@ import java.util.Set;
 public class ERCWellCheck
 {
 	private Cell cell;
-	private GeometryHandler.GHMode mode;
-	private ErrorLogger errorLogger;
+	private Set<Object> possiblePrimitives;
 	private List<WellCon> wellCons = new ArrayList<WellCon>();
-	private Map<Cell,GeometryHandler> cellMerges = new HashMap<Cell,GeometryHandler>(); // make a map of merge information in each cell
-	private Set<Cell> doneCells = new HashSet<Cell>(); // Mark if cells are done already.
+	private int wellNumbers;
+	private RTNode pWellRoot, nWellRoot;
+	private Map<Integer,WellCon> wellContacts;
+	private Map<WellCon,Set<WellCon>> wellShorts;
+	private Layer pWellLayer, nWellLayer;
+	private ErrorLogger errorLogger;
 	private WellCheckJob job;
 	private double worstPWellDist;
 	private Point2D worstPWellCon;
@@ -80,30 +91,6 @@ public class ERCWellCheck
 	private double worstNWellDist;
 	private Point2D worstNWellCon;
 	private Point2D worstNWellEdge;
-
-	// well areas
-	private static class WellArea
-	{
-		PolyBase    poly;
-		int         netNum;
-		int         index;
-	}
-
-	// well contacts
-	private static class WellCon
-	{
-		Point2D                ctr;
-		int                    netNum;
-		boolean                onProperRail;
-		PrimitiveNode.Function fun;
-	}
-
-	private ERCWellCheck(Cell cell, WellCheckJob job, GeometryHandler.GHMode newAlgorithm)
-	{
-		this.job = job;
-		this.mode = newAlgorithm;
-		this.cell = cell;
-	}
 
 	/**
 	 * Method to analyze the current Cell for well errors.
@@ -118,7 +105,7 @@ public class ERCWellCheck
 	}
 
 	/**
-	 * Method used by the regressions
+	 * Method used by the regressions.
 	 * @param cell the Cell to well-check.
 	 * @param newAlgorithm the geometry algorithm to use.
 	 * @return the success of running well-check.
@@ -126,7 +113,14 @@ public class ERCWellCheck
 	public static int checkERCWell(Cell cell, GeometryHandler.GHMode newAlgorithm)
 	{
 		ERCWellCheck check = new ERCWellCheck(cell, null, newAlgorithm);
-		return check.doIt();
+		return check.runNow();
+	}
+
+	private ERCWellCheck(Cell cell, WellCheckJob job, GeometryHandler.GHMode newAlgorithm)
+	{
+		this.job = job;
+		this.mode = newAlgorithm;
+		this.cell = cell;
 	}
 
 	private static class WellCheckJob extends Job
@@ -147,9 +141,8 @@ public class ERCWellCheck
 
 		public boolean doIt() throws JobException
 		{
-			ERCWellCheck check =   new ERCWellCheck(cell, this, newAlgorithm);
-			int result = check.doIt();
-
+			ERCWellCheck check = new ERCWellCheck(cell, this, newAlgorithm);
+			check.runNow();
 			worstPWellDist = check.worstPWellDist;
 			fieldVariableChanged("worstPWellDist");
 			worstNWellDist = check.worstNWellDist;
@@ -174,7 +167,7 @@ public class ERCWellCheck
 				worstNWellEdge = new EPoint(check.worstNWellEdge.getX(), check.worstNWellEdge.getY());
 				fieldVariableChanged("worstNWellEdge");
 			}
-			return result == 0;
+			return true;
 		}
 
 		public void terminateOK()
@@ -200,13 +193,712 @@ public class ERCWellCheck
 		}
 	}
 
-	private int doIt()
+	private int runNow()
 	{
+		System.out.println("Checking Wells and Substrates in '" + cell.libDescribe() + "' ...");
 		long startTime = System.currentTimeMillis();
 		errorLogger = ErrorLogger.newInstance("ERC Well Check ");
 
-		System.out.println("Checking Wells and Substrates in '" + cell.libDescribe() + "' ...");
+		// make a list of primtivies that need to be examined
+		possiblePrimitives = new HashSet<Object>();
+		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
+		{
+			Technology tech = it.next();
+			for(Iterator<PrimitiveNode> pIt = tech.getNodes(); pIt.hasNext(); )
+			{
+				PrimitiveNode pn = pIt.next();
+				NodeLayer [] nl = pn.getLayers();
+				for(int i=0; i<nl.length; i++)
+				{
+					Layer lay = nl[i].getLayer();
+					if (lay.getFunction().isSubstrate())
+					{
+						possiblePrimitives.add(pn);
+						break;
+					}
+				}
+			}
+			for(Iterator<ArcProto> pIt = tech.getArcs(); pIt.hasNext(); )
+			{
+				ArcProto ap = pIt.next();
+				for(int i=0; i<ap.getNumArcLayers(); i++)
+				{
+					Layer lay = ap.getLayer(i);
+					if (lay.getFunction().isSubstrate())
+					{
+						if (lay.getFunction().isWell())
+							pWellLayer = lay; else
+								nWellLayer = lay;
+						possiblePrimitives.add(ap);
+						break;
+					}
+				}
+			}
+		}
+//		int errorCount = doOldWay();
+		int errorCount = doNewWay();
 
+		// report the number of errors found
+		long endTime = System.currentTimeMillis();
+		if (errorCount == 0)
+		{
+			System.out.println("No Well errors found (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
+		} else
+		{
+			System.out.println("FOUND " + errorCount + " WELL ERRORS (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
+		}
+		return errorCount;
+	}
+
+	private int doNewWay()
+	{
+		pWellRoot = RTNode.makeTopLevel();
+		nWellRoot = RTNode.makeTopLevel();
+
+		// enumerate the hierarchy below here
+		System.out.println("Gathering geometry...");
+		NewWellCheckVisitor wcVisitor = new NewWellCheckVisitor();
+		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, wcVisitor);
+		int numPRects = getTreeSize(pWellRoot);
+		int numNRects = getTreeSize(nWellRoot);
+		System.out.println("...found " + numPRects + " pWell and " + numNRects + " nWell pieces.  Now analyzing...");
+
+		// spread the well connectivity from all well contacts
+		wellNumbers = 0;
+		wellContacts = new HashMap<Integer,WellCon>();
+		wellShorts = new HashMap<WellCon,Set<WellCon>>();
+		for(WellCon wc : wellCons)
+		{
+			// if the contact is already marked, stop
+			if (wc.wellNum >= 0) continue;
+
+			// see if this contact is in a marked well
+			Rectangle2D searchArea = new Rectangle2D.Double(wc.ctr.getX(), wc.ctr.getY(), 0, 0);
+			RTNode topSearch = nWellRoot;
+			if (wc.fun == PrimitiveNode.Function.WELL) topSearch = pWellRoot;
+			boolean geomFound = false;
+			for(RTNode.Search sea = new RTNode.Search(searchArea, topSearch, true); sea.hasNext(); )
+			{
+				WellBound wb = (WellBound)sea.next();
+				geomFound = true;
+				wc.wellNum = wb.netID;
+				if (wc.wellNum >= 0) break;
+			}
+			if (wc.wellNum >= 0)
+			{
+				// make sure this isn't a short-circuit
+				WellCon otherCon = wellContacts.get(new Integer(wc.wellNum));
+				if (otherCon.netNum != wc.netNum)
+					reportShort(wc, otherCon);
+				continue;
+			}
+
+			// mark it and spread the value
+			wc.wellNum = wellNumbers++;
+			wellContacts.put(new Integer(wc.wellNum), wc);
+
+			// if nothing to spread, give an error
+			if (!geomFound)
+			{
+				String errorMsg = "N-Well contact is floating";
+				if (wc.fun == PrimitiveNode.Function.WELL) errorMsg = "P-Well contact is floating";
+				errorLogger.logError(errorMsg, new EPoint(wc.ctr.getX(), wc.ctr.getY()), cell, 0);
+				continue;
+			}
+
+			// spread out through the well area
+			spreadWellSeed(wc.ctr.getX(), wc.ctr.getY(), wc.wellNum, topSearch);
+		}
+
+		// more analysis
+		boolean hasPCon = false, hasNCon = false;
+		for(WellCon wc : wellCons)
+		{
+			if (wc.fun == PrimitiveNode.Function.WELL) hasPCon = true; else
+				hasNCon = true;
+			if (!wc.onProperRail)
+			{
+				if (wc.fun == PrimitiveNode.Function.WELL)
+				{
+					if (ERC.isMustConnectPWellToGround())
+						errorLogger.logError("P-Well contact not connected to ground", new EPoint(wc.ctr.getX(), wc.ctr.getY()), cell, 0);
+				} else
+				{
+					if (ERC.isMustConnectNWellToPower())
+						errorLogger.logError("N-Well contact not connected to power", new EPoint(wc.ctr.getX(), wc.ctr.getY()), cell, 0);
+				}
+			}
+		}
+
+		// make sure the wells are separated properly
+		// Local storage of rules.. otherwise getSpacingRule is called too many times
+		// THIS IS A DRC JOB .. not efficient if done here.
+		if (ERC.isDRCCheck())
+		{
+			System.out.println("Checking well design rules...");
+			DRCTemplate pRule = DRC.getSpacingRule(pWellLayer, null, pWellLayer, null, false, -1, 0, 0);
+			DRCTemplate nRule = DRC.getSpacingRule(nWellLayer, null, nWellLayer, null, false, -1, 0, 0);
+			if (pRule != null) findDRCViolations(pWellRoot, pRule.getValue(0));
+			if (nRule != null) findDRCViolations(nWellRoot, nRule.getValue(0));
+		}
+
+		// look for unconnected well areas
+		EditWindow_ wnd = Job.getUserInterface().getCurrentEditWindow_();
+		wnd.clearHighlighting();
+		if (ERC.getPWellCheck() != 2) findUnconnected(pWellRoot, pWellRoot, "P");
+		if (ERC.getNWellCheck() != 2) findUnconnected(nWellRoot, nWellRoot, "N");
+		if (ERC.getPWellCheck() == 1 && !hasPCon)
+		{
+			errorLogger.logError("No P-Well contact found in this cell", cell, 0);
+		}
+		if (ERC.getNWellCheck() == 1 && !hasNCon)
+		{
+			errorLogger.logError("No N-Well contact found in this cell", cell, 0);
+		}
+		wnd.finishedHighlighting();
+
+		// compute edge distance if requested
+		if (ERC.isFindWorstCaseWell())
+		{
+			System.out.println("Finding worst distances from contact to well corner...");
+			worstPWellDist = 0;
+			worstPWellCon = null;
+			worstPWellEdge = null;
+			worstNWellDist = 0;
+			worstNWellCon = null;
+			worstNWellEdge = null;
+
+			Map<Integer,WellNet> wellNets = new HashMap<Integer,WellNet>();
+			for(WellCon wc : wellCons)
+			{
+				if (wc.wellNum < 0) continue;
+				Integer netNUM = new Integer(wc.wellNum);
+				WellNet wn = wellNets.get(netNUM);
+				if (wn == null)
+				{
+					wn = new WellNet();
+					wn.pointsOnNet = new ArrayList<Point2D>();
+					wn.contactsOnNet = new ArrayList<WellCon>();
+					wn.fun = wc.fun;
+					wellNets.put(netNUM, wn);
+				}
+				wn.contactsOnNet.add(wc);
+			}
+
+			findWellNetPoints(pWellRoot, wellNets);
+			findWellNetPoints(nWellRoot, wellNets);
+
+			for(Integer netNUM : wellNets.keySet())
+			{
+				WellNet wn = wellNets.get(netNUM);
+				for(Point2D pt : wn.pointsOnNet)
+				{
+					// find contact closest to this point
+					double closestDist = Double.MAX_VALUE;
+					Point2D closestCon = null;
+					for(WellCon wc : wn.contactsOnNet)
+					{
+						double dist = wc.ctr.distance(pt);
+						if (dist < closestDist)
+						{
+							closestDist = dist;
+							closestCon = wc.ctr;
+						}
+					}
+
+					// see if this distance is worst for the well type
+					if (wn.fun == PrimitiveNode.Function.WELL)
+					{
+						// pWell
+						if (closestDist > worstPWellDist)
+						{
+							worstPWellDist = closestDist;
+							worstPWellCon = closestCon;
+							worstPWellEdge = pt;
+						}
+					} else
+					{
+						// nWell
+						if (closestDist > worstNWellDist)
+						{
+							worstNWellDist = closestDist;
+							worstNWellCon = closestCon;
+							worstNWellEdge = pt;
+						}
+					}
+				}
+			}
+		}
+
+		errorLogger.termLogging(true);
+		int errorCount = errorLogger.getNumErrors();
+		return errorCount;
+	}
+
+	private void findDRCViolations(RTNode rtree, double minDist)
+	{
+		for(int j=0; j<rtree.getTotal(); j++)
+		{
+			if (rtree.getFlag())
+			{
+				WellBound child = (WellBound)rtree.getChild(j);
+				if (child.netID < 0) continue;
+
+				// look all around this geometry for others in the well area
+				Rectangle2D searchArea = new Rectangle2D.Double(child.bound.getMinX()-minDist, child.bound.getMinY()-minDist,
+					child.bound.getWidth()+minDist*2, child.bound.getHeight()+minDist*2);
+				for(RTNode.Search sea = new RTNode.Search(searchArea, rtree, true); sea.hasNext(); )
+				{
+					WellBound other = (WellBound)sea.next();
+					if (other.netID <= child.netID) continue;
+					if (child.bound.getMinX() > other.bound.getMaxX()+minDist ||
+						other.bound.getMinX() > child.bound.getMaxX()+minDist ||
+						child.bound.getMinY() > other.bound.getMaxY()+minDist ||
+						other.bound.getMinY() > child.bound.getMaxY()+minDist) continue;
+
+					PolyBase pb = new PolyBase(child.bound);
+					double trueDist = pb.polyDistance(other.bound);
+					if (trueDist < minDist)
+					{
+						List<PolyBase> polyList = new ArrayList<PolyBase>();
+						polyList.add(new PolyBase(child.bound));
+						polyList.add(new PolyBase(other.bound));
+						errorLogger.logError("Well areas too close (are " + TextUtils.formatDouble(trueDist) +
+							" but should be " + TextUtils.formatDouble(minDist, 1) + " apart)",
+							null, null, null, null, polyList, cell, 0);
+					}
+				}
+			} else
+			{
+				RTNode child = (RTNode)rtree.getChild(j);
+				findDRCViolations(child, minDist);
+			}
+		}
+	}
+
+	private int getTreeSize(RTNode rtree)
+	{
+		int total = 0;
+		if (rtree.getFlag()) total += rtree.getTotal(); else
+		{
+			for(int j=0; j<rtree.getTotal(); j++)
+			{
+				RTNode child = (RTNode)rtree.getChild(j);
+				total += getTreeSize(child);
+			}
+		}
+		return total;
+	}
+
+	private void findWellNetPoints(RTNode rtree, Map<Integer,WellNet> wellNets)
+	{
+		for(int j=0; j<rtree.getTotal(); j++)
+		{
+			if (rtree.getFlag())
+			{
+				WellBound child = (WellBound)rtree.getChild(j);
+				if (child.netID < 0) continue;
+				Integer netNUM = new Integer(child.netID);
+				WellNet wn = wellNets.get(netNUM);
+				if (wn == null) continue;
+				wn.pointsOnNet.add(new Point2D.Double(child.bound.getMinX(), child.bound.getMinY()));
+				wn.pointsOnNet.add(new Point2D.Double(child.bound.getMaxX(), child.bound.getMinY()));
+				wn.pointsOnNet.add(new Point2D.Double(child.bound.getMaxX(), child.bound.getMaxY()));
+				wn.pointsOnNet.add(new Point2D.Double(child.bound.getMinX(), child.bound.getMaxY()));
+			} else
+			{
+				RTNode child = (RTNode)rtree.getChild(j);
+				findWellNetPoints(child, wellNets);
+			}
+		}
+	}
+
+	private void findUnconnected(RTNode rtree, RTNode current, String title)
+	{
+		for(int j=0; j<current.getTotal(); j++)
+		{
+			if (current.getFlag())
+			{
+				WellBound child = (WellBound)current.getChild(j);
+				if (child.netID < 0)
+				{
+					wellNumbers++;
+					spreadWellSeed(child.bound.getCenterX(), child.bound.getCenterY(), wellNumbers, rtree);
+					errorLogger.logError("No " + title + "-Well contact in this area",
+						new EPoint(child.bound.getCenterX(), child.bound.getCenterY()), cell, 0);
+				}
+			} else
+			{
+				RTNode child = (RTNode)current.getChild(j);
+				findUnconnected(rtree, child, title);
+			}
+		}
+	}
+
+	private void reportShort(WellCon wc1, WellCon wc2)
+	{
+		Set<WellCon> shortsIn1 = wellShorts.get(wc1);
+		if (shortsIn1 == null)
+		{
+			shortsIn1 = new HashSet<WellCon>();
+			wellShorts.put(wc1, shortsIn1);
+		}
+
+		Set<WellCon> shortsIn2 = wellShorts.get(wc2);
+		if (shortsIn2 == null)
+		{
+			shortsIn2 = new HashSet<WellCon>();
+			wellShorts.put(wc2, shortsIn2);
+		}
+
+		// give error if not seen before
+		if (!shortsIn1.contains(wc2))
+		{
+			List<EPoint> pointList = new ArrayList<EPoint>();
+			pointList.add(new EPoint(wc1.ctr.getX(), wc1.ctr.getY()));
+			pointList.add(new EPoint(wc2.ctr.getX(), wc2.ctr.getY()));
+			errorLogger.logError("Short circuit between well contacts", null, null,
+				null, pointList, null, cell, 0);
+			shortsIn1.add(wc2);
+			shortsIn2.add(wc1);
+		}
+	}
+
+	private void spreadWellSeed(double cX, double cY, int wellNum, RTNode rtree)
+	{
+		RTNode allFound = RTNode.makeTopLevel();
+		boolean nothingFound = true;
+		Point2D ctr = new Point2D.Double(cX, cY);
+		Rectangle2D searchArea = new Rectangle2D.Double(cX, cY, 0, 0);
+		boolean keepSearching = true;
+		while (keepSearching)
+		{
+			keepSearching = false;
+			for(RTNode.Search sea = new RTNode.Search(searchArea, rtree, true); sea.hasNext(); )
+			{
+				WellBound wb = (WellBound)sea.next();
+
+				// ignore if this object is already properly connected
+				if (wb.netID == wellNum) continue;
+
+				// see if this object actually touches something in the set
+				if (nothingFound)
+				{
+					// start from center of contact
+					if (!wb.bound.contains(ctr)) continue;
+				} else
+				{
+					boolean touches = false;
+					for(RTNode.Search subSea = new RTNode.Search(wb.bound, allFound, true); subSea.hasNext(); )
+					{
+						WellBound subWB = (WellBound)subSea.next();
+						if (DBMath.rectsIntersect(subWB.bound, wb.bound)) { touches = true;   break; }
+					}
+					if (!touches) continue;
+				}
+
+				// this touches what is gathered so far: add to it
+				if (wb.netID < 0)
+				{
+					// new piece of geometry: add this network to it
+					wb.netID = wellNum;
+
+					// expand the next search area by this added bound
+					Rectangle2D.union(searchArea, wb.bound, searchArea);
+					allFound = RTNode.linkGeom(null, allFound, wb);
+					nothingFound = false;
+					keepSearching = true;
+				} else
+				{
+					// geometry is connected elsewhere: this is an error
+					System.out.println("************ SHOULD NOT HAPPEN");
+				}
+			}
+		}
+	}
+
+	// well contacts
+	private static class WellCon
+	{
+		Point2D                ctr;
+		int                    netNum;
+		int                    wellNum;
+		boolean                onProperRail;
+		PrimitiveNode.Function fun;
+	}
+
+	/**
+	 * Class to define an R-Tree leaf node for geometry in the blockage data structure.
+	 */
+	private static class WellBound implements RTBounds
+	{
+		private Rectangle2D bound;
+		private int netID;
+
+		WellBound(Rectangle2D bound)
+		{
+			this.bound = bound;
+			this.netID = -1;
+		}
+
+		public Rectangle2D getBounds() { return bound; }
+
+		public int getNetID() { return netID; }
+
+		public String toString() { return "Well Bound on net " + netID; }
+	}
+
+	private static class NetRails
+	{
+		boolean onGround;
+		boolean onPower;
+	}
+
+	private static class WellNet
+	{
+		List<Point2D> pointsOnNet;
+		List<WellCon> contactsOnNet;
+		PrimitiveNode.Function fun;
+	}
+
+	/**
+	 * Comparator class for sorting Rectangle2D objects by their size.
+	 */
+	private static class RectangleBySize implements Comparator<Rectangle2D>
+	{
+		/**
+		 * Method to sort Rectangle2D objects by their size.
+		 */
+		public int compare(Rectangle2D b1, Rectangle2D b2)
+		{
+			double s1 = b1.getWidth() * b1.getHeight();
+			double s2 = b2.getWidth() * b2.getHeight();
+			if (s1 > s2) return -1;
+			if (s1 < s2) return 1;
+			return 0;
+		}
+	}
+
+	private class NewWellCheckVisitor extends HierarchyEnumerator.Visitor
+	{
+		private Map<Cell,List<Rectangle2D>> essentialPWell;
+		private Map<Cell,List<Rectangle2D>> essentialNWell;
+		private Map<Network,NetRails> networkCache;
+
+		public NewWellCheckVisitor()
+		{
+			essentialPWell = new HashMap<Cell,List<Rectangle2D>>();
+			essentialNWell = new HashMap<Cell,List<Rectangle2D>>();
+			networkCache = new HashMap<Network,NetRails>();
+		}
+
+		public boolean enterCell(HierarchyEnumerator.CellInfo info)
+		{
+			// Checking if job is scheduled for abort or already aborted
+			if (job != null && job.checkAbort()) return false;
+
+			// make sure essential well areas are gathered
+			Cell cell = info.getCell();
+			ensureCellCached(cell);
+			return true;
+		}
+
+		public void exitCell(HierarchyEnumerator.CellInfo info)
+		{
+			// Checking if job is scheduled for abort or already aborted
+			if (job != null && job.checkAbort()) return;
+
+			// get the object for merging all of the wells in this cell
+			Cell cell = info.getCell();
+			List<Rectangle2D> pWellsInCell = essentialPWell.get(cell);
+			List<Rectangle2D> nWellsInCell = essentialNWell.get(cell);
+			for(Rectangle2D b : pWellsInCell)
+			{
+				Rectangle2D bounds = new Rectangle2D.Double(b.getMinX(), b.getMinY(), b.getWidth(), b.getHeight());
+				DBMath.transformRect(bounds, info.getTransformToRoot());
+				pWellRoot = RTNode.linkGeom(null, pWellRoot, new WellBound(bounds));
+			}
+			for(Rectangle2D b : nWellsInCell)
+			{
+				Rectangle2D bounds = new Rectangle2D.Double(b.getMinX(), b.getMinY(), b.getWidth(), b.getHeight());
+				DBMath.transformRect(bounds, info.getTransformToRoot());
+				nWellRoot = RTNode.linkGeom(null, nWellRoot, new WellBound(bounds));
+			}
+		}
+
+		public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
+		{
+			NodeInst ni = no.getNodeInst();
+
+			// look for well and substrate contacts
+			PrimitiveNode.Function fun = ni.getFunction();
+			if (fun == PrimitiveNode.Function.WELL || fun == PrimitiveNode.Function.SUBSTRATE)
+			{
+				WellCon wc = new WellCon();
+				wc.ctr = ni.getTrueCenter();
+				AffineTransform trans = ni.rotateOut();
+				trans.transform(wc.ctr, wc.ctr);
+				info.getTransformToRoot().transform(wc.ctr, wc.ctr);
+				wc.fun = fun;
+				PortInst pi = ni.getOnlyPortInst();
+				Netlist netList = info.getNetlist();
+				Network net = netList.getNetwork(pi);
+				wc.onProperRail = false;
+				wc.wellNum = -1;
+				if (net == null) wc.netNum = -1; else
+				{
+					wc.netNum = info.getNetID(net);
+
+					// PWell: must be on ground or  NWell: must be on power
+					Network parentNet = net;
+					HierarchyEnumerator.CellInfo cinfo = info;
+					while (cinfo.getParentInst() != null) {
+						parentNet = cinfo.getNetworkInParent(parentNet);
+						cinfo = cinfo.getParentInfo();
+					}
+					if (parentNet != null)
+					{
+						NetRails nr = networkCache.get(parentNet);
+						if (nr == null)
+						{
+							nr = new NetRails();
+							networkCache.put(parentNet, nr);
+							for (Iterator<Export> it = parentNet.getExports(); it.hasNext(); )
+							{
+								Export exp = it.next();
+								if (exp.isGround()) nr.onGround = true;
+								if (exp.isPower()) nr.onPower = true;
+							}
+						}
+						boolean searchWell = (fun == PrimitiveNode.Function.WELL);
+						if ((searchWell && nr.onGround) || (!searchWell && nr.onPower))
+							wc.onProperRail = true;
+					}
+				}
+				wellCons.add(wc);
+			}
+			return true;
+		}
+
+		private void ensureCellCached(Cell cell)
+		{
+			List<Rectangle2D> pWellsInCell = essentialPWell.get(cell);
+			List<Rectangle2D> nWellsInCell = essentialNWell.get(cell);
+			if (pWellsInCell == null)
+			{
+				// gather all wells in the cell
+				pWellsInCell = new ArrayList<Rectangle2D>();
+				nWellsInCell = new ArrayList<Rectangle2D>();
+				for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
+				{
+					NodeInst ni = it.next();
+					if (ni.isCellInstance()) continue;
+					PrimitiveNode pn = (PrimitiveNode)ni.getProto();
+					if (!possiblePrimitives.contains(pn)) continue;
+
+					// Getting only ercLayers
+					Poly [] nodeInstPolyList = pn.getTechnology().getShapeOfNode(ni, true, true, ercLayers);
+					int tot = nodeInstPolyList.length;
+					for(int i=0; i<tot; i++)
+					{
+						Poly poly = nodeInstPolyList[i];
+						Layer layer = poly.getLayer();
+						AffineTransform trans = ni.rotateOut();
+						poly.transform(trans);
+						Rectangle2D bound = poly.getBounds2D();
+						int wellType = getWellLayerType(layer);
+						if (wellType == ERCPWell) pWellsInCell.add(bound);
+							else if (wellType == ERCNWell) nWellsInCell.add(bound);
+					}
+				}
+				for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
+				{
+					ArcInst ai = it.next();
+					ArcProto ap = ai.getProto();
+					if (!possiblePrimitives.contains(ap)) continue;
+
+					// Getting only ercLayers
+					Poly [] arcInstPolyList = ap.getTechnology().getShapeOfArc(ai, ercLayers);
+					int tot = arcInstPolyList.length;
+					for(int i=0; i<tot; i++)
+					{
+						Poly poly = arcInstPolyList[i];
+						Layer layer = poly.getLayer();
+						Rectangle2D bound = poly.getBounds2D();
+						int wellType = getWellLayerType(layer);
+						if (wellType == ERCPWell) pWellsInCell.add(bound);
+							else if (wellType == ERCNWell) nWellsInCell.add(bound);
+					}
+				}
+
+				// eliminate duplicates
+				eliminateDuplicates(pWellsInCell);
+				eliminateDuplicates(nWellsInCell);
+
+				// save results
+				essentialPWell.put(cell, pWellsInCell);
+				essentialNWell.put(cell, nWellsInCell);
+			}
+		}
+
+		private void eliminateDuplicates(List<Rectangle2D> wbList)
+		{
+			// first sort by size
+			Collections.sort(wbList, new RectangleBySize());
+			for(int i=0; i<wbList.size(); i++)
+			{
+				Rectangle2D b = wbList.get(i);
+				for(int j=0; j<i; j++)
+				{
+					Rectangle2D prevB = wbList.get(j);
+					if (prevB.contains(b))
+					{
+						wbList.remove(i);
+						i--;
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	private static final int ERCPWell = 1;
+	private static final int ERCNWell = 2;
+	private static final int ERCPSEUDO = 0;
+
+	private static final Layer.Function[] ercLayersArray = {
+		Layer.Function.WELLP, Layer.Function.WELL, Layer.Function.WELLN, Layer.Function.SUBSTRATE,
+		Layer.Function.IMPLANTP, Layer.Function.IMPLANT, Layer.Function.IMPLANTN};
+	private static final Layer.Function.Set ercLayers = new Layer.Function.Set(ercLayersArray);
+
+	/**
+	 * Method to return nonzero if layer "layer" is a well/select layer.
+	 * @return 1: P-Well, 2: N-Well
+	 */
+	private static int getWellLayerType(Layer layer)
+	{
+		Layer.Function fun = layer.getFunction();
+		if (layer.isPseudoLayer()) return ERCPSEUDO;
+		if (fun == Layer.Function.WELLP) return ERCPWell;
+		if (fun == Layer.Function.WELL || fun == Layer.Function.WELLN) return ERCNWell;
+		return ERCPSEUDO;
+	}
+
+	// variables for the "old way"
+	private GeometryHandler.GHMode mode;
+	private Set<Cell> doneCells = new HashSet<Cell>(); // Mark if cells are done already.
+	private Map<Cell,GeometryHandler> cellMerges = new HashMap<Cell,GeometryHandler>(); // make a map of merge information in each cell
+
+	// well areas
+	private static class WellArea
+	{
+		PolyBase    poly;
+		int         netNum;
+		int         index;
+	}
+
+	private int doOldWay()
+	{
 		// enumerate the hierarchy below here
 		WellCheckVisitor wcVisitor = new WellCheckVisitor();
 		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, wcVisitor);
@@ -238,7 +930,7 @@ public class ERCWellCheck
 
 		for(WellArea wa : wellAreas)
 		{
-			int wellType = getWellLayerType(wa.poly.getLayer()); // wa.layer);
+			int wellType = getWellLayerType(wa.poly.getLayer());
 			if (wellType != ERCPWell && wellType != ERCNWell) continue;
 
 			// presume N-well
@@ -257,7 +949,6 @@ public class ERCWellCheck
 			else
 				foundNWell = true;
 
-			// TODO: contactAction != 0 -> do nothing
 			// find a contact in the area
 			boolean found = false;
 			for(WellCon wc : wellCons)
@@ -307,24 +998,6 @@ public class ERCWellCheck
 					}
 				}
 			}
-			// NCC will detect if a ground or power network is incorrectly split into
-			// two or more pieces. So this check is not needed here.
-/*				for(WellCon oWc : wellCons)
-			{
-				if (oWc.index <= wc.index) continue;
-
-				if (oWc.netNum == -1) continue;   // before ==0
-				if (oWc.fun != wc.fun) continue;
-				if (oWc.netNum == wc.netNum) continue;
-				if (wc.onProperRail && oWc.onProperRail)
-					continue; // Both proper connected to gdn/power exports
-				String errorMsg = "N-Well contacts are not connected";
-				if (wc.fun == PrimitiveNode.Function.WELL) errorMsg = "P-Well contacts are not connected";
-				MessageLog err = errorLogger.logError(errorMsg, cell, 0);
-				err.addPoint(wc.ctr.getX(), wc.ctr.getY(), cell);
-				err.addPoint(oWc.ctr.getX(), oWc.ctr.getY(), cell);
-				break;
-			}*/
 		}
 
 		// if just 1 N-Well contact is needed, see if it is there
@@ -427,7 +1100,7 @@ public class ERCWellCheck
 			for(WellArea wa : wellAreas)
 			{
 				int wellType = getWellLayerType(wa.poly.getLayer());
-				if (!isERCLayerRelated(wa.poly.getLayer())) continue;
+				if (wellType == ERCPSEUDO) continue;
 				PrimitiveNode.Function desiredContact = PrimitiveNode.Function.SUBSTRATE;
 				if (wellType == ERCPWell) desiredContact = PrimitiveNode.Function.WELL;
 
@@ -489,21 +1162,12 @@ public class ERCWellCheck
 			}
 		}
 
-		// report the number of errors found
-		long endTime = System.currentTimeMillis();
-		int errorCount = errorLogger.getNumErrors();
-		if (errorCount == 0)
-		{
-			System.out.println("No Well errors found (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
-		} else
-		{
-			System.out.println("FOUND " + errorCount + " WELL ERRORS (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
-		}
-
+		// clean up
 		wellCons.clear();
 		doneCells.clear();
 		cellMerges.clear();
 		errorLogger.termLogging(true);
+		int errorCount = errorLogger.getNumErrors();
 		return errorCount;
 	}
 
@@ -588,10 +1252,10 @@ public class ERCWellCheck
 				return false; // Nothing to do, Dec 9;
 
 			// merge everything
-			Cell cell = info.getCell();
 			AffineTransform trans = null;
 
 			// Not done yet
+			Cell cell = info.getCell();
 			if (!doneCells.contains(cell))
 			{
 				if (!ni.isCellInstance())
@@ -659,57 +1323,6 @@ public class ERCWellCheck
 			}
 			return true;
 		}
-	}
-
-	/**
-	 * Method to return nonzero if layer "layer" is a well/select layer.
-	 * @return
-	 *   1: P-Well
-	 *   2: N-Well
-	 *   3: P-Select
-	 *   4: N-Select
-	 */
-	private static final int ERCPWell = 1;
-	private static final int ERCNWell = 2;
-	private static final int ERCPSelect = 3;
-	private static final int ERCNSelect = 4;
-	private static final int ERCPSEUDO = 0;
-
-	private static final Layer.Function[] ercLayersArray = {
-		Layer.Function.WELLP, Layer.Function.WELL, Layer.Function.WELLN, Layer.Function.SUBSTRATE,
-		Layer.Function.IMPLANTP, Layer.Function.IMPLANT, Layer.Function.IMPLANTN};
-	private static final Layer.Function.Set ercLayers = new Layer.Function.Set(ercLayersArray);
-
-	/**
-	 * Determine if layer is relevant for ERC process to
-	 * speed up calculation
-	 * @param layer
-	 * @return true for wells and selects
-	 */
-	private static boolean isERCLayerRelated(Layer layer)
-	{
-		int type = getWellLayerType(layer);
-		return (type == ERCPWell || type == ERCNWell ||
-				type == ERCPSelect || type == ERCNSelect);
-	}
-
-	private static int getWellLayerType(Layer layer)
-	{
-		Layer.Function fun = layer.getFunction();
-		if (layer.isPseudoLayer()) return ERCPSEUDO;
-		if (fun == Layer.Function.WELLP) return ERCPWell;
-		if (fun == Layer.Function.WELL || fun == Layer.Function.WELLN) return ERCNWell;
-		if (fun == Layer.Function.IMPLANTP)
-			return ERCPSelect;
-		if (fun == Layer.Function.IMPLANT || fun == Layer.Function.IMPLANTN)
-			return ERCNSelect;
-		if (fun == Layer.Function.SUBSTRATE)
-		{
-//			int extra = layer.getFunctionExtras();
-//			if ((extra&Layer.Function.PTYPE) != 0) return ERCPSelect;
-			return ERCNSelect;
-		}
-		return ERCPSEUDO;
 	}
 
 }

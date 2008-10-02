@@ -24,6 +24,9 @@
 package com.sun.electric.database.topology;
 
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.variable.EditWindow_;
+import com.sun.electric.tool.Job;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -229,6 +232,36 @@ public class RTNode
 			} else
 			{
 				((RTNode)getChild(j)).printRTree(indent+3);
+			}
+		}
+	}
+
+	/**
+	 * Debugging method to display this R-Tree.
+	 * @param cell the Cell in which to show the R-Tree.
+	 */
+	public void displayRTree(Cell cell)
+	{
+		EditWindow_ wnd = Job.getUserInterface().getCurrentEditWindow_();
+		wnd.clearHighlighting();
+		displaySubRTree(cell);
+		wnd.finishedHighlighting();
+	}
+
+	private void displaySubRTree(Cell cell)
+	{
+		EditWindow_ wnd = Job.getUserInterface().getCurrentEditWindow_();
+		for(int j=0; j<getTotal(); j++)
+		{
+			if (getFlag())
+			{
+				RTBounds child = (RTBounds)getChild(j);
+				Rectangle2D childBounds = child.getBounds();
+				wnd.addHighlightArea(childBounds, cell);
+			} else
+			{
+				RTNode child = (RTNode)getChild(j);
+				child.displaySubRTree(cell);
 			}
 		}
 	}
