@@ -66,6 +66,10 @@ public class CalibreRdbErrors {
             }
             topCellName = parts[0];
             topCell = CalibreDrcErrors.getCell(topCellName, mangledNames);
+            if (topCell == null) {
+                System.out.println("Error: Cell '"+topCellName+"' specified in file does not exist in current hierarchy: "+filename);
+                return;
+            }
             try {
                 scale = Integer.valueOf(parts[1]).intValue();
             } catch (NumberFormatException e) {
@@ -128,6 +132,7 @@ public class CalibreRdbErrors {
             return false;
         }
         String ruleText = line;
+        boolean ruleTextAnnotatedWithAR = false;
         lineno++;
 
         // from now on, line is either a list of name=value pairs,
@@ -190,6 +195,14 @@ public class CalibreRdbErrors {
                     if (line == null) {
                         System.out.println("Error: premature end of file at line "+lineno);
                         return false;
+                    }
+                    if (line.startsWith("AR")) {
+                        i=-1; // reset, AR line seems to be new thing for newer version of Calibre.
+                        if (!ruleTextAnnotatedWithAR) {
+                            ruleText = line+"; "+ruleText;
+                            ruleTextAnnotatedWithAR = true;
+                        }
+                        continue;
                     }
                     lineno++;
                     String [] coords = line.trim().split(spaces);
