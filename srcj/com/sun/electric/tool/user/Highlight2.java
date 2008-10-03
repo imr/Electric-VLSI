@@ -23,40 +23,47 @@
  */
 package com.sun.electric.tool.user;
 
-import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.GenMath;
+import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.Geometric;
-import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.topology.Connection;
-import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.NetworkTool;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
+import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.Connection;
+import com.sun.electric.database.topology.Geometric;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.DisplayedText;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.Job;
-import com.sun.electric.technology.technologies.Artwork;
-import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.technologies.Artwork;
+import com.sun.electric.tool.Job;
+import com.sun.electric.tool.user.ui.EditWindow;
 
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Stroke;
+import java.awt.font.GlyphVector;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.geom.AffineTransform;
-import java.awt.*;
-import java.awt.font.GlyphVector;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Super class for all types of highlighting.
@@ -396,21 +403,37 @@ public abstract class Highlight2 implements Cloneable{
                 if (outline != null)
                 {
                     int numPoints = outline.length;
-                    Point2D [] pointList = new Point2D.Double[numPoints];
-                    for(int i=0; i<numPoints; i++)
-                    {
-                        pointList[i] = new Point2D.Double(ni.getAnchorCenterX() + outline[i].getX(),
-                            ni.getAnchorCenterY() + outline[i].getY());
-                    }
-                    trans.transform(pointList, 0, pointList, 0, numPoints);
-                    poly = new Poly(pointList);
-    				if (ni.getFunction() == PrimitiveNode.Function.NODE)
+                    boolean whole = true;
+    				if (Technology.HANDLEBROKENOUTLINES)
     				{
-    					poly.setStyle(Poly.Type.FILLED);
-    				} else
-    				{
-    					poly.setStyle(Poly.Type.OPENED);
+    					for(int i=1; i<numPoints; i++)
+    					{
+    						if (outline[i].getX() == outline[i-1].getX() && outline[i].getY() == outline[i-1].getY())
+    						{
+    							whole = false;
+    							break;
+    						}
+    					}
     				}
+					if (whole)
+					{
+	                    Point2D [] pointList = new Point2D.Double[numPoints];
+	                    for(int i=0; i<numPoints; i++)
+	                    {
+	                        pointList[i] = new Point2D.Double(ni.getAnchorCenterX() + outline[i].getX(),
+	                            ni.getAnchorCenterY() + outline[i].getY());
+	                    }
+	                    trans.transform(pointList, 0, pointList, 0, numPoints);
+	                    poly = new Poly(pointList);
+	    				if (ni.getFunction() == PrimitiveNode.Function.NODE)
+	    				{
+	    					poly.setStyle(Poly.Type.FILLED);
+	    				} else
+	    				{
+	    					poly.setStyle(Poly.Type.OPENED);
+	    				}
+	    				return poly;
+					}
                 }
             }
 
@@ -431,28 +454,7 @@ public abstract class Highlight2 implements Cloneable{
 
         // setup outline of node with standard offset
         if (poly == null)
-        {
             poly = ni.getBaseShape();
-//            SizeOffset so = ni.getSizeOffset();
-//            double nodeLowX = ni.getTrueCenterX() - ni.getXSize()/2 + so.getLowXOffset();
-//            double nodeHighX = ni.getTrueCenterX() + ni.getXSize()/2 - so.getHighXOffset();
-//            double nodeLowY = ni.getTrueCenterY() - ni.getYSize()/2 + so.getLowYOffset();
-//            double nodeHighY = ni.getTrueCenterY() + ni.getYSize()/2 - so.getHighYOffset();
-//            if (nodeLowX == nodeHighX && nodeLowY == nodeHighY)
-//            {
-//                float x = (float)nodeLowX;
-//                float y = (float)nodeLowY;
-//                Point2D [] outline = new Point2D[1];
-//                outline[0] = new Point2D.Double(x, y);
-//                poly = new Poly(outline);
-//            } else
-//            {
-//                double nodeX = (nodeLowX + nodeHighX) / 2;
-//                double nodeY = (nodeLowY + nodeHighY) / 2;
-//                poly = new Poly(nodeX, nodeY, nodeHighX-nodeLowX, nodeHighY-nodeLowY);
-//                poly.transform(trans);
-//            }
-        }
 
         return poly;
     }

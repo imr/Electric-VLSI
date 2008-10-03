@@ -261,7 +261,7 @@ public class ERCWellCheck
 		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, wcVisitor);
 		int numPRects = getTreeSize(pWellRoot);
 		int numNRects = getTreeSize(nWellRoot);
-		System.out.println("...found " + numPRects + " pWell and " + numNRects + " nWell pieces.  Now analyzing...");
+		System.out.println("...found " + (numPRects + numNRects) + " well pieces.  Now analyzing...");
 
 		// spread the well connectivity from all well contacts
 		wellNumbers = 0;

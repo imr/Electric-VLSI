@@ -4,6 +4,13 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08i: ******************************
 
+IMP/MAN: (10/3/08, SMR) GDS import cannot handle volume of data (Bug #1901).
+FIX: Modified the definition of Outline information: if a coordinate in the
+     list is duplicated, then this indicates a "break" in the Outline, and
+     a new polygon starts with the next coordinate. This allows multiple
+     disjoint rectangles to be stuffed into a single Outline array.
+     GDS import uses this for arrays of simple cells (with just 1 pure-layer node).
+
 BUG: (10/3/08, RK) NCC changed to use new transistor functions. (Bug #1858)
 
 BUG: (10/2/08, SMR) "Change" dialog pops-up error dialogs when certain

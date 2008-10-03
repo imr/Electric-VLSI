@@ -48,7 +48,6 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
@@ -57,7 +56,6 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Technology.NodeLayer;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.io.GDSLayers;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
@@ -97,7 +95,8 @@ import java.util.Set;
  */
 public class GDS extends Input
 {
-	private static final boolean IGNOREIMMENSECELLS = false;		/* true for debugging */
+	private static final boolean IGNOREIMMENSECELLS = false;	/* true for debugging */
+	private static final boolean TALLYCONTENTS = false;			/* true for debugging */
 
 	// data declarations
 	private static final int MAXPOINTS     = 4096;
@@ -124,6 +123,7 @@ public class GDS extends Input
 	private final static double twoTo32 = makePower(2, 32);
 	private final static double twoToNeg56 = 1.0 / makePower (2, 56);
 
+	private int              countBox, countText, countNode, countPath, countShape, countSRef, countARef, countATotal;
 	private Library          theLibrary;
 	private CellBuilder      theCell;
 	private NodeProto        theNodeProto;
@@ -142,8 +142,8 @@ public class GDS extends Input
 	private String           tokenString;
 	private Point2D []       theVertices;
 	private double           theScale;
-	private HashMap<Integer,Layer> layerNames;
-	private HashSet<Integer> pinLayers;
+	private Map<Integer,Layer> layerNames;
+	private Set<Integer>     pinLayers;
 	private PolyMerge        merge;
 	private boolean          mergeThisCell;
 
@@ -241,11 +241,12 @@ public class GDS extends Input
 	private static GSymbol [] unsupportedSet = {GDS_ELFLAGS, GDS_PLEX};
 
     private static class CellBuilder {
-		private static HashMap<Cell,CellBuilder> allBuilders;
+		private static Map<Cell,CellBuilder> allBuilders;
 		private static Set<Cell>        cellsTooComplex;
 
         Cell cell;
         List<MakeInstance> insts = new ArrayList<MakeInstance>();
+        List<MakeInstanceArray> instArrays = new ArrayList<MakeInstanceArray>();
 
         private CellBuilder(Cell cell) {
             this.cell = cell;
@@ -255,6 +256,11 @@ public class GDS extends Input
 		private void makeInstance(NodeProto proto, Point2D loc, Orientation orient, double wid, double hei, EPoint[] points) {
             MakeInstance mi = new MakeInstance(proto, loc, orient, wid, hei, points, null, null);
             insts.add(mi);
+        }
+
+		private void makeInstanceArray(NodeProto proto, int nCols, int nRows, Orientation orient, Point2D startLoc, Point2D rowOffset, Point2D colOffset) {
+            MakeInstanceArray mia = new MakeInstanceArray(proto, nCols, nRows, orient, startLoc, rowOffset, colOffset);
+            instArrays.add(mia);
         }
 
 		private void makeExport(NodeProto proto, Point2D loc, Orientation orient, double wid, double hei, String exportName) {
@@ -292,9 +298,10 @@ public class GDS extends Input
 			if (Job.getDebug())
 			{
 				int size = insts.size();
+				int arraySize = instArrays.size();
 				System.out.println("Building cell " + this.cell.describe(false) +
-					" with " + size + " instances");
-				if (size >= 100000)
+					" with " + size + " single instances and " + arraySize + " arrayed instances");
+				if (size+arraySize >= 100000)
 				{
 					countOff = true;
 
@@ -312,6 +319,7 @@ public class GDS extends Input
 							if (mi.loc.getX() >= ur.loc.getX() && mi.loc.getY() >= ur.loc.getY()) ur = mi;
 						}
 						insts.clear();
+						instArrays.clear();
 						insts.add(ll);
 						if (!insts.contains(ul)) insts.add(ul);
 						if (!insts.contains(lr)) insts.add(lr);
@@ -338,6 +346,20 @@ public class GDS extends Input
 
 				// make the instance
                 if (mi.instantiate(this.cell, exportUnify)) renamed++;
+			}
+			for(MakeInstanceArray mia : instArrays)
+			{
+				if (countOff && ((++count % 1000) == 0))
+					System.out.println("        Made " + count + " instances");
+                if (mia.proto instanceof Cell) {
+                    Cell subCell = (Cell)mia.proto;
+                    CellBuilder cellBuilder = allBuilders.get(subCell);
+                    if (cellBuilder != null)
+                        cellBuilder.makeInstances(builtCells);
+                }
+
+				// make the instance array
+                mia.instantiate(this, this.cell);
 			}
 			if (renamed > 0)
 			{
@@ -374,7 +396,7 @@ public class GDS extends Input
          */
         private void simplifyNodes(Cell cell)
         {
-            HashMap<Layer, List<NodeInst>> map = new HashMap<Layer, List<NodeInst>>();
+            Map<Layer, List<NodeInst>> map = new HashMap<Layer, List<NodeInst>>();
 
             for (Iterator<NodeInst> itNi = cell.getNodes(); itNi.hasNext();)
             {
@@ -517,8 +539,8 @@ public class GDS extends Input
         }
 
         private void nameInstances(boolean countOff) {
-            HashMap<String,GenMath.MutableInteger> maxSuffixes = new HashMap<String,GenMath.MutableInteger>();
-            HashSet<String> userNames = new HashSet<String>();
+            Map<String,GenMath.MutableInteger> maxSuffixes = new HashMap<String,GenMath.MutableInteger>();
+            Set<String> userNames = new HashSet<String>();
             int count = 0;
             for (MakeInstance mi: insts)
             {
@@ -563,7 +585,142 @@ public class GDS extends Input
 		}
     }
 
-	private static class MakeInstance implements Comparable<MakeInstance>
+    /**
+     * Class to save instance array information.
+     */
+    private static class MakeInstanceArray
+    {
+    	private NodeProto proto;
+    	private int nCols, nRows;
+    	private Orientation orient;
+    	private Point2D startLoc, rowOffset, colOffset;
+
+    	private MakeInstanceArray(NodeProto proto, int nCols, int nRows, Orientation orient, Point2D startLoc, Point2D rowOffset, Point2D colOffset)
+    	{
+    		this.proto = proto;
+    		this.nCols = nCols;
+    		this.nRows = nRows;
+    		this.orient = orient;
+    		this.startLoc = startLoc;
+    		this.rowOffset = rowOffset;
+    		this.colOffset = colOffset;
+    	}
+
+    	/**
+         * Method to instantiate an array of cell instances.
+         * @param parent the Cell in which to create the geometry.
+         */
+        private void instantiate(CellBuilder theCell, Cell parent)
+        {
+    		if (Technology.HANDLEBROKENOUTLINES)
+    		{
+	    		NodeInst subNi = null;
+	    		Cell subCell = (Cell)proto;
+	    		int numArcs = subCell.getNumArcs();
+	    		int numNodes = subCell.getNumNodes();
+	    		int numExports = subCell.getNumPorts();
+	    		if (numArcs == 0 && numExports == 0 && numNodes == 1)
+    			{
+    				subNi = subCell.getNode(0);
+    				if (subNi.getProto().getFunction() != PrimitiveNode.Function.NODE)
+    					subNi = null;
+    			}
+	    		if (subNi != null)
+	    		{
+	    			// simplify the array by placing a complex instance
+	    			List<EPoint> points = buildArray(proto);
+					EPoint [] pointArray = new EPoint[points.size()];
+					double lX=0, hX=0, lY=0, hY=0;
+					for(int i=0; i<points.size(); i++)
+					{
+						pointArray[i] = points.get(i);
+						if (i == 0)
+						{
+							lX = hX = pointArray[i].getX();
+							lY = hY = pointArray[i].getY();
+						} else
+						{
+							if (pointArray[i].getX() < lX) lX = pointArray[i].getX();
+							if (pointArray[i].getX() > hX) hX = pointArray[i].getX();
+							if (pointArray[i].getY() < lY) lY = pointArray[i].getY();
+							if (pointArray[i].getY() > hY) hY = pointArray[i].getY();
+						}
+					}
+
+//					if (parent.getName().equals("txrxSlicePair_DM"))
+					{
+			            NodeInst ni = NodeInst.makeInstance(subNi.getProto(), new Point2D.Double((lX+hX)/2, (lY+hY)/2), hX-lX, hY-lY,
+			            	parent, orient, null, 0);
+			            if (ni != null)
+			            	ni.setTrace(pointArray);
+					}
+	        		return;    			
+	    		}
+    		}
+
+    		// generate an array
+    		double ptcX = startLoc.getX();
+    		double ptcY = startLoc.getY();
+    		for (int ic = 0; ic < nCols; ic++)
+    		{
+    			double ptX = ptcX;
+    			double ptY = ptcY;
+    			for (int ir = 0; ir < nRows; ir++)
+    			{
+    				// create the node
+    				if (IOTool.isGDSInInstantiatesArrays() ||
+    					(ir == 0 && ic == 0) ||
+    						(ir == (nRows-1) && ic == (nCols-1)))
+    				{
+    					Point2D loc = new Point2D.Double(ptX, ptY);
+    		            NodeInst ni = NodeInst.makeInstance(proto, loc, proto.getDefWidth(), proto.getDefHeight(), parent, orient, null, 0);
+    		            if (ni != null)
+    		            {
+	    		            if (IOTool.isGDSInExpandsCells() && ni.isCellInstance())
+	    		                ni.setExpanded();
+    		            }
+    				}
+
+    				// add the row displacement
+    				ptX += rowOffset.getX();   ptY += rowOffset.getY();
+    			}
+
+    			// add displacement
+    			ptcX += colOffset.getX();   ptcY += colOffset.getY();
+    		}
+        }
+
+        private List<EPoint> buildArray(NodeProto primProto)
+        {
+			List<EPoint> points = new ArrayList<EPoint>();
+			Rectangle2D bounds = ((Cell)primProto).getBounds();
+    		double ptcX = startLoc.getX();
+    		double ptcY = startLoc.getY();
+    		for (int ic = 0; ic < nCols; ic++)
+    		{
+    			double ptX = ptcX;
+    			double ptY = ptcY;
+    			for (int ir = 0; ir < nRows; ir++)
+    			{
+    	    		points.add(new EPoint(ptX+bounds.getMinX(), ptY+bounds.getMinY()));
+    	    		points.add(new EPoint(ptX+bounds.getMaxX(), ptY+bounds.getMinY()));
+    	    		points.add(new EPoint(ptX+bounds.getMaxX(), ptY+bounds.getMaxY()));
+    	    		points.add(new EPoint(ptX+bounds.getMinX(), ptY+bounds.getMaxY()));
+    	    		if (ic < nCols-1 || ir < nRows-1)
+        	    		points.add(new EPoint(ptX+bounds.getMinX(), ptY+bounds.getMaxY()));
+
+    				// add the row displacement
+    				ptX += rowOffset.getX();   ptY += rowOffset.getY();
+    			}
+
+    			// add displacement
+    			ptcX += colOffset.getX();   ptcY += colOffset.getY();
+    		}
+			return points;
+        }
+    }
+
+    private static class MakeInstance implements Comparable<MakeInstance>
 	{
 		private NodeProto proto;
 		private Point2D loc;
@@ -689,23 +846,6 @@ public class GDS extends Input
 		}
 	}
 
-	/**
-	 * Method to parse a string of layer numbers in "layernumbers" and return those layers
-	 * in the array "layers", with the size of the array in "total".
-	 */
-//	private List<Integer> parseLayerNumbers(String layerNumbers)
-//	{
-//		String [] numberStrings = layerNumbers.split(",");
-//		List<Integer> numbers = new ArrayList<Integer>();
-//		for(int i=0; i<numberStrings.length; i++)
-//		{
-//			String numberString = numberStrings[i].trim();
-//			if (TextUtils.isANumber(numberString))
-//				numbers.add(new Integer(TextUtils.atoi(numberString)));
-//		}
-//		return numbers;
-//	}
-
 	private void loadFile()
 		throws IOException
 	{
@@ -809,6 +949,20 @@ public class GDS extends Input
 		theScale = roundedScale;
 	}
 
+	private void showResultsOfCell()
+	{
+		System.out.print("**** Cell "+theCell.cell.describe(false)+" has");
+		if (countBox > 0) System.out.print(" "+countBox+" boxes");
+		if (countText > 0) System.out.print(" "+countText+" texts");
+		if (countNode > 0) System.out.print(" "+countNode+" nodes");
+		if (countPath > 0) System.out.print(" "+countPath+" paths");
+		if (countShape > 0) System.out.print(" "+countShape+" shapes");
+		if (countSRef > 0) System.out.print(" "+countSRef+" instances");
+		if (countARef > 0)
+			System.out.print(" "+countARef+" arrays with "+countATotal+" elements");
+		System.out.println();
+	}
+
 	private void readStructure()
 		throws IOException
 	{
@@ -822,11 +976,13 @@ public class GDS extends Input
 		}
 
 		// read the cell
+		countBox = countText = countNode = countPath = countShape = countSRef = countARef = countATotal = 0;
 		while (theToken != GDS_ENDSTR)
 		{
 			getElement();
 			getToken();
 		}
+		if (TALLYCONTENTS) showResultsOfCell();
 		if (mergeThisCell)
 		{
 			// extract merge information for this cell
@@ -911,7 +1067,11 @@ public class GDS extends Input
 
 		while (theToken == GDS_PROPATTR)
 			determineProperty();
-		if (theToken != GDS_ENDEL) handleError("Element end statement is missing");
+		if (theToken != GDS_ENDEL)
+		{
+			showResultsOfCell();
+			handleError("Element end statement is missing");
+		}
 	}
 
 	private void determineARef()
@@ -948,6 +1108,13 @@ public class GDS extends Input
 		getToken();
 		determinePoints(3, 3);
 
+		// see if the instance is a single object
+		if (TALLYCONTENTS)
+		{
+			countARef++;
+			countATotal += nCols*nRows;
+			return;
+		}
 		boolean mY = false;
 		boolean mX = false;
 		if (trans)
@@ -969,39 +1136,34 @@ public class GDS extends Input
 				(theVertices[2].getY() - theVertices[0].getY()) / nRows);
 		}
 
-		// now generate the array
-		double ptcX = theVertices[0].getX();
-		double ptcY = theVertices[0].getY();
-		for (int ic = 0; ic < nCols; ic++)
-		{
-			double ptX = ptcX;
-			double ptY = ptcY;
-			for (int ir = 0; ir < nRows; ir++)
-			{
-				// create the node
-				if (IOTool.isGDSInInstantiatesArrays() ||
-					(ir == 0 && ic == 0) ||
-						(ir == (nRows-1) && ic == (nCols-1)))
-				{
-					Point2D loc = new Point2D.Double(ptX, ptY);
-					theCell.makeInstance(theNodeProto, loc, Orientation.fromJava(angle, mX, mY), 0, 0, null);
-				}
-
-				// add the row displacement
-				ptX += rowInterval.getX();   ptY += rowInterval.getY();
-			}
-
-			// add displacement
-			ptcX += colInterval.getX();   ptcY += colInterval.getY();
-		}
+		theCell.makeInstanceArray(theNodeProto, nCols, nRows, Orientation.fromJava(angle, mX, mY),
+			theVertices[0], rowInterval, colInterval);
+//		// now generate the array TODO: is this right?
+//		double ptcX = theVertices[0].getX();
+//		double ptcY = theVertices[0].getY();
+//		for (int ic = 0; ic < nCols; ic++)
+//		{
+//			double ptX = ptcX;
+//			double ptY = ptcY;
+//			for (int ir = 0; ir < nRows; ir++)
+//			{
+//				// create the node
+//				if (IOTool.isGDSInInstantiatesArrays() ||
+//					(ir == 0 && ic == 0) ||
+//						(ir == (nRows-1) && ic == (nCols-1)))
+//				{
+//					Point2D loc = new Point2D.Double(ptX, ptY);
+//					theCell.makeInstance(theNodeProto, loc, Orientation.fromJava(angle, mX, mY), 0, 0, null);
+//				}
+//
+//				// add the row displacement
+//				ptX += rowInterval.getX();   ptY += rowInterval.getY();
+//			}
+//
+//			// add displacement
+//			ptcX += colInterval.getX();   ptcY += colInterval.getY();
+//		}
 	}
-
-//	private void makeTransform(Point2D delta, int angle, boolean trans)
-//	{
-//        Orientation orient = Orientation.fromC(angle, trans);
-//        AffineTransform xform = orient.pureRotate();
-//		xform.transform(delta, delta);
-//	}
 
 	private class ReadOrientation
 	{
@@ -1064,6 +1226,12 @@ public class GDS extends Input
 		getToken();
 		determinePoints(1, 1);
 
+		if (TALLYCONTENTS)
+		{
+			countSRef++;
+			return;
+		}
+
 		Point2D loc = new Point2D.Double(theVertices[0].getX(), theVertices[0].getY());
 		boolean mY = false;
 		if (trans)
@@ -1085,6 +1253,12 @@ public class GDS extends Input
 
 		getToken();
 		int n = determinePoints(3, MAXPOINTS);
+
+		if (TALLYCONTENTS)
+		{
+			countShape++;
+			return;
+		}
 		determineBoundary(n);
 	}
 
@@ -1235,6 +1409,12 @@ public class GDS extends Input
 			getToken();
 			int n = determinePoints(2, MAXPOINTS);
 
+			if (TALLYCONTENTS)
+			{
+				countPath++;
+				return;
+			}
+
 			// construct the path
 			for (int i=0; i < n-1; i++)
 			{
@@ -1352,6 +1532,12 @@ public class GDS extends Input
 		getToken();
 		determinePoints(1, 1);
 
+		if (TALLYCONTENTS)
+		{
+			countNode++;
+			return;
+		}
+
 		// create the node
 		if (mergeThisCell)
 		{
@@ -1436,6 +1622,11 @@ public class GDS extends Input
 			handleError("Text element has no reference point");
 			break;
 		}
+		if (TALLYCONTENTS)
+		{
+			countText++;
+			return;
+		}
 		readText(textString, vert_just, horiz_just, angle, trans, scale);
 	}
 
@@ -1516,6 +1707,11 @@ public class GDS extends Input
 
 		getToken();
 		determinePoints(2, MAXPOINTS);
+		if (TALLYCONTENTS)
+		{
+			countBox++;
+			return;
+		}
 		if (layerUsed)
 		{
 			// create the box

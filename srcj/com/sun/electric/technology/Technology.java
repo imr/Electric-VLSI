@@ -130,7 +130,10 @@ import javax.swing.SwingUtilities;
  */
 public class Technology implements Comparable<Technology>, Serializable
 {
-    private static final boolean LAZY_TECHNOLOGIES = false;
+	// true to handle duplicate points in an outline as a "break"
+	public static final boolean HANDLEBROKENOUTLINES = true;
+
+	private static final boolean LAZY_TECHNOLOGIES = false;
     /** Jelib writes base sizes since this Electric Version */
     public static final Version DISK_VERSION_1 = Version.parseVersion("8.05g");
     /** Jelib writes oversize over standard primitive since this Electric Version */
@@ -3450,26 +3453,62 @@ public class Technology implements Comparable<Technology>, Serializable
 			Point2D [] outline = ni.getTrace();
 			if (outline != null)
 			{
-				int numPolys = 1;
-				Poly [] polys = new Poly[numPolys];
-				Point2D [] pointList = new Point2D.Double[outline.length];
-				for(int i=0; i<outline.length; i++)
+				if (HANDLEBROKENOUTLINES)
 				{
-					pointList[i] = new Point2D.Double(ni.getAnchorCenterX() + outline[i].getX(),
-						ni.getAnchorCenterY() + outline[i].getY());
-				}
-				polys[0] = new Poly(pointList);
-				Technology.NodeLayer primLayer = primLayers[0];
-				polys[0].setStyle(primLayer.getStyle());
-				if (layerOverride != null) polys[0].setLayer(layerOverride); else
-					polys[0].setLayer(primLayer.getLayer());
-				if (electrical)
+					List<Poly> polyList = new ArrayList<Poly>();
+					int startPoint = 0;
+					for(int i=1; i<outline.length; i++)
+					{
+						if (i == outline.length-1 ||
+							(i-startPoint > 0 && outline[i].getX() == outline[i-1].getX() && outline[i].getY() == outline[i-1].getY()))
+						{
+							if (i == outline.length-1) i++;
+							Point2D [] pointList = new Point2D.Double[i-startPoint];
+							for(int j=startPoint; j<i; j++)
+							{
+								pointList[j-startPoint] = new Point2D.Double(ni.getAnchorCenterX() + outline[j].getX(),
+									ni.getAnchorCenterY() + outline[j].getY());
+							}
+							Poly poly = new Poly(pointList);
+							Technology.NodeLayer primLayer = primLayers[0];
+							poly.setStyle(primLayer.getStyle());
+							if (layerOverride != null) poly.setLayer(layerOverride); else
+								poly.setLayer(primLayer.getLayer());
+							if (electrical)
+							{
+								int portIndex = primLayer.getPortNum();
+			                    assert(portIndex < np.getNumPorts()); // wrong number of ports. Probably missing during the definition
+			                    if (portIndex >= 0) poly.setPort(np.getPort(portIndex));
+							}
+							polyList.add(poly);
+							startPoint = i+1;
+						}
+					}
+					Poly [] polys = new Poly[polyList.size()];
+					for(int i=0; i<polyList.size(); i++) polys[i] = polyList.get(i);
+					return polys;
+				} else
 				{
-					int portIndex = primLayer.getPortNum();
-                    assert(portIndex < np.getNumPorts()); // wrong number of ports. Probably missing during the definition
-                    if (portIndex >= 0) polys[0].setPort(np.getPort(portIndex));
+					Poly [] polys = new Poly[1];
+					Point2D [] pointList = new Point2D.Double[outline.length];
+					for(int i=0; i<outline.length; i++)
+					{
+						pointList[i] = new Point2D.Double(ni.getAnchorCenterX() + outline[i].getX(),
+							ni.getAnchorCenterY() + outline[i].getY());
+					}
+					polys[0] = new Poly(pointList);
+					Technology.NodeLayer primLayer = primLayers[0];
+					polys[0].setStyle(primLayer.getStyle());
+					if (layerOverride != null) polys[0].setLayer(layerOverride); else
+						polys[0].setLayer(primLayer.getLayer());
+					if (electrical)
+					{
+						int portIndex = primLayer.getPortNum();
+	                    assert(portIndex < np.getNumPorts()); // wrong number of ports. Probably missing during the definition
+	                    if (portIndex >= 0) polys[0].setPort(np.getPort(portIndex));
+					}
+					return polys;
 				}
-				return polys;
 			}
 		}
 
@@ -4499,13 +4538,23 @@ public class Technology implements Comparable<Technology>, Serializable
 			Point2D [] outline = ni.getTrace();
 			if (outline != null)
 			{
+				int endPortPoly = outline.length;
+				if (HANDLEBROKENOUTLINES)
+				{
+					for(int i=1; i<outline.length; i++)
+					{
+						if (outline[i].getX() == outline[i-1].getX() && outline[i].getY() == outline[i-1].getY())
+						{
+							endPortPoly = i;
+							break;
+						}
+					}
+				}
 				double cX = ni.getAnchorCenterX();
 				double cY = ni.getAnchorCenterY();
-				Point2D [] pointList = new Point2D.Double[outline.length];
-				for(int i=0; i<outline.length; i++)
-				{
+				Point2D [] pointList = new Point2D.Double[endPortPoly];
+				for(int i=0; i<endPortPoly; i++)
 					pointList[i] = new Point2D.Double(cX + outline[i].getX(), cY + outline[i].getY());
-				}
 				Poly portPoly = new Poly(pointList);
 				if (ni.getFunction() == PrimitiveNode.Function.NODE)
 				{
