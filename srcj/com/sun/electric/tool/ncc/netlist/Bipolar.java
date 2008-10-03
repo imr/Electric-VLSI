@@ -26,6 +26,7 @@ package com.sun.electric.tool.ncc.netlist;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.sun.electric.technology.PrimitiveNode.Function;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.basic.NccUtils;
 import com.sun.electric.tool.ncc.basic.Primes;
@@ -34,68 +35,55 @@ import com.sun.electric.tool.ncc.netlist.NccNameProxy.PartNameProxy;
 /** One or more MOS transistors in series. All gates have the same width
  * and length. */
 public class Bipolar extends Part {
-	public static class Type {
-		public static final Type NPN = new Type(0, "NPN");
-		public static final Type PNP = new Type(1, "PNP");
-
-		private final String name;
-		private final int ordinal;
-		private final int[] pin_coeffs = new int[3];
-		private Type(int ord, String s) {
-			ordinal=ord; 
-			name=s;
-			for (int p=0; p<3; p++) {
-				pin_coeffs[p] = Primes.get(ord*3 + p);
-			}
-		}
-		
-		public String getName() {return name;}
-		public int getOrdinal() {return ordinal;}
-		public int[] getPinCoeffs() {return pin_coeffs;}
-	}
-	
 	private static class BipolarPinType implements PinType {
-		private final Type np;
+		private final Function np;
 		private final int pinIndex;
 		private static final String[] PIN_NAMES = {"emitter","base","collector"}; 
 
 		public String description() {
-			return np.getName()+" "+PIN_NAMES[pinIndex];
+			return np.getShortName()+" "+PIN_NAMES[pinIndex];
 		}
-		public BipolarPinType(Type np, int pinIndex) {
+		public BipolarPinType(Function np, int pinIndex) {
 			LayoutLib.error(np==null, "null type?");
 			this.np = np;
 			this.pinIndex = pinIndex;
 		}
 	}
-
-	private static final Map<Type,PinType[]> TYPE_TO_PINTYPE_ARRAY = new HashMap<Type,PinType[]>();
-	static {
-		for (int t=0; t<2; t++) {
-			Type type = t==0 ? Type.NPN : Type.PNP;
-			PinType[] pinTypeArray = new PinType[3];
-			TYPE_TO_PINTYPE_ARRAY.put(type, pinTypeArray);
-			for (int p=0; p<3; p++) {
-				pinTypeArray[p] = new BipolarPinType(type, p);
-			}
-		}
+	
+	private static class BipolarPinTypeCache {
+		private Map<Function,BipolarPinType[]> typeToPinTypeArray = 
+			                          new HashMap<Function,BipolarPinType[]>();
+	    synchronized BipolarPinType[] get(Function f) {
+	    	BipolarPinType[] bpt = typeToPinTypeArray.get(f);
+	    	if (bpt==null) {
+	    		bpt = new BipolarPinType[3];
+	    		for (int p=0; p<3; p++) {
+	    			bpt[p] = new BipolarPinType(f,p);
+	    		}
+	    		typeToPinTypeArray.put(f, bpt);
+	    	}
+	    	return bpt;
+	    }
 	}
 
+	private static final BipolarPinTypeCache TYPE_TO_PINTYPE_ARRAY = 
+													 new BipolarPinTypeCache();
+
+	@Override
 	public PinType getPinTypeOfNthPin(int n) {
-		PinType[] pinTypeArray = TYPE_TO_PINTYPE_ARRAY.get(type);
+		PinType[] pinTypeArray = TYPE_TO_PINTYPE_ARRAY.get(type());
 		return pinTypeArray[n];
 	}
 	
     // ---------- private data -------------
     private double area;
-    private final Type type;
+    private static final int PIN_COEFFS[] = 
+								{Primes.get(1), Primes.get(2), Primes.get(3)}; 
     
     // ---------- private methods ----------
-	/** Stack of series transistors */
-	private Bipolar(Type np, PartNameProxy name, double area, Wire[] pins) {
-		super(name, pins);
+	private Bipolar(Function np, PartNameProxy name, double area, Wire[] pins) {
+		super(name, np, pins);
 		LayoutLib.error(np==null, "null type?");
-		type = np;
 		this.area = area;
 	}
 
@@ -109,33 +97,33 @@ public class Bipolar extends Part {
 
     // ---------- public methods ----------
 
-	public Bipolar(Type np, PartNameProxy name, double area,
+	public Bipolar(Function np, PartNameProxy name, double area,
 				   Wire emit, Wire base, Wire coll) {
 		this(np, name, area, new Wire[] {emit, base, coll});
 	}
-
-    public Type getType() {return type;}
     public double getArea() {return area;}
-	public int[] getPinCoeffs() {return type.getPinCoeffs();}
-
+    @Override
+	public int[] getPinCoeffs() {return PIN_COEFFS;}
+    @Override
 	public Integer hashCodeForParallelMerge() {
 		// include the class
 		int hc = getClass().hashCode();
 		// include what's connected
 		for (int i=0; i<pins.length; i++)  
-			hc += pins[i].hashCode() * type.getPinCoeffs()[i];
+			hc += pins[i].hashCode() * PIN_COEFFS[i];
 		// include whether its NPN or PNP
-		hc += type.hashCode();
+		hc += type().hashCode();
 		return new Integer(hc);
 	}
 
 	// merge into this transistor
+    @Override
 	public boolean parallelMerge(Part p){
 		if(!(p instanceof Bipolar)) return false;
 		Bipolar b = (Bipolar) p;
 		if (this==b) return false; //same transistor
 
-		if (type!=b.type) return false; //different type
+		if (type()!=b.type()) return false; //different type
 
 		if (!samePinsAs(b)) return false; // same connections
 		
@@ -143,25 +131,24 @@ public class Bipolar extends Part {
 		b.setDeleted();
 		return true;		    	
 	}
-
-	public int typeCode() {
-		final int tw = Part.TYPE_FIELD_WIDTH;
-		return Part.TRANSISTOR + (type.getOrdinal() << tw);
-	}
+    @Override
+	public int typeCode() {return type().ordinal();}
 
 	// ---------- printing methods ----------
-
-	public String typeString() {return type.name;}
+    @Override
+	public String typeString() {return type().getShortName();}
+    @Override
 
 	public String valueDescription(){
 		return "A=" + NccUtils.round(area,2);
 	}
+    @Override
 	public String connectionDescription(int n) {
 		return "E="+pins[0].getName()+
 		      " B="+pins[1].getName()+
 			  " C="+pins[2].getName();
 	}
-	
+    @Override
 	public String connectionDescription(Wire w) {
 		String s = "";
 		for (int i=0; i<pins.length; i++) {
@@ -177,11 +164,11 @@ public class Bipolar extends Part {
 		}
 		return s;
 	}
-
+    @Override
 	public Integer computeHashCode() {
 		int sum=0;
 		for (int i=0; i<pins.length; i++){
-			sum += pins[i].getCode() * type.getPinCoeffs()[i];
+			sum += pins[i].getCode() * PIN_COEFFS[i];
 		}
 		return new Integer(sum);
 	}

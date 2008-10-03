@@ -27,6 +27,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
+import com.sun.electric.technology.PrimitiveNode.Function;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.netlist.NccNameProxy.PartNameProxy;
 import com.sun.electric.tool.ncc.result.PartReport.PartReportable;
@@ -36,30 +37,55 @@ import com.sun.electric.tool.ncc.trees.Circuit;
  * sub-classes of Part include Transistor, Resistor, (Capacitor), but
  * NOT Port. */
 public abstract class Part extends NetObject implements PartReportable {
+	// ------------------- constants ------------------
 	private static final Wire[] DELETED = null;
+	private static final int NUM_FUNCS = Function.values().length;
+	protected static final int TYPE_FIELD_WIDTH = 
+		                    (int) Math.ceil( Math.log(NUM_FUNCS)/Math.log(2) );  
 
-	protected static final int RESISTOR = 0;
-	protected static final int TRANSISTOR = 1;
-	protected static final int BIPOLAR = 2;
-	protected static final int SUBCIRCUIT = 3;
-	protected static final int TYPE_FIELD_WIDTH = 4;
-	
     // ---------- private data -------------
 	private PartNameProxy nameProxy;
+	private final Function type;
     protected Wire[] pins;
-
+    
     // ---------- private methods ----------
-
-	/** @param name the name of this Part
-	 * @param pins terminals of this Part */
-    protected Part(PartNameProxy name, Wire[] pins){
+	/** @param name the name of Part
+	 * @param type the type of Parts
+	 * @param pins Wires attached to pins of Part */
+    protected Part(PartNameProxy name, Function type, Wire[] pins){
     	nameProxy = name;
+    	this.type = type;
 		this.pins = pins;
 		for (int i=0; i<pins.length; i++)  pins[i].add(this);
     }
 
     // ---------- public methods ----------
-    @Override public String getName() {return nameProxy.getName();}
+    /** Return the type of part. The type distinguishes between MOS 
+     * transistors, bipolar transistors, resistors, and subcircuits. 
+     * 
+     * The type also distinguishes variations. For MOS
+     * transistors it distinguishes between different threshold 
+     * devices, different voltage devices, whether the MOS is a depletion
+     * transistor, floating gate transistor, etc.
+     * 
+     * For Resistors the type distinguishes between p-poly vs n-poly vs
+     * p-well vs n-well resistors.
+     * 
+     * The type does NOT distinguish between the MOS transistors that
+     * are stacked in series. The type does NOT distinguish between
+     * MOS transistors that are wired as capacitors. These distinctions
+     * are created dynamically.
+     * 
+     * The type does NOT distinguish between 3 vs 4 pin MOS transistors.
+     * This distinction isn't important for NCC.
+     * 
+     * As Electric evolves I expect it will accumulate additional
+     * variations. I'm trying to write NCC so that it automatically
+     * accommodates those variations without substantial, if any 
+     * change */
+    public Function type() {return type;} 
+
+	@Override public String getName() {return nameProxy.getName();}
 	@Override public Iterator getConnected() {return Arrays.asList(pins).iterator();}
 	public PartNameProxy getNameProxy() {return nameProxy;}
     @Override public Type getNetObjType() {return Type.PART;}
@@ -68,7 +94,7 @@ public abstract class Part extends NetObject implements PartReportable {
 	 * @return the number of terminals on this Part, usually a small number. */
 	public int numPins() {return pins.length;}
 
-	/**  Here is an accessor method for the coefficiant array for this
+	/**  Here is an accessor method for the coefficient array for this
 	 * Part.  The terminal coefficients are used to compute new hash
 	 * codes.
 	 * @return the array of terminal coefficients for this Part*/

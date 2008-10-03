@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08i: ******************************
 
+BUG: (10/3/08, RK) NCC changed to use new transistor functions. (Bug #1858)
+
 BUG: (10/2/08, SMR) "Change" dialog pops-up error dialogs when certain
      selections are made (Bug #1900).
 FIX: In Change.loadInfo() send better messages to Messages window.

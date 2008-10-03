@@ -47,9 +47,9 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.TransistorSize;
+import com.sun.electric.technology.PrimitiveNode.Function;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
@@ -301,6 +301,8 @@ class Visitor extends HierarchyEnumerator.Visitor {
 	// --------------------------- private data -------------------------------
 	private static final boolean debug = false;
 	private static final Technology SCHEMATIC = Technology.findTechnology("schematic");
+	private static final Function4PortTo3Port fourToThree = new Function4PortTo3Port();
+
 	private final NccGlobals globals;
 	/** If I'm building a netlist from a node that isn't at the top of the 
 	 * design hierarchy then Part and Wire names all share a common prefix.
@@ -389,68 +391,46 @@ class Visitor extends HierarchyEnumerator.Visitor {
 		return ni.getProto().getTechnology()==SCHEMATIC;
 	}
 	
-	/** @return true if NMOS schematic or layout primitive */
-	private boolean isNmosPrimitive(NodeInst ni) {
-		PrimitiveNode.Function func = ni.getFunction();
-		return func.isNTypeTransistor();
-	}
-	/** @return true if PMOS schematic or layout primitive */
-	private boolean isPmosPrimitive(NodeInst ni) {
-		PrimitiveNode.Function func = ni.getFunction();
-		return func.isPTypeTransistor();
-	}
-	/** @return true if NPN schematic or layout primitive */
-	private boolean isNpnPrimitive(NodeInst ni) {
-		PrimitiveNode.Function func = ni.getFunction();
-		return func==PrimitiveNode.Function.TRANPN ||
-               func==PrimitiveNode.Function.TRA4NPN;
-	}
-	/** @return true if PNP schematic or layout primitive */
-	private boolean isPnpPrimitive(NodeInst ni) {
-		PrimitiveNode.Function func = ni.getFunction();
-		return func==PrimitiveNode.Function.TRAPNP ||
-               func==PrimitiveNode.Function.TRA4PNP;
-	}
-	/** @return true if polysilicon resistor */
-	private boolean isPrimitivePolyResistor(NodeInst ni) {
-		PrimitiveNode.Function func = ni.getFunction();
-		return func==PrimitiveNode.Function.PRESIST;
-	}
-	/** @return true if well resistor */
-	private boolean isPrimitiveWellResistor(NodeInst ni) {
-		PrimitiveNode.Function func = ni.getFunction();
-		return func==PrimitiveNode.Function.WRESIST;
-	}
-	private PartType getMosType(NodeInst ni, NccCellInfo info) {
-		String typeNm;
+	private Function getMosType(NodeInst ni, NccCellInfo info) {
+		Function func = ni.getFunction();
+
 		if (isSchematicPrimitive(ni)) {
+			// This is a workaround to allow compatibility with the regression
+			// suite. The old regressions use "transistorType" declarations. 
+			
 			// Designer convention:
 			// If the Cell containing a schematic transistor primitive has an  
 			// NCC declaration "transistorType" then get the type information 
 			// from that annotation. Otherwise use the type of the transistor
 			// primitive.
 			Cell parent = ni.getParent();
+			
 			NccCellAnnotations ann = NccCellAnnotations.getAnnotations(parent);
-			typeNm = ann==null ? null : ann.getTransistorType();
-			if (typeNm==null) {
-				// No transistorType annotation. Use defaults.
-				globals.error(!isNmosPrimitive(ni) && !isPmosPrimitive(ni), 
-						        "not NMOS nor PMOS");
-				typeNm = isNmosPrimitive(ni) ? "N-Transistor" : "P-Transistor";
+			String typeNm = ann==null ? null : ann.getTransistorType();
+			if (typeNm!=null) {
+				func = PrimitiveNameToFunction.nameToFunction(typeNm);
+				if (func==null) {
+					badPartType = true;
+					prln("  Unrecognized transistor type: "+typeNm);
+					
+					// GUI
+					globals.getNccGuiInfo().addUnrecognizedPart(
+		                    new UnrecognizedPart(ni.getParent(), info.getContext(), typeNm, ni));
+				}
 			}
 		} else {
-			typeNm = ni.getProto().getName();
+			// This is a workaround until we update the Technologies to utilize 
+			// NodeProto.Function.
+			if (func==Function.TRANMOS || func==Function.TRAPMOS) {
+				String protoNm = ni.getProto().getName();
+				Function funcOverride = PrimitiveNameToFunction.nameToFunction(protoNm);
+				if (funcOverride!=null)  func=funcOverride;
+			}
 		}
-		PartType t = Mos.TYPES.getTypeFromLongName(typeNm);
-		if (t==null) {
-			badPartType = true;
-			prln("  Unrecognized transistor type: "+typeNm);
-			
-			// GUI
-			globals.getNccGuiInfo().addUnrecognizedPart(
-                    new UnrecognizedPart(ni.getParent(), info.getContext(), typeNm, ni));
-		}
-		return t;
+		
+		func = fourToThree.translate(func);
+		
+		return func;
 	}
 
 	private void buildMos(NodeInst ni, NccCellInfo info) {
@@ -465,7 +445,7 @@ class Visitor extends HierarchyEnumerator.Visitor {
 		Wire s = getWireForPortInst(ni.getTransistorSourcePort(), info);
 		Wire g = getWireForPortInst(ni.getTransistorGatePort(), info);
 		Wire d = getWireForPortInst(ni.getTransistorDrainPort(), info);
-		PartType type = getMosType(ni, info);
+		Function type = getMosType(ni, info);
 		// if unrecognized transistor type then ignore MOS
 		if (type!=null) {
 			Part t = new Mos(type, name, width, length, s, g, d);
@@ -483,42 +463,56 @@ class Visitor extends HierarchyEnumerator.Visitor {
 		Wire e = getWireForPortInst(ni.getTransistorEmitterPort(), info);
 		Wire b = getWireForPortInst(ni.getTransistorBasePort(), info);
 		Wire c = getWireForPortInst(ni.getTransistorCollectorPort(), info);
-		Bipolar.Type type = isNpnPrimitive(ni) ? Bipolar.Type.NPN : Bipolar.Type.PNP;
-		Part t = new Bipolar(type, name, area, e, b, c);
+		Function f = ni.getFunction();
+		Part t = new Bipolar(f, name, area, e, b, c);
 		parts.add(t);								 
 	}
 	private void buildTransistor(NodeInst ni, NccCellInfo info) {
-		if (isNmosPrimitive(ni) || isPmosPrimitive(ni)) {
+		Function f = ni.getFunction();
+		if (f.isFET()) {
 			buildMos(ni, info);
-		} else if (isPnpPrimitive(ni) || isNpnPrimitive(ni)) {
+		} else if (f.isBipolar()) {
 			buildBipolar(ni, info);
 		} else {
-			globals.error(true, "Unrecognized primitive transistor");
+			globals.error(true, "Unrecognized primitive transistor: "+f.getShortName());
 		}
 	}
-	private PartType getResistorType(NodeInst ni, NccCellInfo info) {
-		String typeNm;
+	private Function getResistorType(NodeInst ni, NccCellInfo info) {
+		Function f = ni.getFunction();
 		if (isSchematicPrimitive(ni)) {
+			// This is a work-around to allow compatibility with older
+			// regressions.
 			// Designer convention:
-			// Cell containing a schematic transistor primitive must have an  
-			// NCC declaration "resistorType" with long type name.
+			// Cell containing a schematic transistor primitive may have an  
+			// NCC declaration "resistorType" with Primitive Node name.
 			Cell parent = ni.getParent();
 			NccCellAnnotations ann = NccCellAnnotations.getAnnotations(parent);
-			typeNm = ann==null ? null : ann.getResistorType();
-			if (typeNm==null) typeNm = "No type specified. Use resistorType annotation";
+			String typeNm = ann==null ? null : ann.getResistorType();
+			if (typeNm!=null) {
+				Function funcOverride = PrimitiveNameToFunction.nameToFunction(typeNm);
+				if (funcOverride!=null) {
+					f = funcOverride;
+				} else {
+					badPartType = true;
+					prln("  Unrecognized resistor type: "+typeNm);
+					
+					// GUI
+					globals.getNccGuiInfo().addUnrecognizedPart(
+		                    new UnrecognizedPart(ni.getParent(), info.getContext(), typeNm, ni));
+				}
+			}
 		} else {
-			typeNm = ni.getProto().getName();
+			// This is a work-around until we update Technologies to specify
+			// the correct resistor Function.
+			if (f==Function.PRESIST || f==Function.WRESIST) {
+				String typeNm = ni.getProto().getName();
+				if (typeNm!=null) {
+					Function funcOverride = PrimitiveNameToFunction.nameToFunction(typeNm);
+					if (funcOverride!=null) f = funcOverride;
+				}
+			}
 		}
-		PartType t = Resistor.TYPES.getTypeFromLongName(typeNm);
-		if (t==null) {
-			badPartType = true;
-			prln("  Unrecognized resistor type: "+typeNm);
-			
-			// GUI
-			globals.getNccGuiInfo().addUnrecognizedPart(
-                    new UnrecognizedPart(ni.getParent(), info.getContext(), typeNm, ni));
-		}
-		return t;
+		return f;
 	}
 	private Wire[] getResistorWires(NodeInst ni, NccCellInfo info) {
 		Wire a = getWireForPortInst(ni.getPortInst(0), info);
@@ -555,27 +549,21 @@ class Visitor extends HierarchyEnumerator.Visitor {
 			length = dim[1];
 		}
 		Wire[] wires = getResistorWires(ni, info);
-		PartType type = getResistorType(ni, info);
-		// if unrecognized transistor type then ignore MOS
+		Function type = getResistorType(ni, info);
+		// if unrecognized resistor type then ignore 
 		if (type!=null) {
 			Part t = new Resistor(type, name, width, length, wires[0], wires[1]);
 			parts.add(t);
 		}
 	}
-	private void doPrimitiveNode(NodeInst ni, NodeProto np, NccCellInfo info) {
-		if (ni.isPrimitiveTransistor()) {
+	private void doPrimitiveNode(NodeInst ni, NccCellInfo info) {
+		Function f = ni.getFunction();
+		if (f.isTransistor()) {
 			buildTransistor(ni, info);
-		} else if (isPrimitivePolyResistor(ni) ||
-				   isPrimitiveWellResistor(ni)) {
+		} else if (f.isResistor() && f!=Function.RESIST) {
+			// We use normal resistors to model parasitic wire resistance.
+			// NCC considers them to be "short circuits" and discards them. 
 			buildResistor(ni, info);
-		} else {	
-//			PrimitiveNode.Function func = ni.getFunction();
-//		    globals.prln("NccNetlist not handled: func="+
-//		    			 func.toString()+" proto="+ni.getProto().toString());
-//		    if (func.toString().startsWith("NPN")) {
-//		    	globals.prln("I got an NPN");
-//		    }
-//		    error(true, "unrecognized PrimitiveNode");
 		}
 	}
 	
@@ -702,10 +690,12 @@ class Visitor extends HierarchyEnumerator.Visitor {
 	}
 	
 	// --------------------------- public methods -----------------------------
+	@Override
 	public CellInfo newCellInfo() {
 		return new NccCellInfo(globals);
 	}
 	
+	@Override
 	public boolean enterCell(CellInfo ci) {
 		if (globals.userWantsToAbort()) throw new UserAbort();
 		
@@ -744,19 +734,18 @@ class Visitor extends HierarchyEnumerator.Visitor {
 		}
 		return true;
 	}
-
+	@Override
 	public void exitCell(CellInfo info) {
 		if (debug) {
 			depth--;
 			globals.status2(spaces()+"Exit cell: " + info.getCell().getName());
 		}
 	}
-	
+	@Override
 	public boolean visitNodeInst(Nodable no, CellInfo ci) {
 		NccCellInfo info = (NccCellInfo) ci;
-		NodeProto np = no.getProto();
 		if (!no.isCellInstance()) {
-			doPrimitiveNode((NodeInst)no, np, info);
+			doPrimitiveNode((NodeInst)no, info);
 			return false; 
 		} else {
 			error(!no.isCellInstance(), "expecting Cell");

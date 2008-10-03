@@ -22,13 +22,14 @@
  * Boston, Mass 02111-1307, USA.
 */
 package com.sun.electric.tool.ncc.netlist;
+import com.sun.electric.technology.PrimitiveNode.Function;
 import com.sun.electric.tool.ncc.netlist.NccNameProxy.PartNameProxy;
 import com.sun.electric.tool.ncc.processing.SubcircuitInfo;
 
 /** A Cell instance that is being treated as a primitive circuit component
  * during a hierarchical netlist comparison */
 public class Subcircuit extends Part {
-	/** presume that no ports are interchangable */
+	/** presume that no ports are interchangeable */
 	public static class SubcircuitPinType implements PinType {
 		private int typeCode;
 		private int portIndex;
@@ -46,12 +47,16 @@ public class Subcircuit extends Part {
 	
 	private String getPortName(int i) {return subcircuitInfo.getPortName(i);}
 	
+	@Override
 	public String valueDescription() {return "";}
+	@Override
 	public int[] getPinCoeffs() {return pinCoeffs;}
+	@Override
 	public boolean parallelMerge(Part p) {return false;}
 	
 	
 	/** I never parallel merge subcircuits so this really doesn't matter. */
+	@Override
 	public Integer hashCodeForParallelMerge() {
 		// include how many Wires may be connected
 		int hc = pins.length;
@@ -64,16 +69,20 @@ public class Subcircuit extends Part {
 		hc += subcircuitInfo.getID();
 		return new Integer(hc);
 	}
+	@Override
 	public String typeString() {return subcircuitInfo.getName();}
 	
+	@Override
 	public int typeCode() {
-		return Part.SUBCIRCUIT + 
+		return type().ordinal() + 
 		       (subcircuitInfo.getID() << Part.TYPE_FIELD_WIDTH);
 	}
+	@Override
 	public PinType getPinTypeOfNthPin(int n) {
 		PinType[] pinTypes = subcircuitInfo.getPinTypes();
 		return pinTypes[n];
 	}
+	@Override
 	public String connectionDescription(Wire w) {
 		String msg = "";
 		for (int i=0; i<pins.length; i++) {
@@ -95,7 +104,7 @@ public class Subcircuit extends Part {
 	
 	public Subcircuit(PartNameProxy instName, SubcircuitInfo subcircuitInfo,
 	                  Wire[] pins) {
-		super(instName, pins);
+		super(instName, Function.UNKNOWN, pins);
 		this.subcircuitInfo = subcircuitInfo;
 		pinCoeffs = subcircuitInfo.getPortCoeffs();
 	}

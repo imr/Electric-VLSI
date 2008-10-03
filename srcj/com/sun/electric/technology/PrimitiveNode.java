@@ -346,10 +346,24 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 		RESIST("resistor", "res", false, false),
 
 		/** Describes a poly resistor. */
+		//@Deprecated
 		PRESIST("poly-resistor", "pres", false, false),
+		
+		/** Describes an n-poly resistor */
+		RESNPOLY("n-type-poly-resistor", "resnpoly", false, false),
+		
+		/** Describes a p-poly resistor */
+		RESPPOLY("p-type-poly-resistor", "resppoly", false, false),
 
 		/** Describes a well resistor. */
+		//@Deprecated
 		WRESIST("well-resistor", "wres", false, false),
+
+		/** Describes an n-well resistor */
+		RESNWELL("n-type-well-resistor", "resnwell", false, false),
+		
+		/** Describes a p-well resistor */
+		RESPWELL("p-type-well-resistor", "respwell", false, false),
 
 		/** Describes an esd device */
 		ESDDEVICE("esd-device", "esdd", false, false),
@@ -546,7 +560,9 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
          * Method to tell whether this function describes a resistor (normal, poly or nwell resistor).
          * @return true if this function describes a resistor (normal, poly or nwell resistor).
          */
-        public boolean isResistor() { return this == RESIST || this == PRESIST || this == WRESIST; }
+        public boolean isResistor() { return this == RESIST || this == PRESIST || this == WRESIST ||
+                                      this == RESNPOLY || this == RESPPOLY || this == RESNWELL || 
+                                      this == RESPWELL;}
 
         /**
          * Method to tell whether this function describes an ESD device.
@@ -668,6 +684,14 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 		 * @return a printable version of this Function.
 		 */
 		public String toString() { return name; }
+		
+		/** Returns name of the enumeration constant. For example "TRANMOS". 
+		 * By convention, the enumeration names encode information that isn't
+		 * otherwise available. The transistor "TRANMOS" is the same as "TRA4NMOS"
+		 * except that the latter has a substrate connection. RKao
+		 * @return name of the enumeration constant
+		 */
+		public String enumName() {return super.toString();}
 	}
 
 	// constants used in the "specialType" field
