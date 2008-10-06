@@ -274,6 +274,9 @@ public class CalibreDrcErrors {
                 for (int i=0; i<lines; i++) {
                     if (i != 0)             // skip first line read, done already when we looked for CN
                         nextLine = readLine();
+                    if (nextLine.startsWith("SN")) {
+                        nextLine = readLine();
+                    }
                     if (!parseErrorPoint(nextLine, points, i, lambdaScale))
                         return null;
                 }
