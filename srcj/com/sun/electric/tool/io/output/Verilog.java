@@ -285,6 +285,15 @@ public class Verilog extends Topology
 	}
 
 	protected boolean skipCellAndSubcells(Cell cell) {
+
+        // do not netlist contents of standard cells
+        // also, if writing a standard cell netlist, ignore all verilog views, verilog templates, etc.
+        if (Simulation.getVerilogStopAtStandardCells()) {
+            if (!standardCells.containsStandardCell(cell)) {
+                return true;
+            }
+        }
+
 		// do not write modules for cells with verilog_templates defined
 		// also skip their subcells
 		if (cell.getVar(VERILOG_TEMPLATE_KEY) != null) {
@@ -346,13 +355,6 @@ public class Verilog extends Topology
 					printWriter.println(stringArray[i]);
 			}
 			return true;
-		}
-
-		if (Simulation.getVerilogStopAtStandardCells()) {
-			// do not netlist contents of standard cells
-			if (!standardCells.containsStandardCell(cell)) {
-				return true;
-			}
 		}
 
 		return false;
