@@ -471,8 +471,9 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
 	 */
 	public void setVisibilityLevel(int level)
 	{
-		int len = layerListModel.size();
-		for (int i=0; i<len; i++)
+        int len = layerListModel.size();
+        Layer metalLayer = null;
+        for (int i=0; i<len; i++)
 		{
 			Layer layer = getSelectedLayer(i);
 			Boolean b = Boolean.valueOf(false);
@@ -480,13 +481,32 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
 				b = Boolean.valueOf(true);
 			if (level == 1 && layer.getFunction().getLevel() <= 1)
 				b = Boolean.valueOf(true);
-			if (layer.getFunction().getLevel() == level ||
-				layer.getFunction().getLevel() == (level-1) || level == 0)
+			if (layer.getFunction().getLevel() == level) {
+                b = Boolean.valueOf(true);
+                if (layer.getFunction().isMetal())
+                    metalLayer = layer;
+            }
+            if (layer.getFunction().getLevel() == (level-1) || level == 0)
 				b = Boolean.valueOf(true);
-			visibility.put(layer, b);
+            if (layer.getFunction().isContact() && layer.getFunction().getLevel() == (level-1))
+                b = Boolean.valueOf(false);
+            visibility.put(layer, b);
 			layerListModel.set(i, lineName(layer));
 		}
-		update();
+/*
+        // turn on all layers with the same height as the main metal layer
+        if (metalLayer != null) {
+            for (int i=0; i<len; i++) {
+                Layer layer = getSelectedLayer(i);
+                if (layer.getFunction().getHeight() == metalLayer.getFunction().getHeight()) {
+                    visibility.put(layer, true);
+                    layerListModel.set(i, lineName(layer));
+                }
+            }
+        }
+*/
+
+        update();
 	}
 
 	/**
