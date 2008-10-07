@@ -97,11 +97,22 @@ public class ViewMenu {
 	{
 		Cell cell = WindowFrame.getCurrentCell();
 		if (cell == null) return;
+		if (cell.getView() == View.ICON)
+		{
+			Job.getUserInterface().showErrorMessage("Icon cells are special and cannot have their views changed",
+				"Cannot change view");
+			return;
+		}
 
 		List<View> views = View.getOrderedViews();
 		String [] viewNames = new String[views.size()];
+		int j = 0;
 		for(int i=0; i<views.size(); i++)
-			viewNames[i] = views.get(i).getFullName();
+		{
+			if (views.get(i) == View.ICON) continue;
+			viewNames[j++] = views.get(i).getFullName();
+		}
+		viewNames[j] = "Icon (cannot change into Icon view)";
 		Object newName = JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(), "New view for this cell",
 			"Choose alternate view", JOptionPane.QUESTION_MESSAGE, null, viewNames, cell.getView().getFullName());
 		if (newName == null) return;

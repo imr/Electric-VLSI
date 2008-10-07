@@ -1583,14 +1583,25 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 					menu.add(menuItem);
 					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { deleteCellAction(); } });
 
-					JMenu subMenu = new JMenu("Change View");
-					menu.add(subMenu);
-					for(View view : View.getOrderedViews())
+					if (cell.getView() == View.ICON)
 					{
-						if (cell.getView() == view) continue;
-						JMenuItem subMenuItem = new JMenuItem(view.getFullName());
+						menuItem = new JMenuItem("Cannot Change View of Icon Cell");
+						menuItem.setEnabled(false);
+						menu.add(menuItem);
+					} else
+					{
+						JMenu subMenu = new JMenu("Change View");
+						menu.add(subMenu);
+						for(View view : View.getOrderedViews())
+						{
+							if (cell.getView() == view) continue;
+							JMenuItem subMenuItem = new JMenuItem(view.getFullName());
+							subMenu.add(subMenuItem);
+							subMenuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { reViewCellAction(e); } });
+						}
+						JMenuItem subMenuItem = new JMenuItem("Icon (cannot change into Icon view)");
 						subMenu.add(subMenuItem);
-						subMenuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { reViewCellAction(e); } });
+						subMenuItem.setEnabled(false);
 					}
 
 					menuItem = new JMenuItem("Change Cell Group...");
@@ -1722,16 +1733,27 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 				menu.add(menuItem);
 				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { renameCellAction(); } });
 
-				subMenu = new JMenu("Change View");
-				menu.add(subMenu);
-				for(View view : View.getOrderedViews())
+				if (cell.getView() == View.ICON)
 				{
-					if (cell.getView() == view) continue;
-					JMenuItem subMenuItem = new JMenuItem(view.getFullName());
+					menuItem = new JMenuItem("Cannot Change View of Icon Cell");
+					menuItem.setEnabled(false);
+					menu.add(menuItem);
+				} else
+				{
+					subMenu = new JMenu("Change View");
+					menu.add(subMenu);
+					for(View view : View.getOrderedViews())
+					{
+						if (cell.getView() == view) continue;
+						if (view == View.ICON) continue;
+						JMenuItem subMenuItem = new JMenuItem(view.getFullName());
+						subMenu.add(subMenuItem);
+						subMenuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { reViewCellAction(e); } });
+					}
+					JMenuItem subMenuItem = new JMenuItem("Icon (cannot change into Icon view)");
 					subMenu.add(subMenuItem);
-					subMenuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { reViewCellAction(e); } });
+					subMenuItem.setEnabled(false);
 				}
-
 
                 if (CVS.isEnabled()) {
                     menu.addSeparator();
