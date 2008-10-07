@@ -343,8 +343,6 @@ public class ERCWellCheck
 		}
 
 		// look for unconnected well areas
-		EditWindow_ wnd = Job.getUserInterface().getCurrentEditWindow_();
-		wnd.clearHighlighting();
 		if (ERC.getPWellCheck() != 2) findUnconnected(pWellRoot, pWellRoot, "P");
 		if (ERC.getNWellCheck() != 2) findUnconnected(nWellRoot, nWellRoot, "N");
 		if (ERC.getPWellCheck() == 1 && !hasPCon)
@@ -355,7 +353,6 @@ public class ERCWellCheck
 		{
 			errorLogger.logError("No N-Well contact found in this cell", cell, 0);
 		}
-		wnd.finishedHighlighting();
 
 		// compute edge distance if requested
 		if (ERC.isFindWorstCaseWell())

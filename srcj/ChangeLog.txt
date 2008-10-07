@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08i: ******************************
 
+BUG: (10/7/08, SMR) ERC regressions fail and crash (Bug #1905).
+FIX: Fixed dependency on user interface and updated expected results.
+
 BUG: (10/7/08, SMR) "List Cell Usage" ignores arrayed icons (Bug #1906).
 FIX: In CellLists.listCellUsageCommand(), consider icon arrays.
 
