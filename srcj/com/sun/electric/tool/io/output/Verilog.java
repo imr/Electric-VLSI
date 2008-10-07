@@ -291,6 +291,8 @@ public class Verilog extends Topology
         if (Simulation.getVerilogStopAtStandardCells()) {
             if (!standardCells.containsStandardCell(cell)) {
                 return true;
+            } else {
+                return false;
             }
         }
 
