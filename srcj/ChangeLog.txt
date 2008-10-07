@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08i: ******************************
 
+BUG: (10/7/08, SMR) "List Cell Usage" ignores arrayed icons (Bug #1906).
+FIX: In CellLists.listCellUsageCommand(), consider icon arrays.
+
 IMP/MAN: (10/3/08, SMR) GDS import cannot handle volume of data (Bug #1901).
 FIX: Modified the definition of Outline information: if a coordinate in the
      list is duplicated, then this indicates a "break" in the Outline, and

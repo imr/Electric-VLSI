@@ -532,31 +532,37 @@ public class CellLists extends EDialog
 			}
 
 			// count the number of instances in this cell's icon
-			Cell iconCell = bottom.iconView();
-			if (iconCell != null)
+			if (bottom.getView() != View.ICON)
 			{
-				for(Iterator<NodeInst> nIt = iconCell.getInstancesOf(); nIt.hasNext(); )
+				for(Iterator<Cell> it = bottom.getCellGroup().getCells(); it.hasNext(); )
 				{
-					NodeInst ni = nIt.next();
-					if (ni.isIconOfParent()) continue;
-					Cell top = ni.getParent();
-					if (recursive)
+					Cell iconCell = it.next();
+					if (iconCell.getView() != View.ICON) continue;
+					for(Iterator<NodeInst> nIt = iconCell.getInstancesOf(); nIt.hasNext(); )
 					{
-						if (!cellsToConsider.contains(top)) cellsToConsider.add(top);
+						NodeInst ni = nIt.next();
+						if (ni.isIconOfParent()) continue;
+						Cell top = ni.getParent();
+						if (recursive)
+						{
+							if (!cellsToConsider.contains(top)) cellsToConsider.add(top);
+						}
+						Map<Cell,GenMath.MutableInteger> tally = nodeCount.get(top);
+						if (tally == null)
+						{
+							tally = new HashMap<Cell,GenMath.MutableInteger>();
+							nodeCount.put(top, tally);
+						}
+						GenMath.MutableInteger instanceCount = tally.get(bottom);
+						if (instanceCount == null)
+						{
+							instanceCount = new GenMath.MutableInteger(0);
+							tally.put(bottom, instanceCount);
+						}
+						int arraySize = ni.getNameKey().busWidth();
+						if (arraySize > 1) instanceCount.setValue(instanceCount.intValue() + arraySize); else
+							instanceCount.increment();
 					}
-					Map<Cell,GenMath.MutableInteger> tally = nodeCount.get(top);
-					if (tally == null)
-					{
-						tally = new HashMap<Cell,GenMath.MutableInteger>();
-						nodeCount.put(top, tally);
-					}
-					GenMath.MutableInteger instanceCount = tally.get(bottom);
-					if (instanceCount == null)
-					{
-						instanceCount = new GenMath.MutableInteger(0);
-						tally.put(bottom, instanceCount);
-					}
-					instanceCount.increment();
 				}
 			}
 		}
