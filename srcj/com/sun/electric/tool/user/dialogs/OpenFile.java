@@ -296,8 +296,9 @@ public class OpenFile
 		if (types == null) types = new FileType [] {com.sun.electric.tool.io.FileType.ANY};
 
 		boolean useSwing = true;
-		if (Client.isOSMac())
-			useSwing = false;
+        // If AWT is used, a path with ":" instead of "/" is retrieved from FileOpen.getFile()
+//		if (Client.isOSMac())
+//			useSwing = false;
 
 		String initialDir = User.getWorkingDirectory();
 		String path = types[0].getGroupPath();
