@@ -345,7 +345,10 @@ public class Technology implements Comparable<Technology>, Serializable
         void resize(DistanceContext context, ArcProto ap) {
             double lambdaExtend = xmlExtend.getLambda(context);
             if (Double.isNaN(lambdaExtend) && !ap.isNotUsed())
+            {
                 System.out.println("Can't resize arc layer " + layer + " of " + ap.getFullName());
+                lambdaExtend = ap.getLambdaBaseExtend();
+            }
             long gridExtend = DBMath.lambdaToGrid(lambdaExtend);
             if (gridExtend < 0 || gridExtend >= Integer.MAX_VALUE/8)
                 throw new IllegalArgumentException("gridExtend=" + gridExtend);

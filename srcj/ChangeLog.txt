@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08i: ******************************
 
+IMP: (10/8/08, GVG) Add well arcs to technologies (Bug #1910)
+
 BUG: (10/8/08, RK) NCC runs slow on fastprox (Bug #1908).
 FIX: Fixed performance bugs that become evident when instances have 
      46,000 Exports.

@@ -103,7 +103,8 @@ public class MoCMOS extends Technology
 	// nodes. Storing nodes only whe they are need in outside the constructor
     /** metal-1->6-pin */				        private PrimitiveNode[] metalPinNodes = new PrimitiveNode[6];
 	/** active pins */					        private PrimitiveNode[] activePinNodes = new PrimitiveNode[2];
-	/** polysilicon-1-pin/2-pin */			    private PrimitiveNode[] polyPinNodes = new PrimitiveNode[2];
+    /** well pins */					        private PrimitiveNode[] wellPinNodes = new PrimitiveNode[2];
+    /** polysilicon-1-pin/2-pin */			    private PrimitiveNode[] polyPinNodes = new PrimitiveNode[2];
     /** metal-1-P/N-active-contacts */          private PrimitiveNode[] metalActiveContactNodes = new PrimitiveNode[2];
 	/** metal-1-polysilicon-1/2/1-2/-contact */	private PrimitiveNode[] metal1PolyContactNodes = new PrimitiveNode[3];
     /** P/N-Transistors */                      private PrimitiveNode[] transistorNodes = new PrimitiveNode[2];
@@ -211,7 +212,10 @@ public class MoCMOS extends Technology
 		activePinNodes[P_TYPE] = findNodeProto("P-Active-Pin");
 		activePinNodes[N_TYPE] = findNodeProto("N-Active-Pin");
 		PrimitiveNode activeGenPinNode = findNodeProto("Active-Pin");
-		metalActiveContactNodes[P_TYPE] = findNodeProto("Metal-1-P-Active-Con");
+
+		wellPinNodes[P_TYPE] = findNodeProto("P-Well-Pin");
+		wellPinNodes[N_TYPE] = findNodeProto("N-Well-Pin");
+        metalActiveContactNodes[P_TYPE] = findNodeProto("Metal-1-P-Active-Con");
 		metalActiveContactNodes[N_TYPE] = findNodeProto("Metal-1-N-Active-Con");
 		metal1PolyContactNodes[0] = findNodeProto("Metal-1-Polysilicon-1-Con");
 		metal1PolyContactNodes[1] = findNodeProto("Metal-1-Polysilicon-2-Con");
@@ -1018,7 +1022,25 @@ public class MoCMOS extends Technology
 		active_arc.setFactoryAngleIncrement(90);
 //		active_arc.setNotUsed(true);
 
-		//**************************************** NODES ****************************************
+
+        /** P-well arc */
+		wellArcs[P_TYPE] = newArcProto("P-Well", 0, 3.0, ArcProto.Function.DIFFS,  // 3.0 similar to M1 pin
+			new Technology.ArcLayer(wellLayers[P_TYPE], Poly.Type.FILLED, "well arc")
+		);
+		wellArcs[P_TYPE].setFactoryFixedAngle(true);
+		wellArcs[P_TYPE].setWipable();
+		wellArcs[P_TYPE].setFactoryAngleIncrement(90);
+        wellArcs[P_TYPE].setArcInvisible(false);
+
+        /** N-well arc */
+		wellArcs[N_TYPE] = newArcProto("N-Well", 0, 3.0, ArcProto.Function.DIFFW,
+			new Technology.ArcLayer(wellLayers[N_TYPE], Poly.Type.FILLED, "well arc")
+		);
+		wellArcs[N_TYPE].setFactoryFixedAngle(true);
+		wellArcs[N_TYPE].setWipable();
+		wellArcs[N_TYPE].setFactoryAngleIncrement(90);
+
+        //**************************************** NODES ****************************************
 
         for (int i = 0; i < metalArcs.length; i++) {
             ArcProto ap = metalArcs[i];
@@ -1026,9 +1048,14 @@ public class MoCMOS extends Technology
         }
         polyPinNodes[0] = polyArcs[0].makeWipablePin("Polysilicon-1-Pin", "polysilicon-1", 2.0);
         polyPinNodes[1] = polyArcs[1].makeWipablePin("Polysilicon-2-Pin", "polysilicon-2", 3.0);
+
         activePinNodes[P_TYPE] = activeArcs[P_TYPE].makeWipablePin("P-Active-Pin", "p-active", 15.0);
         activePinNodes[N_TYPE] = activeArcs[N_TYPE].makeWipablePin("N-Active-Pin", "n-active", 15.0);
-		PrimitiveNode activeGenPinNode = active_arc.makeWipablePin("Active-Pin", "active", 3.0, activeArcs[P_TYPE], activeArcs[N_TYPE]);
+
+        wellPinNodes[P_TYPE] = wellArcs[P_TYPE].makeWipablePin("P-Well-Pin", "p-active", 3.0);
+        wellPinNodes[N_TYPE] = wellArcs[N_TYPE].makeWipablePin("N-Well-Pin", "n-active", 3.0);
+
+        PrimitiveNode activeGenPinNode = active_arc.makeWipablePin("Active-Pin", "active", 3.0, activeArcs[P_TYPE], activeArcs[N_TYPE]);
 
 		/** metal-1-P-active-contact */
 		metalActiveContactNodes[P_TYPE] = PrimitiveNode.newInstance("Metal-1-P-Active-Con", this,
@@ -1794,14 +1821,14 @@ public class MoCMOS extends Technology
         int maxY = metalArcs.length + activeArcs.length + 2 /* poly*/ + 1 /* trans */ + 1 /*misc*/ + 1 /* well */;
         factoryNodeGroups = new Object[maxY][3];
         int count = 0;
-        List<NodeInst> tmp;
+        List<Object> tmp;
         String[] stdNames = {"p", "n"};
 
         // Transistor nodes first
         factoryNodeGroups[count][0] = npnTransistorNode;
         for (int i = 0; i < transistorNodes.length; i++)
         {
-            tmp = new ArrayList<NodeInst>(2);
+            tmp = new ArrayList<Object>(2);
             String tmpVar = stdNames[i]+"Mos";
             tmp.add(makeNodeInst(transistorNodes[i], transistorNodes[i].getFunction(), 0, true, tmpVar, 9));
             tmp.add(makeNodeInst(thickTransistorNodes[i], thickTransistorNodes[i].getFunction(), 0, true, tmpVar, 9));
@@ -1822,8 +1849,14 @@ public class MoCMOS extends Technology
         // Active/Well first
         for (int i = 0; i < activeArcs.length; i++)
         {
-        	factoryNodeGroups[++count][0] = activeArcs[i];
-        	factoryNodeGroups[count][1] = makeNodeInst(activePinNodes[i]);
+            tmp = new ArrayList<Object>(2); // active and well arcs together
+            tmp.add(activeArcs[i]);
+            tmp.add(wellArcs[i]);
+            factoryNodeGroups[++count][0] = tmp; // activeArcs[i];
+            tmp = new ArrayList<Object>(2); // active and well pings together
+            tmp.add(makeNodeInst(activePinNodes[i]));
+            tmp.add(makeNodeInst(wellPinNodes[i]));
+            factoryNodeGroups[count][1] = tmp; // makeNodeInst(activePinNodes[i]);
             String tmpVar = stdNames[i]+"Act";
             factoryNodeGroups[count][2] = makeNodeInst(metalActiveContactNodes[i], metalActiveContactNodes[i].getFunction(),
                     0, true, tmpVar, 5.55);
@@ -1836,7 +1869,7 @@ public class MoCMOS extends Technology
 
         factoryNodeGroups[++count][0] = polyArcs[1];
         factoryNodeGroups[count][1] = makeNodeInst(polyPinNodes[1]);
-        tmp = new ArrayList<NodeInst>();
+        tmp = new ArrayList<Object>();
         tmp.add(makeNodeInst(metal1PolyContactNodes[1], metal1PolyContactNodes[1].getFunction(), 0, true, null, 5.5));
         tmp.add(makeNodeInst(metal1PolyContactNodes[2], metal1PolyContactNodes[2].getFunction(), 0, true, null, 5.5));
         factoryNodeGroups[count][2] = tmp;
