@@ -164,13 +164,13 @@ public class Bipolar extends Part {
 		}
 		return s;
 	}
-    @Override
-	public Integer computeHashCode() {
-		int sum=0;
-		for (int i=0; i<pins.length; i++){
-			sum += pins[i].getCode() * PIN_COEFFS[i];
-		}
-		return new Integer(sum);
-	}
+//    @Override
+//	public Integer computeHashCode() {
+//		int sum=0;
+//		for (int i=0; i<pins.length; i++){
+//			sum += pins[i].getCode() * PIN_COEFFS[i];
+//		}
+//		return new Integer(sum);
+//	}
 
 }

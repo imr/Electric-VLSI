@@ -34,6 +34,7 @@ import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.netlist.Mos;
 import com.sun.electric.tool.ncc.netlist.NetObject;
 import com.sun.electric.tool.ncc.netlist.Part;
+import com.sun.electric.tool.ncc.netlist.Subcircuit;
 import com.sun.electric.tool.ncc.netlist.Wire;
 import com.sun.electric.tool.ncc.trees.Circuit;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
@@ -125,6 +126,10 @@ public class SerialParallelMerge {
 		for (Iterator<Part> it=w.getParts(); it.hasNext();) {
 			Part p = it.next();
 			if (p.isDeleted()) continue;
+			
+			// we don't parallel merge Subcircuits
+			if (p instanceof Subcircuit) continue;
+			
 			Integer code = p.hashCodeForParallelMerge();
 			Set<Part> set = map.get(code);
 			if (set==null) {

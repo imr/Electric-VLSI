@@ -22,7 +22,11 @@
  * Boston, Mass 02111-1307, USA.
 */
 package com.sun.electric.tool.ncc.netlist;
+import java.util.HashMap;
+import java.util.Map;
+
 import com.sun.electric.technology.PrimitiveNode.Function;
+import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.netlist.NccNameProxy.PartNameProxy;
 import com.sun.electric.tool.ncc.processing.SubcircuitInfo;
 
@@ -43,21 +47,44 @@ public class Subcircuit extends Part {
 	}
 
 	private final int[] pinCoeffs;
+	// For each wire, store the sum of the coefficients of the pins attached to
+	// that wire
+	private final Map<Wire,Integer> wireToCoeffSum;
 	private final SubcircuitInfo subcircuitInfo;
 	
 	private String getPortName(int i) {return subcircuitInfo.getPortName(i);}
 	
+	private Map<Wire,Integer> computeWireToCoeffSum(Wire[] pins, int[] coeffs) {
+		Map<Wire,Integer> wireToCoeffs = new HashMap<Wire,Integer>();
+		for (int i=0; i<pins.length; i++) {
+			Wire w = pins[i];
+			int coeff = pinCoeffs[i];
+			Integer coeffSum = wireToCoeffs.get(w);
+			if (coeffSum==null)  coeffSum = new Integer(0);
+			coeffSum += coeff;
+			wireToCoeffs.put(w, coeffSum);
+		}
+		return wireToCoeffs;
+	}
+
 	@Override
 	public String valueDescription() {return "";}
 	@Override
 	public int[] getPinCoeffs() {return pinCoeffs;}
 	@Override
-	public boolean parallelMerge(Part p) {return false;}
+	public boolean parallelMerge(Part p) {
+		LayoutLib.error(true, "we never parallel merge subcircuits so don't call this method");
+		return false;
+	}
 	
 	
-	/** I never parallel merge subcircuits so this really doesn't matter. */
+	/** I never parallel merge subcircuits so this really doesn't matter. 
+	 * This method is too slow for subcircuits with tens of thousands of
+	 * pins. It's better to avoid calling this method at a higher level.*/
 	@Override
 	public Integer hashCodeForParallelMerge() {
+		LayoutLib.error(true, "we never parallel merge subcircuits so don't call this method");
+		
 		// include how many Wires may be connected
 		int hc = pins.length;
 		// include what's connected
@@ -93,6 +120,7 @@ public class Subcircuit extends Part {
 		}
 		return msg; 
 	}
+	@Override
 	public String connectionDescription(int maxCon) {
 		String msg = "";
 		for (int i=0; i<maxCon && i<pins.length; i++) {
@@ -102,10 +130,25 @@ public class Subcircuit extends Part {
 		return msg;
 	}
 	
+	/**  Subcircuits can have tens of thousands of pins. Part.getHashFor(Wire)
+	 * is O(n) in the number of pins. Since it gets called n times we have
+	 * O(n^2) execution time. Subcircuit.getHashFor(Wire) takes more 
+	 * storage but executes in constant time.
+	 * @param w the Wire for which a hash code is needed
+	 * @return an int with the code contribution. */
+	@Override
+    public int getHashFor(Wire w) {
+		Integer coeffSum = wireToCoeffSum.get(w);
+		LayoutLib.error(coeffSum==null, "Wire not found");
+		return coeffSum*getCode();
+    }
+	
 	public Subcircuit(PartNameProxy instName, SubcircuitInfo subcircuitInfo,
 	                  Wire[] pins) {
 		super(instName, Function.UNKNOWN, pins);
 		this.subcircuitInfo = subcircuitInfo;
 		pinCoeffs = subcircuitInfo.getPortCoeffs();
+		
+		wireToCoeffSum = computeWireToCoeffSum(pins, pinCoeffs);
 	}
 }

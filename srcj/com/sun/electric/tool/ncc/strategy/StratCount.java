@@ -295,7 +295,7 @@ public class StratCount extends Strategy {
     }
 
     private void doFor(Part p){
-        numberOfPartConnections += p.getNumWiresConnected();
+        numberOfPartConnections += p.numDistinctWires();
     }
     
     // ----------------------- intended interface -----------------------------

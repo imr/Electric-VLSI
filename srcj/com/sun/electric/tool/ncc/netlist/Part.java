@@ -114,6 +114,10 @@ public abstract class Part extends NetObject implements PartReportable {
     public void setDeleted() {pins=DELETED;}
     @Override public boolean isDeleted() {return pins==DELETED;}
     
+	/**  Get the number of distinct Wires this part is connected to.
+	 * For example, if all pins are connected to the same Wire then return 1.
+	 * This method is only used for sanity checking by StratCount.
+	 * @return the number of distinct Wires to which this Part is connected */
     public int numDistinctWires() {
     	Set<Wire> wires = new HashSet<Wire>();
     	for (int i=0; i<pins.length; i++)  wires.add(pins[i]);
@@ -173,16 +177,6 @@ public abstract class Part extends NetObject implements PartReportable {
 			error(!w.touches(this), "Wire not connected to Part");
 		}
     }
-	
-	/**  Get the number of distinct Wires this part is connected to.
-	 * For example, if all pins are connected to the same Wire then return 1.
-	 * This method is only used for sanity checking by StratCount.
-	 * @return the number of distinct Wires to which this Part is connected */
-	public int getNumWiresConnected() {
-		HashSet<Wire> wires = new HashSet<Wire>();
-		for (int i=0; i<pins.length; i++)  wires.add(pins[i]);
-		return wires.size();
-	}
 	
 	/** @return the PinType for the nth pin */
 	public abstract PinType getPinTypeOfNthPin(int n);
