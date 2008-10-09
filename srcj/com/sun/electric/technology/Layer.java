@@ -26,7 +26,6 @@ package com.sun.electric.technology;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.EGraphics.Outline;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Setting;
@@ -40,6 +39,7 @@ import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -168,7 +168,6 @@ public class Layer
 
         static {
             allFunctions = Arrays.asList(Function.class.getEnumConstants());
-            assert allFunctions.size() <= Long.SIZE;
         }
 
 		private Function(String name, int metalLevel, int contactLevel, int polyLevel, int height, int extraBits)
@@ -455,7 +454,7 @@ public class Layer
          * A set of Layer.Functions
          */
         public static class Set {
-            final long bits;
+            final BitSet bits = new BitSet();
             final int extraBits; // -1 means no check extraBits
             /** Set if all Layer.Functions */
             public static final Set ALL = new Set(Function.class.getEnumConstants());
@@ -467,7 +466,7 @@ public class Layer
              */
             public Set(Function f, int extraB)
             {
-                bits = bit(f);
+                bits.set(f.ordinal());
                 extraBits = extraB;
             }
 
@@ -476,10 +475,8 @@ public class Layer
              * @param funs variable list of Functions.
              */
             public Set(Function ... funs) {
-                long bits = 0;
                 for (Function f: funs)
-                    bits |= bit(f);
-                this.bits = bits;
+                    bits.set(f.ordinal());
                 this.extraBits = noFunctionExtras; // same value as Layer.extraFunctions
             }
 
@@ -488,10 +485,8 @@ public class Layer
              * @param funs a Collection of Functions.
              */
             public Set(Collection<Function> funs) {
-                long bits = 0;
                 for (Function f: funs)
-                    bits |= bit(f);
-                this.bits = bits;
+                    bits.set(f.ordinal());
                 this.extraBits = noFunctionExtras; // same value as Layer.extraFunctions;
             }
 
@@ -505,10 +500,8 @@ public class Layer
             {
                 // Check first if there is a match in the extra bits
                 boolean extraBitsM = extraBits == noFunctionExtras || (extraBits == extraFunction);
-                return extraBitsM && (bits & bit(f)) != 0;
+                return extraBitsM && bits.get(f.ordinal());
             }
-
-            private static long bit(Function f) { return 1L << f.ordinal(); }
         }
 	}
 

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08i: ******************************
 
+BUG: (10/10/08, DN) Can't specify more layer functions (Bug #1903).
+FIX: Implement Layer.Function.Set by BitSet instead of long. 
+
 BUG: (10/8/08, GVG) Writing Spice file on Mac OS 10.5 uses ":"
 as delimiter instead of "/" (Bug #1877)
 FIX: Use the Swing mode in OpenDialog under MacOSX.
