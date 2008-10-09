@@ -347,7 +347,7 @@ public class Technology implements Comparable<Technology>, Serializable
             if (Double.isNaN(lambdaExtend) && !ap.isNotUsed())
             {
                 System.out.println("Can't resize arc layer " + layer + " of " + ap.getFullName());
-                lambdaExtend = ap.getLambdaBaseExtend();
+//                lambdaExtend = ap.getLambdaBaseExtend();
             }
             long gridExtend = DBMath.lambdaToGrid(lambdaExtend);
             if (gridExtend < 0 || gridExtend >= Integer.MAX_VALUE/8)
