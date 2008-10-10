@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08i: ******************************
 
+BUG: (10/11/08, DN) Cannot change cell view (Bug #1880).
+FIX: Don't clear technology of cell in ViewChanges.ChangeCellView.doIt() .
+
 BUG: (10/10/08, DN) 3D preferences are always reset to factory values on new session.
 FIX: In Layer.setFactory3DInfo don't change current values of preferences.
 

@@ -277,7 +277,7 @@ public class ViewChanges
 			fieldVariableChanged("idMapper");
 			if (idMapper != null) {
 				cell = idMapper.get(cell.getId()).inDatabase(database);
-				cell.setTechnology(null);
+//				cell.setTechnology(null);
 			}
 			return true;
 		}
