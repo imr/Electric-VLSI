@@ -627,6 +627,7 @@ public class Pref
 	 */
 	public void setBoolean(boolean v)
 	{
+        checkModify();
 		boolean cachedBool = ((Integer)cachedObj).intValue() != 0 ? true : false;
 		if (v != cachedBool)
 		{
@@ -647,6 +648,7 @@ public class Pref
 	 */
 	public void setInt(int v)
 	{
+        checkModify();
 		int cachedInt = ((Integer)cachedObj).intValue();
 		if (v != cachedInt)
 		{
@@ -667,6 +669,7 @@ public class Pref
 	 */
 	public void setLong(long v)
 	{
+        checkModify();
 		long cachedLong = ((Long)cachedObj).longValue();
 		if (v != cachedLong)
 		{
@@ -681,29 +684,29 @@ public class Pref
 		}
 	}
 
-    /**
-	 * Method to set a new double value on this Pref factory object.
-	 * @param v the new double value of this Pref factory object.
-	 * @return true if preference was really changed.
-	 */
-    public boolean setFactoryDouble(double v)
-    {
-		double cachedDouble = ((Double)factoryObj).doubleValue();
-		boolean changed = false;
-
-		if (v != cachedDouble)
-		{
-			factoryObj = new Double(v);
-			if (prefs != null)
-			{
-				prefs.putDouble(name, v);
-				if (doFlushing) flushOptions(prefs); else
-					queueForFlushing.add(prefs);
-			}
-			changed = true;
-		}
-		return (changed);
-    }
+//    /**
+//	 * Method to set a new double value on this Pref factory object.
+//	 * @param v the new double value of this Pref factory object.
+//	 * @return true if preference was really changed.
+//	 */
+//    public boolean setFactoryDouble(double v)
+//    {
+//		double cachedDouble = ((Double)factoryObj).doubleValue();
+//		boolean changed = false;
+//
+//		if (v != cachedDouble)
+//		{
+//			factoryObj = new Double(v);
+//			if (prefs != null)
+//			{
+//				prefs.putDouble(name, v);
+//				if (doFlushing) flushOptions(prefs); else
+//					queueForFlushing.add(prefs);
+//			}
+//			changed = true;
+//		}
+//		return (changed);
+//    }
 
     /**
 	 * Method to set a new double value on this Pref object.
@@ -712,6 +715,7 @@ public class Pref
 	 */
 	public boolean setDouble(double v)
 	{
+        checkModify();
 		double cachedDouble = ((Double)cachedObj).doubleValue();
 		boolean changed = false;
 
@@ -736,6 +740,7 @@ public class Pref
 	 */
 	public void setString(String str)
 	{
+        checkModify();
 		String cachedString = (String)cachedObj;
 		if (!str.equals(cachedString))
 		{
@@ -749,6 +754,11 @@ public class Pref
 			}
 		}
 	}
+    
+    private void checkModify() {
+//        if (Job.getDebug() && Job.getRunningJob() != null)
+//            System.out.println(getPrefName() + " is modified in " + Job.getRunningJob());
+    }
 
     private static int numStrings;
     private static int lenStrings;

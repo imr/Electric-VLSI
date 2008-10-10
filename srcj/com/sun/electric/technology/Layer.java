@@ -1064,11 +1064,15 @@ public class Layer
         thickness = DBMath.round(thickness);
         distance = DBMath.round(distance);
         // We don't call setDistance and setThickness directly here due to reflection code.
-        getDoublePref("Distance", layer3DDistancePrefs, distance).setFactoryDouble(distance);
-		getDoublePref("Thickness", layer3DThicknessPrefs, thickness).setFactoryDouble(thickness);
+        getDoublePref("Distance", layer3DDistancePrefs, distance);
+		getDoublePref("Thickness", layer3DThicknessPrefs, thickness);
         if (mode != null)
-            setTransparencyMode(mode);
-        setTransparencyFactor(factor);
+            getStringPref("3DTransparencyMode", layer3DTransModePrefs, mode);
+        getDoublePref("3DTransparencyFactor", layer3DTransFactorPrefs, factor);
+//        getDoublePref("Distance", layer3DDistancePrefs, distance).setFactoryDouble(distance);
+//		getDoublePref("Thickness", layer3DThicknessPrefs, thickness).setFactoryDouble(thickness);
+//            setTransparencyMode(mode);
+//        setTransparencyFactor(factor);
     }
 
     /**
