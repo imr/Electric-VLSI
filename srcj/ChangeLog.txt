@@ -2,7 +2,7 @@
 
 NOTE: Please place changes under the version that will be released next.
 
-************************* Version 8.08i: ******************************
+************************* Version 8.08j: ******************************
 
 BUG: (10/11/08, DN) Cannot change cell view (Bug #1880).
 FIX: Don't clear technology of cell in ViewChanges.ChangeCellView.doIt() .
@@ -22,6 +22,8 @@ IMP: (10/8/08, GVG) Add well arcs to technologies (part of Bug #1910)
 BUG: (10/8/08, RK) NCC runs slow on fastprox (Bug #1908).
 FIX: Fixed performance bugs that become evident when instances have 
      46,000 Exports.
+
+************************* Version 8.08i: ******************************
 
 BUG: (10/7/08, SMR) ERC regressions fail and crash (Bug #1905).
 FIX: Fixed dependency on user interface and updated expected results.
