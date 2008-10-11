@@ -1137,7 +1137,8 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
     /**
      * This method generates a DRC job from the GUI or for a bash script.
      */
-    public static void checkDRCHierarchically(Cell cell, Rectangle2D bounds, GeometryHandler.GHMode mode, boolean onlyArea)
+    public static void checkDRCHierarchically(Cell cell, List<Geometric> objs, Rectangle2D bounds,
+                                              GeometryHandler.GHMode mode, boolean onlyArea)
     {
         if (cell == null) return;
         boolean isLayout = true; // hierarchical check of layout by default
@@ -1147,7 +1148,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
 			isLayout = false;
 
         if (mode == null) mode = GeometryHandler.GHMode.ALGO_SWEEP;
-        new CheckDRCHierarchically(cell, isLayout, bounds, mode, onlyArea);
+        new CheckDRCHierarchically(cell, isLayout, objs, bounds, mode, onlyArea);
     }
 
 	/**
@@ -1179,6 +1180,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
 		Rectangle2D bounds;
         private GeometryHandler.GHMode mergeMode; // to select the merge algorithm
         private boolean onlyArea;
+        private Geometric[] geoms;
 
         /**
          * Check bounds within cell. If bounds is null, check entire cell.
@@ -1186,13 +1188,19 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
          * @param layout
          * @param bounds
          */
-		protected CheckDRCHierarchically(Cell cell, boolean layout, Rectangle2D bounds, GeometryHandler.GHMode mode,
+		protected CheckDRCHierarchically(Cell cell, boolean layout, List<Geometric> objs,
+                                         Rectangle2D bounds, GeometryHandler.GHMode mode,
                                          boolean onlyA)
 		{
 			super(cell, tool, Job.Priority.USER, layout);
 			this.bounds = bounds;
             this.mergeMode = mode;
             this.onlyArea = onlyA;
+            if (objs != null)
+            {
+                this.geoms = new Geometric[objs.size()];
+                objs.toArray(this.geoms);
+            }
             startJob();
 		}
 
@@ -1202,9 +1210,9 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
             ErrorLogger errorLog = getDRCErrorLogger(isLayout, false, null);
             checkNetworks(errorLog, cell, isLayout);
             if (isLayout)
-                Quick.checkDesignRules(errorLog, cell, null, null, bounds, this, mergeMode, onlyArea);
+                Quick.checkDesignRules(errorLog, cell, geoms, null, bounds, this, mergeMode, onlyArea);
             else
-                Schematic.doCheck(errorLog, cell, null);
+                Schematic.doCheck(errorLog, cell, geoms);
             long endTime = System.currentTimeMillis();
             int errorCount = errorLog.getNumErrors();
             int warnCount = errorLog.getNumWarnings();

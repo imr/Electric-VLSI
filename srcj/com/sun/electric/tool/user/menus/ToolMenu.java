@@ -167,13 +167,14 @@ public class ToolMenu {
                     }
                     else
                     {
-                        DRC.checkDRCHierarchically(cell, null, GeometryHandler.GHMode.ALGO_SWEEP, false);
+                        DRC.checkDRCHierarchically(cell, null, null, GeometryHandler.GHMode.ALGO_SWEEP, false);
                     }
                 }},
-		        new EMenuItem("Check _Selection Area Hierarchically") { public void run() {
+		        new EMenuItem("Check _Selection Hierarchically") { public void run() {
                     EditWindow_ wnd = Job.getUserInterface().getCurrentEditWindow_();
                     if (wnd == null) return;
-                    DRC.checkDRCHierarchically(wnd.getCell(), wnd.getHighlightedArea(), GeometryHandler.GHMode.ALGO_SWEEP, false); }},
+                    DRC.checkDRCHierarchically(wnd.getCell(), wnd.getHighlightedEObjs(true, true), 
+                            wnd.getHighlightedArea(), GeometryHandler.GHMode.ALGO_SWEEP, false); }},
                 new EMenuItem("Check Area _Coverage") { public void run() {
                     LayerCoverageTool.layerCoverageCommand(WindowFrame.needCurCell(), GeometryHandler.GHMode.ALGO_SWEEP, true); }},
                 new EMenuItem("_List Layer Coverage on Cell") { public void run() {

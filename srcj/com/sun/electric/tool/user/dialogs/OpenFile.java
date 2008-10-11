@@ -24,7 +24,6 @@
 package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.Client;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.LibDirs;
 import com.sun.electric.tool.user.User;

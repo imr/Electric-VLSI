@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08j: ******************************
 
+BUG: (10/10/08, GVG) DRC of a cell should also check the
+upper levels where the current cell is used (Bug #1907)
+FIX: DRC select option picks selected objects instead of using bounding box.
+
 BUG: (10/11/08, DN) Cannot change cell view (Bug #1880).
 FIX: Don't clear technology of cell in ViewChanges.ChangeCellView.doIt() .
 
