@@ -4,7 +4,7 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08j: ******************************
 
-IMP: (10/2/08, SMR) Added multi-processor speed-up to "ERC Well Check" (Bug #1899).
+IMP/MAN: (10/2/08, SMR) Added multi-processor speed-up to "ERC Well Check" (Bug #1899).
 
 BUG: (10/13/08, SMR) Well arcs are not drawn at some scales (Bug #1911).
 FIX: In VectorCache.drawArc(), do not treat well layers specially when they are
