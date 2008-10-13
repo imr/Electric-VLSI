@@ -640,12 +640,15 @@ public class Verilog extends Topology
 		}
 
 		// add in any user-specified declarations and code
-		first = includeTypedCode(cell, VERILOG_DECLARATION_KEY, "declarations");
-		first |= includeTypedCode(cell, VERILOG_CODE_KEY, "code");
-		if (!first)
-			printWriter.println("  /* automatically generated Verilog */");
+        if (!Simulation.getVerilogStopAtStandardCells()) {
+            // STA does not like general verilog code (like and #delay out ina inb etc)
+            first = includeTypedCode(cell, VERILOG_DECLARATION_KEY, "declarations");
+		    first |= includeTypedCode(cell, VERILOG_CODE_KEY, "code");
+		    if (!first)
+			    printWriter.println("  /* automatically generated Verilog */");
+        }
 
-		// accumulate port connectivity information for port directional consistency check
+        // accumulate port connectivity information for port directional consistency check
 		Map<Network,List<Export>> instancePortsOnNet = new HashMap<Network,List<Export>>();
 
 		// look at every node in this cell
