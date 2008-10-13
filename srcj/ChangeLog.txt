@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08j: ******************************
 
+BUG: (10/13/08, SMR) Crash deleting export when editing down-in-place (Bug #1913).
+FIX: In Clipboard.getPasteBounds(), use proper object for a displayed object.
+
 BUG: (10/13/08, SMR) "Duplicate Cell" dialog makes it hard to remove the default
      "NEW" appended to the cell name (Bug #1915).
 FIX: The "NEW" is initially highlighted, making it easy to replace.

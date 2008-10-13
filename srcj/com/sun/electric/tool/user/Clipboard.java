@@ -1143,7 +1143,8 @@ public class Clipboard
 		// figure out lower-left corner and upper-rigth corner of this collection of objects
 		for(DisplayedText dt : textList)
 		{
-			Poly poly = clipCell.computeTextPoly(wnd, dt.getVariableKey());
+//			Poly poly = clipCell.computeTextPoly(wnd, dt.getVariableKey());
+			Poly poly = dt.getElectricObject().computeTextPoly(wnd, dt.getVariableKey());
 			Rectangle2D bounds = poly.getBounds2D();
 
 			if (llcorner == null) {
