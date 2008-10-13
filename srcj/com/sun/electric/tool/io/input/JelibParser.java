@@ -1507,9 +1507,10 @@ public class JelibParser
 		String cellName;
 		int commaPos;
 
+        if (piece.length() == 0)
+            return null;
 		if (revision >= 1)
 			piece = unQuote(piece);
-
 		switch (varType)
 		{
 			case 'B':		// Boolean

@@ -1207,8 +1207,12 @@ public class ELIB extends Output
             int len = points.length * 2;
             Float [] newPoints = new Float[len];
             for(int j=0; j<points.length; j++) {
-                newPoints[j*2] = new Float(points[j].getLambdaX());
-                newPoints[j*2+1] = new Float(points[j].getLambdaY());
+                if (points[j] != null) {
+                    newPoints[j*2] = new Float(points[j].getLambdaX());
+                    newPoints[j*2+1] = new Float(points[j].getLambdaY());
+                } else {
+                    newPoints[j*2] = newPoints[j*2+1] = Float.valueOf(Float.NaN);
+                }
             }
             varObj = newPoints;
         } else if (varObj instanceof EPoint) {

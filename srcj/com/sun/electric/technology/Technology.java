@@ -3462,7 +3462,7 @@ public class Technology implements Comparable<Technology>, Serializable
 					int startPoint = 0;
 					for(int i=1; i<outline.length; i++)
 					{
-						if (i == outline.length-1 ||
+						if (i == outline.length-1 || outline[i] == null ||
 							(i-startPoint > 0 && outline[i].getX() == outline[i-1].getX() && outline[i].getY() == outline[i-1].getY()))
 						{
 							if (i == outline.length-1) i++;
@@ -4546,7 +4546,7 @@ public class Technology implements Comparable<Technology>, Serializable
 				{
 					for(int i=1; i<outline.length; i++)
 					{
-						if (outline[i].getX() == outline[i-1].getX() && outline[i].getY() == outline[i-1].getY())
+						if (outline[i] == null || outline[i].getX() == outline[i-1].getX() && outline[i].getY() == outline[i-1].getY())
 						{
 							endPortPoly = i;
 							break;

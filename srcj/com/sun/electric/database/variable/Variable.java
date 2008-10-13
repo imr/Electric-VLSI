@@ -408,7 +408,7 @@ public class Variable implements Serializable
         type = (byte)(type & ~ARRAY);
         if (type == CODE) return false;
         Object[] valueArr = (Object[])value;
-        if (type >= STRING && type <= EPOINT) {
+        if (type >= STRING && type <= BOOLEAN) {
             for (Object o: valueArr) {
                 if (o == null) return false;
             }

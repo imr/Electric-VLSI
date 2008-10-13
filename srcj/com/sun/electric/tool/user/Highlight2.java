@@ -408,7 +408,7 @@ public abstract class Highlight2 implements Cloneable{
     				{
     					for(int i=1; i<numPoints; i++)
     					{
-    						if (outline[i].getX() == outline[i-1].getX() && outline[i].getY() == outline[i-1].getY())
+    						if (outline[i] == null || outline[i].getX() == outline[i-1].getX() && outline[i].getY() == outline[i-1].getY())
     						{
     							whole = false;
     							break;

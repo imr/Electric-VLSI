@@ -1309,7 +1309,8 @@ public abstract class LibraryFiles extends Input
                         for(int k=0; k<newLength; k++) {
                             double oldX = outline[k*2].doubleValue()/lam;
                             double oldY = outline[k*2+1].doubleValue()/lam;
-                            newOutline[k] = new EPoint(oldX, oldY);
+                            if (!Double.isNaN(oldX) && !Double.isNaN(oldY))
+                                newOutline[k] = new EPoint(oldX, oldY);
                         }
                         var = var.withObject(newOutline);
                     }

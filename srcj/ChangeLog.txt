@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08j: ******************************
 
+IMP: (10/13/08, DN) EPoint[] variables can't contain nulls (Bug #1901).
+FIX: In database.Variable and in readers/writers.
+
 BUG: (10/10/08, GVG) DRC of a cell should also check the
 upper levels where the current cell is used (Bug #1907)
 FIX: DRC select option picks selected objects instead of using bounding box.
