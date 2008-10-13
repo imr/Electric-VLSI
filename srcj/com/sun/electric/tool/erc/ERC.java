@@ -28,15 +28,15 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.tool.Tool;
 
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * This is the Electrical Rule Checker tool.
  */
 public class ERC extends Tool
 {
-
-	/** the ERC tool. */		protected static ERC tool = new ERC();
-	/** Pref map for arc antenna ratio. */		private static HashMap<ArcProto,Pref> defaultAntennaRatioPrefs = new HashMap<ArcProto,Pref>();
+	/** the ERC tool. */					protected static ERC tool = new ERC();
+	/** Pref map for arc antenna ratio. */	private static Map<ArcProto,Pref> defaultAntennaRatioPrefs = new HashMap<ArcProto,Pref>();
 
 	/**
 	 * The constructor sets up the ERC tool.
@@ -113,6 +113,24 @@ public class ERC extends Tool
 	 * @return true if ERC should check that all P-Well contacts connect to ground, by default.
 	 */
 	public static boolean isFactoryMustConnectPWellToGround() { return cacheMustConnectPWellToGround.getBooleanFactoryValue(); }
+
+	private static Pref cacheParallelWellAnalysis = Pref.makeBooleanPref("ParallelWellAnalysis", ERC.tool.prefs, true);
+	/**
+	 * Method to tell whether ERC should do well analysis using multiple processors.
+	 * The default is "true".
+	 * @return true if ERC should do well analysis using multiple processors.
+	 */
+	public static boolean isParallelWellAnalysis() { return cacheParallelWellAnalysis.getBoolean(); }
+	/**
+	 * Method to set whether ERC should do well analysis using multiple processors.
+	 * @param on true if ERC should do well analysis using multiple processors.
+	 */
+	public static void setParallelWellAnalysis(boolean on) { cacheParallelWellAnalysis.setBoolean(on); }
+	/**
+	 * Method to tell whether ERC should do well analysis using multiple processors, by default.
+	 * @return true if ERC should do well analysis using multiple processors, by default.
+	 */
+	public static boolean isFactoryParallelWellAnalysis() { return cacheParallelWellAnalysis.getBooleanFactoryValue(); }
 
 	private static Pref cacheNWellCheck = Pref.makeIntPref("NWellCheck", ERC.tool.prefs, 0);
 	/**
