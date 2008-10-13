@@ -2222,7 +2222,7 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 				}
 			}
 			if (cell == null) cell = cellGroup.getCells().next();
-            CellMenu.duplicateCell(cell, true);
+			new CellMenu.NewCellName(true, cell);
 		}
 
 		private void editCellAction(boolean newWindow)
@@ -2385,7 +2385,7 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
 		private void duplicateCellAction()
 		{
 			Cell cell = (Cell)getCurrentlySelectedObject(0);
-            CellMenu.duplicateCell(cell, false);
+			new CellMenu.NewCellName(false, cell);
 		}
 
 		private void deleteCellAction()

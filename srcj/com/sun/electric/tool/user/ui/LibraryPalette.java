@@ -225,7 +225,7 @@ public class LibraryPalette extends JPanel implements DatabaseChangeListener, Mo
     private void selectedCellDuplicate() {
         Cell cell = (Cell)cellJList.getSelectedValue();
         if (cell == null) return;
-        CellMenu.duplicateCell(cell, false);
+		new CellMenu.NewCellName(false, cell);
         cellJList.clearSelection();
     }
     private void selectedCellRename() {

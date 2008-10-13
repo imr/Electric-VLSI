@@ -48,6 +48,7 @@ import com.sun.electric.tool.user.dialogs.CellBrowser;
 import com.sun.electric.tool.user.dialogs.CellLists;
 import com.sun.electric.tool.user.dialogs.CellProperties;
 import com.sun.electric.tool.user.dialogs.CrossLibCopy;
+import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.NewCell;
 import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -56,15 +57,26 @@ import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.swing.JButton;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JTextField;
 import javax.swing.KeyStroke;
+import javax.swing.SwingConstants;
 
 /**
  * Class to handle the commands in the "Cell" pulldown menu.
@@ -528,25 +540,98 @@ public class CellMenu {
 	{
 		Cell curCell = WindowFrame.needCurCell();
 		if (curCell == null) return;
-		duplicateCell(curCell, false);
+		new CellMenu.NewCellName(false, curCell);
 	}
 
-	public static void duplicateCell(Cell cell, boolean allInGroup)
+	public static class NewCellName extends EDialog
 	{
-		String prompt = "Name of duplicated cell";
-		if (allInGroup) prompt += " group";
-		String newName = JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(),
-			prompt, cell.getName() + "NEW");
-		if (newName == null) return;
-		Cell already = cell.getLibrary().findNodeProto(newName);
-		if (already != null && already.getView() == cell.getView())
+		private JTextField cellName;
+		private Cell cell;
+		private boolean allInGroup;
+
+		/** Creates new form New Cell Name */
+		public NewCellName(boolean allInGroup, Cell cell)
 		{
-			int response = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
-				"Cell " + newName + " already exists.  Make this a new version?", "Confirm duplication",
-				JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, new String[] {"Yes", "Cancel"}, "Yes");
-			if (response != 0) return;
+			super(TopLevel.getCurrentJFrame(), true);
+			this.allInGroup = allInGroup;
+			this.cell = cell;
+
+	        setTitle(allInGroup ? "New Group Name" : "New Cell Name");
+	        setName("");
+	        addWindowListener(new WindowAdapter() {
+	            public void windowClosing(WindowEvent evt) { closeDialog(); }
+	        });
+	        getContentPane().setLayout(new GridBagLayout());
+
+			String prompt = "Name of duplicated cell";
+			if (allInGroup) prompt += " group";
+	        JLabel lab = new JLabel(prompt + ":");
+	        lab.setHorizontalAlignment(SwingConstants.LEFT);
+	        GridBagConstraints gbc = new GridBagConstraints();
+	        gbc.gridx = 0;   gbc.gridy = 0;
+	        gbc.gridwidth = 2;
+	        gbc.anchor = GridBagConstraints.WEST;
+	        gbc.insets = new Insets(4, 4, 4, 4);
+	        getContentPane().add(lab, gbc);
+
+	        String oldCellName = cell.getName();
+	        String newName = oldCellName + "NEW";
+	        cellName = new JTextField(newName);
+	        cellName.setSelectionStart(oldCellName.length());
+	        cellName.setSelectionEnd(newName.length());
+	        cellName.setColumns(Math.max(20, newName.length()));
+	        cellName.addActionListener(new ActionListener() {
+	            public void actionPerformed(ActionEvent evt) { ok(); }
+	        });
+	        gbc = new GridBagConstraints();
+	        gbc.gridx = 0;   gbc.gridy = 1;
+	        gbc.gridwidth = 2;
+	        gbc.fill = GridBagConstraints.HORIZONTAL;
+	        gbc.anchor = GridBagConstraints.WEST;
+	        gbc.weightx = 1.0;
+	        gbc.insets = new Insets(4, 4, 4, 4);
+	        getContentPane().add(cellName, gbc);
+
+	        JButton cancel = new JButton("Cancel");
+	        cancel.addActionListener(new ActionListener() {
+	            public void actionPerformed(ActionEvent evt) { closeDialog(); }
+	        });
+	        gbc = new GridBagConstraints();
+	        gbc.gridx = 0;   gbc.gridy = 2;
+	        gbc.insets = new Insets(4, 4, 4, 4);
+	        getContentPane().add(cancel, gbc);
+
+	        JButton ok = new JButton("OK");
+	        ok.addActionListener(new ActionListener() {
+	            public void actionPerformed(ActionEvent evt) { ok(); }
+	        });
+	        gbc = new GridBagConstraints();
+	        gbc.gridx = 1;   gbc.gridy = 2;
+	        gbc.insets = new Insets(4, 4, 4, 4);
+	        getContentPane().add(ok, gbc);
+			getRootPane().setDefaultButton(ok);
+
+	        pack();
+			finishInitialization();
+			setVisible(true);
+	    }
+
+		protected void escapePressed() { closeDialog(); }
+
+		private void ok()
+		{
+	    	String newName = cellName.getText();
+			closeDialog();
+			Cell already = cell.getLibrary().findNodeProto(newName);
+			if (already != null && already.getView() == cell.getView())
+			{
+				int response = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
+					"Cell " + newName + " already exists.  Make this a new version?", "Confirm duplication",
+					JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, new String[] {"Yes", "Cancel"}, "Yes");
+				if (response != 0) return;
+			}
+			new CellChangeJobs.DuplicateCell(cell, newName, allInGroup);
 		}
-		new CellChangeJobs.DuplicateCell(cell, newName, allInGroup);
 	}
 
 	/**
