@@ -60,7 +60,6 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.Color;
 import java.awt.Point;
@@ -573,7 +572,6 @@ public class VectorCache {
 
             vcg.updateExports();
 
-//System.out.println("CACHING CELL "+cell +" WITH ORIENTATION "+orientationName);
             for (VectorManhattanBuilder b: boxBuilders)
                 b.clear();
             for (VectorManhattanBuilder b: pureBoxBuilders)
@@ -720,9 +718,9 @@ public class VectorCache {
             Collections.sort(topOnlyShapes, shapeByLayer);
         }
 
-        private void clearTopOnlyShapes() {
-            topOnlyShapes = null;
-        }
+//        private void clearTopOnlyShapes() {
+//            topOnlyShapes = null;
+//        }
 	}
 
     /** Creates a new instance of VectorCache */
@@ -828,7 +826,6 @@ public class VectorCache {
         addToThisCell.add(new VectorLine(lX, hY, lX, lY, 0, null, instanceGraphics));
 	}
 
-//	private static final Variable.Key NCCKEY = Variable.newKey("ATTR_NCC");
     private static final PrimitivePortId busPinPortId = Schematics.tech().busPinNode.getPort(0).getId();
 
 	/**
@@ -1153,7 +1150,8 @@ public class VectorCache {
 		// draw the arc
 		ArcProto ap = ai.getProto();
 		Technology tech = ap.getTechnology();
-		drawPolys(tech.getShapeOfArc(ai), trans, vc, false, VectorText.TEXTTYPEARC, false);
+		boolean pureLayer = (ap.getNumArcLayers() == 1);
+		drawPolys(tech.getShapeOfArc(ai), trans, vc, false, VectorText.TEXTTYPEARC, pureLayer);
 		drawPolys(ai.getDisplayableVariables(dummyWnd), trans, vc, false, VectorText.TEXTTYPEARC, false);
 	}
 
@@ -1217,12 +1215,6 @@ public class VectorCache {
                     Technology tech = layer.getTechnology();
                     if (tech != null && vc.vcg != null && tech.getTechName().equals(vc.vcg.cellBackup.cellRevision.d.techId.techName))
                         layerIndex = layer.getIndex();
-//					Layer.Function fun = layer.getFunction();
-//					if (!pureLayer && fun.isSubstrate())
-//					{
-//						// substrate layers are made smaller so that they "greek" sooner
-//                        minSize /= 10;
-//					}
 				}
                 if (layerIndex >= 0) {
                     putBox(layerIndex, pureLayer ? pureBoxBuilders : boxBuilders, lX, lY, hX, hY);
