@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08j: ******************************
 
+BUG: (10/14/08, SMR) Cross-library copy doesn't always copy subcells
+     if there is a naming conflict (Bug #1920).
+FIX: In CellChangeJobs.copyRecursively() track cell naming conflicts and
+     add a parameter to Cell.copyNodeProto() which uses the map properly.
+
 BUG: (10/14/08, SMR) Verilog netlister is sensitive to ascending/descending
      busses preference (Bug #1919).
 FIX: Improved Topology.java to evaluate bus directionality correctly.

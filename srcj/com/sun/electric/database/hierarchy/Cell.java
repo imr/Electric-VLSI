@@ -390,7 +390,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
                 return;
             }
 			// not set: see if it is obvious
-            ArrayList<CellName> cellNames = new ArrayList<CellName>();
+            List<CellName> cellNames = new ArrayList<CellName>();
 //            String bestName = null;
             Cell mainSchematic = null;
 			for (Cell cell: cells) {
@@ -448,12 +448,12 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
     /** An array of Exports on the Cell by chronological index. */  private Export[] chronExports = new Export[2];
 	/** A sorted array of Exports on the Cell. */					private Export[] exports = NULL_EXPORT_ARRAY;
     /** Cell's topology. */                                         private final Topology topology = new Topology(this, false);
-	/** The Cell's essential-bounds. */								private final ArrayList<NodeInst> essenBounds = new ArrayList<NodeInst>();
-    /** Chronological list of NodeInsts in this Cell. */            private final ArrayList<NodeInst> chronNodes = new ArrayList<NodeInst>();
+	/** The Cell's essential-bounds. */								private final List<NodeInst> essenBounds = new ArrayList<NodeInst>();
+    /** Chronological list of NodeInsts in this Cell. */            private final List<NodeInst> chronNodes = new ArrayList<NodeInst>();
     /** Set containing nodeIds of expanded cells. */                private final BitSet expandedNodes = new BitSet();
-	/** A list of NodeInsts in this Cell. */						private final ArrayList<NodeInst> nodes = new ArrayList<NodeInst>();
+	/** A list of NodeInsts in this Cell. */						private final List<NodeInst> nodes = new ArrayList<NodeInst>();
     /** Counts of NodeInsts for each CellUsage. */                  private int[] cellUsages = NULL_INT_ARRAY;
-	/** A map from canonic String to Integer maximal numeric suffix */private final HashMap<String,MaxSuffix> maxSuffix = new HashMap<String,MaxSuffix>();
+	/** A map from canonic String to Integer maximal numeric suffix */private final Map<String,MaxSuffix> maxSuffix = new HashMap<String,MaxSuffix>();
 	/** The bounds of the Cell. */									private ERectangle cellBounds;
 	/** Whether the bounds need to be recomputed.
      * BOUNDS_CORRECT - bounds are correct.
@@ -635,13 +635,32 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * Method to copy a Cell to any Library.
 	 * @param fromCell the Cell to copy.
 	 * @param toLib the Library to copy it to.
-	 * If the destination library is the same as the original Cell's library, a new version is made.
 	 * @param toName the name of the Cell in the destination Library.
-	 * @param useExisting true to use existing Cell instances if they exist in the destination Library.
+	 * If the destination library is the same as the original Cell's library and the new name is the same
+	 * as the old name, a new version is made.
+	 * @param useExisting true to use existing subcell instances if they exist in the destination Library.
 	 * @return the new Cell in the destination Library.
 	 */
 	public static Cell copyNodeProto(Cell fromCell, Library toLib, String toName, boolean useExisting)
 	{
+		return copyNodeProto(fromCell, toLib, toName, useExisting, null);
+	}
+
+	/**
+	 * Method to copy a Cell to any Library.
+	 * @param fromCell the Cell to copy.
+	 * @param toLib the Library to copy it to.
+	 * @param toName the name of the Cell in the destination Library.
+	 * If the destination library is the same as the original Cell's library and the new name is the same
+	 * as the old name, a new version is made.
+	 * @param useExisting true to use existing subcell instances if they exist in the destination Library.
+	 * @param cellsToUse a substitution map from cell names to existing cells.
+	 * The map takes source cell names (of the form "library:cell{view}") and returns a cell in the destination
+	 * library that has been created for that source cell.  The map may be null.
+	 * @return the new Cell in the destination Library.
+	 */
+	public static Cell copyNodeProto(Cell fromCell, Library toLib, String toName, boolean useExisting, Map<String,Cell> cellsToUse)
+	{	
 		// check for validity
 		if (fromCell == null) return null;
 		if (toLib == null) return null;
@@ -662,12 +681,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		if (toLib == fromCell.getLibrary()) destLib = null;
 
 		// mark the proper prototype to use for each node
-		HashMap<NodeInst,NodeProto> nodePrototypes = new HashMap<NodeInst,NodeProto>();
-//		for(Iterator<NodeInst> it = fromCell.getNodes(); it.hasNext(); )
-//		{
-//			NodeInst ni = it.next();
-//			nodePrototypes.put(ni, ni.getProto());
-//		}
+		Map<NodeInst,NodeProto> nodePrototypes = new HashMap<NodeInst,NodeProto>();
 
 		// if doing a cross-library copy and can use existing ones from new library, do it
 		if (destLib != null)
@@ -692,12 +706,16 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 
 				// search for cell with same name and view in new library
 				Cell lnt = null;
-				for(Iterator<Cell> cIt = toLib.getCells(); cIt.hasNext(); )
+				if (cellsToUse != null) lnt = cellsToUse.get(niProto.libDescribe());
+				if (lnt == null)
 				{
-					lnt = cIt.next();
-					if (lnt.getName().equalsIgnoreCase(niProto.getName()) &&
-						lnt.getView() == niProto.getView()) break;
-					lnt = null;
+					for(Iterator<Cell> cIt = toLib.getCells(); cIt.hasNext(); )
+					{
+						lnt = cIt.next();
+						if (lnt.getName().equalsIgnoreCase(niProto.getName()) &&
+							lnt.getView() == niProto.getView()) break;
+						lnt = null;
+					}
 				}
 				if (lnt == null) continue;
 
@@ -708,11 +726,11 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 					PortInst pi = pIt.next();
 					PortProto pp = pi.getPortProto();
 					PortProto ppt = lnt.findPortProto(pp.getName());
-					if (ppt != null)
-					{
-						// the connections must match, too
+//					if (ppt != null)
+//					{
+//						// the connections must match, too
 //						if (pp->connects != ppt->connects) ppt = null;
-					}
+//					}
 					if (ppt == null)
 					{
 						System.out.println("Cannot use subcell " + lnt.noLibDescribe() + " in " + destLib +
@@ -740,7 +758,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * @return the new Cell in the destination Library.
 	 */
 	public static Cell copyNodeProtoUsingMapping(Cell fromCell, Library toLib, String toName,
-		HashMap<NodeInst,NodeProto> nodePrototypes)
+		Map<NodeInst,NodeProto> nodePrototypes)
 	{
 		// create the nodeproto
 		String cellName = toName;
@@ -753,7 +771,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		newCell.lowLevelSetUserbits(fromCell.lowLevelGetUserbits());
 
 		// copy nodes
-		HashMap<NodeInst,NodeInst> newNodes = new HashMap<NodeInst,NodeInst>();
+		Map<NodeInst,NodeInst> newNodes = new HashMap<NodeInst,NodeInst>();
 		for(Iterator<NodeInst> it = fromCell.getNodes(); it.hasNext(); )
 		{
 			// create the new nodeinst
@@ -855,12 +873,10 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 
 			// copy miscellaneous information
 			ppt.copyStateBits(pp);
-//			ppt.lowLevelSetUserbits(pp.lowLevelGetUserbits());
 			ppt.copyTextDescriptorFrom(pp, Export.EXPORT_NAME);
 		}
 
 		// copy cell variables
-//		newCell.copyVarsFrom(fromCell);
         for (Iterator<Variable> it = fromCell.getParametersAndVariables(); it.hasNext(); ) {
             Variable fromVar = it.next();
             if (newCell.isParam(fromVar.getKey())) {
@@ -884,7 +900,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * Method to replace subcells of a Cell by cells with similar name in Cell's  	 */
     public void replaceSubcellsByExisting() {
         // scan all subcells to see if they are found in the new library
-		HashMap<NodeInst,Cell> nodePrototypes = new HashMap<NodeInst,Cell>();
+		Map<NodeInst,Cell> nodePrototypes = new HashMap<NodeInst,Cell>();
         for(Iterator<NodeInst> it = getNodes(); it.hasNext(); ) {
             NodeInst ni = it.next();
             if (!ni.isCellInstance()) continue;
@@ -907,10 +923,10 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
                 PortInst pi = pIt.next();
                 PortProto pp = pi.getPortProto();
                 PortProto ppt = lnt.findPortProto(pp.getName());
-                if (ppt != null) {
-                    // the connections must match, too
+//                if (ppt != null) {
+//                    // the connections must match, too
 //						if (pp->connects != ppt->connects) ppt = null;
-                }
+//                }
                 if (ppt == null) {
                     System.out.println("Cannot use subcell " + lnt.noLibDescribe() + " in " + lib +
                             ": exports don't match");
@@ -1982,7 +1998,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 */
 	public synchronized Iterator<NodeInst> getNodes()
 	{
-        ArrayList<NodeInst> nodesCopy = new ArrayList<NodeInst>(nodes);
+        List<NodeInst> nodesCopy = new ArrayList<NodeInst>(nodes);
 		return nodesCopy.iterator();
 	}
 
@@ -1992,7 +2008,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 */
 	public synchronized Iterator<Nodable> getNodables()
 	{
-        ArrayList<Nodable> nodesCopy = new ArrayList<Nodable>(nodes);
+        List<Nodable> nodesCopy = new ArrayList<Nodable>(nodes);
 		return nodesCopy.iterator();
 	}
 
@@ -2598,7 +2614,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             Cell higherCell = database.getCell(u.parentId);
 
             // collect the arcs attached to the connections to these port instance.
-            ArrayList<ArcInst> arcsToKill = new ArrayList<ArcInst>();
+            List<ArcInst> arcsToKill = new ArrayList<ArcInst>();
             for (Iterator<ArcInst> ait = higherCell.getArcs(); ait.hasNext(); ) {
                 ArcInst ai = ait.next();
                 PortInst tail = ai.getTailPortInst();
@@ -2608,7 +2624,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
                     arcsToKill.add(ai);
             }
             // collect reexports
-            HashSet<Export> higherExportsToKill = null;
+            Set<Export> higherExportsToKill = null;
             for (Export higherExport: higherCell.exports) {
                 PortInst pi = higherExport.getOriginalPort();
                 if (pi.getNodeInst().getProto() != this) continue;
@@ -2653,7 +2669,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         for (Iterator<CellUsage> cit = getUsagesOf(); cit.hasNext(); ) {
             CellUsage u = cit.next();
             Cell higherCell = database.getCell(u.parentId);
-            HashSet<Export> changedHigherExports = null;
+            Set<Export> changedHigherExports = null;
             // see reexports of these ports
             for (Export higherExport: higherCell.exports) {
                 PortInst pi = higherExport.getOriginalPort();
@@ -3335,7 +3351,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	public Variable getParameterOrVariable(Variable.Key key) {
 		checkExamine();
         if (key instanceof Variable.AttrKey) {
-            Variable param = getParameter((Variable.AttrKey)key);
+            Variable param = getParameter(key);
             if (param != null)
                 return param;
         }
@@ -3350,7 +3366,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	public Iterator<Variable> getParametersAndVariables() {
         if (getNumParameters() == 0)
             return getVariables();
-        ArrayList<Variable> allVars = new ArrayList<Variable>();
+        List<Variable> allVars = new ArrayList<Variable>();
         for (Iterator<Variable> it = getParameters(); it.hasNext(); )
             allVars.add(it.next());
         for (Iterator<Variable> it = getVariables(); it.hasNext(); )
@@ -3708,7 +3724,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 */
 	public Iterator<Cell> getVersions()
 	{
-		ArrayList<Cell> versions = new ArrayList<Cell>();
+		List<Cell> versions = new ArrayList<Cell>();
 		String protoName = getName();
 		View view = getView();
 		synchronized (lib.cells) {
@@ -4044,7 +4060,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 */
 	public void checkCellDates()
 	{
-		HashSet<Cell> cellsChecked = new HashSet<Cell>();
+		Set<Cell> cellsChecked = new HashSet<Cell>();
 		checkCellDate(getRevisionDate(), cellsChecked);
 	}
 
@@ -4053,7 +4069,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * @param rev_time the revision date of the top-level cell.
 	 * Nothing below it can be newer.
 	 */
-	private void checkCellDate(Date rev_time, HashSet<Cell> cellsChecked)
+	private void checkCellDate(Date rev_time, Set<Cell> cellsChecked)
 	{
 		for(Iterator<NodeInst> it = getNodes(); it.hasNext(); )
 		{
