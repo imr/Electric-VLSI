@@ -51,22 +51,21 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * This is the Simulation Interface tool.
  */
 public abstract class Topology extends Output
 {
-	/** top-level cell being processed */				protected Cell topCell;
+	/** top-level cell being processed */			protected Cell topCell;
 
-	/** HashMap of all CellTopologies */				private HashMap<String,CellNetInfo> cellTopos;
-	/** HashMap of all Cell names */					private HashMap<Cell,String> cellNameMap;
-														private HierarchyEnumerator.CellInfo lastInfo;
+	/** Map of all CellTopologies */				private Map<String,CellNetInfo> cellTopos;
+	/** Map of all Cell names */					private Map<Cell,String> cellNameMap;
+													private HierarchyEnumerator.CellInfo lastInfo;
 
 	/** Creates a new instance of Topology */
-	public Topology()
-	{
-	}
+	public Topology() {}
 
 	/**
 	 * Write cell to file
@@ -403,16 +402,16 @@ public abstract class Topology extends Output
 	{
 		private Cell cell;
 		private String paramName;
-		private HashMap<Network,CellSignal> cellSignals;
+		private Map<Network,CellSignal> cellSignals;
 		private List<CellSignal> cellSignalsSorted;
-		private List<CellAggregateSignal> cellAggretateSignals;
+		private List<CellAggregateSignal> cellAggregateSignals;
 		private Network pwrNet;
 		private Network gndNet;
 		private Netlist netList;
 
 		protected CellSignal getCellSignal(Network net) { return cellSignals.get(net); }
 		protected Iterator<CellSignal> getCellSignals() { return cellSignalsSorted.iterator(); }
-		protected Iterator<CellAggregateSignal> getCellAggregateSignals() { return cellAggretateSignals.iterator(); }
+		protected Iterator<CellAggregateSignal> getCellAggregateSignals() { return cellAggregateSignals.iterator(); }
 		protected String getParameterizedName() { return paramName; }
 		protected Network getPowerNet() { return pwrNet; }
 		protected Network getGroundNet() { return gndNet; }
@@ -433,8 +432,8 @@ public abstract class Topology extends Output
 //}
 //if (isAggregateNamesSupported())
 //{
-//	printWriter.println("** Have " + cni.cellAggretateSignals.size() + " aggregate signals:");
-//	for(CellAggregateSignal cas : cni.cellAggretateSignals)
+//	printWriter.println("** Have " + cni.cellAggregateSignals.size() + " aggregate signals:");
+//	for(CellAggregateSignal cas : cni.cellAggregateSignals)
 //	{
 //		printWriter.print("**   Name="+cas.name+", export="+cas.pp+" descending="+cas.descending);
 //		if (cas.indices != null)
@@ -502,10 +501,48 @@ public abstract class Topology extends Output
  			cni.cellSignals.put(net, cs);
 		}
 
-		// mark exported networks
-		for(Iterator<PortProto> it = cell.getPorts(); it.hasNext(); )
+		// look at all busses and mark directionality, first unnamed busses, then named ones
+		for(int j=0; j<2; j++)
 		{
-			Export pp = (Export)it.next();
+			for(Iterator<ArcInst> aIt = cell.getArcs(); aIt.hasNext(); )
+			{
+				ArcInst ai = aIt.next();
+				if (ai.getNameKey().isTempname())
+				{
+					// temp names are handled first, ignore them in pass 2
+					if (j != 0) continue;
+				} else
+				{
+					// real names are handled second, ignore them in pass 1
+					if (j == 0) continue;
+				}
+				int width = cni.netList.getBusWidth(ai);
+				if (width < 2) continue;
+				Network [] nets = new Network[width];
+				String [] netNames = new String[width];
+				for(int i=0; i<width; i++)
+				{
+					nets[i] = cni.netList.getNetwork(ai, i);
+					netNames[i] = null;
+					if (j != 0)
+					{
+						String preferredName = ai.getNameKey().subname(i).toString();
+						for(Iterator<String> nIt = nets[i].getNames(); nIt.hasNext(); )
+						{
+							String netName = nIt.next();
+							if (netName.equals(preferredName)) { netNames[i] = netName;   break; }
+						}
+					}
+					if (netNames[i] == null) netNames[i] = nets[i].getNames().next();
+				}
+				setBusDirectionality(nets, netNames, cni);
+			}
+		}
+
+		// mark exported networks and set their bus directionality
+		for(Iterator<Export> it = cell.getExports(); it.hasNext(); )
+		{
+			Export pp = it.next();
 
 			// mark every network on the bus (or just 1 network if not a bus)
 			int portWidth = cni.netList.getBusWidth(pp);
@@ -571,21 +608,20 @@ public abstract class Topology extends Output
 
 			if (portWidth <= 1) continue;
 			Network [] nets = new Network[portWidth];
+			String [] netNames = new String[portWidth];
 			for(int i=0; i<portWidth; i++)
+			{
 				nets[i] = cni.netList.getNetwork(pp, i);
-			setBusDirectionality(nets, cni);
-		}
-
-		// look at all busses and mark directionality
-		for(Iterator<ArcInst> aIt = cell.getArcs(); aIt.hasNext(); )
-		{
-			ArcInst ai = aIt.next();
-			int width = cni.netList.getBusWidth(ai);
-			if (width < 2) continue;
-			Network [] nets = new Network[width];
-			for(int i=0; i<width; i++)
-				nets[i] = cni.netList.getNetwork(ai, i);
-			setBusDirectionality(nets, cni);
+				String preferredName = pp.getNameKey().subname(i).toString();
+				netNames[i] = null;
+				for(Iterator<String> nIt = nets[i].getNames(); nIt.hasNext(); )
+				{
+					String netName = nIt.next();
+					if (netName.equals(preferredName)) { netNames[i] = netName;   break; }
+				}
+				if (netNames[i] == null) netNames[i] = nets[i].getNames().next();
+			}
+			setBusDirectionality(nets, netNames, cni);
 		}
 
 		// find power and ground
@@ -706,7 +742,7 @@ public abstract class Topology extends Output
 		if (isAggregateNamesSupported())
 		{
 			// organize by name and index order
-			cni.cellAggretateSignals = new ArrayList<CellAggregateSignal>();
+			cni.cellAggregateSignals = new ArrayList<CellAggregateSignal>();
 			int total = cni.cellSignalsSorted.size();
 			for(int i=0; i<total; i++)
 			{
@@ -768,19 +804,19 @@ public abstract class Topology extends Output
 						cas.signals[j-start] = csEnd;
 					}
 				}
-				cni.cellAggretateSignals.add(cas);
+				cni.cellAggregateSignals.add(cas);
 			}
 
 			// give all signals a safe name
-			for(CellAggregateSignal cas : cni.cellAggretateSignals)
+			for(CellAggregateSignal cas : cni.cellAggregateSignals)
 				cas.name = getSafeNetName(cas.name, true);
 
 			// make sure all names are unique
-			int numNameList = cni.cellAggretateSignals.size();
+			int numNameList = cni.cellAggregateSignals.size();
 			for(int i=1; i<numNameList; i++)
 			{
 				// single signal: give it that name
-				CellAggregateSignal cas = cni.cellAggretateSignals.get(i);
+				CellAggregateSignal cas = cni.cellAggregateSignals.get(i);
 
 				// see if the name clashes
 				for(int k=0; k<1000; k++)
@@ -790,7 +826,7 @@ public abstract class Topology extends Output
 					boolean found = false;
 					for(int j=0; j<i; j++)
 					{
-						CellAggregateSignal oCas = cni.cellAggretateSignals.get(j);
+						CellAggregateSignal oCas = cni.cellAggregateSignals.get(j);
 						if (ninName.equals(oCas.name)) { found = true;   break; }
 					}
 					if (!found)
@@ -802,7 +838,7 @@ public abstract class Topology extends Output
 			}
 
 			// put names back onto the signals
-			for(CellAggregateSignal cas : cni.cellAggretateSignals)
+			for(CellAggregateSignal cas : cni.cellAggregateSignals)
 			{
 				if (cas.low > cas.high)
 				{
@@ -828,7 +864,7 @@ public abstract class Topology extends Output
 				}
 			}
 
-			Collections.sort(cni.cellAggretateSignals, new SortAggregateNetsByName(isSeparateInputAndOutput()));
+			Collections.sort(cni.cellAggregateSignals, new SortAggregateNetsByName(isSeparateInputAndOutput()));
 		} else
 		{
 			// just get safe net names for all cell signals
@@ -841,7 +877,7 @@ public abstract class Topology extends Output
 		return cni;
 	}
 
-	private void setBusDirectionality(Network [] nets, CellNetInfo cni)
+	private void setBusDirectionality(Network [] nets, String [] netNames, CellNetInfo cni)
 	{
 		boolean upDir = false, downDir = false;
 		int last = 0;
@@ -850,16 +886,16 @@ public abstract class Topology extends Output
 		{
 			Network subNet = nets[i];
 			if (subNet == null) continue;
-			String firstName = subNet.getNames().next();
+			String netName = netNames[i];
 			int index = -1;
 			int charPos = 0;
 			for(;;)
 			{
-				charPos = firstName.indexOf('[', charPos);
+				charPos = netName.indexOf('[', charPos);
 				if (charPos < 0) break;
 				charPos++;
-				if (!TextUtils.isDigit(firstName.charAt(charPos))) continue;
-				index = TextUtils.atoi(firstName.substring(charPos));
+				if (!TextUtils.isDigit(netName.charAt(charPos))) continue;
+				index = TextUtils.atoi(netName.substring(charPos));
 				break;
 			}
 			if (index < 0) break;
@@ -990,12 +1026,10 @@ public abstract class Topology extends Output
 		if (canParameterizeNames() && no.isCellInstance())
 		{
 			// if there are parameters, append them to this name
-			HashMap<Variable.Key,Variable> paramValues = new HashMap<Variable.Key,Variable>();
+			Map<Variable.Key,Variable> paramValues = new HashMap<Variable.Key,Variable>();
 			for(Iterator<Variable> it = no.getDefinedParameters(); it.hasNext(); )
-//			for(Iterator<Variable> it = no.getVariables(); it.hasNext(); )
 			{
 				Variable var = it.next();
-//				if (!no.getNodeInst().isParam(var.getKey())) continue;
 				paramValues.put(var.getKey(), var);
 			}
 			for(Variable.Key key : paramValues.keySet())
@@ -1036,8 +1070,8 @@ public abstract class Topology extends Output
 
 	private static class NameMapGenerator extends HierarchyEnumerator.Visitor {
 
-		private HashMap<Cell,String> cellNameMap;
-		private HashMap<String,List<Cell>> cellNameMapReverse;
+		private Map<Cell,String> cellNameMap;
+		private Map<String,List<Cell>> cellNameMapReverse;
 		private boolean alwaysUseLibName;
 		private Topology topology;
 		private Cell topCell;
@@ -1171,7 +1205,7 @@ public abstract class Topology extends Output
 	/**
 	 * determine whether any cells have name clashes in other libraries
 	 */
-	private HashMap<Cell,String> makeCellNameMap(Cell cell)
+	private Map<Cell,String> makeCellNameMap(Cell cell)
 	{
 		NameMapGenerator gen = new NameMapGenerator(isLibraryNameAlwaysAddedToCellName(), this);
 		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, gen);

@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08j: ******************************
 
+BUG: (10/14/08, SMR) Verilog netlister is sensitive to ascending/descending
+     busses preference (Bug #1919).
+FIX: Improved Topology.java to evaluate bus directionality correctly.
+
 BUG: (10/13/08, SMR) Crash deleting export when editing down-in-place (Bug #1913).
 FIX: In Clipboard.getPasteBounds(), use proper object for a displayed object.
 

@@ -43,7 +43,6 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.EvalJavaBsh;
 import com.sun.electric.database.variable.CodeExpression;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
@@ -180,23 +179,6 @@ public class Verilog extends Topology
 		reservedWords.add("xnor");
 		reservedWords.add("xor");
 	}
-
-//	private static class PortDirs {
-//		private List<PortInst> inputs;
-//		private List<PortInst> outputs;
-//		private List<PortInst> bidirs;
-//		private PortDirs() {
-//			inputs = new ArrayList<PortInst>();
-//			outputs = new ArrayList<PortInst>();
-//			bidirs = new ArrayList<PortInst>();
-//		}
-//		public void add(PortInst pi) {
-//			PortCharacteristic type = pi.getPortProto().getCharacteristic();
-//			if (type == PortCharacteristic.IN && !inputs.contains(pi)) inputs.add(pi);
-//			if (type == PortCharacteristic.OUT && !outputs.contains(pi)) outputs.add(pi);
-//			if (type == PortCharacteristic.BIDIR && !bidirs.contains(pi)) bidirs.add(pi);
-//		}
-//	}
 
 	/** maximum size of output line */						private static final int MAXDECLARATIONWIDTH = 80;
 	/** name of inverters generated from negated wires */	private static final String IMPLICITINVERTERNODENAME = "Imp";
@@ -1297,7 +1279,6 @@ public class Verilog extends Topology
 			if (var == null) var = no.getParameter(varKey);
         }
 		if (var == null) return ""; 
-//    	return String.valueOf(context.evalVar(var));
 		String val = String.valueOf(context.evalVar(var));
 
 		// Semi-recursive call to search the value of a variable for a nested variable.
@@ -1859,7 +1840,6 @@ public class Verilog extends Topology
 	 * @return the name of the cell.
 	 */
 	private String getVerilogName(Cell cell) {
-//		final Verilog v = new Verilog();
         // this should mirror the code in parameterizedName(), minus the parameter stuff
         String uniqueCellName = getUniqueCellName(cell);
         if (uniqueCellName != null) return uniqueCellName;
