@@ -654,12 +654,14 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * If the destination library is the same as the original Cell's library and the new name is the same
 	 * as the old name, a new version is made.
 	 * @param useExisting true to use existing subcell instances if they exist in the destination Library.
-	 * @param cellsToUse a substitution map from cell names to existing cells.
-	 * The map takes source cell names (of the form "library:cell{view}") and returns a cell in the destination
-	 * library that has been created for that source cell.  The map may be null.
+	 * @param cellNamesToUse a map that disambiguates cell names when they clash in different original libraries.
+	 * The main key is an old cell name, and the value for that key is a map of library names to new cell names.
+	 * So, for example, if libraries "A" and "B" both have a cell called "X", then existing.get("X").get("A") is "X" but
+	 * existing.get(X").get("B") is "X_1" which disambiguates the cell names in the destination library.  The map may be null.
 	 * @return the new Cell in the destination Library.
 	 */
-	public static Cell copyNodeProto(Cell fromCell, Library toLib, String toName, boolean useExisting, Map<String,Cell> cellsToUse)
+	public static Cell copyNodeProto(Cell fromCell, Library toLib, String toName, boolean useExisting,
+		Map<String,Map<String,String>> cellNamesToUse)
 	{	
 		// check for validity
 		if (fromCell == null) return null;
@@ -704,18 +706,26 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 				}
 				if (!maySubstitute) continue;
 
+				// switch cell names if disambiguating
+				String oldCellName = niProto.getName();
+				if (cellNamesToUse != null)
+				{
+					Map<String,String> libToNameMap = cellNamesToUse.get(oldCellName);
+					if (libToNameMap != null)
+					{
+						String newCellName = libToNameMap.get(niProto.getLibrary().getName());
+						if (newCellName != null) oldCellName = newCellName;
+					}
+				}
+
 				// search for cell with same name and view in new library
 				Cell lnt = null;
-				if (cellsToUse != null) lnt = cellsToUse.get(niProto.libDescribe());
-				if (lnt == null)
+				for(Iterator<Cell> cIt = toLib.getCells(); cIt.hasNext(); )
 				{
-					for(Iterator<Cell> cIt = toLib.getCells(); cIt.hasNext(); )
-					{
-						lnt = cIt.next();
-						if (lnt.getName().equalsIgnoreCase(niProto.getName()) &&
-							lnt.getView() == niProto.getView()) break;
-						lnt = null;
-					}
+					lnt = cIt.next();
+					if (lnt.getName().equalsIgnoreCase(oldCellName) &&
+						lnt.getView() == niProto.getView()) break;
+					lnt = null;
 				}
 				if (lnt == null) continue;
 

@@ -1153,7 +1153,7 @@ public class CellChangeJobs
 		IdMapper idMapper = new IdMapper();
 		Cell.setAllowCircularLibraryDependences(true);
 		try {
-			Map<String,Cell> existing = new HashMap<String,Cell>();
+			Map<String,Map<String,String>> existing = new HashMap<String,Map<String,String>>();
 			for(Cell fromCell : fromCells)
 			{
 				Cell copiedCell = copyRecursively(fromCell, toLib, verbose, move, "", true,
@@ -1183,12 +1183,14 @@ public class CellChangeJobs
 	 * @param copySubCells true to recursively copy sub-cells.  If true, "useExisting" must be true.
 	 * @param useExisting true to use any existing cells in the destination library
 	 * instead of creating a cross-library reference.  False to copy everything needed.
-	 * @param existing a map from original cell names (library:cell) to Cells that have already been copied to the desitnation library
-	 * and need not be copied again.
+	 * @param existing a map that disambiguates cell names when they clash in different original libraries.
+	 * The main key is an old cell name, and the value for that key is a map of library names to new cell names.
+	 * So, for example, if libraries "A" and "B" both have a cell called "X", then existing.get("X").get("A") is "X" but
+	 * existing.get(X").get("B") is "X_1" which disambiguates the cell names in the destination library.
 	 */
-	private static Cell copyRecursively(Cell fromCell, Library toLib,
-		boolean verbose, boolean move, String subDescript, boolean schematicRelatedView, boolean allRelatedViews,
-		boolean allRelatedViewsThisLevel, boolean copySubCells, boolean useExisting, Map<String,Cell> existing, IdMapper idMapper)
+	private static Cell copyRecursively(Cell fromCell, Library toLib, boolean verbose, boolean move, String subDescript,
+		boolean schematicRelatedView, boolean allRelatedViews, boolean allRelatedViewsThisLevel, boolean copySubCells,
+		boolean useExisting, Map<String,Map<String,String>> existing, IdMapper idMapper)
 	{
 		// check for sensibility
 		if (copySubCells && !useExisting)
@@ -1197,7 +1199,7 @@ public class CellChangeJobs
 		// see if the cell is already there
 		String toName = fromCell.getName();
 		View toView = fromCell.getView();
-		Cell copiedCell = inDestLib(fromCell, existing);
+		Cell copiedCell = inDestLib(fromCell, existing, toLib);
 		if (copiedCell != null)
 			return copiedCell;
 
@@ -1219,7 +1221,7 @@ public class CellChangeJobs
 					if (cell.getLibrary() == toLib) continue;
 
 					// see if the cell is already there
-					if (inDestLib(cell, existing) != null) continue;
+					if (inDestLib(cell, existing, toLib) != null) continue;
 
 					// do not copy subcell if it exists already (and was not copied by this operation)
 					if (useExisting && !copySubCells)
@@ -1263,7 +1265,7 @@ public class CellChangeJobs
 						if (!np.isSchematic()) continue;
 
 						// see if the cell is already there
-						if (inDestLib(np, existing) != null) continue;
+						if (inDestLib(np, existing, toLib) != null) continue;
 
 						// copy equivalent view if not already there
 						Cell oNp = copyRecursively(np, toLib, verbose,
@@ -1278,7 +1280,7 @@ public class CellChangeJobs
 						break;
 					}
 					if (!fromCell.isLinked())
-						return inDestLib(fromCell, existing);
+						return inDestLib(fromCell, existing, toLib);
 				}
 			}
 		} else
@@ -1295,7 +1297,7 @@ public class CellChangeJobs
 					if (!np.isIcon()) continue;
 
 					// see if the cell is already there
-					if (inDestLib(np, existing) != null) continue;
+					if (inDestLib(np, existing, toLib) != null) continue;
 
 					// copy equivalent view if not already there
 					Cell oNp = copyRecursively(np, toLib, verbose,
@@ -1322,7 +1324,7 @@ public class CellChangeJobs
 					if (np.isIcon()) continue;
 
 					// see if the cell is already there
-					if (inDestLib(np, existing) != null) continue;
+					if (inDestLib(np, existing, toLib) != null) continue;
 
 					// copy equivalent view if not already there
 					Cell oNp = copyRecursively(np, toLib, verbose,
@@ -1340,29 +1342,36 @@ public class CellChangeJobs
 		}
 
 		// see if the cell is NOW there
-		copiedCell = inDestLib(fromCell, existing);
-		if (copiedCell != null)
-			return copiedCell;
+		copiedCell = inDestLib(fromCell, existing, toLib);
+		if (copiedCell != null) return copiedCell;
 
-		// copy the cell
-		String newName = null;
-		for(int i=0; i<1000; i++)
+		// get the proper cell name to use in the destination library
+		Map<String,String> libToNameMap = existing.get(fromCell.getName());
+		if (libToNameMap == null)
 		{
-			newName = toName;
-			if (i > 0) newName += "_" + i;
-			if (toView.getAbbreviation().length() > 0)
-				newName += toView.getAbbreviationExtension();
-			if (toLib.findNodeProto(newName) == null) break;
+			libToNameMap = new HashMap<String,String>();
+			existing.put(fromCell.getName(), libToNameMap);
 		}
+		String newName = libToNameMap.get(fromCell.getLibrary().getName());
+		if (newName == null)
+		{
+			for(int i=0; i<1000; i++)
+			{
+				newName = toName;
+				if (i > 0) newName += "_" + i;
+				if (!libToNameMap.values().contains(newName)) break;
+			}
+			libToNameMap.put(fromCell.getLibrary().getName(), newName);
+		}
+		newName += ";" + fromCell.getVersion();
+		if (toView.getAbbreviation().length() > 0)
+			newName += toView.getAbbreviationExtension();
 		Cell newFromCell = Cell.copyNodeProto(fromCell, toLib, newName, useExisting, existing);
 		if (newFromCell == null)
 		{
 			System.out.println("Copy of " + subDescript + fromCell + " failed");
 			return null;
 		}
-
-		// remember that this cell was copied
-		existing.put(fromCell.libDescribe(), newFromCell);
 
 		// Message before the delete!!
 		if (verbose)
@@ -1420,22 +1429,23 @@ public class CellChangeJobs
 	}
 
 	/**
-	 * Method to return a cell from a map "existing" with similar name and same view "cell".
-	 * @param cell a pattern cell
-	 * @param existing a set where to find
-	 * @return a cell from a set with proper name and view.
+	 * Method to tell whether a cell exists in the destination library.
+	 * @param cell the Cell in question.
+	 * @param existing a map that disambiguates cell names when they clash in different original libraries.
+	 * The main key is an old cell name, and the value for that key is a map of library names to new cell names.
+	 * So, for example, if libraries "A" and "B" both have a cell called "X", then existing.get("X").get("A") is "X" but
+	 * existing.get(X").get("B") is "X_1" which disambiguates the cell names in the destination library.
+	 * @param destLib the destination library being searched.
+	 * @return a Cell from the destination library that matches the Cell being searched (null if none).
 	 */
-	private static Cell inDestLib(Cell cell, Map<String,Cell> existing)
+	private static Cell inDestLib(Cell cell, Map<String,Map<String,String>> existing, Library destLib)
 	{
-		String cellName = cell.libDescribe();
-		Cell found = existing.get(cellName);
-		return found;
-//		for(Cell copiedCell : existing)
-//		{
-//			if (copiedCell.getName().equalsIgnoreCase(cell.getName()) && copiedCell.getView() == cell.getView())
-//				return copiedCell;
-//		}
-//		return null;
+		Map<String,String> libToNameMap = existing.get(cell.getName());
+		if (libToNameMap == null) return null;
+		String newCellName = libToNameMap.get(cell.getLibrary().getName());
+		if (newCellName == null) return null;
+		Cell copiedCell = destLib.findNodeProto(newCellName + ";" + cell.getVersion() + cell.getView().getAbbreviationExtension());
+		return copiedCell;
 	}
 
 }
