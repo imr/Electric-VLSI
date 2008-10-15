@@ -27,11 +27,31 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.TopLevel;
 
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.Frame;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.HashMap;
+import java.util.Map;
 
-import javax.swing.*;
+import javax.swing.AbstractAction;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JList;
+import javax.swing.JTextField;
+import javax.swing.JTree;
+import javax.swing.KeyStroke;
 import javax.swing.text.JTextComponent;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
@@ -41,26 +61,28 @@ import javax.swing.tree.TreePath;
  */
 public class EDialog extends JDialog
 {
-	private static HashMap<Class,Point> locations = new HashMap<Class,Point>();
-	private static HashMap<Class,Dimension> sizes = new HashMap<Class,Dimension>();
-    public static TextBoxFocusListener textBoxFocusListener = new TextBoxFocusListener();
+	private static Map<Class,Point> locations = new HashMap<Class,Point>();
+	private static Map<Class,Dimension> sizes = new HashMap<Class,Dimension>();
+	private static TextBoxFocusListener textBoxFocusListener = new TextBoxFocusListener();
+	private static TextBoxMouseListener textBoxMouseListener = new TextBoxMouseListener();
+	private static JTextField justMoused = null;
 
 	/** Creates new form */
 	protected EDialog(Frame parent, boolean modal)
 	{
-        // in multi-headed displays, display dialog on head with windowframe
-        super(parent, "", modal, (parent == null) ?
-        	(TopLevel.getCurrentJFrame() == null ? null : TopLevel.getCurrentJFrame().getGraphicsConfiguration()) :
-        		parent.getGraphicsConfiguration());
+		// in multi-headed displays, display dialog on head with windowframe
+		super(parent, "", modal, (parent == null) ?
+			(TopLevel.getCurrentJFrame() == null ? null : TopLevel.getCurrentJFrame().getGraphicsConfiguration()) :
+				parent.getGraphicsConfiguration());
 
-        assert !Job.BATCHMODE;
+		assert !Job.BATCHMODE;
 
 		Point pt = getDialogLocation(getClass());
 		setLocation(pt.x, pt.y);
 
 		addComponentListener(new MoveComponentListener());
 
-        final String CANCEL_DIALOG = "cancel-dialog";
+		final String CANCEL_DIALOG = "cancel-dialog";
 		KeyStroke accel = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
 		getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(accel, CANCEL_DIALOG);
 		getRootPane().getActionMap().put(CANCEL_DIALOG, new AbstractAction()
@@ -122,10 +144,10 @@ public class EDialog extends JDialog
 	 */
 	protected void escapePressed() {}
 
-    protected void closeDialog()
-    {
-        setVisible(false);
-    }
+	protected void closeDialog()
+	{
+		setVisible(false);
+	}
 
 	/**
 	 * Method to ensure that a JComboBox of font names contains a given name.
@@ -135,14 +157,14 @@ public class EDialog extends JDialog
 	 */
 	public static void ensureComboBoxFont(JComboBox fontBox, String font)
 	{
-        int totFonts = fontBox.getItemCount();
-        boolean found = false;
-        for(int i=0; i<totFonts; i++)
-        {
-        	if (font.equals(fontBox.getItemAt(i))) { found = true;   break; }
-        }
-        if (!found)
-        	fontBox.addItem(font);
+		int totFonts = fontBox.getItemCount();
+		boolean found = false;
+		for(int i=0; i<totFonts; i++)
+		{
+			if (font.equals(fontBox.getItemAt(i))) { found = true;   break; }
+		}
+		if (!found)
+			fontBox.addItem(font);
 	}
 
 	/**
@@ -172,65 +194,75 @@ public class EDialog extends JDialog
 		return false;
 	}
 
-    /**
-     * Sets the cursor to have focus in the specified textComponent, and
-     * highlights any text in that text field.
-     * @param textComponent the text field
-     */
+	/**
+	 * Sets the cursor to have focus in the specified textComponent, and
+	 * highlights any text in that text field.
+	 * @param textComponent the text field
+	 */
 	public static void focusOnTextField(JTextComponent textComponent)
-    {
-        textComponent.selectAll();
-//        textComponent.setSelectionStart(0);
-//        textComponent.setSelectionEnd(textComponent.getDocument().getLength());
-    }
+	{
+		textComponent.selectAll();
+	}
 
-    /**
-     * Unselect the text in the specified textComponebnt.
-     * @param textComponent
-     */
-    public static void focusClearOnTextField(JTextComponent textComponent)
-    {
-        textComponent.select(0, 0);
-//        textComponent.setSelectionStart(0);
-//        textComponent.setSelectionEnd(0);
-    }
+	/**
+	 * Unselect the text in the specified textComponebnt.
+	 * @param textComponent
+	 */
+	public static void focusClearOnTextField(JTextComponent textComponent)
+	{
+		textComponent.select(0, 0);
+	}
 
-    public static void addFocusListener(JTextField textField)
-    {
-        // to listen the accelerators in TextFields
-        textField.addFocusListener(new TextBoxFocusListener());
-    }
+	/**
+	 * Method to make text fields select all when tabbed into.
+	 * @param textField the text field to alter.
+	 */
+	public static void makeTextFieldSelectAllOnTab(JTextField textField)
+	{
+		textField.addFocusListener(textBoxFocusListener);
+		textField.addMouseListener(textBoxMouseListener);
+	}
 
-    private static class TextBoxFocusListener implements FocusListener
-    {
-        public void focusGained(FocusEvent e)
-        {
-            Component source = e.getComponent();
-            if (source instanceof JTextField)
-            {
-                JTextField textField = (JTextField)source;
-                if (textField.isEnabled() && textField.isEditable())
-                {
-                    textField.selectAll();
-                }
-            }
-        }
+	/**
+	 * Class for detecting mouse motion in text fields to implement full-selection when tabbing.
+	 */
+	private static class TextBoxMouseListener implements MouseListener
+	{
+		public void mousePressed(MouseEvent evt)
+		{
+			Component source = evt.getComponent();
+			if (source instanceof JTextField)
+			{
+				JTextField textField = (JTextField)source;
+				if (textField.isEnabled() && textField.isEditable())
+					justMoused = textField;
+			}
+		}
+		public void mouseReleased(MouseEvent evt) {}
+		public void mouseClicked(MouseEvent evt) {}
+		public void mouseEntered(MouseEvent evt) {}
+		public void mouseExited(MouseEvent evt) {}
+	}
 
-        public void focusLost(FocusEvent e)
-        {
-            // To change body of implemented methods use File | Settings | File Templates.
-            Component source = e.getComponent();
-            if (source instanceof JTextField)
-            {
-                JTextField textField = (JTextField)source;
-                if (textField.isEnabled() && textField.isEditable())
-                {
-                    textField.select(0,0);
-                }
-            }
-        }
-    }
-
+	/**
+	 * Class for detecting focus switching into text fields to implement full-selection when tabbing.
+	 */
+	private static class TextBoxFocusListener implements FocusListener
+	{
+		public void focusGained(FocusEvent evt)
+		{
+			Component source = evt.getComponent();
+			if (source instanceof JTextField)
+			{
+				JTextField textField = (JTextField)source;
+				if (textField.isEnabled() && textField.isEditable())
+				{
+					if (textField != justMoused) textField.selectAll();
+				}
+			}
+		}
+		public void focusLost(FocusEvent e) {}
+	}
 
 	/**
 	 * Method to ensure that the selected item in a list is
@@ -240,7 +272,7 @@ public class EDialog extends JDialog
 	 * This method centers the selected item nicely.
 	 * @param list the JList with a selected item to center.
 	 */
-    public static void centerSelection(JList list)
+	public static void centerSelection(JList list)
 	{
 		int curIndex = list.getSelectedIndex();
 		int listSize = list.getLastVisibleIndex() - list.getFirstVisibleIndex();
@@ -277,23 +309,23 @@ public class EDialog extends JDialog
 		}
 	}
 
-    // this seems to be causing problems on windows platforms
+	// this seems to be causing problems on windows platforms
 //	private static DialogFocusHandler dialogFocusHandler = new DialogFocusHandler();
 //
-//    private static class DialogFocusHandler implements WindowFocusListener {
+//	private static class DialogFocusHandler implements WindowFocusListener {
 //
-//        private List<EDialog> dialogs;
+//		private List<EDialog> dialogs;
 //
-//        private DialogFocusHandler() { dialogs = new ArrayList<EDialog>(); }
+//		private DialogFocusHandler() { dialogs = new ArrayList<EDialog>(); }
 //
-//        public synchronized void addEDialog(EDialog dialog) { dialogs.add(dialog); }
+//		public synchronized void addEDialog(EDialog dialog) { dialogs.add(dialog); }
 //
-//        public synchronized void windowGainedFocus(WindowEvent e)
-//        {
-//            for (int i=0; i<dialogs.size(); i++)
-//                dialogs.get(i).toFront();
-//        }
+//		public synchronized void windowGainedFocus(WindowEvent e)
+//		{
+//			for (int i=0; i<dialogs.size(); i++)
+//				dialogs.get(i).toFront();
+//		}
 //
-//        public void windowLostFocus(WindowEvent e) {}
-//    }
+//		public void windowLostFocus(WindowEvent e) {}
+//	}
 }

@@ -182,7 +182,16 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 		UserInterfaceMain.addDatabaseChangeListener(this);
 		Highlighter.addHighlightListener(this);
 
-		// make type a selectable but not editable field
+		// make all text fields select-all when entered
+	    EDialog.makeTextFieldSelectAllOnTab(name);
+	    EDialog.makeTextFieldSelectAllOnTab(rotation);
+	    EDialog.makeTextFieldSelectAllOnTab(textField);
+	    EDialog.makeTextFieldSelectAllOnTab(xPos);
+	    EDialog.makeTextFieldSelectAllOnTab(xSize);
+	    EDialog.makeTextFieldSelectAllOnTab(yPos);
+	    EDialog.makeTextFieldSelectAllOnTab(ySize);
+
+	    // make type a selectable but not editable field
 		type.setEditable(false);
 		type.setBorder(null);
 		type.setForeground(UIManager.getColor("Label.foreground"));

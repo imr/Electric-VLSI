@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08j: ******************************
 
+IMP: (10/15/08, SMR) Tabbing through the fields in the Node Properties dialog
+     now selects the entire field (Bug #1916).
+
 BUG: (10/14/08, SMR) Cross-library copy doesn't always copy subcells
      if there is a naming conflict (Bug #1920).
 FIX: In CellChangeJobs.copyRecursively() track cell naming conflicts and
