@@ -2,10 +2,12 @@
 
 NOTE: Please place changes under the version that will be released next.
 
-************************* Version 8.08j: ******************************
+************************* Version 8.08k: ******************************
 
 IMP: (10/15/08, SMR) Tabbing through the fields in the Node Properties dialog
      now selects the entire field (Bug #1916).
+
+************************* Version 8.08j: ******************************
 
 BUG: (10/14/08, SMR) Cross-library copy doesn't always copy subcells
      if there is a naming conflict (Bug #1920).
