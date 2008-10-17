@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08k: ******************************
 
+IMP: (10/16/08, GVG) Well ports added into MoCMOS transistors (part of Bug #1910)
+
+BUG: (10/17/08, GVG) Pure Well nodes connecting to wrong arcs (Bug #1923)
+FIX: Correct well arc selected now. NOTW: TSMC180 nodes will connect to well taps arcs
+until pure well arcs are defined in that technology (to be discussed).
+
 IMP: (10/16/08, GVG) Well arcs added into CMOS90 (part of Bug #1910)
 
 IMP: (10/15/08, SMR) Tabbing through the fields in the Node Properties dialog
