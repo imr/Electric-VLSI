@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08k: ******************************
 
+IMP: (10/16/08, GVG) Well arcs added into CMOS90 (part of Bug #1910)
+
 IMP: (10/15/08, SMR) Tabbing through the fields in the Node Properties dialog
      now selects the entire field (Bug #1916).
 
@@ -51,7 +53,7 @@ BUG: (10/8/08, GVG) Writing Spice file on Mac OS 10.5 uses ":"
 as delimiter instead of "/" (Bug #1877)
 FIX: Use the Swing mode in OpenDialog under MacOSX.
 
-IMP: (10/8/08, GVG) Add well arcs to technologies (part of Bug #1910)
+IMP: (10/8/08, GVG) Well arcs added into MoCMOS (part of Bug #1910)
 
 BUG: (10/8/08, RK) NCC runs slow on fastprox (Bug #1908).
 FIX: Fixed performance bugs that become evident when instances have 
