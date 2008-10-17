@@ -1024,8 +1024,8 @@ public class MoCMOS extends Technology
 
 
         /** P-well arc */
-		wellArcs[P_TYPE] = newArcProto("P-Well", 0, 3.0, ArcProto.Function.DIFFW,  // 3.0 similar to M1 pin
-			new Technology.ArcLayer(wellLayers[P_TYPE], 3.0, Poly.Type.FILLED)
+		wellArcs[P_TYPE] = newArcProto("P-Well", 0, 2.0, ArcProto.Function.DIFFW,  // 2.0 similar to Poly pin
+			new Technology.ArcLayer(wellLayers[P_TYPE], 2.0, Poly.Type.FILLED)
 		);
 		wellArcs[P_TYPE].setFactoryFixedAngle(true);
 		wellArcs[P_TYPE].setWipable();
@@ -1033,8 +1033,8 @@ public class MoCMOS extends Technology
         wellArcs[P_TYPE].setArcInvisible(false);
 
         /** N-well arc */
-		wellArcs[N_TYPE] = newArcProto("N-Well", 0, 3.0, ArcProto.Function.DIFFS,
-			new Technology.ArcLayer(wellLayers[N_TYPE], 3.0, Poly.Type.FILLED)
+		wellArcs[N_TYPE] = newArcProto("N-Well", 0, 2.0, ArcProto.Function.DIFFS,
+			new Technology.ArcLayer(wellLayers[N_TYPE], 2.0, Poly.Type.FILLED)
 		);
 		wellArcs[N_TYPE].setFactoryFixedAngle(true);
 		wellArcs[N_TYPE].setWipable();
