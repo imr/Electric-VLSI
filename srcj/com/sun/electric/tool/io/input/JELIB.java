@@ -374,10 +374,16 @@ public class JELIB extends LibraryFiles
             int line = a.line;
 
             ArcProto ap = findArcProto(a.arcProtoId);
-			if (ap == null) {
-				Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
+			if (ap == null)
+            {
+                if (ap == null)
+                    ap = cell.getTechnology().convertOldArcName(a.arcProtoId.name);
+                if (ap == null)
+                {
+                    Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
 					" (" + cell + ") cannot find arc " + a.arcProtoId, cell, -1);
-				continue;
+				    continue;
+                }
 			}
             Technology tech = ap.getTechnology();
             Technology.SizeCorrector sizeCorrector = sizeCorrectors.get(tech);

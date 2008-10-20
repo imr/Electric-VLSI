@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08k: ******************************
 
+IMP: (10/20/08, GVG) Electric doesn't use old names information in case of JELIB/DELIB (Bug #1922)
+FIX: Modification done in JELIB that also fixes DELIB. No need of a more sophisticated solution for now.
+
 IMP: (10/17/08, GVG) Well ports added into MoCMOS transistors and pure well nodes (part of Bug #1910)
 
 BUG: (10/17/08, GVG) Pure Well nodes connecting to wrong arcs (Bug #1923)
