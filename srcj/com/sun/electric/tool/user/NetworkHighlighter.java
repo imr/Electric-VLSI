@@ -205,7 +205,7 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
      */
     private static Color getNodeOrPortColor()
     {
-        return new Color(User.getColor(User.ColorPrefType.MOUSEOVER_HIGHLIGHT)); // use to hightlight NodeInsts
+        return new Color(User.getColor(User.ColorPrefType.NODE_HIGHLIGHT)); // use to hightlight NodeInsts
     }
 
     /**

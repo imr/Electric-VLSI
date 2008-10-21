@@ -2159,7 +2159,7 @@ public class User extends Listener
 
 	/****************************** COLOR PREFERENCES ******************************/
 
-	public enum ColorPrefType {BACKGROUND, GRID, HIGHLIGHT, MOUSEOVER_HIGHLIGHT,
+	public enum ColorPrefType {BACKGROUND, GRID, HIGHLIGHT, NODE_HIGHLIGHT, MOUSEOVER_HIGHLIGHT,
 		PORT_HIGHLIGHT, TEXT, INSTANCE, ARTWORK, DOWNINPLACEBORDER,
 		WAVE_BACKGROUND, WAVE_FOREGROUND, WAVE_STIMULI, WAVE_OFF_STRENGTH,
 		WAVE_NODE_STRENGTH, WAVE_GATE_STRENGTH, WAVE_POWER_STRENGTH, WAVE_CROSS_LOW,
@@ -2216,7 +2216,8 @@ public class User extends Listener
 			case BACKGROUND: return cacheColorBackground;
 			case GRID: return cacheColorGrid;
 			case HIGHLIGHT: return cacheColorHighlight;
-			case MOUSEOVER_HIGHLIGHT: return cacheColorMouseOverHighlight;
+			case NODE_HIGHLIGHT: return cacheColorNodeHighlight;
+            case MOUSEOVER_HIGHLIGHT: return cacheColorMouseOverHighlight;
 			case PORT_HIGHLIGHT: return cacheColorPortHighlight;
 			case TEXT: return cacheColorText;
 			case INSTANCE: return cacheColorInstanceOutline;
@@ -2284,6 +2285,7 @@ public class User extends Listener
 				return;
 			case GRID: cacheColorGrid.setInt(color); return;
 			case HIGHLIGHT: cacheColorHighlight.setInt(color); return;
+			case NODE_HIGHLIGHT: cacheColorNodeHighlight.setInt(color); return;
 			case MOUSEOVER_HIGHLIGHT: cacheColorMouseOverHighlight.setInt(color); return;
 			case PORT_HIGHLIGHT: cacheColorPortHighlight.setInt(color); return;
 			case TEXT: cacheColorText.setInt(color); return;
@@ -2336,7 +2338,8 @@ public class User extends Listener
 			case BACKGROUND: pf = cacheColorBackground; break;
 			case GRID: pf = cacheColorGrid; break;
 			case HIGHLIGHT: pf = cacheColorHighlight; break;
-			case MOUSEOVER_HIGHLIGHT: pf = cacheColorMouseOverHighlight; break;
+            case NODE_HIGHLIGHT: pf = cacheColorNodeHighlight; break;
+            case MOUSEOVER_HIGHLIGHT: pf = cacheColorMouseOverHighlight; break;
 			case PORT_HIGHLIGHT: pf = cacheColorPortHighlight; break;
 			case TEXT: pf = cacheColorText; break;
 			case INSTANCE: pf = cacheColorInstanceOutline; break;
@@ -2363,7 +2366,9 @@ public class User extends Listener
 
 	private static Pref cacheColorHighlight = Pref.makeIntPref("ColorHighlight", tool.prefs, Color.WHITE.getRGB());
 
-	private static Pref cacheColorMouseOverHighlight = Pref.makeIntPref("ColorMouseOverHighlight", tool.prefs, (new Color(51,255,255)).getRGB());
+    private static Pref cacheColorNodeHighlight = Pref.makeIntPref("ColorNodeHighlight", tool.prefs, Color.WHITE.getRGB());
+
+    private static Pref cacheColorMouseOverHighlight = Pref.makeIntPref("ColorMouseOverHighlight", tool.prefs, (new Color(51,255,255)).getRGB());
 
 	private static Pref cacheColorPortHighlight = Pref.makeIntPref("ColorPortHighlight", tool.prefs, Color.YELLOW.getRGB());
 

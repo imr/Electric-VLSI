@@ -30,9 +30,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.ColorPatternPanel;
-import com.sun.electric.tool.user.ui.ToolBar;
 import com.sun.electric.tool.user.ui.WindowFrame;
-import com.sun.electric.tool.user.ui.ToolBar.EToolBarButton;
 
 import java.awt.Color;
 import java.awt.Frame;
@@ -151,6 +149,7 @@ public class LayersTab extends PreferencePanel
         nameTypeSpecialMap.put(User.ColorPrefType.BACKGROUND, "Special: BACKGROUND");
         nameTypeSpecialMap.put(User.ColorPrefType.GRID, "Special: GRID");
         nameTypeSpecialMap.put(User.ColorPrefType.HIGHLIGHT, "Special: HIGHLIGHT");
+        nameTypeSpecialMap.put(User.ColorPrefType.NODE_HIGHLIGHT, "Special: NODE HIGHLIGHT");
         nameTypeSpecialMap.put(User.ColorPrefType.MOUSEOVER_HIGHLIGHT, "Special: MOUSE-OVER HIGHLIGHT");
         nameTypeSpecialMap.put(User.ColorPrefType.PORT_HIGHLIGHT, "Special: PORT HIGHLIGHT");
         nameTypeSpecialMap.put(User.ColorPrefType.TEXT, "Special: TEXT");

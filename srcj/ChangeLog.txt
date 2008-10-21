@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08k: ******************************
 
+IMP: (10/21/08, GVG) New implementation of "different highlight color for network" (Bug #1776).
+White is the default color.
 
 IMP: (10/21/08, SMR) Added generalized transistor function detection to "L" and Verilog (Bug #1858).
 
