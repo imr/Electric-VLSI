@@ -2366,7 +2366,7 @@ public class User extends Listener
 
 	private static Pref cacheColorHighlight = Pref.makeIntPref("ColorHighlight", tool.prefs, Color.WHITE.getRGB());
 
-    private static Pref cacheColorNodeHighlight = Pref.makeIntPref("ColorNodeHighlight", tool.prefs, Color.WHITE.getRGB());
+    private static Pref cacheColorNodeHighlight = Pref.makeIntPref("ColorNodeHighlight", tool.prefs, Color.BLUE.getRGB());
 
     private static Pref cacheColorMouseOverHighlight = Pref.makeIntPref("ColorMouseOverHighlight", tool.prefs, (new Color(51,255,255)).getRGB());
 
