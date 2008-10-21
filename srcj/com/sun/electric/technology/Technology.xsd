@@ -157,6 +157,38 @@
             <xsd:enumeration value="ART"/>
             <xsd:enumeration value="CONTROL"/>
             <xsd:enumeration value="TILENOT"/>
+            <xsd:enumeration value="DMYPOLY1"/>
+            <xsd:enumeration value="DMYPOLY2"/>
+            <xsd:enumeration value="DMYPOLY3"/>
+            <xsd:enumeration value="DMYDIFF"/>
+            <xsd:enumeration value="DMYMETAL1"/>
+            <xsd:enumeration value="DMYMETAL2"/>
+            <xsd:enumeration value="DMYMETAL3"/>
+            <xsd:enumeration value="DMYMETAL4"/>
+            <xsd:enumeration value="DMYMETAL5"/>
+            <xsd:enumeration value="DMYMETAL6"/>
+            <xsd:enumeration value="DMYMETAL7"/>
+            <xsd:enumeration value="DMYMETAL8"/>
+            <xsd:enumeration value="DMYMETAL9"/>
+            <xsd:enumeration value="DMYMETAL10"/>
+            <xsd:enumeration value="DMYMETAL11"/>
+            <xsd:enumeration value="DMYMETAL12"/>
+            <xsd:enumeration value="DEXCLPOLY1"/>
+            <xsd:enumeration value="DEXCLPOLY2"/>
+            <xsd:enumeration value="DEXCLPOLY3"/>
+            <xsd:enumeration value="DEXCLDIFF"/>
+            <xsd:enumeration value="DEXCLMETAL1"/>
+            <xsd:enumeration value="DEXCLMETAL2"/>
+            <xsd:enumeration value="DEXCLMETAL3"/>
+            <xsd:enumeration value="DEXCLMETAL4"/>
+            <xsd:enumeration value="DEXCLMETAL5"/>
+            <xsd:enumeration value="DEXCLMETAL6"/>
+            <xsd:enumeration value="DEXCLMETAL7"/>
+            <xsd:enumeration value="DEXCLMETAL8"/>
+            <xsd:enumeration value="DEXCLMETAL9"/>
+            <xsd:enumeration value="DEXCLMETAL10"/>
+            <xsd:enumeration value="DEXCLMETAL11"/>
+            <xsd:enumeration value="DEXCLMETAL12"/>
         </xsd:restriction>
     </xsd:simpleType>
 
