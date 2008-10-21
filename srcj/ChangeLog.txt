@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08k: ******************************
 
+IMP: (10/21/08, SMR) Added generalized transistor function detection to "L" and Verilog (Bug #1858).
+
 IMP: (10/20/08, GVG) Electric doesn't use old names information in case of JELIB/DELIB (Bug #1922)
 FIX: Modification done in JELIB that also fixes DELIB. No need of a more sophisticated solution for now.
 

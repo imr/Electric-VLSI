@@ -41,7 +41,6 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
-import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.TransistorSize;
 
 import java.awt.geom.Rectangle2D;
@@ -218,9 +217,10 @@ public class L extends Output
 				}
 
 				// special type names for transistors
-				if (fun == PrimitiveNode.Function.TRANMOS) type = "TN";
-				if (fun == PrimitiveNode.Function.TRADMOS) type = "TD";
-				if (fun == PrimitiveNode.Function.TRAPMOS) type = "TP";
+				if (fun.isNTypeTransistor()) type = "TN"; else
+					if (fun.isPTypeTransistor()) type = "TP"; else
+						if (fun == PrimitiveNode.Function.TRADMOS ||
+							fun == PrimitiveNode.Function.TRAPMOSD) type = "TD";
 
 				// write the type and name
 				printWriter.print("\t" + type + " " + getLegalName(ni.getName()));
@@ -246,10 +246,7 @@ public class L extends Output
 			{
 				double wid = ni.getLambdaBaseXSize();
 				double len = ni.getLambdaBaseYSize();
-//				SizeOffset so = ni.getSizeOffset();
-//				double wid = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
-//				double len = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
-				if (fun == PrimitiveNode.Function.TRANMOS || fun == PrimitiveNode.Function.TRADMOS || fun == PrimitiveNode.Function.TRAPMOS)
+				if (fun.isFET())
 				{
 					TransistorSize ts = ni.getTransistorSize(null);
 					len = ts.getDoubleLength();

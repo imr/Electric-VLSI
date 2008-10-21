@@ -583,36 +583,65 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 		 */
 		public boolean isFET()
 		{
-			if (this == PrimitiveNode.Function.TRANMOS  || this == PrimitiveNode.Function.TRA4NMOS ||
-				this == PrimitiveNode.Function.TRAPMOS  || this == PrimitiveNode.Function.TRA4PMOS ||
-				this == PrimitiveNode.Function.TRADMOS  || this == PrimitiveNode.Function.TRA4DMOS ||
-				this == PrimitiveNode.Function.TRAPMOSD || this == PrimitiveNode.Function.TRA4PMOSD ||
-				this == PrimitiveNode.Function.TRANMOSNT || this == PrimitiveNode.Function.TRA4NMOSNT ||
-				this == PrimitiveNode.Function.TRAPMOSNT || this == PrimitiveNode.Function.TRA4PMOSNT ||
-				this == PrimitiveNode.Function.TRANMOSFG || this == PrimitiveNode.Function.TRA4NMOSFG ||
-				this == PrimitiveNode.Function.TRAPMOSFG || this == PrimitiveNode.Function.TRA4PMOSFG ||
-				this == PrimitiveNode.Function.TRANMOSVTL || this == PrimitiveNode.Function.TRA4NMOSVTL ||
-				this == PrimitiveNode.Function.TRAPMOSVTL || this == PrimitiveNode.Function.TRA4PMOSVTL ||
-				this == PrimitiveNode.Function.TRANMOSVTH || this == PrimitiveNode.Function.TRA4NMOSVTH ||
-				this == PrimitiveNode.Function.TRAPMOSVTH || this == PrimitiveNode.Function.TRA4PMOSVTH ||
-				this == PrimitiveNode.Function.TRANMOSHV1 || this == PrimitiveNode.Function.TRA4NMOSHV1 ||
-				this == PrimitiveNode.Function.TRAPMOSHV1 || this == PrimitiveNode.Function.TRA4PMOSHV1 ||
-				this == PrimitiveNode.Function.TRANMOSHV2 || this == PrimitiveNode.Function.TRA4NMOSHV2 ||
-				this == PrimitiveNode.Function.TRAPMOSHV2 || this == PrimitiveNode.Function.TRA4PMOSHV2 ||
-				this == PrimitiveNode.Function.TRANMOSHV3 || this == PrimitiveNode.Function.TRA4NMOSHV3 ||
-				this == PrimitiveNode.Function.TRAPMOSHV3 || this == PrimitiveNode.Function.TRA4PMOSHV3 ||
-				this == PrimitiveNode.Function.TRANMOSNTHV1 || this == PrimitiveNode.Function.TRA4NMOSNTHV1 ||
-				this == PrimitiveNode.Function.TRAPMOSNTHV1 || this == PrimitiveNode.Function.TRA4PMOSNTHV1 ||
-				this == PrimitiveNode.Function.TRANMOSNTHV2 || this == PrimitiveNode.Function.TRA4NMOSNTHV2 ||
-				this == PrimitiveNode.Function.TRAPMOSNTHV2 || this == PrimitiveNode.Function.TRA4PMOSNTHV2 ||
-				this == PrimitiveNode.Function.TRANMOSNTHV3 || this == PrimitiveNode.Function.TRA4NMOSNTHV3 ||
-				this == PrimitiveNode.Function.TRAPMOSNTHV3 || this == PrimitiveNode.Function.TRA4PMOSNTHV3 ||
-				this == PrimitiveNode.Function.TRANJFET || this == PrimitiveNode.Function.TRA4NJFET ||
-				this == PrimitiveNode.Function.TRAPJFET || this == PrimitiveNode.Function.TRA4PJFET ||
-				this == PrimitiveNode.Function.TRADMES  || this == PrimitiveNode.Function.TRA4DMES ||
-				this == PrimitiveNode.Function.TRAEMES  || this == PrimitiveNode.Function.TRA4EMES)
+			if (this == TRANMOS      || this == TRA4NMOS      || this == TRAPMOS      || this == TRA4PMOS ||
+				this == TRADMOS      || this == TRA4DMOS      || this == TRAPMOSD     || this == TRA4PMOSD ||
+				this == TRANMOSNT    || this == TRA4NMOSNT    || this == TRAPMOSNT    || this == TRA4PMOSNT ||
+				this == TRANMOSFG    || this == TRA4NMOSFG    || this == TRAPMOSFG    || this == TRA4PMOSFG ||
+				this == TRANMOSVTL   || this == TRA4NMOSVTL   || this == TRAPMOSVTL   || this == TRA4PMOSVTL ||
+				this == TRANMOSVTH   || this == TRA4NMOSVTH   || this == TRAPMOSVTH   || this == TRA4PMOSVTH ||
+				this == TRANMOSHV1   || this == TRA4NMOSHV1   || this == TRAPMOSHV1   || this == TRA4PMOSHV1 ||
+				this == TRANMOSHV2   || this == TRA4NMOSHV2   || this == TRAPMOSHV2   || this == TRA4PMOSHV2 ||
+				this == TRANMOSHV3   || this == TRA4NMOSHV3   || this == TRAPMOSHV3   || this == TRA4PMOSHV3 ||
+				this == TRANMOSNTHV1 || this == TRA4NMOSNTHV1 || this == TRAPMOSNTHV1 || this == TRA4PMOSNTHV1 ||
+				this == TRANMOSNTHV2 || this == TRA4NMOSNTHV2 || this == TRAPMOSNTHV2 || this == TRA4PMOSNTHV2 ||
+				this == TRANMOSNTHV3 || this == TRA4NMOSNTHV3 || this == TRAPMOSNTHV3 || this == TRA4PMOSNTHV3 ||
+				this == TRANJFET     || this == TRA4NJFET     || this == TRAPJFET     || this == TRA4PJFET ||
+				this == TRADMES      || this == TRA4DMES      || this == TRAEMES      || this == TRA4EMES)
 					return true;
 			return false;
+		}
+
+		/**
+		 * Method to tell whether this function describes a 4-port transtor and to return the equivalent 3-port function.
+		 * @return the equivalent 3-port transistor function for this 4-port function.
+		 * Returns null if this is not a 4-port transistor function.
+		 */
+		public Function make3PortTransistor()
+		{
+			if (!isTransistor) return null;
+			if (this == TRA4NMOS) return TRANMOS;
+			if (this == TRA4PMOS) return TRAPMOS;
+			if (this == TRA4DMOS) return TRADMOS;
+			if (this == TRA4PMOSD) return TRAPMOSD;
+			if (this == TRA4NMOSNT) return TRANMOSNT;
+			if (this == TRA4PMOSNT) return TRAPMOSNT;
+			if (this == TRA4NMOSFG) return TRANMOSFG;
+			if (this == TRA4PMOSFG) return TRAPMOSFG;
+			if (this == TRA4NMOSVTL) return TRANMOSVTL;
+			if (this == TRA4PMOSVTL) return TRAPMOSVTL;
+			if (this == TRA4NMOSVTH) return TRANMOSVTH;
+			if (this == TRA4PMOSVTH) return TRAPMOSVTH;
+			if (this == TRA4NMOSHV1) return TRANMOSHV1;
+			if (this == TRA4PMOSHV1) return TRAPMOSHV1;
+			if (this == TRA4NMOSHV2) return TRANMOSHV2;
+			if (this == TRA4PMOSHV2) return TRAPMOSHV2;
+			if (this == TRA4NMOSHV3) return TRANMOSHV3;
+			if (this == TRA4PMOSHV3) return TRAPMOSHV3;
+			if (this == TRA4NMOSNTHV1) return TRANMOSNTHV1;
+			if (this == TRA4PMOSNTHV1) return TRAPMOSNTHV1;
+			if (this == TRA4NMOSNTHV2) return TRANMOSNTHV2;
+			if (this == TRA4PMOSNTHV2) return TRAPMOSNTHV2;
+			if (this == TRA4NMOSNTHV3) return TRANMOSNTHV3;
+			if (this == TRA4PMOSNTHV3) return TRAPMOSNTHV3;
+			if (this == TRA4NPN) return TRANPN;
+			if (this == TRA4PNP) return TRAPNP;
+			if (this == TRA4NJFET) return TRANJFET;
+			if (this == TRA4PJFET) return TRAPJFET;
+			if (this == TRA4DMES) return TRADMES;
+			if (this == TRA4EMES) return TRAEMES;
+			if (this == TRANS4) return TRANS;
+			assert !isTransistor;
+			return null;
 		}
 
 		/**
@@ -622,20 +651,20 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 		 */
 		public boolean isNTypeTransistor()
 		{
-			if (this == PrimitiveNode.Function.TRANMOS  || this == PrimitiveNode.Function.TRA4NMOS ||
-				this == PrimitiveNode.Function.TRADMOS  || this == PrimitiveNode.Function.TRA4DMOS ||
-				this == PrimitiveNode.Function.TRANMOSNT || this == PrimitiveNode.Function.TRA4NMOSNT ||
-				this == PrimitiveNode.Function.TRANMOSFG || this == PrimitiveNode.Function.TRA4NMOSFG ||
-				this == PrimitiveNode.Function.TRANMOSVTL || this == PrimitiveNode.Function.TRA4NMOSVTL ||
-				this == PrimitiveNode.Function.TRANMOSVTH || this == PrimitiveNode.Function.TRA4NMOSVTH ||
-				this == PrimitiveNode.Function.TRANMOSHV1 || this == PrimitiveNode.Function.TRA4NMOSHV1 ||
-				this == PrimitiveNode.Function.TRANMOSHV2 || this == PrimitiveNode.Function.TRA4NMOSHV2 ||
-				this == PrimitiveNode.Function.TRANMOSHV3 || this == PrimitiveNode.Function.TRA4NMOSHV3 ||
-				this == PrimitiveNode.Function.TRANMOSNTHV1 || this == PrimitiveNode.Function.TRA4NMOSNTHV1 ||
-				this == PrimitiveNode.Function.TRANMOSNTHV2 || this == PrimitiveNode.Function.TRA4NMOSNTHV2 ||
-				this == PrimitiveNode.Function.TRANMOSNTHV3 || this == PrimitiveNode.Function.TRA4NMOSNTHV3 ||
-				this == PrimitiveNode.Function.TRADMES  || this == PrimitiveNode.Function.TRA4DMES ||
-				this == PrimitiveNode.Function.TRAEMES  || this == PrimitiveNode.Function.TRA4EMES)
+			if (this == TRANMOS  || this == TRA4NMOS ||
+				this == TRADMOS  || this == TRA4DMOS ||
+				this == TRANMOSNT || this == TRA4NMOSNT ||
+				this == TRANMOSFG || this == TRA4NMOSFG ||
+				this == TRANMOSVTL || this == TRA4NMOSVTL ||
+				this == TRANMOSVTH || this == TRA4NMOSVTH ||
+				this == TRANMOSHV1 || this == TRA4NMOSHV1 ||
+				this == TRANMOSHV2 || this == TRA4NMOSHV2 ||
+				this == TRANMOSHV3 || this == TRA4NMOSHV3 ||
+				this == TRANMOSNTHV1 || this == TRA4NMOSNTHV1 ||
+				this == TRANMOSNTHV2 || this == TRA4NMOSNTHV2 ||
+				this == TRANMOSNTHV3 || this == TRA4NMOSNTHV3 ||
+				this == TRADMES  || this == TRA4DMES ||
+				this == TRAEMES  || this == TRA4EMES)
 					return true;
 			return false;
 		}
@@ -646,18 +675,18 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 		 */
 		public boolean isPTypeTransistor()
 		{
-			if (this == PrimitiveNode.Function.TRAPMOS  || this == PrimitiveNode.Function.TRA4PMOS ||
-				this == PrimitiveNode.Function.TRAPMOSD || this == PrimitiveNode.Function.TRA4PMOSD ||
-				this == PrimitiveNode.Function.TRAPMOSNT || this == PrimitiveNode.Function.TRA4PMOSNT ||
-				this == PrimitiveNode.Function.TRAPMOSFG || this == PrimitiveNode.Function.TRA4PMOSFG ||
-				this == PrimitiveNode.Function.TRAPMOSVTL || this == PrimitiveNode.Function.TRA4PMOSVTL ||
-				this == PrimitiveNode.Function.TRAPMOSVTH || this == PrimitiveNode.Function.TRA4PMOSVTH ||
-				this == PrimitiveNode.Function.TRAPMOSHV1 || this == PrimitiveNode.Function.TRA4PMOSHV1 ||
-				this == PrimitiveNode.Function.TRAPMOSHV2 || this == PrimitiveNode.Function.TRA4PMOSHV2 ||
-				this == PrimitiveNode.Function.TRAPMOSHV3 || this == PrimitiveNode.Function.TRA4PMOSHV3 ||
-				this == PrimitiveNode.Function.TRAPMOSNTHV1 || this == PrimitiveNode.Function.TRA4PMOSNTHV1 ||
-				this == PrimitiveNode.Function.TRAPMOSNTHV2 || this == PrimitiveNode.Function.TRA4PMOSNTHV2 ||
-				this == PrimitiveNode.Function.TRAPMOSNTHV3 || this == PrimitiveNode.Function.TRA4PMOSNTHV3)
+			if (this == TRAPMOS  || this == TRA4PMOS ||
+				this == TRAPMOSD || this == TRA4PMOSD ||
+				this == TRAPMOSNT || this == TRA4PMOSNT ||
+				this == TRAPMOSFG || this == TRA4PMOSFG ||
+				this == TRAPMOSVTL || this == TRA4PMOSVTL ||
+				this == TRAPMOSVTH || this == TRA4PMOSVTH ||
+				this == TRAPMOSHV1 || this == TRA4PMOSHV1 ||
+				this == TRAPMOSHV2 || this == TRA4PMOSHV2 ||
+				this == TRAPMOSHV3 || this == TRA4PMOSHV3 ||
+				this == TRAPMOSNTHV1 || this == TRA4PMOSNTHV1 ||
+				this == TRAPMOSNTHV2 || this == TRA4PMOSNTHV2 ||
+				this == TRAPMOSNTHV3 || this == TRA4PMOSNTHV3)
 					return true;
 			return false;
 		}
@@ -669,8 +698,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 		 */
 		public boolean isBipolar()
 		{
-			return this==PrimitiveNode.Function.TRANPN || this==PrimitiveNode.Function.TRA4NPN ||
-			this==PrimitiveNode.Function.TRAPNP || this==PrimitiveNode.Function.TRA4PNP;
+			return this == TRANPN || this == TRA4NPN || this == TRAPNP || this == TRA4PNP;
 		}
 
 		/**
