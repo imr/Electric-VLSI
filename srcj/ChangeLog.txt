@@ -7,7 +7,7 @@ NOTE: Please place changes under the version that will be released next.
 IMP: (10/21/08, JKG) Added layer functions for dummy and dummy exclusion layers
 
 IMP: (10/21/08, GVG) New implementation of "different highlight color for network" (Bug #1776).
-White is the default color.
+White is the default color. Assuming it fixed bug #1924.
 
 IMP: (10/21/08, SMR) Added generalized transistor function detection to "L" and Verilog (Bug #1858).
 
