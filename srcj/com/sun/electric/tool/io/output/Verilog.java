@@ -844,7 +844,7 @@ public class Verilog extends Topology
 					nodeType = PrimitiveNode.Function.TRAPMOS;  dropBias = true;
 				}
 
-				if (nodeType == PrimitiveNode.Function.TRANMOS)
+				if (nodeType.isNTypeTransistor())
 				{
 					implicitPorts = 2;
 					nodeName = "tranif1";
