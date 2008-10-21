@@ -836,12 +836,10 @@ public class Verilog extends Topology
 			} else
 			{
 				// convert 4-port transistors to 3-port
-				if (nodeType == PrimitiveNode.Function.TRA4NMOS)
+				PrimitiveNode.Function threePortEquiv = nodeType.make3PortTransistor();
+				if (threePortEquiv != null)
 				{
-					nodeType = PrimitiveNode.Function.TRANMOS;  dropBias = true;
-				} else if (nodeType == PrimitiveNode.Function.TRA4PMOS)
-				{
-					nodeType = PrimitiveNode.Function.TRAPMOS;  dropBias = true;
+					nodeType = threePortEquiv;  dropBias = true;
 				}
 
 				if (nodeType.isNTypeTransistor())
@@ -850,7 +848,7 @@ public class Verilog extends Topology
 					nodeName = "tranif1";
 					Variable varWeakNode = ((NodeInst)no).getVar(Simulation.WEAK_NODE_KEY);
 					if (varWeakNode != null) nodeName = "rtranif1";
-				} else if (nodeType == PrimitiveNode.Function.TRAPMOS)
+				} else if (nodeType.isPTypeTransistor())
 				{
 					implicitPorts = 2;
 					nodeName = "tranif0";
