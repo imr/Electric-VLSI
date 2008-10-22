@@ -47,6 +47,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.ToolBar;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -1292,7 +1293,8 @@ class HighlightEOBJ extends Highlight2
         if (eobj instanceof PortInst) eobj = ((PortInst)eobj).getNodeInst();
         if (eobj instanceof Geometric)
         {
-            Highlight2 got = Highlighter.checkOutObject((Geometric)eobj, true, false, true, searchArea, wnd, directHitDist, false);
+        	boolean specialSelect = ToolBar.isSelectSpecial();
+            Highlight2 got = Highlighter.checkOutObject((Geometric)eobj, true, false, specialSelect, searchArea, wnd, directHitDist, false);
             if (got == null) return false;
             if (!(got instanceof HighlightEOBJ))
                 System.out.println("Error?");

@@ -33,6 +33,7 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Geometric;
@@ -47,6 +48,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
@@ -1768,6 +1770,11 @@ public class Highlighter implements DatabaseChangeListener {
 					for(Iterator<PortInst> it = ni.getPortInsts(); it.hasNext(); )
 					{
 						PortInst pi = it.next();
+						PortProto pp = pi.getPortProto();
+						if (pp instanceof PrimitivePort)
+						{
+							if (((PrimitivePort)pp).isWellPort() && !findSpecial) continue;
+						}
 						Poly poly = pi.getPoly();
 						dist = poly.polyDistance(bounds);
 						if (dist < bestDist)

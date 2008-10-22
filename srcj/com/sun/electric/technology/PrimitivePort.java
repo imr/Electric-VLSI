@@ -42,6 +42,9 @@ import java.io.IOException;
 import java.io.InvalidObjectException;
 import java.io.PrintWriter;
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
 /**
  * A PrimitivePort lives in a PrimitiveNode in a Tecnology.
@@ -294,6 +297,50 @@ public class PrimitivePort implements PortProto, Comparable<PrimitivePort>, Seri
 	 * @return true if this PrimitivePort is of type Ground.
 	 */
 	public boolean isGround() { return characteristic == PortCharacteristic.GND; }
+
+
+	/** Set of all well ports */	private static Set<PortProto> wellPorts = null;
+
+	/**
+	 * Method to tell whether this portproto is a "well" port on a transistor (for bias connections).
+	 * @return true if this is a Well port on a transistor.
+	 */
+	public boolean isWellPort()
+	{
+		if (wellPorts == null)
+		{
+			wellPorts = new HashSet<PortProto>();
+			for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
+			{
+				Technology tech = it.next();
+				for(Iterator<PrimitiveNode> nIt = tech.getNodes(); nIt.hasNext(); )
+				{
+					PrimitiveNode pnp = nIt.next();
+					if (!pnp.getFunction().isFET()) continue;
+					for(Iterator<PrimitivePort> pIt = pnp.getPrimitivePorts(); pIt.hasNext(); )
+					{
+						PrimitivePort pp = pIt.next();
+	
+						// see if the port connects to active or poly
+						ArcProto [] connections = pp.getConnections();
+						boolean activeOrPoly = false;
+						for(int i=0; i<connections.length; i++)
+						{
+							ArcProto con = connections[i];
+							if (con.getTechnology() == Generic.tech()) continue;
+							if (con.getFunction().isDiffusion() || con.getFunction().isPoly())
+							{
+								activeOrPoly = true;
+								break;
+							}
+						}
+						if (!activeOrPoly) wellPorts.add(pp);
+					}
+				}
+			}
+		}
+		return wellPorts.contains(this);
+	}
 
 	/**
 	 * Method to determine whether this PortProto has a name that suggests Ground.

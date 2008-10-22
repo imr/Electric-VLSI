@@ -71,8 +71,6 @@ public abstract class Topology extends Output
 	/** Map of all Cell names */					private Map<Cell,String> cellNameMap;
 													private HierarchyEnumerator.CellInfo lastInfo;
 
-	/** Set of all well ports */					private static Set<PortProto> wellPorts;
-
 	/** Creates a new instance of Topology */
 	public Topology() {}
 
@@ -464,49 +462,6 @@ public abstract class Topology extends Output
 		return cni;
 	}
 
-	/**
-	 * Method to tell whether a portproto is a "well" port on a transistor.
-	 * @param wellPP the PortProto in question
-	 * @return true if this is a Well port on a transistor (for bias connections).
-	 */
-	private static boolean isWellPort(PortProto wellPP)
-	{
-		if (wellPorts == null)
-		{
-			wellPorts = new HashSet<PortProto>();
-
-			for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
-			{
-				Technology tech = it.next();
-				for(Iterator<PrimitiveNode> nIt = tech.getNodes(); nIt.hasNext(); )
-				{
-					PrimitiveNode pnp = nIt.next();
-					if (!pnp.getFunction().isFET()) continue;
-					for(Iterator<PrimitivePort> pIt = pnp.getPrimitivePorts(); pIt.hasNext(); )
-					{
-						PrimitivePort pp = pIt.next();
-	
-						// see if the port connects to active or poly
-						ArcProto [] connections = pp.getConnections();
-						boolean activeOrPoly = false;
-						for(int i=0; i<connections.length; i++)
-						{
-							ArcProto con = connections[i];
-							if (con.getTechnology() == Generic.tech()) continue;
-							if (con.getFunction().isDiffusion() || con.getFunction().isPoly())
-							{
-								activeOrPoly = true;
-								break;
-							}
-						}
-						if (!activeOrPoly) wellPorts.add(pp);
-					}
-				}
-			}
-		}
-		return wellPorts.contains(wellPP);
-	}
-
 	private CellNetInfo doGetNetworks(Cell cell, boolean quiet, String paramName, boolean useExportedName,
 		HierarchyEnumerator.CellInfo info)
 	{
@@ -533,10 +488,11 @@ public abstract class Topology extends Output
 				if (pIt.hasNext())
 				{
 					PortInst onlyPI = pIt.next();
-					if (!pIt.hasNext())
+					PortProto pp = onlyPI.getPortProto();
+					if (pp instanceof PrimitivePort && !pIt.hasNext())
 					{
-						// found just one port on this network
-						if (isWellPort(onlyPI.getPortProto())) continue;
+						// found just one primitive port on this network
+						if (((PrimitivePort)pp).isWellPort()) continue;
 					}
 				}
 			}
