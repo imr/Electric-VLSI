@@ -108,6 +108,8 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 		DIFFS("substrate-diffusion", 0, 0),
 		/** Describes an arc on the Well-Diffusion layer. */
 		DIFFW("well-diffusion", 0, 0),
+		/** Describes an arc on the Well layer (bias connections). */
+		WELL("well", 0, 0),
 		/** Describes a bus arc. */
 		BUS("bus", 0, 0),
 		/** Describes an arc that is unrouted (to be replaced by routers). */

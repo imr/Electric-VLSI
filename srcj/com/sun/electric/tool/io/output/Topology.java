@@ -40,18 +40,25 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.generator.sclibrary.SCLibraryGen;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * This is the Simulation Interface tool.
@@ -63,6 +70,8 @@ public abstract class Topology extends Output
 	/** Map of all CellTopologies */				private Map<String,CellNetInfo> cellTopos;
 	/** Map of all Cell names */					private Map<Cell,String> cellNameMap;
 													private HierarchyEnumerator.CellInfo lastInfo;
+
+	/** Set of all well ports */					private static Set<PortProto> wellPorts;
 
 	/** Creates a new instance of Topology */
 	public Topology() {}
@@ -455,6 +464,49 @@ public abstract class Topology extends Output
 		return cni;
 	}
 
+	/**
+	 * Method to tell whether a portproto is a "well" port on a transistor.
+	 * @param wellPP the PortProto in question
+	 * @return true if this is a Well port on a transistor (for bias connections).
+	 */
+	private static boolean isWellPort(PortProto wellPP)
+	{
+		if (wellPorts == null)
+		{
+			wellPorts = new HashSet<PortProto>();
+
+			for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
+			{
+				Technology tech = it.next();
+				for(Iterator<PrimitiveNode> nIt = tech.getNodes(); nIt.hasNext(); )
+				{
+					PrimitiveNode pnp = nIt.next();
+					if (!pnp.getFunction().isFET()) continue;
+					for(Iterator<PrimitivePort> pIt = pnp.getPrimitivePorts(); pIt.hasNext(); )
+					{
+						PrimitivePort pp = pIt.next();
+	
+						// see if the port connects to active or poly
+						ArcProto [] connections = pp.getConnections();
+						boolean activeOrPoly = false;
+						for(int i=0; i<connections.length; i++)
+						{
+							ArcProto con = connections[i];
+							if (con.getTechnology() == Generic.tech()) continue;
+							if (con.getFunction().isDiffusion() || con.getFunction().isPoly())
+							{
+								activeOrPoly = true;
+								break;
+							}
+						}
+						if (!activeOrPoly) wellPorts.add(pp);
+					}
+				}
+			}
+		}
+		return wellPorts.contains(wellPP);
+	}
+
 	private CellNetInfo doGetNetworks(Cell cell, boolean quiet, String paramName, boolean useExportedName,
 		HierarchyEnumerator.CellInfo info)
 	{
@@ -473,6 +525,22 @@ public abstract class Topology extends Output
 		for(Iterator<Network> it = cni.netList.getNetworks(); it.hasNext(); )
 		{
 			Network net = it.next();
+
+			// special case: ignore nets on transistor bias ports that are unconnected and unexported
+			if (!net.isExported() && !net.getArcs().hasNext())
+			{
+				Iterator<PortInst> pIt = net.getPorts();
+				if (pIt.hasNext())
+				{
+					PortInst onlyPI = pIt.next();
+					if (!pIt.hasNext())
+					{
+						// found just one port on this network
+						if (isWellPort(onlyPI.getPortProto())) continue;
+					}
+				}
+			}
+
 			CellSignal cs = new CellSignal();
 			cs.pp = null;
 			cs.descending = !NetworkTool.isBusAscending();
@@ -658,6 +726,7 @@ public abstract class Topology extends Output
 		{
 			Network net = it.next();
 			CellSignal cs = cni.cellSignals.get(net);
+			if (cs == null) continue;
 			if (cs.globalSignal != null)
 			{
 				if (cs.globalSignal == Global.power)

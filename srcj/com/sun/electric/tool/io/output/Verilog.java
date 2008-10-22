@@ -997,6 +997,8 @@ public class Verilog extends Topology
 							PortInst pi = pIt.next();
 							Network net = netList.getNetwork(pi);
 							if (dropBias && pi.getPortProto().getName().equals("b")) continue;
+							CellSignal cs = cni.getCellSignal(net);
+							if (cs == null) continue;
 							if (i == 0)
 							{
 								if (net == gateNet) continue;
@@ -1009,7 +1011,6 @@ public class Verilog extends Topology
 							if (first) first = false; else
 								infstr.append(", ");
 
-							CellSignal cs = cni.getCellSignal(net);
 							String sigName = getSignalName(cs);
 							infstr.append(sigName);
 						}

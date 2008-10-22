@@ -640,7 +640,6 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 			if (this == TRA4DMES) return TRADMES;
 			if (this == TRA4EMES) return TRAEMES;
 			if (this == TRANS4) return TRANS;
-			assert !isTransistor;
 			return null;
 		}
 
