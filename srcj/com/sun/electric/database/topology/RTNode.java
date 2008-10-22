@@ -267,6 +267,24 @@ public class RTNode
 	}
 
 	/**
+	 * Method to return the number of leaf entries in this RTree.
+	 * @return the number of leaf entries in this RTree.
+	 */
+	public int tallyRTree()
+	{
+		int total = 0;
+		if (getFlag()) total += getTotal(); else
+		{
+			for(int j=0; j<getTotal(); j++)
+			{
+				RTNode child = (RTNode)getChild(j);
+				total += child.tallyRTree();
+			}
+		}
+		return total;
+	}
+
+	/**
 	 * Method to check the validity of an RTree node.
 	 * @param level the level of the node in the tree (for error reporting purposes).
 	 * @param env the environment in which this node resides.

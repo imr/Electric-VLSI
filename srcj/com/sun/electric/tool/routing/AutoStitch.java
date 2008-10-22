@@ -27,7 +27,6 @@ package com.sun.electric.tool.routing;
 
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.ObjectQTree;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyBase;
@@ -47,6 +46,7 @@ import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.RTBounds;
+import com.sun.electric.database.topology.RTNode;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.UserInterface;
@@ -184,7 +184,7 @@ public class AutoStitch
 			Rectangle2D limitBound = null;
 			if (lX != hX && lY != hY)
 				limitBound = new Rectangle2D.Double(lX, lY, hX-lX, hY-lY);
-			runAutoStitch(cell, nodesToStitch, arcsToStitch, null, limitBound, forced, Routing.isAutoStitchCreateExports(), false);
+			runAutoStitch(cell, nodesToStitch, arcsToStitch, this, null, limitBound, forced, Routing.isAutoStitchCreateExports(), false);
 			return true;
 		}
 	}
@@ -200,11 +200,18 @@ public class AutoStitch
 	 * @param createExports true to create exports in subcells where necessary.
 	 * @param showProgress true to show progress.
 	 */
-	public static void runAutoStitch(Cell cell, List<NodeInst> nodesToStitch, List<ArcInst> arcsToStitch,
+	public static void runAutoStitch(Cell cell, List<NodeInst> nodesToStitch, List<ArcInst> arcsToStitch, Job job,
 		PolyMerge stayInside, Rectangle2D limitBound, boolean forced, boolean createExports, boolean showProgress)
 	{
+		// initialization
+		if (cell.isAllLocked())
+		{
+			System.out.println("WARNING: Cell " + cell.describe(false) + " is locked: no changes can be made");
+			return;
+		}
+
 		AutoStitch as = new AutoStitch();
-		as.runNow(cell, nodesToStitch, arcsToStitch, stayInside, limitBound, forced, createExports, showProgress);
+		as.runNow(cell, nodesToStitch, arcsToStitch, job, stayInside, limitBound, forced, createExports, showProgress);
 	}
 
 	private AutoStitch()
@@ -217,21 +224,16 @@ public class AutoStitch
 	 * @param cell the cell in which to stitch.
 	 * @param nodesToStitch a list of NodeInsts to stitch (null to use all in the cell).
 	 * @param arcsToStitch a list of ArcInsts to stitch (null to use all in the cell).
+	 * @param job the Job running this, for aborting.
 	 * @param stayInside is the area in which to route (null to route arbitrarily).
 	 * @param limitBound if not null, only consider connections that occur in this area.
 	 * @param forced true if the stitching was explicitly requested (and so results should be printed).
 	 * @param createExports true to create exports in subcells where necessary.
 	 * @param showProgress true to show progress.
 	 */
-	private void runNow(Cell cell, List<NodeInst> nodesToStitch, List<ArcInst> arcsToStitch,
+	private void runNow(Cell cell, List<NodeInst> nodesToStitch, List<ArcInst> arcsToStitch, Job job,
 		PolyMerge stayInside, Rectangle2D limitBound, boolean forced, boolean createExports, boolean showProgress)
 	{
-		// initialization
-		if (cell.isAllLocked())
-		{
-			System.out.println("WARNING: Cell " + cell.describe(false) + " is locked: no changes can be made");
-			return;
-		}
 		if (showProgress) Job.getUserInterface().setProgressNote("Initializing routing");
 		ArcProto preferredArc = Routing.getPreferredRoutingArcProto();
 
@@ -253,6 +255,7 @@ public class AutoStitch
 				nodesToStitch.add(ni);
 			}
 		}
+
 		if (arcsToStitch == null)
 		{
 			arcsToStitch = new ArrayList<ArcInst>();
@@ -271,27 +274,38 @@ public class AutoStitch
 		// compute the number of tasks to perform and start progress bar
 		int totalToStitch = nodesToStitch.size() + arcsToStitch.size();
 
+		if (job.checkAbort()) return;
+
 		// if creating exports, make first pass in which exports must be created
 		if (createExports)
 		{
 			int soFar = 0;
 			if (showProgress) Job.getUserInterface().setProgressNote("Routing " + totalToStitch + " objects with export creation...");
-
+boolean debug = cell.getName().equals("HS_fill_block_buffer_caps");
+if (debug) System.out.println("----AUTOSTITCH CREATE EXPORTS FOR "+nodesToStitch.size()+" NODES AND "+arcsToStitch.size()+" ARCS");
 			// run through the nodeinsts to be checked for export-creation stitching
 			for(NodeInst ni : nodesToStitch)
 			{
 				soFar++;
 				if (showProgress && (soFar%100) == 0)
+				{
+					if (job.checkAbort()) return;
 					Job.getUserInterface().setProgressValue(soFar * 100 / totalToStitch);
+				}
 				checkExportCreationStitching(ni);
+if (debug) System.out.println("----AUTOSTITCH DID "+soFar);
 			}
+if (debug) System.out.println("----AUTOSTITCH CREATED EXPORTS FOR NODES");
 
 			// now run through the arcinsts to be checked for export-creation stitching
 			for(ArcInst ai : arcsToStitch)
 			{
 				soFar++;
 				if (showProgress && (soFar%100) == 0)
+				{
+					if (job.checkAbort()) return;
 					Job.getUserInterface().setProgressValue(soFar * 100 / totalToStitch);
+				}
 
 				// only interested in arcs that are wider than their nodes (and have geometry that sticks out)
 				if (!arcTooWide(ai)) continue;
@@ -366,7 +380,10 @@ public class AutoStitch
 		{
 			soFar++;
 			if (showProgress && (soFar%100) == 0)
+			{
+				if (job.checkAbort()) return;
 				Job.getUserInterface().setProgressValue(soFar * 100 / totalToStitch);
+			}
 			checkStitching(ni, nodeBounds, nodePortBounds, arcLayers, stayInside, top, limitBound, preferredArc);
 		}
 
@@ -375,7 +392,10 @@ public class AutoStitch
 		{
 			soFar++;
 			if (showProgress && (soFar%100) == 0)
+			{
+				if (job.checkAbort()) return;
 				Job.getUserInterface().setProgressValue(soFar * 100 / totalToStitch);
+			}
 
 			if (!ai.isLinked()) continue;
 
@@ -393,6 +413,7 @@ public class AutoStitch
 		// check for any inline pins due to created wires
 		if (showProgress)
 		{
+			if (job.checkAbort()) return;
 			Job.getUserInterface().setProgressValue(0);
 			Job.getUserInterface().setProgressNote("Cleaning up pins...");
 		}
@@ -410,11 +431,11 @@ public class AutoStitch
 		}
 		if (pinsToPassThrough.size() > 0)
 		{
-			CircuitChangeJobs.CleanupChanges job = new CircuitChangeJobs.CleanupChanges(cell, true, Collections.<NodeInst>emptySet(),
+			CircuitChangeJobs.CleanupChanges ccJob = new CircuitChangeJobs.CleanupChanges(cell, true, Collections.<NodeInst>emptySet(),
 				pinsToPassThrough, new HashMap<NodeInst,EPoint>(), new ArrayList<NodeInst>(), new HashSet<ArcInst>(), 0, 0, 0);
 			try
 			{
-				job.doIt();
+				ccJob.doIt();
 			} catch (JobException e)
 			{
 			}
@@ -1623,6 +1644,7 @@ public class AutoStitch
 	private void checkExportCreationStitching(Geometric geom)
 	{
 		Cell cell = geom.getParent();
+//boolean debug = cell.getName().equals("HS_fill_block_buffer_caps");
 		NodeInst ni = null;
 		if (geom instanceof NodeInst) ni = (NodeInst)geom;
 
@@ -1637,6 +1659,7 @@ public class AutoStitch
 			Geometric oGeom = (Geometric)it.next();
 			if (oGeom != geom) geomsInArea.add(oGeom);
 		}
+//if (debug) System.out.println("-----CHECK "+geomsInArea.size()+" GEOMS");
 		for(Geometric oGeom : geomsInArea)
 		{
 			// find another node in this area
@@ -1671,7 +1694,11 @@ public class AutoStitch
 
 				// compare node "ni" against node "oNi"
 				if (oNi.isCellInstance() && ni.isCellInstance())
+				{
+//if (debug) System.out.println("-----CHECK NODE/NODE");
 					compareTwoNodesMakeExport(ni, oNi);
+//if (debug) System.out.println("-----CHECKED NODE/NODE");
+				}
 			}
 		}
 	}
@@ -1946,7 +1973,7 @@ public class AutoStitch
 	/**
 	 * Class to define a polygon that is down in the hierarchy and has a context.
 	 */
-	private static class SubPolygon
+	private static class SubPolygon implements RTBounds
 	{
 		PolyBase poly;
 		int netID;
@@ -1962,6 +1989,8 @@ public class AutoStitch
 			this.theObj = theObj;
 			this.xfToTop = xfToTop;
 		}
+
+		public Rectangle2D getBounds() { return poly.getBounds2D(); }
 	}
 
 	/**
@@ -1988,6 +2017,7 @@ public class AutoStitch
 	 */
 	private void compareTwoNodesMakeExport(NodeInst ni1, NodeInst ni2)
 	{
+//boolean debug = ni1.getParent().getName().equals("HS_fill_block_buffer_caps");
 		// force the second to be a cell instance
 		if (!ni2.isCellInstance())
 		{
@@ -2006,13 +2036,15 @@ public class AutoStitch
 		Rectangle2D intersectArea = bound1.createIntersection(bound2);
 
 		// now find all polygons in Node 1 that are in the intersection area
-		List<SubPolygon> polygons = new ArrayList<SubPolygon>();
+		RTNode rtree = null;
 		if (ni1.isCellInstance())
 		{
-			GatherPolygonVisitor gpv = new GatherPolygonVisitor(polygons, intersectArea, ni1);
+			GatherPolygonVisitor gpv = new GatherPolygonVisitor(intersectArea, ni1);
 			HierarchyEnumerator.enumerateCell(ni1.getParent(), VarContext.globalContext, gpv);
+			rtree = gpv.getRTree();
 		} else
 		{
+			rtree = RTNode.makeTopLevel();
 			Technology tech = ni1.getProto().getTechnology();
 			Poly[] polys = tech.getShapeOfNode(ni1, true, true, null);
 			AffineTransform trans = ni1.rotateOut();
@@ -2021,14 +2053,16 @@ public class AutoStitch
 				Poly poly = polys[i];
 				poly.transform(trans);
 				if (!DBMath.rectsIntersect(poly.getBounds2D(), intersectArea)) continue;
-				polygons.add(new SubPolygon(poly, VarContext.globalContext, -1, ni1, null));
+				rtree = RTNode.linkGeom(null, rtree, new SubPolygon(poly, VarContext.globalContext, -1, ni1, null));
 			}
 		}
+//if (debug) System.out.println("----------NODE 1 IS "+ni1.describe(false)+" AND HAS "+rtree.tallyRTree()+" POLYS");
 
 		// now take the list into the second node and look for connections
-		CheckPolygonVisitor cpv = new CheckPolygonVisitor(polygons, intersectArea, ni2);
+		CheckPolygonVisitor cpv = new CheckPolygonVisitor(rtree, intersectArea, ni2);
 		HierarchyEnumerator.enumerateCell(ni2.getParent(), VarContext.globalContext, cpv);
 		List<PolyConnection> polysFound = cpv.getFoundConnections();
+//if (debug) System.out.println("----------NODE 2 IS "+ni2.describe(false)+" AND MATCHES "+polysFound.size()+" POLYS");
 
 		// show what is matched
 		for(PolyConnection p : polysFound)
@@ -2044,14 +2078,14 @@ public class AutoStitch
 	 */
 	private class CheckPolygonVisitor extends HierarchyEnumerator.Visitor
 	{
-		private List<SubPolygon> polygons;
+		private RTNode rtree;
 		private Rectangle2D intersectArea;
 		private NodeInst cellOfInterest;
 		private List<PolyConnection> connectionsFound;
 
-		public CheckPolygonVisitor(List<SubPolygon> polygons, Rectangle2D intersectArea, NodeInst cellOfInterest)
+		public CheckPolygonVisitor(RTNode rtree, Rectangle2D intersectArea, NodeInst cellOfInterest)
 		{
-			this.polygons = polygons;
+			this.rtree = rtree;
 			this.intersectArea = intersectArea;
 			this.cellOfInterest = cellOfInterest;
 			connectionsFound = new ArrayList<PolyConnection>();
@@ -2080,8 +2114,9 @@ public class AutoStitch
 					if (poly.getPort() == null) continue;
 					poly.transform(nodeTrans);
 					if (!DBMath.rectsIntersect(poly.getBounds2D(), intersectArea)) continue;
-					for(SubPolygon sp : polygons)
+					for(RTNode.Search sea = new RTNode.Search(poly.getBounds2D(), rtree, true); sea.hasNext(); )
 					{
+						SubPolygon sp = (SubPolygon)sea.next();
 						if (sp.poly.getLayer() != poly.getLayer()) continue;
 						if (sp.poly.separation(poly) >= DBMath.getEpsilon()) continue;
 						int netID = -1;
@@ -2104,8 +2139,9 @@ public class AutoStitch
 					PolyBase poly = arcPolyList[i];
 					poly.transform(toTop);
 					if (!DBMath.rectsIntersect(poly.getBounds2D(), intersectArea)) continue;
-					for(SubPolygon sp : polygons)
+					for(RTNode.Search sea = new RTNode.Search(poly.getBounds2D(), rtree, true); sea.hasNext(); )
 					{
+						SubPolygon sp = (SubPolygon)sea.next();
 						if (sp.poly.getLayer() != poly.getLayer()) continue;
 						if (sp.poly.separation(poly) > 0) continue;
 						Network net = nl.getNetwork(ai, 0);
@@ -2171,16 +2207,18 @@ public class AutoStitch
 	 */
 	private class GatherPolygonVisitor extends HierarchyEnumerator.Visitor
 	{
-		private List<SubPolygon> polygons;
+		private RTNode rtree;
 		private Rectangle2D intersectArea;
 		private NodeInst cellOfInterest;
 
-		public GatherPolygonVisitor(List<SubPolygon> polygons, Rectangle2D intersectArea, NodeInst cellOfInterest)
+		public GatherPolygonVisitor(Rectangle2D intersectArea, NodeInst cellOfInterest)
 		{
-			this.polygons = polygons;
+			rtree = RTNode.makeTopLevel();
 			this.intersectArea = intersectArea;
 			this.cellOfInterest = cellOfInterest;
 		}
+
+		public RTNode getRTree() { return rtree; }
 
 		public boolean enterCell(HierarchyEnumerator.CellInfo info) { return true; }
 
@@ -2208,7 +2246,7 @@ public class AutoStitch
 					int netID = -1;
 					Network net = nl.getNetwork(ni, poly.getPort(), 0);
 					if (net != null) netID = info.getNetID(net);
-					polygons.add(new SubPolygon(poly, info.getContext(), netID, ni, null));
+					rtree = RTNode.linkGeom(null, rtree, new SubPolygon(poly, info.getContext(), netID, ni, null));
 				}
 			}
 
@@ -2227,7 +2265,7 @@ public class AutoStitch
 					if (!DBMath.rectsIntersect(poly.getBounds2D(), intersectArea)) continue;
 					Network net = nl.getNetwork(ai, 0);
 					int netID = info.getNetID(net);
-					polygons.add(new SubPolygon(poly, info.getContext(), netID, ai, null));
+					rtree = RTNode.linkGeom(null, rtree, new SubPolygon(poly, info.getContext(), netID, ai, null));
 				}
 			}
 		}

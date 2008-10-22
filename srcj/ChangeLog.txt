@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08k: ******************************
 
+BUG: (10/22/08, SMR) Node extractor is slow (Bug #1778) and doesn't abort (Bug #1925).
+FIX: Added R-trees to auto-stitcher to speed it up.  Added more abort detection.
+
 IMP: (10/21/08, JKG) Added layer functions for dummy and dummy exclusion layers
 
 IMP: (10/21/08, GVG) New implementation of "different highlight color for network" (Bug #1776).

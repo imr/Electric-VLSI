@@ -92,11 +92,12 @@ public class PadGenerator
 	 * Presumes that it is being run from inside a change job.
 	 * @param destLib destination library.
 	 * @param fileName the array file name.
+	 * @param job the Job running this task (null if none).
 	 */
-	public static Cell makePadFrameNoJob(Library destLib, String fileName, double alignment)
+	public static Cell makePadFrameUseJob(Library destLib, String fileName, double alignment, Job job)
 	{
 		PadGenerator pg = new PadGenerator(destLib, fileName, alignment);
-		return pg.MakePadFrame();
+		return pg.makePadFrame(job);
 	}
 
 	private static class MakePadFrame extends Job
@@ -117,7 +118,7 @@ public class PadGenerator
 
 		public boolean doIt() throws JobException
 		{
-			frameCell = makePadFrameNoJob(destLib, fileName, alignment);
+			frameCell = makePadFrameUseJob(destLib, fileName, alignment, this);
 			fieldVariableChanged("frameCell");
 			return true;
 		}
@@ -208,7 +209,7 @@ public class PadGenerator
 		orderedCommands = new ArrayList<Object>();
 	}
 
-	private Cell MakePadFrame()
+	private Cell makePadFrame(Job job)
 	{
 		String lineRead;
 
@@ -288,7 +289,7 @@ public class PadGenerator
 			}
 		} catch (IOException e1) {}
 
-		Cell frameCell = createPadFrames();
+		Cell frameCell = createPadFrames(job);
 		return frameCell;
 	}
 
@@ -652,25 +653,25 @@ public class PadGenerator
 		System.out.println("Line " + lineno + ": " + msg);
 	}
 
-	private Cell createPadFrames()
+	private Cell createPadFrames(Job job)
 	{
 		Cell frameCell = null;
 		if (views.size() == 0)
 		{
-			frameCell = createPadFrame(padframename, View.LAYOUT);
+			frameCell = createPadFrame(padframename, View.LAYOUT, job);
 		} else
 		{
 			for (View view : views)
 			{
 				if (view == View.SCHEMATIC) view = View.ICON;
-				frameCell = createPadFrame(padframename, view);
+				frameCell = createPadFrame(padframename, view, job);
 			}
 		}
 		return frameCell;
 
 	}
 
-	private Cell createPadFrame(String name, View view)
+	private Cell createPadFrame(String name, View view, Job job)
 	{
 		angle = 0;
 
@@ -923,7 +924,7 @@ public class PadGenerator
 		}
 
 		// auto stitch everything
-		AutoStitch.runAutoStitch(framecell, null, null, null, null, true, false, false);
+		AutoStitch.runAutoStitch(framecell, null, null, job, null, null, true, false, false);
 
 		if (corename != null)
 		{

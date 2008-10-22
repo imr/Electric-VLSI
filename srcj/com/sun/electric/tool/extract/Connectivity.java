@@ -183,7 +183,7 @@ public class Connectivity
 				addedBatchNames = new ArrayList<String>();
 			}
 			Job.getUserInterface().startProgressDialog("Extracting", null);
-			newCell = c.doExtract(cell, recursive, pat, true, addedBatchRectangles, addedBatchLines, addedBatchNames);
+			newCell = c.doExtract(cell, recursive, pat, true, this, addedBatchRectangles, addedBatchLines, addedBatchNames);
 			Job.getUserInterface().stopProgressDialog();
 			fieldVariableChanged("addedBatchRectangles");
 			fieldVariableChanged("addedBatchLines");
@@ -367,7 +367,7 @@ public class Connectivity
 	 * A new version of the cell is created that has real nodes (transistors, contacts) and arcs.
 	 * This cell should have pure-layer nodes which will be converted.
 	 */
-	private Cell doExtract(Cell oldCell, boolean recursive, Pattern pat, boolean top,
+	private Cell doExtract(Cell oldCell, boolean recursive, Pattern pat, boolean top, Job job,
                            List<List<ERectangle>> addedBatchRectangles, List<List<ERectangle>> addedBatchLines, List<String> addedBatchNames)
 	{
 		if (recursive)
@@ -390,7 +390,7 @@ public class Connectivity
 					Cell convertedCell = convertedCells.get(subCell);
 					if (convertedCell == null)
 					{
-						doExtract(subCell, recursive, pat, false, addedBatchRectangles, addedBatchLines, addedBatchNames);
+						doExtract(subCell, recursive, pat, false, job, addedBatchRectangles, addedBatchLines, addedBatchNames);
 					}
 				}
 			}
@@ -492,7 +492,7 @@ public class Connectivity
 			for(Iterator<ArcInst> it = newCell.getArcs(); it.hasNext(); )
 				allArcs.add(it.next());
 		}
-        AutoStitch.runAutoStitch(newCell, null, null, originalUnscaledMerge, null, false, true, true);
+        AutoStitch.runAutoStitch(newCell, null, null, job, originalUnscaledMerge, null, false, true, true);
 		if (DEBUGSTEPS)
 		{
 			initDebugging();
