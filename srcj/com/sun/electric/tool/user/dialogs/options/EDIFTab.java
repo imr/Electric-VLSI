@@ -26,6 +26,7 @@ package com.sun.electric.tool.user.dialogs.options;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.IOTool;
+import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 
 import javax.swing.JPanel;
@@ -45,6 +46,10 @@ public class EDIFTab extends PreferencePanel
 		initComponents();
 		textArea = new JTextArea();
 		acceptedParamPane.setViewportView(textArea);
+
+		// make all text fields select-all when entered
+	    EDialog.makeTextFieldSelectAllOnTab(edifInputScale);
+	    EDialog.makeTextFieldSelectAllOnTab(edifConfigFile);
 	}
 
 	/** return the panel to use for this preferences tab. */

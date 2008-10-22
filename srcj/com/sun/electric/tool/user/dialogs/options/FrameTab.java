@@ -26,6 +26,7 @@ package com.sun.electric.tool.user.dialogs.options;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TempPref;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.dialogs.EDialog;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -46,6 +47,14 @@ public class FrameTab extends PreferencePanel
 	{
 		super(parent, modal);
 		initComponents();
+
+		// make all text fields select-all when entered
+	    EDialog.makeTextFieldSelectAllOnTab(frameDefaultCompany);
+	    EDialog.makeTextFieldSelectAllOnTab(frameDefaultDesigner);
+	    EDialog.makeTextFieldSelectAllOnTab(frameDefaultProject);
+	    EDialog.makeTextFieldSelectAllOnTab(frameLibraryCompany);
+	    EDialog.makeTextFieldSelectAllOnTab(frameLibraryDesigner);
+	    EDialog.makeTextFieldSelectAllOnTab(frameLibraryProject);
 	}
 
 	/** return the panel to use for this preferences tab. */

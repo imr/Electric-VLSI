@@ -84,6 +84,14 @@ public class TextInfoPanel extends javax.swing.JPanel
     	this.updateChangesInstantly = updateChangesInstantly;
         initComponents();
 
+		// make all text fields select-all when entered
+	    EDialog.makeTextFieldSelectAllOnTab(pointsSize);
+	    EDialog.makeTextFieldSelectAllOnTab(unitsSize);
+	    EDialog.makeTextFieldSelectAllOnTab(xOffset);
+	    EDialog.makeTextFieldSelectAllOnTab(yOffset);
+	    EDialog.makeTextFieldSelectAllOnTab(boxedHeight);
+	    EDialog.makeTextFieldSelectAllOnTab(boxedWidth);
+
         // pure "parameters" dialog doesn't have "Highlight Owner" button
         if (paramDialog) remove(seeNode);
 

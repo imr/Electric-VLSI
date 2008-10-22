@@ -28,6 +28,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.Frame;
@@ -47,6 +48,12 @@ public class DisplayControlTab extends PreferencePanel
 	{
 		super(parent, modal);
 		initComponents();
+
+		// make all text fields select-all when entered
+	    EDialog.makeTextFieldSelectAllOnTab(generalGreekLimit);
+	    EDialog.makeTextFieldSelectAllOnTab(generalGreekCellLimit);
+	    EDialog.makeTextFieldSelectAllOnTab(patternScaleLimit);
+	    EDialog.makeTextFieldSelectAllOnTab(alphaBlendingOvercolorLimit);
 	}
 
 	/** return the panel to use for this preferences tab. */

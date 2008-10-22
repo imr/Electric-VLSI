@@ -26,6 +26,7 @@ package com.sun.electric.tool.user.dialogs.projsettings;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.io.IOTool;
+import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.ProjectSettingsFrame;
 
 import java.awt.event.MouseAdapter;
@@ -53,6 +54,9 @@ public class SkillTab extends ProjSettingsPanel
 	{
 		super(parent, modal);
 		initComponents();
+
+		// make all text fields select-all when entered
+	    EDialog.makeTextFieldSelectAllOnTab(skillLayerName);
 	}
 
 	/** return the panel to use for this preferences tab. */

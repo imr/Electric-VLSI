@@ -27,6 +27,7 @@ import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.dialogs.EDialog;
 
 import java.awt.Frame;
 import java.util.HashMap;
@@ -46,6 +47,13 @@ public class GeneralTab extends PreferencePanel
 	{
 		super(parent, modal);
 		initComponents();
+
+		// make all text fields select-all when entered
+	    EDialog.makeTextFieldSelectAllOnTab(pathTextField);
+	    EDialog.makeTextFieldSelectAllOnTab(generalErrorLimit);
+	    EDialog.makeTextFieldSelectAllOnTab(maxUndoHistory);
+	    EDialog.makeTextFieldSelectAllOnTab(generalMaxMem);
+	    EDialog.makeTextFieldSelectAllOnTab(generalMaxSize);
 	}
 
 	/** return the panel to use for this preferences tab. */

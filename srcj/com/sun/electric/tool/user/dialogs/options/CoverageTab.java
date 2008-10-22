@@ -28,6 +28,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.extract.LayerCoverageTool;
+import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.Frame;
@@ -59,6 +60,13 @@ public class CoverageTab extends PreferencePanel
 	{
 		super(parent, modal);
 		initComponents();
+
+		// make all text fields select-all when entered
+	    EDialog.makeTextFieldSelectAllOnTab(layerAreaField);
+	    EDialog.makeTextFieldSelectAllOnTab(widthField);
+	    EDialog.makeTextFieldSelectAllOnTab(heightField);
+	    EDialog.makeTextFieldSelectAllOnTab(deltaXField);
+	    EDialog.makeTextFieldSelectAllOnTab(deltaYField);
 	}
 
 	/** return the panel to use for this preferences tab. */

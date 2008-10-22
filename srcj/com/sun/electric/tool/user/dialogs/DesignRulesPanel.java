@@ -59,6 +59,29 @@ public class DesignRulesPanel extends JPanel
 	public DesignRulesPanel()
 	{
 		initComponents();
+
+		// make all text fields select-all when entered
+	    EDialog.makeTextFieldSelectAllOnTab(drNodeWidth);
+	    EDialog.makeTextFieldSelectAllOnTab(drNodeHeight);
+	    EDialog.makeTextFieldSelectAllOnTab(drNodeRule);
+	    EDialog.makeTextFieldSelectAllOnTab(drLayerWidth);
+	    EDialog.makeTextFieldSelectAllOnTab(drLayerWidthRule);
+	    EDialog.makeTextFieldSelectAllOnTab(drLayerArea);
+	    EDialog.makeTextFieldSelectAllOnTab(drLayerAreaRule);
+	    EDialog.makeTextFieldSelectAllOnTab(drLayerEAreaRule);
+	    EDialog.makeTextFieldSelectAllOnTab(drLayerEnclosure);
+	    EDialog.makeTextFieldSelectAllOnTab(drNormalConnected);
+	    EDialog.makeTextFieldSelectAllOnTab(drNormalConnectedRule);
+	    EDialog.makeTextFieldSelectAllOnTab(drNormalUnconnected);
+	    EDialog.makeTextFieldSelectAllOnTab(drNormalUnconnectedRule);
+	    EDialog.makeTextFieldSelectAllOnTab(drNormalEdge);
+	    EDialog.makeTextFieldSelectAllOnTab(drNormalEdgeRule);
+	    EDialog.makeTextFieldSelectAllOnTab(drMultiUnconnected);
+	    EDialog.makeTextFieldSelectAllOnTab(drMultiUnconnectedRule);
+	    EDialog.makeTextFieldSelectAllOnTab(drLengths);
+	    EDialog.makeTextFieldSelectAllOnTab(drSpacings);
+	    EDialog.makeTextFieldSelectAllOnTab(drSpacingsRule);
+	    EDialog.makeTextFieldSelectAllOnTab(drWidths);
 	}
 
 	/**

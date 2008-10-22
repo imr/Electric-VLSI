@@ -180,7 +180,7 @@ public class SpecialProperties
 				num = TextUtils.atof(val);
 			}
 			initComponents(wnd, ni, title, TextUtils.formatDouble(num), theScales, scale.getName(), units);
-			cancelHit = moreHit = false;
+		    cancelHit = moreHit = false;
 			setVisible(true);
 			toFront();
 
@@ -237,6 +237,7 @@ public class SpecialProperties
 			gbc.weightx = .5;
 			gbc.insets = new Insets(4, 4, 4, 4);
 			getContentPane().add(value, gbc);
+		    EDialog.makeTextFieldSelectAllOnTab(value);
 			value.selectAll();
 
 			if (units != null)
@@ -460,6 +461,7 @@ public class SpecialProperties
 			gbc.weightx = .5;
 			gbc.insets = new Insets(4, 4, 4, 4);
 			getContentPane().add(value, gbc);
+		    EDialog.makeTextFieldSelectAllOnTab(value);
 			value.selectAll();
 
 			JLabel lab2 = new JLabel("Characteristics:");
@@ -625,6 +627,7 @@ public class SpecialProperties
 			gbc.weightx = 1;
 			gbc.insets = new Insets(4, 4, 4, 4);
 			getContentPane().add(valueWid, gbc);
+		    EDialog.makeTextFieldSelectAllOnTab(valueWid);
 			valueWid.selectAll();
 
 			comboWid = new JComboBox();
@@ -655,6 +658,7 @@ public class SpecialProperties
 			gbc.weightx = 1;
 			gbc.insets = new Insets(4, 4, 4, 4);
 			getContentPane().add(valueLen, gbc);
+		    EDialog.makeTextFieldSelectAllOnTab(valueLen);
 
 			comboLen = new JComboBox();
 			for(Iterator<CodeExpression.Code> it = CodeExpression.Code.getCodes(); it.hasNext(); )

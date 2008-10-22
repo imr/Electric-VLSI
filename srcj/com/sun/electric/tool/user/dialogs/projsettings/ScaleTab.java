@@ -25,6 +25,7 @@ package com.sun.electric.tool.user.dialogs.projsettings;
 
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.ProjectSettingsFrame;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -47,6 +48,9 @@ public class ScaleTab extends ProjSettingsPanel
 	{
 		super(parent, modal);
 		initComponents();
+
+		// make all text fields select-all when entered
+	    EDialog.makeTextFieldSelectAllOnTab(unitsScaleValue);
 	}
 
 	/** return the panel to use for this preferences tab. */

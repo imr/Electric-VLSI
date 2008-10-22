@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.user.dialogs.EDialog;
 
 import javax.swing.JPanel;
 
@@ -37,6 +38,11 @@ public class CDLTab extends PreferencePanel
 	{
 		super(parent, modal);
 		initComponents();
+
+		// make all text fields select-all when entered
+	    EDialog.makeTextFieldSelectAllOnTab(cdlIncludeFile);
+	    EDialog.makeTextFieldSelectAllOnTab(cdlLibraryName);
+	    EDialog.makeTextFieldSelectAllOnTab(cdlLibraryPath);
 	}
 
 	/** return the panel to use for this preferences tab. */

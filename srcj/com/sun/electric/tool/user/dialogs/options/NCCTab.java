@@ -26,6 +26,7 @@ package com.sun.electric.tool.user.dialogs.options;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.ncc.NccOptions;
 import com.sun.electric.tool.ncc.NccPreferences;
+import com.sun.electric.tool.user.dialogs.EDialog;
 
 import javax.swing.JPanel;
 
@@ -39,6 +40,14 @@ public class NCCTab extends PreferencePanel
 	{
 		super(parent, modal);
 		initComponents();
+
+		// make all text fields select-all when entered
+	    EDialog.makeTextFieldSelectAllOnTab(relativeSizeTolerance);
+	    EDialog.makeTextFieldSelectAllOnTab(absoluteSizeTolerance);
+	    EDialog.makeTextFieldSelectAllOnTab(howMuchStatus);
+	    EDialog.makeTextFieldSelectAllOnTab(maxMatched);
+	    EDialog.makeTextFieldSelectAllOnTab(maxMismatched);
+	    EDialog.makeTextFieldSelectAllOnTab(maxMembers);
 	}
 
 	/** return the panel to use for this preferences tab. */

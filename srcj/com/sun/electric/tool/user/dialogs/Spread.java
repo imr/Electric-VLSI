@@ -62,7 +62,11 @@ public class Spread extends EDialog
 		currentNode = ni;
 		initComponents();
         getRootPane().setDefaultButton(ok);
-        switch (defDirection)
+
+		// make all text fields select-all when entered
+	    EDialog.makeTextFieldSelectAllOnTab(spreadAmount);
+
+	    switch (defDirection)
         {
         	case 'u': spreadUp.setSelected(true);     break;
         	case 'd': spreadDown.setSelected(true);   break;

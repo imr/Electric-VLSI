@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08k: ******************************
 
+IMP: (10/22/08, SMR) Tabbing through the fields in the dialogs
+     now selects the entire field (Bug #1916).
+
 IMP: (10/22/08, SMR) Made well ports "hard to select" (Bug #1910).
 
 BUG: (10/22/08, SMR) Node extractor is slow (Bug #1778) and doesn't abort (Bug #1925).

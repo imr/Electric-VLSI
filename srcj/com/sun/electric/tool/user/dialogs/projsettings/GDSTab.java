@@ -30,6 +30,7 @@ import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.GDSLayers;
+import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.ProjectSettingsFrame;
 
 import java.awt.event.ActionEvent;
@@ -55,6 +56,16 @@ public class GDSTab extends ProjSettingsPanel
 	{
 		super(parent, modal);
 		initComponents();
+
+		// make all text fields select-all when entered
+	    EDialog.makeTextFieldSelectAllOnTab(gdsLayerNumber);
+	    EDialog.makeTextFieldSelectAllOnTab(gdsLayerType);
+	    EDialog.makeTextFieldSelectAllOnTab(gdsPinLayer);
+	    EDialog.makeTextFieldSelectAllOnTab(gdsPinType);
+	    EDialog.makeTextFieldSelectAllOnTab(gdsTextLayer);
+	    EDialog.makeTextFieldSelectAllOnTab(gdsTextType);
+	    EDialog.makeTextFieldSelectAllOnTab(gdsCellNameLenMax);
+	    EDialog.makeTextFieldSelectAllOnTab(gdsDefaultTextLayer);
 	}
 
 	/** return the panel to use for this Project Settings tab. */

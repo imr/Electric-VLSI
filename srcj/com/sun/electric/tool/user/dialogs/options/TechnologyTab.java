@@ -29,6 +29,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
@@ -56,6 +57,11 @@ public class TechnologyTab extends PreferencePanel
 	{
 		super(parent, modal);
 		initComponents();
+
+		// make all text fields select-all when entered
+	    EDialog.makeTextFieldSelectAllOnTab(techSchematicsNegatingSize);
+	    EDialog.makeTextFieldSelectAllOnTab(vhdlName);
+	    EDialog.makeTextFieldSelectAllOnTab(vhdlNegatedName);
 	}
 
 	/** return the panel to use for this preferences tab. */

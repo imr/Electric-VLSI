@@ -27,6 +27,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.sc.SilComp;
+import com.sun.electric.tool.user.dialogs.EDialog;
 
 import java.util.Iterator;
 
@@ -42,6 +43,22 @@ public class SiliconCompilerTab extends PreferencePanel
 	{
 		super(parent, modal);
 		initComponents();
+
+		// make all text fields select-all when entered
+	    EDialog.makeTextFieldSelectAllOnTab(numRows);
+	    EDialog.makeTextFieldSelectAllOnTab(horizWireWidth);
+	    EDialog.makeTextFieldSelectAllOnTab(vertWireWidth);
+	    EDialog.makeTextFieldSelectAllOnTab(powerWidth);
+	    EDialog.makeTextFieldSelectAllOnTab(mainPowerWidth);
+	    EDialog.makeTextFieldSelectAllOnTab(pWellHeight);
+	    EDialog.makeTextFieldSelectAllOnTab(pWellOffset);
+	    EDialog.makeTextFieldSelectAllOnTab(nWellHeight);
+	    EDialog.makeTextFieldSelectAllOnTab(nWellOffset);
+	    EDialog.makeTextFieldSelectAllOnTab(viaSize);
+	    EDialog.makeTextFieldSelectAllOnTab(minMetalSpacing);
+	    EDialog.makeTextFieldSelectAllOnTab(feedThruSize);
+	    EDialog.makeTextFieldSelectAllOnTab(minPortDist);
+	    EDialog.makeTextFieldSelectAllOnTab(minActiveDist);
 	}
 
 	/** return the panel to use for this preferences tab. */

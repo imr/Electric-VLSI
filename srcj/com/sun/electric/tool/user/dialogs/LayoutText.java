@@ -52,7 +52,6 @@ import java.awt.image.DataBufferByte;
 import java.awt.image.Raster;
 import java.util.Iterator;
 
-
 /**
  * Class to handle the "Layout Text" dialog.
  */
@@ -75,6 +74,11 @@ public class LayoutText extends EDialog
 		super(parent, true);
 		initComponents();
         getRootPane().setDefaultButton(ok);
+
+		// make all text fields select-all when entered
+	    EDialog.makeTextFieldSelectAllOnTab(textSize);
+	    EDialog.makeTextFieldSelectAllOnTab(textScale);
+	    EDialog.makeTextFieldSelectAllOnTab(dotSeparation);
 
 		textSize.setText(Integer.toString(lastSize));
 		textScale.setText(TextUtils.formatDouble(lastScale));

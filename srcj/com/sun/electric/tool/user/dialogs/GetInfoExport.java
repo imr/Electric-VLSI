@@ -50,7 +50,6 @@ import java.util.List;
 
 import javax.swing.JFrame;
 
-
 /**
  * Class to handle the "Export Get-Info" dialog.
  */
@@ -223,6 +222,10 @@ public class GetInfoExport extends EModelessDialog implements HighlightListener,
 		super(parent, false);
 		initComponents();
         getRootPane().setDefaultButton(ok);
+
+		// make all text fields select-all when entered
+	    EDialog.makeTextFieldSelectAllOnTab(refName);
+	    EDialog.makeTextFieldSelectAllOnTab(theText);
 
         // add myself as a listener for highlight changes
         UserInterfaceMain.addDatabaseChangeListener(this);

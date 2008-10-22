@@ -26,6 +26,7 @@ package com.sun.electric.tool.user.dialogs.options;
 import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.extract.Extract;
+import com.sun.electric.tool.user.dialogs.EDialog;
 
 import java.awt.Frame;
 
@@ -41,6 +42,10 @@ public class NetworkTab extends PreferencePanel
 	{
 		super(parent, modal);
 		initComponents();
+
+		// make all text fields select-all when entered
+	    EDialog.makeTextFieldSelectAllOnTab(extractSmallestPolygonSize);
+	    EDialog.makeTextFieldSelectAllOnTab(extractCellPattern);
 	}
 
 	/** return the panel to use for this preferences tab. */

@@ -21,13 +21,13 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-
 package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.tool.cvspm.CVS;
 import com.sun.electric.tool.cvspm.CVSLibrary;
 import com.sun.electric.tool.cvspm.Update;
+import com.sun.electric.tool.user.dialogs.EDialog;
 
 import java.util.Iterator;
 
@@ -42,6 +42,10 @@ public class CVSTab extends PreferencePanel {
     public CVSTab(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
         initComponents();
+
+		// make all text fields select-all when entered
+	    EDialog.makeTextFieldSelectAllOnTab(cvsRepository);
+	    EDialog.makeTextFieldSelectAllOnTab(cvsProgram);
     }
 
     /** return the panel to use for this preferences tab. */

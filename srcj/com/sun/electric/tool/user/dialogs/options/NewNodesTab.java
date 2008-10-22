@@ -29,6 +29,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.dialogs.EDialog;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -50,6 +51,10 @@ public class NewNodesTab extends PreferencePanel
 	{
 		super(parent, modal);
 		initComponents();
+
+		// make all text fields select-all when entered
+	    EDialog.makeTextFieldSelectAllOnTab(nodePrimitiveXSize);
+	    EDialog.makeTextFieldSelectAllOnTab(nodePrimitiveYSize);
 	}
 
 	/** return the panel to use for this preferences tab. */

@@ -27,6 +27,7 @@ import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.logicaleffort.LETool;
+import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.ProjectSettingsFrame;
 
 import java.awt.event.ActionEvent;
@@ -46,6 +47,15 @@ public class LogicalEffortTab extends ProjSettingsPanel
 	{
 		super(parent, modal);
 		initComponents();
+
+		// make all text fields select-all when entered
+	    EDialog.makeTextFieldSelectAllOnTab(leGlobalFanOut);
+	    EDialog.makeTextFieldSelectAllOnTab(leConvergence);
+	    EDialog.makeTextFieldSelectAllOnTab(leMaxIterations);
+	    EDialog.makeTextFieldSelectAllOnTab(leKeeperSizeRatio);
+	    EDialog.makeTextFieldSelectAllOnTab(leGateCapacitance);
+	    EDialog.makeTextFieldSelectAllOnTab(leDefaultWireCapRatio);
+	    EDialog.makeTextFieldSelectAllOnTab(leDiffToGateCapRatio);
 	}
 
 	/** return the panel to use for this preferences tab. */

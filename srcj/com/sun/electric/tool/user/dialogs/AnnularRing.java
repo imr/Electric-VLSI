@@ -103,6 +103,12 @@ public class AnnularRing extends EDialog
 		initComponents();
 		getRootPane().setDefaultButton(ok);
 
+		// make all text fields select-all when entered
+	    EDialog.makeTextFieldSelectAllOnTab(innerRadius);
+	    EDialog.makeTextFieldSelectAllOnTab(outerRadius);
+	    EDialog.makeTextFieldSelectAllOnTab(numSegments);
+	    EDialog.makeTextFieldSelectAllOnTab(numDegrees);
+
 		layerModel = new DefaultListModel();
 		layerJList = new JList(layerModel);
 		layerJList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);

@@ -25,6 +25,7 @@ package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.ToolBar;
 
@@ -41,6 +42,19 @@ public class GridAndAlignmentTab extends PreferencePanel
 	{
 		super(parent, modal);
 		initComponents();
+
+		// make all text fields select-all when entered
+	    EDialog.makeTextFieldSelectAllOnTab(gridCurrentHoriz);
+	    EDialog.makeTextFieldSelectAllOnTab(gridCurrentVert);
+	    EDialog.makeTextFieldSelectAllOnTab(gridNewHoriz);
+	    EDialog.makeTextFieldSelectAllOnTab(gridNewVert);
+	    EDialog.makeTextFieldSelectAllOnTab(gridBoldHoriz);
+	    EDialog.makeTextFieldSelectAllOnTab(gridBoldVert);
+	    EDialog.makeTextFieldSelectAllOnTab(gridSize1);
+	    EDialog.makeTextFieldSelectAllOnTab(gridSize2);
+	    EDialog.makeTextFieldSelectAllOnTab(gridSize3);
+	    EDialog.makeTextFieldSelectAllOnTab(gridSize4);
+	    EDialog.makeTextFieldSelectAllOnTab(gridSize5);
 	}
 
 	/** return the panel to use for this preferences tab. */

@@ -29,7 +29,6 @@ import com.sun.electric.tool.user.waveform.WaveformWindow;
 
 import java.awt.Frame;
 
-
 /**
  * Class to handle the dialog for precise control of Waveform window extents.
  */
@@ -47,7 +46,14 @@ public class WaveformZoom extends EDialog
 		this.curWindow = curWindow;
 		initComponents();
         getRootPane().setDefaultButton(ok);
-        verticalLow.setText(Double.toString(lowVert));
+
+		// make all text fields select-all when entered
+	    EDialog.makeTextFieldSelectAllOnTab(verticalLow);
+	    EDialog.makeTextFieldSelectAllOnTab(verticalHigh);
+	    EDialog.makeTextFieldSelectAllOnTab(horizontalLow);
+	    EDialog.makeTextFieldSelectAllOnTab(horizontalHigh);
+
+	    verticalLow.setText(Double.toString(lowVert));
         verticalHigh.setText(Double.toString(highVert));
         horizontalLow.setText(Double.toString(lowHoriz));
         horizontalHigh.setText(Double.toString(highHoriz));

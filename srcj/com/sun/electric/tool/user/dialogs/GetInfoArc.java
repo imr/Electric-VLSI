@@ -60,7 +60,6 @@ import javax.swing.JFrame;
 import javax.swing.JList;
 import javax.swing.SwingUtilities;
 
-
 /**
  * Class to handle the "Arc Get-Info" dialog.
  */
@@ -198,6 +197,10 @@ public class GetInfoArc extends EModelessDialog implements HighlightListener, Da
 		getRootPane().setDefaultButton(ok);
 		UserInterfaceMain.addDatabaseChangeListener(this);
 		Highlighter.addHighlightListener(this);
+
+		// make all text fields select-all when entered
+	    EDialog.makeTextFieldSelectAllOnTab(name);
+	    EDialog.makeTextFieldSelectAllOnTab(width);
 
 		bigger = prefs.getBoolean("GetInfoArc-bigger", false);
 

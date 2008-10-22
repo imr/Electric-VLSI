@@ -35,7 +35,6 @@ import javax.swing.DefaultListModel;
 import javax.swing.JList;
 import javax.swing.ListSelectionModel;
 
-
 /**
  * Class to handle the "View Control" dialog.
  */
@@ -50,6 +49,10 @@ public class ViewControl extends EDialog
 	{
 		super(parent, true);
 		initComponents();
+
+		// make all text fields select-all when entered
+	    EDialog.makeTextFieldSelectAllOnTab(name);
+	    EDialog.makeTextFieldSelectAllOnTab(abbreviation);
 
 		// make the list of Views
 		listModel = new DefaultListModel();

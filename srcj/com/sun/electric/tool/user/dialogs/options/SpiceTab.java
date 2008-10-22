@@ -28,6 +28,7 @@ import com.sun.electric.lib.LibFile;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.output.Spice;
 import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 
 import java.awt.event.ActionEvent;
@@ -51,6 +52,16 @@ public class SpiceTab extends PreferencePanel
 	{
 		super(parent, modal);
 		initComponents();
+
+		// make all text fields select-all when entered
+	    EDialog.makeTextFieldSelectAllOnTab(epicText);
+	    EDialog.makeTextFieldSelectAllOnTab(spiceRunProgram);
+	    EDialog.makeTextFieldSelectAllOnTab(spiceRunProgramArgs);
+	    EDialog.makeTextFieldSelectAllOnTab(useDir);
+	    EDialog.makeTextFieldSelectAllOnTab(spiceHeaderCardExtension);
+	    EDialog.makeTextFieldSelectAllOnTab(spiceHeaderCardFile);
+	    EDialog.makeTextFieldSelectAllOnTab(spiceTrailerCardExtension);
+	    EDialog.makeTextFieldSelectAllOnTab(spiceTrailerCardFile);
 	}
 
 	/** return the panel to use for this preferences tab. */

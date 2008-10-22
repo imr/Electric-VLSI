@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 
 import javax.swing.JPanel;
@@ -38,6 +39,9 @@ public class SelectionTab extends PreferencePanel
 	{
 		super(parent, modal);
 		initComponents();
+
+		// make all text fields select-all when entered
+	    EDialog.makeTextFieldSelectAllOnTab(selectionCancelMoveDelay);
 	}
 
 	/** return the panel to use for this preferences tab. */

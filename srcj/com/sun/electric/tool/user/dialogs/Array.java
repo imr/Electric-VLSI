@@ -127,6 +127,12 @@ public class Array extends EDialog
 		initComponents();
 		getRootPane().setDefaultButton(ok);
 
+		// make all text fields select-all when entered
+	    EDialog.makeTextFieldSelectAllOnTab(xRepeat);
+	    EDialog.makeTextFieldSelectAllOnTab(yRepeat);
+	    EDialog.makeTextFieldSelectAllOnTab(xSpacing);
+	    EDialog.makeTextFieldSelectAllOnTab(ySpacing);
+
 		// load the repeat factors
 		xRepeat.setText(Integer.toString(prefXRepeat.getInt()));
 		flipAlternateColumns.setSelected(prefXFlip.getBoolean());

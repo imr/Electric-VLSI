@@ -40,7 +40,6 @@ import java.util.regex.Pattern;
 
 import javax.swing.JFrame;
 
-
 /**
  * Class to handle the "Search and Replace" dialog.
  */
@@ -93,7 +92,13 @@ public class FindText extends EModelessDialog
 	{
 		super(parent, false);
 		initComponents();
-		findString.setText(prefFindTextMessage.getString());
+
+		// make all text fields select-all when entered
+	    EDialog.makeTextFieldSelectAllOnTab(findString);
+	    EDialog.makeTextFieldSelectAllOnTab(replaceString);
+	    EDialog.makeTextFieldSelectAllOnTab(lineNumber);
+
+	    findString.setText(prefFindTextMessage.getString());
 		replaceString.setText(prefReplaceTextMessage.getString());
 		caseSensitive.setSelected(prefCaseSensitive.getBoolean());
 		findReverse.setSelected(prefFindReverse.getBoolean());

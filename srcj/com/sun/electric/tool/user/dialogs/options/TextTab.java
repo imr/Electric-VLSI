@@ -28,6 +28,7 @@ import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TextWindow;
@@ -55,6 +56,13 @@ public class TextTab extends PreferencePanel
 	{
 		super(parent, modal);
 		initComponents();
+
+		// make all text fields select-all when entered
+	    EDialog.makeTextFieldSelectAllOnTab(textPointSize);
+	    EDialog.makeTextFieldSelectAllOnTab(textUnitSize);
+	    EDialog.makeTextFieldSelectAllOnTab(textCellSize);
+	    EDialog.makeTextFieldSelectAllOnTab(textGlobalScale);
+	    EDialog.makeTextFieldSelectAllOnTab(textWindowScale);
 	}
 
 	/** return the panel to use for this preferences tab. */

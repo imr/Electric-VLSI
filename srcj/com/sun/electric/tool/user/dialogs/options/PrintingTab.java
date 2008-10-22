@@ -28,6 +28,7 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.IOTool;
+import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
@@ -47,6 +48,15 @@ public class PrintingTab extends PreferencePanel
 	{
 		super(parent, modal);
 		initComponents();
+
+		// make all text fields select-all when entered
+	    EDialog.makeTextFieldSelectAllOnTab(printResolution);
+	    EDialog.makeTextFieldSelectAllOnTab(printLineWidth);
+	    EDialog.makeTextFieldSelectAllOnTab(printWidth);
+	    EDialog.makeTextFieldSelectAllOnTab(printHeight);
+	    EDialog.makeTextFieldSelectAllOnTab(printMargin);
+	    EDialog.makeTextFieldSelectAllOnTab(printEPSScale);
+	    EDialog.makeTextFieldSelectAllOnTab(printSyncFileName);
 	}
 
 	/** return the panel to use for this preferences tab. */

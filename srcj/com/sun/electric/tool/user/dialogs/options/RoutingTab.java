@@ -28,6 +28,7 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.routing.Routing;
+import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.menus.MenuCommands;
 
 import java.awt.GridBagConstraints;
@@ -53,6 +54,10 @@ public class RoutingTab extends PreferencePanel
 	{
 		super(parent, modal);
 		initComponents();
+
+		// make all text fields select-all when entered
+	    EDialog.makeTextFieldSelectAllOnTab(sogMaxArcWidth);
+	    EDialog.makeTextFieldSelectAllOnTab(sogComplexityLimit);
 	}
 
 	/** return the panel to use for this preferences tab. */

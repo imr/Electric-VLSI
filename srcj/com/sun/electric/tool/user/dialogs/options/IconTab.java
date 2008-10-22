@@ -27,6 +27,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ViewChanges;
+import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Frame;
@@ -46,6 +47,11 @@ public class IconTab extends PreferencePanel
 	{
 		super(parent, modal);
 		initComponents();
+
+		// make all text fields select-all when entered
+	    EDialog.makeTextFieldSelectAllOnTab(iconLeadLength);
+	    EDialog.makeTextFieldSelectAllOnTab(iconLeadSpacing);
+	    EDialog.makeTextFieldSelectAllOnTab(iconTextSize);
 	}
 
 	/** return the panel to use for this preferences tab. */

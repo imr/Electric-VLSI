@@ -27,6 +27,7 @@ import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.io.IOTool;
+import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.ProjectSettingsFrame;
 
 import javax.swing.JPanel;
@@ -46,6 +47,9 @@ public class DXFTab extends ProjSettingsPanel
 	{
 		super(parent, modal);
 		initComponents();
+
+		// make all text fields select-all when entered
+	    EDialog.makeTextFieldSelectAllOnTab(dxfLayerName);
 	}
 
 	/** return the panel to use for this preferences tab. */

@@ -28,6 +28,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.erc.ERC;
+import com.sun.electric.tool.user.dialogs.EDialog;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -54,6 +55,9 @@ public class AntennaRulesTab extends PreferencePanel
 	{
 		super(parent, modal);
 		initComponents();
+
+		// make all text fields select-all when entered
+	    EDialog.makeTextFieldSelectAllOnTab(antMaxRatio);
 	}
 
 	/** return the panel to use for this preferences tab. */

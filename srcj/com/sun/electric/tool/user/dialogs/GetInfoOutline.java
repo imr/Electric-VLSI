@@ -47,7 +47,6 @@ import javax.swing.ListSelectionModel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-
 /**
  * Class to handle the "GetInfoOutline" dialog.
  */
@@ -93,6 +92,10 @@ public class GetInfoOutline extends EModelessDialog implements HighlightListener
 		super(parent, false);
 		initComponents();
         getRootPane().setDefaultButton(apply);
+
+		// make all text fields select-all when entered
+	    EDialog.makeTextFieldSelectAllOnTab(xValue);
+	    EDialog.makeTextFieldSelectAllOnTab(yValue);
 
         UserInterfaceMain.addDatabaseChangeListener(this);
         Highlighter.addHighlightListener(this);

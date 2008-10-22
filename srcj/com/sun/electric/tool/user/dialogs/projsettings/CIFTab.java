@@ -27,6 +27,7 @@ import com.sun.electric.database.text.Setting;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.io.IOTool;
+import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.ProjectSettingsFrame;
 
 import java.awt.event.ActionEvent;
@@ -42,7 +43,6 @@ import javax.swing.ListSelectionModel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-
 /**
  * Class to handle the "CIF" tab of the Project Settings dialog.
  */
@@ -53,6 +53,9 @@ public class CIFTab extends ProjSettingsPanel
 	{
 		super(parent, modal);
 		initComponents();
+
+		// make all text fields select-all when entered
+	    EDialog.makeTextFieldSelectAllOnTab(cifLayer);
 	}
 
 	/** return the panel to use for this preferences tab. */

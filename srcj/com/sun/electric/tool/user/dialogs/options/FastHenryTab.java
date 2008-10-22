@@ -25,6 +25,7 @@ package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.user.dialogs.EDialog;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -41,6 +42,16 @@ public class FastHenryTab extends PreferencePanel
 	{
 		super(parent, modal);
 		initComponents();
+
+		// make all text fields select-all when entered
+	    EDialog.makeTextFieldSelectAllOnTab(fhFrequencyStart);
+	    EDialog.makeTextFieldSelectAllOnTab(fhFrequencyEnd);
+	    EDialog.makeTextFieldSelectAllOnTab(fhRunsPerDecade);
+	    EDialog.makeTextFieldSelectAllOnTab(fhNumberOfPoles);
+	    EDialog.makeTextFieldSelectAllOnTab(fhDefaultThickness);
+	    EDialog.makeTextFieldSelectAllOnTab(fhDefaultWidthSubs);
+	    EDialog.makeTextFieldSelectAllOnTab(fhDefaultHeightSubs);
+	    EDialog.makeTextFieldSelectAllOnTab(fhMaxSegmentLength);
 	}
 
 	/** return the panel to use for this preferences tab. */

@@ -32,7 +32,6 @@ import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.geom.Point2D;
 
-
 /**
  * Class to handle the "Set Focus" dialog.
  */
@@ -54,7 +53,13 @@ public class SetFocus extends EDialog
 		super(parent, true);
 		this.wnd = wnd;
 		initComponents();
-        getRootPane().setDefaultButton(ok);
+
+		// make all text fields select-all when entered
+	    EDialog.makeTextFieldSelectAllOnTab(xCenter);
+	    EDialog.makeTextFieldSelectAllOnTab(yCenter);
+	    EDialog.makeTextFieldSelectAllOnTab(unitsAcross);
+
+	    getRootPane().setDefaultButton(ok);
 		Dimension sz = wnd.getSize();
 		Point2D offset = wnd.getOffset();
 		double scale = wnd.getScale();

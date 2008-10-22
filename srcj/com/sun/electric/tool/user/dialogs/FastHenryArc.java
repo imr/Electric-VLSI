@@ -76,6 +76,13 @@ public class FastHenryArc extends EDialog
 		super(parent, true);
 		initComponents();
 
+		// make all text fields select-all when entered
+	    EDialog.makeTextFieldSelectAllOnTab(fhaThickness);
+	    EDialog.makeTextFieldSelectAllOnTab(fhaWidthSubdivs);
+	    EDialog.makeTextFieldSelectAllOnTab(fhaHeightSubdivs);
+	    EDialog.makeTextFieldSelectAllOnTab(fhaHeadZ);
+	    EDialog.makeTextFieldSelectAllOnTab(fhaTailZ);
+
 		// must have a single arc selected
 		ai = null;
 		int arcCount = 0;

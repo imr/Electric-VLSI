@@ -30,7 +30,6 @@ import com.sun.electric.tool.user.ui.TopLevel;
 import java.awt.Frame;
 import java.util.prefs.Preferences;
 
-
 /**
  * Class to handle the "Move By" dialog.
  */
@@ -52,7 +51,12 @@ public class MoveBy extends EDialog
 		super(parent, true);
 		initComponents();
         getRootPane().setDefaultButton(ok);
-        prefs = Preferences.userNodeForPackage(MoveBy.class);
+
+		// make all text fields select-all when entered
+	    EDialog.makeTextFieldSelectAllOnTab(dX);
+	    EDialog.makeTextFieldSelectAllOnTab(dY);
+
+	    prefs = Preferences.userNodeForPackage(MoveBy.class);
         double movex = prefs.getDouble(MOVEX, 0);
         double movey = prefs.getDouble(MOVEY, 0);
         dX.setText(String.valueOf(movex));
