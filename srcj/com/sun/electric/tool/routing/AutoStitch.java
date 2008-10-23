@@ -274,7 +274,7 @@ public class AutoStitch
 		// compute the number of tasks to perform and start progress bar
 		int totalToStitch = nodesToStitch.size() + arcsToStitch.size();
 
-		if (job.checkAbort()) return;
+		if (job != null && job.checkAbort()) return;
 
 		// if creating exports, make first pass in which exports must be created
 		if (createExports)
@@ -289,7 +289,7 @@ if (debug) System.out.println("----AUTOSTITCH CREATE EXPORTS FOR "+nodesToStitch
 				soFar++;
 				if (showProgress && (soFar%100) == 0)
 				{
-					if (job.checkAbort()) return;
+					if (job != null && job.checkAbort()) return;
 					Job.getUserInterface().setProgressValue(soFar * 100 / totalToStitch);
 				}
 				checkExportCreationStitching(ni);
@@ -303,7 +303,7 @@ if (debug) System.out.println("----AUTOSTITCH CREATED EXPORTS FOR NODES");
 				soFar++;
 				if (showProgress && (soFar%100) == 0)
 				{
-					if (job.checkAbort()) return;
+					if (job != null && job.checkAbort()) return;
 					Job.getUserInterface().setProgressValue(soFar * 100 / totalToStitch);
 				}
 
@@ -381,7 +381,7 @@ if (debug) System.out.println("----AUTOSTITCH CREATED EXPORTS FOR NODES");
 			soFar++;
 			if (showProgress && (soFar%100) == 0)
 			{
-				if (job.checkAbort()) return;
+				if (job != null && job.checkAbort()) return;
 				Job.getUserInterface().setProgressValue(soFar * 100 / totalToStitch);
 			}
 			checkStitching(ni, nodeBounds, nodePortBounds, arcLayers, stayInside, top, limitBound, preferredArc);
@@ -393,7 +393,7 @@ if (debug) System.out.println("----AUTOSTITCH CREATED EXPORTS FOR NODES");
 			soFar++;
 			if (showProgress && (soFar%100) == 0)
 			{
-				if (job.checkAbort()) return;
+				if (job != null && job.checkAbort()) return;
 				Job.getUserInterface().setProgressValue(soFar * 100 / totalToStitch);
 			}
 
@@ -413,7 +413,7 @@ if (debug) System.out.println("----AUTOSTITCH CREATED EXPORTS FOR NODES");
 		// check for any inline pins due to created wires
 		if (showProgress)
 		{
-			if (job.checkAbort()) return;
+			if (job != null && job.checkAbort()) return;
 			Job.getUserInterface().setProgressValue(0);
 			Job.getUserInterface().setProgressNote("Cleaning up pins...");
 		}
