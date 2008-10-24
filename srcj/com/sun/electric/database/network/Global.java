@@ -43,7 +43,8 @@ public class Global
 	/** the 0-based index of this Global. */	private int index;
 
 	/** All Globals. */							private static Global[] allGlobals = new Global[0];
-	/** Map canonic String -> Global. */		private static Map<String,Global> globalsByName = new HashMap<String,Global>();
+	/** Map String -> Global. */                private static Map<String,Global> globalsByName = new HashMap<String,Global>();
+	/** Map canonic String -> Global. */		private static Map<String,Global> globalsByCanonicName = new HashMap<String,Global>();
 
 	/** global signal ground. */				public static final Global ground = newGlobal("gnd");
 	/** global signal power. */					public static final Global power = newGlobal("vdd");
@@ -62,7 +63,9 @@ public class Global
 		newGlobals[index] = this;
 		allGlobals = newGlobals;
 		globalsByName.put(name.toString(), this);
-//		globalsByName.put(name.canonicString(), this);
+        if (globalsByCanonicName.containsKey(name.canonicString()))
+            System.out.println("!!! " + globalsByCanonicName.get(name.canonicString()) + " and " + this + " are not connected now !!!");
+		globalsByCanonicName.put(name.canonicString(), this);
 	}
 
 	/**
