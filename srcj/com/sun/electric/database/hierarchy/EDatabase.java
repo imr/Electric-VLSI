@@ -288,15 +288,16 @@ public class EDatabase {
 	public Library findLibrary(String libName)
 	{
 		if (libName == null) return null;
-		Library lib = libraries.get(libName);
-		if (lib != null) return lib;
-
-		for (Library l : libraries.values())
-		{
-			if (l.getName().equalsIgnoreCase(libName))
-				return l;
-		}
-		return null;
+        return libraries.get(libName);
+//		Library lib = libraries.get(libName);
+//		if (lib != null) return lib;
+//
+//		for (Library l : libraries.values())
+//		{
+//			if (l.getName().equalsIgnoreCase(libName))
+//				return l;
+//		}
+//		return null;
 	}
 
 	/**
@@ -710,16 +711,16 @@ public class EDatabase {
             }
         }
 
-        TreeSet<String> libNames = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
-        for (Map.Entry<String,Library> e : libraries.entrySet()) {
-            String libName = e.getKey();
-            Library lib = e.getValue();
-            assert libName == lib.getName();
-            assert linkedLibs.get(lib.getId().libIndex) == lib;
-
-            assert !libNames.contains(libName) : "case insensitive " + libName;
-            libNames.add(libName);
-        }
+//        TreeSet<String> libNames = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
+//        for (Map.Entry<String,Library> e : libraries.entrySet()) {
+//            String libName = e.getKey();
+//            Library lib = e.getValue();
+//            assert libName == lib.getName();
+//            assert linkedLibs.get(lib.getId().libIndex) == lib;
+//
+//            assert !libNames.contains(libName) : "case insensitive " + libName;
+//            libNames.add(libName);
+//        }
 
         if (snapshotFresh) {
             HashMap<Cell.CellGroup,Integer> groupNums = new HashMap<Cell.CellGroup,Integer>();

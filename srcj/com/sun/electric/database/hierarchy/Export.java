@@ -361,8 +361,8 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
         Cell cell = originalPort.getNodeInst().getParent();
 
 		// special case: if changing case only, allow it
-		if (!getName().equalsIgnoreCase(newName) || getName().equals(newName))
-		{
+//		if (!getName().equalsIgnoreCase(newName) || getName().equals(newName))
+//		{
 			// not changing case
 	        String dupName = ElectricObject.uniqueObjectName(newName, cell, PortProto.class, false);
 	        if (!dupName.equals(newName))
@@ -371,7 +371,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 	                    ", making new export named "+dupName);
 	            newName = dupName;
 	        }
-		}
+//		}
         Name newNameKey = ImmutableExport.validExportName(newName, cell.busNamesAllowed());
         if (newNameKey == null) {
             System.out.println("Bad export name " + newName + " : " + Name.checkName(newName));

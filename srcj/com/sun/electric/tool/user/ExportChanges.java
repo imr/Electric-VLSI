@@ -186,7 +186,7 @@ public final class ExportChanges
 						if (eqK != -1 || blK != -1) continue;
 						Export ppK = exports.get(k).pp;
 						if (ppJ.getCharacteristic() != ppK.getCharacteristic()) break;
-	
+
 						String ptK = ppK.getName();
 						int sqPosK = ptK.indexOf('[');
 						if (sqPosJ != sqPosK) continue;
@@ -330,7 +330,7 @@ public final class ExportChanges
 						for(int a=0; a<arcList.length; a++)
 							arcsSeen.add(arcList[a]);
 						infstr = addPossibleArcConnections(infstr, arcsSeen);
-	
+
 						// check for the export in the associated cell
 						if (wnp != null)
 						{
@@ -996,7 +996,8 @@ public final class ExportChanges
 		for(Iterator<PortProto> it = cell.getPorts(); it.hasNext(); )
 		{
 			Export e = (Export)it.next();
-			already.add(e.getNameKey().canonicString());
+			already.add(e.getNameKey().toString());
+//			already.add(e.getNameKey().canonicString());
 		}
 
 		// export the ports
@@ -1062,7 +1063,8 @@ public final class ExportChanges
 					newPp.setCharacteristic(refExport.getCharacteristic());
 				}
 				total++;
-				already.add(newPp.getNameKey().canonicString());
+				already.add(newPp.getNameKey().toString());
+//				already.add(newPp.getNameKey().canonicString());
 			}
 		}
 
@@ -1655,7 +1657,7 @@ public final class ExportChanges
 		}
 		highlighter.finished();
         System.out.println(total + " exported ports to show");
-        
+
         if (ignored > 0)
 			System.out.println("Could not display " + ignored + " ports (outside of the window)");
 	}

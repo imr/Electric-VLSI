@@ -2269,7 +2269,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 					if (portInfo2[i2].assn != null) continue;
 
 					// stop if the ports have different name
-					if (!pi2.getPortProto().getName().equalsIgnoreCase(pi1.getPortProto().getName())) continue;
+					if (!pi2.getPortProto().getName().equals(pi1.getPortProto().getName())) continue;
+//					if (!pi2.getPortProto().getName().equalsIgnoreCase(pi1.getPortProto().getName())) continue;
 
 					// store the correct association of ports
 					portInfo1[i1].assn = pi2;

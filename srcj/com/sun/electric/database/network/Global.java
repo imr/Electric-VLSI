@@ -61,7 +61,8 @@ public class Global
 		}
 		newGlobals[index] = this;
 		allGlobals = newGlobals;
-		globalsByName.put(name.canonicString(), this);
+		globalsByName.put(name.toString(), this);
+//		globalsByName.put(name.canonicString(), this);
 	}
 
 	/**
@@ -91,7 +92,8 @@ public class Global
 	 */
 	public static Global newGlobal(String name) {
 		Name nameKey = Name.findName(name);
-		Global g = globalsByName.get(nameKey.canonicString());
+		Global g = globalsByName.get(nameKey.toString());
+//		Global g = globalsByName.get(nameKey.canonicString());
 		if (g == null)
 			g = new Global(nameKey);
 		return g;
@@ -217,7 +219,7 @@ public class Global
 		 * @param   o the Object to be compared.
 		 * @return  a negative integer, zero, or a positive integer as this object
 		 *		is less than, equal to, or greater than the specified object.
-		 * 
+		 *
 		 * @throws ClassCastException if the specified object's type prevents it
 		 *         from being compared to this Object.
 		 */
@@ -237,7 +239,7 @@ public class Global
 // 				s += " " + g + ":" + elemMap[g.index].getName();
 // 			}
 			for (int i = 0; i < elemMap.length; i++) {
-				if (elemMap[i] == null) continue;	
+				if (elemMap[i] == null) continue;
 				s += " " + allGlobals[i] + ":" + elemMap[i].getName();
 			}
 			s += "}";

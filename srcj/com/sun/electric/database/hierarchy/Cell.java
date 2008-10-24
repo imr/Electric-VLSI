@@ -662,7 +662,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 */
 	public static Cell copyNodeProto(Cell fromCell, Library toLib, String toName, boolean useExisting,
 		Map<String,Map<String,String>> cellNamesToUse)
-	{	
+	{
 		// check for validity
 		if (fromCell == null) return null;
 		if (toLib == null) return null;
@@ -723,7 +723,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 				for(Iterator<Cell> cIt = toLib.getCells(); cIt.hasNext(); )
 				{
 					lnt = cIt.next();
-					if (lnt.getName().equalsIgnoreCase(oldCellName) &&
+					if (lnt.getName().equals(oldCellName) &&
+//					if (lnt.getName().equalsIgnoreCase(oldCellName) &&
 						lnt.getView() == niProto.getView()) break;
 					lnt = null;
 				}
@@ -921,7 +922,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             Cell lnt = null;
             for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); ) {
                 lnt = cIt.next();
-                if (lnt.getName().equalsIgnoreCase(niProto.getName()) &&
+                if (lnt.getName().equals(niProto.getName()) &&
+//                if (lnt.getName().equalsIgnoreCase(niProto.getName()) &&
                         lnt.getView() == niProto.getView()) break;
                 lnt = null;
             }
@@ -1040,7 +1042,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		for (Iterator<Cell> it = lib.getCells(); it.hasNext(); )
 		{
 			Cell c = it.next();
-			if (c.getName().equalsIgnoreCase(protoName) && c.getView() == view)
+			if (c.getName().equals(protoName) && c.getView() == view)
+//			if (c.getName().equalsIgnoreCase(protoName) && c.getView() == view)
 			{
 				if (c.getVersion() == version) conflict = true;
 				if (c.getVersion() > greatestVersion)
@@ -1411,7 +1414,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             }
         }
     }
-    
+
 	/**
 	 * Method to indicate that the bounds of this Cell are incorrect because
 	 * a node or arc has been created, deleted, or modified.
@@ -1503,7 +1506,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             CellUsage u = it.next();
             u.getProto().getBounds();
         }
-        
+
         for(int i = 0; i < nodes.size(); i++ ) {
             NodeInst ni = nodes.get(i);
             NodeProto np = ni.getProto();
@@ -2293,7 +2296,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		if (!name.isTempname()) return;
 
 		Name basename = name.getBasename();
-        String basenameString = basename.canonicString();
+        String basenameString = basename.toString();
+//        String basenameString = basename.canonicString();
         MaxSuffix ms = maxSuffix.get(basenameString);
         if (ms == null) {
             ms = new MaxSuffix();
@@ -2312,7 +2316,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 */
 	public Name getNodeAutoname(Name basename)
 	{
-        String basenameString = basename.canonicString();
+        String basenameString = basename.toString();
+//        String basenameString = basename.canonicString();
 		MaxSuffix ms = maxSuffix.get(basenameString);
         Name name;
 		if (ms == null)
@@ -3046,7 +3051,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         }
         setD(getD().withoutParam(key));
     }
-    
+
     private void renameParam(Variable.AttrKey key, Variable.AttrKey newName) {
         assert isParam(key);
         Variable oldParam = getParameter(key);
@@ -3159,7 +3164,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 			for(Iterator<PortProto> it = getPorts(); it.hasNext(); )
 			{
 				PortProto pp = it.next();
-				if (TextUtils.startsWithIgnoreCase(pp.getName(), prefix))
+				if (pp.getName().startsWith(prefix))
+//				if (TextUtils.startsWithIgnoreCase(pp.getName(), prefix))
 				{
 					String restOfName = pp.getName().substring(len);
 					if (TextUtils.isANumber(restOfName))
@@ -3174,7 +3180,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 			for(Iterator<NodeInst> it = getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = it.next();
-				if (TextUtils.startsWithIgnoreCase(ni.getName(), prefix))
+				if (ni.getName().startsWith(prefix))
+//				if (TextUtils.startsWithIgnoreCase(ni.getName(), prefix))
 				{
 					String restOfName = ni.getName().substring(len);
 					if (TextUtils.isANumber(restOfName))
@@ -3189,7 +3196,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 			for(Iterator<ArcInst> it = getArcs(); it.hasNext(); )
 			{
 				ArcInst ai = it.next();
-				if (TextUtils.startsWithIgnoreCase(ai.getName(), prefix))
+				if (ai.getName().startsWith(prefix))
+//				if (TextUtils.startsWithIgnoreCase(ai.getName(), prefix))
 				{
 					String restOfName = ai.getName().substring(len);
 					if (TextUtils.isANumber(restOfName))
@@ -3240,20 +3248,22 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		}
 		if (cls == ArcInst.class)
 		{
-            String nameString = name.canonicString();
-			if (name.isTempname())
-			{
-                ArcInst ai = findArc(nameString);
-				return ai == null || exclude == ai;
-			}
-			for(Iterator<ArcInst> it = getArcs(); it.hasNext(); )
-			{
-				ArcInst ai = it.next();
-				if (exclude == ai) continue;
-				Name arcName = ai.getNameKey();
-				if (nameString == arcName.canonicString()) return false;
-			}
-			return true;
+            ArcInst ai = findArc(name.toString());
+            return ai == null || exclude == ai;
+//            String nameString = name.canonicString();
+//			if (name.isTempname())
+//			{
+//                ArcInst ai = findArc(nameString);
+//				return ai == null || exclude == ai;
+//			}
+//			for(Iterator<ArcInst> it = getArcs(); it.hasNext(); )
+//			{
+//				ArcInst ai = it.next();
+//				if (exclude == ai) continue;
+//				Name arcName = ai.getNameKey();
+//				if (nameString == arcName.canonicString()) return false;
+//			}
+//			return true;
 		}
 		return true;
 	}

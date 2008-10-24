@@ -1897,7 +1897,8 @@ public class Technology implements Comparable<Technology>, Serializable
 		for (Iterator<Technology> it = getTechnologies(); it.hasNext(); )
 		{
 			Technology t = it.next();
-			if (t.getTechName().equalsIgnoreCase(name))
+			if (t.getTechName().equals(name))
+//			if (t.getTechName().equalsIgnoreCase(name))
 				return t;
 		}
 		return null;
@@ -2453,7 +2454,8 @@ public class Technology implements Comparable<Technology>, Serializable
         for (Iterator<PrimitiveNode> it = getNodes(); it.hasNext(); count++)
         {
             PrimitiveNode pn = it.next();
-            if (pn.getName().equalsIgnoreCase(name))
+            if (pn.getName().equals(name))
+//            if (pn.getName().equalsIgnoreCase(name))
                 return (getNumLayers() + count);   // it should use get
         }
         return -1;
@@ -2708,16 +2710,17 @@ public class Technology implements Comparable<Technology>, Serializable
 	public ArcProto findArcProto(String name)
 	{
 		if (name == null) return null;
-		ArcProto primArc = arcs.get(name);
-		if (primArc != null) return primArc;
-
-		for (Iterator<ArcProto> it = getArcs(); it.hasNext(); )
-		{
-			ArcProto ap = it.next();
-			if (ap.getName().equalsIgnoreCase(name))
-				return ap;
-		}
-		return null;
+        return arcs.get(name);
+//		ArcProto primArc = arcs.get(name);
+//		if (primArc != null) return primArc;
+//
+//		for (Iterator<ArcProto> it = getArcs(); it.hasNext(); )
+//		{
+//			ArcProto ap = it.next();
+//			if (ap.getName().equalsIgnoreCase(name))
+//				return ap;
+//		}
+//		return null;
 	}
 
 	/**
@@ -3009,16 +3012,17 @@ public class Technology implements Comparable<Technology>, Serializable
 	public PrimitiveNode findNodeProto(String name)
 	{
 		if (name == null) return null;
-		PrimitiveNode primNode = nodes.get(name);
-		if (primNode != null) return primNode;
-
-		for (Iterator<PrimitiveNode> it = getNodes(); it.hasNext(); )
-		{
-			PrimitiveNode pn = it.next();
-			if (pn.getName().equalsIgnoreCase(name))
-				return pn;
-		}
-		return null;
+        return nodes.get(name);
+//		PrimitiveNode primNode = nodes.get(name);
+//		if (primNode != null) return primNode;
+//
+//		for (Iterator<PrimitiveNode> it = getNodes(); it.hasNext(); )
+//		{
+//			PrimitiveNode pn = it.next();
+//			if (pn.getName().equalsIgnoreCase(name))
+//				return pn;
+//		}
+//		return null;
 	}
 
 	/**
@@ -3163,7 +3167,7 @@ public class Technology implements Comparable<Technology>, Serializable
 			height = 2;
 			double serpentineLength = ni.getSerpentineTransistorLength();
 			if (serpentineLength > 0) height = serpentineLength;
-            //System.out.println("No calculating length for active regions yet"); 
+            //System.out.println("No calculating length for active regions yet");
 		}
         double activeLen = getTransistorActiveLength(ni);
 		TransistorSize size = new TransistorSize(new Double(width), new Double(height), new Double(activeLen), true);

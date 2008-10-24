@@ -1107,7 +1107,8 @@ public class Library extends ElectricObject implements Comparable<Library>
 
             Cell onlyWithName = null;
             for (Cell c : cells.values()) {
-                if (!n.getName().equalsIgnoreCase(c.getName())) continue;
+                if (!n.getName().equals(c.getName())) continue;
+//                if (!n.getName().equalsIgnoreCase(c.getName())) continue;
                 onlyWithName = c;
                 if (n.getView() != c.getView()) continue;
                 if (n.getVersion() > 0 && n.getVersion() != c.getVersion()) continue;

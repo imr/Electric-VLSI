@@ -562,7 +562,8 @@ public class GDS extends Input
                     PrimitiveNode np = (PrimitiveNode)mi.proto;
                     baseName = np.getTechnology().getPrimitiveFunction(np, 0).getBasename();
                 }
-                String basenameString = baseName.canonicString();
+                String basenameString = baseName.toString();
+//                String basenameString = baseName.canonicString();
                 GenMath.MutableInteger maxSuffix = maxSuffixes.get(basenameString);
                 if (maxSuffix == null) {
                     maxSuffix = new GenMath.MutableInteger(-1);
@@ -654,7 +655,7 @@ public class GDS extends Input
 			            if (ni != null)
 			            	ni.setTrace(pointArray);
 					}
-	        		return;    			
+	        		return;
 	    		}
     		}
 
