@@ -60,7 +60,7 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
     private static final String CLASS_NAME = Job.class.getName();
     private static final int DEFAULT_NUM_THREADS = 2;
     /** mutex for database synchronization. */  private final Condition databaseChangesMutex = newCondition();
-    
+
     private final ServerSocket serverSocket;
 //    private final ArrayList<EJob> finishedJobs = new ArrayList<EJob>();
     private final ArrayList<Client> serverConnections = new ArrayList<Client>();
@@ -70,15 +70,15 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
     private boolean runningChangeJob;
     private boolean guiChanged;
     private boolean signalledEThread;
-    
+
     private Snapshot currentSnapshot = EDatabase.serverDatabase().getInitialSnapshot();
-    
+
     /** Creates a new instance of JobPool */
     ServerJobManager(int recommendedNumThreads) {
         maxNumThreads = initThreads(recommendedNumThreads);
         serverSocket = null;
     }
-    
+
     ServerJobManager(int recommendedNumThreads, int socketPort) {
         maxNumThreads = initThreads(recommendedNumThreads);
         ServerSocket serverSocket = null;
@@ -89,10 +89,10 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
             System.out.println("ServerSocket mode failure: " + e.getMessage());
         }
         this.serverSocket = serverSocket;
-        if (User.isSbapshotLogging())
+        if (User.isSnapshotLogging())
             initSnapshotLogging();
     }
-    
+
     private int initThreads(int recommendedNumThreads) {
         int maxNumThreads = DEFAULT_NUM_THREADS;
         if (recommendedNumThreads > 0)
@@ -121,7 +121,7 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
         System.out.println("Accepted connection " + connectionId);
         conn.start();
     }
-    
+
     /** Add job to list of jobs */
     void addJob(EJob ejob, boolean onMySnapshot) {
         lock();
@@ -136,7 +136,7 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
             unlock();
         }
     }
-    
+
     /** Remove job from list of jobs */
     void removeJob(Job j) {
         EJob ejob = j.ejob;
@@ -158,7 +158,7 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
             unlock();
         }
     }
-    
+
     void setProgress(EJob ejob, String progress) {
         lock();
         try {
@@ -168,7 +168,7 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
             unlock();
         }
     }
-    
+
     /** get all jobs iterator */
     Iterator<Job> getAllJobs() {
         lock();
@@ -194,7 +194,7 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
             unlock();
         }
     }
-    
+
     /**
      * This method is called whenever the observed object is changed. An
      * application calls an <tt>Observable</tt> object's
@@ -210,7 +210,7 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
         if (currentThread instanceof EThread)
             ((EThread)currentThread).print((String)arg);
     }
-        
+
     //--------------------------PRIVATE JOB METHODS--------------------------
 
     private void invokeEThread() {
@@ -222,7 +222,7 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
             new EThread(numThreads++);
         signalledEThread = true;
     }
-    
+
 //    private EJob selectTerminateIt() {
 //        lock();
 //        try {
@@ -237,7 +237,7 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
 //        }
 //        return null;
 //    }
-    
+
     void wantUpdateGui() {
         lock();
         try {
@@ -246,7 +246,7 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
             unlock();
         }
     }
-    
+
     private boolean guiChanged() {
         lock();
         try {
@@ -257,13 +257,13 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
             unlock();
         }
     }
-    
+
     private boolean canDoIt() {
         if (waitingJobs.isEmpty()) return false;
         EJob ejob = waitingJobs.get(0);
         return startedJobs.isEmpty() || !runningChangeJob && ejob.isExamine();
     }
-    
+
     private void setEJobState(EJob ejob, EJob.State newState, String info) {
         Job.logger.logp(Level.FINE, CLASS_NAME, "setEjobState", newState + " "+ ejob.jobName);
         EJob.State oldState = ejob.state;
@@ -305,7 +305,7 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
         guiChanged = true;
         Job.logger.exiting(CLASS_NAME, "setJobState");
     }
-    
+
     private boolean isChangeJobQueuedOrRunning() {
         lock();
         try {
@@ -322,7 +322,7 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
             unlock();
         }
     }
-    
+
     public void runLoop() {
         if (serverSocket == null) return;
         MessagesStream.getMessagesStream().addObserver(this);
@@ -346,7 +346,7 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
             e.printStackTrace(System.out);
         }
     }
-    
+
     /**
      * This method is executed in Swing thread.
      */
@@ -366,7 +366,7 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
 //            for (;;) {
 //                EJob ejob = selectTerminateIt();
 //                if (ejob == null) break;
-//                
+//
 //                Job.logger.logp(Level.FINE, CLASS_NAME, "run", "terminate {0}", ejob.jobName);
 //                Job.runTerminate(ejob);
 //                setEJobState(ejob, EJob.State.CLIENT_DONE, null);
@@ -376,13 +376,13 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
         }
         Job.logger.logp(Level.FINE, CLASS_NAME, "run", "EXIT");
     }
-    
+
     public static void setUndoRedoStatus(boolean undoEnabled, boolean redoEnabled) {
         assert Job.jobManager instanceof ServerJobManager;
         Job.currentUI.showUndoRedoStatus(undoEnabled, redoEnabled);
         // transmit to connection
-    } 
-    
+    }
+
     EJob selectEJob(EJob finishedEJob) {
         EJob selectedEJob = null;
         lock();
@@ -422,7 +422,7 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
         }
         return selectedEJob;
     }
-    
+
     /*private*/ static class UserInterfaceRedirect implements UserInterface
 	{
     	private static void printStackTrace(String methodName) {
@@ -490,7 +490,7 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
 		public EditWindow_ needCurrentEditWindow_()
 		{
             printStackTrace("needCurrentEditWindow");
-			return null; 
+			return null;
 		}
         /** Get current cell from current library */
 		public Cell getCurrentCell()
@@ -552,7 +552,7 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
         }
 
         public void updateNetworkErrors(Cell cell, List<ErrorLogger.MessageLog> errors) { throw new IllegalStateException(); }
-    
+
         public void updateIncrementalDRCErrors(Cell cell, List<ErrorLogger.MessageLog> errors) { throw new IllegalStateException(); }
 
         /**
@@ -647,7 +647,7 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
          * Save current state of highlights and return its ID.
          */
         public int saveHighlights() { return -1; }
-        
+
         /**
          * Restore state of highlights by its ID.
          * @param highlightsId id of saved highlights.
@@ -661,5 +661,5 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
          */
         public void showUndoRedoStatus(boolean newUndoEnabled, boolean newRedoEnabled) {}
     }
-    
+
 }

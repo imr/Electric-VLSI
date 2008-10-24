@@ -3291,7 +3291,7 @@ public class User extends Listener
 	 * The default is "false".
 	 * @return true to perform snapshot logging in a temporary file
 	 */
-	public static boolean isSbapshotLogging() { return cacheSnapshotLogging.getBoolean(); }
+	public static boolean isSnapshotLogging() { return cacheSnapshotLogging.getBoolean(); }
 	/**
 	 * Method to set whether to perform snapshot logging in a temporary file
 	 * @param on true to perform snapshot logging iu a temporary file
