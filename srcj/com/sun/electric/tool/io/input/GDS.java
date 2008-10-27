@@ -146,6 +146,7 @@ public class GDS extends Input
 	private Set<Integer>     pinLayers;
 	private PolyMerge        merge;
 	private boolean          mergeThisCell;
+	private double           inputScale;
 
 	private static class GSymbol
 	{
@@ -809,6 +810,7 @@ public class GDS extends Input
 
 	private void initialize()
 	{
+		inputScale = IOTool.getGDSInputScale();
 		layerNodeProto = Generic.tech().drcNode;
 
 		theVertices = new Point2D[MAXPOINTS];
@@ -933,7 +935,7 @@ public class GDS extends Input
 		getToken();
 		double meterUnit = tokenValueDouble;
 		double microScale = TextUtils.convertFromDistance(1, curTech, TextUtils.UnitScale.MICRO);
-		theScale = meterUnit * 1000000.0 * microScale;
+		theScale = meterUnit * 1000000.0 * microScale * inputScale;
 
 		// round the scale
 		double shift = 1;

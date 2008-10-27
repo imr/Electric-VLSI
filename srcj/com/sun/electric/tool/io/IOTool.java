@@ -704,6 +704,24 @@ public class IOTool extends Tool
 	 */
 	public static boolean isFactoryGDSColapseVddGndPinNames() { return cacheGDSColapseVddGndPinNames.getBooleanFactoryValue(); }
 
+	private static Pref cacheGDSInputScale = Pref.makeDoublePref("GDSInputScale", IOTool.tool.prefs, 1.0);
+	/**
+	 * Method to tell the scale to be applied when reading GDS.
+	 * The default is 1 (no scaling).
+	 * @return the scale to be applied when reading GDS.
+	 */
+	public static double getGDSInputScale() { return cacheGDSInputScale.getDouble(); }
+	/**
+	 * Method to set the scale to be applied when reading GDS.
+	 * @param s the scale to be applied when reading GDS.
+	 */
+	public static void setGDSInputScale(double s) { cacheGDSInputScale.setDouble(s); }
+	/**
+	 * Method to tell the scale to be applied when reading GDS, by default.
+	 * @return the scale to be applied when reading GDS, by default.
+	 */
+	public static double getFactoryGDSInputScale() { return cacheGDSInputScale.getDoubleFactoryValue(); }
+
 	/****************************** POSTSCRIPT OUTPUT PREFERENCES ******************************/
 
 	private static Pref cachePrintEncapsulated = Pref.makeBooleanPref("PostScriptEncapsulated", IOTool.tool.prefs, false);
