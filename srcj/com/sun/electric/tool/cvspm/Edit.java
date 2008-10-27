@@ -271,7 +271,24 @@ public class Edit {
             if (args.trim().equals("")) return true;
 
             if (unedit) {
-                // just run unedit
+                // can only unedit files that are up-to-date
+                // otherwise, you cvs will ask if you want to rollback local copy
+                List<Library> libsToUnedit = new ArrayList<Library>();
+                List<Cell> cellsToUnedit = new ArrayList<Cell>();
+                for (Library lib : libs) {
+                    State state = CVSLibrary.getState(lib);
+                    if (state == State.NONE) libsToUnedit.add(lib);
+                }
+                for (Cell cell : cells) {
+                    State state = CVSLibrary.getState(cell);
+                    if (state == State.NONE) cellsToUnedit.add(cell);
+                }
+                libsBuf = CVS.getLibraryFiles(libsToUnedit, useDir);
+                cellsBuf = CVS.getCellFiles(cellsToUnedit, useDir);
+
+                args = libsBuf + " " + cellsBuf;
+                if (args.trim().equals("")) return true;
+
                 //System.out.println("Unmarking CVS edit: "+args);
                 CVS.runCVSCommand("unedit -l "+args, "CVS Unedit", useDir, System.out);
                 return true;
