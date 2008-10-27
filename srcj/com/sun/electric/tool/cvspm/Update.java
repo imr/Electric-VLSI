@@ -313,12 +313,14 @@ public class Update {
                     libsToReload.set(i, Library.findLibrary(libName));
                 }
             }
+/*
             if (type == UpdateEnum.ROLLBACK) {
                 // turn off edit for rolled back cells
                 for (Cell cell : result.getCells(State.UPDATE)) {
                     CVSLibrary.setEditing(cell, false);
                 }
             }
+*/
             // update states
             updateStates(result, type);
             System.out.println(type.getMessage()+" complete.");
