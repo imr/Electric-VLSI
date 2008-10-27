@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08k: ******************************
 
+BUG: The "Pure" component menu item can be too big and needs to scroll (Bug #1926).
+FIX: In TechPalette.mouseReleased(), use a JComboBox popup.
+
 IMP/MAN: GDS input now has a scale factor (Bug #1928).
 
 BUG: (10/27/08, SMR) GDS reads incorrectly (Bug #1928).

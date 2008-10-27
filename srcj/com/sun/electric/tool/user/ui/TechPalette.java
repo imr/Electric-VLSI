@@ -88,42 +88,44 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.JComboBox;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JSeparator;
+import javax.swing.plaf.basic.BasicComboPopup;
 
 /**
  * Class to display the nodes and arcs in a technology (in the Component Menu).
  */
 public class TechPalette extends JPanel implements MouseListener, MouseMotionListener, MouseWheelListener,
-        KeyListener, PaletteFrame.PlaceNodeEventListener, ComponentListener, DragGestureListener, DragSourceListener {
+	KeyListener, PaletteFrame.PlaceNodeEventListener, ComponentListener, DragGestureListener, DragSourceListener {
 
-    /** the number of palette entries. */				private int menuX = -1, menuY = -1;
-    /** the size of a palette entry. */					private int entrySize;
-    /** the list of objects in the palette. */			private List<Object> inPalette = new ArrayList<Object>();
-    /** the currently selected Node object. */			private Object highlightedNode;
-    /** to collect contacts that must be groups */      private Map<Object,Object> elementsMap = new HashMap<Object,Object>();
-    /** cached palette image */                         private VolatileImage paletteImage;
-    /** if the palette image needs to be redrawn */     private boolean paletteImageStale;
-    /** menu entry bounds */                            private Rectangle entryRect;
-    /** Variables needed for drag-and-drop */			private DragSource dragSource = null;
-    /** Offscreen image */                              private PixelDrawing offscreen;
+	/** the number of palette entries. */				private int menuX = -1, menuY = -1;
+	/** the size of a palette entry. */					private int entrySize;
+	/** the list of objects in the palette. */			private List<Object> inPalette = new ArrayList<Object>();
+	/** the currently selected Node object. */			private Object highlightedNode;
+	/** to collect contacts that must be groups */		private Map<Object,Object> elementsMap = new HashMap<Object,Object>();
+	/** cached palette image */							private VolatileImage paletteImage;
+	/** if the palette image needs to be redrawn */		private boolean paletteImageStale;
+	/** menu entry bounds */							private Rectangle entryRect;
+	/** Variables needed for drag-and-drop */			private DragSource dragSource = null;
+	/** Offscreen image */								private PixelDrawing offscreen;
 
-    TechPalette()
-    {
-        addKeyListener(this);
-        addMouseListener(this);
-        addMouseMotionListener(this);
-        addMouseWheelListener(this);
-        addComponentListener(this);
-        paletteImage = null;
-        paletteImageStale = true;
+	TechPalette()
+	{
+		addKeyListener(this);
+		addMouseListener(this);
+		addMouseMotionListener(this);
+		addMouseWheelListener(this);
+		addComponentListener(this);
+		paletteImage = null;
+		paletteImageStale = true;
 
-        // initialize drag-and-drop from this palette
-        dragSource = DragSource.getDefaultDragSource();
+		// initialize drag-and-drop from this palette
+		dragSource = DragSource.getDefaultDragSource();
 		dragSource.createDefaultDragGestureRecognizer(this, DnDConstants.ACTION_COPY_OR_MOVE, this);
-    }
+	}
 
 	/**
 	 * Loads a new technology into the palette. Returns the
@@ -202,41 +204,41 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 		return ni;
 	}
 
-    /**
-     * Method to determine if item is in use or not. Null if not.
-     */
-    private static Object getInUse(Object item)
-    {
-        if (item != null)
-        {
-            PrimitiveNode p = null;
-            // checking if node is in use
-            if (item instanceof NodeInst && ((NodeInst)item).getProto() instanceof PrimitiveNode)
-            {
-                p = (PrimitiveNode)((NodeInst)item).getProto();
-            }
-            else if (item instanceof PrimitiveNode)
-                p = (PrimitiveNode)item;
-            if (p != null && p.isNotUsed())
-                item = null;
-        }
-        return item;
-    }
+	/**
+	 * Method to determine if item is in use or not. Null if not.
+	 */
+	private static Object getInUse(Object item)
+	{
+		if (item != null)
+		{
+			PrimitiveNode p = null;
+			// checking if node is in use
+			if (item instanceof NodeInst && ((NodeInst)item).getProto() instanceof PrimitiveNode)
+			{
+				p = (PrimitiveNode)((NodeInst)item).getProto();
+			}
+			else if (item instanceof PrimitiveNode)
+				p = (PrimitiveNode)item;
+			if (p != null && p.isNotUsed())
+				item = null;
+		}
+		return item;
+	}
 
-    /**
-     * Method to compose item name depending on object class
-     */
-    private static String getItemName(Object item, boolean getVarName)
-    {
-        if (item instanceof PrimitiveNode)
-        {
-            PrimitiveNode np = (PrimitiveNode)item;
-            return (np.getName());
-        }
-        if (item instanceof NodeInst)
-        {
-            NodeInst ni = (NodeInst)item;
-            Variable var = ni.getVar(Technology.TECH_TMPVAR);
+	/**
+	 * Method to compose item name depending on object class
+	 */
+	private static String getItemName(Object item, boolean getVarName)
+	{
+		if (item instanceof PrimitiveNode)
+		{
+			PrimitiveNode np = (PrimitiveNode)item;
+			return (np.getName());
+		}
+		if (item instanceof NodeInst)
+		{
+			NodeInst ni = (NodeInst)item;
+		    Variable var = ni.getVar(Technology.TECH_TMPVAR);
             if (getVarName && var != null && !var.isDisplay())
             {
                 return (var.getObject().toString());
@@ -312,199 +314,242 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 			{
                 PaletteFrame.placeInstance(obj, panel, false);
 			}
-        } else if (obj instanceof String)
-        {
-            String msg = (String)obj;
-            if (msg.startsWith("LOADCELL "))
-            {
-            	String cellName = msg.substring(9);
-            	Cell cell = (Cell)Cell.findNodeProto(cellName);
-            	if (cell == null)
-            	{
-            		Job.getUserInterface().showErrorMessage("Cannot find cell " + cellName, "Unknown Cell");
-            		return;
-            	}
-                PaletteFrame.placeInstance(cell, panel, false);
-            } else if (msg.equals(Technology.SPECIALMENUCELL))
-            {
-            	// get current cell type
-            	View view = null;
-            	Cell curCell = WindowFrame.getCurrentCell();
-            	if (curCell != null)
-            	{
-                	if (curCell.getTechnology().isLayout()) view = View.LAYOUT; else
-                		if (curCell.getTechnology().isSchematics()) view = View.ICON;
-            	}
-                JPopupMenu cellMenu = new JPopupMenu("Cells");
-                for(Iterator<Cell> it = Library.getCurrent().getCells(); it.hasNext(); )
-                {
-                    Cell cell = it.next();
-                    if (view != null && cell.getView() != view) continue;
-                    menuItem = new JMenuItem(cell.describe(false));
-                    menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, cell));
-                    cellMenu.add(menuItem);
-                }
-                cellMenu.show(panel, e.getX(), e.getY());
-            } else if (msg.equals(Technology.SPECIALMENUMISC))
-            {
-                JPopupMenu specialMenu = new JPopupMenu("Miscellaneous");
-                menuItem = new JMenuItem("Cell Instance...");
-                menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { CellMenu.cellBrowserCommand(CellBrowser.DoAction.newInstance); } });
-                specialMenu.add(menuItem);
+		} else if (obj instanceof String)
+		{
+			String msg = (String)obj;
+			if (msg.startsWith("LOADCELL "))
+			{
+				String cellName = msg.substring(9);
+				Cell cell = (Cell)Cell.findNodeProto(cellName);
+				if (cell == null)
+				{
+					Job.getUserInterface().showErrorMessage("Cannot find cell " + cellName, "Unknown Cell");
+					return;
+				}
+				PaletteFrame.placeInstance(cell, panel, false);
+			} else if (msg.equals(Technology.SPECIALMENUCELL))
+			{
+				// get current cell type
+				View view = null;
+				Cell curCell = WindowFrame.getCurrentCell();
+				if (curCell != null)
+				{
+					if (curCell.getTechnology().isLayout()) view = View.LAYOUT; else
+						if (curCell.getTechnology().isSchematics()) view = View.ICON;
+				}
+				JPopupMenu cellMenu = new JPopupMenu("Cells");
+				for(Iterator<Cell> it = Library.getCurrent().getCells(); it.hasNext(); )
+				{
+					Cell cell = it.next();
+					if (view != null && cell.getView() != view) continue;
+					menuItem = new JMenuItem(cell.describe(false));
+					menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, cell));
+					cellMenu.add(menuItem);
+				}
+				cellMenu.show(panel, e.getX(), e.getY());
+			} else if (msg.equals(Technology.SPECIALMENUMISC))
+			{
+				JPopupMenu specialMenu = new JPopupMenu("Miscellaneous");
+				menuItem = new JMenuItem("Cell Instance...");
+				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { CellMenu.cellBrowserCommand(CellBrowser.DoAction.newInstance); } });
+				specialMenu.add(menuItem);
 
-                specialMenu.addSeparator();
+				specialMenu.addSeparator();
 
-                menuItem = new JMenuItem("Annotation Text");
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, "ART_message"));
-                specialMenu.add(menuItem);
-                menuItem = new JMenuItem("Layout Text...");
-                menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { makeLayoutTextCommand(); } });
-                specialMenu.add(menuItem);
-                menuItem = new JMenuItem("Annular Ring...");
-                menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { AnnularRing.showAnnularRingDialog(); } });
-                specialMenu.add(menuItem);
+				menuItem = new JMenuItem("Annotation Text");
+				menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, "ART_message"));
+				specialMenu.add(menuItem);
+				menuItem = new JMenuItem("Layout Text...");
+				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { makeLayoutTextCommand(); } });
+				specialMenu.add(menuItem);
+				menuItem = new JMenuItem("Annular Ring...");
+				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { AnnularRing.showAnnularRingDialog(); } });
+				specialMenu.add(menuItem);
 
-                specialMenu.addSeparator();
+				specialMenu.addSeparator();
 
-                menuItem = new JMenuItem("Cell Center");
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, Generic.tech().cellCenterNode));
-                specialMenu.add(menuItem);
-                menuItem = new JMenuItem("Essential Bounds");
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, Generic.tech().essentialBoundsNode));
-                specialMenu.add(menuItem);
+				menuItem = new JMenuItem("Cell Center");
+				menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, Generic.tech().cellCenterNode));
+				specialMenu.add(menuItem);
+				menuItem = new JMenuItem("Essential Bounds");
+				menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, Generic.tech().essentialBoundsNode));
+				specialMenu.add(menuItem);
 
-                specialMenu.addSeparator();
+				specialMenu.addSeparator();
 
-                menuItem = new JMenuItem("Spice Code");
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, "SIM_spice_card"));
-                specialMenu.add(menuItem);
-                menuItem = new JMenuItem("Spice Declaration");
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, "SIM_spice_declaration"));
-                specialMenu.add(menuItem);
-                menuItem = new JMenuItem("Verilog Code");
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, "VERILOG_code"));
-                specialMenu.add(menuItem);
-                menuItem = new JMenuItem("Verilog Declaration");
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, "VERILOG_declaration"));
-                specialMenu.add(menuItem);
-                menuItem = new JMenuItem("Verilog Parameter");
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, "VERILOG_parameter"));
-                specialMenu.add(menuItem);
-                menuItem = new JMenuItem("Verilog External Code");
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, "VERILOG_external_code"));
-                specialMenu.add(menuItem);
-                menuItem = new JMenuItem("Simulation Probe");
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, Generic.tech().simProbeNode));
-                specialMenu.add(menuItem);
-                menuItem = new JMenuItem("DRC Exclusion");
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, Generic.tech().drcNode));
-                specialMenu.add(menuItem);
-                menuItem = new JMenuItem("AFG Exclusion");
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, Generic.tech().afgNode));
-                specialMenu.add(menuItem);
+				menuItem = new JMenuItem("Spice Code");
+				menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, "SIM_spice_card"));
+				specialMenu.add(menuItem);
+				menuItem = new JMenuItem("Spice Declaration");
+				menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, "SIM_spice_declaration"));
+				specialMenu.add(menuItem);
+				menuItem = new JMenuItem("Verilog Code");
+				menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, "VERILOG_code"));
+				specialMenu.add(menuItem);
+				menuItem = new JMenuItem("Verilog Declaration");
+				menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, "VERILOG_declaration"));
+				specialMenu.add(menuItem);
+				menuItem = new JMenuItem("Verilog Parameter");
+				menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, "VERILOG_parameter"));
+				specialMenu.add(menuItem);
+				menuItem = new JMenuItem("Verilog External Code");
+				menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, "VERILOG_external_code"));
+				specialMenu.add(menuItem);
+				menuItem = new JMenuItem("Simulation Probe");
+				menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, Generic.tech().simProbeNode));
+				specialMenu.add(menuItem);
+				menuItem = new JMenuItem("DRC Exclusion");
+				menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, Generic.tech().drcNode));
+				specialMenu.add(menuItem);
+				menuItem = new JMenuItem("AFG Exclusion");
+				menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, Generic.tech().afgNode));
+				specialMenu.add(menuItem);
 
+				specialMenu.addSeparator();
 
-                specialMenu.addSeparator();
+				menuItem = new JMenuItem("Invisible Pin");
+				menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, Generic.tech().invisiblePinNode));
+				specialMenu.add(menuItem);
+				menuItem = new JMenuItem("Universal Pin");
+				menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, Generic.tech().universalPinNode));
+				specialMenu.add(menuItem);
+				menuItem = new JMenuItem("Unrouted Pin");
+				menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, Generic.tech().unroutedPinNode));
+				specialMenu.add(menuItem);
+				specialMenu.show(panel, e.getX(), e.getY());
+			} else if (msg.equals(Technology.SPECIALMENUPURE))
+			{
+//				JPopupMenu pureMenu = new JPopupMenu("pure");
+//				for(PrimitiveNode np : Technology.getCurrent().getNodesSortedByName())
+//				{
+//					if (np.isNotUsed()) continue;
+//					if (np.getFunction() != PrimitiveNode.Function.NODE) continue;
+//					Technology.NodeLayer layer = np.getLayers()[0];
+//					if (layer.getLayer().getFunction().isContact()) continue;
+//					menuItem = new JMenuItem(np.describe(false));
+//					menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, np));
+//					pureMenu.add(menuItem);
+//				}
+//				pureMenu.show(panel, e.getX(), e.getY());
 
-                menuItem = new JMenuItem("Invisible Pin");
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, Generic.tech().invisiblePinNode));
-                specialMenu.add(menuItem);
-                menuItem = new JMenuItem("Universal Pin");
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, Generic.tech().universalPinNode));
-                specialMenu.add(menuItem);
-                menuItem = new JMenuItem("Unrouted Pin");
-                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, Generic.tech().unroutedPinNode));
-                specialMenu.add(menuItem);
-                specialMenu.show(panel, e.getX(), e.getY());
-            } else if (msg.equals(Technology.SPECIALMENUPURE))
-            {
-                JPopupMenu pureMenu = new JPopupMenu("Pure");
-                for(PrimitiveNode np : Technology.getCurrent().getNodesSortedByName())
-                {
-                    if (np.isNotUsed()) continue;
-                    if (np.getFunction() != PrimitiveNode.Function.NODE) continue;
-                    Technology.NodeLayer layer = np.getLayers()[0];
-                    if (layer.getLayer().getFunction().isContact()) continue;
-                    menuItem = new JMenuItem(np.describe(false));
-                    menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, np));
-                    pureMenu.add(menuItem);
-                }
-                pureMenu.show(panel, e.getX(), e.getY());
-            } if (msg.equals(Technology.SPECIALMENUSPICE))
-            {
-                JPopupMenu cellMenu = new JPopupMenu("Spice");
+				new PurePopup(panel, e.getX(), e.getY());
+			} if (msg.equals(Technology.SPECIALMENUSPICE))
+			{
+				JPopupMenu cellMenu = new JPopupMenu("Spice");
 
-                String currentSpiceLib = Simulation.getSpicePartsLibrary();
-                Library spiceLib = Library.findLibrary(currentSpiceLib);
-                if (spiceLib == null)
-                {
-                    // must read the Spice library from disk
-                    URL fileURL = LibFile.getLibFile(currentSpiceLib + ".jelib");
-                    new TechPalette.ReadSpiceLibrary(fileURL, cellMenu, panel, e.getX(), e.getY());
-                } else
-                {
-                    ReadSpiceLibrary.loadSpiceCells(spiceLib, panel, cellMenu);
-                    cellMenu.show(panel, e.getX(), e.getY());
-                }
-            } if (msg.equals(Technology.SPECIALMENUEXPORT))
-            {
-                JPopupMenu specialMenu = new JPopupMenu("Export");
-                menuItem = new JMenuItem("Wire");
-                menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { makeExport("wire"); } });
-                specialMenu.add(menuItem);
-                menuItem = new JMenuItem("Bus");
-                menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { makeExport("bus"); } });
-                specialMenu.add(menuItem);
-                menuItem = new JMenuItem("Universal");
-                menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { makeExport("universal"); } });
-                specialMenu.add(menuItem);
-                specialMenu.show(panel, e.getX(), e.getY());
-            } if (msg.equals(Technology.SPECIALMENUTEXT))
-            {
-            	// place a piece of text
-                PaletteFrame.placeInstance("ART_message", panel, false);
-            } if (msg.equals(Technology.SPECIALMENUHIGH))
-            {
-            	// place a technology-edit highlight box
-            	NodeInst ni = NodeInst.makeDummyInstance(Artwork.tech().boxNode);
-    			ni.newVar(Info.OPTION_KEY, new Integer(Info.HIGHLIGHTOBJ));
-                PaletteFrame.placeInstance(ni, panel, false);
-            } if (msg.equals(Technology.SPECIALMENUPORT))
-            {
-            	// place a technology-edit port
-                PaletteFrame.placeInstance(Generic.tech().portNode, panel, false);
-            }
-        }
-        repaint();
-    }
+				String currentSpiceLib = Simulation.getSpicePartsLibrary();
+				Library spiceLib = Library.findLibrary(currentSpiceLib);
+				if (spiceLib == null)
+				{
+					// must read the Spice library from disk
+					URL fileURL = LibFile.getLibFile(currentSpiceLib + ".jelib");
+					new TechPalette.ReadSpiceLibrary(fileURL, cellMenu, panel, e.getX(), e.getY());
+				} else
+				{
+					ReadSpiceLibrary.loadSpiceCells(spiceLib, panel, cellMenu);
+					cellMenu.show(panel, e.getX(), e.getY());
+				}
+			} if (msg.equals(Technology.SPECIALMENUEXPORT))
+			{
+				JPopupMenu specialMenu = new JPopupMenu("Export");
+				menuItem = new JMenuItem("Wire");
+				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { makeExport("wire"); } });
+				specialMenu.add(menuItem);
+				menuItem = new JMenuItem("Bus");
+				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { makeExport("bus"); } });
+				specialMenu.add(menuItem);
+				menuItem = new JMenuItem("Universal");
+				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { makeExport("universal"); } });
+				specialMenu.add(menuItem);
+				specialMenu.show(panel, e.getX(), e.getY());
+			} if (msg.equals(Technology.SPECIALMENUTEXT))
+			{
+				// place a piece of text
+				PaletteFrame.placeInstance("ART_message", panel, false);
+			} if (msg.equals(Technology.SPECIALMENUHIGH))
+			{
+				// place a technology-edit highlight box
+				NodeInst ni = NodeInst.makeDummyInstance(Artwork.tech().boxNode);
+				ni.newVar(Info.OPTION_KEY, new Integer(Info.HIGHLIGHTOBJ));
+				PaletteFrame.placeInstance(ni, panel, false);
+			} if (msg.equals(Technology.SPECIALMENUPORT))
+			{
+				// place a technology-edit port
+				PaletteFrame.placeInstance(Generic.tech().portNode, panel, false);
+			}
+		}
+		repaint();
+	}
 
-    private void makeExport(String type)
-    {
-        if (type.equals("wire")) PaletteFrame.placeInstance(Schematics.tech().wirePinNode, this, true); else
-        if (type.equals("bus")) PaletteFrame.placeInstance(Schematics.tech().busPinNode, this, true); else
-        if (type.equals("universal")) PaletteFrame.placeInstance(Generic.tech().invisiblePinNode, this, true);
-    }
-
-    public void makeLayoutTextCommand()
-    {
-        LayoutText dialog = new LayoutText(TopLevel.getCurrentJFrame());
-        if (!Job.BATCHMODE) dialog.setVisible(true);
-    }
-
-    public void placeNodeStarted(Object nodeToBePlaced) {
-        highlightedNode = nodeToBePlaced;
-    }
-
-    public void placeNodeFinished(boolean cancelled) {
-        highlightedNode = null;
-        repaint();
-    }
-
-    // ************************************************ DRAG-AND-DROP CODE ************************************************
-
-    public void dragGestureRecognized(DragGestureEvent e)
+	private static class PurePopup
 	{
-	    Object obj = getObjectUnderCursor(e.getDragOrigin().x, e.getDragOrigin().y);
+		private List<PrimitiveNode> popupPures;
+		private BasicComboPopup myPopup;
+		private JComboBox comboBox;
+		private TechPalette panel;
+
+		PurePopup(TechPalette panel, int x, int y)
+		{
+			this.panel = panel;
+			popupPures = new ArrayList<PrimitiveNode>();
+			for(PrimitiveNode np : Technology.getCurrent().getNodesSortedByName())
+			{
+				if (np.isNotUsed()) continue;
+				if (np.getFunction() != PrimitiveNode.Function.NODE) continue;
+				Technology.NodeLayer layer = np.getLayers()[0];
+				if (layer.getLayer().getFunction().isContact()) continue;
+				popupPures.add(np);
+			}
+			String[] popupStringArray = new String[popupPures.size()];
+			for(int i=0; i<popupPures.size(); i++) popupStringArray[i] = popupPures.get(i).describe(false);
+			comboBox = new JComboBox(popupStringArray);
+			myPopup = new BasicComboPopup(comboBox);
+			comboBox.addActionListener(new ActionListener()
+			{
+				public void actionPerformed(ActionEvent e) { clickedOnEntry(); }
+			});
+			myPopup.show(panel, x, y);
+		}
+
+		private void clickedOnEntry()
+		{
+			for(int i=0; i<popupPures.size(); i++)
+			{
+				PrimitiveNode np = popupPures.get(i);
+				if (np.describe(false).equals(comboBox.getSelectedItem()))
+					PaletteFrame.placeInstance(np, panel, false);
+			}
+			myPopup.hide();
+		}
+	}
+
+	private void makeExport(String type)
+	{
+		if (type.equals("wire")) PaletteFrame.placeInstance(Schematics.tech().wirePinNode, this, true); else
+		if (type.equals("bus")) PaletteFrame.placeInstance(Schematics.tech().busPinNode, this, true); else
+		if (type.equals("universal")) PaletteFrame.placeInstance(Generic.tech().invisiblePinNode, this, true);
+	}
+
+	public void makeLayoutTextCommand()
+	{
+		LayoutText dialog = new LayoutText(TopLevel.getCurrentJFrame());
+		if (!Job.BATCHMODE) dialog.setVisible(true);
+	}
+
+	public void placeNodeStarted(Object nodeToBePlaced) {
+		highlightedNode = nodeToBePlaced;
+	}
+
+	public void placeNodeFinished(boolean cancelled) {
+		highlightedNode = null;
+		repaint();
+	}
+
+	// ************************************************ DRAG-AND-DROP CODE ************************************************
+
+	public void dragGestureRecognized(DragGestureEvent e)
+	{
+		Object obj = getObjectUnderCursor(e.getDragOrigin().x, e.getDragOrigin().y);
 
 		// make a Transferable Object
 		EditWindow.NodeProtoTransferable transferable = new EditWindow.NodeProtoTransferable(obj, null);
@@ -523,15 +568,15 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 
 	public void dropActionChanged (DragSourceDragEvent e) {}
 
-    /**
+	/**
      * Class to read a Spice library in a new thread.
-     */
-    private static class ReadSpiceLibrary extends Job
-    {
-    	private URL fileURL;
-        private transient JPopupMenu cellMenu;
-        private transient TechPalette panel;
-        private transient int x, y;
+	 */
+	private static class ReadSpiceLibrary extends Job
+	{
+		private URL fileURL;
+		private transient JPopupMenu cellMenu;
+		private transient TechPalette panel;
+		private transient int x, y;
         private Library lib;
 
     	protected ReadSpiceLibrary(URL fileURL, JPopupMenu cellMenu, TechPalette panel, int x, int y)
