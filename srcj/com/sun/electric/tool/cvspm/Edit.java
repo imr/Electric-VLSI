@@ -558,7 +558,11 @@ public class Edit {
             String [] parts = file.split("/");
             lib = findLibraryWithExt(parts[0]);
             if (lib == null) return null;
-            String cellname = parts[1].replaceAll("\\.", "{") + "}";
+            int ext = parts[1].lastIndexOf('.');
+            if (ext == -1) return lib.findNodeProto(parts[1]);
+            String view = parts[1].substring(ext+1);
+            String cellname = parts[1].substring(0, ext);
+            cellname = cellname + "{" + view + "}";
             return lib.findNodeProto(cellname);
         }
         private static Library findLibraryWithExt(String libname) {
