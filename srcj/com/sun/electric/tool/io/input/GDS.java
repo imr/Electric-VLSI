@@ -259,7 +259,8 @@ public class GDS extends Input
         }
 
 		private void makeInstanceArray(NodeProto proto, int nCols, int nRows, Orientation orient, Point2D startLoc, Point2D rowOffset, Point2D colOffset) {
-            MakeInstanceArray mia = new MakeInstanceArray(proto, nCols, nRows, orient, startLoc, rowOffset, colOffset);
+            MakeInstanceArray mia = new MakeInstanceArray(proto, nCols, nRows, orient,
+            	new Point2D.Double(startLoc.getX(), startLoc.getY()), rowOffset, colOffset);
             instArrays.add(mia);
         }
 
@@ -563,7 +564,6 @@ public class GDS extends Input
                     baseName = np.getTechnology().getPrimitiveFunction(np, 0).getBasename();
                 }
                 String basenameString = baseName.toString();
-//                String basenameString = baseName.canonicString();
                 GenMath.MutableInteger maxSuffix = maxSuffixes.get(basenameString);
                 if (maxSuffix == null) {
                     maxSuffix = new GenMath.MutableInteger(-1);
@@ -648,13 +648,10 @@ public class GDS extends Input
 						}
 					}
 
-//					if (parent.getName().equals("txrxSlicePair_DM"))
-					{
-			            NodeInst ni = NodeInst.makeInstance(subNi.getProto(), new Point2D.Double((lX+hX)/2, (lY+hY)/2), hX-lX, hY-lY,
-			            	parent, orient, null, 0);
-			            if (ni != null)
-			            	ni.setTrace(pointArray);
-					}
+		            NodeInst ni = NodeInst.makeInstance(subNi.getProto(), new Point2D.Double((lX+hX)/2, (lY+hY)/2), hX-lX, hY-lY,
+		            	parent, orient, null, 0);
+		            if (ni != null)
+		            	ni.setTrace(pointArray);
 	        		return;
 	    		}
     		}
@@ -1057,13 +1054,28 @@ public class GDS extends Input
 	{
 		while (isMember(theToken, shapeSet))
 		{
-			if (theToken == GDS_AREF) determineARef(); else
-				if (theToken == GDS_SREF) determineSRef(); else
-					if (theToken == GDS_BOUNDARY) determineShape(); else
-						if (theToken == GDS_PATH) determinePath(); else
-							if (theToken == GDS_NODE) determineNode(); else
-								if (theToken == GDS_TEXTSYM) determineText(); else
-									if (theToken == GDS_BOX) determineBox();
+			if (theToken == GDS_AREF)
+			{
+				determineARef();
+			} else if (theToken == GDS_SREF)
+			{
+				determineSRef();
+			} else if (theToken == GDS_BOUNDARY)
+			{
+				determineShape();
+			} else if (theToken == GDS_PATH)
+			{
+				determinePath();
+			} else if (theToken == GDS_NODE)
+			{
+				determineNode();
+			} else if (theToken == GDS_TEXTSYM)
+			{
+				determineText();
+			} else if (theToken == GDS_BOX)
+			{
+				determineBox();
+			}
 		}
 
 		while (theToken == GDS_PROPATTR)
@@ -1081,7 +1093,6 @@ public class GDS extends Input
 		getToken();
 		readUnsupported(unsupportedSet);
 		if (theToken != GDS_SNAME) handleError("Array reference name is missing");
-
 		getToken();
 
 		// get this nodeproto
@@ -1254,7 +1265,6 @@ public class GDS extends Input
 
 		getToken();
 		int n = determinePoints(3, MAXPOINTS);
-
 		if (TALLYCONTENTS)
 		{
 			countShape++;
@@ -1346,7 +1356,6 @@ public class GDS extends Input
                 theCell.makeInstance(layerNodeProto, new EPoint((lx+hx)/2, (ly+hy)/2),
                 	Orientation.IDENT, hx-lx, hy-ly, points);
 			}
-
 			return;
 		}
 	}
