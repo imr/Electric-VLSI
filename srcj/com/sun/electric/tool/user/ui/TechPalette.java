@@ -341,7 +341,8 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 				for(Iterator<Cell> it = Library.getCurrent().getCells(); it.hasNext(); )
 				{
 					Cell cell = it.next();
-					if (view != null && cell.getView() != view) continue;
+                    if (cell == curCell) continue; // ignore same cell to avoid the recursive case
+                    if (view != null && cell.getView() != view) continue;
 					menuItem = new JMenuItem(cell.describe(false));
 					menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, cell));
 					cellMenu.add(menuItem);
