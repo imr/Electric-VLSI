@@ -1956,7 +1956,7 @@ public class Highlighter implements DatabaseChangeListener {
 	 * @return the distance from the bounds to the NodeInst.
 	 * Negative values are direct hits.
 	 */
-	private static double distToNode(Rectangle2D bounds, NodeInst ni, EditWindow wnd)
+	public static double distToNode(Rectangle2D bounds, NodeInst ni, EditWindow wnd)
 	{
 		AffineTransform trans = ni.rotateOut();
 
@@ -1983,15 +1983,18 @@ public class Highlighter implements DatabaseChangeListener {
 					double dist = poly.polyDistance(bounds);
 					if (dist < bestDist) bestDist = dist;
 				}
-				for(Poly poly: ni.getDisplayableVariables(wnd))
+				if (wnd != null)
 				{
-					Layer layer = poly.getLayer();
-					if (layer == null) continue;
-					Layer.Function lf = layer.getFunction();
-					if (!lf.isPoly() && !lf.isDiff()) continue;
-					poly.transform(trans);
-					double dist = poly.polyDistance(bounds);
-					if (dist < bestDist) bestDist = dist;
+					for(Poly poly: ni.getDisplayableVariables(wnd))
+					{
+						Layer layer = poly.getLayer();
+						if (layer == null) continue;
+						Layer.Function lf = layer.getFunction();
+						if (!lf.isPoly() && !lf.isDiff()) continue;
+						poly.transform(trans);
+						double dist = poly.polyDistance(bounds);
+						if (dist < bestDist) bestDist = dist;
+					}
 				}
 				return bestDist;
 			}
@@ -2009,11 +2012,14 @@ public class Highlighter implements DatabaseChangeListener {
 					double dist = poly.polyDistance(bounds);
 					if (dist < bestDist) bestDist = dist;
 				}
-				for(Poly poly: ni.getDisplayableVariables(wnd))
+				if (wnd != null)
 				{
-					poly.transform(trans);
-					double dist = poly.polyDistance(bounds);
-					if (dist < bestDist) bestDist = dist;
+					for(Poly poly: ni.getDisplayableVariables(wnd))
+					{
+						poly.transform(trans);
+						double dist = poly.polyDistance(bounds);
+						if (dist < bestDist) bestDist = dist;
+					}
 				}
 				return bestDist;
 			}
@@ -2050,7 +2056,7 @@ public class Highlighter implements DatabaseChangeListener {
 	 * @return the distance from the bounds to the ArcInst.
 	 * Negative values are direct hits or intersections.
 	 */
-	private static double distToArc(Rectangle2D bounds, ArcInst ai, EditWindow wnd)
+	public static double distToArc(Rectangle2D bounds, ArcInst ai, EditWindow wnd)
 	{
 		ArcProto ap = ai.getProto();
 

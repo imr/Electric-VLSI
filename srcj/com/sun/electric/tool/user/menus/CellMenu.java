@@ -73,7 +73,9 @@ import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JPopupMenu;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
@@ -458,51 +460,99 @@ public class CellMenu {
 		curEdit.downHierarchy(false, false, true);
 	}
 
+	private static class DownHierToObjectActionListener implements ActionListener
+	{
+		GeometrySearch.GeometrySearchResult result;
+
+		DownHierToObjectActionListener(GeometrySearch.GeometrySearchResult r) { result = r; }
+
+		public void actionPerformed(ActionEvent e)
+		{
+			descendToObject(result);
+		}
+	}
+
 	private static void downHierInPlaceToObject()
 	{
 		EditWindow curEdit = EditWindow.needCurrent();
 		if (curEdit == null) return;
 		Cell cell = curEdit.getCell();
 		if (cell == null) return;
-		if (cell.getView() != View.LAYOUT) {
+		if (cell.getView() != View.LAYOUT)
+		{
 			System.out.println("Current cell should be a layout cell for 'Down Hierarchy In Place To Object'");
 			return;
 		}
 
-		// if object under mouse, descend to that location
+		// find all objects under the mouse
 		Point2D mouse = ClickZoomWireListener.theOne.getLastMouse();
 		Point2D mouseDB = curEdit.screenToDatabase((int)mouse.getX(), (int)mouse.getY());
 		EPoint point = new EPoint(mouseDB.getX(), mouseDB.getY());
+		GeometrySearch.GeometrySearchResult foundAtTopLevel = null;
 		GeometrySearch search = new GeometrySearch();
-		if (search.searchGeometries(cell, point, true))
-		{
-			VarContext context = search.getContext();
+		List<GeometrySearch.GeometrySearchResult> possibleTargets = search.searchGeometries(cell, point, true);
 
-			if (context == VarContext.globalContext)
+		// eliminate results at the top level
+		for(int i=0; i<possibleTargets.size(); i++)
+		{
+			GeometrySearch.GeometrySearchResult res = possibleTargets.get(i);
+			if (res.getContext() == VarContext.globalContext)
 			{
-				System.out.println(search.describeFoundGeometry()+", not descending down hierarchy");
-				return;
+				possibleTargets.remove(i);
+				i--;
+				foundAtTopLevel = res;
 			}
-			Geometric geom = search.getGeometricFound();
-			System.out.println("Descending to "+geom+" at point ("+point.getX()+","+point.getY()+") in cell "+geom.getParent().getName());
-			for (Iterator<Nodable> it = context.getPathIterator(); it.hasNext(); )
-			{
-				Nodable no = it.next();
-				Cell curCell = no.getParent();
-				curEdit.getHighlighter().clear();
-				curEdit.getHighlighter().addElectricObject(no.getNodeInst(), curCell);
-				curEdit.getHighlighter().finished();
-				System.out.println("  descended into "+no.getName()+"["+no.getProto().getName()+"] in cell "+curCell.getName());
-				curEdit.downHierarchy(false, false, true);
-			}
-			curEdit.getHighlighter().clear();
-			curEdit.getHighlighter().addElectricObject(geom, geom.getParent());
-			curEdit.getHighlighter().finished();
+		}
+
+		// give error if nothing was found
+		if (possibleTargets.size() == 0)
+		{
+			// nothing found, if top-level stuff found, say so
+			if (foundAtTopLevel != null)
+				System.out.println(foundAtTopLevel.describe() + " is at the top level, not down the hierarchy"); else
+					System.out.println("No primitive node or arc found under the mouse at lower levels of hierarchy");
+			return;
+		}
+
+		// get the selected object to edit
+		if (possibleTargets.size() == 1)
+		{
+			descendToObject(possibleTargets.get(0));
 		} else
 		{
-			// nothing found
-			System.out.println("No primitive node or arc found under mouse to descend to.");
+			// let the user choose
+            JPopupMenu menu = new JPopupMenu();
+        	JMenuItem menuItem = new JMenuItem("Multiple objects under the cursor...choose one");
+            menu.add(menuItem);
+            menu.addSeparator();
+            for(GeometrySearch.GeometrySearchResult res : possibleTargets)
+            {
+            	menuItem = new JMenuItem(res.describe());
+            	menuItem.addActionListener(new DownHierToObjectActionListener(res));
+                menu.add(menuItem);
+            }
+            menu.show(curEdit, 100, 100);
 		}
+	}
+
+	private static void descendToObject(GeometrySearch.GeometrySearchResult res)
+	{
+		// descend to that object
+		EditWindow curEdit = EditWindow.needCurrent();
+		System.out.println("Descending to cell " + res.getGeometric().getParent().getName());
+		for (Iterator<Nodable> it = res.getContext().getPathIterator(); it.hasNext(); )
+		{
+			Nodable no = it.next();
+			Cell curCell = no.getParent();
+			curEdit.getHighlighter().clear();
+			curEdit.getHighlighter().addElectricObject(no.getNodeInst(), curCell);
+			curEdit.getHighlighter().finished();
+			System.out.println("  Descended into "+no.getName()+"["+no.getProto().getName()+"] in cell "+curCell.getName());
+			curEdit.downHierarchy(false, false, true);
+		}
+		curEdit.getHighlighter().clear();
+		curEdit.getHighlighter().addElectricObject(res.getGeometric(), res.getGeometric().getParent());
+		curEdit.getHighlighter().finished();
 	}
 
 	/**

@@ -29,6 +29,7 @@ import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
@@ -37,65 +38,105 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.tool.user.Highlighter;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 
 /**
- * User: gg151869
+ * Class to search hierarchically at a point and return all objects found.
  */
 public class GeometrySearch extends HierarchyEnumerator.Visitor
 {
-    private boolean found = false;
+    private List<GeometrySearchResult> found;
     private ERectangle geomBBnd;
-    private Geometric foundElement = null;
-    private VarContext context = VarContext.globalContext;
     private boolean visibleObjectsOnly;
     private HashMap<ArcProto,Boolean> cacheVisibilityArcs;
     private int cellsProcessed;         // for debug
 
-    public GeometrySearch() {
+    /**
+     * Class that holds results of the search (a packaged Geometric and VarContext).
+     */
+	public static class GeometrySearchResult
+	{
+		private Geometric geom;
+		private VarContext context;
+
+		GeometrySearchResult(Geometric g, VarContext c)
+		{
+			geom = g;
+			context = c;
+		}
+
+		public Geometric getGeometric() { return geom; }
+
+		public VarContext getContext() { return context; }
+
+		public String describe()
+	    {
+	        String contextstr = "current cell";
+	        if (context != VarContext.globalContext) contextstr = getInstPath(context);
+	        return geom + " in " + contextstr;
+	    }
+
+		/**
+		 * Return the concatenation of all instances names left to right
+	     * from the root to the leaf. Begin with the string with a separator
+	     * and place a separator between adjacent instance names.
+	     * @param sep the separator string.
+	     */
+	    public String getInstPath(VarContext vc)
+	    {
+	        if (vc == VarContext.globalContext) return "";
+	        String prefix = vc.pop()==VarContext.globalContext ? "" : getInstPath(vc.pop());
+	        Nodable no = vc.getNodable();
+	        if (no == null)
+	        {
+	            System.out.println("VarContext.getInstPath: context with null NodeInst?");
+	        }
+	        String me = no.getName();
+	        if (no instanceof NodeInst)
+	        {
+	            // nodeInst, we want netlisted name, assume zero index of arrayed node
+	            Name name = no.getNameKey();
+	            me = name.subname(0).toString();
+	        }
+	        me = no.getProto().getName() + "[" + me + "]";
+	        if (prefix.equals("")) return me;
+	        return prefix + " / " + me;
+	    }
+	}
+
+    public GeometrySearch()
+    {
         cacheVisibilityArcs = new HashMap<ArcProto,Boolean>();
     }
 
     /**
      * Find a Primitive Node or Arc at a point in a cell.  The geometric found may exist down
-     * the hierarchy from the given cell.  Currently, it stops at the first
-     * Geometric it finds.
+     * the hierarchy from the given cell.
      * @param cell the cell in which the point resides
      * @param point a point to search under
      * @param visibleObjectsOnly true to consider only Geometries that are visible
-     * @return true if a Geometric was found, false if none was found
+     * @return a List of all search results
      */
-    public boolean searchGeometries(Cell cell, EPoint point, boolean visibleObjectsOnly)
+    public List<GeometrySearchResult> searchGeometries(Cell cell, EPoint point, boolean visibleObjectsOnly)
     {
-        this.found = false;
-        this.geomBBnd = ERectangle.fromLambda(point.getX(), point.getY(), 0, 0);
-        this.foundElement = null;
-        this.context = VarContext.globalContext;
+    	found = new ArrayList<GeometrySearchResult>();
+        geomBBnd = ERectangle.fromLambda(point.getX(), point.getY(), 0, 0);
         this.visibleObjectsOnly = visibleObjectsOnly;
-        this.cacheVisibilityArcs.clear();
+        cacheVisibilityArcs.clear();
 //    	PrimitiveNode.resetAllVisibility();
-        this.cellsProcessed = 0;
+        cellsProcessed = 0;
         HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, this);
         return found;
     }
 
-    public boolean foundGeometry() { return found; }
-
-    public Geometric getGeometricFound() { return foundElement; }
-
-    public VarContext getContext() { return context; }
-
     public int getCellsProcessed() { return cellsProcessed; }
-
-    public String describeFoundGeometry() {
-        String contextstr = "current cell";
-        if (context != VarContext.globalContext) contextstr = context.getInstPath(".");
-        return "Element " + foundElement + " in " + contextstr;
-    }
 
     /**************************************************************************************************************
      *  Enumerator class
@@ -103,11 +144,8 @@ public class GeometrySearch extends HierarchyEnumerator.Visitor
 
     public boolean enterCell(HierarchyEnumerator.CellInfo info)
     {
-        if (found) return false;
         Cell cell = info.getCell();
-
         AffineTransform xformToRoot = null;
-
         try
         {
             xformToRoot = info.getTransformToRoot().createInverse();
@@ -135,34 +173,33 @@ public class GeometrySearch extends HierarchyEnumerator.Visitor
                 {
                     // keep searching
                     continueDown = true;
-                }
-                else // primitive found
+                } else
                 {
-                    // ignore nodes that and fully invisible
+                    // primitive found, ignore nodes that are fully invisible
+                	double dist = Highlighter.distToNode(rect, oNi, null);
+                	if (dist > 0) continue;
                     PrimitiveNode node = (PrimitiveNode)oNi.getProto();
                     if (visibleObjectsOnly && !node.isVisible()) continue;
-                    foundElement = geom;
-                    context = info.getContext();
-                    found = true;
+                    found.add(new GeometrySearchResult(geom, info.getContext()));
                 }
-            }
-            else // arc
+            } else
             {
-                // ignore arcs that and fully invisible
-                ArcProto ap = ((ArcInst)geom).getProto();
+                // arc, ignore arcs that and fully invisible
+            	ArcInst ai = (ArcInst)geom;
+            	double dist = Highlighter.distToArc(rect, ai, null);
+            	if (dist > 0) continue;
+                ArcProto ap = ai.getProto();
                 if (visibleObjectsOnly && !isArcVisible(ap)) continue;
-                foundElement = geom;
-                context = info.getContext();
-                found = true;
+                found.add(new GeometrySearchResult(geom, info.getContext()));
             }
         }
-        if (found) return false;
         return continueDown;
     }
+
     public void exitCell(HierarchyEnumerator.CellInfo info) {}
+
     public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
     {
-        if (found) return false;
         if (visibleObjectsOnly && !no.getNodeInst().isExpanded()) return false;
         return true;
     }

@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08k: ******************************
 
+IMP/MAN: (10/29/08, SMR) Added a disambiguation popup to "Down Hierarchy in Place to Object" (Bug #1930).
+
 BUG: (10/29/08, SMR) Auto-stitching doesn't handle daisy-chains right (Bug #1927).
 FIX: Special code in AutoStitch.java now handles daisy-chains.
 
