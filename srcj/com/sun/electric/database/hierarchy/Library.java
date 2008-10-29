@@ -458,7 +458,7 @@ public class Library extends ElectricObject implements Comparable<Library>
             // no instance that would create reference found, ok to remove reference
             synchronized(referencedLibs) {
                 referencedLibs.remove(lib);
-                updateBackup(d, backup.modified, backup.referencedLibs);
+                updateBackup(d, backup.modified, backupReferencedLibs(backup.referencedLibs));
             }
         }
     }
