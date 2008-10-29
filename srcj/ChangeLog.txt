@@ -7,6 +7,7 @@ NOTE: Please place changes under the version that will be released next.
 BUG: (10/29/08, DN) CVS update from Electric doesn't work (Bug #1795).
 FIX: In Library.removeReferencedLib call backupReferenceLibs to propagate
      changes from Library.referencedLibs to LibraryBackup.referencedLibs.
+     In NodeInst.replace don't create new arc if "newPortInst" is not defined.
 
 BUG: (10/28/08, RK): NCC regressions need repair because Electric is 
 becoming case sensitive. 

@@ -763,6 +763,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 		            newPoint[e] = poly.isInside(newLoc) ? newLoc : new EPoint(poly.getCenterX(), poly.getCenterY());
 				}
 			}
+            if (newPortInst[ArcInst.TAILEND] == null || newPortInst[ArcInst.HEADEND] == null)
+                continue;
 
 			// see if a bend must be made in the wire
 			boolean zigzag = false;
