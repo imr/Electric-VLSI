@@ -2674,8 +2674,8 @@ public class MoCMOS extends Technology
 
 	/******************** OPTIONS ********************/
 
-    private final Setting cacheRuleSet = TechSetting.makeIntSetting(this, "MoCMOSRuleSet", "Technology tab", "MOSIS CMOS rule set",
-        getProjectSettings(), "MOCMOS Rule Set", 1);
+    private final Setting cacheRuleSet = makeIntSetting("MoCMOSRuleSet", "Technology tab", "MOSIS CMOS rule set",
+        "MOCMOS Rule Set", 1);
     {
     	cacheRuleSet.setTrueMeaning(new String[] {"SCMOS", "Submicron", "Deep"});
 	}
@@ -2708,8 +2708,8 @@ public class MoCMOS extends Technology
 	 */
 	public Setting getRuleSetSetting() { return cacheRuleSet; }
 
-	private final Setting cacheSecondPolysilicon = TechSetting.makeBooleanSetting(this, getTechName() + "SecondPolysilicon", "Technology tab", getTechName().toUpperCase() + " CMOS: Second Polysilicon Layer",
-		getProjectSettings(), "UseSecondPolysilicon", true);
+	private final Setting cacheSecondPolysilicon = makeBooleanSetting(getTechName() + "SecondPolysilicon", "Technology tab", getTechName().toUpperCase() + " CMOS: Second Polysilicon Layer",
+		"UseSecondPolysilicon", true);
 	/**
 	 * Method to tell the number of polysilicon layers in this Technology.
 	 * The default is false.
@@ -2723,8 +2723,8 @@ public class MoCMOS extends Technology
 	 */
 	public Setting getSecondPolysiliconSetting() { return cacheSecondPolysilicon; }
 
-	private final Setting cacheDisallowStackedVias = TechSetting.makeBooleanSetting(this, "MoCMOSDisallowStackedVias", "Technology tab", "MOSIS CMOS: Disallow Stacked Vias",
-        getProjectSettings(), "DisallowStackedVias", false);
+	private final Setting cacheDisallowStackedVias = makeBooleanSetting("MoCMOSDisallowStackedVias", "Technology tab", "MOSIS CMOS: Disallow Stacked Vias",
+        "DisallowStackedVias", false);
 	/**
 	 * Method to determine whether this Technology disallows stacked vias.
 	 * The default is false (they are allowed).
@@ -2737,8 +2737,8 @@ public class MoCMOS extends Technology
 	 */
 	public Setting getDisallowStackedViasSetting() { return cacheDisallowStackedVias; }
 
-	private final Setting cacheAlternateActivePolyRules = TechSetting.makeBooleanSetting(this, "MoCMOSAlternateActivePolyRules", "Technology tab", "MOSIS CMOS: Alternate Active and Poly Contact Rules",
-		getProjectSettings(), "UseAlternativeActivePolyRules", false);
+	private final Setting cacheAlternateActivePolyRules = makeBooleanSetting("MoCMOSAlternateActivePolyRules", "Technology tab", "MOSIS CMOS: Alternate Active and Poly Contact Rules",
+		"UseAlternativeActivePolyRules", false);
 	/**
 	 * Method to determine whether this Technology is using alternate Active and Poly contact rules.
 	 * The default is false.
@@ -2751,8 +2751,8 @@ public class MoCMOS extends Technology
 	 */
 	public Setting getAlternateActivePolyRulesSetting() { return cacheAlternateActivePolyRules; }
 
-	private final Setting cacheAnalog = TechSetting.makeBooleanSetting(this, getTechName() + "Analog", "Technology tab", "MOSIS CMOS: Vertical NPN transistor pbase",
-		getProjectSettings(), "Analog", false);
+	private final Setting cacheAnalog = makeBooleanSetting(getTechName() + "Analog", "Technology tab", "MOSIS CMOS: Vertical NPN transistor pbase",
+		"Analog", false);
 	/**
 	 * Method to tell whether this technology has layers for vertical NPN transistor pbase.
 	 * The default is false.

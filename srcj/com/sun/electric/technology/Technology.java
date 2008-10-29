@@ -1101,10 +1101,10 @@ public class Technology implements Comparable<Technology>, Serializable
 		this.techIndex = techNumber++;
 		userBits = 0;
 		if (prefs == null) prefs = Pref.groupForPackage(Schematics.class);
-        cacheFoundry = TechSetting.makeStringSetting(this, "SelectedFoundryFor"+techName,
-        	"Technology tab", techName + " foundry", getProjectSettings(), "Foundry", defaultFoundry.getName().toUpperCase());
-        cacheNumMetalLayers = TechSetting.makeIntSetting(this, techName + "NumberOfMetalLayers",
-            "Technology tab", techName + ": Number of Metal Layers", getProjectSettings(), "NumMetalLayers", defaultNumMetals);
+        cacheFoundry = makeStringSetting("SelectedFoundryFor"+techName,
+        	"Technology tab", techName + " foundry", "Foundry", defaultFoundry.getName().toUpperCase());
+        cacheNumMetalLayers = makeIntSetting(techName + "NumberOfMetalLayers",
+            "Technology tab", techName + ": Number of Metal Layers", "NumMetalLayers", defaultNumMetals);
 
         cacheMaxSeriesResistance = makeParasiticSetting("MaxSeriesResistance", 10.0);
         cacheGateLengthSubtraction = makeParasiticSetting("GateLengthSubtraction", 0.0);
@@ -6274,35 +6274,28 @@ public class Technology implements Comparable<Technology>, Serializable
                 }
             });
         }
-
-		public static Setting makeBooleanSetting(Technology tech, String name, String location, String description,
-                                              ProjSettingsNode xmlNode, String xmlName,
-                                              boolean factory)
-		{
-            Setting setting = Setting.getSetting(xmlNode.getPath() + xmlName);
-            if (setting != null) return setting;
-            return new TechSetting(name, Technology.prefs, tech, xmlNode, xmlName, location, description, Boolean.valueOf(factory));
-		}
-
-		public static Setting makeIntSetting(Technology tech, String name, String location, String description,
-                                          ProjSettingsNode xmlNode, String xmlName,
-                                          int factory)
-		{
-            Setting setting = Setting.getSetting(xmlNode.getPath() + xmlName);
-            if (setting != null) return setting;
-            return new TechSetting(name, Technology.prefs, tech, xmlNode, xmlName, location, description, Integer.valueOf(factory));
-		}
-
-        public static Setting makeStringSetting(Technology tech, String name, String location, String description,
-                                             ProjSettingsNode xmlNode, String xmlName,
-                                             String factory)
-		{
-            Setting setting = Setting.getSetting(xmlNode.getPath() + xmlName);
-            if (setting != null) return setting;
-            return new TechSetting(name, Technology.prefs, tech, xmlNode, xmlName, location, description, factory);
-		}
 	}
 
+    public Setting makeBooleanSetting(String name, String location, String description, String xmlName, boolean factory) {
+        ProjSettingsNode xmlNode = getProjectSettings();
+        Setting setting = Setting.getSetting(xmlNode.getPath() + xmlName);
+        if (setting != null) return setting;
+        return new TechSetting(name, Technology.prefs, this, xmlNode, xmlName, location, description, Boolean.valueOf(factory));
+    }
+
+    public Setting makeIntSetting(String name, String location, String description, String xmlName, int factory) {
+        ProjSettingsNode xmlNode = getProjectSettings();
+        Setting setting = Setting.getSetting(xmlNode.getPath() + xmlName);
+        if (setting != null) return setting;
+        return new TechSetting(name, Technology.prefs, this, xmlNode, xmlName, location, description, Integer.valueOf(factory));
+    }
+
+    public Setting makeStringSetting(String name, String location, String description, String xmlName, String factory) {
+        ProjSettingsNode xmlNode = getProjectSettings();
+        Setting setting = Setting.getSetting(xmlNode.getPath() + xmlName);
+        if (setting != null) return setting;
+        return new TechSetting(name, Technology.prefs, this, xmlNode, xmlName, location, description, factory);
+    }
     // -------------------------- Project Settings -------------------------
 
     public ProjSettingsNode getProjectSettings() {
