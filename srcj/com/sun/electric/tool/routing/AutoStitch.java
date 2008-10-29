@@ -27,6 +27,7 @@ package com.sun.electric.tool.routing;
 
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.ObjectQTree;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyBase;
@@ -273,16 +274,17 @@ public class AutoStitch
 
 		// compute the number of tasks to perform and start progress bar
 		int totalToStitch = nodesToStitch.size() + arcsToStitch.size();
+		if (createExports) totalToStitch *= 2;
+		totalToStitch += arcsToStitch.size();
+		int soFar = 0;
 
 		if (job != null && job.checkAbort()) return;
 
 		// if creating exports, make first pass in which exports must be created
 		if (createExports)
 		{
-			int soFar = 0;
 			if (showProgress) Job.getUserInterface().setProgressNote("Routing " + totalToStitch + " objects with export creation...");
-boolean debug = cell.getName().equals("HS_fill_block_buffer_caps");
-if (debug) System.out.println("----AUTOSTITCH CREATE EXPORTS FOR "+nodesToStitch.size()+" NODES AND "+arcsToStitch.size()+" ARCS");
+
 			// run through the nodeinsts to be checked for export-creation stitching
 			for(NodeInst ni : nodesToStitch)
 			{
@@ -293,9 +295,7 @@ if (debug) System.out.println("----AUTOSTITCH CREATE EXPORTS FOR "+nodesToStitch
 					Job.getUserInterface().setProgressValue(soFar * 100 / totalToStitch);
 				}
 				checkExportCreationStitching(ni);
-if (debug) System.out.println("----AUTOSTITCH DID "+soFar);
 			}
-if (debug) System.out.println("----AUTOSTITCH CREATED EXPORTS FOR NODES");
 
 			// now run through the arcinsts to be checked for export-creation stitching
 			for(ArcInst ai : arcsToStitch)
@@ -372,8 +372,32 @@ if (debug) System.out.println("----AUTOSTITCH CREATED EXPORTS FOR NODES");
 		// get the topology object for knowing what is connected
 		Topology top = new Topology(cell);
 
-		int soFar = 0;
 		if (showProgress) Job.getUserInterface().setProgressNote("Routing " + totalToStitch + " objects...");
+
+		// first check for arcs that daisy-chain many nodes
+		for(ArcInst ai : arcsToStitch)
+		{
+			soFar++;
+			if (showProgress && (soFar%100) == 0)
+			{
+				if (job != null && job.checkAbort()) return;
+				Job.getUserInterface().setProgressValue(soFar * 100 / totalToStitch);
+			}
+			checkDaisyChain(ai, nodePortBounds, stayInside, top);
+		}
+		if (allRoutes.size() > 0)
+		{
+			// found daisy-chain elements: do them now
+			System.out.println("Auto-routing detected " + allRoutes.size() + " daisy-chained arcs");
+			for(Route route : allRoutes)
+			{
+				Router.createRouteNoJob(route, cell, false, arcsCreatedMap, nodesCreatedMap);
+			}
+
+			// reset for the rest of the analysis
+			allRoutes = new ArrayList<Route>();
+			top = new Topology(cell);
+		}
 
 		// now run through the nodeinsts to be checked for stitching
 		for(NodeInst ni : nodesToStitch)
@@ -488,6 +512,138 @@ if (debug) System.out.println("----AUTOSTITCH CREATED EXPORTS FOR NODES");
 
 			Router.createRouteNoJob(route, c, false, arcsCreatedMap, nodesCreatedMap);
 		}
+	}
+
+	/****************************************** ARCS THAT DAISY-CHAIN ******************************************/
+
+	private static class DaisyChainPoint
+	{
+		PortInst pi;
+		EPoint location;
+
+		DaisyChainPoint(PortInst p, Point2D loc)
+		{
+			pi = p;
+			location = new EPoint(loc.getX(), loc.getY());
+		}
+	}
+
+	/**
+	 * Class to sort DaisyChainPoints.
+	 */
+	private static class SortDaisyPoints implements Comparator<DaisyChainPoint>
+	{
+		public int compare(DaisyChainPoint dcp1, DaisyChainPoint dcp2)
+		{
+			if (dcp1.location.getX() < dcp2.location.getX()) return 1;
+			if (dcp1.location.getX() > dcp2.location.getX()) return -1;
+			if (dcp1.location.getY() < dcp2.location.getY()) return 1;
+			if (dcp1.location.getY() > dcp2.location.getY()) return -1;
+			return 0;
+		}
+	}
+
+	/**
+	 * Method to see if an ArcInst daisy-chains over multiple ports.
+	 * @param ai the ArcInst in question.
+	 * @param nodePortBounds quad-tree bounds information for all nodes in the Cell.
+	 * @param stayInside is the area in which to route (null to route arbitrarily).
+	 * @param top network information for the Cell with these objects.
+	 */
+	private void checkDaisyChain(ArcInst ai, Map<NodeInst, ObjectQTree> nodePortBounds, PolyMerge stayInside, Topology top)
+	{
+		// make a list of PortInsts that are on the centerline of this arc
+		Cell cell = ai.getParent();
+		Network arcNet = top.getArcNetwork(ai);
+		Point2D e1 = ai.getHeadLocation();
+		Point2D e2 = ai.getTailLocation();
+		List<DaisyChainPoint> daisyPoints = new ArrayList<DaisyChainPoint>();
+		Rectangle2D searchBounds = ai.getBounds();
+		for(Iterator<RTBounds> it = cell.searchIterator(searchBounds); it.hasNext(); )
+		{
+			Geometric geom = (Geometric)it.next();
+			if (geom instanceof NodeInst)
+			{
+				NodeInst ni = (NodeInst)geom;
+				if (USEQTREE)
+				{
+					// find ports on this arc
+					ObjectQTree oqt = nodePortBounds.get(ni);
+					Set set = oqt.find(searchBounds);
+					if (set != null)
+					{
+						for (Object obj : set)
+						{
+							PortInst pi = (PortInst)obj;
+							if (!pi.getPortProto().getBasePort().connectsTo(ai.getProto())) continue;
+							PolyBase portPoly = pi.getPoly();
+							Point2D closest = GenMath.closestPointToSegment(e1, e2, portPoly.getCenter());
+
+							// if this port can connect, save it
+							if (DBMath.pointInRect(closest, portPoly.getBounds2D()))
+							{
+								// ignore if they are already connected
+								Network portNet = top.getPortNetwork(pi);
+								if (portNet == arcNet) continue;
+								daisyPoints.add(new DaisyChainPoint(pi, closest));
+							}
+						}
+					}
+				} else
+				{
+					// can't handle this yet
+					assert false;
+				}
+			}
+		}
+
+		// now see if there are multiple intermediate daisy-chain points
+		if (daisyPoints.size() <= 1) return;
+		Collections.sort(daisyPoints, new SortDaisyPoints());
+
+        Route route = new Route();
+        route.add(RouteElementArc.deleteArc(ai));
+
+        RouteElementPort headRE = RouteElementPort.existingPortInst(ai.getHeadPortInst(), ai.getHeadLocation());
+        RouteElementPort tailRE = RouteElementPort.existingPortInst(ai.getTailPortInst(), ai.getTailLocation());
+        DaisyChainPoint firstDCP = daisyPoints.get(0);
+        DaisyChainPoint lastDCP = daisyPoints.get(daisyPoints.size()-1);
+        if (firstDCP.location.distance(ai.getHeadLocation()) > firstDCP.location.distance(ai.getTailLocation()))
+        {
+        	RouteElementPort swap = headRE;   headRE = tailRE;   tailRE = swap;
+        }
+        if (headRE.getNodeInst().getNumConnections() == 1 && headRE.getLocation().equals(firstDCP.location))
+        {
+        	route.add(RouteElementPort.deleteNode(headRE.getNodeInst()));
+        	headRE = null;
+        }
+        if (tailRE.getNodeInst().getNumConnections() == 1 && tailRE.getLocation().equals(lastDCP.location))
+        {
+        	route.add(RouteElementPort.deleteNode(tailRE.getNodeInst()));
+        	tailRE = null;
+        }
+        String name = ai.getName();
+        for(DaisyChainPoint dcp : daisyPoints)
+        {
+            RouteElementPort dcpRE = RouteElementPort.existingPortInst(dcp.pi, dcp.location);
+            if (headRE != null)
+            {
+	        	RouteElement re = RouteElementArc.newArc(cell, ai.getProto(), ai.getLambdaBaseWidth(), headRE, dcpRE,
+	        		headRE.getLocation(), dcpRE.getLocation(), name, ai.getTextDescriptor(ArcInst.ARC_NAME),
+	                ai, ai.isHeadExtended(), ai.isTailExtended(), stayInside);
+	            route.add(re);
+            }
+        	headRE = dcpRE;
+        	name = null;
+        }
+        if (tailRE != null)
+        {
+	    	RouteElement re = RouteElementArc.newArc(cell, ai.getProto(), ai.getLambdaBaseWidth(), headRE, tailRE,
+	    		headRE.getLocation(), tailRE.getLocation(), name, ai.getTextDescriptor(ArcInst.ARC_NAME),
+	            ai, ai.isHeadExtended(), ai.isTailExtended(), stayInside);
+	        route.add(re);
+        }
+		allRoutes.add(route);
 	}
 
 	/****************************************** NORMAL STITCHING ******************************************/
@@ -1611,7 +1767,13 @@ if (debug) System.out.println("----AUTOSTITCH CREATED EXPORTS FOR NODES");
 
 		Route route = router.planRoute(cell, eobj1, eobj2, ctr, stayInside, true, true);
 		if (route.size() == 0) return false;
-		allRoutes.add(route);
+
+//		// see if this caused an arc to be deleted
+//		boolean deletedArc = false;
+//        for (RouteElement e : route)
+//            if (e.getAction() == RouteElement.RouteElementAction.deleteArc) { deletedArc = true;  break; }
+
+        allRoutes.add(route);
 		top.connect(net1, net2);
 
 		// if either ni or oNi is a pin primitive, see if it is a candidate for clean-up
@@ -1644,7 +1806,6 @@ if (debug) System.out.println("----AUTOSTITCH CREATED EXPORTS FOR NODES");
 	private void checkExportCreationStitching(Geometric geom)
 	{
 		Cell cell = geom.getParent();
-//boolean debug = cell.getName().equals("HS_fill_block_buffer_caps");
 		NodeInst ni = null;
 		if (geom instanceof NodeInst) ni = (NodeInst)geom;
 
@@ -1659,7 +1820,6 @@ if (debug) System.out.println("----AUTOSTITCH CREATED EXPORTS FOR NODES");
 			Geometric oGeom = (Geometric)it.next();
 			if (oGeom != geom) geomsInArea.add(oGeom);
 		}
-//if (debug) System.out.println("-----CHECK "+geomsInArea.size()+" GEOMS");
 		for(Geometric oGeom : geomsInArea)
 		{
 			// find another node in this area
@@ -1695,9 +1855,7 @@ if (debug) System.out.println("----AUTOSTITCH CREATED EXPORTS FOR NODES");
 				// compare node "ni" against node "oNi"
 				if (oNi.isCellInstance() && ni.isCellInstance())
 				{
-//if (debug) System.out.println("-----CHECK NODE/NODE");
 					compareTwoNodesMakeExport(ni, oNi);
-//if (debug) System.out.println("-----CHECKED NODE/NODE");
 				}
 			}
 		}
@@ -2017,7 +2175,6 @@ if (debug) System.out.println("----AUTOSTITCH CREATED EXPORTS FOR NODES");
 	 */
 	private void compareTwoNodesMakeExport(NodeInst ni1, NodeInst ni2)
 	{
-//boolean debug = ni1.getParent().getName().equals("HS_fill_block_buffer_caps");
 		// force the second to be a cell instance
 		if (!ni2.isCellInstance())
 		{
@@ -2056,13 +2213,11 @@ if (debug) System.out.println("----AUTOSTITCH CREATED EXPORTS FOR NODES");
 				rtree = RTNode.linkGeom(null, rtree, new SubPolygon(poly, VarContext.globalContext, -1, ni1, null));
 			}
 		}
-//if (debug) System.out.println("----------NODE 1 IS "+ni1.describe(false)+" AND HAS "+rtree.tallyRTree()+" POLYS");
 
 		// now take the list into the second node and look for connections
 		CheckPolygonVisitor cpv = new CheckPolygonVisitor(rtree, intersectArea, ni2);
 		HierarchyEnumerator.enumerateCell(ni2.getParent(), VarContext.globalContext, cpv);
 		List<PolyConnection> polysFound = cpv.getFoundConnections();
-//if (debug) System.out.println("----------NODE 2 IS "+ni2.describe(false)+" AND MATCHES "+polysFound.size()+" POLYS");
 
 		// show what is matched
 		for(PolyConnection p : polysFound)
@@ -2477,29 +2632,6 @@ if (debug) System.out.println("----AUTOSTITCH CREATED EXPORTS FOR NODES");
 			if (res != 0) return res;
 			res = r1e.getPortInst().getPortProto().getName().compareTo(r2e.getPortInst().getPortProto().getName());
 			if (res != 0) return res;
-
-//			// sort by the starting and ending port locations
-//			Poly p1s = r1s.getPortInst().getPoly();
-//			Poly p2s = r2s.getPortInst().getPoly();
-//			double x1 = p1s.getCenterX();
-//			double y1 = p1s.getCenterY();
-//			double x2 = p2s.getCenterX();
-//			double y2 = p2s.getCenterY();
-//			if (x1 < x2) return 1;
-//			if (x1 > x2) return -1;
-//			if (y1 < y2) return 1;
-//			if (y1 > y2) return -1;
-//
-//			Poly p1e = r1e.getPortInst().getPoly();
-//			Poly p2e = r2e.getPortInst().getPoly();
-//			x1 = p1e.getCenterX();
-//			y1 = p1e.getCenterY();
-//			x2 = p2e.getCenterX();
-//			y2 = p2e.getCenterY();
-//			if (x1 < x2) return 1;
-//			if (x1 > x2) return -1;
-//			if (y1 < y2) return 1;
-//			if (y1 > y2) return -1;
 			return 0;
 		}
 	}

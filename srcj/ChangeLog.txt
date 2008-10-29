@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08k: ******************************
 
+BUG: (10/29/08, SMR) Auto-stitching doesn't handle daisy-chains right (Bug #1927).
+FIX: Special code in AutoStitch.java now handles daisy-chains.
+
 BUG: (10/29/08, DN) CVS update from Electric doesn't work (Bug #1795).
 FIX: In Library.removeReferencedLib call backupReferenceLibs to propagate
      changes from Library.referencedLibs to LibraryBackup.referencedLibs.
