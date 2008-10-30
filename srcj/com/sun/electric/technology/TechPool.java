@@ -146,6 +146,8 @@ public class TechPool extends AbstractMap<TechId, Technology> {
             if (techUsed.get(tech.getId().techIndex))
                 technologies.add(tech);
         }
+        if (technologies.size() != techUsed.cardinality())
+            throw new IllegalArgumentException();
         return technologies.isEmpty() ? new TechPool(idManager) : new TechPool(technologies);
     }
 

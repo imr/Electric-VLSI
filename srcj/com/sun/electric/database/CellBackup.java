@@ -41,6 +41,7 @@ import com.sun.electric.technology.BoundsBuilder;
 import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
 
+import com.sun.electric.tool.Job;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -72,17 +73,19 @@ public class CellBackup {
         this.techPool = techPool;
         this.modified = modified;
         cellBackupsCreated++;
-//        if (Job.getDebug())
-//            check();
+        if (Job.getDebug())
+            check();
     }
 
     /** Creates a new instance of CellBackup */
-    public CellBackup(ImmutableCell d, TechPool techPool) {
-        this(new CellRevision(d), techPool, true);
+    public static CellBackup newInstance(ImmutableCell d, TechPool techPool) {
         if (d.cellId.idManager != techPool.idManager)
             throw new IllegalArgumentException();
         if (techPool.getTech(d.techId) == null)
             throw new IllegalArgumentException();
+        CellRevision cellRevision = new CellRevision(d);
+        TechPool restrictedPool = techPool.restrict(cellRevision.techUsages, techPool);
+        return new CellBackup(cellRevision, restrictedPool, true);
     }
 
     /**
@@ -92,21 +95,24 @@ public class CellBackup {
      * @param nodesArray new array of nodes
      * @param arcsArray new array of arcs
      * @param exportsArray new array of exports
+     * @param superPool TechPool which defines all used technologies
      * @return new snapshot which differs froms this Snapshot or this Snapshot.
      * @throws IllegalArgumentException on invariant violation.
      * @throws ArrayOutOfBoundsException on some invariant violations.
      */
     public CellBackup with(ImmutableCell d,
-            ImmutableNodeInst[] nodesArray, ImmutableArcInst[] arcsArray, ImmutableExport[] exportsArray) {
+            ImmutableNodeInst[] nodesArray, ImmutableArcInst[] arcsArray, ImmutableExport[] exportsArray,
+            TechPool superPool) {
         CellRevision newRevision = cellRevision.with(d, nodesArray, arcsArray, exportsArray);
-        if (newRevision == cellRevision) return this;
+        TechPool restrictedPool = superPool.restrict(newRevision.techUsages, techPool);
+        if (newRevision == cellRevision && restrictedPool == techPool) return this;
         if (arcsArray != null) {
             for (ImmutableArcInst a: arcsArray) {
-                if (a != null && !a.check(techPool))
+                if (a != null && !a.check(restrictedPool))
                     throw new IllegalArgumentException("arc " + a.name + " is not compatible with TechPool");
             }
         }
-        return new CellBackup(newRevision, this.techPool, true);
+        return new CellBackup(newRevision, restrictedPool, true);
     }
 
     /**
@@ -135,14 +141,15 @@ public class CellBackup {
      * @return CellBackup with new TechPool.
 	 */
     public CellBackup withTechPool(TechPool techPool) {
-        if (this.techPool == techPool) return this;
+        TechPool restrictedPool = techPool.restrict(cellRevision.techUsages, this.techPool);
+        if (this.techPool == restrictedPool) return this;
         if (techPool.idManager != this.techPool.idManager)
             throw new IllegalArgumentException();
-        for (Technology tech: this.techPool.values()) {
-            if (techPool.get(tech.getId()) != tech)
-                throw new IllegalArgumentException();
-        }
-        return new CellBackup(this.cellRevision, techPool, this.modified);
+//        for (Technology tech: this.techPool.values()) {
+//            if (techPool.get(tech.getId()) != tech)
+//                throw new IllegalArgumentException();
+//        }
+        return new CellBackup(this.cellRevision, restrictedPool, this.modified);
     }
 
 	/**
@@ -172,7 +179,8 @@ public class CellBackup {
     static CellBackup read(IdReader reader, TechPool techPool) throws IOException {
         CellRevision newRevision = CellRevision.read(reader);
         boolean modified = reader.readBoolean();
-        return new CellBackup(newRevision, techPool, modified);
+        TechPool restrictedPool = techPool.restrict(newRevision.techUsages, techPool);
+        return new CellBackup(newRevision, restrictedPool, modified);
     }
 
     /**
@@ -183,10 +191,17 @@ public class CellBackup {
         cellRevision.check();
         IdManager idManager = cellRevision.d.cellId.idManager;
         assert techPool.idManager == idManager;
-        for (int techIndex = 0; techIndex < cellRevision.techUsages.length(); techIndex++) {
-            if (cellRevision.techUsages.get(techIndex))
-                assert techPool.getTech(idManager.getTechId(techIndex)) != null;
+        BitSet techUsages = new BitSet();
+        for (Technology tech: techPool.values()) {
+            int techIndex = tech.getId().techIndex;
+            assert !techUsages.get(techIndex);
+            techUsages.set(techIndex);
         }
+        assert techUsages.equals(cellRevision.techUsages);
+//        for (int techIndex = 0; techIndex < cellRevision.techUsages.length(); techIndex++) {
+//            if (cellRevision.techUsages.get(techIndex))
+//                assert techPool.getTech(idManager.getTechId(techIndex)) != null;
+//        }
         for (ImmutableArcInst a: cellRevision.arcs) {
             if (a != null) a.check(techPool);
         }

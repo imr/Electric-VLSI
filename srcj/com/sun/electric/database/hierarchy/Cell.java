@@ -1127,7 +1127,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         TechPool techPool = database.getTechPool();
         if (backup == null) {
             getTechnology();
-            backup = new CellBackup(getD().withoutVariables(), techPool);
+            backup = CellBackup.newInstance(getD().withoutVariables(), techPool);
             assert !cellBackupFresh && !cellContentsFresh && !revisionDateFresh;
         }
         ImmutableNodeInst[] nodes = null;
@@ -1139,7 +1139,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             arcs = topology.backupArcs(backup.cellRevision.arcs);
             exports = backupExports();
         }
-        backup = backup.withTechPool(techPool).with(getD(), nodes, arcs, exports);
+        backup = backup.with(getD(), nodes, arcs, exports, techPool);
         cellBackupFresh = true;
         cellContentsFresh = true;
         if (backup.modified)

@@ -877,7 +877,7 @@ public class Snapshot {
                 int subCellIndex = u.protoId.cellIndex;
                 cui.checkUsage(cellBackups.get(subCellIndex).cellRevision);
             }
-            assert cellBackup.techPool == techPool;
+            assert cellBackup.techPool == techPool.restrict(cellRevision.techUsages, cellBackup.techPool);
         }
         assert techPool.idManager == idManager;
         for (int techIndex = 0; techIndex < checkUsedTechs.length(); techIndex++) {
