@@ -47,6 +47,7 @@ import java.io.IOException;
 import java.util.AbstractMap;
 import java.util.AbstractSet;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -63,8 +64,8 @@ public class TechPool extends AbstractMap<TechId, Technology> {
 //    public static final TechPool EMPTY = new TechPool(Collections.<Technology>emptySet());
     public final IdManager idManager;
     private final Technology[] techs;
-    private final ArcProto[] univList;
     private final EntrySet entrySet;
+    private ArcProto[] univList;
     /** Generic technology */
     private Generic generic;
     /** Artwork technology */
@@ -119,25 +120,54 @@ public class TechPool extends AbstractMap<TechId, Technology> {
         }
         entrySet = new EntrySet();
         assert size() == technologies.size();
+    }
 
-        // prepare connectivity list for universal and invisible pins
-        int univListCount = 0;
-        for (Technology tech : techs) {
-            if (tech != null) {
-                univListCount += tech.getNumArcs();
-            }
+    /**
+     * Returns restriction of this TechPool to specified subset of TechIds.
+     * A candidate TechPool is a valid result, it is returned to save allocation.
+     * @param techUsed contains techIndex of those TechIds which are in subset
+     * @param candidatePool a candidate TechPool to save allocation
+     * @return restriction of this TechPool to specified subset of TechIds
+     */
+    public TechPool restrict(BitSet techUsed, TechPool candidatePool) {
+        if (candidatePool != null && candidatePool.isRestriction(this, techUsed))
+            return candidatePool;
+        return restrict(techUsed);
+    }
+
+    /**
+     * Returns restriction of this TechPool to specified subset of TechIds
+     * @param techUsed contains techIndex of those TechIds which are in subset
+     * @return restriction of this TechPool to specified subset of TechIds
+     */
+    public TechPool restrict(BitSet techUsed) {
+        ArrayList<Technology> technologies = new ArrayList<Technology>();
+        for (Technology tech: values()) {
+            if (techUsed.get(tech.getId().techIndex))
+                technologies.add(tech);
         }
-        univList = new ArcProto[univListCount];
-        univListCount = 0;
-        for (Technology tech : techs) {
-            if (tech == null) {
-                continue;
+        return technologies.isEmpty() ? new TechPool(idManager) : new TechPool(technologies);
+    }
+
+    private boolean isRestriction(TechPool superPool, BitSet techUsed) {
+        if (techUsed.length() != techs.length)
+            return false;
+        if (techs.length > superPool.techs.length)
+            return false;
+        if (idManager != superPool.idManager)
+            return false;
+        for (int techIndex = 0; techIndex < techs.length; techIndex++) {
+            Technology tech = superPool.techs[techIndex];
+            if (techUsed.get(techIndex)) {
+                if (tech == null)
+                    return false;
+            } else {
+                tech = null;
             }
-            for (Iterator<ArcProto> ait = tech.getArcs(); ait.hasNext();) {
-                univList[univListCount++] = ait.next();
-            }
+            if (techs[techIndex] != tech)
+                return false;
         }
-        assert univListCount == univList.length;
+        return true;
     }
 
     /**
@@ -370,7 +400,30 @@ public class TechPool extends AbstractMap<TechId, Technology> {
      * the connecitivity list for universal and invisible pins
      */
     ArcProto[] getUnivList() {
+        if (univList == null)
+            makeUnivList();
         return univList;
+    }
+
+    private void makeUnivList() {
+        // prepare connectivity list for universal and invisible pins
+        int univListCount = 0;
+        for (Technology tech : techs) {
+            if (tech != null) {
+                univListCount += tech.getNumArcs();
+            }
+        }
+        univList = new ArcProto[univListCount];
+        univListCount = 0;
+        for (Technology tech : techs) {
+            if (tech == null) {
+                continue;
+            }
+            for (Iterator<ArcProto> ait = tech.getArcs(); ait.hasNext();) {
+                univList[univListCount++] = ait.next();
+            }
+        }
+        assert univListCount == univList.length;
     }
 
 	/**
@@ -391,14 +444,17 @@ public class TechPool extends AbstractMap<TechId, Technology> {
             assert get(techId) == tech;
             assert containsKey(techId);
             assert containsValue(tech);
-            for (Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); ) {
-                ArcProto ap = it.next();
-                assert univList[arcCount++] == ap;
+            if (univList != null) {
+                for (Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); ) {
+                    ArcProto ap = it.next();
+                    assert univList[arcCount++] == ap;
+                }
             }
         }
         assert size == size();
         assert size == 0 || techs[techs.length - 1] != null;
-        assert arcCount == univList.length;
+        if (univList != null)
+            assert arcCount == univList.length;
         TechId prevTechId = null;
         for (Entry<TechId,Technology> e: entrySet()) {
             assert entrySet.contains(e);
