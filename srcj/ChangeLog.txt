@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08k: ******************************
 
+BUG: (10/30/08, GVG) XML tech reader can't parse new ArcProto Function WELL (Bug #1931)
+FIX: Technology.xsd amended.
+
 IMP: (10/30/08, DN) CellBackup.techPool contains only technologies used in the Cell.
 
 IMP/MAN: (10/29/08, SMR) Added a disambiguation popup to "Down Hierarchy in Place to Object" (Bug #1930).

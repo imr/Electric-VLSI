@@ -264,6 +264,7 @@
             <xsd:enumeration value="DIFFN"/>
             <xsd:enumeration value="DIFFS"/>
             <xsd:enumeration value="DIFFW"/>
+            <xsd:enumeration value="WELL"/>
             <xsd:enumeration value="BUS"/>
             <xsd:enumeration value="UNROUTED"/>
             <xsd:enumeration value="NONELEC"/>
