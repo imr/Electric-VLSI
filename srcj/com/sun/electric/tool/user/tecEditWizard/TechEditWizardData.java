@@ -31,6 +31,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.technology.*;
 
 import java.awt.Color;
@@ -892,7 +893,10 @@ public class TechEditWizardData
         List<String> portNames = new ArrayList<String>();
 
         for (Xml.NodeLayer lb : list)
+        {
+            if (lb == null) continue; // in case the pwell layer off
             nodesList.add(lb);
+        }
 
         portNames.add(name);
         nodePorts.add(makeXmlPrimitivePort(name.toLowerCase(), 0, 180, 0, null, 0, 0, 0, 0, portNames));
@@ -911,7 +915,10 @@ public class TechEditWizardData
         List<Xml.PrimitivePort> nodePorts = new ArrayList<Xml.PrimitivePort>();
 
         for (Xml.NodeLayer lb : list)
+        {
+            if (lb == null) continue; // in case the pwell layer off
             nodesList.add(lb);
+        }
 
         nodePorts.add(makeXmlPrimitivePort(name.toLowerCase(), 0, 180, 0, null, 0, 0, 0, 0, portNames));
         return makeXmlPrimitive(nodes, name + "-Con", PrimitiveNode.Function.CONTACT, size, size, 0, 0,
@@ -1058,19 +1065,10 @@ public class TechEditWizardData
         a.antennaRatio = DBMath.round(ant);
 
         for (Xml.ArcLayer al: arcLayers)
+        {
+            if (al == null) continue; // in case the pwell layer off
             a.arcLayers.add(al);
-
-/*        // arc pins
-        a.arcPin = new Xml.ArcPin();
-        a.arcPin.name = name + "-Pin"; //arcPin.getName();
-//            PrimitivePort port = arcPin.getPort(0);
-        a.arcPin.portName = name; //port.getName();
-        a.arcPin.elibSize = 0; // 2*arcPin.getSizeCorrector(0).getX();
-//            for (ArcProto cap: port.getConnections()) {
-//                if (cap.getTechnology() == tech && cap != this)
-//                    a.arcPin.portArcs.add(cap.getName());
-//            }
-*/
+        }
         arcs.add(a);
         return a;
     }
@@ -1492,6 +1490,8 @@ public class TechEditWizardData
             nwell_colour.getBlue(), 1, true, pattern);
         Xml.Layer nwellLayer = makeXmlLayer(t.layers, layer_width, "N-Well", Layer.Function.WELLN, 0, graph,
             (char)('A' + cifNumber++), nwell_width, true, false);
+        Xml.Layer pwellLayer = makeXmlLayer(t.layers, layer_width, "P-Well", Layer.Function.WELLP, 0, graph,
+            (char)('A' + cifNumber++), nwell_width, true, false);
 
         graph = new EGraphics(false, false, null, 0, 255, 0, 0, 0.4, true, nullPattern);
         // DeviceMark
@@ -1533,10 +1533,13 @@ public class TechEditWizardData
                 makeXmlMulticut(diffConLayer, contSize, contSpacing, contArraySpacing)); // contact
         
         /**************************** N/P-Diff Nodes/Arcs ***********************************************/
+    boolean pwellOn = User.isPWellProcessLayoutTechnology();
+
         // NDiff/PDiff arcs
         makeXmlArc(t.arcs, "N-Diff", ArcProto.Function.DIFFN, 0,
                 makeXmlArcLayer(diffNLayer, diff_width),
-                makeXmlArcLayer(nplusLayer, diff_width, nplus_overhang_diff));
+                makeXmlArcLayer(nplusLayer, diff_width, nplus_overhang_diff),
+            (pwellOn)?makeXmlArcLayer(pwellLayer, diff_width, nwell_overhang_diff_p):null);
         makeXmlArc(t.arcs, "P-Diff", ArcProto.Function.DIFFP, 0,
                 makeXmlArcLayer(diffPLayer, diff_width),
                 makeXmlArcLayer(pplusLayer, diff_width, pplus_overhang_diff),
@@ -1553,7 +1556,8 @@ public class TechEditWizardData
         makeXmlPrimitivePin(t.nodes, "N-Diff", hla,
             new SizeOffset(pso, pso, pso, pso),
             makeXmlNodeLayer(hla, hla, hla, hla, diffNLayer, Poly.Type.CROSSED, true),
-            makeXmlNodeLayer(nsel, nsel, nsel, nsel, nplusLayer, Poly.Type.CROSSED, true));
+            makeXmlNodeLayer(nsel, nsel, nsel, nsel, nplusLayer, Poly.Type.CROSSED, true),
+            (pwellOn)?makeXmlNodeLayer(nwell, nwell, nwell, nwell, pwellLayer, Poly.Type.CROSSED, true):null);
         makeXmlPrimitivePin(t.nodes, "P-Diff", hla,
             new SizeOffset(nso, nso, nso, nso),
             makeXmlNodeLayer(hla, hla, hla, hla, diffPLayer, Poly.Type.CROSSED, true),
@@ -1570,6 +1574,7 @@ public class TechEditWizardData
                 makeXmlNodeLayer(metal1Over, metal1Over, metal1Over, metal1Over, m1Layer, Poly.Type.FILLED, true), // meta1 layer
                 makeXmlNodeLayer(hla, hla, hla, hla, diffNLayer, Poly.Type.FILLED, true), // active layer
                 makeXmlNodeLayer(nsel, nsel, nsel, nsel, nplusLayer, Poly.Type.FILLED, true), // select layer
+            (pwellOn)?makeXmlNodeLayer(nwell, nwell, nwell, nwell, pwellLayer, Poly.Type.FILLED, true):null,
                 makeXmlMulticut(diffConLayer, contSize, contSpacing, contArraySpacing)); // contact
         // pdiff contact
         portNames.clear();
@@ -1585,18 +1590,30 @@ public class TechEditWizardData
         /**************************** N/P-Well Contacts ***********************************************/
         nwell = scaledValue(contact_size.v/2 + diff_contact_overhang.v + nwell_overhang_diff_n.v);
         nso = scaledValue(nwell_overhang_diff_n.v); // valid for elements that have nwell layers
+
+        // NWell/PWell arcs
+        if (pwellOn)
+        {
+            makeXmlArc(t.arcs, "P-Well", ArcProto.Function.WELL, 0,
+                makeXmlArcLayer(pwellLayer, diff_width, nwell_overhang_diff_p));
+        }
+        makeXmlArc(t.arcs, "N-Well", ArcProto.Function.WELL, 0,
+                makeXmlArcLayer(nwellLayer, diff_width, nwell_overhang_diff_p));
+
         portNames.clear();
-        portNames.add(diffNLayer.name);
+        if (pwellOn)
+            portNames.add(pwellLayer.name);
         portNames.add(m1Layer.name);
         // pwell contact
         makeXmlPrimitiveCon(t.nodes, "P-Well", hla, new SizeOffset(pso, pso, pso, pso), portNames,
                 makeXmlNodeLayer(metal1Over, metal1Over, metal1Over, metal1Over, m1Layer, Poly.Type.FILLED, true), // meta1 layer
                 makeXmlNodeLayer(hla, hla, hla, hla, diffPLayer, Poly.Type.FILLED, true), // active layer
                 makeXmlNodeLayer(nsel, psel, psel, psel, pplusLayer, Poly.Type.FILLED, true), // select layer
+            (pwellOn)?makeXmlNodeLayer(nwell, nwell, nwell, nwell, pwellLayer, Poly.Type.FILLED, true):null,
                 makeXmlMulticut(diffConLayer, contSize, contSpacing, contArraySpacing)); // contact
         // nwell contact
         portNames.clear();
-        portNames.add(diffPLayer.name);
+        portNames.add(nwellLayer.name);
         portNames.add(m1Layer.name);
         makeXmlPrimitiveCon(t.nodes, "N-Well", hla, new SizeOffset(nso, nso, nso, nso), portNames,
                 makeXmlNodeLayer(metal1Over, metal1Over, metal1Over, metal1Over, m1Layer, Poly.Type.FILLED, true), // meta1 layer

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08k: ******************************
 
+IMP/MAN: (10/30/08, GVG) Tech Creation Wizard can generate pwell technologies.
+It can also generate well arcs (Bug #1910)
+
 BUG: (10/30/08, GVG) XML tech reader can't parse new ArcProto Function WELL (Bug #1931)
 FIX: Technology.xsd amended.
 
