@@ -479,33 +479,34 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
                 visibility.put(layer, true);
                 layerListModel.set(i, lineName(layer));
             }
-            return;
         }
-
-        for (int i=0; i<len; i++)
-		{
-            Layer layer = getSelectedLayer(i);
-            Layer.Function func = layer.getFunction();
-            if (func.isContact() || func.isDiff() || func.isGatePoly() || func.isImplant() ||
-                func.isMetal() || func.isPoly() || func.isWell() || func.isDummy() || func.isDummyExclusion()) {
-                Boolean b = Boolean.valueOf(false);
-                if (level == 2 && layer.getFunction() == Layer.Function.GATE)
-                    b = Boolean.valueOf(true);
-                if (level == 2 && (layer.getFunction() == Layer.Function.DIFF || layer.getFunction() == Layer.Function.DIFFN || layer.getFunction() == Layer.Function.DIFFP))
-                    b = Boolean.valueOf(true);
-                if (level == 1 && layer.getFunction().getLevel() <= 1)
-                    b = Boolean.valueOf(true);
-                if (layer.getFunction().getLevel() == level) {
-                    b = Boolean.valueOf(true);
-                    if (layer.getFunction().isMetal())
-                        metalLayer = layer;
+        else
+        {
+            for (int i=0; i<len; i++)
+            {
+                Layer layer = getSelectedLayer(i);
+                Layer.Function func = layer.getFunction();
+                if (func.isContact() || func.isDiff() || func.isGatePoly() || func.isImplant() ||
+                    func.isMetal() || func.isPoly() || func.isWell() || func.isDummy() || func.isDummyExclusion()) {
+                    Boolean b = Boolean.valueOf(false);
+                    if (level == 2 && layer.getFunction() == Layer.Function.GATE)
+                        b = Boolean.valueOf(true);
+                    if (level == 2 && (layer.getFunction() == Layer.Function.DIFF || layer.getFunction() == Layer.Function.DIFFN || layer.getFunction() == Layer.Function.DIFFP))
+                        b = Boolean.valueOf(true);
+                    if (level == 1 && layer.getFunction().getLevel() <= 1)
+                        b = Boolean.valueOf(true);
+                    if (layer.getFunction().getLevel() == level) {
+                        b = Boolean.valueOf(true);
+                        if (layer.getFunction().isMetal())
+                            metalLayer = layer;
+                    }
+                    if (layer.getFunction().getLevel() == (level-1) || level == 0)
+                        b = Boolean.valueOf(true);
+                    if (layer.getFunction().isContact() && layer.getFunction().getLevel() == (level-1))
+                        b = Boolean.valueOf(false);
+                    visibility.put(layer, b);
+                    layerListModel.set(i, lineName(layer));
                 }
-                if (layer.getFunction().getLevel() == (level-1) || level == 0)
-                    b = Boolean.valueOf(true);
-                if (layer.getFunction().isContact() && layer.getFunction().getLevel() == (level-1))
-                    b = Boolean.valueOf(false);
-                visibility.put(layer, b);
-                layerListModel.set(i, lineName(layer));
             }
         }
 /*

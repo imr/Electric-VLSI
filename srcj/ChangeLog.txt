@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08k: ******************************
 
+BUG: (10/30/08, GVG) Shift-0 (layer display) broken (Bug #1932)
+FIX: Update also for shift-0
+
 IMP/MAN: (10/30/08, GVG) Tech Creation Wizard can generate pwell technologies.
 It can also generate well arcs (Bug #1910)
 
