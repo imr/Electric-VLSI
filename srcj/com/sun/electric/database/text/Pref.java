@@ -91,8 +91,73 @@ public class Pref
 {
     public static class Group {
         Preferences prefs;
-        Group(Preferences prefs) { this.prefs = prefs; }
+        public Group(Preferences prefs) { this.prefs = prefs; }
         public String absolutePath() { return prefs.absolutePath(); }
+
+        private void putBoolean(String key, boolean value) {
+            if (prefs == null) return;
+            prefs.putBoolean(key, value);
+            if (doFlushing)
+                flushOptions(prefs);
+            else
+                queueForFlushing.add(prefs);
+        }
+
+        private boolean getBoolean(String key, boolean def) {
+            return prefs != null ? prefs.getBoolean(key, def) : def;
+        }
+
+        private void putInt(String key, int value) {
+            if (prefs == null) return;
+            prefs.putInt(key, value);
+            if (doFlushing)
+                flushOptions(prefs);
+            else
+                queueForFlushing.add(prefs);
+        }
+
+        private int getInt(String key, int def) {
+            return prefs != null ? prefs.getInt(key, def) : def;
+        }
+
+        private void putLong(String key, long value) {
+            if (prefs == null) return;
+            prefs.putLong(key, value);
+            if (doFlushing)
+                flushOptions(prefs);
+            else
+                queueForFlushing.add(prefs);
+        }
+
+        private long getLong(String key, long def) {
+            return prefs != null ? prefs.getLong(key, def) : def;
+        }
+
+        private void putDouble(String key, double value) {
+            if (prefs == null) return;
+            prefs.putDouble(key, value);
+            if (doFlushing)
+                flushOptions(prefs);
+            else
+                queueForFlushing.add(prefs);
+        }
+
+        private double getDouble(String key, double def) {
+            return prefs != null ? prefs.getDouble(key, def) : null;
+        }
+
+        private void put(String key, String value) {
+            if (prefs == null) return;
+            prefs.put(key, value);
+            if (doFlushing)
+                flushOptions(prefs);
+            else
+                queueForFlushing.add(prefs);
+        }
+
+        private String get(String key, String def) {
+            return prefs != null ? prefs.get(key, def) : null;
+        }
     }
 
     public static Group groupForPackage(Class classFromPackage) {
@@ -110,7 +175,7 @@ public class Pref
 
 	private   final String      name;
 	private   PrefType         type;
-	private   final Preferences prefs;
+	private   final Group      group;
 	private   Object      cachedObj;
 	private   Object      factoryObj;
 //    private   boolean changed = false;
@@ -120,25 +185,13 @@ public class Pref
 //    private static PrefChangeBatch changes = null;
 	private static Set<Preferences> queueForFlushing;
 
-    /**
-	 * The constructor for the Pref.
-	 * @param name the name of this Pref.
-	 */
-	protected Pref(Preferences prefs, String name) {
-        this.name = name;
-        this.prefs = prefs;
-        synchronized (allPrefs) {
-            allPrefs.add(this);
-        }
-    }
-
 	/**
 	 * The constructor for the Pref.
 	 * @param name the name of this Pref.
 	 */
 	protected Pref(Group group, String name) {
         this.name = name;
-        this.prefs = group.prefs;
+        this.group = group;
         synchronized (allPrefs) {
             allPrefs.add(this);
         }
@@ -207,19 +260,19 @@ public class Pref
                 for(Pref pref : allPrefs) {
                     switch (pref.type) {
                         case BOOLEAN:
-                            pref.setBoolean(pref.prefs.getBoolean(pref.name, pref.getBooleanFactoryValue()));
+                            pref.setBoolean(pref.group.getBoolean(pref.name, pref.getBooleanFactoryValue()));
                             break;
                         case INTEGER:
-                            pref.setInt(pref.prefs.getInt(pref.name, pref.getIntFactoryValue()));
+                            pref.setInt(pref.group.getInt(pref.name, pref.getIntFactoryValue()));
                             break;
                         case LONG:
-                            pref.setLong(pref.prefs.getLong(pref.name, pref.getLongFactoryValue()));
+                            pref.setLong(pref.group.getLong(pref.name, pref.getLongFactoryValue()));
                             break;
                         case DOUBLE:
-                            pref.setDouble(pref.prefs.getDouble(pref.name, pref.getDoubleFactoryValue()));
+                            pref.setDouble(pref.group.getDouble(pref.name, pref.getDoubleFactoryValue()));
                             break;
                         case STRING:
-                            pref.setString(pref.prefs.get(pref.name, pref.getStringFactoryValue()));
+                            pref.setString(pref.group.get(pref.name, pref.getStringFactoryValue()));
                             break;
                     }
                 }
@@ -322,10 +375,9 @@ public class Pref
 	 */
 	protected void initBoolean(boolean factory)
 	{
-		this.type = PrefType.BOOLEAN;
-		this.factoryObj = new Integer(factory ? 1 : 0);
-		if (prefs != null) this.cachedObj = new Integer(prefs.getBoolean(name, factory) ? 1 : 0); else
-			this.cachedObj = new Integer(factory ? 1 : 0);
+		type = PrefType.BOOLEAN;
+		factoryObj = new Integer(factory ? 1 : 0);
+		cachedObj = new Integer(group.getBoolean(name, factory) ? 1 : 0);
 	}
 
 	/**
@@ -335,7 +387,7 @@ public class Pref
 	 * @param factory the "factory" default value (if nothing is stored).
 	 */
     public static Pref makeBooleanPref(String name, Group group, boolean factory) {
-		Pref pref = new Pref(group.prefs, name);
+		Pref pref = new Pref(group, name);
 		pref.initBoolean(factory);
 		return pref;
 	}
@@ -348,10 +400,9 @@ public class Pref
 	 */
 	protected void initInt(int factory)
 	{
-		this.type = PrefType.INTEGER;
-		this.factoryObj = new Integer(factory);
-		if (prefs != null) this.cachedObj = new Integer(prefs.getInt(name, factory)); else
-			this.cachedObj = new Integer(factory);
+		type = PrefType.INTEGER;
+		factoryObj = new Integer(factory);
+		cachedObj = new Integer(group.getInt(name, factory));
 	}
 
 	/**
@@ -361,7 +412,7 @@ public class Pref
 	 * @param factory the "factory" default value (if nothing is stored).
 	 */
 	public static Pref makeIntPref(String name, Group group, int factory) {
-		Pref pref = new Pref(group.prefs, name);
+		Pref pref = new Pref(group, name);
 		pref.initInt(factory);
 		return pref;
 	}
@@ -374,10 +425,9 @@ public class Pref
 	 */
 	protected void initLong(long factory)
 	{
-		this.type = PrefType.LONG;
-		this.factoryObj = new Long(factory);
-		if (prefs != null) this.cachedObj = new Long(prefs.getLong(name, factory)); else
-			this.cachedObj = new Long(factory);
+		type = PrefType.LONG;
+		factoryObj = new Long(factory);
+		cachedObj = new Long(group.getLong(name, factory));
 	}
 
 	/**
@@ -387,7 +437,7 @@ public class Pref
 	 * @param factory the "factory" default value (if nothing is stored).
 	 */
 	public static Pref makeLongPref(String name, Group group, long factory) {
-		Pref pref = new Pref(group.prefs, name);
+		Pref pref = new Pref(group, name);
 		pref.initLong(factory);
 		return pref;
 	}
@@ -400,10 +450,9 @@ public class Pref
 	 */
 	protected void initDouble(double factory)
 	{
-		this.type = PrefType.DOUBLE;
-		this.factoryObj = new Double(factory);
-		if (prefs != null) this.cachedObj = new Double(prefs.getDouble(name, factory)); else
-			this.cachedObj = new Double(factory);
+		type = PrefType.DOUBLE;
+		factoryObj = new Double(factory);
+		cachedObj = new Double(group.getDouble(name, factory));
 	}
 
 	/**
@@ -413,7 +462,7 @@ public class Pref
 	 * @param factory the "factory" default value (if nothing is stored).
 	 */
 	public static Pref makeDoublePref(String name, Group group, double factory) {
-		Pref pref = new Pref(group.prefs, name);
+		Pref pref = new Pref(group, name);
 		pref.initDouble(factory);
 		return pref;
 	}
@@ -426,10 +475,9 @@ public class Pref
 	 */
 	protected void initString(String factory)
 	{
-		this.type = PrefType.STRING;
-		this.factoryObj = new String(factory);
-		if (prefs != null) this.cachedObj = new String(prefs.get(name, factory)); else
-			this.cachedObj = new String(factory);
+		type = PrefType.STRING;
+		factoryObj = new String(factory);
+		cachedObj = new String(group.get(name, factory));
 	}
 
 	/**
@@ -439,16 +487,10 @@ public class Pref
 	 * @param factory the "factory" default value (if nothing is stored).
 	 */
 	public static Pref makeStringPref(String name, Group group, String factory) {
-		Pref pref = new Pref(group.prefs, name);
+		Pref pref = new Pref(group, name);
 		pref.initString(factory);
 		return pref;
 	}
-
-	public static Pref makeStringPref(String name, Preferences prefs, String factory) {
-		Pref pref = new Pref(prefs, name);
-		pref.initString(factory);
-		return pref;
-    }
 
     /**
 	 * Method to get the boolean value on this Pref object.
@@ -546,7 +588,7 @@ public class Pref
         private HashMap<String,HashMap<String,Object>> changesForNodes = new HashMap<String,HashMap<String,Object>>();
 
         private void add(Pref pref, Object newValue) {
-            String nodeName = pref.prefs.absolutePath();
+            String nodeName = pref.group.absolutePath();
             HashMap<String,Object> changesForTheNode = changesForNodes.get(nodeName);
             if (changesForTheNode == null) {
                 changesForTheNode = new HashMap<String,Object>();
@@ -620,7 +662,7 @@ public class Pref
 		for(Preferences p : queueForFlushing)
 			flushOptions(p);
 	}
-    
+
 	/**
 	 * Method to set a new boolean value on this Pref object.
 	 * @param v the new boolean value of this Pref object.
@@ -632,13 +674,7 @@ public class Pref
 		if (v != cachedBool)
 		{
 			cachedObj = new Integer(v ? 1 : 0);
-//            changed = true;
-            if (prefs != null)
-			{
-				prefs.putBoolean(name, v);
-				if (doFlushing) flushOptions(prefs); else
-					queueForFlushing.add(prefs);
-			}
+            group.putBoolean(name, v);
 		}
 	}
 
@@ -653,13 +689,7 @@ public class Pref
 		if (v != cachedInt)
 		{
 			cachedObj = new Integer(v);
-//            changed = true;
-			if (prefs != null)
-			{
-				prefs.putInt(name, v);
-				if (doFlushing) flushOptions(prefs); else
-					queueForFlushing.add(prefs);
-			}
+            group.putInt(name, v);
 		}
 	}
 
@@ -674,64 +704,28 @@ public class Pref
 		if (v != cachedLong)
 		{
 			cachedObj = new Long(v);
-//            changed = true;
-			if (prefs != null)
-			{
-				prefs.putLong(name, v);
-				if (doFlushing) flushOptions(prefs); else
-					queueForFlushing.add(prefs);
-			}
+            group.putLong(name, v);
 		}
 	}
-
-//    /**
-//	 * Method to set a new double value on this Pref factory object.
-//	 * @param v the new double value of this Pref factory object.
-//	 * @return true if preference was really changed.
-//	 */
-//    public boolean setFactoryDouble(double v)
-//    {
-//		double cachedDouble = ((Double)factoryObj).doubleValue();
-//		boolean changed = false;
-//
-//		if (v != cachedDouble)
-//		{
-//			factoryObj = new Double(v);
-//			if (prefs != null)
-//			{
-//				prefs.putDouble(name, v);
-//				if (doFlushing) flushOptions(prefs); else
-//					queueForFlushing.add(prefs);
-//			}
-//			changed = true;
-//		}
-//		return (changed);
-//    }
 
     /**
 	 * Method to set a new double value on this Pref object.
 	 * @param v the new double value of this Pref object.
 	 * @return true if preference was really changed.
 	 */
-	public boolean setDouble(double v)
+	public void setDouble(double v)
 	{
         checkModify();
 		double cachedDouble = ((Double)cachedObj).doubleValue();
-		boolean changed = false;
+//		boolean changed = false;
 
 		if (v != cachedDouble)
 		{
 			cachedObj = new Double(v);
-//            this.changed = true;
-			if (prefs != null)
-			{
-				prefs.putDouble(name, v);
-				if (doFlushing) flushOptions(prefs); else
-					queueForFlushing.add(prefs);
-			}
-			changed = true;
+            group.putDouble(name, v);
+//			changed = true;
 		}
-		return (changed);
+//		return (changed);
 	}
 
 	/**
@@ -745,16 +739,10 @@ public class Pref
 		if (!str.equals(cachedString))
 		{
 			cachedObj = new String(str);
-//            changed = true;
-            if (prefs != null)
-			{
-				prefs.put(name, str);
-				if (doFlushing) flushOptions(prefs); else
-					queueForFlushing.add(prefs);
-			}
+            group.put(name, str);
 		}
 	}
-    
+
     private void checkModify() {
 //        if (Job.getDebug() && Job.getRunningJob() != null)
 //            System.out.println(getPrefName() + " is modified in " + Job.getRunningJob());
@@ -764,13 +752,13 @@ public class Pref
     private static int lenStrings;
     private static int numValueStrings = 0;
     private static int lenValueStrings = 0;
-    
+
     public static void printAllPrefs(PrintStream out) {
         numValueStrings = lenValueStrings = 0;
         TreeMap<String,Pref> sortedPrefs = new TreeMap<String,Pref>();
         synchronized (allPrefs) {
             for (Pref pref: allPrefs)
-                sortedPrefs.put(pref.prefs.absolutePath() + "/" + pref.name, pref);
+                sortedPrefs.put(pref.group.absolutePath() + "/" + pref.name, pref);
         }
         Preferences rootNode = Preferences.userRoot().node("com/sun/electric");
         numStrings = lenStrings = 0;
@@ -785,7 +773,7 @@ public class Pref
         out.println("ELECTRIC USER PREFERENCES");
         int  i = 0;
         for (Pref pref: sortedPrefs.values())
-            out.println((i++) + pref.prefs.absolutePath() + " " + pref.name + " " + pref.cachedObj);
+            out.println((i++) + pref.group.absolutePath() + " " + pref.name + " " + pref.cachedObj);
     }
 
     private static void gatherPrefs(PrintStream out, int level, Preferences topNode, List<String> ks) throws BackingStoreException {

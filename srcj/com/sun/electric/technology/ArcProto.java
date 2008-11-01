@@ -373,15 +373,14 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 * This is the reported/selected width, which means that it does not include the width offset.
 	 * For example, diffusion arcs are always accompanied by a surrounding well and select.
      * @param lambdaWidth the full default width of this ArcProto in lambda units.
-     * @return returns true if preference was really changed.
      */
-    public boolean setDefaultLambdaBaseWidth(double lambdaWidth) {
+    public void setDefaultLambdaBaseWidth(double lambdaWidth) {
         long gridExtendOverMin = DBMath.lambdaToGrid(0.5*lambdaWidth) - gridBaseExtend;
         if (gridExtendOverMin <= -Integer.MAX_VALUE/8 || gridExtendOverMin >= Integer.MAX_VALUE/8) {
             System.out.println("ArcProto " + tech.getTechName() + ":" + getName() + " has invalid default base width " + lambdaWidth);
-            return false;
+            return;
         }
-        return getArcProtoExtendPref().setDouble(DBMath.gridToLambda(gridExtendOverMin));
+        getArcProtoExtendPref().setDouble(DBMath.gridToLambda(gridExtendOverMin));
     }
 
 //    public void setExtends(int gridBaseExtend) {

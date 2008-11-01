@@ -86,7 +86,8 @@ public class Library extends ElectricObject implements Comparable<Library>
     /** Last backup of this Library */                      LibraryBackup backup;
 	/** list of Cells in this library */					final TreeMap<CellName,Cell> cells = new TreeMap<CellName,Cell>();
 	/** Preference for cell currently being edited */		private Pref curCellPref;
-    /** preferences for this library */                     Preferences prefs;
+    /** preferences for this library */                     final Preferences prefs;
+    /** preferences group for this library */               private final Pref.Group prefsGroup;
     /** DELIB cell files. */                                private HashSet<String> delibCellFiles = new HashSet<String>();
 
 	/** preferences for all libraries */					private static Preferences allPrefs = null;
@@ -105,6 +106,7 @@ public class Library extends ElectricObject implements Comparable<Library>
 		if (allPrefs == null) allPrefs = Preferences.userNodeForPackage(getClass());
         prefs = allPrefs.node(getName());
         prefs.put("LIB", getName());
+        prefsGroup = new Pref.Group(prefs);
 	}
 
 	/**
@@ -830,7 +832,7 @@ public class Library extends ElectricObject implements Comparable<Library>
 	 * Method to get the Preferences associated with this Library.
 	 * @return the Preferences associated with this Library.
 	 */
-	public Preferences getPrefs() { return prefs; }
+	public Pref.Group getPrefs() { return prefsGroup; }
 
 	/**
 	 * Low-level method to get the user bits.
@@ -1019,7 +1021,7 @@ public class Library extends ElectricObject implements Comparable<Library>
 	{
 		if (curCellPref == null)
 		{
-			curCellPref = Pref.makeStringPref("CurrentCell", prefs, "");
+			curCellPref = Pref.makeStringPref("CurrentCell", getPrefs(), "");
 		}
 
 	}
