@@ -212,7 +212,7 @@ public class Foundry {
             throw new IllegalArgumentException();
         return gdsLayerSettings[layer.getIndex()];
     }
-    
+
     /**
      * Method to set the factory-default GDS names of Layers in this Foundry.
      * @param tech Technology of this Foundry.
@@ -227,7 +227,7 @@ public class Foundry {
             if (layer == null || layer.isPseudoLayer() || gdsMap.put(layer, gdsDef.substring(space)) != null)
                 throw new IllegalArgumentException(gdsDef);
         }
-        
+
         assert gdsLayerSettings == null;
         gdsLayerSettings = new Setting[tech.getNumLayers()];
         String techName = tech.getTechName();
@@ -239,8 +239,8 @@ public class Foundry {
                 factoryDefault = "";
             // Getting rid of spaces
             factoryDefault = factoryDefault.replaceAll(", ", ",");
-            
-            Setting setting = Setting.makeStringSetting(what + "LayerFor" + layer.getName() + "IN" + techName, Technology.getTechnologyPreferences(),
+
+            Setting setting = Setting.makeStringSetting(what + "LayerFor" + layer.getName() + "IN" + techName, tech.getTechnologyPreferences(),
                     getGDSNode(), layer.getName(),
                     what + " tab", what + " for layer " + layer.getName() + " in technology " + techName, factoryDefault);
             gdsLayerSettings[layerIndex] = setting;
@@ -261,7 +261,7 @@ public class Foundry {
 //        String value = factoryDefault.replaceAll(", ", ",");
 //        makeLayerSetting(layer, getGDSPrefName(), gdsLayerPrefs, value);
 //    }
-    
+
     /**
      * Generate key name for GDS value depending on the foundry
      * @return
@@ -282,7 +282,7 @@ public class Foundry {
         else
             return node;
     }
-    
+
      /**
      * Method to finish initialization of this Foundry.
      */

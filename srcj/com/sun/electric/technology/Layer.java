@@ -52,7 +52,7 @@ import java.util.Map;
  * The Layers are defined by the PrimitiveNode and ArcProto classes, and are used in the generation of geometry.
  * In addition, layers have extra information that is used for output and behavior.
  */
-public class Layer 
+public class Layer
 {
     public static final double DEFAULT_THICKNESS = 0; // 3D default thickness
     public static final double DEFAULT_DISTANCE = 0; // 3D default distance
@@ -658,7 +658,7 @@ public class Layer
                 throw new IllegalArgumentException();
         }
 		Layer layer = new Layer(name, tech, graphics);
-		tech.addLayer(layer);          
+		tech.addLayer(layer);
         if (graphics.getLayer() == null)
             graphics.setLayer(layer);
 		return layer;
@@ -1012,7 +1012,7 @@ public class Layer
 
     private Setting makeLayerSetting(String what, String factory) {
         String techName = tech.getTechName();
-        return Setting.makeStringSetting(what + "LayerFor" + name + "IN" + techName, Technology.getTechnologyPreferences(),
+        return Setting.makeStringSetting(what + "LayerFor" + name + "IN" + techName, tech.getTechnologyPreferences(),
                 getSubNode(what), name,
                 what + " tab", what + " for layer " + name + " in technology " + techName, factory);
     }
@@ -1020,7 +1020,7 @@ public class Layer
     private Setting makeParasiticSetting(String what, double factory)
     {
         return Setting.makeDoubleSetting(what + "ParasiticFor" + name + "IN" + tech.getTechName(),
-                Technology.getTechnologyPreferences(),
+                tech.getTechnologyPreferences(),
                 getSubNode(what), name,
                 "Parasitic tab", "Technology " + tech.getTechName() + ", " + what + " for layer " + name, factory);
     }
@@ -1047,7 +1047,7 @@ public class Layer
 		Pref pref = map.get(this);
 		if (pref == null)
 		{
-			pref = Pref.makeStringPref(what + "Of" + name + "IN" + tech.getTechName(), Technology.getTechnologyPreferences(), factory);
+			pref = Pref.makeStringPref(what + "Of" + name + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factory);
 			map.put(this, pref);
 		}
 		return pref;
@@ -1065,7 +1065,7 @@ public class Layer
 		Pref pref = map.get(this);
 		if (pref == null)
 		{
-			pref = Pref.makeBooleanPref(what + "Of" + name + "IN" + tech.getTechName(), Technology.getTechnologyPreferences(), factory);
+			pref = Pref.makeBooleanPref(what + "Of" + name + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factory);
 			map.put(this, pref);
 		}
 		return pref;
@@ -1083,7 +1083,7 @@ public class Layer
 		Pref pref = map.get(this);
 		if (pref == null)
 		{
-			pref = Pref.makeDoublePref(what + "Of" + name + "IN" + tech.getTechName(), Technology.getTechnologyPreferences(), factory);
+			pref = Pref.makeDoublePref(what + "Of" + name + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factory);
 			map.put(this, pref);
 		}
 		return pref;
@@ -1101,7 +1101,7 @@ public class Layer
 		Pref pref = map.get(this);
 		if (pref == null)
 		{
-			pref = Pref.makeIntPref(what + "Of" + name + "IN" + tech.getTechName(), Technology.getTechnologyPreferences(), factory);
+			pref = Pref.makeIntPref(what + "Of" + name + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factory);
 			map.put(this, pref);
 		}
 		return pref;

@@ -304,37 +304,37 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 		String layerTechMsg = layer.getName() + "In" + tech.getTechName();
 
 		Pref usePatternDisplayPref = Pref.makeBooleanPref("UsePatternDisplayFor" + layerTechMsg,
-			Technology.getTechnologyPreferences(), displayPatterned);
+			tech.getTechnologyPreferences(), displayPatterned);
 		displayPatterned = usePatternDisplayPref.getBoolean();
 		usePatternDisplayMap.put(layer, usePatternDisplayPref);
 
 		Pref usePatternPrinterPref = Pref.makeBooleanPref("UsePatternPrinterFor" + layerTechMsg,
-			Technology.getTechnologyPreferences(), printPatterned);
+			tech.getTechnologyPreferences(), printPatterned);
 		printPatterned = usePatternPrinterPref.getBoolean();
 		usePatternPrinterMap.put(layer, usePatternPrinterPref);
 
 		// read any previous outline information and apply it
 		Pref oldOutlinePatternDisplayPref = Pref.makeBooleanPref("OutlinePatternDisplayFor" + layerTechMsg,
-			Technology.getTechnologyPreferences(), false);
+			tech.getTechnologyPreferences(), false);
 		if (oldOutlinePatternDisplayPref.getBoolean()) patternOutline = Outline.PAT_S;
 
 		Pref outlinePatternPref = Pref.makeIntPref("OutlinePatternFor" + layerTechMsg,
-				Technology.getTechnologyPreferences(), patternOutline.getIndex());
+				tech.getTechnologyPreferences(), patternOutline.getIndex());
 		patternOutline = Outline.findOutline(outlinePatternPref.getInt());
 		outlinePatternMap.put(layer, outlinePatternPref);
 
 		Pref transparentLayerPref = Pref.makeIntPref("TransparentLayerFor" + layerTechMsg,
-			Technology.getTechnologyPreferences(), transparentLayer);
+			tech.getTechnologyPreferences(), transparentLayer);
 		transparentLayer = transparentLayerPref.getInt();
 		transparentLayerMap.put(layer, transparentLayerPref);
 
 		Pref opacityPref = Pref.makeDoublePref("OpacityFor" + layerTechMsg,
-			Technology.getTechnologyPreferences(), opacity);
+			tech.getTechnologyPreferences(), opacity);
 		opacity = validateOpacity(opacityPref.getDouble());
 		opacityMap.put(layer, opacityPref);
-		
+
 		Pref colorPref = Pref.makeIntPref("ColorFor" + layerTechMsg,
-			Technology.getTechnologyPreferences(), (red<<16) | (green << 8) | blue);
+			tech.getTechnologyPreferences(), (red<<16) | (green << 8) | blue);
 		int color = colorPref.getInt();
 		red = (color >> 16) & 0xFF;
 		green = (color >> 8) & 0xFF;
@@ -343,7 +343,7 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 
 		String pat = makePatString(pattern);
 		Pref patternPref = Pref.makeStringPref("PatternFor" + layerTechMsg,
-			Technology.getTechnologyPreferences(), pat);
+			tech.getTechnologyPreferences(), pat);
 		pat = patternPref.getString();
 		parsePatString(pat, pattern);
 		setPatternLow(pattern);
@@ -373,7 +373,7 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 
 		Pref opacityPref = opacityMap.get(layer);
 		opacity = validateOpacity(opacityPref.getDouble());
-		
+
 		Pref colorPref = colorMap.get(layer);
 		int color = colorPref.getInt();
 		red = (color >> 16) & 0xFF;
@@ -761,7 +761,7 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 	/**
 	 * Returns the RGB value representing the color associated with this EGraphics.
 	 * (Bits 16-23 are red, 8-15 are green, 0-7 are blue).
-	 * Alpha/opacity component is not returned 
+	 * Alpha/opacity component is not returned
 	 * @return the RGB value of the color
 	 */
 	public int getRGB() {

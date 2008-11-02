@@ -1003,7 +1003,6 @@ public class Technology implements Comparable<Technology>, Serializable
 	/** statically allocated (don't deallocate memory) */				private static final int STATICTECHNOLOGY =   020;
 	/** no primitives in this technology (don't auto-switch to it) */	private static final int NOPRIMTECHNOLOGY =   040;
 
-	/** preferences for all technologies */					private static Pref.Group prefs = null;
 	/** the current technology in Electric */				private static Technology curTech = null;
 	/** the current tlayout echnology in Electric */		private static Technology curLayoutTech = null;
 	/** counter for enumerating technologies */				private static int techNumber = 0;
@@ -1016,6 +1015,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	/** 0-based index of this technology */					private int techIndex;
 	/** true if "scale" is relevant to this technology */	private boolean scaleRelevant;
 	/** number of transparent layers in technology */		private int transparentLayers;
+	/** preferences group for this technologies */          private Pref.Group prefs = null;
 	/** the saved transparent colors for this technology */	private Pref [] transparentColorPrefs;
 	/** the color map for this technology */				private Color [] colorMap;
 	/** list of layers in this technology */				private final List<Layer> layers = new ArrayList<Layer>();
@@ -1100,7 +1100,7 @@ public class Technology implements Comparable<Technology>, Serializable
 		this.scaleRelevant = true;
 		this.techIndex = techNumber++;
 		userBits = 0;
-		if (prefs == null) prefs = Pref.groupForPackage(Schematics.class);
+		prefs = Pref.groupForTechnology();
         cacheFoundry = makeStringSetting("SelectedFoundryFor"+techName,
         	"Technology tab", techName + " foundry", "Foundry", defaultFoundry.getName().toUpperCase());
         cacheNumMetalLayers = makeIntSetting(techName + "NumberOfMetalLayers",
@@ -1643,7 +1643,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	public static List<String> getSoftTechnologies()
 	{
 		if (softTechnologyList == null)
-			softTechnologyList = Pref.makeStringPref("SoftTechnologies", Technology.prefs, "");
+			softTechnologyList = Pref.makeStringPref("SoftTechnologies", sysGeneric.getTechnologyPreferences(), "");
 		String techString = softTechnologyList.getString();
 		List<String> techList = new ArrayList<String>();
 		String [] techArray = techString.split(";");
@@ -1666,7 +1666,7 @@ public class Technology implements Comparable<Technology>, Serializable
 			sb.append(a.get(i));
 		}
 		if (softTechnologyList == null)
-			softTechnologyList = Pref.makeStringPref("SoftTechnologies", Technology.prefs, "");
+			softTechnologyList = Pref.makeStringPref("SoftTechnologies", sysGeneric.getTechnologyPreferences(), "");
 		softTechnologyList.setString(sb.toString());
 	}
 
@@ -2874,7 +2874,7 @@ public class Technology implements Comparable<Technology>, Serializable
 
                 // remove a gap for the negating bubble
                 int angle = a.getAngle();
-                double gridBubbleSize = Schematics.getNegatingBubbleSize()*DBMath.GRID;
+                double gridBubbleSize = Schematics.tech().getNegatingBubbleSize()*DBMath.GRID;
                 double cosDist = DBMath.cos(angle) * gridBubbleSize;
                 double sinDist = DBMath.sin(angle) * gridBubbleSize;
                 if (a.isTailNegated())
@@ -3641,7 +3641,7 @@ public class Technology implements Comparable<Technology>, Serializable
 		// add in negating bubbles
 		if (numNegatingBubbles > 0)
 		{
-			double bubbleRadius = Schematics.getNegatingBubbleSize() / 2;
+			double bubbleRadius = Schematics.tech().getNegatingBubbleSize() / 2;
 			for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 			{
 				Connection con = it.next();
@@ -4646,7 +4646,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	 * the technologies (they are all in the same package).
 	 * @return the Pref object associated with all Technologies.
 	 */
-	public static Pref.Group getTechnologyPreferences() { return prefs; }
+	public Pref.Group getTechnologyPreferences() { return prefs; }
 
 	/**
 	 * Returns the minimum resistance of this Technology.
@@ -6216,7 +6216,7 @@ public class Technology implements Comparable<Technology>, Serializable
         private Technology tech;
 
         private TechSetting(String prefName, Pref.Group group, Technology tech, ProjSettingsNode xmlNode, String xmlName, String location, String description, Object factoryObj) {
-            super(prefName, Technology.prefs, xmlNode, xmlName, location, description, factoryObj);
+            super(prefName, tech.prefs, xmlNode, xmlName, location, description, factoryObj);
             if (tech == null)
                 throw new NullPointerException();
             this.tech = tech;
@@ -6280,21 +6280,21 @@ public class Technology implements Comparable<Technology>, Serializable
         ProjSettingsNode xmlNode = getProjectSettings();
         Setting setting = Setting.getSetting(xmlNode.getPath() + xmlName);
         if (setting != null) return setting;
-        return new TechSetting(name, Technology.prefs, this, xmlNode, xmlName, location, description, Boolean.valueOf(factory));
+        return new TechSetting(name, prefs, this, xmlNode, xmlName, location, description, Boolean.valueOf(factory));
     }
 
     public Setting makeIntSetting(String name, String location, String description, String xmlName, int factory) {
         ProjSettingsNode xmlNode = getProjectSettings();
         Setting setting = Setting.getSetting(xmlNode.getPath() + xmlName);
         if (setting != null) return setting;
-        return new TechSetting(name, Technology.prefs, this, xmlNode, xmlName, location, description, Integer.valueOf(factory));
+        return new TechSetting(name, prefs, this, xmlNode, xmlName, location, description, Integer.valueOf(factory));
     }
 
     public Setting makeStringSetting(String name, String location, String description, String xmlName, String factory) {
         ProjSettingsNode xmlNode = getProjectSettings();
         Setting setting = Setting.getSetting(xmlNode.getPath() + xmlName);
         if (setting != null) return setting;
-        return new TechSetting(name, Technology.prefs, this, xmlNode, xmlName, location, description, factory);
+        return new TechSetting(name, prefs, this, xmlNode, xmlName, location, description, factory);
     }
     // -------------------------- Project Settings -------------------------
 

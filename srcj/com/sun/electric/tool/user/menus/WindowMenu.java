@@ -288,9 +288,9 @@ public class WindowMenu {
         }
 
         public String getDescription() { return "Window Cycle"; }
-        
+
         protected void updateButtons() {}
-        
+
         public void run()
         {
             if (window != null)
@@ -853,7 +853,7 @@ public class WindowMenu {
                 String cadenceFileName = "CadencePrefs.xml";
                 URL fileURL = Resources.getURLResource(TopLevel.class, cadenceFileName);
                 if (fileURL != null)
-                    Pref.importPrefs(fileURL);
+                    Pref.importPrefs(fileURL, EDatabase.serverDatabase().getTechPool());
                 else
                     System.out.println("Cannot import '" + cadenceFileName + "'");
             }

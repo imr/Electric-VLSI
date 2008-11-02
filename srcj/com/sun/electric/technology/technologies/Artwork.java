@@ -1021,20 +1021,20 @@ public class Artwork extends Technology
 
 	/******************** OPTIONS ********************/
 
-	private static Pref cacheFillArrows = Pref.makeBooleanPref("ArtworkFillArrows", getTechnologyPreferences(), false);
+	private Pref cacheFillArrows = Pref.makeBooleanPref("ArtworkFillArrows", getTechnologyPreferences(), false);
 	/**
 	 * Method to tell whether arrow heads are filled-in.
 	 * @return true if arrow heads are filled-in.
 	 */
-	public static boolean isFilledArrowHeads() { return cacheFillArrows.getBoolean(); }
+	public boolean isFilledArrowHeads() { return cacheFillArrows.getBoolean(); }
 	/**
 	 * Method to set whether arrow heads are filled-in.
 	 * @param f true if arrow heads are filled-in.
 	 */
-	public static void setFilledArrowHeads(boolean f) { cacheFillArrows.setBoolean(f); }
+	public void setFilledArrowHeads(boolean f) { cacheFillArrows.setBoolean(f); }
 	/**
 	 * Method to tell whether arrow heads are filled-in, by default.
 	 * @return true if arrow heads are filled-in, by default.
 	 */
-	public static boolean isFactoryFilledArrowHeads() { return cacheFillArrows.getBooleanFactoryValue(); }
+	public boolean isFactoryFilledArrowHeads() { return cacheFillArrows.getBooleanFactoryValue(); }
 }

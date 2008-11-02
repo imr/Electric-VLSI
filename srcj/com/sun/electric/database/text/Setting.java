@@ -49,7 +49,7 @@ public class Setting {
     private static final HashMap<String,Setting> allSettingsByXmlPath = new HashMap<String,Setting>();
     private static final HashMap<String,Setting> allSettingsByPrefPath = new HashMap<String,Setting>();
     private static final ArrayList<Object> values = new ArrayList<Object>();
-    
+
 //    private final ProjSettingsNode xmlNode;
 //    private final String xmlName;
     private final String xmlPath;
@@ -61,7 +61,7 @@ public class Setting {
     private boolean valid;
     private final String description, location;
     private String [] trueMeaning;
-    
+
     /** Creates a new instance of Setting */
     public Setting(String prefName, Pref.Group group, ProjSettingsNode xmlNode, String xmlName, String location, String description, Object factoryObj) {
         EDatabase.serverDatabase().checkChanging();
@@ -73,63 +73,63 @@ public class Setting {
 //        this.xmlName = xmlName;
         xmlPath = xmlNode.getPath() + xmlName;
         assert !allSettingsByXmlPath.containsKey(xmlPath);
-        
+
         this.factoryObj = factoryObj;
         this.prefName = prefName;
-        prefs = group.prefs;
+        prefs = group.preferences;
         prefPath = prefs.absolutePath() + "/" + prefName;
         assert !allSettingsByPrefPath.containsKey(prefPath);
-        
+
         index = values.size();
         values.add(factoryObj);
         allSettingsByXmlPath.put(xmlPath, this);
         allSettingsByPrefPath.put(prefPath, this);
         assert allSettingsByXmlPath.size() == allSettingsByPrefPath.size();
         assert allSettingsByXmlPath.size() == values.size();
-        
+
         valid = true;
         this.description = description;
         this.location = location;
         setCachedObjFromPreferences();
         xmlNode.putValue(xmlName, this);
-        
+
     }
-    
+
     /**
      * Method to get the boolean value on this Setting object.
      * The object must have been created as "boolean".
      * @return the boolean value on this TechSetting object.
      */
     public boolean getBoolean() { return ((Boolean)getValue()).booleanValue(); }
-    
+
     /**
      * Method to get the integer value on this Setting object.
      * The object must have been created as "integer".
      * @return the integer value on this TechSetting object.
      */
     public int getInt() { return ((Integer)getValue()).intValue(); }
-    
+
     /**
      * Method to get the long value on this Setting object.
      * The object must have been created as "long".
      * @return the long value on this TechSetting object.
      */
     public long getLong() { return ((Long)getValue()).longValue(); }
-    
+
     /**
      * Method to get the double value on this Setting object.
      * The object must have been created as "double".
      * @return the double value on this TechSetting object.
      */
     public double getDouble() { return ((Double)getValue()).doubleValue(); }
-    
+
     /**
      * Method to get the string value on this Setting object.
      * The object must have been created as "string".
      * @return the string value on this TechSetting object.
      */
     public String getString() { return (String)getValue(); }
-    
+
     /**
      * Method to get the boolean value on this Setting object in a specified context.
      * The object must have been created as "boolean".
@@ -137,7 +137,7 @@ public class Setting {
      * @return the boolean value on this Setting object in the context.
      */
     public boolean getBoolean(List<Object> context) { return ((Boolean)getValue(context)).booleanValue(); }
-    
+
     /**
      * Method to get the integer value on this Setting object in a specified context.
      * The object must have been created as "integer".
@@ -145,7 +145,7 @@ public class Setting {
      * @return the integer value on this TechSetting object.
      */
     public int getInt(List<Object> context) { return ((Integer)getValue(context)).intValue(); }
-    
+
     /**
      * Method to get the long value on this Setting object in a specified context.
      * The object must have been created as "long".
@@ -153,7 +153,7 @@ public class Setting {
      * @return the long value on this TechSetting object.
      */
     public long getLong(List<Object> context) { return ((Long)getValue(context)).longValue(); }
-    
+
     /**
      * Method to get the double value on this Setting object in a specified context.
      * The object must have been created as "double".
@@ -161,7 +161,7 @@ public class Setting {
      * @return the double value on this TechSetting object.
      */
     public double getDouble(List<Object> context) { return ((Double)getValue(context)).doubleValue(); }
-    
+
     /**
      * Method to get the string value on this Setting object in a specified context.
      * The object must have been created as "string".
@@ -169,7 +169,7 @@ public class Setting {
      * @return the string value on this TechSetting object.
      */
     public String getString(List<Object> context) { return (String)getValue(context); }
-    
+
     public void set(Object v) {
 //        if (changeBatch != null) {
 //            if (SwingUtilities.isEventDispatchThread()) {
@@ -187,33 +187,33 @@ public class Setting {
         saveToPreferences(v);
         setSideEffect();
     }
-    
+
     public void set(List<Object> context, Object v) {
         if (getValue(context).equals(v)) return;
         if (v.getClass() != factoryObj.getClass())
             throw new ClassCastException();
         context.set(index, factoryObj.equals(v) ? factoryObj : v);
     }
-    
+
     /**
 	 * Method called when this Pref is changed.
 	 * This method is overridden in subclasses that want notification.
 	 */
     protected void setSideEffect() {
     }
-    
+
      /**
      * Method to get the xml name of this Setting object.
      * @return the xml name of this Setting object.
      */
     public String getXmlPath() { return xmlPath; }
-    
+
    /**
      * Method to get the name of this Setting object.
      * @return the name of this Setting object.
      */
     public String getPrefName() { return prefName; }
-    
+
 	/**
 	 * Method to get the value of this Setting object as an Object.
 	 * The proper way to get the current value is to use one of the type-specific
@@ -247,13 +247,13 @@ public class Setting {
      * @return the user-command that can affect this Meaning option.
      */
     public String getLocation() { return location; }
-    
+
     /**
      * Method to return the description of this Meaning option.
      * @return the Pref description of this Meaning option.
      */
     public String getDescription() { return description; }
-    
+
     /**
      * Method to set whether this Meaning option is valid and should be reconciled.
      * Some should not, for example, the scale value on technologies that
@@ -261,7 +261,7 @@ public class Setting {
      * @param valid true if this Meaning option is valid and should be reconciled.
      */
     public void setValidOption(boolean valid) { this.valid = valid; }
-    
+
     /**
      * Method to tell whether this Meaning option is valid and should be reconciled.
      * Some should not, for example, the scale value on technologies that
@@ -269,7 +269,7 @@ public class Setting {
      * @return true if this Meaning option is valid and should be reconciled.
      */
     public boolean isValidOption() { return valid; }
-    
+
     /**
      * Method to associate an array of strings to be used for integer Meaning options.
      * @param trueMeaning the array of strings that should be used for this integer Meaning option.
@@ -279,7 +279,7 @@ public class Setting {
      * can be given to the user.
      */
     public void setTrueMeaning(String [] trueMeaning) { this.trueMeaning = trueMeaning; }
-    
+
     /**
      * Method to return an array of strings to be used for integer Meaning options.
      * Some options are multiple-choice, for example the MOSIS CMOS rule set which can be
@@ -289,7 +289,7 @@ public class Setting {
      * @return the array of strings that should be used for this integer Meaning option.
      */
     public String [] getTrueMeaning() { return trueMeaning; }
-    
+
 	/**
 	 * Method to get the factory-default value of this Pref object.
 	 * @return the factory-default value of this Pref object.
@@ -317,7 +317,7 @@ public class Setting {
         if (setting != null) return setting;
         return new Setting(name, group, xmlNode, xmlName, location, description, Boolean.valueOf(factory));
     }
-    
+
 	/**
 	 * Factory methods to create an integerproject setting objects.
 	 * @param name the name of this Pref.
@@ -333,7 +333,7 @@ public class Setting {
         if (setting != null) return setting;
         return new Setting(name, group, xmlNode, xmlName, location, description, Integer.valueOf(factory));
     }
-    
+
 	/**
 	 * Factory methods to create a long project setting objects.
 	 * @param name the name of this Pref.
@@ -349,7 +349,7 @@ public class Setting {
         if (setting != null) return setting;
         return new Setting(name, group, xmlNode, xmlName, location, description, Long.valueOf(factory));
     }
-    
+
 	/**
 	 * Factory methods to create a double project setting objects.
 	 * @param name the name of this Pref.
@@ -381,21 +381,21 @@ public class Setting {
         if (setting != null) return setting;
         return new Setting(name, group, xmlNode, xmlName, location, description, factory);
     }
-    
+
 	/**
 	 * Method to find the project Setting object by its xml path.
 	 * @param xmlPath the xml path of the desired project Setting object.
 	 * @return the project Setting object.
 	 */
     public static Setting getSetting(String xmlPath) { return allSettingsByXmlPath.get(xmlPath); }
-    
+
 	/**
 	 * Method to find the project Setting object by its pref path.
 	 * @param prefPath the pref path of the desired project Setting object.
 	 * @return the project Setting object.
 	 */
     public static Setting getSettingByPrefPath(String prefPath) { return allSettingsByPrefPath.get(prefPath); }
-    
+
 	/**
 	 * Method to get a list of projecy Settings assiciatiated with the given owner object.
 	 * @param node owner object
@@ -407,7 +407,7 @@ public class Setting {
         Collections.sort(settings, SETTINGS_BY_PREF_NAME);
         return settings;
     }
-    
+
     private static void getSettings(ProjSettingsNode node, ArrayList<Setting> settings) {
         Set<String> keys = node.getKeys();
         for (String key: keys) {
@@ -424,7 +424,7 @@ public class Setting {
             }
         }
     }
-    
+
     private static Comparator<Setting> SETTINGS_BY_PREF_NAME = new Comparator<Setting> () {
         public int compare(Setting s1, Setting s2) {
             String n1 = s1.getPrefName();
@@ -432,7 +432,7 @@ public class Setting {
             return n1.compareTo(n2);
         }
     };
-    
+
 //    /**
 //     * Comparator class for sorting Preferences by their name.
 //     */
@@ -466,10 +466,10 @@ public class Setting {
         }
         for (Setting setting: allSettingsByXmlPath.values()) {
             if (markedSettings.contains(setting)) continue;
-            
+
             // this one is not mentioned in the library: make sure it is at factory defaults
             if (DBMath.objectsReallyEqual(setting.getValue(), setting.getFactoryValue())) continue;
-            
+
             if (!setting.isValidOption()) continue;
             settingsToReconcile.put(setting, null);
         }
@@ -487,7 +487,7 @@ public class Setting {
             Object obj = e.getValue();
             if (obj == null)
                 obj = setting.factoryObj;
-            
+
             // set the option
             if (obj.getClass() != setting.factoryObj.getClass()) {
                 if (obj instanceof Integer && setting.factoryObj instanceof Boolean)
@@ -500,18 +500,18 @@ public class Setting {
             setting.set(obj);
             System.out.println("Project Setting "+setting.xmlPath+" changed to "+obj);
         }
-        
+
         // resume flushing, and save everything just set
         Pref.resumePrefFlushing();
     }
-    
+
     static void saveAllSettingsToPreferences() {
         for (Setting setting: allSettingsByXmlPath.values()) {
             Object value = setting.getValue();
             setting.saveToPreferences(value);
         }
     }
-    
+
     private void saveToPreferences(Object v) {
         assert v.getClass() == factoryObj.getClass();
         if (v.equals(factoryObj)) {
@@ -532,7 +532,7 @@ public class Setting {
             assert false;
         }
     }
-    
+
     private void setCachedObjFromPreferences() {
         Object cachedObj = null;
         if (factoryObj instanceof Boolean) {
@@ -544,15 +544,15 @@ public class Setting {
         } else if (factoryObj instanceof Double) {
             cachedObj = Double.valueOf(prefs.getDouble(prefName, ((Double)factoryObj).doubleValue()));
         } else if (factoryObj instanceof String) {
-            cachedObj = prefs.get(prefName, (String)factoryObj);    
+            cachedObj = prefs.get(prefName, (String)factoryObj);
         }
         assert cachedObj != null;
         values.set(index, cachedObj);
     }
-    
+
     public static class SettingChangeBatch implements Serializable {
         public HashMap<String,Object> changesForSettings = new HashMap<String,Object>();
-        
+
         public void add(Setting setting, Object newValue) {
             changesForSettings.put(setting.xmlPath, newValue);
         }
@@ -592,7 +592,7 @@ public class Setting {
         }
     }
     public static Collection<Setting> getSettings() { return allSettingsByXmlPath.values(); }
-    
+
     static void printAllSettings(PrintStream out) {
         TreeMap<String,Setting> sortedSettings = new TreeMap<String,Setting>();
         for (Setting setting: allSettingsByXmlPath.values())
@@ -605,7 +605,7 @@ public class Setting {
     }
 
     private static int i;
-    
+
     private static void printSettings(PrintStream out, ProjSettingsNode node, int level) {
         Set<String> keys = node.getKeys();
         for (String key: keys) {

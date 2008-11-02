@@ -362,7 +362,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 		Pref pref = defaultExtendPrefs.get(this);
 		if (pref == null)
 		{
-			pref = Pref.makeDoublePref("DefaultExtendFor" + getName() + "IN" + tech.getTechName(), Technology.getTechnologyPreferences(), factory);
+			pref = Pref.makeDoublePref("DefaultExtendFor" + getName() + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factory);
 			defaultExtendPrefs.put(this, pref);
 		}
 		return pref;
@@ -916,7 +916,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 		Pref pref = arcPinPrefs.get(this);
 		if (pref == null)
 		{
-			pref = Pref.makeStringPref("PinFor" + getName() + "IN" + tech.getTechName(), Technology.getTechnologyPreferences(), "");
+			pref = Pref.makeStringPref("PinFor" + getName() + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), "");
 			arcPinPrefs.put(this, pref);
 		}
 		return pref;

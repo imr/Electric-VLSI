@@ -85,10 +85,10 @@ public class TechnologyTab extends PreferencePanel
 		rotateLayoutTransistors.setSelected(User.isRotateLayoutTransistors());
 
 		// Artwork
-		techArtworkArrowsFilled.setSelected(Artwork.isFilledArrowHeads());
+		techArtworkArrowsFilled.setSelected(Artwork.tech().isFilledArrowHeads());
 
 		// Schematics
-		techSchematicsNegatingSize.setText(TextUtils.formatDouble(Schematics.getNegatingBubbleSize()));
+		techSchematicsNegatingSize.setText(TextUtils.formatDouble(Schematics.tech().getNegatingBubbleSize()));
 
 		// VHDL layers list
 		schemPrimModel = new DefaultListModel();
@@ -108,7 +108,7 @@ public class TechnologyTab extends PreferencePanel
 			if (np != Schematics.tech().andNode && np != Schematics.tech().orNode &&
 				np != Schematics.tech().xorNode && np != Schematics.tech().muxNode &&
 				np != Schematics.tech().bufferNode) continue;
-			String str = Schematics.getVHDLNames(np);
+			String str = Schematics.tech().getVHDLNames(np);
 			schemPrimMap.put(np, str);
 			schemPrimModel.addElement(makeLine(np, str));
 		}
@@ -205,17 +205,17 @@ public class TechnologyTab extends PreferencePanel
 
 		// Artwork
 		boolean currentArrowsFilled = techArtworkArrowsFilled.isSelected();
-		if (currentArrowsFilled != Artwork.isFilledArrowHeads())
+		if (currentArrowsFilled != Artwork.tech().isFilledArrowHeads())
 		{
-			Artwork.setFilledArrowHeads(currentArrowsFilled);
+			Artwork.tech().setFilledArrowHeads(currentArrowsFilled);
 			redrawWindows = true;
 		}
 
 		// Schematics
 		double currentNegatingBubbleSize = TextUtils.atof(techSchematicsNegatingSize.getText());
-		if (currentNegatingBubbleSize != Schematics.getNegatingBubbleSize())
+		if (currentNegatingBubbleSize != Schematics.tech().getNegatingBubbleSize())
 		{
-			Schematics.setNegatingBubbleSize(currentNegatingBubbleSize);
+			Schematics.tech().setNegatingBubbleSize(currentNegatingBubbleSize);
 			redrawWindows = true;
 		}
 
@@ -229,9 +229,9 @@ public class TechnologyTab extends PreferencePanel
 			PrimitiveNode np = Schematics.tech().findNodeProto(primName);
 			if (np == null) continue;
 			String newVHDLname = str.substring(spacePos+3, str.length()-1);
-			String oldVHDLname = Schematics.getVHDLNames(np);
+			String oldVHDLname = Schematics.tech().getVHDLNames(np);
 			if (!newVHDLname.equals(oldVHDLname))
-				Schematics.setVHDLNames(np, newVHDLname);
+				Schematics.tech().setVHDLNames(np, newVHDLname);
 		}
 
 		// update the display
@@ -257,18 +257,18 @@ public class TechnologyTab extends PreferencePanel
 	{
 		if (User.isFactoryRotateLayoutTransistors() != User.isRotateLayoutTransistors())
 			User.setRotateLayoutTransistors(User.isFactoryRotateLayoutTransistors());
-		if (Artwork.isFactoryFilledArrowHeads() != Artwork.isFilledArrowHeads())
-			Artwork.setFilledArrowHeads(Artwork.isFactoryFilledArrowHeads());
-		if (Schematics.getFactoryNegatingBubbleSize() != Schematics.getNegatingBubbleSize())
-			Schematics.setNegatingBubbleSize(Schematics.getFactoryNegatingBubbleSize());
+		if (Artwork.tech().isFactoryFilledArrowHeads() != Artwork.tech().isFilledArrowHeads())
+			Artwork.tech().setFilledArrowHeads(Artwork.tech().isFactoryFilledArrowHeads());
+		if (Schematics.tech().getFactoryNegatingBubbleSize() != Schematics.tech().getNegatingBubbleSize())
+			Schematics.tech().setNegatingBubbleSize(Schematics.tech().getFactoryNegatingBubbleSize());
 		for(Iterator<PrimitiveNode> it = Schematics.tech().getNodes(); it.hasNext(); )
 		{
 			PrimitiveNode np = it.next();
 			if (np != Schematics.tech().andNode && np != Schematics.tech().orNode &&
 				np != Schematics.tech().xorNode && np != Schematics.tech().muxNode &&
 				np != Schematics.tech().bufferNode) continue;
-			if (!Schematics.getFactoryVHDLNames(np).equals(Schematics.getVHDLNames(np)))
-				Schematics.setVHDLNames(np, Schematics.getFactoryVHDLNames(np));
+			if (!Schematics.tech().getFactoryVHDLNames(np).equals(Schematics.tech().getVHDLNames(np)))
+				Schematics.tech().setVHDLNames(np, Schematics.tech().getFactoryVHDLNames(np));
 		}
 	}
 

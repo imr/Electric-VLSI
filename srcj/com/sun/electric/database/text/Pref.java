@@ -24,7 +24,9 @@
 package com.sun.electric.database.text;
 
 import com.sun.electric.Main;
+import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 
 import java.io.BufferedWriter;
@@ -90,78 +92,114 @@ import org.xml.sax.SAXParseException;
 public class Pref
 {
     public static class Group {
-        Preferences prefs;
-        public Group(Preferences prefs) { this.prefs = prefs; }
-        public String absolutePath() { return prefs.absolutePath(); }
+        Preferences preferences;
+        private final ArrayList<Pref> prefs = new ArrayList<Pref>();
+
+        public Group(Preferences preferences) { this.preferences = preferences; }
+        public String absolutePath() { return preferences.absolutePath(); }
+
+        private void setCachedObjsFromPreferences() {
+            for(Pref pref : prefs) {
+                switch (pref.type) {
+                    case BOOLEAN:
+                        pref.setBoolean(getBoolean(pref.name, pref.getBooleanFactoryValue()));
+                        break;
+                    case INTEGER:
+                        pref.setInt(getInt(pref.name, pref.getIntFactoryValue()));
+                        break;
+                    case LONG:
+                        pref.setLong(getLong(pref.name, pref.getLongFactoryValue()));
+                        break;
+                    case DOUBLE:
+                        pref.setDouble(getDouble(pref.name, pref.getDoubleFactoryValue()));
+                        break;
+                    case STRING:
+                        pref.setString(get(pref.name, pref.getStringFactoryValue()));
+                        break;
+                }
+            }
+        }
 
         private void putBoolean(String key, boolean value) {
-            if (prefs == null) return;
-            prefs.putBoolean(key, value);
+            if (preferences == null) return;
+            preferences.putBoolean(key, value);
             if (doFlushing)
-                flushOptions(prefs);
+                flushOptions(preferences);
             else
-                queueForFlushing.add(prefs);
+                queueForFlushing.add(preferences);
         }
 
         private boolean getBoolean(String key, boolean def) {
-            return prefs != null ? prefs.getBoolean(key, def) : def;
+            return preferences != null ? preferences.getBoolean(key, def) : def;
         }
 
         private void putInt(String key, int value) {
-            if (prefs == null) return;
-            prefs.putInt(key, value);
+            if (preferences == null) return;
+            preferences.putInt(key, value);
             if (doFlushing)
-                flushOptions(prefs);
+                flushOptions(preferences);
             else
-                queueForFlushing.add(prefs);
+                queueForFlushing.add(preferences);
         }
 
         private int getInt(String key, int def) {
-            return prefs != null ? prefs.getInt(key, def) : def;
+            return preferences != null ? preferences.getInt(key, def) : def;
         }
 
         private void putLong(String key, long value) {
-            if (prefs == null) return;
-            prefs.putLong(key, value);
+            if (preferences == null) return;
+            preferences.putLong(key, value);
             if (doFlushing)
-                flushOptions(prefs);
+                flushOptions(preferences);
             else
-                queueForFlushing.add(prefs);
+                queueForFlushing.add(preferences);
         }
 
         private long getLong(String key, long def) {
-            return prefs != null ? prefs.getLong(key, def) : def;
+            return preferences != null ? preferences.getLong(key, def) : def;
         }
 
         private void putDouble(String key, double value) {
-            if (prefs == null) return;
-            prefs.putDouble(key, value);
+            if (preferences == null) return;
+            preferences.putDouble(key, value);
             if (doFlushing)
-                flushOptions(prefs);
+                flushOptions(preferences);
             else
-                queueForFlushing.add(prefs);
+                queueForFlushing.add(preferences);
         }
 
         private double getDouble(String key, double def) {
-            return prefs != null ? prefs.getDouble(key, def) : null;
+            return preferences != null ? preferences.getDouble(key, def) : null;
         }
 
         private void put(String key, String value) {
-            if (prefs == null) return;
-            prefs.put(key, value);
+            if (preferences == null) return;
+            preferences.put(key, value);
             if (doFlushing)
-                flushOptions(prefs);
+                flushOptions(preferences);
             else
-                queueForFlushing.add(prefs);
+                queueForFlushing.add(preferences);
         }
 
         private String get(String key, String def) {
-            return prefs != null ? prefs.get(key, def) : null;
+            return preferences != null ? preferences.get(key, def) : null;
         }
     }
 
     public static Group groupForPackage(Class classFromPackage) {
         Preferences prefs = Preferences.userNodeForPackage(classFromPackage);
+        synchronized(allGroups) {
+            for (Group group: allGroups)
+                if (group.preferences == prefs)
+                    return group;
+            Group newGroup = new Group(prefs);
+            allGroups.add(newGroup);
+            return newGroup;
+        }
+    }
+
+    public static Group groupForTechnology() {
+        Preferences prefs = Preferences.userNodeForPackage(Generic.class);
         return new Group(prefs);
     }
 
@@ -180,7 +218,7 @@ public class Pref
 	private   Object      factoryObj;
 //    private   boolean changed = false;
 
-	private static final List<Pref> allPrefs = new ArrayList<Pref>();
+	private static final ArrayList<Group> allGroups = new ArrayList<Group>();
 	private static boolean doFlushing = true;
 //    private static PrefChangeBatch changes = null;
 	private static Set<Preferences> queueForFlushing;
@@ -192,8 +230,8 @@ public class Pref
 	protected Pref(Group group, String name) {
         this.name = name;
         this.group = group;
-        synchronized (allPrefs) {
-            allPrefs.add(this);
+        synchronized (group.prefs) {
+            group.prefs.add(this);
         }
     }
 
@@ -201,15 +239,15 @@ public class Pref
      * Method used in regressions so it has to be public.
      * @param fileName
      */
-    public static void importPrefs(String fileName)
+    public static void importPrefs(String fileName, TechPool techPool)
     {
         if (fileName == null) return;
 
         // import preferences
-        importPrefs(TextUtils.makeURLToFile(fileName));
+        importPrefs(TextUtils.makeURLToFile(fileName), techPool);
     }
 
-    public static void importPrefs(URL fileURL)
+    public static void importPrefs(URL fileURL, TechPool techPool)
     {
         if (fileURL == null) return;
 
@@ -221,34 +259,40 @@ public class Pref
 			System.out.println("Importing preferences...");
 
 			// reset all preferences to factory values
-			delayPrefFlushing();
-            synchronized (allPrefs) {
-                for(Pref pref : allPrefs) {
-                    switch (pref.type) {
-                        case BOOLEAN:
-                            if (pref.getBoolean() != pref.getBooleanFactoryValue())
-                                pref.setBoolean(pref.getBooleanFactoryValue());
-                            break;
-                        case INTEGER:
-                            if (pref.getInt() != pref.getIntFactoryValue())
-                                pref.setInt(pref.getIntFactoryValue());
-                            break;
-                        case LONG:
-                            if (pref.getLong() != pref.getLongFactoryValue())
-                                pref.setLong(pref.getLongFactoryValue());
-                            break;
-                        case DOUBLE:
-                            if (pref.getDouble() != pref.getDoubleFactoryValue())
-                                pref.setDouble(pref.getDoubleFactoryValue());
-                            break;
-                        case STRING:
-                            if (!pref.getString().equals(pref.getStringFactoryValue()))
-                                pref.setString(pref.getStringFactoryValue());
-                            break;
-                    }
-                }
-            }
-			resumePrefFlushing();
+            try {
+                clearPrefs(Preferences.userNodeForPackage(Main.class));
+    		} catch (BackingStoreException e) {
+            	System.out.println("Error resetting Electric preferences");
+                e.printStackTrace();
+    		}
+//			delayPrefFlushing();
+//            synchronized (allPrefs) {
+//                for(Pref pref : allPrefs) {
+//                    switch (pref.type) {
+//                        case BOOLEAN:
+//                            if (pref.getBoolean() != pref.getBooleanFactoryValue())
+//                                pref.setBoolean(pref.getBooleanFactoryValue());
+//                            break;
+//                        case INTEGER:
+//                            if (pref.getInt() != pref.getIntFactoryValue())
+//                                pref.setInt(pref.getIntFactoryValue());
+//                            break;
+//                        case LONG:
+//                            if (pref.getLong() != pref.getLongFactoryValue())
+//                                pref.setLong(pref.getLongFactoryValue());
+//                            break;
+//                        case DOUBLE:
+//                            if (pref.getDouble() != pref.getDoubleFactoryValue())
+//                                pref.setDouble(pref.getDoubleFactoryValue());
+//                            break;
+//                        case STRING:
+//                            if (!pref.getString().equals(pref.getStringFactoryValue()))
+//                                pref.setString(pref.getStringFactoryValue());
+//                            break;
+//                    }
+//                }
+//            }
+//			resumePrefFlushing();
 
 			// import preferences
 			Preferences.importPreferences(inputStream);
@@ -256,26 +300,11 @@ public class Pref
 
 			// recache all prefs
 			delayPrefFlushing();
-            synchronized (allPrefs) {
-                for(Pref pref : allPrefs) {
-                    switch (pref.type) {
-                        case BOOLEAN:
-                            pref.setBoolean(pref.group.getBoolean(pref.name, pref.getBooleanFactoryValue()));
-                            break;
-                        case INTEGER:
-                            pref.setInt(pref.group.getInt(pref.name, pref.getIntFactoryValue()));
-                            break;
-                        case LONG:
-                            pref.setLong(pref.group.getLong(pref.name, pref.getLongFactoryValue()));
-                            break;
-                        case DOUBLE:
-                            pref.setDouble(pref.group.getDouble(pref.name, pref.getDoubleFactoryValue()));
-                            break;
-                        case STRING:
-                            pref.setString(pref.group.get(pref.name, pref.getStringFactoryValue()));
-                            break;
-                    }
-                }
+            synchronized (allGroups) {
+                for (Group group: allGroups)
+                    group.setCachedObjsFromPreferences();
+                for (Technology tech: techPool.values())
+                    tech.getTechnologyPreferences().setCachedObjsFromPreferences();
                 Setting.saveAllSettingsToPreferences();
             }
 			resumePrefFlushing();
@@ -303,6 +332,12 @@ public class Pref
         Job.getUserInterface().repaintAllWindows();
         System.out.println("...preferences imported from " + fileURL.getFile());
 	}
+
+    private static void clearPrefs(Preferences topNode) throws BackingStoreException {
+        topNode.clear();
+        for (String child: topNode.childrenNames())
+            clearPrefs(topNode.node(child));
+    }
 
 	/**
 	 * Method to export the preferences to an XML file. This function is public due to the regressions.
@@ -753,12 +788,14 @@ public class Pref
     private static int numValueStrings = 0;
     private static int lenValueStrings = 0;
 
-    public static void printAllPrefs(PrintStream out) {
+    public static void printAllPrefs(PrintStream out, TechPool techPool) {
         numValueStrings = lenValueStrings = 0;
         TreeMap<String,Pref> sortedPrefs = new TreeMap<String,Pref>();
-        synchronized (allPrefs) {
-            for (Pref pref: allPrefs)
-                sortedPrefs.put(pref.group.absolutePath() + "/" + pref.name, pref);
+        synchronized (allGroups) {
+            for (Group group: allGroups) {
+                for (Pref pref: group.prefs)
+                    sortedPrefs.put(pref.group.absolutePath() + "/" + pref.name, pref);
+            }
         }
         Preferences rootNode = Preferences.userRoot().node("com/sun/electric");
         numStrings = lenStrings = 0;
@@ -774,6 +811,11 @@ public class Pref
         int  i = 0;
         for (Pref pref: sortedPrefs.values())
             out.println((i++) + pref.group.absolutePath() + " " + pref.name + " " + pref.cachedObj);
+        for (Technology tech: techPool.values()) {
+            i = 0;
+            for (Pref pref: tech.getTechnologyPreferences().prefs)
+                out.println((i++) + pref.group.absolutePath() + " " + tech + " " + pref.name + " " + pref.cachedObj);
+        }
     }
 
     private static void gatherPrefs(PrintStream out, int level, Preferences topNode, List<String> ks) throws BackingStoreException {

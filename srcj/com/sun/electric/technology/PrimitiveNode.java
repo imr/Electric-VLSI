@@ -348,10 +348,10 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 		/** Describes a poly resistor. */
 		//@Deprecated
 		PRESIST("poly-resistor", "pres", false, false),
-		
+
 		/** Describes an n-poly resistor */
 		RESNPOLY("n-type-poly-resistor", "resnpoly", false, false),
-		
+
 		/** Describes a p-poly resistor */
 		RESPPOLY("p-type-poly-resistor", "resppoly", false, false),
 
@@ -361,7 +361,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 
 		/** Describes an n-well resistor */
 		RESNWELL("n-type-well-resistor", "resnwell", false, false),
-		
+
 		/** Describes a p-well resistor */
 		RESPWELL("p-type-well-resistor", "respwell", false, false),
 
@@ -561,7 +561,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
          * @return true if this function describes a resistor (normal, poly or nwell resistor).
          */
         public boolean isResistor() { return this == RESIST || this == PRESIST || this == WRESIST ||
-                                      this == RESNPOLY || this == RESPPOLY || this == RESNWELL || 
+                                      this == RESNPOLY || this == RESPPOLY || this == RESNWELL ||
                                       this == RESPWELL;}
 
         /**
@@ -711,8 +711,8 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 		 * @return a printable version of this Function.
 		 */
 		public String toString() { return name; }
-		
-		/** Returns name of the enumeration constant. For example "TRANMOS". 
+
+		/** Returns name of the enumeration constant. For example "TRANMOS".
 		 * By convention, the enumeration names encode information that isn't
 		 * otherwise available. The transistor "TRANMOS" is the same as "TRA4NMOS"
 		 * except that the latter has a substrate connection. RKao
@@ -1232,7 +1232,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 		Pref pref = defaultExtendXPrefs.get(this);
 		if (pref == null)
 		{
-			pref = Pref.makeDoublePref("DefaultExtendXFor" + getName() + "IN" + tech.getTechName(), Technology.getTechnologyPreferences(), factoryExtendX);
+			pref = Pref.makeDoublePref("DefaultExtendXFor" + getName() + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factoryExtendX);
 			defaultExtendXPrefs.put(this, pref);
 		}
 		return pref;
@@ -1248,7 +1248,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 		Pref pref = defaultExtendYPrefs.get(this);
 		if (pref == null)
 		{
-			pref = Pref.makeDoublePref("DefaultExtendYFor" + getName() + "IN" + tech.getTechName(), Technology.getTechnologyPreferences(), factoryExtendY);
+			pref = Pref.makeDoublePref("DefaultExtendYFor" + getName() + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factoryExtendY);
 			defaultExtendYPrefs.put(this, pref);
 		}
 		return pref;

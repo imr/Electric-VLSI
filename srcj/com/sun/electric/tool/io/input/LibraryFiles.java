@@ -1341,7 +1341,7 @@ public abstract class LibraryFiles extends Input
             ((NodeInst)eObj).addParameter(var);
             return;
         }
-            
+
         var = var.withParam(false);
         String origVarName = var.getKey().toString();
         // convert old port variables
@@ -1421,7 +1421,7 @@ public abstract class LibraryFiles extends Input
             String prefName = var.getKey().getName();
             String prefPath = null;
             if (obj instanceof Technology) {
-                prefPath = Technology.getTechnologyPreferences().absolutePath() + "/";
+                prefPath = ((Technology)obj).getTechnologyPreferences().absolutePath() + "/";
                 Map<Setting,Object> convertedVars = ((Technology)obj).convertOldVariable(prefName, value);
                 if (convertedVars != null) {
                     for (Map.Entry<Setting,Object> e: convertedVars.entrySet()) {

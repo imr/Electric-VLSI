@@ -260,19 +260,19 @@ public class Schematics extends Technology
 //	/* 0.1 */			private final EdgeV BOTBYP1 = new EdgeV(-0.1/2,0);
 //	/* 0.125 */			private final EdgeV BOTBYP125 = new EdgeV(-0.125/2,0);
 	/* 0.166...  */		private final EdgeV BOTBYP166 = new EdgeV(-0.166666666/2,0);
-	/* 0.2 */			private final EdgeV BOTBYP2 = new EdgeV(-0.2/2,0); 
+	/* 0.2 */			private final EdgeV BOTBYP2 = new EdgeV(-0.2/2,0);
 	/* 0.25 */			private final EdgeV BOTBYP25 = new EdgeV(-0.25/2,0);
-	/* 0.3 */			private final EdgeV BOTBYP3 = new EdgeV(-0.3/2,0); 
+	/* 0.3 */			private final EdgeV BOTBYP3 = new EdgeV(-0.3/2,0);
 	/* 0.3333... */		private final EdgeV BOTBYP33 = new EdgeV(-0.3333333333/2,0);
-	/* 0.375 */			private final EdgeV BOTBYP375 = new EdgeV(-0.375/2,0);        
-	/* 0.4 */			private final EdgeV BOTBYP4 = new EdgeV(-0.4/2,0); 
-	/* 0.5 */			private final EdgeV BOTBYP5 = new EdgeV(-0.5/2,0); 
-	/* 0.6 */			private final EdgeV BOTBYP6 = new EdgeV(-0.6/2,0); 
+	/* 0.375 */			private final EdgeV BOTBYP375 = new EdgeV(-0.375/2,0);
+	/* 0.4 */			private final EdgeV BOTBYP4 = new EdgeV(-0.4/2,0);
+	/* 0.5 */			private final EdgeV BOTBYP5 = new EdgeV(-0.5/2,0);
+	/* 0.6 */			private final EdgeV BOTBYP6 = new EdgeV(-0.6/2,0);
 	/* 0.6666... */		private final EdgeV BOTBYP66 = new EdgeV(-0.6666666666/2,0);
 //	/* 0.7 */			private final EdgeV BOTBYP7 = new EdgeV(-0.7/2,0);
 	/* 0.75 */			private final EdgeV BOTBYP75 = new EdgeV(-0.75/2,0);
-	/* 0.8 */			private final EdgeV BOTBYP8 = new EdgeV(-0.8/2,0); 
-	/* 0.875 */			private final EdgeV BOTBYP875 = new EdgeV(-0.875/2,0);        
+	/* 0.8 */			private final EdgeV BOTBYP8 = new EdgeV(-0.8/2,0);
+	/* 0.875 */			private final EdgeV BOTBYP875 = new EdgeV(-0.875/2,0);
 	/* 0.9 */			private final EdgeV BOTBYP9 = new EdgeV(-0.9/2,0);
 
 	// this much from the center to the top edge
@@ -317,39 +317,39 @@ public class Schematics extends Technology
 		/** bus layer */
 //		bus_lay = Layer.newInstance(this, "Bus",
 //			new EGraphics(false, true, null, EGraphics.TRANSPARENT_1, 107,226,96, 0.8,true,
-//			new int[] { 0x2222,   //   X   X   X   X 
-//				0x0000,   //                 
-//				0x8888,   // X   X   X   X   
-//				0x0000,   //                 
-//				0x2222,   //   X   X   X   X 
-//				0x0000,   //                 
-//				0x8888,   // X   X   X   X   
-//				0x0000,   //                 
-//				0x2222,   //   X   X   X   X 
-//				0x0000,   //                 
-//				0x8888,   // X   X   X   X   
-//				0x0000,   //                 
-//				0x2222,   //   X   X   X   X 
-//				0x0000,   //                 
-//				0x8888,   // X   X   X   X   
-//				0x0000}));//     
-		bus_lay = Layer.newInstance(this, "Bus",            
+//			new int[] { 0x2222,   //   X   X   X   X
+//				0x0000,   //
+//				0x8888,   // X   X   X   X
+//				0x0000,   //
+//				0x2222,   //   X   X   X   X
+//				0x0000,   //
+//				0x8888,   // X   X   X   X
+//				0x0000,   //
+//				0x2222,   //   X   X   X   X
+//				0x0000,   //
+//				0x8888,   // X   X   X   X
+//				0x0000,   //
+//				0x2222,   //   X   X   X   X
+//				0x0000,   //
+//				0x8888,   // X   X   X   X
+//				0x0000}));//
+		bus_lay = Layer.newInstance(this, "Bus",
 			new EGraphics(true, true, null, 0, 0,255,0, 0.8,true,
-			new int[] { 0xAAAA,   // X X X X X X X X 
+			new int[] { 0xAAAA,   // X X X X X X X X
 						0x5555,   //  X X X X X X X X
-						0xAAAA,   // X X X X X X X X 
+						0xAAAA,   // X X X X X X X X
 						0x5555,   //  X X X X X X X X
-						0xAAAA,   // X X X X X X X X 
+						0xAAAA,   // X X X X X X X X
 						0x5555,   //  X X X X X X X X
-						0xAAAA,   // X X X X X X X X 
+						0xAAAA,   // X X X X X X X X
 						0x5555,   //  X X X X X X X X
-						0xAAAA,   // X X X X X X X X 
+						0xAAAA,   // X X X X X X X X
 						0x5555,   //  X X X X X X X X
-						0xAAAA,   // X X X X X X X X 
+						0xAAAA,   // X X X X X X X X
 						0x5555,   //  X X X X X X X X
-						0xAAAA,   // X X X X X X X X 
+						0xAAAA,   // X X X X X X X X
 						0x5555,   //  X X X X X X X X
-						0xAAAA,   // X X X X X X X X 
+						0xAAAA,   // X X X X X X X X
 						0x5555}));//  X X X X X X X X
 
 		/** node layer */
@@ -392,7 +392,7 @@ public class Schematics extends Technology
 
 
 		//**************************************** NODES ****************************************
-		
+
 		// this text descriptor is used for all text on nodes
 		TextDescriptor tdBig = TextDescriptor.EMPTY.withRelSize(2);
 		TextDescriptor tdSmall = TextDescriptor.EMPTY.withRelSize(1);
@@ -1450,7 +1450,7 @@ public class Schematics extends Technology
 					EdgeH.makeCenter(), EdgeV.makeBottomEdge(), EdgeH.makeCenter(), EdgeV.makeBottomEdge())
 			});
 		globalPartitionNode.setFunction(PrimitiveNode.Function.CONNECT);
-        
+
         //Foundry
         newFoundry(Foundry.Type.NONE, null);
 	}
@@ -2079,7 +2079,7 @@ public class Schematics extends Technology
 		} else if (np == switchNode)
 		{
 			int numLayers = 3;
-			if (ni.getYSize() >= 4) numLayers += ((int)ni.getYSize()/2) - 1; 
+			if (ni.getYSize() >= 4) numLayers += ((int)ni.getYSize()/2) - 1;
 			Technology.NodeLayer [] switchLayers = new Technology.NodeLayer[numLayers];
 			switchLayers[0] = primLayers[0];
 			if ((numLayers%2) == 0) switchLayers[1] = primLayers[1]; else
@@ -2236,7 +2236,7 @@ public class Schematics extends Technology
 						// compute the position along the left edge
 						double yPosition = (i+1)/2 * 2;
 						if ((i&1) != 0) yPosition = -yPosition;
-	
+
 						// compute indentation
 						double xPosition = -4;
 						if (np == switchNode)
@@ -2345,7 +2345,7 @@ public class Schematics extends Technology
 		}
 		return super.getNodeInstBaseRectangle(ni);
     }
-    
+
 	/**
 	 * Method to convert old primitive port names to their proper PortProtos.
 	 * This method overrides the general Technology version and attempts Schematic-specific tests first.
@@ -2877,7 +2877,7 @@ public class Schematics extends Technology
      * Method to return a gate PortInst for this transistor NodeInst.
      * Implementation Note: May want to make this a more general
      * method, getPrimitivePort(PortType), if the number of port
-     * types increases.  Note: You should be calling 
+     * types increases.  Note: You should be calling
      * NodeInst.getTransistorDrainPort() instead of this, most likely.
      * @param ni the NodeInst
      * @return a PortInst for the gate of the transistor
@@ -2886,25 +2886,25 @@ public class Schematics extends Technology
 
 	/******************** OPTIONS ********************/
 
-	private static Pref cacheBubbleSize = Pref.makeDoublePref("SchematicNegatingBubbleSize", getTechnologyPreferences(), 1.2);
+	private Pref cacheBubbleSize = Pref.makeDoublePref("SchematicNegatingBubbleSize", getTechnologyPreferences(), 1.2);
 	/**
 	 * Method to tell the size of negating bubbles.
 	 * @return the size of negating bubbles (the diameter).
 	 */
-	public static double getNegatingBubbleSize() { return cacheBubbleSize.getDouble(); }
+	public double getNegatingBubbleSize() { return cacheBubbleSize.getDouble(); }
 	/**
 	 * Method to set the size of negating bubbles.
 	 * @param s the negating bubble size (the diameter).
 	 */
-	public static void setNegatingBubbleSize(double s) { cacheBubbleSize.setDouble(s); }
+	public void setNegatingBubbleSize(double s) { cacheBubbleSize.setDouble(s); }
 	/**
 	 * Method to tell the size of negating bubbles, by default.
 	 * @return the size of negating bubbles (the diameter), by default.
 	 */
-	public static double getFactoryNegatingBubbleSize() { return cacheBubbleSize.getDoubleFactoryValue(); }
+	public double getFactoryNegatingBubbleSize() { return cacheBubbleSize.getDoubleFactoryValue(); }
 
-	private static Map<PrimitiveNode,Pref> primPrefs = new HashMap<PrimitiveNode,Pref>();
-	private static Pref getPrefForPrimitive(PrimitiveNode np)
+	private Map<PrimitiveNode,Pref> primPrefs = new HashMap<PrimitiveNode,Pref>();
+	private Pref getPrefForPrimitive(PrimitiveNode np)
 	{
 		Pref pref = primPrefs.get(np);
 		if (pref == null)
@@ -2927,7 +2927,7 @@ public class Schematics extends Technology
 	 * @param np the primitive to query.
 	 * @return the the VHDL names for the primitive.
 	 */
-	public static String getVHDLNames(PrimitiveNode np) { return getPrefForPrimitive(np).getString(); }
+	public String getVHDLNames(PrimitiveNode np) { return getPrefForPrimitive(np).getString(); }
 	/**
 	 * Method to set the VHDL names for a primitive in this technology.
 	 * These names have the form REGULAR/NEGATED, where REGULAR is the name to use
@@ -2935,7 +2935,7 @@ public class Schematics extends Technology
 	 * @param np the primitive to set.
 	 * @param v the VHDL names for the primitive.
 	 */
-	public static void setVHDLNames(PrimitiveNode np, String v) { getPrefForPrimitive(np).setString(v); }
+	public void setVHDLNames(PrimitiveNode np, String v) { getPrefForPrimitive(np).setString(v); }
 	/**
 	 * Method to tell the VHDL names for a primitive in this technology, by default.
 	 * These names have the form REGULAR/NEGATED, where REGULAR is the name to use
@@ -2943,5 +2943,5 @@ public class Schematics extends Technology
 	 * @param np the primitive to query.
 	 * @return the the VHDL names for the primitive, by default.
 	 */
-	public static String getFactoryVHDLNames(PrimitiveNode np) { return getPrefForPrimitive(np).getStringFactoryValue(); }
+	public String getFactoryVHDLNames(PrimitiveNode np) { return getPrefForPrimitive(np).getStringFactoryValue(); }
 }
