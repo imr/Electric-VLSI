@@ -528,7 +528,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 		Pref pref = map.get(this);
 		if (pref == null)
 		{
-			pref = Pref.makeBooleanPref("Default" + what + "For" + getName() + "IN" + tech.getTechName(), User.getUserTool().prefs, factory);
+			pref = Pref.makeBooleanPref("Default" + what + "For" + getName() + "IN" + tech.getTechName(), tech.getTechnologyUserPreferences(), factory);
 			map.put(this, pref);
 		}
 		return pref;

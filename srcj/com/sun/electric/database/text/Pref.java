@@ -187,7 +187,13 @@ public class Pref
     }
 
     public static Group groupForPackage(Class classFromPackage) {
+        return groupForPackage(classFromPackage, false);
+    }
+
+    public static Group groupForPackage(Class classFromPackage, boolean techGroup) {
         Preferences prefs = Preferences.userNodeForPackage(classFromPackage);
+        if (techGroup)
+            return new Group(prefs);
         synchronized(allGroups) {
             for (Group group: allGroups)
                 if (group.preferences == prefs)
@@ -196,11 +202,6 @@ public class Pref
             allGroups.add(newGroup);
             return newGroup;
         }
-    }
-
-    public static Group groupForTechnology() {
-        Preferences prefs = Preferences.userNodeForPackage(Generic.class);
-        return new Group(prefs);
     }
 
     public enum PrefType {
@@ -303,8 +304,10 @@ public class Pref
             synchronized (allGroups) {
                 for (Group group: allGroups)
                     group.setCachedObjsFromPreferences();
-                for (Technology tech: techPool.values())
-                    tech.getTechnologyPreferences().setCachedObjsFromPreferences();
+                for (Technology tech: techPool.values()) {
+                    for (Group group: tech.getTechnologyAllPreferences())
+                        group.setCachedObjsFromPreferences();
+                }
                 Setting.saveAllSettingsToPreferences();
             }
 			resumePrefFlushing();
@@ -813,8 +816,10 @@ public class Pref
             out.println((i++) + pref.group.absolutePath() + " " + pref.name + " " + pref.cachedObj);
         for (Technology tech: techPool.values()) {
             i = 0;
-            for (Pref pref: tech.getTechnologyPreferences().prefs)
-                out.println((i++) + pref.group.absolutePath() + " " + tech + " " + pref.name + " " + pref.cachedObj);
+            for (Pref.Group group: tech.getTechnologyAllPreferences()) {
+                for (Pref pref: group.prefs)
+                    out.println((i++) + pref.group.absolutePath() + " " + tech + " " + pref.name + " " + pref.cachedObj);
+            }
         }
     }
 

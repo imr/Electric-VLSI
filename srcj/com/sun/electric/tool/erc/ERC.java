@@ -25,6 +25,7 @@ package com.sun.electric.tool.erc;
 
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Tool;
 
 import java.util.HashMap;
@@ -229,7 +230,8 @@ public class ERC extends Tool
 		{
 			double factory = ERCAntenna.DEFPOLYRATIO;
 			if (ap.getFunction().isMetal()) factory = ERCAntenna.DEFMETALRATIO;
-			pref = Pref.makeDoublePref("DefaultAntennaRatioFor" + ap.getName() + "IN" + ap.getTechnology().getTechName(), ERC.tool.prefs, factory);
+            Technology tech = ap.getTechnology();
+			pref = Pref.makeDoublePref("DefaultAntennaRatioFor" + ap.getName() + "IN" + tech.getTechName(), tech.getTechnologyErcPreferences(), factory);
 			defaultAntennaRatioPrefs.put(ap, pref);
 		}
 		return pref;

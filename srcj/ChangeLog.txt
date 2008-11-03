@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08k: ******************************
 
+IMP: (11/2/08, DN) Preferences related to Technology are moved to special Pref.Group.
+
 BUG: (10/30/08, GVG) Shift-0 (layer display) broken (Bug #1932)
 FIX: Update also for shift-0
 

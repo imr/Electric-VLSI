@@ -1015,7 +1015,9 @@ public class Technology implements Comparable<Technology>, Serializable
 	/** 0-based index of this technology */					private int techIndex;
 	/** true if "scale" is relevant to this technology */	private boolean scaleRelevant;
 	/** number of transparent layers in technology */		private int transparentLayers;
-	/** preferences group for this technologies */          private Pref.Group prefs = null;
+	/** preferences group for this technology */            private final Pref.Group prefs;
+    /** User preferences group for this tecnology */        private final Pref.Group userPrefs;
+    /** Erc preferences group for this technology */        private final Pref.Group ercPrefs;
 	/** the saved transparent colors for this technology */	private Pref [] transparentColorPrefs;
 	/** the color map for this technology */				private Color [] colorMap;
 	/** list of layers in this technology */				private final List<Layer> layers = new ArrayList<Layer>();
@@ -1100,7 +1102,9 @@ public class Technology implements Comparable<Technology>, Serializable
 		this.scaleRelevant = true;
 		this.techIndex = techNumber++;
 		userBits = 0;
-		prefs = Pref.groupForTechnology();
+		prefs = Pref.groupForPackage(Generic.class, true);
+        userPrefs = Pref.groupForPackage(User.class, true);
+        ercPrefs = Pref.groupForPackage(ERC.class, true);
         cacheFoundry = makeStringSetting("SelectedFoundryFor"+techName,
         	"Technology tab", techName + " foundry", "Foundry", defaultFoundry.getName().toUpperCase());
         cacheNumMetalLayers = makeIntSetting(techName + "NumberOfMetalLayers",
@@ -4640,13 +4644,42 @@ public class Technology implements Comparable<Technology>, Serializable
     }
 
 	/**
+	 * Method to return the Pref group associated with this Technology.
+	 * The Pref group is used to save option information.
+	 * Since preferences are organized by package, there is only one for
+	 * the technologies (they are all in the same package).
+	 * @return the Pref object associated with all Technologies.
+	 */
+	public Pref.Group getTechnologyPreferences() { return prefs; }
+
+	/**
+	 * Method to return the Pref group associated with this Technology.
+	 * The Pref group is used to save option information.
+	 * Since preferences are organized by package, there is only one for
+	 * the technologies (they are all in the same package).
+	 * @return the Pref object associated with all Technologies.
+	 */
+	public Pref.Group getTechnologyUserPreferences() { return userPrefs; }
+
+	/**
+	 * Method to return the Pref group associated with this Technology.
+	 * The Pref group is used to save option information.
+	 * Since preferences are organized by package, there is only one for
+	 * the technologies (they are all in the same package).
+	 * @return the Pref object associated with all Technologies.
+	 */
+	public Pref.Group getTechnologyErcPreferences() { return ercPrefs; }
+
+	/**
 	 * Method to return the Pref object associated with all Technologies.
 	 * The Pref object is used to save option information.
 	 * Since preferences are organized by package, there is only one for
 	 * the technologies (they are all in the same package).
 	 * @return the Pref object associated with all Technologies.
 	 */
-	public Pref.Group getTechnologyPreferences() { return prefs; }
+	public Pref.Group[] getTechnologyAllPreferences() {
+        return new Pref.Group[] {prefs, userPrefs, ercPrefs};
+    }
 
 	/**
 	 * Returns the minimum resistance of this Technology.
