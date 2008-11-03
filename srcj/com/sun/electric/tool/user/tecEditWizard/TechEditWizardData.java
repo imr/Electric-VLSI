@@ -31,7 +31,6 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.dialogs.OpenFile;
-import com.sun.electric.tool.user.User;
 import com.sun.electric.technology.*;
 
 import java.awt.Color;
@@ -59,8 +58,10 @@ public class TechEditWizardData
 	private String tech_description;
 	private int num_metal_layers;
 	private int stepsize;
+    private boolean pWellFlag; // to store if process is a pwell process or not
+    private boolean horizontalFlag = true; // to store if transistor gates are aligned horizontally. True by default
 
-	// DIFFUSION RULES
+    // DIFFUSION RULES
 	private WizardField diff_width = new WizardField();
 	private WizardField diff_poly_overhang = new WizardField();		// min. diff overhang from gate edge
 	private WizardField diff_contact_overhang = new WizardField();	// min. diff overhang contact
@@ -216,124 +217,130 @@ public class TechEditWizardData
 		num_metal_layers = n;
 	}
 
-	// DIFFUSION RULES
-	public WizardField getDiffWidth() { return diff_width; }
-	public void setDiffWidth(WizardField v) { diff_width = v; }
-	public WizardField getDiffPolyOverhang() { return diff_poly_overhang; }
-	public void setDiffPolyOverhang(WizardField v) { diff_poly_overhang = v; }
-	public WizardField getDiffContactOverhang() { return diff_contact_overhang; }
-	public void setDiffContactOverhang(WizardField v) { diff_contact_overhang = v; }
-	public WizardField getDiffSpacing() { return diff_spacing; }
-	public void setDiffSpacing(WizardField v) { diff_spacing = v; }
+    // Flags
+    boolean getPWellProcess() { return pWellFlag;}
+    void setPWellProcess(boolean b) { pWellFlag = b; }
+    boolean getHorizontalTransistors() { return horizontalFlag;}
+    void setHorizontalTransistors(boolean b) { horizontalFlag = b; }
+
+    // DIFFUSION RULES
+	WizardField getDiffWidth() { return diff_width; }
+	void setDiffWidth(WizardField v) { diff_width = v; }
+	WizardField getDiffPolyOverhang() { return diff_poly_overhang; }
+	void setDiffPolyOverhang(WizardField v) { diff_poly_overhang = v; }
+	WizardField getDiffContactOverhang() { return diff_contact_overhang; }
+	void setDiffContactOverhang(WizardField v) { diff_contact_overhang = v; }
+	WizardField getDiffSpacing() { return diff_spacing; }
+	void setDiffSpacing(WizardField v) { diff_spacing = v; }
 
 	// POLY RULES
-	public WizardField getPolyWidth() { return poly_width; }
-	public void setPolyWidth(WizardField v) { poly_width = v; }
-	public WizardField getPolyEndcap() { return poly_endcap; }
-	public void setPolyEndcap(WizardField v) { poly_endcap = v; }
-	public WizardField getPolySpacing() { return poly_spacing; }
-	public void setPolySpacing(WizardField v) { poly_spacing = v; }
-	public WizardField getPolyDiffSpacing() { return poly_diff_spacing; }
-	public void setPolyDiffSpacing(WizardField v) { poly_diff_spacing = v; }
+	WizardField getPolyWidth() { return poly_width; }
+	void setPolyWidth(WizardField v) { poly_width = v; }
+	WizardField getPolyEndcap() { return poly_endcap; }
+	void setPolyEndcap(WizardField v) { poly_endcap = v; }
+	WizardField getPolySpacing() { return poly_spacing; }
+	void setPolySpacing(WizardField v) { poly_spacing = v; }
+	WizardField getPolyDiffSpacing() { return poly_diff_spacing; }
+	void setPolyDiffSpacing(WizardField v) { poly_diff_spacing = v; }
 
 	// GATE RULES
-	public WizardField getGateLength() { return gate_length; }
-	public void setGateLength(WizardField v) { gate_length = v; }
-	public WizardField getGateWidth() { return gate_width; }
-	public void setGateWidth(WizardField v) { gate_width = v; }
-	public WizardField getGateSpacing() { return gate_spacing; }
-	public void setGateSpacing(WizardField v) { gate_spacing = v; }
-	public WizardField getGateContactSpacing() { return gate_contact_spacing; }
-	public void setGateContactSpacing(WizardField v) { gate_contact_spacing = v; }
+	WizardField getGateLength() { return gate_length; }
+	void setGateLength(WizardField v) { gate_length = v; }
+	WizardField getGateWidth() { return gate_width; }
+	void setGateWidth(WizardField v) { gate_width = v; }
+	WizardField getGateSpacing() { return gate_spacing; }
+	void setGateSpacing(WizardField v) { gate_spacing = v; }
+	WizardField getGateContactSpacing() { return gate_contact_spacing; }
+	void setGateContactSpacing(WizardField v) { gate_contact_spacing = v; }
 
 
     // CONTACT RULES
-	public WizardField getContactSize() { return contact_size; }
-	public void setContactSize(WizardField v) { contact_size = v; }
-	public WizardField getContactSpacing() { return contact_spacing; }
-	public void setContactSpacing(WizardField v) { contact_spacing = v; }
-    public WizardField getContactArraySpacing() { return contact_array_spacing; }
-	public void setContactArraySpacing(WizardField v) { contact_array_spacing = v; }
-    public WizardField getContactMetalOverhangInlineOnly() { return contact_metal_overhang_inline_only; }
-	public void setContactMetalOverhangInlineOnly(WizardField v) { contact_metal_overhang_inline_only = v; }
-	public WizardField getContactMetalOverhangAllSides() { return contact_metal_overhang_all_sides; }
-	public void setContactMetalOverhangAllSides(WizardField v) { contact_metal_overhang_all_sides = v; }
-	public WizardField getContactPolyOverhang() { return contact_poly_overhang; }
-	public void setContactPolyOverhang(WizardField v) { contact_poly_overhang = v; }
-	public WizardField getPolyconDiffSpacing() { return polycon_diff_spacing; }
-	public void setPolyconDiffSpacing(WizardField v) { polycon_diff_spacing = v; }
+	WizardField getContactSize() { return contact_size; }
+	void setContactSize(WizardField v) { contact_size = v; }
+	WizardField getContactSpacing() { return contact_spacing; }
+	void setContactSpacing(WizardField v) { contact_spacing = v; }
+    WizardField getContactArraySpacing() { return contact_array_spacing; }
+	void setContactArraySpacing(WizardField v) { contact_array_spacing = v; }
+    WizardField getContactMetalOverhangInlineOnly() { return contact_metal_overhang_inline_only; }
+	void setContactMetalOverhangInlineOnly(WizardField v) { contact_metal_overhang_inline_only = v; }
+	WizardField getContactMetalOverhangAllSides() { return contact_metal_overhang_all_sides; }
+	void setContactMetalOverhangAllSides(WizardField v) { contact_metal_overhang_all_sides = v; }
+	WizardField getContactPolyOverhang() { return contact_poly_overhang; }
+	void setContactPolyOverhang(WizardField v) { contact_poly_overhang = v; }
+	WizardField getPolyconDiffSpacing() { return polycon_diff_spacing; }
+	void setPolyconDiffSpacing(WizardField v) { polycon_diff_spacing = v; }
 
 	// WELL AND IMPLANT RULES
-	public WizardField getNPlusWidth() { return nplus_width; }
-	public void setNPlusWidth(WizardField v) { nplus_width = v; }
-	public WizardField getNPlusOverhangDiff() { return nplus_overhang_diff; }
-    public void setNPlusOverhangDiff(WizardField v) { nplus_overhang_diff = v; }
-    public WizardField getNPlusOverhangPoly() { return nplus_overhang_poly; }
-    public void setNPlusOverhangPoly(WizardField v) { nplus_overhang_poly = v; }
-	public WizardField getNPlusSpacing() { return nplus_spacing; }
-	public void setNPlusSpacing(WizardField v) { nplus_spacing = v; }
+	WizardField getNPlusWidth() { return nplus_width; }
+	void setNPlusWidth(WizardField v) { nplus_width = v; }
+	WizardField getNPlusOverhangDiff() { return nplus_overhang_diff; }
+    void setNPlusOverhangDiff(WizardField v) { nplus_overhang_diff = v; }
+    WizardField getNPlusOverhangPoly() { return nplus_overhang_poly; }
+    void setNPlusOverhangPoly(WizardField v) { nplus_overhang_poly = v; }
+	WizardField getNPlusSpacing() { return nplus_spacing; }
+	void setNPlusSpacing(WizardField v) { nplus_spacing = v; }
 
-	public WizardField getPPlusWidth() { return pplus_width; }
-	public void setPPlusWidth(WizardField v) { pplus_width = v; }
-	public WizardField getPPlusOverhangDiff() { return pplus_overhang_diff; }
-	public void setPPlusOverhangDiff(WizardField v) { pplus_overhang_diff = v; }
-	public WizardField getPPlusOverhangPoly() { return pplus_overhang_poly; }
-	public void setPPlusOverhangPoly(WizardField v) { pplus_overhang_poly = v; }
-	public WizardField getPPlusSpacing() { return pplus_spacing; }
-	public void setPPlusSpacing(WizardField v) { pplus_spacing = v; }
+	WizardField getPPlusWidth() { return pplus_width; }
+	void setPPlusWidth(WizardField v) { pplus_width = v; }
+	WizardField getPPlusOverhangDiff() { return pplus_overhang_diff; }
+	void setPPlusOverhangDiff(WizardField v) { pplus_overhang_diff = v; }
+	WizardField getPPlusOverhangPoly() { return pplus_overhang_poly; }
+	void setPPlusOverhangPoly(WizardField v) { pplus_overhang_poly = v; }
+	WizardField getPPlusSpacing() { return pplus_spacing; }
+	void setPPlusSpacing(WizardField v) { pplus_spacing = v; }
 
-	public WizardField getNWellWidth() { return nwell_width; }
-	public void setNWellWidth(WizardField v) { nwell_width = v; }
-	public WizardField getNWellOverhangDiffP() { return nwell_overhang_diff_p; }
-	public void setNWellOverhangDiffP(WizardField v) { nwell_overhang_diff_p = v; }
-	public WizardField getNWellOverhangDiffN() { return nwell_overhang_diff_n; }
-	public void setNWellOverhangDiffN(WizardField v) { nwell_overhang_diff_n = v; }
-	public WizardField getNWellSpacing() { return nwell_spacing; }
-	public void setNWellSpacing(WizardField v) { nwell_spacing = v; }
+	WizardField getNWellWidth() { return nwell_width; }
+	void setNWellWidth(WizardField v) { nwell_width = v; }
+	WizardField getNWellOverhangDiffP() { return nwell_overhang_diff_p; }
+	void setNWellOverhangDiffP(WizardField v) { nwell_overhang_diff_p = v; }
+	WizardField getNWellOverhangDiffN() { return nwell_overhang_diff_n; }
+	void setNWellOverhangDiffN(WizardField v) { nwell_overhang_diff_n = v; }
+	WizardField getNWellSpacing() { return nwell_spacing; }
+	void setNWellSpacing(WizardField v) { nwell_spacing = v; }
 
 	// METAL RULES
-	public WizardField [] getMetalWidth() { return metal_width; }
-	public void setMetalWidth(int met, WizardField value) { metal_width[met] = value; }
-	public WizardField [] getMetalSpacing() { return metal_spacing; }
-	public void setMetalSpacing(int met, WizardField value) { metal_spacing[met] = value; }
+	WizardField [] getMetalWidth() { return metal_width; }
+	void setMetalWidth(int met, WizardField value) { metal_width[met] = value; }
+	WizardField [] getMetalSpacing() { return metal_spacing; }
+	void setMetalSpacing(int met, WizardField value) { metal_spacing[met] = value; }
 
 	// VIA RULES
-	public WizardField [] getViaSize() { return via_size; }
-	public void setViaSize(int via, WizardField value) { via_size[via] = value; }
-	public WizardField [] getViaSpacing() { return via_spacing; }
-	public void setViaSpacing(int via, WizardField value) { via_spacing[via] = value; }
-	public WizardField [] getViaArraySpacing() { return via_array_spacing; }
-	public void setViaArraySpacing(int via, WizardField value) { via_array_spacing[via] = value; }
-	public WizardField [] getViaOverhangInline() { return via_overhang_inline; }
-	public void setViaOverhangInline(int via, WizardField value) { via_overhang_inline[via] = value; }
+	WizardField [] getViaSize() { return via_size; }
+	void setViaSize(int via, WizardField value) { via_size[via] = value; }
+	WizardField [] getViaSpacing() { return via_spacing; }
+	void setViaSpacing(int via, WizardField value) { via_spacing[via] = value; }
+	WizardField [] getViaArraySpacing() { return via_array_spacing; }
+	void setViaArraySpacing(int via, WizardField value) { via_array_spacing[via] = value; }
+	WizardField [] getViaOverhangInline() { return via_overhang_inline; }
+	void setViaOverhangInline(int via, WizardField value) { via_overhang_inline[via] = value; }
 
 	// ANTENNA RULES
 	public double getPolyAntennaRatio() { return poly_antenna_ratio; }
-	public void setPolyAntennaRatio(double v) { poly_antenna_ratio = v; }
+	void setPolyAntennaRatio(double v) { poly_antenna_ratio = v; }
 	public double [] getMetalAntennaRatio() { return metal_antenna_ratio; }
-	public void setMetalAntennaRatio(int met, double value) { metal_antenna_ratio[met] = value; }
+	void setMetalAntennaRatio(int met, double value) { metal_antenna_ratio[met] = value; }
 
 	// GDS-II LAYERS
-	public int getGDSDiff() { return gds_diff_layer; }
-	public void setGDSDiff(int l) { gds_diff_layer = l; }
-	public int getGDSPoly() { return gds_poly_layer; }
-	public void setGDSPoly(int l) { gds_poly_layer = l; }
-	public int getGDSNPlus() { return gds_nplus_layer; }
-	public void setGDSNPlus(int l) { gds_nplus_layer = l; }
-	public int getGDSPPlus() { return gds_pplus_layer; }
-	public void setGDSPPlus(int l) { gds_pplus_layer = l; }
-	public int getGDSNWell() { return gds_nwell_layer; }
-	public void setGDSNWell(int l) { gds_nwell_layer = l; }
-	public int getGDSContact() { return gds_contact_layer; }
-	public void setGDSContact(int l) { gds_contact_layer = l; }
-	public int [] getGDSMetal() { return gds_metal_layer; }
-	public void setGDSMetal(int met, int l) { gds_metal_layer[met] = l; }
-	public int [] getGDSVia() { return gds_via_layer; }
-	public void setGDSVia(int via, int l) { gds_via_layer[via] = l; }
-	public int getGDSMarking() { return gds_marking_layer; }
-	public void setGDSMarking(int l) { gds_marking_layer = l; }
+	int getGDSDiff() { return gds_diff_layer; }
+	void setGDSDiff(int l) { gds_diff_layer = l; }
+	int getGDSPoly() { return gds_poly_layer; }
+	void setGDSPoly(int l) { gds_poly_layer = l; }
+	int getGDSNPlus() { return gds_nplus_layer; }
+	void setGDSNPlus(int l) { gds_nplus_layer = l; }
+	int getGDSPPlus() { return gds_pplus_layer; }
+	void setGDSPPlus(int l) { gds_pplus_layer = l; }
+	int getGDSNWell() { return gds_nwell_layer; }
+	void setGDSNWell(int l) { gds_nwell_layer = l; }
+	int getGDSContact() { return gds_contact_layer; }
+	void setGDSContact(int l) { gds_contact_layer = l; }
+	int [] getGDSMetal() { return gds_metal_layer; }
+	void setGDSMetal(int met, int l) { gds_metal_layer[met] = l; }
+	int [] getGDSVia() { return gds_via_layer; }
+	void setGDSVia(int via, int l) { gds_via_layer[via] = l; }
+	int getGDSMarking() { return gds_marking_layer; }
+	void setGDSMarking(int l) { gds_marking_layer = l; }
 
-	public String errorInData()
+	private String errorInData()
 	{
 		// check the General data
 		if (tech_name == null || tech_name.length() == 0) return "General panel: No technology name";
@@ -432,7 +439,9 @@ public class TechEditWizardData
 					if (varName.equalsIgnoreCase("tech_name")) setTechName(stripQuotes(varValue)); else
 					if (varName.equalsIgnoreCase("tech_description")) setTechDescription(stripQuotes(varValue)); else
 					if (varName.equalsIgnoreCase("num_metal_layers")) setNumMetalLayers(TextUtils.atoi(varValue)); else
-					if (varName.equalsIgnoreCase("stepsize")) setStepSize(TextUtils.atoi(varValue)); else
+                    if (varName.equalsIgnoreCase("pwell_process")) setPWellProcess(Boolean.valueOf(varValue)); else
+                    if (varName.equalsIgnoreCase("horizontal_transistors")) setHorizontalTransistors(Boolean.valueOf(varValue)); else
+                    if (varName.equalsIgnoreCase("stepsize")) setStepSize(TextUtils.atoi(varValue)); else
 
 					if (varName.equalsIgnoreCase("diff_width")) diff_width.v = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("diff_width_rule")) diff_width.rule = stripQuotes(varValue); else
@@ -626,7 +635,7 @@ public class TechEditWizardData
 
 	/************************************** EXPORT RAW NUMBERS TO DISK **************************************/
 
-	public void exportData()
+	void exportData()
 	{
 		String fileName = OpenFile.chooseOutputFile(FileType.TEXT, "Technology Wizard File", "Technology.txt");
 		if (fileName == null) return;
@@ -651,6 +660,9 @@ public class TechEditWizardData
 		pw.println("$tech_name = \"" + tech_name + "\";");
 		pw.println("$tech_description = \"" + tech_description + "\";");
 		pw.println("$num_metal_layers = " + num_metal_layers + ";");
+		pw.println("$num_metal_layers = " + num_metal_layers + ";");
+		pw.println("$pwell_process = " + pWellFlag + ";");
+		pw.println("$horizontal_transistors = " + horizontalFlag + ";");
 		pw.println();
 		pw.println("## stepsize is minimum granularity that will be used as movement grid");
 		pw.println("## set to manufacturing grid or lowest common denominator with design rules");
@@ -860,7 +872,7 @@ public class TechEditWizardData
 
 	/************************************** WRITE XML FILE **************************************/
 
-	public void writeXML()
+	void writeXML()
 	{
 		String errorMessage = errorInData();
 		if (errorMessage != null)
@@ -1533,13 +1545,12 @@ public class TechEditWizardData
                 makeXmlMulticut(diffConLayer, contSize, contSpacing, contArraySpacing)); // contact
         
         /**************************** N/P-Diff Nodes/Arcs ***********************************************/
-    boolean pwellOn = User.isPWellProcessLayoutTechnology();
 
         // NDiff/PDiff arcs
         makeXmlArc(t.arcs, "N-Diff", ArcProto.Function.DIFFN, 0,
                 makeXmlArcLayer(diffNLayer, diff_width),
                 makeXmlArcLayer(nplusLayer, diff_width, nplus_overhang_diff),
-            (pwellOn)?makeXmlArcLayer(pwellLayer, diff_width, nwell_overhang_diff_p):null);
+            (pWellFlag)?makeXmlArcLayer(pwellLayer, diff_width, nwell_overhang_diff_p):null);
         makeXmlArc(t.arcs, "P-Diff", ArcProto.Function.DIFFP, 0,
                 makeXmlArcLayer(diffPLayer, diff_width),
                 makeXmlArcLayer(pplusLayer, diff_width, pplus_overhang_diff),
@@ -1551,13 +1562,13 @@ public class TechEditWizardData
         double psel = scaledValue(contact_size.v/2 + diff_contact_overhang.v + pplus_overhang_diff.v);
         double nwell = scaledValue(contact_size.v/2 + diff_contact_overhang.v + nwell_overhang_diff_p.v);
         double nso = scaledValue(nwell_overhang_diff_p.v); // valid for elements that have nwell layers
-        double pso = scaledValue(nplus_overhang_diff.v);
+        double pso = (pWellFlag)?nso:scaledValue(nplus_overhang_diff.v);
 
         makeXmlPrimitivePin(t.nodes, "N-Diff", hla,
             new SizeOffset(pso, pso, pso, pso),
             makeXmlNodeLayer(hla, hla, hla, hla, diffNLayer, Poly.Type.CROSSED, true),
             makeXmlNodeLayer(nsel, nsel, nsel, nsel, nplusLayer, Poly.Type.CROSSED, true),
-            (pwellOn)?makeXmlNodeLayer(nwell, nwell, nwell, nwell, pwellLayer, Poly.Type.CROSSED, true):null);
+            (pWellFlag)?makeXmlNodeLayer(nwell, nwell, nwell, nwell, pwellLayer, Poly.Type.CROSSED, true):null);
         makeXmlPrimitivePin(t.nodes, "P-Diff", hla,
             new SizeOffset(nso, nso, nso, nso),
             makeXmlNodeLayer(hla, hla, hla, hla, diffPLayer, Poly.Type.CROSSED, true),
@@ -1574,7 +1585,7 @@ public class TechEditWizardData
                 makeXmlNodeLayer(metal1Over, metal1Over, metal1Over, metal1Over, m1Layer, Poly.Type.FILLED, true), // meta1 layer
                 makeXmlNodeLayer(hla, hla, hla, hla, diffNLayer, Poly.Type.FILLED, true), // active layer
                 makeXmlNodeLayer(nsel, nsel, nsel, nsel, nplusLayer, Poly.Type.FILLED, true), // select layer
-            (pwellOn)?makeXmlNodeLayer(nwell, nwell, nwell, nwell, pwellLayer, Poly.Type.FILLED, true):null,
+            (pWellFlag)?makeXmlNodeLayer(nwell, nwell, nwell, nwell, pwellLayer, Poly.Type.FILLED, true):null,
                 makeXmlMulticut(diffConLayer, contSize, contSpacing, contArraySpacing)); // contact
         // pdiff contact
         portNames.clear();
@@ -1592,7 +1603,7 @@ public class TechEditWizardData
         nso = scaledValue(nwell_overhang_diff_n.v); // valid for elements that have nwell layers
 
         // NWell/PWell arcs
-        if (pwellOn)
+        if (pWellFlag)
         {
             makeXmlArc(t.arcs, "P-Well", ArcProto.Function.WELL, 0,
                 makeXmlArcLayer(pwellLayer, diff_width, nwell_overhang_diff_p));
@@ -1601,7 +1612,7 @@ public class TechEditWizardData
                 makeXmlArcLayer(nwellLayer, diff_width, nwell_overhang_diff_p));
 
         portNames.clear();
-        if (pwellOn)
+        if (pWellFlag)
             portNames.add(pwellLayer.name);
         portNames.add(m1Layer.name);
         // pwell contact
@@ -1609,7 +1620,7 @@ public class TechEditWizardData
                 makeXmlNodeLayer(metal1Over, metal1Over, metal1Over, metal1Over, m1Layer, Poly.Type.FILLED, true), // meta1 layer
                 makeXmlNodeLayer(hla, hla, hla, hla, diffPLayer, Poly.Type.FILLED, true), // active layer
                 makeXmlNodeLayer(nsel, psel, psel, psel, pplusLayer, Poly.Type.FILLED, true), // select layer
-            (pwellOn)?makeXmlNodeLayer(nwell, nwell, nwell, nwell, pwellLayer, Poly.Type.FILLED, true):null,
+            (pWellFlag)?makeXmlNodeLayer(nwell, nwell, nwell, nwell, pwellLayer, Poly.Type.FILLED, true):null,
                 makeXmlMulticut(diffConLayer, contSize, contSpacing, contArraySpacing)); // contact
         // nwell contact
         portNames.clear();
@@ -1654,19 +1665,19 @@ public class TechEditWizardData
                 makeXmlMulticut(via, viaSize, viaSpacing, viaArraySpacing)); // via
         }
 
+        /**************************** Transistors ***********************************************/
         /** Transistors **/
         // write the transistors
         List<Xml.NodeLayer> nodesList = new ArrayList<Xml.NodeLayer>();
         List<Xml.PrimitivePort> nodePorts = new ArrayList<Xml.PrimitivePort>();
-        EPoint minFullSize = null; //EPoint.fromLambda(0, 0);  // default zero
-		for(int i = 0; i < 2; i++)
+        EPoint minFullSize = null; //EPoint.fromLambda(0, 0);  // default zero    horizontalFlag
+
+        for(int i = 0; i < 2; i++)
         {
             String name;
             double selecty = 0, selectx = 0;
             Xml.Layer wellLayer = null, activeLayer, selectLayer;
             double sox = 0, soy = 0;
-            double width = scaledValue((gate_width.v));
-            double length = scaledValue((gate_length.v));
             double impx = scaledValue((gate_width.v)/2);
             double impy = scaledValue((gate_length.v+diff_poly_overhang.v*2)/2);
             double wellx = scaledValue((gate_width.v/2+nwell_overhang_diff_p.v));
@@ -1685,6 +1696,8 @@ public class TechEditWizardData
             } else
 			{
 				name = "N";
+                if (pWellFlag)
+                    wellLayer = pwellLayer;
                 activeLayer = diffNLayer;
                 selectLayer = nplusLayer;
                 sox = scaledValue(poly_endcap.v+pplus_overhang_poly.v);
@@ -1696,6 +1709,35 @@ public class TechEditWizardData
             nodePorts.clear();
             portNames.clear();
 
+            // Gate layer Electrical
+            double gatey = scaledValue(gate_length.v/2);
+            double gatex = impx;
+            // Poly layers
+            // left electrical
+            double endPolyx = scaledValue((gate_width.v+poly_endcap.v*2)/2);
+            double endPolyy = gatey;
+            double endLeftOrRight = -impx;   // for horizontal transistors. Default
+            double endTopOrBotton = endPolyy; // for horizontal transistors. Default
+            double diffX = 0, diffY = impy;
+            double xSign = 1, ySign = -1;
+            double polyX = endPolyx, polyY = 0;
+
+            if (!horizontalFlag) // swap the numbers to get vertical transistors
+            {
+                double tmp;
+                tmp = impx; impx = impy; impy = tmp;
+                tmp = wellx; wellx = welly; welly = tmp;
+                tmp = sox; sox = soy; soy = tmp;
+                tmp = selectx; selectx = selecty; selecty = tmp;
+                tmp = gatex; gatex = gatey; gatey = tmp;
+                tmp = endPolyx; endPolyx = endPolyy; endPolyy = tmp;
+                tmp = diffX; diffX = diffY; diffY = tmp;
+                tmp = polyX; polyX = polyY; polyY = tmp;
+                tmp = xSign; xSign = ySign; ySign = tmp;
+                endLeftOrRight = endPolyx;
+                endTopOrBotton = -impx;
+            }
+
             // Well layer
             if (wellLayer != null)
                 nodesList.add(makeXmlNodeLayer(wellx, wellx, welly, welly, wellLayer, Poly.Type.FILLED, true));
@@ -1705,29 +1747,30 @@ public class TechEditWizardData
             // top port
             portNames.clear();
             portNames.add(activeLayer.name);
-            nodePorts.add(makeXmlPrimitivePort("trans-diff-top", 90, 90, 0, minFullSize, 0, 0, impy, impy, portNames));
-            // right port
-            nodePorts.add(makeXmlPrimitivePort("trans-diff-bottom", 270, 90, 0, minFullSize, 0, 0, -impy, -impy, portNames));
+            nodePorts.add(makeXmlPrimitivePort("trans-diff-top", 90, 90, 0, minFullSize, diffX, diffX, diffY, diffY, portNames));
+            // bottom port
+            nodePorts.add(makeXmlPrimitivePort("trans-diff-bottom", 270, 90, 0, minFullSize, xSign*diffX, xSign*diffX,
+                ySign*diffY, ySign*diffY, portNames));
 
             // Gate layer Electrical
-            double gatey = scaledValue(gate_length.v/2);
-            nodesList.add(makeXmlNodeLayer(impx, impx, gatey, gatey, polyGateLayer, Poly.Type.FILLED, true));
+            nodesList.add(makeXmlNodeLayer(gatex, gatex, gatey, gatey, polyGateLayer, Poly.Type.FILLED, true));
 
             // Poly layers
             // left electrical
-            double endPoly = scaledValue((gate_width.v+poly_endcap.v*2)/2);
-            nodesList.add(makeXmlNodeLayer(endPoly, -impx, gatey, gatey, polyLayer, Poly.Type.FILLED, true));
+//            double endPoly = scaledValue((gate_width.v+poly_endcap.v*2)/2);
+            nodesList.add(makeXmlNodeLayer(endPolyx, endLeftOrRight, endPolyy, endTopOrBotton, polyLayer, Poly.Type.FILLED, true));
             // right electrical
-            nodesList.add(makeXmlNodeLayer(-impx, endPoly, gatey, gatey, polyLayer, Poly.Type.FILLED, true));
+            nodesList.add(makeXmlNodeLayer(endLeftOrRight, endPolyx, endTopOrBotton, endPolyy, polyLayer, Poly.Type.FILLED, true));
             // non-electrical poly (just one poly layer)
-            nodesList.add(makeXmlNodeLayer(endPoly, endPoly, gatey, gatey, polyLayer, Poly.Type.FILLED, false));
+            nodesList.add(makeXmlNodeLayer(endPolyx, endPolyx, endPolyy, endPolyy, polyLayer, Poly.Type.FILLED, false));
 
             // left port
             portNames.clear();
             portNames.add(polyLayer.name);
-            nodePorts.add(makeXmlPrimitivePort("trans-poly-left", 180, 90, 0, minFullSize, -endPoly, -endPoly, 0, 0, portNames));
+            nodePorts.add(makeXmlPrimitivePort("trans-poly-left", 180, 90, 0, minFullSize, ySign*polyX, ySign*polyX,
+                xSign*polyY, xSign*polyY, portNames));
             // right port
-            nodePorts.add(makeXmlPrimitivePort("trans-poly-right", 0, 180, 0, minFullSize, endPoly, endPoly, 0, 0, portNames));
+            nodePorts.add(makeXmlPrimitivePort("trans-poly-right", 0, 180, 0, minFullSize, polyX, polyX, polyY, polyY, portNames));
 
             // Select layer
             nodesList.add(makeXmlNodeLayer(selectx, selectx, selecty, selecty, selectLayer, Poly.Type.FILLED, true));

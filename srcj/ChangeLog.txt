@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08l: ******************************
 
+IMP/MAN: (11/2/08, GVG) Pwell process and gate orientation in Tech Creation Wizard (Bug #1933)
+
 IMP: (11/2/08, DN) Preferences related to Technology are moved to special Pref.Group.
 
 ************************* Version 8.08k: ******************************

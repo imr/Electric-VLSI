@@ -24,7 +24,6 @@
 package com.sun.electric.tool.user.tecEditWizard;
 
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.user.User;
 
 import javax.swing.JPanel;
 
@@ -57,9 +56,9 @@ public class General extends TechEditWizardPanel
 		techName.setText(data.getTechName());
 		description.setText(data.getTechDescription());
 
-        String extraText = (User.isPWellProcessLayoutTechnology())?"":"Non-";
-        jLabel13.setText("This is a '" + extraText + "PWell' process technology.");
-	}
+        pwellButton.setSelected(data.getPWellProcess());
+        horizontalButton.setSelected(data.getHorizontalTransistors());
+    }
 
 	/**
 	 * Method called when the "OK" panel is hit.
@@ -71,6 +70,8 @@ public class General extends TechEditWizardPanel
 		data.setStepSize(TextUtils.atoi(stepSize.getText()));
 		data.setTechName(techName.getText());
 		data.setTechDescription(description.getText());
+        data.setPWellProcess(pwellButton.isSelected());
+        data.setHorizontalTransistors(horizontalButton.isSelected());
     }
 
 	/** This method is called from within the constructor to
@@ -100,9 +101,8 @@ public class General extends TechEditWizardPanel
         jLabel12 = new javax.swing.JLabel();
         jLabel14 = new javax.swing.JLabel();
         jLabel15 = new javax.swing.JLabel();
-        jLabel13 = new javax.swing.JLabel();
-        jLabel16 = new javax.swing.JLabel();
-        jLabel17 = new javax.swing.JLabel();
+        pwellButton = new javax.swing.JRadioButton();
+        horizontalButton = new javax.swing.JRadioButton();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -266,38 +266,24 @@ public class General extends TechEditWizardPanel
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 0);
         general.add(jLabel15, gridBagConstraints);
 
-        jLabel13.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
-        jLabel13.setText("PWell process technology.");
+        pwellButton.setText("PWell process technology");
+        pwellButton.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        pwellButton.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 15;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 0, 0);
+        general.add(pwellButton, gridBagConstraints);
+
+        horizontalButton.setText("Horizontal transistors");
+        horizontalButton.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        horizontalButton.setMargin(new java.awt.Insets(0, 0, 0, 0));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 16;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(20, 4, 1, 0);
-        general.add(jLabel13, gridBagConstraints);
-
-        jLabel16.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
-        jLabel16.setText("Use Project settings, Technology tab");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 17;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 0);
-        general.add(jLabel16, gridBagConstraints);
-
-        jLabel17.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
-        jLabel17.setText("to turn the PWell process on/off.");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 18;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 0);
-        general.add(jLabel17, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 0, 0);
+        general.add(horizontalButton, gridBagConstraints);
 
         getContentPane().add(general, new java.awt.GridBagConstraints());
 
@@ -314,15 +300,13 @@ public class General extends TechEditWizardPanel
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTextField description;
     private javax.swing.JPanel general;
+    private javax.swing.JRadioButton horizontalButton;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel12;
-    private javax.swing.JLabel jLabel13;
     private javax.swing.JLabel jLabel14;
     private javax.swing.JLabel jLabel15;
-    private javax.swing.JLabel jLabel16;
-    private javax.swing.JLabel jLabel17;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
@@ -331,6 +315,7 @@ public class General extends TechEditWizardPanel
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
+    private javax.swing.JRadioButton pwellButton;
     private javax.swing.JTextField stepSize;
     private javax.swing.JTextField techName;
     // End of variables declaration//GEN-END:variables
