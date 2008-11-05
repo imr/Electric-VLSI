@@ -32,6 +32,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.topology.*;
 import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.ArcProto;
@@ -115,6 +116,8 @@ public class FillJob extends Job
 
                 if (bottomName == null) continue; // nothing to export
 
+                List<PinsArcPair> pairs = new ArrayList<PinsArcPair>();
+
                 for(Iterator<RTBounds> it = topCell.searchIterator(bounds); it.hasNext(); )
                 {
                     Geometric nGeom = (Geometric)it.next();
@@ -138,10 +141,29 @@ public class FillJob extends Job
                     topA.intersect(bottomA);
                     Rectangle2D resultBnd = topA.getBounds2D();
                     EPoint insert = new EPoint(resultBnd.getCenterX(), resultBnd.getCenterY());
-                    NodeInst bottomPin = insertJogInArc(ai, insert);
-                    NodeInst topPin = insertJogInArc(nai, insert);
+                    pairs.add(new PinsArcPair(nai, insert));
 
-                    Route r = router.planRoute(topCell,  bottomPin, topPin, insert, null, true, true);
+//                    NodeInst bottomPin = splitArcAtPoint(ai, insert);
+//                    NodeInst topPin = splitArcAtPoint(nai, insert);
+//
+//                    Route r = router.planRoute(topCell,  bottomPin, topPin, insert, null, true, true);
+//                    Router.createRouteNoJob(r, topCell, false, arcsCreatedMap, nodesCreatedMap);
+                }
+
+                Collections.sort(pairs, pinsArcSort);
+                ArcInst mostLeft = ai;
+                List<Route> routeList = new ArrayList<Route>();
+                for (PinsArcPair pair : pairs)
+                {
+                    SplitContainter bottomSplit = splitArcAtPoint(mostLeft, pair.insert);
+                    SplitContainter topSplit = splitArcAtPoint(pair.topArc, pair.insert);
+                    Route r = router.planRoute(topCell,  bottomSplit.splitPin, topSplit.splitPin, pair.insert, null, true, true);
+//                    Router.createRouteNoJob(r, topCell, false, arcsCreatedMap, nodesCreatedMap);
+                    mostLeft = bottomSplit.rightArc;
+                    routeList.add(r);
+                }
+                for (Route r : routeList)
+                {
                     Router.createRouteNoJob(r, topCell, false, arcsCreatedMap, nodesCreatedMap);
                 }
             }
@@ -149,6 +171,11 @@ public class FillJob extends Job
         return true;
     }
 
+    /**
+     * Methot to extrac root name of the export in a given arc
+     * @param ai arc with the export
+     * @return Non-null string with the root name. Null if no export was found.
+     */
     private String getExportRootName(ArcInst ai)
     {
         // Picking only 1 export and considering the root name`
@@ -170,7 +197,13 @@ public class FillJob extends Job
         return rootName;
     }
 
-    private NodeInst insertJogInArc(ArcInst ai, EPoint insert)
+    /**
+     * Method to split an arc at a given point
+     * @param ai arc to split
+     * @param insert point to split at
+     * @return SplitContainter representing the split pin and new arcs
+     */
+    SplitContainter splitArcAtPoint(ArcInst ai, EPoint insert)
     {
         // create the break pins
         ArcProto ap = ai.getProto();
@@ -183,6 +216,8 @@ public class FillJob extends Job
             return null;
         }
 
+        SplitContainter container = new SplitContainter();
+        container.splitPin = ni;
 
         // get location of connection to these pins
         PortInst pi = ni.getOnlyPortInst();
@@ -193,7 +228,7 @@ public class FillJob extends Job
         Point2D headPt = ai.getHeadLocation();
         Point2D tailPt = ai.getTailLocation();
         double width = ai.getLambdaBaseWidth();
-        String arcName = ai.getName();
+//        String arcName = ai.getName();
 
         // create the new arcs
         ArcInst newAi1 = ArcInst.makeInstanceBase(ap, width, headPort, pi, headPt, insert, null);
@@ -204,26 +239,102 @@ public class FillJob extends Job
         newAi1.setTailNegated(ai.isTailNegated());
         newAi1.setTailExtended(ai.isTailExtended());
         newAi1.setTailArrowed(ai.isTailArrowed());
-        
+
         newAi2.setHeadNegated(ai.isHeadNegated());
         newAi2.setHeadExtended(ai.isHeadExtended());
         newAi2.setHeadArrowed(ai.isHeadArrowed());
         newAi2.setTailNegated(ai.isTailNegated());
         newAi2.setTailExtended(ai.isTailExtended());
         newAi2.setTailArrowed(ai.isTailArrowed());
-        ai.kill();
-        if (arcName != null)
+
+        // Determining which arc is left/top
+        if (isLeftTop(headPt, tailPt))
         {
-            if (headPt.distance(insert) > tailPt.distance(insert))
-            {
-                newAi1.setName(arcName);
-                newAi1.copyTextDescriptorFrom(ai, ArcInst.ARC_NAME);
-            } else
-            {
-                newAi2.setName(arcName);
-                newAi2.copyTextDescriptorFrom(ai, ArcInst.ARC_NAME);
-            }
+            container.leftArc = newAi1;
+            container.rightArc = newAi2;
         }
-        return ni;
+        else
+        {
+            container.leftArc = newAi2;
+            container.rightArc = newAi1;
+        }
+        ai.kill();
+//        if (arcName != null)
+//        {
+//            if (headPt.distance(insert) > tailPt.distance(insert))
+//            {
+//                newAi1.setName(arcName);
+//                newAi1.copyTextDescriptorFrom(ai, ArcInst.ARC_NAME);
+//            } else
+//            {
+//                newAi2.setName(arcName);
+//                newAi2.copyTextDescriptorFrom(ai, ArcInst.ARC_NAME);
+//            }
+//        }
+        return container;
     }
+
+    /**
+     * Internal class to keep potential connections
+     */
+    private class PinsArcPair
+    {
+        private ArcInst topArc;
+        private EPoint insert;
+
+        PinsArcPair(ArcInst topA, EPoint point)
+        {
+            topArc = topA;
+            insert = point;
+        }
+    }
+
+    private static boolean isLeftTop(Point2D p1, Point2D p2)
+    {
+        if (DBMath.areEquals(p1.getX(), p2.getX()))
+        {
+            return (!DBMath.isGreaterThan(p1.getY(), p2.getY()));
+        }
+        else if (DBMath.areEquals(p1.getY(), p2.getY()))
+        {
+            return (!DBMath.isGreaterThan(p1.getX(), p2.getX()));
+        }
+        else
+            assert(false); // not considered yet
+        return false;
+    }
+
+    /**
+     * Class to store temp info
+     */
+    class SplitContainter
+    {
+        NodeInst splitPin;
+        ArcInst leftArc, rightArc; // to keep track of new arcs after the original one was split
+    }
+
+    /**
+     * To sort PinsArcPair
+     */
+    private static final PinsArcPairSort pinsArcSort = new PinsArcPairSort();
+
+    /**
+     * Comparator class for sorting PinsArcPair by their insertion point
+     */
+    private static class PinsArcPairSort implements Comparator<PinsArcPair>
+    {
+        /**
+         * Method to compare two PinsArcPair objects by their insertion point.
+         * @param l1 one PinsArcPair.
+         * @param l2 another PinsArcPair.
+         * @return an integer indicating their sorting order.
+         */
+        public int compare(PinsArcPair l1, PinsArcPair l2)
+        {
+            EPoint p1 = l1.insert;
+            EPoint p2 = l2.insert;
+            return (isLeftTop(p2, p1)?1:-1);
+        }
+    }
+
 }
