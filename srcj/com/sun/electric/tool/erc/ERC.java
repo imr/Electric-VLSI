@@ -231,7 +231,8 @@ public class ERC extends Tool
 			double factory = ERCAntenna.DEFPOLYRATIO;
 			if (ap.getFunction().isMetal()) factory = ERCAntenna.DEFMETALRATIO;
             Technology tech = ap.getTechnology();
-			pref = Pref.makeDoublePref("DefaultAntennaRatioFor" + ap.getName() + "IN" + tech.getTechName(), tech.getTechnologyErcPreferences(), factory);
+			pref = Pref.makeDoublePref("DefaultAntennaRatioFor" + ap.getName() + "IN" + tech.getTechName(),
+                    tech.getTechnologyPreferences(), factory);
 			defaultAntennaRatioPrefs.put(ap, pref);
 		}
 		return pref;

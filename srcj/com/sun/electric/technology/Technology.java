@@ -1017,7 +1017,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	/** number of transparent layers in technology */		private int transparentLayers;
 	/** preferences group for this technology */            private final Pref.Group prefs;
     /** User preferences group for this tecnology */        private final Pref.Group userPrefs;
-    /** Erc preferences group for this technology */        private final Pref.Group ercPrefs;
+//    /** Erc preferences group for this technology */        private final Pref.Group ercPrefs;
 	/** the saved transparent colors for this technology */	private Pref [] transparentColorPrefs;
 	/** the color map for this technology */				private Color [] colorMap;
 	/** list of layers in this technology */				private final List<Layer> layers = new ArrayList<Layer>();
@@ -1104,7 +1104,7 @@ public class Technology implements Comparable<Technology>, Serializable
 		userBits = 0;
 		prefs = Pref.groupForPackage(Generic.class, true);
         userPrefs = Pref.groupForPackage(User.class, true);
-        ercPrefs = Pref.groupForPackage(ERC.class, true);
+//        ercPrefs = Pref.groupForPackage(ERC.class, true);
         cacheFoundry = makeStringSetting("SelectedFoundryFor"+techName,
         	"Technology tab", techName + " foundry", "Foundry", defaultFoundry.getName().toUpperCase());
         cacheNumMetalLayers = makeIntSetting(techName + "NumberOfMetalLayers",
@@ -4668,7 +4668,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	 * the technologies (they are all in the same package).
 	 * @return the Pref object associated with all Technologies.
 	 */
-	public Pref.Group getTechnologyErcPreferences() { return ercPrefs; }
+//	public Pref.Group getTechnologyErcPreferences() { return ercPrefs; }
 
 	/**
 	 * Method to return the Pref object associated with all Technologies.
@@ -4678,7 +4678,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	 * @return the Pref object associated with all Technologies.
 	 */
 	public Pref.Group[] getTechnologyAllPreferences() {
-        return new Pref.Group[] {prefs, userPrefs, ercPrefs};
+        return new Pref.Group[] {prefs, userPrefs}; //, ercPrefs};
     }
 
 	/**
