@@ -913,6 +913,7 @@ public class CircuitChangeJobs
 		private List<DisplayedText> highlightedText;
 		private List<Geometric> highlighted;
 		private boolean reconstructArcsAndExports;
+		private List<Geometric> thingsToHighlight;
 
 		public DeleteSelected(Cell cell, List<DisplayedText> highlightedText, List<Geometric> highlighted, boolean reconstructArcsAndExports)
 		{
@@ -973,17 +974,43 @@ public class CircuitChangeJobs
 				}
 			}
 			if (cell != null)
-				eraseObjectsInList(cell, highlighted, reconstructArcsAndExports);
+			{
+				thingsToHighlight = new ArrayList<Geometric>();
+				Set<ElectricObject> stuffToHighlight = new HashSet<ElectricObject>();
+				eraseObjectsInList(cell, highlighted, reconstructArcsAndExports, stuffToHighlight);
+				for(ElectricObject eObj : stuffToHighlight)
+				{
+					if (eObj instanceof ArcInst)
+					{
+						ArcInst ai = (ArcInst)eObj;
+						thingsToHighlight.add(ai);
+					} else if (eObj instanceof Export)
+					{
+						Export e = (Export)eObj;
+						thingsToHighlight.add(e.getOriginalPort().getNodeInst());
+					}
+				}
+				fieldVariableChanged("thingsToHighlight");
+			}
 
-			// remove highlighting
+			return true;
+		}
+
+		public void terminateOK()
+		{
+			// remove highlighting, show only reconstructed objects
 			UserInterface ui = Job.getUserInterface();
 			EditWindow_ wnd = ui.getCurrentEditWindow_();
 			if (wnd != null)
 			{
 				wnd.clearHighlighting();
+				if (thingsToHighlight != null)
+				{
+					for(Geometric geom: thingsToHighlight)
+						wnd.addElectricObject(geom, cell);
+				}
 				wnd.finishedHighlighting();
 			}
-			return true;
 		}
 	}
 
@@ -1242,8 +1269,10 @@ public class CircuitChangeJobs
 	 * @param cell the cell with the objects to be deleted.
 	 * @param list a List of Geometric or Highlight objects to be deleted.
 	 * @param reconstructArcsAndExports true to reconstruct arcs to deleted cell instances.
+	 * @param stuffToHighlight a set of objects to select (arcs and exports) if reconstruction is done.
 	 */
-	public static void eraseObjectsInList(Cell cell, List<Geometric> list, boolean reconstructArcsAndExports)
+	public static void eraseObjectsInList(Cell cell, List<Geometric> list, boolean reconstructArcsAndExports,
+		Set<ElectricObject> stuffToHighlight)
 	{
 		// make sets of all of the arcs and nodes explicitly selected for deletion
 		Set<ArcInst> arcsToDelete = new HashSet<ArcInst>();
@@ -1323,6 +1352,7 @@ public class CircuitChangeJobs
 					pi = eNi.findPortInstFromProto(subPP);
 					reassigned.put(e.getOriginalPort(), pi);
 					e.move(pi);
+					if (stuffToHighlight != null) stuffToHighlight.add(e);
 				}
 
 				// reconstruct each connection to a deleted cell instance
@@ -1354,8 +1384,9 @@ public class CircuitChangeJobs
 						alreadyPI = pin.getOnlyPortInst();
 						reassigned.put(thisPi, alreadyPI);
 					}
-					ArcInst.makeInstanceBase(ai.getProto(), ai.getLambdaBaseWidth(), otherPi, alreadyPI,
+					ArcInst newAI = ArcInst.makeInstanceBase(ai.getProto(), ai.getLambdaBaseWidth(), otherPi, alreadyPI,
 						ai.getConnection(otherEnd).getLocation(), con.getLocation(), ai.getName());
+					if (stuffToHighlight != null) stuffToHighlight.add(newAI);
 				}
 			}
 		}

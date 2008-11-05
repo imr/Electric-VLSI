@@ -4419,7 +4419,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		}
         if (repair && list.size() > 0)
         {
-        	CircuitChangeJobs.eraseObjectsInList(this, list, false);
+        	CircuitChangeJobs.eraseObjectsInList(this, list, false, null);
         }
 
         if (isSchematic() && getNewestVersion() == this && getCellGroup().getMainSchematics() != this) {

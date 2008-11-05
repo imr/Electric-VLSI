@@ -36,7 +36,9 @@ import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.DisplayedText;
+import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
@@ -425,6 +427,7 @@ public class Clipboard
 		private boolean reconstructArcsAndExports;
 		private AffineTransform inPlace;
 		private Orientation inPlaceOrient;
+		private List<Geometric> thingsToHighlight;
 
 		protected CutObjects(Cell cell, List<Geometric> geomList, List<DisplayedText> textList, double alignment,
 			boolean reconstructArcsAndExports, AffineTransform inPlace, Orientation inPlaceOrient)
@@ -461,7 +464,22 @@ public class Clipboard
 			copyListToClipboard(geomList, textList,	alignment, inPlace, inPlaceOrient);
 
 			// and delete the original objects
-			CircuitChangeJobs.eraseObjectsInList(cell, geomList, reconstructArcsAndExports);
+			Set<ElectricObject> stuffToHighlight = new HashSet<ElectricObject>();
+			CircuitChangeJobs.eraseObjectsInList(cell, geomList, reconstructArcsAndExports, stuffToHighlight);
+			thingsToHighlight = new ArrayList<Geometric>();
+			for(ElectricObject eObj : stuffToHighlight)
+			{
+				if (eObj instanceof ArcInst)
+				{
+					ArcInst ai = (ArcInst)eObj;
+					thingsToHighlight.add(ai);
+				} else if (eObj instanceof Export)
+				{
+					Export e = (Export)eObj;
+					thingsToHighlight.add(e.getOriginalPort().getNodeInst());
+				}
+			}
+			fieldVariableChanged("thingsToHighlight");
 
 			// kill exports and variables on cells
 			for(DisplayedText dt : textList)
@@ -499,24 +517,24 @@ public class Clipboard
                     }
 				}
 			}
-//			for(DisplayedText dt : textList)
-//			{
-//				ElectricObject owner = dt.getElectricObject();
-//				if (owner instanceof Cell)
-//				{
-//					Cell cell = (Cell)owner;
-//					Variable.Key key = dt.getVariableKey();
-//					if (cell.isParam(key))
-//						cell.getCellGroup().delParam((Variable.AttrKey)key);
-//					else
-//						cell.delVar(key);
-//				} else if (dt.getVariableKey() == Export.EXPORT_NAME)
-//				{
-//					Export e = (Export)owner;
-//					e.kill();
-//				}
-//			}
 			return true;
+		}
+
+		public void terminateOK()
+		{
+			// remove highlighting, show only reconstructed objects
+			UserInterface ui = Job.getUserInterface();
+			EditWindow_ wnd = ui.getCurrentEditWindow_();
+			if (wnd != null)
+			{
+				wnd.clearHighlighting();
+				if (thingsToHighlight != null)
+				{
+					for(Geometric geom: thingsToHighlight)
+						wnd.addElectricObject(geom, cell);
+				}
+				wnd.finishedHighlighting();
+			}
 		}
 	}
 
