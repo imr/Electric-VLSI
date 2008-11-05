@@ -26,6 +26,12 @@ any isolated pins are also erased.</LI>
 then the export disappears and so do all arcs connected to the port on instances of the current cell
 (for more information on hierarchy, see <A HREF="chap03-01.html#chap03-01">Chapter 3</A>).</LI>
 </UL>
+The exception to these rules is the Nodes Preference "Reconstruct arcs and exports when deleting instances"
+(see <A HREF="chap06-02.html#chap06-02">Section 6-2</A>)
+which requests that when a cell instance is deleted, and it has arcs connected to it or exports from it,
+these arcs and exports will be "reconstructed" so that they continue to exist.
+Reconstruction consists of creating pins where the cell instance ports used to be so that the arcs and
+exports can continue to exist.
 </TD><TD><CENTER><IMG SRC="fig02-06.png" ALT="Figure 2.6"></CENTER></TD></TR></TABLE>
 <P>
 <TABLE><TR><TD><CENTER><IMG SRC="fig03-14.png" ALT="Figure 3.14"></CENTER></TD><TD>
