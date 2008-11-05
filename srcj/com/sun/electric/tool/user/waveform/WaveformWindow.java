@@ -2818,6 +2818,11 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				Signal sSig = an.findSignalForNetworkQuickly(netName);
 				if (sSig == null)
 				{
+					// try prepending the cell name to the signal name
+					sSig = an.findSignalForNetworkQuickly(net.getParent().getName() + "." + netName);
+				}
+				if (sSig == null)
+				{
 					// when cross-probing extracted layout, hierarchy delimiter is '/' instead of '.'
 					String temp = getSpiceNetName(context, net, true);
 					sSig = an.findSignalForNetworkQuickly(temp);
@@ -3057,7 +3062,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			if (nodeInfo != null && nodeInfo instanceof Signal)
 			{
 				Signal sig = (Signal)nodeInfo;
-				if (sig.getSignalContext() == null || sig.getSignalContext().equals(contextStr))
+				if (sig.getSignalContext() == null || sig.getSignalContext().equals(contextStr) ||
+					(contextStr.length() == 0 && sig.getSignalContext().equalsIgnoreCase(cell.getName())))
 				{
 					String desired = sig.getSignalName();
 					Network net = findNetwork(netlist, desired);
