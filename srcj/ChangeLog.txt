@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08l: ******************************
 
+IMP: (8/27/08, SMR) Changed the default grid amounts to 0.5, 1, 5, 10, and 20 (Bug #1801).
+
 BUG: (11/5/08, SMR) Spice templates do not handle single elements in a bus (Bug #1938).
 FIX: In Spice.replacePortsAndVars(), handle bus elements.
 

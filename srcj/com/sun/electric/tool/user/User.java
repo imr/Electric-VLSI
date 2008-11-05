@@ -1738,7 +1738,7 @@ public class User extends Listener
 		assert(false); // should never reach this point.
 		return -1;
 	}
-	private static Pref cacheAlignmentToGridVector = Pref.makeStringPref("AlignmentToGridVector", tool.prefs, "(4 2 -1 0.5 0.25)");
+	private static Pref cacheAlignmentToGridVector = Pref.makeStringPref("AlignmentToGridVector", tool.prefs, "(20 10 5 -1 0.5)");
 	/**
 	 * Method to return an array of five grid alignment values.
 	 * If a value is negative, it is the current grid alignment to use.
