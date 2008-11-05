@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.erc.ERC;
 
 import javax.swing.JPanel;
@@ -70,6 +71,7 @@ public class WellCheckTab extends PreferencePanel
 		wellFindFarthestDistance.setSelected(ERC.isFindWorstCaseWell());
 		drcCheck.setSelected(ERC.isDRCCheck());
 		multiProc.setSelected(ERC.isParallelWellAnalysis());
+		numProcs.setText(Integer.toString(ERC.getWellAnalysisNumProc()));
 	}
 
 	/**
@@ -109,6 +111,10 @@ public class WellCheckTab extends PreferencePanel
 		check = multiProc.isSelected();
 		if (check != ERC.isParallelWellAnalysis())
 			ERC.setParallelWellAnalysis(check);
+
+		int numProc = TextUtils.atoi(numProcs.getText());
+		if (numProc != ERC.getWellAnalysisNumProc())
+			ERC.setWellAnalysisNumProc(numProc);
 	}
 
 	/**
@@ -130,6 +136,8 @@ public class WellCheckTab extends PreferencePanel
 			ERC.setDRCCheck(ERC.isFactoryDRCCheck());
 		if (ERC.isFactoryParallelWellAnalysis() != ERC.isParallelWellAnalysis())
 			ERC.setParallelWellAnalysis(ERC.isFactoryParallelWellAnalysis());
+		if (ERC.getFactoryWellAnalysisNumProc() != ERC.getWellAnalysisNumProc())
+			ERC.setWellAnalysisNumProc(ERC.getFactoryWellAnalysisNumProc());
 	}
 
 	/** This method is called from within the constructor to
@@ -144,7 +152,6 @@ public class WellCheckTab extends PreferencePanel
         wellCheckPWell = new javax.swing.ButtonGroup();
         wellCheckNWell = new javax.swing.ButtonGroup();
         wellCheck = new javax.swing.JPanel();
-        wellFindFarthestDistance = new javax.swing.JCheckBox();
         jPanel1 = new javax.swing.JPanel();
         wellPMustConnectGround = new javax.swing.JCheckBox();
         jPanel3 = new javax.swing.JPanel();
@@ -157,8 +164,12 @@ public class WellCheckTab extends PreferencePanel
         wellNMustHaveAllContacts = new javax.swing.JRadioButton();
         wellNMustHave1Contact = new javax.swing.JRadioButton();
         wellNNoContactCheck = new javax.swing.JRadioButton();
+        jPanel5 = new javax.swing.JPanel();
         drcCheck = new javax.swing.JCheckBox();
         multiProc = new javax.swing.JCheckBox();
+        numProcs = new javax.swing.JTextField();
+        wellFindFarthestDistance = new javax.swing.JCheckBox();
+        jLabel1 = new javax.swing.JLabel();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -171,15 +182,6 @@ public class WellCheckTab extends PreferencePanel
         });
 
         wellCheck.setLayout(new java.awt.GridBagLayout());
-
-        wellFindFarthestDistance.setText("Find farthest distance from contact to edge");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        wellCheck.add(wellFindFarthestDistance, gridBagConstraints);
 
         jPanel1.setLayout(new java.awt.GridBagLayout());
 
@@ -224,7 +226,10 @@ public class WellCheckTab extends PreferencePanel
 
         jPanel1.add(jPanel3, new java.awt.GridBagConstraints());
 
-        wellCheck.add(jPanel1, new java.awt.GridBagConstraints());
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        wellCheck.add(jPanel1, gridBagConstraints);
         jPanel1.getAccessibleContext().setAccessibleDescription("");
 
         jPanel2.setLayout(new java.awt.GridBagLayout());
@@ -270,25 +275,60 @@ public class WellCheckTab extends PreferencePanel
 
         jPanel2.add(jPanel4, new java.awt.GridBagConstraints());
 
-        wellCheck.add(jPanel2, new java.awt.GridBagConstraints());
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        wellCheck.add(jPanel2, gridBagConstraints);
+
+        jPanel5.setLayout(new java.awt.GridBagLayout());
 
         drcCheck.setText("Check DRC Spacing Rules for Wells");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        wellCheck.add(drcCheck, gridBagConstraints);
+        jPanel5.add(drcCheck, gridBagConstraints);
 
-        multiProc.setText("Use multiple processors");
+        multiProc.setText("Use multiple processors, maximum:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 7;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 1);
+        jPanel5.add(multiProc, gridBagConstraints);
+
+        numProcs.setColumns(6);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 1, 4, 1);
+        jPanel5.add(numProcs, gridBagConstraints);
+
+        wellFindFarthestDistance.setText("Find farthest distance from contact to edge");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        wellCheck.add(multiProc, gridBagConstraints);
+        jPanel5.add(wellFindFarthestDistance, gridBagConstraints);
+
+        jLabel1.setText("(0 to use all)");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 1, 4, 4);
+        jPanel5.add(jLabel1, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        wellCheck.add(jPanel5, gridBagConstraints);
 
         getContentPane().add(wellCheck, new java.awt.GridBagConstraints());
 
@@ -304,11 +344,14 @@ public class WellCheckTab extends PreferencePanel
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JCheckBox drcCheck;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
+    private javax.swing.JPanel jPanel5;
     private javax.swing.JCheckBox multiProc;
+    private javax.swing.JTextField numProcs;
     private javax.swing.JPanel wellCheck;
     private javax.swing.ButtonGroup wellCheckNWell;
     private javax.swing.ButtonGroup wellCheckPWell;

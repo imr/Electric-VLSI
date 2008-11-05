@@ -338,6 +338,8 @@ public class ERCWellCheck
 		if (ERC.isParallelWellAnalysis()) numberOfProcessors = Runtime.getRuntime().availableProcessors();
 		if (numberOfProcessors <= 1) spreadSeeds(); else
 		{
+			int maxProc = ERC.getWellAnalysisNumProc();
+			if (maxProc > 0 && maxProc < numberOfProcessors) numberOfProcessors = maxProc;
 			Semaphore outSem = new Semaphore(0);
 			for(int i=0; i<numberOfProcessors; i++)
 				new SpreadInThread("WellCheck propagate #" + (i+1), outSem);

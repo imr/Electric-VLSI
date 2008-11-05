@@ -133,6 +133,24 @@ public class ERC extends Tool
 	 */
 	public static boolean isFactoryParallelWellAnalysis() { return cacheParallelWellAnalysis.getBooleanFactoryValue(); }
 
+	private static Pref cacheWellAnalysisNumProc = Pref.makeIntPref("WellAnalysisNumProc", ERC.tool.prefs, 0);
+	/**
+	 * Method to tell the number of processors to use in ERC well analysis.
+	 * The default is "0" (as many as there are).
+	 * @return the number of processors to use in ERC well analysis.
+	 */
+	public static int getWellAnalysisNumProc() { return cacheWellAnalysisNumProc.getInt(); }
+	/**
+	 * Method to set the number of processors to use in ERC well analysis.
+	 * @param p the number of processors to use in ERC well analysis.
+	 */
+	public static void setWellAnalysisNumProc(int p) { cacheWellAnalysisNumProc.setInt(p); }
+	/**
+	 * Method to tell the number of processors to use in ERC well analysis, by default.
+	 * @return the number of processors to use in ERC well analysis, by default.
+	 */
+	public static int getFactoryWellAnalysisNumProc() { return cacheWellAnalysisNumProc.getIntFactoryValue(); }
+
 	private static Pref cacheNWellCheck = Pref.makeIntPref("NWellCheck", ERC.tool.prefs, 0);
 	/**
 	 * Method to tell how much N-Well contact checking the ERC should do.
