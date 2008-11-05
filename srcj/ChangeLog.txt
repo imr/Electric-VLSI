@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08l: ******************************
 
+IMP: (11/5/08, GVG) First version of new fill generator.
+
 IMP: (11/5/08, SMR) When deleting a cell instance and reconstructing arcs and
      exports, those reconstructed objects are left highlighted (Bug #1936).
 
