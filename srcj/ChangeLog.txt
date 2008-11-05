@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08l: ******************************
 
+BUG: (11/5/08, SMR) Now that Electric is case-sensitive, Spice decks
+     may have name conflicts, since Spice is case insensitive (Bug #1811).
+FIX: Topology.java now handles case insensitivity for Spice.
+
 BUG: (11/5/08, SMR) Factory reset of layers panel doesn't reset special colors (Bug #1744).
 FIX: Fixed LayersTab.reset() to reset special colors.
 

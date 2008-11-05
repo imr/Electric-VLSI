@@ -2098,6 +2098,9 @@ public class Spice extends Topology
 	/** Method to report whether input and output names are separated. */
 	protected boolean isSeparateInputAndOutput() { return false; }
 
+	/** Abstract method to decide whether netlister is case-sensitive (Verilog) or not (Spice). */
+	protected boolean isCaseSensitive() { return false; }
+
     /**
 	 * Method to adjust a network name to be safe for Spice output.
 	 * Spice has a list of legal punctuation characters that it allows.

@@ -1638,6 +1638,9 @@ public class Verilog extends Topology
 	/** Method to report whether input and output names are separated. */
 	protected boolean isSeparateInputAndOutput() { return true; }
 
+	/** Abstract method to decide whether netlister is case-sensitive (Verilog) or not (Spice). */
+	protected boolean isCaseSensitive() { return true; }
+
 	/**
 	 * Method to adjust a network name to be safe for Verilog output.
 	 * Verilog does permit a digit in the first location; prepend a "_" if found.

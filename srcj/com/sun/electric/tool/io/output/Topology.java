@@ -154,6 +154,9 @@ public abstract class Topology extends Output
 	/** Abstract method to decide whether aggregate names (busses) are used. */
 	protected abstract boolean isSeparateInputAndOutput();
 
+	/** Abstract method to decide whether netlister is case-sensitive (Verilog) or not (Spice). */
+	protected abstract boolean isCaseSensitive();
+
 	/**
 	 * If the netlister has requirments not to netlist certain cells and their
 	 * subcells, override this method.
@@ -1123,10 +1126,11 @@ public abstract class Topology extends Output
 		}
 
 		private List<Cell> getConflictList(String cellname) {
-			List<Cell> conflictList = cellNameMapReverse.get(cellname.toLowerCase());
+			String properCellName = topology.isCaseSensitive() ? cellname : cellname.toLowerCase();
+			List<Cell> conflictList = cellNameMapReverse.get(properCellName);
 			if (conflictList == null) {
 				conflictList = new ArrayList<Cell>();
-				cellNameMapReverse.put(cellname.toLowerCase(), conflictList);
+				cellNameMapReverse.put(properCellName, conflictList);
 			}
 			return conflictList;
 		}
@@ -1135,10 +1139,11 @@ public abstract class Topology extends Output
 			Cell cell = info.getCell();
 			if (cell == topCell) {
 				// resolve conflicts
-				if (!alwaysUseLibName)
-					resolveConflicts(1);
-				resolveConflicts(2);
-				resolveConflicts(3);
+				resolveConflicts();
+//				if (!alwaysUseLibName)
+//					resolveConflicts(1);
+//				resolveConflicts(2);
+//				resolveConflicts(3);
 			}
 		}
 
@@ -1181,50 +1186,132 @@ public abstract class Topology extends Output
 			return true;
 		}
 
-		private String getDefaultName(Cell cell) {
+		private String getDefaultName(Cell cell)
+		{
 			if (alwaysUseLibName && !SCLibraryGen.isStandardCell(cell))
 				return cell.getLibrary().getName() + "__" + cell.getName();
 			return cell.getName();
 		}
 
-		private void resolveConflicts(int whichPass) {
+		private void resolveConflicts()
+		{
 			List<List<Cell>> conflictLists = new ArrayList<List<Cell>>();
-			for (List<Cell> conflictList : cellNameMapReverse.values()) {
+			for (List<Cell> conflictList : cellNameMapReverse.values())
+			{
 				if (conflictList.size() <= 1) continue; // no conflict
 				conflictLists.add(conflictList);
 			}
-			for (List<Cell> conflictList : conflictLists) {
-				// on pass 1, only cell names. If any conflicts, prepend libname
-				if (whichPass == 1) {
-					// replace name with lib + name
-					for (Cell cell : conflictList) {
-						String name = cell.getLibrary().getName() + "__" + cell.getName();
-						cellNameMap.put(cell, name);
-						getConflictList(name).add(cell);
+			for (List<Cell> conflictList : conflictLists)
+			{
+				// see if cells in the same library have a case conflict
+				if (!topology.isCaseSensitive())
+				{
+					for(int i=0; i<conflictList.size()-1; i++)
+					{
+						Cell cellI = conflictList.get(i);
+						String cellIName = cellNameMap.get(cellI);
+						for(int j=i+1; j<conflictList.size(); j++)
+						{
+							Cell cellJ = conflictList.get(j);
+							if (cellI.getLibrary() != cellJ.getLibrary()) continue;
+							String cellJName = cellNameMap.get(cellJ);
+							if (cellIName.equalsIgnoreCase(cellJName) && !cellIName.equals(cellJName))
+							{
+								// two cells with same name, just case differences
+								for(int append=1; append<1000; append++)
+								{
+									String newTestName = cellJName.toLowerCase() + "_" + append;
+									if (cellNameMapReverse.get(newTestName) != null) continue;
+									cellNameMap.put(cellJ, newTestName);
+									getConflictList(newTestName).add(cellJ);
+									conflictList.remove(j);
+									j--;
+									break;
+								}
+							}
+						}
 					}
-					conflictList.clear();
+					if (conflictList.size() <= 1) continue;
 				}
-				if (whichPass == 2) {
-					// lib + name conflicts, append view
-					for (Cell cell : conflictList) {
-						String name = cell.getLibrary().getName() + "__" + cell.getName() + "__" + cell.getView().getAbbreviation();
-						cellNameMap.put(cell, name);
-						getConflictList(name).add(cell);
+
+				// if not using library names, resolve conflicts by using them
+				if (!alwaysUseLibName)
+				{
+					for(int i=0; i<conflictList.size(); i++)
+					{
+						Cell cell = conflictList.get(i);
+						String cellName = cellNameMap.get(cell);
+						String newTestName = cell.getLibrary().getName() + "__" + cellName;
+						if (cellNameMapReverse.get(newTestName) != null) continue;
+						cellNameMap.put(cell, newTestName);
+						getConflictList(newTestName).add(cell);
+						conflictList.remove(i);
+						i--;
 					}
-					conflictList.clear();
+					if (conflictList.size() <= 1) continue;
 				}
-				if (whichPass == 3) {
-					// must be an error
-					Cell cell = conflictList.get(0);
-					System.out.print("Error: Unable to make unique cell name for "+cell.describe(false)+
-						", it conflicts with: ");
-					for (int i=1; i<conflictList.size(); i++) {
-						System.out.print(conflictList.get(i).describe(false)+" ");
-					}
-					System.out.println();
+
+				// still conflicts: try adding view abbreviations
+				for(int i=0; i<conflictList.size(); i++)
+				{
+					Cell cell = conflictList.get(i);
+					String cellName = cellNameMap.get(cell);
+					String newTestName = cell.getLibrary().getName() + "__" + cellName + "__" + cell.getView().getAbbreviation();
+					if (cellNameMapReverse.get(newTestName) != null) continue;
+					cellNameMap.put(cell, newTestName);
+					getConflictList(newTestName).add(cell);
+					conflictList.remove(i);
+					i--;
 				}
+				if (conflictList.size() <= 1) continue;
+
+				// must be an error
+				Cell cell = conflictList.get(0);
+				System.out.print("Error: Unable to make unique cell name for "+cell.describe(false)+
+					", it conflicts with:");
+				for (int i=1; i<conflictList.size(); i++)
+					System.out.print(" "+conflictList.get(i).describe(false));
+				System.out.println();
 			}
 		}
+//		private void resolveConflicts(int whichPass) {
+//			List<List<Cell>> conflictLists = new ArrayList<List<Cell>>();
+//			for (List<Cell> conflictList : cellNameMapReverse.values()) {
+//				if (conflictList.size() <= 1) continue; // no conflict
+//				conflictLists.add(conflictList);
+//			}
+//			for (List<Cell> conflictList : conflictLists) {
+//				// on pass 1, only cell names. If any conflicts, prepend libname
+//				if (whichPass == 1) {
+//					// replace name with lib + name
+//					for (Cell cell : conflictList) {
+//						String name = cell.getLibrary().getName() + "__" + cell.getName();
+//						cellNameMap.put(cell, name);
+//						getConflictList(name).add(cell);
+//					}
+//					conflictList.clear();
+//				}
+//				if (whichPass == 2) {
+//					// lib + name conflicts, append view
+//					for (Cell cell : conflictList) {
+//						String name = cell.getLibrary().getName() + "__" + cell.getName() + "__" + cell.getView().getAbbreviation();
+//						cellNameMap.put(cell, name);
+//						getConflictList(name).add(cell);
+//					}
+//					conflictList.clear();
+//				}
+//				if (whichPass == 3) {
+//					// must be an error
+//					Cell cell = conflictList.get(0);
+//					System.out.print("Error: Unable to make unique cell name for "+cell.describe(false)+
+//						", it conflicts with: ");
+//					for (int i=1; i<conflictList.size(); i++) {
+//						System.out.print(conflictList.get(i).describe(false)+" ");
+//					}
+//					System.out.println();
+//				}
+//			}
+//		}
 	}
 
 	/**
