@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08l: ******************************
 
+BUG: (11/4/08, DN) Electric failes to mark a library for saving (Bug #1934)
+FIX: In Snapshot.withRenamedIds mark "modified" LibraryBackups.
+
 IMP/MAN: (11/2/08, GVG) Pwell process and gate orientation in Tech Creation Wizard (Bug #1933)
 
 IMP: (11/2/08, DN) Preferences related to Technology are moved to special Pref.Group.
@@ -31,10 +34,10 @@ FIX: In Library.removeReferencedLib call backupReferenceLibs to propagate
      changes from Library.referencedLibs to LibraryBackup.referencedLibs.
      In NodeInst.replace don't create new arc if "newPortInst" is not defined.
 
-BUG: (10/28/08, RK): NCC regressions need repair because Electric is 
-becoming case sensitive. 
+BUG: (10/28/08, RK): NCC regressions need repair because Electric is
+becoming case sensitive.
 
-IMP (10/27/08, SMR): Making not possible to place down a cell on itself due 
+IMP (10/27/08, SMR): Making not possible to place down a cell on itself due
 to circular dependencies.
 
 BUG (10/27/08, SMR): The "Pure" component menu item can be too big and needs to scroll (Bug #1926).
@@ -116,7 +119,7 @@ BUG: (10/10/08, DN) 3D preferences are always reset to factory values on new ses
 FIX: In Layer.setFactory3DInfo don't change current values of preferences.
 
 BUG: (10/10/08, DN) Can't specify more layer functions (Bug #1903).
-FIX: Implement Layer.Function.Set by BitSet instead of long. 
+FIX: Implement Layer.Function.Set by BitSet instead of long.
 
 BUG: (10/8/08, GVG) Writing Spice file on Mac OS 10.5 uses ":"
 as delimiter instead of "/" (Bug #1877)
@@ -125,7 +128,7 @@ FIX: Use the Swing mode in OpenDialog under MacOSX.
 IMP: (10/8/08, GVG) Well arcs added into MoCMOS (part of Bug #1910)
 
 BUG: (10/8/08, RK) NCC runs slow on fastprox (Bug #1908).
-FIX: Fixed performance bugs that become evident when instances have 
+FIX: Fixed performance bugs that become evident when instances have
      46,000 Exports.
 
 ************************* Version 8.08i: ******************************
@@ -256,7 +259,7 @@ IMP: (9/17/08, SMR) Generalized specific transistor function usage
      P-type transistors (Bug #1858).
 
 IMP: (9/17/08, GVG) Serpentine transistors incomplete for getTransistorSize? (Bug #1861)
-Commenting out the line. The message is even available in 8.03p. 
+Commenting out the line. The message is even available in 8.03p.
 
 BUG: (9/17/08, SMR) Serpentine transistors with both field and gate poly
      emit both layers in the poly area (Bug #1857).

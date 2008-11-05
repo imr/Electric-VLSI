@@ -338,7 +338,7 @@ public class Snapshot {
         ERectangle[] cellBoundsArray = new ERectangle[maxCellIndex + 1];
         LibraryBackup[] libBackupsArray = new LibraryBackup[maxLibIndex + 1];
 
-        boolean cellBackupsChanged = false;
+        BitSet cellBackupsChangedInLib = new BitSet();
         boolean cellIdsChanged = false;
         BitSet fromGroupCellIds = new BitSet();
         BitSet toGroupCellIds = new BitSet();
@@ -399,14 +399,14 @@ public class Snapshot {
             }
             CellBackup newCellBackup = oldCellBackup.withRenamedIds(idMapper, newGroupName);
             if (newCellBackup != oldCellBackup)
-                cellBackupsChanged = true;
+                cellBackupsChangedInLib.set(newCellBackup.cellRevision.d.cellId.libId.libIndex);
             int newCellIndex = newCellBackup.cellRevision.d.cellId.cellIndex;
             if (newCellIndex != cellIndex)
                 cellIdsChanged = true;
             cellBackupsArray[newCellIndex] = newCellBackup;
             cellBoundsArray[newCellIndex] = this.cellBounds[cellIndex];
         }
-        if (!cellBackupsChanged)
+        if (cellBackupsChangedInLib.isEmpty())
             cellBackupsArray = null;
         if (!cellIdsChanged)
             cellBoundsArray = null;
@@ -416,6 +416,8 @@ public class Snapshot {
             LibraryBackup oldLibBackup = libBackups.get(libIndex);
             if (oldLibBackup == null) continue;
             LibraryBackup newLibBackup = oldLibBackup.withRenamedIds(idMapper);
+            if (cellBackupsChangedInLib.get(libIndex))
+                newLibBackup = newLibBackup.withModified();
             if (newLibBackup != oldLibBackup)
                 libBackupsChanged = true;
             libBackupsArray[newLibBackup.d.libId.libIndex] = newLibBackup;

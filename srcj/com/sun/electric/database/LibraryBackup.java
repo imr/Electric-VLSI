@@ -37,7 +37,7 @@ import java.io.IOException;
 public class LibraryBackup {
     public static final LibraryBackup[] NULL_ARRAY = {};
     public static final ImmutableArrayList<LibraryBackup> EMPTY_LIST = new ImmutableArrayList<LibraryBackup>(NULL_ARRAY);
-    
+
     /** Library persistent data. */                                     public final ImmutableLibrary d;
     /** True if library needs saving to disk. */                        public final boolean modified;
     /** Array of referenced libs */                                     public final LibId[] referencedLibs;
@@ -48,7 +48,16 @@ public class LibraryBackup {
         this.modified = modified;
         this.referencedLibs = referencedLibs;
     }
-    
+
+	/**
+	 * Returns LibraryBackup which differs from this LibraryBackup by "modified" flag set.
+     * @return LibraryBackup with "modified" flag set.
+	 */
+    LibraryBackup withModified() {
+        if (modified) return this;
+        return new LibraryBackup(d, true, referencedLibs);
+    }
+
 	/**
 	 * Returns LibraryBackup which differs from this LibraryBackup by renamed Ids.
 	 * @param idMapper a map from old Ids to new Ids.
@@ -74,7 +83,7 @@ public class LibraryBackup {
         newBackup.check();
         return newBackup;
     }
-    
+
     /**
      * Writes this LibraryBackup to IdWriter.
      * @param writer where to write.
@@ -86,7 +95,7 @@ public class LibraryBackup {
         for (int i = 0; i < referencedLibs.length; i++)
             writer.writeLibId(referencedLibs[i]);
     }
-    
+
     /**
      * Reads LibraryBackup from SnapshotReader.
      * @param reader where to read.
@@ -100,7 +109,7 @@ public class LibraryBackup {
             refs[i] = reader.readLibId();
         return new LibraryBackup(d, modified, refs);
     }
-    
+
     /**
 	 * Checks invariant of this CellBackup.
 	 * @throws AssertionError if invariant is broken.
@@ -110,7 +119,7 @@ public class LibraryBackup {
         for (LibId libId: referencedLibs)
             assert libId != null;
     }
-    
+
     @Override
     public String toString() { return d.toString(); }
 }
