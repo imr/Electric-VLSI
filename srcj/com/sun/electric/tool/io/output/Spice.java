@@ -1770,8 +1770,38 @@ public class Spice extends Topology
             String paramName = line.substring(start, pt);
 
             PortProto pp = null;
-            if (prototype != null) {
-                pp = prototype.findPortProto(paramName);
+            int ppIndex = -1;
+            if (prototype != null)
+            {
+            	if (prototype instanceof Cell)
+            	{
+            		Cell subCell = (Cell)prototype;
+            		Netlist nl = subCell.getNetlist();
+            		for(Iterator<Export> it = subCell.getExports(); it.hasNext(); )
+            		{
+            			Export e = it.next();
+            			int width = nl.getBusWidth(e);
+            			for(int i=0; i<width; i++)
+            			{
+            				Network net = nl.getNetwork(e, i);
+                			for(Iterator<String> nIt = net.getNames(); nIt.hasNext(); )
+                			{
+                				String netName = nIt.next();
+                				if (netName.equals(paramName))
+                				{
+                					pp = e;
+                					ppIndex = i;
+                					break;
+                				}
+                			}
+                			if (ppIndex >= 0) break;
+            			}
+            			if (ppIndex >= 0) break;
+            		}
+            	} else
+            	{
+            		pp = prototype.findPortProto(paramName);
+            	}
             }
             Variable.Key varKey;
 
@@ -1793,7 +1823,8 @@ public class Spice extends Topology
             } else if (cni != null && pp != null)
             {
                 // port name found: use its spice node
-                Network net = cni.getNetList().getNetwork(no, pp, 0);
+            	if (ppIndex < 0) ppIndex = 0;
+                Network net = cni.getNetList().getNetwork(no, pp, ppIndex);
                 CellSignal cs = cni.getCellSignal(net);
                 String portName = cs.getName();
                 if (segNets != null) {
