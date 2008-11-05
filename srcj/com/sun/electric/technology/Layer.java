@@ -921,22 +921,7 @@ public class Layer
 			if (vp.getBoolean() != visible) vp.setBoolean(visible);
 			visibilityInitialized = true;
 		}
-		if (graphics.getFactoryColor() != graphics.getRGB())
-			graphics.setColor(new Color(graphics.getFactoryColor()));
-		if (graphics.getFactoryTransparentLayer() != graphics.getTransparentLayer())
-			graphics.setTransparentLayer(graphics.getFactoryTransparentLayer());
-		if (graphics.getFactoryOpacity() != graphics.getOpacity())
-			graphics.setOpacity(graphics.getFactoryOpacity());
-		if (graphics.getForeground() != graphics.getForeground())
-			graphics.setForeground(graphics.getForeground());
-		if (!graphics.getFactoryPattern().equals(graphics.getPattern()))
-			graphics.setPattern(graphics.getFactoryPattern());
-		if (!graphics.getFactoryOutlined().equals(graphics.getOutlined()))
-			graphics.setOutlined(graphics.getFactoryOutlined());
-		if (graphics.isFactoryPatternedOnDisplay() != graphics.isPatternedOnDisplay())
-			graphics.setPatternedOnDisplay(graphics.isFactoryPatternedOnDisplay());
-		if (graphics.isFactoryPatternedOnPrinter() != graphics.isPatternedOnPrinter())
-			graphics.setPatternedOnPrinter(graphics.isFactoryPatternedOnPrinter());
+		graphics.factoryReset();
 	}
 
 	/**

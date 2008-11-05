@@ -386,6 +386,21 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 		setPatternLow(pattern);
 	}
 
+	/**
+	 * Method to reset this Graphics to its factory state.
+	 */
+	public void factoryReset()
+	{
+		if (getFactoryColor() != getRGB()) setColor(new Color(getFactoryColor()));
+		if (getFactoryTransparentLayer() != getTransparentLayer()) setTransparentLayer(getFactoryTransparentLayer());
+		if (getFactoryOpacity() != getOpacity()) setOpacity(getFactoryOpacity());
+		if (getForeground() != getForeground()) setForeground(getForeground());
+		if (!getFactoryPattern().equals(getPattern())) setPattern(getFactoryPattern());
+		if (!getFactoryOutlined().equals(getOutlined())) setOutlined(getFactoryOutlined());
+		if (isFactoryPatternedOnDisplay() != isPatternedOnDisplay()) setPatternedOnDisplay(isFactoryPatternedOnDisplay());
+		if (isFactoryPatternedOnPrinter() != isPatternedOnPrinter()) setPatternedOnPrinter(isFactoryPatternedOnPrinter());
+	}
+
 	private String makePatString(int [] pattern)
 	{
 		StringBuffer sb = new StringBuffer();

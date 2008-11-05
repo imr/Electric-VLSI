@@ -350,7 +350,8 @@ public class LayersTab extends PreferencePanel
 			ColorPatternPanel.Info cpi = layerMap.get(layer);
             resetColorPanelInfo(cpi);
 		}
-        // Special layers
+
+		// Special layers
         for(ColorPatternPanel.Info cpi: transAndSpecialMap.values())
         {
             resetColorPanelInfo(cpi);
@@ -396,6 +397,19 @@ public class LayersTab extends PreferencePanel
 				Layer layer = lIt.next();
 				if (layer.isPseudoLayer() && layer.getNonPseudoLayer() != layer) continue;
 				layer.factoryResetGraphics();
+			}
+		}
+
+		// Special layers
+		for (User.ColorPrefType type : nameTypeSpecialMap.keySet())
+		{
+			String name = nameTypeSpecialMap.get(type);
+			ColorPatternPanel.Info cpi = transAndSpecialMap.get(name);
+			int factory = cpi.theColor.getIntFactoryValue();
+			if (factory != cpi.theColor.getInt())
+			{
+				cpi.theColor.setInt(factory);
+				User.setColor(type, factory);
 			}
 		}
 	}
