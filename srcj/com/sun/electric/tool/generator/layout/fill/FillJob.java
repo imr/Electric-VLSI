@@ -34,6 +34,8 @@ import com.sun.electric.database.topology.*;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.network.Network;
+import com.sun.electric.database.network.Netlist;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.ArcProto;
 
@@ -83,6 +85,9 @@ public class FillJob extends Job
             ArcInst ai = itAi.next();
             assert(ai.getProto().getNumArcLayers() == 1); // only 1 for now
             Layer l = ai.getProto().getLayer(0);
+
+            if (!l.getFunction().isMetal()) continue;  // only metals
+
             List<ArcInst> arcs = map.get(l);
             if (arcs == null)
             {
@@ -98,10 +103,23 @@ public class FillJob extends Job
         Collections.sort(listOfLayers, Layer.layerSortByName);
 		Map<ArcProto,Integer> arcsCreatedMap = new HashMap<ArcProto,Integer>();
 		Map<NodeProto,Integer> nodesCreatedMap = new HashMap<NodeProto,Integer>();
+        boolean evenHorizontal = true; // even metal layers are horizontal. Basic assumption
+        int numMetals = topCell.getTechnology().getNumMetals();
+        List<Layer> evenMetalLayers = new ArrayList<Layer>();
+        List<Layer> oddMetalLayers = new ArrayList<Layer>();
+
+        for (Iterator<Layer> itL = topCell.getTechnology().getLayers(); itL.hasNext();)
+        {
+            Layer layer = itL.next();
+            if (!layer.getFunction().isMetal()) continue;
+            int metalNumber = layer.getFunction().getLevel();
+        }
 
         for (int i = 0; i < listOfLayers.size() - 1; i++)
         {
             Layer bottom = listOfLayers.get(i);
+            int metalNumber = bottom.getFunction().getLevel();
+            boolean horizontal = (evenHorizontal && metalNumber%2==0) || (!evenHorizontal && metalNumber%2==1);
             List<ArcInst> arcs = map.get(bottom);
 
             if (arcs == null) continue; // nothing to stitch
@@ -109,10 +127,16 @@ public class FillJob extends Job
             Layer top = listOfLayers.get(i+1);
             for (ArcInst ai : arcs)
             {
+                // Checking arc orientation with respect to layer
+                // If the orientation is not correct, then ignore it
+                if (!isArcAligned(ai, horizontal))
+                    continue;
+
                 Rectangle2D bounds = ai.getBounds();
                 Area bottomA = new Area(bounds);
                 // Picking only 1 export and considering the root name`
-                String bottomName = getExportRootName(ai);
+                Netlist netlist = topCell.getNetlist(); // getting new version of netlist after every routing.
+                String bottomName = getExportRootName(ai, netlist);
 
                 if (bottomName == null) continue; // nothing to export
 
@@ -132,7 +156,13 @@ public class FillJob extends Job
 
                     if (nl != top) continue; // ascending order is easy
 
-                    String topName = getExportRootName(nai);
+                    // Checking arc orientation with respect to layer
+                    // If the orientation is not correct, then ignore it
+                    // Must be perpendicular to the reference layer (bottom)
+                    if (!isArcAligned(nai, !horizontal))
+                        continue;
+
+                    String topName = getExportRootName(nai, netlist);
 
                     if (topName == null || !topName.equals(bottomName)) continue; // no export matching
 
@@ -142,12 +172,6 @@ public class FillJob extends Job
                     Rectangle2D resultBnd = topA.getBounds2D();
                     EPoint insert = new EPoint(resultBnd.getCenterX(), resultBnd.getCenterY());
                     pairs.add(new PinsArcPair(nai, insert));
-
-//                    NodeInst bottomPin = splitArcAtPoint(ai, insert);
-//                    NodeInst topPin = splitArcAtPoint(nai, insert);
-//
-//                    Route r = router.planRoute(topCell,  bottomPin, topPin, insert, null, true, true);
-//                    Router.createRouteNoJob(r, topCell, false, arcsCreatedMap, nodesCreatedMap);
                 }
 
                 Collections.sort(pairs, pinsArcSort);
@@ -158,7 +182,6 @@ public class FillJob extends Job
                     SplitContainter bottomSplit = splitArcAtPoint(mostLeft, pair.insert);
                     SplitContainter topSplit = splitArcAtPoint(pair.topArc, pair.insert);
                     Route r = router.planRoute(topCell,  bottomSplit.splitPin, topSplit.splitPin, pair.insert, null, true, true);
-//                    Router.createRouteNoJob(r, topCell, false, arcsCreatedMap, nodesCreatedMap);
                     mostLeft = bottomSplit.rightArc;
                     routeList.add(r);
                 }
@@ -172,25 +195,45 @@ public class FillJob extends Job
     }
 
     /**
+     * Method to check whether a given arc is properly oriented with respect to the expected input
+     * @param ai
+     * @param horizontal
+     * @return
+     */
+    private boolean isArcAligned(ArcInst ai, boolean horizontal)
+    {
+        EPoint head = ai.getHeadLocation();
+        EPoint tail = ai.getTailLocation();
+        if (horizontal)
+            return (DBMath.areEquals(head.getY(), tail.getY()));
+        return (DBMath.areEquals(head.getX(), tail.getX()));
+    }
+
+    /**
      * Methot to extrac root name of the export in a given arc
      * @param ai arc with the export
      * @return Non-null string with the root name. Null if no export was found.
      */
-    private String getExportRootName(ArcInst ai)
+    private String getExportRootName(ArcInst ai, Netlist netlist)
     {
+        Network jNet = netlist.getNetwork(ai, 0);
         // Picking only 1 export and considering the root name`
         // Assuming at 1 export per arc
-        Export exp;
-        if (ai.getTailPortInst().getNodeInst().getNumExports() > 0)
-            exp = ai.getTailPortInst().getNodeInst().getExports().next();
-        else if (ai.getHeadPortInst().getNodeInst().getNumExports() > 0)
-            exp = ai.getHeadPortInst().getNodeInst().getExports().next();
-        else
-        {
-            System.out.println("Should this happen?");
-            return null;
-        }
-        String rootName = exp.getName();
+        Iterator<String> exportNames = jNet.getExportedNames();
+        assert (exportNames.hasNext()); // must have one?
+        String rootName = exportNames.next();
+
+//        Export exp;
+//        if (ai.getTailPortInst().getNodeInst().getNumExports() > 0)
+//            exp = ai.getTailPortInst().getNodeInst().getExports().next();
+//        else if (ai.getHeadPortInst().getNodeInst().getNumExports() > 0)
+//            exp = ai.getHeadPortInst().getNodeInst().getExports().next();
+//        else
+//        {
+//            System.out.println("Should this happen?");
+//            return null;
+//        }
+//        String rootName = exp.getName();
         int index = rootName.indexOf("_");
         if (index != -1) // remove any character after _
             rootName = rootName.substring(0, index);
