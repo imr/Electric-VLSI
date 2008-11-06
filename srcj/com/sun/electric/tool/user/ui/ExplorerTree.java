@@ -401,72 +401,99 @@ public class ExplorerTree extends JTree implements DragSourceListener // , DragG
         return false;
 	}
 
+	/**
+	 * Method to redo the explorer tree, keeping expansion.
+	 * @param contentNodes nodes that changed.
+	 */
 	void redoContentTrees(List<MutableTreeNode> contentNodes)
 	{
         assert SwingUtilities.isEventDispatchThread();
 
 		// remember the state of the tree
-		List<TreePath> expanded = new ArrayList<TreePath>();
-		recursivelyCacheExpandedPaths(expanded, new TreePath(rootNode));
+        KeepTreeExpansion kte = new KeepTreeExpansion(this, rootNode, treeModel, new TreePath(rootNode));
         model().updateContentExplorerNodes(contentNodes);
-        expandCachedPaths(expanded);
+        kte.restore();
 	}
 
-    /**
-     * Recursively
-     */
-    private void recursivelyCacheExpandedPaths(List<TreePath> expanded, TreePath path) {
+	/**
+	 * Class to remember the expansion state of a JTree and restore it after a change.
+	 */
+	public static class KeepTreeExpansion
+	{
+		private List<TreePath> expanded = new ArrayList<TreePath>();
+		private JTree theTree;
+		private TreeModel theTreeModel;
+		private Object theRootNode;
 
-        Object node = path.getLastPathComponent();
-        if (!isExpanded(path))
-            return;
-        expanded.add(path);
+		KeepTreeExpansion(JTree tt, Object rn, TreeModel tm, TreePath tp)
+		{
+			theTree = tt;
+			theTreeModel = tm;
+			theRootNode = rn;
+			recursivelyCacheExpandedPaths(tp);
+		}
 
-        // now recurse
-        for(int i=0; i< treeModel.getChildCount(node); i++) {
-            Object child = treeModel.getChild(node, i);
-            if (treeModel.isLeaf(child)) continue;
-            TreePath descentPath = path.pathByAddingChild(child);
-            if (descentPath == null) continue;
-            recursivelyCacheExpandedPaths(expanded, descentPath);
-        }
-    }
+	    /**
+	     * Recursively save the expansion state.
+	     */
+	    private void recursivelyCacheExpandedPaths(TreePath path)
+	    {
+	        if (!theTree.isExpanded(path)) return;
+	        expanded.add(path);
 
-    private void expandCachedPaths(List<TreePath> expanded) {
-        for (TreePath path: expanded)
-            expandCachedPath(path);
-    }
+	        // now recurse
+	        Object node = path.getLastPathComponent();
+	        for(int i=0; i< theTreeModel.getChildCount(node); i++)
+	        {
+	            Object child = theTreeModel.getChild(node, i);
+	            if (theTreeModel.isLeaf(child)) continue;
+	            TreePath descentPath = path.pathByAddingChild(child);
+	            if (descentPath == null) continue;
+	            recursivelyCacheExpandedPaths(descentPath);
+	        }
+	    }
 
-    private void expandCachedPath(TreePath oldPath) {
-        Object[] path = oldPath.getPath();
-        TreePath newPath = new TreePath(rootNode);
-        Object topNode = rootNode;
-        for (int i = 1; i < path.length; i++) {
-            Object oldChild = path[i];
-            Object newChild = null;
-            if (oldChild instanceof DefaultMutableTreeNode)
-                newChild = findChildByUserObject(topNode, ((DefaultMutableTreeNode)oldChild).getUserObject());
-            if (newChild == null) {
-                int k = treeModel.getIndexOfChild(topNode, oldChild);
-                if (k >= 0)
-                    newChild = treeModel.getChild(topNode, k);
-            }
-            if (newChild == null) return;
-            topNode = newChild;
-            newPath = newPath.pathByAddingChild(topNode);
-            expandPath(newPath);
-        }
-    }
+		public void restore()
+		{
+	        for (TreePath path: expanded) expandCachedPath(path);
+	    }
 
-    private Object findChildByUserObject(Object parent, Object userObject) {
-        for (int i = 0, childCount = treeModel.getChildCount(parent); i < childCount; i++) {
-            Object newChild = treeModel.getChild(parent, i);
-            if (!(newChild instanceof DefaultMutableTreeNode)) continue;
-            if (((DefaultMutableTreeNode)newChild).getUserObject().equals(userObject))
-                return newChild;
-        }
-        return null;
-    }
+	    private void expandCachedPath(TreePath oldPath)
+	    {
+	        Object[] path = oldPath.getPath();
+	        TreePath newPath = new TreePath(theRootNode);
+	        Object topNode = theRootNode;
+	        for (int i = 1; i < path.length; i++)
+	        {
+	            Object oldChild = path[i];
+	            Object newChild = null;
+	            if (oldChild instanceof DefaultMutableTreeNode)
+	                newChild = findChildByUserObject(topNode, ((DefaultMutableTreeNode)oldChild).getUserObject());
+	            if (newChild == null)
+	            {
+	                int k = theTreeModel.getIndexOfChild(topNode, oldChild);
+	                if (k >= 0)
+	                    newChild = theTreeModel.getChild(topNode, k);
+	            }
+	            if (newChild == null) return;
+	            topNode = newChild;
+	            newPath = newPath.pathByAddingChild(topNode);
+	            theTree.expandPath(newPath);
+	        }
+	    }
+
+	    private Object findChildByUserObject(Object parent, Object userObject)
+	    {
+	        for (int i = 0, childCount = theTreeModel.getChildCount(parent); i < childCount; i++)
+	        {
+	            Object newChild = theTreeModel.getChild(parent, i);
+	            if (!(newChild instanceof DefaultMutableTreeNode)) continue;
+	            if (((DefaultMutableTreeNode)newChild).getUserObject().equals(userObject))
+	                return newChild;
+	        }
+	        return null;
+	    }
+	}
 
 	public String convertValueToText(Object value, boolean selected, boolean expanded, boolean leaf,
 		int row, boolean hasFocus)

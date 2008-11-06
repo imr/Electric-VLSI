@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08l: ******************************
 
+BUG: (11/6/08, SMR) Errors section of Explorer tree collapses when the database changes (Bug #1898).
+FIX: In ErrorLoggerTree.ErrorLoggerTreeNode.databaseChanged(), use new class
+     ExplorerTree.KeepTreeExpansion to remember expansion state.
+
 BUG: (11/5/08, SMR) Crossprobing doesn't work (Bug #1939).
 FIX: Improved WaveformWindow.crossProbeWaveformToEditWindow()
      (crossprobing from waveform window to edit window)

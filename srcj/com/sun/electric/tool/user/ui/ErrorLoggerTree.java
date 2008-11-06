@@ -58,7 +58,8 @@ import javax.swing.tree.TreePath;
 
 public class ErrorLoggerTree {
 
-    /** Top of error tree */            private static final DefaultMutableTreeNode errorTree = new DefaultMutableTreeNode("ERRORS");
+    public static final String errorNode = "ERRORS";
+    /** Top of error tree */            private static final DefaultMutableTreeNode errorTree = new DefaultMutableTreeNode(errorNode);
     /** Path to error tree */           private static final TreePath errorPath = (new TreePath(ExplorerTreeModel.rootNode)).pathByAddingChild(errorTree);
     /** Current Logger */               static DefaultMutableTreeNode currentLogger;
 
@@ -424,6 +425,16 @@ public class ErrorLoggerTree {
 
     	public ErrorLoggerTreeNode getParentNode() { return parent; }
 
+    	public boolean equals(Object x)
+    	{
+    		if (x instanceof ErrorLoggerGroupNode)
+    		{
+    			ErrorLoggerGroupNode elgn = (ErrorLoggerGroupNode)x;
+    			if (elgn.name.equals(name) && elgn.parent == parent) return true;
+    		}
+    		return false;
+    	}
+
     	public String toString() { return name; }
     }
 
@@ -503,7 +514,18 @@ public class ErrorLoggerTree {
             if (logger.getNumLogs() == 0)
                 removeLogger(index);
             else
-                updateTree((DefaultMutableTreeNode)errorTree.getChildAt(index));
+            {
+        		// remember the state of the tree
+            	WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+            	if (wf != null)
+            	{
+	            	ExplorerTree tree = wf.getExplorerTab();
+	            	ExplorerTreeModel etm = tree.model();
+	            	ExplorerTree.KeepTreeExpansion kte = new ExplorerTree.KeepTreeExpansion(tree, etm.getRoot(), etm, errorPath);
+	                updateTree((DefaultMutableTreeNode)errorTree.getChildAt(index));
+	                kte.restore();
+            	}
+            }
         }
 
 //        public void actionPerformed(ActionEvent e)
