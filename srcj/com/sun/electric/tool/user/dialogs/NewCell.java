@@ -37,6 +37,7 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 import java.awt.Frame;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.KeyListener;
 import java.util.Iterator;
 import java.util.List;
 
@@ -100,7 +101,13 @@ public class NewCell extends EDialog
 			if (v == defaultView) theViewOption = option;
 		}
 		viewList.setSelectedValue(theViewOption, true);
-		viewList.addMouseListener(new MouseAdapter()
+        viewList.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+            public void valueChanged(javax.swing.event.ListSelectionEvent evt)
+            {
+                techComboBoxItemStateChanged(null);
+            }
+        });
+        viewList.addMouseListener(new MouseAdapter()
 		{
 			public void mouseClicked(MouseEvent e)
 			{
