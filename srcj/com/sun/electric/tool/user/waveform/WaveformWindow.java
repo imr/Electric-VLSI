@@ -2808,6 +2808,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 	private List<Signal> findSelectedSignals(Set<Network> nets, VarContext context, boolean sort)
 	{
+		Cell topContext = sd.getCell();
 		List<Signal> found = new ArrayList<Signal>();
 		for(Network net : nets)
 		{
@@ -2818,8 +2819,10 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				Signal sSig = an.findSignalForNetworkQuickly(netName);
 				if (sSig == null)
 				{
-					// try prepending the cell name to the signal name
-					sSig = an.findSignalForNetworkQuickly(net.getParent().getName() + "." + netName);
+					// try prepending the top-level cell name to the signal name
+					if (topContext == null) topContext = net.getParent();
+					String nameWithCell = topContext.getName() + "." + netName;
+					sSig = an.findSignalForNetworkQuickly(nameWithCell);
 				}
 				if (sSig == null)
 				{
@@ -2987,10 +2990,22 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 						{
 							boolean matches = false;
 							contextStr += ".";
+							String altContextStr = contextStr;
+							if (sd.getCell() != null)
+								altContextStr = sd.getCell().getName().toLowerCase() + "." + contextStr;
 							if (want.startsWith(contextStr)) matches = true; else
 							{
 								contextStr = contextStr.replace('@', '_');
 								if (want.startsWith(contextStr)) matches = true;
+							}
+							if (!matches)
+							{
+								if (want.startsWith(altContextStr)) matches = true; else
+								{
+									altContextStr = altContextStr.replace('@', '_');
+									if (want.startsWith(altContextStr)) matches = true;
+								}
+								if (matches) contextStr = altContextStr;
 							}
 							if (!matches)
 							{
@@ -3017,27 +3032,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 							break;
 						}
 
-						// try the name without a redundant prefix
-						String cellName = subCell.getName();
-						if (desired.startsWith(cellName))
-						{
-							desired = desired.substring(cellName.length()+1);
-							net = findNetwork(netlist, desired);
-							if (net != null)
-							{
-								// found network
-								while (!upNodables.isEmpty())
-								{
-									Nodable no = upNodables.pop();
-									net = HierarchyEnumerator.getNetworkInChild(net, no);
-									if (net == null) break;
-								}
-								if (net != null)
-									hl.addNetwork(net, subCell);
-								break;
-							}
-						}
-
 						// see if this name is really a current source
 						if (desired.startsWith("I(v"))
 						{
@@ -3057,13 +3051,20 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 			// also highlight anything selected in the "SIGNALS" tree
 			String contextStr = context.getInstPath(".");
+			Cell topContext = sd.getCell();
+			String altContextStr = contextStr;
+			if (topContext != null)
+			{
+				altContextStr = topContext.getName().toLowerCase();
+				if (contextStr.length() > 0) altContextStr += "." + contextStr;
+			}
 			ExplorerTree sigTree = wf.getExplorerTab();
 			Object nodeInfo = sigTree.getCurrentlySelectedObject(0);
 			if (nodeInfo != null && nodeInfo instanceof Signal)
 			{
 				Signal sig = (Signal)nodeInfo;
 				if (sig.getSignalContext() == null || sig.getSignalContext().equals(contextStr) ||
-					(contextStr.length() == 0 && sig.getSignalContext().equalsIgnoreCase(cell.getName())))
+					sig.getSignalContext().equals(altContextStr))
 				{
 					String desired = sig.getSignalName();
 					Network net = findNetwork(netlist, desired);
