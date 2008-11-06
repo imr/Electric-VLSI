@@ -37,7 +37,6 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 import java.awt.Frame;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.KeyListener;
 import java.util.Iterator;
 import java.util.List;
 
@@ -63,10 +62,10 @@ public class NewCell extends EDialog
 		View view;
 		Technology tech;
 
-		ViewTechOption(View view, Technology tech)
+		ViewTechOption(View v, Technology t)
 		{
-			this.view = view;
-			this.tech = tech;
+			this.view = v;
+			this.tech = t;
 		}
 		public String toString()
 		{
@@ -367,13 +366,13 @@ public class NewCell extends EDialog
 		private Technology tech;
 		private Cell newCell;
 
-		protected CreateCell(Library lib, String cellName, Technology tech, boolean newWindow)
+		protected CreateCell(Library l, String c, Technology t, boolean w)
 		{
-			super("Create Cell " + cellName, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.lib = lib;
-			this.cellName = cellName;
-			this.newWindow = newWindow;
-			this.tech = tech;
+			super("Create Cell " + c, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.lib = l;
+			this.cellName = c;
+			this.newWindow = w;
+			this.tech = t;
 			startJob();
 		}
 

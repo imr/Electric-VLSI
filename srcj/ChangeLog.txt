@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08l: ******************************
 
+BUG: (11/6/08, GVG) Annoying component menu changes (Bug #1935)
+FIX: Adding missing listener to view list to enable/disable technology option in NewCell dialog.
+
 BUG: (11/6/08, SMR) Errors section of Explorer tree collapses when the database changes (Bug #1898).
 FIX: In ErrorLoggerTree.ErrorLoggerTreeNode.databaseChanged(), use new class
      ExplorerTree.KeepTreeExpansion to remember expansion state.
