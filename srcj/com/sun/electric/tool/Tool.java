@@ -50,6 +50,9 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -72,8 +75,9 @@ public class Tool implements Comparable
 	private static List<Listener> listeners = new ArrayList<Listener>();
 	private static int toolNumber = 0;
 
+    /** Settings for this Tool */                           private final HashMap<String,Setting> settingsByXmlPath = new HashMap<String,Setting>();
 	/** Preferences for this Tool */                        public Pref.Group prefs;
-    
+
 	/** set if tool is on */								private static final int TOOLON =             01;
 	/** set if tool is running in background */				private static final int TOOLBG =             02;
 	/** set if tool will fix errors */						private static final int TOOLFIX =            04;
@@ -139,7 +143,7 @@ public class Tool implements Comparable
         } catch (Exception e) {
 //            System.out.println(e.getMessage());
         }
-        
+
         for (Tool tool: tools.values())
             tool.initProjectSettings();
 	}
@@ -306,6 +310,26 @@ public class Tool implements Comparable
         return ProjSettings.getSettings().getNode(toolName+"Tool");
     }
 
+	/**
+	 * Method to get a list of project Settings associatiated with this Tool
+     * which should be written to disk libraries
+	 * @return a collection of project Settings
+	 */
+    public Collection<Setting> getDiskSettings() {
+        ArrayList<Setting> settings = new ArrayList<Setting>();
+        for (Setting setting: settingsByXmlPath.values()) {
+            if (!setting.isValidOption()) continue;
+            if (setting.getValue().equals(setting.getFactoryValue())) continue;
+            settings.add(setting);
+        }
+        Collections.sort(settings, Setting.SETTINGS_BY_PREF_NAME);
+        return settings;
+    }
+
+    public Setting getSetting(String xmlPath) {
+        return settingsByXmlPath.get(getProjectSettings().getPath() + xmlPath);
+    }
+
     /**
      * Compares Tools by their definition order.
      * @param obj the other Tool.
@@ -330,7 +354,7 @@ public class Tool implements Comparable
      * Subclasses override this method to create ProjectSettings by Tool.makeXXXSetting methods declared below.
      */
     protected void initProjectSettings() {}
-    
+
 	/**
 	 * Factory methods to create a boolean project setting objects.
      * The created object is stored into a field of this Tool whose name is "cache"+name.
@@ -342,7 +366,7 @@ public class Tool implements Comparable
     protected void makeBooleanSetting(String name, String location, String description, boolean factory) {
         setCacheField(Setting.makeBooleanSetting(name, prefs, getProjectSettings(), null, location, description, factory));
     }
-    
+
 	/**
 	 * Factory methods to create an integer project setting objects.
      * The created object is stored into a field of this Tool whose name is "cache"+name.
@@ -354,7 +378,7 @@ public class Tool implements Comparable
     protected void makeIntSetting(String name, String location, String description, int factory) {
         setCacheField(Setting.makeIntSetting(name, prefs, getProjectSettings(), null, location, description, factory));
     }
-    
+
 	/**
 	 * Factory methods to create a long project setting objects.
      * The created object is stored into a field of this Tool whose name is "cache"+name.
@@ -366,7 +390,7 @@ public class Tool implements Comparable
     protected void makeLongSetting(String name, String location, String description, long factory) {
         setCacheField(Setting.makeLongSetting(name, prefs, getProjectSettings(), null, location, description, factory));
     }
-    
+
 	/**
 	 * Factory methods to create a double project setting objects.
      * The created object is stored into a field of this Tool whose name is "cache"+name.
@@ -390,7 +414,7 @@ public class Tool implements Comparable
     protected void makeStringSetting(String name, String location, String description, String factory) {
         setCacheField(Setting.makeStringSetting(name, prefs, getProjectSettings(), null, location, description, factory));
     }
-    
+
     /**
      * Method to store Setting variable in a cache field of this Tool.
      * The name of a field for Setting with name "SettingName" is "cacheSettingName".
@@ -401,11 +425,13 @@ public class Tool implements Comparable
             Field fld = getClass().getDeclaredField("cache" + setting.getPrefName());
             fld.setAccessible(true);
             fld.set(this, setting);
+            Setting oldSetting = settingsByXmlPath.put(setting.getXmlPath(), setting);
+            assert oldSetting == null;
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-    
+
 	/**
 	 * Method to set a variable on an ElectricObject in a new Job.
 	 * @param obj the ElectricObject on which to set the variable.

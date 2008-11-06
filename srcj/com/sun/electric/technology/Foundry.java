@@ -240,9 +240,9 @@ public class Foundry {
             // Getting rid of spaces
             factoryDefault = factoryDefault.replaceAll(", ", ",");
 
-            Setting setting = Setting.makeStringSetting(what + "LayerFor" + layer.getName() + "IN" + techName, tech.getTechnologyPreferences(),
+            Setting setting = tech.registerSetting(Setting.makeStringSetting(what + "LayerFor" + layer.getName() + "IN" + techName, tech.getTechnologyPreferences(),
                     getGDSNode(), layer.getName(),
-                    what + " tab", what + " for layer " + layer.getName() + " in technology " + techName, factoryDefault);
+                    what + " tab", what + " for layer " + layer.getName() + " in technology " + techName, factoryDefault));
             gdsLayerSettings[layerIndex] = setting;
         }
     }

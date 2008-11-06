@@ -28,7 +28,6 @@ import com.sun.electric.technology.Foundry;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.ProjectSettingsFrame;
-import com.sun.electric.tool.user.projectSettings.ProjSettingsNode;
 import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.util.ArrayList;
@@ -52,13 +51,13 @@ public class TechnologyTab extends ProjSettingsPanel
 	private Setting schematicTechnologySetting = User.getSchematicTechnologySetting();
     private Setting processLayoutTechnologySetting = User.getPWellProcessLayoutTechnologySetting();
 
-    private ProjSettingsNode mocmos = Technology.getMocmosTechnology().getProjectSettings();
-	private Setting mocmosRuleSetSetting                  = mocmos.getValue("MOCMOS Rule Set");
-	private Setting mocmosNumMetalSetting                 = mocmos.getValue("NumMetalLayers");
-	private Setting mocmosSecondPolysiliconSetting        = mocmos.getValue("UseSecondPolysilicon");
-	private Setting mocmosDisallowStackedViasSetting      = mocmos.getValue("DisallowStackedVias");
-	private Setting mocmosAlternateActivePolyRulesSetting = mocmos.getValue("UseAlternativeActivePolyRules");
-	private Setting mocmosAnalogSetting                   = mocmos.getValue("Analog");
+    private Technology mocmos = Technology.getMocmosTechnology();
+	private Setting mocmosRuleSetSetting                  = mocmos.getSetting("MOCMOS Rule Set");
+	private Setting mocmosNumMetalSetting                 = mocmos.getSetting("NumMetalLayers");
+	private Setting mocmosSecondPolysiliconSetting        = mocmos.getSetting("UseSecondPolysilicon");
+	private Setting mocmosDisallowStackedViasSetting      = mocmos.getSetting("DisallowStackedVias");
+	private Setting mocmosAlternateActivePolyRulesSetting = mocmos.getSetting("UseAlternativeActivePolyRules");
+	private Setting mocmosAnalogSetting                   = mocmos.getSetting("Analog");
 
 	/** Creates new form TechnologyTab */
 	public TechnologyTab(ProjectSettingsFrame parent, boolean modal)

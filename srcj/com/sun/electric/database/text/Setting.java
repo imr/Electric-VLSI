@@ -396,36 +396,7 @@ public class Setting {
 	 */
     public static Setting getSettingByPrefPath(String prefPath) { return allSettingsByPrefPath.get(prefPath); }
 
-	/**
-	 * Method to get a list of projecy Settings assiciatiated with the given owner object.
-	 * @param node owner object
-	 * @return a list of project Settings
-	 */
-    public static List<Setting> getSettings(ProjSettingsNode node) {
-        ArrayList<Setting> settings = new ArrayList<Setting>();
-        getSettings(node, settings);
-        Collections.sort(settings, SETTINGS_BY_PREF_NAME);
-        return settings;
-    }
-
-    private static void getSettings(ProjSettingsNode node, ArrayList<Setting> settings) {
-        Set<String> keys = node.getKeys();
-        for (String key: keys) {
-            Setting setting = node.getValue(key);
-            if (setting != null) {
-                if (!setting.isValidOption()) continue;
-                if (setting.getValue().equals(setting.getFactoryValue())) continue;
-                settings.add(setting);
-                continue;
-            }
-            ProjSettingsNode subNode = node.getNode(key);
-            if (subNode != null) {
-                getSettings(subNode, settings);
-            }
-        }
-    }
-
-    private static Comparator<Setting> SETTINGS_BY_PREF_NAME = new Comparator<Setting> () {
+    public static Comparator<Setting> SETTINGS_BY_PREF_NAME = new Comparator<Setting> () {
         public int compare(Setting s1, Setting s2) {
             String n1 = s1.getPrefName();
             String n2 = s2.getPrefName();

@@ -997,17 +997,17 @@ public class Layer
 
     private Setting makeLayerSetting(String what, String factory) {
         String techName = tech.getTechName();
-        return Setting.makeStringSetting(what + "LayerFor" + name + "IN" + techName, tech.getTechnologyPreferences(),
+        return tech.registerSetting(Setting.makeStringSetting(what + "LayerFor" + name + "IN" + techName, tech.getTechnologyPreferences(),
                 getSubNode(what), name,
-                what + " tab", what + " for layer " + name + " in technology " + techName, factory);
+                what + " tab", what + " for layer " + name + " in technology " + techName, factory));
     }
 
     private Setting makeParasiticSetting(String what, double factory)
     {
-        return Setting.makeDoubleSetting(what + "ParasiticFor" + name + "IN" + tech.getTechName(),
+        return tech.registerSetting(Setting.makeDoubleSetting(what + "ParasiticFor" + name + "IN" + tech.getTechName(),
                 tech.getTechnologyPreferences(),
                 getSubNode(what), name,
-                "Parasitic tab", "Technology " + tech.getTechName() + ", " + what + " for layer " + name, factory);
+                "Parasitic tab", "Technology " + tech.getTechName() + ", " + what + " for layer " + name, factory));
     }
 
     private ProjSettingsNode getSubNode(String type) {

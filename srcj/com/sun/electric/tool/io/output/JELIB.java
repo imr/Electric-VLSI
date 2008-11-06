@@ -61,6 +61,7 @@ import com.sun.electric.tool.Tool;
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -161,7 +162,7 @@ public class JELIB extends Output {
         boolean toolHeaderPrinted = false;
         for(Iterator<Tool> it = Tool.getTools(); it.hasNext(); ) {
             Tool tool = it.next();
-            List<Setting> settings = Setting.getSettings(tool.getProjectSettings());
+            Collection<Setting> settings = tool.getDiskSettings();
             if (settings.size() == 0) continue;
             if (!toolHeaderPrinted) {
                 printWriter.println();
@@ -176,7 +177,7 @@ public class JELIB extends Output {
         boolean technologyHeaderPrinted = false;
         for (Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); ) {
             Technology tech = it.next();
-            List<Setting> settings = Setting.getSettings(tech.getProjectSettings());
+            Collection<Setting> settings = tech.getDiskSettings();
             if (settings.size() == 0) continue;
             if (!technologyHeaderPrinted) {
                 printWriter.println();
@@ -573,7 +574,7 @@ public class JELIB extends Output {
     /**
      * Method to write the project settings on an object.
      */
-    private void printlnSettings(List<Setting> settings) {
+    private void printlnSettings(Collection<Setting> settings) {
         for (Setting setting : settings) {
             Object value = setting.getValue();
             projectSettings.put(setting, value);

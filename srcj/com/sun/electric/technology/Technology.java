@@ -1015,9 +1015,9 @@ public class Technology implements Comparable<Technology>, Serializable
 	/** 0-based index of this technology */					private int techIndex;
 	/** true if "scale" is relevant to this technology */	private boolean scaleRelevant;
 	/** number of transparent layers in technology */		private int transparentLayers;
+    /** Settings for this Technology */                     private final HashMap<String,Setting> settingsByXmlPath = new HashMap<String,Setting>();
 	/** preferences group for this technology */            private final Pref.Group prefs;
     /** User preferences group for this tecnology */        private final Pref.Group userPrefs;
-//    /** Erc preferences group for this technology */        private final Pref.Group ercPrefs;
 	/** the saved transparent colors for this technology */	private Pref [] transparentColorPrefs;
 	/** the color map for this technology */				private Color [] colorMap;
 	/** list of layers in this technology */				private final List<Layer> layers = new ArrayList<Layer>();
@@ -4630,17 +4630,17 @@ public class Technology implements Comparable<Technology>, Serializable
     private Setting makeParasiticSetting(String what, double factory) {
         String techShortName = getTechShortName();
         if (techShortName == null) techShortName = getTechName();
-        return Setting.makeDoubleSetting(what + "IN" + getTechName(), prefs,
+        return registerSetting(Setting.makeDoubleSetting(what + "IN" + getTechName(), prefs,
                 getProjectSettings(), what,
-                "Parasitic tab", techShortName + " " + what, factory);
+                "Parasitic tab", techShortName + " " + what, factory));
     }
 
     private Setting makeParasiticSetting(String what, boolean factory) {
         String techShortName = getTechShortName();
         if (techShortName == null) techShortName = getTechName();
-        return Setting.makeBooleanSetting(what + "IN" + getTechName(), prefs,
+        return registerSetting(Setting.makeBooleanSetting(what + "IN" + getTechName(), prefs,
                 getProjectSettings(), what,
-                "Parasitic tab", techShortName + " " + what, factory);
+                "Parasitic tab", techShortName + " " + what, factory));
     }
 
 	/**
@@ -4807,9 +4807,9 @@ public class Technology implements Comparable<Technology>, Serializable
     private Setting makeLESetting(String what, double factory) {
         String techShortName = getTechShortName();
         if (techShortName == null) techShortName = getTechName();
-        return Setting.makeDoubleSetting(what + "IN" + getTechName(), prefs,
+        return registerSetting(Setting.makeDoubleSetting(what + "IN" + getTechName(), prefs,
                 getLESettingsNode(), what,
-                "Logical Effort tab", techShortName + " " + what, factory);
+                "Logical Effort tab", techShortName + " " + what, factory));
     }
 
 //     private Setting makeLESetting(String what, int factory) {
@@ -5156,8 +5156,8 @@ public class Technology implements Comparable<Technology>, Serializable
 		this.scaleRelevant = scaleRelevant;
         String techShortName = getTechShortName();
         if (techShortName == null) techShortName = getTechName();
-		cacheScale = Setting.makeDoubleSetting(getScaleVariableName(), prefs,
-                getProjectSettings(), "Scale", "Scale tab", techShortName + " scale", factory);
+		cacheScale = registerSetting(Setting.makeDoubleSetting(getScaleVariableName(), prefs,
+                getProjectSettings(), "Scale", "Scale tab", techShortName + " scale", factory));
 		cacheScale.setValidOption(isScaleRelevant());
     }
 
@@ -6253,6 +6253,7 @@ public class Technology implements Comparable<Technology>, Serializable
             if (tech == null)
                 throw new NullPointerException();
             this.tech = tech;
+            tech.registerSetting(this);
         }
 
         @Override
@@ -6331,6 +6332,12 @@ public class Technology implements Comparable<Technology>, Serializable
     }
     // -------------------------- Project Settings -------------------------
 
+    Setting registerSetting(Setting setting) {
+        Setting oldSetting = settingsByXmlPath.put(setting.getXmlPath(), setting);
+        assert oldSetting == null;
+        return setting;
+    }
+
     public ProjSettingsNode getProjectSettings() {
         ProjSettingsNode node = ProjSettings.getSettings().getNode(getTechName());
 //        if (node == null) {
@@ -6339,4 +6346,25 @@ public class Technology implements Comparable<Technology>, Serializable
 //        }
         return node;
     }
+
+	/**
+	 * Method to get a list of project Settings associatiated with this Technology
+     * which should be written to disk libraries
+	 * @return a collection of project Settings
+	 */
+    public Collection<Setting> getDiskSettings() {
+        ArrayList<Setting> settings = new ArrayList<Setting>();
+        for (Setting setting: settingsByXmlPath.values()) {
+            if (!setting.isValidOption()) continue;
+            if (setting.getValue().equals(setting.getFactoryValue())) continue;
+            settings.add(setting);
+        }
+        Collections.sort(settings, Setting.SETTINGS_BY_PREF_NAME);
+        return settings;
+    }
+
+    public Setting getSetting(String xmlPath) {
+        return settingsByXmlPath.get(getProjectSettings().getPath() + xmlPath);
+    }
+
 }

@@ -71,12 +71,12 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.ELIBConstants;
-import com.sun.electric.tool.user.projectSettings.ProjSettingsNode;
 
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -636,12 +636,12 @@ public class ELIB extends Output
 	 * @param obj Object with attached project settings.
 	 */
     private void gatherSettings(Object obj) {
-        ProjSettingsNode xmlGroup = null;
+        Collection<Setting> settings = null;
         if (obj instanceof Tool)
-            xmlGroup = ((Tool)obj).getProjectSettings();
+            settings = ((Tool)obj).getDiskSettings();
         else if (obj instanceof Technology)
-            xmlGroup = ((Technology)obj).getProjectSettings();
-        for (Setting setting: Setting.getSettings(xmlGroup)) {
+            settings = ((Technology)obj).getDiskSettings();
+        for (Setting setting: settings) {
             gatherObj(obj);
             String name = setting.getPrefName();
             if (nameSpace != null) putNameSpace(name);
@@ -1157,7 +1157,7 @@ public class ELIB extends Output
                 writeVariable(null, var);
             }
         }
-        
+
         // write the variables
         for(Iterator<Variable> it = d.getVariables(); it.hasNext(); ) {
             Variable var = it.next();
@@ -1244,12 +1244,11 @@ public class ELIB extends Output
      * Method to write a set of project settings.
      */
     void writeMeaningPrefs(Object obj) throws IOException {
-        ProjSettingsNode xmlGroup = null;
+        Collection<Setting> settings = null;
         if (obj instanceof Tool)
-            xmlGroup = ((Tool)obj).getProjectSettings();
+            settings = ((Tool)obj).getDiskSettings();
         else if (obj instanceof Technology)
-            xmlGroup = ((Technology)obj).getProjectSettings();
-        List<Setting> settings = Setting.getSettings(xmlGroup);
+            settings = ((Technology)obj).getDiskSettings();
         writeInt("variables: ", settings.size());
         for (Setting setting : settings) {
             // create the "type" field
