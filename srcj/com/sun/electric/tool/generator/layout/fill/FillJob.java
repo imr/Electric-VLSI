@@ -24,12 +24,14 @@
 package com.sun.electric.tool.generator.layout.fill;
 
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
+import com.sun.electric.tool.user.CellChangeJobs;
+import com.sun.electric.tool.user.ExportChanges;
 import com.sun.electric.tool.routing.InteractiveRouter;
 import com.sun.electric.tool.routing.SimpleWirer;
 import com.sun.electric.tool.routing.Route;
 import com.sun.electric.tool.routing.Router;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.topology.*;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.DBMath;
@@ -38,6 +40,7 @@ import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.Technology;
 
 import java.util.*;
 import java.awt.geom.Rectangle2D;
@@ -66,7 +69,7 @@ public class FillJob extends Job
                 if (doIt())
                     terminateOK();
 
-            } catch (Exception e)
+            } catch (JobException e)
             {
                 e.printStackTrace();
             }
@@ -75,12 +78,96 @@ public class FillJob extends Job
             startJob(); // queue the job
     }
 
-    public boolean doIt()
+    public boolean doIt() throws JobException
+    {
+        if (topCell == null)
+            return false;
+
+        String[] instructions = topCell.getTextViewContents();
+
+        if (instructions == null)
+        {
+            System.out.println("No fill instructions found.");
+            return false;
+        }
+        for (String line : instructions)
+        {
+            StringTokenizer parse = new StringTokenizer(line, ":", false);
+            int count = 0;
+            String fillCellName = null, rest = null;
+
+            while (parse.hasMoreTokens())
+            {
+                assert(count < 2);
+                String value = parse.nextToken();
+                switch (count)
+                {
+                    case 0: fillCellName = value;
+                        break;
+                    default:
+                        rest = value;
+                        break;
+                }
+                count++;
+            }
+            if (fillCellName == null) continue; // no parsing matching
+            
+            List<NodeInst> fillCells = new ArrayList<NodeInst>();
+            List<Geometric> fillGeoms = new ArrayList<Geometric>();
+
+            // extracting fill subcells
+            parse = new StringTokenizer(rest, " ", false);
+            Cell newCell = Cell.makeInstance(topCell.getLibrary(), fillCellName+"{lay}");
+            Point2D center = new Point2D.Double(0, 0);
+            Technology tech = null;
+
+            while (parse.hasMoreTokens())
+            {
+                String fillCell = parse.nextToken();
+                Cell c = topCell.getLibrary().findNodeProto(fillCell);
+                Technology t = c.getTechnology();
+
+                if (tech == null) tech = t;
+                else if (tech != t)
+                    System.out.println("Mixing technologies in fill generator: " + tech.getTechName() + " " + t.getTechName());
+                NodeInst ni = NodeInst.makeInstance(c, center, c.getDefWidth(), c.getDefHeight(), newCell);
+                fillCells.add(ni);
+                fillGeoms.add(ni);
+            }
+            newCell.setTechnology(tech);
+            ExportChanges.reExportNodes(newCell, fillGeoms, false, true, false, true);
+            new CellChangeJobs.ExtractCellInstances(newCell, fillCells, Integer.MAX_VALUE, true, true);
+            //generateFill(newCell);
+        }
+        return true;
+    }
+
+    /**
+     * Class
+     */
+    public static class FillCellsJob extends Job
+    {
+        private Cell topCell;
+
+        public FillCellsJob(Cell cell)
+        {
+            super("Fill generator job", null, Type.CHANGE, null, null, Priority.USER);
+            this.topCell = cell;
+            startJob();
+        }
+
+        public boolean doIt() throws JobException
+        {
+            return generateFill(topCell);
+        }
+    }
+
+    private static boolean generateFill(Cell theCell)
     {                           
         InteractiveRouter router  = new SimpleWirer();
         Map<Layer, List<ArcInst>> map = new HashMap<Layer, List<ArcInst>>();
 
-        for (Iterator<ArcInst> itAi = topCell.getArcs(); itAi.hasNext();)
+        for (Iterator<ArcInst> itAi = theCell.getArcs(); itAi.hasNext();)
         {
             ArcInst ai = itAi.next();
             assert(ai.getProto().getNumArcLayers() == 1); // only 1 for now
@@ -104,25 +191,25 @@ public class FillJob extends Job
 		Map<ArcProto,Integer> arcsCreatedMap = new HashMap<ArcProto,Integer>();
 		Map<NodeProto,Integer> nodesCreatedMap = new HashMap<NodeProto,Integer>();
         boolean evenHorizontal = true; // even metal layers are horizontal. Basic assumption
-        int numMetals = topCell.getTechnology().getNumMetals();
-        List<Layer> evenMetalLayers = new ArrayList<Layer>();
-        List<Layer> oddMetalLayers = new ArrayList<Layer>();
-
-        for (Iterator<Layer> itL = topCell.getTechnology().getLayers(); itL.hasNext();)
-        {
-            Layer layer = itL.next();
-            if (!layer.getFunction().isMetal()) continue;
-            int metalNumber = layer.getFunction().getLevel();
-        }
+        List<Route> routeList = new ArrayList<Route>();
+        List<ArcInst> arcs = new ArrayList<ArcInst>();
 
         for (int i = 0; i < listOfLayers.size() - 1; i++)
         {
             Layer bottom = listOfLayers.get(i);
             int metalNumber = bottom.getFunction().getLevel();
             boolean horizontal = (evenHorizontal && metalNumber%2==0) || (!evenHorizontal && metalNumber%2==1);
-            List<ArcInst> arcs = map.get(bottom);
+//            List<ArcInst> arcs1 = map.get(bottom);
 
-            if (arcs == null) continue; // nothing to stitch
+            arcs.clear();
+            for (Iterator<ArcInst> itAi = theCell.getArcs(); itAi.hasNext();)
+            {
+                ArcInst ai = itAi.next();
+                assert(ai.getProto().getNumArcLayers() == 1); // only 1 for now
+                Layer l = ai.getProto().getLayer(0);
+                if (l == bottom)
+                    arcs.add(ai);
+            }
 
             Layer top = listOfLayers.get(i+1);
             for (ArcInst ai : arcs)
@@ -135,14 +222,14 @@ public class FillJob extends Job
                 Rectangle2D bounds = ai.getBounds();
                 Area bottomA = new Area(bounds);
                 // Picking only 1 export and considering the root name`
-                Netlist netlist = topCell.getNetlist(); // getting new version of netlist after every routing.
+                Netlist netlist = theCell.getNetlist(); // getting new version of netlist after every routing.
                 String bottomName = getExportRootName(ai, netlist);
 
                 if (bottomName == null) continue; // nothing to export
 
                 List<PinsArcPair> pairs = new ArrayList<PinsArcPair>();
 
-                for(Iterator<RTBounds> it = topCell.searchIterator(bounds); it.hasNext(); )
+                for(Iterator<RTBounds> it = theCell.searchIterator(bounds); it.hasNext(); )
                 {
                     Geometric nGeom = (Geometric)it.next();
 
@@ -170,24 +257,33 @@ public class FillJob extends Job
                     Area topA = new Area(nBnds);
                     topA.intersect(bottomA);
                     Rectangle2D resultBnd = topA.getBounds2D();
+
+                    // checking for full overlap. If horizontal -> width must be 100%
+                    boolean fullCoverage = (horizontal) ? DBMath.areEquals(resultBnd.getWidth(), nBnds.getWidth()) :
+                        DBMath.areEquals(resultBnd.getHeight(), nBnds.getHeight());
+
+                    if (!fullCoverage)
+                        continue; // skipping this case
+
                     EPoint insert = new EPoint(resultBnd.getCenterX(), resultBnd.getCenterY());
                     pairs.add(new PinsArcPair(nai, insert));
                 }
 
                 Collections.sort(pairs, pinsArcSort);
                 ArcInst mostLeft = ai;
-                List<Route> routeList = new ArrayList<Route>();
+                routeList.clear();
+
                 for (PinsArcPair pair : pairs)
                 {
                     SplitContainter bottomSplit = splitArcAtPoint(mostLeft, pair.insert);
                     SplitContainter topSplit = splitArcAtPoint(pair.topArc, pair.insert);
-                    Route r = router.planRoute(topCell,  bottomSplit.splitPin, topSplit.splitPin, pair.insert, null, true, true);
+                    Route r = router.planRoute(theCell,  bottomSplit.splitPin, topSplit.splitPin, pair.insert, null, true, true);
                     mostLeft = bottomSplit.rightArc;
                     routeList.add(r);
                 }
                 for (Route r : routeList)
                 {
-                    Router.createRouteNoJob(r, topCell, false, arcsCreatedMap, nodesCreatedMap);
+                    Router.createRouteNoJob(r, theCell, false, arcsCreatedMap, nodesCreatedMap);
                 }
             }
         }
@@ -200,7 +296,7 @@ public class FillJob extends Job
      * @param horizontal
      * @return
      */
-    private boolean isArcAligned(ArcInst ai, boolean horizontal)
+    private static boolean isArcAligned(ArcInst ai, boolean horizontal)
     {
         EPoint head = ai.getHeadLocation();
         EPoint tail = ai.getTailLocation();
@@ -214,11 +310,13 @@ public class FillJob extends Job
      * @param ai arc with the export
      * @return Non-null string with the root name. Null if no export was found.
      */
-    private String getExportRootName(ArcInst ai, Netlist netlist)
+    private static String getExportRootName(ArcInst ai, Netlist netlist)
     {
         Network jNet = netlist.getNetwork(ai, 0);
         // Picking only 1 export and considering the root name`
         // Assuming at 1 export per arc
+        if (jNet == null)
+            System.out.println("Here");
         Iterator<String> exportNames = jNet.getExportedNames();
         assert (exportNames.hasNext()); // must have one?
         String rootName = exportNames.next();
@@ -246,7 +344,7 @@ public class FillJob extends Job
      * @param insert point to split at
      * @return SplitContainter representing the split pin and new arcs
      */
-    SplitContainter splitArcAtPoint(ArcInst ai, EPoint insert)
+    private static SplitContainter splitArcAtPoint(ArcInst ai, EPoint insert)
     {
         // create the break pins
         ArcProto ap = ai.getProto();
@@ -320,7 +418,7 @@ public class FillJob extends Job
     /**
      * Internal class to keep potential connections
      */
-    private class PinsArcPair
+    private static class PinsArcPair
     {
         private ArcInst topArc;
         private EPoint insert;
@@ -350,7 +448,7 @@ public class FillJob extends Job
     /**
      * Class to store temp info
      */
-    class SplitContainter
+    private static class SplitContainter
     {
         NodeInst splitPin;
         ArcInst leftArc, rightArc; // to keep track of new arcs after the original one was split
