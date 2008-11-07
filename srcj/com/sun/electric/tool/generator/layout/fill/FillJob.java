@@ -32,15 +32,18 @@ import com.sun.electric.tool.routing.SimpleWirer;
 import com.sun.electric.tool.routing.Route;
 import com.sun.electric.tool.routing.Router;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.topology.*;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.PrimitiveNode;
 
 import java.util.*;
 import java.awt.geom.Rectangle2D;
@@ -111,7 +114,27 @@ public class FillJob extends Job
                 count++;
             }
             if (fillCellName == null) continue; // no parsing matching
-            
+
+            // getting possible options like "w" or "2x4"
+            int index = fillCellName.indexOf("(");
+            boolean wideOption = false;
+
+            if (index != -1)
+            {
+                // Getting options
+                String options = fillCellName.substring(index);
+                fillCellName = fillCellName.substring(0, index);
+                parse = new StringTokenizer(options, "()", false);
+                while (parse.hasMoreTokens())
+                {
+                    String option = parse.nextToken();
+                    if (option.toLowerCase().equals("w"))
+                    {
+                        wideOption = true;
+                        fillCellName += "W";
+                    }
+                }
+            }
             List<NodeInst> fillCells = new ArrayList<NodeInst>();
             List<Geometric> fillGeoms = new ArrayList<Geometric>();
 
@@ -137,7 +160,7 @@ public class FillJob extends Job
             newCell.setTechnology(tech);
             ExportChanges.reExportNodes(newCell, fillGeoms, false, true, false, true);
             new CellChangeJobs.ExtractCellInstances(newCell, fillCells, Integer.MAX_VALUE, true, true);
-            //generateFill(newCell);
+            generateFill(newCell, wideOption);
         }
         return true;
     }
@@ -158,58 +181,40 @@ public class FillJob extends Job
 
         public boolean doIt() throws JobException
         {
-            return generateFill(topCell);
+            return generateFill(topCell, false);
         }
     }
 
-    private static boolean generateFill(Cell theCell)
+    private static boolean generateFill(Cell theCell, boolean wideOption)
     {                           
         InteractiveRouter router  = new SimpleWirer();
-        Map<Layer, List<ArcInst>> map = new HashMap<Layer, List<ArcInst>>();
+        List<Layer> listOfLayers = new ArrayList<Layer>(12);
 
-        for (Iterator<ArcInst> itAi = theCell.getArcs(); itAi.hasNext();)
+        for (Iterator<Layer> itL = theCell.getTechnology().getLayers(); itL.hasNext(); )
         {
-            ArcInst ai = itAi.next();
-            assert(ai.getProto().getNumArcLayers() == 1); // only 1 for now
-            Layer l = ai.getProto().getLayer(0);
-
+            Layer l = itL.next();
             if (!l.getFunction().isMetal()) continue;  // only metals
-
-            List<ArcInst> arcs = map.get(l);
-            if (arcs == null)
-            {
-                arcs = new ArrayList<ArcInst>();
-                map.put(l, arcs);
-            }
-            arcs.add(ai);
+            listOfLayers.add(l);
         }
 
-        Set<Layer> setOfLayers = map.keySet();
-        List<Layer> listOfLayers = new ArrayList<Layer>(setOfLayers.size());
-        listOfLayers.addAll(setOfLayers);
         Collections.sort(listOfLayers, Layer.layerSortByName);
 		Map<ArcProto,Integer> arcsCreatedMap = new HashMap<ArcProto,Integer>();
 		Map<NodeProto,Integer> nodesCreatedMap = new HashMap<NodeProto,Integer>();
         boolean evenHorizontal = true; // even metal layers are horizontal. Basic assumption
         List<Route> routeList = new ArrayList<Route>();
-        List<ArcInst> arcs = new ArrayList<ArcInst>();
+        Layer[] topLayers = new Layer[2];
+        Layer bottomLayer = null;
+        List<String> exportsOnBottom = new ArrayList<String>();
+        Map<String,Area> totalAreas = new HashMap<String,Area>();
 
         for (int i = 0; i < listOfLayers.size() - 1; i++)
         {
             Layer bottom = listOfLayers.get(i);
+
             int metalNumber = bottom.getFunction().getLevel();
             boolean horizontal = (evenHorizontal && metalNumber%2==0) || (!evenHorizontal && metalNumber%2==1);
-//            List<ArcInst> arcs1 = map.get(bottom);
 
-            arcs.clear();
-            for (Iterator<ArcInst> itAi = theCell.getArcs(); itAi.hasNext();)
-            {
-                ArcInst ai = itAi.next();
-                assert(ai.getProto().getNumArcLayers() == 1); // only 1 for now
-                Layer l = ai.getProto().getLayer(0);
-                if (l == bottom)
-                    arcs.add(ai);
-            }
+            List<ArcInst> arcs = getArcsInGivenLayer(theCell.getArcs(), bottom);
 
             Layer top = listOfLayers.get(i+1);
             for (ArcInst ai : arcs)
@@ -219,8 +224,6 @@ public class FillJob extends Job
                 if (!isArcAligned(ai, horizontal))
                     continue;
 
-                Rectangle2D bounds = ai.getBounds();
-                Area bottomA = new Area(bounds);
                 // Picking only 1 export and considering the root name`
                 Netlist netlist = theCell.getNetlist(); // getting new version of netlist after every routing.
                 String bottomName = getExportRootName(ai, netlist);
@@ -228,7 +231,20 @@ public class FillJob extends Job
                 if (bottomName == null) continue; // nothing to export
 
                 List<PinsArcPair> pairs = new ArrayList<PinsArcPair>();
+                Rectangle2D bounds = ai.getBounds();
+                Area bottomA = new Area(bounds);
 
+                if (bottomLayer == null || bottom == bottomLayer) // only for the bottom layer, the first one
+                {
+                    Area totalA = totalAreas.get(bottomName);
+                    if (totalA == null)
+                    {
+                        totalA = new Area();
+                        totalAreas.put(bottomName, totalA);
+                    }
+                    totalA.add(bottomA);
+                }
+                
                 for(Iterator<RTBounds> it = theCell.searchIterator(bounds); it.hasNext(); )
                 {
                     Geometric nGeom = (Geometric)it.next();
@@ -237,7 +253,7 @@ public class FillJob extends Job
 
                     ArcInst nai = (ArcInst)nGeom;
 
-                    assert(nai.getProto().getNumArcLayers() == 1); // only 1 for now
+//                    assert(nai.getProto().getNumArcLayers() == 1); // only 1 for now
 
                     Layer nl = nai.getProto().getLayer(0);
 
@@ -259,11 +275,16 @@ public class FillJob extends Job
                     Rectangle2D resultBnd = topA.getBounds2D();
 
                     // checking for full overlap. If horizontal -> width must be 100%
-                    boolean fullCoverage = (horizontal) ? DBMath.areEquals(resultBnd.getWidth(), nBnds.getWidth()) :
+                    boolean fullCoverageX = (horizontal) ? DBMath.areEquals(resultBnd.getWidth(), nBnds.getWidth()) :
                         DBMath.areEquals(resultBnd.getHeight(), nBnds.getHeight());
+                    boolean fullCoverageY = (horizontal) ? DBMath.areEquals(resultBnd.getHeight(), bounds.getHeight()) :
+                        DBMath.areEquals(resultBnd.getWidth(), bounds.getWidth());
 
-                    if (!fullCoverage)
+                    if (!fullCoverageX)
                         continue; // skipping this case
+
+                    if (!fullCoverageY)
+                        continue;
 
                     EPoint insert = new EPoint(resultBnd.getCenterX(), resultBnd.getCenterY());
                     pairs.add(new PinsArcPair(nai, insert));
@@ -272,6 +293,26 @@ public class FillJob extends Job
                 Collections.sort(pairs, pinsArcSort);
                 ArcInst mostLeft = ai;
                 routeList.clear();
+
+                if (bottomLayer == null)
+                    bottomLayer = bottom;
+                if (bottom == bottomLayer)
+                    exportsOnBottom.add(bottomName);
+
+                // Mark the layer as possible one of the top ones
+                if (!pairs.isEmpty())
+                {
+                    if (topLayers[0] == null) // first time
+                    {
+                        topLayers[0] = bottom;
+                        topLayers[1] = top;
+                    }
+                    else if (topLayers[0] != bottom)
+                    {
+                        topLayers[0] = bottom;
+                        topLayers[1] = top;
+                    }
+                }
 
                 for (PinsArcPair pair : pairs)
                 {
@@ -287,7 +328,96 @@ public class FillJob extends Job
                 }
             }
         }
+
+        // Remove exports in lower layers
+        Set<Export> toDelete = new HashSet<Export>();
+        Map<String,Export> inBottomLayer = new HashMap<String,Export>(); // enough with 1 export stored
+        
+        for (Iterator<Export> itE = theCell.getExports(); itE.hasNext();)
+        {
+            Export exp = itE.next();
+            PrimitiveNode n = exp.getBasePort().getParent();
+            boolean found = false;
+            String rootName = extractRootName(exp.getName());
+
+            for (Iterator<Layer> itL = n.getLayerIterator(); itL.hasNext();)
+            {
+                Layer l = itL.next();
+                if (topLayers[0] == l || topLayers[1] == l)
+                {
+                    found = true;
+                }
+                else if (l == bottomLayer)
+                {
+                    inBottomLayer.put(rootName, exp); // put the last one in the network.
+                }
+            }
+            if (!found) // delete the export
+                toDelete.add(exp);
+        }
+
+        Netlist netlist = theCell.getNetlist();
+        // Add extra export in the middle of the botoom layer.
+        if (wideOption)
+        {
+            Map<String,PinsArcPair> newExports = new HashMap<String,PinsArcPair>();
+
+            // For each export 1 export in the bottom layer should be insert
+            for (Map.Entry<String,Export> e : inBottomLayer.entrySet())
+            {
+                Export exp = e.getValue();
+                Network net = netlist.getNetwork(exp, 0);
+                // Collect first all the arcs in that layer
+                List<ArcInst> arcs = getArcsInGivenLayer(net.getArcs(), bottomLayer);
+                String rootName = extractRootName(exp.getName());
+                Rectangle2D resultBnd = totalAreas.get(rootName).getBounds2D();
+                EPoint insert = new EPoint(resultBnd.getCenterX(), resultBnd.getCenterY());
+                PinsArcPair split; // looking for the first arc where the center is contained.
+                for (ArcInst ai : arcs)
+                {
+                    Rectangle2D bnd = ai.getBounds();
+                    if (bnd.contains(insert.getX(), insert.getY()))
+                    {
+                        split = new PinsArcPair(ai, insert);
+                        newExports.put(rootName, split);
+//                        toDelete.remove(exp); // doesn't remove the export now
+                        break;
+                    }
+                }
+            }
+
+            for (Map.Entry<String,PinsArcPair> e : newExports.entrySet())
+            {
+                PinsArcPair pair = e.getValue();
+                SplitContainter split = splitArcAtPoint(pair.topArc, pair.insert);
+                Export.newInstance(theCell, split.splitPin.getPortInst(0), e.getKey(), PortCharacteristic.UNKNOWN);
+            }
+        }
+
+        // Delete after dealing with the wide option
+        theCell.killExports(toDelete);
         return true;
+    }
+
+    /**
+     * Method to collect arcs in a given layer from an iterator
+     * @param itAi Arcs iterator
+     * @param layer Given layer
+     * @return List of ArcInsts
+     */
+    private static List<ArcInst> getArcsInGivenLayer(Iterator<ArcInst> itAi, Layer layer)
+    {
+        List<ArcInst> arcs = new ArrayList<ArcInst>();
+
+        for (; itAi.hasNext();)
+        {
+            ArcInst ai = itAi.next();
+//                assert(ai.getProto().getNumArcLayers() == 1); // only 1 for now
+            Layer l = ai.getProto().getLayer(0);
+            if (l == layer)
+                arcs.add(ai);
+        }
+        return arcs;
     }
 
     /**
@@ -306,6 +436,19 @@ public class FillJob extends Job
     }
 
     /**
+     * Method to extract the export root name from a given name
+     * @param name String containing the export name
+     * @return String containing the root name of the export
+     */
+    private static String extractRootName(String name)
+    {
+        int index = name.indexOf("_");
+        if (index != -1) // remove any character after _
+            name = name.substring(0, index);
+        return name;
+    }
+
+    /**
      * Methot to extrac root name of the export in a given arc
      * @param ai arc with the export
      * @return Non-null string with the root name. Null if no export was found.
@@ -319,22 +462,7 @@ public class FillJob extends Job
             System.out.println("Here");
         Iterator<String> exportNames = jNet.getExportedNames();
         assert (exportNames.hasNext()); // must have one?
-        String rootName = exportNames.next();
-
-//        Export exp;
-//        if (ai.getTailPortInst().getNodeInst().getNumExports() > 0)
-//            exp = ai.getTailPortInst().getNodeInst().getExports().next();
-//        else if (ai.getHeadPortInst().getNodeInst().getNumExports() > 0)
-//            exp = ai.getHeadPortInst().getNodeInst().getExports().next();
-//        else
-//        {
-//            System.out.println("Should this happen?");
-//            return null;
-//        }
-//        String rootName = exp.getName();
-        int index = rootName.indexOf("_");
-        if (index != -1) // remove any character after _
-            rootName = rootName.substring(0, index);
+        String rootName = extractRootName(exportNames.next());
         return rootName;
     }
 
