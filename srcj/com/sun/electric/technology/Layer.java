@@ -32,7 +32,6 @@ import com.sun.electric.database.text.Setting;
 import com.sun.electric.technology.xml.XmlParam;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.Resources;
-import com.sun.electric.tool.user.projectSettings.ProjSettingsNode;
 
 import java.awt.Color;
 import java.io.PrintWriter;
@@ -1010,14 +1009,8 @@ public class Layer
                 "Parasitic tab", "Technology " + tech.getTechName() + ", " + what + " for layer " + name, factory));
     }
 
-    private ProjSettingsNode getSubNode(String type) {
-        ProjSettingsNode node = tech.getProjectSettings();
-        ProjSettingsNode typenode = node.getNode(type);
-//        if (typenode == null) {
-//            typenode = new ProjSettingsNode();
-//            node.putNode(type, typenode);
-//        }
-        return typenode;
+    private String getSubNode(String type) {
+        return tech.getProjectSettings() + type + ".";
     }
 
     /**

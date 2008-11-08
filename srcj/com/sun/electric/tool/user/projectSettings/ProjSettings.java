@@ -64,6 +64,18 @@ public class ProjSettings {
         return settings;
     }
 
+    public static void putValue(Setting setting) {
+        String xmlPath = setting.getXmlPath();
+        int pos;
+        ProjSettingsNode node = getSettings();
+        while ((pos = xmlPath.indexOf('.')) >= 0) {
+            String key = xmlPath.substring(0, pos);
+            node = node.getNode(key);
+            xmlPath = xmlPath.substring(pos + 1);
+        }
+        node.putValue(xmlPath, setting);
+    }
+
     public static void writeSettings(File file) {
         write(file.getPath(), getSettings());
     }
@@ -121,13 +133,13 @@ public class ProjSettings {
      */
     public static class ImportSettingsJob extends Job {
         private String fileName;
-        
+
         public ImportSettingsJob(String fileName) {
             super("Import Settings", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.fileName = fileName;
             startJob();
         }
-        
+
         public boolean doIt() throws JobException {
             readSettings(new File(fileName), true);
             return true;
@@ -141,7 +153,7 @@ public class ProjSettings {
         Writer wr = new Writer(ofile);
         if (wr.write("ProjectSettings", node)) {
             System.out.println("Wrote Project Settings to "+file);
-            lastProjectSettingsFile = ofile; 
+            lastProjectSettingsFile = ofile;
         }
         wr.close();
     }
@@ -300,7 +312,7 @@ public class ProjSettings {
                 URLConnection conn = url.openConnection();
                 InputStream is = conn.getInputStream();
                 factory.newSAXParser().parse(is, this);
-                if (READER_RESETS_DEFAULTS) 
+                if (READER_RESETS_DEFAULTS)
                     commit(ProjSettings.getSettings());
                 else
                     commit0();
@@ -397,7 +409,7 @@ public class ProjSettings {
                 }
             }
         }
-        
+
         private boolean commit0() {
             for (Map.Entry<Setting,Object> e: settings.entrySet()) {
                 Setting setting = e.getKey();
@@ -406,9 +418,9 @@ public class ProjSettings {
                 if (allowOverride) setting.set(value);
             }
             return differencesFound;
-            
+
         }
-        
+
         private void prDiff(Setting setting, Object prefVal, Object xmlVal, boolean allowOverride) {
             if (!ProjSettingsNode.equal(xmlVal, setting)) {
                 differencesFound = true;

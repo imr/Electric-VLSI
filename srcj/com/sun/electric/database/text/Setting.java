@@ -26,19 +26,16 @@ package com.sun.electric.database.text;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.tool.user.projectSettings.ProjSettings;
-import com.sun.electric.tool.user.projectSettings.ProjSettingsNode;
 
 import java.io.PrintStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
 import java.util.prefs.Preferences;
 
@@ -61,9 +58,9 @@ public class Setting {
     private boolean valid;
     private final String description, location;
     private String [] trueMeaning;
-
+    
     /** Creates a new instance of Setting */
-    public Setting(String prefName, Pref.Group group, ProjSettingsNode xmlNode, String xmlName, String location, String description, Object factoryObj) {
+    public Setting(String prefName, Pref.Group group, String xmlNode, String xmlName, String location, String description, Object factoryObj) {
         EDatabase.serverDatabase().checkChanging();
         if (xmlNode == null)
             throw new NullPointerException();
@@ -71,7 +68,7 @@ public class Setting {
         if (xmlName == null)
             xmlName = prefName;
 //        this.xmlName = xmlName;
-        xmlPath = xmlNode.getPath() + xmlName;
+        xmlPath = xmlNode + xmlName;
         assert !allSettingsByXmlPath.containsKey(xmlPath);
 
         this.factoryObj = factoryObj;
@@ -91,7 +88,8 @@ public class Setting {
         this.description = description;
         this.location = location;
         setCachedObjFromPreferences();
-        xmlNode.putValue(xmlName, this);
+        ProjSettings.putValue(this);
+//        xmlNode.putValue(xmlName, this);
 
     }
 
@@ -311,9 +309,9 @@ public class Setting {
 	 * @param factory the "factory" default value (if nothing is stored).
 	 */
     public static Setting makeBooleanSetting(String name, Pref.Group group,
-                                          ProjSettingsNode xmlNode, String xmlName,
+                                          String xmlNode, String xmlName,
                                           String location, String description, boolean factory) {
-        Setting setting = Setting.getSetting(xmlNode.getPath() + xmlName);
+        Setting setting = Setting.getSetting(xmlNode + xmlName);
         if (setting != null) return setting;
         return new Setting(name, group, xmlNode, xmlName, location, description, Boolean.valueOf(factory));
     }
@@ -327,9 +325,9 @@ public class Setting {
 	 * @param factory the "factory" default value (if nothing is stored).
 	 */
     public static Setting makeIntSetting(String name, Pref.Group group,
-                                      ProjSettingsNode xmlNode, String xmlName,
+                                      String xmlNode, String xmlName,
                                       String location, String description, int factory) {
-        Setting setting = Setting.getSetting(xmlNode.getPath() + xmlName);
+        Setting setting = Setting.getSetting(xmlNode + xmlName);
         if (setting != null) return setting;
         return new Setting(name, group, xmlNode, xmlName, location, description, Integer.valueOf(factory));
     }
@@ -343,9 +341,9 @@ public class Setting {
 	 * @param factory the "factory" default value (if nothing is stored).
 	 */
     public static Setting makeLongSetting(String name, Pref.Group group,
-                                       ProjSettingsNode xmlNode, String xmlName,
+                                       String xmlNode, String xmlName,
                                        String location, String description, long factory) {
-        Setting setting = Setting.getSetting(xmlNode.getPath() + xmlName);
+        Setting setting = Setting.getSetting(xmlNode + xmlName);
         if (setting != null) return setting;
         return new Setting(name, group, xmlNode, xmlName, location, description, Long.valueOf(factory));
     }
@@ -359,9 +357,9 @@ public class Setting {
 	 * @param factory the "factory" default value (if nothing is stored).
 	 */
     public static Setting makeDoubleSetting(String name, Pref.Group group,
-                                         ProjSettingsNode xmlNode, String xmlName,
+                                         String xmlNode, String xmlName,
                                          String location, String description, double factory) {
-        Setting setting = Setting.getSetting(xmlNode.getPath() + xmlName);
+        Setting setting = Setting.getSetting(xmlNode + xmlName);
         if (setting != null) return setting;
         return new Setting(name, group, xmlNode, xmlName, location, description, Double.valueOf(factory));
     }
@@ -375,9 +373,9 @@ public class Setting {
 	 * @param factory the "factory" default value (if nothing is stored).
 	 */
     public static Setting makeStringSetting(String name, Pref.Group group,
-                                         ProjSettingsNode xmlNode, String xmlName,
+                                         String xmlNode, String xmlName,
                                          String location, String description, String factory) {
-        Setting setting = Setting.getSetting(xmlNode.getPath() + xmlName);
+        Setting setting = Setting.getSetting(xmlNode + xmlName);
         if (setting != null) return setting;
         return new Setting(name, group, xmlNode, xmlName, location, description, factory);
     }
@@ -569,28 +567,28 @@ public class Setting {
         for (Setting setting: allSettingsByXmlPath.values())
             sortedSettings.put(setting.xmlPath, setting);
         out.println("PROJECT SETTINGS");
-        i = 0;
- //       for (Setting setting: sortedSettings.values())
- //           out.println((i++) + "\t" + setting.xmlPath + " " + setting.cachedObj);
-        printSettings(out, ProjSettings.getSettings(), 0);
+        int i = 0;
+        for (Setting setting: sortedSettings.values())
+            out.println((i++) + "\t" + setting.xmlPath + " " + setting.getValue());
+//        printSettings(out, ProjSettings.getSettings(), 0);
     }
 
-    private static int i;
-
-    private static void printSettings(PrintStream out, ProjSettingsNode node, int level) {
-        Set<String> keys = node.getKeys();
-        for (String key: keys) {
-            out.print((i++) + "\t");
-            for (int i = 0; i < level; i++) out.print("  ");
-            out.print(key);
-            ProjSettingsNode subNode = node.getNode(key);
-            if (subNode != null) {
-                out.println(".");
-                printSettings(out, subNode, level + 1);
-                continue;
-            }
-            Setting setting = node.getValue(key);
-            out.println(" " + setting.prefName + " " + setting.getValue());
-        }
-   }
+//    private static int i;
+//
+//    private static void printSettings(PrintStream out, ProjSettingsNode node, int level) {
+//        Set<String> keys = node.getKeys();
+//        for (String key: keys) {
+//            out.print((i++) + "\t");
+//            for (int i = 0; i < level; i++) out.print("  ");
+//            out.print(key);
+//            ProjSettingsNode subNode = node.getNode(key);
+//            if (subNode != null) {
+//                out.println(".");
+//                printSettings(out, subNode, level + 1);
+//                continue;
+//            }
+//            Setting setting = node.getValue(key);
+//            out.println(" " + setting.prefName + " " + setting.getValue());
+//        }
+//   }
 }

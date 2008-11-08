@@ -48,7 +48,7 @@ import java.io.Serializable;
  * the user to get the "initial" or "factory" setting, which is always
  * the first setting applied.
  */
-public class ProjSettingsNode implements Serializable {
+class ProjSettingsNode implements Serializable {
 
 //    private final ProjSettingsNode parent;
 //    private final String key;

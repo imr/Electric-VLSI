@@ -68,8 +68,6 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.erc.ERC;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.projectSettings.ProjSettings;
-import com.sun.electric.tool.user.projectSettings.ProjSettingsNode;
 
 import java.awt.Color;
 import java.awt.geom.AffineTransform;
@@ -4795,13 +4793,8 @@ public class Technology implements Comparable<Technology>, Serializable
 
     /*********************** LOGICAL EFFORT SETTINGS ***************************/
 
-    private ProjSettingsNode getLESettingsNode() {
-        ProjSettingsNode node = getProjectSettings().getNode("LogicalEffort");
-//        if (node == null) {
-//            node = new ProjSettingsNode();
-//            getProjectSettings().putNode("LogicalEffort", node);
-//        }
-        return node;
+    private String getLESettingsNode() {
+        return getProjectSettings() + "LogicalEffort.";
     }
 
     private Setting makeLESetting(String what, double factory) {
@@ -6248,7 +6241,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	{
         private Technology tech;
 
-        private TechSetting(String prefName, Pref.Group group, Technology tech, ProjSettingsNode xmlNode, String xmlName, String location, String description, Object factoryObj) {
+        private TechSetting(String prefName, Pref.Group group, Technology tech, String xmlNode, String xmlName, String location, String description, Object factoryObj) {
             super(prefName, tech.prefs, xmlNode, xmlName, location, description, factoryObj);
             if (tech == null)
                 throw new NullPointerException();
@@ -6311,22 +6304,22 @@ public class Technology implements Comparable<Technology>, Serializable
 	}
 
     public Setting makeBooleanSetting(String name, String location, String description, String xmlName, boolean factory) {
-        ProjSettingsNode xmlNode = getProjectSettings();
-        Setting setting = Setting.getSetting(xmlNode.getPath() + xmlName);
+        String xmlNode = getProjectSettings();
+        Setting setting = Setting.getSetting(xmlNode + xmlName);
         if (setting != null) return setting;
         return new TechSetting(name, prefs, this, xmlNode, xmlName, location, description, Boolean.valueOf(factory));
     }
 
     public Setting makeIntSetting(String name, String location, String description, String xmlName, int factory) {
-        ProjSettingsNode xmlNode = getProjectSettings();
-        Setting setting = Setting.getSetting(xmlNode.getPath() + xmlName);
+        String xmlNode = getProjectSettings();
+        Setting setting = Setting.getSetting(xmlNode + xmlName);
         if (setting != null) return setting;
         return new TechSetting(name, prefs, this, xmlNode, xmlName, location, description, Integer.valueOf(factory));
     }
 
     public Setting makeStringSetting(String name, String location, String description, String xmlName, String factory) {
-        ProjSettingsNode xmlNode = getProjectSettings();
-        Setting setting = Setting.getSetting(xmlNode.getPath() + xmlName);
+        String xmlNode = getProjectSettings();
+        Setting setting = Setting.getSetting(xmlNode + xmlName);
         if (setting != null) return setting;
         return new TechSetting(name, prefs, this, xmlNode, xmlName, location, description, factory);
     }
@@ -6338,13 +6331,8 @@ public class Technology implements Comparable<Technology>, Serializable
         return setting;
     }
 
-    public ProjSettingsNode getProjectSettings() {
-        ProjSettingsNode node = ProjSettings.getSettings().getNode(getTechName());
-//        if (node == null) {
-//            node = new ProjSettingsNode();
-//            ProjSettings.getSettings().putNode(getTechName(), node);
-//        }
-        return node;
+    public String getProjectSettings() {
+        return getTechName() + ".";
     }
 
 	/**
@@ -6364,7 +6352,7 @@ public class Technology implements Comparable<Technology>, Serializable
     }
 
     public Setting getSetting(String xmlPath) {
-        return settingsByXmlPath.get(getProjectSettings().getPath() + xmlPath);
+        return settingsByXmlPath.get(getProjectSettings() + xmlPath);
     }
 
 }

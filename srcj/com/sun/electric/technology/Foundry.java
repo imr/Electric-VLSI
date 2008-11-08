@@ -24,7 +24,6 @@
  */
 package com.sun.electric.technology;
 
-import com.sun.electric.tool.user.projectSettings.ProjSettingsNode;
 import com.sun.electric.database.text.Setting;
 import java.net.URL;
 
@@ -271,14 +270,14 @@ public class Foundry {
         return ("GDS("+type.getName()+")");
     }
 
-    private ProjSettingsNode getGDSNode() {
-        ProjSettingsNode node = tech.getProjectSettings().getNode("GDS");
+    private String getGDSNode() {
+        String node = tech.getProjectSettings() + "GDS.";
         if (type == Type.TSMC)
-            return node.getNode("TSMC");
+            return node + "TSMC.";
         else if (type == Type.MOSIS)
-            return node.getNode("MOSIS");
+            return node + "MOSIS.";
         else if (type == Type.ST)
-            return node.getNode("ST");
+            return node + "ST.";
         else
             return node;
     }
