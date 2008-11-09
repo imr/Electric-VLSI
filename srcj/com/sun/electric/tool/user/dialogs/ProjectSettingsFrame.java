@@ -59,9 +59,11 @@ import java.awt.event.MouseListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
+import java.util.Map;
 import javax.swing.JButton;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -81,8 +83,8 @@ public class ProjectSettingsFrame extends EDialog
 {
 	private JSplitPane splitPane;
 	private JTree optionTree;
-    private List<Object> originalContext;
-    private List<Object> currentContext;
+    private HashMap<Setting,Object> originalContext = new HashMap<Setting,Object>();
+    private HashMap<Setting,Object> currentContext = new HashMap<Setting,Object>();
     private JButton cancel;
     private JButton ok;
     private ProjSettingsPanel currentOptionPanel;
@@ -104,8 +106,10 @@ public class ProjectSettingsFrame extends EDialog
 	public ProjectSettingsFrame(Frame parent)
 	{
 		super(parent, true);
-        originalContext = Setting.getContext();
-        currentContext = new ArrayList<Object>(originalContext);
+        for (Setting setting: Setting.getSettings()) {
+            originalContext.put(setting, setting.getValue());
+            currentContext.put(setting, setting.getValue());
+        }
 		getContentPane().setLayout(new GridBagLayout());
 		setTitle("Project Settings");
 		setName("");
@@ -239,8 +243,8 @@ public class ProjectSettingsFrame extends EDialog
 			currentDMTN = dmtn;
 	}
 
-    public List<Object> getContext() { return currentContext; }
-    
+    public Map<Setting,Object> getContext() { return currentContext; }
+
     private boolean openSelectedPath(DefaultMutableTreeNode rootNode)
     {
         for (int i = 0; i < rootNode.getChildCount(); i++)
@@ -275,8 +279,8 @@ public class ProjectSettingsFrame extends EDialog
         }
         for (Setting setting: Setting.getSettings())
         {
-            Object v = setting.getValue(currentContext);
-            if (setting.getValue(originalContext).equals(v)) continue;
+            Object v = currentContext.get(setting);
+            if (originalContext.get(setting).equals(v)) continue;
             changeBatch.add(setting, v);
             if (setting instanceof Technology.TechSetting)
                 checkAndRepair = true;
@@ -339,7 +343,7 @@ public class ProjectSettingsFrame extends EDialog
         ti.init();
         splitPane.setRightComponent(ti.getPanel());
 	}
-    
+
     private ProjSettingsPanel createOptionPanel(boolean modal)
     {
         if (currentTabName.equals("Added Technologies"))

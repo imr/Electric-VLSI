@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.user.tecEditWizard;
 
-import com.sun.electric.database.text.Setting;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.ui.TopLevel;
 
@@ -37,8 +36,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JPanel;
@@ -58,8 +55,8 @@ public class TechEditWizard extends EDialog
 {
 	private JSplitPane splitPane;
 	private JTree optionTree;
-    private List<Object> originalContext;
-    private List<Object> currentContext;
+//    private List<Object> originalContext;
+//    private List<Object> currentContext;
     private TechEditWizardPanel currentOptionPanel;
 	private DefaultMutableTreeNode currentDMTN;
 	private static TechEditWizardData data = new TechEditWizardData();
@@ -78,8 +75,8 @@ public class TechEditWizard extends EDialog
 	public TechEditWizard(Frame parent)
 	{
 		super(parent, true);
-        originalContext = Setting.getContext();
-        currentContext = new ArrayList<Object>(originalContext);
+//        originalContext = Setting.getContext();
+//        currentContext = new ArrayList<Object>(originalContext);
 		getContentPane().setLayout(new GridBagLayout());
 		setTitle("Technology Creation Wizard");
 		setName("");
@@ -198,8 +195,8 @@ public class TechEditWizard extends EDialog
 
 	public TechEditWizardData getTechEditData() { return data; }
 
-	public List<Object> getContext() { return currentContext; }
-    
+//	public List<Object> getContext() { return currentContext; }
+
     private boolean openSelectedPath(DefaultMutableTreeNode rootNode)
     {
         for (int i = 0; i < rootNode.getChildCount(); i++)
@@ -258,7 +255,7 @@ public class TechEditWizard extends EDialog
         ti.init();
         splitPane.setRightComponent(ti.getPanel());
 	}
-    
+
     private TechEditWizardPanel createOptionPanel(boolean modal)
     {
         if (currentTabName.equals("Active"))

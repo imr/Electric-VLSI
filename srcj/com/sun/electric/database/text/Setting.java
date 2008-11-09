@@ -58,7 +58,7 @@ public class Setting {
     private boolean valid;
     private final String description, location;
     private String [] trueMeaning;
-    
+
     /** Creates a new instance of Setting */
     public Setting(String prefName, Pref.Group group, String xmlNode, String xmlName, String location, String description, Object factoryObj) {
         EDatabase.serverDatabase().checkChanging();
@@ -128,46 +128,6 @@ public class Setting {
      */
     public String getString() { return (String)getValue(); }
 
-    /**
-     * Method to get the boolean value on this Setting object in a specified context.
-     * The object must have been created as "boolean".
-     * @param context specified context.
-     * @return the boolean value on this Setting object in the context.
-     */
-    public boolean getBoolean(List<Object> context) { return ((Boolean)getValue(context)).booleanValue(); }
-
-    /**
-     * Method to get the integer value on this Setting object in a specified context.
-     * The object must have been created as "integer".
-     * @param context specified context.
-     * @return the integer value on this TechSetting object.
-     */
-    public int getInt(List<Object> context) { return ((Integer)getValue(context)).intValue(); }
-
-    /**
-     * Method to get the long value on this Setting object in a specified context.
-     * The object must have been created as "long".
-     * @param context specified context.
-     * @return the long value on this TechSetting object.
-     */
-    public long getLong(List<Object> context) { return ((Long)getValue(context)).longValue(); }
-
-    /**
-     * Method to get the double value on this Setting object in a specified context.
-     * The object must have been created as "double".
-     * @param context specified context.
-     * @return the double value on this TechSetting object.
-     */
-    public double getDouble(List<Object> context) { return ((Double)getValue(context)).doubleValue(); }
-
-    /**
-     * Method to get the string value on this Setting object in a specified context.
-     * The object must have been created as "string".
-     * @param context specified context.
-     * @return the string value on this TechSetting object.
-     */
-    public String getString(List<Object> context) { return (String)getValue(context); }
-
     public void set(Object v) {
 //        if (changeBatch != null) {
 //            if (SwingUtilities.isEventDispatchThread()) {
@@ -184,13 +144,6 @@ public class Setting {
         values.set(index, factoryObj.equals(v) ? factoryObj : v);
         saveToPreferences(v);
         setSideEffect();
-    }
-
-    public void set(List<Object> context, Object v) {
-        if (getValue(context).equals(v)) return;
-        if (v.getClass() != factoryObj.getClass())
-            throw new ClassCastException();
-        context.set(index, factoryObj.equals(v) ? factoryObj : v);
     }
 
     /**
@@ -227,17 +180,6 @@ public class Setting {
 //            }
 //        }
         return values.get(index);
-    }
-
-	/**
-	 * Method to get the value of this Setting object as an Object in a specified context.
-	 * The proper way to get the current value is to use one of the type-specific
-	 * methods such as getInt(), getBoolean(), etc.
-     * @param context specified context
-	 * @return the Object value of this Setting object in the specfied context.
-	 */
-	public Object getValue(List<Object> context) {
-        return context.get(index);
     }
 
     /**
@@ -544,7 +486,7 @@ public class Setting {
         }
     }
 
-    public static List<Object> getContext() { return new ArrayList<Object>(values); }
+//    public static List<Object> getContext() { return new ArrayList<Object>(values); }
     public static List<Object> resetContext() {
         List<Object> savedContext = new ArrayList<Object>(values);
         for (Setting setting: allSettingsByXmlPath.values()) {

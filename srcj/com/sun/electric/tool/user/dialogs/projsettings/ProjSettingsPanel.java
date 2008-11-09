@@ -30,7 +30,7 @@ import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.ProjectSettingsFrame;
 
 import java.awt.Frame;
-import java.util.List;
+import java.util.Map;
 import javax.swing.JPanel;
 
 /**
@@ -78,32 +78,32 @@ public class ProjSettingsPanel extends EDialog
      * @param setting setting object.
      * @return the boolean value on the Setting object.
      */
-    public boolean getBoolean(Setting setting) { return setting.getBoolean(getContext()); }
-    
+    public boolean getBoolean(Setting setting) { return ((Boolean)getValue(setting)).booleanValue(); }
+
     /**
      * Method to get the integer value on the Setting object.
      * The object must have been created as "integer".
      * @param setting setting object.
      * @return the integer value on the Setting object.
      */
-    public int getInt(Setting setting) { return setting.getInt(getContext()); }
-    
+    public int getInt(Setting setting) { return ((Integer)getValue(setting)).intValue(); }
+
     /**
      * Method to get the long value on the Setting object.
      * The object must have been created as "long".
      * @param setting setting object.
      * @return the long value on the Setting object.
      */
-    public long getLong(Setting setting) { return setting.getLong(getContext()); }
-    
+    public long getLong(Setting setting) { return ((Long)getValue(setting)).longValue(); }
+
     /**
      * Method to get the double value on the Setting object.
      * The object must have been created as "double".
      * @param setting setting object.
      * @return the double value on the Setting object.
      */
-    public double getDouble(Setting setting) { return setting.getDouble(getContext()); }
-    
+    public double getDouble(Setting setting) { return ((Double)getValue(setting)).doubleValue(); }
+
     /**
      * Method to get string representation of the double value on the Setting object.
      * The object must have been created as "double".
@@ -119,60 +119,64 @@ public class ProjSettingsPanel extends EDialog
      * The object must have been created as "string".
      * @return the string value on the Setting object.
      */
-    public String getString(Setting setting) { return setting.getString(getContext()); }
-    
+    public String getString(Setting setting) { return (String)getValue(setting); }
+
     /**
      * Method to set a new boolean value on Setting object.
      * @param setting Setting object.
      * @param v the new boolean value of Setting object.
      */
     public void setBoolean(Setting setting, boolean v) {
-        if (v != setting.getBoolean(getContext()))
-            setting.set(getContext(), Boolean.valueOf(v));
+        if (v != getBoolean(setting))
+            putValue(setting, Boolean.valueOf(v));
     }
-    
+
     /**
      * Method to set a new integer value on Setting object.
      * @param setting Setting object.
      * @param v the new integer value of Setting object.
      */
     public void setInt(Setting setting, int v) {
-        if (v != setting.getInt(getContext()))
-            setting.set(getContext(), Integer.valueOf(v));
+        if (v != getInt(setting))
+            putValue(setting, Integer.valueOf(v));
     }
-    
+
     /**
      * Method to set a new long value on Setting object.
      * @param setting Setting object.
      * @param v the new long value of Setting object.
      */
     public void setLong(Setting setting, long v) {
-        if (v != setting.getLong(getContext()))
-            setting.set(getContext(), Long.valueOf(v));
+        if (v != getLong(setting))
+            putValue(setting, Long.valueOf(v));
     }
-    
+
     /**
      * Method to set a new double value on Setting object.
      * @param setting Setting object.
      * @param v the new double value of Setting object.
      */
     public void setDouble(Setting setting, double v) {
-        if (v != setting.getDouble(getContext()))
-            setting.set(getContext(), Double.valueOf(v));
+        if (v != getDouble(setting))
+            putValue(setting, Double.valueOf(v));
     }
-    
+
     /**
      * Method to set a new string value on Setting object.
      * @param setting Setting object.
      * @param str the new string value of Setting object.
      */
     public void setString(Setting setting, String str) {
-        if (!str.equals(setting.getString(getContext())))
-            setting.set(getContext(), str);
+        if (!str.equals(getString(setting)))
+            putValue(setting, str);
     }
 
-    private List<Object> getContext() { return parent.getContext(); }
-    
+    private Object getValue(Setting setting) { return getContext().get(setting); }
+
+    private void putValue(Setting setting, Object value) { getContext().put(setting, value); }
+
+    private Map<Setting,Object> getContext() { return parent.getContext(); }
+
 	/**
 	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Frame tab.
