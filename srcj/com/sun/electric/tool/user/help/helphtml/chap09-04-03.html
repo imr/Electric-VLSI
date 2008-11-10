@@ -1,17 +1,17 @@
 <!-- HEADER 9-4-3: Spice -->
 
-<!-- COMMAND Tool/Simulation (Spice)/Write Spice Deck... -->
-<!-- COMMAND Tool/Simulation (Spice)/Plot Spice Listing... -->
-<!-- COMMAND Tool/Simulation (Spice)/Plot Spice for This Cell -->
-<!-- COMMAND Tool/Simulation (Spice)/Add Multiplier -->
-<!-- COMMAND Tool/Simulation (Spice)/Add Flat Code -->
-<!-- COMMAND Tool/Simulation (Spice)/Set Spice Model... -->
-<!-- COMMAND Tool/Simulation (Spice)/Set Netlist Cell From File -->
+<!-- COMMAND Tools/Simulation (Spice)/Write Spice Deck... -->
+<!-- COMMAND Tools/Simulation (Spice)/Plot Spice Listing... -->
+<!-- COMMAND Tools/Simulation (Spice)/Plot Spice for This Cell -->
+<!-- COMMAND Tools/Simulation (Spice)/Add Multiplier -->
+<!-- COMMAND Tools/Simulation (Spice)/Add Flat Code -->
+<!-- COMMAND Tools/Simulation (Spice)/Set Spice Model... -->
+<!-- COMMAND Tools/Simulation (Spice)/Set Netlist Cell From File -->
 <!-- PREFERENCE Tools/Spice -->
 <!-- PREFERENCE Tools/Spice Model Files -->
 
 Electric can produce input decks for Spice simulation with <B>Write Spice Deck...</B> command
-(in menu <B>Tool / Simulation (Spice)</B>).
+(in menu <B>Tools / Simulation (Spice)</B>).
 After this has been done, you must run Spice externally to produce a simulation output file.
 Note that the Electric distribution does not come with a Spice simulator: you must obtain it separately.
 <P>
@@ -23,7 +23,7 @@ The "Output format" field is "Standard" for the default output of the Spice engi
 and "Raw/Smart" for the rawfile dumps from SmartSpice.
 <P>
 When Electric knows what type of Spice output file to expect, use the <B>Plot Spice Listing...</B>
-command (in menu <B>Tool / Simulation (Spice)</B>) to read the file.
+command (in menu <B>Tools / Simulation (Spice)</B>) to read the file.
 If the file has the same name as the current cell, you can more simply use <B>Plot Spice for This Cell</B>,
 which does not need to prompt for a file name.
 The Spice simulation information is shown in an analog waveform window
@@ -81,7 +81,7 @@ These command create text that can be modified arbitrarily.
 Whatever the text says will be added to the Spice deck (declarations go near the top).
 <P>
 Another option that can be used when modeling transistors and other component is to set a specific Spice model to use for that component.
-To set a node's model, select it and use the <B>Set Spice Model...</B> command (in menu <B>Tool / Simulation (Spice)</B>).
+To set a node's model, select it and use the <B>Set Spice Model...</B> command (in menu <B>Tools / Simulation (Spice)</B>).
 <P>
 The <B>Add Multiplier</B> subcommand places a multiplier on the currently selected node.
 Multipliers (also called "M" factors) scale the size of transistors inside of them.
@@ -196,7 +196,7 @@ This dialog allows you to specify a disk file of Spice cards that will be used t
 Instead of the cell subcircuit, the specified disk file is "included" in the deck.
 <P>
 The same function can be done by using the <B>Set Netlist Cell From File</B> command
-(in menu <B>Tool / Simulation (Spice)</B>).
+(in menu <B>Tools / Simulation (Spice)</B>).
 This places a piece of text in the cell, which you must edit to be the path to a disk file.
 That file will then be included in the Spice deck instead of the actual subcircuit of the cell.
 <!-- TRAILER -->

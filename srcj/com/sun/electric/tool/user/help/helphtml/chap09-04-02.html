@@ -1,25 +1,25 @@
 <!-- NEED 3in -->
 <!-- HEADER 9-4-2: Verilog -->
 
-<!-- COMMAND Tool/Simulation (Verilog)/Write Verilog Deck... -->
-<!-- COMMAND Tool/Simulation (Verilog)/Plot Verilog VCD Dump... -->
-<!-- COMMAND Tool/Simulation (Verilog)/Plot Verilog for This Cell -->
-<!-- COMMAND Tool/Simulation (Verilog)/Set Verilog Wire/Wire -->
-<!-- COMMAND Tool/Simulation (Verilog)/Set Verilog Wire/Trireg -->
-<!-- COMMAND Tool/Simulation (Verilog)/Set Verilog Wire/Default -->
-<!-- COMMAND Tool/Simulation (Verilog)/Transistor Strength/Weak -->
-<!-- COMMAND Tool/Simulation (Verilog)/Transistor Strength/Normal -->
+<!-- COMMAND Tools/Simulation (Verilog)/Write Verilog Deck... -->
+<!-- COMMAND Tools/Simulation (Verilog)/Plot Verilog VCD Dump... -->
+<!-- COMMAND Tools/Simulation (Verilog)/Plot Verilog for This Cell -->
+<!-- COMMAND Tools/Simulation (Verilog)/Set Verilog Wire/Wire -->
+<!-- COMMAND Tools/Simulation (Verilog)/Set Verilog Wire/Trireg -->
+<!-- COMMAND Tools/Simulation (Verilog)/Set Verilog Wire/Default -->
+<!-- COMMAND Tools/Simulation (Verilog)/Transistor Strength/Weak -->
+<!-- COMMAND Tools/Simulation (Verilog)/Transistor Strength/Normal -->
 <!-- PREFERENCE Tools/Verilog Model Files -->
 <!-- PROJECTSETTING Verilog -->
 
 
 Electric can produce input decks for Verilog simulation with <B>Write Verilog Deck...</B> command
-(in menu <B>Tool / Simulation (Verilog)</B>).
+(in menu <B>Tools / Simulation (Verilog)</B>).
 After this has been done, you must run Verilog externally to produce a ".dump" file.
 Note that the Electric distribution does not come with a Verilog simulator: you must obtain it separately.
 <P>
 After running a Verilog simulation, you can read the ".dump" file into Electric and display it in a waveform window.
-This is done with the <B>Plot Verilog VCD Dump...</B> command (in menu <B>Tool / Simulation (Verilog)</B>).
+This is done with the <B>Plot Verilog VCD Dump...</B> command (in menu <B>Tools / Simulation (Verilog)</B>).
 You can also use the <B>Plot Verilog for This Cell</B> command if the cell name and file name are the same.
 The Verilog simulation information is then shown in a digital waveform window
 (see <A HREF="chap04-11-01.html#chap04-11-01">Section 4-11-1</A> for more).
@@ -40,10 +40,10 @@ Additional control of Verilog deck generation is accomplished with the
 Verilog Project Settings (in menu <B>File / Project Settings...</B>, "Verilog" tab).
 A checkbox lets you choose whether or not to use the Verilog "assign" construct.
 You can control the type of Verilog declaration that will be used for wires ("wire" by default, "trireg" if checked).
-Note that this can be overridden with the <B>Set Verilog Wire</B> command (in menu <B>Tool / Simulation (Verilog)</B>).
+Note that this can be overridden with the <B>Set Verilog Wire</B> command (in menu <B>Tools / Simulation (Verilog)</B>).
 <P>
 Another property that can be assigned to transistors is their strength.
-The <B>Weak</B> command (in menu <B>Tool / Simulation (Verilog) / Transistor Strength</B>)
+The <B>Weak</B> command (in menu <B>Tools / Simulation (Verilog) / Transistor Strength</B>)
 sets the transistor to be weak.
 The <B>Normal</B> command restores the transistor to be normal strength.
 </TD><TD><CENTER><IMG SRC="fig09-07.png" ALT="Figure 9.7"></CENTER></TD></TR></TABLE>

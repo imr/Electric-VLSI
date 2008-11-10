@@ -3,7 +3,7 @@
 <H3>Design Rule Checking</H3>
 <P>
 At any time, you can check your layout against the design rules by using the
-<B>Check Hierarchically</B> command (in menu <B>Tool / DRC</B>), or just type the F5 key.
+<B>Check Hierarchically</B> command (in menu <B>Tools / DRC</B>), or just type the F5 key.
 When DRC is done, use the ">" key to step through and highlight errors; see the Messages window for comments.
 <P>
 You can also use this command to check a schematic.
@@ -18,7 +18,7 @@ This compares the networks in two different cells to make sure they are equivale
 <P>
 To run NCC, edit either the layout or the schematic cell, and use the
 <B>Schematic and Layout Views of Cell in Current Window</B> command
-(in menu <B>Tool / NCC</B>).
+(in menu <B>Tools / NCC</B>).
 This check will not consider transistor sizes, only circuit connectivity.
 <P>
 When the circuit has passed NCC at the connectivity level, turn on transistor size checking.
@@ -45,7 +45,7 @@ See <A HREF="chap01-05.html#chap01-05">Section 1-5</A>
 for details on adding the IRSIM simulator to Electric.
 <P>
 To simulate a circuit with IRSIM, use the <B>IRSIM: Simulate Current Cell</B> command
-(in menu <B>Tool / Simulation (Built-in)</B>).
+(in menu <B>Tools / Simulation (Built-in)</B>).
 A waveform window appears to show the simulation status.
 To get the waveform window and your schematic/layout to appear side-by-side, use the
 <B>Tile Vertically</B> command (in menu <B>Window / Adjust Position</B>).
@@ -55,7 +55,7 @@ To add an internal signal to the waveform display,
 select it and use the <B>Add to Waveform in New Panel</B> (in menu <B>Edit / Selection</B>),
 or just type "a".
 To set a "1" value on a signal, select it (in either the waveform or the schematic/layout)
-and use <B>Set Signal High at Main Time</B> (in menu <B>Tool / Simulation (Built-in)</B>),
+and use <B>Set Signal High at Main Time</B> (in menu <B>Tools / Simulation (Built-in)</B>),
 or just type "V".
 You can drag the "main" time cursor (the dashed line) to any point in the waveform window.
 Notice that as you drag it, level information is displayed in the schematic/layout.
@@ -67,10 +67,10 @@ For example, to simulate with Spice, follow these steps:
 <UL>
 <LI>Use the Spice Preferences to select the Spice engine that you have (Spice 3, HSpice, PSpice,
 SmartSpice, etc.)</LI>
-<LI>Use the <B>Write Spice Deck...</B> command (in menu <B>Tool / Simulation (Spice)</B>)
+<LI>Use the <B>Write Spice Deck...</B> command (in menu <B>Tools / Simulation (Spice)</B>)
 to generate an input deck for Spice.</LI>
 <LI>Run the simulation externally</LI>
-<LI>Use the <B>Plot Spice Listing...</B> command (in menu <B>Tool / Simulation (Spice)</B>)
+<LI>Use the <B>Plot Spice Listing...</B> command (in menu <B>Tools / Simulation (Spice)</B>)
 to read the output of Spice and display it in a waveform window.</LI>
 </UL>
 See <A HREF="chap09-04-03.html#chap09-04-03">Section 9-4-3</A> for more on Spice.

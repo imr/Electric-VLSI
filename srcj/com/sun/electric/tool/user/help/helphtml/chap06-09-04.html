@@ -1,8 +1,8 @@
 <!-- HEADER 6-9-4: Power and Ground -->
 
-<!-- COMMAND Tool/Network/Validate Power and Ground -->
-<!-- COMMAND Tool/Network/Repair Power and Ground -->
-<!-- COMMAND Tool/Network/Show Power and Ground -->
+<!-- COMMAND Tools/Network/Validate Power and Ground -->
+<!-- COMMAND Tools/Network/Repair Power and Ground -->
+<!-- COMMAND Tools/Network/Show Power and Ground -->
 
 Identification of a power network is done by finding:
 <UL>
@@ -21,12 +21,14 @@ each connected to a separate Ground node,
 appear on the same network regardless of their actual connectivity in the circuit.
 <P>
 As a debugging aid for power and ground networks, the command <B>Show Power and Ground</B>
-(in menu <B>Tool / Network</B>) shows the entire power and ground network.
-The <B>Validate Power and Ground</B> command checks all power and ground networks in the circuit.
+(in menu <B>Tools / Network</B>) shows the entire power and ground network.
+The <B>Validate Power and Ground</B> command checks all power and
+ ground networks in the circuit.
 Any power or ground networks that are named according to the prefixes listed above must have the proper characteristics.
 If, for example, a power network is called "gnd007", then it will be flagged by this command.
 The command <B>Repair Power and Ground</B> changes the characteristics where necessary.
-<P>
+
+<P>
 Many designs require multiple power and ground rails.
 Electric allows additional power and ground signals through the use of the Global node
 (see <A HREF="chap06-09-05.html#chap06-09-05">next Section</A>).

@@ -143,15 +143,15 @@ import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 
 /**
- * Class to handle the commands in the "Tool" pulldown menu.
+ * Class to handle the commands in the "Tools" pulldown menu.
  */
 public class ToolMenu {
 
     static EMenu makeMenu() {
-		/****************************** THE TOOL MENU ******************************/
+		/****************************** THE TOOLS MENU ******************************/
 
 		// mnemonic keys available:  B   F H JK    PQ      XYZ
-		return new EMenu("_Tool",
+		return new EMenu("_Tools",
 
 		//------------------- DRC
 
@@ -598,7 +598,7 @@ public class ToolMenu {
                     javaBshScriptCommand(); }}));
 	}
 
-	// ---------------------------- Tool Menu Commands ----------------------------
+	// ---------------------------- Tools Menu Commands ----------------------------
 
 	// Logical Effort Tool
 	public static void optimizeEqualGateDelaysCommand(boolean newAlg)

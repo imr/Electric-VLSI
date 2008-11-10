@@ -1,14 +1,14 @@
 <!-- HEADER 9-7-2: NCC Commands -->
 
-<!-- COMMAND Tool/NCC/Schematic and Layout Views of Cell in Current Window -->
-<!-- COMMAND Tool/NCC/Cells from Two Windows -->
-<!-- COMMAND Tool/NCC/Copy Schematic User Names to Layout -->
-<!-- COMMAND Tool/NCC/Copy All Schematic Names to Layout -->
-<!-- COMMAND Tool/NCC/Highlight Equivalent -->
-<!-- COMMAND Tool/NCC/Run NCC for Schematic Cross-Probing -->
+<!-- COMMAND Tools/NCC/Schematic and Layout Views of Cell in Current Window -->
+<!-- COMMAND Tools/NCC/Cells from Two Windows -->
+<!-- COMMAND Tools/NCC/Copy Schematic User Names to Layout -->
+<!-- COMMAND Tools/NCC/Copy All Schematic Names to Layout -->
+<!-- COMMAND Tools/NCC/Highlight Equivalent -->
+<!-- COMMAND Tools/NCC/Run NCC for Schematic Cross-Probing -->
 
 <P>
-To compare two cells, use these commands (in menu <B>Tool / NCC</B>):
+To compare two cells, use these commands (in menu <B>Tools / NCC</B>):
 <UL>
 <LI>
    <B>Schematic and Layout Views of Cell in Current Window</B>
@@ -28,15 +28,22 @@ To compare two cells, use these commands (in menu <B>Tool / NCC</B>):
    can also be used to compare schematics with schematics or layout
    with layout. However, the command refuses to compare icon cells
    since icons cells don't have defined connectivity.
-</LI>
-<li>
-    <b>Copy Schematic User Names to Layout</b> and <b>Copy All Schematic Names to Layout</B>
-    For each pair of matching schematic and layout cells, rename networks and nodes 
+
+</LI>
+
+<li>
+    <b>Copy Schematic User Names to Layout</b>
+ and <b>Copy All Schematic Names to Layout</B>
+    For each pair of matching schematic and layout cells, rename networks 
+and nodes 
     in the layout cell to have the same name as the equivalent networks
     in the schematic cell. The first command copies only user-assigned names
     from the schematic to the layout; the second command copies all names.
-    Furthermore, it only changes the names of layout networks and nodes 
-    that have no user-assigned names. If a layout network or node has
+    Furthermore, it only changes the names
+ of layout
+ networks and nodes 
+    that have no user-assigned names. If a layout network 
+or node has
     a user-assigned name that does not match the schematic then this 
     command prints a warning. This command also warns when non-equivalent
     networks or nodes have the same user-assigned name. 
@@ -44,9 +51,11 @@ To compare two cells, use these commands (in menu <B>Tool / NCC</B>):
     Notes:
     <ul>
     <li>
-    These commands use the result generated
+    These commands use the result 
+generated
     by the most recent run of NCC. That NCC run should be hierarchical 
-    without size checking.
+    without
+ size checking.
     </li><li>
     These commands clear the saved result from the last run of NCC. 
     If you need to run a command that needs the last result, for example
@@ -55,9 +64,12 @@ To compare two cells, use these commands (in menu <B>Tool / NCC</B>):
     </ul>
     </p>
 </li>
-<li>
+
+<li>
 	<b>Highlight Equivalent</b>
-	Highlight the network or node that is equivalent to the currently selected
+
+	Highlight the network or node that is equivalent to the currently 
+selected
 	network or node, using the result of the most recent NCC run.
 	The user should be aware of a number of limitations:  
 	<ol>
@@ -109,9 +121,11 @@ To compare two cells, use these commands (in menu <B>Tool / NCC</B>):
 	and Electric will automatically translate the schematic net to the appropriate layout net contained in the waveform file.
 
 </li>
-<li>
+
+<li>
 	<b>Add NCC Annotation to Cell</b>
-	This is a submenu that allows user to select which NCC annotation
+
+	This is a submenu that allows user to select which NCC annotation
 	to add to a cell. Note that the designer should replace text surrounded 
 	by angle brackets: "&lt &gt". See <A HREF="chap09-07-04.html#chap09-07-04">Section 9-7-4</A>
 	on "NCC Annotations" for a description of each NCC annotation.

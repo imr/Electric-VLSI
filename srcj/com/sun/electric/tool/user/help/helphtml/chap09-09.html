@@ -1,14 +1,14 @@
 <!-- HEADER 9-9: Logical Effort -->
 
-<!-- COMMAND Tool/Logical Effort/Optimize for Equal Gate Delays -->
-<!-- COMMAND Tool/Logical Effort/Optimize for Equal Gate Delays (no caching) -->
-<!-- COMMAND Tool/Logical Effort/List Info for Selected Node -->
-<!-- COMMAND Tool/Logical Effort/Back Annotate Wire Lengths for Current Cell -->
-<!-- COMMAND Tool/Logical Effort/Clear Sizes on Selected Node(s) -->
-<!-- COMMAND Tool/Logical Effort/Clear Sizes in all Libraries -->
-<!-- COMMAND Tool/Logical Effort/Load Logical Effort Libraries (Purple, Red, and Orange) -->
-<!-- COMMAND Tool/Logical Effort/Estimate Delays -->
-<!-- COMMAND Tool/Logical Effort/Add LE Attribute to Selected Export -->
+<!-- COMMAND Tools/Logical Effort/Optimize for Equal Gate Delays -->
+<!-- COMMAND Tools/Logical Effort/Optimize for Equal Gate Delays (no caching) -->
+<!-- COMMAND Tools/Logical Effort/List Info for Selected Node -->
+<!-- COMMAND Tools/Logical Effort/Back Annotate Wire Lengths for Current Cell -->
+<!-- COMMAND Tools/Logical Effort/Clear Sizes on Selected Node(s) -->
+<!-- COMMAND Tools/Logical Effort/Clear Sizes in all Libraries -->
+<!-- COMMAND Tools/Logical Effort/Load Logical Effort Libraries (Purple, Red, and Orange) -->
+<!-- COMMAND Tools/Logical Effort/Estimate Delays -->
+<!-- COMMAND Tools/Logical Effort/Add LE Attribute to Selected Export -->
 <!-- PROJECTSETTING Logical Effort -->
 
 The Logical Effort tool examines a digital schematic and determines the optimal transistor size to use in order to get maximum speed.
@@ -40,7 +40,7 @@ and whose code is set to "Java".
 <CENTER><IMG SRC="fig09-25.png" ALT="Figure 9.25"></CENTER>
 <P>
 On the input and output exports of the cell, we can define an attribute named "le"
-(use the <B>Add LE Attribute to Selected Export</B> command in menu <B>Tool / Logical Effort</B>
+(use the <B>Add LE Attribute to Selected Export</B> command in menu <B>Tools / Logical Effort</B>
 to add this attribute).
 The value of this attribute is the logical effort of that port.
 For example, a NAND gate typically has a logical effort on each input of 4/3, and an output logical effort of 2.
@@ -65,7 +65,7 @@ Gates that do not drive loads, or that do not drive gates that drive loads, will
 <P>
 Electric comes with a set of libraries that are specially designed for Logical Effort.
 Use the <B>Load Logical Effort Libraries (Purple, Red, and Orange)</B> command
-(in menu <B>Tool / Logical Effort</B>) to read these libraries.
+(in menu <B>Tools / Logical Effort</B>) to read these libraries.
 <UL>
 <LI>The <B>Purple</B> library is a set of logic gates that have been tailored for Logical Effort,
 as described above.</LI>
@@ -95,7 +95,7 @@ If set to -1, this attribute is ignored, and the global value is used.
 
 <H3>Commands</H3>
 <P>
-These commands may be given to the Logical Effort tool (in menu <B>Tool / Logical Effort</B>):
+These commands may be given to the Logical Effort tool (in menu <B>Tools / Logical Effort</B>):
 <UL>
 <LI><B>Optimize for Equal Gate Delays</B>
 Optimizes all logical effort gates (cells) to have the same delay.
