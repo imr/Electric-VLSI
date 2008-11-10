@@ -644,7 +644,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
         /** total errors found in all threads. */					int totalSpacingMsgFound;
         /** for logging errors */                                   ErrorLogger errorLogger;
         /** for interactive error logging */                        boolean interactiveLogger = DRC.isInteractiveLoggingOn();
-        /** to cache current extra bits */                          int activeSpacingBits = 0;   
+        /** to cache current extra bits */                          int activeSpacingBits = 0;
         Map<Cell, Area> exclusionMap = new HashMap<Cell,Area>(); // The DRCExclusion object lists areas where Generic:DRC-Nodes exist to ignore errors.
         boolean inMemory = DRC.isDatesStoredInMemory();
 
@@ -1264,7 +1264,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
 	 */
 	public static DRCRules getRules(Technology tech)
 	{
-        DRCRules currentRules = tech.getCachedRules();
+        XMLRules currentRules = tech.getCachedRules();
 		if (currentRules != null && tech == currentTechnology) return currentRules;
 
 		// constructing design rules: start with factory rules

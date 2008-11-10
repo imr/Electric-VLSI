@@ -29,12 +29,10 @@ import com.sun.electric.tool.user.projectSettings.ProjSettings;
 
 import java.io.PrintStream;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.prefs.Preferences;
@@ -45,16 +43,15 @@ import java.util.prefs.Preferences;
 public class Setting {
     private static final HashMap<String,Setting> allSettingsByXmlPath = new HashMap<String,Setting>();
     private static final HashMap<String,Setting> allSettingsByPrefPath = new HashMap<String,Setting>();
-    private static final ArrayList<Object> values = new ArrayList<Object>();
 
 //    private final ProjSettingsNode xmlNode;
 //    private final String xmlName;
     private final String xmlPath;
 	private final Object factoryObj;
+    private Object currentObj;
     private final Preferences prefs;
     private final String prefName;
     private final String prefPath;
-    private final int index;
     private boolean valid;
     private final String description, location;
     private String [] trueMeaning;
@@ -72,17 +69,15 @@ public class Setting {
         assert !allSettingsByXmlPath.containsKey(xmlPath);
 
         this.factoryObj = factoryObj;
+        currentObj = factoryObj;
         this.prefName = prefName;
         prefs = group.preferences;
         prefPath = prefs.absolutePath() + "/" + prefName;
         assert !allSettingsByPrefPath.containsKey(prefPath);
 
-        index = values.size();
-        values.add(factoryObj);
         allSettingsByXmlPath.put(xmlPath, this);
         allSettingsByPrefPath.put(prefPath, this);
         assert allSettingsByXmlPath.size() == allSettingsByPrefPath.size();
-        assert allSettingsByXmlPath.size() == values.size();
 
         valid = true;
         this.description = description;
@@ -141,7 +136,7 @@ public class Setting {
         if (getValue().equals(v)) return;
         if (v.getClass() != factoryObj.getClass())
             throw new ClassCastException();
-        values.set(index, factoryObj.equals(v) ? factoryObj : v);
+        currentObj = factoryObj.equals(v) ? factoryObj : v;
         saveToPreferences(v);
         setSideEffect();
     }
@@ -179,7 +174,7 @@ public class Setting {
 //                    return pendingChange;
 //            }
 //        }
-        return values.get(index);
+        return currentObj;
     }
 
     /**
@@ -458,7 +453,7 @@ public class Setting {
             cachedObj = prefs.get(prefName, (String)factoryObj);
         }
         assert cachedObj != null;
-        values.set(index, cachedObj);
+        this.currentObj = cachedObj;
     }
 
     public static class SettingChangeBatch implements Serializable {
@@ -487,19 +482,18 @@ public class Setting {
     }
 
 //    public static List<Object> getContext() { return new ArrayList<Object>(values); }
-    public static List<Object> resetContext() {
-        List<Object> savedContext = new ArrayList<Object>(values);
+    public static Map<Setting,Object> resetContext() {
+        HashMap<Setting,Object> savedContext = new HashMap<Setting,Object>();
         for (Setting setting: allSettingsByXmlPath.values()) {
+            savedContext.put(setting, setting.getValue());
             setting.set(setting.getFactoryValue());
         }
         return savedContext;
     }
-    public  static void restoreContext(List<Object> savedContext) {
-        for (Setting setting: allSettingsByXmlPath.values()) {
-            int index = setting.index;
-            Object savedValue = index < savedContext.size() ? savedContext.get(index) : null;
-            if (savedValue != null)
-                setting.set(savedValue);
+    public  static void restoreContext(Map<Setting,Object> savedContext) {
+        for (Map.Entry<Setting,Object> e: savedContext.entrySet()) {
+            Setting setting = e.getKey();
+            setting.set(e.getValue());
         }
     }
     public static Collection<Setting> getSettings() { return allSettingsByXmlPath.values(); }

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08l: ******************************
 
+IMP: (11/10/08, DN) If flag Technology.IMMUTABLE_TECHS is true then changes
+    in Technology settings take effect only after Electric restart. 
+
 IMP: (11/9/08, DN) ExportTests use separate "projsettings_TECHNAME.xml" files.
 
 IMP: (11/9/08, DN) Add method GDS.writeGDSFile with explicit writeExportPins and convertBracketsInExports flags.

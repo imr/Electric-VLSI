@@ -1825,7 +1825,7 @@ public class MoCMOS extends Technology
 	 * layers, whether it is a deep process, and other rules.
      */
     @Override
-	public void setState()
+	protected void setStateNow()
 	{
         EDatabase.theDatabase.checkChanging();
         setNotUsed(isSecondPolysilicon() ? 2 : 1);
@@ -1837,7 +1837,7 @@ public class MoCMOS extends Technology
 //            pBaseLayer.getPureLayerNode().setNotUsed(!isAnalog());
 
 		// set rules
-        cachedRules = getFactoryDesignRules();
+        cachedRules = factoryRules = makeFactoryDesignRules();
 
         // now rewrite the description
 		setTechDesc(describeState());
@@ -2144,7 +2144,7 @@ public class MoCMOS extends Technology
 	 * Returns null if there is an error loading the rules.
      */
     @Override
-	public XMLRules getFactoryDesignRules()
+	protected XMLRules makeFactoryDesignRules()
 	{
         Foundry foundry = getSelectedFoundry();
         List<DRCTemplate> theRules = foundry.getRules();

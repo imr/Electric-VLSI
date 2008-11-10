@@ -130,6 +130,9 @@ public class Technology implements Comparable<Technology>, Serializable
 {
 	// true to handle duplicate points in an outline as a "break"
 	public static final boolean HANDLEBROKENOUTLINES = true;
+    
+    // Change in TechSettings takes effect only after restart
+    private final boolean IMMUTABLE_TECHS = false;
 
 	private static final boolean LAZY_TECHNOLOGIES = false;
     /** Jelib writes base sizes since this Electric Version */
@@ -1062,7 +1065,8 @@ public class Technology implements Comparable<Technology>, Serializable
 	/** Default element groups for the component menu */    protected Object[][] factoryNodeGroups;
 	/** indicates n-type objects. */						public static final int N_TYPE = 1;
 	/** indicates p-type objects. */						public static final int P_TYPE = 0;
-	/** Cached rules for the technology. */		            protected DRCRules cachedRules = null;
+	/** Factory rules for the technology. */		        protected XMLRules factoryRules = null;
+	/** Cached rules for the technology. */		            protected XMLRules cachedRules = null;
     /** Xml representation of this Technology */            protected Xml.Technology xmlTech;
     /** Preference for saving component menus */			private Pref componentMenuPref = null;
     /** Preference for saving layer order */				private Pref layerOrderPref = null;
@@ -1789,7 +1793,7 @@ public class Technology implements Comparable<Technology>, Serializable
         database.addTech(this);
 
         // initialize all design rules in the technology (overwrites arc widths)
-		setState();
+		setStateNow();
 
         if (cacheMinResistance == null || cacheMinCapacitance == null) {
             setFactoryParasitics(10, 0);
@@ -1811,12 +1815,28 @@ public class Technology implements Comparable<Technology>, Serializable
 
 	/**
 	 * Method to set state of a technology.
-	 * It gets overridden by individual technologies.
      */
 	public void setState() {
+        if (IMMUTABLE_TECHS) {
+                Job.getUserInterface().showInformationMessage("There is now inconsistent use of this technology parameter:\n" +
+                	"               " + getTechName() + "\n" +
+                    "Electric cannot handle this situation and errors may result.\n" +
+                    "It is recommended that you restart Electric to avoid this instability.",
+                    "Technology Parameter Changed");
+            
+        } else {
+            setStateNow();
+        }
+    }
+
+	/**
+	 * Method to set state of a technology.
+	 * It gets overridden by individual technologies.
+     */
+	protected void setStateNow() {
         EDatabase.theDatabase.checkChanging();
         if (xmlTech != null)
-            cachedRules = getFactoryDesignRules();
+            cachedRules = factoryRules = makeFactoryDesignRules();
     }
 
     protected void setNotUsed(int numPolys) {
@@ -5503,6 +5523,18 @@ public class Technology implements Comparable<Technology>, Serializable
 	 * Returns null if there are no design rules in this Technology.
      */
     public XMLRules getFactoryDesignRules() {
+        if (!IMMUTABLE_TECHS)
+            factoryRules = makeFactoryDesignRules();
+        return factoryRules;
+    }
+    
+	/**
+	 * Method to get the factory design rules.
+	 * Individual technologies subclass this to create their own rules.
+	 * @return the design rules for this Technology.
+	 * Returns null if there are no design rules in this Technology.
+     */
+    protected XMLRules makeFactoryDesignRules() {
         XMLRules rules = new XMLRules(this);
 
         Foundry foundry = getSelectedFoundry();
@@ -6182,12 +6214,12 @@ public class Technology implements Comparable<Technology>, Serializable
      * Method to retrieve cached rules
      * @return cached design rules.
      */
-    public DRCRules getCachedRules() {return cachedRules;}
+    public XMLRules getCachedRules() {return cachedRules;}
 
     /**
      * Method to set cached rules
      */
-    public void setCachedRules(DRCRules rules) {cachedRules = rules;}
+    public void setCachedRules(XMLRules rules) {cachedRules = rules;}
 
     /**
      * Method to determine if the rule name matches an existing VT Poly rule
