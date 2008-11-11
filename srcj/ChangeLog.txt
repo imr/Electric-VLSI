@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08l: ******************************
 
+BUG: (11/11/08, GVG) java.lang.error in DRC of invLSLT_X50_v12 (Bug #1941)
+FIX: Deep n well needed a different function to distinguish itself from the nwell.
+
 IMP: (11/10/08, SMR) Changed "Tool" menu to "Tools" (Bug #1940).
 
 IMP: (11/10/08, DN) If flag Technology.IMMUTABLE_TECHS is true then changes

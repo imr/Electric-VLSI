@@ -66,6 +66,7 @@ public class Layer
     /** Describes a light doped layer. */											private static final int LIGHT =         02000;
     /** Describes a heavy doped layer. */											private static final int HEAVY =         04000;
 //    /** Describes a pseudo layer. */												private static final int PSEUDO =       010000;
+    /** Describes a deep layer. */												    private static final int DEEP =         010000;
     /** Describes a nonelectrical layer (does not carry signals). */				private static final int NONELEC =      020000;
     /** Describes a layer that contacts metal (used to identify contacts/vias). */	private static final int CONMETAL =     040000;
     /** Describes a layer that contacts polysilicon (used to identify contacts). */	private static final int CONPOLY =     0100000;
@@ -187,6 +188,7 @@ public class Layer
 //        /** Describes a layer that is inside transistor. */								public static final int INTRANS = Layer.INTRANS;
         /** Describes a thick layer. */								                    public static final int THICK = Layer.THICK;
         /** Describes a native layer. */								                public static final int NATIVE = Layer.NATIVE;
+        /** Describes a deep layer. */								                    public static final int DEEP = Layer.DEEP;
 
         private final String name;
         private final boolean isMetal;
