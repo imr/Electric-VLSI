@@ -433,7 +433,7 @@ public class FillJob extends Job
         // Add extra export in the middle of the botoom layer.
         if (wideOption)
         {
-            Map<String,PinsArcPair> newExports = new HashMap<String,PinsArcPair>();
+            Map<String,List<PinsArcPair>> newExports = new HashMap<String,List<PinsArcPair>>();
             boolean horizontal = isLayerHorizontal(bottomLayer, evenHorizontal);
 
             // For each export 1 export in the bottom layer should be insert
@@ -445,6 +445,7 @@ public class FillJob extends Job
                 // Collect first all the arcs in that layer
                 List<ArcInst> arcs = getArcsInGivenLayer(net.getArcs(), horizontal, bottomLayer, null, null);
                 Area area = totalAreas.get(rootName);
+                List<PinsArcPair> l = new ArrayList<PinsArcPair>();
 
                 // It could be multiple areas disconnected.
                 List<PolyBase> list = PolyBase.getPointsInArea(area, bottomLayer, false, false);
@@ -459,18 +460,22 @@ public class FillJob extends Job
                         if (bnd.contains(insert.getX(), insert.getY()))
                         {
                             split = new PinsArcPair(ai, insert);
-                            newExports.put(rootName, split);
+                            l.add(split);
                             break;
                         }
                     }
                 }
+                newExports.put(rootName, l);
             }
 
-            for (Map.Entry<String,PinsArcPair> e : newExports.entrySet())
+            for (Map.Entry<String,List<PinsArcPair>> e : newExports.entrySet())
             {
-                PinsArcPair pair = e.getValue();
-                SplitContainter split = splitArcAtPoint(pair.topArc, pair.insert);
-                Export.newInstance(theCell, split.splitPin.getPortInst(0), e.getKey(), PortCharacteristic.UNKNOWN);
+                List<PinsArcPair> pairs = e.getValue();
+                for (PinsArcPair pair : pairs)
+                {
+                    SplitContainter split = splitArcAtPoint(pair.topArc, pair.insert);
+                    Export.newInstance(theCell, split.splitPin.getPortInst(0), e.getKey(), PortCharacteristic.UNKNOWN);
+                }
             }
         }
 
