@@ -36,6 +36,7 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.topology.*;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.network.Network;
@@ -95,6 +96,9 @@ public class FillJob extends Job
         }
         for (String line : instructions)
         {
+            if (line.startsWith("//"))
+                continue; // commented line
+            
             StringTokenizer parse = new StringTokenizer(line, ":", false);
             int count = 0;
             String fillCellName = null, rest = null;
@@ -139,7 +143,7 @@ public class FillJob extends Job
             List<Geometric> fillGeoms = new ArrayList<Geometric>();
 
             // extracting fill subcells
-            parse = new StringTokenizer(rest, " ", false);
+            parse = new StringTokenizer(rest, " ,", false);
             Cell newCell = Cell.makeInstance(topCell.getLibrary(), fillCellName+"{lay}");
             Point2D center = new Point2D.Double(0, 0);
             Technology tech = null;
@@ -214,15 +218,16 @@ public class FillJob extends Job
             int metalNumber = bottom.getFunction().getLevel();
             boolean horizontal = (evenHorizontal && metalNumber%2==0) || (!evenHorizontal && metalNumber%2==1);
 
-            List<ArcInst> arcs = getArcsInGivenLayer(theCell.getArcs(), bottom);
-
+            List<ArcInst> arcs = getArcsInGivenLayer(theCell.getArcs(), horizontal, bottom, null, null);
             Layer top = listOfLayers.get(i+1);
+            Map<String,Area> remainingGeos = new HashMap<String,Area>();
+
             for (ArcInst ai : arcs)
             {
                 // Checking arc orientation with respect to layer
                 // If the orientation is not correct, then ignore it
-                if (!isArcAligned(ai, horizontal))
-                    continue;
+//                if (!isArcAligned(ai, horizontal))
+//                    continue;
 
                 // Picking only 1 export and considering the root name`
                 Netlist netlist = theCell.getNetlist(); // getting new version of netlist after every routing.
@@ -253,17 +258,17 @@ public class FillJob extends Job
 
                     ArcInst nai = (ArcInst)nGeom;
 
-//                    assert(nai.getProto().getNumArcLayers() == 1); // only 1 for now
-
-                    Layer nl = nai.getProto().getLayer(0);
-
-                    if (nl != top) continue; // ascending order is easy
-
                     // Checking arc orientation with respect to layer
                     // If the orientation is not correct, then ignore it
                     // Must be perpendicular to the reference layer (bottom)
                     if (!isArcAligned(nai, !horizontal))
                         continue;
+
+//                    assert(nai.getProto().getNumArcLayers() == 1); // only 1 for now
+
+                    Layer nl = nai.getProto().getLayer(0);
+
+                    if (nl != top) continue; // ascending order is easy
 
                     String topName = getExportRootName(nai, netlist);
 
@@ -280,11 +285,18 @@ public class FillJob extends Job
                     boolean fullCoverageY = (horizontal) ? DBMath.areEquals(resultBnd.getHeight(), bounds.getHeight()) :
                         DBMath.areEquals(resultBnd.getWidth(), bounds.getWidth());
 
-                    if (!fullCoverageX)
+                    if (!fullCoverageX || !fullCoverageY)
+                    {
+                        // adding to list of pieces of geometries
+                        Area a = remainingGeos.get(bottomName);
+                        if (a == null)
+                        {
+                            a = new Area();
+                            remainingGeos.put(bottomName, a);
+                        }
+                        a.add(topA);
                         continue; // skipping this case
-
-                    if (!fullCoverageY)
-                        continue;
+                    }
 
                     EPoint insert = new EPoint(resultBnd.getCenterX(), resultBnd.getCenterY());
                     pairs.add(new PinsArcPair(nai, insert));
@@ -302,16 +314,8 @@ public class FillJob extends Job
                 // Mark the layer as possible one of the top ones
                 if (!pairs.isEmpty())
                 {
-                    if (topLayers[0] == null) // first time
-                    {
-                        topLayers[0] = bottom;
-                        topLayers[1] = top;
-                    }
-                    else if (topLayers[0] != bottom)
-                    {
-                        topLayers[0] = bottom;
-                        topLayers[1] = top;
-                    }
+                    topLayers[0] = bottom;
+                    topLayers[1] = top;
                 }
 
                 for (PinsArcPair pair : pairs)
@@ -327,12 +331,80 @@ public class FillJob extends Job
                     Router.createRouteNoJob(r, theCell, false, arcsCreatedMap, nodesCreatedMap);
                 }
             }
+
+            // Adding remaining contacts due to non-100% overlap with original arcs
+            for (Map.Entry<String,Area> e : remainingGeos.entrySet())
+            {
+                Area a = e.getValue();
+                Netlist netlist = theCell.getNetlist();
+                List<PolyBase> list = PolyBase.getPointsInArea(a, bottomLayer, false, false);
+                List<ArcInst> at = getArcsInGivenLayer(theCell.getArcs(), !horizontal, top,  e.getKey(), netlist);
+                List<PinsArcPair> pairs = new ArrayList<PinsArcPair>(2);
+
+                // Add extra contacts. All points should be aligned in same horizontal or vertical line
+                // first the top arcs. They should be less in number (less number of splits)
+                for (PolyBase p : list)
+                {
+                    Rectangle2D resultBnd = p.getBounds2D();
+                    // look for the first pair of arcs in bottom/top arcs that overlap with geometry
+                    ArcInst topA = null;
+
+                    for (ArcInst ai : at)
+                    {
+                        Rectangle2D r = ai.getBounds();
+                        if (r.intersects(resultBnd))
+                        {
+                            // found
+                            topA = ai;
+                            break;
+                        }
+                    }
+                    assert (topA != null);
+                    EPoint insert = new EPoint(resultBnd.getCenterX(), resultBnd.getCenterY());
+                    pairs.add(new PinsArcPair(topA, insert));
+                }
+                // Sort the new pairs from left/top to right/bottom
+                Collections.sort(pairs, pinsArcSort);
+
+                // Look for bottomLayer arcs for those given positions
+                List<ArcInst> ab = getArcsInGivenLayer(theCell.getArcs(), horizontal, bottom, e.getKey(), netlist);
+                routeList.clear();
+
+                for (PinsArcPair pair : pairs)
+                {
+                    ArcInst bottomA = null;
+                    for (ArcInst ai : ab)
+                    {
+                        Rectangle2D r = ai.getBounds();
+                        if (r.contains(pair.insert))
+                        {
+                            // found
+                            bottomA = ai;
+                            break;
+                        }
+                    }
+                    assert(bottomA != null);
+                    SplitContainter bottomSplit = splitArcAtPoint(bottomA, pair.insert);
+                    SplitContainter topSplit = splitArcAtPoint(pair.topArc, pair.insert);
+                    Route r = router.planRoute(theCell,  bottomSplit.splitPin, topSplit.splitPin, pair.insert, null, true, true);
+                    // remove the old one and add new arc
+                    ab.remove(bottomA);
+                    ab.add(bottomSplit.rightArc);
+                    topLayers[0] = bottom;
+                    topLayers[1] = top;
+                    routeList.add(r);
+                }
+                for (Route r : routeList)
+                {
+                    Router.createRouteNoJob(r, theCell, false, arcsCreatedMap, nodesCreatedMap);
+                }
+            }
         }
 
         // Remove exports in lower layers
         Set<Export> toDelete = new HashSet<Export>();
         Map<String,Export> inBottomLayer = new HashMap<String,Export>(); // enough with 1 export stored
-        
+
         for (Iterator<Export> itE = theCell.getExports(); itE.hasNext();)
         {
             Export exp = itE.next();
@@ -366,10 +438,10 @@ public class FillJob extends Job
             for (Map.Entry<String,Export> e : inBottomLayer.entrySet())
             {
                 Export exp = e.getValue();
+                String rootName = extractRootName(exp.getName());
                 Network net = netlist.getNetwork(exp, 0);
                 // Collect first all the arcs in that layer
-                List<ArcInst> arcs = getArcsInGivenLayer(net.getArcs(), bottomLayer);
-                String rootName = extractRootName(exp.getName());
+                List<ArcInst> arcs = getArcsInGivenLayer(net.getArcs(), false, bottomLayer, null, null);
                 Rectangle2D resultBnd = totalAreas.get(rootName).getBounds2D();
                 EPoint insert = new EPoint(resultBnd.getCenterX(), resultBnd.getCenterY());
                 PinsArcPair split; // looking for the first arc where the center is contained.
@@ -380,7 +452,6 @@ public class FillJob extends Job
                     {
                         split = new PinsArcPair(ai, insert);
                         newExports.put(rootName, split);
-//                        toDelete.remove(exp); // doesn't remove the export now
                         break;
                     }
                 }
@@ -400,22 +471,39 @@ public class FillJob extends Job
     }
 
     /**
-     * Method to collect arcs in a given layer from an iterator
+     * Method to collect arcs in a given layer with a given export name from an iterator
      * @param itAi Arcs iterator
-     * @param layer Given layer
-     * @return List of ArcInsts
+     * @param horizontal
+     *@param layer Given layer
+     * @param exportName Given export name. If null, any export name is valid
+     * @param netlist  Given Netlist to find exports @return List of ArcInsts
      */
-    private static List<ArcInst> getArcsInGivenLayer(Iterator<ArcInst> itAi, Layer layer)
+    private static List<ArcInst> getArcsInGivenLayer(Iterator<ArcInst> itAi, Boolean horizontal, Layer layer, String exportName, Netlist netlist)
     {
         List<ArcInst> arcs = new ArrayList<ArcInst>();
 
         for (; itAi.hasNext();)
         {
             ArcInst ai = itAi.next();
+
+            // Checking arc orientation with respect to layer
+            // If the orientation is not correct, then ignore it
+            if (!isArcAligned(ai, horizontal))
+                continue;
+
 //                assert(ai.getProto().getNumArcLayers() == 1); // only 1 for now
             Layer l = ai.getProto().getLayer(0);
-            if (l == layer)
-                arcs.add(ai);
+            if (l != layer)
+                continue;
+            if (exportName != null)
+            {
+                Network jNet = netlist.getNetwork(ai, 0);
+                Export exp = jNet.getExports().next(); // first is enough
+                String expName = extractRootName(exp.getName());
+                if (!expName.equals(exportName))
+                    continue; // no match
+            }
+            arcs.add(ai);
         }
         return arcs;
     }
