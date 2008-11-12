@@ -100,7 +100,6 @@ public class MTDRCLayoutTool extends MTDRCTool
 		int offset;
 	}
 
-
 	/**
 	 * The CheckProto object is placed on every cell and is used only temporarily
 	 * to number the instances.
@@ -212,10 +211,6 @@ public class MTDRCLayoutTool extends MTDRCTool
          * If "count" is zero, check the entire cell.
          * If "count" is nonzero, only check that many instances (in "nodesToCheck") and set the
          * entry in "validity" TRUE if it is DRC clean.
-         *
-         * @param bounds if null, check entire cell. If not null, only check area in bounds.
-         * @param data
-         * @return ErrorLogger containing the information
          */
 
         // returns the number of errors found
@@ -1397,7 +1392,7 @@ public class MTDRCLayoutTool extends MTDRCTool
                             if (con && touch)
                             {
                                 // Check if there are minimum size defects
-                                boolean maytouch = mayTouch(tech, con, layer, nLayer);
+                                boolean maytouch = DRC.mayTouch(tech, con, layer, nLayer);
                                 Rectangle2D trueBox1 = poly.getBox();
                                 if (trueBox1 == null) trueBox1 = poly.getBounds2D();
                                 Rectangle2D trueBox2 = npoly.getBox();
@@ -1492,7 +1487,7 @@ public class MTDRCLayoutTool extends MTDRCTool
                         if (con && touch)
                         {
                             // Check if there are minimum size defects
-                            boolean maytouch = mayTouch(tech, con, layer, nLayer);
+                            boolean maytouch = DRC.mayTouch(tech, con, layer, nLayer);
                             Rectangle2D trueBox1 = poly.getBox();
                             if (trueBox1 == null) trueBox1 = poly.getBounds2D();
                             Rectangle2D trueBox2 = nPoly.getBox();
@@ -1689,48 +1684,6 @@ public class MTDRCLayoutTool extends MTDRCTool
         }
 
         /**
-         * Method to determine if it is allowed to have both layers touching.
-         * special rule for allowing touching:
-         * the layers are the same and either:
-         * they connect and are *NOT* contact layers
-         * or:
-         * they don't connect and are implant layers (substrate/well)
-         *
-         * @param tech
-         * @param con
-         * @param layer1
-         * @param layer2
-         * @return true if the layer may touch
-         */
-        private boolean mayTouch(Technology tech, boolean con, Layer layer1, Layer layer2)
-        {
-            boolean maytouch = false;
-            if (tech.sameLayer(layer1, layer2))
-            {
-                Layer.Function fun = layer1.getFunction();
-                if (con)
-                {
-                    if (!fun.isContact()) maytouch = true;
-                } else
-                {
-                    if (fun.isSubstrate()) maytouch = true;
-                        // Special cases for thick actives
-                    else
-                    {
-                        // Searching for THICK bit
-                        int funExtras = layer1.getFunctionExtras();
-                        if (fun.isDiff() && (funExtras & Layer.Function.THICK) != 0)
-                        {
-                            if (Job.LOCALDEBUGFLAG) System.out.println("Thick active found in Quick.checkDist");
-                            maytouch = true;
-                        }
-                    }
-                }
-            }
-            return maytouch;
-        }
-
-        /**
          * Method to compare:
          * polygon "poly1" layer "layer1" network "net1" object "geom1"
          * with:
@@ -1762,7 +1715,7 @@ public class MTDRCLayoutTool extends MTDRCTool
             Rectangle2D trueBox2 = isBox2;
             if (trueBox2 == null) trueBox2 = poly2.getBounds2D();
             boolean errorFound = false;  // remember if there was a min defect error
-            boolean maytouch = mayTouch(tech, con, layer1, layer2);
+            boolean maytouch = DRC.mayTouch(tech, con, layer1, layer2);
 
             // special code if both polygons are manhattan
             double pd = 0;
@@ -2441,12 +2394,6 @@ public class MTDRCLayoutTool extends MTDRCTool
 
         /**
          * Function to look for conditional layers that will 100% overlap with the given region.
-         *
-         * @param poly
-         * @param layer
-         * @param cell
-         * @param bounds
-         * @param upTrans
          * @return true if conditional layers are found for the test points
          */
         private boolean searchForCondLayer(Geometric geom, Poly poly, Layer layer, Cell cell, boolean ignoreCenterCuts)

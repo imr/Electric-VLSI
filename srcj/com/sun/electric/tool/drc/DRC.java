@@ -621,6 +621,47 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
         return false;
     }
 
+    /**
+     * Method to determine if it is allowed to have both layers touching.
+     * special rule for allowing touching:
+     *   the layers are the same and either:
+     *     they connect and are *NOT* contact layers
+	 *   or:
+	 *     they don't connect and are implant layers (substrate/well)
+     * @param tech
+     * @param con
+     * @param layer1
+     * @param layer2
+     * @return true if the layer may touch
+     */
+    static boolean mayTouch(Technology tech, boolean con, Layer layer1, Layer layer2)
+    {
+        boolean maytouch = false;
+		if (tech.sameLayer(layer1, layer2))
+		{
+			Layer.Function fun = layer1.getFunction();
+			if (con)
+			{
+				if (!fun.isContact()) maytouch = true;
+			} else
+			{
+				if (fun.isSubstrate()) maytouch = true;
+				// Special cases for thick actives
+				else
+				{
+					// Searching for THICK bit
+					int funExtras = layer1.getFunctionExtras();
+					if (fun.isDiff() && (funExtras&Layer.Function.THICK) != 0)
+					{
+						if (Job.LOCALDEBUGFLAG) System.out.println("Thick active found in Quick.checkDist");
+						maytouch = true;
+					}
+				}
+			}
+		}
+        return maytouch;
+    }
+
     /*********************************** QUICK DRC ERROR REPORTING ***********************************/
     public static enum DRCErrorType
     {
@@ -1777,18 +1818,6 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
         if (foundry != null)
         {
             bits |= foundry.getType().getBit();
-//            switch(foundry.getType())
-//	        {
-//	            case MOSIS:
-//	                bits |= DRC_BIT_MOSIS_FOUNDRY;
-//	                break;
-//	            case TSMC:
-//	                bits |= DRC_BIT_TSMC_FOUNDRY;
-//	                break;
-//	            case ST:
-//	                bits |= DRC_BIT_ST_FOUNDRY;
-//	                break;
-//	        }
         }
         return bits;
     }
@@ -1797,7 +1826,6 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
      * Check networks rules of this Cell.
      * @param errorLog error logger
      * @param cell cell to check
-     * @param true if this is layout cell.
      */
     private static void checkNetworks(ErrorLogger errorLog, Cell cell, boolean isLayout) {
         final int errorSortNetworks = 0;
