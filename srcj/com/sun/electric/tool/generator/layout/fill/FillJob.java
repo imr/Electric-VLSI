@@ -215,8 +215,9 @@ public class FillJob extends Job
         {
             Layer bottom = listOfLayers.get(i);
 
-            int metalNumber = bottom.getFunction().getLevel();
-            boolean horizontal = (evenHorizontal && metalNumber%2==0) || (!evenHorizontal && metalNumber%2==1);
+//            int metalNumber = bottom.getFunction().getLevel();
+//            boolean horizontal = (evenHorizontal && metalNumber%2==0) || (!evenHorizontal && metalNumber%2==1);
+            boolean horizontal = isLayerHorizontal(bottom, evenHorizontal);
 
             List<ArcInst> arcs = getArcsInGivenLayer(theCell.getArcs(), horizontal, bottom, null, null);
             Layer top = listOfLayers.get(i+1);
@@ -433,6 +434,7 @@ public class FillJob extends Job
         if (wideOption)
         {
             Map<String,PinsArcPair> newExports = new HashMap<String,PinsArcPair>();
+            boolean horizontal = isLayerHorizontal(bottomLayer, evenHorizontal);
 
             // For each export 1 export in the bottom layer should be insert
             for (Map.Entry<String,Export> e : inBottomLayer.entrySet())
@@ -441,18 +443,25 @@ public class FillJob extends Job
                 String rootName = extractRootName(exp.getName());
                 Network net = netlist.getNetwork(exp, 0);
                 // Collect first all the arcs in that layer
-                List<ArcInst> arcs = getArcsInGivenLayer(net.getArcs(), false, bottomLayer, null, null);
-                Rectangle2D resultBnd = totalAreas.get(rootName).getBounds2D();
-                EPoint insert = new EPoint(resultBnd.getCenterX(), resultBnd.getCenterY());
-                PinsArcPair split; // looking for the first arc where the center is contained.
-                for (ArcInst ai : arcs)
+                List<ArcInst> arcs = getArcsInGivenLayer(net.getArcs(), horizontal, bottomLayer, null, null);
+                Area area = totalAreas.get(rootName);
+
+                // It could be multiple areas disconnected.
+                List<PolyBase> list = PolyBase.getPointsInArea(area, bottomLayer, false, false);
+                for (PolyBase b : list)
                 {
-                    Rectangle2D bnd = ai.getBounds();
-                    if (bnd.contains(insert.getX(), insert.getY()))
+                    Rectangle2D resultBnd = b.getBounds2D();
+                    EPoint insert = new EPoint(resultBnd.getCenterX(), resultBnd.getCenterY());
+                    PinsArcPair split; // looking for the first arc where the center is contained.
+                    for (ArcInst ai : arcs)
                     {
-                        split = new PinsArcPair(ai, insert);
-                        newExports.put(rootName, split);
-                        break;
+                        Rectangle2D bnd = ai.getBounds();
+                        if (bnd.contains(insert.getX(), insert.getY()))
+                        {
+                            split = new PinsArcPair(ai, insert);
+                            newExports.put(rootName, split);
+                            break;
+                        }
                     }
                 }
             }
@@ -468,6 +477,18 @@ public class FillJob extends Job
         // Delete after dealing with the wide option
         theCell.killExports(toDelete);
         return true;
+    }
+
+    /**
+     * Method to determine if Layer is aligned horizontally
+     * @param layer Given Layer
+     * @param evenHorizontal True if even layers are horizontal
+     * @return True of layer is horizontal
+     */
+    private static boolean isLayerHorizontal(Layer layer, boolean evenHorizontal)
+    {
+        int metalNumber = layer.getFunction().getLevel();
+        return (evenHorizontal && metalNumber%2==0) || (!evenHorizontal && metalNumber%2==1);
     }
 
     /**
