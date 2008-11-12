@@ -144,7 +144,15 @@ public class FillJob extends Job
 
             // extracting fill subcells
             parse = new StringTokenizer(rest, " ,", false);
-            Cell newCell = Cell.makeInstance(topCell.getLibrary(), fillCellName+"{lay}");
+            String newName = fillCellName+"{lay}";
+            Cell oldCell = topCell.getLibrary().findNodeProto(newName);
+            // Delete previous version
+            if (oldCell != null)
+            {
+//                oldCell.kill();
+//                oldCell.rename("OLD"+newName, "OLD");
+            }
+            Cell newCell = Cell.makeInstance(topCell.getLibrary(), newName);
             Point2D center = new Point2D.Double(0, 0);
             Technology tech = null;
 
@@ -165,6 +173,8 @@ public class FillJob extends Job
             ExportChanges.reExportNodes(newCell, fillGeoms, false, true, false, true);
             new CellChangeJobs.ExtractCellInstances(newCell, fillCells, Integer.MAX_VALUE, true, true);
             generateFill(newCell, wideOption);
+//            if (oldCell != null)
+//                oldCell.kill();
         }
         return true;
     }
