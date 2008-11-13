@@ -149,7 +149,7 @@ public class FillJob extends Job
             // Delete previous version
             if (oldCell != null)
             {
-//                oldCell.kill();
+                oldCell.kill();
 //                oldCell.rename("OLD"+newName, "OLD");
             }
             Cell newCell = Cell.makeInstance(topCell.getLibrary(), newName);
@@ -235,11 +235,6 @@ public class FillJob extends Job
 
             for (ArcInst ai : arcs)
             {
-                // Checking arc orientation with respect to layer
-                // If the orientation is not correct, then ignore it
-//                if (!isArcAligned(ai, horizontal))
-//                    continue;
-
                 // Picking only 1 export and considering the root name`
                 Netlist netlist = theCell.getNetlist(); // getting new version of netlist after every routing.
                 String bottomName = getExportRootName(ai, netlist);
@@ -584,7 +579,8 @@ public class FillJob extends Job
         // Assuming at 1 export per arc
         assert(jNet != null);
         Iterator<String> exportNames = jNet.getExportedNames();
-        assert (exportNames.hasNext()); // must have one?
+        if (!exportNames.hasNext())
+            return null; // no export
         String rootName = extractRootName(exportNames.next());
         return rootName;
     }

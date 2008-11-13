@@ -7,7 +7,7 @@ NOTE: Please place changes under the version that will be released next.
 BUG: (11/13/08, DN) Cant delete cell and reuse name in same Job (Bug #1944).
 FIX: In Layout.newCellInfo remove assert.
 
-IMP: (11/12/08, GVG) New fill generator available in Tools menu -> Generator submenu
+IMP: (11/13/08, GVG) New fill generator available in Tools menu -> Generator submenu
 
 IMP: (11/12/08, GVG) Deep well rule temporary out from CMOS90 until Bug #1942 is clarified.
 
