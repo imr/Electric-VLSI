@@ -582,8 +582,7 @@ public class FillJob extends Job
         Network jNet = netlist.getNetwork(ai, 0);
         // Picking only 1 export and considering the root name`
         // Assuming at 1 export per arc
-        if (jNet == null)
-            System.out.println("Here");
+        assert(jNet != null);
         Iterator<String> exportNames = jNet.getExportedNames();
         assert (exportNames.hasNext()); // must have one?
         String rootName = extractRootName(exportNames.next());

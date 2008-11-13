@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08l: ******************************
 
+IMP: (11/12/08, GVG) New fill generator available in Tools menu -> Generator submenu
+
 IMP: (11/12/08, GVG) Deep well rule temporary out from CMOS90 until Bug #1942 is clarified.
 
 BUG: (11/11/08, GVG) java.lang.error in DRC of invLSLT_X50_v12 (Bug #1941)

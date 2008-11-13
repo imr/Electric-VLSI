@@ -81,6 +81,7 @@ import com.sun.electric.tool.generator.ROMGenerator;
 import com.sun.electric.tool.generator.cmosPLA.PLA;
 import com.sun.electric.tool.generator.layout.GateLayoutGenerator;
 import com.sun.electric.tool.generator.layout.TechType;
+import com.sun.electric.tool.generator.layout.fill.FillJob;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.io.input.Simulate;
@@ -555,6 +556,9 @@ public class ToolMenu {
                     ROMGenerator.generateROM(); }},
 		        new EMenuItem("MOSIS CMOS P_LA Generator...") { public void run() {
                     PLA.generate(); }},
+                new EMenuItem("New Fill Generator") { public void run() {
+                    Cell cell = WindowFrame.getCurrentCell();
+                    new FillJob(cell, false); }},
                 new EMenuItem("_Fill (MoCMOS)...") { public void run() {
                     FillGenDialog.openFillGeneratorDialog(Technology.getMocmosTechnology()); }},
                 Technology.getTSMC180Technology() != null ?  new EMenuItem("Fi_ll (TSMC180)...") { public void run() {
