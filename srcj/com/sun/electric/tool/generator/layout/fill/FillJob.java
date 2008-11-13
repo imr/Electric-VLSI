@@ -331,10 +331,10 @@ public class FillJob extends Job
 
                 for (PinsArcPair pair : pairs)
                 {
-                    SplitContainter bottomSplit = splitArcAtPoint(mostLeft, pair.insert);
-                    SplitContainter topSplit = splitArcAtPoint(pair.topArc, pair.insert);
-                    Route r = router.planRoute(theCell,  bottomSplit.splitPin, topSplit.splitPin, pair.insert, null, true, true);
-                    mostLeft = bottomSplit.rightArc;
+                    //SplitContainter bottomSplit = splitArcAtPoint(mostLeft, pair.insert);
+                    //SplitContainter topSplit = splitArcAtPoint(pair.topArc, pair.insert);
+                    Route r = router.planRoute(theCell,  mostLeft, pair.topArc, pair.insert, null, true, true);
+                    //mostLeft = bottomSplit.rightArc;
                     routeList.add(r);
                 }
                 for (Route r : routeList)
@@ -395,12 +395,12 @@ public class FillJob extends Job
                         }
                     }
                     assert(bottomA != null);
-                    SplitContainter bottomSplit = splitArcAtPoint(bottomA, pair.insert);
-                    SplitContainter topSplit = splitArcAtPoint(pair.topArc, pair.insert);
-                    Route r = router.planRoute(theCell,  bottomSplit.splitPin, topSplit.splitPin, pair.insert, null, true, true);
+                    //SplitContainter bottomSplit = splitArcAtPoint(bottomA, pair.insert);
+                    //SplitContainter topSplit = splitArcAtPoint(pair.topArc, pair.insert);
+                    Route r = router.planRoute(theCell,  bottomA, pair.topArc, pair.insert, null, true, true);
                     // remove the old one and add new arc
                     ab.remove(bottomA);
-                    ab.add(bottomSplit.rightArc);
+                    //ab.add(bottomSplit.rightArc);
                     topLayers[0] = bottom;
                     topLayers[1] = top;
                     routeList.add(r);

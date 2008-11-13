@@ -251,6 +251,8 @@ public class VerticalRoute {
 //                startRE.getLocation().getY() != location.getY()) arcAngle = 900;
             if (startLoc.getX() == location.getX() &&
                 startLoc.getY() != location.getY()) arcAngle = 900;
+            if (startLoc.getX() == location.getX() &&
+                startLoc.getY() == location.getY()) arcAngle = startRE.getConnectingArcAngle(specifiedRoute.startArc);
         }
 
         // create Route, using default contact size
@@ -265,8 +267,9 @@ public class VerticalRoute {
                 if (route.getStart() == startRE) route.setStart(vertRoute.getStart());
             } else {
                 width = Router.getArcWidthToUse(startRE, startArc);
-                RouteElement arc1 = RouteElementArc.newArc(cell, startArc, width, startRE, vertRoute.getStart(),
+                RouteElementArc arc1 = RouteElementArc.newArc(cell, startArc, width, startRE, vertRoute.getStart(),
                         startLoc, location, null, null, null, startArc.isExtended(), startArc.isExtended(), stayInside);
+                arc1.setArcAngle(arcAngle);
                 route.add(arc1);
             }
         }
@@ -276,8 +279,9 @@ public class VerticalRoute {
                 if (route.getEnd() == endRE) route.setEnd(vertRoute.getEnd());
             } else {
                 width = Router.getArcWidthToUse(endRE, endArc);
-                RouteElement arc2 = RouteElementArc.newArc(cell, endArc, width, endRE, vertRoute.getEnd(),
+                RouteElementArc arc2 = RouteElementArc.newArc(cell, endArc, width, endRE, vertRoute.getEnd(),
                         endLoc, location, null, null, null, endArc.isExtended(), endArc.isExtended(), stayInside);
+                arc2.setArcAngle(arcAngle);
                 route.add(arc2);
             }
         } else {

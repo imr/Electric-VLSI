@@ -236,6 +236,48 @@ public class RouteElementPort extends RouteElement {
     }
 
     /**
+     * Get the angle of any arcs connected to this RouteElement.
+     * If there are multiple arcs, it returns the angle of the widest
+     * connecting arc.
+     * @param ap the arc prototype
+     * @return the angle in centidegrees, 0 if no arcs of the specified type connected.
+     */
+    public int getConnectingArcAngle(ArcProto ap) {
+        int angle = 0;
+        double width = -1;
+
+        if (getAction() == RouteElementAction.existingPortInst) {
+            // find all arcs of type ap connected to this
+            for (Iterator<Connection> it = portInst.getConnections(); it.hasNext(); ) {
+                Connection conn = it.next();
+                ArcInst arc = conn.getArc();
+                if (arc.getProto() == ap) {
+                    double newWidth = arc.getLambdaBaseWidth();
+                    if (newWidth > width) {
+                        width = newWidth;
+                        angle = arc.getAngle();
+                    }
+                }
+            }
+        }
+
+        if (getAction() == RouteElementAction.newNode) {
+            if (newArcs == null) return -1;
+            for (RouteElementArc re : newArcs) {
+                if (re.getArcProto() == ap) {
+                    if (re.getArcBaseWidth() > width) {
+                        width = re.getArcBaseWidth();
+                        if (re.isArcVertical()) angle = 900;
+                        if (re.isArcHorizontal()) angle = 0;
+                    }
+                }
+            }
+        }
+
+        return angle;
+    }
+
+    /**
      * Get an iterator over any newArc RouteElements connected to this
      * newNode RouteElement.  Returns an iterator over an empty list
      * if no new arcs.

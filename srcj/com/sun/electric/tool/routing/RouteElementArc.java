@@ -231,6 +231,12 @@ public class RouteElementArc extends RouteElement {
             arcAngle = angle;
     }
 
+    public int getArcAngle() {
+        if (isArcHorizontal() && isArcVertical()) return arcAngle;
+        if (isArcHorizontal()) return 0;
+        return 900;
+    }
+
     public void setHeadExtension(boolean e) { extendArcHead = e; }
 
     public void setTailExtension(boolean e) { extendArcTail = e; }
