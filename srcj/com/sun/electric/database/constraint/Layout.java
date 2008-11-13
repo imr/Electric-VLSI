@@ -416,7 +416,7 @@ public class Layout extends Constraints
     private static void newCellInfo(Cell cell, CellBackup oldBackup) {
         int cellIndex = cell.getCellIndex();
         while (cellInfos.size() <= cellIndex) cellInfos.add(null);
-        assert cellInfos.get(cellIndex) == null;
+//        assert cellInfos.get(cellIndex) == null;
         cellInfos.set(cellIndex, new LayoutCell(cell, oldBackup));
     }
 
