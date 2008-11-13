@@ -481,11 +481,56 @@ public abstract class Router {
         // if RE is an arc, use its arc width
         if (re instanceof RouteElementArc) {
             RouteElementArc reArc = (RouteElementArc)re;
-            if (reArc.isArcVertical()) {
-                if (reArc.getArcBaseWidth() > width) width = reArc.getArcBaseWidth();
+
+            boolean useDefaultMethod = true;
+            if (reArc.isArcVertical() && reArc.isArcHorizontal()) {
+                // zero length arc, defaults to horizontal but we should check other arcs connected to
+                // existing endpoints
+
+                if (reArc.getHead().getAction() == RouteElement.RouteElementAction.existingPortInst) {
+                    PortInst headPI = reArc.getHead().getPortInst();
+                    for (Iterator<Connection> cit = headPI.getConnections(); cit.hasNext(); ) {
+                        Connection c = cit.next();
+                        ArcInst ai = c.getArc();
+                        if (ai.getProto() != reArc.getArcProto()) continue;
+
+                        if (ai.getAngle() == 0 || ai.getAngle() == 2700) {
+                            // horizontal arc
+                            if (reArc.getArcBaseWidth() > height) height = reArc.getArcBaseWidth();
+                        }
+                        if (ai.getAngle() == 900 || ai.getAngle() == 3600) {
+                            // vertical arc
+                            if (reArc.getArcBaseWidth() > width) width = reArc.getArcBaseWidth();
+                        }
+                    }
+                    useDefaultMethod = false;
+                }
+                if (reArc.getTail().getAction() == RouteElement.RouteElementAction.existingPortInst) {
+                    PortInst tailPI = reArc.getTail().getPortInst();
+                    for (Iterator<Connection> cit = tailPI.getConnections(); cit.hasNext(); ) {
+                        Connection c = cit.next();
+                        ArcInst ai = c.getArc();
+                        if (ai.getProto() != reArc.getArcProto()) continue;
+
+                        if (ai.getAngle() == 0 || ai.getAngle() == 2700) {
+                            // horizontal arc
+                            if (reArc.getArcBaseWidth() > height) height = reArc.getArcBaseWidth();
+                        }
+                        if (ai.getAngle() == 900 || ai.getAngle() == 3600) {
+                            // vertical arc
+                            if (reArc.getArcBaseWidth() > width) width = reArc.getArcBaseWidth();
+                        }
+                    }
+                    useDefaultMethod = false;
+                }
             }
-            if (reArc.isArcHorizontal()) {
-                if (reArc.getArcBaseWidth() > height) height = reArc.getArcBaseWidth();
+            if (useDefaultMethod) {
+                if (reArc.isArcVertical()) {
+                    if (reArc.getArcBaseWidth() > width) width = reArc.getArcBaseWidth();
+                }
+                if (reArc.isArcHorizontal()) {
+                    if (reArc.getArcBaseWidth() > height) height = reArc.getArcBaseWidth();
+                }
             }
         }
 
