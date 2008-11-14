@@ -376,6 +376,10 @@ public abstract class InteractiveRouter extends Router {
                     pn.getDefHeight()-so.getHighYOffset()-so.getLowYOffset());
         }
 
+        // favor contact on bisected arc
+        if (startRE.isBisectArcPin()) contactsOnEndObject = false;
+        if (endRE != null && endRE.isBisectArcPin()) contactsOnEndObject = true;
+
         // special check: if both are existing port insts and are same port, do nothing
         if ((existingEndPort != null) && (existingEndPort == existingStartPort)) return new Route();
 

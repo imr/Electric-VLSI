@@ -219,10 +219,20 @@ public class Route extends ArrayList<RouteElement> {
                     RouteElementPort otherPort = RouteElementPort.existingPortInst(ai.getPortInst(otherEnd),
                             ai.getPortInst(otherEnd).getPoly());
                     // build new arc
-                    RouteElementArc newArc = RouteElementArc.newArc(cell, ai.getProto(),
-                            ai.getLambdaBaseWidth(), otherPort, replacementRE,
-                            ai.getLocation(otherEnd), conn.getLocation(), ai.getName(),
-                            ai.getTextDescriptor(ArcInst.ARC_NAME), ai, true, true, stayInside);
+                    RouteElementArc newArc;
+                    if (conn.getEndIndex() == 1) {
+                        // head
+                        newArc = RouteElementArc.newArc(cell, ai.getProto(),
+                                ai.getLambdaBaseWidth(), replacementRE, otherPort,
+                                conn.getLocation(), ai.getLocation(otherEnd), ai.getName(),
+                                ai.getTextDescriptor(ArcInst.ARC_NAME), ai, ai.isHeadExtended(), ai.isTailExtended(), stayInside);
+                    } else {
+                        // tail
+                        newArc = RouteElementArc.newArc(cell, ai.getProto(),
+                                ai.getLambdaBaseWidth(), otherPort, replacementRE,
+                                ai.getLocation(otherEnd), conn.getLocation(), ai.getName(),
+                                ai.getTextDescriptor(ArcInst.ARC_NAME), ai, ai.isHeadExtended(), ai.isTailExtended(), stayInside);
+                    }
                     newArc.setArcAngle(ai.getAngle());
                     RouteElementArc delArc = RouteElementArc.deleteArc(ai);
                     newElements.add(newArc);

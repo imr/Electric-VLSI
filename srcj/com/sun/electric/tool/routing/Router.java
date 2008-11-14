@@ -36,8 +36,10 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.UserInterface;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
@@ -540,4 +542,164 @@ public abstract class Router {
 
         return new Dimension2D.Double(width, height);
     }
+
+    public static class ArcWidth {
+        private int preferredAngle;
+        private double preferredWidth;
+        private double defaultWidth;
+        public ArcWidth(int preferredAngle) {
+            this.preferredAngle = preferredAngle % 1800;
+            this.preferredWidth = -1;
+            this.defaultWidth = -1;
+        }
+
+        public double getPreferredWidth() { return preferredWidth; }
+        public double getDefaultWidth() { return defaultWidth; }
+        public double getWidth() {
+            if (preferredWidth > 0) return preferredWidth;
+            return defaultWidth;
+        }
+
+        /**
+         * Get arc width to use by searching for largest arc of passed type
+         * connected to any elements in the route.
+         * @param route the route to be searched
+         * @param ap the arc type
+         * @return the largest width
+         */
+        public void findArcWidthToUse(Route route, ArcProto ap) {
+            double basewidth = ap.getDefaultLambdaBaseWidth();
+            if (basewidth > defaultWidth) defaultWidth = basewidth;
+            for (RouteElement re : route) {
+                findArcWidthToUse(re, ap);
+            }
+        }
+
+        public void findArcWidthToUse(ElectricObject routeObj, ArcProto ap) {
+            double width = -1;
+            if (routeObj instanceof ArcInst) {
+                ArcInst ai = (ArcInst)routeObj;
+                if (ai.getProto() == ap) {
+                    width = ai.getLambdaBaseWidth();
+                    if (width > defaultWidth) defaultWidth = width;
+                    if (width > preferredWidth) preferredWidth = width;
+                }
+            }
+            if (routeObj instanceof PortInst) {
+                findArcWidthToUse((PortInst)routeObj, ap);
+            }
+        }
+
+        /**
+         * Get arc width to use to connect to PortInst pi.  Arc type
+         * is ap.  Uses the largest width of arc type ap already connected
+         * to pi, or the default width of ap if none found.<p>
+         * You may specify pi as null, in which case it just returns
+         * ap.getDefaultLambdaFullWidth().
+         *
+         *
+         * @param pi the PortInst to connect to
+         * @param ap the Arc type to connect with
+         * @return the width to use to connect
+         */
+        public void findArcWidthToUse(PortInst pi, ArcProto ap) {
+            // if pi null, just return default width of ap
+            if (pi == null) return;
+
+            double basewidth = ap.getDefaultLambdaBaseWidth();
+            if (basewidth > defaultWidth) defaultWidth = basewidth;
+
+            // get all ArcInsts on pi, find largest
+            for (Iterator<Connection> it = pi.getConnections(); it.hasNext(); ) {
+                Connection c = it.next();
+                ArcInst ai = c.getArc();
+                if (ai.getProto() != ap) continue;
+                double newWidth = c.getArc().getLambdaBaseWidth();
+                int aiAngle = ai.getAngle() % 1800;
+                if (defaultWidth < newWidth) defaultWidth = newWidth;
+                if (preferredWidth < newWidth && aiAngle == preferredAngle)
+                    preferredWidth = newWidth;
+            }
+            // check any wires that connect to the export of this portinst in the
+            // prototype, if this is a cell instance
+            NodeInst ni = pi.getNodeInst();
+            if (ni.isCellInstance()) {
+                Cell cell = (Cell)ni.getProto();
+                Export export = cell.findExport(pi.getPortProto().getName());
+                PortInst exportedInst = export.getOriginalPort();
+                findArcWidthToUse(exportedInst, ap);
+            }
+            // if this is a contact cut that can connect to the arc and no other
+            // arcs have been found, use the width/height of it.
+            if ((ni.getProto() instanceof PrimitiveNode) && preferredAngle >= 0) {
+                PrimitiveNode pn = (PrimitiveNode)ni.getProto();
+                if (pn.getFunction() == PrimitiveNode.Function.CONTACT && pi.getPortProto().connectsTo(ap)) {
+                    double width = 0;
+                    if (preferredAngle == 0) width = ni.getYSizeWithoutOffset();
+                    if (preferredAngle == 900) width = ni.getXSizeWithoutOffset();
+                    if (width > defaultWidth) defaultWidth = width;
+                    if (width > preferredWidth) preferredWidth = width;
+                }
+            }
+        }
+
+        /**
+         * Get arc width to use to connect to RouteElement re. Uses largest
+         * width of arc already connected to re.
+         * @param re the RouteElement to connect to
+         * @param ap the arc type (for default width)
+         * @return the width of the arc to use to connect
+         */
+        public void findArcWidthToUse(RouteElement re, ArcProto ap) {
+            double basewidth = ap.getDefaultLambdaBaseWidth();
+            if (basewidth > defaultWidth) defaultWidth = basewidth;
+
+            double connectedWidth = -1;
+            if (re instanceof RouteElementPort) {
+                RouteElementPort rePort = (RouteElementPort)re;
+                findArcWidthToUse(rePort, ap);
+                if (rePort.getPortInst() != null) {
+                    // check if prototype connection to export has larger wire
+                    findArcWidthToUse(rePort.getPortInst(), ap);
+                }
+            }
+            if (re instanceof RouteElementArc) {
+                RouteElementArc reArc = (RouteElementArc)re;
+                connectedWidth = reArc.getArcBaseWidth();
+                int arcAngle = reArc.getArcAngle() % 1800;
+                if (connectedWidth > defaultWidth) defaultWidth = connectedWidth;
+                if (connectedWidth > preferredWidth && arcAngle == preferredAngle)
+                    preferredWidth = connectedWidth;
+            }
+        }
+
+        /**
+         * Get largest arc width of newArc RouteElements attached to this
+         * RouteElement.  If none present returns -1.
+         * <p>Note that these width values should have been pre-adjusted for
+         * the arc width offset, so these values have had the offset subtracted away.
+         */
+        public void findArcWidthToUse(RouteElementPort re, ArcProto ap) {
+            double basewidth = ap.getDefaultLambdaBaseWidth();
+            if (basewidth > defaultWidth) defaultWidth = basewidth;
+
+            if (re.getAction() == RouteElement.RouteElementAction.existingPortInst) {
+                // find all arcs of type ap connected to this
+                findArcWidthToUse(re.getPortInst(), ap);
+            }
+
+            if (re.getAction() == RouteElement.RouteElementAction.newNode) {
+                for (Iterator<RouteElement> it = re.getNewArcs(); it.hasNext(); ) {
+                    RouteElementArc rearc = (RouteElementArc)it.next();
+                    if (rearc.getArcProto() == ap) {
+                        double newWidth = rearc.getArcBaseWidth();
+                        int connAngle = rearc.getArcAngle() % 1800;
+                        if (newWidth > preferredWidth && preferredAngle == connAngle) preferredWidth = newWidth;
+                        if (newWidth > defaultWidth) defaultWidth = newWidth;
+                    }
+                }
+            }
+        }
+    }
+
 }
