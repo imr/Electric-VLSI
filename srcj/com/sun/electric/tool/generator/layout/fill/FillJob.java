@@ -39,6 +39,7 @@ import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.technology.Layer;
@@ -125,7 +126,7 @@ public class FillJob extends Job
 
             if (index != -1)
             {
-                // Getting options
+                // Getting options like (W)
                 String options = fillCellName.substring(index);
                 fillCellName = fillCellName.substring(0, index);
                 parse = new StringTokenizer(options, "()", false);
@@ -150,7 +151,6 @@ public class FillJob extends Job
             if (oldCell != null)
             {
                 oldCell.kill();
-//                oldCell.rename("OLD"+newName, "OLD");
             }
             Cell newCell = Cell.makeInstance(topCell.getLibrary(), newName);
             Point2D center = new Point2D.Double(0, 0);
@@ -159,6 +159,13 @@ public class FillJob extends Job
             while (parse.hasMoreTokens())
             {
                 String fillCell = parse.nextToken();
+                index = fillCell.indexOf("("); // options like (I)
+                boolean instanceFlag = false;
+                if (index != -1)
+                {
+                    instanceFlag = fillCell.toLowerCase().indexOf("(i") != -1; // only (I) option for now
+                    fillCell = fillCell.substring(0, index);
+                }
                 Cell c = topCell.getLibrary().findNodeProto(fillCell);
                 Technology t = c.getTechnology();
 
@@ -166,15 +173,14 @@ public class FillJob extends Job
                 else if (tech != t)
                     System.out.println("Mixing technologies in fill generator: " + tech.getTechName() + " " + t.getTechName());
                 NodeInst ni = NodeInst.makeInstance(c, center, c.getDefWidth(), c.getDefHeight(), newCell);
-                fillCells.add(ni);
+                if (!instanceFlag)
+                    fillCells.add(ni);
                 fillGeoms.add(ni);
             }
             newCell.setTechnology(tech);
             ExportChanges.reExportNodes(newCell, fillGeoms, false, true, false, true);
             new CellChangeJobs.ExtractCellInstances(newCell, fillCells, Integer.MAX_VALUE, true, true);
             generateFill(newCell, wideOption);
-//            if (oldCell != null)
-//                oldCell.kill();
         }
         return true;
     }
@@ -224,9 +230,6 @@ public class FillJob extends Job
         for (int i = 0; i < listOfLayers.size() - 1; i++)
         {
             Layer bottom = listOfLayers.get(i);
-
-//            int metalNumber = bottom.getFunction().getLevel();
-//            boolean horizontal = (evenHorizontal && metalNumber%2==0) || (!evenHorizontal && metalNumber%2==1);
             boolean horizontal = isLayerHorizontal(bottom, evenHorizontal);
 
             List<ArcInst> arcs = getArcsInGivenLayer(theCell.getArcs(), horizontal, bottom, null, null);
@@ -260,7 +263,10 @@ public class FillJob extends Job
                 {
                     Geometric nGeom = (Geometric)it.next();
 
-                    if (!(nGeom instanceof ArcInst)) continue; // only arcs
+                    if (!(nGeom instanceof ArcInst))
+                    {
+                        continue; // only arcs
+                    }
 
                     ArcInst nai = (ArcInst)nGeom;
 
@@ -305,7 +311,7 @@ public class FillJob extends Job
                     }
 
                     EPoint insert = new EPoint(resultBnd.getCenterX(), resultBnd.getCenterY());
-                    pairs.add(new PinsArcPair(nai, insert));
+                    pairs.add(new PinsArcPair(nai, insert, resultBnd));
                 }
 
                 Collections.sort(pairs, pinsArcSort);
@@ -367,7 +373,7 @@ public class FillJob extends Job
                     }
                     assert (topA != null);
                     EPoint insert = new EPoint(resultBnd.getCenterX(), resultBnd.getCenterY());
-                    pairs.add(new PinsArcPair(topA, insert));
+                    pairs.add(new PinsArcPair(topA, insert, resultBnd));
                 }
                 // Sort the new pairs from left/top to right/bottom
                 Collections.sort(pairs, pinsArcSort);
@@ -407,6 +413,29 @@ public class FillJob extends Job
             }
         }
 
+        Netlist netlist = theCell.getNetlist();
+        // Connect cell instances
+//        for (Iterator<NodeInst> itNi = theCell.getNodes(); itNi.hasNext();)
+//        {
+//            NodeInst ni = itNi.next();
+//
+//            // only cell instances
+//            if (!ni.isCellInstance()) continue;
+//
+//            // Checking if the export overlaps with
+//            // Checking if there are exports overlapping with the arc
+//            for (Iterator<Export> itE = ni.getExports(); itE.hasNext(); )
+//            {
+//                Export ex = itE.next();
+//                String rootName = extractRootName(ex.getName());
+//                Network jNet = getNetworkFromName(netlist, rootName);
+//                PortInst pi = ex.getOriginalPort();
+//                PortProto epi = pi.getPortProto(); // Trying to get
+//                NodeInst npi = pi.getNodeInst();
+//                    System.out.println("");
+//            }
+//        }
+
         // Remove exports in lower layers
         Set<Export> toDelete = new HashSet<Export>();
         Map<String,Export> inBottomLayer = new HashMap<String,Export>(); // enough with 1 export stored
@@ -434,7 +463,6 @@ public class FillJob extends Job
                 toDelete.add(exp);
         }
 
-        Netlist netlist = theCell.getNetlist();
         // Add extra export in the middle of the botoom layer.
         if (wideOption)
         {
@@ -464,7 +492,7 @@ public class FillJob extends Job
                         Rectangle2D bnd = ai.getBounds();
                         if (bnd.contains(insert.getX(), insert.getY()))
                         {
-                            split = new PinsArcPair(ai, insert);
+                            split = new PinsArcPair(ai, insert, null);
                             l.add(split);
                             break;
                         }
@@ -487,6 +515,23 @@ public class FillJob extends Job
         // Delete after dealing with the wide option
         theCell.killExports(toDelete);
         return true;
+    }
+
+    /**
+     * Method to get Network from a given network root name
+     * @param netlist Netlist containing the network information
+     * @param rootName Root name of the network
+     * @return Network
+     */
+    private static Network getNetworkFromName(Netlist netlist, String rootName)
+    {
+        for (Iterator<Network> it = netlist.getNetworks(); it.hasNext();)
+        {
+            Network net = it.next();
+            if (net.getName().startsWith(rootName))
+                return net;
+        }
+        return null;
     }
 
     /**
@@ -669,11 +714,13 @@ public class FillJob extends Job
     {
         private ArcInst topArc;
         private EPoint insert;
+        private Rectangle2D cut;
 
-        PinsArcPair(ArcInst topA, EPoint point)
+        PinsArcPair(ArcInst topA, EPoint point, Rectangle2D c)
         {
             topArc = topA;
             insert = point;
+            cut = c;
         }
     }
 
