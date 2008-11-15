@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 
 /**
  * Class to route vertically (in Z direction) between two RouteElements.
@@ -234,6 +235,24 @@ public class VerticalRoute {
      */
     public void buildRoute(Route route, Cell cell, RouteElementPort startRE, RouteElementPort endRE,
                            Point2D startLoc, Point2D endLoc, Point2D location, PolyMerge stayInside) {
+        buildRoute(route, cell, startRE, endRE, startLoc, endLoc, location, stayInside, null);
+    }
+
+    /**
+     * Builds a Route using the specification from specifyRoute(). It connects
+     * this route up to startRE and endRE if they were specified.
+     * Note that this may create non-orthogonal
+     * arcs if startRE and endRE are not orthogonal to location.  Also,
+     * startRE and endRE must have valid ports (i.e. are existingPortInst or newNode
+     * types) if they are non-null. This method automatically determines the contact size, and the
+     * angle of all the zero length arcs.
+     * @param route the route to append with the new RouteElements
+     * @param cell the cell in which to create the vertical route
+     * @param location where to create the route (database units)
+     * @param stayInside a polygonal area in which the new arc must reside (if not null).
+     */
+    public void buildRoute(Route route, Cell cell, RouteElementPort startRE, RouteElementPort endRE,
+                           Point2D startLoc, Point2D endLoc, Point2D location, PolyMerge stayInside, Rectangle2D contactArea) {
 
         if (specifiedRoute == null) {
             System.out.println("Error: Trying to build VerticalRoute without a call to specifyRoute() first");
@@ -292,7 +311,12 @@ public class VerticalRoute {
         }
 
         // resize contacts to right size, and add to route
-        Dimension2D size = Router.getContactSize(vertRoute.getStart(), vertRoute.getEnd());
+        Dimension2D size;
+        if (contactArea != null) {
+            size = new Dimension2D.Double(contactArea.getWidth(), contactArea.getHeight());
+        } else {
+            size = Router.getContactSize(vertRoute.getStart(), vertRoute.getEnd());
+        }
         for (RouteElement re : vertRoute) {
             if (re instanceof RouteElementPort)
                 ((RouteElementPort)re).setNodeSize(size);

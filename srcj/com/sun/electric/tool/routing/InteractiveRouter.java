@@ -90,7 +90,7 @@ public abstract class InteractiveRouter extends Router {
 
     protected abstract boolean planRoute(Route route, Cell cell, RouteElementPort endRE,
                                 Point2D startLoc, Point2D endLoc, Point2D clicked, PolyMerge stayInside, VerticalRoute vroute,
-                                boolean contactsOnEndObject, boolean extendArcHead, boolean extendArcTail);
+                                boolean contactsOnEndObject, boolean extendArcHead, boolean extendArcTail, Rectangle2D contactArea);
 
     // ----------------------- Interactive Route Control --------------------------
 
@@ -255,6 +255,24 @@ public abstract class InteractiveRouter extends Router {
      */
     public Route planRoute(Cell cell, ElectricObject startObj, ElectricObject endObj, Point2D clicked, PolyMerge stayInside,
                            boolean extendArcHead, boolean extendArcTail) {
+        return planRoute(cell, startObj, endObj, clicked, stayInside, extendArcHead, extendArcTail, null);
+    }
+
+    /**
+     * Plan a route from startObj to endObj, taking into account
+     * where the user clicked in the cell.
+     * @param cell the cell in which to create the arc
+     * @param startObj a PortInst or ArcInst from which to start the route
+     * @param endObj a PortInst or ArcInst to end the route on. May be null
+     * if the user is drawing to empty space.
+     * @param clicked the point where the user clicked
+     * @param stayInside the area in which to route (null if not applicable).
+     * @param extendArcHead true to use default arc extension; false to force no arc extension.
+     * @param extendArcTail true to use default arc extension; false to force no arc extension.
+     * @return a List of RouteElements denoting route
+     */
+    public Route planRoute(Cell cell, ElectricObject startObj, ElectricObject endObj, Point2D clicked, PolyMerge stayInside,
+                           boolean extendArcHead, boolean extendArcTail, Rectangle2D contactArea) {
 
         Route route = new Route();               // hold the route
         if (cell == null) return route;
@@ -391,7 +409,7 @@ public abstract class InteractiveRouter extends Router {
 
         // Tell Router to route between startRE and endRE
         if (planRoute(route, cell, endRE, startPoint, endPoint, clicked, stayInside, vroute, contactsOnEndObject,
-                extendArcHead, extendArcTail)) {
+                extendArcHead, extendArcTail, contactArea)) {
             return route;
         }
         return new Route();             // error, return empty route
