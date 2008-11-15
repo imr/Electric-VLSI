@@ -429,6 +429,22 @@ public class FillJob extends Job
 //                Export ex = itE.next();
 //                String rootName = extractRootName(ex.getName());
 //                Network jNet = getNetworkFromName(netlist, rootName);
+//
+//                PrimitiveNode n = ex.getBasePort().getParent();
+//                Layer layer = n.getLayerIterator().next(); // assuming only 1
+//
+//                for (Iterator<ArcInst> itA = jNet.getArcs(); itA.hasNext();)
+//                {
+//                    ArcInst ai = itA.next();
+//                    Layer l = ai.getProto().getLayer(0);
+//
+//                    if (l == layer)
+//                        System.out.println("found in same layer");
+//                    else if (Math.abs(l.getIndex() - layer.getIndex()) <=1)
+//                    {
+//                        System.out.println("Found up or down");
+//                    }
+//                }
 //                PortInst pi = ex.getOriginalPort();
 //                PortProto epi = pi.getPortProto(); // Trying to get
 //                NodeInst npi = pi.getNodeInst();
@@ -513,7 +529,10 @@ public class FillJob extends Job
         }
 
         // Delete after dealing with the wide option
-        theCell.killExports(toDelete);
+        // At least one connection was done otherwise it will keep the original exports.
+        // Option is mostly for debugging purposes.
+        if (topLayers[0] != null || topLayers[1] != null)
+            theCell.killExports(toDelete);
         return true;
     }
 
@@ -550,9 +569,10 @@ public class FillJob extends Job
      * Method to collect arcs in a given layer with a given export name from an iterator
      * @param itAi Arcs iterator
      * @param horizontal
-     *@param layer Given layer
+     * @param layer Given layer
      * @param exportName Given export name. If null, any export name is valid
-     * @param netlist  Given Netlist to find exports @return List of ArcInsts
+     * @param netlist  Given Netlist to find exports
+     * @return List of ArcInsts
      */
     private static List<ArcInst> getArcsInGivenLayer(Iterator<ArcInst> itAi, Boolean horizontal, Layer layer, String exportName, Netlist netlist)
     {
