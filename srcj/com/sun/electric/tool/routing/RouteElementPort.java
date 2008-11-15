@@ -255,7 +255,7 @@ public class RouteElementPort extends RouteElement {
                     double newWidth = arc.getLambdaBaseWidth();
                     if (newWidth > width) {
                         width = newWidth;
-                        angle = arc.getAngle();
+                        angle = arc.getAngle() % 1800;
                     }
                 }
             }

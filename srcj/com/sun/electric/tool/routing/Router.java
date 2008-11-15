@@ -543,6 +543,8 @@ public abstract class Router {
         return new Dimension2D.Double(width, height);
     }
 
+    //=====================================================================================
+
     public static class ArcWidth {
         private int preferredAngle;
         private double preferredWidth;

@@ -78,18 +78,19 @@ public class SimpleWirer extends InteractiveRouter {
     		// no arc specified: allow direct if manhattan
             if (startLoc.getX() == endLoc.getX() || startLoc.getY() == endLoc.getY()) singleArc = true;
     	}
-        if (singleArc)
-        {
-            // single arc
-            if (contactsOnEndObj)
-                cornerLoc = endLoc;
-            else
-                cornerLoc = startLoc;
-        } else
-        {
-            if (contactArea != null) {
-                cornerLoc = new Point2D.Double(contactArea.getCenterX(), contactArea.getCenterY());
-            } else {
+
+        if (contactArea != null) {
+            cornerLoc = new Point2D.Double(contactArea.getCenterX(), contactArea.getCenterY());
+        } else {
+            if (singleArc)
+            {
+                // single arc
+                if (contactsOnEndObj)
+                    cornerLoc = endLoc;
+                else
+                    cornerLoc = startLoc;
+            } else
+            {
                 Point2D pin1 = new Point2D.Double(startLoc.getX(), endLoc.getY());
                 Point2D pin2 = new Point2D.Double(endLoc.getX(), startLoc.getY());
                 // find which pin to use
