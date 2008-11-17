@@ -456,6 +456,27 @@ public class FillJob extends Job
         Set<Export> toDelete = new HashSet<Export>();
         Map<String,Export> inBottomLayer = new HashMap<String,Export>(); // enough with 1 export stored
 
+        // find the highest level metal for a given network
+        Map<Network,Layer> maximumLayer = new HashMap<Network,Layer>();
+        for (Iterator<Export> itE = theCell.getExports(); itE.hasNext();) {
+            Export exp = itE.next();
+            PrimitiveNode n = exp.getBasePort().getParent();
+            Network net = netlist.getNetwork(exp, 0);
+            Layer l = maximumLayer.get(net);
+            for (Iterator<Layer> itL = n.getLayerIterator(); itL.hasNext();)
+            {
+                Layer lnew = itL.next();
+                if (l == null) {
+                    l = lnew;
+                    continue;
+                }
+                if (lnew.getFunction().getLevel() > l.getFunction().getLevel()) {
+                    l = lnew;
+                }
+            }
+            maximumLayer.put(net, l);
+        }
+
         for (Iterator<Export> itE = theCell.getExports(); itE.hasNext();)
         {
             Export exp = itE.next();
@@ -463,9 +484,18 @@ public class FillJob extends Job
             boolean found = false;
             String rootName = extractRootName(exp.getName());
 
+            Layer topLayer = maximumLayer.get(netlist.getNetwork(exp, 0));
+            int levelMax = topLayer.getFunction().getLevel();
             for (Iterator<Layer> itL = n.getLayerIterator(); itL.hasNext();)
             {
                 Layer l = itL.next();
+                int level = l.getFunction().getLevel();
+                if (level == levelMax || level == (levelMax-1)) {
+                    found = true;
+                } else {
+                    inBottomLayer.put(rootName, exp); // put the last one in the network.
+                }
+/*
                 if (topLayers[0] == l || topLayers[1] == l)
                 {
                     found = true;
@@ -474,6 +504,7 @@ public class FillJob extends Job
                 {
                     inBottomLayer.put(rootName, exp); // put the last one in the network.
                 }
+*/
             }
             if (!found) // delete the export
                 toDelete.add(exp);
@@ -498,6 +529,7 @@ public class FillJob extends Job
 
                 // It could be multiple areas disconnected.
                 List<PolyBase> list = PolyBase.getPointsInArea(area, bottomLayer, false, false);
+                if (list == null) continue; // no matching export on bottom level
                 for (PolyBase b : list)
                 {
                     Rectangle2D resultBnd = b.getBounds2D();
