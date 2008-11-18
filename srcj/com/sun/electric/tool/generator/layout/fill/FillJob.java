@@ -565,6 +565,19 @@ public class FillJob extends Job
         // Option is mostly for debugging purposes.
         if (topLayers[0] != null || topLayers[1] != null)
             theCell.killExports(toDelete);
+
+        // make sure at least one export on a network is the root name
+        netlist = theCell.getNetlist();
+        for (Iterator<Network> itN = netlist.getNetworks(); itN.hasNext(); ) {
+            Network net = itN.next();
+            if (!net.isExported()) continue;
+            String name = net.getName();
+            String rootName = extractRootName(name);
+            if (!name.equals(rootName)) {
+                Export exp = net.getExports().next();
+                exp.rename(rootName);
+            }
+        }
         return true;
     }
 
