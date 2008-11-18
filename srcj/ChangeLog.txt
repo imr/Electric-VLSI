@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08m: ******************************
 
+IMP/MAN: (11/18/08, SMR) Made DXF input read all layers by default.
+
 ************************* Version 8.08l: ******************************
 
 BUG: (11/13/08, DN) Cant delete cell and reuse name in same Job (Bug #1944).

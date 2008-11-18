@@ -1187,12 +1187,12 @@ public class IOTool extends Tool
 	 */
 	public static boolean isFactoryDXFInputFlattensHierarchy() { return cacheDXFInputFlattensHierarchy.getBooleanFactoryValue(); }
 
-	private static Pref cacheDXFInputReadsAllLayers = Pref.makeBooleanPref("DXFInputReadsAllLayers", IOTool.tool.prefs, false);
+	private static Pref cacheDXFInputReadsAllLayers = Pref.makeBooleanPref("DXFInputReadsAllLayers", IOTool.tool.prefs, true);
 	/**
 	 * Method to tell whether DXF input reads all layers.
 	 * When a DXF layer in the file is unknown, it is ignored if all layers are NOT being read;
 	 * it is converted to another layer if all layers ARE being read.
-	 * The default is "false".
+	 * The default is "true".
 	 * @return true if DXF input reads all layers.
 	 */
 	public static boolean isDXFInputReadsAllLayers() { return cacheDXFInputReadsAllLayers.getBoolean(); }
