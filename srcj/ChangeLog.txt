@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08m: ******************************
 
+IMP: (11/19/08, SMR) Outlines can now use null values to separate multiple polygons (Bug #1901).
+
 BUG: (11/19/08, SMR) Arrayed nodes generate incorrect VHDL (Bug #1947).
 FIX: Rewrote GenerateVHDL.java and refactored it to com.sun.electric.tool.io.output.
 

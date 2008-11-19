@@ -172,8 +172,12 @@ public class OutlineListener
 				for(int i=0; i<origPoints.length; i++)
 				{
 					// copy the original point
-					newPoints[j++] = new Point2D.Double(outlineNode.getAnchorCenterX() + origPoints[i].getX(),
-						outlineNode.getAnchorCenterY() + origPoints[i].getY());
+					if (origPoints[i] != null)
+					{
+						newPoints[j] = new Point2D.Double(outlineNode.getAnchorCenterX() + origPoints[i].getX(),
+							outlineNode.getAnchorCenterY() + origPoints[i].getY());
+					}
+					j++;
 					if (i == point)
 					{
 						// found the selected point, make the insertion
@@ -295,9 +299,12 @@ public class OutlineListener
 			for(int i=0; i<origPoints.length; i++)
 			{
 				if (i == pt) continue;
-				newPoints[j] = new Point2D.Double(outlineNode.getAnchorCenterX() + origPoints[i].getX(),
-					outlineNode.getAnchorCenterY() + origPoints[i].getY());
-				trans.transform(newPoints[j], newPoints[j]);
+				if (origPoints[j] != null)
+				{
+					newPoints[j] = new Point2D.Double(outlineNode.getAnchorCenterX() + origPoints[i].getX(),
+						outlineNode.getAnchorCenterY() + origPoints[i].getY());
+					trans.transform(newPoints[j], newPoints[j]);
+				}
 				j++;
 			}
 			if (pt > 0) pt--;
@@ -348,25 +355,30 @@ public class OutlineListener
 		Point2D [] newPoints = new Point2D[origPoints.length];
 		for(int i=0; i<origPoints.length; i++)
 		{
-			newPoints[i] = new Point2D.Double(outlineNode.getAnchorCenterX() + origPoints[i].getX(),
-				outlineNode.getAnchorCenterY() + origPoints[i].getY());
+			if (origPoints[i] != null)
+				newPoints[i] = new Point2D.Double(outlineNode.getAnchorCenterX() + origPoints[i].getX(),
+					outlineNode.getAnchorCenterY() + origPoints[i].getY());
 		}
 		AffineTransform trans = outlineNode.rotateOutAboutTrueCenter();
-		trans.transform(newPoints, 0, newPoints, 0, newPoints.length);
-		newPoints[point].setLocation(newPoints[point].getX()+dx, newPoints[point].getY()+dy);
+		for(int i=0; i<newPoints.length; i++)
+		{
+			if (newPoints[i] != null)
+				trans.transform(newPoints[i], newPoints[i]);
+		}
+		if (newPoints[point] != null)
+			newPoints[point].setLocation(newPoints[point].getX()+dx, newPoints[point].getY()+dy);
 		setNewPoints(newPoints, point);
 	}
 
 	private void setNewPoints(Point2D [] newPoints, int newPoint)
 	{
-		double [] x = new double[newPoints.length];
-		double [] y = new double[newPoints.length];
+		EPoint [] pts = new EPoint[newPoints.length];
 		for(int i=0; i<newPoints.length; i++)
 		{
-			x[i] = newPoints[i].getX();
-			y[i] = newPoints[i].getY();
+			if (newPoints[i] != null)
+				pts[i] = new EPoint(newPoints[i].getX(), newPoints[i].getY());
 		}
-		new SetPoints(this, outlineNode, x, y, newPoint);
+		new SetPoints(this, outlineNode, pts, newPoint);
 	}
 
 	/**
@@ -376,16 +388,15 @@ public class OutlineListener
 	{
 		private transient OutlineListener listener;
 		private NodeInst ni;
-		private double [] x, y;
+		private EPoint [] pts;
 		private int newPoint;
 
-		protected SetPoints(OutlineListener listener, NodeInst ni, double [] x, double [] y, int newPoint)
+		protected SetPoints(OutlineListener listener, NodeInst ni, EPoint [] pts, int newPoint)
 		{
 			super("Change Outline Points", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.listener = listener;
 			this.ni = ni;
-			this.x = x;
-			this.y = y;
+			this.pts = pts;
 			this.newPoint = newPoint;
 			startJob();
 		}
@@ -396,12 +407,7 @@ public class OutlineListener
 			if (CircuitChangeJobs.cantEdit(ni.getParent(), ni, true, false, true) != 0) return false;
 
 			// get the extent of the data
-			Point2D [] points = new Point2D[x.length];
-			for(int i=0; i<x.length; i++)
-			{
-				points[i] = new Point2D.Double(x[i], y[i]);
-			}
-			ni.setTrace(points);
+			ni.setTrace(pts);
 			return true;
 		}
 

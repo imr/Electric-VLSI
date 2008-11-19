@@ -666,6 +666,7 @@ public class SizeListener
 				Point2D [] newPoints = new Point2D[points.length];
 				for(int i=0; i<points.length; i++)
 				{
+					if (points[i] == null) continue;
 					Point2D newPoint = new Point2D.Double(points[i].getX() * percX, points[i].getY() * percY);
 					trans.transform(newPoint, newPoint);
 					newPoint.setLocation(newPoint.getX() + newCenter.getX(), newPoint.getY() + newCenter.getY());

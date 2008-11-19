@@ -926,87 +926,90 @@ class HighlightEOBJ extends Highlight2
 					}
 
 					// draw an "x" through the selected point
-					double x = ni.getAnchorCenterX() + points[point].getX();
-					double y = ni.getAnchorCenterY() + points[point].getY();
-					Point2D thisPt = new Point2D.Double(x, y);
-					trans.transform(thisPt, thisPt);
-					Point cThis = wnd.databaseToScreen(thisPt);
-					int size = 3;
-					drawLine(g, wnd, cThis.x + size + offX, cThis.y + size + offY, cThis.x - size + offX, cThis.y - size + offY);
-					drawLine(g, wnd, cThis.x + size + offX, cThis.y - size + offY, cThis.x - size + offX, cThis.y + size + offY);
+					if (points[point] != null)
+					{
+						double x = ni.getAnchorCenterX() + points[point].getX();
+						double y = ni.getAnchorCenterY() + points[point].getY();
+						Point2D thisPt = new Point2D.Double(x, y);
+						trans.transform(thisPt, thisPt);
+						Point cThis = wnd.databaseToScreen(thisPt);
+						int size = 3;
+						drawLine(g, wnd, cThis.x + size + offX, cThis.y + size + offY, cThis.x - size + offX, cThis.y - size + offY);
+						drawLine(g, wnd, cThis.x + size + offX, cThis.y - size + offY, cThis.x - size + offX, cThis.y + size + offY);
 
-					// find previous and next point, and draw lines to them
-					boolean showWrap = ni.traceWraps();
-					Point2D prevPt = null, nextPt = null;
-					int prevPoint = point - 1;
-					if (prevPoint < 0 && showWrap) prevPoint = points.length - 1;
-					if (prevPoint >= 0)
-					{
-						prevPt = new Point2D.Double(ni.getAnchorCenterX() + points[prevPoint].getX(),
-							ni.getAnchorCenterY() + points[prevPoint].getY());
-						trans.transform(prevPt, prevPt);
-						if (prevPt.getX() == thisPt.getX() && prevPt.getY() == thisPt.getY()) prevPoint = -1; else
+						// find previous and next point, and draw lines to them
+						boolean showWrap = ni.traceWraps();
+						Point2D prevPt = null, nextPt = null;
+						int prevPoint = point - 1;
+						if (prevPoint < 0 && showWrap) prevPoint = points.length - 1;
+						if (prevPoint >= 0 && points[prevPoint] != null)
 						{
-							Point cPrev = wnd.databaseToScreen(prevPt);
-							drawLine(g, wnd, cThis.x + offX, cThis.y + offY, cPrev.x, cPrev.y);
+							prevPt = new Point2D.Double(ni.getAnchorCenterX() + points[prevPoint].getX(),
+								ni.getAnchorCenterY() + points[prevPoint].getY());
+							trans.transform(prevPt, prevPt);
+							if (prevPt.getX() == thisPt.getX() && prevPt.getY() == thisPt.getY()) prevPoint = -1; else
+							{
+								Point cPrev = wnd.databaseToScreen(prevPt);
+								drawLine(g, wnd, cThis.x + offX, cThis.y + offY, cPrev.x, cPrev.y);
+							}
 						}
-					}
-					int nextPoint = point + 1;
-					if (nextPoint >= points.length)
-					{
-						if (showWrap) nextPoint = 0; else
-							nextPoint = -1;
-					}
-					if (nextPoint >= 0)
-					{
-						nextPt = new Point2D.Double(ni.getAnchorCenterX() + points[nextPoint].getX(),
-							ni.getAnchorCenterY() + points[nextPoint].getY());
-						trans.transform(nextPt, nextPt);
-						if (nextPt.getX() == thisPt.getX() && nextPt.getY() == thisPt.getY()) nextPoint = -1; else
+						int nextPoint = point + 1;
+						if (nextPoint >= points.length)
 						{
-							Point cNext = wnd.databaseToScreen(nextPt);
-							drawLine(g, wnd, cThis.x + offX, cThis.y + offY, cNext.x, cNext.y);
+							if (showWrap) nextPoint = 0; else
+								nextPoint = -1;
 						}
-					}
-
-					// draw arrows on the lines
-					if (offX == 0 && offY == 0 && points.length > 2)
-					{
-						double arrowLen = Double.MAX_VALUE;
-						if (prevPoint >= 0) arrowLen = Math.min(thisPt.distance(prevPt), arrowLen);
-						if (nextPoint >= 0) arrowLen = Math.min(thisPt.distance(nextPt), arrowLen);
-						arrowLen /= 10;
-						double angleOfArrow = Math.PI * 0.8;
-						if (prevPoint >= 0)
+						if (nextPoint >= 0 && points[nextPoint] != null)
 						{
-							Point2D prevCtr = new Point2D.Double((prevPt.getX()+thisPt.getX()) / 2,
-								(prevPt.getY()+thisPt.getY()) / 2);
-							double prevAngle = DBMath.figureAngleRadians(prevPt, thisPt);
-							Point2D prevArrow1 = new Point2D.Double(prevCtr.getX() + Math.cos(prevAngle+angleOfArrow) * arrowLen,
-								prevCtr.getY() + Math.sin(prevAngle+angleOfArrow) * arrowLen);
-							Point2D prevArrow2 = new Point2D.Double(prevCtr.getX() + Math.cos(prevAngle-angleOfArrow) * arrowLen,
-								prevCtr.getY() + Math.sin(prevAngle-angleOfArrow) * arrowLen);
-							Point cPrevCtr = wnd.databaseToScreen(prevCtr);
-							Point cPrevArrow1 = wnd.databaseToScreen(prevArrow1);
-							Point cPrevArrow2 = wnd.databaseToScreen(prevArrow2);
-							drawLine(g, wnd, cPrevCtr.x, cPrevCtr.y, cPrevArrow1.x, cPrevArrow1.y);
-							drawLine(g, wnd, cPrevCtr.x, cPrevCtr.y, cPrevArrow2.x, cPrevArrow2.y);
+							nextPt = new Point2D.Double(ni.getAnchorCenterX() + points[nextPoint].getX(),
+								ni.getAnchorCenterY() + points[nextPoint].getY());
+							trans.transform(nextPt, nextPt);
+							if (nextPt.getX() == thisPt.getX() && nextPt.getY() == thisPt.getY()) nextPoint = -1; else
+							{
+								Point cNext = wnd.databaseToScreen(nextPt);
+								drawLine(g, wnd, cThis.x + offX, cThis.y + offY, cNext.x, cNext.y);
+							}
 						}
 
-						if (nextPoint >= 0)
+						// draw arrows on the lines
+						if (offX == 0 && offY == 0 && points.length > 2 && prevPt != null && nextPt != null)
 						{
-							Point2D nextCtr = new Point2D.Double((nextPt.getX()+thisPt.getX()) / 2,
-								(nextPt.getY()+thisPt.getY()) / 2);
-							double nextAngle = DBMath.figureAngleRadians(thisPt, nextPt);
-							Point2D nextArrow1 = new Point2D.Double(nextCtr.getX() + Math.cos(nextAngle+angleOfArrow) * arrowLen,
-								nextCtr.getY() + Math.sin(nextAngle+angleOfArrow) * arrowLen);
-							Point2D nextArrow2 = new Point2D.Double(nextCtr.getX() + Math.cos(nextAngle-angleOfArrow) * arrowLen,
-								nextCtr.getY() + Math.sin(nextAngle-angleOfArrow) * arrowLen);
-							Point cNextCtr = wnd.databaseToScreen(nextCtr);
-							Point cNextArrow1 = wnd.databaseToScreen(nextArrow1);
-							Point cNextArrow2 = wnd.databaseToScreen(nextArrow2);
-							drawLine(g, wnd, cNextCtr.x, cNextCtr.y, cNextArrow1.x, cNextArrow1.y);
-							drawLine(g, wnd, cNextCtr.x, cNextCtr.y, cNextArrow2.x, cNextArrow2.y);
+							double arrowLen = Double.MAX_VALUE;
+							if (prevPoint >= 0) arrowLen = Math.min(thisPt.distance(prevPt), arrowLen);
+							if (nextPoint >= 0) arrowLen = Math.min(thisPt.distance(nextPt), arrowLen);
+							arrowLen /= 10;
+							double angleOfArrow = Math.PI * 0.8;
+							if (prevPoint >= 0)
+							{
+								Point2D prevCtr = new Point2D.Double((prevPt.getX()+thisPt.getX()) / 2,
+									(prevPt.getY()+thisPt.getY()) / 2);
+								double prevAngle = DBMath.figureAngleRadians(prevPt, thisPt);
+								Point2D prevArrow1 = new Point2D.Double(prevCtr.getX() + Math.cos(prevAngle+angleOfArrow) * arrowLen,
+									prevCtr.getY() + Math.sin(prevAngle+angleOfArrow) * arrowLen);
+								Point2D prevArrow2 = new Point2D.Double(prevCtr.getX() + Math.cos(prevAngle-angleOfArrow) * arrowLen,
+									prevCtr.getY() + Math.sin(prevAngle-angleOfArrow) * arrowLen);
+								Point cPrevCtr = wnd.databaseToScreen(prevCtr);
+								Point cPrevArrow1 = wnd.databaseToScreen(prevArrow1);
+								Point cPrevArrow2 = wnd.databaseToScreen(prevArrow2);
+								drawLine(g, wnd, cPrevCtr.x, cPrevCtr.y, cPrevArrow1.x, cPrevArrow1.y);
+								drawLine(g, wnd, cPrevCtr.x, cPrevCtr.y, cPrevArrow2.x, cPrevArrow2.y);
+							}
+
+							if (nextPoint >= 0)
+							{
+								Point2D nextCtr = new Point2D.Double((nextPt.getX()+thisPt.getX()) / 2,
+									(nextPt.getY()+thisPt.getY()) / 2);
+								double nextAngle = DBMath.figureAngleRadians(thisPt, nextPt);
+								Point2D nextArrow1 = new Point2D.Double(nextCtr.getX() + Math.cos(nextAngle+angleOfArrow) * arrowLen,
+									nextCtr.getY() + Math.sin(nextAngle+angleOfArrow) * arrowLen);
+								Point2D nextArrow2 = new Point2D.Double(nextCtr.getX() + Math.cos(nextAngle-angleOfArrow) * arrowLen,
+									nextCtr.getY() + Math.sin(nextAngle-angleOfArrow) * arrowLen);
+								Point cNextCtr = wnd.databaseToScreen(nextCtr);
+								Point cNextArrow1 = wnd.databaseToScreen(nextArrow1);
+								Point cNextArrow2 = wnd.databaseToScreen(nextArrow2);
+								drawLine(g, wnd, cNextCtr.x, cNextCtr.y, cNextArrow1.x, cNextArrow1.y);
+								drawLine(g, wnd, cNextCtr.x, cNextCtr.y, cNextArrow2.x, cNextArrow2.y);
+							}
 						}
 					}
 

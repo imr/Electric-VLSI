@@ -25,6 +25,7 @@ package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.tool.Client;
@@ -150,7 +151,11 @@ public class GetInfoOutline extends EModelessDialog implements HighlightListener
 		// load the coordinates
 		Point2D [] dbSpacePoints = new Point2D[points.length];
 		for(int i=0; i<points.length; i++)
-			dbSpacePoints[i] = new Point2D.Double(points[i].getX() + ni.getAnchorCenterX(), points[i].getY() + ni.getAnchorCenterY());
+		{
+			if (points[i] != null)
+				dbSpacePoints[i] = new Point2D.Double(points[i].getX() + ni.getAnchorCenterX(),
+					points[i].getY() + ni.getAnchorCenterY());
+		}
 		loadList(dbSpacePoints, 0);
 		listClick();
 	}
@@ -170,13 +175,21 @@ public class GetInfoOutline extends EModelessDialog implements HighlightListener
 		changingCoordinates = true;
 		String line = (String)list.getSelectedValue();
 		Point2D clickedValue = getPointValue(line);
-		xValue.setText(TextUtils.formatDouble(clickedValue.getX()));
-		yValue.setText(TextUtils.formatDouble(clickedValue.getY()));
+		if (clickedValue == null)
+		{
+			xValue.setText("");
+			yValue.setText("");
+		} else
+		{
+			xValue.setText(TextUtils.formatDouble(clickedValue.getX()));
+			yValue.setText(TextUtils.formatDouble(clickedValue.getY()));
+		}
 		changingCoordinates = false;
 	}
 
 	private String makeLine(int index, Point2D pt)
 	{
+		if (pt == null) return "-------------";
 		return index + ": (" +
 			TextUtils.formatDouble(pt.getX()) + ", " +
 			TextUtils.formatDouble(pt.getY()) + ")";
@@ -203,8 +216,9 @@ public class GetInfoOutline extends EModelessDialog implements HighlightListener
 		{
 			xV = TextUtils.atof(line.substring(openPos+1, commaPos));
 			yV = TextUtils.atof(line.substring(commaPos+1, closePos));
+			return new Point2D.Double(xV, yV);
 		}
-		return new Point2D.Double(xV, yV);
+		return null;
 	}
 
 	/**
@@ -413,16 +427,15 @@ public class GetInfoOutline extends EModelessDialog implements HighlightListener
 	private void applyActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_applyActionPerformed
 	{//GEN-HEADEREND:event_applyActionPerformed
 		int newPointCount = model.size();
-		double [] x = new double[newPointCount];
-		double [] y = new double[newPointCount];
+		EPoint [] pts = new EPoint[newPointCount];
 		for(int i=0; i<newPointCount; i++)
 		{
 			String line = (String)model.get(i);
 			Point2D pt = getPointValue(line);
-			x[i] = pt.getX();
-			y[i] = pt.getY();
+			if (pt != null)
+				pts[i] = new EPoint(pt.getX(), pt.getY());
 		}
-		new AdjustOutline(ni, x, y);
+		new AdjustOutline(ni, pts);
 	}//GEN-LAST:event_applyActionPerformed
 
 	private void duplicatePointActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_duplicatePointActionPerformed
@@ -436,7 +449,12 @@ public class GetInfoOutline extends EModelessDialog implements HighlightListener
 		for(int i=0; i<newPointCount; i++)
 		{
 			String line = (String)model.get(i);
-			if (i == index) newPoints[j++] = getPointValue(line);
+			if (i == index)
+			{
+				Point2D insertPt = getPointValue(line);
+				if (insertPt != null)
+					newPoints[j++] = insertPt;
+			}
 			newPoints[j++] = getPointValue(line);
 		}
 
@@ -480,14 +498,13 @@ public class GetInfoOutline extends EModelessDialog implements HighlightListener
 	private static class AdjustOutline extends Job
 	{
 		private NodeInst ni;
-		private double [] x, y;
+		private EPoint [] pts;
 
-		private AdjustOutline(NodeInst ni, double [] x, double [] y)
+		private AdjustOutline(NodeInst ni, EPoint [] pts)
 		{
 			super("Adjust Outline", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.ni = ni;
-			this.x = x;
-			this.y = y;
+			this.pts = pts;
 			startJob();
 		}
 
@@ -496,10 +513,7 @@ public class GetInfoOutline extends EModelessDialog implements HighlightListener
 		 */
 		public boolean doIt() throws JobException
 		{
-			Point2D [] points = new Point2D[x.length];
-			for(int i=0; i<x.length; i++)
-				points[i] = new Point2D.Double(x[i], y[i]);
-			ni.setTrace(points);
+			ni.setTrace(pts);
 			return true;
 		}
 	}

@@ -301,6 +301,7 @@ public class DXF extends Output
 					for(int i=0; i<len-1; i++)
 					{
 						// line
+						if (points[i] == null || points[i+1] == null) continue;
 						printWriter.print("  0\nLINE\n");
 						printWriter.print("  8\n" + layerName + "\n");
 						printWriter.print("  5\n" + getThreeDigitHex(dxfEntityHandle++) + "\n");

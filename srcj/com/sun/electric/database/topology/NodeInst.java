@@ -1998,6 +1998,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 		double hY = lY;
 		for(int i=1; i<points.length; i++)
 		{
+			if (points[i] == null) continue;
 			double x = points[i].getX();
 			if (x < lX) lX = x;
 			if (x > hX) hX = x;
@@ -2011,7 +2012,10 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 		double newSY = hY - lY;
         EPoint[] newPoints = new EPoint[points.length];
         for (int i = 0; i < newPoints.length; i++)
-            newPoints[i] = new EPoint(points[i].getX() - newCX, points[i].getY() - newCY);
+        {
+        	if (points[i] != null)
+        		newPoints[i] = new EPoint(points[i].getX() - newCX, points[i].getY() - newCY);
+        }
 
 		// update the points
 		newVar(NodeInst.TRACE, newPoints);

@@ -308,6 +308,7 @@ public class CircuitChangeJobs
 					boolean changed = false;
 					for(int i=0; i<points.length; i++)
 					{
+						if (points[i] == null) continue;
 						Point2D newPoint = new Point2D.Double(points[i].getX() + ni.getAnchorCenterX(), points[i].getY() + ni.getAnchorCenterY());
 						transOut.transform(newPoint, newPoint);
 						double oldX = newPoint.getX();
@@ -1177,7 +1178,10 @@ public class CircuitChangeJobs
 							double cY = pointBounds.getCenterY();
 							Point2D [] newPoints = new Point2D[points.length];
 							for(int i=0; i<points.length; i++)
-								newPoints[i] = new Point2D.Double(points[i].getX()+cX, points[i].getY()+cY);
+							{
+								if (points[i] != null)
+									newPoints[i] = new Point2D.Double(points[i].getX()+cX, points[i].getY()+cY);
+							}
 							poly = new PolyBase(newPoints);
 							poly.transform(ni.rotateOut());
 						}

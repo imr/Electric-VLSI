@@ -636,6 +636,7 @@ public class GDS extends Input
 					for(int i=0; i<points.size(); i++)
 					{
 						pointArray[i] = points.get(i);
+						if (pointArray[i] == null) continue;
 						if (i == 0)
 						{
 							lX = hX = pointArray[i].getX();
@@ -705,8 +706,9 @@ public class GDS extends Input
     	    		points.add(new EPoint(ptX+bounds.getMaxX(), ptY+bounds.getMinY()));
     	    		points.add(new EPoint(ptX+bounds.getMaxX(), ptY+bounds.getMaxY()));
     	    		points.add(new EPoint(ptX+bounds.getMinX(), ptY+bounds.getMaxY()));
-    	    		if (ic < nCols-1 || ir < nRows-1)
-        	    		points.add(new EPoint(ptX+bounds.getMinX(), ptY+bounds.getMaxY()));
+
+    	    		// insert a "break" marker to start a new polygon
+    	    		if (ic < nCols-1 || ir < nRows-1) points.add(null);
 
     				// add the row displacement
     				ptX += rowOffset.getX();   ptY += rowOffset.getY();

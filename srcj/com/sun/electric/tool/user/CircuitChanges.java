@@ -1146,7 +1146,30 @@ public class CircuitChanges
 				Point2D [] points = ni.getTrace();
 				double area;
 				if (points == null) area = ni.getXSize() * ni.getYSize(); else
-					area = GenMath.getAreaOfPoints(points);
+				{
+					boolean hasGaps = false;
+					for(int i=0; i<points.length; i++) if (points[i] == null) { hasGaps = true;   break; }
+					if (hasGaps)
+					{
+						// outline has multiple disjoint polygons
+						area = 0;
+						int start = 0;
+						for(int i=0; i<points.length; i++)
+						{
+							if (i == points.length-1 || points[i+1] == null)
+							{
+								Point2D [] segment = new Point2D[i-start+1];
+								for(int j=start; j<=i; j++)
+									segment[j-start] = points[j];
+								area += GenMath.getAreaOfPoints(segment);
+								start = i+2;
+							}
+						}
+					} else
+					{
+						area = GenMath.getAreaOfPoints(points);
+					}
+				}
 				pureAreas.put(ni, new Double(area));
 				root = RTNode.linkGeom(null, root, ni);
 			}

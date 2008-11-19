@@ -1358,7 +1358,10 @@ public class DXF extends Input
 					int len = oldTrace.length;
 					Point2D [] newTrace = new Point2D[len];
 					for(int i=0; i<len; i++)
-						newTrace[i] = new Point2D.Double(cX + oldTrace[i].getX() * xSca, cY + oldTrace[i].getY() * ySca);
+					{
+						if (oldTrace[i] != null)
+							newTrace[i] = new Point2D.Double(cX + oldTrace[i].getX() * xSca, cY + oldTrace[i].getY() * ySca);
+					}
 					nNi.setTrace(newTrace);
 				}
 			} else if (ni.getProto() == Generic.tech().invisiblePinNode)
@@ -1426,7 +1429,10 @@ public class DXF extends Input
 					int len = oldTrace.length;
 					Point2D [] newTrace = new Point2D[len];
 					for(int i=0; i<len; i++)
-						newTrace[i] = new Point2D.Double(oldTrace[i].getX() * xSca, oldTrace[i].getY() * ySca);
+					{
+						if (oldTrace[i] != null)
+							newTrace[i] = new Point2D.Double(oldTrace[i].getX() * xSca, oldTrace[i].getY() * ySca);
+					}
 					nNi.setTrace(newTrace);
 				}
 			} else if (ni.getProto() == Generic.tech().invisiblePinNode)

@@ -1798,6 +1798,7 @@ public class Highlighter implements DatabaseChangeListener {
 						AffineTransform trans = ni.rotateOutAboutTrueCenter();
 						for(int i=0; i<points.length; i++)
 						{
+							if (points[i] == null) continue;
 							Point2D pt = new Point2D.Double(ni.getAnchorCenterX() + points[i].getX(),
 								ni.getAnchorCenterY() + points[i].getY());
 							trans.transform(pt, pt);
