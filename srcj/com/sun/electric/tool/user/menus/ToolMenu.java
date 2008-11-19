@@ -85,6 +85,7 @@ import com.sun.electric.tool.generator.layout.fill.FillJob;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.io.input.Simulate;
+import com.sun.electric.tool.io.output.GenerateVHDL;
 import com.sun.electric.tool.io.output.Spice;
 import com.sun.electric.tool.io.output.Verilog;
 import com.sun.electric.tool.logicaleffort.LENetlister;
@@ -115,7 +116,6 @@ import com.sun.electric.tool.sc.Route;
 import com.sun.electric.tool.sc.SilComp;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.CompileVHDL;
-import com.sun.electric.tool.user.GenerateVHDL;
 import com.sun.electric.tool.user.Highlight2;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
@@ -1821,6 +1821,31 @@ public class ToolMenu {
 			startJob();
 		}
 
+		public boolean doIt() throws JobException
+		{
+			fieldVariableChanged("cell");
+			textCellsToRedraw = new ArrayList<Cell>();
+			fieldVariableChanged("textCellsToRedraw");
+			cell = performTaskNoJob(cell, textCellsToRedraw, activities);
+			if (cell == null)
+			{
+				activities = 0;
+				fieldVariableChanged("activities");
+			}
+            return true;
+		}
+
+        public void terminateOK()
+        {
+            for(Cell cell : textCellsToRedraw) {
+                TextWindow.updateText(cell);
+            }
+            if ((activities&SHOW_CELL) != 0) {
+                // show the cell
+                WindowFrame.createEditWindow(cell);
+            }
+        }
+
         public static Cell performTaskNoJob(Cell cell, List<Cell> textCellsToRedraw, int activities) throws JobException
         {
             Library destLib = cell.getLibrary();
@@ -1832,7 +1857,10 @@ public class ToolMenu {
 				System.out.print("Generating VHDL from " + cell + " ...");
 				List<String> vhdlStrings = GenerateVHDL.convertCell(cell);
 				if (vhdlStrings == null)
-					throw new JobException("No VHDL produced");
+				{
+					System.out.println("No VHDL produced");
+					return null;
+				}
 
 				String cellName = cell.getName() + "{vhdl}";
 				Cell vhdlCell = cell.getLibrary().findNodeProto(cellName);
@@ -1855,10 +1883,16 @@ public class ToolMenu {
 				System.out.print("Compiling VHDL in " + cell + " ...");
 				CompileVHDL c = new CompileVHDL(cell);
 				if (c.hasErrors())
-					throw new JobException("ERRORS during compilation, no netlist produced");
+				{
+					System.out.println("ERRORS during compilation, no netlist produced");
+					return null;
+				}
 				List<String> netlistStrings = c.getQUISCNetlist(destLib);
 				if (netlistStrings == null)
-					throw new JobException("No netlist produced");
+				{
+					System.out.println("No netlist produced");
+					return null;
+				}
 
 				// store the QUISC netlist
 				String cellName = cell.getName() + "{net.quisc}";
@@ -1882,21 +1916,30 @@ public class ToolMenu {
 				System.out.println("Reading netlist in " + cell);
 				GetNetlist gnl = new GetNetlist();
 				if (gnl.readNetCurCell(cell))
-					throw new JobException("Error compiling netlist");
+				{
+					System.out.println("Error compiling netlist");
+					return null;
+				}
 
 				// do the placement
 				System.out.println("Placing cells");
 				Place place = new Place();
 				String err = place.placeCells(gnl);
 				if (err != null)
-					throw new JobException(err);
+				{
+					System.out.println(err);
+					return null;
+				}
 
 				// do the routing
 				System.out.println("Routing cells");
 				Route route = new Route();
 				err = route.routeCells(gnl);
 				if (err != null)
-					throw new JobException(err);
+				{
+					System.out.println(err);
+					return null;
+				}
 
 				// generate the results
 				System.out.println("Generating layout");
@@ -1906,33 +1949,16 @@ public class ToolMenu {
 				{
 					System.out.println((String)result);
 					if (Technology.getCurrent() == Schematics.tech())
-						throw new JobException("Should switch to a layout technology first (currently in Schematics)");
+					{
+						System.out.println("Should switch to a layout technology first (currently in Schematics)");
+						return null;
+					}
 				}
 				if (!(result instanceof Cell)) return null;
 				cell = (Cell)result;
 				System.out.println("Created " + cell);
 			}
 		    return cell;
-        }
-
-		public boolean doIt() throws JobException
-		{
-			fieldVariableChanged("cell");
-			textCellsToRedraw = new ArrayList<Cell>();
-			fieldVariableChanged("textCellsToRedraw");
-			cell = performTaskNoJob(cell, textCellsToRedraw, activities);
-            return true;
-		}
-
-        public void terminateOK()
-        {
-            for(Cell cell : textCellsToRedraw) {
-                TextWindow.updateText(cell);
-            }
-            if ((activities&SHOW_CELL) != 0) {
-                // show the cell
-                WindowFrame.createEditWindow(cell);
-            }
         }
 	}
 

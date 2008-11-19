@@ -62,8 +62,10 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.URL;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
@@ -113,6 +115,7 @@ public class Output
 
 	/** file path */									protected String filePath;
 	/** for writing text files */						protected PrintWriter printWriter;
+	/** for writing text arrays */						protected StringWriter stringWriter;
 	/** for writing binary files */						protected DataOutputStream dataOutputStream;
 	/** True to write with less information displayed */protected boolean quiet;
 
@@ -536,7 +539,8 @@ public class Output
     }
 
     /**
-     * Opens the dataOutputStream for writing of binary files.
+     * Opens output for writing binary files.
+     * @param filePath the name of the file.
      * @return true on error.
      */
     protected boolean openBinaryOutputStream(String filePath)
@@ -558,7 +562,7 @@ public class Output
     }
 
     /**
-     * Closes the dataOutputStream.
+     * Close output for writing binary to a file.
      * @return true on error.
      */
     protected boolean closeBinaryOutputStream()
@@ -575,7 +579,8 @@ public class Output
     }
 
     /**
-     * Open the printWriter for writing text files
+     * Open output for writing text to a file.
+     * @param filePath the name of the file.
      * @return true on error.
      */
     protected boolean openTextOutputStream(String filePath)
@@ -593,7 +598,7 @@ public class Output
     }
 
 	/**
-     * Close the printWriter.
+     * Close output for writing text to a file.
      * @return true on error.
      */
     protected boolean closeTextOutputStream()
@@ -602,6 +607,33 @@ public class Output
         return false;
     }
 
+    /**
+     * Open output for collecting a list of strings.
+     */
+    protected void openStringsOutputStream()
+    {
+        stringWriter = new StringWriter();
+    }
+
+	/**
+     * Close output for collecting a list of strings.
+     * @return the list of strings.
+     */
+    protected List<String> closeStringsOutputStream()
+    {
+    	StringBuffer sb = stringWriter.getBuffer();
+    	String [] lines = sb.toString().split("\n");
+    	List<String> strings = new ArrayList<String>();
+    	for(int i=0; i<lines.length; i++)
+    		strings.add(lines[i]);
+        return strings;
+    }
+
+    /**
+     * Method to write copyright header information to the output.
+     * @param prefix the characters that start a line of commented output.
+     * @param postfix the characters that end a line of commented output.
+     */
 	protected void emitCopyright(String prefix, String postfix)
 	{
 		if (!IOTool.isUseCopyrightMessage()) return;
@@ -612,7 +644,7 @@ public class Output
 			int endPos = str.indexOf('\n', start);
 			if (endPos < 0) endPos = str.length();
 			String oneLine = str.substring(start, endPos);
-			printWriter.println(prefix + oneLine + postfix);
+			writeChunk(prefix + oneLine + postfix + "\n");
 			start = endPos+1;
 		}
 	}
@@ -622,21 +654,36 @@ public class Output
 	private boolean strictWidthLimit = false;
 	private String continuationString = "";
 
+	/**
+	 * Method to set the size of a line of output.
+	 * @param width the maximum number of characters on a line of output (default is 80).
+	 * @param strict true to strictly enforce the line-width limit, even if it means breaking
+	 * a symbol in the middle.  When false, very long names may exceed the width limit.
+	 */
 	protected void setOutputWidth(int width, boolean strict) { maxWidth = width;   strictWidthLimit = strict; }
 
+	/**
+	 * Method to set the string that will be emitted at the start of a "continuation line".
+	 * The continuation line is the line that follows a line which is broken up because
+	 * of width limits.
+	 * @param str the string that will be emitted at the start of a "continuation line".
+	 */
 	protected void setContinuationString(String str) { continuationString = str; }
 
 	private void writeChunk(String str)
 	{
 		int len = str.length();
 		if (len <= 0) return;
-		printWriter.print(str);
+		if (printWriter != null) printWriter.print(str); else
+			if (stringWriter != null) stringWriter.write(str);
 		lineCharCount += len;
 		if (str.charAt(len-1) == '\n') lineCharCount = 0;
 	}
 
 	/**
-	 * Write to the file, but break into printable lines
+	 * Method to add a string to the output, limited by the maximum
+	 * width of an output line.
+	 * @param str the string to add to the output.
 	 */
 	protected void writeWidthLimited(String str)
 	{
