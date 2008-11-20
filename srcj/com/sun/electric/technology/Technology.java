@@ -128,8 +128,10 @@ import javax.swing.SwingUtilities;
  */
 public class Technology implements Comparable<Technology>, Serializable
 {
-	// true to handle duplicate points in an outline as a "break"
+	/** true to allow outlines to have "breaks" with multiple pieces in them */
 	public static final boolean HANDLEBROKENOUTLINES = true;
+	/** true to handle duplicate points in an outline as a "break" */
+	public static final boolean DUPLICATEPOINTSAREBROKENOUTLINES = false;
     
     // Change in TechSettings takes effect only after restart
     private final boolean IMMUTABLE_TECHS = false;
@@ -3488,8 +3490,13 @@ public class Technology implements Comparable<Technology>, Serializable
 					int startPoint = 0;
 					for(int i=1; i<outline.length; i++)
 					{
-						if (i == outline.length-1 || outline[i] == null ||
-							(i-startPoint > 0 && outline[i].getX() == outline[i-1].getX() && outline[i].getY() == outline[i-1].getY()))
+						boolean breakPoint = (i == outline.length-1) || (outline[i] == null);
+						if (DUPLICATEPOINTSAREBROKENOUTLINES && !breakPoint)
+						{
+							if (i-startPoint > 0 && outline[i].getX() == outline[i-1].getX() &&
+								outline[i].getY() == outline[i-1].getY()) breakPoint = true;
+						}
+						if (breakPoint)
 						{
 							if (i == outline.length-1) i++;
 							Point2D [] pointList = new Point2D.Double[i-startPoint];
@@ -4572,10 +4579,18 @@ public class Technology implements Comparable<Technology>, Serializable
 				{
 					for(int i=1; i<outline.length; i++)
 					{
-						if (outline[i] == null || outline[i].getX() == outline[i-1].getX() && outline[i].getY() == outline[i-1].getY())
+						if (outline[i] == null)
 						{
 							endPortPoly = i;
 							break;
+						}
+						if (DUPLICATEPOINTSAREBROKENOUTLINES)
+						{
+							if (outline[i].getX() == outline[i-1].getX() && outline[i].getY() == outline[i-1].getY())
+							{
+								endPortPoly = i;
+								break;
+							}
 						}
 					}
 				}
