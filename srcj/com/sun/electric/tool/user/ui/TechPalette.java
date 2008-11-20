@@ -32,6 +32,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
@@ -45,6 +46,7 @@ import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.AnnularRing;
 import com.sun.electric.tool.user.dialogs.CellBrowser;
+import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.LayoutText;
 import com.sun.electric.tool.user.menus.CellMenu;
 import com.sun.electric.tool.user.redisplay.AbstractDrawing;
@@ -58,6 +60,9 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.dnd.DnDConstants;
@@ -72,28 +77,37 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
+import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowFocusListener;
 import java.awt.image.VolatileImage;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import javax.swing.JComboBox;
+import javax.swing.BorderFactory;
+import javax.swing.DefaultListModel;
+import javax.swing.JList;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
-import javax.swing.plaf.basic.BasicComboPopup;
+import javax.swing.ListSelectionModel;
+import javax.swing.border.BevelBorder;
 
 /**
  * Class to display the nodes and arcs in a technology (in the Component Menu).
@@ -482,47 +496,177 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 		repaint();
 	}
 
-	private static class PurePopup
-	{
-		private List<PrimitiveNode> popupPures;
-		private BasicComboPopup myPopup;
-		private JComboBox comboBox;
+    /**
+     * Class to display a list of pure-layer nodes.
+     * Created when the "Pure" entry is selected in the component menu.
+     * This class must be used (instead of a normal JPopupMenu) because the list
+     * of pure-layer nodes may be very large, and JPopupMenu doesn't show a scroll-bar
+     * or otherwise shorten the list.
+     */
+    private static class PurePopup extends EDialog
+    {
+    	private JList pureList;
 		private TechPalette panel;
+		private List<PrimitiveNode> popupPures;
+   
+    	private PurePopup(TechPalette panel, int x, int y)
+        {
+    		super(TopLevel.getCurrentJFrame(), false);
+    		this.panel = panel;
+    		Point los = TopLevel.getCurrentJFrame().getLocationOnScreen();
+    		setLocation(los.x+x, los.y+y);
+    		setUndecorated(true);
+            getContentPane().setLayout(new GridBagLayout());
+            DefaultListModel pureModel = new DefaultListModel();
+            pureList = new JList(pureModel);
+            pureList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+            JScrollPane pureScrollPane = new JScrollPane();
+            pureScrollPane.setMinimumSize(new Dimension(200, 200));
+            pureScrollPane.setPreferredSize(new Dimension(200, 200));
+            pureScrollPane.setViewportView(pureList);
+            JPanel purePanel = new JPanel();
+            purePanel.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
+            purePanel.setLayout(new GridBagLayout());
+            GridBagConstraints gbc = new GridBagConstraints();
+            gbc.gridx = 0;   gbc.gridy = 0;
+            purePanel.add(pureScrollPane, gbc);
+            gbc = new GridBagConstraints();
+            gbc.gridx = 0;   gbc.gridy = 0;
+            getContentPane().add(purePanel, gbc);
+            pureList.addMouseListener(new MouseAdapter()
+    		{
+    			public void mouseClicked(MouseEvent evt) { entryClicked(); }
+    		});  
+			pureList.addKeyListener(new KeyAdapter()
+			{
+				public void keyReleased(KeyEvent ke)
+				{
+					if (ke.getKeyCode() == KeyEvent.VK_ENTER)
+					{
+						entryClicked();
+						ke.consume();
+					} 
+				}
+			});
+			addWindowFocusListener(new DialogFocusHandler());
 
-		PurePopup(TechPalette panel, int x, int y)
-		{
-			this.panel = panel;
-			popupPures = new ArrayList<PrimitiveNode>();
+            popupPures = new ArrayList<PrimitiveNode>();
 			for(PrimitiveNode np : Technology.getCurrent().getNodesSortedByName())
 			{
 				if (np.isNotUsed()) continue;
 				if (np.getFunction() != PrimitiveNode.Function.NODE) continue;
 				Technology.NodeLayer layer = np.getLayers()[0];
-				if (layer.getLayer().getFunction().isContact()) continue;
+				Layer.Function lf = layer.getLayer().getFunction();
+				if (lf.isContact()) continue;
 				popupPures.add(np);
 			}
-			String[] popupStringArray = new String[popupPures.size()];
-			for(int i=0; i<popupPures.size(); i++) popupStringArray[i] = popupPures.get(i).describe(false);
-			comboBox = new JComboBox(popupStringArray);
-			myPopup = new BasicComboPopup(comboBox);
-			comboBox.addActionListener(new ActionListener()
-			{
-				public void actionPerformed(ActionEvent e) { clickedOnEntry(); }
-			});
-			myPopup.show(panel, x, y);
+			Collections.sort(popupPures, new LayersByImportance());
+			for(PrimitiveNode np : popupPures)
+				pureModel.addElement(np.describe(false));
+			pureList.setSelectedIndex(0);
+            pack();
+            setVisible(true);
+        }
+
+    	/**
+    	 * Class to handle clicks outside of the window (which close it)
+    	 */
+		private class DialogFocusHandler implements WindowFocusListener
+		{
+			public void windowGainedFocus(WindowEvent e) {}
+
+			public void windowLostFocus(WindowEvent e) { setVisible(false); }
 		}
 
-		private void clickedOnEntry()
+		/**
+		 * Comparator class for sorting pure-layer-nodes by their importance.
+		 */
+		public static class LayersByImportance implements Comparator<PrimitiveNode>
 		{
+			/**
+			 * Method to sort pure-layer-nodes by their importance.
+			 */
+			public int compare(PrimitiveNode np1, PrimitiveNode np2)
+			{
+				Technology.NodeLayer layer1 = np1.getLayers()[0];
+				Layer.Function lf1 = layer1.getLayer().getFunction();
+				Technology.NodeLayer layer2 = np2.getLayers()[0];
+				Layer.Function lf2 = layer2.getLayer().getFunction();
+				int imp1 = 2;
+				if (lf1.isSubstrate()) imp1 = 0; else
+					if (lf1.isDummy()) imp1 = 1;
+				int imp2 = 2;
+				if (lf2.isSubstrate()) imp2 = 0; else
+					if (lf2.isDummy()) imp2 = 1;
+				return imp1 - imp2;
+			}
+		}
+
+		/**
+    	 * Method called when the ESCAPE key is pressed.
+    	 */
+    	protected void escapePressed()
+    	{
+            setVisible(false);
+    	}
+
+    	/**
+    	 * Method to handle clicks on an entry in the pure-layer-node list.
+    	 */
+    	private void entryClicked()
+    	{
+            String selected = (String)pureList.getSelectedValue();
 			for(int i=0; i<popupPures.size(); i++)
 			{
 				PrimitiveNode np = popupPures.get(i);
-				if (np.describe(false).equals(comboBox.getSelectedItem()))
+				if (np.describe(false).equals(selected))
 					PaletteFrame.placeInstance(np, panel, false);
 			}
-			myPopup.hide();
-		}
-	}
+            setVisible(false);
+    	}
+    }
+
+//    private static class PurePopupOld
+//	{
+//		private List<PrimitiveNode> popupPures;
+//		private BasicComboPopup myPopup;
+//		private JComboBox comboBox;
+//		private TechPalette panel;
+//
+//		PurePopupOld(TechPalette panel, int x, int y)
+//		{
+//			this.panel = panel;
+//			popupPures = new ArrayList<PrimitiveNode>();
+//			for(PrimitiveNode np : Technology.getCurrent().getNodesSortedByName())
+//			{
+//				if (np.isNotUsed()) continue;
+//				if (np.getFunction() != PrimitiveNode.Function.NODE) continue;
+//				Technology.NodeLayer layer = np.getLayers()[0];
+//				if (layer.getLayer().getFunction().isContact()) continue;
+//				popupPures.add(np);
+//			}
+//			String[] popupStringArray = new String[popupPures.size()];
+//			for(int i=0; i<popupPures.size(); i++) popupStringArray[i] = popupPures.get(i).describe(false);
+//			comboBox = new JComboBox(popupStringArray);
+//			myPopup = new BasicComboPopup(comboBox);
+//			comboBox.addActionListener(new ActionListener()
+//			{
+//				public void actionPerformed(ActionEvent e) { clickedOnEntry(); }
+//			});
+//			myPopup.show(panel, x, y);
+//		}
+//
+//		private void clickedOnEntry()
+//		{
+//			for(int i=0; i<popupPures.size(); i++)
+//			{
+//				PrimitiveNode np = popupPures.get(i);
+//				if (np.describe(false).equals(comboBox.getSelectedItem()))
+//					PaletteFrame.placeInstance(np, panel, false);
+//			}
+//			myPopup.hide();
+//		}
+//	}
 
 	private void makeExport(String type)
 	{

@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08m: ******************************
 
+BUG: (11/20/08, SMR) Pure-layer node popup should handle arrows and key selection, and
+     show wells and dummys near the top (Bug #1948).
+FIX: Rewrote TechPalette.PurePopup class to be a full dialog.
+
 IMP: (11/19/08, SMR) Outlines can now use null values to separate multiple polygons (Bug #1901).
 
 BUG: (11/19/08, SMR) Arrayed nodes generate incorrect VHDL (Bug #1947).
