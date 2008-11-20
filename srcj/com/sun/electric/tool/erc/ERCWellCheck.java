@@ -28,6 +28,7 @@ import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GeometryHandler;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyBase;
+import com.sun.electric.database.geometry.GenMath.MutableBoolean;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
@@ -53,8 +54,20 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.dialogs.EModelessDialog;
+import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.TopLevel;
 
+import java.awt.Color;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.Shape;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -70,6 +83,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Semaphore;
 
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JTextField;
+import javax.swing.Timer;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+
 /**
  * This is the Electrical Rule Checker tool.
  * @author  Steve Rubin, Gilda Garreton
@@ -79,7 +99,8 @@ public class ERCWellCheck
 	private Cell cell;
 	private Set<Object> possiblePrimitives;
 	private List<WellCon> wellCons = new ArrayList<WellCon>();
-	private Iterator<WellCon> wellConIterator;
+	private Iterator<WellCon> [] wellConIterator;
+	private List<WellCon> [] wellConLists;
 	private RTNode pWellRoot, nWellRoot;
 	private Layer pWellLayer, nWellLayer;
 	private ErrorLogger errorLogger;
@@ -90,6 +111,10 @@ public class ERCWellCheck
 	private double worstNWellDist;
 	private Point2D worstNWellCon;
 	private Point2D worstNWellEdge;
+
+	private static final boolean GATHERSTATISTICS = false;
+	private static final boolean DISTANTSEEDS = true;
+	private static final boolean INCREMENTALGROWTH = false;
 
 	/**
 	 * Method to analyze the current Cell for well errors.
@@ -197,6 +222,7 @@ public class ERCWellCheck
 		System.out.println("Checking Wells and Substrates in '" + cell.libDescribe() + "' ...");
 		long startTime = System.currentTimeMillis();
 		errorLogger = ErrorLogger.newInstance("ERC Well Check ");
+		initStatistics();
 
 		// make a list of primtivies that need to be examined
 		possiblePrimitives = new HashSet<Object>();
@@ -236,7 +262,7 @@ public class ERCWellCheck
 		}
 //		int errorCount = doOldWay();
 		int errorCount = doNewWay();
-
+		showStatistics();
 		// report the number of errors found
 		long endTime = System.currentTimeMillis();
 		if (errorCount == 0)
@@ -250,20 +276,39 @@ public class ERCWellCheck
 		return errorCount;
 	}
 
-	private void spreadSeeds()
+	private WellCon getNextWellCon(int threadIndex)
+	{
+		synchronized(wellConIterator[threadIndex])
+		{
+			while (wellConIterator[threadIndex].hasNext())
+			{
+				WellCon wc = wellConIterator[threadIndex].next();
+				if (wc.wellNum == null) return wc;
+			}
+		}
+
+		// not found in this list: try the others
+		int numLists = wellConIterator.length;
+		for(int i=1; i<numLists; i++)
+		{
+			int otherList = (threadIndex + i) % numLists;
+			synchronized(wellConIterator[otherList])
+			{
+				while (wellConIterator[otherList].hasNext())
+				{
+					WellCon wc = wellConIterator[otherList].next();
+					if (wc.wellNum == null) return wc;
+				}
+			}
+		}
+		return null;
+	}
+
+	private void spreadSeeds(int threadIndex)
 	{
 		for(;;)
 		{
-			WellCon wc = null;
-			synchronized(wellConIterator)
-			{
-				while (wellConIterator.hasNext())
-				{
-					wc = wellConIterator.next();
-					if (wc.wellNum == null) break;
-					wc = null;
-				}
-			}
+			WellCon wc = getNextWellCon(threadIndex);
 			if (wc == null) break;
 
 			// see if this contact is in a marked well
@@ -293,24 +338,26 @@ public class ERCWellCheck
 			}
 
 			// spread out through the well area
-			spreadWellSeed(wc.ctr.getX(), wc.ctr.getY(), wc.wellNum, topSearch);
+			spreadWellSeed(wc.ctr.getX(), wc.ctr.getY(), wc.wellNum, topSearch, threadIndex);
 		}
 	}
 
 	private class SpreadInThread extends Thread
 	{
 		private Semaphore whenDone;
+		private int threadIndex;
 
-		public SpreadInThread(String name, Semaphore whenDone)
+		public SpreadInThread(String name, Semaphore whenDone, int index)
 		{
 			super(name);
 			this.whenDone = whenDone;
+			threadIndex = index;
 			start();
 		}
 
 		public void run()
 		{
-			spreadSeeds();
+			spreadSeeds(threadIndex);
 			whenDone.release();
 		}
 	}
@@ -331,26 +378,33 @@ public class ERCWellCheck
 			TextUtils.getElapsedTime(endTime - startTime));
 		startTime = endTime;
 
-		// spread the well connectivity from all well contacts
-		NetValues.reset();
-		wellConIterator = wellCons.iterator();
-		int numberOfProcessors = 1;
-		if (ERC.isParallelWellAnalysis()) numberOfProcessors = Runtime.getRuntime().availableProcessors();
-		if (numberOfProcessors <= 1) spreadSeeds(); else
+		// determine the number of threads to use
+		int numberOfThreads = 1;
+		if (ERC.isParallelWellAnalysis()) numberOfThreads = Runtime.getRuntime().availableProcessors();
+		if (numberOfThreads > 1)
 		{
 			int maxProc = ERC.getWellAnalysisNumProc();
-			if (maxProc > 0 && maxProc < numberOfProcessors) numberOfProcessors = maxProc;
+			if (maxProc > 0) numberOfThreads = maxProc;
+		}
+
+		// make arrays of well contacts clustered for each processor
+		assignWellContacts(numberOfThreads);
+
+		// analyze the contacts
+		NetValues.reset();
+		if (numberOfThreads <= 1) spreadSeeds(0); else
+		{
 			Semaphore outSem = new Semaphore(0);
-			for(int i=0; i<numberOfProcessors; i++)
-				new SpreadInThread("WellCheck propagate #" + (i+1), outSem);
+			for(int i=0; i<numberOfThreads; i++)
+				new SpreadInThread("WellCheck propagate #" + (i+1), outSem, i);
 
 			// now wait for spread threads to finish
-			outSem.acquireUninterruptibly(numberOfProcessors);
+			outSem.acquireUninterruptibly(numberOfThreads);
 		}
 
 		endTime = System.currentTimeMillis();
 		String msg = "   Geometry analysis ";
-		if (numberOfProcessors > 1) msg += "used " + numberOfProcessors + " processors and ";
+		if (numberOfThreads > 1) msg += "used " + numberOfThreads + " threads and ";
 		msg += "took ";
 		System.out.println(msg + TextUtils.getElapsedTime(endTime - startTime));
 		startTime = endTime;
@@ -532,6 +586,102 @@ public class ERCWellCheck
 		return errorCount;
 	}
 
+	private void assignWellContacts(int numberOfThreads)
+	{
+		wellConIterator = new Iterator[numberOfThreads];
+		wellConLists = new List[numberOfThreads];
+
+		// load the lists
+		if (numberOfThreads == 1)
+		{
+			wellConLists[0] = wellCons;
+		} else
+		{
+			for(int i=0; i<numberOfThreads; i++)
+				wellConLists[i] = new ArrayList<WellCon>();
+			if (DISTANTSEEDS)
+			{
+				// the new way: cluster the well contacts together
+				Rectangle2D cellBounds = cell.getBounds();
+				Point2D ctr = new Point2D.Double(cellBounds.getCenterX(), cellBounds.getCenterY());
+				Point2D [] farPoints = new Point2D[numberOfThreads];
+				for(int i=0; i<numberOfThreads; i++)
+				{
+					double farthest = 0;
+					farPoints[i] = new Point2D.Double(0, 0);
+					for(WellCon wc : wellCons)
+					{
+						double dist = 0;
+						if (i == 0) dist += wc.ctr.distance(ctr); else
+						{
+							for(int j=0; j<i; j++)
+								dist += wc.ctr.distance(farPoints[j]);
+						}
+						if (dist > farthest)
+						{
+							farthest = dist;
+							farPoints[i].setLocation(wc.ctr);
+						}
+					}
+				}
+
+				// find the center of the cell
+				for(WellCon wc : wellCons)
+				{
+					double minDist = Double.MAX_VALUE;
+					int threadNum = 0;
+					for(int j=0; j<numberOfThreads; j++)
+					{
+						double dist = wc.ctr.distance(farPoints[j]);
+						if (dist < minDist)
+						{
+							minDist = dist;
+							threadNum = j;
+						}
+					}
+					wellConLists[threadNum].add(wc);
+				}
+//				for(int i=0; i<numberOfThreads; i++)
+//					Collections.sort(wellConLists[i], new SortWellCons(farPoints[i]));
+			} else
+			{
+				// old way where well contacts are analyzed in random order
+				for(int i=0; i<wellCons.size(); i++)
+					wellConLists[i%numberOfThreads].add(wellCons.get(i));
+			}
+		}
+
+		// create iterators over the lists
+		for(int i=0; i<numberOfThreads; i++)
+			wellConIterator[i] = wellConLists[i].iterator();
+	}
+
+//	/**
+//	 * Comparator class for sorting Rectangle2D objects by their size.
+//	 */
+//	private static class SortWellCons implements Comparator<WellCon>
+//	{
+//		private Point2D clusterPt;
+//
+//		public SortWellCons(Point2D clusterPt)
+//		{
+//			super();
+//			this.clusterPt = clusterPt;
+//		}
+//
+//		/**
+//		 * Method to sort Rectangle2D objects by their size.
+//		 */
+//		public int compare(WellCon wc1, WellCon wc2)
+//		{
+//			double dist1 = wc1.ctr.distance(clusterPt);
+//			double dist2 = wc2.ctr.distance(clusterPt);
+//			if (dist1 > dist2) return 1;
+//			if (dist1 < dist2) return -1;
+//			return 0;
+//		}
+//	}
+
 	private void findDRCViolations(RTNode rtree, double minDist)
 	{
 		for(int j=0; j<rtree.getTotal(); j++)
@@ -619,7 +769,7 @@ public class ERCWellCheck
 				WellBound child = (WellBound)current.getChild(j);
 				if (child.netID == null)
 				{
-					spreadWellSeed(child.bound.getCenterX(), child.bound.getCenterY(), new NetValues(), rtree);
+					spreadWellSeed(child.bound.getCenterX(), child.bound.getCenterY(), new NetValues(), rtree, 0);
 					errorLogger.logError("No " + title + "-Well contact in this area",
 						new EPoint(child.bound.getCenterX(), child.bound.getCenterY()), cell, 0);
 				}
@@ -631,53 +781,99 @@ public class ERCWellCheck
 		}
 	}
 
-	private void spreadWellSeed(double cX, double cY, NetValues wellNum, RTNode rtree)
+	private void spreadWellSeed(double cX, double cY, NetValues wellNum, RTNode rtree, int threadIndex)
 	{
-		RTNode allFound = RTNode.makeTopLevel();
-		boolean nothingFound = true;
+		RTNode allFound = null;
 		Point2D ctr = new Point2D.Double(cX, cY);
 		Rectangle2D searchArea = new Rectangle2D.Double(cX, cY, 0, 0);
-		boolean keepSearching = true;
-		while (keepSearching)
+		MutableBoolean keepSearching = new MutableBoolean(true);
+		Rectangle2D[] sides = new Rectangle2D[4];
+		for(int i=0; i<4; i++) sides[i] = new Rectangle2D.Double(0, 0, 0, 0);
+		int numSides = 1;
+		sides[0].setRect(searchArea);
+		while (keepSearching.booleanValue())
 		{
-			keepSearching = false;
-			for(RTNode.Search sea = new RTNode.Search(searchArea, rtree, true); sea.hasNext(); )
+			if (INCREMENTALGROWTH)
 			{
-				WellBound wb = (WellBound)sea.next();
-
-				// ignore if this object is already properly connected
-				if (wb.netID != null && wb.netID.getIndex() == wellNum.getIndex()) continue;
-
-				// see if this object actually touches something in the set
-				if (nothingFound)
+				// grow the search area incrementally
+				double lX = sides[0].getMinX(), hX = sides[0].getMaxX();
+				double lY = sides[0].getMinY(), hY = sides[0].getMaxY();
+				for(int i=1; i<numSides; i++)
 				{
-					// start from center of contact
-					if (!wb.bound.contains(ctr)) continue;
-				} else
-				{
-					boolean touches = false;
-					for(RTNode.Search subSea = new RTNode.Search(wb.bound, allFound, true); subSea.hasNext(); )
-					{
-						WellBound subWB = (WellBound)subSea.next();
-						if (DBMath.rectsIntersect(subWB.bound, wb.bound)) { touches = true;   break; }
-					}
-					if (!touches) continue;
+					lX = Math.min(lX, sides[i].getMinX());
+					hX = Math.max(hX, sides[i].getMinX());
+					lY = Math.min(lY, sides[i].getMinY());
+					hY = Math.max(hY, sides[i].getMinY());
 				}
-
-				// this touches what is gathered so far: add to it
-				synchronized(wb)
+				double newLX = lX, newHX = hX;
+				double newLY = lY, newHY = hY;
+				boolean anySearchesGood = false;
+				for(int i=0; i<numSides; i++)
 				{
-					if (wb.netID != null) wellNum.merge(wb.netID); else
-						wb.netID = wellNum;
+					allFound = searchInArea(sides[i], wellNum, rtree, allFound, ctr, keepSearching, threadIndex);
+					if (keepSearching.booleanValue()) anySearchesGood = true;
+					newLX = Math.min(newLX, sides[i].getMinX());
+					newHX = Math.max(newHX, sides[i].getMinX());
+					newLY = Math.min(newLY, sides[i].getMinY());
+					newHY = Math.max(newHY, sides[i].getMinY());
 				}
+				keepSearching.setValue(anySearchesGood);
 
-				// expand the next search area by this added bound
-				Rectangle2D.union(searchArea, wb.bound, searchArea);
-				allFound = RTNode.linkGeom(null, allFound, wb);
-				nothingFound = false;
-				keepSearching = true;
+				// compute new bounds
+				numSides = 0;
+				if (newLX < lX) sides[numSides++].setRect(newLX, newLY, lX-newLX, newHY-newLY);
+				if (newHX > hX) sides[numSides++].setRect(hX, newLY, newHX-hX, newHY-newLY);
+				if (newLY < lY) sides[numSides++].setRect(newLX, newLY, newHX-newLX, lY-newLY);
+				if (newHY > hY) sides[numSides++].setRect(newLX, hY, newHX-newLX, newHY-hY);
+			} else
+			{
+				// just keep growing the search area
+				allFound = searchInArea(searchArea, wellNum, rtree, allFound, ctr, keepSearching, threadIndex);
 			}
 		}
+	}
+
+	private RTNode searchInArea(Rectangle2D searchArea, NetValues wellNum, RTNode rtree, RTNode allFound, Point2D ctr,
+		MutableBoolean keepSearching, int threadIndex)
+	{
+		keepSearching.setValue(false);
+		for(RTNode.Search sea = new RTNode.Search(searchArea, rtree, true); sea.hasNext(); )
+		{
+			WellBound wb = (WellBound)sea.next();
+if (GATHERSTATISTICS) numObjSearches++;
+			// ignore if this object is already properly connected
+			if (wb.netID != null && wb.netID.getIndex() == wellNum.getIndex()) continue;
+
+			// see if this object actually touches something in the set
+			if (allFound == null)
+			{
+				// start from center of contact
+				if (!wb.bound.contains(ctr)) continue;
+			} else
+			{
+				boolean touches = false;
+				for(RTNode.Search subSea = new RTNode.Search(wb.bound, allFound, true); subSea.hasNext(); )
+				{
+					WellBound subWB = (WellBound)subSea.next();
+					if (DBMath.rectsIntersect(subWB.bound, wb.bound)) { touches = true;   break; }
+				}
+				if (!touches) continue;
+			}
+
+			// this touches what is gathered so far: add to it
+			synchronized(wb)
+			{
+				if (wb.netID != null) wellNum.merge(wb.netID); else
+					wb.netID = wellNum;
+			}
+if (GATHERSTATISTICS) wellBoundSearchOrder.add(new WellBoundRecord(wb, threadIndex));
+			// expand the next search area by this added bound
+			Rectangle2D.union(searchArea, wb.bound, searchArea);
+			if (allFound == null) allFound = RTNode.makeTopLevel();
+			allFound = RTNode.linkGeom(null, allFound, wb);
+			keepSearching.setValue(true);
+		}
+		return allFound;
 	}
 
 	private static class NetValues
@@ -1418,4 +1614,157 @@ public class ERCWellCheck
 		}
 	}
 
+	// **************************************** STATISTICS **************************************** 
+
+	private List<WellBoundRecord> wellBoundSearchOrder;
+	private int numObjSearches;
+
+	private void initStatistics()
+	{
+		if (GATHERSTATISTICS)
+		{
+			numObjSearches = 0;
+			wellBoundSearchOrder = Collections.synchronizedList(new ArrayList<WellBoundRecord>());
+		}
+	}
+
+	private void showStatistics()
+	{
+		if (GATHERSTATISTICS)
+		{
+			System.out.println("SEARCHED "+numObjSearches+" OBJECTS");
+			new ShowWellBoundOrder();
+		}
+	}
+
+	private static class WellBoundRecord
+	{
+		WellBound wb;
+		int processor;
+
+		private WellBoundRecord(WellBound w, int p) { wb = w;   processor = p; }
+	}
+
+	private class ShowWellBoundOrder extends EModelessDialog
+	{
+		private Timer vcrTimer;
+		private long vcrLastAdvance;
+		private int wbIndex;
+		private int speed;
+		private JTextField tf;
+		private Highlighter h;
+		private Color[] hColors = new Color[] {Color.WHITE, Color.RED, Color.GREEN, Color.BLUE};
+
+		public ShowWellBoundOrder()
+		{
+			super(TopLevel.isMDIMode() ? TopLevel.getCurrentJFrame() : null, false);
+			initComponents();
+			finishInitialization();
+			setVisible(true);
+			wbIndex = 0;
+			EditWindow wnd = EditWindow.getCurrent();
+			h = wnd.getHighlighter();
+			h.clear();
+		}
+
+		private void initComponents()
+		{
+	        getContentPane().setLayout(new GridBagLayout());
+	        setTitle("Show ERC Progress");
+	        setName("");
+	        addWindowListener(new WindowAdapter() {
+	            public void windowClosing(WindowEvent evt) { closeDialog(); }
+	        });
+	        GridBagConstraints gridBagConstraints;
+
+	        JButton go = new JButton("Go");
+	        go.addActionListener(new ActionListener() {
+	            public void actionPerformed(ActionEvent evt) { goNow(); }
+	        });
+	        gridBagConstraints = new GridBagConstraints();
+	        gridBagConstraints.gridx = 0;
+	        gridBagConstraints.gridy = 0;
+	        gridBagConstraints.insets = new Insets(4, 4, 4, 4);
+	        getContentPane().add(go, gridBagConstraints);
+
+	        JButton stop = new JButton("Stop");
+	        stop.addActionListener(new ActionListener() {
+	            public void actionPerformed(ActionEvent evt) { stopNow(); }
+	        });
+	        gridBagConstraints = new GridBagConstraints();
+	        gridBagConstraints.gridx = 1;
+	        gridBagConstraints.gridy = 0;
+	        gridBagConstraints.insets = new Insets(4, 4, 4, 4);
+	        getContentPane().add(stop, gridBagConstraints);
+
+	        JLabel lab = new JLabel("Speed:");
+	        gridBagConstraints = new GridBagConstraints();
+	        gridBagConstraints.gridx = 0;
+	        gridBagConstraints.gridy = 1;
+	        gridBagConstraints.insets = new Insets(4, 4, 4, 4);
+	        getContentPane().add(lab, gridBagConstraints);
+
+	        speed = 1;
+	        tf = new JTextField(Integer.toString(speed));
+	        tf.getDocument().addDocumentListener(new BoundsPlayerDocumentListener());
+	        gridBagConstraints = new GridBagConstraints();
+	        gridBagConstraints.gridx = 1;
+	        gridBagConstraints.gridy = 1;
+	        gridBagConstraints.insets = new Insets(4, 4, 4, 4);
+	        getContentPane().add(tf, gridBagConstraints);
+
+	        pack();
+	    }
+
+		private void updateSpeed()
+		{
+			speed = TextUtils.atoi(tf.getText());
+			if (vcrTimer != null) vcrTimer.setDelay(speed);
+		}
+
+		private void goNow()
+		{
+			if (vcrTimer == null)
+			{
+				ActionListener taskPerformer = new ActionListener()
+				{
+					public void actionPerformed(ActionEvent evt) { tick(); }
+				};
+				vcrTimer = new Timer(speed, taskPerformer);
+				vcrLastAdvance = System.currentTimeMillis();
+				vcrTimer.start();
+			}
+		}
+
+		private void stopNow()
+		{
+			if (vcrTimer == null) return;
+			vcrTimer.stop();
+			vcrTimer = null;
+		}
+
+		private void tick()
+		{
+			// see if it is time to advance the VCR
+			long curtime = System.currentTimeMillis();
+			if (curtime - vcrLastAdvance < speed) return;
+			vcrLastAdvance = curtime;
+
+			if (wbIndex >= wellBoundSearchOrder.size()) stopNow(); else
+			{
+				WellBoundRecord wbr = wellBoundSearchOrder.get(wbIndex++);
+				h.addPoly(new Poly(wbr.wb.bound), cell, hColors[wbr.processor]);
+				h.finished();
+			}
+		}
+
+		private class BoundsPlayerDocumentListener implements DocumentListener
+		{
+			BoundsPlayerDocumentListener() {}
+
+			public void changedUpdate(DocumentEvent e) { updateSpeed(); }
+			public void insertUpdate(DocumentEvent e) { updateSpeed(); }
+			public void removeUpdate(DocumentEvent e) { updateSpeed(); }
+		}
+	}
 }
