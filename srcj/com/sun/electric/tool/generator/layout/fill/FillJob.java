@@ -224,7 +224,7 @@ public class FillJob extends Job
         List<Route> routeList = new ArrayList<Route>();
         Layer[] topLayers = new Layer[2];
         Layer bottomLayer = null;
-        List<String> exportsOnBottom = new ArrayList<String>();
+//        List<String> exportsOnBottom = new ArrayList<String>();
         Map<String,Area> totalAreas = new HashMap<String,Area>();
 
         for (int i = 0; i < listOfLayers.size() - 1; i++)
@@ -320,8 +320,8 @@ public class FillJob extends Job
 
                 if (bottomLayer == null)
                     bottomLayer = bottom;
-                if (bottom == bottomLayer)
-                    exportsOnBottom.add(bottomName);
+//                if (bottom == bottomLayer)
+//                    exportsOnBottom.add(bottomName);
 
                 // Mark the layer as possible one of the top ones
                 if (!pairs.isEmpty())
@@ -415,42 +415,104 @@ public class FillJob extends Job
 
         Netlist netlist = theCell.getNetlist();
         // Connect cell instances
-//        for (Iterator<NodeInst> itNi = theCell.getNodes(); itNi.hasNext();)
-//        {
-//            NodeInst ni = itNi.next();
-//
-//            // only cell instances
-//            if (!ni.isCellInstance()) continue;
-//
-//            // Checking if the export overlaps with
-//            // Checking if there are exports overlapping with the arc
-//            for (Iterator<Export> itE = ni.getExports(); itE.hasNext(); )
-//            {
-//                Export ex = itE.next();
-//                String rootName = extractRootName(ex.getName());
-//                Network jNet = getNetworkFromName(netlist, rootName);
-//
-//                PrimitiveNode n = ex.getBasePort().getParent();
-//                Layer layer = n.getLayerIterator().next(); // assuming only 1
-//
-//                for (Iterator<ArcInst> itA = jNet.getArcs(); itA.hasNext();)
-//                {
-//                    ArcInst ai = itA.next();
-//                    Layer l = ai.getProto().getLayer(0);
-//
-//                    if (l == layer)
-//                        System.out.println("found in same layer");
-//                    else if (Math.abs(l.getIndex() - layer.getIndex()) <=1)
-//                    {
-//                        System.out.println("Found up or down");
-//                    }
-//                }
-//                PortInst pi = ex.getOriginalPort();
-//                PortProto epi = pi.getPortProto(); // Trying to get
-//                NodeInst npi = pi.getNodeInst();
-//                    System.out.println("");
-//            }
-//        }
+        for (Iterator<NodeInst> itNi = theCell.getNodes(); itNi.hasNext();)
+        {
+            NodeInst ni = itNi.next();
+
+            // only cell instances
+            if (!ni.isCellInstance()) continue;
+
+            // Checking if the export overlaps with
+            // Checking if there are exports overlapping with the arc
+            List<String> doneExports = new ArrayList<String>();
+            routeList.clear();
+            SimpleWirer niRouter = new SimpleWirer();
+
+            for (Iterator<Export> itE = ni.getExports(); itE.hasNext(); )
+            {
+                Export ex = itE.next();
+                String exportName = ex.getName();
+                String rootName = extractRootName(exportName);
+
+                if (doneExports.contains(rootName))   // exportName
+                    continue; // export for this given NodeInst was done
+
+                PrimitiveNode n = ex.getBasePort().getParent();
+                Layer layer = n.getLayerIterator().next(); // assuming only 1
+                PortInst pi = ex.getOriginalPort();
+                PortProto epi = pi.getPortProto();
+                EPoint exportCenter = pi.getCenter();
+                NodeProto np = epi.getParent();
+                if (!(np instanceof Cell))
+                    continue; // not good for now.
+                Cell c = (Cell)np;
+                Netlist netl = c.getNetlist();
+                Network jExp = netl.getNetwork((Export)epi, 0);
+                Area expA = new Area();
+
+                // Look for all arcs in the cell instances that are on the given layer and netwoek
+                for (Iterator<ArcInst> itA = jExp.getArcs(); itA.hasNext();)
+                {
+                    ArcInst ai = itA.next();
+                    Layer l = ai.getProto().getLayer(0);
+
+                    if (l != layer) continue;
+                    expA.add(new Area(ai.getBounds()));
+                }
+
+                // Algorithm will look for the closest connection.
+                Rectangle2D bestCut = null; // represents the best cut
+                ArcInst bestArc = null;
+                Point2D bestCenter = null;
+                double bestDistance = Double.MAX_VALUE;
+                List<Network> netList = getNetworkFromName(netlist, rootName);
+//                        jNet = getNetworkFromName(netlist, rootName);
+
+                for (Network jNet : netList)
+                {
+                    for (Iterator<ArcInst> itA = jNet.getArcs(); itA.hasNext();)
+                    {
+                        ArcInst ai = itA.next();
+                        Layer l = ai.getProto().getLayer(0);
+
+                        if (l == layer)
+                            System.out.println("found in same layer");
+                        else if (Math.abs(l.getIndex() - layer.getIndex()) <=1)
+                        {
+                            // Not selecting the closest element yet
+                            Area bnd = new Area(ai.getBounds());
+                            bnd.intersect(expA);
+                            if (!bnd.isEmpty())
+                            {
+                                Rectangle2D cut = bnd.getBounds2D();
+                                Point2D center = new EPoint(cut.getCenterX(), cut.getCenterY());
+                                double dist = DBMath.distBetweenPoints(center, exportCenter);
+                                if (bestCenter == null || DBMath.isLessThan(dist, bestDistance))
+                                {
+                                    // first time or the new distance is shorter
+                                    bestCenter = center;
+                                    bestCut = cut;
+                                    bestArc = ai;
+                                    bestDistance = dist;
+                                }
+                            }
+                        }
+                    }
+                }
+                if (bestCut != null) // best location found
+                {
+                    Route r = niRouter.planRoute(theCell,  bestArc, pi, bestCenter, null, true, true, bestCut);
+                    routeList.add(r);
+                    doneExports.add(rootName);
+                }
+            }
+
+
+            for (Route r : routeList)
+            {
+                Router.createRouteNoJob(r, theCell, false, arcsCreatedMap, nodesCreatedMap);
+            }
+        }
 
         // Remove exports in lower layers
         Set<Export> toDelete = new HashSet<Export>();
@@ -587,15 +649,17 @@ public class FillJob extends Job
      * @param rootName Root name of the network
      * @return Network
      */
-    private static Network getNetworkFromName(Netlist netlist, String rootName)
+    private static List<Network> getNetworkFromName(Netlist netlist, String rootName)
     {
+        List<Network> list = new ArrayList<Network>();
+
         for (Iterator<Network> it = netlist.getNetworks(); it.hasNext();)
         {
             Network net = it.next();
             if (net.getName().startsWith(rootName))
-                return net;
+                list.add(net);
         }
-        return null;
+        return list;
     }
 
     /**
@@ -613,13 +677,14 @@ public class FillJob extends Job
     /**
      * Method to collect arcs in a given layer with a given export name from an iterator
      * @param itAi Arcs iterator
-     * @param horizontal
+     * @param horizontal Variable to determine if the arc mus be aligned horizontally
      * @param layer Given layer
      * @param exportName Given export name. If null, any export name is valid
      * @param netlist  Given Netlist to find exports
      * @return List of ArcInsts
      */
-    private static List<ArcInst> getArcsInGivenLayer(Iterator<ArcInst> itAi, Boolean horizontal, Layer layer, String exportName, Netlist netlist)
+    private static List<ArcInst> getArcsInGivenLayer(Iterator<ArcInst> itAi, boolean horizontal,
+                                                     Layer layer, String exportName, Netlist netlist)
     {
         List<ArcInst> arcs = new ArrayList<ArcInst>();
 
@@ -651,9 +716,9 @@ public class FillJob extends Job
 
     /**
      * Method to check whether a given arc is properly oriented with respect to the expected input
-     * @param ai
-     * @param horizontal
-     * @return
+     * @param ai the given ArcInst
+     * @param horizontal True if the arc must be horizontal
+     * @return True if the arc is aligned with the given direction
      */
     private static boolean isArcAligned(ArcInst ai, boolean horizontal)
     {
@@ -680,6 +745,7 @@ public class FillJob extends Job
     /**
      * Methot to extrac root name of the export in a given arc
      * @param ai arc with the export
+     * @param netlist Given network to search in
      * @return Non-null string with the root name. Null if no export was found.
      */
     private static String getExportRootName(ArcInst ai, Netlist netlist)
@@ -691,8 +757,7 @@ public class FillJob extends Job
         Iterator<String> exportNames = jNet.getExportedNames();
         if (!exportNames.hasNext())
             return null; // no export
-        String rootName = extractRootName(exportNames.next());
-        return rootName;
+        return extractRootName(exportNames.next());
     }
 
     /**
