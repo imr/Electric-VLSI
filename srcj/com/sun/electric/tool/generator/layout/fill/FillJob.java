@@ -27,16 +27,14 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.CellChangeJobs;
 import com.sun.electric.tool.user.ExportChanges;
-import com.sun.electric.tool.routing.InteractiveRouter;
-import com.sun.electric.tool.routing.SimpleWirer;
-import com.sun.electric.tool.routing.Route;
-import com.sun.electric.tool.routing.Router;
+import com.sun.electric.tool.routing.*;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.topology.*;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.PolyBase;
+import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
@@ -123,20 +121,34 @@ public class FillJob extends Job
             // getting possible options like "w" or "2x4"
             int index = fillCellName.indexOf("(");
             boolean wideOption = false;
-
+            List<TileInfo> tileList = new ArrayList<TileInfo>();
+            
             if (index != -1)
             {
                 // Getting options like (W)
                 String options = fillCellName.substring(index);
                 fillCellName = fillCellName.substring(0, index);
-                parse = new StringTokenizer(options, "()", false);
+                parse = new StringTokenizer(options, "(), ", false);
                 while (parse.hasMoreTokens())
                 {
                     String option = parse.nextToken();
-                    if (option.toLowerCase().equals("w"))
+                    String lowerCase = option.toLowerCase();
+                    // wide option where exports are added in lowest layer
+                    if (lowerCase.equals("w"))
                     {
                         wideOption = true;
                         fillCellName += "W";
+                    }
+                    else if (lowerCase.contains("x"))
+                    {
+                        index = lowerCase.indexOf("x");
+                        String str = lowerCase.substring(0, index);
+                        int x = Integer.valueOf(str);
+                        str = lowerCase.substring(index+1, lowerCase.length());
+                        int y = Integer.valueOf(str);
+                        // tile information
+                        TileInfo tile = new TileInfo(x, y);
+                        tileList.add(tile);
                     }
                 }
             }
@@ -178,33 +190,66 @@ public class FillJob extends Job
                 fillGeoms.add(ni);
             }
             newCell.setTechnology(tech);
+
+            // Re-exporting
             ExportChanges.reExportNodes(newCell, fillGeoms, false, true, false, true);
+
+            // Flatting subcells
             new CellChangeJobs.ExtractCellInstances(newCell, fillCells, Integer.MAX_VALUE, true, true);
+
+            // generation of master fill
             generateFill(newCell, wideOption);
+
+            // tiles generation. Flat generation for now
+            for (TileInfo info : tileList)
+            {
+                String newTileName = fillCellName + info.x + "x" + info.y + "{lay}";
+                Cell newTile = Cell.makeInstance(topCell.getLibrary(), newTileName);
+                // generate the array
+                List<NodeInst> niList = new ArrayList<NodeInst>();
+                Rectangle2D rect = newCell.getBounds();
+                double width = rect.getWidth();
+                double height = rect.getHeight();
+                double xPos = 0, yPos;
+
+                for (int i = 0; i < info.x; i++)
+                {
+                    yPos = 0;
+                    for (int j = 0; j < info.y; j++)
+                    {
+                        NodeInst newNi = NodeInst.makeInstance(newCell,
+						new Point2D.Double(xPos, yPos), width, height, newTile, Orientation.IDENT, null, 0);
+                        niList.add(newNi);
+                        yPos += height;
+                    }
+                    xPos += width;
+                }
+                AutoStitch.runAutoStitch(newTile, niList, null, this, null, null, true, true, true);
+            }
         }
         return true;
     }
 
     /**
-     * Class
+     * Class to store tile information
      */
-    public static class FillCellsJob extends Job
+    private class TileInfo
     {
-        private Cell topCell;
+        int x, y; // size in x and y axes
 
-        public FillCellsJob(Cell cell)
+        TileInfo(int a, int b)
         {
-            super("Fill generator job", null, Type.CHANGE, null, null, Priority.USER);
-            this.topCell = cell;
-            startJob();
-        }
-
-        public boolean doIt() throws JobException
-        {
-            return generateFill(topCell, false);
+            x = a;
+            y = b;
         }
     }
 
+    /**
+     * Main class to auto-stitch metal layers found in given cell
+     * @param theCell Cell with the metal layer information
+     * @param wideOption True if exports in the lowest layer will be added
+     * @return True if auto-stitch ran without errors
+     */
     private static boolean generateFill(Cell theCell, boolean wideOption)
     {                           
         InteractiveRouter router  = new SimpleWirer();

@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08m: ******************************
 
+IMP: (11/24/08, GVG) First version of tiles in new fill generator.
+
 IMP: (11/21/08, GVG) Ability of keep cell instances in new fill generator.
 
 BUG: (11/20/08, SMR) Pure-layer node popup should handle arrows and key selection, and
