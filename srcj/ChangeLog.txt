@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08m: ******************************
 
+BUG/MAN: (11/25/08, SMR) Move "GDS Input Scale" from preferences to project
+     settings (Bug #1948).
+FIX: Moved it and made it a Setting.
+
 BUG: (11/20/08, SMR) Pure-layer node popup order is bad (Bug #1948).
 FIX: Show well first, then substrate, by category, then art, then the rest.
 

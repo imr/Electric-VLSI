@@ -525,12 +525,25 @@ public class IOTool extends Tool
 	 */
 	public static Setting getGDSCellNameLenMaxSetting() { return tool.cacheGDSCellNameLenMax; }
 
+	/**
+	 * Method to tell the scale to be applied when reading GDS.
+	 * The default is 1 (no scaling).
+	 * @return the scale to be applied when reading GDS.
+	 */
+	public static double getGDSInputScale() { return tool.cacheGDSInputScale.getDouble(); }
+	/**
+	 * Method to set the scale to be applied when reading GDS.
+	 * @param s the scale to be applied when reading GDS.
+	 */
+	public static Setting getGDSInputScaleSetting() { return tool.cacheGDSInputScale; }
+
 	private Setting cacheGDSMergesBoxes;
 	private Setting cacheGDSWritesExportPins;
 	private Setting cacheGDSOutputUpperCase;
 	private Setting cacheGDSDefaultTextLayer;
 	private Setting cacheGDSOutputConvertsBracketsInExports;
 	private Setting cacheGDSCellNameLenMax;
+	private Setting cacheGDSInputScale;
 
 	private void initGDSProjectSettings() {
 		makeBooleanSetting("GDSMergesBoxes", "GDS tab", "GDS output merges boxes", false);
@@ -539,6 +552,7 @@ public class IOTool extends Tool
 		makeIntSetting("GDSDefaultTextLayer", "GDS tab", "GDS output default text layer", 230);
 		makeBooleanSetting("GDSOutputConvertsBracketsInExports", "GDS tab", "GDS output converts brackets in exports", true);
 		makeIntSetting("GDSCellNameLenMax", "GDS tab", "GDS name length limit", 32);
+		makeDoubleSetting("GDSInputScale", "GDS tab", "GDS input scale", 1.0);
 	}
 
 	private static Pref cacheGDSInMergesBoxes = Pref.makeBooleanPref("GDSInMergesBoxes", IOTool.tool.prefs, false);
@@ -703,24 +717,6 @@ public class IOTool extends Tool
 	 * @return true if GDS Input colapses vdd/gnd names, by default.
 	 */
 	public static boolean isFactoryGDSColapseVddGndPinNames() { return cacheGDSColapseVddGndPinNames.getBooleanFactoryValue(); }
-
-	private static Pref cacheGDSInputScale = Pref.makeDoublePref("GDSInputScale", IOTool.tool.prefs, 1.0);
-	/**
-	 * Method to tell the scale to be applied when reading GDS.
-	 * The default is 1 (no scaling).
-	 * @return the scale to be applied when reading GDS.
-	 */
-	public static double getGDSInputScale() { return cacheGDSInputScale.getDouble(); }
-	/**
-	 * Method to set the scale to be applied when reading GDS.
-	 * @param s the scale to be applied when reading GDS.
-	 */
-	public static void setGDSInputScale(double s) { cacheGDSInputScale.setDouble(s); }
-	/**
-	 * Method to tell the scale to be applied when reading GDS, by default.
-	 * @return the scale to be applied when reading GDS, by default.
-	 */
-	public static double getFactoryGDSInputScale() { return cacheGDSInputScale.getDoubleFactoryValue(); }
 
 	/****************************** POSTSCRIPT OUTPUT PREFERENCES ******************************/
 

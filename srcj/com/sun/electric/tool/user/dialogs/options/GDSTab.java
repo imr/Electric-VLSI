@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.io.IOTool;
 
 import java.awt.Frame;
@@ -60,7 +59,6 @@ public class GDSTab extends PreferencePanel
 		gdsInputExpandsCells.setSelected(IOTool.isGDSInExpandsCells());
 		gdsInputInstantiatesArrays.setSelected(IOTool.isGDSInInstantiatesArrays());
 		gdsInputIgnoresUnknownLayers.setSelected(IOTool.isGDSInIgnoresUnknownLayers());
-        gdsInputScale.setText(TextUtils.formatDouble(IOTool.getGDSInputScale()));
         gdsSimplifyCells.setSelected(IOTool.isGDSInSimplifyCells());
         gdsColapseNames.setSelected(IOTool.isGDSColapseVddGndPinNames());
 	}
@@ -96,9 +94,6 @@ public class GDSTab extends PreferencePanel
         currentValue = gdsColapseNames.isSelected();
         if (currentValue != IOTool.isGDSColapseVddGndPinNames())
 			IOTool.setGDSColapseVddGndPinNames(currentValue);
-        double currentScale = TextUtils.atof(gdsInputScale.getText());
-        if (currentScale != IOTool.getGDSInputScale())
-        	IOTool.setGDSInputScale(currentScale);
 	}
 
 	/**
@@ -122,8 +117,6 @@ public class GDSTab extends PreferencePanel
 			IOTool.setGDSInSimplifyCells(IOTool.isFactoryGDSInSimplifyCells());
 		if (IOTool.isFactoryGDSColapseVddGndPinNames() != IOTool.isGDSColapseVddGndPinNames())
 			IOTool.setGDSColapseVddGndPinNames(IOTool.isFactoryGDSColapseVddGndPinNames());
-		if (IOTool.getFactoryGDSInputScale() != IOTool.getGDSInputScale())
-			IOTool.setGDSInputScale(IOTool.getFactoryGDSInputScale());
 	}
 
 	/** This method is called from within the constructor to
@@ -146,9 +139,6 @@ public class GDSTab extends PreferencePanel
         gdsColapseNames = new javax.swing.JCheckBox();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
-        jLabel3 = new javax.swing.JLabel();
-        gdsInputScale = new javax.swing.JTextField();
-        jLabel4 = new javax.swing.JLabel();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -201,7 +191,7 @@ public class GDSTab extends PreferencePanel
         gdsConvertNCCExportsConnectedByParentPins.setText("Use NCC annotations for exports");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 9;
+        gridBagConstraints.gridy = 8;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
@@ -234,7 +224,7 @@ public class GDSTab extends PreferencePanel
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 10;
+        gridBagConstraints.gridy = 9;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
@@ -243,7 +233,7 @@ public class GDSTab extends PreferencePanel
         jLabel1.setText("GDS Output:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridy = 7;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.insets = new java.awt.Insets(10, 4, 2, 4);
         gds.add(jLabel1, gridBagConstraints);
@@ -255,29 +245,6 @@ public class GDSTab extends PreferencePanel
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         gds.add(jLabel2, gridBagConstraints);
-
-        jLabel3.setText("Scale by:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 7;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 2);
-        gds.add(jLabel3, gridBagConstraints);
-
-        gdsInputScale.setColumns(6);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 7;
-        gridBagConstraints.insets = new java.awt.Insets(4, 2, 4, 2);
-        gds.add(gdsInputScale, gridBagConstraints);
-
-        jLabel4.setText("when reading");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 7;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 2, 4, 4);
-        gds.add(jLabel4, gridBagConstraints);
 
         getContentPane().add(gds, new java.awt.GridBagConstraints());
 
@@ -304,11 +271,8 @@ public class GDSTab extends PreferencePanel
     private javax.swing.JCheckBox gdsInputIncludesText;
     private javax.swing.JCheckBox gdsInputInstantiatesArrays;
     private javax.swing.JCheckBox gdsInputMergesBoxes;
-    private javax.swing.JTextField gdsInputScale;
     private javax.swing.JCheckBox gdsSimplifyCells;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel4;
     // End of variables declaration//GEN-END:variables
 }

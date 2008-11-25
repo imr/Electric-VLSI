@@ -28,8 +28,8 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Foundry;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.GDSLayers;
+import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.ProjectSettingsFrame;
 
@@ -37,8 +37,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.HashMap;
 import java.util.Iterator;
+
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -66,6 +66,7 @@ public class GDSTab extends ProjSettingsPanel
 	    EDialog.makeTextFieldSelectAllOnTab(gdsTextType);
 	    EDialog.makeTextFieldSelectAllOnTab(gdsCellNameLenMax);
 	    EDialog.makeTextFieldSelectAllOnTab(gdsDefaultTextLayer);
+	    EDialog.makeTextFieldSelectAllOnTab(gdsInputScale);
 	}
 
 	/** return the panel to use for this Project Settings tab. */
@@ -83,6 +84,7 @@ public class GDSTab extends ProjSettingsPanel
     private Setting gdsOutDefaultTextLayerSetting = IOTool.getGDSOutDefaultTextLayerSetting();
     private Setting gdsOutputConvertsBracketsInExportsSetting = IOTool.getGDSOutputConvertsBracketsInExportsSetting();
     private Setting gdsCellNameLenMaxSetting = IOTool.getGDSCellNameLenMaxSetting();
+    private Setting gdsInputScaleSetting = IOTool.getGDSInputScaleSetting();
 
     // To have ability to store directly the technology and not
     // to depende on names to search the technology instance
@@ -92,8 +94,7 @@ public class GDSTab extends ProjSettingsPanel
 
         TechGDSTab(Technology t) { tech = t; }
 
-        // This avoids to call Technology.toString() and get
-        // extra text.
+        // This avoids to call Technology.toString() and get extra text.
         public String toString() { return tech.getTechName(); }
     }
 
@@ -109,6 +110,7 @@ public class GDSTab extends ProjSettingsPanel
 		gdsDefaultTextLayer.setText(Integer.toString(getInt(gdsOutDefaultTextLayerSetting)));
         gdsOutputConvertsBracketsInExports.setSelected(getBoolean(gdsOutputConvertsBracketsInExportsSetting));
         gdsCellNameLenMax.setText(Integer.toString(getInt(gdsCellNameLenMaxSetting)));
+        gdsInputScale.setText(TextUtils.formatDouble(getDouble(gdsInputScaleSetting)));
 
 		// build the layers list
 		gdsLayersModel = new DefaultListModel();
@@ -324,35 +326,13 @@ public class GDSTab extends ProjSettingsPanel
 	 */
 	public void term()
 	{
-//		for(Iterator<Technology> tIt = Technology.getTechnologies(); tIt.hasNext(); )
-//		{
-//			Technology tech = tIt.next();
-//
-//            for (Iterator<Foundry> itF = tech.getFoundries(); itF.hasNext();)
-//            {
-//                Foundry foundry = itF.next();
-//                HashMap<Layer,String> gdsLayers = new HashMap<Layer,String>();
-//                for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
-//                {
-//                    Layer layer = lIt.next();
-//                    String str = get(foundry, layer);
-//                    GDSLayers numbers = GDSLayers.parseLayerString(str);
-//                    if (numbers == null) continue;
-//
-//                    Setting setting = foundry.getGDSLayerSetting(layer);
-//                    String oldStr = getString(setting);
-//                    GDSLayers oldNumbers = oldStr != null ? GDSLayers.parseLayerString(oldStr) : GDSLayers.EMPTY;
-//                    if (!oldNumbers.equals(numbers))
-//                        setString(setting, numbers.toString());
-//                }
-//            }
-//		}
         setBoolean(gdsOutMergesBoxesSetting, gdsOutputMergesBoxes.isSelected());
         setBoolean(gdsOutWritesExportPinsSetting, gdsOutputWritesExportPins.isSelected());
         setBoolean(gdsOutUpperCaseSetting, gdsOutputUpperCase.isSelected());
         setInt(gdsOutDefaultTextLayerSetting, TextUtils.atoi(gdsDefaultTextLayer.getText()));
         setBoolean(gdsOutputConvertsBracketsInExportsSetting, gdsOutputConvertsBracketsInExports.isSelected());
         setInt(gdsCellNameLenMaxSetting, TextUtils.atoi(gdsCellNameLenMax.getText()));
+        setDouble(gdsInputScaleSetting, TextUtils.atof(gdsInputScale.getText()));
 	}
 
 	/** This method is called from within the constructor to
@@ -390,6 +370,9 @@ public class GDSTab extends ProjSettingsPanel
         jLabel4 = new javax.swing.JLabel();
         gdsFoundryName = new javax.swing.JLabel();
         foundrySelection = new javax.swing.JComboBox();
+        jLabel5 = new javax.swing.JLabel();
+        gdsInputScale = new javax.swing.JTextField();
+        jLabel10 = new javax.swing.JLabel();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -410,7 +393,7 @@ public class GDSTab extends ProjSettingsPanel
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.gridheight = 9;
+        gridBagConstraints.gridheight = 10;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
@@ -518,7 +501,7 @@ public class GDSTab extends ProjSettingsPanel
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 10;
         gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 2, 4);
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 8, 4);
         gds.add(jLabel29, gridBagConstraints);
 
         gdsOutputConvertsBracketsInExports.setText("Output converts brackets in exports");
@@ -610,12 +593,6 @@ public class GDSTab extends ProjSettingsPanel
         gridBagConstraints.insets = new java.awt.Insets(1, 4, 4, 4);
         gds.add(gdsFoundryName, gridBagConstraints);
 
-        foundrySelection.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                foundrySelectionActionPerformed(evt);
-            }
-        });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
@@ -623,14 +600,33 @@ public class GDSTab extends ProjSettingsPanel
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
         gds.add(foundrySelection, gridBagConstraints);
 
+        jLabel5.setText("Scale by:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 11;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.insets = new java.awt.Insets(8, 4, 4, 2);
+        gds.add(jLabel5, gridBagConstraints);
+
+        gdsInputScale.setColumns(6);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 11;
+        gridBagConstraints.insets = new java.awt.Insets(8, 2, 4, 2);
+        gds.add(gdsInputScale, gridBagConstraints);
+
+        jLabel10.setText("when reading");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 11;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(8, 2, 4, 4);
+        gds.add(jLabel10, gridBagConstraints);
+
         getContentPane().add(gds, new java.awt.GridBagConstraints());
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
-
-    private void foundrySelectionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_foundrySelectionActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_foundrySelectionActionPerformed
 
     private void gdsOutputConvertsBracketsInExportsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_gdsOutputConvertsBracketsInExportsActionPerformed
         // Add your handling code here:
@@ -649,6 +645,7 @@ public class GDSTab extends ProjSettingsPanel
     private javax.swing.JTextField gdsCellNameLenMax;
     private javax.swing.JTextField gdsDefaultTextLayer;
     private javax.swing.JLabel gdsFoundryName;
+    private javax.swing.JTextField gdsInputScale;
     private javax.swing.JScrollPane gdsLayerList;
     private javax.swing.JTextField gdsLayerNumber;
     private javax.swing.JTextField gdsLayerType;
@@ -661,10 +658,12 @@ public class GDSTab extends ProjSettingsPanel
     private javax.swing.JTextField gdsTextLayer;
     private javax.swing.JTextField gdsTextType;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel29;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
