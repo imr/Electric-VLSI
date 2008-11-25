@@ -433,6 +433,9 @@ public class MTDRCLayoutTool extends MTDRCTool
 
             for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext();)
             {
+                // Job aborted or scheduled for abort
+                if (checkAbort()) return -1;
+
                 NodeInst ni = it.next();
                 NodeProto np = ni.getProto();
                 if (!ni.isCellInstance()) continue;
@@ -514,6 +517,9 @@ public class MTDRCLayoutTool extends MTDRCTool
 
             for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext();)
             {
+                // Job aborted or scheduled for abort
+                if (checkAbort()) return -1;
+
                 NodeInst ni = it.next();
                 
                 if (bounds != null)
@@ -548,9 +554,12 @@ public class MTDRCLayoutTool extends MTDRCTool
             if (thisLayerFunction != null) // only when it is layer related
             {
                 Technology cellTech = cell.getTechnology();
-                for (Iterator it = cell.getArcs(); it.hasNext();)
+                for (Iterator<ArcInst> it = cell.getArcs(); it.hasNext();)
                 {
-                    ArcInst ai = (ArcInst) it.next();
+                    // Job aborted or scheduled for abort
+                    if (checkAbort()) return -1;
+
+                    ArcInst ai = it.next();
                     Technology tech = ai.getProto().getTechnology();
                     if (tech != cellTech)
                     {

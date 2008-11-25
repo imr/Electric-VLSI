@@ -453,7 +453,9 @@ public class Quick
 
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = it.next();
+            if (job != null && job.checkAbort()) return -1;
+
+            NodeInst ni = it.next();
 			NodeProto np = ni.getProto();
 			if (!ni.isCellInstance()) continue;
 
@@ -532,7 +534,9 @@ public class Quick
 
         for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = it.next();
+            if (job != null && job.checkAbort()) return -1;
+
+            NodeInst ni = it.next();
 			if (bounds != null)
 			{
 				if (!ni.getBounds().intersects(bounds)) continue;
@@ -554,9 +558,11 @@ public class Quick
 			}
 		}
 		Technology cellTech = cell.getTechnology();
-		for(Iterator it = cell.getArcs(); it.hasNext(); )
+		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 		{
-			ArcInst ai = (ArcInst)it.next();
+            if (job != null && job.checkAbort()) return -1;
+
+            ArcInst ai = it.next();
 			Technology tech = ai.getProto().getTechnology();
 			if (tech != cellTech)
 			{
@@ -2382,8 +2388,7 @@ public class Quick
      * @param poly
      * @param layer
      * @param cell
-     * @param bounds
-     * @param upTrans
+     * @param ignoreCenterCuts
      * @return true if conditional layers are found for the test points
      */
     private boolean searchForCondLayer(Geometric geom, Poly poly, Layer layer, Cell cell,
