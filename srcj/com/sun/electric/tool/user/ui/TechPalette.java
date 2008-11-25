@@ -589,16 +589,29 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 			public int compare(PrimitiveNode np1, PrimitiveNode np2)
 			{
 				Technology.NodeLayer layer1 = np1.getLayers()[0];
-				Layer.Function lf1 = layer1.getLayer().getFunction();
 				Technology.NodeLayer layer2 = np2.getLayers()[0];
-				Layer.Function lf2 = layer2.getLayer().getFunction();
-				int imp1 = 2;
-				if (lf1.isSubstrate()) imp1 = 0; else
-					if (lf1.isDummy()) imp1 = 1;
-				int imp2 = 2;
-				if (lf2.isSubstrate()) imp2 = 0; else
-					if (lf2.isDummy()) imp2 = 1;
+				int imp1 = getCode(layer1.getLayer());
+				int imp2 = getCode(layer2.getLayer());
+				if (imp1 == 3 && imp2 == 3)
+				{
+					String en1 = Layer.Function.getExtraName(layer1.getLayer().getFunctionExtras());
+					String en2 = Layer.Function.getExtraName(layer2.getLayer().getFunctionExtras());
+					return en1.compareTo(en2);
+				}
 				return imp1 - imp2;
+			}
+
+			private int getCode(Layer layer)
+			{
+				Layer.Function lf = layer.getFunction();
+				if (lf.isWell()) return 1;
+				if (lf.isImplant())
+				{
+					if (layer.getFunctionExtras() == 0) return 2;
+					return 3;
+				}
+				if (lf == Layer.Function.ART) return 4;
+				return 5;
 			}
 		}
 

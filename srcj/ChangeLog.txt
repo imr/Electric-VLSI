@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08m: ******************************
 
+BUG: (11/20/08, SMR) Pure-layer node popup order is bad (Bug #1948).
+FIX: Show well first, then substrate, by category, then art, then the rest.
+
 BUG: (11/24/08, GVG) DRC takes a long time to abort in Bug #1950 example (Bug #1951)
 FIX: More checkAbort conditions in the code.
 
