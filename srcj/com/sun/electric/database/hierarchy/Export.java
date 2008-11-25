@@ -30,7 +30,6 @@ import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.ExportId;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
@@ -59,7 +58,6 @@ import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.io.InvalidObjectException;
 import java.io.NotSerializableException;
-import java.io.ObjectStreamException;
 import java.util.Collections;
 import java.util.Iterator;
 
@@ -223,7 +221,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 	            double locY = portInst.getPoly().getCenterY();
 	            Rectangle2D iconBounds = icon.getBounds();
 				double newlocX = (locX - bounds.getMinX()) / bounds.getWidth() * iconBounds.getWidth() + iconBounds.getMinX();
-                newlocX = DBMath.toNearest(newlocX, Job.getUserInterface().getGridAlignment());
+                newlocX = DBMath.toNearest(newlocX, Job.getUserInterface().getGridAlignment().getWidth());
 				double bodyDX = User.getIconGenLeadLength();
 				double distToXEdge = locX - bounds.getMinX();
 				if (locX >= bounds.getCenterX())
@@ -232,7 +230,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 					distToXEdge = bounds.getMaxX() - locX;
 				}
 				double newlocY = (locY - bounds.getMinY()) / bounds.getHeight() * iconBounds.getHeight() + iconBounds.getMinY();
-                newlocY = DBMath.toNearest(newlocY, Job.getUserInterface().getGridAlignment());
+                newlocY = DBMath.toNearest(newlocY, Job.getUserInterface().getGridAlignment().getHeight());
 				double bodyDY = User.getIconGenLeadLength();
 				double distToYEdge = locY - bounds.getMinY();
 				if (locY >= bounds.getCenterY())

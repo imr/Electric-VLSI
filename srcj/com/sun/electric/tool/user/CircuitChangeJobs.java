@@ -26,6 +26,7 @@ package com.sun.electric.tool.user;
 import com.sun.electric.database.IdMapper;
 import com.sun.electric.database.constraint.Layout;
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.Orientation;
@@ -270,9 +271,9 @@ public class CircuitChangeJobs
 	public static class AlignObjects extends Job
 	{
 		private List<Geometric> list;			// list of highlighted objects to align
-		private double alignment;
+		private Dimension2D alignment;
 
-		public AlignObjects(List<Geometric> highs, double alignment)
+		public AlignObjects(List<Geometric> highs, Dimension2D alignment)
 		{
 			super("Align Objects", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.list = highs;
@@ -287,7 +288,7 @@ public class CircuitChangeJobs
 				System.out.println("Must select something before aligning it to the grid");
 				return false;
 			}
-			if (alignment <= 0)
+			if (alignment.getWidth() <= 0 || alignment.getHeight() <= 0)
 			{
 				System.out.println("No alignment given: set Alignment Options first");
 				return false;

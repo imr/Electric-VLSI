@@ -23,9 +23,9 @@
  */
 package com.sun.electric.database.geometry;
 
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.geom.AffineTransform;
 
 /**
  * This class is a collection of math utilities used for
@@ -227,9 +227,9 @@ public class DBMath extends GenMath {
 	/**
 	 * Method to snap a point to the nearest database-space grid unit.
 	 * @param pt the point to be snapped.
-	 * @param alignment the alignment value to use.
+	 * @param alignment the alignment values to use in X and Y.
 	 */
-	public static void gridAlign(Point2D pt, double alignment)
+	public static void gridAlign(Point2D pt, Dimension2D alignment)
 	{
         gridAlign(pt, alignment, -1);
 	}
@@ -237,27 +237,28 @@ public class DBMath extends GenMath {
     /**
      * Method to snap the X, Y or both coordinates of a point to the nearest database-space grid unit
      * @param pt the point to be snapped.
-     * @param alignment the alignment value to use.
+     * @param alignment the alignment values to use in X and Y.
      * @param direction -1 if X and Y coordinates, 0 if only X and 1 if only Y
      */
-    public static void gridAlign(Point2D pt, double alignment, int direction)
+    public static void gridAlign(Point2D pt, Dimension2D alignment, int direction)
     {
-        if (alignment <= 0) return;
-
         switch (direction)
         {
             case -1:
-                long x = Math.round(pt.getX() / alignment);
-                long y = Math.round(pt.getY() / alignment);
-                pt.setLocation(x * alignment, y * alignment);
+            	if (alignment.getWidth() <= 0 || alignment.getHeight() <= 0) return;
+                long x = Math.round(pt.getX() / alignment.getWidth());
+                long y = Math.round(pt.getY() / alignment.getHeight());
+                pt.setLocation(x * alignment.getWidth(), y * alignment.getHeight());
                 break;
             case 0: // X only
-                x = Math.round(pt.getX() / alignment);
-                pt.setLocation(x * alignment, pt.getY());
+            	if (alignment.getWidth() <= 0) return;
+                x = Math.round(pt.getX() / alignment.getWidth());
+                pt.setLocation(x * alignment.getWidth(), pt.getY());
                 break;
             case 1: // y only
-                y = Math.round(pt.getY() / alignment);
-                pt.setLocation(pt.getX(), y * alignment);
+            	if (alignment.getHeight() <= 0) return;
+                y = Math.round(pt.getY() / alignment.getHeight());
+                pt.setLocation(pt.getX(), y * alignment.getHeight());
                 break;
             default:
                 assert(false); // it should not reach this point.

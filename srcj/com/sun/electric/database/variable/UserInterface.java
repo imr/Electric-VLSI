@@ -23,6 +23,7 @@
  */
 package com.sun.electric.database.variable;
 
+import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.topology.Geometric;
@@ -95,7 +96,7 @@ public interface UserInterface
 	 * Method to get the current grid alignment.
 	 * @return the current grid alignment.
 	 */
-	public double getGridAlignment();
+	public Dimension2D getGridAlignment();
 
 	/**
 	 * Method to return the height of default text (in points).

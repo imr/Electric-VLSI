@@ -24,6 +24,7 @@
 package com.sun.electric.tool;
 
 import com.sun.electric.database.Snapshot;
+import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
@@ -36,11 +37,11 @@ import com.sun.electric.tool.user.MessagesStream;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.JobTree;
 import com.sun.electric.tool.user.ui.TopLevel;
+
 import java.awt.geom.Point2D;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
-
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -51,6 +52,7 @@ import java.util.Observable;
 import java.util.Observer;
 import java.util.concurrent.locks.Condition;
 import java.util.logging.Level;
+
 import javax.swing.SwingUtilities;
 
 /**
@@ -541,7 +543,7 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
 		public void alignToGrid(Point2D pt) {
             printStackTrace("alignToGrid");
         }
-		public double getGridAlignment() { return 1; }
+		public Dimension2D getGridAlignment() { return new Dimension2D.Double(1.0, 1.0); }
 		public int getDefaultTextSize() { return 14; }
 //		public Highlighter getHighlighter();
 		public EditWindow_ displayCell(Cell cell) { throw new IllegalStateException(); }

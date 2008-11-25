@@ -26,6 +26,7 @@
 package com.sun.electric.tool.extract;
 
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.GenMath;
@@ -61,8 +62,8 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.routing.AutoStitch;
-import com.sun.electric.tool.user.Highlight2;
 import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.tool.user.Highlight2;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.ui.TopLevel;
 
@@ -841,9 +842,9 @@ public class Connectivity
 					{
 						// arc does not fit, try reducing width
 						double wid = cl.width / SCALEFACTOR;
-						double alignment = Job.getUserInterface().getGridAlignment();
-						long x = Math.round(wid / alignment);
-						double gridWid = x * alignment;
+						Dimension2D alignment = Job.getUserInterface().getGridAlignment();
+						long x = Math.round(wid / alignment.getWidth());
+						double gridWid = x * alignment.getWidth();
 						if (gridWid < wid)
 						{
 							// grid-aligning the width results in a smaller value...try it

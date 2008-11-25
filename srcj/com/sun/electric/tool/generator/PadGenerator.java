@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.generator;
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Orientation;
@@ -94,7 +95,7 @@ public class PadGenerator
 	 * @param fileName the array file name.
 	 * @param job the Job running this task (null if none).
 	 */
-	public static Cell makePadFrameUseJob(Library destLib, String fileName, double alignment, Job job)
+	public static Cell makePadFrameUseJob(Library destLib, String fileName, Dimension2D alignment, Job job)
 	{
 		PadGenerator pg = new PadGenerator(destLib, fileName, alignment);
 		return pg.makePadFrame(job);
@@ -105,9 +106,9 @@ public class PadGenerator
 		private Library destLib;
 		private String fileName;
 		private Cell frameCell;
-		private double alignment;
+		private Dimension2D alignment;
 
-		private MakePadFrame(Library destLib, String fileName, double alignment)
+		private MakePadFrame(Library destLib, String fileName, Dimension2D alignment)
 		{
 			super("Pad Frame Generator", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.destLib = destLib;
@@ -132,7 +133,7 @@ public class PadGenerator
 
 	private Library destLib;						// destination library
 	private String fileName;						// name of file with pad array instructions
-	private double alignment;						// alignment amount
+	private Dimension2D alignment;					// alignment amount
 	private String padframename;					// name of pad frame cell
 	private String corename;						// core cell to stick in pad frame
 	private int lineno;								// line no of the pad array file we are processing
@@ -196,7 +197,7 @@ public class PadGenerator
 		String exportName;
 	}
 
-	private PadGenerator(Library destLib, String fileName, double alignment)
+	private PadGenerator(Library destLib, String fileName, Dimension2D alignment)
 	{
 		this.destLib = destLib;
 		this.fileName = fileName;

@@ -23,25 +23,29 @@
  */
 package com.sun.electric.tool.user.ui;
 
+import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
+import com.sun.electric.tool.user.CircuitChangeJobs;
+import com.sun.electric.tool.user.Highlight2;
+import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.menus.EditMenu;
-import com.sun.electric.tool.user.*;
 
 import java.awt.Point;
-import java.awt.event.MouseMotionListener;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseWheelListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.KeyListener;
 import java.awt.event.KeyEvent;
-import java.awt.geom.Point2D;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
 
 /**
  * Class to make changes to the outline information on a node.
@@ -311,20 +315,20 @@ public class OutlineListener
 			setNewPoints(newPoints, pt);
 		} else if (chr == KeyEvent.VK_LEFT)
 		{
-			double arrowDistance = User.getAlignmentToGrid();
-			moveSelectedPoint(-arrowDistance, 0);
+			Dimension2D arrowDistance = User.getAlignmentToGrid();
+			moveSelectedPoint(-arrowDistance.getWidth(), 0);
 		} else if (chr == KeyEvent.VK_RIGHT)
 		{
-			double arrowDistance = User.getAlignmentToGrid();
-			moveSelectedPoint(arrowDistance, 0);
+			Dimension2D arrowDistance = User.getAlignmentToGrid();
+			moveSelectedPoint(arrowDistance.getWidth(), 0);
 		} else if (chr == KeyEvent.VK_UP)
 		{
-			double arrowDistance = User.getAlignmentToGrid();
-			moveSelectedPoint(0, arrowDistance);
+			Dimension2D arrowDistance = User.getAlignmentToGrid();
+			moveSelectedPoint(0, arrowDistance.getHeight());
 		} else if (chr == KeyEvent.VK_DOWN)
 		{
-			double arrowDistance = User.getAlignmentToGrid();
-			moveSelectedPoint(0, -arrowDistance);
+			Dimension2D arrowDistance = User.getAlignmentToGrid();
+			moveSelectedPoint(0, -arrowDistance.getHeight());
 		} else if (chr == KeyEvent.VK_PERIOD)
 		{
 			// advance to next point

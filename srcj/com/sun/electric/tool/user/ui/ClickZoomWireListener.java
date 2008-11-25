@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.ui;
 
+import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.network.Netlist;
@@ -1472,9 +1473,9 @@ public class ClickZoomWireListener
         EditWindow wnd = EditWindow.getCurrent();
         if (wnd == null) return;
         Highlighter highlighter = wnd.getHighlighter();
-		double arrowDistance = User.getAlignmentToGrid();
-		dX *= arrowDistance;
-		dY *= arrowDistance;
+		Dimension2D arrowDistance = User.getAlignmentToGrid();
+		dX *= arrowDistance.getWidth();
+		dY *= arrowDistance.getHeight();
 		int scaleX = User.getDefGridXBoldFrequency();
         int scaleY = User.getDefGridYBoldFrequency();
 		if (scaleMove) { dX *= scaleX;   dY *= scaleY; }

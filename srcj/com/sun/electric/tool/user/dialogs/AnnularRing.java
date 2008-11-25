@@ -25,6 +25,7 @@
 package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
@@ -181,6 +182,7 @@ public class AnnularRing extends EDialog
 		public boolean doIt() throws JobException
 		{
             double snap = cell.getTechnology().getResolution();
+            Dimension2D dimSnap = new Dimension2D.Double(snap, snap);
 
 			// allocate space for the trace
 			int numSegments = segments + 1;
@@ -197,7 +199,7 @@ public class AnnularRing extends EDialog
 					double x = inner * DBMath.cos(p);
                     double y = inner * DBMath.sin(p);
                     Point2D pt = new Point2D.Double(x, y);
-                    DBMath.gridAlign(pt, snap);
+                    DBMath.gridAlign(pt, dimSnap);
                     points[l++] = new EPoint(pt.getX(), pt.getY());
 				}
 			}
@@ -209,7 +211,7 @@ public class AnnularRing extends EDialog
 				double x = outer * DBMath.cos(p);
 				double y = outer * DBMath.sin(p);
                 Point2D pt = new Point2D.Double(x, y);
-                DBMath.gridAlign(pt, snap);
+                DBMath.gridAlign(pt, dimSnap);
                 points[l++] = new EPoint(pt.getX(), pt.getY());
 			}
 			if (inner == 0 && degrees < 3600)
@@ -229,7 +231,7 @@ public class AnnularRing extends EDialog
 			double cY = (lY + hY) / 2;
 			for(int i=0; i<points.length; i++) {
 				Point2D pt = new Point2D.Double(points[i].getX() - cX, points[i].getY() - cY);
-                DBMath.gridAlign(pt, snap);
+                DBMath.gridAlign(pt, dimSnap);
                 points[i] = new EPoint(pt.getX(), pt.getY());
             }
             double sX = hX - lX;

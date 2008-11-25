@@ -23,6 +23,7 @@
  */
 package com.sun.electric;
 
+import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
@@ -39,9 +40,9 @@ import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.tool.user.MessagesStream;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.UserInterfaceMain;
-import com.sun.electric.tool.user.MessagesStream;
 import com.sun.electric.tool.user.menus.FileMenu;
 
 import java.awt.geom.Point2D;
@@ -234,7 +235,7 @@ public final class Main
 
         public void adjustReferencePoint(Cell cell, double cX, double cY) {};
 		public void alignToGrid(Point2D pt) {}
-		public double getGridAlignment() { return 1; }
+		public Dimension2D getGridAlignment() { return new Dimension2D.Double(1.0, 1.0); }
 		public int getDefaultTextSize() { return 14; }
 //		public Highlighter getHighlighter();
 		public EditWindow_ displayCell(Cell cell) { return null; }

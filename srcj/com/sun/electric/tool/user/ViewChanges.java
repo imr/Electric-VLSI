@@ -25,6 +25,7 @@ package com.sun.electric.tool.user;
 
 import com.sun.electric.database.IdMapper;
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.GenMath;
@@ -160,9 +161,9 @@ public class ViewChanges
 	private static class FixOldMultiPageSchematics extends Job
 	{
 		private List<Cell> multiPageCells;
-		private double alignment;
+		private Dimension2D alignment;
 
-		protected FixOldMultiPageSchematics(List<Cell> multiPageCells, double alignment)
+		protected FixOldMultiPageSchematics(List<Cell> multiPageCells, Dimension2D alignment)
 		{
 			super("Repair old-style Multi-Page Schematics", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.multiPageCells = multiPageCells;
@@ -510,21 +511,21 @@ public class ViewChanges
 		{
 			// in case of debugging mode, better to draw the body and leads
 			IconParameters ip = new IconParameters();
-			new MakeIconView(curCell, 0.05, 0, ip, doItNow);
+			new MakeIconView(curCell, new Dimension2D.Double(0.05, 0.05), 0, ip, doItNow);
 		}
 	}
 
 	private static class MakeIconView extends Job
 	{
 		private Cell curCell;
-		private double alignment;
+		private Dimension2D alignment;
 		private int exampleLocation;
 		private IconParameters ip;
 		private NodeInst iconNode;
 		private boolean doItNow;
 
 		// get icon style controls
-		private MakeIconView(Cell cell, double alignment, int exampleLocation, IconParameters ip, boolean doItNow)
+		private MakeIconView(Cell cell, Dimension2D alignment, int exampleLocation, IconParameters ip, boolean doItNow)
 		{
 			super("Make Icon View", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.curCell = cell;

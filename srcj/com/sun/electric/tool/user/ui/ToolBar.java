@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.NodeProto;
@@ -496,14 +497,18 @@ public class ToolBar extends JToolBar
 
 	private static void rewriteGridDistance()
 	{
-		double val = User.getAlignmentToGrid();
+		Dimension2D val = User.getAlignmentToGrid();
+		String valStr = " " + val.getWidth();
+		if (val.getWidth() != val.getHeight())
+			valStr += "/" + val.getHeight();
+		valStr += " ";
 		if (TopLevel.isMDIMode())
 		{
 			TopLevel tl = TopLevel.getCurrentJFrame();
 			if (tl != null)
 			{
 				ToolBar tb = tl.getToolBar();
-				tb.currentGridAmount.setText(" " + val + " ");
+				tb.currentGridAmount.setText(valStr);
 			}
 		} else
 		{
@@ -511,9 +516,10 @@ public class ToolBar extends JToolBar
 			{
 				WindowFrame wf = it.next();
 				ToolBar tb = wf.getFrame().getToolBar();
-				tb.currentGridAmount.setText(" " + val + " ");
+				tb.currentGridAmount.setText(valStr);
 			}
 		}
+//		gridLarger.updateToolBarButton(item);
 	}
 
 	/**
@@ -950,8 +956,7 @@ public class ToolBar extends JToolBar
         public void run() { changeGridSize(true); }
         public boolean isEnabled()
         {
-		    double[] vals = User.getAlignmentToGridVector();
-            int index = findSelectedGridSize(vals);
+            int index = User.getAlignmentToGridIndex();
             return (index != 0); // most right
         }
     };
@@ -962,63 +967,36 @@ public class ToolBar extends JToolBar
         public void run() { changeGridSize(false); }
         public boolean isEnabled()
         {
-		    double[] vals = User.getAlignmentToGridVector();
-            int index = findSelectedGridSize(vals);
+        	Dimension2D[] vals = User.getAlignmentToGridVector();
+            int index = User.getAlignmentToGridIndex();
             return (index != vals.length - 1); // most right
         }
     };
 
 	private static void changeGridSize(int size)
 	{
-		double[] vals = User.getAlignmentToGridVector();
-		for (int i = 0; i < vals.length; i++)
-		{
-			if (i != size)
-				vals[i] = Math.abs(vals[i]);
-			else
-				vals[i] = Math.abs(vals[i]) * -1;
-		}
-		User.setAlignmentToGridVector(vals);
+		Dimension2D[] vals = User.getAlignmentToGridVector();
+		User.setAlignmentToGridVector(vals, size);
 		rewriteGridDistance();
 	}
 
-    /**
-     * Method to find the index of the current active grid size (negative value)
-     */
-    private static int findSelectedGridSize(double[] vals)
-    {
-		for (int i = 0; i < vals.length; i++)
-		{
-			if (vals[i] < 0)
-			{
-                return i;
-            }
-		}
-        assert(false); // should not reach this point
-        return -1;
-    }
-
     private static void changeGridSize(boolean larger)
 	{
-		double[] vals = User.getAlignmentToGridVector();
-        int i = findSelectedGridSize(vals);
+    	Dimension2D[] vals = User.getAlignmentToGridVector();
+        int i = User.getAlignmentToGridIndex();
 
         if (larger)
         {
             if (i > 0)
             {
-                vals[i] = Math.abs(vals[i]);
-                vals[i-1] = -Math.abs(vals[i-1]);
-                User.setAlignmentToGridVector(vals);
+                User.setAlignmentToGridVector(vals, i-1);
                 rewriteGridDistance();
             }
         } else
         {
             if (i < vals.length-1)
             {
-                vals[i] = Math.abs(vals[i]);
-                vals[i+1] = -Math.abs(vals[i+1]);
-                User.setAlignmentToGridVector(vals);
+                User.setAlignmentToGridVector(vals, i+1);
                 rewriteGridDistance();
             }
         }

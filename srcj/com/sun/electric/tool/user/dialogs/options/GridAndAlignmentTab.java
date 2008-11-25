@@ -23,11 +23,14 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
+import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.ToolBar;
+
+import java.awt.Frame;
 
 import javax.swing.AbstractButton;
 import javax.swing.JPanel;
@@ -38,7 +41,7 @@ import javax.swing.JPanel;
 public class GridAndAlignmentTab extends PreferencePanel
 {
 	/** Creates new form GridAndAlignment */
-	public GridAndAlignmentTab(java.awt.Frame parent, boolean modal)
+	public GridAndAlignmentTab(Frame parent, boolean modal)
 	{
 		super(parent, modal);
 		initComponents();
@@ -50,11 +53,16 @@ public class GridAndAlignmentTab extends PreferencePanel
 	    EDialog.makeTextFieldSelectAllOnTab(gridNewVert);
 	    EDialog.makeTextFieldSelectAllOnTab(gridBoldHoriz);
 	    EDialog.makeTextFieldSelectAllOnTab(gridBoldVert);
-	    EDialog.makeTextFieldSelectAllOnTab(gridSize1);
-	    EDialog.makeTextFieldSelectAllOnTab(gridSize2);
-	    EDialog.makeTextFieldSelectAllOnTab(gridSize3);
-	    EDialog.makeTextFieldSelectAllOnTab(gridSize4);
-	    EDialog.makeTextFieldSelectAllOnTab(gridSize5);
+	    EDialog.makeTextFieldSelectAllOnTab(gridSizeX1);
+	    EDialog.makeTextFieldSelectAllOnTab(gridSizeX2);
+	    EDialog.makeTextFieldSelectAllOnTab(gridSizeX3);
+	    EDialog.makeTextFieldSelectAllOnTab(gridSizeX4);
+	    EDialog.makeTextFieldSelectAllOnTab(gridSizeX5);
+	    EDialog.makeTextFieldSelectAllOnTab(gridSizeY1);
+	    EDialog.makeTextFieldSelectAllOnTab(gridSizeY2);
+	    EDialog.makeTextFieldSelectAllOnTab(gridSizeY3);
+	    EDialog.makeTextFieldSelectAllOnTab(gridSizeY4);
+	    EDialog.makeTextFieldSelectAllOnTab(gridSizeY5);
 	}
 
 	/** return the panel to use for this preferences tab. */
@@ -90,21 +98,20 @@ public class GridAndAlignmentTab extends PreferencePanel
 		gridBoldVert.setText(TextUtils.formatDouble(User.getDefGridYBoldFrequency()));
 		gridShowAxes.setSelected(User.isGridAxesShown());
 
-        double[] values = User.getAlignmentToGridVector();
-        gridSize1.setText(TextUtils.formatDouble(Math.abs(values[0])));
-        gridSize2.setText(TextUtils.formatDouble(Math.abs(values[1])));
-        gridSize3.setText(TextUtils.formatDouble(Math.abs(values[2])));
-        gridSize4.setText(TextUtils.formatDouble(Math.abs(values[3])));
-        gridSize5.setText(TextUtils.formatDouble(Math.abs(values[4])));
+		Dimension2D[] values = User.getAlignmentToGridVector();
+        gridSizeX1.setText(TextUtils.formatDouble(values[0].getWidth()));
+        gridSizeX2.setText(TextUtils.formatDouble(values[1].getWidth()));
+        gridSizeX3.setText(TextUtils.formatDouble(values[2].getWidth()));
+        gridSizeX4.setText(TextUtils.formatDouble(values[3].getWidth()));
+        gridSizeX5.setText(TextUtils.formatDouble(values[4].getWidth()));
+        gridSizeY1.setText(TextUtils.formatDouble(values[0].getHeight()));
+        gridSizeY2.setText(TextUtils.formatDouble(values[1].getHeight()));
+        gridSizeY3.setText(TextUtils.formatDouble(values[2].getHeight()));
+        gridSizeY4.setText(TextUtils.formatDouble(values[3].getHeight()));
+        gridSizeY5.setText(TextUtils.formatDouble(values[4].getHeight()));
         AbstractButton[] list = {size1Button, size2Button, size3Button, size4Button, size5Button};
-        for (int i = 0; i < values.length; i++)
-        {
-            if (values[i] < 0) // found the marked one
-            {
-                list[i].setSelected(true);
-                break;
-            }
-        }
+        int selInd = User.getAlignmentToGridIndex();
+        list[selInd].setSelected(true);
 	}
 
 	/**
@@ -157,25 +164,25 @@ public class GridAndAlignmentTab extends PreferencePanel
 			redraw = true;
 		}
 
-        double[] oldValues = User.getAlignmentToGridVector();
-        double[] newValues = {TextUtils.atof(gridSize1.getText()),
-                              TextUtils.atof(gridSize2.getText()),
-                              TextUtils.atof(gridSize3.getText()),
-                              TextUtils.atof(gridSize4.getText()),
-                              TextUtils.atof(gridSize5.getText())};
-        int pos = -1;
+		Dimension2D[] oldValues = User.getAlignmentToGridVector();
+        Dimension2D [] newValues = new Dimension2D[5];
+        newValues[0] = new Dimension2D.Double(TextUtils.atof(gridSizeX1.getText()), TextUtils.atof(gridSizeY1.getText()));
+        newValues[1] = new Dimension2D.Double(TextUtils.atof(gridSizeX2.getText()), TextUtils.atof(gridSizeY2.getText()));
+        newValues[2] = new Dimension2D.Double(TextUtils.atof(gridSizeX3.getText()), TextUtils.atof(gridSizeY3.getText()));
+        newValues[3] = new Dimension2D.Double(TextUtils.atof(gridSizeX4.getText()), TextUtils.atof(gridSizeY4.getText()));
+        newValues[4] = new Dimension2D.Double(TextUtils.atof(gridSizeX5.getText()), TextUtils.atof(gridSizeY5.getText()));
+        int pos = 0;
         if (size1Button.isSelected()) pos = 0; else
         if (size2Button.isSelected()) pos = 1; else
         if (size3Button.isSelected()) pos = 2; else
         if (size4Button.isSelected()) pos = 3; else
             pos = 4;
-        if (newValues[pos] > 0) newValues[pos] *= -1;
 
-        if (oldValues[0] != newValues[0] || oldValues[1] != newValues[1] ||
-        	oldValues[2] != newValues[2] || oldValues[3] != newValues[3] ||
-        	oldValues[4] != newValues[4])
+        if (!oldValues[0].equals(newValues[0]) || !oldValues[1].equals(newValues[1]) ||
+        	!oldValues[2].equals(newValues[2]) || !oldValues[3].equals(newValues[3]) ||
+        	!oldValues[4].equals(newValues[4]))
         {
-            User.setAlignmentToGridVector(newValues);
+            User.setAlignmentToGridVector(newValues, pos);
             ToolBar.setGridAligment();
         }
 
@@ -198,8 +205,12 @@ public class GridAndAlignmentTab extends PreferencePanel
 			User.setDefGridYBoldFrequency(User.getFactoryDefGridYBoldFrequency());
 		if (User.isFactoryGridAxesShown() != User.isGridAxesShown())
 			User.setGridAxesShown(User.isFactoryGridAxesShown());
-		if (User.getFactoryAlignmentToGridVector() != User.getAlignmentToGridVector())
-			User.setAlignmentToGridVector(User.getFactoryAlignmentToGridVector());
+		Dimension2D [] facAlign = User.getFactoryAlignmentToGridVector();
+		Dimension2D [] curAlign = User.getAlignmentToGridVector();
+		int facAlignInd = User.getFactoryAlignmentToGridIndex();
+		int curAlignInd = User.getAlignmentToGridIndex();
+		if (facAlignInd != curAlignInd || !facAlign.equals(curAlign))
+			User.setAlignmentToGridVector(facAlign, facAlignInd);
 	}
 
 	/** This method is called from within the constructor to
@@ -229,17 +240,24 @@ public class GridAndAlignmentTab extends PreferencePanel
         jLabel13 = new javax.swing.JLabel();
         gridShowAxes = new javax.swing.JCheckBox();
         alignPart = new javax.swing.JPanel();
-        gridSize5 = new javax.swing.JTextField();
+        gridSizeX5 = new javax.swing.JTextField();
         jLabel38 = new javax.swing.JLabel();
-        gridSize3 = new javax.swing.JTextField();
-        gridSize1 = new javax.swing.JTextField();
+        gridSizeX3 = new javax.swing.JTextField();
+        gridSizeX1 = new javax.swing.JTextField();
         size1Button = new javax.swing.JRadioButton();
         size2Button = new javax.swing.JRadioButton();
         size3Button = new javax.swing.JRadioButton();
         size4Button = new javax.swing.JRadioButton();
         size5Button = new javax.swing.JRadioButton();
-        gridSize2 = new javax.swing.JTextField();
-        gridSize4 = new javax.swing.JTextField();
+        gridSizeX2 = new javax.swing.JTextField();
+        gridSizeX4 = new javax.swing.JTextField();
+        gridSizeY1 = new javax.swing.JTextField();
+        gridSizeY2 = new javax.swing.JTextField();
+        gridSizeY3 = new javax.swing.JTextField();
+        gridSizeY4 = new javax.swing.JTextField();
+        gridSizeY5 = new javax.swing.JTextField();
+        jLabel37 = new javax.swing.JLabel();
+        jLabel39 = new javax.swing.JLabel();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -260,14 +278,14 @@ public class GridAndAlignmentTab extends PreferencePanel
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 2, 4);
         gridPart.add(jLabel32, gridBagConstraints);
 
         jLabel33.setText("Vertical:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 2, 4);
         gridPart.add(jLabel33, gridBagConstraints);
 
         jLabel34.setText("Grid dot spacing:");
@@ -392,47 +410,47 @@ public class GridAndAlignmentTab extends PreferencePanel
         alignPart.setLayout(new java.awt.GridBagLayout());
 
         alignPart.setBorder(javax.swing.BorderFactory.createTitledBorder("Alignment of Cursor to Grid"));
-        gridSize5.setColumns(8);
-        gridSize5.setPreferredSize(new java.awt.Dimension(40, 22));
+        gridSizeX5.setColumns(8);
+        gridSizeX5.setPreferredSize(new java.awt.Dimension(40, 22));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 0.5;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
-        alignPart.add(gridSize5, gridBagConstraints);
+        alignPart.add(gridSizeX5, gridBagConstraints);
 
         jLabel38.setText("Values of zero will cause no alignment");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         alignPart.add(jLabel38, gridBagConstraints);
 
-        gridSize3.setColumns(8);
+        gridSizeX3.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 0.5;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
-        alignPart.add(gridSize3, gridBagConstraints);
+        alignPart.add(gridSizeX3, gridBagConstraints);
 
-        gridSize1.setColumns(8);
+        gridSizeX1.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 0.5;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
-        alignPart.add(gridSize1, gridBagConstraints);
+        alignPart.add(gridSizeX1, gridBagConstraints);
 
         alignGroup.add(size1Button);
         size1Button.setText("Size 1 (largest)");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         alignPart.add(size1Button, gridBagConstraints);
 
@@ -440,7 +458,7 @@ public class GridAndAlignmentTab extends PreferencePanel
         size2Button.setText("Size 2");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         alignPart.add(size2Button, gridBagConstraints);
 
@@ -448,7 +466,7 @@ public class GridAndAlignmentTab extends PreferencePanel
         size3Button.setText("Size 3");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         alignPart.add(size3Button, gridBagConstraints);
 
@@ -456,7 +474,7 @@ public class GridAndAlignmentTab extends PreferencePanel
         size4Button.setText("Size 4");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         alignPart.add(size4Button, gridBagConstraints);
 
@@ -464,27 +482,87 @@ public class GridAndAlignmentTab extends PreferencePanel
         size5Button.setText("Size 5 (smallest)");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         alignPart.add(size5Button, gridBagConstraints);
 
-        gridSize2.setColumns(8);
+        gridSizeX2.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 0.5;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
-        alignPart.add(gridSize2, gridBagConstraints);
+        alignPart.add(gridSizeX2, gridBagConstraints);
 
-        gridSize4.setColumns(8);
+        gridSizeX4.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 0.5;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        alignPart.add(gridSizeX4, gridBagConstraints);
+
+        gridSizeY1.setColumns(8);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 0.5;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
+        alignPart.add(gridSizeY1, gridBagConstraints);
+
+        gridSizeY2.setColumns(8);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 0.5;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        alignPart.add(gridSizeY2, gridBagConstraints);
+
+        gridSizeY3.setColumns(8);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 0.5;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
-        alignPart.add(gridSize4, gridBagConstraints);
+        alignPart.add(gridSizeY3, gridBagConstraints);
+
+        gridSizeY4.setColumns(8);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 0.5;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        alignPart.add(gridSizeY4, gridBagConstraints);
+
+        gridSizeY5.setColumns(8);
+        gridSizeY5.setPreferredSize(new java.awt.Dimension(40, 22));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 0.5;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
+        alignPart.add(gridSizeY5, gridBagConstraints);
+
+        jLabel37.setText("Horizontal:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 2, 4);
+        alignPart.add(jLabel37, gridBagConstraints);
+
+        jLabel39.setText("Vertical:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 2, 4);
+        alignPart.add(jLabel39, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -516,11 +594,16 @@ public class GridAndAlignmentTab extends PreferencePanel
     private javax.swing.JTextField gridNewVert;
     private javax.swing.JPanel gridPart;
     private javax.swing.JCheckBox gridShowAxes;
-    private javax.swing.JTextField gridSize1;
-    private javax.swing.JTextField gridSize2;
-    private javax.swing.JTextField gridSize3;
-    private javax.swing.JTextField gridSize4;
-    private javax.swing.JTextField gridSize5;
+    private javax.swing.JTextField gridSizeX1;
+    private javax.swing.JTextField gridSizeX2;
+    private javax.swing.JTextField gridSizeX3;
+    private javax.swing.JTextField gridSizeX4;
+    private javax.swing.JTextField gridSizeX5;
+    private javax.swing.JTextField gridSizeY1;
+    private javax.swing.JTextField gridSizeY2;
+    private javax.swing.JTextField gridSizeY3;
+    private javax.swing.JTextField gridSizeY4;
+    private javax.swing.JTextField gridSizeY5;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel13;
     private javax.swing.JLabel jLabel32;
@@ -528,7 +611,9 @@ public class GridAndAlignmentTab extends PreferencePanel
     private javax.swing.JLabel jLabel34;
     private javax.swing.JLabel jLabel35;
     private javax.swing.JLabel jLabel36;
+    private javax.swing.JLabel jLabel37;
     private javax.swing.JLabel jLabel38;
+    private javax.swing.JLabel jLabel39;
     private javax.swing.JRadioButton size1Button;
     private javax.swing.JRadioButton size2Button;
     private javax.swing.JRadioButton size3Button;

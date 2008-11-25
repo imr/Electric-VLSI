@@ -26,6 +26,7 @@ package com.sun.electric.tool.user;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
+import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
@@ -270,7 +271,7 @@ public class UserInterfaceMain extends AbstractUserInterface
 
 	public void alignToGrid(Point2D pt) { EditWindow.gridAlign(pt); }
 
-	public double getGridAlignment() { return User.getAlignmentToGrid(); }
+	public Dimension2D getGridAlignment() { return User.getAlignmentToGrid(); }
 
 	public int getDefaultTextSize() { return EditWindow.getDefaultFontSize(); }
 

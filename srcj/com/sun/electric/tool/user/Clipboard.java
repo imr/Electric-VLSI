@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user;
 
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Orientation;
@@ -391,12 +392,12 @@ public class Clipboard
 	{
 		private List<Geometric> highlightedGeoms;
 		private List<DisplayedText> highlightedText;
-		private double alignment;
+		private Dimension2D alignment;
 		private AffineTransform inPlace;
 		private Orientation inPlaceOrient;
 
 		protected CopyObjects(List<Geometric> highlightedGeoms, List<DisplayedText> highlightedText,
-			double alignment, AffineTransform inPlace, Orientation inPlaceOrient)
+			Dimension2D alignment, AffineTransform inPlace, Orientation inPlaceOrient)
 		{
 			super("Copy", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.highlightedGeoms = highlightedGeoms;
@@ -423,13 +424,13 @@ public class Clipboard
 		private Cell cell;
 		private List<Geometric> geomList;
 		private List<DisplayedText> textList;
-		private double alignment;
+		private Dimension2D alignment;
 		private boolean reconstructArcsAndExports;
 		private AffineTransform inPlace;
 		private Orientation inPlaceOrient;
 		private List<Geometric> thingsToHighlight;
 
-		protected CutObjects(Cell cell, List<Geometric> geomList, List<DisplayedText> textList, double alignment,
+		protected CutObjects(Cell cell, List<Geometric> geomList, List<DisplayedText> textList, Dimension2D alignment,
 			boolean reconstructArcsAndExports, AffineTransform inPlace, Orientation inPlaceOrient)
 		{
 			super("Cut", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -543,10 +544,10 @@ public class Clipboard
 		private Cell cell;
 		private List<Geometric> geomList, newGeomList;
 		private List<DisplayedText> textList, newTextList;
-		private double alignment;
+		private Dimension2D alignment;
 		private NodeInst lastCreatedNode;
 
-		protected DuplicateObjects(Cell cell, List<Geometric> geomList, List<DisplayedText> textList, double alignment)
+		protected DuplicateObjects(Cell cell, List<Geometric> geomList, List<DisplayedText> textList, Dimension2D alignment)
 		{
 			super("Duplicate", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
@@ -669,14 +670,15 @@ public class Clipboard
 		private Cell cell;
 		private List<Geometric> geomList, newGeomList;
 		private List<DisplayedText> textList, newTextList;
-		private double dX, dY, alignment;
+		private double dX, dY;
+		private Dimension2D alignment;
 		private boolean copyExports, uniqueArcs;
 		private NodeInst lastCreatedNode;
 		private AffineTransform inPlace;
 		private Orientation inPlaceOrient;
 
 		protected PasteObjects(Cell cell, List<Geometric> geomList, List<DisplayedText> textList,
-			double dX, double dY, double alignment, boolean copyExports, boolean uniqueArcs,
+			double dX, double dY, Dimension2D alignment, boolean copyExports, boolean uniqueArcs,
 			AffineTransform inPlace, Orientation inPlaceOrient)
 		{
 			super("Paste", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -778,7 +780,7 @@ public class Clipboard
 	}
 
 	public static void copyListToClipboard(List<Geometric> geomList, List<DisplayedText> textList,
-		double alignment, AffineTransform inPlace, Orientation inPlaceOrient) {
+		Dimension2D alignment, AffineTransform inPlace, Orientation inPlaceOrient) {
 		copyListToCell(clipCell, geomList, textList, null, null, new Point2D.Double(),
 				User.isDupCopiesExports(), User.isArcsAutoIncremented(),
 				alignment, inPlace, inPlaceOrient);
@@ -801,7 +803,7 @@ public class Clipboard
 	 */
 	public static NodeInst copyListToCell(Cell toCell, List<Geometric> geomList, List<DisplayedText> textList,
 		List<Geometric> newGeomList, List<DisplayedText> newTextList, Point2D delta, boolean copyExports,
-		boolean uniqueArcs, double alignment, AffineTransform inPlace, Orientation inPlaceOrient)
+		boolean uniqueArcs, Dimension2D alignment, AffineTransform inPlace, Orientation inPlaceOrient)
 	{
 		// make a list of all objects to be copied (includes end points of arcs)
 		List<NodeInst> theNodes = new ArrayList<NodeInst>();
@@ -1283,7 +1285,7 @@ public class Clipboard
 		{
 			// mouseDB == null if you press arrow keys before placing the new copy
 			if (mouseDB == null) return null;
-			double alignment = User.getAlignmentToGrid();
+			Dimension2D alignment = User.getAlignmentToGrid();
 			DBMath.gridAlign(mouseDB, alignment);
 
 			// this is the point on the clipboard cell that will be pasted at the mouse location
