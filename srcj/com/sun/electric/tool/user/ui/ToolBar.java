@@ -519,7 +519,6 @@ public class ToolBar extends JToolBar
 				tb.currentGridAmount.setText(valStr);
 			}
 		}
-//		gridLarger.updateToolBarButton(item);
 	}
 
 	/**
@@ -978,6 +977,7 @@ public class ToolBar extends JToolBar
 		Dimension2D[] vals = User.getAlignmentToGridVector();
 		User.setAlignmentToGridVector(vals, size);
 		rewriteGridDistance();
+		updateToolBarButtons();
 	}
 
     private static void changeGridSize(boolean larger)
