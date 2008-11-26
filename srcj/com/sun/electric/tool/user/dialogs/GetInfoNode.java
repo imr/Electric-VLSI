@@ -572,9 +572,12 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 		}
 		if (fun.isResistor())
 		{
-			if (fun == PrimitiveNode.Function.PRESIST)
-				textFieldLabel.setText("Poly resistance:"); else
-					textFieldLabel.setText("Resistance:");
+			if (fun == PrimitiveNode.Function.RESPPOLY || fun == PrimitiveNode.Function.RESNPOLY)
+				textFieldLabel.setText("Poly resistance:");
+            else if (fun == PrimitiveNode.Function.RESPWELL || fun == PrimitiveNode.Function.RESNWELL)
+				textFieldLabel.setText("Well resistance:");
+            else
+                textFieldLabel.setText("Resistance:");
 //			formatinfstr(infstr, x_(" (%s):"),
 //				TRANSLATE(us_resistancenames[(us_electricalunits&INTERNALRESUNITS) >> INTERNALRESUNITSSH]));
 			Variable var = ni.getVar(Schematics.SCHEM_RESISTANCE);
@@ -1035,7 +1038,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 					np == Schematics.tech().resistorNode)
 				{
 					Object width, length;
-					if (ni.getFunction().isFET() || ni.getFunction() == PrimitiveNode.Function.PRESIST)
+					if (ni.getFunction().isFET() || ni.getFunction().isResistor())
 					{
 						// see if we can convert width and length to a Number
 						double w = TextUtils.atof(currentXSize, null);
@@ -1059,7 +1062,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 						}
 						ni.setPrimitiveNodeSize(width, length);
 					}
-				} else // transistors or resistors
+				} else // layout transistors or resistors
 				{
 					// this is a layout transistor
 					if (ni.isSerpentineTransistor())
