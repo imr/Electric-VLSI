@@ -985,11 +985,11 @@ class NetSchem extends NetCell {
 			int nodeOffset = ni_pi[k];
 			NodeProto np = ni.getProto();
 			if (!ni.isCellInstance()) {
-                PrimitiveNode.Function fun = ((NodeInst)ni).getFunction();
+                PrimitiveNode.Function fun = ni.getFunction();
                 if (fun == PrimitiveNode.Function.RESIST) {
 					Netlist.connectMap(netMapP, drawnOffsets[drawns[nodeOffset]], drawnOffsets[drawns[nodeOffset + 1]]);
 					Netlist.connectMap(netMapA, drawnOffsets[drawns[nodeOffset]], drawnOffsets[drawns[nodeOffset + 1]]);
-                } else if (fun == PrimitiveNode.Function.PRESIST) {
+                } else if (fun.isPolyOrWellResistor()) {
 					Netlist.connectMap(netMapA, drawnOffsets[drawns[nodeOffset]], drawnOffsets[drawns[nodeOffset + 1]]);
                 }
 				continue;

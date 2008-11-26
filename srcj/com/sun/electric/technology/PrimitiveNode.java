@@ -565,6 +565,13 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
                                       this == RESPWELL;}
 
         /**
+         * Method to tell whether this function describes a poly or well resistor.
+         * @return true if this function describes a poly or well resistor.
+         */
+        public boolean isPolyOrWellResistor() { return this == PRESIST || this == WRESIST ||
+                                      this == RESNPOLY || this == RESPPOLY || this == RESNWELL || this == RESPWELL;}
+
+        /**
          * Method to tell whether this function describes an ESD device.
          * @return true if this function describes an ESD device.
          */

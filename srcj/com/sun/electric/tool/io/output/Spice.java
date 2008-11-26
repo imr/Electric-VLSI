@@ -809,7 +809,7 @@ public class Spice extends Topology
 			{
 				if (fun.isResistor())
 				{
-                    if ((fun == PrimitiveNode.Function.PRESIST && isShortExplicitResistors()) ||
+                    if ((fun.isPolyOrWellResistor() && isShortExplicitResistors()) ||
                         (fun == PrimitiveNode.Function.RESIST && isShortResistors()))
                         	continue;
 					Variable resistVar = ni.getVar(Schematics.SCHEM_RESISTANCE);
@@ -838,36 +838,20 @@ public class Spice extends Topology
                                 extra = formatParam(extra, resistVar.getUnit(), false);
                         }
 					} else {
-                        if (fun == PrimitiveNode.Function.PRESIST) {
-                            partName = "XR";
-                            double width = ni.getLambdaBaseYSize();
-                            double length = ni.getLambdaBaseXSize();
-                            if (Simulation.isSpiceWriteTransSizeInLambda())
-                            {
-                                extra = " L="+length+" W="+width;
-                            } else
-                            {
-                                extra = " L="+formatParam(length+"*LAMBDA", TextDescriptor.Unit.NONE, false)+
-                                	" W="+formatParam(width+"*LAMBDA", TextDescriptor.Unit.NONE, false);
-                            }
-                            if (layoutTechnology == Technology.getCMOS90Technology() ||
-                               (cell.getView() == View.LAYOUT && cell.getTechnology() == Technology.getCMOS90Technology())) {
-                                if (ni.getProto().getName().equals("P-Poly-RPO-Resistor")) {
-                                    extra = "GND rpporpo"+extra;
-                                }
-                                if (ni.getProto().getName().equals("N-Poly-RPO-Resistor")) {
-                                    extra = "GND rnporpo"+extra;
-                                }
-                            } else {
-                                if (ni.getProto().getName().equals("P-Poly-RPO-Resistor")) {
-                                    extra = "rppo1rpo"+extra;
-                                }
-                                if (ni.getProto().getName().equals("N-Poly-RPO-Resistor")) {
-                                    extra = "rnpo1rpo"+extra;
-                                }
-                            }
+						// remove next 10 lines when PRESIST and WRESIST are finally deprecated
+                        if (fun == PrimitiveNode.Function.PRESIST)
+                        {
+                            if (ni.getProto().getName().equals("P-Poly-RPO-Resistor")) fun = PrimitiveNode.Function.RESPPOLY;
+                            if (ni.getProto().getName().equals("N-Poly-RPO-Resistor")) fun = PrimitiveNode.Function.RESNPOLY;
                         }
-                        else if (fun == PrimitiveNode.Function.WRESIST) {
+                        if (fun == PrimitiveNode.Function.WRESIST)
+                        {
+                            if (ni.getProto().getName().equals("P-Well-RPO-Resistor")) fun = PrimitiveNode.Function.RESPWELL;
+                            if (ni.getProto().getName().equals("N-Well-RPO-Resistor")) fun = PrimitiveNode.Function.RESNWELL;
+                        }
+                        if (fun == PrimitiveNode.Function.RESPPOLY || fun == PrimitiveNode.Function.RESNPOLY ||
+                        	fun == PrimitiveNode.Function.RESPWELL || fun == PrimitiveNode.Function.RESNWELL)
+                        {
                             partName = "XR";
                             double width = ni.getLambdaBaseYSize();
                             double length = ni.getLambdaBaseXSize();
@@ -879,12 +863,18 @@ public class Spice extends Topology
                                 extra = " L="+formatParam(length+"*LAMBDA", TextDescriptor.Unit.NONE, false)+
                                 	" W="+formatParam(width+"*LAMBDA", TextDescriptor.Unit.NONE, false);
                             }
-                            if (ni.getProto().getName().equals("N-Well-RPO-Resistor")) {
-                                extra = "rnwod "+extra;
+                            String prepend = "";
+                            if (fun == PrimitiveNode.Function.RESPPOLY) prepend = "rppo1rpo"; else
+                            	if (fun == PrimitiveNode.Function.RESNPOLY) prepend = "rnpo1rpo"; else
+                                	if (fun == PrimitiveNode.Function.RESPWELL) prepend = "rpwod "; else
+                                    	if (fun == PrimitiveNode.Function.RESNWELL) prepend = "rnwod ";
+                            if (layoutTechnology == Technology.getCMOS90Technology() ||
+                                (cell.getView() == View.LAYOUT && cell.getTechnology() == Technology.getCMOS90Technology()))
+                            {
+                                if (fun == PrimitiveNode.Function.RESPPOLY) prepend = "GND rpporpo"; else
+                                	if (fun == PrimitiveNode.Function.RESNPOLY) prepend = "GND rnporpo";
                             }
-                            if (ni.getProto().getName().equals("P-Well-RPO-Resistor")) {
-                                extra = "rpwod "+extra;
-                            }
+                            extra = prepend + extra;
                         }
                     }
 					writeTwoPort(ni, partName, extra, cni, netList, context, segmentedNets);

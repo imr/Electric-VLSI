@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08m: ******************************
 
+BUG: (11/26/08, SMR) Upgrading schematic poly-resistors to more detailed
+     resistors: p-poly, n-poly, p-well, and n-well (Bug #1953).
+FIX: Changed Schematics to draw them (well resistors have box around them,
+     P/N distinction done with a letter).  Updated Spice output and Netlister.
+
 BUG: (11/25/08, GVG) NPE while doing copy or paste (Bug #1955)
 FIX: Make Dimension2D serializable   \
 

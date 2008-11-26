@@ -513,11 +513,11 @@ class NetCell
 			NodeInst ni = it.next();
 			int nodeOffset = ni_pi[ni.getNodeIndex()];
 			if (!ni.isCellInstance()) {
-                PrimitiveNode.Function fun = ((NodeInst)ni).getFunction();
+                PrimitiveNode.Function fun = ni.getFunction();
                 if (fun == PrimitiveNode.Function.RESIST) {
 					Netlist.connectMap(netMapP, drawns[nodeOffset], drawns[nodeOffset + 1]);
 					Netlist.connectMap(netMapA, drawns[nodeOffset], drawns[nodeOffset + 1]);
-                } else if (fun == PrimitiveNode.Function.PRESIST) {
+                } else if (fun.isPolyOrWellResistor()) {
 					Netlist.connectMap(netMapA, drawns[nodeOffset], drawns[nodeOffset + 1]);
                 }
 				continue;
