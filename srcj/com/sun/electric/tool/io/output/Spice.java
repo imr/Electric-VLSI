@@ -839,16 +839,16 @@ public class Spice extends Topology
                         }
 					} else {
 						// remove next 10 lines when PRESIST and WRESIST are finally deprecated
-                        if (fun == PrimitiveNode.Function.PRESIST)
-                        {
-                            if (ni.getProto().getName().equals("P-Poly-RPO-Resistor")) fun = PrimitiveNode.Function.RESPPOLY;
-                            if (ni.getProto().getName().equals("N-Poly-RPO-Resistor")) fun = PrimitiveNode.Function.RESNPOLY;
-                        }
-                        if (fun == PrimitiveNode.Function.WRESIST)
-                        {
-                            if (ni.getProto().getName().equals("P-Well-RPO-Resistor")) fun = PrimitiveNode.Function.RESPWELL;
-                            if (ni.getProto().getName().equals("N-Well-RPO-Resistor")) fun = PrimitiveNode.Function.RESNWELL;
-                        }
+//                        if (fun == PrimitiveNode.Function.PRESIST)
+//                        {
+//                            if (ni.getProto().getName().equals("P-Poly-RPO-Resistor")) fun = PrimitiveNode.Function.RESPPOLY;
+//                            if (ni.getProto().getName().equals("N-Poly-RPO-Resistor")) fun = PrimitiveNode.Function.RESNPOLY;
+//                        }
+//                        if (fun == PrimitiveNode.Function.WRESIST)
+//                        {
+//                            if (ni.getProto().getName().equals("P-Well-RPO-Resistor")) fun = PrimitiveNode.Function.RESPWELL;
+//                            if (ni.getProto().getName().equals("N-Well-RPO-Resistor")) fun = PrimitiveNode.Function.RESNWELL;
+//                        }
                         if (fun == PrimitiveNode.Function.RESPPOLY || fun == PrimitiveNode.Function.RESNPOLY ||
                         	fun == PrimitiveNode.Function.RESPWELL || fun == PrimitiveNode.Function.RESNWELL)
                         {
