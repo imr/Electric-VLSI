@@ -1038,7 +1038,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 					np == Schematics.tech().resistorNode)
 				{
 					Object width, length;
-					if (ni.getFunction().isFET() || ni.getFunction().isResistor())
+					if (ni.getFunction().isFET() || ni.getFunction().isPolyOrWellResistor())
 					{
 						// see if we can convert width and length to a Number
 						double w = TextUtils.atof(currentXSize, null);

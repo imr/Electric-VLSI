@@ -522,7 +522,7 @@ public class PaletteFrame implements MouseListener
 				{
 					newNi.newDisplayVar(Schematics.SCHEM_RESISTANCE, "100");
                     // Adding two extra variables: length and width
-                    if (newNi.getFunction() == PrimitiveNode.Function.PRESIST)
+                    if (newNi.getFunction().isPolyOrWellResistor())
                     {
                         // They will be visible
                         TextDescriptor td = TextDescriptor.getNodeTextDescriptor();
