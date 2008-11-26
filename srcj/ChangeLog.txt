@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08m: ******************************
 
+BUG: (11/25/08, GVG) NPE while doing copy or paste (Bug #1955)
+FIX: Make Dimension2D serializable   \
+
 IMP: (11/25/08, GVG) Disconnecting more another spacing D-N-Well rule in CMOS90
 because of Bug#1942.
 

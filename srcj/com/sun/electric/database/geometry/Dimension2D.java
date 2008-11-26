@@ -24,10 +24,13 @@
 
 package com.sun.electric.database.geometry;
 
+import java.io.Serializable;
+
 /**
  * Class to define a Dimension object.
  */
-public abstract class Dimension2D extends java.awt.geom.Dimension2D {
+public abstract class Dimension2D extends java.awt.geom.Dimension2D
+    implements Serializable {
 
 	/**
 	 * Method to return the Y size of this Dimension2D.
