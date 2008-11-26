@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08m: ******************************
 
+IMP: (11/26/08, GVG) Well resistors in CMOS90 (Bug #1956)
+
 BUG: (11/26/08, SMR) Upgrading schematic poly-resistors to more detailed
      resistors: p-poly, n-poly, p-well, and n-well (Bug #1953).
 FIX: Changed Schematics to draw them (well resistors have box around them,
