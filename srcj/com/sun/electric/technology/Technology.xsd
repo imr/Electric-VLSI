@@ -353,8 +353,10 @@
             <xsd:enumeration value="TRA4EMES"/>
             <xsd:enumeration value="TRANS4"/>
             <xsd:enumeration value="RESIST"/>
-            <xsd:enumeration value="PRESIST"/>
-            <xsd:enumeration value="WRESIST"/>
+            <xsd:enumeration value="RESPWELL"/>
+            <xsd:enumeration value="RESNWELL"/>
+            <xsd:enumeration value="RESPPOLY"/>
+            <xsd:enumeration value="RESNPOLY"/>
             <xsd:enumeration value="ESDDEVICE"/>
             <xsd:enumeration value="CAPAC"/>
             <xsd:enumeration value="ECAPAC"/>
