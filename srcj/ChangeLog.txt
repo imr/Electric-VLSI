@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08m: ******************************
 
+BUG: (11/25/08, SMR) When GDS text objects are too small, import of them
+     gives many errors about "relative size".
+FIX: In tool.io.input.gds.readText(), clamp "size" to "TextDescriptor.Size.TXTMINQGRID"
+
 IMP/MAN: (11/25/08, SMR) Now have separate X and Y grid alignment values (Bug #1952).
 
 BUG/MAN: (11/25/08, SMR) Move "GDS Input Scale" from preferences to project

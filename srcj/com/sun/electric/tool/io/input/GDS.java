@@ -1672,6 +1672,7 @@ public class GDS extends Input
 		double size = scale;
 		if (size <= 0) size = 2;
 		if (size > TextDescriptor.Size.TXTMAXQGRID) size = TextDescriptor.Size.TXTMAXQGRID;
+		if (size < TextDescriptor.Size.TXTMINQGRID) size = TextDescriptor.Size.TXTMINQGRID;
 		td.setRelSize(size);
 
 		// determine the presentation
