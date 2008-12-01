@@ -492,7 +492,7 @@ public class CellMenu {
 		GeometrySearch search = new GeometrySearch();
 		List<GeometrySearch.GeometrySearchResult> possibleTargets = search.searchGeometries(cell, point, true);
 
-		// eliminate results at the top level
+		// eliminate results at the top level and duplicate results at any lower level
 		for(int i=0; i<possibleTargets.size(); i++)
 		{
 			GeometrySearch.GeometrySearchResult res = possibleTargets.get(i);
@@ -501,6 +501,18 @@ public class CellMenu {
 				possibleTargets.remove(i);
 				i--;
 				foundAtTopLevel = res;
+				continue;
+			}
+
+			// also remove duplicate contexts at lower levels
+			for(int j=0; j<i; j++)
+			{
+				GeometrySearch.GeometrySearchResult oRes = possibleTargets.get(j);
+				if (sameContext(oRes.getContext(), res.getContext()))
+				{
+					possibleTargets.remove(i);
+					i--;
+				}
 			}
 		}
 
@@ -533,6 +545,18 @@ public class CellMenu {
             }
             menu.show(curEdit, 100, 100);
 		}
+	}
+
+	private static boolean sameContext(VarContext vc1, VarContext vc2)
+	{
+		if (vc1.getNumLevels() != vc2.getNumLevels()) return false;
+		while (vc1.getNodable() != null && vc2.getNodable() != null)
+		{
+			if (vc1.getNodable() != vc2.getNodable()) return false;
+			vc1 = vc1.pop();
+			vc2 = vc2.pop();
+		}
+		return true;
 	}
 
 	private static void descendToObject(GeometrySearch.GeometrySearchResult res)

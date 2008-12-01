@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08n: ******************************
 
+BUG: (12/1/08, SMR) "Down Hierarchy In Place To Object" should list just one object
+     per context (Bug #1930).
+FIX: In CellMenu.downHierInPlaceToObject(), eliminate duplicate choices.
+
 ************************* Version 8.08m: ******************************
 
 BUG: (11/29/08, RK) cmos90.java appears to assign RESPWELL and RESNWELL
