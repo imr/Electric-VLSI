@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08n: ******************************
 
+BUG: (12/2/08, SMR) GDS import does not handle arrays of simple cells
+     right when they are rotated (Bug #1901).
+FIX: Transform cell contents before adding it to the large polygon.
+
 IMP/MAN: (12/2/08, SMR) Added the layer to the "Manipulate Exports" dialog (Bug #1967).
 
 BUG: (12/2/08, SMR) Want movement and deletion reported in the messages window (Bug #1917).

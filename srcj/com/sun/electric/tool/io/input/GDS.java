@@ -630,7 +630,7 @@ public class GDS extends Input
 	    		if (subNi != null)
 	    		{
 	    			// simplify the array by placing a complex instance
-	    			List<EPoint> points = buildArray(proto);
+	    			List<EPoint> points = buildArray();
 					EPoint [] pointArray = new EPoint[points.size()];
 					double lX=0, hX=0, lY=0, hY=0;
 					for(int i=0; i<points.size(); i++)
@@ -651,7 +651,7 @@ public class GDS extends Input
 					}
 
 		            NodeInst ni = NodeInst.makeInstance(subNi.getProto(), new Point2D.Double((lX+hX)/2, (lY+hY)/2), hX-lX, hY-lY,
-		            	parent, orient, null, 0);
+		            	parent, Orientation.IDENT, null, 0);
 		            if (ni != null)
 		            	ni.setTrace(pointArray);
 	        		return;
@@ -690,10 +690,12 @@ public class GDS extends Input
     		}
         }
 
-        private List<EPoint> buildArray(NodeProto primProto)
+        private List<EPoint> buildArray()
         {
 			List<EPoint> points = new ArrayList<EPoint>();
-			Rectangle2D bounds = ((Cell)primProto).getBounds();
+			Rectangle2D bounds = ((Cell)proto).getBounds();
+			Rectangle2D boundCopy = new Rectangle2D.Double(bounds.getMinX(), bounds.getMinY(), bounds.getWidth(), bounds.getHeight());
+			DBMath.transformRect(boundCopy, orient.pureRotate());
     		double ptcX = startLoc.getX();
     		double ptcY = startLoc.getY();
     		for (int ic = 0; ic < nCols; ic++)
@@ -702,10 +704,10 @@ public class GDS extends Input
     			double ptY = ptcY;
     			for (int ir = 0; ir < nRows; ir++)
     			{
-    	    		points.add(new EPoint(ptX+bounds.getMinX(), ptY+bounds.getMinY()));
-    	    		points.add(new EPoint(ptX+bounds.getMaxX(), ptY+bounds.getMinY()));
-    	    		points.add(new EPoint(ptX+bounds.getMaxX(), ptY+bounds.getMaxY()));
-    	    		points.add(new EPoint(ptX+bounds.getMinX(), ptY+bounds.getMaxY()));
+    	    		points.add(new EPoint(ptX+boundCopy.getMinX(), ptY+boundCopy.getMinY()));
+    	    		points.add(new EPoint(ptX+boundCopy.getMaxX(), ptY+boundCopy.getMinY()));
+    	    		points.add(new EPoint(ptX+boundCopy.getMaxX(), ptY+boundCopy.getMaxY()));
+    	    		points.add(new EPoint(ptX+boundCopy.getMinX(), ptY+boundCopy.getMaxY()));
 
     	    		// insert a "break" marker to start a new polygon
     	    		if (ic < nCols-1 || ir < nRows-1) points.add(null);
