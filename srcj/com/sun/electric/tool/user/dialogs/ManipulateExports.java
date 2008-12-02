@@ -28,6 +28,8 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.UserInterface;
+import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ExportChanges;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -53,7 +55,7 @@ import javax.swing.table.TableColumnModel;
  */
 public class ManipulateExports extends EDialog
 {
-	private static final String [] columnNames = {" ", "Name", "Characteristic", "Body Only"};
+	private static final String [] columnNames = {" ", "Name", "Layer", "Characteristic", "Body Only"};
 
 	private class ExportsTable extends JTable
 	{
@@ -73,12 +75,14 @@ public class ManipulateExports extends EDialog
 			model.sortTable(1, true);
 			setModel(model);
 			TableColumn tc = getColumn(getColumnName(0));
-			if (tc != null) tc.setPreferredWidth(20);
+			if (tc != null) tc.setPreferredWidth(10);
 			tc = getColumn(getColumnName(1));
 			if (tc != null) tc.setPreferredWidth(120);
 			tc = getColumn(getColumnName(2));
 			if (tc != null) tc.setPreferredWidth(100);
 			tc = getColumn(getColumnName(3));
+			if (tc != null) tc.setPreferredWidth(80);
+			tc = getColumn(getColumnName(4));
 			if (tc != null) tc.setPreferredWidth(20);
 		}
 
@@ -152,21 +156,25 @@ public class ManipulateExports extends EDialog
 				String s1 = null, s2 = null;
 				switch (column)
 				{
-					case 0:
+					case 0:		// selection
 						boolean b1 = p1.isSelected();
 						boolean b2 = p2.isSelected();
 						if (b1 == b2) return 0;
 						if (b1) return 1;
 						return -1;
-					case 1:
+					case 1:		// name
 						s1 = p1.getExport().getName();
 						s2 = p2.getExport().getName();
 						break;
-					case 2:
+					case 2:		// layer
+						s1 = getLayer(p1.getExport());
+						s2 = getLayer(p2.getExport());
+						break;
+					case 3:		// characteristics
 						s1 = p1.getExport().getCharacteristic().getName();
 						s2 = p2.getExport().getCharacteristic().getName();
 						return s1.compareTo(s2);
-					case 3:
+					case 4:		// body-only
 						b1 = p1.getExport().isBodyOnly();
 						b2 = p2.getExport().isBodyOnly();
 						if (b1 == b2) return 0;
@@ -256,7 +264,7 @@ public class ManipulateExports extends EDialog
 		}
 
 		/** Method to get the number of columns. */
-		public int getColumnCount() { return 4; }
+		public int getColumnCount() { return 5; }
 
 		/** Method to get the number of rows. */
 		public int getRowCount() { return exports.size(); }
@@ -275,13 +283,44 @@ public class ManipulateExports extends EDialog
 				// name
 				case 1: return pe.getExport().getName();
 
+				// layer
+				case 2:
+					return getLayer(pe.getExport());
+
 				// characteristic
-				case 2: return pe.getExport().getCharacteristic().getName();
+				case 3: return pe.getExport().getCharacteristic().getName();
 
 				// body-only
-				case 3: return Boolean.valueOf(pe.getExport().isBodyOnly());
+				case 4: return Boolean.valueOf(pe.getExport().isBodyOnly());
 			}
 			return null;
+		}
+
+		/**
+		 * Convert an Export to the layers on it.
+		 * @param e the Export.
+		 * @return the name of the layer on the export.
+		 */
+		private String getLayer(Export e)
+		{
+			ArcProto [] arcs = e.getBasePort().getConnections();
+			String layers = "";
+			ArcProto firstGeneric = null;
+			for(int i=0; i<arcs.length; i++)
+			{
+				ArcProto ap = arcs[i];
+				if (ap.getTechnology() == Generic.tech())
+				{
+					if (firstGeneric == null) firstGeneric = ap;
+				} else
+				{
+					if (layers.length() > 0) layers += ", ";
+					layers += ap.getLayer(0).getName();
+				}
+			}
+			if (layers.length() == 0 && firstGeneric != null)
+				layers = firstGeneric.getLayer(0).getName();
+			return layers;
 		}
 
 		/** Method to get a column's header name. */

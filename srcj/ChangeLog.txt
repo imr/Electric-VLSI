@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08n: ******************************
 
+IMP/MAN: (12/2/08, SMR) Added the layer to the "Manipulate Exports" dialog (Bug #1967).
+
 BUG: (12/2/08, SMR) Want movement and deletion reported in the messages window (Bug #1917).
 FIX: Report movement and deletion.
 
