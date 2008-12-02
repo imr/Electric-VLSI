@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08n: ******************************
 
+BUG: (12/2/08, SMR) Want movement and deletion reported in the messages window (Bug #1917).
+FIX: Report movement and deletion.
+
 IMP: (12/1/08, GVG) Object selected in "Select Object" dialog is not visible (Bug #1964)
 
 ************************* Version 8.08m: ******************************

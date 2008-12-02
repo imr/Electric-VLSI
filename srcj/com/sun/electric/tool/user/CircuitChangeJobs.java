@@ -1449,6 +1449,16 @@ public class CircuitChangeJobs
 				ni.kill();
 			}
 		}
+
+		int numArcsDeleted = arcsToDelete.size();
+		int numNodesDeleted = nodesToDelete.size();
+		String msg = "Deleted";
+		if (numNodesDeleted == 1) msg += " 1 node"; else
+			if (numNodesDeleted > 1) msg += " " + numNodesDeleted + " nodes";
+		if (numNodesDeleted > 0 && numArcsDeleted > 0) msg += " and";
+		if (numArcsDeleted == 1) msg += " 1 arc"; else
+			if (numArcsDeleted > 1) msg += " " + numArcsDeleted + " arcs";
+		System.out.println(msg);
 	}
 
 	/****************************** CLEAN-UP ******************************/
@@ -1639,7 +1649,7 @@ public class CircuitChangeJobs
 
 	public static class ManyMove extends Job
 	{
-		private static final boolean verbose = false;
+		private static final boolean verbose = true;
 		private Cell cell;
 		private List<ElectricObject> highlightedObjs;
 		private List<DisplayedText> highlightedText;
@@ -1682,7 +1692,7 @@ public class CircuitChangeJobs
 					if (cantEdit(cell, ni, true, false, true) != 0) return false;
 
 					ni.move(dX, dY);
-					if (verbose) System.out.println("Moved "+ni+": delta(X,Y) = ("+dX+","+dY+")");
+					if (verbose) System.out.println("Moved node " + ni.describe(false) + " by (" + dX + "," + dY + ")");
 					updateStatusBar = true;
 					fieldVariableChanged("updateStatusBar");
 					return true;
@@ -1773,7 +1783,7 @@ public class CircuitChangeJobs
 					if (j < 2) continue;
 					NodeInst.modifyInstances(niList, deltaXs, deltaYs, null, null);
 				}
-				if (verbose) System.out.println("Moved many objects: delta(X,Y) = ("+dX+","+dY+")");
+				if (verbose) System.out.println("Moved multiple objects by (" + dX + "," + dY + ")");
 				updateStatusBar = true;
 				fieldVariableChanged("updateStatusBar");
 				return true;
@@ -1805,7 +1815,7 @@ public class CircuitChangeJobs
 					{
 						ArcInst ai = (ArcInst)eobj;
 						ai.modify(dX, dY, dX, dY);
-						if (verbose) System.out.println("Moved "+ai+": delta(X,Y) = ("+dX+","+dY+")");
+						if (verbose) System.out.println("Moved arc " + ai.describe(false) + " by (" + dX + "," + dY + ")");
 					}
 				}
 				updateStatusBar = true;
@@ -1977,7 +1987,7 @@ public class CircuitChangeJobs
 
 			// also move selected text
 			moveSelectedText(cell, highlightedText);
-			if (verbose) System.out.println("Moved many objects: delta(X,Y) = ("+dX+","+dY+")");
+			if (verbose) System.out.println("Moved multiple objects by (" + dX + "," + dY + ")");
 			updateStatusBar = true;
 			fieldVariableChanged("updateStatusBar");
 			return true;
