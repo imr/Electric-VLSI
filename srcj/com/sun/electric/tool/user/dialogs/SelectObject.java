@@ -318,11 +318,15 @@ public class SelectObject extends EModelessDialog implements DatabaseChangeListe
 	private void searchTextChanged()
 	{
 		String currentSearchText = searchText.getText();
+        int flags = Pattern.CASE_INSENSITIVE+Pattern.UNICODE_CASE;
+		Pattern p = Pattern.compile(currentSearchText, flags);
 		if (currentSearchText.length() == 0) return;
 		for(int i=0; i<model.size(); i++)
 		{
 			String s = (String)model.get(i);
-			if (s.startsWith(currentSearchText))
+            Matcher m = p.matcher(s);
+            if (m.find())
+//            if (s.startsWith(currentSearchText))
 			{
 				list.setSelectedIndex(i);
 				list.ensureIndexIsVisible(i);
