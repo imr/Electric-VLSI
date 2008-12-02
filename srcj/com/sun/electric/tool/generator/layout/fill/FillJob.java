@@ -59,11 +59,13 @@ import java.awt.geom.Point2D;
 public class FillJob extends Job
 {
     private Cell topCell;
+    private boolean noFillGen; // for debugging purposes
 
-    public FillJob(Cell cell, boolean doItNow)
+    public FillJob(Cell cell, boolean doItNow, boolean noFill)
     {
         super("Fill generator job", null, Type.CHANGE, null, null, Priority.USER);
         this.topCell = cell;
+        this.noFillGen = noFill;
 
         if (doItNow) // call from regressions
         {
@@ -198,6 +200,7 @@ public class FillJob extends Job
             new CellChangeJobs.ExtractCellInstances(newCell, fillCells, Integer.MAX_VALUE, true, true);
 
             // generation of master fill
+            if (!noFillGen)
             generateFill(newCell, wideOption);
 
             // tiles generation. Flat generation for now
@@ -269,7 +272,6 @@ public class FillJob extends Job
         List<Route> routeList = new ArrayList<Route>();
         Layer[] topLayers = new Layer[2];
         Layer bottomLayer = null;
-//        List<String> exportsOnBottom = new ArrayList<String>();
         Map<String,Area> totalAreas = new HashMap<String,Area>();
 
         for (int i = 0; i < listOfLayers.size() - 1; i++)
@@ -321,8 +323,6 @@ public class FillJob extends Job
                     if (!isArcAligned(nai, !horizontal))
                         continue;
 
-//                    assert(nai.getProto().getNumArcLayers() == 1); // only 1 for now
-
                     Layer nl = nai.getProto().getLayer(0);
 
                     if (nl != top) continue; // ascending order is easy
@@ -365,8 +365,6 @@ public class FillJob extends Job
 
                 if (bottomLayer == null)
                     bottomLayer = bottom;
-//                if (bottom == bottomLayer)
-//                    exportsOnBottom.add(bottomName);
 
                 // Mark the layer as possible one of the top ones
                 if (!pairs.isEmpty())
@@ -375,6 +373,7 @@ public class FillJob extends Job
                     topLayers[1] = top;
                 }
 
+                Area a = remainingGeos.get(bottomName);
                 for (PinsArcPair pair : pairs)
                 {
                     //SplitContainter bottomSplit = splitArcAtPoint(mostLeft, pair.insert);
@@ -382,6 +381,14 @@ public class FillJob extends Job
                     Route r = router.planRoute(theCell,  mostLeft, pair.topArc, pair.insert, null, true, true, pair.cut);
                     //mostLeft = bottomSplit.rightArc;
                     routeList.add(r);
+
+                    // Extract area from possible remaining geometry. This will happen
+                    // when the wires are in zig-zag
+                    if (a != null) // there is a remainig area
+                    {
+                        Area remove = new Area(pair.cut);
+                        a.subtract(remove);
+                    }
                 }
                 for (Route r : routeList)
                 {
@@ -798,6 +805,8 @@ public class FillJob extends Job
         Network jNet = netlist.getNetwork(ai, 0);
         // Picking only 1 export and considering the root name`
         // Assuming at 1 export per arc
+        if (jNet == null)
+            return null;
         assert(jNet != null);
         Iterator<String> exportNames = jNet.getExportedNames();
         if (!exportNames.hasNext())
@@ -910,7 +919,8 @@ public class FillJob extends Job
             return (!DBMath.isGreaterThan(p1.getX(), p2.getX()));
         }
         else
-            assert(false); // not considered yet
+            System.out.println("Case not considered in FillJob:isLeftTop");
+//            assert(false); // not considered yet
         return false;
     }
 
