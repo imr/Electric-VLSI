@@ -418,12 +418,17 @@ public class FillJob extends Job
                         Rectangle2D r = ai.getBounds();
                         if (r.intersects(resultBnd))
                         {
-                            // found
-                            topA = ai;
-                            break;
+//                            if ((horizontal && DBMath.areEquals(r.getCenterY(), resultBnd.getCenterY())) ||
+//                                (!horizontal && DBMath.areEquals(r.getCenterX(), resultBnd.getCenterX())))
+                            {
+                                // found
+                                topA = ai;
+                                break;
+                            }
                         }
                     }
-                    assert (topA != null);
+                    if (topA == null)
+                        assert (topA != null);
                     EPoint insert = new EPoint(resultBnd.getCenterX(), resultBnd.getCenterY());
                     pairs.add(new PinsArcPair(topA, insert, resultBnd));
                 }
@@ -442,9 +447,15 @@ public class FillJob extends Job
                         Rectangle2D r = ai.getBounds();
                         if (r.contains(pair.insert))
                         {
-                            // found
-                            bottomA = ai;
-                            break;
+                            // Only accept arcs whose centers are aligned with the cut
+                            // otherwise diagonal arcs might be introduced.
+//                            if ((horizontal && DBMath.areEquals(r.getCenterY(), pair.insert.getY())) ||
+//                                (!horizontal && DBMath.areEquals(r.getCenterX(), pair.insert.getX())))
+                            {
+                                // found
+                                bottomA = ai;
+                                break;
+                            }
                         }
                     }
                     assert(bottomA != null);
