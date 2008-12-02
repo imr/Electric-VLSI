@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08n: ******************************
 
+IMP: (12/2/08, GVG) Resetting invalid text names in GDS import. Changes are meant for Bug #1968.
+
 BUG: (12/2/08, SMR) GDS import does not handle arrays of simple cells
      right when they are rotated (Bug #1901).
 FIX: Transform cell contents before adding it to the large polygon.

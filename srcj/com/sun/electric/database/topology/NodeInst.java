@@ -2668,24 +2668,25 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
      * @param parent parent Cell used for error message
 	 * @return true on error.
 	 */
-	protected static boolean checkNameKey(Name name, Cell parent)
+	public static boolean checkNameKey(Name name, Cell parent)
 	{
-		if (!name.isValid())
+        String extrMsg = (parent != null) ? parent.toString() : "";
+        if (!name.isValid())
 		{
-			System.out.println(parent + ": Invalid name \""+name+"\" wasn't assigned to node" + " :" + Name.checkName(name.toString()));
+			System.out.println(extrMsg + ": Invalid name \""+name+"\" wasn't assigned to node" + " :" + Name.checkName(name.toString()));
 			return true;
 		}
 		if (name.isTempname() && name.isBus())
 		{
-			System.out.println(parent + ": Temporary name \""+name+"\" can't be bus");
+			System.out.println(extrMsg + ": Temporary name \""+name+"\" can't be bus");
 			return true;
 		}
 		if (name.hasEmptySubnames())
 		{
 			if (name.isBus())
-				System.out.println(parent + ": Name \""+name+"\" with empty subnames wasn't assigned to node");
+				System.out.println(extrMsg + ": Name \""+name+"\" with empty subnames wasn't assigned to node");
 			else
-				System.out.println(parent + ": Cannot assign empty name \""+name+"\" to node");
+				System.out.println(extrMsg + ": Cannot assign empty name \""+name+"\" to node");
 			return true;
 		}
 		return false;

@@ -742,6 +742,11 @@ public class GDS extends Input
             this.hei = DBMath.round(hei);
             this.points = points;
             this.exportName = exportName;
+            if (nodeName != null && NodeInst.checkNameKey(nodeName, null))
+            {
+                // If name is not valid, a new one will be automatically created.
+                nodeName = null;
+            }
             this.nodeName = nodeName;
 		}
 
@@ -757,7 +762,7 @@ public class GDS extends Input
          */
         private boolean instantiate(Cell parent, Map<String,String> exportUnify) {
         	String name = nodeName.toString();
-            NodeInst ni = NodeInst.makeInstance(proto, loc, wid, hei, parent, orient, nodeName.toString(), 0);
+            NodeInst ni = NodeInst.makeInstance(proto, loc, wid, hei, parent, orient, name, 0);
 
             if (ni == null) return false;
             if (ni.getNameKey() != nodeName) {
@@ -983,7 +988,9 @@ public class GDS extends Input
 		countBox = countText = countNode = countPath = countShape = countSRef = countARef = countATotal = 0;
 		while (theToken != GDS_ENDSTR)
 		{
-			getElement();
+            if (theCell.cell.getName().startsWith("pch_18$$211602476"))
+                System.out.println("");
+            getElement();
 			getToken();
 		}
 		if (TALLYCONTENTS) showResultsOfCell();
