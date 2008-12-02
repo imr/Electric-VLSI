@@ -558,7 +558,7 @@ public class ToolMenu {
                     PLA.generate(); }},
                 new EMenuItem("New Fill Generator") { public void run() {
                     Cell cell = WindowFrame.getCurrentCell();
-                    new FillJob(cell, false); }},
+                    new FillJob(cell, false, false); }},
                 new EMenuItem("_Fill (MoCMOS)...") { public void run() {
                     FillGenDialog.openFillGeneratorDialog(Technology.getMocmosTechnology()); }},
                 Technology.getTSMC180Technology() != null ?  new EMenuItem("Fi_ll (TSMC180)...") { public void run() {
