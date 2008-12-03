@@ -65,6 +65,8 @@ import java.util.Set;
  */
 public abstract class Topology extends Output
 {
+	private static final boolean DEBUGTOPOLOGY = false;
+
 	/** top-level cell being processed */			protected Cell topCell;
 
 	/** Map of all CellTopologies */				private Map<String,CellNetInfo> cellTopos;
@@ -433,35 +435,38 @@ public abstract class Topology extends Output
 		HierarchyEnumerator.CellInfo info)
 	{
 		CellNetInfo cni = doGetNetworks(cell, quiet, paramName, useExportedName, info);
-//printWriter.println("********Decomposition of " + cell);
-//printWriter.println("** Have " + cni.cellSignalsSorted.size() + " signals:");
-//for(Iterator<CellSignal> it = cni.getCellSignals(); it.hasNext(); )
-//{
-//	CellSignal cs = it.next();
-//	printWriter.println("**   Name="+cs.name+" export="+cs.pp+" index="+cs.ppIndex+" descending="+cs.descending+" power="+cs.power+" ground="+cs.ground+" global="+cs.globalSignal);
-//}
-//if (isAggregateNamesSupported())
-//{
-//	printWriter.println("** Have " + cni.cellAggregateSignals.size() + " aggregate signals:");
-//	for(CellAggregateSignal cas : cni.cellAggregateSignals)
-//	{
-//		printWriter.print("**   Name="+cas.name+", export="+cas.pp+" descending="+cas.descending);
-//		if (cas.indices != null)
-//		{
-//			printWriter.print(", indices=");
-//			for(int i=0; i<cas.indices.length; i++)
-//			{
-//				if (i != 0) printWriter.print(",");
-//				printWriter.print(cas.indices[i]);
-//			}
-//			printWriter.println();
-//		} else
-//		{
-//			printWriter.println(", low="+cas.low+", high="+cas.high);
-//		}
-//	}
-//}
-//printWriter.println("********DONE WITH " + cell);
+		if (DEBUGTOPOLOGY)
+		{
+			printWriter.println("********Decomposition of " + cell);
+			printWriter.println("** Have " + cni.cellSignalsSorted.size() + " signals:");
+			for(Iterator<CellSignal> it = cni.getCellSignals(); it.hasNext(); )
+			{
+				CellSignal cs = it.next();
+				printWriter.println("**   Name="+cs.name+" export="+cs.pp+" index="+cs.ppIndex+" descending="+cs.descending+" power="+cs.power+" ground="+cs.ground+" global="+cs.globalSignal);
+			}
+			if (isAggregateNamesSupported())
+			{
+				printWriter.println("** Have " + cni.cellAggregateSignals.size() + " aggregate signals:");
+				for(CellAggregateSignal cas : cni.cellAggregateSignals)
+				{
+					printWriter.print("**   Name="+cas.name+", export="+cas.pp+" descending="+cas.descending);
+					if (cas.indices != null)
+					{
+						printWriter.print(", indices=");
+						for(int i=0; i<cas.indices.length; i++)
+						{
+							if (i != 0) printWriter.print(",");
+							printWriter.print(cas.indices[i]);
+						}
+						printWriter.println();
+					} else
+					{
+						printWriter.println(", low="+cas.low+", high="+cas.high);
+					}
+				}
+			}
+			printWriter.println("********DONE WITH " + cell);
+		}
 		return cni;
 	}
 
@@ -800,7 +805,7 @@ public abstract class Topology extends Output
 					{
 						CellSignal csEnd = cni.cellSignalsSorted.get(j);
 						if (csEnd.descending != cs.descending) break;
-						if (cell.isSchematic() && csEnd.pp != cs.pp) break;
+//						if (cell.isSchematic() && csEnd.pp != cs.pp) break;
 						if (csEnd.globalSignal != cs.globalSignal) break;
 						String endName = csEnd.name;
 						String ept = unIndexedName(endName);

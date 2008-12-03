@@ -1064,8 +1064,8 @@ public class Verilog extends Topology
 					PortCharacteristic subtype = subex.getCharacteristic();
 					if (type != subtype) {
 						System.out.println("Warning: Port Direction Inconsistency in cell "+cell.describe(false)+
-							" between export "+ex.getNameKey().subname(i)+"["+type+"] and instance port "+
-							subex.getParent().noLibDescribe()+" - "+subex.getName()+"["+subtype+"]");
+							" between export "+ex.getNameKey().subname(i)+" ("+type+") and instance port "+
+							subex.getParent().noLibDescribe()+" - "+subex.getName()+" ("+subtype+")");
 					}
 				}
 			}

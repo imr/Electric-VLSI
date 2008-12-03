@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08n: ******************************
 
+BUG: (12/3/08, SMR) Verilog netlister should merge schematic signals when they are
+     parts of the same bus (Bug #1963).
+FIX: In Topology.doGetNetworks(), no longer insist that exports be the same in order
+     to unify a bus.
+
 BUG: (12/3/08, GVG) Assertion in new fill generator (Bug #1960)
 FIX: Improved the generator to deal with zig-zag conditions.
 
