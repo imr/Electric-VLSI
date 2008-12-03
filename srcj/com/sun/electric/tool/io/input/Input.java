@@ -193,7 +193,7 @@ public class Input
 
 		if (lib == null)
 		{
-			System.out.println("Error importing " + fileURL.getFile());
+			System.out.println("Error importing " + fileURL.getFile() + " as " + type + " format.");
 		} else
 		{
 			long endTime = System.currentTimeMillis();

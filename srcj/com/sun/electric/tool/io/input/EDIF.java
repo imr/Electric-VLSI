@@ -419,7 +419,7 @@ public class EDIF extends Input
 		if (errorCount != 0 || warningCount != 0)
 			System.out.println("A total of " + errorCount + " errors, and " + warningCount + " warnings encountered during load");
 
-		if (Job.getUserInterface().getCurrentCell(curLibrary) == null && curLibrary.getCells().hasNext())
+		if (curLibrary != null && Job.getUserInterface().getCurrentCell(curLibrary) == null && curLibrary.getCells().hasNext())
 			Job.getUserInterface().setCurrentCell(curLibrary, curLibrary.getCells().next());
 		return curLibrary;
 	}

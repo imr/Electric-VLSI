@@ -84,7 +84,7 @@ public class Applicon860 extends Input
 	{
 		try
 		{
-			readAppleLibrary(lib);
+			if (!readAppleLibrary(lib)) return null; // error reading the file
 		} catch (IOException e) {}
 		return lib;
 	}
@@ -93,7 +93,13 @@ public class Applicon860 extends Input
 	 * Method to read the Applicon file.
 	 * @param lib the Library to fill.
 	 */
-	private void readAppleLibrary(Library lib)
+    /**
+     * Method to read the Applicon file.
+     * @param lib the Library to fill.
+     * @return True if no error was found
+     * @throws IOException
+     */
+    private boolean readAppleLibrary(Library lib)
 		throws IOException
 	{
 		String str;
@@ -119,7 +125,7 @@ public class Applicon860 extends Input
 			if (chain != 3 && chain != 1)
 			{
 				System.out.println("CHAIN=" + chain + " at byte " + byteCount);
-				return;
+				return false;
 			}
 			length = appleGetWord();
 			type = appleGetWord();
@@ -132,7 +138,7 @@ public class Applicon860 extends Input
 						if (type == 2)
 							System.out.println("Top global parameter length=" + length); else
 								System.out.println("Cell global parameter length=" + length);
-						return;
+						return false;
 					}
 					name = "";
 					for(int k=0; k<30; k++) name += dataInputStream.readByte();
@@ -167,7 +173,7 @@ public class Applicon860 extends Input
 					if (curfacet == null)
 					{
 						System.out.println("Cannot create facet '" + name.substring(st) + "'");
-						return;
+						return false;
 					}
 					break;
 	
@@ -175,7 +181,7 @@ public class Applicon860 extends Input
 					if (length != 9)
 					{
 						System.out.println("Element instance length=" + length);
-						return;
+						return false;
 					}
 					lvlgrp = appleGetWord();
 					levels = appleGetWord() & 0xFFFF;
@@ -184,7 +190,7 @@ public class Applicon860 extends Input
 					if (i >= 32)
 					{
 						System.out.println("Unknown layer code " + levels);
-						return;
+						return false;
 					}
 					layer = lvlgrp * 32 + i + 1;
 					appleGetWord();
@@ -230,7 +236,7 @@ public class Applicon860 extends Input
 						if (chain != 2 && chain != 0)
 						{
 							System.out.println("END CHAIN=" + chain + " at byte " + byteCount);
-							return;
+							return false;
 						}
 						length -= POLYSPLIT;
 						offset = 0;
@@ -274,7 +280,7 @@ public class Applicon860 extends Input
 					{
 						Point2D center = new Point2D.Double((lx+hx)/2, (ly+hy)/2);
 						ni = NodeInst.newInstance(layernp, center, hx-lx, hy-ly, curfacet);
-						if (ni == null) return;
+						if (ni == null) return false;
 						ni.newVar(NodeInst.TRACE, ptrace);
 					}
 					break;
@@ -283,7 +289,7 @@ public class Applicon860 extends Input
 					if (length != 3)
 					{
 						System.out.println("Flag length=" + length);
-						return;
+						return false;
 					}
 					appleGetWord();	// flag
 					break;
@@ -346,7 +352,7 @@ public class Applicon860 extends Input
 					if (length != 17)
 					{
 						System.out.println("Cell name length=" + length);
-						return;
+						return false;
 					}
 					cellname = "";
 					for(int k=0; k<30; k++) cellname += dataInputStream.readByte();
@@ -357,7 +363,7 @@ public class Applicon860 extends Input
 					if (subnp == null)
 					{
 						System.out.println("Instance of cell '" + cellname.substring(st) + "' not found");
-						return;
+						return false;
 					}
 					break;
 	
@@ -365,7 +371,7 @@ public class Applicon860 extends Input
 					if (length != 6)
 					{
 						System.out.println("Cell instance header length=" + length);
-						return;
+						return false;
 					}
 					appleGetWord();
 					appleGetWord();
@@ -447,7 +453,7 @@ public class Applicon860 extends Input
 						double vy = dest.getY() + y1;
 						Point2D center = new Point2D.Double(subBounds.getWidth(), subBounds.getHeight());
 						ni = NodeInst.newInstance(subnp, center, vx*2, vy*2, curfacet, orient, null, 0);
-						if (ni == null) return;
+						if (ni == null) return false;
 					}
 					break;
 	
@@ -455,12 +461,12 @@ public class Applicon860 extends Input
 					if (length != 2)
 					{
 						System.out.println("End definition length=" + length);
-						return;
+						return false;
 					}
 					if (curfacet == null)
 					{
 						System.out.println("End definition has no associated begin");
-						return;
+						return false;
 					}
 
 					curfacet = null;
@@ -480,10 +486,11 @@ public class Applicon860 extends Input
 					break;
 				default:
 					System.out.println("Unknown record type: " + type);
-				return;
+                return true;
 			}
 		}
-	}
+//        return true;
+    }
 	
 	/**
 	 * Method to get the chain value from disk.

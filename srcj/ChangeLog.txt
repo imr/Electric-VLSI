@@ -6,6 +6,8 @@ NOTE: Please place changes under the version that will be released next.
 
 BUG: (12/2/08, GVG) NPE in GDS import if non-GDS file is uploaded (Bug #1970)
 FIX: Avoid to print cell name if cell hasn't been created yet.
+It also deals with errors while importing EDIF, LEF, DEF, DXF, SUE, Verilog and Applicon
+when a non-<format> file is uploaded. Improving error message for ELIB and readable dump.
 
 IMP: (12/2/08, GVG) Resetting invalid text names in GDS import. Changes are meant for Bug #1968.
 

@@ -106,8 +106,8 @@ public class DEF extends LEFDEF
 		// read the file
 		try
 		{
-			readFile(lib);
-		} catch (IOException e)
+			if (!readFile(lib)) return null; // error during reading
+        } catch (IOException e)
 		{
 			System.out.println("ERROR reading DEF libraries");
 		}

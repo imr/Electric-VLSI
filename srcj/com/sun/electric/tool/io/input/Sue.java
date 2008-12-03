@@ -270,8 +270,8 @@ public class Sue extends Input
 		try
 		{
 			Cell topCell = readFile(lib, cellName, lineReader);
-			if (topCell != null)
-				Job.getUserInterface().setCurrentCell(lib, topCell);
+            if (topCell == null) return null;
+            Job.getUserInterface().setCurrentCell(lib, topCell);
 		} catch (IOException e)
 		{
 			System.out.println("ERROR reading Sue libraries");

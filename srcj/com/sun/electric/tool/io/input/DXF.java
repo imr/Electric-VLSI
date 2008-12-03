@@ -147,12 +147,17 @@ public class DXF extends Input
 		inputMode = 0;
 		for(;;)
 		{
-			if (getNextPair()) break;
+			if (getNextPair())
+            {
+                err = true;
+                break;
+            }
 
 			// must have section change here
 			if (groupID != 0)
 			{
 				System.out.println("Expected group 0 (start section) at line " + lineReader.getLineNumber());
+                err = true;
 				break;
 			}
 

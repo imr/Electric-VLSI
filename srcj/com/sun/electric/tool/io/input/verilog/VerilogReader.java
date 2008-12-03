@@ -625,8 +625,8 @@ public class VerilogReader extends Input
         initKeywordParsing();
         boolean fullOyster = true;
         VerilogData verilogData = parseVerilogInternal(lib.getName(), fullOyster);
-        buildCells(verilogData, lib, fullOyster);
-        return lib;
+        Cell topCell = buildCells(verilogData, lib, fullOyster);
+        return (topCell != null) ? lib : null;
     }
 
     public VerilogData parseVerilog(String[] lines, String verilogName)

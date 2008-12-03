@@ -92,8 +92,8 @@ public class LEF extends LEFDEF
 
 		try
 		{
-			readFile(lib);
-		} catch (IOException e)
+            if (!readFile(lib)) return null; // error during reading
+        } catch (IOException e)
 		{
 			System.out.println("ERROR reading LEF libraries");
 		}

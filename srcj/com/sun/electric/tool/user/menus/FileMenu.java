@@ -528,7 +528,11 @@ public class FileMenu {
             if (projsettings != null)
                 ProjSettings.readSettings(projsettings, false);
             lib = LibraryFiles.readLibrary(fileURL, null, type, false);
-            if (lib == null) return false;
+            if (lib == null)
+            {
+                System.out.println("Error importing " + fileURL.getFile() + " as " + type + " format.");
+                return false;
+            }
             fieldVariableChanged("lib");
 
              // new library open: check for default "noname" library and close if empty
