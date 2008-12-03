@@ -401,7 +401,7 @@ public class FillJob extends Job
             {
                 Area a = e.getValue();
                 Netlist netlist = theCell.getNetlist();
-                List<PolyBase> list = PolyBase.getPointsInArea(a, bottomLayer, false, false);
+                List<PolyBase> list = PolyBase.getPointsInArea(a, bottom, false, false);
                 List<ArcInst> at = getArcsInGivenLayer(theCell.getArcs(), !horizontal, top,  e.getKey(), netlist);
                 List<PinsArcPair> pairs = new ArrayList<PinsArcPair>(2);
 
@@ -411,15 +411,35 @@ public class FillJob extends Job
                 {
                     Rectangle2D resultBnd = p.getBounds2D();
                     // look for the first pair of arcs in bottom/top arcs that overlap with geometry
-                    ArcInst topA = null;
+                    ArcInst topA = null, topAPerfect = null; // perferct if fully contains the arc
 
                     for (ArcInst ai : at)
                     {
                         Rectangle2D r = ai.getBounds();
                         if (r.intersects(resultBnd))
                         {
-//                            if ((horizontal && DBMath.areEquals(r.getCenterY(), resultBnd.getCenterY())) ||
-//                                (!horizontal && DBMath.areEquals(r.getCenterX(), resultBnd.getCenterX())))
+                            topA = ai;
+                            if ((!horizontal && DBMath.areEquals(r.getCenterY(), resultBnd.getCenterY())) ||
+                                (horizontal && DBMath.areEquals(r.getCenterX(), resultBnd.getCenterX())))
+                            {
+                                // found
+                                topAPerfect = ai;
+                                break;
+                            }
+                        }
+                    }
+//                    if (topAPerfect != null)
+                        topA = topAPerfect;
+
+                    if (topA == null)
+                    {
+                    for (ArcInst ai : at)
+                    {
+                        Rectangle2D r = ai.getBounds();
+                        if (r.intersects(resultBnd))
+                        {
+                            if ((!horizontal && DBMath.areEquals(r.getCenterY(), resultBnd.getCenterY())) ||
+                                (horizontal && DBMath.areEquals(r.getCenterX(), resultBnd.getCenterX())))
                             {
                                 // found
                                 topA = ai;
@@ -427,10 +447,13 @@ public class FillJob extends Job
                             }
                         }
                     }
-                    if (topA == null)
-                        assert (topA != null);
+//                        assert (topA != null);
+                    }
+                    if (topA != null)
+                    {
                     EPoint insert = new EPoint(resultBnd.getCenterX(), resultBnd.getCenterY());
                     pairs.add(new PinsArcPair(topA, insert, resultBnd));
+                    }
                 }
                 // Sort the new pairs from left/top to right/bottom
                 Collections.sort(pairs, pinsArcSort);
@@ -447,10 +470,13 @@ public class FillJob extends Job
                         Rectangle2D r = ai.getBounds();
                         if (r.contains(pair.insert))
                         {
+                            // at least one solution doesn't work because of misaligment in the arc ports
+                            // that can lead to diagonal arcs
+//                            bottomA = ai;
                             // Only accept arcs whose centers are aligned with the cut
                             // otherwise diagonal arcs might be introduced.
-//                            if ((horizontal && DBMath.areEquals(r.getCenterY(), pair.insert.getY())) ||
-//                                (!horizontal && DBMath.areEquals(r.getCenterX(), pair.insert.getX())))
+                            if ((horizontal && DBMath.areEquals(r.getCenterY(), pair.insert.getY())) ||
+                                (!horizontal && DBMath.areEquals(r.getCenterX(), pair.insert.getX())))
                             {
                                 // found
                                 bottomA = ai;
@@ -458,16 +484,25 @@ public class FillJob extends Job
                             }
                         }
                     }
-                    assert(bottomA != null);
-                    //SplitContainter bottomSplit = splitArcAtPoint(bottomA, pair.insert);
-                    //SplitContainter topSplit = splitArcAtPoint(pair.topArc, pair.insert);
-                    Route r = router.planRoute(theCell,  bottomA, pair.topArc, pair.insert, null, true, true, pair.cut);
-                    // remove the old one and add new arc
-                    ab.remove(bottomA);
-                    //ab.add(bottomSplit.rightArc);
-                    topLayers[0] = bottom;
-                    topLayers[1] = top;
-                    routeList.add(r);
+//                    if (bottomAPerfect != null)
+//                        bottomA = bottomAPerfect;
+                    if (bottomA != null)
+                    {
+                        //SplitContainter bottomSplit = splitArcAtPoint(bottomA, pair.insert);
+                        //SplitContainter topSplit = splitArcAtPoint(pair.topArc, pair.insert);
+                        Route r = router.planRoute(theCell,  bottomA, pair.topArc, pair.insert, null, true, true, pair.cut);
+                        // remove the old one and add new arc
+                        ab.remove(bottomA);
+                        //ab.add(bottomSplit.rightArc);
+                        topLayers[0] = bottom;
+                        topLayers[1] = top;
+                        routeList.add(r);
+                    }
+                    else if (Job.getDebug())
+                    {
+//                    assert(bottomA != null);
+                        System.out.println("AFG: It couldn't find bottom layer for " + pair.cut);
+                    }
                 }
                 for (Route r : routeList)
                 {
