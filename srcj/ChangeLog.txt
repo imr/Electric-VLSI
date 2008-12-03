@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08n: ******************************
 
+IMP: (12/3/08, SMR) Dummy layers now appear at the bottom of the Layers tab (Bug #1946).
+
 IMP/MAN (12/3/08, SMR) The "Text Search" dialog has been augmented to let
      you restrict the text search to specific Code and Unit values (Bug #1519).
 

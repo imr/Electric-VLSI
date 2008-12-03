@@ -29,7 +29,6 @@ import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
-import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 
 import java.awt.Color;
@@ -58,6 +57,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
@@ -73,13 +73,13 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
 {
 	private JList layerList;
 	private DefaultListModel layerListModel;
-	private HashMap<Layer,Boolean> highlighted;
+	private Map<Layer,Boolean> highlighted;
 	private List<Layer> layersInList;
 	private DragSource dragSource;
 	private boolean loading;
 	private boolean layerDrawing;
 
-	private static HashMap<Layer,Boolean> visibility;
+	private static Map<Layer,Boolean> visibility;
 
 	/**
 	 * Constructor creates a new panel for the Layers tab.
@@ -257,6 +257,18 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
 			// see if a preferred order has been saved
 			List<Layer> savedOrder = tech.getSavedLayerOrder();
 			List<Layer> allLayers = tech.getLayersSortedByHeight();
+
+			// put the dummy layers at the end of the list
+			List<Layer> dummyLayers = new ArrayList<Layer>();
+			for(Layer lay : allLayers)
+			{
+				if (lay.getFunction().isDummy() || lay.getFunction().isDummyExclusion())
+					dummyLayers.add(lay);
+			}
+			for(Layer lay : dummyLayers) allLayers.remove(lay);
+			for(Layer lay : dummyLayers) allLayers.add(lay);
+
+			// add special layers in layout technologies
 			if (tech.isLayout())
 			{
 				allLayers.add(Generic.tech().drcLay);
@@ -476,7 +488,7 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
         if (level == 0) {
             for (int i=0; i<len; i++) {
                 Layer layer = getSelectedLayer(i);
-                visibility.put(layer, true);
+                visibility.put(layer, Boolean.TRUE);
                 layerListModel.set(i, lineName(layer));
             }
         }
@@ -509,18 +521,16 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
                 }
             }
         }
-/*
         // turn on all layers with the same height as the main metal layer
         if (metalLayer != null) {
-            for (int i=0; i<len; i++) {
-                Layer layer = getSelectedLayer(i);
-                if (layer.getFunction().getHeight() == metalLayer.getFunction().getHeight()) {
-                    visibility.put(layer, true);
-                    layerListModel.set(i, lineName(layer));
-                }
-            }
+//            for (int i=0; i<len; i++) {
+//                Layer layer = getSelectedLayer(i);
+//                if (layer.getFunction().getHeight() == metalLayer.getFunction().getHeight()) {
+//                    visibility.put(layer, true);
+//                    layerListModel.set(i, lineName(layer));
+//                }
+//            }
         }
-*/
 
         update();
 	}
