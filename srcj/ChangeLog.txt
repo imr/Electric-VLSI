@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08n: ******************************
 
+BUG: (12/2/08, GVG) NPE in GDS import if non-GDS file is uploaded (Bug #1970)
+FIX: Avoid to print cell name if cell hasn't been created yet.
+
 IMP: (12/2/08, GVG) Resetting invalid text names in GDS import. Changes are meant for Bug #1968.
 
 BUG: (12/2/08, SMR) GDS import does not handle arrays of simple cells

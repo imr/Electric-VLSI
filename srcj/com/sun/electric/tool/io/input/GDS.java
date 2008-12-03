@@ -1957,9 +1957,11 @@ public class GDS extends Input
 	private void handleError(String msg)
 		throws IOException
 	{
-        String message = "Error: " + msg + " at byte " + byteCount;
-		System.out.println(message);
-        errorLogger.logError(message, theCell.cell, 0);
+        String message = "Error: " + msg + " at byte " + byteCount +
+            " in '" + filePath + "'";
+        Cell cell = theCell != null ? theCell.cell : null;
+        System.out.println(message);
+        errorLogger.logError(message, cell, 0);
 		throw new IOException();
 	}
 
