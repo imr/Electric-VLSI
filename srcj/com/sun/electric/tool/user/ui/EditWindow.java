@@ -522,10 +522,10 @@ public class EditWindow extends JPanel
 		for(Iterator<Cell> it = group.getCells(); it.hasNext(); )
 		{
 			Cell c = it.next();
-            View cV = c.getView();
-            if (cV == View.DOC)
-                continue; // skip document
-            if (cV == View.ICON)
+			View cV = c.getView();
+			if (cV == View.DOC)
+				continue; // skip document
+			if (cV == View.ICON)
 			{
 				if (cell.getView() == View.SCHEMATIC || cell.getView() == View.ICON) return c;
 			} else if (cV != View.SCHEMATIC)
@@ -574,7 +574,7 @@ public class EditWindow extends JPanel
 		}
 		if (toDraw instanceof PrimitiveNode)
 		{
-            defAngle = User.getNewNodeRotation();
+			defAngle = User.getNewNodeRotation();
 		}
 		if (np != null)
 		{
@@ -1113,42 +1113,42 @@ public class EditWindow extends JPanel
 		return null;
 	}
 
-    /**
-     * Method to bring to the front a WindowFrame associated to a given Cell.
-     * If no WindowFrame is found, a new WindowFrame will be created and displayed
-     * @param c
-     * @param varC
-     * @return
-     */
-    public static EditWindow showEditWindowForCell(Cell c, VarContext varC)
-    {
-        for(Iterator<WindowFrame> it2 = WindowFrame.getWindows(); it2.hasNext(); )
-        {
-            WindowFrame wf = it2.next();
-            WindowContent content = wf.getContent();
-            if (c != content.getCell())
-                continue;
-            if (!(content instanceof EditWindow))
-                continue;
-            EditWindow wnd = (EditWindow)content;
-            if (varC != null) // it has to be an EditWindow class
-            {
-                // VarContexts must match
-                if (!varC.equals(wnd.getVarContext()))
-                    continue;
-            }
-            WindowFrame.showFrame(wf);
-            return wnd;
-        }
+	/**
+	 * Method to bring to the front a WindowFrame associated to a given Cell.
+	 * If no WindowFrame is found, a new WindowFrame will be created and displayed
+	 * @param c the Cell in the window to raise.
+	 * @param varC the Context of that window.
+	 * @return the EditWindow of the cell that was found or created.
+	 */
+	public static EditWindow showEditWindowForCell(Cell c, VarContext varC)
+	{
+		for(Iterator<WindowFrame> it2 = WindowFrame.getWindows(); it2.hasNext(); )
+		{
+			WindowFrame wf = it2.next();
+			WindowContent content = wf.getContent();
+			if (c != content.getCell())
+				continue;
+			if (!(content instanceof EditWindow))
+				continue;
+			EditWindow wnd = (EditWindow)content;
+			if (varC != null) // it has to be an EditWindow class
+			{
+				// VarContexts must match
+				if (!varC.equals(wnd.getVarContext()))
+					continue;
+			}
+			WindowFrame.showFrame(wf);
+			return wnd;
+		}
 
-        // If no window is found, then create one
-        WindowFrame wf = WindowFrame.createEditWindow(c);
-        EditWindow wnd = (EditWindow)wf.getContent();
-        wnd.setCell(c, varC, null);
-        return wnd;
-    }
+		// If no window is found, then create one
+		WindowFrame wf = WindowFrame.createEditWindow(c);
+		EditWindow wnd = (EditWindow)wf.getContent();
+		wnd.setCell(c, varC, null);
+		return wnd;
+	}
 
-    public List<MutableTreeNode> loadExplorerTrees()
+	public List<MutableTreeNode> loadExplorerTrees()
 	{
 		return wf.loadDefaultExplorerTree();
 	}
@@ -1334,7 +1334,7 @@ public class EditWindow extends JPanel
 
 			// draw a red box around the cell being edited
 			g.setStroke(inPlaceMarker);
-	        g.setColor(new Color(User.getColor(User.ColorPrefType.DOWNINPLACEBORDER)));
+			g.setColor(new Color(User.getColor(User.ColorPrefType.DOWNINPLACEBORDER)));
 			int lX = Math.min(Math.min(i1.x, i2.x), Math.min(i3.x, i4.x));
 			int hX = Math.max(Math.max(i1.x, i2.x), Math.max(i3.x, i4.x));
 			int lY = Math.min(Math.min(i1.y, i2.y), Math.min(i3.y, i4.y));
@@ -1996,8 +1996,8 @@ public class EditWindow extends JPanel
 			return p;
 		}
 
-		private void searchTextNodes(Cell cell, String search, boolean caseSensitive, boolean regExp,
-			Set whatToSearch, Pattern pattern, Set<Geometric> examineThis)
+		private void searchTextNodes(Cell cell, String search, boolean caseSensitive, boolean regExp, Set whatToSearch,
+			CodeExpression.Code codeRestr, TextDescriptor.Unit unitRestr, Pattern pattern, Set<Geometric> examineThis)
 		{
 			boolean doTemp = whatToSearch.contains(TextUtils.WhatToSearch.TEMP_NAMES);
 			TextUtils.WhatToSearch what = get(whatToSearch, TextUtils.WhatToSearch.NODE_NAME);
@@ -2011,16 +2011,17 @@ public class EditWindow extends JPanel
 					Name name = ni.getNameKey();
 					if (doTemp || !name.isTempname())
 					{
-						findAllMatches(ni, NodeInst.NODE_NAME, 0, name.toString(), search, caseSensitive, regExp, pattern);
+						findAllMatches(ni, NodeInst.NODE_NAME, 0, name.toString(),
+							search, caseSensitive, regExp, pattern, codeRestr, unitRestr);
 					}
 				}
 				if (whatVar != null)
-					addVariableTextToList(ni, search, caseSensitive,regExp, pattern);
+					addVariableTextToList(ni, search, caseSensitive,regExp, pattern, codeRestr, unitRestr);
 			}
 		}
 
-		private void searchTextArcs(Cell cell, String search, boolean caseSensitive, boolean regExp,
-			Set whatToSearch, Pattern pattern, Set<Geometric> examineThis)
+		private void searchTextArcs(Cell cell, String search, boolean caseSensitive, boolean regExp, Set whatToSearch,
+			CodeExpression.Code codeRestr, TextDescriptor.Unit unitRestr, Pattern pattern, Set<Geometric> examineThis)
 		{
 			boolean doTemp = whatToSearch.contains(TextUtils.WhatToSearch.TEMP_NAMES);
 			TextUtils.WhatToSearch what = get(whatToSearch, TextUtils.WhatToSearch.ARC_NAME);
@@ -2035,16 +2036,16 @@ public class EditWindow extends JPanel
 					if (doTemp || !name.isTempname())
 					{
 						findAllMatches(ai, ArcInst.ARC_NAME, 0, name.toString(),
-							search, caseSensitive, regExp, pattern);
+							search, caseSensitive, regExp, pattern, codeRestr, unitRestr);
 					}
 				}
 				if (whatVar != null)
-					addVariableTextToList(ai, search, caseSensitive, regExp, pattern);
+					addVariableTextToList(ai, search, caseSensitive, regExp, pattern, codeRestr, unitRestr);
 			}
 		}
 
-		private void searchTextExports(Cell cell, String search, boolean caseSensitive, boolean regExp,
-			Set whatToSearch, Pattern pattern, Set<Geometric> examineThis)
+		private void searchTextExports(Cell cell, String search, boolean caseSensitive, boolean regExp, Set whatToSearch,
+			CodeExpression.Code codeRestr, TextDescriptor.Unit unitRestr, Pattern pattern, Set<Geometric> examineThis)
 		{
 			WhatToSearch what = get(whatToSearch, TextUtils.WhatToSearch.EXPORT_NAME);
 			TextUtils.WhatToSearch whatVar = get(whatToSearch, TextUtils.WhatToSearch.EXPORT_VAR);
@@ -2055,15 +2056,16 @@ public class EditWindow extends JPanel
 				if (what != null)
 				{
 					Name name = pp.getNameKey();
-					findAllMatches(pp, Export.EXPORT_NAME, 0, name.toString(), search, caseSensitive, regExp, pattern);
+					findAllMatches(pp, Export.EXPORT_NAME, 0, name.toString(),
+						search, caseSensitive, regExp, pattern, codeRestr, unitRestr);
 				}
 				if (whatVar != null)
-					addVariableTextToList(pp, search, caseSensitive, regExp, pattern);
+					addVariableTextToList(pp, search, caseSensitive, regExp, pattern, codeRestr, unitRestr);
 			}
 		}
 
-		private void searchTextCellVars(Cell cell, String search, boolean caseSensitive, boolean regExp,
-			Set whatToSearch, Pattern pattern, Rectangle2D highBounds)
+		private void searchTextCellVars(Cell cell, String search, boolean caseSensitive, boolean regExp, Set whatToSearch,
+			CodeExpression.Code codeRestr, TextDescriptor.Unit unitRestr, Pattern pattern, Rectangle2D highBounds)
 		{
 			WhatToSearch whatVar = get(whatToSearch, TextUtils.WhatToSearch.CELL_VAR);
 			if (whatVar != null)
@@ -2077,8 +2079,8 @@ public class EditWindow extends JPanel
 						if (var.getXOff() < highBounds.getMinX() || var.getXOff() > highBounds.getMaxX() ||
 							var.getYOff() < highBounds.getMinY() || var.getYOff() > highBounds.getMaxY()) continue;
 					}
-					findAllMatches(null, var.getKey(), -1, var.getPureValue(-1),
-							search, caseSensitive, regExp, pattern);
+					findAllMatches(cell, var.getKey(), -1, var.getPureValue(-1),
+							search, caseSensitive, regExp, pattern, codeRestr, unitRestr);
 				}
 			}
 		}
@@ -2120,10 +2122,10 @@ public class EditWindow extends JPanel
 			if (sic.object == null)
 			{
 				// cell variable name name
-                if (cell.isParam(sic.key))
-                    cell.getCellGroup().updateParamText((Variable.AttrKey)sic.key, newString);
-                else
-                    cell.updateVarText(sic.key, newString);
+				if (cell.isParam(sic.key))
+					cell.getCellGroup().updateParamText((Variable.AttrKey)sic.key, newString);
+				else
+					cell.updateVarText(sic.key, newString);
 			} else
 			{
 				if (sic.key == NodeInst.NODE_NAME)
@@ -2202,11 +2204,14 @@ public class EditWindow extends JPanel
 		 * @param caseSensitive true to match only where the case is the same.
 		 * @param regExp true if the search string is a regular expression.
 		 * @param whatToSearch a collection of text types to consider.
+		 * @param codeRestr a restriction on types of Code to consider (null to consider all Code values).
+		 * @param unitRestr a restriction on types of Units to consider (null to consider all Unit values).
 		 * @param highlightedOnly true to search only in the highlighted area.
 		 * @param wnd the window in which search is being done (used if "highlightedOnly" is true).
 		 */
 		public void initTextSearch(Cell cell, String search, boolean caseSensitive, boolean regExp,
-			Set<TextUtils.WhatToSearch> whatToSearch, boolean highlightedOnly, EditWindow wnd)
+			Set<TextUtils.WhatToSearch> whatToSearch, CodeExpression.Code codeRestr, TextDescriptor.Unit unitRestr,
+			boolean highlightedOnly, EditWindow wnd)
 		{
 			foundInCell = new ArrayList<StringsInCell>();
 			if (cell == null)
@@ -2248,11 +2253,11 @@ public class EditWindow extends JPanel
 			}
 
 			// initialize the search
-			searchTextNodes(cell, search, caseSensitive, regExp, whatToSearch, pattern, examineThis);
-			searchTextArcs(cell, search, caseSensitive, regExp, whatToSearch, pattern, examineThis);
-			searchTextExports(cell, search, caseSensitive, regExp, whatToSearch, pattern, examineThis);
-			searchTextCellVars(cell, search, caseSensitive, regExp, whatToSearch, pattern, highBounds);
-			if (foundInCell.size()==0) System.out.println("Nothing found");
+			searchTextNodes(cell, search, caseSensitive, regExp, whatToSearch, codeRestr, unitRestr, pattern, examineThis);
+			searchTextArcs(cell, search, caseSensitive, regExp, whatToSearch, codeRestr, unitRestr, pattern, examineThis);
+			searchTextExports(cell, search, caseSensitive, regExp, whatToSearch, codeRestr, unitRestr, pattern, examineThis);
+			searchTextCellVars(cell, search, caseSensitive, regExp, whatToSearch, codeRestr, unitRestr, pattern, highBounds);
+			if (foundInCell.size() == 0) System.out.println("Nothing found");
 			currentFindPosition = -1;
 		}
 
@@ -2317,9 +2322,19 @@ public class EditWindow extends JPanel
 		 * @param search the string to find.
 		 * @param caseSensitive true to do a case-sensitive
 		 */
-		protected void findAllMatches(Object object, Variable.Key key, int lineInVariable,
-			String theLine, String search, boolean caseSensitive, boolean regExp, Pattern p)
+		private void findAllMatches(ElectricObject object, Variable.Key key, int lineInVariable,
+			String theLine, String search, boolean caseSensitive, boolean regExp, Pattern p,
+			CodeExpression.Code codeRestr, TextDescriptor.Unit unitRestr)
 		{
+			if (codeRestr != null || unitRestr != null)
+			{
+				Variable var = object.getVar(key);
+				if (var != null)
+				{
+					if (codeRestr != null && var.getCode() != codeRestr) return;
+					if (unitRestr != null && var.getUnit() != unitRestr) return;
+				}
+			}
 			Matcher m = (p != null) ? p.matcher(theLine) : null; // p != null -> regExp
 
 			for(int startPos = 0; ; )
@@ -2338,7 +2353,7 @@ public class EditWindow extends JPanel
 					endPos = startPos + search.length();
 				}
 				String regExpSearch = regExp ? search : null;
-				foundInCell.add(new StringsInCell(object, key, lineInVariable, theLine,
+				foundInCell.add(new StringsInCell(object instanceof Cell ? null : object, key, lineInVariable, theLine,
 					startPos, endPos, regExpSearch));
 				startPos = endPos;
 			}
@@ -2348,10 +2363,14 @@ public class EditWindow extends JPanel
 		 * Method to all all displayable variable strings to the list of strings in the Cell.
 		 * @param eObj the ElectricObject on which variables should be examined.
 		 * @param search the string to find on the text.
-		 * @param caseSensitive true to do a case-sensitive
+		 * @param caseSensitive true to do a case-sensitive.
+		 * @param regExp true to use regular-expression parsing.
+		 * @param p the pattern to find.
+		 * @param codeRestr a restriction on types of Code to consider (null to consider all Code values).
+		 * @param unitRestr a restriction on types of Units to consider (null to consider all Unit values).
 		 */
 		private void addVariableTextToList(ElectricObject eObj, String search, boolean caseSensitive,
-			boolean regExp, Pattern p)
+			boolean regExp, Pattern p, CodeExpression.Code codeRestr, TextDescriptor.Unit unitRestr)
 		{
 			for(Iterator<Variable> it = eObj.getParametersAndVariables(); it.hasNext(); )
 			{
@@ -2360,13 +2379,13 @@ public class EditWindow extends JPanel
 				Object obj = var.getObject();
 				if (obj instanceof String || obj instanceof CodeExpression)
 				{
-					findAllMatches(eObj, var.getKey(), -1, obj.toString(), search, caseSensitive, regExp, p);
+					findAllMatches(eObj, var.getKey(), -1, obj.toString(), search, caseSensitive, regExp, p, codeRestr, unitRestr);
 				} else if (obj instanceof String[])
 				{
 					String [] strings = (String [])obj;
 					for(int i=0; i<strings.length; i++)
 					{
-						findAllMatches(eObj, var.getKey(), i, strings[i], search, caseSensitive, regExp, p);
+						findAllMatches(eObj, var.getKey(), i, strings[i], search, caseSensitive, regExp, p, codeRestr, unitRestr);
 					}
 				}
 			}
@@ -2416,12 +2435,15 @@ public class EditWindow extends JPanel
 	 * @param caseSensitive true to match only where the case is the same.
 	 * @param regExp true if the search string is a regular expression.
 	 * @param whatToSearch a collection of text types to consider.
+	 * @param codeRestr a restriction on types of Code to consider (null to consider all Code values).
+	 * @param unitRestr a restriction on types of Units to consider (null to consider all Unit values).
 	 * @param highlightedOnly true to search only in the highlighted area.
 	 */
-	public void initTextSearch(String search, boolean caseSensitive,
-		boolean regExp, Set<TextUtils.WhatToSearch> whatToSearch, boolean highlightedOnly)
+	public void initTextSearch(String search, boolean caseSensitive, boolean regExp,
+		Set<TextUtils.WhatToSearch> whatToSearch, CodeExpression.Code codeRestr, TextDescriptor.Unit unitRestr,
+		boolean highlightedOnly)
 	{
-		textSearch.initTextSearch(cell, search, caseSensitive, regExp, whatToSearch, highlightedOnly, this);
+		textSearch.initTextSearch(cell, search, caseSensitive, regExp, whatToSearch, codeRestr, unitRestr, highlightedOnly, this);
 	}
 
 	private static String repeatChar(char c, int num) {
@@ -2801,65 +2823,65 @@ public class EditWindow extends JPanel
 		Rectangle2D cellBounds = cell.getBounds();
 		Dimension d = new Dimension();
 		int frameFactor = Cell.FrameDescription.getCellFrameInfo(cell, d);
-        Rectangle2D frameBounds = new Rectangle2D.Double(-d.getWidth()/2, -d.getHeight()/2, d.getWidth(), d.getHeight());
-        if (frameFactor == 0)
-        {
-            cellBounds = frameBounds;
-            if (cell.isMultiPage())
-            {
-            	double offY = pageNumber * Cell.FrameDescription.MULTIPAGESEPARATION;
-            	cellBounds.setRect(cellBounds.getMinX(), cellBounds.getMinY() + offY, cellBounds.getWidth(), cellBounds.getHeight());
-            }
-        } else
-        {
-            if (cellBounds.getWidth() == 0 && cellBounds.getHeight() == 0)
-            {
-                int defaultCellSize = 60;
-                cellBounds = new Rectangle2D.Double(cellBounds.getCenterX()-defaultCellSize/2,
-                    cellBounds.getCenterY()-defaultCellSize/2, defaultCellSize, defaultCellSize);
-            }
+		Rectangle2D frameBounds = new Rectangle2D.Double(-d.getWidth()/2, -d.getHeight()/2, d.getWidth(), d.getHeight());
+		if (frameFactor == 0)
+		{
+			cellBounds = frameBounds;
+			if (cell.isMultiPage())
+			{
+				double offY = pageNumber * Cell.FrameDescription.MULTIPAGESEPARATION;
+				cellBounds.setRect(cellBounds.getMinX(), cellBounds.getMinY() + offY, cellBounds.getWidth(), cellBounds.getHeight());
+			}
+		} else
+		{
+			if (cellBounds.getWidth() == 0 && cellBounds.getHeight() == 0)
+			{
+				int defaultCellSize = 60;
+				cellBounds = new Rectangle2D.Double(cellBounds.getCenterX()-defaultCellSize/2,
+					cellBounds.getCenterY()-defaultCellSize/2, defaultCellSize, defaultCellSize);
+			}
 
-            // make sure text fits
-    		if (wf != null && runningNow != null)
-    		{
-//    			System.out.println("Warning: screen extent computation is inaccurate");
-    		} else
-    		{
-	            double oldScale = getScale();
-	            Point2D oldOffset = getOffset();
-	            setScreenBounds(cellBounds);
-	            if (scale != scaleRequested) textInCell = null;
-	            scale = scaleRequested;
-	            Rectangle2D relativeTextBounds = cell.getRelativeTextBounds(this);
-	            if (relativeTextBounds != null)
-	            {
-	                Rectangle2D newCellBounds = new Rectangle2D.Double();
-	                Rectangle2D.union(relativeTextBounds, cellBounds, newCellBounds);
+			// make sure text fits
+			if (wf != null && runningNow != null)
+			{
+//				System.out.println("Warning: screen extent computation is inaccurate");
+			} else
+			{
+				double oldScale = getScale();
+				Point2D oldOffset = getOffset();
+				setScreenBounds(cellBounds);
+				if (scale != scaleRequested) textInCell = null;
+				scale = scaleRequested;
+				Rectangle2D relativeTextBounds = cell.getRelativeTextBounds(this);
+				if (relativeTextBounds != null)
+				{
+					Rectangle2D newCellBounds = new Rectangle2D.Double();
+					Rectangle2D.union(relativeTextBounds, cellBounds, newCellBounds);
 
-	                // do it twice more to get closer to the actual text size
-	                for(int i=0; i<2; i++)
-	                {
-		                setScreenBounds(newCellBounds);
-			            if (scale != scaleRequested) textInCell = null;
-			            scale = scaleRequested;
-			            relativeTextBounds = cell.getRelativeTextBounds(this);
-			            if (relativeTextBounds != null)
-			                Rectangle2D.union(relativeTextBounds, cellBounds, newCellBounds);
-	                }
-	                cellBounds = newCellBounds;
-	            }
-	            setScale(oldScale);
-	            setOffset(oldOffset);
-    		}
+					// do it twice more to get closer to the actual text size
+					for(int i=0; i<2; i++)
+					{
+						setScreenBounds(newCellBounds);
+						if (scale != scaleRequested) textInCell = null;
+						scale = scaleRequested;
+						relativeTextBounds = cell.getRelativeTextBounds(this);
+						if (relativeTextBounds != null)
+							Rectangle2D.union(relativeTextBounds, cellBounds, newCellBounds);
+					}
+					cellBounds = newCellBounds;
+				}
+				setScale(oldScale);
+				setOffset(oldOffset);
+			}
 
-            // make sure title box fits (if there is just a title box)
-            if (frameFactor == 1)
-            {
-                Rectangle2D.union(frameBounds, cellBounds, frameBounds);
-                cellBounds = frameBounds;
-            }
-        }
-        return cellBounds;
+			// make sure title box fits (if there is just a title box)
+			if (frameFactor == 1)
+			{
+				Rectangle2D.union(frameBounds, cellBounds, frameBounds);
+				cellBounds = frameBounds;
+			}
+		}
+		return cellBounds;
 	}
 
 	// Highlighting methods for the EditWindow_ interface
@@ -2943,15 +2965,15 @@ public class EditWindow extends JPanel
 	 */
 	public void fillScreen()
 	{
-        if (cell != null)
-        {
-            if (!cell.getView().isTextView())
-            {
-                Rectangle2D cellBounds = getBoundsInWindow();
-                focusScreen(cellBounds);
-                return;
-            }
-        }
+		if (cell != null)
+		{
+			if (!cell.getView().isTextView())
+			{
+				Rectangle2D cellBounds = getBoundsInWindow();
+				focusScreen(cellBounds);
+				return;
+			}
+		}
 		getSavedFocusBrowser().saveCurrentFocus();
 		repaint();
 	}
@@ -2979,68 +3001,67 @@ public class EditWindow extends JPanel
 		focusScreen(bounds);
 	}
 
-    /**
-     * Get the Saved View Browser for this Edit Window
-     */
-    public EditWindowFocusBrowser getSavedFocusBrowser() { return viewBrowser; }
+	/**
+	 * Get the Saved View Browser for this Edit Window
+	 */
+	public EditWindowFocusBrowser getSavedFocusBrowser() { return viewBrowser; }
 
+	// ************************************* HIERARCHY TRAVERSAL *************************************
 
-    // ************************************* HIERARCHY TRAVERSAL *************************************
+	/**
+	 * Get the window's VarContext
+	 * @return the current VarContext
+	 */
+	public VarContext getVarContext() { return cellVarContext; }
 
-    /**
-     * Get the window's VarContext
-     * @return the current VarContext
-     */
-    public VarContext getVarContext() { return cellVarContext; }
+	/**
+	 * Push into an instance (go down the hierarchy)
+	 * @param keepFocus true to keep the zoom and scale in the new window.
+	 * @param newWindow true to create a new window for the cell.
+	 * @param inPlace true to descend "in-place" showing the higher levels.
+	 */
+	public void downHierarchy(boolean keepFocus, boolean newWindow, boolean inPlace)
+	{
+		// get highlighted
+		Highlight2 h = highlighter.getOneHighlight();
+		if (h == null) return;
+		ElectricObject eobj = h.getElectricObject();
 
-    /**
-     * Push into an instance (go down the hierarchy)
-     * @param keepFocus true to keep the zoom and scale in the new window.
-     * @param newWindow true to create a new window for the cell.
-     * @param inPlace true to descend "in-place" showing the higher levels.
-     */
-    public void downHierarchy(boolean keepFocus, boolean newWindow, boolean inPlace)
-    {
-        // get highlighted
-        Highlight2 h = highlighter.getOneHighlight();
-        if (h == null) return;
-        ElectricObject eobj = h.getElectricObject();
+		NodeInst ni = null;
+		PortInst pi = null;
 
-        NodeInst ni = null;
-        PortInst pi = null;
+		// see if a nodeinst was highlighted (true if text on nodeinst was highlighted)
+		if (eobj instanceof NodeInst) ni = (NodeInst)eobj;
 
-        // see if a nodeinst was highlighted (true if text on nodeinst was highlighted)
-        if (eobj instanceof NodeInst) ni = (NodeInst)eobj;
+		// see if portinst was highlighted
+		if (eobj instanceof PortInst)
+		{
+			pi = (PortInst)eobj;
+			ni = pi.getNodeInst();
+		}
+		if (ni == null)
+		{
+			System.out.println("Must select a Node to descend into");
+			return;
+		}
+		if (!ni.isCellInstance())
+		{
+			System.out.println("Can only descend into cell instances");
+			return;
+		}
+		Cell cell = (Cell)ni.getProto();
+		Cell schCell = cell.getEquivalent();
 
-        // see if portinst was highlighted
-        if (eobj instanceof PortInst)
-        {
-            pi = (PortInst)eobj;
-            ni = pi.getNodeInst();
-        }
-        if (ni == null)
-        {
-            System.out.println("Must select a Node to descend into");
-            return;
-        }
-        if (!ni.isCellInstance())
-        {
-            System.out.println("Can only descend into cell instances");
-            return;
-        }
-        Cell cell = (Cell)ni.getProto();
-        Cell schCell = cell.getEquivalent();
+		// special case: if cell is icon of current cell, descend into icon
+		if (this.cell == schCell) schCell = cell;
+		if (schCell == null) schCell = cell;
 
-        // special case: if cell is icon of current cell, descend into icon
-        if (this.cell == schCell) schCell = cell;
-        if (schCell == null) schCell = cell;
+		// when editing in-place, always descend to the icon
+		if (inPlace) schCell = cell;
 
-        // when editing in-place, always descend to the icon
-        if (inPlace) schCell = cell;
-
-        // determine display factors for new cell
-        double offX = offx;
-        double offY = offy;
+		// determine display factors for new cell
+		double offX = offx;
+		double offY = offy;
 		if (keepFocus)
 		{
 			offX -= ni.getAnchorCenterX();
@@ -3048,13 +3069,13 @@ public class EditWindow extends JPanel
 		}
 
 		// handle in-place display
-      	List<NodeInst> newInPlaceDescent = new ArrayList<NodeInst>();
+		List<NodeInst> newInPlaceDescent = new ArrayList<NodeInst>();
 		if (inPlace)
 		{
-            newInPlaceDescent.addAll(inPlaceDescent);
+			newInPlaceDescent.addAll(inPlaceDescent);
 			newInPlaceDescent.add(ni);
-	    }
-        WindowFrame.DisplayAttributes da = new WindowFrame.DisplayAttributes(scale, offX, offY, newInPlaceDescent);
+		}
+		WindowFrame.DisplayAttributes da = new WindowFrame.DisplayAttributes(scale, offX, offY, newInPlaceDescent);
 
 		// for stacked NodeInsts, must choose which one
 		Nodable desiredNO = null;
@@ -3085,9 +3106,9 @@ public class EditWindow extends JPanel
 				int i = 0;
 				for(Nodable no : possibleNodables)
 					manyOptions[i++] = no.getName();
-		        String chosen = (String)JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(), "Descend into which node?",
-		            "Choose a Node", JOptionPane.QUESTION_MESSAGE, null, manyOptions, manyOptions[0]);
-		        if (chosen == null) return;
+				String chosen = (String)JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(), "Descend into which node?",
+					"Choose a Node", JOptionPane.QUESTION_MESSAGE, null, manyOptions, manyOptions[0]);
+				if (chosen == null) return;
 				for(Nodable no : possibleNodables)
 				{
 					if (no.getName().equals(chosen)) { desiredNO = no;   break; }
@@ -3095,9 +3116,9 @@ public class EditWindow extends JPanel
 			}
 		}
 
-        // do the descent
-        boolean redisplay = true;
-        if (inPlace) redisplay = false;
+		// do the descent
+		boolean redisplay = true;
+		if (inPlace) redisplay = false;
 		if (keepFocus) redisplay = false;
 		EditWindow newWND = this;
 		if (newWindow)
@@ -3105,95 +3126,95 @@ public class EditWindow extends JPanel
 			WindowFrame newWF = WindowFrame.createEditWindow(schCell);
 			newWND = (EditWindow)newWF.getContent();
 		}
-        else
-            SelectObject.selectObjectDialog(schCell, true);
+		else
+			SelectObject.selectObjectDialog(schCell, true);
 
 		VarContext vc;
-        if (desiredNO != null)
-        {
-        	vc = cellVarContext.push(desiredNO);
-        } else
-        {
-        	vc = cellVarContext.push(ni);
-        }
-        newWND.showCell(schCell, vc, redisplay, da);
-        newWND.getWindowFrame().addToHistory(schCell, vc, da);
-        if (!redisplay) fullRepaint();
+		if (desiredNO != null)
+		{
+			vc = cellVarContext.push(desiredNO);
+		} else
+		{
+			vc = cellVarContext.push(ni);
+		}
+		newWND.showCell(schCell, vc, redisplay, da);
+		newWND.getWindowFrame().addToHistory(schCell, vc, da);
+		if (!redisplay) fullRepaint();
 		clearSubCellCache();
 
-        // if highlighted was a port inst, then highlight the corresponding export
-        if (pi != null)
-        {
-            Export schExport = schCell.findExport(pi.getPortProto().getName());
-            if (schExport != null)
-            {
-                PortInst origPort = schExport.getOriginalPort();
+		// if highlighted was a port inst, then highlight the corresponding export
+		if (pi != null)
+		{
+			Export schExport = schCell.findExport(pi.getPortProto().getName());
+			if (schExport != null)
+			{
+				PortInst origPort = schExport.getOriginalPort();
 				newWND.highlighter.addElectricObject(origPort, schCell);
 				newWND.highlighter.finished();
-            }
-        }
-    }
+			}
+		}
+	}
 
-    /**
-     * Returns true if, in terms of context, it matters which index
-     * of the nodable we push into.
-     * @param no the nodable
-     * @return true if we need to ask the user which index to descent into,
-     * false otherwise.
-     */
-    public static boolean isArrayedContextMatter(Nodable no)
+	/**
+	 * Returns true if, in terms of context, it matters which index
+	 * of the nodable we push into.
+	 * @param no the nodable
+	 * @return true if we need to ask the user which index to descent into,
+	 * false otherwise.
+	 */
+	public static boolean isArrayedContextMatter(Nodable no)
 	{
 		// matters if the user requested it
 		if (User.isPromptForIndexWhenDescending()) return true;
 
 		// matters if there is a waveform window open
-        for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
-        {
-            WindowFrame wf = it.next();
-            if (wf.getContent() instanceof WaveformWindow) return true;
-        }
+		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
+		{
+			WindowFrame wf = it.next();
+			if (wf.getContent() instanceof WaveformWindow) return true;
+		}
 
 		// if getdrive is called
-        for (Iterator<Variable> it = no.getDefinedParameters(); it.hasNext(); ) {
-            Variable var = it.next();
-            Object obj = var.getObject();
-            if (obj instanceof CodeExpression) {
-                String str = obj.toString();
-                if (str.matches(".*LE\\.getdrive.*")) return true;
-            }
-        }
+		for (Iterator<Variable> it = no.getDefinedParameters(); it.hasNext(); ) {
+			Variable var = it.next();
+			Object obj = var.getObject();
+			if (obj instanceof CodeExpression) {
+				String str = obj.toString();
+				if (str.matches(".*LE\\.getdrive.*")) return true;
+			}
+		}
 
 		// does not matter
 		return false;
-    }
+	}
 
-    /**
-     * Pop out of an instance (go up the hierarchy)
-     */
-    public void upHierarchy(boolean keepFocus)
+	/**
+	 * Pop out of an instance (go up the hierarchy)
+	 */
+	public void upHierarchy(boolean keepFocus)
 	{
-        if (cell == null) return;
-        Cell oldCell = cell;
+		if (cell == null) return;
+		Cell oldCell = cell;
 
 		// determine which export is selected so it can be shown in the upper level
-        Export selectedExport = null;
-        Set<Network> nets = highlighter.getHighlightedNetworks();
-        for(Network net : nets)
-        {
-        	for(Iterator<Export> eIt = net.getExports(); eIt.hasNext(); )
-        	{
-        		Export e = eIt.next();
-        		selectedExport = e;
-        		break;
-        	}
-        	if (selectedExport != null) break;
-        }
+		Export selectedExport = null;
+		Set<Network> nets = highlighter.getHighlightedNetworks();
+		for(Network net : nets)
+		{
+			for(Iterator<Export> eIt = net.getExports(); eIt.hasNext(); )
+			{
+				Export e = eIt.next();
+				selectedExport = e;
+				break;
+			}
+			if (selectedExport != null) break;
+		}
 
-        try {
-            Nodable no = cellVarContext.getNodable();
+		try {
+			Nodable no = cellVarContext.getNodable();
 			if (no != null)
 			{
-		        Cell parent = no.getParent();
+				Cell parent = no.getParent();
 
 				// see if this was in history, if so, restore offset and scale
 				// search backwards to get most recent entry
@@ -3226,36 +3247,36 @@ public class EditWindow extends JPanel
 				} else
 				{
 					// no previous history: make one up
-                    List<NodeInst> newInPlaceDescent = new ArrayList<NodeInst>(inPlaceDescent);
-                    if (!newInPlaceDescent.isEmpty())
-                        newInPlaceDescent.remove(newInPlaceDescent.size() - 1);
+					List<NodeInst> newInPlaceDescent = new ArrayList<NodeInst>(inPlaceDescent);
+					if (!newInPlaceDescent.isEmpty())
+						newInPlaceDescent.remove(newInPlaceDescent.size() - 1);
 					double newX = offx, newY = offy;
-    		        if (keepFocus)
-    		        {
-    					NodeInst ni = no.getNodeInst();
+					if (keepFocus)
+					{
+						NodeInst ni = no.getNodeInst();
 						Point2D curCtr = new Point2D.Double(offx, offy);
 						AffineTransform up = ni.rotateOut(ni.translateOut());
 						up.transform(curCtr, curCtr);
 						newX = curCtr.getX();
 						newY = curCtr.getY();
-    		        }
-     			    WindowFrame.DisplayAttributes da = new WindowFrame.DisplayAttributes(scale, newX, newY, newInPlaceDescent);
+					}
+					WindowFrame.DisplayAttributes da = new WindowFrame.DisplayAttributes(scale, newX, newY, newInPlaceDescent);
 					showCell(parent, context, true, da);
-			        wf.addToHistory(parent, context, da);
+					wf.addToHistory(parent, context, da);
 
 					// highlight node we came from
-                    PortInst pi = null;
+					PortInst pi = null;
 					if (selectedExport != null)
 						pi = no.getNodeInst().findPortInstFromProto(selectedExport);
-	                if (pi != null)
-	                    highlighter.addElectricObject(pi, parent);
-	                else
+					if (pi != null)
+						highlighter.addElectricObject(pi, parent);
+					else
 						highlighter.addElectricObject(no.getNodeInst(), parent);
 				}
 				clearSubCellCache();
 
-                // highlight portinst selected at the time, if any
-                SelectObject.selectObjectDialog(parent, true);
+				// highlight portinst selected at the time, if any
+				SelectObject.selectObjectDialog(parent, true);
 				return;
 			}
 
@@ -3266,7 +3287,7 @@ public class EditWindow extends JPanel
 				if (schCell != null)
 				{
 					setCell(schCell, VarContext.globalContext, null);
-                    SelectObject.selectObjectDialog(schCell, true);
+					SelectObject.selectObjectDialog(schCell, true);
 					return;
 				}
 			}
@@ -3277,7 +3298,7 @@ public class EditWindow extends JPanel
 			{
 				NodeInst ni = it.next();
 				Cell parent = ni.getParent();
-                if (parent.getLibrary().isHidden()) continue;
+				if (parent.getLibrary().isHidden()) continue;
 				found.add(parent);
 			}
 			if (cell.isSchematic())
@@ -3291,7 +3312,7 @@ public class EditWindow extends JPanel
 						NodeInst ni = it.next();
 						if (ni.isIconOfParent()) continue;
 						Cell parent = ni.getParent();
-                        if (parent.getLibrary().isHidden()) continue;
+						if (parent.getLibrary().isHidden()) continue;
 						found.add(parent);
 					}
 				}
@@ -3310,31 +3331,31 @@ public class EditWindow extends JPanel
 				// find the instance in the parent
 				NodeInst theOne = null;
 				for (Iterator<NodeInst> it = parent.getNodes(); it.hasNext(); )
-                {
-                    NodeInst ni = it.next();
-                    if (ni.isCellInstance())
-                    {
-                        Cell nodeCell = (Cell)ni.getProto();
-                        if (nodeCell == oldCell || nodeCell.isIconOf(oldCell))
-                        {
-                        	theOne = ni;
-                            break;
-                        }
-                    }
-                }
+				{
+					NodeInst ni = it.next();
+					if (ni.isCellInstance())
+					{
+						Cell nodeCell = (Cell)ni.getProto();
+						if (nodeCell == oldCell || nodeCell.isIconOf(oldCell))
+						{
+							theOne = ni;
+							break;
+						}
+					}
+				}
 
 				double newX = offx, newY = offy;
-		        if (keepFocus)
-		        {
+				if (keepFocus)
+				{
 					Point2D curCtr = new Point2D.Double(offx, offy);
 					AffineTransform up = theOne.rotateOut(theOne.translateOut());
 					up.transform(curCtr, curCtr);
 					newX = curCtr.getX();
 					newY = curCtr.getY();
-		        }
-                WindowFrame.DisplayAttributes da = new WindowFrame.DisplayAttributes(getScale(), newX, newY, new ArrayList<NodeInst>());
+				}
+				WindowFrame.DisplayAttributes da = new WindowFrame.DisplayAttributes(getScale(), newX, newY, new ArrayList<NodeInst>());
 				setCell(parent, VarContext.globalContext, da);
-		        if (!keepFocus) fillScreen();
+				if (!keepFocus) fillScreen();
 
 				// highlight instance
 				if (theOne != null)
@@ -3342,9 +3363,9 @@ public class EditWindow extends JPanel
 					if (selectedExport != null)
 						highlighter.addElectricObject(theOne.findPortInstFromProto(selectedExport), parent); else
 							highlighter.addElectricObject(theOne, parent);
-	                highlighter.finished();
+					highlighter.finished();
 				}
-                SelectObject.selectObjectDialog(parent, true);
+				SelectObject.selectObjectDialog(parent, true);
 			} else
 			{
 				// prompt the user to choose a parent cell
@@ -3357,26 +3378,26 @@ public class EditWindow extends JPanel
 				JPopupMenu parents = new JPopupMenu("parents");
 				for(Cell parent : found)
 				{
-                    String cellName = parent.describe(false);
+					String cellName = parent.describe(false);
 					JMenuItem menuItem = new JMenuItem(cellName);
 					menuItem.addActionListener(new UpHierarchyPopupListener(keepFocus));
 					parents.add(menuItem);
 				}
 				parents.show(overall, 0, 0);
 			}
-        } catch (NullPointerException e)
+		} catch (NullPointerException e)
 		{
-            ActivityLogger.logException(e);
+			ActivityLogger.logException(e);
 		}
-    }
+	}
 
-    private class UpHierarchyPopupListener implements ActionListener
-    {
-    	private boolean keepFocus;
+	private class UpHierarchyPopupListener implements ActionListener
+	{
+		private boolean keepFocus;
 
-    	UpHierarchyPopupListener(boolean k) { keepFocus = k; }
+		UpHierarchyPopupListener(boolean k) { keepFocus = k; }
 
-    	/**
+		/**
 		 * Respond to an action performed, in this case change the current cell
 		 * when the user clicks on an entry in the upHierarchy popup menu.
 		 */
@@ -3410,24 +3431,24 @@ public class EditWindow extends JPanel
 			}
 
 			double newX = offx, newY = offy;
-	        if (keepFocus)
-	        {
+			if (keepFocus)
+			{
 				Point2D curCtr = new Point2D.Double(offx, offy);
 				AffineTransform up = theOne.rotateOut(theOne.translateOut());
 				up.transform(curCtr, curCtr);
 				newX = curCtr.getX();
 				newY = curCtr.getY();
-	        }
-	        WindowFrame.DisplayAttributes da = new WindowFrame.DisplayAttributes(getScale(), newX, newY, new ArrayList<NodeInst>());
+			}
+			WindowFrame.DisplayAttributes da = new WindowFrame.DisplayAttributes(getScale(), newX, newY, new ArrayList<NodeInst>());
 			setCell(cell, VarContext.globalContext, da);
-	        if (!keepFocus) fillScreen();
+			if (!keepFocus) fillScreen();
 
 			// Highlight an instance of cell we came from in current cell
 			highlighter.clear();
 			if (theOne != null) highlighter.addElectricObject(theOne, cell);
 			highlighter.finished();
 		}
-    }
+	}
 
 	/**
 	 * Method to clear the cache of expanded subcells.
@@ -3435,45 +3456,45 @@ public class EditWindow extends JPanel
 	 */
 	public static void clearSubCellCache()
 	{
-        AbstractDrawing.clearSubCellCache();
+		AbstractDrawing.clearSubCellCache();
 	}
 
    /**
-     * Handles database changes of a Job.
-     * @param oldSnapshot database snapshot before Job.
-     * @param newSnapshot database snapshot after Job and constraint propagation.
-     * @param undoRedo true if Job was Undo/Redo job.
-     */
-    private static void endBatch(Snapshot oldSnapshot, Snapshot newSnapshot) {
-        // Mark cells for redraw
-        Set<CellId> topCells = new HashSet<CellId>();
+	 * Handles database changes of a Job.
+	 * @param oldSnapshot database snapshot before Job.
+	 * @param newSnapshot database snapshot after Job and constraint propagation.
+	 * @param undoRedo true if Job was Undo/Redo job.
+	 */
+	private static void endBatch(Snapshot oldSnapshot, Snapshot newSnapshot) {
+		// Mark cells for redraw
+		Set<CellId> topCells = new HashSet<CellId>();
 		for(Iterator<WindowFrame> wit = WindowFrame.getWindows(); wit.hasNext(); )
 		{
 			WindowFrame wf = wit.next();
-            WindowContent content = wf.getContent();
-            if (!(content instanceof EditWindow)) continue;
-            Cell winCell = content.getCell();
-            if (winCell == null) continue;
-            if (!winCell.isLinked()) continue;
-            topCells.add(winCell.getId());
-        }
-        Set<CellId> changedVisibility = VectorCache.theCache.forceRedrawAfterChange(topCells);
-        for (CellId cellId: changedVisibility) {
-            Cell cell = VectorCache.theCache.database.getCell(cellId);
-            EditWindow.forceRedraw(cell);
-        }
+			WindowContent content = wf.getContent();
+			if (!(content instanceof EditWindow)) continue;
+			Cell winCell = content.getCell();
+			if (winCell == null) continue;
+			if (!winCell.isLinked()) continue;
+			topCells.add(winCell.getId());
+		}
+		Set<CellId> changedVisibility = VectorCache.theCache.forceRedrawAfterChange(topCells);
+		for (CellId cellId: changedVisibility) {
+			Cell cell = VectorCache.theCache.database.getCell(cellId);
+			EditWindow.forceRedraw(cell);
+		}
 		for(Iterator<WindowFrame> wit = WindowFrame.getWindows(); wit.hasNext(); )
 		{
 			WindowFrame wf = wit.next();
-            WindowContent content = wf.getContent();
-            if (!(content instanceof EditWindow)) continue;
-            Cell winCell = content.getCell();
-            if (winCell == null) continue;
-            EditWindow wnd = (EditWindow)content;
-            if (changedVisibility.contains(winCell.getId()))
-                wnd.fullRepaint();
-        }
-    }
+			WindowContent content = wf.getContent();
+			if (!(content instanceof EditWindow)) continue;
+			Cell winCell = content.getCell();
+			if (winCell == null) continue;
+			EditWindow wnd = (EditWindow)content;
+			if (changedVisibility.contains(winCell.getId()))
+				wnd.fullRepaint();
+		}
+	}
 
 	/**
 	 * Method to recurse flag all windows showing a cell to redraw.
@@ -3482,9 +3503,9 @@ public class EditWindow extends JPanel
 	public static void expansionChanged(Cell cell)
 	{
 		if (User.getDisplayAlgorithm() != 0)
-            return;
-        Set<Cell> marked = new HashSet<Cell>();
-        markCellForRedrawRecursively(cell, marked);
+			return;
+		Set<Cell> marked = new HashSet<Cell>();
+		markCellForRedrawRecursively(cell, marked);
 
 		for(Iterator<WindowFrame> wit = WindowFrame.getWindows(); wit.hasNext(); )
 		{
@@ -3500,9 +3521,9 @@ public class EditWindow extends JPanel
 		}
 	}
 
-    private static void markCellForRedrawRecursively(Cell cell, Set<Cell> marked) {
-        if (marked.contains(cell)) return;
-        marked.add(cell);
+	private static void markCellForRedrawRecursively(Cell cell, Set<Cell> marked) {
+		if (marked.contains(cell)) return;
+		marked.add(cell);
 		// recurse up the hierarchy so that all windows showing the cell get redrawn
 		for(Iterator<NodeInst> it = cell.getInstancesOf(); it.hasNext(); )
 		{
@@ -3510,14 +3531,14 @@ public class EditWindow extends JPanel
 			if (ni.isExpanded())
 				markCellForRedrawRecursively(ni.getParent(), marked);
 		}
-    }
+	}
 
 	private static void forceRedraw(Cell cell)
 	{
-        AbstractDrawing.forceRedraw(cell);
+		AbstractDrawing.forceRedraw(cell);
 	}
 
-    // ************************************* COORDINATES *************************************
+	// ************************************* COORDINATES *************************************
 
 	/**
 	 * Method to convert a screen coordinate to database coordinates.
@@ -3533,26 +3554,26 @@ public class EditWindow extends JPanel
 
 		// if doing in-place display, transform into the proper cell
 		if (inPlaceDisplay)
-       		intoCell.transform(dbPt, dbPt);
+	   		intoCell.transform(dbPt, dbPt);
 
 		return dbPt;
 	}
 
-    /**
-     * Method to convert a rectangle in screen units to a rectangle in
-     * database units.
-     * @param screenRect the rectangle to convert
-     * @return the same rectangle in database units
-     */
-    public Rectangle2D screenToDatabase(Rectangle2D screenRect)
-    {
-        Point2D anchor = screenToDatabase((int)screenRect.getX(), (int)screenRect.getY());
-        Point2D size = deltaScreenToDatabase((int)screenRect.getWidth(), (int)screenRect.getHeight());
-        // note that lower left corner in screen units is upper left corner in db units, so
-        // compensate for that here
-        return new Rectangle2D.Double(anchor.getX(), anchor.getY()+size.getY(), size.getX(), -size.getY());
+	/**
+	 * Method to convert a rectangle in screen units to a rectangle in
+	 * database units.
+	 * @param screenRect the rectangle to convert
+	 * @return the same rectangle in database units
+	 */
+	public Rectangle2D screenToDatabase(Rectangle2D screenRect)
+	{
+		Point2D anchor = screenToDatabase((int)screenRect.getX(), (int)screenRect.getY());
+		Point2D size = deltaScreenToDatabase((int)screenRect.getWidth(), (int)screenRect.getHeight());
+		// note that lower left corner in screen units is upper left corner in db units, so
+		// compensate for that here
+		return new Rectangle2D.Double(anchor.getX(), anchor.getY()+size.getY(), size.getX(), -size.getY());
+	}
 
-    }
 	/**
 	 * Method to convert a screen distance to a database distance.
 	 * @param screenDX the X coordinate change (on the screen in this EditWindow).
@@ -3578,12 +3599,12 @@ public class EditWindow extends JPanel
 		if (inPlaceDisplay)
 		{
 			Point2D dbPt = new Point2D.Double(dbX, dbY);
-       		outofCell.transform(dbPt, dbPt);
-       		dbX = dbPt.getX();
-       		dbY = dbPt.getY();
+	   		outofCell.transform(dbPt, dbPt);
+	   		dbX = dbPt.getX();
+	   		dbY = dbPt.getY();
 		}
-        double scrX = szHalfWidth + (dbX - offx) * scale;
-        double scrY = szHalfHeight - (dbY - offy) * scale;
+		double scrX = szHalfWidth + (dbX - offx) * scale;
+		double scrY = szHalfHeight - (dbY - offy) * scale;
 		result.x = (int)(scrX >= 0 ? scrX + 0.5 : scrX - 0.5);
 		result.y = (int)(scrY >= 0 ? scrY + 0.5 : scrY - 0.5);
 	}
@@ -3654,7 +3675,7 @@ public class EditWindow extends JPanel
 	/**
 	 * Method to snap a point to the nearest database-space grid unit.
 	 * @param pt the point to be snapped.
-     * @param direction -1 if X and Y coordinates, 0 if only X and 1 if only Y
+	 * @param direction -1 if X and Y coordinates, 0 if only X and 1 if only Y
 	 */
 	public static void gridAlignSize(Point2D pt, int direction)
 	{
@@ -3694,7 +3715,7 @@ public class EditWindow extends JPanel
 	 */
 	public Font getFont(TextDescriptor descript)
 	{
-        return descript != null ? descript.getFont(this, PixelDrawing.MINIMUMTEXTSIZE) : TextDescriptor.getDefaultFont();
+		return descript != null ? descript.getFont(this, PixelDrawing.MINIMUMTEXTSIZE) : TextDescriptor.getDefaultFont();
 	}
 
 	/**
@@ -3719,41 +3740,41 @@ public class EditWindow extends JPanel
 	public GlyphVector getGlyphs(String text, Font font)
 	{
 		// make a glyph vector for the desired text
-        return TextDescriptor.getGlyphs(text, font);
+		return TextDescriptor.getGlyphs(text, font);
 	}
 
-    public void databaseChanged(DatabaseChangeEvent e)
-    {
-    	if (cell != null && e.objectChanged(cell))
-    		setWindowTitle();
+	public void databaseChanged(DatabaseChangeEvent e)
+	{
+		if (cell != null && e.objectChanged(cell))
+			setWindowTitle();
 
-    	// if cell was deleted, set cell to null
-        if (cell != null && !cell.isLinked())
-        {
-        	showCell(null, VarContext.globalContext, true, null);
-            wf.cellHistoryGoBack();
-        }
+		// if cell was deleted, set cell to null
+		if (cell != null && !cell.isLinked())
+		{
+			showCell(null, VarContext.globalContext, true, null);
+			wf.cellHistoryGoBack();
+		}
 
-        // recalculate text positions
-        textInCell = null;
-    }
+		// recalculate text positions
+		textInCell = null;
+	}
 
-    /**
-     * Method to export directly PNG file.
+	/**
+	 * Method to export directly PNG file.
 	 * @param ep printable object.
-     * @param filePath
-     */
-    public void writeImage(ElectricPrinter ep, String filePath)
-    {
-        BufferedImage img = getPrintImage(ep);
-        PNG.writeImage(img, filePath);
-    }
+	 * @param filePath
+	 */
+	public void writeImage(ElectricPrinter ep, String filePath)
+	{
+		BufferedImage img = getPrintImage(ep);
+		PNG.writeImage(img, filePath);
+	}
 
 	/**
 	 * Method to intialize for printing.
 	 * @param ep the ElectricPrinter object.
 	 * @param pageFormat information about the print job.
-     * @return Always true.
+	 * @return Always true.
 	 */
 	public boolean initializePrinting(ElectricPrinter ep, PageFormat pageFormat)
 	{
@@ -3765,8 +3786,8 @@ public class EditWindow extends JPanel
 		setSize(pageWid, pageHei);
 		validate();
 		repaint();
-        return true;
-    }
+		return true;
+	}
 
 	/**
 	 * Method to print window using offscreen canvas.
@@ -3791,18 +3812,18 @@ public class EditWindow extends JPanel
 
 			// prepare for printing
 			PrinterJob pj = ep.getPrintJob();
-            if (pj == null)
-            {
-                System.out.println("Can't get PrintJob in getPrintImage()");
-                return null;
-            }
-            PrintService ps = pj.getPrintService();
-            if (ps == null)
-            {
-                System.out.println("Can't get PrintService in getPrintImage()");
-                return null;
-            }
-            ColorSupported cs = ps.getAttribute(ColorSupported.class);
+			if (pj == null)
+			{
+				System.out.println("Can't get PrintJob in getPrintImage()");
+				return null;
+			}
+			PrintService ps = pj.getPrintService();
+			if (ps == null)
+			{
+				System.out.println("Can't get PrintService in getPrintImage()");
+				return null;
+			}
+			ColorSupported cs = ps.getAttribute(ColorSupported.class);
 			int printMode = 1;
 			if (cs == null || cs.getValue() == 0) printMode = 2;
 			offscreen.setPrintingMode(printMode);
@@ -3811,17 +3832,17 @@ public class EditWindow extends JPanel
 			User.setColor(User.ColorPrefType.BACKGROUND, 0xFFFFFF);
 
 			// initialize drawing
-            Rectangle2D cellBounds = ep.getRenderArea();
-            if (cellBounds == null) cellBounds = getBoundsInWindow();
-            cellBounds = new Rectangle2D.Double(cellBounds.getMinX()-1, cellBounds.getMinY()-1, cellBounds.getWidth()+2, cellBounds.getHeight()+2);
-    		double width = cellBounds.getWidth();
-        	double height = cellBounds.getHeight();
-            if (width == 0) width = 2;
-            if (height == 0) height = 2;
-            double scalex = wid/width;
-            double scaley = hei/height;
-            double scale = Math.min(scalex, scaley);
-    		EPoint offset = new EPoint(cellBounds.getCenterX(), cellBounds.getCenterY());
+			Rectangle2D cellBounds = ep.getRenderArea();
+			if (cellBounds == null) cellBounds = getBoundsInWindow();
+			cellBounds = new Rectangle2D.Double(cellBounds.getMinX()-1, cellBounds.getMinY()-1, cellBounds.getWidth()+2, cellBounds.getHeight()+2);
+			double width = cellBounds.getWidth();
+			double height = cellBounds.getHeight();
+			if (width == 0) width = 2;
+			if (height == 0) height = 2;
+			double scalex = wid/width;
+			double scaley = hei/height;
+			double scale = Math.min(scalex, scaley);
+			EPoint offset = new EPoint(cellBounds.getCenterX(), cellBounds.getCenterY());
 
 			offscreen.printImage(scale, offset, getCell(), getVarContext());
 			img = offscreen.getBufferedImage();
@@ -3843,25 +3864,25 @@ public class EditWindow extends JPanel
 			g2d.drawImage(img, ix, iy, null);
 
 			// save window factors
-    		Point2D saveOffset = getOffset();
-    		double saveScale = scale;
-    		int saveHalfWid = szHalfWidth;
-    		int saveHalfHei = szHalfHeight;
+			Point2D saveOffset = getOffset();
+			double saveScale = scale;
+			int saveHalfWid = szHalfWidth;
+			int saveHalfHei = szHalfHeight;
 
-    		// compute proper window factors to center the frame
-    		Rectangle2D cellBounds = getBoundsInWindow();
-    		double width = cellBounds.getWidth();
-        	double height = cellBounds.getHeight();
-            if (width == 0) width = 2;
-            if (height == 0) height = 2;
-            scale = scaleRequested = Math.min(wid/width, hei/height);
-    		offx = offy = offxRequested = offyRequested = 0;
-    		szHalfWidth = ix + wid / 2;
-    		szHalfHeight = iy + hei / 2;
+			// compute proper window factors to center the frame
+			Rectangle2D cellBounds = getBoundsInWindow();
+			double width = cellBounds.getWidth();
+			double height = cellBounds.getHeight();
+			if (width == 0) width = 2;
+			if (height == 0) height = 2;
+			scale = scaleRequested = Math.min(wid/width, hei/height);
+			offx = offy = offxRequested = offyRequested = 0;
+			szHalfWidth = ix + wid / 2;
+			szHalfHeight = iy + hei / 2;
 
 			// draw the frame
 			g2d.setColor(Color.BLACK);
-    		drawCellFrame(g2d);
+			drawCellFrame(g2d);
 
 			// restore window factors
 			scale = scaleRequested = saveScale;
@@ -3892,8 +3913,8 @@ public class EditWindow extends JPanel
 		if (mult == 0) mult = 1;
 		Point2D wndOffset = getOffset();
 		Point2D newOffset = (direction == 0) ?
-		        new Point2D.Double(wndOffset.getX() - mult*ticks, wndOffset.getY()) :
-		        new Point2D.Double(wndOffset.getX(), wndOffset.getY() - mult*ticks);
+				new Point2D.Double(wndOffset.getX() - mult*ticks, wndOffset.getY()) :
+				new Point2D.Double(wndOffset.getX(), wndOffset.getY() - mult*ticks);
 		setOffset(newOffset);
 		getSavedFocusBrowser().updateCurrentFocus();
 		fullRepaint();
@@ -3907,7 +3928,7 @@ public class EditWindow extends JPanel
 		Point pt = getLastMousePosition();
 		Point2D center = screenToDatabase(pt.x, pt.y);
 		setOffset(center);
-        getSavedFocusBrowser().updateCurrentFocus();
+		getSavedFocusBrowser().updateCurrentFocus();
 		fullRepaint();
 	}
 }

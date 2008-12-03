@@ -39,6 +39,8 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.CodeExpression;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
@@ -942,10 +944,13 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 * @param caseSensitive true to match only where the case is the same.
 	 * @param regExp true if the search string is a regular expression.
 	 * @param whatToSearch a collection of text types to consider.
+	 * @param codeRestr a restriction on types of Code to consider (null to consider all Code values).
+	 * @param unitRestr a restriction on types of Units to consider (null to consider all Unit values).
 	 * @param highlightedOnly true to search only in the highlighted area.
 	 */
-	public void initTextSearch(String search, boolean caseSensitive,
-		boolean regExp, Set<TextUtils.WhatToSearch> whatToSearch, boolean highlightedOnly)
+	public void initTextSearch(String search, boolean caseSensitive, boolean regExp,
+		Set<TextUtils.WhatToSearch> whatToSearch, CodeExpression.Code codeRestr, TextDescriptor.Unit unitRestr,
+		boolean highlightedOnly)
 	{
 		System.out.println("Text search not implemented for waveform windows");
 	}

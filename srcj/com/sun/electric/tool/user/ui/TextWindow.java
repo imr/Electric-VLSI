@@ -26,6 +26,8 @@ package com.sun.electric.tool.user.ui;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.WeakReferences;
+import com.sun.electric.database.variable.CodeExpression;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
@@ -596,10 +598,13 @@ public class TextWindow implements WindowContent
 	 * @param caseSensitive true to match only where the case is the same.
 	 * @param regExp true if the search string is a regular expression.
 	 * @param whatToSearch a collection of text types to consider.
+	 * @param codeRestr a restriction on types of Code to consider (null to consider all Code values).
+	 * @param unitRestr a restriction on types of Units to consider (null to consider all Unit values).
 	 * @param highlightedOnly true to search only in the highlighted area.
 	 */
-	public void initTextSearch(String search, boolean caseSensitive,
-	    boolean regExp, Set<TextUtils.WhatToSearch> whatToSearch, boolean highlightedOnly)
+	public void initTextSearch(String search, boolean caseSensitive, boolean regExp,
+		Set<TextUtils.WhatToSearch> whatToSearch, CodeExpression.Code codeRestr, TextDescriptor.Unit unitRestr,
+		boolean highlightedOnly)
 	{
 		if (regExp)
 			System.out.println("Text windows don't yet implement Regular Expression matching");

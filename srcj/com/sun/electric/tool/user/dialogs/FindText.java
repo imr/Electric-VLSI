@@ -25,6 +25,8 @@ package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.variable.CodeExpression;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.tool.Client;
 import com.sun.electric.tool.user.ui.TextWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -35,6 +37,7 @@ import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -46,44 +49,48 @@ import javax.swing.JFrame;
 public class FindText extends EModelessDialog
 {
 	private static FindText theDialog = null;
-    private static Pref.Group prefs = Pref.groupForPackage(FindText.class);
+	private static Pref.Group prefs = Pref.groupForPackage(FindText.class);
 	private static Pref
 		prefCaseSensitive = Pref.makeBooleanPref("FindText_caseSensitive", prefs, false),
 		prefFindTextMessage = Pref.makeStringPref("FindText_findTextMessage", prefs, ""),
 		prefReplaceTextMessage = Pref.makeStringPref("FindText_ReplaceTextMessage", prefs, ""),
-	    prefFindReverse = Pref.makeBooleanPref("FindText_findReverse", prefs, false),
-	    prefRegExp = Pref.makeBooleanPref("FindText_regExp", prefs, false),
-	    prefSearchNodeNames = Pref.makeBooleanPref("FindText_searchNodeNames", prefs, true),
-	    prefSearchNodeVars = Pref.makeBooleanPref("FindText_searchNodeVars", prefs, true),
-	    prefSearchArcNames = Pref.makeBooleanPref("FindText_searchArcNames", prefs, true),
-	    prefSearchArcVars = Pref.makeBooleanPref("FindText_searchArcVars", prefs, true),
-	    prefSearchExportNames = Pref.makeBooleanPref("FindText_searchExportNames", prefs, true),
-	    prefSearchExportVars = Pref.makeBooleanPref("FindText_searchExportVars", prefs, true),
-	    prefSearchCellVars = Pref.makeBooleanPref("FindText_searchCellVars", prefs, true),
-	    prefSearchTempNames = Pref.makeBooleanPref("FindText_searchTempNames", prefs, false),
-	    prefSearchHighlighted = Pref.makeBooleanPref("FindText_searchHighlighted", prefs, false);
+		prefFindReverse = Pref.makeBooleanPref("FindText_findReverse", prefs, false),
+		prefRegExp = Pref.makeBooleanPref("FindText_regExp", prefs, false),
+		prefSearchNodeNames = Pref.makeBooleanPref("FindText_searchNodeNames", prefs, true),
+		prefSearchNodeVars = Pref.makeBooleanPref("FindText_searchNodeVars", prefs, true),
+		prefSearchArcNames = Pref.makeBooleanPref("FindText_searchArcNames", prefs, true),
+		prefSearchArcVars = Pref.makeBooleanPref("FindText_searchArcVars", prefs, true),
+		prefSearchExportNames = Pref.makeBooleanPref("FindText_searchExportNames", prefs, true),
+		prefSearchExportVars = Pref.makeBooleanPref("FindText_searchExportVars", prefs, true),
+		prefSearchCellVars = Pref.makeBooleanPref("FindText_searchCellVars", prefs, true),
+		prefSearchTempNames = Pref.makeBooleanPref("FindText_searchTempNames", prefs, false),
+		prefSearchHighlighted = Pref.makeBooleanPref("FindText_searchHighlighted", prefs, false),
+		prefCodeRestriction = Pref.makeIntPref("FindText_searchCodeRestriction", prefs, 0),
+		prefUnitRestriction = Pref.makeIntPref("FindText_searchUnitRestriction", prefs, 0);
 	private String lastSearch = null;
+	private CodeExpression.Code [] codeRestrictions;
+	private TextDescriptor.Unit [] unitRestrictions;
 
 	public static void findTextDialog()
 	{
-        if (Client.getOperatingSystem() == Client.OS.UNIX)
-        {
-            // On Linux, if a dialog is built, closed using setVisible(false),
-            // and then requested again using setVisible(true), it does
-            // not appear on top. I've tried using toFront(), requestFocus(),
-            // but none of that works.  Instead, I brute force it and
-            // rebuild the dialog from scratch each time.
-            if (theDialog != null) theDialog.dispose();
-            theDialog = null;
-        }
+		if (Client.getOperatingSystem() == Client.OS.UNIX)
+		{
+			// On Linux, if a dialog is built, closed using setVisible(false),
+			// and then requested again using setVisible(true), it does
+			// not appear on top. I've tried using toFront(), requestFocus(),
+			// but none of that works.  Instead, I brute force it and
+			// rebuild the dialog from scratch each time.
+			if (theDialog != null) theDialog.dispose();
+			theDialog = null;
+		}
 		if (theDialog == null)
 		{
-            JFrame jf = null;
-            if (TopLevel.isMDIMode()) jf = TopLevel.getCurrentJFrame();
+			JFrame jf = null;
+			if (TopLevel.isMDIMode()) jf = TopLevel.getCurrentJFrame();
 			theDialog = new FindText(jf);
 		}
 
-        theDialog.setVisible(true);
+		theDialog.setVisible(true);
 		theDialog.toFront();
 	}
 
@@ -94,11 +101,55 @@ public class FindText extends EModelessDialog
 		initComponents();
 
 		// make all text fields select-all when entered
-	    EDialog.makeTextFieldSelectAllOnTab(findString);
-	    EDialog.makeTextFieldSelectAllOnTab(replaceString);
-	    EDialog.makeTextFieldSelectAllOnTab(lineNumber);
+		EDialog.makeTextFieldSelectAllOnTab(findString);
+		EDialog.makeTextFieldSelectAllOnTab(replaceString);
+		EDialog.makeTextFieldSelectAllOnTab(lineNumber);
 
-	    findString.setText(prefFindTextMessage.getString());
+		// load the code-restriction selector
+		int numCodeRestrs = 1;
+		for (Iterator<CodeExpression.Code> it = CodeExpression.Code.getCodes(); it.hasNext(); )
+		{
+			it.next();
+			numCodeRestrs++;
+		}
+		codeRestrictions = new CodeExpression.Code[numCodeRestrs];
+		numCodeRestrs = 0;
+		codeRestrictions[numCodeRestrs++] = null;
+		searchCodeRestriction.addItem("All Code Values");
+		codeRestrictions[numCodeRestrs++] = CodeExpression.Code.NONE;
+		searchCodeRestriction.addItem("Only NO Code");
+		for (Iterator<CodeExpression.Code> it = CodeExpression.Code.getCodes(); it.hasNext(); )
+		{
+			CodeExpression.Code cec = it.next();
+			if (cec == CodeExpression.Code.NONE) continue;
+			searchCodeRestriction.addItem("Only " + cec.name() + " Code");
+			codeRestrictions[numCodeRestrs++] = cec;
+		}
+
+		// load the unit-restriction selector
+		int numUnitRestrs = 1;
+		for (Iterator<TextDescriptor.Unit> it = TextDescriptor.Unit.getUnits(); it.hasNext(); )
+		{
+			it.next();
+			numUnitRestrs++;
+		}
+		unitRestrictions = new TextDescriptor.Unit[numUnitRestrs];
+		numUnitRestrs = 0;
+		unitRestrictions[numUnitRestrs++] = null;
+		searchUnitsRestriction.addItem("All Units Values");
+		unitRestrictions[numUnitRestrs++] = TextDescriptor.Unit.NONE;
+		searchUnitsRestriction.addItem("Only NO Units");
+		for (Iterator<TextDescriptor.Unit> it = TextDescriptor.Unit.getUnits(); it.hasNext(); )
+		{
+			TextDescriptor.Unit un = it.next();
+			if (un == TextDescriptor.Unit.NONE) continue;
+			String camelCase = un.getDescription().toUpperCase().substring(0, 1) + un.getDescription().substring(1);
+			searchUnitsRestriction.addItem("Only " + camelCase + " Units");
+			unitRestrictions[numUnitRestrs++] = un;
+		}
+
+		// load defaults into the dialog
+		findString.setText(prefFindTextMessage.getString());
 		replaceString.setText(prefReplaceTextMessage.getString());
 		caseSensitive.setSelected(prefCaseSensitive.getBoolean());
 		findReverse.setSelected(prefFindReverse.getBoolean());
@@ -112,37 +163,48 @@ public class FindText extends EModelessDialog
 		searchCellVars.setSelected(prefSearchCellVars.getBoolean());
 		searchTempNames.setSelected(prefSearchTempNames.getBoolean());
 		searchHighlighted.setSelected(prefSearchHighlighted.getBoolean());
+		searchCodeRestriction.setSelectedIndex(prefCodeRestriction.getInt());
+		searchUnitsRestriction.setSelectedIndex(prefUnitRestriction.getInt());
 
-        // changes to any checkboxes cause the search to start fresh
-        ActionListener action = new ActionListener() {
-            public void actionPerformed(ActionEvent evt) { lastSearch = null; }
-        };
-        searchNodeNames.addActionListener(action);
-        searchNodeVars.addActionListener(action);
-        searchArcNames.addActionListener(action);
-        searchArcVars.addActionListener(action);
-        searchExportNames.addActionListener(action);
-        searchExportVars.addActionListener(action);
-        searchCellVars.addActionListener(action);
-        searchTempNames.addActionListener(action);
-        searchHighlighted.addActionListener(action);        
+		// changes to any checkboxes cause the search to start fresh
+		ActionListener action = new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { lastSearch = null; }
+		};
+		searchNodeNames.addActionListener(action);
+		searchNodeVars.addActionListener(action);
+		searchArcNames.addActionListener(action);
+		searchArcVars.addActionListener(action);
+		searchExportNames.addActionListener(action);
+		searchExportVars.addActionListener(action);
+		searchCellVars.addActionListener(action);
+		searchTempNames.addActionListener(action);
+		searchHighlighted.addActionListener(action);
+		searchCodeRestriction.addActionListener(action);
+		searchUnitsRestriction.addActionListener(action);
 
 		getRootPane().setDefaultButton(find);
 		finishInitialization();
+		pack();
 	}
 
-	private boolean badRegExpSyntax() {
-        if (!regExp.isSelected()) return false;
-        try {
-            Pattern.compile(findString.getText());
-            return false;
-        } catch (Exception e) {
+	private boolean badRegExpSyntax()
+	{
+		if (!regExp.isSelected()) return false;
+		try
+		{
+			Pattern.compile(findString.getText());
+			return false;
+		} catch (Exception e)
+		{
 			System.out.println("Regular Expression error in Find string. Operation aborted.");
-            return true;
-        }
-    }
-    private Set<TextUtils.WhatToSearch> getWhatToSearch() {
-    	Set<TextUtils.WhatToSearch> whatToSearch = new HashSet<TextUtils.WhatToSearch>();
+			return true;
+		}
+	}
+
+	private Set<TextUtils.WhatToSearch> getWhatToSearch()
+	{
+		Set<TextUtils.WhatToSearch> whatToSearch = new HashSet<TextUtils.WhatToSearch>();
 		if (searchNodeNames.isSelected()) whatToSearch.add(TextUtils.WhatToSearch.NODE_NAME);
 		if (searchNodeVars.isSelected()) whatToSearch.add(TextUtils.WhatToSearch.NODE_VAR);
 		if (searchArcNames.isSelected()) whatToSearch.add(TextUtils.WhatToSearch.ARC_NAME);
@@ -152,7 +214,7 @@ public class FindText extends EModelessDialog
 		if (searchCellVars.isSelected()) whatToSearch.add(TextUtils.WhatToSearch.CELL_VAR);
 		if (searchTempNames.isSelected()) whatToSearch.add(TextUtils.WhatToSearch.TEMP_NAMES);
 		return whatToSearch;
-    }
+	}
 
 	protected void escapePressed() { doneActionPerformed(null); }
 
@@ -190,6 +252,9 @@ public class FindText extends EModelessDialog
         searchCellVars = new javax.swing.JCheckBox();
         searchTempNames = new javax.swing.JCheckBox();
         searchHighlighted = new javax.swing.JCheckBox();
+        jLabel3 = new javax.swing.JLabel();
+        searchCodeRestriction = new javax.swing.JComboBox();
+        searchUnitsRestriction = new javax.swing.JComboBox();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -320,6 +385,7 @@ public class FindText extends EModelessDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 4;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(lineNumber, gridBagConstraints);
 
@@ -425,6 +491,28 @@ public class FindText extends EModelessDialog
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         whatToSearch.add(searchHighlighted, gridBagConstraints);
 
+        jLabel3.setText("Restrictions:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 2, 4);
+        whatToSearch.add(jLabel3, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 2, 4);
+        whatToSearch.add(searchCodeRestriction, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 2, 4);
+        whatToSearch.add(searchUnitsRestriction, gridBagConstraints);
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 5;
@@ -435,7 +523,7 @@ public class FindText extends EModelessDialog
     }// </editor-fold>//GEN-END:initComponents
 
     private void doneActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_doneActionPerformed
-        closeDialog(null);
+		closeDialog(null);
     }//GEN-LAST:event_doneActionPerformed
 
 	private void goToLineActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_goToLineActionPerformed
@@ -460,38 +548,39 @@ public class FindText extends EModelessDialog
 		String search = findString.getText();
 		String replace = replaceString.getText();
 		WindowContent content = wf.getContent();
+		CodeExpression.Code codeRestr = codeRestrictions[searchCodeRestriction.getSelectedIndex()];
+		TextDescriptor.Unit unitRestr = unitRestrictions[searchUnitsRestriction.getSelectedIndex()];
+
 		content.initTextSearch(search, caseSensitive.isSelected(), regExp.isSelected(),
-			getWhatToSearch(), searchHighlighted.isSelected());
+			getWhatToSearch(), codeRestr, unitRestr, searchHighlighted.isSelected());
 		content.replaceAllText(replace);
 	}//GEN-LAST:event_replaceAllActionPerformed
 
 	private void replaceAndFindActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_replaceAndFindActionPerformed
 	{//GEN-HEADEREND:event_replaceAndFindActionPerformed
-                if (badRegExpSyntax()) return;
+		if (badRegExpSyntax()) return;
 		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
 		if (wf == null) return;
 		if (lastSearch == null) return;
 		WindowContent content = wf.getContent();
 		content.replaceText(replaceString.getText());
 		if (!content.findNextText(findReverse.isSelected())) lastSearch = null;
-
 	}//GEN-LAST:event_replaceAndFindActionPerformed
 
 	private void replaceActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_replaceActionPerformed
 	{//GEN-HEADEREND:event_replaceActionPerformed
-                if (badRegExpSyntax()) return;
-                WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+		if (badRegExpSyntax()) return;
+		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
 		if (wf == null) return;
 		if (lastSearch == null) return;
 		WindowContent content = wf.getContent();
 		content.replaceText(replaceString.getText());
-        replace.setEnabled(false);
-
+		replace.setEnabled(false);
 	}//GEN-LAST:event_replaceActionPerformed
 
 	private void findActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_findActionPerformed
 	{//GEN-HEADEREND:event_findActionPerformed
-                if (badRegExpSyntax()) return;
+		if (badRegExpSyntax()) return;
 		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
 		if (wf == null) return;
 		String search = findString.getText();
@@ -502,12 +591,14 @@ public class FindText extends EModelessDialog
 		}
 		if (lastSearch == null)
 		{
+			CodeExpression.Code codeRestr = codeRestrictions[searchCodeRestriction.getSelectedIndex()];
+			TextDescriptor.Unit unitRestr = unitRestrictions[searchUnitsRestriction.getSelectedIndex()];
 			content.initTextSearch(search, caseSensitive.isSelected(), regExp.isSelected(),
-				getWhatToSearch(), searchHighlighted.isSelected());
+				getWhatToSearch(), codeRestr, unitRestr, searchHighlighted.isSelected());
 		}
 		lastSearch = search;
 		if (!content.findNextText(findReverse.isSelected())) lastSearch = null;
-        replace.setEnabled(true);
+		replace.setEnabled(true);
 	}//GEN-LAST:event_findActionPerformed
 
 	/** Closes the dialog */
@@ -527,6 +618,8 @@ public class FindText extends EModelessDialog
 		prefSearchCellVars.setBoolean(searchCellVars.isSelected());
 		prefSearchTempNames.setBoolean(searchTempNames.isSelected());
 		prefSearchHighlighted.setBoolean(searchHighlighted.isSelected());
+		prefCodeRestriction.setInt(searchCodeRestriction.getSelectedIndex());
+		prefUnitRestriction.setInt(searchUnitsRestriction.getSelectedIndex());
 
 		setVisible(false);
 		dispose();
@@ -541,6 +634,7 @@ public class FindText extends EModelessDialog
     private javax.swing.JButton goToLine;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JTextField lineNumber;
     private javax.swing.JCheckBox regExp;
@@ -551,12 +645,14 @@ public class FindText extends EModelessDialog
     private javax.swing.JCheckBox searchArcNames;
     private javax.swing.JCheckBox searchArcVars;
     private javax.swing.JCheckBox searchCellVars;
+    private javax.swing.JComboBox searchCodeRestriction;
     private javax.swing.JCheckBox searchExportNames;
     private javax.swing.JCheckBox searchExportVars;
     private javax.swing.JCheckBox searchHighlighted;
     private javax.swing.JCheckBox searchNodeNames;
     private javax.swing.JCheckBox searchNodeVars;
     private javax.swing.JCheckBox searchTempNames;
+    private javax.swing.JComboBox searchUnitsRestriction;
     private javax.swing.JPanel whatToSearch;
     // End of variables declaration//GEN-END:variables
 }

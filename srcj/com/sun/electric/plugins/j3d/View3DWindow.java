@@ -34,7 +34,9 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.CodeExpression;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
@@ -501,7 +503,9 @@ public class View3DWindow extends JPanel
 	public boolean findNextText(boolean reverse) { return false; }
 	public void replaceText(String replace) {}
 	public JPanel getPanel() { return this; }
-	public void initTextSearch(String search, boolean caseSensitive, boolean regExp, Set<TextUtils.WhatToSearch> whatToSearch, boolean highlightedOnly) {}
+	public void initTextSearch(String search, boolean caseSensitive, boolean regExp,
+		Set<TextUtils.WhatToSearch> whatToSearch, CodeExpression.Code codeRestr, TextDescriptor.Unit unitRestr,
+		boolean highlightedOnly) {}
 
 	/**
 	 * Method to pan along X according to fixed amount of ticks
