@@ -36,6 +36,7 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -317,15 +318,40 @@ public class Highlighter implements DatabaseChangeListener {
      * each time it is used without first clearing
      * the highlighter, it shows connections to the network another level down
      * in the hierarchy.
-     * @param nets list of Networks in current cell to show
      * @param cell the cell in which to create the highlights
      */
-    public void showNetworks(Set<Network> nets, Netlist netlist, Cell cell) {
-        int showNetworkLevel;
+    public void showNetworks(Cell cell)
+    {
+    	// find out what is selected
+		Netlist netlist = cell.acquireUserNetlist();
+		if (netlist == null)
+		{
+			System.out.println("Sorry, a deadlock aborted netlist display (network information unavailable).  Please try again");
+			return;
+		}
+		Set<Network> nets = getHighlightedNetworks();
+		if (nets.size() == 0)
+		{
+			// no nets selected.  If a cell instance is selected, use all nets on it that are wired
+			List<NodeInst> nodes = getHighlightedNodes();
+			if (nodes.size() == 1)
+			{
+				NodeInst ni = nodes.get(0);
+				for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
+				{
+					Connection con = it.next();
+					Network net = netlist.getNetwork(con.getPortInst());
+					nets.add(net);
+				}
+			}
+		}
+
+		int showNetworkLevel;
         synchronized(this) {
             showNetworkLevel = this.showNetworkLevel;
         }
-        if (showNetworkLevel == 0) {
+        if (showNetworkLevel == 0)
+        {
             List<Network> sortedNets = new ArrayList<Network>(nets);
             Collections.sort(sortedNets, new TextUtils.NetworksByName());
             for (Network net : sortedNets) {
@@ -340,15 +366,6 @@ public class Highlighter implements DatabaseChangeListener {
             addHighlight(h);
             count++;
         }
-//        for (Network net : nets) {
-//            if (showNetworkLevel == 0) System.out.println("Highlighting "+net);
-//            List<Highlight> highlights = NetworkHighlighter.getHighlights(cell, netlist, net,
-//                    showNetworkLevel, showNetworkLevel);
-//            for (Highlight h : highlights) {
-//                addHighlight(h);
-//                count++;
-//            }
-//        }
         synchronized(this) {
             this.showNetworkLevel = showNetworkLevel+1;
         }

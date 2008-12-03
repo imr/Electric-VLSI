@@ -911,16 +911,9 @@ public class ToolMenu {
 		Cell cell = wnd.getCell();
 		if (wnd == null) return;
 		Highlighter highlighter = wnd.getHighlighter();
+		highlighter.showNetworks(cell);
 
-		Set<Network> nets = highlighter.getHighlightedNetworks();
-		Netlist netlist = cell.acquireUserNetlist();
-		if (netlist == null)
-		{
-			System.out.println("Sorry, a deadlock aborted netlist display (network information unavailable).  Please try again");
-			return;
-		}
-		highlighter.showNetworks(nets, netlist, cell);
-        // 3D display if available
+		// 3D display if available
         WindowFrame.show3DHighlight();
 		highlighter.finished();
 	}

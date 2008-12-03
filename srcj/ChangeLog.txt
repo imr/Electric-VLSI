@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08n: ******************************
 
+IMP/MAN (12/3/08, SMR) The "Show Network" command now shows networks on
+     all arcs connected to a cell instance if that instance is selected
+     but NO ports are selected (Bug #1902).
+
 IMP: (12/2/08, GVG) Show GDS import errors in ErrorLogger (Bug #1971)
 
 BUG: (12/2/08, GVG) NPE in GDS import if non-GDS file is uploaded (Bug #1970)
