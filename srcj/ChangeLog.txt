@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08n: ******************************
 
+IMP: (12/2/08, GVG) Show GDS import errors in ErrorLogger (Bug #1971)
+
 BUG: (12/2/08, GVG) NPE in GDS import if non-GDS file is uploaded (Bug #1970)
 FIX: Avoid to print cell name if cell hasn't been created yet.
 It also deals with errors while importing EDIF, LEF, DEF, DXF, SUE, Verilog and Applicon

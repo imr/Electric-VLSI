@@ -732,8 +732,9 @@ public class GDS extends Input
         private EPoint[] points; // trace
         private String exportName; // export
         private Name nodeName; // text
+        private String origNodeName; // original text with invalid name
 
-		private MakeInstance(NodeProto proto, Point2D loc, Orientation orient, double wid, double hei, EPoint[] points, String exportName, Name nodeName)
+        private MakeInstance(NodeProto proto, Point2D loc, Orientation orient, double wid, double hei, EPoint[] points, String exportName, Name nodeName)
 		{
 			this.proto = proto;
 			this.loc = loc;
@@ -745,6 +746,7 @@ public class GDS extends Input
             if (nodeName != null && NodeInst.checkNameKey(nodeName, null))
             {
                 // If name is not valid, a new one will be automatically created.
+                origNodeName = nodeName.toString();  // remember the name for error reporting
                 nodeName = null;
             }
             this.nodeName = nodeName;
@@ -763,11 +765,27 @@ public class GDS extends Input
         private boolean instantiate(Cell parent, Map<String,String> exportUnify) {
         	String name = nodeName.toString();
             NodeInst ni = NodeInst.makeInstance(proto, loc, wid, hei, parent, orient, name, 0);
+            String errorMsg = null;
 
             if (ni == null) return false;
-            if (ni.getNameKey() != nodeName) {
-                System.out.println("GDS name " + name + " renamed to " + ni.getName());
+
+            if (ni.getNameKey() != nodeName)
+            {
+                errorMsg = "GDS name '" + name + "' renamed to '" + ni.getName() + "'";
             }
+            else if (origNodeName != null)
+            {
+                errorMsg = "Original GDS name of '" + name + "' was '" + origNodeName + "'";
+            }
+
+            if (errorMsg != null)
+            {
+                List<Geometric> geomList = new ArrayList<Geometric>(1);
+                geomList.add(ni);
+                errorLogger.logError(errorMsg, geomList, null, null, null, null, parent, -1);
+                System.out.println(errorMsg);
+            }
+
             if (IOTool.isGDSInExpandsCells() && ni.isCellInstance())
                 ni.setExpanded();
             if (points != null)
