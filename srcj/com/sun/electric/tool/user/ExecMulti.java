@@ -17,6 +17,7 @@ public class ExecMulti implements Exec.FinishedListener {
     private List<String> postRunComments;
     private List<Exec.FinishedListener> finishedListeners;
     private List<Exec.FinishedEvent> finishedEvents;
+    private List<Boolean> ignoreExitValues;
     private int nextExec;
 
     public ExecMulti() {
@@ -25,17 +26,23 @@ public class ExecMulti implements Exec.FinishedListener {
         postRunComments = new ArrayList<String>();
         finishedListeners = new ArrayList<Exec.FinishedListener>();
         finishedEvents = new ArrayList<Exec.FinishedEvent>();
+        ignoreExitValues = new ArrayList<Boolean>();
         nextExec = 0;
     }
 
     public void addExec(Exec e) {
-        addExec(e, "", "");
+        addExec(e, "", "", false);
     }
 
-    public void addExec(Exec e, String preRunComment, String postRunComment) {
+    public void addExec(Exec e, boolean ignoreExitValue) {
+        addExec(e, "", "", ignoreExitValue);
+    }
+
+    public void addExec(Exec e, String preRunComment, String postRunComment, boolean ignoreExitValue) {
         execs.add(e);
         preRunComments.add(preRunComment);
         postRunComments.add(postRunComment);
+        ignoreExitValues.add(new Boolean(ignoreExitValue));
     }
 
     public void start() {
@@ -47,9 +54,7 @@ public class ExecMulti implements Exec.FinishedListener {
 
         if (nextExec >= execs.size()) {
             // done
-            for (Exec.FinishedListener l : finishedListeners) {
-                l.processFinished(finishedEvents.get(nextExec-1));
-            }
+            done();
             return;
         }
 
@@ -65,9 +70,26 @@ public class ExecMulti implements Exec.FinishedListener {
     }
 
     public void processFinished(Exec.FinishedEvent e) {
+        if (e.getExitValue() != 0) {
+            boolean b = ignoreExitValues.get(nextExec);
+            if (b) {
+                // ignore
+                e = new Exec.FinishedEvent(e.getSource(), e.getExec(), e.getWorkingDir(), 0);
+            } else {
+                finishedEvents.add(e);
+                done();
+                return;
+            }
+        }
         finishedEvents.add(e);
         nextExec++;
         startNext();
+    }
+
+    private void done() {
+        for (Exec.FinishedListener l : finishedListeners) {
+            l.processFinished(finishedEvents.get(finishedEvents.size()-1));
+        }
     }
 
     // ----------------------------------------------------------
