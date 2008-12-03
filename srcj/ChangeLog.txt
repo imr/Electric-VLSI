@@ -4,7 +4,7 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08n: ******************************
 BUG: (12/3/08, GVG) Wide/long errors detected by Electric but not by Calibre (Bug #1961)
-FIX: Better detection of paralle runs of metals.
+FIX: Better detection of parallel runs of metals.
 
 BUG: (12/3/08, SMR) Verilog netlister should merge schematic signals when they are
      parts of the same bus (Bug #1963).
