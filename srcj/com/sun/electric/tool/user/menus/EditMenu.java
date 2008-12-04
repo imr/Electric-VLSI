@@ -843,7 +843,11 @@ public class EditMenu {
 		}
 		tw.readTextCell(fileName);
 		tw.goToLineNumber(1);
-		f.delete();
+
+          if (f.delete())
+            System.err.println("** Deleted " + fileName + " **");
+          else
+            System.err.println("Failed to delete " + fileName);
 	}
 
 	/**
