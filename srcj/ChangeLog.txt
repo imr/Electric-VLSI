@@ -3,26 +3,30 @@
 NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08n: ******************************
-BUG: (12/3/08, GVG) Modifying working directory path in case of selection text editor binary (Bug #1973)
+
+BUG: (12/3/08, GVG) Modifying working directory path in case of selection text
+     editor binary (Bug #1973)
 FIX: Use chooseInputFile function with setSelectedDirAsWorkingDir=false.
 
-BUG: (12/3/08, GVG) Wide/long errors detected by Electric but not by Calibre (Bug #1961)
+BUG: (12/3/08, GVG) Wide/long errors detected by Electric but not by Calibre (Bug
+     #1961)
 FIX: Better detection of parallel runs of metals.
 
-BUG: (12/3/08, SMR) Verilog netlister should merge schematic signals when they are
-     parts of the same bus (Bug #1963).
-FIX: In Topology.doGetNetworks(), no longer insist that exports be the same in order
-     to unify a bus.
+BUG: (12/3/08, SMR) Verilog netlister should merge schematic signals when they
+     are parts of the same bus (Bug #1963).
+FIX: In Topology.doGetNetworks(), no longer insist that exports be the same in
+     order to unify a bus.
 
 BUG: (12/3/08, GVG) Assertion in new fill generator (Bug #1960)
 FIX: Improved the generator to deal with zig-zag conditions.
 
-IMP: (12/3/08, SMR) Dummy layers now appear at the bottom of the Layers tab (Bug #1946).
+IMP: (12/3/08, SMR) Dummy layers now appear at the bottom of the Layers tab (Bug
+     #1946).
 
-IMP/MAN (12/3/08, SMR) The "Text Search" dialog has been augmented to let
+IMP: (12/3/08, SMR) The "Text Search" dialog has been augmented to let
      you restrict the text search to specific Code and Unit values (Bug #1519).
 
-IMP/MAN (12/3/08, SMR) The "Show Network" command now shows networks on
+IMP: (12/3/08, SMR) The "Show Network" command now shows networks on
      all arcs connected to a cell instance if that instance is selected
      but NO ports are selected (Bug #1902).
 
@@ -30,38 +34,45 @@ IMP: (12/2/08, GVG) Show GDS import errors in ErrorLogger (Bug #1971)
 
 BUG: (12/2/08, GVG) NPE in GDS import if non-GDS file is uploaded (Bug #1970)
 FIX: Avoid to print cell name if cell hasn't been created yet.
-It also deals with errors while importing EDIF, LEF, DEF, DXF, SUE, Verilog and Applicon
-when a non-<format> file is uploaded. Improving error message for ELIB and readable dump.
+     It also deals with errors while importing EDIF, LEF, DEF, DXF, SUE, Verilog
+     and Applicon when a non-<format> file is uploaded. Improving error message
+     for ELIB and readable dump.
 
-IMP: (12/2/08, GVG) Resetting invalid text names in GDS import. Changes are meant for Bug #1968.
+IMP: (12/2/08, GVG) Resetting invalid text names in GDS import. Changes are meant
+     for Bug #1968.
 
 BUG: (12/2/08, SMR) GDS import does not handle arrays of simple cells
      right when they are rotated (Bug #1901).
 FIX: Transform cell contents before adding it to the large polygon.
 
-IMP/MAN: (12/2/08, SMR) Added the layer to the "Manipulate Exports" dialog (Bug #1967).
+IMP: (12/2/08, SMR) Added the layer to the "Manipulate Exports" dialog (Bug
+     #1967).
 
-BUG: (12/2/08, SMR) Want movement and deletion reported in the messages window (Bug #1917).
+BUG: (12/2/08, SMR) Want movement and deletion reported in the messages window
+     (Bug #1917).
 FIX: Report movement and deletion.
 
-IMP: (12/1/08, GVG) Object selected in "Select Object" dialog is not visible (Bug #1964)
+IMP: (12/1/08, GVG) Object selected in "Select Object" dialog is not visible (Bug
+     #1964)
 
 ************************* Version 8.08m: ******************************
 
-Bug: (12/1/08, GVG) Well resistors having wrong dummy layer (part of Bug #1956)
+BUG: (12/1/08, GVG) Well resistors having wrong dummy layer (part of Bug #1956)
 FIX: nwdmyLvsLayer is the layer chosen this time.
 
-BUG: (12/1/08, SMR) "Down Hierarchy In Place To Object" should list just one object
-     per context (Bug #1930).
+BUG: (12/1/08, SMR) "Down Hierarchy In Place To Object" should list just one
+     object per context (Bug #1930).
 FIX: In CellMenu.downHierInPlaceToObject(), eliminate duplicate choices.
 
 BUG: (11/29/08, RK) cmos90.java appears to assign RESPWELL and RESNWELL
-functions to RPO Poly Resistor-Node whereas I think it should assign
-RESPPOLY and RESNPOLY functions. I fixed cmos90.java but I don't
-understand what to do with Technology.xsd. (Bug# 1959)
+     functions to RPO Poly Resistor-Node whereas I think it should assign
+     RESPPOLY and RESNPOLY functions. I fixed cmos90.java but I don't
+     understand what to do with Technology.xsd. (Bug# 1959)
 
-BUG: (11/26/08, GVG) Upgrading definition of well and poly resistors in TSMC technologies (Bug#1953)
-FIX: Changed Technology.xsd so it will request the proper p/n well/poly resistors in the XML defintion.
+BUG: (11/26/08, GVG) Upgrading definition of well and poly resistors in TSMC
+     technologies (Bug#1953)
+FIX: Changed Technology.xsd so it will request the proper p/n well/poly resistors
+     in the XML definition.
 
 IMP: (11/26/08, GVG) Well resistors in CMOS90 (Bug #1956)
 
@@ -71,69 +82,80 @@ FIX: Changed Schematics to draw them (well resistors have box around them,
      P/N distinction done with a letter).  Updated Spice output and Netlister.
 
 BUG: (11/25/08, GVG) NPE while doing copy or paste (Bug #1955)
-FIX: Make Dimension2D serializable   \
+FIX: Make Dimension2D serializable.
 
 IMP: (11/25/08, GVG) Disconnecting more another spacing D-N-Well rule in CMOS90
-because of Bug#1942.
+     because of Bug#1942.
 
 BUG: (11/25/08, SMR) When GDS text objects are too small, import of them
      gives many errors about "relative size".
-FIX: In tool.io.input.gds.readText(), clamp "size" to "TextDescriptor.Size.TXTMINQGRID"
+FIX: In tool.io.input.gds.readText(), clamp "size" to
+     "TextDescriptor.Size.TXTMINQGRID"
 
-IMP/MAN: (11/25/08, SMR) Now have separate X and Y grid alignment values (Bug #1952).
+IMP: (11/25/08, SMR) Now have separate X and Y grid alignment values (Bug #1952).
 
-BUG/MAN: (11/25/08, SMR) Move "GDS Input Scale" from preferences to project
+BUG: (11/25/08, SMR) Move "GDS Input Scale" from preferences to project
      settings (Bug #1948).
 FIX: Moved it and made it a Setting.
 
 BUG: (11/20/08, SMR) Pure-layer node popup order is bad (Bug #1948).
 FIX: Show well first, then substrate, by category, then art, then the rest.
 
-BUG: (11/24/08, GVG) DRC takes a long time to abort in Bug #1950 example (Bug #1951)
+BUG: (11/24/08, GVG) DRC takes a long time to abort in Bug #1950 example (Bug
+     #1951)
 FIX: More checkAbort conditions in the code.
 
 IMP: (11/24/08, GVG) First version of tiles in new fill generator.
 
 IMP: (11/21/08, GVG) Ability of keep cell instances in new fill generator.
 
-BUG: (11/20/08, SMR) Pure-layer node popup should handle arrows and key selection, and
-     show wells and dummys near the top (Bug #1948).
+BUG: (11/20/08, SMR) Pure-layer node popup should handle arrows and key
+     selection, and show wells and dummys near the top (Bug #1948).
 FIX: Rewrote TechPalette.PurePopup class to be a full dialog.
 
-IMP: (11/19/08, SMR) Outlines can now use null values to separate multiple polygons (Bug #1901).
+IMP: (11/19/08, SMR) Outlines can now use null values to separate multiple
+     polygons (Bug #1901).
 
 BUG: (11/19/08, SMR) Arrayed nodes generate incorrect VHDL (Bug #1947).
-FIX: Rewrote GenerateVHDL.java and refactored it to com.sun.electric.tool.io.output.
+FIX: Rewrote GenerateVHDL.java and refactored it to
+     com.sun.electric.tool.io.output.
 
-IMP/MAN: (11/18/08, SMR) Made DXF input read all layers by default.
+IMP: (11/18/08, SMR) Made DXF input read all layers by default.
 
 ************************* Version 8.08l: ******************************
 
 BUG: (11/13/08, DN) Cant delete cell and reuse name in same Job (Bug #1944).
 FIX: In Layout.newCellInfo remove assert.
 
-IMP: (11/13/08, GVG) New fill generator available in Tools menu -> Generator submenu
+IMP: (11/13/08, GVG) New fill generator available in Tools menu -> Generator
+     submenu
 
-IMP: (11/12/08, GVG) Deep well rule temporary out from CMOS90 until Bug #1942 is clarified.
+IMP: (11/12/08, GVG) Deep well rule temporary out from CMOS90 until Bug #1942 is
+     clarified.
 
 BUG: (11/11/08, GVG) java.lang.error in DRC of invLSLT_X50_v12 (Bug #1941)
-FIX: Deep n well needed a different function to distinguish itself from the nwell.
+FIX: Deep n well needed a different function to distinguish itself from the
+     nwell.
 
 IMP: (11/10/08, SMR) Changed "Tool" menu to "Tools" (Bug #1940).
 
 IMP: (11/10/08, DN) If flag Technology.IMMUTABLE_TECHS is true then changes
-    in Technology settings take effect only after Electric restart.
+     in Technology settings take effect only after Electric restart.
 
 IMP: (11/9/08, DN) ExportTests use separate "projsettings_TECHNAME.xml" files.
 
-IMP: (11/9/08, DN) Add method GDS.writeGDSFile with explicit writeExportPins and convertBracketsInExports flags.
+IMP: (11/9/08, DN) Add method GDS.writeGDSFile with explicit writeExportPins and
+     convertBracketsInExports flags.
 
-IMP/MAN: (11/7/08, GVG) New fill generator that stitches set of given pieces of metal geometries.
+IMP: (11/7/08, GVG) New fill generator that stitches set of given pieces of metal
+     geometries.
 
 BUG: (11/6/08, GVG) Annoying component menu changes (Bug #1935)
-FIX: Adding missing listener to view list to enable/disable technology option in NewCell dialog.
+FIX: Adding missing listener to view list to enable/disable technology option in
+     NewCell dialog.
 
-BUG: (11/6/08, SMR) Errors section of Explorer tree collapses when the database changes (Bug #1898).
+BUG: (11/6/08, SMR) Errors section of Explorer tree collapses when the database
+     changes (Bug #1898).
 FIX: In ErrorLoggerTree.ErrorLoggerTreeNode.databaseChanged(), use new class
      ExplorerTree.KeepTreeExpansion to remember expansion state.
 
@@ -148,41 +170,50 @@ IMP: (11/5/08, GVG) First version of new fill generator.
 IMP: (11/5/08, SMR) When deleting a cell instance and reconstructing arcs and
      exports, those reconstructed objects are left highlighted (Bug #1936).
 
-IMP: (11/5/08, SMR) Changed the default grid amounts to 0.5, 1, 5, 10, and 20 (Bug #1801).
+IMP: (11/5/08, SMR) Changed the default grid amounts to 0.5, 1, 5, 10, and 20
+     (Bug #1801).
 
-BUG: (11/5/08, SMR) Spice templates do not handle single elements in a bus (Bug #1938).
+BUG: (11/5/08, SMR) Spice templates do not handle single elements in a bus (Bug
+     #1938).
 FIX: In Spice.replacePortsAndVars(), handle bus elements.
 
 BUG: (11/5/08, SMR) Now that Electric is case-sensitive, Spice decks
      may have name conflicts, since Spice is case insensitive (Bug #1811).
 FIX: Topology.java now handles case insensitivity for Spice.
 
-BUG: (11/5/08, SMR) Factory reset of layers panel doesn't reset special colors (Bug #1744).
+BUG: (11/5/08, SMR) Factory reset of layers panel doesn't reset special colors
+     (Bug #1744).
 FIX: Fixed LayersTab.reset() to reset special colors.
 
 BUG: (11/4/08, DN) Electric failes to mark a library for saving (Bug #1934)
 FIX: In Snapshot.withRenamedIds mark "modified" LibraryBackups.
 
-IMP/MAN: (11/2/08, GVG) Pwell process and gate orientation in Tech Creation Wizard (Bug #1933)
+IMP: (11/2/08, GVG) Pwell process and gate orientation in Tech Creation Wizard
+     (Bug #1933).
 
-IMP: (11/2/08, DN) Preferences related to Technology are moved to special Pref.Group.
+IMP: (11/2/08, DN) Preferences related to Technology are moved to special
+     Pref.Group.
 
 ************************* Version 8.08k: ******************************
 
 BUG: (10/30/08, GVG) Shift-0 (layer display) broken (Bug #1932)
 FIX: Update also for shift-0
 
-IMP/MAN: (10/30/08, GVG) Tech Creation Wizard can generate pwell technologies.
-It can also generate well arcs (Bug #1910)
+IMP: (10/30/08, GVG) Tech Creation Wizard can generate pwell technologies.
+     It can also generate well arcs (Bug #1910)
 
-BUG: (10/30/08, GVG) XML tech reader can't parse new ArcProto Function WELL (Bug #1931)
+BUG: (10/30/08, GVG) XML tech reader can't parse new ArcProto Function WELL (Bug
+     #1931)
 FIX: Technology.xsd amended.
 
-IMP: (10/30/08, DN) CellBackup.techPool contains only technologies used in the Cell.
+IMP: (10/30/08, DN) CellBackup.techPool contains only technologies used in the
+     Cell.
 
-IMP/MAN: (10/29/08, SMR) Added a disambiguation popup to "Down Hierarchy in Place to Object" (Bug #1930).
+IMP: (10/29/08, SMR) Added a disambiguation popup to "Down Hierarchy in Place to
+     Object" (Bug #1930).
 
-BUG: (10/29/08, SMR) Auto-stitching doesn't handle daisy-chains right (Bug #1927).
+BUG: (10/29/08, SMR) Auto-stitching doesn't handle daisy-chains right (Bug
+     #1927).
 FIX: Special code in AutoStitch.java now handles daisy-chains.
 
 BUG: (10/29/08, DN) CVS update from Electric doesn't work (Bug #1795).
@@ -191,15 +222,16 @@ FIX: In Library.removeReferencedLib call backupReferenceLibs to propagate
      In NodeInst.replace don't create new arc if "newPortInst" is not defined.
 
 BUG: (10/28/08, RK): NCC regressions need repair because Electric is
-becoming case sensitive.
+     becoming case sensitive.
 
 IMP (10/27/08, SMR): Making not possible to place down a cell on itself due
-to circular dependencies.
+    to circular dependencies.
 
-BUG (10/27/08, SMR): The "Pure" component menu item can be too big and needs to scroll (Bug #1926).
+BUG (10/27/08, SMR): The "Pure" component menu item can be too big and needs to
+     scroll (Bug #1926).
 FIX: In TechPalette.mouseReleased(), use a JComboBox popup.
 
-IMP/MAN (10/27/08, SMR): GDS input now has a scale factor (Bug #1928).
+IMP (10/27/08, SMR): GDS input now has a scale factor (Bug #1928).
 
 BUG: (10/27/08, SMR) GDS reads incorrectly (Bug #1928).
 FIX: Handle array references correctly.
@@ -213,24 +245,30 @@ IMP: (10/22/08, SMR) Tabbing through the fields in the dialogs
 
 IMP: (10/22/08, SMR) Made well ports "hard to select" (Bug #1910).
 
-BUG: (10/22/08, SMR) Node extractor is slow (Bug #1778) and doesn't abort (Bug #1925).
+BUG: (10/22/08, SMR) Node extractor is slow (Bug #1778) and doesn't abort (Bug
+     #1925).
 FIX: Added R-trees to auto-stitcher to speed it up.  Added more abort detection.
 
 IMP: (10/21/08, JKG) Added layer functions for dummy and dummy exclusion layers
 
-IMP: (10/21/08, GVG) New implementation of "different highlight color for network" (Bug #1776).
-White is the default color. Assuming it fixed bug #1924.
+IMP: (10/21/08, GVG) New implementation of "different highlight color for
+     network" (Bug #1776). White is the default color. Assuming it fixed bug
+     #1924.
 
-IMP: (10/21/08, SMR) Added generalized transistor function detection to "L" and Verilog (Bug #1858).
+IMP: (10/21/08, SMR) Added generalized transistor function detection to "L" and
+     Verilog (Bug #1858).
 
-IMP: (10/20/08, GVG) Electric doesn't use old names information in case of JELIB/DELIB (Bug #1922)
-FIX: Modification done in JELIB that also fixes DELIB. No need of a more sophisticated solution for now.
+IMP: (10/20/08, GVG) Electric doesn't use old names information in case of
+     JELIB/DELIB (Bug #1922)
+FIX: Modification done in JELIB that also fixes DELIB. No need of a more
+     sophisticated solution for now.
 
-IMP: (10/17/08, GVG) Well ports added into MoCMOS transistors and pure well nodes (part of Bug #1910)
+IMP: (10/17/08, GVG) Well ports added into MoCMOS transistors and pure well nodes
+     (part of Bug #1910)
 
 BUG: (10/17/08, GVG) Pure Well nodes connecting to wrong arcs (Bug #1923)
-FIX: Correct well arc selected now. NOTW: TSMC180 nodes will connect to well taps arcs
-until pure well arcs are defined in that technology (to be discussed).
+FIX: Correct well arc selected now. NOTW: TSMC180 nodes will connect to well taps
+     arcs until pure well arcs are defined in that technology (to be discussed).
 
 IMP: (10/16/08, GVG) Well arcs added into CMOS90 (part of Bug #1910)
 
@@ -248,14 +286,16 @@ BUG: (10/14/08, SMR) Verilog netlister is sensitive to ascending/descending
      busses preference (Bug #1919).
 FIX: Improved Topology.java to evaluate bus directionality correctly.
 
-BUG: (10/13/08, SMR) Crash deleting export when editing down-in-place (Bug #1913).
+BUG: (10/13/08, SMR) Crash deleting export when editing down-in-place (Bug
+     #1913).
 FIX: In Clipboard.getPasteBounds(), use proper object for a displayed object.
 
 BUG: (10/13/08, SMR) "Duplicate Cell" dialog makes it hard to remove the default
      "NEW" appended to the cell name (Bug #1915).
 FIX: The "NEW" is initially highlighted, making it easy to replace.
 
-IMP/MAN: (10/13/08, SMR) Added multi-processor speed-up to "ERC Well Check" (Bug #1899).
+IMP: (10/13/08, SMR) Added multi-processor speed-up to "ERC Well Check" (Bug
+     #1899).
 
 BUG: (10/13/08, SMR) Well arcs are not drawn at some scales (Bug #1911).
 FIX: In VectorCache.drawArc(), do not treat well layers specially when they are
@@ -265,20 +305,21 @@ IMP: (10/13/08, DN) EPoint[] variables can't contain nulls (Bug #1901).
 FIX: In database.Variable and in readers/writers.
 
 BUG: (10/10/08, GVG) DRC of a cell should also check the
-upper levels where the current cell is used (Bug #1907)
+     upper levels where the current cell is used (Bug #1907)
 FIX: DRC select option picks selected objects instead of using bounding box.
 
 BUG: (10/11/08, DN) Cannot change cell view (Bug #1880).
-FIX: Don't clear technology of cell in ViewChanges.ChangeCellView.doIt() .
+FIX: Don't clear technology of cell in ViewChanges.ChangeCellView.doIt().
 
-BUG: (10/10/08, DN) 3D preferences are always reset to factory values on new session.
+BUG: (10/10/08, DN) 3D preferences are always reset to factory values on new
+     session.
 FIX: In Layer.setFactory3DInfo don't change current values of preferences.
 
 BUG: (10/10/08, DN) Can't specify more layer functions (Bug #1903).
 FIX: Implement Layer.Function.Set by BitSet instead of long.
 
 BUG: (10/8/08, GVG) Writing Spice file on Mac OS 10.5 uses ":"
-as delimiter instead of "/" (Bug #1877)
+     as delimiter instead of "/" (Bug #1877)
 FIX: Use the Swing mode in OpenDialog under MacOSX.
 
 IMP: (10/8/08, GVG) Well arcs added into MoCMOS (part of Bug #1910)
@@ -295,12 +336,13 @@ FIX: Fixed dependency on user interface and updated expected results.
 BUG: (10/7/08, SMR) "List Cell Usage" ignores arrayed icons (Bug #1906).
 FIX: In CellLists.listCellUsageCommand(), consider icon arrays.
 
-IMP/MAN: (10/3/08, SMR) GDS import cannot handle volume of data (Bug #1901).
+IMP: (10/3/08, SMR) GDS import cannot handle volume of data (Bug #1901).
 FIX: Modified the definition of Outline information: if a coordinate in the
      list is duplicated, then this indicates a "break" in the Outline, and
      a new polygon starts with the next coordinate. This allows multiple
      disjoint rectangles to be stuffed into a single Outline array.
-     GDS import uses this for arrays of simple cells (with just 1 pure-layer node).
+     GDS import uses this for arrays of simple cells (with just 1 pure-layer
+     node).
 
 BUG: (10/3/08, RK) NCC changed to use new transistor functions. (Bug #1858)
 
@@ -308,27 +350,29 @@ BUG: (10/2/08, SMR) "Change" dialog pops-up error dialogs when certain
      selections are made (Bug #1900).
 FIX: In Change.loadInfo() send better messages to Messages window.
 
-IMP/MAN: (10/2/08) You can now right-click on an error group or on multiple
+IMP: (10/2/08) You can now right-click on an error group or on multiple
      error messages in the Explorer tree and choose "Show All" to highlight
      them (Bug #1889).
 
-IMP/MAN: (10/2/08, SMR) Schematic DRC now checks that instance names don't
+IMP: (10/2/08, SMR) Schematic DRC now checks that instance names don't
      conflict with network names (Bug #1895).
 
 IMP: (10/2/08, SMR) Schematic DRC errors now group by cell name (Bug #1893).
 
 IMP: (10/2/08, SMR) Sped up "ERC Well Check" significantly (Bug #1899).
 
-IMP/MAN: (10/1/08, SMR) Added "Reverse video" option in "Layout Text" (Bug #1894).
+IMP: (10/1/08, SMR) Added "Reverse video" option in "Layout Text" (Bug #1894).
 
-IMP: (9/29/08, GVG) Remove ErrorLogger entries with zero Calibre errors (Bug #1888)
+IMP: (9/29/08, GVG) Remove ErrorLogger entries with zero Calibre errors (Bug
+     #1888)
 
-BUG: (9/25/08, GVG) Tech Wizard doesn't write GDS values properly in XML (Bug #1887)
+BUG: (9/25/08, GVG) Tech Wizard doesn't write GDS values properly in XML (Bug
+     #1887)
 FIX: Functionality added
 
 IMP: (9/25/08, GVG) Making LE available as AbstractTest (Bug #1828)
 
-BUG/MAN: (9/25/08, SMR) "Select All" selects invisible objects (Bug #1843).
+BUG: (9/25/08, SMR) "Select All" selects invisible objects (Bug #1843).
 FIX: Disable selection of primitive nodes or arcs that have no visible layers
      (already does this with click selection, now does it with "Select All").
      Also added "Selection" Preference to allow selection of invisible objects.
@@ -342,22 +386,25 @@ FIX: In GDS.setLayer(), handle missing pure-layer nodes.
 ************************* Version 8.08h: ******************************
 
 BUG: (9/24/08, GVG) Can't find wiring target (Bug #1884)
-FIX: Undoing "Incorrect placement of p-contact (Bug #1871)" because broke wiring target finding.
+FIX: Undoing "Incorrect placement of p-contact (Bug #1871)" because broke wiring
+     target finding.
 
 BUG: (9/24/08, GVG) Delectable bug (Bug #1885)
 FIX: Typo fixed
 
-IMP/MAN: (9/24/08, SMR) Rearranging layers, nodes, or arcs in the technology editor
+IMP: (9/24/08, SMR) Rearranging layers, nodes, or arcs in the technology editor
      uses a drag-and-drop interface.
 
-BUG: (9/24/08, GVG) DRC min size broken for asymetric cmos90 contacts (Bug #1881)
+BUG: (9/24/08, GVG) DRC min size broken for asymmetric cmos90 contacts (Bug
+     #1881)
 FIX: Asymmetric min rules amended as well.
 
 BUG: (9/23/08, GVG) DRC fails on serpentine transistors (Bug #1857)
 FIX: Working with PrimitiveNodeSize and baseRectangle values now for case (1).
-Case (2) got fix with #1873.
+     Case (2) got fix with #1873.
 
-BUG: (9/23/08, SMR) Spice templates in icons cause crash if there is a schematic (Bug #1879).
+BUG: (9/23/08, SMR) Spice templates in icons cause crash if there is a schematic
+     (Bug #1879).
 FIX: Handle Spice template at any place.
 
 BUG: (9/22/08, SMR) Selecting a port on a Generic primitive shows a
@@ -365,19 +412,21 @@ BUG: (9/22/08, SMR) Selecting a port on a Generic primitive shows a
 FIX: For Generic primitives, report connectivity simply as "ALL".
 
 IMP: (9/22/08, SMR) Serpentine transistors now emit a single complex polygon
-     for every layer (instead of breaking it up into mulitple segments, Bug #1873).
+     for every layer (instead of breaking it up into mulitple segments, Bug
+     #1873).
 
 BUG: (9/22/08, GVG) Incorrect placement of p-contact (Bug #1871)
-FIX: Skip startPort if it is available in the middle of the path. That should avoid infinite loops.
+FIX: Skip startPort if it is available in the middle of the path. That should
+     avoid infinite loops.
 
-BUG/MAN: (9/22/08, SMR) Node Properties may spend too long listing ports (Bug #1874).
+BUG: (9/22/08, SMR) Node Properties may spend too long listing ports (Bug #1874).
 FIX: Node Properties now lists only the first 100 ports (or bus members)
      and has a "Show All" button to request the entire list.
 
 BUG: (9/22/08, GVG) Infinite loop on transistor width casting (Bug #1875)
 FIX: Transistors with ExpressionCode can properly return values now.
 
-IMP/MAN: (9/20/08, GVG) Error logger set index for stepping (Bug #1869).
+IMP: (9/20/08, GVG) Error logger set index for stepping (Bug #1869).
 Next and previous will be with respect to the last ErrorLogger highlighted.
 
 BUG: (9/18/08, GVG) Change in cells cases null point exception (Bug #1872)
@@ -386,16 +435,19 @@ FIX: Checking if all selected highlighted belong to the same Geometry class.
 BUG: (9/18/08, SMR) Updates to the toolbar do not draw immediately (Bug #1870).
 FIX: In ToolBar.redoToolbar() call updateUI().
 
-BUG: (9/18/08, GVG) Transistor sizes wrong with mocmos/SCMOS conditions (Bug #1863)
-FIX: Resizing of left and right edges in MoCMOS transistor primitive was missing so default was always picked.
+BUG: (9/18/08, GVG) Transistor sizes wrong with mocmos/SCMOS conditions (Bug
+     #1863)
+FIX: Resizing of left and right edges in MoCMOS transistor primitive was missing
+     so default was always picked.
 
-IMP/MAN: (9/18/08, SMR) Preferences dialog is now modeless.  Also has
+IMP: (9/18/08, SMR) Preferences dialog is now modeless.  Also has
      "reset" for current panel and "reset all" for all panels.
      Individual preferences panels no longer have private
      "factory reset" buttons: "Toolbar", "Layers", "Design Rules",
      "Component Menu", "Key Bindings" (Bug #1867).
 
-BUG: (9/18/08, SMR) "Up Hierarchy, Keep Focus" still not working right (Bug #1814).
+BUG: (9/18/08, SMR) "Up Hierarchy, Keep Focus" still not working right (Bug
+     #1814).
 FIX: Handled many special cases.
 
 BUG: (9/18/08, GVG) Wrong 3D view of serpentine transistors (Bug #1862)
@@ -404,32 +456,38 @@ FIX: Stop merging of active regions if transistor is a serpentine.
 BUG: (9/18/08, SMR) Manual viewer crashes if manual cannot be found (Bug #1865).
 FIX: Initialize field variables before issuing missing manual error.
 
-BUG: (9/18/08, GVG) Can't bind ctl/alt/command <option> on MacOSX (Bug #1802)
+BUG: (9/18/08, GVG) Can't bind ctrl/alt/command <option> on MacOSX (Bug #1802)
 FIX: Special detection of special keys on MacOSX Leopard
 
-BUG: (9/17/08, GVG) Error Logger Import of XML doesn't seems highlight area (Bug #1864)
+BUG: (9/17/08, GVG) Error Logger Import of XML doesn't seems highlight area (Bug
+     #1864)
 FIX: Wrong condition for cell object.
 
 IMP: (9/17/08, SMR) Generalized specific transistor function usage
      and now use PrimitiveNode.Function methods to distinguish N-type and
      P-type transistors (Bug #1858).
 
-IMP: (9/17/08, GVG) Serpentine transistors incomplete for getTransistorSize? (Bug #1861)
-Commenting out the line. The message is even available in 8.03p.
+IMP: (9/17/08, GVG) Serpentine transistors incomplete for getTransistorSize? (Bug
+     #1861) Commenting out the line. The message is even available in 8.03p.
 
 BUG: (9/17/08, SMR) Serpentine transistors with both field and gate poly
      emit both layers in the poly area (Bug #1857).
-FIX: Fixed Technology.SerpentineTrans class to handle serpentine transistors better.
+FIX: Fixed Technology.SerpentineTrans class to handle serpentine transistors
+     better.
 
-BUG: (9/17/08, GVG) NPE in GetInfoOutliner if click is in a 3D view window (Bug #1860)
-FIX: Detect if the EditWindow.getCurrent() is not null (eg. if the click is on a 3D window).
+BUG: (9/17/08, GVG) NPE in GetInfoOutliner if click is in a 3D view window (Bug
+     #1860)
+FIX: Detect if the EditWindow.getCurrent() is not null (eg. if the click is on a
+     3D window).
 
-BUG: (9/17/08, SMR) Serpentine transistors don't display the proper size in the status bar (Bug #1857).
+BUG: (9/17/08, SMR) Serpentine transistors don't display the proper size in the
+     status bar (Bug #1857).
 FIX: Use advanced size information for transistors.
 
 ************************* Version 8.08g: ******************************
 
-BUG: (9/16/08, GVG) Exception in 3D view if transistors have only 1 poly (Bug #1856)
+BUG: (9/16/08, GVG) Exception in 3D view if transistors have only 1 poly (Bug
+     #1856)
 FIX: Introduced while fixing #1839. It is fixed now.
 
 IMP: (9/16/08, SMR) Added accelerators to Sun menu (Bug #1852).
@@ -438,23 +496,28 @@ BUG: (9/16/08, SMR) New transistor types are hard to select (Bug #1855).
 FIX: In Highlighter.distToNode(), make special selection code apply to
      all Field-effect transistors.
 
-BUG: (9/16/08, SMR) FPGA technology repeaters are invisible by default (Bug #1848).
+BUG: (9/16/08, SMR) FPGA technology repeaters are invisible by default (Bug
+     #1848).
 FIX: Made default be visible.
 
-BUG: (9/16/08, SMR) Technology editor computes port sizes incorrectly (Bug #1854).
+BUG: (9/16/08, SMR) Technology editor computes port sizes incorrectly (Bug
+     #1854).
 FIX: In LibToTech.getBoundingBox(), used incorrect bounding computation.
 
 BUG: (9/16/08, SMR) Saved toolbar configuration may have errors (Bug #1851).
 FIX: When errors are found, factory-reset the toolbar.
 
-IMP: (9/16/08, GVG) Disable grid buttons on the tool bar if min/max has been reached (Bug #1847)
+IMP: (9/16/08, GVG) Disable grid buttons on the tool bar if min/max has been
+     reached (Bug #1847)
 
 BUG: (9/16/08, DN) Exception in layer display algorithm (Bug #1846).
-FIX: Encapsulate rendering result in class LayerDrawing.DrawingData for atomic update.
+FIX: Encapsulate rendering result in class LayerDrawing.DrawingData for atomic
+     update.
 
-IMP/MAN: (9/15/08, GVG) Poly down  for STI (Bug #1839)
-A reviwed version of 3D view for transistors. Only when field poly!=gate poly the LoCos shape is generated.
-3D preferences were updated in layout techs to start with flat representation (STI shape).
+IMP: (9/15/08, GVG) Poly down  for STI (Bug #1839)  A reviewed version of 3D view
+     for transistors. Only when field poly!=gate poly the LoCos shape is
+     generated. 3D preferences were updated in layout techs to start with flat
+     representation (STI shape).
 
 BUG: (9/15/08, SMR) Going up hierarchy "keeping focus" when already
      descended down the hierarchy "in place" fails (Bug #1814).
@@ -466,21 +529,24 @@ FIX: In EditWindow.upHierarchy(), must fill screen after setting new cell.
 
 IMP: (09/15/08, FYL) Added exclusion of .nfs* in build.xml
 
-IMP/MAN: (9/12/08, GVG) Export layer information shown on status bar (Bug #1830)
-Same behavior for ports on cells.
+IMP: (9/12/08, GVG) Export layer information shown on status bar (Bug #1830)
+     Same behavior for ports on cells.
 
-BUG: (9/12/08, GVG) Explorer cell group drop on layout will drop a doc if exists (Bug #1842)
+BUG: (9/12/08, GVG) Explorer cell group drop on layout will drop a doc if exists
+     (Bug #1842)
 FIX: Detecting doc view and ignoring it.
 
-BUG: (9/12/08, GVG) Exception in FillCellGen if master cell doesn't have gnd/vdd exports
+BUG: (9/12/08, GVG) Exception in FillCellGen if master cell doesn't have gnd/vdd
+     exports
 FIX: Condition detected and code doesn't continue.
 
 BUG: (9/11/08, SMR) New text objects in a cell are not selectable (Bug #1841).
-FIX: In EditWindow.databaseChanged() clear text highlight cache (created by Bug #1804).
+FIX: In EditWindow.databaseChanged() clear text highlight cache (created by Bug
+     #1804).
 
-IMP/MAN: (9/10/08, GVG) Move option for Cells in ExplorerTree (Bug #1764).
-Indeed, it is a copy option to be consistent with the drag way to copy.
-It is a copy to avoid circular dependencies.
+IMP: (9/10/08, GVG) Move option for Cells in ExplorerTree (Bug #1764).
+     Indeed, it is a copy option to be consistent with the drag way to copy.
+     It is a copy to avoid circular dependencies.
 
 BUG: (9/10/08, SMR) "Select Object" dialog crashes (Bug #1840).
 FIX: Trap empty sets in KeyBindingManager.KeyMaps constructor.
@@ -490,7 +556,7 @@ FIX: Used to show it only in debug mode, now show it always.
 
 ************************* Version 8.08f: ******************************
 
-IMP/MAN: (9/10/08, SMR) New command: "Up Hierarchy, Keep Focus" goes up
+IMP: (9/10/08, SMR) New command: "Up Hierarchy, Keep Focus" goes up
      the hierarchy while keeping the cell in the same place (Bug #1814).
 
 BUG: (9/10/08, SMR) Grid alignment doesn't fix outline-edited nodes (Bug #1833).
@@ -499,22 +565,27 @@ FIX: In CircuitChangeJobs.AlignObjects.doIt(), handle nodes with outlines.
 BUG: (9/10/08, SMR) Mouse-over highlighting of text is slow (Bug #1804).
 FIX: Optimized highlighting of text by caching it in an R-Tree.
 
-IMP/MAN: (9/9/08, GVG) Disable CVS rollback if you haven't saved the library (Bug #1836).
-Manual: only cells/libraries whose status!=NONE && status!=UNKNOWN can be rollbacked.
+IMP: (9/9/08, GVG) Disable CVS rollback if you haven't saved the library (Bug
+     #1836).  Manual: only cells/libraries whose status!=NONE && status!=UNKNOWN
+     can be rolled-back.
 
-IMP/MAN: (9/9/08, GVG) Prework to fix "electric adding explicit gnd port to schematics" (Bug #1823)
+IMP: (9/9/08, GVG) Prework to fix "electric adding explicit gnd port to
+     schematics" (Bug #1823)
 
 IMP: (9/9/08, GVG) CVS update generates 1 Electric Job (Bug #1835).
-Indeed, it is the cvs status that is waiting. Message improved to avoid the confusion.
+     Indeed, it is the CVS status that is waiting. Message improved to avoid the
+     confusion.
 
-IMP: (9/9/08, SMR) Status bar now shows arcs that selected export can connect to (Bug #1830).
+IMP: (9/9/08, SMR) Status bar now shows arcs that selected export can connect to
+     (Bug #1830).
 
 BUG: (9/9/08, SMR) Conversion of library to technology fails if component menu
      items are unknown (Bug #1831).
 FIX: Give warnings when menu items are unknown.
 
 BUG: (9/9/08, DN) "Factory reset" command sets zero default sizes in Artwork.
-FIX: Add methods PrimitiveNode.getFactoryDefaultGridExtendX/Y and ArcProto.getFactoryDefaultGridExtendOverMin .
+FIX: Add methods PrimitiveNode.getFactoryDefaultGridExtendX/Y and
+     ArcProto.getFactoryDefaultGridExtendOverMin .
 
 BUG: (9/8/08, DN) VerilogTest3 is broken because exported nets got private names.
 FIX: In NetlistImpl.addUserName correctly init "exportedCount".
@@ -522,29 +593,34 @@ FIX: In NetlistImpl.addUserName correctly init "exportedCount".
 BUG: (9/8/08, GVG) MTD DRC code is not for schematics (Bug #1829)
 FIX: MTD code is only valid for layout.
 
-BUG: (9/8/08, SMR) Changes to Units preferences are not remembered correctly (Bug #1827).
+BUG: (9/8/08, SMR) Changes to Units preferences are not remembered correctly (Bug
+     #1827).
 FIX: Handle offsets correctly.
 
-BUG: (9/8/08, SMR) Some high-voltage transistors are called "high threshold" (Bug #1826).
+BUG: (9/8/08, SMR) Some high-voltage transistors are called "high threshold" (Bug
+     #1826).
 FIX: Fixed PrimitiveNode.java.
 
 BUG: (9/8/08, SMR) Technology editor gives errors when precision is slightly off.
-     Also, Export Properties shows too much presision (Bug #1825).
+     Also, Export Properties shows too much precision (Bug #1825).
 FIX: Made technology editor less precision-sensitive and did similar rounding
      In the Export Properties dialog.
 
-BUG: (8/27/08, DN) Severe performance degradation in ListGeometryOnNetwork (Bug #1804).
-FIX: Add method to Network API Netlist.getNetwork(Nodable no, Network subNetwork) and
-     use it in HierarchyEnumerator.getNetworkInParent().
+BUG: (8/27/08, DN) Severe performance degradation in ListGeometryOnNetwork (Bug
+     #1804).
+FIX: Add method to Network API Netlist.getNetwork(Nodable no, Network subNetwork)
+     and use it in HierarchyEnumerator.getNetworkInParent().
 
-BUG: (9/5/08, GVG) DRC should report arcs that are not vertical nor horizontal (Bug #1824)
+BUG: (9/5/08, GVG) DRC should report arcs that are not vertical nor horizontal
+     (Bug #1824)
 FIX: Arc is tested before checking geometries per layer.
 
-IMP: (9/4/08, GVG) Avoid flat arcs in AutoStitch in case of ports are the same points. (Bug #1815)
+IMP: (9/4/08, GVG) Avoid flat arcs in AutoStitch in case of ports are the same
+     points. (Bug #1815)
 
 BUG: (9/4/08, SMR) Technologies with text on the well or substrate nodes
      have that text out of scale with other contacts (Bug #1822).
-FIX: In PrimitiveNode.getGroupFunction(), have Well and Substate nodes
+FIX: In PrimitiveNode.getGroupFunction(), have Well and Substrate nodes
      grouped with contacts.
 
 BUG: (9/4/08, SMR) Technology editor crashes when there are two pure-layer
@@ -556,30 +632,32 @@ FIX: Allow generic arcs to be routed if they connect generic nodes.
 
 ************************* Version 8.08e: ******************************
 
-BUG/MAN: (9/3/08, SMR) External Text Editor setting in "Text" preferences
+BUG: (9/3/08, SMR) External Text Editor setting in "Text" preferences
      corrupts the value and cannot be cleared (Bug #1819).
 FIX: Fixed corruption and added "Clear" button.
 
 IMP: (9/03/08, DN) Don't recompute CellBackup.Memoization in constraint system.
 
 BUG: (9/03/08, DN) Exception caused by a move (Bug #1817).
-FIX: In LayerDrawing.drawGrid and PixelDrawing.drawGrid check for "x >= sz.width" and "y >= sz.height".
+FIX: In LayerDrawing.drawGrid and PixelDrawing.drawGrid check for "x >= sz.width"
+     and "y >= sz.height".
 
 IMP: (9/02/08, DN) Get read of most calls of "Cell.getArc(int arcIndex)" because
-   of future change in its implementation for (Bug #1804).
+     of future change in its implementation for (Bug #1804).
 
-IMP: (9/02/08, DN) Add method "boolean ArcInst.isZeroLength()" which can be useful for (Bug #1798).
+IMP: (9/02/08, DN) Add method "boolean ArcInst.isZeroLength()" which can be
+     useful for (Bug #1798).
 
 IMP: (8/27/08, SMR) Fixes to grid alignment toolbar buttons (Bug #1801).
 
 BUG: (8/29/08, GVG) Get List of Geometry task doesn't abort (Bug #1816)
 FIX: parentJob was not included in LayerVisitor constructor signature.
 
-IMP/MAN: (8/28/08, SMR) Started implementation of global "factory reset".
+IMP: (8/28/08, SMR) Started implementation of global "factory reset".
      "Reset" button works only in debug mode, and those panels which
      cannot do reset issue error messages (Bug #1744).
 
-IMP/MAN: (8/28/08, SMR) Global text scale now applies to individual windows.
+IMP: (8/28/08, SMR) Global text scale now applies to individual windows.
      "Text" Preferences lets you set both the default text scale for
      new windows as well as the current scale for the current window (Bug #1810).
 
@@ -592,20 +670,21 @@ BUG: (8/28/08, SMR) When editing "in place" database is updated with
      each keystroke (Bug #1410).
 FIX: Now update database only when text editing is done.
 
-BUG: (8/27/08, GVG) mocmos as unknown technlogy? (Bug #1806).
+BUG: (8/27/08, GVG) mocmos as unknown technology? (Bug #1806).
 FIX: Indeed the errors are due to unknown primitives. Message changed
 
 BUG: (8/27/08, SMR) Technology libraries crash if there is no default foundry
      information (Bug #1812).
 FIX: In Foundry.Type.valueOf(), handle null entries.
 
-IMP/MAN: (8/27/08, SMR) Grid alignment now has 5 steps in menu and preferences.
-    New commands to increase/decrease grid size are now in toolbar.
-    Current grid alignment is shown in toolbar. (Bug #1801).
+IMP: (8/27/08, SMR) Grid alignment now has 5 steps in menu and preferences.
+     New commands to increase/decrease grid size are now in toolbar.
+     Current grid alignment is shown in toolbar. (Bug #1801).
 
-BUG: (8/27/08, GVG) DRC should not complain about zero lenghts. (Bug #1798)
-FIX: Flat arcs/nodes without being covered by other elements are reported as errors.
-NOTE: Only 1 extra point is used for the scanning and that might not be sufficient.
+BUG: (8/27/08, GVG) DRC should not complain about zero lengths. (Bug #1798)
+FIX: Flat arcs/nodes without being covered by other elements are reported as
+     errors.  NOTE: Only 1 extra point is used for the scanning and that might
+     not be sufficient.
 
 BUG: (8/27/08, SMR) Cell history buttons are the same in each window (Bug #1753).
 FIX: Made these buttons be window-specific.
@@ -613,28 +692,32 @@ FIX: Made these buttons be window-specific.
 BUG: (8/27/08, DN) Arc shortening is broken.
 FIX: In AbstractShapeBuilder.computeExtension correctly scale vectors.
 
-BUG: (8/27/08, DN) Severe performance degradation modifying cells with many arcs (Bug #1804).
+BUG: (8/27/08, DN) Severe performance degradation modifying cells with many arcs
+     (Bug #1804).
 FIX: Remove field "ArcInst.arcIndex" to save on its recalculation.
 
 IMP: (8/26/08, SMR) Cleaned up boxing warnings.
 
 ************************* Version 8.08d: ******************************
 
-BUG: (8/26/08, SMR) "Edit Schematic View" still doesn't fill the new window (Bug #1731).
+BUG: (8/26/08, SMR) "Edit Schematic View" still doesn't fill the new window (Bug
+     #1731).
 FIX: In ViewMenu.editView(), call setCellWindow() after creating window.
 
 IMP: (8/25/08, SMR) Renamed the command to switch to Cadence mode so that
      it indicates that it changes layers as well (Bug #1761).
 
-IMP/MAN: (8/25/08, SMR) Added new transistor types in the Schematic component
+IMP: (8/25/08, SMR) Added new transistor types in the Schematic component
      menu (Bug #1807).
 
 IMP: (8/25/08, SMR) Made Export menu commands "Summarize Exports",
      "List Exports", and "Follow Export Up Hierarchy" run in separate
      threads (Bug #1807).
 
-BUG: (8/25/08, SMR) Cell history buttons don't work right in SDI mode (Bug #1753).
-FIX: In WindowFrame.WindowsEvents.windowActivated() must call fireCellHistoryStatus().
+BUG: (8/25/08, SMR) Cell history buttons don't work right in SDI mode (Bug
+     #1753).
+FIX: In WindowFrame.WindowsEvents.windowActivated() must call
+     fireCellHistoryStatus().
 
 BUG: (8/25/08, SMR) Dragging a cell group from the explorer tree to a window
      shows no outline (Bug #1809).
@@ -643,15 +726,16 @@ FIX: In EditWindow, when dropping, handle cell groups.
 IMP: (8/25/08, SMR) Added one more new transistor node function:
      FG (floating gate).
 
-IMP: (8/22/08, DN) Rename technology.xml.Xml807 to technology.xml.XmlParam for less confusing.
-   Save technology.Xml revision released in Version 8.07 as technology.xml.Xml807.
+IMP: (8/22/08, DN) Rename technology.xml.Xml807 to technology.xml.XmlParam for
+     less confusing. Save technology.Xml revision released in Version 8.07 as
+     technology.xml.Xml807.
 
 BUG: (8/21/08, JKG) fix bug for Verilog Cells that start with numbers
 
-IMP/MAN: (8/21/08, GVG) Get number of arcs in a cell (Bug #1804)
-Added in "List of Nodes/Arcs in this cell" option in CellMenu.
+IMP: (8/21/08, GVG) Get number of arcs in a cell (Bug #1804)
+     Added in "List of Nodes/Arcs in this cell" option in CellMenu.
 
-IMP/MAN: (8/21/08, SMR) Added ability to re-export ports only for those
+IMP: (8/21/08, SMR) Added ability to re-export ports only for those
      ports that are already wired.  Rearranged Export menu so that the
      three commands which do exporting have sub-menus to choose which
      types of exports to wire (Bug #1769).
@@ -663,24 +747,27 @@ IMP: (8/21/08, SMR) Added new transistor node functions:
      HV1/2/3 (high voltage at three levels)
      NTHV1/2/3 (native high voltage at three levels)
 
-BUG: (8/21/08, SMR) Highlighting a network doesn't identify export text (Bug #1803).
+BUG: (8/21/08, SMR) Highlighting a network doesn't identify export text (Bug
+     #1803).
 FIX: In NetworkHighlighter.addNetworkObjects(), show exports properly.
 
-IMP/MAN: (8/21/08, SMR) Added "Window / Waveform Window / Clear All Signals in Waveform Window"
-     to remove all panels from the waveform window (Bug #1768).
+IMP: (8/21/08, SMR) Added "Window / Waveform Window / Clear All Signals in
+     Waveform Window" to remove all panels from the waveform window (Bug #1768).
 
-IMP/MAN: (8/21/08, SMR) "Cell Parameters" dialog now lets you copy parameters
+IMP: (8/21/08, SMR) "Cell Parameters" dialog now lets you copy parameters
      from another cell (Bug #1652).
 
-BUG: (8/20/08, SMR) "Insert Jog In Arc" doesn't select a jog port, just a node (Bug #1800).
-FIX: In EditMenu.InsertJogInArcListener.terminateOK(), highlight the port, not the node.
+BUG: (8/20/08, SMR) "Insert Jog In Arc" doesn't select a jog port, just a node
+     (Bug #1800).
+FIX: In EditMenu.InsertJogInArcListener.terminateOK(), highlight the port, not
+     the node.
 
-IMP/MAN: (8/20/08, SMR) Modified the "Up Hierarchy" command on schematics to scan the
-     cell group of the schematic for ALL icons, and then look for parent environments
-     of all of these icons.  Also, schematic DRC now finds export characteristic
-     mismatches between icons and schematics (Bug #1799).
+IMP: (8/20/08, SMR) Modified the "Up Hierarchy" command on schematics to scan the
+     cell group of the schematic for ALL icons, and then look for parent
+     environments of all of these icons.  Also, schematic DRC now finds export
+     characteristic mismatches between icons and schematics (Bug #1799).
 
-IMP/MAN: (8/20/08, SMR) Middle mouse button now pans the screen (Bug #1715).
+IMP: (8/20/08, SMR) Middle mouse button now pans the screen (Bug #1715).
 
 ************************* Version 8.08c: ******************************
 
@@ -688,12 +775,13 @@ IMP: (8/19/08, SMR) Spice deck generation now uses 3 digits of precision
      to the right of the decimal point (used to use 2 or 3 in different places).
      Requested by Tela Inc.
 
-IMP/MAN: (8/19/08, SMR) Added icon generation improvements from Brian van Essen
+IMP: (8/19/08, SMR) Added icon generation improvements from Brian van Essen
      at University of Washington.  Now have the ability to disable the placement
      of an example icon, and also now have the ability to place ports exactly
      as they appear in the schematic.
 
-BUG: (8/19/08, SMR) Undoing cell creation doesn't update window titles (Bug #1766).
+BUG: (8/19/08, SMR) Undoing cell creation doesn't update window titles (Bug
+     #1766).
 FIX: In EditWindow.databaseChanged(), rewrite window titles.
 
 IMP: (8/18/08, SMR) Waveform window extrapolates values for digital simulators
@@ -722,65 +810,75 @@ BUG: (8/8/08, RK) NCC errors not detected when size checking is enabled.
 FIX: Some cells can't be compared with size_ checking because the size varies
      with the instance. In that case perform a comparison without size checking.
 
-BUG: (8/1/08, GVG) NPE while reading Routing/data/expected/MazeRouting1Result.jelib (Bug #1793)
+BUG: (8/1/08, GVG) NPE while reading
+     Routing/data/expected/MazeRouting1Result.jelib (Bug #1793)
 FIX: Check if version is valid.
 
 BUG: (7/31/08, GVG) Electric doesn't check colors can be out of range (Bug #1792)
 FIX: Detect the case now in EGraphics.
 
-IMP/MAN: (7/31/08, GVG) Switch transistor display from LOCOS to STI (Bug #1747)
+IMP: (7/31/08, GVG) Switch transistor display from LOCOS to STI (Bug #1747)
 
 BUG: (7/31/08, GVG) Assertion while loading DRC rules (Bug #1790)
 FIX: Any foundry created while reading a XML tech should have mode >=1000000
 
 IMP: (7/31/08, GVG) different highlight color for network (Bug #1776).
-Implemented using MOUSEOVER_HIGHLIGHT color.
+     Implemented using MOUSEOVER_HIGHLIGHT color.
 
 IMP: (7/31/08, FYL) LibraryFiles.java readLibrary defaults to .jelib extension if
      extension is not given.  Added another fallback to .delib extension.
 
-BUG: (7/31/08, DN) Assertion boundsDirty == BOUNDS_CORRECT in Cell.undo failed (Bug #1699).
+BUG: (7/31/08, DN) Assertion boundsDirty == BOUNDS_CORRECT in Cell.undo failed
+     (Bug #1699).
 FIX: In Cell.computeBounds() explicitely call getBounds() for all subcell.
 
-IMP/MAN: Renaming Y-metal contacts in CMOS90 with "SR" instead of "Y". SR stands for square recommended.
+IMP: Renaming Y-metal contacts in CMOS90 with "SR" instead of "Y". SR stands for
+     square recommended.
 
 BUG: (7/30/08, SMR) Empty pattern warnings in Tech Editor
 FIX: Set outliner after the pattern is defined.
 
-BUG: (7/29/08, GVG) Standard Technology Editor and transparency layers (Bug #1783)
+BUG: (7/29/08, GVG) Standard Technology Editor and transparency layers (Bug
+     #1783)
 FIX: Picking the right layer name from the variable name.
 
 BUG: (7/29/08, GVG) Exception with unknown foundry (Bug #1782)
-FIX: Change Type from enumerator to Class so it can accommodate new foundries. Technology.xsd was modified.
+FIX: Change Type from enumerator to Class so it can accommodate new foundries. 
+     Technology.xsd was modified.
 
 ************************* Version 8.08b: ******************************
 
-BUG: (7/28/08, GVG) Exception while click on "See" in GetNodeInst if no ports are available (Bug #1784)
+BUG: (7/28/08, GVG) Exception while click on "See" in GetNodeInst if no ports are
+     available (Bug #1784)
 FIX: Detecting if list index == -1.
 
-BUG: (7/28/08, FYL) Pasting of long geometries while locking a direction (Bug #1748)
-FIX: Change in getDelta s.t. if mouse in X (or Y) object shadow then move is confined to X (or Y) otherwise
-     follows previous 45 degree rule.
+BUG: (7/28/08, FYL) Pasting of long geometries while locking a direction (Bug
+     #1748)
+FIX: Change in getDelta s.t. if mouse in X (or Y) object shadow then move is
+     confined to X (or Y) otherwise follows previous 45 degree rule.
 
 BUG: (7/24/08, GVG) ErrorLogger crashes if cellId is null (Bug #1780)
 FIX: Detecting the case in doing MessageLog.getCell()
 
-IMP: (7/24/08, GVG) Min active contacts in CMOS90. Min well contacts were refactored to meet
-similar conditions as in the active case.
+IMP: (7/24/08, GVG) Min active contacts in CMOS90. Min well contacts were
+     refactored to meet similar conditions as in the active case.
 
-IMP: (7/24/08, GVG) RouteElementArc adds a Generic universal arc if width is zero.
-Change done for the NodeExtraction tool.
+IMP: (7/24/08, GVG) RouteElementArc adds a Generic universal arc if width is
+     zero.  Change done for the NodeExtraction tool.
 
 IMP: (7/24/08, GVG) NodeExtraction: Ability to interrupt the job (Bug #1779)
 
-IMP/MAN: (7/23/08, GVG) Allow to combine contacts extracted with and without approximateCuts on.
-Higher priority to multi-cut contacts (approximateCuts on).
+IMP: (7/23/08, GVG) Allow to combine contacts extracted with and without
+     approximateCuts on. Higher priority to multi-cut contacts (approximateCuts
+     on).
 
 IMP: (7/23/08, GVG) ErrorLogger for extraction tool? (Bug #1772)
 
-IMP: (7/23/08, GVG) Select all like this doesn't work on annotation text? (Bug #1773)
+IMP: (7/23/08, GVG) Select all like this doesn't work on annotation text? (Bug
+     #1773)
 
-IMP: (7/22/08, GVG) No default font/color available in Multi-Object dialog (Bug #1774)
+IMP: (7/22/08, GVG) No default font/color available in Multi-Object dialog (Bug
+     #1774)
 
 IMP: (7/22/08, GVG) Adding min poly contact in CMOS90
 
@@ -788,45 +886,57 @@ IMP: (7/17/08, GVG) Move option for Cells in ExplorerTree (Bug #1764).
 
 IMP: (7/17/08, GVG) Min well contacts in CMOS90.
 
-BUG: (7/16/08, GVG) Import User's preferences missing a palette refresh (Bug #1762)
-FIX: Consistent call of UserInferface.repaintAllWindows(), function that also takes care of palettes and tabs.
+BUG: (7/16/08, GVG) Import User's preferences missing a palette refresh (Bug
+     #1762)
+FIX: Consistent call of UserInferface.repaintAllWindows(), function that also
+     takes care of palettes and tabs.
 
 IMP: (7/16/08, GVG) Display cell where MessageLog was found (Bug #1763)
 
-BUG: (7/15/08, GVG) Ctrl-B for resizing does not lock properly on direction (Bug #1758)
-FIX: Detecting X or Y conditions and avoiding to snap the corresponding coordinates.
+BUG: (7/15/08, GVG) Ctrl-B for resizing does not lock properly on direction (Bug
+     #1758)
+FIX: Detecting X or Y conditions and avoiding to snap the corresponding
+     coordinates.
 
-BUG: (7/15/08, GVG) Can't get out of Ctl-B mode (Bug #1760)
+BUG: (7/15/08, GVG) Can't get out of Ctrl-B mode (Bug #1760)
 FIX: Not allowing to store SizeListener as oldlistener.
 
-BUG: (7/15/08, GVG) NotSerializableException while resizing a node with ctl-b (Bug #1759)
+BUG: (7/15/08, GVG) NotSerializableException while resizing a node with ctrl-b
+     (Bug #1759)
 FIX: Detecting cases when objects are not longer linked.
 
-BUG: (7/14/08, GVG) Exception while deleting illegal item in MultiObject dialog (Bug #1757)
+BUG: (7/14/08, GVG) Exception while deleting illegal item in MultiObject dialog
+     (Bug #1757)
 FIX: Case detected.
 
-BUG: (7/14/08, GVG) CB active/well contacts don't stretch properly if size increases in TSMC180 (Bug #1756)
+BUG: (7/14/08, GVG) CB active/well contacts don't stretch properly if size
+     increases in TSMC180 (Bug #1756)
 FIX: klx="0.0" khx="0.0" kly="0.0" khy="0.0 removed from XML file.
-FIX: Select in NT-N-Active contact also modified (it didn't min select extension from active)
+FIX: Select in NT-N-Active contact also modified (it didn't min select extension
+     from active)
 
-IMP: (7/11/08, GVG) Add 3D cylinders so rcmos can be properly displayed (Bug #1554)
+IMP: (7/11/08, GVG) Add 3D cylinders so rcmos can be properly displayed (Bug
+     #1554)
 
 ************************* Version 8.08a: ******************************
 
-IMP: (7/9/08, GVG) Sending Activity logs to std out if permission is denied (Bug #1702)
+IMP: (7/9/08, GVG) Sending Activity logs to std out if permission is denied (Bug
+     #1702)
 
 IMP: (7/9/08, GVG) Changes to improve XML error message (Bug #1692)
 
 IMP: (7/9/08, GVG) Selecting lightgray instead of orange for those
-CVSstatus == unknown (Bug #1754)
+     CVSstatus == unknown (Bug #1754)
 
-BUG: (7/9/08, GVG) verilog netlist parser missing a case (Bug #1717)
+BUG: (7/9/08, GVG) Verilog netlist parser missing a case (Bug #1717)
 FIX: Dealing with no name in element instances.
 
 IMP: (7/8/08, GVG) Close/Open all below here in Errors explorerTree (Bug #1752).
-Also fix problems with exporting warningLogs not associated to any given Cell.
+     Also fix problems with exporting warningLogs not associated to any given
+     Cell.
 
-IMP: (7/8/08, GVG) Adding rules reported in "DRC not caught by electric" (Bug #1746)
+IMP: (7/8/08, GVG) Adding rules reported in "DRC not caught by electric" (Bug
+     #1746)
 
 IMP: (7/7/08, GVG) Calibre number of errors on Error logger (Bug #1749)
 
@@ -836,29 +946,35 @@ IMP: (7/3/08, GVG) Speeding DRC code by caching multicut info in a different way
 
 BUG: (7/2/08, GVG) Notch in select not detected in CMOS90 (Bug #1745)
 FIX: Distance A-B in checkMinDefects can be zero.
-IMP: precision issues in some DRC functions noticed by running code on MacOSX and Linux.
 
-IMP: (7/1/08, GVG) Primitive.CROSSCONTACT and PrimitveNode.ALIGNEDCONTACT bits to work on Bug #1740.
+IMP: precision issues in some DRC functions noticed by running code on MacOSX and
+     Linux.
+
+IMP: (7/1/08, GVG) Primitive.CROSSCONTACT and PrimitveNode.ALIGNEDCONTACT bits to
+     work on Bug #1740.
 
 IMP: (7/1/08, GVG) Sort layers in 3D preference by layers names. This is
- a change to implementation done for bug #1723 but it looks for intuitive.
+     a change to implementation done for bug #1723 but it looks for intuitive.
 
 BUG: (7/1/08, GVG) 3D preferences not persistent? (Bug #1724)
-FIX: Layer.setFactory3DInfo was setting the cacheObject instead of the factoryObject.
+FIX: Layer.setFactory3DInfo was setting the cacheObject instead of the
+     factoryObject.
 
 BUG: (7/1/08, GVG) Bogus DRC error in CMOS90 m1m2 (Bug #1737)
 FIX: Allow asymmetric node size rules.
 
 IMP: (7/1/08, JG) snap annular ring points to technology grid.
-Add recently opened libs list. fix for custom sweeps for sequential arcs in SCTiming.
+Add recently opened libs list. fix for custom sweeps for sequential arcs in
+     SCTiming.
 
-BUG: (7/1/08, GVG) DRC should report both node min.size errors if they are present (Bug#1741)
+BUG: (7/1/08, GVG) DRC should report both node min.size errors if they are
+     present (Bug#1741)
 FIX: New strategy to check those errors.
 
 BUG: (7/1/08, SMR) Rotated multi-line text is wrong (Bug #1729).
 FIX: In ElectricObject.getPolyList() do not rotate multiline node text.
 
-BUG/MAN: (6/30/08, SMR) Icons are invisible against a black background (Bug #1738).
+BUG: (6/30/08, SMR) Icons are invisible against a black background (Bug #1738).
 FIX: Created new Special color (in "Layers" preferences) with the name
      "DEFAULT ARTWORK".  Use this value in Artwork.getProperLayer().
 
@@ -869,17 +985,18 @@ FIX: Improved Cell:copyNodeProtoUsingMapping() to handle differences.
 BUG: (6/30/08, SMR) Verilog cell names are inconsistent (Bug #1719).
 FIX: Cleaned-up cell naming code.
 
-IMP: (6/30/08, SMR) Improved Spice parasitics (from Mahesh Balasubramanian, Bug #1735).
+IMP: (6/30/08, SMR) Improved Spice parasitics (from Mahesh Balasubramanian, Bug
+     #1735).
 
 IMP: (6/30/08, SMR) Added Verilog architecture parameterization facility
      (from Brian Van Essen, University of Washington, Bug #1734).
      Added "Verilog" preferences to choose formatting, standard cell handling,
      and parameter control.
      Added "Tool / Verilog / Set Verilog Default Parameter"
-     Added "Verilog Parameter" and "Verilog External Code" to "Misc" component menu
-     Can now highlight Electric objects with specified color.
+     Added "Verilog Parameter" and "Verilog External Code" to "Misc" component
+     menu. Can now highlight Electric objects with specified color.
 
-IMP/MAN: (6/30/08, SMR) Added input for Applicon/860 format files (Bug #1733).
+IMP: (6/30/08, SMR) Added input for Applicon/860 format files (Bug #1733).
 
 ************************* END OF Version 8.07, GNU RELEASE *************
 ************************* Version 8.07m: ******************************

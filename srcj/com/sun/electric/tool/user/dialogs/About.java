@@ -72,6 +72,7 @@ public class About extends EDialog
 			new CastOfThousands("Bob Reese",				"DEF input"),
 			new CastOfThousands("Ivan Sutherland",			"Inspiration, NCC"),
 			new CastOfThousands("Thomas Valine",			"GDS output"),
+			new CastOfThousands("Brian van Essen",			"Icon generation"),
 			new CastOfThousands("Andrew West",				"Technology Creation Wizard"),
 		};
 		static CastOfThousands [] theCast = new CastOfThousands[]
