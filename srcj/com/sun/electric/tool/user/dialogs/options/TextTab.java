@@ -838,7 +838,8 @@ public class TextTab extends PreferencePanel
     }//GEN-LAST:event_textClearExternalEditorActionPerformed
 
     private void textSetExternalEditorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_textSetExternalEditorActionPerformed
-		String fileName = OpenFile.chooseInputFile(FileType.ANY, "External editor");
+		String fileName = OpenFile.chooseInputFile(FileType.ANY, "External editor",
+            false, User.getWorkingDirectory(), false);
 		if (fileName == null) return;
 		textExternalEditor.setText(EXTERNALEDITOR_HEADER + fileName);
     }//GEN-LAST:event_textSetExternalEditorActionPerformed

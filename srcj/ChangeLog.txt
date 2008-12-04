@@ -3,6 +3,9 @@
 NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08n: ******************************
+BUG: (12/3/08, GVG) Modifying working directory path in case of selection text editor binary (part of Bug #1973)
+FIX: Use chooseInputFile function with setSelectedDirAsWorkingDir=false
+
 BUG: (12/3/08, GVG) Wide/long errors detected by Electric but not by Calibre (Bug #1961)
 FIX: Better detection of parallel runs of metals.
 
