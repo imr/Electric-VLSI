@@ -349,6 +349,8 @@ public class GDS extends Input
 				// make the instance
                 if (mi.instantiate(this.cell, exportUnify)) renamed++;
 			}
+
+			Map<NodeProto,List<EPoint>> massiveMerge = new HashMap<NodeProto,List<EPoint>>();
 			for(MakeInstanceArray mia : instArrays)
 			{
 				if (countOff && ((++count % 1000) == 0))
@@ -361,7 +363,15 @@ public class GDS extends Input
                 }
 
 				// make the instance array
-                mia.instantiate(this, this.cell);
+                mia.instantiate(this, this.cell, massiveMerge);
+			}
+			List<NodeProto> mergeNodeSet = new ArrayList<NodeProto>();
+			for(NodeProto np : massiveMerge.keySet()) mergeNodeSet.add(np);
+			for(NodeProto np : mergeNodeSet)
+			{
+				// place a pure-layer node that embodies all arrays for the whole cell
+				List<EPoint> points = massiveMerge.get(np);
+				buildComplexNode(points, np, this.cell);
 			}
 			if (renamed > 0)
 			{
@@ -612,9 +622,10 @@ public class GDS extends Input
          * Method to instantiate an array of cell instances.
          * @param parent the Cell in which to create the geometry.
          */
-        private void instantiate(CellBuilder theCell, Cell parent)
+        private void instantiate(CellBuilder theCell, Cell parent, Map<NodeProto,List<EPoint>> massiveMerge)
         {
-    		if (Technology.HANDLEBROKENOUTLINES)
+        	int arraySimplification = IOTool.getGDSArraySimplification();
+    		if (Technology.HANDLEBROKENOUTLINES && arraySimplification > 0)
     		{
 	    		NodeInst subNi = null;
 	    		Cell subCell = (Cell)proto;
@@ -630,31 +641,23 @@ public class GDS extends Input
 	    		if (subNi != null && subNi.getTrace() != null) subNi = null;
 	    		if (subNi != null)
 	    		{
-	    			// simplify the array by placing a complex instance
 	    			List<EPoint> points = buildArray();
-					EPoint [] pointArray = new EPoint[points.size()];
-					double lX=0, hX=0, lY=0, hY=0;
-					for(int i=0; i<points.size(); i++)
-					{
-						pointArray[i] = points.get(i);
-						if (pointArray[i] == null) continue;
-						if (i == 0)
-						{
-							lX = hX = pointArray[i].getX();
-							lY = hY = pointArray[i].getY();
-						} else
-						{
-							if (pointArray[i].getX() < lX) lX = pointArray[i].getX();
-							if (pointArray[i].getX() > hX) hX = pointArray[i].getX();
-							if (pointArray[i].getY() < lY) lY = pointArray[i].getY();
-							if (pointArray[i].getY() > hY) hY = pointArray[i].getY();
-						}
-					}
-
-		            NodeInst ni = NodeInst.makeInstance(subNi.getProto(), new Point2D.Double((lX+hX)/2, (lY+hY)/2), hX-lX, hY-lY,
-		            	parent, Orientation.IDENT, null, 0);
-		            if (ni != null)
-		            	ni.setTrace(pointArray);
+	    			if (arraySimplification == 2)
+	    			{
+	    				// add the array's geometry the layer's outline
+	    				List<EPoint> soFar = massiveMerge.get(subNi.getProto());
+	    				if (soFar == null)
+	    				{
+	    					soFar = new ArrayList<EPoint>();
+	    					massiveMerge.put(subNi.getProto(), soFar);
+	    				}
+	    				if (soFar.size() > 0) soFar.add(null);
+	    				for(EPoint ep : points) soFar.add(ep);
+	    			} else
+	    			{
+		    			// place a pure-layer node that embodies the array
+	    				buildComplexNode(points, subNi.getProto(), parent);
+	    			}
 	        		return;
 	    		}
     		}
@@ -1079,6 +1082,38 @@ public class GDS extends Input
 	private Cell findCell(String name)
 	{
 		return theLibrary.findNodeProto(name);
+	}
+
+	/**
+	 * Method to create a pure-layer node with a complex outline.
+	 * @param points the outline description.
+	 * @param pureType the type of the pure-layer node.
+	 * @param parent the Cell in which to create the node.
+	 */
+	private static void buildComplexNode(List<EPoint> points, NodeProto pureType, Cell parent)
+	{
+		EPoint [] pointArray = new EPoint[points.size()];
+		double lX=0, hX=0, lY=0, hY=0;
+		for(int i=0; i<points.size(); i++)
+		{
+			pointArray[i] = points.get(i);
+			if (pointArray[i] == null) continue;
+			if (i == 0)
+			{
+				lX = hX = pointArray[i].getX();
+				lY = hY = pointArray[i].getY();
+			} else
+			{
+				if (pointArray[i].getX() < lX) lX = pointArray[i].getX();
+				if (pointArray[i].getX() > hX) hX = pointArray[i].getX();
+				if (pointArray[i].getY() < lY) lY = pointArray[i].getY();
+				if (pointArray[i].getY() > hY) hY = pointArray[i].getY();
+			}
+		}
+        NodeInst ni = NodeInst.makeInstance(pureType, new Point2D.Double((lX+hX)/2, (lY+hY)/2), hX-lX, hY-lY,
+        	parent, Orientation.IDENT, null, 0);
+        if (ni != null)
+        	ni.setTrace(pointArray);
 	}
 
 	private void getElement()

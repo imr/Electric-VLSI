@@ -718,6 +718,26 @@ public class IOTool extends Tool
 	 */
 	public static boolean isFactoryGDSColapseVddGndPinNames() { return cacheGDSColapseVddGndPinNames.getBooleanFactoryValue(); }
 
+	private static Pref cacheGDSArraySimplification = Pref.makeIntPref("cacheGDSArraySimplification", IOTool.tool.prefs, 0);
+	/**
+	 * Method to tell how GDS input should simplify array references (AREFs).
+	 * Choices are: 0=none (default), 1=merge each AREF, 2=merge all AREFs in a cell
+	 * @return how GDS input should simplify array references (AREFs).
+	 */
+	public static int getGDSArraySimplification() { return cacheGDSArraySimplification.getInt(); }
+	/**
+	 * Method to set how GDS input should simplify array references (AREFs).
+	 * Choices are: 0=none (default), 1=merge each AREF, 2=merge all AREFs in a cell
+	 * @param on how GDS input should simplify array references (AREFs).
+	 */
+	public static void setGDSArraySimplification(int on) { cacheGDSArraySimplification.setInt(on); }
+	/**
+	 * Method to tell how GDS input should simplify array references (AREFs), by default.
+	 * Choices are: 0=none (default), 1=merge each AREF, 2=merge all AREFs in a cell
+	 * @return how GDS input should simplify array references (AREFs), by default.
+	 */
+	public static int getFactoryGDSArraySimplification() { return cacheGDSArraySimplification.getIntFactoryValue(); }
+
 	/****************************** POSTSCRIPT OUTPUT PREFERENCES ******************************/
 
 	private static Pref cachePrintEncapsulated = Pref.makeBooleanPref("PostScriptEncapsulated", IOTool.tool.prefs, false);
