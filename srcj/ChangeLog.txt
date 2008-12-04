@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08n: ******************************
 
+BUG: (12/2/08, SMR) GDS import does not handle arrays of simple cells
+     right when they have outline information (Bug #1901).
+FIX: Ignore expansion of subcells if they have outline information.
+
 BUG: (12/3/08, GVG) Modifying working directory path in case of selection text
      editor binary (Bug #1973)
 FIX: Use chooseInputFile function with setSelectedDirAsWorkingDir=false.

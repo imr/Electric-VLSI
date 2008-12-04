@@ -627,6 +627,7 @@ public class GDS extends Input
     				if (subNi.getProto().getFunction() != PrimitiveNode.Function.NODE)
     					subNi = null;
     			}
+	    		if (subNi != null && subNi.getTrace() != null) subNi = null;
 	    		if (subNi != null)
 	    		{
 	    			// simplify the array by placing a complex instance
