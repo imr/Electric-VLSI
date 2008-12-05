@@ -57,7 +57,6 @@ public class About extends EDialog
 		static CastOfThousands [] javaTeam = new CastOfThousands[]
 		{
 			new CastOfThousands("Jake Baker",				"Thin Film technology"),
-			new CastOfThousands("Mahesh Balasubramanian",	"Spice Parasitics"),
 			new CastOfThousands("Robert Bosnyak",			"Pads library"),
 			new CastOfThousands("Prashanth Busa",			"Thin Film technology"),
 			new CastOfThousands("Stephen Friedman",			"NCC"),

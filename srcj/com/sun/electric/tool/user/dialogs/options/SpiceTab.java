@@ -104,7 +104,7 @@ public class SpiceTab extends PreferencePanel
 
 		spiceParasitics.addItem(Simulation.SpiceParasitics.SIMPLE);
 		spiceParasitics.addItem(Simulation.SpiceParasitics.RC_CONSERVATIVE);
-		spiceParasitics.addItem(Simulation.SpiceParasitics.RC_PROXIMITY);
+//		spiceParasitics.addItem(Simulation.SpiceParasitics.RC_PROXIMITY);
 		spiceParasitics.setSelectedItem(Simulation.getSpiceParasiticsLevel());
 
 		// Epic memory size
