@@ -31,6 +31,8 @@ import com.sun.electric.database.constraint.Layout;
 import com.sun.electric.database.geometry.*;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.HierarchyEnumerator;
+import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Pref;
@@ -52,16 +54,9 @@ import java.awt.geom.Area;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.prefs.Preferences;
+import java.io.Serializable;
 
 /**
  * This is the Design Rule Checker tool.
@@ -1022,18 +1017,7 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
 		}
     }
 
-//	private static void removeGeometric(Geometric geom)
-//	{
-//		if (!isIncrementalDRCOn()) return;
-//		Cell cell = geom.getParent();
-//		synchronized (cellsToCheck)
-//		{
-//			HashSet<Geometric> cellSet = cellsToCheck.get(cell);
-//			if (cellSet != null) cellSet.remove(geom);
-//		}
-//	}
-
-	private static void doIncrementalDRCTask()
+    private static void doIncrementalDRCTask()
 	{
 		if (!isIncrementalDRCOn()) return;
 		if (incrementalRunning) return;
@@ -1110,50 +1094,6 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
         }
 		doIncrementalDRCTask();
 	}
-
-//	/**
-//	 * Method to announce a change to a NodeInst.
-//	 * @param ni the NodeInst that was changed.
-//	 * @param oD the old contents of the NodeInst.
-//	 */
-//	public void modifyNodeInst(NodeInst ni, ImmutableNodeInst oD)
-//	{
-//		includeGeometric(ni);
-//	}
-//
-//	/**
-//	 * Method to announce a change to an ArcInst.
-//	 * @param ai the ArcInst that changed.
-//     * @param oD the old contents of the ArcInst.
-//	 */
-//	public void modifyArcInst(ArcInst ai, ImmutableArcInst oD)
-//	{
-//		includeGeometric(ai);
-//	}
-//
-//	/**
-//	 * Method to announce the creation of a new ElectricObject.
-//	 * @param obj the ElectricObject that was just created.
-//	 */
-//	public void newObject(ElectricObject obj)
-//	{
-//		if (obj instanceof Geometric)
-//		{
-//			includeGeometric((Geometric)obj);
-//		}
-//	}
-//
-//	/**
-//	 * Method to announce the deletion of an ElectricObject.
-//	 * @param obj the ElectricObject that was just deleted.
-//	 */
-//	public void killObject(ElectricObject obj)
-//	{
-//		if (obj instanceof Geometric)
-//		{
-//			removeGeometric((Geometric)obj);
-//		}
-//	}
 
 	/****************************** DRC INTERFACE ******************************/
     public static ErrorLogger getDRCErrorLogger(boolean layout, boolean incremental, String extraMsg)
@@ -1575,19 +1515,6 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
         Set<Cell> cleanAreaDRCDate = new HashSet<Cell>();
 
         int bit = f.getType().getBit();
-//        switch(f.getType())
-//        {
-//            case MOSIS:
-//                bit = DRC_BIT_MOSIS_FOUNDRY;
-//                break;
-//            case TSMC:
-//                bit = DRC_BIT_TSMC_FOUNDRY;
-//                break;
-//            case ST:
-//                bit = DRC_BIT_ST_FOUNDRY;
-//                break;
-//        }
-
         boolean inMemory = isDatesStoredInMemory();
 
         for (Iterator<Library> it = Library.getLibraries(); it.hasNext();)
@@ -1699,17 +1626,6 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
                     else
                         System.out.println("No valid bit associated to DRC data was found as cell variable");
                 }
-//                Variable varBits = cell.getVar(bitKey, Integer.class);
-//                if (varBits == null) // old Byte class
-//                {
-//                    varBits = cell.getVar(bitKey, Byte.class);
-//                    if (varBits != null)
-//                        thisByte =((Byte)varBits.getObject()).byteValue();
-//                    else
-//                        System.out.println("No valid bit associated to DRC data was found as cell variable");
-//                }
-//                else
-//                    thisByte = ((Integer)varBits.getObject()).intValue();
             }
             data.bits = thisByte;
             data.date = lastDRCDateInMilliseconds.longValue();
@@ -2341,5 +2257,334 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
     public static boolean testAll()
     {
         return true;
+    }
+}
+
+
+
+/**************************************************************************************************************
+	 *  CellLayersContainer class
+ **************************************************************************************************************/
+class CellLayersContainer implements Serializable
+{
+    private Map<NodeProto, Set<String>> cellLayersMap;
+
+    CellLayersContainer() {
+        cellLayersMap = new HashMap<NodeProto, Set<String>>();
+    }
+
+    Set<String> getLayersSet(NodeProto cell) {
+        return cellLayersMap.get(cell);
+    }
+
+    void addCellLayers(Cell cell, Set<String> set) {
+        cellLayersMap.put(cell, set);
+    }
+
+    boolean addCellLayers(Cell cell, Layer layer) {
+        Set<String> set = cellLayersMap.get(cell);
+
+        // first time the cell is accessed
+        if (set == null) {
+            set = new HashSet<String>(1);
+            cellLayersMap.put(cell, set);
+        }
+        return set.add(layer.getName());
+    }
+}
+
+/**************************************************************************************************************
+ *  CheckCellLayerEnumerator class
+ **************************************************************************************************************/
+
+/**
+ * Class to collect which layers are available in the design
+ */
+class CheckCellLayerEnumerator extends HierarchyEnumerator.Visitor {
+    private Map<Cell, Cell> cellsMap;
+    private CellLayersContainer cellLayersCon;
+
+    CheckCellLayerEnumerator(CellLayersContainer cellLayersC) {
+        cellsMap = new HashMap<Cell, Cell>();
+        cellLayersCon = cellLayersC;
+    }
+
+    /**
+     * When the cell should be visited. Either it is the first time or the number of layers hasn't reached
+     * the maximum
+     *
+     * @param cell
+     * @return
+     */
+    private boolean skipCell(Cell cell) {
+        return cellsMap.get(cell) != null;
+    }
+
+    public boolean enterCell(HierarchyEnumerator.CellInfo info) {
+        Cell cell = info.getCell();
+        if (skipCell(cell)) return false; // skip
+        cellsMap.put(cell, cell);
+        return true;
+    }
+
+    private Set<String> getLayersInCell(Cell cell) {
+        Map<NodeProto, NodeProto> tempNodeMap = new HashMap<NodeProto, NodeProto>();
+        Map<ArcProto, ArcProto> tempArcMap = new HashMap<ArcProto, ArcProto>();
+        Set<String> set = new HashSet<String>();
+
+        // Nodes
+        for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext();) {
+            NodeInst ni = it.next();
+            NodeProto np = ni.getProto();
+            if (ni.isCellInstance()) {
+                Set<String> s = cellLayersCon.getLayersSet(np);
+                set.addAll(s);
+                assert (s != null); // it must have layers? unless is empty
+            } else {
+                if (tempNodeMap.get(np) != null)
+                    continue; // done with this PrimitiveNode
+                tempNodeMap.put(np, np);
+
+                if (NodeInst.isSpecialNode(ni)) // like pins
+                    continue;
+
+                PrimitiveNode pNp = (PrimitiveNode) np;
+                for (Technology.NodeLayer nLayer : pNp.getLayers()) {
+                    Layer layer = nLayer.getLayer();
+                    set.add(layer.getName());
+                }
+            }
+        }
+
+        // Arcs
+        for (Iterator<ArcInst> it = cell.getArcs(); it.hasNext();) {
+            ArcInst ai = it.next();
+            ArcProto ap = ai.getProto();
+            if (tempArcMap.get(ap) != null)
+                continue; // done with this arc primitive
+            tempArcMap.put(ap, ap);
+            for (int i = 0; i < ap.getNumArcLayers(); i++) {
+                Layer layer = ap.getLayer(i);
+                set.add(layer.getName());
+            }
+        }
+        return set;
+    }
+
+    public void exitCell(HierarchyEnumerator.CellInfo info) {
+        Cell cell = info.getCell();
+        Set<String> set = getLayersInCell(cell);
+        assert (cellLayersCon.getLayersSet(cell) == null);
+        cellLayersCon.addCellLayers(cell, set);
+    }
+
+    public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info) {
+        NodeInst ni = no.getNodeInst();
+
+        // true only for Cells
+        return ni.isCellInstance();
+    }
+}
+
+/***************** LAYER INTERACTIONS ******************/
+
+/**************************************************************************************************************
+ *  ValidationLayers class
+ **************************************************************************************************************/
+class ValidationLayers
+{
+    /* for figuring out which layers are valid for DRC */
+	private Technology layersValidTech = null;
+	private boolean [] layersValid;
+
+	/* for tracking which layers interact with which nodes */
+	private Technology layerInterTech = null;
+	private HashMap<PrimitiveNode, boolean[]> layersInterNodes = null;
+	private HashMap<ArcProto, boolean[]> layersInterArcs = null;
+
+    private ErrorLogger errorLogger;
+    private Cell topCell;
+    private DRCRules currentRules;
+
+    /**
+	 * Class to determine which layers in a Technology are valid.
+	 */
+	ValidationLayers(ErrorLogger logger, Cell cell, DRCRules rules)
+	{
+        topCell = cell;
+        errorLogger = logger;
+        currentRules = rules;
+        layersValidTech = rules.getTechnology();
+        // determine the layers that are being used
+		int numLayers = layersValidTech.getNumLayers();
+		layersValid = new boolean[numLayers];
+		for(int i=0; i < numLayers; i++)
+			layersValid[i] = false;
+
+        for(Iterator<PrimitiveNode> it = layersValidTech.getNodes(); it.hasNext(); )
+		{
+			PrimitiveNode np = it.next();
+			if (np.isNotUsed()) continue;
+			Technology.NodeLayer [] layers = np.getLayers();
+			for(int i=0; i<layers.length; i++)
+			{
+				Layer layer = layers[i].getLayer();
+				layersValid[layer.getIndex()] = true;
+			}
+		}
+		for(Iterator<ArcProto> it = layersValidTech.getArcs(); it.hasNext(); )
+		{
+			ArcProto ap = it.next();
+			if (ap.isNotUsed()) continue;
+			for (Iterator<Layer> lIt = ap.getLayerIterator(); lIt.hasNext(); )
+			{
+				Layer layer = lIt.next();
+				layersValid[layer.getIndex()] = true;
+			}
+		}
+
+        cacheValidLayers(layersValidTech);
+        buildLayerInteractions(layersValidTech);
+    }
+
+    boolean isABadLayer(Technology tech, int layerNumber)
+    {
+        return (tech == layersValidTech && !layersValid[layerNumber]);
+    }
+
+   /**
+     * Method to determine which layers in a Technology are valid.
+     */
+    void cacheValidLayers(Technology tech)
+    {
+        if (tech == null) return;
+        if (layersValidTech == tech) return;
+
+        layersValidTech = tech;
+
+        // determine the layers that are being used
+        int numLayers = tech.getNumLayers();
+        layersValid = new boolean[numLayers];
+        for (int i = 0; i < numLayers; i++)
+            layersValid[i] = false;
+        for (Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext();)
+        {
+            PrimitiveNode np = it.next();
+            if (np.isNotUsed()) continue;
+            Technology.NodeLayer[] layers = np.getLayers();
+            for (int i = 0; i < layers.length; i++)
+            {
+                Layer layer = layers[i].getLayer();
+                layersValid[layer.getIndex()] = true;
+            }
+        }
+        for (Iterator<ArcProto> it = tech.getArcs(); it.hasNext();)
+        {
+            ArcProto ap = it.next();
+            if (ap.isNotUsed()) continue;
+            for (Iterator<Layer> lIt = ap.getLayerIterator(); lIt.hasNext();)
+            {
+                Layer layer = lIt.next();
+                layersValid[layer.getIndex()] = true;
+            }
+        }
+    }
+
+    /**
+     * Method to build the internal data structures that tell which layers interact with
+     * which primitive nodes in technology "tech".
+     */
+    void buildLayerInteractions(Technology tech)
+    {
+        Technology old = layerInterTech;
+        if (layerInterTech == tech) return;
+
+        layerInterTech = tech;
+        int numLayers = tech.getNumLayers();
+
+        // build the node table
+        if (layersInterNodes != null && old != null)
+        {
+            errorLogger.logWarning("Switching from '" + old.getTechName() +
+                "' to '" + tech.getTechName() + "' in DRC process. Check for non desired nodes in ",
+                topCell, -1);
+        }
+
+        layersInterNodes = new HashMap<PrimitiveNode, boolean[]>();
+        for (Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext();)
+        {
+            PrimitiveNode np = it.next();
+            if (np.isNotUsed()) continue;
+            boolean[] layersInNode = new boolean[numLayers];
+            Arrays.fill(layersInNode, false);
+
+            Technology.NodeLayer[] layers = np.getLayers();
+            Technology.NodeLayer[] eLayers = np.getElectricalLayers();
+            if (eLayers != null) layers = eLayers;
+            for (Technology.NodeLayer l : layers)
+            {
+                Layer layer = l.getLayer();
+                if (layer.isNonElectrical())
+                    continue; // such as pseudo
+                for (Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext();)
+                {
+                    Layer oLayer = lIt.next();
+                    if (oLayer.isNonElectrical())
+                        continue; // such as pseudo
+                    if (currentRules.isAnySpacingRule(layer, oLayer))
+                        layersInNode[oLayer.getIndex()] = true;
+                }
+            }
+            layersInterNodes.put(np, layersInNode);
+        }
+
+        // build the arc table
+        layersInterArcs = new HashMap<ArcProto, boolean[]>();
+        for (Iterator<ArcProto> it = tech.getArcs(); it.hasNext();)
+        {
+            ArcProto ap = it.next();
+            boolean[] layersInArc = new boolean[numLayers];
+            Arrays.fill(layersInArc, false);
+
+            for (Iterator<Layer> alIt = ap.getLayerIterator(); alIt.hasNext();)
+            {
+                Layer layer = alIt.next();
+                for (Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext();)
+                {
+                    Layer oLayer = lIt.next();
+                    if (currentRules.isAnySpacingRule(layer, oLayer))
+                        layersInArc[oLayer.getIndex()] = true;
+                }
+            }
+            layersInterArcs.put(ap, layersInArc);
+        }
+    }
+
+    /**
+     * Method to determine whether layer "layer" interacts in any way with a node of type "np".
+     * If not, returns FALSE.
+     */
+    boolean checkLayerWithNode(Layer layer, NodeProto np)
+    {
+        buildLayerInteractions(np.getTechnology());
+
+        // find this node in the table
+        boolean[] validLayers = layersInterNodes.get(np);
+        if (validLayers == null) return false;
+        return validLayers[layer.getIndex()];
+    }
+
+    /**
+     * Method to determine whether layer "layer" interacts in any way with an arc of type "ap".
+     * If not, returns FALSE.
+     */
+    boolean checkLayerWithArc(Layer layer, ArcProto ap)
+    {
+        buildLayerInteractions(ap.getTechnology());
+
+        // find this node in the table
+        boolean[] validLayers = layersInterArcs.get(ap);
+        if (validLayers == null) return false;
+        return validLayers[layer.getIndex()];
     }
 }

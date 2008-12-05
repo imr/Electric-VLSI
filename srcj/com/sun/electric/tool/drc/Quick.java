@@ -162,14 +162,9 @@ public class Quick
 	/** Top cell for DRC */                                     private Cell topCell;
     /** Miscellanous data for DRC */                            private DRC.ReportInfo reportInfo;
 
-    /* for figuring out which layers are valid for DRC */
-	private Technology layersValidTech = null;
-	private boolean [] layersValid;
-
-	/* for tracking which layers interact with which nodes */
-	private Technology layerInterTech = null;
-	private HashMap<PrimitiveNode, boolean[]> layersInterNodes = null;
-	private HashMap<ArcProto, boolean[]> layersInterArcs = null;
+//    /* for figuring out which layers are valid for DRC */
+    // To speed up the layer process
+    ValidationLayers validLayers;
 
     public static ErrorLogger checkDesignRules(ErrorLogger errorLog, Cell cell, Geometric[] geomsToCheck, boolean[] validity,
                                                Rectangle2D bounds)
@@ -221,8 +216,9 @@ public class Quick
 	    topCell = cell; /* Especially important for minArea checking */
 
 		// cache valid layers for this technology
-		cacheValidLayers(tech);
-		buildLayerInteractions(tech);
+        validLayers = new ValidationLayers(reportInfo.errorLogger, topCell, rules);
+//        validLayers.cacheValidLayers(tech);
+//		validLayers.buildLayerInteractions(tech);
 
 		// clean out the cache of instances
 	    instanceInteractionList.clear();
@@ -803,7 +799,7 @@ public class Quick
 //				if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
 //				errorsFound = true;
 //			}
-			if (tech == layersValidTech && !layersValid[layer.getIndex()])
+            if (validLayers.isABadLayer(tech, layer.getIndex()))
 			{
 				DRC.createDRCErrorLogger(reportInfo, DRC.DRCErrorType.BADLAYERERROR, null, cell, 0, 0, null,
 					poly, ni, layer, null, null, null);
@@ -943,7 +939,7 @@ public class Quick
 				if (reportInfo.errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
 				errorsFound = true;
 			}
-			if (tech == layersValidTech && !layersValid[layerNum])
+            if (validLayers.isABadLayer(tech, layerNum))
 			{
 				DRC.createDRCErrorLogger(reportInfo, DRC.DRCErrorType.BADLAYERERROR, null, ai.getParent(), 0, 0, null,
 					(tot==1)?null:poly, ai, layer, null, null, null);
@@ -1305,7 +1301,7 @@ public class Quick
 					if (np.getTechnology() != tech) continue;
 
 					// see if this type of node can interact with this layer
-					if (!checkLayerWithNode(layer, np)) continue;
+					if (!validLayers.checkLayerWithNode(layer, np)) continue;
 
                     // see if the objects directly touch but they are not
                     // coming from different NodeInst (not from checkCellInstContents
@@ -1447,7 +1443,7 @@ public class Quick
 				if (ap.getTechnology() != tech) continue;
 
 				// see if this type of arc can interact with this layer
-				if (!checkLayerWithArc(layer, ap)) continue;
+				if (!validLayers.checkLayerWithArc(layer, ap)) continue;
 
                 // see if the objects directly touch
 				boolean touch = sameInstance && nGeom.isConnected(geom);
@@ -4010,44 +4006,6 @@ public class Quick
 	}
 
 	/**
-	 * Method to determine which layers in a Technology are valid.
-	 */
-	private void cacheValidLayers(Technology tech)
-	{
-		if (tech == null) return;
-		if (layersValidTech == tech) return;
-
-		layersValidTech = tech;
-
-		// determine the layers that are being used
-		int numLayers = tech.getNumLayers();
-		layersValid = new boolean[numLayers];
-		for(int i=0; i < numLayers; i++)
-			layersValid[i] = false;
-		for(Iterator it = tech.getNodes(); it.hasNext(); )
-		{
-			PrimitiveNode np = (PrimitiveNode)it.next();
-			if (np.isNotUsed()) continue;
-			Technology.NodeLayer [] layers = np.getLayers();
-			for(int i=0; i<layers.length; i++)
-			{
-				Layer layer = layers[i].getLayer();
-				layersValid[layer.getIndex()] = true;
-			}
-		}
-		for(Iterator it = tech.getArcs(); it.hasNext(); )
-		{
-			ArcProto ap = (ArcProto)it.next();
-			if (ap.isNotUsed()) continue;
-			for (Iterator<Layer> lIt = ap.getLayerIterator(); lIt.hasNext(); )
-			{
-				Layer layer = lIt.next();
-				layersValid[layer.getIndex()] = true;
-			}
-		}
-	}
-
-	/**
 	 * Method to determine the minimum distance between "layer1" and "layer2" in technology
 	 * "tech" and library "lib".  If "con" is true, the layers are connected.  Also forces
 	 * connectivity for same-implant layers. Returns conditional rules if not standard rules were found
@@ -4127,106 +4085,6 @@ public class Quick
 		Integer [] nets =networkLists.get(net);
 		if (nets == null) return -1;
 		return nets[globalIndex].intValue();
-	}
-
-	/***************** LAYER INTERACTIONS ******************/
-
-	/**
-	 * Method to build the internal data structures that tell which layers interact with
-	 * which primitive nodes in technology "tech".
-	 */
-	private void buildLayerInteractions(Technology tech)
-	{
-		Technology old = layerInterTech;
-		if (layerInterTech == tech) return;
-
-		layerInterTech = tech;
-		int numLayers = tech.getNumLayers();
-
-		// build the node table
-        if (layersInterNodes != null && old != null && job != null)
-        {
-	        reportInfo.errorLogger.logWarning("Switching from '" + old.getTechName() +
-	                "' to '" +  tech.getTechName() + "' in DRC process. Check for non desired nodes in ",
-	                job.cell, -1);
-        }
-
-		layersInterNodes = new HashMap<PrimitiveNode, boolean[]>();
-		for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
-		{
-			PrimitiveNode np = it.next();
-            if (np.isNotUsed()) continue;
-			boolean [] layersInNode = new boolean[numLayers];
-            Arrays.fill(layersInNode, false);
-
-			Technology.NodeLayer [] layers = np.getLayers();
-			Technology.NodeLayer [] eLayers = np.getElectricalLayers();
-			if (eLayers != null) layers = eLayers;
-			for(Technology.NodeLayer l : layers)
-			{
-				Layer layer = l.getLayer();
-                if (layer.isNonElectrical())
-                    continue; // such as pseudo
-                for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
-				{
-					Layer oLayer = lIt.next();
-                    if (oLayer.isNonElectrical())
-                        continue; // such as pseudo
-                    if (DRC.isAnySpacingRule(layer, oLayer))
-                        layersInNode[oLayer.getIndex()] = true;
-				}
-			}
-			layersInterNodes.put(np, layersInNode);
-		}
-
-		// build the arc table
-		layersInterArcs = new HashMap<ArcProto, boolean[]>();
-		for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
-		{
-			ArcProto ap = it.next();
-			boolean [] layersInArc = new boolean[numLayers];
-            Arrays.fill(layersInArc, false);
-
-			for(Iterator<Layer> alIt = ap.getLayerIterator(); alIt.hasNext(); )
-			{
-				Layer layer = alIt.next();
-				for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
-				{
-					Layer oLayer = lIt.next();
-					if (DRC.isAnySpacingRule(layer, oLayer))
-						layersInArc[oLayer.getIndex()] = true;
-				}
-			}
-			layersInterArcs.put(ap, layersInArc);
-		}
-	}
-
-	/**
-	 * Method to determine whether layer "layer" interacts in any way with a node of type "np".
-	 * If not, returns FALSE.
-	 */
-	private boolean checkLayerWithNode(Layer layer, NodeProto np)
-	{
-		buildLayerInteractions(np.getTechnology());
-
-		// find this node in the table
-		boolean [] validLayers = layersInterNodes.get(np);
-		if (validLayers == null) return false;
-        return validLayers[layer.getIndex()];
-	}
-
-	/**
-	 * Method to determine whether layer "layer" interacts in any way with an arc of type "ap".
-	 * If not, returns FALSE.
-	 */
-	private boolean checkLayerWithArc(Layer layer, ArcProto ap)
-	{
-		buildLayerInteractions(ap.getTechnology());
-
-		// find this node in the table
-		boolean [] validLayers = layersInterArcs.get(ap);
-		if (validLayers == null) return false;
-		return validLayers[layer.getIndex()];
 	}
 
 	/**
