@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08n: ******************************
 
+IMP: (12/5/08, GVG) Slow DRC in ColChip top cell (Bug #1950)
+FIX: Improvements related to arc cropping with a huge number of pins in the design.
+
 BUG: (12/5/08, GVG) Can't GetInfo light-blue text (Bug #1979)
 FIX: Arrays.binarySearch doesn't work on non-sorted arrays (see documentation).
 

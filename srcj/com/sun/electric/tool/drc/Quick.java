@@ -2305,15 +2305,11 @@ public class Quick
 		}
 
 		// update the counts for this cell
-//		for(Iterator it = subCheckProtos.iterator(); it.hasNext(); )
         for (CheckProto cp : subCheckProtos)
 		{
-//			CheckProto cp = (CheckProto)it.next();
 			cp.hierInstanceCount += cp.instanceCount;
-//			for(Iterator nIt = cp.nodesInCell.iterator(); nIt.hasNext(); )
             for (CheckInst ci : cp.nodesInCell)
 			{
-//				CheckInst ci = (CheckInst)nIt.next();
 				ci.multiplier = cp.instanceCount;
 			}
 		}
@@ -3858,7 +3854,8 @@ public class Quick
 	                             Layer nLayer, int nNet, Geometric nGeom, Rectangle2D bound)
 	{
 		Technology tech = ni.getProto().getTechnology();
-		Poly [] cropNodePolyList = tech.getShapeOfNode(ni, true, reportInfo.ignoreCenterCuts, null);
+        assert(ni.getProto().getFunction() != PrimitiveNode.Function.PIN);
+        Poly [] cropNodePolyList = tech.getShapeOfNode(ni, true, reportInfo.ignoreCenterCuts, null);
 		convertPseudoLayers(ni, cropNodePolyList);
 		int tot = cropNodePolyList.length;
 		if (tot < 0) return false;
@@ -3924,10 +3921,13 @@ public class Quick
 		{
 			// find the primitive nodeinst at the true end of the portinst
 			PortInst pi = ai.getPortInst(i);
-
-			PortOriginal fp = new PortOriginal(pi, inTrans);
+            PortOriginal fp = new PortOriginal(pi, inTrans);
 			NodeInst ni = fp.getBottomNodeInst();
-			NodeProto np = ni.getProto();
+            
+            if (NodeInst.isSpecialNode(ni))
+                continue; // Dec 08 -> is a pin so ignore it
+
+            NodeProto np = ni.getProto();
 			AffineTransform trans = fp.getTransformToTop();
 
 			Technology tech = np.getTechnology();
