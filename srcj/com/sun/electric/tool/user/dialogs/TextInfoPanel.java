@@ -413,19 +413,16 @@ public class TextInfoPanel extends javax.swing.JPanel
         // set the color
         initialColorIndex = td.getColorIndex();
         int [] colorIndices = EGraphics.getColorIndices();
-        int colorComboIndex = Arrays.binarySearch(colorIndices, initialColorIndex);
-//      int colorComboIndex = 0;
-//		for(int i=0; i<colorIndices.length; i++)
-//        {
-//			if (colorIndices[i] == initialColorIndex)
-//            {
-//                colorComboIndex = i+1;
-//                break; // No need of checking the rest of the array
-//            }
-//        }
-//        if (newValue != -1) newValue += 1;
-//        if (newValue != colorComboIndex)
-//            System.out.println("Wrong calculation");
+//        int colorComboIndex = Arrays.binarySearch(colorIndices, initialColorIndex);  // Arrays.binarySearch doesn't work on non-sorted array
+      int colorComboIndex = -1;
+		for(int i=0; i<colorIndices.length; i++)
+        {
+			if (colorIndices[i] == initialColorIndex)
+            {
+                colorComboIndex = i; // +1;
+                break; // No need of checking the rest of the array
+            }
+        }
         colorComboIndex = (colorComboIndex != -1) ? colorComboIndex + 1 : 0;
         textColorComboBox.setSelectedIndex(colorComboIndex);
 

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08n: ******************************
 
+BUG: (12/5/08, GVG) Can't GetInfo light-blue text (Bug #1979)
+FIX: Arrays.binarySearch doesn't work on non-sorted arrays (see documentation).
+
 BUG: (12/4/08, SMR) Spice deck generation crashes with Proximity-based RC (Bug #1781)
 FIX: Spice deck generation based on Proximity-based RC removed.
 
