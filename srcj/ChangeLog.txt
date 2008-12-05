@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08n: ******************************
 
+BUG: (12/4/08, SMR) The Schematic primitive "transistor", when placed in a
+     circuit, cannot have its L and W parameterized using regular Spice
+     parameters (Bug #1978).
+FIX: In Spice.writeCellTopology() handle parameters when writing transistors.
+
 IMP: (12/2/08, SMR) GDS import now has Preference for setting level of
      array simplification (Bug #1901).
 

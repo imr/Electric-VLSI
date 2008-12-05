@@ -1125,7 +1125,7 @@ public class Spice extends Topology
 			// compute length and width (or area for nonMOS transistors)
 			TransistorSize size = ni.getTransistorSize(context);
             if (size == null)
-                System.out.println("Warning: transistor with null size " + ni.getName());
+                System.out.println("Warning: transistor has null size " + ni.describe(false));
             else
             {
                 if (size.getDoubleWidth() > 0 || size.getDoubleLength() > 0)
@@ -1175,15 +1175,34 @@ public class Spice extends Topology
                     }
                 } else {
                     // get gate length subtraction in lambda
-                    double lengthSubtraction = layoutTechnology.getGateLengthSubtraction() / layoutTechnology.getScale() * 1000;
-                    if ((size.getDoubleLength() == 0) && (size.getLength() instanceof String)) {
-                        if (lengthSubtraction != 0)
-                            infstr.append(" L="+formatParam((String)size.getLength(), TextDescriptor.Unit.DISTANCE, false) + " - "+lengthSubtraction);
-                        else
-                            infstr.append(" L="+formatParam((String)size.getLength(), TextDescriptor.Unit.DISTANCE, false));
+                    Variable varLen = ni.getVar(Schematics.ATTR_LENGTH);
+                    if (varLen != null && varLen.getCode() == CodeExpression.Code.SPICE)
+                    {
+                        if (!useCDL && Simulation.isSpiceUseCellParameters())
+                            infstr.append(" L=" + evalParam(context, no, varLen, forceEval)); else
+                            	infstr.append(" L=" + varLen.describe(context, ni));
+                    } else
+                    {
+	                    double lengthSubtraction = layoutTechnology.getGateLengthSubtraction() / layoutTechnology.getScale() * 1000;
+	                    if (size.getDoubleLength() == 0 && size.getLength() instanceof String)
+	                    {
+	                        if (lengthSubtraction != 0)
+	                            infstr.append(" L="+formatParam((String)size.getLength(), TextDescriptor.Unit.DISTANCE, false) + " - "+lengthSubtraction);
+	                        else
+	                            infstr.append(" L="+formatParam((String)size.getLength(), TextDescriptor.Unit.DISTANCE, false));
+	                    }
                     }
-                    if ((size.getDoubleWidth() == 0) && (size.getWidth() instanceof String))
-                        infstr.append(" W="+formatParam((String)size.getWidth(), TextDescriptor.Unit.DISTANCE, false));
+                    Variable varWid = ni.getVar(Schematics.ATTR_WIDTH);
+                    if (varWid != null && varWid.getCode() == CodeExpression.Code.SPICE)
+                    {
+                        if (!useCDL && Simulation.isSpiceUseCellParameters())
+                            infstr.append(" W=" + evalParam(context, no, varWid, forceEval)); else
+                            	infstr.append(" W=" + varWid.describe(context, ni));
+                    } else
+                    {
+	                    if (size.getDoubleWidth() == 0 && size.getWidth() instanceof String)
+	                        infstr.append(" W="+formatParam((String)size.getWidth(), TextDescriptor.Unit.DISTANCE, false));
+                    }
                 }
             }
 
