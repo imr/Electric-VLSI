@@ -27,6 +27,7 @@ import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.Snapshot;
+import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.constraint.Layout;
 import com.sun.electric.database.geometry.*;
 import com.sun.electric.database.hierarchy.Cell;
@@ -2588,3 +2589,48 @@ class ValidationLayers
         return validLayers[layer.getIndex()];
     }
 }
+
+    /**
+	 * The CheckInst object is associated with every cell instance in the library.
+	 * It helps determine network information on a global scale.
+	 * It takes a "global-index" parameter, inherited from above (intially zero).
+	 * It then computes its own index number as follows:
+	 *   thisindex = global-index * multiplier + localIndex + offset
+	 * This individual index is used to lookup an entry on each network in the cell
+	 * (an array is stored on each network, giving its global net number).
+	 */
+	class CheckInst
+	{
+		int localIndex;
+		int multiplier;
+		int offset;
+	}
+
+	/**
+	 * The CheckProto object is placed on every cell and is used only temporarily
+	 * to number the instances.
+	 */
+	class CheckProto
+	{
+		/** time stamp for counting within a particular parent */		int timeStamp;
+		/** number of instances of this cell in a particular parent */	int instanceCount;
+		/** total number of instances of this cell, hierarchically */	int hierInstanceCount;
+		/** number of instances of this cell in a particular parent */	int totalPerCell;
+		/** true if this cell has been checked */						boolean cellChecked;
+		/** true if this cell has parameters */							boolean cellParameterized;
+		/** list of instances in a particular parent */					List<CheckInst> nodesInCell;
+		/** netlist of this cell */										Netlist netlist;
+	}
+
+	/**
+	 * The InstanceInter object records interactions between two cell instances and prevents checking
+	 * them multiple times.
+	 */
+	class InstanceInter
+	{
+		/** the two cell instances being compared */	Cell cell1, cell2;
+        /** orientation of cell instance 1 */           Orientation or1;
+        /** orientation of cell instance 2 */           Orientation or2;
+		/** distance from instance 1 to instance 2 */	double dx, dy;
+        /** the two NodeInst parents */                 NodeInst n1Parent, n2Parent, triggerNi;
+	}

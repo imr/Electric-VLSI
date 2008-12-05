@@ -86,40 +86,7 @@ import java.util.*;
 
 public class Quick
 {
-    /**
-	 * The CheckInst object is associated with every cell instance in the library.
-	 * It helps determine network information on a global scale.
-	 * It takes a "global-index" parameter, inherited from above (intially zero).
-	 * It then computes its own index number as follows:
-	 *   thisindex = global-index * multiplier + localIndex + offset
-	 * This individual index is used to lookup an entry on each network in the cell
-	 * (an array is stored on each network, giving its global net number).
-	 */
-	private static class CheckInst
-	{
-		int localIndex;
-		int multiplier;
-		int offset;
-	}
 	private HashMap<NodeInst,CheckInst> checkInsts = null;
-
-
-	/**
-	 * The CheckProto object is placed on every cell and is used only temporarily
-	 * to number the instances.
-	 */
-	private static class CheckProto
-	{
-		/** time stamp for counting within a particular parent */		int timeStamp;
-		/** number of instances of this cell in a particular parent */	int instanceCount;
-		/** total number of instances of this cell, hierarchically */	int hierInstanceCount;
-		/** number of instances of this cell in a particular parent */	int totalPerCell;
-		/** true if this cell has been checked */						boolean cellChecked;
-		/** true if this cell has parameters */							boolean cellParameterized;
-		/** list of instances in a particular parent */					List<CheckInst> nodesInCell;
-		/** netlist of this cell */										Netlist netlist;
-	}
-
     private HashMap<Cell,CheckProto> checkProtos = null;
 	private HashMap<Network,Integer[]> networkLists = null;
 	private HashMap<Layer,DRCTemplate> minAreaLayerMap = new HashMap<Layer,DRCTemplate>();    // For minimum area checking
@@ -138,19 +105,6 @@ public class Quick
         this.mergeMode = mode;
 	}
 
-	/**
-	 * The InstanceInter object records interactions between two cell instances and prevents checking
-	 * them multiple times.
-	 */
-	private static class InstanceInter
-	{
-		/** the two cell instances being compared */	Cell cell1, cell2;
-        /** orientation of cell instance 1 */           Orientation or1;
-        /** orientation of cell instance 2 */           Orientation or2;
-		/** distance from instance 1 to instance 2 */	double dx, dy;
-        /** the two NodeInst parents */                 NodeInst n1Parent, n2Parent, triggerNi;
-	}
-
     private List<InstanceInter> instanceInteractionList = new ArrayList<InstanceInter>();
 
 	/** a NodeInst that is too tiny for its connection. */		private NodeInst tinyNodeInst;
@@ -164,7 +118,7 @@ public class Quick
 
 //    /* for figuring out which layers are valid for DRC */
     // To speed up the layer process
-    ValidationLayers validLayers;
+    private ValidationLayers validLayers;
 
     public static ErrorLogger checkDesignRules(ErrorLogger errorLog, Cell cell, Geometric[] geomsToCheck, boolean[] validity,
                                                Rectangle2D bounds)
@@ -217,8 +171,6 @@ public class Quick
 
 		// cache valid layers for this technology
         validLayers = new ValidationLayers(reportInfo.errorLogger, topCell, rules);
-//        validLayers.cacheValidLayers(tech);
-//		validLayers.buildLayerInteractions(tech);
 
 		// clean out the cache of instances
 	    instanceInteractionList.clear();

@@ -84,52 +84,6 @@ import java.util.*;
 
 public class MTDRCLayoutTool extends MTDRCTool
 {
-    /**
-	 * The CheckInst object is associated with every cell instance in the library.
-	 * It helps determine network information on a global scale.
-	 * It takes a "global-index" parameter, inherited from above (intially zero).
-	 * It then computes its own index number as follows:
-	 *   thisindex = global-index * multiplier + localIndex + offset
-	 * This individual index is used to lookup an entry on each network in the cell
-	 * (an array is stored on each network, giving its global net number).
-	 */
-	private static class CheckInst
-    {
-		int localIndex;
-		int multiplier;
-		int offset;
-	}
-
-	/**
-	 * The CheckProto object is placed on every cell and is used only temporarily
-	 * to number the instances.
-	 */
-	private static class CheckProto
-	{
-		/** time stamp for counting within a particular parent */		int timeStamp;
-		/** number of instances of this cell in a particular parent */	int instanceCount;
-		/** total number of instances of this cell, hierarchically */	int hierInstanceCount;
-		/** number of instances of this cell in a particular parent */	int totalPerCell;
-		/** true if this cell has been checked */						boolean cellChecked;
-		/** true if this cell has parameters */							boolean cellParameterized;
-		/** true if this cell or subcell has parameters */				boolean treeParameterized;
-		/** list of instances in a particular parent */					List<CheckInst> nodesInCell;
-		/** netlist of this cell */										Netlist netlist;
-	}
-
-    /**
-	 * The InstanceInter object records interactions between two cell instances and prevents checking
-	 * them multiple times.
-	 */
-	private static class InstanceInter
-	{
-		/** the two cell instances being compared */	Cell cell1, cell2;
-        /** orientation of cell instance 1 */           Orientation or1;
-        /** orientation of cell instance 2 */           Orientation or2;
-		/** distance from instance 1 to instance 2 */	double dx, dy;
-        /** the two NodeInst parents */                 NodeInst n1Parent, n2Parent, triggerNi;
-	}
-
     private boolean ignoreExtensionRules = true;
     
     public MTDRCLayoutTool(Cell c, boolean ignoreExtensionR, Consumer<MTDRCResult> consumer)
@@ -229,8 +183,6 @@ public class MTDRCLayoutTool extends MTDRCTool
             // cache valid layers for this technology
 //            cacheValidLayers(tech);
             validLayers = new ValidationLayers(reportInfo.errorLogger, topCell, rules);
-//            validLayers.cacheValidLayers(tech);
-//            validLayers.buildLayerInteractions(tech);
 
             // clean out the cache of instances
             instanceInteractionList.clear();
@@ -2218,12 +2170,10 @@ public class MTDRCLayoutTool extends MTDRCTool
             cp.totalPerCell = 0;
             cp.cellChecked = false;
             cp.cellParameterized = false;
-            cp.treeParameterized = false;
             cp.netlist = netlist;
             if (cell.hasParameters())
             {
                 cp.cellParameterized = true;
-                cp.treeParameterized = true;
             }
 //		for(Iterator vIt = cell.getVariables(); vIt.hasNext(); )
 //		{
@@ -2249,8 +2199,8 @@ public class MTDRCLayoutTool extends MTDRCTool
                 checkInsts.put(ni, ci);
 
                 CheckProto subCP = checkEnumerateProtos(subCell, netlist.getNetlist(ni));
-                if (subCP.treeParameterized)
-                    cp.treeParameterized = true;
+//                if (subCP.treeParameterized)
+//                    cp.treeParameterized = true;
             }
             return cp;
         }
