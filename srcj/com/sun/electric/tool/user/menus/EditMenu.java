@@ -844,10 +844,10 @@ public class EditMenu {
 		tw.readTextCell(fileName);
 		tw.goToLineNumber(1);
 
-          if (f.delete())
-            System.err.println("** Deleted " + fileName + " **");
-          else
-            System.err.println("Failed to delete " + fileName);
+        if (f.delete())
+            System.out.println("** Deleted " + fileName + " **");
+        else
+            System.out.println("Failed to delete " + fileName);
 	}
 
 	/**
