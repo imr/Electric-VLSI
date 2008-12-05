@@ -491,6 +491,7 @@ public class GDS extends Input
                                 m2P.getBounds2D().getWidth() + so.getLowXOffset() + so.getHighXOffset(),
                                 m2P.getBounds2D().getHeight() + so.getLowYOffset() + so.getHighYOffset(),
                                 ni.getParent(), ni.getOrient(), name, 0);
+                        if (newNi == null) continue;
 
                         // Searching for vias to delete
                         assert(viasList != null);
