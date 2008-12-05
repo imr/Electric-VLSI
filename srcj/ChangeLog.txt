@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08n: ******************************
 
+BUG: (12/4/08, SMR) Spice deck generation crashes with Proximity-based RC (Bug #1781)
+FIX: Spice deck generation based on Proximity-based RC removed.
+
 BUG: (12/4/08, SMR) The Schematic primitive "transistor", when placed in a
      circuit, cannot have its L and W parameterized using regular Spice
      parameters (Bug #1978).
