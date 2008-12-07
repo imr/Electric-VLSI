@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08n: ******************************
 
+BUG: (12/7/08, DN) Inconsistent database after doc cell is renamed (Bug #1976)
+FIX: In User.fixStaleCellReferences apply cell rename to every WindowContents.
+
 IMP: (12/5/08, GVG) Slow DRC in ColChip top cell (Bug #1950)
 FIX: Improvements related to arc cropping with a huge number of pins in the design.
 

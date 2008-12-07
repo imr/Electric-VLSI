@@ -565,17 +565,15 @@ public class User extends Listener
 		if (idMapper == null) return;
 		for (Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); ) {
 			WindowFrame frame = it.next();
-			if (frame.getContent() instanceof EditWindow) {
-				EditWindow wnd = (EditWindow)frame.getContent();
-				Cell cell = wnd.getCell();
-				if (cell == null) continue;
-				if (!cell.isLinked()) {
-					CellId cellId = idMapper.get(cell.getId());
-					Cell newCell = EDatabase.clientDatabase().getCell(cellId);
-					if (newCell == null) continue;
-					wnd.setCell(newCell, VarContext.globalContext, null);
-				}
-			}
+            WindowContent wnd = frame.getContent();
+            Cell cell = wnd.getCell();
+            if (cell == null) continue;
+            if (!cell.isLinked()) {
+                CellId cellId = idMapper.get(cell.getId());
+                Cell newCell = EDatabase.clientDatabase().getCell(cellId);
+                if (newCell == null) continue;
+                wnd.setCell(newCell, VarContext.globalContext, null);
+            }
 		}
 	}
 
