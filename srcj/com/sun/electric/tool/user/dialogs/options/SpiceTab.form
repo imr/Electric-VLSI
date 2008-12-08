@@ -566,9 +566,9 @@
                 </Constraint>
               </Constraints>
             </Component>
-            <Component class="javax.swing.JCheckBox" name="spiceForceGlobalPwrGnd">
+            <Component class="javax.swing.JCheckBox" name="spiceUseGlobalPwrGnd">
               <Properties>
-                <Property name="text" type="java.lang.String" value="Force global VDD/GND"/>
+                <Property name="text" type="java.lang.String" value="Use global VDD/GND"/>
               </Properties>
               <Constraints>
                 <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">

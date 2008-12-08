@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08n: ******************************
 
+BUG: (12/8/08, SMR) Spice preference "Force Global Power and Ground" is broken
+     (Bug #1969).
+FIX: Spice preference "Force Global Power and Ground" is now
+     "Use Global Power and Ground" and controls the activity better.
+
 BUG: (12/7/08, DN) Inconsistent database after doc cell is renamed (Bug #1976)
 FIX: In User.fixStaleCellReferences apply cell rename to every WindowContents.
 

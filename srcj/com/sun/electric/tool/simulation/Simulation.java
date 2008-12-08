@@ -1958,7 +1958,7 @@ public class Simulation extends Tool
 	 */
 	public static boolean isFactorySpiceUseNodeNames() { return cacheSpiceUseNodeNames.getBooleanFactoryValue(); }
 
-	private static Pref cacheSpiceForceGlobalPwrGnd = Pref.makeBooleanPref("SpiceForceGlobalPwrGnd", tool.prefs, false);
+	private static Pref cacheSpiceUseGlobalPwrGnd = Pref.makeBooleanPref("SpiceForceGlobalPwrGnd", tool.prefs, false);
 //	static { cacheSpiceForceGlobalPwrGnd.attachToObject(tool, "Tools/Spice tab", "Spice forces global VDD/GND"); }
 	/**
 	 * Method to tell whether or not to write global power and ground in Spice output.
@@ -1966,19 +1966,19 @@ public class Simulation extends Tool
 	 * The default is false.
 	 * @return true to write global power and ground in Spice output.
 	 */
-	public static boolean isSpiceForceGlobalPwrGnd() { return cacheSpiceForceGlobalPwrGnd.getBoolean(); }
+	public static boolean isSpiceUseGlobalPwrGnd() { return cacheSpiceUseGlobalPwrGnd.getBoolean(); }
 	/**
 	 * Method to set whether or not to write global power and ground in Spice output.
 	 * If this is off, then individual power and ground references are made.
 	 * @param g true to write global power and ground in Spice output.
 	 */
-	public static void setSpiceForceGlobalPwrGnd(boolean g) { cacheSpiceForceGlobalPwrGnd.setBoolean(g); }
+	public static void setSpiceUseGlobalPwrGnd(boolean g) { cacheSpiceUseGlobalPwrGnd.setBoolean(g); }
 	/**
 	 * Method to tell whether or not to write global power and ground in Spice output, by default.
 	 * If this is off, then individual power and ground references are made.
 	 * @return true to write global power and ground in Spice output, by default.
 	 */
-	public static boolean isFactorySpiceForceGlobalPwrGnd() { return cacheSpiceForceGlobalPwrGnd.getBooleanFactoryValue(); }
+	public static boolean isFactorySpiceUseGlobalPwrGnd() { return cacheSpiceUseGlobalPwrGnd.getBooleanFactoryValue(); }
 
     private static Pref cacheSpiceWritePwrGndInTopCell = Pref.makeBooleanPref("cacheSpiceWritePwrGndInTopCell", tool.prefs, true);
 //	static { cacheSpiceWritePwrGndInInTop.attachToObject(tool, "Tools/Spice tab", "Spice writes VDD/GND in top cell"); }

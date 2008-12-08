@@ -373,7 +373,7 @@ public class Spice extends Topology
             Netlist netList = cni.getNetList();
             Global.Set globals = netList.getGlobals();
             int globalSize = globals.size();
-            if (!Simulation.isSpiceUseNodeNames() || spiceEngine != Simulation.SpiceEngine.SPICE_ENGINE_3)
+            if (Simulation.isSpiceUseGlobalPwrGnd())
             {
                 if (globalSize > 0)
                 {
@@ -390,11 +390,9 @@ public class Spice extends Topology
                     infstr.append("\n");
                     multiLinePrint(false, infstr.toString());
                 }
-            }
-
-    		// make sure power and ground appear at the top level
-    		if (!Simulation.isSpiceForceGlobalPwrGnd())
+            } else
     		{
+        		// make sure power and ground appear at the top level
     			if (cni.getPowerNet() == null)
     				System.out.println("WARNING: cannot find power at top level of circuit");
     			if (cni.getGroundNet() == null)
@@ -569,8 +567,8 @@ public class Spice extends Topology
 			infstr.append("\n");
 			multiLinePrint(false, infstr.toString());
 
-			// generate pin descriptions for reference (when not using node names)
-			if (!Simulation.isSpiceUseNodeNames() || spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_3)
+			// write global comments
+			if (Simulation.isSpiceUseGlobalPwrGnd())
 			{
 				for(int i=0; i<globalSize; i++)
 				{
