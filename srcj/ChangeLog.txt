@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08o: ******************************
 
+BUG: (12/9/08, SMR) Spice preference "Use Node Names" is useless (Bug #1969).
+FIX: This preference actually controls the use of global signals in
+     subcircuit headers, so it has been renamed "Make Globals Parameters".
+
 ************************* Version 8.08n: ******************************
 
 IMP: (12/8/08, GVG) Add corresponding native thick contacts to CMOS90 (Bug #1972)

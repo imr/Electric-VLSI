@@ -110,7 +110,7 @@ public class SpiceTab extends PreferencePanel
 		// Epic memory size
 		epicText.setText(String.valueOf(Simulation.getSpiceEpicMemorySize()));
 
-		spiceUseNodeNames.setSelected(Simulation.isSpiceUseNodeNames());
+		spiceMakeGlobalsParameters.setSelected(Simulation.isSpiceMakeGlobalsParameters());
 		spiceUseGlobalPwrGnd.setSelected(Simulation.isSpiceUseGlobalPwrGnd());
         spiceWritePwrGndSubcircuit.setSelected(Simulation.isSpiceWritePwrGndInTopCell());
         spiceUseCellParameters.setSelected(Simulation.isSpiceUseCellParameters());
@@ -230,8 +230,8 @@ public class SpiceTab extends PreferencePanel
 		stringNow = (String)spicePrimitivesetPopup.getSelectedItem();
 		if (!Simulation.getSpicePartsLibrary().equals(stringNow)) Simulation.setSpicePartsLibrary(stringNow);
 
-		boolean booleanNow = spiceUseNodeNames.isSelected();
-		if (Simulation.isSpiceUseNodeNames() != booleanNow) Simulation.setSpiceUseNodeNames(booleanNow);
+		boolean booleanNow = spiceMakeGlobalsParameters.isSelected();
+		if (Simulation.isSpiceMakeGlobalsParameters() != booleanNow) Simulation.setSpiceMakeGlobalsParameters(booleanNow);
 
 		booleanNow = spiceUseGlobalPwrGnd.isSelected();
 		if (Simulation.isSpiceUseGlobalPwrGnd() != booleanNow) Simulation.setSpiceUseGlobalPwrGnd(booleanNow);
@@ -324,8 +324,8 @@ public class SpiceTab extends PreferencePanel
 		if (!Simulation.getFactorySpicePartsLibrary().equals(Simulation.getSpicePartsLibrary()))
 			Simulation.setSpicePartsLibrary(Simulation.getFactorySpicePartsLibrary());
 
-		if (Simulation.isFactorySpiceUseNodeNames() != Simulation.isSpiceUseNodeNames())
-			Simulation.setSpiceUseNodeNames(Simulation.isFactorySpiceUseNodeNames());
+		if (Simulation.isFactorySpiceMakeGlobalsParameters() != Simulation.isSpiceMakeGlobalsParameters())
+			Simulation.setSpiceMakeGlobalsParameters(Simulation.isFactorySpiceMakeGlobalsParameters());
 		if (Simulation.isFactorySpiceUseGlobalPwrGnd() != Simulation.isSpiceUseGlobalPwrGnd())
 			Simulation.setSpiceUseGlobalPwrGnd(Simulation.isFactorySpiceUseGlobalPwrGnd());
         if (Simulation.isFactorySpiceWritePwrGndInTopCell() != Simulation.isSpiceWritePwrGndInTopCell())
@@ -431,7 +431,7 @@ public class SpiceTab extends PreferencePanel
         spiceBrowseTrailerFile = new javax.swing.JButton();
         jSeparator4 = new javax.swing.JSeparator();
         upperRight = new javax.swing.JPanel();
-        spiceUseNodeNames = new javax.swing.JCheckBox();
+        spiceMakeGlobalsParameters = new javax.swing.JCheckBox();
         spiceWriteEndStatement = new javax.swing.JCheckBox();
         spiceWriteTransSizesInLambda = new javax.swing.JCheckBox();
         spiceUseCellParameters = new javax.swing.JCheckBox();
@@ -830,12 +830,12 @@ public class SpiceTab extends PreferencePanel
 
         upperRight.setLayout(new java.awt.GridBagLayout());
 
-        spiceUseNodeNames.setText("Use node names");
+        spiceMakeGlobalsParameters.setText("Make globals parameters");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        upperRight.add(spiceUseNodeNames, gridBagConstraints);
+        upperRight.add(spiceMakeGlobalsParameters, gridBagConstraints);
 
         spiceWriteEndStatement.setText("Write .end statement");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -970,7 +970,7 @@ public class SpiceTab extends PreferencePanel
     private javax.swing.JRadioButton spiceTrailerCardsFromFile;
     private javax.swing.JRadioButton spiceTrailerCardsWithExtension;
     private javax.swing.JCheckBox spiceUseCellParameters;
-    private javax.swing.JCheckBox spiceUseNodeNames;
+    private javax.swing.JCheckBox spiceMakeGlobalsParameters;
     private javax.swing.JCheckBox spiceWriteEndStatement;
     private javax.swing.JCheckBox spiceWritePwrGndSubcircuit;
     private javax.swing.JCheckBox spiceWriteSubcktTopCell;

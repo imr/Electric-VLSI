@@ -295,7 +295,23 @@ public class Spice extends Topology
             writeEmptySubckts = false;
         }
 
-		// get the mask scale
+        // cannot place global signals in .GLOBAL block and in .SUBCKT parameters
+        if (Simulation.isSpiceMakeGlobalsParameters() && Simulation.isSpiceUseGlobalPwrGnd())
+        {
+        	System.out.println("WARNING: Cannot place global signals in .GLOBAL block and in .SUBCKT headers");
+        	if (spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_2 ||
+        		spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_3)
+        	{
+        		Simulation.setSpiceUseGlobalPwrGnd(false);
+            	System.out.println("Disabling the .GLOBAL block");
+        	} else
+        	{
+        		Simulation.setSpiceMakeGlobalsParameters(false);
+            	System.out.println("Disabling globals in .SUBCKT parameters");
+        	}
+        }
+
+        // get the mask scale
 		maskScale = 1.0;
 //		Variable scaleVar = layoutTechnology.getVar("SIM_spice_mask_scale");
 //		if (scaleVar != null) maskScale = TextUtils.atof(scaleVar.getObject().toString());
@@ -2616,9 +2632,14 @@ public class Spice extends Topology
 
     /******************** SUPPORT ********************/
 
+	/**
+	 * Method to determine whether a signal should be a subcircuit parameter.
+	 * @param cs the signal to examine.
+	 * @return true to ignore this signal in the subcircuit parameter list.
+	 */
     private boolean ignoreSubcktPort(CellSignal cs)
     {
-		if (Simulation.isSpiceUseNodeNames() && spiceEngine != Simulation.SpiceEngine.SPICE_ENGINE_3)
+		if (!Simulation.isSpiceMakeGlobalsParameters())
 		{
 	        // ignore networks that aren't exported
 	        PortProto pp = cs.getExport();

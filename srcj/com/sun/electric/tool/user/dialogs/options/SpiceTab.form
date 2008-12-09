@@ -516,9 +516,9 @@
 
           <Layout class="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout"/>
           <SubComponents>
-            <Component class="javax.swing.JCheckBox" name="spiceUseNodeNames">
+            <Component class="javax.swing.JCheckBox" name="spiceMakeGlobalsParameters">
               <Properties>
-                <Property name="text" type="java.lang.String" value="Use node names"/>
+                <Property name="text" type="java.lang.String" value="Make globals parameters"/>
               </Properties>
               <Constraints>
                 <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">

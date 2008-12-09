@@ -1936,30 +1936,28 @@ public class Simulation extends Tool
 	public static void setParasiticsExtractsC(boolean b) { cacheParasiticsExtractsC.setBoolean(b); }
 	public static boolean isFactoryParasiticsExtractsC() { return cacheParasiticsExtractsC.getBooleanFactoryValue(); }
 
-	private static Pref cacheSpiceUseNodeNames = Pref.makeBooleanPref("SpiceUseNodeNames", tool.prefs, true);
-//	static { cacheSpiceUseNodeNames.attachToObject(tool, "Tools/Spice tab", "Spice uses node names"); }
+	private static Pref cacheSpiceMakeGlobalsParameters = Pref.makeBooleanPref("SpiceMakeGlobalsParameters", tool.prefs, true);
 	/**
-	 * Method to tell whether or not to use node names in Spice output.
-	 * If node names are off, then numbers are used.
+	 * Method to tell whether or not to place global signals as subcircuit parameters in Spice output.
+	 * If true, implicit globals (like VDD and GND) appear in subcircuit parameter lists.
 	 * The default is true.
-	 * @return true to use node names in Spice output.
+	 * @return true to place global signals as subcircuit parameters in Spice output.
 	 */
-	public static boolean isSpiceUseNodeNames() { return cacheSpiceUseNodeNames.getBoolean(); }
+	public static boolean isSpiceMakeGlobalsParameters() { return cacheSpiceMakeGlobalsParameters.getBoolean(); }
 	/**
-	 * Method to set whether or not to use node names in Spice output.
-	 * If node names are off, then numbers are used.
-	 * @param u true to use node names in Spice output.
+	 * Method to set whether or not to place global signals as subcircuit parameters in Spice output.
+	 * If true, implicit globals (like VDD and GND) appear in subcircuit parameter lists.
+	 * @param u true to place global signals as subcircuit parameters in Spice output.
 	 */
-	public static void setSpiceUseNodeNames(boolean u) { cacheSpiceUseNodeNames.setBoolean(u); }
+	public static void setSpiceMakeGlobalsParameters(boolean u) { cacheSpiceMakeGlobalsParameters.setBoolean(u); }
 	/**
-	 * Method to tell whether or not to use node names in Spice output by default.
-	 * If node names are off, then numbers are used.
-	 * @return true to use node names in Spice output by default.
+	 * Method to tell whether or not place global signals as subcircuit parameters in Spice output, by default.
+	 * If true, implicit globals (like VDD and GND) appear in subcircuit parameter lists.
+	 * @return true to place global signals as subcircuit parameters in Spice output, by default.
 	 */
-	public static boolean isFactorySpiceUseNodeNames() { return cacheSpiceUseNodeNames.getBooleanFactoryValue(); }
+	public static boolean isFactorySpiceMakeGlobalsParameters() { return cacheSpiceMakeGlobalsParameters.getBooleanFactoryValue(); }
 
 	private static Pref cacheSpiceUseGlobalPwrGnd = Pref.makeBooleanPref("SpiceForceGlobalPwrGnd", tool.prefs, false);
-//	static { cacheSpiceForceGlobalPwrGnd.attachToObject(tool, "Tools/Spice tab", "Spice forces global VDD/GND"); }
 	/**
 	 * Method to tell whether or not to write global power and ground in Spice output.
 	 * If this is off, then individual power and ground references are made.
