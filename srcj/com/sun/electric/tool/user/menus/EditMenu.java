@@ -786,20 +786,20 @@ public class EditMenu {
 			return;
 		}
 		Cell cell = tw.getCell();
-		String fileName = null;
 		File f = null;
-		for(int i=1; i<1000; i++)
-		{
-			fileName = cell.getName() + i + ".txt";
-			f = new File(fileName);
-			if (!f.exists())
-			{
-				fileName = User.getWorkingDirectory() + "/" + fileName;
-				break;
-			}
-			f = null;
-		}
-		if (f == null) return;
+        String fileName = cell.getName() + "tmp"; // prefix in File.createTempFile must be longer than 2
+
+        try
+        {
+            f = File.createTempFile(fileName, null);
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+
+		if (f == null) return;    
+        fileName = f.getPath();
 		if (!tw.writeTextCell(fileName))
 		{
 			// error with written file

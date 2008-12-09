@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08o: ******************************
 
+BUG: (12/9/08, GVG) Editing text externally doesn't remove the tmp file (Bug #1975)
+FIX: Using standard File.createTempFile to create tmp files.
+
 IMP: (12/9/08, GVG) Forbidden DRC rules names should be shown in ErrorLogger (bug #1982)
 
 BUG: (12/9/08, SMR) Spice preference "Use Node Names" is useless (Bug #1969).
