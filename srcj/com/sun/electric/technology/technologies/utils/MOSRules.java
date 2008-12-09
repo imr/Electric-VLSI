@@ -275,11 +275,11 @@ public class MOSRules implements DRCRules {
      * Method to determine if given node is not allowed by foundry.
      * @param nodeIndex index of node in DRC rules map to examine.
      * @param type rule type.
-     * @return true if given node is not allowed by foundry.
+     * @return the rule if this is a forbidden node otherwise returns null.
      */
-    public boolean isForbiddenNode(int nodeIndex, DRCTemplate.DRCRuleType type)
+    public DRCTemplate isForbiddenNode(int nodeIndex, DRCTemplate.DRCRuleType type)
     {
-        return false;
+        return null;
     }
 
 //	/**

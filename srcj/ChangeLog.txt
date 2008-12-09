@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08o: ******************************
 
+IMP: (12/9/08, GVG) Forbidden DRC rules names should be shown in ErrorLogger (bug #1982)
+
 BUG: (12/9/08, SMR) Spice preference "Use Node Names" is useless (Bug #1969).
 FIX: This preference actually controls the use of global signals in
      subcircuit headers, so it has been renamed "Make Globals Parameters".

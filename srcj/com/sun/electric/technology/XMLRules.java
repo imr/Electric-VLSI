@@ -588,12 +588,12 @@ public class XMLRules implements DRCRules, Serializable
      * Method to determine if given node is not allowed by foundry
      * @param nodeIndex index of node in DRC rules map to examine
      * @param type rule type
-     * @return true if this is a forbidden node
+     * @return the rule if this is a forbidden node otherwise returns null.
      */
-    public boolean isForbiddenNode(int nodeIndex, DRCTemplate.DRCRuleType type)
+    public DRCTemplate isForbiddenNode(int nodeIndex, DRCTemplate.DRCRuleType type)
     {
         HashMap<XMLRules.XMLRule, XMLRules.XMLRule> map = matrix[nodeIndex];
-        if (map == null) return (false);
+        if (map == null) return (null);
 
         for (XMLRule rule : map.values())
         {
@@ -602,11 +602,11 @@ public class XMLRules implements DRCRules, Serializable
                 // discard rules that are not valid for this particular tech mode (ST or TSMC)
 //                if (rule.when != DRCTemplate.DRCMode.ALL.mode() && (rule.when&techMode) != techMode)
 //                    continue;
-                return true; // found
+                return rule; // found
             }
         }
         // nothing found
-        return false;
+        return null;
     }
 
     /**

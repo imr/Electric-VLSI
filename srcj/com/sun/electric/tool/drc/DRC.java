@@ -658,6 +658,72 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
         return maytouch;
     }
 
+    /**
+     * Method to check if a PrimitiveNode contains a layer that is forbidden in the current technology
+     * @param ni node to analyze
+     * @param reportInfo data for the report
+     * @return True if the node is forbidden
+     */
+    static boolean checkNodeAgainstCombinationRules(NodeInst ni, ReportInfo reportInfo)
+    {
+        Cell cell = ni.getParent();
+        NodeProto np = ni.getProto();
+		Technology tech = np.getTechnology();
+        if (np instanceof PrimitiveNode)
+        {
+            DRCTemplate forbidRule =
+            DRC.isForbiddenNode(((PrimitiveNode)np).getPrimNodeIndexInTech(), -1,
+                DRCTemplate.DRCRuleType.FORBIDDEN, tech);
+            if (forbidRule != null)
+            {
+                DRC.createDRCErrorLogger(reportInfo, DRC.DRCErrorType.FORBIDDEN, " is not allowed by selected foundry", cell,
+                    -1, -1, forbidRule.ruleName, null, ni, null, null, null, null);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Method to check which combination of OD2 layers are allowed
+     * @param layer
+     * @return true if there is an invalid combination of OD2 layers
+     */
+    static boolean checkOD2Combination(Technology tech, NodeInst ni, Layer layer, Map<Layer,NodeInst> od2Layers,
+                                       ReportInfo reportInfo)
+    {
+        int funExtras = layer.getFunctionExtras();
+        boolean notOk = false;
+
+        if (layer.getFunction().isImplant() && (funExtras&Layer.Function.THICK) != 0)
+        {
+            // Only stores first node found
+            od2Layers.put(layer, ni);
+
+            // More than one type used.
+            if (od2Layers.size() != 1)
+            {
+                for (Map.Entry<Layer,NodeInst> e : od2Layers.entrySet())
+                {
+                    Layer lay1 = e.getKey();
+                    if (lay1 == layer) continue;
+                    DRCTemplate rule = isForbiddenNode(lay1.getIndex(), layer.getIndex(), DRCTemplate.DRCRuleType.FORBIDDEN, tech);
+                    if (rule != null)
+                    {
+                        NodeInst node = e.getValue(); // od2Layers.get(lay1);
+                        String message = "- combination of layers '" + layer.getName() + "' and '" + lay1.getName() + "' (in '" +
+                                node.getParent().getName() + ":" + node.getName() +"') not allowed by selected foundry";
+                        createDRCErrorLogger(reportInfo, DRCErrorType.FORBIDDEN, message, ni.getParent(),
+                            -1, -1, rule.ruleName, null, ni, null, null, node, null);
+
+                        return true;
+                    }
+                }
+            }
+        }
+        return notOk;
+    }
+
     /*********************************** QUICK DRC ERROR REPORTING ***********************************/
     public static enum DRCErrorType
     {
@@ -1431,14 +1497,14 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
      * Determine if node represented by index in DRC mapping table is forbidden under
      * this foundry.
      */
-    public static boolean isForbiddenNode(int index1, int index2, DRCTemplate.DRCRuleType type, Technology tech)
+    public static DRCTemplate isForbiddenNode(int index1, int index2, DRCTemplate.DRCRuleType type, Technology tech)
     {
         DRCRules rules = getRules(tech);
-        if (rules == null) return false;
+        if (rules == null) return null;
         return isForbiddenNode(rules, index1, index2, type);
     }
 
-    public static boolean isForbiddenNode(DRCRules rules, int index1, int index2, DRCTemplate.DRCRuleType type)
+    public static DRCTemplate isForbiddenNode(DRCRules rules, int index1, int index2, DRCTemplate.DRCRuleType type)
     {
         int index = index1; // In case of primitive nodes
         if (index2 != -1 )

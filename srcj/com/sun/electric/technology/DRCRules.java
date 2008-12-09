@@ -66,7 +66,7 @@ public interface DRCRules
 
     public void setMinValue(Layer layer, String name, double value, DRCTemplate.DRCRuleType type);
     public void applyDRCOverrides(String override, Technology tech);
-    public boolean isForbiddenNode(int nodeIndex, DRCTemplate.DRCRuleType type);
+    public DRCTemplate isForbiddenNode(int nodeIndex, DRCTemplate.DRCRuleType type);
     
     /********************* For UI ***********************************/
     String[] getNodesWithRules();

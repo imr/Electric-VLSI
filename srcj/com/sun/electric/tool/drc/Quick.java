@@ -677,16 +677,26 @@ public class Quick
 			return (false);
 		nodesMap.put(ni, ni);
 
-        if (np instanceof PrimitiveNode && DRC.isForbiddenNode(((PrimitiveNode)np).getPrimNodeIndexInTech(), -1,
-                DRCTemplate.DRCRuleType.FORBIDDEN, tech))
+        if (DRC.checkNodeAgainstCombinationRules(ni, reportInfo))
         {
-            DRC.createDRCErrorLogger(reportInfo, DRC.DRCErrorType.FORBIDDEN, " is not allowed by selected foundry", cell, 
-                -1, -1, null, null, ni, null, null, null, null);
             if (reportInfo.errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
             errorsFound = true;
         }
+//        if (np instanceof PrimitiveNode)
+//        {
+//            DRCTemplate forbidRule =
+//            DRC.isForbiddenNode(((PrimitiveNode)np).getPrimNodeIndexInTech(), -1,
+//                DRCTemplate.DRCRuleType.FORBIDDEN, tech);
+//            if (forbidRule != null)
+//            {
+//                DRC.createDRCErrorLogger(reportInfo, DRC.DRCErrorType.FORBIDDEN, " is not allowed by selected foundry", cell,
+//                    -1, -1, forbidRule.nodeName, null, ni, null, null, null, null);
+//                if (reportInfo.errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
+//                errorsFound = true;
+//            }
+//        }
 
-		// get all of the polygons on this node
+        // get all of the polygons on this node
 		Poly [] nodeInstPolyList = tech.getShapeOfNode(ni, true, reportInfo.ignoreCenterCuts, null);
 		convertPseudoLayers(ni, nodeInstPolyList);
 		int tot = nodeInstPolyList.length;
@@ -704,7 +714,7 @@ public class Quick
                 continue;
 
             // Checking combination
-            boolean ret = checkOD2Combination(tech, ni, layer);
+            boolean ret = DRC.checkOD2Combination(tech, ni, layer, od2Layers, reportInfo);
             if (ret)
             {
                 // panic errors -> return regarless errorTypeSearch
@@ -768,44 +778,6 @@ public class Quick
 	}
 
     /**
-     * Method to check which combination of OD2 layers are allowed
-     * @param layer
-     * @return true if there is an invalid combination of OD2 layers
-     */
-    private boolean checkOD2Combination(Technology tech, NodeInst ni, Layer layer)
-    {
-        int funExtras = layer.getFunctionExtras();
-        boolean notOk = false;
-
-        if (layer.getFunction().isImplant() && (funExtras&Layer.Function.THICK) != 0)
-        {
-            // Only stores first node found
-            od2Layers.put(layer, ni);
-
-            // More than one type used.
-            if (od2Layers.size() != 1)
-            {
-                for (Map.Entry<Layer,NodeInst> e : od2Layers.entrySet())
-                {
-                    Layer lay1 = e.getKey();
-                    if (lay1 == layer) continue;
-                    if (DRC.isForbiddenNode(lay1.getIndex(), layer.getIndex(), DRCTemplate.DRCRuleType.FORBIDDEN, tech))
-                    {
-                        NodeInst node = e.getValue(); // od2Layers.get(lay1);
-                        String message = "- combination of layers '" + layer.getName() + "' and '" + lay1.getName() + "' (in '" +
-                                node.getParent().getName() + ":" + node.getName() +"') not allowed by selected foundry";
-                        DRC.createDRCErrorLogger(reportInfo, DRC.DRCErrorType.FORBIDDEN, message, ni.getParent(),
-                            -1, -1, null, null, ni, null, null, node, null);
-
-                        return true;
-                    }
-                }
-            }
-        }
-        return notOk;
-    }
-
-	/**
 	 * Method to check the design rules about arcinst "ai".
 	 * Returns true if errors were found.
 	 */
