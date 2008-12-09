@@ -804,6 +804,7 @@ public class ManualViewer extends EModelessDialog
 		if (nextIndex >= pageSequence.size()) nextIndex = 0;
 		PageInfo nextPi = pageSequence.get(nextIndex);
 		String nextFileName = nextPi.fileName;
+		boolean pageFound = false;
 		for(;;)
 		{
 			String line = getLine(is);
@@ -817,6 +818,8 @@ public class ManualViewer extends EModelessDialog
 					continue;
 				}
 				String pageName = line.substring(12, endPt).trim();
+				setTitle(pageName + " - Electric Manual");
+				pageFound = true;
 				sb.append("<HTML><HEAD><TITLE>Using Electric " + pageName + "\"</TITLE></HEAD>\n");
 				sb.append("<BODY>\n");
 				sb.append("<CENTER><TABLE WIDTH=\"90%\" BORDER=0><TR>\n");
@@ -847,6 +850,7 @@ public class ManualViewer extends EModelessDialog
 		}
 		editorPane.setText(sb.toString());
 		editorPane.setCaretPosition(0);
+		if (!pageFound) setTitle("Electric Manual");
 	}
 
 	/**

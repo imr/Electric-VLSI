@@ -1,6 +1,13 @@
 <!-- HEADER 4-7-2: Aligning to a Grid -->
 
 <!-- COMMAND Edit/Move/Align to Grid -->
+<!-- COMMAND Edit/Modes/Movement/Make Grid Larger -->
+<!-- COMMAND Edit/Modes/Movement/Grid Alignment 1 (largest) -->
+<!-- COMMAND Edit/Modes/Movement/Grid Alignment 2 -->
+<!-- COMMAND Edit/Modes/Movement/Grid Alignment 3 -->
+<!-- COMMAND Edit/Modes/Movement/Grid Alignment 4 -->
+<!-- COMMAND Edit/Modes/Movement/Grid Alignment 5 (smallest) -->
+<!-- COMMAND Edit/Modes/Movement/Make Grid Smaller -->
 
 When moving or creating circuitry,
 the cursor location is snapped to a grid so that editing is cleaner.
@@ -12,14 +19,18 @@ This snapping is controlled by the alignment options
 The Grid Preferences
 (in menu <B>File / Preferences...</B>, "Display" section, "Grid" tab)
 presents a dialog in which alignment values may be set.
-For example, if the grid spacing is 2x3, and the alignment is 0.5,
+For example, if the grid spacing is 2x3, and the alignment is 0.5 x 0.5,
 then there are up to six different positions for placement inside a displayed grid rectangle.
 <P>
-Because there are distance settings, there are 3 alignment values.
-The settings are labeled "Full", "Half", and "Quarter", so sensible users should scale the values accordingly.
-However, for more flexibility, any value can be entered here.
-The settings are controlled by the toolbar icons and the commands in the <B>Edit / Modes / Movement</B> menu
+There are 5 alignment values, all settable in the dialog.
+The current alignment setting is shown in the toolbar
 (see <A HREF="chap02-04-01.html#chap02-04-01">Section 2-4-1</A>).
+Note that these alignment values are also used to determine the distance moved by arrow keys.
+You can change the alignment setting with the commands <B>Grid Alignment 1 (largest)</B>,
+<B>Grid Alignment 2</B>, <B>Grid Alignment 3</B>, <B>Grid Alignment 4</B>,
+and <B>Grid Alignment 5 (smallest)</B> (in menu <B>Edit / Modes / Movement</B>).
+You can also change the alignment by a single step by using the commands
+<B>Make Grid Larger</B> (attached to the "f" key) and <B>Make Grid Smaller</B> (attached to the "h" key).
 </TD></TR></TABLE>
 <P>
 The <B>Align to Grid</B> command (in menu <B>Edit / Move</B>)

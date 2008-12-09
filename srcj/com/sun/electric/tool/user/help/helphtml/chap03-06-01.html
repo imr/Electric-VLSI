@@ -3,14 +3,17 @@
 <!-- COMMAND Cell/Merge Libraries/Add Exports from Library... -->
 <!-- COMMAND Export/Create Export... -->
 <!-- COMMAND Export/Re-Export Everything -->
-<!-- COMMAND Export/Re-Export Selected -->
-<!-- COMMAND Export/Re-Export Selected, With Wired Ports -->
+<!-- COMMAND Export/Re-Export Selected/Unwired Ports Only -->
+<!-- COMMAND Export/Re-Export Selected/Wired and Unwired Ports -->
+<!-- COMMAND Export/Re-Export Selected/Wired Ports Only -->
 <!-- COMMAND Export/Re-Export Selected Port on All Nodes -->
 <!-- COMMAND Export/Re-Export Power and Ground -->
-<!-- COMMAND Export/Re-Export Highlighted Area -->
-<!-- COMMAND Export/Re-Export Highlighted Area, With Wired Ports -->
-<!-- COMMAND Export/Re-Export Deep Highlighted Area -->
-<!-- COMMAND Export/Re-Export Deep Highlighted Area, With Wired Ports -->
+<!-- COMMAND Export/Re-Export Highlighted Area/Unwired Ports Only -->
+<!-- COMMAND Export/Re-Export Highlighted Area/Wired and Unwired Ports -->
+<!-- COMMAND Export/Re-Export Highlighted Area/Wired Ports Only -->
+<!-- COMMAND Export/Re-Export Deep Highlighted Area/Unwired Ports Only -->
+<!-- COMMAND Export/Re-Export Deep Highlighted Area/Wired and Unwired Ports -->
+<!-- COMMAND Export/Re-Export Deep Highlighted Area/Wired Ports Only -->
 <!-- COMMAND Export/Show Ports on Node -->
 <!-- COMMAND Export/Manipulate Ports on Node... -->
 
@@ -77,24 +80,33 @@ These ports define the connections for the next level of hierarchy.
 What you want to do is to create exports for all unwired ports,
 automatically generating unique names.
 To do this, use these commands in menu <B>Export</B>:
-
 <UL>
 <LI><B>Re-Export Everything</B> reexports all ports on all nodes in the current cell.
 </LI>
-<LI><B>Re-Export Selected</B> reexports only ports on currently highlighted nodes.</LI>
-<LI><B>Re-Export Selected, With Wired Ports</B> reexports current nodes, but allows wired ports to be reexported.</LI>
+<LI><B>Re-Export Selected</B> reexports only ports on currently highlighted nodes:
+  <UL>
+  <LI><B>Unwired Ports Only</B> reexports only those ports that are not connected to an arc.</LI>
+  <LI><B>Wired and Unwired Ports</B> reexports all ports.</LI>
+  <LI><B>Wired Ports Only</B> reexports only those ports that are connected to an arc.</LI>
+</UL></LI>
 <LI><B>Re-Export Selected Port on All Nodes</B> reexports the selected port on the every node in the cell that
 is the same as the current one.</LI>
 <LI><B>Re-Export Power and Ground</B> reexports only Power and Ground exports.</LI>
 <LI><B>Re-Export Highlighted Area</B> reexports only ports inside the currently highlighted area
-(for precise area selection, see <A HREF="chap02-01-03.html#chap02-01-03">Section 2-1-3</A>).</LI>
-<LI><B>Re-Export Highlighted Area, With Wired Ports</B> reexports highlighted ports,
-but allows wired ports to be reexported.</LI>
+(for precise area selection, see <A HREF="chap02-01-03.html#chap02-01-03">Section 2-1-3</A>):
+  <UL>
+  <LI><B>Unwired Ports Only</B> reexports only those ports that are not connected to an arc.</LI>
+  <LI><B>Wired and Unwired Ports</B> reexports all ports.</LI>
+  <LI><B>Wired Ports Only</B> reexports only those ports that are connected to an arc.</LI>
+</UL></LI>
 <LI><B>Re-Export Deep Highlighted Area</B> reexports only ports inside the currently highlighted area,
 but goes all the way down the hierarchy, reexporting from the lowest level.
-This causes unconnected exports deep down the hierarchy to become available for connection.</LI>
-<LI><B>Re-Export Deep Highlighted Area, With Wired Ports</B> reexports highlighted ports all the way
-down the hierarchy, and allows wired ports to be reexported.</LI>
+This causes unconnected exports deep down the hierarchy to become available for connection:
+  <UL>
+  <LI><B>Unwired Ports Only</B> reexports only those ports that are not connected to an arc.</LI>
+  <LI><B>Wired and Unwired Ports</B> reexports all ports.</LI>
+  <LI><B>Wired Ports Only</B> reexports only those ports that are connected to an arc.</LI>
+</UL></LI>
 </UL>
 <P>
 Note that ports on primitive nodes are not exported with these commands.

@@ -11,11 +11,24 @@
 The Layers Preferences
 (in menu <B>File / Preferences...</B>, "Display" section, "Layers" tab)
 controls the appearance of layers and other display elements.
-The top of the dialog lists all possible things that can have their color changed:
+The top of the dialog lists all of the technologies and their layers.
+It also lists special colors (at the bottom of the "Layer" list):
 <UL>
-<LI>The layers in each technology.</LI>
-<LI>Special colors such as the background, text, waveform windows, etc.
-(these are found at the bottom of the "Layer" list).</LI>
+<LI>BACKGROUND is the color of the background (default: gray).</LI>
+<LI>DEFAULT-ARTWORK is the color of artwork primitives that have not been assigned a specific
+color (default: black).</LI>
+<LI>DOWN-IN-PLACE BORDER is the color of the cell edge when editing down-in-place (default: red).</LI>
+<LI>GRID is the color of grid dots (default: black).</LI>
+<LI>HIGHLIGHT is the color of highlighting (default: white).</LI>
+<LI>INSTANCE OUTLINES is the color of unexpanded cell instances (default: black).</LI>
+<LI>MOUSE-OVER HIGHLIGHT is the color of highlighting when the mouse roams over a new object (default: light blue).</LI>
+<LI>NODE HIGHLIGHT is the color of highlighted nodes in special situations (default: blue).</LI>
+<LI>PORT HIGHLIGHT is the color of highlighted ports in special situations (default: blue).</LI>
+<LI>TEXT is the color of text that has not been assigned a specific color (default: black).</LI>
+<LI>WAVEFORM * are special colors used in drawing the waveform window
+(see <A HREF="chap04-11-01.html#chap04-11-01">Section 4-11-1</A>).</LI>
+<LI>3D * are special colors used in drawing the waveform window
+(see <A HREF="chap04-10-02.html#chap04-10-02">Section 4-10-2</A>).</LI>
 </UL>
 <P>
 <CENTER><IMG SRC="fig04-06.png" ALT="Figure 4.6"></CENTER>
@@ -38,9 +51,6 @@ The Opacity is also used for printer blending, and for some display algorithms.
 When changing the background color,
 note that it must contrast with both the highlight color and the inverse of the highlight color
 (the inverse is black in the default settings).
-<P>
-After many changes to layer colors and patterns,
-you can restore the original state by pressing the "Factory Reset All Layers" button.
 <P>
 To automatically switch to a black or white background,
 there are commands in the <B>Window / Color Schemes</B> menu that change the special colors

@@ -53,15 +53,11 @@ Although some technologies may have many different rules for different definitio
 the MOSIS CMOS technology has only one such rule.
 Additional rules can be controlled with the "Add Wide Rule" and "Delete Wide Rule" buttons.
 <P>
-The bottom of the dialog has some special features of design rules:
-<UL>
-<LI>The "Factory Reset" button restores all rules to the original set built into Electric.</LI>
-<LI>The "Min resolution" is the minimum resolution that can be manufactured.
+The bottom of the dialog has a "Min resolution" field, which is the minimum resolution that can be manufactured.
 If zero, no resolution check is done.
 When checking resolution, all geometry of that size or less will be flagged as resolution errors.
 For example, current MOSIS rules require that no boundaries be quarter-unit or less,
-so a value of .25 in this field will detect such violations.</LI>
-</UL>
+so a value of .25 in this field will detect such violations.
 <P>
 When rules have been changed, they are saved with your Preferences.
 To save them independently of the Preferences, use the

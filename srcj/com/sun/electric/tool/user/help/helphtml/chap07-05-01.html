@@ -25,6 +25,30 @@ The two images on the left are actually popup menus that let you select any styl
 transistor.
 The difference between the two on the left is that the top one is for 3-port
 transistors, and the bottom one is for 4-port transistors.
+The schematics technology understands these transistor types:
+<UL>
+<LI><B>nMOS / pMOS</B> n- and p-channel MOS transistors.</LI>
+<LI><B>nMOS-D / pMOS-D</B> depletion MOS transistors.</LI>
+<LI><B>nMOS-NT / pMOS-NT</B> native MOS transistors.</LI>
+<LI><B>nMOS-FG / pMOS-FG</B> floating-gate MOS transistors.</LI>
+<LI><B>nMOS-VTL / pMOS-VTL</B> low-threshold MOS transistors.</LI>
+<LI><B>nMOS-VTH / pMOS-VTH</B> high-threshold MOS transistors.</LI>
+<LI><B>nMOS-HV1 / pMOS-HV1</B> high-voltage (1: lowest voltage) MOS transistors.</LI>
+<LI><B>nMOS-HV2 / pMOS-HV2</B> high-voltage (2: medium voltage) MOS transistors.</LI>
+<LI><B>nMOS-HV3 / pMOS-HV3</B> high-voltage (3: highest voltage) MOS transistors.</LI>
+<LI><B>nMOS-NT-HV1 / pMOS-NT-HV1</B> native, high-voltage (1: lowest voltage) MOS transistors.</LI>
+<LI><B>nMOS-NT-HV2 / pMOS-NT-HV2</B> native, high-voltage (2: medium voltage) MOS transistors.</LI>
+<LI><B>nMOS-NT-HV3 / pMOS-NT-HV3</B> native, high-voltage (3: highest voltage) MOS transistors.</LI>
+<LI><B>PNP / PNP</B> bipolar transistors.</LI>
+<LI><B>DMES / EMES</B> MESFET transistors.</LI>
+<LI><B>pJFET / nJFET</B> JFET transistors.</LI>
+</UL>
+Other primitives that can appear in different forms:
+<UL>
+<LI>Capacitors can be normal or electrolytic.</LI>
+<LI>Diodes can be normal or zener.</LI>
+<LI>Resistors can be normal, n-Poly, p-Poly, n-Well, or p-Well.</LI>
+</UL>
 <P>
 The "Spice" entry presents a popup menu of Spice parts.
 More information about the use of these parts can be found in the <A HREF="chap09-04-03.html#chap09-04-03">Section 9-4-3</A>.
@@ -82,7 +106,7 @@ and this is the correct way to treat it when doing low-level simulation such as 
 However, for higher-level simulations (such as Verilog)
 the resistor should be ignored and treated as if it connects its two networks.
 To make this happen, use the
-Networks Project Settings (in menu <B>File / Project Settings...</B>, "Networks" tab),
+Networks Project Settings (in menu <B>File / Project Settings...</B>, "Netlists" tab),
 and check "Ignore Resistors when building netlists".
 Note that if resistors are being ignored, Spice deck generation will temporarily include them while the netlist is being created.
 

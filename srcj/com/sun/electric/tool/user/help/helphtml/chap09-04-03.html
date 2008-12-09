@@ -135,13 +135,18 @@ Choices are:
   <LI>"Trans area/perim only (no RC)" which writes the area and perimeter of transistor active but
 does not write any Resistor/Capacitor information.</LI>
   <LI>"Conservative RC" writes Resistor/Capacitor information (in addition to the area/perimeter).</LI>
-  <LI>"Proximity RC" is an experimental parasitics option that is not yet working.</LI>
   </UL>
 </LI>
 <LI><B>Spice primitive set</B> Switches between Spice primitive sets.
 Currently there are only two: "spiceparts" and "spicepartsG3".</LI>
-<LI><B>Use node names</B> Whether to use actual node names in the deck (Spice 2 can only handle numbers).</LI>
-<LI><B>Force global VDD/GND</B> Whether to force power and ground to be global signal names.</LI>
+<LI><B>Make globals parameters</B> Causes global signals (like power and ground) to appear as parameters on
+.SUBCKT headers.
+It is not sensible to check both this and "Use global VDD/GND<".</LI>
+<LI><B>Use global VDD/GND</B> Causes power and ground to be placed in a .GLOBAL block.
+It is not sensible to check both this and "Make globals parameters".
+Note that this preference should not be used when Global Partitions are in use
+(see <A HREF="chap06-09-05.html#chap06-09-05">Section 6-9-5</A>).</LI>
+<LI><B>Write VDD/GND in top cell</B> Whether to write power and ground signals in the top-level cell.</LI>
 <LI><B>Use cell parameters</B> When set, any parameters defined on the cell will appear in the Spice deck.
 When not checked, each parameterized cell appears multiple times in the deck,
 once for each different parameter combination.
@@ -188,7 +193,6 @@ Technology Project Settings (in menu <B>File / Project Settings...</B>, "Technol
 see <A HREF="chap07-01-02.html#chap07-01-02">Section 7-1-2</A>).
 <P>
 <CENTER><IMG SRC="fig09-11.png" ALT="Figure 9.11"></CENTER>
-
 <P>
 Another set of controls can be used is the Spice Model Files Preferences
 (in menu <B>File / Preferences...</B>, "Tools" section, "Spice Model Files" tab).

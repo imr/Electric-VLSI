@@ -61,17 +61,23 @@ export or topology mismatch. To get this behavior the user should
 check "Halt after finding the first mismatched cell". Note that
 size mismatches never cause NCC to stop.
 <p>
-It is occasionally useful to continue checking even after mismatches have been detected.
-For example, the designer might find that although a cell mismatches,
-it cannot be fixed because someone else designed it.
-When asked to continue, NCC will do the following when comparing cells that use the mismatched one: 
+It is occasionally useful to continue checking even after
+ mismatches have been detected.
+For example, the designer might find
+ that although a cell mismatches,
+it cannot be fixed because
+ someone else designed it.
+When asked to continue, NCC will do the
+ following when comparing cells that use the mismatched one: 
 <ul>
 <li>
 If NCC found no export mismatches when comparing the mismatched cell then NCC will use
-the export names to identify corresponding ports in the layout and schematic. 
+the export names to identify corresponding ports in the layout and
+ schematic. 
 </li>
 <li> If NCC found export mismatches when comparing the mismatched cell then NCC will
-flatten that one level of hierarchy before performing the comparison.
+flatten that one level of hierarchy before performing the
+ comparison.
 </li>
 </ul>
 <p>
@@ -86,7 +92,8 @@ sophisticated.
 <h3> Reporting Progress Section</h3>
 
 This panel controls how verbose NCC is in reporting its progress.
-Most users should leave this at 0.
+Most
+ users should leave this at 0.
 
 <h3> Error Reporting Section</h3>
 
@@ -96,4 +103,4 @@ but the Gemini algorithm has.  Most users will want to leave these at
 the default setting of 10.
 
 <!-- TRAILER -->
-
+
