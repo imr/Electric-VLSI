@@ -101,8 +101,8 @@ public class General extends TechEditWizardPanel
         jLabel12 = new javax.swing.JLabel();
         jLabel14 = new javax.swing.JLabel();
         jLabel15 = new javax.swing.JLabel();
-        pwellButton = new javax.swing.JRadioButton();
-        horizontalButton = new javax.swing.JRadioButton();
+        pwellButton = new javax.swing.JCheckBox();
+        horizontalButton = new javax.swing.JCheckBox();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -272,6 +272,7 @@ public class General extends TechEditWizardPanel
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 15;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 0, 0);
         general.add(pwellButton, gridBagConstraints);
 
@@ -300,7 +301,7 @@ public class General extends TechEditWizardPanel
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTextField description;
     private javax.swing.JPanel general;
-    private javax.swing.JRadioButton horizontalButton;
+    private javax.swing.JCheckBox horizontalButton;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
@@ -315,7 +316,7 @@ public class General extends TechEditWizardPanel
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
-    private javax.swing.JRadioButton pwellButton;
+    private javax.swing.JCheckBox pwellButton;
     private javax.swing.JTextField stepSize;
     private javax.swing.JTextField techName;
     // End of variables declaration//GEN-END:variables
