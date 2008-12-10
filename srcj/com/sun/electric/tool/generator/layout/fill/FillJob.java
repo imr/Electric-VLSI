@@ -181,6 +181,12 @@ public class FillJob extends Job
                     fillCell = fillCell.substring(0, index);
                 }
                 Cell c = topCell.getLibrary().findNodeProto(fillCell);
+
+                if (c == null)
+                {
+                    System.out.println("Cell '" + fillCell + "' does not exist");
+                    continue;
+                }
                 Technology t = c.getTechnology();
 
                 if (tech == null) tech = t;
@@ -410,49 +416,14 @@ public class FillJob extends Job
                 for (PolyBase p : list)
                 {
                     Rectangle2D resultBnd = p.getBounds2D();
+
                     // look for the first pair of arcs in bottom/top arcs that overlap with geometry
-                    ArcInst topA = null, topAPerfect = null; // perferct if fully contains the arc
+                    ArcInst topA = getArcInstOverlappingWithArea(resultBnd, at, horizontal, true); // perferct if fully contains the arc
 
-                    for (ArcInst ai : at)
-                    {
-                        Rectangle2D r = ai.getBounds();
-                        if (r.intersects(resultBnd))
-                        {
-                            topA = ai;
-                            if ((!horizontal && DBMath.areEquals(r.getCenterY(), resultBnd.getCenterY())) ||
-                                (horizontal && DBMath.areEquals(r.getCenterX(), resultBnd.getCenterX())))
-                            {
-                                // found
-                                topAPerfect = ai;
-                                break;
-                            }
-                        }
-                    }
-//                    if (topAPerfect != null)
-                        topA = topAPerfect;
-
-                    if (topA == null)
-                    {
-                    for (ArcInst ai : at)
-                    {
-                        Rectangle2D r = ai.getBounds();
-                        if (r.intersects(resultBnd))
-                        {
-                            if ((!horizontal && DBMath.areEquals(r.getCenterY(), resultBnd.getCenterY())) ||
-                                (horizontal && DBMath.areEquals(r.getCenterX(), resultBnd.getCenterX())))
-                            {
-                                // found
-                                topA = ai;
-                                break;
-                            }
-                        }
-                    }
-//                        assert (topA != null);
-                    }
                     if (topA != null)
                     {
-                    EPoint insert = new EPoint(resultBnd.getCenterX(), resultBnd.getCenterY());
-                    pairs.add(new PinsArcPair(topA, insert, resultBnd));
+                        EPoint insert = new EPoint(resultBnd.getCenterX(), resultBnd.getCenterY());
+                        pairs.add(new PinsArcPair(topA, insert, resultBnd));
                     }
                 }
                 // Sort the new pairs from left/top to right/bottom
@@ -464,28 +435,7 @@ public class FillJob extends Job
 
                 for (PinsArcPair pair : pairs)
                 {
-                    ArcInst bottomA = null;
-                    for (ArcInst ai : ab)
-                    {
-                        Rectangle2D r = ai.getBounds();
-                        if (r.contains(pair.insert))
-                        {
-                            // at least one solution doesn't work because of misaligment in the arc ports
-                            // that can lead to diagonal arcs
-//                            bottomA = ai;
-                            // Only accept arcs whose centers are aligned with the cut
-                            // otherwise diagonal arcs might be introduced.
-                            if ((horizontal && DBMath.areEquals(r.getCenterY(), pair.insert.getY())) ||
-                                (!horizontal && DBMath.areEquals(r.getCenterX(), pair.insert.getX())))
-                            {
-                                // found
-                                bottomA = ai;
-                                break;
-                            }
-                        }
-                    }
-//                    if (bottomAPerfect != null)
-//                        bottomA = bottomAPerfect;
+                    ArcInst bottomA = getArcInstOverlappingWithArea(pair.cut, ab, horizontal, false);
                     if (bottomA != null)
                     {
                         //SplitContainter bottomSplit = splitArcAtPoint(bottomA, pair.insert);
@@ -655,16 +605,6 @@ public class FillJob extends Job
                 } else {
                     inBottomLayer.put(rootName, exp); // put the last one in the network.
                 }
-/*
-                if (topLayers[0] == l || topLayers[1] == l)
-                {
-                    found = true;
-                }
-                else if (l == bottomLayer)
-                {
-                    inBottomLayer.put(rootName, exp); // put the last one in the network.
-                }
-*/
             }
             if (!found) // delete the export
                 toDelete.add(exp);
@@ -739,6 +679,41 @@ public class FillJob extends Job
             }
         }
         return true;
+    }
+
+    private static ArcInst getArcInstOverlappingWithArea(Rectangle2D resultBnd, List<ArcInst> at, boolean horizontal, boolean topLayer)
+    {
+        Area topArea = new Area(resultBnd);
+        for (ArcInst ai : at)
+        {
+            Rectangle2D r = ai.getBounds();
+
+            // test if the current ai inserts with the given area
+            // and it is fully contained along the axis the arc is aligned
+            if (r.intersects(resultBnd))
+            {
+                Area rArea = new Area(r);
+                rArea.intersect(topArea);
+                Rectangle2D rect = rArea.getBounds2D();
+                boolean validArc;
+
+                if (horizontal && topLayer || !horizontal && !topLayer)  // top arc is aligned along Y or bottom arc along Y
+                {
+                    validArc = DBMath.areEquals(rect.getWidth(), r.getWidth());
+                }
+                else // top arc is aligned along X
+                {
+                    validArc = DBMath.areEquals(rect.getHeight(), r.getHeight());
+                }
+
+                if (validArc)
+                {
+                    // found
+                    return ai;
+                }
+            }
+        }
+        return null;
     }
 
     /**

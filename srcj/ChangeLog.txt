@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08o: ******************************
 
+BUG: (12/10/08, GVG) Assertion in new fill generator  (Bug #1920)
+FIX: More fixes for those zig-zag cases in the ico fill.
+
 BUG: (12/9/08, GVG) Explain why GDS can't be imported using a particular set of User's preferences (Bug #1968)
 FIX: Messages related to renaming of instances are stored as warnings instead of errors.
 
