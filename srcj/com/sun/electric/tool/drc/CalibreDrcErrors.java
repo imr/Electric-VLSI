@@ -33,9 +33,11 @@ import com.sun.electric.tool.user.ErrorLogger;
 import java.awt.Shape;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -522,4 +524,52 @@ public class CalibreDrcErrors {
         return null;
     }
 */
+
+    // ======================================================================================
+
+    // DRC Density results
+
+    public static void readDensityErrors(Cell cell, File drcDirectory) {
+        if (drcDirectory == null || !drcDirectory.exists() || !drcDirectory.isDirectory()) {
+            System.out.println("DRC density errors: no such directory: "+drcDirectory.getAbsolutePath());
+            return;
+        }
+        ErrorLogger logger = ErrorLogger.newInstance("Calibre DRC Density Values");
+        int sortKey = 0;
+        double scale = cell.getTechnology().getScale();
+        for (File file : drcDirectory.listFiles()) {
+            if (file.getName().endsWith(".density")) {
+                try {
+                    FileReader reader = new FileReader(file);
+                    BufferedReader in = new BufferedReader(reader);
+                    String line = null;
+                    boolean first = true;
+                    while ( (line = in.readLine()) != null) {
+                        if (line.equals("")) continue;
+                        if (first) {
+                            logger.setGroupName(sortKey, file.getName());
+                            first = false;
+                        }
+                        String [] parts = line.split("[ ]+");
+                        double x1, y1, x2, y2;
+                        x1 = Double.valueOf(parts[0]) / scale * 1000;
+                        y1 = Double.valueOf(parts[1]) / scale * 1000;
+                        x2 = Double.valueOf(parts[2]) / scale * 1000;
+                        y2 = Double.valueOf(parts[3]) / scale * 1000;
+                        Point2D [] points = new Point2D[4];
+                        points[0] = new Point2D.Double(x1, y1);
+                        points[1] = new Point2D.Double(x1, y2);
+                        points[2] = new Point2D.Double(x2, y2);
+                        points[3] = new Point2D.Double(x2, y1);
+                        PolyBase poly = new PolyBase(points);
+                        logger.logError(file.getName()+": "+parts[4], poly, cell, sortKey);
+                    }
+                    if (!first) sortKey++;
+                } catch (IOException e) {
+                    System.out.println("Error read file "+file.getName()+": "+e.getMessage());
+                }
+            }
+        }
+        logger.termLogging(false);
+    }
 }
