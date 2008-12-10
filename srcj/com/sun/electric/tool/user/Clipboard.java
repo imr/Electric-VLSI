@@ -36,12 +36,8 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.DisplayedText;
-import com.sun.electric.database.variable.EditWindow_;
-import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.UserInterface;
-import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.variable.*;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
@@ -50,9 +46,6 @@ import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
-import java.awt.Toolkit;
-import java.awt.datatransfer.StringSelection;
-import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -82,19 +75,22 @@ import javax.swing.KeyStroke;
 /**
  * Class for managing the circuitry clipboard (for copy and paste).
  */
-public class Clipboard
+public class Clipboard //implements ClipboardOwner
 {
 	/** The Clipboard Library. */						private static Library   clipLib = null;
 	/** The Clipboard Cell. */							private static Cell      clipCell;
 	/** the last node that was duplicated */			private static NodeInst  lastDup = null;
 	/** the amount that the last node moved */			private static double    lastDupX = 10, lastDupY = 10;
+//    private static final Clipboard clip = new Clipboard();
 
-	/**
+    /**
 	 * There is only one instance of this object (just one clipboard).
 	 */
 	private Clipboard() {}
 
-	/**
+//    public void lostOwnership (java.awt.datatransfer.Clipboard parClipboard, Transferable parTransferable) {}
+
+    /**
 	 * Returns a printable version of this Clipboard.
 	 * @return a printable version of this Clipboard.
 	 */
@@ -112,7 +108,10 @@ public class Clipboard
 	 */
 	public static void copy()
 	{
-		// see what is highlighted
+        // Clear text buffer
+        TextUtils.setTextOnClipboard(null);
+        
+        // see what is highlighted
 		EditWindow wnd = EditWindow.needCurrent();
 		if (wnd == null) return;
 		Highlighter highlighter = wnd.getHighlighter();
@@ -206,27 +205,41 @@ public class Clipboard
 	 */
 	public static void paste()
 	{
-		// get objects to paste
+        // Get text put in the clipboard but using variables.
+        String extraText = TextUtils.getTextOnClipboard();
+
+        // get objects to paste
 		int nTotal = 0, aTotal = 0, vTotal = 0;
 		if (clipCell != null)
 		{
 			nTotal = clipCell.getNumNodes();
 			aTotal = clipCell.getNumArcs();
 			vTotal = clipCell.getNumVariables();
-			if (clipCell.getVar(User.FRAME_LAST_CHANGED_BY) !=  null) vTotal--; // discount this variable since it should not be copied.
-		}
-		int total = nTotal + aTotal + vTotal;
-		if (total == 0)
-		{
-			System.out.println("Nothing in the clipboard to paste");
-			return;
+            if (clipCell.getVar(User.FRAME_LAST_CHANGED_BY) !=  null) vTotal--; // discount this variable since it should not be copied.
 		}
 
 		// find out where the paste is going
 		EditWindow wnd = EditWindow.needCurrent();
-		if (wnd == null) return;
+		if (wnd == null)
+        {
+            System.out.println("No place to paste");
+            return;
+        }
 		Highlighter highlighter = wnd.getHighlighter();
 		Cell parent = wnd.getCell();
+
+        int total = nTotal + aTotal + vTotal;
+		if (total == 0)
+		{
+            if (extraText != null)
+            {
+                List<DisplayedText> highlightedText = highlighter.getHighlightedText(true);
+                new PasteSpecialText(highlightedText, extraText, parent);
+            }
+            else
+                System.out.println("Nothing in the clipboard to paste");
+			return;
+		}
 
 		// special case of pasting on top of selected objects
 		List<Geometric> geoms = highlighter.getHighlightedEObjs(true, true);
@@ -256,11 +269,14 @@ public class Clipboard
 				{
 					NodeInst ni = (NodeInst)geom;
 					new PasteNodeToNode(ni, clipCell.getNodes().next());
-				} else if (geom instanceof ArcInst && aTotal == 1)
+				} else if (geom instanceof ArcInst)
 				{
 					ArcInst ai = (ArcInst)geom;
-					new PasteArcToArc(ai, clipCell.getArcs().next());
-				}
+                    if (aTotal == 1)
+                        new PasteArcToArc(ai, clipCell.getArcs().next());
+                    else
+                        ai.setName(extraText);
+                }
 			}
 			return;
 		}
@@ -375,15 +391,30 @@ public class Clipboard
 		DisplayedText dt = highlightedText.get(0);
 		ElectricObject eObj = dt.getElectricObject();
 		Variable.Key varKey = dt.getVariableKey();
-		Variable var = eObj.getParameterOrVariable(varKey);
-		if (var == null) return;
-		String selected = var.describe(-1);
-		if (selected == null) return;
+        String selected = null;
+
+        if (varKey == ArcInst.ARC_NAME)
+        {
+            selected = ((ArcInst)eObj).getName();
+        }
+        else if (varKey == NodeInst.NODE_NAME || varKey == NodeInst.NODE_PROTO)
+        {
+            selected = ((NodeInst)eObj).getName();
+        }
+        else if (varKey == Export.EXPORT_NAME)
+        {
+            selected = ((Export)eObj).getName();
+        }
+        else
+        {
+            Variable var = eObj.getParameterOrVariable(varKey);
+            if (var == null) return;
+            selected = var.describe(-1);
+        }
+        if (selected == null) return;
 
 		// put the text in the clipboard
-		java.awt.datatransfer.Clipboard cb = Toolkit.getDefaultToolkit().getSystemClipboard();
-		Transferable transferable = new StringSelection(selected);
-		cb.setContents(transferable, null);
+        TextUtils.setTextOnClipboard(selected);
 	}
 
 	/****************************** CHANGE JOBS ******************************/
@@ -721,7 +752,50 @@ public class Clipboard
 		}
 	}
 
-	/****************************** CHANGE JOB SUPPORT ******************************/
+    private static class PasteSpecialText extends Job
+	{
+        private List<DisplayedText> textList;
+        private String newText;
+        private Cell cell;
+
+        protected PasteSpecialText(List<DisplayedText> tList, String newT, Cell c)
+        {
+            super("Paste Text", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.textList = tList;
+            this.newText = newT;
+            this.cell = c;
+            startJob();
+        }
+
+		public boolean doIt() throws JobException
+		{
+			// make sure pasting is allowed
+			if (CircuitChangeJobs.cantEdit(cell, null, true, false, true) != 0) return false;
+
+			// paste them into the current cell
+            for (DisplayedText obj : textList)
+            {
+                Variable.Key key = obj.getVariableKey();
+                ElectricObject eObj = obj.getElectricObject();
+                if (key == ArcInst.ARC_NAME)
+                {
+                    ((ArcInst)eObj).setName(newText);
+                }
+                else if (key == NodeInst.NODE_NAME || key == NodeInst.NODE_PROTO)
+                {
+                    ((NodeInst)eObj).setName(newText);
+                }
+                else if (key == Export.EXPORT_NAME)
+                {
+                    Export ex = (Export)((Export)eObj);
+                    ex.rename(newText);
+                }
+            }
+			return true;
+		}
+	}
+
+    /****************************** CHANGE JOB SUPPORT ******************************/
 
 	/**
 	 * Method to clear the clipboard.

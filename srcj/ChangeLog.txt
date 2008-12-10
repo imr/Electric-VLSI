@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08o: ******************************
 
+BUG: (12/11/08, GVG) Can't copy and paste a text attribute associated to an art arc? (Bug #1977)
+FIX: Extra code to copy/past ARC_NAME, NODE_NAME and EXPORT_NAME since they
+are not longer stored as variables.
+
 BUG: (12/10/08, GVG) Assertion in new fill generator  (Bug #1920)
 FIX: More fixes for those zig-zag cases in the ico fill.
 

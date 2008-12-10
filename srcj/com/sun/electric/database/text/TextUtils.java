@@ -33,10 +33,7 @@ import com.sun.electric.technology.Technology;
 
 import java.awt.Color;
 import java.awt.Toolkit;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.Transferable;
-import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.datatransfer.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -1210,13 +1207,25 @@ public class TextUtils
 //		return STRING_NUMBER_ORDER.compare(name1, name2);
 //	}
 
-	/**
+    /**
+     * Method to set the string stored on the system clipboard.
+     * @param text the new text for the clipboard. If text is null, the contents is clean.
+     */
+    public static void setTextOnClipboard(String text)
+    {
+		// put the text in the clipboard
+		java.awt.datatransfer.Clipboard cb = Toolkit.getDefaultToolkit().getSystemClipboard();
+		Transferable transferable = new StringSelection(text);
+		cb.setContents(transferable, null);
+    }
+
+    /**
 	 * Method for obtaining the string on the system clipboard.
-	 * @return the string on the system clipboard (returns an empty string if nothing is found).
+	 * @return the string on the system clipboard (returns a null string if nothing is found).
 	 */
 	public static String getTextOnClipboard()
 	{
-		String result = "";
+		String result = null;
 		Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 		Transferable contents = clipboard.getContents(null);
 		if (contents != null && contents.isDataFlavorSupported(DataFlavor.stringFlavor))
@@ -1224,7 +1233,8 @@ public class TextUtils
 			try
 			{
 				result = (String)contents.getTransferData(DataFlavor.stringFlavor);
-			} catch (UnsupportedFlavorException ex)
+                Transferable transferable = new StringSelection(null);
+            } catch (UnsupportedFlavorException ex)
 			{
 				ex.printStackTrace();
 			} catch (IOException ex)
