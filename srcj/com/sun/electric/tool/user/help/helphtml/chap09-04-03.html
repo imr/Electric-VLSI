@@ -139,13 +139,6 @@ does not write any Resistor/Capacitor information.</LI>
 </LI>
 <LI><B>Spice primitive set</B> Switches between Spice primitive sets.
 Currently there are only two: "spiceparts" and "spicepartsG3".</LI>
-<LI><B>Make globals parameters</B> Causes global signals (like power and ground) to appear as parameters on
-.SUBCKT headers.
-It is not sensible to check both this and "Use global VDD/GND<".</LI>
-<LI><B>Use global VDD/GND</B> Causes power and ground to be placed in a .GLOBAL block.
-It is not sensible to check both this and "Make globals parameters".
-Note that this preference should not be used when Global Partitions are in use
-(see <A HREF="chap06-09-05.html#chap06-09-05">Section 6-9-5</A>).</LI>
 <LI><B>Write VDD/GND in top cell</B> Whether to write power and ground signals in the top-level cell.</LI>
 <LI><B>Use cell parameters</B> When set, any parameters defined on the cell will appear in the Spice deck.
 When not checked, each parameterized cell appears multiple times in the deck,
@@ -158,6 +151,15 @@ as a subcircuit, and a call made to it.
 The default is to write the top-level cell without a subcircuit wrapper.</LI>
 <LI><B>Write .end statement</B> Requests that an .end statement be written at the end of the deck.
 This can be disabled in situations where the deck is part of a larger Spice deck.</LI>
+<LI><B>Globals</B> Has three options for the treatment of global signals (such as power and ground):
+  <UL>
+  <LI>"No special treatment" causes globals to be treated like other signals.</LI>
+  <LI>"Use .GLOBAL block" places global signals in a .GLOBAL block (not supported by all versions of Spice).</LI>
+  <LI>"Create .SUBCKT ports" causes globals to be added to .SUBCKT headers as explicit ports.
+      Note that this preference should be used when Global Partitions are in use
+      (see <A HREF="chap06-09-05.html#chap06-09-05">Section 6-9-5</A>).</LI>
+  </UL>
+</LI>
 </UL>
 <P>
 <B>Running Spice:</B> Electric can create an external process as specified by the user to

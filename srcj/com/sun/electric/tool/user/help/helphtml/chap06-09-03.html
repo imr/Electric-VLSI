@@ -57,16 +57,18 @@ When a node's port is a bus, you can see the signals on that bus by selecting th
 the <B>Object Properties...</B> command.
 In the full dialog, select "Bus Members on Port" to see the signals.
 <P>
+<!-- NEED 4in -->
 <H3>Arrayed Nodes</H3>
 <P>
 Besides using array names on busses, you can also give array names to cell instances in a schematic.
 Netlisters will create multiple copies of that node, named with the individual elements of the array.
 <P>
+<TABLE><TR><TD><CENTER><IMG SRC="fig06-28.png" ALT="Figure 6.28"></CENTER></TD><TD>
 When a cell instance is arrayed, the connections to its ports can be similarly arrayed.
 For example, suppose that schematic cell X has wire port Y and bus port Z[1:2].
 An instance of cell X is arrayed by giving it the name M[2:4].
 Ports Y and Z can be connected in two ways:
-<TABLE><TR><TD><CENTER><IMG SRC="fig06-28.png" ALT="Figure 6.28"></CENTER></TD><TD>
+</TD></TR></TABLE>
 <UL>
 <LI>Implicit connection to all instances (top illustration).
 If the wire port Y is connected to a single wire (A), then wire A connects to port Y on all three instances of cell X.
@@ -85,7 +87,6 @@ D[3] and D[4] connect to Z[1] and Z[2] on M[3]; and
 D[5] and D[6] connect to Z[1] and Z[2] on M[4].
 </LI>
 </UL>
-</TD></TR></TABLE>
 <P>
 Note that it is not possible to array a primitive node from the Schematic technology.
 Instead, you must place that node inside of a cell, and array instances of the cell.
