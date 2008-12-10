@@ -95,6 +95,7 @@ import java.util.Set;
  */
 public class GDS extends Input
 {
+	private static final boolean SHOWPROGRESS = false;			/* true for debugging */
 	private static final boolean IGNOREIMMENSECELLS = false;	/* true for debugging */
 	private static final boolean TALLYCONTENTS = false;			/* true for debugging */
 
@@ -147,6 +148,7 @@ public class GDS extends Input
 	private PolyMerge        merge;
 	private boolean          mergeThisCell;
 	private double           inputScale;
+	private static boolean   arraySimplificationUseful;
 
 	private static class GSymbol
 	{
@@ -297,7 +299,7 @@ public class GDS extends Input
             if (builtCells.contains(cell)) return;
             builtCells.add(cell);
 			boolean countOff = false;
-			if (Job.getDebug())
+			if (SHOWPROGRESS || IGNOREIMMENSECELLS)
 			{
 				int size = insts.size();
 				int arraySize = instArrays.size();
@@ -533,7 +535,7 @@ public class GDS extends Input
                         }
                         else
                         {
-                            if (Job.getDebug())
+                            if (SHOWPROGRESS)
                                 System.out.println("Adding " + newNi.getName());
                             toDelete.clear();
                             geomList.clear();
@@ -626,7 +628,7 @@ public class GDS extends Input
         private void instantiate(CellBuilder theCell, Cell parent, Map<NodeProto,List<EPoint>> massiveMerge)
         {
         	int arraySimplification = IOTool.getGDSArraySimplification();
-    		if (Technology.HANDLEBROKENOUTLINES && arraySimplification > 0)
+    		if (Technology.HANDLEBROKENOUTLINES)
     		{
 	    		NodeInst subNi = null;
 	    		Cell subCell = (Cell)proto;
@@ -642,25 +644,32 @@ public class GDS extends Input
 	    		if (subNi != null && subNi.getTrace() != null) subNi = null;
 	    		if (subNi != null)
 	    		{
-	    			List<EPoint> points = buildArray();
-	    			if (arraySimplification == 2)
+	    			if (arraySimplification > 0)
 	    			{
-	    				// add the array's geometry the layer's outline
-	    				List<EPoint> soFar = massiveMerge.get(subNi.getProto());
-	    				if (soFar == null)
-	    				{
-	    					soFar = new ArrayList<EPoint>();
-	    					massiveMerge.put(subNi.getProto(), soFar);
-	    				}
-	    				if (soFar.size() > 0) soFar.add(null);
-	    				for(EPoint ep : points) soFar.add(ep);
-	    			} else
-	    			{
-		    			// place a pure-layer node that embodies the array
-	    				buildComplexNode(points, subNi.getProto(), parent);
-	    			}
-	        		return;
-	    		}
+		    			List<EPoint> points = buildArray();
+		    			if (arraySimplification == 2)
+		    			{
+		    				// add the array's geometry the layer's outline
+		    				List<EPoint> soFar = massiveMerge.get(subNi.getProto());
+		    				if (soFar == null)
+		    				{
+		    					soFar = new ArrayList<EPoint>();
+		    					massiveMerge.put(subNi.getProto(), soFar);
+		    				}
+		    				if (soFar.size() > 0) soFar.add(null);
+		    				for(EPoint ep : points) soFar.add(ep);
+		    			} else
+		    			{
+			    			// place a pure-layer node that embodies the array
+		    				buildComplexNode(points, subNi.getProto(), parent);
+		    			}
+		        		return;
+		    		} else
+		    		{
+		    			// remember that array simplification would have helped
+		    			arraySimplificationUseful = true;
+		    		}
+    			}
     		}
 
     		// generate an array
@@ -823,6 +832,7 @@ public class GDS extends Input
 	protected Library importALibrary(Library lib)
 	{
 		// initialize
+		arraySimplificationUseful = true;
 		CellBuilder.init();
 		theLibrary = lib;
 
@@ -837,6 +847,11 @@ public class GDS extends Input
 		// now build all instances recursively
 		CellBuilder.buildInstances();
 		CellBuilder.term();
+		if (arraySimplificationUseful)
+		{
+			System.out.println("NOTE: Found array references that could be simplified to save space and time");
+			System.out.println("   To simplify arrays, set the 'Input array simplification' in GDS Preferences");
+		}
 		return lib;
 	}
 
@@ -1216,31 +1231,6 @@ public class GDS extends Input
 
 		theCell.makeInstanceArray(theNodeProto, nCols, nRows, Orientation.fromJava(angle, mX, mY),
 			theVertices[0], rowInterval, colInterval);
-//		// now generate the array TODO: is this right?
-//		double ptcX = theVertices[0].getX();
-//		double ptcY = theVertices[0].getY();
-//		for (int ic = 0; ic < nCols; ic++)
-//		{
-//			double ptX = ptcX;
-//			double ptY = ptcY;
-//			for (int ir = 0; ir < nRows; ir++)
-//			{
-//				// create the node
-//				if (IOTool.isGDSInInstantiatesArrays() ||
-//					(ir == 0 && ic == 0) ||
-//						(ir == (nRows-1) && ic == (nCols-1)))
-//				{
-//					Point2D loc = new Point2D.Double(ptX, ptY);
-//					theCell.makeInstance(theNodeProto, loc, Orientation.fromJava(angle, mX, mY), 0, 0, null);
-//				}
-//
-//				// add the row displacement
-//				ptX += rowInterval.getX();   ptY += rowInterval.getY();
-//			}
-//
-//			// add displacement
-//			ptcX += colInterval.getX();   ptcY += colInterval.getY();
-//		}
 	}
 
 	private class ReadOrientation
