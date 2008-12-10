@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08o: ******************************
 
+BUG: (12/9/08, GVG) Explain why GDS can't be imported using a particular set of User's preferences (Bug #1968)
+FIX: Messages related to renaming of instances are stored as warnings instead of errors.
+
 BUG: (12/9/08, GVG) Editing text externally doesn't remove the tmp file (Bug #1975)
 FIX: Using standard File.createTempFile to create tmp files.
 

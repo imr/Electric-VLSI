@@ -787,7 +787,7 @@ public class GDS extends Input
             {
                 List<Geometric> geomList = new ArrayList<Geometric>(1);
                 geomList.add(ni);
-                errorLogger.logError(errorMsg, geomList, null, null, null, null, parent, -1);
+                errorLogger.logWarning(errorMsg, geomList, null, null, null, null, parent, -1);
                 System.out.println(errorMsg);
             }
 
@@ -1011,8 +1011,6 @@ public class GDS extends Input
 		countBox = countText = countNode = countPath = countShape = countSRef = countARef = countATotal = 0;
 		while (theToken != GDS_ENDSTR)
 		{
-            if (theCell.cell.getName().startsWith("pch_18$$211602476"))
-                System.out.println("");
             getElement();
 			getToken();
 		}
