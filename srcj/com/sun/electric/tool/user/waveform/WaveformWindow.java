@@ -51,13 +51,7 @@ import com.sun.electric.tool.io.output.PNG;
 import com.sun.electric.tool.io.output.Spice;
 import com.sun.electric.tool.ncc.NccCrossProbing;
 import com.sun.electric.tool.ncc.result.NccResult;
-import com.sun.electric.tool.simulation.AnalogAnalysis;
-import com.sun.electric.tool.simulation.AnalogSignal;
-import com.sun.electric.tool.simulation.Analysis;
-import com.sun.electric.tool.simulation.DigitalSignal;
-import com.sun.electric.tool.simulation.Signal;
-import com.sun.electric.tool.simulation.Stimuli;
-import com.sun.electric.tool.simulation.Waveform;
+import com.sun.electric.tool.simulation.*;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
@@ -2146,13 +2140,14 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				makeContext(sSig.getSignalContext(), contextMap, separatorChar);
 		}
 
-		// make a list of signal names with "#" in them
+        String delim = Simulation.getSpiceExtractedNetDelimiter();
+        // make a list of signal names with "#" in them
 		Set<String> sharpSet = new HashSet<String>();
 		for(Signal sSig : signals)
 		{
 //			if (!(sSig instanceof TimedSignal)) continue;
 			String sigName = sSig.getSignalName();
-			int hashPos = sigName.indexOf('#');
+			int hashPos = sigName.indexOf(delim);
 			if (hashPos > 0)
 			{
 				String nodeName = sSig.getSignalContext();
@@ -2172,7 +2167,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			String nodeNameStr = nodeName;
 			if (nodeNameStr == null) nodeNameStr = ""; else nodeNameStr += separatorChar;
 			String sigName = sSig.getSignalName();
-			int hashPos = sigName.indexOf('#');
+			int hashPos = sigName.indexOf(delim);
 			if (hashPos > 0)
 			{
 				// force a branch with the proper name
@@ -2182,7 +2177,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				// if this is the pure name of a hash set, force a branch
 				String pureSharpName = nodeNameStr + sigName;
 				if (sharpSet.contains(pureSharpName))
-					nodeName = pureSharpName + "#";
+					nodeName = pureSharpName + delim;
 			}
 			if (nodeName != null)
 				thisTree = makeContext(nodeName, contextMap, separatorChar);
@@ -2414,7 +2409,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 */
 	public static String getSpiceNetName(VarContext context, Network net)
 	{
-		return getSpiceNetName(context, net, false);
+		return getSpiceNetName(context, net, false, false);
 	}
 
 	/**
@@ -2423,10 +2418,11 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 * @param context the context
 	 * @param net the network, or null
 	 * @param assuraRCXFormat return net assuming Assura RCX flat netlist format
+	 * @param starRCXTFormat return net assuming Star RCXT flat netlist format
 	 * @return a String describing the unique, global spice name for the network,
 	 * or a String describing the context if net is null
 	 */
-	public static String getSpiceNetName(VarContext context, Network net, boolean assuraRCXFormat)
+	public static String getSpiceNetName(VarContext context, Network net, boolean assuraRCXFormat, boolean starRCXTFormat)
 	{
 		boolean isGlobal = false;
 
@@ -2464,12 +2460,16 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		if (assuraRCXFormat) {
 			contextStr = "x"+context.getInstPath("/x");
 		}
-		contextStr = TextUtils.canonicString(contextStr);
+        if (starRCXTFormat) {
+            contextStr = context.getInstPath("/");
+        }
+        contextStr = TextUtils.canonicString(contextStr);
 		if (net == null) return contextStr;
 		if (context == VarContext.globalContext || isGlobal)
 			return getSpiceNetName(net);
-		else if (assuraRCXFormat) return contextStr + "/" + getSpiceNetName(net);
-		else return contextStr + "." + getSpiceNetName(net);
+        else if (assuraRCXFormat) return contextStr + "/" + getSpiceNetName(net);
+        else if (starRCXTFormat) return contextStr + "/" + getSpiceNetName(net); 
+        else return contextStr + "." + getSpiceNetName(net);
 	}
 
 	/**
@@ -2831,12 +2831,26 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				}
 				if (sSig == null)
 				{
-					// when cross-probing extracted layout, hierarchy delimiter is '/' instead of '.'
-					String temp = getSpiceNetName(context, net, true);
+					// when cross-probing extracted layout, hierarchy delimiter is '/x' instead of '.'
+					String temp = getSpiceNetName(context, net, true, false);
 					sSig = an.findSignalForNetworkQuickly(temp);
-				}
+                }
+                if (sSig == null)
+                {
+                    // when cross-probing extracted layout, hierarchy delimiter is '/' instead of '.'
+                    String temp = getSpiceNetName(context, net, false, true);
+                    sSig = an.findSignalForNetworkQuickly(temp);
+                }
+                if (sSig == null)
+                {
+                    // try prepending the top-level cell name and setting the hierarchy delimiter as '/' instead of '.'
+                    if (topContext == null) topContext = net.getParent();
+                    String temp = getSpiceNetName(context, net, false, true);
+                    String nameWithCell = topContext.getName() + "." + temp;
+                    sSig = an.findSignalForNetworkQuickly(nameWithCell);
+                }
 
-				if (sSig == null)
+                if (sSig == null)
 				{
 					// check for equivalent layout net name
 					// search up hierarchy for cell with NCC equiv info
@@ -2863,7 +2877,11 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					}
 				}
 				if (sSig != null)
-					found.add(sSig);
+                {
+                    List<Signal> signalGroup = an.getSignalsFromExtractedNet(sSig);
+                    for (Signal s : signalGroup)
+                        found.add(s);
+                }
 //					else System.out.println("Can't find net "+netName+" in cell "+context.getInstPath("."));
 			}
 		}

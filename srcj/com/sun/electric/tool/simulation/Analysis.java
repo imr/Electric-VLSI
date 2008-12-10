@@ -74,8 +74,9 @@ public abstract class Analysis<S extends Signal>
 	/** the range of values in this Analysis */					private Rectangle2D bounds;
 	/** the left and right side of the Analysis */				private double leftEdge, rightEdge;
 	/** true to extrapolate last value in waveform window */	private boolean extrapolateToRight;
+    /** group of signals from extracted netlist of same net */  private HashMap<String,List<S>> signalGroup = new HashMap<String,List<S>>();
 
-	/**
+    /**
 	 * Constructor for a collection of simulation data.
 	 * @param sd Stimuli that this analysis is part of.
 	 * @param type the type of this analysis.
@@ -148,7 +149,16 @@ public abstract class Analysis<S extends Signal>
 		// simulators may strip off last "_"
 		if (name.indexOf('_') >= 0 && !name.endsWith("_"))
 			signalNames.put(name + "_", ws);
-	}
+
+        // keep track of groups of signals that represent one extracted net
+        String baseName = getBaseNameFromExtractedNet(name);
+        List<S> sigs = signalGroup.get(baseName);
+        if (sigs == null) {
+            sigs = new ArrayList<S>();
+            signalGroup.put(baseName, sigs);
+        }
+        sigs.add(ws);
+    }
 
 	/**
 	 * Method to add a new signal to this Simulation Data object.
@@ -164,7 +174,32 @@ public abstract class Analysis<S extends Signal>
 		setBoundsDirty();
 	}
 
-	/**
+    public static String getBaseNameFromExtractedNet(String signalFullName) {
+        String delim = Simulation.getSpiceExtractedNetDelimiter();
+        int hashPos = signalFullName.indexOf(delim);
+        if (hashPos > 0)
+        {
+            return signalFullName.substring(0, hashPos);
+        } else {
+            return signalFullName;
+        }
+    }
+
+    /**
+     * Get a list of signals that are from the same network.
+     * Extracted nets are the original name + delimiter + some junk
+     * @param ws the signal
+     * @return a list of signals
+     */
+    public List<S> getSignalsFromExtractedNet(Signal ws) {
+        String sigName = ws.getFullName();
+        if (sigName == null) return new ArrayList<S>();
+        sigName = TextUtils.canonicString(sigName);
+        sigName = getBaseNameFromExtractedNet(sigName);
+        return signalGroup.get(sigName);
+    }
+
+    /**
 	 * Method to compute the time and value bounds of this simulation data.
 	 * @return a Rectangle2D that has time bounds in the X part and
 	 * value bounds in the Y part.

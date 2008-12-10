@@ -2077,4 +2077,8 @@ public class Simulation extends Tool
 	 * @return the maximum memory to use for EpicReaderProcess (in megabytes), by default.
 	 */
 	public static int getFactorySpiceEpicMemorySize() { return cacheSpiceEpicReaderMemorySize.getIntFactoryValue(); }
+
+    private static Pref cacheSpiceExtractedNetDelimiter = Pref.makeStringPref("SpiceExtractedNetDelimiter", tool.prefs, ":");
+    public static String getSpiceExtractedNetDelimiter() { return cacheSpiceExtractedNetDelimiter.getString(); }
+    public static void setSpiceExtractedNetDelimiter(String s) { cacheSpiceExtractedNetDelimiter.setString(s); }
 }
