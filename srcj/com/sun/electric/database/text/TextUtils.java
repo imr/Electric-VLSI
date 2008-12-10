@@ -32,6 +32,11 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.Technology;
 
 import java.awt.Color;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -1204,7 +1209,32 @@ public class TextUtils
 //	public static int nameSameNumeric(String name1, String name2) {
 //		return STRING_NUMBER_ORDER.compare(name1, name2);
 //	}
-//
+
+	/**
+	 * Method for obtaining the string on the system clipboard.
+	 * @return the string on the system clipboard (returns an empty string if nothing is found).
+	 */
+	public static String getTextOnClipboard()
+	{
+		String result = "";
+		Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+		Transferable contents = clipboard.getContents(null);
+		if (contents != null && contents.isDataFlavorSupported(DataFlavor.stringFlavor))
+		{
+			try
+			{
+				result = (String)contents.getTransferData(DataFlavor.stringFlavor);
+			} catch (UnsupportedFlavorException ex)
+			{
+				ex.printStackTrace();
+			} catch (IOException ex)
+			{
+				ex.printStackTrace();
+			}
+		}
+		return result;
+	}
+
 	/**
 	 * Method to convert a file path to a URL.
 	 * @param fileName the path to the file.
