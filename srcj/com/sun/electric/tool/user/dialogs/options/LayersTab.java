@@ -224,7 +224,6 @@ public class LayersTab extends PreferencePanel
 		{
 			layerName.addItem(name);
 		}
-
 		layerSelected();
 	}
 
@@ -366,6 +365,8 @@ public class LayersTab extends PreferencePanel
 				map[i] = fullMap[1<<i];
 			colorMapMap.put(tech, map);
 		}
+
+		colorAndPatternPanel.setColorPattern(null);
 		setTechnology();
 		return true;
 	}
