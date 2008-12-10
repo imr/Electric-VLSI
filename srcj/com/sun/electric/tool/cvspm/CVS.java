@@ -326,8 +326,12 @@ public class CVS extends Listener {
      * @return true if the library is in cvs, false otherwise.
      */
     public static boolean isInCVS(Library lib) {
-        File libfile = TextUtils.getFile(lib.getLibFile());
+        URL fileURL = lib.getLibFile();
+        if (fileURL == null) return false; // new library not saved yet
+
+        File libfile = TextUtils.getFile(fileURL);
         if (libfile == null) return false;
+        
         String libfilestr = libfile.getPath();
         File libFile = new File(libfilestr);
         if (isDELIB(lib)) {

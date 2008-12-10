@@ -36,6 +36,7 @@ import java.util.Iterator;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.io.*;
+import java.net.URL;
 
 /**
  * User: gainsley
@@ -172,7 +173,15 @@ public class AddRemove {
                 } else {
                     // jelib or elib file
                     if (add) {
-                        if (!CVS.isFileInCVS(new File(lib.getLibFile().getPath())))
+                        // if lib.getLibFile() is null -> library hasn't been saved
+                        URL fileURL = lib.getLibFile();
+                        if (fileURL == null)
+                        {
+                            System.out.println("Library not on disk yet. Save it before applying this command");
+                            exitVal = 0;
+                            return true;
+                        }
+                        if (!CVS.isFileInCVS(new File(fileURL.getPath())))
                             stateChangeLibs.add(lib);
                     } else {
                         if (!CVS.isFileInCVS(new File(lib.getLibFile().getPath())))

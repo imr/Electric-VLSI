@@ -53,19 +53,6 @@ public class Update {
         }
         String getMessage() {return name;}
     };
-//    public static final int UPDATE = 0;
-//    public static final int STATUS = 1;
-//    public static final int ROLLBACK = 2;
-//    public static final int ROLLFORWARD = 3;
-//        private static String getMessage(int type) {
-//        switch(type) {
-//            case 0: return "Update";
-//            case 1: return "Status";
-//            case 2: return "Roll Back";
-//            case 3: return "Roll Forward";
-//        }
-//        return "";
-//    }
 
     // ------------------ Update/Status ---------------------
 

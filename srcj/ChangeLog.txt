@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08o: ******************************
 
+BUG: (12/10/08, GVG) NPE in CVS Add or GetStatus on a new library (Bug #1984)
+FIX: Detecting when lib.getLibFile() is null.
+
 IMP: (12/10/08, SMR) Converted standard cell marking in "Cell Properties" dialog
      to use the new standard cell marking method (a displayable variable) (Bug #1983).
 
