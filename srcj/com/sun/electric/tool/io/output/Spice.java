@@ -295,22 +295,6 @@ public class Spice extends Topology
             writeEmptySubckts = false;
         }
 
-        // cannot place global signals in .GLOBAL block and in .SUBCKT parameters
-        if (Simulation.isSpiceMakeGlobalsParameters() && Simulation.isSpiceUseGlobalPwrGnd())
-        {
-        	System.out.println("WARNING: Cannot place global signals in .GLOBAL block and in .SUBCKT headers");
-        	if (spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_2 ||
-        		spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_3)
-        	{
-        		Simulation.setSpiceUseGlobalPwrGnd(false);
-            	System.out.println("Disabling the .GLOBAL block");
-        	} else
-        	{
-        		Simulation.setSpiceMakeGlobalsParameters(false);
-            	System.out.println("Disabling globals in .SUBCKT parameters");
-        	}
-        }
-
         // get the mask scale
 		maskScale = 1.0;
 //		Variable scaleVar = layoutTechnology.getVar("SIM_spice_mask_scale");
@@ -389,7 +373,7 @@ public class Spice extends Topology
             Netlist netList = cni.getNetList();
             Global.Set globals = netList.getGlobals();
             int globalSize = globals.size();
-            if (Simulation.isSpiceUseGlobalPwrGnd())
+    		if (Simulation.getSpiceGlobalTreatment() == Simulation.SPICEGLOBALSUSEGLOBALBLOCK)
             {
                 if (globalSize > 0)
                 {
@@ -584,7 +568,7 @@ public class Spice extends Topology
 			multiLinePrint(false, infstr.toString());
 
 			// write global comments
-			if (Simulation.isSpiceUseGlobalPwrGnd())
+			if (Simulation.getSpiceGlobalTreatment() == Simulation.SPICEGLOBALSUSEGLOBALBLOCK)
 			{
 				for(int i=0; i<globalSize; i++)
 				{
@@ -2639,7 +2623,7 @@ public class Spice extends Topology
 	 */
     private boolean ignoreSubcktPort(CellSignal cs)
     {
-		if (!Simulation.isSpiceMakeGlobalsParameters())
+		if (Simulation.getSpiceGlobalTreatment() != Simulation.SPICEGLOBALSUSESUBCKTPORTS)
 		{
 	        // ignore networks that aren't exported
 	        PortProto pp = cs.getExport();

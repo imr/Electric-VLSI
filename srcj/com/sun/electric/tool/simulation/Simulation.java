@@ -1936,50 +1936,40 @@ public class Simulation extends Tool
 	public static void setParasiticsExtractsC(boolean b) { cacheParasiticsExtractsC.setBoolean(b); }
 	public static boolean isFactoryParasiticsExtractsC() { return cacheParasiticsExtractsC.getBooleanFactoryValue(); }
 
-	private static Pref cacheSpiceMakeGlobalsParameters = Pref.makeBooleanPref("SpiceMakeGlobalsParameters", tool.prefs, true);
-	/**
-	 * Method to tell whether or not to place global signals as subcircuit parameters in Spice output.
-	 * If true, implicit globals (like VDD and GND) appear in subcircuit parameter lists.
-	 * The default is true.
-	 * @return true to place global signals as subcircuit parameters in Spice output.
-	 */
-	public static boolean isSpiceMakeGlobalsParameters() { return cacheSpiceMakeGlobalsParameters.getBoolean(); }
-	/**
-	 * Method to set whether or not to place global signals as subcircuit parameters in Spice output.
-	 * If true, implicit globals (like VDD and GND) appear in subcircuit parameter lists.
-	 * @param u true to place global signals as subcircuit parameters in Spice output.
-	 */
-	public static void setSpiceMakeGlobalsParameters(boolean u) { cacheSpiceMakeGlobalsParameters.setBoolean(u); }
-	/**
-	 * Method to tell whether or not place global signals as subcircuit parameters in Spice output, by default.
-	 * If true, implicit globals (like VDD and GND) appear in subcircuit parameter lists.
-	 * @return true to place global signals as subcircuit parameters in Spice output, by default.
-	 */
-	public static boolean isFactorySpiceMakeGlobalsParameters() { return cacheSpiceMakeGlobalsParameters.getBooleanFactoryValue(); }
+	/** no special treatment of global signals in Spice output. */		public static final int SPICEGLOBALSNONE = 0;
+	/** Use .GLOBAL block for global signals in Spice output. */		public static final int SPICEGLOBALSUSEGLOBALBLOCK = 1;
+	/** Write ports in .SUBCKT for global signals in Spice output. */	public static final int SPICEGLOBALSUSESUBCKTPORTS = 2;
 
-	private static Pref cacheSpiceUseGlobalPwrGnd = Pref.makeBooleanPref("SpiceForceGlobalPwrGnd", tool.prefs, false);
+	private static Pref cacheGlobalTreatment = Pref.makeIntPref("SpiceGlobalTreatment", tool.prefs, SPICEGLOBALSUSEGLOBALBLOCK);
 	/**
-	 * Method to tell whether or not to write global power and ground in Spice output.
-	 * If this is off, then individual power and ground references are made.
-	 * The default is false.
-	 * @return true to write global power and ground in Spice output.
+	 * Method to tell how to treat globals in Spice output.
+	 * Globals are signals such as power and ground.  The values can be:<BR>
+	 * 0: no special treatment of globals<BR>
+	 * 1: create a .GLOBAL block for globals (the default)<BR>
+	 * 2: place globals as .SUBCKT parameters<BR>
+	 * @return how to treat globals in Spice output.
 	 */
-	public static boolean isSpiceUseGlobalPwrGnd() { return cacheSpiceUseGlobalPwrGnd.getBoolean(); }
+	public static int getSpiceGlobalTreatment() { return cacheGlobalTreatment.getInt(); }
 	/**
-	 * Method to set whether or not to write global power and ground in Spice output.
-	 * If this is off, then individual power and ground references are made.
-	 * @param g true to write global power and ground in Spice output.
+	 * Method to set how to treat globals in Spice output.
+	 * Globals are signals such as power and ground.  The values can be:<BR>
+	 * 0: no special treatment of globals<BR>
+	 * 1: create a .GLOBAL block for globals<BR>
+	 * 2: place globals as .SUBCKT parameters<BR>
+	 * @param g how to treat globals in Spice output.
 	 */
-	public static void setSpiceUseGlobalPwrGnd(boolean g) { cacheSpiceUseGlobalPwrGnd.setBoolean(g); }
+	public static void setSpiceGlobalTreatment(int g) { cacheGlobalTreatment.setInt(g); }
 	/**
-	 * Method to tell whether or not to write global power and ground in Spice output, by default.
-	 * If this is off, then individual power and ground references are made.
-	 * @return true to write global power and ground in Spice output, by default.
+	 * Method to tell how to treat globals in Spice output, by default.
+	 * Globals are signals such as power and ground.  The values can be:<BR>
+	 * 0: no special treatment of globals<BR>
+	 * 1: create a .GLOBAL block for globals (the default)<BR>
+	 * 2: place globals as .SUBCKT parameters<BR>
+	 * @return how to treat globals in Spice output, by default.
 	 */
-	public static boolean isFactorySpiceUseGlobalPwrGnd() { return cacheSpiceUseGlobalPwrGnd.getBooleanFactoryValue(); }
+	public static int getFactorySpiceGlobalTreatment() { return cacheGlobalTreatment.getIntFactoryValue(); }
 
     private static Pref cacheSpiceWritePwrGndInTopCell = Pref.makeBooleanPref("cacheSpiceWritePwrGndInTopCell", tool.prefs, true);
-//	static { cacheSpiceWritePwrGndInInTop.attachToObject(tool, "Tools/Spice tab", "Spice writes VDD/GND in top cell"); }
 	/**
 	 * Method to tell whether or not to write power and ground in Spice top cell section.
 	 * The default is true. True is the default behavoir until now.
