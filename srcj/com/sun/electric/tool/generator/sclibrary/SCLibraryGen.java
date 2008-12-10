@@ -157,7 +157,9 @@ public class SCLibraryGen {
 
                 schcell = scLibrary.findNodeProto(cellname+"{sch}");
                 // mark schematic as standard cell
-                markStandardCell(schcell);
+                List<Cell> cells = new ArrayList<Cell>();
+                cells.add(schcell);
+                markStandardCell(cells, null);
             }
         }
         return true;
@@ -255,40 +257,48 @@ public class SCLibraryGen {
     /**
      * Mark the cell as a standard cell.
      * This version of the method performs the task in a Job.
-     * @param cell the cell to mark with the standard cell attribute marker
+     * @param standardCells a list of Cells to mark with the standard cell attribute marker.
+     * @param notStandardCells a list of Cells to remove the standard cell attribute marker.
      */
-    public static void markStandardCellJob(Cell cell) {
-        CreateVar job = new CreateVar(cell, STANDARDCELL, new Integer(1));
+    public static void markStandardCellJob(List<Cell> standardCells, List<Cell> notStandardCells) {
+        CreateVar job = new CreateVar(standardCells, notStandardCells);
         job.startJob();
     }
 
     /**
      * Mark the cell as a standard cell
-     * @param cell the cell to mark with the standard cell attribute marker
+     * @param standardCells a list of Cells to mark with the standard cell attribute marker.
+     * @param notStandardCells a list of Cells to remove the standard cell attribute marker.
      */
-    public static void markStandardCell(Cell cell) {
-        CreateVar job = new CreateVar(cell, STANDARDCELL, new Integer(1));
+    public static void markStandardCell(List<Cell> standardCells, List<Cell> notStandardCells) {
+        CreateVar job = new CreateVar(standardCells, notStandardCells);
         job.doIt();
     }
 
-    public static class CreateVar extends Job {
-        private Cell cell;
-        private Variable.Key key;
-        private Object defaultVal;
-        public CreateVar(Cell cell, Variable.Key key, Object defaultVal) {
+    private static class CreateVar extends Job
+    {
+        private List<Cell> standardCells;
+        private List<Cell> notStandardCells;
+
+        public CreateVar(List<Cell> standardCells, List<Cell> notStandardCells)
+        {
             super("Create Var", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-            this.cell = cell;
-            this.key = key;
-            this.defaultVal = defaultVal;
+            this.standardCells = standardCells;
+            this.notStandardCells = notStandardCells;
         }
-        public boolean doIt() {
+
+        public boolean doIt()
+        {
             TextDescriptor td = TextDescriptor.getCellTextDescriptor().withInterior(true).withDispPart(TextDescriptor.DispPos.NAMEVALUE);
-            if (cell == null) return false;
-            cell.newVar(key, defaultVal, td);
+            if (standardCells != null)
+            	for(Cell cell : standardCells)
+            		cell.newVar(STANDARDCELL, new Integer(1), td);
+            if (notStandardCells != null)
+	            for(Cell cell : notStandardCells)
+	            	cell.delVar(STANDARDCELL);
             return true;
         }
     }
-
 
     /**
      * Return the standard cells in a hierarchy starting from

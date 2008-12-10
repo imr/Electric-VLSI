@@ -4203,22 +4203,22 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 */
 	public void setInCellLibrary() { setFlag(INCELLLIBRARY, true); }
 
-	/**
-	 * Method to set this Cell so that it is not part of a cell library.
-	 * Cell libraries are simply libraries that contain standard cells but no hierarchy
-	 * (as opposed to libraries that define a complete circuit).
-	 * Certain commands exclude facets from cell libraries, so that the actual circuit hierarchy can be more clearly seen.
-	 */
-	public void clearInCellLibrary() { setFlag(INCELLLIBRARY, false); }
-
-	/**
-	 * Method to tell if this Cell is part of a cell library.
-	 * Cell libraries are simply libraries that contain standard cells but no hierarchy
-	 * (as opposed to libraries that define a complete circuit).
-	 * Certain commands exclude facets from cell libraries, so that the actual circuit hierarchy can be more clearly seen.
-	 * @return true if this Cell is part of a cell library.
-	 */
-	public boolean isInCellLibrary() { return isFlag(INCELLLIBRARY); }
+//	/**
+//	 * Method to set this Cell so that it is not part of a cell library.
+//	 * Cell libraries are simply libraries that contain standard cells but no hierarchy
+//	 * (as opposed to libraries that define a complete circuit).
+//	 * Certain commands exclude facets from cell libraries, so that the actual circuit hierarchy can be more clearly seen.
+//	 */
+//	public void clearInCellLibrary() { setFlag(INCELLLIBRARY, false); }
+//
+//	/**
+//	 * Method to tell if this Cell is part of a cell library.
+//	 * Cell libraries are simply libraries that contain standard cells but no hierarchy
+//	 * (as opposed to libraries that define a complete circuit).
+//	 * Certain commands exclude facets from cell libraries, so that the actual circuit hierarchy can be more clearly seen.
+//	 * @return true if this Cell is part of a cell library.
+//	 */
+//	public boolean isInCellLibrary() { return isFlag(INCELLLIBRARY); }
 
 	/**
 	 * Method to set this Cell so that it is part of a technology library.

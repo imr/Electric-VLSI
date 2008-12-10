@@ -27,10 +27,10 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TempPref;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
+import com.sun.electric.tool.generator.sclibrary.SCLibraryGen;
 import com.sun.electric.tool.user.User;
 
 import java.awt.Frame;
@@ -74,7 +74,7 @@ public class CellProperties extends EDialog
             // remember the cell's toggle flags
             disAllMod = TempPref.makeBooleanPref(cell.isAllLocked());
             disInstMod = TempPref.makeBooleanPref(cell.isInstancesLocked());
-            inCellLib = TempPref.makeBooleanPref(cell.isInCellLibrary());
+            inCellLib = TempPref.makeBooleanPref(SCLibraryGen.isStandardCell(cell));
             useTechEditor = TempPref.makeBooleanPref(cell.isInTechnologyLibrary());
             defExpanded = TempPref.makeBooleanPref(cell.isWantExpanded());
 
@@ -1169,6 +1169,8 @@ public class CellProperties extends EDialog
 
 		public boolean doIt() throws JobException
 		{
+			List<Cell> cellsInLib = new ArrayList<Cell>();
+			List<Cell> cellsNotInLib = new ArrayList<Cell>();
             for (int i=0; i<cells.size(); i++)
 			{
 				Cell cell = cells.get(i);
@@ -1182,7 +1184,15 @@ public class CellProperties extends EDialog
 				}
 				if (inCellLib.get(i).booleanValue() != inCellLibFactory.get(i).booleanValue())
 				{
-					if (inCellLib.get(i).booleanValue()) cell.setInCellLibrary(); else cell.clearInCellLibrary();
+					if (inCellLib.get(i).booleanValue())
+					{
+//						cell.setInCellLibrary();
+						cellsInLib.add(cell);
+					} else
+					{
+//						cell.clearInCellLibrary();
+						cellsNotInLib.add(cell);
+					}
 				}
 				if (useTechEditor.get(i).booleanValue() != useTechEditorFactory.get(i).booleanValue())
 				{
@@ -1214,6 +1224,7 @@ public class CellProperties extends EDialog
 					cell.newVar(Cell.TEXT_CELL_FONT_SIZE, textCellSize.get(i));
 				}
 			}
+			SCLibraryGen.markStandardCell(cellsInLib, cellsNotInLib);
 			return true;
 		}
 	}

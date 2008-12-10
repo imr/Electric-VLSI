@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08o: ******************************
 
+IMP: (12/10/08, SMR) Converted standard cell marking in "Cell Properties" dialog
+     to use the new standard cell marking method (a displayable variable) (Bug #1983).
+
 BUG: (12/11/08, GVG) Can't copy and paste a text attribute associated to an art arc? (Bug #1977)
 FIX: Extra code to copy/past ARC_NAME, NODE_NAME and EXPORT_NAME since they
 are not longer stored as variables.

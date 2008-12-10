@@ -39,6 +39,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.extract.TransistorSearch;
+import com.sun.electric.tool.generator.sclibrary.SCLibraryGen;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
@@ -218,7 +219,7 @@ public class CellLists extends EDialog
 		if (maxlen < 0) line += "\t"; else line += " ";
 		if (cell.isInstancesLocked()) line += "I"; else line += " ";
 		if (maxlen < 0) line += "\t"; else line += " ";
-		if (cell.isInCellLibrary()) line += "C"; else line += " ";
+		if (SCLibraryGen.isStandardCell(cell)) line += "C"; else line += " ";
 		if (maxlen < 0) line += "\t"; else line += " ";
 
 		boolean goodDRC = false;
