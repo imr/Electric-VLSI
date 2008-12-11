@@ -47,20 +47,23 @@ at the bottom of the table, if two states are simultaneously valid.
 <TR><TD>Locally Modified</TD><TD><font color="#0000ff">Blue</font></TD></TR>
 <TR><TD>Needs Update</TD><TD><font color="#FF66FF">Magenta</font></TD></TR>
 <TR><TD>Added/Removed</TD><TD><font color="#00ff00">Green</font></TD></TR>
-<TR><TD>Unknown (not in CVS)</TD><TD><font color="#FFCC66">Orange</font></TD></TR>
+<TR><TD>Unknown (not in CVS)</TD><TD><font color="#777777">Light gray</font></TD></TR>
 <TR><TD>Up-to-date</TD><TD>Black</TD></TR>
 </TABLE></CENTER>
 <P>
 These are the commands implemented by Electric:
 <UL>
-<LI><B>Update</B> Retrieves latest version from CVS repository.</LI>
 <LI><B>Commit</B> Commit a locally modified version to CVS.</LI>
+<LI><B>Update</B> Retrieves latest version from CVS repository.</LI>
 <LI><B>Get Status</B> Check the status with respect to the CVS version.</LI>
 <LI><B>List Editors</B> List other users who have a locally modified version of the file.</LI>
 <LI><B>Show Log</B> Display a dialog of all versions of the file in CVS (allows checkout of specific version).</LI>
 <LI><B>Rollback</B> Revert to latest CVS version.</LI>
-<LI><B>Add</B> Add the file to CVS (requires a commit to actually add it).</LI>
-<LI><B>Remove</B> Remove the file from CVS (requires a commit to actually remove it).</LI>
+<LI><B>Add to CVS</B> Add the file to CVS (requires a commit to actually add it).</LI>
+<LI><B>Remove from CVS</B> Remove the file from CVS (requires a commit to actually remove it).</LI>
+<LI><B>Undo CVS Add or Remove</B> Undo a previous CVS add or remove before a commit is done.</LI>
+<LI><B>Rollforward</B> Move local modified file to a temporary location, get a fresh copy from CVS and put back the local copy.
+This is to prevent merge cases with conflicts and still preserve local modifications.</LI>
 </UL>
 
 <!-- TRAILER -->
