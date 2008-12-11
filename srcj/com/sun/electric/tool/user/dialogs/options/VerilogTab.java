@@ -43,7 +43,7 @@ public class VerilogTab extends PreferencePanel
     private JPanel verilog;
     private JCheckBox stopAtStandardCells;
     private JCheckBox preserveVerilogFormatting;
-    private javax.swing.JCheckBox parameterizeModuleNames;
+    private JCheckBox parameterizeModuleNames;
 
     /** Creates new form VerilogTab */
 	public VerilogTab(Frame parent, boolean modal)
@@ -124,11 +124,11 @@ public class VerilogTab extends PreferencePanel
             }
         });
 
-        verilog.setLayout(new java.awt.GridBagLayout());
+        verilog.setLayout(new GridBagLayout());
 
-        // Checkbox to set the use Standard Cell naming
+        // Checkbox to ignore Standard Cells
         stopAtStandardCells = new JCheckBox();
-        stopAtStandardCells.setText("Stop at Standard Cells");
+        stopAtStandardCells.setText("Do not netlist Standard Cells");
         gridBagConstraints = new GridBagConstraints();
         gridBagConstraints.gridx = 0; gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = GridBagConstraints.WEST;
@@ -137,7 +137,7 @@ public class VerilogTab extends PreferencePanel
 
         // Don't trim off whitespace from Verilog text boxes 
         preserveVerilogFormatting = new JCheckBox();
-        preserveVerilogFormatting.setText("Preserve Verilog Formatting");
+        preserveVerilogFormatting.setText("Preserve Verilog formatting");
         gridBagConstraints = new GridBagConstraints();
         gridBagConstraints.gridx = 0; gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = GridBagConstraints.WEST;
@@ -145,7 +145,7 @@ public class VerilogTab extends PreferencePanel
         verilog.add(preserveVerilogFormatting, gridBagConstraints);
 
         parameterizeModuleNames = new JCheckBox();
-        parameterizeModuleNames.setText("Parameterize Verilog Module Names");
+        parameterizeModuleNames.setText("Parameterize Verilog module names");
         gridBagConstraints = new GridBagConstraints();
         gridBagConstraints.gridx = 0; gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = GridBagConstraints.WEST;

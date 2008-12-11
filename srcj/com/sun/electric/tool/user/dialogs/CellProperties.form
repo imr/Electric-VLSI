@@ -168,7 +168,7 @@
     </Component>
     <Component class="javax.swing.JCheckBox" name="partOfCellLib">
       <Properties>
-        <Property name="text" type="java.lang.String" value="Part of a cell-library"/>
+        <Property name="text" type="java.lang.String" value="Standard cell in a cell library"/>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="partOfCellLibActionPerformed"/>

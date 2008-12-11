@@ -593,7 +593,7 @@ public class RoutingTab extends PreferencePanel
 
         all.setLayout(new java.awt.GridBagLayout());
 
-        all.setBorder(javax.swing.BorderFactory.createTitledBorder("All Routers"));
+        all.setBorder(javax.swing.BorderFactory.createTitledBorder("Stitching Routers"));
         routTechLabel.setText("Technology:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;

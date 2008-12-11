@@ -525,7 +525,7 @@ public class CellProperties extends EDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(clearDisallowModInstInCell, gridBagConstraints);
 
-        partOfCellLib.setText("Part of a cell-library");
+        partOfCellLib.setText("Standard cell in a cell library");
         partOfCellLib.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 partOfCellLibActionPerformed(evt);

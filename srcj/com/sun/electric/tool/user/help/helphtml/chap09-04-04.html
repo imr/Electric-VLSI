@@ -12,6 +12,7 @@
 <!-- COMMAND Tools/Simulation (Spice)/Set Assura CDL Template -->
 <!-- COMMAND Tools/Simulation (Spice)/Set Calibre Spice Template -->
 <!-- COMMAND Tools/Simulation (Verilog)/Set Verilog Template -->
+<!-- COMMAND Tools/Simulation (Verilog)/Set Verilog Default Parameter -->
 
 For both Spice and Verilog, you can place special nodes in your circuit that augment the generated deck.
 Spice even has a predefined set of these nodes, available from the "Spice" entry in the component menu.
@@ -38,7 +39,9 @@ If the template is specific to a particular version of Spice, use the appropriat
 <B>Set GnuCap Template</B>, <B>Set SmartSpice Template</B>, <B>Set Assura CDL Template</B>, or
 <B>Set Calibre Spice Template</B>).
 You can also create a Verilog template by using the <B>Set Verilog Template</B> command (in menu <B>Tools / Simulation (Verilog)</B>).
-Note that a single cell can contain both Verilog and multiple Spice templates.
+And can customize instances of the current cell (by prepending per-instance parameters)
+with <B>Set Verilog Default Parameter</B>.
+Note that a single cell can contain both Verilog and Spice templates.
 Once a template has been created, double-click on the text to edit it.</LI>
 </UL>
 <P>

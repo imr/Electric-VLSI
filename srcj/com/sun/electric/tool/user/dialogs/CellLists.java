@@ -219,7 +219,7 @@ public class CellLists extends EDialog
 		if (maxlen < 0) line += "\t"; else line += " ";
 		if (cell.isInstancesLocked()) line += "I"; else line += " ";
 		if (maxlen < 0) line += "\t"; else line += " ";
-		if (SCLibraryGen.isStandardCell(cell)) line += "C"; else line += " ";
+		if (SCLibraryGen.isStandardCell(cell)) line += "S"; else line += " ";
 		if (maxlen < 0) line += "\t"; else line += " ";
 
 		boolean goodDRC = false;
@@ -617,7 +617,7 @@ public class CellLists extends EDialog
 		String header = "Cell";
 		for(int i=4; i<maxLen; i++) header += "-";
 		header += "Version--------Creation date";
-		header += "---------------Revision Date--------------Size-------Usage--L-I-C-D";
+		header += "---------------Revision Date--------------Size-------Usage--L-I-S-D";
 		System.out.println(header);
 	}
 
