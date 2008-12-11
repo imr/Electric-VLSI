@@ -1936,38 +1936,61 @@ public class Simulation extends Tool
 	public static void setParasiticsExtractsC(boolean b) { cacheParasiticsExtractsC.setBoolean(b); }
 	public static boolean isFactoryParasiticsExtractsC() { return cacheParasiticsExtractsC.getBooleanFactoryValue(); }
 
-	/** no special treatment of global signals in Spice output. */		public static final int SPICEGLOBALSNONE = 0;
-	/** Use .GLOBAL block for global signals in Spice output. */		public static final int SPICEGLOBALSUSEGLOBALBLOCK = 1;
-	/** Write ports in .SUBCKT for global signals in Spice output. */	public static final int SPICEGLOBALSUSESUBCKTPORTS = 2;
+    public enum SpiceGlobal {
+        SPICEGLOBALSNONE(0),  /** no special treatment of global signals in Spice output. */
+        SPICEGLOBALSUSEGLOBALBLOCK(1), /** Use .GLOBAL block for global signals in Spice output. */
+        SPICEGLOBALSUSESUBCKTPORTS(2); /** Write ports in .SUBCKT for global signals in Spice output. */
+        private int code;
+        SpiceGlobal(int c)
+        {
+            code = c;
+        }
+        public int getCode() {return code;}
+        static SpiceGlobal find(int c)
+        {
+            for (SpiceGlobal s : Simulation.SpiceGlobal.values())
+            {
+                if (s.code == c)
+                    return s;
+            }
+            assert(false); // it should never reach this point
+            return null;
+        }
+    }
 
-	private static Pref cacheGlobalTreatment = Pref.makeIntPref("SpiceGlobalTreatment", tool.prefs, SPICEGLOBALSUSEGLOBALBLOCK);
+//    /** no special treatment of global signals in Spice output. */		public static final int SPICEGLOBALSNONE = 0;
+//	/** Use .GLOBAL block for global signals in Spice output. */		public static final int SPICEGLOBALSUSEGLOBALBLOCK = 1;
+//	/** Write ports in .SUBCKT for global signals in Spice output. */	public static final int SPICEGLOBALSUSESUBCKTPORTS = 2;
+
+	private static Pref cacheGlobalTreatment = Pref.makeIntPref("SpiceGlobalTreatment", tool.prefs,
+        SpiceGlobal.SPICEGLOBALSUSEGLOBALBLOCK.getCode());
 	/**
 	 * Method to tell how to treat globals in Spice output.
 	 * Globals are signals such as power and ground.  The values can be:<BR>
-	 * 0: no special treatment of globals<BR>
-	 * 1: create a .GLOBAL block for globals (the default)<BR>
-	 * 2: place globals as .SUBCKT parameters<BR>
+	 * SPICEGLOBALSNONE: no special treatment of globals<BR>
+	 * SPICEGLOBALSUSEGLOBALBLOCK: create a .GLOBAL block for globals (the default)<BR>
+	 * SPICEGLOBALSUSESUBCKTPORTS: place globals as .SUBCKT parameters<BR>
 	 * @return how to treat globals in Spice output.
 	 */
-	public static int getSpiceGlobalTreatment() { return cacheGlobalTreatment.getInt(); }
+	public static Simulation.SpiceGlobal getSpiceGlobalTreatment() { return SpiceGlobal.find(cacheGlobalTreatment.getInt()); }
 	/**
 	 * Method to set how to treat globals in Spice output.
 	 * Globals are signals such as power and ground.  The values can be:<BR>
-	 * 0: no special treatment of globals<BR>
-	 * 1: create a .GLOBAL block for globals<BR>
-	 * 2: place globals as .SUBCKT parameters<BR>
+	 * SPICEGLOBALSNONE: no special treatment of globals<BR>
+	 * SPICEGLOBALSUSEGLOBALBLOCK: create a .GLOBAL block for globals<BR>
+	 * SPICEGLOBALSUSESUBCKTPORTS: place globals as .SUBCKT parameters<BR>
 	 * @param g how to treat globals in Spice output.
 	 */
-	public static void setSpiceGlobalTreatment(int g) { cacheGlobalTreatment.setInt(g); }
+	public static void setSpiceGlobalTreatment(Simulation.SpiceGlobal g) { cacheGlobalTreatment.setInt(g.getCode()); }
 	/**
 	 * Method to tell how to treat globals in Spice output, by default.
 	 * Globals are signals such as power and ground.  The values can be:<BR>
-	 * 0: no special treatment of globals<BR>
-	 * 1: create a .GLOBAL block for globals (the default)<BR>
-	 * 2: place globals as .SUBCKT parameters<BR>
+	 * SPICEGLOBALSNONE: no special treatment of globals<BR>
+	 * SPICEGLOBALSUSEGLOBALBLOCK: create a .GLOBAL block for globals (the default)<BR>
+	 * SPICEGLOBALSUSESUBCKTPORTS: place globals as .SUBCKT parameters<BR>
 	 * @return how to treat globals in Spice output, by default.
 	 */
-	public static int getFactorySpiceGlobalTreatment() { return cacheGlobalTreatment.getIntFactoryValue(); }
+	public static Simulation.SpiceGlobal getFactorySpiceGlobalTreatment() { return SpiceGlobal.find(cacheGlobalTreatment.getIntFactoryValue()); }
 
     private static Pref cacheSpiceWritePwrGndInTopCell = Pref.makeBooleanPref("cacheSpiceWritePwrGndInTopCell", tool.prefs, true);
 	/**

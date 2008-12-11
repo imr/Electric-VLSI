@@ -373,7 +373,7 @@ public class Spice extends Topology
             Netlist netList = cni.getNetList();
             Global.Set globals = netList.getGlobals();
             int globalSize = globals.size();
-    		if (Simulation.getSpiceGlobalTreatment() == Simulation.SPICEGLOBALSUSEGLOBALBLOCK)
+    		if (Simulation.getSpiceGlobalTreatment() == Simulation.SpiceGlobal.SPICEGLOBALSUSEGLOBALBLOCK)
             {
                 if (globalSize > 0)
                 {
@@ -568,7 +568,7 @@ public class Spice extends Topology
 			multiLinePrint(false, infstr.toString());
 
 			// write global comments
-			if (Simulation.getSpiceGlobalTreatment() == Simulation.SPICEGLOBALSUSEGLOBALBLOCK)
+			if (Simulation.getSpiceGlobalTreatment() == Simulation.SpiceGlobal.SPICEGLOBALSUSEGLOBALBLOCK)
 			{
 				for(int i=0; i<globalSize; i++)
 				{
@@ -2652,7 +2652,7 @@ public class Spice extends Topology
 	 */
     private boolean ignoreSubcktPort(CellSignal cs)
     {
-		if (Simulation.getSpiceGlobalTreatment() != Simulation.SPICEGLOBALSUSESUBCKTPORTS)
+		if (Simulation.getSpiceGlobalTreatment() != Simulation.SpiceGlobal.SPICEGLOBALSUSESUBCKTPORTS)
 		{
 	        // ignore networks that aren't exported
 	        PortProto pp = cs.getExport();
