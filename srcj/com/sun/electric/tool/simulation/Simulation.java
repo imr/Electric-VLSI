@@ -1851,7 +1851,7 @@ public class Simulation extends Tool
 
 	public enum SpiceParasitics
 	{
-		/** simple parasitics (source/drain area&perimeter) */		SIMPLE(0, "Trans area/perim only (no RC)"),
+		/** simple parasitics (source/drain area&perimeter) */		SIMPLE(0, "Trans area/perim only"),
 		/** RC parasitics to substrate. */							RC_CONSERVATIVE(1, "Conservative RC"),
 		/** RC parasitics to substrate or intervening layers. */	RC_PROXIMITY(2, "Proximity-based RC");
 
@@ -2081,4 +2081,5 @@ public class Simulation extends Tool
     private static Pref cacheSpiceExtractedNetDelimiter = Pref.makeStringPref("SpiceExtractedNetDelimiter", tool.prefs, ":");
     public static String getSpiceExtractedNetDelimiter() { return cacheSpiceExtractedNetDelimiter.getString(); }
     public static void setSpiceExtractedNetDelimiter(String s) { cacheSpiceExtractedNetDelimiter.setString(s); }
+	public static String getFactorySpiceExtractedNetDelimiter() { return cacheSpiceExtractedNetDelimiter.getStringFactoryValue(); }
 }

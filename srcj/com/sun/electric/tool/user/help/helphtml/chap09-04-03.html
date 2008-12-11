@@ -110,13 +110,10 @@ Spice Preferences (in menu <B>File / Preferences...</B>, "Tools" section, "Spice
 <P>
 <CENTER><IMG SRC="fig09-03.png" ALT="Figure 9.3"></CENTER>
 <P>
-The top part of this dialog allows you to control many of the Spice deck parameters such as:
+The top part of this dialog allows you to control Spice deck generation:
 <UL>
 <LI><B>Spice engine</B> Can be Spice 2, Spice 3, HSpice, PSpice, Gnucap, or SmartSpice.</LI>
 <LI><B>Spice level</B> Can be 1, 2, or 3.</LI>
-<LI><B>Output format</B> The format to expect when reading Spice output.</LI>
-<LI><B>Epic reader memory size</B> Sets the amount of memory to allocate to the separate reader process
-(which is only valid if the Output format is set to Epic).</LI>
 <LI><B>Resistor shorting</B> Specifies which resistors get shorted when writing a Spice netlist from a schematic.
 Choices are:
   <UL>
@@ -132,9 +129,18 @@ Choices are:
 <LI><B>Parasitics</B> Controls the writing of parasitics in the Spice deck.
 Choices are:
   <UL>
-  <LI>"Trans area/perim only (no RC)" which writes the area and perimeter of transistor active but
+  <LI>"Trans area/perim only" which writes the area and perimeter of transistor active but
 does not write any Resistor/Capacitor information.</LI>
   <LI>"Conservative RC" writes Resistor/Capacitor information (in addition to the area/perimeter).</LI>
+  </UL>
+</LI>
+<LI><B>Globals</B> Has three options for the treatment of global signals (such as power and ground):
+  <UL>
+  <LI>"No special treatment" causes globals to be treated like other signals.</LI>
+  <LI>"Use .GLOBAL block" places global signals in a .GLOBAL block (not supported by all versions of Spice).</LI>
+  <LI>"Create .SUBCKT ports" causes globals to be added to .SUBCKT headers as explicit ports.
+      Note that this preference should be used when Global Partitions are in use
+      (see <A HREF="chap06-09-05.html#chap06-09-05">Section 6-9-5</A>).</LI>
   </UL>
 </LI>
 <LI><B>Spice primitive set</B> Switches between Spice primitive sets.
@@ -151,38 +157,17 @@ as a subcircuit, and a call made to it.
 The default is to write the top-level cell without a subcircuit wrapper.</LI>
 <LI><B>Write .end statement</B> Requests that an .end statement be written at the end of the deck.
 This can be disabled in situations where the deck is part of a larger Spice deck.</LI>
-<LI><B>Globals</B> Has three options for the treatment of global signals (such as power and ground):
-  <UL>
-  <LI>"No special treatment" causes globals to be treated like other signals.</LI>
-  <LI>"Use .GLOBAL block" places global signals in a .GLOBAL block (not supported by all versions of Spice).</LI>
-  <LI>"Create .SUBCKT ports" causes globals to be added to .SUBCKT headers as explicit ports.
-      Note that this preference should be used when Global Partitions are in use
-      (see <A HREF="chap06-09-05.html#chap06-09-05">Section 6-9-5</A>).</LI>
-  </UL>
-</LI>
+<LI><B>Use Header cards from files with extension</B>
+specifies that header cards (placed at the start of the Spice deck)
+can be found in a file with the cell's name and the given extension.</LI>
+<LI><B>Use Header cards from file</B> lets you specify the file with header cards.</LI>
+<LI><B>No Header cards</B> prevents any header cards from being written to the Spice deck.</LI>
+<LI><B>Use Trailer cards from files with extension</B>
+specifies that trailer cards (placed at the end of the Spice deck)
+can be found in a file with the cell's name and the given extension.</LI>
+<LI><B>Use Trailer cards from file</B> lets you specify the file with trailer cards.</LI>
+<LI><B>No Trailer cards</B> prevents any trailer cards from being written to the Spice deck.</LI>
 </UL>
-<P>
-<B>Running Spice:</B> Electric can create an external process as specified by the user to
-run Spice on the generated netlist.  If the pull-down box is set to "Don't Run", nothing is done.
-If the pull-down box is set to "Run, Ignore Output", the external process is run, and the user is
-notified when it is finished.  If set to "Run, Report Output", a dialog box is opened to show
-the user the output produced by the process.  Please note that this is a *process*, and not a
-command line command.
-<P>
-There are several options for the process:
-<UL>
-<LI><B>Run program</B> Identifies the Spice program to run.</LI>
-<LI><B>With args</B> the arguments passed to the program.</LI>
-<LI><B>Use dir</B> if specified, this is the working directory of the program.</LI>
-<LI><B>Overwrite existing file (no prompts)</B> this will overwrite the existing netlist without prompting the user.</LI>
-<LI><B>Run probe</B> this will run the waveform viewer on the output of the Spice run.</LI>
-<LI><B>Help</B> tells which environment variables are exported to be used by the process.</LI>
-</UL>
-<P>
-The lower section controls header and trailer cards
-(placed at the start and end of the Spice deck).
-This dialog allows you to specify a disk file with cards to be used instead of the built-in set.
-You can specify a particular file or request that the system search for files with the cell's name and a given extension.
 <P>
 Note that the header and trailer information is specific to a particular technology.
 If you set this information for one technology, but then use another technology when generating the Spice deck,
@@ -194,12 +179,49 @@ This popup can be found in the
 Technology Project Settings (in menu <B>File / Project Settings...</B>, "Technology" tab,
 see <A HREF="chap07-01-02.html#chap07-01-02">Section 7-1-2</A>).
 <P>
-<CENTER><IMG SRC="fig09-11.png" ALT="Figure 9.11"></CENTER>
+The middle part of the dialog controls how Spice can be run after a deck has been written:
+<UL>
+<LI><B>After writing deck</B> Electric can create an external process as specified by the user to
+run Spice on the generated netlist.
+If the pull-down box is set to "Don't Run", nothing is done.
+If the pull-down box is set to "Run, Ignore Output", the external process is run,
+and the user is notified when it is finished.
+If set to "Run, Report Output", a dialog box is opened to show the user the output produced by the process.
+Please note that this is a <I>process</I>, and not a command line command.
+For example, <CODE>echo blah &gt; file</CODE> will NOT work.
+Encapsulate it in a script if you want to do such things.</LI>
+<LI><B>Run program</B> Identifies the Spice program to run.</LI>
+<LI><B>With args</B> the arguments passed to the program.</LI>
+<LI><B>Use dir</B> if specified, this is the working directory of the program.</LI>
+<LI><B>Overwrite existing file (no prompts)</B> this will overwrite the existing netlist without prompting the user.</LI>
+<LI><B>Run probe</B> this will run the waveform viewer on the output of the Spice run.</LI>
+<LI><B>Help</B> tells which environment variables are exported to be used by the process.</LI>
+</UL>
+<P>
+The following variables are available to use in the program name and arguments:
+<UL>
+<LI><B>${WORKING_DIR}</B> The current working directory.</LI>
+<LI><B>${USE_DIR}</B> The Use Dir field, if specified (otherwise defaults to WORKING_DIR).</LI>
+<LI><B>${FILENAME}</B> The output file name (with extension).</LI>
+<LI><B>${FILENAME_NO_EXT}</B> The output file name (without extension).</LI>
+</UL>
+<P>
+The bottom part of the dialog controls the reading back of Spice output for plotting in the waveform window:
+<UL>
+<LI><B>Output format</B> The format to expect when reading Spice output.</LI>
+<LI><B>Epic reader memory size</B> Sets the amount of memory to allocate to the separate reader process
+(which is only valid if the Output format is set to Epic).</LI>
+<LI><B>Extracted network delimiter character</B> The character that separates automatically-extracted
+networks in the Spice output.
+Some Spice engines use ":" and others use "#".</LI>
+</UL>
 <P>
 Another set of controls can be used is the Spice Model Files Preferences
 (in menu <B>File / Preferences...</B>, "Tools" section, "Spice Model Files" tab).
 This dialog allows you to specify a disk file of Spice cards that will be used to describe any cell.
 Instead of the cell subcircuit, the specified disk file is "included" in the deck.
+<P>
+<CENTER><IMG SRC="fig09-11.png" ALT="Figure 9.11"></CENTER>
 <P>
 The same function can be done by using the <B>Set Netlist Cell From File</B> command
 (in menu <B>Tools / Simulation (Spice)</B>).

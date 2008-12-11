@@ -2308,7 +2308,7 @@ public class Spice extends Topology
 
     	if (useCDL && Simulation.getCDLIgnoreResistors())
             return Netlist.ShortResistors.PARASITIC;
-        // this option is used for writing spice netlists for LVS and RCX
+        // this option is used for writing spice netlists for LVS and RCX (it always returns FALSE)
         if (Simulation.isSpiceIgnoreParasiticResistors())
             return Netlist.ShortResistors.PARASITIC;
         return Netlist.ShortResistors.NO;
