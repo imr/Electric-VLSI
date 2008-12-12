@@ -1946,7 +1946,7 @@ public class Simulation extends Tool
             code = c;
         }
         public int getCode() {return code;}
-        static SpiceGlobal find(int c)
+        public static SpiceGlobal find(int c)
         {
             for (SpiceGlobal s : Simulation.SpiceGlobal.values())
             {

@@ -105,7 +105,7 @@ public class SpiceTab extends PreferencePanel
 		spiceGlobalTreatment.addItem("No special treatment");
 		spiceGlobalTreatment.addItem("Use .GLOBAL block");
 		spiceGlobalTreatment.addItem("Create .SUBCKT ports");
-		spiceGlobalTreatment.setSelectedIndex(Simulation.getSpiceGlobalTreatment());
+		spiceGlobalTreatment.setSelectedIndex(Simulation.getSpiceGlobalTreatment().getCode());
 
 		String [] libFiles = LibFile.getSpicePartsLibraries();
 		for(int i=0; i<libFiles.length; i++)
@@ -228,8 +228,8 @@ public class SpiceTab extends PreferencePanel
 		Simulation.SpiceParasitics sp = (Simulation.SpiceParasitics)spiceParasitics.getSelectedItem();
 		if (Simulation.getSpiceParasiticsLevel() != sp) Simulation.setSpiceParasiticsLevel(sp);
 
-		sr = spiceGlobalTreatment.getSelectedIndex();
-		if (Simulation.getSpiceGlobalTreatment() != sr) Simulation.setSpiceGlobalTreatment(sr);
+		Simulation.SpiceGlobal signal = Simulation.SpiceGlobal.find(spiceGlobalTreatment.getSelectedIndex());
+		if (Simulation.getSpiceGlobalTreatment() != signal) Simulation.setSpiceGlobalTreatment(signal);
 
 		stringNow = (String)spicePrimitivesetPopup.getSelectedItem();
 		if (!Simulation.getSpicePartsLibrary().equals(stringNow)) Simulation.setSpicePartsLibrary(stringNow);
