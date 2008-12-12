@@ -56,12 +56,12 @@ import java.awt.geom.Point2D;
  * Date: Nov 4, 2008
  * Time: 5:10:52 PM
  */
-public class FillJob extends Job
+public class StitchFillJob extends Job
 {
     private Cell topCell;
     private boolean noFillGen; // for debugging purposes
 
-    public FillJob(Cell cell, boolean doItNow, boolean noFill)
+    public StitchFillJob(Cell cell, boolean doItNow, boolean noFill)
     {
         super("Fill generator job", null, Type.CHANGE, null, null, Priority.USER);
         this.topCell = cell;
