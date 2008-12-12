@@ -27,9 +27,12 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.CellChangeJobs;
 import com.sun.electric.tool.user.ExportChanges;
+import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.routing.*;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.topology.*;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.DBMath;
@@ -59,13 +62,11 @@ import java.awt.geom.Point2D;
 public class StitchFillJob extends Job
 {
     private Cell topCell;
-    private boolean noFillGen; // for debugging purposes
 
-    public StitchFillJob(Cell cell, boolean doItNow, boolean noFill)
+    public StitchFillJob(Cell cell, boolean doItNow)
     {
         super("Fill generator job", null, Type.CHANGE, null, null, Priority.USER);
         this.topCell = cell;
-        this.noFillGen = noFill;
 
         if (doItNow) // call from regressions
         {
@@ -85,8 +86,60 @@ public class StitchFillJob extends Job
 
     public boolean doIt() throws JobException
     {
+        Point2D center = new Point2D.Double(0, 0);
+
+        // Get cells from EditWindows
         if (topCell == null)
-            return false;
+        {
+            Technology tech = null;
+            List<NodeInst> fillCells = new ArrayList<NodeInst>();
+            List<Geometric> fillGeoms = new ArrayList<Geometric>();
+            String fillCellName = "NewFill{lay}";
+
+            Library lib = Library.getCurrent();
+            if (lib == null)
+            {
+                System.out.println("No current library available.");
+                return false;
+            }
+
+            
+            Cell oldCell = lib.findNodeProto(fillCellName);
+            // Delete previous version
+            if (oldCell != null)
+                oldCell.kill();
+            Cell newCell = Cell.makeInstance(lib, fillCellName);
+
+            for (Iterator<WindowFrame> itW = WindowFrame.getWindows(); itW.hasNext();)
+            {
+                WindowFrame w = itW.next();
+                Cell c = w.getContent().getCell();
+
+                if (c == null)
+                {
+                    System.out.println("No cell in window '" + w.getTitle() + "'");
+                    continue;
+                }
+                if (c.getView() != View.LAYOUT)
+                {
+                    System.out.println("Cell '" + c + "' is not a layout cell");
+                    continue;
+                }
+
+                Technology t = c.getTechnology();
+                if (tech == null) tech = t;
+                else if (tech != t)
+                    System.out.println("Mixing technologies in fill generator: " +
+                        tech.getTechName() + " " + t.getTechName());
+
+                NodeInst ni = NodeInst.makeInstance(c, center, c.getDefWidth(), c.getDefHeight(), newCell);
+                fillCells.add(ni);
+                fillGeoms.add(ni);
+            }
+            // actual fill gen
+            doTheJob(newCell, fillCellName, fillCells, fillGeoms, null, false, this);
+            return true; // done at this point
+        }
 
         String[] instructions = topCell.getTextViewContents();
 
@@ -154,21 +207,22 @@ public class StitchFillJob extends Job
                     }
                 }
             }
-            List<NodeInst> fillCells = new ArrayList<NodeInst>();
-            List<Geometric> fillGeoms = new ArrayList<Geometric>();
+
+            Library lib = topCell.getLibrary();
 
             // extracting fill subcells
             parse = new StringTokenizer(rest, " ,", false);
             String newName = fillCellName+"{lay}";
-            Cell oldCell = topCell.getLibrary().findNodeProto(newName);
+            Cell oldCell = lib.findNodeProto(newName);
             // Delete previous version
             if (oldCell != null)
             {
                 oldCell.kill();
             }
-            Cell newCell = Cell.makeInstance(topCell.getLibrary(), newName);
-            Point2D center = new Point2D.Double(0, 0);
+            Cell newCell = Cell.makeInstance(lib, newName);
             Technology tech = null;
+            List<NodeInst> fillCells = new ArrayList<NodeInst>();
+            List<Geometric> fillGeoms = new ArrayList<Geometric>();
 
             while (parse.hasMoreTokens())
             {
@@ -187,6 +241,11 @@ public class StitchFillJob extends Job
                     System.out.println("Cell '" + fillCell + "' does not exist");
                     continue;
                 }
+                if (c.getView() != View.LAYOUT)
+                {
+                    System.out.println("Cell '" + c + "' is not a layout cell");
+                    continue;
+                }
                 Technology t = c.getTechnology();
 
                 if (tech == null) tech = t;
@@ -199,44 +258,36 @@ public class StitchFillJob extends Job
             }
             newCell.setTechnology(tech);
 
-            // Re-exporting
-            ExportChanges.reExportNodes(newCell, fillGeoms, false, true, false, true);
-
-            // Flatting subcells
-            new CellChangeJobs.ExtractCellInstances(newCell, fillCells, Integer.MAX_VALUE, true, true);
-
-            // generation of master fill
-            if (!noFillGen)
-            generateFill(newCell, wideOption);
-
-            // tiles generation. Flat generation for now
-            for (TileInfo info : tileList)
-            {
-                String newTileName = fillCellName + info.x + "x" + info.y + "{lay}";
-                Cell newTile = Cell.makeInstance(topCell.getLibrary(), newTileName);
-                // generate the array
-                List<NodeInst> niList = new ArrayList<NodeInst>();
-                Rectangle2D rect = newCell.getBounds();
-                double width = rect.getWidth();
-                double height = rect.getHeight();
-                double xPos = 0, yPos;
-
-                for (int i = 0; i < info.x; i++)
-                {
-                    yPos = 0;
-                    for (int j = 0; j < info.y; j++)
-                    {
-                        NodeInst newNi = NodeInst.makeInstance(newCell,
-						new Point2D.Double(xPos, yPos), width, height, newTile, Orientation.IDENT, null, 0);
-                        niList.add(newNi);
-                        yPos += height;
-                    }
-                    xPos += width;
-                }
-                AutoStitch.runAutoStitch(newTile, niList, null, this, null, null, true, true, true);
-            }
+            // actual fill gen
+            doTheJob(newCell, fillCellName, fillCells, fillGeoms, tileList, wideOption, this);
         }
         return true;
+    }
+
+    /**
+     * Method that executes the different functions to get the tool working
+     * @param newCell
+     * @param fillCellName
+     * @param fillCells
+     * @param fillGeoms
+     * @param tileList
+     * @param wideOption
+     * @param job
+     */
+    private static void doTheJob(Cell newCell, String fillCellName, List<NodeInst> fillCells,
+                                 List<Geometric> fillGeoms, List<TileInfo> tileList, boolean wideOption, Job job)
+    {
+        // Re-exporting
+        ExportChanges.reExportNodes(newCell, fillGeoms, false, true, false, true);
+
+        // Flatting subcells
+        new CellChangeJobs.ExtractCellInstances(newCell, fillCells, Integer.MAX_VALUE, true, true);
+
+        // generation of master fill
+        generateFill(newCell, wideOption);
+
+        // tiles generation. Flat generation for now
+        generateTiles(newCell, fillCellName, tileList, job);
     }
 
     /**
@@ -250,6 +301,46 @@ public class StitchFillJob extends Job
         {
             x = a;
             y = b;
+        }
+    }
+
+    /**
+     * Method to generate tiles of a given cell according to the description provided.
+     * The function will use the auto stitch tool so no hierarchy is expected.
+     * @param template Cell to use as template
+     * @param fillCellName Root name of the template cell
+     * @param tileList List of dimensions to create
+     * @param job Job running the task
+     */
+    private static void generateTiles(Cell template, String fillCellName, List<TileInfo> tileList, Job job)
+    {
+        if (tileList == null) return; // nothing to tile
+        
+        // tiles generation. Flat generation for now
+        for (TileInfo info : tileList)
+        {
+            String newTileName = fillCellName + info.x + "x" + info.y + "{lay}";
+            Cell newTile = Cell.makeInstance(template.getLibrary(), newTileName);
+            // generate the array
+            List<NodeInst> niList = new ArrayList<NodeInst>();
+            Rectangle2D rect = template.getBounds();
+            double width = rect.getWidth();
+            double height = rect.getHeight();
+            double xPos = 0, yPos;
+
+            for (int i = 0; i < info.x; i++)
+            {
+                yPos = 0;
+                for (int j = 0; j < info.y; j++)
+                {
+                    NodeInst newNi = NodeInst.makeInstance(template,
+                    new Point2D.Double(xPos, yPos), width, height, newTile, Orientation.IDENT, null, 0);
+                    niList.add(newNi);
+                    yPos += height;
+                }
+                xPos += width;
+            }
+            AutoStitch.runAutoStitch(newTile, niList, null, job, null, null, true, true, true);
         }
     }
 

@@ -557,9 +557,11 @@ public class ToolMenu {
 		        new EMenuItem("MOSIS CMOS P_LA Generator...") { public void run() {
                     PLA.generate(); }},
                     SEPARATOR,
-                new EMenuItem("Stitch-Based Fill Generator") { public void run() {
+                new EMenuItem("Stitch-Based Fill Generator from doc input") { public void run() {
                     Cell cell = WindowFrame.getCurrentCell();
-                    new StitchFillJob(cell, false, false); }},
+                    new StitchFillJob(cell, false); }},
+                new EMenuItem("Stitch-Based Fill Generator from open windows") { public void run() {
+                    new StitchFillJob(null, false); }},
                 new EMenuItem("_Fill (MoCMOS)...") { public void run() {
                     FillGenDialog.openFillGeneratorDialog(Technology.getMocmosTechnology()); }},
                 Technology.getTSMC180Technology() != null ?  new EMenuItem("Fi_ll (TSMC180)...") { public void run() {
