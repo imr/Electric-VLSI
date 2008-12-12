@@ -550,7 +550,7 @@ public class CVS extends Listener {
 
     /**
      * Get the Cell for the given path. The path is to be of the format
-     * .../libraryName.delib/cellname/cellname.view. Returns null if
+     * .../libraryName.delib/cellname.view. Returns null if
      * not of the correct format, if the library cannot be found, or
      * if the cell cannot be found.
      * @param path
