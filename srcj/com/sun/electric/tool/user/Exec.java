@@ -25,6 +25,7 @@ package com.sun.electric.tool.user;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Runtime.exec() has many pitfalls to it's proper use.  This class
@@ -50,6 +51,7 @@ public class Exec extends Thread {
 
         private InputStream in;
         private OutputStream redirect;
+        private char [] buf;
 
         /**
          * Create a stream reader that will read from the stream
@@ -68,6 +70,7 @@ public class Exec extends Thread {
         public ExecProcessReader(InputStream in, OutputStream redirect) {
             this.in = in;
             this.redirect = redirect;
+            buf = new char[256];
             setName("ExecProcessReader");
         }
 
@@ -79,10 +82,10 @@ public class Exec extends Thread {
                 // read from stream
                 InputStreamReader input = new InputStreamReader(in);
                 BufferedReader reader = new BufferedReader(input);
-                String line = null;
-                while ((line = reader.readLine()) != null) {
+                int read = 0;
+                while ((read = reader.read(buf)) >= 0) {
                     if (pw != null) {
-                        pw.println(line);
+                        pw.write(buf, 0, read);
                         pw.flush();
                     }
                 }
@@ -189,6 +192,13 @@ public class Exec extends Thread {
     }
 
     public void run() {
+        if (outStreamRedir instanceof OutputStreamChecker) {
+            ((OutputStreamChecker)outStreamRedir).setExec(this);
+        }
+        if (errStreamRedir instanceof OutputStreamChecker) {
+            ((OutputStreamChecker)errStreamRedir).setExec(this);
+        }
+
         try {
             Runtime rt = Runtime.getRuntime();
 
@@ -303,4 +313,134 @@ public class Exec extends Thread {
     }
 
     public int getExitVal() { return exitVal; }
+
+    /**
+     * Check for a string passed to the OutputStream. All chars passed to
+     * this class are also transparently passed to System.out.
+     * This only checks for strings within a single line of text.
+     * The strings are simple strings, not regular expressions.
+     */
+    public static class OutputStreamChecker extends OutputStream implements Serializable {
+        private OutputStream ostream;
+        private String checkFor;
+        private StringBuffer lastLine;
+        private char [] buf;
+        private int bufOffset;
+        private boolean found;
+        private boolean regexp;             // if checkFor string is a regular expression
+        private String foundLine;
+        private File copyToFile;
+        private PrintWriter out;
+        private List<OutputStreamCheckerListener> listeners;
+        private Exec exec = null;
+
+        /**
+         * Checks for string in output stream.  The string may span multiple lines, or may be contained
+         * within a non-terminated line (such as an input query).
+         * @param ostream send read data to this output stream (usually System.out)
+         * @param checkFor the string to check for
+         */
+        public OutputStreamChecker(OutputStream ostream, String checkFor) {
+            this(ostream, checkFor, false, null);
+        }
+
+
+        /**
+         * Checks for string in output stream. String must be contained within one line.
+         * @param ostream send read data to this output stream (usually System.out)
+         * @param checkFor the string to check for
+         * @param regexp if true, the string is considered a regular expression
+         * @param copyToFile if non-null, the output is copied to this file
+         */
+        public OutputStreamChecker(OutputStream ostream, String checkFor, boolean regexp, File copyToFile) {
+            this.ostream = ostream;
+            this.checkFor = checkFor;
+            this.regexp = regexp;
+            lastLine = null;
+            buf = null;
+            bufOffset = 0;
+            lastLine = new StringBuffer();
+            if (!regexp)
+                buf = new char[checkFor.length()];
+
+            found = false;
+            foundLine = null;
+            out = null;
+            this.copyToFile = copyToFile;
+            if (copyToFile != null) {
+                try {
+                    out = new PrintWriter(new BufferedWriter(new FileWriter(this.copyToFile)));
+                } catch (IOException e) {
+                    System.out.println(e.getMessage());
+                    out = null;
+                }
+            }
+            listeners = new ArrayList<OutputStreamCheckerListener>();
+        }
+
+        public void write(int b) throws IOException {
+            ostream.write(b);
+            if (out != null) out.write(b);
+            lastLine.append((char)b);
+            if (regexp) {
+                // match against regular expression on end-of-line
+                if (b == '\n') {
+                    if (lastLine.toString().matches(checkFor)) {
+                        found = true;
+                        foundLine = lastLine.toString();
+                        alertListeners(foundLine);
+                    }
+                }
+            } else {
+                // store data in buffer of same length as string trying to match
+                buf[bufOffset] = (char)b;
+                bufOffset++;
+                if (bufOffset >= buf.length) bufOffset = 0;
+                // check against string. Since same length, when string is found bufOffset
+                // will be at start of string.
+                boolean matched = true;
+                for (int i=0; i<buf.length; i++) {
+                    int y = (i+bufOffset) % buf.length;
+                    if (checkFor.charAt(i) != buf[y]) {
+                        matched = false; break;
+                    }
+                }
+                if (matched) {
+                    found = true;
+                    foundLine = lastLine.toString();
+                    alertListeners(foundLine);
+                }
+            }
+            if (b == '\n') {
+                lastLine.delete(0, lastLine.length());
+            }
+        }
+
+        public void addOutputStreamCheckerListener(OutputStreamCheckerListener l) {
+            listeners.add(l);
+        }
+        public void removeOutputStreamCheckerListener(OutputStreamCheckerListener l) {
+            listeners.remove(l);
+        }
+        private void alertListeners(String matched) {
+            for (OutputStreamCheckerListener l : listeners) {
+                l.matchFound(exec, matched);
+            }
+        }
+
+        public boolean getFound() { return found; }
+        public String getFoundLine() { return foundLine; }
+        public void close() { if (out != null) out.close(); }
+        public File getCopyToFile() { return copyToFile; }
+
+        private void setExec(Exec e) { this.exec = e; }
+    }
+
+    /**
+     * Interface for objects to be notified immediately when OutputStreamChecker
+     * matches when it is looking for.
+     */
+    public interface OutputStreamCheckerListener {
+        public void matchFound(Exec exec, String matched);
+    }
 }

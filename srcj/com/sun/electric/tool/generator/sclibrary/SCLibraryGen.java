@@ -346,6 +346,7 @@ public class SCLibraryGen {
         private Map<String,Cell> standardCellsByName = new HashMap<String,Cell>();
         private List<VarContext> standardCellContexts = new ArrayList<VarContext>();
         private Map<VarContext,VarContext> emptyCellContexts = new HashMap<VarContext,VarContext>();
+        private Map<VarContext,VarContext> containsStandardCellContexts = new HashMap<VarContext,VarContext>();
         private boolean nameConflict = false;
 
         public boolean enterCell(HierarchyEnumerator.CellInfo info) {
@@ -380,6 +381,7 @@ public class SCLibraryGen {
 
         public void exitCell(HierarchyEnumerator.CellInfo info) {
             Cell cell = info.getCell();
+            VarContext context = info.getContext();
 
             for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
                 NodeInst ni = it.next();
@@ -390,11 +392,11 @@ public class SCLibraryGen {
                 if (proto == null) proto = (Cell)ni.getProto();
                 if (containsStandardCell(proto) || standardCellMap.get(proto) == standardCell) {
                     standardCellMap.put(cell, containsStandardCell);
+                    containsStandardCellContexts.put(context, context);
                     return;
                 }
             }
             standardCellMap.put(cell, doesNotContainStandardCell);
-            VarContext context = info.getContext();
             emptyCellContexts.put(context, context);
             for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
                 NodeInst ni = it.next();
@@ -463,6 +465,16 @@ public class SCLibraryGen {
 
         public List<VarContext> getStandardCellsContextsInHier() {
             return standardCellContexts;
+        }
+
+        public Set<String> getContainsStandardCellContextsInHier() {
+            Set<VarContext> contexts = containsStandardCellContexts.keySet();
+            Set<String> sorted = new TreeSet<String>();
+            for (VarContext context : contexts) {
+                String s = context.getInstPath("/");
+                sorted.add(s);
+            }
+            return sorted;
         }
 
         /**

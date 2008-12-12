@@ -32,6 +32,7 @@ import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.Exec;
 
 import javax.swing.*;
 import javax.swing.table.*;
@@ -289,8 +290,11 @@ public class Edit {
                 args = libsBuf + " " + cellsBuf;
                 if (args.trim().equals("")) return true;
 
+                Exec.OutputStreamChecker checker = new Exec.OutputStreamChecker(System.out, "has been modified; revert changes?", false, null);
+                checker.addOutputStreamCheckerListener(new UneditResponder(libs, cells));
+
                 //System.out.println("Unmarking CVS edit: "+args);
-                CVS.runCVSCommand("unedit -l "+args, "CVS Unedit", useDir, System.out);
+                CVS.runCVSCommand("unedit -l "+args, "CVS Unedit", useDir, checker);
                 return true;
             }
 
@@ -371,6 +375,33 @@ public class Edit {
                     }
                 }
                 (new MarkForEditJob(libs, cells, false, unedit)).startJob();
+            }
+        }
+    }
+
+    private static class UneditResponder implements Exec.OutputStreamCheckerListener {
+        List<Library> libs;
+        List<Cell> cells;
+        private UneditResponder(List<Library> libs, List<Cell> cells) {
+            this.libs = libs;
+            this.cells = cells;
+        }
+
+        public void matchFound(Exec process, String matched) {
+            process.writeln("n\n");
+            // set status to modified
+            String [] parts = matched.split("\\s+");
+            if (parts[0].endsWith(".jelib")) {
+                Library lib = Library.findLibrary(parts[0].substring(0, parts[0].length()-6));
+                if (lib != null) {
+                    CVSLibrary.setState(lib, State.MODIFIED);
+                }
+            } else {
+                // try delib
+                Cell cell = CVS.getCellFromPath(parts[0]);
+                if (cell != null) {
+                    CVSLibrary.setState(cell, State.MODIFIED);
+                }
             }
         }
     }
