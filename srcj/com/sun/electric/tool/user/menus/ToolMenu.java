@@ -556,7 +556,8 @@ public class ToolMenu {
                     ROMGenerator.generateROM(); }},
 		        new EMenuItem("MOSIS CMOS P_LA Generator...") { public void run() {
                     PLA.generate(); }},
-                new EMenuItem("New Fill Generator") { public void run() {
+                    SEPARATOR,
+                new EMenuItem("Stitch-Based Fill Generator") { public void run() {
                     Cell cell = WindowFrame.getCurrentCell();
                     new FillJob(cell, false, false); }},
                 new EMenuItem("_Fill (MoCMOS)...") { public void run() {
@@ -565,6 +566,7 @@ public class ToolMenu {
                     FillGenDialog.openFillGeneratorDialog(Technology.getTSMC180Technology()); }} : null,
                 Technology.getCMOS90Technology() != null ?  new EMenuItem("F_ill (CMOS90)...") { public void run() {
                     FillGenDialog.openFillGeneratorDialog(Technology.getCMOS90Technology()); }} : null,
+                    SEPARATOR,
                 new EMenuItem("Generate gate layouts (_MoCMOS)") { public void run() {
                     GateLayoutGenerator.generateFromSchematicsJob(TechType.TechTypeEnum.MOCMOS); }},
                 Technology.getTSMC180Technology() != null ? new EMenuItem("Generate gate layouts (T_SMC180)") { public void run() {
