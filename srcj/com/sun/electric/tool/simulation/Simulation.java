@@ -1937,9 +1937,9 @@ public class Simulation extends Tool
 	public static boolean isFactoryParasiticsExtractsC() { return cacheParasiticsExtractsC.getBooleanFactoryValue(); }
 
     public enum SpiceGlobal {
-        SPICEGLOBALSNONE(0),  /** no special treatment of global signals in Spice output. */
-        SPICEGLOBALSUSEGLOBALBLOCK(1), /** Use .GLOBAL block for global signals in Spice output. */
-        SPICEGLOBALSUSESUBCKTPORTS(2); /** Write ports in .SUBCKT for global signals in Spice output. */
+        NONE(0),  /** no special treatment of global signals in Spice output. */
+        USEGLOBALBLOCK(1), /** Use .GLOBAL block for global signals in Spice output. */
+        USESUBCKTPORTS(2); /** Write ports in .SUBCKT for global signals in Spice output. */
         private int code;
         SpiceGlobal(int c)
         {
@@ -1963,7 +1963,7 @@ public class Simulation extends Tool
 //	/** Write ports in .SUBCKT for global signals in Spice output. */	public static final int SPICEGLOBALSUSESUBCKTPORTS = 2;
 
 	private static Pref cacheGlobalTreatment = Pref.makeIntPref("SpiceGlobalTreatment", tool.prefs,
-        SpiceGlobal.SPICEGLOBALSUSEGLOBALBLOCK.getCode());
+        SpiceGlobal.USEGLOBALBLOCK.getCode());
 	/**
 	 * Method to tell how to treat globals in Spice output.
 	 * Globals are signals such as power and ground.  The values can be:<BR>

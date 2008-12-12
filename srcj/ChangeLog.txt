@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08o: ******************************
 
+IMP: (12/12/08, GVG) Changes to debug "3 Spice regressions broken after bug#1969" (Bug #1986)
+
 BUG: (12/10/08, GVG) NPE in CVS Add or GetStatus on a new library (Bug #1984)
 FIX: Detecting when lib.getLibFile() is null.
 
