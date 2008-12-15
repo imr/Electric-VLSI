@@ -158,15 +158,31 @@ The option "W" allows the insertion of exports in the middle of the lowest metal
 different tile sizes can be arrayed depeding on the area to cover.
 <br>
 By default all input cells are flatted unless <i>option</i>="I". In that case, the input cell will be instantiated
-    instead of being flatted in the fill cell. In the example below, the first instruction will generate the
-    fill cell "fillAW" with an instance of "cap" and metal arcs from the rest of the input cells.
-    The second instruction will generate the cells "fillB", "fillB2x4", "fillB2x2" where "fillB2x4" and "fillB2x2" are
-    2x4 and 2x2 arrays of "fillB".
+instead of being flatted in the fill cell.
     <CENTER><TABLE><TR><TD>
-    <code> fillA(W): cap(I) metal2 metal3 metals45 </code>
+    <code> fillAB: fillA fillB </code>
     <br>
-    <code> fillB(2x4, 2x2): metal3, metals45 metal6</code>
+    <code> fillC(W): cap(I) fillA fillB metals45 </code>
+    <br>
+    <code> fillD(2x4, 2x2): fillB metals45 metal6</code>
 </TD></TR></TABLE></CENTER>
+
+<TABLE><TR>
+<TD><IMG SRC="fig09-65.png" ALT="Figure 9.65" BORDER=0></TD>
+<TD><IMG SRC="fig09-66.png" ALT="Figure 9.66" BORDER=0></TD>
+<TD><IMG SRC="fig09-67.png" ALT="Figure 9.67" BORDER=0></TD>
+<td>
+In the example above, the first intruction will take the cells "fillA" and "fillB" and stitch the metal bars
+in "fillAB". Note that the "signalB" bars did not get stitched because the metal 2 bar does not overlap 100% with
+the metal 3 bar.
+<br>
+The second instruction will generate the
+fill cell "fillCW" with an instance of "cap" and metal arcs from the rest of the input cells.
+The third instruction will generate the cells "fillB", "fillB2x4", "fillB2x2" where "fillB2x4" and "fillB2x2" are
+2x4 and 2x2 arrays of "fillB".
+</td>
+</TR></TABLE>
+
 </li>
 <p>
 
