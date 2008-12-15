@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08o: ******************************
 
+BUG: (12/15/08, GVG) No such element exception if export name is not found (Bug #1989)
+FIX: Detecting if arcs do actually have exports on their networks.
+
 IMP: (12/12/08, GVG) Ability to call the new fill and use data found in open window (Bug #1985)
 
 IMP: (12/12/08, GVG) Changes to debug "3 Spice regressions broken after bug#1969" (Bug #1986)

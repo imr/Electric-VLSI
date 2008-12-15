@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: FillJob.java
+ * File: StitchFillJob.java
  *
  * Copyright (c) 2008 Sun Microsystems and Static Free Software
  *
@@ -55,13 +55,13 @@ import java.awt.geom.Point2D;
 
 /**
  * Fill Generator working on unconnected arcs
- * User: gg151869
+ * User: Gilda Garreton
  * Date: Nov 4, 2008
- * Time: 5:10:52 PM
  */
 public class StitchFillJob extends Job
 {
     private Cell topCell;
+//    private static final boolean doFill = false;
 
     public StitchFillJob(Cell cell, boolean doItNow)
     {
@@ -279,6 +279,7 @@ public class StitchFillJob extends Job
     {
         // Re-exporting
         ExportChanges.reExportNodes(newCell, fillGeoms, false, true, false, true);
+//        if (!doFill) return;
 
         // Flatting subcells
         new CellChangeJobs.ExtractCellInstances(newCell, fillCells, Integer.MAX_VALUE, true, true);
@@ -541,7 +542,7 @@ public class StitchFillJob extends Job
                     }
                     else if (Job.getDebug())
                     {
-//                    assert(bottomA != null);
+                         bottomA = getArcInstOverlappingWithArea(pair.cut, ab, horizontal, false);
                         System.out.println("AFG: It couldn't find bottom layer for " + pair.cut);
                     }
                 }
@@ -861,14 +862,20 @@ public class StitchFillJob extends Job
             if (!isArcAligned(ai, horizontal))
                 continue;
 
-//                assert(ai.getProto().getNumArcLayers() == 1); // only 1 for now
             Layer l = ai.getProto().getLayer(0);
             if (l != layer)
                 continue;
             if (exportName != null)
             {
                 Network jNet = netlist.getNetwork(ai, 0);
-                Export exp = jNet.getExports().next(); // first is enough
+                Iterator<Export> itE = jNet.getExports();
+                if (!itE.hasNext())
+                {
+                    if (Job.getDebug())
+                        System.out.println("AFG: No export name associated to ArcInst '" + ai.getName() + "'");
+                    continue; // no export
+                }
+                Export exp = itE.next(); // first is enough
                 String expName = extractRootName(exp.getName());
                 if (!expName.equals(exportName))
                     continue; // no match
