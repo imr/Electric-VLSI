@@ -49,22 +49,27 @@ sets the transistor to be weak.
 The <B>Normal</B> command restores the transistor to be normal strength.
 </TD><TD><CENTER><IMG SRC="fig09-07.png" ALT="Figure 9.7"></CENTER></TD></TR></TABLE>
 <P>
-<TABLE><TR><TD><CENTER><IMG SRC="fig09-64.png" ALT="Figure 9.64"></CENTER></TD><TD>
+<!-- NEED 3in -->
 Still more control of Verilog deck generation is accomplished with the
 Verilog Preferences (in menu <B>File / Preferences...</B>, "Tools" section, "Verilog" tab).
 For the difference between Preferences and Project Settings, see
 <A HREF="chap06-03.html#chap06-03">Section 6-3</A>.
+<P>
+<TABLE><TR><TD><CENTER><IMG SRC="fig09-64.png" ALT="Figure 9.64"></CENTER></TD><TD>
 <UL>
 <LI>"Do not netlist Standard Cells" writes a netlist that excludes Standard Cells.
 Any cell marked as a Standard Cell will be netlisted only as instances,
 but no module definition will be written.
 This allows Standard Cell based simulation or Static Timing Analysis to be performed on the netlist.
 See <A HREF="chap03-07-03.html#chap03-07-03">Section 3-7-3</A> for more on marking cells as "standard cells".</LI>
+</UL>
+</TD></TR></TABLE>
+<P>
+<UL>
 <LI>"Preserve Verilog formatting" keeps the indentation and other formatting of all inserted text.</LI>
 <LI>"Parameterize Verilog module names" causes Verilog deck generation to create multiple Verilog
 cell descriptions when the cells are parameterized.</LI>
 </UL>
-</TD></TR></TABLE>
 <P>
 A final set of Verilog controls can be found in the Verilog Model Files Preferences
 (in menu <B>File / Preferences...</B>, "Tools" section, "Verilog Model Files" tab).
