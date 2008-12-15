@@ -1,5 +1,5 @@
 # header information:
-Hsamples|8.06o|USER_electrical_units()I70464
+Hsamples|8.08o|USER_electrical_units()I70464
 
 # Views:
 Vunknown|""
@@ -1971,8 +1971,8 @@ X
 
 # Cell tool-SimulateSPICE;1{lay}
 Ctool-SimulateSPICE;1{lay}||mocmos|0|1197484769015|
-Ispiceparts:DCVoltage;1{ic}|DCVoltag@0||-311.5|-60.25|||D0G4;|ATTR_Voltage(D5G3;NT)S5V
-Ispiceparts:Pulse;1{ic}|Pulse@0||-235|-60.5|||D0G4;|ATTR_DelayTime(D5G3;NTY5;)S0ns|ATTR_FallTime(D5G3;NTY-5;)S200ps|ATTR_InitialVoltage(D5G3;NTY15;)I0|ATTR_Period(D5G3;NTY-15;)S6ns|ATTR_PulseVoltage(D5G3;NTY10;)S3V|ATTR_PulseWidth(D5G3;NTY-10;)S3ns|ATTR_RiseTime(D5G3;NT)S200ps
+Ispiceparts:DCVoltage;1{ic}|DCVoltag@0||-311.5|-60.25|||D0G4;|ATTR_Voltage(D5G3;NP)S5V
+Ispiceparts:Pulse;1{ic}|Pulse@0||-235|-60.5|||D0G4;|ATTR_DelayTime(D5G3;NPY5;)S0ns|ATTR_FallTime(D5G3;NPY-5;)S200ps|ATTR_InitialVoltage(D5G3;NPY15;)I0|ATTR_Period(D5G3;NPY-15;)S6ns|ATTR_PulseVoltage(D5G3;NPY10;)S3V|ATTR_PulseWidth(D5G3;NPY-10;)S3ns|ATTR_RiseTime(D5G3;NP)S200ps
 NMetal-1-Metal-2-Con|contact@0||-251.67|-60.5||||
 NMetal-1-P-Active-Con|contact@1||-258.17|-49.5||||
 NMetal-1-P-Active-Con|contact@2||-269.17|-49.5||||
@@ -2081,7 +2081,7 @@ Evdd||D5G2;|substr@0||P
 X
 
 # Cell tool-SimulateVERILOG;1{sch}
-Ctool-SimulateVERILOG;1{sch}||schematic|923075962000|1103142957968|
+Ctool-SimulateVERILOG;1{sch}||schematic|923075962000|1229370688719|
 Itool-SimulateVerilogAnd;1{ic}|And[0:3]|D5G1;|-29.5|-10|||D5G4;
 NBuffer|buf@0||-24.5|-22||||
 NOr|or@0||-34|-22||||
@@ -2132,9 +2132,9 @@ Awire|z[0]|D8G1;||1800|xor@0|y|-31.5|-30|pin@21||-26|-30
 Awire|z[1]|D8G1;||0|pin@13||-17|-22|buf@0|y|-22.5|-22
 Awire|z[3]|D8G1;X-0.5;||0|pin@20||-45|-24|pin@12||-47|-24
 Ea||D9G1;|pin@11||I
-Em[0:3]||D5G2;|pin@25||O
-Ez[0:3]||D5G2;|pin@26||O
-Ez[2]||D5G1;|pin@27||O
+Em[0:3]||D5G2;|pin@25||I
+Ez[0:3]||D5G2;|pin@26||I
+Ez[2]||D5G1;|pin@27||I
 X
 
 # Cell tool-SimulateVerilogAnd;1{ic}
@@ -2347,33 +2347,3 @@ Ein||D5G2;X-1;|pin@3||I
 Eout||D5G2;X1;|pin@7||O
 Ev[1]||D5G2;Y1;|pin@9||I
 X
-
-# Groups:
-G|tech-Artwork;1{}
-Gtech-Bipolar;1{sch}|tech-Bipolar;1{ic}|tech-Bipolar;1{lay}
-G|tech-DigitalFilter;1{}
-G|tech-GEM;1{}
-G|tech-MOSISCMOS;1{lay}
-Gtech-PCB;1{sch}
-Gtech-PCB7404;1{sch}
-Gtech-PCB7411;1{sch}
-Gtech-PCB7474;1{sch}
-Gtech-PCB74393;1{sch}
-G|tech-RoundCMOS;1{lay}
-Gtech-SchematicsAnalog;1{sch}
-Gtech-SchematicsDigital;1{sch}
-G|tech-TFTInverter;1{lay}
-G|tech-nMOS;1{lay}
-G|tech-nMOSPullup;1{lay}
-G|tool-Compaction;1{lay}
-G|tool-PadFrame;1{lay}
-G|tool-RoutingMaze;1{lay}
-G|tool-RoutingRiver;1{lay}
-G|tool-RoutingRiverBottom;1{lay}
-G|tool-RoutingRiverTop;1{lay}
-G|tool-SiliconCompiler;1{vhdl}
-Gtool-SimulateALS;1{sch}
-G|tool-SimulateSPICE;1{lay}
-Gtool-SimulateVERILOG;1{sch}
-Gtool-SimulateVerilogAnd;1{sch}|tool-SimulateVerilogAnd;1{ic}
-Gtool_NCC;1{sch}|tool_NCC;1{lay}
