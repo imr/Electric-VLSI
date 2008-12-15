@@ -122,15 +122,18 @@ and it will be internally wired.
 </LI>
 
 <li><B>Stitch-Based Fill Generator</B>
-This fill also creates cells or tiles to meet metal density conditions but it is a more generic tool for
-signal distribution. It allows to generate fill cells that not only drive the power and ground signals.
-The fill takes a set of metal arcs stored in cell and stitches them together based on the network names.
+Similar to the previous generator described,
+    this stitch-based fill also creates cells or tiles to meet metal density conditions but it is a more generic tool for
+signal distribution.
+    Unlike the previous tool, it allows to generate fill cells that not only drive the power and ground signals.
+The fill takes a set of metal arcs stored in cells and stitches them together based on the export names.
 The metal arcs can all be located in the same cell or distributed in different cells.
-If the arcs in different cells, the tool will flat the geometry and create one cell with all the signals.
+If the arcs are in different cells, the tool will flat all cells into one with all the signals by default.
 Network names are matched using the string provided until the first "_" is detected.
-E.g. Arcs in the networks Vdd_1 and Vdd_2 will be stitched together.
-The tool also allows to stitch cell instances without flatting them before doing it. This is typical used
-in the case of having cap cells. The tool will use the cell exports for the stitching process.
+E.g. Arcs in the networks "<i>Vdd_1</i>" and "<i>Vdd_2</i>" will be stitched together.
+The tool also allows to stitch cell instances without flatting them; it will use the cell exports
+    for the stitching process instead.
+    This is the typical case of cells containing cap transistors.
 
 <p>
 There are two ways to run the tool: (1) by using a doc cell containing the fill instructions
@@ -138,11 +141,12 @@ There are two ways to run the tool: (1) by using a doc cell containing the fill 
 all the relevant cells in different windows (command "Stitch-Based Fill Generator from open windows").
 
 <p>
-By using a doc cell, many fill cells can be generated at once and it is highly recommended in case of
-redoing the fill multiple times. Each line in the doc cell follows the syntax below:
+By using a doc cell, different combinations of fill cells can be generated at once and it is highly recommended in case of
+redoing the fill cells multiple times. Each line in the doc cell follows the syntax below:
 
 <CENTER><TABLE><TR><TD>
-<i> fillCellName (&lt options &gt) : cell1(&lt option &gt) cell2(&lt option &gt) ... cellN(&lt option &gt) </i>
+    <i> fillCellName (&lt options &gt) : cell1(&lt option &gt) cell2(&lt option &gt) ... cellN(&lt option &gt) </i>
+    <p>
 </TD></TR></TABLE></CENTER>
 
 <p>
@@ -151,9 +155,18 @@ Where:
 The option "W" allows the insertion of exports in the middle of the lowest metal arcs and
 different tile sizes can be arrayed depeding on the area to cover.
 <br>
-If "<i>option</i>" is "I" then the cell will be instatiated instead of flatted in the fill cell. By default, all
-cells are flatted.
+By default all input cells are flatted unless <i>option</i>="I". In that case, the input cell will be instantiated
+    instead of being flatted in the fill cell. In the example below, the first instruction will generate the
+    fill cell "fillAW" with an instance of "cap" and metal arcs from the rest of the input cells.
+    The second instruction will generate the cells "fillB", "fillB2x4", "fillB2x2" where "fillB2x4" and "fillB2x2" are
+    2x4 and 2x2 arrays of "fillB".
+    <CENTER><TABLE><TR><TD>
+    <i> fillA(W): cap(I) metal2 metal3 metals45 </i>
+    <p>
+    <i> fillB(2x4, 2x2): metal3, metals45 metal6</i>
+</TD></TR></TABLE></CENTER>
 </li>
+<p>
 
 <LI><B>Generate gate layouts (MoCMOS)</B>
 Generates the layout for schematic cells in the Purple and Red libraries
