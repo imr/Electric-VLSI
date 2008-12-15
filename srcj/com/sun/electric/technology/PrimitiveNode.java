@@ -2511,7 +2511,6 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
          * Methot to check whether the current NodeSize size meets
          * original conditions provided by the technology.
          * @param size
-         * @return
          */
         public List<NodeSizeRuleError> checkSize(PrimitiveNodeSize size)
         {
@@ -2596,7 +2595,6 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
          * In this case, the min. rule value
          * will be considered for the shortest side and the max. rule value for the longest side.
          * @param size
-         * @return
          */
         public List<NodeSizeRuleError> checkSize(PrimitiveNodeSize size)
         {

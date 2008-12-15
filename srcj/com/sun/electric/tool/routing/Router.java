@@ -567,7 +567,6 @@ public abstract class Router {
          * connected to any elements in the route.
          * @param route the route to be searched
          * @param ap the arc type
-         * @return the largest width
          */
         public void findArcWidthToUse(Route route, ArcProto ap) {
             double basewidth = ap.getDefaultLambdaBaseWidth();
@@ -602,7 +601,6 @@ public abstract class Router {
          *
          * @param pi the PortInst to connect to
          * @param ap the Arc type to connect with
-         * @return the width to use to connect
          */
         public void findArcWidthToUse(PortInst pi, ArcProto ap) {
             // if pi null, just return default width of ap
@@ -650,7 +648,6 @@ public abstract class Router {
          * width of arc already connected to re.
          * @param re the RouteElement to connect to
          * @param ap the arc type (for default width)
-         * @return the width of the arc to use to connect
          */
         public void findArcWidthToUse(RouteElement re, ArcProto ap) {
             double basewidth = ap.getDefaultLambdaBaseWidth();

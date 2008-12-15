@@ -46,8 +46,10 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import javax.swing.DefaultListModel;
+import javax.swing.JComboBox;
 import javax.swing.JList;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.DocumentEvent;
@@ -65,7 +67,7 @@ public class BusParameters extends EDialog
 
 	private JList parametersList;
 	private DefaultListModel parametersModel;
-	HashMap<Library,String[]> libParameters;
+	Map<Library,String[]> libParameters;
 	
 	public static void showBusParametersDialog()
 	{
@@ -108,7 +110,7 @@ public class BusParameters extends EDialog
 	}
 
 	/**
-	 * updateBusParametersInt - Method for internally updating bus parameters.
+	 * Method for internally updating bus parameters.
 	 * Can be called from internal electric routines.
 	 * Added for ArchGen Plugin - BVE
 	 */
@@ -126,23 +128,22 @@ public class BusParameters extends EDialog
 	 */
 	public static void updateCellBusParameterInt(Cell cell, Library lib)
 	{
-		HashMap<Library,String[]> libParam = new HashMap<Library,String[]>();
+		Map<Library,String[]> libParam = new HashMap<Library,String[]>();
 		initializeLibParameters(libParam, null);
 		updateCellParameters(cell, lib, libParam);
 	}
 	
 	/**
-	 * replaceBusParameterInt - Replace bus parameters in Electric variables.
+	 * Method to replace bus parameters in Electric variables.
 	 * Can be called from internal Electric routines.
 	 * Added for ArchGen Plugin - BVE
-	 * @param var
-	 * @param lib
-	 * @return
+	 * @param varString the string with embedded variables.
+	 * @return the string with bus parameters substituted.
 	 */
 	public static String replaceBusParameterInt(String varString)
 	{
 		// find library with variables in it
-		HashMap<Library,String[]> libParam = new HashMap<Library,String[]>();
+		Map<Library,String[]> libParam = new HashMap<Library,String[]>();
 		initializeLibParameters(libParam, null);
 		return replaceVariableInString(varString, null, libParam);
 	}
@@ -165,7 +166,7 @@ public class BusParameters extends EDialog
 	 * @param libPopup
 	 * @return
 	 */
-	private static Library initializeLibParameters(HashMap<Library,String[]> libParam, javax.swing.JComboBox libPopup)
+	private static Library initializeLibParameters(Map<Library,String[]> libParam, JComboBox libPopup)
 	{
 		Library bestLib = null;
 		int mostParameters = 0;
@@ -331,16 +332,16 @@ public class BusParameters extends EDialog
 	 */
 	private static class UpdateAllParameters extends Job
 	{
-		private HashMap<Library,String[]> libParameters;
+		private Map<Library,String[]> libParameters;
 
-		private UpdateAllParameters(HashMap<Library,String[]> libParameters)
+		private UpdateAllParameters(Map<Library,String[]> libParameters)
 		{
 			super("Update All Bus Parameters", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.libParameters = libParameters;
 			startJob();
 		}
 		
-		private UpdateAllParameters(HashMap<Library,String[]> libParameters, boolean doItNow)
+		private UpdateAllParameters(Map<Library,String[]> libParameters, boolean doItNow)
 		{
 			super("Update All Bus Parameters", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.libParameters = libParameters;
@@ -376,7 +377,7 @@ public class BusParameters extends EDialog
 	 * @param lib
 	 * @param libParameters
 	 */
-	private static void updateCellParameters(Cell cell, Library lib, HashMap<Library,String[]> libParameters) {
+	private static void updateCellParameters(Cell cell, Library lib, Map<Library,String[]> libParameters) {
 		for(Iterator<NodeInst> nIt = cell.getNodes(); nIt.hasNext(); )
 		{
 			NodeInst ni = nIt.next();
@@ -424,7 +425,7 @@ public class BusParameters extends EDialog
 	 * @param libParameters
 	 * @return
 	 */
-	private static String replaceVariableInString(String var, Library lib, HashMap<Library,String[]> libParameters) {
+	private static String replaceVariableInString(String var, Library lib, Map<Library,String[]> libParameters) {
 		String varString = var;
 		for(;;)
 		{
@@ -464,7 +465,7 @@ public class BusParameters extends EDialog
 		return varString;
 	}
 	
-	private static String updateVariable(Variable var, Library lib, HashMap<Library,String[]> libParameters)
+	private static String updateVariable(Variable var, Library lib, Map<Library,String[]> libParameters)
 	{
 		// first substitute variable names
 		String varString = (String)var.getObject();

@@ -87,7 +87,7 @@ public class GeometrySearch extends HierarchyEnumerator.Visitor
 		 * Return the concatenation of all instances names left to right
 	     * from the root to the leaf. Begin with the string with a separator
 	     * and place a separator between adjacent instance names.
-	     * @param sep the separator string.
+	     * @param vc the context of the search.
 	     */
 	    public String getInstPath(VarContext vc)
 	    {

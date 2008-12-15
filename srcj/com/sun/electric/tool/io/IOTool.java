@@ -533,7 +533,7 @@ public class IOTool extends Tool
 	public static double getGDSInputScale() { return tool.cacheGDSInputScale.getDouble(); }
 	/**
 	 * Method to set the scale to be applied when reading GDS.
-	 * @param s the scale to be applied when reading GDS.
+	 * @return the scale to be applied when reading GDS.
 	 */
 	public static Setting getGDSInputScaleSetting() { return tool.cacheGDSInputScale; }
 

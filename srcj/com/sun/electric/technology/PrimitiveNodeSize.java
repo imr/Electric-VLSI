@@ -83,7 +83,7 @@ public class PrimitiveNodeSize {
     /**
      * Method to get correct value along X axis. This is critical for resistors
      * and transistors whose poly is along Y
-     * @return
+     * @return the correct X value.
      */
     public double getDoubleAlongX()
     {
@@ -93,7 +93,7 @@ public class PrimitiveNodeSize {
     /**
      * Method to get correct value along Y axis. This is critical for resistors
      * and transistors whose poly is along Y.
-     * @return
+     * @return correct Y value.
      */
     public double getDoubleAlongY()
     {
