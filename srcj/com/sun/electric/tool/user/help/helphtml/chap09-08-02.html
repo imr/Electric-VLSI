@@ -7,6 +7,8 @@
 <!-- COMMAND Tools/Generation/MOSIS CMOS PLA Generator... -->
 <!-- COMMAND Tools/Generation/Generate gate layouts (MoCMOS) -->
 <!-- COMMAND Tools/Generation/Fill (MoCMOS)... -->
+<!-- COMMAND Tools/Generation/Stitch-Based Fill Generator from doc input -->
+<!-- COMMAND Tools/Generation/Stitch-Based Fill Generator from open windows -->
 
 There are other generators built into Electric.
 These commands (in menu <B>Tools / Generation</B>) may be used:
@@ -123,26 +125,27 @@ and it will be internally wired.
 
 <li><B>Stitch-Based Fill Generator</B>
 Similar to the previous generator described,
-    this stitch-based fill also creates cells or tiles to meet metal density conditions but it is a more generic tool for
-signal distribution.
-    Unlike the previous tool, it allows to generate fill cells that not only drive the power and ground signals.
+this stitch-based fill also creates cells or tiles to meet metal density conditions,
+but it is a more generic tool for signal distribution.
+Unlike the previous tool, it allows you to generate fill cells that not only drive the power and ground signals.
 The fill takes a set of metal arcs stored in cells and stitches them together based on the export names.
 The metal arcs can all be located in the same cell or distributed in different cells.
-If the arcs are in different cells, the tool will flat all cells into one with all the signals by default.
+If the arcs are in different cells, the tool will flatten all cells into one with all the signals by default.
 Network names are matched using the string provided until the first "_" is detected.
-E.g. Arcs in the networks "<i>Vdd_1</i>" and "<i>Vdd_2</i>" will be stitched together.
-The tool also allows to stitch cell instances without flatting them; it will use the cell exports
-    for the stitching process instead.
-    This is the typical case of cells containing cap transistors.
+E.g. arcs in the networks "<i>Vdd_1</i>" and "<i>Vdd_2</i>" will be stitched together.
+The tool also allows you to stitch cell instances without flatting them; it will use the cell exports
+for the stitching process instead.
+This is the typical case of cells containing cap transistors.
 
 <p>
-There are two ways to run the tool: (1) by using a doc cell containing the fill instructions
-(command "Stitch-Based Fill Generator from doc input") and (2) by opening
-all the relevant cells in different windows (command "Stitch-Based Fill Generator from open windows").
+There are two ways to run the tool: (1) by using a documentation cell containing the fill instructions
+(command <B>Stitch-Based Fill Generator from doc input</B>) and (2) by opening
+all the relevant cells in different windows (command <B>Stitch-Based Fill Generator from open windows</B>).
 
 <p>
-By using a doc cell, different combinations of fill cells can be generated at once and it is highly recommended in case of
-redoing the fill cells multiple times. Each line in the doc cell follows the syntax below:
+By using a documentation cell, different combinations of fill cells can be generated at once and it is highly recommended in case of
+redoing the fill cells multiple times.
+Each line in the documentation cell follows the syntax below:
 
 <CENTER><TABLE><TR><TD>
     <i> fillCellName (&lt options &gt) : cell1(&lt option &gt) cell2(&lt option &gt) ... cellN(&lt option &gt) </i>
@@ -150,8 +153,7 @@ redoing the fill cells multiple times. Each line in the doc cell follows the syn
 </TD></TR></TABLE></CENTER>
 
 <p>
-Where:
-<br>"<i>options</i>" can be "W" and/or a sequence of title sizes (e.g. 2x2, 4x4, 3x4).
+Where "<i>options</i>" can be "W" and/or a sequence of title sizes (e.g. 2x2, 4x4, 3x4).
 The option "W" allows the insertion of exports in the middle of the lowest metal arcs and
 different tile sizes can be arrayed depeding on the area to cover.
 <br>
@@ -161,9 +163,9 @@ By default all input cells are flatted unless <i>option</i>="I". In that case, t
     The second instruction will generate the cells "fillB", "fillB2x4", "fillB2x2" where "fillB2x4" and "fillB2x2" are
     2x4 and 2x2 arrays of "fillB".
     <CENTER><TABLE><TR><TD>
-    <i> fillA(W): cap(I) metal2 metal3 metals45 </i>
-    <p>
-    <i> fillB(2x4, 2x2): metal3, metals45 metal6</i>
+    <code> fillA(W): cap(I) metal2 metal3 metals45 </code>
+    <br>
+    <code> fillB(2x4, 2x2): metal3, metals45 metal6</code>
 </TD></TR></TABLE></CENTER>
 </li>
 <p>
