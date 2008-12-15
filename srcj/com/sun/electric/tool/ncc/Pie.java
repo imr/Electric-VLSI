@@ -23,37 +23,37 @@
  */
 package com.sun.electric.tool.ncc;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
-
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.result.NccResults;
+
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 
 /** Reflective interface to Port Interchange Experiment. This allows us to compile Electric
  * without the plugin: com.sun.electric.plugins.pie */
 public class Pie {
 	private Class pieNccJobClass;
 	private Constructor pieNccJobConstructor;
-	private Class pieNccClass;
 	private Method pieNccCompare;
 
 	// singleton
 	private static final Pie pie = new Pie();
 	
 	private Pie() {
-		try {
-			pieNccJobClass = Class.forName("com.sun.electric.plugins.pie.NccJob");
-			pieNccJobConstructor = pieNccJobClass.getConstructor(new Class[] {Integer.TYPE});
-			pieNccClass = Class.forName("com.sun.electric.plugins.pie.Ncc");
-			pieNccClass.getMethod("compare", new Class[] {Cell.class, VarContext.class, 
-					                                      Cell.class, VarContext.class,
-					                                      NccOptions.class, PIEOptions.class});
-		} catch (Throwable e) {
-			pieNccJobClass = null;
-			pieNccJobConstructor = null;
-		}
+// PIE is gone - SMR
+//		try {
+//			pieNccJobClass = Class.forName("com.sun.electric.plugins.pie.NccJob");
+//			pieNccJobConstructor = pieNccJobClass.getConstructor(new Class[] {Integer.TYPE});
+//			Class pieNccClass = Class.forName("com.sun.electric.plugins.pie.Ncc");
+//			pieNccClass.getMethod("compare", new Class[] {Cell.class, VarContext.class, 
+//					                                      Cell.class, VarContext.class,
+//					                                      NccOptions.class, PIEOptions.class});
+//		} catch (Throwable e) {
+//			pieNccJobClass = null;
+//			pieNccJobConstructor = null;
+//		}
 	}
 	
 	private static void prln(String msg) {System.out.println(msg);}
