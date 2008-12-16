@@ -61,7 +61,7 @@ public class About extends EDialog
 			new CastOfThousands("Prashanth Busa",			"Thin Film technology"),
 			new CastOfThousands("Stephen Friedman",			"NCC"),
 			new CastOfThousands("Jonathan Gainsley",		"User interface, Simulation, Logical effort"),
-			new CastOfThousands("Gilda Garret\u00F3n",		"DRC, ERC, 3D, technologies"),
+			new CastOfThousands("Gilda Garret\u00F3n",		"DRC, ERC, 3D, technologies, fill generation"),
 			new CastOfThousands("David Harris",				"ROM generator, Color printing"),
 			new CastOfThousands("Jason Imada",				"ROM generator"),
 			new CastOfThousands("Russell Kao",				"NCC, generators, Hierarchy enumeration, Regressions"),
