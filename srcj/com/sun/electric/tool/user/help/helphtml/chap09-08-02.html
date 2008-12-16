@@ -124,68 +124,70 @@ and it will be internally wired.
 </LI>
 
 <li><B>Stitch-Based Fill Generator</B>
-Similar to the previous generator described,
+Similar to the previous fill generator,
 this stitch-based fill also creates cells or tiles to meet metal density conditions,
 but it is a more generic tool for signal distribution.
-Unlike the previous tool, it allows you to generate fill cells that not only drive the power and ground signals.
+Unlike the previous tool, it allows you to generate fill cells that drive any signal,
+not just power and ground.
 The fill takes a set of metal arcs stored in cells and stitches them together based on the export names.
 The metal arcs can all be located in the same cell or distributed in different cells.
-If the arcs are in different cells, the tool will flatten all cells into one with all the signals by default.
-Network names are matched using the string provided until the first "_" is detected.
-E.g. arcs in the networks "<i>Vdd_1</i>" and "<i>Vdd_2</i>" will be stitched together.
+If the arcs are in different cells, the tool will flatten all cells into one with all the signals.
+Networks are matched by name up to the first "_" character.
+For example, arcs in the networks "<i>Vdd_1</i>" and "<i>Vdd_2</i>" will be stitched together.
 The tool also allows you to stitch cell instances without flatting them; it will use the cell exports
 for the stitching process instead.
-This is the typical case of cells containing cap transistors.
-
+This is the typical case for cells containing cap transistors.
 <p>
 There are two ways to run the tool: (1) by using a documentation cell containing the fill instructions
-(command <B>Stitch-Based Fill Generator from doc input</B>) and (2) by opening
-all the relevant cells in different windows (command <B>Stitch-Based Fill Generator from open windows</B>).
+and issuing the <B>Stitch-Based Fill Generator from doc input</B> command and
+(2) by opening all the relevant cells in different windows and using the
+<B>Stitch-Based Fill Generator from open windows</B> command.
 
 <p>
-By using a documentation cell, different combinations of fill cells can be generated at once and it is highly recommended in case of
-redoing the fill cells multiple times.
+When using a documentation cell to control the fill,
+different combinations of fill cells can be generated at once.
+It also has the advantage of being easy to re-run when the fill operation must be iterated.
 Each line in the documentation cell follows the syntax below:
 
 <CENTER><TABLE><TR><TD>
-    <i> fillCellName (&lt options &gt) : cell1(&lt option &gt) cell2(&lt option &gt) ... cellN(&lt option &gt) </i>
-    <p>
+    <i> fillCellName (&lt; option &gt;) : cell1(&lt; option &gt;) cell2(&lt; option &gt;) ... cellN(&lt; option &gt;) </i>
 </TD></TR></TABLE></CENTER>
 
 <p>
-Where "<i>options</i>" can be "W" and/or a sequence of title sizes (e.g. 2x2, 4x4, 3x4).
+Where <i>option</i> can be "W" and/or a sequence of title sizes (e.g. 2x2, 4x4, 3x4).
 The option "W" allows the insertion of exports in the middle of the lowest metal arcs and
 different tile sizes can be arrayed depeding on the area to cover.
-<br>
-By default all input cells are flatted unless <i>option</i>="I". In that case, the input cell will be instantiated
-instead of being flatted in the fill cell.
-    <CENTER><TABLE><TR><TD>
-    <code> fillAB: fillA fillB </code>
-    <br>
-    <code> fillC(W): cap(I) fillA fillB metals45 </code>
-    <br>
+<p>
+By default all input cells are flatted unless <i>option</i> is "I".
+In that case, the input cell will be instantiated instead of being flatted in the fill cell.
+<!-- NEED 3in -->
+<P>
+Here is an example:
+<P>
+<CENTER><TABLE><TR><TD>
+    <code> fillAB: fillA fillB </code><br>
+    <code> fillC(W): cap(I) fillA fillB metals45 </code><br>
     <code> fillD(2x4, 2x2): fillB metals45 metal6</code>
 </TD></TR></TABLE></CENTER>
-
+<P>
 <TABLE><TR>
-<TD><IMG SRC="fig09-65.png" ALT="Figure 9.65" BORDER=0></TD>
-<TD><IMG SRC="fig09-66.png" ALT="Figure 9.66" BORDER=0></TD>
-<TD><IMG SRC="fig09-67.png" ALT="Figure 9.67" BORDER=0></TD>
-<td>
-In the example above, the first intruction will take the cells "fillA" and "fillB" and stitch the metal bars
+  <TD><TABLE><TR><TD><IMG SRC="fig09-65.png" ALT="Figure 9.65" BORDER=0></TD>
+    <TD><IMG SRC="fig09-66.png" ALT="Figure 9.66" BORDER=0></TD></TR>
+    <TR><TD COLSPAN=2 ALIGN="CENTER"><IMG SRC="fig09-67.png" ALT="Figure 9.67" BORDER=0></TD>
+    </TR></TABLE>
+  </TD>
+  <TD>In the example above, the first intruction will take the cells "fillA" and "fillB" and stitch the metal bars
 in "fillAB". Note that the "signalB" bars did not get stitched because the metal 2 bar does not overlap 100% with
 the metal 3 bar.
-<br>
+</TD></TR></TABLE>
+<P>
 The second instruction will generate the
 fill cell "fillCW" with an instance of "cap" and metal arcs from the rest of the input cells.
-The third instruction will generate the cells "fillB", "fillB2x4", "fillB2x2" where "fillB2x4" and "fillB2x2" are
+The third instruction will generate the cells "fillD", "fillD2x4", "fillD2x2" where "fillD2x4" and "fillD2x2" are
 2x4 and 2x2 arrays of "fillB".
-</td>
-</TR></TABLE>
-
 </li>
-<p>
 
+<!-- NEED 3in -->
 <LI><B>Generate gate layouts (MoCMOS)</B>
 Generates the layout for schematic cells in the Purple and Red libraries
 (see <A HREF="chap09-09.html#chap09-09">Section 9-9</A>).
