@@ -559,9 +559,9 @@ public class ToolMenu {
                     SEPARATOR,
                 new EMenuItem("Stitch-Based Fill Generator from doc input") { public void run() {
                     Cell cell = WindowFrame.getCurrentCell();
-                    new StitchFillJob(cell, false); }},
+                    new StitchFillJob(cell, cell.getLibrary(), false); }},
                 new EMenuItem("Stitch-Based Fill Generator from open windows") { public void run() {
-                    new StitchFillJob(null, false); }},
+                    new StitchFillJob(null, null, false); }},
                 new EMenuItem("_Fill (MoCMOS)...") { public void run() {
                     FillGenDialog.openFillGeneratorDialog(Technology.getMocmosTechnology()); }},
                 Technology.getTSMC180Technology() != null ?  new EMenuItem("Fi_ll (TSMC180)...") { public void run() {

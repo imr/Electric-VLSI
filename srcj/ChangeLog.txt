@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.08o: ******************************
 
+IMP: (12/16/08, GVG) Regression for new fill generator. Now all fill generation tests also compare
+output wit expected data.
+
 BUG: (12/15/08, GVG) No such element exception if export name is not found (Bug #1989)
 FIX: Detecting if arcs do actually have exports on their networks.
 

@@ -61,12 +61,16 @@ import java.awt.geom.Point2D;
 public class StitchFillJob extends Job
 {
     private Cell topCell;
+    private Library outLibrary;
+    private List<Cell> generatedCells = new ArrayList<Cell>();
+
 //    private static final boolean doFill = false;
 
-    public StitchFillJob(Cell cell, boolean doItNow)
+    public StitchFillJob(Cell cell, Library lib, boolean doItNow)
     {
         super("Fill generator job", null, Type.CHANGE, null, null, Priority.USER);
         this.topCell = cell;
+        this.outLibrary = lib;
 
         if (doItNow) // call from regressions
         {
@@ -208,18 +212,18 @@ public class StitchFillJob extends Job
                 }
             }
 
-            Library lib = topCell.getLibrary();
+//            Library lib = topCell.getLibrary();
 
             // extracting fill subcells
             parse = new StringTokenizer(rest, " ,", false);
             String newName = fillCellName+"{lay}";
-            Cell oldCell = lib.findNodeProto(newName);
+            Cell oldCell = outLibrary.findNodeProto(newName);
             // Delete previous version
             if (oldCell != null)
             {
                 oldCell.kill();
             }
-            Cell newCell = Cell.makeInstance(lib, newName);
+            Cell newCell = Cell.makeInstance(outLibrary, newName);
             Technology tech = null;
             List<NodeInst> fillCells = new ArrayList<NodeInst>();
             List<Geometric> fillGeoms = new ArrayList<Geometric>();
@@ -234,7 +238,7 @@ public class StitchFillJob extends Job
                     instanceFlag = fillCell.toLowerCase().indexOf("(i") != -1; // only (I) option for now
                     fillCell = fillCell.substring(0, index);
                 }
-                Cell c = topCell.getLibrary().findNodeProto(fillCell);
+                Cell c = topCell.getLibrary().findNodeProto(fillCell); // +"{lay}");
 
                 if (c == null)
                 {
@@ -257,12 +261,15 @@ public class StitchFillJob extends Job
                 fillGeoms.add(ni);
             }
             newCell.setTechnology(tech);
+            generatedCells.add(newCell);
 
             // actual fill gen
             doTheJob(newCell, fillCellName, fillCells, fillGeoms, tileList, wideOption, this);
         }
         return true;
     }
+
+    public List<Cell> getGeneratedCells() {return generatedCells;}
 
     /**
      * Method that executes the different functions to get the tool working
