@@ -144,8 +144,9 @@ public class GDS extends Geometry
      * @param cell the top-level cell to write.
      * @param context the hierarchical context to the cell.
 	 * @param filePath the disk file to create.
+     * @return the Output object used for writing
 	 */
-	public static GDS writeGDSFile(Cell cell, VarContext context, String filePath)
+	public static Output writeGDSFile(Cell cell, VarContext context, String filePath)
 	{
         return writeGDSFile(cell, context, filePath, IOTool.isGDSOutWritesExportPins(), IOTool.getGDSOutputConvertsBracketsInExports());
 	}
@@ -158,7 +159,7 @@ public class GDS extends Geometry
      * @param writeExportPins write pins at Export locations.
      * @param convertBracketsInExports converts bracket to underscores in export names.
 	 */
-	public static GDS writeGDSFile(Cell cell, VarContext context, String filePath,
+	public static Output writeGDSFile(Cell cell, VarContext context, String filePath,
             boolean writeExportPins, boolean convertBracketsInExports)
 	{
 		if (cell.getView() != View.LAYOUT)
@@ -177,9 +178,9 @@ public class GDS extends Geometry
 		String topCellName = cell.getName();
 		String mangledTopCellName = makeGDSName(topCellName, HDR_M_ASCII);
 		if (!topCellName.equals(mangledTopCellName))
-			System.out.println("Warning: library name in this file is " + mangledTopCellName +
+			out.reportWarning("Warning: library name in this file is " + mangledTopCellName +
 				" (special characters were changed)");
-        return out;
+        return out.finishWrite();
 	}
 
     private GDS(boolean writeExportPins, boolean convertBracketsInExports) {
@@ -446,12 +447,12 @@ public class GDS extends Geometry
 		// non-manhattan or worse .. direct output
 		if (points.length == 1)
 		{
-			System.out.println("WARNING: Single point cannot be written in GDS-II");
+			reportWarning("WARNING: Single point cannot be written in GDS-II");
 			return;
 		}
 		if (points.length > 200)
 		{
-			System.out.println("WARNING: GDS-II Polygons may not have more than 200 points (this has " + points.length + ")");
+			reportWarning("WARNING: GDS-II Polygons may not have more than 200 points (this has " + points.length + ")");
 			return;
 		}
 		if (points.length == 2) outputPath(poly, layerNumber, layerType); else
@@ -587,7 +588,7 @@ public class GDS extends Geometry
 		}
 		if (!foundValid)
 		{
-			System.out.println("Warning: there are no GDS II layers defined for the " +
+			reportWarning("Warning: there are no GDS II layers defined for the " +
 			tech.getTechName() + " technology");
 		}
 
@@ -711,7 +712,7 @@ public class GDS extends Geometry
 			}
 		} catch (IOException e)
 		{
-			System.out.println("End of file reached while finishing GDS");
+			reportError("End of file reached while finishing GDS");
 		}
 	}
 
@@ -748,7 +749,7 @@ public class GDS extends Geometry
 
 		String name = cellNames.get(cell);
         if (name == null) {
-            System.out.println("Warning, sub"+cell+" in hierarchy is not the same view" +
+            reportWarning("Warning, sub"+cell+" in hierarchy is not the same view" +
                     " as top level cell");
             name = makeUniqueName(cell, cellNames);
             cellNames.put(cell, name);
@@ -804,7 +805,7 @@ public class GDS extends Geometry
 					count = HDR_N_UNITS;
 					break;
 				default:
-					System.out.println("No entry for header " + header);
+					reportError("No entry for header " + header);
 					return;
 			}
 		}
@@ -939,7 +940,7 @@ public class GDS extends Geometry
 				dataOutputStream.write(dataBufferGDS, 0, DSIZE);
 			} catch (IOException e)
 			{
-				System.out.println("End of file reached while writing GDS");
+				reportError("End of file reached while writing GDS");
 			}
 			blockCount++;
 			bufferPosition = 0;

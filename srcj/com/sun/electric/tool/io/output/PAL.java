@@ -58,18 +58,20 @@ public class PAL extends Output
      * @param cell the top-level cell to write.
      * @param context the hierarchical context to the cell.
 	 * @param filePath the disk file to create.
+     * @return the Output object used for writing
 	 */
-	public static void writePALFile(Cell cell, VarContext context, String filePath)
+	public static Output writePALFile(Cell cell, VarContext context, String filePath)
 	{
 		PAL out = new PAL();
-		if (out.openTextOutputStream(filePath)) return;
+		if (out.openTextOutputStream(filePath)) return out.finishWrite();
 		out.initialize(cell);
 		PALNetlister netlister = new PALNetlister(out);
 		HierarchyEnumerator.enumerateCell(cell, context, netlister, Netlist.ShortResistors.ALL);
 		out.terminate(cell);
-		if (out.closeTextOutputStream()) return;
+		if (out.closeTextOutputStream()) return out.finishWrite();
 		System.out.println(filePath + " written");
-	}
+        return out.finishWrite();
+    }
 
 	/**
 	 * Creates a new instance of the PAL netlister.
@@ -156,7 +158,7 @@ public class PAL extends Output
 			}
 			if (outputCon == null)
 			{
-				System.out.println("ERROR: output port is not connected on " + ni + " in " + ni.getParent());
+				pal.reportError("ERROR: output port is not connected on " + ni + " in " + ni.getParent());
 				return false;
 			}
 

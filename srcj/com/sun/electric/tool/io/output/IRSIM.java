@@ -66,12 +66,14 @@ public class IRSIM extends Output
      * @param cell the top-level cell to write.
      * @param context the hierarchical context to the cell.
 	 * @param filePath the disk file to create.
+     * @return the Output object used for writing
 	 */
-	public static void writeIRSIMFile(Cell cell, VarContext context, Technology layoutTech, String filePath)
+	public static Output writeIRSIMFile(Cell cell, VarContext context, Technology layoutTech, String filePath)
 	{
 		IRSIM out = new IRSIM(cell);
         out.writeNetlist(cell, context, layoutTech, filePath);
-	}
+        return out.finishWrite();
+    }
 
 	/**
 	 * The main entry point for IRSIM extraction.
@@ -162,7 +164,7 @@ public class IRSIM extends Output
 
             if (g == null || d == null || s == null)
             {
-                System.out.println("PortInst for " + ni + " null!");
+                reportError("PortInst for " + ni + " null!");
                 return null;
             }
             Network gnet = netlist.getNetwork(g);
@@ -170,7 +172,7 @@ public class IRSIM extends Output
             Network snet = netlist.getNetwork(s);
             if (gnet == null || dnet == null || snet == null)
             {
-                System.out.println("Warning, ignoring unconnected transistor " + ni + " in cell " + info.getCell());
+                reportWarning("Warning, ignoring unconnected transistor " + ni + " in cell " + info.getCell());
                 return null;
             }
 
@@ -184,13 +186,13 @@ public class IRSIM extends Output
             		if (len == 0) len = 2;
             		if (wid == 0) wid = 2;
             		dim = new TransistorSize(new Double(wid), new Double(len), dim.getActiveLength(), true);
-                    System.out.println("Warning, cannot evaluate size of transistor " + ni +
+                    reportWarning("Warning, cannot evaluate size of transistor " + ni +
                     	" in cell " + info.getCell() + ", using default sizes");
             	} else dim = null;
             }
             if (dim == null)
             {
-                System.out.println("Warning, ignoring non fet transistor " + ni + " in cell " + info.getCell());
+                reportWarning("Warning, ignoring non fet transistor " + ni + " in cell " + info.getCell());
                 return null;
             }
 
@@ -228,7 +230,7 @@ public class IRSIM extends Output
                         net2Name = info.getUniqueNetNameProxy(net2, "/").toString(numRemoveParents) + "_" + c.getArc().getName();
                     }
                     else
-                        System.out.println("Warning: contact " + ni.describe(true) + " has more than 2 connections, RC estimation may be wrong");
+                        reportWarning("Warning: contact " + ni.describe(true) + " has more than 2 connections, RC estimation may be wrong");
                 }
 
                 // RC value will be via resistance divided by number of cuts of this contact
@@ -261,14 +263,14 @@ public class IRSIM extends Output
 
                 if (end1 == null || end2 == null)
                 {
-                    System.out.println("PortInst for " + ni + " null!");
+                    reportError("PortInst for " + ni + " null!");
                     return null;
                 }
                 net1 = netlist.getNetwork(end1);
                 net2 = netlist.getNetwork(end2);
                 if (net1 == null || net2 == null)
                 {
-                    System.out.println("Warning, ignoring unconnected component " + ni + " in cell " + info.getCell());
+                    reportWarning("Warning, ignoring unconnected component " + ni + " in cell " + info.getCell());
                     return null;
                 }
                 net1Name = info.getUniqueNetNameProxy(net1, "/").toString(numRemoveParents);

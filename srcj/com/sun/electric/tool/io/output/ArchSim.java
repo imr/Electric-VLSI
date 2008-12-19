@@ -34,7 +34,6 @@ import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.user.User;
 
 import java.util.ArrayList;
@@ -50,23 +49,25 @@ public class ArchSim extends Output
 	/**
 	 * The main entry point for ArchSim deck writing.
      * @param cell the top-level cell to write.
-	 * @param filePath the disk file to create with ArchSim.
+	 * @param fileP the disk file to create with ArchSim.
+     * @return the Output object used for writing
 	 */
-	public static void writeArchSimFile(Cell cell, String filePath)
+	public static Output writeArchSimFile(Cell cell, String fileP)
 	{
 		ArchSim out = new ArchSim();
-		if (out.openTextOutputStream(filePath)) return;
-		out.writeFlatCell(cell);
-		if (out.closeTextOutputStream()) return;
-		System.out.println(filePath + " written");
-	}
+		if (!out.openTextOutputStream(fileP)) // no error
+        {
+            out.writeFlatCell(cell);
+            if (!out.closeTextOutputStream()) // no error
+                System.out.println(fileP + " written");
+        }
+        return out.finishWrite();
+    }
 
 	/**
 	 * Creates a new instance of ArchSim.
 	 */
-	ArchSim()
-	{
-	}
+	ArchSim() {}
 
 	private void writeFlatCell(Cell cell)
 	{
@@ -106,7 +107,7 @@ public class ArchSim extends Output
 		Netlist netlist = cell.acquireUserNetlist();
 		if (netlist == null)
 		{
-			System.out.println("Sorry, a deadlock aborted netlisting (network information unavailable).  Please try again");
+            reportError("Sorry, a deadlock aborted netlisting (network information unavailable).  Please try again");
 			return;
 		}
 		for(Iterator<Network> it = netlist.getNetworks(); it.hasNext(); )
@@ -129,7 +130,7 @@ public class ArchSim extends Output
 					if (pc == PortCharacteristic.IN) inputs.add(pi); else
 						if (pc == PortCharacteristic.OUT) outputs.add(pi); else
 					{
-						System.out.println("Export " + pi.getPortProto().getName() + " of " + ni.getProto() +
+						reportWarning("Export " + pi.getPortProto().getName() + " of " + ni.getProto() +
 							" is neither input or output (it is " + pc.getFullName() + ")");
 					}
 				}
@@ -139,7 +140,7 @@ public class ArchSim extends Output
 			if (inputs.size() == 0 && outputs.size() == 0) continue;
 
 			// get the network name
-			String netName = null;
+			String netName;
 			Iterator<String> nIt = net.getNames();
 			if (nIt.hasNext()) netName = nIt.next(); else
 				netName = net.describe(true);

@@ -320,7 +320,23 @@ public class FileType implements Serializable {
 		return null;
 	}
 
-	private static class FileFilterSwing extends FileFilter
+    /**
+     * Method to find a given type by name.
+     * @param name FileType name
+     * @return FileType instance
+     */
+    public static FileType findType(String typeName)
+    {
+        String n = typeName.toLowerCase();
+        for (FileType type : allTypes)
+        {
+            if (type.name.toLowerCase().equals(n))
+                return type;
+		}
+		return null;
+    }
+
+    private static class FileFilterSwing extends FileFilter
 	{
 		/** list of valid extensions */				private String[] extensions;
 		/** description of filter */				private String desc;

@@ -66,11 +66,12 @@ public class Maxwell extends Output
      * @param cell the top-level cell to write.
      * @param context the hierarchical context to the cell.
 	 * @param filePath the disk file to create.
+     * @return the Output object used for writing
 	 */
-	public static void writeMaxwellFile(Cell cell, VarContext context, String filePath)
+	public static Output writeMaxwellFile(Cell cell, VarContext context, String filePath)
 	{
 		Maxwell out = new Maxwell();
-		if (out.openTextOutputStream(filePath)) return;
+		if (out.openTextOutputStream(filePath)) return out.finishWrite();
 		out.initialize(cell);
 
 		// enumerate the hierarchy below here
@@ -79,9 +80,10 @@ public class Maxwell extends Output
 //		HierarchyEnumerator.enumerateCell(cell, context, null, wcVisitor);
 
 		out.terminate();
-		if (out.closeTextOutputStream()) return;
+		if (out.closeTextOutputStream()) return out.finishWrite();
 		System.out.println(filePath + " written");
-	}
+        return out.finishWrite();
+    }
 
 	/**
 	 * Creates a new instance of Maxwell

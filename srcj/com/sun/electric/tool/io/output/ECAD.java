@@ -68,19 +68,21 @@ public class ECAD extends Output
 	 */
 	private ECAD()
 	{
-	}
+    }
 
 	/**
 	 * The main entry point for ECAD deck writing.
      * @param cell the top-level cell to write.
      * @param context the hierarchical context to the cell.
 	 * @param filePath the disk file to create.
+     * @return the Output object used for writing
 	 */
-	public static void writeECADFile(Cell cell, VarContext context, String filePath)
+	public static Output writeECADFile(Cell cell, VarContext context, String filePath)
 	{
 		ECAD out = new ECAD();
 		out.writeNetlist(cell, context, filePath);
-	}
+        return out;
+    }
 
 	private void writeNetlist(Cell cell, VarContext context, String filePath)
 	{
@@ -96,8 +98,9 @@ public class ECAD extends Output
 		// warn the user if nets not found
 		if (networks.size() == 0)
 		{
-			System.out.println("ERROR: no output produced.  Packages need attribute 'ref_des' and ports need attribute 'pin'");
-		}
+			reportError("ERROR: no output produced.  Packages need attribute 'ref_des' and ports need attribute 'pin'");
+            return;
+        }
 
 		// add all network pairs
 		Collections.sort(networks, new NetNamesSort());

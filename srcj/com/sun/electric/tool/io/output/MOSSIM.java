@@ -62,15 +62,17 @@ public class MOSSIM extends Topology
      * @param cell the top-level cell to write.
      * @param context the hierarchical context to the cell.
 	 * @param filePath the disk file to create.
+     * @return the Output object used for writing
 	 */
-	public static void writeMOSSIMFile(Cell cell, VarContext context, String filePath)
+	public static Output writeMOSSIMFile(Cell cell, VarContext context, String filePath)
 	{
 		MOSSIM out = new MOSSIM();
-		if (out.openTextOutputStream(filePath)) return;
-		if (out.writeCell(cell, context)) return;
-		if (out.closeTextOutputStream()) return;
+		if (out.openTextOutputStream(filePath)) return out.finishWrite();
+		if (out.writeCell(cell, context)) return out.finishWrite();
+		if (out.closeTextOutputStream()) return out.finishWrite();
 		System.out.println(filePath + " written");
-	}
+        return out.finishWrite();
+    }
 
 	/**
 	 * Creates a new instance of the MOSSIM netlister.
@@ -215,13 +217,13 @@ public class MOSSIM extends Topology
 
 				// write the gate/source/drain nodes
 				CellSignal cs = cni.getCellSignal(netList.getNetwork(gate));
-				if (cs == null) System.out.println(ni.getParent() + " CANNOT DETERMINE GATE NETWORK ON " + ni);
+				if (cs == null) reportError(ni.getParent() + " CANNOT DETERMINE GATE NETWORK ON " + ni);
 				infstr.append(" " + cs.getName());
 				cs = cni.getCellSignal(netList.getNetwork(source));
-				if (cs == null) System.out.println(ni.getParent() + " CANNOT DETERMINE SOURCE NETWORK ON " + ni);
+				if (cs == null) reportError(ni.getParent() + " CANNOT DETERMINE SOURCE NETWORK ON " + ni);
 				infstr.append(" " + cs.getName());
 				cs = cni.getCellSignal(netList.getNetwork(drain));
-				if (cs == null) System.out.println(ni.getParent() + " CANNOT DETERMINE DRAIN NETWORK ON " + ni);
+				if (cs == null) reportError(ni.getParent() + " CANNOT DETERMINE DRAIN NETWORK ON " + ni);
 				infstr.append(" " + cs.getName());
 				infstr.append(" ;   | " + ni.getName() + ";");
 				printWriter.println(infstr.toString());

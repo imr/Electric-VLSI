@@ -210,16 +210,18 @@ public class Verilog extends Topology
 	 * @param cell the top-level cell to write.
 	 * @param context the hierarchical context to the cell.
 	 * @param filePath the disk file to create.
+     * @return the Output object used for writing
 	 */
-	public static void writeVerilogFile(Cell cell, VarContext context, String filePath)
+	public static Output writeVerilogFile(Cell cell, VarContext context, String filePath)
 	{
 		Verilog out = new Verilog();
-        if (out.openTextOutputStream(filePath)) return;
+        if (out.openTextOutputStream(filePath)) return out.finishWrite();
         out.filePath = filePath;
-		if (out.writeCell(cell, context)) return;
-		if (out.closeTextOutputStream()) return;
+		if (out.writeCell(cell, context)) return out.finishWrite();
+		if (out.closeTextOutputStream()) return out.finishWrite();
 		System.out.println(filePath + " written");
-	}
+        return out.finishWrite();
+    }
 
 	/**
 	 * Creates a new instance of Verilog
@@ -252,7 +254,7 @@ public class Verilog extends Topology
 			// enumerate to find which cells contain standard cells
 			HierarchyEnumerator.enumerateCell(topCell, VarContext.globalContext, standardCells);
 			for (Cell acell : standardCells.getDoesNotContainStandardCellsInHier()) {
-				System.out.println("Warning: Not netlisting cell "+acell.describe(false)+" because it does not contain any standard cells.");
+				reportWarning("Warning: Not netlisting cell "+acell.describe(false)+" because it does not contain any standard cells.");
 			}
 			if (standardCells.getNameConflict()) {
 				System.out.println("Name conflicts found, please see above messages");
@@ -288,14 +290,14 @@ public class Verilog extends Topology
 		if (CellModelPrefs.verilogModelPrefs.isUseModelFromFile(cell)) {
 			String fileName = CellModelPrefs.verilogModelPrefs.getModelFile(cell);
             if (filePath.equals(fileName)) {
-                System.out.println("Error: Use Model From File file path for cell "+cell.describe(false)+" is the same as the file being written, skipping.");
+                reportError("Error: Use Model From File file path for cell "+cell.describe(false)+" is the same as the file being written, skipping.");
                 return false;
             }
             // check that data from file is consistent
 			VerilogReader reader = new VerilogReader();
 			VerilogData data = reader.parseVerilog(fileName, true);
 			if (data == null) {
-				System.out.println("Error reading include file: "+fileName);
+				reportError("Error reading include file: "+fileName);
 				return false;
 			}
 			if (!checkIncludedData(data, cell, fileName))
@@ -325,7 +327,7 @@ public class Verilog extends Topology
 				VerilogReader reader = new VerilogReader();
 				VerilogData data = reader.parseVerilog(stringArray, cell.getLibrary().getName());
 				if (data == null) {
-					System.out.println("Error parsing Verilog View for cell "+cell.describe(false));
+					reportError("Error parsing Verilog View for cell "+cell.describe(false));
 					return false;
 				}
 				if (!checkIncludedData(data, cell, null))
@@ -1028,7 +1030,7 @@ public class Verilog extends Topology
 							// continue
 						} else if (portnames.size() > 1) {
 							// Bill thinks bussed ports are not allowed for primitives
-							System.out.println("Error: bussed ports not allowed on Verilog primitives: "+niProto.getName());
+							reportError("Error: bussed ports not allowed on Verilog primitives: "+niProto.getName());
 						} else {
 							String portname = portnames.get(0);
 							PortInst pi = ni.findPortInst(portname);
@@ -1063,7 +1065,7 @@ public class Verilog extends Topology
 				for (Export subex : subports) {
 					PortCharacteristic subtype = subex.getCharacteristic();
 					if (type != subtype) {
-						System.out.println("Warning: Port Direction Inconsistency in cell "+cell.describe(false)+
+						reportWarning("Warning: Port Direction Inconsistency in cell "+cell.describe(false)+
 							" between export "+ex.getNameKey().subname(i)+" ("+type+") and instance port "+
 							subex.getParent().noLibDescribe()+" - "+subex.getName()+" ("+subtype+")");
 					}
@@ -1231,7 +1233,7 @@ public class Verilog extends Topology
 			// only overwrite if they are different.
             if (!(no.getProto() instanceof Cell))
             {
-            	System.out.println("Illegal attempt to replace a variable.");
+            	reportError("Illegal attempt to replace a variable.");
             	return "";
             }
 			String defaultValue = replaceVariable(paramName, (Cell) no.getProto());
@@ -1775,7 +1777,7 @@ public class Verilog extends Topology
 		}
 		if (main == null) main = alternative;
 		if (main == null) {
-			System.out.println("Error! Expected Verilog module definition '"+getVerilogName(cell)+
+			reportError("Error! Expected Verilog module definition '"+getVerilogName(cell)+
 			" in Verilog View: "+cell.libDescribe());
 			return false;
 		}
@@ -1789,7 +1791,7 @@ public class Verilog extends Topology
 			String prevSource = definedModules.get(mod.getName());
 			if (mod.isValid()) {
 				if (prevSource != null) {
-					System.out.println("Error, module "+mod.getName()+" already defined from: "+prevSource);
+					reportError("Error, module "+mod.getName()+" already defined from: "+prevSource);
 				}
 				else
 					definedModules.put(mod.getName(), source);
@@ -1823,7 +1825,7 @@ public class Verilog extends Topology
 					// search libraries for it
 					Cell missingCell = findCell(moduleName, View.VERILOG);
 					if (missingCell == null) {
-						System.out.println("Error: Undefined reference to module "+moduleName+", and no matching cell found");
+						reportError("Error: Undefined reference to module "+moduleName+", and no matching cell found");
 						continue;
 					}
 					// hmm...name map might be wrong at for this new enumeration

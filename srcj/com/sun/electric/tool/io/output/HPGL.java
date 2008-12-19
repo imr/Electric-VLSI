@@ -91,12 +91,13 @@ public class HPGL extends Output
      * @param cell the top-level cell to write.
      * @param context the hierarchical context to the cell.
 	 * @param filePath the disk file to create.
+     * @return the Output object used for writing
 	 */
-	public static void writeHPGLFile(Cell cell, VarContext context, String filePath)
+	public static Output writeHPGLFile(Cell cell, VarContext context, String filePath)
 	{
 		HPGL out = new HPGL();
 		out.cell = cell;
-		if (out.openTextOutputStream(filePath)) return;
+		if (out.openTextOutputStream(filePath)) return out.finishWrite();
 		HPGLVisitor visitor = out.makeHPGLVisitor();
 
 		// gather all geometry
@@ -107,9 +108,10 @@ public class HPGL extends Output
 		// write the geometry
 		out.done();
 
-		if (out.closeTextOutputStream()) return;
+		if (out.closeTextOutputStream()) return out.finishWrite();
 		System.out.println(filePath + " written");
-	}
+        return out.finishWrite();
+    }
 
 	/** Creates a new instance of HPGL */
 	private HPGL()

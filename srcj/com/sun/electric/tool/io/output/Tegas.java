@@ -72,15 +72,17 @@ public class Tegas extends Topology
      * @param cell the top-level cell to write.
      * @param context the hierarchical context to the cell.
 	 * @param filePath the disk file to create.
+     * @return the Output object used for writing
 	 */
-	public static void writeTegasFile(Cell cell, VarContext context, String filePath)
+	public static Output writeTegasFile(Cell cell, VarContext context, String filePath)
 	{
 		Tegas out = new Tegas();
-		if (out.openTextOutputStream(filePath)) return;
-		if (out.writeCell(cell, context)) return;
-		if (out.closeTextOutputStream()) return;
+		if (out.openTextOutputStream(filePath)) return out.finishWrite();
+		if (out.writeCell(cell, context)) return out.finishWrite();
+		if (out.closeTextOutputStream()) return out.finishWrite();
 		System.out.println(filePath + " written");
-	}
+        return out.finishWrite();
+    }
 
 	/**
 	 * Creates a new instance of the Tegas netlister.
@@ -103,15 +105,15 @@ public class Tegas extends Topology
 		int length = libname.length();
 		if (length > 12)
 		{
-			System.out.println("Library name exceeds 12 characters, The name used for the");
-			System.out.println("TDL directory will be truncated to :- " + convertName(libname));
+            reportWarning("Library name exceeds 12 characters, The name used for the\n" +
+			"TDL directory will be truncated to :- " + convertName(libname));
 		}
 	
 		// check library name
 		String str1 = convertName(libname);
 		if (isReservedWord(str1))
 		{
-			System.out.println(str1 + " IS A RESERVED WORD, RENAME LIBRARY AND RE-RUN");
+			reportError(str1 + " IS A RESERVED WORD, RENAME LIBRARY AND RE-RUN");
 			return;
 		}
 
@@ -151,7 +153,7 @@ public class Tegas extends Topology
 				if (e.getCharacteristic() != PortCharacteristic.IN) continue;
 				if (isReservedWord(convertName(e.getName())))
 				{
-					System.out.println("ERROR: " + convertName(e.getName()) + " IS A RESERVED WORD");
+					reportError("ERROR: " + convertName(e.getName()) + " IS A RESERVED WORD");
 				}
 				infstr.append("   " + convertName(e.getName()) + "\n");
 			}
@@ -171,7 +173,7 @@ public class Tegas extends Topology
 					infstr.append("   " + convertName(e.getName()) + "\n");
 				} else if (e.getCharacteristic() != PortCharacteristic.IN)
 				{
-					System.out.println("EXPORT " + e.getName() + " MUST BE EITHER INPUT OR OUTPUT");
+					reportError("EXPORT " + e.getName() + " MUST BE EITHER INPUT OR OUTPUT");
 				}
 			}
 			infstr.append(";\n\n");
@@ -210,7 +212,7 @@ public class Tegas extends Topology
                 fun.isCapacitor() || // == PrimitiveNode.Function.CAPAC ||
 				fun == PrimitiveNode.Function.DIODE || fun == PrimitiveNode.Function.INDUCT || fun == PrimitiveNode.Function.METER)
 			{
-				System.out.println("CANNOT HANDLE " + ni.getProto().describe(true) + " NODES");
+				reportError("CANNOT HANDLE " + ni.getProto().describe(true) + " NODES");
 				continue;
 			}
 		}
@@ -300,7 +302,7 @@ public class Tegas extends Topology
 				writeWidthLimited(str1);
 				continue;
 			}
-			System.out.println("NODETYPE " + no.getProto() + " NOT SUPPORTED");
+			reportWarning("NODETYPE " + no.getProto() + " NOT SUPPORTED");
 		}
 	
 		// end module
@@ -445,7 +447,7 @@ public class Tegas extends Topology
 				}
 				if (!portWired)
 				{
-					System.out.println("UNWIRED PORT " + pp.getName());
+					reportWarning("UNWIRED PORT " + pp.getName());
 					if (first) first = false; else infstr.append(",");
 					infstr.append("NC");
 				}
@@ -561,7 +563,7 @@ public class Tegas extends Topology
 			if (con.getPortInst().getPortProto().getCharacteristic() == PortCharacteristic.IN) inputs++;
 		}
 		if (inputs < 2)
-			System.out.println("MUST HAVE AT LEAST TWO INPUTS ON " + ni);
+			reportError("MUST HAVE AT LEAST TWO INPUTS ON " + ni);
 		return inputs;
 	}
 
@@ -615,9 +617,8 @@ public class Tegas extends Topology
 	{
 		// To prevent Un-connected power nodes
 		if (!ni.hasConnections())
-//		if (ni.getNumConnections() == 0)
 		{
-			System.out.println("PWR / GND NODE UNCONNECTED");
+			reportWarning("PWR / GND NODE UNCONNECTED");
 			return "";
 		}
 
@@ -625,7 +626,6 @@ public class Tegas extends Topology
 		if (fun == PrimitiveNode.Function.CONGROUND || fun == PrimitiveNode.Function.CONPOWER)
 		{
 			if (ni.hasConnections())
-//			if (ni.getNumConnections() > 0)
 			{
 				Connection con = ni.getConnections().next();
 				Network net = netList.getNetwork(con.getArc(), 0);
@@ -755,7 +755,7 @@ public class Tegas extends Topology
 		if (fun == PrimitiveNode.Function.FLIPFLOPDN)   return "DENE";
 
 		if (fun == PrimitiveNode.Function.FLIPFLOPTP || fun == PrimitiveNode.Function.FLIPFLOPTN)
-			System.out.println("T TYPE FLIP-FLOP MUST BE MS");
+			reportError("T TYPE FLIP-FLOP MUST BE MS");
 		return "TMNE";
 	}
 

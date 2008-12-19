@@ -51,6 +51,7 @@ import com.sun.electric.tool.cvspm.CVSLibrary;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.ErrorLogger;
 
 import java.awt.geom.Rectangle2D;
 import java.io.BufferedOutputStream;
@@ -103,14 +104,14 @@ public class Output
      * This is the non-interactive version of exportCellCommand
      * @param cell the Cell to be written.
      * @param context the VarContext of the Cell (its position in the hierarchy above it).
-     * @param filePath the path to the disk file to be written.
+     * @param fileP the path to the disk file to be written.
      * @param type the format of the output file.
      * @param override a list of Polys to draw instead of the cell contents.
     */
-    public static void exportCellCommand(Cell cell, VarContext context, String filePath,
+    public static void exportCellCommand(Cell cell, VarContext context, String fileP,
                                          FileType type, List<PolyBase> override)
     {
-    	new OutputCellInfo(cell, context, filePath, type, override);
+    	new OutputCellInfo(cell, context, fileP, type, override);
     }
 
 	/** file path */									protected String filePath;
@@ -118,10 +119,24 @@ public class Output
 	/** for writing text arrays */						protected StringWriter stringWriter;
 	/** for writing binary files */						protected DataOutputStream dataOutputStream;
 	/** True to write with less information displayed */protected boolean quiet;
+	/** for storing generated errors */					protected ErrorLogger errorLogger;
 
 	public Output()
 	{
-	}
+        errorLogger = ErrorLogger.newInstance(this.getClass().getName() + " Output");
+    }
+
+    /**
+     * Method to retrieve number of errors during the writing process
+     * @return
+     */
+    public int getNumErrors() { return errorLogger.getNumErrors(); }
+
+    /**
+     * Method to retrieve number of warnings during the writting process
+     * @return
+     */
+    public int getNumWarnings() { return errorLogger.getNumWarnings(); }
 
 //	/**
 //	 * Method to write a Library.
@@ -158,7 +173,7 @@ public class Output
             LibId libId = libBackup.d.libId;
             String libName = libBackup.d.libId.libName;
             URL libURL = libBackup.d.libFile;
-            File newLibFile = null;
+            File newLibFile;
             if (libURL == null || libURL.getPath() == null) {
                 newLibFile = new File(panicDir.getAbsolutePath(), libName + "." + type.getExtensions()[0]);
             } else {
@@ -229,11 +244,11 @@ public class Output
 	 * @param lib the Library to be written.
 	 * @param type the format of the output file.
 	 * @param compatibleWith6 true to write a library that is compatible with version 6 Electric.
-	 * @param quiet true to save with less information displayed.
+	 * @param thisQuiet true to save with less information displayed.
      * @param delibHeaderOnly true to write only the header for a DELIB type library
      * @return true on error.
 	 */
-	public static boolean writeLibrary(Library lib, FileType type, boolean compatibleWith6, boolean quiet, boolean delibHeaderOnly)
+	public static boolean writeLibrary(Library lib, FileType type, boolean compatibleWith6, boolean thisQuiet, boolean delibHeaderOnly)
 	{
 		// make sure that all "meaning" options are attached to the database
 //		Pref.installMeaningVariables();
@@ -339,7 +354,7 @@ public class Output
             if (type == FileType.ELIB)
 			{
 				ELIB elib = new ELIB();
-				elib.quiet = quiet;
+				elib.quiet = thisQuiet;
 				if (compatibleWith6) elib.write6Compatible();
 				if (elib.openBinaryOutputStream(properOutputName)) return true;
                 if (CVS.isEnabled()) {
@@ -353,7 +368,7 @@ public class Output
 			} else
 			{
 				JELIB jelib = new JELIB();
-				jelib.quiet = quiet;
+				jelib.quiet = thisQuiet;
 				if (jelib.openTextOutputStream(properOutputName)) return true;
                 if (CVS.isEnabled()) {
                     CVSLibrary.savingLibrary(lib);
@@ -367,14 +382,14 @@ public class Output
  		} else if (type == FileType.READABLEDUMP)
 		{
             ReadableDump readableDump = new ReadableDump();
-			readableDump.quiet = quiet;
+			readableDump.quiet = thisQuiet;
 			if (readableDump.openTextOutputStream(properOutputName)) return true;
 			if (readableDump.writeLib(snapshot, libId)) return true;
 			if (readableDump.closeTextOutputStream()) return true;
         } else if (type == FileType.DELIB)
         {
             DELIB delib = new DELIB(delibHeaderOnly);
-            delib.quiet = quiet;
+            delib.quiet = thisQuiet;
             if (delib.openTextOutputStream(properOutputName)) return true;
             if (CVS.isEnabled() && !delibHeaderOnly) {
                 CVSLibrary.savingLibrary(lib);
@@ -391,7 +406,7 @@ public class Output
 		}
 		// clean up and return
         lib.setFromDisk();
-		if (!quiet) System.out.println(properOutputName + " written");
+		if (!thisQuiet) System.out.println(properOutputName + " written");
         // Update the version in library read in memory
         lib.setVersion(Version.getVersion());
         // if using CVS, update state
@@ -418,88 +433,91 @@ public class Output
      * @param override a list of overriding polygons to write.
      * NOTE: Keep public for regressions
      */
-    public static void writeCell(Cell cell, VarContext context, String filePath, FileType type, List<PolyBase> override)
+    public static Output writeCell(Cell cell, VarContext context, String filePath, FileType type, List<PolyBase> override)
     {
-		if (type == FileType.ARCHSIM)
+        Output out = null;
+
+        if (type == FileType.ARCHSIM)
 		{
-			ArchSim.writeArchSimFile(cell, filePath);
+			out = ArchSim.writeArchSimFile(cell, filePath);
 		} else if (type == FileType.CDL)
 		{
-			Spice.writeSpiceFile(cell, context, filePath, true);
+			out = Spice.writeSpiceFile(cell, context, filePath, true);
 		} else if (type == FileType.CIF)
 		{
-			CIF.writeCIFFile(cell, context, filePath);
+			out = CIF.writeCIFFile(cell, context, filePath);
 		} else if (type == FileType.COSMOS)
 		{
-			Sim.writeSimFile(cell, context, filePath, type);
+			out = Sim.writeSimFile(cell, context, filePath, type);
 		} else if (type == FileType.DXF)
 		{
-			DXF.writeDXFFile(cell, filePath);
+			out = DXF.writeDXFFile(cell, filePath);
 		} else if (type == FileType.EAGLE)
 		{
-			Eagle.writeEagleFile(cell, context, filePath);
+			out = Eagle.writeEagleFile(cell, context, filePath);
 		} else if (type == FileType.ECAD)
 		{
-			ECAD.writeECADFile(cell, context, filePath);
+			out = ECAD.writeECADFile(cell, context, filePath);
 		} else if (type == FileType.EDIF)
 		{
-			EDIF.writeEDIFFile(cell, context, filePath);
+			out = EDIF.writeEDIFFile(cell, context, filePath);
 		} else if (type == FileType.ESIM || type == FileType.RSIM)
 		{
-			Sim.writeSimFile(cell, context, filePath, type);
+			out = Sim.writeSimFile(cell, context, filePath, type);
 		} else if (type == FileType.FASTHENRY)
 		{
-			FastHenry.writeFastHenryFile(cell, context, filePath);
+			out = FastHenry.writeFastHenryFile(cell, context, filePath);
 		} else if (type == FileType.HPGL)
 		{
-			HPGL.writeHPGLFile(cell, context, filePath);
+			out = HPGL.writeHPGLFile(cell, context, filePath);
 		} else if (type == FileType.GDS)
 		{
-			GDS.writeGDSFile(cell, context, filePath);
+			out = GDS.writeGDSFile(cell, context, filePath);
 		} else if (type == FileType.IRSIM)
 		{
             Technology layoutTech = Schematics.getDefaultSchematicTechnology();
-			IRSIM.writeIRSIMFile(cell, context, layoutTech, filePath);
+			out = IRSIM.writeIRSIMFile(cell, context, layoutTech, filePath);
 		} else if (type == FileType.L)
 		{
-			L.writeLFile(cell, filePath);
+			out = L.writeLFile(cell, filePath);
 		} else if (type == FileType.LEF)
 		{
-			LEF.writeLEFFile(cell, context, filePath);
+			out = LEF.writeLEFFile(cell, context, filePath);
 		} else if (type == FileType.MAXWELL)
 		{
-			Maxwell.writeMaxwellFile(cell, context, filePath);
+			out = Maxwell.writeMaxwellFile(cell, context, filePath);
 		} else if (type == FileType.MOSSIM)
 		{
-			MOSSIM.writeMOSSIMFile(cell, context, filePath);
+			out = MOSSIM.writeMOSSIMFile(cell, context, filePath);
 		} else if (type == FileType.PADS)
 		{
-			Pads.writePadsFile(cell, context, filePath);
+			out = Pads.writePadsFile(cell, context, filePath);
 		} else if (type == FileType.PAL)
 		{
-			PAL.writePALFile(cell, context, filePath);
+			out = PAL.writePALFile(cell, context, filePath);
 		} else if (type == FileType.POSTSCRIPT || type == FileType.EPS)
 		{
-			PostScript.writePostScriptFile(cell, filePath, override);
+			out = PostScript.writePostScriptFile(cell, filePath, override);
 		} else if (type == FileType.SILOS)
 		{
-			Silos.writeSilosFile(cell, context, filePath);
+			out = Silos.writeSilosFile(cell, context, filePath);
 		} else if (type == FileType.SKILL)
 		{
-			IOTool.writeSkill(cell, filePath, false);
+			out = IOTool.writeSkill(cell, filePath, false);
         } else if (type == FileType.SKILLEXPORTSONLY)
         {
-            IOTool.writeSkill(cell, filePath, true);
+            out = IOTool.writeSkill(cell, filePath, true);
 		} else if (type == FileType.SPICE)
 		{
-			Spice.writeSpiceFile(cell, context, filePath, false);
+			out = Spice.writeSpiceFile(cell, context, filePath, false);
 		} else if (type == FileType.TEGAS)
 		{
-			Tegas.writeTegasFile(cell, context, filePath);
+			out = Tegas.writeTegasFile(cell, context, filePath);
 		} else if (type == FileType.VERILOG)
 		{
-			Verilog.writeVerilogFile(cell, context, filePath);
+			out = Verilog.writeVerilogFile(cell, context, filePath);
 		}
+        return out;
     }
 
 	/**
@@ -580,18 +598,18 @@ public class Output
 
     /**
      * Open output for writing text to a file.
-     * @param filePath the name of the file.
+     * @param fileP the name of the file.
      * @return true on error.
      */
-    protected boolean openTextOutputStream(String filePath)
+    protected boolean openTextOutputStream(String fileP)
     {
-		this.filePath = filePath;
+		this.filePath = fileP;
         try
 		{
-        	printWriter = new PrintWriter(new BufferedWriter(new FileWriter(filePath)));
+        	printWriter = new PrintWriter(new BufferedWriter(new FileWriter(fileP)));
         } catch (IOException e)
 		{
-            System.out.println("Error opening " + filePath+": "+e.getMessage());
+            reportError("Error opening " + fileP+": "+e.getMessage());
             return true;
         }
         return false;
@@ -627,6 +645,37 @@ public class Output
     	for(int i=0; i<lines.length; i++)
     		strings.add(lines[i]);
         return strings;
+    }
+
+    /**
+     * Method to terminate the logging process in the ErrorLogger
+     * @return
+     */
+    protected Output finishWrite()
+    {
+        errorLogger.termLogging(true);
+        return this;
+    }
+
+    /**
+     * Method to report errors during the output process
+     * @param msg
+     */
+    protected void reportWarning(String msg)
+    {
+        errorLogger.logWarning(msg, null, -1);
+        System.out.println(msg);
+    }
+
+    /**
+     * Method to report errors during the output process. It must be public
+     * because it is used in parent package
+     * @param msg
+     */
+    public void reportError(String msg)
+    {
+        errorLogger.logError(msg, -1);
+        System.out.println(msg);
     }
 
     /**

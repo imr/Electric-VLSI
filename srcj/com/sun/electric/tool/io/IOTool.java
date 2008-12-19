@@ -30,6 +30,7 @@ import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.io.output.Output;
 
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -109,19 +110,25 @@ public class IOTool extends Tool
 	 * Method to invoke the Skill output module via reflection.
 	 * @param cell the Cell to write in Skill.
 	 * @param fileName the name of the file to write.
+     * @return the Output object used for writing
 	 */
-	public static void writeSkill(Cell cell, String fileName, boolean exportsOnly)
+	public static Output writeSkill(Cell cell, String fileName, boolean exportsOnly)
 	{
-		if (!hasSkill()) return;
-		try
+		if (!hasSkill()) return null;
+        Output out = null;
+        try
 		{
-			skillOutputMethod.invoke(skillClass, new Object[] {cell, fileName, Boolean.valueOf(exportsOnly)});
+			out = (Output)skillOutputMethod.invoke(skillClass, new Object[] {cell, fileName, Boolean.valueOf(exportsOnly)});
 		} catch (Exception e)
 		{
-			System.out.println("Unable to run the Skill output module");
-			e.printStackTrace(System.out);
+            String msg = "Unable to run the Skill output module";
+            if (out != null)
+                out.reportError(msg);
+            else
+                System.out.println(msg);
 		}
-	}
+        return out;
+    }
 
 	/****************************** DAIS FORMAT INTERFACE ******************************/
 

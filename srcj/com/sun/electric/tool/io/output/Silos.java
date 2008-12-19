@@ -69,15 +69,17 @@ public class Silos extends Topology
      * @param cell the top-level cell to write.
      * @param context the hierarchical context to the cell.
 	 * @param filePath the disk file to create.
+     * @return the Output object used for writing
 	 */
-	public static void writeSilosFile(Cell cell, VarContext context, String filePath)
+	public static Output writeSilosFile(Cell cell, VarContext context, String filePath)
 	{
 		Silos out = new Silos();
-		if (out.openTextOutputStream(filePath)) return;
-		if (out.writeCell(cell, context)) return;
-		if (out.closeTextOutputStream()) return;
+		if (out.openTextOutputStream(filePath)) return out.finishWrite();
+		if (out.writeCell(cell, context)) return out.finishWrite();
+		if (out.closeTextOutputStream()) return out.finishWrite();
 		System.out.println(filePath + " written");
-	}
+        return out.finishWrite();
+    }
 
 	/**
 	 * Creates a new instance of the Silos netlister.
@@ -129,7 +131,7 @@ public class Silos extends Topology
 			var = ni.getVar(Spice.SPICE_MODEL_KEY);
 			if (var == null)
 			{
-				System.out.println("Unspecified source:");
+				reportError("Unspecified source:");
 				writeWidthLimited("$$$$$ Unspecified source: \n");
 			} else	// There is more
 			{
@@ -182,7 +184,7 @@ public class Silos extends Topology
 				File test = new File(fileName);
 				if (!test.exists())
 				{
-					System.out.println("Cannot find SILOS behavior file " + fileName + " on " + cell);
+					reportError("Cannot find SILOS behavior file " + fileName + " on " + cell);
 				} else
 				{
 					try
@@ -231,10 +233,11 @@ public class Silos extends Topology
 			String name = cni.getParameterizedName();
 			if (name.length() > MAXNAME)
 			{
-				System.out.print(".MACRO name " + name + " is too long;");
+				String msg = ".MACRO name " + name + " is too long;";
 				name = name.substring(0, MAXNAME);
-				System.out.println(" truncated to " + name);
-			}
+				msg += " truncated to " + name;
+                reportWarning(msg);
+            }
 			writeWidthLimited(".MACRO " + convertName(name));
 			for(Iterator<CellAggregateSignal> it = cni.getCellAggregateSignals(); it.hasNext(); )
 			{
@@ -330,7 +333,7 @@ public class Silos extends Topology
 
 				if (nodeType == PrimitiveNode.Function.METER || nodeType == PrimitiveNode.Function.SOURCE)
 				{
-					if (cell != topCell) System.out.println("WARNING: Global Clock in a sub-cell");
+					if (cell != topCell) reportWarning("WARNING: Global Clock in a sub-cell");
 					continue;
 				}
 
@@ -365,7 +368,7 @@ public class Silos extends Topology
 						}
 					}
 					if (outPP == null)
-						System.out.println("Could not find an output connection on " + ni.getProto().getName());
+						reportError("Could not find an output connection on " + ni.getProto().getName());
 
 					// get the fall and rise times
 					writeWidthLimited(getRiseTime(ni));
@@ -401,7 +404,7 @@ public class Silos extends Topology
 							writeWidthLimited(" " + TextUtils.formatDouble(j, 0));
 						} else
 						{
-							System.out.println("Warning: capacitor with no value on " + ni);
+							reportWarning("Warning: capacitor with no value on " + ni);
 						}
 						writeWidthLimited("\n");
 						break;

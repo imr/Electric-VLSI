@@ -40,7 +40,6 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.io.IOTool;
-import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.User;
 
 import java.awt.geom.AffineTransform;
@@ -72,8 +71,6 @@ public class CIF extends Geometry
 	/** cell to cell number map */						private HashMap<Cell,Integer> cellNumbers;
 	/** scale factor from internal units. */			private double scaleFactor;
 
-	/** for storing generated errors */					private ErrorLogger errorLogger;
-
 	/** illegal characters in names (not really illegal but can cause problems) */
 	private static final String badNameChars = ":{}/\\";
 
@@ -82,20 +79,25 @@ public class CIF extends Geometry
 	 * @param cell the top-level cell to write.
 	 * @param context the hierarchical context to the cell.
 	 * @param filePath the disk file to create.
-	 * @return the number of errors detected
+	 * @return the Output object used for writing
 	 */
-	public static int writeCIFFile(Cell cell, VarContext context, String filePath)
+	public static Output writeCIFFile(Cell cell, VarContext context, String filePath)
 	{
 		CIF out = new CIF();
-		if (out.openTextOutputStream(filePath)) return 1;
-		CIFVisitor visitor = out.makeCIFVisitor(getMaxHierDepth(cell));
-		if (out.writeCell(cell, context, visitor)) return 1;
-		if (out.closeTextOutputStream()) return 1;
-		System.out.println(filePath + " written");
-		if (out.errorLogger.getNumErrors() != 0)
-			System.out.println(out.errorLogger.getNumErrors() + " CIF RESOLUTION ERRORS FOUND");
-		out.errorLogger.termLogging(true);
-		return out.errorLogger.getNumErrors();
+		if (!out.openTextOutputStream(filePath)) // no error
+        {
+            CIFVisitor visitor = out.makeCIFVisitor(getMaxHierDepth(cell));
+            if (!out.writeCell(cell, context, visitor)) // no error
+            {
+                if (!out.closeTextOutputStream()) // no error
+                {
+                    System.out.println(filePath + " written");
+                    if (out.errorLogger.getNumErrors() != 0)
+                        System.out.println(out.errorLogger.getNumErrors() + " CIF RESOLUTION ERRORS FOUND");
+                }
+            }
+        }
+        return out.finishWrite();
 	}
 
 	/**
@@ -103,13 +105,11 @@ public class CIF extends Geometry
 	 */
 	CIF()
 	{
-		cellNumbers = new HashMap<Cell,Integer>();
+        cellNumbers = new HashMap<Cell,Integer>();
 
 		// scale is in centimicrons, technology scale is in nanometers
 		scaleFactor = Technology.getCurrent().getScale() / 10;
-
-		errorLogger = ErrorLogger.newInstance("CIF resolution");
-	}
+    }
 
 	protected void start()
 	{

@@ -105,23 +105,25 @@ public class PostScript extends Output
 	 * @param cell the top-level cell to write.
 	 * @param filePath the disk file to create.
 	 * @param override a list of overriding polygons to write.
+     * @return the Output object used for writing
 	 */
-	public static void writePostScriptFile(Cell cell, String filePath, List<PolyBase> override)
+	public static Output writePostScriptFile(Cell cell, String filePath, List<PolyBase> override)
 	{
 		// just do this file
-		writeCellToFile(cell, filePath, override);
-	}
+		PostScript out = new PostScript(cell, override);
+		writeCellToFile(out, cell, filePath);
+        return out.finishWrite();
+    }
 
 	/**
 	 * Internal method for PostScript output.
+     * @param out PostScript object to write
 	 * @param cell the top-level cell to write.
 	 * @param filePath the disk file to create.
-	 * @param override a list of overriding polygons to write.
 	 */
-	private static boolean writeCellToFile(Cell cell, String filePath, List<PolyBase> override)
+	private static boolean writeCellToFile(PostScript out, Cell cell, String filePath)
 	{
 		boolean error = false;
-		PostScript out = new PostScript(cell, override);
 		if (out.openTextOutputStream(filePath)) error = true; else
 		{
 			// write out the cell
@@ -927,7 +929,8 @@ public class PostScript extends Output
 					Date lastChangeDate = oCell.getRevisionDate();
 					if (lastSavedDate.after(lastChangeDate)) continue;
 				}
-				boolean err = writeCellToFile(oCell, syncFileName, null);
+                PostScript out = new PostScript(oCell, null);
+                boolean err = writeCellToFile(out, oCell, syncFileName);
 				if (err) return true;
 
 				// mark the synchronized date

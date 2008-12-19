@@ -66,25 +66,27 @@ public class Sim extends Output
      * @param context the hierarchical context to the cell.
 	 * @param filePath the disk file to create with Sim.
 	 * @param type the type of deck being written.
+     * @return the Output object used for writing
 	 */
-	public static void writeSimFile(Cell cell, VarContext context, String filePath, FileType type)
+	public static Output writeSimFile(Cell cell, VarContext context, String filePath, FileType type)
 	{
 		Sim out = new Sim();
-		if (out.openTextOutputStream(filePath)) return;
+		if (out.openTextOutputStream(filePath)) return out.finishWrite();
 
 		out.init(cell, filePath, type);
 		HierarchyEnumerator.enumerateCell(cell, context, new Visitor(out, type), Netlist.ShortResistors.ALL);
 
-		if (out.closeTextOutputStream()) return;
+		if (out.closeTextOutputStream()) return out.finishWrite();
 		System.out.println(filePath + " written");
-	}
+        return out.finishWrite();
+    }
 
 	/**
 	 * Creates a new instance of the Sim netlister.
 	 */
 	Sim()
 	{
-	}
+    }
 
 	private static class Visitor extends HierarchyEnumerator.Visitor
 	{
@@ -164,8 +166,8 @@ public class Sim extends Output
 					e.getName().startsWith("phi2l")) globalNetPhi2L = globalNetNum;
 			}
 
-			if (globalNetVDD < 0) System.out.println("Warning: no power export in this cell");
-			if (globalNetGND < 0) System.out.println("Warning: no ground export in this cell");
+			if (globalNetVDD < 0) reportWarning("Warning: no power export in this cell");
+			if (globalNetGND < 0) reportWarning("Warning: no ground export in this cell");
 		}
 
 		// reset the arcinst node values

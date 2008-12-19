@@ -65,15 +65,17 @@ public class L extends Output
 	 * The main entry point for L deck writing.
      * @param cell the top-level cell to write.
 	 * @param filePath the disk file to create.
+     * @return the Output object used for writing
 	 */
-	public static void writeLFile(Cell cell, String filePath)
+	public static Output writeLFile(Cell cell, String filePath)
 	{
 		L out = new L();
-		if (out.openTextOutputStream(filePath)) return;
+		if (out.openTextOutputStream(filePath)) return out.finishWrite();
 		out.writeLCells(cell);
-		if (out.closeTextOutputStream()) return;
+		if (out.closeTextOutputStream()) return out.finishWrite();
 		System.out.println(filePath + " written");
-	}
+        return out.finishWrite();
+    }
 
 	/**
 	 * Creates a new instance of the L netlister.

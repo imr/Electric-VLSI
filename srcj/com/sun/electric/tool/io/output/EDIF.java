@@ -200,15 +200,17 @@ public class EDIF extends Topology
      * @param cell the top-level cell to write.
      * @param context the hierarchical context to the cell.
 	 * @param filePath the disk file to create.
+     * @return the Output object used for writing
 	 */
-	public static void writeEDIFFile(Cell cell, VarContext context, String filePath)
+	public static Output writeEDIFFile(Cell cell, VarContext context, String filePath)
 	{
 		EDIF out = new EDIF();
-		if (out.openTextOutputStream(filePath)) return;
-		if (out.writeCell(cell, context)) return;
-		if (out.closeTextOutputStream()) return;
+		if (out.openTextOutputStream(filePath)) return out.finishWrite();
+		if (out.writeCell(cell, context)) return out.finishWrite();
+		if (out.closeTextOutputStream()) return out.finishWrite();
 		System.out.println(filePath + " written");
-	}
+        return out.finishWrite();
+    }
 
 	/**
 	 * Creates a new instance of the EDIF netlister.
@@ -868,9 +870,9 @@ public class EDIF extends Topology
                             // get equivalent port name
                             EDIFEquiv.PortEquivalence pe = ne.getPortEquivElec(portName);
                             if (pe == null) {
-                                System.out.println("Error: no equivalent port found for '"+portName+"' on node "+niProto.describe(false));
-                                System.out.println("     Equivalence class: ");
-                                System.out.println(ne.toString());
+                                String msg = "Error: no equivalent port found for '"+portName+"' on node "+niProto.describe(false) +
+                                "\n     Equivalence class: " + ne.toString();
+                                reportError(msg);
                             } else {
                                 if (!pe.getExtPort().ignorePort) {
                                     blockOpen("portRef");
@@ -906,9 +908,9 @@ public class EDIF extends Topology
                             // get equivalent port name
                             EDIFEquiv.PortEquivalence pe = ne.getPortEquivElec(portName);
                             if (pe == null) {
-                                System.out.println("Error: no equivalent port found for '"+portName+"' on node "+niProto.describe(false));
-                                System.out.println("     Equivalence class: ");
-                                System.out.println(ne.toString());
+                                String msg = "Error: no equivalent port found for '"+portName+"' on node "+niProto.describe(false) +
+                                "\n     Equivalence class: " + ne.toString();
+                                reportError(msg);
                             } else {
                                 if (!pe.getExtPort().ignorePort) {
                                     blockOpen("portRef");
@@ -2209,7 +2211,7 @@ public class EDIF extends Topology
 			}
 			if (depth > blkstack_ptr)
 			{
-				System.out.println("EDIF output: could not match keyword <" + keyword + ">");
+				reportError("EDIF output: could not match keyword <" + keyword + ">");
 				return;
 			}
 		}

@@ -68,21 +68,21 @@ public class Eagle extends Output
 	/**
 	 * Creates a new instance of Eagle netlister.
 	 */
-	private Eagle()
-	{
-	}
+	private Eagle() {}
 
 	/**
 	 * The main entry point for Eagle deck writing.
      * @param cell the top-level cell to write.
      * @param context the hierarchical context to the cell.
 	 * @param filePath the disk file to create.
+     * @return the Output object used for writing
 	 */
-	public static void writeEagleFile(Cell cell, VarContext context, String filePath)
+	public static Output writeEagleFile(Cell cell, VarContext context, String filePath)
 	{
 		Eagle out = new Eagle();
 		out.writeNetlist(cell, context, filePath);
-	}
+        return out;
+    }
 
 	private void writeNetlist(Cell cell, VarContext context, String filePath)
 	{
@@ -98,8 +98,9 @@ public class Eagle extends Output
 		// warn the user if nets not found
 		if (networks.size() == 0)
 		{
-			System.out.println("ERROR: no output produced.  Packages need attribute 'ref_des' and ports need attribute 'pin'");
-		}
+			reportError("ERROR: no output produced.  Packages need attribute 'ref_des' and ports need attribute 'pin'");
+            return;
+        }
 
 		// add all network pairs
 		Collections.sort(networks, new NetNamesSort());

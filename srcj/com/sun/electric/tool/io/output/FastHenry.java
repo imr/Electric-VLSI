@@ -142,15 +142,17 @@ public class FastHenry extends Output
      * @param cell the top-level cell to write.
      * @param context the hierarchical context to the cell.
 	 * @param filePath the disk file to create.
+     * @return the Output object used for writing
 	 */
-	public static void writeFastHenryFile(Cell cell, VarContext context, String filePath)
+	public static Output writeFastHenryFile(Cell cell, VarContext context, String filePath)
 	{
 		FastHenry out = new FastHenry();
-		if (out.openTextOutputStream(filePath)) return;
+		if (out.openTextOutputStream(filePath)) return out.finishWrite();
 		out.writeFH(cell, context);
-		if (out.closeTextOutputStream()) return;
+		if (out.closeTextOutputStream()) return out.finishWrite();
 		System.out.println(filePath + " written");
-	}
+        return out.finishWrite();
+    }
 
 	/**
 	 * Creates a new instance of the FastHenry netlister.
@@ -241,7 +243,7 @@ public class FastHenry extends Output
 				{
 					// "nodeZVal" used in proper order
 					if (zVal != nodeZVal)
-						System.out.println("Warning: inconsistent z value at " + ni);
+						reportWarning("Warning: inconsistent z value at " + ni);
 				}
 				nodeZVal = zVal;
 				found = true;
@@ -326,7 +328,7 @@ public class FastHenry extends Output
 			Export oE = sim_fasthenryfindotherport(con.getArc(), thatEnd, arcsSeen);
 			if (oE == null)
 			{
-				System.out.println("Warning: trace on export " + e.getName() + " has no other end that is an export");
+				reportWarning("Warning: trace on export " + e.getName() + " has no other end that is an export");
 				continue;
 			}
 	
@@ -341,7 +343,7 @@ public class FastHenry extends Output
 			ArcInst ai = it.next();
 			if (arcsSeen.contains(ai)) continue;
 			if (ai.getVar(GROUP_NAME_KEY) == null) continue;
-			System.out.println("Warning: " + ai + " is not connected to an export");
+			reportWarning("Warning: " + ai + " is not connected to an export");
 		}
 	}
 	

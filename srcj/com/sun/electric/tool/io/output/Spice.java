@@ -153,23 +153,24 @@ public class Spice extends Topology
 	 * The main entry point for Spice deck writing.
      * @param cell the top-level cell to write.
      * @param context the hierarchical context to the cell.
-	 * @param filePath the disk file to create.
+	 * @param fileP the disk file to create.
 	 * @param cdl true if this is CDL output (false for Spice).
+     * @return the Output object used for writing
 	 */
-	public static void writeSpiceFile(Cell cell, VarContext context, String filePath, boolean cdl)
+	public static Output writeSpiceFile(Cell cell, VarContext context, String fileP, boolean cdl)
 	{
 		Spice out = new Spice();
 		out.useCDL = cdl;
-		if (out.openTextOutputStream(filePath)) return;
-		if (out.writeCell(cell, context)) return;
-		if (out.closeTextOutputStream()) return;
-		System.out.println(filePath + " written");
+		if (out.openTextOutputStream(fileP)) return out.finishWrite();
+		if (out.writeCell(cell, context)) return out.finishWrite();
+		if (out.closeTextOutputStream()) return out.finishWrite();
+		System.out.println(fileP + " written");
 
 		// write CDL support file if requested
 		if (out.useCDL)
 		{
 			// write the control files
-			String deckFile = filePath;
+			String deckFile = fileP;
 			String deckPath = "";
 			int lastDirSep = deckFile.lastIndexOf(File.separatorChar);
 			if (lastDirSep > 0)
@@ -179,7 +180,7 @@ public class Spice extends Topology
 			}
 
 			String templateFile = deckPath + File.separator + cell.getName() + ".cdltemplate";
-			if (out.openTextOutputStream(templateFile)) return;
+			if (out.openTextOutputStream(templateFile)) return out.finishWrite();
 
 			String libName = Simulation.getCDLLibName();
 			String libPath = Simulation.getCDLLibPath();
@@ -203,7 +204,7 @@ public class Spice extends Topology
 			out.printWriter.print("    'refLib                 \"\"\n");
 			out.printWriter.print("    'globalNodeExpand       \"full\"\n");
 			out.printWriter.print(")\n");
-			if (out.closeTextOutputStream()) return;
+			if (out.closeTextOutputStream()) return out.finishWrite();
 			System.out.println(templateFile + " written");
 		}
 
@@ -219,15 +220,15 @@ public class Spice extends Topology
             }
             File dir = new File(rundir);
 
-            int start = filePath.lastIndexOf(File.separator);
+            int start = fileP.lastIndexOf(File.separator);
             if (start == -1) start = 0; else {
                 start++;
-                if (start > filePath.length()) start = filePath.length();
+                if (start > fileP.length()) start = fileP.length();
             }
-            int end = filePath.lastIndexOf(".");
-            if (end == -1) end = filePath.length();
-            String filename_noext = filePath.substring(start, end);
-            String filename = filePath.substring(start, filePath.length());
+            int end = fileP.lastIndexOf(".");
+            if (end == -1) end = fileP.length();
+            String filename_noext = fileP.substring(start, end);
+            String filename = fileP.substring(start, fileP.length());
 
             // replace vars in command and args
             command = command.replaceAll("\\$\\{WORKING_DIR}", workdir);
@@ -258,7 +259,8 @@ public class Spice extends Topology
         {
             out.parasiticInfo.backAnnotate();
         }
-	}
+        return out.finishWrite();
+    }
 
 	/**
 	 * Method called once by the traversal mechanism.
@@ -330,7 +332,7 @@ public class Spice extends Topology
                     multiLinePrint(true, "* Primitives described in this file:\n");
                     addIncludeFile(filePart);
                 } else {
-                    System.out.println("Warning: CDL Include file not found: "+fileName);
+                    reportWarning("Warning: CDL Include file not found: "+fileName);
                 }
             }
 		} else
@@ -500,12 +502,12 @@ public class Spice extends Topology
 		if (pmosTrans != 0 && powerNet == null)
 		{
 			String message = "WARNING: no power connection for P-transistor wells in " + cell;
-			dumpErrorMessage(message);
+			dumpMessage(message, false);
 		}
 		if (nmosTrans != 0 && groundNet == null)
 		{
 			String message = "WARNING: no ground connection for N-transistor wells in " + cell;
-			dumpErrorMessage(message);
+			dumpMessage(message, false);
 		}
 
 		// generate header for subckt or top-level cell
@@ -714,7 +716,7 @@ public class Spice extends Topology
                         net = netList.getNetwork(no, pp, exportIndex);
 					if (net == null)
 					{
-						System.out.println("Warning: cannot find network for signal " + subCS.getName() + " in cell " +
+						reportWarning("Warning: cannot find network for signal " + subCS.getName() + " in cell " +
 							subCni.getCell().describe(false));
 						continue;
 					}
@@ -965,7 +967,7 @@ public class Spice extends Topology
 			if (gateCs == null || sourceCs == null || drainCs == null)
 			{
 				String message = "WARNING: " + ni + " not fully connected in " + cell;
-				dumpErrorMessage(message);
+				dumpMessage(message, false);
 			}
 
 			// get model information
@@ -1123,7 +1125,7 @@ public class Spice extends Topology
 			// compute length and width (or area for nonMOS transistors)
 			TransistorSize size = ni.getTransistorSize(context);
             if (size == null)
-                System.out.println("Warning: transistor has null size " + ni.describe(false));
+                reportWarning("Warning: transistor has null size " + ni.describe(false));
             else
             {
             	// write the length
@@ -2264,7 +2266,7 @@ public class Spice extends Topology
                 SpiceSubckt subckt = reader.getSubckt(parameterizedName);
                 if (cni != null && subckt != null) {
                     if (subckt == null) {
-                        System.out.println("Error: No subckt for "+parameterizedName+" found in included file: "+fileName);
+                        reportError("Error: No subckt for "+parameterizedName+" found in included file: "+fileName);
                     } else {
                         List<String> signals = new ArrayList<String>();
                         for (Iterator<CellSignal> sIt = cni.getCellSignals(); sIt.hasNext(); ) {
@@ -2274,7 +2276,7 @@ public class Spice extends Topology
                         }
                         List<String> subcktSignals = subckt.getPorts();
                         if (signals.size() != subcktSignals.size()) {
-                            System.out.println("Warning: wrong number of ports for subckt "+
+                            reportWarning("Warning: wrong number of ports for subckt "+
                                     parameterizedName+": expected "+signals.size()+", but found "+
                                     subcktSignals.size()+", in included file "+fileName);
                         }
@@ -2283,14 +2285,14 @@ public class Spice extends Topology
                             String s1 = signals.get(i);
                             String s2 = subcktSignals.get(i);
                             if (!s1.equalsIgnoreCase(s2)) {
-                                System.out.println("Warning: port "+i+" of subckt "+parameterizedName+
+                                reportWarning("Warning: port "+i+" of subckt "+parameterizedName+
                                         " is named "+s1+" in Electric, but "+s2+" in included file "+fileName);
                             }
                         }
                     }
                 }
             } catch (FileNotFoundException e) {
-                System.out.println("Error validating included file for cell "+info.getCell().describe(true)+": "+e.getMessage());
+                reportError("Error validating included file for cell "+info.getCell().describe(true)+": "+e.getMessage());
             }
         }
     }
@@ -2350,7 +2352,7 @@ public class Spice extends Topology
         // check for M=@M, and warn user that this is a bad idea, and we will not write it out
         if (mVar.getObject().toString().equals("@M") || (mVar.getObject().toString().equals("P(\"M\")")))
         {
-            System.out.println("Warning: M=@M [eval=" + value + "] on " + no.getName() +
+            reportWarning("Warning: M=@M [eval=" + value + "] on " + no.getName() +
             	" is a bad idea, not writing it out: " + context.push(no).getInstPath("."));
             return;
         }
@@ -2432,13 +2434,13 @@ public class Spice extends Topology
                     System.out.println("Spice Header Card '" + fileName + "' is included");
                     return;
 				}
-                System.out.println("Spice Header Card '" + fileName + "' cannot be loaded");
+                reportWarning("Spice Header Card '" + fileName + "' cannot be loaded");
             } else
 			{
 				// normal header file specified
 				File test = new File(headerFile);
 				if (!test.exists())
-					System.out.println("Warning: cannot find model file '" + headerFile + "'");
+					reportWarning("Warning: cannot find model file '" + headerFile + "'");
 				multiLinePrint(true, "* Model cards are described in this file:\n");
 				addIncludeFile(headerFile);
 				return;
@@ -2460,7 +2462,7 @@ public class Spice extends Topology
 				multiLinePrint(false, header[i] + "\n");
 			return;
 		}
-		System.out.println("WARNING: no model cards for SPICE level " + level +
+		reportWarning("WARNING: no model cards for SPICE level " + level +
 			" in " + layoutTechnology.getTechName() + " technology");
 	}
 
@@ -2492,7 +2494,7 @@ public class Spice extends Topology
 				}
                 else
                 {
-                    System.out.println("Spice Trailer Card '" + fileName + "' cannot be loaded");
+                    reportWarning("Spice Trailer Card '" + fileName + "' cannot be loaded");
                 }
 			} else
 			{
@@ -2527,13 +2529,13 @@ public class Spice extends Topology
 		if (cs0 == null || cs1 == null)
 		{
 			String message = "WARNING: " + ni + " component not fully connected in " + ni.getParent();
-			dumpErrorMessage(message);
+			dumpMessage(message, false);
 		}
 		if (cs0 != null && cs1 != null && cs0 == cs1)
 		{
 			String message = "WARNING: " + ni + " component appears to be shorted on net " + net0.toString() +
 				" in " + ni.getParent();
-			dumpErrorMessage(message);
+			dumpMessage(message, false);
 			return;
 		}
 
@@ -2908,13 +2910,16 @@ public class Spice extends Topology
 	}
 
 	/**
-	 * Method to report an error that is built in the infinite string.
-	 * The error is sent to the messages window and also to the SPICE deck "f".
+	 * Method to report an error or warning messagethat is built in the infinite string.
+	 * The message is sent to the messages window, errorLogger and also to the SPICE deck "f".
 	 */
-	private void dumpErrorMessage(String message)
+	private void dumpMessage(String message, boolean isErrorMsg)
 	{
 		multiLinePrint(true, "*** " + message + "\n");
-		System.out.println(message);
+        if (isErrorMsg)
+            reportError(message);
+        else
+            reportWarning(message);
 	}
 
 	/**
@@ -3043,7 +3048,7 @@ public class Spice extends Topology
                         try {
                             printWriter = new PrintWriter(new BufferedWriter(new FileWriter(filePath)));
                         } catch (IOException e) {
-                            System.out.println("Unable to open "+filePath+" for write.");
+                            spice.reportWarning("Unable to open "+filePath+" for write.");
                             return;
                         }
                         spice.printWriter = printWriter;

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09a: ******************************
 
+IMP: (12/18/08, GVG) Improvements in Output-based classes to detect errors and
+warnings during the writing process (Bug #1937)
+
 ************************* END OF Version 8.08, GNU RELEASE *************
 ************************* Version 8.08o: ******************************
 
@@ -914,7 +917,7 @@ BUG: (7/29/08, GVG) Standard Technology Editor and transparency layers (Bug
 FIX: Picking the right layer name from the variable name.
 
 BUG: (7/29/08, GVG) Exception with unknown foundry (Bug #1782)
-FIX: Change Type from enumerator to Class so it can accommodate new foundries. 
+FIX: Change Type from enumerator to Class so it can accommodate new foundries.
      Technology.xsd was modified.
 
 ************************* Version 8.08b: ******************************
