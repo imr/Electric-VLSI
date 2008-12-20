@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09a: ******************************
 
+BUG: (12/19/08, GVG) Cannot load libraries (Bug #1992)
+FIX: Adding extra code to detect invalid delib libraries.
+
 IMP: (12/18/08, GVG) Improvements in Output-based classes to detect errors and
 warnings during the writing process (Bug #1937)
 

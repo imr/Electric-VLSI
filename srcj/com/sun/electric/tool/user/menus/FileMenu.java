@@ -530,7 +530,7 @@ public class FileMenu {
             lib = LibraryFiles.readLibrary(fileURL, null, type, false);
             if (lib == null)
             {
-                System.out.println("Error importing " + fileURL.getFile() + " as " + type + " format.");
+                System.out.println("Error reading " + fileURL.getFile() + " as " + type + " format.");
                 return false;
             }
             fieldVariableChanged("lib");

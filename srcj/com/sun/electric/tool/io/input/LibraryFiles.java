@@ -349,6 +349,7 @@ public abstract class LibraryFiles extends Input
                 LibId libId = lib != null ? lib.getId() : EDatabase.serverDatabase().getIdManager().newLibId(libName);
                 in = new JELIB(libId, fileURL, type);
             } catch (IOException e) {
+                e.printStackTrace();
                 return null;
             }
 		} else if (type == FileType.READABLEDUMP)
