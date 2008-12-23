@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09a: ******************************
 
+BUG/MAN: (12/23/08, SMR) GDS Project Settings should make it clear
+     how to ignore a layer (Bug #1994).
+FIX: Updated dialog and user's manual.
+
 BUG: (12/23/08, SMR) GDS input always warns about array references.
 FIX: In input.GDS.importALibrary(), start "arraySimplificationUseful" at false.
 
