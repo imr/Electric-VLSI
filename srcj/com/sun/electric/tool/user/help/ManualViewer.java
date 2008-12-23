@@ -28,6 +28,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.tool.Client;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.ActivityLogger;
@@ -666,6 +667,11 @@ public class ManualViewer extends EModelessDialog
 			for(String commandName : menuMapCheck.keySet())
 			{
 				String fileName = menuMapCheck.get(commandName);
+		        if (Client.isOSWindows() || Client.isOSMac())
+		        {
+					if (commandName.indexOf("Remember Location of Display") >= 0) continue;
+					if (commandName.indexOf("Move to Other Display") >= 0) continue;
+		        }
 				System.out.println("Command " + commandName + " was mentioned in file " + fileName + " but does not exist");
 			}
 			menuMapCheck = null;
@@ -687,7 +693,14 @@ public class ManualViewer extends EModelessDialog
 				String fileName = menuMap.get(commandName);
 				if (fileName == null && Job.getDebug())
 				{
-					System.out.println("No help for " + commandName);
+					boolean specialCommand = false;
+					if (commandName.indexOf("Dais") >= 0) specialCommand = true;
+					if (commandName.indexOf("Skill") >= 0) specialCommand = true;
+					if (commandName.indexOf("TSMC") >= 0) specialCommand = true;
+					if (commandName.indexOf("CMOS90") >= 0) specialCommand = true;
+					if (commandName.indexOf("Sun Lava") >= 0) specialCommand = true;
+					if (commandName.indexOf("Sun Lava") >= 0) specialCommand = true;
+					if (!specialCommand) System.out.println("No help for " + commandName);
 				} else
 				{
 					if (menuMapCheck != null) menuMapCheck.remove(commandName);
