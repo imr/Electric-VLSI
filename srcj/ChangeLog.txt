@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09a: ******************************
 
+BUG: (12/23/08, SMR) GDS input always warns about array references.
+FIX: In input.GDS.importALibrary(), start "arraySimplificationUseful" at false.
+
 BUG: (12/19/08, GVG) Cannot load libraries (Bug #1992)
 FIX: Adding extra code to detect invalid delib libraries.
 

@@ -832,7 +832,7 @@ public class GDS extends Input
 	protected Library importALibrary(Library lib)
 	{
 		// initialize
-		arraySimplificationUseful = true;
+		arraySimplificationUseful = false;
 		CellBuilder.init();
 		theLibrary = lib;
 
