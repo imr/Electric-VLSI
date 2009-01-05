@@ -26,6 +26,7 @@ package com.sun.electric.tool.user.ui;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.WeakReferences;
 import com.sun.electric.database.topology.NodeInst;
@@ -64,11 +65,13 @@ public class ExplorerTreeModel extends DefaultTreeModel {
     final Object[] jobPath;
     final Object[] errorPath;
 
+	private static Pref.Group prefs = Pref.groupForPackage(ExplorerTreeModel.class);
+	private static Pref prefSortLexically = Pref.makeBooleanPref("ExplorerTree_SortLexically", prefs, false);
+
 	private static final int SHOWALPHABETICALLY = 1;
 	private static final int SHOWBYCELLGROUP    = 2;
 	private static final int SHOWBYHIERARCHY    = 3;
 	private static int howToShow = SHOWBYCELLGROUP;
-	private static boolean sortLexically = false;
 
 	static class CellAndCount
 	{
@@ -455,13 +458,13 @@ public class ExplorerTreeModel extends DefaultTreeModel {
 
     static boolean getSortLexically()
     {
-    	return sortLexically;
+    	return prefSortLexically.getBoolean();
     }
 
     static void setSortLexically(ActionEvent e)
     {
     	JCheckBoxMenuItem sl = (JCheckBoxMenuItem)e.getSource();
-    	sortLexically = !sl.isSelected();
+    	prefSortLexically.setBoolean(!sl.isSelected());
         WindowFrame.wantToRedoLibraryTree();
     }
 
@@ -495,7 +498,7 @@ public class ExplorerTreeModel extends DefaultTreeModel {
 				List<Cell> cellList = new ArrayList<Cell>();
 				for(Iterator<Cell> eit = lib.getCells(); eit.hasNext(); )
 					cellList.add(eit.next());
-				if (sortLexically)
+				if (prefSortLexically.getBoolean())
 		        	Collections.sort(cellList, new TextUtils.CellsByName());
 	        	for(Cell cell : cellList)
 	        	{
@@ -568,7 +571,7 @@ public class ExplorerTreeModel extends DefaultTreeModel {
 				List<Cell> cellList = new ArrayList<Cell>();
 				for(Iterator<Cell> eit = lib.getCells(); eit.hasNext(); )
 					cellList.add(eit.next());
-				if (sortLexically)
+				if (prefSortLexically.getBoolean())
 		        	Collections.sort(cellList, new TextUtils.CellsByName());
 	        	for(Cell cell : cellList)
 	        	{	
@@ -652,7 +655,7 @@ public class ExplorerTreeModel extends DefaultTreeModel {
 				List<Cell> cellList = new ArrayList<Cell>();
 				for(Iterator<Cell> eit = lib.getCells(); eit.hasNext(); )
 					cellList.add(eit.next());
-				if (sortLexically)
+				if (prefSortLexically.getBoolean())
 		        	Collections.sort(cellList, new TextUtils.CellsByName());
 	        	for(Cell cell : cellList)
 	        	{

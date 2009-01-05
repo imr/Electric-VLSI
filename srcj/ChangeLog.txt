@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09a: ******************************
 
+IMP: (1/5/09, SMR) Now remember (in Prefs) the Explorer-tree setting to evaluate
+     numbers when sorting cell names  (Bug #1981).
+
 BUG: (1/5/09, SMR) Wiring an arc to a contact uses incorrect arc width (Bug #1995).
 FIX: In Router.findArcWidthToUse(), when no other arcs are present on a primitive,
      compute width based on difference between current and default size.
