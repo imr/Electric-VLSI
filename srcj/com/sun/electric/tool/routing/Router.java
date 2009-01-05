@@ -597,8 +597,6 @@ public abstract class Router {
          * to pi, or the default width of ap if none found.<p>
          * You may specify pi as null, in which case it just returns
          * ap.getDefaultLambdaFullWidth().
-         *
-         *
          * @param pi the PortInst to connect to
          * @param ap the Arc type to connect with
          */
@@ -620,6 +618,7 @@ public abstract class Router {
                 if (preferredWidth < newWidth && aiAngle == preferredAngle)
                     preferredWidth = newWidth;
             }
+
             // check any wires that connect to the export of this portinst in the
             // prototype, if this is a cell instance
             NodeInst ni = pi.getNodeInst();
@@ -629,14 +628,28 @@ public abstract class Router {
                 PortInst exportedInst = export.getOriginalPort();
                 findArcWidthToUse(exportedInst, ap);
             }
+
             // if this is a contact cut that can connect to the arc and no other
             // arcs have been found, use the width/height of it.
-            if ((ni.getProto() instanceof PrimitiveNode) && preferredAngle >= 0) {
+            if ((ni.getProto() instanceof PrimitiveNode) && preferredAngle >= 0)
+            {
                 PrimitiveNode pn = (PrimitiveNode)ni.getProto();
-                if (pn.getFunction() == PrimitiveNode.Function.CONTACT && pi.getPortProto().connectsTo(ap)) {
+                if (pn.getFunction() == PrimitiveNode.Function.CONTACT && pi.getPortProto().connectsTo(ap))
+                {
                     double width = 0;
-                    if (preferredAngle == 0) width = ni.getYSizeWithoutOffset();
-                    if (preferredAngle == 900) width = ni.getXSizeWithoutOffset();
+                    if (preferredAngle == 0)
+                    {
+                    	double ySize = ni.getLambdaBaseYSize();
+                    	double ySizeBase = pn.getDefaultLambdaBaseHeight();
+                    	width = basewidth + ySize - ySizeBase;
+                    }
+                    if (preferredAngle == 900)
+                    {
+                    	double xSize = ni.getLambdaBaseXSize();
+                    	double xSizeBase = pn.getDefaultLambdaBaseWidth();
+                    	width = basewidth + xSize - xSizeBase;
+                    }
+                    
                     if (width > defaultWidth) defaultWidth = width;
                     if (width > preferredWidth) preferredWidth = width;
                 }

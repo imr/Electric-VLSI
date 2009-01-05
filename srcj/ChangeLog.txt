@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09a: ******************************
 
+BUG: (1/5/09, SMR) Wiring an arc to a contact uses incorrect arc width (Bug #1995).
+FIX: In Router.findArcWidthToUse(), when no other arcs are present on a primitive,
+     compute width based on difference between current and default size.
+
 IMP/MAN: (1/5/09, SMR) Added LTSpice raw output reader (Bug #1996).
 
 BUG/MAN: (12/23/08, SMR) GDS Project Settings should make it clear
