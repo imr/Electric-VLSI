@@ -35,7 +35,7 @@ import java.net.URL;
 
 /**
  * Class for reading and displaying waveforms from Raw Spice output.
- * Thease are contained in .raw files.
+ * These are contained in .raw files.
  */
 public class RawSpiceOut extends Simulate
 {

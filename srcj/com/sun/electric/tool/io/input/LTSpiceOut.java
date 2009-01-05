@@ -2,11 +2,11 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: SmartSpiceOut.java
- * Input/output tool: reader for Smart Spice output (.dump)
+ * File: LTSpiceOut.java
+ * Input/output tool: reader for LTSpice output (.raw)
  * Written by Steven M. Rubin, Sun Microsystems.
  *
- * Copyright (c) 2004 Sun Microsystems and Static Free Software
+ * Copyright (c) 2009 Sun Microsystems and Static Free Software
  *
  * Electric(tm) is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,15 +34,15 @@ import java.io.IOException;
 import java.net.URL;
 
 /**
- * Class for reading and displaying waveforms from SmartSpice Raw output.
- * These are contained in .dump files.
+ * Class for reading and displaying waveforms from LTSpice Raw output.
+ * These are contained in .raw files.
  */
-public class SmartSpiceOut extends Simulate
+public class LTSpiceOut extends Simulate
 {
-	SmartSpiceOut() {}
+	LTSpiceOut() {}
 
 	/**
-	 * Method to read an Smart Spice output file.
+	 * Method to read an LTSpice output file.
 	 */
 	protected Stimuli readSimulationOutput(URL fileURL, Cell cell)
 		throws IOException
@@ -50,11 +50,11 @@ public class SmartSpiceOut extends Simulate
 		// open the file
 		if (openBinaryInput(fileURL)) return null;
 
-		// show progress reading .dump file
-		startProgressDialog("SmartSpice output", fileURL.getFile());
+		// show progress reading .raw file
+		startProgressDialog("LTSpice output", fileURL.getFile());
 
-		// read the actual signal data from the .dump file
-		Stimuli sd = readRawSmartSpiceFile(cell);
+		// read the actual signal data from the .raw file
+		Stimuli sd = readRawLTSpiceFile(cell);
 
 		// stop progress dialog, close the file
 		stopProgressDialog();
@@ -64,10 +64,9 @@ public class SmartSpiceOut extends Simulate
 		return sd;
 	}
 
-	private Stimuli readRawSmartSpiceFile(Cell cell)
+	private Stimuli readRawLTSpiceFile(Cell cell)
 		throws IOException
 	{
-		boolean first = true;
 		int signalCount = -1;
 		String[] signalNames = null;
 		int rowCount = -1;
@@ -78,22 +77,6 @@ public class SmartSpiceOut extends Simulate
 			String line = getLineFromBinary();
 			if (line == null) break;
 
-			// make sure this isn't an HSPICE deck (check first line)
-			if (first)
-			{
-				first = false;
-				if (line.length() >= 20)
-				{
-					String hsFormat = line.substring(16, 20);
-					if (hsFormat.equals("9007") || hsFormat.equals("9601"))
-					{
-						System.out.println("This is an HSPICE file, not a SMARTSPICE file");
-						System.out.println("Change the SPICE format (in Preferences) and reread");
-						return null;
-					}
-				}
-			}
-
 			// find the ":" separator
 			int colonPos = line.indexOf(':');
 			if (colonPos < 0) continue;
@@ -102,6 +85,7 @@ public class SmartSpiceOut extends Simulate
 
 			if (keyWord.equals("No. Variables"))
 			{
+				// the first signal is Time
 				signalCount = TextUtils.atoi(restOfLine) - 1;
 				continue;
 			}
@@ -126,12 +110,9 @@ public class SmartSpiceOut extends Simulate
 				values = new double[signalCount][rowCount];
 				for(int i=0; i<=signalCount; i++)
 				{
-					if (i != 0)
-					{
-						restOfLine = getLineFromBinary();
-						if (restOfLine == null) break;
-						restOfLine = restOfLine.trim();
-					}
+					restOfLine = getLineFromBinary();
+					if (restOfLine == null) break;
+					restOfLine = restOfLine.trim();
 					int indexOnLine = TextUtils.atoi(restOfLine);
 					if (indexOnLine != i)
 						System.out.println("Warning: Variable " + i + " has number " + indexOnLine);
@@ -145,53 +126,9 @@ public class SmartSpiceOut extends Simulate
 					{
 						name = name.substring(2, name.length()-1);
 					}
-					if (i == 0)
-					{
-						if (!name.equals("time"))
-							System.out.println("Warning: the first variable (the sweep variable) should be time, is '" + name + "'");
-					} else
-					{
-						signalNames[i - 1] = name;
-					}
+					if (i > 0) signalNames[i-1] = name;
 				}
 				continue;
-			}
-			if (keyWord.equals("Values"))
-			{
-				if (signalCount < 0)
-				{
-					System.out.println("Missing variable count in file");
-					return null;
-				}
-				if (rowCount < 0)
-				{
-					System.out.println("Missing point count in file");
-					return null;
-				}
-				an.buildCommonTime(rowCount);
-
-				// read the data
-				for(int j=0; j<rowCount; j++)
-				{
-					line = getLineFromBinary();
-					if (line == null) break;
-					if (TextUtils.atoi(line) != j)
-					{
-						System.out.println("Warning: data point " + j + " has number " + TextUtils.atoi(line));
-					}
-					int spacePos = line.indexOf(' ');
-					if (spacePos >= 0) line = line.substring(spacePos+1);
-					double time = TextUtils.atof(line.trim());
-					an.setCommonTime(j, time);
-
-					for(int i=0; i<signalCount; i++)
-					{
-						line = getLineFromBinary();
-						if (line == null) break;
-						double value = TextUtils.atof(line.trim());
-						values[i][j] = value;
-					}
-				}
 			}
 			if (keyWord.equals("Binary"))
 			{
@@ -205,43 +142,48 @@ public class SmartSpiceOut extends Simulate
 					System.out.println("Missing point count in file");
 					return null;
 				}
+
 				an.buildCommonTime(rowCount);
 
 				// read the data
 				for(int j=0; j<rowCount; j++)
 				{
-					long lval = dataInputStream.readLong();
-					lval = Long.reverseBytes(lval);
-					double time = Double.longBitsToDouble(lval);
+					double time = getNextDouble();
 					an.setCommonTime(j, time);
 					for(int i=0; i<signalCount; i++)
 					{
-						double value = 0;
-						if (true) {
-							// swap bytes, for smartspice raw files generated on linux.
-							// with ".options post" (the default) yields this binary format
-							lval = dataInputStream.readLong();
-							lval = Long.reverseBytes(lval);
-							value = Double.longBitsToDouble(lval);
-						} else {
-							// do smartspice output files on other OS's have this byte order?
-							value = dataInputStream.readDouble();
-						}
+						double value = getNextDouble();
 						values[i][j] = value;
 					}
 				}
 			}
 		}
-		for (int i = 0; i < signalCount; i++) {
+		for (int i = 0; i < signalCount; i++)
+		{
 			String name = signalNames[i];
 			int lastDotPos = name.lastIndexOf('.');
 			String context = null;
-			if (lastDotPos >= 0) {
+			if (lastDotPos >= 0)
+			{
 				context = name.substring(0, lastDotPos);
 				name = name.substring(lastDotPos + 1);
 			}
 			an.addSignal(signalNames[i], context, values[i]);
 		}
 		return an.getStimuli();
+	}
+
+	private double getNextDouble()
+		throws IOException
+	{
+		// double values appear with reversed bytes
+		long lt = dataInputStream.readLong();
+		lt = Long.reverseBytes(lt);
+		double t = Double.longBitsToDouble(lt);
+
+		// for some reason, there is an extra Double value after each number in the file...ignore it
+		dataInputStream.readLong();
+
+		return t;
 	}
 }

@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09a: ******************************
 
+IMP/MAN: (1/5/09, SMR) Added LTSpice raw output reader (Bug #1996).
+
 BUG/MAN: (12/23/08, SMR) GDS Project Settings should make it clear
      how to ignore a layer (Bug #1994).
 FIX: Updated dialog and user's manual.

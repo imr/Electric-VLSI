@@ -41,7 +41,7 @@ import java.util.List;
 
 /**
  * Class for reading and displaying waveforms from Verilog output.
- * Thease are contained in .v files.
+ * These are contained in .v files.
  */
 public class VerilogOut extends Simulate
 {

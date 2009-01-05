@@ -44,7 +44,7 @@ public class SpiceTab extends PreferencePanel
 {
 	private enum SpiceOutFormat
 	{
-		Standard, Raw, RawSmart, Epic;
+		Standard, Raw, RawSmart, RawLT, Epic;
 	}
 
 	/** Creates new form SpiceTab */
@@ -186,6 +186,7 @@ public class SpiceTab extends PreferencePanel
 		spiceOutputFormatPopup.addItem(SpiceOutFormat.Standard);
 		spiceOutputFormatPopup.addItem(SpiceOutFormat.Raw);
 		spiceOutputFormatPopup.addItem(SpiceOutFormat.RawSmart);
+		spiceOutputFormatPopup.addItem(SpiceOutFormat.RawLT);
 		spiceOutputFormatPopup.addItem(SpiceOutFormat.Epic);
 		spiceOutputFormatPopup.setSelectedItem(SpiceOutFormat.valueOf(Simulation.getSpiceOutputFormat()));
 

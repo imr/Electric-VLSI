@@ -131,6 +131,7 @@ public class FileType implements Serializable {
 	/** Describes PSpice standard output.*/	public static final FileType PSPICEOUT    = makeFileType("PSpice Output", new String[] {"txt"}, "PSpice/Spice3 Text Output File (txt)", SPICESIMGRP);
 	/** Describes Raw Spice output. */		public static final FileType RAWSPICEOUT  = makeFileType("RawSpice Output", new String[] {"raw"}, "Spice Raw Output File (raw)", SPICESIMGRP);
 	/** Describes Raw SmartSpice output. */	public static final FileType RAWSSPICEOUT = makeFileType("Raw SmartSpice Output", new String[] {"raw"}, "SmartSPICE Raw Output File (raw)", SPICESIMGRP);
+	/** Describes Raw LTSpice output. */	public static final FileType RAWLTSPICEOUT= makeFileType("Raw LTSpice Output", new String[] {"raw"}, "LTSPICE Raw Output File (raw)", SPICESIMGRP);
 	/** Describes Readable Dump files. */	public static final FileType READABLEDUMP = makeFileType("ReadableDump", new String[] {"txt"}, "Readable Dump Library File (txt)", DATABASEGRP);
 	/** Describes RSIM output. */			public static final FileType RSIM         = makeFileType("RSIM", new String[] {"sim"}, "RSIM File (sim)", OTHERSIMGRP);
 	/** Describes Silos decks.*/			public static final FileType SILOS        = makeFileType("Silos", new String[] {"sil"}, "Silos Deck (sil)", OTHERSIMGRP);

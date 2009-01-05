@@ -40,7 +40,7 @@ import java.util.List;
 
 /**
  * Class for reading and displaying waveforms from ArchSim output.
- * Thease are contained in .asj files.
+ * These are contained in .asj files.
  */
 public class ArchSimOut extends Simulate
 {

@@ -117,6 +117,9 @@ public class Simulate extends Input
         } else if (type == FileType.RAWSPICEOUT)
         {
             is = new RawSpiceOut();
+        } else if (type == FileType.RAWLTSPICEOUT)
+        {
+            is = new LTSpiceOut();
         } else if (type == FileType.RAWSSPICEOUT)
         {
             is = new SmartSpiceOut();
@@ -287,6 +290,10 @@ public class Simulate extends Input
 		if (format.equalsIgnoreCase("RawSmart"))
 		{
 			return FileType.RAWSSPICEOUT;
+		}
+		if (format.equalsIgnoreCase("RawLT"))
+		{
+			return FileType.RAWLTSPICEOUT;
 		}
         if (format.equalsIgnoreCase("Epic"))
         {

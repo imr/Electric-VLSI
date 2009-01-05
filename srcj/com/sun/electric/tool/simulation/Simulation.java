@@ -1612,7 +1612,8 @@ public class Simulation extends Tool
 	 * The values are:<BR>
 	 * "Standard": Standard output (the default)<BR>
 	 * "Raw" Raw output<BR>
-	 * "Raw/Smart": Raw output from SmartSpice<BR>
+	 * "RawLT" Raw output from LTSpice<BR>
+	 * "RawSmart": Raw output from SmartSpice<BR>
 	 */
 	public static String getSpiceOutputFormat() { return cacheSpiceOutputFormat.getString(); }
 	/**
@@ -1621,7 +1622,8 @@ public class Simulation extends Tool
 	 * The values are:<BR>
 	 * "Standard": Standard output (the default)<BR>
 	 * "Raw" Raw output<BR>
-	 * "Raw/Smart": Raw output from SmartSpice<BR>
+	 * "RawLT" Raw output from LTSpice<BR>
+	 * "RawSmart": Raw output from SmartSpice<BR>
 	 */
 	public static void setSpiceOutputFormat(String format) { cacheSpiceOutputFormat.setString(format); }
 	/**
@@ -1630,7 +1632,8 @@ public class Simulation extends Tool
 	 * The values are:<BR>
 	 * "Standard": Standard output<BR>
 	 * "Raw" Raw output<BR>
-	 * "Raw/Smart": Raw output from SmartSpice<BR>
+	 * "RawLT" Raw output from LTSpice<BR>
+	 * "RawSmart": Raw output from SmartSpice<BR>
 	 */
 	public static String getFactorySpiceOutputFormat() { return cacheSpiceOutputFormat.getStringFactoryValue(); }
 
