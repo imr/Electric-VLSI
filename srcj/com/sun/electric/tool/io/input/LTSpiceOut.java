@@ -39,6 +39,11 @@ import java.net.URL;
  */
 public class LTSpiceOut extends Simulate
 {
+	private static final boolean DEBUG = false;
+
+	private boolean complexValues;
+	private boolean realValues;
+
 	LTSpiceOut() {}
 
 	/**
@@ -67,21 +72,43 @@ public class LTSpiceOut extends Simulate
 	private Stimuli readRawLTSpiceFile(Cell cell)
 		throws IOException
 	{
+		complexValues = false;
+		realValues = false;
 		int signalCount = -1;
 		String[] signalNames = null;
 		int rowCount = -1;
 		AnalogAnalysis an = null;
+		AnalogAnalysis.AnalysisType aType = AnalogAnalysis.ANALYSIS_SIGNALS;
 		double[][] values = null;
 		for(;;)
 		{
 			String line = getLineFromBinary();
 			if (line == null) break;
+			updateProgressDialog(line.length());
 
 			// find the ":" separator
 			int colonPos = line.indexOf(':');
 			if (colonPos < 0) continue;
 			String keyWord = line.substring(0, colonPos);
 			String restOfLine = line.substring(colonPos+1).trim();
+
+			if (keyWord.equals("Plotname"))
+			{
+				// see if known analysis is specified
+				if (restOfLine.equals("AC Analysis")) aType = AnalogAnalysis.ANALYSIS_AC; else
+					if (restOfLine.equals("Transient Analysis")) aType = AnalogAnalysis.ANALYSIS_TRANS;
+				continue;
+			}
+
+			if (keyWord.equals("Flags"))
+			{
+				// the first signal is Time
+				int complex = restOfLine.indexOf("complex");
+				if (complex >= 0) complexValues = true;
+				int r = restOfLine.indexOf("real");
+				if (r >= 0) realValues = true;
+				continue;
+			}
 
 			if (keyWord.equals("No. Variables"))
 			{
@@ -104,7 +131,7 @@ public class LTSpiceOut extends Simulate
 					return null;
 				}
 				Stimuli sd = new Stimuli();
-				an = new AnalogAnalysis(sd, AnalogAnalysis.ANALYSIS_SIGNALS, false);
+				an = new AnalogAnalysis(sd, aType, false);
 				sd.setCell(cell);
 				signalNames = new String[signalCount];
 				values = new double[signalCount][rowCount];
@@ -112,6 +139,7 @@ public class LTSpiceOut extends Simulate
 				{
 					restOfLine = getLineFromBinary();
 					if (restOfLine == null) break;
+					updateProgressDialog(restOfLine.length());
 					restOfLine = restOfLine.trim();
 					int indexOnLine = TextUtils.atoi(restOfLine);
 					if (indexOnLine != i)
@@ -130,6 +158,7 @@ public class LTSpiceOut extends Simulate
 				}
 				continue;
 			}
+
 			if (keyWord.equals("Binary"))
 			{
 				if (signalCount < 0)
@@ -144,15 +173,26 @@ public class LTSpiceOut extends Simulate
 				}
 
 				an.buildCommonTime(rowCount);
+				if (DEBUG)
+				{
+					System.out.println(signalCount+" VARIABLES, "+rowCount+" SAMPLES");
+					for(int i=0; i<signalCount; i++)
+						System.out.println("VARIABLE "+i+" IS "+signalNames[i]);
+				}
 
 				// read the data
 				for(int j=0; j<rowCount; j++)
 				{
 					double time = getNextDouble();
+					if (DEBUG) System.out.println("TIME AT "+j+" IS "+time);
+					time = Math.abs(time);
 					an.setCommonTime(j, time);
 					for(int i=0; i<signalCount; i++)
 					{
-						double value = getNextDouble();
+						double value = 0;
+						if (realValues) value = getNextFloat(); else
+							value = getNextDouble();
+						if (DEBUG) System.out.println("   DATA POINT "+i+" ("+signalNames[i]+") IS "+value);
 						values[i][j] = value;
 					}
 				}
@@ -180,10 +220,28 @@ public class LTSpiceOut extends Simulate
 		long lt = dataInputStream.readLong();
 		lt = Long.reverseBytes(lt);
 		double t = Double.longBitsToDouble(lt);
+		int amtRead = 8;
 
-		// for some reason, there is an extra Double value after each number in the file...ignore it
-		dataInputStream.readLong();
+		// for complex plots, ignore imaginary part
+		if (complexValues) { amtRead *= 2;   dataInputStream.readLong(); }
 
+		updateProgressDialog(amtRead);
+		return t;
+	}
+
+	private float getNextFloat()
+		throws IOException
+	{
+		// float values appear with reversed bytes
+		int lt = dataInputStream.readInt();
+		lt = Integer.reverseBytes(lt);
+		float t = Float.intBitsToFloat(lt);
+		int amtRead = 4;
+
+		// for complex plots, ignore imaginary part
+		if (complexValues) { amtRead *= 2;   dataInputStream.readInt(); }
+
+		updateProgressDialog(amtRead);
 		return t;
 	}
 }
