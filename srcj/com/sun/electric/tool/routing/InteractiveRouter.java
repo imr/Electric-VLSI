@@ -310,6 +310,10 @@ public abstract class InteractiveRouter extends Router {
         ArcProto endArc = vroute.getEndArc();
         double startArcWidth = getArcWidthToUse(startObj, startArc);
         double endArcWidth = (endObj == null) ? startArcWidth : getArcWidthToUse(endObj, endArc);
+        if (startArc == endArc) {
+            if (startArcWidth > endArcWidth) endArcWidth = startArcWidth;
+            if (endArcWidth > startArcWidth) startArcWidth = endArcWidth;
+        }
 
         // if extension not supressed, use defaults from arcs
         if (extendArcHead) extendArcHead = startArc.isExtended() || endArc.isExtended();
@@ -343,7 +347,7 @@ public abstract class InteractiveRouter extends Router {
         if (startObj instanceof ArcInst) {
             // arc: figure out where on arc to start
             startRE = findArcConnectingPoint(route, (ArcInst)startObj, startPoint, stayInside);
-            contactsOnEndObject = false;
+            if (startRE.isBisectArcPin()) contactsOnEndObject = false;
         }
         if (startRE == null) {
             if (startObj != badStartObject)
@@ -364,7 +368,7 @@ public abstract class InteractiveRouter extends Router {
                 // arc: figure out where on arc to end
                 // use startRE location when possible if connecting to arc
                 endRE = findArcConnectingPoint(route, (ArcInst)endObj, endPoint, stayInside);
-                contactsOnEndObject = true;
+                if (endRE.isBisectArcPin()) contactsOnEndObject = true;
             }
             if (endRE == null) {
                 if (endObj != badEndObject)
@@ -464,7 +468,7 @@ public abstract class InteractiveRouter extends Router {
                 return ai.getLambdaBaseWidth();
         }
         if (routeObj instanceof PortInst) {
-            width = Router.getArcWidthToUse((PortInst)routeObj, ap);
+            width = Router.getArcWidthToUse((PortInst)routeObj, ap, 0);
         }
         return width;
     }
@@ -480,6 +484,8 @@ public abstract class InteractiveRouter extends Router {
      * @param endPoint point inside endPoly on endObj to connect arc to
      * @param startPoly valid port site on startObj
      * @param endPoly valid port site on endObj
+     * @param startArc the arc type to connect to startObj
+     * @param endArc the arc type to connect to endObj
      */
     protected static void getConnectingPoints(ElectricObject startObj, ElectricObject endObj, Point2D clicked,
                                               Point2D startPoint, Point2D endPoint, Poly startPoly, Poly endPoly,
@@ -516,6 +522,7 @@ public abstract class InteractiveRouter extends Router {
         // default is center point
         startPoint.setLocation(startBounds.getCenterX(), startBounds.getCenterY());
 
+        // if startObj is arc inst
         if (startObj instanceof ArcInst) {
             double x, y;
             // if nothing to connect to, clicked will determine connecting point on startPoly
@@ -906,4 +913,39 @@ public abstract class InteractiveRouter extends Router {
             return true;
         return false;
     }
+
+    /**
+     * Determines what route quadrant pt is compared to refPoint.
+     * A route can be drawn vertically or horizontally so this
+     * method will return a number between 0 and 3, inclusive,
+     * where quadrants are defined based on the angle relationship
+     * of refPoint to pt.  Imagine a circle with <i>refPoint</i> as
+     * the center and <i>pt</i> a point on the circumference of the
+     * circle.  Then theta is the angle described by the arc refPoint->pt,
+     * and quadrants are defined as:
+     * <code>
+     * <p>quadrant :     angle (theta)
+     * <p>0 :            -45 degrees to 45 degrees
+     * <p>1 :            45 degress to 135 degrees
+     * <p>2 :            135 degrees to 225 degrees
+     * <p>3 :            225 degrees to 315 degrees (-45 degrees)
+     *
+     * @param refPoint reference point
+     * @param pt variable point
+     * @return which quadrant <i>pt</i> is in.
+     */
+    protected static int findQuadrant(Point2D refPoint, Point2D pt) {
+        // find angle
+        double angle = Math.atan((pt.getY()-refPoint.getY())/(pt.getX()-refPoint.getX()));
+        if (pt.getX() < refPoint.getX()) angle += Math.PI;
+        if ((angle > -Math.PI/4) && (angle <= Math.PI/4))
+            return 0;
+        else if ((angle > Math.PI/4) && (angle <= Math.PI*3/4))
+            return 1;
+        else if ((angle > Math.PI*3/4) &&(angle <= Math.PI*5/4))
+            return 2;
+        else
+            return 3;
+    }
+
 }

@@ -367,6 +367,7 @@ public abstract class Router {
      * Convert all new arcs of type 'ap' in route to use width of widest
      * arc of that type.
      */
+/*
     protected static void useWidestWire(Route route, ArcProto ap) {
         // get widest wire connected to anything in route
         double width = getArcWidthToUse(route, ap);
@@ -379,6 +380,7 @@ public abstract class Router {
             }
         }
     }
+*/
 
     /**
      * Get arc width to use by searching for largest arc of passed type
@@ -387,14 +389,16 @@ public abstract class Router {
      * @param ap the arc type
      * @return the largest width
      */
+/*
     protected static double getArcWidthToUse(Route route, ArcProto ap) {
         double widest = ap.getDefaultLambdaBaseWidth();
         for (RouteElement re : route) {
-            double width = getArcWidthToUse(re, ap);
+            double width = getArcWidthToUse(re, ap, 0);
             if (width > widest) widest = width;
         }
         return widest;
     }
+*/
 
     /**
      * Get arc width to use to connect to PortInst pi.  Arc type
@@ -406,12 +410,14 @@ public abstract class Router {
      * 
      * @param pi the PortInst to connect to
      * @param ap the Arc type to connect with
+     * @param arcAngle of the arc that will be drawn (in tenth-degrees)
      * @return the width to use to connect
      */
-    public static double getArcWidthToUse(PortInst pi, ArcProto ap) {
+    public static double getArcWidthToUse(PortInst pi, ArcProto ap, int arcAngle) {
         // if pi null, just return default width of ap
         if (pi == null) return ap.getDefaultLambdaBaseWidth();
 
+        boolean arcFound = false;
         // get all ArcInsts on pi, find largest
         double width = ap.getDefaultLambdaBaseWidth();
         for (Iterator<Connection> it = pi.getConnections(); it.hasNext(); ) {
@@ -420,6 +426,7 @@ public abstract class Router {
             if (ai.getProto() != ap) continue;
             double newWidth = c.getArc().getLambdaBaseWidth();
             if (width < newWidth) width = newWidth;
+            arcFound = true;
         }
         // check any wires that connect to the export of this portinst in the
         // prototype, if this is a cell instance
@@ -428,9 +435,32 @@ public abstract class Router {
             Cell cell = (Cell)ni.getProto();
             Export export = cell.findExport(pi.getPortProto().getName());
             PortInst exportedInst = export.getOriginalPort();
-            double width2 = getArcWidthToUse(exportedInst, ap);
+            double width2 = getArcWidthToUse(exportedInst, ap, arcAngle);
             if (width2 > width) width = width2;
         }
+/*
+        // if still default width and node is a contact, use the width/height of the contact
+        if (!arcFound && (ni.getProto() instanceof PrimitiveNode)) {
+            PrimitiveNode pn = (PrimitiveNode)ni.getProto();
+            if (pn.getFunction() == PrimitiveNode.Function.CONTACT) {
+                double xsize = ni.getXSizeWithoutOffset();
+                double ysize = ni.getYSizeWithoutOffset();
+                if ((ni.getAngle() - 900) % 1800 == 0) {
+                    // rotated
+                    double temp = xsize;
+                    xsize = ysize;
+                    ysize = temp;
+                }
+                if (arcAngle % 1800 == 0) {
+                    width = ysize;
+                }
+                if ((arcAngle - 900) % 1800 == 0) {
+                    width = xsize;
+                }
+            }
+        }
+*/
+
         return width;
     }
 
@@ -439,9 +469,10 @@ public abstract class Router {
      * width of arc already connected to re.
      * @param re the RouteElement to connect to
      * @param ap the arc type (for default width)
+     * @param arcAngle of the arc that will be drawn (in tenth-degrees)
      * @return the width of the arc to use to connect
      */
-    protected static double getArcWidthToUse(RouteElement re, ArcProto ap) {
+    protected static double getArcWidthToUse(RouteElement re, ArcProto ap, int arcAngle) {
         double width = ap.getDefaultLambdaBaseWidth();
         double connectedWidth = width;
         if (re instanceof RouteElementPort) {
@@ -449,7 +480,7 @@ public abstract class Router {
             connectedWidth = rePort.getWidestConnectingArc(ap);
             if (rePort.getPortInst() != null) {
                 // check if prototype connection to export has larger wire
-                double width2 = getArcWidthToUse(rePort.getPortInst(), ap);
+                double width2 = getArcWidthToUse(rePort.getPortInst(), ap, arcAngle);
                 if (width2 > connectedWidth) connectedWidth = width2;
             }
         }
@@ -544,6 +575,7 @@ public abstract class Router {
     }
 
     //=====================================================================================
+/*
 
     public static class ArcWidth {
         private int preferredAngle;
@@ -562,12 +594,14 @@ public abstract class Router {
             return defaultWidth;
         }
 
-        /**
+        */
+/**
          * Get arc width to use by searching for largest arc of passed type
          * connected to any elements in the route.
          * @param route the route to be searched
          * @param ap the arc type
          */
+/*
         public void findArcWidthToUse(Route route, ArcProto ap) {
             double basewidth = ap.getDefaultLambdaBaseWidth();
             if (basewidth > defaultWidth) defaultWidth = basewidth;
@@ -591,7 +625,8 @@ public abstract class Router {
             }
         }
 
-        /**
+        */
+/**
          * Get arc width to use to connect to PortInst pi.  Arc type
          * is ap.  Uses the largest width of arc type ap already connected
          * to pi, or the default width of ap if none found.<p>
@@ -600,6 +635,7 @@ public abstract class Router {
          * @param pi the PortInst to connect to
          * @param ap the Arc type to connect with
          */
+/*
         public void findArcWidthToUse(PortInst pi, ArcProto ap) {
             // if pi null, just return default width of ap
             if (pi == null) return;
@@ -631,6 +667,8 @@ public abstract class Router {
 
             // if this is a contact cut that can connect to the arc and no other
             // arcs have been found, use the width/height of it.
+*/
+/*
             if ((ni.getProto() instanceof PrimitiveNode) && preferredAngle >= 0)
             {
                 PrimitiveNode pn = (PrimitiveNode)ni.getProto();
@@ -654,14 +692,18 @@ public abstract class Router {
                     if (width > preferredWidth) preferredWidth = width;
                 }
             }
+*/
+/*
         }
 
-        /**
+        */
+/**
          * Get arc width to use to connect to RouteElement re. Uses largest
          * width of arc already connected to re.
          * @param re the RouteElement to connect to
          * @param ap the arc type (for default width)
          */
+/*
         public void findArcWidthToUse(RouteElement re, ArcProto ap) {
             double basewidth = ap.getDefaultLambdaBaseWidth();
             if (basewidth > defaultWidth) defaultWidth = basewidth;
@@ -685,12 +727,14 @@ public abstract class Router {
             }
         }
 
-        /**
+        */
+/**
          * Get largest arc width of newArc RouteElements attached to this
          * RouteElement.  If none present returns -1.
          * <p>Note that these width values should have been pre-adjusted for
          * the arc width offset, so these values have had the offset subtracted away.
          */
+/*
         public void findArcWidthToUse(RouteElementPort re, ArcProto ap) {
             double basewidth = ap.getDefaultLambdaBaseWidth();
             if (basewidth > defaultWidth) defaultWidth = basewidth;
@@ -713,5 +757,6 @@ public abstract class Router {
             }
         }
     }
+*/
 
 }

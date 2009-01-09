@@ -291,10 +291,10 @@ public class VerticalRoute {
         double startArcWidth = 0;
         double endArcWidth = 0;
         if (startRE != null) {
-            Router.ArcWidth aw = new Router.ArcWidth(startArcAngle);
-            aw.findArcWidthToUse(startRE, startArc);
-            //startArcWidth = Router.getArcWidthToUse(startRE, startArc);
-            startArcWidth = aw.getWidth();
+            //Router.ArcWidth aw = new Router.ArcWidth(startArcAngle);
+            //aw.findArcWidthToUse(startRE, startArc);
+            startArcWidth = Router.getArcWidthToUse(startRE, startArc, startArcAngle);
+            //startArcWidth = aw.getWidth();
 
             if (route.replacePin(startRE, vertRoute.getStart(), stayInside)) {
                 route.remove(startRE);
@@ -307,10 +307,10 @@ public class VerticalRoute {
             }
         }
         if (endRE != null) {
-            Router.ArcWidth aw = new Router.ArcWidth(endArcAngle);
-            aw.findArcWidthToUse(endRE, endArc);
-            //endArcWidth = Router.getArcWidthToUse(endRE, endArc);
-            endArcWidth = aw.getWidth();
+            //Router.ArcWidth aw = new Router.ArcWidth(endArcAngle);
+            //aw.findArcWidthToUse(endRE, endArc);
+            endArcWidth = Router.getArcWidthToUse(endRE, endArc, endArcAngle);
+            //endArcWidth = aw.getWidth();
 
             if (route.replacePin(endRE, vertRoute.getEnd(), stayInside)) {
                 route.remove(endRE);
@@ -395,7 +395,7 @@ public class VerticalRoute {
             route.setEnd(newNode);
 
             // create arc
-            double arcWidth = Router.getArcWidthToUse(node, ap);
+            double arcWidth = Router.getArcWidthToUse(node, ap, arcAngle);
             RouteElementArc arc = RouteElementArc.newArc(cell, ap, arcWidth, node, newNode, location, location,
             	null, null, null, ap.isExtended(), ap.isExtended(), stayInside);
             arc.setArcAngle(arcAngle);

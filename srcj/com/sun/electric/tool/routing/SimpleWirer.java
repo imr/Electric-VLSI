@@ -124,6 +124,9 @@ public class SimpleWirer extends InteractiveRouter {
             }
         }
 
+        int startAngle = GenMath.figureAngle(startLoc, cornerLoc);
+        int endAngle = GenMath.figureAngle(endLoc, cornerLoc);
+
         // never use universal arcs unless the user has selected them
         if (useArc == null) {
             // use universal if selected
@@ -152,8 +155,8 @@ public class SimpleWirer extends InteractiveRouter {
         }
 
         // find arc width to use
-        double width = getArcWidthToUse(startRE, useArc);
-        double width2 = getArcWidthToUse(endRE, useArc);
+        double width = getArcWidthToUse(startRE, useArc, startAngle);
+        double width2 = getArcWidthToUse(endRE, useArc, endAngle);
         if (width2 > width) width = width2;
 
         // see if we should only draw a single arc
@@ -199,38 +202,5 @@ public class SimpleWirer extends InteractiveRouter {
         return true;
     }
 
-    /**
-     * Determines what route quadrant pt is compared to refPoint.
-     * A route can be drawn vertically or horizontally so this
-     * method will return a number between 0 and 3, inclusive,
-     * where quadrants are defined based on the angle relationship
-     * of refPoint to pt.  Imagine a circle with <i>refPoint</i> as
-     * the center and <i>pt</i> a point on the circumference of the
-     * circle.  Then theta is the angle described by the arc refPoint->pt,
-     * and quadrants are defined as:
-     * <code>
-     * <p>quadrant :     angle (theta)
-     * <p>0 :            -45 degrees to 45 degrees
-     * <p>1 :            45 degress to 135 degrees
-     * <p>2 :            135 degrees to 225 degrees
-     * <p>3 :            225 degrees to 315 degrees (-45 degrees)
-     *
-     * @param refPoint reference point
-     * @param pt variable point
-     * @return which quadrant <i>pt</i> is in.
-     */
-    protected static int findQuadrant(Point2D refPoint, Point2D pt) {
-        // find angle
-        double angle = Math.atan((pt.getY()-refPoint.getY())/(pt.getX()-refPoint.getX()));
-        if (pt.getX() < refPoint.getX()) angle += Math.PI;
-        if ((angle > -Math.PI/4) && (angle <= Math.PI/4))
-            return 0;
-        else if ((angle > Math.PI/4) && (angle <= Math.PI*3/4))
-            return 1;
-        else if ((angle > Math.PI*3/4) &&(angle <= Math.PI*5/4))
-            return 2;
-        else
-            return 3;
-    }
 }
 
