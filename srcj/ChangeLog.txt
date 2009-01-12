@@ -2,6 +2,11 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.09b: ******************************
+
+IMP: (1/12/09, GVG) Fixing TechEditorWizard regression due to year change.
+Expected data included 2008.
+
 ************************* Version 8.09a: ******************************
 
 IMP: (1/11/09, GVG) Improvements for "Message not useful if XML parsing error is detected" (Bug #1998)
