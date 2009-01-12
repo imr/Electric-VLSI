@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09a: ******************************
 
+IMP: (1/11/09, GVG) Improvements for "Message not useful if XML parsing error is detected" (Bug #1998)
+
 BUG: (1/11/09, GVG) NPE in Tech Specific -> Write XML of current tech (Bug #1999)
 FIX: Warning the case and preventing the NPE.
 

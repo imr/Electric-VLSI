@@ -1106,7 +1106,7 @@ public class Xml807 {
                 case LayersRule:
                 case NodeLayersRule:
                 case NodeRule:
-                    DRCTemplate.parseXmlElement(curFoundry.rules, key.name(), attributes);
+                    DRCTemplate.parseXmlElement(curFoundry.rules, key.name(), attributes, localName);
                     break;
                 default:
                     assert key.hasText;

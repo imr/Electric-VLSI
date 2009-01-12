@@ -472,15 +472,15 @@ public class DRCTemplate implements Serializable
         return n1;
     }
 
-
-    public static void parseXmlElement(List<DRCTemplate> drcRules, String qName, Attributes attributes)
+    public static boolean parseXmlElement(List<DRCTemplate> drcRules, String qName, Attributes attributes,
+                                          String localName)
     {
         boolean layerRule = qName.equals("LayerRule");
         boolean layersRule = qName.equals("LayersRule");
         boolean nodeLayersRule = qName.equals("NodeLayersRule");
         boolean nodeRule = qName.equals("NodeRule");
 
-        if (!layerRule && !layersRule && !nodeLayersRule && !nodeRule) return;
+        if (!layerRule && !layersRule && !nodeLayersRule && !nodeRule) return false;
 
         String ruleName = "", layerNames = "", nodeNames = null, condition = null;
         int when = DRCTemplate.DRCMode.ALL.mode();
@@ -511,13 +511,22 @@ public class DRCTemplate implements Serializable
             }
             else if (attributes.getQName(i).equals("value"))
             {
-                if (attributes.getValue(i).toLowerCase().equals("double.max_value"))
+                String value = attributes.getValue(i);
+                if (value.toLowerCase().equals("double.max_value"))
                 {
                     values[0] = values[1] = Double.MAX_VALUE;
                 }
                 else
                 {
-                    values[0] = values[1] = Double.parseDouble(attributes.getValue(i));
+                    try
+                    {
+                        values[0] = values[1] = Double.parseDouble(value);
+                    }
+                    catch (Exception e)
+                    {
+                        System.out.println("Invalid attribute in DRCXMLParser: " + value + " is not a double in " + localName);
+                        return false;
+                    }
                 }
             }
             else if (attributes.getQName(i).equals("valueX"))
@@ -529,7 +538,10 @@ public class DRCTemplate implements Serializable
             else if (attributes.getQName(i).equals("minLen"))
                 minLen = new Double(Double.parseDouble(attributes.getValue(i)));
             else
-                new Error("Invalid attribute in DRCXMLParser");
+            {
+                System.out.println("Invalid attribute in DRCXMLParser in " + localName);
+                return false;
+            }
         }
 
         // They could be several layer names or pairs of names for the same rule
@@ -623,6 +635,7 @@ public class DRCTemplate implements Serializable
         {
             assert false;
         }
+        return true;
     }
 
     /** Class used to store read rules and foundry associated to them */
@@ -679,7 +692,7 @@ public class DRCTemplate implements Serializable
             return fullLoaded;
         }
 
-        private class DRCXMLHandler extends DefaultHandler
+        class DRCXMLHandler extends DefaultHandler
         {
             boolean passed;
 
@@ -707,7 +720,10 @@ public class DRCTemplate implements Serializable
                     current.foundry = attributes.getValue(0);
                     return;
                 }
-                parseXmlElement(current.drcRules, qName, attributes);
+                if (!parseXmlElement(current.drcRules, qName, attributes, localName))
+                {
+                    passed = false;
+                }
             }
 
             public void fatalError(SAXParseException e)
