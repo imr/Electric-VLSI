@@ -2141,10 +2141,17 @@ public class Technology implements Comparable<Technology>, Serializable
         t.minResistance = getMinResistanceSetting().getDoubleFactoryValue();
         t.minCapacitance = getMinCapacitanceSetting().getDoubleFactoryValue();
         Color[] colorMap = getFactoryColorMap();
-		for (int i = 0, numLayers = getNumTransparentLayers(); i < numLayers; i++) {
-            Color transparentColor = colorMap[1 << i];
-            t.transparentLayers.add(transparentColor);
+
+        if (colorMap != null)
+        {
+            for (int i = 0, numLayers = getNumTransparentLayers(); i < numLayers; i++) {
+                Color transparentColor = colorMap[1 << i];
+                t.transparentLayers.add(transparentColor);
+            }
         }
+        else
+            System.out.println("Error: no factory color map in technology " + this.getTechName());
+        
         for (Iterator<Layer> it = getLayers(); it.hasNext(); ) {
             Layer layer = it.next();
             if (layer.isPseudoLayer()) continue;

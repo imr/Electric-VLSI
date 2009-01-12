@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09a: ******************************
 
+BUG: (1/11/09, GVG) NPE in Tech Specific -> Write XML of current tech (Bug #1999)
+FIX: Warning the case and preventing the NPE.
+
 IMP: (1/5/09, SMR) Now remember (in Prefs) the Explorer-tree setting to evaluate
      numbers when sorting cell names  (Bug #1981).
 
