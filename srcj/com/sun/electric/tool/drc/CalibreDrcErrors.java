@@ -543,14 +543,20 @@ public class CalibreDrcErrors {
                     FileReader reader = new FileReader(file);
                     BufferedReader in = new BufferedReader(reader);
                     String line = null;
+                    int lineno = 0;
                     boolean first = true;
                     while ( (line = in.readLine()) != null) {
+                        lineno++;
                         if (line.equals("")) continue;
                         if (first) {
                             logger.setGroupName(sortKey, file.getName());
                             first = false;
                         }
                         String [] parts = line.split("[ ]+");
+                        if (parts.length != 5) {
+                            System.out.println("Ignoring line "+file.getName()+"."+lineno+": "+line);
+                            continue;
+                        }
                         double x1, y1, x2, y2;
                         x1 = Double.valueOf(parts[0]) / scale * 1000;
                         y1 = Double.valueOf(parts[1]) / scale * 1000;
