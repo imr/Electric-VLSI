@@ -10,7 +10,6 @@ However, there are situations where a circuit has only layout and no connectivit
 specifically when a circuit has been read into Electric from CIF, GDS, or other formats
 that have no connectivity information in them
 (see <A HREF="chap03-09-02.html#chap03-09-02">Section 3-9-2</A>).
-
 <P>
 When CIF, GDS, and other foreign file formats are read into Electric, the cells they create
 are composed entirely of pure-layer nodes
@@ -45,14 +44,14 @@ It often leaves small pure-layer nodes behind to complete the extraction.
 As an aid in debugging the extraction process, these extra pure-layer nodes are highlighted
 in the resulting cell.
 <P>
-<TABLE><TR><TD><CENTER><IMG SRC="fig09-12.png" ALT="Figure 9.12"></CENTER></TD><TD>
+<!-- NEED 3in -->
 Control of node extraction is done with the Network Preferences
 (in menu <B>File / Preferences...</B>, "Tools" section, "Network" tab).
 <P>
+<TABLE><TR><TD><CENTER><IMG SRC="fig09-12.png" ALT="Figure 9.12"></CENTER></TD><TD>
 "Grid-align geometry before extraction" causes all coordinates to be adjusted so that they are
 on grid units (see <A HREF="chap04-07-02.html#chap04-07-02">Section 4-7-2</A>).
 This is useful for data that has precision problems.
-</TD></TR></TABLE>
 <P>
 "Approximate cut placement" relaxes the requirement that the cut (or via) locations
 appear exactly in the same place, once extracted.
@@ -60,6 +59,7 @@ When this preference is checked, Electric will find contact areas and replace th
 regardless of where those nodes place the cuts.
 Without this preference, Electric will place contact nodes in such a way that the cut
 layers land in the correct original locations.
+</TD></TR></TABLE>
 <P>
 The disadvantage of forcing exact cut placement is that Electric will create many contact
 nodes, one for each cut layer.

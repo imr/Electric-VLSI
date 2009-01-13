@@ -102,6 +102,7 @@ The "Reserved Space" section lets you specify which layers of metal will be in t
 These metal layers alternate running horizontally and vertically (the "Even layer orientation"
 controls which layer runs horizontally first).
 <P>
+<!-- NEED 4in -->
 <TABLE><TR><TD>
 The fill cell will have four metal wires running in each direction:
 the outer two are Ground and the inner two are Power.
@@ -123,6 +124,7 @@ and it will be internally wired.
 <P>
 </LI>
 
+<!-- NEED 3in -->
 <li><B>Stitch-Based Fill Generator</B>
 Similar to the previous fill generator,
 this stitch-based fill also creates cells or tiles to meet metal density conditions,
@@ -160,7 +162,7 @@ different tile sizes can be arrayed depeding on the area to cover.
 <p>
 By default all input cells are flatted unless <i>option</i> is "I".
 In that case, the input cell will be instantiated instead of being flatted in the fill cell.
-<!-- NEED 3in -->
+<!-- NEED 5in -->
 <P>
 Here is an example:
 <P>
@@ -175,11 +177,10 @@ Here is an example:
     <TD><IMG SRC="fig09-66.png" ALT="Figure 9.66" BORDER=0></TD></TR>
     <TR><TD COLSPAN=2 ALIGN="CENTER"><IMG SRC="fig09-67.png" ALT="Figure 9.67" BORDER=0></TD>
     </TR></TABLE>
-  </TD>
-  <TD>In the example above, the first intruction will take the cells "fillA" and "fillB" and stitch the metal bars
+</TD></TR></TABLE>
+In the example above, the first intruction will take the cells "fillA" and "fillB" and stitch the metal bars
 in "fillAB". Note that the "signalB" bars did not get stitched because the metal 2 bar does not overlap 100% with
 the metal 3 bar.
-</TD></TR></TABLE>
 <P>
 The second instruction will generate the
 fill cell "fillCW" with an instance of "cap" and metal arcs from the rest of the input cells.

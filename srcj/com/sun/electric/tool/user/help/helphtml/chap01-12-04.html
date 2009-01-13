@@ -64,8 +64,10 @@ You can easily do this by left clicking on a wire of the icon, then right-clicki
 placing the cursor where you want the end point of the wire to be.
 Electric draws a wire that extends from the artwork of the icon.
 <P>
-Use the "Text" item in the Component tab to place a label "nand2" in the center of the icon.
+<TABLE><TR><TD>
+Use the "Text" item in the Component menu to place a label "nand2" in the icon.
 Make the text be 2 units high.
+</TD><TD><CENTER><IMG SRC="fig01-41.png" ALT="Figure 1.41"></CENTER></TD></TR></TABLE>
 <P>
 Now that you have an icon with three exports, create a new schematic called "and2" (don't forget to set the view to "schematic").
 Use the <B>Place Cell Instance</B> command (in menu <B>Edit</B>) to instantiate a "nand2{ic}" and an "inv{ic}".
@@ -74,15 +76,13 @@ Double-click on the wire between the two gates and give it a name like "yb" so y
 It is good practice to label every net in a design.
 When you are done, your "and2" schematic should look like this.
 <P>
-<CENTER><IMG SRC="fig01-41.png" ALT="Figure 1.41"></CENTER>
-<P>
+<TABLE><TR><TD>
 Next, create a new layout called "and2" (remember to select the "layout" view).
 Instantiate the "nand2{lay}" and "inv{lay}" layouts.
 ALWAYS use the <B>Place Cell Instance</B> command to create layout from pre-existing facets.
 NEVER build a cell by cutting and pasting entire existing cells.
 If you do, then make a correction to the original cell, your correction will not propagate to the new layout.
 <P>
-<TABLE><TR><TD>
 Initially the cell instances appear as black boxes with ports.
 Select both instances and use the <B>All the Way</B> command
 (in menu <B>Cell / Expand Cell Instances</B>) to view the contents of each layout.

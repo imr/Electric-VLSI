@@ -7,15 +7,25 @@ The pads are contained in a separate library, and are copied into the current li
 The format of the pad frame disk file is as follows:
 
 <CENTER><TABLE WIDTH="90%">
-<TR><TD><CODE><FONT SIZE="-1">celllibrary LIBRARYFILE [copy]</FONT></CODE></TD><TD>; Identifies the file with the pads</TD></TR>
-<TR><TD><CODE><FONT SIZE="-1">cell PADFRAMECELL</FONT></CODE></TD><TD>; Creates a cell to hold the pad frame</TD></TR>
-<TR><TD><CODE><FONT SIZE="-1">views VIEWS</FONT></CODE></TD><TD>; A list of views to generate</TD></TR>
-<TR><TD><CODE><FONT SIZE="-1">core CORECELL</FONT></CODE></TD><TD>; Places cell in center of pad frame</TD></TR>
-<TR><TD><CODE><FONT SIZE="-1">align PADCELL INPUTPORT OUTPUTPORT</FONT></CODE></TD><TD>; Defines input and output ports on pads</TD></TR>
-<TR><TD><CODE><FONT SIZE="-1">export PADCELL IOPORT [COREPORT]</FONT></CODE></TD><TD>; Defines exports on the pads</TD></TR>
-<TR><TD><CODE><FONT SIZE="-1">place PADCELL [GAP] [PORTASSOCIATION]</FONT></CODE></TD><TD>; Places a pad into the pad frame</TD></TR>
-<TR><TD><CODE><FONT SIZE="-1">rotate DIRECTION</FONT></CODE></TD><TD>; Turns the corner in pad placement</TD></TR>
-</TABLE></CENTER>
+<TR><TD><CODE><FONT SIZE="-1">
+  celllibrary LIBRARYFILE [copy]<BR>
+  cell PADFRAMECELL<BR>
+  views VIEWS<BR>
+  core CORECELL<BR>
+  align PADCELL INPUTPORT OUTPUTPORT<BR>
+  export PADCELL IOPORT [COREPORT]<BR>
+  place PADCELL [GAP] [PORTASSOCIATION]<BR>
+  rotate DIRECTION
+</FONT></CODE></TD><TD>
+  ; Identifies the file with the pads<BR>
+  ; Creates a cell to hold the pad frame<BR>
+  ; A list of views to generate<BR>
+  ; Places cell in center of pad frame<BR>
+  ; Defines input and output ports on pads<BR>
+  ; Defines exports on the pads<BR>
+  ; Places a pad into the pad frame<BR>
+  ; Turns the corner in pad placement
+</TD></TR></TABLE></CENTER>
 <P>
 The file must have exactly one <U><CODE>celllibrary</CODE></U> and <U><CODE>cell</CODE></U> statement,
 as they identify the pad library and the pad frame cell.
@@ -51,7 +61,7 @@ indicates that the "tap" port on the placed pad will connect to the "y" port on 
 <P>
 The port association can also create an export on the pad.
 The statement:
-<CENTER><CODE>place padOut export io=o7 export tap=core_o7</CODE></CENTER>
+<CENTER><CODE><FONT SIZE="-1">place padOut export io=o7 export tap=core_o7</FONT></CODE></CENTER>
 creates two exports on the pad, "o7" on its "io" port, and "core_o7" on its "tap" port.
 For many instances of this pad type, this notation can be condensed
 with the use of the <U><CODE>name</CODE></U> keyword in conjunction
@@ -69,8 +79,8 @@ and <U><CODE>rotate cc</CODE></U> to rotate counterclockwise.
 Here is an example of a pad frame disk file, with the finished layout.
 There is a cell in the Samples library called "tool-PadFrame"
 (get it with the <B>Sample Cells</B> command, in menu <B>Help / Load Built-in Libraries</B>).
-The text below makes use of that cell, so save it to disk
-and read it with the <B>Pad Frame Generator...</B> command (in menu <B>Tools / Generation</B>).
+This text makes use of the cell, so save it to disk
+and use the <B>Pad Frame Generator...</B> command (in menu <B>Tools / Generation</B>).
 <P>
 <CENTER><TABLE>
 <TR><TD><CODE><FONT SIZE="-1">; specify library with pads</FONT></CODE></TD>              <TD><CODE><FONT SIZE="-1">; place the top edge of pads</FONT></CODE></TD></TR>
