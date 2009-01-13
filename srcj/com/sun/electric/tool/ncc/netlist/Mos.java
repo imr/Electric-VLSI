@@ -38,48 +38,30 @@ import com.sun.electric.tool.ncc.netlist.NccNameProxy.PartNameProxy;
 import com.sun.electric.tool.ncc.trees.Circuit;
 
 /** One or more MOS transistors in series. All gates have the same width
- * and length. */
+ * and length. 
+ * If MOS has body port then last entry in pins array is body wire */
 public class Mos extends Part {
-//	public static final PartTypeTable TYPES = 
-//		new PartTypeTable(new String[][] {
-//			{"NMOS",         "N-Transistor"},
-//			{"NMOS",         "N-Transistor-Scalable"},
-//			{"NMOS-VTH",     "VTH-N-Transistor"},
-//			{"NMOS-VTL",     "VTL-N-Transistor"},
-//			{"NMOS-OD18",    "OD18-N-Transistor"},
-//			{"NMOS-OD25",    "OD25-N-Transistor"},
-//			{"NMOS-OD33",    "OD33-N-Transistor"},
-//			{"NMOS-NT",      "NT-N-Transistor"},
-//			{"NMOS-NT-OD18", "NT-OD18-N-Transistor"},
-//			{"NMOS-NT-OD25", "NT-OD25-N-Transistor"},
-//			{"NMOS-NT-OD33", "NT-OD33-N-Transistor"},
-//			{"PMOS",         "P-Transistor"},
-//			{"PMOS",         "P-Transistor-Scalable"},
-//			{"PMOS-VTH",     "VTH-P-Transistor"},
-//			{"PMOS-VTL",     "VTL-P-Transistor"},
-//			{"PMOS-OD18",    "OD18-P-Transistor"},
-//			{"PMOS-OD25",    "OD25-P-Transistor"},
-//			{"PMOS-OD33",    "OD33-P-Transistor"},
-//		});
-
 	private static class GateType implements PinType {
 		private final int numSeries;
 		private final Function np;
 		private final int gateHeight;
 		private final boolean cap;
+		private final boolean hasBody;
 
 		public String description() {
 			String t = np.getShortName();
 			String c = cap ? "_CAP" : "";
 			String h = numSeries==1 ? "" : ("_"+numSeries+"stack");
+			String s = hasBody ? "_withBody" : "";
 			int hiGate = numSeries+1 - gateHeight;
 			String g = "";
 			if (numSeries>2) {
 				g = gateHeight + (gateHeight==hiGate ? "" : ("/"+hiGate)); 
 			} 
-			return t+c+h+" gate"+g;
+			return t+c+h+s+" gate"+g;
 		}
-		public GateType(Function np, int numSeries, int gateHeight, boolean cap) {
+		public GateType(Function np, int numSeries, int gateHeight, boolean cap,
+				        boolean hasBody) {
 			LayoutLib.error(np==null, "null type?");
 			LayoutLib.error(numSeries<1, "bad numSeries");
 			int highestGateInLowerHalfOfStack = (numSeries+1)/2;
@@ -88,20 +70,43 @@ public class Mos extends Part {
 			this.numSeries = numSeries;
 			this.gateHeight = gateHeight;
 			this.cap = cap;
+			this.hasBody = hasBody;
 		}
 	}
 	private static class DiffType implements PinType {
 		private final int numSeries;
 		private final Function np;
 		private final boolean cap;
+		private final boolean hasBody;
 
 		public String description() {
 			String t = np.getShortName();
 			String c = cap ? "_CAP" : "";
 			String h = numSeries==1 ? "" : ("_"+numSeries+"stack");
-			return t+c+h+" diffusion";
+			String s = hasBody ? "_withBody" : "";
+			return t+c+h+s+" diffusion";
 		}
-		public DiffType(Function np, int numSeries, boolean cap) {
+		public DiffType(Function np, int numSeries, boolean cap, 
+				        boolean hasBody) {
+			LayoutLib.error(np==null, "null type?");
+			LayoutLib.error(numSeries<1, "bad numSeries");
+			this.np = np;
+			this.numSeries = numSeries;
+			this.cap = cap;
+			this.hasBody = hasBody;
+		}
+	}
+	private static class BodyType implements PinType {
+		private final int numSeries;
+		private final Function np;
+		private final boolean cap;
+		public String description() {
+			String t = np.getShortName();
+			String c = cap ? "_CAP" : "";
+			String h = numSeries==1 ? "" : ("_"+numSeries+"stack");
+			return t+c+h+"_withBody body";
+		}
+		public BodyType(Function np, int numSeries, boolean cap) {
 			LayoutLib.error(np==null, "null type?");
 			LayoutLib.error(numSeries<1, "bad numSeries");
 			this.np = np;
@@ -114,16 +119,20 @@ public class Mos extends Part {
 		private Function type;
 		private boolean isCapacitor;
 		private int numSeries;
-		public PinTypeSetKey(Function type, boolean isCapacitor, int numSeries) {
+		private boolean hasBody;
+		public PinTypeSetKey(Function type, boolean isCapacitor, int numSeries,
+				             boolean hasBody) {
 			this.type = type;
 			this.isCapacitor = isCapacitor;
 			this.numSeries = numSeries;
+			this.hasBody = hasBody;
 		}
 	    @Override
 		public boolean equals(Object o) {
 			if (!(o instanceof PinTypeSetKey)) return false;
 			PinTypeSetKey p = (PinTypeSetKey) o;
-			return type==p.type && isCapacitor==p.isCapacitor && numSeries==p.numSeries;
+			return type==p.type && isCapacitor==p.isCapacitor && numSeries==p.numSeries
+			       && hasBody==p.hasBody;
 		}
 	    @Override
 		public int hashCode() {
@@ -133,20 +142,24 @@ public class Mos extends Part {
 	private static final Map<PinTypeSetKey,PinType[]> TYPE_TO_PINTYPE_ARRAY = new HashMap<PinTypeSetKey,PinType[]>();
 	
 	public synchronized PinType[] getPinTypeArray() {
-		PinTypeSetKey key = new PinTypeSetKey(type(), isCapacitor(), numSeries());
+		PinTypeSetKey key = new PinTypeSetKey(type(), isCapacitor(), numSeries(),
+				                              hasBody);
 		PinType[] pinTypeArray = TYPE_TO_PINTYPE_ARRAY.get(key);
 		if (pinTypeArray==null) {
 			pinTypeArray = new PinType[pins.length];
 			TYPE_TO_PINTYPE_ARRAY.put(key, pinTypeArray);
 			
-			pinTypeArray[0] = pinTypeArray[pinTypeArray.length-1] =
-				new DiffType(type(), numSeries(), isCapacitor());
+			pinTypeArray[0] = pinTypeArray[nbGateDiffPins()-1] =
+				new DiffType(type(), numSeries(), isCapacitor(), hasBody);
 
 			int maxHeight = (numSeries()+1) / 2;
 			for (int gateHeight=1; gateHeight<=maxHeight; gateHeight++) {
 				pinTypeArray[gateHeight] = 
-					pinTypeArray[pinTypeArray.length-1-gateHeight] = 
-					new GateType(type(), numSeries(), gateHeight, isCapacitor());
+					pinTypeArray[nbGateDiffPins()-1-gateHeight] = 
+					new GateType(type(), numSeries(), gateHeight, isCapacitor(), hasBody);
+			}
+			if (hasBody) {
+				pinTypeArray[pinTypeArray.length-1] = new BodyType(type(), numSeries(), isCapacitor());
 			}
 		}
 		return pinTypeArray;
@@ -159,21 +172,25 @@ public class Mos extends Part {
 	/** Generate arrays of pin coefficients on demand. Share these arrays
 	 * between identically sized Transistors */
 	private static class CoeffGen {
-		private static ArrayList<int[]> coeffArrays = new ArrayList<int[]>();
-		private static void ensureListEntry(int numPins) {
-			while (coeffArrays.size()-1<numPins)  coeffArrays.add(null);
+		private static ArrayList<int[]> coeffArraysNoBody = new ArrayList<int[]>();
+		private static ArrayList<int[]> coeffArraysBody = new ArrayList<int[]>();
+		private static void ensureListEntry(ArrayList<int[]> coeffArrays, int numPins) {
+				while (coeffArrays.size()-1<numPins)  coeffArrays.add(null);
 		}
-		public static int[] getCoeffArray(int numPins) {
-			ensureListEntry(numPins);
-			int[] coeffArray = coeffArrays.get(numPins);
+		public static int[] getCoeffArray(int nbGateDiff, boolean withBody) {
+			ArrayList<int[]> coeffArrays = withBody ? coeffArraysBody : coeffArraysNoBody;
+			ensureListEntry(coeffArrays, nbGateDiff);
+			int[] coeffArray = coeffArrays.get(nbGateDiff);
 			if (coeffArray==null) {
-				coeffArray = new int[numPins];
-				for (int i=0; i<(numPins+1)/2; i++) {
-					int j = numPins-1-i;
-					int nthPrime = 30 + i + numPins;
+				coeffArray = new int[nbGateDiff+(withBody?1:0)];
+				for (int i=0, j=nbGateDiff-1; i<(nbGateDiff+1)/2; i++,j--) {
+					int nthPrime = 30 + i + nbGateDiff;
 					coeffArray[i] = coeffArray[j] = Primes.get(nthPrime);
 				}
-				coeffArrays.set(numPins, coeffArray);
+				if (withBody) {
+					coeffArray[coeffArray.length-1] = Primes.get(30);
+				}
+				coeffArrays.set(nbGateDiff, coeffArray);
 			}
 			return coeffArray;
 		}
@@ -183,73 +200,100 @@ public class Mos extends Part {
     private final int[] pin_coeffs;
     private double width;
     private final double length;
+    private final boolean hasBody;
     
     // ---------- private methods ----------
-	/** Stack of series transistors */
+	/** Stack of series transistors. If Mos has body connection then 
+	 * body is last entry of pins */
 	private Mos(Function np, PartNameProxy name, double width, double length,
-				Wire[] pins) {
+				boolean hasBody, Wire[] pins) {
 		super(name, np, pins);
 		this.width = width;
 		this.length = length;
+		this.hasBody = hasBody;
 		LayoutLib.error(np==null, "null type?");
 		
-		pin_coeffs = CoeffGen.getCoeffArray(pins.length);
+		int nbGateDiff = pins.length - (hasBody?1:0);
+		
+		pin_coeffs = CoeffGen.getCoeffArray(nbGateDiff, hasBody);
+		LayoutLib.error(pins.length!=pin_coeffs.length, "wrong number of pin coeffs");
+	}
+	
+	private int nbGateDiffPins() {
+		return hasBody ? pins.length-1 : pins.length;
+	}
+	
+	private int bodyNdx() {return hasBody ? pins.length-1 : -1;}
+	
+	private boolean bodyMatches(Mos t) {
+		if (hasBody!=t.hasBody) return false;
+		if (!hasBody) return true;
+		if (pins[bodyNdx()]!=t.pins[t.bodyNdx()]) return false;
+		
+		return true;
 	}
 
 	private boolean matchForward(Mos t) {
-		for (int i=0; i<pins.length; i++) {
+		for (int i=0; i<nbGateDiffPins(); i++) {
 			if (pins[i]!=t.pins[i]) return false;
 		}
 		return true;
 	}
 	private boolean matchReverse(Mos t) {
-		for (int i=0; i<pins.length; i++) {
-			int j = pins.length-1-i;
+		int nbGateDiff = nbGateDiffPins();
+		for (int i=0, j=nbGateDiff-1; i<nbGateDiff; i++, j--) {
 			if (pins[i]!=t.pins[j]) return false;
 		}
 		return true;
 	}
 	private boolean samePinsAs(Mos t) {
 		if (pins.length!=t.pins.length) return false;
+		if (hasBody!=t.hasBody) return false;
+		if (!bodyMatches(t)) return false;
 		return matchForward(t) || matchReverse(t);
 	}
 	private void flip() {
-		for (int i=0; i<pins.length/2; i++) {
-			int j = pins.length-1-i;
+		int nbGateDiff = nbGateDiffPins();
+		for (int i=0, j=nbGateDiff-1; i<nbGateDiff/2; i++,j--) {
 			Wire w = pins[i];
 			pins[i] = pins[j];
 			pins[j] = w;
 		}
 	}
-	private Wire hiDiff() {return pins[pins.length-1];}
+	private Wire hiDiff() {return pins[nbGateDiffPins()-1];}
 	private Wire loDiff() {return pins[0];}
 
     // ---------- public methods ----------
 
-	/** The standard 3 terminal Transistor. */
+	/** Transistor without body port. */
 	public Mos(Function np, PartNameProxy name, double width, double length,
 			   Wire src, Wire gate, Wire drn) {
-		this(np, name, width, length, new Wire[] {src, gate, drn});
+		this(np, name, width, length, false, new Wire[] {src, gate, drn});
+	}
+	/** Transistor with body port. */
+	public Mos(Function np, PartNameProxy name, double width, double length,
+			   Wire src, Wire gate, Wire drn, Wire body) {
+		this(np, name, width, length, true, new Wire[] {src, gate, drn, body});
 	}
     @Override
     public double getLength() {return length;}
     @Override
     public double getWidth() {return width;}
-	public int numSeries() {return pins.length-2;}
+	public int numSeries() {return nbGateDiffPins()-2;}
     @Override
 	public int[] getPinCoeffs() {return pin_coeffs;}
 
 	private boolean touchesSomeGate(Wire w){
-		for (int i=1; i<pins.length-1; i++)  if (w==pins[i]) return true;
+		for (int i=1; i<nbGateDiffPins()-1; i++)  if (w==pins[i]) return true;
 		return false;
 	}
 
-	public boolean touchesOneDiffPinAndNoOtherPins(Wire w) {
-		return (w==pins[0] ^ w==pins[pins.length-1]) &&
+	public boolean touchesOnlyOneDiffAndNoGate(Wire w) {
+		return (w==loDiff() ^ w==hiDiff()) &&
 			   !touchesSomeGate(w);
 	}
 
-	public boolean isCapacitor() {return pins[0]==pins[pins.length-1];}
+	public boolean isCapacitor() {return pins[0]==pins[nbGateDiffPins()-1];}
 
 	@Override
 	public Integer hashCodeForParallelMerge() {
@@ -270,9 +314,9 @@ public class Mos extends Part {
 	public boolean parallelMerge(Part p){
 		if(!(p instanceof Mos)) return false;
 		Mos t= (Mos) p;
-		if(this == t)return false; //same transistor
+		if (this==t)return false; //same transistor
 
-		if(!this.isLike(t))return false; //different type
+		if (!this.isLike(t)) return false; //different type
 
 		// a different individual same type and length
 		if (!samePinsAs(t)) return false;
@@ -286,7 +330,8 @@ public class Mos extends Part {
 		final int tw = Part.TYPE_FIELD_WIDTH;
 		return type().ordinal() +
 			   ((isCapacitor()?1:0) << tw) +
-			   (numSeries() << tw+1);
+			   ((hasBody?1:0) << tw+1) +
+			   (numSeries() << tw+2);
 	}
 
 	// ---------- printing methods ----------
@@ -294,8 +339,9 @@ public class Mos extends Part {
 	public String typeString() {
 		String t = type().getShortName();
 		String c = isCapacitor() ? "_CAP" : "";
-		String h = pins.length==3 ? "" : ("_"+(pins.length-2)+"stack");
-		return t+c+h;
+		String h = nbGateDiffPins()==3 ? "" : ("_"+(nbGateDiffPins()-2)+"stack");
+		String s = hasBody ? "_withBody" : "";
+		return t+c+h+s;
 	}
 	@Override
 	public String valueDescription(){
@@ -303,47 +349,46 @@ public class Mos extends Part {
 	}
 	@Override
 	public String connectionDescription(int n) {
-		String msg="";
+		StringBuffer msg = new StringBuffer();
 		for (int i=0; i<pins.length; i++) {
 			if (i==0) {
-				msg += "S=";
-			} else if (i==pins.length-1) {
-				msg += " D="; 
+				msg.append("S=");
+			} else if (i==nbGateDiffPins()-1) {
+				msg.append(" D=");
+			} else if (hasBody && i==bodyNdx()) {
+				msg.append(" B=");
 			} else {
-				if (pins.length==3) {
-					msg += " G="; 
+				if (nbGateDiffPins()==3) {
+					msg.append(" G="); 
 				} else {
-					msg += " G"+i+"=";
+					msg.append(" G"+i+"=");
 				}
 			}
-			msg += pins[i].getName();
-
-			// RKao debug
-			//Wire w = pins[i];
-			//msg += "(hash="+w.getCode()+")";
-
+			msg.append(pins[i].getName());
 		}
-		return msg;
+		return msg.toString();
 	}
 	@Override
 	public String connectionDescription(Wire w) {
-		String s = "";
+		StringBuffer s = new StringBuffer();
 		for (int i=0; i<pins.length; i++) {
 			if (pins[i]!=w)  continue;
-			if (s.length()!=0) s+=",";
+			if (s.length()!=0) s.append(",");
 			if (i==0) {
-				s += "S";
-			} else if (i==pins.length-1) {
-				s += "D"; 
+				s.append("S");
+			} else if (i==nbGateDiffPins()-1) {
+				s.append("D"); 
+			} else if (hasBody && i==bodyNdx()) {
+				s.append("B");
 			} else {
-				if (pins.length==3) {
-					s += "G"; 
+				if (nbGateDiffPins()==3) {
+					s.append("G"); 
 				} else {
-					s += "G"+i;
+					s.append("G"+i);
 				}
 			}
 		}
-		return s;
+		return s.toString();
 	}
 
 	/** Compare the type (N vs P) and the gate length
@@ -363,10 +408,6 @@ public class Mos extends Part {
 		// make sure there are no Ports on wire
 		if (w.getPort()!=null)  return false;
 		
-		// wires declared GLOBAL in Electric can't be internal nodes 
-		// of MOS stacks
-		//if (w.isGlobal()) return false;
-		
 		// Use Set to remove duplicate Parts
 		Set<Mos> trans = new HashSet<Mos>();
 		for (Iterator<Part> it=w.getParts(); it.hasNext();) {
@@ -374,7 +415,7 @@ public class Mos extends Part {
 			if (p.isDeleted()) continue;
 			if (!(p instanceof Mos)) return false;
 			Mos t = (Mos) p;
-			if (!t.touchesOneDiffPinAndNoOtherPins(w)) return false;
+			if (!t.touchesOnlyOneDiffAndNoGate(w)) return false;
 			trans.add(t);
 			if (trans.size()>2) return false;
 		}
@@ -386,23 +427,26 @@ public class Mos extends Part {
 		error(ta.getParent()!=tb.getParent(), "mismatched parents?");
 		if (!ta.isLike(tb))  return false;
 		if (ta.width!=tb.width)  return false;
+		if (!ta.bodyMatches(tb)) return false;
 		
 		// it's a match - merge them into a stack
 		if (ta.hiDiff()!=w) ta.flip();
 		if (tb.loDiff()!=w) tb.flip();
-		
 		error(ta.hiDiff()!=w || tb.loDiff()!=w, "joinOnWire: diffusion connections corrupted");
-		Wire[] mergedPins = new Wire[ta.pins.length + tb.pins.length - 2];
+		
+		boolean hasBody = ta.hasBody;
+		Wire[] mergedPins = new Wire[ta.nbGateDiffPins() + tb.nbGateDiffPins() - 2 + (hasBody?1:0)];
 		int aNdx = 0;
-		for (; aNdx<ta.pins.length-1; aNdx++) {
+		for (; aNdx<ta.nbGateDiffPins()-1; aNdx++) {
 			mergedPins[aNdx] = ta.pins[aNdx];
 		}
-		for (int bNdx=1; bNdx<tb.pins.length; bNdx++){
+		for (int bNdx=1; bNdx<tb.nbGateDiffPins(); bNdx++){
 			mergedPins[aNdx++] = tb.pins[bNdx];
 		}
+		if (hasBody) mergedPins[mergedPins.length-1] = ta.pins[ta.bodyNdx()];
 		Mos stack = new Mos(ta.type(), ta.getNameProxy(),  
-										  ta.getWidth(), ta.getLength(), 
-										  mergedPins);
+							ta.getWidth(), ta.getLength(), 
+							hasBody, mergedPins);
 
 		Circuit parent = tb.getParent();
 		parent.adopt(stack);
@@ -415,13 +459,15 @@ public class Mos extends Part {
     @Override
 	public Integer computeHashCode(){
 		// the function is symmetric: ABCD = DCBA
+    	int nbGateDiff = nbGateDiffPins();
 		int sumLo=0, sumHi=0;
-		for (int i=0; i<(pins.length+1)/2; i++){
+		for (int i=0, j=nbGateDiff-1; i<(nbGateDiff+1)/2; i++,j--){
 			sumLo += pins[i].getCode() * pin_coeffs[i];
-			int j = pins.length-1-i;
 			sumHi += pins[j].getCode() * pin_coeffs[j];
 		}
-		return new Integer(sumLo * sumHi);
+		int sum = sumLo * sumHi;
+		if (hasBody) sum += pins[bodyNdx()].getCode() * pin_coeffs[bodyNdx()];
+		return new Integer(sum);
 	}
 
 }

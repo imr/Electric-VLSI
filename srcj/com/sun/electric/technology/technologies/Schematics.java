@@ -2915,7 +2915,20 @@ public class Schematics extends Technology
      * @param ni the NodeInst
      * @return a PortInst for the gate of the transistor
      */
+	@Override
 	public PortInst getTransistorDrainPort(NodeInst ni) { return ni.getPortInst(2); }
+	
+	/** Return a substrate PortInst for this transistor NodeInst
+     * @param ni the NodeInst
+     * @return a PortInst for the substrate contact of the transistor
+	 */
+	@Override
+	public PortInst getTransistorBiasPort(NodeInst ni)
+	{
+		if (ni.getNumPortInsts() < 4) return null;
+		return ni.getPortInst(3);
+	}
+
 
 	/******************** OPTIONS ********************/
 

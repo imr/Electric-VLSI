@@ -3306,9 +3306,8 @@ public class Technology implements Comparable<Technology>, Serializable
      */
 	public PortInst getTransistorBiasPort(NodeInst ni)
 	{
-		if (ni.getNumPortInsts() < 4) return null;
-		if (ni.getProto().getTechnology() != Schematics.tech()) return null;
-		return ni.getPortInst(3);
+		// By default, transistors have no bias port
+		return null;
 	}
 
     /**

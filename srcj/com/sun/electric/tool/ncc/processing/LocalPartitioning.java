@@ -93,7 +93,7 @@ public class LocalPartitioning {
         globals.status2("Begin partitioning based on local characteristics \n");
 
 		partitionPartsUsingLocalInformation(forcedMatchParts);
-		NewLocalPartitionWires.doYourJob(forcedMatchWires, globals);
+		LocalPartitionWires.doYourJob(forcedMatchWires, globals);
 
 		/* Count EquivRecords after Local Partitioning */
 		/*

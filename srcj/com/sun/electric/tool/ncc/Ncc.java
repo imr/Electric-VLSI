@@ -76,8 +76,8 @@ public class Ncc {
     // ------------------------- public method --------------------------------
 	/** Compare two cells. We don't need to be able to abort */
     public static NccResults compare(Cell cell1, VarContext ctxt1, 
-                                    Cell cell2, VarContext ctxt2, 
-									NccOptions options) {
+                                     Cell cell2, VarContext ctxt2, 
+									 NccOptions options) {
     	return compare(cell1, ctxt1, cell2, ctxt2, options, null); 
     }
 	/** Compare two cells. We need to be able to abort */

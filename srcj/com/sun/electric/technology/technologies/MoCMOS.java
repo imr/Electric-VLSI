@@ -33,6 +33,7 @@ import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
@@ -1605,7 +1606,7 @@ public class MoCMOS extends Technology
                 });
             metalWellContactNodes[i].addPrimitivePorts(new PrimitivePort []
                 {
-                    PrimitivePort.newInstance(this, metalWellContactNodes[i], new ArcProto[] {metalArcs[0]},
+                    PrimitivePort.newInstance(this, metalWellContactNodes[i], new ArcProto[] {metalArcs[0], wellArcs[i]},
                             ((i==P_TYPE)?"metal-1-well":"metal-1-substrate"),
                             0,180, 0, PortCharacteristic.UNKNOWN,
                         EdgeH.fromLeft(8), EdgeV.fromBottom(8), EdgeH.fromRight(8), EdgeV.fromTop(8))
@@ -2883,4 +2884,15 @@ public class MoCMOS extends Technology
                 rules.getExtensionRule(activeNode.getLayer(), polyCNode.getLayer(), false);
         return (overhang != null ? overhang.getValue(0) : 0.0);
     }
+    
+	/** Return a substrate PortInst for this transistor NodeInst
+     * @param ni the NodeInst
+     * @return a PortInst for the substrate contact of the transistor
+	 */
+	@Override
+	public PortInst getTransistorBiasPort(NodeInst ni)
+	{
+		return ni.getPortInst(4);
+	}
+
 }

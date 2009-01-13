@@ -68,6 +68,18 @@ public class NccPreferences {
 		return absoluteSizeTolerance.getDoubleFactoryValue(); 
 	}
 
+	private static Pref checkBody = 
+		Pref.makeBooleanPref("CheckBody", NccPreferences.tool.prefs, false);
+	public static boolean getCheckBody() {
+		return checkBody.getBoolean(); 
+	}
+	public static void setCheckBody(boolean on) { 
+		checkBody.setBoolean(on); 
+	}
+	public static boolean getFactoryCheckBody() {
+		return checkBody.getBooleanFactoryValue(); 
+	}
+
 	private static Pref haltAfterFirstMismatch = 
 		Pref.makeBooleanPref("HaltAfterFirstMismatch", NccPreferences.tool.prefs, true);
 	public static boolean getHaltAfterFirstMismatch() {
@@ -163,4 +175,5 @@ public class NccPreferences {
 	public static int getFactoryHowMuchStatus() {
 		return boundStatus(howMuchStatus.getIntFactoryValue());
 	}
+	
 }

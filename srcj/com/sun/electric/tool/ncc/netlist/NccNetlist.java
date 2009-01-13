@@ -445,12 +445,22 @@ class Visitor extends HierarchyEnumerator.Visitor {
 		Wire s = getWireForPortInst(ni.getTransistorSourcePort(), info);
 		Wire g = getWireForPortInst(ni.getTransistorGatePort(), info);
 		Wire d = getWireForPortInst(ni.getTransistorDrainPort(), info);
+		PortInst biasPi = ni.getTransistorBiasPort();
+		Wire w = globals.getOptions().checkBody && biasPi!=null ? ( 
+			getWireForPortInst(biasPi, info)
+		) : (
+			null
+		);
 		Function type = getMosType(ni, info);
 		// if unrecognized transistor type then ignore MOS
-		if (type!=null) {
-			Part t = new Mos(type, name, width, length, s, g, d);
-			parts.add(t);
-		}
+		if (type==null) return;
+		
+		Part t = w!=null ? (
+			new Mos(type, name, width, length, s, g, d, w)
+		) : (
+			new Mos(type, name, width, length, s, g, d)
+		);
+		parts.add(t);
 	}
 	private void buildBipolar(NodeInst ni, NccCellInfo info) {
 		NodableNameProxy np = info.getUniqueNodableNameProxy(ni, "/");

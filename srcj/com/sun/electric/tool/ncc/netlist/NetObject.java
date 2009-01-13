@@ -87,9 +87,11 @@ public abstract class NetObject implements NetObjReportable {
     public abstract String valueDescription();
     /** human readable description of things connected this NetObject */
     public abstract String connectionDescription(int maxConn);
+    /** I'm trying to eliminate the use of toString() because it's difficult to 
+     *  find everyone that calls toString(). However, don't throw an exception
+     *  because the debugger calls it. */
     public String toString() {
-    	LayoutLib.error(true, "Please call fullDescription() instead");
-    	return "";
+    	return "Please don't call NetObject.toString(). Call NetObject.fullDescription() instead";
     }
 	public String fullDescription() {
 		StringBuffer sb = new StringBuffer();

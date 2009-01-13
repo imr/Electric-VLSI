@@ -51,7 +51,7 @@ import com.sun.electric.tool.ncc.trees.EquivRecord;
 /**
  * Local Partition of Wires. Use hashing.
  */
-public class NewLocalPartitionWires {
+public class LocalPartitionWires {
 	// ------------------------ data ---------------------------------
 	private final NccGlobals globals;
 
@@ -59,11 +59,13 @@ public class NewLocalPartitionWires {
 	private static class PinTypeCount {
 		private PinType pinType;
 		private int count;
+		@Override
 		public boolean equals(Object o) {
 			if (!(o instanceof PinTypeCount)) return false;
 			PinTypeCount p = (PinTypeCount) o;
 			return p.count==count && p.pinType==pinType;
 		}
+		@Override
 		public int hashCode() {
 			return pinType.hashCode() * count;
 		}
@@ -96,7 +98,7 @@ public class NewLocalPartitionWires {
 			}
 			return l;
 		}
-		
+		@Override
 		public int hashCode() {
 			int code = 0;
 			for (PinType t : pinTypeToPinTypeCount.keySet()) {
@@ -105,6 +107,7 @@ public class NewLocalPartitionWires {
 			}
 			return code; 
 		}
+		@Override
 		public boolean equals(Object o) {
 			if (!(o instanceof Signature)) return false;
 			Signature s2 = (Signature) o;
@@ -175,7 +178,7 @@ public class NewLocalPartitionWires {
 				s.increment(t);
 			}
 		}
-		
+		@Override
 		public Integer doFor(NetObject no) {
 			if (no instanceof Part) {
 				doFor((Part)no);
@@ -221,17 +224,18 @@ public class NewLocalPartitionWires {
 		}
 	}
 	
-	private static class LocalPartitionWires extends Strategy {
+	private static class StratLocalPartitionWires extends Strategy {
 		private Map<Wire,Signature> wireToSignature;
 		private Set<Wire> forcedMatchWires;
 
-		private LocalPartitionWires(Map<Wire,Signature> wireToSignature,
+		private StratLocalPartitionWires(Map<Wire,Signature> wireToSignature,
 				                    Set<Wire> forcedMatchWires, NccGlobals globals) {
 			super(globals);
 			this.wireToSignature = wireToSignature;
 			this.forcedMatchWires = forcedMatchWires;
 		}
 		
+		@Override
 		public Integer doFor(NetObject o) {
 			Wire w = (Wire) o;
 			if (forcedMatchWires.contains(w)) {
@@ -243,11 +247,23 @@ public class NewLocalPartitionWires {
 				return 1000 + s.getID();
 			}
 		}
+	    private void summary(LeafList offspring) {
+	        globals.status2("StratLocalPartitionWires produced " + offspring.size() +
+	                        " offspring");
+	        if (offspring.size()!=0) {
+				globals.status2(offspring.sizeInfoString());
+				globals.status2(offspringStats(offspring));
+	        }
+	    }
+	    private void doYourJob2(EquivRecord wireRec) {
+	    	LeafList offspring = doFor(wireRec);
+	    	summary(offspring);
+	    }
 		
 		public static void doYourJob(Map<Wire,Signature> wireToSignature,
 				                     Set<Wire> forcedMatchWires, NccGlobals globs) {
-			(new LocalPartitionWires(wireToSignature, forcedMatchWires, globs))
-				.doFor(globs.getWires());
+			(new StratLocalPartitionWires(wireToSignature, forcedMatchWires, globs))
+				.doYourJob2(globs.getWires());
 		}
 	}
 
@@ -278,7 +294,7 @@ public class NewLocalPartitionWires {
 		}
 	}
 
-	private NewLocalPartitionWires(NccGlobals globs) {globals=globs;}
+	private LocalPartitionWires(NccGlobals globs) {globals=globs;}
 	
 	private void doYourJob(Set<Wire> forcedMatchWires) {
 		EquivRecord wires = globals.getWires();
@@ -287,14 +303,15 @@ public class NewLocalPartitionWires {
 		Map<Wire,Signature> wireToSignature = ComputeSignatures.doYourJob(globals);
 		cannonizeSignatures(wireToSignature);
 		
-		LocalPartitionWires.doYourJob(wireToSignature, forcedMatchWires, globals);
+		StratLocalPartitionWires.doYourJob(wireToSignature, forcedMatchWires, globals);
 		
 		SignPartitions.doYourJob(wireToSignature, globals);
 	}
 
 	// ------------------------ public method ---------------------------------
 	public static void doYourJob(Set<Wire> forcedMatchWires, NccGlobals globs) {
-		NewLocalPartitionWires lpw = new NewLocalPartitionWires(globs);
+		globs.status2("Partition Wires using local information");
+		LocalPartitionWires lpw = new LocalPartitionWires(globs);
 		lpw.doYourJob(forcedMatchWires);
 	}
 }

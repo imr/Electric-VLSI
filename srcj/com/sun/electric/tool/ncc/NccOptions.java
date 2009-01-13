@@ -63,12 +63,12 @@ public class NccOptions implements Serializable {
 	/** For all diagnostic messages, how many members of an equivalence
 	 * class should I print */ 
 	public int maxEquivRecMembersToPrint = 10;
-	
-	/** Perform a regression test of the net equivalence map. */
-	//public boolean checkNetEquivalenceMap = false;
-	
+
 	/** This is false only for old regressions */
 	public boolean oneNamePerPort = true;
+	
+	/** Check the body connections of MOS transistors. */
+	public boolean checkBody = false;
 	
 	public NccOptions() {}
 	
@@ -84,5 +84,6 @@ public class NccOptions implements Serializable {
 		maxMatchedEquivRecsToPrint = o.maxMatchedEquivRecsToPrint;
 		maxEquivRecMembersToPrint = o.maxEquivRecMembersToPrint;
 		oneNamePerPort = o.oneNamePerPort;
+		checkBody = o.checkBody;
 	}
 }

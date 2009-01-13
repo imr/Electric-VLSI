@@ -38,7 +38,7 @@ import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.lists.LeafList;
 import com.sun.electric.tool.ncc.lists.RecordList;
 import com.sun.electric.tool.ncc.netlist.NetObject;
-import com.sun.electric.tool.ncc.processing.NewLocalPartitionWires;
+import com.sun.electric.tool.ncc.processing.LocalPartitionWires;
 import com.sun.electric.tool.ncc.result.EquivRecReport.EquivRecReportable;
 import com.sun.electric.tool.ncc.result.NetObjReport.NetObjReportable;
 import com.sun.electric.tool.ncc.strategy.Strategy;
@@ -135,7 +135,7 @@ public class EquivRecord implements EquivRecReportable {
 	private String partitionReason;
 	
 	// description of Wire PortInst connections
-	private NewLocalPartitionWires.Signature wireSignature; 
+	private LocalPartitionWires.Signature wireSignature; 
 	 
 	// At any given time only one of this lists is non-null
 	private RecordList offspring;
@@ -428,7 +428,7 @@ public class EquivRecord implements EquivRecReportable {
 			return reasons;
 		}
 	}
-	public void setWireSignature(NewLocalPartitionWires.Signature sig) {
+	public void setWireSignature(LocalPartitionWires.Signature sig) {
 		wireSignature = sig;
 	}
 

@@ -132,6 +132,8 @@ public class NccJob extends Job {
 		// convert percent to fraction
 		options.relativeSizeTolerance = NccPreferences.getRelativeSizeTolerance()/100;
 		options.absoluteSizeTolerance = NccPreferences.getAbsoluteSizeTolerance();
+		
+		options.checkBody = NccPreferences.getCheckBody();
 
 		options.skipPassed = NccPreferences.getSkipPassed();
 		options.howMuchStatus = NccPreferences.getHowMuchStatus();
