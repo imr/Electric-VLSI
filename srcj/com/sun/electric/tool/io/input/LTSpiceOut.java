@@ -28,10 +28,15 @@ package com.sun.electric.tool.io.input;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.simulation.AnalogAnalysis;
+import com.sun.electric.tool.simulation.AnalogSignal;
 import com.sun.electric.tool.simulation.Stimuli;
+import com.sun.electric.tool.simulation.Waveform;
+import com.sun.electric.tool.simulation.WaveformImpl;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Class for reading and displaying waveforms from LTSpice Raw output.
@@ -42,7 +47,34 @@ public class LTSpiceOut extends Simulate
 	private static final boolean DEBUG = false;
 
 	private boolean complexValues;
-	private boolean realValues;
+
+	/**
+	 * Class for handling swept signals.
+	 */
+	private static class SweepAnalysisLT extends AnalogAnalysis
+	{
+		double [][] commonTime; // sweep, signal
+		List<List<double[]>> theSweeps = new ArrayList<List<double[]>>(); // sweep, event, signal
+
+		private SweepAnalysisLT(Stimuli sd, AnalogAnalysis.AnalysisType type)
+		{
+			super(sd, type, false);
+		}
+
+		protected Waveform[] loadWaveforms(AnalogSignal signal)
+		{
+			int sigIndex = signal.getIndexInAnalysis();
+			Waveform[] waveforms = new Waveform[commonTime.length];
+			for (int sweep = 0; sweep < waveforms.length; sweep++)
+			{
+				double[] times = commonTime[sweep];
+				List<double[]> theSweep = theSweeps.get(sweep);
+				Waveform waveform = new WaveformImpl(times, theSweep.get(sigIndex));
+				waveforms[sweep] = waveform;
+			}
+			return waveforms;
+		}
+	}
 
 	LTSpiceOut() {}
 
@@ -73,13 +105,11 @@ public class LTSpiceOut extends Simulate
 		throws IOException
 	{
 		complexValues = false;
-		realValues = false;
+		boolean realValues = false;
 		int signalCount = -1;
 		String[] signalNames = null;
 		int rowCount = -1;
-		AnalogAnalysis an = null;
-		AnalogAnalysis.AnalysisType aType = AnalogAnalysis.ANALYSIS_SIGNALS;
-		double[][] values = null;
+		AnalogAnalysis.AnalysisType aType = AnalogAnalysis.ANALYSIS_TRANS;
 		for(;;)
 		{
 			String line = getLineFromBinary();
@@ -95,8 +125,7 @@ public class LTSpiceOut extends Simulate
 			if (keyWord.equals("Plotname"))
 			{
 				// see if known analysis is specified
-				if (restOfLine.equals("AC Analysis")) aType = AnalogAnalysis.ANALYSIS_AC; else
-					if (restOfLine.equals("Transient Analysis")) aType = AnalogAnalysis.ANALYSIS_TRANS;
+				if (restOfLine.equals("AC Analysis")) aType = AnalogAnalysis.ANALYSIS_AC;
 				continue;
 			}
 
@@ -130,11 +159,7 @@ public class LTSpiceOut extends Simulate
 					System.out.println("Missing variable count in file");
 					return null;
 				}
-				Stimuli sd = new Stimuli();
-				an = new AnalogAnalysis(sd, aType, false);
-				sd.setCell(cell);
 				signalNames = new String[signalCount];
-				values = new double[signalCount][rowCount];
 				for(int i=0; i<=signalCount; i++)
 				{
 					restOfLine = getLineFromBinary();
@@ -172,7 +197,10 @@ public class LTSpiceOut extends Simulate
 					return null;
 				}
 
-				an.buildCommonTime(rowCount);
+				// initialize the stimuli object
+				Stimuli sd = new Stimuli();
+				SweepAnalysisLT an = new SweepAnalysisLT(sd, aType);
+				sd.setCell(cell);
 				if (DEBUG)
 				{
 					System.out.println(signalCount+" VARIABLES, "+rowCount+" SAMPLES");
@@ -180,13 +208,14 @@ public class LTSpiceOut extends Simulate
 						System.out.println("VARIABLE "+i+" IS "+signalNames[i]);
 				}
 
-				// read the data
+				// read all of the data in the RAW file
+				double[][] values = new double[signalCount][rowCount];
+				double [] timeValues = new double[rowCount];
 				for(int j=0; j<rowCount; j++)
 				{
 					double time = getNextDouble();
 					if (DEBUG) System.out.println("TIME AT "+j+" IS "+time);
-					time = Math.abs(time);
-					an.setCommonTime(j, time);
+					timeValues[j] = Math.abs(time);
 					for(int i=0; i<signalCount; i++)
 					{
 						double value = 0;
@@ -196,21 +225,64 @@ public class LTSpiceOut extends Simulate
 						values[i][j] = value;
 					}
 				}
+
+				// figure out where the sweep breaks occur
+				int sweepLength = -1;
+				int sweepStart = 0;
+				int sweepCount = 0;
+				for(int j=1; j<=rowCount; j++)
+				{
+					if (j == rowCount || timeValues[j] < timeValues[j-1])
+					{
+						int sl = j - sweepStart;
+						if (sweepLength >= 0 && sweepLength != sl)
+							System.out.println("ERROR!  Sweeps have different length (" + sweepLength + " and " + sl + ")");
+						sweepLength = sl;
+						sweepStart = j;
+						sweepCount++;
+						an.addSweep(Integer.toString(sweepCount));
+					}
+				}
+				if (DEBUG) System.out.println("FOUND " + sweepCount + " SWEEPS OF LENGTH " + sweepLength);
+
+				// place data into the Analysis object
+				an.commonTime = new double[sweepCount][];
+				for(int s=0; s<sweepCount; s++)
+				{
+					int offset = s * sweepLength;
+					an.commonTime[s] = new double[sweepLength];
+					for (int j = 0; j < sweepLength; j++)
+						an.commonTime[s][j] = timeValues[j + offset];
+
+					List<double[]> allTheData = new ArrayList<double[]>();
+					for(int i=0; i<signalCount; i++)
+					{
+						double[] oneSetOfData = new double[sweepLength];
+						for(int j=0; j<sweepLength; j++)
+							oneSetOfData[j] = values[i][j+offset];
+						allTheData.add(oneSetOfData);
+					}
+					an.theSweeps.add(allTheData);
+				}
+
+				// add signal names to the analysis
+				for (int i = 0; i < signalCount; i++)
+				{
+					String name = signalNames[i];
+					int lastDotPos = name.lastIndexOf('.');
+					String context = null;
+					if (lastDotPos >= 0)
+					{
+						context = name.substring(0, lastDotPos);
+						name = name.substring(lastDotPos + 1);
+					}
+					double minTime = 0, maxTime = 0, minValues = 0, maxValues = 0;
+					an.addSignal(signalNames[i], context, minTime, maxTime, minValues, maxValues);
+				}
+				return sd;
 			}
 		}
-		for (int i = 0; i < signalCount; i++)
-		{
-			String name = signalNames[i];
-			int lastDotPos = name.lastIndexOf('.');
-			String context = null;
-			if (lastDotPos >= 0)
-			{
-				context = name.substring(0, lastDotPos);
-				name = name.substring(lastDotPos + 1);
-			}
-			an.addSignal(signalNames[i], context, values[i]);
-		}
-		return an.getStimuli();
+		return null;
 	}
 
 	private double getNextDouble()
