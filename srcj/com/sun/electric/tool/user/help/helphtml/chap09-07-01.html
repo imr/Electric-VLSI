@@ -24,7 +24,7 @@ significant ways.
 <li>
   The Java Electric NCC has a "hierarchical" mode. When comparing a
   cell hierarchically, NCC first tries to compare the cell's
-  descendents.  We <i>strongly</i> recommend this mode to the user
+  descendants.  We <i>strongly</i> recommend this mode to the user
   because it allows the Local Partitioning algorithm to provide even
   more precise and intelligible mismatch diagnostics.
 </li>
@@ -35,16 +35,10 @@ Java-NCC flat took 3.5 minutes, and Java-NCC hierarchical took 9
 seconds.
 <p>
 
-<h3> Limitations </h3>
-NCC has a number of limitations
-<ul>
-<li>
-  NCC does not check the substrate connection of transistors. This is
-  because Electric does not keep track of the connectivity
-  of the substrate connection of layout transistors. In fact, layout
-  transistors don't have substrate ports. We plan to remedy this.
-</li>
-</ul>
+<h3> New body connection checking (Version 8.09b onwards)</h3>
+This version of NCC can now optionally check that transistor bodies
+are properly connected. See the description of the NCC preferences
+dialog.
 
 <h3> Example </h3>
 

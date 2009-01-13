@@ -52,6 +52,36 @@ automatically sized transistors. For this case it compares a pair of cells
 hierarchically if and only if each cell is instantiated exactly once.
 </p>
 
+<h3> Body checking </h3>
+
+The check box "Check transistor body connections" allows the user
+to select whether NCC checks connections to the body port of transistors.
+By default, body checking is disabled 
+and NCC ignores connections to transistor body ports.
+<p>
+If the user wishes to check body connections, then she must check
+this box. Then, the NCC will make sure that the schematics 
+and layout have matching connections to all transistor body 
+ports. 
+<p>
+Note that only certain versions of schematic transistors have body
+ports.  The designer must use those schematic transistors.
+In addition, in this version of
+Electric, layout transistors also have body ports. The designer must 
+specify the connectivity of the body port of layout transistors using
+well arcs.
+<p>
+Note that the body port of the layout transistors are in the very center
+of the transistor and are "hard to select". If you wish to connect
+to the body port of a layout transistor you may need to push the "Toggle Special
+Select" button in the Electric tool bar.
+<p>
+At the moment, only the MoCMOS layout technology has been augmented 
+to allow body connections. This is because this implementation of 
+body checking is experimental. We'd like to get some feedback
+from users before we go to the effort of generalizing all other
+technologies. 
+
 <h3> Checking All Cells Section </h3>
 
 In hierarchical mode, NCC attempts to compare all cells in the design

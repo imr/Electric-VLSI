@@ -12,7 +12,9 @@ IMP: (1/13/09, RK) I changed the implementation of
      transistors also return the body contact. I changed the MoCMOS
      constructor to allow well arcs to attach to well contacts. I added
      an option to NCC to enable the checking of body contacts. I changed
-     NCC so it optionally checks body contacts.
+     NCC so it optionally checks body contacts. I added body checking
+     tests to NCC regression. I added body checking documentation to
+     the NCC user's manual.
 
 IMP: (1/12/09, GVG) Fixing TechEditorWizard regression due to year change.
 Expected data included 2008.
