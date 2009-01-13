@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09b: ******************************
 
+IMP: (1/13/09) I removed the backwards compatibility hack in NCC that
+     infers NodeProto.Function from the name of the PrimitiveNode.
+     This removed the references to TRANMOS and TRAPMOS in NCC. However
+     to do this, I needed to update the Technologies: MoCMOS and CMOS90
+     so they correctly use the new NodeProto.Functions. (Bug #1858)
+
 BUG: (1/13/09, SMR) Pad Frame generator fails if core cell has a view (Bug #2001).
 FIX: In PadGenerator.createPadFrame(), do not append view if one exists.
 
@@ -14,7 +20,7 @@ IMP: (1/13/09, RK) I changed the implementation of
      an option to NCC to enable the checking of body contacts. I changed
      NCC so it optionally checks body contacts. I added body checking
      tests to NCC regression. I added body checking documentation to
-     the NCC user's manual.
+     the NCC user's manual. (Bug #1910)
 
 IMP: (1/12/09, GVG) Fixing TechEditorWizard regression due to year change.
 Expected data included 2008.

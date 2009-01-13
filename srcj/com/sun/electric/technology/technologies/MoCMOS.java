@@ -1288,7 +1288,7 @@ public class MoCMOS extends Technology
                     PrimitivePort.newInstance(this, thickTransistorNodes[i], new ArcProto[] {wellArcs[(i+1)%thickTransistorNodes.length]}, stdNames[i]+"-trans-well", 0,360, 3, PortCharacteristic.UNKNOWN,
                         EdgeH.fromCenter(0), EdgeV.fromCenter(0), EdgeH.fromCenter(0), EdgeV.fromCenter(0))
 				});
-			thickTransistorNodes[i].setFunction((i==P_TYPE) ? PrimitiveNode.Function.TRAPMOS : PrimitiveNode.Function.TRANMOS);
+			thickTransistorNodes[i].setFunction((i==P_TYPE) ? PrimitiveNode.Function.TRAPMOSHV1 : PrimitiveNode.Function.TRANMOSHV1);
 			thickTransistorNodes[i].setHoldsOutline();
 			thickTransistorNodes[i].setCanShrink();
 			thickTransistorNodes[i].setSpecialType(PrimitiveNode.SERPTRANS);

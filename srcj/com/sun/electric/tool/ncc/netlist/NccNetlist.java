@@ -418,7 +418,7 @@ class Visitor extends HierarchyEnumerator.Visitor {
 		                    new UnrecognizedPart(ni.getParent(), info.getContext(), typeNm, ni));
 				}
 			}
-		} else {
+		} /* else {
 			// This is a workaround until we update the Technologies to utilize 
 			// NodeProto.Function.
 			if (func==Function.TRANMOS || func==Function.TRAPMOS) {
@@ -426,7 +426,7 @@ class Visitor extends HierarchyEnumerator.Visitor {
 				Function funcOverride = PrimitiveNameToFunction.nameToFunction(protoNm);
 				if (funcOverride!=null)  func=funcOverride;
 			}
-		}
+		}*/
 		
 		func = fourToThree.translate(func);
 		
