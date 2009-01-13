@@ -175,7 +175,7 @@ public class LTSpiceOut extends Simulate
 					int nameEnd = nameStart;
 					while (nameEnd < restOfLine.length() && !Character.isWhitespace(restOfLine.charAt(nameEnd))) nameEnd++;
 					String name = restOfLine.substring(nameStart, nameEnd);
-					if (name.startsWith("v(") && name.endsWith(")"))
+					if (name.startsWith("V(") && name.endsWith(")"))
 					{
 						name = name.substring(2, name.length()-1);
 					}
