@@ -931,7 +931,8 @@ public class PadGenerator
 		{
 			// first, try to create cell
 			String corenameview = corename;
-			if (view != null)
+			CellName coreName = CellName.parseName(corename);
+			if (view != null && coreName.getView() == View.UNKNOWN)
 			{
 				corenameview = corename + "{" + view.getAbbreviation() + "}";
 			}

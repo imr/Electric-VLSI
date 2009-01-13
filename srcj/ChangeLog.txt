@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09b: ******************************
 
+BUG: (1/13/09, SMR) Pad Frame generator fails if core cell has a view (Bug #2001).
+FIX: In PadGenerator.createPadFrame(), do not append view if one exists.
+
 IMP: (1/13/09, RK) I changed the implementation of 
      Technology.getTransistorBiasPort(NodeInst ni) so that MoCMOS 
      transistors also return the body contact. I changed the MoCMOS
