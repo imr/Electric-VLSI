@@ -26,8 +26,12 @@ package com.sun.electric.technology;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.text.Version;
 import com.sun.electric.technology.Technology.TechPoint;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.io.IOTool;
+import com.sun.electric.tool.user.User;
 
 import java.awt.Color;
 import java.io.IOException;
@@ -1545,28 +1549,47 @@ public class Xml {
             pl("");
             out.println("<!--");
             pl(" *");
-            pl(" * Electric(tm) VLSI Design System");
+    		if (User.isIncludeDateAndVersionInOutput())
+    		{
+    			pl(" * Electric(tm) VLSI Design System, version " + com.sun.electric.database.text.Version.getVersion());
+    		} else
+    		{
+    			pl(" * Electric(tm) VLSI Design System");
+    		}
             pl(" *");
             pl(" * File: " + t.techName + ".xml");
             pl(" * " + t.techName + " technology description");
             pl(" * Generated automatically from a library");
             pl(" *");
-            pl(" * Copyright (c) " + cal.get(Calendar.YEAR) + " Sun Microsystems and Static Free Software");
-            pl(" *");
-            pl(" * Electric(tm) is free software; you can redistribute it and/or modify");
-            pl(" * it under the terms of the GNU General Public License as published by");
-            pl(" * the Free Software Foundation; either version 3 of the License, or");
-            pl(" * (at your option) any later version.");
-            pl(" *");
-            pl(" * Electric(tm) is distributed in the hope that it will be useful,");
-            pl(" * but WITHOUT ANY WARRANTY; without even the implied warranty of");
-            pl(" * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the");
-            pl(" * GNU General Public License for more details.");
-            pl(" *");
-            pl(" * You should have received a copy of the GNU General Public License");
-            pl(" * along with Electric(tm); see the file COPYING.  If not, write to");
-            pl(" * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,");
-            pl(" * Boston, Mass 02111-1307, USA.");
+    		if (IOTool.isUseCopyrightMessage())
+    		{
+	    		String str = IOTool.getCopyrightMessage();
+	    		int start = 0;
+	    		while (start < str.length())
+	    		{
+	    			int endPos = str.indexOf('\n', start);
+	    			if (endPos < 0) endPos = str.length();
+	    			String oneLine = str.substring(start, endPos);
+	                pl(" * " + oneLine);
+	    			start = endPos+1;
+	    		}
+    		}
+//            pl(" * Copyright (c) " + cal.get(Calendar.YEAR) + " Sun Microsystems and Static Free Software");
+//            pl(" *");
+//            pl(" * Electric(tm) is free software; you can redistribute it and/or modify");
+//            pl(" * it under the terms of the GNU General Public License as published by");
+//            pl(" * the Free Software Foundation; either version 3 of the License, or");
+//            pl(" * (at your option) any later version.");
+//            pl(" *");
+//            pl(" * Electric(tm) is distributed in the hope that it will be useful,");
+//            pl(" * but WITHOUT ANY WARRANTY; without even the implied warranty of");
+//            pl(" * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the");
+//            pl(" * GNU General Public License for more details.");
+//            pl(" *");
+//            pl(" * You should have received a copy of the GNU General Public License");
+//            pl(" * along with Electric(tm); see the file COPYING.  If not, write to");
+//            pl(" * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,");
+//            pl(" * Boston, Mass 02111-1307, USA.");
             pl(" */");
             out.println("-->");
             l();
