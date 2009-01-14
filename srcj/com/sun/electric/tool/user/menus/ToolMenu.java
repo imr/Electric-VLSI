@@ -1987,6 +1987,10 @@ public class ToolMenu {
         AssuraDrcErrors.importErrors(fileName, mangledNames, "DRC");
     }
 
+    /**
+     * Method to import Calibre DRC Errors into Electric and display them
+     * as ErrorLogger.
+     */
     public static void importCalibreDrcErrors() {
         String fileName = OpenFile.chooseInputFile(FileType.DB, null);
         if (fileName == null) return;
@@ -1998,7 +2002,7 @@ public class ToolMenu {
         CalibreDrcErrors.importErrors(fileName, mangledNames, "DRC", false);
     }
 
-    public static void exportDRCDeck() {
+    static void exportDRCDeck() {
         String fileName = OpenFile.chooseOutputFile(FileType.XML,
                 "Save XML DRC deck for foundry '" + Technology.getCurrent().getSelectedFoundry() + "'", null);
         if (fileName == null) return;
@@ -2020,35 +2024,6 @@ public class ToolMenu {
         if (!parser.isParseOK())  return; // errors in the file
 
         new ImportDRCDeckJob(parser.getRules(), tech);
-//        for (DRCTemplate.DRCXMLBucket bucket : parser.getRules())
-//        {
-//            boolean done = false;
-//
-//            // set the new rules under the foundry imported
-//            for (Iterator<Foundry> itF = tech.getFoundries(); itF.hasNext();)
-//            {
-//                Foundry f = itF.next();
-//                if (f.getType().name().equalsIgnoreCase(bucket.foundry))
-//                {
-//                    f.setRules(bucket.drcRules);
-//                    System.out.println("New DRC rules for foundry '" + f.getType().name() + "' were loaded in '" +
-//                            tech.getTechName() + "'");
-//                    // Need to clean cells using this foundry because the rules might have changed.
-//                    DRC.cleanCellsDueToFoundryChanges(tech, f);
-//                    // Only when the rules belong to the selected foundry, then reload the rules
-//                    if (f == tech.getSelectedFoundry())
-//                        tech.setState(true);
-//                    done = true;
-//                    break;
-//                }
-//            }
-//            if (!done)
-//            {
-//                JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-//                    "'" + bucket.foundry + "' is not a valid foundry in '" + tech.getTechName() + "'",
-//                    "Importing DRC Deck", JOptionPane.ERROR_MESSAGE);
-//            }
-//        }
     }
 
     private static class ImportDRCDeckJob extends Job {

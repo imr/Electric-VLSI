@@ -291,6 +291,34 @@ public class DRCTemplate implements Serializable
         return parser;
     }
 
+    /**
+     * Method to transform strings into XML-compatible characters.
+     * @param orig Original string
+     * @return Modified string that is XML-compatible.
+     */
+    public static String covertToXMLFormat(String orig)
+    {
+        // XML has a special set of characters that cannot be used in normal XML strings. These characters are:
+        // 1. & - &amp;
+        // 2. < - &lt;
+        // 3. > - &gt;
+        // 4. " - &quot;
+        // 5. ' - &#39;
+        if (orig == null) return "";
+
+        orig = orig.replaceAll("&", "&amp;");
+        orig = orig.replaceAll("<", "&lt;");
+        orig = orig.replaceAll(">", "&gt;");
+        orig = orig.replaceAll("\"", "&quot;");
+        orig = orig.replaceAll("'", "&#39;");
+        return orig;
+    }
+
+    /**
+     * Method to export DRC rules in XML format
+     * @param fileName
+     * @param tech
+     */
     public static void exportDRCDecks(String fileName, Technology tech)
     {
         try
@@ -308,7 +336,7 @@ public class DRCTemplate implements Serializable
             {
                 Foundry foundry = it.next();
                 List<DRCTemplate> rules = foundry.getRules();
-                out.println("    <Foundry name=\"" + foundry.getType().getName() + "\">");
+                out.println("    <Foundry name=\"" + covertToXMLFormat(foundry.getType().getName()) + "\">");
 
                 for (DRCTemplate rule : rules)
                 {
@@ -348,15 +376,23 @@ public class DRCTemplate implements Serializable
         if (whenName == null) whenName = DRCMode.ALL.name();  // When originally it was set to ALL
         String condition = "";
 
+        // treating special characters in XML
+        // SAX parser takes care of those characters during reading.
+        String ruleName = covertToXMLFormat(rule.ruleName);
+        String name1 = covertToXMLFormat(rule.name1);
+        String name2 = covertToXMLFormat(rule.name2);
+        String cond = covertToXMLFormat(rule.condition);
+        String nodeName = covertToXMLFormat(rule.nodeName);
+
         switch(rule.ruleType)
         {
             case MINWIDCOND:
-                condition = " condition=\"" + rule.condition + "\"";
+                condition = " condition=\"" + cond + "\"";
             case MINWID:
             case MINAREA:
             case MINENCLOSEDAREA:
-                out.println("        <LayerRule ruleName=\"" + rule.ruleName + "\""
-                        + " layerName=\"" + rule.name1 + "\""
+                out.println("        <LayerRule ruleName=\"" + ruleName + "\""
+                        + " layerName=\"" + name1 + "\""
                         + " type=\""+rule.ruleType+"\""
                         + condition
                         + " when=\"" + whenName + "\""
@@ -371,13 +407,13 @@ public class DRCTemplate implements Serializable
             case EXTENSION:
             case EXTENSIONGATE:
                 if (rule.condition != null)
-                    condition = " condition=\"" + rule.condition + "\"";
+                    condition = " condition=\"" + cond + "\"";
 
-                String noName = (rule.nodeName != null) ? (" nodeName=\"" + rule.nodeName + "\"") : "";
+                String noName = (rule.nodeName != null) ? (" nodeName=\"" + nodeName + "\"") : "";
                 String wideValues = (rule.maxWidth > 0) ? (" maxW=\"" + rule.maxWidth + "\""
                         + " minLen=\"" + rule.minLength + "\"") : "";
-                out.println("        <LayersRule ruleName=\"" + rule.ruleName + "\""
-                        + " layerNames=\"{" + rule.name1 + "," + rule.name2 + "}\""
+                out.println("        <LayersRule ruleName=\"" + ruleName + "\""
+                        + " layerNames=\"{" + name1 + "," + name2 + "}\""
                         + " type=\""+rule.ruleType+"\""
                         + " when=\"" + whenName + "\""
                         + " value=\"" + rule.getValue(0) + "\""
@@ -390,24 +426,24 @@ public class DRCTemplate implements Serializable
             case ASURROUND:
                 String ruleType = "NodeLayersRule";
                 String value = " value=\"" + rule.getValue(0) + "\"";
-                String layersName = " layerNames=\"{" + rule.name1 + "," + rule.name2 + "}\"";
+                String layersName = " layerNames=\"{" + name1 + "," + name2 + "}\"";
                 if (rule.getValue(0) != rule.getValue(1)) // x and y values
                 {
                     value = " valueX=\"" + rule.getValue(0) + "\"" + " valueY=\"" + rule.getValue(1) + "\"";
                 }
-                noName = " nodeName=\"" + rule.nodeName + "\"";
+                noName = " nodeName=\"" + nodeName + "\"";
                 if (rule.name2 == null) // conditional surround
                 {
                     noName = "";
                     ruleType = "LayerRule";
-                    layersName = " layerName=\"" + rule.name1 + "\" condition=\"" + rule.condition + "\"";
+                    layersName = " layerName=\"" + name1 + "\" condition=\"" + cond + "\"";
                 }
                 else if (rule.nodeName == null)  // LayersRule
                 {
                     noName = "";
                     ruleType = "LayersRule";
                 }
-                out.println("        <" + ruleType + " ruleName=\"" + rule.ruleName + "\""
+                out.println("        <" + ruleType + " ruleName=\"" + ruleName + "\""
                         + layersName
                         + " type=\""+rule.ruleType+"\""
                         + " when=\"" + whenName + "\""
@@ -422,23 +458,23 @@ public class DRCTemplate implements Serializable
                 {
                     value = " valueX=\"" + rule.getValue(0) + "\"" + " valueY=\"" + rule.getValue(1) + "\"";
                 }
-                out.println("        <NodeRule ruleName=\"" + rule.ruleName + "\""
+                out.println("        <NodeRule ruleName=\"" + ruleName + "\""
                         + " type=\""+rule.ruleType+"\""
                         + " when=\"" + whenName + "\""
                         + value
-                        + " nodeName=\"" + rule.nodeName + "\""
+                        + " nodeName=\"" + nodeName + "\""
                         + "/>");
                 break;
             case FORBIDDEN:
                 if (rule.nodeName != null) {
-                    out.println("        <NodeRule ruleName=\"" + rule.ruleName + "\""
+                    out.println("        <NodeRule ruleName=\"" + ruleName + "\""
                             + " type=\""+rule.ruleType+"\""
                             + " when=\"" + whenName + "\""
-                            + " nodeName=\"" + rule.nodeName + "\""
+                            + " nodeName=\"" + nodeName + "\""
                             + "/>");
                 } else {
-                    out.println("        <LayersRule ruleName=\"" + rule.ruleName + "\""
-                            + " layerNames=\"{" + rule.name1 + "," + rule.name2 + "}\""
+                    out.println("        <LayersRule ruleName=\"" + ruleName + "\""
+                            + " layerNames=\"{" + name1 + "," + name2 + "}\""
                             + " type=\""+rule.ruleType+"\""
                             + " when=\"" + whenName + "\""
                             + "/>");
