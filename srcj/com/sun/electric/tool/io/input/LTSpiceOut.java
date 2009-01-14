@@ -227,7 +227,8 @@ public class LTSpiceOut extends Simulate
 				}
 
 				// figure out where the sweep breaks occur
-				int sweepLength = -1;
+				List<Integer> sweepLengths = new ArrayList<Integer>();
+//				int sweepLength = -1;
 				int sweepStart = 0;
 				int sweepCount = 0;
 				for(int j=1; j<=rowCount; j++)
@@ -235,21 +236,20 @@ public class LTSpiceOut extends Simulate
 					if (j == rowCount || timeValues[j] < timeValues[j-1])
 					{
 						int sl = j - sweepStart;
-						if (sweepLength >= 0 && sweepLength != sl)
-							System.out.println("ERROR!  Sweeps have different length (" + sweepLength + " and " + sl + ")");
-						sweepLength = sl;
+						sweepLengths.add(new Integer(sl));
 						sweepStart = j;
 						sweepCount++;
 						an.addSweep(Integer.toString(sweepCount));
 					}
 				}
-				if (DEBUG) System.out.println("FOUND " + sweepCount + " SWEEPS OF LENGTH " + sweepLength);
+				if (DEBUG) System.out.println("FOUND " + sweepCount + " SWEEPS");
 
 				// place data into the Analysis object
 				an.commonTime = new double[sweepCount][];
+				int offset = 0;
 				for(int s=0; s<sweepCount; s++)
 				{
-					int offset = s * sweepLength;
+					int sweepLength = sweepLengths.get(s).intValue();
 					an.commonTime[s] = new double[sweepLength];
 					for (int j = 0; j < sweepLength; j++)
 						an.commonTime[s][j] = timeValues[j + offset];
@@ -263,6 +263,7 @@ public class LTSpiceOut extends Simulate
 						allTheData.add(oneSetOfData);
 					}
 					an.theSweeps.add(allTheData);
+					offset += sweepLength;
 				}
 
 				// add signal names to the analysis
