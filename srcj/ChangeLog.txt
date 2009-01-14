@@ -4,7 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09b: ******************************
 
-IMP: (1/13/09) I removed the backwards compatibility hack in NCC that
+BUG: (1/13/09, GVG) Out of Bounds exception while switching units in Tech preference (Bug #2002)
+FIX: Detecting "NONE" scale.
+
+IMP: (1/13/09, RK) I removed the backwards compatibility hack in NCC that
      infers NodeProto.Function from the name of the PrimitiveNode.
      This removed the references to TRANMOS and TRAPMOS in NCC. However
      to do this, I needed to update the Technologies: MoCMOS and CMOS90

@@ -905,7 +905,13 @@ public class TextUtils
 		 * @param index the index of the UnitScale.
 		 * @return the indexed UnitScale.
 		 */
-		public static UnitScale findFromIndex(int index) { return allUnits[index - UNIT_BASE]; }
+		public static UnitScale findFromIndex(int index)
+        {
+            int i = index - UNIT_BASE;
+            if (i < 0 || i >= allUnits.length)
+                return NONE;
+            return allUnits[i]; 
+        }
 
 		/**
 		 * Method to return a list of all scales.
