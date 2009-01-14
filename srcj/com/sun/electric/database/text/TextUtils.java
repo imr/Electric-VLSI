@@ -286,7 +286,7 @@ public class TextUtils
 				v = 0;
 			}
 		}
-		if (unitType == TextDescriptor.Unit.DISTANCE)
+		if (unitType == TextDescriptor.Unit.DISTANCE && User.getDistanceUnits() != null)
 			v = v / Technology.getCurrent().getScale() / UnitScale.NANO.getMultiplier().doubleValue();
 		return v;
 	}
