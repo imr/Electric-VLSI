@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09b: ******************************
 
+BUG: (1/14/09, RK) REALLY push back body check additions to NCC
+     regressions. (Discovered because regression 090114 failed.)  
+
 BUG: (1/14/09, SMR) Bias ports on transistors cause Spice netlister to fail (Bug #2005).
 FIX: Ignore nulls when examining bias information.
 
