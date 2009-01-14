@@ -383,8 +383,8 @@ public class GetInfoArc extends EModelessDialog implements HighlightListener, Da
 			}
 			network.setText(netName);
 			name.setText(initialName);
-			width.setText(TextUtils.formatDouble(initialWidth));
-			length.setText(TextUtils.formatDouble(ai.getLambdaLength()));
+			width.setText(TextUtils.formatDistance(initialWidth));
+			length.setText(TextUtils.formatDistance(ai.getLambdaLength()));
 			busSize.setText(Integer.toString(busWidth));
 			angle.setText("Angle: " + TextUtils.formatDouble(ai.getAngle() / 10.0));
 			easyToSelect.setSelected(initialEasyToSelect);
@@ -1171,8 +1171,7 @@ public class GetInfoArc extends EModelessDialog implements HighlightListener, Da
 		}
 
 		Double newDWidth = null;
-		double currentWidth = TextUtils.atof(width.getText());
-//		double currentWidth = TextUtils.atof(width.getText()) + shownArc.getProto().getLambdaWidthOffset();
+		double currentWidth = TextUtils.atofDistance(width.getText());
 		if (!DBMath.doublesEqual(currentWidth, initialWidth))
 		{
 			newDWidth = new Double(currentWidth - initialWidth);

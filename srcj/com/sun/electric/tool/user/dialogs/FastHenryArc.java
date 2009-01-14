@@ -142,12 +142,12 @@ public class FastHenryArc extends EDialog
 			fhaGroups.setSelectedItem(initialGroupName = groupName);
 		}
 
-		fhaWidth.setText(TextUtils.formatDouble(ai.getLambdaBaseWidth()));
+		fhaWidth.setText(TextUtils.formatDistance(ai.getLambdaBaseWidth()));
 
 		String thickness = "";
-		if (fhai.getThickness() >= 0) thickness = TextUtils.formatDouble(initialThickness = fhai.getThickness());
+		if (fhai.getThickness() >= 0) thickness = TextUtils.formatDistance(initialThickness = fhai.getThickness());
 		fhaThickness.setText(thickness);
-	    fhaDefaultThickness.setText("default=" + TextUtils.formatDouble(Simulation.getFastHenryDefThickness()));
+	    fhaDefaultThickness.setText("default=" + TextUtils.formatDistance(Simulation.getFastHenryDefThickness()));
 
 		String widthSubdivisions = "";
 		if (fhai.getWidthSubdivisions() >= 0) widthSubdivisions = Integer.toString(initialWidthSubdivs = fhai.getWidthSubdivisions());
@@ -159,20 +159,20 @@ public class FastHenryArc extends EDialog
 		fhaHeightSubdivs.setText(heightSubdivisions);
 	    fhaDefaultHeightSubdivs.setText("default=" + Integer.toString(Simulation.getFastHenryHeightSubdivisions()));
 
-		fhaHeadXY.setText("Head at:   X=" + TextUtils.formatDouble(ai.getHeadLocation().getX()) +
-			"   Y=" + TextUtils.formatDouble(ai.getHeadLocation().getY()) + "   Z=");
+		fhaHeadXY.setText("Head at:   X=" + TextUtils.formatDistance(ai.getHeadLocation().getX()) +
+			"   Y=" + TextUtils.formatDistance(ai.getHeadLocation().getY()) + "   Z=");
 		String headZ = "";
-		if (fhai.getZHead() >= 0) headZ = TextUtils.formatDouble(initialZHead = fhai.getZHead());
+		if (fhai.getZHead() >= 0) headZ = TextUtils.formatDistance(initialZHead = fhai.getZHead());
 		fhaHeadZ.setText(headZ);
 
-		fhaTailXY.setText("Tail at:   X=" + TextUtils.formatDouble(ai.getTailLocation().getX()) +
-			"   Y=" + TextUtils.formatDouble(ai.getTailLocation().getY()) + "   Z=");
+		fhaTailXY.setText("Tail at:   X=" + TextUtils.formatDistance(ai.getTailLocation().getX()) +
+			"   Y=" + TextUtils.formatDistance(ai.getTailLocation().getY()) + "   Z=");
 		String tailZ = "";
-		if (fhai.getZTail() >= 0) tailZ = TextUtils.formatDouble(initialZTail = fhai.getZTail());
+		if (fhai.getZTail() >= 0) tailZ = TextUtils.formatDistance(initialZTail = fhai.getZTail());
 		fhaTailZ.setText(tailZ);
 	    
 		String defaultZ = "";
-		if (fhai.getZDefault() >= 0) defaultZ = TextUtils.formatDouble(fhai.getZDefault());
+		if (fhai.getZDefault() >= 0) defaultZ = TextUtils.formatDistance(fhai.getZDefault());
 		fhaDefaultZ.setText("default=" + defaultZ);
 
 		includeArcClicked();
@@ -351,7 +351,7 @@ public class FastHenryArc extends EDialog
 		{
 			double thickness = -1;
 			if (fhaThickness.getText().length() > 0)
-				thickness = TextUtils.atof(fhaThickness.getText());
+				thickness = TextUtils.atofDistance(fhaThickness.getText());
 			int widthSubdivs = -1;
 			if (fhaWidthSubdivs.getText().length() > 0)
 				widthSubdivs = TextUtils.atoi(fhaWidthSubdivs.getText());
@@ -360,10 +360,10 @@ public class FastHenryArc extends EDialog
 				heightSubdivs = TextUtils.atoi(fhaHeightSubdivs.getText());
 			double headZ = -1;
 			if (fhaHeadZ.getText().length() > 0)
-				headZ = TextUtils.atof(fhaHeadZ.getText());
+				headZ = TextUtils.atofDistance(fhaHeadZ.getText());
 			double tailZ = -1;
 			if (fhaTailZ.getText().length() > 0)
-				tailZ = TextUtils.atof(fhaTailZ.getText());
+				tailZ = TextUtils.atofDistance(fhaTailZ.getText());
 			new UpdateFastHenryArc(ai,
 				fhaIncludeArc.isSelected(),
 				(String)fhaGroups.getSelectedItem(), initialGroupName,

@@ -305,8 +305,8 @@ public class DesignRulesPanel extends JPanel
 		double width = -1, height = -1;
 		if (widthText.length() > 0 || heightText.length() > 0)
 		{
-			width = TextUtils.atof(widthText);
-			height = TextUtils.atof(heightText);
+			width = TextUtils.atofDistance(widthText);
+			height = TextUtils.atofDistance(heightText);
 		}
         double[] vals = {width, height};
         DRCTemplate tmp = new DRCTemplate(drNodeRule.getText(),
@@ -340,7 +340,7 @@ public class DesignRulesPanel extends JPanel
         {
             // pickup changes to layer minimum size rule
             minSizeText = drLayerWidth.getText().trim();
-            minSize = TextUtils.atof(minSizeText);
+            minSize = TextUtils.atofDistance(minSizeText);
             minSizeRuleName = drLayerWidthRule.getText().trim();
             if (minSizeText.length() > 0 && minSizeRuleName.length() > 0)
                 drRules.setMinValue(layer, minSizeRuleName, minSize, DRCTemplate.DRCRuleType.MINWID);
@@ -466,8 +466,8 @@ public class DesignRulesPanel extends JPanel
 		drNodeRule.setText("");
 		if (nr != null)
 		{
-			drNodeWidth.setText(TextUtils.formatDouble(nr.getValue(0)));
-			drNodeHeight.setText(TextUtils.formatDouble(nr.getValue(1)));
+			drNodeWidth.setText(TextUtils.formatDistance(nr.getValue(0)));
+			drNodeHeight.setText(TextUtils.formatDistance(nr.getValue(1)));
 			drNodeRule.setText(nr.ruleName);
 		}
 		designRulesUpdating = false;
@@ -538,7 +538,7 @@ public class DesignRulesPanel extends JPanel
         DRCTemplate lr = drRules.getMinValue(layer, DRCTemplate.DRCRuleType.MINWID);
         if (lr != null)
 		{
-			drLayerWidth.setText(TextUtils.formatDouble(lr.getValue(0)));
+			drLayerWidth.setText(TextUtils.formatDistance(lr.getValue(0)));
 		    drLayerWidthRule.setText(lr.ruleName);
 		} else
 		{
@@ -562,7 +562,7 @@ public class DesignRulesPanel extends JPanel
         lr = drRules.getMinValue(layer, DRCTemplate.DRCRuleType.MINENCLOSEDAREA);
 		if (lr != null)
 		{
-			drLayerEnclosure.setText(TextUtils.formatDouble(lr.getValue(0)));
+			drLayerEnclosure.setText(TextUtils.formatDistance(lr.getValue(0)));
 		    drLayerEAreaRule.setText(lr.ruleName);
 		} else
 		{

@@ -277,7 +277,7 @@ public class ThreeDTab extends PreferencePanel
 			if (height.doubleValue() != newHeight)
 			{
 				height.setValue(newHeight);
-				dialog.threeDHeight.setText(TextUtils.formatDouble(newHeight));
+				dialog.threeDHeight.setText(TextUtils.formatDistance(newHeight));
 				repaint();
 			}
 		}
@@ -309,13 +309,13 @@ public class ThreeDTab extends PreferencePanel
 		GenMath.MutableDouble height = threeDDistanceMap.get(layer);
         if (set)
         {
-            thickness.setValue(TextUtils.atof(threeDThickness.getText()));
-            height.setValue(TextUtils.atof(threeDHeight.getText()));
+            thickness.setValue(TextUtils.atofDistance(threeDThickness.getText()));
+            height.setValue(TextUtils.atofDistance(threeDHeight.getText()));
         }
         else
         {
-            threeDHeight.setText(TextUtils.formatDouble(height.doubleValue()));
-            threeDThickness.setText(TextUtils.formatDouble(thickness.doubleValue()));
+            threeDHeight.setText(TextUtils.formatDistance(height.doubleValue()));
+            threeDThickness.setText(TextUtils.formatDistance(thickness.doubleValue()));
         }
         if (!set) initial3DTextChanging = false;
 		threeDSideView.repaint();

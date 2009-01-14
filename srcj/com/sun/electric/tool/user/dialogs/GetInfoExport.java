@@ -174,7 +174,7 @@ public class GetInfoExport extends EModelessDialog implements HighlightListener,
 
 		// set location
 		Poly poly = pp.getOriginalPort().getPoly();
-		centerLoc.setText("Center: (" + TextUtils.formatDouble(poly.getCenterX()) + "," + TextUtils.formatDouble(poly.getCenterY()) + ")");
+		centerLoc.setText("Center: (" + TextUtils.formatDistance(poly.getCenterX()) + "," + TextUtils.formatDistance(poly.getCenterY()) + ")");
 
 		// set Body and Always Drawn check boxes
 		initialBodyOnly = pp.isBodyOnly();

@@ -173,8 +173,8 @@ public class IconTab extends PreferencePanel
 		iconReverseOrder.setSelected(User.isIconGenReverseExportOrder());
 		iconsAlwaysDrawn.setSelected(User.isIconsAlwaysDrawn());
 
-		iconLeadLength.setText(TextUtils.formatDouble(User.getIconGenLeadLength()));
-		iconLeadSpacing.setText(TextUtils.formatDouble(User.getIconGenLeadSpacing()));
+		iconLeadLength.setText(TextUtils.formatDistance(User.getIconGenLeadLength()));
+		iconLeadSpacing.setText(TextUtils.formatDistance(User.getIconGenLeadSpacing()));
 	}
 
 	private void placementChanged()
@@ -327,11 +327,11 @@ public class IconTab extends PreferencePanel
 		if (currBoolean != User.isIconsAlwaysDrawn())
 			User.setIconsAlwaysDrawn(currBoolean);
 
-		currDouble = TextUtils.atof(iconLeadLength.getText());
+		currDouble = TextUtils.atofDistance(iconLeadLength.getText());
 		if (currDouble != User.getIconGenLeadLength())
 			User.setIconGenLeadLength(currDouble);
 
-		currDouble = TextUtils.atof(iconLeadSpacing.getText());
+		currDouble = TextUtils.atofDistance(iconLeadSpacing.getText());
 		if (currDouble != User.getIconGenLeadSpacing())
 			User.setIconGenLeadSpacing(currDouble);
 	}

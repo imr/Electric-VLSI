@@ -292,7 +292,7 @@ public class IRSIM extends Output
 						extra = TextUtils.formatDoublePostFix(pureValue); // displayedUnits(pureValue, unit, TextUtils.UnitScale.NONE);
 					}
 				}
-                rcValue = TextUtils.parsePostFixNumber(extra).doubleValue();
+                rcValue = TextUtils.parsePostFixNumber(extra, null).doubleValue();
                 //rcValue = TextUtils.atof(extra);
 
                 if (fun.isResistor())

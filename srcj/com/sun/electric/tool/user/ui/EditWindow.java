@@ -467,14 +467,14 @@ public class EditWindow extends JPanel
 							path = "Location is " + ni.getParent() + " / " + path;
 						} else {
 							path = "Location in " + ni.getParent() + " / " + path + " is (" +
-								TextUtils.formatDouble(ptPath.getX(), 2) + ", " + TextUtils.formatDouble(ptPath.getY(), 2) + ")";
+								TextUtils.formatDistance(ptPath.getX()) + ", " + TextUtils.formatDistance(ptPath.getY()) + ")";
 						}
 					} else path = null;
 				}
 				StatusBar.setHierarchicalCoordinates(path, wnd.wf);
 			}
 
-			StatusBar.setCoordinates("(" + TextUtils.formatDouble(pt.getX(), 2) + ", " + TextUtils.formatDouble(pt.getY(), 2) + ")", wnd.wf);
+			StatusBar.setCoordinates("(" + TextUtils.formatDistance(pt.getX()) + ", " + TextUtils.formatDistance(pt.getY()) + ")", wnd.wf);
 		}
 	}
 

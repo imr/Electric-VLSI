@@ -30,10 +30,15 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.variable.EvalJavaBsh;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.tool.user.User;
 
 import java.awt.Color;
 import java.awt.Toolkit;
-import java.awt.datatransfer.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -176,43 +181,71 @@ public class TextUtils
 
 	/**
 	 * Method to parse the floating-point number in a string.
-	 * <P>
-	 * There is one reason to use this method instead of Double.parseDouble...
-	 * <UL>
-	 * <LI>This method does not throw an exception if the number is invalid (or blank).
-	 * </UL>
+	 * There is one reason to use this method instead of Double.parseDouble:
+	 * this method does not throw an exception if the number is invalid (or blank).
 	 * @param text the string with a number in it.
 	 * @return the numeric value.
 	 */
 	public static double atof(String text)
 	{
-		try
-		{
-			return Double.parseDouble(text);
-		} catch (NumberFormatException e)
-		{
-			return atof(text, null);
-		}
+//		try
+//		{
+//			return Double.parseDouble(text);
+//		} catch (NumberFormatException e)
+//		{
+			return atof(text, null, null);
+//		}
 	}
 
 	/**
-	 * This is the same as TextUtils.atof, except upon failure to convert
-	 * the passed text to a number, it returns the value in 'defaultVal'.
-	 * If 'defaultVal' is null and the text cannot be converted to a number,
-	 * the method returns 0.
-	 * @param text the string to convert to a double
-	 * @param defaultVal the value to return if the string cannot be converted to a double
-	 * @return the numeric value
+	 * Method to parse the floating-point number in a string, using a default value if no number can be determined.
+	 * @param text the string to convert to a double.
+	 * @param defaultVal the value to return if the string cannot be converted to a double.
+	 * If 'defaultVal' is null and the text cannot be converted to a number, the method returns 0.
+	 * @return the numeric value.
 	 */
 	public static double atof(String text, Double defaultVal)
 	{
+		return atof(text, defaultVal, null);
+	}
+
+	/**
+	 * Method to parse the floating-point number in a string, assuming that it is a distance value in the current technology.
+	 * @param text the string to convert to a double.
+	 * @return the numeric value in internal database units.
+	 */
+	public static double atofDistance(String text)
+	{
+		return atof(text, null, TextDescriptor.Unit.DISTANCE);
+	}
+
+	/**
+	 * Method to parse the floating-point number in a string, using a default value if no number can be determined,
+	 * and presuming a type of unit.
+	 * @param text the string to convert to a double.
+	 * @param defaultVal the value to return if the string cannot be converted to a double.
+	 * If 'defaultVal' is null and the text cannot be converted to a number, the method returns 0.
+	 * @param unitType the type of unit being examined (handles postfix characters).
+	 * @return the numeric value.
+	 */
+	public static double atof(String text, Double defaultVal, TextDescriptor.Unit unitType)
+	{
+		if (unitType != null)
+		{
+			// strip off postfix characters if present
+			String pf = unitType.getPostfixChar();
+			if (text.endsWith(pf)) text = text.substring(0, text.length()-pf.length());
+		}
+
 		// remove commas that denote 1000's separators
 		text = text.replaceAll(",", "");
 
 		double v = 0;
 		try
 		{
-			Number n = parsePostFixNumber(text);
+			UnitScale us = null;
+			if (unitType == TextDescriptor.Unit.DISTANCE) us = User.getDistanceUnits();
+			Number n = parsePostFixNumber(text, us);
 			v = n.doubleValue();
 		} catch (NumberFormatException ex)
 		{
@@ -253,6 +286,8 @@ public class TextUtils
 				v = 0;
 			}
 		}
+		if (unitType == TextDescriptor.Unit.DISTANCE)
+			v = v / Technology.getCurrent().getScale() / UnitScale.NANO.getMultiplier().doubleValue();
 		return v;
 	}
 
@@ -451,6 +486,19 @@ public class TextUtils
 	public static String formatDouble(double v)
 	{
 		return formatDouble(v, 3);
+	}
+
+	/**
+	 * Method to convert a distance to a string, using scale from the current technology if necessary.
+	 * If the value has no precision past the decimal, none will be shown.
+	 * If the units are not scalable, then appropriate values will be shown
+	 * @param v the distance value to format.
+	 * @return the string representation of the number.
+	 */
+	public static String formatDistance(double v)
+	{
+		return displayedUnits(v, TextDescriptor.Unit.DISTANCE, User.getDistanceUnits());
+//		return formatDouble(v, 3);
 	}
 
 	/**
@@ -984,45 +1032,21 @@ public class TextUtils
 	 * Method to express "value" as a string in "unittype" electrical units.
 	 * The scale of the units is in "unitscale".
 	 */
-//	public static String displayedUnits(double value, TextDescriptor.Unit unitType, UnitScale unitScale)
-//	{
-//		String postFix = "";
-//		if (unitScale == UnitScale.GIGA)
-//		{
-//			value /= 1000000000.0f;
-//			postFix = "g";
-//		} else if (unitScale == UnitScale.MEGA)
-//		{
-//			value /= 1000000.0f;
-//			postFix = "meg";		// SPICE wants "x"
-//		} else if (unitScale == UnitScale.KILO)
-//		{
-//			value /= 1000.0f;
-//			postFix = "k";
-//		} else if (unitScale == UnitScale.MILLI)
-//		{
-//			value *= 1000.0f;
-//			postFix = "m";
-//		} else if (unitScale == UnitScale.MICRO)
-//		{
-//			value *= 1000000.0f;
-//			postFix = "u";
-//		} else if (unitScale == UnitScale.NANO)
-//		{
-//			value *= 1000000000.0f;
-//			postFix = "n";
-//		} else if (unitScale == UnitScale.PICO)
-//		{
-//			value *= 1000000000000.0f;
-//			postFix = "p";
-//		} else if (unitScale == UnitScale.FEMTO)
-//		{
-//			value *= 1000000000000000.0f;
-//			postFix = "f";
-//		}
-//		return value + postFix;
-////		return formatDoublePostFix(value);
-//	}
+	private static String displayedUnits(double value, TextDescriptor.Unit unitType, UnitScale unitScale)
+	{
+		if (unitType == TextDescriptor.Unit.DISTANCE && unitScale != null)
+		{
+			Technology tech = Technology.getCurrent();
+			value *= tech.getScale() / UnitScale.NANO.getMultiplier().doubleValue();
+		}
+		String postFix = "";
+		if (unitScale != null)
+		{
+			value *= unitScale.getMultiplier().doubleValue();
+			postFix = unitScale.getPostFix() + unitType.getPostfixChar();
+		}
+		return formatDouble(value) + postFix;
+	}
 
 	/**
 	 * Method to convert a floating point value to a string, given that it is a particular type of unit.
@@ -1036,26 +1060,22 @@ public class TextUtils
 	public static String makeUnits(double value, TextDescriptor.Unit units)
 	{
 		if (units == TextDescriptor.Unit.NONE)
-		{
-			// SMR removed the 2nd parameter to show only 3 digits
-//			return formatDouble(value, 0);
 			return formatDouble(value);
-		}
-//		if (units == TextDescriptor.Unit.RESISTANCE)
-//			return displayedUnits(value, units, User.getResistanceUnits());
-//		if (units == TextDescriptor.Unit.CAPACITANCE)
-//			return displayedUnits(value, units, User.getCapacitanceUnits());
-//		if (units == TextDescriptor.Unit.INDUCTANCE)
-//			return displayedUnits(value, units, User.getInductanceUnits());
-//		if (units == TextDescriptor.Unit.CURRENT)
-//			return displayedUnits(value, units, User.getAmperageUnits());
-//		if (units == TextDescriptor.Unit.VOLTAGE)
-//			return displayedUnits(value, units, User.getVoltageUnits());
-//		if (units == TextDescriptor.Unit.TIME)
-//			return displayedUnits(value, units, User.getTimeUnits());
+		if (units == TextDescriptor.Unit.DISTANCE)
+			return displayedUnits(value, units, User.getDistanceUnits());
+		if (units == TextDescriptor.Unit.RESISTANCE)
+			return displayedUnits(value, units, User.getResistanceUnits());
+		if (units == TextDescriptor.Unit.CAPACITANCE)
+			return displayedUnits(value, units, User.getCapacitanceUnits());
+		if (units == TextDescriptor.Unit.INDUCTANCE)
+			return displayedUnits(value, units, User.getInductanceUnits());
+		if (units == TextDescriptor.Unit.CURRENT)
+			return displayedUnits(value, units, User.getAmperageUnits());
+		if (units == TextDescriptor.Unit.VOLTAGE)
+			return displayedUnits(value, units, User.getVoltageUnits());
+		if (units == TextDescriptor.Unit.TIME)
+			return displayedUnits(value, units, User.getTimeUnits());
 		return (formatDoublePostFix(value));
-//		// shouldn't get here
-//		return "?";
 	}
 
 	/**
@@ -1066,11 +1086,12 @@ public class TextUtils
 	 * No characters in the string are ignored - the string in its entirety (sans removed postfix) must be
 	 * able to be parsed into the Number by the usual Integer.parseInt(), Double.parseDouble() methods.
 	 * <P>Formats: Integer, Long, Double
-	 * @param s the string to parse
+	 * @param s the string to parse.
+	 * @param us the UnitScale to presume if none are given (null for no scaling).
 	 * @return a Number that represents the string in its entirety
 	 * @throws NumberFormatException if the String is not a parsable Number.
 	 */
-	public static Number parsePostFixNumber(String s) throws NumberFormatException {
+	public static Number parsePostFixNumber(String s, UnitScale us) throws NumberFormatException {
 		// remove character denoting multiplier at end, if any
 
 		// remove commas that denote 1000's separators
@@ -1078,6 +1099,7 @@ public class TextUtils
 
 		Number n = null;									// the number
 		Number m = null;									// the multiplier
+		if (us != null) m = us.getMultiplier();
 
 		for (int i=0; i<UnitScale.allUnits.length; i++) {
 			UnitScale u = UnitScale.allUnits[i];
@@ -1091,7 +1113,7 @@ public class TextUtils
 			if (sSuffix.equalsIgnoreCase(postfix)) {
 				m = u.getMultiplier();
 				String sub = s.substring(0, s.length()-postfix.length());
-				// try to converst substring to a number
+				// try to convert substring to a number
 				try {
 					n = parseNumber(sub);
 					break;
@@ -1239,7 +1261,6 @@ public class TextUtils
 			try
 			{
 				result = (String)contents.getTransferData(DataFlavor.stringFlavor);
-                Transferable transferable = new StringSelection(null);
             } catch (UnsupportedFlavorException ex)
 			{
 				ex.printStackTrace();

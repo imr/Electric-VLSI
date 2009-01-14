@@ -231,8 +231,8 @@ public class Array extends EDialog
 		}
 
 		// load the spacing distances
-		xSpacing.setText(TextUtils.formatDouble(prefXDistance.getDouble()));
-		ySpacing.setText(TextUtils.formatDouble(prefYDistance.getDouble()));
+		xSpacing.setText(TextUtils.formatDistance(prefXDistance.getDouble()));
+		ySpacing.setText(TextUtils.formatDistance(prefYDistance.getDouble()));
 		switch (prefSpacingType.getInt())
 		{
 			case SPACING_EDGE:         spaceByEdgeOverlap.setSelected(true);          break;
@@ -309,8 +309,8 @@ public class Array extends EDialog
 
 	private void newSpacingSelected()
 	{
-		double x = TextUtils.atof(xSpacing.getText());
-		double y = TextUtils.atof(ySpacing.getText());
+		double x = TextUtils.atofDistance(xSpacing.getText());
+		double y = TextUtils.atofDistance(ySpacing.getText());
 		switch (prefSpacingType.getInt())
 		{
 			case SPACING_EDGE:   spacingOverX = x;         spacingOverY = y;         break;
@@ -336,8 +336,8 @@ public class Array extends EDialog
 			case SPACING_ESSENTIALBND:  x = essentialBndX;        y = essentialBndY;        break;
 			case SPACING_MEASURED:      x = spacingMeasuredX;     y = spacingMeasuredY;     break;
 		}
-		xSpacing.setText(TextUtils.formatDouble(x));
-		ySpacing.setText(TextUtils.formatDouble(y));
+		xSpacing.setText(TextUtils.formatDistance(x));
+		ySpacing.setText(TextUtils.formatDistance(y));
 	}
 
 	private void rememberFields()
@@ -351,8 +351,8 @@ public class Array extends EDialog
 		prefYFlip.setBoolean(flipAlternateRows.isSelected());
 		prefYStagger.setBoolean(staggerAlternateRows.isSelected());
 		prefYCenter.setBoolean(centerYAboutOriginal.isSelected());
-		prefXDistance.setDouble(TextUtils.getValueOfExpression(xSpacing.getText()));
-		prefYDistance.setDouble(TextUtils.getValueOfExpression(ySpacing.getText()));
+		prefXDistance.setDouble(TextUtils.atofDistance(xSpacing.getText()));
+		prefYDistance.setDouble(TextUtils.atofDistance(ySpacing.getText()));
 		prefLinearDiagonal.setBoolean(linearDiagonalArray.isSelected());
 		prefAddNames.setBoolean(generateArrayIndices.isSelected());
 		prefDRCGood.setBoolean(onlyDRCCorrect.isSelected());

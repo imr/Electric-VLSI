@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.text.TextUtils.UnitScale;
 import com.sun.electric.tool.user.User;
 
 import javax.swing.JPanel;
@@ -68,13 +69,31 @@ public class UnitsTab extends PreferencePanel
 	 */
 	public void init()
 	{
+//		/** Describes giga scale (1 billion). */		public static final UnitScale GIGA =  new UnitScale("Giga",  "giga:  x 1000000000", -3, "G", new Integer(1000000000));
+//		/** Describes mega scale (1 million). */		public static final UnitScale MEGA =  new UnitScale("Mega",  "mega:  x 1000000",    -2, "meg", new Integer(1000000));
+//		/** Describes kilo scale (1 thousand). */		public static final UnitScale KILO =  new UnitScale("Kilo",  "kilo:  x 1000",       -1, "k", new Integer(1000));
+//		/** Describes unit scale (1). */				public static final UnitScale NONE =  new UnitScale("",      "-:     x 1",           0, "", new Integer(1));
+//		/** Describes milli scale (1 thousandth). */	public static final UnitScale MILLI = new UnitScale("Milli", "milli: x 10 ^ -3",     1, "m", new Double(0.001));
+//		/** Describes micro scale (1 millionth). */		public static final UnitScale MICRO = new UnitScale("Micro", "micro: x 10 ^ -6",     2, "u", new Double(0.000001));
+//		/** Describes nano scale (1 billionth). */		public static final UnitScale NANO =  new UnitScale("Nano",  "nano:  x 10 ^ -9",     3, "n", new Double(0.000000001));
+//		/** Describes pico scale (10 to the -12th). */	public static final UnitScale PICO =  new UnitScale("Pico",  "pico:  x 10 ^ -12",    4, "p", new Double(0.000000000001));
+//		/** Describes femto scale (10 to the -15th). */	public static final UnitScale FEMTO = new UnitScale("Femto", "femto: x 10 ^ -15",    5, "f", new Double(0.000000000000001));
+//		/** Describes atto scale (10 to the -18th). */	public static final UnitScale ATTO  = new UnitScale("Atto",  "atto:  x 10 ^ -18",    6, "a", new Double(0.000000000000000001));
+//		/** Describes zepto scale (10 to the -21st). */	public static final UnitScale ZEPTO = new UnitScale("Zepto", "zepto: x 10 ^ -21",    7, "z", new Double(0.000000000000000000001));
+//		/** Describes yocto scale (10 to the -24th). */	public static final UnitScale YOCTO = new UnitScale("Yocto", "yocto: x 10 ^ -24",    8, "y", new Double(0.000000000000000000000001));
+		unitsDistance.addItem("Units (scalable)");
 		unitsDistance.addItem("Millimeters");
 		unitsDistance.addItem("Microns");
 		unitsDistance.addItem("Nanometers");
+		unitsDistance.addItem("Picometers");
 		initialUnitsDistance = User.getDistanceUnits();
-		int index = initialUnitsDistance.getIndex() - DISTANCE_OFFSET;
-		if (index < 0) index = 0;
-		if (index >= unitsDistance.getItemCount()) index = unitsDistance.getItemCount() - 1;
+		int index = 0;
+		if (initialUnitsDistance != null)
+		{
+			index = initialUnitsDistance.getIndex() - DISTANCE_OFFSET + 1;
+			if (index < 0) index = 0;
+			if (index >= unitsDistance.getItemCount()) index = unitsDistance.getItemCount() - 1;
+		}
 		unitsDistance.setSelectedIndex(index);
 
 		unitsResistance.addItem("Giga-ohms");
@@ -163,7 +182,9 @@ public class UnitsTab extends PreferencePanel
 	 */
 	public void term()
 	{
-		TextUtils.UnitScale currentDistance = TextUtils.UnitScale.findFromIndex(unitsDistance.getSelectedIndex() + DISTANCE_OFFSET);
+		int distanceIndex = unitsDistance.getSelectedIndex();
+		TextUtils.UnitScale currentDistance = null;
+		if (distanceIndex != 0) currentDistance = TextUtils.UnitScale.findFromIndex(distanceIndex + DISTANCE_OFFSET - 1);
 		if (currentDistance != initialUnitsDistance)
 			User.setDistanceUnits(currentDistance);
 
@@ -197,7 +218,7 @@ public class UnitsTab extends PreferencePanel
 	 */
 	public void reset()
 	{
-		if (!User.getFactoryDistanceUnits().equals(User.getDistanceUnits()))
+		if (User.getFactoryDistanceUnits() != User.getDistanceUnits())
 			User.setDistanceUnits(User.getFactoryDistanceUnits());
 		if (!User.getFactoryResistanceUnits().equals(User.getResistanceUnits()))
 			User.setResistanceUnits(User.getFactoryResistanceUnits());

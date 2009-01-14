@@ -82,7 +82,7 @@ public class LayoutText extends EDialog
 
 		textSize.setText(Integer.toString(lastSize));
 		textScale.setText(TextUtils.formatDouble(lastScale));
-		dotSeparation.setText(TextUtils.formatDouble(lastSeparation));
+		dotSeparation.setText(TextUtils.formatDistance(lastSeparation));
 
 		textItalic.setSelected(lastItalic);
 		textBold.setSelected(lastBold);
@@ -462,7 +462,7 @@ public class LayoutText extends EDialog
 	{
 		lastSize = TextUtils.atoi(textSize.getText());
 		lastScale = TextUtils.atof(textScale.getText());
-		lastSeparation = TextUtils.atof(dotSeparation.getText());
+		lastSeparation = TextUtils.atofDistance(dotSeparation.getText());
 		lastItalic = textItalic.isSelected();
 		lastBold = textBold.isSelected();
 		lastUnderline = textUnderline.isSelected();

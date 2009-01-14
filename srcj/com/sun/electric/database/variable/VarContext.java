@@ -154,7 +154,7 @@ public class VarContext implements Serializable
         if (val == null) return val;
         if (val instanceof Number) return val;
         try {
-            Number d = TextUtils.parsePostFixNumber(val.toString());
+            Number d = TextUtils.parsePostFixNumber(val.toString(), null);
             val = d;
         } catch (java.lang.NumberFormatException e) {
             // just return original val object
@@ -662,7 +662,7 @@ public class VarContext implements Serializable
         if (obj == null) return def;
         if (obj instanceof Number) return ((Number)obj).floatValue();
         try {
-            Number n = TextUtils.parsePostFixNumber(obj.toString());
+            Number n = TextUtils.parsePostFixNumber(obj.toString(), null);
             return n.floatValue();
         } catch (NumberFormatException e) {}
         return def;
@@ -675,7 +675,7 @@ public class VarContext implements Serializable
         if (obj == null) return def;
         if (obj instanceof Number) return ((Number)obj).intValue();
         try {
-            Number n = TextUtils.parsePostFixNumber(obj.toString());
+            Number n = TextUtils.parsePostFixNumber(obj.toString(), null);
             return n.intValue();
         } catch (NumberFormatException e) {}
         return def;
@@ -688,7 +688,7 @@ public class VarContext implements Serializable
         if (obj == null) return def;
         if (obj instanceof Number) return ((Number)obj).shortValue();
         try {
-            Number n = TextUtils.parsePostFixNumber(obj.toString());
+            Number n = TextUtils.parsePostFixNumber(obj.toString(), null);
             return n.shortValue();
         } catch (NumberFormatException e) {}
         return def;
@@ -701,7 +701,7 @@ public class VarContext implements Serializable
         if (obj == null) return def;
         if (obj instanceof Number) return ((Number)obj).doubleValue();
         try {
-            Number n = TextUtils.parsePostFixNumber(obj.toString());
+            Number n = TextUtils.parsePostFixNumber(obj.toString(), null);
             return n.doubleValue();
         } catch (NumberFormatException e) {}
         return def;

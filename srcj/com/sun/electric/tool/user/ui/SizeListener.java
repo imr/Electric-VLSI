@@ -41,6 +41,7 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.EDialog;
 
 import java.awt.Cursor;
+import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
@@ -154,7 +155,7 @@ public class SizeListener
 		boolean nodes;
 
 		/** Creates new form Size all selected nodes/arcs */
-		public SizeObjects(java.awt.Frame parent, boolean modal, boolean nodes)
+		public SizeObjects(Frame parent, boolean modal, boolean nodes)
 		{
 			super(parent, modal);
 
@@ -254,27 +255,27 @@ public class SizeListener
 					xS = ai.getLambdaBaseWidth();
 				}
 			}
-			xSize.setText(TextUtils.formatDouble(xS));
+			xSize.setText(TextUtils.formatDistance(xS));
 			if (nodes)
-				ySize.setText(TextUtils.formatDouble(yS));
+				ySize.setText(TextUtils.formatDistance(yS));
 		}
 
-		private void cancel(java.awt.event.ActionEvent evt)
+		private void cancel(ActionEvent evt)
 		{
 			SizeObjectsClosing(null);
 		}
 
-		private void ok(java.awt.event.ActionEvent evt)
+		private void ok(ActionEvent evt)
 		{
 			// resize the objects
 			EditWindow wnd = EditWindow.needCurrent();
 			if (wnd == null) return;
 			Highlighter highlighter = wnd.getHighlighter();
 			List<Geometric> highlighted = highlighter.getHighlightedEObjs(true, true);
-			double xS = TextUtils.atof(xSize.getText());
+			double xS = TextUtils.atofDistance(xSize.getText());
 			double yS = 0;
 			if (nodes)
-				yS = TextUtils.atof(ySize.getText());
+				yS = TextUtils.atofDistance(ySize.getText());
 			new ResizeStuff(wnd.getCell(), highlighted, xS, yS, nodes);
 			SizeObjectsClosing(null);
 		}

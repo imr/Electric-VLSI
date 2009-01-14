@@ -239,8 +239,8 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
 			} else
 			{
 				Rectangle2D bounds = cell.getBounds();
-				sizeMsg = "CELL: " + TextUtils.formatDouble(bounds.getWidth(),1) + "x" +
-                        TextUtils.formatDouble(bounds.getHeight(), 1);
+				sizeMsg = "CELL: " + TextUtils.formatDistance(bounds.getWidth()) + " x " +
+                        TextUtils.formatDistance(bounds.getHeight());
 			}
 		}
 		fieldSize.setText(sizeMsg);
@@ -350,8 +350,8 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
 					{
 						double xSize = theNode.getLambdaBaseXSize();
 						double ySize = theNode.getLambdaBaseYSize();
-						selectedMsg += " (size=" + TextUtils.formatDouble(xSize) +
-							"x" + TextUtils.formatDouble(ySize) + ")";
+						selectedMsg += " (size=" + TextUtils.formatDistance(xSize) +
+							" x " + TextUtils.formatDistance(ySize) + ")";
 					}
 				}
             } else

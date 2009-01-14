@@ -115,7 +115,7 @@ public class PrimitiveNodeSize {
             return obj.toString();
         }
         else
-            return TextUtils.formatDouble(width);
+            return TextUtils.formatDistance(width);
     }
 
     /**
@@ -133,6 +133,6 @@ public class PrimitiveNodeSize {
             return obj.toString();
         }
         else
-            return TextUtils.formatDouble(length);
+            return TextUtils.formatDistance(length);
     }
 }

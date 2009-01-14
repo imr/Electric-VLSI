@@ -2523,31 +2523,39 @@ public class User extends Listener
 
 	/****************************** UNITS PREFERENCES ******************************/
 
-	private static Pref cacheDistanceUnits = Pref.makeIntPref("DistanceUnits", tool.prefs, TextUtils.UnitScale.NANO.getIndex());
+	private static Pref cacheDistanceUnits = Pref.makeIntPref("DistanceUnits", tool.prefs, -1);
 	/**
 	 * Method to get current distance units.
-	 * The default is "nanometers".
+	 * The default is "scalable units".
 	 * @return the current distance units.
+	 * Returns null to use scalable units.
 	 */
 	public static TextUtils.UnitScale getDistanceUnits()
 	{
-		return TextUtils.UnitScale.findFromIndex(cacheDistanceUnits.getInt());
+		int unitIndex = cacheDistanceUnits.getInt();
+		if (unitIndex < 0) return null;
+		return TextUtils.UnitScale.findFromIndex(unitIndex);
 	}
 	/**
 	 * Method to set the current distance units.
-	 * @param us the current distance units.
+	 * @param us the current distance units (null to use scalable units).
 	 */
 	public static void setDistanceUnits(TextUtils.UnitScale us)
 	{
-		cacheDistanceUnits.setInt(us.getIndex());
+		int unitIndex = -1;
+		if (us != null) unitIndex = us.getIndex();
+		cacheDistanceUnits.setInt(unitIndex);
 	}
 	/**
 	 * Method to get default distance units.
 	 * @return the default distance units.
+	 * Returns null to use scalable units.
 	 */
 	public static TextUtils.UnitScale getFactoryDistanceUnits()
 	{
-		return TextUtils.UnitScale.findFromIndex(cacheDistanceUnits.getIntFactoryValue());
+		int unitIndex = cacheDistanceUnits.getIntFactoryValue();
+		if (unitIndex < 0) return null;
+		return TextUtils.UnitScale.findFromIndex(unitIndex);
 	}
 
 	private static Pref cacheResistanceUnits = Pref.makeIntPref("ResistanceUnits", tool.prefs, TextUtils.UnitScale.NONE.getIndex());

@@ -63,9 +63,9 @@ public class SetFocus extends EDialog
 		Dimension sz = wnd.getSize();
 		Point2D offset = wnd.getOffset();
 		double scale = wnd.getScale();
-		xCenter.setText(TextUtils.formatDouble(offset.getX()));
-		yCenter.setText(TextUtils.formatDouble(offset.getY()));
-		unitsAcross.setText(TextUtils.formatDouble(sz.getWidth() / scale));
+		xCenter.setText(TextUtils.formatDistance(offset.getX()));
+		yCenter.setText(TextUtils.formatDistance(offset.getY()));
+		unitsAcross.setText(TextUtils.formatDistance(sz.getWidth() / scale));
 		finishInitialization();
 	}
 
@@ -198,9 +198,9 @@ public class SetFocus extends EDialog
 
 	private void ok(java.awt.event.ActionEvent evt)//GEN-FIRST:event_ok
 	{//GEN-HEADEREND:event_ok
-		double xC = TextUtils.atof(xCenter.getText());
-		double yC = TextUtils.atof(yCenter.getText());
-		double across = TextUtils.atof(unitsAcross.getText());
+		double xC = TextUtils.atofDistance(xCenter.getText());
+		double yC = TextUtils.atofDistance(yCenter.getText());
+		double across = TextUtils.atofDistance(unitsAcross.getText());
 
 		Dimension sz = wnd.getSize();
 		wnd.setOffset(new Point2D.Double(xC, yC));

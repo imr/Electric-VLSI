@@ -845,7 +845,7 @@ public class ToolMenu {
 				if (fun.isMetal()) coefficient = COEFFICIENTMETAL;
 				if (fun.isPoly()) coefficient = COEFFICIENTPOLY;
 				double result = halfPerimeter.doubleValue() * coefficient;
-				System.out.println("   Layer " + layer.getName() + " half-perimeter is " + TextUtils.formatDouble(halfPerimeter.doubleValue()) +
+				System.out.println("   Layer " + layer.getName() + " half-perimeter is " + TextUtils.formatDistance(halfPerimeter.doubleValue()) +
 					" x " + coefficient + " = " + TextUtils.formatDouble(result));
 				numerator += result;
 			}

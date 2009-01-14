@@ -587,14 +587,14 @@ public class Quick
             if (DBMath.hasRemainder(point.getX(), minAllowedResolution))
             {
                 count++;
-                resolutionError = TextUtils.formatDouble(Math.abs(((point.getX()/minAllowedResolution) % 1) * minAllowedResolution)) +
+                resolutionError = TextUtils.formatDistance(Math.abs(((point.getX()/minAllowedResolution) % 1) * minAllowedResolution)) +
                         "(X=" + point.getX() + ")";
                 break; // with one error is enough
             }
             else if (DBMath.hasRemainder(point.getY(), minAllowedResolution))
             {
                 count++;
-                resolutionError = TextUtils.formatDouble(Math.abs(((point.getY()/minAllowedResolution) % 1) * minAllowedResolution)) +
+                resolutionError = TextUtils.formatDistance(Math.abs(((point.getY()/minAllowedResolution) % 1) * minAllowedResolution)) +
                         "(Y=" + point.getY() + ")";
                 break;
             }

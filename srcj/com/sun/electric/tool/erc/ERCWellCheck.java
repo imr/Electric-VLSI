@@ -710,8 +710,8 @@ public class ERCWellCheck
 						List<PolyBase> polyList = new ArrayList<PolyBase>();
 						polyList.add(new PolyBase(child.bound));
 						polyList.add(new PolyBase(other.bound));
-						errorLogger.logError("Well areas too close (are " + TextUtils.formatDouble(trueDist) +
-							" but should be " + TextUtils.formatDouble(minDist, 1) + " apart)",
+						errorLogger.logError("Well areas too close (are " + TextUtils.formatDistance(trueDist) +
+							" but should be " + TextUtils.formatDistance(minDist) + " apart)",
 							null, null, null, null, polyList, cell, 0);
 					}
 				}
@@ -1369,8 +1369,8 @@ if (GATHERSTATISTICS) wellBoundSearchOrder.add(new WellBoundRecord(wb, threadInd
 						polyList.add(wa.poly);
 						polyList.add(oWa.poly);
 						errorLogger.logError(waLayer.getName() + " areas too close (are "
-							+ TextUtils.formatDouble(dist, 1) + ", should be "
-							+ TextUtils.formatDouble(ruleValue, 1) + ")", null, null, null, null, polyList, cell, 0);
+							+ TextUtils.formatDistance(dist) + ", should be "
+							+ TextUtils.formatDistance(ruleValue) + ")", null, null, null, null, polyList, cell, 0);
 					}
 				}
 			}

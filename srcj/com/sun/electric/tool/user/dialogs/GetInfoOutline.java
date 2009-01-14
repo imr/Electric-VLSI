@@ -181,8 +181,8 @@ public class GetInfoOutline extends EModelessDialog implements HighlightListener
 			yValue.setText("");
 		} else
 		{
-			xValue.setText(TextUtils.formatDouble(clickedValue.getX()));
-			yValue.setText(TextUtils.formatDouble(clickedValue.getY()));
+			xValue.setText(TextUtils.formatDistance(clickedValue.getX()));
+			yValue.setText(TextUtils.formatDistance(clickedValue.getY()));
 		}
 		changingCoordinates = false;
 	}
@@ -191,8 +191,8 @@ public class GetInfoOutline extends EModelessDialog implements HighlightListener
 	{
 		if (pt == null) return "-------------";
 		return index + ": (" +
-			TextUtils.formatDouble(pt.getX()) + ", " +
-			TextUtils.formatDouble(pt.getY()) + ")";
+			TextUtils.formatDistance(pt.getX()) + ", " +
+			TextUtils.formatDistance(pt.getY()) + ")";
 	}
 
 	/**
@@ -201,7 +201,7 @@ public class GetInfoOutline extends EModelessDialog implements HighlightListener
 	private void coordinatesChanged()
 	{
 		if (changingCoordinates) return;
-		Point2D typedValue = new Point2D.Double(TextUtils.atof(xValue.getText()), TextUtils.atof(yValue.getText()));
+		Point2D typedValue = new Point2D.Double(TextUtils.atofDistance(xValue.getText()), TextUtils.atofDistance(yValue.getText()));
 		int index = list.getSelectedIndex();
 		model.set(index, makeLine(index, typedValue));
 	}
@@ -214,8 +214,8 @@ public class GetInfoOutline extends EModelessDialog implements HighlightListener
 		int closePos = line.indexOf(')', commaPos);
 		if (openPos >= 0 && commaPos >= 0 && closePos >= 0)
 		{
-			xV = TextUtils.atof(line.substring(openPos+1, commaPos));
-			yV = TextUtils.atof(line.substring(commaPos+1, closePos));
+			xV = TextUtils.atofDistance(line.substring(openPos+1, commaPos));
+			yV = TextUtils.atofDistance(line.substring(commaPos+1, closePos));
 			return new Point2D.Double(xV, yV);
 		}
 		return null;

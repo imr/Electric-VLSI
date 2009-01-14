@@ -196,7 +196,7 @@ public class NewArcsTab extends PreferencePanel
 		arcDirectional.setSelected(pai.directional);
 		arcEndsExtend.setSelected(pai.endsExtend);
 
-		arcWidth.setText(TextUtils.formatDouble(pai.wid));
+		arcWidth.setText(TextUtils.formatDistance(pai.wid));
 		arcAngle.setText(Integer.toString(pai.angleIncrement));
 		arcPin.setSelectedItem(pai.pin.getName());
 		newArcsDataChanging = false;
@@ -237,7 +237,7 @@ public class NewArcsTab extends PreferencePanel
 		pai.directional = arcDirectional.isSelected();
 		pai.endsExtend = arcEndsExtend.isSelected();
 
-		pai.wid = TextUtils.atof(arcWidth.getText());
+		pai.wid = TextUtils.atofDistance(arcWidth.getText());
 		pai.angleIncrement = TextUtils.atoi(arcAngle.getText());
 		pai.pin = tech.findNodeProto((String)arcPin.getSelectedItem());
 		PortProto pp = pai.pin.getPorts().next();

@@ -550,13 +550,13 @@ public class LayerCoverageTool extends Tool
                                 geoms.addLayer(layer, layerArea, perimeter);
                             else
                                 System.out.println("Layer " + layer.getName() + " covers " + TextUtils.formatDouble(layerArea)
-                                        + " square lambda (" + TextUtils.formatDouble((layerArea/totalArea)*100, 2) + "%)");
+                                        + " square lambda (" + TextUtils.formatDouble((layerArea/totalArea)*100) + "%)");
                         }
                         geoms.setTotalArea(totalArea);
                         if (geoms != null)
                             geoms.print();
                         else
-                            System.out.println("Cell is " + TextUtils.formatDouble(totalArea, 2) + " square lambda");
+                            System.out.println("Cell is " + TextUtils.formatDouble(totalArea) + " square lambda");
                     }
                     break;
                 default:
@@ -1162,14 +1162,14 @@ public class LayerCoverageTool extends Tool
 	            double halfperim = halfPerimeters.get(i).doubleValue();
 
 	            System.out.println("\tLayer " + layer.getName()
-	                    + ":\t area " + TextUtils.formatDouble(area) + "(" + TextUtils.formatDouble((area/totalArea)*100, 2) + "%)"
+	                    + ":\t area " + TextUtils.formatDouble(area) + "(" + TextUtils.formatDouble((area/totalArea)*100) + "%)"
 	                    + "\t half-perimeter " + TextUtils.formatDouble(halfperim)
 	                    + "\t ratio " + TextUtils.formatDouble(area/halfperim));
 	        }
 	        if (totalWire > 0)
 	            System.out.println("Total wire length = " + TextUtils.formatDouble(totalWire/lambda));
             if (totalArea > 0)
-                System.out.println("Total cell area = " + TextUtils.formatDouble(totalArea, 2));
+                System.out.println("Total cell area = " + TextUtils.formatDouble(totalArea));
 	    }
 	}
 

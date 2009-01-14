@@ -206,8 +206,8 @@ public class TextInfoPanel extends javax.swing.JPanel
     public void setOffsets(Point2D offset)
     {
         loading = true;
-        xOffset.setText(TextUtils.formatDouble(offset.getX()));
-        yOffset.setText(TextUtils.formatDouble(offset.getY()));
+        xOffset.setText(TextUtils.formatDistance(offset.getX()));
+        yOffset.setText(TextUtils.formatDistance(offset.getY()));
         loading = false;
     }
 
@@ -475,8 +475,8 @@ public class TextInfoPanel extends javax.swing.JPanel
         }
 
         // handle changes to the offset
-        double xd = TextUtils.atof(xOffset.getText());
-        double yd = TextUtils.atof(yOffset.getText());
+        double xd = TextUtils.atofDistance(xOffset.getText());
+        double yd = TextUtils.atofDistance(yOffset.getText());
         td = td.withOff(xd, yd);
 
         // handle changes to the rotation
@@ -551,8 +551,8 @@ public class TextInfoPanel extends javax.swing.JPanel
         if (!newSize.equals(initialSize)) changed = true;
 
         // handle changes to the offset
-        double currentXOffset = TextUtils.atof(xOffset.getText());
-        double currentYOffset = TextUtils.atof(yOffset.getText());
+        double currentXOffset = TextUtils.atofDistance(xOffset.getText());
+        double currentYOffset = TextUtils.atofDistance(yOffset.getText());
         if (!DBMath.doublesEqual(currentXOffset, initialXOffset) ||
                 !DBMath.doublesEqual(currentYOffset, initialYOffset))
             changed = true;

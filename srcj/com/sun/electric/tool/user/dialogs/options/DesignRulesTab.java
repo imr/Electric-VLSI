@@ -99,7 +99,7 @@ public class DesignRulesTab extends PreferencePanel
 		drTechName.setText(text);
 
         // Resolution
-		drResolutionValue.setText(TextUtils.formatDouble(curTech.getResolution()));
+		drResolutionValue.setText(TextUtils.formatDistance(curTech.getResolution()));
 	}
 
 	/**
@@ -108,7 +108,7 @@ public class DesignRulesTab extends PreferencePanel
 	 */
 	public void term()
 	{
-		double currentResolution = TextUtils.atof(drResolutionValue.getText());
+		double currentResolution = TextUtils.atofDistance(drResolutionValue.getText());
 		if (currentResolution != curTech.getResolution())
 			curTech.setResolution(currentResolution);
 

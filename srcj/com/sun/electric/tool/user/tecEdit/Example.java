@@ -124,8 +124,8 @@ public class Example implements Serializable
 						String error = "Examples are too close.  Found " + neList.size() + " examples at:";
 						for(Example nee : neList)
 						{
-							error += " [" + TextUtils.formatDouble(nee.lx) + "<=X<=" + TextUtils.formatDouble(nee.hx) +
-								" and " + TextUtils.formatDouble(nee.ly) + "<=Y<=" + TextUtils.formatDouble(nee.hy) + "]";
+							error += " [" + TextUtils.formatDistance(nee.lx) + "<=X<=" + TextUtils.formatDistance(nee.hx) +
+								" and " + TextUtils.formatDistance(nee.ly) + "<=Y<=" + TextUtils.formatDistance(nee.hy) + "]";
 						}
 						tcr.markError(otherNi, np, error);
 						return null;

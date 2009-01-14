@@ -110,7 +110,7 @@ public class RoutingTab extends PreferencePanel
 			public void actionPerformed(ActionEvent evt) { sogTechChanged(); }
 		});
 		sogRouteTechnology.setSelectedItem(Technology.getCurrent().getTechName());
-		sogMaxArcWidth.setText(TextUtils.formatDouble(Routing.getSeaOfGatesMaxWidth()));
+		sogMaxArcWidth.setText(TextUtils.formatDistance(Routing.getSeaOfGatesMaxWidth()));
 		sogComplexityLimit.setText(Integer.toString(Routing.getSeaOfGatesComplexityLimit()));
 		sogParallel.setSelected(Routing.isSeaOfGatesUseParallelRoutes());
 		sogParallel.addActionListener(new ActionListener()
@@ -300,7 +300,7 @@ public class RoutingTab extends PreferencePanel
 			if (check.isSelected() != Routing.isSeaOfGatesPrevent(ap))
 				Routing.setSeaOfGatesPrevent(ap, check.isSelected());
 		}
-		double curSOGMaxWid = TextUtils.atof(sogMaxArcWidth.getText());
+		double curSOGMaxWid = TextUtils.atofDistance(sogMaxArcWidth.getText());
 		if (curSOGMaxWid != Routing.getSeaOfGatesMaxWidth())
 			Routing.setSeaOfGatesMaxWidth(curSOGMaxWid);
 		int curSOGComplexity = TextUtils.atoi(sogComplexityLimit.getText());

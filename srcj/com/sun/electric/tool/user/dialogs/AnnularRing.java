@@ -124,8 +124,8 @@ public class AnnularRing extends EDialog
         layerModel.addElement(new AnnularRingNode(Generic.tech().afgNode));
 		layerJList.setSelectedIndex(0);
 
-		innerRadius.setText(TextUtils.formatDouble(lastInner));
-		outerRadius.setText(TextUtils.formatDouble(lastOuter));
+		innerRadius.setText(TextUtils.formatDistance(lastInner));
+		outerRadius.setText(TextUtils.formatDistance(lastOuter));
 		numSegments.setText(Integer.toString(lastSegments));
 		numDegrees.setText(Integer.toString(lastDegrees));
 		finishInitialization();
@@ -135,8 +135,8 @@ public class AnnularRing extends EDialog
 
 	private void cacheValues()
 	{
-		lastInner = TextUtils.atof(innerRadius.getText());
-		lastOuter = TextUtils.atof(outerRadius.getText());
+		lastInner = TextUtils.atofDistance(innerRadius.getText());
+		lastOuter = TextUtils.atofDistance(outerRadius.getText());
 		lastSegments = TextUtils.atoi(numSegments.getText());
 		lastDegrees = TextUtils.atoi(numDegrees.getText());
 	}

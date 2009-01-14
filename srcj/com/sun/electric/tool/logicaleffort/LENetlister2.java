@@ -232,7 +232,7 @@ public class LENetlister2 extends LENetlister {
             topLevelCell.newVar(varName, new Float(leno.leX));
 
             if (leno.leX < 1.0f) {
-                String msg = "WARNING: Instance "+ni+" has size "+TextUtils.formatDouble(leno.leX, 3)+" less than 1 ("+leno.getName()+")";
+                String msg = "WARNING: Instance "+ni+" has size "+TextUtils.formatDistance(leno.leX)+" less than 1 ("+leno.getName()+")";
                 System.out.println(msg);
                 if (ni != null) {
                     errorLogger.logWarning(msg, ni, ni.getParent(), leno.context, 2);

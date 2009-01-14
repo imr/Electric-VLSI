@@ -123,10 +123,10 @@ public class MeasureListener implements MouseListener, MouseMotionListener, Mous
 
 			// show coords at start and end point
 			lastHighlights.add(highlighter.addMessage(wnd.getCell(), "("
-				+ TextUtils.formatDouble(start.getX()) + "," + TextUtils.formatDouble(start.getY())
+				+ TextUtils.formatDistance(start.getX()) + "," + TextUtils.formatDistance(start.getY())
 				+ ")", start));
 			lastHighlights.add(highlighter.addMessage(wnd.getCell(), "("
-				+ TextUtils.formatDouble(end.getX()) + "," + TextUtils.formatDouble(end.getY())
+				+ TextUtils.formatDistance(end.getX()) + "," + TextUtils.formatDistance(end.getY())
 				+ ")", end));
 			// add in line
 			lastHighlights.add(highlighter.addLine(start, end, wnd.getCell()));
@@ -136,9 +136,9 @@ public class MeasureListener implements MouseListener, MouseMotionListener, Mous
 			Point2D center = new Point2D.Double((start.getX() + end.getX()) / 2,
 				(start.getY() + end.getY()) / 2);
 			double dist = start.distance(end);
-			String show = TextUtils.formatDouble(dist) + " (dX="
-				+ TextUtils.formatDouble(lastMeasuredDistanceX) + " dY="
-				+ TextUtils.formatDouble(lastMeasuredDistanceY) + ")";
+			String show = TextUtils.formatDistance(dist) + " (dX="
+				+ TextUtils.formatDistance(lastMeasuredDistanceX) + " dY="
+				+ TextUtils.formatDistance(lastMeasuredDistanceY) + ")";
 			lastHighlights.add(highlighter.addMessage(wnd.getCell(), show, center));
 			highlighter.finished();
 			wnd.clearDoingAreaDrag();

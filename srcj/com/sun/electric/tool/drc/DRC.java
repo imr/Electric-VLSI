@@ -837,9 +837,9 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
 			if (layer1 != layer2)
 				errorMessage.append(", layer '" + layer1.getName() + "'");
 
-			if (actual < 0) errorMessage.append(" OVERLAPS (BY " + TextUtils.formatDouble(limit-actual) + ") ");
+			if (actual < 0) errorMessage.append(" OVERLAPS (BY " + TextUtils.formatDistance(limit-actual) + ") ");
 			else if (actual == 0) errorMessage.append(" TOUCHES ");
-			else errorMessage.append(" LESS (BY " + TextUtils.formatDouble(limit-actual) + ") THAN " + TextUtils.formatDouble(limit) +
+			else errorMessage.append(" LESS (BY " + TextUtils.formatDistance(limit-actual) + ") THAN " + TextUtils.formatDistance(limit) +
                     ((geom2!=null)?" TO ":""));
 
 			if (np1 != np2 && np2 != null)
@@ -872,17 +872,17 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
                 case SLOTSIZEERROR:
                     errorMessage.append("Slot size error:");
 					errorMessagePart2 = new StringBuffer(", layer '" + layer1.getName() + "'");
-					errorMessagePart2.append(" BIGGER THAN " + TextUtils.formatDouble(limit) + " IN LENGTH (IS " + TextUtils.formatDouble(actual) + ")");
+					errorMessagePart2.append(" BIGGER THAN " + TextUtils.formatDistance(limit) + " IN LENGTH (IS " + TextUtils.formatDistance(actual) + ")");
                     break;
 				case MINAREAERROR:
 					errorMessage.append("Minimum area error:");
 					errorMessagePart2 = new StringBuffer(", layer '" + layer1.getName() + "'");
-					errorMessagePart2.append(" LESS THAN " + TextUtils.formatDouble(limit) + " IN AREA (IS " + TextUtils.formatDouble(actual) + ")");
+					errorMessagePart2.append(" LESS THAN " + TextUtils.formatDistance(limit) + " IN AREA (IS " + TextUtils.formatDistance(actual) + ")");
 					break;
 				case ENCLOSEDAREAERROR:
 					errorMessage.append("Enclosed area error:");
 					errorMessagePart2 = new StringBuffer(", layer '" + layer1.getName() + "'");
-					errorMessagePart2.append(" LESS THAN " + TextUtils.formatDouble(limit) + " IN AREA (IS " + TextUtils.formatDouble(actual) + ")");
+					errorMessagePart2.append(" LESS THAN " + TextUtils.formatDistance(limit) + " IN AREA (IS " + TextUtils.formatDistance(actual) + ")");
 					break;
 				case TECHMIXWARN:
 					errorMessage.append("Technology mixture warning:");
@@ -894,16 +894,16 @@ static boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly,
 				case CUTERROR:
                     errorMessage.append("Maximum cut error" + ((msg != null) ? ("(" + msg + "):") : ""));
                     errorMessagePart2 = new StringBuffer(", layer '" + layer1.getName() + "'");
-                    errorMessagePart2.append(" BIGGER THAN " + TextUtils.formatDouble(limit) + " WIDE (IS " + TextUtils.formatDouble(actual) + ")");
+                    errorMessagePart2.append(" BIGGER THAN " + TextUtils.formatDistance(limit) + " WIDE (IS " + TextUtils.formatDistance(actual) + ")");
 					break;
 				case MINWIDTHERROR:
                     errorMessage.append("Minimum width/height error" + ((msg != null) ? ("(" + msg + "):") : ""));
 					errorMessagePart2 = new StringBuffer(", layer '" + layer1.getName() + "'");
-					errorMessagePart2.append(" LESS THAN " + TextUtils.formatDouble(limit) + " WIDE (IS " + TextUtils.formatDouble(actual) + ")");
+					errorMessagePart2.append(" LESS THAN " + TextUtils.formatDistance(limit) + " WIDE (IS " + TextUtils.formatDistance(actual) + ")");
                     break;
 				case MINSIZEERROR:
 					errorMessage.append("Minimum size error on " + msg + ":");
-					errorMessagePart2 = new StringBuffer(" LESS THAN " + TextUtils.formatDouble(limit) + " IN SIZE (IS " + TextUtils.formatDouble(actual) + ")");
+					errorMessagePart2 = new StringBuffer(" LESS THAN " + TextUtils.formatDistance(limit) + " IN SIZE (IS " + TextUtils.formatDistance(actual) + ")");
 					break;
 				case BADLAYERERROR:
 					errorMessage.append("Invalid layer ('" + layer1.getName() + "'):");

@@ -567,14 +567,14 @@ public class MTDRCLayoutTool extends MTDRCTool
                 if (DBMath.hasRemainder(point.getX(), reportInfo.minAllowedResolution))
                 {
                     count++;
-                    resolutionError = TextUtils.formatDouble(Math.abs(((point.getX() / reportInfo.minAllowedResolution) % 1) * reportInfo.minAllowedResolution)) +
+                    resolutionError = TextUtils.formatDistance(Math.abs(((point.getX() / reportInfo.minAllowedResolution) % 1) * reportInfo.minAllowedResolution)) +
                         "(X=" + point.getX() + ")";
                     break; // with one error is enough
                 } else
                     if (DBMath.hasRemainder(point.getY(), reportInfo.minAllowedResolution))
                     {
                         count++;
-                        resolutionError = TextUtils.formatDouble(Math.abs(((point.getY() / reportInfo.minAllowedResolution) % 1) * reportInfo.minAllowedResolution)) +
+                        resolutionError = TextUtils.formatDistance(Math.abs(((point.getY() / reportInfo.minAllowedResolution) % 1) * reportInfo.minAllowedResolution)) +
                             "(Y=" + point.getY() + ")";
                         break;
                     }

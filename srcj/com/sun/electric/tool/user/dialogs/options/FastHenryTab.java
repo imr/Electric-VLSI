@@ -82,10 +82,10 @@ public class FastHenryTab extends PreferencePanel
 		});
 
 		fhNumberOfPoles.setText(Integer.toString(Simulation.getFastHenryNumPoles()));
-		fhDefaultThickness.setText(TextUtils.formatDouble(Simulation.getFastHenryDefThickness()));
+		fhDefaultThickness.setText(TextUtils.formatDistance(Simulation.getFastHenryDefThickness()));
 		fhDefaultWidthSubs.setText(Integer.toString(Simulation.getFastHenryWidthSubdivisions()));
 		fhDefaultHeightSubs.setText(Integer.toString(Simulation.getFastHenryHeightSubdivisions()));
-		fhMaxSegmentLength.setText(TextUtils.formatDouble(Simulation.getFastHenryMaxSegLength()));
+		fhMaxSegmentLength.setText(TextUtils.formatDistance(Simulation.getFastHenryMaxSegLength()));
 
 		updateWhatIsEnabled();
 	}
@@ -130,7 +130,7 @@ public class FastHenryTab extends PreferencePanel
 		if (currInt != Simulation.getFastHenryNumPoles())
 			Simulation.setFastHenryNumPoles(currInt);
 
-		currDouble = TextUtils.atof(fhDefaultThickness.getText());
+		currDouble = TextUtils.atofDistance(fhDefaultThickness.getText());
 		if (currDouble != Simulation.getFastHenryDefThickness())
 			Simulation.setFastHenryDefThickness(currDouble);
 
@@ -142,7 +142,7 @@ public class FastHenryTab extends PreferencePanel
 		if (currInt != Simulation.getFastHenryHeightSubdivisions())
 			Simulation.setFastHenryHeightSubdivisions(currInt);
 
-		currDouble = TextUtils.atof(fhMaxSegmentLength.getText());
+		currDouble = TextUtils.atofDistance(fhMaxSegmentLength.getText());
 		if (currDouble != Simulation.getFastHenryMaxSegLength())
 			Simulation.setFastHenryMaxSegLength(currDouble);
 	}

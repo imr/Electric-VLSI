@@ -67,7 +67,7 @@ public class ParasiticTab extends PreferencePanel {
         extractC.setSelected(Simulation.isParasiticsExtractsC());
 
         // the parasitics panel (not visible)
-		maxDistValue.setText(TextUtils.formatDouble(ParasiticTool.getMaxDistance()));
+		maxDistValue.setText(TextUtils.formatDistance(ParasiticTool.getMaxDistance()));
 		parasiticPanel.setVisible(false);
 	}
 
@@ -77,7 +77,7 @@ public class ParasiticTab extends PreferencePanel {
 	 */
 	public void term()
 	{
-		ParasiticTool.setMaxDistance(Double.parseDouble(maxDistValue.getText()));
+		ParasiticTool.setMaxDistance(TextUtils.atofDistance(maxDistValue.getText()));
 
 		boolean b = verboseNaming.isSelected();
 		if (b != Simulation.isParasiticsUseVerboseNaming()) Simulation.setParasiticsUseVerboseNaming(b);

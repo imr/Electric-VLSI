@@ -571,11 +571,11 @@ public class SeaOfGatesEngine
 					if (block != null)
 					{
 						String errorMsg = "Cannot Route to port " + fromPi.getPortProto().getName() +
-							" of node " + fromPi.getNodeInst().describe(false) + " at (" + TextUtils.formatDouble(fromX) + "," +
-							TextUtils.formatDouble(fromY) + ") because it is blocked on layer " + metalLayers[fromZ].getName() +
-							" [needs " + TextUtils.formatDouble(metalSpacing+surround) + " all around, blockage is " +
-							TextUtils.formatDouble(block.bound.getMinX()) + "<=X<=" + TextUtils.formatDouble(block.bound.getMaxX()) + " and " +
-							TextUtils.formatDouble(block.bound.getMinY()) + "<=Y<=" + TextUtils.formatDouble(block.bound.getMaxY()) + "]";
+							" of node " + fromPi.getNodeInst().describe(false) + " at (" + TextUtils.formatDistance(fromX) + "," +
+							TextUtils.formatDistance(fromY) + ") because it is blocked on layer " + metalLayers[fromZ].getName() +
+							" [needs " + TextUtils.formatDistance(metalSpacing+surround) + " all around, blockage is " +
+							TextUtils.formatDistance(block.bound.getMinX()) + "<=X<=" + TextUtils.formatDistance(block.bound.getMaxX()) + " and " +
+							TextUtils.formatDistance(block.bound.getMinY()) + "<=Y<=" + TextUtils.formatDistance(block.bound.getMaxY()) + "]";
 						System.out.println(errorMsg);
 						List<PolyBase> polyList = new ArrayList<PolyBase>();
 						polyList.add(new PolyBase(fromX, fromY, (metalSpacing+surround)*2, (metalSpacing+surround)*2));
@@ -605,11 +605,11 @@ public class SeaOfGatesEngine
 					if (block != null)
 					{
 						String errorMsg = "Cannot route to port " + toPi.getPortProto().getName() +
-							" of node " + toPi.getNodeInst().describe(false) + " at (" + TextUtils.formatDouble(toX) + "," +
-							TextUtils.formatDouble(toY) + ") because it is blocked on layer " + metalLayers[toZ].getName() +
-							" [needs " + TextUtils.formatDouble(metalSpacing+surround) + " all around, blockage is " +
-							TextUtils.formatDouble(block.bound.getMinX()) + "<=X<=" + TextUtils.formatDouble(block.bound.getMaxX()) + " and " +
-							TextUtils.formatDouble(block.bound.getMinY()) + "<=Y<=" + TextUtils.formatDouble(block.bound.getMaxY()) + "]";
+							" of node " + toPi.getNodeInst().describe(false) + " at (" + TextUtils.formatDistance(toX) + "," +
+							TextUtils.formatDistance(toY) + ") because it is blocked on layer " + metalLayers[toZ].getName() +
+							" [needs " + TextUtils.formatDistance(metalSpacing+surround) + " all around, blockage is " +
+							TextUtils.formatDistance(block.bound.getMinX()) + "<=X<=" + TextUtils.formatDistance(block.bound.getMaxX()) + " and " +
+							TextUtils.formatDistance(block.bound.getMinY()) + "<=Y<=" + TextUtils.formatDistance(block.bound.getMaxY()) + "]";
 						System.out.println("ERROR: " + errorMsg);
 						List<PolyBase> polyList = new ArrayList<PolyBase>();
 						polyList.add(new PolyBase(toX, toY, (metalSpacing+surround)*2, (metalSpacing+surround)*2));
@@ -723,7 +723,7 @@ public class SeaOfGatesEngine
 		long stopTime = System.currentTimeMillis();
 		Job.getUserInterface().stopProgressDialog();
 		System.out.println("Routed " + numRoutedSegments + " out of " + totalRoutes +
-			" segments; total length of routed wires is " + TextUtils.formatDouble(totalWireLength) +
+			" segments; total length of routed wires is " + TextUtils.formatDistance(totalWireLength) +
 			"; took " + TextUtils.getElapsedTime(stopTime-startTime));
 		if (numFailedRoutes > 0)
 			System.out.println("NOTE: " + numFailedRoutes + " nets were not routed");
