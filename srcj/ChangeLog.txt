@@ -3,6 +3,8 @@
 NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09b: ******************************
+IMP: (1/13/09, RK) I got rid of the dialog box that pops up after
+     NCC completes with no errors. (Bug #1859) 
 
 BUG: (1/13/09, GVG) Out of Bounds exception while switching units in Tech preference (Bug #2002)
 FIX: Detecting "NONE" scale.

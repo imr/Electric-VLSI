@@ -110,6 +110,7 @@ public class NccMsgsFrame {
      * If no errors were found, only a small message window will appear.
      */
     public void display() {
+    	/* removed as a result of the request Bug #1859
         // display small info message if no errors found
         if (mismatches.size() == 0) {
             frame.setVisible(false);
@@ -123,6 +124,7 @@ public class NccMsgsFrame {
                        "NCC Message", JOptionPane.INFORMATION_MESSAGE);
             return;
         }
+        */
         
         comparPane.setMismatches(mismatches);
         if (TopLevel.isMDIMode()) {
