@@ -182,6 +182,7 @@ class SpiceSegmentedNets
 			!Simulation.isParasiticsExtractPowerGround()))
 		{
 			CellSignal cs = cni.getCellSignal(cni.getNetList().getNetwork(pi));
+			if (cs == null) return null;
 			//System.out.println("CellSignal name for "+pi.getNodeInst().getName()+"."+pi.getPortProto().getName()+" is "+cs.getName());
 //System.out.println("NETWORK NAMED "+cs.getName());
 			return cs.getName();
@@ -190,6 +191,7 @@ class SpiceSegmentedNets
 		if (info == null)
 		{
 			CellSignal cs = cni.getCellSignal(cni.getNetList().getNetwork(pi));
+			if (cs == null) return null;
 			return cs.getName();
 			//info = putSegment(pi, 0);
 		}
@@ -215,6 +217,7 @@ class SpiceSegmentedNets
 	{
 		Network net = cni.getNetList().getNetwork(pi);
 		CellSignal cs = cni.getCellSignal(net);
+		if (cs == null) return false;
 		if (cs.isPower() || cs.isGround()) return true;
 		if (cs.getName().startsWith("vdd")) return true;
 		if (cs.getName().startsWith("gnd")) return true;

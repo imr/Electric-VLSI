@@ -1114,7 +1114,10 @@ public class Spice extends Topology
 			if (biasCs != null) {
                 String biasName = biasCs.getName();
                 if (segmentedNets != null && ni.getTransistorBiasPort() != null)
-                    biasName = segmentedNets.getNetName(ni.getTransistorBiasPort());
+                {
+                    String bn = segmentedNets.getNetName(ni.getTransistorBiasPort());
+                    if (bn != null) biasName = bn;
+                }
                 infstr.append(" " + biasName);
             } else {
                 if (cell.getView() == View.LAYOUT && defaultBulkName != null)

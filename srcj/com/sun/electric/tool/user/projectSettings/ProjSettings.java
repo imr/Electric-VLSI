@@ -425,9 +425,9 @@ public class ProjSettings {
             if (!ProjSettingsNode.equal(xmlVal, setting)) {
                 differencesFound = true;
                 if (allowOverride)
-                    System.out.println("Warning: Setting \""+setting.getPrefName()+"\" set to "+xmlVal+", overrides current val of "+prefVal);
+                    System.out.println("Warning: Setting \""+setting.getPrefName()+"\" set to "+xmlVal+", overrides current value of "+prefVal);
                 else
-                    System.out.println("Warning: Setting \""+setting.getPrefName()+"\" retains current val of "+prefVal+", while ignoring projectsettings.xml value of "+xmlVal);
+                    System.out.println("Warning: Setting \""+setting.getPrefName()+"\" retains current value of "+prefVal+", while ignoring projectsettings.xml value of "+xmlVal);
             }
         }
 
