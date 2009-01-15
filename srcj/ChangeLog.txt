@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09b: ******************************
 
+IMP: (1/14/09, GVG) First version of TechEditorWizard generating protection polys in transistors.
+
 IMP/MAN: (1/14/09, SMR) Units preferences now works for distance units
      and includes a "scalable" option to use internal grid units (Bug #2007).
 

@@ -30,7 +30,9 @@ import com.sun.electric.database.geometry.*;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.technology.*;
 
 import java.awt.Color;
@@ -58,8 +60,9 @@ public class TechEditWizardData
 	private String tech_description;
 	private int num_metal_layers;
 	private int stepsize;
-    private boolean pWellFlag = true; // to store if process is a pwell process or not. If true, Tech Creation Wizard will not create pwell layers
-    private boolean horizontalFlag = true; // to store if transistor gates are aligned horizontally. True by default
+    private boolean pWellFlag = true; // to control if process is a pwell process or not. If true, Tech Creation Wizard will not create pwell layers
+    private boolean horizontalFlag = true; // to control if transistor gates are aligned horizontally. True by default
+    private boolean protectionFlag = false; // to control if protection polys are added to transistors. False by default
 
     // DIFFUSION RULES
 	private WizardField diff_width = new WizardField();
@@ -72,8 +75,9 @@ public class TechEditWizardData
 	private WizardField poly_endcap = new WizardField();			// min. poly gate extension from edge of diffusion
 	private WizardField poly_spacing = new WizardField();
 	private WizardField poly_diff_spacing = new WizardField();		// min. spacing between poly and diffusion
+    private WizardField poly_protection_spacing = new WizardField();		// min. spacing between poly and dummy poly
 
-	// GATE RULES
+    // GATE RULES
 	private WizardField gate_length = new WizardField();			// min. transistor gate length
 	private WizardField gate_width = new WizardField();				// min. transistor gate width
 	private WizardField gate_spacing = new WizardField();			// min. gate to gate spacing on diffusion
@@ -120,8 +124,9 @@ public class TechEditWizardData
 
 	// GDS-II LAYERS
 	private int gds_diff_layer;
-	private int gds_poly_layer;
-	private int gds_nplus_layer;
+	private int gds_sr_dpo_layer;
+    private int gds_poly_layer;
+    private int gds_nplus_layer;
 	private int gds_pplus_layer;
 	private int gds_nwell_layer;
 	private int gds_contact_layer;
@@ -222,6 +227,8 @@ public class TechEditWizardData
     void setPWellProcess(boolean b) { pWellFlag = b; }
     boolean getHorizontalTransistors() { return horizontalFlag;}
     void setHorizontalTransistors(boolean b) { horizontalFlag = b; }
+    boolean getProtectionPoly() { return protectionFlag;}
+    void setProtectionPoly(boolean b) { protectionFlag = b; }
 
     // DIFFUSION RULES
 	WizardField getDiffWidth() { return diff_width; }
@@ -242,8 +249,10 @@ public class TechEditWizardData
 	void setPolySpacing(WizardField v) { poly_spacing = v; }
 	WizardField getPolyDiffSpacing() { return poly_diff_spacing; }
 	void setPolyDiffSpacing(WizardField v) { poly_diff_spacing = v; }
+    WizardField getPolyProtectionSpacing() { return poly_protection_spacing; }
+	void setPolyProtectionSpacing(WizardField v) { poly_protection_spacing = v; }
 
-	// GATE RULES
+    // GATE RULES
 	WizardField getGateLength() { return gate_length; }
 	void setGateLength(WizardField v) { gate_length = v; }
 	WizardField getGateWidth() { return gate_width; }
@@ -325,7 +334,9 @@ public class TechEditWizardData
 	void setGDSDiff(int l) { gds_diff_layer = l; }
 	int getGDSPoly() { return gds_poly_layer; }
 	void setGDSPoly(int l) { gds_poly_layer = l; }
-	int getGDSNPlus() { return gds_nplus_layer; }
+    int getGDSSrDpo() { return gds_sr_dpo_layer; }
+	void setGDSSrDpo(int l) { gds_sr_dpo_layer = l; }
+    int getGDSNPlus() { return gds_nplus_layer; }
 	void setGDSNPlus(int l) { gds_nplus_layer = l; }
 	int getGDSPPlus() { return gds_pplus_layer; }
 	void setGDSPPlus(int l) { gds_pplus_layer = l; }
@@ -441,6 +452,7 @@ public class TechEditWizardData
 					if (varName.equalsIgnoreCase("num_metal_layers")) setNumMetalLayers(TextUtils.atoi(varValue)); else
                     if (varName.equalsIgnoreCase("pwell_process")) setPWellProcess(Boolean.valueOf(varValue)); else
                     if (varName.equalsIgnoreCase("horizontal_transistors")) setHorizontalTransistors(Boolean.valueOf(varValue)); else
+                    if (varName.equalsIgnoreCase("protection_poly")) setProtectionPoly(Boolean.valueOf(varValue)); else
                     if (varName.equalsIgnoreCase("stepsize")) setStepSize(TextUtils.atoi(varValue)); else
 
 					if (varName.equalsIgnoreCase("diff_width")) diff_width.v = TextUtils.atof(varValue); else
@@ -460,8 +472,10 @@ public class TechEditWizardData
 					if (varName.equalsIgnoreCase("poly_spacing_rule")) poly_spacing.rule = stripQuotes(varValue); else
 					if (varName.equalsIgnoreCase("poly_diff_spacing")) poly_diff_spacing.v = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("poly_diff_spacing_rule")) poly_diff_spacing.rule = stripQuotes(varValue); else
+					if (varName.equalsIgnoreCase("poly_protection_spacing")) poly_protection_spacing.v = TextUtils.atof(varValue); else
+					if (varName.equalsIgnoreCase("poly_protection_spacing_rule")) poly_protection_spacing.rule = stripQuotes(varValue); else
 
-					if (varName.equalsIgnoreCase("gate_length")) gate_length.v = TextUtils.atof(varValue); else
+                    if (varName.equalsIgnoreCase("gate_length")) gate_length.v = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("gate_length_rule")) gate_length.rule = stripQuotes(varValue); else
 					if (varName.equalsIgnoreCase("gate_width")) gate_width.v = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("gate_width_rule")) gate_width.rule = stripQuotes(varValue); else
@@ -530,7 +544,8 @@ public class TechEditWizardData
 
 					if (varName.equalsIgnoreCase("gds_diff_layer")) setGDSDiff(TextUtils.atoi(varValue)); else
 					if (varName.equalsIgnoreCase("gds_poly_layer")) setGDSPoly(TextUtils.atoi(varValue)); else
-					if (varName.equalsIgnoreCase("gds_nplus_layer")) setGDSNPlus(TextUtils.atoi(varValue)); else
+                    if (varName.equalsIgnoreCase("gds_sr_dpo_layer")) setGDSSrDpo(TextUtils.atoi(varValue)); else
+                    if (varName.equalsIgnoreCase("gds_nplus_layer")) setGDSNPlus(TextUtils.atoi(varValue)); else
 					if (varName.equalsIgnoreCase("gds_pplus_layer")) setGDSPPlus(TextUtils.atoi(varValue)); else
 					if (varName.equalsIgnoreCase("gds_nwell_layer")) setGDSNWell(TextUtils.atoi(varValue)); else
 					if (varName.equalsIgnoreCase("gds_contact_layer")) setGDSContact(TextUtils.atoi(varValue)); else
@@ -653,17 +668,42 @@ public class TechEditWizardData
 
 	private void dumpNumbers(PrintWriter pw)
 	{
-		pw.println("#### Technology wizard data file");
+        pw.print("#### Electric(tm) VLSI Design System, version ");
+        if (User.isIncludeDateAndVersionInOutput())
+        {
+            pw.println(com.sun.electric.database.text.Version.getVersion());
+        } else
+        {
+            pw.println();
+        }
+        pw.println("#### ");
+        pw.println("#### Technology wizard data file");
 		pw.println("####");
 		pw.println("#### All dimensions in nanometers.");
-		pw.println();
+
+        if (IOTool.isUseCopyrightMessage())
+        {
+            String str = IOTool.getCopyrightMessage();
+            int start = 0;
+            while (start < str.length())
+            {
+                int endPos = str.indexOf('\n', start);
+                if (endPos < 0) endPos = str.length();
+                String oneLine = str.substring(start, endPos);
+                pw.println("#### " + oneLine);
+                start = endPos+1;
+            }
+        }
+
+        pw.println();
 		pw.println("$tech_name = \"" + tech_name + "\";");
 		pw.println("$tech_description = \"" + tech_description + "\";");
 		pw.println("$num_metal_layers = " + num_metal_layers + ";");
 		pw.println("$num_metal_layers = " + num_metal_layers + ";");
 		pw.println("$pwell_process = " + pWellFlag + ";");
 		pw.println("$horizontal_transistors = " + horizontalFlag + ";");
-		pw.println();
+        pw.println("$protection_poly = " + protectionFlag + ";");
+        pw.println();
 		pw.println("## stepsize is minimum granularity that will be used as movement grid");
 		pw.println("## set to manufacturing grid or lowest common denominator with design rules");
 		pw.println("$stepsize = " + stepsize + ";");
@@ -687,7 +727,9 @@ public class TechEditWizardData
 		pw.println("$poly_spacing_rule = \"" + poly_spacing.rule + "\";");
 		pw.println("$poly_diff_spacing = " + TextUtils.formatDouble(poly_diff_spacing.v) + ";         # min. spacing between poly and diffusion");
 		pw.println("$poly_diff_spacing_rule = \"" + poly_diff_spacing.rule + "\";         # min. spacing between poly and diffusion");
-		pw.println();
+        pw.println("$poly_protection_spacing = " + TextUtils.formatDouble(poly_protection_spacing.v) + ";         # min. spacing between poly and dummy poly");
+		pw.println("$poly_protection_spacing_rule = \"" + poly_protection_spacing.rule + "\";         # min. spacing between poly and dummy poly");
+        pw.println();
 		pw.println("######  GATE RULES  #####");
 		pw.println("$gate_length = " + TextUtils.formatDouble(gate_length.v) + ";               # min. transistor gate length");
 		pw.println("$gate_length_rule = \"" + gate_length.rule + "\";               # min. transistor gate length");
@@ -845,6 +887,7 @@ public class TechEditWizardData
 		pw.println("######  GDS-II LAYERS  #####");
 		pw.println("$gds_diff_layer = " + gds_diff_layer + ";");
 		pw.println("$gds_poly_layer = " + gds_poly_layer + ";");
+		pw.println("$gds_sr_dpo_layer = " + gds_sr_dpo_layer + ";");
 		pw.println("$gds_nplus_layer = " + gds_nplus_layer + ";");
 		pw.println("$gds_pplus_layer = " + gds_pplus_layer + ";");
 		pw.println("$gds_nwell_layer = " + gds_nwell_layer + ";");
@@ -1433,6 +1476,13 @@ public class TechEditWizardData
         // PolyGate
         Xml.Layer polyGateLayer = makeXmlLayer(t.layers, layer_width, "PolyGate", Layer.Function.GATE, 0, graph,
             (char)('A' + cifNumber++), poly_width, false, false);
+        Xml.Layer protectionPolyLayer = null;
+        if (getProtectionPoly())
+        {
+//            graph = new EGraphics(false, false, null, 2, 10, 10, 10, 1, true, nullPattern);
+            protectionPolyLayer = makeXmlLayer(t.layers, layer_width, "SR_DPO", Layer.Function.ART, 0, graph,
+            (char)('A' + cifNumber++), poly_width, true, false);
+        }
 
         // PolyCon and DiffCon
         graph = new EGraphics(false, false, null, 0, contact_colour.getRed(), contact_colour.getGreen(),
@@ -1683,16 +1733,21 @@ public class TechEditWizardData
             double wellx = scaledValue((gate_width.v/2+nwell_overhang_diff_p.v));
             double welly = scaledValue((gate_length.v/2+diff_poly_overhang.v+nwell_overhang_diff_p.v));
 
+            // Using P values in transistors
+            sox = scaledValue(nwell_overhang_diff_p.v);
+            soy = scaledValue(diff_poly_overhang.v+nwell_overhang_diff_p.v);
+
+            double protectDist = scaledValue(poly_protection_spacing.v);
+            double extraSelX = 0, extraSelY = 0;
+
             if (i==0)
 			{
 				name = "P";
                 wellLayer = nwellLayer;
                 activeLayer = diffPLayer;
                 selectLayer = pplusLayer;
-                sox = scaledValue(nwell_overhang_diff_p.v);
-                soy = scaledValue(diff_poly_overhang.v+nwell_overhang_diff_p.v);
-                selectx = scaledValue((gate_width.v/2+(poly_endcap.v+pplus_overhang_poly.v)));
-                selecty = scaledValue((gate_length.v/2+diff_poly_overhang.v+pplus_overhang_diff.v));
+                extraSelX = pplus_overhang_poly.v;
+                extraSelY = pplus_overhang_diff.v;
             } else
 			{
 				name = "N";
@@ -1700,11 +1755,16 @@ public class TechEditWizardData
                     wellLayer = pwellLayer;
                 activeLayer = diffNLayer;
                 selectLayer = nplusLayer;
-                sox = scaledValue(poly_endcap.v+pplus_overhang_poly.v);
-                soy = scaledValue(diff_poly_overhang.v+pplus_overhang_diff.v);
-                selectx = scaledValue((gate_width.v/2+(poly_endcap.v+nplus_overhang_poly.v)));
-                selecty = scaledValue((gate_length.v/2+diff_poly_overhang.v+nplus_overhang_diff.v));
+                extraSelX = nplus_overhang_poly.v;
+                extraSelY = nplus_overhang_diff.v;
             }
+
+                selectx = scaledValue((gate_width.v/2+(poly_endcap.v+extraSelX)));
+                if (getProtectionPoly())
+                    selecty = scaledValue((gate_length.v + gate_length.v/2 + poly_protection_spacing.v + extraSelX));
+                else
+                    selecty = scaledValue((gate_length.v/2+diff_poly_overhang.v+extraSelY));
+
             nodesList.clear();
             nodePorts.clear();
             portNames.clear();
@@ -1752,17 +1812,38 @@ public class TechEditWizardData
             nodePorts.add(makeXmlPrimitivePort("trans-diff-bottom", 270, 90, 0, minFullSize, xSign*diffX, xSign*diffX,
                 ySign*diffY, ySign*diffY, portNames));
 
+            // Electric layers
             // Gate layer Electrical
             nodesList.add(makeXmlNodeLayer(gatex, gatex, gatey, gatey, polyGateLayer, Poly.Type.FILLED, true));
 
             // Poly layers
             // left electrical
-//            double endPoly = scaledValue((gate_width.v+poly_endcap.v*2)/2);
             nodesList.add(makeXmlNodeLayer(endPolyx, endLeftOrRight, endPolyy, endTopOrBotton, polyLayer, Poly.Type.FILLED, true));
             // right electrical
             nodesList.add(makeXmlNodeLayer(endLeftOrRight, endPolyx, endTopOrBotton, endPolyy, polyLayer, Poly.Type.FILLED, true));
+
             // non-electrical poly (just one poly layer)
             nodesList.add(makeXmlNodeLayer(endPolyx, endPolyx, endPolyy, endPolyy, polyLayer, Poly.Type.FILLED, false));
+
+            // Extra protection poly. No ports are necessary.
+            if (getProtectionPoly())
+            {
+                if (!horizontalFlag)
+                {
+                    System.out.println("Not working with !horizontal");
+                    assert(false);
+                }
+                // bottom or left
+                nodesList.add(makeXmlNodeLayer(endPolyx, endPolyx,
+                    endPolyy + protectDist,
+                    -(protectDist + 3*endPolyy),
+                    protectionPolyLayer, Poly.Type.FILLED, false));
+                // top or right
+                nodesList.add(makeXmlNodeLayer(endPolyx, endPolyx,
+                    -(protectDist + 3*endPolyy),
+                    endPolyy + protectDist,
+                    protectionPolyLayer, Poly.Type.FILLED, false));
+            }
 
             // left port
             portNames.clear();
@@ -1796,6 +1877,8 @@ public class TechEditWizardData
         makeLayerGDS(t, diffConLayer, String.valueOf(gds_contact_layer));
         makeLayerGDS(t, polyLayer, String.valueOf(gds_poly_layer));
         makeLayerGDS(t, polyGateLayer, String.valueOf(gds_poly_layer));
+        if (getProtectionPoly())
+            makeLayerGDS(t, protectionPolyLayer, String.valueOf(gds_sr_dpo_layer));
 
         for (int i = 0; i < num_metal_layers; i++) {
             Xml.Layer met = metalLayers.get(i);

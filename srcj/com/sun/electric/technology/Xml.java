@@ -1590,7 +1590,7 @@ public class Xml {
 //            pl(" * along with Electric(tm); see the file COPYING.  If not, write to");
 //            pl(" * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,");
 //            pl(" * Boston, Mass 02111-1307, USA.");
-            pl(" */");
+//            pl(" */");
             out.println("-->");
             l();
 
