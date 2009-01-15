@@ -2523,7 +2523,7 @@ public class User extends Listener
 
 	/****************************** UNITS PREFERENCES ******************************/
 
-	private static Pref cacheDistanceUnits = Pref.makeIntPref("DistanceUnits", tool.prefs, -1);
+	private static Pref cacheDistanceUnits = Pref.makeIntPref("DistanceUnit", tool.prefs, -1);
 	/**
 	 * Method to get current distance units.
 	 * The default is "scalable units".
