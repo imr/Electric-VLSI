@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.EditWindowFocusBrowser;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -63,9 +64,10 @@ public class SetFocus extends EDialog
 		Dimension sz = wnd.getSize();
 		Point2D offset = wnd.getOffset();
 		double scale = wnd.getScale();
-		xCenter.setText(TextUtils.formatDistance(offset.getX()));
-		yCenter.setText(TextUtils.formatDistance(offset.getY()));
-		unitsAcross.setText(TextUtils.formatDistance(sz.getWidth() / scale));
+		Technology tech = wnd.getCell().getTechnology();
+		xCenter.setText(TextUtils.formatDistance(offset.getX(), tech));
+		yCenter.setText(TextUtils.formatDistance(offset.getY(), tech));
+		unitsAcross.setText(TextUtils.formatDistance(sz.getWidth() / scale, tech));
 		finishInitialization();
 	}
 
@@ -190,9 +192,10 @@ public class SetFocus extends EDialog
 
 	private void ok(java.awt.event.ActionEvent evt)//GEN-FIRST:event_ok
 	{//GEN-HEADEREND:event_ok
-		double xC = TextUtils.atofDistance(xCenter.getText());
-		double yC = TextUtils.atofDistance(yCenter.getText());
-		double across = TextUtils.atofDistance(unitsAcross.getText());
+		Technology tech = wnd.getCell().getTechnology();
+		double xC = TextUtils.atofDistance(xCenter.getText(), tech);
+		double yC = TextUtils.atofDistance(yCenter.getText(), tech);
+		double across = TextUtils.atofDistance(unitsAcross.getText(), tech);
 
 		Dimension sz = wnd.getSize();
 		wnd.setOffset(new Point2D.Double(xC, yC));

@@ -150,8 +150,8 @@ public class NewNodesTab extends PreferencePanel
 		PrimNodeInfo pni = initialNewNodesPrimInfo.get(np);
 		if (pni == null) return;
 		newNodesDataChanging = true;
-		nodePrimitiveXSize.setText(TextUtils.formatDistance(pni.wid));
-		nodePrimitiveYSize.setText(TextUtils.formatDistance(pni.hei));
+		nodePrimitiveXSize.setText(TextUtils.formatDistance(pni.wid, tech));
+		nodePrimitiveYSize.setText(TextUtils.formatDistance(pni.hei, tech));
 		newNodesDataChanging = false;
 	}
 
@@ -183,8 +183,8 @@ public class NewNodesTab extends PreferencePanel
 		PrimitiveNode np = tech.findNodeProto(primName);
 		PrimNodeInfo pni = initialNewNodesPrimInfo.get(np);
 		if (pni == null) return;
-		pni.wid = TextUtils.atofDistance(nodePrimitiveXSize.getText());
-		pni.hei = TextUtils.atofDistance(nodePrimitiveYSize.getText());
+		pni.wid = TextUtils.atofDistance(nodePrimitiveXSize.getText(), tech);
+		pni.hei = TextUtils.atofDistance(nodePrimitiveYSize.getText(), tech);
 	}
 
 	/**

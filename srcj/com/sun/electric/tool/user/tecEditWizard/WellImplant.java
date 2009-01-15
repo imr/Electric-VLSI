@@ -55,31 +55,31 @@ public class WellImplant extends TechEditWizardPanel
 	public void init()
 	{
 		TechEditWizardData data = wizard.getTechEditData();
-		nPlusWidth.setText(TextUtils.formatDistance(data.getNPlusWidth().v));
+		nPlusWidth.setText(TextUtils.formatDouble(data.getNPlusWidth().v));
 		nPlusWidthRule.setText(data.getNPlusWidth().rule);
-		nPlusOverhangDiff.setText(TextUtils.formatDistance(data.getNPlusOverhangDiff().v));
+		nPlusOverhangDiff.setText(TextUtils.formatDouble(data.getNPlusOverhangDiff().v));
 		nPlusOverhangDiffRule.setText(data.getNPlusOverhangDiff().rule);
-		nPlusOverhangPoly.setText(TextUtils.formatDistance(data.getNPlusOverhangPoly().v));
+		nPlusOverhangPoly.setText(TextUtils.formatDouble(data.getNPlusOverhangPoly().v));
 		nPlusOverhangPolyRule.setText(data.getNPlusOverhangPoly().rule);
-        nPlusSpacing.setText(TextUtils.formatDistance(data.getNPlusSpacing().v));
+        nPlusSpacing.setText(TextUtils.formatDouble(data.getNPlusSpacing().v));
 		nPlusSpacingRule.setText(data.getNPlusSpacing().rule);
 
-		pPlusWidth.setText(TextUtils.formatDistance(data.getPPlusWidth().v));
+		pPlusWidth.setText(TextUtils.formatDouble(data.getPPlusWidth().v));
 		pPlusWidthRule.setText(data.getPPlusWidth().rule);
-		pPlusOverhangDiff.setText(TextUtils.formatDistance(data.getPPlusOverhangDiff().v));
+		pPlusOverhangDiff.setText(TextUtils.formatDouble(data.getPPlusOverhangDiff().v));
 		pPlusOverhangDiffRule.setText(data.getPPlusOverhangDiff().rule);
-		pPlusOverhangPoly.setText(TextUtils.formatDistance(data.getPPlusOverhangPoly().v));
+		pPlusOverhangPoly.setText(TextUtils.formatDouble(data.getPPlusOverhangPoly().v));
 		pPlusOverhangPolyRule.setText(data.getPPlusOverhangPoly().rule);
-		pPlusSpacing.setText(TextUtils.formatDistance(data.getPPlusSpacing().v));
+		pPlusSpacing.setText(TextUtils.formatDouble(data.getPPlusSpacing().v));
 		pPlusSpacingRule.setText(data.getPPlusSpacing().rule);
 
-		nWellWidth.setText(TextUtils.formatDistance(data.getNWellWidth().v));
+		nWellWidth.setText(TextUtils.formatDouble(data.getNWellWidth().v));
 		nWellWidthRule.setText(data.getNWellWidth().rule);
-		nWellOverhangP.setText(TextUtils.formatDistance(data.getNWellOverhangDiffP().v));
+		nWellOverhangP.setText(TextUtils.formatDouble(data.getNWellOverhangDiffP().v));
 		nWellOverhangRuleP.setText(data.getNWellOverhangDiffP().rule);
-        nWellOverhangN.setText(TextUtils.formatDistance(data.getNWellOverhangDiffN().v));
+        nWellOverhangN.setText(TextUtils.formatDouble(data.getNWellOverhangDiffN().v));
 		nWellOverhangRuleN.setText(data.getNWellOverhangDiffN().rule);
-        nWellSpacing.setText(TextUtils.formatDistance(data.getNWellSpacing().v));
+        nWellSpacing.setText(TextUtils.formatDouble(data.getNWellSpacing().v));
 		nWellSpacingRule.setText(data.getNWellSpacing().rule);
 	}
 
@@ -90,20 +90,20 @@ public class WellImplant extends TechEditWizardPanel
 	public void term()
 	{
 		TechEditWizardData data = wizard.getTechEditData();
-		data.setNPlusWidth(new WizardField(TextUtils.atofDistance(nPlusWidth.getText()), nPlusWidthRule.getText()));
-		data.setNPlusOverhangDiff(new WizardField(TextUtils.atofDistance(nPlusOverhangDiff.getText()), nPlusOverhangDiffRule.getText()));
-        data.setNPlusOverhangPoly(new WizardField(TextUtils.atofDistance(nPlusOverhangPoly.getText()), nPlusOverhangPolyRule.getText()));
-        data.setNPlusSpacing(new WizardField(TextUtils.atofDistance(nPlusSpacing.getText()), nPlusSpacingRule.getText()));
+		data.setNPlusWidth(new WizardField(TextUtils.atof(nPlusWidth.getText()), nPlusWidthRule.getText()));
+		data.setNPlusOverhangDiff(new WizardField(TextUtils.atof(nPlusOverhangDiff.getText()), nPlusOverhangDiffRule.getText()));
+        data.setNPlusOverhangPoly(new WizardField(TextUtils.atof(nPlusOverhangPoly.getText()), nPlusOverhangPolyRule.getText()));
+        data.setNPlusSpacing(new WizardField(TextUtils.atof(nPlusSpacing.getText()), nPlusSpacingRule.getText()));
 
-		data.setPPlusWidth(new WizardField(TextUtils.atofDistance(pPlusWidth.getText()), pPlusWidthRule.getText()));
-		data.setPPlusOverhangDiff(new WizardField(TextUtils.atofDistance(pPlusOverhangDiff.getText()), pPlusOverhangDiffRule.getText()));
-        data.setPPlusOverhangPoly(new WizardField(TextUtils.atofDistance(pPlusOverhangPoly.getText()), pPlusOverhangPolyRule.getText()));
-        data.setPPlusSpacing(new WizardField(TextUtils.atofDistance(pPlusSpacing.getText()), pPlusSpacingRule.getText()));
+		data.setPPlusWidth(new WizardField(TextUtils.atof(pPlusWidth.getText()), pPlusWidthRule.getText()));
+		data.setPPlusOverhangDiff(new WizardField(TextUtils.atof(pPlusOverhangDiff.getText()), pPlusOverhangDiffRule.getText()));
+        data.setPPlusOverhangPoly(new WizardField(TextUtils.atof(pPlusOverhangPoly.getText()), pPlusOverhangPolyRule.getText()));
+        data.setPPlusSpacing(new WizardField(TextUtils.atof(pPlusSpacing.getText()), pPlusSpacingRule.getText()));
 
-		data.setNWellWidth(new WizardField(TextUtils.atofDistance(nWellWidth.getText()), nWellWidthRule.getText()));
-		data.setNWellOverhangDiffP(new WizardField(TextUtils.atofDistance(nWellOverhangP.getText()), nWellOverhangRuleP.getText()));
-        data.setNWellOverhangDiffN(new WizardField(TextUtils.atofDistance(nWellOverhangN.getText()), nWellOverhangRuleN.getText()));
-        data.setNWellSpacing(new WizardField(TextUtils.atofDistance(nWellSpacing.getText()), nWellSpacingRule.getText()));
+		data.setNWellWidth(new WizardField(TextUtils.atof(nWellWidth.getText()), nWellWidthRule.getText()));
+		data.setNWellOverhangDiffP(new WizardField(TextUtils.atof(nWellOverhangP.getText()), nWellOverhangRuleP.getText()));
+        data.setNWellOverhangDiffN(new WizardField(TextUtils.atof(nWellOverhangN.getText()), nWellOverhangRuleN.getText()));
+        data.setNWellSpacing(new WizardField(TextUtils.atof(nWellSpacing.getText()), nWellSpacingRule.getText()));
 	}
 
 	/** This method is called from within the constructor to

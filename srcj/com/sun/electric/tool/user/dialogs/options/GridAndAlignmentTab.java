@@ -87,28 +87,28 @@ public class GridAndAlignmentTab extends PreferencePanel
 		} else
 		{
 			gridCurrentHoriz.setEditable(true);
-			gridCurrentHoriz.setText(TextUtils.formatDistance(wnd.getGridXSpacing()));
+			gridCurrentHoriz.setText(TextUtils.formatDouble(wnd.getGridXSpacing()));
 			gridCurrentVert.setEditable(true);
-			gridCurrentVert.setText(TextUtils.formatDistance(wnd.getGridYSpacing()));
+			gridCurrentVert.setText(TextUtils.formatDouble(wnd.getGridYSpacing()));
 		}
 
-		gridNewHoriz.setText(TextUtils.formatDistance(User.getDefGridXSpacing()));
-		gridNewVert.setText(TextUtils.formatDistance(User.getDefGridYSpacing()));
-		gridBoldHoriz.setText(TextUtils.formatDistance(User.getDefGridXBoldFrequency()));
-		gridBoldVert.setText(TextUtils.formatDistance(User.getDefGridYBoldFrequency()));
+		gridNewHoriz.setText(TextUtils.formatDouble(User.getDefGridXSpacing()));
+		gridNewVert.setText(TextUtils.formatDouble(User.getDefGridYSpacing()));
+		gridBoldHoriz.setText(TextUtils.formatDouble(User.getDefGridXBoldFrequency()));
+		gridBoldVert.setText(TextUtils.formatDouble(User.getDefGridYBoldFrequency()));
 		gridShowAxes.setSelected(User.isGridAxesShown());
 
 		Dimension2D[] values = User.getAlignmentToGridVector();
-        gridSizeX1.setText(TextUtils.formatDistance(values[0].getWidth()));
-        gridSizeX2.setText(TextUtils.formatDistance(values[1].getWidth()));
-        gridSizeX3.setText(TextUtils.formatDistance(values[2].getWidth()));
-        gridSizeX4.setText(TextUtils.formatDistance(values[3].getWidth()));
-        gridSizeX5.setText(TextUtils.formatDistance(values[4].getWidth()));
-        gridSizeY1.setText(TextUtils.formatDistance(values[0].getHeight()));
-        gridSizeY2.setText(TextUtils.formatDistance(values[1].getHeight()));
-        gridSizeY3.setText(TextUtils.formatDistance(values[2].getHeight()));
-        gridSizeY4.setText(TextUtils.formatDistance(values[3].getHeight()));
-        gridSizeY5.setText(TextUtils.formatDistance(values[4].getHeight()));
+        gridSizeX1.setText(TextUtils.formatDouble(values[0].getWidth()));
+        gridSizeX2.setText(TextUtils.formatDouble(values[1].getWidth()));
+        gridSizeX3.setText(TextUtils.formatDouble(values[2].getWidth()));
+        gridSizeX4.setText(TextUtils.formatDouble(values[3].getWidth()));
+        gridSizeX5.setText(TextUtils.formatDouble(values[4].getWidth()));
+        gridSizeY1.setText(TextUtils.formatDouble(values[0].getHeight()));
+        gridSizeY2.setText(TextUtils.formatDouble(values[1].getHeight()));
+        gridSizeY3.setText(TextUtils.formatDouble(values[2].getHeight()));
+        gridSizeY4.setText(TextUtils.formatDouble(values[3].getHeight()));
+        gridSizeY5.setText(TextUtils.formatDouble(values[4].getHeight()));
         AbstractButton[] list = {size1Button, size2Button, size3Button, size4Button, size5Button};
         int selInd = User.getAlignmentToGridIndex();
         list[selInd].setSelected(true);
@@ -126,14 +126,14 @@ public class GridAndAlignmentTab extends PreferencePanel
 		boolean redraw = false;
 		if (wnd != null)
 		{
-			currDouble = TextUtils.atofDistance(gridCurrentHoriz.getText());
+			currDouble = TextUtils.atof(gridCurrentHoriz.getText());
 			if (currDouble != wnd.getGridXSpacing())
 			{
 				wnd.setGridXSpacing(currDouble);
 				redraw = true;
 			}
 
-			currDouble = TextUtils.atofDistance(gridCurrentVert.getText());
+			currDouble = TextUtils.atof(gridCurrentVert.getText());
 			if (currDouble != wnd.getGridYSpacing())
 			{
 				wnd.setGridYSpacing(currDouble);
@@ -141,11 +141,11 @@ public class GridAndAlignmentTab extends PreferencePanel
 			}
 		}
 
-		currDouble = TextUtils.atofDistance(gridNewHoriz.getText());
+		currDouble = TextUtils.atof(gridNewHoriz.getText());
 		if (currDouble != User.getDefGridXSpacing())
 			User.setDefGridXSpacing(currDouble);
 
-		currDouble = TextUtils.atofDistance(gridNewVert.getText());
+		currDouble = TextUtils.atof(gridNewVert.getText());
 		if (currDouble != User.getDefGridYSpacing())
 			User.setDefGridYSpacing(currDouble);
 
@@ -166,11 +166,11 @@ public class GridAndAlignmentTab extends PreferencePanel
 
 		Dimension2D[] oldValues = User.getAlignmentToGridVector();
         Dimension2D [] newValues = new Dimension2D[5];
-        newValues[0] = new Dimension2D.Double(TextUtils.atofDistance(gridSizeX1.getText()), TextUtils.atofDistance(gridSizeY1.getText()));
-        newValues[1] = new Dimension2D.Double(TextUtils.atofDistance(gridSizeX2.getText()), TextUtils.atofDistance(gridSizeY2.getText()));
-        newValues[2] = new Dimension2D.Double(TextUtils.atofDistance(gridSizeX3.getText()), TextUtils.atofDistance(gridSizeY3.getText()));
-        newValues[3] = new Dimension2D.Double(TextUtils.atofDistance(gridSizeX4.getText()), TextUtils.atofDistance(gridSizeY4.getText()));
-        newValues[4] = new Dimension2D.Double(TextUtils.atofDistance(gridSizeX5.getText()), TextUtils.atofDistance(gridSizeY5.getText()));
+        newValues[0] = new Dimension2D.Double(TextUtils.atof(gridSizeX1.getText()), TextUtils.atof(gridSizeY1.getText()));
+        newValues[1] = new Dimension2D.Double(TextUtils.atof(gridSizeX2.getText()), TextUtils.atof(gridSizeY2.getText()));
+        newValues[2] = new Dimension2D.Double(TextUtils.atof(gridSizeX3.getText()), TextUtils.atof(gridSizeY3.getText()));
+        newValues[3] = new Dimension2D.Double(TextUtils.atof(gridSizeX4.getText()), TextUtils.atof(gridSizeY4.getText()));
+        newValues[4] = new Dimension2D.Double(TextUtils.atof(gridSizeX5.getText()), TextUtils.atof(gridSizeY5.getText()));
         int pos = 0;
         if (size1Button.isSelected()) pos = 0; else
         if (size2Button.isSelected()) pos = 1; else

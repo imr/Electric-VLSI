@@ -35,6 +35,7 @@ import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.drc.Quick;
@@ -46,6 +47,7 @@ import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.MeasureListener;
 import com.sun.electric.tool.user.ui.TopLevel;
 
+import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.Point2D;
@@ -93,6 +95,7 @@ public class Array extends EDialog
 	/** amount when spacing by measured distance */			private double spacingMeasuredX, spacingMeasuredY;
 	/** the selected objects to be arrayed */				private Map<Geometric,Geometric> selected;
 	/** the bounds of the selected objects */				private Rectangle2D bounds;
+	/** the technology of the cell where arraying is done */private Technology tech;
 
 	/**
 	 * Method to display a dialog for arraying the selected circuitry.
@@ -121,7 +124,7 @@ public class Array extends EDialog
 	}
 
 	/** Creates new form Array */
-	private Array(java.awt.Frame parent)
+	private Array(Frame parent)
 	{
 		super(parent, true);
 		initComponents();
@@ -146,6 +149,7 @@ public class Array extends EDialog
 		// see if a single cell instance is selected (in which case DRC validity can be done)
 		onlyDRCCorrect.setEnabled(false);
 		EditWindow wnd = EditWindow.getCurrent();
+		tech = wnd.getCell().getTechnology();
 		List<Geometric> highs = wnd.getHighlighter().getHighlightedEObjs(true, true);
 		if (highs.size() == 1)
 		{
@@ -231,8 +235,8 @@ public class Array extends EDialog
 		}
 
 		// load the spacing distances
-		xSpacing.setText(TextUtils.formatDistance(prefXDistance.getDouble()));
-		ySpacing.setText(TextUtils.formatDistance(prefYDistance.getDouble()));
+		xSpacing.setText(TextUtils.formatDistance(prefXDistance.getDouble(), tech));
+		ySpacing.setText(TextUtils.formatDistance(prefYDistance.getDouble(), tech));
 		switch (prefSpacingType.getInt())
 		{
 			case SPACING_EDGE:         spaceByEdgeOverlap.setSelected(true);          break;
@@ -309,8 +313,8 @@ public class Array extends EDialog
 
 	private void newSpacingSelected()
 	{
-		double x = TextUtils.atofDistance(xSpacing.getText());
-		double y = TextUtils.atofDistance(ySpacing.getText());
+		double x = TextUtils.atofDistance(xSpacing.getText(), tech);
+		double y = TextUtils.atofDistance(ySpacing.getText(), tech);
 		switch (prefSpacingType.getInt())
 		{
 			case SPACING_EDGE:   spacingOverX = x;         spacingOverY = y;         break;
@@ -336,8 +340,8 @@ public class Array extends EDialog
 			case SPACING_ESSENTIALBND:  x = essentialBndX;        y = essentialBndY;        break;
 			case SPACING_MEASURED:      x = spacingMeasuredX;     y = spacingMeasuredY;     break;
 		}
-		xSpacing.setText(TextUtils.formatDistance(x));
-		ySpacing.setText(TextUtils.formatDistance(y));
+		xSpacing.setText(TextUtils.formatDistance(x, tech));
+		ySpacing.setText(TextUtils.formatDistance(y, tech));
 	}
 
 	private void rememberFields()

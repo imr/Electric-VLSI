@@ -193,7 +193,7 @@ public class TextUtils
 //			return Double.parseDouble(text);
 //		} catch (NumberFormatException e)
 //		{
-			return atof(text, null, null);
+			return atof(text, null, null, Technology.getCurrent());
 //		}
 	}
 
@@ -206,7 +206,21 @@ public class TextUtils
 	 */
 	public static double atof(String text, Double defaultVal)
 	{
-		return atof(text, defaultVal, null);
+		return atof(text, defaultVal, null, Technology.getCurrent());
+	}
+
+	/**
+	 * Method to parse the floating-point number in a string, assuming that it is a distance value in the current technology.
+	 * @param text the string to convert to a double.
+	 * @param tech the technology to use for the conversion.
+	 * If it is not a layout technology, then use pure numbers.
+	 * @return the numeric value in internal database units.
+	 */
+	public static double atofDistance(String text, Technology tech)
+	{
+		if (tech != null && tech.isLayout())
+			return atof(text, null, TextDescriptor.Unit.DISTANCE, tech);
+		return atof(text);
 	}
 
 	/**
@@ -216,7 +230,7 @@ public class TextUtils
 	 */
 	public static double atofDistance(String text)
 	{
-		return atof(text, null, TextDescriptor.Unit.DISTANCE);
+		return atof(text, null, TextDescriptor.Unit.DISTANCE, Technology.getCurrent());
 	}
 
 	/**
@@ -228,7 +242,7 @@ public class TextUtils
 	 * @param unitType the type of unit being examined (handles postfix characters).
 	 * @return the numeric value.
 	 */
-	public static double atof(String text, Double defaultVal, TextDescriptor.Unit unitType)
+	public static double atof(String text, Double defaultVal, TextDescriptor.Unit unitType, Technology tech)
 	{
 		if (unitType != null)
 		{
@@ -495,10 +509,23 @@ public class TextUtils
 	 * @param v the distance value to format.
 	 * @return the string representation of the number.
 	 */
+	public static String formatDistance(double v, Technology tech)
+	{
+		if (tech != null && tech.isLayout())
+			return displayedUnits(v, TextDescriptor.Unit.DISTANCE, User.getDistanceUnits(), tech);
+		return formatDouble(v);
+	}
+
+	/**
+	 * Method to convert a distance to a string, using scale from the current technology if necessary.
+	 * If the value has no precision past the decimal, none will be shown.
+	 * If the units are not scalable, then appropriate values will be shown
+	 * @param v the distance value to format.
+	 * @return the string representation of the number.
+	 */
 	public static String formatDistance(double v)
 	{
-		return displayedUnits(v, TextDescriptor.Unit.DISTANCE, User.getDistanceUnits());
-//		return formatDouble(v, 3);
+		return displayedUnits(v, TextDescriptor.Unit.DISTANCE, User.getDistanceUnits(), Technology.getCurrent());
 	}
 
 	/**
@@ -1032,11 +1059,10 @@ public class TextUtils
 	 * Method to express "value" as a string in "unittype" electrical units.
 	 * The scale of the units is in "unitscale".
 	 */
-	private static String displayedUnits(double value, TextDescriptor.Unit unitType, UnitScale unitScale)
+	private static String displayedUnits(double value, TextDescriptor.Unit unitType, UnitScale unitScale, Technology tech)
 	{
 		if (unitType == TextDescriptor.Unit.DISTANCE && unitScale != null)
 		{
-			Technology tech = Technology.getCurrent();
 			value *= UnitScale.NANO.getMultiplier().doubleValue() * tech.getScale();
 		}
 		String postFix = "";
@@ -1062,7 +1088,7 @@ public class TextUtils
 		if (units == TextDescriptor.Unit.NONE)
 			return formatDouble(value);
 		if (units == TextDescriptor.Unit.DISTANCE)
-			return displayedUnits(value, units, User.getDistanceUnits());
+			return displayedUnits(value, units, User.getDistanceUnits(), Technology.getCurrent());
 //		if (units == TextDescriptor.Unit.RESISTANCE)
 //			return displayedUnits(value, units, User.getResistanceUnits());
 //		if (units == TextDescriptor.Unit.CAPACITANCE)

@@ -25,6 +25,7 @@ package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.Highlight2;
 import com.sun.electric.tool.user.waveform.Panel;
@@ -122,11 +123,12 @@ public class MeasureListener implements MouseListener, MouseMotionListener, Mous
 			lastHighlights.clear();
 
 			// show coords at start and end point
+			Technology tech = wnd.getCell().getTechnology();
 			lastHighlights.add(highlighter.addMessage(wnd.getCell(), "("
-				+ TextUtils.formatDistance(start.getX()) + "," + TextUtils.formatDistance(start.getY())
+				+ TextUtils.formatDistance(start.getX(), tech) + "," + TextUtils.formatDistance(start.getY(), tech)
 				+ ")", start));
 			lastHighlights.add(highlighter.addMessage(wnd.getCell(), "("
-				+ TextUtils.formatDistance(end.getX()) + "," + TextUtils.formatDistance(end.getY())
+				+ TextUtils.formatDistance(end.getX(), tech) + "," + TextUtils.formatDistance(end.getY(), tech)
 				+ ")", end));
 			// add in line
 			lastHighlights.add(highlighter.addLine(start, end, wnd.getCell()));
@@ -136,9 +138,9 @@ public class MeasureListener implements MouseListener, MouseMotionListener, Mous
 			Point2D center = new Point2D.Double((start.getX() + end.getX()) / 2,
 				(start.getY() + end.getY()) / 2);
 			double dist = start.distance(end);
-			String show = TextUtils.formatDistance(dist) + " (dX="
-				+ TextUtils.formatDistance(lastMeasuredDistanceX) + " dY="
-				+ TextUtils.formatDistance(lastMeasuredDistanceY) + ")";
+			String show = TextUtils.formatDistance(dist, tech) + " (dX="
+				+ TextUtils.formatDistance(lastMeasuredDistanceX, tech) + " dY="
+				+ TextUtils.formatDistance(lastMeasuredDistanceY, tech) + ")";
 			lastHighlights.add(highlighter.addMessage(wnd.getCell(), show, center));
 			highlighter.finished();
 			wnd.clearDoingAreaDrag();

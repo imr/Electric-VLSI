@@ -55,13 +55,13 @@ public class Gate extends TechEditWizardPanel
 	public void init()
 	{
 		TechEditWizardData data = wizard.getTechEditData();
-		length.setText(TextUtils.formatDistance(data.getGateLength().v));
+		length.setText(TextUtils.formatDouble(data.getGateLength().v));
 		lengthRule.setText(data.getGateLength().rule);
-		width.setText(TextUtils.formatDistance(data.getGateWidth().v));
+		width.setText(TextUtils.formatDouble(data.getGateWidth().v));
 		widthRule.setText(data.getGateWidth().rule);
-		contactSpacing.setText(TextUtils.formatDistance(data.getGateContactSpacing().v));
+		contactSpacing.setText(TextUtils.formatDouble(data.getGateContactSpacing().v));
 		contactSpacingRule.setText(data.getGateContactSpacing().rule);
-		spacing.setText(TextUtils.formatDistance(data.getGateSpacing().v));
+		spacing.setText(TextUtils.formatDouble(data.getGateSpacing().v));
 		spacingRule.setText(data.getGateSpacing().rule);
 	}
 
@@ -72,10 +72,10 @@ public class Gate extends TechEditWizardPanel
 	public void term()
 	{
 		TechEditWizardData data = wizard.getTechEditData();
-		data.setGateLength(new WizardField(TextUtils.atofDistance(length.getText()), lengthRule.getText()));
-		data.setGateWidth(new WizardField(TextUtils.atofDistance(width.getText()), widthRule.getText()));
-		data.setGateContactSpacing(new WizardField(TextUtils.atofDistance(contactSpacing.getText()), contactSpacingRule.getText()));
-		data.setGateSpacing(new WizardField(TextUtils.atofDistance(spacing.getText()), spacingRule.getText()));
+		data.setGateLength(new WizardField(TextUtils.atof(length.getText()), lengthRule.getText()));
+		data.setGateWidth(new WizardField(TextUtils.atof(width.getText()), widthRule.getText()));
+		data.setGateContactSpacing(new WizardField(TextUtils.atof(contactSpacing.getText()), contactSpacingRule.getText()));
+		data.setGateSpacing(new WizardField(TextUtils.atof(spacing.getText()), spacingRule.getText()));
 	}
 
 	/** This method is called from within the constructor to

@@ -698,8 +698,9 @@ public class ClickZoomWireListener
 	                // display DRC if known, otherwise distance moved
                     if (moveDelta != null) highlighter.remove(moveDelta);
                     if (moveDRC != null) highlighter.remove(moveDRC);
-                    String deltaMessage = "Moved (" + TextUtils.formatDistance(dbDelta.getX()) + "," +
-                    	TextUtils.formatDistance(dbDelta.getY()) + ")";
+                    Technology tech = wnd.getCell().getTechnology();
+                    String deltaMessage = "Moved (" + TextUtils.formatDistance(dbDelta.getX(), tech) + "," +
+                    	TextUtils.formatDistance(dbDelta.getY(), tech) + ")";
             		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
                     StatusBar.setCoordinates(deltaMessage, wf);
                 	if (ws.validSpacing())
@@ -708,8 +709,8 @@ public class ClickZoomWireListener
                 		boolean tooClose = ws.getSeparation() < ws.getMinSpacing();
                 		String message = ws.getOneLayer().getName();
                 		if (ws.getOneLayer() != ws.getOtherLayer()) message += " to " + ws.getOtherLayer().getName();
-                		message += " spacing is " + TextUtils.formatDistance(ws.getSeparation());
-                		if (tooClose) message = "ERROR! " + message + " MINIMUM IS " + TextUtils.formatDistance(ws.getMinSpacing());
+                		message += " spacing is " + TextUtils.formatDistance(ws.getSeparation(), tech);
+                		if (tooClose) message = "ERROR! " + message + " MINIMUM IS " + TextUtils.formatDistance(ws.getMinSpacing(), tech);
 
                 		// compute upper-left corner of moved object and place text there
                 		Geometric g = selected.get(0);

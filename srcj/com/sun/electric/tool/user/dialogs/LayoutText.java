@@ -80,16 +80,17 @@ public class LayoutText extends EDialog
 	    EDialog.makeTextFieldSelectAllOnTab(textScale);
 	    EDialog.makeTextFieldSelectAllOnTab(dotSeparation);
 
+	    Technology tech = Technology.getCurrent();
 		textSize.setText(Integer.toString(lastSize));
 		textScale.setText(TextUtils.formatDouble(lastScale));
-		dotSeparation.setText(TextUtils.formatDistance(lastSeparation));
+		dotSeparation.setText(TextUtils.formatDistance(lastSeparation, tech));
 
 		textItalic.setSelected(lastItalic);
 		textBold.setSelected(lastBold);
 		textUnderline.setSelected(lastUnderline);
 		invertDots.setSelected(lastInvertDots);
 
-		for(Iterator<PrimitiveNode> it = Technology.getCurrent().getNodes(); it.hasNext(); )
+		for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
 		{
 			PrimitiveNode np = it.next();
 			if (np.getFunction() == PrimitiveNode.Function.NODE)
@@ -462,7 +463,8 @@ public class LayoutText extends EDialog
 	{
 		lastSize = TextUtils.atoi(textSize.getText());
 		lastScale = TextUtils.atof(textScale.getText());
-		lastSeparation = TextUtils.atofDistance(dotSeparation.getText());
+	    Technology tech = Technology.getCurrent();
+		lastSeparation = TextUtils.atofDistance(dotSeparation.getText(), tech);
 		lastItalic = textItalic.isSelected();
 		lastBold = textBold.isSelected();
 		lastUnderline = textUnderline.isSelected();

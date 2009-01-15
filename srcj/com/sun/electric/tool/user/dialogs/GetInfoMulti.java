@@ -41,6 +41,7 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Client;
@@ -108,12 +109,12 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 	private ChangeType [] currentChangeTypes;
 	private JComponent [] currentChangeValues;
 	private List<Highlight2> highlightList;
-	List<NodeInst> nodeList;
-	List<ArcInst>arcList;
-	List<Export> exportList;
-	List<DisplayedText> textList;
-	List<DisplayedText> annotationTextList;
-
+	private List<NodeInst> nodeList;
+	private List<ArcInst> arcList;
+	private List<Export> exportList;
+	private List<DisplayedText> textList;
+	private List<DisplayedText> annotationTextList;
+	private Technology tech;
     private EditWindow wnd;
 
 	private static final ChangeType [] nodeChanges = {
@@ -297,15 +298,18 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
         if (curWnd != null) wnd = curWnd;
 
 		// copy the selected objects to a private list and sort it
+        tech = null;
 		highlightList.clear();
         if (wnd != null)
         {
             for(Highlight2 h: wnd.getHighlighter().getHighlights())
                 highlightList.add(h);
             Collections.sort(highlightList, new SortMultipleHighlights());
+            Cell cell = wnd.getCell();
+            if (cell != null) tech = cell.getTechnology();
         }
 
-		// show the list
+		// show the list        
 		nodeList = new ArrayList<NodeInst>();
 		arcList = new ArrayList<ArcInst>();
 		exportList = new ArrayList<Export>();
@@ -434,23 +438,27 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 				switch (change)
 				{
 					case CHANGEXSIZE:
-						if (xSizeLow == xSizeHigh) msg = "(All are " + TextUtils.formatDistance(xSizeLow) + ")"; else
-							msg = "(" + TextUtils.formatDistance(xSizeLow) + " to " + TextUtils.formatDistance(xSizeHigh) + ")";
+						if (xSizeLow == xSizeHigh) msg = "(All are " + TextUtils.formatDistance(xSizeLow, tech) + ")"; else
+							msg = "(" + TextUtils.formatDistance(xSizeLow, tech) + " to " +
+								TextUtils.formatDistance(xSizeHigh, tech) + ")";
 						addChangePossibility("X size:", currentChangeValues[c] = new JTextField(""), msg, onePanel);
 						break;
 					case CHANGEYSIZE:
-						if (ySizeLow == ySizeHigh) msg = "(All are " + TextUtils.formatDistance(ySizeLow) + ")"; else
-							msg = "(" + TextUtils.formatDistance(ySizeLow) + " to " + TextUtils.formatDistance(ySizeHigh) + ")";
+						if (ySizeLow == ySizeHigh) msg = "(All are " + TextUtils.formatDistance(ySizeLow, tech) + ")"; else
+							msg = "(" + TextUtils.formatDistance(ySizeLow, tech) + " to " +
+								TextUtils.formatDistance(ySizeHigh, tech) + ")";
 						addChangePossibility("Y size:", currentChangeValues[c] = new JTextField(""), msg, onePanel);
 						break;
 					case CHANGEXPOS:
-						if (xPositionLow == xPositionHigh) msg = "(All are " + TextUtils.formatDistance(xPositionLow) + ")"; else
-							msg = "(" + TextUtils.formatDistance(xPositionLow) + " to " + TextUtils.formatDistance(xPositionHigh) + ")";
+						if (xPositionLow == xPositionHigh) msg = "(All are " + TextUtils.formatDistance(xPositionLow, tech) + ")"; else
+							msg = "(" + TextUtils.formatDistance(xPositionLow, tech) + " to " +
+								TextUtils.formatDistance(xPositionHigh, tech) + ")";
 						addChangePossibility("X position:", currentChangeValues[c] = new JTextField(""), msg, onePanel);
 						break;
 					case CHANGEYPOS:
-						if (yPositionLow == yPositionHigh) msg = "(All are " + TextUtils.formatDistance(yPositionLow) + ")"; else
-							msg = "(" + TextUtils.formatDistance(yPositionLow) + " to " + TextUtils.formatDistance(yPositionHigh) + ")";
+						if (yPositionLow == yPositionHigh) msg = "(All are " + TextUtils.formatDistance(yPositionLow, tech) + ")"; else
+							msg = "(" + TextUtils.formatDistance(yPositionLow, tech) + " to " +
+								TextUtils.formatDistance(yPositionHigh, tech) + ")";
 						addChangePossibility("Y position:", currentChangeValues[c] = new JTextField(""), msg, onePanel);
 						break;
 					case CHANGEROTATION:;
@@ -489,8 +497,9 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 						addChangePossibility("Locked:", currentChangeValues[c] = lo, null, onePanel);
 						break;
 					case CHANGEWIDTH:
-						if (widthLow == widthHigh) msg = "(All are " + TextUtils.formatDistance(widthLow) + ")"; else
-							msg = "(" + TextUtils.formatDistance(widthLow) + " to " + TextUtils.formatDistance(widthHigh) + ")";
+						if (widthLow == widthHigh) msg = "(All are " + TextUtils.formatDistance(widthLow, tech) + ")"; else
+							msg = "(" + TextUtils.formatDistance(widthLow, tech) + " to " +
+								TextUtils.formatDistance(widthHigh, tech) + ")";
 						addChangePossibility("Width:", currentChangeValues[c] = new JTextField(""), msg, onePanel);
 						break;
 					case CHANGERIGID:
@@ -815,7 +824,7 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 	/**
 	 * This class implements database changes requested by the dialog.
 	 */
-	private static class MultiChange extends Job
+	private class MultiChange extends Job
 	{
 		private MultiChangeParameters mcp;
 		private List<NodeInst> nodeList;
@@ -881,8 +890,8 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 						double [] dYP = new double[numNodes];
 						double [] dXS = new double[numNodes];
 						double [] dYS = new double[numNodes];
-						double newXPosition = TextUtils.atofDistance(mcp.xPos);
-						double newYPosition = TextUtils.atofDistance(mcp.yPos);
+						double newXPosition = TextUtils.atofDistance(mcp.xPos, tech);
+						double newYPosition = TextUtils.atofDistance(mcp.yPos, tech);
 						int i = 0;
 						for(NodeInst ni : nodeList)
 						{
@@ -899,12 +908,12 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 							}
 							if (newXSize.equals("")) dXS[i] = 0; else
 							{
-								double baseXSize = TextUtils.atofDistance(newXSize);
+								double baseXSize = TextUtils.atofDistance(newXSize, tech);
 								dXS[i] = baseXSize - ni.getLambdaBaseXSize();
 							}
 							if (newYSize.equals("")) dYS[i] = 0; else
 							{
-								double baseYSize = TextUtils.atofDistance(newYSize);
+								double baseYSize = TextUtils.atofDistance(newYSize, tech);
 								dYS[i] = baseYSize - ni.getLambdaBaseYSize();
 							}
 							i++;
@@ -915,8 +924,8 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 						for(NodeInst ni : nodeList)
 						{
 							double dX = 0, dY = 0, dXS = 0, dYS = 0;
-							if (mcp.xPos.length() > 0) dX = TextUtils.atofDistance(mcp.xPos) - ni.getAnchorCenterX();
-							if (mcp.yPos.length() > 0) dY = TextUtils.atofDistance(mcp.yPos) - ni.getAnchorCenterY();
+							if (mcp.xPos.length() > 0) dX = TextUtils.atofDistance(mcp.xPos, tech) - ni.getAnchorCenterX();
+							if (mcp.yPos.length() > 0) dY = TextUtils.atofDistance(mcp.yPos, tech) - ni.getAnchorCenterY();
 							String newXSize = mcp.xSize;
 							String newYSize = mcp.ySize;
 					        if (ni.getAngle() == 900 || ni.getAngle() == 2700)
@@ -925,12 +934,12 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 							}
 							if (newXSize.length() > 0)
 							{
-								double baseXSize = TextUtils.atofDistance(newXSize);
+								double baseXSize = TextUtils.atofDistance(newXSize, tech);
 								dXS = baseXSize - ni.getLambdaBaseXSize();
 							}
 							if (newYSize.length() > 0)
 							{
-								double baseYSize = TextUtils.atofDistance(newYSize);
+								double baseYSize = TextUtils.atofDistance(newYSize, tech);
 								dYS = baseYSize - ni.getLambdaBaseYSize();
 							}
 							int dRot = 0;
@@ -954,7 +963,7 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 				{
 					if (mcp.width.length() > 0)
 					{
-						double newWidth = TextUtils.atofDistance(mcp.width);
+						double newWidth = TextUtils.atofDistance(mcp.width, tech);
 						ai.setLambdaBaseWidth(newWidth);
 					}
 					if (mcp.rigid == 1) ai.setRigid(true); else
@@ -1019,12 +1028,12 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 					}
 					if (mcp.xOff.length() > 0)
 					{
-						td.setOff(TextUtils.atofDistance(mcp.xOff), td.getYOff());
+						td.setOff(TextUtils.atofDistance(mcp.xOff, tech), td.getYOff());
 						tdChanged = true;
 					}
 					if (mcp.yOff.length() > 0)
 					{
-						td.setOff(td.getXOff(), TextUtils.atofDistance(mcp.yOff));
+						td.setOff(td.getXOff(), TextUtils.atofDistance(mcp.yOff, tech));
 						tdChanged = true;
 					}
 					if (mcp.textRotation > 0)
@@ -1124,20 +1133,20 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 					{
 						NodeInst ni = (NodeInst)eobj;
 						double dX = 0, dY = 0;
-						if (mcp.xPos.length() > 0) dX = TextUtils.atofDistance(mcp.xPos) - ni.getAnchorCenterX();
-						if (mcp.yPos.length() > 0) dY = TextUtils.atofDistance(mcp.yPos) - ni.getAnchorCenterY();
+						if (mcp.xPos.length() > 0) dX = TextUtils.atofDistance(mcp.xPos, tech) - ni.getAnchorCenterX();
+						if (mcp.yPos.length() > 0) dY = TextUtils.atofDistance(mcp.yPos, tech) - ni.getAnchorCenterY();
 						ni.modifyInstance(dX, dY, 0, 0, Orientation.IDENT);
 					}
 				} else
 				{
 					if (mcp.xOff.length() > 0)
 					{
-						td.setOff(TextUtils.atofDistance(mcp.xOff), td.getYOff());
+						td.setOff(TextUtils.atofDistance(mcp.xOff, tech), td.getYOff());
 						tdChanged = true;
 					}
 					if (mcp.yOff.length() > 0)
 					{
-						td.setOff(td.getXOff(), TextUtils.atofDistance(mcp.yOff));
+						td.setOff(td.getXOff(), TextUtils.atofDistance(mcp.yOff, tech));
 						tdChanged = true;
 					}
 				}
@@ -1468,7 +1477,6 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 			mcp.underline = findComponentIntValue(ChangeType.CHANGEUNDERLINE);
 			mcp.invisOutside = findComponentIntValue(ChangeType.CHANGEINVOUTSIDECELL);
 		}
-		
 
 		new MultiChange(mcp, nodeList, arcList, exportList, textList, annotationTextList);
 	}//GEN-LAST:event_applyActionPerformed

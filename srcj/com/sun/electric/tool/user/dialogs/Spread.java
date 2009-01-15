@@ -73,7 +73,7 @@ public class Spread extends EDialog
         	case 'l': spreadLeft.setSelected(true);   break;
         	case 'r': spreadRight.setSelected(true);  break;
         }
-        spreadAmount.setText(TextUtils.formatDistance(defAmount));
+        spreadAmount.setText(TextUtils.formatDistance(defAmount, currentNode.getParent().getTechnology()));
 		finishInitialization();
 	}
 
@@ -86,7 +86,7 @@ public class Spread extends EDialog
 		if (spreadDown.isSelected()) defDirection = 'd'; else
 		if (spreadLeft.isSelected()) defDirection = 'l'; else
 		if (spreadRight.isSelected()) defDirection = 'r';
-		defAmount = TextUtils.atofDistance(spreadAmount.getText());
+		defAmount = TextUtils.atofDistance(spreadAmount.getText(), currentNode.getParent().getTechnology());
     }
 
 	/** This method is called from within the constructor to

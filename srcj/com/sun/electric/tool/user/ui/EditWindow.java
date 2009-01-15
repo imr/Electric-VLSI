@@ -433,6 +433,7 @@ public class EditWindow extends JPanel
 		{
 			Point2D pt = wnd.screenToDatabase(evt.getX(), evt.getY());
 			EditWindow.gridAlign(pt);
+			Technology tech = wnd.getCell().getTechnology();
 
 			if (User.isShowHierarchicalCursorCoordinates())
 			{
@@ -467,14 +468,14 @@ public class EditWindow extends JPanel
 							path = "Location is " + ni.getParent() + " / " + path;
 						} else {
 							path = "Location in " + ni.getParent() + " / " + path + " is (" +
-								TextUtils.formatDistance(ptPath.getX()) + ", " + TextUtils.formatDistance(ptPath.getY()) + ")";
+								TextUtils.formatDistance(ptPath.getX(), tech) + ", " + TextUtils.formatDistance(ptPath.getY(), tech) + ")";
 						}
 					} else path = null;
 				}
 				StatusBar.setHierarchicalCoordinates(path, wnd.wf);
 			}
 
-			StatusBar.setCoordinates("(" + TextUtils.formatDistance(pt.getX()) + ", " + TextUtils.formatDistance(pt.getY()) + ")", wnd.wf);
+			StatusBar.setCoordinates("(" + TextUtils.formatDistance(pt.getX(), tech) + ", " + TextUtils.formatDistance(pt.getY(), tech) + ")", wnd.wf);
 		}
 	}
 

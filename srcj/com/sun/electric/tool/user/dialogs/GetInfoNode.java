@@ -338,6 +338,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 
 		// in small version
 		NodeProto np = ni.getProto();
+		Technology tech = ni.getParent().getTechnology();
 		name.setEditable(true);
 		boolean sizeEditable = true;
 		xPos.setEditable(true);
@@ -361,20 +362,20 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 		if (extra.length() > 0) protoName += " (" + extra + ")";
 		type.setText(protoName);
 		name.setText(initialName);
-		xPos.setText(TextUtils.formatDistance(initialXPos));
-		yPos.setText(TextUtils.formatDistance(initialYPos));
+		xPos.setText(TextUtils.formatDistance(initialXPos, tech));
+		yPos.setText(TextUtils.formatDistance(initialYPos, tech));
 		boolean realMirrorX = ni.isXMirrored();
 		boolean realMirrorY = ni.isYMirrored();
 		if (swapXY)
 		{
-			xSize.setText(TextUtils.formatDistance(initYSize));
-			ySize.setText(TextUtils.formatDistance(initXSize));
+			xSize.setText(TextUtils.formatDistance(initYSize, tech));
+			ySize.setText(TextUtils.formatDistance(initXSize, tech));
 			initialMirrorX = realMirrorY;
 			initialMirrorY = realMirrorX;
 		} else
 		{
-			xSize.setText(TextUtils.formatDistance(initXSize));
-			ySize.setText(TextUtils.formatDistance(initYSize));
+			xSize.setText(TextUtils.formatDistance(initXSize, tech));
+			ySize.setText(TextUtils.formatDistance(initYSize, tech));
 			initialMirrorX = realMirrorX;
 			initialMirrorY = realMirrorY;
 		}
@@ -566,7 +567,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 			Variable var = ni.getVar(Schematics.ATTR_WIDTH);
 			double width = ni.getLambdaBaseXSize();
 			if (var != null) width = TextUtils.atof(var.getPureValue(-1));
-			initialTextField = TextUtils.formatDistance(width);
+			initialTextField = TextUtils.formatDistance(width, tech);
 			textField.setEditable(true);
 			textField.setText(initialTextField);
 		}
@@ -858,6 +859,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 			boolean changed = false;
 			expansionChanged = false;
 			NodeProto np = ni.getProto();
+			Technology tech = ni.getParent().getTechnology();
 
 			if (!currentName.equals(initialName))
 			{
@@ -910,7 +912,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 
 				if (!currentTextField.equals(initialTextField))
 				{
-					double width = TextUtils.atofDistance(currentTextField);
+					double width = TextUtils.atofDistance(currentTextField, tech);
 					Variable oldVar = ni.getVar(Schematics.ATTR_WIDTH);
 					Variable var = ni.updateVar(Schematics.ATTR_WIDTH, new Double(width));
 					if (var != null && oldVar == null)
@@ -1009,19 +1011,19 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 			if (swapXY)
 			{
 				// get true size minus offset (this is the size the user sees)
-				currXSize = TextUtils.atof(currentYSize, new Double(ni.getLambdaBaseXSize()), TextDescriptor.Unit.DISTANCE);
-				currYSize = TextUtils.atof(currentXSize, new Double(ni.getLambdaBaseYSize()), TextDescriptor.Unit.DISTANCE);
-				initXSize = TextUtils.atof(initialYSize, new Double(currXSize), TextDescriptor.Unit.DISTANCE);
-				initYSize = TextUtils.atof(initialXSize, new Double(currYSize), TextDescriptor.Unit.DISTANCE);
+				currXSize = TextUtils.atof(currentYSize, new Double(ni.getLambdaBaseXSize()), TextDescriptor.Unit.DISTANCE, tech);
+				currYSize = TextUtils.atof(currentXSize, new Double(ni.getLambdaBaseYSize()), TextDescriptor.Unit.DISTANCE, tech);
+				initXSize = TextUtils.atof(initialYSize, new Double(currXSize), TextDescriptor.Unit.DISTANCE, tech);
+				initYSize = TextUtils.atof(initialXSize, new Double(currYSize), TextDescriptor.Unit.DISTANCE, tech);
 
 				// mirror
 				orient = Orientation.fromJava(currentRotation, currentMirrorY, currentMirrorX);
 			} else
 			{
-				currXSize = TextUtils.atof(currentXSize, new Double(ni.getLambdaBaseXSize()), TextDescriptor.Unit.DISTANCE);
-				currYSize = TextUtils.atof(currentYSize, new Double(ni.getLambdaBaseYSize()), TextDescriptor.Unit.DISTANCE);
-				initXSize = TextUtils.atof(initialXSize, new Double(currXSize), TextDescriptor.Unit.DISTANCE);
-				initYSize = TextUtils.atof(initialYSize, new Double(currYSize), TextDescriptor.Unit.DISTANCE);
+				currXSize = TextUtils.atof(currentXSize, new Double(ni.getLambdaBaseXSize()), TextDescriptor.Unit.DISTANCE, tech);
+				currYSize = TextUtils.atof(currentYSize, new Double(ni.getLambdaBaseYSize()), TextDescriptor.Unit.DISTANCE, tech);
+				initXSize = TextUtils.atof(initialXSize, new Double(currXSize), TextDescriptor.Unit.DISTANCE, tech);
+				initYSize = TextUtils.atof(initialYSize, new Double(currYSize), TextDescriptor.Unit.DISTANCE, tech);
 
 				// mirror
 				orient = Orientation.fromJava(currentRotation, currentMirrorX, currentMirrorY);
@@ -1674,8 +1676,9 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 	{//GEN-HEADEREND:event_applyActionPerformed
 		if (shownNode == null) return;
 
-		double currentXPos = TextUtils.atof(xPos.getText(), new Double(initialXPos), TextDescriptor.Unit.DISTANCE);
-		double currentYPos = TextUtils.atof(yPos.getText(), new Double(initialYPos), TextDescriptor.Unit.DISTANCE);
+		Technology tech = shownNode.getParent().getTechnology();
+		double currentXPos = TextUtils.atof(xPos.getText(), new Double(initialXPos), TextDescriptor.Unit.DISTANCE, tech);
+		double currentYPos = TextUtils.atof(yPos.getText(), new Double(initialYPos), TextDescriptor.Unit.DISTANCE, tech);
 		int currentRotation = (int)(TextUtils.atof(rotation.getText(), new Double(initialRotation)) * 10);
 
 		new ChangeNode(shownNode,

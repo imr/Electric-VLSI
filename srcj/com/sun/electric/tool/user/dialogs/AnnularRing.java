@@ -110,11 +110,12 @@ public class AnnularRing extends EDialog
 	    EDialog.makeTextFieldSelectAllOnTab(numSegments);
 	    EDialog.makeTextFieldSelectAllOnTab(numDegrees);
 
+	    Technology tech = Technology.getCurrent();
 		layerModel = new DefaultListModel();
 		layerJList = new JList(layerModel);
 		layerJList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		layerPane.setViewportView(layerJList);
-		for(Iterator<PrimitiveNode> it = Technology.getCurrent().getNodes(); it.hasNext(); )
+		for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
 		{
 			PrimitiveNode np = it.next();
 			if (np.getFunction() != PrimitiveNode.Function.NODE) continue;
@@ -124,8 +125,8 @@ public class AnnularRing extends EDialog
         layerModel.addElement(new AnnularRingNode(Generic.tech().afgNode));
 		layerJList.setSelectedIndex(0);
 
-		innerRadius.setText(TextUtils.formatDistance(lastInner));
-		outerRadius.setText(TextUtils.formatDistance(lastOuter));
+		innerRadius.setText(TextUtils.formatDistance(lastInner, tech));
+		outerRadius.setText(TextUtils.formatDistance(lastOuter, tech));
 		numSegments.setText(Integer.toString(lastSegments));
 		numDegrees.setText(Integer.toString(lastDegrees));
 		finishInitialization();
@@ -135,8 +136,9 @@ public class AnnularRing extends EDialog
 
 	private void cacheValues()
 	{
-		lastInner = TextUtils.atofDistance(innerRadius.getText());
-		lastOuter = TextUtils.atofDistance(outerRadius.getText());
+	    Technology tech = Technology.getCurrent();
+		lastInner = TextUtils.atofDistance(innerRadius.getText(), tech);
+		lastOuter = TextUtils.atofDistance(outerRadius.getText(), tech);
 		lastSegments = TextUtils.atoi(numSegments.getText());
 		lastDegrees = TextUtils.atoi(numDegrees.getText());
 	}

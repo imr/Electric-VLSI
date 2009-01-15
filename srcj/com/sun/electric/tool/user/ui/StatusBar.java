@@ -239,15 +239,8 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
 			} else
 			{
 				Rectangle2D bounds = cell.getBounds();
-				if (cell.getTechnology().isLayout())
-				{
-					sizeMsg = "CELL: " + TextUtils.formatDistance(bounds.getWidth()) + " x " +
-	                    TextUtils.formatDistance(bounds.getHeight());
-				} else
-				{
-					sizeMsg = "CELL: " + TextUtils.formatDouble(bounds.getWidth()) + " x " +
-                    	TextUtils.formatDouble(bounds.getHeight());
-				}
+				sizeMsg = "CELL: " + TextUtils.formatDistance(bounds.getWidth(), cell.getTechnology()) + " x " +
+                    TextUtils.formatDistance(bounds.getHeight(), cell.getTechnology());
 			}
 		}
 		fieldSize.setText(sizeMsg);
@@ -357,15 +350,8 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
 					{
 						double xSize = theNode.getLambdaBaseXSize();
 						double ySize = theNode.getLambdaBaseYSize();
-						if (theNode.getProto().getTechnology().isLayout())
-						{
-							selectedMsg += " (size=" + TextUtils.formatDistance(xSize) +
-								" x " + TextUtils.formatDistance(ySize) + ")";
-						} else
-						{
-							selectedMsg += " (size=" + TextUtils.formatDouble(xSize) +
-							" x " + TextUtils.formatDouble(ySize) + ")";
-						}
+						selectedMsg += " (size=" + TextUtils.formatDistance(xSize, theNode.getProto().getTechnology()) +
+							" x " + TextUtils.formatDistance(ySize, theNode.getProto().getTechnology()) + ")";
 					}
 				}
             } else

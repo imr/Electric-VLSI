@@ -23,9 +23,12 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Frame;
 import java.util.prefs.Preferences;
@@ -59,8 +62,10 @@ public class MoveBy extends EDialog
 	    prefs = Preferences.userNodeForPackage(MoveBy.class);
         double movex = prefs.getDouble(MOVEX, 0);
         double movey = prefs.getDouble(MOVEY, 0);
-        dX.setText(TextUtils.formatDistance(movex));
-        dY.setText(TextUtils.formatDistance(movey));
+        Cell cell = WindowFrame.getCurrentCell();
+        Technology tech = (cell == null ? null : cell.getTechnology());
+        dX.setText(TextUtils.formatDistance(movex, tech));
+        dY.setText(TextUtils.formatDistance(movey, tech));
 		finishInitialization();
 	}
 
@@ -173,10 +178,10 @@ public class MoveBy extends EDialog
 
 	private void ok(java.awt.event.ActionEvent evt)//GEN-FIRST:event_ok
 	{//GEN-HEADEREND:event_ok
-		// create the cell
-
-		double dx = TextUtils.atofDistance(dX.getText());
-		double dy = TextUtils.atofDistance(dY.getText());
+        Cell cell = WindowFrame.getCurrentCell();
+        Technology tech = (cell == null ? null : cell.getTechnology());
+		double dx = TextUtils.atofDistance(dX.getText(), tech);
+		double dy = TextUtils.atofDistance(dY.getText(), tech);
         prefs.putDouble(MOVEX, dx);
         prefs.putDouble(MOVEY, dy);
 		CircuitChanges.manyMove(dx, dy);

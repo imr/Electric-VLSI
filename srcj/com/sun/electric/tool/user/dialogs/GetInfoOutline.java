@@ -28,6 +28,7 @@ import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Client;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
@@ -181,8 +182,9 @@ public class GetInfoOutline extends EModelessDialog implements HighlightListener
 			yValue.setText("");
 		} else
 		{
-			xValue.setText(TextUtils.formatDistance(clickedValue.getX()));
-			yValue.setText(TextUtils.formatDistance(clickedValue.getY()));
+			Technology tech = ni.getParent().getTechnology();
+			xValue.setText(TextUtils.formatDistance(clickedValue.getX(), tech));
+			yValue.setText(TextUtils.formatDistance(clickedValue.getY(), tech));
 		}
 		changingCoordinates = false;
 	}
@@ -190,9 +192,10 @@ public class GetInfoOutline extends EModelessDialog implements HighlightListener
 	private String makeLine(int index, Point2D pt)
 	{
 		if (pt == null) return "-------------";
+		Technology tech = ni.getParent().getTechnology();
 		return index + ": (" +
-			TextUtils.formatDistance(pt.getX()) + ", " +
-			TextUtils.formatDistance(pt.getY()) + ")";
+			TextUtils.formatDistance(pt.getX(), tech) + ", " +
+			TextUtils.formatDistance(pt.getY(), tech) + ")";
 	}
 
 	/**
@@ -201,7 +204,9 @@ public class GetInfoOutline extends EModelessDialog implements HighlightListener
 	private void coordinatesChanged()
 	{
 		if (changingCoordinates) return;
-		Point2D typedValue = new Point2D.Double(TextUtils.atofDistance(xValue.getText()), TextUtils.atofDistance(yValue.getText()));
+		Technology tech = ni.getParent().getTechnology();
+		Point2D typedValue = new Point2D.Double(TextUtils.atofDistance(xValue.getText(), tech),
+			TextUtils.atofDistance(yValue.getText(), tech));
 		int index = list.getSelectedIndex();
 		model.set(index, makeLine(index, typedValue));
 	}

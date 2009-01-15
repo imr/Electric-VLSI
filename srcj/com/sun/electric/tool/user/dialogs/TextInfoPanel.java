@@ -34,6 +34,7 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
@@ -203,13 +204,13 @@ public class TextInfoPanel extends javax.swing.JPanel
         });
     }
 
-    public void setOffsets(Point2D offset)
-    {
-        loading = true;
-        xOffset.setText(TextUtils.formatDistance(offset.getX()));
-        yOffset.setText(TextUtils.formatDistance(offset.getY()));
-        loading = false;
-    }
+//    public void setOffsets(Point2D offset)
+//    {
+//        loading = true;
+//        xOffset.setText(TextUtils.formatDistance(offset.getX()));
+//        yOffset.setText(TextUtils.formatDistance(offset.getY()));
+//        loading = false;
+//    }
 
     /**
      * Set what the dialog displays: It can display and allow editing of the settings
@@ -303,8 +304,10 @@ public class TextInfoPanel extends javax.swing.JPanel
         		initialYOffset = off.getY();
         	}
         }
-        xOffset.setText(TextUtils.formatDouble(initialXOffset));
-        yOffset.setText(TextUtils.formatDouble(initialYOffset));
+        Cell cell = WindowFrame.getCurrentCell();
+        Technology tech = (cell == null ? null : cell.getTechnology());
+        xOffset.setText(TextUtils.formatDistance(initialXOffset, tech));
+        yOffset.setText(TextUtils.formatDistance(initialYOffset, tech));
 
         // set the "invisible outside cell"
         initialInvisibleOutsideCell = td.isInterior();
@@ -475,8 +478,10 @@ public class TextInfoPanel extends javax.swing.JPanel
         }
 
         // handle changes to the offset
-        double xd = TextUtils.atofDistance(xOffset.getText());
-        double yd = TextUtils.atofDistance(yOffset.getText());
+        Cell cell = WindowFrame.getCurrentCell();
+        Technology tech = (cell == null ? null : cell.getTechnology());
+        double xd = TextUtils.atofDistance(xOffset.getText(), tech);
+        double yd = TextUtils.atofDistance(yOffset.getText(), tech);
         td = td.withOff(xd, yd);
 
         // handle changes to the rotation
@@ -551,8 +556,10 @@ public class TextInfoPanel extends javax.swing.JPanel
         if (!newSize.equals(initialSize)) changed = true;
 
         // handle changes to the offset
-        double currentXOffset = TextUtils.atofDistance(xOffset.getText());
-        double currentYOffset = TextUtils.atofDistance(yOffset.getText());
+        Cell cell = WindowFrame.getCurrentCell();
+        Technology tech = (cell == null ? null : cell.getTechnology());
+        double currentXOffset = TextUtils.atofDistance(xOffset.getText(), tech);
+        double currentYOffset = TextUtils.atofDistance(yOffset.getText(), tech);
         if (!DBMath.doublesEqual(currentXOffset, initialXOffset) ||
                 !DBMath.doublesEqual(currentYOffset, initialYOffset))
             changed = true;

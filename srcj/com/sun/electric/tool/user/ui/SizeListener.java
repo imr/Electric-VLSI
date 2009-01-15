@@ -33,6 +33,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.CircuitChangeJobs;
@@ -216,8 +217,10 @@ public class SizeListener
 
 			// determine default size
 			double xS = 0, yS = 0;
+			Technology tech = null;
 			for(Geometric geom : highlighter.getHighlightedEObjs(true, true))
 			{
+				tech = geom.getParent().getTechnology();
 				if (geom instanceof NodeInst && nodes)
 				{
 					NodeInst ni = (NodeInst)geom;
@@ -229,9 +232,9 @@ public class SizeListener
 					xS = ai.getLambdaBaseWidth();
 				}
 			}
-			xSize.setText(TextUtils.formatDistance(xS));
+			xSize.setText(TextUtils.formatDistance(xS, tech));
 			if (nodes)
-				ySize.setText(TextUtils.formatDistance(yS));
+				ySize.setText(TextUtils.formatDistance(yS, tech));
 
 			JButton ok = new JButton("OK");
 			gbc = new GridBagConstraints();

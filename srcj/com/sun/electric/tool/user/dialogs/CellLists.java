@@ -187,12 +187,12 @@ public class CellLists extends EDialog
 			}
 		} else
 		{
-			String width = TextUtils.formatDistance(cell.getBounds().getWidth());
+			String width = TextUtils.formatDistance(cell.getBounds().getWidth(), cell.getTechnology());
 			if (maxlen >= 0)
 			{
 				while (width.length() < 7) width = " " + width;
 			}
-			String height = TextUtils.formatDistance(cell.getBounds().getHeight());
+			String height = TextUtils.formatDistance(cell.getBounds().getHeight(), cell.getTechnology());
 			if (maxlen >= 0)
 			{
 				while (height.length() < 7) height += " ";
@@ -607,9 +607,10 @@ public class CellLists extends EDialog
 
 		// also give range of X and Y
 		ERectangle bounds = curCell.getBounds();
-		System.out.println("Cell runs from " + TextUtils.formatDistance(bounds.getMinX()) + " <= X <= " +
-			TextUtils.formatDistance(bounds.getMaxX()) + " and " + TextUtils.formatDistance(bounds.getMinY()) +
-			" <= Y <= " + TextUtils.formatDistance(bounds.getMaxY()));
+		Technology tech = curCell.getTechnology();
+		System.out.println("Cell runs from " + TextUtils.formatDistance(bounds.getMinX(), tech) + " <= X <= " +
+			TextUtils.formatDistance(bounds.getMaxX(), tech) + " and " + TextUtils.formatDistance(bounds.getMinY(), tech) +
+			" <= Y <= " + TextUtils.formatDistance(bounds.getMaxY(), tech));
 	}
 
 	private static void printHeaderLine(int maxLen)
