@@ -1037,12 +1037,12 @@ public class TextUtils
 		if (unitType == TextDescriptor.Unit.DISTANCE && unitScale != null)
 		{
 			Technology tech = Technology.getCurrent();
-			value *= tech.getScale() / UnitScale.NANO.getMultiplier().doubleValue();
+			value *= UnitScale.NANO.getMultiplier().doubleValue() * tech.getScale();
 		}
 		String postFix = "";
 		if (unitScale != null)
 		{
-			value *= unitScale.getMultiplier().doubleValue();
+			value /= unitScale.getMultiplier().doubleValue();
 			postFix = unitScale.getPostFix() + unitType.getPostfixChar();
 		}
 		return formatDouble(value) + postFix;
@@ -1063,18 +1063,18 @@ public class TextUtils
 			return formatDouble(value);
 		if (units == TextDescriptor.Unit.DISTANCE)
 			return displayedUnits(value, units, User.getDistanceUnits());
-		if (units == TextDescriptor.Unit.RESISTANCE)
-			return displayedUnits(value, units, User.getResistanceUnits());
-		if (units == TextDescriptor.Unit.CAPACITANCE)
-			return displayedUnits(value, units, User.getCapacitanceUnits());
-		if (units == TextDescriptor.Unit.INDUCTANCE)
-			return displayedUnits(value, units, User.getInductanceUnits());
-		if (units == TextDescriptor.Unit.CURRENT)
-			return displayedUnits(value, units, User.getAmperageUnits());
-		if (units == TextDescriptor.Unit.VOLTAGE)
-			return displayedUnits(value, units, User.getVoltageUnits());
-		if (units == TextDescriptor.Unit.TIME)
-			return displayedUnits(value, units, User.getTimeUnits());
+//		if (units == TextDescriptor.Unit.RESISTANCE)
+//			return displayedUnits(value, units, User.getResistanceUnits());
+//		if (units == TextDescriptor.Unit.CAPACITANCE)
+//			return displayedUnits(value, units, User.getCapacitanceUnits());
+//		if (units == TextDescriptor.Unit.INDUCTANCE)
+//			return displayedUnits(value, units, User.getInductanceUnits());
+//		if (units == TextDescriptor.Unit.CURRENT)
+//			return displayedUnits(value, units, User.getAmperageUnits());
+//		if (units == TextDescriptor.Unit.VOLTAGE)
+//			return displayedUnits(value, units, User.getVoltageUnits());
+//		if (units == TextDescriptor.Unit.TIME)
+//			return displayedUnits(value, units, User.getTimeUnits());
 		return (formatDoublePostFix(value));
 	}
 

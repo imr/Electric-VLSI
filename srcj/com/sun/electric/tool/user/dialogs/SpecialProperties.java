@@ -24,6 +24,7 @@
 
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
@@ -46,6 +47,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
@@ -72,7 +76,8 @@ public class SpecialProperties
 		// if double-clicked on a schematic resistor, show special dialog
 		if (ni.getProto() == Schematics.tech().resistorNode)
 		{
-			NodePropertiesDialog npd = new NodePropertiesDialog(wnd, ni, "Resistance", "Ohms", Schematics.SCHEM_RESISTANCE);
+			NodePropertiesDialog npd = new NodePropertiesDialog(wnd, ni, "Resistance",
+				Schematics.SCHEM_RESISTANCE, TextDescriptor.Unit.RESISTANCE);
 			if (npd.wantMore()) return -1;
 			return 1;
 		}
@@ -80,7 +85,8 @@ public class SpecialProperties
 		// if double-clicked on a schematic capacitor, show special dialog
 		if (ni.getProto() == Schematics.tech().capacitorNode)
 		{
-			NodePropertiesDialog npd = new NodePropertiesDialog(wnd, ni, "Capacitance", "Farads", Schematics.SCHEM_CAPACITANCE);
+			NodePropertiesDialog npd = new NodePropertiesDialog(wnd, ni, "Capacitance",
+				Schematics.SCHEM_CAPACITANCE, TextDescriptor.Unit.CAPACITANCE);
 			if (npd.wantMore()) return -1;
 			return 1;
 		}
@@ -88,7 +94,8 @@ public class SpecialProperties
 		// if double-clicked on a schematic inductor, show special dialog
 		if (ni.getProto() == Schematics.tech().inductorNode)
 		{
-			NodePropertiesDialog npd = new NodePropertiesDialog(wnd, ni, "Inductance", "Henrys", Schematics.SCHEM_INDUCTANCE);
+			NodePropertiesDialog npd = new NodePropertiesDialog(wnd, ni, "Inductance",
+				Schematics.SCHEM_INDUCTANCE, TextDescriptor.Unit.INDUCTANCE);
 			if (npd.wantMore()) return -1;
 			return 1;
 		}
@@ -96,7 +103,7 @@ public class SpecialProperties
 		// if double-clicked on a schematic diode, show special dialog
 		if (ni.getProto() == Schematics.tech().diodeNode)
 		{
-			NodePropertiesDialog npd = new NodePropertiesDialog(wnd, ni, "Diode area", null, Schematics.SCHEM_DIODE);
+			NodePropertiesDialog npd = new NodePropertiesDialog(wnd, ni, "Diode area", Schematics.SCHEM_DIODE, null);
 			if (npd.wantMore()) return -1;
 			return 1;
 		}
@@ -110,7 +117,7 @@ public class SpecialProperties
 				fun == PrimitiveNode.Function.TRANPN || fun == PrimitiveNode.Function.TRAPNP)
 			{
 				// show just the area value for NPN and PNP transistors
-				NodePropertiesDialog npd = new NodePropertiesDialog(wnd, ni, "Transistor area", null, Schematics.ATTR_AREA);
+				NodePropertiesDialog npd = new NodePropertiesDialog(wnd, ni, "Transistor area", Schematics.ATTR_AREA, null);
 				if (npd.wantMore()) return -1;
 				return 1;
 			}
@@ -133,20 +140,38 @@ public class SpecialProperties
 
 	private static TextUtils.UnitScale getUnit(String str)
 	{
+		// get list of scales, sorted by the length of the postfix string
 		TextUtils.UnitScale [] scales = TextUtils.UnitScale.getUnitScales();
-        for (int i=0; i<scales.length; i++)
-		{
-			TextUtils.UnitScale u = scales[i];
+		List<TextUtils.UnitScale> scalesByPostfixLength = new ArrayList<TextUtils.UnitScale>();
+		for(int i=0; i<scales.length; i++) scalesByPostfixLength.add(scales[i]);
+		Collections.sort(scalesByPostfixLength, new UnitsByPostfixLength());
 
+		for (TextUtils.UnitScale u : scalesByPostfixLength)
+		{
             String postfix = u.getPostFix();
             if (postfix.equals("")) continue;               // ignore the NONE suffix case
             if (postfix.length() >= str.length()) continue;   // postfix is same length or longer than string
 
             String sSuffix = str.substring(str.length()-postfix.length(), str.length());
-
             if (sSuffix.equalsIgnoreCase(postfix)) return u;
         }
 		return TextUtils.UnitScale.NONE;
+	}
+
+	/**
+	 * Comparator class for sorting Units by the length of their postfix.
+	 */
+	private static class UnitsByPostfixLength implements Comparator<TextUtils.UnitScale>
+	{
+		/**
+		 * Method to sort Units by their postfix length.
+		 */
+		public int compare(TextUtils.UnitScale u1, TextUtils.UnitScale u2)
+		{
+			String s1 = u1.getPostFix();
+			String s2 = u2.getPostFix();
+			return s2.length()- s1.length();
+		}
 	}
 
 	/**
@@ -160,7 +185,8 @@ public class SpecialProperties
 		private boolean moreHit;
 
 		/** Creates new special node properties object */
-		private NodePropertiesDialog(EditWindow wnd, NodeInst ni, String title, String units, Variable.Key key)
+		private NodePropertiesDialog(EditWindow wnd, NodeInst ni, String title, Variable.Key key,
+			TextDescriptor.Unit units)
 		{
 			super(null, true);
 
@@ -215,7 +241,7 @@ public class SpecialProperties
 		}
 
 		private void initComponents(EditWindow wnd, NodeInst ni, String title, String initialValue,
-			String [] theScales, String initialScale, String units)
+			String [] theScales, String initialScale, TextDescriptor.Unit unit)
 		{
 			getContentPane().setLayout(new GridBagLayout());
 
@@ -230,7 +256,7 @@ public class SpecialProperties
 			value = new JTextField(initialValue);
 			GridBagConstraints gbc = new GridBagConstraints();
 			gbc.gridx = 0;   gbc.gridy = 0;
-			if (units == null) gbc.gridwidth = 4; else
+			if (unit == null) gbc.gridwidth = 4; else
 				gbc.gridwidth = 2;
 			gbc.anchor = GridBagConstraints.CENTER;
 			gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -240,7 +266,7 @@ public class SpecialProperties
 		    EDialog.makeTextFieldSelectAllOnTab(value);
 			value.selectAll();
 
-			if (units != null)
+			if (unit != null)
 			{
 				combo = new JComboBox();
 				int selected = 0;
@@ -248,8 +274,8 @@ public class SpecialProperties
 				{
 					String sca = theScales[k];
 					if (sca.equalsIgnoreCase(initialScale)) selected = k;
-					if (sca.length() == 0) combo.addItem(units); else
-						combo.addItem(sca + "-" + units.toLowerCase());
+					if (sca.length() == 0) combo.addItem(unit.getName()); else
+						combo.addItem(sca + "-" + unit.getName().toLowerCase());
 				}
 				combo.setSelectedIndex(selected);
 				gbc = new GridBagConstraints();

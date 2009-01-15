@@ -543,7 +543,7 @@ public class PaletteFrame implements MouseListener
                     }
 				} else if (np == Schematics.tech().capacitorNode)
 				{
-					newNi.newDisplayVar(Schematics.SCHEM_CAPACITANCE, "100M");
+					newNi.newDisplayVar(Schematics.SCHEM_CAPACITANCE, "100m");
 				} else if (np == Schematics.tech().inductorNode)
 				{
 					newNi.newDisplayVar(Schematics.SCHEM_INDUCTANCE, "100");

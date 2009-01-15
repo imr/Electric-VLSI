@@ -548,14 +548,15 @@ abstract class AbstractTextDescriptor implements Serializable
 	 */
 	public static class Unit
 	{
-		private final String name, postfixChar;
+		private final String description, name, postfixChar;
 		private final int index;
 		private static final List<Unit> units = new ArrayList<Unit>();
 
-		private Unit(String name, int index, String postfixChar)
+		private Unit(String description, int index, String name, String postfixChar)
 		{
-			this.name = name;
+			this.description = description;
 			this.index = index;
+			this.name = name;
 			this.postfixChar = postfixChar;
 			units.add(index, this);
 		}
@@ -570,9 +571,17 @@ abstract class AbstractTextDescriptor implements Serializable
 		/**
 		 * Method to return the description of this Unit.
 		 * It appears in popup menus.
+		 * For example, the name of the Time unit is "time".
 		 * @return the description of this Unit.
 		 */
-		public String getDescription() { return name; }
+		public String getDescription() { return description; }
+
+		/**
+		 * Method to return the name of this Unit.
+		 * For example, the name of the Time unit is "Second".
+		 * @return the description of this Unit.
+		 */
+		public String getName() { return name; }
 
 		/**
 		 * Method to return the characters to add to the end of this Unit.
@@ -606,14 +615,14 @@ abstract class AbstractTextDescriptor implements Serializable
 		 */
 		public String toString() { return name; }
 
-		/** Describes no units. */				public static final Unit NONE =        new Unit("none", VTUNITSNONE, "");
-		/** Describes resistance units. */		public static final Unit RESISTANCE =  new Unit("resistance", VTUNITSRES, "o");
-		/** Describes capacitance units. */		public static final Unit CAPACITANCE = new Unit("capacitance", VTUNITSCAP, "f");
-		/** Describes inductance units. */		public static final Unit INDUCTANCE =  new Unit("inductance", VTUNITSIND, "h");
-		/** Describes current units. */			public static final Unit CURRENT =     new Unit("current", VTUNITSCUR, "a");
-		/** Describes voltage units. */			public static final Unit VOLTAGE =     new Unit("voltage", VTUNITSVOLT, "v");
-		/** Describes distance units. */		public static final Unit DISTANCE =    new Unit("distance", VTUNITSDIST, "m");
-		/** Describes time units. */			public static final Unit TIME =        new Unit("time", VTUNITSTIME, "s");
+		/** Describes no units. */				public static final Unit NONE =        new Unit("none", VTUNITSNONE, "", "");
+		/** Describes resistance units. */		public static final Unit RESISTANCE =  new Unit("resistance", VTUNITSRES, "Ohm", "o");
+		/** Describes capacitance units. */		public static final Unit CAPACITANCE = new Unit("capacitance", VTUNITSCAP, "Farad", "f");
+		/** Describes inductance units. */		public static final Unit INDUCTANCE =  new Unit("inductance", VTUNITSIND, "Henry", "h");
+		/** Describes current units. */			public static final Unit CURRENT =     new Unit("current", VTUNITSCUR, "Ampere", "a");
+		/** Describes voltage units. */			public static final Unit VOLTAGE =     new Unit("voltage", VTUNITSVOLT, "Volt", "v");
+		/** Describes distance units. */		public static final Unit DISTANCE =    new Unit("distance", VTUNITSDIST, "Meter", "m");
+		/** Describes time units. */			public static final Unit TIME =        new Unit("time", VTUNITSTIME, "Second", "s");
 	}
 
 	/**
