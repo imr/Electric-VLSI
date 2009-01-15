@@ -1651,6 +1651,7 @@ public class TechEditWizardData
         /**************************** N/P-Well Contacts ***********************************************/
         nwell = scaledValue(contact_size.v/2 + diff_contact_overhang.v + nwell_overhang_diff_n.v);
         nso = scaledValue(nwell_overhang_diff_n.v); // valid for elements that have nwell layers
+        pso = (!pWellFlag)?nso:scaledValue(nplus_overhang_diff.v);
 
         // NWell/PWell arcs
         if (!pWellFlag)
