@@ -1021,13 +1021,20 @@ public class Highlighter implements DatabaseChangeListener {
 		{
 
             System.out.println("Wrong type of object is selected");
-            System.out.println(" (Wanted "+type.toString()+" but got "+eobj.getClass().toString()+")");
+            System.out.println(" (Wanted "+getClassName(type)+" but got "+getClassName(eobj.getClass())+")");
             return null;
 		}
 		return eobj;
 	}
 
-    /**
+	private String getClassName(Class type)
+	{
+		if (type == NodeInst.class) return "Node";
+		if (type == ArcInst.class) return "Arc";
+		return type.toString();
+	}
+
+	/**
 	 * Method to set a screen offset for the display of highlighting.
 	 * @param offX the X offset (in pixels) of the highlighting.
 	 * @param offY the Y offset (in pixels) of the highlighting.

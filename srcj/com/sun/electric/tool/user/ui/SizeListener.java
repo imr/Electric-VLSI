@@ -133,8 +133,7 @@ public class SizeListener
 	 */
 	public static void sizeAllNodes()
 	{
-		SizeObjects dialog = new SizeObjects(TopLevel.getCurrentJFrame(), true, true);
-		dialog.setVisible(true);
+		new SizeObjects(TopLevel.getCurrentJFrame(), true, true);
 	}
 
 	/**
@@ -142,8 +141,7 @@ public class SizeListener
 	 */
 	public static void sizeAllArcs()
 	{
-		SizeObjects dialog = new SizeObjects(TopLevel.getCurrentJFrame(), true, false);
-		dialog.setVisible(true);
+		new SizeObjects(TopLevel.getCurrentJFrame(), true, false);
 	}
 
 	/**
@@ -152,7 +150,7 @@ public class SizeListener
 	private static class SizeObjects extends EDialog
 	{
 		private JTextField xSize, ySize;
-		boolean nodes;
+		private boolean nodes;
 
 		/** Creates new form Size all selected nodes/arcs */
 		public SizeObjects(Frame parent, boolean modal, boolean nodes)
@@ -164,6 +162,11 @@ public class SizeListener
 			Highlighter highlighter = wnd.getHighlighter();
 
 			getContentPane().setLayout(new GridBagLayout());
+			addWindowListener(new WindowAdapter()
+			{
+				public void windowClosing(WindowEvent evt) { closeDialog(); }
+			});
+
 			String label = "Width:";
 			this.nodes = nodes;
 			if (nodes)
@@ -187,58 +190,29 @@ public class SizeListener
 				gbc.fill = GridBagConstraints.HORIZONTAL;
 				gbc.insets = new java.awt.Insets(4, 4, 4, 4);
 				getContentPane().add(ySize, gbc);
+			    EDialog.makeTextFieldSelectAllOnTab(ySize);
 			} else
 			{
 				setTitle("Set Arc Size");
 			}
 
-			JLabel xSizeLabel = new JLabel(label);
-			GridBagConstraints gbc = new GridBagConstraints();
-			gbc.gridx = 0;
-			gbc.gridy = 0;
-			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
-			getContentPane().add(xSizeLabel, gbc);
-
 			xSize = new JTextField();
 			xSize.setColumns(6);
-			gbc = new GridBagConstraints();
+			GridBagConstraints gbc = new GridBagConstraints();
 			gbc.gridx = 1;
 			gbc.gridy = 0;
 			gbc.weightx = 1;
 			gbc.fill = GridBagConstraints.HORIZONTAL;
 			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
 			getContentPane().add(xSize, gbc);
+		    EDialog.makeTextFieldSelectAllOnTab(xSize);
 
-			JButton ok = new JButton("OK");
-			gbc = new GridBagConstraints();
-			gbc.gridx = 1;
-			gbc.gridy = 2;
-			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
-			getContentPane().add(ok, gbc);
-
-			JButton cancel = new JButton("Cancel");
+			JLabel xSizeLabel = new JLabel(label);
 			gbc = new GridBagConstraints();
 			gbc.gridx = 0;
-			gbc.gridy = 2;
+			gbc.gridy = 0;
 			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
-			getContentPane().add(cancel, gbc);
-
-			addWindowListener(new WindowAdapter()
-			{
-				public void windowClosing(WindowEvent evt) { SizeObjectsClosing(evt); }
-			});
-			cancel.addActionListener(new ActionListener()
-			{
-				public void actionPerformed(ActionEvent evt) { cancel(evt); }
-			});
-			ok.addActionListener(new ActionListener()
-			{
-				public void actionPerformed(ActionEvent evt) { ok(evt); }
-			});
-
-			pack();
-
-			getRootPane().setDefaultButton(ok);
+			getContentPane().add(xSizeLabel, gbc);
 
 			// determine default size
 			double xS = 0, yS = 0;
@@ -258,12 +232,38 @@ public class SizeListener
 			xSize.setText(TextUtils.formatDistance(xS));
 			if (nodes)
 				ySize.setText(TextUtils.formatDistance(yS));
+
+			JButton ok = new JButton("OK");
+			gbc = new GridBagConstraints();
+			gbc.gridx = 1;
+			gbc.gridy = 2;
+			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			getContentPane().add(ok, gbc);
+			ok.addActionListener(new ActionListener()
+			{
+				public void actionPerformed(ActionEvent evt) { ok(evt); }
+			});
+			getRootPane().setDefaultButton(ok);
+
+			JButton cancel = new JButton("Cancel");
+			gbc = new GridBagConstraints();
+			gbc.gridx = 0;
+			gbc.gridy = 2;
+			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			getContentPane().add(cancel, gbc);
+			cancel.addActionListener(new ActionListener()
+			{
+				public void actionPerformed(ActionEvent evt) { cancel(evt); }
+			});
+
+			pack();
+			finishInitialization();
+			setVisible(true);
 		}
 
-		private void cancel(ActionEvent evt)
-		{
-			SizeObjectsClosing(null);
-		}
+		protected void escapePressed() { closeDialog(); }
+
+		private void cancel(ActionEvent evt) { closeDialog(); }
 
 		private void ok(ActionEvent evt)
 		{
@@ -277,13 +277,7 @@ public class SizeListener
 			if (nodes)
 				yS = TextUtils.atofDistance(ySize.getText());
 			new ResizeStuff(wnd.getCell(), highlighted, xS, yS, nodes);
-			SizeObjectsClosing(null);
-		}
-
-		private void SizeObjectsClosing(WindowEvent evt)
-		{
-			setVisible(false);
-			dispose();
+			closeDialog();
 		}
 	}
 

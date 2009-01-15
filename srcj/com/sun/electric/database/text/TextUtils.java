@@ -716,19 +716,19 @@ public class TextUtils
 		return msg;
 	}
 
-	/**
-	 * Method to convert a double to a string that is left-padded with spaces
-	 * @param value the double value.
-	 * @param width the minimum field width.
-	 * If the result is less than this, extra spaces are added to the beginning.
-	 * @return a string describing the double.
-	 */
-	public static String toBlankPaddedString(double value, int width)
-	{
-		String msg = Double.toString(value);
-		while (msg.length() < width) msg = " " + msg;
-		return msg;
-	}
+//	/**
+//	 * Method to convert a double to a string that is left-padded with spaces
+//	 * @param value the double value.
+//	 * @param width the minimum field width.
+//	 * If the result is less than this, extra spaces are added to the beginning.
+//	 * @return a string describing the double.
+//	 */
+//	public static String toBlankPaddedString(double value, int width)
+//	{
+//		String msg = Double.toString(value);
+//		while (msg.length() < width) msg = " " + msg;
+//		return msg;
+//	}
 
 	/**
 	 * Method to determine whether or not a string is a number.

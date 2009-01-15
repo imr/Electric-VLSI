@@ -566,7 +566,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 			Variable var = ni.getVar(Schematics.ATTR_WIDTH);
 			double width = ni.getLambdaBaseXSize();
 			if (var != null) width = TextUtils.atof(var.getPureValue(-1));
-			initialTextField = Double.toString(width);
+			initialTextField = TextUtils.formatDistance(width);
 			textField.setEditable(true);
 			textField.setText(initialTextField);
 		}
@@ -910,7 +910,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 
 				if (!currentTextField.equals(initialTextField))
 				{
-					double width = TextUtils.atof(currentTextField);
+					double width = TextUtils.atofDistance(currentTextField);
 					Variable oldVar = ni.getVar(Schematics.ATTR_WIDTH);
 					Variable var = ni.updateVar(Schematics.ATTR_WIDTH, new Double(width));
 					if (var != null && oldVar == null)

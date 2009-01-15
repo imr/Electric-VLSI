@@ -141,9 +141,9 @@ public class Metal extends TechEditWizardPanel
         for(int i=0; i<numMetals; i++)
         {
         	addMetalLayer(i);
-        	width[i].setText(Double.toString(data.getMetalWidth()[i].v));
+        	width[i].setText(TextUtils.formatDistance(data.getMetalWidth()[i].v));
         	widthRule[i].setText(data.getMetalWidth()[i].rule);
-        	spacing[i].setText(Double.toString(data.getMetalSpacing()[i].v));
+        	spacing[i].setText(TextUtils.formatDistance(data.getMetalSpacing()[i].v));
         	spacingRule[i].setText(data.getMetalSpacing()[i].rule);
         }
 	}
@@ -258,8 +258,8 @@ public class Metal extends TechEditWizardPanel
 		data.setNumMetalLayers(numMetals);
         for(int i=0; i<numMetals; i++)
         {
-        	data.setMetalWidth(i, new WizardField(TextUtils.atof(width[i].getText()), widthRule[i].getText()));
-        	data.setMetalSpacing(i, new WizardField(TextUtils.atof(spacing[i].getText()), spacingRule[i].getText()));
+        	data.setMetalWidth(i, new WizardField(TextUtils.atofDistance(width[i].getText()), widthRule[i].getText()));
+        	data.setMetalSpacing(i, new WizardField(TextUtils.atofDistance(spacing[i].getText()), spacingRule[i].getText()));
         }
 	}
 }

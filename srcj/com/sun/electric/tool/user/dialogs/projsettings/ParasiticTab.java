@@ -123,7 +123,7 @@ public class ParasiticTab extends ProjSettingsPanel {
 		changing = true;
 		minResistance.setText(getFormattedDouble(tech.getMinResistanceSetting()));
 		minCapacitance.setText(getFormattedDouble(tech.getMinCapacitanceSetting()));
-		gateLengthSubtraction.setText(getFormattedDouble(tech.getGateLengthSubtractionSetting()));
+		gateLengthSubtraction.setText(TextUtils.formatDistance(getDouble(tech.getGateLengthSubtractionSetting())));
         maxSeriesResistance.setText(getFormattedDouble(tech.getMaxSeriesResistanceSetting()));
 		includeGate.setSelected(getBoolean(tech.getGateIncludedSetting()));
 		includeGround.setSelected(getBoolean(tech.getGroundNetIncludedSetting()));
@@ -202,7 +202,7 @@ public class ParasiticTab extends ProjSettingsPanel {
             
             setDouble(tech.getMinResistanceSetting(), TextUtils.atof(minResistance.getText()));
             setDouble(tech.getMinCapacitanceSetting(),TextUtils.atof(minCapacitance.getText()));
-            setDouble(tech.getGateLengthSubtractionSetting(), TextUtils.atof(gateLengthSubtraction.getText()));
+            setDouble(tech.getGateLengthSubtractionSetting(), TextUtils.atofDistance(gateLengthSubtraction.getText()));
             setDouble(tech.getMaxSeriesResistanceSetting(), TextUtils.atof(maxSeriesResistance.getText()));
             setBoolean(tech.getGateIncludedSetting(), includeGate.isSelected());
             setBoolean(tech.getGroundNetIncludedSetting(), includeGround.isSelected());

@@ -59,8 +59,8 @@ public class MoveBy extends EDialog
 	    prefs = Preferences.userNodeForPackage(MoveBy.class);
         double movex = prefs.getDouble(MOVEX, 0);
         double movey = prefs.getDouble(MOVEY, 0);
-        dX.setText(String.valueOf(movex));
-        dY.setText(String.valueOf(movey));
+        dX.setText(TextUtils.formatDistance(movex));
+        dY.setText(TextUtils.formatDistance(movey));
 		finishInitialization();
 	}
 
@@ -175,8 +175,8 @@ public class MoveBy extends EDialog
 	{//GEN-HEADEREND:event_ok
 		// create the cell
 
-		double dx = TextUtils.atof(dX.getText());
-		double dy = TextUtils.atof(dY.getText());
+		double dx = TextUtils.atofDistance(dX.getText());
+		double dy = TextUtils.atofDistance(dY.getText());
         prefs.putDouble(MOVEX, dx);
         prefs.putDouble(MOVEY, dy);
 		CircuitChanges.manyMove(dx, dy);

@@ -187,17 +187,17 @@ public class CellLists extends EDialog
 			}
 		} else
 		{
-			String width = Double.toString(cell.getBounds().getWidth());
+			String width = TextUtils.formatDistance(cell.getBounds().getWidth());
 			if (maxlen >= 0)
 			{
-				while (width.length() < 8) width = " " + width;
+				while (width.length() < 7) width = " " + width;
 			}
-			String height = Double.toString(cell.getBounds().getHeight());
+			String height = TextUtils.formatDistance(cell.getBounds().getHeight());
 			if (maxlen >= 0)
 			{
-				while (height.length() < 8) height += " ";
+				while (height.length() < 7) height += " ";
 			}
-			line += width + "x" + height;
+			line += width + " x " + height;
 		}
 		if (maxlen < 0) line += "\t";
 

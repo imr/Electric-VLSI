@@ -392,21 +392,21 @@ public class DesignRulesPanel extends JPanel
         if (field == drNormalConnected)
         {
             // get new normal spacing values
-            value = TextUtils.atof(drNormalConnected.getText());
+            value = TextUtils.atofDistance(drNormalConnected.getText());
             list.add(new DRCTemplate(drNormalConnectedRule.getText(), foundry.getMode(), DRCTemplate.DRCRuleType.CONSPA,
                     0, 0, null, null, new double[]{value}, -1));
             drRules.setSpacingRules(dindex, list, DRCTemplate.DRCRuleType.SPACING, false);
         }
         else if (field == drNormalUnconnected)
         {
-            value = TextUtils.atof(drNormalUnconnected.getText());
+            value = TextUtils.atofDistance(drNormalUnconnected.getText());
             list.add(new DRCTemplate(drNormalUnconnectedRule.getText(), foundry.getMode(), DRCTemplate.DRCRuleType.UCONSPA,
                     0, 0, null, null, new double[]{value}, -1));
             drRules.setSpacingRules(dindex, list, DRCTemplate.DRCRuleType.SPACING, false);
         }
         else if (field == drMultiUnconnected)
         {
-            value = TextUtils.atof(drMultiUnconnected.getText());
+            value = TextUtils.atofDistance(drMultiUnconnected.getText());
             list.add(new DRCTemplate(drMultiUnconnectedRule.getText(), foundry.getMode(), DRCTemplate.DRCRuleType.UCONSPA2D,
                     0, 0, null, null, new double[]{value}, 1));
             drRules.setSpacingRules(dindex, list, DRCTemplate.DRCRuleType.UCONSPA2D, false);
@@ -414,7 +414,7 @@ public class DesignRulesPanel extends JPanel
         else if (field == drNormalEdge)
         {
             // get new edge values
-            value = TextUtils.atof(drNormalEdge.getText());
+            value = TextUtils.atofDistance(drNormalEdge.getText());
             list.add(new DRCTemplate(drNormalEdgeRule.getText(), foundry.getMode(), DRCTemplate.DRCRuleType.CONSPA,
                     0, 0, null, null, new double[]{value}, -1));
             drRules.setSpacingRules(dindex, list, DRCTemplate.DRCRuleType.SPACINGE, false);
@@ -427,9 +427,9 @@ public class DesignRulesPanel extends JPanel
             if (curWid >= 0 && curWid < wideSpacingRules.size())
             {
                 DRCTemplate wr = wideSpacingRules.get(curWid);
-                double maxW = TextUtils.atof(drWidths.getText().trim());
-                double minL = TextUtils.atof(drLengths.getText().trim());
-                double minV = TextUtils.atof(drSpacings.getText().trim());
+                double maxW = TextUtils.atofDistance(drWidths.getText().trim());
+                double minL = TextUtils.atofDistance(drLengths.getText().trim());
+                double minV = TextUtils.atofDistance(drSpacings.getText().trim());
                 String newName = drSpacingsRule.getText().trim();
                 boolean diffW = (DBMath.isGreaterThan(maxW, 0) && !DBMath.areEquals(wr.maxWidth, maxW));
                 boolean diffL = (DBMath.isGreaterThan(minL, 0) && !DBMath.areEquals(wr.minLength, minL));
@@ -498,9 +498,9 @@ public class DesignRulesPanel extends JPanel
         }
         else
         {
-            if (tmp.maxWidth != 0) drWidths.setText(Double.toString(tmp.maxWidth));
-            if (tmp.minLength != 0) drLengths.setText(Double.toString(tmp.minLength));
-            drSpacings.setText(Double.toString(tmp.getValue(0)));
+            if (tmp.maxWidth != 0) drWidths.setText(TextUtils.formatDistance(tmp.maxWidth));
+            if (tmp.minLength != 0) drLengths.setText(TextUtils.formatDistance(tmp.minLength));
+            drSpacings.setText(TextUtils.formatDistance(tmp.getValue(0)));
             drSpacingsRule.setText(tmp.ruleName);
         }
 		designRulesUpdating = false;
@@ -597,12 +597,12 @@ public class DesignRulesPanel extends JPanel
             {
                 if (tmp.ruleType == DRCTemplate.DRCRuleType.CONSPA)
                 {
-                    drNormalConnected.setText(Double.toString(tmp.getValue(0)));
+                    drNormalConnected.setText(TextUtils.formatDistance(tmp.getValue(0)));
                     drNormalConnectedRule.setText(tmp.ruleName);
                 }
                 else if (tmp.ruleType == DRCTemplate.DRCRuleType.UCONSPA)
                 {
-                    drNormalUnconnected.setText(Double.toString(tmp.getValue(0)));
+                    drNormalUnconnected.setText(TextUtils.formatDistance(tmp.getValue(0)));
                     drNormalUnconnectedRule.setText(tmp.ruleName);
                 }
 //                if (tmp.maxWidth > 0) wideLimit = tmp.maxWidth;
@@ -635,14 +635,14 @@ public class DesignRulesPanel extends JPanel
             if (spacingRules.size() == 1)
             {
                 DRCTemplate cutTmp = spacingRules.get(0);
-                drMultiUnconnected.setText(Double.toString(cutTmp.getValue(0)));
+                drMultiUnconnected.setText(TextUtils.formatDistance(cutTmp.getValue(0)));
                 drMultiUnconnectedRule.setText(cutTmp.ruleName);
             }
             spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.DRCRuleType.SPACINGE, false);
             for (DRCTemplate tmp : spacingRules)
             {
                 // Any is fine
-                drNormalEdge.setText(Double.toString(tmp.getValue(0)));
+                drNormalEdge.setText(TextUtils.formatDistance(tmp.getValue(0)));
                 drNormalEdgeRule.setText(tmp.ruleName);
             }
             drAddRule.setEnabled(drRules.doesAllowMultipleWideRules(dindex));
@@ -1275,9 +1275,9 @@ public class DesignRulesPanel extends JPanel
         if (dindex == -1) return;
 		int soFar = drSpacingsList.getItemCount();
 
-        double maxW = TextUtils.atof(drWidths.getText().trim());
-        double minLen = TextUtils.atof(drLengths.getText().trim());
-        double value = TextUtils.atof(drSpacings.getText());
+        double maxW = TextUtils.atofDistance(drWidths.getText().trim());
+        double minLen = TextUtils.atofDistance(drLengths.getText().trim());
+        double value = TextUtils.atofDistance(drSpacings.getText());
         String ruleText = drSpacingsRule.getText();
         if (ruleText.length() > 0 && value > 0 && (maxW > 0 || minLen > 0))
         {

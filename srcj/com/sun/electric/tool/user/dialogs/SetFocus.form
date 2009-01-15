@@ -59,7 +59,7 @@
     </Component>
     <Component class="javax.swing.JTextField" name="xCenter">
       <Properties>
-        <Property name="columns" type="int" value="8"/>
+        <Property name="columns" type="int" value="12"/>
         <Property name="text" type="java.lang.String" value=" "/>
       </Properties>
       <Constraints>
@@ -80,7 +80,7 @@
     </Component>
     <Component class="javax.swing.JTextField" name="yCenter">
       <Properties>
-        <Property name="columns" type="int" value="8"/>
+        <Property name="columns" type="int" value="12"/>
         <Property name="text" type="java.lang.String" value=" "/>
       </Properties>
       <Constraints>
@@ -101,7 +101,7 @@
     </Component>
     <Component class="javax.swing.JTextField" name="unitsAcross">
       <Properties>
-        <Property name="columns" type="int" value="8"/>
+        <Property name="columns" type="int" value="12"/>
       </Properties>
       <Constraints>
         <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">

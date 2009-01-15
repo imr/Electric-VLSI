@@ -55,13 +55,13 @@ public class Poly extends TechEditWizardPanel
 	public void init()
 	{
 		TechEditWizardData data = wizard.getTechEditData();
-		width.setText(Double.toString(data.getPolyWidth().v));
+		width.setText(TextUtils.formatDistance(data.getPolyWidth().v));
 		widthRule.setText(data.getPolyWidth().rule);
-		endcap.setText(Double.toString(data.getPolyEndcap().v));
+		endcap.setText(TextUtils.formatDistance(data.getPolyEndcap().v));
 		endcapRule.setText(data.getPolyEndcap().rule);
-		activeSpacing.setText(Double.toString(data.getPolyDiffSpacing().v));
+		activeSpacing.setText(TextUtils.formatDistance(data.getPolyDiffSpacing().v));
 		activeSpacingRule.setText(data.getPolyDiffSpacing().rule);
-		spacing.setText(Double.toString(data.getPolySpacing().v));
+		spacing.setText(TextUtils.formatDistance(data.getPolySpacing().v));
 		spacingRule.setText(data.getPolySpacing().rule);
 	}
 
@@ -72,10 +72,10 @@ public class Poly extends TechEditWizardPanel
 	public void term()
 	{
 		TechEditWizardData data = wizard.getTechEditData();
-		data.setPolyWidth(new WizardField(TextUtils.atof(width.getText()), widthRule.getText()));
-		data.setPolyEndcap(new WizardField(TextUtils.atof(endcap.getText()), endcapRule.getText()));
-		data.setPolyDiffSpacing(new WizardField(TextUtils.atof(activeSpacing.getText()), activeSpacingRule.getText()));
-		data.setPolySpacing(new WizardField(TextUtils.atof(spacing.getText()), spacingRule.getText()));
+		data.setPolyWidth(new WizardField(TextUtils.atofDistance(width.getText()), widthRule.getText()));
+		data.setPolyEndcap(new WizardField(TextUtils.atofDistance(endcap.getText()), endcapRule.getText()));
+		data.setPolyDiffSpacing(new WizardField(TextUtils.atofDistance(activeSpacing.getText()), activeSpacingRule.getText()));
+		data.setPolySpacing(new WizardField(TextUtils.atofDistance(spacing.getText()), spacingRule.getText()));
 	}
 
 	/** This method is called from within the constructor to

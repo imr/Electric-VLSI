@@ -31,7 +31,10 @@ import com.sun.electric.plugins.j3d.utils.J3DUtils;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.tool.user.dialogs.options.ThreeDTab;
 
+import java.awt.Dimension;
+import java.awt.Frame;
 import java.awt.GridBagConstraints;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -57,7 +60,7 @@ import javax.vecmath.Vector3f;
 public class JThreeDTab extends ThreeDTab
 {
 	/** Creates new form ThreeDTab */
-	public JThreeDTab(java.awt.Frame parent, Boolean modal)
+	public JThreeDTab(Frame parent, Boolean modal)
 	{
 		super(parent, modal.booleanValue());
 		initComponents();
@@ -96,7 +99,7 @@ public class JThreeDTab extends ThreeDTab
 		{
 			if (layer.isPseudoLayer()) continue;
 			threeDLayerModel.addElement(layer.getName());
-            Layer.Function fun = layer.getFunction();
+//            Layer.Function fun = layer.getFunction();
 
             threeDThicknessMap.put(layer, new GenMath.MutableDouble(layer.getThickness()));
 			threeDDistanceMap.put(layer, new GenMath.MutableDouble(layer.getDistance()));
@@ -117,14 +120,14 @@ public class JThreeDTab extends ThreeDTab
         transparancyField.getDocument().addDocumentListener(new ThreeDInfoDocumentListener(this));
 
 		threeDSideView = new JThreeDSideView(this);
-		threeDSideView.setMinimumSize(new java.awt.Dimension(200, 450));
-		threeDSideView.setPreferredSize(new java.awt.Dimension(200, 450));
+		threeDSideView.setMinimumSize(new Dimension(200, 450));
+		threeDSideView.setPreferredSize(new Dimension(200, 450));
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.gridx = 2;       gbc.gridy = 1;
 		gbc.gridwidth = 2;   gbc.gridheight = 1;
 		//gbc.weightx = 0.5;   gbc.weighty = 1.0;
 		gbc.fill = GridBagConstraints.BOTH;
-		gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+		gbc.insets = new Insets(4, 4, 4, 4);
 		threeD.add(threeDSideView, gbc);
 
         scaleField.setText(TextUtils.formatDouble(J3DUtils.get3DFactor()));
@@ -212,8 +215,8 @@ public class JThreeDTab extends ThreeDTab
         TransparencyAttributes ta = app.getTransparencyAttributes();
         if (set)
         {
-            thickness.setValue(TextUtils.atof(threeDThickness.getText()));
-            height.setValue(TextUtils.atof(threeDHeight.getText()));
+            thickness.setValue(TextUtils.atofDistance(threeDThickness.getText()));
+            height.setValue(TextUtils.atofDistance(threeDHeight.getText()));
             ta.setTransparency((float)TextUtils.atof(transparancyField.getText()));
             J3DAppearance.J3DTransparencyOption op = (J3DAppearance.J3DTransparencyOption)transparencyMode.getSelectedItem();
             ta.setTransparencyMode(op.mode);
@@ -222,8 +225,8 @@ public class JThreeDTab extends ThreeDTab
         }
         else
         {
-            threeDHeight.setText(TextUtils.formatDouble(height.doubleValue()));
-            threeDThickness.setText(TextUtils.formatDouble(thickness.doubleValue()));
+            threeDHeight.setText(TextUtils.formatDistance(height.doubleValue()));
+            threeDThickness.setText(TextUtils.formatDistance(thickness.doubleValue()));
             transparancyField.setText(TextUtils.formatDouble(ta.getTransparency()));
             for (J3DAppearance.J3DTransparencyOption op : J3DAppearance.J3DTransparencyOption.values())
             {

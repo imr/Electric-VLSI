@@ -119,7 +119,7 @@ public class SunRouterTab extends PreferencePanel
 			windowSize.setText("" + Routing.getSunRouterWindow());
 
 			// ripup
-			delta.setText("" + Routing.getSunRouterDelta());
+			delta.setText(TextUtils.formatDistance(Routing.getSunRouterDelta()));
 			overloadLimit.setText("" + Routing.getSunRouterOverloadLimit());
 			costLimit.setText("" + Routing.getSunRouterCostLimit());
 
@@ -127,8 +127,8 @@ public class SunRouterTab extends PreferencePanel
 			tilesPerLongNet.setText("" + Routing.getSunRouterTilesPerPinLongNet());
 			tilesPerMedNet.setText("" + Routing.getSunRouterTilesPerPinMedNet());
 			layerAssignCapF.setText("" + Routing.getSunRouterLayerAssgnCapF());
-			longNetLength.setText("" + Routing.getSunRouterLengthLongNet());
-			medNetLength.setText("" + Routing.getSunRouterLengthMedNet());
+			longNetLength.setText(TextUtils.formatDistance(Routing.getSunRouterLengthLongNet()));
+			medNetLength.setText(TextUtils.formatDistance(Routing.getSunRouterLengthMedNet()));
 			unassignedPinDensityF.setText("" + Routing.getSunRouterUPinDensityF());
 
 			// detail routing
@@ -187,7 +187,7 @@ public class SunRouterTab extends PreferencePanel
 		if (newIValue != Routing.getSunRouterWindow()) Routing.setSunRouterWindow(newIValue);
 
 		// ripup
-		newDValue = TextUtils.atof(delta.getText());
+		newDValue = TextUtils.atofDistance(delta.getText());
 		if (newDValue != Routing.getSunRouterDelta()) Routing.setSunRouterDelta(newDValue);
 		newIValue = TextUtils.atoi(overloadLimit.getText());
 		if (newIValue != Routing.getSunRouterOneTileFactor()) Routing.setSunRouterOverloadLimit(newIValue);
@@ -201,9 +201,9 @@ public class SunRouterTab extends PreferencePanel
 		if (newDValue != Routing.getSunRouterTilesPerPinMedNet()) Routing.setSunRouterTilesPerPinMedNet(newDValue);
 		newDValue = TextUtils.atof(layerAssignCapF.getText());
 		if (newDValue != Routing.getSunRouterLayerAssgnCapF()) Routing.setSunRouterLayerAssgnCapF(newDValue);
-		newDValue = TextUtils.atof(longNetLength.getText());
+		newDValue = TextUtils.atofDistance(longNetLength.getText());
 		if (newDValue != Routing.getSunRouterLengthLongNet()) Routing.setSunRouterLengthLongNet(newDValue);
-		newDValue = TextUtils.atof(medNetLength.getText());
+		newDValue = TextUtils.atofDistance(medNetLength.getText());
 		if (newDValue != Routing.getSunRouterLengthMedNet()) Routing.setSunRouterLengthMedNet(newDValue);
 		newIValue = TextUtils.atoi(overloadLimit.getText());
 		if (newIValue != Routing.getSunRouterOverloadLimit()) Routing.setSunRouterOverloadLimit(newIValue);

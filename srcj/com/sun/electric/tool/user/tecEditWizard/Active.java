@@ -55,13 +55,13 @@ public class Active extends TechEditWizardPanel
 	public void init()
 	{
 		TechEditWizardData data = wizard.getTechEditData();
-		width.setText(Double.toString(data.getDiffWidth().v));
+		width.setText(TextUtils.formatDistance(data.getDiffWidth().v));
 		widthRule.setText(data.getDiffWidth().rule);
-		polyOverhang.setText(Double.toString(data.getDiffPolyOverhang().v));
+		polyOverhang.setText(TextUtils.formatDistance(data.getDiffPolyOverhang().v));
 		polyOverhangRule.setText(data.getDiffPolyOverhang().rule);
-		contactOverhang.setText(Double.toString(data.getDiffContactOverhang().v));
+		contactOverhang.setText(TextUtils.formatDistance(data.getDiffContactOverhang().v));
 		contactOverhangRule.setText(data.getDiffContactOverhang().rule);
-		spacing.setText(Double.toString(data.getDiffSpacing().v));
+		spacing.setText(TextUtils.formatDistance(data.getDiffSpacing().v));
 		spacingRule.setText(data.getDiffSpacing().rule);
 	}
 
@@ -72,10 +72,10 @@ public class Active extends TechEditWizardPanel
 	public void term()
 	{
 		TechEditWizardData data = wizard.getTechEditData();
-		data.setDiffWidth(new WizardField(TextUtils.atof(width.getText()), widthRule.getText()));
-		data.setDiffPolyOverhang(new WizardField(TextUtils.atof(polyOverhang.getText()), polyOverhangRule.getText()));
-		data.setDiffContactOverhang(new WizardField(TextUtils.atof(contactOverhang.getText()), contactOverhangRule.getText()));
-		data.setDiffSpacing(new WizardField(TextUtils.atof(spacing.getText()), spacingRule.getText()));
+		data.setDiffWidth(new WizardField(TextUtils.atofDistance(width.getText()), widthRule.getText()));
+		data.setDiffPolyOverhang(new WizardField(TextUtils.atofDistance(polyOverhang.getText()), polyOverhangRule.getText()));
+		data.setDiffContactOverhang(new WizardField(TextUtils.atofDistance(contactOverhang.getText()), contactOverhangRule.getText()));
+		data.setDiffSpacing(new WizardField(TextUtils.atofDistance(spacing.getText()), spacingRule.getText()));
 	}
 
 	/** This method is called from within the constructor to

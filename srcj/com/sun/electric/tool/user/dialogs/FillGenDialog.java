@@ -127,7 +127,7 @@ public class FillGenDialog extends EDialog {
             text.setColumns(4);
             text.setHorizontalAlignment(javax.swing.JTextField.TRAILING);
             if (rule != null)
-                text.setText(Double.toString(rule.getValue(0)));
+                text.setText(TextUtils.formatDistance(rule.getValue(0)));
             text.setMinimumSize(new Dimension(40, 21));
             gridBagConstraints = new GridBagConstraints();
             gridBagConstraints.gridx = 1;
@@ -148,7 +148,7 @@ public class FillGenDialog extends EDialog {
             button.gndSpace = text;
             text.setColumns(4);
             text.setHorizontalAlignment(javax.swing.JTextField.TRAILING);
-            text.setText(Double.toString(rule.getValue(0)));
+            text.setText(TextUtils.formatDistance(rule.getValue(0)));
             text.setMinimumSize(new Dimension(40, 21));
             gridBagConstraints = new GridBagConstraints();
             gridBagConstraints.gridx = 3;
@@ -173,7 +173,7 @@ public class FillGenDialog extends EDialog {
             button.vddWidth = text;
             text.setColumns(4);
             text.setHorizontalAlignment(JTextField.TRAILING);
-            text.setText(Double.toString(rule.getValue(0)));
+            text.setText(TextUtils.formatDistance(rule.getValue(0)));
             text.setMinimumSize(new Dimension(40, 21));
             gridBagConstraints = new GridBagConstraints();
             gridBagConstraints.gridx = 5;
@@ -195,7 +195,7 @@ public class FillGenDialog extends EDialog {
             button.gndWidth = text;
             text.setColumns(4);
             text.setHorizontalAlignment(JTextField.TRAILING);
-            text.setText(Double.toString(rule.getValue(0)));
+            text.setText(TextUtils.formatDistance(rule.getValue(0)));
             text.setMinimumSize(new Dimension(40, 21));
             gridBagConstraints = new GridBagConstraints();
             gridBagConstraints.gridx = 7;
@@ -640,10 +640,10 @@ public class FillGenDialog extends EDialog {
         for (FillGenButton b : metalOptions)
         {
             if (!b.isSelected()) continue;
-            double vddS = TextUtils.atof(b.vddSpace.getText());
-            double gndS = TextUtils.atof(b.gndSpace.getText());
-            double vddW = TextUtils.atof(b.vddWidth.getText());
-            double gndW = TextUtils.atof(b.gndWidth.getText());
+            double vddS = TextUtils.atofDistance(b.vddSpace.getText());
+            double gndS = TextUtils.atofDistance(b.gndSpace.getText());
+            double vddW = TextUtils.atofDistance(b.vddWidth.getText());
+            double gndW = TextUtils.atofDistance(b.gndWidth.getText());
 //            if (vddS > -1 && gndS > -1)
             {
                 if (firstMetal == -1) firstMetal = b.metal;
@@ -663,8 +663,8 @@ public class FillGenDialog extends EDialog {
 
         // This assumes the wires are long enough for wide values are going to be retrieved
         double drcSpacingRule = DRC.getWorstSpacingDistance(tech, lastMetal); // only metals
-        double width = TextUtils.atof(jTextField1.getText());
-        double height = TextUtils.atof(jTextField2.getText());
+        double width = TextUtils.atofDistance(jTextField1.getText());
+        double height = TextUtils.atofDistance(jTextField2.getText());
 
         // Only when the fill will be with respect to a given cell
 
@@ -736,8 +736,8 @@ public class FillGenDialog extends EDialog {
         for (FillGenButton b : metalOptions)
             {
             if (!b.isSelected()) continue;
-            double vddVal = TextUtils.atof(b.vddSpace.getText());
-            double gndVal = TextUtils.atof(b.gndSpace.getText());
+            double vddVal = TextUtils.atofDistance(b.vddSpace.getText());
+            double gndVal = TextUtils.atofDistance(b.gndSpace.getText());
             FillGeneratorTool.Units vddU = TRACKS;
             if (b.vddUnit.getModel().getSelectedItem().equals("lambda"))
                 vddU = LAMBDA;
@@ -756,8 +756,8 @@ public class FillGenDialog extends EDialog {
                 gndU = TRACKS;
                 if (b.gndUnit.getModel().getSelectedItem().equals("lambda"))
                     gndU = LAMBDA;
-                vddVal = TextUtils.atof(b.vddWidth.getText());
-                gndVal = TextUtils.atof(b.gndWidth.getText());
+                vddVal = TextUtils.atofDistance(b.vddWidth.getText());
+                gndVal = TextUtils.atofDistance(b.gndWidth.getText());
 
                 c.reserveWidthOnLayer(vddVal, vddU, gndVal, gndU);
             }
