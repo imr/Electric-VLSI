@@ -110,9 +110,9 @@ public class NccMsgsFrame {
      * If no errors were found, only a small message window will appear.
      */
     public void display() {
-    	/* removed as a result of the request Bug #1859
         // display small info message if no errors found
         if (mismatches.size() == 0) {
+        	/* removed as a result of the request Bug #1859
             frame.setVisible(false);
             StringBuffer msg = new StringBuffer(100);
             msg.append("No errors found\n");
@@ -122,9 +122,9 @@ public class NccMsgsFrame {
                 msg.append("Exports and Topology checked, Sizes not checked");
             JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), msg,
                        "NCC Message", JOptionPane.INFORMATION_MESSAGE);
+            */
             return;
         }
-        */
         
         comparPane.setMismatches(mismatches);
         if (TopLevel.isMDIMode()) {
