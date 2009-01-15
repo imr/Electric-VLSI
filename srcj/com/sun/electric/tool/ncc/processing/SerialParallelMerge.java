@@ -73,7 +73,7 @@ public class SerialParallelMerge {
 				Circuit ckt = it.next();
 				for (Iterator<NetObject> ni=ckt.getNetObjs(); ni.hasNext();) {
 					Wire w = (Wire) ni.next();
-					if (Mos.joinOnWire(w)) numMerged++;
+					if (Mos.joinOnWire(w, globals.getOptions())) numMerged++;
 				}
 			}
 		}
@@ -99,7 +99,7 @@ public class SerialParallelMerge {
 			it.remove();			
 			while (it.hasNext()) {
 				Part p = it.next();
-				if (first.parallelMerge(p)) {
+				if (first.parallelMerge(p, globals.getOptions())) {
 					it.remove();
 					numMerged++;
 				} 

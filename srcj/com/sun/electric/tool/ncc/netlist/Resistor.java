@@ -23,10 +23,10 @@
 */
 package com.sun.electric.tool.ncc.netlist;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 import com.sun.electric.technology.PrimitiveNode.Function;
+import com.sun.electric.tool.ncc.NccOptions;
 import com.sun.electric.tool.ncc.basic.Primes;
 import com.sun.electric.tool.ncc.netlist.NccNameProxy.PartNameProxy;
 
@@ -117,7 +117,7 @@ public class Resistor extends Part {
      * annotate resistor width and length and compare these between schematic
      * and layout. See Jon Lexau for rationale. */
 	@Override
-    public boolean parallelMerge(Part p) {return false;}
+    public boolean parallelMerge(Part p, NccOptions nccOpt) {return false;}
 
 	@Override
 	public int typeCode() {return type().ordinal();}

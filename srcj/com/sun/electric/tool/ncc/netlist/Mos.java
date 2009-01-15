@@ -32,6 +32,7 @@ import java.util.Set;
 
 import com.sun.electric.technology.PrimitiveNode.Function;
 import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.tool.ncc.NccOptions;
 import com.sun.electric.tool.ncc.basic.NccUtils;
 import com.sun.electric.tool.ncc.basic.Primes;
 import com.sun.electric.tool.ncc.netlist.NccNameProxy.PartNameProxy;
@@ -311,12 +312,12 @@ public class Mos extends Part {
 
 	// merge into this transistor
 	@Override
-	public boolean parallelMerge(Part p){
+	public boolean parallelMerge(Part p, NccOptions nccOpt){
 		if(!(p instanceof Mos)) return false;
 		Mos t= (Mos) p;
 		if (this==t)return false; //same transistor
 
-		if (!this.isLike(t)) return false; //different type
+		if (!this.isLike(t, nccOpt)) return false; //different type
 
 		// a different individual same type and length
 		if (!samePinsAs(t)) return false;
@@ -394,15 +395,15 @@ public class Mos extends Part {
 	/** Compare the type (N vs P) and the gate length
 	 * @param t Transistor to compare to
 	 * @return true if type and gate length match */
-	public boolean isLike(Mos t){
-		return type()==t.type() && length==t.length;
+	public boolean isLike(Mos t, NccOptions nccOpt){
+		return type()==t.type() && NccUtils.sizesMatch(length, t.length, nccOpt);
     }
 	
 	/** Merge two series Transistors into a single Transistor. 
 	 * Tricky: Parts on wire may be deleted or replicated. 
 	 * @param w wire joining diffusions of two transistors
 	 * @return true if merge has taken place */
-	public static boolean joinOnWire(Wire w) {
+	public static boolean joinOnWire(Wire w, NccOptions nccOpt) {
 		if (w.isDeleted()) return false;
 
 		// make sure there are no Ports on wire
@@ -425,8 +426,8 @@ public class Mos extends Part {
 		Mos ta = it.next();
 		Mos tb = it.next();
 		error(ta.getParent()!=tb.getParent(), "mismatched parents?");
-		if (!ta.isLike(tb))  return false;
-		if (ta.width!=tb.width)  return false;
+		if (!ta.isLike(tb, nccOpt))  return false;
+		if (!NccUtils.sizesMatch(ta.width, tb.width, nccOpt))  return false;
 		if (!ta.bodyMatches(tb)) return false;
 		
 		// it's a match - merge them into a stack

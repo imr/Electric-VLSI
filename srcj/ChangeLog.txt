@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09b: ******************************
 
+IMP: (1/14/09, RK) NCC uses tolerances specified in "Size checking" 
+     section of NCC preferences pane in order to decide when 
+     transistor widths and lengths are close enough to combine in
+     series / parallel. (Bug #1980)
+
 IMP: (1/14/09, GVG) First version of TechEditorWizard generating protection polys in transistors.
 
 IMP/MAN: (1/14/09, SMR) Units preferences now works for distance units

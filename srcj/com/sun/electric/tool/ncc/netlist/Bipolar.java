@@ -28,6 +28,7 @@ import java.util.Map;
 
 import com.sun.electric.technology.PrimitiveNode.Function;
 import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.tool.ncc.NccOptions;
 import com.sun.electric.tool.ncc.basic.NccUtils;
 import com.sun.electric.tool.ncc.basic.Primes;
 import com.sun.electric.tool.ncc.netlist.NccNameProxy.PartNameProxy;
@@ -118,7 +119,7 @@ public class Bipolar extends Part {
 
 	// merge into this transistor
     @Override
-	public boolean parallelMerge(Part p){
+	public boolean parallelMerge(Part p, NccOptions nccOpt){
 		if(!(p instanceof Bipolar)) return false;
 		Bipolar b = (Bipolar) p;
 		if (this==b) return false; //same transistor

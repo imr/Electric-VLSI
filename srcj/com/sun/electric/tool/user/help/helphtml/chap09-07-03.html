@@ -28,12 +28,16 @@ checking.  This will report transistor size mismatches.
 
 <h3> Size Checking Section </h3>
 
-The "Size Checking" section controls the checking of transistor widths
-and lengths.
+The "Size Checking" section controls how NCC compares transistor widths
+and lengths. This section affects two distinct NCC phases: 
+netlist comparison and series / parallel combination.
+
+<h4> Netlist comparison </h4>
 <p>
-NCC does the following when size checking is enabled. After each
-topological comparison, NCC checks if it found any topological
-mismatches. If NCC found no mismatches then NCC checks, for each pair
+After each topological comparison, NCC can optionally perform
+size checking. If NCC finds no topological mismatches, and if
+"Check transistor sizes" is checked, then NCC 
+checks, for each pair
 of matching transistors, that the widths and lengths are approximately
 equal.
 </p>
@@ -51,6 +55,21 @@ hierarchically to ensure a correct answer in the presence of
 automatically sized transistors. For this case it compares a pair of cells
 hierarchically if and only if each cell is instantiated exactly once.
 </p>
+
+<h4> Series / Parallel Combination </h4>
+When NCC builds the netlist, it performs series / parallel
+combination. When NCC finds a number of transistors 
+with the same channel length wired
+in parallel , NCC substitutes 
+a single transistor whose width is the sum of the widths of those 
+transistors. When NCC finds a number of transistors 
+with the same channel width and channel length wired in series, 
+NCC substitutes a single multi-gate transistor
+that represents all the series transistors.  
+
+NCC uses the "Relative size tolerance" and the "Absolute size tolerance"
+fields to determine how close transistor widths and lengths
+have to be before it will combine them in series or in parallel. 
 
 <h3> Body checking </h3>
 

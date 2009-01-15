@@ -29,6 +29,7 @@ import java.util.Set;
 
 import com.sun.electric.technology.PrimitiveNode.Function;
 import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.tool.ncc.NccOptions;
 import com.sun.electric.tool.ncc.netlist.NccNameProxy.PartNameProxy;
 import com.sun.electric.tool.ncc.result.PartReport.PartReportable;
 import com.sun.electric.tool.ncc.trees.Circuit;
@@ -102,8 +103,9 @@ public abstract class Part extends NetObject implements PartReportable {
 
 	/** This method attempts to merge this Part in parallel with another Part
 	 * @param p the other Part with which to merge
+	 * @param nccOpt NccOptions. Used for size tolerance specification.
 	 * @return true if merge was successful, false otherwise */
-	public abstract boolean parallelMerge(Part p);
+	public abstract boolean parallelMerge(Part p, NccOptions nccOpt);
 	/** Compute a hash code for this part for the purpose of performing
 	 * parallel merge. If two parallel Parts should be merged into one then
 	 * hashCodeForParallelMerge() must return the same value for both

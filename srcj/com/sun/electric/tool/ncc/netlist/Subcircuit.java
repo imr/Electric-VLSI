@@ -27,6 +27,7 @@ import java.util.Map;
 
 import com.sun.electric.technology.PrimitiveNode.Function;
 import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.tool.ncc.NccOptions;
 import com.sun.electric.tool.ncc.netlist.NccNameProxy.PartNameProxy;
 import com.sun.electric.tool.ncc.processing.SubcircuitInfo;
 
@@ -72,7 +73,7 @@ public class Subcircuit extends Part {
 	@Override
 	public int[] getPinCoeffs() {return pinCoeffs;}
 	@Override
-	public boolean parallelMerge(Part p) {
+	public boolean parallelMerge(Part p, NccOptions nccOpt) {
 		LayoutLib.error(true, "we never parallel merge subcircuits so don't call this method");
 		return false;
 	}
