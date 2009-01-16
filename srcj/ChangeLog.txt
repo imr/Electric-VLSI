@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09b: ******************************
 
+BUG: (1/14/09, RK) NCC Second attempt at making NCC detect the same
+     topological errors when run with or without size checking.
+     (Bug #1787)
+
 IMP: (1/14/09, RK) NCC uses tolerances specified in "Size checking" 
      section of NCC preferences pane in order to decide when 
      transistor widths and lengths are close enough to combine in

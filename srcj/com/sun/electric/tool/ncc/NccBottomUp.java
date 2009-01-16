@@ -40,30 +40,10 @@ import com.sun.electric.tool.ncc.processing.HierarchyInfo;
 import com.sun.electric.tool.ncc.result.NccResult;
 import com.sun.electric.tool.ncc.result.NccResults;
 
-class Passed {
-	private static class Pair {
-		private Cell c1, c2;
-		public Pair(Cell c1, Cell c2) {this.c1=c1; this.c2=c2;}
-		public boolean equals(Object o) {
-			if (!(o instanceof Pair)) return false;
-			Pair p = (Pair) o;
-			return (c1==p.c1 && c2==p.c2) || (c1==p.c2 && c2==p.c1);
-		}
-		public int hashCode() {return c1.hashCode()*c2.hashCode();}
-	}
-	private Set<Pair> passed = new HashSet<Pair>();
-	public synchronized void setPassed(Cell c1, Cell c2) {passed.add(new Pair(c1, c2));}
-	public synchronized boolean getPassed(Cell c1, Cell c2) {
-		return passed.contains(new Pair(c1, c2));
-	}
-	public synchronized void clear() {passed = new HashSet<Pair>();}
-}
 
 /** Run NCC hierarchically. By default, treat every Cell with both a layout and
  * a schematic view as a hierarchical entity. */
 public class NccBottomUp {
-	/** remember which Cells have already passed NCC */
-	private static final Passed passed = new Passed();
 	
 	private void prln(String s) {System.out.println(s);}
 
@@ -150,7 +130,7 @@ public class NccBottomUp {
 		CellContext refCC = selectAndRemoveReferenceCellContext(cellCntxts);
 		for (CellContext thisCC : cellCntxts) {
 			if (blackBoxAnn || 
-			    (options.skipPassed && passed.getPassed(refCC.cell, thisCC.cell))) {
+			    (options.skipPassed && NccJob.passed.getPassed(refCC.cell, thisCC.cell))) {
 				if (hierInfo==null) continue;
 				NccResult r = NccUtils.buildBlackBoxes(refCC, thisCC, hierInfo, 
 						                               options, aborter);
@@ -167,7 +147,7 @@ public class NccBottomUp {
 						                            thisCC.cell, thisCC.context, 
 													hierInfo, options, aborter); 
 				results.add(r);
-				if (r.match())  passed.setPassed(refCC.cell, thisCC.cell);
+				if (r.match())  NccJob.passed.setPassed(refCC.cell, thisCC.cell);
 				
 				// Halt after first mismatch if that's what user wants
 				if (!r.match() && options.haltAfterFirstMismatch) break;
@@ -215,13 +195,18 @@ public class NccBottomUp {
 				results.abandonPriorResults();
 			
 			boolean blackBoxErr;
-			if (options.checkSizes && !compareList.isSafeToCheckSizes() &&
+			if (!compareList.isSafeToCheckSizes() &&
 			    options.operation!=NccOptions.FLAT_TOP_CELL &&
 			    !blackBoxAnn) {
-				// size checking specified but this cell isn't safe to size 
-				// check because it is parameterized and it is instantiated 
+				// This cell isn't safe to compare with size 
+				// checking because it is parameterized and it is instantiated 
 				// more than once. Just compare without size checking but purge
-				// any record of the fact that unsized comparison took place
+				// any record of the fact that unsized comparison took place.
+				// This guarantees that when NCC checks this cell's parent,
+				// this cell will get flattened and therefore size checked.
+				// Subtle: we purge this cell even if we aren't size checking
+				// because want NCC to report the same errors with or without
+				// size checking.
 				NccOptions tmpOptions = new NccOptions(options);
 				tmpOptions.checkSizes = false;
 
@@ -268,5 +253,4 @@ public class NccBottomUp {
 		NccBottomUp bo = new NccBottomUp();
 		return bo.compareCells(cc1, cc2, options, aborter);
 	}
-	public static void clearPassedHistory() {passed.clear();}
 }

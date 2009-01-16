@@ -43,6 +43,10 @@ public class NccJob extends Job {
     /** save the results from the last NCC run here */
     private static NccResults lastResults;
     
+	/** remember which Cells have already passed NCC */
+	public static final PassedNcc passed = new PassedNcc();
+
+    
 	// These fields are arguments passed to server
 	private final int numWindows;
 	private final NccOptions options;
@@ -124,29 +128,29 @@ public class NccJob extends Job {
 		else return getSchemLayFromCurrentWindow();
 	}
 	
-	private NccOptions getOptionsFromNccConfigDialog() {
-		NccOptions options = new NccOptions();
-		options.operation = NccPreferences.getOperation();
-
-		options.checkSizes = NccPreferences.getCheckSizes();
-		// convert percent to fraction
-		options.relativeSizeTolerance = NccPreferences.getRelativeSizeTolerance()/100;
-		options.absoluteSizeTolerance = NccPreferences.getAbsoluteSizeTolerance();
-		
-		options.checkBody = NccPreferences.getCheckBody();
-
-		options.skipPassed = NccPreferences.getSkipPassed();
-		options.howMuchStatus = NccPreferences.getHowMuchStatus();
-		options.haltAfterFirstMismatch = NccPreferences.getHaltAfterFirstMismatch();
-		options.maxMismatchedEquivRecsToPrint = NccPreferences.getMaxMismatchedClasses();
-		options.maxMatchedEquivRecsToPrint = NccPreferences.getMaxMatchedClasses();
-		options.maxEquivRecMembersToPrint = NccPreferences.getMaxClassMembers();
-		
-		// for testing old regressions only!
-		//options.oneNamePerPort = false;
-		
-		return options;
-	}
+//	private NccOptions getOptionsFromNccConfigDialog() {
+//		NccOptions options = new NccOptions();
+//		options.operation = NccPreferences.getOperation();
+//
+//		options.checkSizes = NccPreferences.getCheckSizes();
+//		// convert percent to fraction
+//		options.relativeSizeTolerance = NccPreferences.getRelativeSizeTolerance()/100;
+//		options.absoluteSizeTolerance = NccPreferences.getAbsoluteSizeTolerance();
+//		
+//		options.checkBody = NccPreferences.getCheckBody();
+//
+//		options.skipPassed = NccPreferences.getSkipPassed();
+//		options.howMuchStatus = NccPreferences.getHowMuchStatus();
+//		options.haltAfterFirstMismatch = NccPreferences.getHaltAfterFirstMismatch();
+//		options.maxMismatchedEquivRecsToPrint = NccPreferences.getMaxMismatchedClasses();
+//		options.maxMatchedEquivRecsToPrint = NccPreferences.getMaxMatchedClasses();
+//		options.maxEquivRecMembersToPrint = NccPreferences.getMaxClassMembers();
+//		
+//		// for testing old regressions only!
+//		//options.oneNamePerPort = false;
+//		
+//		return options;
+//	}
 	
 	// Some day we may run this on server
     public boolean doIt() {
@@ -155,6 +159,8 @@ public class NccJob extends Job {
 			results = null;
 			return true;
 		}
+		
+		passed.beginNewNccRun();
 
 		results = Ncc.compare(cellCtxts[0].cell, cellCtxts[0].context,
 				              cellCtxts[1].cell, cellCtxts[1].context, 
@@ -197,7 +203,7 @@ public class NccJob extends Job {
 		                "numWindows must be 1 or 2");
 		cellCtxts = getCellsFromWindows(numWindows);
 		
-		options = getOptionsFromNccConfigDialog();
+		options = NccOptions.getOptionsFromNccPreferences();
 		
 		// abandon results from last run in order to reclaim storage
 		results = null;

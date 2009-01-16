@@ -86,4 +86,29 @@ public class NccOptions implements Serializable {
 		oneNamePerPort = o.oneNamePerPort;
 		checkBody = o.checkBody;
 	}
+	
+	public static NccOptions getOptionsFromNccPreferences() {
+		NccOptions options = new NccOptions();
+		options.operation = NccPreferences.getOperation();
+
+		options.checkSizes = NccPreferences.getCheckSizes();
+		// convert percent to fraction
+		options.relativeSizeTolerance = NccPreferences.getRelativeSizeTolerance()/100;
+		options.absoluteSizeTolerance = NccPreferences.getAbsoluteSizeTolerance();
+		
+		options.checkBody = NccPreferences.getCheckBody();
+
+		options.skipPassed = NccPreferences.getSkipPassed();
+		options.howMuchStatus = NccPreferences.getHowMuchStatus();
+		options.haltAfterFirstMismatch = NccPreferences.getHaltAfterFirstMismatch();
+		options.maxMismatchedEquivRecsToPrint = NccPreferences.getMaxMismatchedClasses();
+		options.maxMatchedEquivRecsToPrint = NccPreferences.getMaxMatchedClasses();
+		options.maxEquivRecMembersToPrint = NccPreferences.getMaxClassMembers();
+		
+		// for testing old regressions only!
+		//options.oneNamePerPort = false;
+		
+		return options;
+	}
+
 }
