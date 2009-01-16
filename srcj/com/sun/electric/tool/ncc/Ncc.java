@@ -43,7 +43,8 @@ public class Ncc {
 	private Ncc() {}
 	
 	private NccResults compare1(CellContext cc1, CellContext cc2,
-			                    NccOptions options, Aborter aborter) {
+			                    PassedNcc passed, NccOptions options,
+			                    Aborter aborter) {
 		if (options.operation==NccOptions.LIST_ANNOTATIONS) {
 			ListNccAnnotations.doYourJob(cc1.cell, cc2.cell);
 			return new NccResults();
@@ -60,7 +61,8 @@ public class Ncc {
 				LayoutLib.error(true, "bad operation: "+options.operation);
 			}
 			prln(cc1.cell+"  "+cc2.cell);
-			NccResults results = NccBottomUp.compare(cc1, cc2, options, aborter); 
+			NccResults results = NccBottomUp.compare(cc1, cc2, passed, options,
+					                                 aborter); 
 
 			if (aborter.userWantsToAbort()) return results;
 			
@@ -74,22 +76,25 @@ public class Ncc {
     }
    
     // ------------------------- public method --------------------------------
-	/** Compare two cells. We don't need to be able to abort */
+	/** Compare two cells. Batch version. We don't need to be able to abort.
+	 * We don't want to skip previously checked cells. */
     public static NccResults compare(Cell cell1, VarContext ctxt1, 
                                      Cell cell2, VarContext ctxt2, 
 									 NccOptions options) {
-    	return compare(cell1, ctxt1, cell2, ctxt2, options, null); 
+    	return compare(cell1, ctxt1, cell2, ctxt2, new PassedNcc(), options, null); 
     }
-	/** Compare two cells. We need to be able to abort */
+	/** Compare two cells. Interactive version. We need to be able to abort.
+	 * We might want to skip previously checked cells */
     public static NccResults compare(Cell cell1, VarContext ctxt1, 
     		                         Cell cell2, VarContext ctxt2, 
-									 NccOptions options, Job job) {
+									 PassedNcc passed, NccOptions options, Job job) {
     	if (ctxt1==null) ctxt1 = VarContext.globalContext; 
     	if (ctxt2==null) ctxt2 = VarContext.globalContext; 
     	Ncc ncc = new Ncc();
     	NccResults results = ncc.compare1(new CellContext(cell1, ctxt1), 
     			                          new CellContext(cell2, ctxt2), 
-    			                          options, new Aborter(job));
+    			                          passed, options, 
+    			                          new Aborter(job));
 //    	if (options.checkNetEquivalenceMap) {
 //    		// Tricky: copyNames only works from change jobs. Thus
 //    		// copyNames call is possible from regressions (bean shell)

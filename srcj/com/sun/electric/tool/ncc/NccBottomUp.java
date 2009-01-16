@@ -106,6 +106,7 @@ public class NccBottomUp {
 			                                  CompareList compareList, 
 			                                  HierarchyInfo hierInfo,
 			                                  boolean blackBoxAnn,
+			                                  PassedNcc passed,
 			                                  NccOptions options,
 			                                  Aborter aborter) {
 		// build our own list because we need to modify it
@@ -130,7 +131,7 @@ public class NccBottomUp {
 		CellContext refCC = selectAndRemoveReferenceCellContext(cellCntxts);
 		for (CellContext thisCC : cellCntxts) {
 			if (blackBoxAnn || 
-			    (options.skipPassed && NccJob.passed.getPassed(refCC.cell, thisCC.cell))) {
+			    (options.skipPassed && passed.getPassed(refCC.cell, thisCC.cell))) {
 				if (hierInfo==null) continue;
 				NccResult r = NccUtils.buildBlackBoxes(refCC, thisCC, hierInfo, 
 						                               options, aborter);
@@ -147,7 +148,7 @@ public class NccBottomUp {
 						                            thisCC.cell, thisCC.context, 
 													hierInfo, options, aborter); 
 				results.add(r);
-				if (r.match())  NccJob.passed.setPassed(refCC.cell, thisCC.cell);
+				if (r.match())  passed.setPassed(refCC.cell, thisCC.cell);
 				
 				// Halt after first mismatch if that's what user wants
 				if (!r.match() && options.haltAfterFirstMismatch) break;
@@ -177,6 +178,7 @@ public class NccBottomUp {
 	}
 	
 	private NccResults processCompareLists(List<CompareList> compareLists,
+			                               PassedNcc passed,
 	                                       NccOptions options, 
 										   Aborter aborter) {
 		NccResults results = new NccResults();
@@ -212,13 +214,15 @@ public class NccBottomUp {
 
 				blackBoxErr = 
 					compareCellsInCompareList(results, compareList, hierInfo, 
-						                      blackBoxAnn, tmpOptions, aborter); 
+						                      blackBoxAnn, passed, tmpOptions, 
+						                      aborter); 
 
 				hierInfo.purgeCurrentCompareList();
 			} else {
 				blackBoxErr = 
 					compareCellsInCompareList(results, compareList, hierInfo, 
-						                      blackBoxAnn, options, aborter); 
+						                      blackBoxAnn, passed, options, 
+						                      aborter); 
 			}
 			
 			if (blackBoxErr) {
@@ -242,15 +246,17 @@ public class NccBottomUp {
 	}
 
 	private NccResults compareCells(CellContext cc1, CellContext cc2, 
-								    NccOptions options, Aborter aborter) {
+								    PassedNcc passed, NccOptions options, 
+								    Aborter aborter) {
 		List<CompareList> compareLists = CompareLists.getCompareLists(cc1, cc2);
-		return processCompareLists(compareLists, options, aborter);
+		return processCompareLists(compareLists, passed, options, aborter);
 	}
 
 	// --------------------------- public methods -----------------------------
 	public static NccResults compare(CellContext cc1, CellContext cc2, 
-									 NccOptions options, Aborter aborter) {
+									 PassedNcc passed, NccOptions options,
+									 Aborter aborter) {
 		NccBottomUp bo = new NccBottomUp();
-		return bo.compareCells(cc1, cc2, options, aborter);
+		return bo.compareCells(cc1, cc2, passed, options, aborter);
 	}
 }

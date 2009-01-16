@@ -4,11 +4,16 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09b: ******************************
 
-BUG: (1/14/09, RK) NCC Second attempt at making NCC detect the same
+BUG: (1/16/09, RK) Make NCC's incremental mode work correctly: don't
+     recheck cells unless they've changed (Bug #1380)
+
+BUG: (1/16/09, RK) Fix NCC regressions (Bug #2011) 
+
+BUG: (1/15/09, RK) NCC Second attempt at making NCC detect the same
      topological errors when run with or without size checking.
      (Bug #1787)
 
-IMP: (1/14/09, RK) NCC uses tolerances specified in "Size checking" 
+IMP: (1/15/09, RK) NCC uses tolerances specified in "Size checking" 
      section of NCC preferences pane in order to decide when 
      transistor widths and lengths are close enough to combine in
      series / parallel. (Bug #1980)

@@ -23,12 +23,13 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
+import javax.swing.JPanel;
+
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.tool.ncc.NccJob;
 import com.sun.electric.tool.ncc.NccOptions;
 import com.sun.electric.tool.ncc.NccPreferences;
 import com.sun.electric.tool.user.dialogs.EDialog;
-
-import javax.swing.JPanel;
 
 /**
  * Class to handle the "NCC" tab of the Preferences dialog.
@@ -141,6 +142,7 @@ public class NCCTab extends PreferencePanel
         if (currInt!=NccPreferences.getHowMuchStatus()) {
             NccPreferences.setHowMuchStatus(currInt);
         }
+        NccJob.invalidateLastNccResult();
 	}
 
 	/**

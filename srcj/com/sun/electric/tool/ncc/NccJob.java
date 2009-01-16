@@ -40,12 +40,23 @@ import com.sun.electric.tool.user.ncc.NccMsgsFrame;
 public class NccJob extends Job {
     static final long serialVersionUID = 0;
 
-    /** save the results from the last NCC run here */
-    private static NccResults lastResults;
+    /** Save the results from the last NCC run here. lastResults is static
+     * because we want results to persist even after the job is done.
+     * This makes it possible to do schematic / layout cross probing
+     * after running NCC. */
+    private static NccResults lastResults = null;
     
-	/** remember which Cells have already passed NCC */
-	public static final PassedNcc passed = new PassedNcc();
+	/** Remember which Cells have already passed NCC. passed is
+	 * static because the next run of NCC might want to skip 
+	 * checking cells because they passed in the previous run of NCC. 
+	 * passed is only used in interactive mode. */
+	private static PassedNcc passed = null;
 
+	/** nccgui is static for efficiency. It is public because we want
+	 * to share with com.sun.electric.plugins.pie.NccJob. nccgui
+	 * is only used in interactive mode. Avoid initializing it
+	 * in batch mode because it will throw an exception. */
+    public static NccMsgsFrame nccgui = null;
     
 	// These fields are arguments passed to server
 	private final int numWindows;
@@ -55,11 +66,13 @@ public class NccJob extends Job {
 	// This field is the result passed from the server to the client
 	private NccResults results;
 
-	// Share with com.sun.electric.plugins.pie.NccJob
-    public static NccMsgsFrame nccgui = new NccMsgsFrame();
-
 	private void prln(String s) {System.out.println(s);}
 	private void pr(String s) {System.out.print(s);}
+	
+	private void initInteractiveStatics() {
+		if (passed==null) passed = new PassedNcc();
+		if (nccgui==null) nccgui = new NccMsgsFrame();
+	}
 	
 	private CellContext[] getSchemLayFromCurrentWindow() {
 		CellContext curCellCtxt = NccUtils.getCurrentCellContext();
@@ -128,30 +141,6 @@ public class NccJob extends Job {
 		else return getSchemLayFromCurrentWindow();
 	}
 	
-//	private NccOptions getOptionsFromNccConfigDialog() {
-//		NccOptions options = new NccOptions();
-//		options.operation = NccPreferences.getOperation();
-//
-//		options.checkSizes = NccPreferences.getCheckSizes();
-//		// convert percent to fraction
-//		options.relativeSizeTolerance = NccPreferences.getRelativeSizeTolerance()/100;
-//		options.absoluteSizeTolerance = NccPreferences.getAbsoluteSizeTolerance();
-//		
-//		options.checkBody = NccPreferences.getCheckBody();
-//
-//		options.skipPassed = NccPreferences.getSkipPassed();
-//		options.howMuchStatus = NccPreferences.getHowMuchStatus();
-//		options.haltAfterFirstMismatch = NccPreferences.getHaltAfterFirstMismatch();
-//		options.maxMismatchedEquivRecsToPrint = NccPreferences.getMaxMismatchedClasses();
-//		options.maxMatchedEquivRecsToPrint = NccPreferences.getMaxMatchedClasses();
-//		options.maxEquivRecMembersToPrint = NccPreferences.getMaxClassMembers();
-//		
-//		// for testing old regressions only!
-//		//options.oneNamePerPort = false;
-//		
-//		return options;
-//	}
-	
 	// Some day we may run this on server
     public boolean doIt() {
 		if (cellCtxts==null) {
@@ -160,11 +149,11 @@ public class NccJob extends Job {
 			return true;
 		}
 		
-		passed.beginNewNccRun();
+		passed.removeCellsChangedSinceLastNccRun(cellCtxts);
 
 		results = Ncc.compare(cellCtxts[0].cell, cellCtxts[0].context,
 				              cellCtxts[1].cell, cellCtxts[1].context, 
-					  	      options, this);
+					  	      passed, options, this);
 
 		fieldVariableChanged("results");
 
@@ -185,8 +174,12 @@ public class NccJob extends Job {
      * valid results. */
     public static NccResults getLastNccResults() {return lastResults;}
     	
-    /** Call this if you modify the design since the last NCC */
-    public static void invalidateLastNccResult() {lastResults=null;}
+    /** Call this if you modify the design or preferences so that the 
+     * results from the last NCC run are discarded. */
+    public static void invalidateLastNccResult() {
+    	lastResults=null;
+    	passed = null;
+    }
 
 	/**
 	 * Run a NCC job.
@@ -207,6 +200,8 @@ public class NccJob extends Job {
 		
 		// abandon results from last run in order to reclaim storage
 		results = null;
+		
+		initInteractiveStatics();
 		
 		startJob();
 	}

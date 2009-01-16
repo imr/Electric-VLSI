@@ -67,6 +67,7 @@ class CellUsage extends HierarchyEnumerator.Visitor {
 		}
 		additions.add(cellCtxt);
 	}
+	@Override
 	public boolean enterCell(HierarchyEnumerator.CellInfo info) {
 		Cell cell = info.getCell();
 		if (root==null) root = cell;
@@ -77,9 +78,11 @@ class CellUsage extends HierarchyEnumerator.Visitor {
 		processCellGroupAdditions(cellCtxt);
 		return true;
 	}
+	@Override
 	public void exitCell(HierarchyEnumerator.CellInfo info) {
 		cellsInRevTopoOrder.add(info.getCell());
 	}
+	@Override
 	public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info) {
 		return true;
 	}
@@ -163,10 +166,14 @@ class CellUsage extends HierarchyEnumerator.Visitor {
 				 "has no variable named LEGATE or LEKEEPER");
 		}
 		if (attrLeGate && !hasGetDrive) {
-			prln("  Warning: instance: "+no.getName()+" in Cell: "+
-				 no.getParent().describe(false)+
-				 " has a variable named LEGATE or LEKEEPER but has"+
-				 " no variable that calls getDrive()");
+			// This is no longer illegal. In the new standard cell
+			// logical effort methodology
+			// an LEGATE indicates that the LE tool should substitute a
+			// standard cell of the appropriate size.
+//			prln("  Warning: instance: "+no.getName()+" in Cell: "+
+//				 no.getParent().describe(false)+
+//				 " has a variable named LEGATE or LEKEEPER but has"+
+//				 " no variable that calls getDrive()");
 		}
 		return hasGetDrive;
 	}

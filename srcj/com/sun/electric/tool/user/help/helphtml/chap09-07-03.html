@@ -25,7 +25,7 @@ The best way to use NCC is to initially perform all your comparisons
 hierarchically. This will typically require many iterations.  Once you
 have gotten your cell to pass a hierarchical comparison, turn on size
 checking.  This will report transistor size mismatches.
-
+<p>
 <h3> Size Checking Section </h3>
 
 The "Size Checking" section controls how NCC compares transistor widths
@@ -33,14 +33,13 @@ and lengths. This section affects two distinct NCC phases:
 netlist comparison and series / parallel combination.
 
 <h4> Netlist comparison </h4>
-<p>
+
 After each topological comparison, NCC can optionally perform
 size checking. If NCC finds no topological mismatches, and if
 "Check transistor sizes" is checked, then NCC 
 checks, for each pair
 of matching transistors, that the widths and lengths are approximately
 equal.
-</p>
 <p>
 The two tolerance values allow the user to specify how much more the
 larger of the two matched transistors may be than the smaller before
@@ -54,7 +53,6 @@ simultaneously then NCC restricts which cells it treats
 hierarchically to ensure a correct answer in the presence of
 automatically sized transistors. For this case it compares a pair of cells
 hierarchically if and only if each cell is instantiated exactly once.
-</p>
 
 <h4> Series / Parallel Combination </h4>
 When NCC builds the netlist, it performs series / parallel
@@ -66,11 +64,11 @@ transistors. When NCC finds a number of transistors
 with the same channel width and channel length wired in series, 
 NCC substitutes a single multi-gate transistor
 that represents all the series transistors.  
-
+<p>
 NCC uses the "Relative size tolerance" and the "Absolute size tolerance"
 fields to determine how close transistor widths and lengths
 have to be before it will combine them in series or in parallel. 
-
+<p>
 <h3> Body checking </h3>
 
 The check box "Check transistor body connections" allows the user
@@ -130,13 +128,14 @@ flatten that one level of hierarchy before performing the
 </li>
 </ul>
 <p>
-The check box "Don't recheck cells that have passed in this Electric
-run" skips the checking of a pair of cells if they have ever passed in
-this run of Electric.  Because this command <i>is not</i> smart enough
-to recheck the cells after either have changed, this command is of
-very limited utility.  At the moment NCC has run sufficiently fast
-that it doesn't seem worth the effort to implement anything more
-sophisticated.
+If the check box "Don't recheck cells that have passed in this Electric
+run" is checked, then NCC skips a cell if that cell
+passed NCC in a previous run and the designer hasn't since changed
+the cell.
+<p>
+Note that NCC only remembers when cells were last checked during a 
+single run of Electric. If you run NCC, quit Electric, restart
+Electric, and rerun NCC, all cells will be checked. 
 
 <h3> Reporting Progress Section</h3>
 

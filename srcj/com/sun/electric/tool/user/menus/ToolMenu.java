@@ -26,6 +26,21 @@ package com.sun.electric.tool.user.menus;
 
 import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
 
+import java.awt.Color;
+import java.awt.event.KeyEvent;
+import java.awt.geom.Point2D;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+
+import javax.swing.JOptionPane;
+import javax.swing.KeyStroke;
+
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GeometryHandler;
 import com.sun.electric.database.geometry.Poly;
@@ -95,6 +110,7 @@ import com.sun.electric.tool.ncc.Ncc;
 import com.sun.electric.tool.ncc.NccCrossProbing;
 import com.sun.electric.tool.ncc.NccJob;
 import com.sun.electric.tool.ncc.NccOptions;
+import com.sun.electric.tool.ncc.PassedNcc;
 import com.sun.electric.tool.ncc.Pie;
 import com.sun.electric.tool.ncc.SchemNamesToLay;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
@@ -127,21 +143,6 @@ import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TextWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
-
-import java.awt.Color;
-import java.awt.event.KeyEvent;
-import java.awt.geom.Point2D;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
-import javax.swing.JOptionPane;
-import javax.swing.KeyStroke;
 
 /**
  * Class to handle the commands in the "Tools" pulldown menu.
@@ -699,7 +700,7 @@ public class ToolMenu {
 
             // run NCC, get results
             NccOptions options = new NccOptions();
-            NccResults results = Ncc.compare(schLayCells[0], null, schLayCells[1], null, options, this);
+            NccResults results = Ncc.compare(schLayCells[0], null, schLayCells[1], null, new PassedNcc(), options, this);
             // get result of comparison of top schematic and layout Cells
             NccResult result = results.getResultFromRootCells();
             if (!result.match()) {

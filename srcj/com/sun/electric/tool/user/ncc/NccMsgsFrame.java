@@ -112,8 +112,8 @@ public class NccMsgsFrame {
     public void display() {
         // display small info message if no errors found
         if (mismatches.size() == 0) {
-        	/* removed as a result of the request Bug #1859
             frame.setVisible(false);
+        	/* removed as a result of the request Bug #1859
             StringBuffer msg = new StringBuffer(100);
             msg.append("No errors found\n");
             if (nccOptions.checkSizes)
