@@ -43,6 +43,13 @@ public class GDS extends TechEditWizardPanel
     private JTextField [] metalGDS, viaGDS;
     private JTextField diffGDS, polyGDS, nPlusGDS, pPlusGDS, nWellGDS, contactGDS, markingGDS;
 
+    private class LabelContainer
+    {
+        JLabel label;
+        JTextField valueField;
+        JTextField typeField;
+    }
+
     /** Creates new form GDS */
 	public GDS(TechEditWizard parent, boolean modal)
 	{
@@ -54,110 +61,55 @@ public class GDS extends TechEditWizardPanel
         gds = new JPanel();
         gds.setLayout(new GridBagLayout());
 
-        JLabel heading = new JLabel("GDS Layer Numbers");
+        // Head
+        JLabel heading = new JLabel("Layer Name");
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;   gbc.gridy = 0;
-        gbc.gridwidth = 2;
+        gbc.gridwidth = 1;
         gbc.insets = new Insets(4, 4, 4, 4);
         gds.add(heading, gbc);
 
-		JLabel lab1 = new JLabel("Active GDS layer:");
+        heading = new JLabel("GDS Number");
         gbc = new GridBagConstraints();
-        gbc.gridx = 0;   gbc.gridy = 1;
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.insets = new Insets(4, 4, 1, 0);
-        gds.add(lab1, gbc);
+        gbc.gridx = 1;   gbc.gridy = 0;
+        gbc.gridwidth = 1;
+        gbc.insets = new Insets(4, 4, 4, 4);
+        gds.add(heading, gbc);
 
-        diffGDS = new JTextField();
-        diffGDS.setColumns(8);
+        heading = new JLabel("GDS Datatype");
         gbc = new GridBagConstraints();
-        gbc.gridx = 1;   gbc.gridy = 1;
-        gbc.insets = new Insets(4, 0, 1, 2);
-        gds.add(diffGDS, gbc);
+        gbc.gridx = 2;   gbc.gridy = 0;
+        gbc.gridwidth = 1;
+        gbc.insets = new Insets(4, 4, 4, 4);
+        gds.add(heading, gbc);
 
-		JLabel lab2 = new JLabel("Poly GDS layer:");
-        gbc = new GridBagConstraints();
-        gbc.gridx = 0;   gbc.gridy = 2;
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.insets = new Insets(4, 4, 1, 0);
-        gds.add(lab2, gbc);
+        LabelContainer cont = new LabelContainer();
+            addRow(cont, "Active", 1, 4, 0);
+            diffGDS = cont.valueField;
 
-        polyGDS = new JTextField();
-        polyGDS.setColumns(8);
-        gbc = new GridBagConstraints();
-        gbc.gridx = 1;   gbc.gridy = 2;
-        gbc.insets = new Insets(4, 0, 1, 2);
-        gds.add(polyGDS, gbc);
+        cont = new LabelContainer();
+            addRow(cont, "Poly", 2, 4, 0);
+            polyGDS = cont.valueField;
 
-		JLabel lab3 = new JLabel("NPlus GDS layer:");
-        gbc = new GridBagConstraints();
-        gbc.gridx = 0;   gbc.gridy = 3;
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.insets = new Insets(4, 4, 1, 0);
-        gds.add(lab3, gbc);
+        cont = new LabelContainer();
+            addRow(cont, "NPlus", 3, 4, 0);
+            nPlusGDS = cont.valueField;
 
-        nPlusGDS = new JTextField();
-        nPlusGDS.setColumns(8);
-        gbc = new GridBagConstraints();
-        gbc.gridx = 1;   gbc.gridy = 3;
-        gbc.insets = new Insets(4, 0, 1, 2);
-        gds.add(nPlusGDS, gbc);
+        cont = new LabelContainer();
+            addRow(cont, "PPlus", 4, 4, 0);
+            pPlusGDS = cont.valueField;
 
-		JLabel lab4 = new JLabel("PPlus GDS layer:");
-        gbc = new GridBagConstraints();
-        gbc.gridx = 0;   gbc.gridy = 4;
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.insets = new Insets(4, 4, 1, 0);
-        gds.add(lab4, gbc);
+        cont = new LabelContainer();
+            addRow(cont, "NWell", 5, 4, 0);
+            nWellGDS = cont.valueField;
 
-        pPlusGDS = new JTextField();
-        pPlusGDS.setColumns(8);
-        gbc = new GridBagConstraints();
-        gbc.gridx = 1;   gbc.gridy = 4;
-        gbc.insets = new Insets(4, 0, 1, 2);
-        gds.add(pPlusGDS, gbc);
+        cont = new LabelContainer();
+            addRow(cont, "Contact", 6, 4, 0);
+            contactGDS = cont.valueField;
 
-		JLabel lab5 = new JLabel("NWell GDS layer:");
-        gbc = new GridBagConstraints();
-        gbc.gridx = 0;   gbc.gridy = 5;
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.insets = new Insets(4, 4, 1, 0);
-        gds.add(lab5, gbc);
-
-        nWellGDS = new JTextField();
-        nWellGDS.setColumns(8);
-        gbc = new GridBagConstraints();
-        gbc.gridx = 1;   gbc.gridy = 5;
-        gbc.insets = new Insets(4, 0, 1, 2);
-        gds.add(nWellGDS, gbc);
-
-		JLabel lab6 = new JLabel("Contact GDS layer:");
-        gbc = new GridBagConstraints();
-        gbc.gridx = 0;   gbc.gridy = 6;
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.insets = new Insets(4, 4, 1, 0);
-        gds.add(lab6, gbc);
-
-        contactGDS = new JTextField();
-        contactGDS.setColumns(8);
-        gbc = new GridBagConstraints();
-        gbc.gridx = 1;   gbc.gridy = 6;
-        gbc.insets = new Insets(4, 0, 1, 2);
-        gds.add(contactGDS, gbc);
-
-		JLabel lab7 = new JLabel("Marking GDS layer:");
-        gbc = new GridBagConstraints();
-        gbc.gridx = 0;   gbc.gridy = 7;
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.insets = new Insets(4, 4, 1, 0);
-        gds.add(lab7, gbc);
-
-        markingGDS = new JTextField();
-        markingGDS.setColumns(8);
-        gbc = new GridBagConstraints();
-        gbc.gridx = 1;   gbc.gridy = 7;
-        gbc.insets = new Insets(4, 0, 1, 2);
-        gds.add(markingGDS, gbc);
+        cont = new LabelContainer();
+            addRow(cont, "Marking", 7, 4, 0);
+            markingGDS = cont.valueField;
 	}
 
 	/** return the panel to use for this Numeric Technology Editor tab. */
@@ -195,42 +147,48 @@ public class GDS extends TechEditWizardPanel
 		viaGDS = new JTextField[numMetals-1];
         for(int i=0; i<numMetals; i++)
     	{
-        	metalGDSLabel[i] = new JLabel("Metal-" + (i+1) + " GDS layer:");
-        	GridBagConstraints gbc = new GridBagConstraints();
-        	gbc.gridx = 0;   gbc.gridy = 8+i*2;
-            gbc.anchor = GridBagConstraints.WEST;
-            gbc.insets = new Insets(4, 4, 1, 0);
-            gds.add(metalGDSLabel[i], gbc);
-
-            metalGDS[i] = new JTextField();
-        	metalGDS[i].setText(Integer.toString(data.getGDSMetal()[i]));
-            metalGDS[i].setColumns(8);
-        	gbc = new GridBagConstraints();
-        	gbc.gridx = 1;   gbc.gridy = 8+i*2;
-            gbc.insets = new Insets(4, 0, 1, 2);
-            gds.add(metalGDS[i], gbc);
+            LabelContainer cont = new LabelContainer();
+            addRow(cont, "Metal-" + (i+1), 8+i*2, 4, data.getGDSMetal()[i]);
+            metalGDSLabel[i] = cont.label;
+            metalGDS[i] = cont.valueField;
 
             if (i < numMetals-1)
             {
-	            viaGDSLabel[i] = new JLabel("Via-" + (i+1) + " GDS layer:");
-	        	gbc = new GridBagConstraints();
-	        	gbc.gridx = 0;   gbc.gridy = 9+i*2;
-	            gbc.anchor = GridBagConstraints.WEST;
-	            gbc.insets = new Insets(4, 10, 1, 0);
-	            gds.add(viaGDSLabel[i], gbc);
-
-	            viaGDS[i] = new JTextField();
-        		viaGDS[i].setText(Integer.toString(data.getGDSVia()[i]));
-	            viaGDS[i].setColumns(8);
-	        	gbc = new GridBagConstraints();
-	        	gbc.gridx = 1;   gbc.gridy = 9+i*2;
-	            gbc.insets = new Insets(4, 0, 1, 2);
-	            gds.add(viaGDS[i], gbc);
+                cont = new LabelContainer();
+                addRow(cont, "Via-" + (i+1), 9+i*2, 10, data.getGDSVia()[i]);
+                viaGDSLabel[i] = cont.label;
+                viaGDS[i] = cont.valueField;
             }
     	}
 	}
 
-	/**
+    private void addRow(LabelContainer cont, String labelName, int posY, int deltaY, int gdsValue)
+    {
+        cont.label = new JLabel(labelName);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;   gbc.gridy = posY;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.insets = new Insets(4, deltaY, 1, 0);
+        gds.add(cont.label, gbc);
+
+        cont.valueField = new JTextField();
+        cont.valueField.setText(Integer.toString(gdsValue));
+        cont.valueField.setColumns(8);
+        gbc = new GridBagConstraints();
+        gbc.gridx = 1;   gbc.gridy = posY;
+        gbc.insets = new Insets(4, 0, 1, 2);
+        gds.add(cont.valueField, gbc);
+
+        cont.typeField = new JTextField();
+//        cont.valueField.setText(Integer.toString(gdsValue));
+        cont.typeField.setColumns(8);
+        gbc = new GridBagConstraints();
+        gbc.gridx = 2;   gbc.gridy = posY;
+        gbc.insets = new Insets(4, 0, 1, 2);
+        gds.add(cont.typeField, gbc);
+    }
+
+    /**
 	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the GDS tab.
 	 */

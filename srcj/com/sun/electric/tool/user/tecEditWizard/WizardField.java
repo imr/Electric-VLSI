@@ -24,7 +24,7 @@
 package com.sun.electric.tool.user.tecEditWizard;
 
 /**
- * This class defines a field value in the Technology Creation Wizard.
+ * This class defines a valueField value in the Technology Creation Wizard.
  */
 public class WizardField
 {
