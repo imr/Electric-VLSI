@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09b: ******************************
 
+IMP/MAN: (1/20/09, SMR) When wiring with the right-button, holding Control
+     disables connection to existing circuitry (Bug #2013).
+
 BUG: (1/20/09, SMR) Deleting Spice primitives causes crash (Bug #2015).
 FIX: In CircuitChangeJobs.eraseObjectsInList(), arcs that are reconnected
      to cell instances should not be considered for deletion.

@@ -291,7 +291,7 @@ public class ClickZoomWireListener
 	        lastdbMouseX = dbClick.getX();
 	        lastdbMouseY = dbClick.getY();
 
-	        boolean another = (evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0;
+	        boolean ctrlPressed = (evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0;
 	        invertSelection = (evt.getModifiersEx()&MouseEvent.SHIFT_DOWN_MASK) != 0;
 	        specialSelect = ToolBar.isSelectSpecial();
 
@@ -351,7 +351,9 @@ public class ClickZoomWireListener
 	                        startObj = h1.getElectricObject();
                             router.startInteractiveRoute(wnd);
                             // look for stuff under the mouse
-                            Highlight2 h2 = highlighter.findObject(dbClick, wnd, false, false, false, true, false, specialSelect, false);
+                            Highlight2 h2 = null;
+                            if (!ctrlPressed)
+                            	h2 = highlighter.findObject(dbClick, wnd, false, false, false, true, false, specialSelect, false);
                             if (h2 == null) {
                                 // not over anything, nothing to connect to
                                 endObj = null;
@@ -375,14 +377,14 @@ public class ClickZoomWireListener
 	            wnd.setEndDrag(clickX, clickY);
 	            wnd.setDoingAreaDrag();
 	            // zoom out and zoom to box mode
-	            if (invertSelection && !another) {
+	            if (invertSelection && !ctrlPressed) {
 	                // A single click zooms out, but a drag box zooms to box
 	                // The distinction is if the user starts dragging a box,
 	                // which we check for in mouseDragged after a set time delay
 	                modeRight = Mode.zoomOut;
 	            }
 	            // draw box
-	            if (another && invertSelection) {
+	            if (ctrlPressed && invertSelection) {
 	                // the box we are going to draw is a highlight
 	                highlighter.clear();
 	                modeRight = Mode.drawBox;
@@ -405,7 +407,7 @@ public class ClickZoomWireListener
 	            // if doing sticky move place objects now
 	            if (modeLeft == Mode.stickyMove) {
 	                // moving objects
-	                if (another)
+	                if (ctrlPressed)
 	                    dbClick = convertToOrthogonal(new Point2D.Double(dbMoveStartX, dbMoveStartY), dbClick);
 	                Point2D dbDelta = new Point2D.Double(dbClick.getX() - dbMoveStartX, dbClick.getY() - dbMoveStartY);
 	                EditWindow.gridAlign(dbDelta);
@@ -435,7 +437,7 @@ public class ClickZoomWireListener
 	                    return;
 	                } */
 	                /* if no modifiers, do "get info" */
-	                if (!another && !invertSelection) {
+	                if (!ctrlPressed && !invertSelection) {
 	                    if (highlighter.getNumHighlights() >= 1) {
 	                        EditMenu.getInfoCommand(true);
 	                        return;
@@ -458,7 +460,7 @@ public class ClickZoomWireListener
 	            }
 
 	            // if already over highlighted object, move it
-	            if (!another && !invertSelection && highlighter.overHighlighted(wnd, clickX, clickY) != null) {
+	            if (!ctrlPressed && !invertSelection && highlighter.overHighlighted(wnd, clickX, clickY) != null) {
 	                highlighter.finished();
                     // over something, user may want to move objects
 	                dbMoveStartX = dbClick.getX();
@@ -469,7 +471,7 @@ public class ClickZoomWireListener
 	                // findObject handles cycling through objects (another)
 	                // and inverting selection (invertSelection)
 	                // and selection special objects (specialSelection)
-	                Highlight2 h = highlighter.findObject(dbClick, wnd, false, another, invertSelection, true, false, specialSelect, true);
+	                Highlight2 h = highlighter.findObject(dbClick, wnd, false, ctrlPressed, invertSelection, true, false, specialSelect, true);
 	                if (h == null) {
 	                    // not over anything: drag out a selection rectangle
 	                    wnd.setStartDrag(clickX, clickY);
@@ -522,7 +524,7 @@ public class ClickZoomWireListener
 	        lastdbMouseX = (int)dbMouse.getX();
 	        lastdbMouseY = (int)dbMouse.getY();
 
-	        boolean another = (evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0;
+	        boolean ctrlPressed = (evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0;
 	        specialSelect = ToolBar.isSelectSpecial();
 
 	        // ===== Right mouse drags =====
@@ -550,7 +552,9 @@ public class ClickZoomWireListener
 	            }
 	            if (modeRight == Mode.wiringFind || modeRight == Mode.stickyWiring) {
 	                // see if anything under the pointer
-	                Highlight2 h3 = highlighter.findObject(dbMouse, wnd, false, false, false, true, false, specialSelect, false);
+	                Highlight2 h3 = null;
+	                if (!ctrlPressed)
+	                	h3 = highlighter.findObject(dbMouse, wnd, false, false, false, true, false, specialSelect, false);
 	                if (h3 == null) {
 	                    // not over anything, nothing to connect to
 	                    EditWindow.gridAlign(dbMouse);
@@ -648,7 +652,7 @@ public class ClickZoomWireListener
 	            if (modeLeft == Mode.move || modeLeft == Mode.stickyMove) {
 	                // moving objects
 	                // if CTRL held, can only move orthogonally
-	                if (another)
+	                if (ctrlPressed)
 	                    dbMouse = convertToOrthogonal(new Point2D.Double(dbMoveStartX, dbMoveStartY), dbMouse);
 	                // relocate highlight to under mouse
 	                Point2D dbDelta = new Point2D.Double(dbMouse.getX() - dbMoveStartX, dbMouse.getY() - dbMoveStartY);
@@ -1009,7 +1013,7 @@ public class ClickZoomWireListener
 	        int releaseX = evt.getX();
 	        int releaseY = evt.getY();
 	        Point2D dbMouse = wnd.screenToDatabase(releaseX, releaseY);
-	        boolean another = (evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0;
+	        boolean ctrlPressed = (evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0;
 	        specialSelect = ToolBar.isSelectSpecial();
 
 	        // ===== Right Mouse Release =====
@@ -1188,7 +1192,7 @@ public class ClickZoomWireListener
 	                }
 	                if (modeLeft == Mode.move || modeLeft == Mode.stickyMove) {
 	                    // moving objects
-	                    if (another)
+	                    if (ctrlPressed)
 	                        dbMouse = convertToOrthogonal(new Point2D.Double(dbMoveStartX, dbMoveStartY), dbMouse);
 	                    Point2D dbDelta = new Point2D.Double(dbMouse.getX() - dbMoveStartX, dbMouse.getY() - dbMoveStartY);
                         EditWindow.gridAlign(dbDelta);
