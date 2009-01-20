@@ -985,7 +985,8 @@ public class CircuitChangeJobs
 					if (eObj instanceof ArcInst)
 					{
 						ArcInst ai = (ArcInst)eObj;
-						thingsToHighlight.add(ai);
+//						if (ai.isLinked()) 
+							thingsToHighlight.add(ai);
 					} else if (eObj instanceof Export)
 					{
 						Export e = (Export)eObj;
@@ -1392,6 +1393,7 @@ public class CircuitChangeJobs
 					ArcInst newAI = ArcInst.makeInstanceBase(ai.getProto(), ai.getLambdaBaseWidth(), otherPi, alreadyPI,
 						ai.getConnection(otherEnd).getLocation(), con.getLocation(), ai.getName());
 					if (stuffToHighlight != null) stuffToHighlight.add(newAI);
+					alsoDeleteTheseNodes.remove(otherNi);
 				}
 			}
 		}
@@ -1405,6 +1407,8 @@ public class CircuitChangeJobs
 		// reconnect all nodes that are in the middle of two arcs
 		for(NodeInst ni : nodesToDelete)
 		{
+//			if (reconstructArcsAndExports && ni.isCellInstance()) continue;
+
 			// see if any arcs can be reconnected as a result of this kill
 			Reconnect re = Reconnect.erasePassThru(ni, false, false);
 			if (re != null) re.reconnectArcs();

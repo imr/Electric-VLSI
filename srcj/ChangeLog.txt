@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09b: ******************************
 
+BUG: (1/20/09, SMR) Deleting Spice primitives causes crash (Bug #2015).
+FIX: In CircuitChangeJobs.eraseObjectsInList(), arcs that are reconnected
+     to cell instances should not be considered for deletion.
+
 BUG: (1/16/09, RK) Make NCC's incremental mode work correctly: don't
      recheck cells unless they've changed (Bug #1380)
 
