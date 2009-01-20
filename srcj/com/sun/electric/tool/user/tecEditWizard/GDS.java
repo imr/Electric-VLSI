@@ -39,9 +39,8 @@ import javax.swing.JTextField;
 public class GDS extends TechEditWizardPanel
 {
     private JPanel gds;
-    private JLabel [] metalGDSLabel, viaGDSLabel;
-    private JTextField [] metalGDS, viaGDS;
-    private JTextField diffGDS, polyGDS, nPlusGDS, pPlusGDS, nWellGDS, contactGDS, markingGDS;
+    private LabelContainer[] metalContainers, viaContainers;
+    private LabelContainer diffGDS, polyGDS, nPlusGDS, pPlusGDS, nWellGDS, contactGDS, markingGDS;
 
     private class LabelContainer
     {
@@ -83,33 +82,26 @@ public class GDS extends TechEditWizardPanel
         gbc.insets = new Insets(4, 4, 4, 4);
         gds.add(heading, gbc);
 
-        LabelContainer cont = new LabelContainer();
-            addRow(cont, "Active", 1, 4, 0);
-            diffGDS = cont.valueField;
+        diffGDS = new LabelContainer();
+            addRow(diffGDS, "Active", 1, 4, 0);
 
-        cont = new LabelContainer();
-            addRow(cont, "Poly", 2, 4, 0);
-            polyGDS = cont.valueField;
+        polyGDS = new LabelContainer();
+            addRow(polyGDS, "Poly", 2, 4, 0);
 
-        cont = new LabelContainer();
-            addRow(cont, "NPlus", 3, 4, 0);
-            nPlusGDS = cont.valueField;
+        nPlusGDS = new LabelContainer();
+            addRow(nPlusGDS, "NPlus", 3, 4, 0);
 
-        cont = new LabelContainer();
-            addRow(cont, "PPlus", 4, 4, 0);
-            pPlusGDS = cont.valueField;
+        pPlusGDS = new LabelContainer();
+            addRow(pPlusGDS, "PPlus", 4, 4, 0);
 
-        cont = new LabelContainer();
-            addRow(cont, "NWell", 5, 4, 0);
-            nWellGDS = cont.valueField;
+        nWellGDS = new LabelContainer();
+            addRow(nWellGDS, "NWell", 5, 4, 0);
 
-        cont = new LabelContainer();
-            addRow(cont, "Contact", 6, 4, 0);
-            contactGDS = cont.valueField;
+        contactGDS = new LabelContainer();
+            addRow(contactGDS, "Contact", 6, 4, 0);
 
-        cont = new LabelContainer();
-            addRow(cont, "Marking", 7, 4, 0);
-            markingGDS = cont.valueField;
+        markingGDS = new LabelContainer();
+            addRow(markingGDS, "Marking", 7, 4, 0);
 	}
 
 	/** return the panel to use for this Numeric Technology Editor tab. */
@@ -125,39 +117,44 @@ public class GDS extends TechEditWizardPanel
 	public void init()
 	{
 		TechEditWizardData data = wizard.getTechEditData();
-		diffGDS.setText(Integer.toString(data.getGDSDiff()));
-		polyGDS.setText(Integer.toString(data.getGDSPoly()));
-		nPlusGDS.setText(Integer.toString(data.getGDSNPlus()));
-		pPlusGDS.setText(Integer.toString(data.getGDSPPlus()));
-		nWellGDS.setText(Integer.toString(data.getGDSNWell()));
-		contactGDS.setText(Integer.toString(data.getGDSContact()));
-		markingGDS.setText(Integer.toString(data.getGDSMarking()));
+		diffGDS.valueField.setText(Integer.toString(data.getGDSDiff()));
+		polyGDS.valueField.setText(Integer.toString(data.getGDSPoly()));
+		nPlusGDS.valueField.setText(Integer.toString(data.getGDSNPlus()));
+		pPlusGDS.valueField.setText(Integer.toString(data.getGDSPPlus()));
+		nWellGDS.valueField.setText(Integer.toString(data.getGDSNWell()));
+		contactGDS.valueField.setText(Integer.toString(data.getGDSContact()));
+		markingGDS.valueField.setText(Integer.toString(data.getGDSMarking()));
 
 		// remove former metal data
-		if (metalGDSLabel != null) for(int i=0; i<metalGDSLabel.length; i++) gds.remove(metalGDSLabel[i]);
-		if (metalGDS != null) for(int i=0; i<metalGDS.length; i++) gds.remove(metalGDS[i]);
-		if (viaGDSLabel != null) for(int i=0; i<viaGDSLabel.length; i++) gds.remove(viaGDSLabel[i]);
-		if (viaGDS != null) for(int i=0; i<viaGDS.length; i++) gds.remove(viaGDS[i]);
+		if (metalContainers != null)
+            for(int i=0; i<metalContainers.length; i++)
+            {
+                gds.remove(metalContainers[i].label);
+                gds.remove(metalContainers[i].valueField);
+                gds.remove(metalContainers[i].typeField);
+            }
 
-		// add appropriate number of metal layers
+        if (viaContainers != null)
+            for(int i=0; i<viaContainers.length; i++)
+            {
+                gds.remove(viaContainers[i].label);
+                gds.remove(viaContainers[i].valueField);
+                gds.remove(viaContainers[i].typeField);
+            }
+
+        // add appropriate number of metal layers
 		int numMetals = data.getNumMetalLayers();
-		metalGDSLabel = new JLabel[numMetals];
-		metalGDS = new JTextField[numMetals];
-		viaGDSLabel = new JLabel[numMetals-1];
-		viaGDS = new JTextField[numMetals-1];
+		metalContainers = new LabelContainer[numMetals];
+		viaContainers = new LabelContainer[numMetals-1];
         for(int i=0; i<numMetals; i++)
     	{
-            LabelContainer cont = new LabelContainer();
-            addRow(cont, "Metal-" + (i+1), 8+i*2, 4, data.getGDSMetal()[i]);
-            metalGDSLabel[i] = cont.label;
-            metalGDS[i] = cont.valueField;
+            metalContainers[i] = new LabelContainer();
+            addRow(metalContainers[i], "Metal-" + (i+1), 8+i*2, 4, data.getGDSMetal()[i]);
 
             if (i < numMetals-1)
             {
-                cont = new LabelContainer();
-                addRow(cont, "Via-" + (i+1), 9+i*2, 10, data.getGDSVia()[i]);
-                viaGDSLabel[i] = cont.label;
-                viaGDS[i] = cont.valueField;
+                viaContainers[i] = new LabelContainer();
+                addRow(viaContainers[i], "Via-" + (i+1), 9+i*2, 10, data.getGDSVia()[i]);
             }
     	}
 	}
@@ -198,16 +195,16 @@ public class GDS extends TechEditWizardPanel
 		int numMetals = data.getNumMetalLayers();
         for(int i=0; i<numMetals; i++)
         {
-        	data.setGDSMetal(i, TextUtils.atoi(metalGDS[i].getText()));
+        	data.setGDSMetal(i, TextUtils.atoi(metalContainers[i].valueField.getText()));
         	if (i < numMetals-1)
-        		data.setGDSVia(i, TextUtils.atoi(viaGDS[i].getText()));
+        		data.setGDSVia(i, TextUtils.atoi(viaContainers[i].typeField.getText()));
         }
-		data.setGDSDiff(TextUtils.atoi(diffGDS.getText()));
-		data.setGDSPoly(TextUtils.atoi(polyGDS.getText()));
-		data.setGDSNPlus(TextUtils.atoi(nPlusGDS.getText()));
-		data.setGDSPPlus(TextUtils.atoi(pPlusGDS.getText()));
-		data.setGDSNWell(TextUtils.atoi(nWellGDS.getText()));
-		data.setGDSContact(TextUtils.atoi(contactGDS.getText()));
-		data.setGDSMarking(TextUtils.atoi(markingGDS.getText()));
+		data.setGDSDiff(TextUtils.atoi(diffGDS.valueField.getText()));
+		data.setGDSPoly(TextUtils.atoi(polyGDS.valueField.getText()));
+		data.setGDSNPlus(TextUtils.atoi(nPlusGDS.valueField.getText()));
+		data.setGDSPPlus(TextUtils.atoi(pPlusGDS.valueField.getText()));
+		data.setGDSNWell(TextUtils.atoi(nWellGDS.valueField.getText()));
+		data.setGDSContact(TextUtils.atoi(contactGDS.valueField.getText()));
+		data.setGDSMarking(TextUtils.atoi(markingGDS.valueField.getText()));
 	}
 }
