@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09b: ******************************
 
+BUG: (1/20/09, SMR) GDS output that is "merged" is incorrect (Bug #2016).
+FIX: Switched from the Java-based Polygon Merge algorithm to the Sweep mode of GeometryHandler.
+     Polygons are not as dense, but are correct for G
+
 IMP/MAN: (1/20/09, SMR) When wiring with the right-button, holding Control
      disables connection to existing circuitry (Bug #2013).
 

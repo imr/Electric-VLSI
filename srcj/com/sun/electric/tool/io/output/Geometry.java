@@ -25,27 +25,30 @@
  */
 package com.sun.electric.tool.io.output;
 
+import com.sun.electric.database.geometry.GeometryHandler;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.PolyMerge;
-import com.sun.electric.database.hierarchy.HierarchyEnumerator;
-import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.geometry.PolyBase;
+import com.sun.electric.database.geometry.GeometryHandler.GHMode;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.id.CellUsage;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 
 import java.awt.geom.AffineTransform;
-import java.util.HashMap;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -258,7 +261,8 @@ public abstract class Geometry extends Output
             boolean merge = outGeom.mergeGeom(maxHierDepth - curHierDepth);
 			if (merge)
 			{
-				PolyMerge pMerge = new PolyMerge();
+				GeometryHandler gMerge = GeometryHandler.createGeometryHandler(GHMode.ALGO_SWEEP, 1000);
+//				PolyMerge pMerge = new PolyMerge();
 				Set<Layer> layers = cellGeom.polyMap.keySet();
 				for (Layer layer : layers)
 				{
@@ -266,12 +270,16 @@ public abstract class Geometry extends Output
 					for (Object polyObj : polyList)
 					{
 						Poly poly = (Poly)polyObj;
-						pMerge.addPolygon(layer, poly);
+//						pMerge.addPolygon(layer, poly);
+						gMerge.add(layer, poly);
 					}
 				}
 				for (Layer layer : layers)
 				{
-					List polys = pMerge.getMergedPoints(layer, true);
+//					List polys = pMerge.getMergedPoints(layer, true);
+					Collection<PolyBase> polysC = gMerge.getObjects(layer, false, false);
+					List<Object> polys = new ArrayList<Object>();
+					for(PolyBase pb : polysC) polys.add(pb);
 					cellGeom.polyMap.put(layer, polys);
 				}
 			}
