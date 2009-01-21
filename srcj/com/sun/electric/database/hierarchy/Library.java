@@ -1111,7 +1111,7 @@ public class Library extends ElectricObject implements Comparable<Library>
             for (Cell c : cells.values()) {
                 if (!n.getName().equals(c.getName())) continue;
 //                if (!n.getName().equalsIgnoreCase(c.getName())) continue;
-                onlyWithName = c;
+                if (onlyWithName == null || onlyWithName.getVersion() < c.getVersion()) onlyWithName = c;
                 if (n.getView() != c.getView()) continue;
                 if (n.getVersion() > 0 && n.getVersion() != c.getVersion()) continue;
                 if (n.getVersion() == 0 && c.getNewestVersion() != c) continue;

@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09b: ******************************
 
+BUG: (1/21/09, SMR) Calls to Library.findNodeProto() with no view given may
+     return an old version (Bug #1990).
+FIX: Ensure the latest version is returned.
+
 IMP/MAN: (1/21/09, SMR) "Array" dialog is now modeless and has "Draw" button
      to let users drag an area for the array (Bug #1890).
 
