@@ -131,6 +131,7 @@ public class GDS extends Input
 	private PrimitiveNode    layerNodeProto;
     private PrimitiveNode    pinNodeProto;
 	private boolean          layerUsed;
+	private int              randomLayerSelection;
 	private boolean          layerIsPin;
 	private Technology       curTech;
 	private int              recordCount;
@@ -867,6 +868,7 @@ public class GDS extends Input
 		// get the array of GDS names
 		layerNames = new HashMap<Integer,Layer>();
 		pinLayers = new HashSet<Integer>();
+		randomLayerSelection = 0;
 		boolean valid = false;
 		curTech = Technology.getCurrent();
 		for(Map.Entry<Layer,String> e: curTech.getGDSLayers().entrySet())
@@ -1800,44 +1802,67 @@ public class GDS extends Input
 		Layer layer = layerNames.get(layerInt);
 		if (layer == null)
 		{
-            String message = "GDS layer " + layerNum + ", type " + layerType +
-        		" unknown in cell '" + theCell.cell.getName();
-            if (IOTool.isGDSInIgnoresUnknownLayers()) message += "', ignoring it" ; else
-            	message += "', using Generic:DRC";
-            errorLogger.logWarning(message, theCell.cell, 0);
-            System.out.println(message);
-			layerNames.put(layerInt, Generic.tech().drcLay);
+			if (IOTool.getGDSInUnknownLayerHandling() != IOTool.GDSUNKNOWNLAYERUSERANDOM)
+				layer = Generic.tech().drcLay; else
+			{
+				// assign an unused layer here
+				for(Iterator<Layer> it = curTech.getLayers(); it.hasNext(); )
+				{
+					Layer l = it.next();
+					if (layerNames.values().contains(l)) continue;
+					layer = l;
+					break;
+				}
+				if (layer == null)
+				{
+					// no unused layers: start picking at random
+					if (randomLayerSelection >= curTech.getNumLayers()) randomLayerSelection = 0;
+					layer = curTech.getLayer(randomLayerSelection);
+					randomLayerSelection++;
+				}
+			}
+			String message = "GDS layer " + layerNum + ", type " + layerType +
+				" unknown in cell '" + theCell.cell.getName();
+			switch (IOTool.getGDSInUnknownLayerHandling())
+			{
+				case IOTool.GDSUNKNOWNLAYERIGNORE:    message += "', ignoring it"; break;
+				case IOTool.GDSUNKNOWNLAYERUSEDRC:    message += "', using Generic:DRC layer"; break;
+				case IOTool.GDSUNKNOWNLAYERUSERANDOM: message += "', using layer " + layer.getName(); break;
+			}
+			errorLogger.logWarning(message, theCell.cell, 0);
+			System.out.println(message);
+			layerNames.put(layerInt, layer);
 			layerUsed = false;
 			layerNodeProto = null;
 		} else
 		{
 			layerNodeProto = layer.getNonPseudoLayer().getPureLayerNode();
-			if (layer == Generic.tech().drcLay && IOTool.isGDSInIgnoresUnknownLayers())
+			if (layer == Generic.tech().drcLay && IOTool.getGDSInUnknownLayerHandling() == IOTool.GDSUNKNOWNLAYERIGNORE)
 				layerUsed = false;
-            pinNodeProto = Generic.tech().universalPinNode;
+			pinNodeProto = Generic.tech().universalPinNode;
 			if (pinLayers.contains(layerInt))
 			{
-                layerIsPin = true;
-                if (layerNodeProto != null && layerNodeProto.getNumPorts() > 0)
-                {
-                    PortProto pp = layerNodeProto.getPort(0);
-	                for (Iterator<ArcProto> it = layer.getTechnology().getArcs(); it.hasNext(); )
-	                {
-	                    ArcProto arc = it.next();
-	                    if (pp.connectsTo(arc))
-	                    {
-	                        pinNodeProto = arc.findOverridablePinProto();
-	                        break;
-	                    }
-	                }
-                }
-            }
+				layerIsPin = true;
+				if (layerNodeProto != null && layerNodeProto.getNumPorts() > 0)
+				{
+					PortProto pp = layerNodeProto.getPort(0);
+					for (Iterator<ArcProto> it = layer.getTechnology().getArcs(); it.hasNext(); )
+					{
+						ArcProto arc = it.next();
+						if (pp.connectsTo(arc))
+						{
+							pinNodeProto = arc.findOverridablePinProto();
+							break;
+						}
+					}
+				}
+			}
 			if (layerNodeProto == null)
 			{
-                String message = "Error: no pure layer node for layer "+layer.getName() +
-                	" in cell '" + theCell.cell.getName() + "', ignoring it";
+				String message = "Error: no pure layer node for layer "+layer.getName() +
+					" in cell '" + theCell.cell.getName() + "', ignoring it";
 				System.out.println(message);
-                errorLogger.logError(message, theCell.cell, 0);
+				errorLogger.logError(message, theCell.cell, 0);
 				layerNames.put(layerInt, Generic.tech().drcLay);
 				layerUsed = false;
 			}
@@ -1904,8 +1929,8 @@ public class GDS extends Input
 			// FILO order, create this nodeproto
 			np = Cell.newInstance(theLibrary, tokenString+View.LAYOUT.getAbbreviationExtension());
 			if (np == null) handleError("Failed to create SREF proto");
-            setProgressValue(0);
-            setProgressNote("Reading " + tokenString);
+			setProgressValue(0);
+			setProgressNote("Reading " + tokenString);
 		}
 
 		// set the reference node proto

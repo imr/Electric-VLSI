@@ -643,26 +643,37 @@ public class IOTool extends Tool
 	 */
 	public static boolean isFactoryGDSInInstantiatesArrays() { return cacheGDSInInstantiatesArrays.getBooleanFactoryValue(); }
 
-	private static Pref cacheGDSInIgnoresUnknownLayers = Pref.makeBooleanPref("GDSInIgnoresUnknownLayers", IOTool.tool.prefs, false);
+	public static final int GDSUNKNOWNLAYERIGNORE    = 0;
+	public static final int GDSUNKNOWNLAYERUSEDRC    = 1;
+	public static final int GDSUNKNOWNLAYERUSERANDOM = 2;
+	private static Pref cacheGDSInUnknownLayerHandling = Pref.makeIntPref("GDSInUnknownLayerHandling", IOTool.tool.prefs, GDSUNKNOWNLAYERUSEDRC);
 	/**
-	 * Method to tell whether GDS Input ignores unknown layers
-	 * The default is "false".
-	 * Unknown layers are replaced with "DRC exclusion" nodes if not ignored.
-	 * @return true if GDS Input ignores unknown layers
+	 * Method to tell how GDS Input handles unknown layers.
+	 * The choices are:<BR>
+	 * 0: ignore anything on the layer.<BR>
+	 * 1: convert that layer to the "DRC exclusion" layer (the default).<BR>
+	 * 2: convert that layer to an unused layer.<BR>
+	 * @return how GDS Input handles unknown layers.
 	 */
-	public static boolean isGDSInIgnoresUnknownLayers() { return cacheGDSInIgnoresUnknownLayers.getBoolean(); }
+	public static int getGDSInUnknownLayerHandling() { return cacheGDSInUnknownLayerHandling.getInt(); }
 	/**
-	 * Method to set whether GDS Input ignores unknown layers
-	 * Unknown layers are replaced with "DRC exclusion" nodes if not ignored.
-	 * @param on true if GDS Input ignores unknown layers
+	 * Method to set how GDS Input handles unknown layers.
+	 * The choices are:<BR>
+	 * 0: ignore anything on the layer.<BR>
+	 * 1: convert that layer to the "DRC exclusion" layer.<BR>
+	 * 2: convert that layer to an unused layer.<BR>
+	 * @param h how GDS Input handles unknown layers.
 	 */
-	public static void setGDSInIgnoresUnknownLayers(boolean on) { cacheGDSInIgnoresUnknownLayers.setBoolean(on); }
+	public static void setGDSInUnknownLayerHandling(int h) { cacheGDSInUnknownLayerHandling.setInt(h); }
 	/**
-	 * Method to tell whether GDS Input ignores unknown layers, by default.
-	 * Unknown layers are replaced with "DRC exclusion" nodes if not ignored.
-	 * @return true if GDS Input ignores unknown layers, by default.
+	 * Method to tell how GDS Input handles unknown layers, by default.
+	 * The choices are:<BR>
+	 * 0: ignore anything on the layer.<BR>
+	 * 1: convert that layer to the "DRC exclusion" layer.<BR>
+	 * 2: convert that layer to an unused layer.<BR>
+	 * @return how GDS Input handles unknown layers, by default.
 	 */
-	public static boolean isFactoryGDSInIgnoresUnknownLayers() { return cacheGDSInIgnoresUnknownLayers.getBooleanFactoryValue(); }
+	public static int getFactoryGDSInUnknownLayerHandling() { return cacheGDSInUnknownLayerHandling.getIntFactoryValue(); }
 
 	private static Pref cacheGDSConvertNCCExportsConnectedByParentPins = Pref.makeBooleanPref("GDSConvertNCCEconnectedByParentPins", IOTool.tool.prefs, false);
 	/**

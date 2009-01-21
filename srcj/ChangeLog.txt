@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09b: ******************************
 
+IMP/MAN: (1/21/09, SMR) Added ability to convert unknown GDS layers
+     into random Electric layers (Bug #2018).
+
 BUG: (1/21/09, SMR) Calls to Library.findNodeProto() with no view given may
      return an old version (Bug #1990).
 FIX: Ensure the latest version is returned.
