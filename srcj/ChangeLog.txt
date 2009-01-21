@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09b: ******************************
 
+BUG: (1/20, 09, GVG) Incorrect export of DRC decks (Bug #2004)
+FIX: Extra code added for special XML characters.
+
 BUG: (1/20/09, GVG) Avoid the NPE in single boxes defining vias in contact (Bug #2012)
 FIX: Detecting contact nodes that don't have multi cuts
 
