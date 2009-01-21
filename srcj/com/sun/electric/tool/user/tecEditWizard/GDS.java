@@ -40,7 +40,7 @@ public class GDS extends TechEditWizardPanel
 {
     private JPanel gds;
     private LabelContainer[] metalContainers, viaContainers;
-    private LabelContainer diffGDS, polyGDS, nPlusGDS, pPlusGDS, nWellGDS, contactGDS, markingGDS;
+    private LabelContainer[] basicContainers;
 
     private class LabelContainer
     {
@@ -82,29 +82,23 @@ public class GDS extends TechEditWizardPanel
         gbc.insets = new Insets(4, 4, 4, 4);
         gds.add(heading, gbc);
 
-        diffGDS = new LabelContainer();
-            addRow(diffGDS, "Active", 1, 4, 0);
+        TechEditWizardData data = wizard.getTechEditData();
+        TechEditWizardData.LayerInfo[] basics = data.getBasicLayers();
+        basicContainers = new LabelContainer[basics.length];
 
-        polyGDS = new LabelContainer();
-            addRow(polyGDS, "Poly", 2, 4, 0);
-
-        nPlusGDS = new LabelContainer();
-            addRow(nPlusGDS, "NPlus", 3, 4, 0);
-
-        pPlusGDS = new LabelContainer();
-            addRow(pPlusGDS, "PPlus", 4, 4, 0);
-
-        nWellGDS = new LabelContainer();
-            addRow(nWellGDS, "NWell", 5, 4, 0);
-
-        contactGDS = new LabelContainer();
-            addRow(contactGDS, "Contact", 6, 4, 0);
-
-        markingGDS = new LabelContainer();
-            addRow(markingGDS, "Marking", 7, 4, 0);
+        for (int i = 0; i < basics.length; i++)
+        {
+            basicContainers[i] = addRow(basics[i], i + 1, 4);
+        }
 	}
 
-	/** return the panel to use for this Numeric Technology Editor tab. */
+    private void setValues(LabelContainer con, TechEditWizardData.LayerInfo info)
+    {
+        con.valueField.setText(Integer.toString(info.getValue()));
+        con.typeField.setText(Integer.toString(info.getType()));
+    }
+
+    /** return the panel to use for this Numeric Technology Editor tab. */
 	public JPanel getPanel() { return gds; }
 
 	/** return the name of this Numeric Technology Editor tab. */
@@ -117,13 +111,12 @@ public class GDS extends TechEditWizardPanel
 	public void init()
 	{
 		TechEditWizardData data = wizard.getTechEditData();
-		diffGDS.valueField.setText(Integer.toString(data.getGDSDiff()));
-		polyGDS.valueField.setText(Integer.toString(data.getGDSPoly()));
-		nPlusGDS.valueField.setText(Integer.toString(data.getGDSNPlus()));
-		pPlusGDS.valueField.setText(Integer.toString(data.getGDSPPlus()));
-		nWellGDS.valueField.setText(Integer.toString(data.getGDSNWell()));
-		contactGDS.valueField.setText(Integer.toString(data.getGDSContact()));
-		markingGDS.valueField.setText(Integer.toString(data.getGDSMarking()));
+        TechEditWizardData.LayerInfo[] basics = data.getBasicLayers();
+
+        for (int i = 0; i < basicContainers.length; i++)
+        {
+            setValues(basicContainers[i], basics[i]);
+        }
 
 		// remove former metal data
 		if (metalContainers != null)
@@ -146,22 +139,24 @@ public class GDS extends TechEditWizardPanel
 		int numMetals = data.getNumMetalLayers();
 		metalContainers = new LabelContainer[numMetals];
 		viaContainers = new LabelContainer[numMetals-1];
+        int base = basics.length + 1;
         for(int i=0; i<numMetals; i++)
     	{
-            metalContainers[i] = new LabelContainer();
-            addRow(metalContainers[i], "Metal-" + (i+1), 8+i*2, 4, data.getGDSMetal()[i]);
+            metalContainers[i] = addRow(data.getGDSMetal()[i], base+i*2, 4);
 
             if (i < numMetals-1)
             {
-                viaContainers[i] = new LabelContainer();
-                addRow(viaContainers[i], "Via-" + (i+1), 9+i*2, 10, data.getGDSVia()[i]);
+                viaContainers[i] = addRow(data.getGDSVia()[i], base+1+i*2, 10);
             }
     	}
-	}
+        this.pack();
+    }
 
-    private void addRow(LabelContainer cont, String labelName, int posY, int deltaY, int gdsValue)
+    private LabelContainer addRow(TechEditWizardData.LayerInfo gdsValue, int posY, int deltaY)
     {
-        cont.label = new JLabel(labelName);
+        LabelContainer cont = new LabelContainer();
+
+        cont.label = new JLabel(gdsValue.name);
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;   gbc.gridy = posY;
         gbc.anchor = GridBagConstraints.WEST;
@@ -169,7 +164,7 @@ public class GDS extends TechEditWizardPanel
         gds.add(cont.label, gbc);
 
         cont.valueField = new JTextField();
-        cont.valueField.setText(Integer.toString(gdsValue));
+        cont.valueField.setText(Integer.toString(gdsValue.getValue()));
         cont.valueField.setColumns(8);
         gbc = new GridBagConstraints();
         gbc.gridx = 1;   gbc.gridy = posY;
@@ -177,12 +172,14 @@ public class GDS extends TechEditWizardPanel
         gds.add(cont.valueField, gbc);
 
         cont.typeField = new JTextField();
-//        cont.valueField.setText(Integer.toString(gdsValue));
+        cont.typeField.setText(Integer.toString(gdsValue.getType()));
         cont.typeField.setColumns(8);
         gbc = new GridBagConstraints();
         gbc.gridx = 2;   gbc.gridy = posY;
         gbc.insets = new Insets(4, 0, 1, 2);
         gds.add(cont.typeField, gbc);
+
+        return cont;
     }
 
     /**
@@ -192,19 +189,23 @@ public class GDS extends TechEditWizardPanel
 	public void term()
 	{
 		TechEditWizardData data = wizard.getTechEditData();
-		int numMetals = data.getNumMetalLayers();
-        for(int i=0; i<numMetals; i++)
+        TechEditWizardData.LayerInfo[] metalLayers = data.getGDSMetal();
+        TechEditWizardData.LayerInfo[] viaLayers = data.getGDSVia();
+
+        for(int i=0; i<metalLayers.length; i++)
         {
-        	data.setGDSMetal(i, TextUtils.atoi(metalContainers[i].valueField.getText()));
-        	if (i < numMetals-1)
-        		data.setGDSVia(i, TextUtils.atoi(viaContainers[i].typeField.getText()));
+            metalLayers[i].setData(new int[]{TextUtils.atoi(metalContainers[i].valueField.getText()),
+            TextUtils.atoi(metalContainers[i].typeField.getText())});
+        	if (i < metalLayers.length-1)
+                viaLayers[i].setData(new int[]{TextUtils.atoi(viaContainers[i].valueField.getText()),
+            TextUtils.atoi(viaContainers[i].typeField.getText())});
         }
-		data.setGDSDiff(TextUtils.atoi(diffGDS.valueField.getText()));
-		data.setGDSPoly(TextUtils.atoi(polyGDS.valueField.getText()));
-		data.setGDSNPlus(TextUtils.atoi(nPlusGDS.valueField.getText()));
-		data.setGDSPPlus(TextUtils.atoi(pPlusGDS.valueField.getText()));
-		data.setGDSNWell(TextUtils.atoi(nWellGDS.valueField.getText()));
-		data.setGDSContact(TextUtils.atoi(contactGDS.valueField.getText()));
-		data.setGDSMarking(TextUtils.atoi(markingGDS.valueField.getText()));
+
+        TechEditWizardData.LayerInfo[] basics = data.getBasicLayers();
+        for (int i = 0; i < basicContainers.length; i++)
+        {
+            basics[i].setData(new int[]{TextUtils.atoi(basicContainers[i].valueField.getText()),
+            TextUtils.atoi(basicContainers[i].typeField.getText())});
+        }
 	}
 }

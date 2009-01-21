@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09b: ******************************
 
+IMP/MAN: (1/21/09, GVG) TechEditor should at least support datatypes in GDS definition (Bug #2009)
+
 IMP/MAN: (1/21/09, SMR) Added ability to convert unknown GDS layers
      into random Electric layers (Bug #2018).
 

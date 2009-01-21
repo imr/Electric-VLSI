@@ -44,10 +44,7 @@ import java.io.LineNumberReader;
 import java.io.PrintWriter;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Class to handle the "Technology Creation Wizard" dialog.
@@ -123,18 +120,65 @@ public class TechEditWizardData
 	private double [] metal_antenna_ratio;
 
 	// GDS-II LAYERS
-	private int gds_diff_layer;
-	private int gds_sr_dpo_layer;
-    private int gds_poly_layer;
-    private int gds_nplus_layer;
-	private int gds_pplus_layer;
-	private int gds_nwell_layer;
-	private int gds_contact_layer;
-	private int [] gds_metal_layer;
-	private int [] gds_via_layer;
-	private int gds_marking_layer;		// Device marking layer
+    public static class LayerInfo
+    {
+        String name;
+        int value;
+        int type;
 
-	public TechEditWizardData()
+        LayerInfo(String n)
+        {
+            name = n;
+        }
+        int getValue() {return value;}
+        int getType() {return type;}
+        void setData(int[] vals)
+        {
+            value = vals[0];
+            type = vals[1];
+        }
+
+        public String toString()
+        {
+            if (type != 0) // useful datatype
+            {
+                return value + "/" + type;
+            }
+            else
+                return value + "";
+        }
+    }
+    
+    private LayerInfo gds_diff_layer = new LayerInfo("Active");
+	private LayerInfo gds_sr_dpo_layer = new LayerInfo("Protect Poly");
+    private LayerInfo gds_poly_layer = new LayerInfo("Poly");
+    private LayerInfo gds_nplus_layer = new LayerInfo("NPlus");
+	private LayerInfo gds_pplus_layer = new LayerInfo("PPlus");
+	private LayerInfo gds_nwell_layer = new LayerInfo("NWell");
+	private LayerInfo gds_contact_layer = new LayerInfo("Contact");
+	private LayerInfo [] gds_metal_layer;
+	private LayerInfo [] gds_via_layer;
+	private LayerInfo gds_marking_layer = new LayerInfo("Marking");		// Device marking layer
+
+    LayerInfo[] getBasicLayers()
+    {
+        int num = getProtectionPoly() ? 8 : 7;
+        LayerInfo[] layers = new LayerInfo[num];
+        int count = 0;
+
+        layers[count++] = gds_diff_layer;
+        layers[count++] = gds_poly_layer;
+        if (this.getProtectionPoly())
+            layers[count++] = gds_sr_dpo_layer;
+        layers[count++] = gds_nplus_layer;
+        layers[count++] = gds_pplus_layer;
+        layers[count++] = gds_nwell_layer;
+        layers[count++] = gds_contact_layer;
+        layers[count++] = gds_marking_layer;
+        return layers;
+    }
+
+    public TechEditWizardData()
 	{
 		stepsize = 100;
 		num_metal_layers = 2;
@@ -145,20 +189,23 @@ public class TechEditWizardData
 		via_array_spacing = new WizardField[num_metal_layers-1];
 		via_overhang_inline = new WizardField[num_metal_layers-1];
 		metal_antenna_ratio = new double[num_metal_layers];
-		gds_metal_layer = new int[num_metal_layers];
-		gds_via_layer = new int[num_metal_layers-1];
+
+        gds_metal_layer = new LayerInfo[num_metal_layers];
+		gds_via_layer = new LayerInfo[num_metal_layers-1];
 		for(int i=0; i<num_metal_layers; i++)
 		{
 			metal_width[i] = new WizardField();
 			metal_spacing[i] = new WizardField();
-		}
+            gds_metal_layer[i] = new LayerInfo("Metal-"+(i+1));
+        }
 		for(int i=0; i<num_metal_layers-1; i++)
 		{
 			via_size[i] = new WizardField();
 			via_spacing[i] = new WizardField();
 			via_array_spacing[i] = new WizardField();
 			via_overhang_inline[i] = new WizardField();
-		}
+            gds_via_layer[i] = new LayerInfo("Via-"+(i+1));
+        }
 	}
 
 	/************************************** ACCESSOR METHODS **************************************/
@@ -211,13 +258,15 @@ public class TechEditWizardData
 		for(int i=0; i<smallest; i++) new_metal_antenna_ratio[i] = metal_antenna_ratio[i];
 		metal_antenna_ratio = new_metal_antenna_ratio;
 
-		int [] new_gds_metal_layer = new int[n];
+		LayerInfo [] new_gds_metal_layer = new LayerInfo[n];
 		for(int i=0; i<smallest; i++) new_gds_metal_layer[i] = gds_metal_layer[i];
-		gds_metal_layer = new_gds_metal_layer;
+        for(int i=smallest-1; i<n-1; i++) new_gds_metal_layer[i] = new LayerInfo("Metal-"+(i+1));
+        gds_metal_layer = new_gds_metal_layer;
 
-		int [] new_gds_via_layer = new int[n-1];
+		LayerInfo [] new_gds_via_layer = new LayerInfo[n-1];
 		for(int i=0; i<smallest-1; i++) new_gds_via_layer[i] = gds_via_layer[i];
-		gds_via_layer = new_gds_via_layer;
+        for(int i=smallest-1; i<n-1; i++) new_gds_via_layer[i] = new LayerInfo("Via-"+(i+1));
+        gds_via_layer = new_gds_via_layer;
 
 		num_metal_layers = n;
 	}
@@ -330,26 +379,26 @@ public class TechEditWizardData
 	void setMetalAntennaRatio(int met, double value) { metal_antenna_ratio[met] = value; }
 
 	// GDS-II LAYERS
-	int getGDSDiff() { return gds_diff_layer; }
-	void setGDSDiff(int l) { gds_diff_layer = l; }
-	int getGDSPoly() { return gds_poly_layer; }
-	void setGDSPoly(int l) { gds_poly_layer = l; }
-    int getGDSSrDpo() { return gds_sr_dpo_layer; }
-	void setGDSSrDpo(int l) { gds_sr_dpo_layer = l; }
-    int getGDSNPlus() { return gds_nplus_layer; }
-	void setGDSNPlus(int l) { gds_nplus_layer = l; }
-	int getGDSPPlus() { return gds_pplus_layer; }
-	void setGDSPPlus(int l) { gds_pplus_layer = l; }
-	int getGDSNWell() { return gds_nwell_layer; }
-	void setGDSNWell(int l) { gds_nwell_layer = l; }
-	int getGDSContact() { return gds_contact_layer; }
-	void setGDSContact(int l) { gds_contact_layer = l; }
-	int [] getGDSMetal() { return gds_metal_layer; }
-	void setGDSMetal(int met, int l) { gds_metal_layer[met] = l; }
-	int [] getGDSVia() { return gds_via_layer; }
-	void setGDSVia(int via, int l) { gds_via_layer[via] = l; }
-	int getGDSMarking() { return gds_marking_layer; }
-	void setGDSMarking(int l) { gds_marking_layer = l; }
+    private int[] getGDSValuesFromString(String s)
+    {
+        int[] vals = new int[2];
+
+        vals[1] = 0; // 0 is the default datatype
+
+        // Check if datatype (/) is found
+        int index = s.indexOf("/");
+        if (index != -1) // datatype value
+        {
+            vals[0] = TextUtils.atoi(s.substring(0, index));
+            vals[1] = TextUtils.atoi(s.substring(index+1));
+        }
+        else
+            vals[0] = TextUtils.atoi(s);
+        return vals;
+    }
+
+	TechEditWizardData.LayerInfo [] getGDSMetal() { return gds_metal_layer; }
+	TechEditWizardData.LayerInfo [] getGDSVia() { return gds_via_layer; }
 
 	private String errorInData()
 	{
@@ -542,16 +591,16 @@ public class TechEditWizardData
 					if (varName.equalsIgnoreCase("poly_antenna_ratio")) setPolyAntennaRatio(TextUtils.atof(varValue)); else
 					if (varName.equalsIgnoreCase("metal_antenna_ratio")) metal_antenna_ratio = makeDoubleArray(varValue); else
 
-					if (varName.equalsIgnoreCase("gds_diff_layer")) setGDSDiff(TextUtils.atoi(varValue)); else
-					if (varName.equalsIgnoreCase("gds_poly_layer")) setGDSPoly(TextUtils.atoi(varValue)); else
-                    if (varName.equalsIgnoreCase("gds_sr_dpo_layer")) setGDSSrDpo(TextUtils.atoi(varValue)); else
-                    if (varName.equalsIgnoreCase("gds_nplus_layer")) setGDSNPlus(TextUtils.atoi(varValue)); else
-					if (varName.equalsIgnoreCase("gds_pplus_layer")) setGDSPPlus(TextUtils.atoi(varValue)); else
-					if (varName.equalsIgnoreCase("gds_nwell_layer")) setGDSNWell(TextUtils.atoi(varValue)); else
-					if (varName.equalsIgnoreCase("gds_contact_layer")) setGDSContact(TextUtils.atoi(varValue)); else
-					if (varName.equalsIgnoreCase("gds_metal_layer")) gds_metal_layer = makeIntArray(varValue); else
-					if (varName.equalsIgnoreCase("gds_via_layer")) gds_via_layer = makeIntArray(varValue); else
-					if (varName.equalsIgnoreCase("gds_marking_layer")) setGDSMarking(TextUtils.atoi(varValue)); else
+					if (varName.equalsIgnoreCase("gds_diff_layer")) gds_diff_layer.setData(getGDSValuesFromString(varValue)); else
+					if (varName.equalsIgnoreCase("gds_poly_layer")) gds_poly_layer.setData(getGDSValuesFromString(varValue)); else
+                    if (varName.equalsIgnoreCase("gds_sr_dpo_layer")) gds_sr_dpo_layer.setData(getGDSValuesFromString(varValue)); else
+                    if (varName.equalsIgnoreCase("gds_nplus_layer")) gds_nplus_layer.setData(getGDSValuesFromString(varValue)); else
+					if (varName.equalsIgnoreCase("gds_pplus_layer")) gds_pplus_layer.setData(getGDSValuesFromString(varValue)); else
+					if (varName.equalsIgnoreCase("gds_nwell_layer")) gds_nwell_layer.setData(getGDSValuesFromString(varValue)); else
+					if (varName.equalsIgnoreCase("gds_contact_layer")) gds_contact_layer.setData(getGDSValuesFromString(varValue)); else
+					if (varName.equalsIgnoreCase("gds_metal_layer")) gds_metal_layer = makeLayerInfoArray(varValue, num_metal_layers, "Metal-"); else
+					if (varName.equalsIgnoreCase("gds_via_layer")) gds_via_layer = makeLayerInfoArray(varValue, num_metal_layers - 1, "Via-"); else
+					if (varName.equalsIgnoreCase("gds_marking_layer")) gds_marking_layer.setData(getGDSValuesFromString(varValue)); else
 					{
 						Job.getUserInterface().showErrorMessage("Unknown keyword '" + varName + "' on line " + lineReader.getLineNumber(),
 							"Syntax Error In Technology File");
@@ -575,15 +624,23 @@ public class TechEditWizardData
 		return str;
 	}
 
-	private int [] makeIntArray(String str)
+	private LayerInfo [] makeLayerInfoArray(String str, int len, String extra)
 	{
-		WizardField [] foundArray = new WizardField[num_metal_layers];
-		for(int i=0; i<num_metal_layers; i++) foundArray[i] = new WizardField();
-		fillWizardArray(str, foundArray, num_metal_layers, false);
-		int [] retArray = new int[foundArray.length];
-		for(int i=0; i<foundArray.length; i++)
-			retArray[i] = (int)foundArray[i].v;
-		return retArray;
+		LayerInfo [] foundArray = new LayerInfo[len];
+		for(int i=0; i<len; i++) foundArray[i] = new LayerInfo(extra + (i+1));
+        StringTokenizer parse = new StringTokenizer(str, "( ,)", false);
+        int count = 0;
+        while (parse.hasMoreTokens())
+        {
+            if (count >= len)
+                System.out.println("More GDS values than metal layers in TechEditWizardData");
+            else
+            {
+                String value = parse.nextToken();
+                foundArray[count++].setData(getGDSValuesFromString(value));
+            }
+        }
+        return foundArray;
 	}
 
 	private double [] makeDoubleArray(String str)
@@ -698,7 +755,6 @@ public class TechEditWizardData
         pw.println();
 		pw.println("$tech_name = \"" + tech_name + "\";");
 		pw.println("$tech_description = \"" + tech_description + "\";");
-		pw.println("$num_metal_layers = " + num_metal_layers + ";");
 		pw.println("$num_metal_layers = " + num_metal_layers + ";");
 		pw.println("$pwell_process = " + pWellFlag + ";");
 		pw.println("$horizontal_transistors = " + horizontalFlag + ";");
@@ -913,7 +969,7 @@ public class TechEditWizardData
 		pw.println("# End of techfile");
 	}
 
-	/************************************** WRITE XML FILE **************************************/
+    /************************************** WRITE XML FILE **************************************/
 
 	void writeXML()
 	{
