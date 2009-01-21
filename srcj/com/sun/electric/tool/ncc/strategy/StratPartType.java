@@ -33,7 +33,7 @@ import com.sun.electric.tool.ncc.netlist.NetObject;
 import com.sun.electric.tool.ncc.netlist.Part;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
 
-/* StratPartType partitions Part equivalence classes
+/** StratPartType partitions Part equivalence classes
  * based upon the Part's type. */
 public class StratPartType extends Strategy {
 	private Map<Integer,String> typeCodeToTypeName = new HashMap<Integer,String>();

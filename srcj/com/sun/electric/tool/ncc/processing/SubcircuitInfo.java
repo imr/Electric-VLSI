@@ -88,7 +88,7 @@ public class SubcircuitInfo {
 			Integer portIndex = new Integer(i);
 			Port port = refPorts[i];
 			for (Iterator<String> it=port.getExportNames(); it.hasNext();) {
-				String exportName = (String) it.next();
+				String exportName = it.next();
 				if (portNames[i]==null) portNames[i] = exportName;
 				exportNameToPortIndex.put(exportName, portIndex);
 			}
@@ -115,17 +115,23 @@ public class SubcircuitInfo {
 		this.shared = referenceInfo.shared;;
 		this.exportNameToPortIndex = exportNameToPortIndex;
 	}
+	/** @return the unique ID assigned to this subcircuit */ 
 	public int getID() {return shared.ID;}
+	/** @return the name of this subcircuit */
 	public String getName() {return shared.name;}
+	/** @return the number of subcircuit ports */
 	public int numPorts() {return shared.portNames.length;}
+	/** @return the name of the ith port */
 	public String getPortName(int i) {return shared.portNames[i];}
+	/** @return the index of the port named exportName */
 	public int getPortIndex(String exportName) {
-		Integer I = (Integer) exportNameToPortIndex.get(exportName);
+		Integer I = exportNameToPortIndex.get(exportName);
 		//LayoutLib.error(I==null, "Export name not found: "+exportName);
 		// If oneNamePerPort then SubcircuitInfo saves only one Export
 		// name with Port. If you ask for others then you get -1
 		return I==null ? -1 : I.intValue();
 	}
+	/** @return an array of coefficients, one entry per port */
 	public int[] getPortCoeffs() {return shared.portCoeffs;}
 	/** @return array of PinTypes, one per Port */
 	public PinType[] getPinTypes() {return shared.pinTypes;}

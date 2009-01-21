@@ -32,6 +32,10 @@ import com.sun.electric.database.hierarchy.HierarchyEnumerator.NodableNameProxy;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.variable.VarContext;
 
+/** Save the equivalence information produced by NCC so 
+ * that a tool can map a Part or Wire in the schematic 
+ * to the equivalent Part or Wire in the layout.
+ */
 public class Equivalence implements Serializable {
     static final long serialVersionUID = 0;
 
@@ -47,15 +51,39 @@ public class Equivalence implements Serializable {
 		netEquiv = new NetEquivalence(equivNets, nccRootCells, nccRootCtxts);
 		nodeEquiv = new NodeEquivalence(equivNodes);
 	}
+	/** Given a Network in one design, return the matching network
+	 * in the other design. 
+	 * @param vc the VarContext specifying the instance path of the network
+	 * @param net the network in one design
+	 * @return the matching network in the other design
+	 */
 	public NetNameProxy findEquivalentNet(VarContext vc, Network net) {
 		return netEquiv.findEquivalentNet(vc, net);
 	}
+	/** Given a Network in one design, return the matching network
+	 * in the other design. Treat resistors as short circuits. 
+	 * @param vc the VarContext specifying the instance path of the network
+	 * @param net the network in one design
+	 * @return the matching network in the other design
+	 */
 	public NetNameProxy findEquivalentNetShortingResistors(VarContext vc, Network net) {
 		return netEquiv.findEquivalentNetShortingResistors(vc, net);
 	}
+	/** Given a Nodable in one design, return the matching Nodable
+	 * in the other design. 
+	 * @param vc the VarContext specifying the instance path of the Nodable
+	 * @param node the Nodable in one design
+	 * @return the matching Nodable in the other design
+	 */
 	public NodableNameProxy findEquivalentNode(VarContext vc, Nodable node) {
 		return nodeEquiv.findEquivalent(vc, node);
 	}
+	/** Perform a sanity check of the equivalence tables. This method
+	 * is used by the NCC regressions.
+	 * @param cell0 first Cell. this is used for the status message
+	 * @param cell1 second Cell. this is used for the status message
+	 * @return
+	 */
 	public int regressionTest(Cell cell0, Cell cell1) {
 		prln("  Equivalence regression for: "+cell0.describe(false)+
 			 " and "+cell1.describe(false));

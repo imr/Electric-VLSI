@@ -425,6 +425,9 @@ public class SchemNamesToLay {
 	}
     
     // --------------------------- public method -----------------------------
+	/** Copy Wire and Part names from the schematic to the layout.
+	 * Use the equivalence information stored in NccResults.
+	 */
     public static RenameResult copyNames(NccResults r) {
     	SchemNamesToLay sntl = new SchemNamesToLay(r);
     	return sntl.getResult();

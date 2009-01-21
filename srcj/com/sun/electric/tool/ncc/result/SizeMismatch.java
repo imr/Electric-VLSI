@@ -26,10 +26,11 @@ package com.sun.electric.tool.ncc.result;
 import java.io.Serializable;
 
 import com.sun.electric.tool.ncc.basic.NccUtils;
-import com.sun.electric.tool.ncc.netlist.Part;
 import com.sun.electric.tool.ncc.result.PartReport.PartReportable;
 
-
+/** Save size information needed by NCC GUI when reporting
+ * mismatches to user.
+ */
 public class SizeMismatch {
 	public static abstract class Mismatch implements Serializable {
 		private StringBuffer sb = new StringBuffer();

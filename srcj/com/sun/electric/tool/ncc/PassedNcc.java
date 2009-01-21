@@ -13,7 +13,9 @@ import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.tool.ncc.basic.CellContext;
 
 /**
- * Cell pairs that have already passed NCC.
+ * Cell pairs that have already passed NCC. PassedNcc is used to
+ * implement NCC's incremental mode: check only cells that have
+ * changed since the last NCC.
  */
 public class PassedNcc {
 	private static class Pair {
@@ -79,11 +81,18 @@ public class PassedNcc {
 	private Set<Pair> passed = new HashSet<Pair>();
 	private Date lastNccRunDate;
 	
+	/** Remember that Cells c1 and c2 have passed NCC and are therefore topologically identical */
 	public synchronized void setPassed(Cell c1, Cell c2) {passed.add(new Pair(c1, c2));}
+	/** Did Cells c1 and c2 match the last time NCC was run?
+	 * @param c1 Cell one
+	 * @param c2 Cell two
+	 * @return true if Cells c1 and c2 matched the last time NCC was run. Therefore
+	 * it is safe to assume that c1 and c2 are topologically identical.
+	 */
 	public synchronized boolean getPassed(Cell c1, Cell c2) {
 		return passed.contains(new Pair(c1, c2));
 	}
-	/** Purge all Cells that were changed since the last NCC run.
+	/** Purge all Cells that the user changed since the last NCC run.
 	 * Then record the time of this new NCC Run. */
 	public synchronized void removeCellsChangedSinceLastNccRun(CellContext[] cellContexts) {
 		// for each Cell, compute latest revision date of all descendants 

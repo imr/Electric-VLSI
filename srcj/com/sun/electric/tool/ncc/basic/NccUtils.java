@@ -46,7 +46,8 @@ import com.sun.electric.tool.ncc.result.BenchmarkResults.BenchIdx;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
-
+/** Subroutines useful for NCC.
+ */
 public class NccUtils {
 	private static long pow(int x, int y) {
 		long prod = 1;
@@ -163,7 +164,13 @@ public class NccUtils {
 		System.out.flush();
 		return r;
 	}
-
+	/** Say whether sizes w1 and w2 are close enough together for NCC
+	 * to consider them "equal".
+	 * @param w1 first width or length
+	 * @param w2 second width or length
+	 * @param opt NCC options that specify size matching tolerances
+	 * @return true if NCC should consider them equal
+	 */
 	public static boolean sizesMatch(double w1, double w2, NccOptions opt) {
 		double maxWidth = Math.max(w1, w2);
 		double minWidth = Math.min(w1, w2);

@@ -46,6 +46,9 @@ import com.sun.electric.tool.ncc.result.SizeMismatch.WidthMismatch;
 import com.sun.electric.tool.ncc.trees.Circuit;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
 
+/** Check that corresponding transistors in the schematic and layout
+ * have the same channel widths and lengths.
+ */
 public class StratCheckSizes extends Strategy {
 	// ------------------------------ private data -----------------------------
 	private NccOptions options;

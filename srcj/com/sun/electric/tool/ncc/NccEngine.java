@@ -56,6 +56,20 @@ import com.sun.electric.tool.ncc.strategy.StratCheckSizes;
 import com.sun.electric.tool.ncc.trees.Circuit;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
 
+/** NccEngine performs the topological comparison of two Cells.
+ * These Cells are from the same
+ * CompareList and are supposed to be topologically
+ * identical.
+ * 
+ * Note that NCC calls NccEngine.compare() many times. For example,
+ * if every CompareList contained exactly two Cells, then NCC
+ * would call NccEngine.compare() once for each CompareList.
+ * 
+ *  NCC calls NccEngine.compare() on the leaf Cells first, and proceeds 
+ *  upwards towards the
+ *  root. The object, HierarchyInfo, stores information that NCC
+ *  must pass from lower level comparisons to higher level comparisons. 
+ */
 public class NccEngine {
 	// ------------------------------ private data ----------------------------
 	private NccGlobals globals;
@@ -299,7 +313,7 @@ public class NccEngine {
 	}
 	// -------------------------- public methods ------------------------------
 	/** 
-	 * Check to see if all cells are electrically equivalent.  Note that
+	 * Check to see if all cells are topologically equivalent.  Note that
 	 * the NCC engine can compare any number of Cells at the same time.
 	 * @param cells a list of cells to compare.
 	 * @param contexts a list of VarContexts for the corresponding Cell. The
@@ -315,7 +329,16 @@ public class NccEngine {
 		return compareMany(cells, contexts, hierCompInfo, false, 
 		                   options, aborter);
 	}
-	/** compare two Cells */
+	/** 
+	 * Check to see if two cells are topologically equivalent.  
+	 * @param cell1 the root cell for the first design
+	 * @param context1 the VarContext for the first Cell
+	 * @param cell2 the root cell for the second design
+	 * @param context2 the VarContext for the second Cell
+	 * @param hierCompInfo Information needed to perform hierarchical
+	 * netlist comparison. For flat comparisons pass null.
+	 * @param options NCC options
+	 */
 	public static NccResult compare(Cell cell1, VarContext context1, 
 	                                Cell cell2, VarContext context2, 
 	                                HierarchyInfo hierInfo, 
@@ -323,6 +346,19 @@ public class NccEngine {
 		return compare2(cell1, context1, cell2, context2, hierInfo, false, 
 				        options, aborter);
 	}
+	/** 
+	 * Instead of checking to see if two cells are topologically 
+	 * equivalent, simply pretend that we've already compared them
+	 * and found them to match. Put information into hierInfo that indicates
+	 * that these two Cells match. 
+	 * @param cell1 the root cell for the first design
+	 * @param context1 the VarContext for the first Cell
+	 * @param cell2 the root cell for the second design
+	 * @param context2 the VarContext for the second Cell
+	 * @param hierCompInfo Information needed to perform hierarchical
+	 * netlist comparison. For flat comparisons pass null.
+	 * @param options NCC options
+	 */
 	public static NccResult buildBlackBoxes(Cell cell1, VarContext ctxt1, 
 								          Cell cell2, VarContext ctxt2,
 								          HierarchyInfo hierInfo, 

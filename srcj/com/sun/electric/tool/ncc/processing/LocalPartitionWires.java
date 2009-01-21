@@ -49,7 +49,9 @@ import com.sun.electric.tool.ncc.strategy.Strategy;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
 
 /**
- * Local Partition of Wires. Use hashing.
+ * Partition Wires into equivalence classes based only upon
+ * local information. Compute a Signature for each wire and then
+ * group together Wires with the same Signature.
  */
 public class LocalPartitionWires {
 	// ------------------------ data ---------------------------------
@@ -85,7 +87,10 @@ public class LocalPartitionWires {
 			return TextUtils.STRING_NUMBER_ORDER.compare(n1, n2);
 		}
 	}
-	
+	/** A Wire's Signature is an unordered list of of the pairs {PinType, count}.
+	 * For example, 2 Mos diffusions and 1 Mos gate. Signatures are used as
+	 * hash keys to quickly partition Wires based upon their Signatures. 
+	 */
 	public static class Signature {
 		private Map<PinType,PinTypeCount> pinTypeToPinTypeCount = new HashMap<PinType,PinTypeCount>();
 		// Note: id isn't supposed to be used by equals()
@@ -309,6 +314,10 @@ public class LocalPartitionWires {
 	}
 
 	// ------------------------ public method ---------------------------------
+	/** Partition Wires based upon purely local information
+	 * @param forcedMatchWires Wires that were pre-matched by the user
+	 * @param globs variables used by all of NCC
+	 */
 	public static void doYourJob(Set<Wire> forcedMatchWires, NccGlobals globs) {
 		globs.status2("Partition Wires using local information");
 		LocalPartitionWires lpw = new LocalPartitionWires(globs);

@@ -44,6 +44,7 @@ class ScanHierForNccAnnot extends HierarchyEnumerator.Visitor {
 			prln("    "+it.next());
 		}
 	}
+	@Override
 	public boolean enterCell(HierarchyEnumerator.CellInfo info) {
 		Cell cell = info.getCell();
 		if (enteredCells.contains(cell))  return false;
@@ -51,12 +52,15 @@ class ScanHierForNccAnnot extends HierarchyEnumerator.Visitor {
 		enteredCells.add(cell);
 		return true;
 	}
+	@Override
 	public void exitCell(HierarchyEnumerator.CellInfo info) {}
+	@Override
 	public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info) {
 		return true;
 	}
 } 
 
+/** Walk design hierarchy and print all the NCC annotations that we find. */
 public class ListNccAnnotations {
 	private static void prln(String s) {System.out.println(s);}
 	private static void scanHierarchy(Cell cell) {

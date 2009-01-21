@@ -46,7 +46,10 @@ public class NccCrossProbing extends HierarchyEnumerator.Visitor {
     public static NccResult getResults(Cell cell) {
         return results.get(cell);
     }
-
+    /** Run NCC in order to display layout simulation waveforms from a schematic.
+     * @param cell the root schematic cell
+     * @param context the VarContext for evaluating variables
+     */
     public static void runNccSchematicCrossProbing(Cell cell, VarContext context) {
         if (!cell.isSchematic()) {
             System.out.println("Error: NCC for Schematic Cross-Probing must be run on a schematic");
@@ -55,7 +58,6 @@ public class NccCrossProbing extends HierarchyEnumerator.Visitor {
         results.clear();
         (new NccCrossProbeJob(cell, context)).startJob();
     }
-
     private static class NccCrossProbeJob extends Job {
         private Cell cell;
         private VarContext context;
@@ -66,6 +68,7 @@ public class NccCrossProbing extends HierarchyEnumerator.Visitor {
             this.cell = cell;
             this.context = context;
         }
+        @Override
         public boolean doIt() {
             HierarchyEnumerator.enumerateCell(cell, context, visitor);
             return true;
@@ -73,7 +76,7 @@ public class NccCrossProbing extends HierarchyEnumerator.Visitor {
     }
 
     // =====================================================================
-
+    @Override
     public boolean enterCell(HierarchyEnumerator.CellInfo info) {
         Cell cell = info.getCell();
 
@@ -119,11 +122,11 @@ public class NccCrossProbing extends HierarchyEnumerator.Visitor {
 
         return false;  //To change body of implemented methods use File | Settings | File Templates.
     }
-
+    @Override
     public void exitCell(HierarchyEnumerator.CellInfo info) {
         //To change body of implemented methods use File | Settings | File Templates.
     }
-
+    @Override
     public boolean visitNodeInst(Nodable ni, HierarchyEnumerator.CellInfo info) {
         return true;  //To change body of implemented methods use File | Settings | File Templates.
     }

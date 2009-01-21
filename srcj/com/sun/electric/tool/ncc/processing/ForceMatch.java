@@ -41,6 +41,9 @@ import com.sun.electric.tool.ncc.strategy.Strategy;
 import com.sun.electric.tool.ncc.trees.Circuit;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
 
+/** The NCC annotation "forceMatch" allows the user to pre-match
+ * Parts and Wires. ForceMatch does this.
+ */
 public class ForceMatch {
 	private static class PartitionEquivRecord extends Strategy {
 		private Map<NetObject, Integer> netObjToIndex;

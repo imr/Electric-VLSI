@@ -23,6 +23,9 @@
 */
 package com.sun.electric.tool.ncc.result;
 
+/** Save Port information needed by NCC GUI when 
+ * reporting mismatches to user.
+ */
 public class PortReport extends NetObjReport {
 	static final long serialVersionUID = 0;
 	

@@ -30,6 +30,9 @@ import java.util.List;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.result.NetObjReport.NetObjReportable;
 
+/** EquivRecReport stores information needed by the 
+ * NCC GUI in order to report mismatches to the user.
+ */
 public class EquivRecReport implements Serializable {
 	static final long serialVersionUID = 0;
 	

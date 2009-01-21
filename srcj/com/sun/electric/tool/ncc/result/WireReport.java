@@ -25,6 +25,9 @@ package com.sun.electric.tool.ncc.result;
 
 import com.sun.electric.tool.ncc.netlist.NccNameProxy.WireNameProxy;
 
+/** Save Wire information needed by NCC GUI when reporting
+ * mismatches to the user.
+ */
 public class WireReport extends NetObjReport {
 	static final long serialVersionUID = 0;
 

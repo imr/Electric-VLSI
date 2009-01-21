@@ -349,11 +349,12 @@ public class NccCellAnnotations {
             newAnnotation = annotation;
             startJob();
         }
-
+		@Override
         public boolean doIt() throws JobException {
         	addNccAnnotation(cell, newAnnotation);
         	return true;
         }
+		@Override
         public void terminateOK() {
         	wnd.clearHighlighting();
 			wnd.addHighlightText(cell, cell, NCC_ANNOTATION_KEY);
@@ -432,7 +433,9 @@ public class NccCellAnnotations {
 	public Iterator<List<NamePattern>> getExportsConnected() {return exportsConnByParent.iterator();}
 	
 	public Iterator<String> getAnnotationText() {return annotText.iterator();}
+	/** @return the CellGroup specified by a joinGroup annotation */
 	public Cell.CellGroup getGroupToJoin() {return groupToJoin;}
+	/** @return true if a flattenInstance annotation says to flatten instName */
 	public boolean flattenInstance(String instName) {
 		for (NamePattern pattern : flattenInstances) {
 			if (pattern.matches(instName)) return true;

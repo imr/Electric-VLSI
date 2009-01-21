@@ -164,7 +164,7 @@ public class StratSizes extends Strategy {
 		OutlierRecord furthestOut = null;
 		Iterator<EquivRecord> frontier = globals.getPartLeafEquivRecs().getNotMatched();
 		while (frontier.hasNext()) {
-			EquivRecord r = (EquivRecord) frontier.next();
+			EquivRecord r = frontier.next();
 			if (!r.isBalanced())  continue;
 			OutlierRecord farOut = new OutlierRecord(r);
 			if (farOut.deviation()==0) continue;
@@ -184,7 +184,7 @@ public class StratSizes extends Strategy {
 		outlierRecord = r;
 		return doFor(r.getEquivRecord());
 	}
-
+	@Override
 	public Integer doFor(NetObject n){
 		Part p = (Part) n;
 		return outlierRecord.isOutlier(p) ? CODE_OUTLIER : CODE_REST;

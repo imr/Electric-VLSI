@@ -48,6 +48,9 @@ import com.sun.electric.tool.ncc.strategy.StratSizes;
 import com.sun.electric.tool.ncc.trees.Circuit;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
 
+/** HashCodePartitioning implements Carl Ebeling's classic
+ * Gemini II algorithm. 
+ */
 public class HashCodePartitioning {
 	NccGlobals globals;
 	

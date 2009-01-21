@@ -35,7 +35,8 @@ import com.sun.electric.tool.ncc.trees.EquivRecord;
 /** 
  * StratPrint gives a limited print out of the tree
  * It prints not more than maxLines stuff for each list
- * and not more than maxPins in any one Wire
+ * and not more than maxPins in any one Wire. StratPrint
+ * is for debugging.
  */
 public class StratPrint extends Strategy {
 

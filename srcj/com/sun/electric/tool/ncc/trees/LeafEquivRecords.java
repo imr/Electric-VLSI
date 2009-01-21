@@ -140,6 +140,7 @@ public class LeafEquivRecords {
 		processInternalEquivRecords();
 		return Collections.unmodifiableList(matched).iterator();
 	}
+	/** @return the number of EquivRecords that are matched */
 	public int numMatched() {
 		processInternalEquivRecords();
 		return matched.size();

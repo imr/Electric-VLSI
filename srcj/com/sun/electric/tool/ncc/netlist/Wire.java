@@ -31,7 +31,8 @@ import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.tool.ncc.netlist.NccNameProxy.WireNameProxy;
 import com.sun.electric.tool.ncc.result.WireReport.WireReportable;
 import com.sun.electric.tool.ncc.trees.Circuit;
-
+/** A Wire represents an electrical equipotential.
+ */
 public class Wire extends NetObject implements WireReportable {
 	private static final ArrayList<Part> DELETED = null;
 
@@ -43,9 +44,11 @@ public class Wire extends NetObject implements WireReportable {
     // ---------- public methods ----------
 
 	public Wire(WireNameProxy name){nameProxy = name;}
+	@Override
 	public String getName() {return nameProxy.getName();}
 	public WireNameProxy getNameProxy() {return nameProxy;}
 	public Iterator<Part> getParts() {return parts.iterator();}
+	@Override
 	public Iterator getConnected() {return getParts();}
 
     /** add a Part to this Wire
@@ -79,16 +82,18 @@ public class Wire extends NetObject implements WireReportable {
 	/** @return the Port on this Wire. Return null if wire has no Export 
 	 * attached */
 	public Port getPort() {return port;}
-	
+	@Override
     public Type getNetObjType() {return Type.WIRE;}
 
 	/** Mark this wire deleted and release all storage */
 	public void setDeleted() {parts=DELETED;}
+	@Override
 	public boolean isDeleted() {return parts==DELETED;}
 
     /** check that this Wire is properly structured.  check each
 	 * connection to see if it points back
 	 * @param parent the wire's parent */
+	@Override
     public void checkMe(Circuit parent){
     	error(getParent()!=parent, "wrong parent");
         for (Iterator<Part> it=getParts(); it.hasNext();) {
@@ -101,11 +106,15 @@ public class Wire extends NetObject implements WireReportable {
     }
 
     /** 
-	 * Does this Wire touch the given Part?
+	 * Does this Wire connect to the given Part?
 	 * @param p the Part to test
 	 * @return true if it touches, false if not
 	 */
     public boolean touches(Part p){return parts.contains(p);}
+    /** Does this Wire connect to the given Port?
+     * @param p the Port in question
+     * @return true if Wire connects to Port p
+     */
     public boolean touches(Port p) {return port==p;}
     public Integer computeHashCode(){
         int sum= 0;
@@ -121,6 +130,7 @@ public class Wire extends NetObject implements WireReportable {
     public int numParts(){return parts.size();}
     
     /** @return a String describing Cell containing wire and instance path */
+    @Override
     public String instanceDescription() {
     	// Don't print "Cell instance:" in root Cell where there is no path.
     	String inst = nameProxy.cellInstPath();
@@ -128,12 +138,13 @@ public class Wire extends NetObject implements WireReportable {
     	return "Wire: "+nameProxy.leafName()+" in Cell: "+
 		       nameProxy.leafCell().libDescribe()+instMsg;
     }
-    
+    @Override
     public String valueDescription() {return "";}
 
     /** Get a String indicating up to N connections for this NetObject.
 	 * @param maxParts the maximum number of connections to list
 	 * @return a String of connections. */
+    @Override
     public String connectionDescription(int maxParts){
         if (parts.size()==0) return (" unconnected");
         String s = " connected to";

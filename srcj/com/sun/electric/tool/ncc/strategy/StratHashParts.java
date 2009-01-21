@@ -30,6 +30,8 @@ import com.sun.electric.tool.ncc.netlist.NetObject;
 import com.sun.electric.tool.ncc.netlist.Part;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
 
+/** Perform a Gemini II style hash code partitioning of Parts.
+ */
 public class StratHashParts extends Strategy {
 	private int numPartsProcessed;
 	private int numEquivProcessed;

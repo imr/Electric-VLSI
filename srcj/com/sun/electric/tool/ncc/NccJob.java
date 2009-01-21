@@ -142,6 +142,7 @@ public class NccJob extends Job {
 	}
 	
 	// Some day we may run this on server
+	@Override
     public boolean doIt() {
 		if (cellCtxts==null) {
 			// null results means couldn't run NCC
@@ -159,7 +160,7 @@ public class NccJob extends Job {
 
 		return true;
     }
-    
+    @Override
     public void terminateOK() {
     	lastResults = results;
     	if (results==null) return; // NCC couldn't even run

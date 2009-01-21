@@ -81,6 +81,17 @@ public class NccNetlist {
 	private boolean userAbort;
 
 	// ---------------------------- public methods ---------------------------
+	/** Build a netlist for Cell root. Mos transistors are represented by
+	 * Mos. Instances of lower level Cells that have already been checked
+	 * by NCC are represented by SubCircuit. Instances of lower level Cells 
+	 * that haven't been checked by NCC are flattened.
+	 * @param root the top Cell
+	 * @param context the VarContext for the top Cell
+	 * @param hierInfo information about what's already been checked by NCC
+	 * @param blackBox we're not actually going to check so just build an
+	 * empty netlist
+	 * @param globals variables shared by all parts of NCC
+	 */
 	public NccNetlist(Cell root, VarContext context, 
 					  HierarchyInfo hierInfo, boolean blackBox, 
 					  NccGlobals globals) {
@@ -113,15 +124,22 @@ public class NccNetlist {
 			ports = new ArrayList<Port>();
 		}
 	}
+	/** @return a list of all the Wires */
 	public ArrayList<Wire> getWireArray() {return wires;}
+	/** @return a list of all the Parts */
 	public ArrayList<Part> getPartArray() {return parts;}
+	/** @return a list of all the Ports */
 	public ArrayList<Port> getPortArray() {return ports;}
+	/** @return true if some error prevents us from building a netlist */
 	public boolean cantBuildNetlist() {
 		return exportAssertionFailures || exportGlobalConflicts ||
 		       badTransistorType;
 	}
+	/** @return true if user has requested an abort of NCC run */
 	public boolean userAbort() {return userAbort;}
+	/** @return the root Cell */
 	public Cell getRootCell() {return rootCell;}
+	/** @return the VarContext of the root Cell */
 	public VarContext getRootContext() {return rootContext;}
 }
 
@@ -765,12 +783,16 @@ class Visitor extends HierarchyEnumerator.Visitor {
 		}
 	}
 	// ---------------------- intended public interface -----------------------
+	/** @return a list of Wires */
 	public ArrayList<Wire> getWireList() {return wires.getWireArray();}
+	/** @return a list of Parts */
 	public ArrayList<Part> getPartList() {return parts;}
+	/** @return a list of Ports */
 	public ArrayList<Port> getPortList() {return ports;}
 	/** Ensure that all subcircuits we instantiate have valid exportsConnectedByParent assertions.
 	 * If not then this netlist isn't valid. */
 	public boolean exportAssertionFailures() {return exportAssertionFailures;}
+	/** @return true if we found a transistor type we don't recognize */
 	public boolean badTransistorType() {return badPartType;}
 	
 	public Visitor(NccGlobals globals, 

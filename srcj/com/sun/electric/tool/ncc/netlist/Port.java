@@ -54,11 +54,14 @@ public class Port extends NetObject implements PortReportable {
 		names.add(name);
 		types.add(type);
 	}
+	@Override
 	public String getName() {
 		LayoutLib.error(names.size()==0, "Port with no name?");
 		return names.iterator().next();
 	}
+	@Override
 	public Type getNetObjType() {return Type.PORT;}
+	@Override
 	public Iterator<NetObject> getConnected() {return (new ArrayList<NetObject>()).iterator();}
 	
 	public void addExport(String nm, PortCharacteristic type, boolean oneNamePerPort) {
@@ -92,10 +95,11 @@ public class Port extends NetObject implements PortReportable {
 		}
 		return popularType;
 	}
-	
+	/** @return the Wire attached to this Port */
 	public Wire getWire(){return wire;}
+	/** @return the name of the Wire attached to this Port */
 	public String getWireName() {return wire.getName();}
-
+	@Override
 	public void checkMe(Circuit parent){
 		error(parent!=getParent(), "wrong parent");
 		error(wire==null, instanceDescription() + " has null connection");
@@ -103,6 +107,10 @@ public class Port extends NetObject implements PortReportable {
 			  instanceDescription()+" has inconsistant connection to " + 
 			  wire.instanceDescription());
 	}
+	/** Electric allows multiple Exports to be attached to network.
+	 * When this happens, NCC
+	 * creates a single Port with multiple names.
+	 * @return a string containing all the Export names of this Port */
 	public String exportNamesString() {
 		StringBuffer sb = new StringBuffer();
 		sb.append("{ ");
@@ -114,16 +122,20 @@ public class Port extends NetObject implements PortReportable {
 		sb.append(" }");
 		return sb.toString();
 	}
+	/** @return an Iterator over all the Export names */
 	public Iterator<String> getExportNames() {return names.iterator();}
+	@Override
 	public boolean isDeleted() {return false;}
 	public boolean isImplied() {
         return ! getWire().getNameProxy().getNet().getExports().hasNext();
 	}
 	public void setToBeRenamed() {toBeRenamed = true;}
 	public boolean getToBeRenamed() {return toBeRenamed;}
-
+	@Override
 	public String instanceDescription() {return "Port "+exportNamesString();}
+	@Override
 	public String valueDescription() {return "";}
+	@Override
     public String connectionDescription(int n){return "is on Wire: "+wire.getName();}
 }
 

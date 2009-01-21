@@ -24,7 +24,21 @@
 package com.sun.electric.tool.ncc;
 
 import java.io.Serializable;
-
+/** NccOptions allows the user to control exactly how NCC performs
+ * its comparison. When the NCC command is launched, NCC
+ * examines the NCC user preferences to create an NccOptions
+ * object. Thereafter, NCC only looks at the NccOptions in order
+ * to determine what to do.
+ * 
+ * The only place where NCC examines the NCC user preferences
+ * is the getOptionsFromNccPreferences() method below. Everywhere else
+ * NCC uses NccOptions.
+ * 
+ * My use of NccOptions to control NCC allows NCC to be thread safe.
+ * Multiple threads can run NCC at the same time. Each thread 
+ * calls NCC with a different NccOptions object and each NccOptions
+ * object can specify different options.
+ */
 public class NccOptions implements Serializable {
 	static final long serialVersionUID = 0;
 	
@@ -70,8 +84,12 @@ public class NccOptions implements Serializable {
 	/** Check the body connections of MOS transistors. */
 	public boolean checkBody = false;
 	
+	/** Construct an NccOptions with the default options */
 	public NccOptions() {}
 	
+	/** Construct an NccOptions that is a copy of o 
+	 * @param o the NccOptions to copy
+	 */
 	public NccOptions(NccOptions o) {
 		operation = o.operation;
 		checkSizes = o.checkSizes;
@@ -87,6 +105,10 @@ public class NccOptions implements Serializable {
 		checkBody = o.checkBody;
 	}
 	
+	/** Look at the NCC user preferences and construct an NccOptions object
+	 * that reflects those preferences. This is the only place in all of NCC
+	 * where the NCC user preferences are examined.
+	 */
 	public static NccOptions getOptionsFromNccPreferences() {
 		NccOptions options = new NccOptions();
 		options.operation = NccPreferences.getOperation();
@@ -105,6 +127,25 @@ public class NccOptions implements Serializable {
 		options.maxMatchedEquivRecsToPrint = NccPreferences.getMaxMatchedClasses();
 		options.maxEquivRecMembersToPrint = NccPreferences.getMaxClassMembers();
 		
+		/** Subtle!!!!!
+		 * NCC used to have a more flexible Export matching algorithm. If
+		 * the schematic had a wire with Exports A, B, and C, and the 
+		 * equivalent wire in the layout had Exports B, C, and D, then NCC
+		 * used to say the Export names matched. Later, I made NCC's 
+		 * Export matcher more restrictive in order to match the behavior
+		 * of commercial tools. Now NCC complains that the lexigraphically
+		 * first schematic Export A doesn't match the lexigraphically first
+		 * layout Export B. 
+		 * 
+		 *  However, most of NCC's regressions were created for the old 
+		 *  Export checker. Therefore the regression scripts enable the 
+		 *  old Export checker. However, if you invoke NCC from the GUI 
+		 *  to compare designs in the regression database they will fail.
+		 *  
+		 *  The following comment enables the old Export checker when
+		 *  NCC is invoked from the GUI. I uncomment if I want to
+		 *  run NCC on old regression data.
+		 */
 		// for testing old regressions only!
 		//options.oneNamePerPort = false;
 		

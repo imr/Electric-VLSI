@@ -30,6 +30,9 @@ import java.util.Iterator;
 
 import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
+/** A list of the equivalence records that are newly created leaves
+ * of the equivalence record tree.
+ */
 public class LeafList extends RecordList {
 	private static class SizeCompare implements Comparator<EquivRecord> {
 		public int compare(EquivRecord s1, EquivRecord s2){
@@ -44,7 +47,8 @@ public class LeafList extends RecordList {
 	public void sortByIncreasingSize() {
 		Collections.sort(content, new SizeCompare());
 	}
-
+	/** @return a string containing useful debugging information.
+	 */
 	public String sizeInfoString() {
 		StringBuffer max = new StringBuffer(" offspring max sizes:");
 		StringBuffer diff = new StringBuffer(" offspring size differences: ");

@@ -36,7 +36,13 @@ import com.sun.electric.tool.ncc.basic.CellContext;
 import com.sun.electric.tool.ncc.basic.CompareList;
 import com.sun.electric.tool.ncc.basic.CompareLists;
 
-/** Information needed to perform hierarchical netlist comparison */
+/** Information needed to perform hierarchical netlist comparison.
+ * NCC usually performs comparisons hierarchically. NCC starts with
+ * leaf Cells and works towards the root Cells. After NCC checks
+ * Cells that are lower in the design hierarchy, NCC saves information
+ * that allows it abstract those cells when it compare Cells 
+ * higher in the design hierarchy. The information necessary to abstract
+ * lower level cells is stored in HierarchyInfo.  */
 public class HierarchyInfo {
 	/** name of the current CompareList (usually CellGroup name) */ 
 	private String subcktName;

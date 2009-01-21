@@ -144,6 +144,13 @@ public class LocalPartitioning {
     
 	
 	// ------------------------ public method ---------------------------------
+    /** Partition Parts and wires based upon purely local information. 
+     * We pass in the Parts and Wires that have been pre-matched because
+     * those Parts and Wires may actually mismatch and we must prevent
+     * LocalPartitioning from mismatching them.
+     * @param forcedMatchParts Parts that have been pre-matched by the user
+     * @param forcedmatchWires Wires that have been pre-matched by the user
+     * @param globals variables shared by all parts of NCC */
 	public static LocalPartitionResult doYourJob(Set<Part> forcedMatchParts,
 			                     		         Set<Wire> forcedMatchWires, 
 			                                     NccGlobals globals) {

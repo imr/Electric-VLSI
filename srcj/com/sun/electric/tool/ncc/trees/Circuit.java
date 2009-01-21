@@ -34,6 +34,11 @@ import com.sun.electric.tool.ncc.netlist.NetObject;
 import com.sun.electric.tool.ncc.netlist.Wire;
 import com.sun.electric.tool.ncc.strategy.Strategy;
 
+/** A Circuit is a collection of NetObjects that belong to the same
+ * design. For example, a collection of Parts from the schematic.
+ * <p>
+ * A Circuit is contained by an Equivalence record.
+ */
 public class Circuit {
     private EquivRecord myParent;
     private ArrayList<NetObject> netObjs = new ArrayList<NetObject>();

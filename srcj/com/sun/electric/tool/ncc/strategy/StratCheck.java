@@ -32,6 +32,8 @@ import com.sun.electric.tool.ncc.netlist.NetObject;
 import com.sun.electric.tool.ncc.trees.Circuit;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
 
+/** Perform sanity checks on NCC's EquivRec trees.
+ */
 public class StratCheck extends Strategy {
 
     //these are variables that pass between levels of the tree

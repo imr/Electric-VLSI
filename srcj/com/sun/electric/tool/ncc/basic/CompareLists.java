@@ -33,7 +33,13 @@ import java.util.Set;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Cell.CellGroup;
 import com.sun.electric.tool.generator.layout.LayoutLib;
-
+/**
+ * A collection of one or more CompareLists.  NCC will sequence
+ * through each CompareList making sure that Cells in the same
+ * CompareList are topologically identical. The collection is ordered
+ * so that NCC will begin with leaf Cells first and proceed upwards
+ * in the design hierarchy towards the root.
+ */
 public class CompareLists {
 	// Subtle!!!: alreadyCompared tests Cells rather than CellContexts
 	// Suppose the root Cells being compared are A and B. Suppose A
@@ -51,7 +57,7 @@ public class CompareLists {
 	private boolean alreadyCompared(Set compared, CompareList compareList) {
 		int num=0, numComp=0;
 		for (Iterator<CellContext> it=compareList.iterator(); it.hasNext();) {
-			CellContext cc = (CellContext) it.next();
+			CellContext cc = it.next();
 			if (compared.contains(cc.cell)) {
 				numComp++;
 				// RKao debug
@@ -87,7 +93,7 @@ public class CompareLists {
 			if (compareList.empty()) continue;
 			
 			for (Iterator<CellContext> it2=compareList.iterator(); it2.hasNext();) {
-				CellContext cc = (CellContext) it2.next();
+				CellContext cc = it2.next();
 				compared.add(cc.cell);
 			}
 			compareLists.add(compareList);
@@ -99,7 +105,14 @@ public class CompareLists {
 		CellUsage use2 = CellUsage.getCellUsage(cc2);
 		return getCompareLists(use1, use2);
 	}
-	
+	/** Scan the two designs, cc1 and cc2 to produce a list of 
+	 * CompareLists. Typically, cc1 is the schematic and cc2 is the layout.
+	 * The CompareLists are ordered 
+	 * starting with the leaf cells. 
+	 * @param cc1 the root Cell and VarContext of the first design
+	 * @param cc2 the root Cell and VarContext of the second design 
+	 * @return A CompareLists object which is a collection of CompareLists.
+	 */
 	public static List<CompareList> getCompareLists(CellContext cc1, CellContext cc2) {
 		return (new CompareLists()).getCompareLists1(cc1, cc2);
 	}

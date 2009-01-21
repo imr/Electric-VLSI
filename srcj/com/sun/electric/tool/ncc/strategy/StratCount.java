@@ -35,7 +35,8 @@ import com.sun.electric.tool.ncc.trees.EquivRecord;
 
 /** StratCount counts and prints a tree's content. StratCount
  * implements a doFor method for each level in the EquivRecord tree,
- * keeping counters of what it finds. */
+ * keeping counters of what it finds. StratCount is for debugging and
+ * program development. */
 public class StratCount extends Strategy {
 	// ------------------------------ types -----------------------------------
 	/** Object to maintain a statistical datum (an int) for each type of

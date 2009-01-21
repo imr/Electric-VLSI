@@ -33,8 +33,7 @@ import com.sun.electric.tool.ncc.basic.NccUtils;
 import com.sun.electric.tool.ncc.basic.Primes;
 import com.sun.electric.tool.ncc.netlist.NccNameProxy.PartNameProxy;
 
-/** One or more MOS transistors in series. All gates have the same width
- * and length. */
+/** A Bipolar transistor */
 public class Bipolar extends Part {
 	private static class BipolarPinType implements PinType {
 		private final Function np;

@@ -46,6 +46,46 @@ import com.sun.electric.tool.ncc.trees.Circuit;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
 import com.sun.electric.tool.user.ncc.ExportMismatch;
 
+/** The ExportChecker checks the Exports of the two Cells that are
+ * supposed to be equivalent. NCC checks exports in two phases.
+ *
+ * The first phase runs before NCC checks circuit topology.
+ * In the first phase NCC checks to
+ * see if the two Cells have consistent Exports. For example,
+ * if the schematic has a network with Export A then
+ * NCC makes sure that the layout has a network with Export A.
+ * <p>
+ * The second phase runs after NCC has checked the circuit topology.
+ * In the second phase NCC makes sure that the Wire attached
+ * to the schematic Export
+ * A is topologically matched to the Wire attached to layout Export A.
+ * <p>
+ * Electric allows a network to have multiple exports. For example
+ * a schematic network can have three Exports {A, B, C}. NCC
+ * can do one of two things for networks with multiple Exports.
+ * <p>
+ * When I first wrote NCC I implemented a flexible comparison. If the 
+ * schematic had Exports {A, B, C} then I just made sure that the
+ * layout had a network with any of those Export names. For example,
+ * if the layout had a network with Exports {B, C, D} then the
+ * flexible comparison would say they match.
+ * <p>
+ * Years after the initial implementation the design group
+ * noticed that commercial tools lacked this flexibility. 
+ * Therefore I changed NCC to mimic the behavior of 
+ * the commercial tools. If a network has more than one
+ * Export attached, then NCC sorts the Export names and 
+ * chooses only the first name. In that case if the
+ * schematic network has Exports {A, B, C} then it does not match
+ * the layout network with Exports {B, C, D}.
+ * <p>
+ * ExportChecker implements both flexible and strict Export
+ * checking in order to maintain compatibility with most
+ * of the NCC regression database. When NCC is invoked
+ * interactively it uses strict Export checking. However
+ * the regression scripts set NccOption.oneNamePerPort to false
+ * which enables flexible Export checking.
+ */
 public class ExportChecker {
 	/** a Port that doesn't match by name */
 	private static class NoPortNameMatch {
@@ -372,7 +412,8 @@ public class ExportChecker {
 			markPortsForRenaming(rootCells[cellNdx], portsPerCell[cellNdx]);
 	}
   
-	/** match Exports by name. Run this before Gemini algorithm in order to 
+	/** match Exports by name. NCC runs this first phase before
+	 * topology matching in order to 
 	 * give user early warning about Export name inconsistencies. */
 	public boolean matchByName() {
 		int numCkts = globals.getNumNetlistsBeingCompared();
@@ -418,6 +459,7 @@ public class ExportChecker {
 	}
 
 	/** Check that Exports with matching names are on equivalent nets.
+	 * NCC runs this second phase after it has performed topology matching 
 	 * @return true if equivalent. */ 
     public boolean ensureExportsWithMatchingNamesAreOnEquivalentNets() {
     	boolean match=true;
@@ -462,7 +504,11 @@ public class ExportChecker {
     	}
     	return match;
     }
-    
+    /** If the topological comparison is successful, then both circuits
+     * match. NCC checks to see if the Export names are consistent with
+     * the match. If not, then NCC will try to suggest how the 
+     * designer should rename Exports. 
+     */
     public void suggestPortMatchesBasedOnTopology() {
     	printNewNamesForPortsThatTheUserWantsUsToRename();
     	suggestMatchForPortsThatDontMatchByName();

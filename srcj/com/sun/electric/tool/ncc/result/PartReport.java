@@ -24,12 +24,11 @@
 package com.sun.electric.tool.ncc.result;
 
 import com.sun.electric.tool.generator.layout.LayoutLib;
-import com.sun.electric.tool.ncc.netlist.Mos;
-import com.sun.electric.tool.ncc.netlist.Part;
-import com.sun.electric.tool.ncc.netlist.Resistor;
 import com.sun.electric.tool.ncc.netlist.NccNameProxy.PartNameProxy;
 
-
+/** Save Part information needed by the NCC GUI when reporting
+ * mismatches to the user.
+ */
 public class PartReport extends NetObjReport {
 	static final long serialVersionUID = 0;
 	public interface PartReportable extends NetObjReportable {

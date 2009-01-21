@@ -33,7 +33,22 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Cell.CellGroup;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 
-/** A list of CellContexts to compare. Also, each CompareList has a 
+/** A CompareList is a collection of Cells that are 
+ * SUPPOSED to be topologically identical. NCC's job is
+ * to make 
+ * sure that they are, in fact, topologically identical.
+ * 
+ * Most of the time
+ * the Cells in a CompareList belong to the same Cell group. 
+ * However, NCC's
+ * "joinGroup" annotation allows the designer to tell NCC to 
+ * compare Cells that, for practical reasons, can't be placed into
+ * an Electric CellGroup. 
+ * 
+ * Note that NCC needs a VarContext for a 
+ * Cell in order to evaluate variables such as transistor width.
+ * Therefore, the CompareList is actually
+ * a list of CellContexts to compare. Also, each CompareList has a 
  * boolean that says whether it's safe to compare sizes in addition to 
  * topologies. */
 public class CompareList implements Iterable<CellContext> {
@@ -161,7 +176,8 @@ public class CompareList implements Iterable<CellContext> {
 		
 		LayoutLib.error(compareSet.size()<2, "nothing to compare?");
 	}
-	// useful for debugging
+	/** printCells is useful for debugging
+	 */
 	public void printCells() {
 		System.out.print("Compare List contains:=");
 		for (Iterator<CellContext> it=iterator(); it.hasNext();) {
@@ -170,7 +186,19 @@ public class CompareList implements Iterable<CellContext> {
 		}
 		System.out.println();
 	}
+	/** Get all the CellContexts in this CompareList.
+	 * @return an iterator over all the CellContexts.
+	 */
 	public Iterator<CellContext> iterator() {return cellContexts.iterator();}
+	/** Say whether or not there are any CellContexts in CompareList.
+	 * @return true if there is nothing in CompareList
+	 */
 	public boolean empty() {return cellContexts.size()==0;}
+	/** Say whether or not transistors sizes can be accurately determined
+	 * for this CompareList. If there are multiple instances of Cells
+	 * in this CompareList and the transistor sizes are different
+	 * for each instance then it is NOT safe.
+	 * @return true if we can safely check transistor sizes.
+	 */
 	public boolean isSafeToCheckSizes() {return safeToCheckSizes;}
 }

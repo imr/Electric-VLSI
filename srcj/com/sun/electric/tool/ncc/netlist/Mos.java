@@ -142,7 +142,7 @@ public class Mos extends Part {
 	}
 	private static final Map<PinTypeSetKey,PinType[]> TYPE_TO_PINTYPE_ARRAY = new HashMap<PinTypeSetKey,PinType[]>();
 	
-	public synchronized PinType[] getPinTypeArray() {
+	private synchronized PinType[] getPinTypeArray() {
 		PinTypeSetKey key = new PinTypeSetKey(type(), isCapacitor(), numSeries(),
 				                              hasBody);
 		PinType[] pinTypeArray = TYPE_TO_PINTYPE_ARRAY.get(key);
@@ -198,10 +198,10 @@ public class Mos extends Part {
 	}
 
     // ---------- private data -------------
-    private final int[] pin_coeffs;
-    private double width;
-    private final double length;
-    private final boolean hasBody;
+    /** array of pin coefficients */ private final int[] pin_coeffs;
+    /** channel width */ private double width;
+    /** channel length */ private final double length;
+    /** true if transistor has a body connection */ private final boolean hasBody;
     
     // ---------- private methods ----------
 	/** Stack of series transistors. If Mos has body connection then 
@@ -284,16 +284,21 @@ public class Mos extends Part {
     @Override
 	public int[] getPinCoeffs() {return pin_coeffs;}
 
+    /** @return true if Wire w is connected to one or more gates */
 	private boolean touchesSomeGate(Wire w){
 		for (int i=1; i<nbGateDiffPins()-1; i++)  if (w==pins[i]) return true;
 		return false;
 	}
 
+	/** @return true if Wire w connects to exactly one diffusion and w
+	 *  doesn't connect to any gate
+	 */
 	public boolean touchesOnlyOneDiffAndNoGate(Wire w) {
 		return (w==loDiff() ^ w==hiDiff()) &&
 			   !touchesSomeGate(w);
 	}
 
+	/** @return true if Mos is a capacitor. That is both diffusions are connected */
 	public boolean isCapacitor() {return pins[0]==pins[nbGateDiffPins()-1];}
 
 	@Override

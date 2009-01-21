@@ -28,8 +28,8 @@ import java.io.Serializable;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.VarContext;
 
-/** I might not need a CellContext because all the information might be 
- * derivable from the VarContext but I forget. */ 
+/** A CellContext contains a Cell and a VarContext for
+ * evaluating the variables in the Cell. */ 
 public class CellContext implements Serializable {
 	static final long serialVersionUID = 0;
 	
@@ -39,11 +39,13 @@ public class CellContext implements Serializable {
 		this.cell = cell;
 		this.context = context;
 	}
+	@Override
 	public boolean equals(Object o) {
 		if (!(o instanceof CellContext)) return false;
 		CellContext cc = (CellContext) o;
 		return cell==cc.cell && context==cc.context;
 	}
+	@Override
 	public int hashCode() {
 		return cell.hashCode() * context.hashCode();
 	}

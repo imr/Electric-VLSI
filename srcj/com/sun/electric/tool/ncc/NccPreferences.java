@@ -25,7 +25,22 @@ package com.sun.electric.tool.ncc;
 import com.sun.electric.database.text.Pref;
 
 /**
- * Contains NCC preferences
+ * The NCC preferences are user specified preferences that  
+ * persist across multiple runs of Electric.
+ * 
+ * The class:
+ * 
+ *  com.sun.electric.tool.user.dialogs.options.NCCTab
+ * 
+ * implements the GUI that allows the user to examine and 
+ * modify his preferences.
+ * 
+ * When NCC is launched from the GUI, the class NccOptions
+ * examines the NccPreferences and creates an NccOptions
+ * object that reflects the users preferences. NccPreferences
+ * is not touched by any other NCC code. 
+ * 
+ * The NCC preferences are documented in the Electric user guide.
  */
 public class NccPreferences {
 	public static NccPreferences tool = new NccPreferences();

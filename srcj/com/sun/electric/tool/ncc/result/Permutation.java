@@ -24,7 +24,7 @@
 package com.sun.electric.tool.ncc.result;
 
 import java.util.Arrays;
-
+/** Used by Port Interchange Experiment */
 public class Permutation {
 	private int[] perm;
 	

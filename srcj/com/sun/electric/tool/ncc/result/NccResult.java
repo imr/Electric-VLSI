@@ -36,7 +36,9 @@ import com.sun.electric.tool.ncc.result.equivalence.Equivalence;
 import com.sun.electric.tool.user.ncc.NccGuiInfo;
 
 /** The result of running a netlist comparison on a single pair of Cells. 
- * Stores all information we need to save for tools using NCC and for GUI. */
+ * Stores all information that results from the comparison. This
+ * information is needed by the NCC GUI and by tools that need NCC's 
+ * matching information. */
 public class NccResult implements Serializable {
     public static class CellSummary implements Serializable {
     	static final long serialVersionUID = 0;
@@ -192,6 +194,7 @@ public class NccResult implements Serializable {
 	/** return object that maps between Nodes and Networks in the two designs */
 	public Equivalence getEquivalence() {return equivalence;}
 	
+	/** return a string summarizing NCC's results */
 	public String summary(boolean checkSizes) {
 		String s;
 		if (exportMatch) {

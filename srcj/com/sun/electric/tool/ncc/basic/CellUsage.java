@@ -211,13 +211,20 @@ class CellUsage extends HierarchyEnumerator.Visitor {
 
 	// ------------------ Here's the real interface ------------------------
 	// static constructor
+	/** Scan the design hierarchy rooted at root and construct a list of
+	 * all Cells instantiated by that design.
+	 * @param root the root of the design
+	 */
 	public static CellUsage getCellUsage(CellContext root) {
 		CellUsage visitor = new CellUsage();
 		HierarchyEnumerator.enumerateCell(root.cell, root.context, visitor);
 		visitor.postProcess();
 		return visitor;
 	}
-
+	/** See if a particular Cell is used by the design.
+	 * @param cell the Cell to look for.
+	 * @return true if Cell occurs in the design
+	 */
 	public boolean cellIsUsed(Cell cell) {return cellsInUse.containsKey(cell);}
 	/** Cell has only one size in the design */
 	public boolean cellHasOnlyOneSize(Cell cell) {
@@ -239,17 +246,32 @@ class CellUsage extends HierarchyEnumerator.Visitor {
 			return singleUseCells.contains(cell);
 		}
 	}
+	/** Get an iterator over a list of all the cells used in the design. The
+	 * list is sorted in reverse topological order.
+	 * @return the iterator over the list
+	 */ 
 	public Iterator<Cell> cellsInReverseTopologicalOrder() {
 		return cellsInRevTopoOrder.iterator();
 	}
+	/** Get a CellContext for Cell cell. If the Cell is instantiated multiple
+	 * times then arbitrarily select one instance and return the CellContext 
+	 * for that instance. 
+	 * @param cell the cell for which we want the CellContext
+	 * @return a CellContext for the instance of Cell cell
+	 */
 	public CellContext getCellContext(Cell cell) {
 		LayoutLib.error(!cellsInUse.containsKey(cell), "cell not found");
 		return cellsInUse.get(cell);
 	}
-	/** @return a Set of CellContexts to add to group */
+	/** A joinGroup annotation indicates that NCC should treat a Cell
+	 * as belonging to a particular Electric CellGroup. The method
+	 * getGroupAdditions passes along information from joinGroup
+	 * annotations.  
+	 * @return a Set of CellContexts to add to group */
 	public Set<CellContext> getGroupAdditions(Cell.CellGroup group) {
 		Set<CellContext> additions = groupToAdditions.get(group);
 		return additions!=null ? additions : new HashSet<CellContext>();
 	}
+	/** Get the root Cell of the design */
 	public Cell getRoot() {return root;}
 }

@@ -65,11 +65,15 @@ public abstract class NccNameProxy implements Serializable {
 	NccNameProxy(String commonPathPrefix) {
 		this.commonPathPrefix = commonPathPrefix;
 	}
+	/** @return true if this Part or Wire is in the root Cell */
 	public boolean nameIsInTopContext() {
 		return nameProxy().getContext()==VarContext.globalContext;
 	}
+	/** @return the Cell containing this Part or Wire */
 	public Cell leafCell() {return nameProxy().leafCell();}
+	/** @return the name of this Part or Wire in the leaf Cell */
 	public String leafName() {return nameProxy().leafName();}
+	/** @return the VarContext of this Part or Wire */
     public VarContext getContext() { return nameProxy().getContext(); }    
 	/** Name whose instance path starts from the Cell from which NCC was run */
 	public String getName() {

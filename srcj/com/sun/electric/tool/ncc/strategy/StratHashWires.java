@@ -32,6 +32,8 @@ import com.sun.electric.tool.ncc.netlist.NetObject;
 import com.sun.electric.tool.ncc.netlist.Wire;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
 
+/** Perform a Gemini II style hash code partitioning of Wires.
+ */
 public class StratHashWires extends Strategy {
 	private int numWiresProcessed;
 	private int numEquivProcessed;

@@ -68,7 +68,13 @@ class NccRandom {
 		}
 	}
 }
-
+/** I tried to make NCC thread safe. Therefore there are a minimum of 
+ * static variables. Instead, most of what would have been NCC's 
+ * global variables are stored in NccGlobals. A new NccGlobals
+ * is created every time NccEngine.compare() is started. Therefore two jobs
+ * can call NCC at the same time without interfering with each
+ * other.
+ */
 public class NccGlobals implements NccGlobalsReportable {
 	// ---------------------------- private data ------------------------------
 	private static final int CODE_PART= 0;
@@ -141,17 +147,26 @@ public class NccGlobals implements NccGlobalsReportable {
 	/**
 	 * The constructor initializes global root, parts, wires, and ports from 
 	 * net lists. 
-	 * param list of NccNetlists, one per Cell to be compared
-	 * @param options 
+	 * @param options the options controlling how NCC performs the comparison
+	 * @param aborter an object that NCC queries to determine if the user
+	 * wants to abort NCC in the middle of a run. 
 	 */
 	public NccGlobals(NccOptions options, Aborter aborter) {
 		this.options = options;
 		this.aborter = aborter;
         nccGuiInfo = new NccGuiInfo();
 	}
+	/** A conveniently terse method for printing to Electric's message window */
 	public void prln(String s) {System.out.println(s); System.out.flush();}
+	/** A conveniently terse method for printing to Electric's message window */
 	public void pr(String s) {System.out.print(s); System.out.flush();}
 
+	/** Build the initial equivalence record trees from the netlists that are
+	 * to be compared. In principle, NCC can compare more than two netlists
+	 * at the same time, but in practice we've never found a use for this.
+	 * @param nccNets two or more netlists that are supposed to be topologcially
+	 * identical.
+	 */
 	public void setInitialNetlists(List<NccNetlist> nccNets) {
 		parts = buildEquivRec(CODE_PART, nccNets);
 		wires = buildEquivRec(CODE_WIRE, nccNets);
@@ -183,14 +198,23 @@ public class NccGlobals implements NccGlobalsReportable {
 		wireLeafRecs = new LeafEquivRecords(wires, this);
 		portLeafRecs = new LeafEquivRecords(ports, this);
 	}
-	
+	/** get the root of the equivalence record tree */
 	public EquivRecord getRoot() {return root;}
+	/** get the root of equivalence record subtree for Parts */
 	public EquivRecord getParts() {return parts;}
+	/** get the root of the equivalence record subtree for Wires */
 	public EquivRecord getWires() {return wires;}
+	/** get the root of the equivalence record subtree for Ports */
 	public EquivRecord getPorts() {return ports;}
+	/** Say how many netlists are being compared. This will usually be two. 
+	 * In principle NCC can compare any number of netlists but we've never
+	 * found a use for this feature. */
 	public int getNumNetlistsBeingCompared() {return rootCells.length;}
+	/** get an array of root Cells, one per netlist */
 	public Cell[] getRootCells() {return rootCells;}
+	/** get an array of VarContexts, one per netlist */
 	public VarContext[] getRootContexts() {return rootContexts;}
+	/** get an array of root Cell Names, one per netlist.  */
 	public String[] getRootCellNames() {
 		String[] rootCellNames = new String[rootCells.length];
 		for (int i=0; i<rootCells.length; i++) {
@@ -198,25 +222,54 @@ public class NccGlobals implements NccGlobalsReportable {
 		}
 		return rootCellNames;
 	}
+	/** Print more important status messages into the Electric 
+	 * messages window. The user selects how verbose NCC is
+	 * using the howMuchStatus option. 
+	 * @param msg the message to be printed.
+	 */
 	public void status1(String msg) {
 		if (options.howMuchStatus>=1) prln(msg);
 	}
+	/** Print less important status messages into the Electric 
+	 * messages window. The user selects how verbose NCC is
+	 * using the howMuchStatus option. 
+	 * @param msg the message to be printed.
+	 */
 	public void status2(String msg) {
 		if (options.howMuchStatus>=2) prln(msg); 
 	}
+	/** Flush System.out */
 	public void flush() {System.out.flush();}
+	/** Print a message and abort execution if pred is true.
+	 * @param pred if true then an error has occurred
+	 * @param msg message to print when error occurs
+	 */
 	public void error(boolean pred, String msg) {
 		LayoutLib.error(pred, msg);
 	}
+	/** Print a message and abort execution
+	 * @param msg message to print when error occurs
+	 */
 	public void error(String msg) {LayoutLib.error(true, msg);}
 	
+	/** Get the NCC options.
+	 */
 	public NccOptions getOptions() {return options;}
 	
 	/** Generate non-recurring pseudo-random integers */
 	public int getRandom() {return randGen.next();}
 	
+	/** Get the leaf equivalence records of the Part equivalence
+	 * record sub tree
+	 */  
 	public LeafEquivRecords getPartLeafEquivRecs() {return partLeafRecs;}
+	/** Get the leaf equivalence records of the Wire equivalence
+	 * record sub tree
+	 */  
 	public LeafEquivRecords getWireLeafEquivRecs() {return wireLeafRecs;}
+	/** Get the leaf equivalence records of the Port equivalence
+	 * record sub tree
+	 */  
 	public LeafEquivRecords getPortLeafEquivRecs() {return portLeafRecs;}
 
 	/** @return an NetNameProxy[][]. NetNameProxy[d][n] gives the nth net of

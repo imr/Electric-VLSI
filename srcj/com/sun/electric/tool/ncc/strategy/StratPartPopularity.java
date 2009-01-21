@@ -31,7 +31,7 @@ import com.sun.electric.tool.ncc.netlist.NetObject;
 import com.sun.electric.tool.ncc.netlist.Part;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
 
-/* StratPartPopularity partitions Part equivalence classes
+/** StratPartPopularity partitions Part equivalence classes
  * based upon how many unique Wires are connected. */
 public class StratPartPopularity extends Strategy {
 	// Offset hash codes by COUNT_OFFSET so I can use the value 0 to

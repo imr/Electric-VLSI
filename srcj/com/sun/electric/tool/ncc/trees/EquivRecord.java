@@ -237,11 +237,12 @@ public class EquivRecord implements EquivRecReportable {
 	 * @return the int fixed hash code for this object. */
 	public int getCode(){return isMismatched()? 0 : randCode;}
 
+	/** Sanity check */
     public void checkMe(EquivRecord parent) {
     	error(getParent()!=parent, "wrong parent");
     	error(!(offspring==null ^ circuits==null), "bad lists");
     }
-
+    /** Set my parent to be x */
 	public void setParent(EquivRecord x) {parent=x;}
 	
 	/** get the value that a strategy used to distinguish
@@ -249,10 +250,13 @@ public class EquivRecord implements EquivRecReportable {
 	 * @return the int value that distinguished this EquivRecord */
 	public int getValue(){return value;}
 
+	/** @return an iterator over all the circuits belonging to EquivRecord */
 	public Iterator<Circuit> getCircuits() {return circuits.iterator();}
 
+	/** @return the number of circuits belonging to EquivRecord */
 	public int numCircuits() {return circuits.size();}
 
+	/** Add a new Circuit to EquivRecord */
 	public void addCircuit(Circuit c) {
 		circuits.add(c);
 		c.setParent(this);
@@ -407,7 +411,8 @@ public class EquivRecord implements EquivRecReportable {
 		);
 		return name;
 	}
-
+	
+	/** @return true if EquivRecord is a leaf of the EquivRec tree */
 	public boolean isLeaf() {return offspring==null;} 
 
 	/** The fixed strategies annotate EquivRecords with comments

@@ -31,6 +31,7 @@ import com.sun.electric.tool.ncc.result.EquivRecReport;
 import com.sun.electric.tool.ncc.result.NetObjReport;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
 
+/** LocalPartitionResult is used by the GUI to display mismatch information */
 public class LocalPartitionResult {
     private NccGlobals globals;
     private List<EquivRecord> saveBadPartRecs = new ArrayList<EquivRecord>();

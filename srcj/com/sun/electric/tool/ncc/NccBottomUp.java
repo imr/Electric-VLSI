@@ -42,7 +42,11 @@ import com.sun.electric.tool.ncc.result.NccResults;
 
 
 /** Run NCC hierarchically. By default, treat every Cell with both a layout and
- * a schematic view as a hierarchical entity. */
+ * a schematic view as a hierarchical entity. 
+ * More specifically, when we are asked to compare a schematic and a layout,
+ * we scan both hierarchies to identify cell groups that have one or more cells
+ * in the schematic hierarchy AND one or more cells in the schematic hierarchy.
+ */
 public class NccBottomUp {
 	
 	private void prln(String s) {System.out.println(s);}
@@ -253,6 +257,18 @@ public class NccBottomUp {
 	}
 
 	// --------------------------- public methods -----------------------------
+	/** Compare the two designs: cc1 and cc2. Typically, cc1 is the schematic
+	 * and cc2 is the layout. Note that NCC needs the VarContext 
+	 * in order to evaluate variables such as transistor widths.
+	 * @param cc1 the root Cell and VarContext of the first design.
+	 * @param cc2 the root Cell and VarContext of the second design.
+	 * @param passed an object that remembers which Cell pairs passed NCC the 
+	 * last time the designer ran NCC.
+	 * @param options all of the NCC options specified by the designer
+	 * @param aborter an object that NCC queries to tell whether the designer
+	 * wants to abort the NCC mid run. 
+	 * @return an object that describes all the mismatches that NCC found
+	 */
 	public static NccResults compare(CellContext cc1, CellContext cc2, 
 									 PassedNcc passed, NccOptions options,
 									 Aborter aborter) {

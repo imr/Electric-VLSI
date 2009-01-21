@@ -26,13 +26,13 @@ package com.sun.electric.tool.ncc.result;
 import java.io.Serializable;
 
 import com.sun.electric.tool.generator.layout.LayoutLib;
-import com.sun.electric.tool.ncc.netlist.Part;
-import com.sun.electric.tool.ncc.netlist.Port;
-import com.sun.electric.tool.ncc.netlist.Wire;
 import com.sun.electric.tool.ncc.result.PartReport.PartReportable;
 import com.sun.electric.tool.ncc.result.PortReport.PortReportable;
 import com.sun.electric.tool.ncc.result.WireReport.WireReportable;
 
+/* Save information needed by the NCC GUI to report mismatch 
+ * information to the user. 
+ */
 public abstract class NetObjReport implements Serializable {
 	public interface NetObjReportable {
 		String instanceDescription();
