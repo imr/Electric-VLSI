@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09b: ******************************
 
+IMP/MAN: (1/21/09, SMR) "Array" dialog is now modeless and has "Draw" button
+     to let users drag an area for the array (Bug #1890).
+
 BUG: (1/20, 09, GVG) Incorrect export of DRC decks (Bug #2004)
 FIX: Extra code added for special XML characters.
 

@@ -23,6 +23,8 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.database.change.DatabaseChangeEvent;
+import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
@@ -41,36 +43,52 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.drc.Quick;
 import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.ExportChanges;
+import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.MeasureListener;
+import com.sun.electric.tool.user.ui.ToolBar;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
+import java.awt.Cursor;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EventListener;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.swing.JOptionPane;
 
 /**
  * Class to handle the "Array" dialog.
  */
-public class Array extends EDialog
+public class Array extends EModelessDialog implements HighlightListener, DatabaseChangeListener
 {
 	/** Space by edge overlap. */				private static final int SPACING_EDGE = 1;
 	/** Space by centerline distance. */		private static final int SPACING_CENTER = 2;
 	/** Space by characteristic distance. */	private static final int SPACING_ESSENTIALBND = 3;
 	/** Space by measured distance. */			private static final int SPACING_MEASURED = 4;
 
+	private static Cursor drawArrayCursor = ToolBar.readCursor("CursorArray.gif", 8, 8);
 	private static Pref.Group prefs = Pref.groupForPackage(Array.class);
 	private static Pref
 		prefLinearDiagonal = Pref.makeBooleanPref("Array_LinearDiagonal", prefs, false),
@@ -93,7 +111,8 @@ public class Array extends EDialog
 	/** amount when spacing by centerline distance */		private double spacingCenterlineX, spacingCenterlineY;
 	/** amount when spacing by characteristic distance */	private double essentialBndX, essentialBndY;
 	/** amount when spacing by measured distance */			private double spacingMeasuredX, spacingMeasuredY;
-	/** the selected objects to be arrayed */				private Map<Geometric,Geometric> selected;
+	/** the selected objects */								private Set<Geometric> selected;
+	/** the selected objects including connecting nodes */	private Set<Geometric> selectedAll;
 	/** the bounds of the selected objects */				private Rectangle2D bounds;
 	/** the technology of the cell where arraying is done */private Technology tech;
 
@@ -126,15 +145,17 @@ public class Array extends EDialog
 	/** Creates new form Array */
 	private Array(Frame parent)
 	{
-		super(parent, true);
+		super(parent, false);
 		initComponents();
 		getRootPane().setDefaultButton(ok);
+		UserInterfaceMain.addDatabaseChangeListener(this);
+		Highlighter.addHighlightListener(this);
 
 		// make all text fields select-all when entered
-	    EDialog.makeTextFieldSelectAllOnTab(xRepeat);
-	    EDialog.makeTextFieldSelectAllOnTab(yRepeat);
-	    EDialog.makeTextFieldSelectAllOnTab(xSpacing);
-	    EDialog.makeTextFieldSelectAllOnTab(ySpacing);
+		EDialog.makeTextFieldSelectAllOnTab(xRepeat);
+		EDialog.makeTextFieldSelectAllOnTab(yRepeat);
+		EDialog.makeTextFieldSelectAllOnTab(xSpacing);
+		EDialog.makeTextFieldSelectAllOnTab(ySpacing);
 
 		// load the repeat factors
 		xRepeat.setText(Integer.toString(prefXRepeat.getInt()));
@@ -146,25 +167,87 @@ public class Array extends EDialog
 		staggerAlternateRows.setSelected(prefYStagger.getBoolean());
 		centerYAboutOriginal.setSelected(prefYCenter.getBoolean());
 
-		// see if a single cell instance is selected (in which case DRC validity can be done)
-		onlyDRCCorrect.setEnabled(false);
-		EditWindow wnd = EditWindow.getCurrent();
-		tech = wnd.getCell().getTechnology();
-		List<Geometric> highs = wnd.getHighlighter().getHighlightedEObjs(true, true);
-		if (highs.size() == 1)
-		{
-			ElectricObject eObj = highs.get(0);
-			if (eObj instanceof NodeInst)
-			{
-				onlyDRCCorrect.setEnabled(true);
-			}
-		}
+		// load the other factors
 		linearDiagonalArray.setSelected(prefLinearDiagonal.getBoolean());
 		generateArrayIndices.setSelected(prefAddNames.getBoolean());
 		onlyDRCCorrect.setSelected(prefDRCGood.getBoolean());
 		transposePlacement.setSelected(prefTranspose.getBoolean());
 
-		// see if a cell was selected which has a characteristic distance
+		spaceByEdgeOverlap.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { newSpacingSelected(); }
+		});
+		spaceByCenterlineDistance.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { newSpacingSelected(); }
+		});
+		spaceByEssentialBnd.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { newSpacingSelected(); }
+		});
+		spaceByMeasuredDistance.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { newSpacingSelected(); }
+		});
+
+		updateDialogForSelection();
+		finishInitialization();
+		pack();
+	}
+
+	protected void escapePressed() { cancel(null); }
+
+	/**
+	 * Reloads the dialog when Highlights change
+	 */
+	public void highlightChanged(Highlighter which)
+	{
+		if (!isVisible()) return;
+		updateDialogForSelection();
+	}
+
+	/**
+	 * Called when by a Highlighter when it loses focus. The argument
+	 * is the Highlighter that has gained focus (may be null).
+	 * @param highlighterGainedFocus the highlighter for the current window (may be null).
+	 */
+	public void highlighterLostFocus(Highlighter highlighterGainedFocus)
+	{
+		if (!isVisible()) return;
+		updateDialogForSelection();
+	}
+
+	/**
+	 * Respond to database changes
+	 * @param e database change event
+	 */
+	public void databaseChanged(DatabaseChangeEvent e)
+	{
+		if (!isVisible()) return;
+		updateDialogForSelection();
+	}
+
+	private void updateDialogForSelection()
+	{
+		// do not update if drawing the array interactively
+		EventListener oldListener = WindowFrame.getListener();
+		if (oldListener != null && oldListener instanceof DrawArrayListener) return;
+
+		// see what is highlighted
+		EditWindow wnd = EditWindow.getCurrent();
+		tech = wnd.getCell().getTechnology();
+		List<Geometric> highs = wnd.getHighlighter().getHighlightedEObjs(true, true);
+
+		// if a single cell instance is selected, enable DRC-guided placement
+		onlyDRCCorrect.setEnabled(false);
+		if (highs.size() == 1)
+		{
+			ElectricObject eObj = highs.get(0);
+			if (eObj instanceof NodeInst)
+				onlyDRCCorrect.setEnabled(true);
+		}
+
+		// see if essential bounds are defined
 		essentialBndX = essentialBndY = 0;
 		boolean haveEB = false;
 		for(Geometric eObj : highs)
@@ -194,16 +277,13 @@ public class Array extends EDialog
 			haveEB = true;
 		}
 		spaceByEssentialBnd.setEnabled(haveEB);
-		if (haveEB)
+		if (prefSpacingType.getInt() == SPACING_ESSENTIALBND)
 		{
-			if (prefSpacingType.getInt() == SPACING_ESSENTIALBND)
+			if (haveEB)
 			{
 				prefXDistance.setDouble(essentialBndX);
 				prefYDistance.setDouble(essentialBndY);
-			}
-		} else
-		{
-			if (prefSpacingType.getInt() == SPACING_ESSENTIALBND)
+			} else
 			{
 				prefSpacingType.setInt(SPACING_EDGE);
 				prefXDistance.setDouble(0);
@@ -234,6 +314,51 @@ public class Array extends EDialog
 			}
 		}
 
+		// mark the list of nodes and arcs in the cell that will be arrayed
+		selected = new HashSet<Geometric>();
+		selectedAll = new HashSet<Geometric>();
+		for(Geometric eObj : highs)
+		{
+			selected.add(eObj);
+			selectedAll.add(eObj);
+			if (eObj instanceof ArcInst)
+			{
+				ArcInst ai = (ArcInst)eObj;
+				NodeInst niHead = ai.getHeadPortInst().getNodeInst();
+				selectedAll.add(niHead);
+				NodeInst niTail = ai.getTailPortInst().getNodeInst();
+				selectedAll.add(niTail);
+			}
+		}
+
+		// determine size of arrayed objects
+		boolean first = true;
+		bounds = new Rectangle2D.Double();
+		for(Geometric geom : selected)
+		{
+			if (first)
+			{
+				bounds.setRect(geom.getBounds());
+				first = false;
+			} else
+			{
+				Rectangle2D.union(bounds, geom.getBounds(), bounds);
+			}
+		}
+		spacingCenterlineX = bounds.getWidth();
+		spacingCenterlineY = bounds.getHeight();
+		spacingOverX = spacingOverY = 0;
+		if (prefSpacingType.getInt() == SPACING_CENTER)
+		{
+			prefXDistance.setDouble(spacingCenterlineX);
+			prefYDistance.setDouble(spacingCenterlineY);
+		}
+		if (prefSpacingType.getInt() == SPACING_EDGE)
+		{
+			prefXDistance.setDouble(spacingOverX);
+			prefYDistance.setDouble(spacingOverY);
+		}
+
 		// load the spacing distances
 		xSpacing.setText(TextUtils.formatDistance(prefXDistance.getDouble(), tech));
 		ySpacing.setText(TextUtils.formatDistance(prefYDistance.getDouble(), tech));
@@ -253,63 +378,7 @@ public class Array extends EDialog
 			xOverlapLabel.setText("X centerline distance:");
 			yOverlapLabel.setText("Y centerline distance:");
 		}
-
-		// mark the list of nodes and arcs in the cell that will be arrayed
-		selected = new HashMap<Geometric,Geometric>();
-		for(Geometric eObj : highs)
-		{
-			if (eObj instanceof NodeInst)
-			{
-				selected.put(eObj, eObj);
-			} else if (eObj instanceof ArcInst)
-			{
-				ArcInst ai = (ArcInst)eObj;
-				NodeInst niHead = ai.getHeadPortInst().getNodeInst();
-				selected.put(niHead,  niHead);
-				NodeInst niTail = ai.getTailPortInst().getNodeInst();
-				selected.put(niTail,  niTail);
-				selected.put(ai, ai);
-			}
-		}
-
-		// determine spacing between arrayed objects
-		boolean first = true;
-		bounds = new Rectangle2D.Double();
-		for(Geometric geom : selected.keySet())
-		{
-			if (first)
-			{
-				bounds.setRect(geom.getBounds());
-				first = false;
-			} else
-			{
-				Rectangle2D.union(bounds, geom.getBounds(), bounds);
-			}
-		}
-		spacingCenterlineX = bounds.getWidth();
-		spacingCenterlineY = bounds.getHeight();
-		spacingOverX = spacingOverY = 0;
-		spaceByEdgeOverlap.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent evt) { newSpacingSelected(); }
-		});
-		spaceByCenterlineDistance.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent evt) { newSpacingSelected(); }
-		});
-		spaceByEssentialBnd.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent evt) { newSpacingSelected(); }
-		});
-		spaceByMeasuredDistance.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent evt) { newSpacingSelected(); }
-		});
-		finishInitialization();
-		pack();
 	}
-
-	protected void escapePressed() { cancel(null); }
 
 	private void newSpacingSelected()
 	{
@@ -386,7 +455,7 @@ public class Array extends EDialog
 		List<ArcInst> arcList = new ArrayList<ArcInst>();
 		List<Export> exportList = new ArrayList<Export>();
 		Cell cell = null;
-		for(Geometric geom : selected.keySet())
+		for(Geometric geom : selected)
 		{
 			cell = geom.getParent();
 			if (geom instanceof NodeInst)
@@ -680,6 +749,193 @@ public class Array extends EDialog
 		}
 	}
 
+	private class DrawArrayListener implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener
+	{
+		EventListener oldListener;
+		Cursor oldCursor;
+
+		public void mousePressed(MouseEvent evt)
+		{
+			determineArrayAmount(evt);
+			showHighlight(evt, (EditWindow)evt.getSource());
+		}
+
+		public void mouseDragged(MouseEvent evt)
+		{
+			determineArrayAmount(evt);
+			showHighlight(evt, (EditWindow)evt.getSource());
+		}
+
+		public void mouseReleased(MouseEvent evt)
+		{
+			// restore the highlighting
+			EditWindow wnd = (EditWindow)evt.getSource();
+			Highlighter highlighter = wnd.getHighlighter();
+			Cell cell = wnd.getCell();
+			highlighter.clear();
+			for(Geometric geom : selected)
+				highlighter.addElectricObject(geom, cell);
+			highlighter.finished();
+
+			// restore the listener to the former state
+			restoreOriginalSetup();
+
+			makeArray();
+		}
+
+		public void keyPressed(KeyEvent evt)
+		{
+			// ESCAPE for abort
+			int chr = evt.getKeyCode();
+			if (chr == KeyEvent.VK_ESCAPE)
+			{
+				restoreOriginalSetup();
+				System.out.println("Array drawing aborted");
+			}
+		}
+
+		private void restoreOriginalSetup()
+		{
+			// restore the listener to the former state
+			WindowFrame.setListener(oldListener);
+			TopLevel.setCurrentCursor(oldCursor);
+		}
+
+		private void determineArrayAmount(MouseEvent evt)
+		{
+			EditWindow wnd = (EditWindow)evt.getSource();
+			int x = evt.getX();
+			int y = evt.getY();
+			Point2D pt = wnd.screenToDatabase(x, y);
+
+			double xOverlap = prefXDistance.getDouble();
+			double yOverlap = prefYDistance.getDouble();
+			if (prefSpacingType.getInt() == SPACING_EDGE)
+			{
+				xOverlap = bounds.getWidth() - prefXDistance.getDouble();
+				yOverlap = bounds.getHeight() - prefYDistance.getDouble();
+			}
+
+			double dX = pt.getX() - bounds.getCenterX();
+			if (dX > 0) dX -= bounds.getWidth()/2; else
+				dX += bounds.getWidth()/2;
+			int xRep = (int)(dX / xOverlap);
+			if (xRep == 0) xRep = 1; else
+			{
+				if (xRep < 0) xRep--; else xRep++;
+			}
+			if (prefXCenter.getBoolean()) xRep = (Math.abs(xRep) - 1) * 2 + 1;
+
+			double dY = pt.getY() - bounds.getCenterY();
+			if (dY > 0) dY -= bounds.getHeight()/2; else
+				dY += bounds.getHeight()/2;
+			int yRep = (int)(dY / yOverlap);
+			if (yRep == 0) yRep = 1; else
+			{
+				if (yRep < 0) yRep--; else yRep++;
+			}
+			if (prefYCenter.getBoolean()) yRep = (Math.abs(yRep) - 1) * 2 + 1;
+
+			if (prefLinearDiagonal.getBoolean())
+			{
+				if (Math.abs(xRep) > Math.abs(yRep)) xRep = 1; else yRep = 1;
+			}
+
+			// show current repeat factors
+			prefXRepeat.setInt(xRep);
+			xRepeat.setText(Integer.toString(xRep));
+			prefYRepeat.setInt(yRep);
+			yRepeat.setText(Integer.toString(yRep));
+		}
+
+		private void showHighlight(MouseEvent evt, EditWindow wnd)
+		{
+			double xOverlap = prefXDistance.getDouble();
+			double yOverlap = prefYDistance.getDouble();
+			if (prefSpacingType.getInt() == SPACING_EDGE)
+			{
+				xOverlap = bounds.getWidth() - prefXDistance.getDouble();
+				yOverlap = bounds.getHeight() - prefYDistance.getDouble();
+			}
+
+			Highlighter highlighter = wnd.getHighlighter();
+			Cell cell = wnd.getCell();
+			highlighter.clear();
+			int xRepeat = Math.abs(prefXRepeat.getInt());
+			int yRepeat = Math.abs(prefYRepeat.getInt());
+			double cX = bounds.getCenterX();
+			double cY = bounds.getCenterY();
+			int total = yRepeat * xRepeat;
+			for(int index = 0; index < total; index++)
+			{
+				int x = index % xRepeat;
+				int y = index / xRepeat;
+				if (prefTranspose.getBoolean())
+				{
+					y = index % yRepeat;
+					x = index / yRepeat;
+				}
+				int xIndex = x;
+				int yIndex = y;
+				if (prefXCenter.getBoolean()) xIndex = x - (xRepeat-1)/2;
+				if (prefYCenter.getBoolean()) yIndex = y - (yRepeat-1)/2;
+				if (prefXRepeat.getInt() < 0) xIndex = -xIndex;
+				if (prefYRepeat.getInt() < 0) yIndex = -yIndex;
+
+				double xPos = cX + xOverlap * xIndex;
+				if (prefLinearDiagonal.getBoolean() && xRepeat == 1) xPos = cX + xOverlap * yIndex;
+				double yPos = cY + yOverlap * yIndex;
+				if (prefLinearDiagonal.getBoolean() && yRepeat == 1) yPos = cY + yOverlap * xIndex;
+				if ((xIndex&1) != 0 && prefXStagger.getBoolean()) yPos += yOverlap/2;
+				if ((yIndex&1) != 0 && prefYStagger.getBoolean()) xPos += xOverlap/2;
+				double lX = xPos - bounds.getWidth()/2;
+				double hX = lX + bounds.getWidth();
+				double lY = yPos - bounds.getHeight()/2;
+				double hY = lY + bounds.getHeight();
+				Rectangle2D area = new Rectangle2D.Double(lX, lY, hX-lX, hY-lY);
+				highlighter.addArea(area, cell);
+				double headSize = Math.min(bounds.getWidth(), bounds.getHeight()) / 5;
+				if ((xIndex&1) != 0 && prefXFlip.getBoolean())
+				{
+					Point2D head = new Point2D.Double(lX, yPos);
+					Point2D head1 = new Point2D.Double(lX+headSize, yPos+headSize);
+					Point2D head2 = new Point2D.Double(lX+headSize, yPos-headSize);
+					Point2D tail = new Point2D.Double(hX, yPos);
+					Point2D tail1 = new Point2D.Double(hX-headSize, yPos+headSize);
+					Point2D tail2 = new Point2D.Double(hX-headSize, yPos-headSize);
+					highlighter.addLine(head, tail, cell);
+					highlighter.addLine(head, head1, cell);
+					highlighter.addLine(head, head2, cell);
+					highlighter.addLine(tail, tail1, cell);
+					highlighter.addLine(tail, tail2, cell);
+				}
+				if ((yIndex&1) != 0 && prefYFlip.getBoolean())
+				{
+					Point2D head = new Point2D.Double(xPos, lY);
+					Point2D head1 = new Point2D.Double(xPos+headSize, lY+headSize);
+					Point2D head2 = new Point2D.Double(xPos-headSize, lY+headSize);
+					Point2D tail = new Point2D.Double(xPos, hY);
+					Point2D tail1 = new Point2D.Double(xPos+headSize, hY-headSize);
+					Point2D tail2 = new Point2D.Double(xPos-headSize, hY-headSize);
+					highlighter.addLine(head, tail, cell);
+					highlighter.addLine(head, head1, cell);
+					highlighter.addLine(head, head2, cell);
+					highlighter.addLine(tail, tail1, cell);
+					highlighter.addLine(tail, tail2, cell);
+				}
+			}
+			highlighter.finished();
+		}
+
+		public void mouseClicked(MouseEvent evt) {}
+		public void mouseMoved(MouseEvent evt) {}
+		public void mouseEntered(MouseEvent evt) {}
+		public void mouseExited(MouseEvent evt) {}
+		public void mouseWheelMoved(MouseWheelEvent evt) {}
+		public void keyReleased(KeyEvent evt) {}
+		public void keyTyped(KeyEvent evt) {}
+	}
+
 	/** This method is called from within the constructor to
 	 * initialize the form.
 	 * WARNING: Do NOT modify this code. The content of this method is
@@ -715,6 +971,8 @@ public class Array extends EDialog
         generateArrayIndices = new javax.swing.JCheckBox();
         onlyDRCCorrect = new javax.swing.JCheckBox();
         transposePlacement = new javax.swing.JCheckBox();
+        apply = new javax.swing.JButton();
+        draw = new javax.swing.JButton();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -735,9 +993,8 @@ public class Array extends EDialog
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 11;
-        gridBagConstraints.gridheight = 3;
-        gridBagConstraints.weightx = 0.5;
+        gridBagConstraints.gridy = 13;
+        gridBagConstraints.gridheight = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(cancel, gridBagConstraints);
 
@@ -750,9 +1007,8 @@ public class Array extends EDialog
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 11;
-        gridBagConstraints.gridheight = 3;
-        gridBagConstraints.weightx = 0.5;
+        gridBagConstraints.gridy = 13;
+        gridBagConstraints.gridheight = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(ok, gridBagConstraints);
 
@@ -962,8 +1218,56 @@ public class Array extends EDialog
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         getContentPane().add(transposePlacement, gridBagConstraints);
 
+        apply.setText("Apply");
+        apply.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                applyActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 11;
+        gridBagConstraints.gridheight = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        getContentPane().add(apply, gridBagConstraints);
+
+        draw.setText("Draw");
+        draw.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                drawActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 11;
+        gridBagConstraints.gridheight = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        getContentPane().add(draw, gridBagConstraints);
+
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void drawActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_drawActionPerformed
+		rememberFields();
+		EventListener oldListener = WindowFrame.getListener();
+		Cursor oldCursor = TopLevel.getCurrentCursor();
+		if (oldListener == null || !(oldListener instanceof DrawArrayListener))
+		{
+			DrawArrayListener newListener = new DrawArrayListener();
+			WindowFrame.setListener(newListener);
+			newListener.oldListener = oldListener;
+			newListener.oldCursor = oldCursor;
+		}
+		TopLevel.setCurrentCursor(drawArrayCursor);
+		System.out.println("Click to draw the array");
+    }//GEN-LAST:event_drawActionPerformed
+
+    private void applyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_applyActionPerformed
+		rememberFields();
+		makeArray();
+    }//GEN-LAST:event_applyActionPerformed
 
 	private void cancel(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cancel
 	{//GEN-HEADEREND:event_cancel
@@ -986,9 +1290,11 @@ public class Array extends EDialog
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton apply;
     private javax.swing.JButton cancel;
     private javax.swing.JCheckBox centerXAboutOriginal;
     private javax.swing.JCheckBox centerYAboutOriginal;
+    private javax.swing.JButton draw;
     private javax.swing.JCheckBox flipAlternateColumns;
     private javax.swing.JCheckBox flipAlternateRows;
     private javax.swing.JCheckBox generateArrayIndices;
