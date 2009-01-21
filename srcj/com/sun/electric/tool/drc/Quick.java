@@ -1132,14 +1132,6 @@ public class Quick
 		Rectangle2D bounds = new Rectangle2D.Double();
 		bounds.setRect(poly.getBounds2D());
 
-		// determine if original object has multiple contact cuts
-//        Technology.MultiCutData multiCutData = null;
-//		if (geom instanceof NodeInst)
-//        {
-//            multiCutData = tech.getMultiCutData((NodeInst)geom);
-//        }
-//        boolean baseMulti = tech.isMultiCutInTechnology(multiCutData);
-
         // search in the area surrounding the box
 		bounds.setRect(bounds.getMinX()-bound, bounds.getMinY()-bound, bounds.getWidth()+bound*2, bounds.getHeight()+bound*2);
 		return badBoxInArea(poly, layer, tech, net, geom, trans, globalIndex, bounds, cell, globalIndex,
@@ -1254,7 +1246,7 @@ public class Quick
                             // geom must be NodeInst
                             NodeInst gNi = (NodeInst)geom;
                             // in this case, both possible contacts are either 1xn or mx1 with n,m>=1
-                            if (multiCutData.numCutsX() == 1) // it is 1xn
+                            if (multiCutData == null || multiCutData.numCutsX() == 1) // it is 1xn
                             {
                                 // Checking if they match at the Y axis. If yes, they are considered as a long 1xn array
                                 // so multi=false. The other element must be 1xM

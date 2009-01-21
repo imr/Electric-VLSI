@@ -1080,13 +1080,6 @@ public class MTDRCLayoutTool extends MTDRCTool
             CheckInst ci = checkInsts.get(oNi);
             int localIndex = topGlobalIndex * ci.multiplier + ci.localIndex + ci.offset;
 
-            // determine if original object has multiple contact cuts
-//            boolean baseMulti = false;
-//            if (geom instanceof NodeInst)
-//            {
-//                baseMulti = tech.isMultiCutCase((NodeInst) geom);
-//            }
-
             // search in the area surrounding the box
             bounds.setRect(bounds.getMinX() - bound, bounds.getMinY() - bound, bounds.getWidth() + bound * 2, bounds.getHeight() + bound * 2);
             return (badBoxInArea(poly, layer, tech, net, geom, trans, globalIndex, bounds, (Cell) oNi.getProto(), localIndex,
@@ -1234,7 +1227,7 @@ public class MTDRCLayoutTool extends MTDRCTool
                                 // geom must be NodeInst
                                 NodeInst gNi = (NodeInst)geom;
                                 // in this case, both possible contacts are either 1xn or mx1 with n,m>=1
-                                if (multiCutData.numCutsX() == 1) // it is 1xn
+                                if (multiCutData == null || multiCutData.numCutsX() == 1) // it is 1xn
                                 {
                                     // Checking if they match at the Y axis. If yes, they are considered as a long 1xn array
                                     // so multi=false. The other element must be 1xM
