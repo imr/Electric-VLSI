@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09b: ******************************
 
+IMP: (1/22/09, GVG) Better support of GDS info in XML tech reader (Bug #2019)
+
 IMP/MAN: (1/21/09, GVG) Can't Artwork tech be saved as XML? (Bug #2000).
 Schematics and Artwork can't be exported as XML technologies. 
 

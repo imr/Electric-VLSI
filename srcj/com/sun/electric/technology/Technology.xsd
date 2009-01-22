@@ -420,6 +420,14 @@
         </xsd:restriction>
     </xsd:simpleType>
 
+    <xsd:simpleType name="GDSData">
+        <xsd:restriction base="xsd:string">
+        <xsd:pattern value="\d+"/>
+        <xsd:pattern value="\d+[/]*\d+"/>
+        <xsd:pattern value="\d+[{/\d+}*,\d+p,\d+t]*"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
     <xsd:simpleType name="RuleName">
         <xsd:restriction base="xsd:string"/>
     </xsd:simpleType>
@@ -853,7 +861,8 @@
                                 <xsd:complexType>
                                     <xsd:sequence/>
                                     <xsd:attribute name="layer" type="tns:LayerName" use="required"/>
-                                    <xsd:attribute name="gds" type="xsd:string" use="required"/>
+                                    <!-- <xsd:attribute name="gds" type="xsd:string" use="required"/> -->
+                                    <xsd:attribute name="gds" type="tns:GDSData" use="required"/>
                                 </xsd:complexType>
                             </xsd:element>
                             <xsd:choice minOccurs="0" maxOccurs="unbounded">
