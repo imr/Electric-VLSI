@@ -102,6 +102,15 @@
         <xsd:restriction base="xsd:NCName"/>
     </xsd:simpleType>
 
+    <xsd:simpleType name="ProtectionType">
+       <xsd:restriction base="xsd:string">
+           <xsd:enumeration value="both"/>
+           <xsd:enumeration value="left"/>
+           <xsd:enumeration value="right"/>
+           <xsd:enumeration value="none"/>
+       </xsd:restriction>
+    </xsd:simpleType>
+
     <xsd:simpleType name="LayerFun">
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value="UNKNOWN"/>
@@ -690,6 +699,13 @@
                                     <xsd:attribute name="hy" type="xsd:double" use="required"/>
                                 </xsd:complexType>
                             </xsd:element>
+                            
+                            <xsd:element name="protection" minOccurs="0">
+                                <xsd:complexType>
+                                    <xsd:attribute name="location" type="tns:ProtectionType" use="required"/>
+                                </xsd:complexType>
+                            </xsd:element>
+
                             <xsd:element name="nodeLayer" maxOccurs="unbounded">
                                 <xsd:complexType>
                                     <xsd:sequence>

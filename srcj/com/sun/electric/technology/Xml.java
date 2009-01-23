@@ -26,8 +26,6 @@ package com.sun.electric.technology;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.text.Version;
 import com.sun.electric.technology.Technology.TechPoint;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.IOTool;
@@ -375,6 +373,9 @@ public class Xml {
         polygonal,
         serpTrans,
         specialValue(true),
+        // Protection layer for transistors
+        protection,
+        location(true),
         minSizeRule,
         spiceTemplate,
         spiceHeader,
@@ -1102,6 +1103,10 @@ public class Xml {
                 case NodeRule:
                     DRCTemplate.parseXmlElement(curFoundry.rules, key.name(), attributes, localName);
                     break;
+                case protection:
+                case location:
+                    System.out.println("");
+                    break;
                 default:
                     assert key.hasText;
                     beginCharacters();
@@ -1359,6 +1364,8 @@ public class Xml {
                 case LayersRule:
                 case NodeLayersRule:
                 case NodeRule:
+                case protection:
+                case poly:
                     break;
                 default:
                     assert false;
