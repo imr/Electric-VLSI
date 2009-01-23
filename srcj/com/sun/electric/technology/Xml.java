@@ -1365,7 +1365,7 @@ public class Xml {
                 case NodeLayersRule:
                 case NodeRule:
                 case protection:
-                case poly:
+                case location:
                     break;
                 default:
                     assert false;
