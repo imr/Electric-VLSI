@@ -24,6 +24,7 @@
 package com.sun.electric.tool.routing;
 
 import com.sun.electric.database.geometry.Dimension2D;
+import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
@@ -47,8 +48,10 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -406,16 +409,30 @@ public abstract class Router {
      * to pi, or the default width of ap if none found.<p>
      * You may specify pi as null, in which case it just returns
      * ap.getDefaultLambdaFullWidth().
-     * 
-     * 
-     * @param pi the PortInst to connect to
+     * <P>
+     * If ignoreAngle is false, only arcs whose angles match arcAngle
+     * will have their sizes used to determine the arc width.  180 degrees
+     * out of phase also matches in this case.
+     * <P>
+     * If ignoreAngle is true, any arcs will have their sizes used to
+     * determine the return arc size.
+     *
+     * @param obj the object to connect to, either a PortInst or an ArcInst
      * @param ap the Arc type to connect with
      * @param arcAngle of the arc that will be drawn (in tenth-degrees)
+     * @param ignoreAngle to ignore the angle of arc to be drawn and existing arcs
      * @return the width to use to connect
      */
-    public static double getArcWidthToUse(PortInst pi, ArcProto ap, int arcAngle) {
-        // if pi null, just return default width of ap
-        if (pi == null) return ap.getDefaultLambdaBaseWidth();
+    public static double getArcWidthToUse(ElectricObject obj, ArcProto ap, int arcAngle, boolean ignoreAngle) {
+
+        if (obj instanceof ArcInst) {
+            ArcInst ai = (ArcInst)obj;
+            if (ignoreAngle) return ai.getLambdaBaseWidth();
+            if (ai.getAngle() % 1800 == arcAngle) return ai.getLambdaBaseWidth();
+            return ap.getDefaultLambdaBaseWidth();
+        }
+        if (obj == null || !(obj instanceof PortInst)) return ap.getDefaultLambdaBaseWidth();
+        PortInst pi = (PortInst)obj;
 
         boolean arcFound = false;
         // get all ArcInsts on pi, find largest
@@ -424,6 +441,9 @@ public abstract class Router {
             Connection c = it.next();
             ArcInst ai = c.getArc();
             if (ai.getProto() != ap) continue;
+            if (!ignoreAngle) {
+                if (ai.getAngle() % 1800 != arcAngle % 1800) continue;
+            }
             double newWidth = c.getArc().getLambdaBaseWidth();
             if (width < newWidth) width = newWidth;
             arcFound = true;
@@ -435,32 +455,27 @@ public abstract class Router {
             Cell cell = (Cell)ni.getProto();
             Export export = cell.findExport(pi.getPortProto().getName());
             PortInst exportedInst = export.getOriginalPort();
-            double width2 = getArcWidthToUse(exportedInst, ap, arcAngle);
+            double width2 = getArcWidthToUse(exportedInst, ap, arcAngle, ignoreAngle);
             if (width2 > width) width = width2;
         }
-/*
-        // if still default width and node is a contact, use the width/height of the contact
-        if (!arcFound && (ni.getProto() instanceof PrimitiveNode)) {
-            PrimitiveNode pn = (PrimitiveNode)ni.getProto();
-            if (pn.getFunction() == PrimitiveNode.Function.CONTACT) {
-                double xsize = ni.getXSizeWithoutOffset();
-                double ysize = ni.getYSizeWithoutOffset();
-                if ((ni.getAngle() - 900) % 1800 == 0) {
-                    // rotated
-                    double temp = xsize;
-                    xsize = ysize;
-                    ysize = temp;
-                }
-                if (arcAngle % 1800 == 0) {
-                    width = ysize;
-                }
-                if ((arcAngle - 900) % 1800 == 0) {
-                    width = xsize;
+
+        if (ClickZoomWireListener.theOne.getUseFatWiringMode()) {
+            // if still default width and node is a contact, use the width/height of the contact
+            if (!arcFound && (ni.getProto() instanceof PrimitiveNode)) {
+                PrimitiveNode pn = (PrimitiveNode)ni.getProto();
+                if (pn.getFunction() == PrimitiveNode.Function.CONTACT) {
+                    // size calls take into account rotation
+                    double xsize = ni.getXSizeWithoutOffset();
+                    double ysize = ni.getYSizeWithoutOffset();
+                    if (arcAngle % 1800 == 0) {
+                        width = ysize;
+                    }
+                    if ((arcAngle - 900) % 1800 == 0) {
+                        width = xsize;
+                    }
                 }
             }
         }
-*/
-
         return width;
     }
 
@@ -472,7 +487,7 @@ public abstract class Router {
      * @param arcAngle of the arc that will be drawn (in tenth-degrees)
      * @return the width of the arc to use to connect
      */
-    protected static double getArcWidthToUse(RouteElement re, ArcProto ap, int arcAngle) {
+/*    protected static double getArcWidthToUse(RouteElement re, ArcProto ap, int arcAngle) {
         double width = ap.getDefaultLambdaBaseWidth();
         double connectedWidth = width;
         if (re instanceof RouteElementPort) {
@@ -491,10 +506,120 @@ public abstract class Router {
         if (width > connectedWidth) return width;
         return connectedWidth;
     }
+*/
+
+    /**
+     * ContactSize class to deterime the arc sizes and contact size between two
+     * objects to be connected by the wirer.  This assumes manhatten wiring.
+     */
+    protected static class ContactSize {
+        private Rectangle2D contactSize;
+        private int startAngle;
+        private int endAngle;
+        private double startArcWidth;
+        private double endArcWidth;
+
+        public Rectangle2D getContactSize() { return contactSize; }
+        public int getStartAngle() { return startAngle; }
+        public int getEndAngle() { return endAngle; }
+        public double getStartWidth() { return startArcWidth; }
+        public double getEndWidth() { return endArcWidth; }
+
+        /**
+         * Determine the contact size, arc sizes, and arc angles based on the
+         * ElectricObjects to be connected, and the start, end, and corner location.
+         * @param startObj the object to route from
+         * @param endObj the object to route to
+         * @param startLoc the start location of the start arc
+         * @param endLoc the end location of the end arc
+         * @param cornerLoc the corner location (end of start arc and start of end arc)
+         * @param startArc start arc type
+         * @param endArc end arc type
+         * @param ignoreAngles whether to ignore angles when determining sizes
+         */
+        public ContactSize(ElectricObject startObj, ElectricObject endObj, Point2D startLoc, Point2D endLoc,
+                           Point2D cornerLoc, ArcProto startArc, ArcProto endArc, boolean ignoreAngles) {
+
+            Dimension2D startDim = new Dimension2D.Double(0, 0);
+            Dimension2D endDim = new Dimension2D.Double(0, 0);
+            startAngle = getAngleAndDimension(startDim, startObj, startLoc, cornerLoc, startArc, endObj == null, ignoreAngles);
+            endAngle = getAngleAndDimension(endDim, endObj, endLoc, cornerLoc, endArc, startObj == null, ignoreAngles);
+
+            double startW = startDim.getWidth();
+            double startH = startDim.getHeight();
+            double endW = endDim.getWidth();
+            double endH = endDim.getHeight();
+            if (startW == 0) startW = endW;
+            if (startH == 0) startH = endH;
+            if (endW == 0) endW = startW;
+            if (endH == 0) endH = startH;
+            // put dims in start
+            if (endW < startW) startW = endW;
+            if (endH < startH) startH = endH;
+
+            if (endObj == null && ClickZoomWireListener.theOne.getUseFatWiringMode()) {
+                if (startW > startH) startH = startW;
+                if (startH > startW) startW = startH;
+            }
+
+            contactSize = new Rectangle2D.Double(cornerLoc.getX()-startW/2.0, cornerLoc.getY()-startH/2.0, startW, startH);
+
+            if (startAngle % 1800 == 0) startArcWidth = contactSize.getHeight();
+            if ((startAngle + 900) % 1800 == 0) startArcWidth = contactSize.getWidth();
+            if (endAngle % 1800 == 0) endArcWidth = contactSize.getHeight();
+            if ((endAngle + 900) % 1800 == 0) endArcWidth = contactSize.getWidth();
+
+        }
+
+        private static int getAngleAndDimension(Dimension2D dim, ElectricObject obj, Point2D loc, Point2D cornerLoc,
+                                                ArcProto arc, boolean otherObjNull, boolean ignoreAngles) {
+            double w = 0, h = 0;
+            int angle = 0;
+
+            if (obj instanceof ArcInst) {
+                ArcInst ai = (ArcInst)obj;
+                angle = ai.getAngle();
+                double size = ai.getLambdaBaseWidth();
+
+                if (loc.equals(cornerLoc)) {
+                    if (angle % 1800 == 0) h = ai.getLambdaBaseWidth();
+                    if ((angle + 900) % 1800 == 0) w = ai.getLambdaBaseWidth();
+                } else {
+                    angle = GenMath.figureAngle(loc, cornerLoc);
+                    if (angle % 1800 == 0) h = ai.getLambdaBaseWidth();
+                    if ((angle + 900) % 1800 == 0) w = ai.getLambdaBaseWidth();
+                }
+                // special case
+                if (otherObjNull) {
+                    w = h = size;
+                }
+            }
+
+            if (obj instanceof PortInst) {
+                PortInst pi = (PortInst)obj;
+                if (otherObjNull) ignoreAngles = true;
+
+                if (loc.equals(cornerLoc)) {
+                    w = getArcWidthToUse(pi, arc, 900, ignoreAngles);
+                    h = getArcWidthToUse(pi, arc, 0, ignoreAngles);
+                } else {
+                    angle = GenMath.figureAngle(loc, cornerLoc);
+                    if (angle % 1800 == 0) h = getArcWidthToUse(pi, arc, angle, ignoreAngles);
+                    if ((angle + 900) % 1800 == 0) w = getArcWidthToUse(pi, arc, angle, ignoreAngles);
+                }
+            }
+
+            dim.setSize(w, h);
+            return angle;
+        }
+
+    }
+
 
     /**
      * Get the dimensions of a contact that will connect between startRE and endRE.
      */
+/*
     protected static Dimension2D getContactSize(RouteElement startRE, RouteElement endRE) {
         Dimension2D start = getContactSize(startRE);
         Dimension2D end = getContactSize(endRE);
@@ -524,6 +649,7 @@ public abstract class Router {
         }
 
         // special case: if this is a contact cut, use the size of the contact cut
+*/
 /*
         if (re.getPortProto() != null) {
             if (re.getPortProto().getParent().getFunction() == PrimitiveNode.Function.CONTACT) {
@@ -531,6 +657,7 @@ public abstract class Router {
             }
         }
 */
+/*
 
         // if RE is an existingPortInst, use width of arcs connected to it.
         if (re.getAction() == RouteElement.RouteElementAction.existingPortInst) {
@@ -573,6 +700,7 @@ public abstract class Router {
 
         return new Dimension2D.Double(width, height);
     }
+*/
 
     //=====================================================================================
 /*

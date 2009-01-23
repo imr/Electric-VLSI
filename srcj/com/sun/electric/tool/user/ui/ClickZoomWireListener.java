@@ -30,6 +30,7 @@ import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
@@ -89,6 +90,7 @@ public class ClickZoomWireListener
     private static Preferences prefs = Preferences.userNodeForPackage(ClickZoomWireListener.class);
     private static long cancelMoveDelayMillis; /* cancel move delay in milliseconds */
     private static long zoomInDelayMillis; /* zoom in delay in milliseconds */
+    private static boolean useFatWiringMode;
 
     private static final boolean debug = false; /* for debugging */
 
@@ -1585,6 +1587,14 @@ public class ClickZoomWireListener
                 router.highlightRoute(wnd, cell, startObj, wiringTarget, dbMouse);
             //}
             // nothing under mouse to route to/switch between, return
+        } else {
+            // toggle fat wiring mode
+            setUseFatWiringMode(!getUseFatWiringMode());
+            if (getUseFatWiringMode()) {
+                System.out.println("Enabling fat wiring mode");
+            } else {
+                System.out.println("Disabling fat wiring mode");
+            }
         }
     }
 
@@ -1673,10 +1683,12 @@ public class ClickZoomWireListener
 
     private static final String cancelMoveDelayMillisPref = "cancelMoveDelayMillis";
     private static final String zoomInDelayMillisPref = "zoomInDelayMillis";
+    private static final String useFatWiringModePref = "UseFatWiringMode";
 
     private void readPrefs() {
         cancelMoveDelayMillis = prefs.getLong(cancelMoveDelayMillisPref, getFactoryCancelMoveDelayMillis());
         zoomInDelayMillis = prefs.getLong(zoomInDelayMillisPref, 120);
+        useFatWiringMode = prefs.getBoolean(useFatWiringModePref, false);
     }
 
     public long getCancelMoveDelayMillis() { return cancelMoveDelayMillis; }
@@ -1693,6 +1705,13 @@ public class ClickZoomWireListener
     public void setZoomInDelayMillis(long delay) {
         zoomInDelayMillis = delay;
         prefs.putLong(zoomInDelayMillisPref, delay);
+    }
+
+    public boolean getUseFatWiringMode() { return useFatWiringMode; }
+
+    public void setUseFatWiringMode(boolean b) {
+        useFatWiringMode = b;
+        prefs.putBoolean(useFatWiringModePref, b);
     }
 
 

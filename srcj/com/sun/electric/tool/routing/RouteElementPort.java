@@ -148,6 +148,15 @@ public class RouteElementPort extends RouteElement {
    }
 
     /**
+     * Get the NodeProto for connecting to this RouteElementPort.
+     * This is not the same as getNodeInst.getProto(),
+     * because if the action has not yet been done the NodeInst
+     * will not have been created and will be null.
+     * @return the NodeProto
+     */
+    public NodeProto getNodeProto() { return np; }
+    
+    /**
      * Get the PortProto for connecting to this RouteElementPort.
      * This is not the same as getPortInst().getPortProto(),
      * because if the action has not yet been done the PortInst
@@ -216,6 +225,40 @@ public class RouteElementPort extends RouteElement {
             for (Iterator<Connection> it = portInst.getConnections(); it.hasNext(); ) {
                 Connection conn = it.next();
                 ArcInst arc = conn.getArc();
+                if (arc.getProto() == ap) {
+                    double newWidth = arc.getLambdaBaseWidth();
+                    if (newWidth > width) width = newWidth;
+                }
+            }
+        }
+
+        if (getAction() == RouteElementAction.newNode) {
+            if (newArcs == null) return -1;
+            for (RouteElementArc re : newArcs) {
+                if (re.getArcProto() == ap) {
+                    if (re.getArcBaseWidth() > width) width = re.getArcBaseWidth();
+                }
+            }
+        }
+
+        return width;
+    }
+
+    /**
+     * Get largest arc width of newArc RouteElements attached to this
+     * RouteElement.  If none present returns -1.
+     * <p>Note that these width values should have been pre-adjusted for
+     * the arc width offset, so these values have had the offset subtracted away.
+     */
+    public double getWidestConnectingArc(ArcProto ap, int arcAngle) {
+        double width = -1;
+
+        if (getAction() == RouteElementAction.existingPortInst) {
+            // find all arcs of type ap connected to this
+            for (Iterator<Connection> it = portInst.getConnections(); it.hasNext(); ) {
+                Connection conn = it.next();
+                ArcInst arc = conn.getArc();
+                if (arc.getAngle() != arcAngle) continue;
                 if (arc.getProto() == ap) {
                     double newWidth = arc.getLambdaBaseWidth();
                     if (newWidth > width) width = newWidth;

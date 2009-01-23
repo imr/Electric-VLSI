@@ -233,11 +233,11 @@ public class VerticalRoute {
      * @param location where to create the route (database units)
      * @param stayInside a polygonal area in which the new arc must reside (if not null).
      */
-    public void buildRoute(Route route, Cell cell, RouteElementPort startRE, RouteElementPort endRE,
+/*    public void buildRoute(Route route, Cell cell, RouteElementPort startRE, RouteElementPort endRE,
                            Point2D startLoc, Point2D endLoc, Point2D location, PolyMerge stayInside) {
         buildRoute(route, cell, startRE, endRE, startLoc, endLoc, location, stayInside, null);
     }
-
+*/
     /**
      * Builds a Route using the specification from specifyRoute(). It connects
      * this route up to startRE and endRE if they were specified.
@@ -251,7 +251,7 @@ public class VerticalRoute {
      * @param location where to create the route (database units)
      * @param stayInside a polygonal area in which the new arc must reside (if not null).
      */
-    public void buildRoute(Route route, Cell cell, RouteElementPort startRE, RouteElementPort endRE,
+/*    public void buildRoute(Route route, Cell cell, RouteElementPort startRE, RouteElementPort endRE,
                            Point2D startLoc, Point2D endLoc, Point2D location, PolyMerge stayInside, Rectangle2D contactArea) {
 
         if (specifiedRoute == null) {
@@ -347,7 +347,7 @@ public class VerticalRoute {
             if (!route.contains(re)) route.add(re);
         }
     }
-
+*/
     /**
      * Builds a Route using the specification from specifyRoute(), but without
      * connecting to startRE and endRE.  The start of the returned Route can connect
@@ -395,7 +395,8 @@ public class VerticalRoute {
             route.setEnd(newNode);
 
             // create arc
-            double arcWidth = Router.getArcWidthToUse(node, ap, arcAngle);
+            //double arcWidth = Router.getArcWidthToUse(node, ap, arcAngle);
+            double arcWidth = ap.getDefaultLambdaBaseWidth();
             RouteElementArc arc = RouteElementArc.newArc(cell, ap, arcWidth, node, newNode, location, location,
             	null, null, null, ap.isExtended(), ap.isExtended(), stayInside);
             arc.setArcAngle(arcAngle);

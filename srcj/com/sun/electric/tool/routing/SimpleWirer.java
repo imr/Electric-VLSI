@@ -52,7 +52,7 @@ public class SimpleWirer extends InteractiveRouter {
     protected boolean planRoute(Route route, Cell cell, RouteElementPort endRE,
                                 Point2D startLoc, Point2D endLoc, Point2D clicked, PolyMerge stayInside, VerticalRoute vroute,
                                 boolean contactsOnEndObj, boolean extendArcHead, boolean extendArcTail, Rectangle2D contactArea) {
-
+/*
         RouteElementPort startRE = route.getEnd();
 
         // find port protos of startRE and endRE, and find connecting arc type
@@ -191,14 +191,14 @@ public class SimpleWirer extends InteractiveRouter {
             RouteElementPort pinRE = RouteElementPort.newNode(cell, pn, pn.getPort(0), cornerLoc,
                     defwidth, defheight);
             RouteElement arcRE1 = RouteElementArc.newArc(cell, useArc, width, startRE, pinRE,
-            	startLoc, cornerLoc, null, null, null, extendArcHead, extendArcTail, stayInside);
+            	startLoc, cornerLoc, null, null, null, extendArcHead, true, stayInside);
             RouteElement arcRE2 = RouteElementArc.newArc(cell, useArc, width, pinRE, endRE,
-            	cornerLoc, endLoc, null, null, null, extendArcHead, extendArcTail, stayInside);
+            	cornerLoc, endLoc, null, null, null, true, extendArcTail, stayInside);
             route.add(pinRE);
             route.add(arcRE1);
             route.add(arcRE2);
         }
-
+*/
         return true;
     }
 
