@@ -115,7 +115,7 @@ public class Xml {
         public void writeXml(String fileName) {
             writeXml(fileName, true, null);
         }
-        
+
         public void writeXml(String fileName, boolean includeDateAndVersion, String copyrightMessage) {
             try {
                 PrintWriter out = new PrintWriter(fileName);
@@ -1401,7 +1401,7 @@ public class Xml {
                 boolean nonBlank = false;
                 for (int i = 0; i < length; i++) {
                     char c = ch[start + i];
-                    nonBlank = nonBlank || c != ' ' && c != '\n';
+                    nonBlank = nonBlank || c != ' ' && c != '\n' && c != '\t';
                 }
                 if (nonBlank) {
                     System.out.print("characters size=" + ch.length + " start=" + start + " length=" + length + " {");
