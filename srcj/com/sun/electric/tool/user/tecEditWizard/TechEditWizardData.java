@@ -148,7 +148,7 @@ public class TechEditWizardData
                 return value + "";
         }
     }
-    
+
     private LayerInfo gds_diff_layer = new LayerInfo("Active");
 	private LayerInfo gds_sr_dpo_layer = new LayerInfo("Protect Poly");
     private LayerInfo gds_poly_layer = new LayerInfo("Poly");
@@ -1233,7 +1233,7 @@ public class TechEditWizardData
     /**
      * Method to create the XML version of NodeLayer
      */
-    private Xml.NodeLayer makeXmlNodeLayer(double lx, double hx, double ly, double hy, Xml.Layer lb, Poly.Type style, 
+    private Xml.NodeLayer makeXmlNodeLayer(double lx, double hx, double ly, double hy, Xml.Layer lb, Poly.Type style,
                                            boolean electricalLayers)
     {
         Xml.NodeLayer nl = new Xml.NodeLayer();
@@ -1246,7 +1246,7 @@ public class TechEditWizardData
         nl.lx.addLambda(-lx); nl.hx.addLambda(hx); nl.ly.addLambda(-ly); nl.hy.addLambda(hy);
         return nl;
     }
-    
+
     private Xml.NodeLayer makeXmlMulticut(Xml.Layer lb, double sizeRule, double sepRule, double sepRule2D) {
         Xml.NodeLayer nl = new Xml.NodeLayer();
         nl.layer = lb.name;
@@ -1261,7 +1261,7 @@ public class TechEditWizardData
         nl.sep1d = sepRule;
         nl.sep2d = sepRule2D;
         return nl;
-        
+
     }
 
     /**
@@ -1649,7 +1649,7 @@ public class TechEditWizardData
                 makeXmlNodeLayer(metal1Over, metal1Over, metal1Over, metal1Over, m1Layer, Poly.Type.FILLED, true), // meta1 layer
                 makeXmlNodeLayer(hla, hla, hla, hla, polyLayer, Poly.Type.FILLED, true), // poly layer
                 makeXmlMulticut(diffConLayer, contSize, contSpacing, contArraySpacing)); // contact
-        
+
         /**************************** N/P-Diff Nodes/Arcs ***********************************************/
 
         // NDiff/PDiff arcs
@@ -1917,7 +1917,7 @@ public class TechEditWizardData
             makeXmlPrimitive(t.nodes, name + "-Transistor", PrimitiveNode.Function.TRANMOS, 0, 0, 0, 0,
                 new SizeOffset(sox, sox, soy, soy), nodesList, nodePorts, null, false);
         }
-        
+
         /** RULES **/
         Xml.Foundry f = new Xml.Foundry();
         f.name = Foundry.Type.NONE.getName();
@@ -1959,22 +1959,24 @@ public class TechEditWizardData
         makeLayersRuleSurround(t, nwellLayer, diffNLayer, nwell_overhang_diff_n);
 
         makeLayerRuleMinWid(t, polyLayer, poly_width);
-        
+
         for (int i = 0; i < num_metal_layers; i++) {
             Xml.Layer met = metalLayers.get(i);
             makeLayerRuleMinWid(t, met, metal_width[i]);
-            
+
             if (i >= num_metal_layers - 1) continue;
             Xml.Layer via = viaLayers.get(i);
             makeLayerRuleMinWid(t, via, via_size[i]);
             makeLayersRule(t, via, DRCTemplate.DRCRuleType.CONSPA, via_spacing[i]);
             makeLayersRule(t, via, DRCTemplate.DRCRuleType.UCONSPA2D, via_array_spacing[i]);
         }
-        
+
         // write finally the file
-        t.writeXml(fileName);
+        boolean includeDateAndVersion = User.isIncludeDateAndVersionInOutput();
+        String copyrightMessage = IOTool.isUseCopyrightMessage() ? IOTool.getCopyrightMessage() : null;
+        t.writeXml(fileName, includeDateAndVersion, copyrightMessage);
     }
-    
+
     private Xml.ArcLayer makeXmlArcLayer(Xml.Layer layer, WizardField ... flds) {
         Xml.ArcLayer al = new Xml.ArcLayer();
         al.layer = layer.name;
@@ -1983,7 +1985,7 @@ public class TechEditWizardData
             al.extend.addLambda(scaledValue(flds[i].v/2));
         return al;
     }
-    
+
 //    private Technology.Distance makeXmlDistance(WizardField ... flds) {
 //        Technology.Distance dist = new Technology.Distance();
 //        dist.addRule(flds[0].rule, 0.5);
@@ -2004,7 +2006,7 @@ public class TechEditWizardData
                 l.name, null, new double[] {scaledValue(fld.v)}, null, null));
         }
     }
-    
+
     private void makeLayersRule(Xml.Technology t, Xml.Layer l, DRCTemplate.DRCRuleType ruleType, WizardField fld) {
         for (Xml.Foundry f: t.foundries) {
             f.rules.add(new DRCTemplate(fld.rule, DRCTemplate.DRCMode.ALL.mode(), ruleType,

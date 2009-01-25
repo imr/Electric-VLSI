@@ -51,6 +51,7 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
@@ -449,8 +450,11 @@ public class LibToTech
 		}
 
 		Xml.Technology t = makeXml(newTechName, gi, lList, nList, aList);
-		if (fileName != null)
-			t.writeXml(fileName);
+		if (fileName != null) {
+            boolean includeDateAndVersion = User.isIncludeDateAndVersionInOutput();
+            String copyrightMessage = IOTool.isUseCopyrightMessage() ? IOTool.getCopyrightMessage() : null;
+			t.writeXml(fileName, includeDateAndVersion, copyrightMessage);
+        }
 		Technology tech = new Technology(lib.getGeneric(), t);
 		tech.setup(lib.getDatabase());
 

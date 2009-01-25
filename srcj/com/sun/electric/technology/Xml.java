@@ -28,8 +28,6 @@ import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.technology.Technology.TechPoint;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.io.IOTool;
-import com.sun.electric.tool.user.User;
 
 import java.awt.Color;
 import java.io.IOException;
@@ -115,10 +113,14 @@ public class Xml {
         }
 
         public void writeXml(String fileName) {
+            writeXml(fileName, true, null);
+        }
+        
+        public void writeXml(String fileName, boolean includeDateAndVersion, String copyrightMessage) {
             try {
                 PrintWriter out = new PrintWriter(fileName);
                 Writer writer = new Writer(out);
-                writer.writeTechnology(this);
+                writer.writeTechnology(this, includeDateAndVersion, copyrightMessage);
                 out.close();
                 System.out.println("Wrote " + fileName);
                 System.out.println(" (Add this file to the 'Added Technologies' Project Settings to install it in Electric)");
@@ -207,12 +209,17 @@ public class Xml {
         public final Distance defaultWidth = new Distance();
         public final Distance defaultHeight = new Distance();
         public SizeOffset sizeOffset;
+        public ProtectionType protection;
         public final List<NodeLayer> nodeLayers = new ArrayList<NodeLayer>();
         public final List<PrimitivePort> ports = new ArrayList<PrimitivePort>();
         public int specialType;
         public double[] specialValues;
         public NodeSizeRule nodeSizeRule;
         public String spiceTemplate;
+    }
+
+    public enum ProtectionType {
+        both, left, right, none;
     }
 
     public static class NodeLayer implements Serializable {
@@ -375,7 +382,7 @@ public class Xml {
         specialValue(true),
         // Protection layer for transistors
         protection,
-        location(true),
+//        location(true),
         minSizeRule,
         spiceTemplate,
         spiceHeader,
@@ -957,6 +964,9 @@ public class Xml {
                     double hy = Double.parseDouble(a("hy"));
                     curNode.sizeOffset = new SizeOffset(lx, hx, ly, hy);
                     break;
+                case protection:
+                    curNode.protection = ProtectionType.valueOf(a("location"));
+                    break;
                 case nodeLayer:
                     curNodeLayer = new NodeLayer();
                     curNodeLayer.layer = a("layer");
@@ -1102,10 +1112,6 @@ public class Xml {
                 case NodeLayersRule:
                 case NodeRule:
                     DRCTemplate.parseXmlElement(curFoundry.rules, key.name(), attributes, localName);
-                    break;
-                case protection:
-                case location:
-                    System.out.println("");
                     break;
                 default:
                     assert key.hasText;
@@ -1343,6 +1349,7 @@ public class Xml {
 
                 case defaultHeight:
                 case sizeOffset:
+                case protection:
                 case box:
                 case points:
                 case multicutbox:
@@ -1364,8 +1371,6 @@ public class Xml {
                 case LayersRule:
                 case NodeLayersRule:
                 case NodeRule:
-                case protection:
-                case location:
                     break;
                 default:
                     assert false;
@@ -1547,7 +1552,7 @@ public class Xml {
             this.out = out;
         }
 
-        private void writeTechnology(Xml.Technology t) {
+        private void writeTechnology(Xml.Technology t, boolean includeDateAndVersion, String copyrightMessage) {
             Calendar cal = Calendar.getInstance();
             cal.setTime(new Date());
 
@@ -1556,7 +1561,7 @@ public class Xml {
             pl("");
             out.println("<!--");
             pl(" *");
-    		if (User.isIncludeDateAndVersionInOutput())
+    		if (includeDateAndVersion)
     		{
     			pl(" * Electric(tm) VLSI Design System, version " + com.sun.electric.database.text.Version.getVersion());
     		} else
@@ -1568,15 +1573,14 @@ public class Xml {
             pl(" * " + t.techName + " technology description");
             pl(" * Generated automatically from a library");
             pl(" *");
-    		if (IOTool.isUseCopyrightMessage())
+    		if (copyrightMessage != null)
     		{
-	    		String str = IOTool.getCopyrightMessage();
 	    		int start = 0;
-	    		while (start < str.length())
+	    		while (start < copyrightMessage.length())
 	    		{
-	    			int endPos = str.indexOf('\n', start);
-	    			if (endPos < 0) endPos = str.length();
-	    			String oneLine = str.substring(start, endPos);
+	    			int endPos = copyrightMessage.indexOf('\n', start);
+	    			if (endPos < 0) endPos = copyrightMessage.length();
+	    			String oneLine = copyrightMessage.substring(start, endPos);
 	                pl(" * " + oneLine);
 	    			start = endPos+1;
 	    		}
@@ -1840,6 +1844,10 @@ public class Xml {
                 double ly = ni.sizeOffset.getLowYOffset();
                 double hy = ni.sizeOffset.getHighYOffset();
                 b(XmlKeyword.sizeOffset); a("lx", lx); a("hx", hx); a("ly", ly); a("hy", hy); el();
+            }
+
+            if (ni.protection != null) {
+                b(XmlKeyword.protection); a("location", ni.protection); el();
             }
 
             for(int j=0; j<ni.nodeLayers.size(); j++) {

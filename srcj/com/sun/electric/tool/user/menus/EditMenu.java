@@ -52,6 +52,7 @@ import com.sun.electric.tool.Client;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.sandbox.TechExplorerDriver;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.CircuitChangeJobs;
@@ -361,7 +362,9 @@ public class EditMenu {
 					fileName = OpenFile.chooseOutputFile(FileType.XML, "Technology XML File", fileName);
 					if (fileName != null) // didn't press cancel button
 					{
-						xmlTech.writeXml(fileName);
+                        boolean includeDateAndVersion = User.isIncludeDateAndVersionInOutput();
+                        String copyrightMessage = IOTool.isUseCopyrightMessage() ? IOTool.getCopyrightMessage() : null;
+						xmlTech.writeXml(fileName, includeDateAndVersion, copyrightMessage);
 					}
 				}},
 				new EMenuItem("Write XML of Technology from Old Electric Build...") { public void run() {
@@ -804,7 +807,7 @@ public class EditMenu {
             e.printStackTrace();
         }
 
-		if (f == null) return;    
+		if (f == null) return;
         fileName = f.getPath();
 		if (!tw.writeTextCell(fileName))
 		{
@@ -1819,8 +1822,11 @@ public class EditMenu {
                             if (xmlTech != null) {
                                 String fileName = xmlTech.techName + ".xml";
                                 fileName = OpenFile.chooseOutputFile(FileType.XML, "Technology XML File", fileName);
-                                if (fileName != null)
-                                    xmlTech.writeXml(fileName);
+                                if (fileName != null) {
+                                    boolean includeDateAndVersion = User.isIncludeDateAndVersionInOutput();
+                                    String copyrightMessage = IOTool.isUseCopyrightMessage() ? IOTool.getCopyrightMessage() : null;
+                                    xmlTech.writeXml(fileName, includeDateAndVersion, copyrightMessage);
+                                }
                             }
                             closeCommands();
                             break;

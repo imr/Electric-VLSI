@@ -269,7 +269,7 @@ public class TechExplorer extends ESandBox {
         t.className = tech.getClass().getName();
         if (t.className.equals("com.sun.electric.technology.Technology"))
             t.className = null;
-        
+
         Xml.Version version;
         version = new Xml.Version();
         version.techVersion = 1;
@@ -279,7 +279,7 @@ public class TechExplorer extends ESandBox {
         version.techVersion = 2;
         version.electricVersion = Technology.DISK_VERSION_2;
         t.versions.add(version);
-        
+
         t.shortTechName = (String)Technology_getTechShortName.invoke(tech);
         t.description = (String)Technology_getTechDesc.invoke(tech);
         t.scaleValue = (Double)Technology_getScale.invoke(tech);
@@ -379,7 +379,7 @@ public class TechExplorer extends ESandBox {
                 a.antennaRatio = (Double)ERC_getAntennaRatio.invoke(ERC_tool.get(null), ap);
             else if (ArcProto_getAntennaRatio != null)
                 a.antennaRatio = (Double)ArcProto_getAntennaRatio.invoke(ap);
-            
+
             double defaultFullWidth = 0;
             if (ArcProto_getLambdaElibWidthOffset != null && ArcProto_getDefaultLambdaBaseWidth != null)
                 defaultFullWidth = (Double)ArcProto_getLambdaElibWidthOffset.invoke(ap) + (Double)ArcProto_getDefaultLambdaBaseWidth.invoke(ap);
@@ -659,7 +659,7 @@ public class TechExplorer extends ESandBox {
 
     private void makeFoundries(Xml.Technology t, Object tech) throws IllegalAccessException, InvocationTargetException {
         if (Technology_getFoundries == null) return;
-        
+
         Object foundries = Technology_getFoundries.invoke(tech);
         Iterator<?> fit = foundries instanceof List ? ((List)foundries).iterator() : (Iterator)foundries;
         for (; fit.hasNext(); ) {
@@ -722,9 +722,9 @@ public class TechExplorer extends ESandBox {
                 t.foundries.add(f);
             }
         }
-        
+
     }
-    
+
     private Xml.NodeLayer makeNodeLayerDetails(Xml.Technology t, Object nodeLayer, boolean isSerp, EPoint correction, boolean inLayers, boolean inElectricalLayers)
     throws IllegalAccessException, InvocationTargetException {
         Xml.NodeLayer nld = new Xml.NodeLayer();
@@ -845,7 +845,7 @@ public class TechExplorer extends ESandBox {
         v = DBMath.round(v);
         return v;
     }
-    
+
 //    public Xml.Technology makeXml(String techName) throws IllegalAccessException, InvocationTargetException {
 //        Object tech = Technology_findTechnology.invoke(null, techName);
 //
@@ -1206,7 +1206,7 @@ public class TechExplorer extends ESandBox {
 //
 //    private void makeFoundries(Xml.Technology t, Object tech) throws IllegalAccessException, InvocationTargetException {
 //        if (Technology_getFoundries == null) return;
-//        
+//
 //        Object foundries = Technology_getFoundries.invoke(tech);
 //        Iterator<?> fit = foundries instanceof List ? ((List)foundries).iterator() : (Iterator)foundries;
 //        for (; fit.hasNext(); ) {
@@ -1269,9 +1269,9 @@ public class TechExplorer extends ESandBox {
 //                t.foundries.add(f);
 //            }
 //        }
-//        
+//
 //    }
-//    
+//
 //    private Xml.ArcPin makeWipablePin(Object tech, Object ap, HashSet<Object> arcPins) throws IllegalAccessException, InvocationTargetException {
 //        for (Iterator<?> it = (Iterator)Technology_getNodes.invoke(tech); it.hasNext(); ) {
 //            Object pn = it.next();
@@ -1361,7 +1361,7 @@ public class TechExplorer extends ESandBox {
 //                        sizeRule = makeLayerRule(t, "W_" + nld.layer, nld.layer, DRCTemplate.DRCRuleType.MINWID, value);
 //                    }
 //                    nld.sizeRule = makeRuleName(sizeRule);
-//                    
+//
 //                    DRCTemplate sepRule = findLayersRule(t, nld.layer, nld.layer, DRCTemplate.DRCRuleType.CONSPA);
 //                    if (sepRule == null)
 //                        sepRule = findLayersRule(t, nld.layer, nld.layer, DRCTemplate.DRCRuleType.SPACING);
@@ -1372,7 +1372,7 @@ public class TechExplorer extends ESandBox {
 //                        sepRule = makeLayersRule(t, "C_" + nld.layer + "_" + nld.layer, nld.layer, nld.layer, DRCTemplate.DRCRuleType.CONSPA, value);
 //                    }
 //                    nld.sepRule = makeRuleName(sepRule);
-//                    
+//
 //                    DRCTemplate sepRule2D = findLayersRule(t, nld.layer, nld.layer, DRCTemplate.DRCRuleType.UCONSPA2D);
 //                    if (sepRule2D != null)
 //                        nld.sepRule2D = makeRuleName(sepRule2D);
@@ -1399,7 +1399,7 @@ public class TechExplorer extends ESandBox {
 //        }
 //        return null;
 //    }
-//    
+//
 //    private DRCTemplate findLayerRule(Xml.Technology t, String layerName, DRCTemplate.DRCRuleType ruleType) {
 //        Xml.Foundry foundry = t.foundries.get(0);
 //        for (DRCTemplate rule: foundry.rules) {
@@ -1408,7 +1408,7 @@ public class TechExplorer extends ESandBox {
 //        }
 //        return null;
 //    }
-//    
+//
 //    private DRCTemplate makeLayersRule(Xml.Technology t, String ruleName, String layerName1, String layerName2, DRCTemplate.DRCRuleType ruleType, double value) {
 //        DRCTemplate rule = null;
 //        for (Xml.Foundry foundry: t.foundries) {
@@ -1418,7 +1418,7 @@ public class TechExplorer extends ESandBox {
 //        }
 //        return rule;
 //    }
-//    
+//
 //    private DRCTemplate makeLayerRule(Xml.Technology t, String ruleName, String layerName, DRCTemplate.DRCRuleType ruleType, double value) {
 //        DRCTemplate rule = null;
 //        for (Xml.Foundry foundry: t.foundries) {
@@ -1428,7 +1428,7 @@ public class TechExplorer extends ESandBox {
 //        }
 //        return rule;
 //    }
-//    
+//
 //    private String makeRuleName(DRCTemplate rule) {
 //        String ruleName = rule.ruleName;
 //        int spaceIndex = ruleName.indexOf(' ');
@@ -1436,7 +1436,7 @@ public class TechExplorer extends ESandBox {
 //            ruleName = ruleName.substring(0, spaceIndex);
 //        return ruleName;
 //    }
-//    
+//
 //    private Technology.TechPoint correction(Object p, EPoint correction) throws IllegalAccessException, InvocationTargetException {
 //        Object oh = TechnologyTechPoint_getX.invoke(p);
 //        double mx = (Double)EdgeH_getMultiplier.invoke(oh);
