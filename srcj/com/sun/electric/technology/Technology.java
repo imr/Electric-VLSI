@@ -24,6 +24,7 @@
 package com.sun.electric.technology;
 
 import com.sun.electric.Main;
+import com.sun.electric.database.Config;
 import com.sun.electric.database.EObjectInputStream;
 import com.sun.electric.database.EObjectOutputStream;
 import com.sun.electric.database.ImmutableArcInst;
@@ -134,7 +135,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	public static final boolean DUPLICATEPOINTSAREBROKENOUTLINES = false;
 
     // Change in TechSettings takes effect only after restart
-    private final boolean IMMUTABLE_TECHS = false;
+    private final boolean IMMUTABLE_TECHS = Config.TWO_JVM;
 
 	private static final boolean LAZY_TECHNOLOGIES = false;
     /** Jelib writes base sizes since this Electric Version */
