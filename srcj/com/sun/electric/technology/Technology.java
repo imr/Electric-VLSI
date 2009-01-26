@@ -132,7 +132,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	public static final boolean HANDLEBROKENOUTLINES = true;
 	/** true to handle duplicate points in an outline as a "break" */
 	public static final boolean DUPLICATEPOINTSAREBROKENOUTLINES = false;
-    
+
     // Change in TechSettings takes effect only after restart
     private final boolean IMMUTABLE_TECHS = false;
 
@@ -1025,14 +1025,36 @@ public class Technology implements Comparable<Technology>, Serializable
 	/** the color map for this technology */				private Color [] colorMap;
 	/** list of layers in this technology */				private final List<Layer> layers = new ArrayList<Layer>();
 	/** map from layer names to layers in this technology */private final HashMap<String,Layer> layersByName = new HashMap<String,Layer>();
+//	private static Map<String,Pref> gdsLayerPrefs = new HashMap<String,Pref>();
+    final Map<Layer,Pref> layerVisibilityPrefs = new HashMap<Layer,Pref>();
+    // 3D options
+	final Map<Layer,Pref> layer3DThicknessPrefs = new HashMap<Layer,Pref>();
+	final Map<Layer,Pref> layer3DDistancePrefs = new HashMap<Layer,Pref>();
+    final Map<Layer,Pref> layer3DTransModePrefs = new HashMap<Layer,Pref>(); // NONE is the default
+    final Map<Layer,Pref> layer3DTransFactorPrefs = new HashMap<Layer,Pref>(); // 0 is the default
+    final Map<Layer,Pref> areaCoveragePrefs = new HashMap<Layer,Pref>();  // Used by area coverage tool
     /** True when layer allocation is finished. */          private boolean layersAllocationLocked;
+
 	/** list of primitive nodes in this technology */		private final LinkedHashMap<String,PrimitiveNode> nodes = new LinkedHashMap<String,PrimitiveNode>();
     /** array of nodes by nodeId.chronIndex */              private PrimitiveNode[] nodesByChronIndex = {};
     /** Old names of primitive nodes */                     protected final HashMap<String,PrimitiveNode> oldNodeNames = new HashMap<String,PrimitiveNode>();
+	/** Pref map for node width. */					        final Map<PrimitiveNode,Pref> defaultExtendXPrefs = new HashMap<PrimitiveNode,Pref>();
+	/** Pref map for node height. */                        final Map<PrimitiveNode,Pref> defaultExtendYPrefs = new HashMap<PrimitiveNode,Pref>();
+	/** cached state of node visibility */                  final Map<PrimitiveNode,Boolean> cacheVisibilityNodes = new HashMap<PrimitiveNode,Boolean>();
     /** count of primitive nodes in this technology */      private int nodeIndex = 0;
+
 	/** list of arcs in this technology */					private final LinkedHashMap<String,ArcProto> arcs = new LinkedHashMap<String,ArcProto>();
     /** array of arcs by arcId.chronIndex */                private ArcProto[] arcsByChronIndex = {};
     /** Old names of arcs */                                protected final HashMap<String,ArcProto> oldArcNames = new HashMap<String,ArcProto>();
+	/** Pref map for arc extend over min. */                final HashMap<ArcProto,Pref> defaultExtendPrefs = new HashMap<ArcProto,Pref>();
+	/** Pref map for arc angle increment. */				final HashMap<ArcProto,Pref> defaultAnglePrefs = new HashMap<ArcProto,Pref>();
+	/** Pref map for arc rigidity. */						final HashMap<ArcProto,Pref> defaultRigidPrefs = new HashMap<ArcProto,Pref>();
+	/** Pref map for arc fixed angle. */					final HashMap<ArcProto,Pref> defaultFixedAnglePrefs = new HashMap<ArcProto,Pref>();
+	/** Pref map for arc slidable. */						final HashMap<ArcProto,Pref> defaultSlidablePrefs = new HashMap<ArcProto,Pref>();
+	/** Pref map for arc end extension. */					final HashMap<ArcProto,Pref> defaultExtendedPrefs = new HashMap<ArcProto,Pref>();
+//	/** Pref map for arc negation. */						final HashMap<ArcProto,Pref> defaultNegatedPrefs = new HashMap<ArcProto,Pref>();
+	/** Pref map for arc directionality. */					final HashMap<ArcProto,Pref> defaultDirectionalPrefs = new HashMap<ArcProto,Pref>();
+
 	/** Spice header cards, level 1. */						private String [] spiceHeaderLevel1;
 	/** Spice header cards, level 2. */						private String [] spiceHeaderLevel2;
 	/** Spice header cards, level 3. */						private String [] spiceHeaderLevel3;
@@ -1825,7 +1847,7 @@ public class Technology implements Comparable<Technology>, Serializable
                     "Electric cannot handle this situation and errors may result.\n" +
                     "It is recommended that you restart Electric to avoid this instability.",
                     "Technology Parameter Changed");
-            
+
         } else {
             setStateNow();
         }
@@ -2151,7 +2173,7 @@ public class Technology implements Comparable<Technology>, Serializable
         }
         else
             System.out.println("Error: no factory color map in technology " + this.getTechName());
-        
+
         for (Iterator<Layer> it = getLayers(); it.hasNext(); ) {
             Layer layer = it.next();
             if (layer.isPseudoLayer()) continue;
@@ -3102,6 +3124,15 @@ public class Technology implements Comparable<Technology>, Serializable
 	public int getNumNodes()
 	{
 		return nodes.size();
+	}
+
+	/**
+	 * Method to reset the cache of PrimitiveNode visibility.
+	 * Called when layer visibility changes.
+	 */
+	void resetAllVisibility()
+	{
+		cacheVisibilityNodes.clear();
 	}
 
     /**
@@ -5548,7 +5579,7 @@ public class Technology implements Comparable<Technology>, Serializable
             factoryRules = makeFactoryDesignRules();
         return factoryRules;
     }
-    
+
 	/**
 	 * Method to get the factory design rules.
 	 * Individual technologies subclass this to create their own rules.

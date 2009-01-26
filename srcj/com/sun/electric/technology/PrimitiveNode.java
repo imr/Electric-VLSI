@@ -764,7 +764,6 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	/** PrimitivePorts on the PrimitiveNode. */		private PrimitivePort[] primPorts = {};
     /** array of ports by portId.chronIndex */      private PrimitivePort[] portsByChronIndex = {};
 	/** flag bits */								private int userBits;
-	/** Global index of this PrimitiveNode. */		private int globalPrimNodeIndex;
     /** Index of this PrimitiveNode per tech */     private int techPrimNodeIndex = -1;
 	/** special type of unusual primitives */		private int specialType;
 	/** special factors for unusual primitives */	private double[] specialValues;
@@ -776,11 +775,6 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
     /** full (true) rectangle of standard node */   private ERectangle fullRectangle;
 	/** amount to automatically grow to fit arcs */	private Dimension2D autoGrowth;
 	/** template for Spice decks (null if none) */	private String spiceTemplate;
-
-	/** counter for enumerating primitive nodes */	private static int primNodeNumber = 0;
-	/** Pref map for node width. */					private static Map<PrimitiveNode,Pref> defaultExtendXPrefs = new HashMap<PrimitiveNode,Pref>();
-	/** Pref map for node height. */				private static Map<PrimitiveNode,Pref> defaultExtendYPrefs = new HashMap<PrimitiveNode,Pref>();
-	/** cached state of node visibility */			private static Map<PrimitiveNode,Boolean> cacheVisibilityNodes = new HashMap<PrimitiveNode,Boolean>();
 
 	// ------------------ private and protected methods ----------------------
 
@@ -818,7 +812,6 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
         double hy = fullRectangle.getLambdaMaxY() - baseRectangle.getLambdaMaxY();
         offset = new SizeOffset(lx, hx, ly, hy);
 		this.autoGrowth = null;
-		globalPrimNodeIndex = primNodeNumber++;
 
         int numMultiCuts = 0;
         for (Technology.NodeLayer nodeLayer: layers) {
@@ -1107,7 +1100,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
     public void setLayers(Technology.NodeLayer [] layers)
     {
     	this.layers = layers;
-    	resetAllVisibility();
+    	tech.resetAllVisibility();
     }
 
 	/**
@@ -1236,11 +1229,11 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	 */
 	private Pref getNodeProtoExtendXPref(double factoryExtendX)
 	{
-		Pref pref = defaultExtendXPrefs.get(this);
+		Pref pref = tech.defaultExtendXPrefs.get(this);
 		if (pref == null)
 		{
 			pref = Pref.makeDoublePref("DefaultExtendXFor" + getName() + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factoryExtendX);
-			defaultExtendXPrefs.put(this, pref);
+			tech.defaultExtendXPrefs.put(this, pref);
 		}
 		return pref;
 	}
@@ -1252,11 +1245,11 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	 */
 	private Pref getNodeProtoExtendYPref(double factoryExtendY)
 	{
-		Pref pref = defaultExtendYPrefs.get(this);
+		Pref pref = tech.defaultExtendYPrefs.get(this);
 		if (pref == null)
 		{
 			pref = Pref.makeDoublePref("DefaultExtendYFor" + getName() + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factoryExtendY);
-			defaultExtendYPrefs.put(this, pref);
+			tech.defaultExtendYPrefs.put(this, pref);
 		}
 		return pref;
 	}
@@ -2090,15 +2083,6 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
     }
 
 	/**
-	 * Method to reset the cache of PrimitiveNode visibility.
-	 * Called when layer visibility changes.
-	 */
-	public static void resetAllVisibility()
-	{
-		cacheVisibilityNodes.clear();
-	}
-
-	/**
 	 * Method to determine whether a primitive node is visible.
 	 * If all layers are invisible, the primitive is considered invisible.
 	 * Otherwise, it is visible.
@@ -2106,7 +2090,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	 */
 	public boolean isVisible()
 	{
-		Boolean b = cacheVisibilityNodes.get(this);
+		Boolean b = tech.cacheVisibilityNodes.get(this);
 		if (b == null)
 		{
 			boolean visible = false;
@@ -2120,7 +2104,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 				}
 			}
 			b = new Boolean(visible);
-			cacheVisibilityNodes.put(this, b);
+			tech.cacheVisibilityNodes.put(this, b);
 		}
 		return b.booleanValue();
 	}
@@ -2187,7 +2171,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 			int cmp = this.tech.compareTo(that.tech);
 			if (cmp != 0) return cmp;
 		}
-		return this.globalPrimNodeIndex - that.globalPrimNodeIndex;
+		return this.techPrimNodeIndex - that.techPrimNodeIndex;
 	}
 
 	/**
@@ -2230,8 +2214,8 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
             out.println("\tminNodeSize w=" + minNodeSize.getWidth() + " h=" + minNodeSize.getHeight() + " rule=" + minNodeSize.getRuleName());
         if (autoGrowth != null)
             out.println("\tautoGrowth " + autoGrowth);
-        Technology.printlnPref(out, 1, defaultExtendXPrefs.get(this));
-        Technology.printlnPref(out, 1, defaultExtendYPrefs.get(this));
+        Technology.printlnPref(out, 1, tech.defaultExtendXPrefs.get(this));
+        Technology.printlnPref(out, 1, tech.defaultExtendYPrefs.get(this));
         for (int techVersion = 0; techVersion < 2; techVersion++) {
             EPoint sizeCorrector = getSizeCorrector(techVersion);
             String diskOffset = "diskOffset" + (techVersion + 1);
