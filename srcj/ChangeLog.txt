@@ -8,6 +8,8 @@ BUG: (1/26/09, SMR) Antenna Check loops forever (Bug #2020).
 FIX: In ERCAntenna.followNode() must load AntennaObject before testing
      it for duplication.
 
+IMP: (1/23/09, JG) new routing, fat wiring mode.
+
 IMP: (1/22/09, GVG) Better support of GDS info in XML tech reader (Bug #2019)
 
 IMP/MAN: (1/21/09, GVG) Can't Artwork tech be saved as XML? (Bug #2000).
