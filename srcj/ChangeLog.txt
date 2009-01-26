@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09b: ******************************
 
+BUG: (1/26/09, SMR) Antenna Check loops forever (Bug #2020).
+FIX: In ERCAntenna.followNode() must load AntennaObject before testing
+     it for duplication.
+
 IMP: (1/22/09, GVG) Better support of GDS info in XML tech reader (Bug #2019)
 
 IMP/MAN: (1/21/09, GVG) Can't Artwork tech be saved as XML? (Bug #2000).

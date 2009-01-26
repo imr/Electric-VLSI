@@ -53,6 +53,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * This is the Antenna checker of the Electrical Rule Checker tool.
@@ -105,15 +107,14 @@ public class ERCAntenna
 
 	/** head of linked list of antenna objects to spread */	private List<AntennaObject>     firstSpreadAntennaObj;
 	/** current technology being considered */				private Technology              curTech;	
-	/** top-level cell being checked */						private Cell                    topCell;
 	/** accumulated gate area */							private double                  totalGateArea;
 	/** the worst ratio found */							private double                  worstRatio;
 	/** A list of AntennaObjects to process. */				private List<AntennaObject>     pathList;
-	/** Map from ArcProtos to Layers. */					private HashMap<ArcProto,Layer> arcProtoToLayer;
-	/** Map from Layers to ArcProtos. */					private HashMap<Layer,ArcProto> layerToArcProto;
-	/** Map for marking ArcInsts and NodeInsts. */			private HashSet<Geometric>      fsGeom;
-	/** Map for marking Cells. */							private HashSet<Cell>           fsCell;
-    /** for storing errors */                               private ErrorLogger             errorLogger;
+	/** Map from ArcProtos to Layers. */					private Map<ArcProto,Layer>     arcProtoToLayer;
+	/** Map from Layers to ArcProtos. */					private Map<Layer,ArcProto>     layerToArcProto;
+	/** Map for marking ArcInsts and NodeInsts. */			private Set<Geometric>          fsGeom;
+	/** Map for marking Cells. */							private Set<Cell>               fsCell;
+	/** for storing errors */								private ErrorLogger             errorLogger;
 
 	/************************ CONTROL ***********************/
 
@@ -138,7 +139,7 @@ public class ERCAntenna
 	{
 		private Cell cell;
 
-        private AntennaCheckJob(Cell cell)
+		private AntennaCheckJob(Cell cell)
 		{
 			super("ERC Antenna Check", ERC.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
 			this.cell = cell;
@@ -148,8 +149,7 @@ public class ERCAntenna
 		public boolean doIt() throws JobException
 		{
 			ERCAntenna handler = new ERCAntenna();
-			handler.topCell = cell;
-			handler.doCheck(this);
+			handler.doCheck(this, cell);
 			return true;
 		}
 	}
@@ -157,7 +157,7 @@ public class ERCAntenna
 	/**
 	 * Method to do the Antenna check.
 	 */
-	private void doCheck(Job job)
+	private void doCheck(Job job, Cell topCell)
 	{
 		curTech = topCell.getTechnology();
 
@@ -189,7 +189,7 @@ public class ERCAntenna
 
 		// initialize error logging
 		long startTime = System.currentTimeMillis();
-		errorLogger = ErrorLogger.newInstance("ERC Antella Rules Check");
+		errorLogger = ErrorLogger.newInstance("ERC Antenna Rules Check");
 
 		// now check each layer of the cell
 		int lasterrorcount = 0;
@@ -221,8 +221,6 @@ public class ERCAntenna
 			System.out.println("FOUND " + errorCount + " ANTENNA ERRORS (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
 		}
 		errorLogger.termLogging(true);
-		fsGeom = null;
-		fsCell = null;
 	}
 
 	/**
@@ -248,7 +246,6 @@ public class ERCAntenna
 			for(Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext(); )
 			{
 				PortInst pi = pIt.next();
-
 				// ignore if an arc on this port is already seen
 				boolean seen = false;
 				for(Iterator<Connection> cIt = pi.getConnections(); cIt.hasNext(); )
@@ -257,17 +254,10 @@ public class ERCAntenna
 					ArcInst ai = con.getArc();
 					if (fsGeom.contains(ai)) { seen = true;   break; }
 				}
-//				for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
-//				{
-//					Connection con = cIt.next();
-//					ArcInst ai = con.getArc();
-//					if (con.getPortInst() == pi && fsGeom.contains(ai)) { seen = true;   break; }
-//				}
 				if (seen) continue;
 
 				totalGateArea = 0.0;
 				pathList = new ArrayList<AntennaObject>();
-
 				int found = followNode(ni, pi.getPortProto(), lay, DBMath.MATID, job);
 				if (found == ERCABORTED) return true;
 				if (found == ERCANTPATHGATE)
@@ -291,6 +281,7 @@ public class ERCAntenna
 							Technology tech = oni.getProto().getTechnology();
 							if (tech != curTech) continue;
 							Poly [] polyList = tech.getShapeOfNode(oni);
+							if (polyList == null) continue;
 							for(int i=0; i<polyList.length; i++)
 							{
 								Poly poly = polyList[i];
@@ -330,7 +321,7 @@ public class ERCAntenna
 					{
 						// get the area of the antenna
 						double totalRegionPerimeterArea = 0.0;
-                        for (Layer oLay : vmerge.getKeySet())
+						for (Layer oLay : vmerge.getKeySet())
 						{
 							double thickness = oLay.getThickness();
 							if (thickness == 0)
@@ -355,7 +346,7 @@ public class ERCAntenna
 							String errMsg = "layer " + lay.getName() + " has perimeter-area " + totalRegionPerimeterArea +
 								"; gates have area " + totalGateArea + ", ratio is " + ratio + " but limit is " + neededratio;
 							List<PolyBase> polyList = new ArrayList<PolyBase>();
-                            for (Layer oLay : vmerge.getKeySet())
+							for (Layer oLay : vmerge.getKeySet())
 							{
 								List<PolyBase> merges = vmerge.getMergedPoints(oLay, true);
 								for(PolyBase merged : merges)
@@ -390,6 +381,7 @@ public class ERCAntenna
 	 * @param pp the PortProto on the NodeInst.
 	 * @param lay the layer to consider.
 	 * @param trans a transformation to the top-level.
+	 * @param job the Job that is running (for abort checking).
 	 * @return ERCANTPATHNULL if it found no gate or active on the path.
 	 * Returns ERCANTPATHGATE if it found gates on the path.
 	 * Returns ERCANTPATHACTIVE if it found active on the path.
@@ -439,15 +431,15 @@ public class ERCAntenna
 				// normal primitive: propagate
 				if (hasDiffusion(thisni)) return ERCANTPATHACTIVE;
 				AntennaObject ao = new AntennaObject(ni);
+				ao.loadAntennaObject(antstack, depth);
 	
 				if (haveAntennaObject(ao))
 				{
-					// already in the list: free this object
+					// already in the list
 					seen = true;
 				} else
 				{
 					// not in the list: add it
-					ao.loadAntennaObject(antstack, depth);
 					addAntennaObject(ao);
 				}
 			}
@@ -503,15 +495,10 @@ public class ERCAntenna
 
 	private int findArcs(NodeInst ni, PortProto pp, Layer lay, int depth, NodeInst [] antstack)
 	{
-        PortInst pi = ni.findPortInstFromProto(pp);
+		PortInst pi = ni.findPortInstFromProto(pp);
 		for(Iterator<Connection> it = pi.getConnections(); it.hasNext(); )
 		{
 			Connection con = it.next();
-//		for(Iterator it = ni.getConnections(); it.hasNext(); )
-//		{
-//			Connection con = it.next();
-//			PortInst pi = con.getPortInst();
-//			if (pi.getPortProto() != pp) continue;
 			ArcInst ai = con.getArc();
 
 			// see if it is the desired layer
@@ -529,8 +516,7 @@ public class ERCAntenna
 			if (haveAntennaObject(ao)) continue;
 			ao.loadAntennaObject(antstack, depth);
 
-			int other = 0;
-			if (ai.getPortInst(0) == pi) other = 1;
+			int other = 1 - con.getEndIndex();
 			ao.otherend = other;
 			addAntennaObject(ao);
 
@@ -610,7 +596,6 @@ public class ERCAntenna
 
 		// return its ratio
 		return ERC.tool.getAntennaRatio(ap);
-        //return ap.getAntennaRatio();
 	}
 
 }
