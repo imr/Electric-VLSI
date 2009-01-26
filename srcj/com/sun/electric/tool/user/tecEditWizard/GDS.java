@@ -47,6 +47,10 @@ public class GDS extends TechEditWizardPanel
         JLabel label;
         JTextField valueField;
         JTextField typeField;
+        JTextField pinField;
+        JTextField pinTypeField;
+        JTextField textField;
+        JTextField textTypeField;
     }
 
     /** Creates new form GDS */
@@ -61,23 +65,51 @@ public class GDS extends TechEditWizardPanel
         gds.setLayout(new GridBagLayout());
 
         // Head
-        JLabel heading = new JLabel("Layer Name");
+        JLabel heading = new JLabel("Name");
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;   gbc.gridy = 0;
         gbc.gridwidth = 1;
         gbc.insets = new Insets(4, 4, 4, 4);
         gds.add(heading, gbc);
 
-        heading = new JLabel("GDS Number");
+        heading = new JLabel("Normal");
         gbc = new GridBagConstraints();
         gbc.gridx = 1;   gbc.gridy = 0;
         gbc.gridwidth = 1;
         gbc.insets = new Insets(4, 4, 4, 4);
         gds.add(heading, gbc);
 
-        heading = new JLabel("GDS Datatype");
+        heading = new JLabel("Type");
         gbc = new GridBagConstraints();
         gbc.gridx = 2;   gbc.gridy = 0;
+        gbc.gridwidth = 1;
+        gbc.insets = new Insets(4, 4, 4, 4);
+        gds.add(heading, gbc);
+
+        heading = new JLabel("Pin");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 3;   gbc.gridy = 0;
+        gbc.gridwidth = 1;
+        gbc.insets = new Insets(4, 4, 4, 4);
+        gds.add(heading, gbc);
+
+        heading = new JLabel("Type");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 4;   gbc.gridy = 0;
+        gbc.gridwidth = 1;
+        gbc.insets = new Insets(4, 4, 4, 4);
+        gds.add(heading, gbc);
+
+        heading = new JLabel("Text");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 5;   gbc.gridy = 0;
+        gbc.gridwidth = 1;
+        gbc.insets = new Insets(4, 4, 4, 4);
+        gds.add(heading, gbc);
+
+        heading = new JLabel("Type");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 6;   gbc.gridy = 0;
         gbc.gridwidth = 1;
         gbc.insets = new Insets(4, 4, 4, 4);
         gds.add(heading, gbc);
@@ -152,7 +184,7 @@ public class GDS extends TechEditWizardPanel
         this.pack();
     }
 
-    private LabelContainer addRow(TechEditWizardData.LayerInfo gdsValue, int posY, int deltaY)
+    private LabelContainer addRow(TechEditWizardData.LayerInfo gdsValue, int posY, int left)
     {
         LabelContainer cont = new LabelContainer();
 
@@ -160,12 +192,12 @@ public class GDS extends TechEditWizardPanel
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;   gbc.gridy = posY;
         gbc.anchor = GridBagConstraints.WEST;
-        gbc.insets = new Insets(4, deltaY, 1, 0);
+        gbc.insets = new Insets(4, left, 1, 0);
         gds.add(cont.label, gbc);
 
         cont.valueField = new JTextField();
         cont.valueField.setText(Integer.toString(gdsValue.getValue()));
-        cont.valueField.setColumns(8);
+        cont.valueField.setColumns(4);
         gbc = new GridBagConstraints();
         gbc.gridx = 1;   gbc.gridy = posY;
         gbc.insets = new Insets(4, 0, 1, 2);
@@ -173,13 +205,57 @@ public class GDS extends TechEditWizardPanel
 
         cont.typeField = new JTextField();
         cont.typeField.setText(Integer.toString(gdsValue.getType()));
-        cont.typeField.setColumns(8);
+        cont.typeField.setColumns(4);
         gbc = new GridBagConstraints();
         gbc.gridx = 2;   gbc.gridy = posY;
         gbc.insets = new Insets(4, 0, 1, 2);
         gds.add(cont.typeField, gbc);
 
+        cont.pinField = new JTextField();
+        cont.pinField.setText(Integer.toString(gdsValue.getPin()));
+        cont.pinField.setColumns(4);
+        gbc = new GridBagConstraints();
+        gbc.gridx = 3;   gbc.gridy = posY;
+        gbc.insets = new Insets(4, 0, 1, 2);
+        gds.add(cont.pinField, gbc);
+
+        cont.pinTypeField = new JTextField();
+        cont.pinTypeField.setText(Integer.toString(gdsValue.getPinType()));
+        cont.pinTypeField.setColumns(4);
+        gbc = new GridBagConstraints();
+        gbc.gridx = 4;   gbc.gridy = posY;
+        gbc.insets = new Insets(4, 0, 1, 2);
+        gds.add(cont.pinTypeField, gbc);
+
+        cont.textField = new JTextField();
+        cont.textField.setText(Integer.toString(gdsValue.getText()));
+        cont.textField.setColumns(4);
+        gbc = new GridBagConstraints();
+        gbc.gridx = 5;   gbc.gridy = posY;
+        gbc.insets = new Insets(4, 0, 1, 2);
+        gds.add(cont.textField, gbc);
+
+        cont.textTypeField = new JTextField();
+        cont.textTypeField.setText(Integer.toString(gdsValue.getTextType()));
+        cont.textTypeField.setColumns(4);
+        gbc = new GridBagConstraints();
+        gbc.gridx = 6;   gbc.gridy = posY;
+        gbc.insets = new Insets(4, 0, 1, 2);
+        gds.add(cont.textTypeField, gbc);
+
         return cont;
+    }
+
+    private void setData(TechEditWizardData.LayerInfo info, LabelContainer cont)
+    {
+        info.setData(new int[]{
+            TextUtils.atoi(cont.valueField.getText()),
+            TextUtils.atoi(cont.typeField.getText()),
+            TextUtils.atoi(cont.pinField.getText()),
+            TextUtils.atoi(cont.pinTypeField.getText()),
+            TextUtils.atoi(cont.textField.getText()),
+            TextUtils.atoi(cont.textTypeField.getText())
+        });
     }
 
     /**
@@ -194,18 +270,15 @@ public class GDS extends TechEditWizardPanel
 
         for(int i=0; i<metalLayers.length; i++)
         {
-            metalLayers[i].setData(new int[]{TextUtils.atoi(metalContainers[i].valueField.getText()),
-            TextUtils.atoi(metalContainers[i].typeField.getText())});
+            setData(metalLayers[i], metalContainers[i]);
         	if (i < metalLayers.length-1)
-                viaLayers[i].setData(new int[]{TextUtils.atoi(viaContainers[i].valueField.getText()),
-            TextUtils.atoi(viaContainers[i].typeField.getText())});
+                setData(viaLayers[i], viaContainers[i]);
         }
 
         TechEditWizardData.LayerInfo[] basics = data.getBasicLayers();
         for (int i = 0; i < basicContainers.length; i++)
         {
-            basics[i].setData(new int[]{TextUtils.atoi(basicContainers[i].valueField.getText()),
-            TextUtils.atoi(basicContainers[i].typeField.getText())});
+            setData(basics[i], basicContainers[i]);
         }
 	}
 }

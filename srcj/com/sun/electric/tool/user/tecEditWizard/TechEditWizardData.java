@@ -123,8 +123,12 @@ public class TechEditWizardData
     public static class LayerInfo
     {
         String name;
-        int value;
-        int type;
+        int value; // normal value
+        int type; // datatype of the normal value
+        int pin; // pin value
+        int pinType; // pin datatype
+        int text; // text value
+        int textType; // text datatype
 
         LayerInfo(String n)
         {
@@ -132,20 +136,33 @@ public class TechEditWizardData
         }
         int getValue() {return value;}
         int getType() {return type;}
+        int getPin() {return pin;}
+        int getPinType() {return pinType;}
+        int getText() {return text;}
+        int getTextType() {return text;}
         void setData(int[] vals)
         {
+            assert(vals.length == 6);
             value = vals[0];
             type = vals[1];
+            pin = vals[2];
+            pinType = vals[3];
+            text = vals[4];
+            textType = vals[5];
         }
 
         public String toString()
         {
-            if (type != 0) // useful datatype
+            String val = (type != 0) ? value + "/" + type : value + ""; // useful datatype
+            if (pin != 0)
             {
-                return value + "/" + type;
+                val = (pinType != 0) ? val + "," + pin + "/" + pinType + "p" : val + "," + pin + "p";
             }
-            else
-                return value + "";
+            if (text != 0)
+            {
+                val = (textType != 0) ? val + "," + text + "/" + textType + "t" : val + "," + text + "t";
+            }
+            return val;
         }
     }
 
@@ -381,19 +398,30 @@ public class TechEditWizardData
 	// GDS-II LAYERS
     private int[] getGDSValuesFromString(String s)
     {
-        int[] vals = new int[2];
+        int[] vals = new int[6];
+        StringTokenizer parse = new StringTokenizer(s, ",", false);
 
-        vals[1] = 0; // 0 is the default datatype
-
-        // Check if datatype (/) is found
-        int index = s.indexOf("/");
-        if (index != -1) // datatype value
+        while (parse.hasMoreTokens())
         {
-            vals[0] = TextUtils.atoi(s.substring(0, index));
-            vals[1] = TextUtils.atoi(s.substring(index+1));
+            String v = parse.nextToken();
+            int pos = 0;
+            int index = v.indexOf("/");
+
+            if (v.contains("p")) // pin section
+            {
+                pos = 2;
+            } else if (v.contains("t")) // text section
+            {
+                pos = 4;
+            }
+            if (index != -1) // datatype value
+            {
+                vals[pos] = TextUtils.atoi(v.substring(0, index));
+                vals[pos+1] = TextUtils.atoi(v.substring(index+1));
+            }
+            else
+                vals[pos] = TextUtils.atoi(v);
         }
-        else
-            vals[0] = TextUtils.atoi(s);
         return vals;
     }
 
@@ -628,7 +656,7 @@ public class TechEditWizardData
 	{
 		LayerInfo [] foundArray = new LayerInfo[len];
 		for(int i=0; i<len; i++) foundArray[i] = new LayerInfo(extra + (i+1));
-        StringTokenizer parse = new StringTokenizer(str, "( ,)", false);
+        StringTokenizer parse = new StringTokenizer(str, "( \")", false);
         int count = 0;
         while (parse.hasMoreTokens())
         {
@@ -637,7 +665,10 @@ public class TechEditWizardData
             else
             {
                 String value = parse.nextToken();
-                foundArray[count++].setData(getGDSValuesFromString(value));
+                // array delimeters must be discarded here because GDS string may
+                // contain "," for the pin/text definition ("," can't be used in the StringTokenizer
+                if (!value.equals(","))
+                    foundArray[count++].setData(getGDSValuesFromString(value));
             }
         }
         return foundArray;
