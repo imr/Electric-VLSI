@@ -301,17 +301,16 @@ public abstract class Highlight2 implements Cloneable{
     /**
 	 * Method to draw an array of points as highlighting.
 	 * @param wnd the window in which drawing is happening.
-     @param g the Graphics for the window.
-     @param points the array of points being drawn.
-     @param offX the X offset of the drawing.
-     @param offY the Y offset of the drawing.
-     @param opened true if the points are drawn "opened".
-     @param thickLine
+     * @param g the Graphics for the window.
+     * @param points the array of points being drawn.
+     * @param offX the X offset of the drawing.
+     * @param offY the Y offset of the drawing.
+     * @param opened true if the points are drawn "opened".
+     * @param thickLine
      */
 	public static void drawOutlineFromPoints(EditWindow wnd, Graphics g, Point2D[] points, int offX, int offY,
                                              boolean opened, boolean thickLine)
 	{
-//        Dimension screen = wnd.getScreenSize();
 		boolean onePoint = true;
 		if (points.length <= 0)
 			return;
@@ -388,8 +387,8 @@ public abstract class Highlight2 implements Cloneable{
      * @param ni the nodeinst to get a poly that will be used to highlight it
      * @return a poly outlining the nodeInst.
      */
-    public static Poly getNodeInstOutline(NodeInst ni) {
-
+    public static Poly getNodeInstOutline(NodeInst ni)
+    {
         AffineTransform trans = ni.rotateOutAboutTrueCenter();
 
         Poly poly = null;
@@ -503,13 +502,31 @@ class HighlightPoly extends Highlight2
     {
         // switch colors if specified
         Color oldColor = null;
-        if (color != null) {
+        if (color != null)
+        {
             oldColor = g.getColor();
             g.setColor(color);
         }
-        // draw outline of poly
-        boolean opened = (polygon.getStyle() == Poly.Type.OPENED);
-        drawOutlineFromPoints(wnd, g, polygon.getPoints(), highOffX, highOffY, opened, false);
+
+        // draw poly
+    	Point2D[] points = polygon.getPoints();
+        if (polygon.getStyle() == Poly.Type.FILLED)
+        {
+        	int [] xPoints = new int[points.length];
+        	int [] yPoints = new int[points.length];
+    		for(int i=0; i<points.length; i++)
+    		{
+    			Point p = wnd.databaseToScreen(points[i].getX(), points[i].getY());
+    			xPoints[i] = p.x;
+    			yPoints[i] = p.y;
+    		}
+			g.fillPolygon(xPoints, yPoints, points.length);
+        } else
+        {
+	        boolean opened = (polygon.getStyle() == Poly.Type.OPENED);
+	        drawOutlineFromPoints(wnd, g, points, highOffX, highOffY, opened, false);
+        }
+
         // switch back to old color if switched
         if (oldColor != null)
             g.setColor(oldColor);
@@ -540,8 +557,6 @@ class HighlightLine extends Highlight2
 
     Rectangle2D getHighlightedArea(EditWindow wnd)
     {
-//        double cX = (start.getX() + end.getX()) / 2;
-//        double cY = (start.getY() + end.getY()) / 2;
         double cX = Math.min(start.getX(), end.getX());
         double cY = Math.min(start.getY(), end.getY());
         double sX = Math.abs(start.getX() - end.getX());
@@ -571,7 +586,7 @@ class HighlightObject extends Highlight2
     public void showInternalHighlight(EditWindow wnd, Graphics g, int highOffX, int highOffY,
                                       boolean onlyHighlight, boolean setConnected)
     {
-        System.out.println("SHould call this one?");
+        System.out.println("Should call this one?");
     }
 }
 

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09b: ******************************
 
+IMP/MAN: (1/26/09, SMR) Interactive sizing now shows handles on sides
+     and corners of nodes (Bug #2021).
+
 BUG: (1/26/09, SMR) Antenna Check loops forever (Bug #2020).
 FIX: In ERCAntenna.followNode() must load AntennaObject before testing
      it for duplication.
