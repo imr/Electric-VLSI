@@ -1778,10 +1778,23 @@ public class TechEditWizardData
         double contSpacing = scaledValue(contact_spacing.v);
         double contArraySpacing = scaledValue(contact_array_spacing.v);
         double metal1Over = scaledValue(contact_size.v/2 + contact_metal_overhang_all_sides.v);
+
+        // Square contacts
         makeXmlPrimitiveCon(t.nodes, polyLayer.name, hla, null, portNames,
                 makeXmlNodeLayer(metal1Over, metal1Over, metal1Over, metal1Over, m1Layer, Poly.Type.FILLED, true), // meta1 layer
                 makeXmlNodeLayer(hla, hla, hla, hla, polyLayer, Poly.Type.FILLED, true), // poly layer
                 makeXmlMulticut(diffConLayer, contSize, contSpacing, contArraySpacing)); // contact
+
+        if (this.getProtectionPoly())
+        {
+            // min contact
+            hla = scaledValue((contact_size.v/2 + contact_poly_overhang.v - contact_metal_overhang_all_sides.v));
+            metal1Over = 0;
+            makeXmlPrimitiveCon(t.nodes, "Min"+polyLayer.name, hla, null, portNames,
+                makeXmlNodeLayer(metal1Over, metal1Over, metal1Over, metal1Over, m1Layer, Poly.Type.FILLED, true), // meta1 layer
+                makeXmlNodeLayer(hla, hla, hla, hla, polyLayer, Poly.Type.FILLED, true), // poly layer
+                makeXmlMulticut(diffConLayer, contSize, contSpacing, contArraySpacing)); // contact
+        }
 
         /**************************** N/P-Diff Nodes/Arcs ***********************************************/
 
