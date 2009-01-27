@@ -2,11 +2,13 @@
 
 NOTE: Please place changes under the version that will be released next.
 
-************************* Version 8.09b: ******************************
+************************* Version 8.09c: ******************************
 
 BUG: (1/27/09, SMR) Setting reconciliation complains when values are vanishingly close (Bug #2022).
 FIX: In GenMath.objectsReallyEqual(), accept floating-point values that are close.
      In OptionReconcile.java, compare for "closeness" and display formated floating point.
+
+************************* Version 8.09b: ******************************
 
 IMP/MAN: (1/27/09, JG) New fat wiring mode in wiring tool by default.
 
