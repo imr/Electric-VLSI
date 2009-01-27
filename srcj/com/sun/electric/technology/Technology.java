@@ -2681,7 +2681,10 @@ public class Technology implements Comparable<Technology>, Serializable
 		{
             Layer.Function f1 = l1.getFunction();
             Layer.Function f2 = l2.getFunction();
-			int h1 = f1.getHeight();
+            if (f1 == null || f2 == null)
+                System.out.println();
+
+            int h1 = f1.getHeight();
 			int h2 = f2.getHeight();
             if (liftContacts) {
                 if (f1.isContact())

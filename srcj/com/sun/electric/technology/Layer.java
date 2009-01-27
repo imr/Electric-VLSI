@@ -41,7 +41,6 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -366,30 +365,94 @@ public class Layer
 			return func;
 		}
 
-		/**
-		 * Method to find the Function that corresponds to a contact on a given layer.
-		 * @param level the layer (starting at 1 for Contact-1).
-		 * @return the Function that represents that Contact layer. Null if the given layer level is invalid.
+        /**
+		 * Method to find the Function that corresponds to Dummy Metal on a given layer.
+		 * @param level the layer (starting at 0 for Metal-1).
+		 * @return the Function that represents that Metal layer. Null if the given layer level is invalid.
 		 */
-		public static Function getContact(int level)
+		public static Function getDummyMetal(int level)
 		{
             if (level > EGraphics.TRANSPARENT_12)
             {
-                System.out.println("Invalid via layer level:" + level);
+                System.out.println("Invalid metal layer level:" + level);
                 return null;
             }
-			Function func = contactLayers.get(level);
+
+            switch (level)
+            {
+                case 0: return (Layer.Function.DMYMETAL1);
+                case 1: return (Layer.Function.DMYMETAL2);
+                case 2: return (Layer.Function.DMYMETAL3);
+                case 3: return (Layer.Function.DMYMETAL4);
+                case 4: return (Layer.Function.DMYMETAL5);
+                case 5: return (Layer.Function.DMYMETAL6);
+                case 6: return (Layer.Function.DMYMETAL7);
+                case 7: return (Layer.Function.DMYMETAL8);
+                case 8: return (Layer.Function.DMYMETAL9);
+                case 9: return (Layer.Function.DMYMETAL10);
+                case 10: return (Layer.Function.DMYMETAL11);
+                case 11: return (Layer.Function.DMYMETAL12);
+            }
+            // Should never reach this point
+            return null;
+		}
+
+        /**
+		 * Method to find the Function that corresponds to Dummy Exclusion Metal on a given layer.
+		 * @param l the layer (starting at 0 for Metal-1).
+		 * @return the Function that represents that Metal layer. Null if the given layer level is invalid.
+		 */
+		public static Function getDummyExclMetal(int l)
+		{
+            if (l > EGraphics.TRANSPARENT_12)
+            {
+                System.out.println("Invalid metal layer level:" + l);
+                return null;
+            }
+
+            switch (l)
+            {
+                case 0: return (Layer.Function.DEXCLMETAL1);
+                case 1: return (Layer.Function.DEXCLMETAL2);
+                case 2: return (Layer.Function.DEXCLMETAL3);
+                case 3: return (Layer.Function.DEXCLMETAL4);
+                case 4: return (Layer.Function.DEXCLMETAL5);
+                case 5: return (Layer.Function.DEXCLMETAL6);
+                case 6: return (Layer.Function.DEXCLMETAL7);
+                case 7: return (Layer.Function.DEXCLMETAL8);
+                case 8: return (Layer.Function.DEXCLMETAL9);
+                case 9: return (Layer.Function.DEXCLMETAL10);
+                case 10: return (Layer.Function.DEXCLMETAL11);
+                case 11: return (Layer.Function.DEXCLMETAL12);
+            }
+            // Should never reach this point
+            return null;
+		}
+
+        /**
+		 * Method to find the Function that corresponds to a contact on a given layer.
+		 * @param l the layer (starting at 1 for Contact-1).
+		 * @return the Function that represents that Contact layer. Null if the given layer level is invalid.
+		 */
+		public static Function getContact(int l)
+		{
+            if (l > EGraphics.TRANSPARENT_12)
+            {
+                System.out.println("Invalid via layer level:" + l);
+                return null;
+            }
+			Function func = contactLayers.get(l);
 			return func;
 		}
 
 		/**
 		 * Method to find the Function that corresponds to Polysilicon on a given layer.
-		 * @param level the layer (starting at 1 for Polysilicon-1).
+		 * @param l the layer (starting at 1 for Polysilicon-1).
 		 * @return the Function that represents that Polysilicon layer.
 		 */
-		public static Function getPoly(int level)
+		public static Function getPoly(int l)
 		{
-			Function func = polyLayers.get(level);
+			Function func = polyLayers.get(l);
 			return func;
 		}
 
