@@ -3,6 +3,9 @@
 NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09b: ******************************
+
+IMP/MAN: (1/27/09, JG) New fat wiring mode in wiring tool by default.
+
 IMP/MAN: (1/26/09, GVG) TechEditor supports pin and text now (bug #2009)
 
 IMP/MAN: (1/26/09, SMR) Interactive sizing now shows handles on sides
