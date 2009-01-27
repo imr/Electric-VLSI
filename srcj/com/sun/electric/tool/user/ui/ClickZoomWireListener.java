@@ -1688,7 +1688,7 @@ public class ClickZoomWireListener
     private void readPrefs() {
         cancelMoveDelayMillis = prefs.getLong(cancelMoveDelayMillisPref, getFactoryCancelMoveDelayMillis());
         zoomInDelayMillis = prefs.getLong(zoomInDelayMillisPref, 120);
-        useFatWiringMode = prefs.getBoolean(useFatWiringModePref, false);
+        useFatWiringMode = prefs.getBoolean(useFatWiringModePref, true);
     }
 
     public long getCancelMoveDelayMillis() { return cancelMoveDelayMillis; }
