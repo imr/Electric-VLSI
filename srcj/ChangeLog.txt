@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09b: ******************************
 
+BUG: (1/27/09, SMR) Setting reconciliation complains when values are vanishingly close (Bug #2022).
+FIX: In GenMath.objectsReallyEqual(), accept floating-point values that are close.
+     In OptionReconcile.java, compare for "closeness" and display formated floating point.
+
 IMP/MAN: (1/27/09, JG) New fat wiring mode in wiring tool by default.
 
 IMP/MAN: (1/26/09, GVG) TechEditor supports pin and text now (bug #2009)

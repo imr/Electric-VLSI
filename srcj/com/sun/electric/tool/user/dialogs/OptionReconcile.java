@@ -23,7 +23,9 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.text.Setting;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.User;
@@ -35,6 +37,7 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.swing.AbstractButton;
@@ -50,8 +53,8 @@ import javax.swing.JSeparator;
 public class OptionReconcile extends EDialog
 {
 	private Map<Setting,Object> settingsThatChanged;
-	private HashMap<JRadioButton,Setting> changedSettings = new HashMap<JRadioButton,Setting>();
-	private ArrayList<AbstractButton> currentSettings = new ArrayList<AbstractButton>();
+	private Map<JRadioButton,Setting> changedSettings = new HashMap<JRadioButton,Setting>();
+	private List<AbstractButton> currentSettings = new ArrayList<AbstractButton>();
 	private ReadLibrary job;
 
 	/** Creates new form Project Settings Reconcile */
@@ -119,37 +122,26 @@ public class OptionReconcile extends EDialog
 			Object obj = e.getValue();
 			if (obj == null)
 				obj = setting.getFactoryValue();
-			if (obj.equals(setting.getValue())) continue;
-
 			Object settingValue = setting.getValue();
-			String oldValue = settingValue.toString();
-			String newValue = obj.toString();
+			if (GenMath.objectsReallyEqual(obj, settingValue)) continue;
+
+			String oldValue = getObjectValue(settingValue);
+			String newValue = getObjectValue(obj);
 			String[] trueMeaning = setting.getTrueMeaning();
-			if (settingValue instanceof Boolean) {
+			if (settingValue instanceof Boolean)
+			{
 				oldValue = setting.getBoolean() ? "ON" : "OFF";
 				boolean b = obj instanceof Boolean ? ((Boolean)obj).booleanValue() : ((Integer)obj).intValue() != 0;
 				newValue = b ? "ON" : "OFF";
-			} else if (trueMeaning != null) {
+			} else if (trueMeaning != null)
+			{
 				oldValue = trueMeaning[setting.getInt()];
 				newValue = trueMeaning[((Integer)obj).intValue()];
-            }
-            if (oldValue.length() > 30)
-                oldValue = oldValue.substring(0, 30) + "...";
-            if (newValue.length() > 30)
-                newValue = newValue.substring(0, 30) + "...";
-
-/*
-			// the first column: the "Accept" checkbox
-			JCheckBox cb = new JCheckBox("Accept");
-			cb.setSelected(true);
-			gbc.gridx = 0;       gbc.gridy = rowNumber;
-			gbc.gridwidth = 1;   gbc.gridheight = 1;
-			gbc.weightx = 0.2;   gbc.weighty = 0;
-			gbc.anchor = GridBagConstraints.WEST;
-			gbc.fill = GridBagConstraints.NONE;
-			optionBox.add(cb, gbc);
-			changedOptions.put(cb, meaning);
-*/
+			}
+			if (oldValue.length() > 30)
+				oldValue = oldValue.substring(0, 30) + "...";
+			if (newValue.length() > 30)
+				newValue = newValue.substring(0, 30) + "...";
 
 			// the second column is the option description
 			gbc.gridx = 1;       gbc.gridy = rowNumber;
@@ -168,12 +160,6 @@ public class OptionReconcile extends EDialog
 			JRadioButton curValue = new JRadioButton(oldValue, false);
 			currentSettings.add(curValue);
 			optionBox.add(curValue, gbc);
-/*
-			curValue.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent e) {
-					updateButtonState();
-				}});
-*/
 
 			// the fourth column is the Libraries value
 			gbc.gridx = 3;       gbc.gridy = rowNumber;
@@ -184,12 +170,6 @@ public class OptionReconcile extends EDialog
 			JRadioButton libValue = new JRadioButton(newValue, true);
 			changedSettings.put(libValue, setting);
 			optionBox.add(libValue, gbc);
-/*
-			libValue.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent e) {
-					updateButtonState();
-				}});
-*/
 
 			ButtonGroup group = new ButtonGroup();
 			group.add(curValue);
@@ -211,14 +191,36 @@ public class OptionReconcile extends EDialog
 		finishInitialization();
 	}
 
-	public void termDialog() {
+	public void termDialog()
+	{
 		Map<Setting,Object> settingsToReconcile = new HashMap<Setting,Object>();
-		for(JRadioButton cb : changedSettings.keySet()) {
+		for(JRadioButton cb : changedSettings.keySet())
+		{
 			if (!cb.isSelected()) continue;
 			Setting setting = changedSettings.get(cb);
 			settingsToReconcile.put(setting, settingsThatChanged.get(setting));
 		}
 		new DoReconciliation(settingsToReconcile, job);
+	}
+
+	/**
+	 * Method to convert an Object to a String, rounding floating-point values.
+	 * @param o the Object to convert.
+	 * @return the String equivalent of the Object.
+	 */
+	public static String getObjectValue(Object o)
+	{
+		if (o instanceof Double)
+		{
+			double d = ((Double)o).doubleValue();
+			return TextUtils.formatDouble(d);
+		}
+		if (o instanceof Float)
+		{
+			float f = ((Float)o).floatValue();
+			return TextUtils.formatDouble(f);
+		}
+		return o.toString();
 	}
 
 	/**
@@ -229,10 +231,12 @@ public class OptionReconcile extends EDialog
 		private Map<String,Object> settingsToSerialize = new HashMap<String,Object>();
 		private transient ReadLibrary job;
 		
-		private DoReconciliation(Map<Setting,Object> settingsToReconcile, ReadLibrary job) {
+		private DoReconciliation(Map<Setting,Object> settingsToReconcile, ReadLibrary job)
+		{
 			super("Reconcile Project Settings", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.job = job;
-			for (Map.Entry<Setting,Object> e: settingsToReconcile.entrySet()) {
+			for (Map.Entry<Setting,Object> e: settingsToReconcile.entrySet())
+			{
 				Setting setting = e.getKey();
 				Object newValue = e.getValue();
 				settingsToSerialize.put(setting.getXmlPath(), newValue);
@@ -244,7 +248,8 @@ public class OptionReconcile extends EDialog
 		public boolean doIt() throws JobException
 		{
 			Map<Setting,Object> settingsToReconcile = new HashMap<Setting,Object>();
-			for (Map.Entry<String,Object> e: settingsToSerialize.entrySet()) {
+			for (Map.Entry<String,Object> e: settingsToSerialize.entrySet())
+			{
 				String xmlPath = e.getKey();
 				Object newValue = e.getValue();
 				Setting setting = Setting.getSetting(xmlPath);
@@ -256,7 +261,8 @@ public class OptionReconcile extends EDialog
 		}
 
 		@Override
-		public void terminateOK() {
+		public void terminateOK()
+		{
 			job.startJob();
 		}
 	}
@@ -365,18 +371,15 @@ public class OptionReconcile extends EDialog
     private void useLibraryOptionsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_useLibraryOptionsActionPerformed
 		// set all library options selected
 		for(JRadioButton b : changedSettings.keySet())
-		{
 			b.setSelected(true);
-		}
 		ok(null);
     }//GEN-LAST:event_useLibraryOptionsActionPerformed
 
 	private void ignoreLibraryOptionsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_ignoreLibraryOptionsActionPerformed
 	{//GEN-HEADEREND:event_ignoreLibraryOptionsActionPerformed
 		// set all current options selected
-		for (AbstractButton b : currentSettings) {
+		for (AbstractButton b : currentSettings)
 			b.setSelected(true);
-		}
 		ok(null);
 	}//GEN-LAST:event_ignoreLibraryOptionsActionPerformed
 

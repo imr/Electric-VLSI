@@ -364,6 +364,7 @@ public class GenMath
      * Method to compare two objects for equality.
      * This does more than a simple "equal" because they may have the same value
      * but have diffent type (one Float, the other Double).
+     * It also considers floating point values equal if they are "close".
      * @param first the first object to compare.
      * @param second the second object to compare.
      * @return true if they are equal.
@@ -384,7 +385,8 @@ public class GenMath
                 if (second instanceof Integer) { secondNumeric = true; secondValue = ((Integer)second).intValue(); }
         if (firstNumeric && secondNumeric)
         {
-            if (firstValue == secondValue) return true;
+        	return doublesEqual(firstValue, secondValue, 1.0e-6);
+//            if (firstValue == secondValue) return true;
         }
         if (firstNumeric && second instanceof Boolean)
         	return ((Boolean)second).booleanValue() == (firstValue != 0);
