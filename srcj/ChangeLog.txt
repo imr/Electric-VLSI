@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09c: ******************************
 
+BUG: (1/28/09, SMR) Changes made in the "multi-object" Properties dialog crash (Bug #2024).
+FIX: Made GetInfoMulti.MultiChange a static class.
+
 BUG: (1/27/09, SMR) Setting reconciliation complains when values are vanishingly close (Bug #2022).
 FIX: In GenMath.objectsReallyEqual(), accept floating-point values that are close.
      In OptionReconcile.java, compare for "closeness" and display formated floating point.

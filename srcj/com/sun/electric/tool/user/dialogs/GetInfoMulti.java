@@ -824,7 +824,7 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 	/**
 	 * This class implements database changes requested by the dialog.
 	 */
-	private class MultiChange extends Job
+	private static class MultiChange extends Job
 	{
 		private MultiChangeParameters mcp;
 		private List<NodeInst> nodeList;
@@ -832,10 +832,11 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 		private List<Export> exportList;
 		private List<DisplayedText> textList;
 		private List<DisplayedText> annotationTextList;
+		private Technology tech;
 
 		private MultiChange(
 			MultiChangeParameters mcp, List<NodeInst> nodeList, List<ArcInst> arcList,
-			List<Export> exportList, List<DisplayedText> textList, List<DisplayedText> annotationTextList)
+			List<Export> exportList, List<DisplayedText> textList, List<DisplayedText> annotationTextList, Technology tech)
 		{
 			super("Modify Objects", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.mcp = mcp;
@@ -844,6 +845,7 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 			this.exportList = exportList;
 			this.textList = textList;
 			this.annotationTextList = annotationTextList;
+			this.tech = tech;
 			startJob();
 		}
 
@@ -1478,7 +1480,7 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 			mcp.invisOutside = findComponentIntValue(ChangeType.CHANGEINVOUTSIDECELL);
 		}
 
-		new MultiChange(mcp, nodeList, arcList, exportList, textList, annotationTextList);
+		new MultiChange(mcp, nodeList, arcList, exportList, textList, annotationTextList, tech);
 	}//GEN-LAST:event_applyActionPerformed
 
 	private void removeOthersActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_removeOthersActionPerformed
