@@ -529,6 +529,14 @@ public class Technology implements Comparable<Technology>, Serializable
 		 */
 		public static final int MULTICUTBOX = 3;
 
+		/** key of Variable for overriding cut spacing. */		public static final Variable.Key CUT_SPACING = Variable.newKey("CUT_spacing");
+
+		/** Bits that describe location of multiple cuts */		public static final int MULTICUT_LOCATION = 3;
+		/** Bits for multiple cuts centered in the node */		public static final int MULTICUT_CENTERED = 0;
+		/** Bits for multiple cuts spread to edges of node */	public static final int MULTICUT_SPREAD = 1;
+		/** Bits for multiple cuts pushed to corner of node */	public static final int MULTICUT_CORNER = 2;
+		/** Bit to override spacing of multiple cuts */			public static final int MULTICUT_SPACING_OVERRIDE = 4;
+
 		/**
 		 * Constructs a <CODE>NodeLayer</CODE> with the specified description.
 		 * @param layer the <CODE>Layer</CODE> this is on.
@@ -3600,7 +3608,7 @@ public class Technology implements Comparable<Technology>, Serializable
 		{
             for (NodeLayer nodeLayer: primLayers) {
                 if (nodeLayer.representation == NodeLayer.MULTICUTBOX) {
-                    mcd = new MultiCutData(ni.getD().size, fullRectangle, nodeLayer);
+                    mcd = new MultiCutData(ni.getD(), fullRectangle, nodeLayer);
                     if (reasonable) numExtraLayers += (mcd.cutsReasonable - 1); else
                         numExtraLayers += (mcd.cutsTotal - 1);
                 }
@@ -3674,7 +3682,7 @@ public class Technology implements Comparable<Technology>, Serializable
 				}
 				polys[fillPoly] = new Poly(pointList);
 			} else if (representation == Technology.NodeLayer.MULTICUTBOX) {
-                mcd = new MultiCutData(ni.getD().size, fullRectangle, primLayer);
+                mcd = new MultiCutData(ni.getD(), fullRectangle, primLayer);
                 Poly.Type style = primLayer.getStyle();
                 PortProto port = null;
                 if (electrical) port = np.getPort(0);
@@ -3798,19 +3806,50 @@ public class Technology implements Comparable<Technology>, Serializable
 		/** the size of each cut */													private long cutSizeX, cutSizeY;
 		/** the separation between cuts */											private long cutSep;
 		/** the separation between cuts */											private long cutSep1D;
-		/** the separation between cuts in 3-neiboring or more cases*/				private long cutSep2D;
+		/** the separation between cuts in 3-neighboring or more cases */			private long cutSep2D;
 		/** the number of cuts in X and Y */										private int cutsX, cutsY;
 		/** the total number of cuts */												private int cutsTotal;
 		/** the "reasonable" number of cuts (around the outside only) */			private int cutsReasonable;
 		/** the X coordinate of the leftmost cut's center */						private long cutBaseX;
 		/** the Y coordinate of the topmost cut's center */							private long cutBaseY;
+		/** the lowest X cut that will be shifted to the left */					private long cutShiftLeftXPos;
+		/** the lowest X cut that will be shifted to the right */					private long cutShiftRightXPos;
+		/** the X cut that will not be shifted (because it is the center cut) */	private long cutShiftNoneXPos;
+		/** the lowest Y cut that will be shifted down */							private long cutShiftDownYPos;
+		/** the lowest Y cut that will be shifted up */								private long cutShiftUpYPos;
+		/** the Y cut that will not be shifted (because it is the center cut) */	private long cutShiftNoneYPos;
+		/** the amount X cuts will be shifted to the left */						private long cutShiftLeftXAmt;
+		/** the amount X cuts will be shifted to the right */						private long cutShiftRightXAmt;
+		/** the amount Y cuts will be shifted down */								private long cutShiftDownYAmt;
+		/** the amount Y cuts will be shifted up */									private long cutShiftUpYAmt;
+		
+
 		/** cut position of last top-edge cut (for interior-cut elimination) */		private double cutTopEdge;
 		/** cut position of last left-edge cut  (for interior-cut elimination) */	private double cutLeftEdge;
 		/** cut position of last right-edge cut  (for interior-cut elimination) */	private double cutRightEdge;
 
+		/**
+		 * Constructor to initialize for multiple cuts.
+		 */
+		private MultiCutData(ImmutableNodeInst niD, ERectangle fullRectangle, NodeLayer cutLayer)
+		{
+            calculateInternalData(niD, fullRectangle, cutLayer);
+		}
 
-        private void calculateInternalData(EPoint size, ERectangle fullRectangle, NodeLayer cutLayer)
+		/**
+		 * Constructor to initialize for multiple cuts.
+		 * @param niD the NodeInst with multiple cuts.
+		 */
+		public MultiCutData(ImmutableNodeInst niD, TechPool techPool)
+		{
+            calculateInternalData(niD, techPool.getPrimitiveNode((PrimitiveNodeId)niD.protoId).getFullRectangle(),
+            	techPool.getPrimitiveNode((PrimitiveNodeId)niD.protoId).findMulticut());
+		}
+
+        private void calculateInternalData(ImmutableNodeInst niD, ERectangle fullRectangle, NodeLayer cutLayer)
         {
+        	EPoint size = niD.size;
+        	byte cutSpacing = niD.techBits;
             assert cutLayer.representation == NodeLayer.MULTICUTBOX;
             long gridWidth = size.getGridX() + fullRectangle.getGridWidth();
             long gridHeight = size.getGridY() + fullRectangle.getGridHeight();
@@ -3823,29 +3862,37 @@ public class Technology implements Comparable<Technology>, Serializable
             cutSizeY = cutLayer.cutGridSizeY;
             cutSep1D = cutLayer.cutGridSep1D;
             cutSep2D = cutLayer.cutGridSep2D;
-            calculateInternalData(lx, hx, ly, hy);
-        }
+			if ((cutSpacing&NodeLayer.MULTICUT_SPACING_OVERRIDE) != 0)
+			{
+		        // get the value of the cut spacing
+				Variable var = niD.getVar(NodeLayer.CUT_SPACING);
+				if (var != null)
+				{
+			        double spacingD = VarContext.objectToDouble(var.getObject(), -1);
+			        if (spacingD != -1)
+			        	cutSep1D = cutSep2D = DBMath.lambdaToGrid(spacingD);
+				}
+			}
 
-        private void calculateInternalData(long lx, long hx, long ly, long hy)
-        {
 			// determine the actual node size
             cutBaseX = (lx + hx)>>1;
             cutBaseY = (ly + hy)>>1;
 			long cutAreaWidth = hx - lx;
 			long cutAreaHeight = hy - ly;
 
-			// number of cuts depends on the size
-			// Checking first if configuration gives 2D cuts
+			// number of cuts depends on the size of cut area
             int oneDcutsX = 1 + (int)(cutAreaWidth / (cutSizeX+cutSep1D));
 			int oneDcutsY = 1 + (int)(cutAreaHeight / (cutSizeY+cutSep1D));
-            int twoDcutsX = 1 + (int)(cutAreaWidth / (cutSizeX+cutSep2D));
-			int twoDcutsY = 1 + (int)(cutAreaHeight / (cutSizeY+cutSep2D));
 
+			// check if configuration gives 2D cuts
 			cutSep = cutSep1D;
 			cutsX = oneDcutsX;
 			cutsY = oneDcutsY;
 			if (cutsX > 1 && cutsY > 1)
 			{
+				// recompute number of cuts for 2D spacing
+	            int twoDcutsX = 1 + (int)(cutAreaWidth / (cutSizeX+cutSep2D));
+				int twoDcutsY = 1 + (int)(cutAreaHeight / (cutSizeY+cutSep2D));
 				cutSep = cutSep2D;
 				cutsX = twoDcutsX;
 				cutsY = twoDcutsY;
@@ -3864,6 +3911,37 @@ public class Technology implements Comparable<Technology>, Serializable
 			}
 			if (cutsX <= 0) cutsX = 1;
 			if (cutsY <= 0) cutsY = 1;
+
+			// compute spacing rules
+			cutShiftLeftXPos = cutsX;
+			cutShiftRightXPos = cutsX;
+			cutShiftDownYPos = cutsY;
+			cutShiftUpYPos = cutsY;
+			cutShiftNoneXPos = -1;
+			cutShiftNoneYPos = -1;
+			if ((cutSpacing&NodeLayer.MULTICUT_LOCATION) == NodeLayer.MULTICUT_SPREAD)
+			{
+				// spread cuts to edge, leaving gap in center
+				cutShiftLeftXPos = 0;
+				cutShiftDownYPos = 0;
+                cutShiftLeftXAmt = (1-cutsX)*(cutSizeX + cutSep)/2 - lx;
+                cutShiftDownYAmt = (1-cutsY)*(cutSizeY + cutSep)/2 - ly;
+
+                cutShiftRightXPos = cutsX/2;
+				cutShiftUpYPos = cutsY/2;
+                cutShiftRightXAmt = hx - (cutsX-1)*(cutSizeX + cutSep)/2;
+                cutShiftUpYAmt = hy - (cutsY-1)*(cutSizeY + cutSep)/2;
+                if ((cutsX&1) != 0) cutShiftNoneXPos = cutsX/2;
+                if ((cutsY&1) != 0) cutShiftNoneYPos = cutsY/2;
+			} else if ((cutSpacing&NodeLayer.MULTICUT_LOCATION) == NodeLayer.MULTICUT_CORNER)
+			{
+				// shift cuts to lower edge
+				cutShiftLeftXPos = 0;
+				cutShiftDownYPos = 0;
+                cutShiftLeftXAmt = (1-cutsX)*(cutSizeX + cutSep)/2 - lx;
+                cutShiftDownYAmt = (1-cutsY)*(cutSizeY + cutSep)/2 - ly;
+			}
+
 			cutsReasonable = cutsTotal = cutsX * cutsY;
 			if (cutsTotal != 1)
 			{
@@ -3877,25 +3955,6 @@ public class Technology implements Comparable<Technology>, Serializable
 				}
 			}
         }
-
-		/**
-		 * Constructor to initialize for multiple cuts.
-		 */
-		private MultiCutData(EPoint size, ERectangle fullRectangle, NodeLayer cutLayer)
-		{
-            calculateInternalData(size, fullRectangle, cutLayer);
-		}
-
-		/**
-		 * Constructor to initialize for multiple cuts.
-		 * @param niD the NodeInst with multiple cuts.
-		 */
-		public MultiCutData(ImmutableNodeInst niD, TechPool techPool)
-		{
-            this(niD.size,
-                    techPool.getPrimitiveNode((PrimitiveNodeId)niD.protoId).getFullRectangle(),
-                    techPool.getPrimitiveNode((PrimitiveNodeId)niD.protoId).findMulticut());
-		}
 
 		/**
 		 * Method to return the number of cuts in the contact node.
@@ -3932,7 +3991,7 @@ public class Technology implements Comparable<Technology>, Serializable
 		 */
 		protected Poly fillCutPoly(ImmutableNodeInst ni, int cut)
 		{
-            return (fillCutPoly(ni.anchor, cut));
+            return fillCutPoly(ni.anchor, cut);
 		}
 
         /**
@@ -3942,8 +4001,10 @@ public class Technology implements Comparable<Technology>, Serializable
 		{
             long cX = anchor.getGridX() + cutBaseX;
             long cY = anchor.getGridY() + cutBaseY;
-            if (cutsX > 1 || cutsY > 1) {
-                if (cutsX > 2 && cutsY > 2) {
+            if (cutsX > 1 || cutsY > 1)
+            {
+                if (cutsX > 2 && cutsY > 2)
+                {
                     // rearrange cuts so that the initial ones go around the outside
                     if (cut < cutsX) {
                         // bottom edge: it's ok as is
@@ -3967,10 +4028,27 @@ public class Technology implements Comparable<Technology>, Serializable
 
                 // locate the X center of the cut
                 if (cutsX != 1)
-                    cX += ((cut % cutsX)*2 - (cutsX - 1))*(cutSizeX + cutSep)*0.5;
+                {
+                	int cutNum = cut % cutsX;
+                    cX += (cutNum*2 - (cutsX - 1))*(cutSizeX + cutSep)*0.5;
+                    if (cutNum != cutShiftNoneXPos)
+                    {
+	                    if (cutNum >= cutShiftRightXPos) cX += cutShiftRightXAmt; else
+		                    if (cutNum >= cutShiftLeftXPos) cX -= cutShiftLeftXAmt;
+                    }
+                }
+
                 // locate the Y center of the cut
                 if (cutsY != 1)
-                    cY += ((cut / cutsX)*2 - (cutsY - 1))*(cutSizeY + cutSep)*0.5;
+                {
+                	int cutNum = cut / cutsX;
+                    cY += (cutNum*2 - (cutsY - 1))*(cutSizeY + cutSep)*0.5;
+                    if (cutNum != cutShiftNoneYPos)
+                    {
+	                    if (cutNum >= cutShiftUpYPos) cY += cutShiftUpYAmt; else
+		                    if (cutNum >= cutShiftDownYPos) cY -= cutShiftDownYAmt;
+                    }
+                }
             }
             double lX = DBMath.gridToLambda(cX - (cutSizeX >> 1));
             double hX = DBMath.gridToLambda(cX + (cutSizeX >> 1));

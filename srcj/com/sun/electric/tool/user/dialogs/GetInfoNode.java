@@ -46,6 +46,7 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveNodeSize;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.Technology.NodeLayer;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
@@ -99,6 +100,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 	private List<ArcInst> portObjects;
 	private boolean bigger;
 	private boolean scalableTrans;
+	private boolean multiCutNode;
 	private boolean swapXY;
 	private AttributesTable attributesTable;
 	private EditWindow wnd;
@@ -526,6 +528,32 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 			}
 		}
 
+		multiCutNode = false;
+		if (!ni.isCellInstance())
+		{
+			PrimitiveNode pnp = (PrimitiveNode)np;
+			if (pnp.findMulticut() != null) multiCutNode = true;
+		}
+		if (multiCutNode)
+		{
+			popupLabel.setText("Cut placement:");
+			popup.setEnabled(true);
+			popup.addItem("In node center");
+			popup.addItem("At node edges");
+			popup.addItem("In node corner");
+			initialPopupIndex = ni.getTechSpecific();
+			popup.setSelectedIndex(initialPopupIndex&3);
+
+			textFieldLabel.setText("Cut spacing:");
+			textField.setEditable(true);
+			if ((initialPopupIndex&NodeLayer.MULTICUT_SPACING_OVERRIDE) == 0) textField.setText("DEFAULT"); else
+			{
+				Variable var = ni.getVar(NodeLayer.CUT_SPACING);
+				if (var != null)
+					textField.setText(var.getPureValue(-1));
+			}			
+		}
+
 		scalableTrans = false;
 		if (!ni.isCellInstance())
 		{
@@ -812,6 +840,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 		private String initialTextField, currentTextField;
 		private String initialPopupEntry, currentPopupEntry;
 		private boolean scalableTrans;
+		private boolean multiCutNode;
 		private boolean swapXY;
 		private boolean expansionChanged;
 
@@ -830,6 +859,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 			String initialPopupEntry, String currentPopupEntry,
 			boolean bigger,
 			boolean scalableTrans,
+			boolean multiCutNode,
 			boolean swapXY)
 		{
 			super("Modify Node", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -850,6 +880,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 			this.initialTextField = initialTextField;                         this.currentTextField = currentTextField;
 			this.initialPopupEntry = initialPopupEntry;                       this.currentPopupEntry = currentPopupEntry;
 			this.scalableTrans = scalableTrans;
+			this.multiCutNode = multiCutNode;
 			this.swapXY = swapXY;
 			startJob();
 		}
@@ -919,6 +950,24 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 					{
 						ni.addVar(var.withDisplay(true).withDispPart(TextDescriptor.DispPos.NAMEVALUE));
 					}
+				}
+			}
+			if (multiCutNode)
+			{
+				if (currentTextField.equals("DEFAULT") || currentTextField.length() == 0)
+				{
+					currentPopupIndex &= ~NodeLayer.MULTICUT_SPACING_OVERRIDE;
+					if (ni.getVar(NodeLayer.CUT_SPACING) != null)
+						ni.delVar(NodeLayer.CUT_SPACING);
+				} else
+				{
+					currentPopupIndex |= NodeLayer.MULTICUT_SPACING_OVERRIDE;
+					ni.newVar(NodeLayer.CUT_SPACING, new Double(TextUtils.atof(currentTextField)));
+				}
+				if (currentPopupIndex != initialPopupIndex)
+				{
+					ni.setTechSpecific(currentPopupIndex);
+					changed = true;
 				}
 			}
 			PrimitiveNode.Function fun = ni.getFunction();
@@ -1696,6 +1745,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 			initialPopupEntry, (String)popup.getSelectedItem(),
 			bigger,
 			scalableTrans,
+			multiCutNode,
 			swapXY);
 		attributesTable.applyChanges();
 

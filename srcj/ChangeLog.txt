@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09c: ******************************
 
+IMP/MAN: (1/28/09, SMR) Contact nodes can now customize their cut placement by
+     requesting that the cuts be centered (the current way and the default),
+     be spread to the edges, or be packed into a corner.  They can also override
+     the cut spacing.  These controls are available in the Node Properties dialog (Bug #2014).
+
 BUG: (1/28/09, SMR) Changes made in the "multi-object" Properties dialog crash (Bug #2024).
 FIX: Made GetInfoMulti.MultiChange a static class.
 
