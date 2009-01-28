@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09c: ******************************
 
+BUG: (1/28/09, SMR) Interactive sizing does not respect grid (Bug #2025).
+FIX: Grid align new sizes.
+
 IMP/MAN: (1/28/09, SMR) Contact nodes can now customize their cut placement by
      requesting that the cuts be centered (the current way and the default),
      be spread to the edges, or be packed into a corner.  They can also override

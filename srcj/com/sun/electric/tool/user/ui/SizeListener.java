@@ -605,6 +605,8 @@ public class SizeListener
 		// compute the new node size
 		double newXSize = ni.getLambdaBaseXSize() * growthRatioX;
 		double newYSize = ni.getLambdaBaseYSize() * growthRatioY;
+		double signX = newXSize < 0 ? -1 : 1;
+		double signY = newYSize < 0 ? -1 : 1;
 		Point2D newSize = new Point2D.Double(Math.abs(newXSize), Math.abs(newYSize));
 
 		// grid align the new node size
@@ -617,8 +619,8 @@ public class SizeListener
 			double closestY = closest.getY();
 			double farthestX = farthest.getX();
 			double farthestY = farthest.getY();
-			double newClosestX = (closestX == farthestX ? closestX : farthestX + newXSize*(closestX > farthestX ? 1 : -1));
-			double newClosestY = (closestY == farthestY ? closestY : farthestY + newYSize*(closestY > farthestY ? 1 : -1));
+			double newClosestX = (closestX == farthestX ? closestX : farthestX + newSize.getX()*signX*(closestX > farthestX ? 1 : -1));
+			double newClosestY = (closestY == farthestY ? closestY : farthestY + newSize.getY()*signY*(closestY > farthestY ? 1 : -1));
 
 			newCenter.setLocation((farthestX + newClosestX) / 2, (farthestY + newClosestY) / 2);
 			ni.transformOut().transform(newCenter, newCenter);
