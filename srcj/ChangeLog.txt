@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09c: ******************************
 
+BUG: (1/29/09, DN) Initialization of 3D info for CMOS90.mdLayer used undefined viaDLayer.getDepth().
+FIX: Dummy 3D info for CMOS90.viaDLayer .
+
+IMP: (1/29/09, DN) Check against late initialization of preferences.
+
 BUG: (1/28/09, SMR) Interactive sizing does not respect grid (Bug #2025).
 FIX: Grid align new sizes.
 

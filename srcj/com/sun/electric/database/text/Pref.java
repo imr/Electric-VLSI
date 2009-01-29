@@ -26,7 +26,6 @@ package com.sun.electric.database.text;
 import com.sun.electric.Main;
 import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 
 import java.io.BufferedWriter;
@@ -223,6 +222,7 @@ public class Pref
 	private static boolean doFlushing = true;
 //    private static PrefChangeBatch changes = null;
 	private static Set<Preferences> queueForFlushing;
+    private static boolean lockCreation;
 
 	/**
 	 * The constructor for the Pref.
@@ -234,6 +234,22 @@ public class Pref
         synchronized (group.prefs) {
             group.prefs.add(this);
         }
+        if (lockCreation && Job.getDebug()) {
+            try {
+                throw new IllegalStateException();
+            } catch (IllegalStateException e) {
+                System.err.println("Pref "+group.absolutePath()+"/"+name+" was created from improper place");
+//                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * Currently Setting can be created only at initialization phase.
+     * This method forbids further cration of Settings.
+     */
+    public static void lockCreation() {
+        lockCreation = true;
     }
 
     /**

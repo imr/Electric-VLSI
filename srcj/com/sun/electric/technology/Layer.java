@@ -674,10 +674,17 @@ public class Layer
     private Setting resistanceSetting;
     private Setting capacitanceSetting;
     private Setting edgeCapacitanceSetting;
+    private final Pref layerVisibilityPref;
+    // 3D options
+	private Pref layer3DThicknessPref;
+	private Pref layer3DDistancePref;
+    private Pref layer3DTransModePref; // NONE is the default
+    private Pref layer3DTransFactorPref; // 0 is the default
+
+    private Pref areaCoveragePref;  // Used by area coverage tool
 	/** the pseudo layer (if exists) */                                     private Layer pseudoLayer;
 	/** the "real" layer (if this one is pseudo) */							private Layer nonPseudoLayer;
 	/** true if this layer is visible */									private boolean visible;
-	/** true if this layer's visibity has been initialized */				private boolean visibilityInitialized;
 	/** true if dimmed (drawn darker) undimmed layers are highlighted */	private boolean dimmed;
 	/** the pure-layer node that contains just this layer */				private PrimitiveNode pureLayerNode;
     /** the Xml expression for size pf pure-layer node */                   private Technology.Distance pureLayerNodeXmlSize;
@@ -688,8 +695,8 @@ public class Layer
 		this.tech = tech;
 		this.graphics = graphics;
 		this.nonPseudoLayer = this;
-		this.visible = true;
-		visibilityInitialized = false;
+		layerVisibilityPref = getBooleanPref("Visibility", true);
+        visible = layerVisibilityPref == null || layerVisibilityPref.getBoolean();
 		this.dimmed = false;
 		this.function = Function.UNKNOWN;
 	}
@@ -967,13 +974,13 @@ public class Layer
 	public void factoryResetGraphics()
 	{
     	if (tech == null) return;
-		if (!visibilityInitialized)
-		{
-			Pref vp = getBooleanPref("Visibility", tech.layerVisibilityPrefs, visible);
-			visible = vp.getBooleanFactoryValue();
-			if (vp.getBoolean() != visible) vp.setBoolean(visible);
-			visibilityInitialized = true;
-		}
+//		if (!visibilityInitialized)
+//		{
+//			Pref vp = getBooleanPref("Visibility", tech.layerVisibilityPrefs, visible);
+//			visible = vp.getBooleanFactoryValue();
+//			if (vp.getBoolean() != visible) vp.setBoolean(visible);
+//			visibilityInitialized = true;
+//		}
 		graphics.factoryReset();
 	}
 
@@ -984,11 +991,11 @@ public class Layer
     public boolean isVisible()
     {
     	if (tech == null) return true;
-		if (!visibilityInitialized)
-		{
-			visible = getBooleanPref("Visibility", tech.layerVisibilityPrefs, visible).getBoolean();
-			visibilityInitialized = true;
-		}
+//		if (!visibilityInitialized)
+//		{
+//			visible = getBooleanPref("Visibility", tech.layerVisibilityPrefs, visible).getBoolean();
+//			visibilityInitialized = true;
+//		}
 		return visible;
     }
 
@@ -1001,11 +1008,11 @@ public class Layer
 	 */
     public void setVisible(boolean newVis)
 	{
-		if (!visibilityInitialized)
-		{
-			visible = getBooleanPref("Visibility", tech.layerVisibilityPrefs, visible).getBoolean();
-			visibilityInitialized = true;
-		}
+//		if (!visibilityInitialized)
+//		{
+//			visible = getBooleanPref("Visibility", tech.layerVisibilityPrefs, visible).getBoolean();
+//			visibilityInitialized = true;
+//		}
 		visible = newVis;
 		tech.resetAllVisibility();
 	}
@@ -1022,7 +1029,7 @@ public class Layer
 			for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
 			{
 				Layer layer = lIt.next();
-				Pref visPref = layer.getBooleanPref("Visibility", tech.layerVisibilityPrefs, layer.visible);
+				Pref visPref = layer.layerVisibilityPref;
 				boolean savedVis = visPref.getBoolean();
 				if (savedVis != layer.visible)
 				{
@@ -1070,73 +1077,49 @@ public class Layer
     /**
 	 * Method to get a string preference for this Layer and a specific purpose.
 	 * @param what the purpose of the preference.
-	 * @param map a Map of preferences for the purpose.
 	 * @param factory the factory default value for this Layer/purpose.
 	 * @return the string Pref object for this Layer/purpose.
 	 */
-    public Pref getStringPref(String what, Map<Layer,Pref> map, String factory)
+    private Pref getStringPref(String what, String factory)
 	{
-		Pref pref = map.get(this);
-		if (pref == null)
-		{
-			pref = Pref.makeStringPref(what + "Of" + name + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factory);
-			map.put(this, pref);
-		}
-		return pref;
+        if (tech == null) return null;
+        return Pref.makeStringPref(what + "Of" + name + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factory);
 	}
 
     /**
 	 * Method to get a boolean preference for this Layer and a specific purpose.
 	 * @param what the purpose of the preference.
-	 * @param map a Map of preferences for the purpose.
 	 * @param factory the factory default value for this Layer/purpose.
 	 * @return the boolean Pref object for this Layer/purpose.
 	 */
-    public Pref getBooleanPref(String what, Map<Layer,Pref> map, boolean factory)
+    private Pref getBooleanPref(String what, boolean factory)
 	{
-		Pref pref = map.get(this);
-		if (pref == null)
-		{
-			pref = Pref.makeBooleanPref(what + "Of" + name + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factory);
-			map.put(this, pref);
-		}
-		return pref;
+        if (tech == null) return null;
+        return Pref.makeBooleanPref(what + "Of" + name + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factory);
 	}
 
 	/**
 	 * Method to get a double-precision preference for this Layer and a specific purpose.
 	 * @param what the purpose of the preference.
-	 * @param map a Map of preferences for the purpose.
 	 * @param factory the factory default value for this Layer/purpose.
 	 * @return the double-precision Pref object for this Layer/purpose.
 	 */
-	public Pref getDoublePref(String what, Map<Layer,Pref> map, double factory)
+	private Pref getDoublePref(String what, double factory)
 	{
-		Pref pref = map.get(this);
-		if (pref == null)
-		{
-			pref = Pref.makeDoublePref(what + "Of" + name + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factory);
-			map.put(this, pref);
-		}
-		return pref;
+        if (tech == null) return null;
+        return Pref.makeDoublePref(what + "Of" + name + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factory);
 	}
 
 	/**
 	 * Method to get an integer preference for this Layer and a specific purpose.
 	 * @param what the purpose of the preference.
-	 * @param map a Map of preferences for the purpose.
 	 * @param factory the factory default value for this Layer/purpose.
 	 * @return the integer Pref object for this Layer/purpose.
 	 */
-	public Pref getIntegerPref(String what, Map<Layer,Pref> map, int factory)
+	private Pref getIntegerPref(String what, int factory)
 	{
-		Pref pref = map.get(this);
-		if (pref == null)
-		{
-			pref = Pref.makeIntPref(what + "Of" + name + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factory);
-			map.put(this, pref);
-		}
-		return pref;
+        if (tech == null) return null;
+        return Pref.makeIntPref(what + "Of" + name + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factory);
 	}
 
 	/**
@@ -1153,12 +1136,13 @@ public class Layer
 
         thickness = DBMath.round(thickness);
         distance = DBMath.round(distance);
+        if (mode == null)
+            mode = DEFAULT_MODE;
         // We don't call setDistance and setThickness directly here due to reflection code.
-        getDoublePref("Distance", tech.layer3DDistancePrefs, distance);
-		getDoublePref("Thickness", tech.layer3DThicknessPrefs, thickness);
-        if (mode != null)
-            getStringPref("3DTransparencyMode", tech.layer3DTransModePrefs, mode);
-        getDoublePref("3DTransparencyFactor", tech.layer3DTransFactorPrefs, factor);
+        layer3DDistancePref = getDoublePref("Distance", distance);
+		layer3DThicknessPref = getDoublePref("Thickness", thickness);
+        layer3DTransModePref = getStringPref("3DTransparencyMode", mode);
+        layer3DTransFactorPref =  getDoublePref("3DTransparencyFactor", factor);
 //        getDoublePref("Distance", layer3DDistancePrefs, distance).setFactoryDouble(distance);
 //		getDoublePref("Thickness", layer3DThicknessPrefs, thickness).setFactoryDouble(thickness);
 //            setTransparencyMode(mode);
@@ -1173,7 +1157,7 @@ public class Layer
 	public String getTransparencyMode() {
         if (isPseudoLayer())
             return getNonPseudoLayer().getTransparencyMode();
-        return getStringPref("3DTransparencyMode", tech.layer3DTransModePrefs, DEFAULT_MODE).getString();
+        return layer3DTransModePref.getString();
     }
 
     /**
@@ -1184,7 +1168,7 @@ public class Layer
 	public void setTransparencyMode(String mode)
     {
         assert !isPseudoLayer();
-        getStringPref("3DTransparencyMode", tech.layer3DTransModePrefs, mode).setString(mode);
+        layer3DTransModePref.setString(mode);
     }
 
     /**
@@ -1195,7 +1179,7 @@ public class Layer
 	public String getFactoryTransparencyMode() {
         if (isPseudoLayer())
             return getNonPseudoLayer().getFactoryTransparencyMode();
-        return getStringPref("3DTransparencyMode", tech.layer3DTransModePrefs, DEFAULT_MODE).getStringFactoryValue();
+        return layer3DTransModePref.getStringFactoryValue();
     }
 
     /**
@@ -1206,7 +1190,7 @@ public class Layer
 	public double getTransparencyFactor() {
         if (isPseudoLayer())
             return getNonPseudoLayer().getTransparencyFactor();
-        return getDoublePref("3DTransparencyFactor", tech.layer3DTransFactorPrefs, DEFAULT_FACTOR).getDouble();
+        return layer3DTransFactorPref.getDouble();
     }
 
     /**
@@ -1217,7 +1201,7 @@ public class Layer
 	public void setTransparencyFactor(double factor)
     {
         assert !isPseudoLayer();
-        getDoublePref("3DTransparencyFactor", tech.layer3DTransFactorPrefs, factor).setDouble(factor);
+        layer3DTransFactorPref.setDouble(factor);
     }
 
     /**
@@ -1228,7 +1212,7 @@ public class Layer
 	public double getFactoryTransparencyFactor() {
         if (isPseudoLayer())
             return getNonPseudoLayer().getFactoryTransparencyFactor();
-        return getDoublePref("3DTransparencyFactor", tech.layer3DTransFactorPrefs, DEFAULT_FACTOR).getDoubleFactoryValue();
+        return layer3DTransFactorPref.getDoubleFactoryValue();
     }
 
     /**
@@ -1239,7 +1223,7 @@ public class Layer
 	public double getDistance() {
         if (isPseudoLayer())
             return getNonPseudoLayer().getDistance();
-        return getDoublePref("Distance", tech.layer3DDistancePrefs, DEFAULT_DISTANCE).getDouble();
+        return layer3DDistancePref.getDouble();
     }
 
     /**
@@ -1250,7 +1234,7 @@ public class Layer
 	public double getFactoryDistance() {
         if (isPseudoLayer())
             return getNonPseudoLayer().getFactoryDistance();
-        return getDoublePref("Distance", tech.layer3DDistancePrefs, DEFAULT_DISTANCE).getDoubleFactoryValue();
+        return layer3DDistancePref.getDoubleFactoryValue();
     }
 
 	/**
@@ -1273,7 +1257,7 @@ public class Layer
             System.out.print("Cannot call 3D plugin method setZValues" + extra);
 //            e.printStackTrace();
         }
-        getDoublePref("Distance", tech.layer3DDistancePrefs, distance).setDouble(distance);
+        layer3DDistancePref.setDouble(distance);
     }
 
 	/**
@@ -1293,7 +1277,7 @@ public class Layer
 	public double getThickness() {
         if (isPseudoLayer())
             return 0;
-        return getDoublePref("Thickness", tech.layer3DThicknessPrefs, DEFAULT_THICKNESS).getDouble();
+        return layer3DThicknessPref.getDouble();
     }
 	/**
 	 * Method to return the thickness of this layer, by default.
@@ -1303,7 +1287,7 @@ public class Layer
 	public double getFactoryThickness() {
         if (isPseudoLayer())
             return 0;
-        return getDoublePref("Thickness", tech.layer3DThicknessPrefs, DEFAULT_THICKNESS).getDoubleFactoryValue();
+        return layer3DThicknessPref.getDoubleFactoryValue();
     }
 
 	/**
@@ -1325,7 +1309,7 @@ public class Layer
             System.out.println("Cannot call 3D plugin method setZValues: " + e.getMessage());
             e.printStackTrace();
         }
-        getDoublePref("Thickness", tech.layer3DThicknessPrefs, thickness).setDouble(thickness);
+        layer3DThicknessPref.setDouble(thickness);
     }
 
 	/**
@@ -1508,19 +1492,19 @@ public class Layer
 	 * Method to return the minimum area coverage that the layer must reach in the technology.
 	 * @return the minimum area coverage (in percentage).
 	 */
-	public double getAreaCoverage() { return getDoublePref("AreaCoverageJob", tech.areaCoveragePrefs, DEFAULT_AREA_COVERAGE).getDouble(); }
+	public double getAreaCoverage() { return areaCoveragePref.getDouble(); }
 
 	/**
 	 * Method to return the minimum area coverage that the layer must reach in the technology, by default.
 	 * @return the minimum area coverage (in percentage), by default.
 	 */
-	public double getFactoryAreaCoverage() { return getDoublePref("AreaCoverageJob", tech.areaCoveragePrefs, DEFAULT_AREA_COVERAGE).getDoubleFactoryValue(); }
+	public double getFactoryAreaCoverage() { return areaCoveragePref.getDoubleFactoryValue(); }
 
     /**
      * Methot to set minimum area coverage that the layer must reach in the technology.
      * @param area the minimum area coverage (in percentage).
      */
-	public void setAreaCoverageInfo(double area) { getDoublePref("AreaCoverageJob", tech.areaCoveragePrefs, area).setDouble(area); }
+	public void setAreaCoverageInfo(double area) { areaCoveragePref.setDouble(area); }
 
      /**
      * Method to finish initialization of this Technology.
@@ -1538,6 +1522,16 @@ public class Layer
         if (skillLayerSetting == null) {
             setFactorySkillLayer("");
         }
+        assert layerVisibilityPref != null;
+        if (layer3DThicknessPref == null || layer3DDistancePref == null || layer3DTransModePref == null || layer3DTransFactorPref == null) {
+            double thickness = layer3DThicknessPref != null ? getThickness() : DEFAULT_THICKNESS;
+            double distance = layer3DDistancePref != null ? getDistance() : DEFAULT_DISTANCE;
+            String mode = layer3DTransModePref != null ? getTransparencyMode() : DEFAULT_MODE;
+            double factor = layer3DTransFactorPref != null ? getTransparencyFactor() : DEFAULT_FACTOR;
+            setFactory3DInfo(thickness, distance, mode, factor);
+        }
+        if (areaCoveragePref == null)
+            areaCoveragePref = getDoublePref("AreaCoverageJob", DEFAULT_AREA_COVERAGE);
     }
 
 	/**
@@ -1582,10 +1576,14 @@ public class Layer
         for (int p: pattern)
             out.print(" " + Integer.toHexString(p));
         out.println();
-        out.println("\tdistance3D=" + getDistance());
-        out.println("\tthickness3D=" + getThickness());
-        out.println("\tmode3D=" + getTransparencyMode());
-        out.println("\tfactor3D=" + getTransparencyFactor());
+        if (layer3DDistancePref != null)
+            out.println("\tdistance3D=" + getDistance());
+        if (layer3DThicknessPref != null)
+            out.println("\tthickness3D=" + getThickness());
+        if (layer3DTransModePref != null)
+            out.println("\tmode3D=" + getTransparencyMode());
+        if (layer3DTransFactorPref != null)
+            out.println("\tfactor3D=" + getTransparencyFactor());
 
         if (getPseudoLayer() != null)
             out.println("\tpseudoLayer=" + getPseudoLayer().getName());

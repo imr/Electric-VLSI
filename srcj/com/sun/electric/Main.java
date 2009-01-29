@@ -27,6 +27,8 @@ import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.Geometric;
@@ -141,7 +143,7 @@ public final class Main
                 System.out.println("Invalid option -threads " + numThreadsString);
             }
         }
-        
+
 		if (hasCommandLineOption(argsList, "-batch")) runMode = Job.Mode.BATCH;
         if (hasCommandLineOption(argsList, "-server")) {
             if (runMode != Job.Mode.FULL_SCREEN)
@@ -161,7 +163,7 @@ public final class Main
             if (defMode == 2) mode = UserInterfaceMain.Mode.SDI;
         if (hasCommandLineOption(argsList, "-mdi")) mode = UserInterfaceMain.Mode.MDI;
         if (hasCommandLineOption(argsList, "-sdi")) mode = UserInterfaceMain.Mode.SDI;
-        
+
         AbstractUserInterface ui;
         if (runMode == Job.Mode.FULL_SCREEN || runMode == Job.Mode.CLIENT)
             ui = new UserInterfaceMain(argsList, mode, runMode == Job.Mode.FULL_SCREEN);
@@ -180,7 +182,7 @@ public final class Main
 
     private static class UserInterfaceDummy extends AbstractUserInterface
 	{
-        
+
         public void startProgressDialog(String type, String filePath) {}
         public void stopProgressDialog() {}
         public void setProgressValue(long pct) {}
@@ -191,7 +193,7 @@ public final class Main
 		public EditWindow_ needCurrentEditWindow_()
 		{
 			System.out.println("Batch mode Electric has no needed windows");
-			return null; 
+			return null;
 		}
         /** Get current cell from current library */
 		public Cell getCurrentCell()
@@ -320,11 +322,11 @@ public final class Main
         public void exportPrefs() {;}
 	}
 
-	/** check if command line option 'option' present in 
+	/** check if command line option 'option' present in
      * command line args. If present, return true and remove if from the list.
      * Otherwise, return false.
      */
-    private static boolean hasCommandLineOption(List<String> argsList, String option) 
+    private static boolean hasCommandLineOption(List<String> argsList, String option)
     {
         for (int i=0; i<argsList.size(); i++) {
             if (argsList.get(i).equals(option)) {
@@ -335,7 +337,7 @@ public final class Main
         return false;
     }
 
-    /** get command line option for 'option'. Returns null if 
+    /** get command line option for 'option'. Returns null if
      * no such 'option'.  If found, remove it from the list.
      */
     private static String getCommandLineOption(List<String> argsList, String option)
@@ -354,7 +356,7 @@ public final class Main
         return null;
     }
 
-    /** open any libraries specified on the command line.  This method should be 
+    /** open any libraries specified on the command line.  This method should be
      * called after any valid options have been parsed out
      */
     public static void openCommandLineLibs(List<String> argsList)
@@ -419,24 +421,30 @@ public final class Main
             mainLib.setCurrent();
 //            Input.changesQuiet(false);
 
-            if (Job.BATCHMODE && beanShellScript != null)
+            if (Job.BATCHMODE) {
+                Setting.lockCreation();
+                Pref.lockCreation();
+                if (beanShellScript != null)
                     EvalJavaBsh.runScript(beanShellScript);
+            }
             return true;
 		}
-        
+
         public void terminateOK() {
             Job.getExtendedUserInterface().finishInitialization();
+            Setting.lockCreation();
+            Pref.lockCreation();
 			openCommandLineLibs(argsList);
             if (beanShellScript != null)
                 EvalJavaBsh.runScript(beanShellScript);
         }
-        
+
         public void terminateFail(Throwable jobException) {
             System.out.println("Initialization failed");
             System.exit(1);
         }
 	}
-    
+
     /**
 	 * Method to return the amount of memory being used by Electric.
 	 * Calls garbage collection and delays to allow completion, so the method is SLOW.
@@ -451,7 +459,7 @@ public final class Main
 		collectGarbage();
 		collectGarbage();
 		long freeMemory = Runtime.getRuntime().freeMemory();
-		
+
 		return (totalMemory - freeMemory);
 	}
 

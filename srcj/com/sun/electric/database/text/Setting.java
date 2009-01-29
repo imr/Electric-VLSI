@@ -55,10 +55,13 @@ public class Setting {
     private boolean valid;
     private final String description, location;
     private String [] trueMeaning;
+    private static boolean lockCreation;
 
     /** Creates a new instance of Setting */
     public Setting(String prefName, Pref.Group group, String xmlNode, String xmlName, String location, String description, Object factoryObj) {
         EDatabase.serverDatabase().checkChanging();
+        if (lockCreation)
+            throw new IllegalStateException();
         if (xmlNode == null)
             throw new NullPointerException();
 //        this.xmlNode = xmlNode;
@@ -86,6 +89,14 @@ public class Setting {
         ProjSettings.putValue(this);
 //        xmlNode.putValue(xmlName, this);
 
+    }
+
+    /**
+     * Currently Setting can be created only at initialization phase.
+     * This method forbids further cration of Settings.
+     */
+    public static void lockCreation() {
+        lockCreation = true;
     }
 
     /**

@@ -1035,13 +1035,6 @@ public class Technology implements Comparable<Technology>, Serializable
 	/** list of layers in this technology */				private final List<Layer> layers = new ArrayList<Layer>();
 	/** map from layer names to layers in this technology */private final HashMap<String,Layer> layersByName = new HashMap<String,Layer>();
 //	private static Map<String,Pref> gdsLayerPrefs = new HashMap<String,Pref>();
-    final Map<Layer,Pref> layerVisibilityPrefs = new HashMap<Layer,Pref>();
-    // 3D options
-	final Map<Layer,Pref> layer3DThicknessPrefs = new HashMap<Layer,Pref>();
-	final Map<Layer,Pref> layer3DDistancePrefs = new HashMap<Layer,Pref>();
-    final Map<Layer,Pref> layer3DTransModePrefs = new HashMap<Layer,Pref>(); // NONE is the default
-    final Map<Layer,Pref> layer3DTransFactorPrefs = new HashMap<Layer,Pref>(); // 0 is the default
-    final Map<Layer,Pref> areaCoveragePrefs = new HashMap<Layer,Pref>();  // Used by area coverage tool
     /** True when layer allocation is finished. */          private boolean layersAllocationLocked;
 
 	/** list of primitive nodes in this technology */		private final LinkedHashMap<String,PrimitiveNode> nodes = new LinkedHashMap<String,PrimitiveNode>();
@@ -1156,6 +1149,7 @@ public class Technology implements Comparable<Technology>, Serializable
 //		cacheWireRatio = makeLESetting("WireRatio", DEFAULT_WIRERATIO);
 //		cacheDiffAlpha = makeLESetting("DiffAlpha", DEFAULT_DIFFALPHA);
 //        cacheKeeperRatio = makeLESetting("KeeperRatio", DEFAULT_KEEPERRATIO);
+		layerOrderPref = Pref.makeStringPref("LayerOrderfor"+getTechName(), prefs, "");
 	}
 
     protected Object writeReplace() { return new TechnologyKey(this); }
@@ -2625,8 +2619,6 @@ public class Technology implements Comparable<Technology>, Serializable
 	 */
 	public List<Layer> getSavedLayerOrder()
 	{
-		if (layerOrderPref == null)
-			layerOrderPref = Pref.makeStringPref("LayerOrderfor"+getTechName(), prefs, "");
 		String order = layerOrderPref.getString();
 		if (order.length() == 0) return null;
 		int pos = 0;
@@ -2663,8 +2655,6 @@ public class Technology implements Comparable<Technology>, Serializable
 	 */
 	public void setSavedLayerOrder(List<Layer> layers)
 	{
-		if (layerOrderPref == null)
-			layerOrderPref = Pref.makeStringPref("LayerOrderfor"+getTechName(), prefs, "");
 		StringBuffer sb = new StringBuffer();
 		for(Layer lay : layers)
 		{
