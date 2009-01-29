@@ -775,6 +775,8 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
     /** full (true) rectangle of standard node */   private ERectangle fullRectangle;
 	/** amount to automatically grow to fit arcs */	private Dimension2D autoGrowth;
 	/** template for Spice decks (null if none) */	private String spiceTemplate;
+    /** Pref for node width. */                     private final Pref defaultExtendXPref;
+    /** Pref for node height. */                    private final Pref defaultExtendYPref;
 
 	// ------------------ private and protected methods ----------------------
 
@@ -805,7 +807,11 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
             minNodeSize = new NodeSizeRule(minSizeRule);
         }
 
-		setFactoryDefSize(defWidth, defHeight);
+        double factoryExtendX = DBMath.round(0.5*(defWidth - fullRectangle.getLambdaWidth()));
+        defaultExtendXPref = Pref.makeDoublePref("DefaultExtendXFor" + getName() + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factoryExtendX);
+        double factoryExtendY = DBMath.round(0.5*(defHeight - fullRectangle.getLambdaHeight()));
+        defaultExtendYPref = Pref.makeDoublePref("DefaultExtendYFor" + getName() + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factoryExtendY);
+
         double lx = baseRectangle.getLambdaMinX() - fullRectangle.getLambdaMinX();
         double hx = fullRectangle.getLambdaMaxX() - baseRectangle.getLambdaMaxX();
         double ly = baseRectangle.getLambdaMinY() - fullRectangle.getLambdaMinY();
@@ -1223,58 +1229,14 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
     public boolean isMulticut() { return numMultiCuts == 1; }
 
 	/**
-	 * Method to return the Pref that describes the defaut width of this PrimitiveNode.
-	 * @param factoryExtendX the "factory" default extend of this PrimitiveNode over minimal width.
-	 * @return a Pref that stores the proper default width of this PrimitiveNode.
-	 */
-	private Pref getNodeProtoExtendXPref(double factoryExtendX)
-	{
-		Pref pref = tech.defaultExtendXPrefs.get(this);
-		if (pref == null)
-		{
-			pref = Pref.makeDoublePref("DefaultExtendXFor" + getName() + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factoryExtendX);
-			tech.defaultExtendXPrefs.put(this, pref);
-		}
-		return pref;
-	}
-
-	/**
-	 * Method to return the Pref that describes the defaut height of this PrimitiveNode.
-	 * @param factoryExtendY the "factory" default extend of this PrimitiveNode over minimal height.
-	 * @return a Pref that stores the proper default height of this PrimitiveNode.
-	 */
-	private Pref getNodeProtoExtendYPref(double factoryExtendY)
-	{
-		Pref pref = tech.defaultExtendYPrefs.get(this);
-		if (pref == null)
-		{
-			pref = Pref.makeDoublePref("DefaultExtendYFor" + getName() + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factoryExtendY);
-			tech.defaultExtendYPrefs.put(this, pref);
-		}
-		return pref;
-	}
-
-	/**
-	 * Method to set the factory-default width of this PrimitiveNode.
-	 * This is only called during construction.
-	 * @param defWidth the factory-default width of this PrimitiveNode.
-	 * @param defHeight the factory-default height of this PrimitiveNode.
-	 */
-	protected void setFactoryDefSize(double defWidth, double defHeight)
-	{
-		getNodeProtoExtendXPref(DBMath.round(0.5*(defWidth - fullRectangle.getLambdaWidth())));
-		getNodeProtoExtendYPref(DBMath.round(0.5*(defHeight - fullRectangle.getLambdaHeight())));
-	}
-
-	/**
 	 * Method to set the default size of this PrimitiveNode.
 	 * @param defWidth the new default width of this PrimitiveNode.
 	 * @param defHeight the new default height of this PrimitiveNode.
 	 */
 	public void setDefSize(double defWidth, double defHeight)
 	{
-		getNodeProtoExtendXPref(0).setDouble(DBMath.round(0.5*(defWidth - fullRectangle.getLambdaWidth())));
-		getNodeProtoExtendYPref(0).setDouble(DBMath.round(0.5*(defHeight - fullRectangle.getLambdaHeight())));
+		defaultExtendXPref.setDouble(DBMath.round(0.5*(defWidth - fullRectangle.getLambdaWidth())));
+		defaultExtendYPref.setDouble(DBMath.round(0.5*(defHeight - fullRectangle.getLambdaHeight())));
 	}
 
 	/**
@@ -1383,7 +1345,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	 * @return the defaut extend of this PrimitiveNode over minimal width in grid units.
 	 */
 	public long getDefaultGridExtendX() {
-        return DBMath.lambdaToGrid(getNodeProtoExtendXPref(0).getDouble());
+        return DBMath.lambdaToGrid(defaultExtendXPref.getDouble());
     }
 
 	/**
@@ -1392,7 +1354,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	 * @return the defaut extend of this PrimitiveNode overn ninimal height in grid units.
 	 */
 	public long getDefaultGridExtendY() {
-        return DBMath.lambdaToGrid(getNodeProtoExtendYPref(0).getDouble());
+        return DBMath.lambdaToGrid(defaultExtendYPref.getDouble());
     }
 
 	/**
@@ -1401,7 +1363,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	 * @return the defaut extend of this PrimitiveNode over minimal width in grid units.
 	 */
 	public long getFactoryDefaultGridExtendX() {
-        return DBMath.lambdaToGrid(getNodeProtoExtendXPref(0).getDoubleFactoryValue());
+        return DBMath.lambdaToGrid(defaultExtendXPref.getDoubleFactoryValue());
     }
 
 	/**
@@ -1410,7 +1372,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	 * @return the defaut extend of this PrimitiveNode overn ninimal height in grid units.
 	 */
 	public long getFactoryDefaultGridExtendY() {
-        return DBMath.lambdaToGrid(getNodeProtoExtendYPref(0).getDoubleFactoryValue());
+        return DBMath.lambdaToGrid(defaultExtendYPref.getDoubleFactoryValue());
     }
 
 	/**
@@ -2214,8 +2176,8 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
             out.println("\tminNodeSize w=" + minNodeSize.getWidth() + " h=" + minNodeSize.getHeight() + " rule=" + minNodeSize.getRuleName());
         if (autoGrowth != null)
             out.println("\tautoGrowth " + autoGrowth);
-        Technology.printlnPref(out, 1, tech.defaultExtendXPrefs.get(this));
-        Technology.printlnPref(out, 1, tech.defaultExtendYPrefs.get(this));
+        Technology.printlnPref(out, 1, defaultExtendXPref);
+        Technology.printlnPref(out, 1, defaultExtendYPref);
         for (int techVersion = 0; techVersion < 2; techVersion++) {
             EPoint sizeCorrector = getSizeCorrector(techVersion);
             String diskOffset = "diskOffset" + (techVersion + 1);

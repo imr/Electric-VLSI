@@ -1507,7 +1507,7 @@ public class Layer
 	public void setAreaCoverageInfo(double area) { areaCoveragePref.setDouble(area); }
 
      /**
-     * Method to finish initialization of this Technology.
+     * Method to finish initialization of this Layer.
      */
     void finish() {
 		if (resistanceSetting == null || capacitanceSetting == null || edgeCapacitanceSetting == null) {

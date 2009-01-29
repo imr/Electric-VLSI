@@ -71,140 +71,140 @@ public class RCMOS extends Technology
 		/** Metal-1 layer */
 		Layer metal1_lay = Layer.newInstance(this, "Metal-1",
 			new EGraphics(false, true, null, EGraphics.TRANSPARENT_1, 96,209,255,0.8,true,
-			new int[] { 0x2222,   //   X   X   X   X 
-						0x0000,   //                 
-						0x8888,   // X   X   X   X   
-						0x0000,   //                 
-						0x2222,   //   X   X   X   X 
-						0x0000,   //                 
-						0x8888,   // X   X   X   X   
-						0x0000,   //                 
-						0x2222,   //   X   X   X   X 
-						0x0000,   //                 
-						0x8888,   // X   X   X   X   
-						0x0000,   //                 
-						0x2222,   //   X   X   X   X 
-						0x0000,   //                 
-						0x8888,   // X   X   X   X   
-						0x0000}));//                 
+			new int[] { 0x2222,   //   X   X   X   X
+						0x0000,   //
+						0x8888,   // X   X   X   X
+						0x0000,   //
+						0x2222,   //   X   X   X   X
+						0x0000,   //
+						0x8888,   // X   X   X   X
+						0x0000,   //
+						0x2222,   //   X   X   X   X
+						0x0000,   //
+						0x8888,   // X   X   X   X
+						0x0000,   //
+						0x2222,   //   X   X   X   X
+						0x0000,   //
+						0x8888,   // X   X   X   X
+						0x0000}));//
 		Layer metal2_lay = Layer.newInstance(this, "Metal-2",
 			new EGraphics(false, true, null, EGraphics.TRANSPARENT_5, 224,95,255,0.8,true,
-			new int[] { 0x1010,   //    X       X   
-						0x2020,   //   X       X    
-						0x4040,   //  X       X     
-						0x8080,   // X       X      
+			new int[] { 0x1010,   //    X       X
+						0x2020,   //   X       X
+						0x4040,   //  X       X
+						0x8080,   // X       X
 						0x0101,   //        X       X
 						0x0202,   //       X       X
-						0x0404,   //      X       X 
-						0x0808,   //     X       X  
-						0x1010,   //    X       X   
-						0x2020,   //   X       X    
-						0x4040,   //  X       X     
-						0x8080,   // X       X      
+						0x0404,   //      X       X
+						0x0808,   //     X       X
+						0x1010,   //    X       X
+						0x2020,   //   X       X
+						0x4040,   //  X       X
+						0x8080,   // X       X
 						0x0101,   //        X       X
 						0x0202,   //       X       X
-						0x0404,   //      X       X 
-						0x0808}));//     X       X  
+						0x0404,   //      X       X
+						0x0808}));//     X       X
 
 		/** P layer */
 		Layer polysilicon_lay = Layer.newInstance(this, "Polysilicon",
 			new EGraphics(false, true, null, EGraphics.TRANSPARENT_2, 255,155,192,0.8,true,
-			new int[] { 0x0808,   //     X       X   
-						0x0404,   //      X       X  
-						0x0202,   //       X       X 
+			new int[] { 0x0808,   //     X       X
+						0x0404,   //      X       X
+						0x0202,   //       X       X
 						0x0101,   //        X       X
-						0x8080,   // X       X       
-						0x4040,   //  X       X      
-						0x2020,   //   X       X     
-						0x1010,   //    X       X    
-						0x0808,   //     X       X   
-						0x0404,   //      X       X  
-						0x0202,   //       X       X 
+						0x8080,   // X       X
+						0x4040,   //  X       X
+						0x2020,   //   X       X
+						0x1010,   //    X       X
+						0x0808,   //     X       X
+						0x0404,   //      X       X
+						0x0202,   //       X       X
 						0x0101,   //        X       X
-						0x8080,   // X       X       
-						0x4040,   //  X       X      
-						0x2020,   //   X       X     
-						0x1010}));//    X       X    
+						0x8080,   // X       X
+						0x4040,   //  X       X
+						0x2020,   //   X       X
+						0x1010}));//    X       X
 
 		/** S-Active layer */
 		Layer sActive_lay = Layer.newInstance(this, "S-Active",
 			new EGraphics(false, true, null, EGraphics.TRANSPARENT_3, 107,226,96,0.8,true,
-			new int[] { 0x0000,   //                 
+			new int[] { 0x0000,   //
 						0x0303,   //       XX      XX
-						0x4848,   //  X  X    X  X   
+						0x4848,   //  X  X    X  X
 						0x0303,   //       XX      XX
-						0x0000,   //                 
-						0x3030,   //   XX      XX    
-						0x8484,   // X    X  X    X  
-						0x3030,   //   XX      XX    
-						0x0000,   //                 
+						0x0000,   //
+						0x3030,   //   XX      XX
+						0x8484,   // X    X  X    X
+						0x3030,   //   XX      XX
+						0x0000,   //
 						0x0303,   //       XX      XX
-						0x4848,   //  X  X    X  X   
+						0x4848,   //  X  X    X  X
 						0x0303,   //       XX      XX
-						0x0000,   //                 
-						0x3030,   //   XX      XX    
-						0x8484,   // X    X  X    X  
-						0x3030}));//   XX      XX    
+						0x0000,   //
+						0x3030,   //   XX      XX
+						0x8484,   // X    X  X    X
+						0x3030}));//   XX      XX
 
 		/** D-Active layer */
 		Layer dActive_lay = Layer.newInstance(this, "D-Active",
 			new EGraphics(false, true, null, EGraphics.TRANSPARENT_3, 107,226,96,0.8,true,
-			new int[] { 0x0000,   //                 
+			new int[] { 0x0000,   //
 						0x0303,   //       XX      XX
-						0x4848,   //  X  X    X  X   
+						0x4848,   //  X  X    X  X
 						0x0303,   //       XX      XX
-						0x0000,   //                 
-						0x3030,   //   XX      XX    
-						0x8484,   // X    X  X    X  
-						0x3030,   //   XX      XX    
-						0x0000,   //                 
+						0x0000,   //
+						0x3030,   //   XX      XX
+						0x8484,   // X    X  X    X
+						0x3030,   //   XX      XX
+						0x0000,   //
 						0x0303,   //       XX      XX
-						0x4848,   //  X  X    X  X   
+						0x4848,   //  X  X    X  X
 						0x0303,   //       XX      XX
-						0x0000,   //                 
-						0x3030,   //   XX      XX    
-						0x8484,   // X    X  X    X  
-						0x3030}));//   XX      XX    
+						0x0000,   //
+						0x3030,   //   XX      XX
+						0x8484,   // X    X  X    X
+						0x3030}));//   XX      XX
 
 		/** Select layer */
 		Layer select_lay = Layer.newInstance(this, "Select",
 			new EGraphics(true, true, null, 0, 255,255,0,0.8,true,
-			new int[] { 0x1010,   //    X       X    
-						0x2020,   //   X       X     
-						0x4040,   //  X       X      
-						0x8080,   // X       X       
+			new int[] { 0x1010,   //    X       X
+						0x2020,   //   X       X
+						0x4040,   //  X       X
+						0x8080,   // X       X
 						0x0101,   //        X       X
-						0x0202,   //       X       X 
-						0x0404,   //      X       X  
-						0x0808,   //     X       X   
-						0x1010,   //    X       X    
-						0x2020,   //   X       X     
-						0x4040,   //  X       X      
-						0x8080,   // X       X       
+						0x0202,   //       X       X
+						0x0404,   //      X       X
+						0x0808,   //     X       X
+						0x1010,   //    X       X
+						0x2020,   //   X       X
+						0x4040,   //  X       X
+						0x8080,   // X       X
 						0x0101,   //        X       X
-						0x0202,   //       X       X 
-						0x0404,   //      X       X  
-						0x0808}));//     X       X                    
+						0x0202,   //       X       X
+						0x0404,   //      X       X
+						0x0808}));//     X       X
 
 		/** Well layer */
 		Layer well_lay = Layer.newInstance(this, "Well",
 			new EGraphics(false, true, null, EGraphics.TRANSPARENT_4, 240,221,181,0.8,true,
-			new int[] { 0x0000,   //                 
-						0x00c0,   //         XX      
-						0x0000,   //                 
-						0x0000,   //                 
-						0x0000,   //                 
-						0x00c0,   //         XX      
-						0x0000,   //                 
-						0x0000,   //                 
-						0x0000,   //                 
-						0x00c0,   //         XX      
-						0x0000,   //                 
-						0x0000,   //                 
-						0x0000,   //                 
-						0x00c0,   //         XX      
-						0x0000,   //                 
-						0x0000}));//                 
+			new int[] { 0x0000,   //
+						0x00c0,   //         XX
+						0x0000,   //
+						0x0000,   //
+						0x0000,   //
+						0x00c0,   //         XX
+						0x0000,   //
+						0x0000,   //
+						0x0000,   //
+						0x00c0,   //         XX
+						0x0000,   //
+						0x0000,   //
+						0x0000,   //
+						0x00c0,   //         XX
+						0x0000,   //
+						0x0000}));//
 
 		/** Cut layer */
 		Layer cut_lay = Layer.newInstance(this, "Contact-Cut",
@@ -219,22 +219,22 @@ public class RCMOS extends Technology
 		/** Passivation layer */
 		Layer passivation_lay = Layer.newInstance(this, "Passivation",
 			new EGraphics(true, true, null, 0, 100,100,100,0.8,true,
-			new int[] { 0x1c1c,   //    XXX     XXX  
-						0x3e3e,   //   XXXXX   XXXXX 
-						0x3636,   //   XX XX   XX XX 
-						0x3e3e,   //   XXXXX   XXXXX 
-						0x1c1c,   //    XXX     XXX  
-						0x0000,   //                 
-						0x0000,   //                 
-						0x0000,   //                 
-						0x1c1c,   //    XXX     XXX  
-						0x3e3e,   //   XXXXX   XXXXX 
-						0x3636,   //   XX XX   XX XX 
-						0x3e3e,   //   XXXXX   XXXXX 
-						0x1c1c,   //    XXX     XXX  
-						0x0000,   //                 
-						0x0000,   //                 
-						0x0000}));//                 
+			new int[] { 0x1c1c,   //    XXX     XXX
+						0x3e3e,   //   XXXXX   XXXXX
+						0x3636,   //   XX XX   XX XX
+						0x3e3e,   //   XXXXX   XXXXX
+						0x1c1c,   //    XXX     XXX
+						0x0000,   //
+						0x0000,   //
+						0x0000,   //
+						0x1c1c,   //    XXX     XXX
+						0x3e3e,   //   XXXXX   XXXXX
+						0x3636,   //   XX XX   XX XX
+						0x3e3e,   //   XXXXX   XXXXX
+						0x1c1c,   //    XXX     XXX
+						0x0000,   //
+						0x0000,   //
+						0x0000}));//
 
 		/** Poly Cut layer */
 		Layer polyCut_lay = Layer.newInstance(this, "Poly-Cut",
@@ -249,142 +249,142 @@ public class RCMOS extends Technology
 //		/** Pseudo-Metal-1 layer */
 //		Layer pseudoMetal1_lay = Layer.newInstance(this, "Pseudo-Metal-1",
 //			new EGraphics(false, false, null, EGraphics.TRANSPARENT_1, 96,209,255,0.8,true,
-//			new int[] { 0x2222,   //   X   X   X   X 
-//						0x0000,   //                 
-//						0x8888,   // X   X   X   X   
-//						0x0000,   //                 
-//						0x2222,   //   X   X   X   X 
-//						0x0000,   //                 
-//						0x8888,   // X   X   X   X   
-//						0x0000,   //                 
-//						0x2222,   //   X   X   X   X 
-//						0x0000,   //                 
-//						0x8888,   // X   X   X   X   
-//						0x0000,   //                 
-//						0x2222,   //   X   X   X   X 
-//						0x0000,   //                 
-//						0x8888,   // X   X   X   X   
-//						0x0000}));//                 
+//			new int[] { 0x2222,   //   X   X   X   X
+//						0x0000,   //
+//						0x8888,   // X   X   X   X
+//						0x0000,   //
+//						0x2222,   //   X   X   X   X
+//						0x0000,   //
+//						0x8888,   // X   X   X   X
+//						0x0000,   //
+//						0x2222,   //   X   X   X   X
+//						0x0000,   //
+//						0x8888,   // X   X   X   X
+//						0x0000,   //
+//						0x2222,   //   X   X   X   X
+//						0x0000,   //
+//						0x8888,   // X   X   X   X
+//						0x0000}));//
 //
 //		/** Pseudo-Metal-2 layer */
 //		Layer pseudoMetal2_lay = Layer.newInstance(this, "Pseudo-Metal-2",
 //			new EGraphics(false, false, null, EGraphics.TRANSPARENT_5, 224,95,255,0.8,true,
-//			new int[] { 0x1010,   //    X       X   
-//						0x2020,   //   X       X    
-//						0x4040,   //  X       X     
-//						0x8080,   // X       X      
+//			new int[] { 0x1010,   //    X       X
+//						0x2020,   //   X       X
+//						0x4040,   //  X       X
+//						0x8080,   // X       X
 //						0x0101,   //        X       X
 //						0x0202,   //       X       X
-//						0x0404,   //      X       X 
-//						0x0808,   //     X       X  
-//						0x1010,   //    X       X   
-//						0x2020,   //   X       X    
-//						0x4040,   //  X       X     
-//						0x8080,   // X       X      
+//						0x0404,   //      X       X
+//						0x0808,   //     X       X
+//						0x1010,   //    X       X
+//						0x2020,   //   X       X
+//						0x4040,   //  X       X
+//						0x8080,   // X       X
 //						0x0101,   //        X       X
 //						0x0202,   //       X       X
-//						0x0404,   //      X       X 
-//						0x0808}));//     X       X  
+//						0x0404,   //      X       X
+//						0x0808}));//     X       X
 //
 //		/** Pseudo-Polysilicon layer */
 //		Layer pseudoPolysilicon_lay = Layer.newInstance(this, "Pseudo-Polysilicon",
 //			new EGraphics(false, false, null, EGraphics.TRANSPARENT_2, 255,155,192,0.8,true,
-//			new int[] { 0x0808,   //     X       X   
-//						0x0404,   //      X       X  
-//						0x0202,   //       X       X 
+//			new int[] { 0x0808,   //     X       X
+//						0x0404,   //      X       X
+//						0x0202,   //       X       X
 //						0x0101,   //        X       X
-//						0x8080,   // X       X       
-//						0x4040,   //  X       X      
-//						0x2020,   //   X       X     
-//						0x1010,   //    X       X    
-//						0x0808,   //     X       X   
-//						0x0404,   //      X       X  
-//						0x0202,   //       X       X 
+//						0x8080,   // X       X
+//						0x4040,   //  X       X
+//						0x2020,   //   X       X
+//						0x1010,   //    X       X
+//						0x0808,   //     X       X
+//						0x0404,   //      X       X
+//						0x0202,   //       X       X
 //						0x0101,   //        X       X
-//						0x8080,   // X       X       
-//						0x4040,   //  X       X      
-//						0x2020,   //   X       X     
-//						0x1010}));//    X       X    
+//						0x8080,   // X       X
+//						0x4040,   //  X       X
+//						0x2020,   //   X       X
+//						0x1010}));//    X       X
 //
 //		/** Pseudo-S-Active layer */
 //		Layer pseudoSActive_lay = Layer.newInstance(this, "Pseudo-S-Active",
 //			new EGraphics(false, false, null, EGraphics.TRANSPARENT_3, 107,226,96,0.8,true,
-//			new int[] { 0x0000,   //                 
+//			new int[] { 0x0000,   //
 //						0x0303,   //       XX      XX
-//						0x4848,   //  X  X    X  X   
+//						0x4848,   //  X  X    X  X
 //						0x0303,   //       XX      XX
-//						0x0000,   //                 
-//						0x3030,   //   XX      XX    
-//						0x8484,   // X    X  X    X  
-//						0x3030,   //   XX      XX    
-//						0x0000,   //                 
+//						0x0000,   //
+//						0x3030,   //   XX      XX
+//						0x8484,   // X    X  X    X
+//						0x3030,   //   XX      XX
+//						0x0000,   //
 //						0x0303,   //       XX      XX
-//						0x4848,   //  X  X    X  X   
+//						0x4848,   //  X  X    X  X
 //						0x0303,   //       XX      XX
-//						0x0000,   //                 
-//						0x3030,   //   XX      XX    
-//						0x8484,   // X    X  X    X  
-//						0x3030}));//   XX      XX    
+//						0x0000,   //
+//						0x3030,   //   XX      XX
+//						0x8484,   // X    X  X    X
+//						0x3030}));//   XX      XX
 //
 //		/** Pseudo-D-Active layer */
 //		Layer pseudoDActive_lay = Layer.newInstance(this, "Pseudo-D-Active",
 //			new EGraphics(false, false, null, EGraphics.TRANSPARENT_3, 107,226,96,0.8,true,
-//			new int[] { 0x0000,   //                 
+//			new int[] { 0x0000,   //
 //						0x0303,   //       XX      XX
-//						0x4848,   //  X  X    X  X   
+//						0x4848,   //  X  X    X  X
 //						0x0303,   //       XX      XX
-//						0x0000,   //                 
-//						0x3030,   //   XX      XX    
-//						0x8484,   // X    X  X    X  
-//						0x3030,   //   XX      XX    
-//						0x0000,   //                 
+//						0x0000,   //
+//						0x3030,   //   XX      XX
+//						0x8484,   // X    X  X    X
+//						0x3030,   //   XX      XX
+//						0x0000,   //
 //						0x0303,   //       XX      XX
-//						0x4848,   //  X  X    X  X   
+//						0x4848,   //  X  X    X  X
 //						0x0303,   //       XX      XX
-//						0x0000,   //                 
-//						0x3030,   //   XX      XX    
-//						0x8484,   // X    X  X    X  
-//						0x3030}));//   XX      XX    
+//						0x0000,   //
+//						0x3030,   //   XX      XX
+//						0x8484,   // X    X  X    X
+//						0x3030}));//   XX      XX
 //
 //		/** Pseudo-Select layer */
 //		Layer pseudoSelect_lay = Layer.newInstance(this, "Pseudo-Select",
 //			new EGraphics(true, true, null, 0, 255,255,0,0.8,true,
-//			new int[] { 0x1010,   //    X       X    
-//						0x2020,   //   X       X     
-//						0x4040,   //  X       X      
-//						0x8080,   // X       X       
+//			new int[] { 0x1010,   //    X       X
+//						0x2020,   //   X       X
+//						0x4040,   //  X       X
+//						0x8080,   // X       X
 //						0x0101,   //        X       X
-//						0x0202,   //       X       X 
-//						0x0404,   //      X       X  
-//						0x0808,   //     X       X   
-//						0x1010,   //    X       X    
-//						0x2020,   //   X       X     
-//						0x4040,   //  X       X      
-//						0x8080,   // X       X       
+//						0x0202,   //       X       X
+//						0x0404,   //      X       X
+//						0x0808,   //     X       X
+//						0x1010,   //    X       X
+//						0x2020,   //   X       X
+//						0x4040,   //  X       X
+//						0x8080,   // X       X
 //						0x0101,   //        X       X
-//						0x0202,   //       X       X 
-//						0x0404,   //      X       X  
-//						0x0808}));//     X       X                    
+//						0x0202,   //       X       X
+//						0x0404,   //      X       X
+//						0x0808}));//     X       X
 //
 //		/** Pseudo-Well layer */
 //		Layer pseudoWell_lay = Layer.newInstance(this, "Pseudo-Well",
 //			new EGraphics(false, false, null, EGraphics.TRANSPARENT_4, 240,221,181,0.8,true,
-//			new int[] { 0x0000,   //                 
-//						0x00c0,   //         XX      
-//						0x0000,   //                 
-//						0x0000,   //                 
-//						0x0000,   //                 
-//						0x00c0,   //         XX      
-//						0x0000,   //                 
-//						0x0000,   //                 
-//						0x0000,   //                 
-//						0x00c0,   //         XX      
-//						0x0000,   //                 
-//						0x0000,   //                 
-//						0x0000,   //                 
-//						0x00c0,   //         XX      
-//						0x0000,   //                 
-//						0x0000}));//                 
+//			new int[] { 0x0000,   //
+//						0x00c0,   //         XX
+//						0x0000,   //
+//						0x0000,   //
+//						0x0000,   //
+//						0x00c0,   //         XX
+//						0x0000,   //
+//						0x0000,   //
+//						0x0000,   //
+//						0x00c0,   //         XX
+//						0x0000,   //
+//						0x0000,   //
+//						0x0000,   //
+//						0x00c0,   //         XX
+//						0x0000,   //
+//						0x0000}));//
 
 		// The layer functions
 		metal1_lay.setFunction(Layer.Function.METAL1);									// Metal-1
@@ -457,7 +457,7 @@ public class RCMOS extends Technology
 		);
 		metal1_arc.setFactoryFixedAngle(false);
 		metal1_arc.setCurvable();
-		metal1_arc.setExtended(false);
+		metal1_arc.setFactoryExtended(false);
 		metal1_arc.setFactoryAngleIncrement(0);
 
 		/** Metal-2 arc */
@@ -467,7 +467,7 @@ public class RCMOS extends Technology
 //		metal2_arc.setFunction(ArcProto.Function.METAL1);
 		metal2_arc.setFactoryFixedAngle(false);
 		metal2_arc.setCurvable();
-		metal2_arc.setExtended(false);
+		metal2_arc.setFactoryExtended(false);
 		metal2_arc.setFactoryAngleIncrement(0);
 
 		/** Polysilicon arc */
@@ -477,7 +477,7 @@ public class RCMOS extends Technology
 //		polysilicon_arc.setFunction(ArcProto.Function.METAL1);
 		polysilicon_arc.setFactoryFixedAngle(false);
 		polysilicon_arc.setCurvable();
-		polysilicon_arc.setExtended(false);
+		polysilicon_arc.setFactoryExtended(false);
 		polysilicon_arc.setFactoryAngleIncrement(0);
 
 		/** S-Active arc */
@@ -487,7 +487,7 @@ public class RCMOS extends Technology
 		);
 		sActive_arc.setFactoryFixedAngle(false);
 		sActive_arc.setCurvable();
-		sActive_arc.setExtended(false);
+		sActive_arc.setFactoryExtended(false);
 		sActive_arc.setFactoryAngleIncrement(0);
 
 		/** D-Active arc */
@@ -497,7 +497,7 @@ public class RCMOS extends Technology
 		);
 		dActive_arc.setFactoryFixedAngle(false);
 		dActive_arc.setCurvable();
-		dActive_arc.setExtended(false);
+		dActive_arc.setFactoryExtended(false);
 		dActive_arc.setFactoryAngleIncrement(0);
 
 		/** Substrate-Active arc */
@@ -507,7 +507,7 @@ public class RCMOS extends Technology
 		);
 		substrateActive_arc.setFactoryFixedAngle(false);
 		substrateActive_arc.setCurvable();
-		substrateActive_arc.setExtended(false);
+		substrateActive_arc.setFactoryExtended(false);
 		substrateActive_arc.setFactoryAngleIncrement(0);
 
 		/** Well arc */
@@ -519,7 +519,7 @@ public class RCMOS extends Technology
 		);
 		wellActive_arc.setFactoryFixedAngle(false);
 		wellActive_arc.setCurvable();
-		wellActive_arc.setExtended(false);
+		wellActive_arc.setFactoryExtended(false);
 		wellActive_arc.setFactoryAngleIncrement(0);
 
 		/** S-Transistor arc */
@@ -530,7 +530,7 @@ public class RCMOS extends Technology
 		);
 		sTransistor_arc.setFactoryFixedAngle(false);
 		sTransistor_arc.setCurvable();
-		sTransistor_arc.setExtended(false);
+		sTransistor_arc.setFactoryExtended(false);
 		sTransistor_arc.setFactoryAngleIncrement(0);
 
 		/** D-Transistor arc */
@@ -541,7 +541,7 @@ public class RCMOS extends Technology
 		);
 		dTransistor_arc.setFactoryFixedAngle(false);
 		dTransistor_arc.setCurvable();
-		dTransistor_arc.setExtended(false);
+		dTransistor_arc.setFactoryExtended(false);
 		dTransistor_arc.setFactoryAngleIncrement(0);
 
 		//******************** NODES ********************

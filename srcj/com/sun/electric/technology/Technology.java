@@ -1040,22 +1040,12 @@ public class Technology implements Comparable<Technology>, Serializable
 	/** list of primitive nodes in this technology */		private final LinkedHashMap<String,PrimitiveNode> nodes = new LinkedHashMap<String,PrimitiveNode>();
     /** array of nodes by nodeId.chronIndex */              private PrimitiveNode[] nodesByChronIndex = {};
     /** Old names of primitive nodes */                     protected final HashMap<String,PrimitiveNode> oldNodeNames = new HashMap<String,PrimitiveNode>();
-	/** Pref map for node width. */					        final Map<PrimitiveNode,Pref> defaultExtendXPrefs = new HashMap<PrimitiveNode,Pref>();
-	/** Pref map for node height. */                        final Map<PrimitiveNode,Pref> defaultExtendYPrefs = new HashMap<PrimitiveNode,Pref>();
 	/** cached state of node visibility */                  final Map<PrimitiveNode,Boolean> cacheVisibilityNodes = new HashMap<PrimitiveNode,Boolean>();
     /** count of primitive nodes in this technology */      private int nodeIndex = 0;
 
 	/** list of arcs in this technology */					private final LinkedHashMap<String,ArcProto> arcs = new LinkedHashMap<String,ArcProto>();
     /** array of arcs by arcId.chronIndex */                private ArcProto[] arcsByChronIndex = {};
     /** Old names of arcs */                                protected final HashMap<String,ArcProto> oldArcNames = new HashMap<String,ArcProto>();
-	/** Pref map for arc extend over min. */                final HashMap<ArcProto,Pref> defaultExtendPrefs = new HashMap<ArcProto,Pref>();
-	/** Pref map for arc angle increment. */				final HashMap<ArcProto,Pref> defaultAnglePrefs = new HashMap<ArcProto,Pref>();
-	/** Pref map for arc rigidity. */						final HashMap<ArcProto,Pref> defaultRigidPrefs = new HashMap<ArcProto,Pref>();
-	/** Pref map for arc fixed angle. */					final HashMap<ArcProto,Pref> defaultFixedAnglePrefs = new HashMap<ArcProto,Pref>();
-	/** Pref map for arc slidable. */						final HashMap<ArcProto,Pref> defaultSlidablePrefs = new HashMap<ArcProto,Pref>();
-	/** Pref map for arc end extension. */					final HashMap<ArcProto,Pref> defaultExtendedPrefs = new HashMap<ArcProto,Pref>();
-//	/** Pref map for arc negation. */						final HashMap<ArcProto,Pref> defaultNegatedPrefs = new HashMap<ArcProto,Pref>();
-	/** Pref map for arc directionality. */					final HashMap<ArcProto,Pref> defaultDirectionalPrefs = new HashMap<ArcProto,Pref>();
 
 	/** Spice header cards, level 1. */						private String [] spiceHeaderLevel1;
 	/** Spice header cards, level 2. */						private String [] spiceHeaderLevel2;
@@ -1836,6 +1826,8 @@ public class Technology implements Comparable<Technology>, Serializable
             if (!layer.isPseudoLayer())
                 layer.finish();
         }
+        for (ArcProto arcProto: arcs.values())
+            arcProto.finish();
 
         check();
 	}
@@ -3812,7 +3804,7 @@ public class Technology implements Comparable<Technology>, Serializable
 		/** the amount X cuts will be shifted to the right */						private long cutShiftRightXAmt;
 		/** the amount Y cuts will be shifted down */								private long cutShiftDownYAmt;
 		/** the amount Y cuts will be shifted up */									private long cutShiftUpYAmt;
-		
+
 
 		/** cut position of last top-edge cut (for interior-cut elimination) */		private double cutTopEdge;
 		/** cut position of last left-edge cut  (for interior-cut elimination) */	private double cutLeftEdge;

@@ -241,19 +241,28 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 
 	// ----------------------- private data -------------------------------
 
-	/** The name of this ArcProto. */							private final ArcProtoId protoId;
-	/** The technology in which this ArcProto resides. */		private final Technology tech;
+    /** The name of this ArcProto. */							private final ArcProtoId protoId;
+    /** The technology in which this ArcProto resides. */		private final Technology tech;
     /** The ELIB width offset */                                private final double lambdaElibWidthOffset;
-	/** The base extend of this ArcProto in lambda units. */    private double lambdaBaseExtend;
-	/** The base extend of this ArcProto in grid units. */      private int gridBaseExtend;
+    /** The base extend of this ArcProto in lambda units. */    private double lambdaBaseExtend;
+    /** The base extend of this ArcProto in grid units. */      private int gridBaseExtend;
     /** The minimum extend among ArcLayers. */                  private int minLayerGridExtend;
     /** The minimum extend among ArcLayers. */                  private int maxLayerGridExtend;
-	/** Flags bits for this ArcProto. */						private int userBits;
-	/** The function of this ArcProto. */						final Function function;
-	/** Layers in this arc */                                   final Technology.ArcLayer [] layers;
+    /** Flags bits for this ArcProto. */						private int userBits;
+    /** The function of this ArcProto. */						final Function function;
+    /** Layers in this arc */                                   final Technology.ArcLayer [] layers;
     /** Pin for this arc */                                     PrimitiveNode arcPin;
-	/** Index of this ArcProto. */                              final int primArcIndex;
-//	/** A temporary integer for this ArcProto. */				private int tempInt;
+    /** Index of this ArcProto. */                              final int primArcIndex;
+
+    /** Pref for arc extend over min. */                        private final Pref defaultExtendPref;
+    /** Pref for arc angle increment. */                        private Pref defaultAnglePref;
+    /** Pref for arc rigidity. */                               private Pref defaultRigidPref;
+    /** Pref for arc fixed angle. */                            private Pref defaultFixedAnglePref;
+    /** Pref for arc slidable. */                               private Pref defaultSlidablePref;
+    /** Pref for arc end extension. */                          private Pref defaultExtendedPref;
+//  /** Pref for arc negation. */                               private final defaultNegatedPref;
+    /** Pref for arc directionality. */                         private final Pref defaultDirectionalPref;
+
 
 	// the meaning of the "userBits" field:
 //	/** these arcs are fixed-length */							private static final int WANTFIX  =            01;
@@ -295,7 +304,8 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
         this.gridBaseExtend = (int)gridBaseExtend;
         lambdaBaseExtend = DBMath.gridToLambda(gridBaseExtend);
         computeLayerGridExtendRange();
-        getArcProtoExtendPref();
+        defaultExtendPref = Pref.makeDoublePref("DefaultExtendFor" + getName() + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), 0);
+        defaultDirectionalPref = getArcProtoBitPref("Directional", false);
 	}
 
     protected Object writeReplace() { return new ArcProtoKey(this); }
@@ -348,18 +358,6 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 */
 	public Technology getTechnology() { return tech; }
 
-	private Pref getArcProtoExtendPref()
-	{
-        double factory = 0;
-		Pref pref = tech.defaultExtendPrefs.get(this);
-		if (pref == null)
-		{
-			pref = Pref.makeDoublePref("DefaultExtendFor" + getName() + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factory);
-			tech.defaultExtendPrefs.put(this, pref);
-		}
-		return pref;
-	}
-
 	/**
      * Method to set the base default width of this ArcProto in lambda units.
 	 * This is the reported/selected width, which means that it does not include the width offset.
@@ -372,7 +370,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
             System.out.println("ArcProto " + tech.getTechName() + ":" + getName() + " has invalid default base width " + lambdaWidth);
             return;
         }
-        getArcProtoExtendPref().setDouble(DBMath.gridToLambda(gridExtendOverMin));
+        defaultExtendPref.setDouble(DBMath.gridToLambda(gridExtendOverMin));
     }
 
 //    public void setExtends(int gridBaseExtend) {
@@ -435,7 +433,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 * @return the default extend of this ArcProto over minimal-width arc in grid units.
 	 */
     public long getDefaultGridExtendOverMin() {
-        return DBMath.lambdaToGrid(getArcProtoExtendPref().getDouble());
+        return DBMath.lambdaToGrid(defaultExtendPref.getDouble());
     }
 
 	/**
@@ -444,7 +442,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 * @return the default extend of this ArcProto over minimal-width arc in grid units.
 	 */
     public long getFactoryDefaultGridExtendOverMin() {
-        return DBMath.lambdaToGrid(getArcProtoExtendPref().getDoubleFactoryValue());
+        return DBMath.lambdaToGrid(defaultExtendPref.getDoubleFactoryValue());
     }
 
 	/**
@@ -515,15 +513,9 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 */
 	//public double getAntennaRatio() { return getArcProtoAntennaPref().getDouble(); }
 
-	private Pref getArcProtoBitPref(String what, HashMap<ArcProto,Pref> map, boolean factory)
+	private Pref getArcProtoBitPref(String what, boolean factory)
 	{
-		Pref pref = map.get(this);
-		if (pref == null)
-		{
-			pref = Pref.makeBooleanPref("Default" + what + "For" + getName() + "IN" + tech.getTechName(), tech.getTechnologyUserPreferences(), factory);
-			map.put(this, pref);
-		}
-		return pref;
+		return Pref.makeBooleanPref("Default" + what + "For" + getName() + "IN" + tech.getTechName(), tech.getTechnologyUserPreferences(), factory);
 	}
 
 	/**
@@ -531,28 +523,31 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 * Rigid arcs cannot change length or the angle of their connection to a NodeInst.
 	 * @param rigid true if this ArcProto should be rigid by factory-default.
 	 */
-	public void setFactoryRigid(boolean rigid) { getArcProtoBitPref("Rigid", tech.defaultRigidPrefs, rigid); }
+	public void setFactoryRigid(boolean rigid) {
+        assert defaultRigidPref == null;
+        defaultRigidPref = getArcProtoBitPref("Rigid", rigid);
+    }
 
 	/**
 	 * Method to set the rigidity of this ArcProto.
 	 * Rigid arcs cannot change length or the angle of their connection to a NodeInst.
 	 * @param rigid true if new instances of this ArcProto should be rigid.
 	 */
-	public void setRigid(boolean rigid) { getArcProtoBitPref("Rigid", tech.defaultRigidPrefs, false).setBoolean(rigid); }
+	public void setRigid(boolean rigid) { defaultRigidPref.setBoolean(rigid); }
 
 	/**
 	 * Method to tell if instances of this ArcProto are rigid.
 	 * Rigid arcs cannot change length or the angle of their connection to a NodeInst.
 	 * @return true if instances of this ArcProto are rigid.
 	 */
-	public boolean isRigid() { return getArcProtoBitPref("Rigid", tech.defaultRigidPrefs, false).getBoolean(); }
+	public boolean isRigid() { return defaultRigidPref.getBoolean(); }
 
 	/**
 	 * Method to tell if instances of this ArcProto are rigid by default.
 	 * Rigid arcs cannot change length or the angle of their connection to a NodeInst.
 	 * @return true if instances of this ArcProto are rigid by default.
 	 */
-	public boolean isFactoryRigid() { return getArcProtoBitPref("Rigid", tech.defaultRigidPrefs, false).getBooleanFactoryValue(); }
+	public boolean isFactoryRigid() { return defaultRigidPref.getBooleanFactoryValue(); }
 
 	/**
 	 * Method to set the "factory default" fixed-angle state of this ArcProto.
@@ -560,7 +555,10 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 * the other may also adjust to keep the arc angle constant.
 	 * @param fixed true if this ArcProto should be fixed-angle by factory-default.
 	 */
-	public void setFactoryFixedAngle(boolean fixed) { getArcProtoBitPref("FixedAngle", tech.defaultFixedAnglePrefs, fixed); }
+	public void setFactoryFixedAngle(boolean fixed) {
+        assert defaultFixedAnglePref == null;
+        defaultFixedAnglePref = getArcProtoBitPref("FixedAngle", fixed);
+    }
 
 	/**
 	 * Method to set the fixed-angle state of this ArcProto.
@@ -568,7 +566,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 * the other may also adjust to keep the arc angle constant.
 	 * @param fixed true if new instances of this ArcProto should be fixed-angle.
 	 */
-	public void setFixedAngle(boolean fixed) { getArcProtoBitPref("FixedAngle", tech.defaultFixedAnglePrefs, true).setBoolean(fixed); }
+	public void setFixedAngle(boolean fixed) { defaultFixedAnglePref.setBoolean(fixed); }
 
 	/**
 	 * Method to tell if instances of this ArcProto are fixed-angle.
@@ -576,7 +574,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 * the other may also adjust to keep the arc angle constant.
 	 * @return true if instances of this ArcProto are fixed-angle.
 	 */
-	public boolean isFixedAngle() { return getArcProtoBitPref("FixedAngle", tech.defaultFixedAnglePrefs, true).getBoolean(); }
+	public boolean isFixedAngle() { return defaultFixedAnglePref.getBoolean(); }
 
 	/**
 	 * Method to tell if instances of this ArcProto are fixed-angle by default.
@@ -584,7 +582,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 * the other may also adjust to keep the arc angle constant.
 	 * @return true if instances of this ArcProto are fixed-anglee by default.
 	 */
-	public boolean isFactoryFixedAngle() { return getArcProtoBitPref("FixedAngle", tech.defaultFixedAnglePrefs, true).getBooleanFactoryValue(); }
+	public boolean isFactoryFixedAngle() { return defaultFixedAnglePref.getBooleanFactoryValue(); }
 
 	/**
 	 * Method to set the "factory default" slidability state of this ArcProto.
@@ -593,7 +591,10 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 * Rigid arcs cannot slide but nonrigid arcs use this state to make a decision.
 	 * @param slidable true if this ArcProto should be slidability by factory-default.
 	 */
-	public void setFactorySlidable(boolean slidable) { getArcProtoBitPref("Slidable", tech.defaultSlidablePrefs, slidable); }
+	public void setFactorySlidable(boolean slidable) {
+        assert defaultSlidablePref == null;
+        defaultSlidablePref = getArcProtoBitPref("Slidable", slidable);
+    }
 
 	/**
 	 * Method to set the slidability of this ArcProto.
@@ -602,7 +603,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 * Rigid arcs cannot slide but nonrigid arcs use this state to make a decision.
 	 * @param slidable true if new instances of this ArcProto should be slidable.
 	 */
-	public void setSlidable(boolean slidable) { getArcProtoBitPref("Slidable", tech.defaultSlidablePrefs, true).setBoolean(slidable); }
+	public void setSlidable(boolean slidable) { defaultSlidablePref.setBoolean(slidable); }
 
 	/**
 	 * Method to tell if instances of this ArcProto are slidable.
@@ -611,7 +612,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 * Rigid arcs cannot slide but nonrigid arcs use this state to make a decision.
 	 * @return true if instances of this ArcProto are slidable.
 	 */
-	public boolean isSlidable() { return getArcProtoBitPref("Slidable", tech.defaultSlidablePrefs, true).getBoolean(); }
+	public boolean isSlidable() { return defaultSlidablePref.getBoolean(); }
 
 	/**
 	 * Method to tell if instances of this ArcProto are slidable by default.
@@ -620,7 +621,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 * Rigid arcs cannot slide but nonrigid arcs use this state to make a decision.
 	 * @return true if instances of this ArcProto are slidable by default.
 	 */
-	public boolean isFactorySlidable() { return getArcProtoBitPref("Slidable", tech.defaultSlidablePrefs, true).getBooleanFactoryValue(); }
+	public boolean isFactorySlidable() { return defaultSlidablePref.getBooleanFactoryValue(); }
 
 	/**
 	 * Method to set the "factory default" end-extension state of this ArcProto.
@@ -628,7 +629,10 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 * Most layout arcs want this so that they make clean connections to orthogonal arcs.
 	 * @param extended true if this ArcProto should be end-extended by factory-default.
 	 */
-	public void setFactoryExtended(boolean extended) { getArcProtoBitPref("Extended", tech.defaultExtendedPrefs, extended); }
+	public void setFactoryExtended(boolean extended) {
+        assert defaultExtendedPref == null;
+        defaultExtendedPref = getArcProtoBitPref("Extended", extended);
+    }
 
 	/**
 	 * Method to set the end-extension factor of this ArcProto.
@@ -636,7 +640,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 * Most layout arcs want this so that they make clean connections to orthogonal arcs.
 	 * @param extended true if new instances of this ArcProto should be end-extended.
 	 */
-	public void setExtended(boolean extended) { getArcProtoBitPref("Extended", tech.defaultExtendedPrefs, true).setBoolean(extended); }
+	public void setExtended(boolean extended) { defaultExtendedPref.setBoolean(extended); }
 
 	/**
 	 * Method to tell if instances of this ArcProto have their ends extended.
@@ -644,7 +648,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 * Most layout arcs want this so that they make clean connections to orthogonal arcs.
 	 * @return true if instances of this ArcProto have their ends extended.
 	 */
-	public boolean isExtended() { return getArcProtoBitPref("Extended", tech.defaultExtendedPrefs, true).getBoolean(); }
+	public boolean isExtended() { return defaultExtendedPref.getBoolean(); }
 
 	/**
 	 * Method to tell if instances of this ArcProto have their ends extended by default.
@@ -652,7 +656,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 * Most layout arcs want this so that they make clean connections to orthogonal arcs.
 	 * @return true if instances of this ArcProto have their ends extended by default.
 	 */
-	public boolean isFactoryExtended() { return getArcProtoBitPref("Extended", tech.defaultExtendedPrefs, true).getBooleanFactoryValue(); }
+	public boolean isFactoryExtended() { return defaultExtendedPref.getBooleanFactoryValue(); }
 
 	/**
 	 * Method to set the directional factor for this ArcProto.
@@ -660,7 +664,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 * It is only for documentation purposes and does not affect the circuit.
 	 * @param directional true if new instances of this ArcProto should be directional.
 	 */
-	public void setDirectional(boolean directional) { getArcProtoBitPref("Directional", tech.defaultDirectionalPrefs, false).setBoolean(directional); }
+	public void setDirectional(boolean directional) { defaultDirectionalPref.setBoolean(directional); }
 
 	/**
 	 * Method to tell if instances of this ArcProto are directional.
@@ -668,7 +672,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 * It is only for documentation purposes and does not affect the circuit.
 	 * @return true if instances of this ArcProto are directional.
 	 */
-	public boolean isDirectional() { return getArcProtoBitPref("Directional", tech.defaultDirectionalPrefs, false).getBoolean(); }
+	public boolean isDirectional() { return defaultDirectionalPref.getBoolean(); }
 
 	/**
 	 * Method to tell if instances of this ArcProto are directional by default.
@@ -676,7 +680,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 * It is only for documentation purposes and does not affect the circuit.
 	 * @return true if instances of this ArcProto are directional by default.
 	 */
-	public boolean isFactoryDirectional() { return getArcProtoBitPref("Directional", tech.defaultDirectionalPrefs, false).getBooleanFactoryValue(); }
+	public boolean isFactoryDirectional() { return defaultDirectionalPref.getBooleanFactoryValue(); }
 
 	/**
 	 * Method to set this ArcProto so that it is not used.
@@ -852,8 +856,8 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 */
 	public void setFactoryAngleIncrement(int angle)
 	{
-		Pref pref = Pref.makeIntPref("DefaultAngleFor" + getName() + "IN" + tech.getTechName(), User.getUserTool().prefs, angle);
-		tech.defaultAnglePrefs.put(this, pref);
+        assert defaultAnglePref == null;
+		defaultAnglePref = Pref.makeIntPref("DefaultAngleFor" + getName() + "IN" + tech.getTechName(), User.getUserTool().prefs, angle);
 	}
 
 	/**
@@ -866,9 +870,8 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 */
 	public void setAngleIncrement(int angle)
 	{
-		Pref pref = tech.defaultAnglePrefs.get(this);
-		if (pref == null) return;
-		pref.setInt(angle);
+		if (defaultAnglePref != null)
+            defaultAnglePref.setInt(angle);
 	}
 
 	/**
@@ -881,9 +884,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 */
 	public int getAngleIncrement()
 	{
-		Pref pref = tech.defaultAnglePrefs.get(this);
-		if (pref == null) return 90;
-		return pref.getInt();
+		return defaultAnglePref != null ? defaultAnglePref.getInt() : 90;
 	}
 
 	/**
@@ -896,9 +897,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	 */
 	public int getFactoryAngleIncrement()
 	{
-		Pref pref = tech.defaultAnglePrefs.get(this);
-		if (pref == null) return 90;
-		return pref.getIntFactoryValue();
+		return defaultAnglePref != null ? defaultAnglePref.getIntFactoryValue() : 90;
 	}
 
 	HashMap<ArcProto,Pref> arcPinPrefs = new HashMap<ArcProto,Pref>();
@@ -1302,6 +1301,21 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 		return this.primArcIndex - that.primArcIndex;
 	}
 
+     /**
+     * Method to finish initialization of this ArcProto.
+     */
+    void finish() {
+        assert defaultExtendPref != null;
+        if (defaultRigidPref == null)
+            setFactoryRigid(false);
+        if (defaultFixedAnglePref == null)
+            setFactoryFixedAngle(true);
+        if (defaultSlidablePref == null)
+            setFactorySlidable(true);
+        if (defaultExtendedPref == null)
+            setFactoryExtended(true);
+    }
+
 	/**
 	 * Returns a printable version of this ArcProto.
 	 * @return a printable version of this ArcProto.
@@ -1321,16 +1335,16 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
         out.println("\tisNotUsed=" + isNotUsed());
         out.println("\tisSkipSizeInPalette=" + isSkipSizeInPalette());
 
-        Technology.printlnPref(out, 1, tech.defaultExtendPrefs.get(this));
+        Technology.printlnPref(out, 1, defaultExtendPref);
         out.println("\tbaseExtend=" + getLambdaBaseExtend());
         out.println("\tdefaultLambdaBaseWidth=" + getDefaultLambdaBaseWidth());
         out.println("\tdiskOffset1=" + DBMath.round(getLambdaBaseExtend() + 0.5*getLambdaElibWidthOffset()));
         out.println("\tdiskOffset2=" + getLambdaBaseExtend());
-        Technology.printlnPref(out, 1, tech.defaultAnglePrefs.get(this));
-        Technology.printlnPref(out, 1, tech.defaultRigidPrefs.get(this));
-        Technology.printlnPref(out, 1, tech.defaultFixedAnglePrefs.get(this));
-        Technology.printlnPref(out, 1, tech.defaultExtendedPrefs.get(this));
-        Technology.printlnPref(out, 1, tech.defaultDirectionalPrefs.get(this));
+        Technology.printlnPref(out, 1, defaultAnglePref);
+        Technology.printlnPref(out, 1, defaultRigidPref);
+        Technology.printlnPref(out, 1, defaultFixedAnglePref);
+        Technology.printlnPref(out, 1, defaultExtendedPref);
+        Technology.printlnPref(out, 1, defaultDirectionalPref);
 
         for (Technology.ArcLayer arcLayer: layers)
             arcLayer.dump(out);
