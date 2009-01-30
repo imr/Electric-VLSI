@@ -723,7 +723,6 @@ public class User extends Listener
 	public static void playSound()
 	{
 		if (!hasSound) return;
-		if (!isPlayClickSoundsWhenCreatingArcs()) return;
 
 		if (clickSound == null)
 		{

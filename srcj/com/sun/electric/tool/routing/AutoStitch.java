@@ -61,6 +61,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.CircuitChangeJobs;
 
+import com.sun.electric.tool.user.User;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
@@ -432,7 +433,8 @@ public class AutoStitch
 		makeConnections(showProgress, arcsCreatedMap, nodesCreatedMap);
 
 		// report results
-		if (forced) Router.reportRoutingResults("AUTO ROUTING", arcsCreatedMap, nodesCreatedMap);
+        boolean beep = User.isPlayClickSoundsWhenCreatingArcs();
+		if (forced) Router.reportRoutingResults("AUTO ROUTING", arcsCreatedMap, nodesCreatedMap, beep);
 
 		// check for any inline pins due to created wires
 		if (showProgress)

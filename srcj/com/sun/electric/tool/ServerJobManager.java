@@ -594,6 +594,13 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
         }
 
         /**
+         * Method to beep.
+         */
+        public void beep() {
+            Job.currentUI.beep();
+        }
+
+        /**
          * Method to show a message and ask for confirmation.
          * @param message the message to show.
          * @return true if "yes" was selected, false if "no" was selected.

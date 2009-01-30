@@ -87,9 +87,9 @@ public class UserInterfaceMain extends AbstractUserInterface
 
 //	/** Property fired if ability to Undo changes */	public static final String propUndoEnabled = "UndoEnabled";
 //	/** Property fired if ability to Redo changes */	public static final String propRedoEnabled = "RedoEnabled";
-    
+
     static volatile boolean initializationFinished = false;
-    
+
     private static volatile boolean undoEnabled = false;
     private static volatile boolean redoEnabled = false;
 //    private static final EventListenerList undoRedoListenerList = new EventListenerList();
@@ -99,14 +99,14 @@ public class UserInterfaceMain extends AbstractUserInterface
 	/** The progress during input. */						protected static Progress progress = null;
 
     private SplashWindow sw = null;
- 
+
     public UserInterfaceMain(List<String> argsList, Mode mode, boolean showSplash) {
         new EventProcessor();
         SwingUtilities.invokeLater(new InitializationRun(argsList, mode, showSplash));
     }
-    
+
     protected void dispatchServerEvent(ServerEvent serverEvent) throws Exception { }
-    
+
     public void addEvent(Client.ServerEvent serverEvent) { SwingUtilities.invokeLater(serverEvent); }
 
     public void initializeInitJob(Job job, Object mode)
@@ -193,17 +193,17 @@ public class UserInterfaceMain extends AbstractUserInterface
 
             if (showSplash)
                 sw = new SplashWindow(mode);
-            
+
             TopLevel.OSInitialize(mode);
         }
     }
-        
+
    /**
      * Method is called when initialization was finished.
      */
     public void finishInitialization() {
         initializationFinished = true;
-        
+
         if (sw != null) {
             sw.removeNotify();
             sw = null;
@@ -211,7 +211,7 @@ public class UserInterfaceMain extends AbstractUserInterface
         TopLevel.InitializeWindows();
         WindowFrame.wantToOpenCurrentLibrary(true, null);
     }
-    
+
     public EditWindow_ getCurrentEditWindow_() { return EditWindow.getCurrent(); }
 
 	public EditWindow_ needCurrentEditWindow_() { return EditWindow.needCurrent(); }
@@ -293,7 +293,7 @@ public class UserInterfaceMain extends AbstractUserInterface
     public void updateNetworkErrors(Cell cell, List<ErrorLogger.MessageLog> errors) {
         ErrorLoggerTree.updateNetworkErrors(cell, errors);
     }
-    
+
     public void updateIncrementalDRCErrors(Cell cell, List<ErrorLogger.MessageLog> newErrors,
                                            List<ErrorLogger.MessageLog> delErrors) {
         ErrorLoggerTree.updateDrcErrors(cell, newErrors, delErrors);
@@ -515,9 +515,9 @@ public class UserInterfaceMain extends AbstractUserInterface
 
         Pref.exportPrefs(fileName);
     }
-    
+
     // ExtendedUserInterface
-    
+
     public void restoreSavedBindings(boolean initialCall)
     {
         TopLevel top = TopLevel.getCurrentJFrame();
@@ -537,7 +537,7 @@ public class UserInterfaceMain extends AbstractUserInterface
         savedHighlights.add(sh);
         return sh.id;
     }
-    
+
     /**
      * Restore state of highlights by its ID.
      */
@@ -549,7 +549,7 @@ public class UserInterfaceMain extends AbstractUserInterface
             }
         }
     }
-    
+
     /**
      * Show status of undo/redo buttons
      * @param newUndoEnabled new status of undo button.
@@ -568,7 +568,7 @@ public class UserInterfaceMain extends AbstractUserInterface
             SwingUtilities.invokeLater(new PropertyChangeRun(e));
         }
     }
-    
+
     /**
      * Show new database snapshot.
      * @param newSnapshot new snapshot.
@@ -577,10 +577,20 @@ public class UserInterfaceMain extends AbstractUserInterface
             SwingUtilities.invokeLater(new DatabaseChangeRun(newSnapshot, undoRedo));
     }
 
+    @Override
     public void beep() {
-        Toolkit.getDefaultToolkit().beep();
+        if (SwingUtilities.isEventDispatchThread()) {
+            User.playSound();
+//            Toolkit.getDefaultToolkit().beep();
+        } else {
+            SwingUtilities.invokeLater( new Runnable() {
+                public void run() {
+                    beep();
+                }
+            });
+        }
     }
-    
+
     /**
 	 * Method to tell whether undo can be done.
 	 * This is used by the tool bar to determine whether the undo button should be available.
@@ -651,12 +661,12 @@ public class UserInterfaceMain extends AbstractUserInterface
     public static synchronized void addDatabaseChangeListener(DatabaseChangeListener l) {
         listenerList.add(DatabaseChangeListener.class, l);
     }
-    
+
     /** Remove a DatabaseChangeListener. */
     public static synchronized void removeDatabaseChangeListener(DatabaseChangeListener l) {
         listenerList.remove(DatabaseChangeListener.class, l);
     }
-    
+
     /**
      * Fire DatabaseChangeEvent to DatabaseChangeListeners.
      * @param e DatabaseChangeEvent.
@@ -672,7 +682,7 @@ public class UserInterfaceMain extends AbstractUserInterface
                 ((DatabaseChangeListener)listeners[i+1]).databaseChanged(e);
         }
     }
-   
+
 	private static class DatabaseChangeRun implements Runnable
 	{
 		private Snapshot newSnapshot;
@@ -691,30 +701,30 @@ public class UserInterfaceMain extends AbstractUserInterface
             fireDatabaseChangeEvent(event);
         }
 	}
-    
+
     private int lastId = 0;
     private ArrayList<SavedHighlights> savedHighlights = new ArrayList<SavedHighlights>();
-    
+
     private static class SavedHighlights {
         /** id of this saved state */               private final int id;
         /** EditWindow_ of highlights */            private final EditWindow_ wnd;
         /** list of saved Highlights */             private final List<Highlight2> savedHighlights;
         /** saved Highlight offset */               private final Point2D savedHighlightsOffset;
-        
+
         private SavedHighlights(int id, EditWindow_ wnd) {
             this.id = id;
             this.wnd = wnd;
             savedHighlights = wnd.saveHighlightList();
             savedHighlightsOffset = wnd.getHighlightOffset();
         }
-        
+
         private void restore() {
 			wnd.restoreHighlightList(savedHighlights);
 			wnd.setHighlightOffset((int)savedHighlightsOffset.getX(), (int)savedHighlightsOffset.getY());
 			wnd.finishedHighlighting();
         }
     }
-    
+
 	/**
 	 * Class to display a Splash Screen at the start of the program.
 	 */
@@ -741,7 +751,7 @@ public class UserInterfaceMain extends AbstractUserInterface
 			v.setForeground(Color.BLACK);
 			v.setBackground(Color.WHITE);
 
-			getContentPane().add(whole, BorderLayout.SOUTH);			
+			getContentPane().add(whole, BorderLayout.SOUTH);
 
 			pack();
 			Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -799,14 +809,14 @@ public class UserInterfaceMain extends AbstractUserInterface
 //            super.postEvent(theEvent);
 //            logger.exiting(CLASS_NAME, "postEvent");
 //        }
-//        
+//
 //        public AWTEvent getNextEvent() throws InterruptedException {
 //            logger.entering(CLASS_NAME, "getNextEvent");
 //            AWTEvent event = super.getNextEvent();
 //            logger.exiting(CLASS_NAME, "getNextEvent", event);
 //            return event;
 //        }
-//        
+//
 //        public synchronized AWTEvent peekEvent() {
 //            logger.entering(CLASS_NAME, "peekEvent");
 //            AWTEvent event = super.peekEvent();
@@ -820,7 +830,7 @@ public class UserInterfaceMain extends AbstractUserInterface
 //            logger.exiting(CLASS_NAME, "peekEvent", event);
 //            return event;
 //        }
-        
+
         protected void dispatchEvent(AWTEvent e) {
 //            logger.entering(CLASS_NAME, "dispatchEvent", e);
 //            if (dispatchDepth == 0)
@@ -921,7 +931,7 @@ public class UserInterfaceMain extends AbstractUserInterface
     {
         // progress is null if it is in quiet mode
 		if (progress != null)
-            progress.setNote(message); 
+            progress.setNote(message);
     }
 
     /**

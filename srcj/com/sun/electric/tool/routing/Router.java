@@ -81,7 +81,7 @@ public abstract class Router {
     /**
      * Plan a route from startRE to endRE.
      * startRE in this case will be route.getEndRE().  This builds upon whatever
-     * route is already in 'route'. 
+     * route is already in 'route'.
      * @param route the list of RouteElements describing route to be modified
      * @param cell the cell in which to create the route
      * @param endRE the RouteElementPort that will be the new end of the route
@@ -197,7 +197,7 @@ public abstract class Router {
         return created;
     }
 
-	public static void reportRoutingResults(String prefix, Map<ArcProto,Integer> arcsCreatedMap, Map<NodeProto,Integer> nodesCreatedMap)
+	public static void reportRoutingResults(String prefix, Map<ArcProto,Integer> arcsCreatedMap, Map<NodeProto,Integer> nodesCreatedMap, boolean beep)
 	{
 		List<ArcProto> arcEntries = new ArrayList<ArcProto>(arcsCreatedMap.keySet());
 		List<NodeProto> nodeEntries = new ArrayList<NodeProto>(nodesCreatedMap.keySet());
@@ -238,7 +238,9 @@ public abstract class Router {
 					System.out.print(" node");
 			}
 			System.out.println();
-			User.playSound();
+            if (beep)
+                Job.getUserInterface().beep();
+//			User.playSound();
 		}
 	}
 
@@ -257,6 +259,7 @@ public abstract class Router {
         /** print message on what was done */       private boolean verbose;
         /** cell in which to build route */         private Cell cell;
         /** port to highlight */                    private PortInst portToHighlight;
+        /** true to beep */                         private boolean beep;
 
         /** Constructor */
         protected CreateRouteJob(String what, Route route, Cell cell, boolean verbose, Tool tool) {
@@ -264,6 +267,7 @@ public abstract class Router {
             this.route = route;
             this.verbose = verbose;
             this.cell = cell;
+            beep = User.isPlayClickSoundsWhenCreatingArcs();
             startJob();
         }
 
@@ -273,7 +277,7 @@ public abstract class Router {
             Map<ArcProto,Integer> arcsCreatedMap = new HashMap<ArcProto,Integer>();
             Map<NodeProto,Integer> nodesCreatedMap = new HashMap<NodeProto,Integer>();
             portToHighlight = createRouteNoJob(route, cell, verbose, arcsCreatedMap, nodesCreatedMap);
-            reportRoutingResults("Wiring", arcsCreatedMap, nodesCreatedMap);
+            reportRoutingResults("Wiring", arcsCreatedMap, nodesCreatedMap, beep);
 			fieldVariableChanged("portToHighlight");
             return true;
        }
@@ -815,7 +819,7 @@ public abstract class Router {
                     	double xSizeBase = pn.getDefaultLambdaBaseWidth();
                     	width = basewidth + xSize - xSizeBase;
                     }
-                    
+
                     if (width > defaultWidth) defaultWidth = width;
                     if (width > preferredWidth) preferredWidth = width;
                 }

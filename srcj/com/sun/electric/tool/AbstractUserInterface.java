@@ -33,7 +33,7 @@ import java.util.List;
  *
  */
 public abstract class AbstractUserInterface extends Client implements UserInterface {
-    
+
     protected AbstractUserInterface() {
         super(-1);
     }
@@ -43,25 +43,25 @@ public abstract class AbstractUserInterface extends Client implements UserInterf
 
 
     protected void addEvent(Client.ServerEvent serverEvent) {}
-    
+
     public void finishInitialization() {}
-    
+
     protected void updateNetworkErrors(Cell cell, List<ErrorLogger.MessageLog> errors) {
         if (!errors.isEmpty()) System.out.println(errors.size() + " network errors in " + cell);
     }
-    
-    protected void updateIncrementalDRCErrors(Cell cell, List<ErrorLogger.MessageLog> newErrors, 
+
+    protected void updateIncrementalDRCErrors(Cell cell, List<ErrorLogger.MessageLog> newErrors,
                                               List<ErrorLogger.MessageLog> delErrors) {
         if (!newErrors.isEmpty()) System.out.println(newErrors.size() + " drc errors in " + cell);
     }
-    
+
     public void restoreSavedBindings(boolean initialCall) {;}
-    
+
     /**
      * Save current state of highlights and return its ID.
      */
     public int saveHighlights() { return 0; }
-    
+
     /**
      * Restore state of highlights by its ID.
      * @param highlightsId id of saved highlights.
@@ -74,13 +74,13 @@ public abstract class AbstractUserInterface extends Client implements UserInterf
      * @param newRedoEnabled new status of redo button.
      */
     protected void showUndoRedoStatus(boolean newUndoEnabled, boolean newRedoEnabled) {}
-    
+
     /**
      * Show new database snapshot.
      * @param newSnapshot new snapshot.
      */
     protected void showSnapshot(Snapshot newSnapshot, boolean undoRedo) {}
-    
-    
-    protected void beep() {}
+
+
+    public void beep() {}
 }

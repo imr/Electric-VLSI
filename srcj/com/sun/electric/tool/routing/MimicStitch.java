@@ -43,10 +43,10 @@ import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.Highlight2;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.ui.TopLevel;
 
@@ -289,7 +289,7 @@ public class MimicStitch
 				int thisAngle = DBMath.figureAngle(end0, end1);
 				if ((angle%1800) != (thisAngle%1800)) continue;
 			}
-			
+
 			PossibleArc pa = new PossibleArc();
 			pa.ai = ai;
 			pa.situation = 0;
@@ -303,7 +303,7 @@ public class MimicStitch
 			if (!matchPort) pa.situation |= LIKELYDIFFPORT;
 
 			// arcs must have the same bus width
-			
+
 			NodeInst niHead = ai.getHeadPortInst().getNodeInst();
 			NodeInst niTail = ai.getTailPortInst().getNodeInst();
 			int con1 = mimicNiHead.getNumConnections() + mimicNiTail.getNumConnections() + 2;
@@ -764,7 +764,7 @@ public class MimicStitch
 			mimicInteractive, matchPorts, matchPortWidth, matchArcCount,
 			matchNodeType, matchNodeSize, noOtherArcsThisDir, notAlreadyConnected);
 	}
-	
+
 	private static void processPossibilities(Cell cell, List<PossibleArc> possibleArcs, double prefX, double prefY,
 		Job.Type method, boolean forced, boolean mimicInteractive,
 		boolean matchPorts, boolean matchPortWidth, boolean matchArcCount, boolean matchNodeType,
@@ -881,7 +881,8 @@ public class MimicStitch
 			PortInst showThis = Router.createRouteNoJob(route, c, false, arcsCreatedMap, nodesCreatedMap);
 			if (showThis != null) portsToHighlight.add(showThis);
 		}
-		Router.reportRoutingResults("MIMIC ROUTING", arcsCreatedMap, nodesCreatedMap);
+        boolean beep = User.isPlayClickSoundsWhenCreatingArcs();
+		Router.reportRoutingResults("MIMIC ROUTING", arcsCreatedMap, nodesCreatedMap, beep);
 		return portsToHighlight;
 	}
 
@@ -951,7 +952,7 @@ public class MimicStitch
 		                wnd.addElectricObject(pi, pi.getNodeInst().getParent());
 					}
 	                wnd.finishedHighlighting();
-				}				
+				}
 				ui.repaintAllWindows();
 			}
 		}
@@ -1066,7 +1067,7 @@ public class MimicStitch
 			new MimicDialog(TopLevel.getCurrentJFrame(), count, allRoutes, allKills, saveHighlights, wnd, j+1, possibleArcs, cell, prefX, prefY);
 			return;
 		}
- 
+
  		// done with all situations: report any arcs created
 		if (count != 0)
 			System.out.println("MIMIC ROUTING: Created " + count + " arcs");

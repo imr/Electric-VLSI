@@ -113,7 +113,7 @@ public interface UserInterface
 
     // ErrorLogger related functions
     public void termLogging(final ErrorLogger logger, boolean explain, boolean terminate);
-    
+
     /**
      * Method to return the error message associated with the current error.
      * Highlights associated graphics if "showhigh" is nonzero.  Fills "g1" and "g2"
@@ -134,6 +134,11 @@ public interface UserInterface
      * @param title the title of a dialog with the message.
      */
     public void showInformationMessage(Object message, String title);
+
+    /**
+     * Method to beep.
+     */
+    public void beep();
 
     /**
      * Method to show a message and ask for confirmation.

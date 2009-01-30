@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09c: ******************************
 
+BUG: (1/30/09, DN) User.playSound is called from "doIt" methods.
+FIX: Wrap this method in UserInterface.beep.
+
+BUG: (1/30/09, DN) ELIB reader crashes on empty arc name (Bug #2027).
+FIX: In ArcInst constructor use checkNameKey(nameKey, topology).
+
 BUG: (1/29/09, DN) Library readers replace nameDescriptors of arcs by smart text
   descriptor calculated from current Prefs.
 FIX: Move call of ArcInst.getSmartTextDescriptor to upper constructor which is not called
