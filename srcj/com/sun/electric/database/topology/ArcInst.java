@@ -389,7 +389,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 
         if (nameDescriptor == null) nameDescriptor = TextDescriptor.getArcTextDescriptor();
         Name nameKey = name != null ? Name.findName(name) : null;
-		if (nameKey == null || nameKey.isTempname() && parent.findNode(name) != null)
+		if (nameKey == null || nameKey.isTempname() && parent.findArc(name) != null)
 		{
             nameKey = topology.getArcAutoname();
 //		} else
