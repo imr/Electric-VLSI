@@ -46,6 +46,8 @@ class EThread extends Thread {
 
     /** EJob which Thread is executing now. */
     EJob ejob;
+    /** True if this EThread is execution server job. */
+    boolean isServerThread;
     /* Database in which thread is executing. */
     EDatabase database;
 
@@ -65,7 +67,8 @@ class EThread extends Thread {
         for (;;) {
             ejob = Job.jobManager.selectEJob(finishedEJob);
             Job.logger.logp(Level.FINER, CLASS_NAME, "run", "selectedJob {0}", ejob.jobName);
-            database = ejob.jobType != Job.Type.EXAMINE ? EDatabase.serverDatabase() : EDatabase.clientDatabase();
+            isServerThread = ejob.jobType != Job.Type.EXAMINE;
+            database = isServerThread ? EDatabase.serverDatabase() : EDatabase.clientDatabase();
             ejob.changedFields = new ArrayList<Field>();
 //            Throwable jobException = null;
             database.lock(!ejob.isExamine());
@@ -134,6 +137,7 @@ class EThread extends Thread {
 
             finishedEJob = ejob;
             ejob = null;
+            isServerThread = false;
             database = null;
 
             Job.logger.logp(Level.FINER, CLASS_NAME, "run", "finishedJob {0}", finishedEJob.jobName);

@@ -660,6 +660,7 @@ public class Layer
      ***************************************************************************************************/
 
 	private final String name;
+    private final boolean isFree;
 	private int index = -1; // contains index in technology or -1 for standalone layers
 	private final Technology tech;
 	private EGraphics graphics;
@@ -689,9 +690,10 @@ public class Layer
 	/** the pure-layer node that contains just this layer */				private PrimitiveNode pureLayerNode;
     /** the Xml expression for size pf pure-layer node */                   private Technology.Distance pureLayerNodeXmlSize;
 
-	private Layer(String name, Technology tech, EGraphics graphics)
+	private Layer(String name, boolean isFree, Technology tech, EGraphics graphics)
 	{
 		this.name = name;
+        this.isFree = isFree;
 		this.tech = tech;
 		this.graphics = graphics;
 		this.nonPseudoLayer = this;
@@ -717,7 +719,7 @@ public class Layer
             if ((colorFromMap.getRGB() & 0xFFFFFF) != graphics.getRGB())
                 throw new IllegalArgumentException();
         }
-		Layer layer = new Layer(name, tech, graphics);
+		Layer layer = new Layer(name, false, tech, graphics);
 		tech.addLayer(layer);
         if (graphics.getLayer() == null)
             graphics.setLayer(layer);
@@ -733,7 +735,7 @@ public class Layer
 	 */
 	public static Layer newInstanceFree(Technology tech, String name, EGraphics graphics)
 	{
-		Layer layer = new Layer(name, tech, graphics);
+		Layer layer = new Layer(name, true, tech, graphics);
 		graphics.setLayer(layer);
 		return layer;
 	}
@@ -745,7 +747,7 @@ public class Layer
     public Layer makePseudo() {
             assert pseudoLayer == null;
         String pseudoLayerName = "Pseudo-" + name;
-        pseudoLayer = new Layer(pseudoLayerName, tech, graphics);
+        pseudoLayer = new Layer(pseudoLayerName, false, tech, graphics);
         pseudoLayer.setFunction(function, functionExtras, true);
         pseudoLayer.nonPseudoLayer = this;
         return pseudoLayer;
@@ -770,6 +772,12 @@ public class Layer
 	 * @param index the index of this Layer.
 	 */
 	public void setIndex(int index) { this.index = index; }
+
+	/**
+	 * Returns true if this Layer is not attached to a technology.
+	 * @return true if this Layer is not attached to a technology.
+	 */
+	public boolean isFree() { return isFree; }
 
 	/**
 	 * Method to return the Technology of this Layer.
@@ -1094,7 +1102,7 @@ public class Layer
 	 */
     private Pref getBooleanPref(String what, boolean factory)
 	{
-        if (tech == null) return null;
+        if (isFree()) return null;
         return Pref.makeBooleanPref(what + "Of" + name + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factory);
 	}
 
@@ -1106,7 +1114,7 @@ public class Layer
 	 */
 	private Pref getDoublePref(String what, double factory)
 	{
-        if (tech == null) return null;
+        if (isFree()) return null;
         return Pref.makeDoublePref(what + "Of" + name + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factory);
 	}
 
@@ -1118,7 +1126,7 @@ public class Layer
 	 */
 	private Pref getIntegerPref(String what, int factory)
 	{
-        if (tech == null) return null;
+        if (isFree()) return null;
         return Pref.makeIntPref(what + "Of" + name + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factory);
 	}
 

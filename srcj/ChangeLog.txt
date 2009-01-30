@@ -4,6 +4,33 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09c: ******************************
 
+BUG: (1/29/09, DN) Library readers replace nameDescriptors of arcs by smart text
+  descriptor calculated from current Prefs.
+FIX: Move call of ArcInst.getSmartTextDescriptor to upper constructor which is not called
+  from library readers.
+
+BUG: (1/29/09, DN) Each instance of Artwork.defaultLayer creates a new Pref object.
+FIX: Add method Layer.isFree(). Don't allocate Prefs for free Layers.
+
+IMP: (1/29/09, DN) Some Prefs can be used in server Jobs, other are client only.
+    Server Prefs are created by special factory methods during Electric initialization.
+    Current list of Server Prefs:
+      TextDescriptor.cacheBits
+      TextDescriptor.cacheColor
+      TextDescriptor.cacheFont
+      PrimitiveNode.defaultExtendX
+      PrimitiveNode.defaultExtendY
+      ArcProto.defaultExtend
+      ArcProto.BitPrefs
+      CVS.CVSEnable
+      CVS.CVSProgram
+      CVS.CVSRepository
+      CVS.CVSLastCommitMessage
+      User.SmartHorizontalPlacementExport
+      User.SmartVerticalPlacementExport
+      User.ErrorLimit
+      User.PlaceCellCenter
+
 BUG: (1/29/09, DN) Initialization of 3D info for CMOS90.mdLayer used undefined viaDLayer.getDepth().
 FIX: Dummy 3D info for CMOS90.viaDLayer .
 

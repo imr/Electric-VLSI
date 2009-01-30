@@ -26,6 +26,7 @@ package com.sun.electric.tool.user;
 import com.sun.electric.database.IdMapper;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.Dimension2D;
+import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
@@ -2031,7 +2032,7 @@ public class User extends Listener
 	 */
 	public static void setTextVisibilityOnCell(boolean on) { cacheTextVisibilityCell.setBoolean(on); }
 
-	private static Pref cacheSmartVerticalPlacementExport = Pref.makeIntPref("SmartVerticalPlacementExport", tool.prefs, 0);
+	private static Pref cacheSmartVerticalPlacementExport = Pref.makeIntServerPref("SmartVerticalPlacementExport", tool.prefs, 0);
 	/**
 	 * Method to tell what type of "smart" vertical text placement should be done for Exports.
 	 * The values can be 0: no smart placement; 1: place text "inside"; 2: place text "outside".
@@ -2052,7 +2053,7 @@ public class User extends Listener
 	 */
 	public static int getFactorySmartVerticalPlacementExport() { return cacheSmartVerticalPlacementExport.getIntFactoryValue(); }
 
-	private static Pref cacheSmartHorizontalPlacementExport = Pref.makeIntPref("SmartHorizontalPlacementExport", tool.prefs, 0);
+	private static Pref cacheSmartHorizontalPlacementExport = Pref.makeIntServerPref("SmartHorizontalPlacementExport", tool.prefs, 0);
 	/**
 	 * Method to tell what type of "smart" horizontal text placement should be done for Exports.
 	 * The values can be 0: no smart placement; 1: place text "inside"; 2: place text "outside".
@@ -2409,7 +2410,14 @@ public class User extends Listener
 			case PORT_HIGHLIGHT: cacheColorPortHighlight.setInt(color); return;
 			case TEXT: cacheColorText.setInt(color); return;
 			case INSTANCE: cacheColorInstanceOutline.setInt(color); return;
-			case ARTWORK: cacheColorDefaultArtwork.setInt(color); return;
+			case ARTWORK: {
+                cacheColorDefaultArtwork.setInt(color);
+                Artwork artwork = EDatabase.clientDatabase().getArtwork();
+                EGraphics eg = artwork.defaultLayer.getGraphics();
+                if (eg.getRGB() != color)
+                    eg.setColorIndex(EGraphics.makeIndex(new Color(color)));
+                return;
+            }
 			case DOWNINPLACEBORDER: cacheColorDownInPlaceBorder.setInt(color); return;
 			case WAVE_BACKGROUND: cacheColorWaveformBackground.setInt(color); return;
 			case WAVE_FOREGROUND: cacheColorWaveformForeground.setInt(color); return;
@@ -2476,7 +2484,8 @@ public class User extends Listener
 			case WAVE_CROSS_UNDEF: pf = cacheColorWaveformCrossProbeX; break;
 			case WAVE_CROSS_FLOAT: pf = cacheColorWaveformCrossProbeZ; break;
 		}
-		pf.setInt(pf.getIntFactoryValue());
+        setColor(pref, pf.getIntFactoryValue());
+//		pf.setInt(pf.getIntFactoryValue());
 	}
 
 	private static Pref cacheColorBackground = Pref.makeIntPref("ColorBackground", tool.prefs, Color.LIGHT_GRAY.getRGB());
@@ -3302,7 +3311,7 @@ public class User extends Listener
 	 */
 	public static int getFactoryDisplayStyle() { return cacheDisplayStyle.getIntFactoryValue(); }
 
-	private static Pref cacheErrorLimit = Pref.makeIntPref("ErrorLimit", tool.prefs, 0);
+	private static Pref cacheErrorLimit = Pref.makeIntServerPref("ErrorLimit", tool.prefs, 0);
 	/**
 	 * Method to tell the maximum number of errors to log.
 	 * The default is 0, which means that there is no limit.
@@ -3446,7 +3455,7 @@ public class User extends Listener
 	 */
 	public static boolean isFactoryAutoTechnologySwitch() { return cacheAutoTechnologySwitch.getBooleanFactoryValue(); }
 
-	private static Pref cachePlaceCellCenter = Pref.makeBooleanPref("PlaceCellCenter", tool.prefs, true);
+	private static Pref cachePlaceCellCenter = Pref.makeBooleanServerPref("PlaceCellCenter", tool.prefs, true);
 	/**
 	 * Method to tell whether to place a Cell-Center primitive in every newly created Cell.
 	 * The default is "true".

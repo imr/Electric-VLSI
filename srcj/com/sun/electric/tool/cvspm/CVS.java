@@ -331,7 +331,7 @@ public class CVS extends Listener {
 
         File libfile = TextUtils.getFile(fileURL);
         if (libfile == null) return false;
-        
+
         String libfilestr = libfile.getPath();
         File libFile = new File(libfilestr);
         if (isDELIB(lib)) {
@@ -667,22 +667,22 @@ public class CVS extends Listener {
         return getCVSRepository();
     }
 
-    private static Pref cacheCVSEnabled = Pref.makeBooleanPref("CVS Enabled", User.getUserTool().prefs, false);
+    private static Pref cacheCVSEnabled = Pref.makeBooleanServerPref("CVS Enabled", User.getUserTool().prefs, false);
     public static boolean isEnabled() { return cacheCVSEnabled.getBoolean(); }
     public static void setEnabled(boolean b) { cacheCVSEnabled.setBoolean(b); }
     public static boolean isFactoryEnabled() { return cacheCVSEnabled.getBooleanFactoryValue(); }
 
-    private static Pref cacheCVSProgram = Pref.makeStringPref("CVS Program", User.getUserTool().prefs, "cvs");
+    private static Pref cacheCVSProgram = Pref.makeStringServerPref("CVS Program", User.getUserTool().prefs, "cvs");
     public static String getCVSProgram() { return cacheCVSProgram.getString(); }
     public static void setCVSProgram(String s) { cacheCVSProgram.setString(s); }
     public static String getFactoryCVSProgram() { return cacheCVSProgram.getStringFactoryValue(); }
 
-    private static Pref cacheCVSRepository = Pref.makeStringPref("CVS Repository", User.getUserTool().prefs, "");
+    private static Pref cacheCVSRepository = Pref.makeStringServerPref("CVS Repository", User.getUserTool().prefs, "");
     public static String getCVSRepository() { return cacheCVSRepository.getString(); }
     public static void setCVSRepository(String s) { cacheCVSRepository.setString(s); }
     public static String getFactoryCVSRepository() { return cacheCVSRepository.getStringFactoryValue(); }
 
-    private static Pref cacheCVSLastCommitMessage = Pref.makeStringPref("CVS Last Commit Message", User.getUserTool().prefs, "");
+    private static Pref cacheCVSLastCommitMessage = Pref.makeStringServerPref("CVS Last Commit Message", User.getUserTool().prefs, "");
     public static String getCVSLastCommitMessage() { return cacheCVSLastCommitMessage.getString(); }
     public static void setCVSLastCommitMessage(String s) { cacheCVSLastCommitMessage.setString(s); }
 }

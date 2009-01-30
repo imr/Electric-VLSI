@@ -320,7 +320,14 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 			return null;
 		}
 
-        return newInstance(parent, type, name, null, head, tail, headP, tailP, gridExtendOverMin, defAngle, flags);
+        TextDescriptor nameDescriptor = TextDescriptor.getArcTextDescriptor();
+        Name nameKey = name != null ? Name.findName(name) : null;
+		if (nameKey != null && !nameKey.isTempname()) {
+			// adjust the name descriptor for "smart" text placement
+            long gridBaseWidth = 2*(gridExtendOverMin + type.getGridBaseExtend());
+			nameDescriptor = getSmartTextDescriptor(defAngle, DBMath.gridToLambda(gridBaseWidth), nameDescriptor);
+		}
+        return newInstance(parent, type, name, nameDescriptor, head, tail, headP, tailP, gridExtendOverMin, defAngle, flags);
 	}
 
 	/**
@@ -382,14 +389,14 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 
         if (nameDescriptor == null) nameDescriptor = TextDescriptor.getArcTextDescriptor();
         Name nameKey = name != null ? Name.findName(name) : null;
-		if (nameKey == null || nameKey.isTempname() && (!parent.isUniqueName(nameKey, ArcInst.class, null)) || checkNameKey(nameKey, topology))
+		if (nameKey == null || nameKey.isTempname() && parent.findNode(name) != null)
 		{
             nameKey = topology.getArcAutoname();
-		} else
-		{
-			// adjust the name descriptor for "smart" text placement
-            long gridBaseWidth = 2*(gridExtendOverMin + protoType.getGridBaseExtend());
-			nameDescriptor = getSmartTextDescriptor(angle, DBMath.gridToLambda(gridBaseWidth), nameDescriptor);
+//		} else
+//		{
+//			// adjust the name descriptor for "smart" text placement
+//            long gridBaseWidth = 2*(gridExtendOverMin + protoType.getGridBaseExtend());
+//			nameDescriptor = getSmartTextDescriptor(angle, DBMath.gridToLambda(gridBaseWidth), nameDescriptor);
 		}
         TechPool techPool = parent.getTechPool();
         if (!(tailProto.getId() instanceof PrimitivePortId && techPool.getPrimitivePort((PrimitivePortId)tailProto.getId()).isNegatable()))

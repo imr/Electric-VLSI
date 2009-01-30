@@ -858,10 +858,11 @@ public class Artwork extends Technology
 		EGraphics graphics = makeGraphics(d);
 		if (graphics == null)
 		{
-			int col = User.getColor(User.ColorPrefType.ARTWORK) & 0xFFFFFF;
-			EGraphics eg = defaultLayer.getGraphics();
-			if (eg.getRGB() != col)
-				eg.setColorIndex(EGraphics.makeIndex(new Color(col)));
+            // The code below was moved to User.setColor()
+//			int col = User.getColor(User.ColorPrefType.ARTWORK) & 0xFFFFFF;
+//			EGraphics eg = defaultLayer.getGraphics();
+//			if (eg.getRGB() != col)
+//				eg.setColorIndex(EGraphics.makeIndex(new Color(col)));
 			return defaultLayer;
 		}
 		Layer thisLayer = Layer.newInstanceFree(this, "Graphics", graphics);

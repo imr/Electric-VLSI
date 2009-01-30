@@ -32,7 +32,6 @@ import com.sun.electric.database.id.ArcProtoId;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.technology.xml.XmlParam;
 import com.sun.electric.tool.erc.ERC;
-import com.sun.electric.tool.user.User;
 
 import java.awt.geom.Point2D;
 import java.io.IOException;
@@ -304,7 +303,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
         this.gridBaseExtend = (int)gridBaseExtend;
         lambdaBaseExtend = DBMath.gridToLambda(gridBaseExtend);
         computeLayerGridExtendRange();
-        defaultExtendPref = Pref.makeDoublePref("DefaultExtendFor" + getName() + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), 0);
+        defaultExtendPref = Pref.makeDoubleServerPref("DefaultExtendFor" + getName() + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), 0);
         defaultDirectionalPref = getArcProtoBitPref("Directional", false);
 	}
 
@@ -515,7 +514,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 
 	private Pref getArcProtoBitPref(String what, boolean factory)
 	{
-		return Pref.makeBooleanPref("Default" + what + "For" + getName() + "IN" + tech.getTechName(), tech.getTechnologyUserPreferences(), factory);
+		return Pref.makeBooleanServerPref("Default" + what + "For" + getName() + "IN" + tech.getTechName(), tech.getTechnologyUserPreferences(), factory);
 	}
 
 	/**
@@ -857,7 +856,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	public void setFactoryAngleIncrement(int angle)
 	{
         assert defaultAnglePref == null;
-		defaultAnglePref = Pref.makeIntPref("DefaultAngleFor" + getName() + "IN" + tech.getTechName(), User.getUserTool().prefs, angle);
+		defaultAnglePref = Pref.makeIntPref("DefaultAngleFor" + getName() + "IN" + tech.getTechName(), tech.getTechnologyUserPreferences(), angle);
 	}
 
 	/**

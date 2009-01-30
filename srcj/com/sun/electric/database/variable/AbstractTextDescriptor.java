@@ -723,9 +723,9 @@ abstract class AbstractTextDescriptor implements Serializable
 		 */
 		DescriptorPref(String purpose, int initialSize)
 		{
-    		cacheBits = Pref.makeLongPref("TextDescriptorFor" + purpose, prefs, swap((((long)initialSize) << Size.TXTQGRIDSH) << VTSIZESH));
-			cacheColor = Pref.makeIntPref("TextDescriptorColorFor" + purpose, prefs, 0);
-			cacheFont = Pref.makeStringPref("TextDescriptorFontFor" + purpose, prefs, "");
+    		cacheBits = Pref.makeLongServerPref("TextDescriptorFor" + purpose, prefs, swap((((long)initialSize) << Size.TXTQGRIDSH) << VTSIZESH));
+			cacheColor = Pref.makeIntServerPref("TextDescriptorColorFor" + purpose, prefs, 0);
+			cacheFont = Pref.makeStringServerPref("TextDescriptorFontFor" + purpose, prefs, "");
 		}
 
 		/**

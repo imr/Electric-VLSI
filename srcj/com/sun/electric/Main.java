@@ -395,6 +395,7 @@ public final class Main
 			//startJob();
 		}
 
+        @Override
 		public boolean doIt() throws JobException
 		{
 //			try {
@@ -405,6 +406,8 @@ public final class Main
 
 				// initialize all of the technologies
 				Technology.initAllTechnologies();
+                Setting.lockCreation();
+                Pref.lockCreation();
 
 				// initialize the constraint system
 //				Layout con = Layout.getConstraint();
@@ -422,23 +425,21 @@ public final class Main
 //            Input.changesQuiet(false);
 
             if (Job.BATCHMODE) {
-                Setting.lockCreation();
-                Pref.lockCreation();
                 if (beanShellScript != null)
                     EvalJavaBsh.runScript(beanShellScript);
             }
             return true;
 		}
 
+        @Override
         public void terminateOK() {
             Job.getExtendedUserInterface().finishInitialization();
-            Setting.lockCreation();
-            Pref.lockCreation();
 			openCommandLineLibs(argsList);
             if (beanShellScript != null)
                 EvalJavaBsh.runScript(beanShellScript);
         }
 
+        @Override
         public void terminateFail(Throwable jobException) {
             System.out.println("Initialization failed");
             System.exit(1);

@@ -430,6 +430,15 @@ public abstract class Job implements Serializable {
         return thread instanceof EThread ? ((EThread)thread).getRunningJob() : null;
     }
 
+    /**
+     * Returns true if this current thread is a EThread running a server Job.
+     * @return true if this current thread is a EThread running a server Job.
+     */
+    public static boolean inServerThread() {
+        Thread thread = Thread.currentThread();
+        return thread instanceof EThread && ((EThread)thread).isServerThread;
+    }
+
     /** get status */
     public String getStatus() {
         switch (ejob.state) {

@@ -28,6 +28,7 @@ import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 
+import com.sun.electric.tool.user.ActivityLogger;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.FileWriter;
@@ -59,13 +60,18 @@ import javax.xml.transform.stream.StreamSource;
 import org.xml.sax.SAXParseException;
 
 /**
- * This class manages options.
+ * This class manages appearance options.
  * There are two types of options: <I>appearance</I> and <I>meaning</I>.
  * Appearance options affect the way that the design is presented to the user.
  * Examples are grid dot spacing, layer stipple patterns, etc.
  * Meaning options affect the way that a design is produced (for fabrication,
  * simulation, and other outputs).  Examples are CIF layer names, technology
  * options, etc.)
+ * Meaning options are managed by Setting class now.
+ * <P>
+ * Some Prefs can be used in server Jobs, other are client only.
+ * Server Prefs are created by special factory methods during Electric initialization.
+ * They can't be created later.
  * <P>
  * All options are saved in a machine-specific way by the Java Preferences class.
  * In addition, "meaning" options are stored in libraries.  When the libraries
@@ -92,13 +98,13 @@ public class Pref
 {
     public static class Group {
         Preferences preferences;
-        private final ArrayList<Pref> prefs = new ArrayList<Pref>();
+        private final TreeMap<String,Pref> prefs = new TreeMap<String,Pref>();
 
         public Group(Preferences preferences) { this.preferences = preferences; }
         public String absolutePath() { return preferences.absolutePath(); }
 
         private void setCachedObjsFromPreferences() {
-            for(Pref pref : prefs) {
+            for(Pref pref : prefs.values()) {
                 switch (pref.type) {
                     case BOOLEAN:
                         pref.setBoolean(getBoolean(pref.name, pref.getBooleanFactoryValue()));
@@ -212,10 +218,11 @@ public class Pref
     }
 
 	private   final String      name;
-	private   PrefType         type;
-	private   final Group      group;
-	private   Object      cachedObj;
-	private   Object      factoryObj;
+	private   final PrefType    type;
+	private   final Group       group;
+    private   final boolean     serverAccessible;
+	private   Object            cachedObj;
+	private   final Object      factoryObj;
 //    private   boolean changed = false;
 
 	private static final ArrayList<Group> allGroups = new ArrayList<Group>();
@@ -223,23 +230,27 @@ public class Pref
 //    private static PrefChangeBatch changes = null;
 	private static Set<Preferences> queueForFlushing;
     private static boolean lockCreation;
+    private static final HashSet<Pref> reportedAccess = new HashSet<Pref>();
 
 	/**
 	 * The constructor for the Pref.
 	 * @param name the name of this Pref.
 	 */
-	protected Pref(Group group, String name) {
+	protected Pref(Group group, String name, boolean serverAccessible, PrefType type, Object factoryObj) {
         this.name = name;
         this.group = group;
+        this.serverAccessible = serverAccessible;
+        this.type = type;
+        cachedObj = this.factoryObj = factoryObj;
         synchronized (group.prefs) {
-            group.prefs.add(this);
+            assert !group.prefs.containsKey(name);
+            group.prefs.put(name, this);
         }
-        if (lockCreation && Job.getDebug()) {
+        if (lockCreation && serverAccessible && Job.getDebug()) {
             try {
-                throw new IllegalStateException();
+                throw new IllegalStateException("Pref "+group.absolutePath()+"/"+name+" was created from improper place");
             } catch (IllegalStateException e) {
-                System.err.println("Pref "+group.absolutePath()+"/"+name+" was created from improper place");
-//                e.printStackTrace();
+                ActivityLogger.logException(e);
             }
         }
     }
@@ -423,40 +434,12 @@ public class Pref
 
 	/**
 	 * Factory methods to create a boolean Pref objects.
-	 * The proper way to create a boolean Pref is with makeBooleanPref;
-	 * use of this method is only for subclasses.
-	 * @param factory the "factory" default value (if nothing is stored).
-	 */
-	protected void initBoolean(boolean factory)
-	{
-		type = PrefType.BOOLEAN;
-		factoryObj = new Integer(factory ? 1 : 0);
-		cachedObj = new Integer(group.getBoolean(name, factory) ? 1 : 0);
-	}
-
-	/**
-	 * Factory methods to create a boolean Pref objects.
 	 * @param name the name of this Pref.
 	 * @param group group of preferences to which a new Pref belongs
 	 * @param factory the "factory" default value (if nothing is stored).
 	 */
     public static Pref makeBooleanPref(String name, Group group, boolean factory) {
-		Pref pref = new Pref(group, name);
-		pref.initBoolean(factory);
-		return pref;
-	}
-
-	/**
-	 * Factory methods to create an integer Pref objects.
-	 * The proper way to create an integer Pref is with makeIntPref;
-	 * use of this method is only for subclasses.
-	 * @param factory the "factory" default value (if nothing is stored).
-	 */
-	protected void initInt(int factory)
-	{
-		type = PrefType.INTEGER;
-		factoryObj = new Integer(factory);
-		cachedObj = new Integer(group.getInt(name, factory));
+		return new Pref(group, name, false, PrefType.BOOLEAN, Integer.valueOf(factory ? 1 : 0));
 	}
 
 	/**
@@ -466,22 +449,7 @@ public class Pref
 	 * @param factory the "factory" default value (if nothing is stored).
 	 */
 	public static Pref makeIntPref(String name, Group group, int factory) {
-		Pref pref = new Pref(group, name);
-		pref.initInt(factory);
-		return pref;
-	}
-
-	/**
-	 * Factory methods to create a long Pref objects.
-	 * The proper way to create a long Pref is with makeLongPref;
-	 * use of this method is only for subclasses.
-	 * @param factory the "factory" default value (if nothing is stored).
-	 */
-	protected void initLong(long factory)
-	{
-		type = PrefType.LONG;
-		factoryObj = new Long(factory);
-		cachedObj = new Long(group.getLong(name, factory));
+		return new Pref(group, name, false, PrefType.INTEGER, Integer.valueOf(factory));
 	}
 
 	/**
@@ -491,22 +459,7 @@ public class Pref
 	 * @param factory the "factory" default value (if nothing is stored).
 	 */
 	public static Pref makeLongPref(String name, Group group, long factory) {
-		Pref pref = new Pref(group, name);
-		pref.initLong(factory);
-		return pref;
-	}
-
-	/**
-	 * Factory methods to create a double Pref objects.
-	 * The proper way to create a double Pref is with makeDoublePref;
-	 * use of this method is only for subclasses.
-	 * @param factory the "factory" default value (if nothing is stored).
-	 */
-	protected void initDouble(double factory)
-	{
-		type = PrefType.DOUBLE;
-		factoryObj = new Double(factory);
-		cachedObj = new Double(group.getDouble(name, factory));
+		return new Pref(group, name, false, PrefType.LONG, Long.valueOf(factory));
 	}
 
 	/**
@@ -516,22 +469,7 @@ public class Pref
 	 * @param factory the "factory" default value (if nothing is stored).
 	 */
 	public static Pref makeDoublePref(String name, Group group, double factory) {
-		Pref pref = new Pref(group, name);
-		pref.initDouble(factory);
-		return pref;
-	}
-
-	/**
-	 * Factory methods to create a string Pref objects.
-	 * The proper way to create a string Pref is with makeStringPref;
-	 * use of this method is only for subclasses.
-	 * @param factory the "factory" default value (if nothing is stored).
-	 */
-	protected void initString(String factory)
-	{
-		type = PrefType.STRING;
-		factoryObj = new String(factory);
-		cachedObj = new String(group.get(name, factory));
+		return new Pref(group, name, false, PrefType.DOUBLE, Double.valueOf(factory));
 	}
 
 	/**
@@ -541,9 +479,62 @@ public class Pref
 	 * @param factory the "factory" default value (if nothing is stored).
 	 */
 	public static Pref makeStringPref(String name, Group group, String factory) {
-		Pref pref = new Pref(group, name);
-		pref.initString(factory);
-		return pref;
+		return new Pref(group, name, false, PrefType.STRING, factory);
+	}
+
+	/**
+	 * Factory methods to create a boolean Pref objects.
+     * The Pref is accessible from server Jobs.
+	 * @param name the name of this Pref.
+	 * @param group group of preferences to which a new Pref belongs
+	 * @param factory the "factory" default value (if nothing is stored).
+	 */
+    public static Pref makeBooleanServerPref(String name, Group group, boolean factory) {
+		return new Pref(group, name, true, PrefType.BOOLEAN, Integer.valueOf(factory ? 1 : 0));
+	}
+
+	/**
+	 * Factory methods to create an integer Pref objects.
+     * The Pref is accessible from server Jobs.
+	 * @param name the name of this Pref.
+	 * @param group group of preferences to which a new Pref belongs
+	 * @param factory the "factory" default value (if nothing is stored).
+	 */
+	public static Pref makeIntServerPref(String name, Group group, int factory) {
+		return new Pref(group, name, true, PrefType.INTEGER, Integer.valueOf(factory));
+	}
+
+	/**
+	 * Factory methods to create a long Pref objects.
+     * The Pref is accessible from server Jobs.
+	 * @param name the name of this Pref.
+	 * @param group group of preferences to which a new Pref belongs
+	 * @param factory the "factory" default value (if nothing is stored).
+	 */
+	public static Pref makeLongServerPref(String name, Group group, long factory) {
+		return new Pref(group, name, true, PrefType.LONG, Long.valueOf(factory));
+	}
+
+	/**
+	 * Factory methods to create a double Pref objects.
+     * The Pref is accessible from server Jobs.
+	 * @param name the name of this Pref.
+	 * @param group group of preferences to which a new Pref belongs
+	 * @param factory the "factory" default value (if nothing is stored).
+	 */
+	public static Pref makeDoubleServerPref(String name, Group group, double factory) {
+		return new Pref(group, name, true, PrefType.DOUBLE, Double.valueOf(factory));
+	}
+
+	/**
+	 * Factory methods to create a string Pref objects.
+     * The Pref is accessible from server Jobs.
+	 * @param name the name of this Pref.
+	 * @param group group of preferences to which a new Pref belongs
+	 * @param factory the "factory" default value (if nothing is stored).
+	 */
+	public static Pref makeStringServerPref(String name, Group group, String factory) {
+		return new Pref(group, name, true, PrefType.STRING, factory);
 	}
 
     /**
@@ -551,35 +542,35 @@ public class Pref
 	 * The object must have been created as "boolean".
 	 * @return the boolean value on this Pref object.
 	 */
-	public boolean getBoolean() { return ((Integer)cachedObj).intValue() != 0; }
+	public boolean getBoolean() { return ((Integer)getValue()).intValue() != 0; }
 
 	/**
 	 * Method to get the integer value on this Pref object.
 	 * The object must have been created as "integer".
 	 * @return the integer value on this Pref object.
 	 */
-	public int getInt() { return ((Integer)cachedObj).intValue(); }
+	public int getInt() { return ((Integer)getValue()).intValue(); }
 
 	/**
 	 * Method to get the long value on this Pref object.
 	 * The object must have been created as "long".
 	 * @return the long value on this Pref object.
 	 */
-	public long getLong() { return ((Long)cachedObj).longValue(); }
+	public long getLong() { return ((Long)getValue()).longValue(); }
 
 	/**
 	 * Method to get the double value on this Pref object.
 	 * The object must have been created as "double".
 	 * @return the double value on this Pref object.
 	 */
-	public double getDouble() { return ((Double)cachedObj).doubleValue(); }
+	public double getDouble() { return ((Double)getValue()).doubleValue(); }
 
 	/**
 	 * Method to get the string value on this Pref object.
 	 * The object must have been created as "string".
 	 * @return the string value on this Pref object.
 	 */
-	public String getString() { return (String)cachedObj; }
+	public String getString() { return (String)getValue(); }
 
 	/**
 	 * Method to get the factory-default value of this Pref object.
@@ -629,8 +620,20 @@ public class Pref
 	 * methods such as getInt(), getBoolean(), etc.
 	 * @return the Object value of this Pref object.
 	 */
-	public Object getValue() { return cachedObj; }
+	public Object getValue() {
+        if (Job.getDebug() && !serverAccessible && lockCreation && Job.inServerThread() && !reportedAccess.contains(this)) {
+            String msg = getPrefName() + " is accessed from " + Job.getRunningJob();
+            ActivityLogger.logMessage(msg);
+            System.out.println(msg);
+            reportedAccess.add(this);
+        }
+        return cachedObj;
+    }
 
+    private void setValue(Object value) {
+        cachedObj = value.equals(factoryObj) ? factoryObj : value; 
+    }
+    
 	/**
 	 * Method to get the type of this Pref object.
 	 * @return an integer type: either BOOLEAN, INTEGER, LONG, DOUBLE, or STRING.
@@ -727,7 +730,7 @@ public class Pref
 		boolean cachedBool = ((Integer)cachedObj).intValue() != 0 ? true : false;
 		if (v != cachedBool)
 		{
-			cachedObj = new Integer(v ? 1 : 0);
+			setValue(Integer.valueOf(v ? 1 : 0));
             group.putBoolean(name, v);
 		}
 	}
@@ -742,7 +745,7 @@ public class Pref
 		int cachedInt = ((Integer)cachedObj).intValue();
 		if (v != cachedInt)
 		{
-			cachedObj = new Integer(v);
+			setValue(Integer.valueOf(v));
             group.putInt(name, v);
 		}
 	}
@@ -757,7 +760,7 @@ public class Pref
 		long cachedLong = ((Long)cachedObj).longValue();
 		if (v != cachedLong)
 		{
-			cachedObj = new Long(v);
+			setValue(Long.valueOf(v));
             group.putLong(name, v);
 		}
 	}
@@ -770,15 +773,12 @@ public class Pref
 	{
         checkModify();
 		double cachedDouble = ((Double)cachedObj).doubleValue();
-//		boolean changed = false;
 
 		if (v != cachedDouble)
 		{
-			cachedObj = new Double(v);
+			setValue(Double.valueOf(v));
             group.putDouble(name, v);
-//			changed = true;
 		}
-//		return (changed);
 	}
 
 	/**
@@ -791,14 +791,17 @@ public class Pref
 		String cachedString = (String)cachedObj;
 		if (!str.equals(cachedString))
 		{
-			cachedObj = new String(str);
+			setValue(str);
             group.put(name, str);
 		}
 	}
 
     private void checkModify() {
-//        if (Job.getDebug() && Job.getRunningJob() != null)
-//            System.out.println(getPrefName() + " is modified in " + Job.getRunningJob());
+        if (Job.getDebug() && lockCreation && Job.inServerThread()) {
+            String msg = getPrefName() + " is modified in " + Job.getRunningJob();
+            ActivityLogger.logMessage(msg);
+            System.out.println(msg);
+        }
     }
 
     private static int numStrings;
@@ -811,7 +814,7 @@ public class Pref
         TreeMap<String,Pref> sortedPrefs = new TreeMap<String,Pref>();
         synchronized (allGroups) {
             for (Group group: allGroups) {
-                for (Pref pref: group.prefs)
+                for (Pref pref: group.prefs.values())
                     sortedPrefs.put(pref.group.absolutePath() + "/" + pref.name, pref);
             }
         }
@@ -832,7 +835,7 @@ public class Pref
         for (Technology tech: techPool.values()) {
             i = 0;
             for (Pref.Group group: tech.getTechnologyAllPreferences()) {
-                for (Pref pref: group.prefs)
+                for (Pref pref: group.prefs.values())
                     out.println((i++) + pref.group.absolutePath() + " " + tech + " " + pref.name + " " + pref.cachedObj);
             }
         }

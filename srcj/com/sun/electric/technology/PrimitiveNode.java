@@ -808,9 +808,9 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
         }
 
         double factoryExtendX = DBMath.round(0.5*(defWidth - fullRectangle.getLambdaWidth()));
-        defaultExtendXPref = Pref.makeDoublePref("DefaultExtendXFor" + getName() + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factoryExtendX);
+        defaultExtendXPref = Pref.makeDoubleServerPref("DefaultExtendXFor" + getName() + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factoryExtendX);
         double factoryExtendY = DBMath.round(0.5*(defHeight - fullRectangle.getLambdaHeight()));
-        defaultExtendYPref = Pref.makeDoublePref("DefaultExtendYFor" + getName() + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factoryExtendY);
+        defaultExtendYPref = Pref.makeDoubleServerPref("DefaultExtendYFor" + getName() + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factoryExtendY);
 
         double lx = baseRectangle.getLambdaMinX() - fullRectangle.getLambdaMinX();
         double hx = fullRectangle.getLambdaMaxX() - baseRectangle.getLambdaMaxX();

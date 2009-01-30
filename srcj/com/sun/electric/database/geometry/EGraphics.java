@@ -299,8 +299,8 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 	public void setLayer(Layer layer)
 	{
 		this.layer = layer;
+		if (layer.isFree()) return;
 		Technology tech = layer.getTechnology();
-		if (tech == null || layer.getIndex() < 0) return;
 		String layerTechMsg = layer.getName() + "In" + tech.getTechName();
 
 		Pref usePatternDisplayPref = Pref.makeBooleanPref("UsePatternDisplayFor" + layerTechMsg,
@@ -356,8 +356,7 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 	 */
 	public void recachePrefs()
 	{
-		Technology tech = layer.getTechnology();
-		if (tech == null) return;
+		if (layer.isFree()) return;
 
 		Pref usePatternDisplayPref = usePatternDisplayMap.get(layer);
 		displayPatterned = usePatternDisplayPref.getBoolean();
