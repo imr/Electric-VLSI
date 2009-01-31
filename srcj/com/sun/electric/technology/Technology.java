@@ -1613,6 +1613,7 @@ public class Technology implements Comparable<Technology>, Serializable
         lazyUrls.put("nmos",         Technology.class.getResource("technologies/nmos.xml"));
         lazyUrls.put("tft",          Technology.class.getResource("technologies/tft.xml"));
         lazyUrls.put("tsmc180",      Main.class.getResource("plugins/tsmc/tsmc180.xml"));
+//        lazyUrls.put("tsmc45",      Main.class.getResource("plugins/tsmc/tsmc45.xml"));
         if (true) {
             lazyClasses.put("cmos90","com.sun.electric.plugins.tsmc.CMOS90");
         } else {
