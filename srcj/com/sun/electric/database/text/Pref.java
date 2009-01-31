@@ -225,6 +225,10 @@ public class Pref
         this.serverAccessible = serverAccessible;
         this.type = type;
         cachedObj = this.factoryObj = factoryObj;
+        synchronized (group.prefs) {
+            assert !group.prefs.containsKey(name);
+            group.prefs.put(name, this);
+        }
         setCachedObjFromPreferences();
         if (lockCreation && serverAccessible && Job.getDebug()) {
             try {
