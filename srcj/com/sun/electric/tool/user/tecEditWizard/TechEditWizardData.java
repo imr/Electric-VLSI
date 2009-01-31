@@ -138,12 +138,9 @@ public class TechEditWizardData
         {
             name = n;
         }
-        int getValue() {return value;}
-        int getType() {return type;}
-        int getPin() {return pin;}
-        int getPinType() {return pinType;}
-        int getText() {return text;}
-        int getTextType() {return text;}
+        String getValueWithType() {return (type != 0) ? value + "/" + type : value + "";}
+        String getPinWithType() {return (pinType != 0) ? pin + "/" + pinType : pin + "";}
+        String getTextWithType() {return (textType != 0) ? text + "/" + textType : text + "";}
         void setData(int[] vals)
         {
             assert(vals.length == 6);
@@ -157,14 +154,14 @@ public class TechEditWizardData
 
         public String toString()
         {
-            String val = (type != 0) ? value + "/" + type : value + ""; // useful datatype
+            String val = getValueWithType(); // useful datatype
             if (pin != 0)
             {
-                val = (pinType != 0) ? val + "," + pin + "/" + pinType + "p" : val + "," + pin + "p";
+                val = val + "," + getPinWithType() + "p";
             }
             if (text != 0)
             {
-                val = (textType != 0) ? val + "," + text + "/" + textType + "t" : val + "," + text + "t";
+                val = val + "," + getTextWithType() + "t";
             }
             return val;
         }
@@ -440,7 +437,7 @@ public class TechEditWizardData
 	void setMetalAntennaRatio(int met, double value) { metal_antenna_ratio[met] = value; }
 
 	// GDS-II LAYERS
-    private int[] getGDSValuesFromString(String s)
+    static int[] getGDSValuesFromString(String s)
     {
         int[] vals = new int[6];
         StringTokenizer parse = new StringTokenizer(s, ",", false);
@@ -713,7 +710,10 @@ public class TechEditWizardData
         while (parse.hasMoreTokens())
         {
             if (count >= len)
+            {
                 System.out.println("More GDS values than metal layers in TechEditWizardData");
+                break;
+            }
             else
             {
                 String value = parse.nextToken();
@@ -754,8 +754,8 @@ public class TechEditWizardData
 
             if (index >= fieldArray.length)
             {
-                 Job.getUserInterface().showErrorMessage("Invalid metal index: " + index,
-						"Syntax Error In Technology File");
+//                 Job.getUserInterface().showErrorMessage("Invalid metal index: " + index,
+//						"Syntax Error In Technology File");
 					return;
             }
             if (getRule)
