@@ -1619,9 +1619,8 @@ public class Technology implements Comparable<Technology>, Serializable
         } else {
             lazyUrls.put("cmos90",   Main.class.getResource("plugins/tsmc/cmos90.xml"));
         }
-        List<String> softTechnologies = getSoftTechnologies();
-        for(String softTechFile : softTechnologies)
-        {
+		for(String softTechFile: User.getSoftTechnologiesSetting().getString().split(";")) {
+			if (softTechFile.length() == 0) continue;
         	URL url = TextUtils.makeURLToFile(softTechFile);
         	if (TextUtils.URLExists(url))
         	{
@@ -1656,43 +1655,6 @@ public class Technology implements Comparable<Technology>, Serializable
     protected static Artwork sysArtwork;
     protected static FPGA sysFPGA;
     protected static Schematics sysSchematics;
-
-	private static Pref softTechnologyList;
-
-	/**
-	 * Method to get an array of additional technologies that should be added to Electric.
-	 * These added technologies are XML files, and the list is the path to those files.
-	 * @return an array of additional technologies that should be added to Electric.
-	 */
-	public static List<String> getSoftTechnologies()
-	{
-		if (softTechnologyList == null)
-			softTechnologyList = Pref.makeStringPref("SoftTechnologies", sysGeneric.getTechnologyPreferences(), "");
-		String techString = softTechnologyList.getString();
-		List<String> techList = new ArrayList<String>();
-		String [] techArray = techString.split(";");
-		for(int i=0; i<techArray.length; i++)
-			if (techArray[i].length() > 0) techList.add(techArray[i]);
-		return techList;
-	}
-
-	/**
-	 * Method to set an array of additional technologies that should be added to Electric.
-	 * These added technologies are XML files, and the list is the path to those files.
-	 * @param a an array of additional technologies that should be added to Electric.
-	 */
-	public static void setSoftTechnologies(List<String> a)
-	{
-		StringBuffer sb = new StringBuffer();
-		for(int i=0; i<a.size(); i++)
-		{
-			if (i != 0) sb.append(";");
-			sb.append(a.get(i));
-		}
-		if (softTechnologyList == null)
-			softTechnologyList = Pref.makeStringPref("SoftTechnologies", sysGeneric.getTechnologyPreferences(), "");
-		softTechnologyList.setString(sb.toString());
-	}
 
 	private static void setupTechnology(EDatabase database, String techClassName) {
         Pref.delayPrefFlushing();

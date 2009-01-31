@@ -830,11 +830,6 @@ public class User extends Listener
 	 */
 	public static Setting getIncludeDateAndVersionInOutputSetting() { return tool.cacheIncludeDateAndVersionInOutput; }
 
-	private Setting cacheDefaultTechnology;
-	private Setting cacheSchematicTechnology;
-	private Setting cacheIncludeDateAndVersionInOutput;
-	private Setting cachePWellProcess;
-
 	/**
 	 * Method to tell whether the process is a PWell process. If true, it will ignore the pwell spacing rule.
 	 * The default is "true".
@@ -844,12 +839,25 @@ public class User extends Listener
 	public static boolean isPWellProcessLayoutTechnology() {return getPWellProcessLayoutTechnologySetting().getBoolean();}
 //	public static void setPWellProcessLayoutTechnology(boolean on) {getPWellProcessLayoutTechnologySetting().set(Boolean.valueOf(on));}
 
+	/**
+	 * Returns project Setting to tell whether to include the date and Electric version in output files.
+	 * @return project Setting to tell whether to include the date and Electric version in output files.
+	 */
+	public static Setting getSoftTechnologiesSetting() { return tool.cacheSoftTechnologies; }
+
+	private Setting cacheDefaultTechnology;
+	private Setting cacheSchematicTechnology;
+	private Setting cacheIncludeDateAndVersionInOutput;
+	private Setting cachePWellProcess;
+    private Setting cacheSoftTechnologies;
+
 	@Override
 	protected void initProjectSettings() {
 		makeStringSetting("DefaultTechnology", "Technology tab", "Default Technology for editing", "mocmos");
 		makeStringSetting("SchematicTechnology", "Technology tab", "Schematics use scale values from this technology", "mocmos");
 		makeBooleanSetting("IncludeDateAndVersionInOutput", "Netlists tab", "Include date and version in output", true);
 		makeBooleanSetting("PWellProcess", "Technology tab", "Define Layout Technology as a PWell process", true);
+        makeStringSetting("SoftTechnologies", "Technology tab", "A list of added Xml Technologies", "");
 	}
 
 	/****************************** ICON GENERATION PREFERENCES ******************************/

@@ -23,8 +23,9 @@
  */
 package com.sun.electric.tool.user.dialogs.projsettings;
 
-import com.sun.electric.technology.Technology;
+import com.sun.electric.database.text.Setting;
 import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.dialogs.ProjectSettingsFrame;
 
@@ -36,8 +37,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
@@ -56,6 +55,7 @@ public class AddedTechnologiesTab extends ProjSettingsPanel
 	private JList addedTechnologiesList;
 	private DefaultListModel addedTechnologiesModel;
     private JScrollPane addedTechnologiesPane;
+	private Setting softTechnologiesSetting = User.getSoftTechnologiesSetting();
 
     /** Creates new form AddedTechnologiesTab */
 	public AddedTechnologiesTab(ProjectSettingsFrame parent, boolean modal)
@@ -73,30 +73,31 @@ public class AddedTechnologiesTab extends ProjSettingsPanel
     /**
 	 * Method called at the start of the Added Technologies tab.
 	 */
+    @Override
 	public void init()
 	{
 		addedTechnologiesModel = new DefaultListModel();
 		addedTechnologiesList = new JList(addedTechnologiesModel);
 		addedTechnologiesList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		addedTechnologiesPane.setViewportView(addedTechnologiesList);
-		List<String> addedTechnologies = Technology.getSoftTechnologies();
-		for(String at : addedTechnologies)
-			addedTechnologiesModel.addElement(at);
+		for(String techPath: getString(softTechnologiesSetting).split(";"))
+			if (techPath.length() > 0) addedTechnologiesModel.addElement(techPath);
 	}
 
 	/**
 	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the Added Technologies tab.
 	 */
+    @Override
 	public void term()
 	{
-		List<String> addedTechnologies = new ArrayList<String>();
-		for(int i=0; i<addedTechnologiesModel.size(); i++)
+		StringBuilder sb = new StringBuilder();
+		for(int i = 0; i < addedTechnologiesModel.size(); i++)
 		{
-			String at = (String)addedTechnologiesModel.get(i);
-			addedTechnologies.add(at);
+			if (i != 0) sb.append(";");
+			sb.append(addedTechnologiesModel.get(i));
 		}
-		Technology.setSoftTechnologies(addedTechnologies);
+        setString(softTechnologiesSetting, sb.toString());
 	}
 
 	private void addTechnology()
