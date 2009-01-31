@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09c: ******************************
 
+BUG: (1/30/09, DN) Electric is not reading User's and Project Preferences!! (Bug #2029).
+FIX: Add setCachedObjFromPreferences() in Pref constructor.
+
 BUG: (1/30/09, DN) User.playSound is called from "doIt" methods.
 FIX: Wrap this method in UserInterface.beep.
 

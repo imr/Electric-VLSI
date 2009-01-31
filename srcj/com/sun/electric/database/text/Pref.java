@@ -104,25 +104,8 @@ public class Pref
         public String absolutePath() { return preferences.absolutePath(); }
 
         private void setCachedObjsFromPreferences() {
-            for(Pref pref : prefs.values()) {
-                switch (pref.type) {
-                    case BOOLEAN:
-                        pref.setBoolean(getBoolean(pref.name, pref.getBooleanFactoryValue()));
-                        break;
-                    case INTEGER:
-                        pref.setInt(getInt(pref.name, pref.getIntFactoryValue()));
-                        break;
-                    case LONG:
-                        pref.setLong(getLong(pref.name, pref.getLongFactoryValue()));
-                        break;
-                    case DOUBLE:
-                        pref.setDouble(getDouble(pref.name, pref.getDoubleFactoryValue()));
-                        break;
-                    case STRING:
-                        pref.setString(get(pref.name, pref.getStringFactoryValue()));
-                        break;
-                }
-            }
+            for(Pref pref : prefs.values())
+                pref.setCachedObjFromPreferences();
         }
 
         private void putBoolean(String key, boolean value) {
@@ -242,10 +225,7 @@ public class Pref
         this.serverAccessible = serverAccessible;
         this.type = type;
         cachedObj = this.factoryObj = factoryObj;
-        synchronized (group.prefs) {
-            assert !group.prefs.containsKey(name);
-            group.prefs.put(name, this);
-        }
+        setCachedObjFromPreferences();
         if (lockCreation && serverAccessible && Job.getDebug()) {
             try {
                 throw new IllegalStateException("Pref "+group.absolutePath()+"/"+name+" was created from improper place");
@@ -631,10 +611,30 @@ public class Pref
     }
 
     private void setValue(Object value) {
-        cachedObj = value.equals(factoryObj) ? factoryObj : value; 
+        cachedObj = value.equals(factoryObj) ? factoryObj : value;
     }
-    
-	/**
+
+    private void setCachedObjFromPreferences() {
+        switch (type) {
+            case BOOLEAN:
+                setBoolean(group.getBoolean(name, getBooleanFactoryValue()));
+                break;
+            case INTEGER:
+                setInt(group.getInt(name, getIntFactoryValue()));
+                break;
+            case LONG:
+                setLong(group.getLong(name, getLongFactoryValue()));
+                break;
+            case DOUBLE:
+                setDouble(group.getDouble(name, getDoubleFactoryValue()));
+                break;
+            case STRING:
+                setString(group.get(name, getStringFactoryValue()));
+                break;
+        }
+    }
+
+   	/**
 	 * Method to get the type of this Pref object.
 	 * @return an integer type: either BOOLEAN, INTEGER, LONG, DOUBLE, or STRING.
 	 */
