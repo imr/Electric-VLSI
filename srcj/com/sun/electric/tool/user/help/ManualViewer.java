@@ -136,6 +136,7 @@ public class ManualViewer extends EModelessDialog
 		String fileName;
 		String chapterName;
 		String fullChapterNumber;
+		String outerChapterTitle;
 		int chapterNumber;
 		int sectionNumber;
 		URL url;
@@ -412,6 +413,7 @@ public class ManualViewer extends EModelessDialog
 		sectionNumbers[0] = -1;
 		currentIndex = lastPageVisited;
 		DefaultMutableTreeNode thisNode = null;
+		String outerTitle = "";
 		for(;;)
 		{
 			String line = getLine(is);
@@ -443,6 +445,7 @@ public class ManualViewer extends EModelessDialog
 				stack[indent].add(stack[indent+1]);
 				sectionNumbers[indent+1] = 0;
 				newAtLevel = true;
+				outerTitle = title;
 			} else
 			{
 				PageInfo pi = new PageInfo();
@@ -450,6 +453,7 @@ public class ManualViewer extends EModelessDialog
 				pi.title = title;
 				pi.chapterName = chapterName;
 				pi.chapterNumber = chapterNumber;
+				pi.outerChapterTitle = outerTitle;
 				pi.sectionNumber = ++sectionNumbers[indent];
 				pi.fullChapterNumber = "";
 				for(int i=0; i<indent; i++)
@@ -978,11 +982,6 @@ public class ManualViewer extends EModelessDialog
 			int lastIndex = index - 1;
 			if (lastIndex < 0) lastIndex = pageSequence.size() - 1;
 			PageInfo lastPi = pageSequence.get(lastIndex);
-			String lastFileName = lastPi.fileName;
-			int nextIndex = index + 1;
-			if (nextIndex >= pageSequence.size()) nextIndex = 0;
-			PageInfo nextPi = pageSequence.get(nextIndex);
-			String nextFileName = nextPi.fileName;
 
 			for(;;)
 			{
@@ -998,23 +997,38 @@ public class ManualViewer extends EModelessDialog
 						continue;
 					}
 					String pageName = line.substring(12, endPt).trim();
+					boolean newSection = false;
 					if (pi.level < 2 || pi.newAtLevel)
 					{
+						newSection = true;
 						if (pi.chapterNumber > 0 && lastPi.chapterNumber < pi.chapterNumber)
 						{
-							printWriter.println("<HR>");
-							printWriter.println("<CENTER><H1><A NAME=\"" + pi.fileName + "\">Chapter " + pi.chapterName + "</A></H1></CENTER>");
+							printWriter.println("<CENTER><H1>Chapter " + pi.chapterName + "</H1></CENTER>");
 						} else
 						{
-							printWriter.println("<!-- PAGE BREAK --><A NAME=\"" + pi.fileName + "\"></A>");
-							printWriter.println("<CENTER><FONT SIZE=6><B>Chapter " + pi.chapterName + "</B></FONT></CENTER>");
+							printWriter.println("<!-- PAGE BREAK -->");
 						}
-						printWriter.println("<CENTER><TABLE WIDTH=\"90%\" BORDER=0><TR>");
-						printWriter.println("<TD><CENTER><A HREF=\"" + lastFileName + ".html#" + lastFileName +
-							".html\"><IMG SRC=\"iconplug.png\" ALT=\"plug\" BORDER=0></A></CENTER></TD>");
-						printWriter.println("<TD><CENTER><H2>" + pageName + "</H2></CENTER></TD>");
-						printWriter.println("<TD><CENTER><A HREF=\"" + nextFileName + ".html#" + nextFileName +
-							".html\"><IMG SRC=\"iconplug.png\" ALT=\"plug\" BORDER=0></A></CENTER></TD></TR></TABLE></CENTER>");
+						int colonPos = pageName.indexOf(':');
+						if (colonPos > 0)
+						{
+							int numDashes = 0;
+							for(int i=0; i<colonPos; i++)
+								if (pageName.charAt(i) == '-') numDashes++;
+							if (numDashes > 1)
+							{
+								newSection = false;
+								int firstDash = pageName.indexOf('-');
+								int secondDash = pageName.indexOf('-', firstDash+1);
+								String prefix = pageName.substring(0, secondDash) + ": ";
+								printWriter.println("<CENTER><H2>" + prefix + pi.outerChapterTitle + "</H2></CENTER>");
+								printWriter.println("<HR>");
+								printWriter.println("<BR>");								
+							}
+						}
+					}
+					if (newSection)
+					{
+						printWriter.println("<CENTER><H2>" + pageName + "</H2></CENTER>");
 						printWriter.println("<HR>");
 						printWriter.println("<BR>");
 					} else
