@@ -32,8 +32,7 @@ be expressed as a set of "high-level" primitives (transistors and contacts) whic
 ways of appearing in the layout.
 Therefore, it is not always possible to extract layout precisely.
 For example, the design rules for a transistor typically require that polysilicon extend beyond
-the gate area by 2 units, so transistor primitives typically have this
- extra geometry built into them.
+the gate area by 2 units, so transistor primitives typically have this extra geometry built into them.
 But what would happen if the geometry to be extracted extends by 3 units?
 Electric adds an extra 1-unit arc to fill-out the geometry that it finds.
 Worse yet, what would happen if the geometry extends by only 1 unit?
@@ -57,10 +56,10 @@ This is useful for data that has precision problems.
 appear exactly in the same place, once extracted.
 When this preference is checked, Electric will find contact areas and replace them with contact nodes
 regardless of where those nodes place the cuts.
-Without this preference, Electric will place contact nodes in such a way that the cut
-layers land in the correct original locations.
 </TD></TR></TABLE>
 <P>
+Without this preference, Electric will place contact nodes in such a way that the cut
+layers land in the correct original locations.
 The disadvantage of forcing exact cut placement is that Electric will create many contact
 nodes, one for each cut layer.
 In multi-cut situations, this may be many more nodes than are necessary.

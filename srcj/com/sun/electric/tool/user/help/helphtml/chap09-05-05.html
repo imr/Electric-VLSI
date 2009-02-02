@@ -1,4 +1,4 @@
-<!-- NEED 4in -->
+<!-- NEED 5in -->
 
 <!-- HEADER 9-5-5: ALS Functions -->
 
@@ -36,7 +36,7 @@ There are two flip-flops (JK and D)
 and two numeric converters that translate between a bus of 8 signals and a composite hexadecimal digit.
 <P>
 
-<H3>Declaring Input and Output Ports</H3>
+<H4>Declaring Input and Output Ports</H4>
 <P>
 The <B>i:</B> and <B>o:</B>
 statements which follow the function declaration are used to tell the simulator which
@@ -60,7 +60,7 @@ The format of an <B>o:</B> statement which contains a list of output ports is sh
 </TABLE></CENTER>
 <P>
 
-<H3>Other Specifications</H3>
+<H4>Other Specifications</H4>
 <P>
 Just as there are special statements that affect the operating characteristics of a gate entity,
 so are these statements available to direct the function entity.
@@ -74,20 +74,28 @@ Note that the Java method does not have to use the values specified in these
 statements and can schedule events with values that are specified directly inside the code.
 <P>
 
-<H3>Example of Function Use</H3>
+<H4>Example of Function Use</H4>
 <P>
 The specification for a 3 bit shift register (edge triggered) is shown below.
 This circuit uses a function primitive to model the operation of a D flip-flop:
 <P><CODE>
 &nbsp;&nbsp;&nbsp;model main(input, ck, q2, q1, q0)<BR>
-&nbsp;&nbsp;&nbsp;stage0: DFFLOP(input, ck, q0)<BR>
-&nbsp;&nbsp;&nbsp;stage1: DFFLOP(q0, ck, q1)<BR>
-&nbsp;&nbsp;&nbsp;stage2: DFFLOP(q1, ck, q2)<BR>
-<BR>
-&nbsp;&nbsp;&nbsp;function DFFLOP(data_in, clock, output)<BR>
-&nbsp;&nbsp;&nbsp;i: clock<BR>
-&nbsp;&nbsp;&nbsp;o: output<BR>
-&nbsp;&nbsp;&nbsp;t: delta=10e-9<BR>
+&nbsp;&nbsp;&nbsp;stage0: DFFLOP(input, ck, q0)
+<BR>
+&nbsp;&nbsp;&nbsp;stage1: DFFLOP(q0, ck, q1)
+<BR>
+&nbsp;&nbsp;&nbsp;stage2: DFFLOP(q1, ck, q2)
+<BR>
+
+<BR>
+&nbsp;&nbsp;&nbsp;function DFFLOP(data_in, clock, output)
+<BR>
+&nbsp;&nbsp;&nbsp;i: clock
+<BR>
+&nbsp;&nbsp;&nbsp;o: output
+<BR>
+&nbsp;&nbsp;&nbsp;t: delta=10e-9
+<BR>
 &nbsp;&nbsp;&nbsp;load clock=2.0
 </CODE><P>
 It should be noted that the clock is the only event driving input for the flip-flop function.

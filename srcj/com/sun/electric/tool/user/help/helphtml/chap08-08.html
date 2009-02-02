@@ -13,12 +13,12 @@ the layers, the arcs, the nodes, and miscellaneous information on the technology
 Information in these areas can be added, deleted, or modified.
 The rest of this section outlines all of these situations.
 <P>
-<H3>Adding layers, adding arcs, adding nodes, adding miscellaneous information</H3>
+<H4>Adding layers, adding arcs, adding nodes, adding miscellaneous information</H4>
 <P>
 Adding information has no effect on the existing circuitry.
 All subsequent circuit design may make use of the new technology elements.
 <P>
-<H3>Deleting layers</H3>
+<H4>Deleting layers</H4>
 <P>
 All references to a deleted layer, in any nodes or arcs of the technology,
 will become meaningless.
@@ -26,19 +26,19 @@ This does not invalidate libraries that use the layers,
 but it does invalidate the node and arc descriptions in the technology.
 The geometry in these nodes and arcs will have to be moved to another layer.
 <P>
-<H3>Deleting nodes, deleting arcs</H3>
+<H4>Deleting nodes, deleting arcs</H4>
 <P>
 This will cause error
 messages when libraries are read that make use of the deleted elements.
 When the library is read,
 you can substitute another node or arc to use in place of the now-unknown component.
 <P>
-<H3>Deleting miscellaneous information</H3>
+<H4>Deleting miscellaneous information</H4>
 <P>
 This depends entirely on where that information is used.
 For example, an analysis tool may fail to find the information that it requires.
 <P>
-<H3>Modifying layers</H3>
+<H4>Modifying layers</H4>
 <P>
 This is a totally transparent operation.
 Any change to the color, style, or stipple information (including changes to the color map)
@@ -50,7 +50,7 @@ if you change the function of the "polysilicon" or "diffusion" layers that form 
 the editor will be unable to identify this transistor).
 Renaming a layer has no effect.
 <P>
-<H3>Modifying arcs, modifying nodes</H3>
+<H4>Modifying arcs, modifying nodes</H4>
 <P>
 This is not as simple as layer modification because the arcs and nodes appear in the circuit libraries,
 whereas the layers do not.
@@ -100,7 +100,7 @@ scaling them appropriately relative to their default sizes.
 The change is completed by deleting the old technology,
 renaming the new technology to the old name, and then saving the library.
 <P>
-<H3>Modifying miscellaneous information</H3>
+<H4>Modifying miscellaneous information</H4>
 <P>
 This last situation is typically transparent:
 changed information appears in all existing libraries,

@@ -22,7 +22,8 @@ The advantages of connectivity-based IC layout are many:
 Node extraction is not a separate, error-prone step. Instead, the connectivity 
 is part of the layout description and is instantly available. This speeds up 
 all network-oriented operations, including simulation, layout-versus-schematic (LVS),
-and electrical rules checkers.
+and electrical 
+rules checkers.
 <LI><B>No geometry errors.</B>
 Complex components are no longer composed of unrelated pieces of geometry that 
 can be moved independently. In paint systems, you can accidentally move the 
@@ -39,7 +40,8 @@ circuit is modified on different levels of hierarchy.
 when they can use connectivity information. For example, the Design Rule 
 checker knows when the layout is connected and uses different spacing rules.
 <LI><B>Simpler design process.</B>
-When doing schematics and layout at the same time, getting a correct LVS
+When doing schematics and layout at the same time,
+ getting a correct LVS
 typically involves many steps of design rule cleaning.
 This is because node extraction must be done to obtain the connectivity of the IC layout,
 and node extractors cannot work when the design rules are bad.
@@ -53,21 +55,23 @@ and schematics. Electric tightly integrates the process of drawing separate
 schematics and has an LVS tool to compare them.
 </UL>
 <P>
-<!-- NEED 2in -->
 The disadvantages of connectivity-based IC layout are also known:
 <UL>
-<LI><B>It is different</B>
+<LI>
+<B>It is different</B>
 from all the rest and requires retraining. This is true, but many have 
 converted and found it worthwhile. Users who are familiar with paint-based IC 
 layout systems typically have a harder time learning Electric than those with 
 no previous IC design experience.
-<LI><B>Requires extra work</B>
+<LI>
+<B>Requires extra work</B>
 on the user's part to enter the connectivity as well as the geometry. While 
 this may be true in the initial phases of design, it is not true overall. This 
 is because the use of connectivity, early in the design, helps the system to 
 find problems later on. In addition, Electric has many power tools for 
 automatically handling connectivity.
-<LI><B>Design is not WYSIWYG</B>
+<LI>
+<B>Design is not WYSIWYG</B>
 (what-you-see-is-what-you-get) because objects that touch on the screen may or 
 may not be truly connected. Electric has many tools to ensure that the 
 connectivity has been properly constructed.
@@ -90,7 +94,8 @@ on nodes where the wires connect.
 In the above example, the transistor node on the left has three pieces of geometry on 
 different layers: polysilicon, active, and well. This node can be scaled, 
 rotated, and otherwise manipulated without concern for specific layer sizes. 
-This is because rules for drawing the node have been coded in a <I>technology</I>,
+This is because rules for drawing the node have been coded in a <I>technology</I>
+,
 which describes nodes and arcs in terms of specific layers.
 <P>
 Because Electric uses nodes and arcs for design, it is important that they be 

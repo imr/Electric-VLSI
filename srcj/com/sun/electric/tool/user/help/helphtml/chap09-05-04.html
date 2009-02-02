@@ -23,7 +23,7 @@ If there is not enough room on a single line to accommodate all the names,
 simply continue the list on the next line.
 <P>
 
-<H3>The i: and o: Statements (Input and Output)</H3>
+<H4>The i: and o: Statements (Input and Output)</H4>
 <P>
 The <B>i:</B> and <B>o:</B> statements are used to construct a logical truth table for a gate primitive.
 The signal names and logical assertions which follow the <B>i:</B>
@@ -48,7 +48,7 @@ the simulator schedules the corresponding output assignments and terminates the 
 <P>
 
 <!-- NEED 3in -->
-<H3>Signal References in the i: Statement</H3>
+<H4>Signal References in the i: Statement</H4>
 <P>
 Besides testing the logical values of a signal, the <B>i:</B> statement can also compare them numerically.
 The format of a signal references, which follow the <B>i:</B> statement, is show below:
@@ -69,7 +69,7 @@ If there is not enough room on a single line to accommodate all the test conditi
 the user can continue the list on the next line of the netlist.
 <P>
 
-<H3>Signal References in the o: Statement</H3>
+<H4>Signal References in the o: Statement</H4>
 <P>
 The signal references which follow the <B>o:</B> statement are used as registers for mathematical operations.
 It is possible to set a signal to a logic state and it is possible to perform mathematical operations on its contents.
@@ -100,7 +100,7 @@ The strength declaration is optional and if it is omitted,
 a default strength of 2 (gate) is assigned to the output signal.
 <P>
 
-<H3>The t: Statement (Time Delay)</H3>
+<H4>The t: Statement (Time Delay)</H4>
 <P>
 The propagation delay time (switching speed) of a gate can be set with the <B>t:</B> statement.
 The format of this statement is shown below:
@@ -142,7 +142,7 @@ This example shows that when both inputs are high,
 the output will go low after a delay of 3.0 nanoseconds and that if either input is low,
 the output will go high after a delay of 1.0 nanosecond.
 <P>
-<H3>The Delta Timing Distribution of the t: Statement</H3>
+<H4>The Delta Timing Distribution of the t: Statement</H4>
 <P>
 The Delta timing distribution is used to specify a fixed, non-random delay.
 The format of a delta timing declaration is shown below:
@@ -156,8 +156,8 @@ The format of a delta timing declaration is shown below:
 The value associated with the delta declaration represents the fixed time delay in seconds
 (1.0 = 1 second, 2.5e-9 = 2.5 nanoseconds, etc.)
 <P>
-
-<H3>The Linear Timing Distribution of the t: Statement</H3>
+<!-- NEED 3in -->
+<H4>The Linear Timing Distribution of the t: Statement</H4>
 <P>
 The Linear timing distribution is used to specify a random delay period that has a uniform probability distribution.
 The format of a linear timing declaration is shown below:
@@ -174,7 +174,7 @@ This means that there is an equally likely chance that the delay time will lie a
 between the bounds of 0 and 2 times the value specified.
 <P>
 
-<H3>The Random Probability Function of the t: Statement</H3>
+<H4>The Random Probability Function of the t: Statement</H4>
 <P>
 The random probability function enables the user to model things which occur on a percentage basis
 (e.g. bit error rate, packet routing).
@@ -236,7 +236,7 @@ descriptions rather than both of them.
 Unpredictable events occur if the random declaration is placed on both gate descriptions.
 <P>
 
-<H3>The Fanout Statement</H3>
+<H4>The Fanout Statement</H4>
 <P>
 The <B>fanout</B> statement is used to selectively enable/disable fanout calculations
 for a gate when the database is being compiled.
@@ -260,7 +260,7 @@ This feature allows the user to force switching times to a particular value
 and not have them modified by the simulator at run time.
 <P>
 
-<H3>The Load Statement</H3>
+<H4>The Load Statement</H4>
 <P>
 The <B>load</B> statement is used to set the relative loading (capacitance) for an input or output signal.
 The format of a <B>load</B> statement is shown below:
@@ -281,7 +281,8 @@ The simulator, by default, assumes that all signals associated with gate primiti
 (unit load) unless they are overridden by a <B>load</B> statement.
 <P>
 
-<H3>The Priority Statement</H3>
+<!-- NEED 3in -->
+<H4>The Priority Statement</H4>
 <P>
 The <B>priority</B> statement is used to establish the scheduling priority for a gate primitive.
 The format for a <B>priority</B> statement is shown below:
@@ -303,7 +304,7 @@ The user is advised to leave the priority settings at their default values unles
 specific requirement which demands priority readjustment.
 <P>
 
-<H3>The Set Statement</H3>
+<H4>The Set Statement</H4>
 <P>
 The <B>set</B> statement is used to initialize signals to specific logic states before the simulation run takes place.
 The format for the <B>set</B> statement is shown below: 

@@ -36,7 +36,7 @@ reading the library with the chip definition.
 This avoids large FPGA Architecture files
 (the Primitive Definition section will be smaller than the Block Definition and Architecture sections).
 <P>
-<H3>Primitive Definition Section</H3>
+<H4>Primitive Definition Section</H4>
 <P>
 The Primitive Definition section defines the lowest-level blocks,
 which become primitive nodes in the FPGA technology.
@@ -125,7 +125,7 @@ Here is the code:
 )</FONT></CODE>
 
 <P>
-<H3>Block Definition and Architecture Sections</H3>
+<H4>Block Definition and Architecture Sections</H4>
 <P>
 The Block Definition and Architecture sections define higher-level blocks composed of primitives.
 They looks like this:
@@ -234,6 +234,7 @@ These parts can be either <CODE>component INSTNAME PORTNAME</CODE>, <CODE>port P
 or <CODE>coord X Y</CODE>, depending on whether the net ends at a component,
 port or at an arbitrary position inside of the block.
 <P>
+<!-- NEED 4in -->
 <TABLE><TR><TD VALIGN=TOP WIDTH="65%">
 Here is an example of block definition code and its layout.
 <P>
@@ -311,7 +312,7 @@ Here is an example of block definition code and its layout.
 </FONT></CODE>
 <P>
 <!-- NEED 3in -->
-<H3>Commands</H3>
+<H4>Commands</H4>
 To read an architecture file, use the <B>Read Architecture And Primitives...</B> command
 (in menu <B>Edit / Technology Specific / FPGA</B>).
 You will be prompted for an architecture file.

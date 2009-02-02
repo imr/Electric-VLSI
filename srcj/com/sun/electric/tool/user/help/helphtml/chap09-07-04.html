@@ -1,4 +1,4 @@
-<!-- HEADER 9-7-4: NCC Annotations -->
+<!-- HEADER 9-7-4: Annotations -->
 
 <!-- COMMAND Tools/NCC/Add NCC Annotation to Cell/Exports Connected by Parent vdd -->
 <!-- COMMAND Tools/NCC/Add NCC Annotation to Cell/Exports Connected By Parent gnd -->
@@ -26,7 +26,7 @@ Each line contains a separate NCC annotation.
 Thus, although a cell can have at most one attribute named <i>NCC</i>,
 that attribute can contain any number of NCC annotations.
 
-<h3>exportsConnectedByParent <i>&lt;string or regular expression&gt;</i> </h3>
+<H4>exportsConnectedByParent <i>&lt;string or regular expression&gt;</i></H4>
 
 <P>
 Layout cells sometimes contain multiple exports that are supposed to
@@ -66,7 +66,7 @@ with an <i>exportsConnectedByParent</i> annotation NCC reports an
 error whenever that assertion isn't satisfied.
 </p>
 
-<h3>skipNCC <i>&lt;comment&gt;</i> </h3>
+<H4>skipNCC <i>&lt;comment&gt;</i></H4>
 
 <P>
 The skipNCC annotation should be added to a cell, say B, when:
@@ -113,8 +113,8 @@ or layout cell in the cell group. We prefer a
 schematic cell because it's more visible to the designer.
 </p>
 
-
-<h3>flattenInstances <i>&lt;string or regular expression&gt;</i> ... </h3>
+<!-- NEED 3in -->
+<H4>flattenInstances <i>&lt;string or regular expression&gt;</i> ...</H4>
 <P>
 Hierarchical NCCs do not require a perfect match between the schematic
 and layout hierarchies. Instead, hierarchical NCC uses heuristics to
@@ -128,7 +128,7 @@ instance names within the cell. Those cell instances that match are
 always flattened.  
 </p>
 
-<h3>notSubcircuit <i>&lt;comment&gt;</i>  </h3>
+<H4>notSubcircuit <i>&lt;comment&gt;</i></H4>
 
 <P>
 The designer should add the <i>notSubcircuit</i> annotation to a cell, say B,
@@ -165,8 +165,7 @@ or layout cell in the cell group. We prefer a
 schematic cell because it's more visible to the designer.
 </p>
 
-
-<h3>joinGroup <i>&lt;cell name&gt;</i> </h3> 
+<H4>joinGroup <i>&lt;cell name&gt;</i></H4> 
 <p>
 The designer should add a joinGroup annotation to, say, cell B if NCC
 should behave as if cell B belonged to a different cell group and that
@@ -188,7 +187,8 @@ automatically generated from hand drawn schematics it may be better to
 place the layout in a different library than the schematics.
 </p>
 
-<h3>transistorType<i>&lt;type&gt;</i> </h3> 
+<!-- NEED 2in -->
+<H4>transistorType<i>&lt;type&gt;</i></H4> 
 <p>
 All schematic transistors in this cell are of type: <i>type</i>. 
 The <i>type</i> field may be one of the following: 
@@ -206,7 +206,7 @@ Most
  designers simply instantiate transistors from those special libraries.
 </p>
 
-<h3>resistorType<i>&lt;type&gt;</i> </h3> 
+<H4>resistorType<i>&lt;type&gt;</i></H4> 
 <p>
 All schematic polysilicon resistors in this cell are of type: <i>type</i>. 
 The <i>type</i> field may be one of the following: 
@@ -223,7 +223,7 @@ Most
  designers simply instantiate resistors from those special libraries.
 </p>
 
-<h3>forceWireMatch <i>&lt;wireName&gt;</i> </h3> 
+<H4>forceWireMatch <i>&lt;wireName&gt;</i></H4> 
 <p>
 Force the wire in the schematic named <i>wireName</i> to match the wire in
 the layout named <i>wireName
@@ -242,13 +242,13 @@ After fixing the problem, you should try to
 remove all <i>forceWireMatch</i> annotations. 
 </p>
 
-<h3>forcePartMatch <i>&lt;partName&gt;</i> </h3> 
+<H4>forcePartMatch <i>&lt;partName&gt;</i></H4> 
 <p>
 Same as <i>forceWireMatch</i> except that this command works on parts rather than
 wires.
 </p>
 
-<h3>blackBox <i>&lt;comment&gt;</i> </h3> 
+<H4>blackBox <i>&lt;comment&gt;</i></H4> 
 <p>
 Don't compare the cells in this cell group; just
 assume they are topologically equivalent.
