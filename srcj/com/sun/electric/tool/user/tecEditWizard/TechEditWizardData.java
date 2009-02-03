@@ -115,10 +115,10 @@ public class TechEditWizardData
 
 	// VIA RULES
 	private WizardField [] via_size;
-	private WizardField [] via_spacing;
+	private WizardField [] via_inline_spacing;
 	private WizardField [] via_array_spacing;
-	private WizardField [] via_overhang_inline;
-	private WizardField [] via_overhang_inline_short;
+	private WizardField [] via_overhang;
+	private WizardField [] via_overhang_short;
 
 	// ANTENNA RULES
 	private double poly_antenna_ratio;
@@ -219,10 +219,10 @@ public class TechEditWizardData
 		metal_width = new WizardField[num_metal_layers];
 		metal_spacing = new WizardField[num_metal_layers];
 		via_size = new WizardField[num_metal_layers-1];
-		via_spacing = new WizardField[num_metal_layers-1];
+		via_inline_spacing = new WizardField[num_metal_layers-1];
 		via_array_spacing = new WizardField[num_metal_layers-1];
-		via_overhang_inline = new WizardField[num_metal_layers-1];
-		via_overhang_inline_short = new WizardField[num_metal_layers-1];
+		via_overhang = new WizardField[num_metal_layers-1];
+		via_overhang_short = new WizardField[num_metal_layers-1];
 		metal_antenna_ratio = new double[num_metal_layers];
 
         gds_metal_layer = new LayerInfo[num_metal_layers];
@@ -246,10 +246,10 @@ public class TechEditWizardData
         for(int i=0; i<num_metal_layers-1; i++)
 		{
 			via_size[i] = new WizardField();
-			via_spacing[i] = new WizardField();
+			via_inline_spacing[i] = new WizardField();
 			via_array_spacing[i] = new WizardField();
-			via_overhang_inline[i] = new WizardField();
-			via_overhang_inline_short[i] = new WizardField();
+			via_overhang[i] = new WizardField();
+			via_overhang_short[i] = new WizardField();
             gds_via_layer[i] = new LayerInfo("Via-"+(i+1));
         }
     }
@@ -286,9 +286,9 @@ public class TechEditWizardData
 		via_size = new_via_size;
 
 		WizardField [] new_via_spacing = new WizardField[n-1];
-		for(int i=0; i<smallest-1; i++) new_via_spacing[i] = via_spacing[i];
+		for(int i=0; i<smallest-1; i++) new_via_spacing[i] = via_inline_spacing[i];
 		for(int i=smallest-1; i<n-1; i++) new_via_spacing[i] = new WizardField();
-		via_spacing = new_via_spacing;
+		via_inline_spacing = new_via_spacing;
 
 		WizardField [] new_via_array_spacing = new WizardField[n-1];
 		for(int i=0; i<smallest-1; i++) new_via_array_spacing[i] = via_array_spacing[i];
@@ -296,14 +296,14 @@ public class TechEditWizardData
 		via_array_spacing = new_via_array_spacing;
 
 		WizardField [] new_via_overhang_inline = new WizardField[n-1];
-		for(int i=0; i<smallest-1; i++) new_via_overhang_inline[i] = via_overhang_inline[i];
+		for(int i=0; i<smallest-1; i++) new_via_overhang_inline[i] = via_overhang[i];
 		for(int i=smallest-1; i<n-1; i++) new_via_overhang_inline[i] = new WizardField();
-		via_overhang_inline = new_via_overhang_inline;
+		via_overhang = new_via_overhang_inline;
 
         WizardField [] new_via_overhang_inline_short = new WizardField[n-1];
-		for(int i=0; i<smallest-1; i++) new_via_overhang_inline_short[i] = via_overhang_inline_short[i];
+		for(int i=0; i<smallest-1; i++) new_via_overhang_inline_short[i] = via_overhang_short[i];
 		for(int i=smallest-1; i<n-1; i++) new_via_overhang_inline_short[i] = new WizardField();
-		via_overhang_inline_short = new_via_overhang_inline_short;
+		via_overhang_short = new_via_overhang_inline_short;
 
         double [] new_metal_antenna_ratio = new double[n];
 		for(int i=0; i<smallest; i++) new_metal_antenna_ratio[i] = metal_antenna_ratio[i];
@@ -431,12 +431,12 @@ public class TechEditWizardData
 	// VIA RULES
 	WizardField [] getViaSize() { return via_size; }
 	void setViaSize(int via, WizardField value) { via_size[via] = value; }
-	WizardField [] getViaSpacing() { return via_spacing; }
-	void setViaSpacing(int via, WizardField value) { via_spacing[via] = value; }
+	WizardField [] getViaSpacing() { return via_inline_spacing; }
+	void setViaSpacing(int via, WizardField value) { via_inline_spacing[via] = value; }
 	WizardField [] getViaArraySpacing() { return via_array_spacing; }
 	void setViaArraySpacing(int via, WizardField value) { via_array_spacing[via] = value; }
-	WizardField [] getViaOverhangInline() { return via_overhang_inline; }
-	void setViaOverhangInline(int via, WizardField value) { via_overhang_inline[via] = value; }
+	WizardField [] getViaOverhangInline() { return via_overhang; }
+	void setViaOverhangInline(int via, WizardField value) { via_overhang[via] = value; }
 
 	// ANTENNA RULES
 	public double getPolyAntennaRatio() { return poly_antenna_ratio; }
@@ -666,14 +666,14 @@ public class TechEditWizardData
 					if (varName.equalsIgnoreCase("metal_spacing_rule")) fillWizardArray(varValue, metal_spacing, num_metal_layers, true); else
 					if (varName.equalsIgnoreCase("via_size")) fillWizardArray(varValue, via_size, num_metal_layers-1, false); else
 					if (varName.equalsIgnoreCase("via_size_rule")) fillWizardArray(varValue, via_size, num_metal_layers-1, true); else
-					if (varName.equalsIgnoreCase("via_spacing")) fillWizardArray(varValue, via_spacing, num_metal_layers-1, false); else
-					if (varName.equalsIgnoreCase("via_spacing_rule")) fillWizardArray(varValue, via_spacing, num_metal_layers-1, true); else
+					if (varName.equalsIgnoreCase("via_spacing")) fillWizardArray(varValue, via_inline_spacing, num_metal_layers-1, false); else
+					if (varName.equalsIgnoreCase("via_spacing_rule")) fillWizardArray(varValue, via_inline_spacing, num_metal_layers-1, true); else
 					if (varName.equalsIgnoreCase("via_array_spacing")) fillWizardArray(varValue, via_array_spacing, num_metal_layers-1, false); else
 					if (varName.equalsIgnoreCase("via_array_spacing_rule")) fillWizardArray(varValue, via_array_spacing, num_metal_layers-1, true); else
-					if (varName.equalsIgnoreCase("via_overhang_inline")) fillWizardArray(varValue, via_overhang_inline, num_metal_layers-1, false); else
-					if (varName.equalsIgnoreCase("via_overhang_inline_rule")) fillWizardArray(varValue, via_overhang_inline, num_metal_layers-1, true); else
-					if (varName.equalsIgnoreCase("via_overhang_inline_short")) fillWizardArray(varValue, via_overhang_inline_short, num_metal_layers-1, false); else
-					if (varName.equalsIgnoreCase("via_overhang_inline_short_rule")) fillWizardArray(varValue, via_overhang_inline_short, num_metal_layers-1, true); else
+					if (varName.equalsIgnoreCase("via_overhang_inline")) fillWizardArray(varValue, via_overhang, num_metal_layers-1, false); else
+					if (varName.equalsIgnoreCase("via_overhang_inline_rule")) fillWizardArray(varValue, via_overhang, num_metal_layers-1, true); else
+					if (varName.equalsIgnoreCase("via_overhang_inline_short")) fillWizardArray(varValue, via_overhang_short, num_metal_layers-1, false); else
+					if (varName.equalsIgnoreCase("via_overhang_inline_short_rule")) fillWizardArray(varValue, via_overhang_short, num_metal_layers-1, true); else
 
 					if (varName.equalsIgnoreCase("poly_antenna_ratio")) setPolyAntennaRatio(TextUtils.atof(varValue)); else
 					if (varName.equalsIgnoreCase("metal_antenna_ratio")) metal_antenna_ratio = makeDoubleArray(varValue); else
@@ -993,14 +993,14 @@ public class TechEditWizardData
 		for(int i=0; i<num_metal_layers-1; i++)
 		{
 			if (i > 0) pw.print(", ");
-			pw.print(TextUtils.formatDouble(via_spacing[i].v));
+			pw.print(TextUtils.formatDouble(via_inline_spacing[i].v));
 		}
 		pw.println(");");
 		pw.print("@via_spacing_rule = (");
 		for(int i=0; i<num_metal_layers-1; i++)
 		{
 			if (i > 0) pw.print(", ");
-			pw.print("\"" + via_spacing[i].rule + "\"");
+			pw.print("\"" + via_inline_spacing[i].rule + "\"");
 		}
 		pw.println(");");
 		pw.println();
@@ -1023,14 +1023,14 @@ public class TechEditWizardData
 		for(int i=0; i<num_metal_layers-1; i++)
 		{
 			if (i > 0) pw.print(", ");
-			pw.print(TextUtils.formatDouble(via_overhang_inline[i].v));
+			pw.print(TextUtils.formatDouble(via_overhang[i].v));
 		}
 		pw.println(");");
 		pw.print("@via_overhang_inline_rule = (");
 		for(int i=0; i<num_metal_layers-1; i++)
 		{
 			if (i > 0) pw.print(", ");
-			pw.print("\"" + via_overhang_inline[i].rule + "\"");
+			pw.print("\"" + via_overhang[i].rule + "\"");
 		}
 		pw.println(");");
 		pw.println();
@@ -1822,22 +1822,22 @@ public class TechEditWizardData
         if (getProtectionPoly())
         {
             // min contact with surround, assuming short is on X
+            // We can't use the absolute shot from the via enclosure because the poly cut width is
+            // smaller than the min M1 width.
+            double expectedMin = contact_size.v + via_overhang_short[0].v * 2;
+            double validMetalOver = (DBMath.isLessThan(expectedMin, metal_width[0].v)) ? (metal_width[0].v - contact_size.v)/2 : via_overhang_short[0].v;
             double hlaX = scaledValue(contact_size.v/2 + contact_poly_overhang_min_short.v);
             double hlaY = scaledValue(contact_size.v/2 + contact_poly_overhang_min_long.v);
-            double metal1OverX = scaledValue(contact_size.v/2 + contact_metal_overhang_inline_short_min.v);
-            double metal1OverY = metal1OverX; // scaledValue(contact_size.v/2 + contact_metal_overhang_inline_long_min.v);
-            makeXmlPrimitiveCon(t.nodes, "Min-"+polyLayer.name, hlaX, hlaY, null, portNames,
+            double metal1OverX = scaledValue(contact_size.v/2 + via_overhang[0].v); // X is short for Poly but long for M1
+            double metal1OverY = scaledValue(contact_size.v/2 + validMetalOver);
+
+            // Cross min contact with surround,, assuming short is on X
+            double halfVia = scaledValue(contact_size.v/2);
+            double soX = (DBMath.isGreaterThan(hlaX, metal1OverX)) ? scaledValue(contact_poly_overhang_min_short.v) : scaledValue(via_overhang[0].v);
+            double soY = (DBMath.isGreaterThan(hlaY, metal1OverY)) ? scaledValue(contact_poly_overhang_min_long.v) : scaledValue(validMetalOver);
+            makeXmlPrimitiveCon(t.nodes, "X-"+polyLayer.name, hlaX, hlaY, new SizeOffset(soX, soX, soY, soY), portNames,
                 makeXmlNodeLayer(metal1OverX, metal1OverX, metal1OverY, metal1OverY, m1Layer, Poly.Type.FILLED, true), // meta1 layer
                 makeXmlNodeLayer(hlaX, hlaX, hlaY, hlaY, polyLayer, Poly.Type.FILLED, true), // poly layer
-                makeXmlMulticut(polyConLayer, contSize, contSpacing, contArraySpacing)); // contact
-
-            // Cross min contact with surround
-            double halfVia = scaledValue(contact_size.v/2);
-            double soX = scaledValue(contact_poly_overhang_min_short.v);
-            double soY = scaledValue(contact_poly_overhang_min_long.v);
-            makeXmlPrimitiveCon(t.nodes, "X-"+polyLayer.name, hlaX, hlaY, new SizeOffset(soX, soX, soY, soY), portNames,
-                makeXmlNodeLayer(halfVia, halfVia, hlaY, hlaY, m1Layer, Poly.Type.FILLED, true), // meta1 layer
-                makeXmlNodeLayer(hlaX, hlaX, halfVia, halfVia, polyLayer, Poly.Type.FILLED, true), // poly layer
                 makeXmlMulticut(polyConLayer, contSize, contSpacing, contArraySpacing)); // contact
 
             // Zero surround contact
@@ -1955,11 +1955,11 @@ public class TechEditWizardData
             }
 
             // Contact Square
-            hla = scaledValue(via_size[i-1].v/2 + via_overhang_inline[i-1].v);   // half of the width
+            hla = scaledValue(via_size[i-1].v/2 + via_overhang[i-1].v);   // half of the width
             // via
             Xml.Layer via = viaLayers.get(i-1);
             double viaSize = scaledValue(via_size[i-1].v);
-            double viaSpacing = scaledValue(via_spacing[i-1].v);
+            double viaSpacing = scaledValue(via_inline_spacing[i-1].v);
             double viaArraySpacing = scaledValue(via_array_spacing[i-1].v);
             String name = lb.name + "-" + lt.name;
 
@@ -1967,7 +1967,7 @@ public class TechEditWizardData
             portNames.clear();
             portNames.add(lt.name);
             portNames.add(lb.name);
-            so = scaledValue(via_overhang_inline[i-1].v);
+            so = scaledValue(via_overhang[i-1].v);
             makeXmlPrimitiveCon(t.nodes, name, hla, hla, new SizeOffset(so, so, so, so), portNames,
                 makeXmlNodeLayer(hla, hla, hla, hla, lb, Poly.Type.FILLED, true), // bottom layer
                 makeXmlNodeLayer(hla, hla, hla, hla, lt, Poly.Type.FILLED, true), // top layer
@@ -1976,7 +1976,7 @@ public class TechEditWizardData
             if (getProtectionPoly())
             {
                 // cross contacts Y for odd layers, X for even
-                double hlaX = scaledValue(via_size[i-1].v/2 + via_overhang_inline_short[i-1].v);;  // short
+                double hlaX = scaledValue(via_size[i-1].v/2 + via_overhang_short[i-1].v);;  // short
                 double hlaY = hla; // long
                 makeXmlPrimitiveCon(t.nodes, "X-"+name, hlaX, hlaY, new SizeOffset(so, so, so, so), portNames,
                     makeXmlNodeLayer(hlaX, hlaX, hlaY, hlaY, lb, Poly.Type.FILLED, true), // bottom layer
@@ -2201,7 +2201,7 @@ public class TechEditWizardData
             if (i >= num_metal_layers - 1) continue;
             Xml.Layer via = viaLayers.get(i);
             makeLayerRuleMinWid(t, via, via_size[i]);
-            makeLayersRule(t, via, DRCTemplate.DRCRuleType.CONSPA, via_spacing[i]);
+            makeLayersRule(t, via, DRCTemplate.DRCRuleType.CONSPA, via_inline_spacing[i]);
             makeLayersRule(t, via, DRCTemplate.DRCRuleType.UCONSPA2D, via_array_spacing[i]);
         }
 
