@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09c: ******************************
 
+BUG: (2/3/09, SMR) Node extractor doesn't handle large contacts without
+     "approximate cut placement" set (Bug #2032).
+FIX: Extractor now tries to do exact placement of large contacts.
+
 BUG: (2/03/09, DN) NPE in Network tool undoing Node extraction task plus (Bug #2030).
 FIX: In NetworkTool.getNetlist check if Cell is linked.
 

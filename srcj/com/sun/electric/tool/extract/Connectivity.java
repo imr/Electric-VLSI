@@ -122,6 +122,8 @@ public class Connectivity
 	/** true if this is a N-well process (presume N-well) */	private boolean nWellProcess;
 	/** true to unify N and P active layers */					private boolean unifyActive;
 	/** true to ignore select/well around active layers */		private boolean ignoreActiveSelectWell;
+	/** true to grid align the extracted geometry */			private boolean gridAlignExtraction;
+	/** true to approximate cut placement */					private boolean approximateCuts;
 	/** the smallest polygon acceptable for merging */			private double smallestPoly;
 	/** debugging: list of objects created */					private List<ERectangle> addedRectangles;
 	/** debugging: list of objects created */					private List<ERectangle> addedLines;
@@ -148,6 +150,11 @@ public class Connectivity
 	{
 		private Cell cell, newCell;
 		private boolean recursive;
+		private double smallestPolygonSize;
+		private int activeHandling;
+		private String expansionPattern;
+		private boolean gridAlignExtraction;
+		private boolean approximateCuts;
 		/** debugging: list of objects created */	private List<List<ERectangle>> addedBatchRectangles;
 		/** debugging: list of objects created */	private List<List<ERectangle>> addedBatchLines;
 		/** debugging: list of objects created */	private List<String> addedBatchNames;
@@ -159,13 +166,18 @@ public class Connectivity
 			this.cell = cell;
 			this.recursive = recursive;
             this.errorLogger = ErrorLogger.newInstance("Extraction Tool on cell " + cell.getName());
+            smallestPolygonSize = Extract.getSmallestPolygonSize();
+            activeHandling = Extract.getActiveHandling();
+            expansionPattern = Extract.getCellExpandPattern().trim();
+    		gridAlignExtraction = Extract.isGridAlignExtraction();
+    		approximateCuts = Extract.isApproximateCuts();
             startJob();
 		}
 
 		public boolean doIt() throws JobException
 		{
-			Connectivity c = new Connectivity(cell, this, errorLogger);
-			String expansionPattern = Extract.getCellExpandPattern().trim();
+			Connectivity c = new Connectivity(cell, this, errorLogger, smallestPolygonSize, activeHandling,
+				gridAlignExtraction, approximateCuts);
 			Pattern pat = null;
 			if (expansionPattern.length() > 0)
 			{
@@ -230,11 +242,14 @@ public class Connectivity
 	 * Constructor to initialize connectivity extraction.
 	 * @param tech the Technology to extract to.
 	 */
-	private Connectivity(Cell cell, Job j, ErrorLogger eLog)
+	private Connectivity(Cell cell, Job j, ErrorLogger eLog, double smallestPolygonSize, int activeHandling,
+		boolean gridAlignExtraction, boolean approximateCuts)
 	{
+		this.gridAlignExtraction = gridAlignExtraction;
+		this.approximateCuts = approximateCuts;
 		tech = cell.getTechnology();
 		convertedCells = new HashMap<Cell,Cell>();
-		smallestPoly = (SCALEFACTOR * SCALEFACTOR) * Extract.getSmallestPolygonSize();
+		smallestPoly = (SCALEFACTOR * SCALEFACTOR) * smallestPolygonSize;
 		bogusContacts = new HashSet<PrimitiveNode>();
         errorLogger = eLog;
         job = j;
@@ -261,7 +276,6 @@ public class Connectivity
 		}
 
 		// see how active layers should be handled
-		int activeHandling = Extract.getActiveHandling();
 		unifyActive = (activeHandling == 1);
 		ignoreActiveSelectWell = (activeHandling == 2);
 		if (!unifyActive)
@@ -435,50 +449,42 @@ public class Connectivity
 
 		// start by extracting vias
 		initDebugging();
-		if (!startSection("Extracting vias..."))
-             return null; // aborted
-        if (!extractVias(merge, originalMerge, newCell))
-            return null; // aborted
+		if (!startSection("Extracting vias...")) return null; // aborted
+        if (!extractVias(merge, originalMerge, newCell)) return null; // aborted
         termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "Vias");
 
 		// now extract transistors
 		initDebugging();
-		if (!startSection("Extracting transistors..."))
-             return null; // aborted
+		if (!startSection("Extracting transistors...")) return null; // aborted
         extractTransistors(merge, originalMerge, newCell);
 		termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "Transistors");
 
 		// extend geometry that sticks out in space
 		initDebugging();
-		if (!startSection("Extracting extensions..."))
-             return null; // aborted
+		if (!startSection("Extracting extensions...")) return null; // aborted
         extendGeometry(merge, originalMerge, newCell, true);
 		termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "StickOuts");
 
 		// look for wires and pins
 		initDebugging();
-		if (!startSection("Extracting wires..."))
-             return null; // aborted
+		if (!startSection("Extracting wires...")) return null; // aborted
         if (makeWires(merge, originalMerge, newCell)) return newCell;
 		termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "Wires");
 
 		// convert any geometry that connects two networks
 		initDebugging();
-		if (!startSection("Extracting connections..."))
-             return null; // aborted
+		if (!startSection("Extracting connections...")) return null; // aborted
         extendGeometry(merge, originalMerge, newCell, false);
 		termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "Bridges");
 
 		// dump any remaining layers back in as extra pure layer nodes
 		initDebugging();
-		if (!startSection("Extracting leftover geometry..."))
-             return null; // aborted
+		if (!startSection("Extracting leftover geometry...")) return null; // aborted
         convertAllGeometry(merge, originalMerge, newCell);
 		termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "Pures");
 
 		// reexport any that were there before
-		if (!startSection("Adding connecting wires..."))
-             return null; // aborted
+		if (!startSection("Adding connecting wires...")) return null; // aborted
         restoreExports(oldCell, newCell);
 
 		// cleanup by auto-stitching
@@ -677,7 +683,7 @@ public class Connectivity
 				// finally add the geometry to the merge
 				poly.transform(trans);
 				Point2D [] points = poly.getPoints();
-				if (Extract.isGridAlignExtraction())
+				if (gridAlignExtraction)
 				{
 					Point2D hold = new Point2D.Double();
 					for(int i=0; i<points.length; i++)
@@ -1400,10 +1406,10 @@ public class Connectivity
 	/**
 	 * Method to scan the geometric information for possible contacts and vias.
 	 * Any vias found are created in the new cell and removed from the geometric information.
-     * @param merge
-     * @param originalMerge
-     * @param newCell
-     * @return False if the job was aborted
+     * @param merge the current geometry being extracted.
+     * @param originalMerge the original geometry.
+     * @param newCell the Cell where new geometry is being created.
+     * @return false if the job was aborted.
      */
     private boolean extractVias(PolyMerge merge, PolyMerge originalMerge, Cell newCell)
 	{
@@ -1438,20 +1444,16 @@ public class Connectivity
 			// get all of the geometry on the cut/via layer
 			List<PolyBase> cutList = allCutLayers.get(layer);
 
-			RTNode root = null;
-			if (Extract.isApproximateCuts())
-			{
-				root = RTNode.makeTopLevel();
-				for(PolyBase cut : cutList)
-					root = RTNode.linkGeom(null, root, new CutBound(cut));
-			}
+			// make R-Tree of all of these cuts
+			RTNode root = RTNode.makeTopLevel();
+			for(PolyBase cut : cutList)
+				root = RTNode.linkGeom(null, root, new CutBound(cut));
 
 			// the new way to extract vias
 			List<PolyBase> cutsNotExtracted = new ArrayList<PolyBase>();
 			while (cutList.size() > 0)
 			{
 				PolyBase cut = cutList.get(0);
-
 				soFar++;
 				if ((soFar % 100) == 0) Job.getUserInterface().setProgressValue(soFar * 100 / totalCuts);
 
@@ -1535,60 +1537,63 @@ public class Connectivity
 					}
 					if (activeCut && polyCut) activeCut = polyCut = false;
 
-					Layer badLayer = null;
-                    // Try AppriximateCuts first
-                    if (Extract.isApproximateCuts() && pv.cutNodeLayer.getRepresentation() == Technology.NodeLayer.MULTICUTBOX)
+                	// look for other cuts in the vicinity
+					Set<PolyBase> cutsInArea = new HashSet<PolyBase>();
+					cutsInArea.add(cut);
+					Rectangle2D multiCutArea = new Rectangle2D.Double(cutBox.getCenterX(), cutBox.getCenterY(), 0, 0);
+					double cutLimit = Math.ceil(Math.max(pv.cutNodeLayer.getMulticutSep1D(), pv.cutNodeLayer.getMulticutSep2D()) +
+						Math.max(pv.cutNodeLayer.getMulticutSizeX(), pv.cutNodeLayer.getMulticutSizeX()) + 2);
+					cutLimit *= SCALEFACTOR;
+					boolean foundMore = true;
+					while (foundMore)
 					{
-						// look for other cuts in the vicinity
-						Set<PolyBase> cutsInArea = new HashSet<PolyBase>();
-						cutsInArea.add(cut);
-						Rectangle2D multiCutArea = new Rectangle2D.Double(cutBox.getCenterX(), cutBox.getCenterY(), 0, 0);
-						double cutLimit = Math.ceil(Math.max(pv.cutNodeLayer.getMulticutSep1D(), pv.cutNodeLayer.getMulticutSep2D()) +
-							Math.max(pv.cutNodeLayer.getMulticutSizeX(), pv.cutNodeLayer.getMulticutSizeX()) + 2);
-						cutLimit *= SCALEFACTOR;
-						boolean foundMore = true;
-						while (foundMore)
+						foundMore = false;
+						Rectangle2D searchArea = new Rectangle2D.Double(multiCutArea.getMinX()-cutLimit, multiCutArea.getMinY()-cutLimit,
+							multiCutArea.getWidth() + cutLimit*2, multiCutArea.getHeight() + cutLimit*2);
+						for(RTNode.Search sea = new RTNode.Search(searchArea, root, true); sea.hasNext(); )
 						{
-							foundMore = false;
-							Rectangle2D searchArea = new Rectangle2D.Double(multiCutArea.getMinX()-cutLimit, multiCutArea.getMinY()-cutLimit,
-								multiCutArea.getWidth() + cutLimit*2, multiCutArea.getHeight() + cutLimit*2);
-							for(RTNode.Search sea = new RTNode.Search(searchArea, root, true); sea.hasNext(); )
+							CutBound cBound = (CutBound)sea.next();
+							if (cutsInArea.contains(cBound.cut)) continue;
+							Rectangle2D bound = cBound.getBounds();
+							if (searchArea.contains(bound.getCenterX(), bound.getCenterY()))
 							{
-								CutBound cBound = (CutBound)sea.next();
-								if (cutsInArea.contains(cBound.cut)) continue;
-								Rectangle2D bound = cBound.getBounds();
-								if (searchArea.contains(bound.getCenterX(), bound.getCenterY()))
-								{
-									cutsInArea.add(cBound.cut);
-									double lX = Math.min(multiCutArea.getMinX(), bound.getCenterX());
-									double hX = Math.max(multiCutArea.getMaxX(), bound.getCenterX());
-									double lY = Math.min(multiCutArea.getMinY(), bound.getCenterY());
-									double hY = Math.max(multiCutArea.getMaxY(), bound.getCenterY());
-									multiCutArea.setRect(lX, lY, hX-lX, hY-lY);
-									foundMore = true;
-								}
+								cutsInArea.add(cBound.cut);
+								double lX = Math.min(multiCutArea.getMinX(), bound.getCenterX());
+								double hX = Math.max(multiCutArea.getMaxX(), bound.getCenterX());
+								double lY = Math.min(multiCutArea.getMinY(), bound.getCenterY());
+								double hY = Math.max(multiCutArea.getMaxY(), bound.getCenterY());
+								multiCutArea.setRect(lX, lY, hX-lX, hY-lY);
+								foundMore = true;
 							}
 						}
+					}
 
-						// see if a multi-cut contact fits
-						double lX = multiCutArea.getCenterX() - trueWidth/2;
-						double hX = multiCutArea.getCenterX() + trueWidth/2;
-						double lY = multiCutArea.getCenterY() - trueHeight/2;
-						double hY = multiCutArea.getCenterY() + trueHeight/2;
-						multiCutArea.setRect(lX, lY, hX-lX, hY-lY);
-						badLayer = doesNodeFit(pv, multiCutArea, originalMerge, ignorePWell, ignoreNWell);
+					// determine area of possible multi-cut contact
+					double lX = multiCutArea.getCenterX() - trueWidth/2;
+					double hX = multiCutArea.getCenterX() + trueWidth/2;
+					double lY = multiCutArea.getCenterY() - trueHeight/2;
+					double hY = multiCutArea.getCenterY() + trueHeight/2;
+					multiCutArea.setRect(lX, lY, hX-lX, hY-lY);
+
+                	// see if largest multi-cut contact fits
+					Layer badLayer = doesNodeFit(pv, multiCutArea, originalMerge, ignorePWell, ignoreNWell);
+					if (badLayer == null)
+					{
+						// it fits: see how large it can grow
+						double mw = multiCutArea.getWidth();
+						double mh = multiCutArea.getHeight();
+						if (pv.rotation == 90 || pv.rotation == 270)
+						{
+							mw = multiCutArea.getHeight();
+							mh = multiCutArea.getWidth();
+						}
+//System.out.println("      METAL LAYERS OF LARGE CUT ("+TextUtils.formatDouble(mw / SCALEFACTOR)+"x"+TextUtils.formatDouble(mh / SCALEFACTOR)+
+//	" AT ("+TextUtils.formatDouble(multiCutArea.getCenterX() / SCALEFACTOR)+
+//	","+TextUtils.formatDouble(multiCutArea.getCenterY() / SCALEFACTOR)+")) FITS...NOW CHECKING CUTS");
+						badLayer = realizeBiggestContact(pv.pNp, multiCutArea.getCenterX(), multiCutArea.getCenterY(), mw, mh,
+							pv.rotation*10, originalMerge, newCell, contactNodes, activeCut, polyCut, cutsInArea);
 						if (badLayer == null)
 						{
-							// it fits: create it
-							double mw = multiCutArea.getWidth();
-							double mh = multiCutArea.getHeight();
-							if (pv.rotation == 90 || pv.rotation == 270)
-							{
-								mw = multiCutArea.getHeight();
-								mh = multiCutArea.getWidth();
-							}
-							realizeBiggestContact(pv.pNp, multiCutArea.getCenterX(), multiCutArea.getCenterY(), mw, mh,
-								pv.rotation*10, originalMerge, newCell, contactNodes, activeCut, polyCut);
 							for(PolyBase cutsFound : cutsInArea)
 								cutList.remove(cutsFound);
 							soFar += cutsInArea.size() - 1;
@@ -1596,24 +1601,19 @@ public class Connectivity
 							break;
 						}
 					}
-                    // if no approximateCuts is available,
-                    //else
+
+					// try for exact cut placement with a single contact
+					Rectangle2D contactLoc = new Rectangle2D.Double(cutBox.getCenterX() - trueWidth/2,
+						cutBox.getCenterY() - trueHeight/2, trueWidth, trueHeight);
+					badLayer = doesNodeFit(pv, contactLoc, originalMerge, ignorePWell, ignoreNWell);
+					if (badLayer == null)
 					{
-						// exact cut placement required: see if a single-cut contact fits
-						Rectangle2D contactLoc = new Rectangle2D.Double(cutBox.getCenterX() - trueWidth/2,
-							cutBox.getCenterY() - trueHeight/2, trueWidth, trueHeight);
-						badLayer = doesNodeFit(pv, contactLoc, originalMerge, ignorePWell, ignoreNWell);
-						if (badLayer == null)
-						{
-							// it fits: create it
-							realizeNode(pv.pNp, contactLoc.getCenterX(), contactLoc.getCenterY(), pv.minWidth, pv.minHeight,
-								pv.rotation*10, null, originalMerge, newCell, contactNodes);
-//							realizeBiggestContact(pv.pNp, contactLoc.getCenterX(), contactLoc.getCenterY(), pv.minWidth, pv.minHeight,
-//								pv.rotation*10, originalMerge, newCell, contactNodes, activeCut, polyCut);
-							cutList.remove(cut);
-							foundCut = true;
-							break;
-						}
+						// it fits: create it
+						realizeNode(pv.pNp, contactLoc.getCenterX(), contactLoc.getCenterY(), pv.minWidth, pv.minHeight,
+							pv.rotation*10, null, originalMerge, newCell, contactNodes);
+						cutList.remove(cut);
+						foundCut = true;
+						break;
 					}
 
 					reason = "node " + pv.pNp.describe(false) + ", layer " + badLayer.getName() + " does not fit";
@@ -1664,9 +1664,11 @@ public class Connectivity
 	 * @param contactNodes a list of nodes that were created.
 	 * @param activeCut true if this is an active cut and must not have poly in the area.
 	 * @param polyCut true if this is an poly cut and must not have active in the area.
+	 * @param cutsInArea the cut polygons in the area (for exact matching).
+	 * @return null if successful, otherwise the polygon that could not be matched.
 	 */
-	private void realizeBiggestContact(PrimitiveNode pNp, double x, double y, double sX, double sY, int rot,
-		PolyMerge merge, Cell newCell, List<NodeInst> contactNodes, boolean activeCut, boolean polyCut)
+	private Layer realizeBiggestContact(PrimitiveNode pNp, double x, double y, double sX, double sY, int rot,
+		PolyMerge merge, Cell newCell, List<NodeInst> contactNodes, boolean activeCut, boolean polyCut, Set<PolyBase> cutsInArea)
 	{
 		Orientation orient = Orientation.fromAngle(rot);
 		EPoint ctr = new EPoint(x / SCALEFACTOR, y / SCALEFACTOR);
@@ -1677,8 +1679,8 @@ public class Connectivity
 		for(;;)
 		{
 			NodeInst ni = NodeInst.makeDummyInstance(pNp, ctr, (sX+highXInc) / SCALEFACTOR, sY / SCALEFACTOR, orient);
-			if (ni == null) return;
-			Poly error = dummyNodeFits(ni, merge, activeCut, polyCut);
+			if (ni == null) return null;
+			PolyBase error = dummyNodeFits(ni, merge, activeCut, polyCut, null);
 			if (error != null) break;
 			lowXInc = highXInc;
 			highXInc *= 2;
@@ -1690,8 +1692,8 @@ public class Connectivity
 			if (highXInc - lowXInc <= 1) break;
 			double medInc = (lowXInc + highXInc) / 2;
 			NodeInst ni = NodeInst.makeDummyInstance(pNp, ctr, (sX+medInc) / SCALEFACTOR, sY / SCALEFACTOR, orient);
-			if (ni == null) return;
-			Poly error = dummyNodeFits(ni, merge, activeCut, polyCut);
+			if (ni == null) return null;
+			PolyBase error = dummyNodeFits(ni, merge, activeCut, polyCut, null);
 			if (error == null) lowXInc = medInc; else
 				highXInc = medInc;
 		}
@@ -1702,8 +1704,8 @@ public class Connectivity
 		for(;;)
 		{
 			NodeInst ni = NodeInst.makeDummyInstance(pNp, ctr, sX / SCALEFACTOR, (sY+highYInc) / SCALEFACTOR, orient);
-			if (ni == null) return;
-			Poly error = dummyNodeFits(ni, merge, activeCut, polyCut);
+			if (ni == null) return null;
+			PolyBase error = dummyNodeFits(ni, merge, activeCut, polyCut, null);
 			if (error != null) break;
 			lowYInc = highYInc;
 			highYInc *= 2;
@@ -1715,24 +1717,35 @@ public class Connectivity
 			if (highYInc - lowYInc <= 1) break;
 			double medInc = (lowYInc + highYInc) / 2;
 			NodeInst ni = NodeInst.makeDummyInstance(pNp, ctr, sX / SCALEFACTOR, (sY+medInc) / SCALEFACTOR, orient);
-			if (ni == null) return;
-			Poly error = dummyNodeFits(ni, merge, activeCut, polyCut);
+			if (ni == null) return null;
+			PolyBase error = dummyNodeFits(ni, merge, activeCut, polyCut, null);
 			if (error == null) lowYInc = medInc; else
 				highYInc = medInc;
 		}
 		sX += lowXInc;
 		sY += lowYInc;
+		if (!approximateCuts)
+		{
+			// make sure the basic node fits
+			NodeInst ni = NodeInst.makeDummyInstance(pNp, ctr, sX / SCALEFACTOR, sY / SCALEFACTOR, orient);
+			if (ni == null) return null;
+			PolyBase error = dummyNodeFits(ni, merge, activeCut, polyCut, cutsInArea);
+			if (error != null) return error.getLayer();
+		}
 
 		realizeNode(pNp, x, y, sX, sY, rot, null, merge, newCell, contactNodes);
+		return null;
 	}
 
-	private Poly dummyNodeFits(NodeInst ni, PolyMerge merge, boolean activeCut, boolean polyCut)
+	private PolyBase dummyNodeFits(NodeInst ni, PolyMerge merge, boolean activeCut, boolean polyCut, Set<PolyBase> cutsInArea)
 	{
 		AffineTransform trans = ni.rotateOut();
 		Technology tech = ni.getProto().getTechnology();
 		Poly [] polys = tech.getShapeOfNode(ni);
 		double biggestArea = 0;
 		Poly biggestPoly = null;
+		List<PolyBase> cutsFound = null;
+		if (!approximateCuts) cutsFound = new ArrayList<PolyBase>();
 		for(Poly poly : polys)
 		{
 			Layer l = poly.getLayer();
@@ -1740,7 +1753,11 @@ public class Connectivity
 			l = geometricLayer(l);
 			poly.setLayer(l);
 			if (l.getFunction().isSubstrate()) continue;
-			if (l.getFunction().isContact()) continue;
+			if (l.getFunction().isContact())
+			{
+				if (!approximateCuts) cutsFound.add(poly);
+				continue;
+			}
 			poly.transform(trans);
 			double area = poly.getArea();
 			if (area > biggestArea)
@@ -1755,6 +1772,28 @@ public class Connectivity
 			{
 				return poly;
 			}
+		}
+
+		if (!approximateCuts && cutsInArea != null)
+		{
+			// make sure all cuts in area are found in the node
+			for(PolyBase pb : cutsInArea)
+			{
+				boolean foundIt = false;
+				for(int i=0; i<cutsFound.size(); i++)
+				{
+					PolyBase pb2 = cutsFound.get(i);
+					if (DBMath.doublesClose(pb.getCenterX()/SCALEFACTOR, pb2.getCenterX()) &&
+						DBMath.doublesClose(pb.getCenterY()/SCALEFACTOR, pb2.getCenterY()))
+					{
+						cutsFound.remove(i);
+						foundIt = true;
+						break;
+					}
+				}
+				if (!foundIt) return pb;
+			}
+			if (cutsFound.size() > 0) return cutsFound.get(0);
 		}
 
 		// contact fits, now check for active or poly problems
