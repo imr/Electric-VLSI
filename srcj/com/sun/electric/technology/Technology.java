@@ -1304,12 +1304,16 @@ public class Technology implements Comparable<Technology>, Serializable
             ArrayList<NodeLayer> electricalNodeLayers = new ArrayList<NodeLayer>();
             for (int i = 0; i < n.nodeLayers.size(); i++) {
                 Xml.NodeLayer nl = n.nodeLayers.get(i);
+                Layer layer = layers.get(nl.layer);
                 TechPoint[] techPoints;
                 if (nl.representation == NodeLayer.BOX || nl.representation == NodeLayer.MULTICUTBOX) {
                     techPoints = new TechPoint[2];
                     if (nl.lx.value > nl.hx.value || nl.lx.k > nl.hx.k ||
-                            nl.ly.value > nl.hy.value || nl.ly.k > nl.hy.k)
-                        System.out.println("Strange polygon in " + getTechName() + ":" + n.name);
+                        nl.ly.value > nl.hy.value || nl.ly.k > nl.hy.k)
+                    {
+                        System.out.println("Negative-size polygon in primitive node " + getTechName() + ":" + n.name +
+                        	", layer " + layer.getName());
+                    }
                     techPoints[0] = makeTechPoint(nl.lx, nl.ly, context, fullSize);
                     techPoints[1] = makeTechPoint(nl.hx, nl.hy, context, fullSize);
                 } else {
@@ -1318,7 +1322,6 @@ public class Technology implements Comparable<Technology>, Serializable
                         techPoints[j] = makeTechPoint(techPoints[j], fullSize);
                 }
                 NodeLayer nodeLayer;
-                Layer layer = layers.get(nl.layer);
                 if (n.shrinkArcs) {
                     if (layer.getPseudoLayer() == null)
                         layer.makePseudo();
