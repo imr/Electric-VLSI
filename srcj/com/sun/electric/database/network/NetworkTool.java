@@ -121,7 +121,7 @@ public class NetworkTool extends Tool
 	{
 		super("network");
 	}
-    
+
     public static NetworkTool getNetworkTool() { return tool; }
 
 //	/**
@@ -199,7 +199,7 @@ public class NetworkTool extends Tool
 
 	/** Recompute the Netlist structure for given Cell.
 	 * @param cell cell to recompute Netlist structure.
-     * <p>Because shorting resistors is a fairly common request, it is 
+     * <p>Because shorting resistors is a fairly common request, it is
      * implemented in the method if @param shortResistors is set to true.
 	 * @return the Netlist structure for Cell.
      */
@@ -216,6 +216,8 @@ public class NetworkTool extends Tool
 		synchronized(NetworkTool.mutex) {
 			if (!NetworkTool.networksValid)
 				throw new NetlistNotReady();
+            if (!cell.isLinked())
+                return null;
 			NetCell netCell = mgr.getNetCell(cell);
 			return netCell.getNetlist(shortResistors);
 		}
@@ -352,12 +354,12 @@ public class NetworkTool extends Tool
 	public static Setting getIgnoreResistorsSetting() { return tool.cacheIgnoreResistors; }
 
     private Setting cacheIgnoreResistors;
-    
+
     @Override
     protected void initProjectSettings() {
         makeBooleanSetting("IgnoreResistors", "Netlists tab", "Networks ignore Resistors", false);
     }
-    
+
 	/****************************** OPTIONS ******************************/
 
     private final static boolean BUS_ASCENDING_DEFAULT = false;

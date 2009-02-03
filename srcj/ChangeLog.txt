@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09c: ******************************
 
+BUG: (2/03/09, DN) NPE in Network tool undoing Node extraction task plus (Bug #2030).
+FIX: In NetworkTool.getNetlist check if Cell is linked.
+
 BUG: (1/30/09, DN) Meaning option SoftTechnologies is created as Pref.
 FIX: Convert Pref to Setting.
 
@@ -81,7 +84,7 @@ IMP: (1/23/09, JG) new routing, fat wiring mode.
 IMP: (1/22/09, GVG) Better support of GDS info in XML tech reader (Bug #2019)
 
 IMP/MAN: (1/21/09, GVG) Can't Artwork tech be saved as XML? (Bug #2000).
-Schematics and Artwork can't be exported as XML technologies. 
+Schematics and Artwork can't be exported as XML technologies.
 
 IMP/MAN: (1/21/09, GVG) TechEditor should at least support datatypes in GDS definition (Bug #2009)
 
@@ -115,14 +118,14 @@ FIX: In CircuitChangeJobs.eraseObjectsInList(), arcs that are reconnected
 BUG: (1/16/09, RK) Make NCC's incremental mode work correctly: don't
      recheck cells unless they've changed (Bug #1380)
 
-BUG: (1/16/09, RK) Fix NCC regressions (Bug #2011) 
+BUG: (1/16/09, RK) Fix NCC regressions (Bug #2011)
 
 BUG: (1/15/09, RK) NCC Second attempt at making NCC detect the same
      topological errors when run with or without size checking.
      (Bug #1787)
 
-IMP: (1/15/09, RK) NCC uses tolerances specified in "Size checking" 
-     section of NCC preferences pane in order to decide when 
+IMP: (1/15/09, RK) NCC uses tolerances specified in "Size checking"
+     section of NCC preferences pane in order to decide when
      transistor widths and lengths are close enough to combine in
      series / parallel. (Bug #1980)
 
@@ -132,13 +135,13 @@ IMP/MAN: (1/14/09, SMR) Units preferences now works for distance units
      and includes a "scalable" option to use internal grid units (Bug #2007).
 
 BUG: (1/14/09, RK) REALLY push back body check additions to NCC
-     regressions. (Discovered because regression 090114 failed.)  
+     regressions. (Discovered because regression 090114 failed.)
 
 BUG: (1/14/09, SMR) Bias ports on transistors cause Spice netlister to fail (Bug #2005).
 FIX: Ignore nulls when examining bias information.
 
 IMP: (1/13/09, RK) I got rid of the dialog box that pops up after
-     NCC completes with no errors. (Bug #1859) 
+     NCC completes with no errors. (Bug #1859)
 
 BUG: (1/13/09, GVG) Out of Bounds exception while switching units in Tech preference (Bug #2002)
 FIX: Detecting "NONE" scale.
@@ -152,8 +155,8 @@ IMP: (1/13/09, RK) I removed the backwards compatibility hack in NCC that
 BUG: (1/13/09, SMR) Pad Frame generator fails if core cell has a view (Bug #2001).
 FIX: In PadGenerator.createPadFrame(), do not append view if one exists.
 
-IMP: (1/13/09, RK) I changed the implementation of 
-     Technology.getTransistorBiasPort(NodeInst ni) so that MoCMOS 
+IMP: (1/13/09, RK) I changed the implementation of
+     Technology.getTransistorBiasPort(NodeInst ni) so that MoCMOS
      transistors also return the body contact. I changed the MoCMOS
      constructor to allow well arcs to attach to well contacts. I added
      an option to NCC to enable the checking of body contacts. I changed
