@@ -205,10 +205,6 @@
         <unjar dest="." src="${prefuse}"/>
     </target>
 
-	<target name="unjarSFS" if="SFS" description="Extract Jar files used in SFS release">
-        <unjar dest="." src="${beanshell}"/>
-    </target>
-
 	<target name="jarForGNUBinary" description="Make binary Jar file for GNU">
 	    <antcall target="generalPurposeJar">
 	        <param name="GNU" value="1"/>
@@ -300,7 +296,6 @@
         </java>
 		<!-- -->
     	<antcall target="unjarSUN"></antcall>
-	    <antcall target="unjarSFS"></antcall>
         <delete dir="META-INF"/>
         <copy file="packaging/electric.mf" tofile="electric.mf"/>
         <copy file="packaging/LicenseGNU.txt" tofile="COPYING.txt"/>
@@ -321,8 +316,6 @@
             <exclude name="packaging/*.jar"/>
             <exclude name="packaging/*.gif"/>
             <exclude name="packaging/*.lsm"/>
-            <!--exclude name="packaging/*.txt"/-->
-            <!--exclude name="packaging/electric.mf"/-->
             <exclude name="packaging/MakePDF.book"/>
             <exclude name=".settings"/>
             <exclude name="xml/"/>
@@ -339,9 +332,14 @@
         <property name="version" value=""/>
     </target>
 
-    <target name="jar" depends="clean,init,compileTests" description="Make binary Jar file">
+    <target name="jar" description="Make binary Jar file">
+	    <antcall target="jarWithTests">
+	        <param name="SUN" value="1"/>
+	    </antcall>
+    </target>
+
+	<target name="jarWithTests" depends="clean,init,compileTests" description="Make binary Jar file">
 	    <antcall target="unjarSUN"></antcall>
-    	<antcall target="unjarSFS"></antcall>
         <unjar dest="." src="${AppleJava}"/>
         <unjar dest="." src="${JUnit}"/>
         <delete dir="META-INF"/>
