@@ -3655,7 +3655,7 @@ public class Technology implements Comparable<Technology>, Serializable
 			polys[fillPoly].setStyle(style);
 			if (layerOverride != null) polys[fillPoly].setLayer(layerOverride); else
 				polys[fillPoly].setLayer(primLayer.getLayerOrPseudoLayer());
-			if (electrical)
+			if (electrical && np.getNumPorts() > 0)
 			{
 				int portIndex = primLayer.getPortNum();
                 assert(portIndex < np.getNumPorts()); // wrong number of ports. Probably missing during the definition

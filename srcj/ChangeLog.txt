@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09c: ******************************
 
+BUG: (2/3/09, SMR) Want to create primitive nodes with no ports (Bug #2033).
+FIX: Technology.computeShapeOfNode() now allows this.
+
 BUG: (2/3/09, SMR) Node extractor doesn't handle large contacts without
      "approximate cut placement" set (Bug #2032).
 FIX: Extractor now tries to do exact placement of large contacts.
