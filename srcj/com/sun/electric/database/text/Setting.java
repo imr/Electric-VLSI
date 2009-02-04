@@ -60,8 +60,8 @@ public class Setting {
     /** Creates a new instance of Setting */
     public Setting(String prefName, Pref.Group group, String xmlNode, String xmlName, String location, String description, Object factoryObj) {
         EDatabase.serverDatabase().checkChanging();
-        if (lockCreation)
-            throw new IllegalStateException();
+//        if (lockCreation)
+//            throw new IllegalStateException();
         if (xmlNode == null)
             throw new NullPointerException();
 //        this.xmlNode = xmlNode;
