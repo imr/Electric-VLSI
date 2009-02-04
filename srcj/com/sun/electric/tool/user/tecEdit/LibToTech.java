@@ -903,17 +903,17 @@ public class LibToTech
 			nIn.nodeLayers = makePrimitiveNodeLayers(neList, np, lList);
 			if (nIn.nodeLayers == null) return null;
 
-			// count the number of ports on this node
-			int portCount = 0;
-			for(Sample ns : firstEx.samples)
-			{
-				if (ns.layer == Generic.tech().portNode) portCount++;
-			}
-			if (portCount == 0)
-			{
-				error.markError(null, np, "No ports found");
-				return null;
-			}
+//			// count the number of ports on this node
+//			int portCount = 0;
+//			for(Sample ns : firstEx.samples)
+//			{
+//				if (ns.layer == Generic.tech().portNode) portCount++;
+//			}
+//			if (portCount == 0)
+//			{
+//				error.markError(null, np, "No ports found");
+//				return null;
+//			}
 
 			// fill the port structures
 			List<NodeInfo.PortDetails> ports = new ArrayList<NodeInfo.PortDetails>();
