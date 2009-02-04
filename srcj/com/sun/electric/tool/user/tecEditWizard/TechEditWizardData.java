@@ -1981,14 +1981,14 @@ public class TechEditWizardData
                 makeXmlPrimitiveCon(t.nodes, "X-"+name, hlaX, hlaY, new SizeOffset(so, so, so, so), portNames,
                     makeXmlNodeLayer(hlaX, hlaX, hlaY, hlaY, lb, Poly.Type.FILLED, true), // bottom layer
                     makeXmlNodeLayer(hlaY, hlaY, hlaX, hlaX, lt, Poly.Type.FILLED, true), // top layer
-                    makeXmlMulticut(via, viaSize, viaArraySpacing, viaArraySpacing)); // using 2D for 1D arrays
+                    makeXmlMulticut(via, viaSize, viaSpacing, viaArraySpacing)); // using 2D for 1D arrays
 
                 // zero extension contacts
                 double halfVia = scaledValue(via_size[i-1].v/2);
                 makeXmlPrimitiveCon(t.nodes, "Z-"+name, viaSize, viaSize, null, portNames,
                     makeXmlNodeLayer(halfVia, halfVia, halfVia, halfVia, lb, Poly.Type.FILLED, true), // bottom layer
                     makeXmlNodeLayer(halfVia, halfVia, halfVia, halfVia, lt, Poly.Type.FILLED, true), // top layer
-                    makeXmlMulticut(via, viaSize, viaArraySpacing, viaArraySpacing)); // using 2D for 1D arrays
+                    makeXmlMulticut(via, viaSize, viaSpacing, viaArraySpacing)); // using 2D for 1D arrays
             }
         }
 
@@ -2055,7 +2055,7 @@ public class TechEditWizardData
             double endPolyy = gatey;
             double endLeftOrRight = -impx;   // for horizontal transistors. Default
             double endTopOrBotton = endPolyy; // for horizontal transistors. Default
-            double diffX = 0, diffY = impy;
+            double diffX = 0, diffY = scaledValue(gate_length.v/2+gate_contact_spacing.v+contact_size.v/2);  // impy
             double xSign = 1, ySign = -1;
             double polyX = endPolyx, polyY = 0;
 
