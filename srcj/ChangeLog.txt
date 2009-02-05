@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09c: ******************************
 
+IMP/MAN: (2/5/09, SMR) Added command to list unused library files on disk (Bug #2038).
+
 BUG: (2/4/09, DN) New: Exception when creating a new technology (Bug #2034).
 FIX: Temporarily disable check of state in Setting constructor.
 

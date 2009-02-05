@@ -63,6 +63,7 @@ import com.sun.electric.tool.user.waveform.WaveformWindow;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -1525,11 +1526,64 @@ public class CircuitChanges
 	}
 
 	/**
-	 * Method to implement the "Repair Librariesy" command.
+	 * Method to implement the "Repair Libraries" command.
 	 */
 	public static void checkAndRepairCommand(boolean repair)
 	{
 		new CircuitChangeJobs.CheckAndRepairJob(repair);
+	}
+
+	/**
+	 * Method to implement the "Find unused library files" command.
+	 */
+	public static void findUnusedLibraryFiles()
+	{
+		// first make a list of all directories associated with the libraries in memory
+		Map<String,List<String>> directories = new HashMap<String,List<String>>();
+		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
+		{
+			Library lib = it.next();
+			if (lib.isHidden()) continue;
+			if (!lib.isFromDisk()) continue;
+			String dirName = TextUtils.getFilePath(lib.getLibFile());
+			String fileName = TextUtils.getFile(lib.getLibFile()).getName();
+			List<String> filesInDir = directories.get(dirName);
+			if (filesInDir == null)
+			{
+				filesInDir = new ArrayList<String>();
+				directories.put(dirName, filesInDir);
+			}
+			filesInDir.add(fileName);
+		}
+
+		if (directories.size() == 0)
+		{
+			System.out.println("Before running this command, you must read some libraries from disk.");
+			System.out.println("The command will then examine the directory to see if there are other libraries that were not read in");
+			return;
+		}
+		for(String dirName : directories.keySet())
+		{
+			File dirFile = new File(dirName);
+			boolean firstInDir = true;
+			if (dirFile.isDirectory())
+			{
+				List<String> filesInDir = directories.get(dirName);
+				String [] files = dirFile.list();
+				if (files == null) continue;
+				for(int i=0; i<files.length; i++)
+				{
+					String file = files[i];
+					if (file.endsWith(".jelib") || file.endsWith(".elib"))
+					{
+						if (filesInDir.contains(file)) continue;
+						if (firstInDir) System.out.println("Directory " + dirName + " has these unused library files:");
+						firstInDir = false;
+						System.out.println("   " + file);
+					}
+				}
+			}
+		}
 	}
 
     /****************************** DELETE UNUSED NODES ******************************/

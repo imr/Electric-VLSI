@@ -245,12 +245,14 @@ public class FileMenu {
             new EMenuItem("Mar_k All Libraries for Saving") { public void run() {
                 CircuitChangeJobs.markAllLibrariesForSavingCommand(); }},
 
-		// mnemonic keys available: AB DEFGHIJKLMNOPQ STUVWXYZ
+		// mnemonic keys available: AB DE GHIJKLMNOPQ STUVWXYZ
             new EMenu("C_heck Libraries",
                 new EMenuItem("_Check") { public void run() {
                     CircuitChanges.checkAndRepairCommand(false); }},
                 new EMenuItem("_Repair") { public void run() {
-                    CircuitChanges.checkAndRepairCommand(true); }}),
+                    CircuitChanges.checkAndRepairCommand(true); }},
+                new EMenuItem("_Find Unused Library Files") { public void run() {
+                    CircuitChanges.findUnusedLibraryFiles(); }}),
 
             SEPARATOR,
 
