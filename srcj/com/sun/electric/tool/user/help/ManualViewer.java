@@ -1105,7 +1105,7 @@ public class ManualViewer extends EModelessDialog
 	}
 
 	/**
-	 * Method to generate a multi-page HTML file with the entire manual.
+	 * Method to generate a multi-page HTML files with the entire manual.
 	 * This is an advanced function that is not available to users.
 	 * The output is a single "index" file, and many chapter files that start with the letter "m"
 	 * (i.e. "mchap01-01.html").
@@ -1245,12 +1245,37 @@ public class ManualViewer extends EModelessDialog
 						continue;
 					}
 					String pageName = line.substring(12, endPt).trim();
+
+					// if this is at level 3 or deeper, prepend level 2 title
+					String intermediateTitle = null;
+					int colonPos = pageName.indexOf(':');
+					if (colonPos > 0)
+					{
+						int numDashes = 0;
+						for(int i=0; i<colonPos; i++)
+							if (pageName.charAt(i) == '-') numDashes++;
+						if (numDashes > 1)
+						{
+							int firstDash = pageName.indexOf('-');
+							int secondDash = pageName.indexOf('-', firstDash+1);
+							String prefix = pageName.substring(0, secondDash) + ": ";
+							intermediateTitle = prefix + pi.outerChapterTitle;							
+						}
+					}
+
 					printWriter.println("<A NAME=\"" + pi.fileName + "\"></A>");
 					printWriter.println("<CENTER><FONT SIZE=6><B>Chapter " + pi.chapterName + "</B></FONT></CENTER>");
 					printWriter.println("<CENTER><TABLE WIDTH=\"90%\" BORDER=0><TR>");
 					printWriter.println("<TD><CENTER><A HREF=\"" + lastFileName + ".html#" + lastFileName +
 						".html\"><IMG SRC=\"iconplug.png\" ALT=\"plug\" BORDER=0></A></CENTER></TD>");
-					printWriter.println("<TD><CENTER><H2>" + pageName + "</H2></CENTER></TD>");
+					if (intermediateTitle == null)
+					{
+						printWriter.println("<TD><CENTER><FONT SIZE=5><B>" + pageName + "</B></FONT></CENTER></TD>");
+					} else
+					{
+						printWriter.println("<TD><CENTER><FONT SIZE=5><B>" + intermediateTitle + "</B></FONT><BR>");
+						printWriter.println("<FONT SIZE=4><B>" + pageName + "</B></FONT></CENTER></TD>");
+					}
 					printWriter.println("<TD><CENTER><A HREF=\"" + nextFileName + ".html#" + nextFileName +
 						".html\"><IMG SRC=\"iconplug.png\" ALT=\"plug\" BORDER=0></A></CENTER></TD></TR></TABLE></CENTER>");
 					printWriter.println("<HR>");
