@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09c: ******************************
 
+BUG: (2/6/09, GVG) Guarantee that GDS values are properly parsed from TechEditor txt file (Bug #2010)
+FIX: Implemented the latest request "X/Y,Zp,Wt".
+
 BUG: (2/5/09, GVG) Can't write XML from Tech editor (Bug #2035)
 FIX: Undoing fix for Bug #2000 and avoiding the cast expection. Error message is printed now.
 
