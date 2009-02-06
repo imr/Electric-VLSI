@@ -494,7 +494,7 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 		}
 
 		// create the array
-		new ArrayStuff(nodeList, arcList, exportList, xRepeat, yRepeat, xOverlap, yOverlap, cX, cY,
+		new ArrayStuff(cell, nodeList, arcList, exportList, xRepeat, yRepeat, xOverlap, yOverlap, cX, cY,
 			User.isArcsAutoIncremented());
 	}
 
@@ -509,12 +509,14 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 		private int xRepeat, yRepeat;
 		private double xOverlap, yOverlap, cX, cY;
 		private boolean arcsAutoIncrement;
+        private Cell cell;
 
-		protected ArrayStuff(List<NodeInst> nodeList, List<ArcInst> arcList, List<Export> exportList,
+        protected ArrayStuff(Cell c, List<NodeInst> nodeList, List<ArcInst> arcList, List<Export> exportList,
 			int xRepeat, int yRepeat, double xOverlap, double yOverlap, double cX, double cY, boolean arcsAutoIncrement)
 		{
 			super("Make Array", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.nodeList = nodeList;
+            this.cell = c;
+            this.nodeList = nodeList;
 			this.arcList = arcList;
 			this.exportList = exportList;
 			this.xRepeat = xRepeat;
@@ -529,7 +531,8 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 
 		public boolean doIt() throws JobException
 		{
-			Cell cell = nodeList.get(0).getParent();
+            assert(cell != null);
+//			Cell cell = nodeList.get(0).getParent();
 
 			// if only arraying where DRC clean, make an array of newly created nodes
 			Geometric [] geomsToCheck = null;
