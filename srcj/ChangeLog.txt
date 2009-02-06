@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09c: ******************************
 
+IMP: (2/6/09, GVG) Adding menu to xml file generated with the Tech Editor Wizard (Bug #2042)
+
 BUG: (2/6/09, GVG) Exception on array command with arcs (Bug#2040)
 FIX: Passing the parent cell instead of getting from the nodes list.
 

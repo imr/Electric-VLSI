@@ -1585,23 +1585,6 @@ public class Xml {
 	    			start = endPos+1;
 	    		}
     		}
-//            pl(" * Copyright (c) " + cal.get(Calendar.YEAR) + " Sun Microsystems and Static Free Software");
-//            pl(" *");
-//            pl(" * Electric(tm) is free software; you can redistribute it and/or modify");
-//            pl(" * it under the terms of the GNU General Public License as published by");
-//            pl(" * the Free Software Foundation; either version 3 of the License, or");
-//            pl(" * (at your option) any later version.");
-//            pl(" *");
-//            pl(" * Electric(tm) is distributed in the hope that it will be useful,");
-//            pl(" * but WITHOUT ANY WARRANTY; without even the implied warranty of");
-//            pl(" * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the");
-//            pl(" * GNU General Public License for more details.");
-//            pl(" *");
-//            pl(" * You should have received a copy of the GNU General Public License");
-//            pl(" * along with Electric(tm); see the file COPYING.  If not, write to");
-//            pl(" * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,");
-//            pl(" * Boston, Mass 02111-1307, USA.");
-//            pl(" */");
             out.println("-->");
             l();
 

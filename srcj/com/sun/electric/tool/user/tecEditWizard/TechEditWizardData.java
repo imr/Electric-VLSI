@@ -64,7 +64,9 @@ public class TechEditWizardData
     // DIFFUSION RULES
 	private WizardField diff_width = new WizardField();
 	private WizardField diff_poly_overhang = new WizardField();		// min. diff overhang from gate edge
-	private WizardField diff_contact_overhang = new WizardField();	// min. diff overhang contact
+	private WizardField diff_contact_overhang = new WizardField();	// min. diff overhang contact   
+	private WizardField diff_contact_overhang_min_short = new WizardField();				// diff overhang contact. It should hold the min short value
+	private WizardField diff_contact_overhang_min_long = new WizardField();				// diff overhang contact. It should hold the min long value
 	private WizardField diff_spacing = new WizardField();
 
 	// POLY RULES
@@ -85,8 +87,8 @@ public class TechEditWizardData
 	private WizardField contact_spacing = new WizardField();
     private WizardField contact_array_spacing = new WizardField();
     private WizardField contact_metal_overhang_inline_only = new WizardField();	// metal overhang when overhanging contact from two sides only
-    private WizardField contact_metal_overhang_inline_short_min = new WizardField();	// metal overhang when overhanging contact from two sides only, short version
-    private WizardField contact_metal_overhang_inline_long_min = new WizardField();	// metal overhang when overhanging contact from two sides only, long version
+    private WizardField contact_metal_overhang_min_short = new WizardField();	// metal overhang when overhanging contact from two sides only, short version
+    private WizardField contact_metal_overhang_min_long = new WizardField();	// metal overhang when overhanging contact from two sides only, long version
 	private WizardField contact_metal_overhang_all_sides = new WizardField();	// metal overhang when surrounding contact
 	private WizardField contact_poly_overhang = new WizardField();				// poly overhang contact. It should hold the recommended value
 	private WizardField contact_poly_overhang_min_short = new WizardField();				// poly overhang contact. It should hold the min short value
@@ -587,6 +589,10 @@ public class TechEditWizardData
 					if (varName.equalsIgnoreCase("diff_poly_overhang_rule")) diff_poly_overhang.rule = stripQuotes(varValue); else
 					if (varName.equalsIgnoreCase("diff_contact_overhang")) diff_contact_overhang.v = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("diff_contact_overhang_rule")) diff_contact_overhang.rule = stripQuotes(varValue); else
+                    if (varName.equalsIgnoreCase("diff_contact_overhang_short_min")) diff_contact_overhang_min_short.v = TextUtils.atof(varValue); else
+                    if (varName.equalsIgnoreCase("diff_contact_overhang_short_min_rule")) diff_contact_overhang_min_short.rule = stripQuotes(varValue); else
+                    if (varName.equalsIgnoreCase("diff_contact_overhang_long_min")) diff_contact_overhang_min_long.v = TextUtils.atof(varValue); else
+                    if (varName.equalsIgnoreCase("diff_contact_overhang_long_min_rule")) diff_contact_overhang_min_long.rule = stripQuotes(varValue); else
 					if (varName.equalsIgnoreCase("diff_spacing")) diff_spacing.v = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("diff_spacing_rule")) diff_spacing.rule = stripQuotes(varValue); else
 
@@ -618,10 +624,10 @@ public class TechEditWizardData
 					if (varName.equalsIgnoreCase("contact_array_spacing_rule")) contact_array_spacing.rule = stripQuotes(varValue); else
                     if (varName.equalsIgnoreCase("contact_metal_overhang_inline_only")) contact_metal_overhang_inline_only.v = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("contact_metal_overhang_inline_only_rule")) contact_metal_overhang_inline_only.rule = stripQuotes(varValue); else
-                    if (varName.equalsIgnoreCase("contact_metal_overhang_inline_short_min")) contact_metal_overhang_inline_short_min.v = TextUtils.atof(varValue); else
-					if (varName.equalsIgnoreCase("contact_metal_overhang_inline_short_min_rule")) contact_metal_overhang_inline_short_min.rule = stripQuotes(varValue); else
-                    if (varName.equalsIgnoreCase("contact_metal_overhang_inline_long_min")) contact_metal_overhang_inline_long_min.v = TextUtils.atof(varValue); else
-					if (varName.equalsIgnoreCase("contact_metal_overhang_inline_long_min_rule")) contact_metal_overhang_inline_long_min.rule = stripQuotes(varValue); else
+                    if (varName.equalsIgnoreCase("contact_metal_overhang_short_min")) contact_metal_overhang_min_short.v = TextUtils.atof(varValue); else
+					if (varName.equalsIgnoreCase("contact_metal_overhang_short_min_rule")) contact_metal_overhang_min_short.rule = stripQuotes(varValue); else
+                    if (varName.equalsIgnoreCase("contact_metal_overhang_long_min")) contact_metal_overhang_min_long.v = TextUtils.atof(varValue); else
+					if (varName.equalsIgnoreCase("contact_metal_overhang_long_min_rule")) contact_metal_overhang_min_long.rule = stripQuotes(varValue); else
 					if (varName.equalsIgnoreCase("contact_metal_overhang_all_sides")) contact_metal_overhang_all_sides.v = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("contact_metal_overhang_all_sides_rule")) contact_metal_overhang_all_sides.rule = stripQuotes(varValue); else
 					if (varName.equalsIgnoreCase("contact_poly_overhang")) contact_poly_overhang.v = TextUtils.atof(varValue); else
@@ -899,11 +905,11 @@ public class TechEditWizardData
         pw.println("$contact_metal_overhang_inline_only = " + TextUtils.formatDouble(contact_metal_overhang_inline_only.v) + ";      # metal overhang when overhanging contact from two sides only");
 		pw.println("$contact_metal_overhang_inline_only_rule = \"" + contact_metal_overhang_inline_only.rule + "\";      # metal overhang when overhanging contact from two sides only");
 
-        pw.println("$contact_metal_overhang_inline_only_short = " + TextUtils.formatDouble(contact_metal_overhang_inline_short_min.v) + ";      # metal overhang when overhanging contact from two sides only, short version");
-		pw.println("$contact_metal_overhang_inline_only_short_rule = \"" + contact_metal_overhang_inline_short_min.rule + "\";      # metal overhang when overhanging contact from two sides only, short version");
+        pw.println("$contact_metal_overhang_inline_only_short = " + TextUtils.formatDouble(contact_metal_overhang_min_short.v) + ";      # metal overhang when overhanging contact from two sides only, short version");
+		pw.println("$contact_metal_overhang_inline_only_short_rule = \"" + contact_metal_overhang_min_short.rule + "\";      # metal overhang when overhanging contact from two sides only, short version");
 
-        pw.println("$contact_metal_overhang_inline_only_long = " + TextUtils.formatDouble(contact_metal_overhang_inline_long_min.v) + ";      # metal overhang when overhanging contact from two sides only, long version");
-		pw.println("$contact_metal_overhang_inline_only_long_rule = \"" + contact_metal_overhang_inline_long_min.rule + "\";      # metal overhang when overhanging contact from two sides only, long version");
+        pw.println("$contact_metal_overhang_inline_only_long = " + TextUtils.formatDouble(contact_metal_overhang_min_long.v) + ";      # metal overhang when overhanging contact from two sides only, long version");
+		pw.println("$contact_metal_overhang_inline_only_long_rule = \"" + contact_metal_overhang_min_long.rule + "\";      # metal overhang when overhanging contact from two sides only, long version");
 
         pw.println("$contact_metal_overhang_all_sides = " + TextUtils.formatDouble(contact_metal_overhang_all_sides.v) + ";         # metal overhang when surrounding contact");
 		pw.println("$contact_metal_overhang_all_sides_rule = \"" + contact_metal_overhang_all_sides.rule + "\";         # metal overhang when surrounding contact");
@@ -1100,9 +1106,10 @@ public class TechEditWizardData
      * Method to create the XML version of a PrimitiveNode representing a pin
      * @return
      */
-    private Xml.PrimitiveNode makeXmlPrimitivePin(List<Xml.PrimitiveNode> nodes, String name, double size,
+    private Xml.PrimitiveNode makeXmlPrimitivePin(Xml.Technology t, String name, double size,
                                                   SizeOffset so, Xml.NodeLayer... list)
     {
+        List<Object> l = new ArrayList<Object>();
         List<Xml.NodeLayer> nodesList = new ArrayList<Xml.NodeLayer>(list.length);
         List<Xml.PrimitivePort> nodePorts = new ArrayList<Xml.PrimitivePort>();
         List<String> portNames = new ArrayList<String>();
@@ -1115,8 +1122,11 @@ public class TechEditWizardData
 
         portNames.add(name);
         nodePorts.add(makeXmlPrimitivePort(name.toLowerCase(), 0, 180, 0, null, 0, 0, 0, 0, portNames));
-        return makeXmlPrimitive(nodes, name + "-Pin", PrimitiveNode.Function.PIN, size, size, 0, 0,
+        Xml.PrimitiveNode n = makeXmlPrimitive(t.nodes, name + "-Pin", PrimitiveNode.Function.PIN, size, size, 0, 0,
                 so, nodesList, nodePorts, null, true);
+        l.add(n);
+        t.menuPalette.menuBoxes.add(l);
+        return n;
     }
 
     /**
@@ -1175,7 +1185,7 @@ public class TechEditWizardData
 //        EPoint minFullSize = nodeSizeRule != null ?
 //            EPoint.fromLambda(0.5*nodeSizeRule.getWidth(), 0.5*nodeSizeRule.getHeight()) :
 //            EPoint.fromLambda(0.5*getDefWidth(), 0.5*getDefHeight());
-         EPoint minFullSize = EPoint.fromLambda(0.5*width, 0.5*height);
+//         EPoint minFullSize = EPoint.fromLambda(0.5*width, 0.5*height);
         EPoint topLeft = EPoint.fromLambda(ppLeft, ppBottom + height);
         EPoint size =  EPoint.fromLambda(width, height);
 
@@ -1186,7 +1196,7 @@ public class TechEditWizardData
 //            PrimitivePort pp = getPort(0);
 //            assert pp.getLeft().getMultiplier() == -0.5 && pp.getRight().getMultiplier() == 0.5 && pp.getBottom().getMultiplier() == -0.5 && pp.getTop().getMultiplier() == 0.5;
 //            assert pp.getLeft().getAdder() == -pp.getRight().getAdder() && pp.getBottom().getAdder() == -pp.getTop().getAdder();
-            minFullSize = EPoint.fromLambda(ppLeft, ppBottom);
+//            minFullSize = EPoint.fromLambda(ppLeft, ppBottom);
         }
 //            DRCTemplate nodeSize = xmlRules.getRule(pnp.getPrimNodeIndexInTech(), DRCTemplate.DRCRuleType.NODSIZ);
 //        SizeOffset so = getProtoSizeOffset();
@@ -1261,9 +1271,10 @@ public class TechEditWizardData
      * @param function
      * @return
      */
-    private Xml.ArcProto makeXmlArc(List<Xml.ArcProto> arcs, String name, com.sun.electric.technology.ArcProto.Function function,
+    private Xml.ArcProto makeXmlArc(Xml.Technology t, String name, com.sun.electric.technology.ArcProto.Function function,
                                     double ant, Xml.ArcLayer ... arcLayers)
     {
+        List<Object> l = new ArrayList<Object>();
         Xml.ArcProto a = new Xml.ArcProto();
         a.name = name;
         a.function = function;
@@ -1284,7 +1295,9 @@ public class TechEditWizardData
             if (al == null) continue; // in case the pwell layer off
             a.arcLayers.add(al);
         }
-        arcs.add(a);
+        t.arcs.add(a);
+        l.add(a);
+        t.menuPalette.menuBoxes.add(l);
         return a;
     }
 
@@ -1412,6 +1425,65 @@ public class TechEditWizardData
     }
 
     /**
+     * To create zero, cross, aligned and squared contacts from the same set of rules
+     */
+    private List<Object> makeContactSeries(List<Xml.PrimitiveNode> nodes, String composeName,
+                                   double contSize, Xml.Layer conLayer, double spacing, double arraySpacing,
+                                   double longExtLayer1, double shotExtLayer1, Xml.Layer layer1,
+                                   double longExtLayer2, double shotExtLayer2, Xml.Layer layer2)
+    {
+        List<Object> contactsList = new ArrayList<Object>();
+        List<String> portNames = new ArrayList<String>();
+
+        portNames.add(layer1.name);
+        portNames.add(layer2.name);
+        
+        // align contact
+        double hlaLong1 = DBMath.round(contSize/2 + longExtLayer1);
+        double hlaShort1 = DBMath.round(contSize/2 + shotExtLayer1);
+        double hlaLong2 = DBMath.round(contSize/2 + longExtLayer2);
+        double hlaShort2 = DBMath.round(contSize/2 + shotExtLayer2);
+
+        double sox = DBMath.isGreaterThan(longExtLayer1, shotExtLayer2) ? longExtLayer1 : shotExtLayer2;
+        double soy = DBMath.isGreaterThan(shotExtLayer1, longExtLayer2) ? shotExtLayer1 : longExtLayer2;
+
+        // Cross contact, layer 1 is long on X, layer 2 is long on Y
+        contactsList.add(makeXmlPrimitiveCon(nodes, "X-"+composeName, -1, -1, new SizeOffset(sox, sox, soy, soy), portNames,
+            makeXmlNodeLayer(hlaLong1, hlaLong1, hlaShort1, hlaShort1, layer1, Poly.Type.FILLED, true), // layer1
+            makeXmlNodeLayer(hlaShort2, hlaShort2, hlaLong2, hlaLong2, layer2, Poly.Type.FILLED, true), // layer2
+            makeXmlMulticut(conLayer, contSize, spacing, arraySpacing))); // contact
+
+        // Aligned on X (long) contact with surround
+        sox = DBMath.isGreaterThan(longExtLayer1, longExtLayer2) ? longExtLayer1 : longExtLayer2;
+        soy = DBMath.isGreaterThan(shotExtLayer1, shotExtLayer2) ? shotExtLayer1 : shotExtLayer2;
+        contactsList.add(makeXmlPrimitiveCon(nodes, "A-"+composeName, -1, -1, new SizeOffset(sox, sox, soy, soy), portNames,
+            makeXmlNodeLayer(hlaLong1, hlaLong1, hlaShort1, hlaShort1, layer1, Poly.Type.FILLED, true), // layer1
+            makeXmlNodeLayer(hlaLong2, hlaLong2, hlaShort2, hlaShort2, layer2, Poly.Type.FILLED, true), // layer2
+            makeXmlMulticut(conLayer, contSize, spacing, arraySpacing))); // contact
+
+        // Zero contact
+        double halfSize = DBMath.round(contSize/2);
+        contactsList.add(makeXmlPrimitiveCon(nodes, "Z-"+composeName, -1, -1, null, portNames,
+            makeXmlNodeLayer(halfSize, halfSize, halfSize, halfSize, layer1, Poly.Type.FILLED, true), // layer1
+            makeXmlNodeLayer(halfSize, halfSize, halfSize, halfSize, layer2, Poly.Type.FILLED, true), // layer2
+            makeXmlMulticut(conLayer, contSize, spacing, arraySpacing))); // contact
+
+        // long square
+        contactsList.add(makeXmlPrimitiveCon(nodes, "LS-"+composeName, -1, -1, new SizeOffset(sox, sox, sox, sox), portNames,
+            makeXmlNodeLayer(hlaLong1, hlaLong1, hlaLong1, hlaLong1, layer1, Poly.Type.FILLED, true), // layer1
+            makeXmlNodeLayer(hlaLong2, hlaLong2, hlaLong2, hlaLong2, layer2, Poly.Type.FILLED, true), // layer2
+            makeXmlMulticut(conLayer, contSize, spacing, arraySpacing))); // contact
+
+        // short square
+        contactsList.add(makeXmlPrimitiveCon(nodes, "SS-"+composeName, -1, -1, new SizeOffset(soy, soy, soy, soy), portNames,
+            makeXmlNodeLayer(hlaShort1, hlaShort1, hlaShort1, hlaShort1, layer1, Poly.Type.FILLED, true), // layer1
+            makeXmlNodeLayer(hlaShort2, hlaShort2, hlaShort2, hlaShort2, layer2, Poly.Type.FILLED, true), // layer2
+            makeXmlMulticut(conLayer, contSize, spacing, arraySpacing))); // contact
+
+        return contactsList;
+    }
+
+    /**
      * Leave as oublic for the regression.
      * @param fileName
      * @throws IOException
@@ -1431,6 +1503,9 @@ public class TechEditWizardData
         t.defaultFoundry = "NONE";
         t.minResistance = 1.0;
         t.minCapacitance = 0.1;
+        // menus
+        t.menuPalette = new Xml.MenuPalette();
+        t.menuPalette.numColumns = 3;
 
         // LAYER COLOURS
 		Color [] metal_colour = new Color[]
@@ -1787,7 +1862,7 @@ public class TechEditWizardData
         for(int i=1; i<=num_metal_layers; i++)
         {
             double ant = (int)Math.round(metal_antenna_ratio[i-1]) | 200;
-            makeXmlArc(t.arcs, "Metal-"+i, ArcProto.Function.getContact(i), ant,
+            makeXmlArc(t, "Metal-"+i, ArcProto.Function.getContact(i), ant,
                 makeXmlArcLayer(metalLayers.get(i-1), metal_width[i-1]));
         }
 
@@ -1795,11 +1870,11 @@ public class TechEditWizardData
         /**************************** POLY Nodes/Arcs ***********************************************/
         // poly arc
         double ant = (int)Math.round(poly_antenna_ratio) | 200;
-        makeXmlArc(t.arcs, "Poly", ArcProto.Function.getPoly(1), ant,
+        makeXmlArc(t, "Poly", ArcProto.Function.getPoly(1), ant,
                 makeXmlArcLayer(polyLayer, poly_width));
         // poly pin
         double hla = scaledValue(poly_width.v / 2);
-        makeXmlPrimitivePin(t.nodes, polyLayer.name, hla, null, // new SizeOffset(hla, hla, hla, hla),
+        makeXmlPrimitivePin(t, polyLayer.name, hla, null, // new SizeOffset(hla, hla, hla, hla),
             makeXmlNodeLayer(hla, hla, hla, hla, polyLayer, Poly.Type.CROSSED, true));
         // poly contact
         portNames.clear();
@@ -1812,12 +1887,13 @@ public class TechEditWizardData
         double contArraySpacing = scaledValue(contact_array_spacing.v);
         double metal1Over = scaledValue(contact_size.v/2 + contact_metal_overhang_all_sides.v);
         double so = scaledValue(contact_poly_overhang.v);
+        List<Object> polyContacts = new ArrayList<Object>();
 
         // Square contacts
-        makeXmlPrimitiveCon(t.nodes, polyLayer.name, hla, hla, new SizeOffset(so, so, so, so), portNames,
+        polyContacts.add(makeXmlPrimitiveCon(t.nodes, polyLayer.name, hla, hla, new SizeOffset(so, so, so, so), portNames,
                 makeXmlNodeLayer(metal1Over, metal1Over, metal1Over, metal1Over, m1Layer, Poly.Type.FILLED, true), // meta1 layer
                 makeXmlNodeLayer(hla, hla, hla, hla, polyLayer, Poly.Type.FILLED, true), // poly layer
-                makeXmlMulticut(polyConLayer, contSize, contSpacing, contArraySpacing)); // contact
+                makeXmlMulticut(polyConLayer, contSize, contSpacing, contArraySpacing))); // contact
 
         if (getProtectionPoly())
         {
@@ -1835,26 +1911,27 @@ public class TechEditWizardData
             double halfVia = scaledValue(contact_size.v/2);
             double soX = (DBMath.isGreaterThan(hlaX, metal1OverX)) ? scaledValue(contact_poly_overhang_min_short.v) : scaledValue(via_overhang[0].v);
             double soY = (DBMath.isGreaterThan(hlaY, metal1OverY)) ? scaledValue(contact_poly_overhang_min_long.v) : scaledValue(validMetalOver);
-            makeXmlPrimitiveCon(t.nodes, "X-"+polyLayer.name, hlaX, hlaY, new SizeOffset(soX, soX, soY, soY), portNames,
+            polyContacts.add(makeXmlPrimitiveCon(t.nodes, "X-"+polyLayer.name, hlaX, hlaY, new SizeOffset(soX, soX, soY, soY), portNames,
                 makeXmlNodeLayer(metal1OverX, metal1OverX, metal1OverY, metal1OverY, m1Layer, Poly.Type.FILLED, true), // meta1 layer
                 makeXmlNodeLayer(hlaX, hlaX, hlaY, hlaY, polyLayer, Poly.Type.FILLED, true), // poly layer
-                makeXmlMulticut(polyConLayer, contSize, contSpacing, contArraySpacing)); // contact
+                makeXmlMulticut(polyConLayer, contSize, contSpacing, contArraySpacing))); // contact
 
             // Zero surround contact
-            makeXmlPrimitiveCon(t.nodes, "Z-"+polyLayer.name, halfVia, halfVia, null, portNames,
+            polyContacts.add(makeXmlPrimitiveCon(t.nodes, "Z-"+polyLayer.name, halfVia, halfVia, null, portNames,
                 makeXmlNodeLayer(halfVia, halfVia, halfVia, halfVia, m1Layer, Poly.Type.FILLED, true), // meta1 layer
                 makeXmlNodeLayer(halfVia, halfVia, halfVia, halfVia, polyLayer, Poly.Type.FILLED, true), // poly layer
-                makeXmlMulticut(polyConLayer, contSize, contSpacing, contArraySpacing)); // contact
+                makeXmlMulticut(polyConLayer, contSize, contSpacing, contArraySpacing))); // contact
         }
+        t.menuPalette.menuBoxes.add(polyContacts);
 
         /**************************** N/P-Diff Nodes/Arcs ***********************************************/
 
         // NDiff/PDiff arcs
-        makeXmlArc(t.arcs, "N-Diff", ArcProto.Function.DIFFN, 0,
+        makeXmlArc(t, "N-Diff", ArcProto.Function.DIFFN, 0,
                 makeXmlArcLayer(diffNLayer, diff_width),
                 makeXmlArcLayer(nplusLayer, diff_width, nplus_overhang_diff),
             (!pWellFlag)?makeXmlArcLayer(pwellLayer, diff_width, nwell_overhang_diff_p):null);
-        makeXmlArc(t.arcs, "P-Diff", ArcProto.Function.DIFFP, 0,
+        makeXmlArc(t, "P-Diff", ArcProto.Function.DIFFP, 0,
                 makeXmlArcLayer(diffPLayer, diff_width),
                 makeXmlArcLayer(pplusLayer, diff_width, pplus_overhang_diff),
                 makeXmlArcLayer(nwellLayer, diff_width, nwell_overhang_diff_p));
@@ -1867,39 +1944,66 @@ public class TechEditWizardData
         double nso = scaledValue(nwell_overhang_diff_p.v); // valid for elements that have nwell layers
         double pso = (!pWellFlag)?nso:scaledValue(nplus_overhang_diff.v);
 
-        makeXmlPrimitivePin(t.nodes, "N-Diff", hla,
-            new SizeOffset(pso, pso, pso, pso),
-            makeXmlNodeLayer(hla, hla, hla, hla, diffNLayer, Poly.Type.CROSSED, true),
-            makeXmlNodeLayer(nsel, nsel, nsel, nsel, nplusLayer, Poly.Type.CROSSED, true),
-            (!pWellFlag)?makeXmlNodeLayer(nwell, nwell, nwell, nwell, pwellLayer, Poly.Type.CROSSED, true):null);
-        makeXmlPrimitivePin(t.nodes, "P-Diff", hla,
-            new SizeOffset(nso, nso, nso, nso),
-            makeXmlNodeLayer(hla, hla, hla, hla, diffPLayer, Poly.Type.CROSSED, true),
-            makeXmlNodeLayer(psel, psel, psel, psel, pplusLayer, Poly.Type.CROSSED, true),
-            makeXmlNodeLayer(nwell, nwell, nwell, nwell, nwellLayer, Poly.Type.CROSSED, true));
-
         // ndiff/pdiff contacts
-        hla = scaledValue((contact_size.v/2 + diff_contact_overhang.v));
-        portNames.clear();
-        portNames.add(diffNLayer.name);
-        portNames.add(m1Layer.name);
+        String[] diffNames = {"P", "N"};
+        double[] sos = {nso, pso};
+        double[] sels = {psel, nsel};
+        Xml.Layer[] diffLayers = {diffPLayer, diffNLayer};
+        Xml.Layer[] plusLayers = {pplusLayer, nplusLayer};
+
+//        hla = scaledValue((contact_size.v/2 + diff_contact_overhang.v));
         // ndiff contact
-        makeXmlPrimitiveCon(t.nodes, "N-Diff", hla, hla, new SizeOffset(pso, pso, pso, pso), portNames,
-                makeXmlNodeLayer(metal1Over, metal1Over, metal1Over, metal1Over, m1Layer, Poly.Type.FILLED, true), // meta1 layer
-                makeXmlNodeLayer(hla, hla, hla, hla, diffNLayer, Poly.Type.FILLED, true), // active layer
-                makeXmlNodeLayer(nsel, nsel, nsel, nsel, nplusLayer, Poly.Type.FILLED, true), // select layer
-            (!pWellFlag)?makeXmlNodeLayer(nwell, nwell, nwell, nwell, pwellLayer, Poly.Type.FILLED, true):null,
-                makeXmlMulticut(diffConLayer, contSize, contSpacing, contArraySpacing)); // contact
-        // pdiff contact
-        portNames.clear();
-        portNames.add(diffPLayer.name);
-        portNames.add(m1Layer.name);
-        makeXmlPrimitiveCon(t.nodes, "P-Diff", hla, hla, new SizeOffset(nso, nso, nso, nso), portNames,
-                makeXmlNodeLayer(metal1Over, metal1Over, metal1Over, metal1Over, m1Layer, Poly.Type.FILLED, true), // meta1 layer
-                makeXmlNodeLayer(hla, hla, hla, hla, diffPLayer, Poly.Type.FILLED, true), // active layer
-                makeXmlNodeLayer(psel, psel, psel, psel, pplusLayer, Poly.Type.FILLED, true), // select layer
-                makeXmlNodeLayer(nwell, nwell, nwell, nwell, nwellLayer, Poly.Type.FILLED, true), // well layer
-                makeXmlMulticut(diffConLayer, contSize, contSpacing, contArraySpacing)); // contact
+        for (int i = 0; i < 2; i++)
+        {
+            portNames.clear();
+            portNames.add(diffLayers[i].name);
+            portNames.add(m1Layer.name);
+            String composeName = diffNames[i] + "-Diff";
+            Xml.NodeLayer wellNode, wellNodePin;
+
+            if (i == Technology.P_TYPE)
+            {
+                wellNodePin = makeXmlNodeLayer(nwell, nwell, nwell, nwell, nwellLayer, Poly.Type.CROSSED, true);
+                wellNode = makeXmlNodeLayer(nwell, nwell, nwell, nwell, nwellLayer, Poly.Type.FILLED, true);
+            }
+            else
+            {
+                wellNodePin = (!pWellFlag)?makeXmlNodeLayer(nwell, nwell, nwell, nwell, pwellLayer, Poly.Type.CROSSED, true):null;
+                wellNode = (!pWellFlag)?makeXmlNodeLayer(nwell, nwell, nwell, nwell, pwellLayer, Poly.Type.FILLED, true):null;
+            }
+
+            // active pin
+            makeXmlPrimitivePin(t, composeName, hla,
+                new SizeOffset(sos[i], sos[i], sos[i], sos[i]),
+                makeXmlNodeLayer(hla, hla, hla, hla, diffLayers[i], Poly.Type.CROSSED, true),
+                makeXmlNodeLayer(sels[i], sels[i], sels[i], sels[i], plusLayers[i], Poly.Type.CROSSED, true),
+                wellNodePin);
+
+            List<Object> diffContacts = new ArrayList<Object>();
+
+            diffContacts.add(makeXmlPrimitiveCon(t.nodes, composeName, hla, hla, new SizeOffset(sos[i], sos[i], sos[i], sos[i]), portNames,
+                    makeXmlNodeLayer(metal1Over, metal1Over, metal1Over, metal1Over, m1Layer, Poly.Type.FILLED, true), // meta1 layer
+                    makeXmlNodeLayer(hla, hla, hla, hla, diffLayers[i], Poly.Type.FILLED, true), // active layer
+                    makeXmlNodeLayer(sels[i], sels[i], sels[i], sels[i], plusLayers[i], Poly.Type.FILLED, true), // select layer
+                    wellNode, // well layer
+                    makeXmlMulticut(diffConLayer, contSize, contSpacing, contArraySpacing))); // contact
+
+            if (getProtectionPoly())
+            {
+                // min contact with surround, assuming short is on X
+                // We can't use the absolute shot from the via enclosure because the poly cut width is
+                // smaller than the min M1 width.
+                double expectedMin = contact_size.v + via_overhang_short[0].v * 2;
+                double validMetalOver = (DBMath.isLessThan(expectedMin, metal_width[0].v)) ? (metal_width[0].v - contact_size.v)/2 : via_overhang_short[0].v;
+
+                List<Object> l = new ArrayList<Object>();
+                l = makeContactSeries(t.nodes, composeName, contSize, diffConLayer, contSpacing, contArraySpacing,
+                    scaledValue(diff_contact_overhang_min_long.v), scaledValue(diff_contact_overhang_min_short.v), diffLayers[i],
+                    validMetalOver, scaledValue(via_overhang[0].v), m1Layer);
+                diffContacts.addAll(l);
+            }
+            t.menuPalette.menuBoxes.add(diffContacts);
+        }
 
         /**************************** N/P-Well Contacts ***********************************************/
         nwell = scaledValue(contact_size.v/2 + diff_contact_overhang.v + nwell_overhang_diff_n.v);
@@ -1909,10 +2013,10 @@ public class TechEditWizardData
         // NWell/PWell arcs
         if (!pWellFlag)
         {
-            makeXmlArc(t.arcs, "P-Well", ArcProto.Function.WELL, 0,
+            makeXmlArc(t, "P-Well", ArcProto.Function.WELL, 0,
                 makeXmlArcLayer(pwellLayer, diff_width, nwell_overhang_diff_p));
         }
-        makeXmlArc(t.arcs, "N-Well", ArcProto.Function.WELL, 0,
+        makeXmlArc(t, "N-Well", ArcProto.Function.WELL, 0,
                 makeXmlArcLayer(nwellLayer, diff_width, nwell_overhang_diff_p));
 
         portNames.clear();
@@ -1946,11 +2050,11 @@ public class TechEditWizardData
             Xml.Layer lt = metalLayers.get(i);
 
             // Pin bottom metal
-            makeXmlPrimitivePin(t.nodes, lb.name, hla, null, //new SizeOffset(hla, hla, hla, hla),
+            makeXmlPrimitivePin(t, lb.name, hla, null, //new SizeOffset(hla, hla, hla, hla),
                 makeXmlNodeLayer(hla, hla, hla, hla, lb, Poly.Type.CROSSED, true));
             if (i == num_metal_layers - 1) // last pin!
             {
-                makeXmlPrimitivePin(t.nodes, lt.name, hla, null, //new SizeOffset(hla, hla, hla, hla),
+                makeXmlPrimitivePin(t, lt.name, hla, null, //new SizeOffset(hla, hla, hla, hla),
                 makeXmlNodeLayer(hla, hla, hla, hla, lt, Poly.Type.CROSSED, true));
             }
 
@@ -1962,34 +2066,36 @@ public class TechEditWizardData
             double viaSpacing = scaledValue(via_inline_spacing[i-1].v);
             double viaArraySpacing = scaledValue(via_array_spacing[i-1].v);
             String name = lb.name + "-" + lt.name;
+            List<Object> metalContacts = new ArrayList<Object>();
 
             // Square contacts
             portNames.clear();
             portNames.add(lt.name);
             portNames.add(lb.name);
             so = scaledValue(via_overhang[i-1].v);
-            makeXmlPrimitiveCon(t.nodes, name, hla, hla, new SizeOffset(so, so, so, so), portNames,
+            metalContacts.add(makeXmlPrimitiveCon(t.nodes, name, hla, hla, new SizeOffset(so, so, so, so), portNames,
                 makeXmlNodeLayer(hla, hla, hla, hla, lb, Poly.Type.FILLED, true), // bottom layer
                 makeXmlNodeLayer(hla, hla, hla, hla, lt, Poly.Type.FILLED, true), // top layer
-                makeXmlMulticut(via, viaSize, viaSpacing, viaArraySpacing)); // via
+                makeXmlMulticut(via, viaSize, viaSpacing, viaArraySpacing))); // via
 
             if (getProtectionPoly())
             {
                 // cross contacts Y for odd layers, X for even
                 double hlaX = scaledValue(via_size[i-1].v/2 + via_overhang_short[i-1].v);;  // short
                 double hlaY = hla; // long
-                makeXmlPrimitiveCon(t.nodes, "X-"+name, hlaX, hlaY, new SizeOffset(so, so, so, so), portNames,
+                metalContacts.add(makeXmlPrimitiveCon(t.nodes, "X-"+name, hlaX, hlaY, new SizeOffset(so, so, so, so), portNames,
                     makeXmlNodeLayer(hlaX, hlaX, hlaY, hlaY, lb, Poly.Type.FILLED, true), // bottom layer
                     makeXmlNodeLayer(hlaY, hlaY, hlaX, hlaX, lt, Poly.Type.FILLED, true), // top layer
-                    makeXmlMulticut(via, viaSize, viaSpacing, viaArraySpacing)); // using 2D for 1D arrays
+                    makeXmlMulticut(via, viaSize, viaSpacing, viaArraySpacing))); // using 2D for 1D arrays
 
                 // zero extension contacts
                 double halfVia = scaledValue(via_size[i-1].v/2);
-                makeXmlPrimitiveCon(t.nodes, "Z-"+name, viaSize, viaSize, null, portNames,
+                metalContacts.add(makeXmlPrimitiveCon(t.nodes, "Z-"+name, viaSize, viaSize, null, portNames,
                     makeXmlNodeLayer(halfVia, halfVia, halfVia, halfVia, lb, Poly.Type.FILLED, true), // bottom layer
                     makeXmlNodeLayer(halfVia, halfVia, halfVia, halfVia, lt, Poly.Type.FILLED, true), // top layer
-                    makeXmlMulticut(via, viaSize, viaSpacing, viaArraySpacing)); // using 2D for 1D arrays
+                    makeXmlMulticut(via, viaSize, viaSpacing, viaArraySpacing))); // using 2D for 1D arrays
             }
+            t.menuPalette.menuBoxes.add(metalContacts);
         }
 
         /**************************** Transistors ***********************************************/
@@ -2009,6 +2115,7 @@ public class TechEditWizardData
             double impy = scaledValue((gate_length.v+diff_poly_overhang.v*2)/2);
             double wellx = scaledValue((gate_width.v/2+nwell_overhang_diff_p.v));
             double welly = scaledValue((gate_length.v/2+diff_poly_overhang.v+nwell_overhang_diff_p.v));
+            List<Object> l = new ArrayList<Object>();
 
             // Using P values in transistors
             sox = scaledValue(nwell_overhang_diff_p.v);
@@ -2036,11 +2143,11 @@ public class TechEditWizardData
                 extraSelY = nplus_overhang_diff.v;
             }
 
-                selectx = scaledValue((gate_width.v/2+(poly_endcap.v+extraSelX)));
-                if (getProtectionPoly())
-                    selecty = scaledValue((gate_length.v + gate_length.v/2 + poly_protection_spacing.v + extraSelX));
-                else
-                    selecty = scaledValue((gate_length.v/2+diff_poly_overhang.v+extraSelY));
+            selectx = scaledValue((gate_width.v/2+(poly_endcap.v+extraSelX)));
+            if (getProtectionPoly())
+                selecty = scaledValue((gate_length.v + gate_length.v/2 + poly_protection_spacing.v + extraSelX));
+            else
+                selecty = scaledValue((gate_length.v/2+diff_poly_overhang.v+extraSelY));
 
             nodesList.clear();
             nodePorts.clear();
@@ -2111,12 +2218,12 @@ public class TechEditWizardData
                     assert(false);
                 }
                 // bottom or left
-                nodesList.add(makeXmlNodeLayer(endPolyx, endPolyx,
+                nodesList.add(makeXmlNodeLayer(gatex, gatex, //endPolyx, endPolyx,
                     DBMath.round(endPolyy + protectDist),
                     -DBMath.round((protectDist + 3*endPolyy)),
                     protectionPolyLayer, Poly.Type.FILLED, false));
                 // top or right
-                nodesList.add(makeXmlNodeLayer(endPolyx, endPolyx,
+                nodesList.add(makeXmlNodeLayer(gatex, gatex, // endPolyx, endPolyx,
                     -DBMath.round((protectDist + 3*endPolyy)),
                     DBMath.round(endPolyy + protectDist),
                     protectionPolyLayer, Poly.Type.FILLED, false));
@@ -2134,8 +2241,10 @@ public class TechEditWizardData
             nodesList.add(makeXmlNodeLayer(selectx, selectx, selecty, selecty, selectLayer, Poly.Type.FILLED, true));
 
             // Transistor
-            makeXmlPrimitive(t.nodes, name + "-Transistor", PrimitiveNode.Function.TRANMOS, 0, 0, 0, 0,
+            Xml.PrimitiveNode n = makeXmlPrimitive(t.nodes, name + "-Transistor", PrimitiveNode.Function.TRANMOS, 0, 0, 0, 0,
                 new SizeOffset(sox, sox, soy, soy), nodesList, nodePorts, null, false);
+            l.add(n);
+            t.menuPalette.menuBoxes.add(l);
         }
 
         /** RULES **/
@@ -2205,6 +2314,18 @@ public class TechEditWizardData
             makeLayersRule(t, via, DRCTemplate.DRCRuleType.UCONSPA2D, via_array_spacing[i]);
         }
 
+        // Finish menu with Pure, Misc and Cell
+        List<Object> l = new ArrayList<Object>();
+        l.add(new String("Pure"));
+        t.menuPalette.menuBoxes.add(l);
+        l = new ArrayList<Object>();
+        l.add(new String("Misc"));
+        t.menuPalette.menuBoxes.add(l);
+        l = new ArrayList<Object>();
+        l.add(new String("Cell"));
+        t.menuPalette.menuBoxes.add(l);
+
+        
         // write finally the file
         boolean includeDateAndVersion = User.isIncludeDateAndVersionInOutput();
         String copyrightMessage = IOTool.isUseCopyrightMessage() ? IOTool.getCopyrightMessage() : null;
