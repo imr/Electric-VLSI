@@ -349,12 +349,12 @@ public class EditMenu {
 				new EMenuItem("Write XML of Current Technology...") { public void run()
 				{
 					Technology tech = Technology.getCurrent();
-                    if (!tech.isLayout())
-                    {
-                        System.out.println(tech + " is not a layout technology.");
-                        System.out.println("Only layout technologies can be exported as XML");
-                        return;
-                    }
+//                    if (!tech.isLayout())
+//                    {
+//                        System.out.println(tech + " is not a layout technology.");
+//                        System.out.println("Only layout technologies can be exported as XML");
+//                        return;
+//                    }
                     Xml.Technology xmlTech = tech.getXmlTech();
 					if (xmlTech == null)
 						xmlTech = tech.makeXml();

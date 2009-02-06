@@ -2227,10 +2227,18 @@ public class Technology implements Comparable<Technology>, Serializable
             n.protoName = ni.getProto().getName();
             n.function = ni.getFunction();
             n.rotation = ni.getOrient().getAngle();
-            for (Iterator<Variable> it = ni.getVariables(); it.hasNext(); ) {
+            for (Iterator<Variable> it = ni.getVariables(); it.hasNext(); )
+            {
                 Variable var = it.next();
-                n.text = (String)var.getObject();
-                n.fontSize = var.getSize().getSize();
+                if (var.getObject() instanceof String)
+                {
+                    n.text = (String)var.getObject();
+                    n.fontSize = var.getSize().getSize();
+                }
+                else
+                {
+                    System.out.println("Variable " + var.getTrueName() + "in " + ni.getName() + " can't be exported in XML");
+                }
             }
             return n;
         }
