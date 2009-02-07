@@ -469,8 +469,11 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 				}
 			} else
 			{
-				arcList.add((ArcInst)geom);
-			}
+                ArcInst ai = (ArcInst)geom;
+                arcList.add(ai);
+                nodeList.add(ai.getHead().getPortInst().getNodeInst());
+                nodeList.add(ai.getTail().getPortInst().getNodeInst());
+            }
 		}
 		Collections.sort(nodeList);
 		Collections.sort(arcList);
