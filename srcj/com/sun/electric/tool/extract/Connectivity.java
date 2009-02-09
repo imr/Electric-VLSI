@@ -35,6 +35,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.geometry.PolyMerge;
 import com.sun.electric.database.geometry.GenMath.MutableBoolean;
+import com.sun.electric.database.geometry.GenMath.MutableInteger;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.network.Netlist;
@@ -128,10 +129,10 @@ public class Connectivity
 	/** debugging: list of objects created */					private List<ERectangle> addedRectangles;
 	/** debugging: list of objects created */					private List<ERectangle> addedLines;
 	/** list of exported pins to realize at the end */			private List<ExportedPin> pinsForLater;
-    /** ErrorLogger to keep up with errors during extraction */ private ErrorLogger errorLogger;
-    /** Job that is holding the process */                      private Job job;
+	/** ErrorLogger to keep up with errors during extraction */ private ErrorLogger errorLogger;
+	/** Job that is holding the process */						private Job job;
 
-    /**
+	/**
 	 * Method to examine the current cell and extract it's connectivity in a new one.
 	 * @param recursive true to recursively extract the hierarchy below this cell.
 	 */
@@ -158,20 +159,20 @@ public class Connectivity
 		/** debugging: list of objects created */	private List<List<ERectangle>> addedBatchRectangles;
 		/** debugging: list of objects created */	private List<List<ERectangle>> addedBatchLines;
 		/** debugging: list of objects created */	private List<String> addedBatchNames;
-        /** */ private ErrorLogger errorLogger;
+		/** */ private ErrorLogger errorLogger;
 
-        private ExtractJob(Cell cell, boolean recursive)
+		private ExtractJob(Cell cell, boolean recursive)
 		{
 			super("Extract Connectivity from " + cell, Extract.getExtractTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.recursive = recursive;
-            this.errorLogger = ErrorLogger.newInstance("Extraction Tool on cell " + cell.getName());
-            smallestPolygonSize = Extract.getSmallestPolygonSize();
-            activeHandling = Extract.getActiveHandling();
-            expansionPattern = Extract.getCellExpandPattern().trim();
-    		gridAlignExtraction = Extract.isGridAlignExtraction();
-    		approximateCuts = Extract.isApproximateCuts();
-            startJob();
+			this.errorLogger = ErrorLogger.newInstance("Extraction Tool on cell " + cell.getName());
+			smallestPolygonSize = Extract.getSmallestPolygonSize();
+			activeHandling = Extract.getActiveHandling();
+			expansionPattern = Extract.getCellExpandPattern().trim();
+			gridAlignExtraction = Extract.isGridAlignExtraction();
+			approximateCuts = Extract.isApproximateCuts();
+			startJob();
 		}
 
 		public boolean doIt() throws JobException
@@ -202,17 +203,17 @@ public class Connectivity
 			fieldVariableChanged("addedBatchLines");
 			fieldVariableChanged("addedBatchNames");
 			fieldVariableChanged("newCell");
-            fieldVariableChanged("errorLogger");
-            return true;
+			fieldVariableChanged("errorLogger");
+			return true;
 		}
 
 		public void terminateOK()
 		{
 			UserInterface ui = Job.getUserInterface();
 			EditWindow_ wnd = ui.displayCell(newCell);
-            Job.getUserInterface().termLogging(errorLogger, false, false);
+			Job.getUserInterface().termLogging(errorLogger, false, false);
 
-            if (DEBUGSTEPS)
+			if (DEBUGSTEPS)
 			{
 				// show results of each step
 				JFrame jf = null;
@@ -222,19 +223,19 @@ public class Connectivity
 			} else
 			{
 				// highlight pure layer nodes
-                if (newCell != null) // cell is null if job was aborted
-                {
-                    for(Iterator<NodeInst> it = newCell.getNodes(); it.hasNext(); )
-                    {
-                        NodeInst ni = it.next();
-                        PrimitiveNode.Function fun = ni.getFunction();
-                        if (fun == PrimitiveNode.Function.NODE)
-                            wnd.addElectricObject(ni, newCell);
-                    }
-                }
-                else
-                    System.out.println("Extraction job was aborted");
-            }
+				if (newCell != null) // cell is null if job was aborted
+				{
+					for(Iterator<NodeInst> it = newCell.getNodes(); it.hasNext(); )
+					{
+						NodeInst ni = it.next();
+						PrimitiveNode.Function fun = ni.getFunction();
+						if (fun == PrimitiveNode.Function.NODE)
+							wnd.addElectricObject(ni, newCell);
+					}
+				}
+				else
+					System.out.println("Extraction job was aborted");
+			}
 		}
 	}
 
@@ -251,10 +252,10 @@ public class Connectivity
 		convertedCells = new HashMap<Cell,Cell>();
 		smallestPoly = (SCALEFACTOR * SCALEFACTOR) * smallestPolygonSize;
 		bogusContacts = new HashSet<PrimitiveNode>();
-        errorLogger = eLog;
-        job = j;
+		errorLogger = eLog;
+		job = j;
 
-        // find pure-layer nodes that are never involved in higher-level components, and should be ignored
+		// find pure-layer nodes that are never involved in higher-level components, and should be ignored
 		ignoreNodes = new HashSet<PrimitiveNode>();
 		for(Iterator<PrimitiveNode> pIt = tech.getNodes(); pIt.hasNext(); )
 		{
@@ -321,8 +322,8 @@ public class Connectivity
 			}
 		}
 		polyLayer = polyLayer.getNonPseudoLayer();
-        if (polyLayer != null)
-            tempLayer1 = polyLayer.getPseudoLayer();
+		if (polyLayer != null)
+			tempLayer1 = polyLayer.getPseudoLayer();
 		pActiveLayer = pActiveLayer.getNonPseudoLayer();
 		if (unifyActive) nActiveLayer = pActiveLayer; else
 			nActiveLayer = nActiveLayer.getNonPseudoLayer();
@@ -365,25 +366,25 @@ public class Connectivity
 		}
 	}
 
-    /**
-     * Method to log errors during node extraction.
-     */
-    private void addErrorLog(Cell cell, String msg, EPoint... pList)
-    {
-        List<EPoint> pointList = new ArrayList<EPoint>();
-        for(EPoint p : pList)
-            pointList.add(p);
-        errorLogger.logError(msg, null, null, null, pointList, null, cell, -1);
-        System.out.println(msg);
-    }
+	/**
+	 * Method to log errors during node extraction.
+	 */
+	private void addErrorLog(Cell cell, String msg, EPoint... pList)
+	{
+		List<EPoint> pointList = new ArrayList<EPoint>();
+		for(EPoint p : pList)
+			pointList.add(p);
+		errorLogger.logError(msg, null, null, null, pointList, null, cell, -1);
+		System.out.println(msg);
+	}
 
-    /**
+	/**
 	 * Top-level method in extracting connectivity from a Cell.
 	 * A new version of the cell is created that has real nodes (transistors, contacts) and arcs.
 	 * This cell should have pure-layer nodes which will be converted.
 	 */
 	private Cell doExtract(Cell oldCell, boolean recursive, Pattern pat, boolean top, Job job,
-                           List<List<ERectangle>> addedBatchRectangles, List<List<ERectangle>> addedBatchLines, List<String> addedBatchNames)
+		List<List<ERectangle>> addedBatchRectangles, List<List<ERectangle>> addedBatchLines, List<String> addedBatchNames)
 	{
 		if (recursive)
 		{
@@ -426,8 +427,8 @@ public class Connectivity
 
 		// convert the nodes
 		if (!startSection("Gathering geometry in " + oldCell + "..."))		// HAS PROGRESS IN IT
-            return null; // aborted
-        Set<Cell> expandedCells = new HashSet<Cell>();
+			return null; // aborted
+		Set<Cell> expandedCells = new HashSet<Cell>();
 		exportsToRestore = new ArrayList<Export>();
 		pinsForLater = new ArrayList<ExportedPin>();
 		allCutLayers = new HashMap<Layer,List<PolyBase>>();
@@ -450,42 +451,42 @@ public class Connectivity
 		// start by extracting vias
 		initDebugging();
 		if (!startSection("Extracting vias...")) return null; // aborted
-        if (!extractVias(merge, originalMerge, newCell)) return null; // aborted
-        termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "Vias");
+		if (!extractVias(merge, originalMerge, newCell)) return null; // aborted
+		termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "Vias");
 
 		// now extract transistors
 		initDebugging();
 		if (!startSection("Extracting transistors...")) return null; // aborted
-        extractTransistors(merge, originalMerge, newCell);
+		extractTransistors(merge, originalMerge, newCell);
 		termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "Transistors");
 
 		// extend geometry that sticks out in space
 		initDebugging();
 		if (!startSection("Extracting extensions...")) return null; // aborted
-        extendGeometry(merge, originalMerge, newCell, true);
+		extendGeometry(merge, originalMerge, newCell, true);
 		termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "StickOuts");
 
 		// look for wires and pins
 		initDebugging();
 		if (!startSection("Extracting wires...")) return null; // aborted
-        if (makeWires(merge, originalMerge, newCell)) return newCell;
+		if (makeWires(merge, originalMerge, newCell)) return newCell;
 		termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "Wires");
 
 		// convert any geometry that connects two networks
 		initDebugging();
 		if (!startSection("Extracting connections...")) return null; // aborted
-        extendGeometry(merge, originalMerge, newCell, false);
+		extendGeometry(merge, originalMerge, newCell, false);
 		termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "Bridges");
 
 		// dump any remaining layers back in as extra pure layer nodes
 		initDebugging();
 		if (!startSection("Extracting leftover geometry...")) return null; // aborted
-        convertAllGeometry(merge, originalMerge, newCell);
+		convertAllGeometry(merge, originalMerge, newCell);
 		termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "Pures");
 
 		// reexport any that were there before
 		if (!startSection("Adding connecting wires...")) return null; // aborted
-        restoreExports(oldCell, newCell);
+		restoreExports(oldCell, newCell);
 
 		// cleanup by auto-stitching
 		PolyMerge originalUnscaledMerge = new PolyMerge();
@@ -499,7 +500,7 @@ public class Connectivity
 			for(Iterator<ArcInst> it = newCell.getArcs(); it.hasNext(); )
 				allArcs.add(it.next());
 		}
-        AutoStitch.runAutoStitch(newCell, null, null, job, originalUnscaledMerge, null, false, true, true);
+		AutoStitch.runAutoStitch(newCell, null, null, job, originalUnscaledMerge, null, false, true, true);
 		if (DEBUGSTEPS)
 		{
 			initDebugging();
@@ -507,7 +508,7 @@ public class Connectivity
 			{
 				ArcInst ai = it.next();
 				if (allArcs.contains(ai)) continue;
-	            Poly arcPoly = ai.makeLambdaPoly(ai.getGridBaseWidth(), Poly.Type.CLOSED);
+				Poly arcPoly = ai.makeLambdaPoly(ai.getGridBaseWidth(), Poly.Type.CLOSED);
 				addedRectangles.add(ERectangle.fromLambda(arcPoly.getBounds2D()));
 			}
 			termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "Stitches");
@@ -516,20 +517,20 @@ public class Connectivity
 		return newCell;
 	}
 
-    /**
-     * Method to start a new connection section.
-     * @param msg message to display in progress window
-     * @return False if the job is scheduled for abort or was aborted
-     */
-    private boolean startSection(String msg)
+	/**
+	 * Method to start a new connection section.
+	 * @param msg message to display in progress window
+	 * @return False if the job is scheduled for abort or was aborted
+	 */
+	private boolean startSection(String msg)
 	{
 		System.out.println(msg);
-        if (job.checkAbort())
-            return false;
-        Job.getUserInterface().setProgressNote(msg);
+		if (job.checkAbort())
+			return false;
+		Job.getUserInterface().setProgressNote(msg);
 		Job.getUserInterface().setProgressValue(0);
-        return true;
-    }
+		return true;
+	}
 
 	private void initDebugging()
 	{
@@ -646,8 +647,8 @@ public class Connectivity
 					newCell, ni.getOrient(), ni.getName(), ni.getTechSpecific());
 				if (newNi == null)
 				{
-                    addErrorLog(newCell, "Problem creating new instance of " + ni.getProto(), new EPoint(sX, sY));
-                    return;
+					addErrorLog(newCell, "Problem creating new instance of " + ni.getProto(), new EPoint(sX, sY));
+					return;
 				}
 				newNodes.put(ni, newNi);
 
@@ -803,7 +804,7 @@ public class Connectivity
 			Layer.Function fun = layer.getFunction();
 			if (fun.isDiff() || fun.isPoly() || fun.isMetal())
 			{
-				List<PolyBase> polyList = getMergePolys(merge, layer);
+				List<PolyBase> polyList = getMergePolys(merge, layer, null);
 				totPolys += polyList.size();
 				geomToWire.put(layer, polyList);
 			}
@@ -873,22 +874,17 @@ public class Connectivity
 					}
 					if (!fits) continue;
 
-                    // create the wire
+					// create the wire
 					ArcInst ai = realizeArc(ap, pi1, pi2, loc1Unscaled, loc2Unscaled, cl.width / SCALEFACTOR,
 						!headExtend.booleanValue(), !tailExtend.booleanValue(), merge);
 					if (ai == null)
 					{
-                        String msg = "  Failed to run arc " + ap.getName() + " from (" + loc1Unscaled.getX() + "," +
+						String msg = "  Failed to run arc " + ap.getName() + " from (" + loc1Unscaled.getX() + "," +
 							loc1Unscaled.getY() + ") on node " + pi1.getNodeInst().describe(false) + " to (" +
 							loc2Unscaled.getX() + "," + loc2Unscaled.getY() + ") on node " + pi2.getNodeInst().describe(false);
-//                        System.out.println(msg);
-//                        List<EPoint> pointList = new ArrayList<EPoint>();
-//                        pointList.add(new EPoint(loc1Unscaled.getX(), loc1Unscaled.getY()));
-//                        pointList.add(new EPoint(loc2Unscaled.getX(), loc2Unscaled.getY()));
-//                        errorLogger.logError(msg, null, null, null, pointList, null, newCell, -1);
-                        addErrorLog(newCell, msg, new EPoint(loc1Unscaled.getX(), loc1Unscaled.getY()),
-                            new EPoint(loc2Unscaled.getX(), loc2Unscaled.getY()));
-                        return true;
+						addErrorLog(newCell, msg, new EPoint(loc1Unscaled.getX(), loc1Unscaled.getY()),
+							new EPoint(loc2Unscaled.getX(), loc2Unscaled.getY()));
+						return true;
 					}
 				}
 			}
@@ -898,7 +894,7 @@ public class Connectivity
 		for(Layer layer : allLayers)
 		{
 			// examine the geometry on the layer
-			List<PolyBase> polyList = getMergePolys(merge, layer);
+			List<PolyBase> polyList = getMergePolys(merge, layer, null);
 			for(PolyBase poly : polyList)
 			{
 				Rectangle2D bounds = poly.getBounds2D();
@@ -1281,9 +1277,9 @@ public class Connectivity
 						PortInst touchingPi = findPortInstClosestToPoly(ni, (PrimitivePort)oPoly.getPort(), pt);
 						if (touchingPi == null)
 						{
-                            addErrorLog(newCell, "Can't find port for "+ni+" and "+oPoly.getPort(),
-                                new EPoint(pt.getX(), pt.getY()));
-                            continue;
+							addErrorLog(newCell, "Can't find port for "+ni+" and "+oPoly.getPort(),
+								new EPoint(pt.getX(), pt.getY()));
+							continue;
 						}
 						touchingNodes.add(touchingPi);
 						break;
@@ -1406,12 +1402,12 @@ public class Connectivity
 	/**
 	 * Method to scan the geometric information for possible contacts and vias.
 	 * Any vias found are created in the new cell and removed from the geometric information.
-     * @param merge the current geometry being extracted.
-     * @param originalMerge the original geometry.
-     * @param newCell the Cell where new geometry is being created.
-     * @return false if the job was aborted.
-     */
-    private boolean extractVias(PolyMerge merge, PolyMerge originalMerge, Cell newCell)
+	 * @param merge the current geometry being extracted.
+	 * @param originalMerge the original geometry.
+	 * @param newCell the Cell where new geometry is being created.
+	 * @return false if the job was aborted.
+	 */
+	private boolean extractVias(PolyMerge merge, PolyMerge originalMerge, Cell newCell)
 	{
 		// make a list of all via/cut layers in the technology and count the number of vias/cuts
 		int totalCuts = 0;
@@ -1462,11 +1458,11 @@ public class Connectivity
 				if (cutBox == null)
 				{
 					cutBox = cut.getBounds2D();
-                    double centerX = cutBox.getCenterX()/SCALEFACTOR;
-                    double centerY = cutBox.getCenterY()/SCALEFACTOR;
-                    String msg = "Cannot extract nonManhattan contact cut at (" + (centerX) + "," + (centerY) + ")";
-                    addErrorLog(newCell, msg, new EPoint(centerX, centerY));
-                    cutList.remove(cut);
+					double centerX = cutBox.getCenterX()/SCALEFACTOR;
+					double centerY = cutBox.getCenterY()/SCALEFACTOR;
+					String msg = "Cannot extract nonManhattan contact cut at (" + (centerX) + "," + (centerY) + ")";
+					addErrorLog(newCell, msg, new EPoint(centerX, centerY));
+					cutList.remove(cut);
 					cutsNotExtracted.add(cut);
 					continue;
 				}
@@ -1537,7 +1533,7 @@ public class Connectivity
 					}
 					if (activeCut && polyCut) activeCut = polyCut = false;
 
-                	// look for other cuts in the vicinity
+					// look for other cuts in the vicinity
 					Set<PolyBase> cutsInArea = new HashSet<PolyBase>();
 					cutsInArea.add(cut);
 					Rectangle2D multiCutArea = new Rectangle2D.Double(cutBox.getCenterX(), cutBox.getCenterY(), 0, 0);
@@ -1569,13 +1565,14 @@ public class Connectivity
 					}
 
 					// determine area of possible multi-cut contact
-					double lX = multiCutArea.getCenterX() - trueWidth/2;
-					double hX = multiCutArea.getCenterX() + trueWidth/2;
-					double lY = multiCutArea.getCenterY() - trueHeight/2;
-					double hY = multiCutArea.getCenterY() + trueHeight/2;
+					double lX = multiCutArea.getMinX() - trueWidth/2;
+					double hX = multiCutArea.getMaxX() + trueWidth/2;
+					double lY = multiCutArea.getMinY() - trueHeight/2;
+					double hY = multiCutArea.getMaxY() + trueHeight/2;
 					multiCutArea.setRect(lX, lY, hX-lX, hY-lY);
-
-                	// see if largest multi-cut contact fits
+//System.out.println("CONSIDERING "+pv.pNp.describe(false)+" ROTATED "+pv.rotation+" WITH "+cutsInArea.size()+" CUTS, SIZE "+
+//	((hX-lX)/SCALEFACTOR)+"x"+((hY-lY)/SCALEFACTOR));
+					// see if largest multi-cut contact fits
 					Layer badLayer = doesNodeFit(pv, multiCutArea, originalMerge, ignorePWell, ignoreNWell);
 					if (badLayer == null)
 					{
@@ -1621,12 +1618,12 @@ public class Connectivity
 				}
 				if (!foundCut)
 				{
-                    double centerX = cutBox.getCenterX()/SCALEFACTOR;
-                    double centerY = cutBox.getCenterY()/SCALEFACTOR;
-                    String msg = "Did not extract contact " + cut.getLayer().getName() + " cut at (" +
+					double centerX = cutBox.getCenterX()/SCALEFACTOR;
+					double centerY = cutBox.getCenterY()/SCALEFACTOR;
+					String msg = "Did not extract contact " + cut.getLayer().getName() + " cut at (" +
 						(centerX) + "," + (centerY) + ") in '" + newCell.getName() + "'";
 					if (reason != null) msg += " because " + reason;
-                    addErrorLog(newCell, msg, new EPoint(centerX, centerY));
+					addErrorLog(newCell, msg, new EPoint(centerX, centerY));
 					cutList.remove(cut);
 					cutsNotExtracted.add(cut);
 				}
@@ -1637,9 +1634,9 @@ public class Connectivity
 
 		// now remove all created contacts from the original merge
 		if (!startSection("Finish extracting " + contactNodes.size() + " vias..."))
-             return false; // aborted
+			 return false; // aborted
 
-        // build an R-Tree of all created nodes
+		// build an R-Tree of all created nodes
 		RTNode root = RTNode.makeTopLevel();
 		for(NodeInst ni : contactNodes)
 			root = RTNode.linkGeom(null, root, ni);
@@ -1648,8 +1645,8 @@ public class Connectivity
 		PolyMerge subtractMerge = new PolyMerge();
 		extractContactNodes(root, merge, subtractMerge, 0, contactNodes.size());
 		merge.subtractMerge(subtractMerge);
-        return true;
-    }
+		return true;
+	}
 
 	/**
 	 * Method to create the biggest contact node in a given location.
@@ -1689,7 +1686,7 @@ public class Connectivity
 		// now iterate to find the precise node X size
 		for(;;)
 		{
-			if (highXInc - lowXInc <= 1) break;
+			if (highXInc - lowXInc <= 1) { lowXInc = Math.floor(lowXInc);   break; }
 			double medInc = (lowXInc + highXInc) / 2;
 			NodeInst ni = NodeInst.makeDummyInstance(pNp, ctr, (sX+medInc) / SCALEFACTOR, sY / SCALEFACTOR, orient);
 			if (ni == null) return null;
@@ -1714,7 +1711,7 @@ public class Connectivity
 		// now iterate to find the precise node Y size
 		for(;;)
 		{
-			if (highYInc - lowYInc <= 1) break;
+			if (highYInc - lowYInc <= 1) { lowYInc = Math.floor(lowYInc);   break; }
 			double medInc = (lowYInc + highYInc) / 2;
 			NodeInst ni = NodeInst.makeDummyInstance(pNp, ctr, sX / SCALEFACTOR, (sY+medInc) / SCALEFACTOR, orient);
 			if (ni == null) return null;
@@ -1753,12 +1750,12 @@ public class Connectivity
 			l = geometricLayer(l);
 			poly.setLayer(l);
 			if (l.getFunction().isSubstrate()) continue;
+			poly.transform(trans);
 			if (l.getFunction().isContact())
 			{
 				if (!approximateCuts) cutsFound.add(poly);
 				continue;
 			}
-			poly.transform(trans);
 			double area = poly.getArea();
 			if (area > biggestArea)
 			{
@@ -1777,6 +1774,14 @@ public class Connectivity
 		if (!approximateCuts && cutsInArea != null)
 		{
 			// make sure all cuts in area are found in the node
+//System.out.print(" CUTS IN AREA:");
+//for(PolyBase pb : cutsInArea)
+//	System.out.print(" ("+(pb.getCenterX()/SCALEFACTOR)+","+(pb.getCenterY()/SCALEFACTOR)+")");
+//System.out.println();
+//System.out.print(" CUTS FOUND:");
+//for(PolyBase pb : cutsFound)
+//	System.out.print(" ("+pb.getCenterX()+","+pb.getCenterY()+")");
+//System.out.println();
 			for(PolyBase pb : cutsInArea)
 			{
 				boolean foundIt = false;
@@ -1976,7 +1981,7 @@ public class Connectivity
 					{
 						bogusContacts.add(pNp);
 						System.out.println("Not extracting unusual via contact: " + pNp.describe(false));
-                    }
+					}
 					continue;
 				}
 			}
@@ -2215,7 +2220,7 @@ public class Connectivity
 		boolean polyVertical = widestPoly < widestActive;
 
 		// look at all of the pieces of this layer
-		List<PolyBase> polyList = getMergePolys(originalMerge, tempLayer1);
+		List<PolyBase> polyList = getMergePolys(originalMerge, tempLayer1, null);
 		if (polyList == null) return;
 		for(PolyBase poly : polyList)
 		{
@@ -2245,10 +2250,10 @@ public class Connectivity
 					hei = transBox.getWidth();
 				} else
 				{
-                    addErrorLog(newCell, "Transistor at (" + transBox.getCenterX() + "," + transBox.getCenterY() +
+					addErrorLog(newCell, "Transistor at (" + transBox.getCenterX() + "," + transBox.getCenterY() +
 						") doesn't have proper tabs...ignored",
-                    new EPoint(transBox.getCenterX(), transBox.getCenterY()));
-                    continue;
+					new EPoint(transBox.getCenterX(), transBox.getCenterY()));
+					continue;
 				}
 				SizeOffset so = transistor.getProtoSizeOffset();
 				double width = wid + scaleUp(so.getLowXOffset() + so.getHighXOffset());
@@ -2399,7 +2404,7 @@ public class Connectivity
 		int soFar = 0;
 		for (Layer layer : extendableLayers)
 		{
-			List<PolyBase> polyList = getMergePolys(merge, layer);
+			List<PolyBase> polyList = getMergePolys(merge, layer, null);
 			geomToExtend.put(layer, polyList);
 			totExtensions += polyList.size();
 			soFar++;
@@ -2415,7 +2420,7 @@ public class Connectivity
 			ArcProto ap = arcsForLayer.get(layer);
 			if (ap == null) continue;
 			double wid = ap.getDefaultLambdaBaseWidth();
-            double arcLayerWidth = 2*(ap.getDefaultLambdaExtendOverMin() + ap.getLayerLambdaExtend(layer));
+			double arcLayerWidth = 2*(ap.getDefaultLambdaExtendOverMin() + ap.getLayerLambdaExtend(layer));
 
 			List<PolyBase> polyList = geomToExtend.get(layer);
 			for(PolyBase poly : polyList)
@@ -2939,7 +2944,7 @@ public class Connectivity
 			if (!foundNew) break;
 
 			// now analyze the remaining geometry in the polygon
-			polysToAnalyze = getMergePolys(merge, tempLayer1);
+			polysToAnalyze = getMergePolys(merge, tempLayer1, null);
 			if (polysToAnalyze == null) break;
 		}
 		merge.deleteLayer(tempLayer1);
@@ -3252,7 +3257,6 @@ public class Connectivity
 					for(int p=0; p<4; p++)
 					{
 						double length = possibleStart[p].distance(possibleEnd[p]);
-//						Poly clPoly = makeEndPointPoly(length, width, angle, possibleStart[p], possibleEnd[p]);
 						Poly clPoly = Poly.makeEndPointPoly(length, width, angle,
 							possibleStart[p], 0, possibleEnd[p], 0, Poly.Type.FILLED);
 						if (originalMerge.contains(poly.getLayer(), clPoly))
@@ -3370,10 +3374,11 @@ public class Connectivity
 	 */
 	private void convertAllGeometry(PolyMerge merge, PolyMerge originalMerge, Cell newCell)
 	{
+		MutableInteger numIgnored = new MutableInteger(0);
 		for (Layer layer : merge.getKeySet())
 		{
 			ArcProto ap = arcsForLayer.get(layer);
-			List<PolyBase> polyList = getMergePolys(merge, layer);
+			List<PolyBase> polyList = getMergePolys(merge, layer, numIgnored);
 
 			// implant layers may be large rectangles
 			if (layer.getFunction().isSubstrate())
@@ -3520,10 +3525,10 @@ public class Connectivity
 						if (ai != null) ai.setFixedAngle(false);
 					} else
 					{
-                        // Approximating the error with center
-                        addErrorLog(newCell, "Unable to connect unextracted polygon",
-                            new EPoint(searchBound.getCenterX(), searchBound.getCenterY()));
-                    }
+						// Approximating the error with center
+						addErrorLog(newCell, "Unable to connect unextracted polygon",
+							new EPoint(searchBound.getCenterX(), searchBound.getCenterY()));
+					}
 				}
 			}
 		}
@@ -3535,6 +3540,10 @@ public class Connectivity
 			for(PolyBase poly : cutList)
 				makePureLayerNodeFromPoly(poly, newCell);
 		}
+
+		if (numIgnored.intValue() > 0)
+			System.out.println("WARNING: Ignored " + numIgnored.intValue() +
+				" tiny polygons (use Network Preferences to control tiny polygon limit)");
 	}
 
 	/**
@@ -3645,9 +3654,9 @@ public class Connectivity
 				NodeInst newNi = NodeInst.makeInstance(ep.ni.getProto(), instanceAnchor, sX, sY, newCell);
 				if (newNi == null)
 				{
-                    addErrorLog(newCell, "Problem creating new instance of " + ep.ni.getProto(),
-                        new EPoint(sX, sY));
-                    return;
+					addErrorLog(newCell, "Problem creating new instance of " + ep.ni.getProto(),
+						new EPoint(sX, sY));
+					return;
 				}
 				PortInst newPi = newNi.findPortInstFromProto(e.getOriginalPort().getPortProto());
 				Export.newInstance(newCell, newPi, e.getName());
@@ -3704,7 +3713,7 @@ public class Connectivity
 		{
 			if (np.getFunction() != PrimitiveNode.Function.PIN)
 			{
-	            Poly niPoly = Highlight2.getNodeInstOutline(ni);
+				Poly niPoly = Highlight2.getNodeInstOutline(ni);
 				addedRectangles.add(ERectangle.fromLambda(niPoly.getBounds2D()));
 			}
 		}
@@ -3754,7 +3763,7 @@ public class Connectivity
 			{
 				if (pNp.getFunction() != PrimitiveNode.Function.PIN)
 				{
-		            Poly niPoly = Highlight2.getNodeInstOutline(ni);
+					Poly niPoly = Highlight2.getNodeInstOutline(ni);
 					addedRectangles.add(ERectangle.fromLambda(niPoly.getBounds2D()));
 				}
 			}
@@ -3793,7 +3802,7 @@ public class Connectivity
 	private ArcInst realizeArc(ArcProto ap, PortInst pi1, PortInst pi2, Point2D pt1, Point2D pt2, double width,
 		boolean noHeadExtend, boolean noTailExtend, PolyMerge merge)
 	{
-        ArcInst ai = ArcInst.makeInstanceBase(ap, width, pi1, pi2, pt1, pt2, null);
+		ArcInst ai = ArcInst.makeInstanceBase(ap, width, pi1, pi2, pt1, pt2, null);
 		if (ai == null) return null;
 		if (noHeadExtend) ai.setHeadExtended(false);
 		if (noTailExtend) ai.setTailExtended(false);
@@ -3805,7 +3814,7 @@ public class Connectivity
 		// remember this arc for debugging
 		if (DEBUGSTEPS)
 		{
-            Poly arcPoly = ai.makeLambdaPoly(ai.getGridBaseWidth(), Poly.Type.CLOSED);
+			Poly arcPoly = ai.makeLambdaPoly(ai.getGridBaseWidth(), Poly.Type.CLOSED);
 			addedRectangles.add(ERectangle.fromLambda(arcPoly.getBounds2D()));
 		}
 
@@ -3875,7 +3884,7 @@ public class Connectivity
 
 	private static final double CLOSEDIST = SCALEFACTOR/50;
 
-	private List<PolyBase> getMergePolys(PolyMerge merge, Layer layer)
+	private List<PolyBase> getMergePolys(PolyMerge merge, Layer layer, MutableInteger numIgnored)
 	{
 		List<PolyBase> polyList = merge.getMergedPoints(layer, true);
 		if (polyList == null) return polyList;
@@ -3903,7 +3912,11 @@ public class Connectivity
 
 			// anything smaller than the minimum number of grid units is ignored
 			double area = poly.getArea();
-			if (area < smallestPoly) continue;
+			if (area < smallestPoly)
+			{
+				if (numIgnored != null) numIgnored.increment();
+				continue;
+			}
 
 			properPolyList.add(poly);
 		}
@@ -3987,44 +4000,44 @@ public class Connectivity
 			this.addedBatchLines = addedBatchLines;
 			this.addedBatchNames = addedBatchNames;
 
-	        getContentPane().setLayout(new GridBagLayout());
-	        setTitle("Extraction Progress");
-	        setName("");
-	        addWindowListener(new WindowAdapter()
-	        {
-	            public void windowClosing(WindowEvent evt) { closeDialog(); }
-	        });
+			getContentPane().setLayout(new GridBagLayout());
+			setTitle("Extraction Progress");
+			setName("");
+			addWindowListener(new WindowAdapter()
+			{
+				public void windowClosing(WindowEvent evt) { closeDialog(); }
+			});
 
-	        GridBagConstraints gbc;
-	        comingUp = new JLabel("Next step:");
-	        gbc = new GridBagConstraints();
-	        gbc.gridx = 0;   gbc.gridy = 0;
-	        gbc.gridwidth = 2;
-	        gbc.anchor = GridBagConstraints.WEST;
-	        gbc.insets = new Insets(4, 4, 4, 4);
-	        getContentPane().add(comingUp, gbc);
+			GridBagConstraints gbc;
+			comingUp = new JLabel("Next step:");
+			gbc = new GridBagConstraints();
+			gbc.gridx = 0;   gbc.gridy = 0;
+			gbc.gridwidth = 2;
+			gbc.anchor = GridBagConstraints.WEST;
+			gbc.insets = new Insets(4, 4, 4, 4);
+			getContentPane().add(comingUp, gbc);
 
-	        JButton prev = new JButton("Prev");
-	        gbc = new GridBagConstraints();
-	        gbc.gridx = 0;   gbc.gridy = 1;
-	        gbc.anchor = GridBagConstraints.WEST;
-	        gbc.insets = new Insets(4, 4, 4, 4);
-	        prev.addActionListener(new ActionListener()
-            {
-                public void actionPerformed(ActionEvent evt) { advanceDisplay(false); }
-            });
-	        getContentPane().add(prev, gbc);
+			JButton prev = new JButton("Prev");
+			gbc = new GridBagConstraints();
+			gbc.gridx = 0;   gbc.gridy = 1;
+			gbc.anchor = GridBagConstraints.WEST;
+			gbc.insets = new Insets(4, 4, 4, 4);
+			prev.addActionListener(new ActionListener()
+			{
+				public void actionPerformed(ActionEvent evt) { advanceDisplay(false); }
+			});
+			getContentPane().add(prev, gbc);
 
-	        JButton next = new JButton("Next");
-	        gbc = new GridBagConstraints();
-	        gbc.gridx = 1;   gbc.gridy = 1;
-	        gbc.anchor = GridBagConstraints.WEST;
-	        gbc.insets = new Insets(4, 4, 4, 4);
-	        next.addActionListener(new ActionListener()
-            {
-                public void actionPerformed(ActionEvent evt) { advanceDisplay(true); }
-            });
-	        getContentPane().add(next, gbc);
+			JButton next = new JButton("Next");
+			gbc = new GridBagConstraints();
+			gbc.gridx = 1;   gbc.gridy = 1;
+			gbc.anchor = GridBagConstraints.WEST;
+			gbc.insets = new Insets(4, 4, 4, 4);
+			next.addActionListener(new ActionListener()
+			{
+				public void actionPerformed(ActionEvent evt) { advanceDisplay(true); }
+			});
+			getContentPane().add(next, gbc);
 
 			batchPosition = -1;
 			advanceDisplay(true);
@@ -4047,9 +4060,9 @@ public class Connectivity
 				if (batchPosition < 0) batchPosition = 0;
 			}
 			comingUp.setText("Batch " + (batchPosition+1) + ": " + addedBatchNames.get(batchPosition));
-	        pack();
+			pack();
 
-	        UserInterface ui = Job.getUserInterface();
+			UserInterface ui = Job.getUserInterface();
 			EditWindow_ wnd = ui.getCurrentEditWindow_();
 			wnd.clearHighlighting();
 			Cell cell = wnd.getCell();

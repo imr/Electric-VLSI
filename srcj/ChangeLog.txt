@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09c: ******************************
 
+BUG: (2/9/09, SMR) When a multi-cut contact is extracted, does not handle
+     if the resulting node is rotated (Bug #2043).
+FIX: Transform cut polygons before considering them.
+
 BUG: (2/9/09, SMR) When a multi-screen Windows system has its main window
      on a different screen than the main one, the "Window / Adjust Position"
      commands do not work (Bug #2044).
