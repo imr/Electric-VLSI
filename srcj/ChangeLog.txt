@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09c: ******************************
 
+BUG: (2/9/09, SMR) When a multi-screen Windows system has its main window
+     on a different screen than the main one, the "Window / Adjust Position"
+     commands do not work (Bug #2044).
+FIX: Offset the monitor locations.
+
 IMP: (2/6/09, GVG) Get Array tool working on arcs and their pins (Bug #2041).
 Implemented by adding the arc pins into the nodes list.
 

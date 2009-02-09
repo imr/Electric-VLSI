@@ -40,6 +40,7 @@ import com.sun.electric.tool.user.dialogs.SetFocus;
 import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.EditWindowFocusBrowser;
+import com.sun.electric.tool.user.ui.InvisibleLayerConfiguration;
 import com.sun.electric.tool.user.ui.MessagesWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowContent;
@@ -66,7 +67,9 @@ import java.util.EventListener;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.swing.JMenu;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 
 /**
  * Class to handle the commands in the "Window" pulldown menu.
@@ -74,6 +77,7 @@ import javax.swing.KeyStroke;
 public class WindowMenu {
     public static KeyStroke getCloseWindowAccelerator() { return EMenuItem.shortcut(KeyEvent.VK_W); }
     private static EMenu thisWindowMenu = null;
+    private static EMenu visibleLayersMenu = null;
     private static EMenuItem hiddenWindowCycleMenuItem = null;
 
     static EMenu makeMenu() {
@@ -99,7 +103,8 @@ public class WindowMenu {
                 KeyStroke.getKeyStroke(KeyEvent.VK_BEGIN, ctrlshift)};
 
 
-        // mnemonic keys available: A         K     Q  T    Y
+        // mnemonic keys available: A         K     Q  T  
+	    visibleLayersMenu = new EMenu("Visible La_yers");  
         EMenu menu = new EMenu("_Window",
 
             new EMenuItem("_Fill Window", numpad9) { public void run() {
@@ -185,6 +190,8 @@ public class WindowMenu {
 
 		    SEPARATOR,
 
+		    visibleLayersMenu,
+
         // mnemonic keys available: A  DEFGHIJKLMNOPQ STUV XYZ
             new EMenu("_Color Schemes",
                 new EMenuItem("_Restore Default Colors") { public void run() {
@@ -242,6 +249,9 @@ public class WindowMenu {
             SEPARATOR
         );
         thisWindowMenu = menu;
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() { setDynamicVisibleLayerMenus(); }
+        });
         return menu;
     }
 
@@ -273,9 +283,46 @@ public class WindowMenu {
         thisWindowMenu.setDynamicItems(list);
     }
 
+    /**
+     * Method to change the Visible Layer pulldown entry to reflect the current configurations.
+     */
+    public static void setDynamicVisibleLayerMenus()
+    {
+        List<DynamicLayerVisibilityMenuItem> list = new ArrayList<DynamicLayerVisibilityMenuItem>();
+        int index = 1;
+        for(String cName : InvisibleLayerConfiguration.getOnly().getConfigurationNames())
+            list.add(new DynamicLayerVisibilityMenuItem(cName, index++));
+        visibleLayersMenu.setDynamicItems(list);
+    }
+
+    private static class DynamicLayerVisibilityMenuItem extends EMenuItem
+    {
+        private String cName;
+
+        public DynamicLayerVisibilityMenuItem(String cName, int index)
+        {
+            super((index <= 9 ? "_" : "") + index + ": " + cName);
+            this.cName = cName;
+        }
+
+        public String getDescription() { return "Visible Layer Combination"; }
+
+        protected void updateButtons() {}
+
+        public void run()
+        {
+            for (Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext();)
+            {
+                WindowFrame wf = it.next();
+                wf.getLayersTab().setInvisibleLayerConfiguration(cName);
+            }
+        }
+    }
+
     private static class DynamicEMenuItem extends EMenuItem
     {
-        WindowFrame window;
+        private WindowFrame window;
+
         public DynamicEMenuItem(WindowFrame w, KeyStroke accelerator)
         {
             super(w.getTitle(), accelerator);
@@ -444,7 +491,15 @@ public class WindowMenu {
         // get the overall area in which to work
         Rectangle [] areas = getArrangementWindowAreas();
 
-        // tile the windows in each area
+        // find offset for multiscreen systems
+        Point loc = new Point(0, 0);
+		if (TopLevel.isMDIMode())
+		{
+			TopLevel tl = TopLevel.getCurrentJFrame();
+			loc = tl.getContentPane().getLocationOnScreen();
+		}
+
+		// tile the windows in each area
         for (Rectangle area : areas)
         {
         	// see how many windows are on this screen
@@ -453,8 +508,8 @@ public class WindowMenu {
 			{
 				WindowFrame wf = it.next();
 				Rectangle wfBounds = wf.getFrame().getBounds();
-				int locX = (int)wfBounds.getCenterX();
-				int locY = (int)wfBounds.getCenterY();
+				int locX = (int)wfBounds.getCenterX() - loc.x;
+				int locY = (int)wfBounds.getCenterY() - loc.y;
 				if (locX >= area.x && locX < area.x+area.width &&
 					locY >= area.y && locY < area.y+area.height) count++;
 			}
@@ -466,8 +521,8 @@ public class WindowMenu {
 			{
 				WindowFrame wf = it.next();
 				Rectangle wfBounds = wf.getFrame().getBounds();
-				int locX = (int)wfBounds.getCenterX();
-				int locY = (int)wfBounds.getCenterY();
+				int locX = (int)wfBounds.getCenterX() - loc.x;
+				int locY = (int)wfBounds.getCenterY() - loc.y;
 				if (locX >= area.x && locX < area.x+area.width &&
 					locY >= area.y && locY < area.y+area.height)
 				{
@@ -487,6 +542,14 @@ public class WindowMenu {
 		// get the overall area in which to work
 		Rectangle [] areas = getArrangementWindowAreas();
 
+        // find offset for multiscreen systems
+        Point loc = new Point(0, 0);
+		if (TopLevel.isMDIMode())
+		{
+			TopLevel tl = TopLevel.getCurrentJFrame();
+			loc = tl.getContentPane().getLocationOnScreen();
+		}
+
 		// tile the windows in each area
         for (Rectangle area : areas)
 		{
@@ -496,8 +559,8 @@ public class WindowMenu {
 			{
 				WindowFrame wf = it.next();
 				Rectangle wfBounds = wf.getFrame().getBounds();
-				int locX = (int)wfBounds.getCenterX();
-				int locY = (int)wfBounds.getCenterY();
+				int locX = (int)wfBounds.getCenterX() - loc.x;
+				int locY = (int)wfBounds.getCenterY() - loc.y;
 				if (locX >= area.x && locX < area.x+area.width &&
 					locY >= area.y && locY < area.y+area.height) count++;
 			}
@@ -509,8 +572,8 @@ public class WindowMenu {
 			{
 				WindowFrame wf = it.next();
 				Rectangle wfBounds = wf.getFrame().getBounds();
-				int locX = (int)wfBounds.getCenterX();
-				int locY = (int)wfBounds.getCenterY();
+				int locX = (int)wfBounds.getCenterX() - loc.x;
+				int locY = (int)wfBounds.getCenterY() - loc.y;
 				if (locX >= area.x && locX < area.x+area.width &&
 					locY >= area.y && locY < area.y+area.height)
 				{
@@ -530,6 +593,14 @@ public class WindowMenu {
 		// get the overall area in which to work
 		Rectangle [] areas = getArrangementWindowAreas();
 
+        // find offset for multiscreen systems
+        Point loc = new Point(0, 0);
+		if (TopLevel.isMDIMode())
+		{
+			TopLevel tl = TopLevel.getCurrentJFrame();
+			loc = tl.getContentPane().getLocationOnScreen();
+		}
+
 		// tile the windows in each area
 		for (Rectangle area : areas)
 		{
@@ -539,8 +610,8 @@ public class WindowMenu {
 			{
 				WindowFrame wf = it.next();
 				Rectangle wfBounds = wf.getFrame().getBounds();
-				int locX = (int)wfBounds.getCenterX();
-				int locY = (int)wfBounds.getCenterY();
+				int locX = (int)wfBounds.getCenterX() - loc.x;
+				int locY = (int)wfBounds.getCenterY() - loc.y;
 				if (locX >= area.x && locX < area.x+area.width &&
 					locY >= area.y && locY < area.y+area.height) count++;
 			}
@@ -569,8 +640,8 @@ public class WindowMenu {
 			{
 				WindowFrame wf = it.next();
 				Rectangle wfBounds = wf.getFrame().getBounds();
-				int locX = (int)wfBounds.getCenterX();
-				int locY = (int)wfBounds.getCenterY();
+				int locX = (int)wfBounds.getCenterX() - loc.x;
+				int locY = (int)wfBounds.getCenterY() - loc.y;
 				if (locX >= area.x && locX < area.x+area.width &&
 					locY >= area.y && locY < area.y+area.height)
 				{
