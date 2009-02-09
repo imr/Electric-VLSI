@@ -607,8 +607,8 @@ public class Pref
 	public Object getValue() {
         if (Job.getDebug() && !serverAccessible && lockCreation && Job.inServerThread() && !reportedAccess.contains(this)) {
             String msg = getPrefName() + " is accessed from " + Job.getRunningJob();
-            ActivityLogger.logMessage(msg);
-            System.out.println(msg);
+//            ActivityLogger.logMessage(msg);
+//            System.out.println(msg);
             reportedAccess.add(this);
         }
         return cachedObj;
@@ -803,8 +803,8 @@ public class Pref
     private void checkModify() {
         if (Job.getDebug() && lockCreation && Job.inServerThread()) {
             String msg = getPrefName() + " is modified in " + Job.getRunningJob();
-            ActivityLogger.logMessage(msg);
-            System.out.println(msg);
+//            ActivityLogger.logMessage(msg);
+//            System.out.println(msg);
         }
     }
 
