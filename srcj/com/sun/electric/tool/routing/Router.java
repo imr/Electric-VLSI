@@ -452,21 +452,13 @@ public abstract class Router {
             if (width < newWidth) width = newWidth;
             arcFound = true;
         }
-        // check any wires that connect to the export of this portinst in the
-        // prototype, if this is a cell instance
-        NodeInst ni = pi.getNodeInst();
-        if (ni.isCellInstance()) {
-            Cell cell = (Cell)ni.getProto();
-            Export export = cell.findExport(pi.getPortProto().getName());
-            PortInst exportedInst = export.getOriginalPort();
-            double width2 = getArcWidthToUse(exportedInst, ap, arcAngle, ignoreAngle);
-            if (width2 > width) width = width2;
-        }
+        if (arcFound) return width;
 
-        if (ClickZoomWireListener.theOne.getUseFatWiringMode()) {
-            // if still default width and node is a contact, use the width/height of the contact
-            if (!arcFound && (ni.getProto() instanceof PrimitiveNode)) {
-                PrimitiveNode pn = (PrimitiveNode)ni.getProto();
+        NodeInst ni = pi.getNodeInst();
+        // if still default width and node is a contact, use the width/height of the contact
+        if (!arcFound && (ni.getProto() instanceof PrimitiveNode)) {
+            PrimitiveNode pn = (PrimitiveNode)ni.getProto();
+            if (ClickZoomWireListener.theOne.getUseFatWiringMode()) {
                 if (pn.getFunction() == PrimitiveNode.Function.CONTACT) {
                     // size calls take into account rotation
                     double xsize = ni.getXSizeWithoutOffset();
@@ -479,7 +471,27 @@ public abstract class Router {
                     }
                 }
             }
+            if (pn.getFunction() == PrimitiveNode.Function.PIN) {
+                for (Iterator<Connection> it = pi.getConnections(); it.hasNext(); ) {
+                    Connection c = it.next();
+                    ArcInst ai = c.getArc();
+                    if (ai.getProto() != ap) continue;
+                    double newWidth = c.getArc().getLambdaBaseWidth();
+                    if (width < newWidth) width = newWidth;
+                }
+            }
         }
+
+        // check any wires that connect to the export of this portinst in the
+        // prototype, if this is a cell instance
+        if (ni.isCellInstance()) {
+            Cell cell = (Cell)ni.getProto();
+            Export export = cell.findExport(pi.getPortProto().getName());
+            PortInst exportedInst = export.getOriginalPort();
+            double width2 = getArcWidthToUse(exportedInst, ap, arcAngle, ignoreAngle);
+            if (width2 > width) width = width2;
+        }
+
         return width;
     }
 
@@ -546,8 +558,10 @@ public abstract class Router {
 
             Dimension2D startDim = new Dimension2D.Double(0, 0);
             Dimension2D endDim = new Dimension2D.Double(0, 0);
-            startAngle = getAngleAndDimension(startDim, startObj, startLoc, cornerLoc, startArc, endObj == null, ignoreAngles);
-            endAngle = getAngleAndDimension(endDim, endObj, endLoc, cornerLoc, endArc, startObj == null, ignoreAngles);
+            Dimension2D startPref = new Dimension2D.Double(0, 0);
+            Dimension2D endPref = new Dimension2D.Double(0, 0);
+            startAngle = getAngleAndDimension(startDim, startObj, startLoc, cornerLoc, startArc, endObj == null, ignoreAngles, startPref);
+            endAngle = getAngleAndDimension(endDim, endObj, endLoc, cornerLoc, endArc, startObj == null, ignoreAngles, endPref);
 
             double startW = startDim.getWidth();
             double startH = startDim.getHeight();
@@ -557,9 +571,18 @@ public abstract class Router {
             if (startH == 0) startH = endH;
             if (endW == 0) endW = startW;
             if (endH == 0) endH = startH;
-            // put dims in start
-            if (endW < startW) startW = endW;
-            if (endH < startH) startH = endH;
+            
+            // put dims in start, prefer arc widths
+            if (endPref.getWidth() > startPref.getWidth()) {
+                startW = endW;
+            } else if (endPref.getWidth() == startPref.getWidth()) {
+                if (endW < startW) startW = endW;
+            }
+            if (endPref.getHeight() > startPref.getHeight()) {
+                startH = endH;
+            } else if (endPref.getHeight() == startPref.getHeight()) {
+                if (endH < startH) startH = endH;
+            }
 
             if (endObj == null && ClickZoomWireListener.theOne.getUseFatWiringMode()) {
                 if (startW > startH) startH = startW;
@@ -576,7 +599,8 @@ public abstract class Router {
         }
 
         private static int getAngleAndDimension(Dimension2D dim, ElectricObject obj, Point2D loc, Point2D cornerLoc,
-                                                ArcProto arc, boolean otherObjNull, boolean ignoreAngles) {
+                                                ArcProto arc, boolean otherObjNull, boolean ignoreAngles,
+                                                Dimension2D pref) {
             double w = 0, h = 0;
             int angle = 0;
 
@@ -593,9 +617,14 @@ public abstract class Router {
                     if (angle % 1800 == 0) h = ai.getLambdaBaseWidth();
                     if ((angle + 900) % 1800 == 0) w = ai.getLambdaBaseWidth();
                 }
+
+                if (angle % 1800 == 0) pref.setSize(0, 1);
+                if ((angle + 900) % 1800 == 0) pref.setSize(1, 0);
+
                 // special case
                 if (otherObjNull) {
                     w = h = size;
+                    pref.setSize(1, 1);
                 }
             }
 
