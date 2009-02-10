@@ -64,6 +64,7 @@ public class DesignRulesTab extends PreferencePanel
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 4;
         gridBagConstraints.gridheight = 1;
+        gridBagConstraints.weightx = gridBagConstraints.weighty = 1;
         gridBagConstraints.insets = new Insets(0, 0, 0, 0);
         gridBagConstraints.fill = GridBagConstraints.BOTH;
         designRules.add(rulesPanel, gridBagConstraints);

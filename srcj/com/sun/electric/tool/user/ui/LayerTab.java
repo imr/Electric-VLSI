@@ -29,7 +29,9 @@ import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.menus.WindowMenu;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -58,6 +60,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
@@ -71,14 +74,13 @@ import javax.swing.event.ChangeListener;
  */
 public class LayerTab extends JPanel implements DragSourceListener, DragGestureListener
 {
-	private JList layerList;
-	private DefaultListModel layerListModel;
+	private JList layerList, configurationList;
+	private DefaultListModel layerListModel, configurationModel;
 	private Map<Layer,Boolean> highlighted;
 	private List<Layer> layersInList;
 	private DragSource dragSource;
 	private boolean loading;
 	private boolean layerDrawing;
-
 	private static Map<Layer,Boolean> visibility;
 
 	/**
@@ -97,6 +99,16 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
 		{
 			public void mouseClicked(MouseEvent e) { apply(e); }
 		});
+
+		// build the configuration list
+		configurationModel = new DefaultListModel();
+		configurationList = new JList(configurationModel);
+		configurationPane.setViewportView(configurationList);
+		configurationList.addMouseListener(new MouseAdapter()
+		{
+			public void mouseClicked(MouseEvent e) { useConfiguration(e); }
+		});
+		showConfigurations();
 
 		// setup drag-and-drop in the layers tab
 		dragSource = new DragSource();
@@ -169,7 +181,6 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
 		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = it.next();
-//			if (tech == Generic.tech() && !Job.getDebug()) continue;
 			technology.addItem(tech.getTechName());
 			for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
 			{
@@ -183,6 +194,87 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
 
 		setSelectedTechnology(cur);
 		loading = false;
+	}
+
+	private void saveThisConfiguration()
+	{
+		String cName = Job.getUserInterface().askForInput("Configuration Name:", "Save Visibility Configuration", "Config");
+		if (cName == null) return;
+		if (InvisibleLayerConfiguration.getOnly().exists(cName))
+		{
+			Job.getUserInterface().showErrorMessage("There is already a configuration with that name.  Choose another.",
+				"Duplicate configuration name");
+			return;
+		}
+		String techName = (String)technology.getSelectedItem();
+		Technology tech = Technology.findTechnology(techName);
+		List<Layer> invis = new ArrayList<Layer>();
+		for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
+		{
+			Layer layer = lIt.next();
+			Boolean vis = visibility.get(layer);
+			if (vis == null) continue;
+			if (vis.booleanValue()) continue;
+			invis.add(layer);
+		}
+		InvisibleLayerConfiguration.getOnly().addConfiguration(cName, tech, invis);
+		showConfigurations();
+	}
+
+	private void deleteThisConfiguration()
+	{
+		int index = configurationList.getSelectedIndex();
+		if (index < 0) return;
+		String cName = (String)configurationList.getSelectedValue();
+		if (cName == null) return;
+		InvisibleLayerConfiguration.getOnly().deleteConfiguration(cName);
+		showConfigurations();
+	}
+
+	/**
+	 * Method called when the user clicks on a configuration name.
+	 * @param e Event information.
+	 */
+	private void useConfiguration(MouseEvent e)
+	{
+		if (e.getClickCount() != 2) return;
+		String cName = (String)configurationList.getSelectedValue();
+		if (cName == null) return;
+		setInvisibleLayerConfiguration(cName);
+	}
+
+	/**
+	 * Method to load an invisible layer configuration into the visible layers.
+	 * @param cName the name of the invisible layer configuration.
+	 */
+	public void setInvisibleLayerConfiguration(String cName)
+	{
+		// get a set of all invisible layers in the selected configuration
+		Technology tech = InvisibleLayerConfiguration.getOnly().getConfigurationTechnology(cName);
+		if (tech == null) return;
+		Set<Layer> invisibleLayers = InvisibleLayerConfiguration.getOnly().getConfigurationValue(cName);
+
+		for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
+		{
+			Layer layer = lIt.next();
+			Boolean vis = visibility.get(layer);
+			if (vis == null) continue;
+			boolean invis = invisibleLayers.contains(layer);
+			if (invis != vis.booleanValue()) continue;
+
+			// remember the state of this layer
+			visibility.put(layer, Boolean.valueOf(!invis));
+		}
+		updateLayersTab();
+		update();
+	}
+
+	private void showConfigurations()
+	{
+		configurationModel.clear();
+		List<String> configs = InvisibleLayerConfiguration.getOnly().getConfigurationNames();
+		for(String key : configs)
+			configurationModel.addElement(key);
 	}
 
 	/**
@@ -823,8 +915,7 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
 	 * always regenerated by the Form Editor.
 	 */
     // <editor-fold defaultstate="collapsed" desc=" Generated Code ">//GEN-BEGIN:initComponents
-    private void initComponents()
-    {
+    private void initComponents() {
         java.awt.GridBagConstraints gridBagConstraints;
 
         layerPane = new javax.swing.JScrollPane();
@@ -845,18 +936,23 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
         nodeText = new javax.swing.JCheckBox();
         opacitySlider = new javax.swing.JSlider();
         resetOpacity = new javax.swing.JButton();
+        jPanel3 = new javax.swing.JPanel();
+        saveConfiguration = new javax.swing.JButton();
+        deleteConfiguration = new javax.swing.JButton();
+        configurationPane = new javax.swing.JScrollPane();
 
         setLayout(new java.awt.GridBagLayout());
 
         setName("");
-        layerPane.setMinimumSize(new java.awt.Dimension(100, 300));
-        layerPane.setPreferredSize(new java.awt.Dimension(100, 300));
+        layerPane.setMinimumSize(new java.awt.Dimension(100, 150));
+        layerPane.setOpaque(false);
+        layerPane.setPreferredSize(new java.awt.Dimension(100, 150));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.weighty = 1.0;
+        gridBagConstraints.weighty = 0.75;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         add(layerPane, gridBagConstraints);
 
@@ -864,14 +960,13 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
         add(technology, gridBagConstraints);
 
         selectAll.setText("Select All");
-        selectAll.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        selectAll.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 selectAllActionPerformed(evt);
             }
         });
@@ -883,10 +978,8 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
         add(selectAll, gridBagConstraints);
 
         makeVisible.setText("Make Visible");
-        makeVisible.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        makeVisible.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 makeVisibleActionPerformed(evt);
             }
         });
@@ -898,10 +991,8 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
         add(makeVisible, gridBagConstraints);
 
         makeInvisible.setText("Make Invisible");
-        makeInvisible.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        makeInvisible.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 makeInvisibleActionPerformed(evt);
             }
         });
@@ -909,32 +1000,28 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 6;
-        gridBagConstraints.insets = new java.awt.Insets(1, 4, 2, 4);
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
         add(makeInvisible, gridBagConstraints);
 
         jPanel1.setLayout(new java.awt.GridBagLayout());
 
         jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Highlighting"));
         unhighlightAll.setText("Clear");
-        unhighlightAll.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        unhighlightAll.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 unhighlightAllActionPerformed(evt);
             }
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(1, 4, 2, 4);
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
         jPanel1.add(unhighlightAll, gridBagConstraints);
 
         toggleHighlight.setText("Toggle");
-        toggleHighlight.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        toggleHighlight.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 toggleHighlightActionPerformed(evt);
             }
         });
@@ -942,12 +1029,12 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 1, 4);
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
         jPanel1.add(toggleHighlight, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridy = 8;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
         add(jPanel1, gridBagConstraints);
@@ -955,49 +1042,52 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
         jPanel2.setLayout(new java.awt.GridBagLayout());
 
         jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder("Text Visibility"));
-        cellText.setText("Cell text");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel2.add(cellText, gridBagConstraints);
-
-        arcText.setText("Arc text");
+        cellText.setText("Cell");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jPanel2.add(cellText, gridBagConstraints);
+
+        arcText.setText("Arc");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         jPanel2.add(arcText, gridBagConstraints);
 
-        annotationText.setText("Annotation text");
+        annotationText.setText("Annotation");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         jPanel2.add(annotationText, gridBagConstraints);
 
         instanceNames.setText("Instance names");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         jPanel2.add(instanceNames, gridBagConstraints);
 
-        exportText.setText("Export text");
+        exportText.setText("Export");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         jPanel2.add(exportText, gridBagConstraints);
 
-        portText.setText("Port text");
+        portText.setText("Port");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         jPanel2.add(portText, gridBagConstraints);
 
-        nodeText.setText("Node text");
+        nodeText.setText("Node");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
@@ -1007,8 +1097,9 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridy = 9;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
         add(jPanel2, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -1019,10 +1110,8 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
         add(opacitySlider, gridBagConstraints);
 
         resetOpacity.setText("Reset Opacity");
-        resetOpacity.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        resetOpacity.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 resetOpacityActionPerformed(evt);
             }
         });
@@ -1033,7 +1122,64 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 1, 4);
         add(resetOpacity, gridBagConstraints);
 
+        jPanel3.setLayout(new java.awt.GridBagLayout());
+
+        jPanel3.setBorder(javax.swing.BorderFactory.createTitledBorder("Saved Layers"));
+        saveConfiguration.setText("Save...");
+        saveConfiguration.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                saveConfigurationActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
+        jPanel3.add(saveConfiguration, gridBagConstraints);
+
+        deleteConfiguration.setText("Delete");
+        deleteConfiguration.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                deleteConfigurationActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
+        jPanel3.add(deleteConfiguration, gridBagConstraints);
+
+        configurationPane.setMinimumSize(new java.awt.Dimension(100, 90));
+        configurationPane.setPreferredSize(new java.awt.Dimension(100, 90));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        jPanel3.add(configurationPane, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 0.25;
+        add(jPanel3, gridBagConstraints);
+
     }// </editor-fold>//GEN-END:initComponents
+
+    private void deleteConfigurationActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteConfigurationActionPerformed
+    	deleteThisConfiguration();
+    }//GEN-LAST:event_deleteConfigurationActionPerformed
+
+    private void saveConfigurationActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveConfigurationActionPerformed
+    	saveThisConfiguration();
+    }//GEN-LAST:event_saveConfigurationActionPerformed
 
     private void resetOpacityActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_resetOpacityActionPerformed
     {//GEN-HEADEREND:event_resetOpacityActionPerformed
@@ -1074,10 +1220,13 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
     private javax.swing.JCheckBox annotationText;
     private javax.swing.JCheckBox arcText;
     private javax.swing.JCheckBox cellText;
+    private javax.swing.JScrollPane configurationPane;
+    private javax.swing.JButton deleteConfiguration;
     private javax.swing.JCheckBox exportText;
     private javax.swing.JCheckBox instanceNames;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanel3;
     private javax.swing.JScrollPane layerPane;
     private javax.swing.JButton makeInvisible;
     private javax.swing.JButton makeVisible;
@@ -1085,6 +1234,7 @@ public class LayerTab extends JPanel implements DragSourceListener, DragGestureL
     private javax.swing.JSlider opacitySlider;
     private javax.swing.JCheckBox portText;
     private javax.swing.JButton resetOpacity;
+    private javax.swing.JButton saveConfiguration;
     private javax.swing.JButton selectAll;
     private javax.swing.JComboBox technology;
     private javax.swing.JButton toggleHighlight;
