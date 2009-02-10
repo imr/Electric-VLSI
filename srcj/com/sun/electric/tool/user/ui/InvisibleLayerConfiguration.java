@@ -118,10 +118,12 @@ public class InvisibleLayerConfiguration
 	public void addConfiguration(String cName, Technology tech, List<Layer> layers)
 	{
 		StringBuffer sb = new StringBuffer();
+		sb.append(tech.getTechName());
+		boolean first = true;
 		for(Layer layer : layers)
 		{
-			if (sb.length() == 0) sb.append(tech.getTechName());
-			sb.append(',');
+			if (!first) sb.append(',');
+			first = false;
 			sb.append(layer.getName());
 		}
 		configurations.put(cName, sb.toString());
