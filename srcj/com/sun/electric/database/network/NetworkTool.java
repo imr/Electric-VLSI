@@ -39,6 +39,7 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.ToolSettings;
 import com.sun.electric.tool.user.User;
 
 import java.util.Iterator;
@@ -343,7 +344,7 @@ public class NetworkTool extends Tool
 	 * When included, they appear as a component with different networks on either side.
 	 * @return true if resistors are ignored in the circuit.
 	 */
-	public static boolean isIgnoreResistors() { return tool.cacheIgnoreResistors.getBoolean(); }
+	public static boolean isIgnoreResistors() { return getIgnoreResistorsSetting().getBoolean(); }
 	private static Netlist.ShortResistors isIgnoreResistors_() { return Netlist.ShortResistors.NO; }
 	/**
 	 * Returns project Setting to tell whether resistors are ignored in the circuit.
@@ -351,14 +352,7 @@ public class NetworkTool extends Tool
 	 * When included, they appear as a component with different networks on either side.
 	 * Returns project Setting to tell whether resistors are ignored in the circuit.
 	 */
-	public static Setting getIgnoreResistorsSetting() { return tool.cacheIgnoreResistors; }
-
-    private Setting cacheIgnoreResistors;
-
-    @Override
-    protected void initProjectSettings() {
-        makeBooleanSetting("IgnoreResistors", "Netlists tab", "Networks ignore Resistors", false);
-    }
+	public static Setting getIgnoreResistorsSetting() { return ToolSettings.getIgnoreResistorsSetting(); }
 
 	/****************************** OPTIONS ******************************/
 

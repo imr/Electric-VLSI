@@ -40,6 +40,7 @@ import com.sun.electric.lib.LibFile;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.ToolSettings;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.output.GenerateVHDL;
 import com.sun.electric.tool.io.output.Spice;
@@ -986,12 +987,6 @@ public class Simulation extends Tool
 		}
 	}
 
-	@Override
-	protected void initProjectSettings()
-	{
-		initVerilogProjectSettings();
-	}
-
 	/****************************** FAST HENRY OPTIONS ******************************/
 
 	private static Pref cacheFastHenryUseSingleFrequency = Pref.makeBooleanPref("FastHenryUseSingleFrequency", tool.prefs, false);
@@ -1181,34 +1176,26 @@ public class Simulation extends Tool
 	 * The default is false.
 	 * @return true if Verilog deck generation should use the Assign statement.
 	 */
-	public static boolean getVerilogUseAssign() { return tool.cacheVerilogUseAssign.getBoolean(); }
+	public static boolean getVerilogUseAssign() { return getVerilogUseAssignSetting().getBoolean(); }
 	/**
 	 * Returns setting to tell whether Verilog deck generation should use the Assign statement.
 	 * @return setting to tell whether Verilog deck generation should use the Assign statement.
 	 */
-	public static Setting getVerilogUseAssignSetting() { return tool.cacheVerilogUseAssign; }
+	public static Setting getVerilogUseAssignSetting() { return ToolSettings.getVerilogUseAssignSetting(); }
 
 	/**
-	 * Method to tell whether Verilog deck generation should use Trireg by default.
+	 * Method to tell whether Verilog deck generation shoultd use Trireg by default.
 	 * The alternative is to use the "wire" statement.
 	 * The default is false.
 	 * @return true if Verilog deck generation should use Trireg by default.
 	 */
-	public static boolean getVerilogUseTrireg() { return tool.cacheVerilogUseTrireg.getBoolean(); }
+	public static boolean getVerilogUseTrireg() { return getVerilogUseTriregSetting().getBoolean(); }
 	/**
 	 * Returns setting to tell whether Verilog deck generation should use Trireg by default.
 	 * The alternative is to use the "wire" statement.
 	 * @return setting to tell whether Verilog deck generation should use Trireg by default.
 	 */
-	public static Setting getVerilogUseTriregSetting() { return tool.cacheVerilogUseTrireg; }
-
-	private Setting cacheVerilogUseAssign;
-	private Setting cacheVerilogUseTrireg;
-
-	private void initVerilogProjectSettings() {
-		makeBooleanSetting("VerilogUseAssign", "Verilog tab", "Verilog uses Assign construct", false);
-		makeBooleanSetting("VerilogUseTrireg", "Verilog tab", "Verilog presumes wire is Trireg", false);
-	}
+	public static Setting getVerilogUseTriregSetting() { return ToolSettings.getVerilogUseTriregSetting(); }
 
 	private static Pref cacheVerilogStopAtStandardCells = Pref.makeBooleanPref("VerilogStopAtStandardCells", tool.prefs, false);
 	public static void setVerilogStopAtStandardCells(boolean b) { cacheVerilogStopAtStandardCells.setBoolean(b); }
@@ -1227,7 +1214,7 @@ public class Simulation extends Tool
     public static void setVerilogParameterizeModuleNames(boolean b) { cacheVerilogParameterizeModuleNames.setBoolean(b); }
     public static boolean getVerilogParameterizeModuleNames() { return cacheVerilogParameterizeModuleNames.getBoolean(); }
     public static boolean getFactoryVerilogParameterizeModuleNames() { return cacheVerilogParameterizeModuleNames.getBooleanFactoryValue(); }
-    
+
 	/****************************** CDL OPTIONS ******************************/
 
 	private static Pref cacheCDLLibName = Pref.makeStringPref("CDLLibName", tool.prefs, "");

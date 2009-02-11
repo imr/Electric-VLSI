@@ -2,6 +2,7 @@ package com.sun.electric.tool.generator.layout;
 
 import com.sun.electric.database.text.Setting;
 import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.ToolSettings;
 
 /**
  * Constains project settings for the gate layout generator
@@ -16,65 +17,37 @@ public class GateLayGenSettings extends Tool {
 	 */
 	private GateLayGenSettings()
 	{
-		super("GateLayoutGenerator");
+		super("GateLayoutGenerator", "GateLayoutGenerator");
 	}
-
-    @Override
-    public String getProjectSettings() {
-        return "GateLayoutGenerator.";
-    }
-
-    private Setting cachefoundry;
-    private Setting cacheenableNCC;
-    private Setting cachequantError;
-    private Setting cachemaxmos;
-    private Setting cachevddy;
-    private Setting cachegndy;
-    private Setting cachenheight;
-    private Setting cachepheight;
-    private Setting cachesimpleName;
-
-    @Override
-    protected void initProjectSettings() {
-        makeStringSetting ("foundry",    "Gate Layout Generator Tab", "Foundry", "MOCMOS");
-        makeStringSetting ("enableNCC",  "Gate Layout Generator Tab", "Enable NCC checking of layout", "purpleFour");
-        makeIntSetting    ("quantError", "Gate Layout Generator Tab", "Allowable quantization error", 0);
-        makeIntSetting    ("maxmos",     "Gate Layout Generator Tab", "Maximum width of MOS transistors", 1000);
-        makeIntSetting    ("vddy",       "Gate Layout Generator Tab", "Y coordinate of VDD bus", 21);
-        makeIntSetting    ("gndy",       "Gate Layout Generator Tab", "Y coordinate of GND bus", -21);
-        makeIntSetting    ("nheight",    "Gate Layout Generator Tab", "Height of Nwell", 84);
-        makeIntSetting    ("pheight",    "Gate Layout Generator Tab", "Height of Pwell", 84);
-        makeBooleanSetting("simpleName", "Gate Layout Generator Tab", "Name is gate type plus size", true);
-    }
 
 //    public static Tech.Type getFoundry() {
 //        String tech = foundry.getString();
 //        return Tech.Type.valueOf(tech);
 //    }
-    public static String getFoundry() {return tool.cachefoundry.getString();}
-    public static Setting getFoundrySetting() { return tool.cachefoundry; }
+    public static String getFoundry() {return getFoundrySetting().getString();}
+    public static Setting getFoundrySetting() { return ToolSettings.getFoundrySetting(); }
 
-    public static String getEnableNCC() { return tool.cacheenableNCC.getString(); }
-    public static Setting getEnableNCCSetting() {return tool.cacheenableNCC;}
+    public static String getEnableNCC() { return getEnableNCCSetting().getString(); }
+    public static Setting getEnableNCCSetting() {return ToolSettings.getEnableNCCSetting();}
 
-    public static int getSizeQuantizationError() {return tool.cachequantError.getInt();}
-    public static Setting getSizeQuantizationErrorSetting() { return tool.cachequantError; }
+    public static int getSizeQuantizationError() {return getSizeQuantizationErrorSetting().getInt();}
+    public static Setting getSizeQuantizationErrorSetting() { return ToolSettings.getSizeQuantizationErrorSetting(); }
 
-    public static int getMaxMosWidth() {return tool.cachemaxmos.getInt();}
-    public static Setting getMaxMosWidthSetting() {return tool.cachemaxmos;}
+    public static int getMaxMosWidth() {return getMaxMosWidthSetting().getInt();}
+    public static Setting getMaxMosWidthSetting() {return ToolSettings.getMaxMosWidthSetting();}
 
-    public static int getVddY() {return tool.cachevddy.getInt();}
-    public static Setting getVddYSetting() {return tool.cachevddy;}
+    public static int getVddY() {return getVddYSetting().getInt();}
+    public static Setting getVddYSetting() {return ToolSettings.getVddYSetting();}
 
-    public static int getGndY() {return tool.cachegndy.getInt();}
-    public static Setting getGndYSetting() {return tool.cachegndy;}
+    public static int getGndY() {return getGndYSetting().getInt();}
+    public static Setting getGndYSetting() {return ToolSettings.getGndYSetting();}
 
-    public static int getNmosWellHeight() {return tool.cachenheight.getInt();}
-    public static Setting getNmosWellHeightSetting() {return tool.cachenheight;}
+    public static int getNmosWellHeight() {return getNmosWellHeightSetting().getInt();}
+    public static Setting getNmosWellHeightSetting() {return ToolSettings.getNmosWellHeightSetting();}
 
-    public static int getPmosWellHeight() {return tool.cachepheight.getInt();}
-    public static Setting getPmosWellHeightSetting() {return tool.cachepheight;}
+    public static int getPmosWellHeight() {return getPmosWellHeightSetting().getInt();}
+    public static Setting getPmosWellHeightSetting() {return ToolSettings.getPmosWellHeightSetting();}
 
-    public static boolean getSimpleName() {return tool.cachesimpleName.getBoolean();}
-    public static Setting getSimpleNameSetting() {return tool.cachesimpleName;}
+    public static boolean getSimpleName() {return getSimpleNameSetting().getBoolean();}
+    public static Setting getSimpleNameSetting() {return ToolSettings.getSimpleNameSetting();}
 }

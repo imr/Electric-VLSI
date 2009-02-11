@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user;
 
+import com.sun.electric.StartupPrefs;
 import com.sun.electric.database.IdMapper;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.Dimension2D;
@@ -43,6 +44,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
+import com.sun.electric.tool.ToolSettings;
 import com.sun.electric.tool.user.redisplay.VectorCache;
 import com.sun.electric.tool.user.tecEdit.GeneralInfo;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -787,12 +789,12 @@ public class User extends Listener
 	 * The default is "mocmos".
 	 * @return the default technology to use in Tech Palette
 	 */
-	public static String getDefaultTechnology() { return tool.cacheDefaultTechnology.getString(); }
+	public static String getDefaultTechnology() { return getDefaultTechnologySetting().getString(); }
 	/**
 	 * Returns project Setting to tell default technique in Tech Palette.
 	 * @return project Setting to tell default technique in Tech Palette.
 	 */
-	public static Setting getDefaultTechnologySetting() { return tool.cacheDefaultTechnology; }
+	public static Setting getDefaultTechnologySetting() { return ToolSettings.getDefaultTechnologySetting(); }
 
 	/**
 	 * Method to choose the layout Technology to use when schematics are found.
@@ -804,7 +806,7 @@ public class User extends Listener
 	 */
 	public static Technology getSchematicTechnology()
 	{
-		String t = tool.cacheSchematicTechnology.getString();
+		String t = getSchematicTechnologySetting().getString();
 		Technology tech = Technology.findTechnology(t);
 		if (tech == null) return Technology.getMocmosTechnology();
 		return tech;
@@ -816,26 +818,26 @@ public class User extends Listener
 	 * numbers to real spacings for the deck.
 	 * @return project Setting to tell the Technology to use when schematics are found.
 	 */
-	public static Setting getSchematicTechnologySetting() { return tool.cacheSchematicTechnology; }
+	public static Setting getSchematicTechnologySetting() { return ToolSettings.getSchematicTechnologySetting(); }
 
 	/**
 	 * Method to tell whether to include the date and Electric version in output files.
 	 * The default is "true".
 	 * @return true if the system should include the date and Electric version in output files.
 	 */
-	public static boolean isIncludeDateAndVersionInOutput() { return tool.cacheIncludeDateAndVersionInOutput.getBoolean(); }
+	public static boolean isIncludeDateAndVersionInOutput() { return getIncludeDateAndVersionInOutputSetting().getBoolean(); }
 	/**
 	 * Returns project Setting to tell whether to include the date and Electric version in output files.
 	 * @return project Setting to tell whether to include the date and Electric version in output files.
 	 */
-	public static Setting getIncludeDateAndVersionInOutputSetting() { return tool.cacheIncludeDateAndVersionInOutput; }
+	public static Setting getIncludeDateAndVersionInOutputSetting() { return ToolSettings.getIncludeDateAndVersionInOutputSetting(); }
 
 	/**
 	 * Method to tell whether the process is a PWell process. If true, it will ignore the pwell spacing rule.
 	 * The default is "true".
 	 * @return true if the process is PWell
 	 */
-	public static Setting getPWellProcessLayoutTechnologySetting() {return tool.cachePWellProcess;}
+	public static Setting getPWellProcessLayoutTechnologySetting() {return ToolSettings.getPWellProcessLayoutTechnologySetting(); }
 	public static boolean isPWellProcessLayoutTechnology() {return getPWellProcessLayoutTechnologySetting().getBoolean();}
 //	public static void setPWellProcessLayoutTechnology(boolean on) {getPWellProcessLayoutTechnologySetting().set(Boolean.valueOf(on));}
 
@@ -843,22 +845,7 @@ public class User extends Listener
 	 * Returns project Setting to tell whether to include the date and Electric version in output files.
 	 * @return project Setting to tell whether to include the date and Electric version in output files.
 	 */
-	public static Setting getSoftTechnologiesSetting() { return tool.cacheSoftTechnologies; }
-
-	private Setting cacheDefaultTechnology;
-	private Setting cacheSchematicTechnology;
-	private Setting cacheIncludeDateAndVersionInOutput;
-	private Setting cachePWellProcess;
-    private Setting cacheSoftTechnologies;
-
-	@Override
-	protected void initProjectSettings() {
-		makeStringSetting("DefaultTechnology", "Technology tab", "Default Technology for editing", "mocmos");
-		makeStringSetting("SchematicTechnology", "Technology tab", "Schematics use scale values from this technology", "mocmos");
-		makeBooleanSetting("IncludeDateAndVersionInOutput", "Netlists tab", "Include date and version in output", true);
-		makeBooleanSetting("PWellProcess", "Technology tab", "Define Layout Technology as a PWell process", true);
-        makeStringSetting("SoftTechnologies", "Technology tab", "A list of added Xml Technologies", "");
-	}
+	public static Setting getSoftTechnologiesSetting() { return ToolSettings.getSoftTechnologiesSetting(); }
 
 	/****************************** ICON GENERATION PREFERENCES ******************************/
 
@@ -3296,7 +3283,7 @@ public class User extends Listener
 	 */
 	public static int getFactoryPanningDistance() { return cachePanningDistance.getIntFactoryValue(); }
 
-	private static Pref cacheDisplayStyle = Pref.makeIntPref("DisplayStyle", tool.prefs, 0);
+	private static Pref cacheDisplayStyle = Pref.makeIntPref(StartupPrefs.DisplayStyleKey, tool.prefs, StartupPrefs.DisplayStyleDef);
 	/**
 	 * Method to tell the initial display style for Electric.
 	 * The values are: 0=OS default, 1=MDI, 2=SDI.
@@ -3352,7 +3339,7 @@ public class User extends Listener
 	 */
 	public static int getFactoryMaxUndoHistory() { return cacheMaxUndoHistory.getIntFactoryValue(); }
 
-	private static Pref cacheMemorySize = Pref.makeIntPref("MemorySize", tool.prefs, 65);
+	private static Pref cacheMemorySize = Pref.makeIntPref(StartupPrefs.MemorySizeKey, tool.prefs, StartupPrefs.MemorySizeDef);
 	/**
 	 * Method to tell the maximum memory to use for Electric, in megatybes.
 	 * The default is 65 megabytes which is not enough for serious work.
@@ -3370,7 +3357,7 @@ public class User extends Listener
 	 */
 	public static int getFactoryMemorySize() { return cacheMemorySize.getIntFactoryValue(); }
 
-	private static Pref cachePermSize = Pref.makeIntPref("PermSize", tool.prefs, 0);
+	private static Pref cachePermSize = Pref.makeIntPref(StartupPrefs.PermSizeKey, tool.prefs, StartupPrefs.PermSizeDef);
 	/**
 	 * Method to tell the maximum permanent space of 2dn GC to use for Electric, in megatybes.
 	 * The default is 0. If zero, value is not considered.

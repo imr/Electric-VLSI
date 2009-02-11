@@ -24,7 +24,6 @@
 package com.sun.electric;
 
 import com.sun.electric.tool.Regression;
-import com.sun.electric.tool.user.User;
 
 import java.io.File;
 import java.net.URL;
@@ -68,7 +67,7 @@ public final class Launcher
             invokeRegression(args, program);
             return;
         }
-        
+
 		// launching is different on different computers
 		try{
             if (program != null)
@@ -94,8 +93,8 @@ public final class Launcher
 		// see if the required amount of memory is already present
 		Runtime runtime = Runtime.getRuntime();
 		long maxMem = runtime.maxMemory() / 1000000;
-        long maxPermWanted = User.getPermSpace();
-		int maxMemWanted = User.getMemorySize();
+        long maxPermWanted = StartupPrefs.getPermSpace();
+		int maxMemWanted = StartupPrefs.getMemorySize();
 		if (maxMemWanted <= maxMem && maxPermWanted == 0)
 		{
 			// already have the desired amount of memory: just start Electric
@@ -149,7 +148,7 @@ public final class Launcher
 			Main.main(args);
 		}
 	}
-    
+
     private static void invokeRegression(String[] args, String program) {
         String jarfile = "electric.jar";
         URL electric = Launcher.class.getResource("Main.class");
@@ -159,7 +158,7 @@ public final class Launcher
             file = file.replaceAll("!.*", "");
             jarfile = file;
         }
-        
+
         String script = args[1];
         String command = program;
         command += " -ea";

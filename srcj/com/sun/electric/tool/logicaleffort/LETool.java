@@ -41,6 +41,7 @@ import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.ToolSettings;
 import com.sun.electric.tool.generator.sclibrary.SCLibraryGen;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.simulation.Simulation;
@@ -57,7 +58,7 @@ import java.util.regex.Pattern;
  * @author  gainsley
  */
 public class LETool extends Tool {
-    
+
     /** The Logical Effort tool */              private static LETool tool = new LETool();
 
     private static final boolean DEBUG = false;
@@ -254,7 +255,7 @@ public class LETool extends Tool {
             drive = drive.substring(i+1);             // remove top level of hierarchy
         }
         // didn't find it: try converting new default names to old default style names
-        
+
 
         // look for it at current level
         if (DEBUG) System.out.println("  Looking for: LEDRIVE_0;S");
@@ -467,7 +468,7 @@ public class LETool extends Tool {
             this.context = context;
             this.newAlg = newAlg;
         }
-        
+
         public boolean doIt() throws JobException {
             // delete last job, if any
             if (lastLEJobExecuted != null)
@@ -1145,12 +1146,12 @@ public class LETool extends Tool {
 	 * The default is true.
 	 * @return true to use local settings for Logical Effort
 	 */
-	public static boolean isUseLocalSettings() { return tool.cacheUseLocalSettings.getBoolean(); }
+	public static boolean isUseLocalSettings() { return getUseLocalSettingsSetting().getBoolean(); }
 	/**
 	 * Returns project Setting to tell whether to use local settings for Logical Effort
 	 * @return project Setting to tell whether to use local settings for Logical Effort
 	 */
-	public static Setting getUseLocalSettingsSetting() { return tool.cacheUseLocalSettings; }
+	public static Setting getUseLocalSettingsSetting() { return ToolSettings.getUseLocalSettingsSetting(); }
 
 //	private static Pref cacheHighlightComponents = Pref.makeBooleanPref("HighlightComponents", LETool.tool.prefs, false);
 //	/**
@@ -1183,36 +1184,36 @@ public class LETool extends Tool {
 	 * The default is DEFAULT_GLOBALFANOUT.
 	 * @return the Global Fanout for Logical Effort.
 	 */
-	public static double getGlobalFanout() { return tool.cacheGlobalFanout.getDouble(); }
+	public static double getGlobalFanout() { return getGlobalFanoutSetting().getDouble(); }
 	/**
      * Returns project Setting to tell the Global Fanout for Logical Effort.
      * @return project Setting to tell the Global Fanout for Logical Effort.
 	 */
-	public static Setting getGlobalFanoutSetting() { return tool.cacheGlobalFanout; }
+	public static Setting getGlobalFanoutSetting() { return ToolSettings.getGlobalFanoutSetting(); }
 
 	/**
 	 * Method to get the Convergence Epsilon value for Logical Effort.
 	 * The default is DEFAULT_EPSILON.
 	 * @return the Convergence Epsilon value for Logical Effort.
 	 */
-	public static double getConvergenceEpsilon() { return tool.cacheConvergenceEpsilon.getDouble(); }
+	public static double getConvergenceEpsilon() { return getConvergenceEpsilonSetting().getDouble(); }
 	/**
 	 * Returns project Setting to tell the Convergence Epsilon value for Logical Effort.
 	 * @return project Setting to tell the Convergence Epsilon value for Logical Effort.
 	 */
-	public static Setting getConvergenceEpsilonSetting() { return tool.cacheConvergenceEpsilon; }
+	public static Setting getConvergenceEpsilonSetting() { return ToolSettings.getConvergenceEpsilonSetting(); }
 
     /**
 	 * Method to get the maximum number of iterations for Logical Effort.
 	 * The default is DEFAULT_MAXITER.
 	 * @return the maximum number of iterations for Logical Effort.
 	 */
-	public static int getMaxIterations() { return tool.cacheMaxIterations.getInt(); }
+	public static int getMaxIterations() { return getMaxIterationsSetting().getInt(); }
 	/**
 	 * Returns project Setting to tell the maximum number of iterations for Logical Effort.
 	 * @return project Setting to tell the maximum number of iterations for Logical Effort.
 	 */
-	public static Setting getMaxIterationsSetting() { return tool.cacheMaxIterations; }
+	public static Setting getMaxIterationsSetting() { return ToolSettings.getMaxIterationsSetting(); }
 
 //	private static Pref cacheGateCapacitance = Pref.makeDoublePref("GateCapfFPerLambda", LETool.tool.prefs, DEFAULT_GATECAP);
 //	/**
@@ -1258,26 +1259,10 @@ public class LETool extends Tool {
 	 * The default is DEFAULT_KEEPERRATIO.
 	 * @return the keeper size ratio for Logical Effort.
 	 */
-	public static double getKeeperRatio() { return tool.cacheKeeperRatio.getDouble(); }
+	public static double getKeeperRatio() { return getKeeperRatioSetting().getDouble(); }
 	/**
 	 * Returns project Setting to tell the keeper size ratio for Logical Effort.
 	 * @return project Setting to tell the keeper size ratio for Logical Effort.
 	 */
-	public static Setting getKeeperRatioSetting() { return tool.cacheKeeperRatio; }
-
-	private Setting cacheUseLocalSettings;
-    private Setting cacheGlobalFanout;
-    private Setting cacheConvergenceEpsilon;
-    private Setting cacheMaxIterations;
-    private Setting cacheKeeperRatio;
-
-    @Override
-    protected void initProjectSettings() {
-        makeBooleanSetting("UseLocalSettings", "Logical Effort Tab", "Use Local Settings from Cell", true);
-        makeDoubleSetting("GlobalFanout", "Logical Effort Tab", "Global Fanout", DEFAULT_GLOBALFANOUT);
-        makeDoubleSetting("ConvergenceEpsilon", "Logical Effort Tab", "Convergence Epsilon", DEFAULT_EPSILON);
-        makeIntSetting("MaxIterations", "Logical Effort Tab", "Maximum Iterations", DEFAULT_MAXITER);
-        makeDoubleSetting("KeeperRatio", "Logical Effort Tab", "Keeper Ratio", DEFAULT_KEEPERRATIO);
-    }
-    
+	public static Setting getKeeperRatioSetting() { return ToolSettings.getKeeperRatioSetting(); }
 }

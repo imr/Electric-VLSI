@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09c: ******************************
 
+IMP: (2/10/09, DN) Partial commit from twoJvm branch. Tool Settings are
+   initialized in a special module before initialization of Tools.
+
 BUG: (2/9/09, SMR) When a multi-cut contact is extracted, does not handle
      if the resulting node is rotated (Bug #2043).
 FIX: Transform cut polygons before considering them.

@@ -158,7 +158,7 @@ public final class Main
         }
 
         UserInterfaceMain.Mode mode = null;
-        int defMode = User.getDisplayStyle();
+        int defMode = StartupPrefs.getDisplayStyle();
         if (defMode == 1) mode = UserInterfaceMain.Mode.MDI; else
             if (defMode == 2) mode = UserInterfaceMain.Mode.SDI;
         if (hasCommandLineOption(argsList, "-mdi")) mode = UserInterfaceMain.Mode.MDI;
@@ -406,7 +406,6 @@ public final class Main
 
 				// initialize all of the technologies
 				Technology.initAllTechnologies();
-                Setting.lockCreation();
                 Pref.lockCreation();
 
 				// initialize the constraint system
