@@ -1951,7 +1951,7 @@ public class Technology implements Comparable<Technology>, Serializable
      */
     public boolean cleanUnusedNodesInLibrary(NodeInst ni, List<Geometric> list) {return false;}
 
-    public void dump(PrintWriter out) {
+    public void dump(PrintWriter out, Map<Setting,Object> settings) {
         final String[] techBits = {
             "NONELECTRICAL", "NODIRECTIONALARCS", "NONEGATEDARCS",
             "NONSTANDARD", "STATICTECHNOLOGY", "NOPRIMTECHNOLOGY"
@@ -1962,18 +1962,18 @@ public class Technology implements Comparable<Technology>, Serializable
         out.println("shortName=" + getTechShortName());
         out.println("techDesc=" + getTechDesc());
         out.print("Bits: "); printlnBits(out, techBits, userBits);
-        out.print("isScaleRelevant=" + isScaleRelevant()); printlnSetting(out, getScaleSetting());
-        printlnSetting(out, getPrefFoundrySetting());
-        printlnSetting(out, getNumMetalsSetting());
-        dumpExtraProjectSettings(out);
-        printlnSetting(out, getMinResistanceSetting());
-        printlnSetting(out, getGateLengthSubtractionSetting());
-        printlnSetting(out, getGateIncludedSetting());
-        printlnSetting(out, getGroundNetIncludedSetting());
-        printlnSetting(out, getMaxSeriesResistanceSetting());
-        printlnSetting(out, getGateCapacitanceSetting());
-        printlnSetting(out, getWireRatioSetting());
-        printlnSetting(out, getDiffAlphaSetting());
+        out.print("isScaleRelevant=" + isScaleRelevant()); printlnSetting(out, settings, getScaleSetting());
+        printlnSetting(out, settings, getPrefFoundrySetting());
+        printlnSetting(out, settings, getNumMetalsSetting());
+        dumpExtraProjectSettings(out, settings);
+        printlnSetting(out, settings, getMinResistanceSetting());
+        printlnSetting(out, settings, getGateLengthSubtractionSetting());
+        printlnSetting(out, settings, getGateIncludedSetting());
+        printlnSetting(out, settings, getGroundNetIncludedSetting());
+        printlnSetting(out, settings, getMaxSeriesResistanceSetting());
+        printlnSetting(out, settings, getGateCapacitanceSetting());
+        printlnSetting(out, settings, getWireRatioSetting());
+        printlnSetting(out, settings, getDiffAlphaSetting());
 
         printlnPref(out, 0, prefResolution);
         assert getNumTransparentLayers() == (transparentColorPrefs != null ? transparentColorPrefs.length : 0);
@@ -1982,7 +1982,7 @@ public class Technology implements Comparable<Technology>, Serializable
 
         for (Layer layer: layers) {
             if (layer.isPseudoLayer()) continue;
-            layer.dump(out);
+            layer.dump(out, settings);
         }
         for (ArcProto ap: arcs.values())
             ap.dump(out);
@@ -2003,7 +2003,7 @@ public class Technology implements Comparable<Technology>, Serializable
             for (Layer layer: layers) {
                 if (layer.isPseudoLayer()) continue;
                 Setting setting = foundry.getGDSLayerSetting(layer);
-                out.print("\t"); printlnSetting(out,setting);
+                out.print("\t"); printlnSetting(out, settings, setting);
             }
         }
 
@@ -2044,9 +2044,9 @@ public class Technology implements Comparable<Technology>, Serializable
         }
     }
 
-    protected void dumpExtraProjectSettings(PrintWriter out) {}
+    protected void dumpExtraProjectSettings(PrintWriter out, Map<Setting,Object> settings) {}
 
-    protected static void printlnSetting(PrintWriter out, Setting setting) {
+    protected static void printlnSetting(PrintWriter out, Map<Setting,Object> settings, Setting setting) {
         out.println(setting.getXmlPath() + "=" + setting.getValue() + "(" + setting.getFactoryValue() + ")");
     }
 
@@ -5472,7 +5472,7 @@ public class Technology implements Comparable<Technology>, Serializable
             for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
             {
                 Layer layer = lIt.next();
-                layer.getGraphics().recachePrefs();
+                layer.loadGraphicsFromPrefs();
             }
 
             if (tech.transparentColorPrefs == null || tech.transparentColorPrefs.length <= 0) continue;

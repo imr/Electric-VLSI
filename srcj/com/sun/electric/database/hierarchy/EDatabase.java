@@ -36,6 +36,7 @@ import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.network.NetworkManager;
 import com.sun.electric.database.text.ImmutableArrayList;
+import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
@@ -49,9 +50,9 @@ import com.sun.electric.tool.user.ActivityLogger;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -130,6 +131,13 @@ public class EDatabase {
 
     /** Return Schematic technology in this database */
     public Schematics getSchematics() { return techPool.getSchematics(); }
+
+    public Map<Setting,Object> getSettings() {
+        LinkedHashMap<Setting,Object> settings = new LinkedHashMap<Setting,Object>();
+        for (Setting setting: Setting.getSettings())
+            settings.put(setting, setting.getValue());
+        return settings;
+    }
 
     public Library getLib(LibId libId) { return getLib(libId.libIndex); }
 

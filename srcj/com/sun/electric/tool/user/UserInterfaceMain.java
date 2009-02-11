@@ -500,7 +500,7 @@ public class UserInterfaceMain extends AbstractUserInterface
         String fileName = OpenFile.chooseInputFile(FileType.PREFS, "Saved Preferences");
         if (fileName == null) return;
 
-        Pref.importPrefs(fileName, EDatabase.clientDatabase().getTechPool());
+        Pref.importPrefs(fileName, EDatabase.clientDatabase());
     }
 
     /**

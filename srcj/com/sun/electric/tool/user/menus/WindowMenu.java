@@ -24,9 +24,8 @@
 
 package com.sun.electric.tool.user.menus;
 
-import com.sun.electric.database.hierarchy.EDatabase;
 import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
-
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
@@ -67,7 +66,6 @@ import java.util.EventListener;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.swing.JMenu;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 
@@ -103,8 +101,8 @@ public class WindowMenu {
                 KeyStroke.getKeyStroke(KeyEvent.VK_BEGIN, ctrlshift)};
 
 
-        // mnemonic keys available: A         K     Q  T  
-	    visibleLayersMenu = new EMenu("Visible La_yers");  
+        // mnemonic keys available: A         K     Q  T
+	    visibleLayersMenu = new EMenu("Visible La_yers");
         EMenu menu = new EMenu("_Window",
 
             new EMenuItem("_Fill Window", numpad9) { public void run() {
@@ -924,7 +922,7 @@ public class WindowMenu {
                 String cadenceFileName = "CadencePrefs.xml";
                 URL fileURL = Resources.getURLResource(TopLevel.class, cadenceFileName);
                 if (fileURL != null)
-                    Pref.importPrefs(fileURL, EDatabase.serverDatabase().getTechPool());
+                    Pref.importPrefs(fileURL, EDatabase.serverDatabase());
                 else
                     System.out.println("Cannot import '" + cadenceFileName + "'");
             }

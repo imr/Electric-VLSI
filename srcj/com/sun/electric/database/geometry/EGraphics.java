@@ -23,7 +23,6 @@
  */
 package com.sun.electric.database.geometry;
 
-import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
@@ -124,6 +123,7 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 
 		public static List<Outline> getOutlines() { return Arrays.asList(Outline.class.getEnumConstants()); }
 
+        @Override
 		public String toString() { return name; }
 	}
 
@@ -138,14 +138,6 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 	/** stipple pattern to draw */							private int [] pattern;
 	/** stipple pattern to draw with proper bit order */	private int [] reversedPattern;
 	/** 3D appearance */									private Object appearance3D;
-
-	private static Map<Layer,Pref> usePatternDisplayMap = new HashMap<Layer,Pref>();
-	private static Map<Layer,Pref> usePatternPrinterMap = new HashMap<Layer,Pref>();
-	private static Map<Layer,Pref> outlinePatternMap = new HashMap<Layer,Pref>();
-	private static Map<Layer,Pref> transparentLayerMap = new HashMap<Layer,Pref>();
-	private static Map<Layer,Pref> opacityMap = new HashMap<Layer,Pref>();
-	private static Map<Layer,Pref> colorMap = new HashMap<Layer,Pref>();
-	private static Map<Layer,Pref> patternMap = new HashMap<Layer,Pref>();
 
 	/**
 	 * There are 3 ways to encode color in an integer.
@@ -299,105 +291,6 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 	public void setLayer(Layer layer)
 	{
 		this.layer = layer;
-		if (layer.isFree()) return;
-		Technology tech = layer.getTechnology();
-		String layerTechMsg = layer.getName() + "In" + tech.getTechName();
-
-		Pref usePatternDisplayPref = Pref.makeBooleanPref("UsePatternDisplayFor" + layerTechMsg,
-			tech.getTechnologyPreferences(), displayPatterned);
-		displayPatterned = usePatternDisplayPref.getBoolean();
-		usePatternDisplayMap.put(layer, usePatternDisplayPref);
-
-		Pref usePatternPrinterPref = Pref.makeBooleanPref("UsePatternPrinterFor" + layerTechMsg,
-			tech.getTechnologyPreferences(), printPatterned);
-		printPatterned = usePatternPrinterPref.getBoolean();
-		usePatternPrinterMap.put(layer, usePatternPrinterPref);
-
-		// read any previous outline information and apply it
-		Pref oldOutlinePatternDisplayPref = Pref.makeBooleanPref("OutlinePatternDisplayFor" + layerTechMsg,
-			tech.getTechnologyPreferences(), false);
-		if (oldOutlinePatternDisplayPref.getBoolean()) patternOutline = Outline.PAT_S;
-
-		Pref outlinePatternPref = Pref.makeIntPref("OutlinePatternFor" + layerTechMsg,
-				tech.getTechnologyPreferences(), patternOutline.getIndex());
-		patternOutline = Outline.findOutline(outlinePatternPref.getInt());
-		outlinePatternMap.put(layer, outlinePatternPref);
-
-		Pref transparentLayerPref = Pref.makeIntPref("TransparentLayerFor" + layerTechMsg,
-			tech.getTechnologyPreferences(), transparentLayer);
-		transparentLayer = transparentLayerPref.getInt();
-		transparentLayerMap.put(layer, transparentLayerPref);
-
-		Pref opacityPref = Pref.makeDoublePref("OpacityFor" + layerTechMsg,
-			tech.getTechnologyPreferences(), opacity);
-		opacity = validateOpacity(opacityPref.getDouble());
-		opacityMap.put(layer, opacityPref);
-
-		Pref colorPref = Pref.makeIntPref("ColorFor" + layerTechMsg,
-			tech.getTechnologyPreferences(), (red<<16) | (green << 8) | blue);
-		int color = colorPref.getInt();
-		red = (color >> 16) & 0xFF;
-		green = (color >> 8) & 0xFF;
-		blue = color & 0xFF;
-		colorMap.put(layer, colorPref);
-
-		String pat = makePatString(pattern);
-		Pref patternPref = Pref.makeStringPref("PatternFor" + layerTechMsg,
-			tech.getTechnologyPreferences(), pat);
-		pat = patternPref.getString();
-		parsePatString(pat, pattern);
-		setPatternLow(pattern);
-		patternMap.put(layer, patternPref);
-	}
-
-	/**
-	 * Method to recache the graphics information from the preferences.
-	 * Called after new preferences have been imported.
-	 */
-	public void recachePrefs()
-	{
-		if (layer.isFree()) return;
-
-		Pref usePatternDisplayPref = usePatternDisplayMap.get(layer);
-		displayPatterned = usePatternDisplayPref.getBoolean();
-
-		Pref usePatternPrinterPref = usePatternPrinterMap.get(layer);
-		printPatterned = usePatternPrinterPref.getBoolean();
-
-		Pref outlinePatternPref = outlinePatternMap.get(layer);
-		patternOutline = Outline.findOutline(outlinePatternPref.getInt());
-
-		Pref transparentLayerPref = transparentLayerMap.get(layer);
-		transparentLayer = transparentLayerPref.getInt();
-
-		Pref opacityPref = opacityMap.get(layer);
-		opacity = validateOpacity(opacityPref.getDouble());
-
-		Pref colorPref = colorMap.get(layer);
-		int color = colorPref.getInt();
-		red = (color >> 16) & 0xFF;
-		green = (color >> 8) & 0xFF;
-		blue = color & 0xFF;
-
-		Pref patternPref = patternMap.get(layer);
-		String pat = patternPref.getString();
-		parsePatString(pat, pattern);
-		setPatternLow(pattern);
-	}
-
-	/**
-	 * Method to reset this Graphics to its factory state.
-	 */
-	public void factoryReset()
-	{
-		if (getFactoryColor() != getRGB()) setColor(new Color(getFactoryColor()));
-		if (getFactoryTransparentLayer() != getTransparentLayer()) setTransparentLayer(getFactoryTransparentLayer());
-		if (getFactoryOpacity() != getOpacity()) setOpacity(getFactoryOpacity());
-		if (getForeground() != getForeground()) setForeground(getForeground());
-		if (!getFactoryPattern().equals(getPattern())) setPattern(getFactoryPattern());
-		if (!getFactoryOutlined().equals(getOutlined())) setOutlined(getFactoryOutlined());
-		if (isFactoryPatternedOnDisplay() != isPatternedOnDisplay()) setPatternedOnDisplay(isFactoryPatternedOnDisplay());
-		if (isFactoryPatternedOnPrinter() != isPatternedOnPrinter()) setPatternedOnPrinter(isFactoryPatternedOnPrinter());
 	}
 
 	private String makePatString(int [] pattern)
@@ -430,22 +323,6 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 	public boolean isPatternedOnDisplay() { return displayPatterned; }
 
 	/**
-	 * Method describes how this EGraphics appears on a display by factory default.
-	 * This EGraphics can be drawn as a solid fill or as a pattern.
-	 * @return true to draw this EGraphics patterned on a display by factory default.
-	 * False to draw this EGraphics as a solid fill on a display by factory default.
-	 */
-	public boolean isFactoryPatternedOnDisplay()
-	{
-		if (layer != null)
-		{
-			Pref pref = usePatternDisplayMap.get(layer);
-			return pref.getBooleanFactoryValue();
-		}
-		return false;
-	}
-
-	/**
 	 * Method to set how this EGraphics appears on a display.
 	 * This EGraphics can be drawn as a solid fill or as a pattern.
 	 * @param p true to draw this EGraphics patterned on a display.
@@ -454,12 +331,8 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 	public void setPatternedOnDisplay(boolean p)
 	{
 		displayPatterned = p;
-
 		if (layer != null)
-		{
-			Pref pref = usePatternDisplayMap.get(layer);
-			if (pref != null) pref.setBoolean(p);
-		}
+            layer.graphicsChanged();
 	}
 
 	/**
@@ -471,22 +344,6 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 	public boolean isPatternedOnPrinter() { return printPatterned; }
 
 	/**
-	 * Method describes how this EGraphics appears on a printer by factory default.
-	 * This EGraphics can be drawn as a solid fill or as a pattern.
-	 * @return true to draw this EGraphics patterned on a printer by factory default.
-	 * False to draw this EGraphics as a solid fill on a printer by factory default.
-	 */
-	public boolean isFactoryPatternedOnPrinter()
-	{
-		if (layer != null)
-		{
-			Pref pref = usePatternPrinterMap.get(layer);
-			return pref.getBooleanFactoryValue();
-		}
-		return false;
-	}
-
-	/**
 	 * Method to set how this EGraphics appears on a printer.
 	 * This EGraphics can be drawn as a solid fill or as a pattern.
 	 * @param p true to draw this EGraphics patterned on a printer.
@@ -495,12 +352,8 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 	public void setPatternedOnPrinter(boolean p)
 	{
 		this.printPatterned = p;
-
 		if (layer != null)
-		{
-			Pref pref = usePatternPrinterMap.get(layer);
-			if (pref != null) pref.setBoolean(p);
-		}
+            layer.graphicsChanged();
 	}
 
 	/**
@@ -511,18 +364,6 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 	public Outline getOutlined() { return patternOutline; }
 
 	/**
-	 * Method describes the type of outline pattern by factory default.
-	 * When the EGraphics is drawn as a pattern, the outline can be defined more clearly by drawing a line around the edge.
-	 * @return the type of outline pattern by factory default.
-	 */
-	public Outline getFactoryOutlined()
-	{
-		if (layer == null) return null;
-		Pref pref = outlinePatternMap.get(layer);
-		return Outline.findOutline(pref.getIntFactoryValue());
-	}
-
-	/**
 	 * Method to set whether this pattern has an outline around it.
 	 * When the EGraphics is drawn as a pattern, the outline can be defined more clearly by drawing a line around the edge.
 	 * @param o the outline pattern.
@@ -531,15 +372,10 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 	{
 		if (o == null) o = Outline.NOPAT;
 		patternOutline = o;
-
-		if (layer != null)
-		{
-			Pref pref = outlinePatternMap.get(layer);
-			if (pref != null) pref.setInt(o.getIndex());
-		}
-
 		// recache the pattern information to test for null patterns with no outlines
 		setPatternLow(pattern);
+		if (layer != null)
+            layer.graphicsChanged();
 	}
 
 	/**
@@ -549,18 +385,6 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 	 * Instead, use the "getColor()" method to get its solid color.
 	 */
 	public int getTransparentLayer() { return transparentLayer; }
-
-	/**
-	 * Method to return the transparent layer number by factory default.
-	 * @return the transparent layer number by factory default.
-	 * A value of zero means that this EGraphics is not drawn transparently.
-	 */
-	public int getFactoryTransparentLayer()
-	{
-		if (layer == null) return 0;
-		Pref pref = transparentLayerMap.get(layer);
-		return pref.getIntFactoryValue();
-	}
 
 	/**
 	 * Method to set the transparent layer number associated with this EGraphics.
@@ -575,12 +399,8 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 			System.out.println("Graphics transparent color bad: " + transparentLayer);
 		}
 		this.transparentLayer = transparentLayer;
-
 		if (layer != null)
-		{
-			Pref pref = transparentLayerMap.get(layer);
-			if (pref != null) pref.setInt(transparentLayer);
-		}
+            layer.graphicsChanged();
 	}
 
 	/**
@@ -598,18 +418,10 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 	public int [] getReversedPattern() { return reversedPattern; }
 
 	/**
-	 * Method to return the stipple pattern by factory default.
-	 * The stipple pattern is a 16 x 16 pattern that is stored in 16 integers.
-	 * @return the stipple pattern by factory default.
+	 * Method to get the String representation of the stipple pattern of this EGraphics.
+	 * @return the String representation the stipple pattern of this EGraphics.
 	 */
-	public int [] getFactoryPattern()
-	{
-		if (layer == null) return null;
-		Pref pref = patternMap.get(layer);
-		int [] retPat = new int[16];
-		parsePatString(pref.getStringFactoryValue(), retPat);
-		return retPat;
-	}
+	public String getPatternString() { return makePatString(pattern); }
 
 	/**
 	 * Method to set the stipple pattern of this EGraphics.
@@ -619,13 +431,16 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 	public void setPattern(int [] pattern)
 	{
 		setPatternLow(pattern);
-
 		if (layer != null)
-		{
-			Pref pref = patternMap.get(layer);
-			if (pref != null) pref.setString(makePatString(pattern));
-		}
+            layer.graphicsChanged();
 	}
+
+    public void setPattern(String patternStr) {
+        parsePatString(patternStr, pattern);
+		setPatternLow(pattern);
+		if (layer != null)
+            layer.graphicsChanged();
+    }
 
 	private void setPatternLow(int [] pattern) {
 		if (pattern.length != 16)
@@ -671,18 +486,6 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 	 */
 	public double getOpacity() { return opacity; }
 
-	/**
-	 * Method to return the opacity by factory default.
-	 * Opacity runs from 0 (transparent) to 1 (opaque).
-	 * @return the opacity by factory default.
-	 */
-	public double getFactoryOpacity()
-	{
-		if (layer == null) return 0;
-		Pref pref = opacityMap.get(layer);
-		return pref.getDoubleFactoryValue();
-	}
-
     /**
      * Method to check range of opacity provided.
      * If < 0, reset it to zero.
@@ -714,12 +517,8 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 	public void setOpacity(double opacity)
 	{
         this.opacity = validateOpacity(opacity);
-
 		if (layer != null)
-		{
-			Pref pref = opacityMap.get(layer);
-			if (pref != null) pref.setDouble(this.opacity);
-		}
+            layer.graphicsChanged();
 	}
 
 	/**
@@ -760,19 +559,6 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 	}
 
 	/**
-	 * Method to get the RGB value representing the color by factory default.
-	 * (Bits 16-23 are red, 8-15 are green, 0-7 are blue).
-	 * Alpha/opacity component is not returned.
-	 * @return the RGB value representing the color by factory default.
-	 */
-	public int getFactoryColor()
-	{
-		if (layer == null) return 0;
-		Pref pref = colorMap.get(layer);
-		return pref.getIntFactoryValue();
-	}
-
-	/**
 	 * Returns the RGB value representing the color associated with this EGraphics.
 	 * (Bits 16-23 are red, 8-15 are green, 0-7 are blue).
 	 * Alpha/opacity component is not returned
@@ -793,10 +579,7 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 		green = color.getGreen();
 		blue = color.getBlue();
 		if (layer != null)
-		{
-			Pref pref = colorMap.get(layer);
-			if (pref != null) pref.setInt((red << 16) | (green << 8) | blue);
-		}
+            layer.graphicsChanged();
 
 		// update any color used in 3D view if available
 		Object obj3D = get3DAppearance();
@@ -813,6 +596,12 @@ public class EGraphics extends Observable implements Cloneable, Serializable
 			}
 		}
 	}
+
+    public void setRGB(int color) {
+		red = (color >> 16) & 0xFF;
+		green = (color >> 8) & 0xFF;
+		blue = color & 0xFF;
+    }
 
 	/**
 	 * Method to convert a color index into a Color.

@@ -24,11 +24,10 @@
 package com.sun.electric.database.text;
 
 import com.sun.electric.Main;
-import com.sun.electric.technology.TechPool;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 
-import com.sun.electric.tool.user.ActivityLogger;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.FileWriter;
@@ -42,9 +41,12 @@ import java.io.StringReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.prefs.BackingStoreException;
@@ -102,6 +104,10 @@ public class Pref
 
         public Group(Preferences preferences) { this.preferences = preferences; }
         public String absolutePath() { return preferences.absolutePath(); }
+
+        public Collection<Pref> getPrefs() {
+            return Collections.unmodifiableCollection(prefs.values());
+        }
 
         private void setCachedObjsFromPreferences() {
             for(Pref pref : prefs.values())
@@ -172,6 +178,15 @@ public class Pref
         private String get(String key, String def) {
             return preferences != null ? preferences.get(key, def) : null;
         }
+
+        private void remove(String key) {
+            if (preferences == null) return;
+            preferences.remove(key);
+            if (doFlushing)
+                flushOptions(preferences);
+            else
+                queueForFlushing.add(preferences);
+        }
     }
 
     public static Group groupForPackage(Class classFromPackage) {
@@ -230,13 +245,13 @@ public class Pref
             group.prefs.put(name, this);
         }
         setCachedObjFromPreferences();
-        if (lockCreation && serverAccessible && Job.getDebug()) {
-            try {
-                throw new IllegalStateException("Pref "+group.absolutePath()+"/"+name+" was created from improper place");
-            } catch (IllegalStateException e) {
-                ActivityLogger.logException(e);
-            }
-        }
+//        if (lockCreation && serverAccessible && Job.getDebug()) {
+//            try {
+//                throw new IllegalStateException("Pref "+group.absolutePath()+"/"+name+" was created from improper place");
+//            } catch (IllegalStateException e) {
+//                ActivityLogger.logException(e);
+//            }
+//        }
     }
 
     /**
@@ -251,15 +266,15 @@ public class Pref
      * Method used in regressions so it has to be public.
      * @param fileName
      */
-    public static void importPrefs(String fileName, TechPool techPool)
+    public static void importPrefs(String fileName, EDatabase database)
     {
         if (fileName == null) return;
 
         // import preferences
-        importPrefs(TextUtils.makeURLToFile(fileName), techPool);
+        importPrefs(TextUtils.makeURLToFile(fileName), database);
     }
 
-    public static void importPrefs(URL fileURL, TechPool techPool)
+    public static void importPrefs(URL fileURL, EDatabase database)
     {
         if (fileURL == null) return;
 
@@ -315,12 +330,12 @@ public class Pref
             synchronized (allGroups) {
                 for (Group group: allGroups)
                     group.setCachedObjsFromPreferences();
-                for (Technology tech: techPool.values()) {
+                for (Technology tech: database.getTechnologies()) {
                     for (Group group: tech.getTechnologyAllPreferences())
                         group.setCachedObjsFromPreferences();
                 }
-                Setting.saveAllSettingsToPreferences();
-            }
+                saveAllSettingsToPreferences(database);
+           }
 			resumePrefFlushing();
 
 			// recache technology color information
@@ -351,6 +366,14 @@ public class Pref
         topNode.clear();
         for (String child: topNode.childrenNames())
             clearPrefs(topNode.node(child));
+    }
+
+    private static void saveAllSettingsToPreferences(EDatabase database) {
+        for (Map.Entry<Setting,Object> e: database.getSettings().entrySet()) {
+            Setting setting = e.getKey();
+            Object value = e.getValue();
+            setting.saveToPreferences(value);
+        }
     }
 
 	/**
@@ -800,6 +823,14 @@ public class Pref
 		}
 	}
 
+	/**
+	 * Method to reset Pref value to factory default.
+	 */
+    public void factoryReset() {
+        setValue(getFactoryValue());
+        group.remove(name);
+    }
+
     private void checkModify() {
         if (Job.getDebug() && lockCreation && Job.inServerThread()) {
             String msg = getPrefName() + " is modified in " + Job.getRunningJob();
@@ -813,7 +844,7 @@ public class Pref
     private static int numValueStrings = 0;
     private static int lenValueStrings = 0;
 
-    public static void printAllPrefs(PrintStream out, TechPool techPool) {
+    public static void printAllPrefs(PrintStream out, EDatabase database) {
         numValueStrings = lenValueStrings = 0;
         TreeMap<String,Pref> sortedPrefs = new TreeMap<String,Pref>();
         synchronized (allGroups) {
@@ -831,12 +862,12 @@ public class Pref
         }
         out.println(lenStrings + " chars in " + numStrings + " strings");
         out.println(lenValueStrings + " chars in " + numValueStrings + " value strings");
-        Setting.printAllSettings(out);
+        printAllSettings(out, database);
         out.println("ELECTRIC USER PREFERENCES");
         int  i = 0;
         for (Pref pref: sortedPrefs.values())
             out.println((i++) + pref.group.absolutePath() + " " + pref.name + " " + pref.cachedObj);
-        for (Technology tech: techPool.values()) {
+        for (Technology tech: database.getTechnologies()) {
             i = 0;
             for (Pref.Group group: tech.getTechnologyAllPreferences()) {
                 for (Pref pref: group.prefs.values())
@@ -865,6 +896,17 @@ public class Pref
             Preferences childNode = topNode.node(childName);
             gatherPrefs(out, level + 1, childNode, ks);
         }
+    }
+
+    private static void printAllSettings(PrintStream out, EDatabase database) {
+        Map<Setting,Object> settings = database.getSettings();
+        TreeMap<String,Setting> sortedSettings = new TreeMap<String,Setting>();
+        for (Setting setting: settings.keySet())
+            sortedSettings.put(setting.getXmlPath(), setting);
+        out.println("PROJECT SETTINGS");
+        int i = 0;
+        for (Setting setting: sortedSettings.values())
+            out.println((i++) + "\t" + setting.getXmlPath() + " " + settings.get(setting));
     }
 
     /****************************** private methods ******************************/

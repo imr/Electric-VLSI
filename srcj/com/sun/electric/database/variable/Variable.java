@@ -445,6 +445,16 @@ public class Variable implements Serializable
         writeObject(writer, value, type);
     }
 
+    /**
+     * Write Object to IdWriter.
+     * Object must be a valid value of Variable
+     * @param writer where to write.
+     * @param obj
+     */
+    public static void writeObject(IdWriter writer, Object obj) throws IOException {
+        writeObject(writer, obj, getObjectType(obj));
+    }
+
     private static void writeObject(IdWriter writer, Object obj, byte type) throws IOException {
         writer.writeByte(type);
         if (obj instanceof Object[]) {
@@ -528,7 +538,12 @@ public class Variable implements Serializable
         return Variable.newInstance(varKey, value, td);
     }
 
-    private static Object readObject(IdReader reader) throws IOException {
+    /**
+     * Read Object from IdReader. Object will be a valid value of Variable
+     * @param reader from to read
+     * @return Object read
+     */
+    public static Object readObject(IdReader reader) throws IOException {
         int type = reader.readByte();
         Object value;
         if ((type & ARRAY) != 0) {
@@ -554,7 +569,6 @@ public class Variable implements Serializable
                 case ARC_PROTO: array = new ArcProtoId[length]; break;
                 case CODE:
                 default: throw new IOException("type");
-
             }
             for (int i = 0; i < length; i++) {
                 boolean hasElem = reader.readBoolean();

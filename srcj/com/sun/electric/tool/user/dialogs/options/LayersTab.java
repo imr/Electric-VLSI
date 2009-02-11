@@ -63,13 +63,13 @@ public class LayersTab extends PreferencePanel
         int factoryColor = -1;
         if (cpi.graphics != null)
         {
-            cpi.useStippleDisplay = cpi.graphics.isFactoryPatternedOnDisplay();
-            cpi.useStipplePrinter = cpi.graphics.isFactoryPatternedOnPrinter();
-            cpi.outlinePatternDisplay = cpi.graphics.getFactoryOutlined();
-            cpi.transparentLayer = cpi.graphics.getFactoryTransparentLayer();
-            cpi.pattern = cpi.graphics.getFactoryPattern();
-            cpi.opacity = cpi.graphics.getFactoryOpacity();
-            factoryColor = cpi.graphics.getFactoryColor();  // color given by graphics for the rest of layers
+            cpi.useStippleDisplay = cpi.graphics.isPatternedOnDisplay();
+            cpi.useStipplePrinter = cpi.graphics.isPatternedOnPrinter();
+            cpi.outlinePatternDisplay = cpi.graphics.getOutlined();
+            cpi.transparentLayer = cpi.graphics.getTransparentLayer();
+            cpi.pattern = cpi.graphics.getPattern();
+            cpi.opacity = cpi.graphics.getOpacity();
+            factoryColor = cpi.graphics.getColor().getRGB();  // color given by graphics for the rest of layers
         }
         else
             factoryColor = cpi.theColor.getIntFactoryValue(); // factory color for special layers
@@ -133,7 +133,7 @@ public class LayersTab extends PreferencePanel
 				Layer layer = lIt.next();
 				if (layer.isPseudoLayer() && layer.getNonPseudoLayer() != layer) continue;
 				layerName.addItem(layer.getName());
-                ColorPatternPanel.Info li = new ColorPatternPanel.Info(layer.getGraphics());
+                ColorPatternPanel.Info li = new ColorPatternPanel.Info(layer.getFactoryGraphics());
                 layerMap.put(layer, li);
 			}
 

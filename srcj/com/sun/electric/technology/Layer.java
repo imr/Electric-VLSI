@@ -664,6 +664,7 @@ public class Layer
 	private int index = -1; // contains index in technology or -1 for standalone layers
 	private final Technology tech;
 	private EGraphics graphics;
+    private EGraphics factoryGraphics;
 	private Function function;
     private static final int NO_FUNCTION_EXTRAS = 0;
     private int functionExtras;
@@ -675,6 +676,14 @@ public class Layer
     private Setting resistanceSetting;
     private Setting capacitanceSetting;
     private Setting edgeCapacitanceSetting;
+
+	private final Pref usePatternDisplayPref;
+	private final Pref usePatternPrinterPref;
+	private final Pref outlinePatternPref;
+	private final Pref transparentLayerPref;
+	private final Pref opacityPref;
+	private final Pref colorPref;
+	private final Pref patternPref;
     private final Pref layerVisibilityPref;
     // 3D options
 	private Pref layer3DThicknessPref;
@@ -696,7 +705,16 @@ public class Layer
         this.isFree = isFree;
 		this.tech = tech;
 		this.graphics = graphics;
+        this.factoryGraphics = new EGraphics(graphics);
 		this.nonPseudoLayer = this;
+        usePatternDisplayPref = getBooleanPref("UsePatternDisplay", graphics.isPatternedOnDisplay());
+        usePatternPrinterPref = getBooleanPref("UsePatternPrinter", graphics.isPatternedOnPrinter());
+        outlinePatternPref = getIntegerPref("OutlinePattern", graphics.getOutlined().getIndex());
+        transparentLayerPref = getIntegerPref("TransparentLayer", graphics.getTransparentLayer());
+        opacityPref = getDoublePref("Opacity", graphics.getOpacity());
+        colorPref = getIntegerPref("Color", graphics.getRGB());
+        patternPref = getStringPref("Pattern", graphics.getPatternString());
+
 		layerVisibilityPref = getBooleanPref("Visibility", true);
         visible = layerVisibilityPref == null || layerVisibilityPref.getBoolean();
 		this.dimmed = false;
@@ -713,7 +731,7 @@ public class Layer
 	public static Layer newInstance(Technology tech, String name, EGraphics graphics)
 	{
         if (tech == null) throw new NullPointerException();
-        int transparent = graphics.getFactoryTransparentLayer();
+        int transparent = graphics.getTransparentLayer();
         if (transparent != 0) {
             Color colorFromMap = tech.getFactoryColorMap()[1 << (transparent - 1)];
             if ((colorFromMap.getRGB() & 0xFFFFFF) != graphics.getRGB())
@@ -721,8 +739,10 @@ public class Layer
         }
 		Layer layer = new Layer(name, false, tech, graphics);
 		tech.addLayer(layer);
-        if (graphics.getLayer() == null)
+        if (graphics.getLayer() == null) {
+            layer.loadGraphicsFromPrefs();
             graphics.setLayer(layer);
+        }
 		return layer;
 	}
 
@@ -790,6 +810,12 @@ public class Layer
 	 * @return the graphics description of this Layer.
 	 */
 	public EGraphics getGraphics() { return graphics; }
+
+	/**
+	 * Method to return the graphics description of this Layer by factory default.
+	 * @return the factory graphics description of this Layer.
+	 */
+	public EGraphics getFactoryGraphics() { return new EGraphics(factoryGraphics); }
 
 	/**
 	 * Method to set the Function of this Layer.
@@ -981,7 +1007,7 @@ public class Layer
 	 */
 	public void factoryResetGraphics()
 	{
-    	if (tech == null) return;
+    	if (isFree()) return;
 //		if (!visibilityInitialized)
 //		{
 //			Pref vp = getBooleanPref("Visibility", tech.layerVisibilityPrefs, visible);
@@ -989,8 +1015,52 @@ public class Layer
 //			if (vp.getBoolean() != visible) vp.setBoolean(visible);
 //			visibilityInitialized = true;
 //		}
-		graphics.factoryReset();
+        usePatternDisplayPref.factoryReset();
+        usePatternPrinterPref.factoryReset();
+        outlinePatternPref.factoryReset();
+        transparentLayerPref.factoryReset();
+        opacityPref.factoryReset();
+        colorPref.factoryReset();
+        patternPref.factoryReset();
+
+        loadGraphicsFromPrefs();
 	}
+
+	/**
+	 * Method to save the graphics on this Layer in Prefs.
+	 */
+    public void graphicsChanged() {
+        usePatternDisplayPref.setBoolean(graphics.isPatternedOnDisplay());
+        usePatternPrinterPref.setBoolean(graphics.isPatternedOnPrinter());
+        outlinePatternPref.setInt(graphics.getOutlined().getIndex());
+        transparentLayerPref.setInt(graphics.getTransparentLayer());
+        opacityPref.setDouble(graphics.getOpacity());
+        colorPref.setInt(graphics.getRGB());
+        patternPref.setString(graphics.getPatternString());
+    }
+
+	/**
+	 * Method to recache the graphics information on this Layer from the preferences Prefs.
+	 * Called after new preferences have been imported.
+	 */
+    public void loadGraphicsFromPrefs() {
+        if (isFree()) return;
+        boolean usePatternDisplay = usePatternDisplayPref.getBoolean();
+        boolean usePatternPrinter = usePatternPrinterPref.getBoolean();
+        EGraphics.Outline outline = EGraphics.Outline.findOutline(outlinePatternPref.getInt());
+        int transparentLayer = transparentLayerPref.getInt();
+        double opacity = opacityPref.getDouble();
+        int colorRGB = colorPref.getInt();
+        String patternStr = patternPref.getString();
+
+        graphics.setPatternedOnDisplay(usePatternDisplay);
+        graphics.setPatternedOnPrinter(usePatternPrinter);
+        graphics.setOutlined(outline);
+        graphics.setTransparentLayer(transparentLayer);
+        graphics.setOpacity(opacity);
+        graphics.setRGB(colorRGB);
+        graphics.setPattern(patternStr);
+    }
 
 	/**
 	 * Method to tell whether this Layer is visible.
@@ -1551,7 +1621,7 @@ public class Layer
 		return "Layer " + name;
 	}
 
-    void dump(PrintWriter out) {
+    void dump(PrintWriter out, Map<Setting,Object> settings) {
         final String[] layerBits = {
             null, null, null,
             null, null, null,
@@ -1564,22 +1634,23 @@ public class Layer
         };
         out.print("Layer " + getName() + " " + getFunction().name());
         Technology.printlnBits(out, layerBits, getFunctionExtras());
-        out.print("\t"); Technology.printlnSetting(out, getCIFLayerSetting());
-        out.print("\t"); Technology.printlnSetting(out, getDXFLayerSetting());
-        out.print("\t"); Technology.printlnSetting(out, getSkillLayerSetting());
-        out.print("\t"); Technology.printlnSetting(out, getResistanceSetting());
-        out.print("\t"); Technology.printlnSetting(out, getCapacitanceSetting());
-        out.print("\t"); Technology.printlnSetting(out, getEdgeCapacitanceSetting());
+        out.print("\t"); Technology.printlnSetting(out, settings, getCIFLayerSetting());
+        out.print("\t"); Technology.printlnSetting(out, settings, getDXFLayerSetting());
+        out.print("\t"); Technology.printlnSetting(out, settings, getSkillLayerSetting());
+        out.print("\t"); Technology.printlnSetting(out, settings, getResistanceSetting());
+        out.print("\t"); Technology.printlnSetting(out, settings, getCapacitanceSetting());
+        out.print("\t"); Technology.printlnSetting(out, settings, getEdgeCapacitanceSetting());
         // GDS
         EGraphics desc = getGraphics();
-        out.println("\tpatternedOnDisplay=" + desc.isPatternedOnDisplay() + "(" + desc.isFactoryPatternedOnDisplay() + ")");
-        out.println("\tpatternedOnPrinter=" + desc.isPatternedOnPrinter() + "(" + desc.isFactoryPatternedOnPrinter() + ")");
-        out.println("\toutlined=" + desc.getOutlined() + "(" + desc.getFactoryOutlined() + ")");
-        out.println("\ttransparent=" + desc.getTransparentLayer() + "(" + desc.getFactoryTransparentLayer() + ")");
-        out.println("\tcolor=" + Integer.toHexString(desc.getColor().getRGB()) + "(" + Integer.toHexString(desc.getFactoryColor()) + ")");
-        out.println("\topacity=" + desc.getOpacity() + "(" + desc.getFactoryOpacity() + ")");
-        out.println("\tforeground=" + desc.getForeground());
-        int pattern[] = desc.getFactoryPattern();
+        EGraphics factoryDesc = getFactoryGraphics();
+        out.println("\tpatternedOnDisplay=" + desc.isPatternedOnDisplay() + "(" + factoryDesc.isPatternedOnDisplay() + ")");
+        out.println("\tpatternedOnPrinter=" + desc.isPatternedOnPrinter() + "(" + factoryDesc.isPatternedOnPrinter() + ")");
+        out.println("\toutlined=" + desc.getOutlined() + "(" + factoryDesc.getOutlined() + ")");
+        out.println("\ttransparent=" + desc.getTransparentLayer() + "(" + factoryDesc.getTransparentLayer() + ")");
+        out.println("\tcolor=" + Integer.toHexString(desc.getColor().getRGB()) + "(" + Integer.toHexString(factoryDesc.getColor().getRGB()) + ")");
+        out.println("\topacity=" + desc.getOpacity() + "(" + factoryDesc.getOpacity() + ")");
+        out.println("\tforeground=" + factoryDesc.getForeground());
+        int pattern[] = factoryDesc.getPattern();
         out.print("\tpattern");
         for (int p: pattern)
             out.print(" " + Integer.toHexString(p));

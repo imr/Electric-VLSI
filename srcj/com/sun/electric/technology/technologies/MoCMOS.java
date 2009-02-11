@@ -1867,12 +1867,12 @@ public class MoCMOS extends Technology
 	}
 
     @Override
-    protected void dumpExtraProjectSettings(PrintWriter out) {
-        printlnSetting(out, getRuleSetSetting());
-        printlnSetting(out, getSecondPolysiliconSetting());
-        printlnSetting(out, getDisallowStackedViasSetting());
-        printlnSetting(out, getAlternateActivePolyRulesSetting());
-        printlnSetting(out, getAnalogSetting());
+    protected void dumpExtraProjectSettings(PrintWriter out, Map<Setting,Object> settings) {
+        printlnSetting(out, settings, getRuleSetSetting());
+        printlnSetting(out, settings, getSecondPolysiliconSetting());
+        printlnSetting(out, settings, getDisallowStackedViasSetting());
+        printlnSetting(out, settings, getAlternateActivePolyRulesSetting());
+        printlnSetting(out, settings, getAnalogSetting());
     }
 
     @Override
@@ -2884,7 +2884,7 @@ public class MoCMOS extends Technology
                 rules.getExtensionRule(activeNode.getLayer(), polyCNode.getLayer(), false);
         return (overhang != null ? overhang.getValue(0) : 0.0);
     }
-    
+
 	/** Return a substrate PortInst for this transistor NodeInst
      * @param ni the NodeInst
      * @return a PortInst for the substrate contact of the transistor

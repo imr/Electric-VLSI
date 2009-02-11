@@ -49,16 +49,16 @@ public class Setting {
         private final RootGroup root;
         public final String xmlPath;
         private final LinkedHashMap<String,Setting> groupSettings = new LinkedHashMap<String,Setting>();
-        
+
         private Group(RootGroup root, String xmlPath) {
             this.root = root;
             this.xmlPath = xmlPath;
         }
-        
+
         public Setting getSetting(String name) {
             return groupSettings.get(name);
         }
-        
+
         public Setting makeBooleanSetting(String name, String curPrefGroup, String prefName, String location, String description, boolean factory) {
             return makeSetting(name, curPrefGroup, prefName, location, description, Boolean.valueOf(factory));
         }
@@ -78,7 +78,7 @@ public class Setting {
         public Setting makeStringSetting(String name, String curPrefGroup, String prefName, String location, String description, String factory) {
             return makeSetting(name, curPrefGroup, prefName, location, description, factory);
         }
-        
+
         private Setting makeSetting(String name, String curPrefGroup, String prefName, String location, String description, Object factory) {
             assert !root.locked;
             Setting setting = groupSettings.get(name);
@@ -92,7 +92,7 @@ public class Setting {
     public static class RootGroup {
         public LinkedHashMap<String,Group> allGroups = new LinkedHashMap<String,Group>();
         private boolean locked;
-        
+
         public Group node(String groupName) {
             Group group = allGroups.get(groupName);
             if (group == null) {
@@ -124,7 +124,7 @@ public class Setting {
     /** Creates a new instance of Setting */
     public Setting(String prefName, Pref.Group group, String xmlNode, String xmlName, String location, String description, Object factoryObj) {
         this(prefName, group.preferences, xmlNode, xmlName, location, description, factoryObj);
-        
+
     }
     /** Creates a new instance of Setting */
     private Setting(String prefName, Preferences preferences, String xmlNode, String xmlName, String location, String description, Object factoryObj) {
@@ -497,7 +497,7 @@ public class Setting {
         }
     }
 
-    private void saveToPreferences(Object v) {
+    void saveToPreferences(Object v) {
         assert v.getClass() == factoryObj.getClass();
         if (v.equals(factoryObj)) {
              prefs.remove(prefName);

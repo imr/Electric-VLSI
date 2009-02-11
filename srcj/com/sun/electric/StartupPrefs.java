@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: LightPrefs.java
+ * File: StartupPrefs.java
  *
  * Copyright (c) 2009 Sun Microsystems and Static Free Software
  *
