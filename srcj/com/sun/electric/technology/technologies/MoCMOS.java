@@ -49,6 +49,7 @@ import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.XMLRules;
 import com.sun.electric.technology.Xml;
+import com.sun.electric.technology.Technology.NodeLayer;
 import com.sun.electric.technology.xml.XmlParam;
 import com.sun.electric.tool.user.User;
 
@@ -65,6 +66,8 @@ import java.util.Map;
  */
 public class MoCMOS extends Technology
 {
+	/** true to test extra vias in menu. */		private static final boolean TESTSURROUNDOVERRIDE = false;
+
 	/** Value for standard SCMOS rules. */		public static final int SCMOSRULES = 0;
 	/** Value for submicron rules. */			public static final int SUBMRULES  = 1;
 	/** Value for deep rules. */				public static final int DEEPRULES  = 2;
@@ -1809,7 +1812,38 @@ public class MoCMOS extends Technology
         {
         	factoryNodeGroups[++count][0] = metalArcs[i];
         	factoryNodeGroups[count][1] = makeNodeInst(metalPinNodes[i]);
-        	factoryNodeGroups[count][2] = (i < metalArcs.length - 1) ? metalContactNodes[i] : null;
+        	factoryNodeGroups[count][2] = null;
+        	if (i < metalArcs.length - 1)
+        	{
+        		if (TESTSURROUNDOVERRIDE)
+        		{
+        			// experiment in surround overrides (comment out for normal use)
+        			tmp = new ArrayList<Object>();
+        			factoryNodeGroups[count][2] = tmp;
+        			tmp.add(metalContactNodes[i]);
+
+        			// cross configuration
+        			NodeInst overrideNode = makeNodeInst(metalContactNodes[i], metalContactNodes[i].getFunction(), 0, false,
+        				metalContactNodes[i].getName()+"-X", 5.5);
+        			Double [] surroundOffsets = new Double[] {new Double(-3), new Double(3), new Double(0), new Double(0),
+        			  	new Double(0), new Double(0), new Double(-4), new Double(4)};
+        			overrideNode.newVar(NodeLayer.METAL_OFFSETS, surroundOffsets);
+        			overrideNode.setTechSpecific(NodeLayer.MULTICUT_SURROUND_OVERRIDE);
+        			tmp.add(overrideNode);
+
+        			// flat on right configuration
+        			overrideNode = makeNodeInst(metalContactNodes[i], metalContactNodes[i].getFunction(), 0, false,
+        				metalContactNodes[i].getName()+"-R", 5.5);
+        			surroundOffsets = new Double[] {new Double(0), new Double(-1), new Double(0), new Double(0),
+        			  	new Double(0), new Double(-1), new Double(0), new Double(0)};
+        			overrideNode.newVar(NodeLayer.METAL_OFFSETS, surroundOffsets);
+        			overrideNode.setTechSpecific(NodeLayer.MULTICUT_SURROUND_OVERRIDE);
+        			tmp.add(overrideNode);
+        		} else
+        		{
+        			factoryNodeGroups[count][2] = metalContactNodes[i];
+        		}
+			}
         }
 
         // On the side

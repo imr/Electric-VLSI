@@ -27,12 +27,14 @@ import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.Technology.NodeLayer;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
@@ -224,6 +226,7 @@ public class PaletteFrame implements MouseListener
 	 * If this is a NodeInst, one of these is created, and the specifics of this instance are copied.
 	 * @param palette if not null, is notified of certain events during the placing of the node
 	 * If this is null, then the request did not come from the palette.
+	 * @param export true to create a port on the node once placed.
 	 */
 	public static PlaceNodeListener placeInstance(Object obj, PlaceNodeEventListener palette, boolean export)
 	{
@@ -467,6 +470,7 @@ public class PaletteFrame implements MouseListener
 		private int techBits = 0;
         private Orientation defOrient = Orientation.IDENT;
         private double [] angles = null;
+        private Double [] surroundOffsets;
 		private EPoint where;
 		private Cell cell;
 		private String varName;
@@ -474,7 +478,8 @@ public class PaletteFrame implements MouseListener
 		private Variable.Key varKeyToHighlight;
 		private ElectricObject objToHighlight;
 
-		public PlaceNewNode(String description, NodeProto np, NodeInst ni, int defAngle, Point2D where, Cell cell, String varName, boolean export)
+		public PlaceNewNode(String description, NodeProto np, NodeInst ni, int defAngle, Point2D where, Cell cell,
+			String varName, boolean export)
 		{
 			super(description, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.np = np;
@@ -486,6 +491,12 @@ public class PaletteFrame implements MouseListener
 				techBits = ni.getTechSpecific();
                 angles = ni.getArcDegrees();
                 techEditVar = ni.getVar(Info.OPTION_KEY);
+
+                Variable surroundOverride = ni.getVar(NodeLayer.METAL_OFFSETS);
+                if (surroundOverride != null)
+                {
+                	surroundOffsets = (Double [])surroundOverride.getObject();
+                }
             } else if (np instanceof PrimitiveNode)
 			{
                 defOrient = Orientation.fromJava(defAngle, defAngle >= 3600, false);
@@ -508,9 +519,10 @@ public class PaletteFrame implements MouseListener
 			if (np == Generic.tech().cellCenterNode || np == Generic.tech().essentialBoundsNode ||
                 (np instanceof PrimitiveNode && ((PrimitiveNode)np).isPureWellNode()))
 					newNi.setHardSelect();
+
+			// if it is a text object, add initial text
 			if (varName != null)
 			{
-				// text object: add initial text
 				varKeyToHighlight = Variable.newKey(varName);
 				newNi.newVar(varKeyToHighlight, "text", TextDescriptor.getAnnotationTextDescriptor());
 				objToHighlight = newNi;
@@ -518,7 +530,12 @@ public class PaletteFrame implements MouseListener
 				fieldVariableChanged("varKeyToHighlight");
 			} else
 			{
-				if (np == Schematics.tech().resistorNode)
+				// see if it has surround override
+				if (surroundOffsets != null)
+				{
+					newNi.newVar(NodeLayer.METAL_OFFSETS, surroundOffsets);
+					newNi.setTechSpecific(NodeLayer.MULTICUT_SURROUND_OVERRIDE);
+				} else if (np == Schematics.tech().resistorNode)
 				{
 					newNi.newDisplayVar(Schematics.SCHEM_RESISTANCE, "100");
                     // Adding two extra variables: length and width

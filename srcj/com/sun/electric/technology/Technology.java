@@ -530,12 +530,14 @@ public class Technology implements Comparable<Technology>, Serializable
 		public static final int MULTICUTBOX = 3;
 
 		/** key of Variable for overriding cut spacing. */		public static final Variable.Key CUT_SPACING = Variable.newKey("CUT_spacing");
+		/** key of Variable for overriding metal surround. */	public static final Variable.Key METAL_OFFSETS = Variable.newKey("METAL_offsets");
 
 		/** Bits that describe location of multiple cuts */		public static final int MULTICUT_LOCATION = 3;
 		/** Bits for multiple cuts centered in the node */		public static final int MULTICUT_CENTERED = 0;
 		/** Bits for multiple cuts spread to edges of node */	public static final int MULTICUT_SPREAD = 1;
 		/** Bits for multiple cuts pushed to corner of node */	public static final int MULTICUT_CORNER = 2;
 		/** Bit to override spacing of multiple cuts */			public static final int MULTICUT_SPACING_OVERRIDE = 4;
+		/** Bit to override surround of metal layers */			public static final int MULTICUT_SURROUND_OVERRIDE = 4;
 
 		/**
 		 * Constructs a <CODE>NodeLayer</CODE> with the specified description.
@@ -3562,17 +3564,13 @@ public class Technology implements Comparable<Technology>, Serializable
 		SerpentineTrans std = null;
 		if (np.hasMultiCuts())
 		{
-            for (NodeLayer nodeLayer: primLayers) {
-                if (nodeLayer.representation == NodeLayer.MULTICUTBOX) {
-                    mcd = new MultiCutData(ni.getD(), fullRectangle, nodeLayer);
-                    if (reasonable) numExtraLayers += (mcd.cutsReasonable - 1); else
-                        numExtraLayers += (mcd.cutsTotal - 1);
-                }
+		    NodeLayer mcLayer = np.findMulticut();
+		    if (mcLayer != null)
+		    {
+                mcd = new MultiCutData(ni.getD(), fullRectangle, mcLayer);
+                if (reasonable) numExtraLayers += (mcd.cutsReasonable - 1); else
+                    numExtraLayers += (mcd.cutsTotal - 1);
             }
-//			mcd = new MultiCutData(ni.getD());
-//			if (reasonable) numExtraLayers = mcd.cutsReasonable; else
-//			numExtraLayers = mcd.cutsTotal;
-//			numBasicLayers--;
 		} else if (specialType == PrimitiveNode.SERPTRANS)
 		{
 			std = new SerpentineTrans(ni.getD(), np, primLayers);
@@ -3602,6 +3600,22 @@ public class Technology implements Comparable<Technology>, Serializable
         double xSize = ni.getXSize();
         double ySize = ni.getYSize();
 
+        // determine upper and lower metal layers if appropriate
+        int lowMetalIndex = -1, highMetalIndex = -1;
+		if (mcd != null && mcd.isOverrideMetalSurround())
+		{
+			int lowMetal = numBasicLayers;
+			int highMetal = -1;
+			for(int i = 0; i < numBasicLayers; i++)
+			{
+				Technology.NodeLayer primLayer = primLayers[i];
+				int level = primLayer.getLayer().getFunction().getLevel();
+				if (level == 0) continue;
+				if (level > highMetal) { highMetal = level;   highMetalIndex = i; }
+				if (level < lowMetal) { lowMetal = level;   lowMetalIndex = i; }
+			}
+		}
+
 		// add in the basic polygons
 		int fillPoly = 0;
 		for(int i = 0; i < numBasicLayers; i++)
@@ -3618,6 +3632,22 @@ public class Technology implements Comparable<Technology>, Serializable
 				double portHighX = xCenter + rightEdge.getMultiplier() * xSize + rightEdge.getAdder();
 				double portLowY = yCenter + bottomEdge.getMultiplier() * ySize + bottomEdge.getAdder();
 				double portHighY = yCenter + topEdge.getMultiplier() * ySize + topEdge.getAdder();
+				if (mcd != null)
+				{
+					if (i == lowMetalIndex)
+					{
+						portLowX += mcd.getLowerMetalDeltaLX();
+						portHighX += mcd.getLowerMetalDeltaHX();
+						portLowY += mcd.getLowerMetalDeltaLY();
+						portHighY += mcd.getLowerMetalDeltaHY();
+					} else if (i == highMetalIndex)
+					{
+						portLowX += mcd.getUpperMetalDeltaLX();
+						portHighX += mcd.getUpperMetalDeltaHX();
+						portLowY += mcd.getUpperMetalDeltaLY();
+						portHighY += mcd.getUpperMetalDeltaHY();
+					}
+				}
 				Point2D [] pointList = Poly.makePoints(portLowX, portHighX, portLowY, portHighY);
 				polys[fillPoly] = new Poly(pointList);
 			} else if (representation == Technology.NodeLayer.POINTS)
@@ -3638,7 +3668,7 @@ public class Technology implements Comparable<Technology>, Serializable
 				}
 				polys[fillPoly] = new Poly(pointList);
 			} else if (representation == Technology.NodeLayer.MULTICUTBOX) {
-                mcd = new MultiCutData(ni.getD(), fullRectangle, primLayer);
+//                mcd = new MultiCutData(ni.getD(), fullRectangle, primLayer);
                 Poly.Type style = primLayer.getStyle();
                 PortProto port = null;
                 if (electrical) port = np.getPort(0);
@@ -3779,10 +3809,12 @@ public class Technology implements Comparable<Technology>, Serializable
 		/** the amount Y cuts will be shifted down */								private long cutShiftDownYAmt;
 		/** the amount Y cuts will be shifted up */									private long cutShiftUpYAmt;
 
-
 		/** cut position of last top-edge cut (for interior-cut elimination) */		private double cutTopEdge;
 		/** cut position of last left-edge cut  (for interior-cut elimination) */	private double cutLeftEdge;
 		/** cut position of last right-edge cut  (for interior-cut elimination) */	private double cutRightEdge;
+		private boolean overridesMetalSurround;
+		private double lowerMetalDlx, lowerMetalDhx, lowerMetalDly, lowerMetalDhy;
+		private double upperMetalDlx, upperMetalDhx, upperMetalDly, upperMetalDhy;
 
 		/**
 		 * Constructor to initialize for multiple cuts.
@@ -3910,9 +3942,82 @@ public class Technology implements Comparable<Technology>, Serializable
 					cutRightEdge = cutsX*2 + (cutsY-2)*2;
 				}
 			}
+
+			overridesMetalSurround = false;
+			if ((cutSpacing&NodeLayer.MULTICUT_SURROUND_OVERRIDE) != 0)
+			{
+				Variable var = niD.getVar(NodeLayer.METAL_OFFSETS);
+				if (var != null)
+				{
+					Double [] d = (Double [])var.getObject();
+					lowerMetalDlx = d[0].doubleValue();
+					lowerMetalDhx = d[1].doubleValue();
+					lowerMetalDly = d[2].doubleValue();
+					lowerMetalDhy = d[3].doubleValue();
+					upperMetalDlx = d[4].doubleValue();
+					upperMetalDhx = d[5].doubleValue();
+					upperMetalDly = d[6].doubleValue();
+					upperMetalDhy = d[7].doubleValue();
+					overridesMetalSurround = true;
+				}
+			}			
         }
 
-		/**
+        /**
+         * Method to tell whether there is surround override in this contact.
+         * @return true if there is surround override in this contact.
+         */
+        public boolean isOverrideMetalSurround() { return overridesMetalSurround; }
+
+        /**
+         * Method to return the offset to apply to the low X edge of the lower metal layer.
+         * @return the offset to apply to the low X edge of the lower metal layer.
+         */
+        public double getLowerMetalDeltaLX() { return lowerMetalDlx; }
+
+        /**
+         * Method to return the offset to apply to the low Y edge of the lower metal layer.
+         * @return the offset to apply to the low Y edge of the lower metal layer.
+         */
+        public double getLowerMetalDeltaLY() { return lowerMetalDly; }
+
+        /**
+         * Method to return the offset to apply to the high X edge of the lower metal layer.
+         * @return the offset to apply to the high X edge of the lower metal layer.
+         */
+        public double getLowerMetalDeltaHX() { return lowerMetalDhx; }
+
+        /**
+         * Method to return the offset to apply to the high Y edge of the lower metal layer.
+         * @return the offset to apply to the high Y edge of the lower metal layer.
+         */
+        public double getLowerMetalDeltaHY() { return lowerMetalDhy; }
+
+        /**
+         * Method to return the offset to apply to the low X edge of the upper metal layer.
+         * @return the offset to apply to the low X edge of the upper metal layer.
+         */
+        public double getUpperMetalDeltaLX() { return upperMetalDlx; }
+
+        /**
+         * Method to return the offset to apply to the low Y edge of the upper metal layer.
+         * @return the offset to apply to the low Y edge of the upper metal layer.
+         */
+        public double getUpperMetalDeltaLY() { return upperMetalDly; }
+
+        /**
+         * Method to return the offset to apply to the high X edge of the upper metal layer.
+         * @return the offset to apply to the high X edge of the upper metal layer.
+         */
+        public double getUpperMetalDeltaHX() { return upperMetalDhx; }
+
+        /**
+         * Method to return the offset to apply to the high Y edge of the upper metal layer.
+         * @return the offset to apply to the high Y edge of the upper metal layer.
+         */
+        public double getUpperMetalDeltaHY() { return upperMetalDhy; }
+
+        /**
 		 * Method to return the number of cuts in the contact node.
 		 * @return the number of cuts in the contact node.
 		 */
