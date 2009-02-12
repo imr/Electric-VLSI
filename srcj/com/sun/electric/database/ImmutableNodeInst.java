@@ -830,11 +830,6 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 
     public void computeBounds(NodeInst real, Rectangle2D.Double dstBounds)
 	{
-        if ((Technology.TESTSURROUNDOVERRIDE_A || Technology.TESTSURROUNDOVERRIDE_B) &&
-            real.getProto().getTechnology() == Technology.getMocmosTechnology() &&
-            real.getFunction() == PrimitiveNode.Function.CONTACT) {
-            real = real;
-        }
 		// handle cell bounds
 		if (protoId instanceof CellId)
 		{
@@ -914,15 +909,6 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 			}
 			return;
 		}
-        if ((Technology.TESTSURROUNDOVERRIDE_A || Technology.TESTSURROUNDOVERRIDE_B) &&
-            real.getProto().getTechnology() == Technology.getMocmosTechnology() &&
-            real.getFunction() == PrimitiveNode.Function.CONTACT) {
-            Poly[] polys = Technology.getMocmosTechnology().getShapeOfNode(real);
-            dstBounds.setRect(polys[0].getBounds2D());
-            for (int i = 1; i < polys.length; i++)
-				Rectangle2D.union(polys[i].getBounds2D(), dstBounds, dstBounds);
-            return;
-        }
 
 		// normal bounds computation
         double halfWidth = lambdaWidth*0.5;
