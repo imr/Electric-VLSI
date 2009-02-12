@@ -1160,7 +1160,7 @@ public class Layer
 	 */
     private Pref getStringPref(String what, String factory)
 	{
-        if (tech == null) return null;
+        if (isFree()) return null;
         return Pref.makeStringPref(what + "Of" + name + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), factory);
 	}
 
