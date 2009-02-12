@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09c: ******************************
 
+BUG: (2/11/09, DN) The initial implementation of via customization broke
+   getShapeOfNode() for tcms180:N-Poly-RPO-Resistor
+FIX: In Technology protect changes by TESTSURROUNDOVERRIDE = false (Bug #2045).
+
 IMP: (2/11/09, SMR) Initial implementation of via customization (Bug #2045).
 
 IMP: (2/11/09, DN) Move graphics preferences from EGraphics to Layer.

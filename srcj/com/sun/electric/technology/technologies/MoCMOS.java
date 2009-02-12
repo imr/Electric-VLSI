@@ -66,8 +66,6 @@ import java.util.Map;
  */
 public class MoCMOS extends Technology
 {
-	/** true to test extra vias in menu. */		private static final boolean TESTSURROUNDOVERRIDE = false;
-
 	/** Value for standard SCMOS rules. */		public static final int SCMOSRULES = 0;
 	/** Value for submicron rules. */			public static final int SUBMRULES  = 1;
 	/** Value for deep rules. */				public static final int DEEPRULES  = 2;

@@ -129,6 +129,9 @@ import javax.swing.SwingUtilities;
  */
 public class Technology implements Comparable<Technology>, Serializable
 {
+	/** true to test extra vias in menu. */
+    public static final boolean TESTSURROUNDOVERRIDE = false;
+
 	/** true to allow outlines to have "breaks" with multiple pieces in them */
 	public static final boolean HANDLEBROKENOUTLINES = true;
 	/** true to handle duplicate points in an outline as a "break" */
@@ -3564,12 +3567,22 @@ public class Technology implements Comparable<Technology>, Serializable
 		SerpentineTrans std = null;
 		if (np.hasMultiCuts())
 		{
-		    NodeLayer mcLayer = np.findMulticut();
-		    if (mcLayer != null)
-		    {
-                mcd = new MultiCutData(ni.getD(), fullRectangle, mcLayer);
-                if (reasonable) numExtraLayers += (mcd.cutsReasonable - 1); else
-                    numExtraLayers += (mcd.cutsTotal - 1);
+            if (TESTSURROUNDOVERRIDE) {
+                NodeLayer mcLayer = np.findMulticut();
+                if (mcLayer != null)
+                {
+                    mcd = new MultiCutData(ni.getD(), fullRectangle, mcLayer);
+                    if (reasonable) numExtraLayers += (mcd.cutsReasonable - 1); else
+                        numExtraLayers += (mcd.cutsTotal - 1);
+                }
+            } else {
+               for (NodeLayer nodeLayer: primLayers) {
+                   if (nodeLayer.representation == NodeLayer.MULTICUTBOX) {
+                       mcd = new MultiCutData(ni.getD(), fullRectangle, nodeLayer);
+                       if (reasonable) numExtraLayers += (mcd.cutsReasonable - 1); else
+                           numExtraLayers += (mcd.cutsTotal - 1);
+                   }
+               }
             }
 		} else if (specialType == PrimitiveNode.SERPTRANS)
 		{
@@ -3632,7 +3645,7 @@ public class Technology implements Comparable<Technology>, Serializable
 				double portHighX = xCenter + rightEdge.getMultiplier() * xSize + rightEdge.getAdder();
 				double portLowY = yCenter + bottomEdge.getMultiplier() * ySize + bottomEdge.getAdder();
 				double portHighY = yCenter + topEdge.getMultiplier() * ySize + topEdge.getAdder();
-				if (mcd != null)
+				if (TESTSURROUNDOVERRIDE && mcd != null)
 				{
 					if (i == lowMetalIndex)
 					{
@@ -3668,7 +3681,9 @@ public class Technology implements Comparable<Technology>, Serializable
 				}
 				polys[fillPoly] = new Poly(pointList);
 			} else if (representation == Technology.NodeLayer.MULTICUTBOX) {
-//                mcd = new MultiCutData(ni.getD(), fullRectangle, primLayer);
+                if (!TESTSURROUNDOVERRIDE) {
+                    mcd = new MultiCutData(ni.getD(), fullRectangle, primLayer);
+                }
                 Poly.Type style = primLayer.getStyle();
                 PortProto port = null;
                 if (electrical) port = np.getPort(0);
@@ -3960,7 +3975,7 @@ public class Technology implements Comparable<Technology>, Serializable
 					upperMetalDhy = d[7].doubleValue();
 					overridesMetalSurround = true;
 				}
-			}			
+			}
         }
 
         /**

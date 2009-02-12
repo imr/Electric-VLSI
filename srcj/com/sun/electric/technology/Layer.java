@@ -1647,7 +1647,7 @@ public class Layer
         out.println("\tpatternedOnPrinter=" + desc.isPatternedOnPrinter() + "(" + factoryDesc.isPatternedOnPrinter() + ")");
         out.println("\toutlined=" + desc.getOutlined() + "(" + factoryDesc.getOutlined() + ")");
         out.println("\ttransparent=" + desc.getTransparentLayer() + "(" + factoryDesc.getTransparentLayer() + ")");
-        out.println("\tcolor=" + Integer.toHexString(desc.getColor().getRGB()) + "(" + Integer.toHexString(factoryDesc.getColor().getRGB()) + ")");
+        out.println("\tcolor=" + Integer.toHexString(desc.getColor().getRGB()) + "(" + Integer.toHexString(factoryDesc.getRGB()) + ")");
         out.println("\topacity=" + desc.getOpacity() + "(" + factoryDesc.getOpacity() + ")");
         out.println("\tforeground=" + factoryDesc.getForeground());
         int pattern[] = factoryDesc.getPattern();
