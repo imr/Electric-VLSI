@@ -185,7 +185,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         this.techBits = techBits;
         this.protoDescriptor = protoDescriptor;
         this.ports = ports;
-        check();
+//        check();
     }
 
 	/**
