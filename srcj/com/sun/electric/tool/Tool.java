@@ -50,7 +50,6 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -74,7 +73,6 @@ public class Tool implements Comparable
 	private static int toolNumber = 0;
 
     /** Setting Group for this Tool */                      private final Setting.Group settings;
-    /** Settings for this Tool */                           private final HashMap<String,Setting> settingsByXmlPath = new HashMap<String,Setting>();
 	/** Preferences for this Tool */                        public Pref.Group prefs;
 
 	/** set if tool is on */								private static final int TOOLON =             01;
@@ -313,8 +311,8 @@ public class Tool implements Comparable
 	 */
 	public boolean isSynthesis() { return (toolState & TOOLSYNTHESIS) != 0; }
 
-    public String getProjectSettings() {
-        return settings.xmlPath;
+    public Setting.Group getProjectSettings() {
+        return settings;
     }
 
 	/**
@@ -324,17 +322,13 @@ public class Tool implements Comparable
 	 */
     public Collection<Setting> getDiskSettings() {
         ArrayList<Setting> settings = new ArrayList<Setting>();
-        for (Setting setting: settingsByXmlPath.values()) {
+        for (Setting setting: getProjectSettings().getSettings()) {
             if (!setting.isValidOption()) continue;
             if (setting.getValue().equals(setting.getFactoryValue())) continue;
             settings.add(setting);
         }
         Collections.sort(settings, Setting.SETTINGS_BY_PREF_NAME);
         return settings;
-    }
-
-    public Setting getSetting(String xmlPath) {
-        return settingsByXmlPath.get(getProjectSettings() + xmlPath);
     }
 
     /**

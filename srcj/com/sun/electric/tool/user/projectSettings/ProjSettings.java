@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.projectSettings;
 
+import com.sun.electric.database.hierarchy.EDatabase;
 import org.xml.sax.helpers.DefaultHandler;
 import org.xml.sax.Locator;
 import org.xml.sax.SAXParseException;
@@ -76,7 +77,7 @@ public class ProjSettings {
         node.putValue(xmlPath, setting);
     }
 
-    public static void writeSettings(File file) {
+    public static void writeSettings(Map<Setting,Object> settings, File file) {
         write(file.getPath(), getSettings());
     }
 
@@ -90,7 +91,7 @@ public class ProjSettings {
      * @param allowOverride true to allow overriding current settings,
      * false to disallow and warn if different.
      */
-    public static void readSettings(File file, boolean allowOverride) {
+    public static void readSettings(File file, EDatabase database, boolean allowOverride) {
         if (lastProjectSettingsFile == null) allowOverride = true;
 
         ReadResult result = read(file.getPath(), allowOverride);
@@ -118,7 +119,7 @@ public class ProjSettings {
         if (ofile == null) return;
         outputFile = new File(ofile);
 
-        writeSettings(outputFile);
+        writeSettings(EDatabase.clientDatabase().getSettings(), outputFile);
     }
 
     public static void importSettings() {
@@ -141,7 +142,7 @@ public class ProjSettings {
         }
 
         public boolean doIt() throws JobException {
-            readSettings(new File(fileName), true);
+            readSettings(new File(fileName), getDatabase(), true);
             return true;
         }
     }

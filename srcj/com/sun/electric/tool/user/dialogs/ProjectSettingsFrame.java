@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.Setting;
 import com.sun.electric.technology.Technology;
@@ -58,10 +59,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 
 import java.util.Map;
 import javax.swing.JButton;
@@ -83,8 +82,8 @@ public class ProjectSettingsFrame extends EDialog
 {
 	private JSplitPane splitPane;
 	private JTree optionTree;
-    private HashMap<Setting,Object> originalContext = new HashMap<Setting,Object>();
-    private HashMap<Setting,Object> currentContext = new HashMap<Setting,Object>();
+    private Map<Setting,Object> originalContext;
+    private HashMap<Setting,Object> currentContext;
     private JButton cancel;
     private JButton ok;
     private ProjSettingsPanel currentOptionPanel;
@@ -106,10 +105,9 @@ public class ProjectSettingsFrame extends EDialog
 	public ProjectSettingsFrame(Frame parent)
 	{
 		super(parent, true);
-        for (Setting setting: Setting.getSettings()) {
-            originalContext.put(setting, setting.getValue());
-            currentContext.put(setting, setting.getValue());
-        }
+        EDatabase database = EDatabase.clientDatabase();
+        originalContext = database.getSettings();
+        currentContext = new HashMap<Setting,Object>(originalContext);
 		getContentPane().setLayout(new GridBagLayout());
 		setTitle("Project Settings");
 		setName("");
@@ -277,10 +275,12 @@ public class ProjectSettingsFrame extends EDialog
             currentOptionPanel.term();
             currentOptionPanel = null;
         }
-        for (Setting setting: Setting.getSettings())
+        for (Map.Entry<Setting,Object> e: originalContext.entrySet())
         {
+            Setting setting = e.getKey();
+            Object oldVal = e.getValue();
             Object v = currentContext.get(setting);
-            if (originalContext.get(setting).equals(v)) continue;
+            if (oldVal.equals(v)) continue;
             changeBatch.add(setting, v);
             if (setting instanceof Technology.TechSetting)
                 checkAndRepair = true;
@@ -416,7 +416,7 @@ public class ProjectSettingsFrame extends EDialog
 
 		public boolean doIt() throws JobException
 		{
-			Setting.implementSettingChanges(changeBatch);
+			getDatabase().implementSettingChanges(changeBatch);
 			return true;
 		}
 

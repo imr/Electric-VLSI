@@ -25,10 +25,15 @@ package com.sun.electric.database.text;
 
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.EDatabase;
+import com.sun.electric.database.id.IdReader;
+import com.sun.electric.database.id.IdWriter;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.user.projectSettings.ProjSettings;
 
+import java.io.IOException;
 import java.io.PrintStream;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -39,117 +44,297 @@ import java.util.TreeMap;
 import java.util.prefs.Preferences;
 
 /**
- *
+ * This class manages meaning options.
+ * There are two types of options: <I>appearance</I> and <I>meaning</I>.
+ * Appearance options affect the way that the design is presented to the user.
+ * Meaning options affect the way that a design is produced (for fabrication,
+ * simulation, and other outputs).  Examples are CIF layer names, technology
+ * options, etc.)
+ * Settings are grouped in a Setting Trees. Each Tree consists of a RootGroup and lower Groups.
  */
 public class Setting {
-    private static final HashMap<String,Setting> allSettingsByXmlPath = new HashMap<String,Setting>();
-    private static final HashMap<String,Setting> allSettingsByPrefPath = new HashMap<String,Setting>();
-
+    /**
+     * This class manages a group of Settings.
+     */
     public static class Group {
-        private final RootGroup root;
         public final String xmlPath;
-        private final LinkedHashMap<String,Setting> groupSettings = new LinkedHashMap<String,Setting>();
+        private final RootGroup root;
+        private final LinkedHashMap<String,Group> children = new LinkedHashMap<String,Group>();
+        private final LinkedHashMap<String,Setting> settings = new LinkedHashMap<String,Setting>();
 
         private Group(RootGroup root, String xmlPath) {
             this.root = root;
             this.xmlPath = xmlPath;
         }
 
-        public Setting getSetting(String name) {
-            return groupSettings.get(name);
+        private Group() {
+            root = (RootGroup)this;
+            xmlPath = "";
         }
 
-        public Setting makeBooleanSetting(String name, String curPrefGroup, String prefName, String location, String description, boolean factory) {
-            return makeSetting(name, curPrefGroup, prefName, location, description, Boolean.valueOf(factory));
+        /**
+         * Returns subnode with specified node name
+         * @param nodeName simple node name
+         * @return subnode with specified node name
+         * @throws IllegalStateException if the Setting
+         */
+        public Group node(String nodeName) {
+            assert nodeName.indexOf('.') == -1;
+            if (nodeName.length() == 0)
+                return this;
+            Group child = children.get(nodeName);
+            if (child == null) {
+                if (root.isLocked())
+                    throw new IllegalStateException();
+                child = new Group(root, xmlPath + nodeName + '.');
+                children.put(nodeName, child);
+            }
+            return child;
         }
 
-        public Setting makeIntSetting(String name, String curPrefGroup, String prefName, String location, String description, int factory) {
-            return makeSetting(name, curPrefGroup, prefName, location, description, Integer.valueOf(factory));
+        /**
+         * Dot-spearated path from the Root of the tree to this Group
+         * @return path from the Root of the tree to this Group
+         */
+        public String getXmlPath() {
+            return xmlPath;
         }
 
-        public Setting makeLongSetting(String name, String curPrefGroup, String prefName, String location, String description, long factory) {
-            return makeSetting(name, curPrefGroup, prefName, location, description, Long.valueOf(factory));
+        /**
+         * Factory methods to create a boolean project setting objects.
+         * @param prefName preference name of this Setting.
+         * @param prefGroup preference Group of this Setting.
+         * @param xmlName Xml name of this Setting.
+         * @param location the user-command that can affect this meaning option.
+         * @param description the description of this meaning option.
+         * @param factory the "factory" default value (if nothing is stored).
+         */
+        public Setting makeBooleanSetting(String prefName, String prefGroup, String xmlName,
+                                          String location, String description, boolean factory) {
+            return new Setting(prefName, prefGroup, this, xmlName, location, description, Boolean.valueOf(factory));
         }
 
-        public Setting makeDoubleSetting(String name, String curPrefGroup, String prefName, String location, String description, double factory) {
-            return makeSetting(name, curPrefGroup, prefName, location, description, Double.valueOf(factory));
+        /**
+         * Factory methods to create an integer project setting objects.
+         * @param prefName preference name of this Setting.
+         * @param prefGroup preference Group of this Setting.
+         * @param xmlName Xml name of this Setting.
+         * @param location the user-command that can affect this meaning option.
+         * @param description the description of this meaning option.
+         * @param factory the "factory" default value (if nothing is stored).
+         */
+        public Setting makeIntSetting(String prefName, String prefGroup, String xmlName,
+                                      String location, String description, int factory) {
+            return new Setting(prefName, prefGroup, this, xmlName, location, description, Integer.valueOf(factory));
         }
 
-        public Setting makeStringSetting(String name, String curPrefGroup, String prefName, String location, String description, String factory) {
-            return makeSetting(name, curPrefGroup, prefName, location, description, factory);
+        /**
+         * Factory methods to create a long project setting objects.
+         * @param prefName preference name of this Setting.
+         * @param prefGroup preference Group of this Setting.
+         * @param xmlName Xml name of this Setting.
+         * @param location the user-command that can affect this meaning option.
+         * @param description the description of this meaning option.
+         * @param factory the "factory" default value (if nothing is stored).
+         */
+        public Setting makeLongSetting(String prefName, String prefGroup, String xmlName,
+                                       String location, String description, long factory) {
+            return new Setting(prefName, prefGroup, this, xmlName, location, description, Long.valueOf(factory));
         }
 
-        private Setting makeSetting(String name, String curPrefGroup, String prefName, String location, String description, Object factory) {
-            assert !root.locked;
-            Setting setting = groupSettings.get(name);
-            assert setting == null;
-            setting = new Setting(prefName, Preferences.userRoot().node(curPrefGroup), xmlPath, name, location, description, factory);
-            groupSettings.put(name, setting);
-            return setting;
+        /**
+         * Factory methods to create a double project setting objects.
+         * @param prefName preference name of this Setting.
+         * @param prefGroup preference Group of this Setting.
+         * @param xmlName Xml name of this Setting.
+         * @param location the user-command that can affect this meaning option.
+         * @param description the description of this meaning option.
+         * @param factory the "factory" default value (if nothing is stored).
+         */
+        public Setting makeDoubleSetting(String prefName, String prefGroup, String xmlName,
+                                         String location, String description, double factory) {
+            return new Setting(prefName, prefGroup, this, xmlName, location, description, Double.valueOf(factory));
+        }
+
+        /**
+         * Factory methods to create a string project setting objects.
+         * @param prefName preference name of this Setting.
+         * @param prefGroup preference Group of this Setting.
+         * @param xmlName Xml name of this Setting.
+         * @param location the user-command that can affect this meaning option.
+         * @param description the description of this meaning option.
+         * @param factory the "factory" default value (if nothing is stored).
+         */
+        public Setting makeStringSetting(String prefName, String prefGroup, String xmlName,
+                                         String location, String description, String factory) {
+            return new Setting(prefName, prefGroup, this, xmlName, location, description, factory);
+        }
+
+        /**
+         * Returns Setting from this Group or a subgroup by its relative path
+         * @param xmlPath dot-separated relative path
+         * @return Setting by relative path or null
+         */
+        public Setting getSetting(String xmlPath) {
+            int pos = xmlPath.indexOf('.');
+            if (pos < 0)
+                return settings.get(xmlPath);
+            Group child = children.get(xmlPath.substring(0, pos));
+            if (child == null)
+                return null;
+            return child.getSetting(xmlPath.substring(pos + 1));
+        }
+
+        /**
+         * Returns all Settings from this Group and its subgroups
+         * @return all Settings from this Group and its subgroups
+         */
+        public Collection<Setting> getSettings() {
+            ArrayList<Setting> list = new ArrayList<Setting>();
+            gatherSettings(list);
+            return list;
+        }
+
+        private void gatherSettings(ArrayList<Setting> list) {
+            list.addAll(settings.values());
+            for (Group child: children.values())
+                child.gatherSettings(list);
+        }
+
+        /**
+         * Method to get a list of project Settings from this Group
+         * which should be written to disk libraries
+         * @return a collection of project Settings
+         */
+        public Map<Setting,Object> getDiskSettings(Map<Setting,Object> settingValues) {
+            Map<Setting,Object> result = new TreeMap<Setting,Object>(SETTINGS_BY_PREF_NAME);
+            for (Setting setting: getSettings()) {
+                Object value = settingValues.get(setting);
+                if (!setting.isValidOption()) continue;
+                if (value.equals(setting.getFactoryValue())) continue;
+                result.put(setting, value);
+            }
+            return result;
+        }
+
+        @Override
+        public String toString() {
+            return xmlPath;
+        }
+
+        void write(IdWriter writer) throws IOException {
+            writer.writeInt(settings.size());
+            for (Map.Entry<String,Setting> e: settings.entrySet()) {
+                String key = e.getKey();
+                Setting setting = e.getValue();
+                writer.writeString(key);
+                setting.writeSetting(writer);
+            }
+            writer.writeInt(children.size());
+            for (Map.Entry<String,Group> e: children.entrySet()) {
+                String key = e.getKey();
+                Group child = e.getValue();
+                writer.writeString(key);
+                child.write(writer);
+            }
+        }
+
+        void read(IdReader reader) throws IOException {
+            int numSettings = reader.readInt();
+            for (int i = 0; i < numSettings; i++) {
+                String key = reader.readString();
+                Setting.readSetting(reader, this, key);
+            }
+            int numChildren = reader.readInt();
+            for (int i = 0; i < numChildren; i++) {
+                String key = reader.readString();
+                Group child = node(key);
+                child.read(reader);
+            }
         }
     }
 
-    public static class RootGroup {
-        public LinkedHashMap<String,Group> allGroups = new LinkedHashMap<String,Group>();
+    /**
+     * This class manages a tree of Settings.
+     */
+    public static class RootGroup extends Group {
         private boolean locked;
 
-        public Group node(String groupName) {
-            Group group = allGroups.get(groupName);
-            if (group == null) {
-                assert !locked;
-                group = new Group(this, groupName + ".");
-                allGroups.put(groupName, group);
-            }
-            return group;
+        /**
+         * Constructs a root of empty tree of Settings
+         */
+        public RootGroup() {}
+
+        /**
+         * Returns true if tree can't be modified anymore
+         * @return true if tree is locked
+         */
+        public boolean isLocked() {
+            return locked;
         }
 
+        /**
+         * Locks the tree
+         */
         public void lock() {
             locked = true;
         }
+
+        /**
+         * Writes this Tree of Settings to IdManager writer
+         * @param writer IdManager writer
+         * @throws java.io.IOException om writer error
+         */
+        @Override
+        public void write(IdWriter writer) throws IOException {
+            super.write(writer);
+        }
+    }
+
+    /**
+     * Reads a Tree of Settings fro, IdManager reader
+     * @param reader IdManager reader
+     * @throws java.io.IOException om reader error
+     */
+    public static RootGroup read(IdReader reader) throws IOException {
+        RootGroup root = new RootGroup();
+        root.read(reader);
+        root.lock();
+        return root;
     }
 
 //    private final ProjSettingsNode xmlNode;
 //    private final String xmlName;
+    private final Group xmlGroup;
     private final String xmlPath;
 	private final Object factoryObj;
     private Object currentObj;
     private final Preferences prefs;
     private final String prefName;
-    public final String prefPath;
     private boolean valid;
     private final String description, location;
     private String [] trueMeaning;
-    private static boolean lockCreation;
 
     /** Creates a new instance of Setting */
-    public Setting(String prefName, Pref.Group group, String xmlNode, String xmlName, String location, String description, Object factoryObj) {
-        this(prefName, group.preferences, xmlNode, xmlName, location, description, factoryObj);
-
-    }
-    /** Creates a new instance of Setting */
-    private Setting(String prefName, Preferences preferences, String xmlNode, String xmlName, String location, String description, Object factoryObj) {
-//        EDatabase.serverDatabase().checkChanging();
-//        if (lockCreation)
-//            throw new IllegalStateException();
-        if (xmlNode == null)
+    protected Setting(String prefName, String prefGroup, Group xmlGroup, String xmlName, String location, String description, Object factoryObj) {
+        if (xmlGroup.root.isLocked())
+            throw new IllegalStateException();
+        if (xmlGroup == null)
             throw new NullPointerException();
-//        this.xmlNode = xmlNode;
         if (xmlName == null)
             xmlName = prefName;
-//        this.xmlName = xmlName;
-        xmlPath = xmlNode + xmlName;
-        assert !allSettingsByXmlPath.containsKey(xmlPath);
+        assert xmlName.length() > 0;
+        assert xmlName.indexOf('.') == -1;
+        assert !xmlGroup.settings.containsKey(xmlName);
+        xmlPath = xmlGroup + xmlName;
 
+        this.xmlGroup = xmlGroup;
         this.factoryObj = factoryObj;
         currentObj = factoryObj;
         this.prefName = prefName;
-        prefs = preferences;
-        prefPath = prefs.absolutePath() + "/" + prefName;
-        assert !allSettingsByPrefPath.containsKey(prefPath);
+        prefs = Preferences.userRoot().node(prefGroup);
 
-        allSettingsByXmlPath.put(xmlPath, this);
-        allSettingsByPrefPath.put(prefPath, this);
-        assert allSettingsByXmlPath.size() == allSettingsByPrefPath.size();
+        xmlGroup.settings.put(xmlName, this);
 
         valid = true;
         this.description = description;
@@ -157,14 +342,6 @@ public class Setting {
         setCachedObjFromPreferences();
         ProjSettings.putValue(this);
 //        xmlNode.putValue(xmlName, this);
-    }
-
-    /**
-     * Currently Setting can be created only at initialization phase.
-     * This method forbids further cration of Settings.
-     */
-    public static void lockCreation() {
-        lockCreation = true;
     }
 
     /**
@@ -238,6 +415,12 @@ public class Setting {
      * @return the name of this Setting object.
      */
     public String getPrefName() { return prefName; }
+
+   /**
+     * Method to get the pref name of this Setting object.
+     * @return the name of this Setting object.
+     */
+    public String getPrefPath() { return prefs.absolutePath() + "/" + prefName; }
 
 	/**
 	 * Method to get the value of this Setting object as an Object.
@@ -316,100 +499,6 @@ public class Setting {
 	 */
 	public double getDoubleFactoryValue() { return ((Double)factoryObj).doubleValue(); }
 
-	/**
-	 * Factory methods to create a boolean project setting objects.
-	 * @param name the name of this Pref.
-	 * @param group group of preferences to which a new Pref belongs
-	 * @param location the user-command that can affect this meaning option.
-	 * @param description the description of this meaning option.
-	 * @param factory the "factory" default value (if nothing is stored).
-	 */
-    public static Setting makeBooleanSetting(String name, Pref.Group group,
-                                          String xmlNode, String xmlName,
-                                          String location, String description, boolean factory) {
-        Setting setting = Setting.getSetting(xmlNode + xmlName);
-        if (setting != null) return setting;
-        return new Setting(name, group, xmlNode, xmlName, location, description, Boolean.valueOf(factory));
-    }
-
-	/**
-	 * Factory methods to create an integerproject setting objects.
-	 * @param name the name of this Pref.
-	 * @param group group of preferences to which a new Pref belongs
-	 * @param location the user-command that can affect this meaning option.
-	 * @param description the description of this meaning option.
-	 * @param factory the "factory" default value (if nothing is stored).
-	 */
-    public static Setting makeIntSetting(String name, Pref.Group group,
-                                      String xmlNode, String xmlName,
-                                      String location, String description, int factory) {
-        Setting setting = Setting.getSetting(xmlNode + xmlName);
-        if (setting != null) return setting;
-        return new Setting(name, group, xmlNode, xmlName, location, description, Integer.valueOf(factory));
-    }
-
-	/**
-	 * Factory methods to create a long project setting objects.
-	 * @param name the name of this Pref.
-	 * @param group group of preferences to which a new Pref belongs
-	 * @param location the user-command that can affect this meaning option.
-	 * @param description the description of this meaning option.
-	 * @param factory the "factory" default value (if nothing is stored).
-	 */
-    public static Setting makeLongSetting(String name, Pref.Group group,
-                                       String xmlNode, String xmlName,
-                                       String location, String description, long factory) {
-        Setting setting = Setting.getSetting(xmlNode + xmlName);
-        if (setting != null) return setting;
-        return new Setting(name, group, xmlNode, xmlName, location, description, Long.valueOf(factory));
-    }
-
-	/**
-	 * Factory methods to create a double project setting objects.
-	 * @param name the name of this Pref.
-	 * @param group group of preferences to which a new Pref belongs
-	 * @param location the user-command that can affect this meaning option.
-	 * @param description the description of this meaning option.
-	 * @param factory the "factory" default value (if nothing is stored).
-	 */
-    public static Setting makeDoubleSetting(String name, Pref.Group group,
-                                         String xmlNode, String xmlName,
-                                         String location, String description, double factory) {
-        Setting setting = Setting.getSetting(xmlNode + xmlName);
-        if (setting != null) return setting;
-        return new Setting(name, group, xmlNode, xmlName, location, description, Double.valueOf(factory));
-    }
-
-	/**
-	 * Factory methods to create a string project setting objects.
-	 * @param name the name of this Pref.
-	 * @param group group of preferences to which a new Pref belongs
-	 * @param location the user-command that can affect this meaning option.
-	 * @param description the description of this meaning option.
-	 * @param factory the "factory" default value (if nothing is stored).
-	 */
-    public static Setting makeStringSetting(String name, Pref.Group group,
-                                         String xmlNode, String xmlName,
-                                         String location, String description, String factory) {
-        Setting setting = Setting.getSetting(xmlNode + xmlName);
-        if (setting != null) return setting;
-        return new Setting(name, group, xmlNode, xmlName, location, description, factory);
-    }
-
-	/**
-	 * Method to find the project Setting object by its xml path.
-	 * @param xmlPath the xml path of the desired project Setting object.
-	 * @return the project Setting object.
-	 */
-    public static Setting getSetting(String xmlPath) { return allSettingsByXmlPath.get(xmlPath); }
-
-	/**
-	 * Method to find the project Setting object by its pref path.
-	 * @param prefPath the pref path of the desired project Setting object.
-	 * @return the project Setting object.
-	 */
-    public static Setting getSettingByPrefPath(String prefPath) { return allSettingsByPrefPath.get(prefPath); }
-
     public static Comparator<Setting> SETTINGS_BY_PREF_NAME = new Comparator<Setting> () {
         public int compare(Setting s1, Setting s2) {
             String n1 = s1.getPrefName();
@@ -431,71 +520,6 @@ public class Setting {
 //            return s1.compareToIgnoreCase(s2);
 //        }
 //    };
-
-	/**
-	 * Method to adjust project that were saved with a library.
-	 * Presents the user with a dialog to help reconcile the difference
-	 * between project settings stored in a library and the original values.
-	 */
-	public static Map<Setting,Object> reconcileSettings(Map<Setting,Object> projectSettings)
-	{
-        HashSet<Setting> markedSettings = new HashSet<Setting>();
-		Map<Setting,Object> settingsToReconcile = new HashMap<Setting,Object>();
-        for (Map.Entry<Setting,Object> e: projectSettings.entrySet()) {
-            Setting setting = e.getKey();
-            Object value = e.getValue();
-            markedSettings.add(setting);
-            if (DBMath.objectsReallyEqual(value, setting.getValue())) continue;
-            if (!setting.isValidOption()) continue;
-            settingsToReconcile.put(setting, value);
-        }
-        for (Setting setting: allSettingsByXmlPath.values()) {
-            if (markedSettings.contains(setting)) continue;
-
-            // this one is not mentioned in the library: make sure it is at factory defaults
-            if (DBMath.objectsReallyEqual(setting.getValue(), setting.getFactoryValue())) continue;
-
-            if (!setting.isValidOption()) continue;
-            settingsToReconcile.put(setting, null);
-        }
-        return settingsToReconcile;
-	}
-
-    /**
-     * This method is called after reconciling project settings with OptionReconcile dialog or in a batch mode
-     */
-    public static void finishSettingReconcilation(Map<Setting,Object> settingsToReconcile) {
-        // delay flushing of preferences until all chanages are made
-        Pref.delayPrefFlushing();
-        for (Map.Entry<Setting,Object> e: settingsToReconcile.entrySet()) {
-            Setting setting = e.getKey();
-            Object obj = e.getValue();
-            if (obj == null)
-                obj = setting.factoryObj;
-
-            // set the option
-            if (obj.getClass() != setting.factoryObj.getClass()) {
-                if (obj instanceof Integer && setting.factoryObj instanceof Boolean)
-                    obj = Boolean.valueOf(((Integer)obj).intValue() != 0);
-                else if (obj instanceof Float && setting.factoryObj instanceof Double)
-                    obj = Double.valueOf(((Float)obj).doubleValue());
-                else
-                    continue;
-            }
-            setting.set(obj);
-            System.out.println("Project Setting "+setting.xmlPath+" changed to "+obj);
-        }
-
-        // resume flushing, and save everything just set
-        Pref.resumePrefFlushing();
-    }
-
-    static void saveAllSettingsToPreferences() {
-        for (Setting setting: allSettingsByXmlPath.values()) {
-            Object value = setting.getValue();
-            setting.saveToPreferences(value);
-        }
-    }
 
     void saveToPreferences(Object v) {
         assert v.getClass() == factoryObj.getClass();
@@ -535,6 +559,44 @@ public class Setting {
         this.currentObj = cachedObj;
     }
 
+    private void writeSetting(IdWriter writer) throws IOException {
+        // xmlPath
+        Variable.writeObject(writer, factoryObj);
+        writer.writeString(prefs.absolutePath());
+        writer.writeString(prefName);
+        writer.writeBoolean(valid);
+        writer.writeString(description);
+        writer.writeString(location);
+        boolean hasTrueMeaning = trueMeaning != null;
+        writer.writeBoolean(hasTrueMeaning);
+        if (hasTrueMeaning) {
+            writer.writeInt(trueMeaning.length);
+            for (String s: trueMeaning)
+                writer.writeString(s);
+        }
+    }
+
+    private static Setting readSetting(IdReader reader, Group group, String xmlName) throws IOException {
+        Object factoryObj = Variable.readObject(reader);
+        String prefGroup = reader.readString();
+        String prefName = reader.readString();
+        boolean valid = reader.readBoolean();
+        String description = reader.readString();
+        String location = reader.readString();
+        String[] trueMeaning = null;
+        boolean hasTrueMeaning = reader.readBoolean();
+        if (hasTrueMeaning) {
+            trueMeaning = new String[reader.readInt()];
+            for (int i = 0; i < trueMeaning.length; i++)
+                trueMeaning[i] = reader.readString();
+        }
+        Setting setting = new Setting(prefName, prefGroup, group, xmlName, location, description, factoryObj);
+        if (hasTrueMeaning)
+            setting.setTrueMeaning(trueMeaning);
+        setting.setValidOption(valid);
+        return setting;
+    }
+
     public static class SettingChangeBatch implements Serializable {
         public HashMap<String,Object> changesForSettings = new HashMap<String,Object>();
 
@@ -542,68 +604,4 @@ public class Setting {
             changesForSettings.put(setting.xmlPath, newValue);
         }
     }
-
-	/**
-	 * Method to make a collection of project settings changes.
-	 * In order to make project settings changes on the server,
-	 * it is necessary to gather them on the client, and send
-	 * the changes to the server for actual change.
-	 * This method runs on the server.
-	 * @param batch the collection of project setting changes.
-	 */
-    public static void implementSettingChanges(SettingChangeBatch batch) {
-        for (Map.Entry<String,Object> e: batch.changesForSettings.entrySet()) {
-            String xmlPath = e.getKey();
-            Object newValue = e.getValue();
-            Setting setting = getSetting(xmlPath);
-            setting.set(newValue);
-        }
-    }
-
-//    public static List<Object> getContext() { return new ArrayList<Object>(values); }
-    public static Map<Setting,Object> resetContext() {
-        HashMap<Setting,Object> savedContext = new HashMap<Setting,Object>();
-        for (Setting setting: allSettingsByXmlPath.values()) {
-            savedContext.put(setting, setting.getValue());
-            setting.set(setting.getFactoryValue());
-        }
-        return savedContext;
-    }
-    public  static void restoreContext(Map<Setting,Object> savedContext) {
-        for (Map.Entry<Setting,Object> e: savedContext.entrySet()) {
-            Setting setting = e.getKey();
-            setting.set(e.getValue());
-        }
-    }
-    public static Collection<Setting> getSettings() { return allSettingsByXmlPath.values(); }
-
-    static void printAllSettings(PrintStream out) {
-        TreeMap<String,Setting> sortedSettings = new TreeMap<String,Setting>();
-        for (Setting setting: allSettingsByXmlPath.values())
-            sortedSettings.put(setting.xmlPath, setting);
-        out.println("PROJECT SETTINGS");
-        int i = 0;
-        for (Setting setting: sortedSettings.values())
-            out.println((i++) + "\t" + setting.xmlPath + " " + setting.getValue());
-//        printSettings(out, ProjSettings.getSettings(), 0);
-    }
-
-//    private static int i;
-//
-//    private static void printSettings(PrintStream out, ProjSettingsNode node, int level) {
-//        Set<String> keys = node.getKeys();
-//        for (String key: keys) {
-//            out.print((i++) + "\t");
-//            for (int i = 0; i < level; i++) out.print("  ");
-//            out.print(key);
-//            ProjSettingsNode subNode = node.getNode(key);
-//            if (subNode != null) {
-//                out.println(".");
-//                printSettings(out, subNode, level + 1);
-//                continue;
-//            }
-//            Setting setting = node.getValue(key);
-//            out.println(" " + setting.prefName + " " + setting.getValue());
-//        }
-//   }
 }

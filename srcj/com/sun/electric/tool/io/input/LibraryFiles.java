@@ -1409,6 +1409,7 @@ public abstract class LibraryFiles extends Input
 	 * @param vars Variables with meaning preferences.
 	 */
     static void realizeMeaningPrefs(HashMap<Setting,Object> projectSettings, Object obj, Variable[] vars) {
+        HashMap<String,Object> settingsByPrefName = new HashMap<String,Object>();
         for (int i = 0; i < vars.length; i++) {
             Variable var = vars[i];
             if (var == null) continue;
@@ -1436,8 +1437,12 @@ public abstract class LibraryFiles extends Input
             } else if (obj instanceof Tool) {
                 prefPath = ((Tool)obj).prefs.absolutePath() + "/";
             }
-            Setting setting = Setting.getSettingByPrefPath(prefPath + prefName);
-            if (setting != null)
+            settingsByPrefName.put(prefPath + prefName, value);
+        }
+        Setting.Group grp = obj instanceof Technology ? ((Technology)obj).getProjectSettings() : ((Tool)obj).getProjectSettings();
+        for (Setting setting: grp.getSettings()) {
+            Object value = settingsByPrefName.get(setting.getPrefPath());
+            if (value != null)
                 projectSettings.put(setting, value);
         }
 	}

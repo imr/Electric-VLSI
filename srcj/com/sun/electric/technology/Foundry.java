@@ -25,8 +25,8 @@
 package com.sun.electric.technology;
 
 import com.sun.electric.database.text.Setting;
-import java.net.URL;
 
+import java.net.URL;
 import java.util.List;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -239,9 +239,10 @@ public class Foundry {
             // Getting rid of spaces
             factoryDefault = factoryDefault.replaceAll(", ", ",");
 
-            Setting setting = tech.registerSetting(Setting.makeStringSetting(what + "LayerFor" + layer.getName() + "IN" + techName, tech.getTechnologyPreferences(),
-                    getGDSNode(), layer.getName(),
-                    what + " tab", what + " for layer " + layer.getName() + " in technology " + techName, factoryDefault));
+            Setting setting = getGDSNode().makeStringSetting(what + "LayerFor" + layer.getName() + "IN" + techName,
+                    tech.getTechnologyPreferences().absolutePath(),
+                    layer.getName(),
+                    what + " tab", what + " for layer " + layer.getName() + " in technology " + techName, factoryDefault);
             gdsLayerSettings[layerIndex] = setting;
         }
     }
@@ -270,16 +271,16 @@ public class Foundry {
         return ("GDS("+type.getName()+")");
     }
 
-    private String getGDSNode() {
-        String node = tech.getProjectSettings() + "GDS.";
+    private Setting.Group getGDSNode() {
+        Setting.Group gdsNode = tech.getProjectSettings().node("GDS");
         if (type == Type.TSMC)
-            return node + "TSMC.";
+            return gdsNode.node("TSMC");
         else if (type == Type.MOSIS)
-            return node + "MOSIS.";
+            return gdsNode.node("MOSIS");
         else if (type == Type.ST)
-            return node + "ST.";
+            return gdsNode.node("ST");
         else
-            return node;
+            return gdsNode;
     }
 
      /**

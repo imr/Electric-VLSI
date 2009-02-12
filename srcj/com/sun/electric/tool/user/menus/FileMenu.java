@@ -499,15 +499,9 @@ public class FileMenu {
             }
             if (projsettings == null) {
                 projectSettings = LibraryFiles.readProjectsSettingsFromLibrary(fileURL, type);
-                if (projectSettings != null) {
-                    Map<Setting,Object> settingsToReconcile = Setting.reconcileSettings(projectSettings);
-                    if (!settingsToReconcile.isEmpty()) {
-                        String libName = TextUtils.getFileNameWithoutExtension(fileURL);
-                        OptionReconcile dialog = new OptionReconcile(TopLevel.getCurrentJFrame(), settingsToReconcile, libName, this);
-                        dialog.setVisible(true);
-                        return; // startJob will be executed by reconcilation dialog
-                    }
-                }
+                String libName = TextUtils.getFileNameWithoutExtension(fileURL);
+                if (projectSettings != null && OptionReconcile.reconcileSettings(projectSettings, libName, this))
+                    return; // startJob will be executed by reconcilation dialog
             }
 			startJob();
 		}
@@ -528,7 +522,7 @@ public class FileMenu {
 			}
             // read project settings
             if (projsettings != null)
-                ProjSettings.readSettings(projsettings, false);
+                ProjSettings.readSettings(projsettings, getDatabase(), false);
             lib = LibraryFiles.readLibrary(fileURL, null, type, false);
             if (lib == null)
             {

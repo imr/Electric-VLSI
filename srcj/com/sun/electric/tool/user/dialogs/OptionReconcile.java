@@ -23,7 +23,9 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.GenMath;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
@@ -31,6 +33,7 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.menus.FileMenu.ReadLibrary;
 
+import com.sun.electric.tool.user.ui.TopLevel;
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -57,8 +60,47 @@ public class OptionReconcile extends EDialog
 	private List<AbstractButton> currentSettings = new ArrayList<AbstractButton>();
 	private ReadLibrary job;
 
+    /**
+     * Check if it is necessary to reconcile Settings.
+     * If necessary, runs Reconcilation Job which will start the given job after termination
+     * @param settingsThatChanged
+     * @param libName name of the Library with Settings
+     * @param job Job to restart
+     * @return true if it is necessary to reconcile Settings
+     */
+    public static boolean reconcileSettings(Map<Setting,Object> settingsThatChanged, String libName, ReadLibrary job) {
+        EDatabase database = EDatabase.clientDatabase();
+        Map<Setting,Object> originalSettings = database.getSettings();
+		Map<Setting,Object> settingsToReconcile = new HashMap<Setting,Object>();
+        for (Map.Entry<Setting,Object> e: originalSettings.entrySet()) {
+            Setting setting = e.getKey();
+            Object oldValue = e.getValue();
+            Object newValue = settingsThatChanged.get(setting);
+            if (newValue == null)
+                // this one is not mentioned in the library: make sure it is at factory defaults
+                newValue = setting.getFactoryValue();
+            Object factoryValue = setting.getFactoryValue();
+            if (newValue.getClass() != factoryValue.getClass()) {
+                if (newValue instanceof Integer && factoryValue instanceof Boolean)
+                    newValue = Boolean.valueOf(((Integer)newValue).intValue() != 0);
+                else if (newValue instanceof Float && factoryValue instanceof Double)
+                    newValue = Double.valueOf(((Float)newValue).doubleValue());
+                else
+                    continue;
+            }
+            if (DBMath.objectsReallyEqual(oldValue, newValue)) continue;
+            if (!setting.isValidOption()) continue;
+            settingsToReconcile.put(setting, newValue);
+        }
+        if (settingsToReconcile.isEmpty())
+            return false;
+        OptionReconcile dialog = new OptionReconcile(TopLevel.getCurrentJFrame(), originalSettings, settingsToReconcile, libName, job);
+        dialog.setVisible(true);
+        return true;
+    }
+
 	/** Creates new form Project Settings Reconcile */
-	public OptionReconcile(Frame parent, Map<Setting,Object> settingsThatChanged, String libname, ReadLibrary job)
+	private OptionReconcile(Frame parent, Map<Setting,Object> originalSettings, Map<Setting,Object> settingsThatChanged, String libname, ReadLibrary job)
 	{
 		super(parent, true);
 		this.settingsThatChanged = settingsThatChanged;
@@ -122,7 +164,7 @@ public class OptionReconcile extends EDialog
 			Object obj = e.getValue();
 			if (obj == null)
 				obj = setting.getFactoryValue();
-			Object settingValue = setting.getValue();
+			Object settingValue = originalSettings.get(setting);
 			if (GenMath.objectsReallyEqual(obj, settingValue)) continue;
 
 			String oldValue = getObjectValue(settingValue);
@@ -191,7 +233,7 @@ public class OptionReconcile extends EDialog
 		finishInitialization();
 	}
 
-	public void termDialog()
+	private void termDialog()
 	{
 		Map<Setting,Object> settingsToReconcile = new HashMap<Setting,Object>();
 		for(JRadioButton cb : changedSettings.keySet())
@@ -208,7 +250,7 @@ public class OptionReconcile extends EDialog
 	 * @param o the Object to convert.
 	 * @return the String equivalent of the Object.
 	 */
-	public static String getObjectValue(Object o)
+	private static String getObjectValue(Object o)
 	{
 		if (o instanceof Double)
 		{
@@ -230,7 +272,7 @@ public class OptionReconcile extends EDialog
 	{
 		private Map<String,Object> settingsToSerialize = new HashMap<String,Object>();
 		private transient ReadLibrary job;
-		
+
 		private DoReconciliation(Map<Setting,Object> settingsToReconcile, ReadLibrary job)
 		{
 			super("Reconcile Project Settings", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -243,20 +285,17 @@ public class OptionReconcile extends EDialog
 			}
 			startJob();
 		}
-		
+
 		@Override
 		public boolean doIt() throws JobException
 		{
-			Map<Setting,Object> settingsToReconcile = new HashMap<Setting,Object>();
-			for (Map.Entry<String,Object> e: settingsToSerialize.entrySet())
-			{
-				String xmlPath = e.getKey();
-				Object newValue = e.getValue();
-				Setting setting = Setting.getSetting(xmlPath);
-				if (setting == null) continue;
-				settingsToReconcile.put(setting, newValue);
-			}
-			Setting.finishSettingReconcilation(settingsToReconcile);
+            Setting.SettingChangeBatch reconcileBatch = new Setting.SettingChangeBatch();
+            for (Setting setting: getDatabase().getSettings().keySet()) {
+                String xmlPath = setting.getXmlPath();
+                if (!settingsToSerialize.containsKey(xmlPath)) continue;
+                reconcileBatch.add(setting, settingsToSerialize.get(xmlPath));
+            }
+			getDatabase().implementSettingChanges(reconcileBatch);
 			return true;
 		}
 
@@ -266,7 +305,7 @@ public class OptionReconcile extends EDialog
 			job.startJob();
 		}
 	}
- 
+
 	/** This method is called from within the constructor to
 	 * initialize the form.
 	 * WARNING: Do NOT modify this code. The content of this method is

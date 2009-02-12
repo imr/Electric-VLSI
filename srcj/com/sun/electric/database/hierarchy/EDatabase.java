@@ -107,6 +107,20 @@ public class EDatabase {
         snapshotFresh = false;
     }
 
+    public void implementSettingChanges(Setting.SettingChangeBatch changeBatch) {
+        for (Map.Entry<Setting,Object> e: getSettings().entrySet()) {
+            Setting setting = e.getKey();
+            Object oldValue = e.getValue();
+            String xmlPath = setting.getXmlPath();
+            if (!changeBatch.changesForSettings.containsKey(xmlPath)) continue;
+            Object newValue = changeBatch.changesForSettings.get(xmlPath);
+            if (newValue == null)
+                newValue = setting.getFactoryValue();
+            if (newValue.equals(oldValue)) continue;
+            setting.set(newValue);
+        }
+    }
+
     /** Returns TechPool of this database */
     public TechPool getTechPool() { return techPool; }
 
@@ -134,9 +148,16 @@ public class EDatabase {
 
     public Map<Setting,Object> getSettings() {
         LinkedHashMap<Setting,Object> settings = new LinkedHashMap<Setting,Object>();
-        for (Setting setting: Setting.getSettings())
-            settings.put(setting, setting.getValue());
+        for (Iterator<Tool> it = Tool.getTools(); it.hasNext(); )
+            gatherSettings(settings, it.next().getProjectSettings().getSettings());
+        for (Technology tech: getTechnologies())
+            gatherSettings(settings, tech.getProjectSettings().getSettings());
         return settings;
+    }
+
+    private void gatherSettings(Map<Setting,Object> map, Collection<Setting> c) {
+        for (Setting setting: c)
+            map.put(setting, setting.getValue());
     }
 
     public Library getLib(LibId libId) { return getLib(libId.libIndex); }
