@@ -534,7 +534,6 @@ public class PaletteFrame implements MouseListener
 				if (surroundOffsets != null)
 				{
 					newNi.newVar(NodeLayer.METAL_OFFSETS, surroundOffsets);
-					newNi.setTechSpecific(NodeLayer.MULTICUT_SURROUND_OVERRIDE);
 				} else if (np == Schematics.tech().resistorNode)
 				{
 					newNi.newDisplayVar(Schematics.SCHEM_RESISTANCE, "100");

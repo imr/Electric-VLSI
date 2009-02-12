@@ -45,6 +45,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Schematics;
 
@@ -116,6 +117,8 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 
  	private static final int FLAG_BITS = HARDSELECTN | NVISIBLEINSIDE | NILOCKED;
 
+    private static final int HARD_SHAPE_MASK     = 0x0001;
+    
 //    private static final int HARD_SELECT_MASK = 0x01;
 //    private static final int VIS_INSIDE_MASK  = 0x02;
 //    private static final int LOCKED_MASK      = 0x04;
@@ -182,7 +185,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         this.techBits = techBits;
         this.protoDescriptor = protoDescriptor;
         this.ports = ports;
-//        check();
+        check();
     }
 
 	/**
@@ -256,6 +259,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
             size = EPoint.ORIGIN;
         }
         flags &= FLAG_BITS;
+        
         techBits &= NTECHBITS >> NTECHBITSSH;
         if (protoDescriptor != null)
             protoDescriptor = protoDescriptor.withDisplayWithoutParam();
@@ -360,7 +364,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
      * @return ImmutableNodeInst which differs from this ImmutableNodeInst by flag bit.
 	 */
     private ImmutableNodeInst withFlags(int flags) {
-        flags &= FLAG_BITS;
+        flags = updateHardShape(flags&FLAG_BITS, getVars());
         if (this.flags == flags) return this;
 		return newInstance(this.nodeId, this.protoId, this.name, this.nameDescriptor,
                 this.orient, this.anchor, this.size, flags, this.techBits, this.protoDescriptor,
@@ -428,8 +432,9 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
     public ImmutableNodeInst withVariable(Variable var) {
         Variable[] vars = arrayWithVariable(var.withParam(false).withInherit(false));
         if (this.getVars() == vars) return this;
+        int flags = updateHardShape(this.flags, vars);
 		return newInstance(this.nodeId, this.protoId, this.name, this.nameDescriptor,
-                this.orient, this.anchor, this.size, this.flags, this.techBits, this.protoDescriptor,
+                this.orient, this.anchor, this.size, flags, this.techBits, this.protoDescriptor,
                 vars, this.ports, getDefinedParams());
     }
 
@@ -443,11 +448,26 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
     public ImmutableNodeInst withoutVariable(Variable.Key key) {
         Variable[] vars = arrayWithoutVariable(key);
         if (this.getVars() == vars) return this;
+        int flags = updateHardShape(this.flags, vars);
 		return newInstance(this.nodeId, this.protoId, this.name, this.nameDescriptor,
-                this.orient, this.anchor, this.size, this.flags, this.techBits, this.protoDescriptor,
+                this.orient, this.anchor, this.size, flags, this.techBits, this.protoDescriptor,
                 vars, this.ports, getDefinedParams());
     }
 
+    /**
+     * Returns true if this ImmutableNodeInst doesn't have customized contact variables.
+     * @return true if this ImmutableNodeInst doesn't have customized contact variables.
+     */
+    public boolean isEasyShape() {
+        return (flags & HARD_SHAPE_MASK) == 0;
+    }
+    
+    private static int updateHardShape(int flags, Variable[] vars) {
+        boolean hasHardVars = searchVar(vars, Technology.NodeLayer.CUT_SPACING) >= 0 ||
+                searchVar(vars, Technology.NodeLayer.METAL_OFFSETS) >= 0;
+        return hasHardVars ? flags | HARD_SHAPE_MASK : flags & ~HARD_SHAPE_MASK;
+    }
+    
 	/**
 	 * Returns ImmutableNodeInst which differs from this ImmutableNodeInst by renamed Ids.
 	 * @param idMapper a map from old Ids to new Ids.
@@ -761,7 +781,8 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         assert size != null;
 //        assert size.getGridX() >= 0;
 //        assert size.getGridY() >= 0;
-        assert (flags & ~FLAG_BITS) == 0;
+        assert (flags & ~(FLAG_BITS|HARD_SHAPE_MASK)) == 0;
+        assert isEasyShape() == (getVar(Technology.NodeLayer.CUT_SPACING) == null && getVar(Technology.NodeLayer.METAL_OFFSETS) == null);
         assert (techBits & ~(NTECHBITS >> NTECHBITSSH)) == 0;
         if (protoDescriptor != null)
             assert protoDescriptor.isDisplay() && !protoDescriptor.isParam();
@@ -809,6 +830,11 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 
     public void computeBounds(NodeInst real, Rectangle2D.Double dstBounds)
 	{
+        if ((Technology.TESTSURROUNDOVERRIDE_A || Technology.TESTSURROUNDOVERRIDE_B) &&
+            real.getProto().getTechnology() == Technology.getMocmosTechnology() &&
+            real.getFunction() == PrimitiveNode.Function.CONTACT) {
+            real = real;
+        }
 		// handle cell bounds
 		if (protoId instanceof CellId)
 		{
@@ -888,6 +914,15 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 			}
 			return;
 		}
+        if ((Technology.TESTSURROUNDOVERRIDE_A || Technology.TESTSURROUNDOVERRIDE_B) &&
+            real.getProto().getTechnology() == Technology.getMocmosTechnology() &&
+            real.getFunction() == PrimitiveNode.Function.CONTACT) {
+            Poly[] polys = Technology.getMocmosTechnology().getShapeOfNode(real);
+            dstBounds.setRect(polys[0].getBounds2D());
+            for (int i = 1; i < polys.length; i++)
+				Rectangle2D.union(polys[i].getBounds2D(), dstBounds, dstBounds);
+            return;
+        }
 
 		// normal bounds computation
         double halfWidth = lambdaWidth*0.5;

@@ -130,7 +130,8 @@ import javax.swing.SwingUtilities;
 public class Technology implements Comparable<Technology>, Serializable
 {
 	/** true to test extra vias in menu. */
-    public static final boolean TESTSURROUNDOVERRIDE = false;
+    public static final boolean TESTSURROUNDOVERRIDE_A = false;
+    public static final boolean TESTSURROUNDOVERRIDE_B = false;
 
 	/** true to allow outlines to have "breaks" with multiple pieces in them */
 	public static final boolean HANDLEBROKENOUTLINES = true;
@@ -503,6 +504,9 @@ public class Technology implements Comparable<Technology>, Serializable
 		private double lWidth, rWidth, extentT, extendB;
         private long cutGridSizeX, cutGridSizeY, cutGridSep1D, cutGridSep2D;
         String sizeRule, cutSep1DRule, cutSep2DRule;
+        private ERectangle[] customOverrides;
+        private int customOverrideMask;
+        private int customOverrideShift;
 
 		// the meaning of "representation"
 		/**
@@ -539,8 +543,6 @@ public class Technology implements Comparable<Technology>, Serializable
 		/** Bits for multiple cuts centered in the node */		public static final int MULTICUT_CENTERED = 0;
 		/** Bits for multiple cuts spread to edges of node */	public static final int MULTICUT_SPREAD = 1;
 		/** Bits for multiple cuts pushed to corner of node */	public static final int MULTICUT_CORNER = 2;
-		/** Bit to override spacing of multiple cuts */			public static final int MULTICUT_SPACING_OVERRIDE = 4;
-		/** Bit to override surround of metal layers */			public static final int MULTICUT_SURROUND_OVERRIDE = 4;
 
 		/**
 		 * Constructs a <CODE>NodeLayer</CODE> with the specified description.
@@ -813,6 +815,12 @@ public class Technology implements Comparable<Technology>, Serializable
         public double getMulticutSizeY() { return DBMath.gridToLambda(cutGridSizeY); }
         public double getMulticutSep1D() { return DBMath.gridToLambda(cutGridSep1D); }
         public double getMulticutSep2D() { return DBMath.gridToLambda(cutGridSep2D); }
+        
+        public void setCustomOverride(int mask, int shift, ERectangle[] overrides) {
+            customOverrides = overrides.clone();
+            customOverrideMask = mask;
+            customOverrideShift = shift;
+        }
 
         void dump(PrintWriter out, boolean isSerp) {
             out.println("\tlayer=" + getLayerOrPseudoLayer().getName() + " port=" + getPortNum() + " style=" + getStyle().name() + " repr=" + getRepresentation());
@@ -3567,7 +3575,7 @@ public class Technology implements Comparable<Technology>, Serializable
 		SerpentineTrans std = null;
 		if (np.hasMultiCuts())
 		{
-            if (TESTSURROUNDOVERRIDE) {
+            if (TESTSURROUNDOVERRIDE_A) {
                 NodeLayer mcLayer = np.findMulticut();
                 if (mcLayer != null)
                 {
@@ -3645,7 +3653,7 @@ public class Technology implements Comparable<Technology>, Serializable
 				double portHighX = xCenter + rightEdge.getMultiplier() * xSize + rightEdge.getAdder();
 				double portLowY = yCenter + bottomEdge.getMultiplier() * ySize + bottomEdge.getAdder();
 				double portHighY = yCenter + topEdge.getMultiplier() * ySize + topEdge.getAdder();
-				if (TESTSURROUNDOVERRIDE && mcd != null)
+				if (TESTSURROUNDOVERRIDE_A && mcd != null)
 				{
 					if (i == lowMetalIndex)
 					{
@@ -3661,6 +3669,17 @@ public class Technology implements Comparable<Technology>, Serializable
 						portHighY += mcd.getUpperMetalDeltaHY();
 					}
 				}
+                if (TESTSURROUNDOVERRIDE_B) {
+                    int techBits = ni.getTechSpecific() & primLayer.customOverrideMask;
+                    if (techBits != 0) {
+                        int index = (techBits >> primLayer.customOverrideShift) - 1;
+                        ERectangle override = primLayer.customOverrides[index];
+						portLowX += override.getLambdaMinX();
+						portHighX += override.getLambdaMaxX();
+						portLowY += override.getLambdaMinY();
+						portHighY += override.getLambdaMaxY();
+                    }
+                }
 				Point2D [] pointList = Poly.makePoints(portLowX, portHighX, portLowY, portHighY);
 				polys[fillPoly] = new Poly(pointList);
 			} else if (representation == Technology.NodeLayer.POINTS)
@@ -3681,7 +3700,7 @@ public class Technology implements Comparable<Technology>, Serializable
 				}
 				polys[fillPoly] = new Poly(pointList);
 			} else if (representation == Technology.NodeLayer.MULTICUTBOX) {
-                if (!TESTSURROUNDOVERRIDE) {
+                if (!TESTSURROUNDOVERRIDE_A) {
                     mcd = new MultiCutData(ni.getD(), fullRectangle, primLayer);
                 }
                 Poly.Type style = primLayer.getStyle();
@@ -3865,17 +3884,17 @@ public class Technology implements Comparable<Technology>, Serializable
             cutSizeY = cutLayer.cutGridSizeY;
             cutSep1D = cutLayer.cutGridSep1D;
             cutSep2D = cutLayer.cutGridSep2D;
-			if ((cutSpacing&NodeLayer.MULTICUT_SPACING_OVERRIDE) != 0)
-			{
-		        // get the value of the cut spacing
-				Variable var = niD.getVar(NodeLayer.CUT_SPACING);
-				if (var != null)
-				{
-			        double spacingD = VarContext.objectToDouble(var.getObject(), -1);
-			        if (spacingD != -1)
-			        	cutSep1D = cutSep2D = DBMath.lambdaToGrid(spacingD);
-				}
-			}
+            if (!niD.isEasyShape())
+            {
+                // get the value of the cut spacing
+                Variable var = niD.getVar(NodeLayer.CUT_SPACING);
+                if (var != null)
+                {
+                    double spacingD = VarContext.objectToDouble(var.getObject(), -1);
+                    if (spacingD != -1)
+                        cutSep1D = cutSep2D = DBMath.lambdaToGrid(spacingD);
+                }
+            }
 
 			// determine the actual node size
             cutBaseX = (lx + hx)>>1;
@@ -3959,7 +3978,7 @@ public class Technology implements Comparable<Technology>, Serializable
 			}
 
 			overridesMetalSurround = false;
-			if ((cutSpacing&NodeLayer.MULTICUT_SURROUND_OVERRIDE) != 0)
+			if (!niD.isEasyShape())
 			{
 				Variable var = niD.getVar(NodeLayer.METAL_OFFSETS);
 				if (var != null)

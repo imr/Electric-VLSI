@@ -546,12 +546,11 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 
 			textFieldLabel.setText("Cut spacing:");
 			textField.setEditable(true);
-			if ((initialPopupIndex&NodeLayer.MULTICUT_SPACING_OVERRIDE) == 0) textField.setText("DEFAULT"); else
-			{
-				Variable var = ni.getVar(NodeLayer.CUT_SPACING);
-				if (var != null)
-					textField.setText(var.getPureValue(-1));
-			}			
+            Variable var = ni.getVar(NodeLayer.CUT_SPACING);
+			if (var == null)
+                textField.setText("DEFAULT");
+            else
+                textField.setText(var.getPureValue(-1));
 		}
 
 		scalableTrans = false;
@@ -956,12 +955,9 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 			{
 				if (currentTextField.equals("DEFAULT") || currentTextField.length() == 0)
 				{
-					currentPopupIndex &= ~NodeLayer.MULTICUT_SPACING_OVERRIDE;
-					if (ni.getVar(NodeLayer.CUT_SPACING) != null)
-						ni.delVar(NodeLayer.CUT_SPACING);
+					ni.delVar(NodeLayer.CUT_SPACING);
 				} else
 				{
-					currentPopupIndex |= NodeLayer.MULTICUT_SPACING_OVERRIDE;
 					ni.newVar(NodeLayer.CUT_SPACING, new Double(TextUtils.atof(currentTextField)));
 				}
 				if (currentPopupIndex != initialPopupIndex)
