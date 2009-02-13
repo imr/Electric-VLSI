@@ -66,6 +66,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.technology.xml.XmlParam;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.ToolSettings;
 import com.sun.electric.tool.erc.ERC;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.User;
@@ -1065,10 +1066,13 @@ public class Technology implements Comparable<Technology>, Serializable
 	/** Spice header cards, level 2. */						private String [] spiceHeaderLevel2;
 	/** Spice header cards, level 3. */						private String [] spiceHeaderLevel3;
     /** resolution for this Technology */                   private Pref prefResolution;
+    /** true if the process is PWell */                     protected Boolean paramPWellProcess;
     /** static list of all Manufacturers in Electric */     protected final List<Foundry> foundries = new ArrayList<Foundry>();
-    /** default foundry for this Technology */              private final Setting cacheFoundry;
+    /** default foundry Setting for this Technology */      private final Setting cacheFoundry;
+    /** default foundry name for this Technology */         private String paramFoundry;
 	/** scale for this Technology. */						private Setting cacheScale;
-    /** number of metals for this Technology. */            private final Setting cacheNumMetalLayers;
+    /** number of metals Setting for this Technology. */    private final Setting cacheNumMetalLayers;
+    /** number of metals for this Technology. */            private Integer paramNumMetalLayers;
 	/** Minimum resistance for this Technology. */			private Setting cacheMinResistance;
 	/** Minimum capacitance for this Technology. */			private Setting cacheMinCapacitance;
     /** Gate Length subtraction (in microns) for this Tech*/private final Setting cacheGateLengthSubtraction;
@@ -1792,6 +1796,7 @@ public class Technology implements Comparable<Technology>, Serializable
         database.addTech(this);
 
         // initialize all design rules in the technology (overwrites arc widths)
+        loadTechParams();
 		setStateNow();
 
         if (cacheMinResistance == null || cacheMinCapacitance == null) {
@@ -1827,10 +1832,27 @@ public class Technology implements Comparable<Technology>, Serializable
                     "Technology Parameter Changed");
 
         } else {
+            loadTechParams();
             setStateNow();
         }
     }
 
+    private void loadTechParams() {
+        loadTechParams(new Setting.Context() {
+            @Override
+            public Object getValue(Setting setting) {
+                return setting.getValue();
+            }
+        });
+    }
+
+    protected void loadTechParams(Setting.Context context) {
+        paramPWellProcess = Boolean.valueOf(ToolSettings.getPWellProcessLayoutTechnologySetting().getBoolean(context));
+        paramFoundry = getPrefFoundrySetting().getString(context);
+        paramNumMetalLayers = Integer.valueOf(getNumMetalsSetting().getInt(context));
+    }
+
+ 	/**
 	/**
 	 * Method to set state of a technology.
 	 * It gets overridden by individual technologies.
@@ -2696,7 +2718,7 @@ public class Technology implements Comparable<Technology>, Serializable
      * technologies.  Can by changed by user preferences.
      * @return the number of metal layers currently specified for the technology
      */
-    public int getNumMetals() { return cacheNumMetalLayers.getInt(); }
+    public int getNumMetals() { return paramNumMetalLayers.intValue(); }
 	/**
 	 * Returns project Setting to tell the number of metal layers in the MoCMOS technology.
 	 * @return project Setting to tell the number of metal layers in the MoCMOS technology (from 2 to 6).
@@ -5473,7 +5495,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	 */
 	public String getPrefFoundry()
     {
-        return cacheFoundry.getString().toUpperCase();
+        return paramFoundry;
     }
 
 	/**
@@ -5769,7 +5791,7 @@ public class Technology implements Comparable<Technology>, Serializable
 
         Foundry foundry = getSelectedFoundry();
         List<DRCTemplate> rulesList = foundry.getRules();
-        boolean pWellProcess = User.isPWellProcessLayoutTechnology();
+        boolean pWellProcess = paramPWellProcess.booleanValue();
 
         // load the DRC tables from the explanation table
         if (rulesList != null) {
@@ -6504,8 +6526,9 @@ public class Technology implements Comparable<Technology>, Serializable
         private Technology tech;
 
         private TechSetting(String prefName, Technology tech, String xmlName,
-                String location, String description, Object factoryObj) {
-            super(prefName, tech.prefs.absolutePath(), tech.getProjectSettings(), xmlName, location, description, factoryObj);
+                String location, String description, Object factoryObj, String... trueMeaning) {
+            super(prefName, tech.prefs.absolutePath(), tech.getProjectSettings(), xmlName,
+                    location, description, factoryObj, trueMeaning);
             if (tech == null)
                 throw new NullPointerException();
             this.tech = tech;
@@ -6569,8 +6592,8 @@ public class Technology implements Comparable<Technology>, Serializable
         return new TechSetting(name, this, xmlName, location, description, Boolean.valueOf(factory));
     }
 
-    public Setting makeIntSetting(String name, String location, String description, String xmlName, int factory) {
-        return new TechSetting(name, this, xmlName, location, description, Integer.valueOf(factory));
+    public Setting makeIntSetting(String name, String location, String description, String xmlName, int factory, String... trueMeaning) {
+        return new TechSetting(name, this, xmlName, location, description, Integer.valueOf(factory), trueMeaning);
     }
 
     public Setting makeStringSetting(String name, String location, String description, String xmlName, String factory) {
@@ -6579,22 +6602,6 @@ public class Technology implements Comparable<Technology>, Serializable
     // -------------------------- Project Settings -------------------------
 
     public Setting.Group getProjectSettings() {
-        return settings;
-    }
-
-	/**
-	 * Method to get a list of project Settings associatiated with this Technology
-     * which should be written to disk libraries
-	 * @return a collection of project Settings
-	 */
-    public Collection<Setting> getDiskSettings() {
-        ArrayList<Setting> settings = new ArrayList<Setting>();
-        for (Setting setting: getProjectSettings().getSettings()) {
-            if (!setting.isValidOption()) continue;
-            if (setting.getValue().equals(setting.getFactoryValue())) continue;
-            settings.add(setting);
-        }
-        Collections.sort(settings, Setting.SETTINGS_BY_PREF_NAME);
         return settings;
     }
 

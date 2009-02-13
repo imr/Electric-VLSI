@@ -27,7 +27,6 @@ import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.ERectangle;
-import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.Setting;
@@ -52,7 +51,6 @@ import com.sun.electric.technology.XMLRules;
 import com.sun.electric.technology.Xml;
 import com.sun.electric.technology.Technology.NodeLayer;
 import com.sun.electric.technology.xml.XmlParam;
-import com.sun.electric.tool.user.User;
 
 import java.awt.Color;
 import java.io.PrintWriter;
@@ -75,6 +73,13 @@ public class MoCMOS extends Technology
 	public static final Variable.Key TECH_LAST_STATE = Variable.newKey("TECH_last_state");
 
     public static final Version changeOfMetal6 =Version.parseVersion("8.02o"); // Fix of bug #357
+
+    // Tech params
+    private Integer paramRuleSet;
+    private Boolean paramUseSecondPolysilicon;
+    private Boolean paramDisallowStackedVias;
+    private Boolean paramUseAlternativeActivePolyRules;
+    private Boolean paramAnalog;
 
 	// layers to share with subclasses
     private Layer[] viaLayers = new Layer[5];
@@ -1603,7 +1608,7 @@ public class MoCMOS extends Technology
                 });
             }
         }
-        
+
         /**************************************************************************
          * Metal-1-P-Well Contact/Metal-1-N-Well Contact
         **************************************************************************/
@@ -1883,6 +1888,16 @@ public class MoCMOS extends Technology
 
 	/******************** SUPPORT METHODS ********************/
 
+    @Override
+    protected void loadTechParams(Setting.Context context) {
+        super.loadTechParams(context);
+        paramRuleSet = Integer.valueOf(getRuleSetSetting().getInt(context));
+        paramUseSecondPolysilicon = Boolean.valueOf(getSecondPolysiliconSetting().getBoolean(context));
+        paramDisallowStackedVias = Boolean.valueOf(getDisallowStackedViasSetting().getBoolean(context));
+        paramUseAlternativeActivePolyRules = Boolean.valueOf(getAlternateActivePolyRulesSetting().getBoolean(context));
+        paramAnalog = Boolean.valueOf(getAnalogSetting().getBoolean(context));
+    }
+
     /**
 	 * Method to set the technology to state "newstate", which encodes the number of metal
 	 * layers, whether it is a deep process, and other rules.
@@ -1890,7 +1905,7 @@ public class MoCMOS extends Technology
     @Override
 	protected void setStateNow()
 	{
-        EDatabase.theDatabase.checkChanging();
+//        EDatabase.theDatabase.checkChanging();
         setNotUsed(isSecondPolysilicon() ? 2 : 1);
 //        findNodeProto("Active-Pin").setNotUsed(true);
 		findArcProto("Active").setNotUsed(true);
@@ -2212,7 +2227,7 @@ public class MoCMOS extends Technology
         Foundry foundry = getSelectedFoundry();
         List<DRCTemplate> theRules = foundry.getRules();
         XMLRules rules = new XMLRules(this);
-        boolean pWellProcess = User.isPWellProcessLayoutTechnology();
+        boolean pWellProcess = paramPWellProcess.booleanValue();
 
         assert(foundry != null);
 
@@ -2738,10 +2753,7 @@ public class MoCMOS extends Technology
 	/******************** OPTIONS ********************/
 
     private final Setting cacheRuleSet = makeIntSetting("MoCMOSRuleSet", "Technology tab", "MOSIS CMOS rule set",
-        "MOCMOS Rule Set", 1);
-    {
-    	cacheRuleSet.setTrueMeaning(new String[] {"SCMOS", "Submicron", "Deep"});
-	}
+        "MOCMOS Rule Set", 1, "SCMOS", "Submicron", "Deep");
 	/**
 	 * Method to tell the current rule set for this Technology if Mosis is the foundry.
 	 * @return the current rule set for this Technology:<BR>
@@ -2749,7 +2761,7 @@ public class MoCMOS extends Technology
 	 * 1: Submicron rules (the default)<BR>
 	 * 2: Deep rules
 	 */
-    public int getRuleSet() { return cacheRuleSet.getInt(); }
+    public int getRuleSet() { return paramRuleSet.intValue(); }
 
 //    private static DRCTemplate.DRCMode getRuleMode()
 //    {
@@ -2779,7 +2791,7 @@ public class MoCMOS extends Technology
 	 * @return true if there are 2 polysilicon layers in this Technology.
 	 * If false, there is only 1 polysilicon layer.
 	 */
-	public boolean isSecondPolysilicon() { return cacheSecondPolysilicon.getBoolean(); }
+	public boolean isSecondPolysilicon() { return paramUseSecondPolysilicon.booleanValue(); }
 	/**
 	 * Returns project Setting to tell a second polysilicon layer in this Technology.
 	 * @return project Setting to tell a second polysilicon layer in this Technology.
@@ -2793,7 +2805,7 @@ public class MoCMOS extends Technology
 	 * The default is false (they are allowed).
 	 * @return true if the MOCMOS technology disallows stacked vias.
 	 */
-	public boolean isDisallowStackedVias() { return cacheDisallowStackedVias.getBoolean(); }
+	public boolean isDisallowStackedVias() { return paramDisallowStackedVias.booleanValue(); }
 	/**
 	 * Returns project Setting to tell whether this Technology disallows stacked vias.
 	 * @return project Setting to tell whether this Technology disallows stacked vias.
@@ -2807,7 +2819,7 @@ public class MoCMOS extends Technology
 	 * The default is false.
 	 * @return true if the MOCMOS technology is using alternate Active and Poly contact rules.
 	 */
-	public boolean isAlternateActivePolyRules() { return cacheAlternateActivePolyRules.getBoolean(); }
+	public boolean isAlternateActivePolyRules() { return paramUseAlternativeActivePolyRules.booleanValue(); }
 	/**
 	 * Returns project Setting to tell whether this Technology is using alternate Active and Poly contact rules.
 	 * @return project Setting to tell whether this Technology is using alternate Active and Poly contact rules.
@@ -2821,7 +2833,7 @@ public class MoCMOS extends Technology
 	 * The default is false.
 	 * @return true if this Technology has layers for vertical NPN transistor pbase.
 	 */
-	public boolean isAnalog() { return cacheAnalog.getBoolean(); }
+	public boolean isAnalog() { return paramAnalog.booleanValue(); }
 	/**
 	 * Returns project Setting to tell whether this technology has layers for vertical NPN transistor pbase.
 	 * @return project Setting to tell whether this technology has layers for vertical NPN transistor pbase.

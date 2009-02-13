@@ -34,13 +34,13 @@ import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.ImmutableArrayList;
+import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
-import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Tool;
 
 import java.io.IOException;
@@ -51,8 +51,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -592,6 +595,21 @@ public class Snapshot {
 //    private Technology getTech(int techIndex) {
 //        return techIndex < technologies.size() ? technologies.get(techIndex) : null;
 //    }
+
+    /** Returns map from Setting to its value in this Snapshot */
+    public Map<Setting,Object> getSettings() {
+        LinkedHashMap<Setting,Object> settings = new LinkedHashMap<Setting,Object>();
+        for (Iterator<Tool> it = Tool.getTools(); it.hasNext(); )
+            gatherSettings(settings, it.next().getProjectSettings().getSettings());
+        for (Technology tech: techPool.values())
+            gatherSettings(settings, tech.getProjectSettings().getSettings());
+        return settings;
+    }
+
+    private void gatherSettings(Map<Setting,Object> map, Collection<Setting> c) {
+        for (Setting setting: c)
+            map.put(setting, setting.getValue());
+    }
 
     public LibraryBackup getLib(LibId libId) { return getLib(libId.libIndex); }
 

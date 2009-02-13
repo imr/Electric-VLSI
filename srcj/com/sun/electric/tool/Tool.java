@@ -48,8 +48,6 @@ import com.sun.electric.tool.generator.layout.fill.FillGeneratorTool;
 import java.lang.reflect.Method;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -312,22 +310,6 @@ public class Tool implements Comparable
 	public boolean isSynthesis() { return (toolState & TOOLSYNTHESIS) != 0; }
 
     public Setting.Group getProjectSettings() {
-        return settings;
-    }
-
-	/**
-	 * Method to get a list of project Settings associatiated with this Tool
-     * which should be written to disk libraries
-	 * @return a collection of project Settings
-	 */
-    public Collection<Setting> getDiskSettings() {
-        ArrayList<Setting> settings = new ArrayList<Setting>();
-        for (Setting setting: getProjectSettings().getSettings()) {
-            if (!setting.isValidOption()) continue;
-            if (setting.getValue().equals(setting.getFactoryValue())) continue;
-            settings.add(setting);
-        }
-        Collections.sort(settings, Setting.SETTINGS_BY_PREF_NAME);
         return settings;
     }
 

@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09c: ******************************
 
+IMP: (2/12/09, DN) Partial commit from twoJvm branch: Technology.loadTechParams .
+
 IMP: (2/12/09, DN) Partial commit from twoJvm branch: Setting.Group .
 
 IMP: (2/12/09, DN) Initial implementation of via customization (variant B) (Bug #2045).

@@ -61,13 +61,11 @@ import com.sun.electric.tool.Tool;
 
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -158,12 +156,13 @@ public class JELIB extends Output {
         // write external library information
         writeExternalLibraryInfo(libId, usedLibs);
 
+        Map<Setting,Object> snapshotSettings = snapshot.getSettings();
         // write tool information
         boolean toolHeaderPrinted = false;
         for(Iterator<Tool> it = Tool.getTools(); it.hasNext(); ) {
             Tool tool = it.next();
-            Collection<Setting> settings = tool.getDiskSettings();
-            if (settings.size() == 0) continue;
+            Map<Setting,Object> settings = tool.getProjectSettings().getDiskSettings(snapshotSettings);
+            if (settings.isEmpty()) continue;
             if (!toolHeaderPrinted) {
                 printWriter.println();
                 printWriter.println("# Tools:");
@@ -177,8 +176,8 @@ public class JELIB extends Output {
         boolean technologyHeaderPrinted = false;
         for (Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); ) {
             Technology tech = it.next();
-            Collection<Setting> settings = tech.getDiskSettings();
-            if (settings.size() == 0) continue;
+            Map<Setting,Object> settings = tech.getProjectSettings().getDiskSettings(snapshotSettings);
+            if (settings.isEmpty()) continue;
             if (!technologyHeaderPrinted) {
                 printWriter.println();
                 printWriter.println("# Technologies:");
@@ -574,9 +573,10 @@ public class JELIB extends Output {
     /**
      * Method to write the project settings on an object.
      */
-    private void printlnSettings(Collection<Setting> settings) {
-        for (Setting setting : settings) {
-            Object value = setting.getValue();
+    private void printlnSettings(Map<Setting,Object> settings) {
+        for (Map.Entry<Setting,Object> e: settings.entrySet()) {
+            Setting setting = e.getKey();
+            Object value = e.getValue();
             projectSettings.put(setting, value);
             printWriter.print("|" + convertVariableName(setting.getPrefName()) + "()" + makeString(value));
         }

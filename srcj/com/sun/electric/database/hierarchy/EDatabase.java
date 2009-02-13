@@ -52,7 +52,6 @@ import java.util.BitSet;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -147,17 +146,7 @@ public class EDatabase {
     public Schematics getSchematics() { return techPool.getSchematics(); }
 
     public Map<Setting,Object> getSettings() {
-        LinkedHashMap<Setting,Object> settings = new LinkedHashMap<Setting,Object>();
-        for (Iterator<Tool> it = Tool.getTools(); it.hasNext(); )
-            gatherSettings(settings, it.next().getProjectSettings().getSettings());
-        for (Technology tech: getTechnologies())
-            gatherSettings(settings, tech.getProjectSettings().getSettings());
-        return settings;
-    }
-
-    private void gatherSettings(Map<Setting,Object> map, Collection<Setting> c) {
-        for (Setting setting: c)
-            map.put(setting, setting.getValue());
+        return backupUnsafe().getSettings();
     }
 
     public Library getLib(LibId libId) { return getLib(libId.libIndex); }

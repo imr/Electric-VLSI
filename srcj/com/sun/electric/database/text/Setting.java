@@ -23,7 +23,6 @@
  */
 package com.sun.electric.database.text;
 
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.id.IdReader;
 import com.sun.electric.database.id.IdWriter;
@@ -31,13 +30,11 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.user.projectSettings.ProjSettings;
 
 import java.io.IOException;
-import java.io.PrintStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.TreeMap;
@@ -303,8 +300,20 @@ public class Setting {
         return root;
     }
 
-//    private final ProjSettingsNode xmlNode;
-//    private final String xmlName;
+    /**
+     * Abstract class which keeps values of Setting.
+     * Each thread may have its own Setting.Context
+     */
+    public static abstract class Context {
+        /**
+         * Return value of Setting in this Context
+         * @param setting Setting to examin
+         * @return value of the Setting
+         * @throws InvalidStateException if Setting can't be accessed in this Context
+         */
+        public abstract Object getValue(Setting setting);
+    }
+
     private final Group xmlGroup;
     private final String xmlPath;
 	private final Object factoryObj;
@@ -313,10 +322,11 @@ public class Setting {
     private final String prefName;
     private boolean valid;
     private final String description, location;
-    private String [] trueMeaning;
+    private final String [] trueMeaning;
 
     /** Creates a new instance of Setting */
-    protected Setting(String prefName, String prefGroup, Group xmlGroup, String xmlName, String location, String description, Object factoryObj) {
+    protected Setting(String prefName, String prefGroup, Group xmlGroup, String xmlName,
+            String location, String description, Object factoryObj, String... trueMeaning) {
         if (xmlGroup.root.isLocked())
             throw new IllegalStateException();
         if (xmlGroup == null)
@@ -339,6 +349,7 @@ public class Setting {
         valid = true;
         this.description = description;
         this.location = location;
+        this.trueMeaning = trueMeaning != null && trueMeaning.length > 0 ? trueMeaning.clone() : null;
         setCachedObjFromPreferences();
         ProjSettings.putValue(this);
 //        xmlNode.putValue(xmlName, this);
@@ -377,7 +388,12 @@ public class Setting {
      * The object must have been created as "string".
      * @return the string value on this TechSetting object.
      */
-    public String getString() { return (String)getValue(); }
+    public String getString() {
+        String s = (String)getValue();
+        if (s == null)
+            throw new NullPointerException();
+        return s;
+    }
 
     public void set(Object v) {
 //        if (changeBatch != null) {
@@ -404,6 +420,11 @@ public class Setting {
     protected void setSideEffect() {
     }
 
+    @Override
+    public String toString() {
+        return getXmlPath();
+    }
+
      /**
      * Method to get the xml name of this Setting object.
      * @return the xml name of this Setting object.
@@ -422,6 +443,19 @@ public class Setting {
      */
     public String getPrefPath() { return prefs.absolutePath() + "/" + prefName; }
 
+ 	/**
+	 * Method to get the value of this Setting object in specified Setting State
+     * as an Object.
+ 	 * The proper way to get the current value is to use one of the type-specific
+ 	 * methods such as getInt(), getBoolean(), etc.
+     * @param state Setting State
+ 	 * @return the Object value of this Setting object.
+ 	 */
+    public Object getValue(Context state) {
+        return getValue();
+//        return state.getValue(this);
+    }
+ 
 	/**
 	 * Method to get the value of this Setting object as an Object.
 	 * The proper way to get the current value is to use one of the type-specific
@@ -437,6 +471,51 @@ public class Setting {
 //            }
 //        }
         return currentObj;
+    }
+
+     /**
+     * Method to get the boolean value on this Setting object in specified Setting State.
+     * The object must have been created as "boolean".
+     * @param state Setting State
+     * @return the boolean value on this TechSetting object.
+     */
+    public boolean getBoolean(Context state) { return ((Boolean)state.getValue(this)).booleanValue(); }
+
+    /**
+     * Method to get the integer value on this Setting object in specified Setting State.
+     * The object must have been created as "integer".
+     * @param state Setting State
+     * @return the integer value on this TechSetting object.
+     */
+    public int getInt(Context state) { return ((Integer)state.getValue(this)).intValue(); }
+
+    /**
+     * Method to get the long value on this Setting object in specified Setting State.
+     * The object must have been created as "long".
+     * @param state Setting State
+     * @return the long value on this TechSetting object.
+     */
+    public long getLong(Context state) { return ((Long)state.getValue(this)).longValue(); }
+
+    /**
+     * Method to get the double value on this Setting object in specified Setting State.
+     * The object must have been created as "double".
+     * @param state Setting State
+     * @return the double value on this TechSetting object.
+     */
+    public double getDouble(Context state) { return ((Double)state.getValue(this)).doubleValue(); }
+
+    /**
+     * Method to get the string value on this Setting object in specified Setting State.
+     * The object must have been created as "string".
+     * @param state Setting State
+     * @return the string value on this TechSetting object.
+     */
+    public String getString(Context state) {
+        String s = (String)state.getValue(this);
+        if (s == null)
+            throw new NullPointerException();
+        return s;
     }
 
     /**
@@ -457,7 +536,11 @@ public class Setting {
      * don't use scaling (such as Schematics, Artwork, etc.)
      * @param valid true if this Meaning option is valid and should be reconciled.
      */
-    public void setValidOption(boolean valid) { this.valid = valid; }
+    public void setValidOption(boolean valid) {
+        if (xmlGroup.root.isLocked())
+            throw new IllegalStateException();
+        this.valid = valid;
+    }
 
     /**
      * Method to tell whether this Meaning option is valid and should be reconciled.
@@ -468,16 +551,6 @@ public class Setting {
     public boolean isValidOption() { return valid; }
 
     /**
-     * Method to associate an array of strings to be used for integer Meaning options.
-     * @param trueMeaning the array of strings that should be used for this integer Meaning option.
-     * Some options are multiple-choice, for example the MOSIS CMOS rule set which can be
-     * 0, 1, or 2 depending on whether the set is SCMOS, Submicron, or Deep.
-     * By giving an array of 3 strings to this method, a proper description of the option
-     * can be given to the user.
-     */
-    public void setTrueMeaning(String [] trueMeaning) { this.trueMeaning = trueMeaning; }
-
-    /**
      * Method to return an array of strings to be used for integer Meaning options.
      * Some options are multiple-choice, for example the MOSIS CMOS rule set which can be
      * 0, 1, or 2 depending on whether the set is SCMOS, Submicron, or Deep.
@@ -485,7 +558,7 @@ public class Setting {
      * can be given to the user.
      * @return the array of strings that should be used for this integer Meaning option.
      */
-    public String [] getTrueMeaning() { return trueMeaning; }
+    public String [] getTrueMeaning() { return trueMeaning != null ? trueMeaning.clone() : null; }
 
 	/**
 	 * Method to get the factory-default value of this Pref object.
@@ -499,27 +572,13 @@ public class Setting {
 	 */
 	public double getDoubleFactoryValue() { return ((Double)factoryObj).doubleValue(); }
 
-    public static Comparator<Setting> SETTINGS_BY_PREF_NAME = new Comparator<Setting> () {
+    private static Comparator<Setting> SETTINGS_BY_PREF_NAME = new Comparator<Setting> () {
         public int compare(Setting s1, Setting s2) {
             String n1 = s1.getPrefName();
             String n2 = s2.getPrefName();
             return n1.compareTo(n2);
         }
     };
-
-//    /**
-//     * Comparator class for sorting Preferences by their name.
-//     */
-//    private static final Comparator<Setting> SettingsByName = new Comparator<Setting>() {
-//        /**
-//         * Method to sort Setting by their prefName.
-//         */
-//        public int compare(Setting setting1, Setting setting2) {
-//            String s1 = setting1.getPrefName();
-//            String s2 = setting2.getPrefName();
-//            return s1.compareToIgnoreCase(s2);
-//        }
-//    };
 
     void saveToPreferences(Object v) {
         assert v.getClass() == factoryObj.getClass();
@@ -590,9 +649,7 @@ public class Setting {
             for (int i = 0; i < trueMeaning.length; i++)
                 trueMeaning[i] = reader.readString();
         }
-        Setting setting = new Setting(prefName, prefGroup, group, xmlName, location, description, factoryObj);
-        if (hasTrueMeaning)
-            setting.setTrueMeaning(trueMeaning);
+        Setting setting = new Setting(prefName, prefGroup, group, xmlName, location, description, factoryObj, trueMeaning);
         setting.setValidOption(valid);
         return setting;
     }

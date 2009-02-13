@@ -76,7 +76,6 @@ import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -636,12 +635,12 @@ public class ELIB extends Output
 	 * @param obj Object with attached project settings.
 	 */
     private void gatherSettings(Object obj) {
-        Collection<Setting> settings = null;
+        Setting.Group group = null;
         if (obj instanceof Tool)
-            settings = ((Tool)obj).getDiskSettings();
+            group = ((Tool)obj).getProjectSettings();
         else if (obj instanceof Technology)
-            settings = ((Technology)obj).getDiskSettings();
-        for (Setting setting: settings) {
+            group = ((Technology)obj).getProjectSettings();
+        for (Setting setting: group.getDiskSettings(snapshot.getSettings()).keySet()) {
             gatherObj(obj);
             String name = setting.getPrefName();
             if (nameSpace != null) putNameSpace(name);
@@ -1244,23 +1243,24 @@ public class ELIB extends Output
      * Method to write a set of project settings.
      */
     void writeMeaningPrefs(Object obj) throws IOException {
-        Collection<Setting> settings = null;
+        Setting.Group group = null;
         if (obj instanceof Tool)
-            settings = ((Tool)obj).getDiskSettings();
+            group = ((Tool)obj).getProjectSettings();
         else if (obj instanceof Technology)
-            settings = ((Technology)obj).getDiskSettings();
+            group = ((Technology)obj).getProjectSettings();
+        Map<Setting,Object> settings = group.getDiskSettings(snapshot.getSettings());
         writeInt("variables: ", settings.size());
-        for (Setting setting : settings) {
-            // create the "type" field
-            Object varObj = setting.getValue();
+        for (Map.Entry<Setting,Object> e: settings.entrySet()) {
+            Setting setting = e.getKey();
+            Object varObj = e.getValue();
             projectSettings.put(setting, varObj);
+            // create the "type" field
             if (varObj instanceof Boolean) varObj = Integer.valueOf(((Boolean)varObj).booleanValue() ? 1 : 0);
             int type = ELIBConstants.getVarType(varObj);
             if (compatibleWith6 && type == ELIBConstants.VDOUBLE) type = ELIBConstants.VFLOAT;
             writeVariableName(setting.getPrefName());
             writeTextDescriptor(type, null);
             writeVarValue(varObj);
-            projectSettings.put(setting, varObj);
         }
     }
 
