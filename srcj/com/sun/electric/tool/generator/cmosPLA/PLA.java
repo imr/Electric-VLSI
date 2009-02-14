@@ -801,7 +801,7 @@ public class PLA
 			double y2 = protoBounds.getMaxY() + y;
 			y = y2 + y1 - y;
 		}
-		NodeInst ni = NodeInst.makeInstance(instProto, new Point2D.Double(x, y), sX, sY, cell, orient, null, 0);
+		NodeInst ni = NodeInst.makeInstance(instProto, new Point2D.Double(x, y), sX, sY, cell, orient, null);
 		return ni;
 	}
 }

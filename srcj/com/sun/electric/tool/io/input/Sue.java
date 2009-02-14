@@ -537,7 +537,7 @@ public class Sue extends Input
 				Orientation or = Orientation.fromC(parP.rot, parP.trn);
 				parP.rot = or.getAngle();
 				NodeInst ni = NodeInst.makeInstance(proto, new Point2D.Double(parP.pt.getX() + xOff, parP.pt.getY() + yOff), wid, hei, cell,
-					or, null, Schematics.getPrimitiveFunctionBits(detailFunct));
+					or, null, detailFunct);
 				if (ni == null) continue;
 				if (invertOutput) invertNodeOutput.add(ni);
 				if (proto instanceof Cell && ((Cell)proto).isIcon())

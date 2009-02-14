@@ -850,7 +850,7 @@ public class DEF extends LEFDEF
 						ny = ny + width;
 					}
 					Point2D npt = new Point2D.Double(nx,ny);
-					NodeInst ni = NodeInst.makeInstance(np, npt, sX, sY, cell, or, compName, 0);
+					NodeInst ni = NodeInst.makeInstance(np, npt, sX, sY, cell, or, compName);
 					if (ni == null)
 					{
 						reportError("Unable to create node");

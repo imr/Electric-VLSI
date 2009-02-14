@@ -30,12 +30,10 @@ import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.GenMath.MutableInteger;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
@@ -200,7 +198,7 @@ public class EDIF extends Input
 	/** the current active arc */				private ArcInst curArc;
 	/** the current figure group node */		private NodeProto curFigureGroup;
 	/** the cellRef type */						private NodeProto cellRefProto;
-	/** the cellRef tech bits if primitive */	private int cellRefProtoTechBits;
+	/** the cellRef tech bits if primitive */	private PrimitiveNode.Function cellRefProtoFunction;
 	/** the cellRef addt'l rotation (in degrees) */ private int cellRefProtoRotation;
 	/** the cellRef offset when mapped */		private double cellRefOffsetX, cellRefOffsetY;
 	/** the current port proto */				private PortProto curPort;
@@ -874,7 +872,7 @@ public class EDIF extends Input
 			if (ni.getAnchorCenterY() != cY) continue;
 			return ni;
 		}
-		NodeInst ni = NodeInst.makeInstance(np, new Point2D.Double(cX, cY), sX, sY, parent, orient, null, 0);
+		NodeInst ni = NodeInst.makeInstance(np, new Point2D.Double(cX, cY), sX, sY, parent, orient, null);
 		return ni;
 	}
 
@@ -983,7 +981,7 @@ public class EDIF extends Input
 		Orientation or = Orientation.fromC(rot, trans);
 		if (curCellPage > 0) iyc += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
 		NodeInst ni = NodeInst.makeInstance(curFigureGroup != null && curFigureGroup != Artwork.tech().boxNode ?
-			curFigureGroup : Artwork.tech().circleNode, new Point2D.Double(ixc, iyc), sX, sY, curCell, or, null, 0);
+			curFigureGroup : Artwork.tech().circleNode, new Point2D.Double(ixc, iyc), sX, sY, curCell, or, null);
 		if (ni == null)
 		{
 			System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create arc");
@@ -1325,7 +1323,7 @@ public class EDIF extends Input
 		double yPos = cY;
 		if (curCellPage > 0) yPos += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
 		NodeInst ni = NodeInst.makeInstance(np, new Point2D.Double(cX, yPos), sX, sY,
-			curCell, curOrientation, null, 0);
+			curCell, curOrientation, null);
 		if (ni == null)
 		{
 			System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create polygon");
@@ -1755,7 +1753,7 @@ public class EDIF extends Input
 		{
 			// get the name of the cell
 			String aName = cellRef;
-			cellRefProtoTechBits = 0;
+			cellRefProtoFunction = PrimitiveNode.Function.UNKNOWN;
 			cellRefProtoRotation = 0;
 			cellRefOffsetX = cellRefOffsetY = 0;
 			String view = "lay";
@@ -1776,7 +1774,7 @@ public class EDIF extends Input
 			{
 				mappedNodes.put(instanceName, ne);
 				cellRefProto = ne.np;
-				cellRefProtoTechBits = 0;
+				cellRefProtoFunction = PrimitiveNode.Function.UNKNOWN;
 				cellRefProtoRotation = ne.rotation;
 
 				// determine the offset
@@ -1785,7 +1783,7 @@ public class EDIF extends Input
 				if (cellRefProto instanceof PrimitiveNode) {
 					Technology tech = cellRefProto.getTechnology();
 					if (tech instanceof Schematics) {
-						cellRefProtoTechBits = Schematics.getPrimitiveFunctionBits(ne.function);
+						cellRefProtoFunction = ne.function;
 					}
 				}
 				return;
@@ -1853,7 +1851,7 @@ public class EDIF extends Input
 				double cY = (hY + lY) / 2;
 				if (curCellPage > 0) cY += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
 				NodeInst ni = NodeInst.makeInstance(Artwork.tech().circleNode, new Point2D.Double(cX, cY),
-					sX, sY, curCell, curOrientation, null, 0);
+					sX, sY, curCell, curOrientation, null);
 				if (ni == null)
 				{
 					System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create circle");
@@ -2183,7 +2181,7 @@ public class EDIF extends Input
 						if (curCellPage > 0) cY += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
 						Orientation orient = curOrientation.concatenate(Orientation.fromAngle(cellRefProtoRotation*10));
 						NodeInst ni = NodeInst.makeInstance(cellRefProto, new Point2D.Double(cX+cellRefOffsetX, cY+cellRefOffsetY),
-							cellRefProto.getDefWidth(), cellRefProto.getDefHeight(), curCell, orient, null, cellRefProtoTechBits);
+							cellRefProto.getDefWidth(), cellRefProto.getDefHeight(), curCell, orient, null, cellRefProtoFunction);
 						curNode = ni;
 						if (ni == null)
 						{
@@ -3717,7 +3715,7 @@ System.out.println("NET "+net1.describe(false)+" AND NET "+net2.describe(false)+
 				double xPos = (lX+hX)/2;
 				if (curCellPage > 0) yPos += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
 				NodeInst ni = NodeInst.makeInstance(curFigureGroup != null ? curFigureGroup : Artwork.tech().boxNode,
-					new Point2D.Double(xPos, yPos), sX, sY, curCell, curOrientation, null, 0);
+					new Point2D.Double(xPos, yPos), sX, sY, curCell, curOrientation, null);
 				if (ni == null)
 				{
 					System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create rectangle");
@@ -4103,7 +4101,7 @@ System.out.println("NET "+net1.describe(false)+" AND NET "+net2.describe(false)+
 						if (curCellPage > 0) yPos += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
 						Orientation orient = curOrientation.concatenate(Orientation.fromAngle(cellRefProtoRotation*10));
 						NodeInst ni = NodeInst.makeInstance(cellRefProto, new Point2D.Double(lX+cellRefOffsetX, yPos+cellRefOffsetY),
-							cellRefProto.getDefWidth(), cellRefProto.getDefHeight(), curCell, orient, null, cellRefProtoTechBits);
+							cellRefProto.getDefWidth(), cellRefProto.getDefHeight(), curCell, orient, null, cellRefProtoFunction);
 						curNode = ni;
 						if (ni == null)
 						{

@@ -985,7 +985,7 @@ public class CircuitChangeJobs
 					if (eObj instanceof ArcInst)
 					{
 						ArcInst ai = (ArcInst)eObj;
-//						if (ai.isLinked()) 
+//						if (ai.isLinked())
 							thingsToHighlight.add(ai);
 					} else if (eObj instanceof Export)
 					{
@@ -1354,7 +1354,7 @@ public class CircuitChangeJobs
 					Point2D ctr = new Point2D.Double(subNi.getTrueCenter().getX(), subNi.getTrueCenter().getY());
 					trans.transform(ctr, ctr);
 					NodeInst eNi = NodeInst.makeInstance(subNp, ctr, subNi.getXSize(), subNi.getYSize(),
-						cell, orient, null, 0);
+						cell, orient, null);
 					pi = eNi.findPortInstFromProto(subPP);
 					reassigned.put(e.getOriginalPort(), pi);
 					e.move(pi);

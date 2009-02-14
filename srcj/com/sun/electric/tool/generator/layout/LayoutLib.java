@@ -74,7 +74,7 @@ public class LayoutLib {
 
 	// ---------------------------- public methods ---------------------------
 	/**
-	 * Print a message, dump a stack trace, and throw a RuntimeException if 
+	 * Print a message, dump a stack trace, and throw a RuntimeException if
 	 * errorHasOccurred argument is true.
 	 *
 	 * @param errorHasOccurred indicates a runtime error has been detected
@@ -91,11 +91,11 @@ public class LayoutLib {
 		throw e;
 	}
 
-	/** 
+	/**
 	 * Open a library for reading. If a library is
 	 * already open then return it. Otherwise look for the library
 	 * file named libFileName and open that library.
-	 * 
+	 *
 	 * @param libFileName the fully qualified path name of the Library
 	 * file on disk
 	 * @return the open Library or null if it can't be found
@@ -131,7 +131,7 @@ public class LayoutLib {
 //		URL libFileURL = TextUtils.makeURLToFile(libFileName);
 //		lib = Input.readLibrary(libFileURL, OpenFile.Type.ELIB);
 //		if (lib!=null)  return lib;
-//		
+//
 //		// create a new Library
 //		lib = Library.newInstance(libName, libFileURL);
 //
@@ -162,7 +162,7 @@ public class LayoutLib {
      * from ArcInst.getLambdaFullWidth() in that it subtracts off the "width
      * offset". Hence, getArcInstWidth returns a width that matches
      * that reported by the GUI.
-     * 
+     *
      * @param ai the ArcInst whose width is reported
      * @return the width of the ArcInst.
      */
@@ -303,8 +303,8 @@ public class LayoutLib {
 	 * <li> Translate the preceding result by (x, y). Note that the
 	 * NodeProto's origin always ends up at (x, y) in the
 	 * coordinate space of the parent.
-	 * </ol> 
-	 * 
+	 * </ol>
+	 *
 	 * The newNodeInst method differs from NodeInst.newInstance in the
 	 * following ways:
 	 *
@@ -339,7 +339,7 @@ public class LayoutLib {
 	 * @param angle the angle, in degrees, of rotation about the
 	 * NodeProto's origin.
 	 * @param parent the Cell that will contain the NodeInst.
-	 * @return the new NodeInst. 
+	 * @return the new NodeInst.
 	 */
     public static NodeInst newNodeInst(NodeProto np,
 		                               double x, double y,
@@ -359,8 +359,8 @@ public class LayoutLib {
 
         Orientation orient = Orientation.fromJava((int)Math.round(angle*10), width < 0, height < 0);
 		NodeInst ni = NodeInst.newInstance(np, new Point2D.Double(x, y), Math.abs(width), Math.abs(height),
-                parent, orient, null, 0);
-		error(ni==null, "newNodeInst failed");								
+                parent, orient, null);
+		error(ni==null, "newNodeInst failed");
 
 		// adjust position so that translation is Cell-Center relative
 		if (np instanceof Cell) {
@@ -400,30 +400,30 @@ public class LayoutLib {
 	 * the NodeInst about the x-axis
 	 * @param dAngle the amount by which to change the NodeInst's angle
 	 */
-	public static void modNodeInst(NodeInst ni, double dx, double dy, 
-	                               double dw, double dh, 
-	                               boolean mirrorAboutYAxis, 
+	public static void modNodeInst(NodeInst ni, double dx, double dy,
+	                               double dw, double dh,
+	                               boolean mirrorAboutYAxis,
 	                               boolean mirrorAboutXAxis,
 								   double dAngle) {
 // 	    boolean oldMirX = ni.isMirroredAboutXAxis();
 // 	    boolean oldMirY = ni.isMirroredAboutYAxis();
 // 		double oldXS = ni.getXSize() * (oldMirY ? -1 : 1);
 // 		double oldYS = ni.getYSize() * (oldMirX ? -1 : 1);
-		 
+
 		double newX = getPosition(ni).getX() + dx;
 		double newY = getPosition(ni).getY() + dy;
 
 // 		double newW = Math.max(ni.getXSize() + dw, 0);
 // 		double newH = Math.max(ni.getYSize() + dh, 0);
-//		
+//
 // 		boolean newMirX = oldMirX ^ mirrorAboutXAxis;
 // 		boolean newMirY = oldMirY ^ mirrorAboutYAxis;
-//		
+//
 // 		double newXS = newW * (newMirY ? -1 : 1);
 // 		double newYS = newH * (newMirX ? -1 : 1);
 		Orientation dOrient = Orientation.fromJava((int)Math.rint(dAngle*10), mirrorAboutYAxis, mirrorAboutXAxis);
 		ni.modifyInstance(0, 0, dw, dh, dOrient);
-// 		ni.modifyInstance(0, 0, newXS-oldXS, newYS-oldYS, 
+// 		ni.modifyInstance(0, 0, newXS-oldXS, newYS-oldYS,
 // 		                  (int)Math.rint(dAngle*10));
 		ni.move(newX-getPosition(ni).getX(), newY-getPosition(ni).getY());
 	}
@@ -451,7 +451,7 @@ public class LayoutLib {
 	}
 	/**
 	 * Create a new ArcInst. This differs from ArcInst.newInstance in that
-	 * the "width-offset" is added to the width parameter. The result is an 
+	 * the "width-offset" is added to the width parameter. The result is an
 	 * ArcInst that the GUI reports is width wide.
 	 * @param ap the ArcProto to instantiate
 	 * @param width the desired width of the ArcInst
@@ -467,7 +467,7 @@ public class LayoutLib {
 							  		 PortInst head, double hX, double hY,
 							  		 PortInst tail, double tX, double tY) {
 		// Take the default width if that's what the user wants.
-		// Otherwise adjust the user-specified width or height by the 
+		// Otherwise adjust the user-specified width or height by the
 		// SizeOffset.
 		if (width==DEF_SIZE) {
 			width = ap.getDefaultLambdaBaseWidth();
@@ -475,15 +475,15 @@ public class LayoutLib {
 //		} else {
 //			width += ap.getLambdaWidthOffset();
 		}
-		
+
 		hX = DBMath.round(hX);
 		hY = DBMath.round(hY);
 		tX = DBMath.round(tX);
 		tY = DBMath.round(tY);
 		width = DBMath.round(width);
 
-		ArcInst ai = ArcInst.newInstanceBase(ap, width, 
-//		ArcInst ai = ArcInst.newInstanceFull(ap, width, 
+		ArcInst ai = ArcInst.newInstanceBase(ap, width,
+//		ArcInst ai = ArcInst.newInstanceFull(ap, width,
 		                                 head, tail, new Point2D.Double(hX, hY),
 										 new Point2D.Double(tX, tY),
 										 null, 0);
@@ -494,7 +494,7 @@ public class LayoutLib {
 
 	/**
 	 * Create a new ArcInst. This differs from ArcInst.newInstance in that
-	 * the "width-offset" is added to the width parameter. The result is an 
+	 * the "width-offset" is added to the width parameter. The result is an
 	 * ArcInst that the GUI reports is width wide.
 	 *
 	 * <p> Connect the new ArcInst to the centers of the PortInsts.
@@ -518,19 +518,19 @@ public class LayoutLib {
 		double tY = tailP.getY(); // roundCenterY(tail);
 		ArcInst ai;
 		if (hX==tX || hY==tY) {
-			// no jog necessary						         	
+			// no jog necessary
 			ai = newArcInst(ap, width, head, hX, hY, tail, tX, tY);
 		} else {
 			Cell parent = head.getNodeInst().getParent();
 			NodeProto pinProto = ap.findOverridablePinProto();
-			PortInst pin = newNodeInst(pinProto, tX, hY, DEF_SIZE, DEF_SIZE, 0, 
-			                           parent).getOnlyPortInst(); 
+			PortInst pin = newNodeInst(pinProto, tX, hY, DEF_SIZE, DEF_SIZE, 0,
+			                           parent).getOnlyPortInst();
 
 			// debug
             EPoint pinP = pin.getCenter();
 			double newX = pinP.getX(); // roundCenterX(pin);
 			double newY = pinP.getY(); // roundCenterY(pin);
-			
+
 			if (newX!=tX || newY!=hY) {
 				Rectangle2D r = head.getBounds();
 				double loy = r.getMinY();
@@ -538,8 +538,8 @@ public class LayoutLib {
 				System.out.println(loy+" "+hiy);
 				error(true, "center moved");
 			}
-			
-			
+
+
 			ai = newArcInst(ap, width, head, pin);
 			ai.setFixedAngle(true);
 			ai = newArcInst(ap, width, pin, tail);
@@ -569,19 +569,19 @@ public class LayoutLib {
 	 * @param ap the ArcProto indicating the layer on which to create
 	 * the Export.
 	 * @param w width of the ArcInst serving as a hint.
-	 * @param x the x-coordinate of the layer pin. 
+	 * @param x the x-coordinate of the layer pin.
 	 * @param y the y-coordinate of the layer pin.
 	 */
-	public static Export newExport(Cell cell, String name, 
+	public static Export newExport(Cell cell, String name,
 	                               PortCharacteristic role,
 	                               ArcProto ap, double w, double x, double y) {
 		NodeProto np = ap.findOverridablePinProto();
 		error(np==null, "LayoutLib.newExport: This layer has no layer-pin");
-		
+
 		double defSz = LayoutLib.DEF_SIZE;
 		NodeInst ni = LayoutLib.newNodeInst(np, x, y, defSz, defSz, 0, cell);
         LayoutLib.newArcInst(ap, w, ni.getOnlyPortInst(), ni.getOnlyPortInst());
-		
+
 		Export e = Export.newInstance(cell, ni.getOnlyPortInst(), name);
 		e.setCharacteristic(role);
 		return e;
@@ -636,7 +636,7 @@ public class LayoutLib {
 		Rectangle2D bd = node.findEssentialBounds();
 		error(bd==null,
 			  "can't abut NodeInsts that don't have essential-bounds");
-		LayoutLib.modNodeInst(node, leftX-bd.getX(), originY-cY, 0, 0, false, 
+		LayoutLib.modNodeInst(node, leftX-bd.getX(), originY-cY, 0, 0, false,
 						      false, 0);
 	}
 
@@ -691,7 +691,7 @@ public class LayoutLib {
 			prev = ni;
 		}
 	}
-	
+
 	/** Move a NodeInst so it's bottom edge is at <code>botY</code>.
 	 *
 	 * <p>Place <code>node</code>'s origin at
@@ -706,7 +706,7 @@ public class LayoutLib {
 		Rectangle2D eb = node.findEssentialBounds();
 		error(eb==null,
 			  "can't abut a NodeInst that doesn't have Essential Bounds");
-		LayoutLib.modNodeInst(node, originX-cX, botY-eb.getMinY(), 0, 0, 
+		LayoutLib.modNodeInst(node, originX-cX, botY-eb.getMinY(), 0, 0,
 		                      false, false, 0);
 	}
 
@@ -739,7 +739,7 @@ public class LayoutLib {
 		NodeInst prev = null;
 		for (NodeInst ni : nodeInsts) {
 			if (prev==null){
-				abutBottom(ni, originX, botY); 
+				abutBottom(ni, originX, botY);
 			} else {
 				abutBottomTop(prev, space, ni);
 			}
@@ -757,21 +757,21 @@ public class LayoutLib {
 			                         double space) {
 		NodeInst prev = null;
 		for (NodeInst ni : nodeInsts) {
-			if (prev!=null) abutBottomTop(prev, space, ni); 
+			if (prev!=null) abutBottomTop(prev, space, ni);
 			prev = ni;
 		}
 	}
 	private static Point2D getPointAtCorner(NodeInst ni, Corner cnr) {
 		Rectangle2D b = ni.findEssentialBounds();
-		double x = (cnr==Corner.TL || cnr==Corner.BL) ? 
+		double x = (cnr==Corner.TL || cnr==Corner.BL) ?
 			b.getMinX()
 		:
 			b.getMaxX();
-		
-		double y = (cnr==Corner.BL || cnr==Corner.BR) ? 
+
+		double y = (cnr==Corner.BL || cnr==Corner.BR) ?
 			b.getMinY()
 		:
-			b.getMaxY(); 
+			b.getMaxY();
 		return new Point2D.Double(x, y);
 	}
 	public static void alignCorners(NodeInst niFixed, Corner cnrFixed,

@@ -107,7 +107,7 @@ public class StitchFillJob extends Job
                 return false;
             }
 
-            
+
             Cell oldCell = lib.findNodeProto(fillCellName);
             // Delete previous version
             if (oldCell != null)
@@ -156,7 +156,7 @@ public class StitchFillJob extends Job
         {
             if (line.startsWith("//"))
                 continue; // commented line
-            
+
             StringTokenizer parse = new StringTokenizer(line, ":", false);
             int count = 0;
             String fillCellName = null, rest = null;
@@ -181,7 +181,7 @@ public class StitchFillJob extends Job
             int index = fillCellName.indexOf("(");
             boolean wideOption = false;
             List<TileInfo> tileList = new ArrayList<TileInfo>();
-            
+
             if (index != -1)
             {
                 // Getting options like (W)
@@ -323,7 +323,7 @@ public class StitchFillJob extends Job
     private static void generateTiles(Cell template, String fillCellName, List<TileInfo> tileList, Job job)
     {
         if (tileList == null) return; // nothing to tile
-        
+
         // tiles generation. Flat generation for now
         for (TileInfo info : tileList)
         {
@@ -342,7 +342,7 @@ public class StitchFillJob extends Job
                 for (int j = 0; j < info.y; j++)
                 {
                     NodeInst newNi = NodeInst.makeInstance(template,
-                    new Point2D.Double(xPos, yPos), width, height, newTile, Orientation.IDENT, null, 0);
+                    new Point2D.Double(xPos, yPos), width, height, newTile, Orientation.IDENT, null);
                     niList.add(newNi);
                     yPos += height;
                 }
@@ -359,7 +359,7 @@ public class StitchFillJob extends Job
      * @return True if auto-stitch ran without errors
      */
     private static boolean generateFill(Cell theCell, boolean wideOption)
-    {                           
+    {
         InteractiveRouter router  = new SimpleWirer();
         List<Layer> listOfLayers = new ArrayList<Layer>(12);
 
@@ -410,7 +410,7 @@ public class StitchFillJob extends Job
                     }
                     totalA.add(bottomA);
                 }
-                
+
                 for(Iterator<RTBounds> it = theCell.searchIterator(bounds); it.hasNext(); )
                 {
                     Geometric nGeom = (Geometric)it.next();

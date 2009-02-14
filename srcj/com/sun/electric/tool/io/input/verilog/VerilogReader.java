@@ -205,7 +205,7 @@ public class VerilogReader extends Input
                     if (index == -1) // end of tokens
                         continue; // or break?
                     int index2 = value.indexOf("("); // look for first (
-                    assert(index2 != -1);                  
+                    assert(index2 != -1);
                     String n = value.substring(index+1, index2);
                     n = TextUtils.correctName(n, false, true);
 //                    int index3 = n.indexOf("\\"); // those \ are a problem!
@@ -565,7 +565,7 @@ public class VerilogReader extends Input
         double height = Schematics.tech().transistorNode.getDefHeight();
         Point2D p = getNextLocation(cell);
         NodeInst ni = NodeInst.newInstance(Schematics.tech().transistorNode, p, width, height,
-                                       cell, orient, null /*gateName*/, 0);
+                                       cell, orient, null /*gateName*/);
         Schematics.tech().transistorNode.getTechnology().setPrimitiveFunction(ni, function);
         transistors.add(ni);
         PortInst[] ports = new PortInst[3];
@@ -606,7 +606,7 @@ public class VerilogReader extends Input
             PrimitiveNode primitive = Schematics.tech().wirePinNode;
             ni = NodeInst.newInstance(primitive, new Point2D.Double(posX, posY),
                         primitiveWidth /*primitive.getDefWidth()*/, primitiveHeight /*primitive.getDefHeight()*/,
-                        cell, Orientation.IDENT, null /*pinName*/, 0);
+                        cell, Orientation.IDENT, null /*pinName*/);
 
             ArcInst.makeInstanceBase(Schematics.tech().wire_arc, 0.0,
 //            ArcInst.makeInstanceFull(Schematics.tech.wire_arc, 0.0 /*Schematics.tech.wire_arc.getDefaultLambdaFullWidth()*/,
@@ -809,7 +809,7 @@ public class VerilogReader extends Input
                 ni = NodeInst.newInstance(primitive, getNextLocation(cell),
                         primitiveWidth, primitiveHeight,
     //                        primitive.getDefWidth(), primitive.getDefHeight(),
-                        cell, Orientation.IDENT, pinName, 0);
+                        cell, Orientation.IDENT, pinName);
                 if (addExport)
                 {
                     Export ex = Export.newInstance(cell, ni.getOnlyPortInst(), pinName, portType);
@@ -892,12 +892,12 @@ public class VerilogReader extends Input
                 double height = primitiveHeight; //np.getDefHeight();
                 NodeInst supply = NodeInst.newInstance(np, p,
                         primitiveWidth, height,
-                        cell, Orientation.IDENT, name, 0);
+                        cell, Orientation.IDENT, name);
                 // extra pin
                 NodeInst ni = NodeInst.newInstance(Schematics.tech().wirePinNode, new Point2D.Double(p.getX(), p.getY()+height/2),
                         0.5, 0.5,
         //                Schematics.tech.wirePinNode.getDefWidth(), Schematics.tech.wirePinNode.getDefHeight(),
-                        cell, Orientation.IDENT, name+"@0", 0);
+                        cell, Orientation.IDENT, name+"@0");
 
                 ArcInst.makeInstanceBase(Schematics.tech().wire_arc, 0.0,
 //                ArcInst.makeInstanceFull(Schematics.tech.wire_arc, 0.0 /*Schematics.tech.wire_arc.getDefaultLambdaFullWidth()*/,
@@ -940,7 +940,7 @@ public class VerilogReader extends Input
 
         // Only for benchmarks schematics in
         NodeInst cellInst = NodeInst.newInstance(icon, getNextLocation(parent), 10, 10, parent,
-                Orientation.IDENT, inst.name, 0);
+                Orientation.IDENT, inst.name);
 
         for (VerilogData.VerilogPortInst port : inst.ports)
         {
@@ -974,7 +974,7 @@ public class VerilogReader extends Input
                         PrimitiveNode primitive = (port.port.isBusConnection()) ? Schematics.tech().busPinNode : Schematics.tech().wirePinNode;
                         pin = NodeInst.newInstance(primitive, getNextLocation(parent),
                                 primitiveWidth, primitiveHeight,
-                                parent, Orientation.IDENT, /*null*/s, 0);  // not sure why it has to be null?
+                                parent, Orientation.IDENT, /*null*/s);  // not sure why it has to be null?
                 }
 
                 ArcProto node = (pin.getProto() == Schematics.tech().busPinNode) ? Schematics.tech().bus_arc : Schematics.tech().wire_arc;

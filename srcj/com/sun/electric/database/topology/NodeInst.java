@@ -215,7 +215,46 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 */
 	public static NodeInst makeInstance(NodeProto protoType, Point2D center, double width, double height, Cell parent)
 	{
-		return (makeInstance(protoType, center, width, height, parent, Orientation.IDENT, null, 0));
+		return makeInstance(protoType, center, width, height, parent, Orientation.IDENT, null);
+	}
+
+	/**
+	 * Short form method to create a NodeInst and do extra things necessary for it. Angle, name
+	 * and techBits are set to defaults.
+	 * @param protoType the NodeProto of which this is an instance.
+	 * @param center the center location of this NodeInst.
+	 * @param width the width of this NodeInst (can't be negative).
+	 * @param height the height of this NodeInst (can't be negative).
+	 * @param parent the Cell in which this NodeInst will reside.
+	 * @param orient the orientation of this NodeInst.
+	 * @param name name of new NodeInst
+     * @return the newly created NodeInst, or null on error.
+	 */
+	public static NodeInst makeInstance(NodeProto protoType, Point2D center, double width, double height,
+            Cell parent, Orientation orient, String name)
+	{
+		return makeInstance(protoType, center, width, height, parent, orient, name, 0);
+	}
+
+	/**
+	 * Short form method to create a NodeInst and do extra things necessary for it. Angle, name
+	 * and techBits are set to defaults.
+	 * @param protoType the NodeProto of which this is an instance.
+	 * @param center the center location of this NodeInst.
+	 * @param width the width of this NodeInst (can't be negative).
+	 * @param height the height of this NodeInst (can't be negative).
+	 * @param parent the Cell in which this NodeInst will reside.
+	 * @param orient the orientation of this NodeInst.
+	 * @param name name of new NodeInst
+     * @return the newly created NodeInst, or null on error.
+	 */
+	public static NodeInst makeInstance(NodeProto protoType, Point2D center, double width, double height,
+            Cell parent, Orientation orient, String name, PrimitiveNode.Function function)
+	{
+		NodeInst ni = makeInstance(protoType, center, width, height, parent, orient, name);
+        if (!ni.isCellInstance())
+            ((PrimitiveNode)protoType).getTechnology().setPrimitiveFunction(ni, function);
+        return ni;
 	}
 
 	/**
@@ -299,8 +338,25 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 */
 	public static NodeInst newInstance(NodeProto protoType, Point2D center, double width, double height, Cell parent)
 	{
-		return (newInstance(protoType, center, width, height, parent, Orientation.IDENT, null, 0));
+		return newInstance(protoType, center, width, height, parent, Orientation.IDENT, null);
 	}
+
+	/**
+	 * Long form method to create a NodeInst.
+	 * @param protoType the NodeProto of which this is an instance.
+	 * @param center the center location of this NodeInst.
+	 * @param width the width of this NodeInst (can't be negative).
+	 * @param height the height of this NodeInst (can't be negative).
+	 * @param parent the Cell in which this NodeInst will reside.
+	 * @param orient the oriantation of this NodeInst.
+	 * @param name name of new NodeInst
+     * @return the newly created NodeInst, or null on error.
+	 */
+	public static NodeInst newInstance(NodeProto protoType, Point2D center, double width, double height,
+                                       Cell parent, Orientation orient, String name)
+    {
+		return newInstance(protoType, center, width, height, parent, orient, name, 0);
+    }
 
 	/**
 	 * Long form method to create a NodeInst.
@@ -627,7 +683,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 		}
 
 		// see if nodeinst is mirrored
-		NodeInst newNi = NodeInst.newInstance(np, oldCenter, newXS, newYS, getParent(), getOrient(), null, 0);
+		NodeInst newNi = NodeInst.newInstance(np, oldCenter, newXS, newYS, getParent(), getOrient(), null);
 		if (newNi == null) return null;
 
 		// draw new node expanded if appropriate

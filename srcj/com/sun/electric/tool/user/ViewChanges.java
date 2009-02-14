@@ -381,7 +381,7 @@ public class ViewChanges
 			Point2D center = new Point2D.Double(bottomNi.getAnchorCenterX(), bottomNi.getAnchorCenterY());
 			subRot.transform(center, center);
 			NodeInst newNi = NodeInst.makeInstance(bottomNi.getProto(), center, bottomNi.getXSize(), bottomNi.getYSize(),
-				skeletonCell, newOrient, null, 0);
+				skeletonCell, newOrient, null);
 			if (newNi == null)
 			{
 				System.out.println("Cannot create node in this cell");
@@ -451,7 +451,7 @@ public class ViewChanges
 			NodeProto np = ni.getProto();
 			if (np != Generic.tech().essentialBoundsNode) continue;
 			NodeInst newNi = NodeInst.makeInstance(np, ni.getAnchorCenter(),
-				ni.getXSize(), ni.getYSize(), skeletonCell, ni.getOrient(), null, 0);
+				ni.getXSize(), ni.getYSize(), skeletonCell, ni.getOrient(), null);
 			if (newNi == null)
 			{
 				System.out.println("Cannot create node in this cell");

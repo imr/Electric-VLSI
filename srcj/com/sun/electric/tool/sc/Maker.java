@@ -651,7 +651,7 @@ public class Maker
 						hEdge = bounds.getMaxX();
 					}
 					Point2D ctr = new Point2D.Double(inst.xPos + hEdge, inst.yPos - bounds.getMinY());
-					inst.instance = NodeInst.makeInstance(subCell, ctr, inst.xSize, inst.ySize, bCell, orient, node.name, 0);
+					inst.instance = NodeInst.makeInstance(subCell, ctr, inst.xSize, inst.ySize, bCell, orient, node.name);
 //					inst.instance = NodeInst.makeInstance(subCell, ctr, wid, inst.ySize, bCell, 0, node.name, 0);
 					if (inst.instance == null)
 						return "Cannot create leaf instance '" + node.name+ "' in MAKER";

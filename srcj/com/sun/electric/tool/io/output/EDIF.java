@@ -1246,8 +1246,8 @@ public class EDIF extends Topology
 			{
                 if (equivs.getNodeEquivalence(ni) != null) continue;        // will be defined by external reference
                 PrimitiveNode pn = (PrimitiveNode)np;
-                PrimitiveNode.Function fun = pn.getTechnology().getPrimitiveFunction(pn, ni.getTechSpecific());
-				//PrimitiveNode.Function fun = ni.getFunction();
+//                PrimitiveNode.Function fun = pn.getTechnology().getPrimitiveFunction(pn, ni.getTechSpecific());
+				PrimitiveNode.Function fun = ni.getFunction();
 				int i = 1;
 				if (fun == PrimitiveNode.Function.GATEAND || fun == PrimitiveNode.Function.GATEOR || fun == PrimitiveNode.Function.GATEXOR)
 				{
@@ -1331,7 +1331,8 @@ public class EDIF extends Topology
     private Object getPrimKey(NodeInst ni, int i) {
         if (ni.isCellInstance()) return null;
         PrimitiveNode pn = (PrimitiveNode)ni.getProto();
-        PrimitiveNode.Function func = pn.getTechnology().getPrimitiveFunction(pn, ni.getTechSpecific());
+        PrimitiveNode.Function func = ni.getFunction();
+//        PrimitiveNode.Function func = pn.getTechnology().getPrimitiveFunction(pn, ni.getTechSpecific());
         String key = pn.getTechnology().getTechShortName() + "_" + pn.getName() + "_" + func.getConstantName() + "_" +i;
         return key;
     }

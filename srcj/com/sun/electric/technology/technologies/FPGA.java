@@ -1842,7 +1842,7 @@ public class FPGA extends Technology
 		}
 		Point2D ctr = new Point2D.Double(posX, posY);
 		Orientation orient = Orientation.fromAngle(rotation);
-		NodeInst ni = NodeInst.makeInstance(np, ctr, wid, hei, cell, orient, nodeName, 0);
+		NodeInst ni = NodeInst.makeInstance(np, ctr, wid, hei, cell, orient, nodeName);
 		if (ni == null) return true;
 
 		// add any attributes
@@ -1997,7 +1997,7 @@ public class FPGA extends Technology
 		int angle = GenMath.figureAngle(new Point2D.Double(portAX, portAY), new Point2D.Double(portBX, portBY));
 		Point2D ctr = new Point2D.Double((portAX + portBX) / 2, (portAY + portBY) / 2);
 		Orientation orient = Orientation.fromAngle(angle);
-		NodeInst ni = NodeInst.makeInstance(repeaterNode, ctr, 10,3, cell, orient, name, 0);
+		NodeInst ni = NodeInst.makeInstance(repeaterNode, ctr, 10,3, cell, orient, name);
 		if (ni == null)
 		{
 			System.out.println("Error creating repeater (line " + lt.lineNumber + ")");

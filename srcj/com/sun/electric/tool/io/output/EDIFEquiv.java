@@ -87,7 +87,8 @@ public class EDIFEquiv {
         PortCharacteristic exportType = null;
         if (!ni.isCellInstance()) {
             PrimitiveNode pn = (PrimitiveNode)np;
-            func = pn.getTechnology().getPrimitiveFunction(pn, ni.getTechSpecific());
+            func = ni.getFunction();
+//            func = pn.getTechnology().getPrimitiveFunction(pn, ni.getTechSpecific());
             // if this is an off page node and one of it's ports is exported, find out type
             if (np == Schematics.tech().offpageNode) {
                 for (Iterator<PortProto> it = ni.getParent().getPorts(); it.hasNext(); ) {
@@ -283,7 +284,7 @@ public class EDIFEquiv {
      * same in length, and specify the x,y coordinate of the port.  This coordinate is on the prototype of
      * the node, or also when the node is default size at 0,0.  Note that Electric port locations should
      * be locations after the node has been rotated, if rot is not 0.  Rotation should be in tenth-degrees.
-     * 
+     *
      * For 'F', an association between internal FigureGroup names and external names is declared.
      * For 'V', an association between internal Variable names and external names is declared.  You
      * can also specify a string to be append to all matching Variable values.

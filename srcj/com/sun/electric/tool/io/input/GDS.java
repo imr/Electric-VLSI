@@ -493,7 +493,7 @@ public class GDS extends Input
                         NodeInst newNi = NodeInst.makeInstance(pn, d.anchor,
                                 m2P.getBounds2D().getWidth() + so.getLowXOffset() + so.getHighXOffset(),
                                 m2P.getBounds2D().getHeight() + so.getLowYOffset() + so.getHighYOffset(),
-                                ni.getParent(), ni.getOrient(), name, 0);
+                                ni.getParent(), ni.getOrient(), name);
                         if (newNi == null) continue;
 
                         // Searching for vias to delete
@@ -576,7 +576,8 @@ public class GDS extends Input
                     baseName = ((Cell)mi.proto).getBasename();
                 } else {
                     PrimitiveNode np = (PrimitiveNode)mi.proto;
-                    baseName = np.getTechnology().getPrimitiveFunction(np, 0).getBasename();
+                    baseName = np.getFunction().getBasename();
+//                    baseName = np.getTechnology().getPrimitiveFunction(np, 0).getBasename();
                 }
                 String basenameString = baseName.toString();
                 GenMath.MutableInteger maxSuffix = maxSuffixes.get(basenameString);
@@ -688,7 +689,7 @@ public class GDS extends Input
     						(ir == (nRows-1) && ic == (nCols-1)))
     				{
     					Point2D loc = new Point2D.Double(ptX, ptY);
-    		            NodeInst ni = NodeInst.makeInstance(proto, loc, proto.getDefWidth(), proto.getDefHeight(), parent, orient, null, 0);
+    		            NodeInst ni = NodeInst.makeInstance(proto, loc, proto.getDefWidth(), proto.getDefHeight(), parent, orient, null);
     		            if (ni != null)
     		            {
 	    		            if (IOTool.isGDSInExpandsCells() && ni.isCellInstance())
@@ -779,7 +780,7 @@ public class GDS extends Input
          */
         private boolean instantiate(Cell parent, Map<String,String> exportUnify) {
         	String name = nodeName.toString();
-            NodeInst ni = NodeInst.makeInstance(proto, loc, wid, hei, parent, orient, name, 0);
+            NodeInst ni = NodeInst.makeInstance(proto, loc, wid, hei, parent, orient, name);
             String errorMsg = null;
 
             if (ni == null) return false;
@@ -1127,7 +1128,7 @@ public class GDS extends Input
 			}
 		}
         NodeInst ni = NodeInst.makeInstance(pureType, new Point2D.Double((lX+hX)/2, (lY+hY)/2), hX-lX, hY-lY,
-        	parent, Orientation.IDENT, null, 0);
+        	parent, Orientation.IDENT, null);
         if (ni != null)
         	ni.setTrace(pointArray);
 	}

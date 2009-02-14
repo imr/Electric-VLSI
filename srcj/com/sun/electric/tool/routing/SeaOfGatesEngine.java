@@ -745,7 +745,7 @@ public class SeaOfGatesEngine
 				System.out.println("Sea-of-gates routing aborted");
 				break;
 			}
-	
+
 			// get information on the segment to be routed
 			NeededRoute nr = allRoutes.get(r);
 			Job.getUserInterface().setProgressValue(r*100/totalRoutes);
@@ -754,10 +754,10 @@ public class SeaOfGatesEngine
 				routeName += " (" + nr.routeInBatch + " of " + routeBatches[nr.batchNumber].segsInBatch + ")";
 			Job.getUserInterface().setProgressNote("Network " + routeName);
 			System.out.println("Routing network " + routeName + "...");
-	
+
 			// route the segment
 			findPath(nr);
-	
+
 			// if the routing was good, place the results
 			if (nr.winningWF != null && nr.winningWF.vertices != null)
 				createRoute(nr);
@@ -1433,7 +1433,7 @@ public class SeaOfGatesEngine
 	 */
 	private NodeInst makeNodeInst(NodeProto np, EPoint loc, double wid, double hei, Orientation orient, Cell cell, int netID)
 	{
-		NodeInst ni = NodeInst.makeInstance(np, loc, wid, hei, cell, orient, null, 0);
+		NodeInst ni = NodeInst.makeInstance(np, loc, wid, hei, cell, orient, null);
 		if (ni != null)
 		{
 			AffineTransform trans = ni.rotateOut();
@@ -1603,7 +1603,7 @@ public class SeaOfGatesEngine
 			SearchVertex result = null;
 			int numSearchVertices = 0;
 			while (result == null)
-			{					
+			{
 				// stop if the search is too complex
 				numSearchVertices++;
 				if (numSearchVertices > Routing.getSeaOfGatesComplexityLimit())
@@ -2619,9 +2619,9 @@ public class SeaOfGatesEngine
 				bound.getMinY() > y || bound.getMaxY() < y) continue;
 			return true;
 		}
-		return false;		
+		return false;
 	}
-	
+
 	/**
 	 * Method to see if a proposed piece of metal has DRC errors (ignoring notches).
 	 * @param netID the network ID of the desired metal (blockages on this netID are ignored).

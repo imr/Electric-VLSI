@@ -3741,7 +3741,7 @@ public class Connectivity
 		double cX = centerX / SCALEFACTOR;
 		double cY = centerY / SCALEFACTOR;
 		NodeInst ni = NodeInst.makeInstance(pNp, new Point2D.Double(cX, cY),
-			width / SCALEFACTOR, height / SCALEFACTOR, newCell, orient, null, 0);
+			width / SCALEFACTOR, height / SCALEFACTOR, newCell, orient, null);
 		if (ni == null) return;
 		if (points != null)
 		{

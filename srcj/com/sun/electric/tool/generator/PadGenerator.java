@@ -22,6 +22,7 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.generator;
+
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.EGraphics;
@@ -813,7 +814,7 @@ public class PadGenerator
 			boolean flipUD = false;
 			if (reversed) flipUD = true;
 			Orientation orient = Orientation.fromJava(angle, flipLR, flipUD);
-			NodeInst ni = NodeInst.makeInstance(cell, pointCenter, cell.getDefWidth(), cell.getDefHeight(), framecell, orient, null, 0);
+			NodeInst ni = NodeInst.makeInstance(cell, pointCenter, cell.getDefWidth(), cell.getDefHeight(), framecell, orient, null);
 			if (ni == null)
 			{
 				err("problem creating" + cell + " instance");

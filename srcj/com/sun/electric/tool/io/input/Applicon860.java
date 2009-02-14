@@ -112,10 +112,10 @@ public class Applicon860 extends Input
 		PrimitiveNode layernp = null;
 		NodeInst ni = null;
 		double scale = 0;
-		
+
 		// establish linkage between Apple numbers and primitives
 		setupAppleLayers();
-	
+
 		curfacet = null;
 		Set<Integer> notFound = new HashSet<Integer>();
 		appleState = 0;
@@ -176,7 +176,7 @@ public class Applicon860 extends Input
 						return false;
 					}
 					break;
-	
+
 				case 3:		// element instance record
 					if (length != 9)
 					{
@@ -213,7 +213,7 @@ public class Applicon860 extends Input
 						notFound.add(layerInt);
 					}
 					break;
-	
+
 				case 101:		// polygon record
 					appleGetWord();		// color
 					appleGetWord();		// draw
@@ -246,7 +246,7 @@ public class Applicon860 extends Input
 					if (polyptr > polylistcount)
 						System.out.println("Just overflowed " + polylistcount + " long array with " + polyptr + " points");
 					if ((chain&2) == 0) appleGetWord();
-	
+
 					// process data into a set of points
 					polyptr /= 5;
 					for(i=0; i<polyptr; i++)
@@ -274,7 +274,7 @@ public class Applicon860 extends Input
 					}
 					for(i=0; i<polyptr; i++)
 						ptrace[i] = new Point2D.Double(px[i] - (lx+hx) / 2, py[i] - (ly+hy) / 2);
-	
+
 					// now create the polygon
 					if (layernp != null && curfacet != null)
 					{
@@ -284,7 +284,7 @@ public class Applicon860 extends Input
 						ni.newVar(NodeInst.TRACE, ptrace);
 					}
 					break;
-	
+
 				case 107:		// flag record
 					if (length != 3)
 					{
@@ -293,7 +293,7 @@ public class Applicon860 extends Input
 					}
 					appleGetWord();	// flag
 					break;
-	
+
 				case 117:		// text record
 					appleGetWord();	// vnumb
 					appleGetWord();	// color
@@ -310,7 +310,7 @@ public class Applicon860 extends Input
 					appleGetWord();	// torien
 					tcount = appleGetWord();
 					if ((tcount&1) != 0) tcount++;
-	
+
 					// allocate and read the string
 					str = "";
 					for(int k=0; k<tcount; k++) str += dataInputStream.readByte();
@@ -328,7 +328,7 @@ public class Applicon860 extends Input
 						} else if (ch != '\n') sb.append(ch);
 					}
 					str = sb.toString();
-	
+
 					if (ni != null)
 					{
 						if (i <= 1)
@@ -347,7 +347,7 @@ public class Applicon860 extends Input
 						}
 					}
 					break;
-	
+
 				case 4:		// cell name record
 					if (length != 17)
 					{
@@ -366,7 +366,7 @@ public class Applicon860 extends Input
 						return false;
 					}
 					break;
-	
+
 				case 5:		// cell instance header record
 					if (length != 6)
 					{
@@ -378,11 +378,11 @@ public class Applicon860 extends Input
 					appleGetWord();	// numcir
 					appleGetWord();	// textflg
 					break;
-	
+
 				case 105:		// cell instance record
 					length -= 2;
 					for(i=0; i<length; i++) cidata[i] = appleGetWord();
-	
+
 					// get first point
 					x1 = cidata[0] & 0xFFFF;
 					x1 |= (cidata[1] & 0xFFFF) << 16;
@@ -391,10 +391,10 @@ public class Applicon860 extends Input
 					x1 = appleScale(x1, xoff, scale);
 					y1 = appleScale(y1, yoff, scale);
 					i = 5;
-	
+
 					// ignore stretch point
 					if ((cidata[length-1]&2) != 0) i += 5;
-	
+
 					// get transformation matrix
 					int rot = 0, trans = 0;
 					if ((cidata[length-1]&4) != 0)
@@ -415,7 +415,7 @@ public class Applicon860 extends Input
 						a4 |= (cidata[i+7] & 0xFFFF) << 16;
 						if (a4 == -2147483647) a4 = -1; else
 							if (a4 == 2147483647) a4 = 1; else a4 = 0;
-	
+
 						// convert to rotation/transpose
 						if (a1 == 0 && a2 == -1 && a3 == 1 && a4 == 0) rot = 900;
 						if (a1 == -1 && a2 == 0 && a3 == 0 && a4 == -1) rot = 1800;
@@ -452,11 +452,11 @@ public class Applicon860 extends Input
 						double vx = dest.getX() + x1;
 						double vy = dest.getY() + y1;
 						Point2D center = new Point2D.Double(subBounds.getWidth(), subBounds.getHeight());
-						ni = NodeInst.newInstance(subnp, center, vx*2, vy*2, curfacet, orient, null, 0);
+						ni = NodeInst.newInstance(subnp, center, vx*2, vy*2, curfacet, orient, null);
 						if (ni == null) return false;
 					}
 					break;
-	
+
 				case 255:		// end definition record
 					if (length != 2)
 					{
@@ -471,7 +471,7 @@ public class Applicon860 extends Input
 
 					curfacet = null;
 					break;
-	
+
 				case 0:			// format record
 					for(i=0; i<length-2; i++) appleGetWord();
 					break;
@@ -491,7 +491,7 @@ public class Applicon860 extends Input
 		}
 //        return true;
     }
-	
+
 	/**
 	 * Method to get the chain value from disk.
 	 * Automatically senses byte swapping and tape/disk format.
@@ -500,14 +500,14 @@ public class Applicon860 extends Input
 		throws IOException
 	{
 		int chain;
-	
+
 		if ((appleState&INITIALIZED) == 0)
 		{
 			// on first call, evaluate nature of file
 			appleState |= INITIALIZED;
 			chain = appleGetWord();
 			if (chain == 3 || chain == 1) return(chain);
-	
+
 			// tape header may be present
 			if (Character.isDigit(chain&0377) && Character.isDigit((chain>>8)&0377))
 			{
@@ -515,7 +515,7 @@ public class Applicon860 extends Input
 				appleState |= TAPEFORMAT;
 				chain = appleGetWord();
 			}
-	
+
 			// bytes may be swapped
 			if (chain == 0x300 || chain == 0x100)
 			{
@@ -524,7 +524,7 @@ public class Applicon860 extends Input
 			}
 			return chain;
 		}
-	
+
 		// normal chain request
 		if ((appleState&TAPEFORMAT) != 0)
 		{
@@ -540,7 +540,7 @@ public class Applicon860 extends Input
 		chain = appleGetWord();
 		return chain;
 	}
-	
+
 	private int appleGetWord()
 		throws IOException
 	{
@@ -550,7 +550,7 @@ public class Applicon860 extends Input
 		if ((appleState&BYTESSWAPPED) == 0) return (low&0377) | ((high&0377)<<8);
 		return (high&0377) | ((low&0377)<<8);
 	}
-	
+
 	/**
 	 * Method to convert the Apple floating point representation in "lo", "hi"
 	 * and "exp" into a true floating point number
@@ -559,7 +559,7 @@ public class Applicon860 extends Input
 	{
 		int i;
 		double fl;
-	
+
 		i = (lo & 0xFFFF) | ((hi & 0xFFFF) << 16);
 		exp = 31 - exp;
 		fl = i & 0x7FFFFFFF;
@@ -589,7 +589,7 @@ public class Applicon860 extends Input
 			}
 		}
 	}
-	
+
 	/**
 	 * Method to convert from Apple units, through offset "offset" and scale
 	 * "scale" and return the proper value
@@ -597,11 +597,11 @@ public class Applicon860 extends Input
 	private int appleScale(int value, int offset, double scale)
 	{
 		double temp;
-	
+
 		temp = value - offset;
 		temp = temp * scale;
 		value = (int)temp;
-	
+
 		// round to the nearest quarter micron
 		if ((value % 25) != 0)
 		{

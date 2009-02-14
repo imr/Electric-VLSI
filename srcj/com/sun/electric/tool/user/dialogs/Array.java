@@ -601,7 +601,7 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 					Orientation orient = Orientation.fromJava(0, flipX, flipY).concatenate(ni.getOrient());
 					xPos += xOff;   yPos += yOff;
 					NodeInst newNi = NodeInst.makeInstance(ni.getProto(),
-						new Point2D.Double(xPos, yPos), ni.getXSize(), ni.getYSize(), cell, orient, null, 0);
+						new Point2D.Double(xPos, yPos), ni.getXSize(), ni.getYSize(), cell, orient, null);
 					if (newNi == null) continue;
 					newNi.copyTextDescriptorFrom(ni, NodeInst.NODE_PROTO);
 					newNi.copyTextDescriptorFrom(ni, NodeInst.NODE_NAME);

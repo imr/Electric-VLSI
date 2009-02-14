@@ -710,7 +710,7 @@ public class CellChangeJobs
 				Name oldName = ni.getNameKey();
 				if (!oldName.isTempname()) name = oldName.toString();
 				NodeInst newNi = NodeInst.makeInstance(ni.getProto(), new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY()),
-					ni.getXSize(), ni.getYSize(), cell, ni.getOrient(), name, 0);
+					ni.getXSize(), ni.getYSize(), cell, ni.getOrient(), name);
 				if (newNi == null) return false;
 				newNodes.put(ni, newNi);
 				newNi.copyStateBits(ni);
@@ -890,7 +890,7 @@ public class CellChangeJobs
 				Point2D pt = new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY());
 				AffineTransform instTrans = ni.rotateOut(localTrans);
 				instTrans.transform(pt, pt);
-				NodeInst newNi = NodeInst.makeInstance(np, pt, ni.getXSize(), ni.getYSize(), cell, orient, name, 0);
+				NodeInst newNi = NodeInst.makeInstance(np, pt, ni.getXSize(), ni.getYSize(), cell, orient, name);
 				if (newNi == null) continue;
 				newNi.copyTextDescriptorFrom(ni, NodeInst.NODE_NAME);
 				newNi.copyStateBits(ni);
