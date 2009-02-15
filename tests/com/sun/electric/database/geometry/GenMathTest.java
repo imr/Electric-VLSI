@@ -36,11 +36,11 @@ import org.junit.Test;
  * Unit tets of GenMath
  */
 public class GenMathTest {
-    
+
     private double[] doubleValues;
     private long[] longValues;
     private int[] intValues;
-    
+
     public static junit.framework.Test suite() {
         return new junit.framework.JUnit4TestAdapter(GenMathTest.class);
     }
@@ -60,7 +60,7 @@ public class GenMathTest {
 //
 //        public static Test suite() {
 //            TestSuite suite = new TestSuite(MutableIntegerTest.class);
-//            
+//
 //            return suite;
 //        }
 //
@@ -69,7 +69,7 @@ public class GenMathTest {
 //         */
 //        public void testSetValue() {
 //            System.out.println("testSetValue");
-//            
+//
 //            // TODO add your test code below by replacing the default call to fail.
 //            fail("The test case is empty.");
 //        }
@@ -79,7 +79,7 @@ public class GenMathTest {
 //         */
 //        public void testIncrement() {
 //            System.out.println("testIncrement");
-//            
+//
 //            // TODO add your test code below by replacing the default call to fail.
 //            fail("The test case is empty.");
 //        }
@@ -89,7 +89,7 @@ public class GenMathTest {
 //         */
 //        public void testIntValue() {
 //            System.out.println("testIntValue");
-//            
+//
 //            // TODO add your test code below by replacing the default call to fail.
 //            fail("The test case is empty.");
 //        }
@@ -99,7 +99,7 @@ public class GenMathTest {
 //         */
 //        public void testToString() {
 //            System.out.println("testToString");
-//            
+//
 //            // TODO add your test code below by replacing the default call to fail.
 //            fail("The test case is empty.");
 //        }
@@ -121,7 +121,7 @@ public class GenMathTest {
 //
 //        public static Test suite() {
 //            TestSuite suite = new TestSuite(MutableDoubleTest.class);
-//            
+//
 //            return suite;
 //        }
 //
@@ -130,7 +130,7 @@ public class GenMathTest {
 //         */
 //        public void testSetValue() {
 //            System.out.println("testSetValue");
-//            
+//
 //            // TODO add your test code below by replacing the default call to fail.
 //            fail("The test case is empty.");
 //        }
@@ -140,7 +140,7 @@ public class GenMathTest {
 //         */
 //        public void testDoubleValue() {
 //            System.out.println("testDoubleValue");
-//            
+//
 //            // TODO add your test code below by replacing the default call to fail.
 //            fail("The test case is empty.");
 //        }
@@ -150,7 +150,7 @@ public class GenMathTest {
 //         */
 //        public void testToString() {
 //            System.out.println("testToString");
-//            
+//
 //            // TODO add your test code below by replacing the default call to fail.
 //            fail("The test case is empty.");
 //        }
@@ -159,7 +159,7 @@ public class GenMathTest {
 //
 //    public static Test suite() {
 //        TestSuite suite = new TestSuite(GenMathTest.class);
-//        
+//
 //        return suite;
 //    }
 //
@@ -168,7 +168,7 @@ public class GenMathTest {
 //     */
 //    public void testAddToBag() {
 //        System.out.println("testAddToBag");
-//        
+//
 //        // TODO add your test code below by replacing the default call to fail.
 //        fail("The test case is empty.");
 //    }
@@ -178,7 +178,7 @@ public class GenMathTest {
 //     */
 //    public void testCountInBag() {
 //        System.out.println("testCountInBag");
-//        
+//
 //        // TODO add your test code below by replacing the default call to fail.
 //        fail("The test case is empty.");
 //    }
@@ -188,7 +188,7 @@ public class GenMathTest {
 //     */
 //    public void testObjectsReallyEqual() {
 //        System.out.println("testObjectsReallyEqual");
-//        
+//
 //        // TODO add your test code below by replacing the default call to fail.
 //        fail("The test case is empty.");
 //    }
@@ -198,7 +198,7 @@ public class GenMathTest {
      */
     @Test public void testFigureAngle() {
         System.out.println("testFigureAngle");
-        
+
         assertEquals(   0, GenMath.figureAngle(0.0, 0.0));
         assertEquals(   0, GenMath.figureAngle(0.0, -0.0));
         assertEquals(   0, GenMath.figureAngle(-0.0, 0.0));
@@ -209,7 +209,7 @@ public class GenMathTest {
         assertEquals(   0, GenMath.figureAngle(0, Double.NaN));
         assertEquals(   0, GenMath.figureAngle(100, Double.NaN));
         assertEquals(   0, GenMath.figureAngle(-100, Double.NaN));
-        
+
         assertEquals(   0, GenMath.figureAngle(Double.POSITIVE_INFINITY, Double.MAX_VALUE));
         assertEquals(   0, GenMath.figureAngle(Double.POSITIVE_INFINITY, -Double.MAX_VALUE));
         assertEquals(1800, GenMath.figureAngle(Double.NEGATIVE_INFINITY, Double.MAX_VALUE));
@@ -218,12 +218,12 @@ public class GenMathTest {
         assertEquals( 900, GenMath.figureAngle(-Double.MAX_VALUE, Double.POSITIVE_INFINITY));
         assertEquals(2700, GenMath.figureAngle(Double.MAX_VALUE, Double.NEGATIVE_INFINITY));
         assertEquals(2700, GenMath.figureAngle(-Double.MAX_VALUE, Double.NEGATIVE_INFINITY));
-        
+
         assertEquals( 450, GenMath.figureAngle(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY));
         assertEquals(1350, GenMath.figureAngle(Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY));
         assertEquals(2250, GenMath.figureAngle(Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY));
         assertEquals(3150, GenMath.figureAngle(Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY));
-        
+
         double r1 = 0.1;
         assertEquals(   0, GenMath.figureAngle(r1, 0));
         assertEquals( 450, GenMath.figureAngle(r1, r1));
@@ -251,7 +251,7 @@ public class GenMathTest {
 //     */
 //    public void testAddPoints() {
 //        System.out.println("testAddPoints");
-//        
+//
 //        // TODO add your test code below by replacing the default call to fail.
 //        fail("The test case is empty.");
 //    }
@@ -261,7 +261,7 @@ public class GenMathTest {
 //     */
 //    public void testIsOnLine() {
 //        System.out.println("testIsOnLine");
-//        
+//
 //        // TODO add your test code below by replacing the default call to fail.
 //        fail("The test case is empty.");
 //    }
@@ -271,7 +271,7 @@ public class GenMathTest {
 //     */
 //    public void testClosestPointToSegment() {
 //        System.out.println("testClosestPointToSegment");
-//        
+//
 //        // TODO add your test code below by replacing the default call to fail.
 //        fail("The test case is empty.");
 //    }
@@ -281,7 +281,7 @@ public class GenMathTest {
 //     */
 //    public void testClosestPointToLine() {
 //        System.out.println("testClosestPointToLine");
-//        
+//
 //        // TODO add your test code below by replacing the default call to fail.
 //        fail("The test case is empty.");
 //    }
@@ -291,7 +291,7 @@ public class GenMathTest {
 //     */
 //    public void testArcconnects() {
 //        System.out.println("testArcconnects");
-//        
+//
 //        // TODO add your test code below by replacing the default call to fail.
 //        fail("The test case is empty.");
 //    }
@@ -301,7 +301,7 @@ public class GenMathTest {
 //     */
 //    public void testDistToLine() {
 //        System.out.println("testDistToLine");
-//        
+//
 //        // TODO add your test code below by replacing the default call to fail.
 //        fail("The test case is empty.");
 //    }
@@ -311,7 +311,7 @@ public class GenMathTest {
 //     */
 //    public void testComputeArcCenter() {
 //        System.out.println("testComputeArcCenter");
-//        
+//
 //        // TODO add your test code below by replacing the default call to fail.
 //        fail("The test case is empty.");
 //    }
@@ -321,7 +321,7 @@ public class GenMathTest {
 //     */
 //    public void testFindCenters() {
 //        System.out.println("testFindCenters");
-//        
+//
 //        // TODO add your test code below by replacing the default call to fail.
 //        fail("The test case is empty.");
 //    }
@@ -331,7 +331,7 @@ public class GenMathTest {
 //     */
 //    public void testPointInRect() {
 //        System.out.println("testPointInRect");
-//        
+//
 //        // TODO add your test code below by replacing the default call to fail.
 //        fail("The test case is empty.");
 //    }
@@ -341,7 +341,7 @@ public class GenMathTest {
 //     */
 //    public void testTransformRect() {
 //        System.out.println("testTransformRect");
-//        
+//
 //        // TODO add your test code below by replacing the default call to fail.
 //        fail("The test case is empty.");
 //    }
@@ -351,7 +351,7 @@ public class GenMathTest {
 //     */
 //    public void testRectsIntersect() {
 //        System.out.println("testRectsIntersect");
-//        
+//
 //        // TODO add your test code below by replacing the default call to fail.
 //        fail("The test case is empty.");
 //    }
@@ -361,7 +361,7 @@ public class GenMathTest {
 //     */
 //    public void testIntersect() {
 //        System.out.println("testIntersect");
-//        
+//
 //        // TODO add your test code below by replacing the default call to fail.
 //        fail("The test case is empty.");
 //    }
@@ -371,7 +371,7 @@ public class GenMathTest {
 //     */
 //    public void testIntersectRadians() {
 //        System.out.println("testIntersectRadians");
-//        
+//
 //        // TODO add your test code below by replacing the default call to fail.
 //        fail("The test case is empty.");
 //    }
@@ -381,7 +381,7 @@ public class GenMathTest {
 //     */
 //    public void testArcBBox() {
 //        System.out.println("testArcBBox");
-//        
+//
 //        // TODO add your test code below by replacing the default call to fail.
 //        fail("The test case is empty.");
 //    }
@@ -391,7 +391,7 @@ public class GenMathTest {
 //     */
 //    public void testToNearest() {
 //        System.out.println("testToNearest");
-//        
+//
 //        // TODO add your test code below by replacing the default call to fail.
 //        fail("The test case is empty.");
 //    }
@@ -401,7 +401,7 @@ public class GenMathTest {
 //     */
 //    public void testDoublesEqual() {
 //        System.out.println("testDoublesEqual");
-//        
+//
 //        // TODO add your test code below by replacing the default call to fail.
 //        fail("The test case is empty.");
 //    }
@@ -411,7 +411,7 @@ public class GenMathTest {
 //     */
 //    public void testDoublesLessThan() {
 //        System.out.println("testDoublesLessThan");
-//        
+//
 //        // TODO add your test code below by replacing the default call to fail.
 //        fail("The test case is empty.");
 //    }
@@ -421,7 +421,7 @@ public class GenMathTest {
 //     */
 //    public void testDoublesClose() {
 //        System.out.println("testDoublesClose");
-//        
+//
 //        // TODO add your test code below by replacing the default call to fail.
 //        fail("The test case is empty.");
 //    }
@@ -431,7 +431,7 @@ public class GenMathTest {
 //     */
 //    public void testClipLine() {
 //        System.out.println("testClipLine");
-//        
+//
 //        // TODO add your test code below by replacing the default call to fail.
 //        fail("The test case is empty.");
 //    }
@@ -441,7 +441,7 @@ public class GenMathTest {
 //     */
 //    public void testClipPoly() {
 //        System.out.println("testClipPoly");
-//        
+//
 //        // TODO add your test code below by replacing the default call to fail.
 //        fail("The test case is empty.");
 //    }
@@ -456,25 +456,25 @@ public class GenMathTest {
         assertEquals(Long.MAX_VALUE, GenMath.roundLong(Double.POSITIVE_INFINITY));
         assertEquals(Long.MIN_VALUE, GenMath.roundLong(-Double.MAX_VALUE));
         assertEquals(Long.MAX_VALUE, GenMath.roundLong(Double.MAX_VALUE));
-        
+
         assertEquals(Long.MIN_VALUE, GenMath.floorLong(Double.NaN));
         assertEquals(Long.MIN_VALUE, GenMath.floorLong(Double.NEGATIVE_INFINITY));
         assertEquals(Long.MAX_VALUE, GenMath.floorLong(Double.POSITIVE_INFINITY));
         assertEquals(Long.MIN_VALUE, GenMath.floorLong(-Double.MAX_VALUE));
         assertEquals(Long.MAX_VALUE, GenMath.floorLong(Double.MAX_VALUE));
-        
+
         assertEquals(Long.MAX_VALUE, GenMath.ceilLong(Double.NaN));
         assertEquals(Long.MIN_VALUE, GenMath.ceilLong(Double.NEGATIVE_INFINITY));
         assertEquals(Long.MAX_VALUE, GenMath.ceilLong(Double.POSITIVE_INFINITY));
         assertEquals(Long.MIN_VALUE, GenMath.ceilLong(-Double.MAX_VALUE));
         assertEquals(Long.MAX_VALUE, GenMath.ceilLong(Double.MAX_VALUE));
-        
+
         assertEquals(0, GenMath.roundInt(Double.NaN));
         assertEquals(Integer.MIN_VALUE, GenMath.roundInt(Double.NEGATIVE_INFINITY));
         assertEquals(Integer.MAX_VALUE, GenMath.roundInt(Double.POSITIVE_INFINITY));
         assertEquals(Integer.MIN_VALUE, GenMath.roundInt(-Double.MAX_VALUE));
         assertEquals(Integer.MAX_VALUE, GenMath.roundInt(Double.MAX_VALUE));
-        
+
         testRound2(0.0);
         testRound2(Double.MIN_VALUE);
         double x = 1.0;
@@ -487,23 +487,23 @@ public class GenMathTest {
             x *= 2;
         }
     }
-    
+
     private void testRound2(double x) {
         testRound3(x);
         testRound3(-x);
     }
-    
+
     private void testRound3(double x) {
         checkRound(MutableInterval.prev(x));
         checkRound(x);
         checkRound(MutableInterval.next(x));
-        
+
         x = x/DBMath.GRID;
         checkRound(MutableInterval.prev(x));
         checkRound(x);
         checkRound(MutableInterval.next(x));
     }
-    
+
     private void checkRound(double x) {
         checkRoundLong(x);
         checkFloorLong(x);
@@ -511,13 +511,13 @@ public class GenMathTest {
         checkRoundInt(x);
         checkFloorInt(x);
         checkCeilInt(x);
-        
-        assertEquals(x/DBMath.GRID, DBMath.gridToLambda(x));
+
+        assertEquals(x/DBMath.GRID, DBMath.gridToLambda(x), 0);
         assertEquals(GenMath.roundLong(x*DBMath.GRID), DBMath.lambdaToGrid(x));
         assertEquals(GenMath.roundLong(x*(DBMath.GRID/2))*2, DBMath.lambdaToSizeGrid(x));
-        assertEquals(GenMath.roundLong(x*DBMath.GRID)/DBMath.GRID, DBMath.round(x));
+        assertEquals(GenMath.roundLong(x*DBMath.GRID)/DBMath.GRID, DBMath.round(x), 0);
     }
-    
+
     private void checkRoundLong(double x) {
         long l = GenMath.roundLong(x);
         BigDecimal bx = new BigDecimal(x);
@@ -529,7 +529,7 @@ public class GenMathTest {
         if (l != Long.MAX_VALUE)
             assertTrue((cr&1) == 0 ? cr <= 0 : cr < 0);
     }
-    
+
     private void checkFloorLong(double x) {
         long l = GenMath.floorLong(x);
         BigDecimal bx = new BigDecimal(x);
@@ -541,7 +541,7 @@ public class GenMathTest {
         if (l != Long.MAX_VALUE)
             assertTrue(cr < 0);
     }
-    
+
     private void checkCeilLong(double x) {
         long l = GenMath.ceilLong(x);
         BigDecimal bx = new BigDecimal(x);
@@ -553,7 +553,7 @@ public class GenMathTest {
         if (l != Long.MAX_VALUE)
             assertTrue(cr <= 0);
     }
-    
+
     private void checkRoundInt(double x) {
         int l = GenMath.roundInt(x);
         BigDecimal bx = new BigDecimal(x);
@@ -565,7 +565,7 @@ public class GenMathTest {
         if (l != Integer.MAX_VALUE)
             assertTrue((cr&1) == 0 ? cr <= 0 : cr < 0);
     }
-    
+
     private void checkFloorInt(double x) {
         int l = GenMath.floorInt(x);
         BigDecimal bx = new BigDecimal(x);
@@ -577,7 +577,7 @@ public class GenMathTest {
         if (l != Integer.MAX_VALUE)
             assertTrue(cr < 0);
     }
-    
+
     private void checkCeilInt(double x) {
         int l = GenMath.ceilInt(x);
         BigDecimal bx = new BigDecimal(x);
@@ -589,7 +589,7 @@ public class GenMathTest {
         if (l != Integer.MAX_VALUE)
             assertTrue(cr <= 0);
     }
-    
+
     @Ignore @Test public void benchRound() {
         System.out.println("benchRound");
         int len = 1000;
@@ -876,7 +876,7 @@ public class GenMathTest {
         };
         doBenchmarks(benches, 200, 100000);
     }
-    
+
     private static void doBenchmarks(BenchLoop[] benches, int warmLoops, int benchLoops) {
         System.out.println("benchLoops=" + benchLoops + " warmLoops=" + warmLoops);
         for (BenchLoop bench: benches) {
@@ -894,31 +894,31 @@ public class GenMathTest {
             System.out.println(bench.name + " t=" + (stopTime - startTime) + " s=" + s);
         }
     }
-    
+
     private abstract class BenchLoop {
         String name;
         BenchLoop(String name) { this.name = name; }
         abstract long loop();
     }
-    
+
     /**
      * Test of sin and cos method, of class com.sun.electric.database.geometry.GenMath.
      */
     @Test public void testSinCos() {
         System.out.println("testSinCos");
-        
-        assertEquals(1.0, GenMath.cosSmall(0));
-        assertEquals(0.0, GenMath.sinSmall(0));
-        assertEquals(0.5, GenMath.sinSmall(300));
-        assertEquals(Math.sqrt(0.5), GenMath.cosSmall(450));
-        assertEquals(Math.sqrt(0.5), GenMath.sinSmall(450));
-        assertEquals(0.0, GenMath.cosSmall(900));
-        assertEquals(1.0, GenMath.sinSmall(900));
+
+        assertEquals(1.0, GenMath.cosSmall(0), 0);
+        assertEquals(0.0, GenMath.sinSmall(0), 0);
+        assertEquals(0.5, GenMath.sinSmall(300), 0);
+        assertEquals(Math.sqrt(0.5), GenMath.cosSmall(450), 0);
+        assertEquals(Math.sqrt(0.5), GenMath.sinSmall(450), 0);
+        assertEquals(0.0, GenMath.cosSmall(900), 0);
+        assertEquals(1.0, GenMath.sinSmall(900), 0);
         for (int angle = 0; angle < 900; angle++) {
             assertEquals(Math.cos(angle*Math.PI/1800), GenMath.cosSmall(angle), 1.25*Math.ulp(1.0));
         }
     }
-    
+
     /**
      * Test of sin and cos method, of class com.sun.electric.database.geometry.GenMath.
      */
@@ -940,13 +940,13 @@ public class GenMathTest {
             }
         }
     }
-    
+
     /**
      * Test of packXY method, of class com.sun.electric.database.geometry.GenMath.
      */
     @Test public void testPackXY() {
         System.out.println("testPackXY");
- 
+
         assertEquals(0L, GenMath.packXY(0, 0));
         assertEquals(0x7FFFFFFFL, GenMath.packXY(Integer.MAX_VALUE, 0));
         assertEquals(0x80000000L, GenMath.packXY(Integer.MIN_VALUE, 0));
@@ -969,7 +969,7 @@ public class GenMathTest {
         long stopTime = System.currentTimeMillis();
         System.out.println("t=" + (stopTime - startTime) + " s=" + s);
     }
-    
+
     private long loopPackXY(int[] values) {
         long s = 0;
         for (int x: values) {
@@ -980,13 +980,13 @@ public class GenMathTest {
         }
         return s;
     }
-    
+
     /**
      * Test of getX method, of class com.sun.electric.database.geometry.GenMath.
      */
     @Test public void testGetXY() {
         System.out.println("testGetXY");
- 
+
         int[] values = { 0, -1, -2, 1, 2, Integer.MIN_VALUE, Integer.MAX_VALUE };
         for (int x: values) {
             for (int y: values) {
@@ -1002,7 +1002,7 @@ public class GenMathTest {
         for (int x = 0; x < 1000; x++) {
             for (int y = 0; y < 1000; y++) {
                 values[x + y*1000] = GenMath.packXY(x, y);
-            } 
+            }
         }
         for (int k = 0; k < 5; k++)
             loopGetX(values);
@@ -1011,20 +1011,20 @@ public class GenMathTest {
         long stopTime = System.currentTimeMillis();
         System.out.println("t=" + (stopTime - startTime) + " s=" + s);
     }
-    
+
     private int loopGetX(long[] values) {
         int s = 0;
         for (long xy = 0; xy < 1000000000; xy++)
             s += GenMath.getX(xy);
         return s;
     }
-    
+
     /**
      * Test of unsignedIntValue method, of class com.sun.electric.database.geometry.GenMath.
      */
     @Test public void testUnsignedIntValue() {
         System.out.println("testUnsignedIntValue");
- 
+
         assertEquals(0L, GenMath.unsignedIntValue(0));
         assertEquals(0x7FFFFFFFL, GenMath.unsignedIntValue(Integer.MAX_VALUE));
         assertEquals(0x80000000L, GenMath.unsignedIntValue(Integer.MIN_VALUE));
@@ -1036,7 +1036,7 @@ public class GenMathTest {
      */
     @Test public void testIsSmallInt() {
         System.out.println("testIsSmallInt");
- 
+
         assertFalse(GenMath.isSmallInt(0x80000000));
         assertFalse(GenMath.isSmallInt(0xBFFFFFFF));
         assertTrue (GenMath.isSmallInt(0xC0000000));
@@ -1067,7 +1067,7 @@ public class GenMathTest {
      */
     @Test public void testPrimeSince() {
         System.out.println("testPrimeSince");
-        
+
         int prime = GenMath.primeSince(Integer.MIN_VALUE);
         for (;;) {
             assertPrime(prime);
@@ -1079,7 +1079,7 @@ public class GenMathTest {
             prime = newPrime;
         }
     }
-    
+
     private void assertPrime(int p) {
         assertTrue(p >= 2);
         if (p == 2) return;

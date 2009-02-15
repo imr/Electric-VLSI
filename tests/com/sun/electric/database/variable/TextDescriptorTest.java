@@ -1055,7 +1055,7 @@ public class TextDescriptorTest {
 
         double expResult = 14 * User.getGlobalTextScale();
         double result = emptyDescriptor.getTrueSize(wnd);
-        assertEquals(expResult, result);
+        assertEquals(expResult, result, 0);
     }
 
     /**
@@ -1165,7 +1165,7 @@ public class TextDescriptorTest {
 
         double expResult = 0.0;
         double result = emptyDescriptor.getXOff();
-        assertEquals(expResult, result);
+        assertEquals(expResult, result, 0);
     }
 
     /**
@@ -1176,7 +1176,7 @@ public class TextDescriptorTest {
 
         double expResult = 0.0;
         double result = emptyDescriptor.getYOff();
-        assertEquals(expResult, result);
+        assertEquals(expResult, result, 0);
     }
 
     /**

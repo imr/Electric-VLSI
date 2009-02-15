@@ -34,9 +34,9 @@ import org.junit.Test;
  * Unit test of EPoint
  */
 public class EPointTest {
-    
+
     private EPoint p0;
-    
+
     @Before public void setUp() throws Exception {
         p0 = EPoint.fromGrid(10, 20);
     }
@@ -74,7 +74,7 @@ public class EPointTest {
      */
     @Test public void testGetX() {
         System.out.println("getX");
-        assertEquals(10/DBMath.GRID, p0.getX());
+        assertEquals(10/DBMath.GRID, p0.getX(), 0);
     }
 
     /**
@@ -82,7 +82,7 @@ public class EPointTest {
      */
     @Test public void testGetY() {
         System.out.println("getY");
-        assertEquals(20/DBMath.GRID, p0.getY());
+        assertEquals(20/DBMath.GRID, p0.getY(), 0);
     }
 
     /**
@@ -90,7 +90,7 @@ public class EPointTest {
      */
     @Test public void testGetLambdaX() {
         System.out.println("getLambdaX");
-        assertEquals(10/DBMath.GRID, p0.getLambdaX());
+        assertEquals(10/DBMath.GRID, p0.getLambdaX(), 0);
     }
 
     /**
@@ -98,7 +98,7 @@ public class EPointTest {
      */
     @Test public void testGetLambdaY() {
         System.out.println("getLambdaY");
-        assertEquals(20/DBMath.GRID, p0.getLambdaY());
+        assertEquals(20/DBMath.GRID, p0.getLambdaY(), 0);
     }
 
     /**
@@ -150,7 +150,7 @@ public class EPointTest {
      */
     @Test public void testLambdaDistance() {
         System.out.println("lambdaDistance");
-        assertEquals(Math.sqrt(500)/DBMath.GRID, p0.lambdaDistance(EPoint.ORIGIN));
+        assertEquals(Math.sqrt(500)/DBMath.GRID, p0.lambdaDistance(EPoint.ORIGIN), 0);
     }
 
     /**
@@ -158,7 +158,7 @@ public class EPointTest {
      */
     @Test public void testGridDistance() {
         System.out.println("gridDistance");
-        assertEquals(Math.sqrt(500), p0.gridDistance(EPoint.ORIGIN));
+        assertEquals(Math.sqrt(500), p0.gridDistance(EPoint.ORIGIN), 0);
     }
 
     /**

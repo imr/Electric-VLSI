@@ -374,7 +374,7 @@ public class CodeExpressionTest {
         CodeExpression ce = CodeExpression.valueOf(expr, CodeExpression.Code.SPICE);
         assertNull(ce.getParseException());
         Double result = (Double)ce.eval();
-        assertEquals(expected, result);
+        assertEquals(expected, result, 0);
     }
 
 }

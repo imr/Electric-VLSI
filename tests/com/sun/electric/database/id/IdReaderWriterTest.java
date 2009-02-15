@@ -26,6 +26,7 @@ package com.sun.electric.database.id;
 
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.text.CellName;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;

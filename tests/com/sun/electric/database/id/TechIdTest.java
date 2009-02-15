@@ -26,7 +26,6 @@ package com.sun.electric.database.id;
 
 import com.sun.electric.database.hierarchy.EDatabase;
 
-import com.sun.electric.technology.technologies.Generic;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -38,7 +37,7 @@ import static org.junit.Assert.*;
  * Unit tests of TechId
  */
 public class TechIdTest {
-    
+
     IdManager idManager;
     String techName = "tech";
     TechId techId0;
@@ -84,7 +83,7 @@ public class TechIdTest {
     @Test
     public void basic() {
         System.out.println("hasic");
-        
+
         assertSame(idManager, techId0.idManager);
         assertSame(0, techId0.techIndex);
         assertSame(techName, techId0.techName);
@@ -104,7 +103,7 @@ public class TechIdTest {
         assertSame(p0_A_p, nId0_A.getPortId(0));
         assertEquals("p", p0_A_p.externalId);
         assertEquals("tech:A:p", p0_A_p.toString());
-        
+
         assertSame(idManager, techId2.idManager);
         assertSame(1, techId2.techIndex);
         assertSame("2", techId2.techName);
@@ -118,13 +117,13 @@ public class TechIdTest {
         assertEquals("a", nId2_a.name);
         assertEquals("2:a", nId2_a.fullName);
         assertEquals(0, nId2_a.numPrimitivePortIds());
-        
+
         ArcProtoId aId = techId0.newArcProtoId("A");
         assertSame(aId0_A, aId);
         assertSame(2, techId0.numArcProtoIds());
         assertSame(1, techId0.numPrimitiveNodeIds());
         assertSame(4, techId0.modCount);
-        
+
         aId = techId0.newArcProtoId("B");
         assertEquals("B", aId.name);
         assertEquals("tech:B", aId.fullName);
@@ -135,7 +134,7 @@ public class TechIdTest {
         assertSame(1, techId0.numPrimitiveNodeIds());
         assertSame(5, techId0.modCount);
         assertSame(2, techId2.modCount);
-        
+
         PrimitiveNodeId nId = techId0.newPrimitiveNodeId("a");
         assertSame(2, techId0.numPrimitiveNodeIds());
         assertSame(nId, techId0.getPrimitiveNodeId(1));
@@ -145,11 +144,11 @@ public class TechIdTest {
         assertEquals("tech:a", nId.fullName);
         assertSame(6, techId0.modCount);
         assertSame(2, techId2.modCount);
-        
+
         nId = techId0.newPrimitiveNodeId("A");
         assertSame(nId0_A, nId);
         assertSame(6, techId0.modCount);
-        
+
         PrimitivePortId pId = nId0_A.newPortId("q");
         assertSame(7, techId0.modCount);
         assertSame(2, techId0.numPrimitiveNodeIds());
@@ -159,7 +158,7 @@ public class TechIdTest {
         assertSame(nId0_A, pId.parentId);
         assertEquals("q", pId.externalId);
         assertEquals("tech:A:q", pId.toString());
-        
+
         pId = nId0_A.newPortId("p");
         assertSame(7, techId0.modCount);
         assertSame(p0_A_p, pId);
@@ -173,7 +172,7 @@ public class TechIdTest {
         System.out.println("getArcProtoId bad");
         techId0.getArcProtoId(2);
     }
-    
+
     /**
      * Test of newArcProtoId method, of class TechId.
      */
@@ -200,7 +199,7 @@ public class TechIdTest {
         System.out.println("getPrimitiveNodeId bad");
         techId0.getPrimitiveNodeId(1);
     }
-    
+
     /**
      * Test of newPrimitiveNodeId method, of class TechId.
      */
@@ -227,7 +226,7 @@ public class TechIdTest {
         System.out.println("getPrimitivePortId bad");
         nId0_A.getPortId(1);
     }
-    
+
     /**
      * Test of newPrimtivePortId method, of class TechId.
      */
@@ -254,10 +253,10 @@ public class TechIdTest {
         System.out.println("inDatabase");
         EDatabase database = new EDatabase(idManager);
         assertNull(techId2.inDatabase(database));
-        
+
         TechId genericId = idManager.newTechId("generic");
         assertNull(genericId.inDatabase(database));
-        
+
 //        Generic generic = new Generic(idManager);
 //        database.addTech(generic);
 //        assertSame(generic, genericId.inDatabase(database));
