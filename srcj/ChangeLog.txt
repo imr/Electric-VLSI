@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09c: ******************************
 
+IMP: (2/14/09, DN) ProjSettings class is a mirror of "projsettings.xml".
+   It keeps values, not Settings. Setting logic moved to other classes.
+
 BUG: (2/14/09, DN) TechnologyTest.main doesn't return proper exit code.
 FIX: In TechnologyTest.main set good = true on success.
 

@@ -23,10 +23,11 @@
  */
 package com.sun.electric.tool.user.projectSettings;
 
-import com.sun.electric.database.text.Setting;
-
-import java.util.*;
 import java.io.Serializable;
+import java.util.LinkedHashMap;
+import java.util.Set;
+import java.util.Stack;
+import java.util.TreeSet;
 
 /**
  * A basic class to hold information on project settings.
@@ -54,13 +55,6 @@ class ProjSettingsNode implements Serializable {
 //    private final String key;
     private final String path;
     final LinkedHashMap<String, Object> data = new LinkedHashMap<String,Object>();
-
-    public static class UninitializedPref {
-        public final Object value;
-        public UninitializedPref(Object value) {
-            this.value = value;
-        }
-    }
 
     /**
      * Create a new default proj settings node
@@ -99,38 +93,38 @@ class ProjSettingsNode implements Serializable {
         return data.keySet();
     }
 
-    /**
-     * Set the value for a key.
-     * @param key a string key
-     * @param setting a value
-     */
-    public void putValue(String key, Setting setting) {
-        Object v = data.get(key);
-        Object previousVal = null;
-        if (v instanceof UninitializedPref) {
-            // this overrides pref value, when setting was uninitialized so we couldn't set it before
-            previousVal = ((UninitializedPref)v).value;
-        }
-        data.put(key, setting);
-
-        if (previousVal != null && !equal(previousVal, setting)) {
-            System.out.println("Warning: For key "+key+": project setting value of "+previousVal+" overrides default of "+setting.getValue());
-            setting.set(previousVal);
-        }
-    }
-
-    public Setting getValue(String key) {
-        Object obj = data.get(key);
-        if (obj instanceof Setting)
-            return (Setting)obj;
-        if (obj == null) return null;
-        //prIllegalRequestError(key);
-        return null;
-    }
-
-    public void putNode(String key, ProjSettingsNode node) {
-        data.put(key, node);
-    }
+//    /**
+//     * Set the value for a key.
+//     * @param key a string key
+//     * @param setting a value
+//     */
+//    public void putValue(String key, Setting setting) {
+//        Object v = data.get(key);
+//        Object previousVal = null;
+//        if (v instanceof UninitializedPref) {
+//            // this overrides pref value, when setting was uninitialized so we couldn't set it before
+//            previousVal = ((UninitializedPref)v).value;
+//        }
+//        data.put(key, setting);
+//
+//        if (previousVal != null && !equal(previousVal, setting)) {
+//            System.out.println("Warning: For key "+key+": project setting value of "+previousVal+" overrides default of "+setting.getValue());
+//            setting.set(previousVal);
+//        }
+//    }
+//
+//    public Setting getValue(String key) {
+//        Object obj = data.get(key);
+//        if (obj instanceof Setting)
+//            return (Setting)obj;
+//        if (obj == null) return null;
+//        //prIllegalRequestError(key);
+//        return null;
+//    }
+//
+//    public void putNode(String key, ProjSettingsNode node) {
+//        data.put(key, node);
+//    }
 
     public ProjSettingsNode getNode(String key) {
         Object obj = data.get(key);
@@ -159,22 +153,6 @@ class ProjSettingsNode implements Serializable {
     }
 
     // ----------------------------- Utility ----------------------------------
-
-    /**
-     * Compare a project settings value against a Setting object value.
-     * You can't just use .equals() because the Setting object does
-     * not store booleans as Booleans.
-     * @param value
-     * @param setting
-     * @return true if values equal, false otherwise
-     */
-    public static boolean equal(Object value, Setting setting) {
-        if (value == null || setting.getValue() == null)
-            return false;
-        if (value.getClass() != setting.getValue().getClass())
-            return false;
-        return value.equals(setting.getValue());
-    }
 
     public boolean equals(Object node) {
         if (!(node instanceof ProjSettingsNode)) return false;

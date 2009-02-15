@@ -71,6 +71,7 @@ import com.sun.electric.tool.erc.ERC;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.User;
 
+import com.sun.electric.tool.user.projectSettings.ProjSettings;
 import java.awt.Color;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -1793,12 +1794,6 @@ public class Technology implements Comparable<Technology>, Serializable
 	 */
 	public void setup(EDatabase database)
 	{
-        database.addTech(this);
-
-        // initialize all design rules in the technology (overwrites arc widths)
-        loadTechParams();
-		setStateNow();
-
         if (cacheMinResistance == null || cacheMinCapacitance == null) {
             setFactoryParasitics(10, 0);
         }
@@ -1817,6 +1812,11 @@ public class Technology implements Comparable<Technology>, Serializable
             arcProto.finish();
 
         rootSettings.lock();
+       // initialize all design rules in the technology to Preference values
+        loadTechParams();
+		setStateNow();
+        database.addTech(this);
+
         check();
 	}
 

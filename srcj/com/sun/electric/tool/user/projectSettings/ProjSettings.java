@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.user.projectSettings;
 
-import com.sun.electric.database.hierarchy.EDatabase;
 import org.xml.sax.helpers.DefaultHandler;
 import org.xml.sax.Locator;
 import org.xml.sax.SAXParseException;
@@ -39,6 +38,7 @@ import java.util.Stack;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Setting;
 import com.sun.electric.tool.Job;
@@ -46,7 +46,6 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.OpenFile;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -55,34 +54,60 @@ import java.util.Map;
  */
 public class ProjSettings {
 
-    private static ProjSettingsNode settings = new ProjSettingsNode();
-    private static File lastProjectSettingsFile = null;
+    private static ProjSettings settings;
+    private ProjSettingsNode rootNode = new ProjSettingsNode();
+    private File lastProjectSettingsFile = null;
     private static final String entry = "e";
-    private static final boolean READER_RESETS_DEFAULTS = true;
-    private static final boolean WRITER_WRITES_DEFAULTS = true;
 
-    public static ProjSettingsNode getSettings() {
+    public static ProjSettings getSettings() {
         return settings;
     }
 
-    public static void putValue(Setting setting) {
-        String xmlPath = setting.getXmlPath();
+    public void putValue(String xmlPath, Object value) {
         int pos;
-        ProjSettingsNode node = getSettings();
+        ProjSettingsNode node = rootNode;
         while ((pos = xmlPath.indexOf('.')) >= 0) {
             String key = xmlPath.substring(0, pos);
             node = node.getNode(key);
             xmlPath = xmlPath.substring(pos + 1);
         }
-        node.putValue(xmlPath, setting);
+        node.data.put(xmlPath, value);
     }
 
-    public static void writeSettings(Map<Setting,Object> settings, File file) {
-        write(file.getPath(), getSettings());
+    public Object getValue(String xmlPath) {
+        int pos;
+        ProjSettingsNode node = rootNode;
+        while ((pos = xmlPath.indexOf('.')) >= 0) {
+            String key = xmlPath.substring(0, pos);
+            Object n = node.data.get(key);
+            if (!(n instanceof ProjSettingsNode))
+                return null;
+            node = (ProjSettingsNode)n;
+            xmlPath = xmlPath.substring(pos + 1);
+        }
+        Object v = node.data.get(xmlPath);
+        if (v instanceof ProjSettingsNode)
+            return null;
+        return v;
+    }
+
+    public void putAllSettings(Map<Setting,Object> settings) {
+        for (Map.Entry<Setting,Object> e: settings.entrySet()) {
+            Setting setting = e.getKey();
+            Object value = e.getValue();
+            putValue(setting.getXmlPath(), value);
+        }
+    }
+
+    public static void writeSettings(Map<Setting,Object> addSettings, File file) {
+        if (settings == null)
+            settings = new ProjSettings();
+        settings.putAllSettings(addSettings);
+        settings.write(file.getPath(), settings.rootNode);
     }
 
     public static File getLastProjectSettingsFile() {
-        return lastProjectSettingsFile;
+        return settings != null ? settings.lastProjectSettingsFile : null;
     }
 
     /**
@@ -92,17 +117,38 @@ public class ProjSettings {
      * false to disallow and warn if different.
      */
     public static void readSettings(File file, EDatabase database, boolean allowOverride) {
-        if (lastProjectSettingsFile == null) allowOverride = true;
-
-        ReadResult result = read(file.getPath(), allowOverride);
-        if (result == ReadResult.ERROR) return;
-
-        if (result == ReadResult.CONFLICTS && lastProjectSettingsFile != null) {
+        ProjSettings newSettings = read(file);
+        if (newSettings == null) return;
+        System.out.println("Read Project Settings from "+file);
+        if (settings == null) allowOverride = true;
+        if (newSettings.commit(database, allowOverride) && settings != null) {
+            File oldFile = settings.lastProjectSettingsFile;
             String message = "Warning: Project Settings conflicts;" + (allowOverride ? "" : " ignoring new settings.") + " See messages window";
             Job.getUserInterface().showInformationMessage(message, "Project Settings Conflict");
-            System.out.println("Project Setting conflicts found: "+lastProjectSettingsFile.getPath()+" vs "+file.getPath());
+            System.out.println("Project Setting conflicts found: "+oldFile.getPath()+" vs "+file.getPath());
         }
-        lastProjectSettingsFile = file;
+        settings = newSettings;
+    }
+
+    private boolean commit(EDatabase database, boolean allowOverride) {
+        Setting.SettingChangeBatch commitBatch = new Setting.SettingChangeBatch();
+        for (Map.Entry<Setting,Object> e: database.getSettings().entrySet()) {
+            Setting setting = e.getKey();
+            Object oldVal = e.getValue();
+            Object xmlVal = getValue(setting.getXmlPath());
+            if (xmlVal == null)
+                xmlVal = setting.getFactoryValue();
+            if (xmlVal.equals(oldVal)) continue;
+            if (allowOverride) {
+                System.out.println("Warning: Setting \""+setting.getPrefName()+"\" set to "+xmlVal+", overrides current value of "+oldVal);
+            } else {
+                System.out.println("Warning: Setting \""+setting.getPrefName()+"\" retains current value of "+oldVal+", while ignoring projectsettings.xml value of "+xmlVal);
+            }
+            commitBatch.add(setting, xmlVal);
+        }
+        if (allowOverride)
+            database.implementSettingChanges(commitBatch);
+        return !commitBatch.changesForSettings.isEmpty();
     }
 
     /**
@@ -147,9 +193,13 @@ public class ProjSettings {
         }
     }
 
-    // ----------------------------- Private -------------------------------
+    // ------------------------- ProjSettings Writer ----------------------------
 
-    private static void write(String file, ProjSettingsNode node) {
+    public void write(String file) {
+        write(file, rootNode);
+    }
+
+    private void write(String file, ProjSettingsNode node) {
         File ofile = new File(file);
         Writer wr = new Writer(ofile);
         if (wr.write("ProjectSettings", node)) {
@@ -158,16 +208,6 @@ public class ProjSettings {
         }
         wr.close();
     }
-
-    // return false if error reading file
-    private static ReadResult read(String file, boolean allowOverride) {
-        Reader rd = new Reader(TextUtils.makeURLToFile(file));
-        ReadResult r = rd.read(allowOverride);
-        System.out.println("Read Project Settings from "+file);
-        return r;
-    }
-
-    // ------------------------- ProjSettings Writer ----------------------------
 
     private static class Writer {
         private File file;
@@ -235,17 +275,8 @@ public class ProjSettings {
             if (value instanceof ProjSettingsNode) {
                 ProjSettingsNode node = (ProjSettingsNode)value;
                 writeNode(key, node);
-            } else if (value instanceof Setting) {
-                Setting setting = (Setting)value;
-                Object val = setting.getValue();
-                if (WRITER_WRITES_DEFAULTS || !setting.getFactoryValue().equals(val))
-                    writeValue(key, val);
-            } else if (value instanceof ProjSettingsNode.UninitializedPref) {
-                ProjSettingsNode.UninitializedPref pref = (ProjSettingsNode.UninitializedPref)value;
-                writeValue(key, pref.value);
             } else {
-                System.out.println("Ignoring unsupported class "+value.getClass().getName()+" for key "+key+
-                        " in project settings");
+                writeValue(key, value);
             }
         }
 
@@ -284,28 +315,27 @@ public class ProjSettings {
 
     // ------------------------- ProjSettings Reader ----------------------------
 
-    private enum ReadResult { OK, CONFLICTS, ERROR };
+    public static ProjSettings read(File file) {
+        Reader rd = new Reader(file);
+        return rd.read();
+    }
 
     private static class Reader extends DefaultHandler {
         private URL url;
         private Stack<ProjSettingsNode> context;
         private Locator locator;
-        private boolean allowOverride;
-        private boolean differencesFound;
-        private HashMap<Setting,Object> settings = new HashMap<Setting,Object>();
+        private ProjSettings settings = new ProjSettings();
 
         private static final boolean DEBUG = false;
 
-        private Reader(URL url) {
-            this.url = url;
+        private Reader(File file) {
+            this.url = TextUtils.makeURLToFile(file.getPath());
+            settings.lastProjectSettingsFile = file;
             this.context = new Stack<ProjSettingsNode>();
             this.locator = null;
-            allowOverride = true;
-            differencesFound = false;
         }
 
-        private ReadResult read(boolean allowOverride) {
-            this.allowOverride = allowOverride;
+        private ProjSettings read() {
             try {
                 SAXParserFactory factory = SAXParserFactory.newInstance();
                 factory.setValidating(true);
@@ -313,12 +343,7 @@ public class ProjSettings {
                 URLConnection conn = url.openConnection();
                 InputStream is = conn.getInputStream();
                 factory.newSAXParser().parse(is, this);
-                if (READER_RESETS_DEFAULTS)
-                    commit(ProjSettings.getSettings());
-                else
-                    commit0();
-                if (differencesFound) return ReadResult.CONFLICTS;
-                return ReadResult.OK;
+                return settings;
             } catch (IOException e) {
                 System.out.println("Error reading file "+url.toString()+": "+e.getMessage());
             } catch (SAXParseException e) {
@@ -329,9 +354,10 @@ public class ProjSettings {
             } catch (SAXException e) {
                 System.out.println("Exception reading file "+url.toString()+": "+e.getMessage());
             }
-            return ReadResult.ERROR;
+            return null;
         }
 
+        @Override
         public void startElement(String uri, String localName, String qName, Attributes attributes)
             throws SAXException {
 
@@ -345,7 +371,7 @@ public class ProjSettings {
             if (qName.equals("node")) {
                 if (context.isEmpty()) {
                     // first node is root node
-                    context.push(ProjSettings.getSettings());
+                    context.push(settings.rootNode);
                 } else {
                     ProjSettingsNode node = context.peek().getNode(key);
                     if (node == null)
@@ -362,7 +388,6 @@ public class ProjSettings {
                 ProjSettingsNode currentNode = context.peek();
                 String valueStr = null;
                 Object value = null;
-                Setting setting = currentNode.getValue(key);
                 try {
                     if ((valueStr = attributes.getValue("string")) != null)
                         value = valueStr;
@@ -379,12 +404,8 @@ public class ProjSettings {
                 } catch (NumberFormatException e) {
                     System.out.println("Error converting "+valueStr+" to a number at line "+locator.getLineNumber()+": "+e.getMessage());
                 }
-                if (value != null) {
-                    if (setting != null) {
-                        settings.put(setting, value);
-                    } else if (allowOverride)
-                        currentNode.put(key, new ProjSettingsNode.UninitializedPref(value));
-                }
+                if (value != null)
+                    currentNode.put(key, value);
             }
 
             if (DEBUG) {
@@ -396,42 +417,7 @@ public class ProjSettings {
             }
         }
 
-        private void commit(ProjSettingsNode node) {
-            for (Object v: node.data.values()) {
-                if (v instanceof Setting) {
-                    Setting setting = (Setting)v;
-                    Object value = settings.get(setting);
-                    if (value == null)
-                        value = setting.getFactoryValue();
-                    prDiff(setting, setting.getValue(), value, allowOverride);
-                    if (allowOverride) setting.set(value);
-                } else if (v instanceof ProjSettingsNode) {
-                    commit((ProjSettingsNode)v);
-                }
-            }
-        }
-
-        private boolean commit0() {
-            for (Map.Entry<Setting,Object> e: settings.entrySet()) {
-                Setting setting = e.getKey();
-                Object value = e.getValue();
-                prDiff(setting, setting.getValue(), value, allowOverride);
-                if (allowOverride) setting.set(value);
-            }
-            return differencesFound;
-
-        }
-
-        private void prDiff(Setting setting, Object prefVal, Object xmlVal, boolean allowOverride) {
-            if (!ProjSettingsNode.equal(xmlVal, setting)) {
-                differencesFound = true;
-                if (allowOverride)
-                    System.out.println("Warning: Setting \""+setting.getPrefName()+"\" set to "+xmlVal+", overrides current value of "+prefVal);
-                else
-                    System.out.println("Warning: Setting \""+setting.getPrefName()+"\" retains current value of "+prefVal+", while ignoring projectsettings.xml value of "+xmlVal);
-            }
-        }
-
+        @Override
         public void endElement(String uri, String localName, String qName) throws SAXException {
             if (qName.equals("node")) {
                 // pop node context
@@ -445,6 +431,7 @@ public class ProjSettings {
             }
         }
 
+        @Override
         public void setDocumentLocator(Locator locator) {
             this.locator = locator;
         }
@@ -474,35 +461,7 @@ public class ProjSettings {
     }
 
     public static void test() {
-        write("/tmp/projsettings.xml", getSettings());
-        read("/tmp/projsettings.xml", false);
-    }
-
-/*
-    public static void test2() {
-        ProjSettingsNode node = new ProjSettingsNode();
-        node.putInteger("an int", 1);
-        node.putString("a string", "this is a string");
-        ProjSettingsNode node2 = new ProjSettingsNode();
-        node.putNode("node2", node2);
-        node2.putDouble("a double", 43.56);
-        node2.putBoolean("a boolean", true);
-        ProjSettingsNode node3 = new TestExtendNode();
-        node2.putNode("extended node", node3);
-        node3.putLong("a long", 302030049);
-        node3.putString("a string", "some string");
-
-        write("/tmp/projsettings.xml", node);
-        ProjSettingsNode readNode = read("/tmp/projsettings.xml");
-        if (node.printDifferences(readNode)) {
-            System.out.println("Node read does not match node written");
-        } else {
-            System.out.println("Node read matches node written");
-        }
-    }
-*/
-
-    protected static class TestExtendNode extends ProjSettingsNode {
-
+//        settings.write("/tmp/projsettings.xml", settings.rootNode);
+//        readSettings(new File("/tmp/projsettings.xml"), false);
     }
 }

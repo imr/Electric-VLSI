@@ -35,9 +35,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 /**
@@ -275,6 +277,39 @@ public class Setting {
          */
         public void lock() {
             locked = true;
+            loadValues();
+        }
+        
+        private void loadValues() {
+            ProjSettings projSettings = ProjSettings.getSettings();
+            if (projSettings != null) {
+                HashSet<Preferences> flushSet = new HashSet<Preferences>();
+                for (Setting setting: getSettings()) {
+                    Object psVal = projSettings.getValue(setting.getXmlPath());
+                    if (psVal == null)
+                        psVal = setting.getFactoryValue();
+                    if (psVal.equals(setting.getValue()))
+                        continue;
+                    if (psVal.getClass() != setting.getValue().getClass()) {
+                        System.out.println("Warning: Value type mismatch for key " + setting.getXmlPath() + ": " +
+                                psVal.getClass().getName() + " vs " + setting.getValue().getClass().getName());
+                        continue;
+                    }
+                    System.out.println("Warning: For key "+setting.getXmlPath()+": project setting value of "+psVal+" overrides default of "+setting.getValue());
+                    setting.currentObj = psVal.equals(setting.factoryObj) ? setting.factoryObj : psVal;
+                    setting.saveToPreferences(psVal);
+                    flushSet.add(setting.prefs);
+                }
+                for (Preferences preferences: flushSet) {
+                    try {
+                        preferences.flush();
+                    } catch (BackingStoreException e) {
+                    }
+                }
+            } else {
+               for (Setting setting: getSettings())
+                    setting.setCachedObjFromPreferences();
+            }
         }
 
         /**
@@ -350,9 +385,6 @@ public class Setting {
         this.description = description;
         this.location = location;
         this.trueMeaning = trueMeaning != null && trueMeaning.length > 0 ? trueMeaning.clone() : null;
-        setCachedObjFromPreferences();
-        ProjSettings.putValue(this);
-//        xmlNode.putValue(xmlName, this);
     }
 
     /**

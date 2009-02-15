@@ -103,6 +103,8 @@ public class Tool implements Comparable
 		tools.put(toolName, this);
         settings = ToolSettings.getToolSettings(settingGroupName);
         prefs = Pref.groupForPackage(this.getClass());  // per-package namespace for preferences
+        for (Setting setting: settings.getSettings())
+            assert setting.getPrefPath().equals(prefs.absolutePath() + "/" + setting.getPrefName()); 
 	}
 
 	private void updateListeners()
