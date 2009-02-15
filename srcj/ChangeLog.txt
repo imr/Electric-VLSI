@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09c: ******************************
 
+BUG: (2/14/09, DN) TechnologyTest.main doesn't return proper exit code.
+FIX: In TechnologyTest.main set good = true on success.
+
 IMP: (2/12/09, DN) Partial commit from twoJvm branch: Technology.loadTechParams .
 
 IMP: (2/12/09, DN) Partial commit from twoJvm branch: Setting.Group .
