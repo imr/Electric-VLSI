@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09c: ******************************
 
+BUG: (2/15/06, DN) The MinSizeRule of "cmos90:A-Metal-1-N-Active-Con" and "cmos90:A-Metal-1-P-Active-Con"
+  is different in TSMC and ST foundries though NoedLayers are the same.
+FIX: In ST90DRCDeck.xml add A-Metal-1-N-Active-Con and A-Metal-1-P-Active-Con to NODSIZ rule.
+     Change numbers in DRCToolTest.basicPrimitiveTest.
+
 IMP: (2/14/09, DN) ProjSettings class is a mirror of "projsettings.xml".
    It keeps values, not Settings. Setting logic moved to other classes.
 
