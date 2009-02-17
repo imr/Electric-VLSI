@@ -132,6 +132,24 @@ public class Extract extends Tool
 	 */
 	public static boolean isFactoryApproximateCuts() { return cacheApproximateCuts.getBooleanFactoryValue(); }
 
+	private static Pref cacheIgnoreTinyPolygons = Pref.makeBooleanPref("IgnoreTinyPolygons", Extract.tool.prefs, false);
+	/**
+	 * Method to tell whether the node extractor should ignore tiny polygons.
+	 * The default is "false".
+	 * @return true if the node extractor should ignore tiny polygons
+	 */
+	public static boolean isIgnoreTinyPolygons() { return cacheIgnoreTinyPolygons.getBoolean(); }
+	/**
+	 * Method to set whether the node extractor should ignore tiny polygons.
+	 * @param a true if the node extractor should ignore tiny polygons.
+	 */
+	public static void setIgnoreTinyPolygons(boolean a) { cacheIgnoreTinyPolygons.setBoolean(a); }
+	/**
+	 * Method to tell whether the node extractor should ignore tiny polygons, by default.
+	 * @return true if the node extractor should ignore tiny polygons, by default.
+	 */
+	public static boolean isFactoryIgnoreTinyPolygons() { return cacheIgnoreTinyPolygons.getBooleanFactoryValue(); }
+
 	private static Pref cacheSmallestPolygonSize = Pref.makeDoublePref("SmallestPolygonSize", Extract.tool.prefs, 0.25);
 	/**
 	 * Method to return the size of the smallest polygon to extract.

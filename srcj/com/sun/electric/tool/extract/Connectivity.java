@@ -169,7 +169,7 @@ public class Connectivity
 			this.cell = cell;
 			this.recursive = recursive;
 			this.errorLogger = ErrorLogger.newInstance("Extraction Tool on cell " + cell.getName());
-			smallestPolygonSize = Extract.getSmallestPolygonSize();
+			smallestPolygonSize = Extract.isIgnoreTinyPolygons() ? Extract.getSmallestPolygonSize() : 0;
 			activeHandling = Extract.getActiveHandling();
 			expansionPattern = Extract.getCellExpandPattern().trim();
 			gridAlignExtraction = Extract.isGridAlignExtraction();

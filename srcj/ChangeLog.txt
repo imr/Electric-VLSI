@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09c: ******************************
 
+BUG: (2/17/09, SMR) Node extraction should not ignore tiny polygons by default (Bug #2046).
+FIX: In Network preferences, polygon ignoring is a checkbox.
+
 BUG: (2/16/09, SMR) Hierarchical node extraction not working (Bug #2048).
 FIX: Implant analysis was not working hierarchically, causing incorrect implant assumptions.
 
