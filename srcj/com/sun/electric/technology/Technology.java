@@ -132,7 +132,6 @@ import javax.swing.SwingUtilities;
 public class Technology implements Comparable<Technology>, Serializable
 {
 	/** true to test extra vias in menu. */
-    public static final boolean TESTSURROUNDOVERRIDE_A = false;
     public static final boolean TESTSURROUNDOVERRIDE_B = false;
 
 	/** true to allow outlines to have "breaks" with multiple pieces in them */
@@ -506,7 +505,7 @@ public class Technology implements Comparable<Technology>, Serializable
 		private double lWidth, rWidth, extentT, extendB;
         private long cutGridSizeX, cutGridSizeY, cutGridSep1D, cutGridSep2D;
         String sizeRule, cutSep1DRule, cutSep2DRule;
-        private ERectangle[] customOverrides;
+        private CustomOverride[] customOverrides;
         private int customOverrideMask;
         private int customOverrideShift;
 
@@ -818,7 +817,50 @@ public class Technology implements Comparable<Technology>, Serializable
         public double getMulticutSep1D() { return DBMath.gridToLambda(cutGridSep1D); }
         public double getMulticutSep2D() { return DBMath.gridToLambda(cutGridSep2D); }
 
-        public void setCustomOverride(int mask, int shift, ERectangle[] overrides) {
+        /**
+         * Class to define custom overrides to the size of a NodeLayer.
+         * The use of the custom override is indexed by the techSpecific field
+         * on the NodeInst.
+         */
+        public static class CustomOverride
+        {
+        	private ERectangle rect;
+        	private String name;
+
+        	public CustomOverride(double lX, double lY, double width, double height, String name)
+        	{
+        		rect = ERectangle.fromLambda(lX, lY, width, height);
+        		this.name = name;
+        	}
+
+        	public ERectangle getRect() { return rect; }
+
+        	public String getName() { return name; }
+        }
+
+        /**
+         * Method to return the number of custom overrides on this NodeLayer.
+         * CustomOverrides are changes to the shape of the NodeLayer that are
+         * selected by the "techSpecific" bits on the NodeInst.
+         * @return the number of custom overrides on this NodeLayer.
+         */
+        public int getNumCustomOverrides() { return customOverrides == null ? 0 : customOverrides.length; }
+
+        public CustomOverride getCustomOverride(int i) { return customOverrides[i]; }
+
+        public int getCustomOverrideMask() { return customOverrideMask; }
+
+        public int getCustomOverrideShift() { return customOverrideShift; }
+
+        /**
+         * Method to set the custom overrides on this NodeLayer.
+         * @param mask bits in the techSpecific field of the NodeInst that
+         * select the custom override.
+         * @param shift right-shift of the bits in the techSpecific field to get the
+         * proper custom override value.
+         * @param overrides the array of CustomOverrides.
+         */
+        public void setCustomOverride(int mask, int shift, CustomOverride[] overrides) {
             customOverrides = overrides.clone();
             customOverrideMask = mask;
             customOverrideShift = shift;
@@ -3601,23 +3643,13 @@ public class Technology implements Comparable<Technology>, Serializable
 		SerpentineTrans std = null;
 		if (np.hasMultiCuts())
 		{
-            if (TESTSURROUNDOVERRIDE_A) {
-                NodeLayer mcLayer = np.findMulticut();
-                if (mcLayer != null)
-                {
-                    mcd = new MultiCutData(ni.getD(), fullRectangle, mcLayer);
-                    if (reasonable) numExtraLayers += (mcd.cutsReasonable - 1); else
-                        numExtraLayers += (mcd.cutsTotal - 1);
-                }
-            } else {
-               for (NodeLayer nodeLayer: primLayers) {
-                   if (nodeLayer.representation == NodeLayer.MULTICUTBOX) {
-                       mcd = new MultiCutData(ni.getD(), fullRectangle, nodeLayer);
-                       if (reasonable) numExtraLayers += (mcd.cutsReasonable - 1); else
-                           numExtraLayers += (mcd.cutsTotal - 1);
-                   }
+           for (NodeLayer nodeLayer: primLayers) {
+               if (nodeLayer.representation == NodeLayer.MULTICUTBOX) {
+                   mcd = new MultiCutData(ni.getD(), fullRectangle, nodeLayer);
+                   if (reasonable) numExtraLayers += (mcd.cutsReasonable - 1); else
+                       numExtraLayers += (mcd.cutsTotal - 1);
                }
-            }
+           }
 		} else if (specialType == PrimitiveNode.SERPTRANS)
 		{
 			std = new SerpentineTrans(ni.getD(), np, primLayers);
@@ -3642,26 +3674,8 @@ public class Technology implements Comparable<Technology>, Serializable
 
         double xCenter = ni.getAnchorCenterX();
         double yCenter = ni.getAnchorCenterY();
-// 			double xCenter = ni.getTrueCenterX();
-// 			double yCenter = ni.getTrueCenterY();
         double xSize = ni.getXSize();
         double ySize = ni.getYSize();
-
-        // determine upper and lower metal layers if appropriate
-        int lowMetalIndex = -1, highMetalIndex = -1;
-		if (mcd != null && mcd.isOverrideMetalSurround())
-		{
-			int lowMetal = numBasicLayers;
-			int highMetal = -1;
-			for(int i = 0; i < numBasicLayers; i++)
-			{
-				Technology.NodeLayer primLayer = primLayers[i];
-				int level = primLayer.getLayer().getFunction().getLevel();
-				if (level == 0) continue;
-				if (level > highMetal) { highMetal = level;   highMetalIndex = i; }
-				if (level < lowMetal) { lowMetal = level;   lowMetalIndex = i; }
-			}
-		}
 
 		// add in the basic polygons
 		int fillPoly = 0;
@@ -3679,27 +3693,13 @@ public class Technology implements Comparable<Technology>, Serializable
 				double portHighX = xCenter + rightEdge.getMultiplier() * xSize + rightEdge.getAdder();
 				double portLowY = yCenter + bottomEdge.getMultiplier() * ySize + bottomEdge.getAdder();
 				double portHighY = yCenter + topEdge.getMultiplier() * ySize + topEdge.getAdder();
-				if (TESTSURROUNDOVERRIDE_A && mcd != null)
-				{
-					if (i == lowMetalIndex)
-					{
-						portLowX += mcd.getLowerMetalDeltaLX();
-						portHighX += mcd.getLowerMetalDeltaHX();
-						portLowY += mcd.getLowerMetalDeltaLY();
-						portHighY += mcd.getLowerMetalDeltaHY();
-					} else if (i == highMetalIndex)
-					{
-						portLowX += mcd.getUpperMetalDeltaLX();
-						portHighX += mcd.getUpperMetalDeltaHX();
-						portLowY += mcd.getUpperMetalDeltaLY();
-						portHighY += mcd.getUpperMetalDeltaHY();
-					}
-				}
-                if (TESTSURROUNDOVERRIDE_B) {
+                if (TESTSURROUNDOVERRIDE_B)
+                {
                     int techBits = ni.getTechSpecific() & primLayer.customOverrideMask;
-                    if (techBits != 0) {
+                    if (techBits != 0)
+                    {
                         int index = (techBits >> primLayer.customOverrideShift) - 1;
-                        ERectangle override = primLayer.customOverrides[index];
+                        ERectangle override = primLayer.customOverrides[index].getRect();
 						portLowX += override.getLambdaMinX();
 						portHighX += override.getLambdaMaxX();
 						portLowY += override.getLambdaMinY();
@@ -3726,9 +3726,7 @@ public class Technology implements Comparable<Technology>, Serializable
 				}
 				polys[fillPoly] = new Poly(pointList);
 			} else if (representation == Technology.NodeLayer.MULTICUTBOX) {
-                if (!TESTSURROUNDOVERRIDE_A) {
-                    mcd = new MultiCutData(ni.getD(), fullRectangle, primLayer);
-                }
+                mcd = new MultiCutData(ni.getD(), fullRectangle, primLayer);
                 Poly.Type style = primLayer.getStyle();
                 PortProto port = null;
                 if (electrical) port = np.getPort(0);

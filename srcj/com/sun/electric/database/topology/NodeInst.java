@@ -62,6 +62,7 @@ import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.TransistorSize;
+import com.sun.electric.technology.Technology.NodeLayer;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
@@ -2908,27 +2909,50 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 */
 	public String getTechSpecificAddition()
 	{
-		if (protoType instanceof PrimitiveNode && ((PrimitiveNode)protoType).isTechSpecific())
+		if (protoType instanceof PrimitiveNode)
 		{
-			String description = protoType.describe(false);
-			PrimitiveNode.Function fun = getFunction();
-			String funName = fun.getName();
-			String funNameLC = funName.toLowerCase();
-			String descLC = description.toLowerCase();
-			if (!descLC.equals(funNameLC))
+			PrimitiveNode pNp = (PrimitiveNode)protoType;
+			if (pNp.isTechSpecific())
 			{
-				if (funNameLC.startsWith(descLC))
+				String description = protoType.describe(false);
+				PrimitiveNode.Function fun = getFunction();
+				String funName = fun.getName();
+				String funNameLC = funName.toLowerCase();
+				String descLC = description.toLowerCase();
+				if (!descLC.equals(funNameLC))
 				{
-					funName = funName.substring(description.length());
-					if (funName.startsWith("-")) funName = funName.substring(1);
+					if (funNameLC.startsWith(descLC))
+					{
+						funName = funName.substring(description.length());
+						if (funName.startsWith("-")) funName = funName.substring(1);
+					}
+					if (funNameLC.endsWith(descLC))
+					{
+						funName = funName.substring(0, funName.length()-description.length());
+						if (funName.endsWith("-")) funName = funName.substring(0, funName.length()-1);
+					}
+					return funName;
 				}
-				if (funNameLC.endsWith(descLC))
-				{
-					funName = funName.substring(0, funName.length()-description.length());
-					if (funName.endsWith("-")) funName = funName.substring(0, funName.length()-1);
-				}
-				return funName;
 			}
+
+            if (Technology.TESTSURROUNDOVERRIDE_B)
+            {
+				// special case if tech-specific bits are set
+				if (getD().techBits != 0)
+				{
+					NodeLayer[] nLayers = pNp.getLayers();
+					for(int i=0; i<nLayers.length; i++)
+					{
+						NodeLayer nLay = nLayers[i];
+						if (nLay.getNumCustomOverrides() > 0)
+						{
+							int thisOverrideNumber = (getD().techBits & nLay.getCustomOverrideMask()) >> nLay.getCustomOverrideShift();
+							if (thisOverrideNumber <= nLay.getNumCustomOverrides())
+								return nLay.getCustomOverride(thisOverrideNumber-1).getName();
+						}
+					}				
+				}
+            }
 		}
 		return "";
 	}

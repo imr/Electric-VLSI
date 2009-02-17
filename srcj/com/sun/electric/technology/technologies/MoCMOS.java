@@ -1597,14 +1597,14 @@ public class MoCMOS extends Technology
             for (int i = 0; i < metalContactNodes.length; i++) {
                 PrimitiveNode metalContactNode = metalContactNodes[i];
                 NodeLayer lowMetal = metalContactNode.findNodeLayer(metalLayers[i], false);
-                lowMetal.setCustomOverride(0x0C, 2, new ERectangle[] {
-                    ERectangle.fromLambda(-3, 0, 6, 0), // x[-3,3] y[0,0]
-                    ERectangle.fromLambda(0, 0, -1, 0)  // x[0,-1] y[0,0]
+                lowMetal.setCustomOverride(0x0C, 2, new NodeLayer.CustomOverride[] {
+                	new NodeLayer.CustomOverride(-3, 0, 6, 0, "X"), // x[-3,3] y[0,0]
+                	new NodeLayer.CustomOverride(0, 0, -1, 0, "R")  // x[0,-1] y[0,0]
                  });
                 NodeLayer highMetal = metalContactNode.findNodeLayer(metalLayers[i+1], false);
-                highMetal.setCustomOverride(0x30, 4, new ERectangle[] {
-                    ERectangle.fromLambda(0, -4, 0, 8), // x[0,0] y[-4,4]
-                    ERectangle.fromLambda(0, 0, -1, 0)  // x[0,-1] y[0,0]
+                highMetal.setCustomOverride(0x0C, 2, new NodeLayer.CustomOverride[] {
+                	new NodeLayer.CustomOverride(0, -4, 0, 8, "X"), // x[0,0] y[-4,4]
+                	new NodeLayer.CustomOverride(0, 0, -1, 0, "R")  // x[0,-1] y[0,0]
                 });
             }
         }
@@ -1835,43 +1835,39 @@ public class MoCMOS extends Technology
         	factoryNodeGroups[count][2] = null;
         	if (i < metalArcs.length - 1)
         	{
-        		if (TESTSURROUNDOVERRIDE_A || TESTSURROUNDOVERRIDE_B)
-        		{
+                if (TESTSURROUNDOVERRIDE_B)
+                {
         			// experiment in surround overrides (comment out for normal use)
         			tmp = new ArrayList<Object>();
         			factoryNodeGroups[count][2] = tmp;
         			tmp.add(metalContactNodes[i]);
 
-                    if (TESTSURROUNDOVERRIDE_A) {
-                        // cross configuration
-                        NodeInst overrideNode = makeNodeInst(metalContactNodes[i], metalContactNodes[i].getFunction(), 0, false,
-                            metalContactNodes[i].getName()+"-XA", 5.5);
-                        Double [] surroundOffsets = new Double[] {new Double(-3), new Double(3), new Double(0), new Double(0),
-                            new Double(0), new Double(0), new Double(-4), new Double(4)};
-                        overrideNode.newVar(NodeLayer.METAL_OFFSETS, surroundOffsets);
-                        tmp.add(overrideNode);
-
-                        // flat on right configuration
-                        overrideNode = makeNodeInst(metalContactNodes[i], metalContactNodes[i].getFunction(), 0, false,
-                            metalContactNodes[i].getName()+"-RA", 5.5);
-                        surroundOffsets = new Double[] {new Double(0), new Double(-1), new Double(0), new Double(0),
-                            new Double(0), new Double(-1), new Double(0), new Double(0)};
-                        overrideNode.newVar(NodeLayer.METAL_OFFSETS, surroundOffsets);
-                        tmp.add(overrideNode);
-                    }
-                    if (TESTSURROUNDOVERRIDE_B) {
-                        // cross configuration
-                        NodeInst overrideNode = makeNodeInst(metalContactNodes[i], metalContactNodes[i].getFunction(), 0, false,
-                            metalContactNodes[i].getName()+"-XB", 5.5);
-                        overrideNode.setTechSpecific(0x04|0x10);
-                        tmp.add(overrideNode);
-
-                        // flat on right configuration
-                        overrideNode = makeNodeInst(metalContactNodes[i], metalContactNodes[i].getFunction(), 0, false,
-                            metalContactNodes[i].getName()+"-RB", 5.5);
-                        overrideNode.setTechSpecific(0x08|0x20);
-                        tmp.add(overrideNode);
-                    }
+                	NodeLayer[] nLayers = metalContactNodes[i].getLayers();
+                	for(int j=0; i<nLayers.length; j++)
+                	{
+                		NodeLayer nLay = nLayers[j];
+                		int nc = nLay.getNumCustomOverrides();
+                		for(int k=0; k<nc; k++)
+                		{
+                			NodeLayer.CustomOverride co = nLay.getCustomOverride(k);
+                            NodeInst overrideNode = makeNodeInst(metalContactNodes[i], metalContactNodes[i].getFunction(), 0, false,
+                                metalContactNodes[i].getName() + "-" + co.getName(), 5.5);
+                            overrideNode.setTechSpecific((k+1) << nLay.getCustomOverrideShift());
+                            tmp.add(overrideNode);
+                		}
+                		if (nc > 0) break;
+                	}
+//                    // cross configuration
+//                    NodeInst overrideNode = makeNodeInst(metalContactNodes[i], metalContactNodes[i].getFunction(), 0, false,
+//                        metalContactNodes[i].getName()+"-XB", 5.5);
+//                    overrideNode.setTechSpecific(0x04|0x10);
+//                    tmp.add(overrideNode);
+//
+//                    // flat on right configuration
+//                    overrideNode = makeNodeInst(metalContactNodes[i], metalContactNodes[i].getFunction(), 0, false,
+//                        metalContactNodes[i].getName()+"-RB", 5.5);
+//                    overrideNode.setTechSpecific(0x08|0x20);
+//                    tmp.add(overrideNode);
         		} else
         		{
         			factoryNodeGroups[count][2] = metalContactNodes[i];
