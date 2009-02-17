@@ -121,7 +121,9 @@ public class Connectivity
 	/** list of Exports to restore after extraction */			private List<Export> exportsToRestore;
 	/** true if this is a P-well process (presume P-well) */	private boolean pWellProcess;
 	/** true if this is a N-well process (presume N-well) */	private boolean nWellProcess;
+	/** helper variables for computing N/P process factors */	private boolean hasWell, hasPWell, hasNWell;
 	/** true to unify N and P active layers */					private boolean unifyActive;
+	/** helper variables for computing N and P active unify */	private boolean haveNActive, havePActive;
 	/** true to ignore select/well around active layers */		private boolean ignoreActiveSelectWell;
 	/** true to grid align the extracted geometry */			private boolean gridAlignExtraction;
 	/** true to approximate cut placement */					private boolean approximateCuts;
@@ -197,6 +199,10 @@ public class Connectivity
 				addedBatchNames = new ArrayList<String>();
 			}
 			Job.getUserInterface().startProgressDialog("Extracting", null);
+
+			// determine if this is a "P-well" or "N-well" process
+			c.findMissingWells(cell, recursive, pat, activeHandling);
+
 			newCell = c.doExtract(cell, recursive, pat, true, this, addedBatchRectangles, addedBatchLines, addedBatchNames);
 			Job.getUserInterface().stopProgressDialog();
 			fieldVariableChanged("addedBatchRectangles");
@@ -274,34 +280,6 @@ public class Connectivity
 				validLayers = true;
 			}
 			if (!validLayers) ignoreNodes.add(np);
-		}
-
-		// see how active layers should be handled
-		unifyActive = (activeHandling == 1);
-		ignoreActiveSelectWell = (activeHandling == 2);
-		if (!unifyActive)
-		{
-			boolean haveNActive = false, havePActive = false;
-			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
-			{
-				NodeInst ni = it.next();
-				if (ni.isCellInstance()) continue;
-				Poly[] polys = ni.getProto().getTechnology().getShapeOfNode(ni);
-				for(int i=0; i<polys.length; i++)
-				{
-					Layer layer = polys[i].getLayer();
-					if (layer == null) continue;
-					if (!layer.getFunction().isDiff()) continue;
-					if (layer.getFunction() == Layer.Function.DIFFN) haveNActive = true;
-					if (layer.getFunction() == Layer.Function.DIFFP) havePActive = true;
-				}
-				if (haveNActive && havePActive) break;
-			}
-			if (!haveNActive || !havePActive)
-			{
-				System.out.println("Found only one type of active layer...unifying all active layers");
-				unifyActive = true;
-			}
 		}
 
 		// find important layers
@@ -440,9 +418,6 @@ public class Connectivity
 				System.out.print(" " + c.describe(false));
 			System.out.println();
 		}
-
-		// determine if this is a "P-well" or "N-well" process
-		findMissingWells(merge);
 
 		// now remember the original merge
 		PolyMerge originalMerge = new PolyMerge();
@@ -758,20 +733,16 @@ public class Connectivity
 
 	/**
 	 * Method to determine if this is a "p-well" or "n-well" process.
-	 * Examines the merge to see which well layers are found.
-	 * @param merge the merged geometry.
+	 * Examines the top-level cell to see which well layers are found.
+	 * @param cell the top-level Cell.
+	 * @param recursive true to examine recursively.
+	 * @param pat an exclusion pattern for cell names.
 	 */
-	private void findMissingWells(PolyMerge merge)
+	private void findMissingWells(Cell cell, boolean recursive, Pattern pat, int activeHandling)
 	{
-		boolean hasPWell = false, hasNWell = false, hasWell = false;
-
-		for (Layer layer : merge.getKeySet())
-		{
-			Layer.Function fun = layer.getFunction();
-			if (fun == Layer.Function.WELL) hasWell = true;
-			if (fun == Layer.Function.WELLP) hasPWell = true;
-			if (fun == Layer.Function.WELLN) hasNWell = true;
-		}
+		hasWell = hasPWell = hasNWell = false;
+		haveNActive = havePActive = false;
+		recurseMissingWells(cell, recursive, pat);
 		if (!hasPWell)
 		{
 			pWellProcess = true;
@@ -782,6 +753,134 @@ public class Connectivity
 		{
 			nWellProcess = true;
 			System.out.println("Presuming an N-well process");
+		}
+
+		// see how active layers should be handled
+		unifyActive = (activeHandling == 1);
+		ignoreActiveSelectWell = (activeHandling == 2);
+		if (!unifyActive)
+		{
+			if (!haveNActive || !havePActive)
+			{
+				System.out.println("Found only one type of active layer...unifying all active layers");
+				unifyActive = true;
+			}
+		}
+	}
+
+	/**
+	 * Method to recursively invoke "examineCellForMissingWells".
+	 * @param cell the top-level Cell.
+	 * @param recursive true to examine recursively.
+	 * @param pat an exclusion pattern for cell names.
+	 */
+	private void recurseMissingWells(Cell cell, boolean recursive, Pattern pat)
+	{
+		examineCellForMissingWells(cell);
+		if (recursive)
+		{
+			// first see if subcells need to be converted
+			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
+			{
+				NodeInst ni = it.next();
+				if (ni.isCellInstance())
+				{
+					Cell subCell = (Cell)ni.getProto();
+
+					// do not recurse if this subcell will be expanded
+					if (pat != null)
+					{
+						Matcher mat = pat.matcher(subCell.noLibDescribe());
+						if (mat.find()) continue;
+					}
+
+					Cell convertedCell = convertedCells.get(subCell);
+					if (convertedCell == null)
+					{
+						recurseMissingWells(subCell, recursive, pat);
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * Method to scan a cell for implant layers that would indicate a default N or P process.
+	 * @param cell the Cell to examine.
+	 * Sets the field variables "hasWell", "hasPWell", and "hasNWell".
+	 */
+	private void examineCellForMissingWells(Cell cell)
+	{
+		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = it.next();
+			if (ni.isCellInstance()) continue;
+			Poly[] polys = ni.getProto().getTechnology().getShapeOfNode(ni);
+			for(int i=0; i<polys.length; i++)
+			{
+				Layer layer = polys[i].getLayer();
+				if (layer == null) continue;
+				if (!layer.getFunction().isDiff()) continue;
+				if (layer.getFunction() == Layer.Function.DIFFN) haveNActive = true;
+				if (layer.getFunction() == Layer.Function.DIFFP) havePActive = true;
+			}
+			if (haveNActive && havePActive) break;
+		}
+		for(Iterator<NodeInst> nIt = cell.getNodes(); nIt.hasNext(); )
+		{
+			NodeInst ni = nIt.next();
+			if (ni.isCellInstance()) continue;
+			PrimitiveNode np = (PrimitiveNode)ni.getProto();
+			if (np == Generic.tech().cellCenterNode) continue;
+
+			// see if the node will be extracted
+			PrimitiveNode copyType = null;
+			if (np.getFunction() != PrimitiveNode.Function.NODE) copyType = np; else
+			{
+				if (ignoreNodes.contains(np)) copyType = np;
+			}
+
+			// examine it if so
+			if (copyType != null)
+			{
+				NodeLayer [] nLayers = copyType.getLayers();
+				for(int i=0; i<nLayers.length; i++)
+				{
+					NodeLayer nLay = nLayers[i];
+					Layer layer = nLay.getLayer();
+					Layer.Function fun = layer.getFunction();
+					if (fun == Layer.Function.WELL) hasWell = true;
+					if (fun == Layer.Function.WELLP) hasPWell = true;
+					if (fun == Layer.Function.WELLN) hasNWell = true;
+					if (layer.getFunction().isDiff())
+					{
+						if (layer.getFunction() == Layer.Function.DIFFN) haveNActive = true;
+						if (layer.getFunction() == Layer.Function.DIFFP) havePActive = true;
+						continue;
+					}
+				}
+				continue;
+			}
+		}
+
+		// examine all arcs
+		for(Iterator<ArcInst> aIt = cell.getArcs(); aIt.hasNext(); )
+		{
+			ArcInst ai = aIt.next();
+			for(int i=0; i<ai.getProto().getNumArcLayers(); i++)
+			{
+				Layer layer = ai.getProto().getLayer(i);
+				Layer.Function fun = layer.getFunction();
+				if (fun == Layer.Function.WELL) hasWell = true;
+				if (fun == Layer.Function.WELLP) hasPWell = true;
+				if (fun == Layer.Function.WELLN) hasNWell = true;
+				if (layer.getFunction().isDiff())
+				{
+					if (layer.getFunction() == Layer.Function.DIFFN) haveNActive = true;
+					if (layer.getFunction() == Layer.Function.DIFFP) havePActive = true;
+					continue;
+				}
+			}
 		}
 	}
 
