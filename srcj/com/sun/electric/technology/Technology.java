@@ -71,7 +71,6 @@ import com.sun.electric.tool.erc.ERC;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.User;
 
-import com.sun.electric.tool.user.projectSettings.ProjSettings;
 import java.awt.Color;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -82,6 +81,7 @@ import java.io.PrintWriter;
 import java.io.Serializable;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -140,7 +140,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	public static final boolean DUPLICATEPOINTSAREBROKENOUTLINES = false;
 
     // Change in TechSettings takes effect only after restart
-    private final boolean IMMUTABLE_TECHS = Config.TWO_JVM;
+    private static final boolean IMMUTABLE_TECHS = Config.TWO_JVM;
 
 	private static final boolean LAZY_TECHNOLOGIES = false;
     /** Jelib writes base sizes since this Electric Version */
@@ -162,6 +162,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	public static final String SPECIALMENUTEXT   = "Text";
 	public static final String SPECIALMENUHIGH   = "High";
 	public static final String SPECIALMENUPORT   = "Port";
+    public static final String SPECIALMENUSEPARATOR = "-";
 
     public static class Distance implements Serializable {
         public double k;
@@ -1085,8 +1086,8 @@ public class Technology implements Comparable<Technology>, Serializable
 	/** true if "scale" is relevant to this technology */	private boolean scaleRelevant;
 	/** number of transparent layers in technology */		private int transparentLayers;
     /** Setting Group for this Technology */                private final Setting.RootGroup rootSettings;
-	/** preferences group for this technology */            private final Pref.Group prefs;
     /** Setting Group for this Technology */                private final Setting.Group settings;
+	/** preferences group for this technology */            private final Pref.Group prefs;
     /** User preferences group for this tecnology */        private final Pref.Group userPrefs;
 	/** the saved transparent colors for this technology */	private Pref [] transparentColorPrefs;
 	/** the color map for this technology */				private Color [] colorMap;
@@ -2092,9 +2093,10 @@ public class Technology implements Comparable<Technology>, Serializable
         printSpiceHeader(out, 2, getSpiceHeaderLevel2());
         printSpiceHeader(out, 3, getSpiceHeaderLevel3());
 
-        if (nodeGroups != null) {
-            for (int i = 0; i < nodeGroups.length; i++) {
-                Object[] nodeLine = nodeGroups[i];
+        Object[][] menu = getDefaultNodesGrouped();
+        if (menu != null) {
+            for (int i = 0; i < menu.length; i++) {
+                Object[] nodeLine = menu[i];
                 for (int j = 0; j < nodeLine.length; j++) {
                     Object entry = nodeLine[j];
                     if (entry == null) continue;
@@ -2149,6 +2151,8 @@ public class Technology implements Comparable<Technology>, Serializable
             out.print(" nodeInst " + pn.getName() + ":" + ni.getFunction() + ":" + ni.getOrient());
             for (Iterator<Variable> it = ni.getVariables(); it.hasNext(); ) {
                 Variable var = it.next();
+                Object value = var.getClass();
+                String s = value instanceof Object[] ? Arrays.toString((Object[])value) : value.toString();
                 out.print(":" + var.getObject()+ ":" + var.isDisplay() + ":" + var.getSize().getSize());
             }
         } else if (entry instanceof String) {

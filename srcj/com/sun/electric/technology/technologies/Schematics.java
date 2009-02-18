@@ -1608,15 +1608,15 @@ public class Schematics extends Technology
         list.add(Technology.makeNodeInst(flipflopNode, PrimitiveNode.Function.FLIPFLOPRSMS, 0, false, "R-S master/slave", 4.5));
         list.add(Technology.makeNodeInst(flipflopNode, PrimitiveNode.Function.FLIPFLOPRSP, 0, false, "R-S positive", 4.5));
         list.add(Technology.makeNodeInst(flipflopNode, PrimitiveNode.Function.FLIPFLOPRSN, 0, false, "R-S negative", 4.5));
-        list.add(new JPopupMenu.Separator());
+        list.add(Technology.SPECIALMENUSEPARATOR);
         list.add(Technology.makeNodeInst(flipflopNode, PrimitiveNode.Function.FLIPFLOPJKMS, 0, false, "J-K master/slave", 4.5));
         list.add(Technology.makeNodeInst(flipflopNode, PrimitiveNode.Function.FLIPFLOPJKP, 0, false, "J-K positive", 4.5));
         list.add(Technology.makeNodeInst(flipflopNode, PrimitiveNode.Function.FLIPFLOPJKN, 0, false, "J-K negative", 4.5));
-        list.add(new JPopupMenu.Separator());
+        list.add(Technology.SPECIALMENUSEPARATOR);
         list.add(Technology.makeNodeInst(flipflopNode, PrimitiveNode.Function.FLIPFLOPDMS, 0, false, "D master/slave", 4.5));
         list.add(Technology.makeNodeInst(flipflopNode, PrimitiveNode.Function.FLIPFLOPDP, 0, false, "D positive", 4.5));
         list.add(Technology.makeNodeInst(flipflopNode, PrimitiveNode.Function.FLIPFLOPDN, 0, false, "D negative", 4.5));
-        list.add(new JPopupMenu.Separator());
+        list.add(Technology.SPECIALMENUSEPARATOR);
         list.add(Technology.makeNodeInst(flipflopNode, PrimitiveNode.Function.FLIPFLOPTMS, 0, false, "T master/slave", 4.5));
         list.add(Technology.makeNodeInst(flipflopNode, PrimitiveNode.Function.FLIPFLOPTP, 0, false, "T positive", 4.5));
         list.add(Technology.makeNodeInst(flipflopNode, PrimitiveNode.Function.FLIPFLOPTN, 0, false, "T negative", 4.5));
@@ -2917,7 +2917,7 @@ public class Schematics extends Technology
      */
 	@Override
 	public PortInst getTransistorDrainPort(NodeInst ni) { return ni.getPortInst(2); }
-	
+
 	/** Return a substrate PortInst for this transistor NodeInst
      * @param ni the NodeInst
      * @return a PortInst for the substrate contact of the transistor

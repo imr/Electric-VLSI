@@ -193,15 +193,15 @@ public class FPGA extends Technology
 		repeaterNode.setFunction(PrimitiveNode.Function.CONNECT);
 
 		// Building information for palette
-		nodeGroups = new Object[7][1];
+		factoryNodeGroups = new Object[7][1];
 		int count = 0;
-		nodeGroups[count++][0] = wireArc;
-		nodeGroups[count++][0] = Technology.SPECIALMENUCELL;
-		nodeGroups[count++][0] = Technology.SPECIALMENUMISC;
-		nodeGroups[count++][0] = Technology.SPECIALMENUPURE;
-		nodeGroups[count++][0] = wirePinNode;
-		nodeGroups[count++][0] = pipNode;
-		nodeGroups[count++][0] = repeaterNode;
+		factoryNodeGroups[count++][0] = wireArc;
+		factoryNodeGroups[count++][0] = Technology.SPECIALMENUCELL;
+		factoryNodeGroups[count++][0] = Technology.SPECIALMENUMISC;
+		factoryNodeGroups[count++][0] = Technology.SPECIALMENUPURE;
+		factoryNodeGroups[count++][0] = wirePinNode;
+		factoryNodeGroups[count++][0] = pipNode;
+		factoryNodeGroups[count++][0] = repeaterNode;
 
 		// Foundry
 		newFoundry(Foundry.Type.NONE, null);

@@ -566,7 +566,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 */
 	public void modifyInstance(double dX, double dY, double dXSize, double dYSize, Orientation dOrient)
 	{
-        if (protoType == Generic.tech().cellCenterNode) {
+        if (ImmutableNodeInst.isCellCenter(protoType.getId())) {
             parent.adjustReferencePoint(dX, dY);
             return;
         }
@@ -2950,7 +2950,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 							if (thisOverrideNumber <= nLay.getNumCustomOverrides())
 								return nLay.getCustomOverride(thisOverrideNumber-1).getName();
 						}
-					}				
+					}
 				}
             }
 		}

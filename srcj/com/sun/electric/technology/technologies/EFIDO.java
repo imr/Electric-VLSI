@@ -394,17 +394,17 @@ public class EFIDO extends Technology
 		p0_node.setFunction(PrimitiveNode.Function.CONNECT);
 
         // Building information for palette
-        nodeGroups = new Object[8][2];
+        factoryNodeGroups = new Object[8][2];
         int count = -1;
 
-        nodeGroups[++count][0] = wire_arc; nodeGroups[count][1] = m_node;
-        nodeGroups[++count][0] = bus_arc; nodeGroups[count][1] = t_node;
-        nodeGroups[++count][0] = Technology.SPECIALMENUCELL; nodeGroups[count][1] = m0_node;
-        nodeGroups[++count][0] = Technology.SPECIALMENUMISC; nodeGroups[count][1] = s_node;
-        nodeGroups[++count][0] = Technology.SPECIALMENUPURE; nodeGroups[count][1] = d_node;
-        nodeGroups[++count][0] = wp_node; nodeGroups[count][1] = p_node;
-        nodeGroups[++count][0] = bp_node; nodeGroups[count][1] = p0_node;
-        nodeGroups[++count][0] = a_node;
+        factoryNodeGroups[++count][0] = wire_arc; factoryNodeGroups[count][1] = m_node;
+        factoryNodeGroups[++count][0] = bus_arc; factoryNodeGroups[count][1] = t_node;
+        factoryNodeGroups[++count][0] = Technology.SPECIALMENUCELL; factoryNodeGroups[count][1] = m0_node;
+        factoryNodeGroups[++count][0] = Technology.SPECIALMENUMISC; factoryNodeGroups[count][1] = s_node;
+        factoryNodeGroups[++count][0] = Technology.SPECIALMENUPURE; factoryNodeGroups[count][1] = d_node;
+        factoryNodeGroups[++count][0] = wp_node; factoryNodeGroups[count][1] = p_node;
+        factoryNodeGroups[++count][0] = bp_node; factoryNodeGroups[count][1] = p0_node;
+        factoryNodeGroups[++count][0] = a_node;
         
         //Foundry
         newFoundry(Foundry.Type.NONE, null);

@@ -297,8 +297,8 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 
 					for (Object item : list)
 					{
-						if (item instanceof JSeparator)
-							menu.add((JSeparator)item);
+						if (item == Technology.SPECIALMENUSEPARATOR)
+							menu.add(new JSeparator());
 						else if (item instanceof List)
 						{
 							List<?> subList = (List)item;

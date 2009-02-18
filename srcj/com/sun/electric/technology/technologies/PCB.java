@@ -52,7 +52,7 @@ public class PCB extends Technology
 		setFactoryScale(1270000, true);   // in nanometers: really 1270 microns
 		setNoNegatedArcs();
 		setStaticTechnology();
-        
+
 		setFactoryTransparentLayers(new Color []
 		{
 			new Color(  0,  0,  0), // layer 1
@@ -1135,25 +1135,25 @@ public class PCB extends Technology
 //		D1_lay.setPureLayerNode(edn_node);		// Drawing
 
         // Building information for palette
-        nodeGroups = new Object[12][4];
+        factoryNodeGroups = new Object[12][4];
         int count = -1;
 
         for (int i = 0; i < snNodes.length; i++)
         {
             // signal and power arcs
-            nodeGroups[++count][0] = SignalArcs[i]; nodeGroups[count][1] = PowerArcs[i];
+            factoryNodeGroups[++count][0] = SignalArcs[i]; factoryNodeGroups[count][1] = PowerArcs[i];
             // signal and power pins
-            nodeGroups[count][2] = spinNodes[i]; nodeGroups[count][3] = ppinNodes[i];
+            factoryNodeGroups[count][2] = spinNodes[i]; factoryNodeGroups[count][3] = ppinNodes[i];
         }
-        nodeGroups[++count][0] = Top_Silk_arc; nodeGroups[count][1] = tspinNodes[0];
-        nodeGroups[count][2] = Bottom_Silk_arc; nodeGroups[count][3] = bspinNodes[0];
-        nodeGroups[++count][0] = Top_Solder_arc; nodeGroups[count][1] = tspinNodes[1];
-        nodeGroups[count][2] = Bottom_Solder_arc; nodeGroups[count][3] = bspinNodes[1];
-        nodeGroups[++count][0] = Drawing_arc; nodeGroups[count][1] = dp_node;
-        nodeGroups[count][2] = ndp_node; nodeGroups[count][3] = edp_node;
-        nodeGroups[++count][0] = Technology.SPECIALMENUPURE;
-        nodeGroups[count][1] = Technology.SPECIALMENUMISC;
-        nodeGroups[count][2] = Technology.SPECIALMENUCELL;
+        factoryNodeGroups[++count][0] = Top_Silk_arc; factoryNodeGroups[count][1] = tspinNodes[0];
+        factoryNodeGroups[count][2] = Bottom_Silk_arc; factoryNodeGroups[count][3] = bspinNodes[0];
+        factoryNodeGroups[++count][0] = Top_Solder_arc; factoryNodeGroups[count][1] = tspinNodes[1];
+        factoryNodeGroups[count][2] = Bottom_Solder_arc; factoryNodeGroups[count][3] = bspinNodes[1];
+        factoryNodeGroups[++count][0] = Drawing_arc; factoryNodeGroups[count][1] = dp_node;
+        factoryNodeGroups[count][2] = ndp_node; factoryNodeGroups[count][3] = edp_node;
+        factoryNodeGroups[++count][0] = Technology.SPECIALMENUPURE;
+        factoryNodeGroups[count][1] = Technology.SPECIALMENUMISC;
+        factoryNodeGroups[count][2] = Technology.SPECIALMENUCELL;
 
         //Foundry
         newFoundry(Foundry.Type.NONE, null);
