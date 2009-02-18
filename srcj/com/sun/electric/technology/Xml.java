@@ -27,6 +27,7 @@ import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.technology.Technology.TechPoint;
+import com.sun.electric.technology.Technology.NodeLayer.CustomOverride;
 import com.sun.electric.tool.Job;
 
 import java.awt.Color;
@@ -236,6 +237,9 @@ public class Xml {
         public final List<TechPoint> techPoints = new ArrayList<TechPoint>();
         public double sizex, sizey, sep1d, sep2d;
         public double lWidth, rWidth, tExtent, bExtent;
+        public CustomOverride[] customOverrides;
+        public int customOverrideMask;
+        public int customOverrideShift;
     }
 
     public static class NodeSizeRule implements Serializable {

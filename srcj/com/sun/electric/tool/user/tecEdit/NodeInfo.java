@@ -36,6 +36,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.technologies.Artwork;
 
 import java.awt.geom.Dimension2D;
 import java.util.Iterator;
@@ -140,15 +141,17 @@ public class NodeInfo extends Info
 	double []              specialValues;
 	double                 xSize, ySize;
 	String                 spiceTemplate;
+	String []              surroundOverrides;
 
 	static SpecialTextDescr [] nodeTextTable =
 	{
-		new SpecialTextDescr(0, 18, NODEFUNCTION),
-		new SpecialTextDescr(0, 15, NODESERPENTINE),
-		new SpecialTextDescr(0, 12, NODESQUARE),
-		new SpecialTextDescr(0,  9, NODEWIPES),
-		new SpecialTextDescr(0,  6, NODELOCKABLE),
-		new SpecialTextDescr(0,  3, NODESPICETEMPLATE)
+		new SpecialTextDescr(0, 21, NODEFUNCTION),
+		new SpecialTextDescr(0, 18, NODESERPENTINE),
+		new SpecialTextDescr(0, 15, NODESQUARE),
+		new SpecialTextDescr(0, 12, NODEWIPES),
+		new SpecialTextDescr(0,  9, NODELOCKABLE),
+		new SpecialTextDescr(0,  6, NODESPICETEMPLATE),
+		new SpecialTextDescr(0,  3, NODESURROUNDCONFIGS)
 	};
 
 	NodeInfo()
@@ -184,6 +187,7 @@ public class NodeInfo extends Info
 		loadTableEntry(nodeTextTable, NODEWIPES, Boolean.valueOf(wipes));
 		loadTableEntry(nodeTextTable, NODELOCKABLE, Boolean.valueOf(lockable));
 		loadTableEntry(nodeTextTable, NODESPICETEMPLATE, spiceTemplate);
+		loadTableEntry(nodeTextTable, NODESURROUNDCONFIGS, surroundOverrides);
 
 		// now create those text objects
 		createSpecialText(np, nodeTextTable);
@@ -202,28 +206,39 @@ public class NodeInfo extends Info
 			NodeInst ni = it.next();
 			Variable var = ni.getVar(OPTION_KEY);
 			if (var == null) continue;
-			String str = getValueOnNode(ni);
 
 			switch (((Integer)var.getObject()).intValue())
 			{
 				case NODEFUNCTION:
-					nIn.func = PrimitiveNode.Function.findName(str);
+					nIn.func = PrimitiveNode.Function.findName(getValueOnNode(ni));
 					if (nIn.func == null) nIn.func = PrimitiveNode.Function.UNKNOWN;
 					break;
 				case NODESQUARE:
-					nIn.square = str.equalsIgnoreCase("yes");
+					nIn.square = getValueOnNode(ni).equalsIgnoreCase("yes");
 					break;
 				case NODEWIPES:
-					nIn.wipes = str.equalsIgnoreCase("yes");
+					nIn.wipes = getValueOnNode(ni).equalsIgnoreCase("yes");
 					break;
 				case NODELOCKABLE:
-					nIn.lockable = str.equalsIgnoreCase("yes");
+					nIn.lockable = getValueOnNode(ni).equalsIgnoreCase("yes");
 					break;
 				case NODESERPENTINE:
-					nIn.serp = str.equalsIgnoreCase("yes");
+					nIn.serp = getValueOnNode(ni).equalsIgnoreCase("yes");
 					break;
 				case NODESPICETEMPLATE:
-					nIn.spiceTemplate = str;
+					nIn.spiceTemplate = getValueOnNode(ni);
+					break;
+				case NODESURROUNDCONFIGS:
+					Variable varMsg = ni.getVar(Artwork.ART_MESSAGE);
+					if (varMsg != null && varMsg.getObject() instanceof String[])
+					{
+						String [] strs = (String[])varMsg.getObject();
+						if (strs.length > 1)
+						{
+							nIn.surroundOverrides = new String[strs.length-1];
+							for(int i=1; i<strs.length; i++) nIn.surroundOverrides[i-1] = strs[i];
+						}
+					}
 					break;
 			}
 		}

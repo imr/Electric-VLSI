@@ -117,6 +117,7 @@ public class Info
     /** 3D transparency factor (layer cell) */                  static final int LAYER3DFACTOR     = 60;
     /** Spice template (node cell) */                           static final int NODESPICETEMPLATE = 61;
 	/** Elib width offset (arc cell) */                         static final int ARCWIDTHOFFSET    = 62;
+    /** Metal surround overrides (node cell) */                 static final int NODESURROUNDCONFIGS = 63;
 
 
     /** key of Variable holding layer information. */	public static final Variable.Key LAYER_KEY = Variable.newKey("EDTEC_layer");
@@ -176,62 +177,76 @@ public class Info
 			if (table[i].ni != null) continue;
 			table[i].ni = NodeInst.makeInstance(Generic.tech().invisiblePinNode, new Point2D.Double(table[i].x, table[i].y), 0, 0, np);
 			if (table[i].ni == null) return;
-			String str = null;
 			switch (table[i].funct)
 			{
 				case TECHSHORTNAME:
-					str = "ShortName: " + (String)table[i].value;
+					table[i].ni.newDisplayVar(Artwork.ART_MESSAGE,
+						"ShortName: " + (String)table[i].value);
 					break;
 				case TECHSCALE:
-					str = "Scale: " + ((Double)table[i].value).doubleValue();
+					table[i].ni.newDisplayVar(Artwork.ART_MESSAGE,
+						"Scale: " + ((Double)table[i].value).doubleValue());
 					break;
 				case TECHFOUNDRY:
-					str = "DefaultFoundry: " + (String)table[i].value;
+					table[i].ni.newDisplayVar(Artwork.ART_MESSAGE,
+						"DefaultFoundry: " + (String)table[i].value);
 					break;
 				case TECHDEFMETALS:
-					str = "Default Number Of Metals: " + ((Integer)table[i].value).intValue();
+					table[i].ni.newDisplayVar(Artwork.ART_MESSAGE,
+						"Default Number Of Metals: " + ((Integer)table[i].value).intValue());
 					break;
 				case TECHDESCRIPT:
-					str = "Description: " + (String)table[i].value;
+					table[i].ni.newDisplayVar(Artwork.ART_MESSAGE,
+						"Description: " + (String)table[i].value);
 					break;
 				case TECHSPICEMINRES:
-					str = "Minimum Resistance: " + ((Double)table[i].value).doubleValue();
+					table[i].ni.newDisplayVar(Artwork.ART_MESSAGE,
+						"Minimum Resistance: " + ((Double)table[i].value).doubleValue());
 					break;
 				case TECHSPICEMINCAP:
-					str = "Minimum Capacitance: " + ((Double)table[i].value).doubleValue();
+					table[i].ni.newDisplayVar(Artwork.ART_MESSAGE,
+						"Minimum Capacitance: " + ((Double)table[i].value).doubleValue());
 					break;
 				case TECHMAXSERIESRES:
-					str = "Max Series Resistance: " + ((Double)table[i].value).doubleValue();
+					table[i].ni.newDisplayVar(Artwork.ART_MESSAGE,
+						"Max Series Resistance: " + ((Double)table[i].value).doubleValue());
 					break;
 				case TECHGATESHRINK:
-					str = "Gate Shrinkage: " + ((Double)table[i].value).doubleValue();
+					table[i].ni.newDisplayVar(Artwork.ART_MESSAGE,
+						"Gate Shrinkage: " + ((Double)table[i].value).doubleValue());
 					break;
 				case TECHGATEINCLUDED:
-					str = "Gates Included in Resistance: " + (((Boolean)table[i].value).booleanValue() ? "Yes" : "No");
+					table[i].ni.newDisplayVar(Artwork.ART_MESSAGE,
+						"Gates Included in Resistance: " + (((Boolean)table[i].value).booleanValue() ? "Yes" : "No"));
 					break;
 				case TECHGROUNDINCLUDED:
-					str = "Parasitics Includes Ground: " + (((Boolean)table[i].value).booleanValue() ? "Yes" : "No");
+					table[i].ni.newDisplayVar(Artwork.ART_MESSAGE,
+						"Parasitics Includes Ground: " + (((Boolean)table[i].value).booleanValue() ? "Yes" : "No"));
 					break;
 				case TECHTRANSPCOLORS:
 					table[i].ni.newVar(TRANSLAYER_KEY, GeneralInfo.makeTransparentColorsLine((Color [])table[i].value));
-					str = "Transparent Colors";
+					table[i].ni.newDisplayVar(Artwork.ART_MESSAGE,
+						"Transparent Colors");
 					break;
 
 				case LAYERFUNCTION:
-					str = "Function: " + LayerInfo.makeLayerFunctionName((Layer.Function)table[i].value, table[i].extra);
+					table[i].ni.newDisplayVar(Artwork.ART_MESSAGE,
+						"Function: " + LayerInfo.makeLayerFunctionName((Layer.Function)table[i].value, table[i].extra));
 					break;
 				case LAYERCOLOR:
 					EGraphics desc = (EGraphics)table[i].value;
-					str = "Color: " + desc.getColor().getRed() + "," + desc.getColor().getGreen() + "," +
-						desc.getColor().getBlue() + ", " + desc.getOpacity() + "," + (desc.getForeground() ? "on" : "off");
+					table[i].ni.newDisplayVar(Artwork.ART_MESSAGE,
+						"Color: " + desc.getColor().getRed() + "," + desc.getColor().getGreen() + "," +
+							desc.getColor().getBlue() + ", " + desc.getOpacity() + "," + (desc.getForeground() ? "on" : "off"));
 					break;
 				case LAYERTRANSPARENCY:
 					desc = (EGraphics)table[i].value;
-					str = "Transparency: " + (desc.getTransparentLayer() == 0 ? "none" : "layer-" + desc.getTransparentLayer());
+					table[i].ni.newDisplayVar(Artwork.ART_MESSAGE,
+						"Transparency: " + (desc.getTransparentLayer() == 0 ? "none" : "layer-" + desc.getTransparentLayer()));
 					break;
 				case LAYERSTYLE:
 					desc = (EGraphics)table[i].value;
-					str = "Style: ";
+					String str = "Style: ";
 					if (desc.isPatternedOnDisplay())
 					{
 						EGraphics.Outline o = desc.getOutlined();
@@ -241,73 +256,111 @@ public class Info
 						str += "Solid";
 					}
 					if (!desc.isPatternedOnPrinter()) str += ",PrintSolid";
+					table[i].ni.newDisplayVar(Artwork.ART_MESSAGE, str);
 					break;
 				case LAYERCIF:
-					str = "CIF Layer: " + (String)table[i].value;
+					table[i].ni.newDisplayVar(Artwork.ART_MESSAGE,
+						"CIF Layer: " + (String)table[i].value);
 					break;
 				case LAYERGDS:
-					str = "GDS-II Layer: " + (String)table[i].value;
+					table[i].ni.newDisplayVar(Artwork.ART_MESSAGE,
+						"GDS-II Layer: " + (String)table[i].value);
 					break;
 				case LAYERSPIRES:
-					str = "SPICE Resistance: " + ((Double)table[i].value).doubleValue();
+					table[i].ni.newDisplayVar(Artwork.ART_MESSAGE,
+						"SPICE Resistance: " + ((Double)table[i].value).doubleValue());
 					break;
 				case LAYERSPICAP:
-					str = "SPICE Capacitance: " + ((Double)table[i].value).doubleValue();
+					table[i].ni.newDisplayVar(Artwork.ART_MESSAGE,
+						"SPICE Capacitance: " + ((Double)table[i].value).doubleValue());
 					break;
 				case LAYERSPIECAP:
-					str = "SPICE Edge Capacitance: " + ((Double)table[i].value).doubleValue();
+					table[i].ni.newDisplayVar(Artwork.ART_MESSAGE,
+						"SPICE Edge Capacitance: " + ((Double)table[i].value).doubleValue());
 					break;
 				case LAYER3DHEIGHT:
-					str = "3D Height: " + ((Double)table[i].value).doubleValue();
+					table[i].ni.newDisplayVar(Artwork.ART_MESSAGE,
+						"3D Height: " + ((Double)table[i].value).doubleValue());
 					break;
 				case LAYER3DTHICK:
-					str = "3D Thickness: " + ((Double)table[i].value).doubleValue();
+					table[i].ni.newDisplayVar(Artwork.ART_MESSAGE,
+						"3D Thickness: " + ((Double)table[i].value).doubleValue());
 					break;
 				case LAYERCOVERAGE:
-					str = "Coverage percent: " + ((Double)table[i].value).doubleValue();
+					table[i].ni.newDisplayVar(Artwork.ART_MESSAGE,
+						"Coverage percent: " + ((Double)table[i].value).doubleValue());
 					break;
 
 				case ARCFUNCTION:
-					str = "Function: " + ((ArcProto.Function)table[i].value).toString();
+					table[i].ni.newDisplayVar(Artwork.ART_MESSAGE,
+						"Function: " + ((ArcProto.Function)table[i].value).toString());
 					break;
 				case ARCFIXANG:
-					str = "Fixed-angle: " + (((Boolean)table[i].value).booleanValue() ? "Yes" : "No");
+					table[i].ni.newDisplayVar(Artwork.ART_MESSAGE,
+						"Fixed-angle: " + (((Boolean)table[i].value).booleanValue() ? "Yes" : "No"));
 					break;
 				case ARCWIPESPINS:
-					str = "Wipes pins: "  + (((Boolean)table[i].value).booleanValue() ? "Yes" : "No");
+					table[i].ni.newDisplayVar(Artwork.ART_MESSAGE,
+						"Wipes pins: "  + (((Boolean)table[i].value).booleanValue() ? "Yes" : "No"));
 					break;
 				case ARCNOEXTEND:
-					str = "Extend arcs: " + (((Boolean)table[i].value).booleanValue() ? "No" : "Yes");
+					table[i].ni.newDisplayVar(Artwork.ART_MESSAGE,
+						"Extend arcs: " + (((Boolean)table[i].value).booleanValue() ? "No" : "Yes"));
 					break;
 				case ARCINC:
-					str = "Angle increment: " + ((Integer)table[i].value).intValue();
+					table[i].ni.newDisplayVar(Artwork.ART_MESSAGE,
+						"Angle increment: " + ((Integer)table[i].value).intValue());
 					break;
 				case ARCANTENNARATIO:
-					str = "Antenna Ratio: " + ((Double)table[i].value).doubleValue();
+					table[i].ni.newDisplayVar(Artwork.ART_MESSAGE,
+						"Antenna Ratio: " + ((Double)table[i].value).doubleValue());
 					break;
                 case ARCWIDTHOFFSET:
-                    str = "ELIB width offset: " + ((Double)table[i].value).doubleValue();
+                	table[i].ni.newDisplayVar(Artwork.ART_MESSAGE,
+						"ELIB width offset: " + ((Double)table[i].value).doubleValue());
                     break;
 				case NODEFUNCTION:
-					str = "Function: " + ((PrimitiveNode.Function)table[i].value).toString();
+					table[i].ni.newDisplayVar(Artwork.ART_MESSAGE,
+						"Function: " + ((PrimitiveNode.Function)table[i].value).toString());
 					break;
 				case NODESERPENTINE:
-					str = "Serpentine transistor: " + (((Boolean)table[i].value).booleanValue() ? "Yes" : "No");
+					table[i].ni.newDisplayVar(Artwork.ART_MESSAGE,
+						"Serpentine transistor: " + (((Boolean)table[i].value).booleanValue() ? "Yes" : "No"));
 					break;
 				case NODESQUARE:
-					str = "Square node: " + (((Boolean)table[i].value).booleanValue() ? "Yes" : "No");
+					table[i].ni.newDisplayVar(Artwork.ART_MESSAGE,
+						"Square node: " + (((Boolean)table[i].value).booleanValue() ? "Yes" : "No"));
 					break;
 				case NODEWIPES:
-					str = "Invisible with 1 or 2 arcs: " + (((Boolean)table[i].value).booleanValue() ? "Yes" : "No");
+					table[i].ni.newDisplayVar(Artwork.ART_MESSAGE,
+						"Invisible with 1 or 2 arcs: " + (((Boolean)table[i].value).booleanValue() ? "Yes" : "No"));
 					break;
 				case NODELOCKABLE:
-					str = "Lockable: " + (((Boolean)table[i].value).booleanValue() ? "Yes" : "No");
+					table[i].ni.newDisplayVar(Artwork.ART_MESSAGE,
+						"Lockable: " + (((Boolean)table[i].value).booleanValue() ? "Yes" : "No"));
 					break;
 				case NODESPICETEMPLATE:
-					str = "Spice template: " + (table[i].value == null ? "" : table[i].value);
+					table[i].ni.newDisplayVar(Artwork.ART_MESSAGE,
+						"Spice template: " + (table[i].value == null ? "" : table[i].value));
+					break;
+				case NODESURROUNDCONFIGS:
+					int strCnt = 1;
+					String [] overrides = null;
+					if (table[i].value != null)
+					{
+						overrides = (String[])table[i].value;
+						strCnt += overrides.length;
+					}
+					String [] strs = new String[strCnt];
+  					strs[0] = "Surround overrides:";
+					if (overrides != null)
+					{
+						for(int j=0; j<overrides.length; j++)
+							strs[j+1] = overrides[j];
+					}
+					table[i].ni.newDisplayVar(Artwork.ART_MESSAGE, strs);
 					break;
 			}
-			table[i].ni.newDisplayVar(Artwork.ART_MESSAGE, str);
 			table[i].ni.newVar(OPTION_KEY, new Integer(table[i].funct));
 		}
 	}

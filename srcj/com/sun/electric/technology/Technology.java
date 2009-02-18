@@ -58,6 +58,7 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.Technology.NodeLayer.CustomOverride;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.EFIDO;
 import com.sun.electric.technology.technologies.FPGA;
@@ -1404,6 +1405,9 @@ public class Technology implements Comparable<Technology>, Serializable
                     nodeLayers.add(nodeLayer);
                 if (nl.inElectricalLayers)
                     electricalNodeLayers.add(nodeLayer);
+                nodeLayer.customOverrides = nl.customOverrides;
+                nodeLayer.customOverrideMask = nl.customOverrideMask;
+                nodeLayer.customOverrideShift = nl.customOverrideShift;
             }
             if (n.sizeOffset != null) {
                 lx += n.sizeOffset.getLowXGridOffset();
@@ -3700,14 +3704,21 @@ public class Technology implements Comparable<Technology>, Serializable
                 if (TESTSURROUNDOVERRIDE_B)
                 {
                     int techBits = ni.getTechSpecific() & primLayer.customOverrideMask;
-                    if (techBits != 0)
+                    if (techBits != 0 && primLayer.customOverrides != null)
                     {
                         int index = (techBits >> primLayer.customOverrideShift) - 1;
-                        ERectangle override = primLayer.customOverrides[index].getRect();
-						portLowX += override.getLambdaMinX();
-						portHighX += override.getLambdaMaxX();
-						portLowY += override.getLambdaMinY();
-						portHighY += override.getLambdaMaxY();
+                        if (index >= 0 && index < primLayer.customOverrides.length)
+                        {
+	                        CustomOverride co = primLayer.customOverrides[index];
+	                        if (co != null)
+	                        {
+		                        ERectangle override = co.getRect();
+								portLowX += override.getLambdaMinX();
+								portHighX += override.getLambdaMaxX();
+								portLowY += override.getLambdaMinY();
+								portHighY += override.getLambdaMaxY();
+	                        }
+                        }
                     }
                 }
 				Point2D [] pointList = Poly.makePoints(portLowX, portHighX, portLowY, portHighY);
@@ -6315,7 +6326,31 @@ public class Technology implements Comparable<Technology>, Serializable
 			PrimitiveNode np = it.next();
 			if (np.isNotUsed()) continue;
 			if (np.getFunction() == PrimitiveNode.Function.NODE) continue;
-			things.add(np);
+
+			boolean customOverride = false;
+			NodeLayer[] nLayers = np.getLayers();
+        	for(int j=0; j<nLayers.length; j++)
+        	{
+        		NodeLayer nLay = nLayers[j];
+        		int nc = nLay.getNumCustomOverrides();
+        		if (nc > 0)
+        		{
+	        		List<Object> tmp = new ArrayList<Object>();
+	        		tmp.add(np);
+	        		for(int k=0; k<nc; k++)
+	        		{
+	        			NodeLayer.CustomOverride co = nLay.getCustomOverride(k);
+	                    NodeInst overrideNode = makeNodeInst(np, np.getFunction(), 0, false,
+	                    	np.getName() + "-" + co.getName(), 5.5);
+	                    overrideNode.setTechSpecific((k+1) << nLay.getCustomOverrideShift());
+	                    tmp.add(overrideNode);
+	        		}
+	        		things.add(tmp);
+	                customOverride = true;
+	        		break;
+        		}
+        	}
+        	if (!customOverride) things.add(np);
 		}
 		things.add(SPECIALMENUPURE);
 		things.add(SPECIALMENUMISC);

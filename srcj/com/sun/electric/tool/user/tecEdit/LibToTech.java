@@ -47,6 +47,9 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Xml;
+import com.sun.electric.technology.Technology.NodeLayer;
+import com.sun.electric.technology.Technology.NodeLayer.CustomOverride;
+import com.sun.electric.technology.Xml.MenuNodeInst;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
@@ -837,7 +840,7 @@ public class LibToTech
 
 	/**
 	 * Method to scan the "dependentlibcount" libraries in "dependentLibs",
-	 * and build the node structures for it in technology "tech".  Returns true on error.
+	 * and build the node structures for it in technology "tech".
 	 */
 	private NodeInfo [] extractNodes(Library [] dependentLibs, LayerInfo [] lList, ArcInfo [] aList)
 	{
@@ -2602,9 +2605,26 @@ public class LibToTech
 //			pn.defaultHeight.value = DBMath.round(ni.ySize);
 			if (ni.spiceTemplate != null && !ni.spiceTemplate.equals(""))
 				pn.spiceTemplate = ni.spiceTemplate;
+			int overrideOffset = 0;
 			for(int j=0; j<ni.nodeLayers.length; j++) {
 				NodeInfo.LayerDetails nl = ni.nodeLayers[j];
-				pn.nodeLayers.add(makeNodeLayerDetails(nl, ni.serp, minFullSize));
+				CustomOverride [] overrides = null;
+				if (ni.surroundOverrides != null)
+				{
+					overrides = new CustomOverride[ni.surroundOverrides.length];
+					for(int i=0; i<ni.surroundOverrides.length; i++)
+					{
+						String [] pieces = ni.surroundOverrides[i].split(",");
+						if (pieces.length <= overrideOffset+4) break;
+						double lX = TextUtils.atof(pieces[1+overrideOffset]);
+						double lY = TextUtils.atof(pieces[2+overrideOffset]);
+						double wid = TextUtils.atof(pieces[3+overrideOffset]) - lX;
+						double hei = TextUtils.atof(pieces[4+overrideOffset]) - lY;
+						overrides[i] = new CustomOverride(lX, lY, wid, hei, pieces[0]);
+					}
+					overrideOffset += 4;
+				}
+				pn.nodeLayers.add(makeNodeLayerDetails(nl, ni.serp, minFullSize, overrides));
 			}
 			for (int j = 0; j < ni.nodePortDetails.length; j++) {
 				NodeInfo.PortDetails pd = ni.nodePortDetails[j];
@@ -2690,7 +2710,7 @@ public class LibToTech
 		return t;
 	}
 
-	private Xml.NodeLayer makeNodeLayerDetails(NodeInfo.LayerDetails nl, boolean isSerp, EPoint correction) {
+	private Xml.NodeLayer makeNodeLayerDetails(NodeInfo.LayerDetails nl, boolean isSerp, EPoint correction, CustomOverride [] overrides) {
 		Xml.NodeLayer nld = new Xml.NodeLayer();
 		nld.layer = nl.layer.name;
 		nld.style = nl.style;
@@ -2721,6 +2741,14 @@ public class LibToTech
 			nld.rWidth = DBMath.round(nl.rWidth);
 			nld.tExtent = DBMath.round(nl.extendT);
 			nld.bExtent = DBMath.round(nl.extendB);
+		}
+		nld.customOverrides = overrides;
+		nld.customOverrideMask = 0;
+		nld.customOverrideShift = 0;
+		if (overrides != null)
+		{
+			nld.customOverrideMask = 0xFC;
+			nld.customOverrideShift = 2;
 		}
 		return nld;
 	}

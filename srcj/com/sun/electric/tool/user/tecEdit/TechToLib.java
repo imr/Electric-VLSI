@@ -33,6 +33,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -730,27 +731,36 @@ public class TechToLib
             assert row.length == numCols;
         }
         gi.menuPalette = new Object[numRows][numCols];
-        for (int row = 0; row < numRows; row++) {
-            for (int col = 0; col < numCols; col++) {
+        for (int row = 0; row < numRows; row++)
+        {
+            for (int col = 0; col < numCols; col++)
+            {
                 Object origEntry = origPalette[row][col];
                 Object newEntry = null;
-                if (origEntry instanceof ArcProto) {
+                if (origEntry instanceof ArcProto)
+                {
                     ArcProto ap = (ArcProto)origEntry;
-                    for (ArcInfo ai: aList) {
-                        if (ai.name.equals(ap.getName())) {
+                    for (ArcInfo ai: aList)
+                    {
+                        if (ai.name.equals(ap.getName()))
+                        {
                             newEntry = ai;
                             break;
                         }
                     }
-                } else if (origEntry instanceof PrimitiveNode) {
+                } else if (origEntry instanceof PrimitiveNode)
+                {
                     PrimitiveNode pnp = (PrimitiveNode)origEntry;
-                     for (NodeInfo ni: nList) {
-                        if (ni.name.equals(pnp.getName())) {
+                     for (NodeInfo ni: nList)
+                     {
+                        if (ni.name.equals(pnp.getName()))
+                        {
                             newEntry = ni;
                             break;
                         }
                     }
-                } else if (origEntry != null) {
+                } else if (origEntry != null)
+                {
                     newEntry = origEntry.toString();
                 }
                 gi.menuPalette[row][col] = newEntry;
@@ -830,6 +840,37 @@ public class TechToLib
         nIn.specialValues = pnp.getSpecialValues();
         nIn.spiceTemplate = pnp.getSpiceTemplate();
         List<Technology.NodeLayer> nodeLayers = Arrays.asList(pnp.getLayers());
+
+        // find custom overrides on the layers
+        nIn.surroundOverrides = null;
+        for(Technology.NodeLayer nl : nodeLayers)
+        {
+        	int totCO = nl.getNumCustomOverrides();
+        	if (totCO <= 0) continue;
+        	if (nIn.surroundOverrides == null)
+        	{
+        		nIn.surroundOverrides = new String[totCO];
+        	} else
+        	{
+        		if (nIn.surroundOverrides.length != totCO)
+        		{
+        			System.out.println("Inconsistent number of custom overrides on primitive " + pnp.describe(false));
+        			System.out.println("   One layer has " + nIn.surroundOverrides.length + " overrides, another layer has " + totCO);
+        			nIn.surroundOverrides = null;
+        			break;
+        		}
+        	}
+        	for(int i=0; i<totCO; i++)
+        	{
+        		Technology.NodeLayer.CustomOverride co = nl.getCustomOverride(i);
+        		if (nIn.surroundOverrides[i] == null) nIn.surroundOverrides[i] = co.getName();
+        		nIn.surroundOverrides[i] += "," + TextUtils.formatDouble(co.getRect().getMinX()) +
+        			"," + TextUtils.formatDouble(co.getRect().getMinY()) +
+        			"," + TextUtils.formatDouble(co.getRect().getMaxX()) +
+        			"," + TextUtils.formatDouble(co.getRect().getMaxY());
+        	}
+        }
+
         List<Technology.NodeLayer> electricalNodeLayers = nodeLayers;
         if (pnp.getElectricalLayers() != null)
             electricalNodeLayers = Arrays.asList(pnp.getElectricalLayers());

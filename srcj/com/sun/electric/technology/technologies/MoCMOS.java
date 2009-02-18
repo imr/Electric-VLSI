@@ -1843,7 +1843,7 @@ public class MoCMOS extends Technology
         			tmp.add(metalContactNodes[i]);
 
                 	NodeLayer[] nLayers = metalContactNodes[i].getLayers();
-                	for(int j=0; i<nLayers.length; j++)
+                	for(int j=0; j<nLayers.length; j++)
                 	{
                 		NodeLayer nLay = nLayers[j];
                 		int nc = nLay.getNumCustomOverrides();
