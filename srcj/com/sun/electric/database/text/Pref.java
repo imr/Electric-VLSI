@@ -621,6 +621,12 @@ public class Pref
 	 */
 	public String getPrefName() { return name; }
 
+   /**
+     * Method to get the pref name of this Pref object.
+     * @return the name of this Setting object.
+     */
+    public String getPrefPath() { return group.absolutePath() + "/" + name; }
+
 	/**
 	 * Method to get the value of this Pref object as an Object.
 	 * The proper way to get the current value is to use one of the type-specific

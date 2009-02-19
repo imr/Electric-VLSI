@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09c: ******************************
 
+IMP: (2/18/09, DN) TechFactory.
+
 BUG: (2/18/09, DN) Some technologies initialize nodeGroups instead of factoryNodeGroups.
 FIX: Use factoryNodeGroups in CMOS90.java, EFIDO.java, FPGA.java, GEM.java, PCB.java, RCMOS.java .
 

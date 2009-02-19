@@ -279,7 +279,7 @@ public class Setting {
             locked = true;
             loadValues();
         }
-        
+
         private void loadValues() {
             ProjSettings projSettings = ProjSettings.getSettings();
             if (projSettings != null) {
@@ -347,6 +347,29 @@ public class Setting {
          * @throws InvalidStateException if Setting can't be accessed in this Context
          */
         public abstract Object getValue(Setting setting);
+    }
+
+    /**
+     * Sets SettingContext of current Thread
+     * @param context new Setting context
+     * @return old Setting context
+     */
+    public static Context setSettingContextOfCurrentThread(Setting.Context context) {
+        return null;
+    }
+
+    /**
+     * Returns SettingContext which returns factory value of Setting
+     * obtained from Java preferences
+     * @return SettingContext
+     */
+    public static Context getFactorySettingContext() {
+        return new Context() {
+            @Override
+            public Object getValue(Setting setting) {
+                return setting.getFactoryValue();
+            }
+        };
     }
 
     private final Group xmlGroup;
@@ -427,6 +450,61 @@ public class Setting {
         return s;
     }
 
+	/**
+	 * Method to get the value of this Setting object as an Object.
+	 * The proper way to get the current value is to use one of the type-specific
+	 * methods such as getInt(), getBoolean(), etc.
+	 * @return the Object value of this Setting object.
+	 */
+	public Object getValue() {
+        return currentObj;
+    }
+
+     /**
+     * Method to get the boolean value on this Setting object in specified Setting State.
+     * The object must have been created as "boolean".
+     * @param state Setting State
+     * @return the boolean value on this TechSetting object.
+     */
+    public boolean getBoolean(Context state) { return ((Boolean)state.getValue(this)).booleanValue(); }
+
+    /**
+     * Method to get the integer value on this Setting object in specified Setting State.
+     * The object must have been created as "integer".
+     * @param state Setting State
+     * @return the integer value on this TechSetting object.
+     */
+    public int getInt(Context state) { return ((Integer)state.getValue(this)).intValue(); }
+
+    /**
+     * Method to get the long value on this Setting object in specified Setting State.
+     * The object must have been created as "long".
+     * @param state Setting State
+     * @return the long value on this TechSetting object.
+     */
+    public long getLong(Context state) { return ((Long)state.getValue(this)).longValue(); }
+
+    /**
+     * Method to get the double value on this Setting object in specified Setting State.
+     * The object must have been created as "double".
+     * @param state Setting State
+     * @return the double value on this TechSetting object.
+     */
+    public double getDouble(Context state) { return ((Double)state.getValue(this)).doubleValue(); }
+
+    /**
+     * Method to get the string value on this Setting object in specified Setting State.
+     * The object must have been created as "string".
+     * @param state Setting State
+     * @return the string value on this TechSetting object.
+     */
+    public String getString(Context state) {
+        String s = (String)state.getValue(this);
+        if (s == null)
+            throw new NullPointerException();
+        return s;
+    }
+
     public void set(Object v) {
 //        if (changeBatch != null) {
 //            if (SwingUtilities.isEventDispatchThread()) {
@@ -486,68 +564,6 @@ public class Setting {
     public Object getValue(Context state) {
         return getValue();
 //        return state.getValue(this);
-    }
- 
-	/**
-	 * Method to get the value of this Setting object as an Object.
-	 * The proper way to get the current value is to use one of the type-specific
-	 * methods such as getInt(), getBoolean(), etc.
-	 * @return the Object value of this Setting object.
-	 */
-	public Object getValue() {
-//        if (changeBatch != null) {
-//            if (SwingUtilities.isEventDispatchThread()) {
-//                Object pendingChange = changeBatch.changesForSettings.get(this);
-//                if (pendingChange != null)
-//                    return pendingChange;
-//            }
-//        }
-        return currentObj;
-    }
-
-     /**
-     * Method to get the boolean value on this Setting object in specified Setting State.
-     * The object must have been created as "boolean".
-     * @param state Setting State
-     * @return the boolean value on this TechSetting object.
-     */
-    public boolean getBoolean(Context state) { return ((Boolean)state.getValue(this)).booleanValue(); }
-
-    /**
-     * Method to get the integer value on this Setting object in specified Setting State.
-     * The object must have been created as "integer".
-     * @param state Setting State
-     * @return the integer value on this TechSetting object.
-     */
-    public int getInt(Context state) { return ((Integer)state.getValue(this)).intValue(); }
-
-    /**
-     * Method to get the long value on this Setting object in specified Setting State.
-     * The object must have been created as "long".
-     * @param state Setting State
-     * @return the long value on this TechSetting object.
-     */
-    public long getLong(Context state) { return ((Long)state.getValue(this)).longValue(); }
-
-    /**
-     * Method to get the double value on this Setting object in specified Setting State.
-     * The object must have been created as "double".
-     * @param state Setting State
-     * @return the double value on this TechSetting object.
-     */
-    public double getDouble(Context state) { return ((Double)state.getValue(this)).doubleValue(); }
-
-    /**
-     * Method to get the string value on this Setting object in specified Setting State.
-     * The object must have been created as "string".
-     * @param state Setting State
-     * @return the string value on this TechSetting object.
-     */
-    public String getString(Context state) {
-        String s = (String)state.getValue(this);
-        if (s == null)
-            throw new NullPointerException();
-        return s;
     }
 
     /**

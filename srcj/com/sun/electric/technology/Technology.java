@@ -143,7 +143,6 @@ public class Technology implements Comparable<Technology>, Serializable
     // Change in TechSettings takes effect only after restart
     private static final boolean IMMUTABLE_TECHS = Config.TWO_JVM;
 
-	private static final boolean LAZY_TECHNOLOGIES = false;
     /** Jelib writes base sizes since this Electric Version */
     public static final Version DISK_VERSION_1 = Version.parseVersion("8.05g");
     /** Jelib writes oversize over standard primitive since this Electric Version */
@@ -1646,138 +1645,34 @@ public class Technology implements Comparable<Technology>, Serializable
 	 */
 	public static void initAllTechnologies()
 	{
-        /** static list of all Technologies in Electric */		TreeMap<String,String> lazyClasses = new TreeMap<String,String>();
-        /** static list of xml Technologies in Electric */		TreeMap<String,URL> lazyUrls = new TreeMap<String,URL>();
-
-		// technology initialization may set preferences, so batch them
-		Pref.delayPrefFlushing();
-
 		// Because of lazy evaluation, technologies aren't initialized unless they're referenced here
         EDatabase database = EDatabase.serverDatabase();
-		sysGeneric = new Generic(database.getIdManager()); sysGeneric.setup(database);
-		sysArtwork = new Artwork(sysGeneric); sysArtwork.setup(database);
-		sysFPGA = new FPGA(sysGeneric); sysFPGA.setup(database);
-		sysSchematics = new Schematics(sysGeneric); sysSchematics.setup(database);
-
-//		MoCMOS.tech.setup();
-
-		// finished batching preferences
-		Pref.resumePrefFlushing();
-
-//		// setup the generic technology to handle all connections
-//		Generic.tech.makeUnivList();
-
-        lazyUrls.put("bicmos",       Technology.class.getResource("technologies/bicmos.xml"));
-        lazyUrls.put("bipolar",      Technology.class.getResource("technologies/bipolar.xml"));
-        lazyUrls.put("cmos",         Technology.class.getResource("technologies/cmos.xml"));
-        lazyClasses.put("efido",     "com.sun.electric.technology.technologies.EFIDO");
-        lazyClasses.put("gem",       "com.sun.electric.technology.technologies.GEM");
-        lazyClasses.put("pcb",       "com.sun.electric.technology.technologies.PCB");
-        lazyClasses.put("rcmos",     "com.sun.electric.technology.technologies.RCMOS");
-        if (true) {
-            lazyClasses.put("mocmos","com.sun.electric.technology.technologies.MoCMOS");
-        } else {
-            lazyUrls.put("mocmos",   Technology.class.getResource("technologies/mocmos.xml"));
+        sysGeneric = Generic.newInstance(database.getIdManager());
+        database.addTech(sysGeneric);
+		Setting.Context settingContext = new Setting.Context() {
+			public Object getValue(Setting setting) { return setting.getValue(); }
+		};
+        String softTechnologies = ToolSettings.getSoftTechnologiesSetting().getString();
+        for (TechFactory techFactory: TechFactory.getKnownTechs(softTechnologies).values()) {
+            Technology tech = techFactory.newInstance(sysGeneric, settingContext);
+            if (tech != null)
+                database.addTech(tech);
         }
-        lazyUrls.put("mocmosold",    Technology.class.getResource("technologies/mocmosold.xml"));
-        lazyUrls.put("mocmossub",    Technology.class.getResource("technologies/mocmossub.xml"));
-        lazyUrls.put("nmos",         Technology.class.getResource("technologies/nmos.xml"));
-        lazyUrls.put("tft",          Technology.class.getResource("technologies/tft.xml"));
-        lazyUrls.put("tsmc180",      Main.class.getResource("plugins/tsmc/tsmc180.xml"));
-//        lazyUrls.put("tsmc45",      Main.class.getResource("plugins/tsmc/tsmc45.xml"));
-        if (true) {
-            lazyClasses.put("cmos90","com.sun.electric.plugins.tsmc.CMOS90");
-        } else {
-            lazyUrls.put("cmos90",   Main.class.getResource("plugins/tsmc/cmos90.xml"));
-        }
-		for(String softTechFile: User.getSoftTechnologiesSetting().getString().split(";")) {
-			if (softTechFile.length() == 0) continue;
-        	URL url = TextUtils.makeURLToFile(softTechFile);
-        	if (TextUtils.URLExists(url))
-        	{
-	        	String softTechName = TextUtils.getFileNameWithoutExtension(url);
-	        	lazyUrls.put(softTechName, url);
-        	} else
-        	{
-        		System.out.println("WARNING: could not find added technology: " + softTechFile);
-        		System.out.println("  (fix this error in the 'Added Technologies' Project Settings)");
-        	}
-        }
-
-        if (!LAZY_TECHNOLOGIES) {
-            // initialize technologies that may not be present
-            for(String techClassName: lazyClasses.values())
-                setupTechnology(database, techClassName);
-            for(URL techUrl: lazyUrls.values()) {
-                if (techUrl != null)
-                    setupTechnology(database, techUrl);
-            }
-        }
+        sysArtwork = (Artwork)findTechnology("artwork");
+        sysFPGA = (FPGA)findTechnology("fpga");
+        sysSchematics = (Schematics)findTechnology("schematic");
 
 		// set the current technology, given priority to user defined
         curLayoutTech = getMocmosTechnology();
         Technology  tech = Technology.findTechnology(User.getDefaultTechnology());
         if (tech == null) tech = curLayoutTech;
         tech.setCurrent();
-
 	}
 
     protected static Generic sysGeneric;
     protected static Artwork sysArtwork;
     protected static FPGA sysFPGA;
     protected static Schematics sysSchematics;
-
-	private static void setupTechnology(EDatabase database, String techClassName) {
-        Pref.delayPrefFlushing();
-        try {
-            Class<?> techClass = Class.forName(techClassName);
-            Technology tech = (Technology)techClass.getConstructor(Generic.class)
-                    .newInstance(database.getGeneric());
-            tech.setup(database);
-//            Generic.tech.makeUnivList();
-        } catch (ClassNotFoundException e) {
-            if (Job.getDebug())
-                System.out.println("GNU Release can't find extra technologies");
-
-        } catch (Exception e) {
-            System.out.println("Exceptions while importing extra technologies");
-            ActivityLogger.logException(e);
-        } finally {
-            Pref.resumePrefFlushing();
-        }
-    }
-
-    private static void setupTechnology(EDatabase database, URL urlXml) {
-        Pref.delayPrefFlushing();
-        try {
-            Xml.Technology t = Xml.parseTechnology(urlXml);
-            if (t == null)
-            {
-                throw new Exception("Can't load extra technology: " + urlXml);
-            }
-            else if (Technology.findTechnology(t.techName) != null)
-            {
-                // name is being used.
-                throw new Exception("Technology with the same name exists: " + t.techName);
-            }
-            Class<?> techClass = Technology.class;
-            if (t.className != null)
-                techClass = Class.forName(t.className);
-            Technology tech = (Technology)techClass.getConstructor(Generic.class, Xml.Technology.class)
-                    .newInstance(database.getGeneric(), t);
-            tech.setup(database);
-//            Generic.tech.makeUnivList();
-        } catch (ClassNotFoundException e) {
-            if (Job.getDebug())
-                System.out.println("GNU Release can't find extra technologies");
-
-        } catch (Exception e) {
-            System.out.println("Can't load extra technology: " + urlXml);
-            ActivityLogger.logException(e.getCause() != null ? e.getCause() : e);
-        } finally {
-            Pref.resumePrefFlushing();
-        }
-    }
 
     private static Technology mocmos = null;
     private static boolean mocmosCached = false;
@@ -1839,7 +1734,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	 * Calls the technology's specific "init()" method (if any).
 	 * Also sets up mappings from pseudo-layers to real layers.
 	 */
-	public void setup(EDatabase database)
+	public void setup(Setting.Context settingContext)
 	{
         if (cacheMinResistance == null || cacheMinCapacitance == null) {
             setFactoryParasitics(10, 0);
@@ -1860,9 +1755,8 @@ public class Technology implements Comparable<Technology>, Serializable
 
         rootSettings.lock();
        // initialize all design rules in the technology to Preference values
-        loadTechParams();
+        loadTechParams(settingContext);
 		setStateNow();
-        database.addTech(this);
 
         check();
 	}
@@ -1871,6 +1765,18 @@ public class Technology implements Comparable<Technology>, Serializable
 	 * Method to set state of a technology.
      */
 	public void setState() {
+        setState(new Setting.Context() {
+            @Override
+            public Object getValue(Setting setting) {
+                return setting.getValue();
+            }
+        });
+    }
+
+	/**
+	 * Method to set state of a technology.
+     */
+	public void setState(Setting.Context settingContext) {
         if (IMMUTABLE_TECHS) {
                 Job.getUserInterface().showInformationMessage("There is now inconsistent use of this technology parameter:\n" +
                 	"               " + getTechName() + "\n" +
@@ -1879,18 +1785,9 @@ public class Technology implements Comparable<Technology>, Serializable
                     "Technology Parameter Changed");
 
         } else {
-            loadTechParams();
+            loadTechParams(settingContext);
             setStateNow();
         }
-    }
-
-    private void loadTechParams() {
-        loadTechParams(new Setting.Context() {
-            @Override
-            public Object getValue(Setting setting) {
-                return setting.getValue();
-            }
-        });
     }
 
     protected void loadTechParams(Setting.Context context) {
@@ -1905,7 +1802,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	 * It gets overridden by individual technologies.
      */
 	protected void setStateNow() {
-        EDatabase.theDatabase.checkChanging();
+//        EDatabase.theDatabase.checkChanging();
         if (xmlTech != null)
             cachedRules = factoryRules = makeFactoryDesignRules();
     }
@@ -2120,8 +2017,15 @@ public class Technology implements Comparable<Technology>, Serializable
         for (Iterator<Foundry> it = getFoundries(); it.hasNext();) {
             Foundry foundry = it.next();
             out.println("    <Foundry name=\"" + foundry.getType().getName() + "\">");
-            for (Map.Entry<Layer,String> e: foundry.getGDSLayers().entrySet())
-                out.println("        <layerGds layer=\"" + e.getKey().getName() + "\" gds=\"" + e.getValue() + "\"/>");
+            for (Iterator<Layer> lit = getLayers(); lit.hasNext(); ) {
+                Layer layer = lit.next();
+                Setting layerGdsSetting = foundry.getGDSLayerSetting(layer);
+                String gdsStr = (String)settings.get(layerGdsSetting);
+                if (gdsStr == null || gdsStr.length() == 0) continue;
+                out.println("        <layerGds layer=\"" + layer.getName() + "\" gds=\"" + gdsStr + "\"/>");
+            }
+//            for (Map.Entry<Layer,String> e: foundry.getGDSLayers(sc).entrySet())
+//                out.println("        <layerGds layer=\"" + e.getKey().getName() + "\" gds=\"" + e.getValue() + "\"/>");
             List<DRCTemplate> rules = foundry.getRules();
             if (rules != null) {
                 for (DRCTemplate rule: rules)
@@ -2134,7 +2038,7 @@ public class Technology implements Comparable<Technology>, Serializable
     protected void dumpExtraProjectSettings(PrintWriter out, Map<Setting,Object> settings) {}
 
     protected static void printlnSetting(PrintWriter out, Map<Setting,Object> settings, Setting setting) {
-        out.println(setting.getXmlPath() + "=" + setting.getValue() + "(" + setting.getFactoryValue() + ")");
+        out.println(setting.getXmlPath() + "=" + settings.get(setting) + "(" + setting.getFactoryValue() + ")");
     }
 
     static void printlnPref(PrintWriter out, int indent, Pref pref) {
@@ -2155,9 +2059,9 @@ public class Technology implements Comparable<Technology>, Serializable
             out.print(" nodeInst " + pn.getName() + ":" + ni.getFunction() + ":" + ni.getOrient());
             for (Iterator<Variable> it = ni.getVariables(); it.hasNext(); ) {
                 Variable var = it.next();
-                Object value = var.getClass();
+                Object value = var.getObject();
                 String s = value instanceof Object[] ? Arrays.toString((Object[])value) : value.toString();
-                out.print(":" + var.getObject()+ ":" + var.isDisplay() + ":" + var.getSize().getSize());
+                out.print(":" + s + ":" + var.isDisplay() + ":" + var.getSize().getSize());
             }
         } else if (entry instanceof String) {
             out.print(" " + entry);
@@ -2274,12 +2178,18 @@ public class Technology implements Comparable<Technology>, Serializable
             Foundry foundry = it.next();
             Xml.Foundry f = new Xml.Foundry();
             f.name = foundry.toString();
-            Map<Layer,String> gdsMap = foundry.getGDSLayers();
-            for (Map.Entry<Layer,String> e: gdsMap.entrySet()) {
-                String gds = e.getValue();
+            for (Layer layer: layers) {
+                Setting setting = foundry.getGDSLayerSetting(layer);
+                String gds = (String)setting.getFactoryValue();
                 if (gds.length() == 0) continue;
-                f.layerGds.put(e.getKey().getName(), gds);
+                f.layerGds.put(layer.getName(), gds);
             }
+//            Map<Layer,String> gdsMap = foundry.getGDSLayers();
+//            for (Map.Entry<Layer,String> e: gdsMap.entrySet()) {
+//                String gds = e.getValue();
+//                if (gds.length() == 0) continue;
+//                f.layerGds.put(e.getKey().getName(), gds);
+//            }
             List<DRCTemplate> rules = foundry.getRules();
             if (rules != null)
                 f.rules.addAll(rules);

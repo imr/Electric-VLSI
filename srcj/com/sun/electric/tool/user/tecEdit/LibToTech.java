@@ -45,11 +45,10 @@ import com.sun.electric.technology.EdgeH;
 import com.sun.electric.technology.EdgeV;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.TechFactory;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Xml;
-import com.sun.electric.technology.Technology.NodeLayer;
 import com.sun.electric.technology.Technology.NodeLayer.CustomOverride;
-import com.sun.electric.technology.Xml.MenuNodeInst;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
@@ -71,6 +70,7 @@ import java.awt.event.WindowEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -453,13 +453,16 @@ public class LibToTech
 		}
 
 		Xml.Technology t = makeXml(newTechName, gi, lList, nList, aList);
+        URL techUrl = null;
 		if (fileName != null) {
             boolean includeDateAndVersion = User.isIncludeDateAndVersionInOutput();
             String copyrightMessage = IOTool.isUseCopyrightMessage() ? IOTool.getCopyrightMessage() : null;
 			t.writeXml(fileName, includeDateAndVersion, copyrightMessage);
+            techUrl = TextUtils.makeURLToFile(fileName);
         }
-		Technology tech = new Technology(lib.getGeneric(), t);
-		tech.setup(lib.getDatabase());
+        TechFactory techFactory = TechFactory.fromXml(techUrl, t);
+        Technology tech = techFactory.newInstance(Generic.tech());
+        lib.getDatabase().addTech(tech);
 
 		// switch to this technology
 		System.out.println("Technology " + tech.getTechName() + " built.");

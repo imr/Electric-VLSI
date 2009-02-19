@@ -34,12 +34,12 @@ import com.sun.electric.database.id.PrimitiveNodeId;
 import com.sun.electric.database.id.PrimitivePortId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.text.CellName;
-
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -70,7 +70,7 @@ public class SerializationTest {
     private CellId cellId0;
     private ExportId exportId0;
     private EDatabase database;
-    
+
     public SerializationTest() {
     }
 
@@ -84,9 +84,6 @@ public class SerializationTest {
 
     @Before
     public void setUp() {
-        EDatabase.theDatabase.lock(true);
-        EDatabase.theDatabase.lowLevelBeginChanging(null);
-        
         idManager = new IdManager();
         techId0 = idManager.newTechId("tech0");
         arcProtoId0 = techId0.newArcProtoId("ap0");
@@ -100,15 +97,13 @@ public class SerializationTest {
 
     @After
     public void tearDown() {
-        EDatabase.theDatabase.lowLevelEndChanging();
-        EDatabase.theDatabase.unlock();
     }
 
     @Test
     public void ids() {
         System.out.println("ids");
         try {
-            Generic tech0 = new Generic(idManager);
+            Generic tech0 = Generic.newInstance(idManager);
             ArcProto ap0 = tech0.invisible_arc;
             PrimitiveNode pn0 = tech0.cellCenterNode;
             PrimitivePort pp0 = pn0.getPort(0);
@@ -129,7 +124,7 @@ public class SerializationTest {
             out.flush();
             byte[] serialized = byteStream.toByteArray();
             out.close();
-            
+
             ObjectInputStream in = new EObjectInputStream(new ByteArrayInputStream(serialized), database);
             TechId techId = (TechId)in.readObject();
             ArcProtoId arcProtoId = (ArcProtoId)in.readObject();
@@ -143,7 +138,7 @@ public class SerializationTest {
             PrimitiveNode pn = (PrimitiveNode)in.readObject();
             PrimitivePort pp = (PrimitivePort)in.readObject();
             in.close();
-            
+
             assertSame(techId0, techId);
             assertSame(arcProtoId0, arcProtoId);
             assertSame(primitiveNodeId0, primitiveNodeId);
@@ -156,11 +151,11 @@ public class SerializationTest {
             assertSame(pn0, pn);
             assertSame(pp0, pp);
         } catch (Exception e) {
-            fail(e.toString());
+            throw new Error(e);
         }
     }
-    
-    @Test(expected = NotSerializableException.class) 
+
+    @Test(expected = NotSerializableException.class)
     public void techIdOther() throws IOException {
         System.out.println("techIdOther");
         ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
@@ -169,8 +164,8 @@ public class SerializationTest {
         TechId techId = otherIdManager.newTechId("tech");
         out.writeObject(techId);
     }
-    
-    @Test(expected = NotSerializableException.class) 
+
+    @Test(expected = NotSerializableException.class)
     public void arcProtoIdOther() throws IOException {
         System.out.println("arcProtoIdOther");
         ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
@@ -180,8 +175,8 @@ public class SerializationTest {
         ArcProtoId arcProtoId = techId.newArcProtoId("ap");
         out.writeObject(arcProtoId);
     }
-    
-    @Test(expected = NotSerializableException.class) 
+
+    @Test(expected = NotSerializableException.class)
     public void primitiveNodeIdOther() throws IOException {
         System.out.println("primitiveNodeIdOther");
         ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
@@ -191,8 +186,8 @@ public class SerializationTest {
         PrimitiveNodeId primitiveNodeId = techId.newPrimitiveNodeId("pn");
         out.writeObject(primitiveNodeId);
     }
-    
-    @Test(expected = NotSerializableException.class) 
+
+    @Test(expected = NotSerializableException.class)
     public void primitivePortIdOther() throws IOException {
         System.out.println("primitivePortIdOther");
         ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
@@ -203,8 +198,8 @@ public class SerializationTest {
         PrimitivePortId primitivePortId = primitiveNodeId.newPortId("pp");
         out.writeObject(primitivePortId);
     }
-    
-    @Test(expected = NotSerializableException.class) 
+
+    @Test(expected = NotSerializableException.class)
     public void libIdOther() throws IOException {
         System.out.println("libIdOther");
         ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
@@ -213,8 +208,8 @@ public class SerializationTest {
         LibId libId = otherIdManager.newLibId("lib");
         out.writeObject(libId);
     }
-    
-    @Test(expected = NotSerializableException.class) 
+
+    @Test(expected = NotSerializableException.class)
     public void cellIdOther() throws IOException {
         System.out.println("cellIdOther");
         ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
@@ -224,8 +219,8 @@ public class SerializationTest {
         CellId cellId = libId.newCellId(CellName.parseName("cell;1{lay}"));
         out.writeObject(cellId);
     }
-    
-    @Test(expected = NotSerializableException.class) 
+
+    @Test(expected = NotSerializableException.class)
     public void exportIdOther() throws IOException {
         System.out.println("exportIdOther");
         ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
@@ -236,11 +231,11 @@ public class SerializationTest {
         ExportId exportId = cellId.newPortId("export");
         out.writeObject(exportId);
     }
-    
+
     private static class CellIdPtr implements Serializable {
         private CellId cellId;
     }
-    
+
     @Test(expected = NotSerializableException.class)
     public void cellIdOtherIndirect() throws IOException {
         System.out.println("cellIdOther");
@@ -253,7 +248,7 @@ public class SerializationTest {
         cellIdPtr.cellId = cellId;
         out.writeObject(cellIdPtr);
     }
-    
+
     @Test(expected = IndexOutOfBoundsException.class)
     public void libIdToOtherIdManager() throws IOException, ClassNotFoundException {
         System.out.println("libIdToOtherIdManager");
@@ -270,11 +265,11 @@ public class SerializationTest {
         ObjectInputStream in = new EObjectInputStream(new ByteArrayInputStream(serialized), otherDatabase);
         LibId libId = (LibId) in.readObject();
     }
-    
+
     @Test(expected = InvalidObjectException.class)
     public void technologyToOtherDatabase() throws IOException, ClassNotFoundException {
         System.out.println("technologyToOtherDatabase");
-        Generic tech0 = new Generic(idManager);
+        Generic tech0 = Generic.newInstance(idManager);
         database.addTech(tech0);
         ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
         ObjectOutputStream out = new EObjectOutputStream(byteStream, database);
@@ -287,11 +282,11 @@ public class SerializationTest {
         ObjectInputStream in = new EObjectInputStream(new ByteArrayInputStream(serialized), otherDatabase);
         Technology tech = (Technology) in.readObject();
     }
-    
+
     @Test(expected = NotSerializableException.class)
     public void techNotLinked() throws IOException, ClassNotFoundException {
         System.out.println("techNotLinked");
-        Technology tech0 = new Generic(idManager);
+        Technology tech0 = Generic.newInstance(idManager);
         ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
         ObjectOutputStream out = new EObjectOutputStream(byteStream, database);
         out.writeObject(tech0);
@@ -302,6 +297,6 @@ public class SerializationTest {
         ObjectInputStream in = new EObjectInputStream(new ByteArrayInputStream(serialized), database);
         Technology tech = (Technology) in.readObject();
     }
-    
-    
+
+
 }

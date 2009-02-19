@@ -26,7 +26,7 @@ package com.sun.electric.database;
 
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Orientation;
-import com.sun.electric.database.hierarchy.EDatabase;
+import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.id.IdReader;
 import com.sun.electric.database.id.PortProtoId;
 import com.sun.electric.database.id.PrimitiveNodeId;
@@ -36,9 +36,9 @@ import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.TechFactory;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
-import com.sun.electric.tool.Tool;
 
 import java.awt.geom.Rectangle2D;
 import java.util.Iterator;
@@ -52,33 +52,29 @@ import org.junit.Test;
  * Unit test of ImmutableNodeInst
  */
 public class ImmutableNodeInstTest {
-    
+
+    private IdManager idManager;
+    private Generic generic;
     private Technology tech;
     private PrimitiveNode pn;
     private PrimitiveNodeId pnId;
     private PrimitiveNodeId cellCenterNodeId;
     private Name nameA0;
     private ImmutableNodeInst n0;
-    
+
     @Before public void setUp() throws Exception {
-        EDatabase.theDatabase.lock(true);
-        EDatabase.theDatabase.lowLevelBeginChanging(null);
-        if (Technology.findTechnology("mocmos") == null) {
-            Tool.initAllTools();
-            Technology.initAllTechnologies();
-        }
-        
-        tech = Technology.getMocmosTechnology();
+        idManager = new IdManager();
+        generic = Generic.newInstance(idManager);
+        tech = TechFactory.getTechFactory("mocmos").newInstance(generic);
         pn = tech.findNodeProto("Metal-1-P-Active-Con");
         pnId = pn.getId();
-        cellCenterNodeId = Generic.tech().cellCenterNode.getId();
+        cellCenterNodeId = generic.cellCenterNode.getId();
         nameA0 = Name.findName("a0");
         n0 = ImmutableNodeInst.newInstance(0, pnId, nameA0, null, Orientation.IDENT, EPoint.fromLambda(1, 2), EPoint.fromLambda(0, 0), 0, 0, null);
     }
-    
-    @After public void tearDown() {
-        EDatabase.theDatabase.lowLevelEndChanging();
-        EDatabase.theDatabase.unlock();
+
+    @After
+    public void tearDown() {
     }
 
     public static junit.framework.Test suite() {
@@ -102,14 +98,14 @@ public class ImmutableNodeInstTest {
 //         */
 //        public void testIs() {
 //            System.out.println("is");
-//            
+//
 //            int userBits = 0;
 //            ImmutableNodeInst.Flag instance = null;
-//            
+//
 //            boolean expResult = true;
 //            boolean result = instance.is(userBits);
 //            assertEquals(expResult, result);
-//            
+//
 //            // TODO review the generated test code and remove the default call to fail.
 //            fail("The test case is a prototype.");
 //        }
@@ -119,15 +115,15 @@ public class ImmutableNodeInstTest {
 //         */
 //        public void testSet() {
 //            System.out.println("set");
-//            
+//
 //            int userBits = 0;
 //            boolean value = true;
 //            ImmutableNodeInst.Flag instance = null;
-//            
+//
 //            int expResult = 0;
 //            int result = instance.set(userBits, value);
 //            assertEquals(expResult, result);
-//            
+//
 //            // TODO review the generated test code and remove the default call to fail.
 //            fail("The test case is a prototype.");
 //        }
@@ -139,7 +135,7 @@ public class ImmutableNodeInstTest {
      */
     @Test public void testNewInstance() {
         System.out.println("newInstance");
-        
+
         TextDescriptor td = TextDescriptor.newTextDescriptor(new MutableTextDescriptor()).withParam(true);
         ImmutableNodeInst n1 = ImmutableNodeInst.newInstance(0, cellCenterNodeId, nameA0, td, Orientation.R, EPoint.fromLambda(1, 2), EPoint.fromLambda(17, 17), 0, 0, td);
         n1.check();
@@ -149,7 +145,7 @@ public class ImmutableNodeInstTest {
         assertSame(n1.orient, Orientation.IDENT);
         assertSame(n1.size, EPoint.ORIGIN);
     }
-    
+
     @Test(expected = IllegalArgumentException.class) public void testNewInstanceBadNodeId() {
         System.out.println("newInstanceBadNodeId");
         ImmutableNodeInst.newInstance(-1, cellCenterNodeId, nameA0, null, Orientation.R, EPoint.fromLambda(1, 2), EPoint.fromLambda(17, 17), 0, 0, null);
@@ -214,7 +210,7 @@ public class ImmutableNodeInstTest {
     @Test public void testWithName() {
         System.out.println("withName");
         assertSame(n0, n0.withName(Name.findName("a0")));
-        
+
         Name name_B = Name.findName("b");
         assertSame(name_B, n0.withName(name_B).name);
     }
@@ -326,9 +322,9 @@ public class ImmutableNodeInstTest {
         Variable.Key varKey = Variable.newKey("key");
         Variable var = Variable.newInstance(varKey, "valueA", TextDescriptor.newTextDescriptor(new MutableTextDescriptor()));
         ImmutableNodeInst n1 = n0.withVariable(var);
-        
+
         assertSame(n1, n1.withoutVariable(Variable.newKey("key2")));
-        
+
         ImmutableNodeInst n2 = n1.withoutVariable(varKey);
         assertEquals(0, n2.getNumVariables());
     }
@@ -347,15 +343,15 @@ public class ImmutableNodeInstTest {
      */
     public void testWithPortInst() {
         System.out.println("withPortInst");
-        
+
         PortProtoId portProtoId = null;
         ImmutablePortInst portInst = null;
         ImmutableNodeInst instance = null;
-        
+
         ImmutableNodeInst expResult = null;
         ImmutableNodeInst result = instance.withPortInst(portProtoId, portInst);
         assertEquals(expResult, result);
-        
+
         // TODO review the generated test code and remove the default call to fail.
         fail("The test case is a prototype.");
     }
@@ -365,13 +361,13 @@ public class ImmutableNodeInstTest {
      */
     public void testIsUsernamed() {
         System.out.println("isUsernamed");
-        
+
         ImmutableNodeInst instance = null;
-        
+
         boolean expResult = true;
         boolean result = instance.isUsernamed();
         assertEquals(expResult, result);
-        
+
         // TODO review the generated test code and remove the default call to fail.
         fail("The test case is a prototype.");
     }
@@ -381,14 +377,14 @@ public class ImmutableNodeInstTest {
      */
     public void testGetPortInst() {
         System.out.println("getPortInst");
-        
+
         PortProtoId portProtoId = null;
         ImmutableNodeInst instance = null;
-        
+
         ImmutablePortInst expResult = null;
         ImmutablePortInst result = instance.getPortInst(portProtoId);
         assertEquals(expResult, result);
-        
+
         // TODO review the generated test code and remove the default call to fail.
         fail("The test case is a prototype.");
     }
@@ -398,13 +394,13 @@ public class ImmutableNodeInstTest {
      */
     public void testGetPortsWithVariables() {
         System.out.println("getPortsWithVariables");
-        
+
         ImmutableNodeInst instance = null;
-        
+
         Iterator<PortProtoId> expResult = null;
         Iterator<PortProtoId> result = instance.getPortsWithVariables();
         assertEquals(expResult, result);
-        
+
         // TODO review the generated test code and remove the default call to fail.
         fail("The test case is a prototype.");
     }
@@ -414,13 +410,13 @@ public class ImmutableNodeInstTest {
      */
     public void testHasPortInstVariables() {
         System.out.println("hasPortInstVariables");
-        
+
         ImmutableNodeInst instance = null;
-        
+
         boolean expResult = true;
         boolean result = instance.hasPortInstVariables();
         assertEquals(expResult, result);
-        
+
         // TODO review the generated test code and remove the default call to fail.
         fail("The test case is a prototype.");
     }
@@ -430,14 +426,14 @@ public class ImmutableNodeInstTest {
      */
     public void testIs() {
         System.out.println("is");
-        
+
         ImmutableNodeInst.Flag flag = null;
         ImmutableNodeInst instance = null;
-        
+
         boolean expResult = true;
         boolean result = instance.is(flag);
         assertEquals(expResult, result);
-        
+
         // TODO review the generated test code and remove the default call to fail.
         fail("The test case is a prototype.");
     }
@@ -447,12 +443,12 @@ public class ImmutableNodeInstTest {
 //     */
 //    public void testWrite() throws Exception {
 //        System.out.println("write");
-//        
+//
 //        SnapshotWriter writer = null;
 //        ImmutableNodeInst instance = null;
-//        
+//
 //        instance.write(writer);
-//        
+//
 //        // TODO review the generated test code and remove the default call to fail.
 //        fail("The test case is a prototype.");
 //    }
@@ -462,13 +458,13 @@ public class ImmutableNodeInstTest {
      */
     public void testRead() throws Exception {
         System.out.println("read");
-        
+
         IdReader reader = null;
-        
+
         ImmutableNodeInst expResult = null;
         ImmutableNodeInst result = ImmutableNodeInst.read(reader);
         assertEquals(expResult, result);
-        
+
         // TODO review the generated test code and remove the default call to fail.
         fail("The test case is a prototype.");
     }
@@ -478,13 +474,13 @@ public class ImmutableNodeInstTest {
      */
     public void testHashCodeExceptVariables() {
         System.out.println("hashCodeExceptVariables");
-        
+
         ImmutableNodeInst instance = null;
-        
+
         int expResult = 0;
         int result = instance.hashCodeExceptVariables();
         assertEquals(expResult, result);
-        
+
         // TODO review the generated test code and remove the default call to fail.
         fail("The test case is a prototype.");
     }
@@ -494,14 +490,14 @@ public class ImmutableNodeInstTest {
      */
     public void testEqualsExceptVariables() {
         System.out.println("equalsExceptVariables");
-        
+
         ImmutableElectricObject o = null;
         ImmutableNodeInst instance = null;
-        
+
         boolean expResult = true;
         boolean result = instance.equalsExceptVariables(o);
         assertEquals(expResult, result);
-        
+
         // TODO review the generated test code and remove the default call to fail.
         fail("The test case is a prototype.");
     }
@@ -511,11 +507,11 @@ public class ImmutableNodeInstTest {
      */
     public void testCheck() {
         System.out.println("check");
-        
+
         ImmutableNodeInst instance = null;
-        
+
         instance.check();
-        
+
         // TODO review the generated test code and remove the default call to fail.
         fail("The test case is a prototype.");
     }
@@ -525,13 +521,13 @@ public class ImmutableNodeInstTest {
      */
     public void testGetElibBits() {
         System.out.println("getElibBits");
-        
+
         ImmutableNodeInst instance = null;
-        
+
         int expResult = 0;
         int result = instance.getElibBits();
         assertEquals(expResult, result);
-        
+
         // TODO review the generated test code and remove the default call to fail.
         fail("The test case is a prototype.");
     }
@@ -541,13 +537,13 @@ public class ImmutableNodeInstTest {
      */
     public void testFlagsFromElib() {
         System.out.println("flagsFromElib");
-        
+
         int elibBits = 0;
-        
+
         int expResult = 0;
         int result = ImmutableNodeInst.flagsFromElib(elibBits);
         assertEquals(expResult, result);
-        
+
         // TODO review the generated test code and remove the default call to fail.
         fail("The test case is a prototype.");
     }
@@ -557,13 +553,13 @@ public class ImmutableNodeInstTest {
      */
     public void testTechSpecificFromElib() {
         System.out.println("techSpecificFromElib");
-        
+
         int elibBits = 0;
-        
+
         int expResult = 0;
         int result = ImmutableNodeInst.techSpecificFromElib(elibBits);
         assertEquals(expResult, result);
-        
+
         // TODO review the generated test code and remove the default call to fail.
         fail("The test case is a prototype.");
     }
@@ -573,13 +569,13 @@ public class ImmutableNodeInstTest {
      */
     public void testComputeBounds() {
         System.out.println("computeBounds");
-        
+
         NodeInst real = null;
         Rectangle2D.Double dstBounds = null;
         ImmutableNodeInst instance = null;
-        
+
         instance.computeBounds(real, dstBounds);
-        
+
         // TODO review the generated test code and remove the default call to fail.
         fail("The test case is a prototype.");
     }
@@ -589,13 +585,13 @@ public class ImmutableNodeInstTest {
      */
     public void testGetTrace() {
         System.out.println("getTrace");
-        
+
         ImmutableNodeInst instance = null;
-        
+
         EPoint[] expResult = null;
         EPoint[] result = instance.getTrace();
         assertEquals(expResult, result);
-        
+
         // TODO review the generated test code and remove the default call to fail.
         fail("The test case is a prototype.");
     }
@@ -605,15 +601,15 @@ public class ImmutableNodeInstTest {
      */
     public void testGetSerpentineTransistorLength() {
         System.out.println("getSerpentineTransistorLength");
-        
+
         ImmutableNodeInst instance = null;
-        
+
         double expResult = 0.0;
         double result = instance.getSerpentineTransistorLength();
         assertEquals(expResult, result);
-        
+
         // TODO review the generated test code and remove the default call to fail.
         fail("The test case is a prototype.");
     }
-    
+
 }

@@ -25,7 +25,6 @@
 package com.sun.electric.database;
 
 import com.sun.electric.database.geometry.ERectangle;
-import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.id.IdReader;
@@ -37,21 +36,14 @@ import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
-import com.sun.electric.tool.io.input.LibraryStatistics;
-import com.sun.electric.tool.user.ErrorLogger;
 
-import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 
 import static org.junit.Assert.*;
@@ -71,9 +63,6 @@ public class SnapshotTest {
     private TechId schematicTechId;
 
     @Before public void setUp() throws Exception {
-        EDatabase.theDatabase.lock(true);
-        EDatabase.theDatabase.lowLevelBeginChanging(null);
-
         idManager = new IdManager();
         initialSnapshot = idManager.getInitialSnapshot();
         genericTechId = idManager.newTechId("generic");
@@ -96,9 +85,6 @@ public class SnapshotTest {
     @After public void tearDown() throws Exception {
         idManager = null;
         initialSnapshot = null;
-
-        EDatabase.theDatabase.lowLevelEndChanging();
-        EDatabase.theDatabase.unlock();
     }
 
     public static junit.framework.Test suite() {
@@ -113,7 +99,7 @@ public class SnapshotTest {
 
         LibId libId = idManager.newLibId("libId0");
         TechPool techPool = idManager.getInitialTechPool();
-        Generic generic = new Generic(idManager);
+        Generic generic = Generic.newInstance(idManager);
         techPool = techPool.withTech(generic).withTech(new Schematics(generic));
         ImmutableLibrary l = ImmutableLibrary.newInstance(libId, null, null);
         LibraryBackup libBackup = new LibraryBackup(l, false, new LibId[]{});
@@ -151,7 +137,7 @@ public class SnapshotTest {
 
         LibId libIdX = idManager.newLibId("X");
         TechPool techPool = idManager.getInitialTechPool();
-        Generic generic = new Generic(idManager);
+        Generic generic = Generic.newInstance(idManager);
         techPool = techPool.withTech(generic).withTech(new Schematics(generic));
         ImmutableLibrary libX = ImmutableLibrary.newInstance(libIdX, null, null);
         LibraryBackup libBackupX = new LibraryBackup(libX, false, new LibId[0]);

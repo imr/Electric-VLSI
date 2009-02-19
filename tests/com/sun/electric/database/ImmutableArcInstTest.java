@@ -29,7 +29,6 @@ import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.id.ArcProtoId;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.id.IdManager;
@@ -49,10 +48,11 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.TechFactory;
 import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
-import com.sun.electric.tool.Tool;
+import com.sun.electric.technology.technologies.Generic;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -60,6 +60,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
+import java.util.Arrays;
 import org.junit.After;
 import static org.junit.Assert.*;
 import org.junit.Before;
@@ -72,10 +73,11 @@ public class ImmutableArcInstTest {
 
     private static final long SHAPE_SCALE = 1L << 20;
 
-    private EDatabase database;
-    private TechPool techPool;
+    private IdManager idManager;
+    private Generic generic;
     private Artwork artwork;
     private Technology tech;
+    private TechPool techPool;
     private TechId techId;
     private PrimitiveNode pn;
     private PrimitiveNodeId pnId;
@@ -84,7 +86,6 @@ public class ImmutableArcInstTest {
     private ArcProto ap;
     private ArcProtoId apId;
     private long apExtend;
-    private IdManager idManager;
     private LibId libId;
     private CellId cellId;
     private ImmutableNodeInst n0, n1;
@@ -92,17 +93,11 @@ public class ImmutableArcInstTest {
     private ImmutableArcInst a0;
 
     @Before public void setUp() throws Exception {
-        database = EDatabase.theDatabase;
-        database.lock(true);
-        database.lowLevelBeginChanging(null);
-        if (Technology.findTechnology("mocmos") == null) {
-            Tool.initAllTools();
-            Technology.initAllTechnologies();
-        }
-
-        techPool = database.getTechPool();
-        artwork = techPool.getArtwork();
-        tech = Technology.getMocmosTechnology();
+        idManager = new IdManager();
+        generic = Generic.newInstance(idManager);
+        artwork = (Artwork)TechFactory.getTechFactory("artwork").newInstance(generic);
+        tech = TechFactory.getTechFactory("mocmos").newInstance(generic);
+        techPool = new TechPool(Arrays.asList(generic, artwork, tech));
         pn = tech.findNodeProto("Metal-1-P-Active-Con");
         pnId = pn.getId();
         pp = pn.getPort(0);
@@ -111,7 +106,6 @@ public class ImmutableArcInstTest {
         apId = ap.getId();
         apExtend = DBMath.lambdaToGrid(0);
 //        apExtend = DBMath.lambdaToGrid(1.5);
-        idManager = database.getIdManager();
         techId = tech.getId();
         libId = idManager.newLibId("lib");
         cellId = libId.newCellId(CellName.parseName("cell;1{lay}"));
@@ -121,9 +115,8 @@ public class ImmutableArcInstTest {
         a0 = ImmutableArcInst.newInstance(0, apId, nameA0, null, 0, ppId, n0.anchor, 1, ppId, n1.anchor, apExtend, 0, ImmutableArcInst.DEFAULT_FLAGS);
     }
 
-    @After public void tearDown() {
-        database.lowLevelEndChanging();
-        database.unlock();
+    @After
+    public void tearDown() {
     }
 
     public static junit.framework.Test suite() {
@@ -185,7 +178,7 @@ public class ImmutableArcInstTest {
      */
     @Test public void testGetLambdaLength() {
         System.out.println("getLambdaLength");
-        assertEquals(20.0, a0.getLambdaLength());
+        assertEquals(20.0, a0.getLambdaLength(), 0);
     }
 
     /**
@@ -193,7 +186,7 @@ public class ImmutableArcInstTest {
      */
     @Test public void testGetGridLength() {
         System.out.println("getGridLength");
-        assertEquals(20*DBMath.GRID, a0.getGridLength());
+        assertEquals(20*DBMath.GRID, a0.getGridLength(), 0);
     }
 
     /**
@@ -856,14 +849,14 @@ public class ImmutableArcInstTest {
             int angle = a.getAngle();
             long w2x = (long)Math.rint(GenMath.cos(angle)*w2*SHAPE_SCALE);
             long w2y = (long)Math.rint(GenMath.sin(angle)*w2*SHAPE_SCALE);
-            assertEquals((double)a.tailLocation.getGridX()*SHAPE_SCALE - w2x - w2y, doubleCoords[0]*SHAPE_SCALE);
-            assertEquals((double)a.tailLocation.getGridY()*SHAPE_SCALE + w2x - w2y, doubleCoords[1]*SHAPE_SCALE);
-            assertEquals((double)a.tailLocation.getGridX()*SHAPE_SCALE - w2x + w2y, doubleCoords[2]*SHAPE_SCALE);
-            assertEquals((double)a.tailLocation.getGridY()*SHAPE_SCALE - w2x - w2y, doubleCoords[3]*SHAPE_SCALE);
-            assertEquals((double)a.headLocation.getGridX()*SHAPE_SCALE + w2x + w2y, doubleCoords[4]*SHAPE_SCALE);
-            assertEquals((double)a.headLocation.getGridY()*SHAPE_SCALE - w2x + w2y, doubleCoords[5]*SHAPE_SCALE);
-            assertEquals((double)a.headLocation.getGridX()*SHAPE_SCALE + w2x - w2y, doubleCoords[6]*SHAPE_SCALE);
-            assertEquals((double)a.headLocation.getGridY()*SHAPE_SCALE + w2x + w2y, doubleCoords[7]*SHAPE_SCALE);
+            assertEquals((double)a.tailLocation.getGridX()*SHAPE_SCALE - w2x - w2y, doubleCoords[0]*SHAPE_SCALE, 0);
+            assertEquals((double)a.tailLocation.getGridY()*SHAPE_SCALE + w2x - w2y, doubleCoords[1]*SHAPE_SCALE, 0);
+            assertEquals((double)a.tailLocation.getGridX()*SHAPE_SCALE - w2x + w2y, doubleCoords[2]*SHAPE_SCALE, 0);
+            assertEquals((double)a.tailLocation.getGridY()*SHAPE_SCALE - w2x - w2y, doubleCoords[3]*SHAPE_SCALE, 0);
+            assertEquals((double)a.headLocation.getGridX()*SHAPE_SCALE + w2x + w2y, doubleCoords[4]*SHAPE_SCALE, 0);
+            assertEquals((double)a.headLocation.getGridY()*SHAPE_SCALE - w2x + w2y, doubleCoords[5]*SHAPE_SCALE, 0);
+            assertEquals((double)a.headLocation.getGridX()*SHAPE_SCALE + w2x - w2y, doubleCoords[6]*SHAPE_SCALE, 0);
+            assertEquals((double)a.headLocation.getGridY()*SHAPE_SCALE + w2x + w2y, doubleCoords[7]*SHAPE_SCALE, 0);
         }
 
         @Override

@@ -28,6 +28,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.EdgeH;
@@ -80,7 +81,26 @@ public class Generic extends Technology
 	private final PrimitivePort univPinPort, invisPinPort, simProbePort;
 
 	// -------------------- private and protected methods ------------------------
-	public Generic(IdManager idManager)
+    public static Generic newInstance(IdManager idManager) {
+        Setting.Context settingContext = new Setting.Context() {
+            @Override
+            public Object getValue(Setting setting) {
+                String xmlPath = setting.getXmlPath();
+                if (xmlPath.equals("userTool.PWellProcess"))
+                    return Boolean.TRUE;
+                if (xmlPath.equals("generic.Foundry"))
+                    return "NONE";
+                if (xmlPath.equals("generic.NumMetalLayers"))
+                    return Integer.valueOf(0);
+                return null;
+            }
+        };
+        Generic generic = new Generic(idManager);
+        generic.setup(settingContext);
+        return generic;
+    }
+
+	private Generic(IdManager idManager)
 	{
 		super(idManager, null, "generic", Foundry.Type.NONE, 0);
 		setTechShortName("Generic");
