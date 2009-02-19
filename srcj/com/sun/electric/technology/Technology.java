@@ -2151,7 +2151,7 @@ public class Technology implements Comparable<Technology>, Serializable
         addSpiceHeader(t, 2, getSpiceHeaderLevel2());
         addSpiceHeader(t, 3, getSpiceHeaderLevel3());
 
-        Object[][] origPalette = getNodesGrouped(null);
+        Object[][] origPalette = getDefaultNodesGrouped();
         int numRows = origPalette.length;
         int numCols = origPalette[0].length;
         for (Object[] row: origPalette) {
@@ -2236,7 +2236,7 @@ public class Technology implements Comparable<Technology>, Serializable
                 }
                 else
                 {
-                    System.out.println("Variable " + var.getTrueName() + "in " + ni.getName() + " can't be exported in XML");
+                    System.out.println("Variable " + var.getTrueName() + " in " + ni.getName() + " can't be exported in XML");
                 }
             }
             return n;
