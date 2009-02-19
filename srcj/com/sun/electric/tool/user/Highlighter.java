@@ -203,7 +203,22 @@ public class Highlighter implements DatabaseChangeListener {
 	 */
 	public Highlight2 addMessage(Cell cell, String message, Point2D loc)
 	{
-		Highlight2 h1 = new HighlightMessage(cell, message, loc);
+		Highlight2 h1 = new HighlightMessage(cell, message, loc, 0);
+		addHighlight(h1);
+		return h1;
+	}
+
+	/**
+	 * Method to add a message display to the list of highlighted objects.
+	 * @param cell the Cell in which this area resides.
+	 * @param message the String to display.
+	 * @param loc the location of the string (in database units).
+	 * @param corner 0=lowerLeft, 1=upperLeft, 2=upperRight, 3=lowerRight.
+	 * @return the newly created Highlight object.
+	 */
+	public Highlight2 addMessage(Cell cell, String message, Point2D loc, int corner)
+	{
+		Highlight2 h1 = new HighlightMessage(cell, message, loc, corner);
 		addHighlight(h1);
 		return h1;
 	}

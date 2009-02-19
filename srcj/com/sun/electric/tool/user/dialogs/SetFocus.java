@@ -44,6 +44,11 @@ public class SetFocus extends EDialog
 	{
 		EditWindow wnd = EditWindow.needCurrent();
 		if (wnd == null) return;
+		if (wnd.getCell() == null)
+		{
+			System.out.println("Must be editing a cell in order to manipulate focus.");
+			return;
+		}
 		SetFocus dialog = new SetFocus(TopLevel.getCurrentJFrame(), wnd);
 		dialog.setVisible(true);
 	}

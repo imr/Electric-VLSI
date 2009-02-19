@@ -57,7 +57,9 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Stroke;
+import java.awt.font.FontRenderContext;
 import java.awt.font.GlyphVector;
+import java.awt.font.LineMetrics;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -684,11 +686,14 @@ class HighlightMessage extends Highlight2
 {
 	/** The highlighted message. */								protected String msg;
     /** Location of the message highlight */                    protected Point2D loc;
-    HighlightMessage(Cell c, String m, Point2D p)
+    /** Corner of text: 0=lowerLeft, 1=upperLeft, 2=upperRight, 3=lowerRight */ protected int corner;
+
+    HighlightMessage(Cell c, String m, Point2D p, int co)
     {
         super(c);
         this.msg = m;
         this.loc = p;
+        this.corner = co;
     }
 
     void internalDescribe(StringBuffer desc)
@@ -701,6 +706,31 @@ class HighlightMessage extends Highlight2
                                       boolean onlyHighlight, boolean setConnected)
     {
         Point location = wnd.databaseToScreen(loc.getX(), loc.getY());
+        if (corner != 0)
+        {
+        	// determine the size of the text
+			Font font = g.getFont();
+			FontRenderContext frc = new FontRenderContext(null, true, true);
+			GlyphVector gv = font.createGlyphVector(frc, msg);
+			LineMetrics lm = font.getLineMetrics(msg, frc);
+			Rectangle2D rasRect = gv.getLogicalBounds();
+			int width = (int)rasRect.getWidth();
+			int height = (int)(lm.getHeight()+0.5);
+        	switch (corner)
+        	{
+        		case 1:		// put upper-left corner of text at drawing coordinate
+        			location.y += height;
+        			break;
+        		case 2:		// put upper-right corner of text at drawing coordinate
+        			location.y += height;
+        			location.x -= width;
+        			break;
+        		case 3:		// put lower-right corner of text at drawing coordinate
+        			location.y += height;
+        			location.x -= width;
+        			break;
+        	}
+        }
         Color oldColor = g.getColor();
         g.setColor(new Color(255-oldColor.getRed(), 255-oldColor.getGreen(), 255-oldColor.getBlue()));
         g.drawString(msg, location.x+1, location.y+1);

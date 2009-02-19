@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09c: ******************************
 
+IMP/MAN: (2/19/09, SMR) Measurement mode preserves measurements when reentering the mode
+     Now have Windows / Measurements commands to control it.  Text is shifted to be
+     more readable (Bug #2026).
+
 IMP: (2/18/09, DN) Move call of CMOS90.loadNodesInPalette from "setState" method to
   constructor. The unused nodes are cleaned later by Technology.filterNodeGroups .
 

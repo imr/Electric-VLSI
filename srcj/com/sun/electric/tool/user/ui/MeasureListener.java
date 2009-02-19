@@ -26,11 +26,11 @@ package com.sun.electric.tool.user.ui;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.Client;
 import com.sun.electric.tool.user.Highlight2;
+import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.waveform.Panel;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
-import com.sun.electric.tool.Client;
 
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -47,24 +47,17 @@ import java.util.List;
 /**
  * Class to make measurements in a window.
  */
-public class MeasureListener implements MouseListener, MouseMotionListener, MouseWheelListener,
-	KeyListener
+public class MeasureListener implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener
 {
 	public static MeasureListener theOne = new MeasureListener();
 
 	private static double lastMeasuredDistanceX = 0, lastMeasuredDistanceY = 0;
-
 	private static double lastValidMeasuredDistanceX = 0, lastValidMeasuredDistanceY = 0;
-
 	private static boolean measuring = false; // true if drawing measure line
-
 	private static List<Highlight2> lastHighlights = new ArrayList<Highlight2>();
-
 	private Point2D dbStart; // start of measure in database units
 
-	private MeasureListener()
-	{
-	}
+	private MeasureListener() {}
 
 	public static Dimension2D getLastMeasuredDistance()
 	{
@@ -72,30 +65,6 @@ public class MeasureListener implements MouseListener, MouseMotionListener, Mous
 			lastValidMeasuredDistanceY);
 		return dim;
 	}
-
-	public void reset()
-    {
-        if (measuring) measuring = false;
-
-        // clear measurements in the current window
-        WindowFrame wf = WindowFrame.getCurrentWindowFrame();
-        if (wf.getContent() instanceof EditWindow)
-        {
-            EditWindow wnd = (EditWindow)wf.getContent();
-	        Highlighter highlighter = wnd.getRulerHighlighter();
-	        highlighter.clear();
-	        highlighter.finished();
-	        wnd.repaint();
-        } else if (wf.getContent() instanceof WaveformWindow)
-        {
-        	WaveformWindow ww = (WaveformWindow)wf.getContent();
-        	for(Iterator<Panel> it = ww.getPanels(); it.hasNext(); )
-        	{
-        		Panel p = it.next();
-        		p.clearMeasurements();
-        	}
-        }
-    }
 
 	private void startMeasure(Point2D dbStart)
 	{
@@ -108,7 +77,6 @@ public class MeasureListener implements MouseListener, MouseMotionListener, Mous
 
 	private void dragOutMeasure(EditWindow wnd, Point2D dbPoint)
 	{
-
 		if (measuring && dbStart != null)
 		{
 			// Highlight.clear();
@@ -141,34 +109,55 @@ public class MeasureListener implements MouseListener, MouseMotionListener, Mous
 			String show = TextUtils.formatDistance(dist, tech) + " (dX="
 				+ TextUtils.formatDistance(lastMeasuredDistanceX, tech) + " dY="
 				+ TextUtils.formatDistance(lastMeasuredDistanceY, tech) + ")";
-			lastHighlights.add(highlighter.addMessage(wnd.getCell(), show, center));
+			lastHighlights.add(highlighter.addMessage(wnd.getCell(), show, center, 1));
 			highlighter.finished();
 			wnd.clearDoingAreaDrag();
 			wnd.repaint();
 		}
 	}
 
+	public void reset()
+    {
+        if (measuring) measuring = false;
+
+        // clear measurements in the current window
+        WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+        if (wf.getContent() instanceof EditWindow)
+        {
+            EditWindow wnd = (EditWindow)wf.getContent();
+	        Highlighter highlighter = wnd.getRulerHighlighter();
+	        highlighter.clear();
+	        highlighter.finished();
+	        wnd.repaint();
+        } else if (wf.getContent() instanceof WaveformWindow)
+        {
+        	WaveformWindow ww = (WaveformWindow)wf.getContent();
+        	for(Iterator<Panel> it = ww.getPanels(); it.hasNext(); )
+        	{
+        		Panel p = it.next();
+        		p.clearMeasurements();
+        	}
+        }
+    }
+
 	private void finishMeasure(EditWindow wnd)
 	{
+		Highlighter highlighter = wnd.getRulerHighlighter();
 		if (measuring)
 		{
-			Highlighter highlighter = wnd.getRulerHighlighter();
 			for (Highlight2 h : lastHighlights)
 			{
 				highlighter.remove(h);
 			}
-			highlighter.finished();
 			lastHighlights.clear();
-			wnd.repaint();
 			measuring = false;
 		} else
 		{
 			// clear measures from the screen if user cancels twice in a row
-			Highlighter highlighter = wnd.getRulerHighlighter();
 			highlighter.clear();
-			highlighter.finished();
-			wnd.repaint();
 		}
+		highlighter.finished();
+		wnd.repaint();
 	}
 
 	// ------------------------ Mouse Listener Stuff -------------------------
@@ -224,25 +213,13 @@ public class MeasureListener implements MouseListener, MouseMotionListener, Mous
 		mouseDragged(evt);
 	}
 
-	public void mouseClicked(MouseEvent evt)
-	{
-	}
-
-	public void mouseEntered(MouseEvent evt)
-	{
-	}
-
-	public void mouseExited(MouseEvent evt)
-	{
-	}
-
-	public void mouseReleased(MouseEvent evt)
-	{
-	}
-
-	public void mouseWheelMoved(MouseWheelEvent evt)
-	{
-	}
+	public void mouseClicked(MouseEvent evt) {}
+	public void mouseEntered(MouseEvent evt) {}
+	public void mouseExited(MouseEvent evt) {}
+	public void mouseReleased(MouseEvent evt) {}
+	public void mouseWheelMoved(MouseWheelEvent evt) {}
+	public void keyReleased(KeyEvent evt) {}
+	public void keyTyped(KeyEvent evt) {}
 
 	public void keyPressed(KeyEvent evt)
 	{
@@ -257,14 +234,6 @@ public class MeasureListener implements MouseListener, MouseMotionListener, Mous
 				finishMeasure(wnd);
 			}
 		}
-	}
-
-	public void keyReleased(KeyEvent evt)
-	{
-	}
-
-	public void keyTyped(KeyEvent evt)
-	{
 	}
 
 	// mac stuff

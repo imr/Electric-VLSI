@@ -40,11 +40,14 @@ import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.EditWindowFocusBrowser;
 import com.sun.electric.tool.user.ui.InvisibleLayerConfiguration;
+import com.sun.electric.tool.user.ui.MeasureListener;
 import com.sun.electric.tool.user.ui.MessagesWindow;
+import com.sun.electric.tool.user.ui.ToolBar;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.ZoomAndPanListener;
+import com.sun.electric.tool.user.ui.ToolBar.CursorMode;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
 
 import java.awt.Color;
@@ -101,7 +104,7 @@ public class WindowMenu {
                 KeyStroke.getKeyStroke(KeyEvent.VK_BEGIN, ctrlshift)};
 
 
-        // mnemonic keys available: A         K     Q  T
+        // mnemonic keys available:           K     Q  T
 	    visibleLayersMenu = new EMenu("Visible La_yers");
         EMenu menu = new EMenu("_Window",
 
@@ -160,8 +163,14 @@ public class WindowMenu {
 
             SEPARATOR,
 
+    		// mnemonic keys available: AB DEFGHIJKLMNOPQRS UVWXYZ
             new EMenuItem("Toggle _Grid", 'G') { public void run() {
                 toggleGridCommand(); }},
+            new EMenu("Me_asurements",
+                new EMenuItem("_Toggle Measurement Mode") { public void run() {
+                	ToolBar.setCursorMode(CursorMode.MEASURE); }},
+                new EMenuItem("_Clear Measurements") { public void run() {
+                	MeasureListener.theOne.reset(); }}),
 
             SEPARATOR,
 

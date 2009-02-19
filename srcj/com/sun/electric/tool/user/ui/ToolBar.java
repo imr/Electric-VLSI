@@ -772,7 +772,19 @@ public class ToolBar extends JToolBar
 
 	private static EventListener lastListener = null;
 
-	private static void setCursorMode(CursorMode cm)
+	/**
+	 * Method to set the cursor mode (the mode of cursor interaction).
+	 * The default mode is "CLICKZOOMWIRE" which does general editing.
+	 * Other choices are PAN, ZOOM, OUTLINE, and MEASURE.
+	 * @param cm the cursor mode to set.
+	 */
+	public static void setCursorMode(CursorMode cm)
+	{
+		changeCursorMode(cm);
+		updateToolBarButtons();
+	}
+
+	private static void changeCursorMode(CursorMode cm)
 	{
 		switch (cm)
 		{
@@ -798,7 +810,7 @@ public class ToolBar extends JToolBar
 					}
 						
 					// switch back to click zoom wire listener
-					setCursorMode(CursorMode.CLICKZOOMWIRE);
+					changeCursorMode(CursorMode.CLICKZOOMWIRE);
 					return;
 				}
 				lastListener = WindowFrame.getListener();
@@ -822,7 +834,7 @@ public class ToolBar extends JToolBar
 					}
 
 					// switch back to click zoom wire listener
-					setCursorMode(CursorMode.CLICKZOOMWIRE);
+					changeCursorMode(CursorMode.CLICKZOOMWIRE);
 					return;
 				}
 				lastListener = WindowFrame.getListener();
@@ -836,7 +848,7 @@ public class ToolBar extends JToolBar
 				if (WindowFrame.getListener() == OutlineListener.theOne)
 				{
 					// switch back to click zoom wire listener
-					setCursorMode(CursorMode.CLICKZOOMWIRE);
+					changeCursorMode(CursorMode.CLICKZOOMWIRE);
 					return;
 				}
 				EditWindow wnd = EditWindow.needCurrent();
@@ -847,16 +859,16 @@ public class ToolBar extends JToolBar
 				NodeInst ni = (NodeInst)highlighter.getOneElectricObject(NodeInst.class);
 				if (ni == null)
 				{
-					if (oldMode == CursorMode.OUTLINE) setCursorMode(CursorMode.CLICKZOOMWIRE); else
-						setCursorMode(oldMode);
+					if (oldMode == CursorMode.OUTLINE) changeCursorMode(CursorMode.CLICKZOOMWIRE); else
+						changeCursorMode(oldMode);
 					return;
 				}
 				NodeProto np = ni.getProto();
 				if (ni.isCellInstance() || !((PrimitiveNode)np).isHoldsOutline())
 				{
 					System.out.println("Sorry, " + np + " does not hold outline information");
-					if (oldMode == CursorMode.OUTLINE) setCursorMode(CursorMode.CLICKZOOMWIRE); else
-						setCursorMode(oldMode);
+					if (oldMode == CursorMode.OUTLINE) changeCursorMode(CursorMode.CLICKZOOMWIRE); else
+						changeCursorMode(oldMode);
 					return;
 				}
 
@@ -871,11 +883,11 @@ public class ToolBar extends JToolBar
 				if (WindowFrame.getListener() == MeasureListener.theOne)
 				{
 					// switch back to click zoom wire listener
-					setCursorMode(CursorMode.CLICKZOOMWIRE);
+					changeCursorMode(CursorMode.CLICKZOOMWIRE);
 					return;
 				}
 				checkLeavingOutlineMode();
-				MeasureListener.theOne.reset();
+//				MeasureListener.theOne.reset();
 				WindowFrame.setListener(MeasureListener.theOne);
 				TopLevel.setCurrentCursor(measureCursor);
 				curMode = CursorMode.MEASURE;
@@ -926,7 +938,7 @@ public class ToolBar extends JToolBar
 			this.cm = cm;
 		}
 		@Override public boolean isSelected() { return getCursorMode() == cm; }
-		@Override public void run() { setCursorMode(cm); }
+		@Override public void run() { changeCursorMode(cm); }
 	}
 
 	// --------------------------- ArrowDistance staff ---------------------------------------------------------
