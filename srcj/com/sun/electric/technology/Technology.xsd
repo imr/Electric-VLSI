@@ -43,6 +43,7 @@
                         </xsd:sequence>
                         <xsd:attribute name="protoName" type="tns:PrimitiveNodeName" use="required"/>
                         <xsd:attribute name="function" type="tns:PrimitiveNodeFun" use="required"/>
+                        <xsd:attribute name="techBits" type="xsd:integer"/>
                         <xsd:attribute name="rotation" type="xsd:integer"/>
                     </xsd:complexType>
                 </xsd:element>
@@ -55,7 +56,7 @@
             <xsd:minExclusive value="0"/>
         </xsd:restriction>
     </xsd:simpleType>
- 
+
     <xsd:complexType name="ColorRGB">
         <xsd:attribute name="r" type="tns:ColorComponent" use="required"/>
         <xsd:attribute name="g" type="tns:ColorComponent" use="required"/>
@@ -699,7 +700,7 @@
                                     <xsd:attribute name="hy" type="xsd:double" use="required"/>
                                 </xsd:complexType>
                             </xsd:element>
-                            
+
                             <xsd:element name="protection" minOccurs="0">
                                 <xsd:complexType>
                                     <xsd:attribute name="location" type="tns:ProtectionType" use="required"/>
@@ -782,6 +783,9 @@
                                     <xsd:attribute name="style" type="tns:NodeLayerStyle" use="required"/>
                                     <xsd:attribute name="portNum" type="xsd:integer"/>
                                     <xsd:attribute name="electrical" type="xsd:boolean"/>
+                                    <xsd:attribute name="bitsFrom" type="xsd:integer"/>
+                                    <xsd:attribute name="bitsN" type="xsd:integer"/>
+                                    <xsd:attribute name="bitsEq" type="xsd:integer"/>
                                 </xsd:complexType>
                             </xsd:element>
                             <xsd:element name="primitivePort" minOccurs="0" maxOccurs="unbounded">

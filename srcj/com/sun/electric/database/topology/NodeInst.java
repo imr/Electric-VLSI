@@ -313,6 +313,21 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 * @return the dummy NodeInst.
 	 */
 	public static NodeInst makeDummyInstance(NodeProto np, EPoint center, double width, double height, Orientation orient)
+    {
+        return makeDummyInstance(np, 0, center, width, height, orient);
+    }
+
+	/**
+	 * Method to create a "dummy" NodeInst for use outside of the database.
+	 * @param np the prototype of the NodeInst.
+     * @param techBits tech bits of the NodeInst
+	 * @param center the center location of this NodeInst.
+	 * @param width the width of this NodeInst (can't be negative).
+	 * @param height the height of this NodeInst (can't be negative).
+	 * @param orient the orientation of this NodeInst.
+	 * @return the dummy NodeInst.
+	 */
+	public static NodeInst makeDummyInstance(NodeProto np, int techBits, EPoint center, double width, double height, Orientation orient)
 	{
         EPoint size = EPoint.ORIGIN;
         if (np instanceof PrimitiveNode) {
@@ -322,7 +337,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
             size = EPoint.fromGrid(gridWidth, gridHeight);
         }
         ImmutableNodeInst d = ImmutableNodeInst.newInstance(0, np.getId(), Name.findName("node@0"), TextDescriptor.getNodeTextDescriptor(),
-                orient, center, size, 0,  0, TextDescriptor.getInstanceTextDescriptor());
+                orient, center, size, 0, techBits, TextDescriptor.getInstanceTextDescriptor());
         return new NodeInst(np, d);
 	}
 

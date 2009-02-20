@@ -23,7 +23,6 @@
  */
 package com.sun.electric.technology;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.Config;
 import com.sun.electric.database.EObjectInputStream;
 import com.sun.electric.database.EObjectOutputStream;
@@ -69,7 +68,6 @@ import com.sun.electric.technology.xml.XmlParam;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.ToolSettings;
 import com.sun.electric.tool.erc.ERC;
-import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.User;
 
 import java.awt.Color;
@@ -133,7 +131,8 @@ import javax.swing.SwingUtilities;
 public class Technology implements Comparable<Technology>, Serializable
 {
 	/** true to test extra vias in menu. */
-    public static final boolean TESTSURROUNDOVERRIDE_B = false;
+    public static final boolean TESTSURROUNDOVERRIDE_B = true;
+    public static final boolean TESTSURROUNDOVERRIDE_C = true;
 
 	/** true to allow outlines to have "breaks" with multiple pieces in them */
 	public static final boolean HANDLEBROKENOUTLINES = true;
@@ -509,6 +508,8 @@ public class Technology implements Comparable<Technology>, Serializable
         private CustomOverride[] customOverrides;
         private int customOverrideMask;
         private int customOverrideShift;
+        private int conditionMask;
+        private int conditionValue;
 
 		// the meaning of "representation"
 		/**
@@ -564,6 +565,33 @@ public class Technology implements Comparable<Technology>, Serializable
 			this.points = points;
 			descriptor = TextDescriptor.EMPTY;
 			this.lWidth = this.rWidth = this.extentT = this.extendB = 0;
+		}
+
+		/**
+		 * Constructs a <CODE>NodeLayer</CODE> with the specified description.
+         * This NodeLayer is enabled by a condition on NodeInst's techBits.
+         * The condition is "(techBits & conditionMask) == conditionValue
+		 * @param layer the <CODE>Layer</CODE> this is on.
+		 * @param portNum a 0-based index of the port (from the actual NodeInst) on this layer.
+		 * A negative value indicates that this layer is not connected to an electrical layer.
+		 * @param style the Poly.Type this NodeLayer will generate (polygon, circle, text, etc.).
+		 * @param representation tells how to interpret "points".  It can be POINTS, BOX, or MULTICUTBOX.
+		 * @param points the list of coordinates (stored as TechPoints) associated with this NodeLayer.
+         * @param conditionMask selects techBits
+         * @param conditionValue compares techBits
+		 */
+		public NodeLayer(Layer layer, int portNum, Poly.Type style, int representation, TechPoint [] points,
+                int conditionMask, int conditionValue)
+		{
+			this.layer = layer;
+			this.portNum = portNum;
+			this.style = style;
+			this.representation = representation;
+			this.points = points;
+			descriptor = TextDescriptor.EMPTY;
+			this.lWidth = this.rWidth = this.extentT = this.extendB = 0;
+            this.conditionMask = conditionMask;
+            this.conditionValue = conditionValue;
 		}
 
 		/**
@@ -1391,13 +1419,15 @@ public class Technology implements Comparable<Technology>, Serializable
                         layer.makePseudo();
                     layer = layer.getPseudoLayer();
                 }
+                int techBitsMask = ((1 << nl.bitsN) - 1) << nl.bitsFrom;
+                int techBitsValue = nl.bitsEq << nl.bitsFrom;
                 if (nl.representation == NodeLayer.MULTICUTBOX) {
                     nodeLayer = NodeLayer.makeMulticut(layer, nl.portNum, nl.style, techPoints, nl.sizex, nl.sizey, nl.sep1d, nl.sep2d);
                 }
                 else if (n.specialType == PrimitiveNode.SERPTRANS)
                     nodeLayer = new NodeLayer(layer, nl.portNum, nl.style, nl.representation, techPoints, nl.lWidth, nl.rWidth, nl.tExtent, nl.bExtent);
                 else
-                    nodeLayer = new NodeLayer(layer, nl.portNum, nl.style, nl.representation, techPoints);
+                    nodeLayer = new NodeLayer(layer, nl.portNum, nl.style, nl.representation, techPoints, techBitsMask, techBitsValue);
                 if (!(nl.inLayers && nl.inElectricalLayers))
                     needElectricalLayers = true;
                 if (nl.inLayers)
@@ -1615,7 +1645,7 @@ public class Technology implements Comparable<Technology>, Serializable
             boolean hasText = (n.text != null);
             PrimitiveNode pn = findNodeProto(n.protoName);
             if (pn != null)
-            	return makeNodeInst(pn, n.function, n.rotation, hasText, n.text, n.fontSize);
+            	return makeNodeInst(pn, n.function, n.techBits, n.rotation, hasText, n.text, n.fontSize);
         }
         return menuItem.toString();
     }
@@ -3561,12 +3591,20 @@ public class Technology implements Comparable<Technology>, Serializable
 		SerpentineTrans std = null;
 		if (np.hasMultiCuts())
 		{
-           for (NodeLayer nodeLayer: primLayers) {
-               if (nodeLayer.representation == NodeLayer.MULTICUTBOX) {
-                   mcd = new MultiCutData(ni.getD(), fullRectangle, nodeLayer);
-                   if (reasonable) numExtraLayers += (mcd.cutsReasonable - 1); else
-                       numExtraLayers += (mcd.cutsTotal - 1);
-               }
+            int techBits = ni.getTechSpecific();
+            if (TESTSURROUNDOVERRIDE_C)
+                numExtraLayers = -numBasicLayers;
+            for (NodeLayer nodeLayer: primLayers) {
+                if (TESTSURROUNDOVERRIDE_C) {
+                    if ((techBits & nodeLayer.conditionMask) != nodeLayer.conditionValue)
+                        continue;
+                    numExtraLayers++;
+                }
+                if (nodeLayer.representation == NodeLayer.MULTICUTBOX) {
+                    mcd = new MultiCutData(ni.getD(), fullRectangle, nodeLayer);
+                    if (reasonable) numExtraLayers += (mcd.cutsReasonable - 1); else
+                        numExtraLayers += (mcd.cutsTotal - 1);
+                }
            }
 		} else if (specialType == PrimitiveNode.SERPTRANS)
 		{
@@ -3597,9 +3635,13 @@ public class Technology implements Comparable<Technology>, Serializable
 
 		// add in the basic polygons
 		int fillPoly = 0;
+        int techBits = ni.getTechSpecific();
 		for(int i = 0; i < numBasicLayers; i++)
 		{
 			Technology.NodeLayer primLayer = primLayers[i];
+            if (TESTSURROUNDOVERRIDE_C && (techBits & primLayer.conditionMask) != primLayer.conditionValue)
+                continue;
+
 			int representation = primLayer.getRepresentation();
 			if (representation == Technology.NodeLayer.BOX)
 			{
@@ -3613,10 +3655,10 @@ public class Technology implements Comparable<Technology>, Serializable
 				double portHighY = yCenter + topEdge.getMultiplier() * ySize + topEdge.getAdder();
                 if (TESTSURROUNDOVERRIDE_B)
                 {
-                    int techBits = ni.getTechSpecific() & primLayer.customOverrideMask;
-                    if (techBits != 0 && primLayer.customOverrides != null)
+                    int maskedTechBits = techBits & primLayer.customOverrideMask;
+                    if (maskedTechBits != 0 && primLayer.customOverrides != null)
                     {
-                        int index = (techBits >> primLayer.customOverrideShift) - 1;
+                        int index = (maskedTechBits >> primLayer.customOverrideShift) - 1;
                         if (index >= 0 && index < primLayer.customOverrides.length)
                         {
 	                        CustomOverride co = primLayer.customOverrides[index];
@@ -6372,13 +6414,26 @@ public class Technology implements Comparable<Technology>, Serializable
     public static NodeInst makeNodeInst(NodeProto np, PrimitiveNode.Function func, int angle, boolean display,
                                         String varName, double fontSize)
     {
+        return makeNodeInst(np, func, 0, angle, display, varName, fontSize);
+    }
+
+    /**
+     * Method to create temporary nodes for the palette
+     * @param np prototype of the node to place in the palette.
+     * @param func function of the node (helps parameterize the node).
+     * @param techBits tech bits of the node
+     * @param angle initial placement angle of the node.
+     */
+    public static NodeInst makeNodeInst(NodeProto np, PrimitiveNode.Function func, int techBits, int angle, boolean display,
+                                        String varName, double fontSize)
+    {
         SizeOffset so = np.getProtoSizeOffset();
         Point2D pt = new Point2D.Double((so.getHighXOffset() - so.getLowXOffset()) / 2,
             (so.getHighYOffset() - so.getLowYOffset()) / 2);
 		Orientation orient = Orientation.fromAngle(angle);
 		AffineTransform trans = orient.pureRotate();
         trans.transform(pt, pt);
-        NodeInst ni = NodeInst.makeDummyInstance(np, new EPoint(pt.getX(), pt.getY()), np.getDefWidth(), np.getDefHeight(), orient);
+        NodeInst ni = NodeInst.makeDummyInstance(np, techBits, new EPoint(pt.getX(), pt.getY()), np.getDefWidth(), np.getDefHeight(), orient);
         np.getTechnology().setPrimitiveFunction(ni, func);
         np.getTechnology().setDefaultOutline(ni);
 

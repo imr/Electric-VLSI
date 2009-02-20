@@ -241,6 +241,9 @@ public class Xml {
         public CustomOverride[] customOverrides;
         public int customOverrideMask;
         public int customOverrideShift;
+        public int bitsFrom;
+        public int bitsN;
+        public int bitsEq;
     }
 
     public static class NodeSizeRule implements Serializable {
@@ -283,6 +286,7 @@ public class Xml {
     public static class MenuNodeInst implements Serializable {
         /** the name of the prototype in the menu */			public String protoName;
         /** the function of the prototype */					public com.sun.electric.technology.PrimitiveNode.Function function;
+        /** tech bits */                                        public int techBits;
         /** label to draw in the menu entry (may be null) */	public String text;
         /** the size of the menu entry label */					public double fontSize;
         /** the rotation of the node in the menu entry */		public int rotation;
@@ -990,6 +994,15 @@ public class Xml {
                     } else {
                         curNodeLayer.inElectricalLayers = curNodeLayer.inLayers = true;
                     }
+                    String bitsFrom = a_("bitsFrom");
+                    if (bitsFrom != null)
+                        curNodeLayer.bitsFrom = Integer.parseInt(bitsFrom);
+                    String bitsN = a_("bitsN");
+                    if (bitsN != null)
+                        curNodeLayer.bitsN = Integer.parseInt(bitsN);
+                    String bitsEq = a_("bitsEq");
+                    if (bitsEq != null)
+                        curNodeLayer.bitsEq = Integer.parseInt(bitsEq);
                     break;
                 case box:
                     if (curNodeLayer != null) {
@@ -1122,6 +1135,9 @@ public class Xml {
                     curMenuNodeInst = new MenuNodeInst();
                     curMenuNodeInst.protoName = a("protoName");
                     curMenuNodeInst.function =  com.sun.electric.technology.PrimitiveNode.Function.valueOf(a("function"));
+                    String techBits = a_("techBits");
+                    if (techBits != null)
+                        curMenuNodeInst.techBits = Integer.parseInt(techBits);
                     String rotField = a_("rotation");
                     if (rotField != null) curMenuNodeInst.rotation = Integer.parseInt(rotField);
                     break;
@@ -1871,6 +1887,12 @@ public class Xml {
                 if (nl.portNum != 0) a("portNum", Integer.valueOf(nl.portNum));
                 if (!(nl.inLayers && nl.inElectricalLayers))
                     a("electrical", Boolean.valueOf(nl.inElectricalLayers));
+                if (nl.bitsFrom != 0)
+                    a("bitsFrom", Integer.valueOf(nl.bitsFrom));
+                if (nl.bitsN != 0)
+                    a("bitsN", Integer.valueOf(nl.bitsN));
+                if (nl.bitsEq != 0)
+                    a("bitsEq", Integer.valueOf(nl.bitsEq));
                 cl();
                 switch (nl.representation) {
                     case com.sun.electric.technology.Technology.NodeLayer.BOX:
@@ -1908,7 +1930,7 @@ public class Xml {
                 {
                 	b(XmlKeyword.customOverrides);
                 	a("mask", nl.customOverrideMask);
-                	a("shift", nl.customOverrideShift); 
+                	a("shift", nl.customOverrideShift);
                     cl();
                 	for(int k=0; k<nl.customOverrides.length; k++)
                 	{
@@ -2009,6 +2031,7 @@ public class Xml {
                 } else if (o instanceof Xml.MenuNodeInst) {
                     Xml.MenuNodeInst ni = (Xml.MenuNodeInst)o;
                     b(XmlKeyword.menuNodeInst); a("protoName", ni.protoName); a("function", ni.function.name());
+                    if (ni.techBits != 0) a("techBits", ni.techBits);
                     if (ni.rotation != 0) a("rotation", ni.rotation);
                     if (ni.text == null) {
                         el();
