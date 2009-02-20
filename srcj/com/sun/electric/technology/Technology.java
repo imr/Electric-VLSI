@@ -917,6 +917,11 @@ public class Technology implements Comparable<Technology>, Serializable
             nld.portNum = getPortNum();
             nld.inLayers = inLayers;
             nld.inElectricalLayers = inElectricalLayers;
+            if (conditionMask != 0) {
+                nld.bitsFrom = Integer.numberOfTrailingZeros(conditionMask);
+                nld.bitsN = Integer.SIZE - Integer.numberOfLeadingZeros(conditionMask) - nld.bitsFrom;
+            }
+            nld.bitsEq = conditionValue;
             nld.representation = getRepresentation();
             Technology.TechPoint[] points = getPoints();
             if (nld.representation == Technology.NodeLayer.BOX || nld.representation == Technology.NodeLayer.MULTICUTBOX) {
@@ -2255,6 +2260,7 @@ public class Technology implements Comparable<Technology>, Serializable
             Xml.MenuNodeInst n = new Xml.MenuNodeInst();
             n.protoName = ni.getProto().getName();
             n.function = ni.getFunction();
+            n.techBits = ni.getTechSpecific();
             n.rotation = ni.getOrient().getAngle();
             for (Iterator<Variable> it = ni.getVariables(); it.hasNext(); )
             {
