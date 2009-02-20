@@ -131,8 +131,8 @@ import javax.swing.SwingUtilities;
 public class Technology implements Comparable<Technology>, Serializable
 {
 	/** true to test extra vias in menu. */
-    public static final boolean TESTSURROUNDOVERRIDE_B = true;
-    public static final boolean TESTSURROUNDOVERRIDE_C = true;
+    public static final boolean TESTSURROUNDOVERRIDE_B = false;
+    public static final boolean TESTSURROUNDOVERRIDE_C = false;
 
 	/** true to allow outlines to have "breaks" with multiple pieces in them */
 	public static final boolean HANDLEBROKENOUTLINES = true;
