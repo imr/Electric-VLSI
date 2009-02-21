@@ -287,6 +287,7 @@ public class Layer
 			if (extra == INTRANS) return "inside-transistor";
 			if (extra == THICK) return "thick";
             if (extra == NATIVE) return "native";
+            if (extra == DEEP) return "deep";
             return "";
 		}
 
@@ -313,6 +314,7 @@ public class Layer
 			if (extra == INTRANS) return "INTRANS";
 			if (extra == THICK) return "THICK";
             if (extra == NATIVE) return "NATIVE";
+            if (extra == DEEP) return "DEEP";
             return "";
 		}
 
@@ -338,6 +340,7 @@ public class Layer
 			if (name.equalsIgnoreCase("thick")) return THICK;
             if (name.equalsIgnoreCase("vt")) return HLVT;
             if (name.equalsIgnoreCase("native")) return NATIVE;
+            if (name.equalsIgnoreCase("deep")) return DEEP;
             return 0;
 		}
 
@@ -857,7 +860,8 @@ public class Layer
         }
         if (numBits >= 2 &&
                 functionExtras != (DEPLETION|HEAVY) && functionExtras != (DEPLETION|LIGHT) &&
-                functionExtras != (ENHANCEMENT|HEAVY) && functionExtras != (ENHANCEMENT|LIGHT))
+                functionExtras != (ENHANCEMENT|HEAVY) && functionExtras != (ENHANCEMENT|LIGHT) ||
+                numBits == 1 && Function.getExtraConstantName(functionExtras).length() == 0)
             throw new IllegalArgumentException("functionExtras=" + Integer.toHexString(functionExtras));
         this.functionExtras = functionExtras;
         this.pseudo = pseudo;

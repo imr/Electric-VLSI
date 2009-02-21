@@ -217,6 +217,7 @@
             <xsd:enumeration value="vt"/>
             <xsd:enumeration value="thick"/>
             <xsd:enumeration value="native"/>
+            <xsd:enumeration value="deep"/>
         </xsd:restriction>
     </xsd:simpleType>
 

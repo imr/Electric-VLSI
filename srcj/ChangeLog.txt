@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09c: ******************************
 
+BUG: (2/20/09, DN) Extra Layer function DEEP is not saved in Xml.
+FIX: Add DEEP to PrimitiveNode.getExtraName/parseExtraName .
+
 IMP/MAN: (2/19/09, SMR) Measurement mode preserves measurements when reentering the mode
      Now have Windows / Measurements commands to control it.  Text is shifted to be
      more readable (Bug #2026).
