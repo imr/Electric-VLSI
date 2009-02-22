@@ -1657,21 +1657,6 @@ public class Technology implements Comparable<Technology>, Serializable
 
     public Xml.Technology getXmlTech() { return xmlTech; }
 
-    protected void resizeXml(XMLRules rules) {
-//        for (Xml.ArcProto xap: xmlTech.arcs) {
-//            ArcProto ap = findArcProto(xap.name);
-//            assert xap.arcLayers.size() == ap.layers.length;
-//            Double widthOffsetObject = xap.widthOffset.get(Integer.valueOf(0))*2;
-//            double widthOffset = widthOffsetObject != null ? widthOffsetObject.doubleValue() : 0;
-//            for (int i = 0; i < ap.layers.length; i++) {
-//                Xml.ArcLayer xal = xap.arcLayers.get(i);
-//                double layerWidthOffset = widthOffset - 2*xal.extend.value;
-//                ap.layers[i] = ap.layers[i].withGridOffset(DBMath.lambdaToSizeGrid(layerWidthOffset));
-//            }
-//            ap.computeLayerGridExtendRange();
-//        }
-    }
-
 	/**
 	 * This is called once, at the start of Electric, to initialize the technologies.
 	 * Because of Java's "lazy evaluation", the only way to force the technology constructors to fire
@@ -5779,9 +5764,6 @@ public class Technology implements Comparable<Technology>, Serializable
         }
 
         resizeArcs(rules);
-
-        if (xmlTech != null)
-            resizeXml(rules);
         return rules;
     }
 

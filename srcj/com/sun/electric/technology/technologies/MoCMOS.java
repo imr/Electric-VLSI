@@ -2907,6 +2907,219 @@ public class MoCMOS extends Technology
 
 		return settings;
 	}
+
+    private static class ResizeData {
+        private final double diff_width = 3; // 2.1
+        private final double diff_poly_overhang; // 3.4
+        private final double diff_contact_overhang; // 6.2 6.2b
+        
+        private final double poly_width = 2; // 3.1
+        private final double poly_endcap; // 3.3
+        
+        private final double gate_length = poly_width; // 3.1
+        private final double gate_width = diff_width; // 2.1
+        private final double gate_contact_spacing = 2; // 5.4
+        
+        private final double poly2_width; // 11.1
+        
+        private final double contact_size = 2; // 5.1
+        private final double contact_spacing; // 5.3
+        private final double contact_array_spacing; // 5.3
+        private final double contact_metal_overhang_all_sides = 1; // 7.3
+        private final double contact_poly_overhang; // 5.2 5.2b
+        
+        private final double nplus_overhang_diff = 2; // 4.2
+        private final double pplus_overhang_diff = 2; // 4.2
+                
+        private final double well_width;
+        private final double nwell_overhang_diff_p; // 2.3
+        private final double nwell_overhang_diff_n = 3; // 2.4
+        
+        private final double[] metal_width; // 7.1 9.1 15.1 22.1 26.1 30.1
+        private final double[] via_size; // 8.1 14.1 21.1 25.1 29.1
+    	private final double[] via_inline_spacing; // 8.2 14.2 21.2 25.2 29.2
+    	private final double[] via_array_spacing; // 8.2 14.2 21.2 25.2 29.2
+    	private final double[] via_overhang; // 8.3 14.3 21.3 25.3 29.3 30.3
+        
+        ResizeData(int ruleSet, int numMetals, boolean alternativeContactRules) {
+            switch (ruleSet) {
+                case SUBMRULES:
+                    diff_poly_overhang = 3;
+                    poly_endcap = 2;
+                    poly2_width = 7;
+                    contact_spacing = 3;
+                    well_width = 12;
+                    nwell_overhang_diff_p = 6;
+                    switch (numMetals) {
+                        case 2:
+                            metal_width = new double[] { 3, 3 };
+                            via_size = new double[] { 2 };
+                            via_inline_spacing = new double[] { 3 };
+                            via_overhang = new double[] { 1, 1 };
+                            break;
+                        case 3:
+                            metal_width = new double[] { 3, 3, 5 };
+                            via_size = new double[] { 2, 2 };
+                            via_inline_spacing = new double[] { 3, 3 };
+                            via_overhang = new double[] { 1, 1, 1 };
+                            break;
+                        case 4:
+                            metal_width = new double[] { 3, 3, 3, 6 };
+                            via_size = new double[] { 2, 2, 2 };
+                            via_inline_spacing = new double[] { 3, 3, 3 };
+                            via_overhang = new double[] { 1, 1, 1, 1 };
+                            break;
+                        case 5:
+                            metal_width = new double[] { 3, 3, 3, 3, 4 };
+                            via_size = new double[] { 2, 2, 2, 2 };
+                            via_inline_spacing = new double[] { 3, 3, 3, 3 };
+                            via_overhang = new double[] { 1, 1, 1, 1, 1 };
+                            break;
+                        case 6:
+                            metal_width = new double[] { 3, 3, 3, 3, 3, 5 };
+                            via_size = new double[] { 2, 2, 2, 2, 3 };
+                            via_inline_spacing = new double[] { 3, 3, 3, 3, 4 };
+                            via_overhang = new double[] { 1, 1, 1, 1, 1, 1 };
+                            break;
+                        default:
+                            throw new AssertionError();
+                     }
+                    break;
+                case DEEPRULES:
+                    diff_poly_overhang = 4;
+                    poly_endcap = 2.5;
+                    poly2_width = Double.NaN;
+                    contact_spacing = 4;
+                    well_width = 12;
+                    nwell_overhang_diff_p = 6;
+                    switch (numMetals) {
+                        case 5:
+                            metal_width = new double[] { 3, 3, 3, 3, 4 }; 
+                            via_size = new double[] { 3, 3, 3, 3 };
+                            via_inline_spacing = new double[] { 3, 3, 3, 3 };
+                            via_overhang = new double[] { 1, 1, 1, 1, 1 };
+                            break;
+                        case 6:
+                            metal_width = new double[] { 3, 3, 3, 4, 3, 5 }; 
+                            via_size = new double[] { 3, 3, 3, 3, 4 };
+                            via_inline_spacing = new double[] { 3, 3, 3, 3, 4 };
+                            via_overhang = new double[] { 1, 1, 1, 1, 1, 2 };
+                            break;
+                        default:
+                            throw new AssertionError();
+                     }
+                    break;
+                case SCMOSRULES:
+                    diff_poly_overhang = 3;
+                    poly_endcap = 2;
+                    poly2_width = 3;
+                    contact_spacing = 2;
+                    well_width = 10;
+                    nwell_overhang_diff_p = 5;
+                    switch (numMetals) {
+                        case 2:
+                            metal_width = new double[] { 3, 3 }; 
+                            via_size = new double[] { 2 };
+                            via_inline_spacing = new double[] { 3 };
+                            via_overhang = new double[] { 1, 1 };
+                            break;
+                        case 3:
+                            metal_width = new double[] { 3, 3, 6 }; 
+                            via_size = new double[] { 2, 2 };
+                            via_inline_spacing = new double[] { 3, 3 };
+                            via_overhang = new double[] { 1, 1, 1 };
+                            break;
+                        case 4:
+                            metal_width = new double[] { 3, 3, 3, 6 }; 
+                            via_size = new double[] { 2, 2, 2 };
+                            via_inline_spacing = new double[] { 3, 3, 3 };
+                            via_overhang = new double[] { 1, 1, 1, 1 };
+                            break;
+                        default:
+                            throw new AssertionError();
+                    }
+                    break;
+                default:
+                    throw new AssertionError();
+            }
+            diff_contact_overhang = alternativeContactRules ? 1 : 1.5;
+            contact_poly_overhang = alternativeContactRules ? 1 : 1.5;
+            contact_array_spacing = contact_spacing;
+            via_array_spacing = via_inline_spacing;
+        }
+    }
+    
+    private static void patch(String fileName, int ruleSet, int numMetals, boolean secondPolysilicon, boolean alternativeContactRules, boolean isAnalog) {
+        Xml.Technology tech = Xml.parseTechnology(MoCMOS.class.getResource("mocmos.xml"));
+        Xml.Layer[] metalLayers = new Xml.Layer[6];
+        Xml.ArcProto[] metalArcs = new Xml.ArcProto[6];
+        Xml.ArcProto[] polyArcs = new Xml.ArcProto[6];
+        Xml.PrimitiveNode[] metalPinNodes = new Xml.PrimitiveNode[9];
+        Xml.PrimitiveNode[] metalContactNodes = new Xml.PrimitiveNode[8];
+        for (int i = 0; i < metalLayers.length; i++) {
+            metalLayers[i] = tech.findLayer("Metal-" + (i + 1));
+            metalArcs[i] = tech.findArc("Metal-" + (i + 1));
+            metalPinNodes[i] = tech.findNode("Metal-" + (i + 1) + "-Pin");
+            if (i >= metalContactNodes.length) continue;
+            metalContactNodes[i] = tech.findNode("Metal-" + (i + 1)+"-Metal-" + (i + 2) + "-Con");
+        }
+        polyArcs[0] = tech.findArc("Polysilicon-1");
+        polyArcs[1] = tech.findArc("Polysilicon-2");
+        
+        ResizeData rd = new ResizeData(ruleSet, numMetals, alternativeContactRules);
+        for (int i = 0; i < numMetals; i++) {
+            //metalLayers[i].pureLayerNode.size.value = rd.metal_width[i]; setdefSize
+            metalArcs[i].diskOffset.put(Integer.valueOf(2), Double.valueOf(0.5*rd.metal_width[i]));
+            metalArcs[i].arcLayers.get(0).extend.value = 0.5*rd.metal_width[i];
+        }
+        if (secondPolysilicon) {
+            polyArcs[1].diskOffset.put(Integer.valueOf(2), Double.valueOf(0.5*rd.poly2_width));
+            polyArcs[1].arcLayers.get(0).extend.value = 0.5*rd.poly2_width;
+        }
+        
+        for (int i = numMetals; i < 6; i++) {
+            metalArcs[i].notUsed = true;
+        }
+        if (!secondPolysilicon) {
+            polyArcs[1].notUsed = true;
+            polyArcs[1].diskOffset.clear();
+            polyArcs[1].arcLayers.get(0).extend.value = 0;
+        }
+        
+        tech.writeXml(fileName, false, null);
+    }
+    
+    public static void main(String[] args) {
+        patch("mocmos_deep_5_1_sf_af.xml", DEEPRULES, 5, false, false, false);
+        patch("mocmos_deep_5_1_sf_at.xml", DEEPRULES, 5, false, true, false);
+        patch("mocmos_deep_5_2_sf_af.xml", DEEPRULES, 5, true, false, false);
+        patch("mocmos_deep_6_1_sf_af.xml", DEEPRULES, 6, false, false, false);
+        patch("mocmos_deep_6_2_sf_af.xml", DEEPRULES, 6, true, false, false);
+        patch("mocmos_deep_6_2_st_af.xml", SUBMRULES, 6, true, false, false);
+        patch("mocmos_scmos_2_1_sf_af.xml", SCMOSRULES, 2, false, false, false);
+        patch("mocmos_scmos_2_1_sf_at.xml", SCMOSRULES, 2, false, true, false);
+        patch("mocmos_scmos_2_2_sf_af.xml", SCMOSRULES, 2, true, false, false);
+        patch("mocmos_scmos_3_1_sf_af.xml", SCMOSRULES, 3, false, false, false);
+        patch("mocmos_scmos_3_2_sf_af.xml", SCMOSRULES, 3, true, false, false);
+        patch("mocmos_scmos_4_1_sf_af.xml", SCMOSRULES, 4, false, false, false);
+        patch("mocmos_scmos_4_2_sf_af.xml", SCMOSRULES, 4, true, false, false);
+        patch("mocmos_scmos_4_2_st_af.xml", SCMOSRULES, 4, true, false, false);
+        patch("mocmos_sub_2_1_sf_at.xml", SUBMRULES, 2, false, true, false);
+        patch("mocmos_sub_2_1_sf_af.xml", SUBMRULES, 2, false, false, false);
+        patch("mocmos_sub_2_2_sf_af.xml", SUBMRULES, 2, true, false, false);
+        patch("mocmos_sub_3_1_sf_af.xml", SUBMRULES, 3, false, false, false);
+        patch("mocmos_sub_3_2_sf_af.xml", SUBMRULES, 3, true, false, false);
+        patch("mocmos_sub_4_1_sf_af.xml", SUBMRULES, 4, false, false, false);
+        patch("mocmos_sub_4_2_sf_af.xml", SUBMRULES, 4, true, false, false);
+        patch("mocmos_sub_5_1_sf_af.xml", SUBMRULES, 5, false, false, false);
+        patch("mocmos_sub_5_2_sf_af.xml", SUBMRULES, 5, true, false, false);
+        patch("mocmos_sub_6_1_sf_af.xml", SUBMRULES, 6, false, false, false);
+        patch("mocmos_sub_6_1_sf_at.xml", SUBMRULES, 6, false, true, false);
+        patch("mocmos_sub_6_2_sf_af.xml", SUBMRULES, 6, true, false, false);
+        patch("mocmos_sub_6_2_st_af.xml", SUBMRULES, 6, true, false, false);
+        patch("mocmos_scna.xml", SCMOSRULES, 2, true, false, true);
+    }
+
 /******************** OVERRIDES ********************/
     /**
      * Method to set the size of a transistor NodeInst in this Technology.
