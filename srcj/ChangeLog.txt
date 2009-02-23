@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09c: ******************************
 
+BUG: (2/23/09, GVG) NPE while reading XML tech (Bug #2049)
+FIX: Store tech name in a temp variable.
+
 BUG: (2/20/09, DN) Extra Layer function DEEP is not saved in Xml.
 FIX: Add DEEP to PrimitiveNode.getExtraName/parseExtraName .
 

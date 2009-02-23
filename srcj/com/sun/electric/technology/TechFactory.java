@@ -170,8 +170,9 @@ public abstract class TechFactory {
                 if (xmlTech == null)
                     throw new Exception("Can't load extra technology: " + urlXml);
                 if (!xmlTech.techName.equals(techName)) {
+                    String techName = xmlTech.techName;
                     xmlTech = null;
-                    throw new Exception("Tech name " + xmlTech.techName + " doesn't match file name:" +urlXml);
+                    throw new Exception("Tech name " + techName + " doesn't match file name:" +urlXml);
                 }
             }
             if (xmlTech == null)
