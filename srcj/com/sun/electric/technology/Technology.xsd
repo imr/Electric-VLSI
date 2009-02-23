@@ -293,6 +293,14 @@
         <xsd:restriction base="xsd:NCName"/>
     </xsd:simpleType>
 
+    <xsd:simpleType name="PrimitiveNodeParamName">
+        <xsd:restriction base="xsd:NCName"/>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="PrimitiveNodeParamValue">
+        <xsd:restriction base="xsd:string"/>
+    </xsd:simpleType>
+
     <xsd:simpleType name="PrimitiveNodeFun">
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value="UNKNOWN"/>
@@ -658,6 +666,16 @@
                     <xsd:complexType>
                         <xsd:sequence>
                             <xsd:element name="oldName" type="xsd:string" minOccurs="0"></xsd:element>
+                            <xsd:element name="param" minOccurs="0">
+                                <xsd:complexType>
+                                    <xsd:sequence>
+                                        <xsd:element name="paramValue" type="tns:PrimitiveNodeParamValue" maxOccurs="unbounded"></xsd:element>
+                                    </xsd:sequence>
+                                    <xsd:attribute name="name" type="tns:PrimitiveNodeParamName"/>
+                                    <xsd:attribute name="bitsFrom" type="xsd:nonNegativeInteger" use="required"/>
+                                    <xsd:attribute name="bitsN" type="xsd:positiveInteger" use="required"/>
+                                </xsd:complexType>
+                            </xsd:element>    
                             <xsd:element name="shrinkArcs" minOccurs="0"/>
                             <xsd:element name="square" minOccurs="0"/>
                             <xsd:element name="canBeZeroSize" minOccurs="0"/>
@@ -711,6 +729,14 @@
                             <xsd:element name="nodeLayer" maxOccurs="unbounded">
                                 <xsd:complexType>
                                     <xsd:sequence>
+                                    <xsd:element name="param" minOccurs="0">
+                                        <xsd:complexType>
+                                            <xsd:sequence>
+                                                <xsd:element name="paramValue" type="tns:PrimitiveNodeParamValue" maxOccurs="unbounded"></xsd:element>
+                                            </xsd:sequence>
+                                            <xsd:attribute name="name" type="tns:PrimitiveNodeParamName"/>
+                                        </xsd:complexType>
+                                    </xsd:element>    
                                         <xsd:choice>
                                             <xsd:element name="box">
                                                 <xsd:complexType>
@@ -784,9 +810,6 @@
                                     <xsd:attribute name="style" type="tns:NodeLayerStyle" use="required"/>
                                     <xsd:attribute name="portNum" type="xsd:integer"/>
                                     <xsd:attribute name="electrical" type="xsd:boolean"/>
-                                    <xsd:attribute name="bitsFrom" type="xsd:integer"/>
-                                    <xsd:attribute name="bitsN" type="xsd:integer"/>
-                                    <xsd:attribute name="bitsEq" type="xsd:integer"/>
                                 </xsd:complexType>
                             </xsd:element>
                             <xsd:element name="primitivePort" minOccurs="0" maxOccurs="unbounded">

@@ -63,6 +63,7 @@ import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.TransistorSize;
 import com.sun.electric.technology.Technology.NodeLayer;
+import com.sun.electric.technology.Xml;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
@@ -2950,6 +2951,12 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 				}
 			}
 
+            if (Technology.TESTSURROUNDOVERRIDE_C && pNp.getParam() != null) {
+                Xml.NodeParam param = pNp.getParam();
+                int paramValue = (getD().techBits >>> param.bitsFrom) & ((1 << param.bitsN) - 1);
+                return param.paramValues.get(paramValue);
+            }
+            
             if (Technology.TESTSURROUNDOVERRIDE_B)
             {
 				// special case if tech-specific bits are set

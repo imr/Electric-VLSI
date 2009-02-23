@@ -81,6 +81,7 @@ import java.io.Serializable;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -508,8 +509,7 @@ public class Technology implements Comparable<Technology>, Serializable
         private CustomOverride[] customOverrides;
         private int customOverrideMask;
         private int customOverrideShift;
-        private int conditionMask;
-        private int conditionValue;
+        private BitSet paramValues;
 
 		// the meaning of "representation"
 		/**
@@ -581,7 +581,7 @@ public class Technology implements Comparable<Technology>, Serializable
          * @param conditionValue compares techBits
 		 */
 		public NodeLayer(Layer layer, int portNum, Poly.Type style, int representation, TechPoint [] points,
-                int conditionMask, int conditionValue)
+                BitSet paramValues)
 		{
 			this.layer = layer;
 			this.portNum = portNum;
@@ -590,8 +590,7 @@ public class Technology implements Comparable<Technology>, Serializable
 			this.points = points;
 			descriptor = TextDescriptor.EMPTY;
 			this.lWidth = this.rWidth = this.extentT = this.extendB = 0;
-            this.conditionMask = conditionMask;
-            this.conditionValue = conditionValue;
+            this.paramValues = paramValues;
 		}
 
 		/**
@@ -910,18 +909,17 @@ public class Technology implements Comparable<Technology>, Serializable
                 out.println("\t\tpoint xm=" + p.getX().getMultiplier() + " xa=" + p.getX().getAdder() + " ym=" + p.getY().getMultiplier() + " ya=" + p.getY().getAdder());
         }
 
-        Xml.NodeLayer makeXml(boolean isSerp, EPoint correction, boolean inLayers, boolean inElectricalLayers) {
+        Xml.NodeLayer makeXml(Xml.NodeParam param, boolean isSerp, EPoint correction, boolean inLayers, boolean inElectricalLayers) {
             Xml.NodeLayer nld = new Xml.NodeLayer();
             nld.layer = getLayer().getNonPseudoLayer().getName();
             nld.style = getStyle();
             nld.portNum = getPortNum();
             nld.inLayers = inLayers;
             nld.inElectricalLayers = inElectricalLayers;
-            if (conditionMask != 0) {
-                nld.bitsFrom = Integer.numberOfTrailingZeros(conditionMask);
-                nld.bitsN = Integer.SIZE - Integer.numberOfLeadingZeros(conditionMask) - nld.bitsFrom;
+            if (paramValues != null) {
+                nld.param = param;
+                nld.paramValues.or(paramValues);
             }
-            nld.bitsEq = conditionValue;
             nld.representation = getRepresentation();
             Technology.TechPoint[] points = getPoints();
             if (nld.representation == Technology.NodeLayer.BOX || nld.representation == Technology.NodeLayer.MULTICUTBOX) {
@@ -1424,15 +1422,19 @@ public class Technology implements Comparable<Technology>, Serializable
                         layer.makePseudo();
                     layer = layer.getPseudoLayer();
                 }
-                int techBitsMask = ((1 << nl.bitsN) - 1) << nl.bitsFrom;
-                int techBitsValue = nl.bitsEq << nl.bitsFrom;
                 if (nl.representation == NodeLayer.MULTICUTBOX) {
                     nodeLayer = NodeLayer.makeMulticut(layer, nl.portNum, nl.style, techPoints, nl.sizex, nl.sizey, nl.sep1d, nl.sep2d);
                 }
                 else if (n.specialType == PrimitiveNode.SERPTRANS)
                     nodeLayer = new NodeLayer(layer, nl.portNum, nl.style, nl.representation, techPoints, nl.lWidth, nl.rWidth, nl.tExtent, nl.bExtent);
-                else
-                    nodeLayer = new NodeLayer(layer, nl.portNum, nl.style, nl.representation, techPoints, techBitsMask, techBitsValue);
+                else {
+                    BitSet paramValues = null;
+                    if (nl.param != null) {
+                        assert nl.param == n.param;
+                        paramValues = nl.paramValues;
+                    }
+                    nodeLayer = new NodeLayer(layer, nl.portNum, nl.style, nl.representation, techPoints, paramValues);
+                }
                 if (!(nl.inLayers && nl.inElectricalLayers))
                     needElectricalLayers = true;
                 if (nl.inLayers)
@@ -1450,7 +1452,7 @@ public class Technology implements Comparable<Technology>, Serializable
                 hy -= n.sizeOffset.getHighYGridOffset();
             }
             ERectangle baseRectangle = ERectangle.fromGrid(lx, ly, hx - lx, hy - ly);
-            PrimitiveNode pnp = PrimitiveNode.newInstance(n.name, this, sizeCorrector1, sizeCorrector2, minSizeRule,
+            PrimitiveNode pnp = PrimitiveNode.newInstance(n.name, n.param, this, sizeCorrector1, sizeCorrector2, minSizeRule,
                     DBMath.round(n.defaultWidth.value + 2*fullSize.getLambdaX()),
                     DBMath.round(n.defaultHeight.value + 2*fullSize.getLambdaY()),
                     fullRectangle, baseRectangle, nodeLayers.toArray(new NodeLayer[nodeLayers.size()]));
@@ -1647,10 +1649,10 @@ public class Technology implements Comparable<Technology>, Serializable
             return findNodeProto(((Xml.PrimitiveNode)menuItem).name);
         if (menuItem instanceof Xml.MenuNodeInst) {
             Xml.MenuNodeInst n = (Xml.MenuNodeInst)menuItem;
-            boolean hasText = (n.text != null);
+            boolean display = n.text != null && n.fontSize != 0;
             PrimitiveNode pn = findNodeProto(n.protoName);
             if (pn != null)
-            	return makeNodeInst(pn, n.function, n.techBits, n.rotation, hasText, n.text, n.fontSize);
+            	return makeNodeInst(pn, n.function, n.techBits, n.rotation, display, n.text, n.fontSize);
         }
         return menuItem.toString();
     }
@@ -3578,16 +3580,18 @@ public class Technology implements Comparable<Technology>, Serializable
 
 		// if a MultiCut contact, determine the number of extra cuts
 		int numExtraLayers = 0;
+        int paramValue = 0;
+        if (TESTSURROUNDOVERRIDE_C && np.param != null) {
+            numExtraLayers = -numBasicLayers;
+            paramValue = (ni.getTechSpecific() >>> np.param.bitsFrom) & ((1 << np.param.bitsN) - 1);
+        }
 		MultiCutData mcd = null;
 		SerpentineTrans std = null;
 		if (np.hasMultiCuts())
 		{
-            int techBits = ni.getTechSpecific();
-            if (TESTSURROUNDOVERRIDE_C)
-                numExtraLayers = -numBasicLayers;
             for (NodeLayer nodeLayer: primLayers) {
-                if (TESTSURROUNDOVERRIDE_C) {
-                    if ((techBits & nodeLayer.conditionMask) != nodeLayer.conditionValue)
+                if (TESTSURROUNDOVERRIDE_C && np.param != null) {
+                    if (nodeLayer.paramValues != null && !nodeLayer.paramValues.get(paramValue))
                         continue;
                     numExtraLayers++;
                 }
@@ -3630,7 +3634,7 @@ public class Technology implements Comparable<Technology>, Serializable
 		for(int i = 0; i < numBasicLayers; i++)
 		{
 			Technology.NodeLayer primLayer = primLayers[i];
-            if (TESTSURROUNDOVERRIDE_C && (techBits & primLayer.conditionMask) != primLayer.conditionValue)
+            if (TESTSURROUNDOVERRIDE_C && primLayer.paramValues != null && !primLayer.paramValues.get(paramValue))
                 continue;
 
 			int representation = primLayer.getRepresentation();

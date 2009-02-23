@@ -2283,35 +2283,58 @@
     </primitiveNode>
 
     <primitiveNode name="Metal-1-Metal-2-Con" fun="CONTACT">
+        <param name="Override" bitsFrom="0" bitsN="2">
+            <paramValue></paramValue>
+            <paramValue>X</paramValue>
+            <paramValue>R</paramValue>
+        </param>
         <diskOffset untilVersion="1" x="2.5" y="2.5"/>
         <diskOffset untilVersion="2" x="2.0" y="2.0"/>
         <sizeOffset lx="0.5" hx="0.5" ly="0.5" hy="0.5"/>
-        <nodeLayer layer="Metal-1" style="FILLED" bitsN="2">
+        <nodeLayer layer="Metal-1" style="FILLED">
+            <param name="Override">
+                <paramValue></paramValue>
+            </param>
             <box>
                 <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Metal-1" style="FILLED" bitsN="2" bitsEq="1">
+        <nodeLayer layer="Metal-1" style="FILLED">
+            <param name="Override">
+                <paramValue>X</paramValue>
+            </param>
             <box>
                 <lambdaBox klx="-5.0" khx="5.0" kly="-2.0" khy="2.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Metal-1" style="FILLED" bitsN="2" bitsEq="2">
+        <nodeLayer layer="Metal-1" style="FILLED">
+            <param name="Override">
+                <paramValue>R</paramValue>
+            </param>
             <box>
                 <lambdaBox klx="-2.0" khx="1.0" kly="-2.0" khy="2.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Metal-2" style="FILLED" bitsN="2">
+        <nodeLayer layer="Metal-2" style="FILLED">
+            <param name="Override">
+                <paramValue></paramValue>
+            </param>
             <box>
                 <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Metal-2" style="FILLED" bitsN="2" bitsEq="1">
+        <nodeLayer layer="Metal-2" style="FILLED">
+            <param name="Override">
+                <paramValue>X</paramValue>
+            </param>
             <box>
                 <lambdaBox klx="-2.0" khx="2.0" kly="-6.0" khy="6.0"/>
             </box>
         </nodeLayer>
-        <nodeLayer layer="Metal-1" style="FILLED" bitsN="2" bitsEq="2">
+        <nodeLayer layer="Metal-2" style="FILLED">
+            <param name="Override">
+                <paramValue>R</paramValue>
+            </param>
             <box>
                 <lambdaBox klx="-2.0" khx="1.0" kly="-2.0" khy="2.0"/>
             </box>
@@ -2668,8 +2691,12 @@
         </menuBox>
         <menuBox>
             <menuNode>Metal-1-Metal-2-Con</menuNode>
-            <menuNodeInst protoName="Metal-1-Metal-2-Con" function="CONTACT" techBits="1"/>
-            <menuNodeInst protoName="Metal-1-Metal-2-Con" function="CONTACT" techBits="2"/>
+            <menuNodeInst protoName="Metal-1-Metal-2-Con" function="CONTACT" techBits="1">
+                <menuNodeText text="Metal-1-Metal-2-Con-X" size="0"/>
+            </menuNodeInst>
+            <menuNodeInst protoName="Metal-1-Metal-2-Con" function="CONTACT" techBits="2">
+                <menuNodeText text="Metal-1-Metal-2-Con-R" size="0"/>
+            </menuNodeInst>
         </menuBox>
 
         <menuBox>

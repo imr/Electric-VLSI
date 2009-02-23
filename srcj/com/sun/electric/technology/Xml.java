@@ -42,6 +42,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -191,6 +192,7 @@ public class Xml {
     public static class PrimitiveNode implements Serializable {
         public String name;
         public String oldName;
+        public NodeParam param;
         public boolean shrinkArcs;
         public boolean square;
         public boolean canBeZeroSize;
@@ -219,6 +221,13 @@ public class Xml {
         public NodeSizeRule nodeSizeRule;
         public String spiceTemplate;
     }
+    
+    public static class NodeParam {
+        public String name;
+        public int bitsFrom;
+        public int bitsN;
+        public final List<String> paramValues = new ArrayList<String>();
+    }
 
     public enum ProtectionType {
         both, left, right, none;
@@ -226,6 +235,8 @@ public class Xml {
 
     public static class NodeLayer implements Serializable {
         public String layer;
+        public NodeParam param;
+        public final BitSet paramValues = new BitSet();
         public Poly.Type style;
         public int portNum;
         public boolean inLayers;
@@ -241,9 +252,6 @@ public class Xml {
         public CustomOverride[] customOverrides;
         public int customOverrideMask;
         public int customOverrideShift;
-        public int bitsFrom;
-        public int bitsN;
-        public int bitsEq;
     }
 
     public static class NodeSizeRule implements Serializable {
@@ -357,6 +365,8 @@ public class Xml {
 
         primitiveNode,
         //oldName(true),
+        param,
+        paramValue(true),
         shrinkArcs,
         square,
         canBeZeroSize,
@@ -929,6 +939,17 @@ public class Xml {
                     curNode.name = a("name");
                     curNode.function = com.sun.electric.technology.PrimitiveNode.Function.valueOf(a("fun"));
                     break;
+                case param:
+                    if (curNodeLayer != null) {
+                        curNodeLayer.param = curNode.param;
+                        assert curNodeLayer.param.name.equals(a("name"));
+                    } else {
+                        curNode.param = new NodeParam();
+                        curNode.param.name = a("name");
+                        curNode.param.bitsFrom = Integer.parseInt(a("bitsFrom"));
+                        curNode.param.bitsN = Integer.parseInt(a("bitsN"));
+                    }
+                    break;
                 case shrinkArcs:
                     curNode.shrinkArcs = true;
                     break;
@@ -994,15 +1015,6 @@ public class Xml {
                     } else {
                         curNodeLayer.inElectricalLayers = curNodeLayer.inLayers = true;
                     }
-                    String bitsFrom = a_("bitsFrom");
-                    if (bitsFrom != null)
-                        curNodeLayer.bitsFrom = Integer.parseInt(bitsFrom);
-                    String bitsN = a_("bitsN");
-                    if (bitsN != null)
-                        curNodeLayer.bitsN = Integer.parseInt(bitsN);
-                    String bitsEq = a_("bitsEq");
-                    if (bitsEq != null)
-                        curNodeLayer.bitsEq = Integer.parseInt(bitsEq);
                     break;
                 case box:
                     if (curNodeLayer != null) {
@@ -1284,6 +1296,12 @@ public class Xml {
                     case antennaRatio:
                         curArc.antennaRatio = Double.parseDouble(text);
                         break;
+                    case paramValue:
+                        if (curNodeLayer != null)
+                            curNodeLayer.paramValues.set(curNodeLayer.param.paramValues.indexOf(text));
+                        else
+                            curNode.param.paramValues.add(text);
+                        break;
                     case portTopology:
                         curPort.portTopology = Integer.parseInt(text);
                         break;
@@ -1380,6 +1398,7 @@ public class Xml {
                 case defaultWidth:
                 case arcLayer:
 
+                case param:    
                 case shrinkArcs:
                 case square:
                 case canBeZeroSize:
@@ -1822,6 +1841,13 @@ public class Xml {
         private void writeXml(Xml.PrimitiveNode ni) {
             b(XmlKeyword.primitiveNode); a("name", ni.name); a("fun", ni.function.name()); cl();
             bcpel(XmlKeyword.oldName, ni.oldName);
+            
+            if (ni.param != null) {
+                b(XmlKeyword.param); a("name", ni.param.name); a("bitsFrom", ni.param.bitsFrom); a("bitsN", ni.param.bitsN); cl();
+                for (String paramValue: ni.param.paramValues)
+                    bcpel(XmlKeyword.paramValue, paramValue);
+                el(XmlKeyword.param);
+            }
 
             if (ni.shrinkArcs)
                 bel(XmlKeyword.shrinkArcs);
@@ -1883,16 +1909,18 @@ public class Xml {
 
             for(int j=0; j<ni.nodeLayers.size(); j++) {
                 Xml.NodeLayer nl = ni.nodeLayers.get(j);
+                if (nl.param != null) {
+                    b(XmlKeyword.param); a("name", ni.param.name); cl();
+                    for (int i = 0; i < nl.param.paramValues.size(); i++) {
+                        if (nl.paramValues.get(i))
+                            bcpel(XmlKeyword.paramValue, nl.param.paramValues.get(i));
+                    }
+                    el(XmlKeyword.param);
+                }
                 b(XmlKeyword.nodeLayer); a("layer", nl.layer); a("style", nl.style.name());
                 if (nl.portNum != 0) a("portNum", Integer.valueOf(nl.portNum));
                 if (!(nl.inLayers && nl.inElectricalLayers))
                     a("electrical", Boolean.valueOf(nl.inElectricalLayers));
-                if (nl.bitsFrom != 0)
-                    a("bitsFrom", Integer.valueOf(nl.bitsFrom));
-                if (nl.bitsN != 0)
-                    a("bitsN", Integer.valueOf(nl.bitsN));
-                if (nl.bitsEq != 0)
-                    a("bitsEq", Integer.valueOf(nl.bitsEq));
                 cl();
                 switch (nl.representation) {
                     case com.sun.electric.technology.Technology.NodeLayer.BOX:
