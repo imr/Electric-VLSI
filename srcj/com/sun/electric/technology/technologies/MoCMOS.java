@@ -2427,7 +2427,7 @@ public class MoCMOS extends Technology
             selNode.getLeftEdge().setAdder(selExtenOppLen); selNode.getRightEdge().setAdder(-selExtenOppLen);
             selNode.getBottomEdge().setAdder(selExtenAlongLen); selNode.getTopEdge().setAdder(-selExtenAlongLen);
 
-            // well
+            // thick
             index = rules.getRuleIndex(activeNode.getLayer().getIndex(), thickNode.getLayer().getIndex());
             DRCTemplate thickSurround = rules.getRule(index, DRCTemplate.DRCRuleType.SURROUND, primNode.getName());
             double thickExtenOppLen = widValMax - wellSurround.getValue(0);
