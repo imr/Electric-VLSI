@@ -27,6 +27,7 @@ import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.Setting;
@@ -2339,9 +2340,11 @@ public class MoCMOS extends Technology
 
         // Standard transistors
         DRCTemplate polyWid = null;
-        for (PrimitiveNode primNode : transistorNodes)
+        DRCTemplate activeWid = null;
+        for (int i = P_TYPE; i <= N_TYPE; i++)
         {
             // Not very elegant here
+            PrimitiveNode primNode = transistorNodes[i];
             Technology.NodeLayer activeNode = primNode.getLayers()[0]; // active
             Technology.NodeLayer activeTNode = primNode.getElectricalLayers()[0]; // active Top or Left
             Technology.NodeLayer activeBNode = primNode.getElectricalLayers()[1]; // active Bottom or Right
@@ -2351,21 +2354,39 @@ public class MoCMOS extends Technology
             Technology.NodeLayer polyRNode = primNode.getElectricalLayers()[4]; // poly right or bottom
             Technology.NodeLayer wellNode = primNode.getLayers()[2]; // well
             Technology.NodeLayer selNode = primNode.getLayers()[3]; // select
+            
+            PrimitiveNode thickPrimNode = thickTransistorNodes[i];
+            assert activeNode == thickPrimNode.getLayers()[0]; // active
+            assert activeTNode == thickPrimNode.getElectricalLayers()[0]; // active Top or Left
+            assert activeBNode == thickPrimNode.getElectricalLayers()[1]; // active Bottom or Right
+            assert polyNode == thickPrimNode.getLayers()[1]; // poly
+            assert polyCNode == thickPrimNode.getElectricalLayers()[2]; // poly center
+            assert polyLNode == thickPrimNode.getElectricalLayers()[3]; // poly left or Top
+            assert polyRNode == thickPrimNode.getElectricalLayers()[4]; // poly right or bottom
+            assert wellNode == thickPrimNode.getLayers()[2]; // well
+            assert selNode == thickPrimNode.getLayers()[3]; // select
+            Technology.NodeLayer thickNode = thickPrimNode.getLayers()[4]; // thick active
 
             // setting well-active actSurround
             int index = rules.getRuleIndex(activeNode.getLayer().getIndex(), wellNode.getLayer().getIndex());
             DRCTemplate actSurround = rules.getRule(index, DRCTemplate.DRCRuleType.SURROUND, primNode.getName());
-            double length = primNode.getDefHeight();
+            ERectangle fullRectangle = primNode.getFullRectangle();
+            assert fullRectangle.getCenterX() == 0 && fullRectangle.getCenterY() == 0;
+            double fullWidth = fullRectangle.getWidth();
+            double fullLength = fullRectangle.getHeight();
             if (polyWid == null)
                 polyWid = rules.getRule(polyNode.getLayer().getIndex(), DRCTemplate.DRCRuleType.MINWID); // gate size
+            if (activeWid == null)
+                activeWid = rules.getRule(activeNode.getLayer().getIndex(), DRCTemplate.DRCRuleType.MINWID); // gate size
             // active from poly
             double actOverhang = getTransistorExtension(primNode, false, rules);
-            double lenValMax = DBMath.round(length /2 - (polyWid.getValue(0)/2));   // Y if poly gate is horizontal, X if poly is vertical
+            double lenValMax = DBMath.round(fullLength /2 - (polyWid.getValue(0)/2));   // Y if poly gate is horizontal, X if poly is vertical
             double lenValMin = DBMath.round(lenValMax - actOverhang);
 
             // poly from active
             double gateOverhang = getTransistorExtension(primNode, true, rules);
-            double polyExten = actSurround.getValue(0) - gateOverhang;
+            double widValMax = DBMath.round(fullWidth/2 - activeWid.getValue(0)/2);
+            double polyExten = DBMath.round(widValMax - gateOverhang);
             double gateEdge = polyExten + gateOverhang;
 
             // Active layer
@@ -2386,24 +2407,44 @@ public class MoCMOS extends Technology
             polyCNode.getBottomEdge().setAdder(lenValMax); polyCNode.getTopEdge().setAdder(-lenValMax);
             polyCNode.getLeftEdge().setAdder(gateEdge);    polyCNode.getRightEdge().setAdder(-gateEdge);
 
+            // well
+            index = rules.getRuleIndex(activeNode.getLayer().getIndex(), wellNode.getLayer().getIndex());
+            DRCTemplate wellSurround = rules.getRule(index, DRCTemplate.DRCRuleType.SURROUND, primNode.getName());
+            double wellExtenOppLen = widValMax - wellSurround.getValue(0);
+            double wellExtenAlongLen = lenValMin - wellSurround.getValue(0);
+            
+            wellNode.getLeftEdge().setAdder(wellExtenOppLen); selNode.getRightEdge().setAdder(-wellExtenOppLen);
+            wellNode.getBottomEdge().setAdder(wellExtenAlongLen); selNode.getTopEdge().setAdder(-wellExtenAlongLen);
+            
             // select
             index = rules.getRuleIndex(activeNode.getLayer().getIndex(), selNode.getLayer().getIndex());
             DRCTemplate selSurround = rules.getRule(index, DRCTemplate.DRCRuleType.SURROUND, primNode.getName());
             index = rules.getRuleIndex(polyNode.getLayer().getIndex(), selNode.getLayer().getIndex());
             DRCTemplate selPolySurround = rules.getRule(index, DRCTemplate.DRCRuleType.SURROUND, primNode.getName());
-            double selExtenOppLen = actSurround.getValue(0) - selPolySurround.getValue(0);
+            double selExtenOppLen = DBMath.round(widValMax - selPolySurround.getValue(0));
             double selExtenAlongLen = lenValMin - selSurround.getValue(0);// only valid on active extension (Y axis in 180nm)
 
             selNode.getLeftEdge().setAdder(selExtenOppLen); selNode.getRightEdge().setAdder(-selExtenOppLen);
             selNode.getBottomEdge().setAdder(selExtenAlongLen); selNode.getTopEdge().setAdder(-selExtenAlongLen);
 
+            // well
+            index = rules.getRuleIndex(activeNode.getLayer().getIndex(), thickNode.getLayer().getIndex());
+            DRCTemplate thickSurround = rules.getRule(index, DRCTemplate.DRCRuleType.SURROUND, primNode.getName());
+            double thickExtenOppLen = widValMax - wellSurround.getValue(0);
+            double thickExtenAlongLen = lenValMin - wellSurround.getValue(0);
+            
+            thickNode.getLeftEdge().setAdder(thickExtenOppLen); thickNode.getRightEdge().setAdder(-thickExtenOppLen);
+            thickNode.getBottomEdge().setAdder(thickExtenAlongLen); thickNode.getTopEdge().setAdder(-thickExtenAlongLen);
+            
             // setting serpentine factors
             double serpPolyWid = polyWid.getValue(0)/2;
             double serpActiveWid = serpPolyWid + actOverhang;
             double serpSelectWid = serpActiveWid + selSurround.getValue(0);
             double serpWellWid = serpActiveWid + actSurround.getValue(0);
+            double serpThickWid = serpActiveWid + thickSurround.getValue(0);
             double serpSelectExt = selPolySurround.getValue(0);
             double serpWellExt = actSurround.getValue(0);
+            double serpThickExt = thickSurround.getValue(0);
             polyNode.setSerpentineLWidth(serpPolyWid);
             polyNode.setSerpentineRWidth(serpPolyWid);
             polyNode.setSerpentineExtentT(gateOverhang);
@@ -2428,9 +2469,13 @@ public class MoCMOS extends Technology
             wellNode.setSerpentineRWidth(serpWellWid);
             wellNode.setSerpentineExtentT(serpWellExt);
             wellNode.setSerpentineExtentB(serpWellExt);
+            thickNode.setSerpentineLWidth(serpThickWid);
+            thickNode.setSerpentineRWidth(serpThickWid);
+            thickNode.setSerpentineExtentT(serpThickExt);
+            thickNode.setSerpentineExtentB(serpThickExt);
 
-            primNode.setSizeOffset(new SizeOffset(actSurround.getValue(0), actSurround.getValue(0),
-                    lenValMax, lenValMax));
+            primNode.setSizeOffset(new SizeOffset(widValMax, widValMax, lenValMax, lenValMax));
+            thickPrimNode.setSizeOffset(new SizeOffset(widValMax, widValMax, lenValMax, lenValMax));
         }
 
 //        // arcs
@@ -3208,41 +3253,41 @@ public class MoCMOS extends Technology
     }
     
     private static void resizeTransistor(Xml.PrimitiveNode transistor, ResizeData rd) {
-        Xml.NodeLayer nl;
+        Xml.NodeLayer activeTNode = transistor.nodeLayers.get(0); // active Top or Left
+        Xml.NodeLayer activeBNode = transistor.nodeLayers.get(1); // active Bottom or Right
+        Xml.NodeLayer polyCNode = transistor.nodeLayers.get(2); // poly center
+        Xml.NodeLayer polyLNode = transistor.nodeLayers.get(3); // poly left or Top
+        Xml.NodeLayer polyRNode = transistor.nodeLayers.get(4); // poly right or bottom
+        Xml.NodeLayer activeNode = transistor.nodeLayers.get(5); // active
+        Xml.NodeLayer polyNode = transistor.nodeLayers.get(6); // poly
+        Xml.NodeLayer wellNode = transistor.nodeLayers.get(7); // well
+        Xml.NodeLayer selNode = transistor.nodeLayers.get(8); // select
         double diffWidth = 0.5*rd.gate_length + rd.diff_poly_overhang;
         double selectWidth = diffWidth + rd.pplus_overhang_diff;
         double wellWidth = diffWidth + rd.nwell_overhang_diff_p;
         double polyExtent = 0.5*rd.gate_width + rd.poly_endcap;
         double wellExtent = rd.nwell_overhang_diff_p;
-        nl = transistor.nodeLayers.get(0);
-        nl.lWidth = nl.hy.value = diffWidth;
-        nl = transistor.nodeLayers.get(1);
-        nl.rWidth = diffWidth;
-        nl.ly.value = -diffWidth;
-        nl = transistor.nodeLayers.get(3);
-        nl.bExtent = rd.poly_endcap;
-        nl.lx.value = -polyExtent;
-        nl = transistor.nodeLayers.get(4);
-        nl.tExtent = rd.poly_endcap;
-        nl.hx.value = polyExtent;
-        nl = transistor.nodeLayers.get(5);
-        nl.hy.value = nl.lWidth = nl.rWidth = diffWidth;
-        nl.ly.value = -diffWidth;
-        nl = transistor.nodeLayers.get(6);
-        nl.bExtent = nl.tExtent = rd.poly_endcap;
-        nl.lx.value = -polyExtent;
-        nl.hx.value = polyExtent;
-        nl = transistor.nodeLayers.get(7);
-        nl.lWidth = nl.rWidth = wellWidth;
-//            nl.ly.value = -wellWidth;
-//            nl.hy.value = wellWidth;
-        nl.bExtent = nl.tExtent = wellExtent;
-//            nl.lx.value = -(0.5*rd.gate_width + rd.nwell_overhang_diff_p);
-//            nl.hx.value = 0.5*rd.gate_width + rd.nwell_overhang_diff_p;
-        nl = transistor.nodeLayers.get(8);
-        nl.lWidth = nl.rWidth = selectWidth;
-        nl.ly.value = -selectWidth;
-        nl.hy.value = selectWidth;
+        activeTNode.lWidth = activeTNode.hy.value = diffWidth;
+        activeBNode.rWidth = diffWidth;
+        activeBNode.ly.value = -diffWidth;
+        polyLNode.bExtent = rd.poly_endcap;
+        polyLNode.lx.value = -polyExtent;
+        polyRNode.tExtent = rd.poly_endcap;
+        polyRNode.hx.value = polyExtent;
+        activeNode.hy.value = activeNode.lWidth = activeNode.rWidth = diffWidth;
+        activeNode.ly.value = -diffWidth;
+        polyNode.bExtent = polyNode.tExtent = rd.poly_endcap;
+        polyNode.lx.value = -polyExtent;
+        polyNode.hx.value = polyExtent;
+        wellNode.lWidth = wellNode.rWidth = wellWidth;
+//            wellNode.ly.value = -wellWidth;
+//            wellNode.hy.value = wellWidth;
+        wellNode.bExtent = wellNode.tExtent = wellExtent;
+//            wellNode.lx.value = -(0.5*rd.gate_width + rd.nwell_overhang_diff_p);
+//            wellNode.hx.value = 0.5*rd.gate_width + rd.nwell_overhang_diff_p;
+        selNode.lWidth = selNode.rWidth = selectWidth;
+        selNode.ly.value = -selectWidth;
+        selNode.hy.value = selectWidth;
     }
     
     public static void main(String[] args) {

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09d: ******************************
 
+BUG: (2/23/09, DN) MoCMOS transitors are not properly resized in SCMOS ruleset.
+FIX: Add rule "24.3 Mosis" to Mosis180DRCDeck.xml. Fix MoCMOS.makeFactoryDesignRules().
+
 BUG: (2/23/09, GVG) NPE while reading XML tech (Bug #2049)
 FIX: Store tech name in a temp variable.
 
