@@ -2413,8 +2413,8 @@ public class MoCMOS extends Technology
             double wellExtenOppLen = widValMax - wellSurround.getValue(0);
             double wellExtenAlongLen = lenValMin - wellSurround.getValue(0);
             
-            wellNode.getLeftEdge().setAdder(wellExtenOppLen); selNode.getRightEdge().setAdder(-wellExtenOppLen);
-            wellNode.getBottomEdge().setAdder(wellExtenAlongLen); selNode.getTopEdge().setAdder(-wellExtenAlongLen);
+            wellNode.getLeftEdge().setAdder(wellExtenOppLen); wellNode.getRightEdge().setAdder(-wellExtenOppLen);
+            wellNode.getBottomEdge().setAdder(wellExtenAlongLen); wellNode.getTopEdge().setAdder(-wellExtenAlongLen);
             
             // select
             index = rules.getRuleIndex(activeNode.getLayer().getIndex(), selNode.getLayer().getIndex());
