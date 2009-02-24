@@ -4,6 +4,14 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09d: ******************************
 
+IMP/MAN: (2/24/09, SMR) The layer visibility configurations now understand the
+     SHIFT-# commands and incorporate them uniformly.  The default "visibility
+     configurations" list in the Layers Tab shows the 10 SHIFT-# entries.
+     You can change the visible layers associated with any of the SHIFT-# entries
+     and can even rename them.  You can also add your own visibility configuration
+     entries, but they won't be bindable to Quick Keys (only the SHIFT-# entries,
+     already bound to a quick key, can be rebound).
+
 BUG: (2/23/09, DN) MoCMOS transitors are not properly resized in SCMOS ruleset.
 FIX: Add rule "24.3 Mosis" to Mosis180DRCDeck.xml. Fix MoCMOS.makeFactoryDesignRules().
 
