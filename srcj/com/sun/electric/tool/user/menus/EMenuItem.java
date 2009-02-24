@@ -230,13 +230,19 @@ public abstract class EMenuItem implements ActionListener {
     
     public String toString() { return text; }
     
-    /** Get a string description of the menu item.
+    /**
+     * Get a string description of the menu item.
      * Takes the form <p>
      * Menu | SubMenu | SubMenu | item
-     * <p>
      * @return a string of the description.
      */
     public String getDescription() { return path != null ? menuBar.getDescription(path) : text; }
+    
+    /**
+     * Get the path of the menu item.
+     * @return an array of integers indexing the menu.
+     */
+    public int[] getPath() { return path; }
     
     /**
      * Register menu item tree in EMenuBar.

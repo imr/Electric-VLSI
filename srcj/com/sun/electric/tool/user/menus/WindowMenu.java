@@ -25,9 +25,13 @@
 package com.sun.electric.tool.user.menus;
 
 import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
+
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.FileType;
@@ -40,6 +44,7 @@ import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.EditWindowFocusBrowser;
 import com.sun.electric.tool.user.ui.InvisibleLayerConfiguration;
+import com.sun.electric.tool.user.ui.LayerTab;
 import com.sun.electric.tool.user.ui.MeasureListener;
 import com.sun.electric.tool.user.ui.MessagesWindow;
 import com.sun.electric.tool.user.ui.ToolBar;
@@ -68,7 +73,10 @@ import java.util.Collections;
 import java.util.EventListener;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 
@@ -103,10 +111,30 @@ public class WindowMenu {
         KeyStroke [] numpad5 = new KeyStroke [] { EMenuItem.shortcut('5'), EMenuItem.shortcut(KeyEvent.VK_NUMPAD5),
                 KeyStroke.getKeyStroke(KeyEvent.VK_BEGIN, ctrlshift)};
 
+	    visibleLayersMenu = new EMenu("Visible La_yers",
+            new EMenuItem(InvisibleLayerConfiguration.getOnly().getMenuName(1), KeyStroke.getKeyStroke(KeyEvent.VK_1, InputEvent.SHIFT_MASK))
+	    		{ public void run() { setLayerVisible(1); }},
+            new EMenuItem(InvisibleLayerConfiguration.getOnly().getMenuName(2), KeyStroke.getKeyStroke(KeyEvent.VK_2, InputEvent.SHIFT_MASK))
+                { public void run() { setLayerVisible(2); }},
+            new EMenuItem(InvisibleLayerConfiguration.getOnly().getMenuName(3), KeyStroke.getKeyStroke(KeyEvent.VK_3, InputEvent.SHIFT_MASK))
+            	{ public void run() { setLayerVisible(3); }},
+            new EMenuItem(InvisibleLayerConfiguration.getOnly().getMenuName(4), KeyStroke.getKeyStroke(KeyEvent.VK_4, InputEvent.SHIFT_MASK))
+            	{ public void run() { setLayerVisible(4); }},
+            new EMenuItem(InvisibleLayerConfiguration.getOnly().getMenuName(5), KeyStroke.getKeyStroke(KeyEvent.VK_5, InputEvent.SHIFT_MASK))
+            	{ public void run() { setLayerVisible(5); }},
+            new EMenuItem(InvisibleLayerConfiguration.getOnly().getMenuName(6), KeyStroke.getKeyStroke(KeyEvent.VK_6, InputEvent.SHIFT_MASK))
+            	{ public void run() { setLayerVisible(6); }},
+            new EMenuItem(InvisibleLayerConfiguration.getOnly().getMenuName(7), KeyStroke.getKeyStroke(KeyEvent.VK_7, InputEvent.SHIFT_MASK))
+            	{ public void run() { setLayerVisible(7); }},
+            new EMenuItem(InvisibleLayerConfiguration.getOnly().getMenuName(8), KeyStroke.getKeyStroke(KeyEvent.VK_8, InputEvent.SHIFT_MASK))
+            	{ public void run() { setLayerVisible(8); }},
+            new EMenuItem(InvisibleLayerConfiguration.getOnly().getMenuName(9), KeyStroke.getKeyStroke(KeyEvent.VK_9, InputEvent.SHIFT_MASK))
+            	{ public void run() { setLayerVisible(9); }},
+            new EMenuItem(InvisibleLayerConfiguration.getOnly().getMenuName(0), KeyStroke.getKeyStroke(KeyEvent.VK_0, InputEvent.SHIFT_MASK))
+            	{ public void run() { setLayerVisible(0); }});
 
         // mnemonic keys available:           K     Q  T
-	    visibleLayersMenu = new EMenu("Visible La_yers");
-        EMenu menu = new EMenu("_Window",
+	    EMenu menu = new EMenu("_Window",
 
             new EMenuItem("_Fill Window", numpad9) { public void run() {
                 fullDisplay(); }},
@@ -296,19 +324,64 @@ public class WindowMenu {
     public static void setDynamicVisibleLayerMenus()
     {
         List<DynamicLayerVisibilityMenuItem> list = new ArrayList<DynamicLayerVisibilityMenuItem>();
-        int index = 1;
         for(String cName : InvisibleLayerConfiguration.getOnly().getConfigurationNames())
-            list.add(new DynamicLayerVisibilityMenuItem(cName, index++));
-        visibleLayersMenu.setDynamicItems(list);
+        {
+        	if (InvisibleLayerConfiguration.getOnly().getConfigurationHardwiredIndex(cName) >= 0) continue;
+            list.add(new DynamicLayerVisibilityMenuItem(cName));
+        }
+
+        for (EMenuBar.Instance menuBarInstance: TopLevel.getMenuBars())
+        {
+            JMenu menu = (JMenu)menuBarInstance.findMenuItem(visibleLayersMenu.getPath());
+            while (menu.getMenuComponentCount() > 10)
+            	menu.remove(menu.getMenuComponentCount()-1);
+            boolean hasMore = false;
+            for (EMenuItem elem : list)
+            {
+                if (elem == EMenuItem.SEPARATOR)
+                {
+                    menu.addSeparator();
+                    continue;
+                }
+                if (!hasMore) menu.addSeparator();
+                hasMore = true;
+                JMenuItem item = elem.genMenu(null);
+                menu.add(item);
+            }
+        }
+    }
+
+    public static void setLayerVisible(int level)
+    {
+        EditWindow wnd = EditWindow.needCurrent();
+        if (wnd == null) return;
+        WindowFrame frame = wnd.getWindowFrame();
+        if (frame == null) return;
+        LayerTab layerTab = frame.getLayersTab();
+        if (layerTab == null) return;
+
+        String cName = InvisibleLayerConfiguration.getOnly().findHardWiredConfiguration(level);
+    	if (cName == null)
+    	{
+    		// nothing saved: use old way
+	        Cell cell = wnd.getCell();
+	        if (cell == null) return;
+	        Technology tech = cell.getTechnology();
+	        if (!tech.isLayout()) return;
+	        layerTab.setVisibilityLevel(level);
+    	} else
+    	{
+    		layerTab.setInvisibleLayerConfiguration(cName);    		
+    	}
     }
 
     private static class DynamicLayerVisibilityMenuItem extends EMenuItem
     {
         private String cName;
 
-        public DynamicLayerVisibilityMenuItem(String cName, int index)
+        public DynamicLayerVisibilityMenuItem(String cName)
         {
-            super((index <= 9 ? "_" : "") + index + ": " + cName);
+            super(cName);
             this.cName = cName;
         }
 

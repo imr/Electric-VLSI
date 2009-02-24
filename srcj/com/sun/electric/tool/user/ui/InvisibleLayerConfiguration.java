@@ -24,10 +24,14 @@
 package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.tool.user.menus.EMenuItem;
 import com.sun.electric.tool.user.menus.WindowMenu;
 
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -35,6 +39,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import javax.swing.KeyStroke;
 
 /**
  * Class to manage saved collections of invisible layers.
@@ -57,6 +63,7 @@ public class InvisibleLayerConfiguration
 		Pref.Group prefs = Pref.groupForPackage(InvisibleLayerConfiguration.class);
 		savedConfigurations = Pref.makeStringPref("LayerVisibilityConfigurations", prefs, "");
 		String sc = savedConfigurations.getString();
+		boolean [] overridden = new boolean[10];
 		for(;;)
 		{
 			int openPos = sc.indexOf('[');
@@ -65,12 +72,41 @@ public class InvisibleLayerConfiguration
 			if (closePos < 0) break;
 			String config = sc.substring(openPos+1, closePos);
 			sc = sc.substring(closePos+1);
+
 			int tabPos = config.indexOf('\t');
 			if (tabPos < 0) continue;
 			String cName = config.substring(0, tabPos);
 			String con = config.substring(tabPos+1);
+			if (con.startsWith("("))
+			{
+				int index = TextUtils.atoi(con.substring(1));
+				overridden[index] = true;
+			}
 			configurations.put(cName, con);
 		}
+		for(int i=0; i<10; i++)
+		{
+			if (overridden[i]) continue;
+			String menuName = getDefaultHardwiredName(i);
+			String value = "(" + i + ")";
+			configurations.put(menuName, value);
+		}
+	}
+
+	private String getDefaultHardwiredName(int index)
+	{
+		String menuName = "Set ";
+		if (index == 0) menuName += "All"; else
+			menuName += "M" + index;
+		menuName += " Visible";
+		return menuName;
+	}
+
+	public String getMenuName(int index)
+	{
+		String cName = findHardWiredConfiguration(index);
+		if (cName == null) return getDefaultHardwiredName(index);
+		return cName;
 	}
 
 	/**
@@ -112,21 +148,30 @@ public class InvisibleLayerConfiguration
 	/**
 	 * Method to add a invisible layer configuration.
 	 * @param cName the name of the new invisible layer configuration.
+	 * @param hardWiredIndex the hard-wired value (from 0-9) for pre-bound configurations.
 	 * @param tech the Technology in which these layers reside.
 	 * @param layers the list of invisible layers in the configuration.
 	 */
-	public void addConfiguration(String cName, Technology tech, List<Layer> layers)
+	public void addConfiguration(String cName, int hardWiredIndex, Technology tech, List<Layer> layers)
 	{
 		StringBuffer sb = new StringBuffer();
+		if (hardWiredIndex >= 0) sb.append("(" + hardWiredIndex + ")");
 		sb.append(tech.getTechName());
-		boolean first = true;
 		for(Layer layer : layers)
 		{
-			if (!first) sb.append(',');
-			first = false;
+			sb.append(',');
 			sb.append(layer.getName());
 		}
 		configurations.put(cName, sb.toString());
+		saveConfigurations();
+	}
+
+	public void renameConfiguration(String cName, String newName)
+	{
+		String configData = configurations.get(cName);
+		if (configData == null) return;
+		configurations.remove(cName);
+		configurations.put(newName, configData);
 		saveConfigurations();
 	}
 
@@ -139,6 +184,13 @@ public class InvisibleLayerConfiguration
 		String invisLayers = configurations.get(cName);
 		if (invisLayers == null) return;
 		configurations.remove(cName);
+		if (invisLayers.startsWith("("))
+		{
+			int hardIndex = TextUtils.atoi(invisLayers.substring(1));
+			String menuName = getDefaultHardwiredName(hardIndex);
+			String value = "(" + hardIndex + ")";
+			configurations.put(menuName, value);
+		}
 		saveConfigurations();
 	}
 
@@ -172,10 +224,55 @@ public class InvisibleLayerConfiguration
 			if (iLayers.length != 0)
 			{
 				String techName = iLayers[0];
+				if (techName.startsWith("(")) techName = techName.substring(3);
 				tech = Technology.findTechnology(techName);
 			}
 		}
 		return tech;
+	}
+
+	/**
+	 * Method to find the configuration that is hard-wired to a given index.
+	 * @param index the index (from 0 to 9).
+	 * @return the configuration bound to that index (null if none).
+	 */
+	public String findHardWiredConfiguration(int index)
+	{
+		for(String cName : configurations.keySet())
+		{
+			String invisLayers = configurations.get(cName);
+			if (invisLayers == null) continue;
+			if (invisLayers.startsWith("("))
+			{
+				if (index != TextUtils.atoi(invisLayers.substring(1))) continue;
+				return cName;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Method to get the "hard wired" index of this visibility configuration name.
+	 * Some visibility configurations are hard-wired to the SHIFT-0 through SHIFT-9
+	 * keys, and these will return a value of 0 through 9.
+	 * @param cName the name of the invisible layer configuration.
+	 * @return the hard-wired index (-1 if none).
+	 */
+	public int getConfigurationHardwiredIndex(String cName)
+	{
+		String invisLayers = configurations.get(cName);
+		if (invisLayers != null)
+		{
+			// make a set of all invisible layers
+			String[] iLayers = invisLayers.split(",");
+			if (iLayers.length != 0)
+			{
+				String techName = iLayers[0];
+				if (techName.startsWith("("))
+					return TextUtils.atoi(techName.substring(1));
+			}
+		}
+		return -1;
 	}
 
 	/**
@@ -194,7 +291,18 @@ public class InvisibleLayerConfiguration
 			if (iLayers.length != 0)
 			{
 				String techName = iLayers[0];
+				int hardWiredIndex = -1;
+				if (techName.startsWith("("))
+				{
+					hardWiredIndex = TextUtils.atoi(techName.substring(1));
+					techName = techName.substring(3);
+				}
 				Technology tech = Technology.findTechnology(techName);
+				if (tech == null && hardWiredIndex >= 0)
+				{
+					tech = Technology.getCurrent();
+					// TODO load proper configuration here
+				}
 				for(int i=0; i<iLayers.length; i++)
 				{
 					String iLayer = iLayers[i];
