@@ -2957,6 +2957,7 @@ public class MoCMOS extends Technology
         private final double diff_width = 3; // 2.1
         private final double diff_poly_overhang; // 3.4
         private final double diff_contact_overhang; // 6.2 6.2b
+        private final double thick_overhang = 4;
 
         private final double poly_width = 2; // 3.1
         private final double poly_endcap; // 3.3
@@ -3194,9 +3195,29 @@ public class MoCMOS extends Technology
             nl.lx.value = nl.ly.value = -(0.5*rd.diff_width + rd.nwell_overhang_diff_p);
             double off = rd.nwell_overhang_diff_p;
             activePinNodes[i].sizeOffset = new SizeOffset(off, off, off, off);
-            nl = metalActiveContactNodes[i].nodeLayers.get(2);
+
+            Xml.PrimitiveNode con = metalActiveContactNodes[i];
+            double halfSize = 0.5*rd.contact_size + rd.diff_contact_overhang;
+            EPoint do1 = con.diskOffset.get(Integer.valueOf(1));
+            EPoint do2 = EPoint.fromLambda(halfSize, halfSize);
+            con.diskOffset.put(Integer.valueOf(2), do2);
+            if (do2.equals(do1))
+                con.diskOffset.remove(Integer.valueOf(1));
+            if (do1 == null)
+                do1 = do2;
+            off = do1.getLambdaX() - do2.getLambdaX();
+            assert off == do1.getLambdaY() - do2.getLambdaY();
+            con.sizeOffset = off != 0 ? new SizeOffset(off, off, off, off) : null;
+
+            nl = metalActiveContactNodes[i].nodeLayers.get(1); // P-Active
+            nl.hx.value = nl.hy.value = 0.5*rd.contact_size + rd.diff_contact_overhang;
+            nl.lx.value = nl.ly.value = -(0.5*rd.contact_size + rd.diff_contact_overhang);
+            nl = metalActiveContactNodes[i].nodeLayers.get(2); // Well
             nl.hx.value = nl.hy.value = 0.5*rd.contact_size + rd.diff_contact_overhang + rd.nwell_overhang_diff_p;
             nl.lx.value = nl.ly.value = -(0.5*rd.contact_size + rd.diff_contact_overhang + rd.nwell_overhang_diff_p);
+            nl = metalActiveContactNodes[i].nodeLayers.get(3); // Select
+            nl.hx.value = nl.hy.value = 0.5*rd.contact_size + rd.diff_contact_overhang + rd.nplus_overhang_diff;
+            nl.lx.value = nl.ly.value = -(0.5*rd.contact_size + rd.diff_contact_overhang + rd.nplus_overhang_diff);
             nl = metalActiveContactNodes[i].nodeLayers.get(4);
             nl.sep1d = nl.sep2d = rd.contact_spacing;
             resizeSerpentineTransistor(transistorNodes[i], rd);
@@ -3236,15 +3257,11 @@ public class MoCMOS extends Technology
         for (int i = numMetals; i < 6; i++) {
             metalArcs[i].notUsed = true;
             metalPinNodes[i].notUsed = true;
-
-            if (i >= 5) continue;
-            metalContactNodes[i].notUsed = true;
+            metalContactNodes[i-1].notUsed = true;
         }
         if (!secondPolysilicon) {
             polyArcs[1].notUsed = true;
             polyPinNodes[1].notUsed = true;
-            nl = polyPinNodes[1].nodeLayers.get(0);
-            nl.lx.value = nl.hx.value = nl.ly.value = nl.hy.value = 0;
             metal1PolyContactNodes[1].notUsed = true;
             metal1PolyContactNodes[2].notUsed = true;
         }
@@ -3268,7 +3285,10 @@ public class MoCMOS extends Technology
         double wellWidth = diffWidth + rd.nwell_overhang_diff_p;
         double polyExtent = 0.5*rd.gate_width + rd.poly_endcap;
         double wellExtent = rd.nwell_overhang_diff_p;
-        activeTNode.lWidth = activeTNode.hy.value = diffWidth;
+        double hw = 0.5*rd.gate_width;
+        double hl = 0.5*rd.gate_length;
+        resizeSerpentineLayer(activeTNode, hw, -hw, hw, hl, hl + rd.diff_poly_overhang);
+//        activeTNode.lWidth = activeTNode.hy.value = diffWidth;
         activeBNode.rWidth = diffWidth;
         activeBNode.ly.value = -diffWidth;
         polyLNode.bExtent = rd.poly_endcap;
@@ -3289,6 +3309,21 @@ public class MoCMOS extends Technology
         selNode.lWidth = selNode.rWidth = selectWidth;
         selNode.ly.value = -selectWidth;
         selNode.hy.value = selectWidth;
+        double thickW = hw + rd.thick_overhang;
+        double thickL = hl + rd.diff_poly_overhang + rd.thick_overhang;
+        if (thickNode != null)
+            resizeSerpentineLayer(thickNode, hw, -thickW, thickW, -thickL, thickL);
+    }
+
+    private static void resizeSerpentineLayer(Xml.NodeLayer nl, double hw, double lx, double hx, double ly, double hy) {
+        nl.lx.value = lx;
+        nl.hx.value = hx;
+        nl.ly.value = ly;
+        nl.hy.value = hy;
+        nl.lWidth = nl.hy.k == 1 ? hy : 0;
+        nl.rWidth = nl.ly.k == -1 ? -ly : 0;
+        nl.bExtent = nl.hx.k == 1 ? hx - hw : 0;
+        nl.tExtent = nl.lx.k == -1 ? -lx - hw : 0;
     }
 
     public static void main(String[] args) {

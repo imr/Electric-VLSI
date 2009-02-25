@@ -3062,6 +3062,8 @@
         <LayersRule ruleName="22.4 Mosis" layerNames="{Metal-4,Metal-4}" type="SPACING" when="M56|SU" value="6.0" maxW="100.0" minLen="0.0"/>
         <LayerRule ruleName="24.1 Mosis" layerName="Thick-Active" type="MINWID" when="ALL" value="4.0"/>
         <LayersRule ruleName="24.2 Mosis" layerNames="{Thick-Active,Thick-Active}" type="SPACING" when="ALL" value="4.0"/>
+        <LayersRule ruleName="24.3 Mosis" layerNames="{Thick-Active,P-Active}" type="SURROUND" when="ALL" value="4.0"/>
+        <LayersRule ruleName="24.3 Mosis" layerNames="{Thick-Active,N-Active}" type="SURROUND" when="ALL" value="4.0"/>
         <LayerRule ruleName="25.1 Mosis" layerName="Via4" type="MINWID" when="DE" value="3.0"/>
         <NodeRule ruleName="25.1 Mosis" type="NODSIZ" when="M5|DE" value="7.0" nodeName="Metal-4-Metal-5-Con"/>
         <NodeRule ruleName="25.1 Mosis" type="NODSIZ" when="M6|DE" value="5.0" nodeName="Metal-4-Metal-5-Con"/>
