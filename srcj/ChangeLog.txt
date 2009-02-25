@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09d: ******************************
 
+IMP: (2/24/09, GVG) Must XML File match with Tech Name? (Bug #2050)
+
 BUG: (2/24/09, DN) New: Can't open library - infinite NullPointerExceptions (#Bug 2052).
 FIX: In Layer.graphicsChanged() check if the Layer is free.
 

@@ -1090,7 +1090,8 @@ public class TechEditWizardData
 				"Missing Technology Data");
 			return;
 		}
-		String fileName = OpenFile.chooseOutputFile(FileType.XML, "Technology XML File", "Technology.xml");
+        String suggestedName = getTechName() + ".xml";
+        String fileName = OpenFile.chooseOutputFile(FileType.XML, "Technology XML File", suggestedName); //"Technology.xml");
 		if (fileName == null) return;
 		try
 		{
