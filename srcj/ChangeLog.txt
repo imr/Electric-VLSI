@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09d: ******************************
 
+BUG: (2/24/09, DN) New: Can't open library - infinite NullPointerExceptions (#Bug 2052).
+FIX: In Layer.graphicsChanged() check if the Layer is free.
+
 IMP/MAN: (2/24/09, SMR) The layer visibility configurations now understand the
      SHIFT-# commands and incorporate them uniformly.  The default "visibility
      configurations" list in the Layers Tab shows the 10 SHIFT-# entries.

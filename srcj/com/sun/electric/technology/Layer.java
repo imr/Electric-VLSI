@@ -1034,6 +1034,7 @@ public class Layer
 	 * Method to save the graphics on this Layer in Prefs.
 	 */
     public void graphicsChanged() {
+        if (isFree()) return;
         usePatternDisplayPref.setBoolean(graphics.isPatternedOnDisplay());
         usePatternPrinterPref.setBoolean(graphics.isPatternedOnPrinter());
         outlinePatternPref.setInt(graphics.getOutlined().getIndex());

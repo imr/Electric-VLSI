@@ -2354,7 +2354,7 @@ public class MoCMOS extends Technology
             Technology.NodeLayer polyRNode = primNode.getElectricalLayers()[4]; // poly right or bottom
             Technology.NodeLayer wellNode = primNode.getLayers()[2]; // well
             Technology.NodeLayer selNode = primNode.getLayers()[3]; // select
-            
+
             PrimitiveNode thickPrimNode = thickTransistorNodes[i];
             assert activeNode == thickPrimNode.getLayers()[0]; // active
             assert activeTNode == thickPrimNode.getElectricalLayers()[0]; // active Top or Left
@@ -2412,10 +2412,10 @@ public class MoCMOS extends Technology
             DRCTemplate wellSurround = rules.getRule(index, DRCTemplate.DRCRuleType.SURROUND, primNode.getName());
             double wellExtenOppLen = widValMax - wellSurround.getValue(0);
             double wellExtenAlongLen = lenValMin - wellSurround.getValue(0);
-            
+
             wellNode.getLeftEdge().setAdder(wellExtenOppLen); wellNode.getRightEdge().setAdder(-wellExtenOppLen);
             wellNode.getBottomEdge().setAdder(wellExtenAlongLen); wellNode.getTopEdge().setAdder(-wellExtenAlongLen);
-            
+
             // select
             index = rules.getRuleIndex(activeNode.getLayer().getIndex(), selNode.getLayer().getIndex());
             DRCTemplate selSurround = rules.getRule(index, DRCTemplate.DRCRuleType.SURROUND, primNode.getName());
@@ -2432,10 +2432,10 @@ public class MoCMOS extends Technology
             DRCTemplate thickSurround = rules.getRule(index, DRCTemplate.DRCRuleType.SURROUND, primNode.getName());
             double thickExtenOppLen = widValMax - thickSurround.getValue(0);
             double thickExtenAlongLen = lenValMin - thickSurround.getValue(0);
-            
+
             thickNode.getLeftEdge().setAdder(thickExtenOppLen); thickNode.getRightEdge().setAdder(-thickExtenOppLen);
             thickNode.getBottomEdge().setAdder(thickExtenAlongLen); thickNode.getTopEdge().setAdder(-thickExtenAlongLen);
-            
+
             // setting serpentine factors
             double serpPolyWid = polyWid.getValue(0)/2;
             double serpActiveWid = serpPolyWid + actOverhang;
@@ -2957,35 +2957,35 @@ public class MoCMOS extends Technology
         private final double diff_width = 3; // 2.1
         private final double diff_poly_overhang; // 3.4
         private final double diff_contact_overhang; // 6.2 6.2b
-        
+
         private final double poly_width = 2; // 3.1
         private final double poly_endcap; // 3.3
-        
+
         private final double gate_length = poly_width; // 3.1
         private final double gate_width = diff_width; // 2.1
         private final double gate_contact_spacing = 2; // 5.4
-        
+
         private final double poly2_width; // 11.1
-        
+
         private final double contact_size = 2; // 5.1
         private final double contact_spacing; // 5.3
         private final double contact_array_spacing; // 5.3
         private final double contact_metal_overhang_all_sides = 1; // 7.3
         private final double contact_poly_overhang; // 5.2 5.2b
-        
+
         private final double nplus_overhang_diff = 2; // 4.2
         private final double pplus_overhang_diff = 2; // 4.2
-                
+
         private final double well_width;
         private final double nwell_overhang_diff_p; // 2.3
         private final double nwell_overhang_diff_n = 3; // 2.4
-        
+
         private final double[] metal_width; // 7.1 9.1 15.1 22.1 26.1 30.1
         private final double[] via_size; // 8.1 14.1 21.1 25.1 29.1
     	private final double[] via_inline_spacing; // 8.2 14.2 21.2 25.2 29.2
     	private final double[] via_array_spacing; // 8.2 14.2 21.2 25.2 29.2
     	private final double[] via_overhang; // 8.3 14.3 21.3 25.3 29.3 30.3
-        
+
         ResizeData(int ruleSet, int numMetals, boolean alternateContactRules) {
             switch (ruleSet) {
                 case SUBMRULES:
@@ -3039,13 +3039,13 @@ public class MoCMOS extends Technology
                     nwell_overhang_diff_p = 6;
                     switch (numMetals) {
                         case 5:
-                            metal_width = new double[] { 3, 3, 3, 3, 4,     5 }; 
+                            metal_width = new double[] { 3, 3, 3, 3, 4,     5 };
                             via_size = new double[] { 3, 3, 3, 3,      4 };
                             via_inline_spacing = new double[] { 3, 3, 3, 3, 4 };
                             via_overhang = new double[] { 1, 1, 1, 1, 2,      2 };
                             break;
                         case 6:
-                            metal_width = new double[] { 3, 3, 3, 4, 3, 5 }; 
+                            metal_width = new double[] { 3, 3, 3, 4, 3, 5 };
                             via_size = new double[] { 3, 3, 3, 3, 4 };
                             via_inline_spacing = new double[] { 3, 3, 3, 3, 4 };
                             via_overhang = new double[] { 1, 1, 1, 1, 1, 2 };
@@ -3063,19 +3063,19 @@ public class MoCMOS extends Technology
                     nwell_overhang_diff_p = 5;
                     switch (numMetals) {
                         case 2:
-                            metal_width = new double[] { 3, 3,      0, 0, 0, 5 }; 
+                            metal_width = new double[] { 3, 3,      0, 0, 0, 5 };
                             via_size = new double[] { 2,      2, 2, 0, 0 };
                             via_inline_spacing = new double[] { 3,      3, 3, 3, 4 };
                             via_overhang = new double[] { 1, 1,      0, 0, 0, 0 };
                             break;
                         case 3:
-                            metal_width = new double[] { 3, 3, 6,      0, 0, 5 }; 
+                            metal_width = new double[] { 3, 3, 6,      0, 0, 5 };
                             via_size = new double[] { 2, 2,      2, 0, 0 };
                             via_inline_spacing = new double[] { 3, 3,      3, 3, 4 };
                             via_overhang = new double[] { 1, 1, 2,      0, 0, 0 };
                             break;
                         case 4:
-                            metal_width = new double[] { 3, 3, 3, 6,      0, 5 }; 
+                            metal_width = new double[] { 3, 3, 3, 6,      0, 5 };
                             via_size = new double[] { 2, 2, 2,      0, 0 };
                             via_inline_spacing = new double[] { 3, 3, 3,      3, 4 };
                             via_overhang = new double[] { 1, 1, 1, 2,      0, 0 };
@@ -3093,7 +3093,7 @@ public class MoCMOS extends Technology
             via_array_spacing = via_inline_spacing;
         }
     }
-    
+
     private static void patch(String fileName, int ruleSet, int numMetals, boolean secondPolysilicon, boolean disallowStackedVias, boolean alternateContactRules, boolean isAnalog) {
         Xml.Technology tech = Xml.parseTechnology(MoCMOS.class.getResource("mocmos.xml"));
         Xml.Layer[] metalLayers = new Xml.Layer[6];
@@ -3132,7 +3132,7 @@ public class MoCMOS extends Technology
             thickTransistorNodes[i] = tech.findNode("Thick-" + ts + "-Transistor");
             scalableTransistorNodes[i] = tech.findNode(ts + "-Transistor-Scalable");
         }
-        
+
 		String rules = "";
 		switch (ruleSet)
 		{
@@ -3147,7 +3147,7 @@ public class MoCMOS extends Technology
 		if (disallowStackedVias) description += ", stacked vias disallowed";
 		if (alternateContactRules) description += ", alternate contact rules";
 		description += ")";
-        
+
         tech.description = description;
         Xml.NodeLayer nl;
         ResizeData rd = new ResizeData(ruleSet, numMetals, alternateContactRules);
@@ -3162,7 +3162,7 @@ public class MoCMOS extends Technology
             nl = metalPinNodes[i].nodeLayers.get(0);
             nl.lx.value = nl.ly.value = halfWidth == 0 ? 0 :-halfWidth;
             nl.hx.value = nl.hy.value = halfWidth;
-            
+
             if (i >= 5) continue;
             Xml.PrimitiveNode via = metalContactNodes[i];
             double halfSize = 0.5*rd.via_size[i] + rd.via_overhang[i + 1];
@@ -3199,8 +3199,8 @@ public class MoCMOS extends Technology
             nl.lx.value = nl.ly.value = -(0.5*rd.contact_size + rd.diff_contact_overhang + rd.nwell_overhang_diff_p);
             nl = metalActiveContactNodes[i].nodeLayers.get(4);
             nl.sep1d = nl.sep2d = rd.contact_spacing;
-            resizeTransistor(transistorNodes[i], rd);
-            resizeTransistor(thickTransistorNodes[i], rd);
+            resizeSerpentineTransistor(transistorNodes[i], rd);
+            resizeSerpentineTransistor(thickTransistorNodes[i], rd);
         }
         {
             nl = npnTransistorNode.nodeLayers.get(0);
@@ -3232,11 +3232,11 @@ public class MoCMOS extends Technology
         nl = polyPinNodes[1].nodeLayers.get(0);
         nl.lx.value = nl.ly.value = poly2HalfWidth == 0 ? 0 :-poly2HalfWidth;
         nl.hx.value = nl.hy.value = poly2HalfWidth;
-        
+
         for (int i = numMetals; i < 6; i++) {
             metalArcs[i].notUsed = true;
             metalPinNodes[i].notUsed = true;
-            
+
             if (i >= 5) continue;
             metalContactNodes[i].notUsed = true;
         }
@@ -3248,11 +3248,11 @@ public class MoCMOS extends Technology
             metal1PolyContactNodes[1].notUsed = true;
             metal1PolyContactNodes[2].notUsed = true;
         }
-        
+
         tech.writeXml(fileName, false, null);
     }
-    
-    private static void resizeTransistor(Xml.PrimitiveNode transistor, ResizeData rd) {
+
+    private static void resizeSerpentineTransistor(Xml.PrimitiveNode transistor, ResizeData rd) {
         Xml.NodeLayer activeTNode = transistor.nodeLayers.get(0); // active Top or Left
         Xml.NodeLayer activeBNode = transistor.nodeLayers.get(1); // active Bottom or Right
         Xml.NodeLayer polyCNode = transistor.nodeLayers.get(2); // poly center
@@ -3262,6 +3262,7 @@ public class MoCMOS extends Technology
         Xml.NodeLayer polyNode = transistor.nodeLayers.get(6); // poly
         Xml.NodeLayer wellNode = transistor.nodeLayers.get(7); // well
         Xml.NodeLayer selNode = transistor.nodeLayers.get(8); // select
+        Xml.NodeLayer thickNode = transistor.nodeLayers.size() > 9 ? transistor.nodeLayers.get(9) : null;
         double diffWidth = 0.5*rd.gate_length + rd.diff_poly_overhang;
         double selectWidth = diffWidth + rd.pplus_overhang_diff;
         double wellWidth = diffWidth + rd.nwell_overhang_diff_p;
@@ -3289,7 +3290,7 @@ public class MoCMOS extends Technology
         selNode.ly.value = -selectWidth;
         selNode.hy.value = selectWidth;
     }
-    
+
     public static void main(String[] args) {
         patch("mocmos_deep_5_1_sf_af.xml", DEEPRULES, 5, false, false, false, false);
         patch("mocmos_deep_5_1_sf_at.xml", DEEPRULES, 5, false, false, true, false);
