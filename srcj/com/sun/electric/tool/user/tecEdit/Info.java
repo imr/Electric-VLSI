@@ -117,7 +117,6 @@ public class Info
     /** 3D transparency factor (layer cell) */                  static final int LAYER3DFACTOR     = 60;
     /** Spice template (node cell) */                           static final int NODESPICETEMPLATE = 61;
 	/** Elib width offset (arc cell) */                         static final int ARCWIDTHOFFSET    = 62;
-    /** Metal surround overrides (node cell) */                 static final int NODESURROUNDCONFIGS = 63;
 
 
     /** key of Variable holding layer information. */	public static final Variable.Key LAYER_KEY = Variable.newKey("EDTEC_layer");
@@ -342,23 +341,6 @@ public class Info
 				case NODESPICETEMPLATE:
 					table[i].ni.newDisplayVar(Artwork.ART_MESSAGE,
 						"Spice template: " + (table[i].value == null ? "" : table[i].value));
-					break;
-				case NODESURROUNDCONFIGS:
-					int strCnt = 1;
-					String [] overrides = null;
-					if (table[i].value != null)
-					{
-						overrides = (String[])table[i].value;
-						strCnt += overrides.length;
-					}
-					String [] strs = new String[strCnt];
-  					strs[0] = "Surround overrides:";
-					if (overrides != null)
-					{
-						for(int j=0; j<overrides.length; j++)
-							strs[j+1] = overrides[j];
-					}
-					table[i].ni.newDisplayVar(Artwork.ART_MESSAGE, strs);
 					break;
 			}
 			table[i].ni.newVar(OPTION_KEY, new Integer(table[i].funct));

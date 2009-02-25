@@ -60,7 +60,7 @@ public class Example implements Serializable
 	 * EXAMPLEs (one per example).  "isNode" is true if this is a node
 	 * being examined.  Returns NOEXAMPLE on error.
 	 */
-	public static List<Example> getExamples(Cell np, boolean isNode, TechConversionResult tcr)
+	public static List<Example> getExamples(Cell np, boolean isNode, TechConversionResult tcr, List<Example> variations)
 	{
 		Map<NodeInst,Object> nodeExamples = new HashMap<NodeInst,Object>();
 		for(Iterator<NodeInst> it = np.getNodes(); it.hasNext(); )
@@ -209,6 +209,31 @@ public class Example implements Serializable
 		{
 			tcr.markError(null, np, "No examples found");
 			return neList;
+		}
+
+		// put variations in a separate list
+		if (variations != null)
+		{
+			for(int i=0; i<neList.size(); i++)
+			{
+				Example e = neList.get(i);
+				for(Sample s : e.samples)
+				{
+					if (!s.node.getNameKey().isTempname())
+					{
+						// named a layer: this is a variation
+						variations.add(e);
+						neList.remove(i);
+						i--;
+						break;
+					}
+				}
+			}
+			if (neList.size() == 0 && variations.size() > 0)
+			{
+				tcr.markError(null, np, "All examples have text on them...text should be used only in variations");
+				return neList;
+			}
 		}
 
 		// now search the list for the smallest, most upper-left example (the "main" example)

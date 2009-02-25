@@ -2957,24 +2957,24 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
                 return param.paramValues.get(paramValue);
             }
             
-            if (Technology.TESTSURROUNDOVERRIDE_B)
-            {
-				// special case if tech-specific bits are set
-				if (getD().techBits != 0)
-				{
-					NodeLayer[] nLayers = pNp.getLayers();
-					for(int i=0; i<nLayers.length; i++)
-					{
-						NodeLayer nLay = nLayers[i];
-						if (nLay.getNumCustomOverrides() > 0)
-						{
-							int thisOverrideNumber = (getD().techBits & nLay.getCustomOverrideMask()) >> nLay.getCustomOverrideShift();
-							if (thisOverrideNumber <= nLay.getNumCustomOverrides())
-								return nLay.getCustomOverride(thisOverrideNumber-1).getName();
-						}
-					}
-				}
-            }
+//            if (Technology.TESTSURROUNDOVERRIDE_B)
+//            {
+//				// special case if tech-specific bits are set
+//				if (getD().techBits != 0)
+//				{
+//					NodeLayer[] nLayers = pNp.getLayers();
+//					for(int i=0; i<nLayers.length; i++)
+//					{
+//						NodeLayer nLay = nLayers[i];
+//						if (nLay.getNumCustomOverrides() > 0)
+//						{
+//							int thisOverrideNumber = (getD().techBits & nLay.getCustomOverrideMask()) >> nLay.getCustomOverrideShift();
+//							if (thisOverrideNumber <= nLay.getNumCustomOverrides())
+//								return nLay.getCustomOverride(thisOverrideNumber-1).getName();
+//						}
+//					}
+//				}
+//            }
 		}
 		return "";
 	}

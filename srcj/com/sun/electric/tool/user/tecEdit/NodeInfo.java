@@ -141,17 +141,16 @@ public class NodeInfo extends Info
 	double []              specialValues;
 	double                 xSize, ySize;
 	String                 spiceTemplate;
-	String []              surroundOverrides;
+	String []              surroundOverrideNames;
 
 	static SpecialTextDescr [] nodeTextTable =
 	{
-		new SpecialTextDescr(0, 21, NODEFUNCTION),
-		new SpecialTextDescr(0, 18, NODESERPENTINE),
-		new SpecialTextDescr(0, 15, NODESQUARE),
-		new SpecialTextDescr(0, 12, NODEWIPES),
-		new SpecialTextDescr(0,  9, NODELOCKABLE),
-		new SpecialTextDescr(0,  6, NODESPICETEMPLATE),
-		new SpecialTextDescr(0,  3, NODESURROUNDCONFIGS)
+		new SpecialTextDescr(0, 18, NODEFUNCTION),
+		new SpecialTextDescr(0, 15, NODESERPENTINE),
+		new SpecialTextDescr(0, 12, NODESQUARE),
+		new SpecialTextDescr(0,  9, NODEWIPES),
+		new SpecialTextDescr(0,  6, NODELOCKABLE),
+		new SpecialTextDescr(0,  3, NODESPICETEMPLATE)
 	};
 
 	NodeInfo()
@@ -187,7 +186,6 @@ public class NodeInfo extends Info
 		loadTableEntry(nodeTextTable, NODEWIPES, Boolean.valueOf(wipes));
 		loadTableEntry(nodeTextTable, NODELOCKABLE, Boolean.valueOf(lockable));
 		loadTableEntry(nodeTextTable, NODESPICETEMPLATE, spiceTemplate);
-		loadTableEntry(nodeTextTable, NODESURROUNDCONFIGS, surroundOverrides);
 
 		// now create those text objects
 		createSpecialText(np, nodeTextTable);
@@ -228,18 +226,6 @@ public class NodeInfo extends Info
 				case NODESPICETEMPLATE:
 					nIn.spiceTemplate = getValueOnNode(ni);
 					break;
-				case NODESURROUNDCONFIGS:
-					Variable varMsg = ni.getVar(Artwork.ART_MESSAGE);
-					if (varMsg != null && varMsg.getObject() instanceof String[])
-					{
-						String [] strs = (String[])varMsg.getObject();
-						if (strs.length > 1)
-						{
-							nIn.surroundOverrides = new String[strs.length-1];
-							for(int i=1; i<strs.length; i++) nIn.surroundOverrides[i-1] = strs[i];
-						}
-					}
-					break;
 			}
 		}
 		return nIn;
@@ -252,7 +238,7 @@ public class NodeInfo extends Info
 	{
 		// move the examples
 		TechConversionResult tcr = new TechConversionResult();
-		List<Example> neList = Example.getExamples(cell, true, tcr);
+		List<Example> neList = Example.getExamples(cell, true, tcr, null);
    		if (tcr.failed()) tcr.showError();
 		if (neList == null || neList.size() == 0) return;
 		Example firstEx = neList.get(0);

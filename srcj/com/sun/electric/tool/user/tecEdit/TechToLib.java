@@ -46,6 +46,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.Xml.NodeParam;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
@@ -58,6 +59,7 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -328,7 +330,6 @@ public class TechToLib
 			if (widX4 <= 0) widX4 = 10;
 			Poly [] polys = ap.getShapeOfDummyArc(widX4);
 			double xOff = wid*2 + DBMath.gridToLambda(ap.getMaxLayerGridExtend());
-//			double xOff = wid*2 + wid/2 + ap.getLambdaElibWidthOffset()/2;
 			for(int i=0; i<polys.length; i++)
 			{
 				Poly poly = polys[i];
@@ -606,6 +607,63 @@ public class TechToLib
                 oNi.kill();
 			}
 
+			// generate the parameterized variations if there are any
+			if (nIn.surroundOverrideNames != null)
+			{
+				for(int k=1; k<nIn.surroundOverrideNames.length; k++)
+				{
+					xS = pnp.getDefWidth() * 2;
+					yS = pnp.getDefHeight() * 2;
+					pos[0] = new Point2D.Double(nodeXPos - xS, -5 + yS);
+					pos[1] = new Point2D.Double(nodeXPos + xS, -5 + yS);
+					pos[2] = new Point2D.Double(nodeXPos - xS, -5 - yS);
+					pos[3] = new Point2D.Double(nodeXPos + xS, -5 - yS);
+					Point2D nPos = new Point2D.Double(nodeXPos - xS*3, -5 - yS*(k*2-3));
+
+					xS = pnp.getDefWidth();
+					yS = pnp.getDefHeight();
+	                NodeInst oNi = NodeInst.makeInstance(pnp, EPoint.snap(nPos), xS, yS, dummyCell);
+	                NodeParam param = pnp.getParam();
+	                oNi.setTechSpecific(k << param.bitsFrom);
+					Poly [] polys = tech.getShapeOfNode(oNi);
+					int j = polys.length;
+					for(int i=0; i<j; i++)
+					{
+						Poly poly = polys[i];
+						Layer nodeLayer = poly.getLayer().getNonPseudoLayer();
+						if (nodeLayer == null) continue;
+						EGraphics desc = nodeLayer.getGraphics();
+
+						// create the node to describe this layer
+						NodeInst ni = placeGeometry(poly, nNp);
+						if (ni == null) {
+	                        System.out.println("Error placing geometry " + poly.getStyle() + " on " + nNp);
+	                        continue;
+	                    }
+						if (nodeLayer.getFunction().isContact())
+							ni.setName(nIn.surroundOverrideNames[k]);
+
+						// get graphics for this layer
+						Manipulate.setPatch(ni, desc);
+						Cell layerCell = layerCells.get(nodeLayer);
+						if (layerCell != null) ni.newVar(Info.LAYER_KEY, layerCell.getId());
+						ni.newVar(Info.OPTION_KEY, new Integer(Info.LAYERPATCH));
+					}
+
+					// create the highlight node
+					Point2D loc = new Point2D.Double(nPos.getX() + (so.getLowXOffset() - so.getHighXOffset())/2,
+						nPos.getY() + (so.getLowYOffset() - so.getHighYOffset())/2);
+					xS = pnp.getDefWidth() - so.getLowXOffset() - so.getHighXOffset();
+					yS = pnp.getDefHeight() - so.getLowYOffset() - so.getHighYOffset();
+					NodeInst ni = NodeInst.makeInstance(Artwork.tech().boxNode, loc, xS, yS, nNp);
+					if (ni == null) return null;
+					ni.newVar(Artwork.ART_COLOR, new Integer(EGraphics.makeIndex(Color.WHITE)));
+					ni.newVar(Info.OPTION_KEY, new Integer(Info.HIGHLIGHTOBJ));
+
+	                oNi.kill();
+				}
+			}
+
 			// compact it accordingly
 			NodeInfo.compactCell(nNp);
 		}
@@ -839,46 +897,43 @@ public class TechToLib
         nIn.specialType = pnp.getSpecialType();
         nIn.specialValues = pnp.getSpecialValues();
         nIn.spiceTemplate = pnp.getSpiceTemplate();
-        List<Technology.NodeLayer> nodeLayers = Arrays.asList(pnp.getLayers());
 
-        // find custom overrides on the layers
-        nIn.surroundOverrides = null;
-        for(Technology.NodeLayer nl : nodeLayers)
+        NodeParam param = pnp.getParam();
+        if (param != null && param.paramValues != null)
         {
-        	int totCO = nl.getNumCustomOverrides();
-        	if (totCO <= 0) continue;
-        	if (nIn.surroundOverrides == null)
-        	{
-        		nIn.surroundOverrides = new String[totCO];
-        	} else
-        	{
-        		if (nIn.surroundOverrides.length != totCO)
-        		{
-        			System.out.println("Inconsistent number of custom overrides on primitive " + pnp.describe(false));
-        			System.out.println("   One layer has " + nIn.surroundOverrides.length + " overrides, another layer has " + totCO);
-        			nIn.surroundOverrides = null;
-        			break;
-        		}
-        	}
-        	for(int i=0; i<totCO; i++)
-        	{
-        		Technology.NodeLayer.CustomOverride co = nl.getCustomOverride(i);
-        		if (nIn.surroundOverrides[i] == null) nIn.surroundOverrides[i] = co.getName();
-        		nIn.surroundOverrides[i] += "," + TextUtils.formatDouble(co.getRect().getMinX()) +
-        			"," + TextUtils.formatDouble(co.getRect().getMinY()) +
-        			"," + TextUtils.formatDouble(co.getRect().getMaxX()) +
-        			"," + TextUtils.formatDouble(co.getRect().getMaxY());
-        	}
+        	nIn.surroundOverrideNames = new String[param.paramValues.size()];
+        	for(int i=0; i<param.paramValues.size(); i++)
+        		nIn.surroundOverrideNames[i] = param.paramValues.get(i);
+//System.out.print("PRIMITIVE "+pnp.describe(false)+" HAS OVERRIDES:");
+//for(int i=0; i<nIn.surroundOverrideNames.length; i++) System.out.print(" "+nIn.surroundOverrideNames[i]);
+//System.out.println();
         }
 
+        List<Technology.NodeLayer> nodeLayers = new ArrayList<Technology.NodeLayer>();
+        for(Technology.NodeLayer nld : pnp.getLayers())
+        {
+//        	BitSet bs = nld.getParamBitset();
+//        	if (bs != null && !bs.get(paramValue)) continue;
+        	nodeLayers.add(nld);
+        }
         List<Technology.NodeLayer> electricalNodeLayers = nodeLayers;
         if (pnp.getElectricalLayers() != null)
-            electricalNodeLayers = Arrays.asList(pnp.getElectricalLayers());
+        {
+            electricalNodeLayers = new ArrayList<Technology.NodeLayer>();
+            for(Technology.NodeLayer nld : pnp.getElectricalLayers())
+            {
+//            	BitSet bs = nld.getParamBitset();
+//            	if (bs != null && !bs.get(paramValue)) continue;
+            	electricalNodeLayers.add(nld);
+            }
+        }
         List<NodeInfo.LayerDetails> layerDetails = new ArrayList<NodeInfo.LayerDetails>();
         int m = 0;
-        for (Technology.NodeLayer nld: electricalNodeLayers) {
+        for (Technology.NodeLayer nld: electricalNodeLayers)
+        {
             int j = nodeLayers.indexOf(nld);
-            if (j < 0) {
+            if (j < 0)
+            {
                 layerDetails.add(makeNodeLayerDetails(nld, lList, false, true));
                 continue;
             }

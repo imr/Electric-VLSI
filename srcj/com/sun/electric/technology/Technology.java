@@ -57,7 +57,6 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.Technology.NodeLayer.CustomOverride;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.EFIDO;
 import com.sun.electric.technology.technologies.FPGA;
@@ -132,8 +131,7 @@ import javax.swing.SwingUtilities;
 public class Technology implements Comparable<Technology>, Serializable
 {
 	/** true to test extra vias in menu. */
-    public static final boolean TESTSURROUNDOVERRIDE_B = false;
-    public static final boolean TESTSURROUNDOVERRIDE_C = false;
+    public static final boolean TESTSURROUNDOVERRIDE_C = true;
 
 	/** true to allow outlines to have "breaks" with multiple pieces in them */
 	public static final boolean HANDLEBROKENOUTLINES = true;
@@ -506,9 +504,9 @@ public class Technology implements Comparable<Technology>, Serializable
 		private double lWidth, rWidth, extentT, extendB;
         private long cutGridSizeX, cutGridSizeY, cutGridSep1D, cutGridSep2D;
         String sizeRule, cutSep1DRule, cutSep2DRule;
-        private CustomOverride[] customOverrides;
-        private int customOverrideMask;
-        private int customOverrideShift;
+//        private CustomOverride[] customOverrides;
+//        private int customOverrideMask;
+//        private int customOverrideShift;
         private BitSet paramValues;
 
 		// the meaning of "representation"
@@ -845,54 +843,54 @@ public class Technology implements Comparable<Technology>, Serializable
         public double getMulticutSep1D() { return DBMath.gridToLambda(cutGridSep1D); }
         public double getMulticutSep2D() { return DBMath.gridToLambda(cutGridSep2D); }
 
-        /**
-         * Class to define custom overrides to the size of a NodeLayer.
-         * The use of the custom override is indexed by the techSpecific field
-         * on the NodeInst.
-         */
-        public static class CustomOverride
-        {
-        	private ERectangle rect;
-        	private String name;
+//        /**
+//         * Class to define custom overrides to the size of a NodeLayer.
+//         * The use of the custom override is indexed by the techSpecific field
+//         * on the NodeInst.
+//         */
+//        public static class CustomOverride
+//        {
+//        	private ERectangle rect;
+//        	private String name;
+//
+//        	public CustomOverride(double lX, double lY, double width, double height, String name)
+//        	{
+//        		rect = ERectangle.fromLambda(lX, lY, width, height);
+//        		this.name = name;
+//        	}
+//
+//        	public ERectangle getRect() { return rect; }
+//
+//        	public String getName() { return name; }
+//        }
 
-        	public CustomOverride(double lX, double lY, double width, double height, String name)
-        	{
-        		rect = ERectangle.fromLambda(lX, lY, width, height);
-        		this.name = name;
-        	}
+//        /**
+//         * Method to return the number of custom overrides on this NodeLayer.
+//         * CustomOverrides are changes to the shape of the NodeLayer that are
+//         * selected by the "techSpecific" bits on the NodeInst.
+//         * @return the number of custom overrides on this NodeLayer.
+//         */
+//        public int getNumCustomOverrides() { return customOverrides == null ? 0 : customOverrides.length; }
+//
+//        public CustomOverride getCustomOverride(int i) { return customOverrides[i]; }
+//
+//        public int getCustomOverrideMask() { return customOverrideMask; }
+//
+//        public int getCustomOverrideShift() { return customOverrideShift; }
 
-        	public ERectangle getRect() { return rect; }
-
-        	public String getName() { return name; }
-        }
-
-        /**
-         * Method to return the number of custom overrides on this NodeLayer.
-         * CustomOverrides are changes to the shape of the NodeLayer that are
-         * selected by the "techSpecific" bits on the NodeInst.
-         * @return the number of custom overrides on this NodeLayer.
-         */
-        public int getNumCustomOverrides() { return customOverrides == null ? 0 : customOverrides.length; }
-
-        public CustomOverride getCustomOverride(int i) { return customOverrides[i]; }
-
-        public int getCustomOverrideMask() { return customOverrideMask; }
-
-        public int getCustomOverrideShift() { return customOverrideShift; }
-
-        /**
-         * Method to set the custom overrides on this NodeLayer.
-         * @param mask bits in the techSpecific field of the NodeInst that
-         * select the custom override.
-         * @param shift right-shift of the bits in the techSpecific field to get the
-         * proper custom override value.
-         * @param overrides the array of CustomOverrides.
-         */
-        public void setCustomOverride(int mask, int shift, CustomOverride[] overrides) {
-            customOverrides = overrides.clone();
-            customOverrideMask = mask;
-            customOverrideShift = shift;
-        }
+//        /**
+//         * Method to set the custom overrides on this NodeLayer.
+//         * @param mask bits in the techSpecific field of the NodeInst that
+//         * select the custom override.
+//         * @param shift right-shift of the bits in the techSpecific field to get the
+//         * proper custom override value.
+//         * @param overrides the array of CustomOverrides.
+//         */
+//        public void setCustomOverride(int mask, int shift, CustomOverride[] overrides) {
+//            customOverrides = overrides.clone();
+//            customOverrideMask = mask;
+//            customOverrideShift = shift;
+//        }
 
         void dump(PrintWriter out, boolean isSerp) {
             out.println("\tlayer=" + getLayerOrPseudoLayer().getName() + " port=" + getPortNum() + " style=" + getStyle().name() + " repr=" + getRepresentation());
@@ -1441,9 +1439,9 @@ public class Technology implements Comparable<Technology>, Serializable
                     nodeLayers.add(nodeLayer);
                 if (nl.inElectricalLayers)
                     electricalNodeLayers.add(nodeLayer);
-                nodeLayer.customOverrides = nl.customOverrides;
-                nodeLayer.customOverrideMask = nl.customOverrideMask;
-                nodeLayer.customOverrideShift = nl.customOverrideShift;
+//                nodeLayer.customOverrides = nl.customOverrides;
+//                nodeLayer.customOverrideMask = nl.customOverrideMask;
+//                nodeLayer.customOverrideShift = nl.customOverrideShift;
             }
             if (n.sizeOffset != null) {
                 lx += n.sizeOffset.getLowXGridOffset();
@@ -3648,26 +3646,26 @@ public class Technology implements Comparable<Technology>, Serializable
 				double portHighX = xCenter + rightEdge.getMultiplier() * xSize + rightEdge.getAdder();
 				double portLowY = yCenter + bottomEdge.getMultiplier() * ySize + bottomEdge.getAdder();
 				double portHighY = yCenter + topEdge.getMultiplier() * ySize + topEdge.getAdder();
-                if (TESTSURROUNDOVERRIDE_B)
-                {
-                    int maskedTechBits = techBits & primLayer.customOverrideMask;
-                    if (maskedTechBits != 0 && primLayer.customOverrides != null)
-                    {
-                        int index = (maskedTechBits >> primLayer.customOverrideShift) - 1;
-                        if (index >= 0 && index < primLayer.customOverrides.length)
-                        {
-	                        CustomOverride co = primLayer.customOverrides[index];
-	                        if (co != null)
-	                        {
-		                        ERectangle override = co.getRect();
-								portLowX += override.getLambdaMinX();
-								portHighX += override.getLambdaMaxX();
-								portLowY += override.getLambdaMinY();
-								portHighY += override.getLambdaMaxY();
-	                        }
-                        }
-                    }
-                }
+//                if (TESTSURROUNDOVERRIDE_B)
+//                {
+//                    int maskedTechBits = techBits & primLayer.customOverrideMask;
+//                    if (maskedTechBits != 0 && primLayer.customOverrides != null)
+//                    {
+//                        int index = (maskedTechBits >> primLayer.customOverrideShift) - 1;
+//                        if (index >= 0 && index < primLayer.customOverrides.length)
+//                        {
+//	                        CustomOverride co = primLayer.customOverrides[index];
+//	                        if (co != null)
+//	                        {
+//		                        ERectangle override = co.getRect();
+//								portLowX += override.getLambdaMinX();
+//								portHighX += override.getLambdaMaxX();
+//								portLowY += override.getLambdaMinY();
+//								portHighY += override.getLambdaMaxY();
+//	                        }
+//                        }
+//                    }
+//                }
 				Point2D [] pointList = Poly.makePoints(portLowX, portHighX, portLowY, portHighY);
 				polys[fillPoly] = new Poly(pointList);
 			} else if (representation == Technology.NodeLayer.POINTS)
@@ -6271,30 +6269,31 @@ public class Technology implements Comparable<Technology>, Serializable
 			if (np.isNotUsed()) continue;
 			if (np.getFunction() == PrimitiveNode.Function.NODE) continue;
 
-			boolean customOverride = false;
-			NodeLayer[] nLayers = np.getLayers();
-        	for(int j=0; j<nLayers.length; j++)
-        	{
-        		NodeLayer nLay = nLayers[j];
-        		int nc = nLay.getNumCustomOverrides();
-        		if (nc > 0)
-        		{
-	        		List<Object> tmp = new ArrayList<Object>();
-	        		tmp.add(np);
-	        		for(int k=0; k<nc; k++)
-	        		{
-	        			NodeLayer.CustomOverride co = nLay.getCustomOverride(k);
-	                    NodeInst overrideNode = makeNodeInst(np, np.getFunction(), 0, false,
-	                    	np.getName() + "-" + co.getName(), 5.5);
-	                    overrideNode.setTechSpecific((k+1) << nLay.getCustomOverrideShift());
-	                    tmp.add(overrideNode);
-	        		}
-	        		things.add(tmp);
-	                customOverride = true;
-	        		break;
-        		}
-        	}
-        	if (!customOverride) things.add(np);
+//			boolean customOverride = false;
+//			NodeLayer[] nLayers = np.getLayers();
+//        	for(int j=0; j<nLayers.length; j++)
+//        	{
+//        		NodeLayer nLay = nLayers[j];
+//        		int nc = nLay.getNumCustomOverrides();
+//        		if (nc > 0)
+//        		{
+//	        		List<Object> tmp = new ArrayList<Object>();
+//	        		tmp.add(np);
+//	        		for(int k=0; k<nc; k++)
+//	        		{
+//	        			NodeLayer.CustomOverride co = nLay.getCustomOverride(k);
+//	                    NodeInst overrideNode = makeNodeInst(np, np.getFunction(), 0, false,
+//	                    	np.getName() + "-" + co.getName(), 5.5);
+//	                    overrideNode.setTechSpecific((k+1) << nLay.getCustomOverrideShift());
+//	                    tmp.add(overrideNode);
+//	        		}
+//	        		things.add(tmp);
+//	                customOverride = true;
+//	        		break;
+//        		}
+//        	}
+//        	if (!customOverride)
+        		things.add(np);
 		}
 		things.add(SPECIALMENUPURE);
 		things.add(SPECIALMENUMISC);
@@ -6431,7 +6430,8 @@ public class Technology implements Comparable<Technology>, Serializable
 
 	    if (varName != null)
 	    {
-	    	TextDescriptor td = TextDescriptor.getNodeTextDescriptor().withDisplay(display).withRelSize(fontSize);
+	    	TextDescriptor td = TextDescriptor.getNodeTextDescriptor().withDisplay(display);
+	    	if (fontSize != 0) td = td.withRelSize(fontSize);
 	    	td = td.withOff(0, -Math.max(ni.getXSize(), ni.getYSize())/2-2).withPos(TextDescriptor.Position.UP);
 	    	if (angle != 0) td = td.withRotation(TextDescriptor.Rotation.getRotation(360-angle/10));
             ni.newVar(TECH_TMPVAR, varName, td);

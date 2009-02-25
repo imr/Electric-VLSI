@@ -48,7 +48,6 @@ import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.TechFactory;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Xml;
-import com.sun.electric.technology.Technology.NodeLayer.CustomOverride;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
@@ -761,7 +760,7 @@ public class LibToTech
 			allArcs[i] = ArcInfo.parseCell(np);
 
 			// build a list of examples found in this arc
-			List<Example> neList = Example.getExamples(np, false, error);
+			List<Example> neList = Example.getExamples(np, false, error, null);
 			if (neList == null) return null;
 			if (neList.size() > 1)
 			{
@@ -889,7 +888,8 @@ public class LibToTech
 			nIn.name = np.getName().substring(5);
 
 			// build a list of examples found in this node
-			List<Example> neList = Example.getExamples(np, true, error);
+			List<Example> variations = new ArrayList<Example>();
+			List<Example> neList = Example.getExamples(np, true, error, variations);
 			if (neList == null || neList.size() == 0)
 			{
 				System.out.println("Cannot analyze " + np);
@@ -1733,7 +1733,7 @@ public class LibToTech
 					if ((pointFactor[i]&(TOEDGELEFT|TOEDGERIGHT)) == 0 ||
 						(pointFactor[i]&(TOEDGETOP|TOEDGEBOT)) == 0)
 				{
-						error.markError(ns.node, np, "Highlight must be constant distance from edge");
+					error.markError(ns.node, np, "Highlight must be constant distance from edge");
 					return null;
 				}
 			}
@@ -2608,26 +2608,25 @@ public class LibToTech
 //			pn.defaultHeight.value = DBMath.round(ni.ySize);
 			if (ni.spiceTemplate != null && !ni.spiceTemplate.equals(""))
 				pn.spiceTemplate = ni.spiceTemplate;
-			int overrideOffset = 0;
 			for(int j=0; j<ni.nodeLayers.length; j++) {
 				NodeInfo.LayerDetails nl = ni.nodeLayers[j];
-				CustomOverride [] overrides = null;
-				if (ni.surroundOverrides != null)
-				{
-					overrides = new CustomOverride[ni.surroundOverrides.length];
-					for(int i=0; i<ni.surroundOverrides.length; i++)
-					{
-						String [] pieces = ni.surroundOverrides[i].split(",");
-						if (pieces.length <= overrideOffset+4) break;
-						double lX = TextUtils.atof(pieces[1+overrideOffset]);
-						double lY = TextUtils.atof(pieces[2+overrideOffset]);
-						double wid = TextUtils.atof(pieces[3+overrideOffset]) - lX;
-						double hei = TextUtils.atof(pieces[4+overrideOffset]) - lY;
-						overrides[i] = new CustomOverride(lX, lY, wid, hei, pieces[0]);
-					}
-					overrideOffset += 4;
-				}
-				pn.nodeLayers.add(makeNodeLayerDetails(nl, ni.serp, minFullSize, overrides));
+//				CustomOverride [] overrides = null;
+//				if (ni.surroundOverrides != null)
+//				{
+//					overrides = new CustomOverride[ni.surroundOverrides.length];
+//					for(int i=0; i<ni.surroundOverrides.length; i++)
+//					{
+//						String [] pieces = ni.surroundOverrides[i].split(",");
+//						if (pieces.length <= overrideOffset+4) break;
+//						double lX = TextUtils.atof(pieces[1+overrideOffset]);
+//						double lY = TextUtils.atof(pieces[2+overrideOffset]);
+//						double wid = TextUtils.atof(pieces[3+overrideOffset]) - lX;
+//						double hei = TextUtils.atof(pieces[4+overrideOffset]) - lY;
+//						overrides[i] = new CustomOverride(lX, lY, wid, hei, pieces[0]);
+//					}
+//					overrideOffset += 4;
+//				}
+				pn.nodeLayers.add(makeNodeLayerDetails(nl, ni.serp, minFullSize));
 			}
 			for (int j = 0; j < ni.nodePortDetails.length; j++) {
 				NodeInfo.PortDetails pd = ni.nodePortDetails[j];
@@ -2713,7 +2712,7 @@ public class LibToTech
 		return t;
 	}
 
-	private Xml.NodeLayer makeNodeLayerDetails(NodeInfo.LayerDetails nl, boolean isSerp, EPoint correction, CustomOverride [] overrides) {
+	private Xml.NodeLayer makeNodeLayerDetails(NodeInfo.LayerDetails nl, boolean isSerp, EPoint correction) {
 		Xml.NodeLayer nld = new Xml.NodeLayer();
 		nld.layer = nl.layer.name;
 		nld.style = nl.style;
@@ -2745,14 +2744,13 @@ public class LibToTech
 			nld.tExtent = DBMath.round(nl.extendT);
 			nld.bExtent = DBMath.round(nl.extendB);
 		}
-		nld.customOverrides = overrides;
 		nld.customOverrideMask = 0;
 		nld.customOverrideShift = 0;
-		if (overrides != null)
-		{
-			nld.customOverrideMask = 0xFC;
-			nld.customOverrideShift = 2;
-		}
+//		if (overrides != null)
+//		{
+//			nld.customOverrideMask = 0xFC;
+//			nld.customOverrideShift = 2;
+//		}
 		return nld;
 	}
 

@@ -1594,21 +1594,21 @@ public class MoCMOS extends Technology
 			});
 		metalContactNodes[4].setFunction(PrimitiveNode.Function.CONTACT);
 
-        if (TESTSURROUNDOVERRIDE_B) {
-            for (int i = 0; i < metalContactNodes.length; i++) {
-                PrimitiveNode metalContactNode = metalContactNodes[i];
-                NodeLayer lowMetal = metalContactNode.findNodeLayer(metalLayers[i], false);
-                lowMetal.setCustomOverride(0x0C, 2, new NodeLayer.CustomOverride[] {
-                	new NodeLayer.CustomOverride(-3, 0, 6, 0, "X"), // x[-3,3] y[0,0]
-                	new NodeLayer.CustomOverride(0, 0, -1, 0, "R")  // x[0,-1] y[0,0]
-                 });
-                NodeLayer highMetal = metalContactNode.findNodeLayer(metalLayers[i+1], false);
-                highMetal.setCustomOverride(0x0C, 2, new NodeLayer.CustomOverride[] {
-                	new NodeLayer.CustomOverride(0, -4, 0, 8, "X"), // x[0,0] y[-4,4]
-                	new NodeLayer.CustomOverride(0, 0, -1, 0, "R")  // x[0,-1] y[0,0]
-                });
-            }
-        }
+//        if (TESTSURROUNDOVERRIDE_B) {
+//            for (int i = 0; i < metalContactNodes.length; i++) {
+//                PrimitiveNode metalContactNode = metalContactNodes[i];
+//                NodeLayer lowMetal = metalContactNode.findNodeLayer(metalLayers[i], false);
+//                lowMetal.setCustomOverride(0x0C, 2, new NodeLayer.CustomOverride[] {
+//                	new NodeLayer.CustomOverride(-3, 0, 6, 0, "X"), // x[-3,3] y[0,0]
+//                	new NodeLayer.CustomOverride(0, 0, -1, 0, "R")  // x[0,-1] y[0,0]
+//                 });
+//                NodeLayer highMetal = metalContactNode.findNodeLayer(metalLayers[i+1], false);
+//                highMetal.setCustomOverride(0x0C, 2, new NodeLayer.CustomOverride[] {
+//                	new NodeLayer.CustomOverride(0, -4, 0, 8, "X"), // x[0,0] y[-4,4]
+//                	new NodeLayer.CustomOverride(0, 0, -1, 0, "R")  // x[0,-1] y[0,0]
+//                });
+//            }
+//        }
 
         /**************************************************************************
          * Metal-1-P-Well Contact/Metal-1-N-Well Contact
@@ -1836,40 +1836,29 @@ public class MoCMOS extends Technology
         	factoryNodeGroups[count][2] = null;
         	if (i < metalArcs.length - 1)
         	{
-                if (TESTSURROUNDOVERRIDE_B)
-                {
-        			// experiment in surround overrides (comment out for normal use)
-        			tmp = new ArrayList<Object>();
-        			factoryNodeGroups[count][2] = tmp;
-        			tmp.add(metalContactNodes[i]);
-
-                	NodeLayer[] nLayers = metalContactNodes[i].getLayers();
-                	for(int j=0; j<nLayers.length; j++)
-                	{
-                		NodeLayer nLay = nLayers[j];
-                		int nc = nLay.getNumCustomOverrides();
-                		for(int k=0; k<nc; k++)
-                		{
-                			NodeLayer.CustomOverride co = nLay.getCustomOverride(k);
-                            NodeInst overrideNode = makeNodeInst(metalContactNodes[i], metalContactNodes[i].getFunction(), 0, false,
-                                metalContactNodes[i].getName() + "-" + co.getName(), 5.5);
-                            overrideNode.setTechSpecific((k+1) << nLay.getCustomOverrideShift());
-                            tmp.add(overrideNode);
-                		}
-                		if (nc > 0) break;
-                	}
-//                    // cross configuration
-//                    NodeInst overrideNode = makeNodeInst(metalContactNodes[i], metalContactNodes[i].getFunction(), 0, false,
-//                        metalContactNodes[i].getName()+"-XB", 5.5);
-//                    overrideNode.setTechSpecific(0x04|0x10);
-//                    tmp.add(overrideNode);
+//                if (TESTSURROUNDOVERRIDE_B)
+//                {
+//        			// experiment in surround overrides (comment out for normal use)
+//        			tmp = new ArrayList<Object>();
+//        			factoryNodeGroups[count][2] = tmp;
+//        			tmp.add(metalContactNodes[i]);
 //
-//                    // flat on right configuration
-//                    overrideNode = makeNodeInst(metalContactNodes[i], metalContactNodes[i].getFunction(), 0, false,
-//                        metalContactNodes[i].getName()+"-RB", 5.5);
-//                    overrideNode.setTechSpecific(0x08|0x20);
-//                    tmp.add(overrideNode);
-        		} else
+//                	NodeLayer[] nLayers = metalContactNodes[i].getLayers();
+//                	for(int j=0; j<nLayers.length; j++)
+//                	{
+//                		NodeLayer nLay = nLayers[j];
+//                		int nc = nLay.getNumCustomOverrides();
+//                		for(int k=0; k<nc; k++)
+//                		{
+//                			NodeLayer.CustomOverride co = nLay.getCustomOverride(k);
+//                            NodeInst overrideNode = makeNodeInst(metalContactNodes[i], metalContactNodes[i].getFunction(), 0, false,
+//                                metalContactNodes[i].getName() + "-" + co.getName(), 5.5);
+//                            overrideNode.setTechSpecific((k+1) << nLay.getCustomOverrideShift());
+//                            tmp.add(overrideNode);
+//                		}
+//                		if (nc > 0) break;
+//                	}
+//        		} else
         		{
         			factoryNodeGroups[count][2] = metalContactNodes[i];
         		}

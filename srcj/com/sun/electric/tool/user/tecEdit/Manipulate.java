@@ -539,23 +539,23 @@ public class Manipulate
 				if (nIn.func == PrimitiveNode.Function.NODE) continue;
 				String nodeName = nodeCells[i].getName().substring(5);
 
-				// see if there are custom overrides
-				if (nIn.surroundOverrides != null)
-				{
-            		List<Object> tmp = new ArrayList<Object>();
-            		for(int j=0; j<nIn.surroundOverrides.length; j++)
-	            	{
-            			int commaPos = nIn.surroundOverrides[j].indexOf(',');
-            			if (commaPos < 0) continue;
-            			Xml.MenuNodeInst xni = new MenuNodeInst();
-            			xni.protoName = nodeName;
-            			xni.function = nIn.func;
-            			xni.text = nodeName + "-" + nIn.surroundOverrides[j].substring(0, commaPos);
-            			xni.fontSize = 5;
-            			tmp.add(xni);
-            		}
-    				things.add(tmp);					
-				} else
+//				// see if there are custom overrides
+//				if (nIn.surroundOverrides != null)
+//				{
+//            		List<Object> tmp = new ArrayList<Object>();
+//            		for(int j=0; j<nIn.surroundOverrides.length; j++)
+//	            	{
+//            			int commaPos = nIn.surroundOverrides[j].indexOf(',');
+//            			if (commaPos < 0) continue;
+//            			Xml.MenuNodeInst xni = new MenuNodeInst();
+//            			xni.protoName = nodeName;
+//            			xni.function = nIn.func;
+//            			xni.text = nodeName + "-" + nIn.surroundOverrides[j].substring(0, commaPos);
+//            			xni.fontSize = 5;
+//            			tmp.add(xni);
+//            		}
+//    				things.add(tmp);					
+//				} else
             	{
     				Xml.PrimitiveNode curNode = new Xml.PrimitiveNode();
                     curNode.name = nodeName;
@@ -873,8 +873,8 @@ public class Manipulate
 		List<Example> neList = null;
 		TechConversionResult tcr = new TechConversionResult();
 		if (np.getName().startsWith("node-"))
-			neList = Example.getExamples(np, true, tcr); else
-				neList = Example.getExamples(np, false, tcr);
+			neList = Example.getExamples(np, true, tcr, null); else
+				neList = Example.getExamples(np, false, tcr, null);
    		if (tcr.failed()) tcr.showError();
 		if (neList == null || neList.size() == 0) return;
 		Example firstEx = neList.get(0);
@@ -1137,8 +1137,6 @@ public class Manipulate
 				return "Whether " + cell + " disappears when conencted to one or two arcs";
 			case Info.NODESPICETEMPLATE:
 				return "Spice template for " + cell;
-			case Info.NODESURROUNDCONFIGS:
-				return "Surround configurations for " + cell;
 
 			case Info.CENTEROBJ:
 				return "The grab point of " + cell;
@@ -1236,7 +1234,6 @@ public class Manipulate
 			case Info.NODESQUARE:        modNodeSquare(wnd, ni);             break;
 			case Info.NODEWIPES:         modNodeWipes(wnd, ni);              break;
 			case Info.NODESPICETEMPLATE: modNodeSpiceTemplate(wnd, ni);      break;
-			case Info.NODESURROUNDCONFIGS: modNodeCustomOverrides(wnd, ni);  break;
 
 			case Info.PORTOBJ:           modPort(wnd, ni);                   break;
 			case Info.HIGHLIGHTOBJ:
@@ -2069,40 +2066,40 @@ public class Manipulate
 		if (newST != null) new SetTextJob(ni, "Spice Template: " + newST);
 	}
 
-	private static void modNodeCustomOverrides(EditWindow wnd, NodeInst ni)
-	{
-		Variable var = ni.getVar(Artwork.ART_MESSAGE);
-		if (var == null) return;
-		String [] lines = (String[])var.getObject();
-
-		PromptAt.Field [] fields = new PromptAt.Field[lines.length+1];
-		int j = 0;
-		for(int i=1; i<lines.length; i++)
-		{
-			fields[j] = new PromptAt.Field("Override " + (j+1) + ":", lines[i]);
-			j++;
-		}
-		for(int i=0; i<2; i++)
-		{
-			fields[j] = new PromptAt.Field("New Override " + (j+1) + ":", "");
-			j++;
-		}
-		String choice = PromptAt.showPromptAt(wnd, ni, "Adjust Custom Overrides", fields);
-		if (choice == null) return;
-
-		j = 0;
-		for(int i=0; i<=lines.length; i++)
-			if (((String)fields[i].getFinal()).trim().length() > 0) j++;
-		String [] newLines = new String[j+1];
-		newLines[0] = lines[0];
-		j = 1;
-		for(int i=0; i<=lines.length; i++)
-		{
-			String str = (String)fields[i].getFinal();
-			if (str.trim().length() > 0) newLines[j++] = str.trim();
-		}
-		new SetTextJob(ni, newLines);
-	}
+//	private static void modNodeCustomOverrides(EditWindow wnd, NodeInst ni)
+//	{
+//		Variable var = ni.getVar(Artwork.ART_MESSAGE);
+//		if (var == null) return;
+//		String [] lines = (String[])var.getObject();
+//
+//		PromptAt.Field [] fields = new PromptAt.Field[lines.length+1];
+//		int j = 0;
+//		for(int i=1; i<lines.length; i++)
+//		{
+//			fields[j] = new PromptAt.Field("Override " + (j+1) + ":", lines[i]);
+//			j++;
+//		}
+//		for(int i=0; i<2; i++)
+//		{
+//			fields[j] = new PromptAt.Field("New Override " + (j+1) + ":", "");
+//			j++;
+//		}
+//		String choice = PromptAt.showPromptAt(wnd, ni, "Adjust Custom Overrides", fields);
+//		if (choice == null) return;
+//
+//		j = 0;
+//		for(int i=0; i<=lines.length; i++)
+//			if (((String)fields[i].getFinal()).trim().length() > 0) j++;
+//		String [] newLines = new String[j+1];
+//		newLines[0] = lines[0];
+//		j = 1;
+//		for(int i=0; i<=lines.length; i++)
+//		{
+//			String str = (String)fields[i].getFinal();
+//			if (str.trim().length() > 0) newLines[j++] = str.trim();
+//		}
+//		new SetTextJob(ni, newLines);
+//	}
 
 	private static void modNodeLockability(EditWindow wnd, NodeInst ni)
 	{
