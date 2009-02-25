@@ -2297,7 +2297,7 @@ public class TechEditWizardData
         l.add(new String("Pure"));
         t.menuPalette.menuBoxes.add(l);
         l = new ArrayList<Object>();
-        l.add(new String("Misc"));
+        l.add(new String("Misc."));
         t.menuPalette.menuBoxes.add(l);
         l = new ArrayList<Object>();
         l.add(new String("Cell"));
