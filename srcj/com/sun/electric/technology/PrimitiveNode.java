@@ -120,6 +120,14 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
 		TRAPMOSFG("floating-gate-pMOS-transistor", "pmos-fg", true, false),
 
+		/** Describes an nMOS carbon nanotube transistor.
+		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
+		TRANMOSCN("carbon-nanotube-nMOS-transistor", "nmos-cn", true, false),
+
+		/** Describes a pMOS carbon nanotube transistor.
+		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
+		TRAPMOSCN("carbon-nanotube-pMOS-transistor", "pmos-cn", true, false),
+
 		/** Describes an nMOS low-threshold transistor.
 		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
 		TRANMOSVTL("low-threshold-nMOS-transistor", "nmos-vtl", true, false),
@@ -248,6 +256,14 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 		/** Describes a 4-port pMOS floating gate transistor.
 		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
 		TRA4PMOSFG("floating-gate-pMOS-4-port-transistor", "pmos-fg", true, false),
+
+		/** Describes a 4-port nMOS carbon nanotube transistor.
+		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
+		TRA4NMOSCN("carbon-nanotube-nMOS-4-port-transistor", "nmos-cn", true, false),
+
+		/** Describes a 4-port pMOS carbon nanotube transistor.
+		 * It has gate on the first and third ports, the source on the second port, and the drain on the fourth port. */
+		TRA4PMOSCN("carbon-nanotube-pMOS-4-port-transistor", "pmos-cn", true, false),
 
 		/** Describes a 4-port nMOS low-threshold transistor.
 		 * It has gate on the first port, source on the second port, drain on the third port, and substrate on the fourth port. */
@@ -594,6 +610,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 				this == TRADMOS      || this == TRA4DMOS      || this == TRAPMOSD     || this == TRA4PMOSD ||
 				this == TRANMOSNT    || this == TRA4NMOSNT    || this == TRAPMOSNT    || this == TRA4PMOSNT ||
 				this == TRANMOSFG    || this == TRA4NMOSFG    || this == TRAPMOSFG    || this == TRA4PMOSFG ||
+				this == TRANMOSCN    || this == TRA4NMOSCN    || this == TRAPMOSCN    || this == TRA4PMOSCN ||
 				this == TRANMOSVTL   || this == TRA4NMOSVTL   || this == TRAPMOSVTL   || this == TRA4PMOSVTL ||
 				this == TRANMOSVTH   || this == TRA4NMOSVTH   || this == TRAPMOSVTH   || this == TRA4PMOSVTH ||
 				this == TRANMOSHV1   || this == TRA4NMOSHV1   || this == TRAPMOSHV1   || this == TRA4PMOSHV1 ||
@@ -624,6 +641,8 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 			if (this == TRA4PMOSNT) return TRAPMOSNT;
 			if (this == TRA4NMOSFG) return TRANMOSFG;
 			if (this == TRA4PMOSFG) return TRAPMOSFG;
+			if (this == TRA4NMOSCN) return TRANMOSCN;
+			if (this == TRA4PMOSCN) return TRAPMOSCN;
 			if (this == TRA4NMOSVTL) return TRANMOSVTL;
 			if (this == TRA4PMOSVTL) return TRAPMOSVTL;
 			if (this == TRA4NMOSVTH) return TRANMOSVTH;
@@ -661,6 +680,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 				this == TRADMOS  || this == TRA4DMOS ||
 				this == TRANMOSNT || this == TRA4NMOSNT ||
 				this == TRANMOSFG || this == TRA4NMOSFG ||
+				this == TRANMOSCN || this == TRA4NMOSCN ||
 				this == TRANMOSVTL || this == TRA4NMOSVTL ||
 				this == TRANMOSVTH || this == TRA4NMOSVTH ||
 				this == TRANMOSHV1 || this == TRA4NMOSHV1 ||
@@ -685,6 +705,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 				this == TRAPMOSD || this == TRA4PMOSD ||
 				this == TRAPMOSNT || this == TRA4PMOSNT ||
 				this == TRAPMOSFG || this == TRA4PMOSFG ||
+				this == TRAPMOSCN || this == TRA4PMOSCN ||
 				this == TRAPMOSVTL || this == TRA4PMOSVTL ||
 				this == TRAPMOSVTH || this == TRA4PMOSVTH ||
 				this == TRAPMOSHV1 || this == TRA4PMOSHV1 ||

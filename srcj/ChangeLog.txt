@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09d: ******************************
 
+IMP/MAN: (2/26/09, SMR) Added Carbon Nanotube transistors for Villanova (Bug #2055).
+
 IMP: (2/26/09, DN) Class PrimitiveNodeGroup.
 
 IMP: (2/25/09, GVG) TechEditorWizard creates an empty Misc menu (Bug #2054)

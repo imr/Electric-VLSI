@@ -121,6 +121,8 @@ public class Schematics extends Technology
 	/** Defines a pMOS native high voltage-2 transistor. */	private static final int TRANPMOSNTHV2 = 27;
 	/** Defines a nMOS native high voltage-3 transistor. */	private static final int TRANNMOSNTHV3 = 28;
 	/** Defines a pMOS native high voltage-3 transistor. */	private static final int TRANPMOSNTHV3 = 29;
+	/** Defines a NMOS Carbon Nanotube transistor. */		private static final int TRANNMOSCN    = 30;
+	/** Defines a PMOS Carbon Nanotube transistor. */		private static final int TRANPMOSCN    = 31;
 
 	/** Defines a normal Diode. */							private static final int DIODENORM =  0;
 	/** Defines a Zener Diode. */							private static final int DIODEZENER = 1;
@@ -182,6 +184,7 @@ public class Schematics extends Technology
 	private Technology.NodeLayer [] tranLayersNd, tranLayersPd;
 	private Technology.NodeLayer [] tranLayersNnT, tranLayersPnT;
 	private Technology.NodeLayer [] tranLayersNfG, tranLayersPfG;
+	private Technology.NodeLayer [] tranLayersNCN, tranLayersPCN;
 	private Technology.NodeLayer [] tranLayersNvtL, tranLayersPvtL;
 	private Technology.NodeLayer [] tranLayersNvtH, tranLayersPvtH;
 	private Technology.NodeLayer [] tranLayersNht1, tranLayersPht1;
@@ -198,6 +201,7 @@ public class Schematics extends Technology
 	private Technology.NodeLayer [] tran4LayersNd, tran4LayersPd;
 	private Technology.NodeLayer [] tran4LayersNnT, tran4LayersPnT;
 	private Technology.NodeLayer [] tran4LayersNfG, tran4LayersPfG;
+	private Technology.NodeLayer [] tran4LayersNCN, tran4LayersPCN;
 	private Technology.NodeLayer [] tran4LayersNvtL, tran4LayersPvtL;
 	private Technology.NodeLayer [] tran4LayersNvtH, tran4LayersPvtH;
 	private Technology.NodeLayer [] tran4LayersNht1, tran4LayersPht1;
@@ -220,10 +224,12 @@ public class Schematics extends Technology
 	/* 0.25 */			private final EdgeH LEFTBYP25 = new EdgeH(-0.25/2,0);
 	/* 0.3 */			private final EdgeH LEFTBYP3 = new EdgeH(-0.3/2,0);
 	/* 0.35 */			private final EdgeH LEFTBYP35 = new EdgeH(-0.35/2,0);
+	/* 0.6166... */		private final EdgeH LEFTBYP375 = new EdgeH(-0.375/2,0);
 	/* 0.4 */			private final EdgeH LEFTBYP4 = new EdgeH(-0.4/2,0);
 	/* 0.45 */			private final EdgeH LEFTBYP45 = new EdgeH(-0.45/2,0);
 	/* 0.5 */			private final EdgeH LEFTBYP5 = new EdgeH(-0.5/2,0);
 	/* 0.6 */			private final EdgeH LEFTBYP6 = new EdgeH(-0.6/2,0);
+	/* 0.6166... */		private final EdgeH LEFTBYP625 = new EdgeH(-0.625/2,0);
 	/* 0.6666... */		private final EdgeH LEFTBYP66 = new EdgeH(-0.6666666666/2,0);
 	/* 0.7 */			private final EdgeH LEFTBYP7 = new EdgeH(-0.7/2,0);
 	/* 0.75 */			private final EdgeH LEFTBYP75 = new EdgeH(-0.75/2,0);
@@ -242,6 +248,7 @@ public class Schematics extends Technology
 	/* 0.3 */			private final EdgeH RIGHTBYP3 = new EdgeH(0.3/2,0);
 	/* 0.3333... */		private final EdgeH RIGHTBYP33 = new EdgeH(0.3333333333/2,0);
 	/* 0.35 */			private final EdgeH RIGHTBYP35 = new EdgeH(0.35/2,0);
+	/* 0.6166... */		private final EdgeH RIGHTBYP375 = new EdgeH(0.375/2,0);
 	/* 0.3833... */		private final EdgeH RIGHTBYP3833 = new EdgeH(0.3833333333/2,0);
 	/* 0.4 */			private final EdgeH RIGHTBYP4 = new EdgeH(0.4/2,0);
 	/* 0.4333... */		private final EdgeH RIGHTBYP433 = new EdgeH(0.4333333333/2,0);
@@ -252,6 +259,7 @@ public class Schematics extends Technology
 	/* 0.5666... */		private final EdgeH RIGHTBYP566 = new EdgeH(0.5666666666/2,0);
 	/* 0.6 */			private final EdgeH RIGHTBYP6 = new EdgeH(0.6/2,0);
 	/* 0.6166... */		private final EdgeH RIGHTBYP6166 = new EdgeH(0.6166666666/2,0);
+	/* 0.6166... */		private final EdgeH RIGHTBYP625 = new EdgeH(0.625/2,0);
 	/* 0.6666... */		private final EdgeH RIGHTBYP66 = new EdgeH(0.6666666666/2,0);
 //	/* 0.7 */			private final EdgeH RIGHTBYP7 = new EdgeH(0.7/2,0);
 	/* 0.75 */			private final EdgeH RIGHTBYP75 = new EdgeH(0.75/2,0);
@@ -1004,30 +1012,32 @@ public class Schematics extends Technology
 			new Technology.TechPoint(RIGHTBYP75, EdgeV.makeBottomEdge()),
 			new Technology.TechPoint(RIGHTBYP75, EdgeV.makeBottomEdge()),
 			new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeBottomEdge())});
-		tranLayersN = buildTransistorDescription(true, false, false, false, 0, 0, false);
-		tranLayersP = buildTransistorDescription(false, false, false, false, 0, 0, false);
-		tranLayersNd = buildTransistorDescription(true, true, false, false, 0, 0, false);
-		tranLayersPd = buildTransistorDescription(false, true, false, false, 0, 0, false);
-		tranLayersNnT = buildTransistorDescription(true, false, true, false, 0, 0, false);
-		tranLayersPnT = buildTransistorDescription(false, false, true, false, 0, 0, false);
-		tranLayersNfG = buildTransistorDescription(true, false, false, true, 0, 0, false);
-		tranLayersPfG = buildTransistorDescription(false, false, false, true, 0, 0, false);
-		tranLayersNvtL = buildTransistorDescription(true, false, false, false, -1, 0, false);
-		tranLayersPvtL = buildTransistorDescription(false, false, false, false, -1, 0, false);
-		tranLayersNvtH = buildTransistorDescription(true, false, false, false, 1, 0, false);
-		tranLayersPvtH = buildTransistorDescription(false, false, false, false, 1, 0, false);
-		tranLayersNht1 = buildTransistorDescription(true, false, false, false, 0, 1, false);
-		tranLayersPht1 = buildTransistorDescription(false, false, false, false, 0, 1, false);
-		tranLayersNht2 = buildTransistorDescription(true, false, false, false, 0, 2, false);
-		tranLayersPht2 = buildTransistorDescription(false, false, false, false, 0, 2, false);
-		tranLayersNht3 = buildTransistorDescription(true, false, false, false, 0, 3, false);
-		tranLayersPht3 = buildTransistorDescription(false, false, false, false, 0, 3, false);
-		tranLayersNnTht1 = buildTransistorDescription(true, false, true, false, 0, 1, false);
-		tranLayersPnTht1 = buildTransistorDescription(false, false, true, false, 0, 1, false);
-		tranLayersNnTht2 = buildTransistorDescription(true, false, true, false, 0, 2, false);
-		tranLayersPnTht2 = buildTransistorDescription(false, false, true, false, 0, 2, false);
-		tranLayersNnTht3 = buildTransistorDescription(true, false, true, false, 0, 3, false);
-		tranLayersPnTht3 = buildTransistorDescription(false, false, true, false, 0, 3, false);
+		tranLayersN = buildTransistorDescription(true, false, false, false, 0, 0, false, false);
+		tranLayersP = buildTransistorDescription(false, false, false, false, 0, 0, false, false);
+		tranLayersNd = buildTransistorDescription(true, true, false, false, 0, 0, false, false);
+		tranLayersPd = buildTransistorDescription(false, true, false, false, 0, 0, false, false);
+		tranLayersNnT = buildTransistorDescription(true, false, true, false, 0, 0, false, false);
+		tranLayersPnT = buildTransistorDescription(false, false, true, false, 0, 0, false, false);
+		tranLayersNfG = buildTransistorDescription(true, false, false, true, 0, 0, false, false);
+		tranLayersPfG = buildTransistorDescription(false, false, false, true, 0, 0, false, false);
+		tranLayersNCN = buildTransistorDescription(true, false, false, false, 0, 0, false, true);
+		tranLayersPCN = buildTransistorDescription(false, false, false, false, 0, 0, false, true);
+		tranLayersNvtL = buildTransistorDescription(true, false, false, false, -1, 0, false, false);
+		tranLayersPvtL = buildTransistorDescription(false, false, false, false, -1, 0, false, false);
+		tranLayersNvtH = buildTransistorDescription(true, false, false, false, 1, 0, false, false);
+		tranLayersPvtH = buildTransistorDescription(false, false, false, false, 1, 0, false, false);
+		tranLayersNht1 = buildTransistorDescription(true, false, false, false, 0, 1, false, false);
+		tranLayersPht1 = buildTransistorDescription(false, false, false, false, 0, 1, false, false);
+		tranLayersNht2 = buildTransistorDescription(true, false, false, false, 0, 2, false, false);
+		tranLayersPht2 = buildTransistorDescription(false, false, false, false, 0, 2, false, false);
+		tranLayersNht3 = buildTransistorDescription(true, false, false, false, 0, 3, false, false);
+		tranLayersPht3 = buildTransistorDescription(false, false, false, false, 0, 3, false, false);
+		tranLayersNnTht1 = buildTransistorDescription(true, false, true, false, 0, 1, false, false);
+		tranLayersPnTht1 = buildTransistorDescription(false, false, true, false, 0, 1, false, false);
+		tranLayersNnTht2 = buildTransistorDescription(true, false, true, false, 0, 2, false, false);
+		tranLayersPnTht2 = buildTransistorDescription(false, false, true, false, 0, 2, false, false);
+		tranLayersNnTht3 = buildTransistorDescription(true, false, true, false, 0, 3, false, false);
+		tranLayersPnTht3 = buildTransistorDescription(false, false, true, false, 0, 3, false, false);
 		tranLayersNPN = new Technology.NodeLayer [] {tranLayerBTran1, tranLayerTranTop, tranLayerNMOS, tranLayerBTran2};
 		tranLayersPNP = new Technology.NodeLayer [] {tranLayerBTran1, tranLayerTranTop, tranLayerNMOS, tranLayerBTran3};
 		tranLayersNJFET = new Technology.NodeLayer [] {tranLayerBTran4, tranLayerTranTop, tranLayerNMOS, tranLayerBTran5};
@@ -1368,30 +1378,32 @@ public class Schematics extends Technology
 			new Technology.TechPoint(LEFTBYP35, BOTBYP5),
 			new Technology.TechPoint(LEFTBYP5, BOTBYP25),
 			new Technology.TechPoint(LEFTBYP66, BOTBYP5)});
-		tran4LayersN = buildTransistorDescription(true, false, false, false, 0, 0, true);
-		tran4LayersP = buildTransistorDescription(false, false, false, false, 0, 0, true);
-		tran4LayersNd = buildTransistorDescription(true, true, false, false, 0, 0, true);
-		tran4LayersPd = buildTransistorDescription(false, true, false, false, 0, 0, true);
-		tran4LayersNnT = buildTransistorDescription(true, false, true, false, 0, 0, true);
-		tran4LayersPnT = buildTransistorDescription(false, false, true, false, 0, 0, true);
-		tran4LayersNfG = buildTransistorDescription(true, false, false, true, 0, 0, true);
-		tran4LayersPfG = buildTransistorDescription(false, false, false, true, 0, 0, true);
-		tran4LayersNvtL = buildTransistorDescription(true, false, false, false, -1, 0, true);
-		tran4LayersPvtL = buildTransistorDescription(false, false, false, false, -1, 0, true);
-		tran4LayersNvtH = buildTransistorDescription(true, false, false, false, 1, 0, true);
-		tran4LayersPvtH = buildTransistorDescription(false, false, false, false, 1, 0, true);
-		tran4LayersNht1 = buildTransistorDescription(true, false, false, false, 0, 1, true);
-		tran4LayersPht1 = buildTransistorDescription(false, false, false, false, 0, 1, true);
-		tran4LayersNht2 = buildTransistorDescription(true, false, false, false, 0, 2, true);
-		tran4LayersPht2 = buildTransistorDescription(false, false, false, false, 0, 2, true);
-		tran4LayersNht3 = buildTransistorDescription(true, false, false, false, 0, 3, true);
-		tran4LayersPht3 = buildTransistorDescription(false, false, false, false, 0, 3, true);
-		tran4LayersNnTht1 = buildTransistorDescription(true, false, true, false, 0, 1, true);
-		tran4LayersPnTht1 = buildTransistorDescription(false, false, true, false, 0, 1, true);
-		tran4LayersNnTht2 = buildTransistorDescription(true, false, true, false, 0, 2, true);
-		tran4LayersPnTht2 = buildTransistorDescription(false, false, true, false, 0, 2, true);
-		tran4LayersNnTht3 = buildTransistorDescription(true, false, true, false, 0, 3, true);
-		tran4LayersPnTht3 = buildTransistorDescription(false, false, true, false, 0, 3, true);
+		tran4LayersN = buildTransistorDescription(true, false, false, false, 0, 0, true, false);
+		tran4LayersP = buildTransistorDescription(false, false, false, false, 0, 0, true, false);
+		tran4LayersNd = buildTransistorDescription(true, true, false, false, 0, 0, true, false);
+		tran4LayersPd = buildTransistorDescription(false, true, false, false, 0, 0, true, false);
+		tran4LayersNnT = buildTransistorDescription(true, false, true, false, 0, 0, true, false);
+		tran4LayersPnT = buildTransistorDescription(false, false, true, false, 0, 0, true, false);
+		tran4LayersNfG = buildTransistorDescription(true, false, false, true, 0, 0, true, false);
+		tran4LayersPfG = buildTransistorDescription(false, false, false, true, 0, 0, true, false);
+		tran4LayersNCN = buildTransistorDescription(true, false, false, false, 0, 0, true, true);
+		tran4LayersPCN = buildTransistorDescription(false, false, false, false, 0, 0, true, true);
+		tran4LayersNvtL = buildTransistorDescription(true, false, false, false, -1, 0, true, false);
+		tran4LayersPvtL = buildTransistorDescription(false, false, false, false, -1, 0, true, false);
+		tran4LayersNvtH = buildTransistorDescription(true, false, false, false, 1, 0, true, false);
+		tran4LayersPvtH = buildTransistorDescription(false, false, false, false, 1, 0, true, false);
+		tran4LayersNht1 = buildTransistorDescription(true, false, false, false, 0, 1, true, false);
+		tran4LayersPht1 = buildTransistorDescription(false, false, false, false, 0, 1, true, false);
+		tran4LayersNht2 = buildTransistorDescription(true, false, false, false, 0, 2, true, false);
+		tran4LayersPht2 = buildTransistorDescription(false, false, false, false, 0, 2, true, false);
+		tran4LayersNht3 = buildTransistorDescription(true, false, false, false, 0, 3, true, false);
+		tran4LayersPht3 = buildTransistorDescription(false, false, false, false, 0, 3, true, false);
+		tran4LayersNnTht1 = buildTransistorDescription(true, false, true, false, 0, 1, true, false);
+		tran4LayersPnTht1 = buildTransistorDescription(false, false, true, false, 0, 1, true, false);
+		tran4LayersNnTht2 = buildTransistorDescription(true, false, true, false, 0, 2, true, false);
+		tran4LayersPnTht2 = buildTransistorDescription(false, false, true, false, 0, 2, true, false);
+		tran4LayersNnTht3 = buildTransistorDescription(true, false, true, false, 0, 3, true, false);
+		tran4LayersPnTht3 = buildTransistorDescription(false, false, true, false, 0, 3, true, false);
 		tran4LayersNPN = new Technology.NodeLayer [] {tranLayerBTran1, tranLayerTranTop, tranLayerNMOS, tranLayerBTran2, tranLayerBIP4};
 		tran4LayersPNP = new Technology.NodeLayer [] {tranLayerBTran1, tranLayerTranTop, tranLayerNMOS, tranLayerBTran3, tranLayerBIP4};
 		tran4LayersNJFET = new Technology.NodeLayer [] {tranLayerBTran4, tranLayerTranTop, tranLayerNMOS, tranLayerBTran5, tranLayerPMES4};
@@ -1522,6 +1534,8 @@ public class Schematics extends Technology
         list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4PMOSNT, 900, false, "pMOS-NT 4-port", 4.5));
         list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4NMOSFG, 900, false, "nMOS-FG 4-port", 4.5));
         list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4PMOSFG, 900, false, "pMOS-FG 4-port", 4.5));
+        list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4NMOSCN, 900, false, "nMOS-CN 4-port", 4.5));
+        list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4PMOSCN, 900, false, "pMOS-CN 4-port", 4.5));
         list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4NMOSVTL, 900, false, "nMOS-VTL 4-port", 4.5));
         list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4PMOSVTL, 900, false, "pMOS-VTL 4-port", 4.5));
         list.add(Technology.makeNodeInst(transistor4Node, PrimitiveNode.Function.TRA4NMOSVTH, 900, false, "nMOS-VTH 4-port", 4.5));
@@ -1556,6 +1570,8 @@ public class Schematics extends Technology
         list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRAPMOSNT, 900, false, "pMOS-NT", 4.5));
         list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRANMOSFG, 900, false, "nMOS-FG", 4.5));
         list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRAPMOSFG, 900, false, "pMOS-FG", 4.5));
+        list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRANMOSCN, 900, false, "nMOS-CN", 4.5));
+        list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRAPMOSCN, 900, false, "pMOS-CN", 4.5));
         list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRANMOSVTL, 900, false, "nMOS-VTL", 4.5));
         list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRAPMOSVTL, 900, false, "pMOS-VTL", 4.5));
         list.add(Technology.makeNodeInst(transistorNode, PrimitiveNode.Function.TRANMOSVTH, 900, false, "nMOS-VTH", 4.5));
@@ -1628,18 +1644,96 @@ public class Schematics extends Technology
 	}
 
 	private Technology.NodeLayer [] buildTransistorDescription(boolean nmos, boolean depletion,
-		boolean nt, boolean floating, int threshold, int highVoltage, boolean fourPort)
+		boolean nt, boolean floating, int threshold, int highVoltage, boolean fourPort, boolean carbonNanotube)
 	{
 		List<Technology.NodeLayer> layers = new ArrayList<Technology.NodeLayer>();
 
 		// first add the base
-		layers.add(new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
-			new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge()),
-			new Technology.TechPoint(LEFTBYP75, EdgeV.makeBottomEdge()),
-			new Technology.TechPoint(LEFTBYP75, BOTBYP5),
-			new Technology.TechPoint(RIGHTBYP75, BOTBYP5),
-			new Technology.TechPoint(RIGHTBYP75, EdgeV.makeBottomEdge()),
-			new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeBottomEdge())}));
+		if (carbonNanotube)
+		{
+			layers.add(new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+				new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge()),
+				new Technology.TechPoint(LEFTBYP75, EdgeV.makeBottomEdge()),
+				new Technology.TechPoint(LEFTBYP75, BOTBYP5),
+				new Technology.TechPoint(LEFTBYP625, BOTBYP5)}));
+			layers.add(new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+				new Technology.TechPoint(RIGHTBYP625, BOTBYP5),
+				new Technology.TechPoint(RIGHTBYP75, BOTBYP5),
+				new Technology.TechPoint(RIGHTBYP75, EdgeV.makeBottomEdge()),
+				new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeBottomEdge())}));
+			double r = 0.125 / Math.sqrt(3);
+			EdgeV ringUp1 = new EdgeV(-0.25+r/2,0);
+			EdgeV ringUp2 = new EdgeV(-0.25+r,0);
+			EdgeV ringDown1 = new EdgeV(-0.25-r/2,0);
+			EdgeV ringDown2 = new EdgeV(-0.25-r,0);
+			layers.add(new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+				new Technology.TechPoint(RIGHTBYP625, ringUp1),
+				new Technology.TechPoint(RIGHTBYP5, ringUp2),
+				new Technology.TechPoint(RIGHTBYP375, ringUp1),
+				new Technology.TechPoint(RIGHTBYP375, ringDown1),
+				new Technology.TechPoint(RIGHTBYP5, ringDown2),
+				new Technology.TechPoint(RIGHTBYP625, ringDown1),
+				new Technology.TechPoint(RIGHTBYP625, ringUp1)
+				}));
+			layers.add(new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+				new Technology.TechPoint(RIGHTBYP375, ringUp1),
+				new Technology.TechPoint(RIGHTBYP25, ringUp2),
+				new Technology.TechPoint(RIGHTBYP125, ringUp1),
+				new Technology.TechPoint(RIGHTBYP125, ringDown1),
+				new Technology.TechPoint(RIGHTBYP25, ringDown2),
+				new Technology.TechPoint(RIGHTBYP375, ringDown1)
+				}));
+			layers.add(new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+				new Technology.TechPoint(RIGHTBYP125, ringUp1),
+				new Technology.TechPoint(EdgeH.makeCenter(), ringUp2),
+				new Technology.TechPoint(LEFTBYP125, ringUp1),
+				new Technology.TechPoint(LEFTBYP125, ringDown1),
+				new Technology.TechPoint(EdgeH.makeCenter(), ringDown2),
+				new Technology.TechPoint(RIGHTBYP125, ringDown1)
+				}));
+			layers.add(new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+				new Technology.TechPoint(LEFTBYP125, ringUp1),
+				new Technology.TechPoint(LEFTBYP25, ringUp2),
+				new Technology.TechPoint(LEFTBYP375, ringUp1),
+				new Technology.TechPoint(LEFTBYP375, ringDown1),
+				new Technology.TechPoint(LEFTBYP25, ringDown2),
+				new Technology.TechPoint(LEFTBYP125, ringDown1)
+				}));
+			layers.add(new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+				new Technology.TechPoint(LEFTBYP375, ringUp1),
+				new Technology.TechPoint(LEFTBYP5, ringUp2),
+				new Technology.TechPoint(LEFTBYP625, ringUp1),
+				new Technology.TechPoint(LEFTBYP625, ringDown1),
+				new Technology.TechPoint(LEFTBYP5, ringDown2),
+				new Technology.TechPoint(LEFTBYP375, ringDown1)
+				}));
+
+//			EdgeV bubbleTop = new EdgeV(-0.25+0.0625,0);
+//			layers.add(new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLE, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+//				new Technology.TechPoint(EdgeH.makeCenter(), BOTBYP5),
+//				new Technology.TechPoint(EdgeH.makeCenter(), bubbleTop)}));
+//			layers.add(new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLE, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+//				new Technology.TechPoint(LEFTBYP25, BOTBYP5),
+//				new Technology.TechPoint(LEFTBYP25, bubbleTop)}));
+//			layers.add(new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLE, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+//				new Technology.TechPoint(LEFTBYP5, BOTBYP5),
+//				new Technology.TechPoint(LEFTBYP5, bubbleTop)}));
+//			layers.add(new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLE, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+//				new Technology.TechPoint(RIGHTBYP25, BOTBYP5),
+//				new Technology.TechPoint(RIGHTBYP25, bubbleTop)}));
+//			layers.add(new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLE, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+//				new Technology.TechPoint(RIGHTBYP5, BOTBYP5),
+//				new Technology.TechPoint(RIGHTBYP5, bubbleTop)}));
+		} else
+		{
+			layers.add(new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+				new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge()),
+				new Technology.TechPoint(LEFTBYP75, EdgeV.makeBottomEdge()),
+				new Technology.TechPoint(LEFTBYP75, BOTBYP5),
+				new Technology.TechPoint(RIGHTBYP75, BOTBYP5),
+				new Technology.TechPoint(RIGHTBYP75, EdgeV.makeBottomEdge()),
+				new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeBottomEdge())}));
+		}
 		double vertBase = -0.25;
 
 		// if depletion, add a solid bar at the base
@@ -1745,7 +1839,7 @@ public class Schematics extends Technology
 		{
 			if (nmos)
 			{
-				if (depletion)
+				if (depletion || carbonNanotube)
 				{
 					layers.add(new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 						new Technology.TechPoint(LEFTBYP5, BOTBYP75),
@@ -1766,7 +1860,7 @@ public class Schematics extends Technology
 				}
 			} else
 			{
-				if (depletion)
+				if (depletion || carbonNanotube)
 				{
 					layers.add(new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 						new Technology.TechPoint(LEFTBYP5, BOTBYP75),
@@ -1894,7 +1988,6 @@ public class Schematics extends Technology
 					} else
 					{
 						if (ni.hasExports())
-//						if (ni.getNumExports() != 0)
 							wireDiscSize = busDiscSize = 0;
 					}
 				}
@@ -2038,6 +2131,8 @@ public class Schematics extends Technology
 				case TRANPMOSNT:    primLayers = tranLayersPnT;    break;
 				case TRANNMOSFG:    primLayers = tranLayersNfG;    break;
 				case TRANPMOSFG:    primLayers = tranLayersPfG;    break;
+				case TRANNMOSCN:    primLayers = tranLayersNCN;    break;
+				case TRANPMOSCN:    primLayers = tranLayersPCN;    break;
 				case TRANNMOSVTL:   primLayers = tranLayersNvtL;   break;
 				case TRANPMOSVTL:   primLayers = tranLayersPvtL;   break;
 				case TRANNMOSVTH:   primLayers = tranLayersNvtH;   break;
@@ -2133,6 +2228,8 @@ public class Schematics extends Technology
 				case TRANPMOSNT:    primLayers = tran4LayersPnT;    break;
 				case TRANNMOSFG:    primLayers = tran4LayersNfG;    break;
 				case TRANPMOSFG:    primLayers = tran4LayersPfG;    break;
+				case TRANNMOSCN:    primLayers = tran4LayersNCN;    break;
+				case TRANPMOSCN:    primLayers = tran4LayersPCN;    break;
 				case TRANNMOSVTL:   primLayers = tran4LayersNvtL;   break;
 				case TRANPMOSVTL:   primLayers = tran4LayersPvtL;   break;
 				case TRANNMOSVTH:   primLayers = tran4LayersNvtH;   break;
@@ -2245,7 +2342,6 @@ public class Schematics extends Technology
 					double wantX = selectPt.getX();
 					double wantY = selectPt.getY();
 					double bestDist = Double.MAX_VALUE;
-//					int bestIndex = 0;
 					double bestX = 0, bestY = 0;
 
 					// determine total number of arcs already on this port
@@ -2452,6 +2548,8 @@ public class Schematics extends Technology
 				case TRANPMOSNT:    return PrimitiveNode.Function.TRAPMOSNT;
 				case TRANNMOSFG:    return PrimitiveNode.Function.TRANMOSFG;
 				case TRANPMOSFG:    return PrimitiveNode.Function.TRAPMOSFG;
+				case TRANNMOSCN:    return PrimitiveNode.Function.TRANMOSCN;
+				case TRANPMOSCN:    return PrimitiveNode.Function.TRAPMOSCN;
 				case TRANNMOSVTL:   return PrimitiveNode.Function.TRANMOSVTL;
 				case TRANPMOSVTL:   return PrimitiveNode.Function.TRAPMOSVTL;
 				case TRANNMOSVTH:   return PrimitiveNode.Function.TRANMOSVTH;
@@ -2489,6 +2587,8 @@ public class Schematics extends Technology
 				case TRANPMOSNT:    return PrimitiveNode.Function.TRA4PMOSNT;
 				case TRANNMOSFG:    return PrimitiveNode.Function.TRA4NMOSFG;
 				case TRANPMOSFG:    return PrimitiveNode.Function.TRA4PMOSFG;
+				case TRANNMOSCN:    return PrimitiveNode.Function.TRA4NMOSCN;
+				case TRANPMOSCN:    return PrimitiveNode.Function.TRA4PMOSCN;
 				case TRANNMOSVTL:   return PrimitiveNode.Function.TRA4NMOSVTL;
 				case TRANPMOSVTL:   return PrimitiveNode.Function.TRA4PMOSVTL;
 				case TRANNMOSVTH:   return PrimitiveNode.Function.TRA4NMOSVTH;
@@ -2577,6 +2677,8 @@ public class Schematics extends Technology
 		if (function == PrimitiveNode.Function.TRAPMOSNT)     return TRANPMOSNT;
 		if (function == PrimitiveNode.Function.TRANMOSFG)     return TRANNMOSFG;
 		if (function == PrimitiveNode.Function.TRAPMOSFG)     return TRANPMOSFG;
+		if (function == PrimitiveNode.Function.TRANMOSCN)     return TRANNMOSCN;
+		if (function == PrimitiveNode.Function.TRAPMOSCN)     return TRANPMOSCN;
 		if (function == PrimitiveNode.Function.TRANMOSVTL)    return TRANNMOSVTL;
 		if (function == PrimitiveNode.Function.TRAPMOSVTL)    return TRANPMOSVTL;
 		if (function == PrimitiveNode.Function.TRANMOSVTH)    return TRANNMOSVTH;
@@ -2608,6 +2710,8 @@ public class Schematics extends Technology
 		if (function == PrimitiveNode.Function.TRA4PMOSNT)    return TRANPMOSNT;
 		if (function == PrimitiveNode.Function.TRA4NMOSFG)    return TRANNMOSFG;
 		if (function == PrimitiveNode.Function.TRA4PMOSFG)    return TRANPMOSFG;
+		if (function == PrimitiveNode.Function.TRA4NMOSCN)    return TRANNMOSCN;
+		if (function == PrimitiveNode.Function.TRA4PMOSCN)    return TRANPMOSCN;
 		if (function == PrimitiveNode.Function.TRA4NMOSVTL)   return TRANNMOSVTL;
 		if (function == PrimitiveNode.Function.TRA4PMOSVTL)   return TRANPMOSVTL;
 		if (function == PrimitiveNode.Function.TRA4NMOSVTH)   return TRANNMOSVTH;
