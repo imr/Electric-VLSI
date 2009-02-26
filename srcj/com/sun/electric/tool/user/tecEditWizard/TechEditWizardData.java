@@ -128,13 +128,27 @@ public class TechEditWizardData
         int layer;
         WizardField overX; // overhang X value
         WizardField overY; // overhang Y value
+
+        ContactNode(int l, double overXV, String overXS, double overYV, String overYS)
+        {
+            layer = l;
+            overX = new WizardField(overXV, overXS);
+            overY = new WizardField(overYV, overYS);
+        }
     }
     private static class Contact
     {
-        ContactNode verticalLayer;
+        String prefix;
+        ContactNode verticalLayer; // low metal!
         ContactNode horizontalLayer;
+
+        Contact (String p, ContactNode v, ContactNode h)
+        {
+            prefix = p;
+            verticalLayer = v; horizontalLayer = h;
+        }
     }
-    private List<Contact> crossContacts = new ArrayList<Contact>();
+    private List<Contact> generalMetalContacts;
 
     // ANTENNA RULES
 	private double poly_antenna_ratio;
@@ -240,6 +254,8 @@ public class TechEditWizardData
 		via_overhang = new WizardField[num_metal_layers-1];
 		via_overhang_short = new WizardField[num_metal_layers-1];
 		metal_antenna_ratio = new double[num_metal_layers];
+
+        generalMetalContacts = new ArrayList<Contact>();
 
         gds_metal_layer = new LayerInfo[num_metal_layers];
 		gds_via_layer = new LayerInfo[num_metal_layers-1];
@@ -695,7 +711,7 @@ public class TechEditWizardData
 					if (varName.equalsIgnoreCase("via_overhang_inline_short")) fillWizardArray(varValue, via_overhang_short, num_metal_layers-1, false); else
 					if (varName.equalsIgnoreCase("via_overhang_inline_short_rule")) fillWizardArray(varValue, via_overhang_short, num_metal_layers-1, true); else
 
-                    if (varName.equalsIgnoreCase("cross_contacts")) fillCrossContactArray(varValue, crossContacts); else
+                    if (varName.equalsIgnoreCase("metal_contacts")) fillGeneralContactArray(varValue, generalMetalContacts); else
 
                     if (varName.equalsIgnoreCase("poly_antenna_ratio")) setPolyAntennaRatio(TextUtils.atof(varValue)); else
 					if (varName.equalsIgnoreCase("metal_antenna_ratio")) metal_antenna_ratio = makeDoubleArray(varValue); else
@@ -821,15 +837,25 @@ public class TechEditWizardData
 	}
 
     // to get cross contact
-    private void fillCrossContactArray(String str, List<Contact> contactList)
+    private void fillGeneralContactArray(String str, List<Contact> contactList)
     {
-        StringTokenizer parse = new StringTokenizer(str, "{}", false);
+        StringTokenizer parse = new StringTokenizer(str, "({})", false);
         while (parse.hasMoreTokens())
         {
-            String v = parse.nextToken();
+            String value = parse.nextToken();
+
+            if (value.equals(";")) // end of line
+                continue;
+
+            // syntax: A[Layer1, overX, overXS, overY, overYS][Layer2, overX, overXS, overY, overYS]
             // pair of layers found
+            int index = value.indexOf("[");
+            assert(index != -1); // it should come with a prefix name
+            String prefix = value.substring(0, index);
+            String v = value.substring(index);
             StringTokenizer p = new StringTokenizer(v, "[]", false);
-            int count = 0;
+            List<ContactNode> nodeList = new ArrayList<ContactNode>();
+
             while (p.hasMoreTokens())
             {
                 String s = p.nextToken();
@@ -837,10 +863,10 @@ public class TechEditWizardData
                 int itemCount = 0; // 4 max items: metal layer, overhang X, overhang X rule, overhang Y, overhang Y rule
                 StringTokenizer x = new StringTokenizer(s, ", ", false);
                 int metal = -1;
-                double overX, overY;
-                String overXS, overYS;
+                double overX = 0, overY = 0;
+                String overXS = null, overYS = null;
 
-                while (x.hasMoreTokens() && itemCount < 4)
+                while (x.hasMoreTokens() && itemCount < 5)
                 {
                     String item = x.nextToken();
                     switch (itemCount)
@@ -855,14 +881,22 @@ public class TechEditWizardData
                             overXS = item;
                             break;
                         case 3: // overhang Y value
+                            overY = Double.valueOf(item);
                             break;
                         case 4: // overhang Y rule name
+                            overYS = item;
                             break;
                     }
                     itemCount++;
                 }
+                assert(itemCount == 5);
+                ContactNode node = new ContactNode(metal, overX, overXS, overY, overYS);
+                nodeList.add(node);
             }
-            Contact cont = new Contact();
+            assert(nodeList.size() == 2);
+            
+            Contact cont = new Contact(prefix, nodeList.get(0), nodeList.get(1));
+            contactList.add(cont);
         }
     }
 
@@ -2136,6 +2170,35 @@ public class TechEditWizardData
                 longDist, shortDist, lb);
             t.menuPalette.menuBoxes.add(metalContacts);
         }
+
+        // generic contacts
+        List<Object> contactsList = new ArrayList<Object>();
+        for (Contact c : generalMetalContacts)
+        {
+            int i = c.verticalLayer.layer;
+            int j = c.horizontalLayer.layer;
+            Xml.Layer ly = metalLayers.get(i-1);
+            Xml.Layer lx = metalLayers.get(i);
+            String name = ly.name + "-" + lx.name;
+            contSize = scaledValue(via_size[i-1].v);
+            double spacing = scaledValue(via_inline_spacing[i-1].v);
+            double arraySpacing = scaledValue(via_array_spacing[i-1].v);
+            Xml.Layer conLayer = viaLayers.get(i-1);
+            double h1x = DBMath.round(contSize/2 + c.verticalLayer.overX.v);
+            double h1y = DBMath.round(contSize/2 + c.verticalLayer.overY.v);
+            double h2x = DBMath.round(contSize/2 + c.horizontalLayer.overX.v);
+            double h2y = DBMath.round(contSize/2 + c.horizontalLayer.overY.v);
+
+            double longX = DBMath.isGreaterThan(c.verticalLayer.overX.v, c.horizontalLayer.overX.v) ? c.verticalLayer.overX.v : c.horizontalLayer.overX.v;
+            double longY = DBMath.isGreaterThan(c.verticalLayer.overY.v, c.horizontalLayer.overY.v) ? c.verticalLayer.overY.v : c.horizontalLayer.overY.v;
+
+            contactsList.add(makeXmlPrimitiveCon(t.nodes, c.prefix + name, -1, -1,
+                new SizeOffset(longX, longX, longY, longY), portNames,
+            makeXmlNodeLayer(h1x, h1x, h1y, h1y, ly, Poly.Type.FILLED, true), // layer1
+            makeXmlNodeLayer(h2x, h2x, h2y, h2y, lx, Poly.Type.FILLED, true), // layer2
+            makeXmlMulticut(conLayer, contSize, spacing, arraySpacing))); // contact
+        }
+        t.menuPalette.menuBoxes.add(contactsList);
 
         /**************************** Transistors ***********************************************/
         /** Transistors **/
