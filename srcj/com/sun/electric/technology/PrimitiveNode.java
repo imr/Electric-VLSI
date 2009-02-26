@@ -50,7 +50,7 @@ import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.BitSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -757,8 +757,8 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
     // --------------------- private data -----------------------------------
 
 	/** The Id of this PrimitiveNode. */			private final PrimitiveNodeId protoId;
-    /** The parameter of this PrimitiveNode. */     final Xml.NodeParam param;
 	/** This PrimitiveNode's Technology. */			private final Technology tech;
+    /** The group containing this PrimitiveNode */  PrimitiveNodeGroup group;
 	/** The function of this PrimitiveNode. */		private Function function;
 	/** layers describing this primitive */			private Technology.NodeLayer [] layers;
 	/** electrical layers describing this */		private Technology.NodeLayer [] electricalLayers;
@@ -784,14 +784,13 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	/**
 	 * The constructor is never called externally.  Use the factory "newInstance" instead.
 	 */
-	protected PrimitiveNode(String protoName, Xml.NodeParam param, Technology tech, EPoint sizeCorrector1, EPoint sizeCorrector2, String minSizeRule,
+	protected PrimitiveNode(String protoName, Technology tech, EPoint sizeCorrector1, EPoint sizeCorrector2, String minSizeRule,
             double defWidth, double defHeight, ERectangle fullRectangle, ERectangle baseRectangle, Technology.NodeLayer [] layers)
 	{
 		// things in the base class
 		if (!Technology.jelibSafeName(protoName))
 			System.out.println("PrimitiveNode name " + protoName + " is not safe to write in the JELIB");
 		this.protoId = tech.getId().newPrimitiveNodeId(protoName);
-        this.param = param;
 		this.function = Function.UNKNOWN;
 
 		// things in this class
@@ -884,7 +883,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
                 2*sizeCorrector.getGridX(), 2*sizeCorrector.getGridY());
         ERectangle baseRectangle = ERectangle.fromGrid(lx, ly, hx - lx, hy - ly);
         EPoint sizeCorrector2 = EPoint.fromGrid(baseRectangle.getGridWidth() >> 1, baseRectangle.getGridHeight() >> 1);
-        return newInstance(protoName, null, tech, sizeCorrector, sizeCorrector2, minSizeRule,
+        return newInstance(protoName, tech, sizeCorrector, sizeCorrector2, minSizeRule,
                 width, height, fullRectangle, baseRectangle, layers);
 	}
 
@@ -919,7 +918,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	 */
 	public static PrimitiveNode newInstance0(String protoName, Technology tech, double width, double height, Technology.NodeLayer [] layers)
 	{
-        return newInstance(protoName, null, tech, EPoint.ORIGIN, EPoint.ORIGIN, null, width, height, ERectangle.ORIGIN, ERectangle.ORIGIN, layers);
+        return newInstance(protoName, tech, EPoint.ORIGIN, EPoint.ORIGIN, null, width, height, ERectangle.ORIGIN, ERectangle.ORIGIN, layers);
 	}
 
 	/**
@@ -934,7 +933,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	 * @param layers the Layers that comprise the PrimitiveNode.
 	 * @return the newly created PrimitiveNode.
 	 */
-	static PrimitiveNode newInstance(String protoName, Xml.NodeParam param, Technology tech, EPoint sizeCorrector1, EPoint sizeCorrector2, String minSizeRule,
+	static PrimitiveNode newInstance(String protoName, Technology tech, EPoint sizeCorrector1, EPoint sizeCorrector2, String minSizeRule,
         double width, double height, ERectangle fullRectangle, ERectangle baseRectangle, Technology.NodeLayer [] layers)
 	{
 		// check the arguments
@@ -949,7 +948,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 			return null;
 		}
 
-		PrimitiveNode pn = new PrimitiveNode(protoName, param, tech, sizeCorrector1, sizeCorrector2, minSizeRule, width, height,
+		PrimitiveNode pn = new PrimitiveNode(protoName, tech, sizeCorrector1, sizeCorrector2, minSizeRule, width, height,
                 fullRectangle, baseRectangle, layers);
 		return pn;
 	}
@@ -969,7 +968,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 
         EPoint sizeCorrector1 = EPoint.fromLambda(elibSize0, elibSize0);
         EPoint sizeCorrector2 = EPoint.fromLambda(elibSize1, elibSize1);
-        PrimitiveNode arcPin = newInstance(pinName, null, tech, sizeCorrector1, sizeCorrector2, null,
+        PrimitiveNode arcPin = newInstance(pinName, tech, sizeCorrector1, sizeCorrector2, null,
                 0, 0, ERectangle.ORIGIN, ERectangle.ORIGIN, nodeLayers);
 
         ArcProto[] connections = new ArcProto[1 + extraArcs.length];
@@ -1094,10 +1093,6 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 			this == Schematics.tech().capacitorNode) return true;
 		return false;
 	}
-    
-    public Xml.NodeParam getParam() {
-        return param;
-    }
 
 	/**
 	 * Method to return the list of Layers that comprise this PrimitiveNode.
@@ -1517,6 +1512,13 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	 * @return the Technology of this PrimitiveNode.
 	 */
 	public Technology getTechnology() { return tech; }
+
+	/**
+	 * Method to return the PrimitiveNodeGroup that contains this PrimitiveNode.
+     * Return null if this PrimitiveNode is not contained in any group.
+	 * @return the Technology of this PrimitiveNode.
+	 */
+	public PrimitiveNodeGroup getPrimitiveNodeGroup() { return group; }
 
 	/**
 	 * Method to add an array of PrimitivePorts to this PrimitiveNode.
@@ -2210,13 +2212,20 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 
     Xml.PrimitiveNode makeXml() {
         Xml.PrimitiveNode n = new Xml.PrimitiveNode();
+//        Xml.PrimitiveNode n = param != null ? new Xml.PrimitiveNodeGroup() : new Xml.PrimitiveNode();
         n.name = getName();
         for (Map.Entry<String,PrimitiveNode> e: tech.getOldNodeNames().entrySet()) {
             if (e.getValue() != this) continue;
             assert n.oldName == null;
             n.oldName = e.getKey();
         }
-        n.param = param;
+//        if (param != null)
+//            ((Xml.PrimitiveNodeGroup)n).param = param;
+        fillXml(n);
+        return n;
+    }
+
+    void fillXml(Xml.PrimitiveNode n) {
         n.function = getFunction();
         n.shrinkArcs = isArcsShrink();
         n.square = isSquare();
@@ -2268,15 +2277,15 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
         for (Technology.NodeLayer nld: electricalNodeLayers) {
             int j = nodeLayers.indexOf(nld);
             if (j < 0) {
-                n.nodeLayers.add(nld.makeXml(param, isSerp, minFullSize, false, true));
+                n.nodeLayers.add(nld.makeXml(isSerp, minFullSize, false, true));
                 continue;
             }
             while (m < j)
-                n.nodeLayers.add(nodeLayers.get(m++).makeXml(param, isSerp, minFullSize, true, false));
-            n.nodeLayers.add(nodeLayers.get(m++).makeXml(param, isSerp, minFullSize, true, true));
+                n.nodeLayers.add(nodeLayers.get(m++).makeXml(isSerp, minFullSize, true, false));
+            n.nodeLayers.add(nodeLayers.get(m++).makeXml(isSerp, minFullSize, true, true));
         }
         while (m < nodeLayers.size())
-            n.nodeLayers.add(nodeLayers.get(m++).makeXml(param, isSerp, minFullSize, true, false));
+            n.nodeLayers.add(nodeLayers.get(m++).makeXml(isSerp, minFullSize, true, false));
 
         for (Iterator<PrimitivePort> pit = getPrimitivePorts(); pit.hasNext(); ) {
             PrimitivePort pp = pit.next();
@@ -2292,7 +2301,6 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
             n.nodeSizeRule.rule = nodeSizeRule.getRuleName();
         }
         n.spiceTemplate = getSpiceTemplate();
-        return n;
     }
 
     XmlParam.PrimitiveNode makeXmlParam() {

@@ -2950,31 +2950,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 					return funName;
 				}
 			}
-
-            if (Technology.TESTSURROUNDOVERRIDE_C && pNp.getParam() != null) {
-                Xml.NodeParam param = pNp.getParam();
-                int paramValue = (getD().techBits >>> param.bitsFrom) & ((1 << param.bitsN) - 1);
-                return param.paramValues.get(paramValue);
-            }
-            
-//            if (Technology.TESTSURROUNDOVERRIDE_B)
-//            {
-//				// special case if tech-specific bits are set
-//				if (getD().techBits != 0)
-//				{
-//					NodeLayer[] nLayers = pNp.getLayers();
-//					for(int i=0; i<nLayers.length; i++)
-//					{
-//						NodeLayer nLay = nLayers[i];
-//						if (nLay.getNumCustomOverrides() > 0)
-//						{
-//							int thisOverrideNumber = (getD().techBits & nLay.getCustomOverrideMask()) >> nLay.getCustomOverrideShift();
-//							if (thisOverrideNumber <= nLay.getNumCustomOverrides())
-//								return nLay.getCustomOverride(thisOverrideNumber-1).getName();
-//						}
-//					}
-//				}
-//            }
 		}
 		return "";
 	}

@@ -1150,6 +1150,141 @@
     </arcProto>
 
     <!-- ******************** NODES ******************** -->
+    <primitiveNodeGroup name="X-MetalCon" fun="CONTACT">
+        <primitiveNode name="X-MetalCon-M1M2"/>
+        <primitiveNode name="X-MetalCon-M1M3"/>
+        <primitiveNode name="X-MetalCon-M2M3"/>
+        <sizeOffset lx="4" hx="4" ly="4" hy="4"/>
+        <nodeLayer layer="Metal-1" style="FILLED">
+            <inNodes>
+                <primitiveNode name="X-MetalCon-M1M2"/>
+                <primitiveNode name="X-MetalCon-M1M3"/>
+            </inNodes>
+            <box>
+                <lambdaBox klx="-2.0" khx="2.0" kly="-6.0" khy="6.0"/>
+            </box>
+        </nodeLayer>
+        <nodeLayer layer="Via1" style="FILLED">
+            <inNodes>
+                <primitiveNode name="X-MetalCon-M1M2"/>
+                <primitiveNode name="X-MetalCon-M1M3"/>
+            </inNodes>
+            <multicutbox sizex="2.0" sizey="2.0" sep1d="3.0" sep2d="3.0">
+                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
+            </multicutbox>
+        </nodeLayer>
+        <nodeLayer layer="Metal-2" style="FILLED">
+            <inNodes>
+                <primitiveNode name="X-MetalCon-M1M2"/>
+                <primitiveNode name="X-MetalCon-M1M3"/>
+                <primitiveNode name="X-MetalCon-M2M3"/>
+            </inNodes>
+            <box>
+                <lambdaBox klx="-6.0" khx="6.0" kly="-2.0" khy="2.0"/>
+            </box>
+        </nodeLayer>
+        <nodeLayer layer="Via2" style="FILLED">
+            <inNodes>
+                <primitiveNode name="X-MetalCon-M1M3"/>
+                <primitiveNode name="X-MetalCon-M2M3"/>
+            </inNodes>
+            <multicutbox sizex="2.0" sizey="2.0" sep1d="3.0" sep2d="3.0">
+                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
+            </multicutbox>
+        </nodeLayer>
+        <nodeLayer layer="Metal-3" style="FILLED">
+            <inNodes>
+                <primitiveNode name="X-MetalCon-M1M3"/>
+                <primitiveNode name="X-MetalCon-M2M3"/>
+            </inNodes>
+             <box>
+                <lambdaBox klx="-2.0" khx="2.0" kly="-6.0" khy="6.0"/>
+            </box>
+        </nodeLayer>
+        <primitivePort name="metals">
+            <portAngle primary="0" range="180"/>
+            <portTopology>0</portTopology>
+            <box>
+                <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
+            </box>
+            <portArc>Metal-1</portArc>
+            <portArc>Metal-2</portArc>
+            <portArc>Metal-3</portArc>
+        </primitivePort>
+    </primitiveNodeGroup>
+
+    <primitiveNodeGroup name="Metal-1-Metal-2-Con" fun="CONTACT">
+        <primitiveNode name="Metal-1-Metal-2-Con"/>
+        <primitiveNode name="Metal-1-Metal-2-Con-X"/>
+        <primitiveNode name="Metal-1-Metal-2-Con-R"/>
+        <diskOffset untilVersion="1" x="2.5" y="2.5"/>
+        <diskOffset untilVersion="2" x="2.0" y="2.0"/>
+        <sizeOffset lx="0.5" hx="0.5" ly="0.5" hy="0.5"/>
+        <nodeLayer layer="Metal-1" style="FILLED">
+            <inNodes>
+                <primitiveNode name="Metal-1-Metal-2-Con"/>
+            </inNodes>
+            <box>
+                <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
+            </box>
+        </nodeLayer>
+        <nodeLayer layer="Metal-1" style="FILLED">
+            <inNodes>
+                <primitiveNode name="Metal-1-Metal-2-Con-X"/>
+            </inNodes>
+            <box>
+                <lambdaBox klx="-5.0" khx="5.0" kly="-2.0" khy="2.0"/>
+            </box>
+        </nodeLayer>
+        <nodeLayer layer="Metal-1" style="FILLED">
+            <inNodes>
+                <primitiveNode name="Metal-1-Metal-2-Con-R"/>
+            </inNodes>
+            <box>
+                <lambdaBox klx="-2.0" khx="1.0" kly="-2.0" khy="2.0"/>
+            </box>
+        </nodeLayer>
+        <nodeLayer layer="Metal-2" style="FILLED">
+            <inNodes>
+                <primitiveNode name="Metal-1-Metal-2-Con"/>
+            </inNodes>
+            <box>
+                <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
+            </box>
+        </nodeLayer>
+        <nodeLayer layer="Metal-2" style="FILLED">
+            <inNodes>
+                <primitiveNode name="Metal-1-Metal-2-Con-X"/>
+            </inNodes>
+            <box>
+                <lambdaBox klx="-2.0" khx="2.0" kly="-6.0" khy="6.0"/>
+            </box>
+        </nodeLayer>
+        <nodeLayer layer="Metal-2" style="FILLED">
+            <inNodes>
+                <primitiveNode name="Metal-1-Metal-2-Con-R"/>
+            </inNodes>
+            <box>
+                <lambdaBox klx="-2.0" khx="1.0" kly="-2.0" khy="2.0"/>
+            </box>
+        </nodeLayer>
+        <nodeLayer layer="Via1" style="FILLED">
+            <multicutbox sizex="2.0" sizey="2.0" sep1d="3.0" sep2d="3.0">
+                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
+            </multicutbox>
+        </nodeLayer>
+        <primitivePort name="metal-1-metal-2">
+            <portAngle primary="0" range="180"/>
+            <portTopology>0</portTopology>
+            <box>
+                <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
+            </box>
+            <portArc>Metal-1</portArc>
+            <portArc>Metal-2</portArc>
+        </primitivePort>
+        <minSizeRule width="5.0" height="5.0" rule="8.3, 9.3"/>
+    </primitiveNodeGroup>
+
     <primitiveNode name="Metal-1-Pin" fun="PIN">
         <shrinkArcs/>
         <diskOffset untilVersion="2" x="1.5" y="1.5"/>
@@ -2282,145 +2417,6 @@
         <minSizeRule width="56.0" height="48.0" rule="16.*"/>
     </primitiveNode>
 
-    <primitiveNode name="X-MetalCon" fun="CONTACT">
-        <param name="Layers" bitsFrom="0" bitsN="2">
-            <paramValue>M1M2</paramValue>
-            <paramValue>M1M3</paramValue>
-            <paramValue>M2M3</paramValue>
-        </param>
-        <sizeOffset lx="4" hx="4" ly="4" hy="4"/>
-        <nodeLayer layer="Metal-1" style="FILLED">
-            <param name="Layers">
-                <paramValue>M1M2</paramValue>
-                <paramValue>M1M3</paramValue>
-            </param>
-            <box>
-                <lambdaBox klx="-2.0" khx="2.0" kly="-6.0" khy="6.0"/>
-            </box>
-        </nodeLayer>
-        <nodeLayer layer="Via1" style="FILLED">
-            <param name="Layers">
-                <paramValue>M1M2</paramValue>
-                <paramValue>M1M3</paramValue>
-            </param>
-            <multicutbox sizex="2.0" sizey="2.0" sep1d="3.0" sep2d="3.0">
-                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
-            </multicutbox>
-        </nodeLayer>
-        <nodeLayer layer="Metal-2" style="FILLED">
-            <param name="Layers">
-                <paramValue>M1M2</paramValue>
-                <paramValue>M1M3</paramValue>
-                <paramValue>M2M3</paramValue>
-            </param>
-            <box>
-                <lambdaBox klx="-6.0" khx="6.0" kly="-2.0" khy="2.0"/>
-            </box>
-        </nodeLayer>
-        <nodeLayer layer="Via2" style="FILLED">
-            <param name="Layers">
-                <paramValue>M1M3</paramValue>
-                <paramValue>M2M3</paramValue>
-            </param>
-            <multicutbox sizex="2.0" sizey="2.0" sep1d="3.0" sep2d="3.0">
-                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
-            </multicutbox>
-        </nodeLayer>
-        <nodeLayer layer="Metal-3" style="FILLED">
-            <param name="Layers">
-                <paramValue>M1M3</paramValue>
-                <paramValue>M2M3</paramValue>
-            </param>
-            <box>
-                <lambdaBox klx="-2.0" khx="2.0" kly="-6.0" khy="6.0"/>
-            </box>
-        </nodeLayer>
-        <primitivePort name="metals">
-            <portAngle primary="0" range="180"/>
-            <portTopology>0</portTopology>
-            <box>
-                <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
-            </box>
-            <portArc>Metal-1</portArc>
-            <portArc>Metal-2</portArc>
-            <portArc>Metal-3</portArc>
-        </primitivePort>
-    </primitiveNode>
-
-    <primitiveNode name="Metal-1-Metal-2-Con" fun="CONTACT">
-        <param name="Override" bitsFrom="0" bitsN="2">
-            <paramValue></paramValue>
-            <paramValue>X</paramValue>
-            <paramValue>R</paramValue>
-        </param>
-        <diskOffset untilVersion="1" x="2.5" y="2.5"/>
-        <diskOffset untilVersion="2" x="2.0" y="2.0"/>
-        <sizeOffset lx="0.5" hx="0.5" ly="0.5" hy="0.5"/>
-        <nodeLayer layer="Metal-1" style="FILLED">
-            <param name="Override">
-                <paramValue></paramValue>
-            </param>
-            <box>
-                <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
-            </box>
-        </nodeLayer>
-        <nodeLayer layer="Metal-1" style="FILLED">
-            <param name="Override">
-                <paramValue>X</paramValue>
-            </param>
-            <box>
-                <lambdaBox klx="-5.0" khx="5.0" kly="-2.0" khy="2.0"/>
-            </box>
-        </nodeLayer>
-        <nodeLayer layer="Metal-1" style="FILLED">
-            <param name="Override">
-                <paramValue>R</paramValue>
-            </param>
-            <box>
-                <lambdaBox klx="-2.0" khx="1.0" kly="-2.0" khy="2.0"/>
-            </box>
-        </nodeLayer>
-        <nodeLayer layer="Metal-2" style="FILLED">
-            <param name="Override">
-                <paramValue></paramValue>
-            </param>
-            <box>
-                <lambdaBox klx="-2.0" khx="2.0" kly="-2.0" khy="2.0"/>
-            </box>
-        </nodeLayer>
-        <nodeLayer layer="Metal-2" style="FILLED">
-            <param name="Override">
-                <paramValue>X</paramValue>
-            </param>
-            <box>
-                <lambdaBox klx="-2.0" khx="2.0" kly="-6.0" khy="6.0"/>
-            </box>
-        </nodeLayer>
-        <nodeLayer layer="Metal-2" style="FILLED">
-            <param name="Override">
-                <paramValue>R</paramValue>
-            </param>
-            <box>
-                <lambdaBox klx="-2.0" khx="1.0" kly="-2.0" khy="2.0"/>
-            </box>
-        </nodeLayer>
-        <nodeLayer layer="Via1" style="FILLED">
-            <multicutbox sizex="2.0" sizey="2.0" sep1d="3.0" sep2d="3.0">
-                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
-            </multicutbox>
-        </nodeLayer>
-        <primitivePort name="metal-1-metal-2">
-            <portAngle primary="0" range="180"/>
-            <portTopology>0</portTopology>
-            <box>
-                <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
-            </box>
-            <portArc>Metal-1</portArc>
-            <portArc>Metal-2</portArc>
-        </primitivePort>
-        <minSizeRule width="5.0" height="5.0" rule="8.3, 9.3"/>
-    </primitiveNode>
-
     <primitiveNode name="Metal-2-Metal-3-Con" fun="CONTACT">
         <diskOffset untilVersion="1" x="3.0" y="3.0"/>
         <diskOffset untilVersion="2" x="2.0" y="2.0"/>
@@ -2751,15 +2747,9 @@
         <menuBox/>
         <menuBox/>
         <menuBox>
-            <menuNodeInst protoName="X-MetalCon" function="CONTACT" techBits="0">
-                <menuNodeText text="X-MetalCon-M1M2" size="0"/>
-            </menuNodeInst>
-            <menuNodeInst protoName="X-MetalCon" function="CONTACT" techBits="1">
-                <menuNodeText text="X-MetalCon-M1M3" size="0"/>
-            </menuNodeInst>
-            <menuNodeInst protoName="X-MetalCon" function="CONTACT" techBits="2">
-                <menuNodeText text="X-MetalCon-M2M3" size="0"/>
-            </menuNodeInst>
+            <menuNodeInst protoName="X-MetalCon-M1M2" function="CONTACT"/>
+            <menuNodeInst protoName="X-MetalCon-M1M3" function="CONTACT"/>
+            <menuNodeInst protoName="X-MetalCon-M2M3" function="CONTACT"/>
         </menuBox>
         
         <menuBox>
@@ -2769,13 +2759,9 @@
             <menuNodeInst protoName="Metal-1-Pin" function="PIN"/>
         </menuBox>
         <menuBox>
-            <menuNode>Metal-1-Metal-2-Con</menuNode>
-            <menuNodeInst protoName="Metal-1-Metal-2-Con" function="CONTACT" techBits="1">
-                <menuNodeText text="Metal-1-Metal-2-Con-X" size="0"/>
-            </menuNodeInst>
-            <menuNodeInst protoName="Metal-1-Metal-2-Con" function="CONTACT" techBits="2">
-                <menuNodeText text="Metal-1-Metal-2-Con-R" size="0"/>
-            </menuNodeInst>
+            <menuNodeInst protoName="Metal-1-Metal-2-Con" function="CONTACT"/>
+            <menuNodeInst protoName="Metal-1-Metal-2-Con-X" function="CONTACT"/>
+            <menuNodeInst protoName="Metal-1-Metal-2-Con-R" function="CONTACT"/>
         </menuBox>
 
         <menuBox>

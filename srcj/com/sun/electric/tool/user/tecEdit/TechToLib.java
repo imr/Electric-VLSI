@@ -33,7 +33,6 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.id.CellId;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -43,10 +42,10 @@ import com.sun.electric.technology.DRCRules;
 import com.sun.electric.technology.DRCTemplate;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitiveNodeGroup;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.Xml.NodeParam;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
@@ -59,7 +58,6 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -307,7 +305,7 @@ public class TechToLib
             aList[arcCount] = aIn;
 			arcSequence[arcCount] = ap.getName();
 			arcCount++;
-            
+
 			String fName = "arc-" + ap.getName() + "{lay}";
 
 			// make sure the arc doesn't exist
@@ -378,6 +376,8 @@ public class TechToLib
 		{
 			PrimitiveNode pnp = it.next();
 			if (pnp.isNotUsed()) continue;
+            if (pnp.getPrimitiveNodeGroup() != null)
+                continue;
             NodeInfo nIn = makeNodeInfo(pnp, lList, aList);
             nList[nodeIndex] = nIn;
             nodeSequence[nodeIndex] = pnp.getName();
@@ -623,8 +623,8 @@ public class TechToLib
 					xS = pnp.getDefWidth();
 					yS = pnp.getDefHeight();
 	                NodeInst oNi = NodeInst.makeInstance(pnp, EPoint.snap(nPos), xS, yS, dummyCell);
-	                NodeParam param = pnp.getParam();
-	                oNi.setTechSpecific(k << param.bitsFrom);
+//	                NodeParam param = pnp.getParam();
+//	                oNi.setTechSpecific(k << param.bitsFrom);
 					Poly [] polys = tech.getShapeOfNode(oNi);
 					int j = polys.length;
 					for(int i=0; i<j; i++)
@@ -781,7 +781,7 @@ public class TechToLib
 //
 //		us_tecedloaddrcmessage(rules, lib);
 //		dr_freerules(rules);
-        
+
         Object[][] origPalette = tech.getNodesGrouped(null);
         int numRows = origPalette.length;
         int numCols = origPalette[0].length;
@@ -824,7 +824,7 @@ public class TechToLib
                 gi.menuPalette[row][col] = newEntry;
             }
         }
-        
+
 //        String techName = tech.getTechName();
 //        LibToTech.writeXml(techName + ".xml", techName, gi, lList, nList, aList);
 
@@ -862,7 +862,7 @@ public class TechToLib
         }
         return aIn;
     }
-    
+
     private static NodeInfo makeNodeInfo(PrimitiveNode pnp, LayerInfo[] lList, ArcInfo[] aList)
     {
         Technology tech = pnp.getTechnology();
@@ -898,12 +898,12 @@ public class TechToLib
         nIn.specialValues = pnp.getSpecialValues();
         nIn.spiceTemplate = pnp.getSpiceTemplate();
 
-        NodeParam param = pnp.getParam();
-        if (param != null && param.paramValues != null)
+        PrimitiveNodeGroup primitiveNodeGroup = pnp.getPrimitiveNodeGroup();
+        if (primitiveNodeGroup != null)
         {
-        	nIn.surroundOverrideNames = new String[param.paramValues.size()];
-        	for(int i=0; i<param.paramValues.size(); i++)
-        		nIn.surroundOverrideNames[i] = param.paramValues.get(i);
+        	nIn.surroundOverrideNames = new String[primitiveNodeGroup.getNodes().size()];
+        	for(int i=0; i<primitiveNodeGroup.getNodes().size(); i++)
+        		nIn.surroundOverrideNames[i] = primitiveNodeGroup.getNodes().get(i).getName();
 //System.out.print("PRIMITIVE "+pnp.describe(false)+" HAS OVERRIDES:");
 //for(int i=0; i<nIn.surroundOverrideNames.length; i++) System.out.print(" "+nIn.surroundOverrideNames[i]);
 //System.out.println();
@@ -944,7 +944,7 @@ public class TechToLib
         while (m < nodeLayers.size())
             layerDetails.add(makeNodeLayerDetails(nodeLayers.get(m++), lList, true, false));
         nIn.nodeLayers = layerDetails.toArray(new NodeInfo.LayerDetails[layerDetails.size()]);
-        
+
         nIn.nodePortDetails = new NodeInfo.PortDetails[pnp.getNumPorts()];
         for (int i = 0; i < nIn.nodePortDetails.length; i++) {
             PrimitivePort pp = pnp.getPort(i);
@@ -960,7 +960,7 @@ public class TechToLib
             pd.characterisitic = pp.getCharacteristic();
             pd.isolated = pp.isIsolated();
             pd.negatable = pp.isNegatable();
-            
+
             ArcProto [] connects = pp.getConnections();
             List<ArcInfo> validArcInfoConns = new ArrayList<ArcInfo>();
             for(int j=0; j<connects.length; j++) {
@@ -986,7 +986,7 @@ public class TechToLib
         }
         return nIn;
     }
-    
+
     private static NodeInfo.LayerDetails makeNodeLayerDetails(Technology.NodeLayer nl, LayerInfo[] lList, boolean inLayers, boolean inElectricalLayers) {
         NodeInfo.LayerDetails nld = new NodeInfo.LayerDetails();
         nld.inLayers = inLayers;
@@ -1005,7 +1005,7 @@ public class TechToLib
         nld.multiSep2D = nl.getMulticutSep2D();
         return nld;
     }
-    
+
 	private static NodeInst placeGeometry(Poly poly, Cell cell)
 	{
 		Rectangle2D box = poly.getBox();

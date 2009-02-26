@@ -130,9 +130,6 @@ import javax.swing.SwingUtilities;
  */
 public class Technology implements Comparable<Technology>, Serializable
 {
-	/** true to test extra vias in menu. */
-    public static final boolean TESTSURROUNDOVERRIDE_C = true;
-
 	/** true to allow outlines to have "breaks" with multiple pieces in them */
 	public static final boolean HANDLEBROKENOUTLINES = true;
 	/** true to handle duplicate points in an outline as a "break" */
@@ -504,10 +501,6 @@ public class Technology implements Comparable<Technology>, Serializable
 		private double lWidth, rWidth, extentT, extendB;
         private long cutGridSizeX, cutGridSizeY, cutGridSep1D, cutGridSep2D;
         String sizeRule, cutSep1DRule, cutSep2DRule;
-//        private CustomOverride[] customOverrides;
-//        private int customOverrideMask;
-//        private int customOverrideShift;
-        private BitSet paramValues;
 
 		// the meaning of "representation"
 		/**
@@ -563,32 +556,6 @@ public class Technology implements Comparable<Technology>, Serializable
 			this.points = points;
 			descriptor = TextDescriptor.EMPTY;
 			this.lWidth = this.rWidth = this.extentT = this.extendB = 0;
-		}
-
-		/**
-		 * Constructs a <CODE>NodeLayer</CODE> with the specified description.
-         * This NodeLayer is enabled by a condition on NodeInst's techBits.
-         * The condition is "(techBits & conditionMask) == conditionValue
-		 * @param layer the <CODE>Layer</CODE> this is on.
-		 * @param portNum a 0-based index of the port (from the actual NodeInst) on this layer.
-		 * A negative value indicates that this layer is not connected to an electrical layer.
-		 * @param style the Poly.Type this NodeLayer will generate (polygon, circle, text, etc.).
-		 * @param representation tells how to interpret "points".  It can be POINTS, BOX, or MULTICUTBOX.
-		 * @param points the list of coordinates (stored as TechPoints) associated with this NodeLayer.
-         * @param conditionMask selects techBits
-         * @param conditionValue compares techBits
-		 */
-		public NodeLayer(Layer layer, int portNum, Poly.Type style, int representation, TechPoint [] points,
-                BitSet paramValues)
-		{
-			this.layer = layer;
-			this.portNum = portNum;
-			this.style = style;
-			this.representation = representation;
-			this.points = points;
-			descriptor = TextDescriptor.EMPTY;
-			this.lWidth = this.rWidth = this.extentT = this.extendB = 0;
-            this.paramValues = paramValues;
 		}
 
 		/**
@@ -907,17 +874,13 @@ public class Technology implements Comparable<Technology>, Serializable
                 out.println("\t\tpoint xm=" + p.getX().getMultiplier() + " xa=" + p.getX().getAdder() + " ym=" + p.getY().getMultiplier() + " ya=" + p.getY().getAdder());
         }
 
-        Xml.NodeLayer makeXml(Xml.NodeParam param, boolean isSerp, EPoint correction, boolean inLayers, boolean inElectricalLayers) {
+        Xml.NodeLayer makeXml(boolean isSerp, EPoint correction, boolean inLayers, boolean inElectricalLayers) {
             Xml.NodeLayer nld = new Xml.NodeLayer();
             nld.layer = getLayer().getNonPseudoLayer().getName();
             nld.style = getStyle();
             nld.portNum = getPortNum();
             nld.inLayers = inLayers;
             nld.inElectricalLayers = inElectricalLayers;
-            if (paramValues != null) {
-                nld.param = param;
-                nld.paramValues.or(paramValues);
-            }
             nld.representation = getRepresentation();
             Technology.TechPoint[] points = getPoints();
             if (nld.representation == Technology.NodeLayer.BOX || nld.representation == Technology.NodeLayer.MULTICUTBOX) {
@@ -1130,6 +1093,7 @@ public class Technology implements Comparable<Technology>, Serializable
     /** Old names of primitive nodes */                     protected final HashMap<String,PrimitiveNode> oldNodeNames = new HashMap<String,PrimitiveNode>();
 	/** cached state of node visibility */                  final Map<PrimitiveNode,Boolean> cacheVisibilityNodes = new HashMap<PrimitiveNode,Boolean>();
     /** count of primitive nodes in this technology */      private int nodeIndex = 0;
+    /** list of node groups in this technology */           final ArrayList<PrimitiveNodeGroup> primitiveNodeGroups = new ArrayList<PrimitiveNodeGroup>();
 
 	/** list of arcs in this technology */					private final LinkedHashMap<String,ArcProto> arcs = new LinkedHashMap<String,ArcProto>();
     /** array of arcs by arcId.chronIndex */                private ArcProto[] arcsByChronIndex = {};
@@ -1342,206 +1306,8 @@ public class Technology implements Comparable<Technology>, Serializable
         }
         setNoNegatedArcs();
         DistanceContext context = EMPTY_CONTEXT;
-        for (Xml.PrimitiveNode n: t.nodes) {
-            EPoint sizeCorrector1 = n.diskOffset.get(Integer.valueOf(1));
-            EPoint sizeCorrector2 = n.diskOffset.get(Integer.valueOf(2));
-            if (sizeCorrector2 == null)
-                sizeCorrector2 = EPoint.ORIGIN;
-            if (sizeCorrector1 == null)
-                sizeCorrector1 = sizeCorrector2;
-            String minSizeRule = null;
-            long lx, hx, ly, hy;
-            if (n.nodeSizeRule != null) {
-                hx = DBMath.lambdaToGrid(0.5*n.nodeSizeRule.width);
-                lx = -hx;
-                hy = DBMath.lambdaToGrid(0.5*n.nodeSizeRule.height);
-                ly = -hy;
-                minSizeRule = n.nodeSizeRule.rule;
-            } else {
-                lx = Long.MAX_VALUE;
-                hx = Long.MIN_VALUE;
-                ly = Long.MAX_VALUE;
-                hy = Long.MIN_VALUE;
-                for (int i = 0; i < n.nodeLayers.size(); i++) {
-                    Xml.NodeLayer nl = n.nodeLayers.get(i);
-                    long x, y;
-                    if (nl.representation == NodeLayer.BOX || nl.representation == NodeLayer.MULTICUTBOX) {
-                        x = DBMath.lambdaToGrid(nl.lx.value);
-                        lx = Math.min(lx, x);
-                        hx = Math.max(hx, x);
-                        x = DBMath.lambdaToGrid(nl.hx.value);
-                        lx = Math.min(lx, x);
-                        hx = Math.max(hx, x);
-                        y = DBMath.lambdaToGrid(nl.ly.value);
-                        ly = Math.min(ly, y);
-                        hy = Math.max(hy, y);
-                        y = DBMath.lambdaToGrid(nl.hy.value);
-                        ly = Math.min(ly, y);
-                        hy = Math.max(hy, y);
-                    } else {
-                        for (TechPoint p: nl.techPoints) {
-                            x = p.x.getGridAdder();
-                            lx = Math.min(lx, x);
-                            hx = Math.max(hx, x);
-                            y = p.y.getGridAdder();
-                            ly = Math.min(ly, y);
-                            hy = Math.max(hy, y);
-                        }
-                    }
-                }
-            }
-            ERectangle fullRectangle = ERectangle.fromGrid(lx, ly, hx - lx, hy - ly);
-            EPoint fullSize = EPoint.fromGrid((hx - lx + 1)/2, (hy - ly + 1)/2);
-            boolean needElectricalLayers = false;
-            ArrayList<NodeLayer> nodeLayers = new ArrayList<NodeLayer>();
-            ArrayList<NodeLayer> electricalNodeLayers = new ArrayList<NodeLayer>();
-            for (int i = 0; i < n.nodeLayers.size(); i++) {
-                Xml.NodeLayer nl = n.nodeLayers.get(i);
-                Layer layer = layers.get(nl.layer);
-                TechPoint[] techPoints;
-                if (nl.representation == NodeLayer.BOX || nl.representation == NodeLayer.MULTICUTBOX) {
-                    techPoints = new TechPoint[2];
-                    if (nl.lx.value > nl.hx.value || nl.lx.k > nl.hx.k ||
-                        nl.ly.value > nl.hy.value || nl.ly.k > nl.hy.k)
-                    {
-                        System.out.println("Negative-size polygon in primitive node " + getTechName() + ":" + n.name +
-                        	", layer " + layer.getName());
-                    }
-                    techPoints[0] = makeTechPoint(nl.lx, nl.ly, context, fullSize);
-                    techPoints[1] = makeTechPoint(nl.hx, nl.hy, context, fullSize);
-                } else {
-                    techPoints = nl.techPoints.toArray(new TechPoint[nl.techPoints.size()]);
-                    for (int j = 0; j < techPoints.length; j++)
-                        techPoints[j] = makeTechPoint(techPoints[j], fullSize);
-                }
-                NodeLayer nodeLayer;
-                if (n.shrinkArcs) {
-                    if (layer.getPseudoLayer() == null)
-                        layer.makePseudo();
-                    layer = layer.getPseudoLayer();
-                }
-                if (nl.representation == NodeLayer.MULTICUTBOX) {
-                    nodeLayer = NodeLayer.makeMulticut(layer, nl.portNum, nl.style, techPoints, nl.sizex, nl.sizey, nl.sep1d, nl.sep2d);
-                }
-                else if (n.specialType == PrimitiveNode.SERPTRANS)
-                    nodeLayer = new NodeLayer(layer, nl.portNum, nl.style, nl.representation, techPoints, nl.lWidth, nl.rWidth, nl.tExtent, nl.bExtent);
-                else {
-                    BitSet paramValues = null;
-                    if (nl.param != null) {
-                        assert nl.param == n.param;
-                        paramValues = nl.paramValues;
-                    }
-                    nodeLayer = new NodeLayer(layer, nl.portNum, nl.style, nl.representation, techPoints, paramValues);
-                }
-                if (!(nl.inLayers && nl.inElectricalLayers))
-                    needElectricalLayers = true;
-                if (nl.inLayers)
-                    nodeLayers.add(nodeLayer);
-                if (nl.inElectricalLayers)
-                    electricalNodeLayers.add(nodeLayer);
-//                nodeLayer.customOverrides = nl.customOverrides;
-//                nodeLayer.customOverrideMask = nl.customOverrideMask;
-//                nodeLayer.customOverrideShift = nl.customOverrideShift;
-            }
-            if (n.sizeOffset != null) {
-                lx += n.sizeOffset.getLowXGridOffset();
-                hx -= n.sizeOffset.getHighXGridOffset();
-                ly += n.sizeOffset.getLowYGridOffset();
-                hy -= n.sizeOffset.getHighYGridOffset();
-            }
-            ERectangle baseRectangle = ERectangle.fromGrid(lx, ly, hx - lx, hy - ly);
-            PrimitiveNode pnp = PrimitiveNode.newInstance(n.name, n.param, this, sizeCorrector1, sizeCorrector2, minSizeRule,
-                    DBMath.round(n.defaultWidth.value + 2*fullSize.getLambdaX()),
-                    DBMath.round(n.defaultHeight.value + 2*fullSize.getLambdaY()),
-                    fullRectangle, baseRectangle, nodeLayers.toArray(new NodeLayer[nodeLayers.size()]));
-            if (n.oldName != null)
-                oldNodeNames.put(n.oldName, pnp);
-            pnp.setFunction(n.function);
-            if (needElectricalLayers)
-                pnp.setElectricalLayers(electricalNodeLayers.toArray(new NodeLayer[electricalNodeLayers.size()]));
-            if (n.shrinkArcs) {
-                pnp.setArcsWipe();
-                pnp.setArcsShrink();
-            }
-            if (n.square)
-                pnp.setSquare();
-            if (n.canBeZeroSize)
-                pnp.setCanBeZeroSize();
-            if (n.wipes)
-                pnp.setWipeOn1or2();
-            if (n.lockable)
-                pnp.setLockedPrim();
-            if (n.edgeSelect)
-                pnp.setEdgeSelect();
-            if (n.skipSizeInPalette)
-                pnp.setSkipSizeInPalette();
-            if (n.notUsed)
-                pnp.setNotUsed(true);
-            if (n.lowVt)
-                pnp.setNodeBit(PrimitiveNode.LOWVTBIT);
-            if (n.highVt)
-                pnp.setNodeBit(PrimitiveNode.HIGHVTBIT);
-            if (n.nativeBit)
-                pnp.setNodeBit(PrimitiveNode.NATIVEBIT);
-            if (n.od18)
-                pnp.setNodeBit(PrimitiveNode.OD18BIT);
-            if (n.od25)
-                pnp.setNodeBit(PrimitiveNode.OD25BIT);
-            if (n.od33)
-                pnp.setNodeBit(PrimitiveNode.OD33BIT);
-
-            PrimitivePort[] ports = new PrimitivePort[n.ports.size()];
-            for (int i = 0; i < ports.length; i++) {
-                Xml.PrimitivePort p = n.ports.get(i);
-                if (p.lx.value > p.hx.value || p.lx.k > p.hx.k || p.ly.value > p.hy.value || p.ly.k > p.hy.k)
-                {
-                	double lX = p.lx.value - fullSize.getLambdaX()*p.lx.k;
-                	double hX = p.hx.value - fullSize.getLambdaX()*p.hx.k;
-                	double lY = p.ly.value - fullSize.getLambdaY()*p.ly.k;
-                	double hY = p.hy.value - fullSize.getLambdaY()*p.hy.k;
-                    String explain = " (LX=" + TextUtils.formatDouble(p.lx.k/2) + "W";
-                    if (lX >= 0) explain += "+";
-                    explain += TextUtils.formatDouble(lX) + ", HX=" + TextUtils.formatDouble(p.hx.k/2) + "W";
-                    if (hX >= 0) explain += "+";
-                    explain += TextUtils.formatDouble(hX) + ", LY=" + TextUtils.formatDouble(p.ly.k/2) + "H";
-                    if (lY >= 0) explain += "+";
-                    explain += TextUtils.formatDouble(lY) + ", HY=" + TextUtils.formatDouble(p.hy.k/2) + "H";
-                    if (hY >= 0) explain += "+";
-                    explain += TextUtils.formatDouble(hY);
-                    explain += " but size is " + fullSize.getLambdaX()*2 + "x" + fullSize.getLambdaY()*2 + ")";
-                    System.out.println("Warning: port " + p.name + " in primitive " + getTechName() + ":" + n.name + " has negative size" + explain);
-                }
-                EdgeH elx = makeEdgeH(p.lx, context, fullSize);
-                EdgeH ehx = makeEdgeH(p.hx, context, fullSize);
-                EdgeV ely = makeEdgeV(p.ly, context, fullSize);
-                EdgeV ehy = makeEdgeV(p.hy, context, fullSize);
-                ports[i] = PrimitivePort.newInstance(this, pnp, makeConnections(n.name, p.name, p.portArcs, arcs), p.name,
-                        p.portAngle, p.portRange, p.portTopology, PortCharacteristic.UNKNOWN,
-                        elx, ely, ehx, ehy);
-            }
-            pnp.addPrimitivePorts(ports);
-            pnp.setSpecialType(n.specialType);
-            switch (n.specialType) {
-                case com.sun.electric.technology.PrimitiveNode.POLYGONAL:
-					pnp.setHoldsOutline();
-                    break;
-                case com.sun.electric.technology.PrimitiveNode.SERPTRANS:
-					pnp.setHoldsOutline();
-                    pnp.setCanShrink();
-                    pnp.setSpecialValues(n.specialValues);
-                    break;
-                default:
-                    break;
-            }
-            if (n.function == PrimitiveNode.Function.NODE) {
-                assert pnp.getLayers().length == 1;
-                Layer layer = pnp.getLayers()[0].getLayer();
-                assert layer.getPureLayerNode() == null;
-                layer.setPureLayerNode(pnp);
-            }
-            if (n.spiceTemplate != null)
-            	pnp.setSpiceTemplate(n.spiceTemplate);
-        }
+        for (Xml.PrimitiveNode n: t.nodes)
+            PrimitiveNodeGroup.makePrimitiveNodes(this, n, layers, arcs, context);
         for (Xml.Layer l: t.layers) {
             if (l.pureLayerNode == null) continue;
             Layer layer = layers.get(l.name);
@@ -1577,7 +1343,7 @@ public class Technology implements Comparable<Technology>, Serializable
         }
     }
 
-    private ArcProto[] makeConnections(String nodeName, String portName, List<String> portArcs, HashMap<String,ArcProto> arcs) {
+    static ArcProto[] makeConnections(String nodeName, String portName, List<String> portArcs, Map<String,ArcProto> arcs) {
         ArcProto[] connections = new ArcProto[portArcs.size()];
         for (int j = 0; j < connections.length; j++) {
             ArcProto ap = arcs.get(portArcs.get(j));
@@ -1592,7 +1358,7 @@ public class Technology implements Comparable<Technology>, Serializable
         return connections;
     }
 
-    private TechPoint makeTechPoint(TechPoint p, EPoint correction) {
+    static TechPoint makeTechPoint(TechPoint p, EPoint correction) {
         EdgeH h = p.getX();
         EdgeV v = p.getY();
         h = new EdgeH(h.getMultiplier(), h.getAdder() - correction.getLambdaX()*h.getMultiplier()*2);
@@ -1600,15 +1366,15 @@ public class Technology implements Comparable<Technology>, Serializable
         return new TechPoint(h, v);
     }
 
-    private TechPoint makeTechPoint(Xml.Distance x, Xml.Distance y, DistanceContext context, EPoint correction) {
+    static TechPoint makeTechPoint(Xml.Distance x, Xml.Distance y, DistanceContext context, EPoint correction) {
         return new TechPoint(makeEdgeH(x, context, correction), makeEdgeV(y, context, correction));
     }
 
-    private EdgeH makeEdgeH(Xml.Distance x, DistanceContext context, EPoint correction) {
+    static EdgeH makeEdgeH(Xml.Distance x, DistanceContext context, EPoint correction) {
         return new EdgeH(x.k*0.5, x.value - correction.getLambdaX()*x.k);
     }
 
-    private EdgeV makeEdgeV(Xml.Distance y, DistanceContext context, EPoint correction) {
+    static EdgeV makeEdgeV(Xml.Distance y, DistanceContext context, EPoint correction) {
         return new EdgeV(y.k*0.5, y.value - correction.getLambdaY()*y.k);
     }
 
@@ -2160,13 +1926,16 @@ public class Technology implements Comparable<Technology>, Serializable
 //            if (ap.arcPin != null)
 //                arcPins.add(ap.arcPin);
         }
+        for (PrimitiveNodeGroup g: primitiveNodeGroups)
+            t.nodes.add(g.makeXml());
         for (Iterator<PrimitiveNode> it = getNodes(); it.hasNext(); ) {
             PrimitiveNode pnp = it.next();
             if (pnp.getFunction() == PrimitiveNode.Function.NODE) continue;
+            if (pnp.getPrimitiveNodeGroup() != null)
+                continue;
 //            if (arcPins.contains(pnp)) continue;
             t.nodes.add(pnp.makeXml());
         }
-
         addSpiceHeader(t, 1, getSpiceHeaderLevel1());
         addSpiceHeader(t, 2, getSpiceHeaderLevel2());
         addSpiceHeader(t, 3, getSpiceHeaderLevel3());
@@ -3578,21 +3347,11 @@ public class Technology implements Comparable<Technology>, Serializable
 
 		// if a MultiCut contact, determine the number of extra cuts
 		int numExtraLayers = 0;
-        int paramValue = 0;
-        if (TESTSURROUNDOVERRIDE_C && np.param != null) {
-            numExtraLayers = -numBasicLayers;
-            paramValue = (ni.getTechSpecific() >>> np.param.bitsFrom) & ((1 << np.param.bitsN) - 1);
-        }
 		MultiCutData mcd = null;
 		SerpentineTrans std = null;
 		if (np.hasMultiCuts())
 		{
             for (NodeLayer nodeLayer: primLayers) {
-                if (TESTSURROUNDOVERRIDE_C && np.param != null) {
-                    if (nodeLayer.paramValues != null && !nodeLayer.paramValues.get(paramValue))
-                        continue;
-                    numExtraLayers++;
-                }
                 if (nodeLayer.representation == NodeLayer.MULTICUTBOX) {
                     mcd = new MultiCutData(ni.getD(), fullRectangle, nodeLayer);
                     if (reasonable) numExtraLayers += (mcd.cutsReasonable - 1); else
@@ -3628,12 +3387,9 @@ public class Technology implements Comparable<Technology>, Serializable
 
 		// add in the basic polygons
 		int fillPoly = 0;
-        int techBits = ni.getTechSpecific();
 		for(int i = 0; i < numBasicLayers; i++)
 		{
 			Technology.NodeLayer primLayer = primLayers[i];
-            if (TESTSURROUNDOVERRIDE_C && primLayer.paramValues != null && !primLayer.paramValues.get(paramValue))
-                continue;
 
 			int representation = primLayer.getRepresentation();
 			if (representation == Technology.NodeLayer.BOX)
@@ -3646,26 +3402,6 @@ public class Technology implements Comparable<Technology>, Serializable
 				double portHighX = xCenter + rightEdge.getMultiplier() * xSize + rightEdge.getAdder();
 				double portLowY = yCenter + bottomEdge.getMultiplier() * ySize + bottomEdge.getAdder();
 				double portHighY = yCenter + topEdge.getMultiplier() * ySize + topEdge.getAdder();
-//                if (TESTSURROUNDOVERRIDE_B)
-//                {
-//                    int maskedTechBits = techBits & primLayer.customOverrideMask;
-//                    if (maskedTechBits != 0 && primLayer.customOverrides != null)
-//                    {
-//                        int index = (maskedTechBits >> primLayer.customOverrideShift) - 1;
-//                        if (index >= 0 && index < primLayer.customOverrides.length)
-//                        {
-//	                        CustomOverride co = primLayer.customOverrides[index];
-//	                        if (co != null)
-//	                        {
-//		                        ERectangle override = co.getRect();
-//								portLowX += override.getLambdaMinX();
-//								portHighX += override.getLambdaMaxX();
-//								portLowY += override.getLambdaMinY();
-//								portHighY += override.getLambdaMaxY();
-//	                        }
-//                        }
-//                    }
-//                }
 				Point2D [] pointList = Poly.makePoints(portLowX, portHighX, portLowY, portHighY);
 				polys[fillPoly] = new Poly(pointList);
 			} else if (representation == Technology.NodeLayer.POINTS)
@@ -6268,6 +6004,8 @@ public class Technology implements Comparable<Technology>, Serializable
 			PrimitiveNode np = it.next();
 			if (np.isNotUsed()) continue;
 			if (np.getFunction() == PrimitiveNode.Function.NODE) continue;
+            if (np.group != null) continue;
+            things.add(np);
 
 //			boolean customOverride = false;
 //			NodeLayer[] nLayers = np.getLayers();
@@ -6295,6 +6033,12 @@ public class Technology implements Comparable<Technology>, Serializable
 //        	if (!customOverride)
         		things.add(np);
 		}
+        for (PrimitiveNodeGroup group: new PrimitiveNodeGroup[0]) {
+            List<Object> tmp = new ArrayList<Object>();
+            for (PrimitiveNode np: group.getNodes())
+                tmp.add(makeNodeInst(np));
+            things.add(tmp);
+        }
 		things.add(SPECIALMENUPURE);
 		things.add(SPECIALMENUMISC);
 		things.add(SPECIALMENUCELL);

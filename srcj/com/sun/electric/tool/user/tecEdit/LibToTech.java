@@ -2744,13 +2744,6 @@ public class LibToTech
 			nld.tExtent = DBMath.round(nl.extendT);
 			nld.bExtent = DBMath.round(nl.extendB);
 		}
-		nld.customOverrideMask = 0;
-		nld.customOverrideShift = 0;
-//		if (overrides != null)
-//		{
-//			nld.customOverrideMask = 0xFC;
-//			nld.customOverrideShift = 2;
-//		}
 		return nld;
 	}
 

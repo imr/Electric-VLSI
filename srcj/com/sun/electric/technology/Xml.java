@@ -187,10 +187,13 @@ public class Xml {
         public Poly.Type style;
     }
 
+    public static class PrimitiveNodeGroup extends PrimitiveNode {
+        public final List<String> nodes = new ArrayList<String>();
+    }
+
     public static class PrimitiveNode implements Serializable {
         public String name;
         public String oldName;
-        public NodeParam param;
         public boolean shrinkArcs;
         public boolean square;
         public boolean canBeZeroSize;
@@ -219,13 +222,6 @@ public class Xml {
         public NodeSizeRule nodeSizeRule;
         public String spiceTemplate;
     }
-    
-    public static class NodeParam {
-        public String name;
-        public int bitsFrom;
-        public int bitsN;
-        public final List<String> paramValues = new ArrayList<String>();
-    }
 
     public enum ProtectionType {
         both, left, right, none;
@@ -233,8 +229,7 @@ public class Xml {
 
     public static class NodeLayer implements Serializable {
         public String layer;
-        public NodeParam param;
-        public final BitSet paramValues = new BitSet();
+        public BitSet inNodes;
         public Poly.Type style;
         public int portNum;
         public boolean inLayers;
@@ -247,9 +242,6 @@ public class Xml {
         public final List<TechPoint> techPoints = new ArrayList<TechPoint>();
         public double sizex, sizey, sep1d, sep2d;
         public double lWidth, rWidth, tExtent, bExtent;
-//        public CustomOverride[] customOverrides;
-        public int customOverrideMask;
-        public int customOverrideShift;
     }
 
     public static class NodeSizeRule implements Serializable {
@@ -361,10 +353,10 @@ public class Xml {
         defaultWidth,
         arcLayer,
 
+        primitiveNodeGroup,
+        inNodes,
         primitiveNode,
         //oldName(true),
-        param,
-        paramValue(true),
         shrinkArcs,
         square,
         canBeZeroSize,
@@ -536,6 +528,7 @@ public class Xml {
         private double opacity;
         private boolean foreground;
         private ArcProto curArc;
+        private PrimitiveNodeGroup curNodeGroup;
         private PrimitiveNode curNode;
         private NodeLayer curNodeLayer;
         private PrimitivePort curPort;
@@ -930,20 +923,25 @@ public class Xml {
                     arcLayer.style = Poly.Type.valueOf(a("style"));
                     curArc.arcLayers.add(arcLayer);
                     break;
-                case primitiveNode:
-                    curNode = new PrimitiveNode();
-                    curNode.name = a("name");
-                    curNode.function = com.sun.electric.technology.PrimitiveNode.Function.valueOf(a("fun"));
+                case primitiveNodeGroup:
+                    curNode = curNodeGroup = new PrimitiveNodeGroup();
+                    curNodeGroup.name = a("name");
+                    curNodeGroup.function = com.sun.electric.technology.PrimitiveNode.Function.valueOf(a("fun"));
                     break;
-                case param:
+                case inNodes:
+                    if (curNodeGroup == null)
+                        throw new SAXException("<inNodes> can be used only inside <primitiveNodeGroup>");
+                    curNodeLayer.inNodes = new BitSet();
+                    break;
+                case primitiveNode:
                     if (curNodeLayer != null) {
-                        curNodeLayer.param = curNode.param;
-                        assert curNodeLayer.param.name.equals(a("name"));
+                        curNodeLayer.inNodes.set(curNodeGroup.nodes.indexOf(a("name")));
+                    } else if (curNodeGroup != null) {
+                        curNodeGroup.nodes.add(a("name"));
                     } else {
-                        curNode.param = new NodeParam();
-                        curNode.param.name = a("name");
-                        curNode.param.bitsFrom = Integer.parseInt(a("bitsFrom"));
-                        curNode.param.bitsN = Integer.parseInt(a("bitsN"));
+                        curNode = new PrimitiveNode();
+                        curNode.name = a("name");
+                        curNode.function = com.sun.electric.technology.PrimitiveNode.Function.valueOf(a("fun"));
                     }
                     break;
                 case shrinkArcs:
@@ -1292,12 +1290,6 @@ public class Xml {
                     case antennaRatio:
                         curArc.antennaRatio = Double.parseDouble(text);
                         break;
-                    case paramValue:
-                        if (curNodeLayer != null)
-                            curNodeLayer.paramValues.set(curNodeLayer.param.paramValues.indexOf(text));
-                        else
-                            curNode.param.paramValues.add(text);
-                        break;
                     case portTopology:
                         curPort.portTopology = Integer.parseInt(text);
                         break;
@@ -1353,9 +1345,15 @@ public class Xml {
                     tech.arcs.add(curArc);
                     curArc = null;
                     break;
+                case primitiveNodeGroup:
+                    tech.nodes.add(curNodeGroup);
+                    curNode = curNodeGroup = null;
+                    break;
                 case primitiveNode:
-                    tech.nodes.add(curNode);
-                    curNode = null;
+                    if (curNodeGroup == null) {
+                        tech.nodes.add(curNode);
+                        curNode = null;
+                    }
                     break;
                 case nodeLayer:
                     curNode.nodeLayers.add(curNodeLayer);
@@ -1394,7 +1392,7 @@ public class Xml {
                 case defaultWidth:
                 case arcLayer:
 
-                case param:    
+                case inNodes:
                 case shrinkArcs:
                 case square:
                 case canBeZeroSize:
@@ -1833,16 +1831,23 @@ public class Xml {
         }
 
         private void writeXml(Xml.PrimitiveNode ni) {
-            b(XmlKeyword.primitiveNode); a("name", ni.name); a("fun", ni.function.name()); cl();
-            bcpel(XmlKeyword.oldName, ni.oldName);
-            
-            if (ni.param != null) {
-                b(XmlKeyword.param); a("name", ni.param.name); a("bitsFrom", ni.param.bitsFrom); a("bitsN", ni.param.bitsN); cl();
-                for (String paramValue: ni.param.paramValues)
-                    bcpel(XmlKeyword.paramValue, paramValue);
-                el(XmlKeyword.param);
+            if (ni instanceof Xml.PrimitiveNodeGroup) {
+                b(XmlKeyword.primitiveNodeGroup); a("name", ni.name); a("fun", ni.function.name()); cl();
+                List<String> nodeNames = ((Xml.PrimitiveNodeGroup)ni).nodes;
+                for (String nodeName: nodeNames) {
+                    b(XmlKeyword.primitiveNode); a("name", nodeName); el();
+                }
+                writeXmlImpl(ni, nodeNames);
+                el(XmlKeyword.primitiveNodeGroup);
+            } else {
+                b(XmlKeyword.primitiveNode); a("name", ni.name); a("fun", ni.function.name()); cl();
+                bcpel(XmlKeyword.oldName, ni.oldName);
+                writeXmlImpl(ni, null);
+                el(XmlKeyword.primitiveNode);
             }
+        }
 
+        private void writeXmlImpl(Xml.PrimitiveNode ni, List<String> nodeNames) {
             if (ni.shrinkArcs)
                 bel(XmlKeyword.shrinkArcs);
             if (ni.square)
@@ -1903,19 +1908,20 @@ public class Xml {
 
             for(int j=0; j<ni.nodeLayers.size(); j++) {
                 Xml.NodeLayer nl = ni.nodeLayers.get(j);
-                if (nl.param != null) {
-                    b(XmlKeyword.param); a("name", ni.param.name); cl();
-                    for (int i = 0; i < nl.param.paramValues.size(); i++) {
-                        if (nl.paramValues.get(i))
-                            bcpel(XmlKeyword.paramValue, nl.param.paramValues.get(i));
-                    }
-                    el(XmlKeyword.param);
-                }
                 b(XmlKeyword.nodeLayer); a("layer", nl.layer); a("style", nl.style.name());
                 if (nl.portNum != 0) a("portNum", Integer.valueOf(nl.portNum));
                 if (!(nl.inLayers && nl.inElectricalLayers))
                     a("electrical", Boolean.valueOf(nl.inElectricalLayers));
                 cl();
+                if (nl.inNodes != null) {
+                    bcl(XmlKeyword.inNodes);
+                    for (int i = 0; i < nodeNames.size(); i++) {
+                        if (nl.inNodes.get(i)) {
+                            b(XmlKeyword.primitiveNode); a("name", nodeNames.get(i)); el();
+                        }
+                    }
+                    el(XmlKeyword.inNodes);
+                }
                 switch (nl.representation) {
                     case com.sun.electric.technology.Technology.NodeLayer.BOX:
                         if (ni.specialType == com.sun.electric.technology.PrimitiveNode.SERPTRANS) {
@@ -2004,8 +2010,6 @@ public class Xml {
             {
             	b(XmlKeyword.spiceTemplate); a("value", ni.spiceTemplate); el();
             }
-
-            el(XmlKeyword.primitiveNode);
         }
 
         private void writeBox(XmlKeyword keyword, Distance lx, Distance hx, Distance ly, Distance hy) {
