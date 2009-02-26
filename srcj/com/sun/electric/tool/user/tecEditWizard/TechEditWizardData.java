@@ -122,7 +122,21 @@ public class TechEditWizardData
 	private WizardField [] via_overhang;
 	private WizardField [] via_overhang_short;
 
-	// ANTENNA RULES
+    // generic cross contacts
+    private static class ContactNode
+    {
+        int layer;
+        WizardField overX; // overhang X value
+        WizardField overY; // overhang Y value
+    }
+    private static class Contact
+    {
+        ContactNode verticalLayer;
+        ContactNode horizontalLayer;
+    }
+    private List<Contact> crossContacts = new ArrayList<Contact>();
+
+    // ANTENNA RULES
 	private double poly_antenna_ratio;
 	private double [] metal_antenna_ratio;
 
@@ -681,7 +695,9 @@ public class TechEditWizardData
 					if (varName.equalsIgnoreCase("via_overhang_inline_short")) fillWizardArray(varValue, via_overhang_short, num_metal_layers-1, false); else
 					if (varName.equalsIgnoreCase("via_overhang_inline_short_rule")) fillWizardArray(varValue, via_overhang_short, num_metal_layers-1, true); else
 
-					if (varName.equalsIgnoreCase("poly_antenna_ratio")) setPolyAntennaRatio(TextUtils.atof(varValue)); else
+                    if (varName.equalsIgnoreCase("cross_contacts")) fillCrossContactArray(varValue, crossContacts); else
+
+                    if (varName.equalsIgnoreCase("poly_antenna_ratio")) setPolyAntennaRatio(TextUtils.atof(varValue)); else
 					if (varName.equalsIgnoreCase("metal_antenna_ratio")) metal_antenna_ratio = makeDoubleArray(varValue); else
 
 					if (varName.equalsIgnoreCase("gds_diff_layer")) gds_diff_layer.setData(getGDSValuesFromString(varValue)); else
@@ -804,7 +820,53 @@ public class TechEditWizardData
 		}
 	}
 
-	/************************************** EXPORT RAW NUMBERS TO DISK **************************************/
+    // to get cross contact
+    private void fillCrossContactArray(String str, List<Contact> contactList)
+    {
+        StringTokenizer parse = new StringTokenizer(str, "{}", false);
+        while (parse.hasMoreTokens())
+        {
+            String v = parse.nextToken();
+            // pair of layers found
+            StringTokenizer p = new StringTokenizer(v, "[]", false);
+            int count = 0;
+            while (p.hasMoreTokens())
+            {
+                String s = p.nextToken();
+                // layer info
+                int itemCount = 0; // 4 max items: metal layer, overhang X, overhang X rule, overhang Y, overhang Y rule
+                StringTokenizer x = new StringTokenizer(s, ", ", false);
+                int metal = -1;
+                double overX, overY;
+                String overXS, overYS;
+
+                while (x.hasMoreTokens() && itemCount < 4)
+                {
+                    String item = x.nextToken();
+                    switch (itemCount)
+                    {
+                        case 0: // metal layer
+                            metal = Integer.valueOf(item);
+                            break;
+                        case 1: // overhang X value
+                           overX = Double.valueOf(item);
+                            break;
+                        case 2: // overhang X rule name
+                            overXS = item;
+                            break;
+                        case 3: // overhang Y value
+                            break;
+                        case 4: // overhang Y rule name
+                            break;
+                    }
+                    itemCount++;
+                }
+            }
+            Contact cont = new Contact();
+        }
+    }
+
+    /************************************** EXPORT RAW NUMBERS TO DISK **************************************/
 
 	void exportData()
 	{
