@@ -853,30 +853,32 @@
                         <xsd:attribute name="fun" type="tns:ArcProtoFun" use="required"/>
                     </xsd:complexType>
                 </xsd:element>
-                <xsd:element name="primitiveNodeGroup" minOccurs="0" maxOccurs="unbounded">
-                    <xsd:complexType>
-                        <xsd:sequence>
-                            <xsd:element name="primitiveNode" maxOccurs="unbounded">
-                                <xsd:complexType>
-                                    <xsd:attribute name="name" type="tns:PrimitiveNodeName" use="required"/>
-                                </xsd:complexType>
-                            </xsd:element>
-                            <xsd:group ref="tns:PrimitiveNodeImpl"/>
-                        </xsd:sequence>
-                        <xsd:attribute name="name" type="tns:PrimitiveNodeName" use="required"/>
-                        <xsd:attribute name="fun" type="tns:PrimitiveNodeFun" use="required"/>
-                    </xsd:complexType>
-                </xsd:element>
-                <xsd:element name="primitiveNode" minOccurs="0" maxOccurs="unbounded">
-                    <xsd:complexType>
-                        <xsd:sequence>
-                            <xsd:element name="oldName" type="xsd:string" minOccurs="0"></xsd:element>
-                            <xsd:group ref="tns:PrimitiveNodeImpl"/>
-                        </xsd:sequence>
-                        <xsd:attribute name="name" type="tns:PrimitiveNodeName" use="required"/>
-                        <xsd:attribute name="fun" type="tns:PrimitiveNodeFun" use="required"/>
-                    </xsd:complexType>
-                </xsd:element>
+                <xsd:choice minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="primitiveNodeGroup">
+                        <xsd:complexType>
+                            <xsd:sequence>
+                                <xsd:element name="primitiveNode" maxOccurs="unbounded">
+                                    <xsd:complexType>
+                                        <xsd:attribute name="name" type="tns:PrimitiveNodeName" use="required"/>
+                                    </xsd:complexType>
+                                </xsd:element>
+                                <xsd:group ref="tns:PrimitiveNodeImpl"/>
+                            </xsd:sequence>
+                            <xsd:attribute name="name" type="tns:PrimitiveNodeName" use="required"/>
+                            <xsd:attribute name="fun" type="tns:PrimitiveNodeFun" use="required"/>
+                        </xsd:complexType>
+                    </xsd:element>
+                    <xsd:element name="primitiveNode">
+                        <xsd:complexType>
+                            <xsd:sequence>
+                                <xsd:element name="oldName" type="xsd:string" minOccurs="0"></xsd:element>
+                                <xsd:group ref="tns:PrimitiveNodeImpl"/>
+                            </xsd:sequence>
+                            <xsd:attribute name="name" type="tns:PrimitiveNodeName" use="required"/>
+                            <xsd:attribute name="fun" type="tns:PrimitiveNodeFun" use="required"/>
+                        </xsd:complexType>
+                    </xsd:element>
+                </xsd:choice>
                 <xsd:element name="spiceHeader" minOccurs="0" maxOccurs="unbounded">
                     <xsd:complexType>
                         <xsd:sequence>

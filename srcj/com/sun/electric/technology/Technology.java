@@ -1926,15 +1926,19 @@ public class Technology implements Comparable<Technology>, Serializable
 //            if (ap.arcPin != null)
 //                arcPins.add(ap.arcPin);
         }
-        for (PrimitiveNodeGroup g: primitiveNodeGroups)
-            t.nodes.add(g.makeXml());
+        HashSet<PrimitiveNodeGroup> groupsDone = new HashSet<PrimitiveNodeGroup>();
         for (Iterator<PrimitiveNode> it = getNodes(); it.hasNext(); ) {
             PrimitiveNode pnp = it.next();
             if (pnp.getFunction() == PrimitiveNode.Function.NODE) continue;
-            if (pnp.getPrimitiveNodeGroup() != null)
-                continue;
-//            if (arcPins.contains(pnp)) continue;
-            t.nodes.add(pnp.makeXml());
+            PrimitiveNodeGroup group = pnp.getPrimitiveNodeGroup();
+            if (group != null) {
+                if (groupsDone.contains(group))
+                    continue;
+                t.nodes.add(group.makeXml());
+                groupsDone.add(group);
+            } else {
+                t.nodes.add(pnp.makeXml());
+            }
         }
         addSpiceHeader(t, 1, getSpiceHeaderLevel1());
         addSpiceHeader(t, 2, getSpiceHeaderLevel2());
