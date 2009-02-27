@@ -131,7 +131,10 @@ public abstract class TechFactory {
     }
 
     private static void r(Map<String,TechFactory> m, String techName, String resourceName) {
-        m.put(techName, fromXml(Main.class.getResource(resourceName), null));
+        URL url = Main.class.getResource(resourceName);
+        if (url == null)
+            return;
+        m.put(techName, fromXml(url, null));
     }
     
     abstract Technology newInstanceImpl(Generic generic) throws Exception;
