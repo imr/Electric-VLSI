@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09d: ******************************
 
+BUG: (2/27/09, DN) Database regression failed in Schematic.xml.
+FIX: Add Carbon Nanotube PrimitiveNodeFunctions to Technology.xsd .
+
 BUG: (2/26/09, DN) GNU release crashes on "tsmc180.xml".
 FIX: In TechFactory.r check if URL exists.
 

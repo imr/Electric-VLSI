@@ -507,6 +507,8 @@
             <xsd:enumeration value="TRAPMOSNT"/>
             <xsd:enumeration value="TRANMOSFG"/>
             <xsd:enumeration value="TRAPMOSFG"/>
+            <xsd:enumeration value="TRANMOSCN"/>
+            <xsd:enumeration value="TRAPMOSCN"/>
             <xsd:enumeration value="TRANMOSVTL"/>
             <xsd:enumeration value="TRAPMOSVTL"/>
             <xsd:enumeration value="TRANMOSVTH"/>
@@ -539,6 +541,8 @@
             <xsd:enumeration value="TRA4PMOSNT"/>
             <xsd:enumeration value="TRA4NMOSFG"/>
             <xsd:enumeration value="TRA4PMOSFG"/>
+            <xsd:enumeration value="TRA4NMOSCN"/>
+            <xsd:enumeration value="TRA4PMOSCN"/>
             <xsd:enumeration value="TRA4NMOSVTL"/>
             <xsd:enumeration value="TRA4PMOSVTL"/>
             <xsd:enumeration value="TRA4NMOSVTH"/>
