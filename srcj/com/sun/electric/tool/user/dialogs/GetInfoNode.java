@@ -542,7 +542,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 			popup.addItem("At node edges");
 			popup.addItem("In node corner");
 			initialPopupIndex = ni.getVarValue(NodeLayer.CUT_ALIGNMENT, Integer.class, NodeLayer.MULTICUT_CENTERED).intValue();
-			popup.setSelectedIndex(initialPopupIndex&3);
+			popup.setSelectedIndex(initialPopupIndex);
 
 			textFieldLabel.setText("Cut spacing:");
 			textField.setEditable(true);
