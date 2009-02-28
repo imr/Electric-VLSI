@@ -142,13 +142,21 @@ public class TechEditWizardData
         ContactNode verticalLayer; // low metal!
         ContactNode horizontalLayer;
 
+        // odd metals go vertical
         Contact (String p, ContactNode v, ContactNode h)
         {
             prefix = p;
-            verticalLayer = v; horizontalLayer = h;
+            if (v.layer%2 != 0) // v is the odd metal
+            {
+                verticalLayer = v; horizontalLayer = h;
+            }
+            else
+            {
+                verticalLayer = h; horizontalLayer = v;
+            }
         }
     }
-    private List<Contact> generalMetalContacts;
+    private Map<String,List<Contact>> metalContacts;
 
     // ANTENNA RULES
 	private double poly_antenna_ratio;
@@ -255,7 +263,7 @@ public class TechEditWizardData
 		via_overhang_short = new WizardField[num_metal_layers-1];
 		metal_antenna_ratio = new double[num_metal_layers];
 
-        generalMetalContacts = new ArrayList<Contact>();
+        metalContacts = new HashMap<String,List<Contact>>();
 
         gds_metal_layer = new LayerInfo[num_metal_layers];
 		gds_via_layer = new LayerInfo[num_metal_layers-1];
@@ -711,7 +719,7 @@ public class TechEditWizardData
 					if (varName.equalsIgnoreCase("via_overhang_inline_short")) fillWizardArray(varValue, via_overhang_short, num_metal_layers-1, false); else
 					if (varName.equalsIgnoreCase("via_overhang_inline_short_rule")) fillWizardArray(varValue, via_overhang_short, num_metal_layers-1, true); else
 
-                    if (varName.equalsIgnoreCase("metal_contacts")) fillGeneralContactArray(varValue, generalMetalContacts); else
+                    if (varName.equalsIgnoreCase("metal_contacts_series")) fillContactSeries(varValue, metalContacts); else
 
                     if (varName.equalsIgnoreCase("poly_antenna_ratio")) setPolyAntennaRatio(TextUtils.atof(varValue)); else
 					if (varName.equalsIgnoreCase("metal_antenna_ratio")) metal_antenna_ratio = makeDoubleArray(varValue); else
@@ -836,10 +844,12 @@ public class TechEditWizardData
 		}
 	}
 
-    // to get cross contact
-    private void fillGeneralContactArray(String str, List<Contact> contactList)
+    // to get general contact
+    private void fillContactSeries(String str, Map<String,List<Contact>> contactMap)
     {
-        StringTokenizer parse = new StringTokenizer(str, "({})", false);
+        StringTokenizer parse = new StringTokenizer(str, "[]", false);
+        List<ContactNode> nodeList = new ArrayList<ContactNode>();
+
         while (parse.hasMoreTokens())
         {
             String value = parse.nextToken();
@@ -847,56 +857,92 @@ public class TechEditWizardData
             if (value.equals(";")) // end of line
                 continue;
 
-            // syntax: A[Layer1, overX, overXS, overY, overYS][Layer2, overX, overXS, overY, overYS]
-            // pair of layers found
-            int index = value.indexOf("[");
-            assert(index != -1); // it should come with a prefix name
-            String prefix = value.substring(0, index);
-            String v = value.substring(index);
-            StringTokenizer p = new StringTokenizer(v, "[]", false);
-            List<ContactNode> nodeList = new ArrayList<ContactNode>();
-
-            while (p.hasMoreTokens())
+            // checking the metal pair lists.
+            // overhang values should be in by now
+            if (value.contains("{"))
             {
-                String s = p.nextToken();
-                // layer info
-                int itemCount = 0; // 4 max items: metal layer, overhang X, overhang X rule, overhang Y, overhang Y rule
-                StringTokenizer x = new StringTokenizer(s, ", ", false);
-                int metal = -1;
-                double overX = 0, overY = 0;
-                String overXS = null, overYS = null;
+                assert(nodeList.size() > 0);
+                int index = value.indexOf("{");
+                assert(index != -1); // it should come with a prefix name
+                String prefix = value.substring(0, index);
+                String v = value.substring(index);
+                StringTokenizer p = new StringTokenizer(v, "{}", false);
 
-                while (x.hasMoreTokens() && itemCount < 5)
+                while (p.hasMoreTokens())
                 {
-                    String item = x.nextToken();
-                    switch (itemCount)
+                    String pair = p.nextToken();
+                    // getting metal numbers {a,b}
+                    index = pair.indexOf(",");  // only works for 2 metals
+                    int metal1 = Integer.valueOf((String)pair.substring(0, index));
+                    int metal2 = Integer.valueOf((String)pair.substring(index+1));
+
+                    assert(nodeList.size() == 2);
+                    ContactNode tmp = nodeList.get(0);
+                    ContactNode node1 = new ContactNode(metal1, tmp.overX.v,  tmp.overX.rule,
+                        tmp.overY.v,  tmp.overY.rule);
+                    tmp = nodeList.get(1);
+                    ContactNode node2 = new ContactNode(metal2, tmp.overX.v,  tmp.overX.rule,
+                        tmp.overY.v,  tmp.overY.rule);
+
+                    Contact cont = new Contact(prefix, node1, node2);
+                    // Always store them by lowMetal-highMetal
+                    if (metal1 > metal2)
                     {
-                        case 0: // metal layer
-                            metal = Integer.valueOf(item);
-                            break;
-                        case 1: // overhang X value
-                           overX = Double.valueOf(item);
-                            break;
-                        case 2: // overhang X rule name
-                            overXS = item;
-                            break;
-                        case 3: // overhang Y value
-                            overY = Double.valueOf(item);
-                            break;
-                        case 4: // overhang Y rule name
-                            overYS = item;
-                            break;
+                        int temp = metal1;
+                        metal1 = metal2;
+                        metal2 = temp;
                     }
-                    itemCount++;
+                    String key = metal1 + "-" + metal2;
+                    List<Contact> l = contactMap.get(key);
+                    if (l == null)
+                    {
+                        l = new ArrayList<Contact>();
+                        contactMap.put(key, l);
+                    }
+                    l.add(cont);
                 }
-                assert(itemCount == 5);
-                ContactNode node = new ContactNode(metal, overX, overXS, overY, overYS);
-                nodeList.add(node);
             }
-            assert(nodeList.size() == 2);
-            
-            Contact cont = new Contact(prefix, nodeList.get(0), nodeList.get(1));
-            contactList.add(cont);
+            else
+            {
+                // syntax: A(overX, overXS, overY, overYS)(Layer2, overX, overXS, overY, overYS)
+                // pair of layers found
+                StringTokenizer p = new StringTokenizer(value, "()", false);
+
+                while (p.hasMoreTokens())
+                {
+                    String s = p.nextToken();
+                    // layer info
+                    int itemCount = 0; // 4 max items: metal layer, overhang X, overhang X rule, overhang Y, overhang Y rule
+                    StringTokenizer x = new StringTokenizer(s, ", ", false);
+                    int metal = -1;
+                    double overX = 0, overY = 0;
+                    String overXS = null, overYS = null;
+
+                    while (x.hasMoreTokens() && itemCount < 4)
+                    {
+                        String item = x.nextToken();
+                        switch (itemCount)
+                        {
+                            case 0: // overhang X value
+                               overX = Double.valueOf(item);
+                                break;
+                            case 1: // overhang X rule name
+                                overXS = item;
+                                break;
+                            case 2: // overhang Y value
+                                overY = Double.valueOf(item);
+                                break;
+                            case 3: // overhang Y rule name
+                                overYS = item;
+                                break;
+                        }
+                        itemCount++;
+                    }
+                    assert(itemCount == 4);
+                    ContactNode node = new ContactNode(metal, overX, overXS, overY, overYS);
+                    nodeList.add(node);
+                }
+            }
         }
     }
 
@@ -1544,12 +1590,15 @@ public class TechEditWizardData
         double longD = DBMath.isGreaterThan(longExtLayer1, longExtLayer2) ? longExtLayer1 : longExtLayer2;
 
         // long square contact. Standard ones
-        contactsList.add(makeXmlPrimitiveCon(nodes, composeName, -1, -1, new SizeOffset(longD, longD, longD, longD), portNames,
-            makeXmlNodeLayer(hlaLong1, hlaLong1, hlaLong1, hlaLong1, layer1, Poly.Type.FILLED, true), // layer1
-            makeXmlNodeLayer(hlaLong2, hlaLong2, hlaLong2, hlaLong2, layer2, Poly.Type.FILLED, true), // layer2
-            makeXmlMulticut(conLayer, contSize, spacing, arraySpacing))); // contact
-
-        if (getProtectionPoly())
+        if (!getProtectionPoly())
+        {
+            contactsList.add(makeXmlPrimitiveCon(nodes, composeName, -1, -1, new SizeOffset(longD, longD, longD, longD), portNames,
+                makeXmlNodeLayer(hlaLong1, hlaLong1, hlaLong1, hlaLong1, layer1, Poly.Type.FILLED, true), // layer1
+                makeXmlNodeLayer(hlaLong2, hlaLong2, hlaLong2, hlaLong2, layer2, Poly.Type.FILLED, true), // layer2
+                makeXmlMulticut(conLayer, contSize, spacing, arraySpacing))); // contact
+        }
+        else
+//        if (getProtectionPoly())
         {
             double sox = DBMath.isGreaterThan(longExtLayer1, shotExtLayer2) ? longExtLayer1 : shotExtLayer2;
             double soy = DBMath.isGreaterThan(shotExtLayer1, longExtLayer2) ? shotExtLayer1 : longExtLayer2;
@@ -2154,51 +2203,61 @@ public class TechEditWizardData
                 makeXmlNodeLayer(hla, hla, hla, hla, lt, Poly.Type.CROSSED, true));
             }
 
-            // Contact Square
-//            hla = scaledValue(via_size[i-1].v/2 + via_overhang[i-1].v);   // half of the width
-            // via
-            Xml.Layer via = viaLayers.get(i-1);
-            double viaSize = scaledValue(via_size[i-1].v);
-            double viaSpacing = scaledValue(via_inline_spacing[i-1].v);
-            double viaArraySpacing = scaledValue(via_array_spacing[i-1].v);
-            String name = lb.name + "-" + lt.name;
+            if (!getProtectionPoly())
+            {
+                // original contact Square
+                // via
+                Xml.Layer via = viaLayers.get(i-1);
+                double viaSize = scaledValue(via_size[i-1].v);
+                double viaSpacing = scaledValue(via_inline_spacing[i-1].v);
+                double viaArraySpacing = scaledValue(via_array_spacing[i-1].v);
+                String name = lb.name + "-" + lt.name;
 
-            double longDist = scaledValue(via_overhang[i-1].v);
-            double shortDist = scaledValue(via_overhang_short[i-1].v);
-            List<Object> metalContacts = makeContactSeries(t.nodes, name, viaSize, via, viaSpacing, viaArraySpacing,
-                longDist, shortDist, lt,
-                longDist, shortDist, lb);
-            t.menuPalette.menuBoxes.add(metalContacts);
+                double longDist = scaledValue(via_overhang[i-1].v);
+                double shortDist = scaledValue(via_overhang_short[i-1].v);
+                List<Object> metalContacts = makeContactSeries(t.nodes, name, viaSize, via, viaSpacing, viaArraySpacing,
+                    longDist, shortDist, lt,
+                    longDist, shortDist, lb);
+                t.menuPalette.menuBoxes.add(metalContacts);
+            }
         }
 
-        // generic contacts
-        List<Object> contactsList = new ArrayList<Object>();
-        for (Contact c : generalMetalContacts)
+        // metal contacts
+        int metalCount = 0;
+        for (Map.Entry<String,List<Contact>> e : metalContacts.entrySet())
         {
-            int i = c.verticalLayer.layer;
-            int j = c.horizontalLayer.layer;
-            Xml.Layer ly = metalLayers.get(i-1);
-            Xml.Layer lx = metalLayers.get(i);
-            String name = ly.name + "-" + lx.name;
-            contSize = scaledValue(via_size[i-1].v);
-            double spacing = scaledValue(via_inline_spacing[i-1].v);
-            double arraySpacing = scaledValue(via_array_spacing[i-1].v);
-            Xml.Layer conLayer = viaLayers.get(i-1);
-            double h1x = DBMath.round(contSize/2 + c.verticalLayer.overX.v);
-            double h1y = DBMath.round(contSize/2 + c.verticalLayer.overY.v);
-            double h2x = DBMath.round(contSize/2 + c.horizontalLayer.overX.v);
-            double h2y = DBMath.round(contSize/2 + c.horizontalLayer.overY.v);
+            // generic contacts
+            List<Object> contactsList = new ArrayList<Object>();
+            for (Contact c : e.getValue())
+            {
+                int i = c.verticalLayer.layer;
+                int j = c.horizontalLayer.layer;
+                Xml.Layer ly = metalLayers.get(i-1);
+                Xml.Layer lx = metalLayers.get(j-1);
+                String name = (j>i)?ly.name + "-" + lx.name:lx.name + "-" + ly.name;
+                int via = (j>i)?i:j;
+                contSize = scaledValue(via_size[via-1].v);
+                double spacing = scaledValue(via_inline_spacing[via-1].v);
+                double arraySpacing = scaledValue(via_array_spacing[via-1].v);
+                Xml.Layer conLayer = viaLayers.get(via-1);
+                double h1x = DBMath.round(contSize/2 + c.verticalLayer.overX.v);
+                double h1y = DBMath.round(contSize/2 + c.verticalLayer.overY.v);
+                double h2x = DBMath.round(contSize/2 + c.horizontalLayer.overX.v);
+                double h2y = DBMath.round(contSize/2 + c.horizontalLayer.overY.v);
 
-            double longX = DBMath.isGreaterThan(c.verticalLayer.overX.v, c.horizontalLayer.overX.v) ? c.verticalLayer.overX.v : c.horizontalLayer.overX.v;
-            double longY = DBMath.isGreaterThan(c.verticalLayer.overY.v, c.horizontalLayer.overY.v) ? c.verticalLayer.overY.v : c.horizontalLayer.overY.v;
+                double longX = DBMath.isGreaterThan(c.verticalLayer.overX.v, c.horizontalLayer.overX.v) ? c.verticalLayer.overX.v : c.horizontalLayer.overX.v;
+                double longY = DBMath.isGreaterThan(c.verticalLayer.overY.v, c.horizontalLayer.overY.v) ? c.verticalLayer.overY.v : c.horizontalLayer.overY.v;
 
-            contactsList.add(makeXmlPrimitiveCon(t.nodes, c.prefix + name, -1, -1,
-                new SizeOffset(longX, longX, longY, longY), portNames,
-            makeXmlNodeLayer(h1x, h1x, h1y, h1y, ly, Poly.Type.FILLED, true), // layer1
-            makeXmlNodeLayer(h2x, h2x, h2y, h2y, lx, Poly.Type.FILLED, true), // layer2
-            makeXmlMulticut(conLayer, contSize, spacing, arraySpacing))); // contact
+                contactsList.add(makeXmlPrimitiveCon(t.nodes, c.prefix + name, -1, -1,
+                    new SizeOffset(longX, longX, longY, longY), portNames,
+                makeXmlNodeLayer(h1x, h1x, h1y, h1y, ly, Poly.Type.FILLED, true), // layer1
+                makeXmlNodeLayer(h2x, h2x, h2y, h2y, lx, Poly.Type.FILLED, true), // layer2
+                makeXmlMulticut(conLayer, contSize, spacing, arraySpacing))); // contact
+            }
+            t.menuPalette.menuBoxes.add(contactsList);
+            metalCount += contactsList.size();
         }
-        t.menuPalette.menuBoxes.add(contactsList);
+        System.out.println("Total number of metal contacts: " + metalCount);
 
         /**************************** Transistors ***********************************************/
         /** Transistors **/
