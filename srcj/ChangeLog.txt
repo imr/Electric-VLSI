@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09d: ******************************
 
+BUG: (2/28/09, DN) Central Transistor-Gate electrical NodeLayer in mocmos serpentine
+    transistor has incorrect serpentine bExtent and tExtent.
+FIX: Change from 2 to 0.
+
 IMP: (2/28/09, DN) Contact control alignment (centered/spread to edges/packed into a corner)
     is controlled by Variable "CUT_alignment" instead of techBits (Bug #2014).
 

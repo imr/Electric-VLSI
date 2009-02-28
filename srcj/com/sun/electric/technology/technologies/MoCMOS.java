@@ -1214,7 +1214,7 @@ public class MoCMOS extends Technology
                 new Technology.TechPoint(EdgeH.fromRight(4), EdgeV.fromTop(10))}, 1, 1, 2, 0 /*Was 2 SMR*/);
             transistorPolyCLayers[i] = new Technology.NodeLayer(transistorPolyLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
                 new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromBottom(10)),
-                new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromTop(10))}, 1, 1, 2, 2);
+                new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromTop(10))}, 1, 1, 0 /*Was 2 DN*/, 0 /*Was 2 DN*/);
             transistorActiveLayers[i] = new Technology.NodeLayer(activeLayers[i], 1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
                 new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromBottom(7)),
                 new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromTop(7))}, 4, 4, 0, 0);
@@ -3269,39 +3269,31 @@ public class MoCMOS extends Technology
         Xml.NodeLayer wellNode = transistor.nodeLayers.get(7); // well
         Xml.NodeLayer selNode = transistor.nodeLayers.get(8); // select
         Xml.NodeLayer thickNode = transistor.nodeLayers.size() > 9 ? transistor.nodeLayers.get(9) : null;
-        double diffWidth = 0.5*rd.gate_length + rd.diff_poly_overhang;
-        double selectWidth = diffWidth + rd.pplus_overhang_diff;
-        double wellWidth = diffWidth + rd.nwell_overhang_diff_p;
-        double polyExtent = 0.5*rd.gate_width + rd.poly_endcap;
-        double wellExtent = rd.nwell_overhang_diff_p;
         double hw = 0.5*rd.gate_width;
         double hl = 0.5*rd.gate_length;
-        resizeSerpentineLayer(activeTNode, hw, -hw, hw, hl, hl + rd.diff_poly_overhang);
-//        activeTNode.lWidth = activeTNode.hy.value = diffWidth;
-        activeBNode.rWidth = diffWidth;
-        activeBNode.ly.value = -diffWidth;
-        polyLNode.bExtent = rd.poly_endcap;
-        polyLNode.lx.value = -polyExtent;
-        polyRNode.tExtent = rd.poly_endcap;
-        polyRNode.hx.value = polyExtent;
-        activeNode.hy.value = activeNode.lWidth = activeNode.rWidth = diffWidth;
-        activeNode.ly.value = -diffWidth;
-        polyNode.bExtent = polyNode.tExtent = rd.poly_endcap;
-        polyNode.lx.value = -polyExtent;
-        polyNode.hx.value = polyExtent;
-        wellNode.lWidth = wellNode.rWidth = wellWidth;
-//            wellNode.ly.value = -wellWidth;
-//            wellNode.hy.value = wellWidth;
-        wellNode.bExtent = wellNode.tExtent = wellExtent;
-//            wellNode.lx.value = -(0.5*rd.gate_width + rd.nwell_overhang_diff_p);
-//            wellNode.hx.value = 0.5*rd.gate_width + rd.nwell_overhang_diff_p;
-        selNode.lWidth = selNode.rWidth = selectWidth;
-        selNode.ly.value = -selectWidth;
-        selNode.hy.value = selectWidth;
-        double thickW = hw + rd.thick_overhang;
-        double thickL = hl + rd.diff_poly_overhang + rd.thick_overhang;
+        double gateX = hw;
+        double gateY = hl;
+        double polyX = gateX + rd.poly_endcap;
+        double polyY = gateY;
+        double diffX = gateX;
+        double diffY = gateY + rd.diff_poly_overhang;
+        double wellX = diffX + rd.nwell_overhang_diff_p;
+        double wellY = diffY + rd.nwell_overhang_diff_p;
+        double selX  = diffX + rd.pplus_overhang_diff;
+        double selY  = diffY + rd.pplus_overhang_diff;
+        double thickX = diffX + rd.thick_overhang;
+        double thickY = diffY + rd.thick_overhang;
+        resizeSerpentineLayer(activeTNode, hw, -gateX,  gateX,  gateY, diffY);
+        resizeSerpentineLayer(activeBNode, hw, -diffX,  diffX, -diffY, -gateY);
+        resizeSerpentineLayer(polyCNode,   hw, -gateX,  gateX, -gateY, gateY);
+        resizeSerpentineLayer(polyLNode,   hw, -polyX, -gateX, -polyY, polyY);
+        resizeSerpentineLayer(polyRNode,   hw,  gateX,  polyX, -polyY, polyY);
+        resizeSerpentineLayer(activeNode,  hw, -diffX,  diffX, -diffY, diffY);
+        resizeSerpentineLayer(polyNode,    hw, -polyX,  polyX, -polyY, polyY);
+        resizeSerpentineLayer(wellNode,    hw, -wellX,  wellX, -wellY, wellY);
+        resizeSerpentineLayer(selNode,     hw, -selX,   selX,  -selY,  selY);
         if (thickNode != null)
-            resizeSerpentineLayer(thickNode, hw, -thickW, thickW, -thickL, thickL);
+            resizeSerpentineLayer(thickNode, hw, -thickX, thickX, -thickY, thickY);
     }
 
     private static void resizeSerpentineLayer(Xml.NodeLayer nl, double hw, double lx, double hx, double ly, double hy) {
@@ -3311,8 +3303,8 @@ public class MoCMOS extends Technology
         nl.hy.value = hy;
         nl.lWidth = nl.hy.k == 1 ? hy : 0;
         nl.rWidth = nl.ly.k == -1 ? -ly : 0;
-        nl.bExtent = nl.hx.k == 1 ? hx - hw : 0;
-        nl.tExtent = nl.lx.k == -1 ? -lx - hw : 0;
+        nl.tExtent = nl.hx.k == 1 ? hx - hw : 0;
+        nl.bExtent = nl.lx.k == -1 ? -lx - hw : 0;
     }
 
     public static void main(String[] args) {
