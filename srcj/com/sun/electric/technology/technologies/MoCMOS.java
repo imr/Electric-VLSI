@@ -2987,28 +2987,28 @@ public class MoCMOS extends Technology
                     nwell_overhang_diff_p = 6;
                     switch (numMetals) {
                         case 2:
-                            metal_width = new double[] { 3, 3,      3, 0, 0, 5 };
+                            metal_width = new double[] { 3, 3,      0, 0, 0, 5 };
                             via_size = new double[] { 2,      2, 2, 2, 3 };
                             via_inline_spacing = new double[] { 3,      3, 3, 3, 4 };
-                            via_overhang = new double[] { 1, 1,      0, 0, 0, 1 };
+                            via_overhang = new double[] { 1, 1 };
                             break;
                         case 3:
                             metal_width = new double[] { 3, 3, 5,      0, 0, 5 };
                             via_size = new double[] { 2, 2,      2, 2, 3 };
                             via_inline_spacing = new double[] { 3, 3,      3, 3, 4 };
-                            via_overhang = new double[] { 1, 1, 2,      0, 0, 1 };
+                            via_overhang = new double[] { 1, 1, 2 };
                             break;
                         case 4:
                             metal_width = new double[] { 3, 3, 3, 6,      0, 5 };
                             via_size = new double[] { 2, 2, 2,      2, 3 };
                             via_inline_spacing = new double[] { 3, 3, 3,      3, 4 };
-                            via_overhang = new double[] { 1, 1, 1, 2,      0, 1 };
+                            via_overhang = new double[] { 1, 1, 1, 2 };
                             break;
                         case 5:
                             metal_width = new double[] { 3, 3, 3, 3, 4,      5 };
                             via_size = new double[] { 2, 2, 2, 2,      3 };
                             via_inline_spacing = new double[] { 3, 3, 3, 3,      4 };
-                            via_overhang = new double[] { 1, 1, 1, 1, 1,      1 };
+                            via_overhang = new double[] { 1, 1, 1, 1, 1 };
                             break;
                         case 6:
                             metal_width = new double[] { 3, 3, 3, 3, 3, 5 };
@@ -3031,11 +3031,11 @@ public class MoCMOS extends Technology
                         case 5:
                             metal_width = new double[] { 3, 3, 3, 3, 4,     5 };
                             via_size = new double[] { 3, 3, 3, 3,      4 };
-                            via_inline_spacing = new double[] { 3, 3, 3, 3, 4 };
-                            via_overhang = new double[] { 1, 1, 1, 1, 2,      2 };
+                            via_inline_spacing = new double[] { 3, 3, 3, 3,      4 };
+                            via_overhang = new double[] { 1, 1, 1, 1, 2 };
                             break;
                         case 6:
-                            metal_width = new double[] { 3, 3, 3, 4, 3, 5 };
+                            metal_width = new double[] { 3, 3, 3, 3, 3, 5 };
                             via_size = new double[] { 3, 3, 3, 3, 4 };
                             via_inline_spacing = new double[] { 3, 3, 3, 3, 4 };
                             via_overhang = new double[] { 1, 1, 1, 1, 1, 2 };
@@ -3056,19 +3056,19 @@ public class MoCMOS extends Technology
                             metal_width = new double[] { 3, 3,      0, 0, 0, 5 };
                             via_size = new double[] { 2,      2, 2, 0, 0 };
                             via_inline_spacing = new double[] { 3,      3, 3, 3, 4 };
-                            via_overhang = new double[] { 1, 1,      0, 0, 0, 0 };
+                            via_overhang = new double[] { 1, 1 };
                             break;
                         case 3:
                             metal_width = new double[] { 3, 3, 6,      0, 0, 5 };
                             via_size = new double[] { 2, 2,      2, 0, 0 };
                             via_inline_spacing = new double[] { 3, 3,      3, 3, 4 };
-                            via_overhang = new double[] { 1, 1, 2,      0, 0, 0 };
+                            via_overhang = new double[] { 1, 1, 2 };
                             break;
                         case 4:
                             metal_width = new double[] { 3, 3, 3, 6,      0, 5 };
                             via_size = new double[] { 2, 2, 2,      0, 0 };
                             via_inline_spacing = new double[] { 3, 3, 3,      3, 4 };
-                            via_overhang = new double[] { 1, 1, 1, 2,      0, 0 };
+                            via_overhang = new double[] { 1, 1, 1, 2 };
                             break;
                         default:
                             throw new AssertionError();
@@ -3094,6 +3094,7 @@ public class MoCMOS extends Technology
         Xml.PrimitiveNode[] activePinNodes = new Xml.PrimitiveNode[2];
         Xml.PrimitiveNode[] polyPinNodes = new Xml.PrimitiveNode[2];
         Xml.PrimitiveNode[] metalContactNodes = new Xml.PrimitiveNode[8];
+        Xml.PrimitiveNode[] metalWellContactNodes = new Xml.PrimitiveNode[2];
         Xml.PrimitiveNode[] metalActiveContactNodes = new Xml.PrimitiveNode[2];
         Xml.PrimitiveNode[] metal1PolyContactNodes = new Xml.PrimitiveNode[3];
         Xml.PrimitiveNode[] transistorNodes = new Xml.PrimitiveNode[2];
@@ -3117,6 +3118,7 @@ public class MoCMOS extends Technology
             String ts = i == P_TYPE ? "P" : "N";
     		activeArcs[i] = tech.findArc(ts + "-Active");
             activePinNodes[i] = tech.findNode(ts + "-Active-Pin");
+            metalWellContactNodes[i] = tech.findNode("Metal-1-" + ts + "-Well-Con");
             metalActiveContactNodes[i] = tech.findNode("Metal-1-" + ts + "-Active-Con");
             transistorNodes[i] = tech.findNode(ts + "-Transistor");
             thickTransistorNodes[i] = tech.findNode("Thick-" + ts + "-Transistor");
@@ -3142,106 +3144,51 @@ public class MoCMOS extends Technology
         Xml.NodeLayer nl;
         ResizeData rd = new ResizeData(ruleSet, numMetals, alternateContactRules);
         for (int i = 0; i < 6; i++) {
-            //metalLayers[i].pureLayerNode.size.value = rd.metal_width[i]; setdefSize
-            double halfWidth = 0.5*rd.metal_width[i];
-            if (halfWidth != 0)
-                metalArcs[i].diskOffset.put(Integer.valueOf(2), Double.valueOf(halfWidth));
-            else
-                metalArcs[i].diskOffset.clear();
-            metalArcs[i].arcLayers.get(0).extend.value = halfWidth;
-            nl = metalPinNodes[i].nodeLayers.get(0);
-            nl.lx.value = nl.ly.value = halfWidth == 0 ? 0 :-halfWidth;
-            nl.hx.value = nl.hy.value = halfWidth;
+            resizeArcPin(metalArcs[i], metalPinNodes[i], 0.5*rd.metal_width[i]);
 
             if (i >= 5) continue;
             Xml.PrimitiveNode via = metalContactNodes[i];
-            double halfSize = 0.5*rd.via_size[i] + rd.via_overhang[i + 1];
-            EPoint do1 = via.diskOffset.get(Integer.valueOf(1));
-            EPoint do2 = EPoint.fromLambda(halfSize, halfSize);
-            via.diskOffset.put(Integer.valueOf(2), do2);
-            if (do2.equals(do1))
-                via.diskOffset.remove(Integer.valueOf(1));
-            if (do1 == null)
-                do1 = do2;
-            double off = do1.getLambdaX() - do2.getLambdaX();
-            assert off == do1.getLambdaY() - do2.getLambdaY();
-            via.sizeOffset = off != 0 ? new SizeOffset(off, off, off, off) : null;
-            nl = via.nodeLayers.get(0);
-            nl.lx.value = nl.ly.value = -halfSize;
-            nl.hx.value = nl.hy.value = halfSize;
-            nl = via.nodeLayers.get(1);
-            nl.lx.value = nl.ly.value = -halfSize;
-            nl.hx.value = nl.hy.value = halfSize;
             nl = via.nodeLayers.get(2);
             nl.sizex = nl.sizey = rd.via_size[i];
             nl.sep1d = rd.via_inline_spacing[i];
             nl.sep2d = rd.via_array_spacing[i];
+            if (i + 1 >= numMetals) continue;
+            double halfSize = 0.5*rd.via_size[i] + rd.via_overhang[i + 1];
+            resizeSquare(via, halfSize, halfSize, halfSize, 0);
         }
         for (int i = P_TYPE; i <= N_TYPE; i++) {
-            activeArcs[i].arcLayers.get(1).extend.value = 0.5*rd.diff_width + rd.nwell_overhang_diff_p;
-            nl = activePinNodes[i].nodeLayers.get(1);
-            nl.hx.value = nl.hy.value = 0.5*rd.diff_width + rd.nwell_overhang_diff_p;
-            nl.lx.value = nl.ly.value = -(0.5*rd.diff_width + rd.nwell_overhang_diff_p);
-            double off = rd.nwell_overhang_diff_p;
-            activePinNodes[i].sizeOffset = new SizeOffset(off, off, off, off);
+            double activeE = 0.5*rd.diff_width;
+            double wellE = activeE + rd.nwell_overhang_diff_p;
+            double selectE = activeE + rd.pplus_overhang_diff;
+            resizeArcPin(activeArcs[i], activePinNodes[i], activeE, wellE, selectE);
 
             Xml.PrimitiveNode con = metalActiveContactNodes[i];
-            double halfSize = 0.5*rd.contact_size + rd.diff_contact_overhang;
-            EPoint do1 = con.diskOffset.get(Integer.valueOf(1));
-            EPoint do2 = EPoint.fromLambda(halfSize, halfSize);
-            con.diskOffset.put(Integer.valueOf(2), do2);
-            if (do2.equals(do1))
-                con.diskOffset.remove(Integer.valueOf(1));
-            if (do1 == null)
-                do1 = do2;
-            off = do1.getLambdaX() - do2.getLambdaX();
-            assert off == do1.getLambdaY() - do2.getLambdaY();
-            con.sizeOffset = off != 0 ? new SizeOffset(off, off, off, off) : null;
-
-            nl = metalActiveContactNodes[i].nodeLayers.get(1); // P-Active
-            nl.hx.value = nl.hy.value = 0.5*rd.contact_size + rd.diff_contact_overhang;
-            nl.lx.value = nl.ly.value = -(0.5*rd.contact_size + rd.diff_contact_overhang);
-            nl = metalActiveContactNodes[i].nodeLayers.get(2); // Well
-            nl.hx.value = nl.hy.value = 0.5*rd.contact_size + rd.diff_contact_overhang + rd.nwell_overhang_diff_p;
-            nl.lx.value = nl.ly.value = -(0.5*rd.contact_size + rd.diff_contact_overhang + rd.nwell_overhang_diff_p);
-            nl = metalActiveContactNodes[i].nodeLayers.get(3); // Select
-            nl.hx.value = nl.hy.value = 0.5*rd.contact_size + rd.diff_contact_overhang + rd.nplus_overhang_diff;
-            nl.lx.value = nl.ly.value = -(0.5*rd.contact_size + rd.diff_contact_overhang + rd.nplus_overhang_diff);
-            nl = metalActiveContactNodes[i].nodeLayers.get(4);
-            nl.sep1d = nl.sep2d = rd.contact_spacing;
+            double metalC = 0.5*rd.contact_size + rd.contact_metal_overhang_all_sides;
+            double activeC = 0.5*rd.contact_size + rd.diff_contact_overhang;
+            double wellC = activeC + rd.nwell_overhang_diff_p;
+            double selectC = activeC + rd.nplus_overhang_diff;
+            resizeSquare(con, activeC, metalC, activeC, wellC, selectC, 0);
+            resizeContacts(con, rd);
+            
+            con = metalWellContactNodes[i];
+            wellC = activeC + rd.nwell_overhang_diff_n;
+            resizeSquare(con, activeC, metalC, activeC, wellC, selectC, 0);
+            resizeContacts(con, rd);
+            
             resizeSerpentineTransistor(transistorNodes[i], rd);
             resizeSerpentineTransistor(thickTransistorNodes[i], rd);
         }
+        resizeContacts(npnTransistorNode, rd);
         {
-            nl = npnTransistorNode.nodeLayers.get(0);
-            nl.sep1d = nl.sep2d = rd.contact_spacing;
-            nl = npnTransistorNode.nodeLayers.get(4);
-            nl.sep1d = nl.sep2d = rd.contact_spacing;
-            nl = npnTransistorNode.nodeLayers.get(8);
-            nl.sep1d = nl.sep2d = rd.contact_spacing;
-            nl = npnTransistorNode.nodeLayers.get(10);
-            nl.sep1d = nl.sep2d = rd.contact_spacing;
-            nl = npnTransistorNode.nodeLayers.get(14);
-            nl.sep1d = nl.sep2d = rd.contact_spacing;
-            nl = npnTransistorNode.nodeLayers.get(18);
-            nl.sep1d = nl.sep2d = rd.contact_spacing;
-            nl = npnTransistorNode.nodeLayers.get(21);
-            nl.sep1d = nl.sep2d = rd.contact_spacing;
+            Xml.PrimitiveNode con = metal1PolyContactNodes[0];
+            double metalC = 0.5*rd.contact_size + rd.contact_metal_overhang_all_sides;
+            double polyC = 0.5*rd.contact_size + rd.contact_poly_overhang;
+            resizeSquare(con, polyC, metalC, polyC, 0);
         }
-        for (int i = 0; i <= 2; i++) {
-            Xml.PrimitiveNode con = metal1PolyContactNodes[i];
-            nl = con.nodeLayers.get(con.nodeLayers.size() - 1);
-            nl.sep1d = nl.sep2d = rd.contact_spacing;
-        }
-        double poly2HalfWidth = 0.5*rd.poly2_width;
-        if (poly2HalfWidth != 0)
-            polyArcs[1].diskOffset.put(Integer.valueOf(2), Double.valueOf(poly2HalfWidth));
-        else
-            polyArcs[1].diskOffset.clear();
-        polyArcs[1].arcLayers.get(0).extend.value = poly2HalfWidth;
-        nl = polyPinNodes[1].nodeLayers.get(0);
-        nl.lx.value = nl.ly.value = poly2HalfWidth == 0 ? 0 :-poly2HalfWidth;
-        nl.hx.value = nl.hy.value = poly2HalfWidth;
+        for (int i = 0; i <= 2; i++)
+            resizeContacts(metal1PolyContactNodes[i], rd);
+        resizeArcPin(polyArcs[0], polyPinNodes[0], 0.5*rd.poly_width);
+        resizeArcPin(polyArcs[1], polyPinNodes[1], 0.5*rd.poly2_width);
 
         for (int i = numMetals; i < 6; i++) {
             metalArcs[i].notUsed = true;
@@ -3254,10 +3201,85 @@ public class MoCMOS extends Technology
             metal1PolyContactNodes[1].notUsed = true;
             metal1PolyContactNodes[2].notUsed = true;
         }
+        npnTransistorNode.notUsed = !isAnalog;
 
         tech.writeXml(fileName, false, null);
     }
 
+    private static void resizeArcPin(Xml.ArcProto a, Xml.PrimitiveNode n, double ... exts) {
+        assert a.arcLayers.size() == exts.length;
+        assert n.nodeLayers.size() == exts.length;
+        double baseExt = exts[0];
+        double maxExt = 0;
+        for (int i = 0; i < exts.length; i++) {
+            Xml.ArcLayer al = a.arcLayers.get(i);
+            Xml.NodeLayer nl = n.nodeLayers.get(i);
+            double ext = exts[i];
+            assert al.layer.equals(nl.layer);
+            assert nl.representation == Technology.NodeLayer.BOX;
+            al.extend.value = ext;
+            nl.hx.value = nl.hy.value = ext;
+            nl.lx.value = nl.ly.value = ext == 0 ? 0 : -ext;
+            maxExt = Math.max(maxExt, ext);
+        }
+        
+        Integer version2 = Integer.valueOf(2);
+        if (baseExt != 0)
+            a.diskOffset.put(version2, Double.valueOf(baseExt));
+        else
+            a.diskOffset.clear();
+        double off = maxExt - baseExt;
+        n.sizeOffset = off != 0 ? new SizeOffset(off, off, off, off) : null;
+        // n.setDefSize
+    }
+    
+    private static void resizeSquare(Xml.PrimitiveNode n, double base, double... size) {
+        assert size.length == n.nodeLayers.size();
+        double maxSz = 0;
+        for (int i = 0; i < n.nodeLayers.size(); i++) {
+            Xml.NodeLayer nl = n.nodeLayers.get(i);
+            assert nl.representation == Technology.NodeLayer.BOX || nl.representation == Technology.NodeLayer.MULTICUTBOX;
+            double sz = size[i];
+            assert sz >= 0;
+            nl.hx.value = nl.hy.value = sz;
+            nl.lx.value = nl.ly.value = sz == 0 ? 0 : -sz;
+            maxSz = Math.max(maxSz, sz);
+        }
+        
+        Integer version1 = Integer.valueOf(1);
+        Integer version2 = Integer.valueOf(2);
+        EPoint sizeCorrector1 = n.diskOffset.get(version1);
+        EPoint sizeCorrector2 = n.diskOffset.get(version2);
+        if (sizeCorrector2 == null)
+            sizeCorrector2 = EPoint.ORIGIN;
+        if (sizeCorrector1 == null)
+            sizeCorrector1 = sizeCorrector2;
+        double fullSize;
+        if (n.nodeSizeRule != null) {
+            assert n.nodeSizeRule.width == n.nodeSizeRule.height;
+            fullSize = 0.5*n.nodeSizeRule.width;
+        } else {
+            fullSize = maxSz;
+        }
+        double off = fullSize - base;
+        n.sizeOffset = off != 0 ? new SizeOffset(off, off, off, off) : null;
+        sizeCorrector2 = EPoint.fromLambda(base, base);
+        n.diskOffset.put(version2, sizeCorrector2);
+        if (sizeCorrector1.equals(sizeCorrector2))
+            n.diskOffset.remove(version1);
+        else
+            n.diskOffset.put(version1, sizeCorrector1);
+    }
+    
+    private static void resizeContacts(Xml.PrimitiveNode n, ResizeData rd) {
+        for (Xml.NodeLayer nl: n.nodeLayers) {
+            if (nl.representation != Technology.NodeLayer.MULTICUTBOX) continue;
+            nl.sizex = nl.sizey = rd.contact_size;
+            nl.sep1d = rd.contact_spacing;
+            nl.sep2d = rd.contact_array_spacing;
+        }
+    }
+    
     private static void resizeSerpentineTransistor(Xml.PrimitiveNode transistor, ResizeData rd) {
         Xml.NodeLayer activeTNode = transistor.nodeLayers.get(0); // active Top or Left
         Xml.NodeLayer activeBNode = transistor.nodeLayers.get(1); // active Bottom or Right
@@ -3313,7 +3335,7 @@ public class MoCMOS extends Technology
         patch("mocmos_deep_5_2_sf_af.xml", DEEPRULES, 5, true, false, false, false);
         patch("mocmos_deep_6_1_sf_af.xml", DEEPRULES, 6, false, false, false, false);
         patch("mocmos_deep_6_2_sf_af.xml", DEEPRULES, 6, true, false, false, false);
-        patch("mocmos_deep_6_2_st_af.xml", SUBMRULES, 6, true, true, false, false);
+        patch("mocmos_deep_6_2_st_af.xml", DEEPRULES, 6, true, true, false, false);
         patch("mocmos_scmos_2_1_sf_af.xml", SCMOSRULES, 2, false, false, false, false);
         patch("mocmos_scmos_2_1_sf_at.xml", SCMOSRULES, 2, false, false, true, false);
         patch("mocmos_scmos_2_2_sf_af.xml", SCMOSRULES, 2, true, false, false, false);

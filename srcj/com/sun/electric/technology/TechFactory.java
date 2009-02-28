@@ -40,8 +40,9 @@ import java.util.Map;
  *
  */
 public abstract class TechFactory {
-    public final String techName;
-    
+    final String techName;
+    private final Map<String,Object> defaultParams;
+
     public static TechFactory fromXml(URL url, Xml.Technology xmlTech) {
         String techName = null;
         if (xmlTech != null)
@@ -50,7 +51,7 @@ public abstract class TechFactory {
             techName = TextUtils.getFileNameWithoutExtension(url);
         return new FromXml(techName, url, xmlTech);
     }
-    
+
     public Technology newInstance(Generic generic) {
         return newInstance(generic, Setting.getFactorySettingContext());
     }
@@ -74,7 +75,19 @@ public abstract class TechFactory {
         }
         return null;
     }
+
+    public static Map<String,Object> getStandardDefaultParams() {
+        LinkedHashMap<String,Object> standardDefaultParams = new LinkedHashMap<String,Object>();
+        standardDefaultParams.put("userTool.PWellProcess", Boolean.TRUE);
+        standardDefaultParams.put("generic.Foundry", "NONE");
+        standardDefaultParams.put("generic.NumMetalLayers", Integer.valueOf(0));
+        return standardDefaultParams;
+    }
     
+    public Map<String,Object> getDefaultParams() {
+        return defaultParams;
+    }
+
     public static Map<String,TechFactory> getKnownTechs(String softTechnologies) {
         LinkedHashMap<String,TechFactory> m = new LinkedHashMap<String,TechFactory>();
         c(m, "artwork", "com.sun.electric.technology.technologies.Artwork");
@@ -87,22 +100,14 @@ public abstract class TechFactory {
         c(m, "gem",       "com.sun.electric.technology.technologies.GEM");
         c(m, "pcb",       "com.sun.electric.technology.technologies.PCB");
         c(m, "rcmos",     "com.sun.electric.technology.technologies.RCMOS");
-        if (true) {
-            c(m, "mocmos","com.sun.electric.technology.technologies.MoCMOS");
-        } else {
-            r(m, "mocmos",   "technology/technologies/mocmos.xml");
-        }
+        c(m, "mocmos","com.sun.electric.technology.technologies.MoCMOS");
         r(m, "mocmosold",    "technology/technologies/mocmosold.xml");
         r(m, "mocmossub",    "technology/technologies/mocmossub.xml");
         r(m, "nmos",         "technology/technologies/nmos.xml");
         r(m, "tft",          "technology/technologies/tft.xml");
         r(m, "tsmc180",      "plugins/tsmc/tsmc180.xml");
 //        r("tsmc45",        "plugins/tsmc/tsmc45.xml");
-        if (true) {
-            c(m, "cmos90","com.sun.electric.plugins.tsmc.CMOS90");
-        } else {
-            r(m, "cmos90",   "plugins/tsmc/cmos90.xml");
-        }
+        c(m, "cmos90","com.sun.electric.plugins.tsmc.CMOS90");
 		for(String softTechFile: softTechnologies.split(";")) {
 //		for(String softTechFile: ToolSettings.getSoftTechnologiesSetting().getString().split(";")) {
 			if (softTechFile.length() == 0) continue;
@@ -121,11 +126,16 @@ public abstract class TechFactory {
     }
 
     public static TechFactory getTechFactory(String techName) { return getKnownTechs("").get(techName); }
-    
+
     TechFactory(String techName) {
-        this.techName = techName;
+        this(techName, getStandardDefaultParams());
     }
     
+    TechFactory(String techName, Map<String,Object> defaultParams) {
+        this.techName = techName;
+        this.defaultParams = Collections.unmodifiableMap(new LinkedHashMap<String,Object>(defaultParams));
+    }
+
     private static void c(Map<String,TechFactory> m, String techName, String techClassName) {
         m.put(techName, new FromClass(techName, techClassName));
     }
@@ -136,17 +146,17 @@ public abstract class TechFactory {
             return;
         m.put(techName, fromXml(url, null));
     }
-    
+
     abstract Technology newInstanceImpl(Generic generic) throws Exception;
 
     private static class FromClass extends TechFactory {
         private final String techClassName;
-        
+
         private FromClass(String techName, String techClassName) {
             super(techName);
             this.techClassName = techClassName;
         }
-      
+
         @Override
         Technology newInstanceImpl(Generic generic) throws Exception {
             Class<?> techClass = Class.forName(techClassName);
@@ -158,7 +168,7 @@ public abstract class TechFactory {
         private final URL urlXml;
         private Xml.Technology xmlTech;
         private boolean xmlParsed;
-        
+
         private FromXml(String techName, URL urlXml, Xml.Technology xmlTech) {
             super(techName);
             this.urlXml = urlXml;
