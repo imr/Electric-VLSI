@@ -1277,6 +1277,11 @@ public abstract class LibraryFiles extends Input
 
         int flags = ImmutableNodeInst.flagsFromElib(nil.userBits[nodeIndex]);
         int techBits = ImmutableNodeInst.techSpecificFromElib(nil.userBits[nodeIndex]);
+        Integer cutAlignment = null;
+        if (proto instanceof PrimitiveNode && ((PrimitiveNode)proto).isMulticut() && techBits != 0) {
+            cutAlignment = Integer.valueOf(techBits);
+            techBits = 0;
+        }
 		NodeInst ni = NodeInst.newInstance(parent, proto, nil.name[nodeIndex], nil.nameTextDescriptor[nodeIndex],
                 center, size, orient, flags, techBits, nil.protoTextDescriptor[nodeIndex], Input.errorLogger);
         nil.theNode[nodeIndex] = ni;
@@ -1323,6 +1328,8 @@ public abstract class LibraryFiles extends Input
                     ni.addVar(var.withParam(false));
             }
         }
+        if (cutAlignment != null)
+            ni.newVar(Technology.NodeLayer.CUT_ALIGNMENT, cutAlignment);
 
         // if this was a dummy cell, log instance as an error so the user can find easily
         if (proto instanceof Cell && ((Cell)proto).getVar(IO_DUMMY_OBJECT) != null) {

@@ -541,7 +541,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 			popup.addItem("In node center");
 			popup.addItem("At node edges");
 			popup.addItem("In node corner");
-			initialPopupIndex = ni.getTechSpecific();
+			initialPopupIndex = ni.getVarValue(NodeLayer.CUT_ALIGNMENT, Integer.class, NodeLayer.MULTICUT_CENTERED).intValue();
 			popup.setSelectedIndex(initialPopupIndex&3);
 
 			textFieldLabel.setText("Cut spacing:");
@@ -962,7 +962,10 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 				}
 				if (currentPopupIndex != initialPopupIndex)
 				{
-					ni.setTechSpecific(currentPopupIndex);
+                    if (currentPopupIndex != NodeLayer.MULTICUT_CENTERED)
+                        ni.newVar(NodeLayer.CUT_ALIGNMENT, Integer.valueOf(currentPopupIndex));
+                    else
+                        ni.delVar(NodeLayer.CUT_ALIGNMENT);
 					changed = true;
 				}
 			}
@@ -1694,7 +1697,7 @@ public class GetInfoNode extends EModelessDialog implements HighlightListener, D
 		if (!ports.isSelected()) return;
 		int currentIndex = list.getSelectedIndex();
         if (currentIndex == -1) return; // nothing to select
-        
+
         ArcInst ai = portObjects.get(currentIndex);
 		if (ai == null) return;
 		NodeInst ni = shownNode;

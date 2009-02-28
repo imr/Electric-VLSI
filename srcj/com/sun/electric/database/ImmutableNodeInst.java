@@ -118,7 +118,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
  	private static final int FLAG_BITS = HARDSELECTN | NVISIBLEINSIDE | NILOCKED;
 
     private static final int HARD_SHAPE_MASK     = 0x0001;
-    
+
 //    private static final int HARD_SELECT_MASK = 0x01;
 //    private static final int VIS_INSIDE_MASK  = 0x02;
 //    private static final int LOCKED_MASK      = 0x04;
@@ -259,7 +259,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
             size = EPoint.ORIGIN;
         }
         flags &= FLAG_BITS;
-        
+
         techBits &= NTECHBITS >> NTECHBITSSH;
         if (protoDescriptor != null)
             protoDescriptor = protoDescriptor.withDisplayWithoutParam();
@@ -461,13 +461,15 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
     public boolean isEasyShape() {
         return (flags & HARD_SHAPE_MASK) == 0;
     }
-    
+
     private static int updateHardShape(int flags, Variable[] vars) {
-        boolean hasHardVars = searchVar(vars, Technology.NodeLayer.CUT_SPACING) >= 0 ||
+        boolean hasHardVars =
+                searchVar(vars, Technology.NodeLayer.CUT_SPACING) >= 0 ||
+                searchVar(vars, Technology.NodeLayer.CUT_ALIGNMENT) >= 0 ||
                 searchVar(vars, Technology.NodeLayer.METAL_OFFSETS) >= 0;
         return hasHardVars ? flags | HARD_SHAPE_MASK : flags & ~HARD_SHAPE_MASK;
     }
-    
+
 	/**
 	 * Returns ImmutableNodeInst which differs from this ImmutableNodeInst by renamed Ids.
 	 * @param idMapper a map from old Ids to new Ids.
@@ -782,7 +784,10 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 //        assert size.getGridX() >= 0;
 //        assert size.getGridY() >= 0;
         assert (flags & ~(FLAG_BITS|HARD_SHAPE_MASK)) == 0;
-        assert isEasyShape() == (getVar(Technology.NodeLayer.CUT_SPACING) == null && getVar(Technology.NodeLayer.METAL_OFFSETS) == null);
+        assert isEasyShape() ==
+                (getVar(Technology.NodeLayer.CUT_SPACING) == null &&
+                 getVar(Technology.NodeLayer.CUT_ALIGNMENT) == null &&
+                 getVar(Technology.NodeLayer.METAL_OFFSETS) == null);
         assert (techBits & ~(NTECHBITS >> NTECHBITSSH)) == 0;
         if (protoDescriptor != null)
             assert protoDescriptor.isDisplay() && !protoDescriptor.isParam();
