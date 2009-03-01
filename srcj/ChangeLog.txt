@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09d: ******************************
 
+IMP: (2/28/09, DN) In TechnologyTest test also for xml resizing.
+
 BUG: (2/28/09, DN) Central Transistor-Gate electrical NodeLayer in mocmos serpentine
     transistor has incorrect serpentine bExtent and tExtent.
 FIX: Change from 2 to 0.

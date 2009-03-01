@@ -47,6 +47,7 @@ import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.TechFactory;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.XMLRules;
 import com.sun.electric.technology.Xml;
@@ -57,6 +58,7 @@ import java.awt.Color;
 import java.io.PrintWriter;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -2942,6 +2944,40 @@ public class MoCMOS extends Technology
 		return settings;
 	}
 
+    /**
+     * Returns a list of TechFactory.Params affecting this Technology
+     * @return list of TechFactory.Params affecting this Technology
+     */
+    public static List<TechFactory.Param> getTechParams() {
+        String techName = "mocmos";
+        String xmlPrefix = techName + ".";
+        String prefPrefix = "/com/sun/electric/technology/technologies/";
+        return Arrays.asList(
+            new TechFactory.Param(xmlPrefix + "MOCMOS Rule Set", prefPrefix + "MoCMOSRuleSet", Integer.valueOf(1)),
+            new TechFactory.Param(xmlPrefix + "NumMetalLayers", prefPrefix + techName + "NumberOfMetalLayers", Integer.valueOf(6)),
+            new TechFactory.Param(xmlPrefix + "UseSecondPolysilicon", prefPrefix + techName + "SecondPolysilicon", Boolean.TRUE),
+            new TechFactory.Param(xmlPrefix + "DisallowStackedVias", prefPrefix + "MoCMOSDisallowStackedVias", Boolean.FALSE),
+            new TechFactory.Param(xmlPrefix + "UseAlternativeActivePolyRules", prefPrefix + "MoCMOSAlternateActivePolyRules", Boolean.FALSE),
+            new TechFactory.Param(xmlPrefix + "Analog", prefPrefix + techName + "Analog", Boolean.FALSE)
+        );
+    }
+
+    /**
+     * This method is called from TechFactory by reflection. Don't remove.
+     * Returns patched Xml description of this Technology for specified technology params
+     * @param params a map from XmlPath of param to its value
+     * @return patched Xml description of this Technology
+     */
+    private static Xml.Technology getPatchedXml(Map<String,Object> params) {
+        int ruleSet = ((Integer)params.get("mocmos.MOCMOS Rule Set")).intValue();
+        int numMetals = ((Integer)params.get("mocmos.NumMetalLayers")).intValue();
+        boolean secondPolysilicom = ((Boolean)params.get("mocmos.UseSecondPolysilicon")).booleanValue();
+        boolean disallowStackedVias = ((Boolean)params.get("mocmos.DisallowStackedVias")).booleanValue();
+        boolean alternateContactRules = ((Boolean)params.get("mocmos.UseAlternativeActivePolyRules")).booleanValue();
+        boolean isAnalog = ((Boolean)params.get("mocmos.Analog")).booleanValue();
+        return patch(ruleSet, numMetals, secondPolysilicom, disallowStackedVias, alternateContactRules, isAnalog);
+    }
+
     private static class ResizeData {
         private final double diff_width = 3; // 2.1
         private final double diff_poly_overhang; // 3.4
@@ -3085,6 +3121,11 @@ public class MoCMOS extends Technology
     }
 
     private static void patch(String fileName, int ruleSet, int numMetals, boolean secondPolysilicon, boolean disallowStackedVias, boolean alternateContactRules, boolean isAnalog) {
+        Xml.Technology t = patch(ruleSet, numMetals, secondPolysilicon, disallowStackedVias, alternateContactRules, isAnalog);
+        t.writeXml(fileName, false, null);
+    }
+
+    private static Xml.Technology patch(int ruleSet, int numMetals, boolean secondPolysilicon, boolean disallowStackedVias, boolean alternateContactRules, boolean isAnalog) {
         Xml.Technology tech = Xml.parseTechnology(MoCMOS.class.getResource("mocmos.xml"));
         Xml.Layer[] metalLayers = new Xml.Layer[6];
         Xml.ArcProto[] metalArcs = new Xml.ArcProto[6];
@@ -3169,12 +3210,12 @@ public class MoCMOS extends Technology
             double selectC = activeC + rd.nplus_overhang_diff;
             resizeSquare(con, activeC, metalC, activeC, wellC, selectC, 0);
             resizeContacts(con, rd);
-            
+
             con = metalWellContactNodes[i];
             wellC = activeC + rd.nwell_overhang_diff_n;
             resizeSquare(con, activeC, metalC, activeC, wellC, selectC, 0);
             resizeContacts(con, rd);
-            
+
             resizeSerpentineTransistor(transistorNodes[i], rd);
             resizeSerpentineTransistor(thickTransistorNodes[i], rd);
         }
@@ -3203,7 +3244,7 @@ public class MoCMOS extends Technology
         }
         npnTransistorNode.notUsed = !isAnalog;
 
-        tech.writeXml(fileName, false, null);
+        return tech;
     }
 
     private static void resizeArcPin(Xml.ArcProto a, Xml.PrimitiveNode n, double ... exts) {
@@ -3222,7 +3263,7 @@ public class MoCMOS extends Technology
             nl.lx.value = nl.ly.value = ext == 0 ? 0 : -ext;
             maxExt = Math.max(maxExt, ext);
         }
-        
+
         Integer version2 = Integer.valueOf(2);
         if (baseExt != 0)
             a.diskOffset.put(version2, Double.valueOf(baseExt));
@@ -3232,7 +3273,7 @@ public class MoCMOS extends Technology
         n.sizeOffset = off != 0 ? new SizeOffset(off, off, off, off) : null;
         // n.setDefSize
     }
-    
+
     private static void resizeSquare(Xml.PrimitiveNode n, double base, double... size) {
         assert size.length == n.nodeLayers.size();
         double maxSz = 0;
@@ -3245,7 +3286,7 @@ public class MoCMOS extends Technology
             nl.lx.value = nl.ly.value = sz == 0 ? 0 : -sz;
             maxSz = Math.max(maxSz, sz);
         }
-        
+
         Integer version1 = Integer.valueOf(1);
         Integer version2 = Integer.valueOf(2);
         EPoint sizeCorrector1 = n.diskOffset.get(version1);
@@ -3270,7 +3311,7 @@ public class MoCMOS extends Technology
         else
             n.diskOffset.put(version1, sizeCorrector1);
     }
-    
+
     private static void resizeContacts(Xml.PrimitiveNode n, ResizeData rd) {
         for (Xml.NodeLayer nl: n.nodeLayers) {
             if (nl.representation != Technology.NodeLayer.MULTICUTBOX) continue;
@@ -3279,7 +3320,7 @@ public class MoCMOS extends Technology
             nl.sep2d = rd.contact_array_spacing;
         }
     }
-    
+
     private static void resizeSerpentineTransistor(Xml.PrimitiveNode transistor, ResizeData rd) {
         Xml.NodeLayer activeTNode = transistor.nodeLayers.get(0); // active Top or Left
         Xml.NodeLayer activeBNode = transistor.nodeLayers.get(1); // active Bottom or Right

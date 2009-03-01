@@ -24,6 +24,7 @@
 package com.sun.electric.technology;
 
 import com.sun.electric.Main;
+import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
@@ -31,9 +32,12 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ActivityLogger;
 
+import java.lang.reflect.Method;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -41,7 +45,19 @@ import java.util.Map;
  */
 public abstract class TechFactory {
     final String techName;
-    private final Map<String,Object> defaultParams;
+    private final List<Param> techParams;
+
+    public static class Param {
+        public final String xmlPath;
+        public final String prefPath;
+        public final Object factoryValue;
+
+        public Param(String xmlPath, String prefPath, Object factoryValue) {
+            this.xmlPath = xmlPath;
+            this.prefPath = prefPath;
+            this.factoryValue = factoryValue;
+        }
+    }
 
     public static TechFactory fromXml(URL url, Xml.Technology xmlTech) {
         String techName = null;
@@ -76,16 +92,8 @@ public abstract class TechFactory {
         return null;
     }
 
-    public static Map<String,Object> getStandardDefaultParams() {
-        LinkedHashMap<String,Object> standardDefaultParams = new LinkedHashMap<String,Object>();
-        standardDefaultParams.put("userTool.PWellProcess", Boolean.TRUE);
-        standardDefaultParams.put("generic.Foundry", "NONE");
-        standardDefaultParams.put("generic.NumMetalLayers", Integer.valueOf(0));
-        return standardDefaultParams;
-    }
-    
-    public Map<String,Object> getDefaultParams() {
-        return defaultParams;
+    public List<Param> getTechParams() {
+        return techParams;
     }
 
     public static Map<String,TechFactory> getKnownTechs(String softTechnologies) {
@@ -100,14 +108,14 @@ public abstract class TechFactory {
         c(m, "gem",       "com.sun.electric.technology.technologies.GEM");
         c(m, "pcb",       "com.sun.electric.technology.technologies.PCB");
         c(m, "rcmos",     "com.sun.electric.technology.technologies.RCMOS");
-        c(m, "mocmos","com.sun.electric.technology.technologies.MoCMOS");
+        p(m, "mocmos","com.sun.electric.technology.technologies.MoCMOS");
         r(m, "mocmosold",    "technology/technologies/mocmosold.xml");
         r(m, "mocmossub",    "technology/technologies/mocmossub.xml");
         r(m, "nmos",         "technology/technologies/nmos.xml");
         r(m, "tft",          "technology/technologies/tft.xml");
-        r(m, "tsmc180",      "plugins/tsmc/tsmc180.xml");
+        p(m, "tsmc180",      "com.sun.electric.plugins.tsmc.TSMC180");
 //        r("tsmc45",        "plugins/tsmc/tsmc45.xml");
-        c(m, "cmos90","com.sun.electric.plugins.tsmc.CMOS90");
+        p(m, "cmos90","com.sun.electric.plugins.tsmc.CMOS90");
 		for(String softTechFile: softTechnologies.split(";")) {
 //		for(String softTechFile: ToolSettings.getSoftTechnologiesSetting().getString().split(";")) {
 			if (softTechFile.length() == 0) continue;
@@ -128,16 +136,34 @@ public abstract class TechFactory {
     public static TechFactory getTechFactory(String techName) { return getKnownTechs("").get(techName); }
 
     TechFactory(String techName) {
-        this(techName, getStandardDefaultParams());
+        this(techName, Collections.<Param>emptyList());
     }
-    
-    TechFactory(String techName, Map<String,Object> defaultParams) {
+
+    TechFactory(String techName, List<Param> techParams) {
         this.techName = techName;
-        this.defaultParams = Collections.unmodifiableMap(new LinkedHashMap<String,Object>(defaultParams));
+        this.techParams = Collections.unmodifiableList(new ArrayList<Param>(techParams));
+    }
+
+    private static void p(Map<String,TechFactory> m, String techName, String techClassName) {
+        List<Param> params;
+        Method getPatchedXmlMethod;
+        try {
+            Class<?> techClass = Class.forName(techClassName);
+            Method getTechParamsMethod = techClass.getDeclaredMethod("getTechParams");
+            getTechParamsMethod.setAccessible(true);
+            getPatchedXmlMethod = techClass.getDeclaredMethod("getPatchedXml", Map.class);
+            getPatchedXmlMethod.setAccessible(true);
+            params = (List<Param>)getTechParamsMethod.invoke(null);
+        } catch (Exception e) {
+            if (Job.getDebug())
+                e.printStackTrace();
+            return;
+        }
+        m.put(techName, new FromClass(techName, techClassName, params, getPatchedXmlMethod));
     }
 
     private static void c(Map<String,TechFactory> m, String techName, String techClassName) {
-        m.put(techName, new FromClass(techName, techClassName));
+        m.put(techName, new FromClass(techName, techClassName, Collections.<Param>emptyList(), null));
     }
 
     private static void r(Map<String,TechFactory> m, String techName, String resourceName) {
@@ -148,19 +174,41 @@ public abstract class TechFactory {
     }
 
     abstract Technology newInstanceImpl(Generic generic) throws Exception;
+    public abstract Xml.Technology getXml(final Map<String,Object> params) throws Exception;
 
     private static class FromClass extends TechFactory {
         private final String techClassName;
+        private final Method getPatchedXmlMethod;
 
-        private FromClass(String techName, String techClassName) {
-            super(techName);
+        private FromClass(String techName, String techClassName, List<Param> techParams, Method getPatchedXmlMethod) {
+            super(techName, techParams);
             this.techClassName = techClassName;
+            this.getPatchedXmlMethod = getPatchedXmlMethod;
         }
 
         @Override
         Technology newInstanceImpl(Generic generic) throws Exception {
             Class<?> techClass = Class.forName(techClassName);
             return (Technology)techClass.getConstructor(Generic.class).newInstance(generic);
+        }
+
+        @Override
+        public Xml.Technology getXml(final Map<String,Object> params) throws Exception {
+            if (getPatchedXmlMethod != null)
+                return (Xml.Technology)getPatchedXmlMethod.invoke(null, params);
+            IdManager idManager = new IdManager();
+            Generic generic = Generic.newInstance(idManager);
+            Setting.Context settingContext = new Setting.Context() {
+                @Override public Object getValue(Setting setting) {
+                    Object paramValue = params.get(setting.getXmlPath());
+                    Object factoryValue = setting.getFactoryValue();
+                    if (paramValue != null && paramValue.getClass() == factoryValue.getClass())
+                        return paramValue;
+                    return factoryValue;
+                }
+            };
+            Technology tech = newInstance(generic, settingContext);
+            return tech.makeXml();
         }
     }
 
@@ -177,6 +225,16 @@ public abstract class TechFactory {
 
         @Override
         Technology newInstanceImpl(Generic generic) throws Exception {
+            Xml.Technology xml = getXml(Collections.<String,Object>emptyMap());
+            if (xml == null)
+                return null;
+            Class<?> techClass = Technology.class;
+            if (xml.className != null)
+                techClass = Class.forName(xml.className);
+            return (Technology)techClass.getConstructor(Generic.class, Xml.Technology.class).newInstance(generic, xml);
+        }
+
+        public Xml.Technology getXml(final Map<String,Object> params) throws Exception {
             if (xmlTech == null && !xmlParsed) {
                 xmlTech = Xml.parseTechnology(urlXml);
                 xmlParsed = true;
@@ -188,12 +246,7 @@ public abstract class TechFactory {
                     throw new Exception("Tech name " + techName + " doesn't match file name:" +urlXml);
                 }
             }
-            if (xmlTech == null)
-                return null;
-            Class<?> techClass = Technology.class;
-            if (xmlTech.className != null)
-                techClass = Class.forName(xmlTech.className);
-            return (Technology)techClass.getConstructor(Generic.class, Xml.Technology.class).newInstance(generic, xmlTech);
+            return xmlTech;
         }
     }
 }
