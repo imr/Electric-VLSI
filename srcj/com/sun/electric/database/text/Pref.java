@@ -220,7 +220,7 @@ public class Pref
 	private   final Group       group;
     private   final boolean     serverAccessible;
 	private   Object            cachedObj;
-	private   final Object      factoryObj;
+	private   Object      factoryObj;
 //    private   boolean changed = false;
 
 	private static final ArrayList<Group> allGroups = new ArrayList<Group>();
@@ -645,6 +645,16 @@ public class Pref
 
     private void setValue(Object value) {
         cachedObj = value.equals(factoryObj) ? factoryObj : value;
+    }
+
+    public void patchDoubleFactoryValue(double newFactoryValue) {
+        if (newFactoryValue == getDoubleFactoryValue()) return;
+        if (cachedObj == factoryObj) {
+//            group.remove(name);
+            cachedObj = factoryObj = Double.valueOf(newFactoryValue);
+        } else {
+            factoryObj = Double.valueOf(newFactoryValue);
+        }
     }
 
     private void setCachedObjFromPreferences() {

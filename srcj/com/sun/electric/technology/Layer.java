@@ -561,7 +561,7 @@ public class Layer
          * @return true if this layer function is in subset.
          */
         public boolean isUsed(int numMetals, int numPolys) {
-            if (isMetal || isContact)
+            if (isMetal || isContact || isDummyExclusion())
                 return level <= numMetals;
             else if (isPoly)
                 return level <= numPolys;
@@ -1624,6 +1624,14 @@ public class Layer
 	{
 		return "Layer " + name;
 	}
+
+    public void copyState(Layer that) {
+        assert getName().equals(that.getName());
+        if (pureLayerNode != null) {
+            assert pureLayerNode.getId() == that.pureLayerNode.getId();
+//            pureLayerNode.setDefSize(that.pureLayerNode.getDefWidth(), that.pureLayerNode.getDefHeight());
+        }
+    }
 
     void dump(PrintWriter out, Map<Setting,Object> settings) {
         final String[] layerBits = {

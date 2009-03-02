@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09d: ******************************
 
+IMP: (3/1/09, DN) mocmos and tsmc180 technologies are defined by patched Xml files. 
+
 IMP: (3/1/09, DN) Define pureLayerNodes in CMOS90 in the same order as Layers.
 
 IMP: (2/28/09, DN) In TechnologyTest test also for xml resizing.

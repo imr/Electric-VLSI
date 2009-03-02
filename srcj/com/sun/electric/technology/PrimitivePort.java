@@ -493,6 +493,14 @@ public class PrimitivePort implements PortProto, Comparable<PrimitivePort>, Seri
 		return "PrimitivePort " + getName();
 	}
 
+    void copyState(PrimitivePort that) {
+        assert getId() == that.getId();
+        left = that.left;
+        right = that.right;
+        top = that.top;
+        bottom = that.bottom;
+    }
+    
     void dump(PrintWriter out) {
             out.println("\tport " + getName() + " angle=" + getAngle() + " range=" + getAngleRange() + " topology=" + getTopology() + " " + getCharacteristic());
             out.println("\t\tlm=" + left.getMultiplier() + " la=" + left.getAdder() + " rm=" + right.getMultiplier() + " ra=" + right.getAdder() +

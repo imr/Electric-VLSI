@@ -91,6 +91,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.TreeMap;
 
+import java.util.prefs.Preferences;
 import javax.swing.SwingUtilities;
 
 /**
@@ -321,6 +322,11 @@ public class Technology implements Comparable<Technology>, Serializable
 		 * @return the Poly.Style of this ArcLayer.
 		 */
 		Poly.Type getStyle() { return style; }
+
+        void copyState(ArcLayer that) {
+            xmlExtend.lambdaValue = that.xmlExtend.lambdaValue;
+            gridExtend = that.gridExtend;
+        }
 
         void dump(PrintWriter out) {
             out.println("\t\tarcLayer layer=" + layer.getName() +
@@ -857,6 +863,20 @@ public class Technology implements Comparable<Technology>, Serializable
 //            customOverrideShift = shift;
 //        }
 
+        void copyState(NodeLayer that) {
+            assert representation == that.representation;
+            assert points.length == that.points.length;
+            System.arraycopy(that.points, 0, points, 0, points.length);
+            lWidth = that.lWidth;
+            rWidth = that.rWidth;
+            extentT = that.extentT;
+            extendB = that.extendB;
+            cutGridSizeX = that.cutGridSizeX;
+            cutGridSizeY = that.cutGridSizeY;
+            cutGridSep1D = that.cutGridSep1D;
+            cutGridSep2D = that.cutGridSep2D;
+        }
+
         void dump(PrintWriter out, boolean isSerp) {
             out.println("\tlayer=" + getLayerOrPseudoLayer().getName() + " port=" + getPortNum() + " style=" + getStyle().name() + " repr=" + getRepresentation());
             if (getMessage() != null) {
@@ -1136,6 +1156,8 @@ public class Technology implements Comparable<Technology>, Serializable
 	/** indicates p-type objects. */						public static final int P_TYPE = 0;
 	/** Factory rules for the technology. */		        protected XMLRules factoryRules = null;
 	/** Cached rules for the technology. */		            protected XMLRules cachedRules = null;
+    /** TechFactory which created this Technology */        protected TechFactory techFactory;
+    /** Params of this Technology */                        protected Map<String,Object> techParams;
     /** Xml representation of this Technology */            protected Xml.Technology xmlTech;
     /** Preference for saving component menus */			private Pref componentMenuPref = null;
     /** Preference for saving layer order */				private Pref layerOrderPref = null;
@@ -1224,8 +1246,10 @@ public class Technology implements Comparable<Technology>, Serializable
         }
     }
 
-    public Technology(Generic generic, Xml.Technology t) {
+    public Technology(Generic generic, TechFactory techFactory, Map<String,Object> techParams, Xml.Technology t) {
         this(generic, t.techName, Foundry.Type.valueOf(t.defaultFoundry), t.defaultNumMetals);
+        this.techFactory = techFactory;
+        this.techParams = techParams;
         xmlTech = t;
         setTechShortName(t.shortTechName);
         setTechDesc(t.description);
@@ -1437,7 +1461,8 @@ public class Technology implements Comparable<Technology>, Serializable
 		};
         String softTechnologies = ToolSettings.getSoftTechnologiesSetting().getString();
         for (TechFactory techFactory: TechFactory.getKnownTechs(softTechnologies).values()) {
-            Technology tech = techFactory.newInstance(sysGeneric, settingContext);
+            Map<String,Object> paramValues = paramValuesFromPreferences(techFactory);
+            Technology tech = techFactory.newInstance(sysGeneric, paramValues, settingContext);
             if (tech != null)
                 database.addTech(tech);
         }
@@ -1451,6 +1476,33 @@ public class Technology implements Comparable<Technology>, Serializable
         if (tech == null) tech = curLayoutTech;
         tech.setCurrent();
 	}
+
+    private static Map<String,Object> paramValuesFromPreferences(TechFactory techFactory) {
+        HashMap<String,Object> paramValues = new HashMap<String,Object>();
+        for (TechFactory.Param param: techFactory.getTechParams()) {
+            String prefPath = param.prefPath;
+            int index = prefPath.lastIndexOf('/');
+            String prefName = prefPath.substring(index + 1);
+            prefPath = prefPath.substring(0, index);
+            Preferences prefNode = Preferences.userRoot().node(prefPath);
+            Object value = null;
+            Object factoryValue = param.factoryValue;
+            if (factoryValue instanceof Boolean)
+                value = Boolean.valueOf(prefNode.getBoolean(prefName, ((Boolean)factoryValue).booleanValue()));
+            else if (factoryValue instanceof Integer)
+                value = Integer.valueOf(prefNode.getInt(prefName, ((Integer)factoryValue).intValue()));
+            else if (factoryValue instanceof Long)
+                value = Long.valueOf(prefNode.getLong(prefName, ((Long)factoryValue).longValue()));
+            else if (factoryValue instanceof Double)
+                value = Double.valueOf(prefNode.getDouble(prefName, ((Double)factoryValue).doubleValue()));
+            else
+                value = prefNode.get(prefName, factoryValue.toString());
+            if (value.equals(factoryValue))
+                value = factoryValue;
+            paramValues.put(param.xmlPath, value);
+        }
+        return paramValues;
+    }
 
     protected static Generic sysGeneric;
     protected static Artwork sysArtwork;
@@ -1539,7 +1591,7 @@ public class Technology implements Comparable<Technology>, Serializable
         rootSettings.lock();
        // initialize all design rules in the technology to Preference values
         loadTechParams(settingContext);
-		setStateNow();
+		setStateNow(settingContext);
 
         check();
 	}
@@ -1569,7 +1621,7 @@ public class Technology implements Comparable<Technology>, Serializable
 
         } else {
             loadTechParams(settingContext);
-            setStateNow();
+            setStateNow(settingContext);
         }
     }
 
@@ -1584,10 +1636,59 @@ public class Technology implements Comparable<Technology>, Serializable
 	 * Method to set state of a technology.
 	 * It gets overridden by individual technologies.
      */
-	protected void setStateNow() {
-//        EDatabase.theDatabase.checkChanging();
-        if (xmlTech != null)
-            cachedRules = factoryRules = makeFactoryDesignRules();
+	private void setStateNow(Setting.Context settingContext) {
+        if (xmlTech == null) return;
+        if (techFactory != null) {
+            HashMap<String,Object> newParamValues = new HashMap<String,Object>();
+            for (Setting setting: getProjectSettings().getSettings()) {
+                String xmlPath = setting.getXmlPath();
+                Object oldValue = techParams.get(xmlPath);
+                if (oldValue == null) continue;
+                Object newValue = settingContext.getValue(setting);
+                newParamValues.put(xmlPath, newValue);
+            }
+            if (!newParamValues.equals(techParams)) {
+                Technology newTech = techFactory.newInstance(generic, newParamValues, settingContext);
+                copyState(newTech);
+            }
+        }
+        cachedRules = factoryRules = makeFactoryDesignRules();
+    }
+
+    private void copyState(Technology that) {
+        techParams = that.techParams;
+        xmlTech = that.xmlTech;
+        techDesc = that.techDesc;
+
+        assert layers.size() == that.layers.size();
+        Iterator<Layer> oldItl = layers.iterator();
+        Iterator<Layer> newItl = that.layers.iterator();
+        for (int i = 0; i < layers.size(); i++) {
+            Layer oldL = oldItl.next();
+            Layer newL = newItl.next();
+            oldL.copyState(newL);
+        }
+        assert !oldItl.hasNext() && !newItl.hasNext();
+
+        assert arcs.size() == that.arcs.size();
+        Iterator<ArcProto> oldIta = arcs.values().iterator();
+        Iterator<ArcProto> newIta = that.arcs.values().iterator();
+        for (int i = 0; i < arcs.size(); i++) {
+            ArcProto oldA = oldIta.next();
+            ArcProto newA = newIta.next();
+            oldA.copyState(newA);
+        }
+        assert !oldIta.hasNext() && !newIta.hasNext();
+
+        assert nodes.size() == that.nodes.size();
+        Iterator<PrimitiveNode> oldItn = nodes.values().iterator();
+        Iterator<PrimitiveNode> newItn = that.nodes.values().iterator();
+        for (int i = 0; i < nodes.size(); i++) {
+            PrimitiveNode oldN = oldItn.next();
+            PrimitiveNode newN = newItn.next();
+            oldN.copyState(newN);
+        }
+        assert !oldItn.hasNext() && !newItn.hasNext();
     }
 
     protected void setNotUsed(int numPolys) {
