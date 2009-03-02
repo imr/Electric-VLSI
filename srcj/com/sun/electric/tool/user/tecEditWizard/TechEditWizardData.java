@@ -125,11 +125,11 @@ public class TechEditWizardData
     // generic cross contacts
     private static class ContactNode
     {
-        int layer;
+        String layer;
         WizardField overX; // overhang X value
         WizardField overY; // overhang Y value
 
-        ContactNode(int l, double overXV, String overXS, double overYV, String overYS)
+        ContactNode(String l, double overXV, String overXS, double overYV, String overYS)
         {
             layer = l;
             overX = new WizardField(overXV, overXS);
@@ -146,17 +146,19 @@ public class TechEditWizardData
         Contact (String p, ContactNode v, ContactNode h)
         {
             prefix = p;
-            if (v.layer%2 != 0) // v is the odd metal
-            {
-                verticalLayer = v; horizontalLayer = h;
-            }
-            else
-            {
-                verticalLayer = h; horizontalLayer = v;
-            }
+            verticalLayer = v; horizontalLayer = h;
+//            if (v.layer%2 != 0) // v is the odd metal
+//            {
+//                verticalLayer = v; horizontalLayer = h;
+//            }
+//            else
+//            {
+//                verticalLayer = h; horizontalLayer = v;
+//            }
         }
     }
     private Map<String,List<Contact>> metalContacts;
+    private Map<String,List<Contact>> otherContacts;
 
     // ANTENNA RULES
 	private double poly_antenna_ratio;
@@ -264,6 +266,7 @@ public class TechEditWizardData
 		metal_antenna_ratio = new double[num_metal_layers];
 
         metalContacts = new HashMap<String,List<Contact>>();
+        otherContacts = new HashMap<String,List<Contact>>();
 
         gds_metal_layer = new LayerInfo[num_metal_layers];
 		gds_via_layer = new LayerInfo[num_metal_layers-1];
@@ -720,6 +723,7 @@ public class TechEditWizardData
 					if (varName.equalsIgnoreCase("via_overhang_inline_short_rule")) fillWizardArray(varValue, via_overhang_short, num_metal_layers-1, true); else
 
                     if (varName.equalsIgnoreCase("metal_contacts_series")) fillContactSeries(varValue, metalContacts); else
+                    if (varName.equalsIgnoreCase("contacts_series")) fillContactSeries(varValue, otherContacts); else
 
                     if (varName.equalsIgnoreCase("poly_antenna_ratio")) setPolyAntennaRatio(TextUtils.atof(varValue)); else
 					if (varName.equalsIgnoreCase("metal_antenna_ratio")) metal_antenna_ratio = makeDoubleArray(varValue); else
@@ -872,27 +876,27 @@ public class TechEditWizardData
                 {
                     String pair = p.nextToken();
                     // getting metal numbers {a,b}
-                    index = pair.indexOf(",");  // only works for 2 metals
-                    int metal1 = Integer.valueOf((String)pair.substring(0, index));
-                    int metal2 = Integer.valueOf((String)pair.substring(index+1));
+                    index = pair.indexOf(",");  // only works with two layers
+                    String layer1 = pair.substring(0, index);
+                    String layer2 = pair.substring(index+1);
 
                     assert(nodeList.size() == 2);
                     ContactNode tmp = nodeList.get(0);
-                    ContactNode node1 = new ContactNode(metal1, tmp.overX.v,  tmp.overX.rule,
+                    ContactNode node1 = new ContactNode(layer1, tmp.overX.v,  tmp.overX.rule,
                         tmp.overY.v,  tmp.overY.rule);
                     tmp = nodeList.get(1);
-                    ContactNode node2 = new ContactNode(metal2, tmp.overX.v,  tmp.overX.rule,
+                    ContactNode node2 = new ContactNode(layer2, tmp.overX.v,  tmp.overX.rule,
                         tmp.overY.v,  tmp.overY.rule);
 
                     Contact cont = new Contact(prefix, node1, node2);
-                    // Always store them by lowMetal-highMetal
-                    if (metal1 > metal2)
+                    // Always store them by lowMetal-highMetal if happens
+                    if (layer1.compareToIgnoreCase(layer2) > 0) // layer1 name is second
                     {
-                        int temp = metal1;
-                        metal1 = metal2;
-                        metal2 = temp;
+                        String temp = layer1;
+                        layer1 = layer2;
+                        layer2 = temp;
                     }
-                    String key = metal1 + "-" + metal2;
+                    String key = layer1 + "-" + layer2;
                     List<Contact> l = contactMap.get(key);
                     if (l == null)
                     {
@@ -914,7 +918,6 @@ public class TechEditWizardData
                     // layer info
                     int itemCount = 0; // 4 max items: metal layer, overhang X, overhang X rule, overhang Y, overhang Y rule
                     StringTokenizer x = new StringTokenizer(s, ", ", false);
-                    int metal = -1;
                     double overX = 0, overY = 0;
                     String overXS = null, overYS = null;
 
@@ -939,7 +942,7 @@ public class TechEditWizardData
                         itemCount++;
                     }
                     assert(itemCount == 4);
-                    ContactNode node = new ContactNode(metal, overX, overXS, overY, overYS);
+                    ContactNode node = new ContactNode("", overX, overXS, overY, overYS);
                     nodeList.add(node);
                 }
             }
@@ -2041,7 +2044,7 @@ public class TechEditWizardData
         double contSpacing = scaledValue(contact_spacing.v);
         double contArraySpacing = scaledValue(contact_array_spacing.v);
         double metal1Over = scaledValue(contact_size.v/2 + contact_metal_overhang_all_sides.v);
-        double so = scaledValue(contact_poly_overhang.v);
+//        double so = scaledValue(contact_poly_overhang.v);
 
         // min contact with surround, assuming short is on X
         // We can't use the absolute shot from the via enclosure because the poly cut width is
@@ -2081,6 +2084,9 @@ public class TechEditWizardData
         Xml.Layer[] plusLayers = {pplusLayer, nplusLayer};
 
         // ndiff/pdiff contact
+        List<Object>[] diffContacts = new ArrayList[2];
+        diffContacts[0] = new ArrayList<Object>(); diffContacts[1] = new ArrayList<Object>();
+
         for (int i = 0; i < 2; i++)
         {
             portNames.clear();
@@ -2107,28 +2113,95 @@ public class TechEditWizardData
                 makeXmlNodeLayer(sels[i], sels[i], sels[i], sels[i], plusLayers[i], Poly.Type.CROSSED, true),
                 wellNodePin);
 
-            List<Object> diffContacts = new ArrayList<Object>(), l = null;
+//            List<Object> diffContacts = new ArrayList<Object>(), l = null;
 
             // F stands for full (all layers)
-            diffContacts.add(makeXmlPrimitiveCon(t.nodes, "F-"+composeName, hla, hla, new SizeOffset(sos[i], sos[i], sos[i], sos[i]), portNames,
+            diffContacts[i].add(makeXmlPrimitiveCon(t.nodes, "F-"+composeName, hla, hla, new SizeOffset(sos[i], sos[i], sos[i], sos[i]), portNames,
                     makeXmlNodeLayer(metal1Over, metal1Over, metal1Over, metal1Over, m1Layer, Poly.Type.FILLED, true), // meta1 layer
                     makeXmlNodeLayer(hla, hla, hla, hla, diffLayers[i], Poly.Type.FILLED, true), // active layer
                     makeXmlNodeLayer(sels[i], sels[i], sels[i], sels[i], plusLayers[i], Poly.Type.FILLED, true), // select layer
                     wellNode, // well layer
                     makeXmlMulticut(diffConLayer, contSize, contSpacing, contArraySpacing))); // contact
 
-            // min contact with surround, assuming short is on X
-            // We can't use the absolute shot from the via enclosure because the poly cut width is
-            // smaller than the min M1 width.
-            expectedMin = contact_size.v + via_overhang_short[0].v * 2;
-            validMetalOver = (DBMath.isLessThan(expectedMin, metal_width[0].v)) ? (metal_width[0].v - contact_size.v)/2 : via_overhang_short[0].v;
-
-            l = makeContactSeries(t.nodes, composeName, contSize, diffConLayer, contSpacing, contArraySpacing,
-                scaledValue(diff_contact_overhang_min_long.v), scaledValue(diff_contact_overhang_min_short.v), diffLayers[i],
-                scaledValue(via_overhang[0].v), validMetalOver, m1Layer);
-            diffContacts.addAll(l);
-            t.menuPalette.menuBoxes.add(diffContacts);
+//            // min contact with surround, assuming short is on X
+//            // We can't use the absolute shot from the via enclosure because the poly cut width is
+//            // smaller than the min M1 width.
+//            expectedMin = contact_size.v + via_overhang_short[0].v * 2;
+//            validMetalOver = (DBMath.isLessThan(expectedMin, metal_width[0].v)) ? (metal_width[0].v - contact_size.v)/2 : via_overhang_short[0].v;
+//
+//            l = makeContactSeries(t.nodes, composeName, contSize, diffConLayer, contSpacing, contArraySpacing,
+//                scaledValue(diff_contact_overhang_min_long.v), scaledValue(diff_contact_overhang_min_short.v), diffLayers[i],
+//                scaledValue(via_overhang[0].v), validMetalOver, m1Layer);
+//            diffContacts.addAll(l);
+//            t.menuPalette.menuBoxes.add(diffContacts);
         }
+
+        // Active and poly contacts
+        contSize = scaledValue(contact_size.v);
+        for (Map.Entry<String,List<Contact>> e : otherContacts.entrySet())
+        {
+            // generic contacts
+            String name = null;
+            for (Contact c : e.getValue())
+            {
+                Xml.Layer ly = null, lx = null;
+                List<Object> list = null;
+                if (TextUtils.isANumber(c.verticalLayer.layer))
+                {
+                    int m1 = Integer.valueOf(c.verticalLayer.layer);
+                    ly = metalLayers.get(m1-1);
+                    String Name = c.horizontalLayer.layer;
+                    if (Name.equals(diffLayers[0].name))
+                    {
+                        lx = diffLayers[0];
+                        list = diffContacts[0];
+                    }
+                    else if (Name.equals(diffLayers[1].name))
+                    {
+                        lx = diffLayers[1]; 
+                        list = diffContacts[1];
+                    }
+                    else
+                        assert(false); // it should not happen
+                    name = ly.name + "-" + lx.name;
+                }
+                else if (TextUtils.isANumber(c.horizontalLayer.layer))
+                {
+                    int m1 = Integer.valueOf(c.horizontalLayer.layer);
+                    ly = metalLayers.get(m1-1);
+                    String diffName = c.verticalLayer.layer;
+                    if (diffName.equals(diffLayers[0].name))
+                        lx = diffLayers[0];
+                    else if (diffName.equals(diffLayers[1].name))
+                        lx = diffLayers[1];
+                    else
+                        assert(false); // it should not happen
+                    name = lx.name + "-" + ly.name;
+                }
+                else
+                    assert(false); // it should not happen
+                double h1x = DBMath.round(contSize/2 + c.verticalLayer.overX.v);
+                double h1y = DBMath.round(contSize/2 + c.verticalLayer.overY.v);
+                double h2x = DBMath.round(contSize/2 + c.horizontalLayer.overX.v);
+                double h2y = DBMath.round(contSize/2 + c.horizontalLayer.overY.v);
+
+                double longX = DBMath.isGreaterThan(c.verticalLayer.overX.v, c.horizontalLayer.overX.v) ? c.verticalLayer.overX.v : c.horizontalLayer.overX.v;
+                double longY = DBMath.isGreaterThan(c.verticalLayer.overY.v, c.horizontalLayer.overY.v) ? c.verticalLayer.overY.v : c.horizontalLayer.overY.v;
+
+                list.add(makeXmlPrimitiveCon(t.nodes, c.prefix + name, -1, -1,
+                    new SizeOffset(longX, longX, longY, longY), portNames,
+                makeXmlNodeLayer(h1x, h1x, h1y, h1y, ly, Poly.Type.FILLED, true), // layer1
+                makeXmlNodeLayer(h2x, h2x, h2y, h2y, lx, Poly.Type.FILLED, true), // layer2
+                makeXmlMulticut(diffConLayer, contSize, contSpacing, contArraySpacing))); // contact
+            }
+        }
+
+        // Adding later the contacts into the palette
+        for (int i = 0; i < diffContacts.length; i++)
+        {
+            t.menuPalette.menuBoxes.add(diffContacts[i]);
+        }
+        t.menuPalette.menuBoxes.add(polyContacts);
 
         /**************************** N/P-Well Contacts ***********************************************/
         nwell = scaledValue(contact_size.v/2 + diff_contact_overhang.v + nwell_overhang_diff_n.v);
@@ -2230,8 +2303,9 @@ public class TechEditWizardData
             List<Object> contactsList = new ArrayList<Object>();
             for (Contact c : e.getValue())
             {
-                int i = c.verticalLayer.layer;
-                int j = c.horizontalLayer.layer;
+                // We know those layer names are numbers!
+                int i = Integer.valueOf(c.verticalLayer.layer);
+                int j = Integer.valueOf(c.horizontalLayer.layer);
                 Xml.Layer ly = metalLayers.get(i-1);
                 Xml.Layer lx = metalLayers.get(j-1);
                 String name = (j>i)?ly.name + "-" + lx.name:lx.name + "-" + ly.name;
