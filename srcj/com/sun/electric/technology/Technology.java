@@ -1238,12 +1238,11 @@ public class Technology implements Comparable<Technology>, Serializable
             Layer layer = Layer.newInstance(this, l.name, l.desc);
             layers.put(l.name, layer);
             layer.setFunction(l.function, l.extraFunction);
-            if (l.cif != null)
-                layer.setFactoryCIFLayer(l.cif);
-            if (l.skill != null)
-                layer.setFactorySkillLayer(l.skill);
-            layer.setFactory3DInfo(l.thick3D, l.height3D, l.mode3D, l.factor3D);
             layer.setFactoryParasitics(l.resistance, l.capacitance, l.edgeCapacitance);
+            layer.setFactoryCIFLayer(l.cif != null ? l.cif : "");
+            layer.setFactoryDXFLayer("");
+            layer.setFactorySkillLayer(l.skill != null ? l.skill : "");
+            layer.setFactory3DInfo(l.thick3D, l.height3D, l.mode3D, l.factor3D);
         }
         HashMap<String,ArcProto> arcs = new HashMap<String,ArcProto>();
         for (Xml.ArcProto a: t.arcs) {
