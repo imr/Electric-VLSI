@@ -228,7 +228,7 @@ public class GDS extends Geometry
             if (layer == null || layer.getTechnology() == null || layer.getTechnology() == Generic.tech()) continue;
 			if (!selectLayer(layer))
             {
-                System.out.println("Skipping " + layer + " in GDS:writeCellGeom");
+                System.out.println("Skipping " + layer + " in GDS output");
                 continue;
             }
 			List<Object> polyList = cellGeom.polyMap.get(layer);
