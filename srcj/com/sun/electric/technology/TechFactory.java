@@ -28,7 +28,6 @@ import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.technology.TechFactory;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ActivityLogger;
@@ -100,6 +99,10 @@ public abstract class TechFactory {
 
     public List<Param> getTechParams() {
         return techParams;
+    }
+
+    public static TechFactory getGenericFactory() {
+        return new FromClass("generic", "com.sun.electric.technology.technologies.Generic");
     }
 
     public static Map<String,TechFactory> getKnownTechs(String softTechnologies) {
@@ -193,7 +196,7 @@ public abstract class TechFactory {
         Technology newInstanceImpl(Generic generic, Map<String,Object> paramValues) throws Exception {
             assert paramValues.isEmpty();
             Class<?> techClass = Class.forName(techClassName);
-            return (Technology)techClass.getConstructor(Generic.class).newInstance(generic);
+            return (Technology)techClass.getConstructor(Generic.class, TechFactory.class).newInstance(generic, this);
         }
 
         @Override

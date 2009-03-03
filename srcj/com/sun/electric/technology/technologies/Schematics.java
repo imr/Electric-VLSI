@@ -50,6 +50,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveNodeSize;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.TechFactory;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.TransistorSize;
 import com.sun.electric.tool.user.User;
@@ -61,7 +62,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import javax.swing.JPopupMenu;
 
 
 /**
@@ -303,9 +303,9 @@ public class Schematics extends Technology
 
 	// -------------------- private and protected methods ------------------------
 
-	public Schematics(Generic generic)
+	public Schematics(Generic generic, TechFactory techFactory)
 	{
-		super(generic, "schematic", Foundry.Type.NONE, 1);
+		super(generic, techFactory, Foundry.Type.NONE, 1);
 		setTechShortName("Schematics");
 		setTechDesc("Schematic Capture");
 		setFactoryScale(2000, false);			// in nanometers: really 2 micron

@@ -934,6 +934,20 @@ public class Technology implements Comparable<Technology>, Serializable
         }
 	}
 
+    public class State {
+        private final Map<String,Object> paramValues;
+
+        private State(Map<String,Object> paramValues) {
+            this.paramValues = paramValues;
+        }
+
+        public Technology getTechnology() { return Technology.this; }
+    }
+
+    public State newState(Map<String,Object> paramValues) {
+        return new State(paramValues);
+    }
+
     public class SizeCorrector {
         public final HashMap<ArcProtoId,Integer> arcExtends = new HashMap<ArcProtoId,Integer>();
         public final HashMap<PrimitiveNodeId,EPoint> nodeExtends = new HashMap<PrimitiveNodeId,EPoint>();
@@ -1108,8 +1122,8 @@ public class Technology implements Comparable<Technology>, Serializable
 	/** indicates p-type objects. */						public static final int P_TYPE = 0;
 	/** Factory rules for the technology. */		        protected XMLRules factoryRules = null;
 	/** Cached rules for the technology. */		            protected XMLRules cachedRules = null;
-    /** TechFactory which created this Technology */        protected TechFactory techFactory;
-    /** Params of this Technology */                        protected Map<String,Object> techParams;
+    /** TechFactory which created this Technology */        protected final TechFactory techFactory;
+    /** Params of this Technology */                        protected State currentState;
     /** Xml representation of this Technology */            protected Xml.Technology xmlTech;
     /** Preference for saving component menus */			private Pref componentMenuPref = null;
     /** Preference for saving layer order */				private Pref layerOrderPref = null;
@@ -1120,29 +1134,30 @@ public class Technology implements Comparable<Technology>, Serializable
 	 * Constructs a <CODE>Technology</CODE>.
 	 * This should not be called directly, but instead is invoked through each subclass's factory.
 	 */
-	protected Technology(Generic generic, String techName) {
-        this(generic, techName, Foundry.Type.NONE, 0);
+	protected Technology(Generic generic, TechFactory techFactory) {
+        this(generic, techFactory, Foundry.Type.NONE, 0);
     }
 
 	/**
 	 * Constructs a <CODE>Technology</CODE>.
 	 * This should not be called directly, but instead is invoked through each subclass's factory.
 	 */
-	protected Technology(Generic generic, String techName, Foundry.Type defaultFoundry, int defaultNumMetals) {
-        this(generic.getId().idManager, generic,techName, defaultFoundry, defaultNumMetals);
+	protected Technology(Generic generic, TechFactory techFactory, Foundry.Type defaultFoundry, int defaultNumMetals) {
+        this(generic.getId().idManager, generic, techFactory, defaultFoundry, defaultNumMetals);
     }
 	/**
 	 * Constructs a <CODE>Technology</CODE>.
 	 * This should not be called directly, but instead is invoked through each subclass's factory.
 	 */
-	protected Technology(IdManager idManager, Generic generic, String techName, Foundry.Type defaultFoundry, int defaultNumMetals)
+	protected Technology(IdManager idManager, Generic generic, TechFactory techFactory, Foundry.Type defaultFoundry, int defaultNumMetals)
 	{
         if (this instanceof Generic) {
             assert generic == null;
             generic = (Generic)this;
         }
         this.generic = generic;
-		this.techId = idManager.newTechId(techName);
+		this.techId = idManager.newTechId(techFactory.techName);
+        this.techFactory = techFactory;
 		//this.scale = 1.0;
 		this.scaleRelevant = true;
 		this.techIndex = techNumber++;
@@ -1152,10 +1167,10 @@ public class Technology implements Comparable<Technology>, Serializable
 		prefs = Pref.groupForPackage(Generic.class, true);
         userPrefs = Pref.groupForPackage(User.class, true);
 //        ercPrefs = Pref.groupForPackage(ERC.class, true);
-        cacheFoundry = makeStringSetting("SelectedFoundryFor"+techName,
-        	"Technology tab", techName + " foundry", "Foundry", defaultFoundry.getName().toUpperCase());
-        cacheNumMetalLayers = makeIntSetting(techName + "NumberOfMetalLayers",
-            "Technology tab", techName + ": Number of Metal Layers", "NumMetalLayers", defaultNumMetals);
+        cacheFoundry = makeStringSetting("SelectedFoundryFor"+getTechName(),
+        	"Technology tab", getTechName() + " foundry", "Foundry", defaultFoundry.getName().toUpperCase());
+        cacheNumMetalLayers = makeIntSetting(getTechName() + "NumberOfMetalLayers",
+            "Technology tab", getTechName() + ": Number of Metal Layers", "NumMetalLayers", defaultNumMetals);
 
         cacheMaxSeriesResistance = makeParasiticSetting("MaxSeriesResistance", 10.0);
         cacheGateLengthSubtraction = makeParasiticSetting("GateLengthSubtraction", 0.0);
@@ -1199,9 +1214,8 @@ public class Technology implements Comparable<Technology>, Serializable
     }
 
     public Technology(Generic generic, TechFactory techFactory, Map<String,Object> techParams, Xml.Technology t) {
-        this(generic, t.techName, Foundry.Type.valueOf(t.defaultFoundry), t.defaultNumMetals);
-        this.techFactory = techFactory;
-        this.techParams = techParams;
+        this(generic, techFactory, Foundry.Type.valueOf(t.defaultFoundry), t.defaultNumMetals);
+        this.currentState = new State(techParams);
         xmlTech = t;
         setTechShortName(t.shortTechName);
         setTechDesc(t.description);
@@ -1594,12 +1608,12 @@ public class Technology implements Comparable<Technology>, Serializable
             HashMap<String,Object> newParamValues = new HashMap<String,Object>();
             for (Setting setting: getProjectSettings().getSettings()) {
                 String xmlPath = setting.getXmlPath();
-                Object oldValue = techParams.get(xmlPath);
+                Object oldValue = currentState.paramValues.get(xmlPath);
                 if (oldValue == null) continue;
                 Object newValue = settingContext.getValue(setting);
                 newParamValues.put(xmlPath, newValue);
             }
-            if (!newParamValues.equals(techParams)) {
+            if (!newParamValues.equals(currentState.paramValues)) {
                 Technology newTech = techFactory.newInstance(generic, newParamValues, settingContext);
                 copyState(newTech);
             }
@@ -1608,7 +1622,7 @@ public class Technology implements Comparable<Technology>, Serializable
     }
 
     private void copyState(Technology that) {
-        techParams = that.techParams;
+        currentState = new State(that.currentState.paramValues);
         xmlTech = that.xmlTech;
         techDesc = that.techDesc;
 

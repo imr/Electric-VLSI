@@ -37,6 +37,7 @@ import com.sun.electric.technology.Foundry;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.TechFactory;
 import com.sun.electric.technology.Technology;
 
 /**
@@ -55,9 +56,9 @@ public class GEM extends Technology
 	private PrimitiveNode e_node;
 
 	// -------------------- private and protected methods ------------------------
-	public GEM(Generic generic)
+	public GEM(Generic generic, TechFactory techFactory)
 	{
-		super(generic, "gem");
+		super(generic, techFactory);
 		setTechDesc("Temporal Specification Facility (from Lansky)");
 		setFactoryScale(1000, false);   // in nanometers: really 1 microns
 		setNoNegatedArcs();

@@ -38,6 +38,7 @@ import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.TechFactory;
 import com.sun.electric.technology.Technology;
 
 import java.awt.Color;
@@ -102,7 +103,7 @@ public class Generic extends Technology
 
 	private Generic(IdManager idManager)
 	{
-		super(idManager, null, "generic", Foundry.Type.NONE, 0);
+		super(idManager, null, TechFactory.getGenericFactory(), Foundry.Type.NONE, 0);
 		setTechShortName("Generic");
 		setTechDesc("Useful primitives");
 		setNonStandard();

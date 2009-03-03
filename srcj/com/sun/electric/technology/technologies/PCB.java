@@ -35,6 +35,7 @@ import com.sun.electric.technology.Foundry;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.TechFactory;
 import com.sun.electric.technology.Technology;
 
 import java.awt.Color;
@@ -45,9 +46,9 @@ import java.awt.Color;
 public class PCB extends Technology
 {
 	// -------------------- private and protected methods ------------------------
-	public PCB(Generic generic)
+	public PCB(Generic generic, TechFactory techFactory)
 	{
-		super(generic, "pcb", Foundry.Type.NONE, 8);
+		super(generic, techFactory, Foundry.Type.NONE, 8);
 		setTechDesc("Printed Circuit Board (eight-layer)");
 		setFactoryScale(1270000, true);   // in nanometers: really 1270 microns
 		setNoNegatedArcs();

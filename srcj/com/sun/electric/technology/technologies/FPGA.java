@@ -62,6 +62,7 @@ import com.sun.electric.technology.Foundry;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.TechFactory;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
@@ -92,9 +93,9 @@ public class FPGA extends Technology
 	private final ArcProto wireArc;
 	private final PrimitiveNode wirePinNode, pipNode, repeaterNode;
 
-	public FPGA(Generic generic)
+	public FPGA(Generic generic, TechFactory techFactory)
 	{
-		super(generic, "fpga", Foundry.Type.NONE, 1);
+		super(generic, techFactory, Foundry.Type.NONE, 1);
 		setTechShortName("FPGA");
 		setTechDesc("FPGA Building-Blocks");
 		setFactoryScale(2000, true);   // in nanometers: really 2 microns

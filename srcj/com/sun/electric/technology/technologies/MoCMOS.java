@@ -445,12 +445,6 @@ public class MoCMOS extends Technology
                 rules.loadDRCRules(this, foundry, rule, pWellProcess);
 			}
 		}
-        assert getRuleSet() == ((Integer)techParams.get(cacheRuleSet.getXmlPath())).intValue();
-        assert getNumMetals() == ((Integer)techParams.get("mocmos.NumMetalLayers")).intValue();
-        assert isSecondPolysilicon() == ((Boolean)techParams.get(cacheSecondPolysilicon.getXmlPath())).booleanValue();
-        assert isDisallowStackedVias() == ((Boolean)techParams.get(cacheDisallowStackedVias.getXmlPath())).booleanValue();
-        assert isAlternateActivePolyRules() == ((Boolean)techParams.get(cacheAlternateActivePolyRules.getXmlPath())).booleanValue();
-        assert isAnalog() == ((Boolean)techParams.get(cacheAnalog.getXmlPath())).booleanValue();
         resizeArcs(rules);
         
         for (Iterator<Layer> it = getLayers(); it.hasNext(); ) {
@@ -1026,7 +1020,7 @@ public class MoCMOS extends Technology
                             via_overhang = new double[] { 1, 1, 1, 1, 1, 1 };
                             break;
                         default:
-                            throw new AssertionError();
+                            throw new IllegalArgumentException("Illegal number of metals " + numMetals + " in SUB rule set");
                      }
                     break;
                 case DEEPRULES:
@@ -1050,7 +1044,7 @@ public class MoCMOS extends Technology
                             via_overhang = new double[] { 1, 1, 1, 1, 1, 2 };
                             break;
                         default:
-                            throw new AssertionError();
+                            throw new IllegalArgumentException("Illegal number of metals " + numMetals + " in DEEP rule set");
                      }
                     break;
                 case SCMOSRULES:
@@ -1080,11 +1074,11 @@ public class MoCMOS extends Technology
                             via_overhang = new double[] { 1, 1, 1, 2 };
                             break;
                         default:
-                            throw new AssertionError();
+                            throw new IllegalArgumentException("Illegal number of metals " + numMetals + " in SCMOS rule set");
                     }
                     break;
                 default:
-                    throw new AssertionError();
+                    throw new AssertionError("Illegal rule set " + ruleSet);
             }
             diff_contact_overhang = alternateContactRules ? 1 : 1.5;
             contact_poly_overhang = alternateContactRules ? 1 : 1.5;

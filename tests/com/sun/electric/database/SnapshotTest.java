@@ -33,6 +33,7 @@ import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.ImmutableArrayList;
+import com.sun.electric.technology.TechFactory;
 import com.sun.electric.technology.TechPool;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
@@ -100,7 +101,7 @@ public class SnapshotTest {
         LibId libId = idManager.newLibId("libId0");
         TechPool techPool = idManager.getInitialTechPool();
         Generic generic = Generic.newInstance(idManager);
-        techPool = techPool.withTech(generic).withTech(new Schematics(generic));
+        techPool = techPool.withTech(generic).withTech(TechFactory.getTechFactory("schematic").newInstance(generic));
         ImmutableLibrary l = ImmutableLibrary.newInstance(libId, null, null);
         LibraryBackup libBackup = new LibraryBackup(l, false, new LibId[]{});
         CellName cellName = CellName.parseName("cell;1{sch}");
@@ -138,7 +139,7 @@ public class SnapshotTest {
         LibId libIdX = idManager.newLibId("X");
         TechPool techPool = idManager.getInitialTechPool();
         Generic generic = Generic.newInstance(idManager);
-        techPool = techPool.withTech(generic).withTech(new Schematics(generic));
+        techPool = techPool.withTech(generic).withTech(TechFactory.getTechFactory("schematic").newInstance(generic));
         ImmutableLibrary libX = ImmutableLibrary.newInstance(libIdX, null, null);
         LibraryBackup libBackupX = new LibraryBackup(libX, false, new LibId[0]);
         LibId libIdY = idManager.newLibId("Y");

@@ -42,10 +42,9 @@ import com.sun.electric.technology.Foundry;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.TechFactory;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.tool.user.User;
 
-import java.awt.Color;
 import java.awt.geom.Point2D;
 
 /**
@@ -93,9 +92,9 @@ public class Artwork extends Technology
 	/** the layer */								public final Layer defaultLayer;
 
 	// -------------------- private and protected methods ------------------------
-	public Artwork(Generic generic)
+	public Artwork(Generic generic, TechFactory techFactory)
 	{
-		super(generic, "artwork");
+		super(generic, techFactory);
 		setTechShortName("Artwork");
 		setTechDesc("General-purpose artwork components");
 		setFactoryScale(2000, false);			// in nanometers: really 2 micron

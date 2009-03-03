@@ -35,6 +35,7 @@ import com.sun.electric.technology.Foundry;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.TechFactory;
 import com.sun.electric.technology.Technology;
 
 import java.awt.Color;
@@ -45,9 +46,9 @@ import java.awt.Color;
 public class EFIDO extends Technology
 {
 	// -------------------- private and protected methods ------------------------
-	public EFIDO(Generic generic)
+	public EFIDO(Generic generic, TechFactory techFactory)
 	{
-		super(generic, "efido");
+		super(generic, techFactory);
 		setTechDesc("Digital Filters");
 		setFactoryScale(10000, false);   // in nanometers: really 10 microns
 		setNoNegatedArcs();
@@ -405,7 +406,7 @@ public class EFIDO extends Technology
         factoryNodeGroups[++count][0] = wp_node; factoryNodeGroups[count][1] = p_node;
         factoryNodeGroups[++count][0] = bp_node; factoryNodeGroups[count][1] = p0_node;
         factoryNodeGroups[++count][0] = a_node;
-        
+
         //Foundry
         newFoundry(Foundry.Type.NONE, null);
 	};
