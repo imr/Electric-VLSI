@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09d: ******************************
 
+BUG: (3/3/09, SMR) Node extraction fails when two multicut contacts are close (Bug #2053).
+FIX: Ensure there is metal covering all of the cuts before considering them.
+
 IMP: (3/1/09, DN) mocmos and tsmc180 technologies are defined by patched Xml files. 
 
 IMP: (3/1/09, DN) Define pureLayerNodes in CMOS90 in the same order as Layers.

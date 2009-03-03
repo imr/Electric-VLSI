@@ -1636,9 +1636,11 @@ public class Connectivity
 					Set<PolyBase> cutsInArea = new HashSet<PolyBase>();
 					cutsInArea.add(cut);
 					Rectangle2D multiCutArea = new Rectangle2D.Double(cutBox.getCenterX(), cutBox.getCenterY(), 0, 0);
+					Rectangle2D requiredMetalArea = (Rectangle2D)cutBox.clone();
 					double cutLimit = Math.ceil(Math.max(pv.cutNodeLayer.getMulticutSep1D(), pv.cutNodeLayer.getMulticutSep2D()) +
 						Math.max(pv.cutNodeLayer.getMulticutSizeX(), pv.cutNodeLayer.getMulticutSizeX()) + 2);
 					cutLimit *= SCALEFACTOR;
+//System.out.println("CONSIDERING CUT AT ("+(cutBox.getCenterX()/SCALEFACTOR)+","+(cutBox.getCenterY()/SCALEFACTOR)+")");
 					boolean foundMore = true;
 					while (foundMore)
 					{
@@ -1652,12 +1654,34 @@ public class Connectivity
 							Rectangle2D bound = cBound.getBounds();
 							if (searchArea.contains(bound.getCenterX(), bound.getCenterY()))
 							{
+								double lX = Math.min(requiredMetalArea.getMinX(), bound.getMinX());
+								double hX = Math.max(requiredMetalArea.getMaxX(), bound.getMaxX());
+								double lY = Math.min(requiredMetalArea.getMinY(), bound.getMinY());
+								double hY = Math.max(requiredMetalArea.getMaxY(), bound.getMaxY());
+								Rectangle2D newRequiredArea = new Rectangle2D.Double(lX, lY, hX-lX, hY-lY);
+//System.out.println("   CAN WE ADD CUT AT ("+(bound.getCenterX()/SCALEFACTOR)+","+(bound.getCenterY()/SCALEFACTOR)+") WHICH DEMANDS METAL IN "+
+//	(lX/SCALEFACTOR)+"<=X<="+(hX/SCALEFACTOR)+" AND "+(lY/SCALEFACTOR)+"<=Y<="+(hY/SCALEFACTOR));
+
+								// make sure the expanded area has both metal layers in it
+								boolean fits = true;
+								PolyBase layerPoly = new PolyBase(newRequiredArea);
+								for(int i=0; i<pv.layers.length; i++)
+								{
+									Layer lay = pv.layers[i];
+									if (lay.getFunction().isMetal())
+									{
+										if (!originalMerge.contains(lay, layerPoly)) { fits = false;   break; }
+									}
+								}
+								if (!fits) continue;
+
+								// add this to the cut area
 								cutsInArea.add(cBound.cut);
-								double lX = Math.min(multiCutArea.getMinX(), bound.getCenterX());
-								double hX = Math.max(multiCutArea.getMaxX(), bound.getCenterX());
-								double lY = Math.min(multiCutArea.getMinY(), bound.getCenterY());
-								double hY = Math.max(multiCutArea.getMaxY(), bound.getCenterY());
-								multiCutArea.setRect(lX, lY, hX-lX, hY-lY);
+								lX = Math.min(multiCutArea.getMinX(), bound.getCenterX());
+								hX = Math.max(multiCutArea.getMaxX(), bound.getCenterX());
+								lY = Math.min(multiCutArea.getMinY(), bound.getCenterY());
+								hY = Math.max(multiCutArea.getMaxY(), bound.getCenterY());
+								multiCutArea = new Rectangle2D.Double(lX, lY, hX-lX, hY-lY);
 								foundMore = true;
 							}
 						}

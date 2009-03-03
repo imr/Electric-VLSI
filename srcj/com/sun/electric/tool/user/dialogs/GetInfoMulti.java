@@ -408,8 +408,8 @@ public class GetInfoMulti extends EModelessDialog implements HighlightListener, 
 			if (firstGeom instanceof NodeInst) firstPt = ((NodeInst)firstGeom).getAnchorCenter();
 			Point2D secondPt = secondGeom.getTrueCenter();
 			if (secondGeom instanceof NodeInst) secondPt = ((NodeInst)secondGeom).getAnchorCenter();
-			displayList.add("Distance between centers: X=" + Math.abs(firstPt.getX() - secondPt.getX()) +
-			   " Y=" + Math.abs(firstPt.getY() - secondPt.getY()));
+			displayList.add("Distance between centers: X=" + TextUtils.formatDouble(Math.abs(firstPt.getX() - secondPt.getX())) +
+			   " Y=" + TextUtils.formatDouble(Math.abs(firstPt.getY() - secondPt.getY())));
 		}
 
 		// reload the list (much more efficient than clearing and reloading if it is already displayed)
