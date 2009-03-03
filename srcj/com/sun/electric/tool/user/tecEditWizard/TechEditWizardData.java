@@ -2044,7 +2044,6 @@ public class TechEditWizardData
         double contSpacing = scaledValue(contact_spacing.v);
         double contArraySpacing = scaledValue(contact_array_spacing.v);
         double metal1Over = scaledValue(contact_size.v/2 + contact_metal_overhang_all_sides.v);
-//        double so = scaledValue(contact_poly_overhang.v);
 
         // min contact with surround, assuming short is on X
         // We can't use the absolute shot from the via enclosure because the poly cut width is
@@ -2054,7 +2053,6 @@ public class TechEditWizardData
         List<Object> polyContacts = makeContactSeries(t.nodes, polyLayer.name, contSize, polyConLayer, contSpacing, contArraySpacing,
                     scaledValue(contact_poly_overhang.v), scaledValue(contact_poly_overhang_min_short.v), polyLayer,
                     scaledValue(via_overhang[0].v), validMetalOver, m1Layer);
-        t.menuPalette.menuBoxes.add(polyContacts);
 
         /**************************** N/P-Diff Nodes/Arcs ***********************************************/
 
@@ -2122,18 +2120,6 @@ public class TechEditWizardData
                     makeXmlNodeLayer(sels[i], sels[i], sels[i], sels[i], plusLayers[i], Poly.Type.FILLED, true), // select layer
                     wellNode, // well layer
                     makeXmlMulticut(diffConLayer, contSize, contSpacing, contArraySpacing))); // contact
-
-//            // min contact with surround, assuming short is on X
-//            // We can't use the absolute shot from the via enclosure because the poly cut width is
-//            // smaller than the min M1 width.
-//            expectedMin = contact_size.v + via_overhang_short[0].v * 2;
-//            validMetalOver = (DBMath.isLessThan(expectedMin, metal_width[0].v)) ? (metal_width[0].v - contact_size.v)/2 : via_overhang_short[0].v;
-//
-//            l = makeContactSeries(t.nodes, composeName, contSize, diffConLayer, contSpacing, contArraySpacing,
-//                scaledValue(diff_contact_overhang_min_long.v), scaledValue(diff_contact_overhang_min_short.v), diffLayers[i],
-//                scaledValue(via_overhang[0].v), validMetalOver, m1Layer);
-//            diffContacts.addAll(l);
-//            t.menuPalette.menuBoxes.add(diffContacts);
         }
 
         // Active and poly contacts
@@ -2150,16 +2136,21 @@ public class TechEditWizardData
                 {
                     int m1 = Integer.valueOf(c.verticalLayer.layer);
                     ly = metalLayers.get(m1-1);
-                    String Name = c.horizontalLayer.layer;
-                    if (Name.equals(diffLayers[0].name))
+                    String layerName = c.horizontalLayer.layer;
+                    if (layerName.equals(diffLayers[0].name))
                     {
                         lx = diffLayers[0];
                         list = diffContacts[0];
                     }
-                    else if (Name.equals(diffLayers[1].name))
+                    else if (layerName.equals(diffLayers[1].name))
                     {
                         lx = diffLayers[1]; 
                         list = diffContacts[1];
+                    }
+                    else if (layerName.equals(polyLayer.name))
+                    {
+                        lx = polyLayer;
+                        list = polyContacts;
                     }
                     else
                         assert(false); // it should not happen
@@ -2169,11 +2160,16 @@ public class TechEditWizardData
                 {
                     int m1 = Integer.valueOf(c.horizontalLayer.layer);
                     ly = metalLayers.get(m1-1);
-                    String diffName = c.verticalLayer.layer;
-                    if (diffName.equals(diffLayers[0].name))
+                    String layerName = c.verticalLayer.layer;
+                    if (layerName.equals(diffLayers[0].name))
                         lx = diffLayers[0];
-                    else if (diffName.equals(diffLayers[1].name))
+                    else if (layerName.equals(diffLayers[1].name))
                         lx = diffLayers[1];
+                    else if (layerName.equals(polyLayer.name))
+                    {
+                        lx = polyLayer;
+                        list = polyContacts;
+                    }
                     else
                         assert(false); // it should not happen
                     name = lx.name + "-" + ly.name;
