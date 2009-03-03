@@ -335,6 +335,12 @@ public class GDS extends Input
 
             nameInstances(countOff);
            	Collections.sort(insts);
+
+           	// make a set of export names
+           	Set<String> exportNames = new HashSet<String>();
+			for(MakeInstance mi : insts)
+				exportNames.add(mi.exportName);
+           	
 			int count = 0;
 			int renamed = 0;
 			Map<String,String> exportUnify = new HashMap<String,String>();
@@ -350,7 +356,7 @@ public class GDS extends Input
                 }
 
 				// make the instance
-                if (mi.instantiate(this.cell, exportUnify)) renamed++;
+                if (mi.instantiate(this.cell, exportUnify, exportNames)) renamed++;
 			}
 
 			Map<NodeProto,List<EPoint>> massiveMerge = new HashMap<NodeProto,List<EPoint>>();
@@ -776,9 +782,10 @@ public class GDS extends Input
          * Method to instantiate a node/export in a Cell.
          * @param parent the Cell in which to create the geometry.
          * @param exportUnify a map that shows how renamed exports connect.
+         * @param insts all instances (for unique export naming).
          * @return true if the export had to be renamed.
          */
-        private boolean instantiate(Cell parent, Map<String,String> exportUnify) {
+        private boolean instantiate(Cell parent, Map<String,String> exportUnify, Set<String> exportNames) {
         	String name = nodeName.toString();
             NodeInst ni = NodeInst.makeInstance(proto, loc, wid, hei, parent, orient, name);
             String errorMsg = null;
@@ -813,7 +820,18 @@ public class GDS extends Input
             		exportName = exportName.substring(0, exportName.length()-1);
         		if (parent.findExport(exportName) != null)
         		{
-                    String newName = ElectricObject.uniqueObjectName(exportName, parent, PortProto.class, true);
+                    String newName = exportName; //ElectricObject.uniqueObjectName(exportName, parent, PortProto.class, true);
+                	while (exportNames.contains(newName))
+                	{
+                		int lastUnder = newName.lastIndexOf('_');
+                		if (lastUnder > 0 && TextUtils.isANumber(newName.substring(lastUnder+1)))
+                		{
+                			newName = newName.substring(0, lastUnder+1) + (TextUtils.atoi(newName.substring(lastUnder+1))+1);
+                		} else
+                		{
+                			newName += "_1";
+                		}
+                	}
 //                    System.out.println("  Warning: Multiple exports called '" + exportName + "' in cell " +
 //                    	parent.describe(false) + " (renamed to " + newName + ")");
                     exportUnify.put(newName, exportName);

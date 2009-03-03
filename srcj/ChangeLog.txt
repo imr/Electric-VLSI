@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09d: ******************************
 
+BUG: (3/3/09, SMR) GDS import may rename duplicate exports to conflict with
+     an existing export (Bug #2058).
+FIX: Scan all exports to ensure conflict resolution doesn't cause confusion.
+
 BUG: (3/3/09, SMR) Node extraction fails when two multicut contacts are close (Bug #2053).
 FIX: Ensure there is metal covering all of the cuts before considering them.
 
