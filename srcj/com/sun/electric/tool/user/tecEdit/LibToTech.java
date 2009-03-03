@@ -1805,11 +1805,21 @@ public class LibToTech
 				int variationIndex = 1;
 				for(Example variation : variations)
 				{
+					// align variation with main example and determine overall size
+					Sample namedSample = null;
+					for(Sample s : variation.samples)
+						if (!s.node.getNameKey().isTempname()) { namedSample = s;   break; }
+					Sample mainSample = null;
+					for(Sample s : neList.get(0).samples)
+						if (s.layer == namedSample.layer) { mainSample = s;   break; }
+					double lX = neList.get(0).lx - mainSample.xPos + namedSample.xPos;
+					double hX = neList.get(0).hx - mainSample.xPos + namedSample.xPos;
+					double lY = neList.get(0).ly - mainSample.yPos + namedSample.yPos;
+					double hY = neList.get(0).hy - mainSample.yPos + namedSample.yPos;
+
 					Sample samp = null;
 					for(Sample s : variation.samples)
-					{
 						if (s.layer == ns.layer) { samp = s;   break; }
-					}
 					if (samp != null)
 					{
 						NodeInfo.LayerDetails variationLayer = new NodeInfo.LayerDetails();
@@ -1820,15 +1830,13 @@ public class LibToTech
 
 						// rectangular sample: get the bounding box in (px, py)		TODO: get this right
 						Rectangle2D variationBounds = getBoundingBox(samp.node);
-						pointList = new Point2D[2];
-						pointFactor = new int[2];
-						pointList[0] = new Point2D.Double(variationBounds.getMinX(), variationBounds.getMinY());
-						pointList[1] = new Point2D.Double(variationBounds.getMaxX(), variationBounds.getMaxY());
-						pointFactor[0] = TOEDGELEFT|TOEDGEBOT;
-						pointFactor[1] = TOEDGERIGHT|TOEDGETOP;
-						Technology.TechPoint [] variationRule = stretchPoints(pointList, pointFactor, samp, np, neList, variation);
-						if (variationRule == null) return null;
-
+						Technology.TechPoint [] variationRule = new Technology.TechPoint[2];
+						EdgeH horiz = EdgeH.fromLeft(variationBounds.getMinX()-lX);
+						EdgeV vert = EdgeV.fromBottom(variationBounds.getMinY()-lY);
+						variationRule[0] = new Technology.TechPoint(horiz, vert);
+						horiz = EdgeH.fromRight(hX-variationBounds.getMaxX());
+						vert = EdgeV.fromTop(hY-variationBounds.getMaxY());
+						variationRule[1] = new Technology.TechPoint(horiz, vert);
 						variationLayer.values = fixValues(np, variationRule);
 						variationLayer.representation = Technology.NodeLayer.BOX;
 						variationLayer.inNodes = new BitSet();
