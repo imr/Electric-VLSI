@@ -470,7 +470,6 @@ public class PaletteFrame implements MouseListener
 		private int techBits = 0;
         private Orientation defOrient = Orientation.IDENT;
         private double [] angles = null;
-        private Double [] surroundOffsets;
 		private EPoint where;
 		private Cell cell;
 		private String varName;
@@ -491,12 +490,11 @@ public class PaletteFrame implements MouseListener
 				techBits = ni.getTechSpecific();
                 angles = ni.getArcDegrees();
                 techEditVar = ni.getVar(Info.OPTION_KEY);
-
-                Variable surroundOverride = ni.getVar(NodeLayer.METAL_OFFSETS);
-                if (surroundOverride != null)
-                {
-                	surroundOffsets = (Double [])surroundOverride.getObject();
-                }
+//                Variable surroundOverride = ni.getVar(NodeLayer.METAL_OFFSETS);
+//                if (surroundOverride != null)
+//                {
+//                	surroundOffsets = (Double [])surroundOverride.getObject();
+//                }
             } else if (np instanceof PrimitiveNode)
 			{
                 defOrient = Orientation.fromJava(defAngle, defAngle >= 3600, false);
@@ -531,10 +529,11 @@ public class PaletteFrame implements MouseListener
 			} else
 			{
 				// see if it has surround override
-				if (surroundOffsets != null)
-				{
-					newNi.newVar(NodeLayer.METAL_OFFSETS, surroundOffsets);
-				} else if (np == Schematics.tech().resistorNode)
+//				if (surroundOffsets != null)
+//				{
+//					newNi.newVar(NodeLayer.METAL_OFFSETS, surroundOffsets);
+//				} else
+				if (np == Schematics.tech().resistorNode)
 				{
 					newNi.newDisplayVar(Schematics.SCHEM_RESISTANCE, "100");
                     // Adding two extra variables: length and width

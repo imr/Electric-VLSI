@@ -89,6 +89,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.TreeMap;
 
 import java.util.prefs.Preferences;
@@ -813,55 +814,6 @@ public class Technology implements Comparable<Technology>, Serializable
         public double getMulticutSizeY() { return DBMath.gridToLambda(cutGridSizeY); }
         public double getMulticutSep1D() { return DBMath.gridToLambda(cutGridSep1D); }
         public double getMulticutSep2D() { return DBMath.gridToLambda(cutGridSep2D); }
-
-//        /**
-//         * Class to define custom overrides to the size of a NodeLayer.
-//         * The use of the custom override is indexed by the techSpecific field
-//         * on the NodeInst.
-//         */
-//        public static class CustomOverride
-//        {
-//        	private ERectangle rect;
-//        	private String name;
-//
-//        	public CustomOverride(double lX, double lY, double width, double height, String name)
-//        	{
-//        		rect = ERectangle.fromLambda(lX, lY, width, height);
-//        		this.name = name;
-//        	}
-//
-//        	public ERectangle getRect() { return rect; }
-//
-//        	public String getName() { return name; }
-//        }
-
-//        /**
-//         * Method to return the number of custom overrides on this NodeLayer.
-//         * CustomOverrides are changes to the shape of the NodeLayer that are
-//         * selected by the "techSpecific" bits on the NodeInst.
-//         * @return the number of custom overrides on this NodeLayer.
-//         */
-//        public int getNumCustomOverrides() { return customOverrides == null ? 0 : customOverrides.length; }
-//
-//        public CustomOverride getCustomOverride(int i) { return customOverrides[i]; }
-//
-//        public int getCustomOverrideMask() { return customOverrideMask; }
-//
-//        public int getCustomOverrideShift() { return customOverrideShift; }
-
-//        /**
-//         * Method to set the custom overrides on this NodeLayer.
-//         * @param mask bits in the techSpecific field of the NodeInst that
-//         * select the custom override.
-//         * @param shift right-shift of the bits in the techSpecific field to get the
-//         * proper custom override value.
-//         * @param overrides the array of CustomOverrides.
-//         */
-//        public void setCustomOverride(int mask, int shift, CustomOverride[] overrides) {
-//            customOverrides = overrides.clone();
-//            customOverrideMask = mask;
-//            customOverrideShift = shift;
-//        }
 
         void copyState(NodeLayer that) {
             assert representation == that.representation;
@@ -3668,9 +3620,6 @@ public class Technology implements Comparable<Technology>, Serializable
 		/** cut position of last top-edge cut (for interior-cut elimination) */		private double cutTopEdge;
 		/** cut position of last left-edge cut  (for interior-cut elimination) */	private double cutLeftEdge;
 		/** cut position of last right-edge cut  (for interior-cut elimination) */	private double cutRightEdge;
-//		private boolean overridesMetalSurround;
-//		private double lowerMetalDlx, lowerMetalDhx, lowerMetalDly, lowerMetalDhy;
-//		private double upperMetalDlx, upperMetalDhx, upperMetalDly, upperMetalDhy;
 
 		/**
 		 * Constructor to initialize for multiple cuts.
@@ -3802,80 +3751,7 @@ public class Technology implements Comparable<Technology>, Serializable
 					cutRightEdge = cutsX*2 + (cutsY-2)*2;
 				}
 			}
-
-//			overridesMetalSurround = false;
-//			if (!niD.isEasyShape())
-//			{
-//				Variable var = niD.getVar(NodeLayer.METAL_OFFSETS);
-//				if (var != null)
-//				{
-//					Double [] d = (Double [])var.getObject();
-//					lowerMetalDlx = d[0].doubleValue();
-//					lowerMetalDhx = d[1].doubleValue();
-//					lowerMetalDly = d[2].doubleValue();
-//					lowerMetalDhy = d[3].doubleValue();
-//					upperMetalDlx = d[4].doubleValue();
-//					upperMetalDhx = d[5].doubleValue();
-//					upperMetalDly = d[6].doubleValue();
-//					upperMetalDhy = d[7].doubleValue();
-//					overridesMetalSurround = true;
-//				}
-//			}
         }
-
-//        /**
-//         * Method to tell whether there is surround override in this contact.
-//         * @return true if there is surround override in this contact.
-//         */
-//        public boolean isOverrideMetalSurround() { return overridesMetalSurround; }
-//
-//        /**
-//         * Method to return the offset to apply to the low X edge of the lower metal layer.
-//         * @return the offset to apply to the low X edge of the lower metal layer.
-//         */
-//        public double getLowerMetalDeltaLX() { return lowerMetalDlx; }
-//
-//        /**
-//         * Method to return the offset to apply to the low Y edge of the lower metal layer.
-//         * @return the offset to apply to the low Y edge of the lower metal layer.
-//         */
-//        public double getLowerMetalDeltaLY() { return lowerMetalDly; }
-//
-//        /**
-//         * Method to return the offset to apply to the high X edge of the lower metal layer.
-//         * @return the offset to apply to the high X edge of the lower metal layer.
-//         */
-//        public double getLowerMetalDeltaHX() { return lowerMetalDhx; }
-//
-//        /**
-//         * Method to return the offset to apply to the high Y edge of the lower metal layer.
-//         * @return the offset to apply to the high Y edge of the lower metal layer.
-//         */
-//        public double getLowerMetalDeltaHY() { return lowerMetalDhy; }
-//
-//        /**
-//         * Method to return the offset to apply to the low X edge of the upper metal layer.
-//         * @return the offset to apply to the low X edge of the upper metal layer.
-//         */
-//        public double getUpperMetalDeltaLX() { return upperMetalDlx; }
-//
-//        /**
-//         * Method to return the offset to apply to the low Y edge of the upper metal layer.
-//         * @return the offset to apply to the low Y edge of the upper metal layer.
-//         */
-//        public double getUpperMetalDeltaLY() { return upperMetalDly; }
-//
-//        /**
-//         * Method to return the offset to apply to the high X edge of the upper metal layer.
-//         * @return the offset to apply to the high X edge of the upper metal layer.
-//         */
-//        public double getUpperMetalDeltaHX() { return upperMetalDhx; }
-//
-//        /**
-//         * Method to return the offset to apply to the high Y edge of the upper metal layer.
-//         * @return the offset to apply to the high Y edge of the upper metal layer.
-//         */
-//        public double getUpperMetalDeltaHY() { return upperMetalDhy; }
 
         /**
 		 * Method to return the number of cuts in the contact node.
@@ -6105,46 +5981,29 @@ public class Technology implements Comparable<Technology>, Serializable
 			ArcProto ap = it.next();
 			if (!ap.isNotUsed()) things.add(ap);
 		}
+		Set<PrimitiveNodeGroup> groups = new HashSet<PrimitiveNodeGroup>();
 		for(Iterator<PrimitiveNode> it = getNodes(); it.hasNext(); )
 		{
 			PrimitiveNode np = it.next();
 			if (np.isNotUsed()) continue;
 			if (np.getFunction() == PrimitiveNode.Function.NODE) continue;
-            if (np.group != null) continue;
+            if (np.group != null)
+            {
+            	if (!groups.contains(np.group))
+            	{
+                	groups.add(np.group);
+	                for (PrimitiveNodeGroup group : groups)
+	                {
+	                    List<Object> tmp = new ArrayList<Object>();
+	                    for (PrimitiveNode gnp: group.getNodes())
+	                        tmp.add(makeNodeInst(gnp));
+	                    things.add(tmp);
+	                }
+            	}
+            	continue;
+            }
             things.add(np);
-
-//			boolean customOverride = false;
-//			NodeLayer[] nLayers = np.getLayers();
-//        	for(int j=0; j<nLayers.length; j++)
-//        	{
-//        		NodeLayer nLay = nLayers[j];
-//        		int nc = nLay.getNumCustomOverrides();
-//        		if (nc > 0)
-//        		{
-//	        		List<Object> tmp = new ArrayList<Object>();
-//	        		tmp.add(np);
-//	        		for(int k=0; k<nc; k++)
-//	        		{
-//	        			NodeLayer.CustomOverride co = nLay.getCustomOverride(k);
-//	                    NodeInst overrideNode = makeNodeInst(np, np.getFunction(), 0, false,
-//	                    	np.getName() + "-" + co.getName(), 5.5);
-//	                    overrideNode.setTechSpecific((k+1) << nLay.getCustomOverrideShift());
-//	                    tmp.add(overrideNode);
-//	        		}
-//	        		things.add(tmp);
-//	                customOverride = true;
-//	        		break;
-//        		}
-//        	}
-//        	if (!customOverride)
-        		things.add(np);
 		}
-        for (PrimitiveNodeGroup group: new PrimitiveNodeGroup[0]) {
-            List<Object> tmp = new ArrayList<Object>();
-            for (PrimitiveNode np: group.getNodes())
-                tmp.add(makeNodeInst(np));
-            things.add(tmp);
-        }
 		things.add(SPECIALMENUPURE);
 		things.add(SPECIALMENUMISC);
 		things.add(SPECIALMENUCELL);

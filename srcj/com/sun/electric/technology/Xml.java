@@ -1025,29 +1025,6 @@ public class Xml {
                         curPort.hy.k = da_("khy", 1);
                     }
                     break;
-//                case customOverrides:
-//                	curNodeLayer.customOverrideMask = TextUtils.atoi(a("mask"));
-//                	curNodeLayer.customOverrideShift = TextUtils.atoi(a("shift"));
-//                	break;
-//                case override:
-//                	if (curNodeLayer.customOverrides == null)
-//                	{
-//                		curNodeLayer.customOverrides = new CustomOverride[1];
-//                	} else
-//                	{
-//                		CustomOverride [] oldList = curNodeLayer.customOverrides;
-//                		int total = oldList.length;
-//                		curNodeLayer.customOverrides = new CustomOverride[total+1];
-//                		for(int i=0; i<total; i++)
-//                			curNodeLayer.customOverrides[i] = oldList[i];
-//                	}
-//                	String name = a("name");
-//                	double oLx = TextUtils.atof(a("lx"));
-//                	double oHx = TextUtils.atof(a("hx"));
-//                	double oLy = TextUtils.atof(a("ly"));
-//                	double oHy = TextUtils.atof(a("hy"));
-//                	curNodeLayer.customOverrides[curNodeLayer.customOverrides.length-1] =
-//                		new CustomOverride(oLx, oLy, oHx-oLx, oHy-oLy, name);
                 case points:
                     curNodeLayer.representation = com.sun.electric.technology.Technology.NodeLayer.POINTS;
                     break;
@@ -1953,27 +1930,6 @@ public class Xml {
                     b(XmlKeyword.techPoint); a("xm", xm); a("xa", xa); a("ym", ym); a("ya", ya); el();
                 }
 
-//                // write surround overrides
-//                if (nl.customOverrides != null)
-//                {
-//                	b(XmlKeyword.customOverrides);
-//                	a("mask", nl.customOverrideMask);
-//                	a("shift", nl.customOverrideShift);
-//                    cl();
-//                	for(int k=0; k<nl.customOverrides.length; k++)
-//                	{
-//                		CustomOverride co = nl.customOverrides[k];
-//                		if (co == null) continue;
-//                		b(XmlKeyword.override);
-//                		a("name", co.getName());
-//                		a("lx", co.getRect().getMinX());
-//                		a("hx", co.getRect().getMaxX());
-//                		a("ly", co.getRect().getMinY());
-//                		a("hy", co.getRect().getMaxY());
-//                		el();
-//                	}
-//                	el(XmlKeyword.customOverrides);
-//                }
                 el(XmlKeyword.nodeLayer);
             }
             for (int j = 0; j < ni.ports.size(); j++) {

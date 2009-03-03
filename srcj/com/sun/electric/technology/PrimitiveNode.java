@@ -2267,15 +2267,12 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 
     Xml.PrimitiveNode makeXml() {
         Xml.PrimitiveNode n = new Xml.PrimitiveNode();
-//        Xml.PrimitiveNode n = param != null ? new Xml.PrimitiveNodeGroup() : new Xml.PrimitiveNode();
         n.name = getName();
         for (Map.Entry<String,PrimitiveNode> e: tech.getOldNodeNames().entrySet()) {
             if (e.getValue() != this) continue;
             assert n.oldName == null;
             n.oldName = e.getKey();
         }
-//        if (param != null)
-//            ((Xml.PrimitiveNodeGroup)n).param = param;
         fillXml(n);
         return n;
     }

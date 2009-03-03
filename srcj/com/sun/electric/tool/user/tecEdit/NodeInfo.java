@@ -39,6 +39,8 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 
 import java.awt.geom.Dimension2D;
+import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Iterator;
 import java.util.List;
 
@@ -77,6 +79,7 @@ public class NodeInfo extends Info
 		double                 lWidth, rWidth, extendT, extendB;		/* serpentine transistor information */
         String                 message;
         TextDescriptor         descriptor;
+        BitSet                 inNodes;
 
         public LayerDetails()
         {
@@ -141,7 +144,7 @@ public class NodeInfo extends Info
 	double []              specialValues;
 	double                 xSize, ySize;
 	String                 spiceTemplate;
-	String []              surroundOverrideNames;
+    List<String>           primitiveNodeGroupNames;
 
 	static SpecialTextDescr [] nodeTextTable =
 	{

@@ -58,6 +58,7 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -364,24 +365,22 @@ public class TechToLib
 
 		// create the node cells
 		System.out.println("Creating the nodes...");
-		int nodeTotal = 0;
-		for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
-			if (!it.next().isNotUsed()) nodeTotal++;
-        NodeInfo[] nList = new NodeInfo[nodeTotal];
-		String [] nodeSequence = new String[nodeTotal];
-
+		List<String> nodeSequence = new ArrayList<String>();
+		List<NodeInfo> nList = new ArrayList<NodeInfo>();
         Cell dummyCell = Cell.newInstance(lib, "dummyCell{lay}");
-		int nodeIndex = 0;
 		for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
 		{
 			PrimitiveNode pnp = it.next();
 			if (pnp.isNotUsed()) continue;
-            if (pnp.getPrimitiveNodeGroup() != null)
-                continue;
+
+			// only consider the first node in a group
+			if (pnp.getPrimitiveNodeGroup() != null)
+            {
+            	if (pnp.getPrimitiveNodeGroup().getNodes().get(0) != pnp) continue;
+            }
             NodeInfo nIn = makeNodeInfo(pnp, lList, aList);
-            nList[nodeIndex] = nIn;
-            nodeSequence[nodeIndex] = pnp.getName();
-			nodeIndex++;
+            nList.add(nIn);
+            nodeSequence.add(pnp.getName());
 
 			// create the node layers
 			boolean first = true;
@@ -525,106 +524,103 @@ public class TechToLib
 //				}
 
 				// also draw ports
-				Map<PrimitivePort,NodeInst> portNodes = new HashMap<PrimitivePort,NodeInst>();
-				for(Iterator<PortProto> pIt = pnp.getPorts(); pIt.hasNext(); )
-				{
-					PrimitivePort pp = (PrimitivePort)pIt.next();
-					Poly poly = tech.getShapeOfPort(oNi, pp);
-					SizeOffset pSo = Generic.tech().portNode.getProtoSizeOffset();
-					double width = poly.getBounds2D().getWidth() + pSo.getLowXOffset() + pSo.getHighXOffset();
-					double height = poly.getBounds2D().getHeight() + pSo.getLowYOffset() + pSo.getHighYOffset();
-					NodeInst pNi = NodeInst.makeInstance(Generic.tech().portNode, new Point2D.Double(poly.getCenterX(), poly.getCenterY()),
-						width, height, nNp);
-					if (pNi == null) return null;
-					portNodes.put(pp, pNi);
-					pNi.newVar(Info.OPTION_KEY, new Integer(Info.LAYERPATCH));
-					pNi.newDisplayVar(Info.PORTNAME_KEY, pp.getName());
-
-					// on the first sample, also show angle and connection
-					if (e != 0) continue;
-					if (pp.getAngle() != 0 || pp.getAngleRange() != 180)
-					{
-						pNi.newVar(Info.PORTANGLE_KEY, new Integer(pp.getAngle()));
-						pNi.newVar(Info.PORTRANGE_KEY, new Integer(pp.getAngleRange()));
-					}
-
-					// add in the "local" port connections (from this tech)
-					ArcProto [] connects = pp.getConnections();
-					List<Cell> validConns = new ArrayList<Cell>();
-					for(int i=0; i<connects.length; i++)
-					{
-						if (connects[i].getTechnology() != tech) continue;
-						Cell cell = arcCells.get(connects[i]);
-						if (cell != null) validConns.add(cell);
-//                        for (int k = 0; k < aList.length; k++) {
-//                            if (aList[k].name.equals(connects[i].getName())) {
-//                                break;
-//                            }
+				if (addPortsToPrimitive(pnp, oNi, tech, arcCells, aList, nNp)) return null;
+//				Map<PrimitivePort,NodeInst> portNodes = new HashMap<PrimitivePort,NodeInst>();
+//				for(Iterator<PortProto> pIt = pnp.getPorts(); pIt.hasNext(); )
+//				{
+//					PrimitivePort pp = (PrimitivePort)pIt.next();
+//					Poly poly = tech.getShapeOfPort(oNi, pp);
+//					SizeOffset pSo = Generic.tech().portNode.getProtoSizeOffset();
+//					double width = poly.getBounds2D().getWidth() + pSo.getLowXOffset() + pSo.getHighXOffset();
+//					double height = poly.getBounds2D().getHeight() + pSo.getLowYOffset() + pSo.getHighYOffset();
+//					NodeInst pNi = NodeInst.makeInstance(Generic.tech().portNode, new Point2D.Double(poly.getCenterX(), poly.getCenterY()),
+//						width, height, nNp);
+//					if (pNi == null) return null;
+//					portNodes.put(pp, pNi);
+//					pNi.newVar(Info.OPTION_KEY, new Integer(Info.LAYERPATCH));
+//					pNi.newDisplayVar(Info.PORTNAME_KEY, pp.getName());
+//
+//					// on the first sample, also show angle and connection
+//					if (e != 0) continue;
+//					if (pp.getAngle() != 0 || pp.getAngleRange() != 180)
+//					{
+//						pNi.newVar(Info.PORTANGLE_KEY, new Integer(pp.getAngle()));
+//						pNi.newVar(Info.PORTRANGE_KEY, new Integer(pp.getAngleRange()));
+//					}
+//
+//					// add in the "local" port connections (from this tech)
+//					ArcProto [] connects = pp.getConnections();
+//					List<Cell> validConns = new ArrayList<Cell>();
+//					for(int i=0; i<connects.length; i++)
+//					{
+//						if (connects[i].getTechnology() != tech) continue;
+//						Cell cell = arcCells.get(connects[i]);
+//						if (cell != null) validConns.add(cell);
+////                        for (int k = 0; k < aList.length; k++) {
+////                            if (aList[k].name.equals(connects[i].getName())) {
+////                                break;
+////                            }
+////                        }
+//					}
+//					int meaning = 0;
+//					if (validConns.size() > 0)
+//					{
+//						CellId [] aplist = new CellId[validConns.size()];
+//						for(int i=0; i<validConns.size(); i++)
+//						{
+//                            Cell cell = validConns.get(i);
+//							aplist[i] = cell.getId();
+//							String arcName = cell.getName().substring(4);
+//							for (int k = 0; k < aList.length; k++)
+//							{
+//								if (aList[k].name.equals(arcName))
+//								{
+//									if (aList[k].func.isDiffusion()) meaning = 2; else
+//										if (aList[k].func.isPoly()) meaning = 1;
+//									break;
+//								}
+//							}
 //                        }
-					}
-					int meaning = 0;
-					if (validConns.size() > 0)
-					{
-						CellId [] aplist = new CellId[validConns.size()];
-						for(int i=0; i<validConns.size(); i++)
-						{
-                            Cell cell = validConns.get(i);
-							aplist[i] = cell.getId();
-							String arcName = cell.getName().substring(4);
-							for (int k = 0; k < aList.length; k++)
-							{
-								if (aList[k].name.equals(arcName))
-								{
-									if (aList[k].func.isDiffusion()) meaning = 2; else
-										if (aList[k].func.isPoly()) meaning = 1;
-									break;
-								}
-							}
-                        }
-						pNi.newVar(Info.CONNECTION_KEY, aplist);
-					}
-
-					// add in gate/gated factor for transistors
-					if (pnp.getFunction().isTransistor())
-					{
-						pNi.newVar(Info.PORTMEANING_KEY, new Integer(meaning));
-					}
-
-					// connect the connected ports
-					for(Iterator<PortProto> oPIt = pnp.getPorts(); oPIt.hasNext(); )
-					{
-						PrimitivePort opp = (PrimitivePort)oPIt.next();
-						if (opp == pp) break;
-						if (opp.getTopology() != pp.getTopology()) continue;
-						NodeInst nni = portNodes.get(opp);
-						if (nni == null) continue;
-						PortInst head = nni.getOnlyPortInst();
-						PortInst tail = pNi.getOnlyPortInst();
-						ArcInst.newInstanceBase(Generic.tech().universal_arc, 0, head, tail);
-						break;
-					}
-				}
+//						pNi.newVar(Info.CONNECTION_KEY, aplist);
+//					}
+//
+//					// add in gate/gated factor for transistors
+//					if (pnp.getFunction().isTransistor())
+//					{
+//						pNi.newVar(Info.PORTMEANING_KEY, new Integer(meaning));
+//					}
+//
+//					// connect the connected ports
+//					for(Iterator<PortProto> oPIt = pnp.getPorts(); oPIt.hasNext(); )
+//					{
+//						PrimitivePort opp = (PrimitivePort)oPIt.next();
+//						if (opp == pp) break;
+//						if (opp.getTopology() != pp.getTopology()) continue;
+//						NodeInst nni = portNodes.get(opp);
+//						if (nni == null) continue;
+//						PortInst head = nni.getOnlyPortInst();
+//						PortInst tail = pNi.getOnlyPortInst();
+//						ArcInst.newInstanceBase(Generic.tech().universal_arc, 0, head, tail);
+//						break;
+//					}
+//				}
                 oNi.kill();
 			}
 
 			// generate the parameterized variations if there are any
-			if (nIn.surroundOverrideNames != null)
-			{
-				for(int k=1; k<nIn.surroundOverrideNames.length; k++)
+	        PrimitiveNodeGroup primitiveNodeGroup = pnp.getPrimitiveNodeGroup();
+	        if (primitiveNodeGroup != null)
+	        {
+	        	for(int k=1; k<primitiveNodeGroup.getNodes().size(); k++)
 				{
-					xS = pnp.getDefWidth() * 2;
-					yS = pnp.getDefHeight() * 2;
-					pos[0] = new Point2D.Double(nodeXPos - xS, -5 + yS);
-					pos[1] = new Point2D.Double(nodeXPos + xS, -5 + yS);
-					pos[2] = new Point2D.Double(nodeXPos - xS, -5 - yS);
-					pos[3] = new Point2D.Double(nodeXPos + xS, -5 - yS);
-					Point2D nPos = new Point2D.Double(nodeXPos - xS*3, -5 - yS*(k*2-3));
+					PrimitiveNode altPNp = pnp.getPrimitiveNodeGroup().getNodes().get(k);
+					xS = altPNp.getDefWidth() * 2;
+					yS = altPNp.getDefHeight() * 2;
+					Point2D nPos = new Point2D.Double(nodeXPos + xS*5, -5 - yS*(k*2-3));
 
-					xS = pnp.getDefWidth();
-					yS = pnp.getDefHeight();
-	                NodeInst oNi = NodeInst.makeInstance(pnp, EPoint.snap(nPos), xS, yS, dummyCell);
-//	                NodeParam param = pnp.getParam();
-//	                oNi.setTechSpecific(k << param.bitsFrom);
+					xS = altPNp.getDefWidth();
+					yS = altPNp.getDefHeight();
+	                NodeInst oNi = NodeInst.makeInstance(altPNp, EPoint.snap(nPos), xS, yS, dummyCell);
 					Poly [] polys = tech.getShapeOfNode(oNi);
 					int j = polys.length;
 					for(int i=0; i<j; i++)
@@ -641,7 +637,12 @@ public class TechToLib
 	                        continue;
 	                    }
 						if (nodeLayer.getFunction().isContact())
-							ni.setName(nIn.surroundOverrideNames[k]);
+						{
+							ni.setName(altPNp.getName());
+							TextDescriptor td = ni.getTextDescriptor(NodeInst.NODE_NAME).withOff(0,
+								-altPNp.getDefaultLambdaBaseHeight()*1.5);
+							ni.setTextDescriptor(NodeInst.NODE_NAME, td);
+						}
 
 						// get graphics for this layer
 						Manipulate.setPatch(ni, desc);
@@ -653,13 +654,15 @@ public class TechToLib
 					// create the highlight node
 					Point2D loc = new Point2D.Double(nPos.getX() + (so.getLowXOffset() - so.getHighXOffset())/2,
 						nPos.getY() + (so.getLowYOffset() - so.getHighYOffset())/2);
-					xS = pnp.getDefWidth() - so.getLowXOffset() - so.getHighXOffset();
-					yS = pnp.getDefHeight() - so.getLowYOffset() - so.getHighYOffset();
+					xS = altPNp.getDefWidth() - so.getLowXOffset() - so.getHighXOffset();
+					yS = altPNp.getDefHeight() - so.getLowYOffset() - so.getHighYOffset();
 					NodeInst ni = NodeInst.makeInstance(Artwork.tech().boxNode, loc, xS, yS, nNp);
 					if (ni == null) return null;
 					ni.newVar(Artwork.ART_COLOR, new Integer(EGraphics.makeIndex(Color.WHITE)));
 					ni.newVar(Info.OPTION_KEY, new Integer(Info.HIGHLIGHTOBJ));
 
+					// also draw ports
+					if (addPortsToPrimitive(pnp, oNi, tech, arcCells, aList, nNp)) return null;
 	                oNi.kill();
 				}
 			}
@@ -670,7 +673,10 @@ public class TechToLib
         dummyCell.kill();
 
 		// save the node sequence
-		lib.newVar(Info.NODESEQUENCE_KEY, nodeSequence);
+        String [] nodeSequenceArray = new String[nodeSequence.size()];
+        for(int i=0; i<nodeSequence.size(); i++)
+        	nodeSequenceArray[i] = nodeSequence.get(i);
+		lib.newVar(Info.NODESEQUENCE_KEY, nodeSequenceArray);
 
 //		// create the design rule information
 //		rules = dr_allocaterules(layerTotal, nodeTotal, tech.techname);
@@ -833,7 +839,86 @@ public class TechToLib
 		return(lib);
 	}
 
-    private static ArcInfo makeArcInfo(ArcProto ap, LayerInfo[] lList)
+	private static boolean addPortsToPrimitive(PrimitiveNode pnp, NodeInst oNi, Technology tech, Map<ArcProto,Cell> arcCells,
+		ArcInfo[] aList, Cell nNp)
+	{
+		Map<PrimitivePort,NodeInst> portNodes = new HashMap<PrimitivePort,NodeInst>();
+		for(Iterator<PortProto> pIt = pnp.getPorts(); pIt.hasNext(); )
+		{
+			PrimitivePort pp = (PrimitivePort)pIt.next();
+			Poly poly = tech.getShapeOfPort(oNi, pp);
+			SizeOffset pSo = Generic.tech().portNode.getProtoSizeOffset();
+			double width = poly.getBounds2D().getWidth() + pSo.getLowXOffset() + pSo.getHighXOffset();
+			double height = poly.getBounds2D().getHeight() + pSo.getLowYOffset() + pSo.getHighYOffset();
+			NodeInst pNi = NodeInst.makeInstance(Generic.tech().portNode, new Point2D.Double(poly.getCenterX(), poly.getCenterY()),
+				width, height, nNp);
+			if (pNi == null) return true;
+			portNodes.put(pp, pNi);
+			pNi.newVar(Info.OPTION_KEY, new Integer(Info.LAYERPATCH));
+			pNi.newDisplayVar(Info.PORTNAME_KEY, pp.getName());
+
+			// on the first sample, also show angle and connection
+			if (pp.getAngle() != 0 || pp.getAngleRange() != 180)
+			{
+				pNi.newVar(Info.PORTANGLE_KEY, new Integer(pp.getAngle()));
+				pNi.newVar(Info.PORTRANGE_KEY, new Integer(pp.getAngleRange()));
+			}
+
+			// add in the "local" port connections (from this tech)
+			ArcProto [] connects = pp.getConnections();
+			List<Cell> validConns = new ArrayList<Cell>();
+			for(int i=0; i<connects.length; i++)
+			{
+				if (connects[i].getTechnology() != tech) continue;
+				Cell cell = arcCells.get(connects[i]);
+				if (cell != null) validConns.add(cell);
+			}
+			int meaning = 0;
+			if (validConns.size() > 0)
+			{
+				CellId [] aplist = new CellId[validConns.size()];
+				for(int i=0; i<validConns.size(); i++)
+				{
+	                Cell cell = validConns.get(i);
+					aplist[i] = cell.getId();
+					String arcName = cell.getName().substring(4);
+					for (int l = 0; l < aList.length; l++)
+					{
+						if (aList[l].name.equals(arcName))
+						{
+							if (aList[l].func.isDiffusion()) meaning = 2; else
+								if (aList[l].func.isPoly()) meaning = 1;
+							break;
+						}
+					}
+	            }
+				pNi.newVar(Info.CONNECTION_KEY, aplist);
+			}
+
+			// add in gate/gated factor for transistors
+			if (pnp.getFunction().isTransistor())
+			{
+				pNi.newVar(Info.PORTMEANING_KEY, new Integer(meaning));
+			}
+
+			// connect the connected ports
+			for(Iterator<PortProto> oPIt = pnp.getPorts(); oPIt.hasNext(); )
+			{
+				PrimitivePort opp = (PrimitivePort)oPIt.next();
+				if (opp == pp) break;
+				if (opp.getTopology() != pp.getTopology()) continue;
+				NodeInst nni = portNodes.get(opp);
+				if (nni == null) continue;
+				PortInst head = nni.getOnlyPortInst();
+				PortInst tail = pNi.getOnlyPortInst();
+				ArcInst.newInstanceBase(Generic.tech().universal_arc, 0, head, tail);
+				break;
+			}
+		}
+		return false;
+	}
+
+	private static ArcInfo makeArcInfo(ArcProto ap, LayerInfo[] lList)
     {
         ArcInfo aIn = new ArcInfo();
         aIn.name = ap.getName();
@@ -897,17 +982,6 @@ public class TechToLib
         nIn.specialType = pnp.getSpecialType();
         nIn.specialValues = pnp.getSpecialValues();
         nIn.spiceTemplate = pnp.getSpiceTemplate();
-
-        PrimitiveNodeGroup primitiveNodeGroup = pnp.getPrimitiveNodeGroup();
-        if (primitiveNodeGroup != null)
-        {
-        	nIn.surroundOverrideNames = new String[primitiveNodeGroup.getNodes().size()];
-        	for(int i=0; i<primitiveNodeGroup.getNodes().size(); i++)
-        		nIn.surroundOverrideNames[i] = primitiveNodeGroup.getNodes().get(i).getName();
-//System.out.print("PRIMITIVE "+pnp.describe(false)+" HAS OVERRIDES:");
-//for(int i=0; i<nIn.surroundOverrideNames.length; i++) System.out.print(" "+nIn.surroundOverrideNames[i]);
-//System.out.println();
-        }
 
         List<Technology.NodeLayer> nodeLayers = new ArrayList<Technology.NodeLayer>();
         for(Technology.NodeLayer nld : pnp.getLayers())

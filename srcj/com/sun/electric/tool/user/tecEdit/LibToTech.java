@@ -71,6 +71,7 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -461,11 +462,14 @@ public class LibToTech
         }
         TechFactory techFactory = TechFactory.fromXml(techUrl, t);
         Technology tech = techFactory.newInstance(Generic.tech());
-        lib.getDatabase().addTech(tech);
+        if (tech == null) System.out.println("ERROR creating new technology"); else
+        {
+	        lib.getDatabase().addTech(tech);
 
-		// switch to this technology
-		System.out.println("Technology " + tech.getTechName() + " built.");
-		WindowFrame.updateTechnologyLists();
+			// switch to this technology
+			System.out.println("Technology " + tech.getTechName() + " built.");
+			WindowFrame.updateTechnologyLists();
+        }
 		return tech;
 	}
 
@@ -853,22 +857,14 @@ public class LibToTech
 			return null;
 		}
 
-		NodeInfo [] nList = new NodeInfo[nodeCells.length];
+		List<NodeInfo> nList = new ArrayList<NodeInfo>();
 
 		// get the nodes
-		int nodeIndex = 0;
 		for(int pass=0; pass<3; pass++)
-			for(int m=0; m<nodeCells.length; m++)
+			for(Cell np : nodeCells)
 		{
 			// make sure this is the right type of node for this pass of the nodes
-			Cell np = nodeCells[m];
 			NodeInfo nIn = NodeInfo.parseCell(np);
-			Netlist netList = np.acquireUserNetlist();
-			if (netList == null)
-			{
-				System.out.println("Sorry, a deadlock technology generation (network information unavailable).  Please try again");
-				return null;
-			}
 
 			// only want pins on pass 0, pure-layer nodes on pass 2
 			if (pass == 0 && nIn.func != PrimitiveNode.Function.PIN) continue;
@@ -884,9 +880,6 @@ public class LibToTech
 				nIn.specialType = PrimitiveNode.POLYGONAL;
 			}
 
-			nList[nodeIndex] = nIn;
-			nIn.name = np.getName().substring(5);
-
 			// build a list of examples found in this node
 			List<Example> variations = new ArrayList<Example>();
 			List<Example> neList = Example.getExamples(np, true, error, variations);
@@ -895,530 +888,565 @@ public class LibToTech
 				System.out.println("Cannot analyze " + np);
 				return null;
 			}
-			Example firstEx = neList.get(0);
-			nIn.xSize = firstEx.hx - firstEx.lx;
-			nIn.ySize = firstEx.hy - firstEx.ly;
 
 			// sort the layers in the main example
+			Example firstEx = neList.get(0);
 			Collections.sort(firstEx.samples, new SamplesByLayerOrder(lList));
+
+			nIn.xSize = firstEx.hx - firstEx.lx;
+			nIn.ySize = firstEx.hy - firstEx.ly;
+			nIn.name = np.getName().substring(5);
+			nList.add(nIn);
+
+			// add in variation names
+			if (variations.size() > 0)
+			{
+				nIn.primitiveNodeGroupNames = new ArrayList<String>();
+				nIn.primitiveNodeGroupNames.add(nIn.name);
+				for(Example variation : variations)
+				{
+					for(Sample s : variation.samples)
+					{
+						if (!s.node.getNameKey().isTempname())
+						{
+							nIn.primitiveNodeGroupNames.add(s.node.getName());
+							break;
+						}
+					}
+				}
+			}
 
 			// associate the samples in each example
 			if (associateExamples(neList, np)) return null;
 
 			// derive primitives from the examples
-			nIn.nodeLayers = makePrimitiveNodeLayers(neList, np, lList);
+			nIn.nodeLayers = makePrimitiveNodeLayers(neList, np, lList, variations);
 			if (nIn.nodeLayers == null) return null;
 
-//			// count the number of ports on this node
-//			int portCount = 0;
-//			for(Sample ns : firstEx.samples)
-//			{
-//				if (ns.layer == Generic.tech().portNode) portCount++;
-//			}
-//			if (portCount == 0)
-//			{
-//				error.markError(null, np, "No ports found");
-//				return null;
-//			}
-
-			// fill the port structures
-			List<NodeInfo.PortDetails> ports = new ArrayList<NodeInfo.PortDetails>();
-			Map<NodeInfo.PortDetails,Sample> portSamples = new HashMap<NodeInfo.PortDetails,Sample>();
-			for(Sample ns : firstEx.samples)
-			{
-				if (ns.layer != Generic.tech().portNode) continue;
-
-				// port connections
-				NodeInfo.PortDetails nipd = new NodeInfo.PortDetails();
-				portSamples.put(nipd, ns);
-
-				// port name
-				nipd.name = Info.getPortName(ns.node);
-				if (nipd.name == null)
-				{
-					error.markError(ns.node, np, "Port does not have a name");
-					return null;
-				}
-				for(int c=0; c<nipd.name.length(); c++)
-				{
-					char str = nipd.name.charAt(c);
-					if (str <= ' ' || str >= 0177)
-					{
-						error.markError(ns.node, np, "Invalid port name");
-						return null;
-					}
-				}
-
-				// port angle and range
-				nipd.angle = 0;
-				Variable varAngle = ns.node.getVar(Info.PORTANGLE_KEY);
-				if (varAngle != null)
-					nipd.angle = ((Integer)varAngle.getObject()).intValue();
-				nipd.range = 180;
-				Variable varRange = ns.node.getVar(Info.PORTRANGE_KEY);
-				if (varRange != null)
-					nipd.range = ((Integer)varRange.getObject()).intValue();
-
-				// port area rule
-				nipd.values = ns.values;
-				ports.add(nipd);
-			}
-
-			// sort the ports by name within angle
-			Collections.sort(ports, new PortsByAngleAndName());
-
-			// now find the poly/active ports for transistor rearranging
-			int pol1Port = -1, pol2Port = -1, dif1Port = -1, dif2Port = -1;
-			for(int i=0; i<ports.size(); i++)
-			{
-				NodeInfo.PortDetails nipd = ports.get(i);
-				Sample ns = portSamples.get(nipd);
-
-				nipd.connections = new ArcInfo[0];
-				Variable var = ns.node.getVar(Info.CONNECTION_KEY);
-				if (var != null)
-				{
-					// convert "arc-CELL" pointers to indices
-					CellId [] arcCells = (CellId [])var.getObject();
-					List<ArcInfo> validArcCells = new ArrayList<ArcInfo>();
-					for(int j=0; j<arcCells.length; j++)
-					{
-						// find arc that connects
-						if (arcCells[j] == null) continue;
-						Cell arcCell = EDatabase.serverDatabase().getCell(arcCells[j]);
-						if (arcCell == null) continue;
-						String cellName = arcCell.getName().substring(4);
-						for(int k=0; k<aList.length; k++)
-						{
-							if (aList[k].name.equalsIgnoreCase(cellName))
-							{
-								validArcCells.add(aList[k]);
-								break;
-							}
-						}
-					}
-					ArcInfo [] connections = new ArcInfo[validArcCells.size()];
-					nipd.connections = connections;
-					for(int j=0; j<validArcCells.size(); j++)
-						connections[j] = validArcCells.get(j);
-					for(int j=0; j<connections.length; j++)
-					{
-						// find port characteristics for possible transistors
-						Variable meaningVar = ns.node.getVar(Info.PORTMEANING_KEY);
-						int meaning = 0;
-						if (meaningVar != null) meaning = ((Integer)meaningVar.getObject()).intValue();
-						if (connections[j].func.isPoly() || meaning == 1)
-						{
-							if (pol1Port < 0)
-							{
-								pol1Port = i;
-								break;
-							} else if (pol2Port < 0)
-							{
-								pol2Port = i;
-								break;
-							}
-						} else if (connections[j].func.isDiffusion() || meaning == 2)
-						{
-							if (dif1Port < 0)
-							{
-								dif1Port = i;
-								break;
-							} else if (dif2Port < 0)
-							{
-								dif2Port = i;
-								break;
-							}
-						}
-					}
-				}
-			}
-
-			// save the ports in an array
-			nIn.nodePortDetails = new NodeInfo.PortDetails[ports.size()];
-			for(int j=0; j<ports.size(); j++) nIn.nodePortDetails[j] = ports.get(j);
-
-			// establish port connectivity
-			for(int i=0; i<nIn.nodePortDetails.length; i++)
-			{
-				NodeInfo.PortDetails nipd = nIn.nodePortDetails[i];
-				Sample ns = portSamples.get(nipd);
-				nipd.netIndex = i;
-				if (ns.node.hasConnections())
-				{
-					ArcInst ai1 = ns.node.getConnections().next().getArc();
-					Network net1 = netList.getNetwork(ai1, 0);
-					for(int j=0; j<i; j++)
-					{
-						NodeInfo.PortDetails onipd = nIn.nodePortDetails[j];
-						Sample oNs = portSamples.get(onipd);
-						if (oNs.node.hasConnections())
-						{
-							ArcInst ai2 = oNs.node.getConnections().next().getArc();
-							Network net2 = netList.getNetwork(ai2, 0);
-							if (net1 == net2)
-							{
-								nipd.netIndex = j;
-								break;
-							}
-						}
-					}
-				}
-			}
-
-			// on MOS transistors, make sure the first 4 ports are poly/active/poly/active
-			if (nIn.func.isFET())
-			{
-				if (pol1Port < 0 || pol2Port < 0 || dif1Port < 0 || dif2Port < 0)
-				{
-					error.markError(null, np, "Need 2 gate (poly) and 2 gated (active) ports on field-effect transistor");
-					return null;
-				}
-
-				// also make sure that dif1Port is positive and dif2Port is negative
-				double x1Pos = (nIn.nodePortDetails[dif1Port].values[0].getX().getMultiplier() * nIn.xSize +
-					nIn.nodePortDetails[dif1Port].values[0].getX().getAdder() +
-					nIn.nodePortDetails[dif1Port].values[1].getX().getMultiplier() * nIn.xSize +
-					nIn.nodePortDetails[dif1Port].values[1].getX().getAdder()) / 2;
-				double x2Pos = (nIn.nodePortDetails[dif2Port].values[0].getX().getMultiplier() * nIn.xSize +
-					nIn.nodePortDetails[dif2Port].values[0].getX().getAdder() +
-					nIn.nodePortDetails[dif2Port].values[1].getX().getMultiplier() * nIn.xSize +
-					nIn.nodePortDetails[dif2Port].values[1].getX().getAdder()) / 2;
-				double y1Pos = (nIn.nodePortDetails[dif1Port].values[0].getY().getMultiplier() * nIn.ySize +
-					nIn.nodePortDetails[dif1Port].values[0].getY().getAdder() +
-					nIn.nodePortDetails[dif1Port].values[1].getY().getMultiplier() * nIn.ySize +
-					nIn.nodePortDetails[dif1Port].values[1].getY().getAdder()) / 2;
-				double y2Pos = (nIn.nodePortDetails[dif2Port].values[0].getY().getMultiplier() * nIn.ySize +
-					nIn.nodePortDetails[dif2Port].values[0].getY().getAdder() +
-					nIn.nodePortDetails[dif2Port].values[1].getY().getMultiplier() * nIn.ySize +
-					nIn.nodePortDetails[dif2Port].values[1].getY().getAdder()) / 2;
-				if (Math.abs(x1Pos-x2Pos) > Math.abs(y1Pos-y2Pos))
-				{
-					if (x1Pos < x2Pos)
-					{
-						int k = dif1Port;   dif1Port = dif2Port;   dif2Port = k;
-					}
-				} else
-				{
-					if (y1Pos < y2Pos)
-					{
-						int k = dif1Port;   dif1Port = dif2Port;   dif2Port = k;
-					}
-				}
-
-				// also make sure that pol1Port is negative and pol2Port is positive
-				x1Pos = (nIn.nodePortDetails[pol1Port].values[0].getX().getMultiplier() * nIn.xSize +
-					nIn.nodePortDetails[pol1Port].values[0].getX().getAdder() +
-					nIn.nodePortDetails[pol1Port].values[1].getX().getMultiplier() * nIn.xSize +
-					nIn.nodePortDetails[pol1Port].values[1].getX().getAdder()) / 2;
-				x2Pos = (nIn.nodePortDetails[pol2Port].values[0].getX().getMultiplier() * nIn.xSize +
-					nIn.nodePortDetails[pol2Port].values[0].getX().getAdder() +
-					nIn.nodePortDetails[pol2Port].values[1].getX().getMultiplier() * nIn.xSize +
-					nIn.nodePortDetails[pol2Port].values[1].getX().getAdder()) / 2;
-				y1Pos = (nIn.nodePortDetails[pol1Port].values[0].getY().getMultiplier() * nIn.ySize +
-					nIn.nodePortDetails[pol1Port].values[0].getY().getAdder() +
-					nIn.nodePortDetails[pol1Port].values[1].getY().getMultiplier() * nIn.ySize +
-					nIn.nodePortDetails[pol1Port].values[1].getY().getAdder()) / 2;
-				y2Pos = (nIn.nodePortDetails[pol2Port].values[0].getY().getMultiplier() * nIn.ySize +
-					nIn.nodePortDetails[pol2Port].values[0].getY().getAdder() +
-					nIn.nodePortDetails[pol2Port].values[1].getY().getMultiplier() * nIn.ySize +
-					nIn.nodePortDetails[pol2Port].values[1].getY().getAdder()) / 2;
-				if (Math.abs(x1Pos-x2Pos) > Math.abs(y1Pos-y2Pos))
-				{
-					if (x1Pos > x2Pos)
-					{
-						int k = pol1Port;   pol1Port = pol2Port;   pol2Port = k;
-					}
-				} else
-				{
-					if (y1Pos > y2Pos)
-					{
-						int k = pol1Port;   pol1Port = pol2Port;   pol2Port = k;
-					}
-				}
-
-				// gather extra ports that go at the end
-				List<NodeInfo.PortDetails> extras = new ArrayList<NodeInfo.PortDetails>();
-				for(int j=0; j<ports.size(); j++)
-				{
-					if (j != pol1Port && j != dif1Port && j != pol2Port && j != dif2Port)
-						extras.add(ports.get(j));
-				}
-
-				// rearrange the ports
-				NodeInfo.PortDetails port0 = nIn.nodePortDetails[pol1Port];
-				NodeInfo.PortDetails port1 = nIn.nodePortDetails[dif1Port];
-				NodeInfo.PortDetails port2 = nIn.nodePortDetails[pol2Port];
-				NodeInfo.PortDetails port3 = nIn.nodePortDetails[dif2Port];
-				nIn.nodePortDetails[pol1Port=0] = port0;
-				nIn.nodePortDetails[dif1Port=1] = port1;
-				nIn.nodePortDetails[pol2Port=2] = port2;
-				nIn.nodePortDetails[dif2Port=3] = port3;
-				for(int j=0; j<extras.size(); j++)
-					nIn.nodePortDetails[j+4] = extras.get(j);
-
-				// make sure implant layers are not connected to ports
-				for(int k=0; k<nIn.nodeLayers.length; k++)
-				{
-					NodeInfo.LayerDetails nld = nIn.nodeLayers[k];
-					if (nld.layer.fun.isSubstrate()) nld.portIndex = -1;
-				}
-			}
-
-			if (nIn.serp)
-			{
-				// finish up serpentine transistors
-				nIn.specialType = PrimitiveNode.SERPTRANS;
-
-				// determine port numbers for serpentine transistors
-				int polIndex = -1, difIndex = -1;
-				for(int k=0; k<nIn.nodeLayers.length; k++)
-				{
-					NodeInfo.LayerDetails nld = nIn.nodeLayers[k];
-					if (nld.layer.fun.isPoly())
-					{
-						polIndex = k;
-					} else if (nld.layer.fun.isDiff())
-					{
-						if (difIndex >= 0)
-						{
-							// figure out which layer is the basic active layer
-							int funExtraOld = nIn.nodeLayers[difIndex].layer.funExtra;
-							int funExtraNew = nld.layer.funExtra;
-							if (funExtraOld == funExtraNew) continue;
-							if (funExtraOld == 0) continue;
-						}
-						difIndex = k;
-					}
-				}
-				if (difIndex < 0 || polIndex < 0)
-				{
-					error.markError(null, np, "No diffusion and polysilicon layers in serpentine transistor");
-					return null;
-				}
-
-				// find width and extension from comparison to poly layer
-				Sample polNs = nIn.nodeLayers[polIndex].ns;
-				Rectangle2D polNodeBounds = polNs.node.getBounds();
-				Sample difNs = nIn.nodeLayers[difIndex].ns;
-				Rectangle2D difNodeBounds = difNs.node.getBounds();
-				for(int k=0; k<nIn.nodeLayers.length; k++)
-				{
-					NodeInfo.LayerDetails nld = nIn.nodeLayers[k];
-					Sample ns = nld.ns;
-					Rectangle2D nodeBounds = ns.node.getBounds();
-					if (polNodeBounds.getWidth() > polNodeBounds.getHeight())
-					{
-						// horizontal layer
-						nld.lWidth = nodeBounds.getMaxY() - (ns.parent.ly + ns.parent.hy)/2;
-						nld.rWidth = (ns.parent.ly + ns.parent.hy)/2 - nodeBounds.getMinY();
-						nld.extendT = difNodeBounds.getMinX() - nodeBounds.getMinX();
-					} else
-					{
-						// vertical layer
-						nld.lWidth = nodeBounds.getMaxX() - (ns.parent.lx + ns.parent.hx)/2;
-						nld.rWidth = (ns.parent.lx + ns.parent.hx)/2 - nodeBounds.getMinX();
-						nld.extendT = difNodeBounds.getMinY() - nodeBounds.getMinY();
-					}
-					nld.extendB = nld.extendT;
-				}
-
-				// add in electrical layers for diffusion
-				NodeInfo.LayerDetails [] addedLayers = new NodeInfo.LayerDetails[nIn.nodeLayers.length+2];
-				for(int k=0; k<nIn.nodeLayers.length; k++)
-					addedLayers[k] = nIn.nodeLayers[k];
-				NodeInfo.LayerDetails diff1 = nIn.nodeLayers[difIndex].duplicate();
-				NodeInfo.LayerDetails diff2 = nIn.nodeLayers[difIndex].duplicate();
-				addedLayers[nIn.nodeLayers.length] = diff1;
-				addedLayers[nIn.nodeLayers.length+1] = diff2;
-				nIn.nodeLayers = addedLayers;
-				diff1.inLayers = diff2.inLayers = false;
-				nIn.nodeLayers[difIndex].inElectricalLayers = false;
-				diff1.portIndex = dif1Port;
-				diff2.portIndex = dif2Port;
-
-				// compute port extension factors
-				nIn.specialValues = new double[6];
-				int layerCount = 0;
-				for(Sample ns : firstEx.samples)
-				{
-					if (ns.values != null && ns.layer != Generic.tech().portNode &&
-						ns.layer != Generic.tech().cellCenterNode && ns.layer != null)
-							layerCount++;
-				}
-				nIn.specialValues[0] = layerCount+1;
-				if (nIn.nodePortDetails[dif1Port].values[0].getX().getAdder() >
-					nIn.nodePortDetails[dif1Port].values[0].getY().getAdder())
-				{
-					// vertical diffusion layer: determine polysilicon width
-					nIn.specialValues[3] = (nIn.ySize * nIn.nodeLayers[polIndex].values[1].getY().getMultiplier() +
-						nIn.nodeLayers[polIndex].values[1].getY().getAdder()) -
-						(nIn.ySize * nIn.nodeLayers[polIndex].values[0].getY().getMultiplier() +
-						nIn.nodeLayers[polIndex].values[0].getY().getAdder());
-
-					// determine diffusion port rule
-					nIn.specialValues[1] = (nIn.xSize * nIn.nodePortDetails[dif1Port].values[0].getX().getMultiplier() +
-						nIn.nodePortDetails[dif1Port].values[0].getX().getAdder()) -
-						(nIn.xSize * nIn.nodeLayers[difIndex].values[0].getX().getMultiplier() +
-						nIn.nodeLayers[difIndex].values[0].getX().getAdder());
-					nIn.specialValues[2] = (nIn.ySize * nIn.nodePortDetails[dif1Port].values[0].getY().getMultiplier() +
-						nIn.nodePortDetails[dif1Port].values[0].getY().getAdder()) -
-						(nIn.ySize * nIn.nodeLayers[polIndex].values[1].getY().getMultiplier() +
-						nIn.nodeLayers[polIndex].values[1].getY().getAdder());
-
-					// determine polysilicon port rule
-					nIn.specialValues[4] = (nIn.ySize * nIn.nodePortDetails[pol1Port].values[0].getY().getMultiplier() +
-						nIn.nodePortDetails[pol1Port].values[0].getY().getAdder()) -
-						(nIn.ySize * nIn.nodeLayers[polIndex].values[0].getY().getMultiplier() +
-						nIn.nodeLayers[polIndex].values[0].getY().getAdder());
-					nIn.specialValues[5] = (nIn.xSize * nIn.nodeLayers[difIndex].values[0].getX().getMultiplier() +
-						nIn.nodeLayers[difIndex].values[0].getX().getAdder()) -
-						(nIn.xSize * nIn.nodePortDetails[pol1Port].values[1].getX().getMultiplier() +
-						nIn.nodePortDetails[pol1Port].values[1].getX().getAdder());
-
-					// setup electrical layers for diffusion
-					diff1.values[0].getY().setMultiplier(0);
-					diff1.values[0].getY().setAdder(0);
-					diff1.rWidth = 0;
-					diff2.values[1].getY().setMultiplier(0);
-					diff2.values[1].getY().setAdder(0);
-					diff2.lWidth = 0;
-				} else
-				{
-					// horizontal diffusion layer: determine polysilicon width
-					nIn.specialValues[3] = (nIn.xSize * nIn.nodeLayers[polIndex].values[1].getX().getMultiplier() +
-						nIn.nodeLayers[polIndex].values[1].getX().getAdder()) -
-						(nIn.xSize * nIn.nodeLayers[polIndex].values[0].getX().getMultiplier() +
-						nIn.nodeLayers[polIndex].values[0].getX().getAdder());
-
-					// determine diffusion port rule
-					nIn.specialValues[1] = (nIn.ySize * nIn.nodePortDetails[dif1Port].values[0].getY().getMultiplier() +
-						nIn.nodePortDetails[dif1Port].values[0].getY().getAdder()) -
-						(nIn.ySize * nIn.nodeLayers[difIndex].values[0].getY().getMultiplier() +
-						nIn.nodeLayers[difIndex].values[0].getY().getAdder());
-					nIn.specialValues[2] = (nIn.xSize * nIn.nodeLayers[polIndex].values[0].getX().getMultiplier() +
-						nIn.nodeLayers[polIndex].values[0].getX().getAdder()) -
-						(nIn.xSize * nIn.nodePortDetails[dif1Port].values[1].getX().getMultiplier() +
-						nIn.nodePortDetails[dif1Port].values[1].getX().getAdder());
-
-					// determine polysilicon port rule
-					nIn.specialValues[4] = (nIn.xSize * nIn.nodePortDetails[pol1Port].values[0].getX().getMultiplier() +
-						nIn.nodePortDetails[pol1Port].values[0].getX().getAdder()) -
-						(nIn.xSize * nIn.nodeLayers[polIndex].values[0].getX().getMultiplier() +
-						nIn.nodeLayers[polIndex].values[0].getX().getAdder());
-					nIn.specialValues[5] = (nIn.ySize * nIn.nodeLayers[difIndex].values[0].getY().getMultiplier() +
-						nIn.nodeLayers[difIndex].values[0].getY().getAdder()) -
-						(nIn.ySize * nIn.nodePortDetails[pol1Port].values[1].getY().getMultiplier() +
-						nIn.nodePortDetails[pol1Port].values[1].getY().getAdder());
-
-					// setup electrical layers for diffusion
-					diff1.values[0].getX().setMultiplier(0);
-					diff1.values[0].getX().setAdder(0);
-					diff1.rWidth = 0;
-					diff2.values[1].getX().setMultiplier(0);
-					diff2.values[1].getX().setAdder(0);
-					diff2.lWidth = 0;
-				}
-			}
-
-			// extract width offset information from highlight box
-			double lX = 0, hX = 0, lY = 0, hY = 0;
-			boolean found = false;
-			for(Sample ns : firstEx.samples)
-			{
-				if (ns.layer != null) continue;
-				found = true;
-				if (ns.values != null)
-				{
-					boolean err = false;
-					if (ns.values[0].getX().getMultiplier() == -0.5)		// left edge offset
-					{
-						lX = ns.values[0].getX().getAdder();
-					} else if (ns.values[0].getX().getMultiplier() == 0.5)
-					{
-						lX = nIn.xSize + ns.values[0].getX().getAdder();
-					} else err = true;
-					if (ns.values[0].getY().getMultiplier() == -0.5)		// bottom edge offset
-					{
-						lY = ns.values[0].getY().getAdder();
-					} else if (ns.values[0].getY().getMultiplier() == 0.5)
-					{
-						lY = nIn.ySize + ns.values[0].getY().getAdder();;
-					} else err = true;
-					if (ns.values[1].getX().getMultiplier() == 0.5)		// right edge offset
-					{
-						hX = -ns.values[1].getX().getAdder();
-					} else if (ns.values[1].getX().getMultiplier() == -0.5)
-					{
-						hX = nIn.xSize - ns.values[1].getX().getAdder();
-					} else err = true;
-					if (ns.values[1].getY().getMultiplier() == 0.5)		// top edge offset
-					{
-						hY = -ns.values[1].getY().getAdder();
-					} else if (ns.values[1].getY().getMultiplier() == -0.5)
-					{
-						hY = nIn.ySize - ns.values[1].getY().getAdder();
-					} else err = true;
-					if (err)
-					{
-						error.markError(ns.node, np, "Highlighting cannot scale from center");
-						return null;
-					}
-				} else
-				{
-					error.markError(ns.node, np, "No rule found for highlight");
-					return null;
-				}
-			}
-			if (!found)
-			{
-				error.markError(null, np, "No highlight found");
-				return null;
-			}
-			if (lX != 0 || hX != 0 || lY != 0 || hY != 0)
-			{
-				nList[nodeIndex].so = new SizeOffset(lX, hX, lY, hY);
-			}
-
-//			// get grab point information
-//			for(ns = neList.firstSample; ns != NOSAMPLE; ns = ns.nextSample)
-//				if (ns.layer == Generic.tech.cellCenterNode) break;
-//			if (ns != NOSAMPLE)
-//			{
-//				us_tecnode_grab[us_tecnode_grabcount++] = nodeindex+1;
-//				us_tecnode_grab[us_tecnode_grabcount++] = (ns.node.geom.lowx +
-//					ns.node.geom.highx - neList.lx - neList.hx)/2 *
-//					el_curlib.lambda[tech.techindex] / lambda;
-//				us_tecnode_grab[us_tecnode_grabcount++] = (ns.node.geom.lowy +
-//					ns.node.geom.highy - neList.ly - neList.hy)/2 *
-//					el_curlib.lambda[tech.techindex] / lambda;
-//				us_tecflags |= HASGRAB;
-//			}
-
-			// advance the fill pointer
-			nodeIndex++;
+			if (fillPrimitivePorts(np, nIn, firstEx, aList)) return null;
+			if (fillSizeOffset(np, firstEx, nIn)) return null;
 		}
-		return nList;
+		NodeInfo [] nListArray = new NodeInfo[nList.size()];
+		for(int i=0; i<nList.size(); i++)
+			nListArray[i] = nList.get(i);
+		return nListArray;
 	}
 
-	private NodeInfo.LayerDetails [] makePrimitiveNodeLayers(List<Example> neList, Cell np, LayerInfo [] lis)
+	/**
+	 * Method to load the size offset information for a new PrimitiveNode.
+	 * @param np the Cell that describes the PrimitiveNode.
+	 * @param firstEx the Example that describes the PrimitiveNode.
+	 * @param nIn the new PrimitiveNode information being created.
+	 * @return true on error.
+	 */
+	private boolean fillSizeOffset(Cell np, Example firstEx, NodeInfo nIn)
+	{
+		// extract width offset information from highlight box
+		double lX = 0, hX = 0, lY = 0, hY = 0;
+		boolean found = false;
+		for(Sample ns : firstEx.samples)
+		{
+			if (ns.layer != null) continue;
+			found = true;
+			if (ns.values != null)
+			{
+				boolean err = false;
+				if (ns.values[0].getX().getMultiplier() == -0.5)		// left edge offset
+				{
+					lX = ns.values[0].getX().getAdder();
+				} else if (ns.values[0].getX().getMultiplier() == 0.5)
+				{
+					lX = nIn.xSize + ns.values[0].getX().getAdder();
+				} else err = true;
+				if (ns.values[0].getY().getMultiplier() == -0.5)		// bottom edge offset
+				{
+					lY = ns.values[0].getY().getAdder();
+				} else if (ns.values[0].getY().getMultiplier() == 0.5)
+				{
+					lY = nIn.ySize + ns.values[0].getY().getAdder();;
+				} else err = true;
+				if (ns.values[1].getX().getMultiplier() == 0.5)		// right edge offset
+				{
+					hX = -ns.values[1].getX().getAdder();
+				} else if (ns.values[1].getX().getMultiplier() == -0.5)
+				{
+					hX = nIn.xSize - ns.values[1].getX().getAdder();
+				} else err = true;
+				if (ns.values[1].getY().getMultiplier() == 0.5)		// top edge offset
+				{
+					hY = -ns.values[1].getY().getAdder();
+				} else if (ns.values[1].getY().getMultiplier() == -0.5)
+				{
+					hY = nIn.ySize - ns.values[1].getY().getAdder();
+				} else err = true;
+				if (err)
+				{
+					error.markError(ns.node, np, "Highlighting cannot scale from center");
+					return true;
+				}
+			} else
+			{
+				error.markError(ns.node, np, "No rule found for highlight");
+				return true;
+			}
+		}
+		if (!found)
+		{
+			error.markError(null, np, "No highlight found");
+			return true;
+		}
+		if (lX != 0 || hX != 0 || lY != 0 || hY != 0)
+		{
+			nIn.so = new SizeOffset(lX, hX, lY, hY);
+		}
+
+//		// get grab point information
+//		for(ns = neList.firstSample; ns != NOSAMPLE; ns = ns.nextSample)
+//			if (ns.layer == Generic.tech.cellCenterNode) break;
+//		if (ns != NOSAMPLE)
+//		{
+//			us_tecnode_grab[us_tecnode_grabcount++] = nodeindex+1;
+//			us_tecnode_grab[us_tecnode_grabcount++] = (ns.node.geom.lowx +
+//				ns.node.geom.highx - neList.lx - neList.hx)/2 *
+//				el_curlib.lambda[tech.techindex] / lambda;
+//			us_tecnode_grab[us_tecnode_grabcount++] = (ns.node.geom.lowy +
+//				ns.node.geom.highy - neList.ly - neList.hy)/2 *
+//				el_curlib.lambda[tech.techindex] / lambda;
+//			us_tecflags |= HASGRAB;
+//		}
+		return false;
+	}
+
+	/**
+	 * Method to fill the ports in a newly-built primitiveNode.
+	 * @param np the Cell that describes the PrimitiveNode.
+	 * @param nIn the new PrimitiveNode information being created.
+	 * @param firstEx the Example that describes the PrimitiveNode.
+	 * @param aList the list of Arcs already in the new Technology.
+	 * @return true on error.
+	 */
+	private boolean fillPrimitivePorts(Cell np, NodeInfo nIn, Example firstEx, ArcInfo [] aList)
+	{
+		Netlist netList = np.acquireUserNetlist();
+		if (netList == null)
+		{
+			System.out.println("Sorry, a deadlock technology generation (network information unavailable).  Please try again");
+			return true;
+		}
+
+		// fill the port structures
+		List<NodeInfo.PortDetails> ports = new ArrayList<NodeInfo.PortDetails>();
+		Map<NodeInfo.PortDetails,Sample> portSamples = new HashMap<NodeInfo.PortDetails,Sample>();
+		for(Sample ns : firstEx.samples)
+		{
+			if (ns.layer != Generic.tech().portNode) continue;
+
+			// port connections
+			NodeInfo.PortDetails nipd = new NodeInfo.PortDetails();
+			portSamples.put(nipd, ns);
+
+			// port name
+			nipd.name = Info.getPortName(ns.node);
+			if (nipd.name == null)
+			{
+				error.markError(ns.node, np, "Port does not have a name");
+				return true;
+			}
+			for(int c=0; c<nipd.name.length(); c++)
+			{
+				char str = nipd.name.charAt(c);
+				if (str <= ' ' || str >= 0177)
+				{
+					error.markError(ns.node, np, "Invalid port name");
+					return true;
+				}
+			}
+
+			// port angle and range
+			nipd.angle = 0;
+			Variable varAngle = ns.node.getVar(Info.PORTANGLE_KEY);
+			if (varAngle != null)
+				nipd.angle = ((Integer)varAngle.getObject()).intValue();
+			nipd.range = 180;
+			Variable varRange = ns.node.getVar(Info.PORTRANGE_KEY);
+			if (varRange != null)
+				nipd.range = ((Integer)varRange.getObject()).intValue();
+
+			// port area rule
+			nipd.values = ns.values;
+			ports.add(nipd);
+		}
+
+		// sort the ports by name within angle
+		Collections.sort(ports, new PortsByAngleAndName());
+
+		// now find the poly/active ports for transistor rearranging
+		int pol1Port = -1, pol2Port = -1, dif1Port = -1, dif2Port = -1;
+		for(int i=0; i<ports.size(); i++)
+		{
+			NodeInfo.PortDetails nipd = ports.get(i);
+			Sample ns = portSamples.get(nipd);
+
+			nipd.connections = new ArcInfo[0];
+			Variable var = ns.node.getVar(Info.CONNECTION_KEY);
+			if (var != null)
+			{
+				// convert "arc-CELL" pointers to indices
+				CellId [] arcCells = (CellId [])var.getObject();
+				List<ArcInfo> validArcCells = new ArrayList<ArcInfo>();
+				for(int j=0; j<arcCells.length; j++)
+				{
+					// find arc that connects
+					if (arcCells[j] == null) continue;
+					Cell arcCell = EDatabase.serverDatabase().getCell(arcCells[j]);
+					if (arcCell == null) continue;
+					String cellName = arcCell.getName().substring(4);
+					for(int k=0; k<aList.length; k++)
+					{
+						if (aList[k].name.equalsIgnoreCase(cellName))
+						{
+							validArcCells.add(aList[k]);
+							break;
+						}
+					}
+				}
+				ArcInfo [] connections = new ArcInfo[validArcCells.size()];
+				nipd.connections = connections;
+				for(int j=0; j<validArcCells.size(); j++)
+					connections[j] = validArcCells.get(j);
+				for(int j=0; j<connections.length; j++)
+				{
+					// find port characteristics for possible transistors
+					Variable meaningVar = ns.node.getVar(Info.PORTMEANING_KEY);
+					int meaning = 0;
+					if (meaningVar != null) meaning = ((Integer)meaningVar.getObject()).intValue();
+					if (connections[j].func.isPoly() || meaning == 1)
+					{
+						if (pol1Port < 0)
+						{
+							pol1Port = i;
+							break;
+						} else if (pol2Port < 0)
+						{
+							pol2Port = i;
+							break;
+						}
+					} else if (connections[j].func.isDiffusion() || meaning == 2)
+					{
+						if (dif1Port < 0)
+						{
+							dif1Port = i;
+							break;
+						} else if (dif2Port < 0)
+						{
+							dif2Port = i;
+							break;
+						}
+					}
+				}
+			}
+		}
+
+		// save the ports in an array
+		nIn.nodePortDetails = new NodeInfo.PortDetails[ports.size()];
+		for(int j=0; j<ports.size(); j++) nIn.nodePortDetails[j] = ports.get(j);
+
+		// establish port connectivity
+		for(int i=0; i<nIn.nodePortDetails.length; i++)
+		{
+			NodeInfo.PortDetails nipd = nIn.nodePortDetails[i];
+			Sample ns = portSamples.get(nipd);
+			nipd.netIndex = i;
+			if (ns.node.hasConnections())
+			{
+				ArcInst ai1 = ns.node.getConnections().next().getArc();
+				Network net1 = netList.getNetwork(ai1, 0);
+				for(int j=0; j<i; j++)
+				{
+					NodeInfo.PortDetails onipd = nIn.nodePortDetails[j];
+					Sample oNs = portSamples.get(onipd);
+					if (oNs.node.hasConnections())
+					{
+						ArcInst ai2 = oNs.node.getConnections().next().getArc();
+						Network net2 = netList.getNetwork(ai2, 0);
+						if (net1 == net2)
+						{
+							nipd.netIndex = j;
+							break;
+						}
+					}
+				}
+			}
+		}
+
+		// on MOS transistors, make sure the first 4 ports are poly/active/poly/active
+		if (nIn.func.isFET())
+		{
+			if (pol1Port < 0 || pol2Port < 0 || dif1Port < 0 || dif2Port < 0)
+			{
+				error.markError(null, np, "Need 2 gate (poly) and 2 gated (active) ports on field-effect transistor");
+				return true;
+			}
+
+			// also make sure that dif1Port is positive and dif2Port is negative
+			double x1Pos = (nIn.nodePortDetails[dif1Port].values[0].getX().getMultiplier() * nIn.xSize +
+				nIn.nodePortDetails[dif1Port].values[0].getX().getAdder() +
+				nIn.nodePortDetails[dif1Port].values[1].getX().getMultiplier() * nIn.xSize +
+				nIn.nodePortDetails[dif1Port].values[1].getX().getAdder()) / 2;
+			double x2Pos = (nIn.nodePortDetails[dif2Port].values[0].getX().getMultiplier() * nIn.xSize +
+				nIn.nodePortDetails[dif2Port].values[0].getX().getAdder() +
+				nIn.nodePortDetails[dif2Port].values[1].getX().getMultiplier() * nIn.xSize +
+				nIn.nodePortDetails[dif2Port].values[1].getX().getAdder()) / 2;
+			double y1Pos = (nIn.nodePortDetails[dif1Port].values[0].getY().getMultiplier() * nIn.ySize +
+				nIn.nodePortDetails[dif1Port].values[0].getY().getAdder() +
+				nIn.nodePortDetails[dif1Port].values[1].getY().getMultiplier() * nIn.ySize +
+				nIn.nodePortDetails[dif1Port].values[1].getY().getAdder()) / 2;
+			double y2Pos = (nIn.nodePortDetails[dif2Port].values[0].getY().getMultiplier() * nIn.ySize +
+				nIn.nodePortDetails[dif2Port].values[0].getY().getAdder() +
+				nIn.nodePortDetails[dif2Port].values[1].getY().getMultiplier() * nIn.ySize +
+				nIn.nodePortDetails[dif2Port].values[1].getY().getAdder()) / 2;
+			if (Math.abs(x1Pos-x2Pos) > Math.abs(y1Pos-y2Pos))
+			{
+				if (x1Pos < x2Pos)
+				{
+					int k = dif1Port;   dif1Port = dif2Port;   dif2Port = k;
+				}
+			} else
+			{
+				if (y1Pos < y2Pos)
+				{
+					int k = dif1Port;   dif1Port = dif2Port;   dif2Port = k;
+				}
+			}
+
+			// also make sure that pol1Port is negative and pol2Port is positive
+			x1Pos = (nIn.nodePortDetails[pol1Port].values[0].getX().getMultiplier() * nIn.xSize +
+				nIn.nodePortDetails[pol1Port].values[0].getX().getAdder() +
+				nIn.nodePortDetails[pol1Port].values[1].getX().getMultiplier() * nIn.xSize +
+				nIn.nodePortDetails[pol1Port].values[1].getX().getAdder()) / 2;
+			x2Pos = (nIn.nodePortDetails[pol2Port].values[0].getX().getMultiplier() * nIn.xSize +
+				nIn.nodePortDetails[pol2Port].values[0].getX().getAdder() +
+				nIn.nodePortDetails[pol2Port].values[1].getX().getMultiplier() * nIn.xSize +
+				nIn.nodePortDetails[pol2Port].values[1].getX().getAdder()) / 2;
+			y1Pos = (nIn.nodePortDetails[pol1Port].values[0].getY().getMultiplier() * nIn.ySize +
+				nIn.nodePortDetails[pol1Port].values[0].getY().getAdder() +
+				nIn.nodePortDetails[pol1Port].values[1].getY().getMultiplier() * nIn.ySize +
+				nIn.nodePortDetails[pol1Port].values[1].getY().getAdder()) / 2;
+			y2Pos = (nIn.nodePortDetails[pol2Port].values[0].getY().getMultiplier() * nIn.ySize +
+				nIn.nodePortDetails[pol2Port].values[0].getY().getAdder() +
+				nIn.nodePortDetails[pol2Port].values[1].getY().getMultiplier() * nIn.ySize +
+				nIn.nodePortDetails[pol2Port].values[1].getY().getAdder()) / 2;
+			if (Math.abs(x1Pos-x2Pos) > Math.abs(y1Pos-y2Pos))
+			{
+				if (x1Pos > x2Pos)
+				{
+					int k = pol1Port;   pol1Port = pol2Port;   pol2Port = k;
+				}
+			} else
+			{
+				if (y1Pos > y2Pos)
+				{
+					int k = pol1Port;   pol1Port = pol2Port;   pol2Port = k;
+				}
+			}
+
+			// gather extra ports that go at the end
+			List<NodeInfo.PortDetails> extras = new ArrayList<NodeInfo.PortDetails>();
+			for(int j=0; j<ports.size(); j++)
+			{
+				if (j != pol1Port && j != dif1Port && j != pol2Port && j != dif2Port)
+					extras.add(ports.get(j));
+			}
+
+			// rearrange the ports
+			NodeInfo.PortDetails port0 = nIn.nodePortDetails[pol1Port];
+			NodeInfo.PortDetails port1 = nIn.nodePortDetails[dif1Port];
+			NodeInfo.PortDetails port2 = nIn.nodePortDetails[pol2Port];
+			NodeInfo.PortDetails port3 = nIn.nodePortDetails[dif2Port];
+			nIn.nodePortDetails[pol1Port=0] = port0;
+			nIn.nodePortDetails[dif1Port=1] = port1;
+			nIn.nodePortDetails[pol2Port=2] = port2;
+			nIn.nodePortDetails[dif2Port=3] = port3;
+			for(int j=0; j<extras.size(); j++)
+				nIn.nodePortDetails[j+4] = extras.get(j);
+
+			// make sure implant layers are not connected to ports
+			for(int k=0; k<nIn.nodeLayers.length; k++)
+			{
+				NodeInfo.LayerDetails nld = nIn.nodeLayers[k];
+				if (nld.layer.fun.isSubstrate()) nld.portIndex = -1;
+			}
+		}
+
+		if (nIn.serp)
+		{
+			// finish up serpentine transistors
+			nIn.specialType = PrimitiveNode.SERPTRANS;
+
+			// determine port numbers for serpentine transistors
+			int polIndex = -1, difIndex = -1;
+			for(int k=0; k<nIn.nodeLayers.length; k++)
+			{
+				NodeInfo.LayerDetails nld = nIn.nodeLayers[k];
+				if (nld.layer.fun.isPoly())
+				{
+					polIndex = k;
+				} else if (nld.layer.fun.isDiff())
+				{
+					if (difIndex >= 0)
+					{
+						// figure out which layer is the basic active layer
+						int funExtraOld = nIn.nodeLayers[difIndex].layer.funExtra;
+						int funExtraNew = nld.layer.funExtra;
+						if (funExtraOld == funExtraNew) continue;
+						if (funExtraOld == 0) continue;
+					}
+					difIndex = k;
+				}
+			}
+			if (difIndex < 0 || polIndex < 0)
+			{
+				error.markError(null, np, "No diffusion and polysilicon layers in serpentine transistor");
+				return true;
+			}
+
+			// find width and extension from comparison to poly layer
+			Sample polNs = nIn.nodeLayers[polIndex].ns;
+			Rectangle2D polNodeBounds = polNs.node.getBounds();
+			Sample difNs = nIn.nodeLayers[difIndex].ns;
+			Rectangle2D difNodeBounds = difNs.node.getBounds();
+			for(int k=0; k<nIn.nodeLayers.length; k++)
+			{
+				NodeInfo.LayerDetails nld = nIn.nodeLayers[k];
+				Sample ns = nld.ns;
+				Rectangle2D nodeBounds = ns.node.getBounds();
+				if (polNodeBounds.getWidth() > polNodeBounds.getHeight())
+				{
+					// horizontal layer
+					nld.lWidth = nodeBounds.getMaxY() - (ns.parent.ly + ns.parent.hy)/2;
+					nld.rWidth = (ns.parent.ly + ns.parent.hy)/2 - nodeBounds.getMinY();
+					nld.extendT = difNodeBounds.getMinX() - nodeBounds.getMinX();
+				} else
+				{
+					// vertical layer
+					nld.lWidth = nodeBounds.getMaxX() - (ns.parent.lx + ns.parent.hx)/2;
+					nld.rWidth = (ns.parent.lx + ns.parent.hx)/2 - nodeBounds.getMinX();
+					nld.extendT = difNodeBounds.getMinY() - nodeBounds.getMinY();
+				}
+				nld.extendB = nld.extendT;
+			}
+
+			// add in electrical layers for diffusion
+			NodeInfo.LayerDetails [] addedLayers = new NodeInfo.LayerDetails[nIn.nodeLayers.length+2];
+			for(int k=0; k<nIn.nodeLayers.length; k++)
+				addedLayers[k] = nIn.nodeLayers[k];
+			NodeInfo.LayerDetails diff1 = nIn.nodeLayers[difIndex].duplicate();
+			NodeInfo.LayerDetails diff2 = nIn.nodeLayers[difIndex].duplicate();
+			addedLayers[nIn.nodeLayers.length] = diff1;
+			addedLayers[nIn.nodeLayers.length+1] = diff2;
+			nIn.nodeLayers = addedLayers;
+			diff1.inLayers = diff2.inLayers = false;
+			nIn.nodeLayers[difIndex].inElectricalLayers = false;
+			diff1.portIndex = dif1Port;
+			diff2.portIndex = dif2Port;
+
+			// compute port extension factors
+			nIn.specialValues = new double[6];
+			int layerCount = 0;
+			for(Sample ns : firstEx.samples)
+			{
+				if (ns.values != null && ns.layer != Generic.tech().portNode &&
+					ns.layer != Generic.tech().cellCenterNode && ns.layer != null)
+						layerCount++;
+			}
+			nIn.specialValues[0] = layerCount+1;
+			if (nIn.nodePortDetails[dif1Port].values[0].getX().getAdder() >
+				nIn.nodePortDetails[dif1Port].values[0].getY().getAdder())
+			{
+				// vertical diffusion layer: determine polysilicon width
+				nIn.specialValues[3] = (nIn.ySize * nIn.nodeLayers[polIndex].values[1].getY().getMultiplier() +
+					nIn.nodeLayers[polIndex].values[1].getY().getAdder()) -
+					(nIn.ySize * nIn.nodeLayers[polIndex].values[0].getY().getMultiplier() +
+					nIn.nodeLayers[polIndex].values[0].getY().getAdder());
+
+				// determine diffusion port rule
+				nIn.specialValues[1] = (nIn.xSize * nIn.nodePortDetails[dif1Port].values[0].getX().getMultiplier() +
+					nIn.nodePortDetails[dif1Port].values[0].getX().getAdder()) -
+					(nIn.xSize * nIn.nodeLayers[difIndex].values[0].getX().getMultiplier() +
+					nIn.nodeLayers[difIndex].values[0].getX().getAdder());
+				nIn.specialValues[2] = (nIn.ySize * nIn.nodePortDetails[dif1Port].values[0].getY().getMultiplier() +
+					nIn.nodePortDetails[dif1Port].values[0].getY().getAdder()) -
+					(nIn.ySize * nIn.nodeLayers[polIndex].values[1].getY().getMultiplier() +
+					nIn.nodeLayers[polIndex].values[1].getY().getAdder());
+
+				// determine polysilicon port rule
+				nIn.specialValues[4] = (nIn.ySize * nIn.nodePortDetails[pol1Port].values[0].getY().getMultiplier() +
+					nIn.nodePortDetails[pol1Port].values[0].getY().getAdder()) -
+					(nIn.ySize * nIn.nodeLayers[polIndex].values[0].getY().getMultiplier() +
+					nIn.nodeLayers[polIndex].values[0].getY().getAdder());
+				nIn.specialValues[5] = (nIn.xSize * nIn.nodeLayers[difIndex].values[0].getX().getMultiplier() +
+					nIn.nodeLayers[difIndex].values[0].getX().getAdder()) -
+					(nIn.xSize * nIn.nodePortDetails[pol1Port].values[1].getX().getMultiplier() +
+					nIn.nodePortDetails[pol1Port].values[1].getX().getAdder());
+
+				// setup electrical layers for diffusion
+				diff1.values[0].getY().setMultiplier(0);
+				diff1.values[0].getY().setAdder(0);
+				diff1.rWidth = 0;
+				diff2.values[1].getY().setMultiplier(0);
+				diff2.values[1].getY().setAdder(0);
+				diff2.lWidth = 0;
+			} else
+			{
+				// horizontal diffusion layer: determine polysilicon width
+				nIn.specialValues[3] = (nIn.xSize * nIn.nodeLayers[polIndex].values[1].getX().getMultiplier() +
+					nIn.nodeLayers[polIndex].values[1].getX().getAdder()) -
+					(nIn.xSize * nIn.nodeLayers[polIndex].values[0].getX().getMultiplier() +
+					nIn.nodeLayers[polIndex].values[0].getX().getAdder());
+
+				// determine diffusion port rule
+				nIn.specialValues[1] = (nIn.ySize * nIn.nodePortDetails[dif1Port].values[0].getY().getMultiplier() +
+					nIn.nodePortDetails[dif1Port].values[0].getY().getAdder()) -
+					(nIn.ySize * nIn.nodeLayers[difIndex].values[0].getY().getMultiplier() +
+					nIn.nodeLayers[difIndex].values[0].getY().getAdder());
+				nIn.specialValues[2] = (nIn.xSize * nIn.nodeLayers[polIndex].values[0].getX().getMultiplier() +
+					nIn.nodeLayers[polIndex].values[0].getX().getAdder()) -
+					(nIn.xSize * nIn.nodePortDetails[dif1Port].values[1].getX().getMultiplier() +
+					nIn.nodePortDetails[dif1Port].values[1].getX().getAdder());
+
+				// determine polysilicon port rule
+				nIn.specialValues[4] = (nIn.xSize * nIn.nodePortDetails[pol1Port].values[0].getX().getMultiplier() +
+					nIn.nodePortDetails[pol1Port].values[0].getX().getAdder()) -
+					(nIn.xSize * nIn.nodeLayers[polIndex].values[0].getX().getMultiplier() +
+					nIn.nodeLayers[polIndex].values[0].getX().getAdder());
+				nIn.specialValues[5] = (nIn.ySize * nIn.nodeLayers[difIndex].values[0].getY().getMultiplier() +
+					nIn.nodeLayers[difIndex].values[0].getY().getAdder()) -
+					(nIn.ySize * nIn.nodePortDetails[pol1Port].values[1].getY().getMultiplier() +
+					nIn.nodePortDetails[pol1Port].values[1].getY().getAdder());
+
+				// setup electrical layers for diffusion
+				diff1.values[0].getX().setMultiplier(0);
+				diff1.values[0].getX().setAdder(0);
+				diff1.rWidth = 0;
+				diff2.values[1].getX().setMultiplier(0);
+				diff2.values[1].getX().setAdder(0);
+				diff2.lWidth = 0;
+			}
+		}
+		return false;
+	}
+
+	private NodeInfo.LayerDetails [] makePrimitiveNodeLayers(List<Example> neList, Cell np, LayerInfo [] lis,
+		List<Example> variations)
 	{
 		// if there is only one example: make sample scale with edge
 		Example firstEx = neList.get(0);
 		if (neList.size() <= 1)
 		{
-			return makeNodeScaledUniformly(neList, np, lis);
+			return makeNodeScaledUniformly(neList, np, lis, null, null);
 		}
 
-		// count the number of real layers in the node
-		int count = 0;
-		for(Sample ns : firstEx.samples)
-		{
-			if (ns.layer != null && ns.layer != Generic.tech().portNode) count++;
-		}
-
-		NodeInfo.LayerDetails [] nodeLayers = new NodeInfo.LayerDetails[count];
-		count = 0;
+		List<NodeInfo.LayerDetails> nodeLayersList = new ArrayList<NodeInfo.LayerDetails>();
 
 		// look at every sample "ns" in the main example "neList"
 		for(Sample ns : firstEx.samples)
@@ -1485,8 +1513,7 @@ public class LibToTech
 			if (multiRule != null)
 			{
 				multiRule.layer = giLayer;
-				nodeLayers[count] = multiRule;
-				count++;
+				nodeLayersList.add(multiRule);
 				continue;
 			}
 
@@ -1739,7 +1766,7 @@ public class LibToTech
 			}
 
 			// finally, make a rule for this sample
-			Technology.TechPoint [] newRule = stretchPoints(pointList, pointFactor, ns, np, neList);
+			Technology.TechPoint [] newRule = stretchPoints(pointList, pointFactor, ns, np, neList, neList.get(0));
 			if (newRule == null) return null;
 
 			// add the rule to the global list
@@ -1750,59 +1777,132 @@ public class LibToTech
 			// stop now if a highlight or port object
 			if (ns.layer == null || ns.layer == Generic.tech().portNode) continue;
 
-			nodeLayers[count] = new NodeInfo.LayerDetails();
-			nodeLayers[count].layer = giLayer;
-			nodeLayers[count].ns = ns;
-			nodeLayers[count].style = getStyle(ns.node);
-			nodeLayers[count].representation = Technology.NodeLayer.POINTS;
-			nodeLayers[count].values = fixValues(np, ns.values);
-			if (nodeLayers[count].values.length == 2)
+			NodeInfo.LayerDetails nild = new NodeInfo.LayerDetails();
+			nodeLayersList.add(nild);
+			nild.layer = giLayer;
+			nild.ns = ns;
+			nild.style = getStyle(ns.node);
+			nild.representation = Technology.NodeLayer.POINTS;
+			nild.values = fixValues(np, ns.values);
+			nild.inNodes = null;
+			if (nild.values.length == 2)
 			{
-				if (nodeLayers[count].style == Poly.Type.CROSSED ||
-					nodeLayers[count].style == Poly.Type.FILLED ||
-					nodeLayers[count].style == Poly.Type.CLOSED)
+				if (nild.style == Poly.Type.CROSSED ||
+					nild.style == Poly.Type.FILLED ||
+					nild.style == Poly.Type.CLOSED)
 				{
-					nodeLayers[count].representation = Technology.NodeLayer.BOX;
+					nild.representation = Technology.NodeLayer.BOX;
 //					if (minFactor != 0)
 //						nodeLayers[count].representation = Technology.NodeLayer.MINBOX;
 				}
 			}
-			count++;
+
+			// add in variations
+			if (variations.size() > 0)
+			{
+				nild.inNodes = new BitSet();
+				nild.inNodes.set(0);
+				int variationIndex = 1;
+				for(Example variation : variations)
+				{
+					Sample samp = null;
+					for(Sample s : variation.samples)
+					{
+						if (s.layer == ns.layer) { samp = s;   break; }
+					}
+					if (samp != null)
+					{
+						NodeInfo.LayerDetails variationLayer = new NodeInfo.LayerDetails();
+						nodeLayersList.add(variationLayer);
+						variationLayer.layer = giLayer;
+						variationLayer.ns = samp;
+						variationLayer.style = getStyle(samp.node);
+
+						// rectangular sample: get the bounding box in (px, py)		TODO: get this right
+						Rectangle2D variationBounds = getBoundingBox(samp.node);
+						pointList = new Point2D[2];
+						pointFactor = new int[2];
+						pointList[0] = new Point2D.Double(variationBounds.getMinX(), variationBounds.getMinY());
+						pointList[1] = new Point2D.Double(variationBounds.getMaxX(), variationBounds.getMaxY());
+						pointFactor[0] = TOEDGELEFT|TOEDGEBOT;
+						pointFactor[1] = TOEDGERIGHT|TOEDGETOP;
+						Technology.TechPoint [] variationRule = stretchPoints(pointList, pointFactor, samp, np, neList, variation);
+						if (variationRule == null) return null;
+
+						variationLayer.values = fixValues(np, variationRule);
+						variationLayer.representation = Technology.NodeLayer.BOX;
+						variationLayer.inNodes = new BitSet();
+						variationLayer.inNodes.set(variationIndex);
+					}
+					variationIndex++;
+				}
+			}
 		}
-		if (count != nodeLayers.length)
-			System.out.println("Warning: Generated only " + count + " of " + nodeLayers.length + " layers for " + np);
+		NodeInfo.LayerDetails [] nodeLayers = new NodeInfo.LayerDetails[nodeLayersList.size()];
+		for(int i=0; i<nodeLayersList.size(); i++)
+			nodeLayers[i] = nodeLayersList.get(i);
 		return nodeLayers;
 	}
 
-	private NodeInfo.LayerDetails [] makeNodeScaledUniformly(List<Example> neList, Cell np, LayerInfo [] lis)
+	private NodeInfo.LayerDetails [] makeNodeScaledUniformly(List<Example> neList, Cell np, LayerInfo [] lis,
+		Example variation, NodeInfo.LayerDetails [] variationDetails)
 	{
+		List<NodeInfo.LayerDetails> nodeLayers = new ArrayList<NodeInfo.LayerDetails>();
 		Example firstEx = neList.get(0);
-		// count the number of real layers in the node
-		int count = 0;
 		for(Sample ns : firstEx.samples)
 		{
-			if (ns.layer != null && ns.layer != Generic.tech().portNode) count++;
-		}
+			if (ns.layer != null && ns.layer != Generic.tech().portNode)
+			{
+				LayerInfo cutLayer = null;
+				String cutLayerName = ns.layer.getName().substring(6);
+				for(int i=0; i<lis.length; i++)
+				{
+					if (cutLayerName.equals(lis[i].name) && lis[i].fun.isContact()) { cutLayer = lis[i];   break; }
+				}
+				if (cutLayer != null)
+				{
+					// this is the contact layer
+					boolean copied = false;
+					for(int i=0; i<variationDetails.length; i++)
+					{
+						if (variationDetails[i].layer == cutLayer)
+						{
+							if (variationDetails[i].multiCut)
+							{
+								// just copy this layer
+								nodeLayers.add(variationDetails[i]);
+								copied = true;
+								break;
+							}
+						}
+					}
+					if (copied) continue;
+				}
+			}
 
-		NodeInfo.LayerDetails [] nodeLayers = new NodeInfo.LayerDetails[count];
-		count = 0;
-		for(Sample ns : firstEx.samples)
-		{
-			Rectangle2D nodeBounds = getBoundingBox(ns.node);
-			AffineTransform trans = ns.node.rotateOut();
+			Sample samp = ns;
+			if (variation != null)
+			{
+				for(Sample s : variation.samples)
+				{
+					if (s.layer == ns.layer) { samp = s;   break; }
+				}
+			}
+			Rectangle2D nodeBounds = getBoundingBox(samp.node);
+			AffineTransform trans = samp.node.rotateOut();
 
 			// see if there is polygonal information
 			Point2D [] pointList = null;
 			int [] pointFactor = null;
 			Point2D [] points = null;
-			if (ns.node.getProto() == Artwork.tech().filledPolygonNode ||
-				ns.node.getProto() == Artwork.tech().closedPolygonNode ||
-				ns.node.getProto() == Artwork.tech().openedPolygonNode ||
-				ns.node.getProto() == Artwork.tech().openedDottedPolygonNode ||
-				ns.node.getProto() == Artwork.tech().openedDashedPolygonNode ||
-				ns.node.getProto() == Artwork.tech().openedThickerPolygonNode)
+			if (samp.node.getProto() == Artwork.tech().filledPolygonNode ||
+				samp.node.getProto() == Artwork.tech().closedPolygonNode ||
+				samp.node.getProto() == Artwork.tech().openedPolygonNode ||
+				samp.node.getProto() == Artwork.tech().openedDottedPolygonNode ||
+				samp.node.getProto() == Artwork.tech().openedDashedPolygonNode ||
+				samp.node.getProto() == Artwork.tech().openedThickerPolygonNode)
 			{
-				points = ns.node.getTrace();
+				points = samp.node.getTrace();
 			}
 			if (points != null)
 			{
@@ -1820,9 +1920,9 @@ public class LibToTech
 			{
 				// see if it is an arc of a circle
 				double [] angles = null;
-				if (ns.node.getProto() == Artwork.tech().circleNode || ns.node.getProto() == Artwork.tech().thickCircleNode)
+				if (samp.node.getProto() == Artwork.tech().circleNode || samp.node.getProto() == Artwork.tech().thickCircleNode)
 				{
-					angles = ns.node.getArcDegrees();
+					angles = samp.node.getArcDegrees();
 					if (angles[0] == 0 && angles[1] == 0) angles = null;
 				}
 
@@ -1840,8 +1940,8 @@ public class LibToTech
 					pointFactor[0] = FROMCENTX|FROMCENTY;
 					pointFactor[1] = RATIOCENTX|RATIOCENTY;
 					pointFactor[2] = RATIOCENTX|RATIOCENTY;
-				} else if (ns.node.getProto() == Artwork.tech().circleNode || ns.node.getProto() == Artwork.tech().thickCircleNode ||
-					ns.node.getProto() == Artwork.tech().filledCircleNode)
+				} else if (samp.node.getProto() == Artwork.tech().circleNode || samp.node.getProto() == Artwork.tech().thickCircleNode ||
+					samp.node.getProto() == Artwork.tech().filledCircleNode)
 				{
 					// handle circular sample
 					pointList = new Point2D[2];
@@ -1865,47 +1965,50 @@ public class LibToTech
 			}
 
 			// add the rule to the collection
-			Technology.TechPoint [] newRule = stretchPoints(pointList, pointFactor, ns, np, neList);
+			Technology.TechPoint [] newRule = stretchPoints(pointList, pointFactor, samp, np, neList, samp.parent);
 			if (newRule == null) return null;
-			ns.msg = Info.getValueOnNode(ns.node);
-			if (ns.msg != null && ns.msg.length() == 0) ns.msg = null;
-			ns.values = newRule;
+			samp.msg = Info.getValueOnNode(samp.node);
+			if (samp.msg != null && samp.msg.length() == 0) samp.msg = null;
+			samp.values = newRule;
 
 			// stop now if a highlight or port object
-			if (ns.layer == null || ns.layer == Generic.tech().portNode) continue;
+			if (samp.layer == null || samp.layer == Generic.tech().portNode) continue;
 
 			// determine the layer
 			LayerInfo layer = null;
-			String desiredLayer = ns.layer.getName().substring(6);
+			String desiredLayer = samp.layer.getName().substring(6);
 			for(int i=0; i<lis.length; i++)
 			{
 				if (desiredLayer.equals(lis[i].name)) { layer = lis[i];   break; }
 			}
 			if (layer == null)
 			{
-				error.markError(ns.node, np, "Unknown layer: " + desiredLayer);
+				error.markError(samp.node, np, "Unknown layer: " + desiredLayer);
 				return null;
 			}
-			nodeLayers[count] = new NodeInfo.LayerDetails();
-			nodeLayers[count].layer = layer;
-			nodeLayers[count].ns = ns;
-			nodeLayers[count].style = getStyle(ns.node);
-			nodeLayers[count].representation = Technology.NodeLayer.POINTS;
-			nodeLayers[count].values = fixValues(np, ns.values);
-			if (nodeLayers[count].values.length == 2)
+			NodeInfo.LayerDetails nld = new NodeInfo.LayerDetails();
+			nodeLayers.add(nld);
+			nld.layer = layer;
+			nld.ns = samp;
+			nld.style = getStyle(samp.node);
+			nld.representation = Technology.NodeLayer.POINTS;
+			nld.values = fixValues(np, samp.values);
+			if (nld.values.length == 2)
 			{
-				if (nodeLayers[count].style == Poly.Type.CROSSED ||
-					nodeLayers[count].style == Poly.Type.FILLED ||
-					nodeLayers[count].style == Poly.Type.CLOSED)
+				if (nld.style == Poly.Type.CROSSED ||
+					nld.style == Poly.Type.FILLED ||
+					nld.style == Poly.Type.CLOSED)
 				{
-					nodeLayers[count].representation = Technology.NodeLayer.BOX;
+					nld.representation = Technology.NodeLayer.BOX;
 //					Variable var2 = ns.node.getVar(Info.MINSIZEBOX_KEY);
-//					if (var2 != null) nodeLayers[count].representation = Technology.NodeLayer.MINBOX;
+//					if (var2 != null) nld.representation = Technology.NodeLayer.MINBOX;
 				}
 			}
-			count++;
 		}
-		return nodeLayers;
+		NodeInfo.LayerDetails[] nodeLayerArray = new NodeInfo.LayerDetails[nodeLayers.size()];
+		for(int i=0; i<nodeLayers.size(); i++)
+			nodeLayerArray[i] = nodeLayers.get(i);
+		return nodeLayerArray;
 	}
 
 	/**
@@ -2069,9 +2172,8 @@ public class LibToTech
 	 * these points.  Returns zero on error.
 	 */
 	private Technology.TechPoint [] stretchPoints(Point2D [] pts, int [] factor,
-		Sample ns, Cell np, List<Example> neList)
+		Sample ns, Cell np, List<Example> neList, Example firstEx)
 	{
-		Example firstEx = neList.get(0);
 		Technology.TechPoint [] newRule = new Technology.TechPoint[pts.length];
 
 		for(int i=0; i<pts.length; i++)
@@ -2565,7 +2667,14 @@ public class LibToTech
 		for (NodeInfo ni: nList) {
 			if (ni.func == PrimitiveNode.Function.NODE && ni.nodeLayers[0].layer.pureLayerNode == ni)
 				continue;
-			Xml.PrimitiveNode pn = new Xml.PrimitiveNode();
+			Xml.PrimitiveNode pn;
+			if (ni.primitiveNodeGroupNames == null) pn = new Xml.PrimitiveNode(); else
+			{
+				Xml.PrimitiveNodeGroup png = new Xml.PrimitiveNodeGroup();
+				for(String s : ni.primitiveNodeGroupNames)
+					png.nodes.add(s);
+				pn = png;
+			}
 			pn.name = ni.name;
 			pn.function = ni.func;
 			pn.shrinkArcs = ni.arcsShrink;
@@ -2610,22 +2719,6 @@ public class LibToTech
 				pn.spiceTemplate = ni.spiceTemplate;
 			for(int j=0; j<ni.nodeLayers.length; j++) {
 				NodeInfo.LayerDetails nl = ni.nodeLayers[j];
-//				CustomOverride [] overrides = null;
-//				if (ni.surroundOverrides != null)
-//				{
-//					overrides = new CustomOverride[ni.surroundOverrides.length];
-//					for(int i=0; i<ni.surroundOverrides.length; i++)
-//					{
-//						String [] pieces = ni.surroundOverrides[i].split(",");
-//						if (pieces.length <= overrideOffset+4) break;
-//						double lX = TextUtils.atof(pieces[1+overrideOffset]);
-//						double lY = TextUtils.atof(pieces[2+overrideOffset]);
-//						double wid = TextUtils.atof(pieces[3+overrideOffset]) - lX;
-//						double hei = TextUtils.atof(pieces[4+overrideOffset]) - lY;
-//						overrides[i] = new CustomOverride(lX, lY, wid, hei, pieces[0]);
-//					}
-//					overrideOffset += 4;
-//				}
 				pn.nodeLayers.add(makeNodeLayerDetails(nl, ni.serp, minFullSize));
 			}
 			for (int j = 0; j < ni.nodePortDetails.length; j++) {
@@ -2744,6 +2837,7 @@ public class LibToTech
 			nld.tExtent = DBMath.round(nl.extendT);
 			nld.bExtent = DBMath.round(nl.extendB);
 		}
+		nld.inNodes = nl.inNodes;
 		return nld;
 	}
 
