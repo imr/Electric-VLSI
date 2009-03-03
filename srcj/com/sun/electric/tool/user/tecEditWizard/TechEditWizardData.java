@@ -87,12 +87,8 @@ public class TechEditWizardData
 	private WizardField contact_spacing = new WizardField();
     private WizardField contact_array_spacing = new WizardField();
     private WizardField contact_metal_overhang_inline_only = new WizardField();	// metal overhang when overhanging contact from two sides only
-    private WizardField contact_metal_overhang_min_short = new WizardField();	// metal overhang when overhanging contact from two sides only, short version
-    private WizardField contact_metal_overhang_min_long = new WizardField();	// metal overhang when overhanging contact from two sides only, long version
 	private WizardField contact_metal_overhang_all_sides = new WizardField();	// metal overhang when surrounding contact
 	private WizardField contact_poly_overhang = new WizardField();				// poly overhang contact. It should hold the recommended value
-	private WizardField contact_poly_overhang_min_short = new WizardField();				// poly overhang contact. It should hold the min short value
-//	private WizardField contact_poly_overhang_min_long = new WizardField();				// poly overhang contact. It should hold the min long value
 	private WizardField polycon_diff_spacing = new WizardField();				// spacing between poly-metal contact edge and diffusion
 
 	// WELL AND IMPLANT RULES
@@ -120,7 +116,6 @@ public class TechEditWizardData
 	private WizardField [] via_inline_spacing;
 	private WizardField [] via_array_spacing;
 	private WizardField [] via_overhang;
-	private WizardField [] via_overhang_short;
 
     // generic cross contacts
     private static class ContactNode
@@ -262,7 +257,6 @@ public class TechEditWizardData
 		via_inline_spacing = new WizardField[num_metal_layers-1];
 		via_array_spacing = new WizardField[num_metal_layers-1];
 		via_overhang = new WizardField[num_metal_layers-1];
-		via_overhang_short = new WizardField[num_metal_layers-1];
 		metal_antenna_ratio = new double[num_metal_layers];
 
         metalContacts = new HashMap<String,List<Contact>>();
@@ -292,7 +286,6 @@ public class TechEditWizardData
 			via_inline_spacing[i] = new WizardField();
 			via_array_spacing[i] = new WizardField();
 			via_overhang[i] = new WizardField();
-			via_overhang_short[i] = new WizardField();
             gds_via_layer[i] = new LayerInfo("Via-"+(i+1));
         }
     }
@@ -342,11 +335,6 @@ public class TechEditWizardData
 		for(int i=0; i<smallest-1; i++) new_via_overhang_inline[i] = via_overhang[i];
 		for(int i=smallest-1; i<n-1; i++) new_via_overhang_inline[i] = new WizardField();
 		via_overhang = new_via_overhang_inline;
-
-        WizardField [] new_via_overhang_inline_short = new WizardField[n-1];
-		for(int i=0; i<smallest-1; i++) new_via_overhang_inline_short[i] = via_overhang_short[i];
-		for(int i=smallest-1; i<n-1; i++) new_via_overhang_inline_short[i] = new WizardField();
-		via_overhang_short = new_via_overhang_inline_short;
 
         double [] new_metal_antenna_ratio = new double[n];
 		for(int i=0; i<smallest; i++) new_metal_antenna_ratio[i] = metal_antenna_ratio[i];
@@ -665,18 +653,10 @@ public class TechEditWizardData
 					if (varName.equalsIgnoreCase("contact_array_spacing_rule")) contact_array_spacing.rule = stripQuotes(varValue); else
                     if (varName.equalsIgnoreCase("contact_metal_overhang_inline_only")) contact_metal_overhang_inline_only.v = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("contact_metal_overhang_inline_only_rule")) contact_metal_overhang_inline_only.rule = stripQuotes(varValue); else
-                    if (varName.equalsIgnoreCase("contact_metal_overhang_short_min")) contact_metal_overhang_min_short.v = TextUtils.atof(varValue); else
-					if (varName.equalsIgnoreCase("contact_metal_overhang_short_min_rule")) contact_metal_overhang_min_short.rule = stripQuotes(varValue); else
-                    if (varName.equalsIgnoreCase("contact_metal_overhang_long_min")) contact_metal_overhang_min_long.v = TextUtils.atof(varValue); else
-					if (varName.equalsIgnoreCase("contact_metal_overhang_long_min_rule")) contact_metal_overhang_min_long.rule = stripQuotes(varValue); else
 					if (varName.equalsIgnoreCase("contact_metal_overhang_all_sides")) contact_metal_overhang_all_sides.v = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("contact_metal_overhang_all_sides_rule")) contact_metal_overhang_all_sides.rule = stripQuotes(varValue); else
 					if (varName.equalsIgnoreCase("contact_poly_overhang")) contact_poly_overhang.v = TextUtils.atof(varValue); else
                     if (varName.equalsIgnoreCase("contact_poly_overhang_rule")) contact_poly_overhang.rule = stripQuotes(varValue); else
-                    if (varName.equalsIgnoreCase("contact_poly_overhang_short_min")) contact_poly_overhang_min_short.v = TextUtils.atof(varValue); else
-                    if (varName.equalsIgnoreCase("contact_poly_overhang_short_min_rule")) contact_poly_overhang_min_short.rule = stripQuotes(varValue); else
-//                    if (varName.equalsIgnoreCase("contact_poly_overhang_long_min")) contact_poly_overhang_min_long.v = TextUtils.atof(varValue); else
-//                    if (varName.equalsIgnoreCase("contact_poly_overhang_long_min_rule")) contact_poly_overhang_min_long.rule = stripQuotes(varValue); else
                     if (varName.equalsIgnoreCase("polycon_diff_spacing")) polycon_diff_spacing.v = TextUtils.atof(varValue); else
 					if (varName.equalsIgnoreCase("polycon_diff_spacing_rule")) polycon_diff_spacing.rule = stripQuotes(varValue); else
 
@@ -719,8 +699,6 @@ public class TechEditWizardData
 					if (varName.equalsIgnoreCase("via_array_spacing_rule")) fillWizardArray(varValue, via_array_spacing, num_metal_layers-1, true); else
 					if (varName.equalsIgnoreCase("via_overhang_inline")) fillWizardArray(varValue, via_overhang, num_metal_layers-1, false); else
 					if (varName.equalsIgnoreCase("via_overhang_inline_rule")) fillWizardArray(varValue, via_overhang, num_metal_layers-1, true); else
-					if (varName.equalsIgnoreCase("via_overhang_inline_short")) fillWizardArray(varValue, via_overhang_short, num_metal_layers-1, false); else
-					if (varName.equalsIgnoreCase("via_overhang_inline_short_rule")) fillWizardArray(varValue, via_overhang_short, num_metal_layers-1, true); else
 
                     if (varName.equalsIgnoreCase("metal_contacts_series")) fillContactSeries(varValue, metalContacts); else
                     if (varName.equalsIgnoreCase("contacts_series")) fillContactSeries(varValue, otherContacts); else
@@ -1050,20 +1028,10 @@ public class TechEditWizardData
         pw.println("$contact_metal_overhang_inline_only = " + TextUtils.formatDouble(contact_metal_overhang_inline_only.v) + ";      # metal overhang when overhanging contact from two sides only");
 		pw.println("$contact_metal_overhang_inline_only_rule = \"" + contact_metal_overhang_inline_only.rule + "\";      # metal overhang when overhanging contact from two sides only");
 
-        pw.println("$contact_metal_overhang_inline_only_short = " + TextUtils.formatDouble(contact_metal_overhang_min_short.v) + ";      # metal overhang when overhanging contact from two sides only, short version");
-		pw.println("$contact_metal_overhang_inline_only_short_rule = \"" + contact_metal_overhang_min_short.rule + "\";      # metal overhang when overhanging contact from two sides only, short version");
-
-        pw.println("$contact_metal_overhang_inline_only_long = " + TextUtils.formatDouble(contact_metal_overhang_min_long.v) + ";      # metal overhang when overhanging contact from two sides only, long version");
-		pw.println("$contact_metal_overhang_inline_only_long_rule = \"" + contact_metal_overhang_min_long.rule + "\";      # metal overhang when overhanging contact from two sides only, long version");
-
         pw.println("$contact_metal_overhang_all_sides = " + TextUtils.formatDouble(contact_metal_overhang_all_sides.v) + ";         # metal overhang when surrounding contact");
 		pw.println("$contact_metal_overhang_all_sides_rule = \"" + contact_metal_overhang_all_sides.rule + "\";         # metal overhang when surrounding contact");
 		pw.println("$contact_poly_overhang = " + TextUtils.formatDouble(contact_poly_overhang.v) + ";                    # poly overhang contact, recommended value");
 		pw.println("$contact_poly_overhang_rule = \"" + contact_poly_overhang.rule + "\";                    # poly overhang contact, recommended value");
-		pw.println("$contact_poly_overhang_min_short = " + TextUtils.formatDouble(contact_poly_overhang_min_short.v) + ";                    # poly overhang contact, min short value");
-		pw.println("$contact_poly_overhang_min_short_rule = \"" + contact_poly_overhang_min_short.rule + "\";                    # poly overhang contact, min short value");
-//		pw.println("$contact_poly_overhang_min_long = " + TextUtils.formatDouble(contact_poly_overhang_min_long.v) + ";                    # poly overhang contact, min long value");
-//		pw.println("$contact_poly_overhang_min_long_rule = \"" + contact_poly_overhang_min_long.rule + "\";                    # poly overhang contact, min long value");
 		pw.println("$polycon_diff_spacing = " + TextUtils.formatDouble(polycon_diff_spacing.v) + ";                    # spacing between poly-metal contact edge and diffusion");
 		pw.println("$polycon_diff_spacing_rule = \"" + polycon_diff_spacing.rule + "\";                    # spacing between poly-metal contact edge and diffusion");
 		pw.println();
@@ -1575,8 +1543,8 @@ public class TechEditWizardData
      */
     private List<Object> makeContactSeries(List<Xml.PrimitiveNode> nodes, String composeName,
                                            double contSize, Xml.Layer conLayer, double spacing, double arraySpacing,
-                                           double longExtLayer1, double shotExtLayer1, Xml.Layer layer1,
-                                           double longExtLayer2, double shotExtLayer2, Xml.Layer layer2)
+                                           double extLayer1, Xml.Layer layer1,
+                                           double extLayer2, Xml.Layer layer2)
     {
         List<Object> contactsList = new ArrayList<Object>();
         List<String> portNames = new ArrayList<String>();
@@ -1585,12 +1553,9 @@ public class TechEditWizardData
         portNames.add(layer2.name);
         
         // align contact
-        double hlaLong1 = DBMath.round(contSize/2 + longExtLayer1);
-        double hlaShort1 = DBMath.round(contSize/2 + shotExtLayer1);
-        double hlaLong2 = DBMath.round(contSize/2 + longExtLayer2);
-        double hlaShort2 = DBMath.round(contSize/2 + shotExtLayer2);
-
-        double longD = DBMath.isGreaterThan(longExtLayer1, longExtLayer2) ? longExtLayer1 : longExtLayer2;
+        double hlaLong1 = DBMath.round(contSize/2 + extLayer1);
+        double hlaLong2 = DBMath.round(contSize/2 + extLayer2);
+        double longD = DBMath.isGreaterThan(extLayer1, extLayer2) ? extLayer1 : extLayer2;
 
         // long square contact. Standard ones
         if (!getProtectionPoly())
@@ -1599,43 +1564,6 @@ public class TechEditWizardData
                 makeXmlNodeLayer(hlaLong1, hlaLong1, hlaLong1, hlaLong1, layer1, Poly.Type.FILLED, true), // layer1
                 makeXmlNodeLayer(hlaLong2, hlaLong2, hlaLong2, hlaLong2, layer2, Poly.Type.FILLED, true), // layer2
                 makeXmlMulticut(conLayer, contSize, spacing, arraySpacing))); // contact
-        }
-        else
-//        if (getProtectionPoly())
-        {
-            double sox = DBMath.isGreaterThan(longExtLayer1, shotExtLayer2) ? longExtLayer1 : shotExtLayer2;
-            double soy = DBMath.isGreaterThan(shotExtLayer1, longExtLayer2) ? shotExtLayer1 : longExtLayer2;
-
-            // Cross contact, layer 1 is long on X, layer 2 is long on Y
-            contactsList.add(makeXmlPrimitiveCon(nodes, "X-"+composeName, -1, -1, new SizeOffset(sox, sox, soy, soy), portNames,
-                makeXmlNodeLayer(hlaLong1, hlaLong1, hlaShort1, hlaShort1, layer1, Poly.Type.FILLED, true), // layer1
-                makeXmlNodeLayer(hlaShort2, hlaShort2, hlaLong2, hlaLong2, layer2, Poly.Type.FILLED, true), // layer2
-                makeXmlMulticut(conLayer, contSize, spacing, arraySpacing))); // contact
-
-            // Aligned on X (long) contact with surround
-            sox = DBMath.isGreaterThan(longExtLayer1, longExtLayer2) ? longExtLayer1 : longExtLayer2;
-            soy = DBMath.isGreaterThan(shotExtLayer1, shotExtLayer2) ? shotExtLayer1 : shotExtLayer2;
-            contactsList.add(makeXmlPrimitiveCon(nodes, "A-"+composeName, -1, -1, new SizeOffset(sox, sox, soy, soy), portNames,
-                makeXmlNodeLayer(hlaLong1, hlaLong1, hlaShort1, hlaShort1, layer1, Poly.Type.FILLED, true), // layer1
-                makeXmlNodeLayer(hlaLong2, hlaLong2, hlaShort2, hlaShort2, layer2, Poly.Type.FILLED, true), // layer2
-                makeXmlMulticut(conLayer, contSize, spacing, arraySpacing))); // contact
-
-            // Zero contact
-            double halfSize = DBMath.round(contSize/2);
-            contactsList.add(makeXmlPrimitiveCon(nodes, "Z-"+composeName, -1, -1, null, portNames,
-                makeXmlNodeLayer(halfSize, halfSize, halfSize, halfSize, layer1, Poly.Type.FILLED, true), // layer1
-                makeXmlNodeLayer(halfSize, halfSize, halfSize, halfSize, layer2, Poly.Type.FILLED, true), // layer2
-                makeXmlMulticut(conLayer, contSize, spacing, arraySpacing))); // contact
-
-            // short square. There must be at least 1 size that is not equal to the halfsize otherwise
-            // previous primitive generates that
-            if (!DBMath.areEquals(hlaShort1, halfSize) || !DBMath.areEquals(hlaShort2, halfSize))
-            {
-                contactsList.add(makeXmlPrimitiveCon(nodes, "SS-"+composeName, -1, -1, new SizeOffset(soy, soy, soy, soy), portNames,
-                    makeXmlNodeLayer(hlaShort1, hlaShort1, hlaShort1, hlaShort1, layer1, Poly.Type.FILLED, true), // layer1
-                    makeXmlNodeLayer(hlaShort2, hlaShort2, hlaShort2, hlaShort2, layer2, Poly.Type.FILLED, true), // layer2
-                    makeXmlMulticut(conLayer, contSize, spacing, arraySpacing))); // contact
-            }
         }
 
         return contactsList;
@@ -2044,15 +1972,15 @@ public class TechEditWizardData
         double contSpacing = scaledValue(contact_spacing.v);
         double contArraySpacing = scaledValue(contact_array_spacing.v);
         double metal1Over = scaledValue(contact_size.v/2 + contact_metal_overhang_all_sides.v);
+        List<Object> polyContacts = new ArrayList<Object>();
 
-        // min contact with surround, assuming short is on X
-        // We can't use the absolute shot from the via enclosure because the poly cut width is
-        // smaller than the min M1 width.
-        double expectedMin = contact_size.v + via_overhang_short[0].v * 2;
-        double validMetalOver = (DBMath.isLessThan(expectedMin, metal_width[0].v)) ? (metal_width[0].v - contact_size.v)/2 : via_overhang_short[0].v;
-        List<Object> polyContacts = makeContactSeries(t.nodes, polyLayer.name, contSize, polyConLayer, contSpacing, contArraySpacing,
-                    scaledValue(contact_poly_overhang.v), scaledValue(contact_poly_overhang_min_short.v), polyLayer,
-                    scaledValue(via_overhang[0].v), validMetalOver, m1Layer);
+        // only for standard cases when getProtectionPoly() is false
+        if (!getProtectionPoly())
+        {
+            polyContacts.addAll(makeContactSeries(t.nodes, polyLayer.name, contSize, polyConLayer, contSpacing, contArraySpacing,
+                        scaledValue(contact_poly_overhang.v), polyLayer,
+                        scaledValue(via_overhang[0].v), m1Layer));
+        }
 
         /**************************** N/P-Diff Nodes/Arcs ***********************************************/
 
@@ -2283,10 +2211,9 @@ public class TechEditWizardData
                 String name = lb.name + "-" + lt.name;
 
                 double longDist = scaledValue(via_overhang[i-1].v);
-                double shortDist = scaledValue(via_overhang_short[i-1].v);
                 List<Object> metalContacts = makeContactSeries(t.nodes, name, viaSize, via, viaSpacing, viaArraySpacing,
-                    longDist, shortDist, lt,
-                    longDist, shortDist, lb);
+                    longDist, lt,
+                    longDist, lb);
                 t.menuPalette.menuBoxes.add(metalContacts);
             }
         }
