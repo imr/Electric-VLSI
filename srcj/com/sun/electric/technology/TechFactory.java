@@ -59,6 +59,9 @@ public abstract class TechFactory {
             this.prefPath = prefPath;
             this.factoryValue = factoryValue;
         }
+
+        @Override
+        public String toString() { return xmlPath; }
     }
 
     public static TechFactory fromXml(URL url, Xml.Technology xmlTech) {
@@ -100,6 +103,9 @@ public abstract class TechFactory {
     public List<Param> getTechParams() {
         return techParams;
     }
+
+    @Override
+    public String toString() { return techName; }
 
     public static TechFactory getGenericFactory() {
         return new FromClass("generic", "com.sun.electric.technology.technologies.Generic");
