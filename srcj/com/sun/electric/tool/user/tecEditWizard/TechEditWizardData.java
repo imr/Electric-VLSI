@@ -2056,10 +2056,13 @@ public class TechEditWizardData
         {
             // generic contacts
             String name = null;
+
             for (Contact c : e.getValue())
             {
                 Xml.Layer ly = null, lx = null;
                 List<Object> list = null;
+                Xml.Layer conLay = diffConLayer;
+
                 if (TextUtils.isANumber(c.verticalLayer.layer))
                 {
                     int m1 = Integer.valueOf(c.verticalLayer.layer);
@@ -2079,6 +2082,7 @@ public class TechEditWizardData
                     {
                         lx = polyLayer;
                         list = polyContacts;
+                        conLay = polyConLayer;
                     }
                     else
                         assert(false); // it should not happen
@@ -2112,11 +2116,15 @@ public class TechEditWizardData
                 double longX = DBMath.isGreaterThan(c.verticalLayer.overX.v, c.horizontalLayer.overX.v) ? c.verticalLayer.overX.v : c.horizontalLayer.overX.v;
                 double longY = DBMath.isGreaterThan(c.verticalLayer.overY.v, c.horizontalLayer.overY.v) ? c.verticalLayer.overY.v : c.horizontalLayer.overY.v;
 
+                portNames.clear();
+                portNames.add(lx.name);
+                portNames.add(ly.name);
+
                 list.add(makeXmlPrimitiveCon(t.nodes, c.prefix + name, -1, -1,
                     new SizeOffset(longX, longX, longY, longY), portNames,
                 makeXmlNodeLayer(h1x, h1x, h1y, h1y, ly, Poly.Type.FILLED, true), // layer1
                 makeXmlNodeLayer(h2x, h2x, h2y, h2y, lx, Poly.Type.FILLED, true), // layer2
-                makeXmlMulticut(diffConLayer, contSize, contSpacing, contArraySpacing))); // contact
+                makeXmlMulticut(conLay, contSize, contSpacing, contArraySpacing))); // contact
             }
         }
 

@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09d: ******************************
 
+BUG: (3/4/09, GVG) Wrong cut and port names in poly contacts defined by the new series. Detected
+by Bug #2060
+FIX: Xml.Layer and names are correct now
+
 IMP/MAN: (3/4/09, SMR) Node Extractor has preference to flatten Pcells (Bug #2061).
 
 BUG: (3/4/09, SMR) Node extractor creates wide diffusion arcs that overshoot
