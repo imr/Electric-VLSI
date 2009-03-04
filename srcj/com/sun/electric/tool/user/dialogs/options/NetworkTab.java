@@ -76,6 +76,7 @@ public class NetworkTab extends PreferencePanel
 		extractIgnoreTiny.setSelected(Extract.isIgnoreTinyPolygons());
 		extractSmallestPolygonSize.setText(Double.toString(Extract.getSmallestPolygonSize()));
 		extractCellPattern.setText(Extract.getCellExpandPattern());
+		extractFlattenPCells.setSelected(Extract.isFlattenPcells());
 	}
 
 	public void term()
@@ -103,6 +104,9 @@ public class NetworkTab extends PreferencePanel
 
 		String nowString = extractCellPattern.getText();
 		if (!Extract.getCellExpandPattern().equals(nowString)) Extract.setCellExpandPattern(nowString);
+
+		nowBoolean = extractFlattenPCells.isSelected();
+		if (Extract.isFlattenPcells() != nowBoolean) Extract.setFlattenPcells(nowBoolean);
 	}
 
 	/**
@@ -126,6 +130,8 @@ public class NetworkTab extends PreferencePanel
 			Extract.setSmallestPolygonSize(Extract.getFactorySmallestPolygonSize());
 		if (!Extract.getFactoryCellExpandPattern().equals(Extract.getCellExpandPattern()))
 			Extract.setCellExpandPattern(Extract.getFactoryCellExpandPattern());
+		if (Extract.isFactoryFlattenPcells() != Extract.isFlattenPcells())
+			Extract.setFlattenPcells(Extract.isFactoryFlattenPcells());
 	}
 
 	/** This method is called from within the constructor to
@@ -156,6 +162,7 @@ public class NetworkTab extends PreferencePanel
         extractIgnoreWellSelect = new javax.swing.JRadioButton();
         extractIgnoreTiny = new javax.swing.JCheckBox();
         jLabel2 = new javax.swing.JLabel();
+        extractFlattenPCells = new javax.swing.JCheckBox();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -311,6 +318,15 @@ public class NetworkTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(2, 1, 4, 4);
         jPanel3.add(jLabel2, gridBagConstraints);
 
+        extractFlattenPCells.setText("Flatten Cadence Pcells (with $$number at end of name)");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        jPanel3.add(extractFlattenPCells, gridBagConstraints);
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
@@ -333,6 +349,7 @@ public class NetworkTab extends PreferencePanel
     private javax.swing.ButtonGroup activeHandling;
     private javax.swing.JCheckBox extractApproximateCuts;
     private javax.swing.JTextField extractCellPattern;
+    private javax.swing.JCheckBox extractFlattenPCells;
     private javax.swing.JCheckBox extractGridAlign;
     private javax.swing.JCheckBox extractIgnoreTiny;
     private javax.swing.JRadioButton extractIgnoreWellSelect;

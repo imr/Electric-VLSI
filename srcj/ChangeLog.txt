@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09d: ******************************
 
+IMP/MAN: (3/4/09, SMR) Node Extractor has preference to flatten Pcells (Bug #2061).
+
 BUG: (3/4/09, SMR) Node extractor creates wide diffusion arcs that overshoot
      the transistor (Bug #2059).
 FIX: When such arcs are created, turn off their end-extension.

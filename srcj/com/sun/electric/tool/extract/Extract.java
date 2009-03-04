@@ -136,7 +136,7 @@ public class Extract extends Tool
 	/**
 	 * Method to tell whether the node extractor should ignore tiny polygons.
 	 * The default is "false".
-	 * @return true if the node extractor should ignore tiny polygons
+	 * @return true if the node extractor should ignore tiny polygons.
 	 */
 	public static boolean isIgnoreTinyPolygons() { return cacheIgnoreTinyPolygons.getBoolean(); }
 	/**
@@ -191,4 +191,25 @@ public class Extract extends Tool
 	 * @return the cell expansion pattern for node extraction, by default.
 	 */
 	public static String getFactoryCellExpandPattern() { return cacheCellExpandPattern.getStringFactoryValue(); }
+
+	private static Pref cacheFlattenPcells = Pref.makeBooleanPref("FlattenPcells", Extract.tool.prefs, true);
+	/**
+	 * Method to tell whether the node extractor should flatten Cadence Pcells.
+	 * Cadence Pcells are cells whose names end with "$$" and a number.
+	 * The default is "true".
+	 * @return true if the node extractor should flatten Cadence Pcells.
+	 */
+	public static boolean isFlattenPcells() { return cacheFlattenPcells.getBoolean(); }
+	/**
+	 * Method to set whether the node extractor should flatten Cadence Pcells.
+	 * Cadence Pcells are cells whose names end with "$$" and a number.
+	 * @param a true if the node extractor should flatten Cadence Pcells.
+	 */
+	public static void setFlattenPcells(boolean a) { cacheFlattenPcells.setBoolean(a); }
+	/**
+	 * Method to tell whether the node extractor should flatten Cadence Pcells by default.
+	 * Cadence Pcells are cells whose names end with "$$" and a number.
+	 * @return true if the node extractor should flatten Cadence Pcells, by default.
+	 */
+	public static boolean isFactoryFlattenPcells() { return cacheFlattenPcells.getBooleanFactoryValue(); }
 }

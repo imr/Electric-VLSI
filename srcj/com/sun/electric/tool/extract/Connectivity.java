@@ -158,6 +158,7 @@ public class Connectivity
 		private String expansionPattern;
 		private boolean gridAlignExtraction;
 		private boolean approximateCuts;
+		private boolean flattenPcells;
 		/** debugging: list of objects created */	private List<List<ERectangle>> addedBatchRectangles;
 		/** debugging: list of objects created */	private List<List<ERectangle>> addedBatchLines;
 		/** debugging: list of objects created */	private List<String> addedBatchNames;
@@ -174,6 +175,7 @@ public class Connectivity
 			expansionPattern = Extract.getCellExpandPattern().trim();
 			gridAlignExtraction = Extract.isGridAlignExtraction();
 			approximateCuts = Extract.isApproximateCuts();
+			flattenPcells = Extract.isFlattenPcells();
 			startJob();
 		}
 
@@ -203,7 +205,7 @@ public class Connectivity
 			// determine if this is a "P-well" or "N-well" process
 			c.findMissingWells(cell, recursive, pat, activeHandling);
 
-			newCell = c.doExtract(cell, recursive, pat, true, this, addedBatchRectangles, addedBatchLines, addedBatchNames);
+			newCell = c.doExtract(cell, recursive, pat, flattenPcells, true, this, addedBatchRectangles, addedBatchLines, addedBatchNames);
 			Job.getUserInterface().stopProgressDialog();
 			fieldVariableChanged("addedBatchRectangles");
 			fieldVariableChanged("addedBatchLines");
@@ -357,11 +359,42 @@ public class Connectivity
 	}
 
 	/**
+	 * Method to determine whether to flatten a cell.
+	 * @param cell the cell in question.
+	 * @param pat the pattern of cells to be flattened.
+	 * @param flattenPcells true if Cadence Pcells are to be flattened.
+	 * @return true if the cell should be flattened.
+	 */
+	private boolean isCellFlattened(Cell cell, Pattern pat, boolean flattenPcells)
+	{
+		// do not recurse if this subcell will be expanded
+		if (pat != null)
+		{
+			Matcher mat = pat.matcher(cell.noLibDescribe());
+			if (mat.find()) return true;
+		}
+
+		if (flattenPcells)
+		{
+			String cellName = cell.noLibDescribe();
+			int twoDollar = cellName.lastIndexOf("$$");
+			if (twoDollar > 0)
+			{
+				String endPart = cellName.substring(twoDollar+2);
+				for(int i=0; i<endPart.length(); i++)
+					if (!TextUtils.isDigit(endPart.charAt(i))) return false;
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
 	 * Top-level method in extracting connectivity from a Cell.
 	 * A new version of the cell is created that has real nodes (transistors, contacts) and arcs.
 	 * This cell should have pure-layer nodes which will be converted.
 	 */
-	private Cell doExtract(Cell oldCell, boolean recursive, Pattern pat, boolean top, Job job,
+	private Cell doExtract(Cell oldCell, boolean recursive, Pattern pat, boolean flattenPcells, boolean top, Job job,
 		List<List<ERectangle>> addedBatchRectangles, List<List<ERectangle>> addedBatchLines, List<String> addedBatchNames)
 	{
 		if (recursive)
@@ -375,16 +408,12 @@ public class Connectivity
 					Cell subCell = (Cell)ni.getProto();
 
 					// do not recurse if this subcell will be expanded
-					if (pat != null)
-					{
-						Matcher mat = pat.matcher(subCell.noLibDescribe());
-						if (mat.find()) continue;
-					}
+					if (isCellFlattened(subCell, pat, flattenPcells)) continue;
 
 					Cell convertedCell = convertedCells.get(subCell);
 					if (convertedCell == null)
 					{
-						doExtract(subCell, recursive, pat, false, job, addedBatchRectangles, addedBatchLines, addedBatchNames);
+						doExtract(subCell, recursive, pat, flattenPcells, false, job, addedBatchRectangles, addedBatchLines, addedBatchNames);
 					}
 				}
 			}
@@ -410,7 +439,7 @@ public class Connectivity
 		exportsToRestore = new ArrayList<Export>();
 		pinsForLater = new ArrayList<ExportedPin>();
 		allCutLayers = new HashMap<Layer,List<PolyBase>>();
-		extractCell(oldCell, newCell, pat, expandedCells, merge, GenMath.MATID);
+		extractCell(oldCell, newCell, pat, flattenPcells, expandedCells, merge, GenMath.MATID);
 		if (expandedCells.size() > 0)
 		{
 			System.out.print("These cells were expanded:");
@@ -546,11 +575,12 @@ public class Connectivity
 	 * @param oldCell the cell being extracted.
 	 * @param newCell the new cell being created.
 	 * @param pat a pattern of subcell names that will be expanded.
+	 * @param flattenPcells true to expand Cadence Pcells (which end with $$number).
 	 * @param expandedCells a set of cells that matched the pattern and were expanded.
 	 * @param merge the merge to be filled.
 	 * @param prevTrans the transformation coming into this cell.
 	 */
-	private void extractCell(Cell oldCell, Cell newCell, Pattern pat, Set<Cell> expandedCells, PolyMerge merge, AffineTransform prevTrans)
+	private void extractCell(Cell oldCell, Cell newCell, Pattern pat, boolean flattenPcells, Set<Cell> expandedCells, PolyMerge merge, AffineTransform prevTrans)
 	{
 		Map<NodeInst,NodeInst> newNodes = new HashMap<NodeInst,NodeInst>();
 		int totalNodes = oldCell.getNumNodes();
@@ -569,17 +599,13 @@ public class Connectivity
 				Cell subCell = (Cell)ni.getProto();
 
 				// if subcell is expanded, do it now
-				if (pat != null)
+				if (isCellFlattened(subCell, pat, flattenPcells))
 				{
-					Matcher mat = pat.matcher(subCell.noLibDescribe());
-					if (mat.find())
-					{
-						// expanding the subcell
-						expandedCells.add(subCell);
-						AffineTransform subTrans = ni.translateOut(ni.rotateOut(prevTrans));
-						extractCell(subCell, newCell, pat, expandedCells, merge, subTrans);
-						continue;
-					}
+					// expanding the subcell
+					expandedCells.add(subCell);
+					AffineTransform subTrans = ni.translateOut(ni.rotateOut(prevTrans));
+					extractCell(subCell, newCell, pat, flattenPcells, expandedCells, merge, subTrans);
+					continue;
 				}
 
 				// subcell not expanded, figure out what gets placed in the new cell
