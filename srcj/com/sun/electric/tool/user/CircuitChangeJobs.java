@@ -1787,7 +1787,8 @@ public class CircuitChangeJobs
 					if (j < 2) continue;
 					NodeInst.modifyInstances(niList, deltaXs, deltaYs, null, null);
 				}
-				if (verbose) System.out.println("Moved multiple objects by (" + dX + "," + dY + ")");
+				if (verbose) System.out.println("Moved multiple objects by (" + TextUtils.formatDouble(dX) +
+					"," + TextUtils.formatDouble(dY) + ")");
 				updateStatusBar = true;
 				fieldVariableChanged("updateStatusBar");
 				return true;
@@ -1991,7 +1992,8 @@ public class CircuitChangeJobs
 
 			// also move selected text
 			moveSelectedText(cell, highlightedText);
-			if (verbose) System.out.println("Moved multiple objects by (" + dX + "," + dY + ")");
+			if (verbose) System.out.println("Moved multiple objects by (" + TextUtils.formatDouble(dX) +
+				"," + TextUtils.formatDouble(dY) + ")");
 			updateStatusBar = true;
 			fieldVariableChanged("updateStatusBar");
 			return true;

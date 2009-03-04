@@ -1744,7 +1744,7 @@ public class Connectivity
 					double centerX = cutBox.getCenterX()/SCALEFACTOR;
 					double centerY = cutBox.getCenterY()/SCALEFACTOR;
 					String msg = "Did not extract contact " + cut.getLayer().getName() + " cut at (" +
-						(centerX) + "," + (centerY) + ") in '" + newCell.getName() + "'";
+						TextUtils.formatDouble(centerX) + "," + TextUtils.formatDouble(centerY) + ") in '" + newCell.getName() + "'";
 					if (reason != null) msg += " because " + reason;
 					addErrorLog(newCell, msg, new EPoint(centerX, centerY));
 					cutList.remove(cut);
@@ -3927,6 +3927,14 @@ public class Connectivity
 	{
 		ArcInst ai = ArcInst.makeInstanceBase(ap, width, pi1, pi2, pt1, pt2, null);
 		if (ai == null) return null;
+
+		// special case: wide diffusion arcs on transistors should be shortened so they don't extend to other side
+		if (ap.getFunction().isDiffusion() && ai.getLambdaBaseWidth() > ap.getDefaultLambdaBaseWidth())
+		{
+			if (ai.getHeadPortInst().getNodeInst().getFunction().isTransistor()) noHeadExtend = true;
+			if (ai.getTailPortInst().getNodeInst().getFunction().isTransistor()) noTailExtend = true;
+		}
+
 		if (noHeadExtend) ai.setHeadExtended(false);
 		if (noTailExtend) ai.setTailExtended(false);
 		EPoint head = ai.getHeadLocation();

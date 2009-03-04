@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09d: ******************************
 
+BUG: (3/4/09, SMR) Node extractor creates wide diffusion arcs that overshoot
+     the transistor (Bug #2059).
+FIX: When such arcs are created, turn off their end-extension.
+
 BUG: (3/3/09, SMR) GDS import may rename duplicate exports to conflict with
      an existing export (Bug #2058).
 FIX: Scan all exports to ensure conflict resolution doesn't cause confusion.
