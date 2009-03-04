@@ -29,6 +29,7 @@ import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.prototype.PortCharacteristic;
+import com.sun.electric.tool.Job;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -188,7 +189,8 @@ public class PrimitiveNodeGroup {
                 if (hY >= 0) explain += "+";
                 explain += TextUtils.formatDouble(hY);
                 explain += " but size is " + fullSize.getLambdaX()*2 + "x" + fullSize.getLambdaY()*2 + ")";
-                System.out.println("Warning: port " + p.name + " in primitive " + tech.getTechName() + ":" + n.name + " has negative size" + explain);
+                if (Job.getDebug())
+                    System.out.println("Warning: port " + p.name + " in primitive " + tech.getTechName() + ":" + n.name + " has negative size" + explain);
             }
             elx[i] = Technology.makeEdgeH(p.lx, context, fullSize);
             ehx[i] = Technology.makeEdgeH(p.hx, context, fullSize);
