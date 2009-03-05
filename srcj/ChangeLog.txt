@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09d: ******************************
 
+IMP: (3/4/09, DN) Add <nodeLayer> element to Xml technology syntax.
+
 BUG: (3/4/09, GVG) Wrong cut and port names in poly contacts defined by the new series. Detected
 by Bug #2060
 FIX: Xml.Layer and names are correct now

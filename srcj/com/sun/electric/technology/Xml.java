@@ -213,7 +213,14 @@ public class Xml {
         public final Map<Integer,EPoint> diskOffset = new TreeMap<Integer,EPoint>();
         public final Distance defaultWidth = new Distance();
         public final Distance defaultHeight = new Distance();
+
+        public final Distance baseLX = new Distance();
+        public final Distance baseHX = new Distance();
+        public final Distance baseLY = new Distance();
+        public final Distance baseHY = new Distance();
+        public boolean hasNodeBase;
         public SizeOffset sizeOffset;
+
         public ProtectionType protection;
         public final List<NodeLayer> nodeLayers = new ArrayList<NodeLayer>();
         public final List<PrimitivePort> ports = new ArrayList<PrimitivePort>();
@@ -373,6 +380,7 @@ public class Xml {
         od33,
  //       defaultWidth,
         defaultHeight,
+        nodeBase,
         sizeOffset,
         nodeLayer,
         box,
@@ -983,6 +991,9 @@ public class Xml {
                 case defaultHeight:
                     curDistance = curNode.defaultHeight;
                     break;
+                case nodeBase:
+                    curNode.hasNodeBase = true;
+                    break;
                 case sizeOffset:
                     double lx = Double.parseDouble(a("lx"));
                     double hx = Double.parseDouble(a("hx"));
@@ -1017,12 +1028,15 @@ public class Xml {
                         curNodeLayer.hx.k = da_("khx", 1);
                         curNodeLayer.ly.k = da_("kly", -1);
                         curNodeLayer.hy.k = da_("khy", 1);
-                    }
-                    if (curPort != null) {
+                    } else if (curPort != null) {
                         curPort.lx.k = da_("klx", -1);
                         curPort.hx.k = da_("khx", 1);
                         curPort.ly.k = da_("kly", -1);
                         curPort.hy.k = da_("khy", 1);
+                    } else {
+                        assert curNode.hasNodeBase;
+                        curNode.baseLX.k = curNode.baseLY.k = -1;
+                        curNode.baseHX.k = curNode.baseHY.k = 1;
                     }
                     break;
                 case points:
@@ -1056,12 +1070,17 @@ public class Xml {
                         curNodeLayer.hx.value = Double.parseDouble(a("khx"));
                         curNodeLayer.ly.value = Double.parseDouble(a("kly"));
                         curNodeLayer.hy.value = Double.parseDouble(a("khy"));
-                    }
-                    if (curPort != null) {
+                    } else if (curPort != null) {
                         curPort.lx.value = Double.parseDouble(a("klx"));
                         curPort.hx.value = Double.parseDouble(a("khx"));
                         curPort.ly.value = Double.parseDouble(a("kly"));
                         curPort.hy.value = Double.parseDouble(a("khy"));
+                    } else {
+                        assert curNode.hasNodeBase = true;
+                        curNode.baseLX.value = Double.parseDouble(a("klx"));
+                        curNode.baseHX.value = Double.parseDouble(a("khx"));
+                        curNode.baseLY.value = Double.parseDouble(a("kly"));
+                        curNode.baseHY.value = Double.parseDouble(a("khy"));
                     }
                     break;
                 case techPoint:
@@ -1384,6 +1403,7 @@ public class Xml {
                 case od33:
 
                 case defaultHeight:
+                case nodeBase:
                 case sizeOffset:
                 case protection:
                 case box:
@@ -1871,7 +1891,13 @@ public class Xml {
                 el(XmlKeyword.defaultHeight);
             }
 
-            if (ni.sizeOffset != null) {
+            if (ni.hasNodeBase) {
+                bcl(XmlKeyword.nodeBase);
+                bcl(XmlKeyword.box);
+                b(XmlKeyword.lambdaBox); a("klx", ni.baseLX.value); a("khx", ni.baseHX.value); a("kly", ni.baseLY.value); a("khy", ni.baseHY.value); el();
+                el(XmlKeyword.box);
+                el(XmlKeyword.nodeBase);
+            } else if (ni.sizeOffset != null) {
                 double lx = ni.sizeOffset.getLowXOffset();
                 double hx = ni.sizeOffset.getHighXOffset();
                 double ly = ni.sizeOffset.getLowYOffset();

@@ -2265,7 +2265,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
             nl.dump(out, isSerp);
     }
 
-    Xml.PrimitiveNode makeXml() {
+    Xml.PrimitiveNode makeXml(boolean useNodeBase) {
         Xml.PrimitiveNode n = new Xml.PrimitiveNode();
         n.name = getName();
         for (Map.Entry<String,PrimitiveNode> e: tech.getOldNodeNames().entrySet()) {
@@ -2273,11 +2273,11 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
             assert n.oldName == null;
             n.oldName = e.getKey();
         }
-        fillXml(n);
+        fillXml(n, useNodeBase);
         return n;
     }
 
-    void fillXml(Xml.PrimitiveNode n) {
+    void fillXml(Xml.PrimitiveNode n, boolean useNodeBase) {
         n.function = getFunction();
         n.shrinkArcs = isArcsShrink();
         n.square = isSquare();
@@ -2306,10 +2306,18 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 //            minFullSize = EPoint.fromLambda(pp.getLeft().getAdder(), pp.getBottom().getAdder());
 //        }
 //            DRCTemplate nodeSize = xmlRules.getRule(pnp.getPrimNodeIndexInTech(), DRCTemplate.DRCRuleType.NODSIZ);
-        SizeOffset so = getProtoSizeOffset();
-        if (so.getLowXOffset() == 0 && so.getHighXOffset() == 0 && so.getLowYOffset() == 0 && so.getHighYOffset() == 0)
-            so = null;
-        n.sizeOffset = so;
+        if (useNodeBase) {
+            n.baseLX.value = baseRectangle.getLambdaMinX();
+            n.baseHX.value = baseRectangle.getLambdaMaxX();
+            n.baseLY.value = baseRectangle.getLambdaMinY();
+            n.baseHY.value = baseRectangle.getLambdaMaxY();
+            n.hasNodeBase = true;
+        } else {
+            SizeOffset so = getProtoSizeOffset();
+            if (so.getLowXOffset() == 0 && so.getHighXOffset() == 0 && so.getLowYOffset() == 0 && so.getHighYOffset() == 0)
+                so = null;
+            n.sizeOffset = so;
+        }
 //            EPoint minFullSize = EPoint.fromLambda(0.5*pnp.getDefWidth(), 0.5*pnp.getDefHeight());
         EPoint p1 = getSizeCorrector(0);
         EPoint p2 = getSizeCorrector(1);

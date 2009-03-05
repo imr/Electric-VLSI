@@ -157,7 +157,12 @@ public class PrimitiveNodeGroup {
             }
             nodeLayers[i] = nodeLayer;
         }
-        if (n.sizeOffset != null) {
+        if (n.hasNodeBase) {
+            lx = DBMath.lambdaToGrid(n.baseLX.value);
+            hx = DBMath.lambdaToGrid(n.baseHX.value);
+            ly = DBMath.lambdaToGrid(n.baseLY.value);
+            hy = DBMath.lambdaToGrid(n.baseHY.value);
+        } else if (n.sizeOffset != null) {
             lx += n.sizeOffset.getLowXGridOffset();
             hx -= n.sizeOffset.getHighXGridOffset();
             ly += n.sizeOffset.getLowYGridOffset();

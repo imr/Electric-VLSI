@@ -446,7 +446,7 @@ public class MoCMOS extends Technology
 			}
 		}
         resizeArcs(rules);
-        
+
         for (Iterator<Layer> it = getLayers(); it.hasNext(); ) {
             Layer layer = it.next();
             if (!layer.getFunction().isUsed(getNumMetals(), isSecondPolysilicon() ? 2 : 1))
@@ -455,7 +455,7 @@ public class MoCMOS extends Technology
         findNodeProto("P-Transistor-Scalable").setCanShrink();
         findNodeProto("N-Transistor-Scalable").setCanShrink();
         findNodeProto("NPN-Transistor").setCanShrink();
-        
+
         // Information for palette
         buildTechPalette();
 
@@ -844,8 +844,9 @@ public class MoCMOS extends Technology
             a.diskOffset.put(version2, Double.valueOf(baseExt));
         else
             a.diskOffset.clear();
-        double off = maxExt - baseExt;
-        n.sizeOffset = off != 0 ? new SizeOffset(off, off, off, off) : null;
+        assert n.hasNodeBase;
+        n.baseLX.value = n.baseLY.value = baseExt != 0 ? -baseExt : 0;
+        n.baseHX.value = n.baseHY.value = baseExt;
         // n.setDefSize
     }
 
@@ -877,8 +878,11 @@ public class MoCMOS extends Technology
         } else {
             fullSize = maxSz;
         }
-        double off = fullSize - base;
-        n.sizeOffset = off != 0 ? new SizeOffset(off, off, off, off) : null;
+
+        assert n.hasNodeBase;
+        n.baseLX.value = n.baseLY.value = base != 0 ? -base : 0;
+        n.baseHX.value = n.baseHY.value = base;
+
         sizeCorrector2 = EPoint.fromLambda(base, base);
         n.diskOffset.put(version2, sizeCorrector2);
         if (sizeCorrector1.equals(sizeCorrector2))

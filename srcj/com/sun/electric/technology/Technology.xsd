@@ -62,14 +62,36 @@
                     </xsd:sequence>
                 </xsd:complexType>
             </xsd:element>
-            <xsd:element name="sizeOffset" minOccurs="0">
-                <xsd:complexType>
-                    <xsd:attribute name="lx" type="xsd:double" use="required"/>
-                    <xsd:attribute name="hx" type="xsd:double" use="required"/>
-                    <xsd:attribute name="ly" type="xsd:double" use="required"/>
-                    <xsd:attribute name="hy" type="xsd:double" use="required"/>
-                </xsd:complexType>
-            </xsd:element>
+            <xsd:choice>
+                <xsd:element name="nodeBase">
+                    <xsd:complexType>
+                        <xsd:sequence>
+                            <xsd:element name="box">
+                                <xsd:complexType>
+                                    <xsd:sequence>
+                                        <xsd:element name="lambdaBox">
+                                            <xsd:complexType>
+                                                <xsd:attribute name="klx" type="xsd:double" use="required"/>
+                                                <xsd:attribute name="khx" type="xsd:double" use="required"/>
+                                                <xsd:attribute name="kly" type="xsd:double" use="required"/>
+                                                <xsd:attribute name="khy" type="xsd:double" use="required"/>
+                                            </xsd:complexType>
+                                        </xsd:element>
+                                    </xsd:sequence>
+                                </xsd:complexType>
+                            </xsd:element>
+                        </xsd:sequence>
+                    </xsd:complexType>
+                </xsd:element>
+                <xsd:element name="sizeOffset" minOccurs="0">
+                    <xsd:complexType>
+                        <xsd:attribute name="lx" type="xsd:double" use="required"/>
+                        <xsd:attribute name="hx" type="xsd:double" use="required"/>
+                        <xsd:attribute name="ly" type="xsd:double" use="required"/>
+                        <xsd:attribute name="hy" type="xsd:double" use="required"/>
+                    </xsd:complexType>
+                </xsd:element>
+            </xsd:choice>
 
             <xsd:element name="protection" minOccurs="0">
                 <xsd:complexType>
