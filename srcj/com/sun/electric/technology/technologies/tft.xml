@@ -387,6 +387,11 @@
     <primitiveNode name="Metal-1-Pin" fun="PIN">
         <shrinkArcs/>
         <diskOffset untilVersion="2" x="1.0" y="1.0"/>
+        <nodeBase>
+            <box>
+                <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
+            </box>
+        </nodeBase>
         <nodeLayer layer="Metal-1" style="CROSSED">
             <box>
                 <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
@@ -405,6 +410,11 @@
     <primitiveNode name="Metal-2-Pin" fun="PIN">
         <shrinkArcs/>
         <diskOffset untilVersion="2" x="1.0" y="1.0"/>
+        <nodeBase>
+            <box>
+                <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
+            </box>
+        </nodeBase>
         <nodeLayer layer="Metal-2" style="CROSSED">
             <box>
                 <lambdaBox klx="-1.0" khx="1.0" kly="-1.0" khy="1.0"/>
@@ -422,6 +432,11 @@
 
     <primitiveNode name="Metal-1-Metal-2-Con" fun="CONTACT">
         <diskOffset untilVersion="2" x="2.5" y="2.5"/>
+        <nodeBase>
+            <box>
+                <lambdaBox klx="-2.5" khx="2.5" kly="-2.5" khy="2.5"/>
+            </box>
+        </nodeBase>
         <nodeLayer layer="Metal-1" style="FILLED">
             <box>
                 <lambdaBox klx="-2.5" khx="2.5" kly="-2.5" khy="2.5"/>
@@ -451,7 +466,11 @@
     <primitiveNode name="capacitor" fun="CAPAC">
         <diskOffset untilVersion="1" x="5.5" y="5.5"/>
         <diskOffset untilVersion="2" x="2.5" y="2.5"/>
-        <sizeOffset lx="3.0" hx="3.0" ly="3.0" hy="3.0"/>
+        <nodeBase>
+            <box>
+                <lambdaBox klx="-2.5" khx="2.5" kly="-2.5" khy="2.5"/>
+            </box>
+        </nodeBase>
         <nodeLayer layer="Metal-1" style="FILLED">
             <box>
                 <lambdaBox klx="-5.5" khx="5.5" kly="-5.5" khy="5.5"/>
@@ -517,7 +536,11 @@
     <primitiveNode name="P-Transistor" fun="TRAPMOS">
         <diskOffset untilVersion="1" x="5.5" y="5.5"/>
         <diskOffset untilVersion="2" x="2.5" y="0.5"/>
-        <sizeOffset lx="3.0" hx="3.0" ly="5.0" hy="5.0"/>
+        <nodeBase>
+            <box>
+                <lambdaBox klx="-2.5" khx="2.5" kly="-0.5" khy="0.5"/>
+            </box>
+        </nodeBase>
         <nodeLayer layer="Metal-1" style="FILLED">
             <box>
                 <lambdaBox klx="-5.5" khx="5.5" kly="-5.5" khy="5.5"/>

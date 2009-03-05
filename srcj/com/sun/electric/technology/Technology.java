@@ -1731,13 +1731,6 @@ public class Technology implements Comparable<Technology>, Serializable
      * Create Xml structure of this Technology
      */
     public Xml.Technology makeXml() {
-        return makeXml(false);
-    }
-
-    /**
-     * Create Xml structure of this Technology
-     */
-    public Xml.Technology makeXml(boolean useNodeBase) {
         Xml.Technology t = new Xml.Technology();
         t.techName = getTechName();
         if (getClass() != Technology.class)
@@ -1797,7 +1790,7 @@ public class Technology implements Comparable<Technology>, Serializable
                 t.nodes.add(group.makeXml());
                 groupsDone.add(group);
             } else {
-                t.nodes.add(pnp.makeXml(useNodeBase));
+                t.nodes.add(pnp.makeXml());
             }
         }
         addSpiceHeader(t, 1, getSpiceHeaderLevel1());
