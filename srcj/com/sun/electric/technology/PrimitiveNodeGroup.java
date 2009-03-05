@@ -66,7 +66,7 @@ public class PrimitiveNodeGroup {
         return unmodifiableNodes;
     }
 
-    private PrimitiveNodeGroup(Technology tech, Xml.PrimitiveNode n, Map<String,Layer> layers, Map<String,ArcProto> arcs, Technology.DistanceContext context) {
+    private PrimitiveNodeGroup(Technology tech, Xml.PrimitiveNode n, Map<String,Layer> layers, Map<String,ArcProto> arcs) {
         this.tech  = tech;
         this.n = n;
         name = n.name;
@@ -134,8 +134,8 @@ public class PrimitiveNodeGroup {
                     System.out.println("Negative-size polygon in primitive node " + tech.getTechName() + ":" + n.name +
                         ", layer " + layer.getName());
                 }
-                techPoints[0] = Technology.makeTechPoint(nl.lx, nl.ly, context, fullSize);
-                techPoints[1] = Technology.makeTechPoint(nl.hx, nl.hy, context, fullSize);
+                techPoints[0] = Technology.makeTechPoint(nl.lx, nl.ly, fullSize);
+                techPoints[1] = Technology.makeTechPoint(nl.hx, nl.hy, fullSize);
             } else {
                 techPoints = nl.techPoints.toArray(new Technology.TechPoint[nl.techPoints.size()]);
                 for (int j = 0; j < techPoints.length; j++)
@@ -197,10 +197,10 @@ public class PrimitiveNodeGroup {
                 if (Job.getDebug())
                     System.out.println("Warning: port " + p.name + " in primitive " + tech.getTechName() + ":" + n.name + " has negative size" + explain);
             }
-            elx[i] = Technology.makeEdgeH(p.lx, context, fullSize);
-            ehx[i] = Technology.makeEdgeH(p.hx, context, fullSize);
-            ely[i] = Technology.makeEdgeV(p.ly, context, fullSize);
-            ehy[i] = Technology.makeEdgeV(p.hy, context, fullSize);
+            elx[i] = Technology.makeEdgeH(p.lx, fullSize);
+            ehx[i] = Technology.makeEdgeH(p.hx, fullSize);
+            ely[i] = Technology.makeEdgeV(p.ly, fullSize);
+            ehy[i] = Technology.makeEdgeV(p.hy, fullSize);
             fullConnections[i] = Technology.makeConnections(n.name, p.name, p.portArcs, arcs);
         }
     }
@@ -287,8 +287,8 @@ public class PrimitiveNodeGroup {
         return pnp;
     }
 
-    static void makePrimitiveNodes(Technology tech, Xml.PrimitiveNode n, Map<String,Layer> layers, Map<String,ArcProto> arcs, Technology.DistanceContext context) {
-        PrimitiveNodeGroup group = new PrimitiveNodeGroup(tech, n, layers, arcs, context);
+    static void makePrimitiveNodes(Technology tech, Xml.PrimitiveNode n, Map<String,Layer> layers, Map<String,ArcProto> arcs) {
+        PrimitiveNodeGroup group = new PrimitiveNodeGroup(tech, n, layers, arcs);
         if (n instanceof Xml.PrimitiveNodeGroup) {
             Xml.PrimitiveNodeGroup g = (Xml.PrimitiveNodeGroup)n;
             for (int i = 0; i < g.nodes.size(); i++) {

@@ -24,7 +24,6 @@
  */
 package com.sun.electric.technology;
 
-import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.Geometric;
 
@@ -1074,243 +1073,243 @@ public class XMLRules implements DRCRules, Serializable
         }
     }
 
-    private DRCTemplate resizeContact(PrimitiveNode contact, Technology.NodeLayer cutNode, Technology.NodeLayer cutSurNode, String contactName)
-    {
-        DRCTemplate cutSize = getRule(cutNode.getLayer().getIndex(), DRCTemplate.DRCRuleType.MINWID); // min and max for contact cuts
-        int index = getRuleIndex(cutSurNode.getLayer().getIndex(), cutNode.getLayer().getIndex());
-        // Try first to get any rule under NodeLayersRule and if nothing found then get pair set defined as Layersrule
-        DRCTemplate cutSur = getRule(index, DRCTemplate.DRCRuleType.SURROUND, contactName);
-        DRCTemplate rule = null;
-
-        if (cutSize == null || cutSur == null)
-            System.out.println("No cut or surround rule found for " + contactName + " for layers "
-                    + cutNode.getLayer().getName() + " " + cutSurNode.getLayer().getName()
-                    + ".\n Correct size of contact " + contactName + " is not guaranteed");
-//        assert(cutSize != null); assert(cutSur != null);
-        else
-            rule = resizeContact(contact, cutNode, cutSurNode, cutSize, cutSur, contactName);
-        return rule;
-    }
-
-    private DRCTemplate resizeContact(PrimitiveNode contact, Technology.NodeLayer cutNode, Technology.NodeLayer cutSurNode,
-                                      DRCTemplate cutSize, DRCTemplate cutSur, String contactName)
-    {
-        double cutX = cutSur.getValue(0), cutY = cutSur.getValue(1);
-        if (cutY < 0) cutY = cutX; // takes only value
-        double cutSizeValue = cutSize.getValue(0);
-        double totalSurrX = cutSizeValue + cutX*2;
-        double totalSurrY = cutSizeValue + cutY*2;
-
-        assert cutNode.sizeRule != null;
-        assert cutSizeValue == cutNode.getMulticutSizeX();
-        assert cutSizeValue == cutNode.getMulticutSizeY();
-        
-//        DRCTemplate minNode = getRule(contact.getPrimNodeIndexInTech(), DRCTemplate.DRCRuleType.NODSIZ);
-        if (getRule(contact.getPrimNodeIndexInTech(), DRCTemplate.DRCRuleType.NODSIZ) == null) {
-//            contact.setDefSize(totalSurrX, totalSurrY);
-            contact.setMinSize(totalSurrX, totalSurrY, "Minimum size set by resize function");
-        }
-        double minWidth = contact.getMinSizeRule().getWidth();
-        double minHeight = contact.getMinSizeRule().getHeight();
-        double offX = (minWidth - totalSurrX)/2;
-        double offY = (minHeight - totalSurrY)/2;
-        contact.setSizeOffset(new SizeOffset(offX, offX, offY, offY));
-//        DRCTemplate minNode = getRule(contact.getPrimNodeIndexInTech(), DRCTemplate.DRCRuleType.NODSIZ);
-//        if (minNode != null)
-//        {
-//            tech.setDefNodeSize(contact, minNode.getValue(0), minNode.getValue(1));
-//            double offX = (contact.getMinSizeRule().getWidth() - totalSurrX)/2;
-//            double offY = (contact.getMinSizeRule().getHeight() - totalSurrY)/2;
-//            contact.setSizeOffset(new SizeOffset(offX, offX, offY, offY));
-//        }
+//    private DRCTemplate resizeContact(PrimitiveNode contact, Technology.NodeLayer cutNode, Technology.NodeLayer cutSurNode, String contactName)
+//    {
+//        DRCTemplate cutSize = getRule(cutNode.getLayer().getIndex(), DRCTemplate.DRCRuleType.MINWID); // min and max for contact cuts
+//        int index = getRuleIndex(cutSurNode.getLayer().getIndex(), cutNode.getLayer().getIndex());
+//        // Try first to get any rule under NodeLayersRule and if nothing found then get pair set defined as Layersrule
+//        DRCTemplate cutSur = getRule(index, DRCTemplate.DRCRuleType.SURROUND, contactName);
+//        DRCTemplate rule = null;
+//
+//        if (cutSize == null || cutSur == null)
+//            System.out.println("No cut or surround rule found for " + contactName + " for layers "
+//                    + cutNode.getLayer().getName() + " " + cutSurNode.getLayer().getName()
+//                    + ".\n Correct size of contact " + contactName + " is not guaranteed");
+////        assert(cutSize != null); assert(cutSur != null);
 //        else
-//        {
-//            contact.setSizeOffset(new SizeOffset(0, 0, 0, 0));
-//            contact.setDefSize(totalSurrX, totalSurrY);
-//            contact.setMinSize(totalSurrX, totalSurrY, "Minimum size");
+//            rule = resizeContact(contact, cutNode, cutSurNode, cutSize, cutSur, contactName);
+//        return rule;
+//    }
+//
+//    private DRCTemplate resizeContact(PrimitiveNode contact, Technology.NodeLayer cutNode, Technology.NodeLayer cutSurNode,
+//                                      DRCTemplate cutSize, DRCTemplate cutSur, String contactName)
+//    {
+//        double cutX = cutSur.getValue(0), cutY = cutSur.getValue(1);
+//        if (cutY < 0) cutY = cutX; // takes only value
+//        double cutSizeValue = cutSize.getValue(0);
+//        double totalSurrX = cutSizeValue + cutX*2;
+//        double totalSurrY = cutSizeValue + cutY*2;
+//
+//        assert cutNode.sizeRule != null;
+//        assert cutSizeValue == cutNode.getMulticutSizeX();
+//        assert cutSizeValue == cutNode.getMulticutSizeY();
+//
+////        DRCTemplate minNode = getRule(contact.getPrimNodeIndexInTech(), DRCTemplate.DRCRuleType.NODSIZ);
+//        if (getRule(contact.getPrimNodeIndexInTech(), DRCTemplate.DRCRuleType.NODSIZ) == null) {
+////            contact.setDefSize(totalSurrX, totalSurrY);
+//            contact.setMinSize(totalSurrX, totalSurrY, "Minimum size set by resize function");
 //        }
-
-        cutNode.setPoints(Technology.TechPoint.makeIndented(minWidth/2, minHeight/2));
-        return cutSur;
-    }
-
-    /**
-     * Public method to resize metal contacts
-     * @param contacts
-     * @param numMetals
-     */
-    public void resizeMetalContacts(PrimitiveNode[] contacts, int numMetals)
-    {
-        for (int i = 0; i < numMetals - 1; i++)
-        {
-            PrimitiveNode metalContact = contacts[i];
-            assert !metalContact.isNotUsed();
-            Technology.NodeLayer node = metalContact.getLayers()[2]; //cut
-            Technology.NodeLayer m1Node = metalContact.getLayers()[0]; // first metal
-            Technology.NodeLayer m2Node = metalContact.getLayers()[1]; // second metal
-
-            resizeContact(metalContact, node, m2Node, metalContact.getName());   // cur surround with respect to higher metal
-
-            SizeOffset so = metalContact.getProtoSizeOffset();
-            m1Node.setPoints(Technology.TechPoint.makeIndented(so.getHighXOffset()));
-            m2Node.setPoints(Technology.TechPoint.makeIndented(so.getHighXOffset()));
-        }
-    }
-
-    /**
-     * Common resize function for well and active contacts
-     * @param contacts array of contacts to resize
-     * @param contactNames Different contact names for butted contacts so already defined rules can be used.
-     * @param aligned
-     * @param buttedTop
-     * @param buttedRightLeft
-     */
-    public void resizeContactsWithActive(PrimitiveNode[] contacts, String[] contactNames,
-                                         boolean aligned, boolean buttedTop, boolean buttedRightLeft
-    )
-    {
-        for (int i = 0; i < contacts.length; i++)
-        {
-            PrimitiveNode contact = contacts[i];
-            Technology.NodeLayer cutNode = contact.getLayers()[4]; // Cut
-            Technology.NodeLayer activeNode = contact.getLayers()[1]; // active
-            String contactName = (contactNames != null) ? contactNames[i] : contact.getName();
-            DRCTemplate cutSize = getRule(cutNode.getLayer().getIndex(), DRCTemplate.DRCRuleType.MINWID); // min and max for contact cuts
-            int index = getRuleIndex(activeNode.getLayer().getIndex(), cutNode.getLayer().getIndex());
-            // Try first to get any rule under NodeLayersRule and if nothing found then get pair set defined as Layersrule
-            DRCTemplate cutSur = getRule(index, DRCTemplate.DRCRuleType.SURROUND, contactName);
-
-            resizeContact(contact, cutNode, activeNode, cutSize, cutSur, contactName);
-
-            Technology.NodeLayer metalNode = contact.getLayers()[0]; // metal1
-            Technology.NodeLayer wellNode = contact.getLayers()[2]; // well
-            Technology.NodeLayer selNode = contact.getLayers()[3]; // select
-
-            // setting well-active actSurround
-            index = getRuleIndex(activeNode.getLayer().getIndex(), wellNode.getLayer().getIndex());
-            DRCTemplate actSurround = getRule(index, DRCTemplate.DRCRuleType.SURROUND, contactName);
-
-            index = getRuleIndex(activeNode.getLayer().getIndex(), selNode.getLayer().getIndex());
-            DRCTemplate selSurround = getRule(index, DRCTemplate.DRCRuleType.SURROUND, contactName);
-
-            assert(actSurround != null); assert(selSurround != null);
-
-            SizeOffset so = contact.getProtoSizeOffset();
-            double value = so.getHighXOffset() - actSurround.getValue(0);
-            wellNode.setPoints(Technology.TechPoint.makeIndented(value));
-
-            value = so.getHighXOffset() - selSurround.getValue(0);
-            EdgeH left = (buttedRightLeft) ? EdgeH.fromLeft(0) : EdgeH.fromLeft(value);
-            EdgeV bottom = EdgeV.fromBottom(value);
-            EdgeH right = (buttedRightLeft) ? EdgeH.fromRight(0) : EdgeH.fromRight(value);
-            EdgeV top = (buttedTop) ? EdgeV.fromTop(0) : EdgeV.fromTop(value);
-            Technology.TechPoint [] pts = new Technology.TechPoint [] {
-                new Technology.TechPoint(left, bottom),
-                new Technology.TechPoint(right, top)};
-            selNode.setPoints(pts);
-
-            // setting metal-cut distance if rule is available
-            index = getRuleIndex(metalNode.getLayer().getIndex(), cutNode.getLayer().getIndex());
-            DRCTemplate metalSurround = getRule(index, DRCTemplate.DRCRuleType.SURROUND, contactName);
-            if (metalSurround != null)
-            {
-                double distX = cutSur.getValue(0)-metalSurround.getValue(0)+so.getHighXOffset();
-                double distY = cutSur.getValue(1)-metalSurround.getValue(1)+so.getHighYOffset();
-
-                if (aligned) // Y values don't move -> don't grow
-                {
-                    double distFromCenterX = cutSize.getValue(0)/2 + metalSurround.getValue(0);
-                    double distFromCenterY = cutSize.getValue(1)/2 + metalSurround.getValue(1);
-                    if (buttedTop && buttedRightLeft)
-                    {
-                        pts = new Technology.TechPoint [] {
-                        new Technology.TechPoint(EdgeH.fromCenter(-distFromCenterX), EdgeV.fromCenter(-distFromCenterY)),
-                        new Technology.TechPoint(EdgeH.fromCenter(distFromCenterX), EdgeV.fromCenter(distFromCenterY))};
-                    }
-                    else
-                    {
-                        pts = new Technology.TechPoint [] {
-                        new Technology.TechPoint(EdgeH.fromLeft(distX), EdgeV.fromCenter(-distFromCenterY)),
-                        new Technology.TechPoint(EdgeH.fromRight(distX), EdgeV.fromCenter(distFromCenterY))};
-                    }
-                }
-                else
-                {
-                    pts = Technology.TechPoint.makeIndented(distX, distY);
-                }
-                metalNode.setPoints(pts);
-            }
-
-            index = getRuleIndex(activeNode.getLayer().getIndex(), cutNode.getLayer().getIndex());
-            DRCTemplate activeSurround = getRule(index, DRCTemplate.DRCRuleType.SURROUND, contactName);
-            if (activeSurround != null)
-            {
-                if (buttedTop && buttedRightLeft)
-                {
-//                    double distFromCenterX = cutSize.getValue(0)/2 + activeSurround.getValue(0);
-                    double distFromCenterY = cutSize.getValue(1)/2 + activeSurround.getValue(1);
-                    pts = new Technology.TechPoint [] {
-                        new Technology.TechPoint(EdgeH.fromLeft(so.getHighXOffset()), EdgeV.fromCenter(-distFromCenterY)),
-                        new Technology.TechPoint(EdgeH.fromRight(so.getHighXOffset()), EdgeV.fromTop(so.getHighYOffset()))};
-                    activeNode.setPoints(pts);
-                }
-                else
-                    activeNode.setPoints(Technology.TechPoint.makeIndented(so.getHighXOffset(), so.getHighYOffset()));
-            }
-        }
-    }
-
-    /**
-     * Common resize function for well and active contacts
-     * @param contact poly contact to resize
-     */
-    public void resizePolyContact(PrimitiveNode contact)
-    {
-        Technology.NodeLayer cutNode = contact.getLayers()[2]; // Cut
-        Technology.NodeLayer polyNode = contact.getLayers()[1]; // poly
-        DRCTemplate cutSur = resizeContact(contact, cutNode, polyNode, contact.getName());
-
-        if (cutSur == null) // error in getting the rule
-        {
-            System.out.println("Error reading surround rule in poly contact " + contact.getName());
-        }
-
-        // If doesn't have NODSIZ rule then apply the min on the poly
-//        DRCTemplate minNode = getRule(contact.getPrimNodeIndexInTech(), DRCTemplate.DRCRuleType.NODSIZ);
-//        if (minNode == null)
+//        double minWidth = contact.getMinSizeRule().getWidth();
+//        double minHeight = contact.getMinSizeRule().getHeight();
+//        double offX = (minWidth - totalSurrX)/2;
+//        double offY = (minHeight - totalSurrY)/2;
+//        contact.setSizeOffset(new SizeOffset(offX, offX, offY, offY));
+////        DRCTemplate minNode = getRule(contact.getPrimNodeIndexInTech(), DRCTemplate.DRCRuleType.NODSIZ);
+////        if (minNode != null)
+////        {
+////            tech.setDefNodeSize(contact, minNode.getValue(0), minNode.getValue(1));
+////            double offX = (contact.getMinSizeRule().getWidth() - totalSurrX)/2;
+////            double offY = (contact.getMinSizeRule().getHeight() - totalSurrY)/2;
+////            contact.setSizeOffset(new SizeOffset(offX, offX, offY, offY));
+////        }
+////        else
+////        {
+////            contact.setSizeOffset(new SizeOffset(0, 0, 0, 0));
+////            contact.setDefSize(totalSurrX, totalSurrY);
+////            contact.setMinSize(totalSurrX, totalSurrY, "Minimum size");
+////        }
+//
+//        cutNode.setPoints(Technology.TechPoint.makeIndented(minWidth/2, minHeight/2));
+//        return cutSur;
+//    }
+//
+//    /**
+//     * Public method to resize metal contacts
+//     * @param contacts
+//     * @param numMetals
+//     */
+//    public void resizeMetalContacts(PrimitiveNode[] contacts, int numMetals)
+//    {
+//        for (int i = 0; i < numMetals - 1; i++)
 //        {
+//            PrimitiveNode metalContact = contacts[i];
+//            assert !metalContact.isNotUsed();
+//            Technology.NodeLayer node = metalContact.getLayers()[2]; //cut
+//            Technology.NodeLayer m1Node = metalContact.getLayers()[0]; // first metal
+//            Technology.NodeLayer m2Node = metalContact.getLayers()[1]; // second metal
+//
+//            resizeContact(metalContact, node, m2Node, metalContact.getName());   // cur surround with respect to higher metal
+//
+//            SizeOffset so = metalContact.getProtoSizeOffset();
+//            m1Node.setPoints(Technology.TechPoint.makeIndented(so.getHighXOffset()));
+//            m2Node.setPoints(Technology.TechPoint.makeIndented(so.getHighXOffset()));
+//        }
+//    }
+//
+//    /**
+//     * Common resize function for well and active contacts
+//     * @param contacts array of contacts to resize
+//     * @param contactNames Different contact names for butted contacts so already defined rules can be used.
+//     * @param aligned
+//     * @param buttedTop
+//     * @param buttedRightLeft
+//     */
+//    public void resizeContactsWithActive(PrimitiveNode[] contacts, String[] contactNames,
+//                                         boolean aligned, boolean buttedTop, boolean buttedRightLeft
+//    )
+//    {
+//        for (int i = 0; i < contacts.length; i++)
+//        {
+//            PrimitiveNode contact = contacts[i];
+//            Technology.NodeLayer cutNode = contact.getLayers()[4]; // Cut
+//            Technology.NodeLayer activeNode = contact.getLayers()[1]; // active
+//            String contactName = (contactNames != null) ? contactNames[i] : contact.getName();
 //            DRCTemplate cutSize = getRule(cutNode.getLayer().getIndex(), DRCTemplate.DRCRuleType.MINWID); // min and max for contact cuts
-//            EPoint p = new EPoint(cutSur.getValue(0)*2 + cutSize.getValue(0), cutSur.getValue(1)*2 + cutSize.getValue(1));
-//            contact.setDefSize(p.getX(), p.getY());
-//            contact.setMinSize(p.getX(), p.getY(), "Minimum size");
+//            int index = getRuleIndex(activeNode.getLayer().getIndex(), cutNode.getLayer().getIndex());
+//            // Try first to get any rule under NodeLayersRule and if nothing found then get pair set defined as Layersrule
+//            DRCTemplate cutSur = getRule(index, DRCTemplate.DRCRuleType.SURROUND, contactName);
+//
+//            resizeContact(contact, cutNode, activeNode, cutSize, cutSur, contactName);
+//
+//            Technology.NodeLayer metalNode = contact.getLayers()[0]; // metal1
+//            Technology.NodeLayer wellNode = contact.getLayers()[2]; // well
+//            Technology.NodeLayer selNode = contact.getLayers()[3]; // select
+//
+//            // setting well-active actSurround
+//            index = getRuleIndex(activeNode.getLayer().getIndex(), wellNode.getLayer().getIndex());
+//            DRCTemplate actSurround = getRule(index, DRCTemplate.DRCRuleType.SURROUND, contactName);
+//
+//            index = getRuleIndex(activeNode.getLayer().getIndex(), selNode.getLayer().getIndex());
+//            DRCTemplate selSurround = getRule(index, DRCTemplate.DRCRuleType.SURROUND, contactName);
+//
+//            assert(actSurround != null); assert(selSurround != null);
+//
+//            SizeOffset so = contact.getProtoSizeOffset();
+//            double value = so.getHighXOffset() - actSurround.getValue(0);
+//            wellNode.setPoints(Technology.TechPoint.makeIndented(value));
+//
+//            value = so.getHighXOffset() - selSurround.getValue(0);
+//            EdgeH left = (buttedRightLeft) ? EdgeH.fromLeft(0) : EdgeH.fromLeft(value);
+//            EdgeV bottom = EdgeV.fromBottom(value);
+//            EdgeH right = (buttedRightLeft) ? EdgeH.fromRight(0) : EdgeH.fromRight(value);
+//            EdgeV top = (buttedTop) ? EdgeV.fromTop(0) : EdgeV.fromTop(value);
+//            Technology.TechPoint [] pts = new Technology.TechPoint [] {
+//                new Technology.TechPoint(left, bottom),
+//                new Technology.TechPoint(right, top)};
+//            selNode.setPoints(pts);
+//
+//            // setting metal-cut distance if rule is available
+//            index = getRuleIndex(metalNode.getLayer().getIndex(), cutNode.getLayer().getIndex());
+//            DRCTemplate metalSurround = getRule(index, DRCTemplate.DRCRuleType.SURROUND, contactName);
+//            if (metalSurround != null)
+//            {
+//                double distX = cutSur.getValue(0)-metalSurround.getValue(0)+so.getHighXOffset();
+//                double distY = cutSur.getValue(1)-metalSurround.getValue(1)+so.getHighYOffset();
+//
+//                if (aligned) // Y values don't move -> don't grow
+//                {
+//                    double distFromCenterX = cutSize.getValue(0)/2 + metalSurround.getValue(0);
+//                    double distFromCenterY = cutSize.getValue(1)/2 + metalSurround.getValue(1);
+//                    if (buttedTop && buttedRightLeft)
+//                    {
+//                        pts = new Technology.TechPoint [] {
+//                        new Technology.TechPoint(EdgeH.fromCenter(-distFromCenterX), EdgeV.fromCenter(-distFromCenterY)),
+//                        new Technology.TechPoint(EdgeH.fromCenter(distFromCenterX), EdgeV.fromCenter(distFromCenterY))};
+//                    }
+//                    else
+//                    {
+//                        pts = new Technology.TechPoint [] {
+//                        new Technology.TechPoint(EdgeH.fromLeft(distX), EdgeV.fromCenter(-distFromCenterY)),
+//                        new Technology.TechPoint(EdgeH.fromRight(distX), EdgeV.fromCenter(distFromCenterY))};
+//                    }
+//                }
+//                else
+//                {
+//                    pts = Technology.TechPoint.makeIndented(distX, distY);
+//                }
+//                metalNode.setPoints(pts);
+//            }
+//
+//            index = getRuleIndex(activeNode.getLayer().getIndex(), cutNode.getLayer().getIndex());
+//            DRCTemplate activeSurround = getRule(index, DRCTemplate.DRCRuleType.SURROUND, contactName);
+//            if (activeSurround != null)
+//            {
+//                if (buttedTop && buttedRightLeft)
+//                {
+////                    double distFromCenterX = cutSize.getValue(0)/2 + activeSurround.getValue(0);
+//                    double distFromCenterY = cutSize.getValue(1)/2 + activeSurround.getValue(1);
+//                    pts = new Technology.TechPoint [] {
+//                        new Technology.TechPoint(EdgeH.fromLeft(so.getHighXOffset()), EdgeV.fromCenter(-distFromCenterY)),
+//                        new Technology.TechPoint(EdgeH.fromRight(so.getHighXOffset()), EdgeV.fromTop(so.getHighYOffset()))};
+//                    activeNode.setPoints(pts);
+//                }
+//                else
+//                    activeNode.setPoints(Technology.TechPoint.makeIndented(so.getHighXOffset(), so.getHighYOffset()));
+//            }
 //        }
-
-        Technology.NodeLayer metalNode = contact.getLayers()[0]; // metal1
-
-        // setting metal-cut distance if rule is available
-        SizeOffset so = contact.getProtoSizeOffset();
-        int index = getRuleIndex(metalNode.getLayer().getIndex(), cutNode.getLayer().getIndex());
-        DRCTemplate metalSurround = getRule(index, DRCTemplate.DRCRuleType.SURROUND, contact.getName());
-        if (metalSurround != null)
-        {
-            // Only for the min cases
-//            polyNode.setPoints(Technology.TechPoint.makeIndented(0));
-            EPoint point = new EPoint(cutSur.getValue(0)-metalSurround.getValue(0),
-                    cutSur.getValue(1)-metalSurround.getValue(1));
-            metalNode.setPoints(Technology.TechPoint.makeIndented(point.getX()+so.getHighXOffset(),
-                    point.getY()+so.getHighYOffset()));
-        }
-
-        index = getRuleIndex(polyNode.getLayer().getIndex(), cutNode.getLayer().getIndex());
-        DRCTemplate polySurround = getRule(index, DRCTemplate.DRCRuleType.SURROUND, contact.getName());
-        if (polySurround != null)
-        {
-            EPoint point = new EPoint(cutSur.getValue(0)-polySurround.getValue(0),
-                    cutSur.getValue(1)-polySurround.getValue(1));
-            polyNode.setPoints(Technology.TechPoint.makeIndented(point.getX()+so.getHighXOffset(),
-                    point.getY()+so.getHighYOffset()));
-        }
-    }
+//    }
+//
+//    /**
+//     * Common resize function for well and active contacts
+//     * @param contact poly contact to resize
+//     */
+//    public void resizePolyContact(PrimitiveNode contact)
+//    {
+//        Technology.NodeLayer cutNode = contact.getLayers()[2]; // Cut
+//        Technology.NodeLayer polyNode = contact.getLayers()[1]; // poly
+//        DRCTemplate cutSur = resizeContact(contact, cutNode, polyNode, contact.getName());
+//
+//        if (cutSur == null) // error in getting the rule
+//        {
+//            System.out.println("Error reading surround rule in poly contact " + contact.getName());
+//        }
+//
+//        // If doesn't have NODSIZ rule then apply the min on the poly
+////        DRCTemplate minNode = getRule(contact.getPrimNodeIndexInTech(), DRCTemplate.DRCRuleType.NODSIZ);
+////        if (minNode == null)
+////        {
+////            DRCTemplate cutSize = getRule(cutNode.getLayer().getIndex(), DRCTemplate.DRCRuleType.MINWID); // min and max for contact cuts
+////            EPoint p = new EPoint(cutSur.getValue(0)*2 + cutSize.getValue(0), cutSur.getValue(1)*2 + cutSize.getValue(1));
+////            contact.setDefSize(p.getX(), p.getY());
+////            contact.setMinSize(p.getX(), p.getY(), "Minimum size");
+////        }
+//
+//        Technology.NodeLayer metalNode = contact.getLayers()[0]; // metal1
+//
+//        // setting metal-cut distance if rule is available
+//        SizeOffset so = contact.getProtoSizeOffset();
+//        int index = getRuleIndex(metalNode.getLayer().getIndex(), cutNode.getLayer().getIndex());
+//        DRCTemplate metalSurround = getRule(index, DRCTemplate.DRCRuleType.SURROUND, contact.getName());
+//        if (metalSurround != null)
+//        {
+//            // Only for the min cases
+////            polyNode.setPoints(Technology.TechPoint.makeIndented(0));
+//            EPoint point = new EPoint(cutSur.getValue(0)-metalSurround.getValue(0),
+//                    cutSur.getValue(1)-metalSurround.getValue(1));
+//            metalNode.setPoints(Technology.TechPoint.makeIndented(point.getX()+so.getHighXOffset(),
+//                    point.getY()+so.getHighYOffset()));
+//        }
+//
+//        index = getRuleIndex(polyNode.getLayer().getIndex(), cutNode.getLayer().getIndex());
+//        DRCTemplate polySurround = getRule(index, DRCTemplate.DRCRuleType.SURROUND, contact.getName());
+//        if (polySurround != null)
+//        {
+//            EPoint point = new EPoint(cutSur.getValue(0)-polySurround.getValue(0),
+//                    cutSur.getValue(1)-polySurround.getValue(1));
+//            polyNode.setPoints(Technology.TechPoint.makeIndented(point.getX()+so.getHighXOffset(),
+//                    point.getY()+so.getHighYOffset()));
+//        }
+//    }
 
     /*******************************************/
     /*** Local class to store information ******/

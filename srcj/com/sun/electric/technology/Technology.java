@@ -62,7 +62,6 @@ import com.sun.electric.technology.technologies.FPGA;
 import com.sun.electric.technology.technologies.GEM;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
-import com.sun.electric.technology.xml.XmlParam;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.ToolSettings;
 import com.sun.electric.tool.erc.ERC;
@@ -159,69 +158,6 @@ public class Technology implements Comparable<Technology>, Serializable
 	public static final String SPECIALMENUPORT   = "Port";
     public static final String SPECIALMENUSEPARATOR = "-";
 
-    public static class Distance implements Serializable {
-        public double k;
-        public double lambdaValue;
-        public final List<DistanceRule> terms = new ArrayList<DistanceRule>();
-
-        public void assign(Distance d) {
-            k = d.k;
-            lambdaValue = d.lambdaValue;
-            for (DistanceRule term: d.terms)
-                terms.add(term.clone());
-        }
-
-        public Distance clone() {
-            Distance d = new Distance();
-            d.assign(this);
-            return d;
-        }
-
-        public double getLambda(DistanceContext context) {
-            double value = lambdaValue;
-            for (DistanceRule term: terms)
-                value += term.getLambda(context);
-            return value;
-        }
-        public void addLambda(double value) {
-            lambdaValue += value;
-        }
-        public void addRule(String ruleName, double k) {
-            DistanceRule term = new DistanceRule();
-            term.ruleName = ruleName;
-            term.k = k;
-            terms.add(term);
-        }
-        public boolean isEmpty() { return lambdaValue == 0 && terms.isEmpty(); }
-    }
-
-    public static interface DistanceContext {
-        public double getRule(String ruleName);
-    }
-
-    public static DistanceContext EMPTY_CONTEXT = new DistanceContext() {
-        public double getRule(String ruleName) {
-            throw new UnsupportedOperationException();
-        }
-    };
-
-    public static class DistanceRule implements Serializable, Cloneable {
-        public String ruleName;
-        public double k;
-
-        public DistanceRule clone() {
-            try {
-                return (DistanceRule)super.clone();
-            } catch (CloneNotSupportedException e) {
-                throw new AssertionError();
-            }
-        }
-
-        private double getLambda(DistanceContext context) {
-            return context.getRule(ruleName)*k;
-        }
-    }
-
    /**
 	 * Defines a single layer of a ArcProto.
 	 * A ArcProto has a list of these ArcLayer objects, one for
@@ -233,7 +169,6 @@ public class Technology implements Comparable<Technology>, Serializable
 	{
 		private final Layer layer;
 		private final Poly.Type style;
-        private final Distance xmlExtend;
         private int gridExtend;
 
 		/**
@@ -243,18 +178,7 @@ public class Technology implements Comparable<Technology>, Serializable
 		 * @param style the Poly.Style of this ArcLayer.
 		 */
         public ArcLayer(Layer layer, double arcLayerWidth, Poly.Type style) {
-            this(layer, style, arcLayerWidth*0.5);
-            gridExtend = (int)DBMath.lambdaToGrid(arcLayerWidth*0.5);
-        }
-
-		/**
-		 * Constructs an <CODE>ArcLayer</CODE> with the specified description.
-		 * @param layer the Layer of this ArcLayer.
-		 * @param style the Poly.Style of this ArcLayer.
-         * @param ruleNames rule names to make an expression for for extend of this ArcLayer
-		 */
-        public ArcLayer(Layer layer, Poly.Type style, String ... ruleNames) {
-            this(layer, style, 0, ruleNames);
+            this(layer, style, 0.5*arcLayerWidth);
         }
 
 		/**
@@ -264,32 +188,13 @@ public class Technology implements Comparable<Technology>, Serializable
          * @param lambdaExtend lambda fraction of extend
          * @param ruleNames rule names to make an expression for for extend of this ArcLayer
 		 */
-        public ArcLayer(Layer layer, Poly.Type style, double lambdaExtend, String ... ruleNames) {
-            this(layer, style, new Distance());
-            if (ruleNames.length > 0)
-                xmlExtend.addRule(ruleNames[0], 0.5);
-            for (int i = 1; i < ruleNames.length; i++)
-                xmlExtend.addRule(ruleNames[i], 1);
-            xmlExtend.addLambda(DBMath.round(lambdaExtend));
-        }
-
-		/**
-		 * Constructs an <CODE>ArcLayer</CODE> with the specified description.
-		 * @param layer the Layer of this ArcLayer.
-         * @param xmlExtend Xml expression for extend of this ArcLayer depending on tech parameters
-		 * @param style the Poly.Style of this ArcLayer.
-		 */
-        public ArcLayer(Layer layer, Poly.Type style, Distance xmlExtend) {
-            this(layer, style, 0, xmlExtend);
-        }
-
-        private ArcLayer(Layer layer, Poly.Type style, long gridExtend, Distance xmlExtend) {
+        public ArcLayer(Layer layer, Poly.Type style, double lambdaExtend) {
+            this.layer = layer;
+            this.style = style;
+            long gridExtend = DBMath.lambdaToGrid(lambdaExtend);
             if (gridExtend < 0 || gridExtend >= Integer.MAX_VALUE/8)
                 throw new IllegalArgumentException("gridExtend=" + gridExtend);
-            this.layer = layer;
             this.gridExtend = (int)gridExtend;
-            this.style = style;
-            this.xmlExtend = xmlExtend;
         }
 
 		/**
@@ -307,25 +212,12 @@ public class Technology implements Comparable<Technology>, Serializable
 		int getGridExtend() { return gridExtend; }
 
 		/**
-         * Returns ArcLayer which differs from this ArcLayer by extebd.
-         * Extend is specified in grid units.
-         * The distance from the center of arbitrary ArcInst ai to the outsize of its ArcLayer is
-         * ai.getD().getExtendOverMin() + arcLayer.getGridExtend()
-         * @param gridExtend new extend to this ArcLayer in grid units.
-         */
-		ArcLayer withGridExtend(long gridExtend) {
-            if (this.gridExtend == gridExtend) return this;
-            return new ArcLayer(layer, style, gridExtend, xmlExtend);
-        }
-
-		/**
 		 * Returns the Poly.Style of this ArcLayer.
 		 * @return the Poly.Style of this ArcLayer.
 		 */
 		Poly.Type getStyle() { return style; }
 
         void copyState(ArcLayer that) {
-            xmlExtend.lambdaValue = that.xmlExtend.lambdaValue;
             gridExtend = that.gridExtend;
         }
 
@@ -340,29 +232,7 @@ public class Technology implements Comparable<Technology>, Serializable
             al.layer = layer.getName();
             al.style = style;
             al.extend.addLambda(DBMath.gridToLambda(gridExtend));
-//            al.extend.assign(xmlExtend);
             return al;
-        }
-
-        XmlParam.ArcLayer makeXmlParam() {
-            XmlParam.ArcLayer al = new XmlParam.ArcLayer();
-            al.layer = layer.getName();
-            al.style = style;
-            al.extend.assign(xmlExtend);
-            return al;
-        }
-
-        void resize(DistanceContext context, ArcProto ap) {
-            double lambdaExtend = xmlExtend.getLambda(context);
-            if (Double.isNaN(lambdaExtend) && !ap.isNotUsed())
-            {
-                System.out.println("Can't resize arc layer " + layer + " of " + ap.getFullName());
-//                lambdaExtend = ap.getLambdaBaseExtend();
-            }
-            long gridExtend = DBMath.lambdaToGrid(lambdaExtend);
-            if (gridExtend < 0 || gridExtend >= Integer.MAX_VALUE/8)
-                throw new IllegalArgumentException("gridExtend=" + gridExtend);
-            this.gridExtend = (int)gridExtend;
         }
 	}
 
@@ -505,7 +375,6 @@ public class Technology implements Comparable<Technology>, Serializable
 		private TextDescriptor descriptor;
 		private double lWidth, rWidth, extentT, extendB;
         private long cutGridSizeX, cutGridSizeY, cutGridSep1D, cutGridSep2D;
-        String sizeRule, cutSep1DRule, cutSep2DRule;
 
 		// the meaning of "representation"
 		/**
@@ -615,15 +484,6 @@ public class Technology implements Comparable<Technology>, Serializable
 			this.points = new TechPoint[oldPoints.length];
 			for(int i=0; i<oldPoints.length; i++) points[i] = oldPoints[i].duplicate();
 			this.lWidth = this.rWidth = this.extentT = this.extendB = 0;
-        }
-
-        public static NodeLayer makeMulticut(Layer layer, int portNum, Poly.Type style, TechPoint[] techPoints,
-                String sizeRule, String cutSep1DRule, String cutSep2DRule) {
-			NodeLayer nl = new NodeLayer(layer, portNum, style, Technology.NodeLayer.MULTICUTBOX, techPoints);
-            nl.sizeRule = sizeRule;
-            nl.cutSep1DRule = cutSep1DRule;
-            nl.cutSep2DRule = cutSep2DRule;
-            return nl;
         }
 
         public static NodeLayer makeMulticut(Layer layer, int portNum, Poly.Type style, TechPoint[] techPoints,
@@ -872,9 +732,6 @@ public class Technology implements Comparable<Technology>, Serializable
                 nld.sep1d = DBMath.round(getMulticutSep1D());
                 nld.sep2d = DBMath.round(getMulticutSep2D());
             }
-//            nld.sizeRule = sizeRule;
-//            nld.sepRule = cutSep1DRule;
-//            nld.sepRule2D = cutSep2DRule;
             if (isSerp) {
                 nld.lWidth = DBMath.round(getSerpentineLWidth());
                 nld.rWidth = DBMath.round(getSerpentineRWidth());
@@ -882,55 +739,6 @@ public class Technology implements Comparable<Technology>, Serializable
                 nld.bExtent = DBMath.round(getSerpentineExtentB());
             }
             return nld;
-        }
-
-        XmlParam.NodeLayer makeXmlParam(boolean isSerp, EPoint correction, boolean inLayers, boolean inElectricalLayers) {
-            XmlParam.NodeLayer nld = new XmlParam.NodeLayer();
-            nld.layer = getLayer().getNonPseudoLayer().getName();
-            nld.style = getStyle();
-            nld.portNum = getPortNum();
-            nld.inLayers = inLayers;
-            nld.inElectricalLayers = inElectricalLayers;
-            nld.representation = getRepresentation();
-            Technology.TechPoint[] points = getPoints();
-            if (nld.representation == Technology.NodeLayer.BOX || nld.representation == Technology.NodeLayer.MULTICUTBOX) {
-                nld.lx.k = points[0].getX().getMultiplier()*2;
-                nld.lx.addLambda(DBMath.round(points[0].getX().getAdder() + correction.getLambdaX()*points[0].getX().getMultiplier()*2));
-                nld.hx.k = points[1].getX().getMultiplier()*2;
-                nld.hx.addLambda(DBMath.round(points[1].getX().getAdder() + correction.getLambdaX()*points[1].getX().getMultiplier()*2));
-                nld.ly.k = points[0].getY().getMultiplier()*2;
-                nld.ly.addLambda(DBMath.round(points[0].getY().getAdder() + correction.getLambdaY()*points[0].getY().getMultiplier()*2));
-                nld.hy.k = points[1].getY().getMultiplier()*2;
-                nld.hy.addLambda(DBMath.round(points[1].getY().getAdder() + correction.getLambdaY()*points[1].getY().getMultiplier()*2));
-            } else {
-                for (Technology.TechPoint p: points)
-                    nld.techPoints.add(p.makeCorrection(correction));
-            }
-            nld.sizeRule = sizeRule;
-            nld.sepRule = cutSep1DRule;
-            nld.sepRule2D = cutSep2DRule;
-            if (isSerp) {
-                nld.lWidth = DBMath.round(getSerpentineLWidth());
-                nld.rWidth = DBMath.round(getSerpentineRWidth());
-                nld.tExtent = DBMath.round(getSerpentineExtentT());
-                nld.bExtent = DBMath.round(getSerpentineExtentB());
-            }
-            return nld;
-        }
-
-        void resize(DistanceContext context) {
-            if (sizeRule != null) {
-                double lambdaSize = context.getRule(sizeRule);
-                cutGridSizeX = cutGridSizeY = (int)DBMath.lambdaToGrid(lambdaSize);
-                double lambdaCutSep1D = context.getRule(cutSep1DRule);
-                cutGridSep1D = (int)DBMath.lambdaToGrid(lambdaCutSep1D);
-                if (cutSep2DRule != null) {
-                    double lambdaCutSep2D = context.getRule(cutSep2DRule);
-                    cutGridSep2D = (int)DBMath.lambdaToGrid(lambdaCutSep2D);
-                } else {
-                    cutGridSep2D = cutGridSep1D;
-                }
-            }
         }
 	}
 
@@ -1241,34 +1049,16 @@ public class Technology implements Comparable<Technology>, Serializable
                 continue;
             }
             ArcLayer[] arcLayers = new ArcLayer[a.arcLayers.size()];
-//            long minGridExtend = Long.MAX_VALUE;
-//            long maxGridExtend = Long.MIN_VALUE;
-//            for (int i = 0; i < arcLayers.length; i++) {
-//                Xml.ArcLayer al = a.arcLayers.get(i);
-//                long gridLayerExtend = DBMath.lambdaToGrid(al.extend.getLambda(context));
-//                minGridExtend = Math.min(minGridExtend, gridLayerExtend);
-//                maxGridExtend = Math.max(maxGridExtend, gridLayerExtend);
-//            }
-//            if (maxGridExtend < 0 || maxGridExtend > Integer.MAX_VALUE/8) {
-//                System.out.println("ArcProto " + getTechName() + ":" + a.name + " has invalid width offset " + DBMath.gridToLambda(2*maxGridExtend));
-//                continue;
-//            }
-//            long gridFullExtend = minGridExtend + DBMath.lambdaToGrid(a.elibWidthOffset*0.5);
             for (int i = 0; i < arcLayers.length; i++) {
                 Xml.ArcLayer al = a.arcLayers.get(i);
-                Distance d = new Distance();
-                d.addLambda(al.extend.value);
-                arcLayers[i] = new ArcLayer(layers.get(al.layer),al.style, d);
+                arcLayers[i] = new ArcLayer(layers.get(al.layer),al.style, al.extend.value);
             }
-//            if (minGridExtend < 0 || minGridExtend != DBMath.lambdaToGrid(a.arcLayers.get(0).extend.getLambda(context)))
-//            	assert true;
             Double diskOffset1 = a.diskOffset.get(Integer.valueOf(1));
             Double diskOffset2 = a.diskOffset.get(Integer.valueOf(2));
             long halfElibWidthOffset = 0;
             if (diskOffset1 != null && diskOffset2 != null)
                 halfElibWidthOffset = DBMath.lambdaToGrid(diskOffset1.doubleValue() - diskOffset2.doubleValue());
-            ArcProto ap = new ArcProto(this, a.name, halfElibWidthOffset, 0, a.function, arcLayers, arcs.size());
-//            ArcProto ap = new ArcProto(this, a.name, (int)maxGridExtend, (int)minGridExtend, defaultWidth, a.function, arcLayers, arcs.size());
+            ArcProto ap = new ArcProto(this, a.name, DBMath.gridToLambda(halfElibWidthOffset*2), a.function, arcLayers, arcs.size());
             addArcProto(ap);
 
             if (a.oldName != null)
@@ -1292,9 +1082,8 @@ public class Technology implements Comparable<Technology>, Serializable
 //                ap.makeWipablePin(a.arcPin.name, a.arcPin.portName, a.arcPin.elibSize, makeConnections(a.arcPin.portArcs, arcs));
         }
         setNoNegatedArcs();
-        DistanceContext context = EMPTY_CONTEXT;
         for (Xml.PrimitiveNode n: t.nodes)
-            PrimitiveNodeGroup.makePrimitiveNodes(this, n, layers, arcs, context);
+            PrimitiveNodeGroup.makePrimitiveNodes(this, n, layers, arcs);
         for (Xml.Layer l: t.layers) {
             if (l.pureLayerNode == null) continue;
             Layer layer = layers.get(l.name);
@@ -1353,15 +1142,15 @@ public class Technology implements Comparable<Technology>, Serializable
         return new TechPoint(h, v);
     }
 
-    static TechPoint makeTechPoint(Xml.Distance x, Xml.Distance y, DistanceContext context, EPoint correction) {
-        return new TechPoint(makeEdgeH(x, context, correction), makeEdgeV(y, context, correction));
+    static TechPoint makeTechPoint(Xml.Distance x, Xml.Distance y, EPoint correction) {
+        return new TechPoint(makeEdgeH(x, correction), makeEdgeV(y, correction));
     }
 
-    static EdgeH makeEdgeH(Xml.Distance x, DistanceContext context, EPoint correction) {
+    static EdgeH makeEdgeH(Xml.Distance x, EPoint correction) {
         return new EdgeH(x.k*0.5, x.value - correction.getLambdaX()*x.k);
     }
 
-    static EdgeV makeEdgeV(Xml.Distance y, DistanceContext context, EPoint correction) {
+    static EdgeV makeEdgeV(Xml.Distance y, EPoint correction) {
         return new EdgeV(y.k*0.5, y.value - correction.getLambdaY()*y.k);
     }
 
@@ -2110,154 +1899,6 @@ public class Technology implements Comparable<Technology>, Serializable
         return entry;
     }
 
-
-    /**
-     * Create Xml structure of this Technology
-     */
-    public XmlParam.Technology makeXmlParam() {
-        XmlParam.Technology t = new XmlParam.Technology();
-        t.techName = getTechName();
-        if (getClass() != Technology.class)
-            t.className = getClass().getName();
-        t.shortTechName = getTechShortName();
-        t.description = getTechDesc();
-        int numMetals = ((Integer)getNumMetalsSetting().getFactoryValue()).intValue();
-        t.minNumMetals = t.maxNumMetals = t.defaultNumMetals = numMetals;
-        t.scaleValue = getScaleSetting().getDoubleFactoryValue();
-        t.scaleRelevant = isScaleRelevant();
-        t.defaultFoundry = (String)getPrefFoundrySetting().getFactoryValue();
-        t.minResistance = getMinResistanceSetting().getDoubleFactoryValue();
-        t.minCapacitance = getMinCapacitanceSetting().getDoubleFactoryValue();
-
-        XmlParam.DisplayStyle displayStyle = new XmlParam.DisplayStyle();
-        displayStyle.name = "Electric";
-        t.displayStyles.add(displayStyle);
-        Color[] colorMap = getFactoryColorMap();
-		for (int i = 0, numLayers = getNumTransparentLayers(); i < numLayers; i++) {
-            Color transparentColor = colorMap[1 << i];
-            displayStyle.transparentLayers.add(transparentColor);
-        }
-
-        for (Iterator<Layer> it = getLayers(); it.hasNext(); ) {
-            Layer layer = it.next();
-            assert !layer.isPseudoLayer();
-            layer.makeXmlParam(t, displayStyle);
-        }
-        HashSet<PrimitiveNode> arcPins = new HashSet<PrimitiveNode>();
-        for (Iterator<ArcProto> it = getArcs(); it.hasNext(); ) {
-            ArcProto ap = it.next();
-            t.arcs.add(ap.makeXmlParam());
-            if (ap.arcPin != null)
-                arcPins.add(ap.arcPin);
-        }
-        for (Iterator<PrimitiveNode> it = getNodes(); it.hasNext(); ) {
-            PrimitiveNode pnp = it.next();
-            if (pnp.getFunction() == PrimitiveNode.Function.NODE) continue;
-            if (arcPins.contains(pnp)) continue;
-            t.nodes.add(pnp.makeXmlParam());
-        }
-
-        addSpiceHeader(t, 1, getSpiceHeaderLevel1());
-        addSpiceHeader(t, 2, getSpiceHeaderLevel2());
-        addSpiceHeader(t, 3, getSpiceHeaderLevel3());
-
-        Object[][] origPalette = getNodesGrouped(null);
-        int numRows = origPalette.length;
-        int numCols = origPalette[0].length;
-        for (Object[] row: origPalette) {
-            assert row.length == numCols;
-        }
-        t.menuPalette = new XmlParam.MenuPalette();
-        t.menuPalette.numColumns = numCols;
-        for (int row = 0; row < numRows; row++) {
-            for (int col = 0; col < numCols; col++) {
-                Object origEntry = origPalette[row][col];
-                ArrayList<Object> newBox = new ArrayList<Object>();
-                if (origEntry instanceof List) {
-                    List<?> list = (List<?>)origEntry;
-                    for (Object o: list)
-                        newBox.add(makeMenuEntry(t, o));
-                } else if (origEntry != null) {
-                    newBox.add(makeMenuEntry(t, origEntry));
-                }
-                t.menuPalette.menuBoxes.add(newBox);
-            }
-        }
-
-        makeRuleSets(t);
-
-        for (Iterator<Foundry> it = getFoundries(); it.hasNext(); ) {
-            Foundry foundry = it.next();
-            XmlParam.Foundry f = new XmlParam.Foundry();
-            f.name = foundry.toString();
-            Map<Layer,String> gdsMap = foundry.getGDSLayers();
-            for (Map.Entry<Layer,String> e: gdsMap.entrySet()) {
-                String gds = e.getValue();
-                if (gds.length() == 0) continue;
-                f.layerGds.put(e.getKey().getName(), gds);
-            }
-            List<DRCTemplate> rules = foundry.getRules();
-            if (rules != null)
-                f.rules.addAll(rules);
-            t.foundries.add(f);
-       }
-        return t;
-    }
-
-    protected void makeRuleSets(XmlParam.Technology t) {
-        XmlParam.RuleSet common = t.newRuleSet("common");
-        make3d(t, common);
-    }
-
-    protected void make3d(XmlParam.Technology t, XmlParam.RuleSet ruleSet) {
-        Map<XmlParam.Layer,XmlParam.Distance> thick3d = ruleSet.newLayerRule("thick3d");
-        Map<XmlParam.Layer,XmlParam.Distance> height3d = ruleSet.newLayerRule("height3d");
-        for (Iterator<Layer> it = getLayers(); it.hasNext(); ) {
-            Layer layer = it.next();
-            assert !layer.isPseudoLayer();
-            layer.makeXmlParam(t, thick3d, height3d);
-        }
-    }
-
-    private static void addSpiceHeader(XmlParam.Technology t, int level, String[] spiceLines) {
-        if (spiceLines == null) return;
-        XmlParam.SpiceHeader spiceHeader = new XmlParam.SpiceHeader();
-        spiceHeader.level = level;
-        for (String spiceLine: spiceLines)
-            spiceHeader.spiceLines.add(spiceLine);
-        t.spiceHeaders.add(spiceHeader);
-    }
-
-    private static Object makeMenuEntry(XmlParam.Technology t, Object entry) {
-        if (entry instanceof ArcProto)
-            return t.findArc(((ArcProto)entry).getName());
-        if (entry instanceof PrimitiveNode) {
-            PrimitiveNode pn = (PrimitiveNode)entry;
-            if (pn.getFunction() == PrimitiveNode.Function.PIN) {
-                XmlParam.MenuNodeInst n = new XmlParam.MenuNodeInst();
-                n.protoName = pn.getName();
-                n.function = PrimitiveNode.Function.PIN;
-                return n;
-            }
-            return t.findNode(((PrimitiveNode)entry).getName());
-        }
-        if (entry instanceof NodeInst) {
-            NodeInst ni = (NodeInst)entry;
-            XmlParam.MenuNodeInst n = new XmlParam.MenuNodeInst();
-            n.protoName = ni.getProto().getName();
-            n.function = ni.getFunction();
-            n.rotation = ni.getOrient().getAngle();
-            for (Iterator<Variable> it = ni.getVariables(); it.hasNext(); ) {
-                Variable var = it.next();
-                n.text = (String)var.getObject();
-                n.fontSize = var.getSize().getSize();
-            }
-            return n;
-        }
-        assert entry instanceof String;
-        return entry;
-    }
-
     /****************************** LAYERS ******************************/
 
 	/**
@@ -2581,8 +2222,8 @@ public class Technology implements Comparable<Technology>, Serializable
 			return null;
 		}
         long defaultGridWidth = DBMath.lambdaToSizeGrid(defaultWidth);
-        long gridFullExtend = defaultGridWidth/2;
-		ArcProto ap = new ArcProto(this, protoName, gridFullExtend, (defaultGridWidth - gridWidthOffset)/2, function, layers, arcs.size());
+        assert layers[0].gridExtend == (defaultGridWidth - gridWidthOffset)/2;
+		ArcProto ap = new ArcProto(this, protoName, DBMath.gridToLambda(gridWidthOffset), function, layers, arcs.size());
 		addArcProto(ap);
 		return ap;
 	}
@@ -5504,53 +5145,7 @@ public class Technology implements Comparable<Technology>, Serializable
             }
         }
 
-        resizeArcs(rules);
         return rules;
-    }
-
-    protected void resizeArcs(XMLRules rules) {
-        TechDistanceContext context = new TechDistanceContext(rules);
-        for (ArcProto ap: arcs.values())
-            ap.resize(context);
-        for (Layer layer: layers)
-            layer.resizePureLayerNode(context);
-        for (PrimitiveNode pn: nodes.values())
-            pn.resize(context);
-    }
-
-    private class TechDistanceContext implements DistanceContext {
-        private final Map<String,String> ruleAliases = getRuleAliases();
-        private final XMLRules rules;
-//        private final int numMetals = getNumMetals();
-
-        TechDistanceContext(XMLRules rules) {
-            this.rules = rules;
-        }
-
-        public double getRule(String ruleName) {
-            String alias = ruleAliases.get(ruleName);
-            if (alias != null)
-                ruleName = alias;
-            for (HashMap<XMLRules.XMLRule,XMLRules.XMLRule> map: rules.matrix) {
-                if (map == null) continue;
-                for (XMLRules.XMLRule rule: map.values()) {
-                    if (rule.ruleType == DRCTemplate.DRCRuleType.NODSIZ) continue;
-                    if (rule.ruleType == DRCTemplate.DRCRuleType.MINWIDCOND) continue;
-
-                    if (rule.ruleName.startsWith(ruleName + " ") || rule.ruleName.equals(ruleName))
-                        return rule.getValue(0);
-                }
-            }
-            return Double.NaN;
-        }
-    }
-
-    protected String getRuleSuffix() {
-        return "";
-    }
-
-    protected Map<String,String> getRuleAliases() {
-        return Collections.EMPTY_MAP;
     }
 
 	/**

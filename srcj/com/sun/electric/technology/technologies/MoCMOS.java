@@ -445,7 +445,6 @@ public class MoCMOS extends Technology
                 rules.loadDRCRules(this, foundry, rule, pWellProcess);
 			}
 		}
-        resizeArcs(rules);
 
         for (Iterator<Layer> it = getLayers(); it.hasNext(); ) {
             Layer layer = it.next();
@@ -871,13 +870,6 @@ public class MoCMOS extends Technology
             sizeCorrector2 = EPoint.ORIGIN;
         if (sizeCorrector1 == null)
             sizeCorrector1 = sizeCorrector2;
-        double fullSize;
-        if (n.nodeSizeRule != null) {
-            assert n.nodeSizeRule.width == n.nodeSizeRule.height;
-            fullSize = 0.5*n.nodeSizeRule.width;
-        } else {
-            fullSize = maxSz;
-        }
 
         assert n.hasNodeBase;
         n.baseLX.value = n.baseLY.value = base != 0 ? -base : 0;

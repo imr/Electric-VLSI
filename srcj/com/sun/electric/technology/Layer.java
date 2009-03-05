@@ -700,7 +700,6 @@ public class Layer
 	/** true if this layer is visible */									private boolean visible;
 	/** true if dimmed (drawn darker) undimmed layers are highlighted */	private boolean dimmed;
 	/** the pure-layer node that contains just this layer */				private PrimitiveNode pureLayerNode;
-    /** the Xml expression for size pf pure-layer node */                   private Technology.Distance pureLayerNodeXmlSize;
 
 	private Layer(String name, boolean isFree, Technology tech, EGraphics graphics)
 	{
@@ -895,21 +894,6 @@ public class Layer
 	 * @return the Pure Layer PrimitiveNode to use for this Layer.
 	 */
 	public PrimitiveNode makePureLayerNode(String nodeName, double size, Poly.Type style, String portName, ArcProto ... connections) {
-        Technology.Distance d = new Technology.Distance();
-        d.addLambda(size);
-        return makePureLayerNode(nodeName, size, null, style, portName, connections);
-    }
-
-	/**
-	 * Method to make the Pure Layer Node associated with this Layer.
-	 * @param nodeName the name of the PrimitiveNode.
-	 * Primitive names may not contain unprintable characters, spaces, tabs, a colon (:), semicolon (;) or curly braces ({}).
-	 * @param size the width and the height of the PrimitiveNode.
-     * @param xmlSize expression for default size of this pure layer node depending on tech parameters
-     * @param style the Poly.Type this PrimitiveNode will generate (polygon, cross, etc.).
-	 * @return the Pure Layer PrimitiveNode to use for this Layer.
-	 */
-	public PrimitiveNode makePureLayerNode(String nodeName, double size, Technology.Distance xmlSize, Poly.Type style, String portName, ArcProto ... connections) {
 		PrimitiveNode pln = PrimitiveNode.newInstance0(nodeName, tech, size, size,
 			new Technology.NodeLayer []
 			{
@@ -924,14 +908,7 @@ public class Layer
 		pln.setHoldsOutline();
 		pln.setSpecialType(PrimitiveNode.POLYGONAL);
         pureLayerNode = pln;
-        pureLayerNodeXmlSize = xmlSize;
         return pln;
-    }
-
-    void resizePureLayerNode(Technology.DistanceContext context) {
-        if (pureLayerNodeXmlSize == null) return;
-        double lambdaSize = pureLayerNodeXmlSize.getLambda(context);
-        pureLayerNode.setDefSize(lambdaSize, lambdaSize);
     }
 
 	/**

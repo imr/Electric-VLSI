@@ -42,7 +42,6 @@ import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
-import com.sun.electric.technology.xml.XmlParam;
 
 import java.io.IOException;
 import java.io.InvalidObjectException;
@@ -50,7 +49,6 @@ import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.BitSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -977,20 +975,25 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
     static PrimitiveNode makeArcPin(ArcProto ap, String pinName, String portName,
             double elibSize0, double elibSize1, ArcProto ... extraArcs) {
         Technology tech = ap.getTechnology();
+        long fullExtend = ap.getMaxLayerGridExtend();
+        long baseExtend = ap.getGridBaseExtend();
         Technology.NodeLayer[] nodeLayers = new Technology.NodeLayer[ap.getNumArcLayers()];
         for (int i = 0; i < ap.getNumArcLayers(); i++) {
             Layer layer = ap.getLayer(i);
             if (layer.getPseudoLayer() == null)
                 layer.makePseudo();
             layer = layer.getPseudoLayer();
+            double indent = DBMath.gridToLambda(fullExtend - ap.getLayerGridExtend(i));
             nodeLayers[i] = new Technology.NodeLayer(layer, 0, Poly.Type.CROSSED,
-                    Technology.NodeLayer.BOX, null);
+                    Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(indent));
         }
 
         EPoint sizeCorrector1 = EPoint.fromLambda(elibSize0, elibSize0);
         EPoint sizeCorrector2 = EPoint.fromLambda(elibSize1, elibSize1);
+        ERectangle fullRectangle = ERectangle.fromGrid(-fullExtend, -fullExtend, 2*fullExtend, 2*fullExtend);
+        ERectangle baseRectangle = ERectangle.fromGrid(-baseExtend, -baseExtend, 2*baseExtend, 2*baseExtend);
         PrimitiveNode arcPin = newInstance(pinName, tech, sizeCorrector1, sizeCorrector2, null,
-                0, 0, ERectangle.ORIGIN, ERectangle.ORIGIN, nodeLayers);
+                0, 0, fullRectangle, baseRectangle, nodeLayers);
 
         ArcProto[] connections = new ArcProto[1 + extraArcs.length];
         connections[0] = ap;
@@ -998,40 +1001,14 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
         arcPin.addPrimitivePorts(new PrimitivePort [] {
             PrimitivePort.newInstance(tech, arcPin, connections, portName,
                     0,180, 0, PortCharacteristic.UNKNOWN,
-                    EdgeH.fromLeft(0), EdgeV.fromBottom(0), EdgeH.fromRight(0), EdgeV.fromTop(0))
+                    EdgeH.fromLeft(fullExtend), EdgeV.fromBottom(fullExtend), EdgeH.fromRight(fullExtend), EdgeV.fromTop(fullExtend))
         });
         arcPin.setFunction(PrimitiveNode.Function.PIN);
         arcPin.setArcsWipe();
         arcPin.setArcsShrink();
         if (ap.isSkipSizeInPalette() || ap.isSpecialArc())
             arcPin.setSkipSizeInPalette();
-        arcPin.resizeArcPin();
         return arcPin;
-    }
-
-    void resizeArcPin() {
-        assert function == PrimitiveNode.Function.PIN;
-        assert getNumPorts() == 1;
-        PrimitivePort port = getPort(0);
-        ArcProto ap = port.getConnections()[0];
-        long fullExtend = ap.getMaxLayerGridExtend();
-        fullRectangle = ERectangle.fromGrid(-fullExtend, -fullExtend, 2*fullExtend, 2*fullExtend);
-        long baseExtend = ap.getGridBaseExtend();
-        baseRectangle = ERectangle.fromGrid(-baseExtend, -baseExtend, 2*baseExtend, 2*baseExtend);
-        double sizeOffset = DBMath.gridToLambda(fullExtend - baseExtend);
-        offset = new SizeOffset(sizeOffset, sizeOffset, sizeOffset, sizeOffset);
-
-        assert ap.getNumArcLayers() == layers.length;
-        for (int arcLayerIndex = 0; arcLayerIndex < layers.length; arcLayerIndex++) {
-            Technology.NodeLayer nl = layers[arcLayerIndex];
-            double indent = DBMath.gridToLambda(fullExtend - ap.getLayerGridExtend(arcLayerIndex));
-            nl.setPoints(Technology.TechPoint.makeIndented(indent));
-        }
-
-        port.getLeft().setAdder(-fullRectangle.getLambdaMinX());
-        port.getRight().setAdder(-fullRectangle.getLambdaMaxX());
-        port.getBottom().setAdder(-fullRectangle.getLambdaMinY());
-        port.getTop().setAdder(-fullRectangle.getLambdaMaxY());
     }
 
     /** Method to return NodeProtoId of this NodeProto.
@@ -1478,15 +1455,6 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
         baseRectangle = ERectangle.fromGrid(lx, ly, hx - lx, hy - ly);
         sizeCorrectors[1] = EPoint.fromGrid(baseRectangle.getGridWidth() >> 1, baseRectangle.getGridHeight() >> 1);
         check();
-    }
-
-    public void resize(Technology.DistanceContext context) {
-        for (Technology.NodeLayer nl: layers)
-            nl.resize(context);
-        if (electricalLayers != null) {
-            for (Technology.NodeLayer nl: electricalLayers)
-                nl.resize(context);
-        }
     }
 
 	/**
@@ -2361,106 +2329,6 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
             n.nodeSizeRule.rule = nodeSizeRule.getRuleName();
         }
         n.spiceTemplate = getSpiceTemplate();
-    }
-
-    XmlParam.PrimitiveNode makeXmlParam() {
-        XmlParam.PrimitiveNode n = new XmlParam.PrimitiveNode();
-        n.name = getName();
-        for (Map.Entry<String,PrimitiveNode> e: tech.getOldNodeNames().entrySet()) {
-            if (e.getValue() != this) continue;
-            assert n.oldName == null;
-            n.oldName = e.getKey();
-        }
-        n.function = getFunction();
-        n.shrinkArcs = isArcsShrink();
-        n.square = isSquare();
-        n.canBeZeroSize = isCanBeZeroSize();
-        n.wipes = isWipeOn1or2();
-        n.lockable = isLockedPrim();
-        n.edgeSelect = isEdgeSelect();
-        n.skipSizeInPalette = isSkipSizeInPalette();
-        n.notUsed = isNotUsed();
-        n.lowVt = isNodeBitOn(PrimitiveNode.LOWVTBIT);
-        n.highVt = isNodeBitOn(PrimitiveNode.HIGHVTBIT);
-        n.nativeBit  = isNodeBitOn(PrimitiveNode.NATIVEBIT);
-        n.od18 = isNodeBitOn(PrimitiveNode.OD18BIT);
-        n.od25 = isNodeBitOn(PrimitiveNode.OD25BIT);
-        n.od33 = isNodeBitOn(PrimitiveNode.OD33BIT);
-
-        PrimitiveNode.NodeSizeRule nodeSizeRule = getMinSizeRule();
-        EPoint minFullSize = nodeSizeRule != null ?
-            EPoint.fromLambda(0.5*nodeSizeRule.getWidth(), 0.5*nodeSizeRule.getHeight()) :
-            EPoint.fromLambda(0.5*getDefWidth(), 0.5*getDefHeight());
-        if (getFunction() == PrimitiveNode.Function.PIN && isArcsShrink()) {
-            assert getNumPorts() == 1;
-//            assert nodeSizeRule == null;
-            PrimitivePort pp = getPort(0);
-            assert pp.getLeft().getMultiplier() == -0.5 && pp.getRight().getMultiplier() == 0.5 && pp.getBottom().getMultiplier() == -0.5 && pp.getTop().getMultiplier() == 0.5;
-            assert pp.getLeft().getAdder() == -pp.getRight().getAdder() && pp.getBottom().getAdder() == -pp.getTop().getAdder();
-            minFullSize = EPoint.fromLambda(pp.getLeft().getAdder(), pp.getBottom().getAdder());
-        }
-//            DRCTemplate nodeSize = xmlRules.getRule(pnp.getPrimNodeIndexInTech(), DRCTemplate.DRCRuleType.NODSIZ);
-        SizeOffset so = getProtoSizeOffset();
-        if (so.getLowXOffset() == 0 && so.getHighXOffset() == 0 && so.getLowYOffset() == 0 && so.getHighYOffset() == 0)
-            so = null;
-//            EPoint minFullSize = EPoint.fromLambda(0.5*pnp.getDefWidth(), 0.5*pnp.getDefHeight());
-        if (!minFullSize.equals(EPoint.ORIGIN))
-            n.diskOffset = minFullSize;
-//        if (so != null) {
-//            EPoint p2 = EPoint.fromGrid(
-//                    minFullSize.getGridX() - ((so.getLowXGridOffset() + so.getHighXGridOffset()) >> 1),
-//                    minFullSize.getGridY() - ((so.getLowYGridOffset() + so.getHighYGridOffset()) >> 1));
-//            n.diskOffset.put(Integer.valueOf(1), minFullSize);
-//            n.diskOffset.put(Integer.valueOf(2), p2);
-//        } else {
-//            n.diskOffset.put(Integer.valueOf(2), minFullSize);
-//        }
-        n.defaultWidth.addLambda(DBMath.round(getDefWidth() - 2*minFullSize.getLambdaX()));
-        n.defaultHeight.addLambda(DBMath.round(getDefHeight() - 2*minFullSize.getLambdaY()));
-//            if (so != null) {
-//                EPoint p1 = EPoint.fromLambda(0.5*(so.getLowXOffset() + so.getHighXOffset()), 0.5*(so.getLowYOffset() + so.getHighYOffset()));
-//                n.diskOffset.put(Integer.valueOf(1), p1);
-//                n.diskOffset.put(Integer.valueOf(2), EPoint.ORIGIN);
-//            } else {
-//            }
-//            n.defaultWidth.value = DBMath.round(pnp.getDefWidth());
-//            n.defaultHeight.value = DBMath.round(pnp.getDefHeight());
-        n.nodeBase = baseRectangle;
-
-        List<Technology.NodeLayer> nodeLayers = Arrays.asList(getLayers());
-        List<Technology.NodeLayer> electricalNodeLayers = nodeLayers;
-        if (getElectricalLayers() != null)
-            electricalNodeLayers = Arrays.asList(getElectricalLayers());
-        boolean isSerp = getSpecialType() == PrimitiveNode.SERPTRANS;
-        int m = 0;
-        for (Technology.NodeLayer nld: electricalNodeLayers) {
-            int j = nodeLayers.indexOf(nld);
-            if (j < 0) {
-                n.nodeLayers.add(nld.makeXmlParam(isSerp, minFullSize, false, true));
-                continue;
-            }
-            while (m < j)
-                n.nodeLayers.add(nodeLayers.get(m++).makeXmlParam(isSerp, minFullSize, true, false));
-            n.nodeLayers.add(nodeLayers.get(m++).makeXmlParam(isSerp, minFullSize, true, true));
-        }
-        while (m < nodeLayers.size())
-            n.nodeLayers.add(nodeLayers.get(m++).makeXmlParam(isSerp, minFullSize, true, false));
-
-        for (Iterator<PrimitivePort> pit = getPrimitivePorts(); pit.hasNext(); ) {
-            PrimitivePort pp = pit.next();
-            n.ports.add(pp.makeXmlParam(minFullSize));
-        }
-        n.specialType = getSpecialType();
-        if (getSpecialValues() != null)
-            n.specialValues = getSpecialValues().clone();
-        if (nodeSizeRule != null) {
-            n.nodeSizeRule = new XmlParam.NodeSizeRule();
-            n.nodeSizeRule.width = nodeSizeRule.getWidth();
-            n.nodeSizeRule.height = nodeSizeRule.getHeight();
-            n.nodeSizeRule.rule = nodeSizeRule.getRuleName();
-        }
-        n.spiceTemplate = getSpiceTemplate();
-        return n;
     }
 
 	/**

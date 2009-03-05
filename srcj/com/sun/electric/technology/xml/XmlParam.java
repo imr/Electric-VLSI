@@ -101,7 +101,7 @@ public class XmlParam {
             layers.put(name, layer);
             return layer;
         }
-        
+
         public RuleSet newRuleSet(String name) {
             if (name == null)
                 throw new NullPointerException();
@@ -111,7 +111,7 @@ public class XmlParam {
             ruleSets.put(name, ruleSet);
             return ruleSet;
         }
-        
+
         public Layer findLayer(String name) {
             return layers.get(name);
         }
@@ -156,7 +156,7 @@ public class XmlParam {
         public double capacitance;
         public double edgeCapacitance;
         public PureLayerNode pureLayerNode;
-        
+
         private Layer(String name) {
             this.name = name;
         }
@@ -278,7 +278,7 @@ public class XmlParam {
         public final List<Color> transparentLayers = new ArrayList<Color>();
         private final LinkedHashMap<Layer,LayerDisplayStyle> layerStylesInternal = new LinkedHashMap<Layer,LayerDisplayStyle>();
         public final Map<Layer,LayerDisplayStyle> layerStyles = Collections.unmodifiableMap(layerStylesInternal);
-        
+
         public LayerDisplayStyle newLayer(Layer layer) {
             LayerDisplayStyle lds = new LayerDisplayStyle(layer);
             LayerDisplayStyle old = layerStylesInternal.put(layer, lds);
@@ -286,18 +286,18 @@ public class XmlParam {
             return lds;
         }
     }
-    
+
     public static class LayerDisplayStyle implements Serializable {
         public final Layer layer;
         public EGraphics desc;
         public String mode3D;
         public double factor3D;
-        
+
         private LayerDisplayStyle(Layer layer) {
             this.layer = layer;
         }
     }
-    
+
     public static class MenuPalette implements Serializable {
         public int numColumns;
         public List<List<Object>> menuBoxes = new ArrayList<List<Object>>();
@@ -338,12 +338,12 @@ public class XmlParam {
                 terms.add(term.clone());
         }
 
-        public void assign(com.sun.electric.technology.Technology.Distance d) {
-            k = d.k;
-            lambdaValue = d.lambdaValue;
-            for (com.sun.electric.technology.Technology.DistanceRule term: d.terms)
-                terms.add(new DistanceRule(term));
-        }
+//        public void assign(com.sun.electric.technology.Technology.Distance d) {
+//            k = d.k;
+//            lambdaValue = d.lambdaValue;
+//            for (com.sun.electric.technology.Technology.DistanceRule term: d.terms)
+//                terms.add(new DistanceRule(term));
+//        }
 
         public Distance clone() {
             Distance d = new Distance();
@@ -394,17 +394,17 @@ public class XmlParam {
         final Layer layer2;
         final double k;
 
-        public DistanceRule(com.sun.electric.technology.Technology.DistanceRule oldRule) {
-            this(oldRule.ruleName, null, null, oldRule.k);
-        }
-        
+//        public DistanceRule(com.sun.electric.technology.Technology.DistanceRule oldRule) {
+//            this(oldRule.ruleName, null, null, oldRule.k);
+//        }
+
         private DistanceRule(String ruleName, Layer layer, Layer layer2, double k) {
             this.ruleName = ruleName;
             this.layer = layer;
             this.layer2 = layer2;
             this.k = k;
         }
-        
+
         public DistanceRule clone() {
             try {
                 return (DistanceRule)super.clone();
@@ -430,15 +430,15 @@ public class XmlParam {
             return context.getRule(ruleName)*k;
         }
     }
-    
+
     public static class RuleSet implements Serializable {
         public final String name;
         public final Map<String,Map<Layer,Distance>> layerRules = new LinkedHashMap<String,Map<Layer,Distance>>();
-        
+
         private RuleSet(String name) {
             this.name = name;
         }
-        
+
         public Map<Layer,Distance> newLayerRule(String ruleName) {
             if (ruleName == null)
                 throw new NullPointerException();
@@ -530,7 +530,7 @@ public class XmlParam {
         spiceTemplate,
         spiceHeader,
         spiceLine,
-        
+
         displayStyle,
         transparentLayer,
         r(true),
@@ -544,7 +544,7 @@ public class XmlParam {
         outlined(true),
         opacity(true),
         foreground(true),
-        
+
         menuPalette,
         menuBox,
         menuArc(true),
@@ -555,7 +555,7 @@ public class XmlParam {
         menuNodeText,
         lambda(true),
         rule,
-        
+
         ruleSet,
         layerRule,
         Foundry,
@@ -680,7 +680,7 @@ public class XmlParam {
         private MenuCell curMenuCell;
         private Distance curDistance;
         private SpiceHeader curSpiceHeader;
-        
+
         private DisplayStyle curDisplayStyle;
         private int curTransparent = 0;
         private int curR;
@@ -694,7 +694,7 @@ public class XmlParam {
         private EGraphics.Outline outline;
         private double opacity;
         private boolean foreground;
-        
+
         private RuleSet curRuleSet;
         private Map<Layer,Distance> curLayerRule;
         private Foundry curFoundry;
@@ -1230,7 +1230,7 @@ public class XmlParam {
                 case spiceLine:
                     curSpiceHeader.spiceLines.add(a("line"));
                     break;
-                    
+
                 case displayStyle:
                     curDisplayStyle = new DisplayStyle();
                     curDisplayStyle.name = a("name");
@@ -1258,7 +1258,7 @@ public class XmlParam {
                     curLayerDisplayStyle.mode3D = a("mode");
                     curLayerDisplayStyle.factor3D = Double.parseDouble(a("factor"));
                     break;
-                    
+
                 case menuPalette:
                     tech.menuPalette = new MenuPalette();
                     tech.menuPalette.numColumns = Integer.parseInt(a("numColumns"));
@@ -1428,7 +1428,7 @@ public class XmlParam {
                     case specialValue:
                         curNode.specialValues[curSpecialValueIndex++] = Double.parseDouble(text);
                         break;
-                        
+
                     case r:
                         curR = Integer.parseInt(text);
                         break;
@@ -1462,7 +1462,7 @@ public class XmlParam {
                     case foreground:
                         foreground = Boolean.parseBoolean(text);
                         break;
-                        
+
                     case menuArc:
                         curMenuBox.add(tech.findArc(text));
                         break;
@@ -1516,7 +1516,7 @@ public class XmlParam {
                 	curMenuBox.add(curMenuNodeInst);
                     curMenuNodeInst = null;
                     break;
-                    
+
                 case displayStyle:
                     curDisplayStyle = null;
                     break;
@@ -1526,13 +1526,13 @@ public class XmlParam {
                     Color oldColor = curDisplayStyle.transparentLayers.set(curTransparent - 1, new Color(curR, curG, curB));
                     assert oldColor == null;
                     break;
-                    
+
                 case menuCell:
                 	curMenuBox.add("LOADCELL " + curMenuCell.cellName);
 //                	curMenuBox.add(curMenuCell);
                     curMenuCell = null;
                     break;
-                    
+
                 case ruleSet:
                     curRuleSet = null;
                     break;
@@ -1585,15 +1585,15 @@ public class XmlParam {
                 case polygonal:
                 case serpTrans:
                 case minSizeRule:
-                    
+
                 case spiceHeader:
                 case spiceLine:
                 case spiceTemplate:
-                    
+
                 case transparentColor:
                 case opaqueColor:
                 case display3D:
-                    
+
                 case menuPalette:
                 case menuBox:
                 case menuNodeText:
@@ -1866,7 +1866,7 @@ public class XmlParam {
 
             for (SpiceHeader spiceHeader: t.spiceHeaders)
                 writeSpiceHeaderXml(spiceHeader);
-            
+
             for (DisplayStyle displayStyle: t.displayStyles)
                 writeDisplayStyleXml(displayStyle);
 
@@ -1874,7 +1874,7 @@ public class XmlParam {
 
             for (RuleSet ruleSet: t.ruleSets.values())
                 writeXml(ruleSet);
-            
+
             for (Foundry foundry: t.foundries)
                 writeFoundryXml(foundry);
 
@@ -2143,10 +2143,10 @@ public class XmlParam {
             el(XmlKeyword.spiceHeader);
             l();
         }
-        
+
         private void writeDisplayStyleXml(DisplayStyle displayStyle) {
             b(XmlKeyword.displayStyle); a("name", displayStyle.name); cl();
-            
+
             if (displayStyle.transparentLayers.size() != 0) {
                 comment("Transparent layers");
                 for (int i = 0; i < displayStyle.transparentLayers.size(); i++) {
@@ -2159,7 +2159,7 @@ public class XmlParam {
                 }
                 l();
             }
-            
+
             for (LayerDisplayStyle l: displayStyle.layerStyles.values()) {
                 b(XmlKeyword.layer); a("name", l.layer.name); cl();
                 EGraphics desc = l.desc;
@@ -2185,7 +2185,7 @@ public class XmlParam {
                     bcpel(XmlKeyword.outlined, desc.getOutlined().getConstName());
                 bcpel(XmlKeyword.opacity, desc.getOpacity());
                 bcpel(XmlKeyword.foreground, desc.getForeground());
-                
+
                 // write the 3D information
                 if (l.mode3D != null) {
                     b(XmlKeyword.display3D); a("mode", l.mode3D); a("factor", l.factor3D); el();
@@ -2244,7 +2244,7 @@ public class XmlParam {
             }
             el(XmlKeyword.menuBox);
         }
-        
+
         private void writeXml(RuleSet ruleSet) {
             b(XmlKeyword.ruleSet); a("name", ruleSet.name); cl();
             for (Map.Entry<String,Map<Layer,Distance>> e: ruleSet.layerRules.entrySet())
@@ -2252,7 +2252,7 @@ public class XmlParam {
             el(XmlKeyword.ruleSet);
             l();
         }
-        
+
         private void writeLayerRuleXml(String ruleName, Map<Layer,Distance> sizes) {
             if (sizes.isEmpty()) return;
             b(XmlKeyword.layerRule); a("ruleName", ruleName); cl();
@@ -2406,7 +2406,7 @@ public class XmlParam {
             s(indent);
             indentEmitted = true;
         }
-        
+
         protected void s(int numSpaces) {
             for (int i = 0; i < numSpaces; i++)
                 out.print(' ');

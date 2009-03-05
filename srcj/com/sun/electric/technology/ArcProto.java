@@ -30,7 +30,6 @@ import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.id.ArcProtoId;
 import com.sun.electric.database.text.Pref;
-import com.sun.electric.technology.xml.XmlParam;
 import com.sun.electric.tool.erc.ERC;
 
 import java.awt.geom.Point2D;
@@ -287,9 +286,8 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 	/**
 	 * The constructor is never called.  Use "Technology.newArcProto" instead.
 	 */
-	ArcProto(Technology tech, String protoName, long gridFullExtend, long gridBaseExtend, Function function, Technology.ArcLayer [] layers, int primArcIndex)
+	ArcProto(Technology tech, String protoName, double lambdaElibWidthOffset, Function function, Technology.ArcLayer [] layers, int primArcIndex)
 	{
-        assert -Integer.MAX_VALUE/8 < gridFullExtend && gridFullExtend < Integer.MAX_VALUE/8;
         assert -Integer.MAX_VALUE/8 < gridBaseExtend && gridBaseExtend < Integer.MAX_VALUE/8;
 		if (!Technology.jelibSafeName(protoName))
 			System.out.println("ArcProto name " + protoName + " is not safe to write into JELIB");
@@ -299,13 +297,28 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 		this.function = function;
 		this.layers = layers.clone();
         this.primArcIndex = primArcIndex;
-        lambdaElibWidthOffset = DBMath.gridToLambda(2*(gridFullExtend - gridBaseExtend));
-        this.gridBaseExtend = (int)gridBaseExtend;
+        this.lambdaElibWidthOffset = lambdaElibWidthOffset;
+        this.gridBaseExtend = layers[0].getGridExtend();
         lambdaBaseExtend = DBMath.gridToLambda(gridBaseExtend);
         computeLayerGridExtendRange();
         defaultExtendPref = Pref.makeDoubleServerPref("DefaultExtendFor" + getName() + "IN" + tech.getTechName(), tech.getTechnologyPreferences(), 0);
         defaultDirectionalPref = getArcProtoBitPref("Directional", false);
 	}
+
+    private void computeLayerGridExtendRange() {
+        long min = Long.MAX_VALUE, max = Long.MIN_VALUE;
+        for (int i = 0; i < layers.length; i++) {
+            Technology.ArcLayer primLayer = layers[i];
+            assert indexOf(primLayer.getLayer()) == i; // layers are unique
+            min = Math.min(min, getLayerGridExtend(i));
+            max = Math.max(max, getLayerGridExtend(i));
+        }
+        assert -Integer.MAX_VALUE/8 < min;
+//        assert 0 <= min;
+        assert max < Integer.MAX_VALUE/8 && min <= max;
+        minLayerGridExtend = (int)min;
+        maxLayerGridExtend = (int)max;
+    }
 
     protected Object writeReplace() { return new ArcProtoKey(this); }
 
@@ -1149,71 +1162,6 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
     }
 
     /**
-     * Resizes this ArcProto according to rules from the DistanceContext
-     * @param context context to find rules by name
-     */
-    void resize(Technology.DistanceContext context) {
-        for (Technology.ArcLayer al: layers)
-            al.resize(context, this);
-        gridBaseExtend = layers[0].getGridExtend();
-        lambdaBaseExtend = DBMath.gridToLambda(gridBaseExtend);
-        computeLayerGridExtendRange();
-        if (arcPin != null)
-            arcPin.resizeArcPin();
-    }
-
-//	/**
-//	 * Method to set the surround distance of layer "outerlayer" from layer "innerlayer"
-//	 * in arc "aty" to "surround".
-//	 */
-//	protected void setArcLayerSurroundLayer(Layer outerLayer, Layer innerLayer,
-//	                                        double surround)
-//	{
-//		// find the inner layer
-//		int inLayerIndex = indexOf(innerLayer);
-//		if (inLayerIndex < 0)
-//		{
-//		    System.out.println("Internal error in " + tech.getTechDesc() + " surround computation. Arc layer '" +
-//                    innerLayer.getName() + "' is not valid in '" + getName() + "'");
-//			return;
-//		}
-//
-//		// find the outer layer
-//        int i = indexOf(outerLayer);
-//
-//		if (i < 0)
-//		{
-//            System.out.println("Internal error in " + tech.getTechDesc() + " surround computation. Arc layer '" +
-//                    outerLayer.getName() + "' is not valid in '" + getName() + "'");
-//			return;
-//		}
-//
-//		// compute the indentation of the outer layer
-//		long extent = layers[inLayerIndex].getGridExtend() + DBMath.lambdaToGrid(surround);
-//        layers[i] = layers[i].withGridExtend(extent);
-////		long indent = layers[inLayerIndex].getGridOffset() - DBMath.lambdaToGrid(surround)*2;
-////        layers[i] = layers[i].withGridOffset(indent);
-//        computeLayerGridExtendRange();
-//	}
-
-    void computeLayerGridExtendRange() {
-        long min = Long.MAX_VALUE, max = Long.MIN_VALUE;
-        for (int i = 0; i < layers.length; i++) {
-            Technology.ArcLayer primLayer = layers[i];
-            assert indexOf(primLayer.getLayer()) == i; // layers are unique
-            min = Math.min(min, getLayerGridExtend(i));
-            max = Math.max(max, getLayerGridExtend(i));
-        }
-        assert -Integer.MAX_VALUE/8 < min;
-//        assert 0 <= min;
-        assert max < Integer.MAX_VALUE/8 && min <= max;
-        minLayerGridExtend = (int)min;
-        maxLayerGridExtend = (int)max;
-        if (arcPin != null)
-            arcPin.resizeArcPin();
-    }
-
-    /**
 	 * Method to get MinZ and MaxZ of this ArcProto
 	 * @param array array[0] is minZ and array[1] is max
 	 */
@@ -1338,7 +1286,7 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
         }
         check();
     }
-    
+
     void dump(PrintWriter out) {
         out.println("ArcProto " + getName() + " " + getFunction());
         out.println("\tisWipable=" + isWipable());
@@ -1402,43 +1350,6 @@ public class ArcProto implements Comparable<ArcProto>, Serializable
 //            }
 //
 //        }
-        return a;
-    }
-
-    XmlParam.ArcProto makeXmlParam() {
-        XmlParam.ArcProto a = new XmlParam.ArcProto();
-        a.name = getName();
-        for (Map.Entry<String,ArcProto> e: tech.getOldArcNames().entrySet()) {
-            if (e.getValue() != this) continue;
-            assert a.oldName == null;
-            a.oldName = e.getKey();
-        }
-        a.function = getFunction();
-        a.wipable = isWipable();
-        a.curvable = isCurvable();
-        a.special = isSpecialArc();
-        a.notUsed = isNotUsed();
-        a.skipSizeInPalette = isSkipSizeInPalette();
-
-        a.elibWidthOffset = getLambdaElibWidthOffset();
-        a.extended = isExtended();
-        a.fixedAngle = isFixedAngle();
-        a.angleIncrement = getAngleIncrement();
-        a.antennaRatio = ERC.getERCTool().getAntennaRatio(this);
-        for (Technology.ArcLayer arcLayer: layers)
-            a.arcLayers.add(arcLayer.makeXmlParam());
-        if (arcPin != null) {
-            a.arcPin = new XmlParam.ArcPin();
-            a.arcPin.name = arcPin.getName();
-            PrimitivePort port = arcPin.getPort(0);
-            a.arcPin.portName = port.getName();
-            a.arcPin.elibSize = 2*arcPin.getSizeCorrector(0).getX();
-            for (ArcProto cap: port.getConnections()) {
-                if (cap.getTechnology() == tech && cap != this)
-                    a.arcPin.portArcs.add(cap.getName());
-            }
-
-        }
         return a;
     }
 
