@@ -1012,6 +1012,16 @@ public class Layer
 	 */
     public void graphicsChanged() {
         if (isFree()) return;
+
+if (graphics == null) { System.out.println("INTERNAL ERROR: null graphics on layer " + name);   return; }
+if (usePatternDisplayPref == null) { System.out.println("INTERNAL ERROR: null usePatternDisplayPref on layer " + name);   return; }
+if (usePatternPrinterPref == null) { System.out.println("INTERNAL ERROR: null usePatternPrinterPref on layer " + name);   return; }
+if (outlinePatternPref == null) { System.out.println("INTERNAL ERROR: null outlinePatternPref on layer " + name);   return; }
+if (transparentLayerPref == null) { System.out.println("INTERNAL ERROR: null transparentLayerPref on layer " + name);   return; }
+if (opacityPref == null) { System.out.println("INTERNAL ERROR: null opacityPref on layer " + name);   return; }
+if (colorPref == null) { System.out.println("INTERNAL ERROR: null colorPref on layer " + name);   return; }
+if (patternPref == null) { System.out.println("INTERNAL ERROR: null patternPref on layer " + name);   return; }
+
         usePatternDisplayPref.setBoolean(graphics.isPatternedOnDisplay());
         usePatternPrinterPref.setBoolean(graphics.isPatternedOnPrinter());
         outlinePatternPref.setInt(graphics.getOutlined().getIndex());
