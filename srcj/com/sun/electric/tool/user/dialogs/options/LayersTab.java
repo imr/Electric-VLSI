@@ -133,7 +133,7 @@ public class LayersTab extends PreferencePanel
 				Layer layer = lIt.next();
 				if (layer.isPseudoLayer() && layer.getNonPseudoLayer() != layer) continue;
 				layerName.addItem(layer.getName());
-                ColorPatternPanel.Info li = new ColorPatternPanel.Info(layer.getFactoryGraphics());
+                ColorPatternPanel.Info li = new ColorPatternPanel.Info(layer.getGraphics());
                 layerMap.put(layer, li);
 			}
 
