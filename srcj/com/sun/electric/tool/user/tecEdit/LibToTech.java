@@ -2679,8 +2679,11 @@ public class LibToTech
 			if (ni.primitiveNodeGroupNames == null) pn = new Xml.PrimitiveNode(); else
 			{
 				Xml.PrimitiveNodeGroup png = new Xml.PrimitiveNodeGroup();
-				for(String s : ni.primitiveNodeGroupNames)
-					png.nodes.add(s);
+				for(String s : ni.primitiveNodeGroupNames) {
+                    Xml.PrimitiveNodeInGroup n = new Xml.PrimitiveNodeInGroup();
+                    n.name = s;
+					png.nodes.add(n);
+                }
 				pn = png;
 			}
 			pn.name = ni.name;

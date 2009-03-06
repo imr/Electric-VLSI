@@ -1627,7 +1627,8 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 	 */
 	public PrimitivePort getPort(PortProtoId portProtoId) {
         if (portProtoId.getParentId() != protoId) throw new IllegalArgumentException();
-        return portsByChronIndex[portProtoId.getChronIndex()];
+        int chronIndex = portProtoId.chronIndex;
+        return chronIndex < portsByChronIndex.length ? portsByChronIndex[chronIndex] : null;
     }
 
 	/**

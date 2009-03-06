@@ -38,7 +38,7 @@ import com.sun.electric.technology.DRCTemplate;
 import com.sun.electric.technology.Foundry;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.TechFactory;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.XMLRules;
@@ -712,8 +712,7 @@ public class MoCMOS extends Technology
         Xml.PrimitiveNode[] metalWellContactNodes = new Xml.PrimitiveNode[2];
         Xml.PrimitiveNode[] metalActiveContactNodes = new Xml.PrimitiveNode[2];
         Xml.PrimitiveNode[] metal1PolyContactNodes = new Xml.PrimitiveNode[3];
-        Xml.PrimitiveNode[] transistorNodes = new Xml.PrimitiveNode[2];
-        Xml.PrimitiveNode[] thickTransistorNodes = new Xml.PrimitiveNode[2];
+        Xml.PrimitiveNode[] transistorNodeGroups = new Xml.PrimitiveNode[2];
         Xml.PrimitiveNode[] scalableTransistorNodes = new Xml.PrimitiveNode[2];
         Xml.PrimitiveNode npnTransistorNode = tech.findNode("NPN-Transistor");
         for (int i = 0; i < metalLayers.length; i++) {
@@ -735,8 +734,7 @@ public class MoCMOS extends Technology
             activePinNodes[i] = tech.findNode(ts + "-Active-Pin");
             metalWellContactNodes[i] = tech.findNode("Metal-1-" + ts + "-Well-Con");
             metalActiveContactNodes[i] = tech.findNode("Metal-1-" + ts + "-Active-Con");
-            transistorNodes[i] = tech.findNode(ts + "-Transistor");
-            thickTransistorNodes[i] = tech.findNode("Thick-" + ts + "-Transistor");
+            transistorNodeGroups[i] = tech.findNode(ts + "-Transistor");
             scalableTransistorNodes[i] = tech.findNode(ts + "-Transistor-Scalable");
         }
 
@@ -790,8 +788,7 @@ public class MoCMOS extends Technology
             resizeSquare(con, activeC, metalC, activeC, wellC, selectC, 0);
             resizeContacts(con, rd);
 
-            resizeSerpentineTransistor(transistorNodes[i], rd);
-            resizeSerpentineTransistor(thickTransistorNodes[i], rd);
+            resizeSerpentineTransistor(transistorNodeGroups[i], rd);
         }
         resizeContacts(npnTransistorNode, rd);
         {
@@ -902,7 +899,7 @@ public class MoCMOS extends Technology
         Xml.NodeLayer polyNode = transistor.nodeLayers.get(6); // poly
         Xml.NodeLayer wellNode = transistor.nodeLayers.get(7); // well
         Xml.NodeLayer selNode = transistor.nodeLayers.get(8); // select
-        Xml.NodeLayer thickNode = transistor.nodeLayers.size() > 9 ? transistor.nodeLayers.get(9) : null;
+        Xml.NodeLayer thickNode = transistor.nodeLayers.get(9); // thick
         double hw = 0.5*rd.gate_width;
         double hl = 0.5*rd.gate_length;
         double gateX = hw;
@@ -917,17 +914,16 @@ public class MoCMOS extends Technology
         double selY  = diffY + rd.pplus_overhang_diff;
         double thickX = diffX + rd.thick_overhang;
         double thickY = diffY + rd.thick_overhang;
-        resizeSerpentineLayer(activeTNode, hw, -gateX,  gateX,  gateY, diffY);
-        resizeSerpentineLayer(activeBNode, hw, -diffX,  diffX, -diffY, -gateY);
-        resizeSerpentineLayer(polyCNode,   hw, -gateX,  gateX, -gateY, gateY);
-        resizeSerpentineLayer(polyLNode,   hw, -polyX, -gateX, -polyY, polyY);
-        resizeSerpentineLayer(polyRNode,   hw,  gateX,  polyX, -polyY, polyY);
-        resizeSerpentineLayer(activeNode,  hw, -diffX,  diffX, -diffY, diffY);
-        resizeSerpentineLayer(polyNode,    hw, -polyX,  polyX, -polyY, polyY);
-        resizeSerpentineLayer(wellNode,    hw, -wellX,  wellX, -wellY, wellY);
-        resizeSerpentineLayer(selNode,     hw, -selX,   selX,  -selY,  selY);
-        if (thickNode != null)
-            resizeSerpentineLayer(thickNode, hw, -thickX, thickX, -thickY, thickY);
+        resizeSerpentineLayer(activeTNode, hw, -gateX,  gateX,   gateY,  diffY);
+        resizeSerpentineLayer(activeBNode, hw, -diffX,  diffX,  -diffY, -gateY);
+        resizeSerpentineLayer(polyCNode,   hw, -gateX,  gateX,  -gateY,  gateY);
+        resizeSerpentineLayer(polyLNode,   hw, -polyX, -gateX,  -polyY,  polyY);
+        resizeSerpentineLayer(polyRNode,   hw,  gateX,  polyX,  -polyY,  polyY);
+        resizeSerpentineLayer(activeNode,  hw, -diffX,  diffX,  -diffY,  diffY);
+        resizeSerpentineLayer(polyNode,    hw, -polyX,  polyX,  -polyY,  polyY);
+        resizeSerpentineLayer(wellNode,    hw, -wellX,  wellX,  -wellY,  wellY);
+        resizeSerpentineLayer(selNode,     hw, -selX,   selX,   -selY,   selY);
+        resizeSerpentineLayer(thickNode,   hw, -thickX, thickX, -thickY, thickY);
     }
 
     private static void resizeSerpentineLayer(Xml.NodeLayer nl, double hw, double lx, double hx, double ly, double hy) {
@@ -1084,6 +1080,24 @@ public class MoCMOS extends Technology
     }
 
 /******************** OVERRIDES ********************/
+    /**
+     * Method to convert old primitive port names to their proper PortProtos.
+     * @param portName the unknown port name, read from an old Library.
+     * @param np the PrimitiveNode on which this port resides.
+     * @return the proper PrimitivePort to use for this name.
+     */
+    @Override
+    public PrimitivePort convertOldPortName(String portName, PrimitiveNode np)
+    {
+        String[] transistorPorts = { "poly-left", "diff-top", "poly-right", "diff-bottom" };
+        for (int i = 0; i < transistorPorts.length; i++)
+        {
+            if (portName.endsWith(transistorPorts[i]))
+                return (PrimitivePort)np.findPortProto(transistorPorts[i]);
+        }
+        return super.convertOldPortName(portName, np);
+    }
+
     /**
      * Method to set the size of a transistor NodeInst in this Technology.
      * Override because for MOCMOS sense of "width" and "length" are

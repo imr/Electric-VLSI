@@ -1701,217 +1701,11 @@
         <minSizeRule width="15.0" height="15.0" rule="?"/>
     </primitiveNode>
 
-    <primitiveNode name="P-Transistor" fun="TRAPMOS">
-        <diskOffset untilVersion="1" x="7.5" y="11.0"/>
-        <diskOffset untilVersion="2" x="1.5" y="1.0"/>
-        <nodeBase>
-            <box>
-                <lambdaBox klx="-1.5" khx="1.5" kly="-1.0" khy="1.0"/>
-            </box>
-        </nodeBase>
-        <nodeLayer layer="P-Active" style="FILLED" portNum="1" electrical="true">
-            <serpbox kly="1.0" lWidth="4.0" rWidth="0.0" tExtent="0.0" bExtent="0.0">
-                <lambdaBox klx="-1.5" khx="1.5" kly="1.0" khy="4.0"/>
-            </serpbox>
-        </nodeLayer>
-        <nodeLayer layer="P-Active" style="FILLED" portNum="3" electrical="true">
-            <serpbox khy="-1.0" lWidth="0.0" rWidth="4.0" tExtent="0.0" bExtent="0.0">
-                <lambdaBox klx="-1.5" khx="1.5" kly="-4.0" khy="-1.0"/>
-            </serpbox>
-        </nodeLayer>
-        <nodeLayer layer="Transistor-Poly" style="FILLED" electrical="true">
-            <serpbox lWidth="1.0" rWidth="1.0" tExtent="0.0" bExtent="0.0">
-                <lambdaBox klx="-1.5" khx="1.5" kly="-1.0" khy="1.0"/>
-            </serpbox>
-        </nodeLayer>
-        <nodeLayer layer="Polysilicon-1" style="FILLED" electrical="true">
-            <serpbox khx="-1.0" lWidth="1.0" rWidth="1.0" tExtent="0.0" bExtent="2.0">
-                <lambdaBox klx="-3.5" khx="-1.5" kly="-1.0" khy="1.0"/>
-            </serpbox>
-        </nodeLayer>
-        <nodeLayer layer="Polysilicon-1" style="FILLED" electrical="true">
-            <serpbox klx="1.0" lWidth="1.0" rWidth="1.0" tExtent="2.0" bExtent="0.0">
-                <lambdaBox klx="1.5" khx="3.5" kly="-1.0" khy="1.0"/>
-            </serpbox>
-        </nodeLayer>
-        <nodeLayer layer="P-Active" style="FILLED" portNum="1" electrical="false">
-            <serpbox lWidth="4.0" rWidth="4.0" tExtent="0.0" bExtent="0.0">
-                <lambdaBox klx="-1.5" khx="1.5" kly="-4.0" khy="4.0"/>
-            </serpbox>
-        </nodeLayer>
-        <nodeLayer layer="Transistor-Poly" style="FILLED" electrical="false">
-            <serpbox lWidth="1.0" rWidth="1.0" tExtent="2.0" bExtent="2.0">
-                <lambdaBox klx="-3.5" khx="3.5" kly="-1.0" khy="1.0"/>
-            </serpbox>
-        </nodeLayer>
-        <nodeLayer layer="N-Well" style="FILLED" portNum="-1">
-            <serpbox lWidth="10.0" rWidth="10.0" tExtent="6.0" bExtent="6.0">
-                <lambdaBox klx="-7.5" khx="7.5" kly="-10.0" khy="10.0"/>
-            </serpbox>
-        </nodeLayer>
-        <nodeLayer layer="P-Select" style="FILLED" portNum="-1">
-            <serpbox lWidth="6.0" rWidth="6.0" tExtent="2.0" bExtent="2.0">
-                <lambdaBox klx="-3.5" khx="3.5" kly="-6.0" khy="6.0"/>
-            </serpbox>
-        </nodeLayer>
-        <primitivePort name="p-trans-poly-left">
-            <portAngle primary="180" range="90"/>
-            <portTopology>0</portTopology>
-            <box khx="-1.0">
-                <lambdaBox klx="-3.5" khx="-3.5" kly="0.0" khy="0.0"/>
-            </box>
-            <portArc>Polysilicon-1</portArc>
-        </primitivePort>
-        <primitivePort name="p-trans-diff-top">
-            <portAngle primary="90" range="90"/>
-            <portTopology>1</portTopology>
-            <box kly="1.0">
-                <lambdaBox klx="0.0" khx="0.0" kly="3.5" khy="4.0"/>
-            </box>
-            <portArc>P-Active</portArc>
-        </primitivePort>
-        <primitivePort name="p-trans-poly-right">
-            <portAngle primary="0" range="90"/>
-            <portTopology>0</portTopology>
-            <box klx="1.0">
-                <lambdaBox klx="3.5" khx="3.5" kly="0.0" khy="0.0"/>
-            </box>
-            <portArc>Polysilicon-1</portArc>
-        </primitivePort>
-        <primitivePort name="p-trans-diff-bottom">
-            <portAngle primary="270" range="90"/>
-            <portTopology>2</portTopology>
-            <box khy="-1.0">
-                <lambdaBox klx="0.0" khx="0.0" kly="-4.0" khy="-3.5"/>
-            </box>
-            <portArc>P-Active</portArc>
-        </primitivePort>
-        <primitivePort name="p-trans-well">
-            <portAngle primary="0" range="360"/>
-            <portTopology>3</portTopology>
-            <box klx="0.0" khx="0.0" kly="0.0" khy="0.0">
-                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
-            </box>
-            <portArc>N-Well</portArc>
-        </primitivePort>
-        <serpTrans>
-            <specialValue>7.0</specialValue>
-            <specialValue>1.5</specialValue>
-            <specialValue>2.5</specialValue>
-            <specialValue>2.0</specialValue>
-            <specialValue>1.0</specialValue>
-            <specialValue>2.0</specialValue>
-        </serpTrans>
-        <minSizeRule width="15.0" height="22.0" rule="2.1, 3.1"/>
-    </primitiveNode>
-
-    <primitiveNode name="N-Transistor" fun="TRANMOS">
-        <diskOffset untilVersion="1" x="7.5" y="11.0"/>
-        <diskOffset untilVersion="2" x="1.5" y="1.0"/>
-        <nodeBase>
-            <box>
-                <lambdaBox klx="-1.5" khx="1.5" kly="-1.0" khy="1.0"/>
-            </box>
-        </nodeBase>
-        <nodeLayer layer="N-Active" style="FILLED" portNum="1" electrical="true">
-            <serpbox kly="1.0" lWidth="4.0" rWidth="0.0" tExtent="0.0" bExtent="0.0">
-                <lambdaBox klx="-1.5" khx="1.5" kly="1.0" khy="4.0"/>
-            </serpbox>
-        </nodeLayer>
-        <nodeLayer layer="N-Active" style="FILLED" portNum="3" electrical="true">
-            <serpbox khy="-1.0" lWidth="0.0" rWidth="4.0" tExtent="0.0" bExtent="0.0">
-                <lambdaBox klx="-1.5" khx="1.5" kly="-4.0" khy="-1.0"/>
-            </serpbox>
-        </nodeLayer>
-        <nodeLayer layer="Transistor-Poly" style="FILLED" electrical="true">
-            <serpbox lWidth="1.0" rWidth="1.0" tExtent="0.0" bExtent="0.0">
-                <lambdaBox klx="-1.5" khx="1.5" kly="-1.0" khy="1.0"/>
-            </serpbox>
-        </nodeLayer>
-        <nodeLayer layer="Polysilicon-1" style="FILLED" electrical="true">
-            <serpbox khx="-1.0" lWidth="1.0" rWidth="1.0" tExtent="0.0" bExtent="2.0">
-                <lambdaBox klx="-3.5" khx="-1.5" kly="-1.0" khy="1.0"/>
-            </serpbox>
-        </nodeLayer>
-        <nodeLayer layer="Polysilicon-1" style="FILLED" electrical="true">
-            <serpbox klx="1.0" lWidth="1.0" rWidth="1.0" tExtent="2.0" bExtent="0.0">
-                <lambdaBox klx="1.5" khx="3.5" kly="-1.0" khy="1.0"/>
-            </serpbox>
-        </nodeLayer>
-        <nodeLayer layer="N-Active" style="FILLED" portNum="1" electrical="false">
-            <serpbox lWidth="4.0" rWidth="4.0" tExtent="0.0" bExtent="0.0">
-                <lambdaBox klx="-1.5" khx="1.5" kly="-4.0" khy="4.0"/>
-            </serpbox>
-        </nodeLayer>
-        <nodeLayer layer="Transistor-Poly" style="FILLED" electrical="false">
-            <serpbox lWidth="1.0" rWidth="1.0" tExtent="2.0" bExtent="2.0">
-                <lambdaBox klx="-3.5" khx="3.5" kly="-1.0" khy="1.0"/>
-            </serpbox>
-        </nodeLayer>
-        <nodeLayer layer="P-Well" style="FILLED" portNum="-1">
-            <serpbox lWidth="10.0" rWidth="10.0" tExtent="6.0" bExtent="6.0">
-                <lambdaBox klx="-7.5" khx="7.5" kly="-10.0" khy="10.0"/>
-            </serpbox>
-        </nodeLayer>
-        <nodeLayer layer="N-Select" style="FILLED" portNum="-1">
-            <serpbox lWidth="6.0" rWidth="6.0" tExtent="2.0" bExtent="2.0">
-                <lambdaBox klx="-3.5" khx="3.5" kly="-6.0" khy="6.0"/>
-            </serpbox>
-        </nodeLayer>
-        <primitivePort name="n-trans-poly-left">
-            <portAngle primary="180" range="90"/>
-            <portTopology>0</portTopology>
-            <box khx="-1.0">
-                <lambdaBox klx="-3.5" khx="-3.5" kly="0.0" khy="0.0"/>
-            </box>
-            <portArc>Polysilicon-1</portArc>
-        </primitivePort>
-        <primitivePort name="n-trans-diff-top">
-            <portAngle primary="90" range="90"/>
-            <portTopology>1</portTopology>
-            <box kly="1.0">
-                <lambdaBox klx="0.0" khx="0.0" kly="3.5" khy="4.0"/>
-            </box>
-            <portArc>N-Active</portArc>
-        </primitivePort>
-        <primitivePort name="n-trans-poly-right">
-            <portAngle primary="0" range="90"/>
-            <portTopology>0</portTopology>
-            <box klx="1.0">
-                <lambdaBox klx="3.5" khx="3.5" kly="0.0" khy="0.0"/>
-            </box>
-            <portArc>Polysilicon-1</portArc>
-        </primitivePort>
-        <primitivePort name="n-trans-diff-bottom">
-            <portAngle primary="270" range="90"/>
-            <portTopology>2</portTopology>
-            <box khy="-1.0">
-                <lambdaBox klx="0.0" khx="0.0" kly="-4.0" khy="-3.5"/>
-            </box>
-            <portArc>N-Active</portArc>
-        </primitivePort>
-        <primitivePort name="n-trans-well">
-            <portAngle primary="0" range="360"/>
-            <portTopology>3</portTopology>
-            <box klx="0.0" khx="0.0" kly="0.0" khy="0.0">
-                <lambdaBox klx="0.0" khx="0.0" kly="0.0" khy="0.0"/>
-            </box>
-            <portArc>P-Well</portArc>
-        </primitivePort>
-        <serpTrans>
-            <specialValue>7.0</specialValue>
-            <specialValue>1.5</specialValue>
-            <specialValue>2.5</specialValue>
-            <specialValue>2.0</specialValue>
-            <specialValue>1.0</specialValue>
-            <specialValue>2.0</specialValue>
-        </serpTrans>
-        <minSizeRule width="15.0" height="22.0" rule="2.1, 3.1"/>
-    </primitiveNode>
-
-    <primitiveNode name="Thick-P-Transistor" fun="TRAPMOSHV1">
-        <skipSizeInPalette/>
-        <od18/>
+    <primitiveNodeGroup name="P-Transistor" fun="TRAPMOS">
+        <primitiveNode name="P-Transistor"/>
+        <primitiveNode name="Thick-P-Transistor" fun="TRAPMOSHV1">
+            <od18/>
+        </primitiveNode>
         <diskOffset untilVersion="1" x="7.5" y="11.0"/>
         <diskOffset untilVersion="2" x="1.5" y="1.0"/>
         <nodeBase>
@@ -1965,6 +1759,9 @@
             </serpbox>
         </nodeLayer>
         <nodeLayer layer="Thick-Active" style="FILLED" portNum="-1">
+            <inNodes>
+                <primitiveNode name="Thick-P-Transistor"/>
+            </inNodes>
             <serpbox lWidth="8.0" rWidth="8.0" tExtent="4.0" bExtent="4.0">
                 <lambdaBox klx="-5.5" khx="5.5" kly="-8.0" khy="8.0"/>
             </serpbox>
@@ -2018,11 +1815,13 @@
             <specialValue>2.0</specialValue>
         </serpTrans>
         <minSizeRule width="15.0" height="22.0" rule="2.1, 3.1"/>
-    </primitiveNode>
+    </primitiveNodeGroup>
 
-    <primitiveNode name="Thick-N-Transistor" fun="TRANMOSHV1">
-        <skipSizeInPalette/>
-        <od18/>
+    <primitiveNodeGroup name="N-Transistor" fun="TRANMOS">
+        <primitiveNode name="N-Transistor"/>
+        <primitiveNode name="Thick-N-Transistor" fun="TRANMOSHV1">
+            <od18/>
+        </primitiveNode>
         <diskOffset untilVersion="1" x="7.5" y="11.0"/>
         <diskOffset untilVersion="2" x="1.5" y="1.0"/>
         <nodeBase>
@@ -2076,6 +1875,9 @@
             </serpbox>
         </nodeLayer>
         <nodeLayer layer="Thick-Active" style="FILLED" portNum="-1">
+            <inNodes>
+                <primitiveNode name="Thick-N-Transistor"/>
+            </inNodes>
             <serpbox lWidth="8.0" rWidth="8.0" tExtent="4.0" bExtent="4.0">
                 <lambdaBox klx="-5.5" khx="5.5" kly="-8.0" khy="8.0"/>
             </serpbox>
@@ -2129,7 +1931,7 @@
             <specialValue>2.0</specialValue>
         </serpTrans>
         <minSizeRule width="15.0" height="22.0" rule="2.1, 3.1"/>
-    </primitiveNode>
+    </primitiveNodeGroup>
 
     <primitiveNode name="P-Transistor-Scalable" fun="TRAPMOS">
         <diskOffset untilVersion="1" x="8.5" y="13.0"/>
@@ -2189,7 +1991,7 @@
                 <lambdaBox klx="-1.0" khx="1.0" kly="3.5" khy="5.5"/>
             </box>
         </nodeLayer>
-        <primitivePort name="p-trans-sca-poly-left">
+        <primitivePort name="poly-left">
             <portAngle primary="180" range="90"/>
             <portTopology>0</portTopology>
             <box klx="0.0" khx="0.0" kly="0.0" khy="0.0">
@@ -2197,7 +1999,7 @@
             </box>
             <portArc>Polysilicon-1</portArc>
         </primitivePort>
-        <primitivePort name="p-trans-sca-diff-top">
+        <primitivePort name="diff-top">
             <portAngle primary="90" range="90"/>
             <portTopology>1</portTopology>
             <box klx="0.0" khx="0.0" kly="0.0" khy="0.0">
@@ -2206,7 +2008,7 @@
             <portArc>P-Active</portArc>
             <portArc>Metal-1</portArc>
         </primitivePort>
-        <primitivePort name="p-trans-sca-poly-right">
+        <primitivePort name="poly-right">
             <portAngle primary="0" range="90"/>
             <portTopology>0</portTopology>
             <box klx="0.0" khx="0.0" kly="0.0" khy="0.0">
@@ -2214,7 +2016,7 @@
             </box>
             <portArc>Polysilicon-1</portArc>
         </primitivePort>
-        <primitivePort name="p-trans-sca-diff-bottom">
+        <primitivePort name="diff-bottom">
             <portAngle primary="270" range="90"/>
             <portTopology>2</portTopology>
             <box klx="0.0" khx="0.0" kly="0.0" khy="0.0">
@@ -2292,7 +2094,7 @@
                 <lambdaBox klx="-1.0" khx="1.0" kly="3.5" khy="5.5"/>
             </box>
         </nodeLayer>
-        <primitivePort name="n-trans-sca-poly-left">
+        <primitivePort name="poly-left">
             <portAngle primary="180" range="90"/>
             <portTopology>0</portTopology>
             <box klx="0.0" khx="0.0" kly="0.0" khy="0.0">
@@ -2300,7 +2102,7 @@
             </box>
             <portArc>Polysilicon-1</portArc>
         </primitivePort>
-        <primitivePort name="n-trans-sca-diff-top">
+        <primitivePort name="diff-top">
             <portAngle primary="90" range="90"/>
             <portTopology>1</portTopology>
             <box klx="0.0" khx="0.0" kly="0.0" khy="0.0">
@@ -2309,7 +2111,7 @@
             <portArc>N-Active</portArc>
             <portArc>Metal-1</portArc>
         </primitivePort>
-        <primitivePort name="n-trans-sca-poly-right">
+        <primitivePort name="poly-right">
             <portAngle primary="0" range="90"/>
             <portTopology>0</portTopology>
             <box klx="0.0" khx="0.0" kly="0.0" khy="0.0">
@@ -2317,7 +2119,7 @@
             </box>
             <portArc>Polysilicon-1</portArc>
         </primitivePort>
-        <primitivePort name="n-trans-sca-diff-bottom">
+        <primitivePort name="diff-bottom">
             <portAngle primary="270" range="90"/>
             <portTopology>2</portTopology>
             <box klx="0.0" khx="0.0" kly="0.0" khy="0.0">

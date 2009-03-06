@@ -885,7 +885,16 @@
                             <xsd:sequence>
                                 <xsd:element name="primitiveNode" maxOccurs="unbounded">
                                     <xsd:complexType>
+                                        <xsd:sequence>
+                                            <xsd:element name="lowVt" minOccurs="0"/>
+                                            <xsd:element name="highVt" minOccurs="0"/>
+                                            <xsd:element name="nativeBit" minOccurs="0"/>
+                                            <xsd:element name="od18" minOccurs="0"/>
+                                            <xsd:element name="od25" minOccurs="0"/>
+                                            <xsd:element name="od33" minOccurs="0"/>
+                                        </xsd:sequence>
                                         <xsd:attribute name="name" type="tns:PrimitiveNodeName" use="required"/>
+                                        <xsd:attribute name="fun" type="tns:PrimitiveNodeFun"/>
                                     </xsd:complexType>
                                 </xsd:element>
                                 <xsd:group ref="tns:PrimitiveNodeImpl"/>

@@ -188,7 +188,18 @@ public class Xml {
     }
 
     public static class PrimitiveNodeGroup extends PrimitiveNode {
-        public final List<String> nodes = new ArrayList<String>();
+        public final List<PrimitiveNodeInGroup> nodes = new ArrayList<PrimitiveNodeInGroup>();
+    }
+
+    public static class PrimitiveNodeInGroup {
+        public String name;
+        public boolean lowVt;
+        public boolean highVt;
+        public boolean nativeBit;
+        public boolean od18;
+        public boolean od25;
+        public boolean od33;
+        public com.sun.electric.technology.PrimitiveNode.Function function;
     }
 
     public static class PrimitiveNode implements Serializable {
@@ -537,6 +548,7 @@ public class Xml {
         private boolean foreground;
         private ArcProto curArc;
         private PrimitiveNodeGroup curNodeGroup;
+        private PrimitiveNodeInGroup curNodeInGroup;
         private PrimitiveNode curNode;
         private NodeLayer curNodeLayer;
         private PrimitivePort curPort;
@@ -943,9 +955,20 @@ public class Xml {
                     break;
                 case primitiveNode:
                     if (curNodeLayer != null) {
-                        curNodeLayer.inNodes.set(curNodeGroup.nodes.indexOf(a("name")));
+                        String nodeName = a("name");
+                        int i = 0;
+                        while (i < curNodeGroup.nodes.size() && !curNodeGroup.nodes.get(i).name.equals(nodeName))
+                            i++;
+                        if (i >= curNodeGroup.nodes.size())
+                            throw new SAXException("No node "+nodeName+" in group "+curNodeGroup.name);
+                        curNodeLayer.inNodes.set(i);
                     } else if (curNodeGroup != null) {
-                        curNodeGroup.nodes.add(a("name"));
+                        curNodeInGroup = new PrimitiveNodeInGroup();
+                        curNodeInGroup.name = a("name");
+                        String functionStr = a_("fun");
+                        if (functionStr != null)
+                            curNodeInGroup.function = com.sun.electric.technology.PrimitiveNode.Function.valueOf(functionStr);
+                        curNodeGroup.nodes.add(curNodeInGroup);
                     } else {
                         curNode = new PrimitiveNode();
                         curNode.name = a("name");
@@ -971,22 +994,40 @@ public class Xml {
                     curNode.edgeSelect = true;
                     break;
                 case lowVt:
-                    curNode.lowVt = true;
+                    if (curNodeInGroup != null)
+                        curNodeInGroup.lowVt = true;
+                    else
+                        curNode.lowVt = true;
                     break;
                 case highVt:
-                    curNode.highVt = true;
+                    if (curNodeInGroup != null)
+                        curNodeInGroup.highVt = true;
+                    else
+                        curNode.highVt = true;
                     break;
                 case nativeBit:
-                    curNode.nativeBit = true;
+                    if (curNodeInGroup != null)
+                        curNodeInGroup.nativeBit = true;
+                    else
+                        curNode.nativeBit = true;
                     break;
                 case od18:
-                    curNode.od18 = true;
+                    if (curNodeInGroup != null)
+                        curNodeInGroup.od18 = true;
+                    else
+                        curNode.od18 = true;
                     break;
                 case od25:
-                    curNode.od25 = true;
+                    if (curNodeInGroup != null)
+                        curNodeInGroup.od25 = true;
+                    else
+                        curNode.od25 = true;
                     break;
                 case od33:
-                    curNode.od33 = true;
+                    if (curNodeInGroup != null)
+                        curNodeInGroup.od33 = true;
+                    else
+                        curNode.od33 = true;
                     break;
                 case defaultHeight:
                     curDistance = curNode.defaultHeight;
@@ -1349,6 +1390,8 @@ public class Xml {
                     if (curNodeGroup == null) {
                         tech.nodes.add(curNode);
                         curNode = null;
+                    } else if (curNodeInGroup != null) {
+                        curNodeInGroup = null;
                     }
                     break;
                 case nodeLayer:
@@ -1830,11 +1873,31 @@ public class Xml {
         private void writeXml(Xml.PrimitiveNode ni) {
             if (ni instanceof Xml.PrimitiveNodeGroup) {
                 b(XmlKeyword.primitiveNodeGroup); a("name", ni.name); a("fun", ni.function.name()); cl();
-                List<String> nodeNames = ((Xml.PrimitiveNodeGroup)ni).nodes;
-                for (String nodeName: nodeNames) {
-                    b(XmlKeyword.primitiveNode); a("name", nodeName); el();
+                List<PrimitiveNodeInGroup> nodes = ((Xml.PrimitiveNodeGroup)ni).nodes;
+                for (PrimitiveNodeInGroup n: nodes) {
+                    b(XmlKeyword.primitiveNode); a("name", n.name);
+                    if (n.function != null)
+                        a("fun", n.function.name());
+                    if (n.highVt || n.lowVt || n.nativeBit || n.od18 || n.od25 || n.od33) {
+                        cl();
+                        if (n.lowVt)
+                            bel(XmlKeyword.lowVt);
+                        if (n.highVt)
+                            bel(XmlKeyword.highVt);
+                        if (n.nativeBit)
+                            bel(XmlKeyword.nativeBit);
+                        if (n.od18)
+                            bel(XmlKeyword.od18);
+                        if (n.od25)
+                            bel(XmlKeyword.od25);
+                        if (n.od33)
+                            bel(XmlKeyword.od33);
+                        el(XmlKeyword.primitiveNode);
+                    } else {
+                        el();
+                    }
                 }
-                writeXmlImpl(ni, nodeNames);
+                writeXmlImpl(ni, nodes);
                 el(XmlKeyword.primitiveNodeGroup);
             } else {
                 b(XmlKeyword.primitiveNode); a("name", ni.name); a("fun", ni.function.name()); cl();
@@ -1844,7 +1907,7 @@ public class Xml {
             }
         }
 
-        private void writeXmlImpl(Xml.PrimitiveNode ni, List<String> nodeNames) {
+        private void writeXmlImpl(Xml.PrimitiveNode ni, List<PrimitiveNodeInGroup> nodes) {
             if (ni.shrinkArcs)
                 bel(XmlKeyword.shrinkArcs);
             if (ni.square)
@@ -1918,9 +1981,9 @@ public class Xml {
                 cl();
                 if (nl.inNodes != null) {
                     bcl(XmlKeyword.inNodes);
-                    for (int i = 0; i < nodeNames.size(); i++) {
+                    for (int i = 0; i < nodes.size(); i++) {
                         if (nl.inNodes.get(i)) {
-                            b(XmlKeyword.primitiveNode); a("name", nodeNames.get(i)); el();
+                            b(XmlKeyword.primitiveNode); a("name", nodes.get(i).name); el();
                         }
                     }
                     el(XmlKeyword.inNodes);

@@ -47,7 +47,7 @@ public class PrimitiveNodeGroup {
     private final Technology.NodeLayer[] nodeLayers;
     private final List<PrimitiveNode> nodes = new ArrayList<PrimitiveNode>();
     private final List<PrimitiveNode> unmodifiableNodes = Collections.unmodifiableList(nodes);
-    private final Xml.PrimitiveNode n;
+    private Xml.PrimitiveNode n;
     private final EPoint sizeCorrector1;
     private final EPoint sizeCorrector2;
     private final String minSizeRule;
@@ -205,7 +205,7 @@ public class PrimitiveNodeGroup {
         }
     }
 
-    private PrimitiveNode makePrimitiveNode(String name, int nodeIndex) {
+    private PrimitiveNode makePrimitiveNode(String name, PrimitiveNode.Function function, int nodeIndex) {
         boolean needElectricalLayers = false;
         assert nodeLayers.length == n.nodeLayers.size();
         ArrayList<Technology.NodeLayer> visualNodeLayers = new ArrayList<Technology.NodeLayer>();
@@ -226,7 +226,7 @@ public class PrimitiveNodeGroup {
         PrimitiveNode pnp = PrimitiveNode.newInstance(name, tech, sizeCorrector1, sizeCorrector2, minSizeRule,
                 defaultWidth, defaultHeight,
                 fullRectangle, baseRectangle, visualNodeLayers.toArray(new Technology.NodeLayer[visualNodeLayers.size()]));
-        pnp.setFunction(n.function);
+        pnp.setFunction(function);
         if (needElectricalLayers)
             pnp.setElectricalLayers(electricalNodeLayers.toArray(new Technology.NodeLayer[electricalNodeLayers.size()]));
         if (n.shrinkArcs) {
@@ -292,14 +292,28 @@ public class PrimitiveNodeGroup {
         if (n instanceof Xml.PrimitiveNodeGroup) {
             Xml.PrimitiveNodeGroup g = (Xml.PrimitiveNodeGroup)n;
             for (int i = 0; i < g.nodes.size(); i++) {
-                String nodeName = g.nodes.get(i);
-                PrimitiveNode pnp = group.makePrimitiveNode(nodeName, i);
+                Xml.PrimitiveNodeInGroup subN = g.nodes.get(i);
+                PrimitiveNode.Function function = subN.function != null ? subN.function : g.function;
+                PrimitiveNode pnp = group.makePrimitiveNode(subN.name, function, i);
+                if (subN.lowVt)
+                    pnp.setNodeBit(PrimitiveNode.LOWVTBIT);
+                if (subN.highVt)
+                    pnp.setNodeBit(PrimitiveNode.HIGHVTBIT);
+                if (subN.nativeBit)
+                    pnp.setNodeBit(PrimitiveNode.NATIVEBIT);
+                if (subN.od18)
+                    pnp.setNodeBit(PrimitiveNode.OD18BIT);
+                if (subN.od25)
+                    pnp.setNodeBit(PrimitiveNode.OD25BIT);
+                if (subN.od33)
+                    pnp.setNodeBit(PrimitiveNode.OD33BIT);
+                    
                 group.nodes.add(pnp);
                 pnp.group = group;
             }
             tech.primitiveNodeGroups.add(group);
         } else {
-            PrimitiveNode pnp = group.makePrimitiveNode(n.name, -1);
+            PrimitiveNode pnp = group.makePrimitiveNode(n.name, n.function, -1);
             if (n.oldName != null)
                 tech.oldNodeNames.put(n.oldName, pnp);
         }
@@ -308,5 +322,8 @@ public class PrimitiveNodeGroup {
     Xml.PrimitiveNode makeXml() {
         return n;
     }
-
+    
+    void copyState(PrimitiveNodeGroup that) {
+        n = that.n;
+    }
 }

@@ -907,20 +907,20 @@ public class ROMGenerator
 
 		// get pointers to primitives
 		NodeProto nmos = tech.findNodeProto("N-Transistor");
-		PortProto nmosg1port = nmos.findPortProto("n-trans-poly-right");
-		PortProto nmosg2port = nmos.findPortProto("n-trans-poly-left");
-		PortProto nmosd1port = nmos.findPortProto("n-trans-diff-top");
-		PortProto nmosd2port = nmos.findPortProto("n-trans-diff-bottom");
+		PortProto nmosg1port = nmos.findPortProto("poly-right");
+		PortProto nmosg2port = nmos.findPortProto("poly-left");
+		PortProto nmosd1port = nmos.findPortProto("diff-top");
+		PortProto nmosd2port = nmos.findPortProto("diff-bottom");
 		double[] nmosbox = {-nmos.getDefWidth()/2-lambda/2,
 							nmos.getDefWidth()/2+lambda/2,
 							-nmos.getDefHeight()/2,
 							nmos.getDefHeight()/2};
 
 		NodeProto pmos = tech.findNodeProto("P-Transistor");
-		PortProto pmosg1port = pmos.findPortProto("p-trans-poly-right");
-		PortProto pmosg2port = pmos.findPortProto("p-trans-poly-left");
-		PortProto pmosd1port = pmos.findPortProto("p-trans-diff-top");
-		PortProto pmosd2port = pmos.findPortProto("p-trans-diff-bottom");
+		PortProto pmosg1port = pmos.findPortProto("poly-right");
+		PortProto pmosg2port = pmos.findPortProto("poly-left");
+		PortProto pmosd1port = pmos.findPortProto("diff-top");
+		PortProto pmosd2port = pmos.findPortProto("diff-bottom");
 		double bbb = 15;
 		double ccc = 23;
 		double[] pmosbox = {-bbb*lambda/2, bbb*lambda/2, -ccc*lambda/2, ccc*lambda/2};
@@ -1537,10 +1537,10 @@ public class ROMGenerator
 
 		// get pointers to primitives
 		NodeProto nmos = tech.findNodeProto("N-Transistor");
-		PortProto nmosg1port = nmos.findPortProto("n-trans-poly-right");
-		PortProto nmosg2port = nmos.findPortProto("n-trans-poly-left");
-		PortProto nmosd1port = nmos.findPortProto("n-trans-diff-top");
-		PortProto nmosd2port = nmos.findPortProto("n-trans-diff-bottom");
+		PortProto nmosg1port = nmos.findPortProto("poly-right");
+		PortProto nmosg2port = nmos.findPortProto("poly-left");
+		PortProto nmosd1port = nmos.findPortProto("diff-top");
+		PortProto nmosd2port = nmos.findPortProto("diff-bottom");
 		double[] nmosbox = {-nmos.getDefWidth()/2-lambda/2,
 	 					 nmos.getDefWidth()/2+lambda/2,
 						 -nmos.getDefHeight()/2,
@@ -1952,10 +1952,10 @@ public class ROMGenerator
 
 		// get pointers to primitives
 		NodeProto pmos = tech.findNodeProto("P-Transistor");
-		PortProto pmosg1port = pmos.findPortProto("p-trans-poly-right");
-		PortProto pmosg2port = pmos.findPortProto("p-trans-poly-left");
-		PortProto pmosd1port = pmos.findPortProto("p-trans-diff-top");
-		PortProto pmosd2port = pmos.findPortProto("p-trans-diff-bottom");
+		PortProto pmosg1port = pmos.findPortProto("poly-right");
+		PortProto pmosg2port = pmos.findPortProto("poly-left");
+		PortProto pmosd1port = pmos.findPortProto("diff-top");
+		PortProto pmosd2port = pmos.findPortProto("diff-bottom");
 		double[] pmosbox = {-pmos.getDefWidth()/2-lambda/2,
 						 pmos.getDefWidth()/2+lambda/2,
 						 -pmos.getDefHeight()/2,
@@ -2399,10 +2399,10 @@ public class ROMGenerator
 
 		// get pointers to primitives
 		NodeProto nmos = tech.findNodeProto("N-Transistor");
-		PortProto nmosg1port = nmos.findPortProto("n-trans-poly-right");
-		PortProto nmosg2port = nmos.findPortProto("n-trans-poly-left");
-		PortProto nmosd1port = nmos.findPortProto("n-trans-diff-top");
-		PortProto nmosd2port = nmos.findPortProto("n-trans-diff-bottom");
+		PortProto nmosg1port = nmos.findPortProto("poly-right");
+		PortProto nmosg2port = nmos.findPortProto("poly-left");
+		PortProto nmosd1port = nmos.findPortProto("diff-top");
+		PortProto nmosd2port = nmos.findPortProto("diff-bottom");
 		double[] nmosbox = {-nmos.getDefWidth()/2-lambda/2,
 						 nmos.getDefWidth()/2+lambda/2,
 						 -nmos.getDefHeight()/2,
@@ -2702,19 +2702,19 @@ public class ROMGenerator
 
 		// get pointers to primitives
 		NodeProto nmos = tech.findNodeProto("N-Transistor");
-		PortProto nmosg1port = nmos.findPortProto("n-trans-poly-right");
-		PortProto nmosg2port = nmos.findPortProto("n-trans-poly-left");
-		PortProto nmosd1port = nmos.findPortProto("n-trans-diff-top");
-		PortProto nmosd2port = nmos.findPortProto("n-trans-diff-bottom");
+		PortProto nmosg1port = nmos.findPortProto("poly-right");
+		PortProto nmosg2port = nmos.findPortProto("poly-left");
+		PortProto nmosd1port = nmos.findPortProto("diff-top");
+		PortProto nmosd2port = nmos.findPortProto("diff-bottom");
 		double[] nmosbox = {-nmos.getDefWidth()/2-lambda/2,
 						 nmos.getDefWidth()/2+lambda/2,
 						 -nmos.getDefHeight()/2,
 						 nmos.getDefHeight()/2};
 
 		NodeProto pmos = tech.findNodeProto("P-Transistor");
-		PortProto pmosg2port = pmos.findPortProto("p-trans-poly-left");
-		PortProto pmosd1port = pmos.findPortProto("p-trans-diff-top");
-		PortProto pmosd2port = pmos.findPortProto("p-trans-diff-bottom");
+		PortProto pmosg2port = pmos.findPortProto("poly-left");
+		PortProto pmosd1port = pmos.findPortProto("diff-top");
+		PortProto pmosd2port = pmos.findPortProto("diff-bottom");
 		double[] pmosbox = {-pmos.getDefWidth()/2-lambda/2,
 						 pmos.getDefWidth()/2+lambda/2,
 						 -pmos.getDefHeight()/2,
@@ -3314,20 +3314,20 @@ public class ROMGenerator
 
 		// get pointers to primitives
 		NodeProto nmos = tech.findNodeProto("N-Transistor");
-		PortProto nmosg1port = nmos.findPortProto("n-trans-poly-right");
-		PortProto nmosg2port = nmos.findPortProto("n-trans-poly-left");
-		PortProto nmosd1port = nmos.findPortProto("n-trans-diff-top");
-		PortProto nmosd2port = nmos.findPortProto("n-trans-diff-bottom");
+		PortProto nmosg1port = nmos.findPortProto("poly-right");
+		PortProto nmosg2port = nmos.findPortProto("poly-left");
+		PortProto nmosd1port = nmos.findPortProto("diff-top");
+		PortProto nmosd2port = nmos.findPortProto("diff-bottom");
 		double[] nmosbox = {-nmos.getDefWidth()/2-lambda/2,
 						 nmos.getDefWidth()/2+lambda/2,
 						 -nmos.getDefHeight()/2,
 						 nmos.getDefHeight()/2};
 
 		NodeProto pmos = tech.findNodeProto("P-Transistor");
-		PortProto pmosg1port = pmos.findPortProto("p-trans-poly-right");
-		PortProto pmosg2port = pmos.findPortProto("p-trans-poly-left");
-		PortProto pmosd1port = pmos.findPortProto("p-trans-diff-top");
-		PortProto pmosd2port = pmos.findPortProto("p-trans-diff-bottom");
+		PortProto pmosg1port = pmos.findPortProto("poly-right");
+		PortProto pmosg2port = pmos.findPortProto("poly-left");
+		PortProto pmosd1port = pmos.findPortProto("diff-top");
+		PortProto pmosd2port = pmos.findPortProto("diff-bottom");
 		double[] pmosbox = {-pmos.getDefWidth()/2-lambda/2,
 						 pmos.getDefWidth()/2+lambda/2,
 						 -pmos.getDefHeight()/2,

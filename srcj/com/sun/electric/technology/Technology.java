@@ -1441,9 +1441,24 @@ public class Technology implements Comparable<Technology>, Serializable
         for (int i = 0; i < nodes.size(); i++) {
             PrimitiveNode oldN = oldItn.next();
             PrimitiveNode newN = newItn.next();
+//            if (oldN.getPrimitiveNodeGroup() != null) {
+//                assert newN.getPrimitiveNodeGroup() != null;
+//                continue;
+//            }
             oldN.copyState(newN);
         }
         assert !oldItn.hasNext() && !newItn.hasNext();
+        
+        assert primitiveNodeGroups.size() == that.primitiveNodeGroups.size();
+        Iterator<PrimitiveNodeGroup> oldItg = primitiveNodeGroups.iterator();
+        Iterator<PrimitiveNodeGroup> newItg = that.primitiveNodeGroups.iterator();
+        for (int i = 0; i < primitiveNodeGroups.size(); i++) {
+            PrimitiveNodeGroup oldG = oldItg.next();
+            PrimitiveNodeGroup newG = newItg.next();
+            oldG.copyState(newG);
+        }
+        assert !oldItg.hasNext() && !newItg.hasNext();
+      
     }
 
     protected void setNotUsed(int numPolys) {
