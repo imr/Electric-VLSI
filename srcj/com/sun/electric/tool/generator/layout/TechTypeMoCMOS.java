@@ -48,12 +48,12 @@ public class TechTypeMoCMOS extends TechType {
 	@Override
 	public MosInst newNmosInst(double x, double y, 
 							   double w, double l, Cell parent) {
-		return new MosInst.MosInstH('n', x, y, w, l, this, parent);
+		return new MosInst.MosInstH1('n', x, y, w, l, this, parent);
 	}
 	@Override
 	public MosInst newPmosInst(double x, double y, 
 							   double w, double l, Cell parent) {
-		return new MosInst.MosInstH('p', x, y, w, l, this, parent);
+		return new MosInst.MosInstH1('p', x, y, w, l, this, parent);
 	}
 	@Override
 	public String name() {return "MOCMOS";}

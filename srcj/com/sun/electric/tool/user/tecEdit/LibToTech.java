@@ -27,6 +27,7 @@ package com.sun.electric.tool.user.tecEdit;
 
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
@@ -2704,7 +2705,7 @@ public class LibToTech
 			pn.od33 = ni.od33;
 			EPoint minFullSize = EPoint.fromLambda(0.5*ni.xSize, 0.5*ni.ySize);
 
-			pn.sizeOffset = ni.so;
+//			pn.sizeOffset = ni.so;
 //			double lx = -minFullSize.getLambdaX();
 //			double hx = minFullSize.getLambdaX();
 //			double ly = -minFullSize.getLambdaY();
@@ -2769,6 +2770,13 @@ public class LibToTech
 				pn.nodeSizeRule.height = ni.nodeSizeRule.getHeight();
 				pn.nodeSizeRule.rule = ni.nodeSizeRule.getRuleName();
 			}
+
+            ERectangle base = calcBaseRectangle(ni.so, pn.nodeLayers, ni.nodeSizeRule);
+            pn.baseLX.value = base.getLambdaMinX();
+            pn.baseHX.value = base.getLambdaMaxX();
+            pn.baseLY.value = base.getLambdaMinY();
+            pn.baseHY.value = base.getLambdaMaxY();
+
 			t.nodes.add(pn);
 		}
 
@@ -2815,6 +2823,55 @@ public class LibToTech
 
 		return t;
 	}
+
+    private ERectangle calcBaseRectangle(SizeOffset so, List<Xml.NodeLayer> nodeLayers, PrimitiveNode.NodeSizeRule nodeSizeRule) {
+        long lx, hx, ly, hy;
+        if (nodeSizeRule != null) {
+            hx = DBMath.lambdaToGrid(0.5*nodeSizeRule.getWidth());
+            lx = -hx;
+            hy = DBMath.lambdaToGrid(0.5*nodeSizeRule.getHeight());
+            ly = -hy;
+        } else {
+            lx = Long.MAX_VALUE;
+            hx = Long.MIN_VALUE;
+            ly = Long.MAX_VALUE;
+            hy = Long.MIN_VALUE;
+            for (int i = 0; i < nodeLayers.size(); i++) {
+                Xml.NodeLayer nl = nodeLayers.get(i);
+                long x, y;
+                if (nl.representation == Technology.NodeLayer.BOX || nl.representation == Technology.NodeLayer.MULTICUTBOX) {
+                    x = DBMath.lambdaToGrid(nl.lx.value);
+                    lx = Math.min(lx, x);
+                    hx = Math.max(hx, x);
+                    x = DBMath.lambdaToGrid(nl.hx.value);
+                    lx = Math.min(lx, x);
+                    hx = Math.max(hx, x);
+                    y = DBMath.lambdaToGrid(nl.ly.value);
+                    ly = Math.min(ly, y);
+                    hy = Math.max(hy, y);
+                    y = DBMath.lambdaToGrid(nl.hy.value);
+                    ly = Math.min(ly, y);
+                    hy = Math.max(hy, y);
+                } else {
+                    for (Technology.TechPoint p: nl.techPoints) {
+                        x = p.getX().getGridAdder();
+                        lx = Math.min(lx, x);
+                        hx = Math.max(hx, x);
+                        y = p.getY().getGridAdder();
+                        ly = Math.min(ly, y);
+                        hy = Math.max(hy, y);
+                    }
+                }
+            }
+        }
+        if (so != null) {
+            lx += so.getLowXGridOffset();
+            hx -= so.getHighXGridOffset();
+            ly += so.getLowYGridOffset();
+            hy -= so.getHighYGridOffset();
+        }
+        return ERectangle.fromGrid(lx, ly, hx - lx, hy - ly);
+    }
 
 	private Xml.NodeLayer makeNodeLayerDetails(NodeInfo.LayerDetails nl, boolean isSerp, EPoint correction) {
 		Xml.NodeLayer nld = new Xml.NodeLayer();

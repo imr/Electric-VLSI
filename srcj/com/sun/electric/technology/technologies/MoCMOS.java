@@ -840,7 +840,6 @@ public class MoCMOS extends Technology
             a.diskOffset.put(version2, Double.valueOf(baseExt));
         else
             a.diskOffset.clear();
-        assert n.hasNodeBase;
         n.baseLX.value = n.baseLY.value = baseExt != 0 ? -baseExt : 0;
         n.baseHX.value = n.baseHY.value = baseExt;
         // n.setDefSize
@@ -868,7 +867,6 @@ public class MoCMOS extends Technology
         if (sizeCorrector1 == null)
             sizeCorrector1 = sizeCorrector2;
 
-        assert n.hasNodeBase;
         n.baseLX.value = n.baseLY.value = base != 0 ? -base : 0;
         n.baseHX.value = n.baseHY.value = base;
 

@@ -23,8 +23,10 @@
  */
 package com.sun.electric.technology;
 
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.technology.Technology.TechPoint;
 import com.sun.electric.tool.Job;
@@ -229,8 +231,6 @@ public class Xml {
         public final Distance baseHX = new Distance();
         public final Distance baseLY = new Distance();
         public final Distance baseHY = new Distance();
-        public boolean hasNodeBase;
-        public SizeOffset sizeOffset;
 
         public ProtectionType protection;
         public final List<NodeLayer> nodeLayers = new ArrayList<NodeLayer>();
@@ -550,6 +550,7 @@ public class Xml {
         private PrimitiveNodeGroup curNodeGroup;
         private PrimitiveNodeInGroup curNodeInGroup;
         private PrimitiveNode curNode;
+        private boolean curNodeHasNodeBase;
         private NodeLayer curNodeLayer;
         private PrimitivePort curPort;
         private int curSpecialValueIndex;
@@ -945,6 +946,7 @@ public class Xml {
                     break;
                 case primitiveNodeGroup:
                     curNode = curNodeGroup = new PrimitiveNodeGroup();
+                    curNodeHasNodeBase =  false;
                     curNodeGroup.name = a("name");
                     curNodeGroup.function = com.sun.electric.technology.PrimitiveNode.Function.valueOf(a("fun"));
                     break;
@@ -971,6 +973,7 @@ public class Xml {
                         curNodeGroup.nodes.add(curNodeInGroup);
                     } else {
                         curNode = new PrimitiveNode();
+                        curNodeHasNodeBase = false;
                         curNode.name = a("name");
                         curNode.function = com.sun.electric.technology.PrimitiveNode.Function.valueOf(a("fun"));
                     }
@@ -1033,14 +1036,13 @@ public class Xml {
                     curDistance = curNode.defaultHeight;
                     break;
                 case nodeBase:
-                    curNode.hasNodeBase = true;
+                    curNodeHasNodeBase = true;
                     break;
                 case sizeOffset:
-                    double lx = Double.parseDouble(a("lx"));
-                    double hx = Double.parseDouble(a("hx"));
-                    double ly = Double.parseDouble(a("ly"));
-                    double hy = Double.parseDouble(a("hy"));
-                    curNode.sizeOffset = new SizeOffset(lx, hx, ly, hy);
+                    curNode.baseLX.value = Double.parseDouble(a("lx"));
+                    curNode.baseHX.value = -Double.parseDouble(a("hx"));
+                    curNode.baseLY.value = Double.parseDouble(a("ly"));
+                    curNode.baseHY.value = -Double.parseDouble(a("hy"));
                     break;
                 case protection:
                     curNode.protection = ProtectionType.valueOf(a("location"));
@@ -1075,7 +1077,7 @@ public class Xml {
                         curPort.ly.k = da_("kly", -1);
                         curPort.hy.k = da_("khy", 1);
                     } else {
-                        assert curNode.hasNodeBase;
+                        assert curNodeHasNodeBase;
                         curNode.baseLX.k = curNode.baseLY.k = -1;
                         curNode.baseHX.k = curNode.baseHY.k = 1;
                     }
@@ -1117,7 +1119,7 @@ public class Xml {
                         curPort.ly.value = Double.parseDouble(a("kly"));
                         curPort.hy.value = Double.parseDouble(a("khy"));
                     } else {
-                        assert curNode.hasNodeBase = true;
+                        assert curNodeHasNodeBase = true;
                         curNode.baseLX.value = Double.parseDouble(a("klx"));
                         curNode.baseHX.value = Double.parseDouble(a("khx"));
                         curNode.baseLY.value = Double.parseDouble(a("kly"));
@@ -1383,11 +1385,13 @@ public class Xml {
                     curArc = null;
                     break;
                 case primitiveNodeGroup:
+                    fixNodeBase();
                     tech.nodes.add(curNodeGroup);
                     curNode = curNodeGroup = null;
                     break;
                 case primitiveNode:
                     if (curNodeGroup == null) {
+                        fixNodeBase();
                         tech.nodes.add(curNode);
                         curNode = null;
                     } else if (curNodeInGroup != null) {
@@ -1474,6 +1478,53 @@ public class Xml {
                 default:
                     assert false;
             }
+        }
+        
+        private void fixNodeBase() {
+            if (curNodeHasNodeBase) return;
+            double lx, hx, ly, hy;
+            if (curNode.nodeSizeRule != null) {
+                hx = 0.5*curNode.nodeSizeRule.width;
+                lx = -hx;
+                hy = 0.5*curNode.nodeSizeRule.height;
+                ly = -hy;
+            } else {
+                lx = Double.POSITIVE_INFINITY;
+                hx = Double.NEGATIVE_INFINITY;
+                ly = Double.POSITIVE_INFINITY;
+                hy = Double.NEGATIVE_INFINITY;
+                for (int i = 0; i < curNode.nodeLayers.size(); i++) {
+                    Xml.NodeLayer nl = curNode.nodeLayers.get(i);
+                    double x, y;
+                    if (nl.representation == com.sun.electric.technology.Technology.NodeLayer.BOX || nl.representation == com.sun.electric.technology.Technology.NodeLayer.MULTICUTBOX) {
+                        x = nl.lx.value;
+                        lx = Math.min(lx, x);
+                        hx = Math.max(hx, x);
+                        x = nl.hx.value;
+                        lx = Math.min(lx, x);
+                        hx = Math.max(hx, x);
+                        y = nl.ly.value;
+                        ly = Math.min(ly, y);
+                        hy = Math.max(hy, y);
+                        y = nl.hy.value;
+                        ly = Math.min(ly, y);
+                        hy = Math.max(hy, y);
+                    } else {
+                        for (com.sun.electric.technology.Technology.TechPoint p: nl.techPoints) {
+                            x = p.getX().getAdder();
+                            lx = Math.min(lx, x);
+                            hx = Math.max(hx, x);
+                            y = p.getY().getAdder();
+                            ly = Math.min(ly, y);
+                            hy = Math.max(hy, y);
+                        }
+                    }
+                }
+            }
+            curNode.baseLX.value = DBMath.round(lx + curNode.baseLX.value);
+            curNode.baseHX.value = DBMath.round(hx + curNode.baseHX.value);
+            curNode.baseLY.value = DBMath.round(ly + curNode.baseLY.value);
+            curNode.baseHY.value = DBMath.round(hy + curNode.baseHY.value);
         }
 
         /**
@@ -1954,19 +2005,11 @@ public class Xml {
                 el(XmlKeyword.defaultHeight);
             }
 
-            if (ni.hasNodeBase) {
-                bcl(XmlKeyword.nodeBase);
-                bcl(XmlKeyword.box);
-                b(XmlKeyword.lambdaBox); a("klx", ni.baseLX.value); a("khx", ni.baseHX.value); a("kly", ni.baseLY.value); a("khy", ni.baseHY.value); el();
-                el(XmlKeyword.box);
-                el(XmlKeyword.nodeBase);
-            } else if (ni.sizeOffset != null) {
-                double lx = ni.sizeOffset.getLowXOffset();
-                double hx = ni.sizeOffset.getHighXOffset();
-                double ly = ni.sizeOffset.getLowYOffset();
-                double hy = ni.sizeOffset.getHighYOffset();
-                b(XmlKeyword.sizeOffset); a("lx", lx); a("hx", hx); a("ly", ly); a("hy", hy); el();
-            }
+            bcl(XmlKeyword.nodeBase);
+            bcl(XmlKeyword.box);
+            b(XmlKeyword.lambdaBox); a("klx", ni.baseLX.value); a("khx", ni.baseHX.value); a("kly", ni.baseLY.value); a("khy", ni.baseHY.value); el();
+            el(XmlKeyword.box);
+            el(XmlKeyword.nodeBase);
 
             if (ni.protection != null) {
                 b(XmlKeyword.protection); a("location", ni.protection); el();

@@ -364,6 +364,15 @@ public abstract class TechType implements Serializable {
                       tech, parent);
             }
         }
+        public static class MosInstH1 extends MosInst {
+            public MosInstH1(char np, double x, double y, double w, double l,
+                            TechType tech, Cell parent) {
+                super(np, x, y, w, l, 90,
+                      "diff-top", "diff-bottom",
+                      "poly-right", "poly-left",
+                      tech, parent);
+            }
+        }
     }
 
     //------------------------------ public data ------------------------------

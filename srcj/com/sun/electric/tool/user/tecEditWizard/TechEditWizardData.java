@@ -64,7 +64,7 @@ public class TechEditWizardData
     // DIFFUSION RULES
 	private WizardField diff_width = new WizardField();
 	private WizardField diff_poly_overhang = new WizardField();		// min. diff overhang from gate edge
-	private WizardField diff_contact_overhang = new WizardField();	// min. diff overhang contact   
+	private WizardField diff_contact_overhang = new WizardField();	// min. diff overhang contact
 	private WizardField diff_contact_overhang_min_short = new WizardField();				// diff overhang contact. It should hold the min short value
 	private WizardField diff_contact_overhang_min_long = new WizardField();				// diff overhang contact. It should hold the min long value
 	private WizardField diff_spacing = new WizardField();
@@ -1318,7 +1318,14 @@ public class TechEditWizardData
             (so.getLowXOffset() == 0 && so.getHighXOffset() == 0 &&
                 so.getLowYOffset() == 0 && so.getHighYOffset() == 0))
             so = null;
-        n.sizeOffset = so;
+
+            ERectangle base = calcBaseRectangle(so, nodeLayers, nodeSizeRule);
+            n.baseLX.value = base.getLambdaMinX();
+            n.baseHX.value = base.getLambdaMaxX();
+            n.baseLY.value = base.getLambdaMinY();
+            n.baseHY.value = base.getLambdaMaxY();
+//            n.sizeOffset = so;
+
 //        if (!minFullSize.equals(EPoint.ORIGIN))
 //            n.diskOffset = minFullSize;
 //        if (so != null) {
@@ -1377,6 +1384,55 @@ public class TechEditWizardData
         nodes.add(n);
 
         return n;
+    }
+
+    private ERectangle calcBaseRectangle(SizeOffset so, List<Xml.NodeLayer> nodeLayers, PrimitiveNode.NodeSizeRule nodeSizeRule) {
+        long lx, hx, ly, hy;
+        if (nodeSizeRule != null) {
+            hx = DBMath.lambdaToGrid(0.5*nodeSizeRule.getWidth());
+            lx = -hx;
+            hy = DBMath.lambdaToGrid(0.5*nodeSizeRule.getHeight());
+            ly = -hy;
+        } else {
+            lx = Long.MAX_VALUE;
+            hx = Long.MIN_VALUE;
+            ly = Long.MAX_VALUE;
+            hy = Long.MIN_VALUE;
+            for (int i = 0; i < nodeLayers.size(); i++) {
+                Xml.NodeLayer nl = nodeLayers.get(i);
+                long x, y;
+                if (nl.representation == Technology.NodeLayer.BOX || nl.representation == Technology.NodeLayer.MULTICUTBOX) {
+                    x = DBMath.lambdaToGrid(nl.lx.value);
+                    lx = Math.min(lx, x);
+                    hx = Math.max(hx, x);
+                    x = DBMath.lambdaToGrid(nl.hx.value);
+                    lx = Math.min(lx, x);
+                    hx = Math.max(hx, x);
+                    y = DBMath.lambdaToGrid(nl.ly.value);
+                    ly = Math.min(ly, y);
+                    hy = Math.max(hy, y);
+                    y = DBMath.lambdaToGrid(nl.hy.value);
+                    ly = Math.min(ly, y);
+                    hy = Math.max(hy, y);
+                } else {
+                    for (Technology.TechPoint p: nl.techPoints) {
+                        x = p.getX().getGridAdder();
+                        lx = Math.min(lx, x);
+                        hx = Math.max(hx, x);
+                        y = p.getY().getGridAdder();
+                        ly = Math.min(ly, y);
+                        hy = Math.max(hy, y);
+                    }
+                }
+            }
+        }
+        if (so != null) {
+            lx += so.getLowXGridOffset();
+            hx -= so.getHighXGridOffset();
+            ly += so.getLowYGridOffset();
+            hy -= so.getHighYGridOffset();
+        }
+        return ERectangle.fromGrid(lx, ly, hx - lx, hy - ly);
     }
 
     /**
@@ -1551,7 +1607,7 @@ public class TechEditWizardData
 
         portNames.add(layer1.name);
         portNames.add(layer2.name);
-        
+
         // align contact
         double hlaLong1 = DBMath.round(contSize/2 + extLayer1);
         double hlaLong2 = DBMath.round(contSize/2 + extLayer2);
@@ -2075,7 +2131,7 @@ public class TechEditWizardData
                     }
                     else if (layerName.equals(diffLayers[1].name))
                     {
-                        lx = diffLayers[1]; 
+                        lx = diffLayers[1];
                         list = diffContacts[1];
                     }
                     else if (layerName.equals(polyLayer.name))
@@ -2271,7 +2327,7 @@ public class TechEditWizardData
         List<Xml.PrimitivePort> nodePorts = new ArrayList<Xml.PrimitivePort>();
         EPoint minFullSize = null; //EPoint.fromLambda(0, 0);  // default zero    horizontalFlag
         List<Object> l = null;
-        
+
         for(int i = 0; i < 2; i++)
         {
             String name;
@@ -2492,7 +2548,7 @@ public class TechEditWizardData
         l.add(new String("Cell"));
         t.menuPalette.menuBoxes.add(l);
 
-        
+
         // write finally the file
         boolean includeDateAndVersion = User.isIncludeDateAndVersionInOutput();
         String copyrightMessage = IOTool.isUseCopyrightMessage() ? IOTool.getCopyrightMessage() : null;

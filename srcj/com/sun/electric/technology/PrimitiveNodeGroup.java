@@ -157,17 +157,10 @@ public class PrimitiveNodeGroup {
             }
             nodeLayers[i] = nodeLayer;
         }
-        if (n.hasNodeBase) {
-            lx = DBMath.lambdaToGrid(n.baseLX.value);
-            hx = DBMath.lambdaToGrid(n.baseHX.value);
-            ly = DBMath.lambdaToGrid(n.baseLY.value);
-            hy = DBMath.lambdaToGrid(n.baseHY.value);
-        } else if (n.sizeOffset != null) {
-            lx += n.sizeOffset.getLowXGridOffset();
-            hx -= n.sizeOffset.getHighXGridOffset();
-            ly += n.sizeOffset.getLowYGridOffset();
-            hy -= n.sizeOffset.getHighYGridOffset();
-        }
+        lx = DBMath.lambdaToGrid(n.baseLX.value);
+        hx = DBMath.lambdaToGrid(n.baseHX.value);
+        ly = DBMath.lambdaToGrid(n.baseLY.value);
+        hy = DBMath.lambdaToGrid(n.baseHY.value);
         baseRectangle = ERectangle.fromGrid(lx, ly, hx - lx, hy - ly);
         defaultWidth = DBMath.round(n.defaultWidth.value + 2*fullSize.getLambdaX());
         defaultHeight = DBMath.round(n.defaultHeight.value + 2*fullSize.getLambdaY());
@@ -307,7 +300,7 @@ public class PrimitiveNodeGroup {
                     pnp.setNodeBit(PrimitiveNode.OD25BIT);
                 if (subN.od33)
                     pnp.setNodeBit(PrimitiveNode.OD33BIT);
-                    
+
                 group.nodes.add(pnp);
                 pnp.group = group;
             }
@@ -322,7 +315,7 @@ public class PrimitiveNodeGroup {
     Xml.PrimitiveNode makeXml() {
         return n;
     }
-    
+
     void copyState(PrimitiveNodeGroup that) {
         n = that.n;
     }

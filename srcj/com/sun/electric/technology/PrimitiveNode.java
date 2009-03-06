@@ -2279,7 +2279,6 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
         n.baseHX.value = baseRectangle.getLambdaMaxX();
         n.baseLY.value = baseRectangle.getLambdaMinY();
         n.baseHY.value = baseRectangle.getLambdaMaxY();
-        n.hasNodeBase = true;
 //            EPoint minFullSize = EPoint.fromLambda(0.5*pnp.getDefWidth(), 0.5*pnp.getDefHeight());
         EPoint p1 = getSizeCorrector(0);
         EPoint p2 = getSizeCorrector(1);

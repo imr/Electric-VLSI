@@ -533,13 +533,17 @@ public class TechExplorer extends ESandBox {
                 }
                 baseRectangle = ERectangle.fromLambda(lx, ly, hx - lx, hy - ly);
             }
-            if (!baseRectangle.equals(fullRectangle)) {
-                n.sizeOffset = new SizeOffset(
-                    baseRectangle.getLambdaMinX() - fullRectangle.getLambdaMinX(),
-                    fullRectangle.getLambdaMaxX() - baseRectangle.getLambdaMaxX(),
-                    baseRectangle.getLambdaMinY() - fullRectangle.getLambdaMinY(),
-                    fullRectangle.getLambdaMaxY() - baseRectangle.getLambdaMaxY());
-            }
+            n.baseLX.value = baseRectangle.getLambdaMinX();
+            n.baseHX.value = baseRectangle.getLambdaMaxX();
+            n.baseLY.value = baseRectangle.getLambdaMinY();
+            n.baseHY.value = baseRectangle.getLambdaMaxY();
+//            if (!baseRectangle.equals(fullRectangle)) {
+//                n.sizeOffset = new SizeOffset(
+//                    baseRectangle.getLambdaMinX() - fullRectangle.getLambdaMinX(),
+//                    fullRectangle.getLambdaMaxX() - baseRectangle.getLambdaMaxX(),
+//                    baseRectangle.getLambdaMinY() - fullRectangle.getLambdaMinY(),
+//                    fullRectangle.getLambdaMaxY() - baseRectangle.getLambdaMaxY());
+//            }
             if (sizeCorrector1 == null)
                 sizeCorrector1 = fullSize;
             if (sizeCorrector2 == null)
