@@ -859,14 +859,12 @@ public class Technology implements Comparable<Technology>, Serializable
 
 	/** the current technology in Electric */				private static Technology curTech = null;
 	/** the current tlayout echnology in Electric */		private static Technology curLayoutTech = null;
-	/** counter for enumerating technologies */				private static int techNumber = 0;
 
     /** Generic technology for this Technology */           final Generic generic;
 	/** name of this technology */							private final TechId techId;
 	/** short, readable name of this technology */			private String techShortName;
 	/** full description of this technology */				private String techDesc;
 	/** flags for this technology */						private int userBits;
-	/** 0-based index of this technology */					private int techIndex;
 	/** true if "scale" is relevant to this technology */	private boolean scaleRelevant;
 	/** number of transparent layers in technology */		private int transparentLayers;
     /** Setting Group for this Technology */                private final Setting.RootGroup rootSettings;
@@ -968,7 +966,6 @@ public class Technology implements Comparable<Technology>, Serializable
         this.techFactory = techFactory;
 		//this.scale = 1.0;
 		this.scaleRelevant = true;
-		this.techIndex = techNumber++;
 		userBits = 0;
         rootSettings = new Setting.RootGroup();
         settings = rootSettings.node(getTechName());
@@ -1448,7 +1445,7 @@ public class Technology implements Comparable<Technology>, Serializable
             oldN.copyState(newN);
         }
         assert !oldItn.hasNext() && !newItn.hasNext();
-        
+
         assert primitiveNodeGroups.size() == that.primitiveNodeGroups.size();
         Iterator<PrimitiveNodeGroup> oldItg = primitiveNodeGroups.iterator();
         Iterator<PrimitiveNodeGroup> newItg = that.primitiveNodeGroups.iterator();
@@ -1458,7 +1455,36 @@ public class Technology implements Comparable<Technology>, Serializable
             oldG.copyState(newG);
         }
         assert !oldItg.hasNext() && !newItg.hasNext();
-      
+    }
+
+    public static void updateCurrents(TechPool newTechPool) {
+        if (curTech != null)
+            curTech = newTechPool.getTech(curTech.getId());
+        if (curLayoutTech != null)
+            curLayoutTech = newTechPool.getTech(curLayoutTech.getId());
+        sysGeneric = (Generic)newTechPool.getTech(sysGeneric.getId());
+        sysArtwork = (Artwork)newTechPool.getTech(sysArtwork.getId());
+        sysSchematics = (Schematics)newTechPool.getTech(sysSchematics.getId());
+        sysFPGA = (FPGA)newTechPool.getTech(sysFPGA.getId());
+        if (mocmos != null)
+            mocmos = newTechPool.getTech(mocmos.getId());
+        if (tsmc180 != null)
+            tsmc180 = newTechPool.getTech(tsmc180.getId());
+        if (cmos90 != null)
+            cmos90 = newTechPool.getTech(cmos90.getId());
+    }
+
+    Technology clone(Generic generic) {
+        Setting.Context settingContext = new Setting.Context() {
+            @Override
+            public Object getValue(Setting setting) {
+                return setting.getValue();
+            }
+        };
+        Map<String,Object> paramValues = Collections.emptyMap();
+        if (currentState != null)
+            paramValues = currentState.paramValues;
+        return techFactory.newInstance(generic, paramValues, settingContext);
     }
 
     protected void setNotUsed(int numPolys) {
@@ -2178,8 +2204,8 @@ public class Technology implements Comparable<Technology>, Serializable
             Technology tech1 = l1.getTechnology();
             Technology tech2 = l2.getTechnology();
             if (tech1 != tech2) {
-                int techIndex1 = tech1 != null ? tech1.getIndex() : -1;
-                int techIndex2 = tech2 != null ? tech2.getIndex() : -1;
+                int techIndex1 = tech1 != null ? tech1.getId().techIndex : -1;
+                int techIndex2 = tech2 != null ? tech2.getId().techIndex : -1;
                 return techIndex1 - techIndex2;
             }
 			return l1.getIndex() - l2.getIndex();
@@ -5181,13 +5207,6 @@ public class Technology implements Comparable<Technology>, Serializable
 	public Color [] getColorMap() { return colorMap; }
 
 	/**
-	 * Returns the 0-based index of this Technology.
-	 * Each Technology has a unique index that can be used for array lookup.
-	 * @return the index of this Technology.
-	 */
-	public int getIndex() { return techIndex; }
-
-	/**
 	 * Method to determine whether a new technology with the given name would be legal.
 	 * All technology names must be unique, so the name cannot already be in use.
 	 * @param techName the name of the new technology that will be created.
@@ -5238,7 +5257,7 @@ public class Technology implements Comparable<Technology>, Serializable
 		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = it.next();
-			if (tech.getIndex() > maxTech) maxTech = tech.getIndex();
+			if (tech.getId().techIndex > maxTech) maxTech = tech.getId().techIndex;
 		}
 		maxTech++;
 
@@ -5261,7 +5280,7 @@ public class Technology implements Comparable<Technology>, Serializable
 					if (subCell.isIcon())
 						nodeTech = Schematics.tech();
 				}
-				if (nodeTech != null) useCount[nodeTech.getIndex()]++;
+				if (nodeTech != null) useCount[nodeTech.getId().techIndex]++;
 			}
 		} else
 		{
@@ -5276,7 +5295,7 @@ public class Technology implements Comparable<Technology>, Serializable
 					if (subCell.isIcon())
 						nodeTech = Schematics.tech();
 				}
-				if (nodeTech != null) useCount[nodeTech.getIndex()]++;
+				if (nodeTech != null) useCount[nodeTech.getId().techIndex]++;
 			}
 		}
 
@@ -5287,7 +5306,7 @@ public class Technology implements Comparable<Technology>, Serializable
 			for(ArcProto ap: arcProtoList)
 			{
 				if (ap == null) continue;
-				useCount[ap.getTechnology().getIndex()]++;
+				useCount[ap.getTechnology().getId().techIndex]++;
 			}
 		} else
 		{
@@ -5295,7 +5314,7 @@ public class Technology implements Comparable<Technology>, Serializable
 			{
 				ArcInst ai = it.next();
 				ArcProto ap = ai.getProto();
-				useCount[ap.getTechnology().getIndex()]++;
+				useCount[ap.getTechnology().getId().techIndex]++;
 			}
 		}
 
@@ -5310,17 +5329,17 @@ public class Technology implements Comparable<Technology>, Serializable
 			if (tech instanceof Generic) continue;
 
 			// find the most popular of ALL technologies
-			if (useCount[tech.getIndex()] > best)
+			if (useCount[tech.getId().techIndex] > best)
 			{
-				best = useCount[tech.getIndex()];
+				best = useCount[tech.getId().techIndex];
 				bestTech = tech;
 			}
 
 			// find the most popular of the layout technologies
 			if (!tech.isLayout()) continue;
-			if (useCount[tech.getIndex()] > bestLayout)
+			if (useCount[tech.getId().techIndex] > bestLayout)
 			{
-				bestLayout = useCount[tech.getIndex()];
+				bestLayout = useCount[tech.getId().techIndex];
 				bestLayoutTech = tech;
 			}
 		}
@@ -5329,7 +5348,7 @@ public class Technology implements Comparable<Technology>, Serializable
 		if (cell.isIcon() || cell.getView().isTextView())
 		{
 			// in icons, if there is any artwork, use it
-			if (useCount[Artwork.tech().getIndex()] > 0) return(Artwork.tech());
+			if (useCount[Artwork.tech().getId().techIndex] > 0) return(Artwork.tech());
 
 			// in icons, if there is nothing, presume artwork
 			if (bestTech == null) return(Artwork.tech());
@@ -5339,7 +5358,7 @@ public class Technology implements Comparable<Technology>, Serializable
 		} else if (cell.isSchematic())
 		{
 			// in schematic, if there are any schematic components, use it
-			if (useCount[Schematics.tech().getIndex()] > 0) return(Schematics.tech());
+			if (useCount[Schematics.tech().getId().techIndex] > 0) return(Schematics.tech());
 
 			// in schematic, if there is nothing, presume schematic
 			if (bestTech == null) return(Schematics.tech());

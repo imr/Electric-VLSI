@@ -25,6 +25,7 @@ package com.sun.electric.database.hierarchy;
 
 import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellRevision;
+import com.sun.electric.database.Config;
 import com.sun.electric.database.EObjectInputStream;
 import com.sun.electric.database.EObjectOutputStream;
 import com.sun.electric.database.IdMapper;
@@ -1211,7 +1212,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             ImmutableNodeInst d = newRevision.nodes.get(i);
             while (d.nodeId >= chronNodes.size()) chronNodes.add(null);
             NodeInst ni = chronNodes.get(d.nodeId);
-            if (ni != null && ni.getProto().getId() == d.protoId) {
+            if (!(Config.TWO_JVM && full) && ni != null && ni.getProto().getId() == d.protoId) {
                 ni.setDInUndo(d);
                 if (ni.isCellInstance()) {
                     int subCellIndex = ((Cell)ni.getProto()).getCellIndex();
@@ -1265,7 +1266,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
                 chronExports = newChronExports;
             }
             Export e = chronExports[chronIndex];
-            if (e != null) {
+            if (!(Config.TWO_JVM && full) && e != null) {
                 e.setDInUndo(d);
             } else {
                 e = new Export(d, this);

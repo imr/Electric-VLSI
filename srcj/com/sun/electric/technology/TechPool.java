@@ -122,6 +122,18 @@ public class TechPool extends AbstractMap<TechId, Technology> {
         assert size() == technologies.size();
     }
 
+    @Override
+    public TechPool clone() {
+        Generic newGeneric = Generic.newInstance(idManager);
+        ArrayList<Technology> newTechs = new ArrayList<Technology>();
+        newTechs.add(newGeneric);
+        for (Technology oldTech: values()) {
+            if (oldTech == generic) continue;
+            newTechs.add(oldTech.clone(newGeneric));
+        }
+        return new TechPool(newTechs);
+    }
+    
     /**
      * Returns restriction of this TechPool to specified subset of TechIds.
      * A candidate TechPool is a valid result, it is returned to save allocation.

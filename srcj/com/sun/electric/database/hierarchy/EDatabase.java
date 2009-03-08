@@ -26,6 +26,7 @@ package com.sun.electric.database.hierarchy;
 
 import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellRevision;
+import com.sun.electric.database.Config;
 import com.sun.electric.database.LibraryBackup;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.ERectangle;
@@ -443,6 +444,8 @@ public class EDatabase {
     public void recover(Snapshot snapshot) {
         long startTime = System.currentTimeMillis();
         setSnapshot(snapshot, false);
+        if (Config.TWO_JVM)
+            techPool = snapshot.techPool;
         recoverLibraries();
         recycleCells();
         BitSet recovered = new BitSet();
