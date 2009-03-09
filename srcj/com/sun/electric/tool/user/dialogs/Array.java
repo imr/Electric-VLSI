@@ -451,7 +451,7 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 		}
 
 		// make lists of nodes and arcs that will be arrayed
-		List<NodeInst> nodeList = new ArrayList<NodeInst>();
+		Set<NodeInst> nodeSet = new HashSet<NodeInst>();
 		List<ArcInst> arcList = new ArrayList<ArcInst>();
 		List<Export> exportList = new ArrayList<Export>();
 		Cell cell = null;
@@ -460,7 +460,7 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 			cell = geom.getParent();
 			if (geom instanceof NodeInst)
 			{
-				nodeList.add((NodeInst)geom);
+				nodeSet.add((NodeInst)geom);
 				if (User.isDupCopiesExports())
 				{
 					NodeInst ni = (NodeInst)geom;
@@ -471,10 +471,12 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 			{
                 ArcInst ai = (ArcInst)geom;
                 arcList.add(ai);
-                nodeList.add(ai.getHead().getPortInst().getNodeInst());
-                nodeList.add(ai.getTail().getPortInst().getNodeInst());
+                nodeSet.add(ai.getHead().getPortInst().getNodeInst());
+                nodeSet.add(ai.getTail().getPortInst().getNodeInst());
             }
 		}
+		List<NodeInst> nodeList = new ArrayList<NodeInst>();
+		for(NodeInst ni : nodeSet) nodeList.add(ni);
 		Collections.sort(nodeList);
 		Collections.sort(arcList);
 		Collections.sort(exportList);

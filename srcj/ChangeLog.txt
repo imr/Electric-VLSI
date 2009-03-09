@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09e: ******************************
 
+BUG: (3/9/09, SMR) Array command makes two or 3 copies of each node (Bug #2067).
+FIX: Use a Set instead of a List so that nodes are scheduled for copying only once.
+
 IMP: (3/6/09, GVG) Changes for "default artwork color broken again (Bug #2069)". 
 It is not fixed yet.
 
