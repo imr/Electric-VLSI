@@ -159,13 +159,17 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 
 		// load the repeat factors
 		xRepeat.setText(Integer.toString(prefXRepeat.getInt()));
+//		xSpacing.setText(Double.toString(prefXDistance.getDouble()));
 		flipAlternateColumns.setSelected(prefXFlip.getBoolean());
 		staggerAlternateColumns.setSelected(prefXStagger.getBoolean());
 		centerXAboutOriginal.setSelected(prefXCenter.getBoolean());
 		yRepeat.setText(Integer.toString(prefYRepeat.getInt()));
+//		ySpacing.setText(Double.toString(prefYDistance.getDouble()));
 		flipAlternateRows.setSelected(prefYFlip.getBoolean());
 		staggerAlternateRows.setSelected(prefYStagger.getBoolean());
 		centerYAboutOriginal.setSelected(prefYCenter.getBoolean());
+		spacingOverX = prefXDistance.getDouble();
+		spacingOverY = prefYDistance.getDouble();
 
 		// load the other factors
 		linearDiagonalArray.setSelected(prefLinearDiagonal.getBoolean());
@@ -347,7 +351,6 @@ public class Array extends EModelessDialog implements HighlightListener, Databas
 		}
 		spacingCenterlineX = bounds.getWidth();
 		spacingCenterlineY = bounds.getHeight();
-		spacingOverX = spacingOverY = 0;
 		if (prefSpacingType.getInt() == SPACING_CENTER)
 		{
 			prefXDistance.setDouble(spacingCenterlineX);
