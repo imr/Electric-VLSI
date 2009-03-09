@@ -152,7 +152,7 @@ public class TechEditWizardData
         String name;
         List<Object> arcs;
         List<Object> pins;
-        List<Object> contacts;
+        List<Object> elements; // contact or transistor
 
         void addArc(Object arc)
         {
@@ -170,20 +170,14 @@ public class TechEditWizardData
             }
             pins.add(pin);
         }
-        void addContact(Object contact)
+        void addElement(Object element)
         {
-            if (contacts == null)
+            if (elements == null)
             {
-                contacts = new ArrayList<Object>();
+                elements = new ArrayList<Object>();
             }
-            contacts.add(contact);
+            elements.add(element);
         }
-//        PaletteGroup(List<Object> a, List<Object> p, List<Object> c)
-//        {
-//            arcs = a;
-//            pins = p;
-//            contacts = c;
-//        }
     }
 
     // ANTENNA RULES
@@ -1254,7 +1248,6 @@ public class TechEditWizardData
     private Xml.PrimitiveNode makeXmlPrimitivePin(Xml.Technology t, String name, double size,
                                                   SizeOffset so, Xml.NodeLayer... list)
     {
-//        List<Object> l = new ArrayList<Object>();
         List<Xml.NodeLayer> nodesList = new ArrayList<Xml.NodeLayer>(list.length);
         List<Xml.PrimitivePort> nodePorts = new ArrayList<Xml.PrimitivePort>();
         List<String> portNames = new ArrayList<String>();
@@ -1269,8 +1262,6 @@ public class TechEditWizardData
         nodePorts.add(makeXmlPrimitivePort(name.toLowerCase(), 0, 180, 0, null, 0, 0, 0, 0, portNames));
         Xml.PrimitiveNode n = makeXmlPrimitive(t.nodes, name + "-Pin", PrimitiveNode.Function.PIN, size, size, 0, 0,
                 so, nodesList, nodePorts, null, true);
-//        l.add(n);
-//        t.menuPalette.menuBoxes.add(l);
         return n;
     }
 
@@ -1475,7 +1466,6 @@ public class TechEditWizardData
     private Xml.ArcProto makeXmlArc(Xml.Technology t, String name, com.sun.electric.technology.ArcProto.Function function,
                                     double ant, Xml.ArcLayer ... arcLayers)
     {
-//        List<Object> l = new ArrayList<Object>();
         Xml.ArcProto a = new Xml.ArcProto();
         a.name = name;
         a.function = function;
@@ -1497,8 +1487,6 @@ public class TechEditWizardData
             a.arcLayers.add(al);
         }
         t.arcs.add(a);
-//        l.add(a);
-//        paletteList.add(l);
         return a;
     }
 
@@ -1628,12 +1616,11 @@ public class TechEditWizardData
     /**
      * To create zero, cross, aligned and squared contacts from the same set of rules
      */
-    private List<Object> makeContactSeries(List<Xml.PrimitiveNode> nodes, String composeName,
+    private Xml.PrimitiveNode makeContactSeries(List<Xml.PrimitiveNode> nodes, String composeName,
                                            double contSize, Xml.Layer conLayer, double spacing, double arraySpacing,
                                            double extLayer1, Xml.Layer layer1,
                                            double extLayer2, Xml.Layer layer2)
     {
-        List<Object> contactsList = new ArrayList<Object>();
         List<String> portNames = new ArrayList<String>();
 
         portNames.add(layer1.name);
@@ -1645,15 +1632,10 @@ public class TechEditWizardData
         double longD = DBMath.isGreaterThan(extLayer1, extLayer2) ? extLayer1 : extLayer2;
 
         // long square contact. Standard ones
-        if (!getProtectionPoly())
-        {
-            contactsList.add(makeXmlPrimitiveCon(nodes, composeName, -1, -1, new SizeOffset(longD, longD, longD, longD), portNames,
+        return (makeXmlPrimitiveCon(nodes, composeName, -1, -1, new SizeOffset(longD, longD, longD, longD), portNames,
                 makeXmlNodeLayer(hlaLong1, hlaLong1, hlaLong1, hlaLong1, layer1, Poly.Type.FILLED, true), // layer1
                 makeXmlNodeLayer(hlaLong2, hlaLong2, hlaLong2, hlaLong2, layer2, Poly.Type.FILLED, true), // layer2
                 makeXmlMulticut(conLayer, contSize, spacing, arraySpacing))); // contact
-        }
-
-        return contactsList;
     }
 
     /**
@@ -2039,7 +2021,7 @@ public class TechEditWizardData
         {
             double ant = (int)Math.round(metal_antenna_ratio[i-1]) | 200;
             PaletteGroup group = new PaletteGroup();
-            metalPalette[i] = group;
+            metalPalette[i-1] = group;
             group.addArc(makeXmlArc(t, "Metal-"+i, ArcProto.Function.getContact(i), ant,
                 makeXmlArcLayer(metalLayers.get(i-1), metal_width[i-1])));
         }
@@ -2065,29 +2047,17 @@ public class TechEditWizardData
         double contSpacing = scaledValue(contact_spacing.v);
         double contArraySpacing = scaledValue(contact_array_spacing.v);
         double metal1Over = scaledValue(contact_size.v/2 + contact_metal_overhang_all_sides.v);
-        List<Object> polyContacts = new ArrayList<Object>();
 
         // only for standard cases when getProtectionPoly() is false
         if (!getProtectionPoly())
         {
-            polyContacts.addAll(makeContactSeries(t.nodes, polyLayer.name, contSize, polyConLayer, contSpacing, contArraySpacing,
+            polyGroup.addElement(makeContactSeries(t.nodes, polyLayer.name, contSize, polyConLayer, contSpacing, contArraySpacing,
                         scaledValue(contact_poly_overhang.v), polyLayer,
                         scaledValue(via_overhang[0].v), m1Layer));
         }
 
         /**************************** N/P-Diff Nodes/Arcs ***********************************************/
         PaletteGroup[] diffPalette = new PaletteGroup[2];
-        List<Object> arcsList = new ArrayList<Object>();
-
-        // NDiff/PDiff arcs
-        arcsList.add(makeXmlArc(t, "N-Diff", ArcProto.Function.DIFFN, 0,
-                makeXmlArcLayer(diffNLayer, diff_width),
-                makeXmlArcLayer(nplusLayer, diff_width, nplus_overhang_diff),
-            (!pWellFlag)?makeXmlArcLayer(pwellLayer, diff_width, nwell_overhang_diff_p):null));
-        arcsList.add(makeXmlArc(t, "P-Diff", ArcProto.Function.DIFFP, 0,
-                makeXmlArcLayer(diffPLayer, diff_width),
-                makeXmlArcLayer(pplusLayer, diff_width, pplus_overhang_diff),
-                makeXmlArcLayer(nwellLayer, diff_width, nwell_overhang_diff_p)));
 
         // ndiff/pdiff pins
         hla = scaledValue((contact_size.v/2 + diff_contact_overhang.v));
@@ -2098,21 +2068,23 @@ public class TechEditWizardData
         double pso = (!pWellFlag)?nso:scaledValue(nplus_overhang_diff.v);
 
         // ndiff/pdiff contacts
-        String[] diffWellNames = {"P", "N"};
+        String[] diffNames = {"P", "N"};
         double[] sos = {nso, pso};
         double[] sels = {psel, nsel};
         Xml.Layer[] diffLayers = {diffPLayer, diffNLayer};
         Xml.Layer[] plusLayers = {pplusLayer, nplusLayer};
 
         // ndiff/pdiff contact
-
         for (int i = 0; i < 2; i++)
         {
             portNames.clear();
             portNames.add(diffLayers[i].name);
             portNames.add(m1Layer.name);
-            String composeName = diffWellNames[i] + "-Diff";
+            String composeName = diffNames[i] + "-Diff";
             Xml.NodeLayer wellNode, wellNodePin;
+            ArcProto.Function arcF;
+            Xml.ArcLayer arcL;
+            WizardField arcVal;
 
             // group
             PaletteGroup diffG = new PaletteGroup();
@@ -2122,12 +2094,24 @@ public class TechEditWizardData
             {
                 wellNodePin = makeXmlNodeLayer(nwell, nwell, nwell, nwell, nwellLayer, Poly.Type.CROSSED, true);
                 wellNode = makeXmlNodeLayer(nwell, nwell, nwell, nwell, nwellLayer, Poly.Type.FILLED, true);
+                arcF = ArcProto.Function.DIFFP;
+                arcL = makeXmlArcLayer(nwellLayer, diff_width, nwell_overhang_diff_p);
+                arcVal = pplus_overhang_diff;
             }
             else
             {
                 wellNodePin = (!pWellFlag)?makeXmlNodeLayer(nwell, nwell, nwell, nwell, pwellLayer, Poly.Type.CROSSED, true):null;
                 wellNode = (!pWellFlag)?makeXmlNodeLayer(nwell, nwell, nwell, nwell, pwellLayer, Poly.Type.FILLED, true):null;
+                arcF = ArcProto.Function.DIFFN;
+                arcL = (!pWellFlag)?makeXmlArcLayer(pwellLayer, diff_width, nwell_overhang_diff_p):null;
+                arcVal = nplus_overhang_diff;
             }
+
+            // active arc
+            diffG.addArc(makeXmlArc(t, composeName, arcF, 0,
+                makeXmlArcLayer(diffLayers[i], diff_width),
+                makeXmlArcLayer(plusLayers[i], diff_width, arcVal),
+                arcL));
 
             // active pin
             diffG.addPin(makeXmlPrimitivePin(t, composeName, hla,
@@ -2139,7 +2123,7 @@ public class TechEditWizardData
 //            List<Object> diffContacts = new ArrayList<Object>(), l = null;
 
             // F stands for full (all layers)
-            diffG.addContact(makeXmlPrimitiveCon(t.nodes, "F-"+composeName, hla, hla, new SizeOffset(sos[i], sos[i], sos[i], sos[i]), portNames,
+            diffG.addElement(makeXmlPrimitiveCon(t.nodes, "F-"+composeName, hla, hla, new SizeOffset(sos[i], sos[i], sos[i], sos[i]), portNames,
                     makeXmlNodeLayer(metal1Over, metal1Over, metal1Over, metal1Over, m1Layer, Poly.Type.FILLED, true), // meta1 layer
                     makeXmlNodeLayer(hla, hla, hla, hla, diffLayers[i], Poly.Type.FILLED, true), // active layer
                     makeXmlNodeLayer(sels[i], sels[i], sels[i], sels[i], plusLayers[i], Poly.Type.FILLED, true), // select layer
@@ -2223,7 +2207,7 @@ public class TechEditWizardData
                 portNames.add(lx.name);
                 portNames.add(ly.name);
 
-                g.addContact(makeXmlPrimitiveCon(t.nodes, c.prefix + name, -1, -1,
+                g.addElement(makeXmlPrimitiveCon(t.nodes, c.prefix + name, -1, -1,
                     new SizeOffset(longX, longX, longY, longY), portNames,
                 makeXmlNodeLayer(h1x, h1x, h1y, h1y, ly, Poly.Type.FILLED, true), // layer1
                 makeXmlNodeLayer(h2x, h2x, h2y, h2y, lx, Poly.Type.FILLED, true), // layer2
@@ -2231,33 +2215,21 @@ public class TechEditWizardData
             }
         }
 
-        // Adding later the contacts into the palette
-//        for (int i = 0; i < diffContacts.length; i++)
-//        {
-//            t.menuPalette.menuBoxes.add(diffContacts[i]);
-//        }
-//        t.menuPalette.menuBoxes.add(polyContacts);
-
         /**************************** N/P-Well Contacts ***********************************************/
         nwell = scaledValue(contact_size.v/2 + diff_contact_overhang.v + nwell_overhang_diff_n.v);
         nso = scaledValue(nwell_overhang_diff_n.v); // valid for elements that have nwell layers
         pso = (!pWellFlag)?nso:scaledValue(nplus_overhang_diff.v);
         double[] wellSos = {pso, nso};
-
-        // NWell/PWell arcs
-        if (!pWellFlag)
-        {
-            arcsList.add(makeXmlArc(t, "P-Well", ArcProto.Function.WELL, 0,
-                makeXmlArcLayer(pwellLayer, diff_width, nwell_overhang_diff_p)));
-        }
-        arcsList.add(makeXmlArc(t, "N-Well", ArcProto.Function.WELL, 0,
-                makeXmlArcLayer(nwellLayer, diff_width, nwell_overhang_diff_p)));
+        PaletteGroup[] wellPalette = new PaletteGroup[2];
 
         // nwell/pwell contact
         for (int i = 0; i < 2; i++)
         {
-            String composeName = diffWellNames[i] + "-Well";
+            String composeName = diffNames[i] + "-Well";
             Xml.NodeLayer wellNode = null, wellNodePin = null;
+            PaletteGroup g = new PaletteGroup();
+
+            wellPalette[i] = g;
 
             portNames.clear();
             if (i == Technology.P_TYPE)
@@ -2265,6 +2237,9 @@ public class TechEditWizardData
                 portNames.add(pwellLayer.name);
                 wellNodePin = makeXmlNodeLayer(nwell, nwell, nwell, nwell, pwellLayer, Poly.Type.CROSSED, true);
                 wellNode = makeXmlNodeLayer(nwell, nwell, nwell, nwell, pwellLayer, Poly.Type.FILLED, true);
+                // arc
+                g.addArc(makeXmlArc(t, composeName, ArcProto.Function.WELL, 0,
+                    makeXmlArcLayer(pwellLayer, diff_width, nwell_overhang_diff_p)));
             }
             else
             {
@@ -2273,20 +2248,22 @@ public class TechEditWizardData
                     portNames.add(nwellLayer.name);
                     wellNodePin = makeXmlNodeLayer(nwell, nwell, nwell, nwell, nwellLayer, Poly.Type.CROSSED, true);
                     wellNode = makeXmlNodeLayer(nwell, nwell, nwell, nwell, nwellLayer, Poly.Type.FILLED, true);
+                    // arc
+                    g.addArc(makeXmlArc(t, composeName, ArcProto.Function.WELL, 0,
+                        makeXmlArcLayer(nwellLayer, diff_width, nwell_overhang_diff_p)));
                 }
             }
             portNames.add(m1Layer.name);
             // well pin
-            makeXmlPrimitivePin(t, composeName, hla,
+            g.addPin(makeXmlPrimitivePin(t, composeName, hla,
                 new SizeOffset(wellSos[i], wellSos[i], wellSos[i], wellSos[i]),
                 makeXmlNodeLayer(hla, hla, hla, hla, diffLayers[i], Poly.Type.CROSSED, true),
                 makeXmlNodeLayer(sels[i], sels[i], sels[i], sels[i], plusLayers[i], Poly.Type.CROSSED, true),
-                wellNodePin);
+                wellNodePin));
 
             // well contact
-            List<Object> wellContacts = new ArrayList<Object>(), l = null;
             // F stands for full
-            wellContacts.add(makeXmlPrimitiveCon(t.nodes, "F-"+composeName, hla, hla, new SizeOffset(wellSos[i], wellSos[i], wellSos[i], wellSos[i]), portNames,
+            g.addElement(makeXmlPrimitiveCon(t.nodes, "F-"+composeName, hla, hla, new SizeOffset(wellSos[i], wellSos[i], wellSos[i], wellSos[i]), portNames,
                     makeXmlNodeLayer(metal1Over, metal1Over, metal1Over, metal1Over, m1Layer, Poly.Type.FILLED, true), // meta1 layer
                     makeXmlNodeLayer(hla, hla, hla, hla, diffLayers[i], Poly.Type.FILLED, true), // active layer
                     makeXmlNodeLayer(sels[i], sels[i], sels[i], sels[i], plusLayers[i], Poly.Type.FILLED, true), // select layer
@@ -2295,20 +2272,22 @@ public class TechEditWizardData
         }
 
         /**************************** Metals Nodes/Arcs ***********************************************/
+
         // Pins and contacts
         for(int i=1; i<num_metal_layers; i++)
 		{
             hla = scaledValue(metal_width[i-1].v / 2);
             Xml.Layer lb = metalLayers.get(i-1);
             Xml.Layer lt = metalLayers.get(i);
+            PaletteGroup group = metalPalette[i-1];  // structure created by the arc definition
 
             // Pin bottom metal
-            makeXmlPrimitivePin(t, lb.name, hla, null, //new SizeOffset(hla, hla, hla, hla),
-                makeXmlNodeLayer(hla, hla, hla, hla, lb, Poly.Type.CROSSED, true));
+            group.addPin(makeXmlPrimitivePin(t, lb.name, hla, null, //new SizeOffset(hla, hla, hla, hla),
+                makeXmlNodeLayer(hla, hla, hla, hla, lb, Poly.Type.CROSSED, true)));
             if (i == num_metal_layers - 1) // last pin!
             {
-                makeXmlPrimitivePin(t, lt.name, hla, null, //new SizeOffset(hla, hla, hla, hla),
-                makeXmlNodeLayer(hla, hla, hla, hla, lt, Poly.Type.CROSSED, true));
+                metalPalette[i].addPin(makeXmlPrimitivePin(t, lt.name, hla, null, //new SizeOffset(hla, hla, hla, hla),
+                    makeXmlNodeLayer(hla, hla, hla, hla, lt, Poly.Type.CROSSED, true)));
             }
 
             if (!getProtectionPoly())
@@ -2322,10 +2301,9 @@ public class TechEditWizardData
                 String name = lb.name + "-" + lt.name;
 
                 double longDist = scaledValue(via_overhang[i-1].v);
-                List<Object> metalContacts = makeContactSeries(t.nodes, name, viaSize, via, viaSpacing, viaArraySpacing,
+                group.addElement(makeContactSeries(t.nodes, name, viaSize, via, viaSpacing, viaArraySpacing,
                     longDist, lt,
-                    longDist, lb);
-                t.menuPalette.menuBoxes.add(metalContacts);
+                    longDist, lb));
             }
         }
 
@@ -2334,7 +2312,6 @@ public class TechEditWizardData
         for (Map.Entry<String,List<Contact>> e : metalContacts.entrySet())
         {
             // generic contacts
-            List<Object> contactsList = new ArrayList<Object>();
             for (Contact c : e.getValue())
             {
                 // We know those layer names are numbers!
@@ -2356,17 +2333,14 @@ public class TechEditWizardData
                 double longX = scaledValue(DBMath.isGreaterThan(c.verticalLayer.overX.v, c.horizontalLayer.overX.v) ? c.verticalLayer.overX.v : c.horizontalLayer.overX.v);
                 double longY = scaledValue(DBMath.isGreaterThan(c.verticalLayer.overY.v, c.horizontalLayer.overY.v) ? c.verticalLayer.overY.v : c.horizontalLayer.overY.v);
 
-                contactsList.add(makeXmlPrimitiveCon(t.nodes, c.prefix + name, -1, -1,
+                metalPalette[via-1].addElement(makeXmlPrimitiveCon(t.nodes, c.prefix + name, -1, -1,
                     new SizeOffset(longX, longX, longY, longY),
                     portNames,
                 makeXmlNodeLayer(h1x, h1x, h1y, h1y, ly, Poly.Type.FILLED, true), // layer1
                 makeXmlNodeLayer(h2x, h2x, h2y, h2y, lx, Poly.Type.FILLED, true), // layer2
                 makeXmlMulticut(conLayer, contSize, spacing, arraySpacing))); // contact
             }
-            t.menuPalette.menuBoxes.add(contactsList);
-            metalCount += contactsList.size();
         }
-        System.out.println("Total number of metal contacts: " + metalCount);
 
         /**************************** Transistors ***********************************************/
         /** Transistors **/
@@ -2374,7 +2348,7 @@ public class TechEditWizardData
         List<Xml.NodeLayer> nodesList = new ArrayList<Xml.NodeLayer>();
         List<Xml.PrimitivePort> nodePorts = new ArrayList<Xml.PrimitivePort>();
         EPoint minFullSize = null; //EPoint.fromLambda(0, 0);  // default zero    horizontalFlag
-        List<Object> l = null;
+        PaletteGroup[] transPalette = new PaletteGroup[2];
 
         for(int i = 0; i < 2; i++)
         {
@@ -2386,7 +2360,8 @@ public class TechEditWizardData
             double impy = scaledValue((gate_length.v+diff_poly_overhang.v*2)/2);
             double wellx = scaledValue((gate_width.v/2+nwell_overhang_diff_p.v));
             double welly = scaledValue((gate_length.v/2+diff_poly_overhang.v+nwell_overhang_diff_p.v));
-            l = new ArrayList<Object>();
+            PaletteGroup g = new PaletteGroup();
+            transPalette[i] = g;
 
             // Using P values in transistors
             sox = scaledValue(nwell_overhang_diff_p.v);
@@ -2514,16 +2489,25 @@ public class TechEditWizardData
             // Transistor
             Xml.PrimitiveNode n = makeXmlPrimitive(t.nodes, name + "-Transistor", PrimitiveNode.Function.TRANMOS, 0, 0, 0, 0,
                 new SizeOffset(sox, sox, soy, soy), nodesList, nodePorts, null, false);
-            l.add(n);
-            t.menuPalette.menuBoxes.add(l);
+            g.addElement(n);
         }
 
+        // Aggregating all palette groups into one
+        List<PaletteGroup> allGroups = new ArrayList<PaletteGroup>();
+
+        allGroups.add(transPalette[0]); allGroups.add(transPalette[1]);
+        allGroups.add(diffPalette[0]); allGroups.add(diffPalette[1]);
+        allGroups.add(wellPalette[0]); allGroups.add(wellPalette[1]);
+        allGroups.add(polyGroup);
+        for (PaletteGroup g : metalPalette)
+            allGroups.add(g);
+
         // Adding elements in palette
-        for (Object o : arcsList)
+        for (PaletteGroup o : allGroups)
         {
-            List<Object> list = new ArrayList<Object>();
-            list.add(o);
-            t.menuPalette.menuBoxes.add(list);
+            t.menuPalette.menuBoxes.add(o.arcs);  // arcs
+            t.menuPalette.menuBoxes.add(o.pins);  // pins
+            t.menuPalette.menuBoxes.add(o.elements);  // contacts
         }
 
         /** RULES **/
@@ -2594,7 +2578,7 @@ public class TechEditWizardData
         }
 
         // Finish menu with Pure, Misc and Cell
-        l = new ArrayList<Object>();
+        List<Object> l = new ArrayList<Object>();
         l.add(new String("Pure"));
         t.menuPalette.menuBoxes.add(l);
         l = new ArrayList<Object>();

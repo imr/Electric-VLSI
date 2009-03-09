@@ -26,7 +26,6 @@ package com.sun.electric.technology;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.technology.Technology.TechPoint;
 import com.sun.electric.tool.Job;
@@ -2132,7 +2131,7 @@ public class Xml {
 
         private void writeMenuBoxXml(List<Object> list) {
             b(XmlKeyword.menuBox);
-            if (list.size() == 0) {
+            if (list == null || list.size() == 0) {
                 el();
                 return;
             }
