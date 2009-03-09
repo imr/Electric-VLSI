@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09e: ******************************
 
+IMP: (2/5/09, SMR) Fixed command to list unused library files on disk (Bug #2038).
+
 IMP/MAN: (3/9/09, SMR) Added CIF output scaling factor to project settings (Bug #2071).
 
 BUG: (3/9/09, SMR) Array command doesn't remember edge overlap distance (Bug #2067).

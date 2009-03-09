@@ -41,6 +41,7 @@ import com.sun.electric.database.topology.RTNode;
 import com.sun.electric.database.variable.DisplayedText;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.lib.LibFile;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
@@ -64,6 +65,7 @@ import com.sun.electric.tool.user.waveform.WaveformWindow;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -1545,8 +1547,16 @@ public class CircuitChanges
 			Library lib = it.next();
 			if (lib.isHidden()) continue;
 			if (!lib.isFromDisk()) continue;
-			String dirName = TextUtils.getFilePath(lib.getLibFile());
+			String dirName = lib.getLibFile().getFile();
 			String fileName = TextUtils.getFile(lib.getLibFile()).getName();
+
+			// ignore if a library file
+			URL libFile = LibFile.getLibFile(fileName);
+			if (libFile != null && libFile.getFile().equals(dirName)) continue;
+
+			// crop file name from directory path
+			int crop = dirName.lastIndexOf(fileName);
+			if (crop > 0) dirName = dirName.substring(0, crop);
 			List<String> filesInDir = directories.get(dirName);
 			if (filesInDir == null)
 			{
@@ -1559,7 +1569,7 @@ public class CircuitChanges
 		if (directories.size() == 0)
 		{
 			System.out.println("Before running this command, you must read some libraries from disk.");
-			System.out.println("The command will then examine the directory to see if there are other libraries that were not read in");
+			System.out.println("The command will then examine the disk to see if there are other libraries that were not read in");
 			return;
 		}
 		for(String dirName : directories.keySet())
@@ -1573,13 +1583,13 @@ public class CircuitChanges
 				if (files == null) continue;
 				for(int i=0; i<files.length; i++)
 				{
-					String file = files[i];
-					if (file.endsWith(".jelib") || file.endsWith(".elib"))
+					String file = files[i].toLowerCase();
+					if (file.endsWith(".jelib") || file.endsWith(".elib") || file.endsWith(".delib"))
 					{
-						if (filesInDir.contains(file)) continue;
+						if (filesInDir.contains(files[i])) continue;
 						if (firstInDir) System.out.println("Directory " + dirName + " has these unused library files:");
 						firstInDir = false;
-						System.out.println("   " + file);
+						System.out.println("   " + files[i]);
 					}
 				}
 			}
