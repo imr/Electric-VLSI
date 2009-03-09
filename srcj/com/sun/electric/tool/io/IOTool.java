@@ -384,6 +384,20 @@ public class IOTool extends Tool
 	 */
 	public static boolean isFactoryCIFInSquaresWires() { return cacheCIFInSquaresWires.getBooleanFactoryValue(); }
 
+	/**
+	 * Method to tell what scale factor to use for CIF Output.
+	 * The scale factor is used in cell headers to avoid precision errors.
+	 * The default is "1".
+	 * @return the scale factor to use for CIF Output.
+	 */
+	public static int getCIFOutScaleFactor() { return getCIFOutScaleFactorSetting().getInt(); }
+	/**
+	 * Returns Setting to tell the scale factor to use for CIF Output.
+	 * The scale factor is used in cell headers to avoid precision errors.
+	 * @return Setting to tell the scale factor to use for CIF Output.
+	 */
+	public static Setting getCIFOutScaleFactorSetting() { return ToolSettings.getCIFOutScaleFactor(); }
+
 	/****************************** DEF PREFERENCES ******************************/
 
 	private static Pref cacheDEFLogicalPlacement = Pref.makeBooleanPref("DEFLogicalPlacement", IOTool.tool.prefs, true);

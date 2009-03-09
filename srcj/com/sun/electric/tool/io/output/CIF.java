@@ -32,6 +32,7 @@ import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.Geometric;
@@ -108,7 +109,8 @@ public class CIF extends Geometry
         cellNumbers = new HashMap<Cell,Integer>();
 
 		// scale is in centimicrons, technology scale is in nanometers
-		scaleFactor = Technology.getCurrent().getScale() / 10;
+		int cifScale = IOTool.getCIFOutScaleFactor();
+		scaleFactor = Technology.getCurrent().getScale() / 10 * cifScale;
     }
 
 	protected void start()
@@ -168,7 +170,8 @@ public class CIF extends Geometry
 	protected void writeCellGeom(CellGeom cellGeom)
 	{
 		cellNumber++;
-		writeLine("DS " + cellNumber + " 1 1;");
+		int cifScale = IOTool.getCIFOutScaleFactor();
+		writeLine("DS " + cellNumber + " 1 " + cifScale + ";");
 		String cellName = (cellGeom.nonUniqueName ? (cellGeom.cell.getLibrary().getName() + ":") : "") +
 			cellGeom.cell.getName() + ";";
 

@@ -106,6 +106,12 @@ public class ToolSettings {
 	 */
 	public static Setting getCIFOutInstantiatesTopLevelSetting() { return t.cacheCIFInstantiatesTopLevel; }
 	/**
+	 * Returns Setting to tell the scale factor to use for CIF Output.
+	 * The scale factor is used in cell headers to avoid precision errors.
+	 * @return Setting to tell the scale factor to use for CIF Output.
+	 */
+	public static Setting getCIFOutScaleFactor() { return t.cacheCIFOutScaleFactor; }
+	/**
 	 * Returns Setting to tell whether GDS Output merges boxes into complex polygons.
 	 * This takes more time but produces a smaller output file.
 	 * @return Setting to tell if GDS Output merges boxes into complex polygons.
@@ -246,6 +252,7 @@ public class ToolSettings {
 	private final Setting cacheCIFMimicsDisplay = makeBooleanSetting("CIFMimicsDisplay", "CIF tab", "CIF output mimics display", false);
  	private final Setting cacheCIFMergesBoxes = makeBooleanSetting("CIFMergesBoxes", "CIF tab", "CIF output merges boxes", false);
 	private final Setting cacheCIFInstantiatesTopLevel = makeBooleanSetting("CIFInstantiatesTopLevel", "CIF tab", "CIF output instantiates top level", true);
+	private final Setting cacheCIFOutScaleFactor = makeIntSetting("CIFOutScaleFactor", "CIF tab", "CIF output scale factor", 1);
 	private final Setting cacheGDSMergesBoxes = makeBooleanSetting("GDSMergesBoxes", "GDS tab", "GDS output merges boxes", false);
 	private final Setting cacheGDSWritesExportPins = makeBooleanSetting("GDSWritesExportPins", "GDS tab", "GDS output writes export pins", false);
 	private final Setting cacheGDSOutputUpperCase = makeBooleanSetting("GDSOutputUpperCase", "GDS tab", "GDS output all upper-case", false);
