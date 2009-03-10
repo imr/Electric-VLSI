@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09e: ******************************
 
+IMP: (3/9/09, GVG) Enable/Disable of remove button in AddTech Preference
+
 IMP: (2/5/09, SMR) Fixed command to list unused library files on disk (Bug #2038).
 
 IMP/MAN: (3/9/09, SMR) Added CIF output scaling factor to project settings (Bug #2071).

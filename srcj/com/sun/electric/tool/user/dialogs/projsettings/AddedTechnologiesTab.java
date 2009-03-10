@@ -56,6 +56,7 @@ public class AddedTechnologiesTab extends ProjSettingsPanel
 	private DefaultListModel addedTechnologiesModel;
     private JScrollPane addedTechnologiesPane;
 	private Setting softTechnologiesSetting = User.getSoftTechnologiesSetting();
+    private JButton removeTech;
 
     /** Creates new form AddedTechnologiesTab */
 	public AddedTechnologiesTab(ProjectSettingsFrame parent, boolean modal)
@@ -82,9 +83,23 @@ public class AddedTechnologiesTab extends ProjSettingsPanel
 		addedTechnologiesPane.setViewportView(addedTechnologiesList);
 		for(String techPath: getString(softTechnologiesSetting).split(";"))
 			if (techPath.length() > 0) addedTechnologiesModel.addElement(techPath);
-	}
 
-	/**
+        // to detect proper selection
+        addedTechnologiesList.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+            public void valueChanged(javax.swing.event.ListSelectionEvent evt)
+            {
+                setRemoveButton();
+            }
+        });
+        setRemoveButton();
+    }
+
+    private void setRemoveButton()
+    {
+        removeTech.setEnabled(addedTechnologiesList.getSelectedIndex() != -1);
+    }
+
+    /**
 	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the Added Technologies tab.
 	 */
@@ -105,14 +120,16 @@ public class AddedTechnologiesTab extends ProjSettingsPanel
 		String fileName = OpenFile.chooseInputFile(FileType.XML, null);
 		if (fileName == null) return;
 		addedTechnologiesModel.addElement(fileName);
-	}
+        setRemoveButton();
+    }
 
 	private void removeTechnology()
 	{
 		int line = addedTechnologiesList.getSelectedIndex();
 		if (line < 0) return;
 		addedTechnologiesModel.remove(line);
-	}
+        setRemoveButton();
+    }
 
 	/** This method is called from within the constructor to
 	 * initialize the form.
@@ -174,7 +191,7 @@ public class AddedTechnologiesTab extends ProjSettingsPanel
 			public void actionPerformed(ActionEvent evt) { addTechnology(); }
 		});
 
-		JButton removeTech = new JButton("Remove");
+		removeTech = new JButton("Remove");
         gridBagConstraints = new GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 3;
