@@ -503,7 +503,8 @@ public abstract class InteractiveRouter extends Router {
                 return route;
             }
             // check single arc case
-            if (DBMath.areEquals(startPoint.getX(), endPoint.getX()) || DBMath.areEquals(startPoint.getY(), endPoint.getY())) {
+            if ((DBMath.figureAngle(startPoint, endPoint) % (10*startArc.getAngleIncrement())) == 0) {
+                // single arc
                 addConnectingArc(route, cell, startRE, endRE, startPoint, endPoint, startArc,
                         startArcWidth, startAngle, extendArcHead, extendArcTail, stayInside);
             } else {

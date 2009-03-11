@@ -592,9 +592,11 @@ public abstract class Router {
             contactSize = new Rectangle2D.Double(cornerLoc.getX()-startW/2.0, cornerLoc.getY()-startH/2.0, startW, startH);
 
             if (startAngle % 1800 == 0) startArcWidth = contactSize.getHeight();
-            if ((startAngle + 900) % 1800 == 0) startArcWidth = contactSize.getWidth();
+            else if ((startAngle + 900) % 1800 == 0) startArcWidth = contactSize.getWidth();
+            else startArcWidth = contactSize.getHeight(); // all non-manhatten angles
             if (endAngle % 1800 == 0) endArcWidth = contactSize.getHeight();
-            if ((endAngle + 900) % 1800 == 0) endArcWidth = contactSize.getWidth();
+            else if ((endAngle + 900) % 1800 == 0) endArcWidth = contactSize.getWidth();
+            else endArcWidth = contactSize.getWidth(); // all non-manhatten angles
 
         }
 
@@ -638,7 +640,8 @@ public abstract class Router {
                 } else {
                     angle = GenMath.figureAngle(loc, cornerLoc);
                     if (angle % 1800 == 0) h = getArcWidthToUse(pi, arc, angle, ignoreAngles);
-                    if ((angle + 900) % 1800 == 0) w = getArcWidthToUse(pi, arc, angle, ignoreAngles);
+                    else if ((angle + 900) % 1800 == 0) w = getArcWidthToUse(pi, arc, angle, ignoreAngles);
+                    else h = w = getArcWidthToUse(pi, arc, angle, true);
                 }
             }
 
