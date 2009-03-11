@@ -32,6 +32,7 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -410,7 +411,7 @@ public class ClickZoomWireListener
 	            if (modeLeft == Mode.stickyMove) {
 	                // moving objects
 	                if (ctrlPressed)
-	                    dbClick = convertToOrthogonal(new Point2D.Double(dbMoveStartX, dbMoveStartY), dbClick);
+	                    dbClick = convertToOrthogonal(new Point2D.Double(dbMoveStartX, dbMoveStartY), dbClick, highlighter);
 	                Point2D dbDelta = new Point2D.Double(dbClick.getX() - dbMoveStartX, dbClick.getY() - dbMoveStartY);
 	                EditWindow.gridAlign(dbDelta);
 	                if (dbDelta.getX() != 0 || dbDelta.getY() != 0) {
@@ -655,7 +656,7 @@ public class ClickZoomWireListener
 	                // moving objects
 	                // if CTRL held, can only move orthogonally
 	                if (ctrlPressed)
-	                    dbMouse = convertToOrthogonal(new Point2D.Double(dbMoveStartX, dbMoveStartY), dbMouse);
+	                    dbMouse = convertToOrthogonal(new Point2D.Double(dbMoveStartX, dbMoveStartY), dbMouse, highlighter);
 	                // relocate highlight to under mouse
 	                Point2D dbDelta = new Point2D.Double(dbMouse.getX() - dbMoveStartX, dbMouse.getY() - dbMoveStartY);
 	                EditWindow.gridAlign(dbDelta);              // align to grid
@@ -1195,7 +1196,7 @@ public class ClickZoomWireListener
 	                if (modeLeft == Mode.move || modeLeft == Mode.stickyMove) {
 	                    // moving objects
 	                    if (ctrlPressed)
-	                        dbMouse = convertToOrthogonal(new Point2D.Double(dbMoveStartX, dbMoveStartY), dbMouse);
+	                        dbMouse = convertToOrthogonal(new Point2D.Double(dbMoveStartX, dbMoveStartY), dbMouse, highlighter);
 	                    Point2D dbDelta = new Point2D.Double(dbMouse.getX() - dbMoveStartX, dbMouse.getY() - dbMoveStartY);
                         EditWindow.gridAlign(dbDelta);
                         if (moveDelta != null) highlighter.remove(moveDelta);
@@ -1234,7 +1235,7 @@ public class ClickZoomWireListener
 
 			if (modeLeft == Mode.stickyMove) {
 				if (another)
-					dbMouse = convertToOrthogonal(new Point2D.Double(dbMoveStartX, dbMoveStartY), dbMouse);
+					dbMouse = convertToOrthogonal(new Point2D.Double(dbMoveStartX, dbMoveStartY), dbMouse, highlighter);
 				Point2D dbDelta = new Point2D.Double(dbMouse.getX() - dbMoveStartX, dbMouse.getY() - dbMoveStartY);
 				EditWindow.gridAlign(dbDelta);
 				Point2D screenDelta = wnd.deltaDatabaseToScreen((int)dbDelta.getX(), (int)dbDelta.getY());
@@ -1508,18 +1509,51 @@ public class ClickZoomWireListener
     /**
      * Convert the mousePoint to be orthogonal to the startPoint.
      * Chooses direction which is orthogonally farther from startPoint
-     * @param startPoint the reference point
-     * @param mousePoint the mouse point
-     * @return a new point orthogonal to startPoint
+     * @param startPoint the reference point.
+     * @param mousePoint the mouse point.
+     * @param highlighter to find out what is selected.
+     * @return a new point orthogonal to startPoint.
      */
-    public static Point2D convertToOrthogonal(Point2D startPoint, Point2D mousePoint) {
-        // move in direction that is farther
-        double xdist, ydist;
-        xdist = Math.abs(mousePoint.getX() - startPoint.getX());
-        ydist = Math.abs(mousePoint.getY() - startPoint.getY());
-        if (ydist > xdist)
-            return new Point2D.Double(startPoint.getX(), mousePoint.getY());
-        return new Point2D.Double(mousePoint.getX(), startPoint.getY());
+    private static Point2D convertToOrthogonal(Point2D startPoint, Point2D mousePoint, Highlighter highlighter)
+    {
+    	int orthoAngle = 90;
+    	List<Geometric> highObjs = highlighter.getHighlightedEObjs(true, true);
+    	for(Geometric geom : highObjs)
+    	{
+    		if (geom instanceof NodeInst)
+    		{
+    			NodeInst ni = (NodeInst)geom;
+    			for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
+    			{
+    				Connection con = it.next();
+    				int thisAngle = getAngleIncrement(con.getArc());
+    				if (thisAngle < orthoAngle) orthoAngle = thisAngle;
+    			}
+    		} else
+    		{
+				int thisAngle = getAngleIncrement((ArcInst)geom);
+				if (thisAngle < orthoAngle) orthoAngle = thisAngle;
+    		}
+    	}
+    	if (orthoAngle == 0) return mousePoint;
+        return InteractiveRouter.getClosestAngledPoint(startPoint, mousePoint, orthoAngle);
+
+//    	// move in direction that is farther
+//        double xdist, ydist;
+//        xdist = Math.abs(mousePoint.getX() - startPoint.getX());
+//        ydist = Math.abs(mousePoint.getY() - startPoint.getY());
+//        if (ydist > xdist)
+//            return new Point2D.Double(startPoint.getX(), mousePoint.getY());
+//        return new Point2D.Double(mousePoint.getX(), startPoint.getY());
+    }
+
+    private static int getAngleIncrement(ArcInst ai)
+    {
+    	int angle = ai.getAngle();
+    	if ((angle%900) == 0) return 90;
+    	if ((angle%450) == 0) return 45;
+    	if ((angle%300) == 0) return 30;
+    	return 90;
     }
 
     // ********************************* Wiring Stuff ********************************

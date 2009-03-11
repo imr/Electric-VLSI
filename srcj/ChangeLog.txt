@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09f: ******************************
 
+IMP/MAN: (3/11/09, SMR) When moving objects that have nonmanhattan wires on
+     them, the Control key grids to the appropriate angle (Bug #2072).
+
 BUG: (3/11/09, GVG) Should be able to save and restore list of DRCTemplates unchanged (Bug #2051)
 and Few issues with XML and DRC rules (Bug #2017)
 FIX: Removed part where UCONSPA2D were duplicated

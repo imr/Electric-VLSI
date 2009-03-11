@@ -175,9 +175,7 @@ public abstract class InteractiveRouter extends Router {
         Rectangle2D contactArea = sizer.getContactSize();
         Dimension2D contactSize = new Dimension2D.Double(contactArea.getWidth(), contactArea.getHeight());
         int startAngle = sizer.getStartAngle();
-        int endAngle = sizer.getEndAngle();
         double startArcWidth = sizer.getStartWidth();
-        double endArcWidth = sizer.getEndWidth();
         Cell cell = wnd.getCell();
 
         Route vertRoute = vroute.buildRoute(cell, startLoc, contactSize, startAngle, null);
@@ -328,7 +326,6 @@ public abstract class InteractiveRouter extends Router {
         VerticalRoute vroute = VerticalRoute.newRoute(startPort, endPort);
         if (!vroute.isSpecificationSucceeded()) return new Route();
 
-        boolean ignoreAngles = false;
         // arc width of arcs that will connect to startObj, endObj will determine
         // valid attachment points of arcs
         ArcProto startArc = vroute.getStartArc();
@@ -1128,15 +1125,15 @@ public abstract class InteractiveRouter extends Router {
         NodeProto np = re.getNodeProto();
         if (np == null) return defExtends;
 
-        boolean checkAttachedArcs = false;
-        if (np instanceof Cell) {
-            checkAttachedArcs = true;
-        }
+//        boolean checkAttachedArcs = false;
+//        if (np instanceof Cell) {
+//            checkAttachedArcs = true;
+//        }
         if (np instanceof PrimitiveNode) {
             PrimitiveNode pn = (PrimitiveNode)np;
-            if (pn.getFunction() == PrimitiveNode.Function.PIN) {
-                checkAttachedArcs = true;
-            }
+//            if (pn.getFunction() == PrimitiveNode.Function.PIN) {
+//                checkAttachedArcs = true;
+//            }
             if (pn.getFunction() == PrimitiveNode.Function.CONTACT) {
                 Dimension2D size = re.getNodeSize();
                 if (arcAngle % 1800 == 0) {
@@ -1147,14 +1144,12 @@ public abstract class InteractiveRouter extends Router {
                 }
             }
         }
-
 /*
         if (checkAttachedArcs && re.getPortInst() != null) {
             double attachedWidth = getArcWidthToUse(re.getPortInst(), arc, arcAngle);
             if (attachedWidth < arcWidth) return false;
         }
 */
-
         return defExtends;
     }
 
@@ -1205,7 +1200,7 @@ public abstract class InteractiveRouter extends Router {
      * @param angleIncrement
      * @return the closest point to clicked to route a wire.
      */
-    protected static Point2D getClosestAngledPoint(Point2D startPoint, Point2D clicked,
+    public static Point2D getClosestAngledPoint(Point2D startPoint, Point2D clicked,
                                                    int angleIncrement) {
         angleIncrement = Math.abs(angleIncrement);
         if (angleIncrement == 0) return clicked;
