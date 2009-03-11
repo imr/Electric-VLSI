@@ -60,7 +60,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-import java.util.Arrays;
 import org.junit.After;
 import static org.junit.Assert.*;
 import org.junit.Before;
@@ -97,7 +96,7 @@ public class ImmutableArcInstTest {
         generic = Generic.newInstance(idManager);
         artwork = (Artwork)TechFactory.getTechFactory("artwork").newInstance(generic);
         tech = TechFactory.getTechFactory("mocmos").newInstance(generic);
-        techPool = new TechPool(Arrays.asList(generic, artwork, tech));
+        techPool = idManager.getInitialTechPool().withTech(generic).withTech(artwork).withTech(tech);
         pn = tech.findNodeProto("Metal-1-P-Active-Con");
         pnId = pn.getId();
         pp = pn.getPort(0);

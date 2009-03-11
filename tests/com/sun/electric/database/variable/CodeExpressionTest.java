@@ -246,7 +246,7 @@ public class CodeExpressionTest {
         goodSpice("1 + 2 * 3", "1+2*3");
         goodSpice("1 * 2 + 3", "1*2+3");
         goodSpice("(1 + 2) * 3", "(1+2)*3");
-        goodSpice("(1 + 2) * x", "(1+2)*x");
+        goodSpice("(1 + 2) * X", "(1+2)*X");
         goodSpice("300 / -1.5e2", "300/-150");
         goodSpice("1.5e-2", "15m");
         goodSpice("20 * 1.5e-2", "20*15m");
@@ -258,10 +258,10 @@ public class CodeExpressionTest {
         goodSpice("-(1 + 2) * 3 + -4", "-(1+2)*3+-4");
         goodSpice("-(1 + 2) * 3 + -4 * -2 - -4 * -3", "-(1+2)*3+-4*-2--4*-3");
         goodSpice("-sin(3)", "-sin(3)");
-        goodSpice("-sin(x)", "-sin(x)");
+        goodSpice("-sin(X)", "-sin(X)");
         goodSpice("1-min(1,-2)", "1-min(1,-2)");
-        goodSpice("1-min(1,x)", "1-min(1,x)");
-        goodSpice("1-min((a+b)*c,x)", "1-min((a+b)*c,x)");
+        goodSpice("1-min(1,X)", "1-min(1,X)");
+        goodSpice("1-min((a+b)*c,X)", "1-min((a+b)*c,X)");
         goodSpice("1-min((a+b)*c,(a+b))", "1-min((a+b)*c,a+b)");
         goodSpice("-a + 2 * 3 * -b + - 4", "-a+2*3*-b+-4");
         goodSpice("1 ? -2 : 4", "1?-2:4");

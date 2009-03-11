@@ -26,7 +26,7 @@ package com.sun.electric.database.hierarchy;
 
 import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellRevision;
-import com.sun.electric.database.Config;
+import com.sun.electric.database.Environment;
 import com.sun.electric.database.LibraryBackup;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.ERectangle;
@@ -68,11 +68,12 @@ public class EDatabase {
     private static final Logger logger = Logger.getLogger("com.sun.electric.database");
     private static final String CLASS_NAME = EDatabase.class.getName();
 
-    public static EDatabase theDatabase = new EDatabase(new IdManager());
+    public static EDatabase theDatabase;
     public static EDatabase serverDatabase() { return theDatabase; }
     public static EDatabase clientDatabase() { return theDatabase; }
 
     /** IdManager which keeps Ids of objects in this database.*/private final IdManager idManager;
+    /** Environment of this EDatabase */                        private Environment environment;
     /** list of linked technologies indexed by techId. */       private TechPool techPool;
 	/** list of linked libraries indexed by libId. */           private final ArrayList<Library> linkedLibs = new ArrayList<Library>();
 	/** map of libraries sorted by name */                      final TreeMap<String,Library> libraries = new TreeMap<String,Library>(TextUtils.STRING_NUMBER_ORDER);
@@ -87,11 +88,14 @@ public class EDatabase {
     /** True if writing thread can undoing. */                  private boolean canUndoing;
     /** Tool which initiated changing. */                       private Tool changingTool;
 
+    public EDatabase(Environment environment) {
+        this(environment.techPool.idManager.getInitialSnapshot().with(null, environment, null, null, null));
+    }
+
     /** Creates a new instance of EDatabase */
-    public EDatabase(IdManager idManager) {
-        this.idManager = idManager;
-        techPool = idManager.getInitialTechPool();
-        setSnapshot(getInitialSnapshot(), true);
+    public EDatabase(Snapshot snapshot) {
+        idManager = snapshot.idManager;
+        setSnapshot(snapshot, true);
         networkManager = new NetworkManager(this);
     }
 
@@ -101,24 +105,25 @@ public class EDatabase {
 
     public NetworkManager getNetworkManager() { return networkManager; }
 
+    public void setToolSettings(Setting.RootGroup toolSettings) {
+        Environment newEnvironment = backup().environment.withToolSettings(toolSettings);
+        setEnvironment(newEnvironment);
+    }
+
     public void addTech(Technology tech) {
-        assert getTech(tech.getId()) == null;
-        techPool = techPool.withTech(tech);
-        snapshotFresh = false;
+        Environment newEnvironment = backup().environment.addTech(tech);
+        setEnvironment(newEnvironment);
     }
 
     public void implementSettingChanges(Setting.SettingChangeBatch changeBatch) {
-        for (Map.Entry<Setting,Object> e: getSettings().entrySet()) {
-            Setting setting = e.getKey();
-            Object oldValue = e.getValue();
-            String xmlPath = setting.getXmlPath();
-            if (!changeBatch.changesForSettings.containsKey(xmlPath)) continue;
-            Object newValue = changeBatch.changesForSettings.get(xmlPath);
-            if (newValue == null)
-                newValue = setting.getFactoryValue();
-            if (newValue.equals(oldValue)) continue;
-            setting.set(newValue);
-        }
+        Environment oldEnvironment = backup().environment;
+        Environment newEnvironment = environment.withSettingChanges(changeBatch);
+        setEnvironment(newEnvironment);
+    }
+
+    private void setEnvironment(Environment newEnvironment) {
+        if (this.environment == newEnvironment) return;
+        resize(newEnvironment);
     }
 
     /** Returns TechPool of this database */
@@ -147,7 +152,7 @@ public class EDatabase {
     public Schematics getSchematics() { return techPool.getSchematics(); }
 
     public Map<Setting,Object> getSettings() {
-        return backupUnsafe().getSettings();
+        return environment.getSettings();
     }
 
     public Library getLib(LibId libId) { return getLib(libId.libIndex); }
@@ -363,6 +368,9 @@ public class EDatabase {
 
     private synchronized void setSnapshot(Snapshot snapshot, boolean fresh) {
         this.snapshot = snapshot;
+        environment = snapshot.environment;
+        techPool = environment.techPool;
+        environment.activate();
         this.snapshotFresh = fresh;
     }
 
@@ -430,7 +438,7 @@ public class EDatabase {
         if (!cellsChanged) cellBackups = null;
         if (!cellBoundsChanged) cellBounds = null;
 
-        setSnapshot(snapshot.withTechPool(techPool).with(changingTool, cellBackups, cellBounds, libBackups), true);
+        setSnapshot(snapshot.with(changingTool, environment, cellBackups, cellBounds, libBackups), true);
 //        long endTime = System.currentTimeMillis();
 //        if (Job.getDebug()) System.out.println("backup took: " + (endTime - startTime) + " msec");
         return snapshot;
@@ -444,8 +452,9 @@ public class EDatabase {
     public void recover(Snapshot snapshot) {
         long startTime = System.currentTimeMillis();
         setSnapshot(snapshot, false);
-        if (Config.TWO_JVM)
-            techPool = snapshot.techPool;
+        environment = snapshot.environment;
+        techPool = environment.techPool;
+        environment.activate();
         recoverLibraries();
         recycleCells();
         BitSet recovered = new BitSet();
@@ -489,6 +498,9 @@ public class EDatabase {
         Snapshot oldSnapshot = backup();
         if (oldSnapshot == snapshot) return;
         setSnapshot(snapshot, false);
+        environment = snapshot.environment;
+        techPool = environment.techPool;
+        environment.activate();
         boolean cellGroupsChanged = oldSnapshot.cellGroups != snapshot.cellGroups;
         if (oldSnapshot.libBackups != snapshot.libBackups) {
             recoverLibraries();
@@ -577,6 +589,49 @@ public class EDatabase {
             exportsModified.set(cellIndex);
         if (oldRevision == null || snapshot.getCellBounds(cellId) != oldBounds)
             boundsModified.set(cellIndex);
+    }
+
+    /**
+     * Resize database after Technology change.
+     * This method assumes that database is in valid state.
+     * @param environment new Environment
+     */
+    public void resize(Environment environment) {
+        long startTime = System.currentTimeMillis();
+        backup();
+        this.environment = environment;
+        this.techPool = environment.techPool;
+        environment.activate();
+        lowLevelSetCanUndoing(true);
+        BitSet updated = new BitSet();
+        for (CellBackup cellBackup: snapshot.cellBackups) {
+            if (cellBackup != null)
+                resizeRecursively(cellBackup.cellRevision.d.cellId, updated);
+        }
+        lowLevelSetCanUndoing(false);
+        snapshotFresh = false;
+        backup();
+        long endTime = System.currentTimeMillis();
+        if (Job.getDebug()) {
+            System.out.println("resize took: " + (endTime - startTime) + " msec");
+            checkFresh(snapshot);
+        }
+    }
+
+    private void resizeRecursively(CellId cellId, BitSet updated) {
+        int cellIndex = cellId.cellIndex;
+    	if (updated.get(cellIndex)) return;
+        CellBackup cellBackup = snapshot.getCell(cellId);
+        CellRevision cellRevision = cellBackup.cellRevision;
+        assert cellId != null;
+        for (int i = 0, numUsages = cellId.numUsagesIn(); i < numUsages; i++) {
+            CellUsage u = cellId.getUsageIn(i);
+            if (cellRevision.getInstCount(u) <= 0) continue;
+            resizeRecursively(u.protoId, updated);
+        }
+        Cell cell = getCell(cellId);
+        cell.resize();
+    	updated.set(cellIndex);
     }
 
     private void recoverLibraries() {
@@ -694,7 +749,9 @@ public class EDatabase {
 	 * @exception AssertionError if invariants are not valid
 	 */
     private void check() {
+        assert techPool == environment.techPool;
         if (snapshotFresh) {
+            assert environment == snapshot.environment;
             assert techPool == snapshot.techPool;
             assert linkedLibs.size() == snapshot.libBackups.size();
             assert linkedCells.size() == snapshot.cellBackups.size();

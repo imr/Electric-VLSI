@@ -112,7 +112,7 @@ public class CellBackup {
                     throw new IllegalArgumentException("arc " + a.name + " is not compatible with TechPool");
             }
         }
-        return new CellBackup(newRevision, restrictedPool, true);
+        return new CellBackup(newRevision, restrictedPool, modified || newRevision != cellRevision);
     }
 
     /**

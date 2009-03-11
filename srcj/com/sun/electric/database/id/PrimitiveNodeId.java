@@ -67,13 +67,13 @@ public class PrimitiveNodeId implements NodeProtoId, Serializable {
         fullName = techId.techName + ":" + name;
         this.chronIndex = chronIndex;
     }
-    
+
     private Object writeReplace() { return new PrimitiveNodeIdKey(this); }
-    
+
     private static class PrimitiveNodeIdKey extends EObjectInputStream.Key<PrimitiveNodeId> {
         public PrimitiveNodeIdKey() {}
         private PrimitiveNodeIdKey(PrimitiveNodeId primitiveNodeId) { super(primitiveNodeId); }
-        
+
         @Override
         public void writeExternal(EObjectOutputStream out, PrimitiveNodeId primitiveNodeId) throws IOException {
             TechId techId = primitiveNodeId.techId;
@@ -82,7 +82,7 @@ public class PrimitiveNodeId implements NodeProtoId, Serializable {
             out.writeInt(techId.techIndex);
             out.writeInt(primitiveNodeId.chronIndex);
         }
-        
+
         @Override
         public PrimitiveNodeId readExternal(EObjectInputStream in) throws IOException, ClassNotFoundException {
             int techIndex = in.readInt();
@@ -90,7 +90,7 @@ public class PrimitiveNodeId implements NodeProtoId, Serializable {
             return in.getIdManager().getTechId(techIndex).getPrimitiveNodeId(chronIndex);
         }
     }
-    
+
     /**
      * Returns a number PrimitivePortIds in this PrimitiveNodeId.
      * This number may grow in time.
@@ -99,7 +99,7 @@ public class PrimitiveNodeId implements NodeProtoId, Serializable {
     synchronized int numPrimitivePortIds() {
         return primitivePortIds.size();
     }
-    
+
     /**
      * Returns PrimitivePortId in this PrimitiveNodeId with specified chronological index.
      * @param chronIndex chronological index of PrimitivePortId.
@@ -109,7 +109,7 @@ public class PrimitiveNodeId implements NodeProtoId, Serializable {
     public synchronized PrimitivePortId getPortId(int chronIndex) {
         return primitivePortIds.get(chronIndex);
     }
-    
+
     /**
      * Returns PrimtiivePortId in this node proto with specified external id.
      * If this external id was requested earlier, the previously created PrimitivePortId returned,
@@ -122,7 +122,7 @@ public class PrimitiveNodeId implements NodeProtoId, Serializable {
         PrimitivePortId primitivePortId = primitivePortIdsByName.get(externalId);
         return primitivePortId != null ? primitivePortId : newPrimitivePortIdInternal(externalId);
     }
-    
+
     private PrimitivePortId newPrimitivePortIdInternal(String primitivePortName) {
         int chronIndex = primitivePortIds.size();
         PrimitivePortId primitivePortId = new PrimitivePortId(this, primitivePortName, primitivePortIds.size());
@@ -134,7 +134,15 @@ public class PrimitiveNodeId implements NodeProtoId, Serializable {
         }
         return primitivePortId;
     }
-    
+
+   /**
+     * Returns true if this NodeProtoId is Id of icon Cell.
+     * @return true if this NodeProtoId is Id of icon Cell.
+     */
+    public boolean isIcon() {
+        return false;
+    }
+
    /**
      * Method to return the NodeProto representing NodeProtoId in the specified EDatabase.
      * @param database EDatabase where to get from.
@@ -144,14 +152,14 @@ public class PrimitiveNodeId implements NodeProtoId, Serializable {
     public PrimitiveNode inDatabase(EDatabase database) {
         return database.getTechPool().getPrimitiveNode(this);
     }
-    
+
 	/**
 	 * Returns a printable version of this ArcProtoId.
 	 * @return a printable version of this ArcProtoId.
 	 */
     @Override
     public String toString() { return fullName; }
-    
+
 	/**
 	 * Checks invariants in this ArcProtoId.
      * @exception AssertionError if invariants are not valid

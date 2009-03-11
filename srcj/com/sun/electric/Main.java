@@ -28,7 +28,6 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.Pref;
-import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.Geometric;
@@ -175,7 +174,7 @@ public final class Main
         }
 
 		// initialize database
-        EDatabase.serverDatabase();
+        EDatabase.theDatabase = new EDatabase(Technology.makeInitialEnvironment());
 		InitDatabase job = new InitDatabase(argsList);
         Job.initJobManager(numThreads, job, mode, serverMachineName);
 	}
@@ -401,11 +400,11 @@ public final class Main
 //			try {
 //				Undo.changesQuiet(true);
 
+				// initialize all of the technologies
+				Technology.initAllTechnologies();
 				// initialize all of the tools
 				Tool.initAllTools();
 
-				// initialize all of the technologies
-				Technology.initAllTechnologies();
                 Pref.lockCreation();
 
 				// initialize the constraint system

@@ -175,7 +175,7 @@ public class ToolMenu {
 		        new EMenuItem("Check _Selection Hierarchically") { public void run() {
                     EditWindow_ wnd = Job.getUserInterface().getCurrentEditWindow_();
                     if (wnd == null) return;
-                    DRC.checkDRCHierarchically(wnd.getCell(), wnd.getHighlightedEObjs(true, true), 
+                    DRC.checkDRCHierarchically(wnd.getCell(), wnd.getHighlightedEObjs(true, true),
                             wnd.getHighlightedArea(), GeometryHandler.GHMode.ALGO_SWEEP, false); }},
                 new EMenuItem("Check Area _Coverage") { public void run() {
                     LayerCoverageTool.layerCoverageCommand(WindowFrame.needCurCell(), GeometryHandler.GHMode.ALGO_SWEEP, true); }},
@@ -417,11 +417,11 @@ public class ToolMenu {
                new EMenuItem("Cells from _Two Windows") { public void run() {
                     Pie.invokePieNcc(2); }}) : null,
 
-                    
+
         // ------------------- Architecture Generator
 //            // If ArchGen package is installed then add menu entries to call it
 //            ArchGenPlugin.hasArchGen() ? ArchGenPlugin.getEMenu() : null,
-                            
+
         //------------------- Network
 
 		// mnemonic keys available:    D F  IJK M O Q S   W YZ
@@ -1566,7 +1566,7 @@ public class ToolMenu {
     {
         new MakeTemplate(templateKey, tgtCell);
     }
-    
+
     /**
      * Method to create a new template on the target cell, with a predefined String or String [].
      * Templates can be for SPICE or Verilog, depending on the Variable name.
@@ -1576,13 +1576,13 @@ public class ToolMenu {
     {
         new MakeTemplate(templateKey, tgtCell, value);
     }
-    
+
     private static class MakeTemplate extends Job
     {
         private Variable.Key templateKey;
         private Cell tgtCell;
         private Object value;
-        
+
         protected MakeTemplate(Variable.Key templateKey)
         {
             super("Make template", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -1596,8 +1596,8 @@ public class ToolMenu {
             this.templateKey = templateKey;
             this.tgtCell = tgtCell;
             startJob();
-        }        
-        
+        }
+
         protected MakeTemplate(Variable.Key templateKey, Cell tgtCell, Object value)
         {
             super("Make template", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -1605,8 +1605,8 @@ public class ToolMenu {
             this.tgtCell = tgtCell;
             this.value = value;
             startJob();
-        }   
-        
+        }
+
         public boolean doIt() throws JobException
         {
             Cell cell;
@@ -2053,7 +2053,8 @@ public class ToolMenu {
                         DRC.cleanCellsDueToFoundryChanges(tech, f);
                         // Only when the rules belong to the selected foundry, then reload the rules
                         if (f == tech.getSelectedFoundry())
-                            tech.setState();
+                            tech.setCachedRules(null);
+//                            tech.setState();
                         done = true;
                         break;
                     }

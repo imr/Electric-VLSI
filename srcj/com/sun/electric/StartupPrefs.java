@@ -33,6 +33,18 @@ public class StartupPrefs {
     private static final String USER_NODE = "/com/sun/electric/tool/user";
     private static final Preferences userNode = Preferences.userRoot().node(USER_NODE);
 
+	/** Preferences key with additional technologies for Electric. */
+    public static final String SoftTechnologiesKey = "SoftTechnologies";
+	/** Default initial additional technologies for Electric. */
+    public static final String SoftTechnologiesDef = "";
+	/**
+	 * Method to tell the additional technologies for Electric.
+	 * The default is "".
+	 * @return the additional technologies for Electric.
+	 */
+	public static String getSoftTechnologies() { return getUserString(SoftTechnologiesKey, SoftTechnologiesDef); }
+    
+    
 	/** Preferences key to tell the initial display style for Electric. */
     public static final String DisplayStyleKey = "DisplayStyle";
 	/** Default initial display style for Electric. */

@@ -87,7 +87,7 @@ import java.util.List;
  */
 public class FPGA extends Technology
 {
-	/** the FPGA Technology object. */	public static FPGA tech() { return sysFPGA; }
+	/** the FPGA Technology object. */	public static FPGA tech() { return (FPGA)findTechnology("fpga"); }
 
 	private final Layer wireLayer, componentLayer, pipLayer, repeaterLayer;
 	private final ArcProto wireArc;

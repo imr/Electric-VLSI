@@ -23,9 +23,10 @@
  */
 package com.sun.electric.technology;
 
-import com.sun.electric.database.Config;
+import com.sun.electric.StartupPrefs;
 import com.sun.electric.database.EObjectInputStream;
 import com.sun.electric.database.EObjectOutputStream;
+import com.sun.electric.database.Environment;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.DBMath;
@@ -34,8 +35,6 @@ import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.EDatabase;
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.id.ArcProtoId;
 import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.id.PrimitiveNodeId;
@@ -53,12 +52,10 @@ import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.EFIDO;
-import com.sun.electric.technology.technologies.FPGA;
 import com.sun.electric.technology.technologies.GEM;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
@@ -92,7 +89,6 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import java.util.prefs.Preferences;
-import javax.swing.SwingUtilities;
 
 /**
  * Technology is the base class for all of the specific technologies in Electric.
@@ -135,7 +131,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	public static final boolean DUPLICATEPOINTSAREBROKENOUTLINES = false;
 
     // Change in TechSettings takes effect only after restart
-    private static final boolean IMMUTABLE_TECHS = Config.TWO_JVM;
+    public static final boolean IMMUTABLE_TECHS = false/*Config.TWO_JVM*/;
 
     /** Jelib writes base sizes since this Electric Version */
     public static final Version DISK_VERSION_1 = Version.parseVersion("8.05g");
@@ -743,17 +739,38 @@ public class Technology implements Comparable<Technology>, Serializable
 	}
 
     public class State {
-        private final Map<String,Object> paramValues;
+        public final Map<TechFactory.Param,Object> paramValues;
 
-        private State(Map<String,Object> paramValues) {
+        private State(Map<TechFactory.Param,Object> paramValues) {
             this.paramValues = paramValues;
         }
 
         public Technology getTechnology() { return Technology.this; }
+
+        public String getTechDesc() { return getTechnology().getTechDesc(); }
+
+        public Technology activate() {
+            if (!IMMUTABLE_TECHS && currentState != this) {
+                if (!currentState.paramValues.equals(this.paramValues)) {
+                    Technology newTech = techFactory.newInstance(generic, paramValues);
+                    copyState(newTech);
+                }
+                currentState = this;
+                cachedRules = factoryRules = null;
+            }
+            return getTechnology();
+        }
     }
 
-    public State newState(Map<String,Object> paramValues) {
-        return new State(paramValues);
+    State newState(Map<TechFactory.Param,Object> paramValues) {
+        LinkedHashMap<TechFactory.Param,Object> fixedParamValues = new LinkedHashMap<TechFactory.Param,Object>();
+        for (TechFactory.Param param: techFactory.getTechParams()) {
+            Object value = paramValues.get(param);
+            if (value == null || value.getClass() != param.factoryValue.getClass())
+                value = param.factoryValue;
+            fixedParamValues.put(param, value);
+        }
+        return new State(Collections.unmodifiableMap(fixedParamValues));
     }
 
     public class SizeCorrector {
@@ -893,13 +910,12 @@ public class Technology implements Comparable<Technology>, Serializable
 	/** Spice header cards, level 2. */						private String [] spiceHeaderLevel2;
 	/** Spice header cards, level 3. */						private String [] spiceHeaderLevel3;
     /** resolution for this Technology */                   private Pref prefResolution;
-    /** true if the process is PWell */                     protected Boolean paramPWellProcess;
     /** static list of all Manufacturers in Electric */     protected final List<Foundry> foundries = new ArrayList<Foundry>();
     /** default foundry Setting for this Technology */      private final Setting cacheFoundry;
-    /** default foundry name for this Technology */         private String paramFoundry;
+    /** default foundry name for this Technology */         protected String paramFoundry;
 	/** scale for this Technology. */						private Setting cacheScale;
     /** number of metals Setting for this Technology. */    private final Setting cacheNumMetalLayers;
-    /** number of metals for this Technology. */            private Integer paramNumMetalLayers;
+    /** number of metals for this Technology. */            protected Integer paramNumMetalLayers;
 	/** Minimum resistance for this Technology. */			private Setting cacheMinResistance;
 	/** Minimum capacitance for this Technology. */			private Setting cacheMinCapacitance;
     /** Gate Length subtraction (in microns) for this Tech*/private final Setting cacheGateLengthSubtraction;
@@ -929,7 +945,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	/** Factory rules for the technology. */		        protected XMLRules factoryRules = null;
 	/** Cached rules for the technology. */		            protected XMLRules cachedRules = null;
     /** TechFactory which created this Technology */        protected final TechFactory techFactory;
-    /** Params of this Technology */                        protected State currentState;
+    /** Params of this Technology */                        private State currentState;
     /** Xml representation of this Technology */            protected Xml.Technology xmlTech;
     /** Preference for saving component menus */			private Pref componentMenuPref = null;
     /** Preference for saving layer order */				private Pref layerOrderPref = null;
@@ -949,13 +965,21 @@ public class Technology implements Comparable<Technology>, Serializable
 	 * This should not be called directly, but instead is invoked through each subclass's factory.
 	 */
 	protected Technology(Generic generic, TechFactory techFactory, Foundry.Type defaultFoundry, int defaultNumMetals) {
-        this(generic.getId().idManager, generic, techFactory, defaultFoundry, defaultNumMetals);
+        this(generic.getId().idManager, generic, techFactory, Collections.<TechFactory.Param,Object>emptyMap(), defaultFoundry, defaultNumMetals);
+    }
+
+	/**
+	 * Constructs a <CODE>Technology</CODE>.
+	 * This should not be called directly, but instead is invoked through each subclass's factory.
+	 */
+	private Technology(Generic generic, TechFactory techFactory, Map<TechFactory.Param,Object> techParams, Foundry.Type defaultFoundry, int defaultNumMetals) {
+        this(generic.getId().idManager, generic, techFactory, techParams, defaultFoundry, defaultNumMetals);
     }
 	/**
 	 * Constructs a <CODE>Technology</CODE>.
 	 * This should not be called directly, but instead is invoked through each subclass's factory.
 	 */
-	protected Technology(IdManager idManager, Generic generic, TechFactory techFactory, Foundry.Type defaultFoundry, int defaultNumMetals)
+	protected Technology(IdManager idManager, Generic generic, TechFactory techFactory, Map<TechFactory.Param,Object> techParams, Foundry.Type defaultFoundry, int defaultNumMetals)
 	{
         if (this instanceof Generic) {
             assert generic == null;
@@ -964,6 +988,11 @@ public class Technology implements Comparable<Technology>, Serializable
         this.generic = generic;
 		this.techId = idManager.newTechId(techFactory.techName);
         this.techFactory = techFactory;
+        assert techParams.size() == techFactory.getTechParams().size();
+        for (TechFactory.Param param: techFactory.getTechParams()) {
+            assert techParams.get(param).getClass() == param.factoryValue.getClass();
+        }
+        currentState = newState(techParams);
 		//this.scale = 1.0;
 		this.scaleRelevant = true;
 		userBits = 0;
@@ -973,9 +1002,11 @@ public class Technology implements Comparable<Technology>, Serializable
         userPrefs = Pref.groupForPackage(User.class, true);
 //        ercPrefs = Pref.groupForPackage(ERC.class, true);
         cacheFoundry = makeStringSetting("SelectedFoundryFor"+getTechName(),
-        	"Technology tab", getTechName() + " foundry", "Foundry", defaultFoundry.getName().toUpperCase());
+        	"Technology tab", getTechName() + " foundry", "Foundry", defaultFoundry.getName());
+        paramFoundry = defaultFoundry.getName();
         cacheNumMetalLayers = makeIntSetting(getTechName() + "NumberOfMetalLayers",
             "Technology tab", getTechName() + ": Number of Metal Layers", "NumMetalLayers", defaultNumMetals);
+        paramNumMetalLayers = Integer.valueOf(defaultNumMetals);
 
         cacheMaxSeriesResistance = makeParasiticSetting("MaxSeriesResistance", 10.0);
         cacheGateLengthSubtraction = makeParasiticSetting("GateLengthSubtraction", 0.0);
@@ -1018,9 +1049,8 @@ public class Technology implements Comparable<Technology>, Serializable
         }
     }
 
-    public Technology(Generic generic, TechFactory techFactory, Map<String,Object> techParams, Xml.Technology t) {
-        this(generic, techFactory, Foundry.Type.valueOf(t.defaultFoundry), t.defaultNumMetals);
-        this.currentState = new State(techParams);
+    public Technology(Generic generic, TechFactory techFactory, Map<TechFactory.Param,Object> techParams, Xml.Technology t) {
+        this(generic, techFactory, techParams, Foundry.Type.valueOf(t.defaultFoundry), t.defaultNumMetals);
         xmlTech = t;
         setTechShortName(t.shortTechName);
         setTechDesc(t.description);
@@ -1196,6 +1226,32 @@ public class Technology implements Comparable<Technology>, Serializable
 
     public Xml.Technology getXmlTech() { return xmlTech; }
 
+    public static Environment makeInitialEnvironment() {
+        Environment env = IdManager.stdIdManager.getInitialEnvironment();
+        env = env.withToolSettings((Setting.RootGroup)ToolSettings.getToolSettings(""));
+        Generic generic = Generic.newInstance(IdManager.stdIdManager);
+        env = env.addTech(generic);
+        String softTechnologies = StartupPrefs.getSoftTechnologies();
+        for (TechFactory techFactory: TechFactory.getKnownTechs(softTechnologies).values()) {
+            Map<TechFactory.Param,Object> paramValues = paramValuesFromPreferences(techFactory);
+            Technology tech = techFactory.newInstance(generic, paramValues);
+            if (tech != null)
+                env = env.addTech(tech);
+        }
+
+        Setting.SettingChangeBatch changeBatch = new Setting.SettingChangeBatch();
+        for (Setting setting: env.getSettings().keySet())
+            changeBatch.add(setting, setting.getValueFromPreferences());
+        for (Technology t: env.techPool.values()) {
+            for (Map.Entry<TechFactory.Param,Object> e: t.getCurrentState().paramValues.entrySet()) {
+                TechFactory.Param param = e.getKey();
+                changeBatch.add(t.getSetting(param), e.getValue());
+            }
+        }
+        env = env.withSettingChanges(changeBatch);
+        return env;
+    }
+
 	/**
 	 * This is called once, at the start of Electric, to initialize the technologies.
 	 * Because of Java's "lazy evaluation", the only way to force the technology constructors to fire
@@ -1204,24 +1260,6 @@ public class Technology implements Comparable<Technology>, Serializable
 	 */
 	public static void initAllTechnologies()
 	{
-		// Because of lazy evaluation, technologies aren't initialized unless they're referenced here
-        EDatabase database = EDatabase.serverDatabase();
-        sysGeneric = Generic.newInstance(database.getIdManager());
-        database.addTech(sysGeneric);
-		Setting.Context settingContext = new Setting.Context() {
-			public Object getValue(Setting setting) { return setting.getValue(); }
-		};
-        String softTechnologies = ToolSettings.getSoftTechnologiesSetting().getString();
-        for (TechFactory techFactory: TechFactory.getKnownTechs(softTechnologies).values()) {
-            Map<String,Object> paramValues = paramValuesFromPreferences(techFactory);
-            Technology tech = techFactory.newInstance(sysGeneric, paramValues, settingContext);
-            if (tech != null)
-                database.addTech(tech);
-        }
-        sysArtwork = (Artwork)findTechnology("artwork");
-        sysFPGA = (FPGA)findTechnology("fpga");
-        sysSchematics = (Schematics)findTechnology("schematic");
-
 		// set the current technology, given priority to user defined
         curLayoutTech = getMocmosTechnology();
         Technology  tech = Technology.findTechnology(User.getDefaultTechnology());
@@ -1229,8 +1267,44 @@ public class Technology implements Comparable<Technology>, Serializable
         tech.setCurrent();
 	}
 
-    private static Map<String,Object> paramValuesFromPreferences(TechFactory techFactory) {
-        HashMap<String,Object> paramValues = new HashMap<String,Object>();
+    /*
+
+            private void loadValues() {
+            ProjSettings projSettings = ProjSettings.getSettings();
+            if (projSettings != null) {
+                HashSet<Preferences> flushSet = new HashSet<Preferences>();
+                for (Setting setting: getSettings()) {
+                    Object psVal = projSettings.getValue(setting.getXmlPath());
+                    if (psVal == null)
+                        psVal = setting.getFactoryValue();
+                    if (psVal.equals(setting.getValue()))
+                        continue;
+                    if (psVal.getClass() != setting.getValue().getClass()) {
+                        System.out.println("Warning: Value type mismatch for key " + setting.getXmlPath() + ": " +
+                                psVal.getClass().getName() + " vs " + setting.getValue().getClass().getName());
+                        continue;
+                    }
+                    System.out.println("Warning: For key "+setting.getXmlPath()+": project setting value of "+psVal+" overrides default of "+setting.getValue());
+                    setting.currentObj = psVal.equals(setting.factoryObj) ? setting.factoryObj : psVal;
+                    setting.saveToPreferences(psVal);
+                    flushSet.add(setting.prefs);
+                }
+                for (Preferences preferences: flushSet) {
+                    try {
+                        preferences.flush();
+                    } catch (BackingStoreException e) {
+                    }
+                }
+            } else {
+               for (Setting setting: getSettings())
+                    setting.setCachedObjFromPreferences();
+            }
+        }
+
+*/
+
+    private static Map<TechFactory.Param,Object> paramValuesFromPreferences(TechFactory techFactory) {
+        HashMap<TechFactory.Param,Object> paramValues = new HashMap<TechFactory.Param,Object>();
         for (TechFactory.Param param: techFactory.getTechParams()) {
             String prefPath = param.prefPath;
             int index = prefPath.lastIndexOf('/');
@@ -1251,69 +1325,35 @@ public class Technology implements Comparable<Technology>, Serializable
                 value = prefNode.get(prefName, factoryValue.toString());
             if (value.equals(factoryValue))
                 value = factoryValue;
-            paramValues.put(param.xmlPath, value);
+            paramValues.put(param, value);
         }
         return paramValues;
     }
 
-    protected static Generic sysGeneric;
-    protected static Artwork sysArtwork;
-    protected static FPGA sysFPGA;
-    protected static Schematics sysSchematics;
-
-    private static Technology mocmos = null;
-    private static boolean mocmosCached = false;
     /**
      * Method to return the MOSIS CMOS technology.
      * @return the MOSIS CMOS technology object.
      */
     public static Technology getMocmosTechnology() {
-        if (!mocmosCached) {
-            mocmosCached = true;
-            mocmos = findTechnology("mocmos");
-        }
-        return mocmos;
+        return findTechnology("mocmos");
     }
 
-    private static Technology tsmc180 = null;
-    private static boolean tsmc180Cached = false;
 	/**
 	 * Method to return the TSMC 180 nanometer technology.
 	 * Since the technology is a "plugin" and not distributed universally, it may not exist.
 	 * @return the TSMC180 technology object (null if it does not exist).
 	 */
     public static Technology getTSMC180Technology() {
-    	if (!tsmc180Cached) {
-            tsmc180Cached = true;
-            tsmc180 = findTechnology("tsmc180");
-            if (tsmc180 == null)
-            {
-//                System.out.println("Error loading tsmc180");
-                tsmc180Cached = false;
-            }
-        }
- 		return tsmc180;
+        return findTechnology("tsmc180");
     }
 
-    private static Technology cmos90 = null;
-    private static boolean cmos90Cached = false;
 	/**
 	 * Method to return the CMOS 90 nanometer technology.
 	 * Since the technology is a "plugin" and not distributed universally, it may not exist.
 	 * @return the CMOS90 technology object (null if it does not exist).
 	 */
-    public static Technology getCMOS90Technology()
-    {
-    	if (!cmos90Cached) {
-            cmos90Cached = true;
-            cmos90 = findTechnology("cmos90");
-            if (cmos90 == null)
-            {
-//                System.out.println("Error loading cmos90");
-                cmos90Cached = false;
-            }
-        }
- 		return cmos90;
+    public static Technology getCMOS90Technology() {
+    	return findTechnology("cmos90");
     }
 
 	/**
@@ -1321,7 +1361,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	 * Calls the technology's specific "init()" method (if any).
 	 * Also sets up mappings from pseudo-layers to real layers.
 	 */
-	public void setup(Setting.Context settingContext)
+	public void setup()
 	{
         if (cacheMinResistance == null || cacheMinCapacitance == null) {
             setFactoryParasitics(10, 0);
@@ -1341,9 +1381,6 @@ public class Technology implements Comparable<Technology>, Serializable
             arcProto.finish();
 
         rootSettings.lock();
-       // initialize all design rules in the technology to Preference values
-        loadTechParams(settingContext);
-		setStateNow(settingContext);
 
         check();
 	}
@@ -1351,66 +1388,23 @@ public class Technology implements Comparable<Technology>, Serializable
 	/**
 	 * Method to set state of a technology.
      */
-	public void setState() {
-        setState(new Setting.Context() {
-            @Override
-            public Object getValue(Setting setting) {
-                return setting.getValue();
-            }
-        });
+	public Technology.State withState(Map<TechFactory.Param,Object> paramValues) {
+        State newState = newState(paramValues);
+        if (newState.paramValues.equals(currentState.paramValues)) return currentState;
+        if (IMMUTABLE_TECHS)
+            newState = techFactory.newInstance(generic, newState.paramValues).currentState;
+        return newState;
     }
 
-	/**
-	 * Method to set state of a technology.
-     */
-	public void setState(Setting.Context settingContext) {
-        if (IMMUTABLE_TECHS) {
-                Job.getUserInterface().showInformationMessage("There is now inconsistent use of this technology parameter:\n" +
-                	"               " + getTechName() + "\n" +
-                    "Electric cannot handle this situation and errors may result.\n" +
-                    "It is recommended that you restart Electric to avoid this instability.",
-                    "Technology Parameter Changed");
-
-        } else {
-            loadTechParams(settingContext);
-            setStateNow(settingContext);
-        }
+    public Technology.State getCurrentState() {
+        return currentState;
     }
 
-    protected void loadTechParams(Setting.Context context) {
-        paramPWellProcess = Boolean.valueOf(ToolSettings.getPWellProcessLayoutTechnologySetting().getBoolean(context));
-        paramFoundry = getPrefFoundrySetting().getString(context);
-        paramNumMetalLayers = Integer.valueOf(getNumMetalsSetting().getInt(context));
-    }
-
- 	/**
-	/**
-	 * Method to set state of a technology.
-	 * It gets overridden by individual technologies.
-     */
-	private void setStateNow(Setting.Context settingContext) {
-        if (xmlTech == null) return;
-        if (techFactory != null) {
-            HashMap<String,Object> newParamValues = new HashMap<String,Object>();
-            for (Setting setting: getProjectSettings().getSettings()) {
-                String xmlPath = setting.getXmlPath();
-                Object oldValue = currentState.paramValues.get(xmlPath);
-                if (oldValue == null) continue;
-                Object newValue = settingContext.getValue(setting);
-                newParamValues.put(xmlPath, newValue);
-            }
-            if (!newParamValues.equals(currentState.paramValues)) {
-                Technology newTech = techFactory.newInstance(generic, newParamValues, settingContext);
-                copyState(newTech);
-            }
-        }
-        cachedRules = factoryRules = makeFactoryDesignRules();
-    }
-
-    private void copyState(Technology that) {
+    protected void copyState(Technology that) {
         currentState = new State(that.currentState.paramValues);
         xmlTech = that.xmlTech;
         techDesc = that.techDesc;
+        cachedRules = factoryRules = null;
 
         assert layers.size() == that.layers.size();
         Iterator<Layer> oldItl = layers.iterator();
@@ -1462,29 +1456,6 @@ public class Technology implements Comparable<Technology>, Serializable
             curTech = newTechPool.getTech(curTech.getId());
         if (curLayoutTech != null)
             curLayoutTech = newTechPool.getTech(curLayoutTech.getId());
-        sysGeneric = (Generic)newTechPool.getTech(sysGeneric.getId());
-        sysArtwork = (Artwork)newTechPool.getTech(sysArtwork.getId());
-        sysSchematics = (Schematics)newTechPool.getTech(sysSchematics.getId());
-        sysFPGA = (FPGA)newTechPool.getTech(sysFPGA.getId());
-        if (mocmos != null)
-            mocmos = newTechPool.getTech(mocmos.getId());
-        if (tsmc180 != null)
-            tsmc180 = newTechPool.getTech(tsmc180.getId());
-        if (cmos90 != null)
-            cmos90 = newTechPool.getTech(cmos90.getId());
-    }
-
-    Technology clone(Generic generic) {
-        Setting.Context settingContext = new Setting.Context() {
-            @Override
-            public Object getValue(Setting setting) {
-                return setting.getValue();
-            }
-        };
-        Map<String,Object> paramValues = Collections.emptyMap();
-        if (currentState != null)
-            paramValues = currentState.paramValues;
-        return techFactory.newInstance(generic, paramValues, settingContext);
     }
 
     protected void setNotUsed(int numPolys) {
@@ -1581,7 +1552,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	 * Technology matches.
 	 */
     public static Technology findTechnology(TechId techId) {
-        return EDatabase.theDatabase.getTech(techId);
+        return Job.threadTechPool().getTech(techId);
     }
 
 	/**
@@ -1590,7 +1561,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	 */
 	public static Iterator<Technology> getTechnologies()
 	{
-		return EDatabase.theDatabase.getTechnologies().iterator();
+		return Job.threadTechPool().values().iterator();
 	}
 
 	/**
@@ -5147,9 +5118,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	 * Returns null if there are no design rules in this Technology.
      */
     public XMLRules getFactoryDesignRules() {
-        if (!IMMUTABLE_TECHS)
-            factoryRules = makeFactoryDesignRules();
-        return factoryRules;
+        return makeFactoryDesignRules();
     }
 
 	/**
@@ -5163,7 +5132,7 @@ public class Technology implements Comparable<Technology>, Serializable
 
         Foundry foundry = getSelectedFoundry();
         List<DRCTemplate> rulesList = foundry.getRules();
-        boolean pWellProcess = paramPWellProcess.booleanValue();
+        boolean pWellProcess = User.isPWellProcessLayoutTechnology();
 
         // load the DRC tables from the explanation table
         if (rulesList != null) {
@@ -5453,6 +5422,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	 * Returns a printable version of this Technology.
 	 * @return a printable version of this Technology.
 	 */
+    @Override
 	public String toString()
 	{
 		return "Technology " + getTechName();
@@ -5463,6 +5433,16 @@ public class Technology implements Comparable<Technology>, Serializable
      * @exception AssertionError if invariants are not valid
      */
     private void check() {
+        for (TechFactory.Param param: techFactory.getTechParams()) {
+            String xmlPath = param.xmlPath;
+            String xmlPrefix = getProjectSettings().getXmlPath();
+            assert xmlPath.startsWith(xmlPrefix);
+            xmlPath = xmlPath.substring(xmlPrefix.length());
+            Setting setting = getSetting(xmlPath);
+            assert setting.getXmlPath().equals(param.xmlPath);
+            assert setting.getPrefPath().equals(param.prefPath);
+            assert setting.getFactoryValue().equals(param.factoryValue);
+        }
         for (ArcProto ap: arcs.values()) {
             ap.check();
         }
@@ -5826,124 +5806,16 @@ public class Technology implements Comparable<Technology>, Serializable
      */
     public boolean isValidVTPolyRule(DRCTemplate theRule) {return false;}
 
-//    /**
-//     * Utility function to copy NodeLayers from existing PrimitiveNodes into new ones.
-//     * @param source
-//     * @param destination
-//     * @param identifier
-//     */
-//    public void copyPrimitives(PrimitiveNode[] source, PrimitiveNode[] destination, String identifier)
-//    {
-//        for (int i = 0; i < source.length; i++)
-//        {
-//            PrimitiveNode metal = source[i];
-//            Technology.NodeLayer [] layers = metal.getLayers();
-//            Technology.NodeLayer [] nodes = new Technology.NodeLayer [layers.length];
-//            for (int j = 0; j < layers.length; j++)
-//            {
-//                Technology.NodeLayer node = layers[j];
-//                nodes[j] = new Technology.NodeLayer(node);
-//            }
-//            destination[i] = PrimitiveNode.newInstance(identifier+"-"+metal.getName(), this,
-//                    metal.getDefWidth(), metal.getDefHeight(), null, nodes);
-//            PrimitivePort port = metal.getPrimitivePorts().next(); // only 1 port
-//            ArcProto[] arcs = port.getConnections();
-//            ArcProto[] newArcs = new ArcProto[arcs.length];
-//            System.arraycopy(arcs, 0, newArcs, 0, arcs.length);
-//            destination[i].addPrimitivePorts(new PrimitivePort []
-//                {
-//                    PrimitivePort.newInstance(this, destination[i], newArcs, port.getName(), port.getAngle(),
-//                            port.getAngleRange(), port.getTopology(), port.getCharacteristic(),
-//                            EdgeH.fromCenter(0), EdgeV.fromCenter(0), EdgeH.fromCenter(0), EdgeV.fromCenter(0))
-//                });
-//            destination[i].setFunction(metal.getFunction());
-//            destination[i].setSpecialType(metal.getSpecialType());
-//            destination[i].setDefSize(0, 0);   // so it won't resize against any User's default? tricky
-//            PrimitiveNode.NodeSizeRule minRuleSize = source[i].getMinSizeRule();
-//            destination[i].setMinSize(minRuleSize.getWidth(), minRuleSize.getHeight(), minRuleSize.getRuleName());
-//        }
-//    }
-
-    /**
-	 * Class to extend prefs so that changes to MOSIS CMOS options will update the display.
-	 */
-	public static class TechSetting extends Setting
-	{
-        private Technology tech;
-
-        private TechSetting(String prefName, Technology tech, String xmlName,
-                String location, String description, Object factoryObj, String... trueMeaning) {
-            super(prefName, tech.prefs.absolutePath(), tech.getProjectSettings(), xmlName,
-                    location, description, factoryObj, trueMeaning);
-            if (tech == null)
-                throw new NullPointerException();
-            this.tech = tech;
-        }
-
-        @Override
-		protected void setSideEffect()
-		{
-			//technologyChangedFromDatabase(tech, true);
-            if (tech == null) return;
-            if (isUsed(tech)) {
-                Job.getUserInterface().showInformationMessage("There is now inconsistent use of this technology parameter:\n" +
-                	"               " + getDescription() + "\n" +
-                    "Electric cannot handle this situation and errors may result.\n" +
-                    "It is recommended that you restart Electric to avoid this instability.\n" +
-                    "In the future, when the 'Project Settings Reconciliation' dialog appears,\n" +
-                    "Click 'Use All Current Settings' or select the CURRENT VALUE of this parameter.",
-                    "Technology Parameter Changed");
-            }
-            tech.setState();
-            reloadUIData();
-		}
-
-        private boolean isUsed(Technology tech) {
-            for (Iterator<Library> lit = Library.getLibraries(); lit.hasNext(); ) {
-                Library lib = lit.next();
-                for (Iterator<Cell> cit = lib.getCells(); cit.hasNext(); ) {
-                    Cell cell = cit.next();
-                    if (cell.getTechnology() != tech) continue;
-                    for (Iterator<NodeInst> nit = cell.getNodes(); nit.hasNext(); ) {
-                        NodeInst ni = nit.next();
-                        if (ni.isCellInstance()) continue;
-                        if (((PrimitiveNode)ni.getProto()).getTechnology() == tech) return true;
-                    }
-                    for (Iterator<ArcInst> ait = cell.getArcs(); ait.hasNext(); ) {
-                        ArcInst ai = ait.next();
-                        if (ai.getProto().getTechnology() == tech) return true;
-                    }
-                }
-            }
-            return false;
-        }
-
-        private static void reloadUIData()
-        {
-			SwingUtilities.invokeLater(new Runnable()
-            {
-	            public void run()
-                {
-                // Primitives cached must be redrawn
-                // recache display information for all cells that use this
-                    User.technologyChanged();
-                    UserInterface ui = Job.getUserInterface();
-                    ui.repaintAllWindows();
-                }
-            });
-        }
-	}
-
     public Setting makeBooleanSetting(String name, String location, String description, String xmlName, boolean factory) {
-        return new TechSetting(name, this, xmlName, location, description, Boolean.valueOf(factory));
+        return getProjectSettings().makeBooleanSetting(name, prefs.absolutePath(), xmlName, location, description, factory);
     }
 
     public Setting makeIntSetting(String name, String location, String description, String xmlName, int factory, String... trueMeaning) {
-        return new TechSetting(name, this, xmlName, location, description, Integer.valueOf(factory), trueMeaning);
+        return getProjectSettings().makeIntSetting(name, prefs.absolutePath(), xmlName, location, description, factory, trueMeaning);
     }
 
     public Setting makeStringSetting(String name, String location, String description, String xmlName, String factory) {
-        return new TechSetting(name, this, xmlName, location, description, factory);
+        return getProjectSettings().makeStringSetting(name, prefs.absolutePath(), xmlName, location, description, factory);
     }
     // -------------------------- Project Settings -------------------------
 
@@ -5951,8 +5823,20 @@ public class Technology implements Comparable<Technology>, Serializable
         return settings;
     }
 
+    public Setting.RootGroup getProjectSettingsRoot() {
+        return rootSettings;
+    }
+
     public Setting getSetting(String xmlPath) {
         return getProjectSettings().getSetting(xmlPath);
     }
 
+
+
+    public Setting getSetting(TechFactory.Param param) {
+        String xmlPath = param.xmlPath;
+        if (xmlPath.startsWith(settings.xmlPath))
+            return getSetting(xmlPath.substring(settings.xmlPath.length()));
+        return null;
+    }
 }

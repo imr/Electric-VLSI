@@ -23,11 +23,9 @@
  */
 package com.sun.electric.database.text;
 
-import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.id.IdReader;
 import com.sun.electric.database.id.IdWriter;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.tool.user.projectSettings.ProjSettings;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -35,11 +33,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 /**
@@ -123,8 +119,8 @@ public class Setting {
          * @param factory the "factory" default value (if nothing is stored).
          */
         public Setting makeIntSetting(String prefName, String prefGroup, String xmlName,
-                                      String location, String description, int factory) {
-            return new Setting(prefName, prefGroup, this, xmlName, location, description, Integer.valueOf(factory));
+                                      String location, String description, int factory, String... trueMeaning) {
+            return new Setting(prefName, prefGroup, this, xmlName, location, description, Integer.valueOf(factory), trueMeaning);
         }
 
         /**
@@ -277,39 +273,6 @@ public class Setting {
          */
         public void lock() {
             locked = true;
-            loadValues();
-        }
-
-        private void loadValues() {
-            ProjSettings projSettings = ProjSettings.getSettings();
-            if (projSettings != null) {
-                HashSet<Preferences> flushSet = new HashSet<Preferences>();
-                for (Setting setting: getSettings()) {
-                    Object psVal = projSettings.getValue(setting.getXmlPath());
-                    if (psVal == null)
-                        psVal = setting.getFactoryValue();
-                    if (psVal.equals(setting.getValue()))
-                        continue;
-                    if (psVal.getClass() != setting.getValue().getClass()) {
-                        System.out.println("Warning: Value type mismatch for key " + setting.getXmlPath() + ": " +
-                                psVal.getClass().getName() + " vs " + setting.getValue().getClass().getName());
-                        continue;
-                    }
-                    System.out.println("Warning: For key "+setting.getXmlPath()+": project setting value of "+psVal+" overrides default of "+setting.getValue());
-                    setting.currentObj = psVal.equals(setting.factoryObj) ? setting.factoryObj : psVal;
-                    setting.saveToPreferences(psVal);
-                    flushSet.add(setting.prefs);
-                }
-                for (Preferences preferences: flushSet) {
-                    try {
-                        preferences.flush();
-                    } catch (BackingStoreException e) {
-                    }
-                }
-            } else {
-               for (Setting setting: getSettings())
-                    setting.setCachedObjFromPreferences();
-            }
         }
 
         /**
@@ -514,20 +477,12 @@ public class Setting {
 //            }
 //            changeBatch = null;
 //        }
-        EDatabase.serverDatabase().checkChanging();
+//        EDatabase.serverDatabase().checkChanging();
         if (getValue().equals(v)) return;
         if (v.getClass() != factoryObj.getClass())
             throw new ClassCastException();
         currentObj = factoryObj.equals(v) ? factoryObj : v;
         saveToPreferences(v);
-        setSideEffect();
-    }
-
-    /**
-	 * Method called when this Pref is changed.
-	 * This method is overridden in subclasses that want notification.
-	 */
-    protected void setSideEffect() {
     }
 
     @Override
@@ -649,7 +604,7 @@ public class Setting {
         }
     }
 
-    private void setCachedObjFromPreferences() {
+    public Object getValueFromPreferences() {
         Object cachedObj = null;
         if (factoryObj instanceof Boolean) {
             cachedObj = Boolean.valueOf(prefs.getBoolean(prefName, ((Boolean)factoryObj).booleanValue()));
@@ -663,7 +618,7 @@ public class Setting {
             cachedObj = prefs.get(prefName, (String)factoryObj);
         }
         assert cachedObj != null;
-        this.currentObj = cachedObj;
+        return cachedObj;
     }
 
     private void writeSetting(IdWriter writer) throws IOException {

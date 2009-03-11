@@ -61,6 +61,16 @@ public abstract class TechFactory {
         }
 
         @Override
+        public boolean equals(Object o) {
+            return o instanceof Param && xmlPath.equals(((Param)o).xmlPath);
+        }
+
+        @Override
+        public int hashCode() {
+            return xmlPath.hashCode();
+        }
+
+        @Override
         public String toString() { return xmlPath; }
     }
 
@@ -74,18 +84,22 @@ public abstract class TechFactory {
     }
 
     public Technology newInstance(Generic generic) {
-        HashMap<String,Object> paramValues = new HashMap<String,Object>();
-        for (Param param: techParams)
-            paramValues.put(param.xmlPath, param.factoryValue);
-        return newInstance(generic, paramValues, Setting.getFactorySettingContext());
+        return newInstance(generic, Collections.<Param,Object>emptyMap());
     }
 
-    public Technology newInstance(Generic generic, Map<String,Object> paramValues, Setting.Context settingContext) {
+    public Technology newInstance(Generic generic, Map<Param,Object> paramValues) {
         Pref.delayPrefFlushing();
         Setting.Context oldSettingState = Setting.setSettingContextOfCurrentThread(null);
         try {
-            Technology tech = newInstanceImpl(generic, paramValues);
-            tech.setup(settingContext);
+            Map<Param,Object> fixedParamValues = new HashMap<Param,Object>();
+            for (Param param: techParams) {
+                Object value = paramValues.get(param);
+                if (value == null || value.getClass() != param.factoryValue.getClass())
+                    value = param.factoryValue;
+                fixedParamValues.put(param, value);
+            }
+            Technology tech = newInstanceImpl(generic, fixedParamValues);
+            tech.setup();
             return tech;
         } catch (ClassNotFoundException e) {
             if (Job.getDebug())
@@ -164,8 +178,7 @@ public abstract class TechFactory {
         List<Param> params;
         try {
             Class<?> techClass = Class.forName(techClassName);
-            Method getTechParamsMethod = techClass.getDeclaredMethod("getTechParams");
-            getTechParamsMethod.setAccessible(true);
+            Method getTechParamsMethod = techClass.getMethod("getTechParams");
             params = (List<Param>)getTechParamsMethod.invoke(null);
             techFactory = new FromParamClass(techName, techClass, params);
         } catch (Exception e) {
@@ -187,8 +200,8 @@ public abstract class TechFactory {
         m.put(techName, fromXml(url, null));
     }
 
-    abstract Technology newInstanceImpl(Generic generic, Map<String,Object> paramValues) throws Exception;
-    public abstract Xml.Technology getXml(final Map<String,Object> params) throws Exception;
+    abstract Technology newInstanceImpl(Generic generic, Map<Param,Object> paramValues) throws Exception;
+    public abstract Xml.Technology getXml(final Map<Param,Object> params) throws Exception;
 
     private static class FromClass extends TechFactory {
         private final String techClassName;
@@ -199,26 +212,17 @@ public abstract class TechFactory {
         }
 
         @Override
-        Technology newInstanceImpl(Generic generic, Map<String,Object> paramValues) throws Exception {
+        Technology newInstanceImpl(Generic generic, Map<Param,Object> paramValues) throws Exception {
             assert paramValues.isEmpty();
             Class<?> techClass = Class.forName(techClassName);
             return (Technology)techClass.getConstructor(Generic.class, TechFactory.class).newInstance(generic, this);
         }
 
         @Override
-        public Xml.Technology getXml(final Map<String,Object> params) throws Exception {
+        public Xml.Technology getXml(final Map<Param,Object> params) throws Exception {
             IdManager idManager = new IdManager();
             Generic generic = Generic.newInstance(idManager);
-            Setting.Context settingContext = new Setting.Context() {
-                @Override public Object getValue(Setting setting) {
-                    Object paramValue = params.get(setting.getXmlPath());
-                    Object factoryValue = setting.getFactoryValue();
-                    if (paramValue != null && paramValue.getClass() == factoryValue.getClass())
-                        return paramValue;
-                    return factoryValue;
-                }
-            };
-            Technology tech = newInstance(generic, params, settingContext);
+            Technology tech = newInstance(generic, params);
             return tech.makeXml();
         }
     }
@@ -231,18 +235,17 @@ public abstract class TechFactory {
         private FromParamClass(String techName, Class<?> techClass, List<Param> techParams) throws Exception {
             super(techName, techParams);
             this.techClass = techClass;
-            getPatchedXmlMethod = techClass.getDeclaredMethod("getPatchedXml", Map.class);
-            getPatchedXmlMethod.setAccessible(true);
+            getPatchedXmlMethod = techClass.getMethod("getPatchedXml", Map.class);
             techConstructor = techClass.getConstructor(Generic.class, TechFactory.class, Map.class, Xml.Technology.class);
         }
 
         @Override
-        Technology newInstanceImpl(Generic generic, Map<String,Object> paramValues) throws Exception {
+        Technology newInstanceImpl(Generic generic, Map<Param,Object> paramValues) throws Exception {
             return (Technology)techConstructor.newInstance(generic, this, paramValues, getXml(paramValues));
         }
 
         @Override
-        public Xml.Technology getXml(final Map<String,Object> params) throws Exception {
+        public Xml.Technology getXml(final Map<Param,Object> params) throws Exception {
             return (Xml.Technology)getPatchedXmlMethod.invoke(null, params);
         }
     }
@@ -259,7 +262,7 @@ public abstract class TechFactory {
         }
 
         @Override
-        Technology newInstanceImpl(Generic generic, Map<String,Object> paramValues) throws Exception {
+        Technology newInstanceImpl(Generic generic, Map<Param,Object> paramValues) throws Exception {
             assert paramValues.isEmpty();
             Xml.Technology xml = getXml(paramValues);
             if (xml == null)
@@ -270,7 +273,7 @@ public abstract class TechFactory {
             return (Technology)techClass.getConstructor(Generic.class, TechFactory.class, Map.class, Xml.Technology.class).newInstance(generic, this, Collections.emptyMap(), xml);
         }
 
-        public Xml.Technology getXml(final Map<String,Object> paramValues) throws Exception {
+        public Xml.Technology getXml(final Map<Param,Object> paramValues) throws Exception {
             assert paramValues.isEmpty();
             if (xmlTech == null && !xmlParsed) {
                 xmlTech = Xml.parseTechnology(urlXml);

@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool;
 
+import com.sun.electric.StartupPrefs;
 import com.sun.electric.database.text.Setting;
 
 /**
@@ -63,8 +64,8 @@ public class ToolSettings {
 	 */
 	public static Setting getPWellProcessLayoutTechnologySetting() {return t.cachePWellProcess;}
 	/**
-	 * Returns project Setting to tell whether to include the date and Electric version in output files.
-	 * @return project Setting to tell whether to include the date and Electric version in output files.
+	 * Returns project Setting with additional technologies.
+	 * @return project Setting with additional technologies.
 	 */
 	public static Setting getSoftTechnologiesSetting() { return t.cacheSoftTechnologies; }
 
@@ -233,7 +234,7 @@ public class ToolSettings {
 	private final Setting cacheSchematicTechnology = makeStringSetting("SchematicTechnology", "Technology tab", "Schematics use scale values from this technology", "mocmos");
 	private final Setting cacheIncludeDateAndVersionInOutput = makeBooleanSetting("IncludeDateAndVersionInOutput", "Netlists tab", "Include date and version in output", true);
 	private final Setting cachePWellProcess = makeBooleanSetting("PWellProcess", "Technology tab", "Define Layout Technology as a PWell process", true);
-    private final Setting cacheSoftTechnologies = makeStringSetting("SoftTechnologies", "Technology tab", "A list of added Xml Technologies", "");
+    private final Setting cacheSoftTechnologies = makeStringSetting(StartupPrefs.SoftTechnologiesKey, "Technology tab", "A list of added Xml Technologies", StartupPrefs.SoftTechnologiesDef);
 
     { tool("networkTool", "/com/sun/electric/database/network"); }
     private final Setting cacheIgnoreResistors = makeBooleanSetting("IgnoreResistors", "Netlists tab", "Networks ignore Resistors", false);

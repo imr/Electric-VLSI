@@ -45,6 +45,7 @@ import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.TechFactory;
 import com.sun.electric.technology.Technology;
 
+import com.sun.electric.tool.Job;
 import java.awt.geom.Point2D;
 
 /**
@@ -62,7 +63,7 @@ public class Artwork extends Technology
 	/** key of Variable holding color information */			public static final Variable.Key ART_COLOR = Variable.newKey("ART_color");
 	/** key of Variable holding color information */			public static final Variable.Key ART_PATTERN = Variable.newKey("ART_pattern");
 
-	/** the Artwork Technology object. */			public static Artwork tech() { return sysArtwork; }
+	/** the Artwork Technology object. */			public static Artwork tech() { return Job.threadTechPool().getArtwork(); }
 
 	/** number of lines in an ellipse */			private static final int ELLIPSEPOINTS =        30;
 	/** granularity of a spline */					private static final int SPLINEGRAIN   =        20;

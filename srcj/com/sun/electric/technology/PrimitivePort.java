@@ -28,7 +28,6 @@ import com.sun.electric.database.EObjectOutputStream;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.id.PrimitivePortId;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
@@ -37,6 +36,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.technologies.Generic;
 
 import com.sun.electric.technology.xml.XmlParam;
+import com.sun.electric.tool.Job;
 import java.awt.Color;
 import java.io.IOException;
 import java.io.InvalidObjectException;
@@ -237,7 +237,7 @@ public class PrimitivePort implements PortProto, Comparable<PrimitivePort>, Seri
 	 */
 	public ArcProto [] getConnections() {
         if (parent.getTechnology().isUniversalConnectivityPort(this))
-            return EDatabase.theDatabase.getTechPool().getUnivList();
+            return Job.threadTechPool().getUnivList();
         return portArcs;
     }
 
@@ -320,7 +320,7 @@ public class PrimitivePort implements PortProto, Comparable<PrimitivePort>, Seri
 					for(Iterator<PrimitivePort> pIt = pnp.getPrimitivePorts(); pIt.hasNext(); )
 					{
 						PrimitivePort pp = pIt.next();
-	
+
 						// see if the port connects to active or poly
 						ArcProto [] connections = pp.getConnections();
 						boolean activeOrPoly = false;
@@ -500,7 +500,7 @@ public class PrimitivePort implements PortProto, Comparable<PrimitivePort>, Seri
         top = that.top;
         bottom = that.bottom;
     }
-    
+
     void dump(PrintWriter out) {
             out.println("\tport " + getName() + " angle=" + getAngle() + " range=" + getAngleRange() + " topology=" + getTopology() + " " + getCharacteristic());
             out.println("\t\tlm=" + left.getMultiplier() + " la=" + left.getAdder() + " rm=" + right.getMultiplier() + " ra=" + right.getAdder() +

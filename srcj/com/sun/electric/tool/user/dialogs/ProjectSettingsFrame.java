@@ -26,7 +26,7 @@ package com.sun.electric.tool.user.dialogs;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.Setting;
-import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.TechPool;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.IOTool;
@@ -282,15 +282,13 @@ public class ProjectSettingsFrame extends EDialog
             Object v = currentContext.get(setting);
             if (oldVal.equals(v)) continue;
             changeBatch.add(setting, v);
-            if (setting instanceof Technology.TechSetting)
-                checkAndRepair = true;
         }
         if (changeBatch.changesForSettings.isEmpty())
         {
             closeDialog(null);
             return;
         }
-        new OKUpdate(this, changeBatch, true, checkAndRepair);
+        new OKUpdate(this, changeBatch, true);
 	}
 
     private void helpActionPerformed()
@@ -381,7 +379,7 @@ public class ProjectSettingsFrame extends EDialog
      * @param dialogToClose dialog to close on success.
      */
     public static void updateProjectSettings(Setting.SettingChangeBatch changeBatch, EDialog dialogToClose) {
-        new OKUpdate(dialogToClose, changeBatch, false, false);
+        new OKUpdate(dialogToClose, changeBatch, false);
     }
 
     private ProjSettingsPanel getPluginPanel(String className, ProjectSettingsFrame frame, boolean modal) {
@@ -403,14 +401,14 @@ public class ProjectSettingsFrame extends EDialog
 		private transient EDialog dialog;
 		private Setting.SettingChangeBatch changeBatch;
         private boolean issueWarning;
-        private boolean checkAndRepair;
+        private transient TechPool oldTechPool;
 
-        private OKUpdate(EDialog dialog, Setting.SettingChangeBatch changeBatch, boolean issueWarning, boolean checkAndRepair) {
+        private OKUpdate(EDialog dialog, Setting.SettingChangeBatch changeBatch, boolean issueWarning) {
 			super("Update Project Settings", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.dialog = dialog;
             this.changeBatch = changeBatch;
             this.issueWarning = issueWarning;
-            this.checkAndRepair = checkAndRepair;
+            oldTechPool = getDatabase().getTechPool();
             startJob();
         }
 
@@ -420,6 +418,7 @@ public class ProjectSettingsFrame extends EDialog
 			return true;
 		}
 
+        @Override
 		public void terminateOK()
 		{
             if (issueWarning) {
@@ -472,7 +471,7 @@ public class ProjectSettingsFrame extends EDialog
                 dialog.dispose();
             }
 //            dialog.closeDialog(null);
-            if (checkAndRepair) {
+            if (getDatabase().getTechPool() != oldTechPool) {
                 // Repair libraries in case number of layers was changed.
                 CircuitChanges.checkAndRepairCommand(true);
             }

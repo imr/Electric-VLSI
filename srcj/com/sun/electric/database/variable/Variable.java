@@ -192,7 +192,7 @@ public class Variable implements Serializable
         varKeys.put(name, key);
 		String canonicName = TextUtils.canonicString(name);
 		Key	key2 = varCanonicKeys.get(canonicName);
-        if (key2 != null)
+        if (key2 != null && parent != null)
         {
         	// find examples of these two variables
         	String ex = null;

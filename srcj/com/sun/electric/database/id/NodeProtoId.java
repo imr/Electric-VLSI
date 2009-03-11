@@ -45,7 +45,7 @@ public interface NodeProtoId
      * @throws ArrayIndexOutOfBoundsException if no such ExportId.
      */
     public PortProtoId getPortId(int chronIndex);
-    
+
     /**
      * Returns PortProtoId in this node proto with specified external id.
      * If this external id was requested earlier, the previously created PortProtoId returned,
@@ -55,7 +55,13 @@ public interface NodeProtoId
      * @throws NullPointerException if externalId is null.
      */
     public PortProtoId newPortId(String externalId);
-    
+
+   /**
+     * Returns true if this NodeProtoId is Id of icon Cell.
+     * @return true if this NodeProtoId is Id of icon Cell.
+     */
+    public boolean isIcon();
+
    /**
      * Method to return the NodeProto representing NodeProtoId in the specified EDatabase.
      * @param database EDatabase where to get from.

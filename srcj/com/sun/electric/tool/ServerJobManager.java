@@ -26,8 +26,8 @@ package com.sun.electric.tool;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.UserInterface;
@@ -73,7 +73,7 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
     private boolean guiChanged;
     private boolean signalledEThread;
 
-    private Snapshot currentSnapshot = EDatabase.serverDatabase().getInitialSnapshot();
+    private Snapshot currentSnapshot = IdManager.stdIdManager.getInitialSnapshot();
 
     /** Creates a new instance of JobPool */
     ServerJobManager(int recommendedNumThreads) {

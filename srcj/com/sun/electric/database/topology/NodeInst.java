@@ -62,8 +62,6 @@ import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.TransistorSize;
-import com.sun.electric.technology.Technology.NodeLayer;
-import com.sun.electric.technology.Xml;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
@@ -134,7 +132,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 
 	// ---------------------- private data ----------------------------------
     /** persistent data of this NodeInst. */                private ImmutableNodeInst d;
-	/** prototype of this NodeInst. */						private final NodeProto protoType;
+	/** prototype of this NodeInst. */						private NodeProto protoType;
 	/** 0-based index of this NodeInst in Cell. */			private int nodeIndex = -1;
 	/** Array of PortInsts on this NodeInst. */				private PortInst[] portInsts = NULL_PORT_INST_ARRAY;
 
@@ -151,7 +149,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 */
     NodeInst(ImmutableNodeInst d, Cell parent) {
         super(parent);
-        this.protoType = d.protoId.inDatabase(getDatabase());
+        protoType = d.protoId.inDatabase(getDatabase());
         this.d = d;
 
         // create all of the portInsts on this node inst
@@ -996,17 +994,21 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         if (parent != null) {
             parent.setContentsModified();
             d = newD;
+            assert protoType == d.protoId.inDatabase(getDatabase());
             if (notify)
                 Constraints.getCurrent().modifyNodeInst(this, oldD);
         } else {
             d = newD;
+            assert protoType.getId() == d.protoId;
         }
         return true;
     }
 
     public void setDInUndo(ImmutableNodeInst newD) {
         checkUndoing();
+        assert d.protoId.isIcon() == newD.protoId.isIcon();
         d = newD;
+        protoType = d.protoId.inDatabase(getDatabase());
         validVisBounds = false;
     }
 

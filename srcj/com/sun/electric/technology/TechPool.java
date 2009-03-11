@@ -51,6 +51,7 @@ import java.util.BitSet;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -64,6 +65,7 @@ public class TechPool extends AbstractMap<TechId, Technology> {
 //    public static final TechPool EMPTY = new TechPool(Collections.<Technology>emptySet());
     public final IdManager idManager;
     private final Technology[] techs;
+    private final Technology.State[] states;
     private final EntrySet entrySet;
     private ArcProto[] univList;
     /** Generic technology */
@@ -80,6 +82,7 @@ public class TechPool extends AbstractMap<TechId, Technology> {
     public TechPool(IdManager idManager) {
         this.idManager = idManager;
         techs = new Technology[0];
+        states = new Technology.State[0];
         entrySet = new EntrySet();
         assert size() == 0;
         univList = new ArcProto[0];
@@ -90,26 +93,27 @@ public class TechPool extends AbstractMap<TechId, Technology> {
      * All technologies must belong to the same IdManager
      * @param technologies Collection of technologies in the Pool
      */
-    public TechPool(Collection<Technology> technologies) {
-        Iterator<Technology> it = technologies.iterator();
-        TechId techId = it.next().getId();
+    private TechPool(Collection<Technology.State> techStates) {
+        Iterator<Technology.State> it = techStates.iterator();
+        TechId techId = it.next().getTechnology().getId();
         idManager = techId.idManager;
         int maxTechIndex = techId.techIndex;
         while (it.hasNext()) {
-            techId = it.next().getId();
-            if (techId.idManager != idManager) {
+            techId = it.next().getTechnology().getId();
+            if (techId.idManager != idManager)
                 throw new IllegalArgumentException();
-            }
             maxTechIndex = Math.max(maxTechIndex, techId.techIndex);
         }
         techs = new Technology[maxTechIndex + 1];
-        for (Technology tech : technologies) {
+        states = new Technology.State[maxTechIndex + 1];
+        for (Technology.State state: techStates) {
+            Technology tech = state.getTechnology();
             techId = tech.getId();
             int techIndex = techId.techIndex;
-            if (techs[techIndex] != null) {
+            if (techs[techIndex] != null)
                 throw new IllegalArgumentException();
-            }
             techs[techIndex] = tech;
+            states[techIndex] = state;
             if (tech instanceof Generic) {
                 generic = (Generic) tech;
             } else if (tech instanceof Artwork) {
@@ -119,21 +123,66 @@ public class TechPool extends AbstractMap<TechId, Technology> {
             }
         }
         entrySet = new EntrySet();
-        assert size() == technologies.size();
+        assert size() == techStates.size();
     }
 
-    @Override
-    public TechPool clone() {
-        Generic newGeneric = Generic.newInstance(idManager);
-        ArrayList<Technology> newTechs = new ArrayList<Technology>();
-        newTechs.add(newGeneric);
-        for (Technology oldTech: values()) {
-            if (oldTech == generic) continue;
-            newTechs.add(oldTech.clone(newGeneric));
+    public Map<TechFactory.Param,Object> getTechParams() {
+        LinkedHashMap<TechFactory.Param,Object> techParams = new LinkedHashMap<TechFactory.Param,Object>();
+        for (int techIndex = 0; techIndex < states.length; techIndex++) {
+            Technology.State state = states[techIndex];
+            if (state == null) continue;
+            techParams.putAll(state.paramValues);
         }
-        return new TechPool(newTechs);
+        return techParams;
     }
-    
+
+    public TechPool withTechParams(Map<TechFactory.Param,Object> paramValues) {
+        assert isActive();
+        ArrayList<Technology.State> newTechStates = new ArrayList<Technology.State>();
+        boolean changed = false;
+        for (int techIndex = 0; techIndex < techs.length; techIndex++) {
+            Technology tech = techs[techIndex];
+            if (tech == null) continue;
+            Technology.State state = states[techIndex];
+            Technology.State newTechState = tech.withState(paramValues);
+            if (newTechState != state)
+                changed = true;
+            newTechStates.add(newTechState);
+        }
+        return changed ? new TechPool(newTechStates) : this;
+    }
+
+    public void activate() {
+        for (int techIndex = 0; techIndex < states.length; techIndex++) {
+            Technology.State techState = states[techIndex];
+            if (techState == null) continue;
+            techState.activate();
+        }
+    }
+
+    public boolean isActive() {
+        for (int techIndex = 0; techIndex < states.length; techIndex++) {
+            Technology.State techState = states[techIndex];
+            if (techState == null) continue;
+            if (techState != techState.getTechnology().getCurrentState())
+                return false;
+        }
+        return true;
+    }
+
+    public TechPool deepClone() {
+        ArrayList<Technology.State> newTechStates = new ArrayList<Technology.State>();
+        Generic newGeneric = Generic.newInstance(idManager);
+        newTechStates.add(newGeneric.getCurrentState());
+        for (int techIndex = 0; techIndex < states.length; techIndex++) {
+            Technology tech = techs[techIndex];
+            if (tech == null || tech == generic) continue;
+            Technology newTech = tech.techFactory.newInstance(generic, states[techIndex].paramValues);
+            newTechStates.add(newTech.getCurrentState());
+        }
+        return new TechPool(newTechStates);
+    }
+
     /**
      * Returns restriction of this TechPool to specified subset of TechIds.
      * A candidate TechPool is a valid result, it is returned to save allocation.
@@ -153,14 +202,15 @@ public class TechPool extends AbstractMap<TechId, Technology> {
      * @return restriction of this TechPool to specified subset of TechIds
      */
     public TechPool restrict(BitSet techUsed) {
-        ArrayList<Technology> technologies = new ArrayList<Technology>();
-        for (Technology tech: values()) {
-            if (techUsed.get(tech.getId().techIndex))
-                technologies.add(tech);
+        ArrayList<Technology.State> techStates = new ArrayList<Technology.State>();
+        for (int techIndex = 0; techIndex < techs.length; techIndex++) {
+            if (techUsed.get(techIndex)) {
+                techStates.add(states[techIndex]);
+            }
         }
-        if (technologies.size() != techUsed.cardinality())
+        if (techStates.size() != techUsed.cardinality())
             throw new IllegalArgumentException();
-        return technologies.isEmpty() ? new TechPool(idManager) : new TechPool(technologies);
+        return techStates.isEmpty() ? new TechPool(idManager) : new TechPool(techStates);
     }
 
     private boolean isRestriction(TechPool superPool, BitSet techUsed) {
@@ -172,13 +222,15 @@ public class TechPool extends AbstractMap<TechId, Technology> {
             return false;
         for (int techIndex = 0; techIndex < techs.length; techIndex++) {
             Technology tech = superPool.techs[techIndex];
+            Technology.State state = superPool.states[techIndex];
             if (techUsed.get(techIndex)) {
                 if (tech == null)
                     return false;
             } else {
                 tech = null;
+                state = null;
             }
-            if (techs[techIndex] != tech)
+            if (techs[techIndex] != tech || states[techIndex] != state)
                 return false;
         }
         return true;
@@ -193,15 +245,19 @@ public class TechPool extends AbstractMap<TechId, Technology> {
     public TechPool withTech(Technology tech) {
         TechId techId = tech.getId();
         int techIndex = techId.techIndex;
-        if (techIndex < techs.length && techs[techIndex] == tech) {
+        if (techIndex < techs.length && techs[techIndex] == tech && states[techIndex] == tech.getCurrentState()) {
             return this;
         }
         if (techId.idManager != idManager) {
             throw new IllegalArgumentException();
         }
-        HashMap<TechId, Technology> newMap = new HashMap<TechId, Technology>(this);
-        newMap.put(techId, tech);
-        return new TechPool(newMap.values());
+        ArrayList<Technology.State> newStates = new ArrayList<Technology.State>();
+        for (int i = 0; i < states.length; i++) {
+            if (i == techIndex || states[i] == null) continue;
+            newStates.add(states[i]);
+        }
+        newStates.add(tech.getCurrentState());
+        return new TechPool(newStates);
     }
 
     /**
@@ -217,6 +273,21 @@ public class TechPool extends AbstractMap<TechId, Technology> {
         }
         int techIndex = techId.techIndex;
         return techIndex < techs.length ? techs[techIndex] : null;
+    }
+
+    /**
+     * Get Technology.State by TechId
+     * TechId must belong to same IdManager as TechPool
+     * @param techId TechId to find
+     * @return Technology by given TechId or null
+     * @throws IllegalArgumentException if TechId is not from this IdManager
+     */
+    public Technology.State getState(TechId techId) {
+        if (techId.idManager != idManager) {
+            throw new IllegalArgumentException();
+        }
+        int techIndex = techId.techIndex;
+        return techIndex < states.length ? states[techIndex] : null;
     }
 
     /**
@@ -395,7 +466,7 @@ public class TechPool extends AbstractMap<TechId, Technology> {
      * @throws java.io.IOException
      */
     public static TechPool read(IdReader reader) throws IOException {
-        ArrayList<Technology> technologiesList = new ArrayList<Technology>();
+        ArrayList<Technology.State> technologiesList = new ArrayList<Technology.State>();
         for (;;) {
             int techIndex = reader.readInt();
             if (techIndex == -1) {
@@ -405,7 +476,7 @@ public class TechPool extends AbstractMap<TechId, Technology> {
             assert techId != null;
             Technology tech = Technology.findTechnology(techId);
             assert tech != null;
-            technologiesList.add(tech);
+            technologiesList.add(tech.getCurrentState());  // Fix me !!!!
         }
         return new TechPool(technologiesList);
     }
@@ -449,7 +520,11 @@ public class TechPool extends AbstractMap<TechId, Technology> {
         int arcCount = 0;
         for (int techIndex = 0; techIndex < techs.length; techIndex++) {
             Technology tech = techs[techIndex];
-            if (tech == null) continue;
+            if (tech == null) {
+                assert states[techIndex] == null;
+                continue;
+            }
+            assert states[techIndex].getTechnology() == tech;
             size++;
             TechId techId = tech.getId();
             assert techId.idManager == idManager;

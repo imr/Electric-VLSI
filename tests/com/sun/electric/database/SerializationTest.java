@@ -69,6 +69,7 @@ public class SerializationTest {
     private LibId libId0;
     private CellId cellId0;
     private ExportId exportId0;
+    private Generic generic;
     private EDatabase database;
 
     public SerializationTest() {
@@ -92,7 +93,9 @@ public class SerializationTest {
         libId0 = idManager.newLibId("lib0");
         cellId0 = libId0.newCellId(CellName.parseName("cell0;1{lay}"));
         exportId0 = cellId0.newPortId("export0");
-        database = new EDatabase(idManager);
+        generic = Generic.newInstance(idManager);
+        Environment env = idManager.getInitialEnvironment().addTech(generic);
+        database = new EDatabase(env);
     }
 
     @After
@@ -103,11 +106,9 @@ public class SerializationTest {
     public void ids() {
         System.out.println("ids");
         try {
-            Generic tech0 = Generic.newInstance(idManager);
-            ArcProto ap0 = tech0.invisible_arc;
-            PrimitiveNode pn0 = tech0.cellCenterNode;
+            ArcProto ap0 = generic.invisible_arc;
+            PrimitiveNode pn0 = generic.cellCenterNode;
             PrimitivePort pp0 = pn0.getPort(0);
-            database.addTech(tech0);
             ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
             ObjectOutputStream out = new EObjectOutputStream(byteStream, database);
             out.writeObject(techId0);
@@ -117,7 +118,7 @@ public class SerializationTest {
             out.writeObject(libId0);
             out.writeObject(cellId0);
             out.writeObject(exportId0);
-            out.writeObject(tech0);
+            out.writeObject(generic);
             out.writeObject(ap0);
             out.writeObject(pn0);
             out.writeObject(pp0);
@@ -146,7 +147,7 @@ public class SerializationTest {
             assertSame(libId0, libId);
             assertSame(cellId0, cellId);
             assertSame(exportId0, exportId);
-            assertSame(tech0, tech);
+            assertSame(generic, tech);
             assertSame(ap0, ap);
             assertSame(pn0, pn);
             assertSame(pp0, pp);
@@ -260,7 +261,7 @@ public class SerializationTest {
         out.close();
 
         IdManager otherIdManager = new IdManager();
-        EDatabase otherDatabase = new EDatabase(otherIdManager);
+        EDatabase otherDatabase = new EDatabase(otherIdManager.getInitialSnapshot());
 
         ObjectInputStream in = new EObjectInputStream(new ByteArrayInputStream(serialized), otherDatabase);
         LibId libId = (LibId) in.readObject();
@@ -269,16 +270,14 @@ public class SerializationTest {
     @Test(expected = InvalidObjectException.class)
     public void technologyToOtherDatabase() throws IOException, ClassNotFoundException {
         System.out.println("technologyToOtherDatabase");
-        Generic tech0 = Generic.newInstance(idManager);
-        database.addTech(tech0);
         ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
         ObjectOutputStream out = new EObjectOutputStream(byteStream, database);
-        out.writeObject(tech0);
+        out.writeObject(generic);
         out.flush();
         byte[] serialized = byteStream.toByteArray();
         out.close();
 
-        EDatabase otherDatabase = new EDatabase(idManager);
+        EDatabase otherDatabase = new EDatabase(idManager.getInitialSnapshot());
         ObjectInputStream in = new EObjectInputStream(new ByteArrayInputStream(serialized), otherDatabase);
         Technology tech = (Technology) in.readObject();
     }

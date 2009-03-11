@@ -33,10 +33,11 @@ import com.sun.electric.database.id.LibId;
 import com.sun.electric.database.id.TechId;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.ImmutableArrayList;
+import com.sun.electric.database.text.Setting;
 import com.sun.electric.technology.TechFactory;
 import com.sun.electric.technology.TechPool;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
-import com.sun.electric.technology.technologies.Schematics;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -45,6 +46,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 
 import static org.junit.Assert.*;
@@ -99,9 +101,10 @@ public class SnapshotTest {
         System.out.println("with");
 
         LibId libId = idManager.newLibId("libId0");
-        TechPool techPool = idManager.getInitialTechPool();
         Generic generic = Generic.newInstance(idManager);
-        techPool = techPool.withTech(generic).withTech(TechFactory.getTechFactory("schematic").newInstance(generic));
+        Technology schematic = TechFactory.getTechFactory("schematic").newInstance(generic);
+        Environment env = idManager.getInitialEnvironment().addTech(generic).addTech(schematic);
+        TechPool techPool = env.techPool;
         ImmutableLibrary l = ImmutableLibrary.newInstance(libId, null, null);
         LibraryBackup libBackup = new LibraryBackup(l, false, new LibId[]{});
         CellName cellName = CellName.parseName("cell;1{sch}");
@@ -113,13 +116,13 @@ public class SnapshotTest {
         ERectangle emptyBound = ERectangle.fromGrid(0, 0, 0, 0);
         ERectangle[] cellBoundsArray = { emptyBound };
         LibraryBackup[] libBackupsArray = { libBackup };
-        Snapshot instance = initialSnapshot.withTechPool(techPool);
+        Snapshot instance = initialSnapshot.with(null, env, null, null, null);
         assertEquals(1, instance.snapshotId);
 
         List<CellBackup> expCellBackups = Collections.singletonList(cellBackup);
         List<ERectangle> expCellBounds = Collections.singletonList(emptyBound);
         List<LibraryBackup> expLibBackups = Collections.singletonList(libBackup);
-        Snapshot result = instance.with(null, cellBackupsArray, cellBoundsArray, libBackupsArray);
+        Snapshot result = instance.with(null, null, cellBackupsArray, cellBoundsArray, libBackupsArray);
         assertEquals(2, result.snapshotId);
         assertEquals(expCellBackups, result.cellBackups);
 //        assertEquals(expCellBounds, result.cellBounds);
@@ -137,9 +140,10 @@ public class SnapshotTest {
         System.out.println("withReanmedIds");
 
         LibId libIdX = idManager.newLibId("X");
-        TechPool techPool = idManager.getInitialTechPool();
         Generic generic = Generic.newInstance(idManager);
-        techPool = techPool.withTech(generic).withTech(TechFactory.getTechFactory("schematic").newInstance(generic));
+        Technology schematic = TechFactory.getTechFactory("schematic").newInstance(generic);
+        Environment env = idManager.getInitialEnvironment().addTech(generic).addTech(schematic);
+        TechPool techPool = env.techPool;
         ImmutableLibrary libX = ImmutableLibrary.newInstance(libIdX, null, null);
         LibraryBackup libBackupX = new LibraryBackup(libX, false, new LibId[0]);
         LibId libIdY = idManager.newLibId("Y");
@@ -154,7 +158,7 @@ public class SnapshotTest {
         ERectangle[] cellBoundsArray = new ERectangle[] { ERectangle.fromGrid(0, 0, 0, 0) };
         LibId libIdA = idManager.newLibId("A");
 
-        Snapshot oldSnapshot = initialSnapshot.withTechPool(techPool).with(null, cellBackupArray, cellBoundsArray, libBackupArray);
+        Snapshot oldSnapshot = initialSnapshot.with(null, env, cellBackupArray, cellBoundsArray, libBackupArray);
         IdMapper idMapper = IdMapper.renameLibrary(oldSnapshot, libIdX, libIdA);
         Snapshot newSnapshot = oldSnapshot.withRenamedIds(idMapper, null, null);
 

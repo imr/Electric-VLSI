@@ -28,7 +28,6 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.EdgeH;
@@ -41,14 +40,16 @@ import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.TechFactory;
 import com.sun.electric.technology.Technology;
 
+import com.sun.electric.tool.Job;
 import java.awt.Color;
+import java.util.Collections;
 
 /**
  * This is the Generic technology.
  */
 public class Generic extends Technology
 {
-	/** the Generic Technology object. */	public static Generic tech() { return sysGeneric; }
+	/** the Generic Technology object. */	public static Generic tech() { return Job.threadTechPool().getGeneric(); }
 
 	/** the Universal Layer. */				private final Layer universalLay;
 	/** the Glyph Layer. */					public final Layer glyphLay;
@@ -83,31 +84,18 @@ public class Generic extends Technology
 
 	// -------------------- private and protected methods ------------------------
     public static Generic newInstance(IdManager idManager) {
-        Setting.Context settingContext = new Setting.Context() {
-            @Override
-            public Object getValue(Setting setting) {
-                String xmlPath = setting.getXmlPath();
-                if (xmlPath.equals("userTool.PWellProcess"))
-                    return Boolean.TRUE;
-                if (xmlPath.equals("generic.Foundry"))
-                    return "NONE";
-                if (xmlPath.equals("generic.NumMetalLayers"))
-                    return Integer.valueOf(0);
-                return null;
-            }
-        };
         Generic generic = new Generic(idManager);
-        generic.setup(settingContext);
+        generic.setup();
         return generic;
     }
 
 	private Generic(IdManager idManager)
 	{
-		super(idManager, null, TechFactory.getGenericFactory(), Foundry.Type.NONE, 0);
+		super(idManager, null, TechFactory.getGenericFactory(), Collections.<TechFactory.Param,Object>emptyMap(), Foundry.Type.NONE, 0);
 		setTechShortName("Generic");
 		setTechDesc("Useful primitives");
 		setNonStandard();
-        
+
 		setFactoryScale(1000, false);			// in nanometers: really 1 micron
 
 		//**************************************** LAYERS ****************************************
@@ -270,7 +258,7 @@ public class Generic extends Technology
 //		drcNode.setFunction(PrimitiveNode.Function.NODE);
 //		drcNode.setHoldsOutline();
 //        drcNode.setSpecialType(PrimitiveNode.POLYGONAL);
-//        
+//
 //        /** AFG Node */
 //		afgNode = PrimitiveNode.newInstance("AFG-Node", this, 2.0, 2.0, null,
 //			new Technology.NodeLayer []
@@ -324,7 +312,7 @@ public class Generic extends Technology
 
         //Foundry
         newFoundry(Foundry.Type.NONE, null);
-        
+
 		oldNodeNames.put("Cell-Center", cellCenterNode);
 	}
 
@@ -361,7 +349,7 @@ public class Generic extends Technology
 		}
 		return super.getShapeOfNode(ni, electrical, reasonable, primLayers, layerOverride);
 	}
-	
+
 //	/**
 //	 * Method to update the connecitivity list for universal and invisible pins so that
 //	 * they can connect to ALL arcs.  This is called at initialization and again
@@ -397,7 +385,7 @@ public class Generic extends Technology
 //		invisPinPort.setConnections(upconn);
 //		simProbePort.setConnections(upconn);
 //	}
-    
+
     /**
      * Tells if all ArcProtos can connect to the PrimitivePort
      * @param pp PrimitivePort to test

@@ -25,7 +25,6 @@ package com.sun.electric.database.hierarchy;
 
 import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellRevision;
-import com.sun.electric.database.Config;
 import com.sun.electric.database.EObjectInputStream;
 import com.sun.electric.database.EObjectOutputStream;
 import com.sun.electric.database.IdMapper;
@@ -1125,7 +1124,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
     public Topology getTopology() { return topology; }
 
     private CellBackup doBackup() {
-        TechPool techPool = database.getTechPool();
+        TechPool techPool = getTechPool();
         if (backup == null) {
             getTechnology();
             backup = CellBackup.newInstance(getD().withoutVariables(), techPool);
@@ -1195,11 +1194,22 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         }
     }
 
+    void resize() {
+        assert cellBackupFresh;
+        update(false, null, null);
+    }
+
     private void update(boolean full, CellBackup newBackup, BitSet exportsModified) {
         checkUndoing();
         boundsDirty = BOUNDS_RECOMPUTE;
         unfreshRTree();
-        CellRevision newRevision = newBackup.cellRevision;
+        CellRevision newRevision;
+        if (newBackup != null) {
+            newRevision = newBackup.cellRevision;
+        } else {
+            newRevision = backup.cellRevision;
+            cellBounds = null;
+        }
      	this.d = newRevision.d;
         lib = database.getLib(newRevision.d.getLibId());
         tech = database.getTech(newRevision.d.techId);
@@ -1212,14 +1222,16 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             ImmutableNodeInst d = newRevision.nodes.get(i);
             while (d.nodeId >= chronNodes.size()) chronNodes.add(null);
             NodeInst ni = chronNodes.get(d.nodeId);
-            if (!(Config.TWO_JVM && full) && ni != null && ni.getProto().getId() == d.protoId) {
+            if (ni != null && ni.getProto().getId().isIcon() == d.protoId.isIcon()) {
+                NodeProto oldProto = ni.getProto();
                 ni.setDInUndo(d);
                 if (ni.isCellInstance()) {
                     int subCellIndex = ((Cell)ni.getProto()).getCellIndex();
                     if (full || exportsModified != null && exportsModified.get(subCellIndex))
                         ni.updatePortInsts(full);
+                } else if (ni.getProto() != oldProto) {
+                    ni.updatePortInsts(true);
                 }
-//                ni.lowLevelClearConnections();
             } else {
                 ni = NodeInst.lowLevelNewInstance(this, d);
                 chronNodes.set(d.nodeId, ni);
@@ -1266,7 +1278,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
                 chronExports = newChronExports;
             }
             Export e = chronExports[chronIndex];
-            if (!(Config.TWO_JVM && full) && e != null) {
+            if (e != null) {
                 e.setDInUndo(d);
             } else {
                 e = new Export(d, this);
@@ -1290,15 +1302,23 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         }
         assert exportCount == exports.length;
 
-        backup = newBackup;
+        if (newBackup != null) {
+            backup = newBackup;
+        } else {
+            backup = backup.withTechPool(getTechPool());
+        }
         cellBackupFresh = true;
         cellContentsFresh = true;
         revisionDateFresh = true;
 
         getMemoization();
         boundsDirty = BOUNDS_RECOMPUTE;
-        ERectangle newBounds = computeBounds();
-        assert newBounds == cellBounds;
+        if (newBackup != null) {
+            ERectangle newBounds = computeBounds();
+            assert newBounds == cellBounds;
+        } else {
+            cellBounds = computeBounds();
+        }
         boundsDirty = BOUNDS_CORRECT;
         topology.rebuildRTree();
         assert boundsDirty == BOUNDS_CORRECT;

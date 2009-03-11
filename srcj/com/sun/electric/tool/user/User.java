@@ -842,8 +842,8 @@ public class User extends Listener
 //	public static void setPWellProcessLayoutTechnology(boolean on) {getPWellProcessLayoutTechnologySetting().set(Boolean.valueOf(on));}
 
 	/**
-	 * Returns project Setting to tell whether to include the date and Electric version in output files.
-	 * @return project Setting to tell whether to include the date and Electric version in output files.
+	 * Returns project Setting with additional technologies.
+	 * @return project Setting with additional technologies.
 	 */
 	public static Setting getSoftTechnologiesSetting() { return ToolSettings.getSoftTechnologiesSetting(); }
 

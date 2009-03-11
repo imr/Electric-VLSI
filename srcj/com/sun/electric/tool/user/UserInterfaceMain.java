@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.user;
 
-import com.sun.electric.database.Config;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
@@ -31,6 +30,7 @@ import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.Geometric;
@@ -95,7 +95,7 @@ public class UserInterfaceMain extends AbstractUserInterface
     private static volatile boolean redoEnabled = false;
 //    private static final EventListenerList undoRedoListenerList = new EventListenerList();
     private static EventListenerList listenerList = new EventListenerList();
-    private static Snapshot currentSnapshot = EDatabase.clientDatabase().getInitialSnapshot();
+    private static Snapshot currentSnapshot = IdManager.stdIdManager.getInitialSnapshot();
 //    private static EDatabase database = EDatabase.clientDatabase();
 	/** The progress during input. */						protected static Progress progress = null;
 
@@ -694,8 +694,10 @@ public class UserInterfaceMain extends AbstractUserInterface
         }
         public void run() {
             DatabaseChangeEvent event = new DatabaseChangeEvent(currentSnapshot, newSnapshot);
-            if (Config.TWO_JVM && newSnapshot.techPool != currentSnapshot.techPool) {
+            if (newSnapshot.techPool != currentSnapshot.techPool) {
+                User.technologyChanged();
                 WindowFrame.updateTechnologyLists();
+                WindowFrame.repaintAllWindows();
             }
             for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); ) {
                 Listener listener = it.next();

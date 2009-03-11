@@ -559,12 +559,8 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
      */
     void setDInUndo(ImmutableExport newD) {
         checkUndoing();
-        if (newD == d) return;
         d = newD;
-        if (originalPort.getNodeInst().getD().nodeId != d.originalNodeId ||
-                originalPort.getPortProto().getId() != d.originalPortId) {
-            originalPort = parent.getPortInst(d.originalNodeId, d.originalPortId);
-        }
+        originalPort = parent.getPortInst(d.originalNodeId, d.originalPortId);
     }
 
     /**

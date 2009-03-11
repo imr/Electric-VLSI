@@ -44,6 +44,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.XMLRules;
 import com.sun.electric.technology.Xml;
 import com.sun.electric.technology.Technology.NodeLayer;
+import com.sun.electric.tool.user.User;
 
 import java.io.PrintWriter;
 import java.util.List;
@@ -65,7 +66,23 @@ public class MoCMOS extends Technology
 	/** key of Variable for saving technology state. */
 	public static final Variable.Key TECH_LAST_STATE = Variable.newKey("TECH_last_state");
 
-    public static final Version changeOfMetal6 =Version.parseVersion("8.02o"); // Fix of bug #357
+    public static final Version changeOfMetal6 = Version.parseVersion("8.02o"); // Fix of bug #357
+
+    private static final String TECH_NAME = "mocmos";
+    private static final String XML_PREFIX = TECH_NAME + ".";
+    private static final String PREF_PREFIX = "/com/sun/electric/technology/technologies/";
+    private static final TechFactory.Param techParamRuleSet =
+            new TechFactory.Param(XML_PREFIX + "MOCMOS Rule Set", PREF_PREFIX + "MoCMOSRuleSet", Integer.valueOf(1));
+     private static final TechFactory.Param techParamNumMetalLayers =
+            new TechFactory.Param(XML_PREFIX + "NumMetalLayers",  PREF_PREFIX + TECH_NAME + "NumberOfMetalLayers", Integer.valueOf(6));
+    private static final TechFactory.Param techParamUseSecondPolysilicon =
+            new TechFactory.Param(XML_PREFIX +"UseSecondPolysilicon", PREF_PREFIX + TECH_NAME + "SecondPolysilicon", Boolean.TRUE);
+    private static final TechFactory.Param techParamDisallowStackedVias =
+            new TechFactory.Param(XML_PREFIX + "DisallowStackedVias", PREF_PREFIX + "MoCMOSDisallowStackedVias", Boolean.FALSE);
+    private static final TechFactory.Param techParamUseAlternativeActivePolyRules =
+            new TechFactory.Param(XML_PREFIX + "UseAlternativeActivePolyRules", PREF_PREFIX + "MoCMOSAlternateActivePolyRules", Boolean.FALSE);
+    private static final TechFactory.Param techParamAnalog =
+            new TechFactory.Param(XML_PREFIX + "Analog", PREF_PREFIX + TECH_NAME + "Analog", Boolean.FALSE);
 
     // Tech params
     private Integer paramRuleSet;
@@ -80,8 +97,16 @@ public class MoCMOS extends Technology
 
 	// -------------------- private and protected methods ------------------------
 
-    public MoCMOS(Generic generic, TechFactory techFactory, Map<String,Object> techParams, Xml.Technology t) {
+    public MoCMOS(Generic generic, TechFactory techFactory, Map<TechFactory.Param,Object> techParams, Xml.Technology t) {
         super(generic, techFactory, techParams, t);
+
+        paramRuleSet = (Integer)techParams.get(techParamRuleSet);
+        paramNumMetalLayers = (Integer)techParams.get(techParamNumMetalLayers);
+        paramUseSecondPolysilicon = (Boolean)techParams.get(techParamUseSecondPolysilicon);
+        paramDisallowStackedVias = (Boolean)techParams.get(techParamDisallowStackedVias);
+        paramUseAlternativeActivePolyRules = (Boolean)techParams.get(techParamUseAlternativeActivePolyRules);
+        paramAnalog = (Boolean)techParams.get(techParamAnalog);
+
 		setStaticTechnology();
         setFactoryResolution(0.01); // value in lambdas   0.005um -> 0.05 lambdas
         // Logical Effort Tech-dependent settings
@@ -94,18 +119,30 @@ public class MoCMOS extends Technology
 
         scalableTransistorNodes[P_TYPE] = findNodeProto("P-Transistor-Scalable");
         scalableTransistorNodes[N_TYPE] = findNodeProto("N-Transistor-Scalable");
+
+        for (Iterator<Layer> it = getLayers(); it.hasNext(); ) {
+            Layer layer = it.next();
+            if (!layer.getFunction().isUsed(getNumMetals(), isSecondPolysilicon() ? 2 : 1))
+                layer.getPureLayerNode().setNotUsed(true);
+        }
+        findNodeProto("P-Transistor-Scalable").setCanShrink();
+        findNodeProto("N-Transistor-Scalable").setCanShrink();
+        findNodeProto("NPN-Transistor").setCanShrink();
+
     }
 
 	/******************** SUPPORT METHODS ********************/
 
     @Override
-    protected void loadTechParams(Setting.Context context) {
-        super.loadTechParams(context);
-        paramRuleSet = Integer.valueOf(getRuleSetSetting().getInt(context));
-        paramUseSecondPolysilicon = Boolean.valueOf(getSecondPolysiliconSetting().getBoolean(context));
-        paramDisallowStackedVias = Boolean.valueOf(getDisallowStackedViasSetting().getBoolean(context));
-        paramUseAlternativeActivePolyRules = Boolean.valueOf(getAlternateActivePolyRulesSetting().getBoolean(context));
-        paramAnalog = Boolean.valueOf(getAnalogSetting().getBoolean(context));
+    protected void copyState(Technology that) {
+        super.copyState(that);
+        MoCMOS mocmos = (MoCMOS)that;
+        paramRuleSet = mocmos.paramRuleSet;
+        paramNumMetalLayers = mocmos.paramNumMetalLayers;
+        paramUseSecondPolysilicon = mocmos.paramUseSecondPolysilicon;
+        paramDisallowStackedVias = mocmos.paramDisallowStackedVias;
+        paramUseAlternativeActivePolyRules = mocmos.paramUseAlternativeActivePolyRules;
+        paramAnalog = mocmos.paramAnalog;
     }
 
     @Override
@@ -345,7 +382,7 @@ public class MoCMOS extends Technology
         Foundry foundry = getSelectedFoundry();
         List<DRCTemplate> theRules = foundry.getRules();
         XMLRules rules = new XMLRules(this);
-        boolean pWellProcess = paramPWellProcess.booleanValue();
+        boolean pWellProcess = User.isPWellProcessLayoutTechnology();
 
         assert(foundry != null);
 
@@ -446,28 +483,7 @@ public class MoCMOS extends Technology
 			}
 		}
 
-        for (Iterator<Layer> it = getLayers(); it.hasNext(); ) {
-            Layer layer = it.next();
-            if (!layer.getFunction().isUsed(getNumMetals(), isSecondPolysilicon() ? 2 : 1))
-                layer.getPureLayerNode().setNotUsed(true);
-        }
-        findNodeProto("P-Transistor-Scalable").setCanShrink();
-        findNodeProto("N-Transistor-Scalable").setCanShrink();
-        findNodeProto("NPN-Transistor").setCanShrink();
-
-        // Information for palette
-        buildTechPalette();
-
         return rules;
-    }
-
-    /**
-     * Method to load primitive nodes in the palette after rules have been loaded
-     */
-    private void buildTechPalette()
-    {
-		getPrefComponentMenu();
-		if (nodeGroups == null) nodeGroups = getDefaultNodesGrouped();
     }
 
     @Override
@@ -509,7 +525,7 @@ public class MoCMOS extends Technology
 	/******************** OPTIONS ********************/
 
     private final Setting cacheRuleSet = makeIntSetting("MoCMOSRuleSet", "Technology tab", "MOSIS CMOS rule set",
-        "MOCMOS Rule Set", 1, "SCMOS", "Submicron", "Deep");
+        techParamRuleSet.xmlPath.substring(TECH_NAME.length() + 1), 1, "SCMOS", "Submicron", "Deep");
 	/**
 	 * Method to tell the current rule set for this Technology if Mosis is the foundry.
 	 * @return the current rule set for this Technology:<BR>
@@ -540,7 +556,7 @@ public class MoCMOS extends Technology
 	public Setting getRuleSetSetting() { return cacheRuleSet; }
 
 	private final Setting cacheSecondPolysilicon = makeBooleanSetting(getTechName() + "SecondPolysilicon", "Technology tab", getTechName().toUpperCase() + " CMOS: Second Polysilicon Layer",
-		"UseSecondPolysilicon", true);
+		techParamUseSecondPolysilicon.xmlPath.substring(TECH_NAME.length() + 1), true);
 	/**
 	 * Method to tell the number of polysilicon layers in this Technology.
 	 * The default is false.
@@ -555,7 +571,7 @@ public class MoCMOS extends Technology
 	public Setting getSecondPolysiliconSetting() { return cacheSecondPolysilicon; }
 
 	private final Setting cacheDisallowStackedVias = makeBooleanSetting("MoCMOSDisallowStackedVias", "Technology tab", "MOSIS CMOS: Disallow Stacked Vias",
-        "DisallowStackedVias", false);
+        techParamDisallowStackedVias.xmlPath.substring(TECH_NAME.length() + 1), false);
 	/**
 	 * Method to determine whether this Technology disallows stacked vias.
 	 * The default is false (they are allowed).
@@ -569,7 +585,7 @@ public class MoCMOS extends Technology
 	public Setting getDisallowStackedViasSetting() { return cacheDisallowStackedVias; }
 
 	private final Setting cacheAlternateActivePolyRules = makeBooleanSetting("MoCMOSAlternateActivePolyRules", "Technology tab", "MOSIS CMOS: Alternate Active and Poly Contact Rules",
-		"UseAlternativeActivePolyRules", false);
+		techParamUseAlternativeActivePolyRules.xmlPath.substring(TECH_NAME.length() + 1), false);
 	/**
 	 * Method to determine whether this Technology is using alternate Active and Poly contact rules.
 	 * The default is false.
@@ -583,7 +599,7 @@ public class MoCMOS extends Technology
 	public Setting getAlternateActivePolyRulesSetting() { return cacheAlternateActivePolyRules; }
 
 	private final Setting cacheAnalog = makeBooleanSetting(getTechName() + "Analog", "Technology tab", "MOSIS CMOS: Vertical NPN transistor pbase",
-		"Analog", false);
+		techParamAnalog.xmlPath.substring(TECH_NAME.length() + 1), false);
 	/**
 	 * Method to tell whether this technology has layers for vertical NPN transistor pbase.
 	 * The default is false.
@@ -669,36 +685,33 @@ public class MoCMOS extends Technology
 	}
 
     /**
+     * This method is called from TechFactory by reflection. Don't remove.
      * Returns a list of TechFactory.Params affecting this Technology
      * @return list of TechFactory.Params affecting this Technology
      */
     public static List<TechFactory.Param> getTechParams() {
-        String techName = "mocmos";
-        String xmlPrefix = techName + ".";
-        String prefPrefix = "/com/sun/electric/technology/technologies/";
         return Arrays.asList(
-            new TechFactory.Param(xmlPrefix + "MOCMOS Rule Set", prefPrefix + "MoCMOSRuleSet", Integer.valueOf(1)),
-            new TechFactory.Param(xmlPrefix + "NumMetalLayers", prefPrefix + techName + "NumberOfMetalLayers", Integer.valueOf(6)),
-            new TechFactory.Param(xmlPrefix + "UseSecondPolysilicon", prefPrefix + techName + "SecondPolysilicon", Boolean.TRUE),
-            new TechFactory.Param(xmlPrefix + "DisallowStackedVias", prefPrefix + "MoCMOSDisallowStackedVias", Boolean.FALSE),
-            new TechFactory.Param(xmlPrefix + "UseAlternativeActivePolyRules", prefPrefix + "MoCMOSAlternateActivePolyRules", Boolean.FALSE),
-            new TechFactory.Param(xmlPrefix + "Analog", prefPrefix + techName + "Analog", Boolean.FALSE)
-        );
+                techParamRuleSet,
+                techParamNumMetalLayers,
+                techParamUseSecondPolysilicon,
+                techParamDisallowStackedVias,
+                techParamUseAlternativeActivePolyRules,
+                techParamAnalog);
     }
 
     /**
      * This method is called from TechFactory by reflection. Don't remove.
      * Returns patched Xml description of this Technology for specified technology params
-     * @param params a map from XmlPath of param to its value
+     * @param params values of technology params
      * @return patched Xml description of this Technology
      */
-    private static Xml.Technology getPatchedXml(Map<String,Object> params) {
-        int ruleSet = ((Integer)params.get("mocmos.MOCMOS Rule Set")).intValue();
-        int numMetals = ((Integer)params.get("mocmos.NumMetalLayers")).intValue();
-        boolean secondPolysilicon = ((Boolean)params.get("mocmos.UseSecondPolysilicon")).booleanValue();
-        boolean disallowStackedVias = ((Boolean)params.get("mocmos.DisallowStackedVias")).booleanValue();
-        boolean alternateContactRules = ((Boolean)params.get("mocmos.UseAlternativeActivePolyRules")).booleanValue();
-        boolean isAnalog = ((Boolean)params.get("mocmos.Analog")).booleanValue();
+    public static Xml.Technology getPatchedXml(Map<TechFactory.Param,Object> params) {
+        int ruleSet = ((Integer)params.get(techParamRuleSet)).intValue();
+        int numMetals = ((Integer)params.get(techParamNumMetalLayers)).intValue();
+        boolean secondPolysilicon = ((Boolean)params.get(techParamUseSecondPolysilicon)).booleanValue();
+        boolean disallowStackedVias = ((Boolean)params.get(techParamDisallowStackedVias)).booleanValue();
+        boolean alternateContactRules = ((Boolean)params.get(techParamUseAlternativeActivePolyRules)).booleanValue();
+        boolean isAnalog = ((Boolean)params.get(techParamAnalog)).booleanValue();
 
         Xml.Technology tech = Xml.parseTechnology(MoCMOS.class.getResource("mocmos.xml"));
         Xml.Layer[] metalLayers = new Xml.Layer[6];

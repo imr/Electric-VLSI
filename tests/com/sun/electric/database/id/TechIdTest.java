@@ -251,7 +251,7 @@ public class TechIdTest {
     @Test
     public void inDatabase() {
         System.out.println("inDatabase");
-        EDatabase database = new EDatabase(idManager);
+        EDatabase database = new EDatabase(idManager.getInitialSnapshot());
         assertNull(techId2.inDatabase(database));
 
         TechId genericId = idManager.newTechId("generic");

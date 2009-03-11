@@ -24,6 +24,7 @@
  */
 package com.sun.electric.database.id;
 
+import com.sun.electric.database.Environment;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.technology.TechPool;
@@ -39,6 +40,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class IdManager {
 
+    /** Standard IdManager */
+    public static final IdManager stdIdManager = new IdManager();
+
     /** List of TechIds created so far. */
     final ArrayList<TechId> techIds = new ArrayList<TechId>();
     /** HashMap of TechIds by their tech name. */
@@ -53,13 +57,15 @@ public class IdManager {
     private final AtomicInteger snapshotCount = new AtomicInteger();
     /** Initial TechPool. */
     private final TechPool initialTechPool = new TechPool(this);
+    /** Initial Environment. */
+    private final Environment initialEnvironment = new Environment(this);
     /** Initial Snapshot. */
     private final Snapshot initialSnapshot = new Snapshot(this);
-    
+
     /** Creates a new instance of IdManager */
     public IdManager() {
     }
-    
+
     /**
      * Returns TechId with specified techName.
      * @param techName technology name.
@@ -69,7 +75,7 @@ public class IdManager {
         TechId techId = techIdsByName.get(techName);
         return techId != null ? techId : newTechIdInternal(techName);
     }
-    
+
     /**
      * Returns TechId by given index.
      * @param techIndex given index.
@@ -78,7 +84,7 @@ public class IdManager {
     public synchronized TechId getTechId(int techIndex) {
         return techIds.get(techIndex);
     }
-    
+
     private TechId newTechIdInternal(String techName) {
         int techIndex = techIds.size();
         TechId techId = new TechId(this, techName, techIndex);
@@ -87,7 +93,7 @@ public class IdManager {
         assert techIds.size() == techIdsByName.size();
         return techId;
     }
-    
+
     /**
      * Returns LibId with specified libName.
      * @param libName library name.
@@ -97,7 +103,7 @@ public class IdManager {
         LibId libId = libIdsByName.get(libName);
         return libId != null ? libId : newLibIdInternal(libName);
     }
-    
+
     /**
      * Returns LibId by given index.
      * @param libIndex given index.
@@ -106,7 +112,7 @@ public class IdManager {
     public synchronized LibId getLibId(int libIndex) {
         return libIds.get(libIndex);
     }
-    
+
     private LibId newLibIdInternal(String libName) {
         int libIndex = libIds.size();
         LibId libId = new LibId(this, libName, libIndex);
@@ -115,7 +121,7 @@ public class IdManager {
         assert libIds.size() == libIdsByName.size();
         return libId;
     }
-    
+
     /**
      * Returns new CellId with cellIndex unique in this IdManager.
      * @param libId library to which the Cell belongs
@@ -127,7 +133,7 @@ public class IdManager {
         CellId cellId = libId.getCellId(cellName);
         return cellId != null ? cellId : newCellIdInternal(libId, cellName);
     }
-    
+
     /**
      * Returns CellId by given index.
      * @param cellIndex given index.
@@ -136,7 +142,7 @@ public class IdManager {
     public synchronized CellId getCellId(int cellIndex) {
         return cellIds.get(cellIndex);
     }
-    
+
     private CellId newCellIdInternal(LibId libId, CellName cellName) {
         int cellIndex = cellIds.size();
         CellId cellId = new CellId(libId, cellName, cellIndex);
@@ -144,13 +150,15 @@ public class IdManager {
         libId.putCellId(cellId);
         return cellId;
     }
-    
+
     public TechPool getInitialTechPool() { return initialTechPool; }
-    
+
+    public Environment getInitialEnvironment() { return initialEnvironment; }
+
     public Snapshot getInitialSnapshot() { return initialSnapshot; }
-    
+
     public int newSnapshotId() { return snapshotCount.incrementAndGet(); }
-    
+
 	/**
 	 * Method to check invariants in all Libraries.
 	 */
@@ -183,7 +191,7 @@ public class IdManager {
                 assert libId.libName == e.getKey();
                 assert getLibId(libId.libIndex) == libId;
             }
-            
+
             numCellIds = cellIds.size();
         }
         for (int cellIndex = 0; cellIndex < numCellIds; cellIndex++) {
@@ -194,7 +202,7 @@ public class IdManager {
             cellId.check();
         }
     }
-    
+
     public void dump() {
         System.out.println(techIds.size() + " TechIds:");
         for (TechId techId: new TreeMap<String,TechId>(techIdsByName).values()) {

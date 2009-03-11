@@ -2145,7 +2145,7 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 
     void copyState(PrimitiveNode that) {
         assert getId() == that.getId();
-        setNotUsed(that.isNotUsed());
+        userBits = that.userBits;
         assert specialType == that.specialType;
         if (specialValues != null) {
             assert specialValues.length == that.specialValues.length;

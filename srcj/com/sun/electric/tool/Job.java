@@ -27,6 +27,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.UserInterface;
+import com.sun.electric.technology.TechPool;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.CantEditException;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -659,6 +660,10 @@ public abstract class Job implements Serializable {
         if (currentThread instanceof EThread)
             return ((EThread)currentThread).database;
         return EDatabase.clientDatabase();
+    }
+
+    public static TechPool threadTechPool() {
+        return EDatabase.theDatabase.getTechPool();
     }
 
     public EDatabase getDatabase() {

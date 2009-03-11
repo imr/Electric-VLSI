@@ -68,6 +68,7 @@ public class Snapshot {
     public final int[] cellGroups;
     public final CellId[] groupMainSchematics;
     public final ImmutableArrayList<LibraryBackup> libBackups;
+    public final Environment environment;
     public final TechPool techPool;
     private final ERectangle[] cellBounds;
 
@@ -76,7 +77,7 @@ public class Snapshot {
             ImmutableArrayList<CellBackup> cellBackups,
             int[] cellGroups, CellId[] groupMainSchematics,
             ImmutableArrayList<LibraryBackup> libBackups,
-            TechPool techPool,
+            Environment environment,
             ERectangle[] cellBounds) {
         this.idManager = idManager;
         this.snapshotId = snapshotId;
@@ -85,7 +86,8 @@ public class Snapshot {
         this.cellGroups = cellGroups;
         this.groupMainSchematics = groupMainSchematics;
         this.libBackups = libBackups;
-        this.techPool = techPool;
+        this.environment = environment;
+        techPool = environment.techPool;
         this.cellBounds = new ERectangle[cellBackups.size()];
         for (int cellIndex = 0; cellIndex < cellBounds.length; cellIndex++) {
             ERectangle r = cellBounds[cellIndex];
@@ -104,34 +106,14 @@ public class Snapshot {
     public Snapshot(IdManager idManager) {
         this(idManager, 0, null, CellBackup.EMPTY_LIST,
                 new int[0], new CellId[0],
-                LibraryBackup.EMPTY_LIST, idManager.getInitialTechPool(), ERectangle.NULL_ARRAY);
-    }
-
-    /**
-     * Creates a new instance of Snapshot which differs from this Snapshot by TechPool.
-     * New TechPool must be extension of old TechPool
-     * @param techPool new Technology pool
-     * @return new snapshot which differs froms this Snapshot by TechPool
-     * @throws IllegalArgumentException if new TechPool isn't extension of old TechPool.
-     */
-    public Snapshot withTechPool(TechPool techPool) {
-        if (this.techPool == techPool) return this;
-        CellBackup[] cellBackupArray = cellBackups.toArray(new CellBackup[cellBackups.size()]);
-        for (int cellIndex = 0; cellIndex < cellBackupArray.length; cellIndex++) {
-            CellBackup cellBackup = cellBackups.get(cellIndex);
-            if (cellBackup == null) continue;
-            cellBackupArray[cellIndex] = cellBackup.withTechPool(techPool);
-        }
-        return new Snapshot(idManager, idManager.newSnapshotId(), this.tool,
-                new ImmutableArrayList(cellBackupArray),
-                this.cellGroups, this.groupMainSchematics,
-                this.libBackups, techPool, this.cellBounds);
+                LibraryBackup.EMPTY_LIST, idManager.getInitialEnvironment(), ERectangle.NULL_ARRAY);
     }
 
     /**
      * Creates a new instance of Snapshot which differs from this Snapshot.
      * Four array parameters are supplied. Each parameter may be null if its contents is the same as in this Snapshot.
-     * @param tool tool which initiated database changes/
+     * @param tool Tool which initiated database changes.
+     * @param environment Environment of this Snapshot
      * @param cellBackupsArray array indexed by cellIndex of new CellBackups.
      * @param cellBoundsArray array indexed by cellIndex of cell bounds.
      * @param libBackupsArray array indexed by libIndex of LibraryBackups.
@@ -139,12 +121,15 @@ public class Snapshot {
      * @throws IllegalArgumentException on invariant violation.
      * @throws ArrayOutOfBoundsException on some invariant violations.
      */
-    public Snapshot with(Tool tool, CellBackup[] cellBackupsArray, ERectangle[] cellBoundsArray, LibraryBackup[] libBackupsArray) {
+    public Snapshot with(Tool tool, Environment environment, CellBackup[] cellBackupsArray, ERectangle[] cellBoundsArray, LibraryBackup[] libBackupsArray) {
 //        long startTime = System.currentTimeMillis();
+        if (environment == null)
+            environment = this.environment;
+        TechPool techPool = environment.techPool;
         ImmutableArrayList<CellBackup> cellBackups = copyArray(cellBackupsArray, this.cellBackups);
         ImmutableArrayList<LibraryBackup> libBackups = copyArray(libBackupsArray, this.libBackups);
         boolean namesChanged = this.libBackups != libBackups || this.cellBackups.size() != cellBackups.size();
-        if (!namesChanged && this.cellBackups == cellBackups) {
+        if (!namesChanged && this.environment == environment && this.cellBackups == cellBackups) {
             if (cellBoundsArray != null) {
                 for (int cellIndex = 0; cellIndex < cellBoundsArray.length; cellIndex++) {
                     ERectangle r = cellBoundsArray[cellIndex];
@@ -164,6 +149,8 @@ public class Snapshot {
             CellBackup oldBackup = getCell(cellIndex);
             CellId cellId;
             if (newBackup != null) {
+                if (newBackup.withTechPool(techPool) != newBackup)
+                    throw new IllegalArgumentException();
                 newRevision = newBackup.cellRevision;
                 if (oldBackup == null || newRevision.d.groupName != oldBackup.cellRevision.d.groupName ||
                         newRevision.d.params != oldBackup.cellRevision.d.params)
@@ -256,7 +243,7 @@ public class Snapshot {
             cellBoundsArray = this.cellBounds;
         Snapshot snapshot = new Snapshot(idManager, idManager.newSnapshotId(), tool, cellBackups,
                 cellGroups, groupMainSchematics,
-                libBackups, this.techPool, cellBoundsArray);
+                libBackups, environment, cellBoundsArray);
 //        long endTime = System.currentTimeMillis();
 //        System.out.println("Creating snapshot took: " + (endTime - startTime) + " msec");
         return snapshot;
@@ -429,7 +416,7 @@ public class Snapshot {
             libBackupsArray = null;
 
         if (cellBackupsArray == null && cellBounds == null && libBackups == null) return this;
-        return with(tool, cellBackupsArray, cellBoundsArray, libBackupsArray);
+        return with(tool, null, cellBackupsArray, cellBoundsArray, libBackupsArray);
     }
 
     public List<LibId> getChangedLibraries(Snapshot oldSnapshot) {
@@ -598,12 +585,7 @@ public class Snapshot {
 
     /** Returns map from Setting to its value in this Snapshot */
     public Map<Setting,Object> getSettings() {
-        LinkedHashMap<Setting,Object> settings = new LinkedHashMap<Setting,Object>();
-        for (Iterator<Tool> it = Tool.getTools(); it.hasNext(); )
-            gatherSettings(settings, it.next().getProjectSettings().getSettings());
-        for (Technology tech: techPool.values())
-            gatherSettings(settings, tech.getProjectSettings().getSettings());
-        return settings;
+        return environment.getSettings();
     }
 
     private void gatherSettings(Map<Setting,Object> map, Collection<Setting> c) {
@@ -634,10 +616,7 @@ public class Snapshot {
         if (tool != null)
             writer.writeTool(tool);
 
-        boolean technologiesChanged = techPool != oldSnapshot.techPool;
-        writer.writeBoolean(technologiesChanged);
-        if (technologiesChanged)
-            techPool.write(writer);
+        environment.writeDiff(writer, oldSnapshot.environment);
 
         boolean libsChanged = oldSnapshot.libBackups != libBackups;
         writer.writeBoolean(libsChanged);
@@ -719,10 +698,9 @@ public class Snapshot {
         boolean hasTool = reader.readBoolean();
         Tool tool = hasTool ? reader.readTool() : null;
 
-        TechPool techPool = oldSnapshot.techPool;
-        boolean technologiesChanged = reader.readBoolean();
-        if (technologiesChanged)
-            techPool = TechPool.read(reader);
+        Environment environment = Environment.readEnvironment(reader, oldSnapshot.environment);
+        TechPool techPool = environment.techPool;
+        boolean technologiesChanged = techPool != oldSnapshot.techPool;
 
         ImmutableArrayList<LibraryBackup> libBackups = oldSnapshot.libBackups;
         boolean libsChanged = reader.readBoolean();
@@ -817,7 +795,7 @@ public class Snapshot {
         }
         return new Snapshot(oldSnapshot.idManager, snapshotId, tool, cellBackups,
                 cellGroups, groupMainSchematics,
-                libBackups, techPool, cellBoundsArray);
+                libBackups, environment, cellBoundsArray);
     }
 
     /**
@@ -843,6 +821,8 @@ public class Snapshot {
     public void check() {
 //        long startTime = System.currentTimeMillis();
         techPool.check();
+        environment.check();
+        assert environment.techPool == techPool;
         for (LibraryBackup libBackup: libBackups) {
             if (libBackup == null) continue;
             libBackup.check();

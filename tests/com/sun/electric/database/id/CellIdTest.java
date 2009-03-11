@@ -37,7 +37,7 @@ import org.junit.Test;
  * Unit tests of CellId
  */
 public class CellIdTest {
-    
+
     IdManager idManager;
     CellId cellId0;
     CellId cellId1;
@@ -47,7 +47,7 @@ public class CellIdTest {
     CellUsage u1_2;
     String nameA = "A";
     ExportId e1_A;
-    
+
     @Before public void setUp() throws Exception {
         idManager = new IdManager();
         LibId libId = idManager.newLibId("lib");
@@ -72,9 +72,9 @@ public class CellIdTest {
      */
     @Test public void testGetIdManager() {
         System.out.println("getIdManager");
-        
+
         CellId instance = cellId0;
-        
+
         IdManager expResult = idManager;
         IdManager result = instance.getIdManager();
         assertSame(expResult, result);
@@ -85,7 +85,7 @@ public class CellIdTest {
      */
     @Test public void testNumUsagesIn() {
         System.out.println("numUsagesIn");
-        
+
         int expResult = 2;
         int result = cellId0.numUsagesIn();
         assertEquals(expResult, result);
@@ -96,10 +96,10 @@ public class CellIdTest {
      */
     @Test public void testGetUsageIn() {
         System.out.println("getUsageIn");
-        
+
         int i = 0;
         CellId instance = cellId0;
-        
+
         CellUsage expResult = u0_2;
         CellUsage result = instance.getUsageIn(i);
         assertSame(expResult, result);
@@ -110,9 +110,9 @@ public class CellIdTest {
      */
     @Test public void testNumUsagesOf() {
         System.out.println("numUsagesOf");
-        
+
         CellId instance = cellId2;
-        
+
         int expResult = 2;
         int result = instance.numUsagesOf();
         assertEquals(expResult, result);
@@ -123,10 +123,10 @@ public class CellIdTest {
      */
     @Test public void testGetUsageOf() {
         System.out.println("getUsageOf");
-        
+
         int i = 1;
         CellId instance = cellId2;
-        
+
         CellUsage expResult = u1_2;
         CellUsage result = instance.getUsageOf(i);
         assertSame(expResult, result);
@@ -137,9 +137,9 @@ public class CellIdTest {
      */
     @Test public void testNumExportIds() {
         System.out.println("numExportIds");
-        
+
         CellId instance = cellId1;
-        
+
         int expResult = 1;
         int result = instance.numExportIds();
         assertEquals(expResult, result);
@@ -150,10 +150,10 @@ public class CellIdTest {
      */
     @Test public void testGetPortId() {
         System.out.println("getPortId");
-        
+
         int chronIndex = 0;
         CellId instance = cellId1;
-        
+
         ExportId expResult = e1_A;
         ExportId result = instance.getPortId(chronIndex);
         assertSame(expResult, result);
@@ -164,23 +164,23 @@ public class CellIdTest {
      */
     @Test public void testNewPortId() {
         System.out.println("newPortId");
-        
+
         String name = nameA;
         CellId instance = cellId1;
         assertEquals(1, instance.numExportIds());
-        
+
         ExportId expResult = e1_A;
         ExportId result = instance.newPortId(name);
         assertSame(expResult, result);
         assertEquals(1, instance.numExportIds());
-        
+
         String nameB = "B";
         ExportId idB = instance.newPortId(nameB);
         assertSame(instance, idB.parentId);
         assertEquals(1, idB.chronIndex);
         assertSame( nameB, idB.externalId );
         assertEquals(2, cellId1.numExportIds());
-        
+
         idManager.checkInvariants();
     }
 
@@ -189,7 +189,7 @@ public class CellIdTest {
      */
     @Test(expected = NullPointerException.class) public void testNewPortIdNull() {
         System.out.println("newPortId null");
-        
+
         cellId0.newPortId(null);
     }
 
@@ -198,33 +198,33 @@ public class CellIdTest {
      */
     @Test public void testRandomExportId() {
         System.out.println("randomExportId");
-        
+
         String suggestedId = "A";
         CellId instance = cellId1;
         assertEquals(1, instance.numExportIds());
-        
+
         ExportId result = instance.randomExportId(suggestedId);
         assertNotSame(e1_A, result );
         assertEquals(2, instance.numExportIds());
         assertSame(instance.getPortId(1), result);
         assertTrue(result.externalId.startsWith("A@"));
-        
+
         int numCopies = 100000;
         for (int i = 0; i < numCopies; i++)
             instance.randomExportId(suggestedId);
         assertEquals(numCopies + 2, instance.numExportIds() );
-        
+
         idManager.checkInvariants();
     }
-    
+
     /**
      * Test of newNodeId method, of class com.sun.electric.database.CellId.
      */
     @Test public void testNewNodeId() {
         System.out.println("newNodeId");
-        
+
         CellId instance = cellId2;
-        
+
         int expResult = 0;
         int result = instance.newNodeId();
         assertEquals(expResult, result);
@@ -235,9 +235,9 @@ public class CellIdTest {
      */
     @Test public void testNewArcId() {
         System.out.println("newArcId");
-        
+
         CellId instance = cellId1;
-        
+
         int expResult = 0;
         int result = instance.newArcId();
         assertEquals(expResult, result);
@@ -248,10 +248,10 @@ public class CellIdTest {
      */
     @Test public void testInDatabase() {
         System.out.println("inDatabase");
-        
-        EDatabase database = new EDatabase(idManager);
+
+        EDatabase database = new EDatabase(idManager.getInitialEnvironment());
         CellId instance = cellId0;
-        
+
         Cell expResult = null;
         Cell result = instance.inDatabase(database);
         assertEquals(expResult, result);
@@ -262,9 +262,9 @@ public class CellIdTest {
      */
     @Test public void testToString() {
         System.out.println("toString");
-        
+
         CellId instance = cellId0;
-        
+
         String expResult = "lib:cell0;1{sch}";
         String result = instance.toString();
         assertEquals(expResult, result);
@@ -275,9 +275,9 @@ public class CellIdTest {
      */
     @Test public void testCheck() {
         System.out.println("check");
-        
+
         CellId instance = cellId1;
-        
+
         instance.check();
     }
 }
