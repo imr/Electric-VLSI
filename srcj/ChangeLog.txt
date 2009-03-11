@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09f: ******************************
 
+BUG: (3/11/09, DN) MultiDRC crashes in regressions.
+FIX: Preallocate DRC rules before starting Tasks.
+
 IMP: (3/10/09, DN) Snapshot contains Project Settings and Technology State.
 
 ************************* Version 8.09e: ******************************

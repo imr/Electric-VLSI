@@ -60,6 +60,7 @@ public abstract class MTDRCTool extends MultiTaskJob<Layer, MTDRCTool.MTDRCResul
     public void prepareTasks()
     {
         Technology tech = topCell.getTechnology();
+	DRC.getRules(tech); // pre-allocate Rules to avoid concurrency failures in getDRCOverrides()
         cellLayersCon = new CellLayersContainer();
         CheckCellLayerEnumerator layerCellCheck = new CheckCellLayerEnumerator(cellLayersCon);
         HierarchyEnumerator.enumerateCell(topCell, VarContext.globalContext, layerCellCheck);
