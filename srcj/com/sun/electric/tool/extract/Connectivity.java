@@ -42,6 +42,7 @@ import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -644,8 +645,12 @@ public class Connectivity
 				}
 				Point2D instanceAnchor = new Point2D.Double(0, 0);
 				prevTrans.transform(ni.getAnchorCenter(), instanceAnchor);
+
+				String name = null;
+				Name nameKey = ni.getNameKey();
+				if (!nameKey.isTempname()) name = ni.getName();
 				NodeInst newNi = NodeInst.makeInstance(copyType, instanceAnchor, sX, sY,
-					newCell, ni.getOrient(), ni.getName(), ni.getTechSpecific());
+					newCell, ni.getOrient(), name, ni.getTechSpecific());
 				if (newNi == null)
 				{
 					addErrorLog(newCell, "Problem creating new instance of " + ni.getProto(), new EPoint(sX, sY));
