@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09f: ******************************
 
+IMP: (3/10/09, DN) Snapshot contains Project Settings and Technology State.
+
 ************************* Version 8.09e: ******************************
 
 IMP: (3/9/09, GVG) Enable/Disable of remove button in AddTech Preference
