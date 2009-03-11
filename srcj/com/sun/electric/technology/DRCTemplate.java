@@ -638,6 +638,8 @@ public class DRCTemplate implements Serializable
                     else
                         tmp = new DRCTemplate(ruleName, when, type, maxW.doubleValue(), minLen.doubleValue(), pair[0], pair[1], values, -1);
 
+                    // not sure why this was done
+                    /*
                     if (type == DRCTemplate.DRCRuleType.UCONSPA2D)
                     {
                         tmp.multiCuts = 1;
@@ -648,6 +650,7 @@ public class DRCTemplate implements Serializable
                         tmp1.ruleType = DRCTemplate.DRCRuleType.CONSPA;
                         drcRules.add(tmp2); // duplicate but with CONSPA
                     }
+                    */
                     
                     drcRules.add(tmp);
                 }
