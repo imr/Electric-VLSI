@@ -50,6 +50,7 @@ import java.util.*;
  */
 public class PolyBase implements Shape, PolyNodeMerge
 {
+	private static final boolean ALLOWTINYPOLYGONS = false;
 
 	/** the style (outline, text, lines, etc.) */			private Poly.Type style;
 	/** the points */										protected Point2D points[];
@@ -1862,7 +1863,7 @@ public class PolyBase implements Shape, PolyNodeMerge
                     else if (Job.getDebug() && t.poly.contains(pn.getPoints()[0]))
                     {
                         assert(false);
-                        System.out.println(" Bad happen");
+                        System.out.println("Bad happen");
                     }
                 }
                 sons.add(t);
@@ -1919,16 +1920,25 @@ public class PolyBase implements Shape, PolyNodeMerge
 			int type = pIt.currentSegment(coords);
 			if (type == PathIterator.SEG_CLOSE)
 			{
-				Point2D [] points = new Point2D[pointList.size()];
-                System.arraycopy(pointList.toArray(), 0, points, 0, pointList.size());
-//                int i = 0;
-//				for(Point2D p : pointList)
-//					points[i++] = p;
-				PolyBase poly = new PolyBase(points);
-				poly.setLayer(layer);
-				poly.setStyle(Poly.Type.FILLED);
-
-                list.add(poly);
+				// ignore zero-size polygons
+				boolean hasArea;
+				if (ALLOWTINYPOLYGONS) hasArea = true; else
+				{
+					hasArea = false;
+					for(int i=1; i<pointList.size(); i++)
+					{
+						if (pointList.get(i-1).distance(pointList.get(i)) > .00001) { hasArea = true;   break; }
+					}
+				}
+				if (hasArea)
+				{
+					Point2D [] points = new Point2D[pointList.size()];
+	                System.arraycopy(pointList.toArray(), 0, points, 0, pointList.size());
+					PolyBase poly = new PolyBase(points);
+					poly.setLayer(layer);
+					poly.setStyle(Poly.Type.FILLED);
+					list.add(poly);
+				}
 
 				pointList.clear();
 			} else if (type == PathIterator.SEG_MOVETO || type == PathIterator.SEG_LINETO)

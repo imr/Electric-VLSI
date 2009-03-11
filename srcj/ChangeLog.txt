@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09f: ******************************
 
+BUG: (3/11/09, SMR) Node extraction fails because of tiny polygons in
+     polygon merge system (Bug #2073).
+FIX: In PolyBase.getLoopsFromArea() ignore zero-size polygons.
+
 BUG: (3/11/09, DN) MultiDRC crashes in regressions (Bug #2057).
 FIX: Preallocate DRC rules before starting Tasks.
 
@@ -13,7 +17,7 @@ IMP: (3/10/09, DN) Snapshot contains Project Settings and Technology State.
 
 IMP: (3/9/09, GVG) Enable/Disable of remove button in AddTech Preference
 
-IMP: (2/5/09, SMR) Fixed command to list unused library files on disk (Bug #2038).
+IMP: (3/9/09, SMR) Fixed command to list unused library files on disk (Bug #2038).
 
 IMP/MAN: (3/9/09, SMR) Added CIF output scaling factor to project settings (Bug #2071).
 
