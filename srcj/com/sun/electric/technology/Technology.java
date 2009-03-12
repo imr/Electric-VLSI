@@ -59,7 +59,6 @@ import com.sun.electric.technology.technologies.EFIDO;
 import com.sun.electric.technology.technologies.GEM;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
-import com.sun.electric.tool.Job;
 import com.sun.electric.tool.ToolSettings;
 import com.sun.electric.tool.erc.ERC;
 import com.sun.electric.tool.user.User;
@@ -1552,7 +1551,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	 * Technology matches.
 	 */
     public static Technology findTechnology(TechId techId) {
-        return Job.threadTechPool().getTech(techId);
+        return Environment.getThreadTechPool().getTech(techId);
     }
 
 	/**
@@ -1561,7 +1560,7 @@ public class Technology implements Comparable<Technology>, Serializable
 	 */
 	public static Iterator<Technology> getTechnologies()
 	{
-		return Job.threadTechPool().values().iterator();
+		return Environment.getThreadTechPool().values().iterator();
 	}
 
 	/**

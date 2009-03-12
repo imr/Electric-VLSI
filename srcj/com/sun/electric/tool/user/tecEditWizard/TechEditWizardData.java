@@ -150,33 +150,35 @@ public class TechEditWizardData
     private static class PaletteGroup
     {
         String name;
-        List<Object> arcs;
-        List<Object> pins;
-        List<Object> elements; // contact or transistor
+        List<Xml.ArcProto> arcs;
+        List<Xml.PrimitiveNode> pins;
+        List<Xml.PrimitiveNode> elements; // contact or transistor
 
-        void addArc(Object arc)
+        void addArc(Xml.ArcProto arc)
         {
             if (arcs == null)
             {
-                arcs = new ArrayList<Object>();
+                arcs = new ArrayList<Xml.ArcProto>();
             }
             arcs.add(arc);
         }
-        void addPin(Object pin)
+        void addPin(Xml.PrimitiveNodeGroup pin)
         {
             if (pins == null)
             {
-                pins = new ArrayList<Object>();
+                pins = new ArrayList<Xml.PrimitiveNode>();
             }
-            pins.add(pin);
+            assert pin.isSingleton;
+            pins.add(pin.nodes.get(0));
         }
-        void addElement(Object element)
+        void addElement(Xml.PrimitiveNodeGroup element)
         {
             if (elements == null)
             {
-                elements = new ArrayList<Object>();
+                elements = new ArrayList<Xml.PrimitiveNode>();
             }
-            elements.add(element);
+            assert element.isSingleton;
+            elements.add(element.nodes.get(0));
         }
     }
 

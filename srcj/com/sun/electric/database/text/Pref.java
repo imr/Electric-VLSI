@@ -334,8 +334,8 @@ public class Pref
                     for (Group group: tech.getTechnologyAllPreferences())
                         group.setCachedObjsFromPreferences();
                 }
-                saveAllSettingsToPreferences(database);
-           }
+                database.getEnvironment().saveToPreferences();
+            }
 			resumePrefFlushing();
 
 			// recache technology color information
@@ -369,11 +369,7 @@ public class Pref
     }
 
     private static void saveAllSettingsToPreferences(EDatabase database) {
-        for (Map.Entry<Setting,Object> e: database.getSettings().entrySet()) {
-            Setting setting = e.getKey();
-            Object value = e.getValue();
-            setting.saveToPreferences(value);
-        }
+        database.getEnvironment().saveToPreferences();
     }
 
 	/**
@@ -761,6 +757,14 @@ public class Pref
 		doFlushing = true;
 		for(Preferences p : queueForFlushing)
 			flushOptions(p);
+	}
+
+	/**
+	 * Method to immediately flush all Electric preferences to disk.
+	 */
+	public static void flushAll()
+	{
+        flushOptions(Preferences.userNodeForPackage(Main.class));
 	}
 
 	/**

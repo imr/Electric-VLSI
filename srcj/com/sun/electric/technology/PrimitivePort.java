@@ -25,6 +25,7 @@ package com.sun.electric.technology;
 
 import com.sun.electric.database.EObjectInputStream;
 import com.sun.electric.database.EObjectOutputStream;
+import com.sun.electric.database.Environment;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
@@ -35,8 +36,6 @@ import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.technologies.Generic;
 
-import com.sun.electric.technology.xml.XmlParam;
-import com.sun.electric.tool.Job;
 import java.awt.Color;
 import java.io.IOException;
 import java.io.InvalidObjectException;
@@ -237,7 +236,7 @@ public class PrimitivePort implements PortProto, Comparable<PrimitivePort>, Seri
 	 */
 	public ArcProto [] getConnections() {
         if (parent.getTechnology().isUniversalConnectivityPort(this))
-            return Job.threadTechPool().getUnivList();
+            return Environment.getThreadTechPool().getUnivList();
         return portArcs;
     }
 
@@ -512,30 +511,6 @@ public class PrimitivePort implements PortProto, Comparable<PrimitivePort>, Seri
 
     Xml.PrimitivePort makeXml(EPoint minFullSize) {
         Xml.PrimitivePort ppd = new Xml.PrimitivePort();
-        ppd.name = getName();
-        ppd.portAngle = getAngle();
-        ppd.portRange = getAngleRange();
-        ppd.portTopology = getTopology();
-
-        ppd.lx.k = getLeft().getMultiplier()*2;
-        ppd.lx.addLambda(DBMath.round(getLeft().getAdder() + minFullSize.getLambdaX()*getLeft().getMultiplier()*2));
-        ppd.hx.k = getRight().getMultiplier()*2;
-        ppd.hx.addLambda(DBMath.round(getRight().getAdder() + minFullSize.getLambdaX()*getRight().getMultiplier()*2));
-        ppd.ly.k = getBottom().getMultiplier()*2;
-        ppd.ly.addLambda(DBMath.round(getBottom().getAdder() + minFullSize.getLambdaY()*getBottom().getMultiplier()*2));
-        ppd.hy.k = getTop().getMultiplier()*2;
-        ppd.hy.addLambda(DBMath.round(getTop().getAdder() + minFullSize.getLambdaY()*getTop().getMultiplier()*2));
-
-        Technology tech = parent.getTechnology();
-        for (ArcProto ap: getConnections()) {
-            if (ap.getTechnology() != tech) continue;
-            ppd.portArcs.add(ap.getName());
-        }
-        return ppd;
-    }
-
-    XmlParam.PrimitivePort makeXmlParam(EPoint minFullSize) {
-        XmlParam.PrimitivePort ppd = new XmlParam.PrimitivePort();
         ppd.name = getName();
         ppd.portAngle = getAngle();
         ppd.portRange = getAngleRange();

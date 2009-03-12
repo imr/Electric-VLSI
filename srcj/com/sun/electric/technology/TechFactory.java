@@ -24,9 +24,9 @@
 package com.sun.electric.technology;
 
 import com.sun.electric.Main;
+import com.sun.electric.database.Environment;
 import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.text.Pref;
-import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
@@ -89,7 +89,7 @@ public abstract class TechFactory {
 
     public Technology newInstance(Generic generic, Map<Param,Object> paramValues) {
         Pref.delayPrefFlushing();
-        Setting.Context oldSettingState = Setting.setSettingContextOfCurrentThread(null);
+        Environment oldEnvironment = Environment.setThreadEnvironment(null);
         try {
             Map<Param,Object> fixedParamValues = new HashMap<Param,Object>();
             for (Param param: techParams) {
@@ -108,7 +108,7 @@ public abstract class TechFactory {
             System.out.println("Exceptions while importing extra technologies");
             ActivityLogger.logException(e);
         } finally {
-            Setting.setSettingContextOfCurrentThread(oldSettingState);
+            Environment.setThreadEnvironment(oldEnvironment);
             Pref.resumePrefFlushing();
         }
         return null;

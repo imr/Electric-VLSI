@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool;
 
+import com.sun.electric.database.Environment;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.constraint.Constraints;
@@ -30,9 +31,9 @@ import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.User;
+
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-
 import java.util.logging.Level;
 
 /**
@@ -71,6 +72,7 @@ class EThread extends Thread {
             database = isServerThread ? EDatabase.serverDatabase() : EDatabase.clientDatabase();
             ejob.changedFields = new ArrayList<Field>();
 //            Throwable jobException = null;
+            Environment.setThreadEnvironment(database.getEnvironment());
             database.lock(!ejob.isExamine());
             ejob.oldSnapshot = database.backup();
             try {
@@ -132,6 +134,7 @@ class EThread extends Thread {
 //                ejob.state = EJob.State.SERVER_FAIL;
             } finally {
                 database.unlock();
+                Environment.setThreadEnvironment(null);
             }
             putInCache(ejob.oldSnapshot, ejob.newSnapshot);
 

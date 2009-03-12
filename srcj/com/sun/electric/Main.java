@@ -23,6 +23,7 @@
  */
 package com.sun.electric;
 
+import com.sun.electric.database.Environment;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
@@ -431,6 +432,7 @@ public final class Main
 
         @Override
         public void terminateOK() {
+            Environment.setThreadEnvironment(EDatabase.clientDatabase().getEnvironment());
             Job.getExtendedUserInterface().finishInitialization();
 			openCommandLineLibs(argsList);
             if (beanShellScript != null)

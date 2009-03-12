@@ -23,6 +23,7 @@
  */
 package com.sun.electric.database.text;
 
+import com.sun.electric.database.Environment;
 import com.sun.electric.database.id.IdReader;
 import com.sun.electric.database.id.IdWriter;
 import com.sun.electric.database.variable.Variable;
@@ -48,6 +49,8 @@ import java.util.prefs.Preferences;
  * Settings are grouped in a Setting Trees. Each Tree consists of a RootGroup and lower Groups.
  */
 public class Setting {
+    public final static boolean FROM_THREAD_ENVIRONMENT = false;
+
     /**
      * This class manages a group of Settings.
      */
@@ -261,6 +264,16 @@ public class Setting {
         public RootGroup() {}
 
         /**
+         * Returns empty locked RootGroup
+         * @return empty locked RootGroup
+         */
+        public static RootGroup newEmptyGroup() {
+            RootGroup rootGroup = new RootGroup();
+            rootGroup.lock();
+            return rootGroup;
+        }
+
+        /**
          * Returns true if tree can't be modified anymore
          * @return true if tree is locked
          */
@@ -298,43 +311,6 @@ public class Setting {
         return root;
     }
 
-    /**
-     * Abstract class which keeps values of Setting.
-     * Each thread may have its own Setting.Context
-     */
-    public static abstract class Context {
-        /**
-         * Return value of Setting in this Context
-         * @param setting Setting to examin
-         * @return value of the Setting
-         * @throws InvalidStateException if Setting can't be accessed in this Context
-         */
-        public abstract Object getValue(Setting setting);
-    }
-
-    /**
-     * Sets SettingContext of current Thread
-     * @param context new Setting context
-     * @return old Setting context
-     */
-    public static Context setSettingContextOfCurrentThread(Setting.Context context) {
-        return null;
-    }
-
-    /**
-     * Returns SettingContext which returns factory value of Setting
-     * obtained from Java preferences
-     * @return SettingContext
-     */
-    public static Context getFactorySettingContext() {
-        return new Context() {
-            @Override
-            public Object getValue(Setting setting) {
-                return setting.getFactoryValue();
-            }
-        };
-    }
-
     private final Group xmlGroup;
     private final String xmlPath;
 	private final Object factoryObj;
@@ -361,7 +337,7 @@ public class Setting {
 
         this.xmlGroup = xmlGroup;
         this.factoryObj = factoryObj;
-        currentObj = factoryObj;
+        currentObj = FROM_THREAD_ENVIRONMENT ? null : factoryObj;
         this.prefName = prefName;
         prefs = Preferences.userRoot().node(prefGroup);
 
@@ -420,69 +396,15 @@ public class Setting {
 	 * @return the Object value of this Setting object.
 	 */
 	public Object getValue() {
-        return currentObj;
-    }
-
-     /**
-     * Method to get the boolean value on this Setting object in specified Setting State.
-     * The object must have been created as "boolean".
-     * @param state Setting State
-     * @return the boolean value on this TechSetting object.
-     */
-    public boolean getBoolean(Context state) { return ((Boolean)state.getValue(this)).booleanValue(); }
-
-    /**
-     * Method to get the integer value on this Setting object in specified Setting State.
-     * The object must have been created as "integer".
-     * @param state Setting State
-     * @return the integer value on this TechSetting object.
-     */
-    public int getInt(Context state) { return ((Integer)state.getValue(this)).intValue(); }
-
-    /**
-     * Method to get the long value on this Setting object in specified Setting State.
-     * The object must have been created as "long".
-     * @param state Setting State
-     * @return the long value on this TechSetting object.
-     */
-    public long getLong(Context state) { return ((Long)state.getValue(this)).longValue(); }
-
-    /**
-     * Method to get the double value on this Setting object in specified Setting State.
-     * The object must have been created as "double".
-     * @param state Setting State
-     * @return the double value on this TechSetting object.
-     */
-    public double getDouble(Context state) { return ((Double)state.getValue(this)).doubleValue(); }
-
-    /**
-     * Method to get the string value on this Setting object in specified Setting State.
-     * The object must have been created as "string".
-     * @param state Setting State
-     * @return the string value on this TechSetting object.
-     */
-    public String getString(Context state) {
-        String s = (String)state.getValue(this);
-        if (s == null)
-            throw new NullPointerException();
-        return s;
+        return FROM_THREAD_ENVIRONMENT ? Environment.getThreadEnvironment().getValue(this) : currentObj;
     }
 
     public void set(Object v) {
-//        if (changeBatch != null) {
-//            if (SwingUtilities.isEventDispatchThread()) {
-//                if (!v.equals(getValue()))
-//                    changeBatch.add(this, v);
-//                return;
-//            }
-//            changeBatch = null;
-//        }
-//        EDatabase.serverDatabase().checkChanging();
-        if (getValue().equals(v)) return;
-        if (v.getClass() != factoryObj.getClass())
-            throw new ClassCastException();
-        currentObj = factoryObj.equals(v) ? factoryObj : v;
-        saveToPreferences(v);
+        if (FROM_THREAD_ENVIRONMENT) return;
+        assert v.getClass() == factoryObj.getClass();
+        if (v.equals(factoryObj))
+            assert v == factoryObj;
+        currentObj = v;
     }
 
     @Override
@@ -507,19 +429,6 @@ public class Setting {
      * @return the name of this Setting object.
      */
     public String getPrefPath() { return prefs.absolutePath() + "/" + prefName; }
-
- 	/**
-	 * Method to get the value of this Setting object in specified Setting State
-     * as an Object.
- 	 * The proper way to get the current value is to use one of the type-specific
- 	 * methods such as getInt(), getBoolean(), etc.
-     * @param state Setting State
- 	 * @return the Object value of this Setting object.
- 	 */
-    public Object getValue(Context state) {
-        return getValue();
-//        return state.getValue(this);
-    }
 
     /**
      * Method to return the user-command that can affect this Meaning option.
@@ -583,7 +492,7 @@ public class Setting {
         }
     };
 
-    void saveToPreferences(Object v) {
+    public void saveToPreferences(Object v) {
         assert v.getClass() == factoryObj.getClass();
         if (v.equals(factoryObj)) {
              prefs.remove(prefName);

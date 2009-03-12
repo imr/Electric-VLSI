@@ -27,6 +27,7 @@ package com.sun.electric.database;
 import com.sun.electric.database.id.IdManager;
 import com.sun.electric.database.id.IdReader;
 import com.sun.electric.database.id.IdWriter;
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.TechFactory;
@@ -42,28 +43,46 @@ import java.util.Map;
  * Immutable class to represent Database environment
  */
 public class Environment {
+    private static final ThreadLocal<Environment> threadEnvironment = new ThreadLocal<Environment>();
+
     public final Setting.RootGroup toolSettings;
     public final TechPool techPool;
+    private final HashMap<Setting,Object> rawSettingValues;
     public final Map<Setting,Object> settingValues;
 
     public Environment(IdManager idManager) {
-        toolSettings = new Setting.RootGroup();
-        toolSettings.lock();
-        techPool = idManager.getInitialTechPool();
-        settingValues = Collections.emptyMap();
+        this(Setting.RootGroup.newEmptyGroup(), idManager.getInitialTechPool(), new HashMap<Setting,Object>());
+    }
+
+    private Environment(Setting.RootGroup toolSettings, TechPool techPool, HashMap<Setting,Object> rawSettingValues) {
+        this.toolSettings = toolSettings;
+        this.techPool = techPool;
+        this.rawSettingValues = rawSettingValues;
+        settingValues = Collections.unmodifiableMap(rawSettingValues);
         check();
     }
 
-    private Environment(Setting.RootGroup toolSettings, TechPool techPool, Map<Setting,Object> settingValues) {
-        this.toolSettings = toolSettings;
-        this.techPool = techPool;
-        this.settingValues = settingValues;
-        check();
+    public static Environment getThreadEnvironment() {
+        return threadEnvironment.get();
+    }
+
+    public static TechPool getThreadTechPool() {
+        return getThreadEnvironment().techPool;
+    }
+
+    public static Environment setThreadEnvironment(Environment environment) {
+        Environment oldEnvironment = threadEnvironment.get();
+        threadEnvironment.set(environment);
+        return oldEnvironment;
     }
 
     /** Returns map from Setting to its value in this Snapshot */
     public Map<Setting,Object> getSettings() {
         return settingValues;
+    }
+
+    public Object getValue(Setting setting) {
+        return rawSettingValues.get(setting);
     }
 
     public void activate() {
@@ -74,6 +93,8 @@ public class Environment {
             Object value = e.getValue();
             setting.set(value);
         }
+        setThreadEnvironment(this);
+        saveToPreferences();
     }
 
     public boolean isActive() {
@@ -91,8 +112,8 @@ public class Environment {
     private Environment with(Setting.RootGroup toolSettings, TechPool techPool, Map<Setting,Object> settingValues) {
         if (this.techPool == techPool && this.toolSettings == toolSettings && this.settingValues.equals(settingValues))
             return this;
-        Map<Setting,Object> newSettingValues = Collections.unmodifiableMap(new HashMap<Setting,Object>(settingValues));
-        return new Environment(toolSettings, techPool, newSettingValues);
+        HashMap<Setting,Object> rawSettingValues = new HashMap<Setting,Object>(settingValues);
+        return new Environment(toolSettings, techPool, rawSettingValues);
     }
 
     public Environment withToolSettings(Setting.RootGroup toolSettings) {
@@ -196,7 +217,15 @@ public class Environment {
                 newSettingValues.put(setting, value);
             }
         }
-        return new Environment(toolSettings, newTechPool, Collections.unmodifiableMap(newSettingValues));
+        return new Environment(toolSettings, newTechPool, newSettingValues);
+    }
+
+    public void saveToPreferences() {
+        for (Map.Entry<Setting,Object> e: getSettings().entrySet()) {
+            Setting setting = e.getKey();
+            setting.saveToPreferences(e.getValue());
+        }
+        Pref.flushAll();
     }
 
     /**
@@ -263,7 +292,7 @@ public class Environment {
             Setting setting = settingsByXmlPath.get(xmlPath);
             settingValues.put(setting, value);
         }
-        return new Environment(toolSettings, techPool, Collections.unmodifiableMap(settingValues));
+        return new Environment(toolSettings, techPool, settingValues);
     }
 
     public void check() {

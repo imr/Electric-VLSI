@@ -23,6 +23,7 @@
  */
 package com.sun.electric.technology.technologies;
 
+import com.sun.electric.database.Environment;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.ERectangle;
@@ -53,7 +54,6 @@ import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.TechFactory;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.TransistorSize;
-import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 
 import java.awt.geom.Point2D;
@@ -80,7 +80,7 @@ public class Schematics extends Technology
 	/** key of Variable holding transistor length. */		public static final Variable.Key ATTR_LENGTH = Variable.newKey("ATTR_length");
 	/** key of Variable holding transistor area. */			public static final Variable.Key ATTR_AREA = Variable.newKey("ATTR_area");
 
-	/** the Schematics Technology object. */				public static Schematics tech() { return Job.threadTechPool().getSchematics(); }
+	/** the Schematics Technology object. */				public static Schematics tech() { return Environment.getThreadTechPool().getSchematics(); }
 
 //	/** Defines the Flip-flop type. */						private static final int FFTYPE =    07;
 	/** Defines an RS Flip-flop. */							private static final int FFTYPERS =   0;

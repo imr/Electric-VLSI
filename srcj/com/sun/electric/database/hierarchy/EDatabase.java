@@ -127,6 +127,9 @@ public class EDatabase {
     }
 
     /** Returns TechPool of this database */
+    public Environment getEnvironment() { return environment; }
+
+    /** Returns TechPool of this database */
     public TechPool getTechPool() { return techPool; }
 
     public Collection<Technology> getTechnologies() {

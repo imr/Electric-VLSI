@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user;
 
+import com.sun.electric.database.Environment;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
@@ -694,10 +695,13 @@ public class UserInterfaceMain extends AbstractUserInterface
         }
         public void run() {
             DatabaseChangeEvent event = new DatabaseChangeEvent(currentSnapshot, newSnapshot);
-            if (newSnapshot.techPool != currentSnapshot.techPool) {
-                User.technologyChanged();
-                WindowFrame.updateTechnologyLists();
-                WindowFrame.repaintAllWindows();
+            if (newSnapshot.environment != currentSnapshot.environment) {
+                Environment.setThreadEnvironment(newSnapshot.environment);
+                if (newSnapshot.techPool != currentSnapshot.techPool) {
+                    User.technologyChanged();
+                    WindowFrame.updateTechnologyLists();
+                    WindowFrame.repaintAllWindows();
+                }
             }
             for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); ) {
                 Listener listener = it.next();
