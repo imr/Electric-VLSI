@@ -1534,7 +1534,7 @@ public class TechEditWizardData
         l.height3D = 1;
         l.mode3D = "NONE";
         l.factor3D = 1;
-//        l.cif = "C" + cifLetter + cifLetter;
+        l.cif = "Not set"; //"C" + cifLetter + cifLetter;
         l.skill = name;
         l.resistance = 1;
         l.capacitance = 0;
