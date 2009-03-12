@@ -87,15 +87,13 @@ public class ComponentMenu extends EDialog
 	 * Called only from the technology editor.
 	 */
 	public static void showComponentMenuDialog(String techName, Xml.MenuPalette xmp,
-		List<Xml.PrimitiveNode> nodes, List<Xml.ArcProto> arcs)
+		List<Xml.PrimitiveNodeGroup> nodeGroups, List<Xml.ArcProto> arcs)
 	{
 		ComponentMenu dialog = new ComponentMenu(TopLevel.getCurrentJFrame(), true);
 		dialog.setTitle("Technology Edit: Component Menu Layout");
 		Xml.Technology xTech = new Xml.Technology();
-		for(Xml.PrimitiveNode xnp : nodes)
-			xTech.nodes.add(xnp);
-		for(Xml.ArcProto xap : arcs)
-			xTech.arcs.add(xap);
+        xTech.nodeGroups.addAll(nodeGroups);
+        xTech.arcs.addAll(arcs);
 		xTech.menuPalette = xmp;
 		int menuWid = xmp.numColumns;
 		int menuHei = xmp.menuBoxes.size() / menuWid;
@@ -239,9 +237,10 @@ public class ComponentMenu extends EDialog
 		menuWid = menuArray[0].length;
 
 		modelNodes.clear();
-		for(Xml.PrimitiveNode pnp : xTech.nodes)
+		for(Xml.PrimitiveNodeGroup ng : xTech.nodeGroups)
 		{
-			modelNodes.addElement(pnp.name);
+            for (Xml.PrimitiveNode n: ng.nodes)
+                modelNodes.addElement(n.name);
 		}
 
 		modelArcs.clear();

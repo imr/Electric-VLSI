@@ -27,20 +27,6 @@
 
     <xsd:group name="PrimitiveNodeImpl">
         <xsd:sequence>
-            <xsd:element name="shrinkArcs" minOccurs="0"/>
-            <xsd:element name="square" minOccurs="0"/>
-            <xsd:element name="canBeZeroSize" minOccurs="0"/>
-            <xsd:element name="wipes" minOccurs="0"/>
-            <xsd:element name="lockable" minOccurs="0"/>
-            <xsd:element name="edgeSelect" minOccurs="0"/>
-            <xsd:element name="skipSizeInPalette" minOccurs="0"/>
-            <xsd:element name="notUsed" minOccurs="0"/>
-            <xsd:element name="lowVt" minOccurs="0"/>
-            <xsd:element name="highVt" minOccurs="0"/>
-            <xsd:element name="nativeBit" minOccurs="0"/>
-            <xsd:element name="od18" minOccurs="0"/>
-            <xsd:element name="od25" minOccurs="0"/>
-            <xsd:element name="od33" minOccurs="0"/>
             <xsd:element name="diskOffset" minOccurs="0" maxOccurs="unbounded">
                 <xsd:complexType>
                     <xsd:attribute name="untilVersion" type="tns:TechVersion" use="required"/>
@@ -886,6 +872,7 @@
                                 <xsd:element name="primitiveNode" maxOccurs="unbounded">
                                     <xsd:complexType>
                                         <xsd:sequence>
+                                            <xsd:element name="oldName" type="xsd:string" minOccurs="0"/>
                                             <xsd:element name="lowVt" minOccurs="0"/>
                                             <xsd:element name="highVt" minOccurs="0"/>
                                             <xsd:element name="nativeBit" minOccurs="0"/>
@@ -894,19 +881,34 @@
                                             <xsd:element name="od33" minOccurs="0"/>
                                         </xsd:sequence>
                                         <xsd:attribute name="name" type="tns:PrimitiveNodeName" use="required"/>
-                                        <xsd:attribute name="fun" type="tns:PrimitiveNodeFun"/>
+                                        <xsd:attribute name="fun" type="tns:PrimitiveNodeFun" use="required"/>
                                     </xsd:complexType>
                                 </xsd:element>
                                 <xsd:group ref="tns:PrimitiveNodeImpl"/>
                             </xsd:sequence>
-                            <xsd:attribute name="name" type="tns:PrimitiveNodeName" use="required"/>
-                            <xsd:attribute name="fun" type="tns:PrimitiveNodeFun" use="required"/>
+                            <!-- Deprecated attributes -->
+                            <xsd:attribute name="name" type="tns:PrimitiveNodeName"/>
+                            <xsd:attribute name="fun" type="tns:PrimitiveNodeFun"/>
                         </xsd:complexType>
                     </xsd:element>
                     <xsd:element name="primitiveNode">
                         <xsd:complexType>
                             <xsd:sequence>
-                                <xsd:element name="oldName" type="xsd:string" minOccurs="0"></xsd:element>
+                                <xsd:element name="oldName" type="xsd:string" minOccurs="0"/>
+                                <xsd:element name="shrinkArcs" minOccurs="0"/>
+                                <xsd:element name="square" minOccurs="0"/>
+                                <xsd:element name="canBeZeroSize" minOccurs="0"/>
+                                <xsd:element name="wipes" minOccurs="0"/>
+                                <xsd:element name="lockable" minOccurs="0"/>
+                                <xsd:element name="edgeSelect" minOccurs="0"/>
+                                <xsd:element name="skipSizeInPalette" minOccurs="0"/>
+                                <xsd:element name="notUsed" minOccurs="0"/>
+                                <xsd:element name="lowVt" minOccurs="0"/>
+                                <xsd:element name="highVt" minOccurs="0"/>
+                                <xsd:element name="nativeBit" minOccurs="0"/>
+                                <xsd:element name="od18" minOccurs="0"/>
+                                <xsd:element name="od25" minOccurs="0"/>
+                                <xsd:element name="od33" minOccurs="0"/>
                                 <xsd:group ref="tns:PrimitiveNodeImpl"/>
                             </xsd:sequence>
                             <xsd:attribute name="name" type="tns:PrimitiveNodeName" use="required"/>

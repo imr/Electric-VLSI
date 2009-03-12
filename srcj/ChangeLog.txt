@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09f: ******************************
 
+IMP: (3/12/09, DN) In tech Xml <primitiveNodeGroup> element doesn't require name.
+
 IMP/MAN: (3/11/09, SMR) When moving objects that have nonmanhattan wires on
      them, the Control key grids to the appropriate angle (Bug #2072).
 
@@ -38,7 +40,7 @@ FIX: Remember just this option, but don't remember other spacing metrics
 BUG: (3/9/09, SMR) Array command makes two or 3 copies of each node (Bug #2067).
 FIX: Use a Set instead of a List so that nodes are scheduled for copying only once.
 
-IMP: (3/6/09, GVG) Changes for "default artwork color broken again (Bug #2069)". 
+IMP: (3/6/09, GVG) Changes for "default artwork color broken again (Bug #2069)".
 It is not fixed yet.
 
 IMP: (3/5/09, DN) Enhance Xml element <primitiveNodeGroup> to define transisistor groups.
@@ -65,7 +67,7 @@ FIX: Scan all exports to ensure conflict resolution doesn't cause confusion.
 BUG: (3/3/09, SMR) Node extraction fails when two multicut contacts are close (Bug #2053).
 FIX: Ensure there is metal covering all of the cuts before considering them.
 
-IMP: (3/1/09, DN) mocmos and tsmc180 technologies are defined by patched Xml files. 
+IMP: (3/1/09, DN) mocmos and tsmc180 technologies are defined by patched Xml files.
 
 IMP: (3/1/09, DN) Define pureLayerNodes in CMOS90 in the same order as Layers.
 

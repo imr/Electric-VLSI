@@ -45,8 +45,6 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Xml;
-import com.sun.electric.technology.Technology.NodeLayer;
-import com.sun.electric.technology.Xml.MenuNodeInst;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
@@ -554,7 +552,7 @@ public class Manipulate
 //            			xni.fontSize = 5;
 //            			tmp.add(xni);
 //            		}
-//    				things.add(tmp);					
+//    				things.add(tmp);
 //				} else
             	{
     				Xml.PrimitiveNode curNode = new Xml.PrimitiveNode();
@@ -589,14 +587,16 @@ public class Manipulate
 		{
 			compMenuXML = (String)var.getObject();
 		}
-	    List<Xml.PrimitiveNode> nodes = new ArrayList<Xml.PrimitiveNode>();
+	    List<Xml.PrimitiveNodeGroup> nodeGroups = new ArrayList<Xml.PrimitiveNodeGroup>();
 		for(int i=0; i<nodeCells.length; i++)
 		{
-			Xml.PrimitiveNode xnp = new Xml.PrimitiveNode();
-			xnp.name = nodeCells[i].getName().substring(5);
+			Xml.PrimitiveNodeGroup ng = new Xml.PrimitiveNodeGroup();
+            Xml.PrimitiveNode n = new Xml.PrimitiveNode();
+            ng.nodes.add(n);
+			n.name = nodeCells[i].getName().substring(5);
 			NodeInfo nIn = NodeInfo.parseCell(nodeCells[i]);
-			xnp.function = nIn.func;
-			nodes.add(xnp);
+			n.function = nIn.func;
+			nodeGroups.add(ng);
 		}
 	    List<Xml.ArcProto> arcs = new ArrayList<Xml.ArcProto>();
 		for(int i=0; i<arcCells.length; i++)
@@ -605,8 +605,8 @@ public class Manipulate
 			xap.name = arcCells[i].getName().substring(4);
 			arcs.add(xap);
 		}
-	    Xml.MenuPalette xmp = Xml.parseComponentMenuXMLTechEdit(compMenuXML, nodes, arcs);
-	    ComponentMenu.showComponentMenuDialog(Library.getCurrent().getName(), xmp, nodes, arcs);
+	    Xml.MenuPalette xmp = Xml.parseComponentMenuXMLTechEdit(compMenuXML, nodeGroups, arcs);
+	    ComponentMenu.showComponentMenuDialog(Library.getCurrent().getName(), xmp, nodeGroups, arcs);
 	}
 
 	/**

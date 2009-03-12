@@ -2234,28 +2234,26 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
             nl.dump(out, isSerp);
     }
 
-    Xml.PrimitiveNode makeXml() {
+    Xml.PrimitiveNodeGroup makeXml() {
+        Xml.PrimitiveNodeGroup ng = new Xml.PrimitiveNodeGroup();
+        ng.isSingleton = true;
         Xml.PrimitiveNode n = new Xml.PrimitiveNode();
+        ng.nodes.add(n);
         n.name = getName();
         for (Map.Entry<String,PrimitiveNode> e: tech.getOldNodeNames().entrySet()) {
             if (e.getValue() != this) continue;
             assert n.oldName == null;
             n.oldName = e.getKey();
         }
-        fillXml(n);
-        return n;
-    }
-
-    void fillXml(Xml.PrimitiveNode n) {
         n.function = getFunction();
-        n.shrinkArcs = isArcsShrink();
-        n.square = isSquare();
-        n.canBeZeroSize = isCanBeZeroSize();
-        n.wipes = isWipeOn1or2();
-        n.lockable = isLockedPrim();
-        n.edgeSelect = isEdgeSelect();
-        n.skipSizeInPalette = isSkipSizeInPalette();
-        n.notUsed = isNotUsed();
+        ng.shrinkArcs = isArcsShrink();
+        ng.square = isSquare();
+        ng.canBeZeroSize = isCanBeZeroSize();
+        ng.wipes = isWipeOn1or2();
+        ng.lockable = isLockedPrim();
+        ng.edgeSelect = isEdgeSelect();
+        ng.skipSizeInPalette = isSkipSizeInPalette();
+        ng.notUsed = isNotUsed();
         n.lowVt = isNodeBitOn(PrimitiveNode.LOWVTBIT);
         n.highVt = isNodeBitOn(PrimitiveNode.HIGHVTBIT);
         n.nativeBit  = isNodeBitOn(PrimitiveNode.NATIVEBIT);
@@ -2275,19 +2273,19 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
 //            minFullSize = EPoint.fromLambda(pp.getLeft().getAdder(), pp.getBottom().getAdder());
 //        }
 //            DRCTemplate nodeSize = xmlRules.getRule(pnp.getPrimNodeIndexInTech(), DRCTemplate.DRCRuleType.NODSIZ);
-        n.baseLX.value = baseRectangle.getLambdaMinX();
-        n.baseHX.value = baseRectangle.getLambdaMaxX();
-        n.baseLY.value = baseRectangle.getLambdaMinY();
-        n.baseHY.value = baseRectangle.getLambdaMaxY();
+        ng.baseLX.value = baseRectangle.getLambdaMinX();
+        ng.baseHX.value = baseRectangle.getLambdaMaxX();
+        ng.baseLY.value = baseRectangle.getLambdaMinY();
+        ng.baseHY.value = baseRectangle.getLambdaMaxY();
 //            EPoint minFullSize = EPoint.fromLambda(0.5*pnp.getDefWidth(), 0.5*pnp.getDefHeight());
         EPoint p1 = getSizeCorrector(0);
         EPoint p2 = getSizeCorrector(1);
         if (!p1.equals(p2))
-            n.diskOffset.put(Integer.valueOf(1), p1);
+            ng.diskOffset.put(Integer.valueOf(1), p1);
         if (!p2.equals(EPoint.ORIGIN))
-            n.diskOffset.put(Integer.valueOf(2), p2);
-        n.defaultWidth.addLambda(DBMath.round(getDefWidth() - 2*minFullSize.getLambdaX()));
-        n.defaultHeight.addLambda(DBMath.round(getDefHeight() - 2*minFullSize.getLambdaY()));
+            ng.diskOffset.put(Integer.valueOf(2), p2);
+        ng.defaultWidth.addLambda(DBMath.round(getDefWidth() - 2*minFullSize.getLambdaX()));
+        ng.defaultHeight.addLambda(DBMath.round(getDefHeight() - 2*minFullSize.getLambdaY()));
 
         List<Technology.NodeLayer> nodeLayers = Arrays.asList(getLayers());
         List<Technology.NodeLayer> electricalNodeLayers = nodeLayers;
@@ -2298,30 +2296,31 @@ public class PrimitiveNode implements NodeProto, Comparable<PrimitiveNode>, Seri
         for (Technology.NodeLayer nld: electricalNodeLayers) {
             int j = nodeLayers.indexOf(nld);
             if (j < 0) {
-                n.nodeLayers.add(nld.makeXml(isSerp, minFullSize, false, true));
+                ng.nodeLayers.add(nld.makeXml(isSerp, minFullSize, false, true));
                 continue;
             }
             while (m < j)
-                n.nodeLayers.add(nodeLayers.get(m++).makeXml(isSerp, minFullSize, true, false));
-            n.nodeLayers.add(nodeLayers.get(m++).makeXml(isSerp, minFullSize, true, true));
+                ng.nodeLayers.add(nodeLayers.get(m++).makeXml(isSerp, minFullSize, true, false));
+            ng.nodeLayers.add(nodeLayers.get(m++).makeXml(isSerp, minFullSize, true, true));
         }
         while (m < nodeLayers.size())
-            n.nodeLayers.add(nodeLayers.get(m++).makeXml(isSerp, minFullSize, true, false));
+            ng.nodeLayers.add(nodeLayers.get(m++).makeXml(isSerp, minFullSize, true, false));
 
         for (Iterator<PrimitivePort> pit = getPrimitivePorts(); pit.hasNext(); ) {
             PrimitivePort pp = pit.next();
-            n.ports.add(pp.makeXml(minFullSize));
+            ng.ports.add(pp.makeXml(minFullSize));
         }
-        n.specialType = getSpecialType();
+        ng.specialType = getSpecialType();
         if (getSpecialValues() != null)
-            n.specialValues = getSpecialValues().clone();
+            ng.specialValues = getSpecialValues().clone();
         if (nodeSizeRule != null) {
-            n.nodeSizeRule = new Xml.NodeSizeRule();
-            n.nodeSizeRule.width = nodeSizeRule.getWidth();
-            n.nodeSizeRule.height = nodeSizeRule.getHeight();
-            n.nodeSizeRule.rule = nodeSizeRule.getRuleName();
+            ng.nodeSizeRule = new Xml.NodeSizeRule();
+            ng.nodeSizeRule.width = nodeSizeRule.getWidth();
+            ng.nodeSizeRule.height = nodeSizeRule.getHeight();
+            ng.nodeSizeRule.rule = nodeSizeRule.getRuleName();
         }
-        n.spiceTemplate = getSpiceTemplate();
+        ng.spiceTemplate = getSpiceTemplate();
+        return ng;
     }
 
 	/**

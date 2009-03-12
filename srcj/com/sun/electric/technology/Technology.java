@@ -1109,8 +1109,8 @@ public class Technology implements Comparable<Technology>, Serializable
 //                ap.makeWipablePin(a.arcPin.name, a.arcPin.portName, a.arcPin.elibSize, makeConnections(a.arcPin.portArcs, arcs));
         }
         setNoNegatedArcs();
-        for (Xml.PrimitiveNode n: t.nodes)
-            PrimitiveNodeGroup.makePrimitiveNodes(this, n, layers, arcs);
+        for (Xml.PrimitiveNodeGroup ng: t.nodeGroups)
+            PrimitiveNodeGroup.makePrimitiveNodes(this, ng, layers, arcs);
         for (Xml.Layer l: t.layers) {
             if (l.pureLayerNode == null) continue;
             Layer layer = layers.get(l.name);
@@ -1799,10 +1799,10 @@ public class Technology implements Comparable<Technology>, Serializable
             if (group != null) {
                 if (groupsDone.contains(group))
                     continue;
-                t.nodes.add(group.makeXml());
+                t.nodeGroups.add(group.makeXml());
                 groupsDone.add(group);
             } else {
-                t.nodes.add(pnp.makeXml());
+                t.nodeGroups.add(pnp.makeXml());
             }
         }
         addSpiceHeader(t, 1, getSpiceHeaderLevel1());
@@ -5573,11 +5573,31 @@ public class Technology implements Comparable<Technology>, Serializable
 		if (nodeGroupXML.length() == 0) return;
 
 		// parse the preference and build a component menu
-        List<Xml.PrimitiveNode> xmlNodes = new ArrayList<Xml.PrimitiveNode>();
-        for (PrimitiveNode pn: nodes.values()) {
-            Xml.PrimitiveNode xpn = new Xml.PrimitiveNode();
-            xpn.name = pn.getName();
-            xmlNodes.add(xpn);
+        List<Xml.PrimitiveNodeGroup> xmlNodeGroups = new ArrayList<Xml.PrimitiveNodeGroup>();
+        HashSet<PrimitiveNodeGroup> groupsDone = new HashSet<PrimitiveNodeGroup>();
+        for (Iterator<PrimitiveNode> it = getNodes(); it.hasNext(); ) {
+            PrimitiveNode pnp = it.next();
+            if (pnp.getFunction() == PrimitiveNode.Function.NODE) continue;
+            PrimitiveNodeGroup group = pnp.getPrimitiveNodeGroup();
+            if (group != null) {
+                if (groupsDone.contains(group))
+                    continue;
+                Xml.PrimitiveNodeGroup ng = new Xml.PrimitiveNodeGroup();
+                for (PrimitiveNode pn: group.getNodes()) {
+                    Xml.PrimitiveNode n = new Xml.PrimitiveNode();
+                    n.name = pn.getName();
+                    ng.nodes.add(n);
+                }
+                xmlNodeGroups.add(ng);
+                groupsDone.add(group);
+            } else {
+                Xml.PrimitiveNodeGroup ng = new Xml.PrimitiveNodeGroup();
+                ng.isSingleton = true;
+                Xml.PrimitiveNode n = new Xml.PrimitiveNode();
+                n.name = pnp.getName();
+                ng.nodes.add(n);
+                xmlNodeGroups.add(ng);
+            }
         }
         List<Xml.ArcProto> xmlArcs = new ArrayList<Xml.ArcProto>();
         for (ArcProto ap: arcs.values()) {
@@ -5585,7 +5605,7 @@ public class Technology implements Comparable<Technology>, Serializable
             xap.name = ap.getName();
             xmlArcs.add(xap);
         }
-		Xml.MenuPalette xx = Xml.parseComponentMenuXMLTechEdit(nodeGroupXML, xmlNodes, xmlArcs);
+		Xml.MenuPalette xx = Xml.parseComponentMenuXMLTechEdit(nodeGroupXML, xmlNodeGroups, xmlArcs);
         convertMenuPalette(xx);
 	}
 

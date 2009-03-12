@@ -29,6 +29,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitiveNodeGroup;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Xml;
 import com.sun.electric.tool.user.dialogs.ComponentMenu;
@@ -36,6 +37,7 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Frame;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
@@ -78,14 +80,31 @@ public class ComponentMenuTab extends PreferencePanel
 			curArc.name = ap.getName();
 			xTech.arcs.add(curArc);
 		}
-		for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
-		{
-			PrimitiveNode np = it.next();
-			Xml.PrimitiveNode curNode = new Xml.PrimitiveNode();
-			curNode.name = np.getName();
-			curNode.function = np.getFunction();
-			xTech.nodes.add(curNode);
-		}
+        HashSet<PrimitiveNodeGroup> groupsDone = new HashSet<PrimitiveNodeGroup>();
+        for (Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); ) {
+            PrimitiveNode pnp = it.next();
+            if (pnp.getFunction() == PrimitiveNode.Function.NODE) continue;
+            PrimitiveNodeGroup group = pnp.getPrimitiveNodeGroup();
+            if (group != null) {
+                if (groupsDone.contains(group))
+                    continue;
+                Xml.PrimitiveNodeGroup ng = new Xml.PrimitiveNodeGroup();
+                for (PrimitiveNode pn: group.getNodes()) {
+                    Xml.PrimitiveNode n = new Xml.PrimitiveNode();
+                    n.name = pn.getName();
+                    ng.nodes.add(n);
+                }
+                xTech.nodeGroups.add(ng);
+                groupsDone.add(group);
+            } else {
+                Xml.PrimitiveNodeGroup ng = new Xml.PrimitiveNodeGroup();
+                ng.isSingleton = true;
+                Xml.PrimitiveNode n = new Xml.PrimitiveNode();
+                n.name = pnp.getName();
+                ng.nodes.add(n);
+                xTech.nodeGroups.add(ng);
+            }
+        }
 
 		// build a set of XML objects that refer to this XML technology
 		Object[][] menuArray = makeMenuArray(xTech, tech.getNodesGrouped(null));
@@ -211,11 +230,9 @@ public class ComponentMenuTab extends PreferencePanel
 				Cell cell = (Cell)np;
 				return "LOADCELL " + cell.libDescribe();
 			}
-			for(Xml.PrimitiveNode xnp : xTech.nodes)
-			{
-				if (xnp.name.equals(np.getName())) return xnp;
-			}
-			Xml.PrimitiveNode xnp = new Xml.PrimitiveNode();
+            Xml.PrimitiveNode xnp = xTech.findNode(np.getName());
+            if (xnp != null) return xnp;
+			xnp = new Xml.PrimitiveNode();
 			xnp.name = np.getName();
 			return xnp;
 		} else if (obj instanceof ArcProto)

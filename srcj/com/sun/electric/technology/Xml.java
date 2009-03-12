@@ -85,7 +85,7 @@ public class Xml {
         public final List<Color> transparentLayers = new ArrayList<Color>();
         public final List<Layer> layers = new ArrayList<Layer>();
         public final List<ArcProto> arcs = new ArrayList<ArcProto>();
-        public final List<PrimitiveNode> nodes = new ArrayList<PrimitiveNode>();
+        public final List<PrimitiveNodeGroup> nodeGroups = new ArrayList<PrimitiveNodeGroup>();
         public final List<SpiceHeader> spiceHeaders = new ArrayList<SpiceHeader>();
         public MenuPalette menuPalette;
         public final List<Foundry> foundries = new ArrayList<Foundry>();
@@ -106,10 +106,22 @@ public class Xml {
             return null;
         }
 
+        public PrimitiveNodeGroup findNodeGroup(String name) {
+            for (PrimitiveNodeGroup nodeGroup: nodeGroups) {
+                for (PrimitiveNode n: nodeGroup.nodes) {
+                    if (n.name.equals(name))
+                        return nodeGroup;
+                }
+            }
+            return null;
+        }
+
         public PrimitiveNode findNode(String name) {
-            for (PrimitiveNode node: nodes) {
-                if (node.name.equals(name))
-                    return node;
+            for (PrimitiveNodeGroup nodeGroup: nodeGroups) {
+                for (PrimitiveNode n: nodeGroup.nodes) {
+                    if (n.name.equals(name))
+                        return n;
+                }
             }
             return null;
         }
@@ -188,24 +200,21 @@ public class Xml {
         public Poly.Type style;
     }
 
-    public static class PrimitiveNodeGroup extends PrimitiveNode {
-        public final List<PrimitiveNodeInGroup> nodes = new ArrayList<PrimitiveNodeInGroup>();
-    }
-
-    public static class PrimitiveNodeInGroup {
+    public static class PrimitiveNode implements Serializable {
         public String name;
+        public com.sun.electric.technology.PrimitiveNode.Function function;
+        public String oldName;
         public boolean lowVt;
         public boolean highVt;
         public boolean nativeBit;
         public boolean od18;
         public boolean od25;
         public boolean od33;
-        public com.sun.electric.technology.PrimitiveNode.Function function;
     }
 
-    public static class PrimitiveNode implements Serializable {
-        public String name;
-        public String oldName;
+    public static class PrimitiveNodeGroup implements Serializable {
+        public boolean isSingleton;
+        public final List<PrimitiveNode> nodes = new ArrayList<PrimitiveNode>();
         public boolean shrinkArcs;
         public boolean square;
         public boolean canBeZeroSize;
@@ -214,14 +223,7 @@ public class Xml {
         public boolean edgeSelect;
         public boolean skipSizeInPalette;
         public boolean notUsed;
-        public boolean lowVt;
-        public boolean highVt;
-        public boolean nativeBit;
-        public boolean od18;
-        public boolean od25;
-        public boolean od33;
 
-        public com.sun.electric.technology.PrimitiveNode.Function function;
         public final Map<Integer,EPoint> diskOffset = new TreeMap<Integer,EPoint>();
         public final Distance defaultWidth = new Distance();
         public final Distance defaultHeight = new Distance();
@@ -505,11 +507,11 @@ public class Xml {
      * Normal parsing of XML returns objects in the Xml class, but
      * this method returns objects in a given Technology-Editor world.
      * @param xml the XML string
-     * @param nodes the PrimitiveNode objects describing nodes in the technology.
+     * @param nodeGroups the PrimitiveNodeGroup objects describing nodes in the technology.
      * @param arcs the ArcProto objects describing arcs in the technology.
      * @return the MenuPalette describing the component menu.
      */
-    public static MenuPalette parseComponentMenuXMLTechEdit(String xml, List<PrimitiveNode> nodes, List<ArcProto> arcs)
+    public static MenuPalette parseComponentMenuXMLTechEdit(String xml, List<PrimitiveNodeGroup> nodeGroups, List<ArcProto> arcs)
     {
         SAXParserFactory factory = SAXParserFactory.newInstance();
         factory.setNamespaceAware(true);
@@ -517,7 +519,7 @@ public class Xml {
         {
             SAXParser parser = factory.newSAXParser();
             InputSource is = new InputSource(new StringReader(xml));
-            XMLReader handler = new XMLReader(nodes, arcs);
+            XMLReader handler = new XMLReader(nodeGroups, arcs);
             parser.parse(is, handler);
             return handler.tech.menuPalette;
         } catch (Exception e)
@@ -547,9 +549,8 @@ public class Xml {
         private boolean foreground;
         private ArcProto curArc;
         private PrimitiveNodeGroup curNodeGroup;
-        private PrimitiveNodeInGroup curNodeInGroup;
+        private boolean curNodeGroupHasNodeBase;
         private PrimitiveNode curNode;
-        private boolean curNodeHasNodeBase;
         private NodeLayer curNodeLayer;
         private PrimitivePort curPort;
         private int curSpecialValueIndex;
@@ -566,12 +567,10 @@ public class Xml {
         XMLReader() {
         }
 
-        XMLReader(List<PrimitiveNode> nodes, List<ArcProto> arcs)
+        XMLReader(List<PrimitiveNodeGroup> nodeGroups, List<ArcProto> arcs)
         {
-        	for(ArcProto xap : arcs)
-                tech.arcs.add(xap);
-        	for(PrimitiveNode xnp : nodes)
-                tech.nodes.add(xnp);
+            tech.arcs.addAll(arcs);
+            tech.nodeGroups.addAll(nodeGroups);
         }
 
         private void beginCharacters() {
@@ -913,28 +912,28 @@ public class Xml {
                 case notUsed:
                     if (curArc != null)
                         curArc.notUsed = true;
-                    if (curNode != null)
-                        curNode.notUsed = true;
+                    else if (curNodeGroup != null)
+                        curNodeGroup.notUsed = true;
                     break;
                 case skipSizeInPalette:
                     if (curArc != null)
                         curArc.skipSizeInPalette = true;
-                    if (curNode != null)
-                        curNode.skipSizeInPalette = true;
+                    else if (curNodeGroup != null)
+                        curNodeGroup.skipSizeInPalette = true;
                     break;
                 case diskOffset:
                     if (curArc != null)
                         curArc.diskOffset.put(new Integer(Integer.parseInt(a("untilVersion"))),
                         	new Double(Double.parseDouble(a("width"))));
-                    if (curNode != null)
-                        curNode.diskOffset.put(new Integer(Integer.parseInt(a("untilVersion"))),
+                    else if (curNodeGroup != null)
+                        curNodeGroup.diskOffset.put(new Integer(Integer.parseInt(a("untilVersion"))),
                         	EPoint.fromLambda(Double.parseDouble(a("x")), Double.parseDouble(a("y"))));
                     break;
                 case defaultWidth:
                     if (curArc != null)
                         curDistance = curArc.defaultWidth;
-                    if (curNode != null)
-                        curDistance = curNode.defaultWidth;
+                    else if (curNodeGroup != null)
+                        curDistance = curNodeGroup.defaultWidth;
                     break;
                 case arcLayer:
                     ArcLayer arcLayer = new ArcLayer();
@@ -944,107 +943,91 @@ public class Xml {
                     curArc.arcLayers.add(arcLayer);
                     break;
                 case primitiveNodeGroup:
-                    curNode = curNodeGroup = new PrimitiveNodeGroup();
-                    curNodeHasNodeBase =  false;
-                    curNodeGroup.name = a("name");
-                    curNodeGroup.function = com.sun.electric.technology.PrimitiveNode.Function.valueOf(a("fun"));
+                    curNodeGroup = new PrimitiveNodeGroup();
+                    curNodeGroupHasNodeBase = false;
+                    curNode = null;
                     break;
                 case inNodes:
-                    if (curNodeGroup == null)
+                    if (curNodeGroup.isSingleton)
                         throw new SAXException("<inNodes> can be used only inside <primitiveNodeGroup>");
                     curNodeLayer.inNodes = new BitSet();
                     break;
                 case primitiveNode:
                     if (curNodeLayer != null) {
+                        assert !curNodeGroup.isSingleton && curNode == null;
                         String nodeName = a("name");
                         int i = 0;
                         while (i < curNodeGroup.nodes.size() && !curNodeGroup.nodes.get(i).name.equals(nodeName))
                             i++;
                         if (i >= curNodeGroup.nodes.size())
-                            throw new SAXException("No node "+nodeName+" in group "+curNodeGroup.name);
+                            throw new SAXException("No node "+nodeName+" in group");
                         curNodeLayer.inNodes.set(i);
                     } else if (curNodeGroup != null) {
-                        curNodeInGroup = new PrimitiveNodeInGroup();
-                        curNodeInGroup.name = a("name");
-                        String functionStr = a_("fun");
-                        if (functionStr != null)
-                            curNodeInGroup.function = com.sun.electric.technology.PrimitiveNode.Function.valueOf(functionStr);
-                        curNodeGroup.nodes.add(curNodeInGroup);
-                    } else {
+                        assert !curNodeGroup.isSingleton;
                         curNode = new PrimitiveNode();
-                        curNodeHasNodeBase = false;
                         curNode.name = a("name");
                         curNode.function = com.sun.electric.technology.PrimitiveNode.Function.valueOf(a("fun"));
+                        curNodeGroup.nodes.add(curNode);
+                    } else {
+                        curNodeGroup = new PrimitiveNodeGroup();
+                        curNodeGroupHasNodeBase = false;
+                        curNodeGroup.isSingleton = true;
+                        curNode = new PrimitiveNode();
+                        curNode.name = a("name");
+                        curNode.function = com.sun.electric.technology.PrimitiveNode.Function.valueOf(a("fun"));
+                        curNodeGroup.nodes.add(curNode);
                     }
                     break;
                 case shrinkArcs:
-                    curNode.shrinkArcs = true;
+                    curNodeGroup.shrinkArcs = true;
                     break;
                 case square:
-                    curNode.square = true;
+                    curNodeGroup.square = true;
                     break;
                 case canBeZeroSize:
-                    curNode.canBeZeroSize = true;
+                    curNodeGroup.canBeZeroSize = true;
                     break;
                 case wipes:
-                    curNode.wipes = true;
+                    curNodeGroup.wipes = true;
                     break;
                 case lockable:
-                    curNode.lockable = true;
+                    curNodeGroup.lockable = true;
                     break;
                 case edgeSelect:
-                    curNode.edgeSelect = true;
+                    curNodeGroup.edgeSelect = true;
                     break;
                 case lowVt:
-                    if (curNodeInGroup != null)
-                        curNodeInGroup.lowVt = true;
-                    else
-                        curNode.lowVt = true;
+                    curNode.lowVt = true;
                     break;
                 case highVt:
-                    if (curNodeInGroup != null)
-                        curNodeInGroup.highVt = true;
-                    else
-                        curNode.highVt = true;
+                    curNode.highVt = true;
                     break;
                 case nativeBit:
-                    if (curNodeInGroup != null)
-                        curNodeInGroup.nativeBit = true;
-                    else
-                        curNode.nativeBit = true;
+                    curNode.nativeBit = true;
                     break;
                 case od18:
-                    if (curNodeInGroup != null)
-                        curNodeInGroup.od18 = true;
-                    else
-                        curNode.od18 = true;
+                    curNode.od18 = true;
                     break;
                 case od25:
-                    if (curNodeInGroup != null)
-                        curNodeInGroup.od25 = true;
-                    else
-                        curNode.od25 = true;
+                    curNode.od25 = true;
                     break;
                 case od33:
-                    if (curNodeInGroup != null)
-                        curNodeInGroup.od33 = true;
-                    else
-                        curNode.od33 = true;
+                    curNode.od33 = true;
                     break;
                 case defaultHeight:
-                    curDistance = curNode.defaultHeight;
+                    curDistance = curNodeGroup.defaultHeight;
                     break;
                 case nodeBase:
-                    curNodeHasNodeBase = true;
+                    curNodeGroupHasNodeBase = true;
                     break;
                 case sizeOffset:
-                    curNode.baseLX.value = Double.parseDouble(a("lx"));
-                    curNode.baseHX.value = -Double.parseDouble(a("hx"));
-                    curNode.baseLY.value = Double.parseDouble(a("ly"));
-                    curNode.baseHY.value = -Double.parseDouble(a("hy"));
+                    curNodeGroup.baseLX.value = Double.parseDouble(a("lx"));
+                    curNodeGroup.baseHX.value = -Double.parseDouble(a("hx"));
+                    curNodeGroup.baseLY.value = Double.parseDouble(a("ly"));
+                    curNodeGroup.baseHY.value = -Double.parseDouble(a("hy"));
                     break;
                 case protection:
-                    curNode.protection = ProtectionType.valueOf(a("location"));
+                    curNodeGroup.protection = ProtectionType.valueOf(a("location"));
                     break;
                 case nodeLayer:
                     curNodeLayer = new NodeLayer();
@@ -1076,9 +1059,9 @@ public class Xml {
                         curPort.ly.k = da_("kly", -1);
                         curPort.hy.k = da_("khy", 1);
                     } else {
-                        assert curNodeHasNodeBase;
-                        curNode.baseLX.k = curNode.baseLY.k = -1;
-                        curNode.baseHX.k = curNode.baseHY.k = 1;
+                        assert curNodeGroupHasNodeBase;
+                        curNodeGroup.baseLX.k = curNodeGroup.baseLY.k = -1;
+                        curNodeGroup.baseHX.k = curNodeGroup.baseHY.k = 1;
                     }
                     break;
                 case points:
@@ -1118,11 +1101,11 @@ public class Xml {
                         curPort.ly.value = Double.parseDouble(a("kly"));
                         curPort.hy.value = Double.parseDouble(a("khy"));
                     } else {
-                        assert curNodeHasNodeBase = true;
-                        curNode.baseLX.value = Double.parseDouble(a("klx"));
-                        curNode.baseHX.value = Double.parseDouble(a("khx"));
-                        curNode.baseLY.value = Double.parseDouble(a("kly"));
-                        curNode.baseHY.value = Double.parseDouble(a("khy"));
+                        assert curNodeGroupHasNodeBase;
+                        curNodeGroup.baseLX.value = Double.parseDouble(a("klx"));
+                        curNodeGroup.baseHX.value = Double.parseDouble(a("khx"));
+                        curNodeGroup.baseLY.value = Double.parseDouble(a("kly"));
+                        curNodeGroup.baseHY.value = Double.parseDouble(a("khy"));
                     }
                     break;
                 case techPoint:
@@ -1143,22 +1126,22 @@ public class Xml {
                     curPort.portRange = Integer.parseInt(a("range"));
                     break;
                 case polygonal:
-                    curNode.specialType = com.sun.electric.technology.PrimitiveNode.POLYGONAL;
+                    curNodeGroup.specialType = com.sun.electric.technology.PrimitiveNode.POLYGONAL;
                     break;
                 case serpTrans:
-                    curNode.specialType = com.sun.electric.technology.PrimitiveNode.SERPTRANS;
-                    curNode.specialValues = new double[6];
+                    curNodeGroup.specialType = com.sun.electric.technology.PrimitiveNode.SERPTRANS;
+                    curNodeGroup.specialValues = new double[6];
                     curSpecialValueIndex = 0;
                     break;
                 case minSizeRule:
-                    curNode.nodeSizeRule = new NodeSizeRule();
-                    curNode.nodeSizeRule.width = Double.parseDouble(a("width"));
-                    curNode.nodeSizeRule.height = Double.parseDouble(a("height"));
-                    curNode.nodeSizeRule.rule = a("rule");
+                    curNodeGroup.nodeSizeRule = new NodeSizeRule();
+                    curNodeGroup.nodeSizeRule.width = Double.parseDouble(a("width"));
+                    curNodeGroup.nodeSizeRule.height = Double.parseDouble(a("height"));
+                    curNodeGroup.nodeSizeRule.rule = a("rule");
                     break;
                 case spiceTemplate:
-                	curNode.spiceTemplate = a("value");
-                	break;
+                    curNodeGroup.spiceTemplate = a("value");
+                    break;
                 case spiceHeader:
                     curSpiceHeader = new SpiceHeader();
                     curSpiceHeader.level = Integer.parseInt(a("level"));
@@ -1306,12 +1289,13 @@ public class Xml {
                         foreground = Boolean.parseBoolean(text);
                         break;
                     case oldName:
-                        if (curLayer != null)
+                        if (curLayer != null) {
                             curLayer.pureLayerNode.oldName = text;
-                        if (curArc != null)
+                        } else if (curArc != null) {
                             curArc.oldName = text;
-                        if (curNode != null)
+                        } else {
                             curNode.oldName = text;
+                        }
                         break;
                     case extended:
                         curArc.extended = Boolean.parseBoolean(text);
@@ -1338,7 +1322,7 @@ public class Xml {
                             curPort.portArcs.add(text);
                         break;
                     case specialValue:
-                        curNode.specialValues[curSpecialValueIndex++] = Double.parseDouble(text);
+                        curNodeGroup.specialValues[curSpecialValueIndex++] = Double.parseDouble(text);
                         break;
                     case menuArc:
                     	ArcProto ap = tech.findArc(text);
@@ -1385,24 +1369,27 @@ public class Xml {
                     break;
                 case primitiveNodeGroup:
                     fixNodeBase();
-                    tech.nodes.add(curNodeGroup);
-                    curNode = curNodeGroup = null;
+                    tech.nodeGroups.add(curNodeGroup);
+                    curNodeGroup = null;
+                    curNode = null;
                     break;
                 case primitiveNode:
-                    if (curNodeGroup == null) {
+                    if (curNodeGroup.isSingleton) {
                         fixNodeBase();
-                        tech.nodes.add(curNode);
+                        tech.nodeGroups.add(curNodeGroup);
+                        curNodeGroup = null;
                         curNode = null;
-                    } else if (curNodeInGroup != null) {
-                        curNodeInGroup = null;
+                    } else if (curNodeLayer == null) {
+                        assert !curNodeGroup.isSingleton;
+                        curNode = null;
                     }
                     break;
                 case nodeLayer:
-                    curNode.nodeLayers.add(curNodeLayer);
+                    curNodeGroup.nodeLayers.add(curNodeLayer);
                     curNodeLayer = null;
                     break;
                 case primitivePort:
-                    curNode.ports.add(curPort);
+                    curNodeGroup.ports.add(curPort);
                     curPort = null;
                     break;
                 case menuNodeInst:
@@ -1478,22 +1465,22 @@ public class Xml {
                     assert false;
             }
         }
-        
+
         private void fixNodeBase() {
-            if (curNodeHasNodeBase) return;
+            if (curNodeGroupHasNodeBase) return;
             double lx, hx, ly, hy;
-            if (curNode.nodeSizeRule != null) {
-                hx = 0.5*curNode.nodeSizeRule.width;
+            if (curNodeGroup.nodeSizeRule != null) {
+                hx = 0.5*curNodeGroup.nodeSizeRule.width;
                 lx = -hx;
-                hy = 0.5*curNode.nodeSizeRule.height;
+                hy = 0.5*curNodeGroup.nodeSizeRule.height;
                 ly = -hy;
             } else {
                 lx = Double.POSITIVE_INFINITY;
                 hx = Double.NEGATIVE_INFINITY;
                 ly = Double.POSITIVE_INFINITY;
                 hy = Double.NEGATIVE_INFINITY;
-                for (int i = 0; i < curNode.nodeLayers.size(); i++) {
-                    Xml.NodeLayer nl = curNode.nodeLayers.get(i);
+                for (int i = 0; i < curNodeGroup.nodeLayers.size(); i++) {
+                    Xml.NodeLayer nl = curNodeGroup.nodeLayers.get(i);
                     double x, y;
                     if (nl.representation == com.sun.electric.technology.Technology.NodeLayer.BOX || nl.representation == com.sun.electric.technology.Technology.NodeLayer.MULTICUTBOX) {
                         x = nl.lx.value;
@@ -1520,10 +1507,10 @@ public class Xml {
                     }
                 }
             }
-            curNode.baseLX.value = DBMath.round(lx + curNode.baseLX.value);
-            curNode.baseHX.value = DBMath.round(hx + curNode.baseHX.value);
-            curNode.baseLY.value = DBMath.round(ly + curNode.baseLY.value);
-            curNode.baseHY.value = DBMath.round(hy + curNode.baseHY.value);
+            curNodeGroup.baseLX.value = DBMath.round(lx + curNodeGroup.baseLX.value);
+            curNodeGroup.baseHX.value = DBMath.round(hx + curNodeGroup.baseHX.value);
+            curNodeGroup.baseLY.value = DBMath.round(ly + curNodeGroup.baseLY.value);
+            curNodeGroup.baseHY.value = DBMath.round(hy + curNodeGroup.baseHY.value);
         }
 
         /**
@@ -1783,8 +1770,8 @@ public class Xml {
             }
 
             comment("******************** NODES ********************");
-            for (Xml.PrimitiveNode ni: t.nodes) {
-                writeXml(ni);
+            for (Xml.PrimitiveNodeGroup nodeGroup: t.nodeGroups) {
+                writeXml(nodeGroup);
                 l();
             }
 
@@ -1920,16 +1907,18 @@ public class Xml {
             el(XmlKeyword.arcProto);
         }
 
-        private void writeXml(Xml.PrimitiveNode ni) {
-            if (ni instanceof Xml.PrimitiveNodeGroup) {
-                b(XmlKeyword.primitiveNodeGroup); a("name", ni.name); a("fun", ni.function.name()); cl();
-                List<PrimitiveNodeInGroup> nodes = ((Xml.PrimitiveNodeGroup)ni).nodes;
-                for (PrimitiveNodeInGroup n: nodes) {
-                    b(XmlKeyword.primitiveNode); a("name", n.name);
-                    if (n.function != null)
-                        a("fun", n.function.name());
-                    if (n.highVt || n.lowVt || n.nativeBit || n.od18 || n.od25 || n.od33) {
+        private void writeXml(Xml.PrimitiveNodeGroup ng) {
+            if (ng.isSingleton) {
+                PrimitiveNode n = ng.nodes.get(0);
+                b(XmlKeyword.primitiveNode); a("name", n.name); a("fun", n.function.name()); cl();
+                bcpel(XmlKeyword.oldName, n.oldName);
+            } else {
+                bcl(XmlKeyword.primitiveNodeGroup);
+                for (PrimitiveNode n: ng.nodes) {
+                    b(XmlKeyword.primitiveNode); a("name", n.name); a("fun", n.function.name());
+                    if (n.oldName != null || n.highVt || n.lowVt || n.nativeBit || n.od18 || n.od25 || n.od33) {
                         cl();
+                        bcpel(XmlKeyword.oldName, n.oldName);
                         if (n.lowVt)
                             bel(XmlKeyword.lowVt);
                         if (n.highVt)
@@ -1947,92 +1936,87 @@ public class Xml {
                         el();
                     }
                 }
-                writeXmlImpl(ni, nodes);
-                el(XmlKeyword.primitiveNodeGroup);
-            } else {
-                b(XmlKeyword.primitiveNode); a("name", ni.name); a("fun", ni.function.name()); cl();
-                bcpel(XmlKeyword.oldName, ni.oldName);
-                writeXmlImpl(ni, null);
-                el(XmlKeyword.primitiveNode);
             }
-        }
 
-        private void writeXmlImpl(Xml.PrimitiveNode ni, List<PrimitiveNodeInGroup> nodes) {
-            if (ni.shrinkArcs)
+            if (ng.shrinkArcs)
                 bel(XmlKeyword.shrinkArcs);
-            if (ni.square)
+            if (ng.square)
                 bel(XmlKeyword.square);
-            if (ni.canBeZeroSize)
+            if (ng.canBeZeroSize)
                 bel(XmlKeyword.canBeZeroSize);
-            if (ni.wipes)
+            if (ng.wipes)
                 bel(XmlKeyword.wipes);
-            if (ni.lockable)
+            if (ng.lockable)
                 bel(XmlKeyword.lockable);
-            if (ni.edgeSelect)
+            if (ng.edgeSelect)
                 bel(XmlKeyword.edgeSelect);
-            if (ni.skipSizeInPalette)
+            if (ng.skipSizeInPalette)
                 bel(XmlKeyword.skipSizeInPalette);
-            if (ni.notUsed)
+            if (ng.notUsed)
                 bel(XmlKeyword.notUsed);
-            if (ni.lowVt)
-                bel(XmlKeyword.lowVt);
-            if (ni.highVt)
-                bel(XmlKeyword.highVt);
-            if (ni.nativeBit)
-                bel(XmlKeyword.nativeBit);
-            if (ni.od18)
-                bel(XmlKeyword.od18);
-            if (ni.od25)
-                bel(XmlKeyword.od25);
-            if (ni.od33)
-                bel(XmlKeyword.od33);
+            if (ng.isSingleton) {
+                PrimitiveNode n = ng.nodes.get(0);
+                if (n.lowVt)
+                    bel(XmlKeyword.lowVt);
+                if (n.highVt)
+                    bel(XmlKeyword.highVt);
+                if (n.nativeBit)
+                    bel(XmlKeyword.nativeBit);
+                if (n.od18)
+                    bel(XmlKeyword.od18);
+                if (n.od25)
+                    bel(XmlKeyword.od25);
+                if (n.od33)
+                    bel(XmlKeyword.od33);
+            }
 
-            for (Map.Entry<Integer,EPoint> e: ni.diskOffset.entrySet()) {
+            for (Map.Entry<Integer,EPoint> e: ng.diskOffset.entrySet()) {
                 EPoint p = e.getValue();
                 b(XmlKeyword.diskOffset); a("untilVersion", e.getKey()); a("x", p.getLambdaX()); a("y", p.getLambdaY()); el();
             }
 
-            if (ni.defaultWidth.value != 0) {
+            if (ng.defaultWidth.value != 0) {
                 bcl(XmlKeyword.defaultWidth);
-                bcpel(XmlKeyword.lambda, ni.defaultWidth.value);
+                bcpel(XmlKeyword.lambda, ng.defaultWidth.value);
                 el(XmlKeyword.defaultWidth);
             }
 
-            if (ni.defaultHeight.value != 0) {
+            if (ng.defaultHeight.value != 0) {
                 bcl(XmlKeyword.defaultHeight);
-                bcpel(XmlKeyword.lambda, ni.defaultHeight.value);
+                bcpel(XmlKeyword.lambda, ng.defaultHeight.value);
                 el(XmlKeyword.defaultHeight);
             }
 
             bcl(XmlKeyword.nodeBase);
             bcl(XmlKeyword.box);
-            b(XmlKeyword.lambdaBox); a("klx", ni.baseLX.value); a("khx", ni.baseHX.value); a("kly", ni.baseLY.value); a("khy", ni.baseHY.value); el();
+            b(XmlKeyword.lambdaBox); a("klx", ng.baseLX.value); a("khx", ng.baseHX.value); a("kly", ng.baseLY.value); a("khy", ng.baseHY.value); el();
             el(XmlKeyword.box);
             el(XmlKeyword.nodeBase);
 
-            if (ni.protection != null) {
-                b(XmlKeyword.protection); a("location", ni.protection); el();
+            if (ng.protection != null) {
+                b(XmlKeyword.protection); a("location", ng.protection); el();
             }
 
-            for(int j=0; j<ni.nodeLayers.size(); j++) {
-                Xml.NodeLayer nl = ni.nodeLayers.get(j);
+            for(int j=0; j<ng.nodeLayers.size(); j++) {
+                Xml.NodeLayer nl = ng.nodeLayers.get(j);
                 b(XmlKeyword.nodeLayer); a("layer", nl.layer); a("style", nl.style.name());
                 if (nl.portNum != 0) a("portNum", Integer.valueOf(nl.portNum));
                 if (!(nl.inLayers && nl.inElectricalLayers))
                     a("electrical", Boolean.valueOf(nl.inElectricalLayers));
                 cl();
                 if (nl.inNodes != null) {
+                    assert !ng.isSingleton;
                     bcl(XmlKeyword.inNodes);
-                    for (int i = 0; i < nodes.size(); i++) {
+                    for (int i = 0; i < ng.nodes.size(); i++) {
                         if (nl.inNodes.get(i)) {
-                            b(XmlKeyword.primitiveNode); a("name", nodes.get(i).name); el();
+                            b(XmlKeyword.primitiveNode); a("name", ng.nodes.get(i).name); el();
                         }
                     }
                     el(XmlKeyword.inNodes);
                 }
                 switch (nl.representation) {
                     case com.sun.electric.technology.Technology.NodeLayer.BOX:
-                        if (ni.specialType == com.sun.electric.technology.PrimitiveNode.SERPTRANS) {
+                        if (ng.specialType == com.sun.electric.technology.PrimitiveNode.SERPTRANS) {
                             writeBox(XmlKeyword.serpbox, nl.lx, nl.hx, nl.ly, nl.hy);
                             a("lWidth", nl.lWidth); a("rWidth", nl.rWidth); a("tExtent", nl.tExtent); a("bExtent", nl.bExtent); cl();
                             b(XmlKeyword.lambdaBox); a("klx", nl.lx.value); a("khx", nl.hx.value); a("kly", nl.ly.value); a("khy", nl.hy.value); el();
@@ -2063,8 +2047,8 @@ public class Xml {
 
                 el(XmlKeyword.nodeLayer);
             }
-            for (int j = 0; j < ni.ports.size(); j++) {
-                Xml.PrimitivePort pd = ni.ports.get(j);
+            for (int j = 0; j < ng.ports.size(); j++) {
+                Xml.PrimitivePort pd = ng.ports.get(j);
                 b(XmlKeyword.primitivePort); a("name", pd.name); cl();
                 b(XmlKeyword.portAngle); a("primary", pd.portAngle); a("range", pd.portRange); el();
                 bcpel(XmlKeyword.portTopology, pd.portTopology);
@@ -2077,26 +2061,28 @@ public class Xml {
                     bcpel(XmlKeyword.portArc, portArc);
                 el(XmlKeyword.primitivePort);
             }
-            switch (ni.specialType) {
+            switch (ng.specialType) {
                 case com.sun.electric.technology.PrimitiveNode.POLYGONAL:
                     bel(XmlKeyword.polygonal);
                     break;
                 case com.sun.electric.technology.PrimitiveNode.SERPTRANS:
                     b(XmlKeyword.serpTrans); cl();
                     for (int i = 0; i < 6; i++) {
-                        bcpel(XmlKeyword.specialValue, ni.specialValues[i]);
+                        bcpel(XmlKeyword.specialValue, ng.specialValues[i]);
                     }
                     el(XmlKeyword.serpTrans);
                     break;
             }
-            if (ni.nodeSizeRule != null) {
-                NodeSizeRule r = ni.nodeSizeRule;
+            if (ng.nodeSizeRule != null) {
+                NodeSizeRule r = ng.nodeSizeRule;
                 b(XmlKeyword.minSizeRule); a("width", r.width); a("height", r.height); a("rule", r.rule); el();
             }
-            if (ni.spiceTemplate != null)
+            if (ng.spiceTemplate != null)
             {
-            	b(XmlKeyword.spiceTemplate); a("value", ni.spiceTemplate); el();
+                b(XmlKeyword.spiceTemplate); a("value", ng.spiceTemplate); el();
             }
+
+            el(ng.isSingleton ? XmlKeyword.primitiveNode : XmlKeyword.primitiveNodeGroup);
         }
 
         private void writeBox(XmlKeyword keyword, Distance lx, Distance hx, Distance ly, Distance hy) {

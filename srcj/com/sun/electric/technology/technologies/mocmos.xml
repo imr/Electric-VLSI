@@ -1701,8 +1701,8 @@
         <minSizeRule width="15.0" height="15.0" rule="?"/>
     </primitiveNode>
 
-    <primitiveNodeGroup name="P-Transistor" fun="TRAPMOS">
-        <primitiveNode name="P-Transistor"/>
+    <primitiveNodeGroup>
+        <primitiveNode name="P-Transistor" fun="TRAPMOS"/>
         <primitiveNode name="Thick-P-Transistor" fun="TRAPMOSHV1">
             <od18/>
         </primitiveNode>
@@ -1817,8 +1817,8 @@
         <minSizeRule width="15.0" height="22.0" rule="2.1, 3.1"/>
     </primitiveNodeGroup>
 
-    <primitiveNodeGroup name="N-Transistor" fun="TRANMOS">
-        <primitiveNode name="N-Transistor"/>
+    <primitiveNodeGroup>
+        <primitiveNode name="N-Transistor" fun="TRANMOS"/>
         <primitiveNode name="Thick-N-Transistor" fun="TRANMOSHV1">
             <od18/>
         </primitiveNode>

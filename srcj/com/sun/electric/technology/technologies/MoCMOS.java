@@ -718,37 +718,37 @@ public class MoCMOS extends Technology
         Xml.ArcProto[] metalArcs = new Xml.ArcProto[6];
         Xml.ArcProto[] activeArcs = new Xml.ArcProto[2];
         Xml.ArcProto[] polyArcs = new Xml.ArcProto[6];
-        Xml.PrimitiveNode[] metalPinNodes = new Xml.PrimitiveNode[9];
-        Xml.PrimitiveNode[] activePinNodes = new Xml.PrimitiveNode[2];
-        Xml.PrimitiveNode[] polyPinNodes = new Xml.PrimitiveNode[2];
-        Xml.PrimitiveNode[] metalContactNodes = new Xml.PrimitiveNode[8];
-        Xml.PrimitiveNode[] metalWellContactNodes = new Xml.PrimitiveNode[2];
-        Xml.PrimitiveNode[] metalActiveContactNodes = new Xml.PrimitiveNode[2];
-        Xml.PrimitiveNode[] metal1PolyContactNodes = new Xml.PrimitiveNode[3];
-        Xml.PrimitiveNode[] transistorNodeGroups = new Xml.PrimitiveNode[2];
-        Xml.PrimitiveNode[] scalableTransistorNodes = new Xml.PrimitiveNode[2];
-        Xml.PrimitiveNode npnTransistorNode = tech.findNode("NPN-Transistor");
+        Xml.PrimitiveNodeGroup[] metalPinNodes = new Xml.PrimitiveNodeGroup[9];
+        Xml.PrimitiveNodeGroup[] activePinNodes = new Xml.PrimitiveNodeGroup[2];
+        Xml.PrimitiveNodeGroup[] polyPinNodes = new Xml.PrimitiveNodeGroup[2];
+        Xml.PrimitiveNodeGroup[] metalContactNodes = new Xml.PrimitiveNodeGroup[8];
+        Xml.PrimitiveNodeGroup[] metalWellContactNodes = new Xml.PrimitiveNodeGroup[2];
+        Xml.PrimitiveNodeGroup[] metalActiveContactNodes = new Xml.PrimitiveNodeGroup[2];
+        Xml.PrimitiveNodeGroup[] metal1PolyContactNodes = new Xml.PrimitiveNodeGroup[3];
+        Xml.PrimitiveNodeGroup[] transistorNodeGroups = new Xml.PrimitiveNodeGroup[2];
+        Xml.PrimitiveNodeGroup[] scalableTransistorNodes = new Xml.PrimitiveNodeGroup[2];
+        Xml.PrimitiveNodeGroup npnTransistorNode = tech.findNodeGroup("NPN-Transistor");
         for (int i = 0; i < metalLayers.length; i++) {
             metalLayers[i] = tech.findLayer("Metal-" + (i + 1));
             metalArcs[i] = tech.findArc("Metal-" + (i + 1));
-            metalPinNodes[i] = tech.findNode("Metal-" + (i + 1) + "-Pin");
+            metalPinNodes[i] = tech.findNodeGroup("Metal-" + (i + 1) + "-Pin");
             if (i >= metalContactNodes.length) continue;
-            metalContactNodes[i] = tech.findNode("Metal-" + (i + 1)+"-Metal-" + (i + 2) + "-Con");
+            metalContactNodes[i] = tech.findNodeGroup("Metal-" + (i + 1)+"-Metal-" + (i + 2) + "-Con");
         }
         for (int i = 0; i < 2; i++) {
             polyArcs[i] = tech.findArc("Polysilicon-" + (i + 1));
-            polyPinNodes[i] = tech.findNode("Polysilicon-" + (i + 1) + "-Pin");
-            metal1PolyContactNodes[i] = tech.findNode("Metal-1-Polysilicon-" + (i + 1) + "-Con");
+            polyPinNodes[i] = tech.findNodeGroup("Polysilicon-" + (i + 1) + "-Pin");
+            metal1PolyContactNodes[i] = tech.findNodeGroup("Metal-1-Polysilicon-" + (i + 1) + "-Con");
         }
-		metal1PolyContactNodes[2] = tech.findNode("Metal-1-Polysilicon-1-2-Con");
+		metal1PolyContactNodes[2] = tech.findNodeGroup("Metal-1-Polysilicon-1-2-Con");
         for (int i = P_TYPE; i <= N_TYPE; i++) {
             String ts = i == P_TYPE ? "P" : "N";
     		activeArcs[i] = tech.findArc(ts + "-Active");
-            activePinNodes[i] = tech.findNode(ts + "-Active-Pin");
-            metalWellContactNodes[i] = tech.findNode("Metal-1-" + ts + "-Well-Con");
-            metalActiveContactNodes[i] = tech.findNode("Metal-1-" + ts + "-Active-Con");
-            transistorNodeGroups[i] = tech.findNode(ts + "-Transistor");
-            scalableTransistorNodes[i] = tech.findNode(ts + "-Transistor-Scalable");
+            activePinNodes[i] = tech.findNodeGroup(ts + "-Active-Pin");
+            metalWellContactNodes[i] = tech.findNodeGroup("Metal-1-" + ts + "-Well-Con");
+            metalActiveContactNodes[i] = tech.findNodeGroup("Metal-1-" + ts + "-Active-Con");
+            transistorNodeGroups[i] = tech.findNodeGroup(ts + "-Transistor");
+            scalableTransistorNodes[i] = tech.findNodeGroup(ts + "-Transistor-Scalable");
         }
 
 		String rules = "";
@@ -773,7 +773,7 @@ public class MoCMOS extends Technology
             resizeArcPin(metalArcs[i], metalPinNodes[i], 0.5*rd.metal_width[i]);
 
             if (i >= 5) continue;
-            Xml.PrimitiveNode via = metalContactNodes[i];
+            Xml.PrimitiveNodeGroup via = metalContactNodes[i];
             nl = via.nodeLayers.get(2);
             nl.sizex = nl.sizey = rd.via_size[i];
             nl.sep1d = rd.via_inline_spacing[i];
@@ -788,7 +788,7 @@ public class MoCMOS extends Technology
             double selectE = activeE + rd.pplus_overhang_diff;
             resizeArcPin(activeArcs[i], activePinNodes[i], activeE, wellE, selectE);
 
-            Xml.PrimitiveNode con = metalActiveContactNodes[i];
+            Xml.PrimitiveNodeGroup con = metalActiveContactNodes[i];
             double metalC = 0.5*rd.contact_size + rd.contact_metal_overhang_all_sides;
             double activeC = 0.5*rd.contact_size + rd.diff_contact_overhang;
             double wellC = activeC + rd.nwell_overhang_diff_p;
@@ -805,7 +805,7 @@ public class MoCMOS extends Technology
         }
         resizeContacts(npnTransistorNode, rd);
         {
-            Xml.PrimitiveNode con = metal1PolyContactNodes[0];
+            Xml.PrimitiveNodeGroup con = metal1PolyContactNodes[0];
             double metalC = 0.5*rd.contact_size + rd.contact_metal_overhang_all_sides;
             double polyC = 0.5*rd.contact_size + rd.contact_poly_overhang;
             resizeSquare(con, polyC, metalC, polyC, 0);
@@ -831,14 +831,14 @@ public class MoCMOS extends Technology
         return tech;
     }
 
-    private static void resizeArcPin(Xml.ArcProto a, Xml.PrimitiveNode n, double ... exts) {
+    private static void resizeArcPin(Xml.ArcProto a, Xml.PrimitiveNodeGroup ng, double ... exts) {
         assert a.arcLayers.size() == exts.length;
-        assert n.nodeLayers.size() == exts.length;
+        assert ng.nodeLayers.size() == exts.length;
         double baseExt = exts[0];
         double maxExt = 0;
         for (int i = 0; i < exts.length; i++) {
             Xml.ArcLayer al = a.arcLayers.get(i);
-            Xml.NodeLayer nl = n.nodeLayers.get(i);
+            Xml.NodeLayer nl = ng.nodeLayers.get(i);
             double ext = exts[i];
             assert al.layer.equals(nl.layer);
             assert nl.representation == Technology.NodeLayer.BOX;
@@ -853,16 +853,16 @@ public class MoCMOS extends Technology
             a.diskOffset.put(version2, Double.valueOf(baseExt));
         else
             a.diskOffset.clear();
-        n.baseLX.value = n.baseLY.value = baseExt != 0 ? -baseExt : 0;
-        n.baseHX.value = n.baseHY.value = baseExt;
+        ng.baseLX.value = ng.baseLY.value = baseExt != 0 ? -baseExt : 0;
+        ng.baseHX.value = ng.baseHY.value = baseExt;
         // n.setDefSize
     }
 
-    private static void resizeSquare(Xml.PrimitiveNode n, double base, double... size) {
-        assert size.length == n.nodeLayers.size();
+    private static void resizeSquare(Xml.PrimitiveNodeGroup ng, double base, double... size) {
+        assert size.length == ng.nodeLayers.size();
         double maxSz = 0;
-        for (int i = 0; i < n.nodeLayers.size(); i++) {
-            Xml.NodeLayer nl = n.nodeLayers.get(i);
+        for (int i = 0; i < ng.nodeLayers.size(); i++) {
+            Xml.NodeLayer nl = ng.nodeLayers.get(i);
             assert nl.representation == Technology.NodeLayer.BOX || nl.representation == Technology.NodeLayer.MULTICUTBOX;
             double sz = size[i];
             assert sz >= 0;
@@ -873,26 +873,26 @@ public class MoCMOS extends Technology
 
         Integer version1 = Integer.valueOf(1);
         Integer version2 = Integer.valueOf(2);
-        EPoint sizeCorrector1 = n.diskOffset.get(version1);
-        EPoint sizeCorrector2 = n.diskOffset.get(version2);
+        EPoint sizeCorrector1 = ng.diskOffset.get(version1);
+        EPoint sizeCorrector2 = ng.diskOffset.get(version2);
         if (sizeCorrector2 == null)
             sizeCorrector2 = EPoint.ORIGIN;
         if (sizeCorrector1 == null)
             sizeCorrector1 = sizeCorrector2;
 
-        n.baseLX.value = n.baseLY.value = base != 0 ? -base : 0;
-        n.baseHX.value = n.baseHY.value = base;
+        ng.baseLX.value = ng.baseLY.value = base != 0 ? -base : 0;
+        ng.baseHX.value = ng.baseHY.value = base;
 
         sizeCorrector2 = EPoint.fromLambda(base, base);
-        n.diskOffset.put(version2, sizeCorrector2);
+        ng.diskOffset.put(version2, sizeCorrector2);
         if (sizeCorrector1.equals(sizeCorrector2))
-            n.diskOffset.remove(version1);
+            ng.diskOffset.remove(version1);
         else
-            n.diskOffset.put(version1, sizeCorrector1);
+            ng.diskOffset.put(version1, sizeCorrector1);
     }
 
-    private static void resizeContacts(Xml.PrimitiveNode n, ResizeData rd) {
-        for (Xml.NodeLayer nl: n.nodeLayers) {
+    private static void resizeContacts(Xml.PrimitiveNodeGroup ng, ResizeData rd) {
+        for (Xml.NodeLayer nl: ng.nodeLayers) {
             if (nl.representation != Technology.NodeLayer.MULTICUTBOX) continue;
             nl.sizex = nl.sizey = rd.contact_size;
             nl.sep1d = rd.contact_spacing;
@@ -900,7 +900,7 @@ public class MoCMOS extends Technology
         }
     }
 
-    private static void resizeSerpentineTransistor(Xml.PrimitiveNode transistor, ResizeData rd) {
+    private static void resizeSerpentineTransistor(Xml.PrimitiveNodeGroup transistor, ResizeData rd) {
         Xml.NodeLayer activeTNode = transistor.nodeLayers.get(0); // active Top or Left
         Xml.NodeLayer activeBNode = transistor.nodeLayers.get(1); // active Bottom or Right
         Xml.NodeLayer polyCNode = transistor.nodeLayers.get(2); // poly center

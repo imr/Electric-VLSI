@@ -409,13 +409,15 @@ public class LibToTech
 		if (var != null)
 		{
 			String compMenuXML = (String)var.getObject();
-			List<Xml.PrimitiveNode> nodes = new ArrayList<Xml.PrimitiveNode>();
+			List<Xml.PrimitiveNodeGroup> nodeGroups = new ArrayList<Xml.PrimitiveNodeGroup>();
 			for(int i=0; i<nList.length; i++)
 			{
+                Xml.PrimitiveNodeGroup xng = new Xml.PrimitiveNodeGroup();
 				Xml.PrimitiveNode xnp = new Xml.PrimitiveNode();
 				xnp.name = nList[i].name;
 				xnp.function = nList[i].func;
-				nodes.add(xnp);
+                xng.nodes.add(xnp);
+				nodeGroups.add(xng);
 			}
 			List<Xml.ArcProto> arcs = new ArrayList<Xml.ArcProto>();
 			for(int i=0; i<aList.length; i++)
@@ -424,7 +426,7 @@ public class LibToTech
 				xap.name = aList[i].name;
 				arcs.add(xap);
 			}
-			Xml.MenuPalette xmp = Xml.parseComponentMenuXMLTechEdit(compMenuXML, nodes, arcs);
+			Xml.MenuPalette xmp = Xml.parseComponentMenuXMLTechEdit(compMenuXML, nodeGroups, arcs);
 			int menuWid = xmp.numColumns;
 			int menuHei = xmp.menuBoxes.size() / menuWid;
 			gi.menuPalette = new Object[menuHei][menuWid];
@@ -2676,33 +2678,42 @@ public class LibToTech
 		for (NodeInfo ni: nList) {
 			if (ni.func == PrimitiveNode.Function.NODE && ni.nodeLayers[0].layer.pureLayerNode == ni)
 				continue;
-			Xml.PrimitiveNode pn;
-			if (ni.primitiveNodeGroupNames == null) pn = new Xml.PrimitiveNode(); else
+			Xml.PrimitiveNodeGroup png = new Xml.PrimitiveNodeGroup();
+			if (ni.primitiveNodeGroupNames == null)
+            {
+                Xml.PrimitiveNode n = new Xml.PrimitiveNode();
+                n.name = ni.name;
+                n.function = ni.func;
+                n.lowVt = ni.lowVt;
+                n.highVt = ni.highVt;
+                n.nativeBit = ni.nativeBit;
+                n.od18 = ni.od18;
+                n.od25 = ni.od25;
+                n.od33 = ni.od33;
+                png.nodes.add(n);
+            } else
 			{
-				Xml.PrimitiveNodeGroup png = new Xml.PrimitiveNodeGroup();
 				for(String s : ni.primitiveNodeGroupNames) {
-                    Xml.PrimitiveNodeInGroup n = new Xml.PrimitiveNodeInGroup();
+                    Xml.PrimitiveNode n = new Xml.PrimitiveNode();
                     n.name = s;
+                    n.function = ni.func;
+                    n.lowVt = ni.lowVt;
+                    n.highVt = ni.highVt;
+                    n.nativeBit = ni.nativeBit;
+                    n.od18 = ni.od18;
+                    n.od25 = ni.od25;
+                    n.od33 = ni.od33;
 					png.nodes.add(n);
                 }
-				pn = png;
 			}
-			pn.name = ni.name;
-			pn.function = ni.func;
-			pn.shrinkArcs = ni.arcsShrink;
-			pn.square = ni.square;
-			pn.canBeZeroSize = ni.canBeZeroSize;
-			pn.wipes = ni.wipes;
-			pn.lockable = ni.lockable;
-			pn.edgeSelect = ni.edgeSelect;
-			pn.skipSizeInPalette = ni.skipSizeInPalette;
-			pn.notUsed = ni.notUsed;
-			pn.lowVt = ni.lowVt;
-			pn.highVt = ni.highVt;
-			pn.nativeBit = ni.nativeBit;
-			pn.od18 = ni.od18;
-			pn.od25 = ni.od25;
-			pn.od33 = ni.od33;
+			png.shrinkArcs = ni.arcsShrink;
+			png.square = ni.square;
+			png.canBeZeroSize = ni.canBeZeroSize;
+			png.wipes = ni.wipes;
+			png.lockable = ni.lockable;
+			png.edgeSelect = ni.edgeSelect;
+			png.skipSizeInPalette = ni.skipSizeInPalette;
+			png.notUsed = ni.notUsed;
 			EPoint minFullSize = EPoint.fromLambda(0.5*ni.xSize, 0.5*ni.ySize);
 
 //			pn.sizeOffset = ni.so;
@@ -2728,10 +2739,10 @@ public class LibToTech
 //			pn.defaultWidth.value = DBMath.round(ni.xSize);
 //			pn.defaultHeight.value = DBMath.round(ni.ySize);
 			if (ni.spiceTemplate != null && !ni.spiceTemplate.equals(""))
-				pn.spiceTemplate = ni.spiceTemplate;
+				png.spiceTemplate = ni.spiceTemplate;
 			for(int j=0; j<ni.nodeLayers.length; j++) {
 				NodeInfo.LayerDetails nl = ni.nodeLayers[j];
-				pn.nodeLayers.add(makeNodeLayerDetails(nl, ni.serp, minFullSize));
+				png.nodeLayers.add(makeNodeLayerDetails(nl, ni.serp, minFullSize));
 			}
 			for (int j = 0; j < ni.nodePortDetails.length; j++) {
 				NodeInfo.PortDetails pd = ni.nodePortDetails[j];
@@ -2756,28 +2767,28 @@ public class LibToTech
 				pp.hy.addLambda(top.getAdder() + minFullSize.getLambdaY()*top.getMultiplier()*2);
 				for (ArcInfo a: pd.connections)
 					pp.portArcs.add(a.name);
-				pn.ports.add(pp);
+				png.ports.add(pp);
 			}
-			pn.specialType = ni.specialType;
-			if (pn.specialType == PrimitiveNode.SERPTRANS) {
-				pn.specialValues = new double[6];
+			png.specialType = ni.specialType;
+			if (png.specialType == PrimitiveNode.SERPTRANS) {
+				png.specialValues = new double[6];
 				for (int i = 0; i < 6; i++)
-					pn.specialValues[i] = ni.specialValues[i];
+					png.specialValues[i] = ni.specialValues[i];
 			}
 			if (ni.nodeSizeRule != null) {
-				pn.nodeSizeRule = new Xml.NodeSizeRule();
-				pn.nodeSizeRule.width = ni.nodeSizeRule.getWidth();
-				pn.nodeSizeRule.height = ni.nodeSizeRule.getHeight();
-				pn.nodeSizeRule.rule = ni.nodeSizeRule.getRuleName();
+				png.nodeSizeRule = new Xml.NodeSizeRule();
+				png.nodeSizeRule.width = ni.nodeSizeRule.getWidth();
+				png.nodeSizeRule.height = ni.nodeSizeRule.getHeight();
+				png.nodeSizeRule.rule = ni.nodeSizeRule.getRuleName();
 			}
 
-            ERectangle base = calcBaseRectangle(ni.so, pn.nodeLayers, ni.nodeSizeRule);
-            pn.baseLX.value = base.getLambdaMinX();
-            pn.baseHX.value = base.getLambdaMaxX();
-            pn.baseLY.value = base.getLambdaMinY();
-            pn.baseHY.value = base.getLambdaMaxY();
+            ERectangle base = calcBaseRectangle(ni.so, png.nodeLayers, ni.nodeSizeRule);
+            png.baseLX.value = base.getLambdaMinX();
+            png.baseHX.value = base.getLambdaMaxX();
+            png.baseLY.value = base.getLambdaMinY();
+            png.baseHY.value = base.getLambdaMaxY();
 
-			t.nodes.add(pn);
+			t.nodeGroups.add(png);
 		}
 
 		addSpiceHeader(t, 1, gi.spiceLevel1Header);

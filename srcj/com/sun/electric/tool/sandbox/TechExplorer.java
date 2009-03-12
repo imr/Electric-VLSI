@@ -33,7 +33,6 @@ import com.sun.electric.technology.EdgeH;
 import com.sun.electric.technology.EdgeV;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Xml;
 
@@ -448,22 +447,25 @@ public class TechExplorer extends ESandBox {
                 continue;
             }
 
+            Xml.PrimitiveNodeGroup ng = new Xml.PrimitiveNodeGroup();
+            ng.isSingleton = true;
             Xml.PrimitiveNode n = new Xml.PrimitiveNode();
+            ng.nodes.add(n);
             n.name = nodeName;
             for (Map.Entry<String,?> e: oldNodeNames.entrySet()) {
                 if (e.getValue() == pn)
                     n.oldName = e.getKey();
             }
             n.function = fun;
-            n.shrinkArcs = (Boolean)PrimitiveNode_isArcsShrink.invoke(pn);
-            n.square = (Boolean)PrimitiveNode_isSquare.invoke(pn);
-            n.canBeZeroSize = (Boolean)PrimitiveNode_isCanBeZeroSize.invoke(pn);
-            n.wipes = (Boolean)PrimitiveNode_isWipeOn1or2.invoke(pn);
-            n.lockable = (Boolean)PrimitiveNode_isLockedPrim.invoke(pn);
-            n.edgeSelect = (Boolean)PrimitiveNode_isEdgeSelect.invoke(pn);
+            ng.shrinkArcs = (Boolean)PrimitiveNode_isArcsShrink.invoke(pn);
+            ng.square = (Boolean)PrimitiveNode_isSquare.invoke(pn);
+            ng.canBeZeroSize = (Boolean)PrimitiveNode_isCanBeZeroSize.invoke(pn);
+            ng.wipes = (Boolean)PrimitiveNode_isWipeOn1or2.invoke(pn);
+            ng.lockable = (Boolean)PrimitiveNode_isLockedPrim.invoke(pn);
+            ng.edgeSelect = (Boolean)PrimitiveNode_isEdgeSelect.invoke(pn);
             if (PrimitiveNode_isSkipSizeInPalette != null)
-                n.skipSizeInPalette = (Boolean)PrimitiveNode_isSkipSizeInPalette.invoke(pn);
-            n.notUsed = (Boolean)PrimitiveNode_isNotUsed.invoke(pn);
+                ng.skipSizeInPalette = (Boolean)PrimitiveNode_isSkipSizeInPalette.invoke(pn);
+            ng.notUsed = (Boolean)PrimitiveNode_isNotUsed.invoke(pn);
             if (PrimitiveNode_LOWVTBIT != null)
                 n.lowVt = (Boolean)PrimitiveNode_isNodeBitOn.invoke(pn, PrimitiveNode_LOWVTBIT.get(null));
             if (PrimitiveNode_HIGHVTBIT != null)
@@ -501,10 +503,10 @@ public class TechExplorer extends ESandBox {
             }
             EPoint fullSize = null;
             if (minSizeRule != null) {
-                n.nodeSizeRule = new Xml.NodeSizeRule();
-                n.nodeSizeRule.width = minWidth;
-                n.nodeSizeRule.height = minHeight;
-                n.nodeSizeRule.rule = minSizeRule;
+                ng.nodeSizeRule = new Xml.NodeSizeRule();
+                ng.nodeSizeRule.width = minWidth;
+                ng.nodeSizeRule.height = minHeight;
+                ng.nodeSizeRule.rule = minSizeRule;
                 fullSize = EPoint.fromLambda(0.5*minWidth, 0.5*minHeight);
             } else if (PrimitiveNode_getFullRectangle != null) {
                 Rectangle2D r = (Rectangle2D)PrimitiveNode_getFullRectangle.invoke(pn);
@@ -533,10 +535,10 @@ public class TechExplorer extends ESandBox {
                 }
                 baseRectangle = ERectangle.fromLambda(lx, ly, hx - lx, hy - ly);
             }
-            n.baseLX.value = baseRectangle.getLambdaMinX();
-            n.baseHX.value = baseRectangle.getLambdaMaxX();
-            n.baseLY.value = baseRectangle.getLambdaMinY();
-            n.baseHY.value = baseRectangle.getLambdaMaxY();
+            ng.baseLX.value = baseRectangle.getLambdaMinX();
+            ng.baseHX.value = baseRectangle.getLambdaMaxX();
+            ng.baseLY.value = baseRectangle.getLambdaMinY();
+            ng.baseHY.value = baseRectangle.getLambdaMaxY();
 //            if (!baseRectangle.equals(fullRectangle)) {
 //                n.sizeOffset = new SizeOffset(
 //                    baseRectangle.getLambdaMinX() - fullRectangle.getLambdaMinX(),
@@ -549,11 +551,11 @@ public class TechExplorer extends ESandBox {
             if (sizeCorrector2 == null)
                 sizeCorrector2 = EPoint.fromGrid(baseRectangle.getGridWidth() >> 1, baseRectangle.getGridHeight() >> 1);
             if (!sizeCorrector2.equals(sizeCorrector1))
-                n.diskOffset.put(Integer.valueOf(1), sizeCorrector1);
+                ng.diskOffset.put(Integer.valueOf(1), sizeCorrector1);
             if (!sizeCorrector2.equals(EPoint.ORIGIN))
-                n.diskOffset.put(Integer.valueOf(2), sizeCorrector2);
-            n.defaultWidth.addLambda(round(defWidth - fullRectangle.getLambdaWidth()));
-            n.defaultHeight.addLambda(round(defHeight - fullRectangle.getLambdaHeight()));
+                ng.diskOffset.put(Integer.valueOf(2), sizeCorrector2);
+            ng.defaultWidth.addLambda(round(defWidth - fullRectangle.getLambdaWidth()));
+            ng.defaultHeight.addLambda(round(defHeight - fullRectangle.getLambdaHeight()));
 
             List<?> nodeLayers = Arrays.asList(nodeLayersArray);
             Object[] electricalNodeLayersArray = (Object[])PrimitiveNode_getElectricalLayers.invoke(pn);
@@ -565,15 +567,15 @@ public class TechExplorer extends ESandBox {
             for (Object nld: electricalNodeLayers) {
                 int j = nodeLayers.indexOf(nld);
                 if (j < 0) {
-                    n.nodeLayers.add(makeNodeLayerDetails(t, nld, isSerp, fullSize, false, true));
+                    ng.nodeLayers.add(makeNodeLayerDetails(t, nld, isSerp, fullSize, false, true));
                     continue;
                 }
                 while (m < j)
-                    n.nodeLayers.add(makeNodeLayerDetails(t, nodeLayers.get(m++), isSerp, fullSize, true, false));
-                n.nodeLayers.add(makeNodeLayerDetails(t, nodeLayers.get(m++), isSerp, fullSize, true, true));
+                    ng.nodeLayers.add(makeNodeLayerDetails(t, nodeLayers.get(m++), isSerp, fullSize, true, false));
+                ng.nodeLayers.add(makeNodeLayerDetails(t, nodeLayers.get(m++), isSerp, fullSize, true, true));
             }
             while (m < nodeLayers.size())
-                n.nodeLayers.add(makeNodeLayerDetails(t, nodeLayers.get(m++), isSerp, fullSize, true, false));
+                ng.nodeLayers.add(makeNodeLayerDetails(t, nodeLayers.get(m++), isSerp, fullSize, true, false));
 
             for (Iterator<?> pit = (Iterator)PrimitiveNode_getPorts.invoke(pn); pit.hasNext(); ) {
                 Object pp = pit.next();
@@ -603,15 +605,15 @@ public class TechExplorer extends ESandBox {
                 ppd.hy.addLambda(round((Double)EdgeV_getAdder.invoke(hy) + fullSize.getLambdaY()*ppd.hy.k));
 
                 makePortArcs(ppd.portArcs, tech, pp, null);
-                n.ports.add(ppd);
+                ng.ports.add(ppd);
             }
-            n.specialType = (Integer)PrimitiveNode_getSpecialType.invoke(pn);
+            ng.specialType = (Integer)PrimitiveNode_getSpecialType.invoke(pn);
             double[] specialValues = (double[])PrimitiveNode_getSpecialValues.invoke(pn);
             if (specialValues != null)
-                n.specialValues = specialValues.clone();
+                ng.specialValues = specialValues.clone();
             if (PrimitiveNode_getSpiceTemplate != null)
-                n.spiceTemplate = (String)PrimitiveNode_getSpiceTemplate.invoke(pn);
-            t.nodes.add(n);
+                ng.spiceTemplate = (String)PrimitiveNode_getSpiceTemplate.invoke(pn);
+            t.nodeGroups.add(ng);
         }
 
         addSpiceHeader(t, 1, (String[])Technology_getSpiceHeaderLevel1.invoke(tech));
@@ -824,7 +826,7 @@ public class TechExplorer extends ESandBox {
             return n;
         }
         if (entry.getClass().getName().equals("javax.swing.JPopupMenu$Separator"))
-            return "SEPARATOR";
+            return Technology.SPECIALMENUSEPARATOR;
         assert entry instanceof String;
         return entry;
     }

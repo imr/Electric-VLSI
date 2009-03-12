@@ -1245,7 +1245,7 @@ public class TechEditWizardData
      * Method to create the XML version of a PrimitiveNode representing a pin
      * @return
      */
-    private Xml.PrimitiveNode makeXmlPrimitivePin(Xml.Technology t, String name, double size,
+    private Xml.PrimitiveNodeGroup makeXmlPrimitivePin(Xml.Technology t, String name, double size,
                                                   SizeOffset so, Xml.NodeLayer... list)
     {
         List<Xml.NodeLayer> nodesList = new ArrayList<Xml.NodeLayer>(list.length);
@@ -1260,7 +1260,7 @@ public class TechEditWizardData
 
         portNames.add(name);
         nodePorts.add(makeXmlPrimitivePort(name.toLowerCase(), 0, 180, 0, null, 0, 0, 0, 0, portNames));
-        Xml.PrimitiveNode n = makeXmlPrimitive(t.nodes, name + "-Pin", PrimitiveNode.Function.PIN, size, size, 0, 0,
+        Xml.PrimitiveNodeGroup n = makeXmlPrimitive(t.nodeGroups, name + "-Pin", PrimitiveNode.Function.PIN, size, size, 0, 0,
                 so, nodesList, nodePorts, null, true);
         return n;
     }
@@ -1269,7 +1269,7 @@ public class TechEditWizardData
      * Method to creat the XML version of a PrimitiveNode representing a contact
      * @return
      */
-    private Xml.PrimitiveNode makeXmlPrimitiveCon(List<Xml.PrimitiveNode> nodes, String name, double sizeX, double sizeY,
+    private Xml.PrimitiveNodeGroup makeXmlPrimitiveCon(List<Xml.PrimitiveNodeGroup> nodeGroups, String name, double sizeX, double sizeY,
                                                   SizeOffset so, List<String> portNames, Xml.NodeLayer... list)
     {
         List<Xml.NodeLayer> nodesList = new ArrayList<Xml.NodeLayer>(list.length);
@@ -1282,7 +1282,7 @@ public class TechEditWizardData
         }
 
         nodePorts.add(makeXmlPrimitivePort(name.toLowerCase(), 0, 180, 0, null, 0, 0, 0, 0, portNames));
-        return makeXmlPrimitive(nodes, name + "-Con", PrimitiveNode.Function.CONTACT, sizeX, sizeY, 0, 0,
+        return makeXmlPrimitive(nodeGroups, name + "-Con", PrimitiveNode.Function.CONTACT, sizeX, sizeY, 0, 0,
                 so, nodesList, nodePorts, null, false);
     }
 
@@ -1290,7 +1290,7 @@ public class TechEditWizardData
      * Method to create the XML version of a PrimitiveNode
      * @return
      */
-    private Xml.PrimitiveNode makeXmlPrimitive(List<Xml.PrimitiveNode> nodes,
+    private Xml.PrimitiveNodeGroup makeXmlPrimitive(List<Xml.PrimitiveNodeGroup> nodeGroups,
                                                String name, PrimitiveNode.Function function,
                                                double width, double height,
                                                double ppLeft, double ppBottom,
@@ -1298,11 +1298,14 @@ public class TechEditWizardData
                                                List<Xml.PrimitivePort> nodePorts,
                                                PrimitiveNode.NodeSizeRule nodeSizeRule, boolean isArcsShrink)
     {
+        Xml.PrimitiveNodeGroup ng = new Xml.PrimitiveNodeGroup();
+        ng.isSingleton = true;
         Xml.PrimitiveNode n = new Xml.PrimitiveNode();
-
         n.name = name;
         n.function = function;
-        n.shrinkArcs = isArcsShrink;
+        ng.nodes.add(n);
+
+        ng.shrinkArcs = isArcsShrink;
 //        n.square = isSquare();
 //        n.canBeZeroSize = isCanBeZeroSize();
 //        n.wipes = isWipeOn1or2();
@@ -1342,10 +1345,10 @@ public class TechEditWizardData
             so = null;
 
             ERectangle base = calcBaseRectangle(so, nodeLayers, nodeSizeRule);
-            n.baseLX.value = base.getLambdaMinX();
-            n.baseHX.value = base.getLambdaMaxX();
-            n.baseLY.value = base.getLambdaMinY();
-            n.baseHY.value = base.getLambdaMaxY();
+            ng.baseLX.value = base.getLambdaMinX();
+            ng.baseHX.value = base.getLambdaMaxX();
+            ng.baseLY.value = base.getLambdaMinY();
+            ng.baseHY.value = base.getLambdaMaxY();
 //            n.sizeOffset = so;
 
 //        if (!minFullSize.equals(EPoint.ORIGIN))
@@ -1370,7 +1373,7 @@ public class TechEditWizardData
 //            electricalNodeLayers = Arrays.asList(getElectricalLayers());
         boolean isSerp = false; //getSpecialType() == PrimitiveNode.SERPTRANS;
         if (nodeLayers != null)
-            n.nodeLayers.addAll(nodeLayers);
+            ng.nodeLayers.addAll(nodeLayers);
 //        int m = 0;
 //        for (Technology.NodeLayer nld: electricalNodeLayers) {
 //            int j = nodeLayers.indexOf(nld);
@@ -1389,23 +1392,23 @@ public class TechEditWizardData
 //            PrimitivePort pp = pit.next();
 //            n.ports.add(pp.makeXml(minFullSize));
 //        }
-        n.specialType = PrimitiveNode.NORMAL; // getSpecialType();
+        ng.specialType = PrimitiveNode.NORMAL; // getSpecialType();
 //        if (getSpecialValues() != null)
 //            n.specialValues = getSpecialValues().clone();
         if (nodeSizeRule != null) {
-            n.nodeSizeRule = new Xml.NodeSizeRule();
-            n.nodeSizeRule.width = nodeSizeRule.getWidth();
-            n.nodeSizeRule.height = nodeSizeRule.getHeight();
-            n.nodeSizeRule.rule = nodeSizeRule.getRuleName();
+            ng.nodeSizeRule = new Xml.NodeSizeRule();
+            ng.nodeSizeRule.width = nodeSizeRule.getWidth();
+            ng.nodeSizeRule.height = nodeSizeRule.getHeight();
+            ng.nodeSizeRule.rule = nodeSizeRule.getRuleName();
         }
 //        n.spiceTemplate = "";//getSpiceTemplate();
 
         // ports
-        n.ports.addAll(nodePorts);
+        ng.ports.addAll(nodePorts);
 
-        nodes.add(n);
+        nodeGroups.add(ng);
 
-        return n;
+        return ng;
     }
 
     private ERectangle calcBaseRectangle(SizeOffset so, List<Xml.NodeLayer> nodeLayers, PrimitiveNode.NodeSizeRule nodeSizeRule) {
@@ -1616,7 +1619,7 @@ public class TechEditWizardData
     /**
      * To create zero, cross, aligned and squared contacts from the same set of rules
      */
-    private Xml.PrimitiveNode makeContactSeries(List<Xml.PrimitiveNode> nodes, String composeName,
+    private Xml.PrimitiveNodeGroup makeContactSeries(List<Xml.PrimitiveNodeGroup> nodeGroups, String composeName,
                                            double contSize, Xml.Layer conLayer, double spacing, double arraySpacing,
                                            double extLayer1, Xml.Layer layer1,
                                            double extLayer2, Xml.Layer layer2)
@@ -1632,7 +1635,7 @@ public class TechEditWizardData
         double longD = DBMath.isGreaterThan(extLayer1, extLayer2) ? extLayer1 : extLayer2;
 
         // long square contact. Standard ones
-        return (makeXmlPrimitiveCon(nodes, composeName, -1, -1, new SizeOffset(longD, longD, longD, longD), portNames,
+        return (makeXmlPrimitiveCon(nodeGroups, composeName, -1, -1, new SizeOffset(longD, longD, longD, longD), portNames,
                 makeXmlNodeLayer(hlaLong1, hlaLong1, hlaLong1, hlaLong1, layer1, Poly.Type.FILLED, true), // layer1
                 makeXmlNodeLayer(hlaLong2, hlaLong2, hlaLong2, hlaLong2, layer2, Poly.Type.FILLED, true), // layer2
                 makeXmlMulticut(conLayer, contSize, spacing, arraySpacing))); // contact
@@ -2014,7 +2017,7 @@ public class TechEditWizardData
 
         // Palette elements should be added at the end so they will appear in groups
         PaletteGroup[] metalPalette = new PaletteGroup[num_metal_layers];
-        
+
         // write arcs
         // metal arcs
         for(int i=1; i<=num_metal_layers; i++)
@@ -2051,7 +2054,7 @@ public class TechEditWizardData
         // only for standard cases when getProtectionPoly() is false
         if (!getProtectionPoly())
         {
-            polyGroup.addElement(makeContactSeries(t.nodes, polyLayer.name, contSize, polyConLayer, contSpacing, contArraySpacing,
+            polyGroup.addElement(makeContactSeries(t.nodeGroups, polyLayer.name, contSize, polyConLayer, contSpacing, contArraySpacing,
                         scaledValue(contact_poly_overhang.v), polyLayer,
                         scaledValue(via_overhang[0].v), m1Layer));
         }
@@ -2123,7 +2126,7 @@ public class TechEditWizardData
 //            List<Object> diffContacts = new ArrayList<Object>(), l = null;
 
             // F stands for full (all layers)
-            diffG.addElement(makeXmlPrimitiveCon(t.nodes, "F-"+composeName, hla, hla, new SizeOffset(sos[i], sos[i], sos[i], sos[i]), portNames,
+            diffG.addElement(makeXmlPrimitiveCon(t.nodeGroups, "F-"+composeName, hla, hla, new SizeOffset(sos[i], sos[i], sos[i], sos[i]), portNames,
                     makeXmlNodeLayer(metal1Over, metal1Over, metal1Over, metal1Over, m1Layer, Poly.Type.FILLED, true), // meta1 layer
                     makeXmlNodeLayer(hla, hla, hla, hla, diffLayers[i], Poly.Type.FILLED, true), // active layer
                     makeXmlNodeLayer(sels[i], sels[i], sels[i], sels[i], plusLayers[i], Poly.Type.FILLED, true), // select layer
@@ -2207,7 +2210,7 @@ public class TechEditWizardData
                 portNames.add(lx.name);
                 portNames.add(ly.name);
 
-                g.addElement(makeXmlPrimitiveCon(t.nodes, c.prefix + name, -1, -1,
+                g.addElement(makeXmlPrimitiveCon(t.nodeGroups, c.prefix + name, -1, -1,
                     new SizeOffset(longX, longX, longY, longY), portNames,
                 makeXmlNodeLayer(h1x, h1x, h1y, h1y, ly, Poly.Type.FILLED, true), // layer1
                 makeXmlNodeLayer(h2x, h2x, h2y, h2y, lx, Poly.Type.FILLED, true), // layer2
@@ -2263,7 +2266,7 @@ public class TechEditWizardData
 
             // well contact
             // F stands for full
-            g.addElement(makeXmlPrimitiveCon(t.nodes, "F-"+composeName, hla, hla, new SizeOffset(wellSos[i], wellSos[i], wellSos[i], wellSos[i]), portNames,
+            g.addElement(makeXmlPrimitiveCon(t.nodeGroups, "F-"+composeName, hla, hla, new SizeOffset(wellSos[i], wellSos[i], wellSos[i], wellSos[i]), portNames,
                     makeXmlNodeLayer(metal1Over, metal1Over, metal1Over, metal1Over, m1Layer, Poly.Type.FILLED, true), // meta1 layer
                     makeXmlNodeLayer(hla, hla, hla, hla, diffLayers[i], Poly.Type.FILLED, true), // active layer
                     makeXmlNodeLayer(sels[i], sels[i], sels[i], sels[i], plusLayers[i], Poly.Type.FILLED, true), // select layer
@@ -2301,7 +2304,7 @@ public class TechEditWizardData
                 String name = lb.name + "-" + lt.name;
 
                 double longDist = scaledValue(via_overhang[i-1].v);
-                group.addElement(makeContactSeries(t.nodes, name, viaSize, via, viaSpacing, viaArraySpacing,
+                group.addElement(makeContactSeries(t.nodeGroups, name, viaSize, via, viaSpacing, viaArraySpacing,
                     longDist, lt,
                     longDist, lb));
             }
@@ -2333,7 +2336,7 @@ public class TechEditWizardData
                 double longX = scaledValue(DBMath.isGreaterThan(c.verticalLayer.overX.v, c.horizontalLayer.overX.v) ? c.verticalLayer.overX.v : c.horizontalLayer.overX.v);
                 double longY = scaledValue(DBMath.isGreaterThan(c.verticalLayer.overY.v, c.horizontalLayer.overY.v) ? c.verticalLayer.overY.v : c.horizontalLayer.overY.v);
 
-                metalPalette[via-1].addElement(makeXmlPrimitiveCon(t.nodes, c.prefix + name, -1, -1,
+                metalPalette[via-1].addElement(makeXmlPrimitiveCon(t.nodeGroups, c.prefix + name, -1, -1,
                     new SizeOffset(longX, longX, longY, longY),
                     portNames,
                 makeXmlNodeLayer(h1x, h1x, h1y, h1y, ly, Poly.Type.FILLED, true), // layer1
@@ -2487,7 +2490,7 @@ public class TechEditWizardData
             nodesList.add(makeXmlNodeLayer(selectx, selectx, selecty, selecty, selectLayer, Poly.Type.FILLED, true));
 
             // Transistor
-            Xml.PrimitiveNode n = makeXmlPrimitive(t.nodes, name + "-Transistor", PrimitiveNode.Function.TRANMOS, 0, 0, 0, 0,
+            Xml.PrimitiveNodeGroup n = makeXmlPrimitive(t.nodeGroups, name + "-Transistor", PrimitiveNode.Function.TRANMOS, 0, 0, 0, 0,
                 new SizeOffset(sox, sox, soy, soy), nodesList, nodePorts, null, false);
             g.addElement(n);
         }
