@@ -2469,8 +2469,12 @@ public class TechEditWizardData
             }
 
             // Well layer
+            Xml.NodeLayer xTranWellLayer = null;
             if (wellLayer != null)
-                nodesList.add(makeXmlNodeLayer(wellx, wellx, welly, welly, wellLayer, Poly.Type.FILLED, true));
+            {
+                xTranWellLayer = (makeXmlNodeLayer(wellx, wellx, welly, welly, wellLayer, Poly.Type.FILLED, true));
+                nodesList.add(xTranWellLayer);
+            }
 
             // Active layers
             nodesList.add(makeXmlNodeLayer(impx, impx, impy, impy, activeLayer, Poly.Type.FILLED, true));
@@ -2495,26 +2499,6 @@ public class TechEditWizardData
             // non-electrical poly (just one poly layer)
             nodesList.add(makeXmlNodeLayer(endPolyx, endPolyx, endPolyy, endPolyy, polyLayer, Poly.Type.FILLED, false));
 
-            // Extra protection poly. No ports are necessary.
-            if (getExtraInfoFlag())
-            {
-                if (!horizontalFlag)
-                {
-                    System.out.println("Not working with !horizontal");
-                    assert(false);
-                }
-                // bottom or left
-                nodesList.add(makeXmlNodeLayer(gatex, gatex, //endPolyx, endPolyx,
-                    DBMath.round(endPolyy + protectDist),
-                    -DBMath.round((protectDist + 3*endPolyy)),
-                   polyLayer, Poly.Type.FILLED, false));
-                // top or right
-                nodesList.add(makeXmlNodeLayer(gatex, gatex, // endPolyx, endPolyx,
-                    -DBMath.round((protectDist + 3*endPolyy)),
-                    DBMath.round(endPolyy + protectDist),
-                    polyLayer, Poly.Type.FILLED, false));
-            }
-
             // left port
             portNames.clear();
             portNames.add(polyLayer.name);
@@ -2524,12 +2508,64 @@ public class TechEditWizardData
             nodePorts.add(makeXmlPrimitivePort("trans-poly-right", 0, 180, 0, minFullSize, polyX, polyX, polyY, polyY, portNames));
 
             // Select layer
-            nodesList.add(makeXmlNodeLayer(selectx, selectx, selecty, selecty, selectLayer, Poly.Type.FILLED, true));
+            Xml.NodeLayer xTranSelLayer = (makeXmlNodeLayer(selectx, selectx, selecty, selecty, selectLayer, Poly.Type.FILLED, true));
+            nodesList.add(xTranSelLayer);
 
-            // Transistor
+            // Standard Transistor
             Xml.PrimitiveNodeGroup n = makeXmlPrimitive(t.nodeGroups, name + "-Transistor", PrimitiveNode.Function.TRANMOS, 0, 0, 0, 0,
                 new SizeOffset(sox, sox, soy, soy), nodesList, nodePorts, null, false);
             g.addElement(n);
+
+            // Extra transistors which don't have select nor well
+            // Extra protection poly. No ports are necessary.
+            if (getExtraInfoFlag())
+            {
+                // removing well and select for simplicity
+                nodesList.remove(xTranSelLayer);
+                nodesList.remove(xTranWellLayer);
+                // new sox and soy
+                sox = scaledValue(poly_endcap.v);
+                soy = scaledValue(diff_poly_overhang.v);
+                n = makeXmlPrimitive(t.nodeGroups, name + "-Transistor-S", PrimitiveNode.Function.TRANMOS, 0, 0, 0, 0,
+                new SizeOffset(sox, sox, soy, soy), nodesList, nodePorts, null, false);
+                g.addElement(n);
+
+                // standard xtra without select and well
+
+                if (!horizontalFlag)
+                {
+                    System.out.println("Not working with !horizontal");
+                    assert(false);
+                }
+                // bottom or left
+                Xml.NodeLayer bOrL = (makeXmlNodeLayer(gatex, gatex, //endPolyx, endPolyx,
+                    DBMath.round(endPolyy + protectDist),
+                    -DBMath.round((protectDist + 3*endPolyy)),
+                   polyLayer, Poly.Type.FILLED, false));
+                // Adding left
+                nodesList.add(bOrL);
+                n = makeXmlPrimitive(t.nodeGroups, name + "-Transistor-S-L", PrimitiveNode.Function.TRANMOS, 0, 0, 0, 0,
+                new SizeOffset(sox, sox, soy, soy), nodesList, nodePorts, null, false);
+                g.addElement(n);
+
+                // top or right
+                Xml.NodeLayer tOrR = (makeXmlNodeLayer(gatex, gatex, // endPolyx, endPolyx,
+                    -DBMath.round((protectDist + 3*endPolyy)),
+                    DBMath.round(endPolyy + protectDist),
+                    polyLayer, Poly.Type.FILLED, false));
+
+                // Adding both
+                nodesList.add(tOrR);
+                n = makeXmlPrimitive(t.nodeGroups, name + "-Transistor-S-LR", PrimitiveNode.Function.TRANMOS, 0, 0, 0, 0,
+                new SizeOffset(sox, sox, soy, soy), nodesList, nodePorts, null, false);
+                g.addElement(n);
+
+                // Adding right
+                nodesList.remove(bOrL);
+                n = makeXmlPrimitive(t.nodeGroups, name + "-Transistor-S-R", PrimitiveNode.Function.TRANMOS, 0, 0, 0, 0,
+                new SizeOffset(sox, sox, soy, soy), nodesList, nodePorts, null, false);
+                g.addElement(n);
+            }
         }
 
         // Aggregating all palette groups into one
