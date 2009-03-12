@@ -525,7 +525,7 @@ public class EditMenu {
 				}
 			}
 
-			if (arcCount <= 1 && nodeCount <= 1 && exportCount <= 1 && textCount <= 1 && graphicsCount == 0)
+			if (arcCount+nodeCount+exportCount+textCount == 1 && graphicsCount == 0)
 			{
 				if (arcCount == 1) GetInfoArc.showDialog();
 				if (nodeCount == 1)

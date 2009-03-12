@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09f: ******************************
 
+BUG: (3/12/09, SMR) Asking for "properties" when a node and a piece of text are selected
+     brings up two dialogs (Bug #2072).
+FIX: Now uses the multi-object dialog.
+
 IMP/MAN: (3/12/09, SMR) New command: File / Import / Spice Decks reads Spice decks (Bug #2077).
 
 BUG: (3/12/09, DN) Compilation failure with Xml.MenuPalette.menuBoxes.
