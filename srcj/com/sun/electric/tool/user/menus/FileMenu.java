@@ -134,39 +134,41 @@ public class FileMenu {
 			ToolBar.openLibraryCommand, // O
             openRecentLibs,
 
-		// mnemonic keys available:      F HIJK  NO QR   VW YZ
+		// mnemonic keys available:      F HIJ   NO QR   VW YZ
             new EMenu("_Import",
                 new EMenuItem("_CIF (Caltech Intermediate Format)...") { public void run() {
-                    importLibraryCommand(FileType.CIF); }},
+                    importLibraryCommand(FileType.CIF, false); }},
                 new EMenuItem("_GDS II (Stream)...") { public void run() {
-                    importLibraryCommand(FileType.GDS); }},
+                    importLibraryCommand(FileType.GDS, false); }},
                 new EMenuItem("GDS _Map File...") {	public void run() {
                     GDSMap.importMapFile(); }},
                 new EMenuItem("_EDIF (Electronic Design Interchange Format)...") { public void run() {
-                	importLibraryCommand(FileType.EDIF); }},
+                	importLibraryCommand(FileType.EDIF, false); }},
                 new EMenuItem("_LEF (Library Exchange Format)...") { public void run() {
-                    importLibraryCommand(FileType.LEF); }},
+                    importLibraryCommand(FileType.LEF, false); }},
                 new EMenuItem("_DEF (Design Exchange Format)...") {	public void run() {
-                    importLibraryCommand(FileType.DEF); }},
+                    importLibraryCommand(FileType.DEF, false); }},
                 new EMenuItem("_DEF (Design Exchange Format) to current cell...") {	public void run() {
                 	importToCurrentCellCommand(FileType.DEF); }},
                 new EMenuItem("D_XF (AutoCAD)...") { public void run() {
-                    importLibraryCommand(FileType.DXF); }},
+                    importLibraryCommand(FileType.DXF, false); }},
+                new EMenuItem("Spice Dec_ks...") {	public void run() {
+                    importLibraryCommand(FileType.SPICE, true); }},
                 new EMenuItem("S_UE (Schematic User Environment)...") {	public void run() {
-                    importLibraryCommand(FileType.SUE); }},
+                    importLibraryCommand(FileType.SUE, false); }},
                 new EMenuItem("_Verilog...") {	public void run() {
-                    importLibraryCommand(FileType.VERILOG); }},
+                    importLibraryCommand(FileType.VERILOG, false); }},
                 new EMenuItem("_Applicon 860...") {	public void run() {
-                    importLibraryCommand(FileType.APPLICON860); }},
+                    importLibraryCommand(FileType.APPLICON860, false); }},
                 IOTool.hasDais() ? new EMenuItem("Dais (_Sun CAD)...") { public void run() {
-                    importLibraryCommand(FileType.DAIS); }} : null,
+                    importLibraryCommand(FileType.DAIS, true); }} : null,
                 IOTool.hasDais() ? new EMenuItem("Dais (_Sun CAD) to current library...") { public void run() {
                 	importToCurrentCellCommand(FileType.DAIS); }} : null,
                 SEPARATOR,
                 new EMenuItem("ELI_B...") {	public void run() {
-                    importLibraryCommand(FileType.ELIB); }},
+                    importLibraryCommand(FileType.ELIB, false); }},
                 new EMenuItem("_Readable Dump...") { public void run() {
-                    importLibraryCommand(FileType.READABLEDUMP); }},
+                    importLibraryCommand(FileType.READABLEDUMP, false); }},
                 new EMenuItem("_Text Cell Contents...") { public void run() {
                     TextWindow.readTextCell(); }},
                 new EMenuItem("_Preferences...") { public void run() {
@@ -760,15 +762,17 @@ public class FileMenu {
 	}
 
 	/**
-	 * This method implements the command to import a library (Readable Dump or JELIB format).
+	 * This method implements the command to import a library.
 	 * It is interactive, and pops up a dialog box.
+	 * @param wholeDirectory true to import a directory instead of a file.
 	 */
-	public static void importLibraryCommand(FileType type)
+	public static void importLibraryCommand(FileType type, boolean wholeDirectory)
 	{
 		String fileName = null;
-		if (type == FileType.DAIS)
+		if (wholeDirectory)
 		{
-			fileName = OpenFile.chooseDirectory(type.getDescription());
+			fileName = OpenFile.chooseInputFile(type, null, true, User.getWorkingDirectory(), true);
+//			fileName = OpenFile.chooseDirectory(type.getDescription());
 		} else
 		{
 			fileName = OpenFile.chooseInputFile(type, null);

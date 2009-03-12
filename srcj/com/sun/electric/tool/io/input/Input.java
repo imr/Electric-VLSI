@@ -136,6 +136,10 @@ public class Input
 			if (type == FileType.DAIS)
 			{
 				IOTool.readDais(fileURL, lib, isNewLibraryCreated());
+			} else if (type == FileType.SPICE)
+			{
+				Spice sp = new Spice();
+				sp.readDirectory(fileURL, lib);
 			} else
 			{
 				Input in;

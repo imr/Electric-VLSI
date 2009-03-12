@@ -187,9 +187,15 @@ public class OpenFile
 	{
 		if (title == null)
 		{
-			if (wantDirectory) title = "Choose Directory"; else
-				title = "Open file";
-			if (type != null) title = "Open " + type.getDescription();
+			if (type != null)
+			{
+				if (wantDirectory) title = "Choose Directory with " + type.getDescription() + " files"; else
+					title = "Open " + type.getDescription();
+			} else
+			{
+				if (wantDirectory) title = "Choose Directory"; else
+					title = "Open file";
+			}
 		}
 
 		boolean useSwing = true;
