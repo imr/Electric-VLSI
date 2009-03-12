@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09f: ******************************
 
+BUG: (3/12/09, DN) Compilation failure with Xml.MenuPalette.menuBoxes.
+FIX: Declare it as List<List<?>>
+
 IMP: (3/12/09, DN) Environment is thread local.
 
 IMP: (3/12/09, DN) In tech Xml <primitiveNodeGroup> element doesn't require name.

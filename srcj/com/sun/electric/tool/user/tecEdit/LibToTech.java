@@ -435,7 +435,7 @@ public class LibToTech
 			{
 				for(int x=0; x<menuWid; x++)
 				{
-					List<Object> items = xmp.menuBoxes.get(i++);
+					List<?> items = xmp.menuBoxes.get(i++);
 					Object item = null;
 					if (items.size() == 1)
 					{

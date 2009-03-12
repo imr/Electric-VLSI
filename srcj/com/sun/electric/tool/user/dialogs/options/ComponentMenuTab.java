@@ -149,7 +149,7 @@ public class ComponentMenuTab extends PreferencePanel
 		int menuHei = menuArray.length;
 		int menuWid = menuArray[0].length;
 		xmp.numColumns = menuWid;
-		xmp.menuBoxes = new ArrayList<List<Object>>();
+		xmp.menuBoxes = new ArrayList<List<?>>();
 		Object[][] convMenuArray = new Object[menuHei][menuWid];
 		for(int y=0; y<menuHei; y++)
 		{

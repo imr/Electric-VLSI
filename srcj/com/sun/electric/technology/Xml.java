@@ -288,7 +288,7 @@ public class Xml {
 
     public static class MenuPalette implements Serializable {
         public int numColumns;
-        public List<List<Object>> menuBoxes = new ArrayList<List<Object>>();
+        public List<List<?>> menuBoxes = new ArrayList<List<?>>();
 
         public String writeXml() {
             StringWriter sw = new StringWriter();
@@ -2115,7 +2115,7 @@ public class Xml {
             l();
         }
 
-        private void writeMenuBoxXml(List<Object> list) {
+        private void writeMenuBoxXml(List<?> list) {
             b(XmlKeyword.menuBox);
             if (list == null || list.size() == 0) {
                 el();

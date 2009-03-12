@@ -1191,7 +1191,7 @@ public class Technology implements Comparable<Technology>, Serializable
                 row = new Object[numColumns];
                 rows.add(row);
             }
-            List<Object> menuBoxList = menuPalette.menuBoxes.get(i);
+            List<?> menuBoxList = menuPalette.menuBoxes.get(i);
             if (menuBoxList == null || menuBoxList.isEmpty()) continue;
             if (menuBoxList.size() == 1) {
                 row[column] = convertMenuItem(menuBoxList.get(0));

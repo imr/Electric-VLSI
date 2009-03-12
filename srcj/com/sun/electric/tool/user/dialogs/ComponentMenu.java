@@ -293,7 +293,7 @@ public class ComponentMenu extends EDialog
 		if (!changed) return;
 		Xml.MenuPalette xmp = new Xml.MenuPalette();
 		xmp.numColumns = menuWid;
-		xmp.menuBoxes = new ArrayList<List<Object>>();
+		xmp.menuBoxes = new ArrayList<List<?>>();
 		for(int y=0; y<menuHei; y++)
 		{
 			for(int x=0; x<menuWid; x++)

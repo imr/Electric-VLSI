@@ -571,7 +571,7 @@ public class Manipulate
 			int columns = (things.size()+13) / 14;
 			Xml.MenuPalette xmp = new Xml.MenuPalette();
 			xmp.numColumns = columns;
-			xmp.menuBoxes = new ArrayList<List<Object>>();
+			xmp.menuBoxes = new ArrayList<List<?>>();
 			for(Object item : things)
 			{
 				if (item instanceof List) xmp.menuBoxes.add((List)item); else
