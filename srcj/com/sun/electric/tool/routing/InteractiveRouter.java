@@ -718,7 +718,20 @@ public abstract class InteractiveRouter extends Router {
             overlapY = lowerBoundY <= upperBoundY;
         }
 
-        // check if bounds share X and Y space
+        if (startPoly.getPoints().length == 2 && endPoly.getPoints().length == 2) {
+            // lines, allow special case where lines can be non-manhatten
+            Point2D [] points1 = startPoly.getPoints();
+            Point2D [] points2 = endPoly.getPoints();
+            Point2D intersection = getIntersection(new Line2D.Double(points1[0], points1[1]),
+                                                   new Line2D.Double(points2[0], points2[1]));
+            if (intersection != null) {
+                startPoint.setLocation(intersection);
+                endPoint.setLocation(intersection);
+                return;
+            }
+        }
+
+        // check if bounds share X and Y space (manhatten rectangular polygons only)
         if (lowerBoundX <= upperBoundX) {
             double x = getClosestValue(lowerBoundX, upperBoundX, clicked.getX());
             startPoint.setLocation(x, startPoint.getY());
@@ -751,6 +764,41 @@ public abstract class InteractiveRouter extends Router {
             }
         }
     }
+
+    /**
+     * Get the intersection point of the two line segments, or null if none
+     * @param line1 line 1
+     * @param line2 line 2
+     * @return the intersection point, or null if none
+     */
+    public static Point2D getIntersection(Line2D line1, Line2D line2) {
+        if (!line1.intersectsLine(line2))
+            return null;
+        double [] co1 = getLineCoeffs(line1);
+        double [] co2 = getLineCoeffs(line2);
+        double x = 0, y = 0;
+        // x = (B2 - B1)/(A1 - A2)
+        x = (co2[1] - co1[1])/(co1[0] - co2[0]);
+        // y = Ax + B
+        y = co1[0] * x + co1[1];
+        return new Point2D.Double(x, y);
+    }
+
+    /**
+     * Get the coeffecients of the line of the form y = Ax + B.
+     * @param line the line
+     * @return an array of the values A,B (slope, intercept)
+     */
+    private static double [] getLineCoeffs(Line2D line) {
+        double dy = line.getP2().getY() - line.getP1().getY();
+        double dx = line.getP2().getX() - line.getP1().getX();
+        // slope is rise over run (dy / dx)
+        double slope = dy/dx;
+        // B = y - Ax
+        double intercept = line.getP2().getY() - slope * line.getP2().getX();
+        return new double [] {slope, intercept};
+    }
+    
 
     /**
      * Get bounds of primitive instance. Returns null if object is not an instance of a primitive.
@@ -890,72 +938,24 @@ public abstract class InteractiveRouter extends Router {
      * This method should NOT add the returned RouteElement to the route.
      * @param route the route so far
      * @param arc the arc to draw from/to
-     * @param point point on or near arc
+     * @param connectingPoint point on or near arc
      * @param stayInside the area in which to route (null if not applicable).
      * @return a RouteElement holding the new pin at the bisection
      * point, or a RouteElement holding an existingPortInst if
      * drawing from either end of the ArcInst.
      */
-    protected RouteElementPort findArcConnectingPoint(Route route, ArcInst arc, Point2D point, PolyMerge stayInside) {
+    protected RouteElementPort findArcConnectingPoint(Route route, ArcInst arc, Point2D connectingPoint, PolyMerge stayInside) {
 
         EPoint head = arc.getHeadLocation();
         EPoint tail = arc.getTailLocation();
         RouteElementPort headRE = RouteElementPort.existingPortInst(arc.getHeadPortInst(), head);
         RouteElementPort tailRE = RouteElementPort.existingPortInst(arc.getTailPortInst(), tail);
-        RouteElementPort startRE = null;
-        // find extents of wire
-        double minX, minY, maxX, maxY;
-        Point2D minXpin = null, minYpin = null;
-        if (head.getX() < tail.getX()) {
-            minX = head.getX(); maxX = tail.getX(); minXpin = head;
-        } else {
-            minX = tail.getX(); maxX = head.getX(); minXpin = tail;
-        }
-        if (head.getY() < tail.getY()) {
-            minY = head.getY(); maxY = tail.getY(); minYpin = head;
-        } else {
-            minY = tail.getY(); maxY = head.getY(); minYpin = tail;
-        }
-        // for efficiency purposes, we are going to assume the arc is
-        // either vertical or horizontal for bisecting the arc
-        if (head.getX() == tail.getX()) {
-            // line is vertical, see if point point bisects
-            if (point.getY() > minY && point.getY() < maxY) {
-                Point2D location = new Point2D.Double(head.getX(), point.getY());
-                startRE = bisectArc(route, arc, location, stayInside);
-            }
-            // not within Y bounds, choose closest pin
-            else if (point.getY() <= minY) {
-                if (minYpin == head) startRE = headRE; else startRE = tailRE;
-            } else {
-                if (minYpin == head) startRE = tailRE; else startRE = headRE;
-            }
-        }
-        // check if arc is horizontal
-        else if (head.getY() == tail.getY()) {
-            // line is horizontal, see if point bisects
-            if (point.getX() > minX && point.getX() < maxX) {
-                Point2D location = new Point2D.Double(point.getX(), head.getY());
-                startRE = bisectArc(route, arc, location, stayInside);
-            }
-            // not within X bounds, choose closest pin
-            else if (point.getX() <= minX) {
-                if (minXpin == head) startRE = headRE; else startRE = tailRE;
-            } else {
-                if (minXpin == head) startRE = tailRE; else startRE = headRE;
-            }
-        }
-        // arc is not horizontal or vertical, draw from closest pin
-        else {
-            double headDist = point.distance(head);
-            double tailDist = point.distance(tail);
-            if (headDist < tailDist)
-                startRE = headRE;
-            else
-                startRE = tailRE;
-        }
-        //route.add(startRE);           // DON'T ADD!!
-        return startRE;
+
+        if (head.equals(connectingPoint)) return headRE;
+        if (tail.equals(connectingPoint)) return tailRE;
+
+        // otherwise, we must be bisecting the arc
+        return bisectArc(route, arc, connectingPoint, stayInside);
     }
 
     /**
