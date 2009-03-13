@@ -31,7 +31,6 @@ import com.sun.electric.tool.user.MessagesStream;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.UserInterfaceMain;
-import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.menus.EMenuBar;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.menus.MenuCommands;
@@ -84,7 +83,7 @@ public class TopLevel extends JFrame
 
     /** The menu bar */                                     private EMenuBar.Instance menuBar;
     /** The tool bar */                                     private ToolBar toolBar;
-    
+
 	/**
 	 * Constructor to build a window.
 	 * @param name the title of the window.
@@ -175,13 +174,13 @@ public class TopLevel extends JFrame
 			topLevel.getContentPane().add(desktop, BorderLayout.CENTER);
             topLevel.setVisible(true);
 		}
-        
+
 		// initialize the messagesWindow window
         messagesWindow = new MessagesWindow();
         MessagesStream stream = MessagesStream.getMessagesStream();
         stream.addObserver(messagesWindow);
         WindowFrame.createEditWindow(null);
-        FileMenu.updateRecentlyOpenedLibrariesList();        
+        FileMenu.updateRecentlyOpenedLibrariesList();
     }
 
 	private static Pref cacheWindowLoc = Pref.makeStringPref("WindowLocation", User.getUserTool().prefs, "");
@@ -416,7 +415,7 @@ public class TopLevel extends JFrame
             wf.setCursor(cursor);
         }
 	}
-    
+
     public static synchronized List<ToolBar> getToolBars() {
         ArrayList<ToolBar> toolBars = new ArrayList<ToolBar>();
         if (mode == UserInterfaceMain.Mode.MDI) {
@@ -467,9 +466,19 @@ public class TopLevel extends JFrame
 	 */
 	public static TopLevel getCurrentJFrame()
 	{
+        return getCurrentJFrame(true);
+	}
+
+	/**
+	 * Method to return the current JFrame on the screen.
+     * @param makeNewFrame whether or not to make a new WindowFrame if no current frame
+	 * @return the current JFrame.
+	 */
+	public static TopLevel getCurrentJFrame(boolean makeNewFrame)
+	{
 		if (isMDIMode()) return topLevel;
 
-		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+		WindowFrame wf = WindowFrame.getCurrentWindowFrame(makeNewFrame);
         if (wf == null) return null;
 		return wf.getFrame();
 	}
@@ -480,13 +489,13 @@ public class TopLevel extends JFrame
 //	 * @param wf the WindowFrame to associatd with this.
 //	 */
 //	public void setWindowFrame(WindowFrame wf) { this.wf = wf; }
-    
+
     /**
      * Method called when done with this Frame.  Both the menuBar
      * and toolBar have persistent state in static hash tables to maintain
      * consistency across different menu bars and tool bars in SDI mode.
      * Those references must be nullified for garbage collection to reclaim
-     * that memory.  This is really for SDI mode, because in MDI mode the 
+     * that memory.  This is really for SDI mode, because in MDI mode the
      * TopLevel is only closed on exit, and all the application memory will be freed.
      * <p>
      * NOTE: JFrame does not get garbage collected after dispose() until
@@ -566,7 +575,7 @@ public class TopLevel extends JFrame
         if (print) {
             Throwable t = new Throwable(msg);
             System.out.println(t.toString());
-            ActivityLogger.logException(t);            
+            ActivityLogger.logException(t);
         }
     }
 

@@ -398,7 +398,7 @@ public class UserInterfaceMain extends AbstractUserInterface
     public void showErrorMessage(final Object message, final String title)
     {
         if (SwingUtilities.isEventDispatchThread())
-            JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), message, title, JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(false), message, title, JOptionPane.ERROR_MESSAGE);
         else {
             SwingUtilities.invokeLater( new Runnable() {
                 public void run() {

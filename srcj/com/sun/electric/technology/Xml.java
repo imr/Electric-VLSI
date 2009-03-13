@@ -946,6 +946,10 @@ public class Xml {
                     curNodeGroup = new PrimitiveNodeGroup();
                     curNodeGroupHasNodeBase = false;
                     curNode = null;
+                    if (a_("name") != null)
+                        System.out.println("Attribute 'name' in <primitiveNodeGroup> is deprecated");
+                    if (a_("fun") != null)
+                        System.out.println("Attribute 'fun' in <primitiveNodeGroup> is deprecated");
                     break;
                 case inNodes:
                     if (curNodeGroup.isSingleton)

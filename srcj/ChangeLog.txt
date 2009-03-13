@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09f: ******************************
 
+BUG: (3/12/09, DN) Electric does't start if a soft XML tech is not available (Bug #2076)
+FIX: Don't attempt to create EditWindow in UserInterfaceMain.showErrorMessage .
+
 BUG: (3/12/09, JKG) Bug 2074: connect 45 degree arcs together
 FIX: In InteractiveRouter, add special case code for overlapping arcs
 
