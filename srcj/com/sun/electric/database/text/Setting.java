@@ -49,7 +49,7 @@ import java.util.prefs.Preferences;
  * Settings are grouped in a Setting Trees. Each Tree consists of a RootGroup and lower Groups.
  */
 public class Setting {
-    public final static boolean FROM_THREAD_ENVIRONMENT = false;
+    public final static boolean FROM_THREAD_ENVIRONMENT = true;
 
     /**
      * This class manages a group of Settings.
