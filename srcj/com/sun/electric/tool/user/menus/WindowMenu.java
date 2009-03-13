@@ -73,7 +73,6 @@ import java.util.Collections;
 import java.util.EventListener;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -844,13 +843,16 @@ public class WindowMenu {
         User.resetFactoryColor(User.ColorPrefType.PORT_HIGHLIGHT);
         User.resetFactoryColor(User.ColorPrefType.TEXT);
         User.resetFactoryColor(User.ColorPrefType.INSTANCE);
-        User.resetFactoryColor(User.ColorPrefType.ARTWORK);
+//        User.resetFactoryColor(User.ColorPrefType.ARTWORK);
 		User.resetFactoryColor(User.ColorPrefType.WAVE_BACKGROUND);
 		User.resetFactoryColor(User.ColorPrefType.WAVE_FOREGROUND);
 		User.resetFactoryColor(User.ColorPrefType.WAVE_STIMULI);
 
-        // change the colors in the "Generic" technology
-        EDatabase.clientDatabase().getGeneric().setBackgroudColor(Color.BLACK);
+        EDatabase database = EDatabase.clientDatabase();
+        // change default Artowrk graphics color
+        database.getArtwork().defaultLayer.getGraphics().setColor(Color.BLACK);
+		// change the colors in the "Generic" technology
+        database.getGeneric().setBackgroudColor(Color.BLACK);
 
         // redraw
         WindowFrame.repaintAllWindows();
@@ -867,13 +869,16 @@ public class WindowMenu {
         User.setColor(User.ColorPrefType.PORT_HIGHLIGHT, Color.YELLOW.getRGB());
         User.setColor(User.ColorPrefType.TEXT, Color.WHITE.getRGB());
         User.setColor(User.ColorPrefType.INSTANCE, Color.WHITE.getRGB());
-        User.setColor(User.ColorPrefType.ARTWORK, Color.WHITE.getRGB());
+//        User.setColor(User.ColorPrefType.ARTWORK, Color.WHITE.getRGB());
 		User.setColor(User.ColorPrefType.WAVE_BACKGROUND, Color.BLACK.getRGB());
 		User.setColor(User.ColorPrefType.WAVE_FOREGROUND, Color.WHITE.getRGB());
 		User.setColor(User.ColorPrefType.WAVE_STIMULI, Color.RED.getRGB());
 
+        EDatabase database = EDatabase.clientDatabase();
+        // change default Artowrk graphics color
+        database.getArtwork().defaultLayer.getGraphics().setColor(Color.WHITE);
 		// change the colors in the "Generic" technology
-        EDatabase.clientDatabase().getGeneric().setBackgroudColor(Color.WHITE);
+        database.getGeneric().setBackgroudColor(Color.WHITE);
 
         // redraw
         WindowFrame.repaintAllWindows();
@@ -890,13 +895,16 @@ public class WindowMenu {
         User.setColor(User.ColorPrefType.PORT_HIGHLIGHT, Color.DARK_GRAY.getRGB());
         User.setColor(User.ColorPrefType.TEXT, Color.BLACK.getRGB());
         User.setColor(User.ColorPrefType.INSTANCE, Color.BLACK.getRGB());
-        User.setColor(User.ColorPrefType.ARTWORK, Color.BLACK.getRGB());
+//        User.setColor(User.ColorPrefType.ARTWORK, Color.BLACK.getRGB());
 		User.setColor(User.ColorPrefType.WAVE_BACKGROUND, Color.WHITE.getRGB());
 		User.setColor(User.ColorPrefType.WAVE_FOREGROUND, Color.BLACK.getRGB());
 		User.setColor(User.ColorPrefType.WAVE_STIMULI, Color.RED.getRGB());
 
+        EDatabase database = EDatabase.clientDatabase();
+        // change default Artowrk graphics color
+        database.getArtwork().defaultLayer.getGraphics().setColor(Color.BLACK);
 		// change the colors in the "Generic" technology
-        EDatabase.clientDatabase().getGeneric().setBackgroudColor(Color.BLACK);
+        database.getGeneric().setBackgroudColor(Color.BLACK);
 
         // redraw
         WindowFrame.repaintAllWindows();

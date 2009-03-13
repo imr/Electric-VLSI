@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09f: ******************************
 
+BUG: (3/13/09, DN) Default artwork color broken again (Bug #2069).
+FIX: Remove User.ColorPrefType.ARTWORK because it conflicts with Artwork.defaultLayer.colorPref
+
 IMP: (3/12/09, DN) Enable thread local Settings.
 
 BUG: (3/12/09, DN) Electric does't start if a soft XML tech is not available (Bug #2076)

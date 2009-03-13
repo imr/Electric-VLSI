@@ -27,7 +27,6 @@ import com.sun.electric.StartupPrefs;
 import com.sun.electric.database.IdMapper;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.Dimension2D;
-import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
@@ -2274,7 +2273,7 @@ public class User extends Listener
 	/****************************** COLOR PREFERENCES ******************************/
 
 	public enum ColorPrefType {BACKGROUND, GRID, HIGHLIGHT, NODE_HIGHLIGHT, MOUSEOVER_HIGHLIGHT,
-		PORT_HIGHLIGHT, TEXT, INSTANCE, ARTWORK, DOWNINPLACEBORDER,
+		PORT_HIGHLIGHT, TEXT, INSTANCE, DOWNINPLACEBORDER,
 		WAVE_BACKGROUND, WAVE_FOREGROUND, WAVE_STIMULI, WAVE_OFF_STRENGTH,
 		WAVE_NODE_STRENGTH, WAVE_GATE_STRENGTH, WAVE_POWER_STRENGTH, WAVE_CROSS_LOW,
 		WAVE_CROSS_HIGH, WAVE_CROSS_UNDEF, WAVE_CROSS_FLOAT}
@@ -2335,7 +2334,6 @@ public class User extends Listener
 			case PORT_HIGHLIGHT: return cacheColorPortHighlight;
 			case TEXT: return cacheColorText;
 			case INSTANCE: return cacheColorInstanceOutline;
-			case ARTWORK: return cacheColorDefaultArtwork;
 			case DOWNINPLACEBORDER: return cacheColorDownInPlaceBorder;
 			case WAVE_BACKGROUND: return cacheColorWaveformBackground;
 			case WAVE_FOREGROUND: return cacheColorWaveformForeground;
@@ -2383,49 +2381,20 @@ public class User extends Listener
 	 */
 	public static void setColor(ColorPrefType pref, int color)
 	{
-		switch (pref)
-		{
-			case BACKGROUND: cacheColorBackground.setInt(color);
-				// 3D case. Uses observer/observable pattern so doesn't make sense to call every single 3D ViewWindow
-				// and update
-				try
-				{
-					Class<?> j3DUtilsClass = Resources.get3DClass("utils.J3DUtils");
-					Method setMethod = j3DUtilsClass.getDeclaredMethod("setBackgroundColor", new Class[] {Object.class});
-					setMethod.invoke(j3DUtilsClass, new Object[]{null});
-				} catch (Exception e) {
-					System.out.println("Cannot call 3D plugin method setBackgroundColor: " + e.getMessage());
-				}
-				return;
-			case GRID: cacheColorGrid.setInt(color); return;
-			case HIGHLIGHT: cacheColorHighlight.setInt(color); return;
-			case NODE_HIGHLIGHT: cacheColorNodeHighlight.setInt(color); return;
-			case MOUSEOVER_HIGHLIGHT: cacheColorMouseOverHighlight.setInt(color); return;
-			case PORT_HIGHLIGHT: cacheColorPortHighlight.setInt(color); return;
-			case TEXT: cacheColorText.setInt(color); return;
-			case INSTANCE: cacheColorInstanceOutline.setInt(color); return;
-			case ARTWORK: {
-                cacheColorDefaultArtwork.setInt(color);
-                Artwork artwork = EDatabase.clientDatabase().getArtwork();
-                EGraphics eg = artwork.defaultLayer.getGraphics();
-                if (eg.getRGB() != color)
-                    eg.setColorIndex(EGraphics.makeIndex(new Color(color)));
-                return;
+		Pref pf = getColorPref(pref);
+        pf.setInt(color);
+        if (pref == ColorPrefType.BACKGROUND) {
+            // 3D case. Uses observer/observable pattern so doesn't make sense to call every single 3D ViewWindow
+            // and update
+            try
+            {
+                Class<?> j3DUtilsClass = Resources.get3DClass("utils.J3DUtils");
+                Method setMethod = j3DUtilsClass.getDeclaredMethod("setBackgroundColor", new Class[] {Object.class});
+                setMethod.invoke(j3DUtilsClass, new Object[]{null});
+            } catch (Exception e) {
+                System.out.println("Cannot call 3D plugin method setBackgroundColor: " + e.getMessage());
             }
-			case DOWNINPLACEBORDER: cacheColorDownInPlaceBorder.setInt(color); return;
-			case WAVE_BACKGROUND: cacheColorWaveformBackground.setInt(color); return;
-			case WAVE_FOREGROUND: cacheColorWaveformForeground.setInt(color); return;
-			case WAVE_STIMULI: cacheColorWaveformStimuli.setInt(color); return;
-			case WAVE_OFF_STRENGTH: cacheColorWaveformStrengthOff.setInt(color); return;
-			case WAVE_NODE_STRENGTH: cacheColorWaveformStrengthNode.setInt(color); return;
-			case WAVE_GATE_STRENGTH: cacheColorWaveformStrengthGate.setInt(color); return;
-			case WAVE_POWER_STRENGTH: cacheColorWaveformStrengthPower.setInt(color); return;
-			case WAVE_CROSS_LOW: cacheColorWaveformCrossProbeLow.setInt(color); return;
-			case WAVE_CROSS_HIGH: cacheColorWaveformCrossProbeHigh.setInt(color); return;
-			case WAVE_CROSS_UNDEF: cacheColorWaveformCrossProbeX.setInt(color); return;
-			case WAVE_CROSS_FLOAT: cacheColorWaveformCrossProbeZ.setInt(color); return;
-		}
-		assert(false); // should not reach this point
+        }
 	}
 
 	/**
@@ -2453,33 +2422,8 @@ public class User extends Listener
 	 */
 	public static void resetFactoryColor(ColorPrefType pref)
 	{
-		Pref pf = null;
-		switch (pref)
-		{
-			case BACKGROUND: pf = cacheColorBackground; break;
-			case GRID: pf = cacheColorGrid; break;
-			case HIGHLIGHT: pf = cacheColorHighlight; break;
-            case NODE_HIGHLIGHT: pf = cacheColorNodeHighlight; break;
-            case MOUSEOVER_HIGHLIGHT: pf = cacheColorMouseOverHighlight; break;
-			case PORT_HIGHLIGHT: pf = cacheColorPortHighlight; break;
-			case TEXT: pf = cacheColorText; break;
-			case INSTANCE: pf = cacheColorInstanceOutline; break;
-			case ARTWORK: pf = cacheColorDefaultArtwork; break;
-			case DOWNINPLACEBORDER: pf = cacheColorDownInPlaceBorder; break;
-			case WAVE_BACKGROUND: pf = cacheColorWaveformBackground; break;
-			case WAVE_FOREGROUND: pf = cacheColorWaveformForeground; break;
-			case WAVE_STIMULI: pf = cacheColorWaveformStimuli; break;
-			case WAVE_OFF_STRENGTH: pf = cacheColorWaveformStrengthOff; break;
-			case WAVE_NODE_STRENGTH: pf = cacheColorWaveformStrengthNode; break;
-			case WAVE_GATE_STRENGTH: pf = cacheColorWaveformStrengthGate; break;
-			case WAVE_POWER_STRENGTH: pf = cacheColorWaveformStrengthPower; break;
-			case WAVE_CROSS_LOW: pf = cacheColorWaveformCrossProbeLow; break;
-			case WAVE_CROSS_HIGH: pf = cacheColorWaveformCrossProbeHigh; break;
-			case WAVE_CROSS_UNDEF: pf = cacheColorWaveformCrossProbeX; break;
-			case WAVE_CROSS_FLOAT: pf = cacheColorWaveformCrossProbeZ; break;
-		}
-        setColor(pref, pf.getIntFactoryValue());
-//		pf.setInt(pf.getIntFactoryValue());
+		Pref pf = getColorPref(pref);
+        pf.factoryReset();
 	}
 
 	private static Pref cacheColorBackground = Pref.makeIntPref("ColorBackground", tool.prefs, Color.LIGHT_GRAY.getRGB());
@@ -2497,8 +2441,6 @@ public class User extends Listener
 	private static Pref cacheColorText = Pref.makeIntPref("ColorText", tool.prefs, Color.BLACK.getRGB());
 
 	private static Pref cacheColorInstanceOutline = Pref.makeIntPref("ColorInstanceOutline", tool.prefs, Color.BLACK.getRGB());
-
-	private static Pref cacheColorDefaultArtwork = Pref.makeIntPref("ColorDefaultArtwork", tool.prefs, Color.BLACK.getRGB());
 
 	private static Pref cacheColorDownInPlaceBorder = Pref.makeIntPref("ColorDownInPlaceBorder", tool.prefs, Color.RED.getRGB());
 

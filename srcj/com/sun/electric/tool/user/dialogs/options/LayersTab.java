@@ -27,6 +27,7 @@ import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.ColorPatternPanel;
@@ -57,6 +58,9 @@ public class LayersTab extends PreferencePanel
     private Map<User.ColorPrefType, String> nameTypeSpecialMap;
     private Map<Technology,Color []> colorMapMap;
 	private ColorPatternPanel colorAndPatternPanel;
+    
+    private Layer defaultArtworkLayer;
+    private final static String DEFAULT_ARTWORK = "Special: DEFAULT ARTWORK";
 
     private void resetColorPanelInfo(ColorPatternPanel.Info cpi)
     {
@@ -133,9 +137,13 @@ public class LayersTab extends PreferencePanel
 				Layer layer = lIt.next();
 				if (layer.isPseudoLayer() && layer.getNonPseudoLayer() != layer) continue;
 				layerName.addItem(layer.getName());
+                if (tech instanceof Artwork) {
+                    assert layer.getName().equals("Graphics");
+                    defaultArtworkLayer = layer;
+                }
                 ColorPatternPanel.Info li = new ColorPatternPanel.Info(layer.getGraphics());
                 layerMap.put(layer, li);
-			}
+ 			}
 
 			// make an entry for the technology's color map
 			Color [] map = new Color[tech.getNumTransparentLayers()];
@@ -154,7 +162,6 @@ public class LayersTab extends PreferencePanel
         nameTypeSpecialMap.put(User.ColorPrefType.PORT_HIGHLIGHT, "Special: PORT HIGHLIGHT");
         nameTypeSpecialMap.put(User.ColorPrefType.TEXT, "Special: TEXT");
         nameTypeSpecialMap.put(User.ColorPrefType.INSTANCE, "Special: INSTANCE OUTLINES");
-        nameTypeSpecialMap.put(User.ColorPrefType.ARTWORK, "Special: DEFAULT ARTWORK");
         nameTypeSpecialMap.put(User.ColorPrefType.DOWNINPLACEBORDER, "Special: DOWN-IN-PLACE BORDER");
         nameTypeSpecialMap.put(User.ColorPrefType.WAVE_BACKGROUND, "Special: WAVEFORM BACKGROUND");
         nameTypeSpecialMap.put(User.ColorPrefType.WAVE_FOREGROUND, "Special: WAVEFORM FOREGROUND");
@@ -217,6 +224,7 @@ public class LayersTab extends PreferencePanel
 
 		// add special layer names
 		List<String> specialList = new ArrayList<String>();
+        specialList.add(DEFAULT_ARTWORK);
 		for(String name : transAndSpecialMap.keySet())
 			specialList.add(name);
 		Collections.sort(specialList, TextUtils.STRING_NUMBER_ORDER);
@@ -237,11 +245,12 @@ public class LayersTab extends PreferencePanel
 		if (tech == null) return;
 
 		String name = (String)layerName.getSelectedItem();
+        if (name == null) return;
 		ColorPatternPanel.Info li = transAndSpecialMap.get(name);
 		Layer layer = null;
 		if (li == null)
 		{
-			layer = tech.findLayer(name);
+			layer = name.equals(DEFAULT_ARTWORK) ? defaultArtworkLayer : tech.findLayer(name);
 			li = layerMap.get(layer);
 		}
 		if (li == null) return;
