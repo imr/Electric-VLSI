@@ -609,7 +609,7 @@ public class TechEditWizardData
 					if (varName.equalsIgnoreCase("num_metal_layers")) setNumMetalLayers(TextUtils.atoi(varValue)); else
                     if (varName.equalsIgnoreCase("pwell_process")) setPWellProcess(Boolean.valueOf(varValue)); else
                     if (varName.equalsIgnoreCase("horizontal_transistors")) setHorizontalTransistors(Boolean.valueOf(varValue)); else
-                    if (varName.equalsIgnoreCase("protection_poly")) setExtraInfoFlag(Boolean.valueOf(varValue)); else
+                    if (varName.equalsIgnoreCase("extra_info")) setExtraInfoFlag(Boolean.valueOf(varValue)); else
                     if (varName.equalsIgnoreCase("stepsize")) setStepSize(TextUtils.atoi(varValue)); else
 
 					if (varName.equalsIgnoreCase("diff_width")) diff_width.v = TextUtils.atof(varValue); else
@@ -1021,7 +1021,7 @@ public class TechEditWizardData
 		pw.println("$num_metal_layers = " + num_metal_layers + ";");
 		pw.println("$pwell_process = " + pWellFlag + ";");
 		pw.println("$horizontal_transistors = " + horizontalFlag + ";");
-        pw.println("$protection_poly = " + extraInfoFlag + ";");
+        pw.println("$extra_info = " + extraInfoFlag + ";");
         pw.println();
 		pw.println("## stepsize is minimum granularity that will be used as movement grid");
 		pw.println("## set to manufacturing grid or lowest common denominator with design rules");
@@ -1938,16 +1938,10 @@ public class TechEditWizardData
 
         if (getExtraInfoFlag())
         {
-            // protection
-//            protectionPolyLayer = makeXmlLayer(t.layers, layer_width, "SR_DPO", Layer.Function.ART, 0, graph,
-//            (char)('A' + cifNumber++), poly_width, true, false);
-
             // exclusion layer poly
             graph = new EGraphics(true, true, null, 1, 0, 0, 0, 1, true, dexclPattern);
             Xml.Layer exclusionPolyLayer = makeXmlLayer(t.layers, "DEXCL-Poly", Layer.Function.DEXCLPOLY1, 0, graph,
             (char)('A' + cifNumber), 2*poly_width.v, true, false);
-
-//            makeLayerGDS(t, protectionPolyLayer, String.valueOf(gds_sr_dpo_layer));
             makeLayerGDS(t, exclusionPolyLayer, "150/21");
         }
 
@@ -2104,8 +2098,8 @@ public class TechEditWizardData
         double nsel = scaledValue(contact_size.v/2 + diff_contact_overhang.v + nplus_overhang_diff.v);
         double psel = scaledValue(contact_size.v/2 + diff_contact_overhang.v + pplus_overhang_diff.v);
         double nwell = scaledValue(contact_size.v/2 + diff_contact_overhang.v + nwell_overhang_diff_p.v);
-        double nso = scaledValue(nwell_overhang_diff_p.v); // valid for elements that have nwell layers
-        double pso = (!pWellFlag)?nso:scaledValue(nplus_overhang_diff.v);
+        double nso = scaledValue(nwell_overhang_diff_p.v + diff_contact_overhang.v); // valid for elements that have nwell layers
+        double pso = (!pWellFlag)?nso:scaledValue(nplus_overhang_diff.v + diff_contact_overhang.v);
 
         // ndiff/pdiff contacts
         String[] diffNames = {"P", "N"};
@@ -2159,8 +2153,6 @@ public class TechEditWizardData
                 makeXmlNodeLayer(hla, hla, hla, hla, diffLayers[i], Poly.Type.CROSSED, true),
                 makeXmlNodeLayer(sels[i], sels[i], sels[i], sels[i], plusLayers[i], Poly.Type.CROSSED, true),
                 wellNodePin));
-
-//            List<Object> diffContacts = new ArrayList<Object>(), l = null;
 
             // F stands for full (all layers)
             diffG.addElement(makeXmlPrimitiveCon(t.nodeGroups, "F-"+composeName, hla, hla, new SizeOffset(sos[i], sos[i], sos[i], sos[i]), portNames,
@@ -2481,7 +2473,9 @@ public class TechEditWizardData
             // top port
             portNames.clear();
             portNames.add(activeLayer.name);
-            nodePorts.add(makeXmlPrimitivePort("trans-diff-top", 90, 90, 0, minFullSize, diffX, diffX, diffY, diffY, portNames));
+            EPoint mFSize = EPoint.fromLambda(diffX, 0);
+
+            nodePorts.add(makeXmlPrimitivePort("trans-diff-top", 90, 90, 0, mFSize, diffX, diffX, diffY, diffY, portNames));
             // bottom port
             nodePorts.add(makeXmlPrimitivePort("trans-diff-bottom", 270, 90, 0, minFullSize, xSign*diffX, xSign*diffX,
                 ySign*diffY, ySign*diffY, portNames));
