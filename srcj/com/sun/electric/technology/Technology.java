@@ -1259,6 +1259,24 @@ public class Technology implements Comparable<Technology>, Serializable
 	 */
 	public static void initAllTechnologies()
 	{
+//        EDatabase database = EDatabase.serverDatabase();
+//    	for(String softTechFile: ToolSettings.getSoftTechnologiesSetting().getString().split(";")) {
+//			if (softTechFile.length() == 0) continue;
+//        	URL url = TextUtils.makeURLToFile(softTechFile);
+//        	if (!TextUtils.URLExists(url)) {
+//        		System.out.println("WARNING: could not find added technology: " + softTechFile);
+//        		System.out.println("  (fix this error in the 'Added Technologies' Project Settings)");
+//        	}
+//            TechFactory techFactory = TechFactory.fromXml(url, null);
+//            Technology tech = techFactory.newInstance(database.getGeneric());
+//            if (tech == null) continue;
+//            database.addTech(tech);
+//            Setting.SettingChangeBatch changeBatch = new Setting.SettingChangeBatch();
+//            for (Setting setting: tech.getProjectSettings().getSettings().keySet())
+//                changeBatch.add(setting, setting.getValueFromPreferences());
+//            database.implementSettingChanges(changeBatch);
+//        }
+        
 		// set the current technology, given priority to user defined
         curLayoutTech = getMocmosTechnology();
         Technology  tech = Technology.findTechnology(User.getDefaultTechnology());
