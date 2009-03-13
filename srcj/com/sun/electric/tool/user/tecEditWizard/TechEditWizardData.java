@@ -1608,18 +1608,20 @@ public class TechEditWizardData
         Xml.PrimitivePort ppd = new Xml.PrimitivePort();
         double lambdaX = (minFullSize != null) ? minFullSize.getLambdaX() : 0;
         double lambdaY = (minFullSize != null) ? minFullSize.getLambdaY() : 0;
+        int signX = 1; //(lx > 0) ? 1 : -1;
+        int signY = 1; //.(ly > 0) ? 1 : -1;
         ppd.name = name;
         ppd.portAngle = portAngle;
         ppd.portRange = portRange;
         ppd.portTopology = portTopology;
 
-        ppd.lx.k = -1; //getLeft().getMultiplier()*2;
+        ppd.lx.k = -signX;//-1; //getLeft().getMultiplier()*2;
         ppd.lx.addLambda(DBMath.round(lx + lambdaX*ppd.lx.k));
-        ppd.hx.k = 1; //getRight().getMultiplier()*2;
+        ppd.hx.k = signX;//1; //getRight().getMultiplier()*2;
         ppd.hx.addLambda(DBMath.round(hx + lambdaX*ppd.hx.k));
-        ppd.ly.k = -1; // getBottom().getMultiplier()*2;
+        ppd.ly.k = -signY;//-1; // getBottom().getMultiplier()*2;
         ppd.ly.addLambda(DBMath.round(ly + lambdaY*ppd.ly.k));
-        ppd.hy.k = 1; // getTop().getMultiplier()*2;
+        ppd.hy.k = signY;//1; // getTop().getMultiplier()*2;
         ppd.hy.addLambda(DBMath.round(hy + lambdaY*ppd.hy.k));
 
         if (portArcs != null) {
@@ -2473,9 +2475,8 @@ public class TechEditWizardData
             // top port
             portNames.clear();
             portNames.add(activeLayer.name);
-            EPoint mFSize = EPoint.fromLambda(diffX, 0);
 
-            nodePorts.add(makeXmlPrimitivePort("trans-diff-top", 90, 90, 0, mFSize, diffX, diffX, diffY, diffY, portNames));
+            nodePorts.add(makeXmlPrimitivePort("trans-diff-top", 90, 90, 0, minFullSize, diffX, diffX, diffY, diffY, portNames));
             // bottom port
             nodePorts.add(makeXmlPrimitivePort("trans-diff-bottom", 270, 90, 0, minFullSize, xSign*diffX, xSign*diffX,
                 ySign*diffY, ySign*diffY, portNames));
@@ -2533,8 +2534,8 @@ public class TechEditWizardData
                 }
                 // bottom or left
                 Xml.NodeLayer bOrL = (makeXmlNodeLayer(gatex, gatex, //endPolyx, endPolyx,
-                    DBMath.round(endPolyy + protectDist),
-                    -DBMath.round((protectDist + 3*endPolyy)),
+                    DBMath.round((protectDist + 3*endPolyy)),
+                    -DBMath.round(endPolyy + protectDist),
                    polyLayer, Poly.Type.FILLED, false));
                 // Adding left
                 nodesList.add(bOrL);
@@ -2544,8 +2545,8 @@ public class TechEditWizardData
 
                 // top or right
                 Xml.NodeLayer tOrR = (makeXmlNodeLayer(gatex, gatex, // endPolyx, endPolyx,
-                    -DBMath.round((protectDist + 3*endPolyy)),
-                    DBMath.round(endPolyy + protectDist),
+                    -DBMath.round(endPolyy + protectDist),
+                    DBMath.round((protectDist + 3*endPolyy)),
                     polyLayer, Poly.Type.FILLED, false));
 
                 // Adding both
