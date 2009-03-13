@@ -503,7 +503,7 @@ public abstract class InteractiveRouter extends Router {
                 return route;
             }
             // check single arc case
-            if ((DBMath.figureAngle(startPoint, endPoint) % (10*startArc.getAngleIncrement())) == 0) {
+            if (startArc.getAngleIncrement() == 0 || (DBMath.figureAngle(startPoint, endPoint) % (10*startArc.getAngleIncrement())) == 0) {
                 // single arc
                 addConnectingArc(route, cell, startRE, endRE, startPoint, endPoint, startArc,
                         startArcWidth, startAngle, extendArcHead, extendArcTail, stayInside);
@@ -725,6 +725,12 @@ public abstract class InteractiveRouter extends Router {
             Point2D intersection = getIntersection(new Line2D.Double(points1[0], points1[1]),
                                                    new Line2D.Double(points2[0], points2[1]));
             if (intersection != null) {
+                System.out.println("===========================================================");
+                System.out.println("Start Poly: "+points1[0]+", "+points1[1]);
+                System.out.println("End Poly: "+points2[0]+", "+points2[1]);
+                System.out.println("Intersection Point: "+intersection);
+                System.out.println("===========================================================");
+
                 startPoint.setLocation(intersection);
                 endPoint.setLocation(intersection);
                 return;
@@ -776,27 +782,27 @@ public abstract class InteractiveRouter extends Router {
             return null;
         double [] co1 = getLineCoeffs(line1);
         double [] co2 = getLineCoeffs(line2);
-        double x = 0, y = 0;
-        // x = (B2 - B1)/(A1 - A2)
-        x = (co2[1] - co1[1])/(co1[0] - co2[0]);
-        // y = Ax + B
-        y = co1[0] * x + co1[1];
+        // det = A1*B2 - A2*B1
+        double det = co1[0]*co2[1] - co2[0]*co1[1];
+        // if det == 0, lines are parallel, but already checked by intersection check above
+        // x = (B2*C1 - B1*C2)/det
+        double x = (co2[1]*co1[2] - co1[1]*co2[2])/det;
+        // y = (A1*C2 - A2*C1)/det
+        double y = (co1[0]*co2[2] - co2[0]*co1[2])/det;
         return new Point2D.Double(x, y);
     }
 
     /**
-     * Get the coeffecients of the line of the form y = Ax + B.
+     * Get the coeffecients of the line of the form Ax + By = C.
+     * Can't use y = Ax + B because it does not allow x = A type equations.
      * @param line the line
-     * @return an array of the values A,B (slope, intercept)
+     * @return an array of the values A,B,C
      */
     private static double [] getLineCoeffs(Line2D line) {
-        double dy = line.getP2().getY() - line.getP1().getY();
-        double dx = line.getP2().getX() - line.getP1().getX();
-        // slope is rise over run (dy / dx)
-        double slope = dy/dx;
-        // B = y - Ax
-        double intercept = line.getP2().getY() - slope * line.getP2().getX();
-        return new double [] {slope, intercept};
+        double A = line.getP2().getY() - line.getP1().getY();
+        double B = line.getP1().getX() - line.getP2().getX();
+        double C = A * line.getP1().getX() + B * line.getP1().getY();
+        return new double [] {A,B,C};
     }
     
 
