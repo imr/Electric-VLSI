@@ -4,7 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.09f: ******************************
 
-IMP: (3/12/09, DN) Technology preferences are preallocated in tech constructor.
+IMP: (3/14/09, DN) Boolean pref values are stored as Boolean (was Integer).
+
+IMP: (3/13/09, DN) Technology preferences are preallocated in tech constructor.
 
 BUG: (3/13/09, DN) Default artwork color broken again (Bug #2069).
 FIX: Remove User.ColorPrefType.ARTWORK because it conflicts with Artwork.defaultLayer.colorPref
